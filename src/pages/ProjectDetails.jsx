@@ -387,7 +387,10 @@ function ProjectDetails() {
           )}
 
           {activeTab === "materials" && (
-  <MaterialsTab project={project} />
+  <MaterialsTab
+    project={project}
+    onProjectUpdated={handleProjectUpdated}
+  />
 )}
 
           {activeTab === "settings" && (
