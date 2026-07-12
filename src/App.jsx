@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./pages/Dashboard"
 import Projects from "./pages/Projects"
+import Customers from "./pages/Customers"
 import Agents from "./pages/Agents"
 import Knowledge from "./pages/Knowledge"
 import Settings from "./pages/Settings"
@@ -30,6 +31,11 @@ function App() {
               <Route
                 path="/projects/:projectId"
                 element={<ProjectDetails />}
+              />
+
+              <Route
+                path="/customers"
+                element={<Customers />}
               />
 
               <Route

@@ -3,6 +3,7 @@ import { NavLink } from "react-router"
 const links = [
   { name: "Dashboard", path: "/", icon: "🏠" },
   { name: "Projects", path: "/projects", icon: "📦" },
+  { name: "Asiakkaat", path: "/customers", icon: "👥" },
   { name: "AI Agents", path: "/agents", icon: "🤖" },
   { name: "Knowledge", path: "/knowledge", icon: "📚" },
   { name: "Settings", path: "/settings", icon: "⚙️" },
