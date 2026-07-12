@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+html {
+  background: #0a0a0a;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #0a0a0a;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  body {
+    margin: 0 !important;
+  }
+
+  aside,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    min-height: auto !important;
+    background: white !important;
+  }
+
+  main > div {
+    display: block !important;
+    min-height: auto !important;
+  }
+
+  main section {
+    margin: 0 !important;
+  }
+
+  .quote-document {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    break-inside: avoid;
+  }
+
+  .quote-document header {
+    break-inside: avoid;
+  }
+
+  .quote-document section {
+    break-inside: avoid;
+  }
+
+  .quote-document * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
