@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react"
+
 import ProjectCard from "../components/ProjectCard"
+import { getCustomers } from "../data/CustomerStore"
 
 function Projects() {
-  const [projects, setProjects] = useState(() => {
-    const saved = localStorage.getItem("woodBoosterProjects")
-    return saved ? JSON.parse(saved) : []
-  })
+  const [projects, setProjects] = useState(() =>
+    readProjects(),
+  )
+
+  const [customers] = useState(() =>
+    getCustomers(),
+  )
 
   const [showForm, setShowForm] = useState(false)
 
   const [form, setForm] = useState({
     name: "",
-    customer: "",
+    customerId: "",
     status: "Suunnittelu",
     deadline: "",
     notes: "",
@@ -20,35 +25,61 @@ function Projects() {
   useEffect(() => {
     localStorage.setItem(
       "woodBoosterProjects",
-      JSON.stringify(projects)
+      JSON.stringify(projects),
     )
   }, [projects])
 
-  function handleChange(e) {
-    const { name, value } = e.target
+  function handleChange(event) {
+    const { name, value } = event.target
 
-    setForm((current) => ({
-      ...current,
+    setForm((currentForm) => ({
+      ...currentForm,
       [name]: value,
     }))
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
+  function handleSubmit(event) {
+    event.preventDefault()
 
-    if (!form.name.trim()) return
+    const projectName = form.name.trim()
 
-    const newProject = {
-      id: crypto.randomUUID(),
-      ...form,
-      materials: [],
+    if (!projectName) {
+      return
     }
 
-    setProjects([newProject, ...projects])
+    const selectedCustomer = customers.find(
+      (customer) =>
+        String(customer.id) ===
+        String(form.customerId),
+    )
+
+    const now = new Date().toISOString()
+
+    const newProject = {
+      id: createId(),
+      name: projectName,
+      customerId: selectedCustomer?.id || "",
+      customer: selectedCustomer?.name || "",
+      status: form.status,
+      deadline: form.deadline,
+      notes: form.notes.trim(),
+      description: "",
+      materials: [],
+      timeline: [],
+      gallery: [],
+      costing: {},
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    setProjects((currentProjects) => [
+      newProject,
+      ...currentProjects,
+    ])
 
     setForm({
       name: "",
-      customer: "",
+      customerId: "",
       status: "Suunnittelu",
       deadline: "",
       notes: "",
@@ -57,15 +88,26 @@ function Projects() {
     setShowForm(false)
   }
 
-  function deleteProject(id) {
-    if (!window.confirm("Poistetaanko projekti?")) return
+  function deleteProject(projectId) {
+    const shouldDelete = window.confirm(
+      "Poistetaanko projekti?",
+    )
 
-    setProjects(projects.filter((p) => p.id !== id))
+    if (!shouldDelete) {
+      return
+    }
+
+    setProjects((currentProjects) =>
+      currentProjects.filter(
+        (project) =>
+          String(project.id) !== String(projectId),
+      ),
+    )
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.3em] text-amber-500">
             Projects
@@ -74,11 +116,16 @@ function Projects() {
           <h1 className="mt-2 text-4xl font-bold">
             Projektit
           </h1>
+
+          <p className="mt-3 text-neutral-400">
+            Hallitse asiakasprojekteja ja niiden etenemistä.
+          </p>
         </div>
 
         <button
+          type="button"
           onClick={() => setShowForm(true)}
-          className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-black"
+          className="self-start rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400"
         >
           + Uusi projekti
         </button>
@@ -87,26 +134,38 @@ function Projects() {
       {showForm && (
         <ProjectForm
           form={form}
+          customers={customers}
           onChange={handleChange}
           onSubmit={handleSubmit}
           onCancel={() => setShowForm(false)}
         />
       )}
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-2">
-        {projects.map((project) => (
-          <ProjectCard
-            key={project.id}
-            project={project}
-            onDelete={() => deleteProject(project.id)}
-          />
-        ))}
-      </div>
+      {projects.length === 0 ? (
+        <div className="mt-8 rounded-2xl border border-dashed border-neutral-700 p-10 text-center">
+          <p className="text-5xl">📦</p>
 
-      {projects.length === 0 && (
-        <p className="mt-8 text-neutral-400">
-          Ei projekteja vielä.
-        </p>
+          <h2 className="mt-5 text-xl font-semibold">
+            Ei projekteja vielä
+          </h2>
+
+          <p className="mt-2 text-neutral-400">
+            Luo ensimmäinen projekti painamalla
+            Uusi projekti -painiketta.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-8 grid gap-4 lg:grid-cols-2">
+          {projects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onDelete={() =>
+                deleteProject(project.id)
+              }
+            />
+          ))}
+        </div>
       )}
     </div>
   )
@@ -114,6 +173,7 @@ function Projects() {
 
 function ProjectForm({
   form,
+  customers,
   onChange,
   onSubmit,
   onCancel,
@@ -123,49 +183,115 @@ function ProjectForm({
       onSubmit={onSubmit}
       className="mt-8 rounded-2xl border border-neutral-800 bg-neutral-900 p-6"
     >
-      <input
-        name="name"
-        placeholder="Projektin nimi"
-        value={form.name}
-        onChange={onChange}
-        className="mb-3 w-full rounded-xl bg-neutral-950 p-3"
-      />
+      <div className="grid gap-5 md:grid-cols-2">
+        <FormField label="Projektin nimi">
+          <input
+            type="text"
+            name="name"
+            placeholder="Esimerkiksi Aurora-pöytä"
+            value={form.name}
+            onChange={onChange}
+            required
+            className={inputClasses}
+          />
+        </FormField>
 
-      <input
-        name="customer"
-        placeholder="Asiakas"
-        value={form.customer}
-        onChange={onChange}
-        className="mb-3 w-full rounded-xl bg-neutral-950 p-3"
-      />
+        <FormField label="Asiakas">
+          <select
+            name="customerId"
+            value={form.customerId}
+            onChange={onChange}
+            className={inputClasses}
+          >
+            <option value="">
+              Ei valittua asiakasta
+            </option>
 
-      <input
-        type="date"
-        name="deadline"
-        value={form.deadline}
-        onChange={onChange}
-        className="mb-3 w-full rounded-xl bg-neutral-950 p-3"
-      />
+            {customers.map((customer) => (
+              <option
+                key={customer.id}
+                value={customer.id}
+              >
+                {customer.name}
+                {customer.company
+                  ? ` – ${customer.company}`
+                  : ""}
+              </option>
+            ))}
+          </select>
 
-      <textarea
-        name="notes"
-        placeholder="Muistiinpanot"
-        value={form.notes}
-        onChange={onChange}
-        className="mb-4 w-full rounded-xl bg-neutral-950 p-3"
-      />
+          {customers.length === 0 && (
+            <p className="mt-2 text-sm text-amber-400">
+              Lisää ensin asiakas Asiakkaat-sivulla.
+            </p>
+          )}
+        </FormField>
 
-      <div className="flex gap-3">
+        <FormField label="Projektin tila">
+          <select
+            name="status"
+            value={form.status}
+            onChange={onChange}
+            className={inputClasses}
+          >
+            <option value="Idea">Idea</option>
+            <option value="Suunnittelu">
+              Suunnittelu
+            </option>
+            <option value="Tarjous">
+              Tarjous
+            </option>
+            <option value="Tuotannossa">
+              Tuotannossa
+            </option>
+            <option value="Viimeistely">
+              Viimeistely
+            </option>
+            <option value="Toimitus">
+              Toimitus
+            </option>
+            <option value="Valmis">
+              Valmis
+            </option>
+          </select>
+        </FormField>
+
+        <FormField label="Deadline">
+          <input
+            type="date"
+            name="deadline"
+            value={form.deadline}
+            onChange={onChange}
+            className={inputClasses}
+          />
+        </FormField>
+      </div>
+
+      <div className="mt-5">
+        <FormField label="Muistiinpanot">
+          <textarea
+            name="notes"
+            placeholder="Projektin ensimmäiset muistiinpanot..."
+            value={form.notes}
+            onChange={onChange}
+            rows={5}
+            className={`${inputClasses} resize-y`}
+          />
+        </FormField>
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-3">
         <button
-          className="rounded-xl bg-amber-500 px-4 py-2 text-black"
+          type="submit"
+          className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400"
         >
-          Tallenna
+          Tallenna projekti
         </button>
 
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-xl border border-neutral-700 px-4 py-2"
+          className="rounded-xl border border-neutral-700 px-5 py-3 text-neutral-300 transition hover:bg-neutral-800"
         >
           Peruuta
         </button>
@@ -173,5 +299,51 @@ function ProjectForm({
     </form>
   )
 }
+
+function FormField({ label, children }) {
+  return (
+    <label className="block">
+      <span className="text-sm text-neutral-300">
+        {label}
+      </span>
+
+      {children}
+    </label>
+  )
+}
+
+function readProjects() {
+  try {
+    const savedProjects = localStorage.getItem(
+      "woodBoosterProjects",
+    )
+
+    const projects = savedProjects
+      ? JSON.parse(savedProjects)
+      : []
+
+    return Array.isArray(projects)
+      ? projects
+      : []
+  } catch {
+    return []
+  }
+}
+
+function createId() {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID()
+  }
+
+  return `${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}`
+}
+
+const inputClasses =
+  "mt-2 w-full rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none transition placeholder:text-neutral-600 focus:border-amber-500"
 
 export default Projects
