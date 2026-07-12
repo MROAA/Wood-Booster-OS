@@ -8,14 +8,13 @@ function QuoteTab({
   productionCost,
   recommendedPrice,
 }) {
-  const [quote, setQuote] = useState({
-    validDays: "14",
-    deliveryTime: "4–6 viikkoa",
-    paymentTerms: "50 % tilauksesta, 50 % ennen toimitusta",
-    description:
-      project.notes ||
-      "Yksilöllinen Wood-Booster-huonekalu asiakkaan toiveiden mukaisesti.",
-  })
+const [quote, setQuote] = useState({
+  validDays: "14",
+  deliveryTime: "4–6 viikkoa",
+  paymentTerms: "50 % tilauksesta, 50 % ennen toimitusta",
+  description:
+    "Yksilöllinen Wood-Booster-huonekalu asiakkaan toiveiden mukaisesti.",
+})
 
   function handleChange(event) {
     const { name, value } = event.target

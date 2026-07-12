@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router"
 import ProjectEditor from "../components/ProjectEditor"
 import QuoteTab from "../components/QuoteTab"
 import TimelineTab from "../components/TimelineTab"
+import MaterialsTab from "../components/MaterialsTab"
 
 function ProjectDetails() {
   const { projectId } = useParams()
@@ -335,6 +336,13 @@ function ProjectDetails() {
             </TabButton>
 
             <TabButton
+              active={activeTab === "materials"}
+              onClick={() => setActiveTab("materials")}
+            >
+              Materiaalit
+            </TabButton>
+
+            <TabButton
               active={activeTab === "settings"}
               onClick={() => setActiveTab("settings")}
             >
@@ -377,6 +385,10 @@ function ProjectDetails() {
               onProjectUpdated={handleProjectUpdated}
             />
           )}
+
+          {activeTab === "materials" && (
+  <MaterialsTab project={project} />
+)}
 
           {activeTab === "settings" && (
             <ProjectEditor

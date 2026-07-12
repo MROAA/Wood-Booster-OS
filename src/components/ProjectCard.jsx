@@ -34,7 +34,7 @@ function ProjectCard({ project, onDelete }) {
             </p>
 
             <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-300">
-              {project.notes}
+              {getNotesText(project.notes)}
             </p>
           </div>
         )}
@@ -58,6 +58,35 @@ function ProjectCard({ project, onDelete }) {
       </div>
     </article>
   )
+}
+
+function getNotesText(notes) {
+  if (typeof notes === "string") {
+    return notes
+  }
+
+  if (!Array.isArray(notes)) {
+    return ""
+  }
+
+  return notes
+    .map((note) => {
+      if (typeof note === "string") {
+        return note
+      }
+
+      if (
+        note &&
+        typeof note === "object" &&
+        typeof note.text === "string"
+      ) {
+        return note.text
+      }
+
+      return ""
+    })
+    .filter(Boolean)
+    .join("\n\n")
 }
 
 function StatusBadge({ status }) {
