@@ -5,6 +5,7 @@ import ProjectEditor from "../components/ProjectEditor"
 import QuoteTab from "../components/QuoteTab"
 import TimelineTab from "../components/TimelineTab"
 import MaterialsTab from "../components/MaterialsTab"
+import CostCalculator from "../components/project/CostCalculator"
 
 function ProjectDetails() {
   const { projectId } = useParams()
@@ -333,6 +334,12 @@ function ProjectDetails() {
               onClick={() => setActiveTab("timeline")}
             >
               Aikajana
+            <TabButton
+  active={activeTab === "pricing"}
+  onClick={() => setActiveTab("pricing")}
+>
+  Hinnoittelu
+</TabButton>
             </TabButton>
 
             <TabButton
@@ -392,6 +399,13 @@ function ProjectDetails() {
     onProjectUpdated={handleProjectUpdated}
   />
 )}
+
+          {activeTab === "pricing" && (
+            <CostCalculator
+              project={project}
+              onProjectUpdated={handleProjectUpdated}
+            />
+          )}
 
           {activeTab === "settings" && (
             <ProjectEditor
