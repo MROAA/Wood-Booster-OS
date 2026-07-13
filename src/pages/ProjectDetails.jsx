@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router"
 import ProjectEditor from "../components/ProjectEditor"
 import QuoteTab from "../components/QuoteTab"
 import TimelineTab from "../components/TimelineTab"
+import WorkflowTab from "../components/WorkflowTab"
 import MaterialsTab from "../components/MaterialsTab"
 import CostCalculator from "../components/project/CostCalculator"
 
@@ -334,12 +335,20 @@ function ProjectDetails() {
               onClick={() => setActiveTab("timeline")}
             >
               Aikajana
+            </TabButton>
+
             <TabButton
-  active={activeTab === "pricing"}
-  onClick={() => setActiveTab("pricing")}
->
-  Hinnoittelu
-</TabButton>
+              active={activeTab === "workflow"}
+              onClick={() => setActiveTab("workflow")}
+            >
+              Työvaiheet
+            </TabButton>
+
+            <TabButton
+              active={activeTab === "pricing"}
+              onClick={() => setActiveTab("pricing")}
+            >
+              Hinnoittelu
             </TabButton>
 
             <TabButton
@@ -394,6 +403,10 @@ function ProjectDetails() {
               projectId={project.id}
               onProjectUpdated={handleProjectUpdated}
             />
+          )}
+
+          {activeTab === "workflow" && (
+            <WorkflowTab projectId={project.id} />
           )}
 
           {activeTab === "materials" && (
