@@ -380,8 +380,11 @@ function ProjectDetails() {
           {activeTab === "quote" && (
             <QuoteTab
               project={project}
-              projectId={project.id}
-              onProjectUpdated={handleProjectUpdated}
+              materialTotal={calculateMaterialTotal(project)}
+              laborTotal={calculateLaborTotal(project)}
+              otherCosts={toNumber(project.costing?.otherCosts)}
+              productionCost={calculateProductionCost(project)}
+              recommendedPrice={calculateRecommendedPrice(project)}
             />
           )}
 
@@ -755,6 +758,56 @@ function formatDateTime(dateValue) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date)
+}
+
+
+function calculateMaterialTotal(project) {
+  const materials = Array.isArray(project?.materials)
+    ? project.materials
+    : []
+
+  return materials.reduce(
+    (sum, material) =>
+      sum +
+      toNumber(material.quantity) *
+        toNumber(material.unitPrice),
+    0,
+  )
+}
+
+function calculateLaborTotal(project) {
+  return (
+    toNumber(project?.costing?.laborHours) *
+    toNumber(project?.costing?.hourlyRate)
+  )
+}
+
+function calculateProductionCost(project) {
+  return (
+    calculateMaterialTotal(project) +
+    calculateLaborTotal(project) +
+    toNumber(project?.costing?.otherCosts)
+  )
+}
+
+function calculateRecommendedPrice(project) {
+  const productionCost =
+    calculateProductionCost(project)
+
+  return (
+    productionCost *
+    (1 +
+      toNumber(project?.costing?.markupPercent) /
+        100)
+  )
+}
+
+function toNumber(value) {
+  const number = Number(value)
+
+  return Number.isFinite(number)
+    ? number
+    : 0
 }
 
 export default ProjectDetails
