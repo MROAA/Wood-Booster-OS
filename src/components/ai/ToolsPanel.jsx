@@ -1,0 +1,15 @@
+function ToolsPanel() {
+  return (
+    <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
+      <h2 className="text-2xl font-bold">
+        🛠 Tools
+      </h2>
+
+      <p className="mt-3 text-neutral-400">
+        AI:n käyttämät työkalut tulevat tänne.
+      </p>
+    </section>
+  )
+}
+
+export default ToolsPanel
