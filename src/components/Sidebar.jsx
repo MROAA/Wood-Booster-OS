@@ -1,13 +1,46 @@
 import { NavLink } from "react-router"
 
 const links = [
-  { name: "Dashboard", path: "/", icon: "🏠" },
-  { name: "Projects", path: "/projects", icon: "📦" },
-  { name: "Asiakkaat", path: "/customers", icon: "👥" },
-  { name: "Varasto", path: "/inventory", icon: "🧰" },
-  { name: "AI Agents", path: "/agents", icon: "🤖" },
-  { name: "Knowledge", path: "/knowledge", icon: "📚" },
-  { name: "Settings", path: "/settings", icon: "⚙️" },
+  {
+    name: "Dashboard",
+    path: "/",
+    icon: "🏠",
+  },
+  {
+    name: "AI Brain",
+    path: "/ai-brain",
+    icon: "🧠",
+  },
+  {
+    name: "Projects",
+    path: "/projects",
+    icon: "📦",
+  },
+  {
+    name: "Asiakkaat",
+    path: "/customers",
+    icon: "👥",
+  },
+  {
+    name: "Varasto",
+    path: "/inventory",
+    icon: "🧰",
+  },
+  {
+    name: "AI Agents",
+    path: "/agents",
+    icon: "🤖",
+  },
+  {
+    name: "Knowledge",
+    path: "/knowledge",
+    icon: "📚",
+  },
+  {
+    name: "Settings",
+    path: "/settings",
+    icon: "⚙️",
+  },
 ]
 
 function Sidebar() {
@@ -41,8 +74,13 @@ function Sidebar() {
               }`
             }
           >
-            <span className="text-lg">{link.icon}</span>
-            <span>{link.name}</span>
+            <span className="text-lg">
+              {link.icon}
+            </span>
+
+            <span>
+              {link.name}
+            </span>
           </NavLink>
         ))}
       </nav>
@@ -54,6 +92,7 @@ function Sidebar() {
 
         <div className="mt-3 flex items-center gap-2 text-sm">
           <span className="h-2 w-2 rounded-full bg-green-500" />
+
           <span className="text-neutral-300">
             Workstation online
           </span>
