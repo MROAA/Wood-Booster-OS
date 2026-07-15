@@ -74,7 +74,9 @@ function ChatPanel() {
 
     } finally {
 
-      setLoading(false)
+content:
+  data.answer ||
+  "AI ei palauttanut sisältöä.",      setLoading(false)
 
     }
   }
