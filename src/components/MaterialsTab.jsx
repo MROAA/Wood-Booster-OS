@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react"
-import { getMaterials } from "../data/MaterialStore"
+import {
+  readInventory,
+  saveInventory,
+} from "../data/inventory"
 
 function MaterialsTab({
   project,
   onProjectUpdated,
 }) {
-  const materialLibrary = useMemo(
-    () => getMaterials(),
-    [],
+  const [inventory, setInventory] = useState(
+    () => readInventory(),
   )
 
   const [projectMaterials, setProjectMaterials] =
@@ -18,9 +20,19 @@ function MaterialsTab({
     )
 
   const [form, setForm] = useState({
-    materialId: "",
+    inventoryItemId: "",
     quantity: "1",
   })
+
+  const selectedInventoryItem = useMemo(
+    () =>
+      inventory.find(
+        (item) =>
+          String(item.id) ===
+          String(form.inventoryItemId),
+      ) || null,
+    [inventory, form.inventoryItemId],
+  )
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -34,27 +46,23 @@ function MaterialsTab({
   function addMaterial(event) {
     event.preventDefault()
 
-    const selectedMaterial = materialLibrary.find(
-      (material) =>
-        String(material.id) ===
-        String(form.materialId),
-    )
-
-    const quantity = Number(form.quantity)
+    const quantity = toNumber(form.quantity)
 
     if (
-      !selectedMaterial ||
-      !Number.isFinite(quantity) ||
-      quantity <= 0
+      !selectedInventoryItem ||
+      quantity <= 0 ||
+      quantity >
+        toNumber(selectedInventoryItem.quantity)
     ) {
       return
     }
 
-    const existingMaterial = projectMaterials.find(
-      (material) =>
-        String(material.materialId) ===
-        String(selectedMaterial.id),
-    )
+    const existingMaterial =
+      projectMaterials.find(
+        (material) =>
+          String(material.inventoryItemId) ===
+          String(selectedInventoryItem.id),
+      )
 
     let updatedMaterials
 
@@ -62,8 +70,8 @@ function MaterialsTab({
       updatedMaterials = projectMaterials.map(
         (material) => {
           if (
-            String(material.materialId) !==
-            String(selectedMaterial.id)
+            String(material.inventoryItemId) !==
+            String(selectedInventoryItem.id)
           ) {
             return material
           }
@@ -76,36 +84,61 @@ function MaterialsTab({
         },
       )
     } else {
-      const newMaterial = {
-        id: createId(),
-        materialId: selectedMaterial.id,
-        name: selectedMaterial.name,
-        category: selectedMaterial.category,
-        unit: selectedMaterial.unit,
-        unitPrice: toNumber(
-          selectedMaterial.unitPrice,
-        ),
-        quantity,
-        createdAt: new Date().toISOString(),
-      }
-
       updatedMaterials = [
         ...projectMaterials,
-        newMaterial,
+        {
+          id: createId(),
+          inventoryItemId: selectedInventoryItem.id,
+          name: selectedInventoryItem.name,
+          category: selectedInventoryItem.category,
+          unit: selectedInventoryItem.unit,
+          unitPrice: toNumber(
+            selectedInventoryItem.unitPrice,
+          ),
+          quantity,
+          createdAt: new Date().toISOString(),
+        },
       ]
     }
 
+    const updatedInventory = inventory.map((item) => {
+      if (
+        String(item.id) !==
+        String(selectedInventoryItem.id)
+      ) {
+        return item
+      }
+
+      return {
+        ...item,
+        quantity:
+          toNumber(item.quantity) - quantity,
+        updatedAt: new Date().toISOString(),
+      }
+    })
+
+    saveInventory(updatedInventory)
+    setInventory(updatedInventory)
     saveProjectMaterials(updatedMaterials)
 
     setForm({
-      materialId: "",
+      inventoryItemId: "",
       quantity: "1",
     })
   }
 
   function deleteMaterial(materialId) {
+    const material = projectMaterials.find(
+      (item) =>
+        String(item.id) === String(materialId),
+    )
+
+    if (!material) {
+      return
+    }
+
     const shouldDelete = window.confirm(
-      "Poistetaanko materiaali projektilta?",
+      "Poistetaanko materiaali projektilta ja palautetaanko määrä varastoon?",
     )
 
     if (!shouldDelete) {
@@ -114,10 +147,34 @@ function MaterialsTab({
 
     const updatedMaterials =
       projectMaterials.filter(
-        (material) =>
-          String(material.id) !==
+        (item) =>
+          String(item.id) !==
           String(materialId),
       )
+
+    let updatedInventory = inventory
+
+    if (material.inventoryItemId) {
+      updatedInventory = inventory.map((item) => {
+        if (
+          String(item.id) !==
+          String(material.inventoryItemId)
+        ) {
+          return item
+        }
+
+        return {
+          ...item,
+          quantity:
+            toNumber(item.quantity) +
+            toNumber(material.quantity),
+          updatedAt: new Date().toISOString(),
+        }
+      })
+
+      saveInventory(updatedInventory)
+      setInventory(updatedInventory)
+    }
 
     saveProjectMaterials(updatedMaterials)
   }
@@ -173,16 +230,16 @@ function MaterialsTab({
     <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
         <p className="text-xs uppercase tracking-wider text-neutral-500">
-          Add material
+          Inventory material
         </p>
 
         <h2 className="mt-2 text-2xl font-semibold">
-          Lisää materiaali projektiin
+          Lisää varastosta
         </h2>
 
         <p className="mt-2 text-neutral-400">
-          Valitse materiaali kirjastosta ja anna tarvittava
-          määrä.
+          Valitse varastomateriaali ja käytettävä määrä.
+          Määrä vähennetään automaattisesti varastosta.
         </p>
 
         <form
@@ -195,26 +252,25 @@ function MaterialsTab({
             </span>
 
             <select
-              name="materialId"
-              value={form.materialId}
+              name="inventoryItemId"
+              value={form.inventoryItemId}
               onChange={handleChange}
               required
               className={inputClasses}
             >
               <option value="">
-                Valitse materiaali
+                Valitse varastosta
               </option>
 
-              {materialLibrary.map((material) => (
+              {inventory.map((item) => (
                 <option
-                  key={material.id}
-                  value={material.id}
+                  key={item.id}
+                  value={item.id}
+                  disabled={toNumber(item.quantity) <= 0}
                 >
-                  {material.name} –{" "}
-                  {formatCurrency(
-                    material.unitPrice,
-                  )}{" "}
-                  / {material.unit}
+                  {item.name} –{" "}
+                  {formatNumber(item.quantity)}{" "}
+                  {item.unit || "kpl"} varastossa
                 </option>
               ))}
             </select>
@@ -222,7 +278,7 @@ function MaterialsTab({
 
           <label className="block">
             <span className="text-sm text-neutral-300">
-              Määrä
+              Käytettävä määrä
             </span>
 
             <input
@@ -231,24 +287,65 @@ function MaterialsTab({
               value={form.quantity}
               onChange={handleChange}
               min="0.01"
+              max={
+                selectedInventoryItem
+                  ? selectedInventoryItem.quantity
+                  : undefined
+              }
               step="0.01"
               required
               className={inputClasses}
             />
           </label>
 
+          {selectedInventoryItem && (
+            <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+              <p className="text-sm text-neutral-400">
+                Varastossa nyt
+              </p>
+
+              <p className="mt-1 text-xl font-semibold text-amber-400">
+                {formatNumber(
+                  selectedInventoryItem.quantity,
+                )}{" "}
+                {selectedInventoryItem.unit || "kpl"}
+              </p>
+
+              <p className="mt-2 text-sm text-neutral-500">
+                Lisäyksen jälkeen jäljellä:{" "}
+                {formatNumber(
+                  Math.max(
+                    0,
+                    toNumber(
+                      selectedInventoryItem.quantity,
+                    ) - toNumber(form.quantity),
+                  ),
+                )}{" "}
+                {selectedInventoryItem.unit || "kpl"}
+              </p>
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400"
+            disabled={
+              !selectedInventoryItem ||
+              toNumber(form.quantity) <= 0 ||
+              toNumber(form.quantity) >
+                toNumber(
+                  selectedInventoryItem?.quantity,
+                )
+            }
+            className="w-full rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
           >
             + Lisää projektiin
           </button>
         </form>
 
-        {materialLibrary.length === 0 && (
+        {inventory.length === 0 && (
           <p className="mt-5 text-sm text-amber-400">
-            Materiaalikirjasto on tyhjä. Lisää ensin
-            materiaaleja Materiaalit-sivulla.
+            Varasto on tyhjä. Lisää ensin materiaaleja
+            Varasto-sivulla.
           </p>
         )}
       </section>
@@ -279,8 +376,7 @@ function MaterialsTab({
             </h3>
 
             <p className="mt-2 text-neutral-400">
-              Valitse ensimmäinen materiaali vasemmalla
-              olevasta lomakkeesta.
+              Valitse ensimmäinen materiaali varastosta.
             </p>
           </div>
         ) : (
@@ -303,12 +399,18 @@ function MaterialsTab({
                       </h3>
 
                       <p className="mt-1 text-sm text-neutral-500">
-                        {material.quantity}{" "}
+                        {formatNumber(material.quantity)}{" "}
                         {material.unit || "kpl"} ×{" "}
                         {formatCurrency(
                           material.unitPrice,
                         )}
                       </p>
+
+                      {!material.inventoryItemId && (
+                        <p className="mt-2 text-xs text-amber-400">
+                          Vanha materiaalimerkintä – ei yhdistetty varastoon
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between gap-4 sm:justify-end">
@@ -390,6 +492,12 @@ function formatCurrency(value) {
   return new Intl.NumberFormat("fi-FI", {
     style: "currency",
     currency: "EUR",
+  }).format(toNumber(value))
+}
+
+function formatNumber(value) {
+  return new Intl.NumberFormat("fi-FI", {
+    maximumFractionDigits: 2,
   }).format(toNumber(value))
 }
 

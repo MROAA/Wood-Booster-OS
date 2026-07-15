@@ -1,4 +1,6 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+
+const VAT_PERCENT = 25.5
 
 function QuoteTab({
   project,
@@ -8,13 +10,47 @@ function QuoteTab({
   productionCost,
   recommendedPrice,
 }) {
-const [quote, setQuote] = useState({
-  validDays: "14",
-  deliveryTime: "4–6 viikkoa",
-  paymentTerms: "50 % tilauksesta, 50 % ennen toimitusta",
-  description:
-    "Yksilöllinen Wood-Booster-huonekalu asiakkaan toiveiden mukaisesti.",
-})
+  const storageKey = `woodBoosterQuote:${project.id}`
+
+  const [quote, setQuote] = useState(() =>
+    readQuote(storageKey),
+  )
+
+  useEffect(() => {
+    setQuote(readQuote(storageKey))
+  }, [storageKey])
+
+  const netPrice = useMemo(() => {
+    const customPrice = toNumber(quote.customPrice)
+
+    return customPrice > 0
+      ? customPrice
+      : toNumber(recommendedPrice)
+  }, [quote.customPrice, recommendedPrice])
+
+  const vatAmount = netPrice * (VAT_PERCENT / 100)
+  const totalWithVat = netPrice + vatAmount
+
+  const quoteNumber = useMemo(
+    () => createQuoteNumber(project),
+    [project],
+  )
+
+  const quoteDate = useMemo(
+    () => new Date(),
+    [project.id],
+  )
+
+  const validUntil = useMemo(() => {
+    const date = new Date(quoteDate)
+
+    date.setDate(
+      date.getDate() +
+        toNumber(quote.validDays),
+    )
+
+    return date
+  }, [quoteDate, quote.validDays])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -25,30 +61,58 @@ const [quote, setQuote] = useState({
     }))
   }
 
+  function saveQuote() {
+    const savedQuote = {
+      ...quote,
+      quoteNumber,
+      updatedAt: new Date().toISOString(),
+    }
+
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify(savedQuote),
+    )
+
+    setQuote(savedQuote)
+    window.alert("Tarjous tallennettu.")
+  }
+
   function printQuote() {
     window.print()
   }
 
-  const quoteNumber = createQuoteNumber(project)
-  const quoteDate = new Date()
-  const validUntil = new Date()
-
-  validUntil.setDate(
-    quoteDate.getDate() + Number(quote.validDays || 0),
-  )
-
   return (
     <div>
       <section className="no-print rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-        <p className="text-xs uppercase tracking-wider text-neutral-500">
-          Quote settings
-        </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-neutral-500">
+              Quote editor
+            </p>
 
-        <h3 className="mt-2 text-2xl font-semibold">
-          Tarjouksen asetukset
-        </h3>
+            <h3 className="mt-2 text-2xl font-semibold">
+              Tarjouksen asetukset
+            </h3>
+          </div>
+
+          <StatusBadge status={quote.status} />
+        </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <FormField label="Tarjouksen tila">
+            <select
+              name="status"
+              value={quote.status}
+              onChange={handleChange}
+              className={inputClasses}
+            >
+              <option value="Luonnos">Luonnos</option>
+              <option value="Lähetetty">Lähetetty</option>
+              <option value="Hyväksytty">Hyväksytty</option>
+              <option value="Hylätty">Hylätty</option>
+            </select>
+          </FormField>
+
           <FormField label="Tarjous voimassa, päivää">
             <input
               type="number"
@@ -80,6 +144,30 @@ const [quote, setQuote] = useState({
             />
           </FormField>
 
+          <FormField label="Mukautettu veroton hinta €">
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              name="customPrice"
+              value={quote.customPrice}
+              onChange={handleChange}
+              placeholder={String(
+                toNumber(recommendedPrice),
+              )}
+              className={inputClasses}
+            />
+          </FormField>
+
+          <FormField label="ALV">
+            <input
+              type="text"
+              value={`${VAT_PERCENT} %`}
+              readOnly
+              className={`${inputClasses} opacity-70`}
+            />
+          </FormField>
+
           <div className="md:col-span-2">
             <FormField label="Tarjouksen kuvaus">
               <textarea
@@ -91,15 +179,44 @@ const [quote, setQuote] = useState({
               />
             </FormField>
           </div>
+
+          <div className="md:col-span-2">
+            <FormField label="Lisäehdot">
+              <textarea
+                name="terms"
+                value={quote.terms}
+                onChange={handleChange}
+                rows="4"
+                className={`${inputClasses} resize-y`}
+              />
+            </FormField>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={printQuote}
-          className="mt-6 rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 hover:bg-amber-400"
-        >
-          🖨️ Tulosta tai tallenna PDF
-        </button>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={saveQuote}
+            className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400"
+          >
+            💾 Tallenna tarjous
+          </button>
+
+          <button
+            type="button"
+            onClick={printQuote}
+            className="rounded-xl border border-neutral-700 bg-neutral-950 px-5 py-3 font-semibold text-neutral-200 transition hover:bg-neutral-800"
+          >
+            🖨️ Tulosta tai tallenna PDF
+          </button>
+        </div>
+
+        {quote.updatedAt && (
+          <p className="mt-4 text-sm text-neutral-500">
+            Viimeksi tallennettu{" "}
+            {formatDateTime(quote.updatedAt)}
+          </p>
+        )}
       </section>
 
       <article className="quote-document mt-6 overflow-hidden rounded-2xl border border-neutral-700 bg-white text-neutral-950">
@@ -121,7 +238,8 @@ const [quote, setQuote] = useState({
 
             <div className="text-sm text-neutral-600 sm:text-right">
               <p>
-                <strong>Tarjousnumero:</strong> {quoteNumber}
+                <strong>Tarjousnumero:</strong>{" "}
+                {quoteNumber}
               </p>
 
               <p className="mt-2">
@@ -132,6 +250,11 @@ const [quote, setQuote] = useState({
               <p className="mt-2">
                 <strong>Voimassa:</strong>{" "}
                 {formatDateObject(validUntil)}
+              </p>
+
+              <p className="mt-2">
+                <strong>Tila:</strong>{" "}
+                {quote.status}
               </p>
             </div>
           </div>
@@ -196,21 +319,27 @@ const [quote, setQuote] = useState({
                 value={formatCurrency(productionCost)}
               />
 
+              <QuoteRow
+                label="Veroton tarjoushinta"
+                value={formatCurrency(netPrice)}
+                strong
+              />
+
+              <QuoteRow
+                label={`ALV ${VAT_PERCENT} %`}
+                value={formatCurrency(vatAmount)}
+              />
+
               <div className="flex items-center justify-between bg-neutral-950 px-5 py-5 text-white">
                 <span className="text-lg font-semibold">
-                  Tarjouksen kokonaishinta
+                  Yhteensä sis. ALV
                 </span>
 
                 <span className="text-2xl font-bold text-amber-400">
-                  {formatCurrency(recommendedPrice)}
+                  {formatCurrency(totalWithVat)}
                 </span>
               </div>
             </div>
-
-            <p className="mt-3 text-sm text-neutral-500">
-              Hinta sisältää projektin suunnittelun, materiaalit,
-              valmistuksen ja sovitut muut kustannukset.
-            </p>
           </section>
 
           <section className="mt-10 grid gap-5 sm:grid-cols-2">
@@ -225,13 +354,26 @@ const [quote, setQuote] = useState({
             />
           </section>
 
+          {quote.terms && (
+            <section className="mt-10">
+              <h3 className="text-xl font-bold">
+                Lisäehdot
+              </h3>
+
+              <p className="mt-4 whitespace-pre-wrap leading-7 text-neutral-700">
+                {quote.terms}
+              </p>
+            </section>
+          )}
+
           <section className="mt-12 border-t border-neutral-200 pt-8">
             <p className="font-semibold">
               Wood-Booster
             </p>
 
             <p className="mt-2 text-sm text-neutral-600">
-              Yksilöllisiä massiivipuisia huonekaluja, yksi kerrallaan.
+              Yksilöllisiä massiivipuisia huonekaluja,
+              yksi kerrallaan.
             </p>
           </section>
         </div>
@@ -240,12 +382,56 @@ const [quote, setQuote] = useState({
   )
 }
 
-function QuoteRow({ label, value }) {
+function QuoteRow({
+  label,
+  value,
+  strong = false,
+}) {
   return (
     <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-      <span className="text-neutral-600">{label}</span>
-      <span className="font-semibold">{value}</span>
+      <span
+        className={
+          strong
+            ? "font-semibold text-neutral-900"
+            : "text-neutral-600"
+        }
+      >
+        {label}
+      </span>
+
+      <span
+        className={
+          strong
+            ? "font-bold"
+            : "font-semibold"
+        }
+      >
+        {value}
+      </span>
     </div>
+  )
+}
+
+function StatusBadge({ status }) {
+  const classes = {
+    Luonnos:
+      "border-neutral-700 bg-neutral-800 text-neutral-300",
+    Lähetetty:
+      "border-blue-800 bg-blue-950/50 text-blue-300",
+    Hyväksytty:
+      "border-green-800 bg-green-950/50 text-green-300",
+    Hylätty:
+      "border-red-800 bg-red-950/50 text-red-300",
+  }
+
+  return (
+    <span
+      className={`rounded-full border px-3 py-1 text-sm font-medium ${
+        classes[status] || classes.Luonnos
+      }`}
+    >
+      {status}
+    </span>
   )
 }
 
@@ -275,22 +461,81 @@ function FormField({ label, children }) {
   )
 }
 
+function readQuote(storageKey) {
+  const defaultQuote = {
+    status: "Luonnos",
+    validDays: "14",
+    deliveryTime: "4–6 viikkoa",
+    paymentTerms:
+      "50 % tilauksesta, 50 % ennen toimitusta",
+    description:
+      "Yksilöllinen Wood-Booster-huonekalu asiakkaan toiveiden mukaisesti.",
+    terms:
+      "Tarjous sisältää sovitut materiaalit, valmistuksen ja viimeistelyn. Mahdolliset muutokset sovitaan erikseen.",
+    customPrice: "",
+    updatedAt: "",
+  }
+
+  try {
+    const savedQuote =
+      localStorage.getItem(storageKey)
+
+    if (!savedQuote) {
+      return defaultQuote
+    }
+
+    const parsedQuote = JSON.parse(savedQuote)
+
+    return {
+      ...defaultQuote,
+      ...parsedQuote,
+    }
+  } catch {
+    return defaultQuote
+  }
+}
+
 function createQuoteNumber(project) {
   const year = new Date().getFullYear()
-  const shortId = String(project.id).slice(0, 6).toUpperCase()
+  const shortId = String(project.id)
+    .slice(0, 6)
+    .toUpperCase()
 
   return `WB-${year}-${shortId}`
 }
 
 function formatDateObject(date) {
-  return new Intl.DateTimeFormat("fi-FI").format(date)
+  return new Intl.DateTimeFormat(
+    "fi-FI",
+  ).format(date)
+}
+
+function formatDateTime(value) {
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return ""
+  }
+
+  return new Intl.DateTimeFormat("fi-FI", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date)
 }
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("fi-FI", {
     style: "currency",
     currency: "EUR",
-  }).format(Number(value || 0))
+  }).format(toNumber(value))
+}
+
+function toNumber(value) {
+  const number = Number(value)
+
+  return Number.isFinite(number)
+    ? number
+    : 0
 }
 
 const inputClasses =

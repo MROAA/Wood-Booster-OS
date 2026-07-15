@@ -1,21 +1,23 @@
 import { useMemo, useState } from "react"
 
+const API_URL = "http://localhost:3001/api"
+
 function CostCalculator({
   project,
   onProjectUpdated,
 }) {
-  const [form, setForm] = useState(() => ({
-    laborHours:
-      project?.costing?.laborHours ?? "",
-    hourlyRate:
-      project?.costing?.hourlyRate ?? "55",
-    otherCosts:
-      project?.costing?.otherCosts ?? "",
-    markupPercent:
-      project?.costing?.markupPercent ?? "40",
-  }))
+  const [form, setForm] = useState({
+    laborHours: String(project?.laborHours ?? 0),
+    hourlyRate: String(project?.hourlyRate ?? 55),
+    otherCosts: String(project?.otherCosts ?? 0),
+    markupPercent: String(
+      project?.markupPercent ?? 40,
+    ),
+  })
 
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState("")
 
   const materialTotal = useMemo(() => {
     const materials = Array.isArray(project?.materials)
@@ -29,81 +31,98 @@ function CostCalculator({
           toNumber(material.unitPrice),
       0,
     )
-  }, [project])
+  }, [project?.materials])
 
   const laborTotal =
     toNumber(form.laborHours) *
     toNumber(form.hourlyRate)
 
-  const productionCost =
-    materialTotal +
-    laborTotal +
-    toNumber(form.otherCosts)
+  const otherCosts = toNumber(form.otherCosts)
 
-  const recommendedPrice =
-    productionCost *
-    (1 + toNumber(form.markupPercent) / 100)
+  const productionCost =
+    materialTotal + laborTotal + otherCosts
+
+  const markupPercent = toNumber(
+    form.markupPercent,
+  )
 
   const estimatedProfit =
-    recommendedPrice - productionCost
+    productionCost * (markupPercent / 100)
+
+  const recommendedPrice =
+    productionCost + estimatedProfit
 
   function handleChange(event) {
     const { name, value } = event.target
 
-    setForm((currentForm) => ({
-      ...currentForm,
+    setForm((current) => ({
+      ...current,
       [name]: value,
     }))
 
     setSaved(false)
+    setError("")
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
-    const projects = readProjects()
+    const payload = {
+      laborHours: toNumber(form.laborHours),
+      hourlyRate: toNumber(form.hourlyRate),
+      otherCosts: toNumber(form.otherCosts),
+      markupPercent: toNumber(
+        form.markupPercent,
+      ),
+    }
 
-    const updatedProjects = projects.map(
-      (currentProject) => {
-        if (
-          String(currentProject.id) !==
-          String(project.id)
-        ) {
-          return currentProject
-        }
+    const hasInvalidValue = Object.values(
+      payload,
+    ).some(
+      (value) =>
+        !Number.isFinite(value) || value < 0,
+    )
 
-        return {
-          ...currentProject,
-          costing: {
-            laborHours: toNumber(form.laborHours),
-            hourlyRate: toNumber(form.hourlyRate),
-            otherCosts: toNumber(form.otherCosts),
-            markupPercent: toNumber(
-              form.markupPercent,
-            ),
+    if (hasInvalidValue) {
+      setError(
+        "Tarkista, että kaikki arvot ovat vähintään 0.",
+      )
+      return
+    }
+
+    try {
+      setSaving(true)
+      setSaved(false)
+      setError("")
+
+      const response = await fetch(
+        `${API_URL}/projects/${project.id}/costing`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
           },
-          updatedAt: new Date().toISOString(),
-        }
-      },
-    )
+          body: JSON.stringify(payload),
+        },
+      )
 
-    localStorage.setItem(
-      "woodBoosterProjects",
-      JSON.stringify(updatedProjects),
-    )
+      const data = await response.json()
 
-    const updatedProject = updatedProjects.find(
-      (currentProject) =>
-        String(currentProject.id) ===
-        String(project.id),
-    )
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Kustannuslaskelman tallennus epäonnistui",
+        )
+      }
 
-    onProjectUpdated?.(
-      updatedProject,
-      updatedProjects,
-    )
-
-    setSaved(true)
+      onProjectUpdated?.(data)
+      setSaved(true)
+    } catch (saveError) {
+      console.error(saveError)
+      setError(saveError.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -134,7 +153,6 @@ function CostCalculator({
               onChange={handleChange}
               min="0"
               step="0.25"
-              placeholder="Esimerkiksi 20"
               className={inputClasses}
             />
           </FormField>
@@ -159,7 +177,6 @@ function CostCalculator({
               onChange={handleChange}
               min="0"
               step="0.01"
-              placeholder="Kuljetus, koneet, pakkaus..."
               className={inputClasses}
             />
           </FormField>
@@ -176,11 +193,20 @@ function CostCalculator({
             />
           </FormField>
 
+          {error && (
+            <div className="rounded-xl border border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400"
+            disabled={saving}
+            className="w-full rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Tallenna laskelma
+            {saving
+              ? "Tallennetaan..."
+              : "Tallenna laskelma"}
           </button>
 
           {saved && (
@@ -213,7 +239,7 @@ function CostCalculator({
 
           <PriceRow
             label="Muut kulut"
-            value={form.otherCosts}
+            value={otherCosts}
           />
 
           <div className="my-4 border-t border-neutral-800" />
@@ -225,9 +251,7 @@ function CostCalculator({
           />
 
           <PriceRow
-            label={`Kate ${toNumber(
-              form.markupPercent,
-            )} %`}
+            label={`Kate ${markupPercent} %`}
             value={estimatedProfit}
           />
         </div>
@@ -246,10 +270,7 @@ function CostCalculator({
   )
 }
 
-function FormField({
-  label,
-  children,
-}) {
+function FormField({ label, children }) {
   return (
     <label className="block">
       <span className="text-sm text-neutral-300">
@@ -289,24 +310,6 @@ function PriceRow({
       </span>
     </div>
   )
-}
-
-function readProjects() {
-  try {
-    const savedProjects = localStorage.getItem(
-      "woodBoosterProjects",
-    )
-
-    const projects = savedProjects
-      ? JSON.parse(savedProjects)
-      : []
-
-    return Array.isArray(projects)
-      ? projects
-      : []
-  } catch {
-    return []
-  }
 }
 
 function toNumber(value) {

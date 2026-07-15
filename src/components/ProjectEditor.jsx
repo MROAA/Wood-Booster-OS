@@ -1,94 +1,122 @@
 import { useEffect, useState } from "react"
 
+const API_URL = "http://localhost:3001/api"
+
 function ProjectEditor({
-  projectId,
+  project,
   onProjectUpdated,
 }) {
   const [form, setForm] = useState({
     name: "",
-    customer: "",
     status: "Suunnittelu",
     deadline: "",
     description: "",
+    notes: "",
   })
 
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    const projects = readProjects()
-
-    const project = projects.find(
-      (item) => item.id === projectId,
-    )
-
     if (!project) {
       return
     }
 
     setForm({
       name: project.name || "",
-      customer: project.customer || "",
       status: project.status || "Suunnittelu",
-      deadline: project.deadline || "",
+      deadline: formatDateInput(project.deadline),
       description: project.description || "",
+      notes: project.notes || "",
     })
 
     setSaved(false)
-  }, [projectId])
+    setError("")
+  }, [project?.id])
 
   function handleChange(event) {
     const { name, value } = event.target
 
-    setForm((currentForm) => ({
-      ...currentForm,
+    setForm((current) => ({
+      ...current,
       [name]: value,
     }))
 
     setSaved(false)
+    setError("")
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
-    const projectName = form.name.trim()
-
-    if (!projectName) {
+    if (!project?.id) {
+      setError("Projektin tunniste puuttuu.")
       return
     }
 
-    const projects = readProjects()
+    const name = form.name.trim()
 
-    const updatedProjects = projects.map((project) => {
-      if (project.id !== projectId) {
-        return project
+    if (!name) {
+      setError("Projektin nimi puuttuu.")
+      return
+    }
+
+    try {
+      setSaving(true)
+      setSaved(false)
+      setError("")
+
+      const response = await fetch(
+        `${API_URL}/projects/${project.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            status: form.status,
+            deadline: form.deadline || null,
+            description:
+              form.description.trim() || null,
+            notes: form.notes.trim() || null,
+          }),
+        },
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Projektin päivittäminen epäonnistui",
+        )
       }
 
-      return {
-        ...project,
-        name: projectName,
-        customer: form.customer.trim(),
-        status: form.status,
-        deadline: form.deadline,
-        description: form.description.trim(),
-        updatedAt: new Date().toISOString(),
-      }
-    })
+      setForm({
+        name: data.name || "",
+        status: data.status || "Suunnittelu",
+        deadline: formatDateInput(data.deadline),
+        description: data.description || "",
+        notes: data.notes || "",
+      })
 
-    localStorage.setItem(
-      "woodBoosterProjects",
-      JSON.stringify(updatedProjects),
-    )
+      onProjectUpdated?.(data)
+      setSaved(true)
+    } catch (saveError) {
+      console.error(
+        "Projektin tallennus epäonnistui:",
+        saveError,
+      )
 
-    const updatedProject = updatedProjects.find(
-      (project) => project.id === projectId,
-    )
-
-    onProjectUpdated?.(
-      updatedProject,
-      updatedProjects,
-    )
-
-    setSaved(true)
+      setError(
+        saveError.message ||
+          "Projektin päivittäminen epäonnistui",
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -102,7 +130,8 @@ function ProjectEditor({
       </h3>
 
       <p className="mt-2 text-neutral-400">
-        Päivitä projektin perustiedot ja nykyinen tila.
+        Päivitä projektin perustiedot, tila,
+        deadline ja muistiinpanot.
       </p>
 
       <form
@@ -121,17 +150,6 @@ function ProjectEditor({
             />
           </FormField>
 
-          <FormField label="Asiakas">
-            <input
-              type="text"
-              name="customer"
-              value={form.customer}
-              onChange={handleChange}
-              placeholder="Asiakkaan nimi"
-              className={inputClasses}
-            />
-          </FormField>
-
           <FormField label="Projektin tila">
             <select
               name="status"
@@ -140,27 +158,21 @@ function ProjectEditor({
               className={inputClasses}
             >
               <option value="Idea">Idea</option>
-
               <option value="Suunnittelu">
                 Suunnittelu
               </option>
-
               <option value="Tarjous">
                 Tarjous
               </option>
-
               <option value="Tuotannossa">
                 Tuotannossa
               </option>
-
               <option value="Viimeistely">
                 Viimeistely
               </option>
-
               <option value="Toimitus">
                 Toimitus
               </option>
-
               <option value="Valmis">
                 Valmis
               </option>
@@ -176,6 +188,18 @@ function ProjectEditor({
               className={inputClasses}
             />
           </FormField>
+
+          <FormField label="Asiakas">
+            <input
+              type="text"
+              value={
+                project?.customer?.name ||
+                "Ei asiakasta"
+              }
+              readOnly
+              className={`${inputClasses} cursor-not-allowed opacity-70`}
+            />
+          </FormField>
         </div>
 
         <div className="mt-5">
@@ -184,24 +208,46 @@ function ProjectEditor({
               name="description"
               value={form.description}
               onChange={handleChange}
-              rows={6}
-              placeholder="Kuvaile tuote, asiakkaan toiveet ja projektin tavoite..."
+              rows={5}
+              placeholder="Kuvaile tuotetta, asiakkaan toiveita ja projektin tavoitetta..."
               className={`${inputClasses} resize-y`}
             />
           </FormField>
         </div>
 
-        <div className="mt-6 flex items-center gap-4">
+        <div className="mt-5">
+          <FormField label="Muistiinpanot">
+            <textarea
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              rows={5}
+              placeholder="Projektin sisäiset muistiinpanot..."
+              className={`${inputClasses} resize-y`}
+            />
+          </FormField>
+        </div>
+
+        {error && (
+          <div className="mt-5 rounded-xl border border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            {error}
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-wrap items-center gap-4">
           <button
             type="submit"
-            className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400"
+            disabled={saving}
+            className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Tallenna muutokset
+            {saving
+              ? "Tallennetaan..."
+              : "Tallenna muutokset"}
           </button>
 
           {saved && (
-            <span className="text-sm text-green-400">
-              ✓ Projekti päivitetty
+            <span className="text-sm font-medium text-green-400">
+              ✓ Muutokset tallennettu tietokantaan
             </span>
           )}
         </div>
@@ -222,22 +268,18 @@ function FormField({ label, children }) {
   )
 }
 
-function readProjects() {
-  try {
-    const savedProjects = localStorage.getItem(
-      "woodBoosterProjects",
-    )
-
-    const projects = savedProjects
-      ? JSON.parse(savedProjects)
-      : []
-
-    return Array.isArray(projects)
-      ? projects
-      : []
-  } catch {
-    return []
+function formatDateInput(value) {
+  if (!value) {
+    return ""
   }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return ""
+  }
+
+  return date.toISOString().slice(0, 10)
 }
 
 const inputClasses =

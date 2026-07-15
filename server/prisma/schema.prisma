@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./prisma/dev.db"
+}
+
+model Customer {
+  id        Int       @id @default(autoincrement())
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  notes     String?
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+}
+
+model Project {
+  id            Int            @id @default(autoincrement())
+  name          String
+  customerId    Int?
+  customer      Customer?      @relation(fields: [customerId], references: [id])
+  materials     Material[]
+  workflowSteps WorkflowStep[]
+  files         ProjectFile[]
+
+  status      String    @default("Suunnittelu")
+  deadline    DateTime?
+  description String?
+  notes       String?
+
+  laborHours    Float @default(0)
+  hourlyRate    Float @default(55)
+  otherCosts    Float @default(0)
+  markupPercent Float @default(40)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Material {
+  id        Int      @id @default(autoincrement())
+  name      String
+  quantity  Float    @default(1)
+  unit      String   @default("kpl")
+  unitPrice Float    @default(0)
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model WorkflowStep {
+  id        Int      @id @default(autoincrement())
+  title     String
+  columnId  String   @default("planning")
+  done      Boolean  @default(false)
+  sortOrder Int      @default(0)
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ProjectFile {
+  id           Int      @id @default(autoincrement())
+  originalName String
+  storedName   String
+  mimeType     String
+  size         Int
+  category     String   @default("Muut")
+  projectId    Int
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+}
+
+model InventoryItem {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  category           String              @default("Muut")
+  quantity           Float               @default(0)
+  unit               String              @default("kpl")
+  minimumStock       Float               @default(0)
+  unitPrice          Float               @default(0)
+  supplier           String?
+  notes              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @default(now()) @updatedAt
+  purchaseOrderItems PurchaseOrderItem[]
+}
+
+model PurchaseOrder {
+  id         Int    @id @default(autoincrement())
+  supplier   String
+  status     String @default("Luonnos")
+  totalPrice Float  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  items PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id Int @id @default(autoincrement())
+
+  purchaseOrderId Int
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  inventoryItemId Int
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  quantity  Float
+  unitPrice Float
+
+  createdAt DateTime @default(now())
+}
+
+model KnowledgeDocument {
+  chunks     KnowledgeChunk[]
+  folder     String           @default("Yleinen")
+  priority   Int              @default(3)
+  confidence Int              @default(100)
+  alwaysUse  Boolean          @default(false)
+  author     String?
+  id         Int              @id @default(autoincrement())
+  title      String
+  content    String
+  sourceType String           @default("text")
+  sourceUrl  String?
+  topic      String           @default("Yleinen")
+  tags       String?
+  status     String           @default("Hyväksytty")
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @default(now()) @updatedAt
+}
+
+model ContentDraft {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  contentType String   @default("Artikkeli")
+  status      String   @default("Luonnos")
+  wordpressId Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
+model KnowledgeChunk {
+  id         Int               @id @default(autoincrement())
+  documentId Int
+  document   KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  chunkIndex Int
+  content    String
+  tokenCount Int               @default(0)
+  createdAt  DateTime          @default(now())
+
+  @@unique([documentId, chunkIndex])
+  @@index([documentId])
+}
