@@ -2,6 +2,7 @@ import { useState } from "react"
 
 import AIBrainTabs from "../components/ai/AIBrainTabs"
 
+console.log("AI BRAIN SIVU LADATTU")
 import ChatPanel from "../components/ai/ChatPanel"
 import KnowledgePanel from "../components/ai/KnowledgePanel"
 import MemoryPanel from "../components/ai/MemoryPanel"

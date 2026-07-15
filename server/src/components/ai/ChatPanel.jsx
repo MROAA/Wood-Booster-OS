@@ -1,4 +1,5 @@
 import { useState } from "react"
+console.log("CHAT PANEL LADATTU")
 
 const API_URL = "http://localhost:3001/api/ai"
 
