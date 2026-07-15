@@ -142,8 +142,10 @@ function ChatPanel() {
 
           <button
             type="button"
-            onClick={sendMessage}
-            disabled={loading}
+onClick={() => {
+  console.log("AI Brain nappia painettu")
+  sendMessage()
+}}            disabled={loading}
             className="rounded-xl bg-amber-500 px-6 py-3 font-semibold text-neutral-950 disabled:opacity-50"
           >
             Lähetä
