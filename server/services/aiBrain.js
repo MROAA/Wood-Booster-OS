@@ -19,6 +19,11 @@ import {
 
 
 import {
+  validateMemory as validateMemoryQuality,
+} from "./memoryValidator.js"
+
+
+import {
   getMemory,
 } from "./memoryService.js"
 
@@ -215,7 +220,6 @@ message
 
 
 let databaseKnowledge = []
-
 
 
 if(prisma){
@@ -662,29 +666,42 @@ prisma
 ) {
 
 
+const qualityCheck =
+
+validateMemoryQuality({
+
+key: extracted.key,
+
+content: extracted.content,
+
+})
+
 
 memoryProposal =
 
 await createMemoryProposal({
 
-category:
+prismaClient: prisma,
 
-extracted.category,
+memory: {
 
+category: extracted.category,
 
-key:
+key: extracted.key,
 
-extracted.key,
+content: extracted.content,
 
+importance: extracted.importance,
 
-content:
+warnings:
 
-extracted.content,
+qualityCheck.valid
 
+? null
 
-importance:
+: qualityCheck.warnings,
 
-extracted.importance
+},
 
 })
 
@@ -986,7 +1003,6 @@ num_ctx:8192
 }
 
 )
-
 
 
 
