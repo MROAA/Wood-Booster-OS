@@ -1,3 +1,8 @@
+# =====================================
+# Wood-Booster AI OS
+# Git Ignore
+# =====================================
+
 # Node
 node_modules/
 dist/
@@ -25,7 +30,24 @@ server/prisma/prisma/*.sqlite3
 server/.env
 server/.env.*
 
+# =====================================
+# Private AI Data
+# =====================================
+
+server/private/
+server/secrets/
+server/profile/
+server/userdata/
+server/vault/
+
+*.private.json
+*.secret.json
+*.vault.json
+
+# =====================================
 # Lokit
+# =====================================
+
 logs/
 *.log
 npm-debug.log*
@@ -33,21 +55,33 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Testit ja buildit
+# =====================================
+# Testit
+# =====================================
+
 coverage/
 
+# =====================================
 # Editorit
+# =====================================
+
 .vscode/*
 !.vscode/extensions.json
 .idea/
 *.swp
 *.swo
 
-# Käyttöjärjestelmän tiedostot
+# =====================================
+# Käyttöjärjestelmä
+# =====================================
+
 .DS_Store
 Thumbs.db
 
-# Varmuuskopiot ja pakatut tiedostot
+# =====================================
+# Varmuuskopiot
+# =====================================
+
 *.backup
 *.bak
 *.zip
