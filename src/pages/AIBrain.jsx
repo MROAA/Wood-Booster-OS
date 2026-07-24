@@ -1,71 +1,69 @@
-import { useState } from "react"
-
-import AIBrainTabs from "../components/ai/AIBrainTabs"
-
-console.log("AI BRAIN SIVU LADATTU")
 import ChatPanel from "../components/ai/ChatPanel"
-import KnowledgePanel from "../components/ai/KnowledgePanel"
-import MemoryPanel from "../components/ai/MemoryPanel"
 import AgentsPanel from "../components/ai/AgentsPanel"
-import ToolsPanel from "../components/ai/ToolsPanel"
+import SystemStatus from "../components/ai/SystemStatus"
+import MemoryPanel from "../components/ai/MemoryPanel"
 
 
-function AIBrain() {
-  const [activeTab, setActiveTab] = useState("chat")
+function AIBrain(){
+
+return (
+
+<div className="space-y-8">
 
 
-  function renderPanel() {
-    switch (activeTab) {
-      case "knowledge":
-        return <KnowledgePanel />
+<div>
 
-      case "memory":
-        return <MemoryPanel />
+<h1 className="text-4xl font-bold">
+🧠 AI Brain
+</h1>
 
-      case "agents":
-        return <AgentsPanel />
+<p className="mt-3 text-neutral-400">
+Wood-Booster intelligence center
+</p>
 
-      case "tools":
-        return <ToolsPanel />
-
-      case "chat":
-      default:
-        return <ChatPanel />
-    }
-  }
+</div>
 
 
-  return (
-    <main>
-      <header>
-        <p className="text-xs uppercase tracking-[0.35em] text-amber-500">
-          Wood-Booster AI Brain
-        </p>
 
-        <h1 className="mt-3 text-4xl font-bold">
-          Henkilökohtainen AI-avustaja
-        </h1>
-
-        <p className="mt-4 max-w-3xl text-neutral-400">
-          Keskitetty käyttöliittymä tekoälylle,
-          muistille, tiedolle ja agenteille.
-        </p>
-      </header>
+<SystemStatus />
 
 
-      <div className="mt-8">
-        <AIBrainTabs
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-      </div>
+
+<div className="
+grid
+grid-cols-1
+xl:grid-cols-3
+gap-6
+">
 
 
-      <div className="mt-6">
-        {renderPanel()}
-      </div>
-    </main>
-  )
+<div>
+
+<AgentsPanel />
+
+</div>
+
+
+<div className="
+xl:col-span-2
+">
+
+<ChatPanel />
+
+</div>
+
+
+</div>
+
+
+
+<MemoryPanel />
+
+
+</div>
+
+)
+
 }
 
 
