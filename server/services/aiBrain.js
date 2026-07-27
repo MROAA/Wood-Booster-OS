@@ -2,74 +2,29 @@ import {
   filterSystemFiles,
 } from "./systemFilter.js"
 
-
 import {
   buildAIContext,
 } from "./contextBuilder.js"
 
+import {
+  processMemoryPipeline,
+} from "./memoryPipelineAdapter.js"
 
 import {
-  extractMemory,
-} from "./memoryExtractor.js"
-
-
-import {
-  createMemoryProposal,
-} from "./memoryProposalService.js"
-
-
-import {
-  validateMemory as validateMemoryQuality,
-} from "./memoryValidator.js"
-
-
-import {
-  getMemory,
-} from "./memoryService.js"
-
-
-import {
-  validateAIResponse,
-} from "./aiQualityControl.js"
-
-
-import {
-  validateGrounding,
-} from "./aiGroundingValidator.js"
-
-
-import {
-  validateBrandIdentity,
-} from "./brandIdentityGuard.js"
-
-
-import {
-  validateResponseStyle,
-} from "./responseStyleGuard.js"
-
-
-import {
-  validatePhilosophyAnswer,
-} from "./philosophyGuard.js"
-
-
-import {
-  validateKnowledgeBoundary,
-} from "./knowledgeBoundaryGuard.js"
-
+  retrieveRelevantMemories,
+} from "./aiBrainV2/engines/memoryRetrievalEngine.js"
 
 import {
   readDatabaseKnowledge,
 } from "./databaseKnowledgeReader.js"
-
 
 import {
   getTruthBundle,
 } from "./truthBundle.js"
 
 import {
-  validatePriceClaims,
-} from "./priceGuard.js"
+  buildSpacemonkeyContext,
+} from "./spacemonkey/index.js"
 
 
 
@@ -78,15 +33,19 @@ const OLLAMA_URL =
   "http://localhost:11434"
 
 
-
 const DEFAULT_MODEL =
   process.env.OLLAMA_MODEL ||
   "qwen2.5:7b"
 
 
 
+function normalizeArray(value) {
 
+  return Array.isArray(value)
+    ? value
+    : []
 
+}
 
 
 
@@ -98,953 +57,488 @@ export async function runAIBrain({
 
   conversation = [],
 
+  memory = [],
+
+  systemContext = "",
+
   model = DEFAULT_MODEL,
 
   prisma,
 
 }) {
 
-
-try {
-
+  try {
 
 
-/*
-=====================================
-1. TRUTH BUNDLE
-=====================================
-*/
-
-
-const truthBundle =
-
-  getTruthBundle(
-
-    message
-
-  )
+    console.log(
+      "AI BRAIN START",
+    )
 
 
 
+    const systems =
+      normalizeArray(
+        await filterSystemFiles(
+          message,
+        ),
+      )
 
 
-let truthContext = ""
+
+    const truthBundle =
+      getTruthBundle(
+        message,
+      )
+
+
+    const truths =
+      normalizeArray(
+        truthBundle?.truths,
+      )
 
 
 
+    const truthContext =
+      truths.length
 
+        ? `
 
-if (
-
-  truthBundle &&
-
-  truthBundle.truths.length > 0
-
-) {
-
-
-truthContext =
-
-`
-
-=====================================
 WOOD-BOOSTER OFFICIAL TRUTH
-=====================================
 
-
-${
-
-truthBundle.truths
-
-.map(
-
-truth =>
-
-
-`
+${truths
+  .map(
+    truth => `
 
 SOURCE:
-
 ${truth.source}
-
-
 
 ${truth.answer}
 
-`
-
-)
-
-.join("\n")
-
-}
-
-
-
-=====================================
+`,
+  )
+  .join("\n")}
 
 `
 
-}
+        : ""
 
 
 
+    let databaseKnowledge = []
 
 
 
-/*
-=====================================
-2. SYSTEM FILES
-=====================================
-*/
+    if (prisma) {
 
+      databaseKnowledge =
+        normalizeArray(
+          await readDatabaseKnowledge({
+            prisma,
+            message,
+          }),
+        )
 
-const systems =
-
-await filterSystemFiles(
-
-message
-
-)
+    }
 
 
 
+    const combinedKnowledge = [
+
+      ...normalizeArray(
+        knowledge,
+      ),
+
+      ...databaseKnowledge,
+
+    ]
 
 
 
-/*
-=====================================
-3. DATABASE KNOWLEDGE
-=====================================
-*/
+    const memoryRetrieval =
+      await retrieveRelevantMemories({
 
+        prisma,
 
-let databaseKnowledge = []
+        message,
 
+        limit:
+          8,
 
-if(prisma){
-
-
-databaseKnowledge =
-
-await readDatabaseKnowledge({
-
-prisma,
-
-message
-
-})
-
-
-}
+      })
 
 
 
+    const finalMemory =
 
-knowledge = [
+      memory.length > 0
 
-...knowledge,
+        ? memory
 
-...databaseKnowledge
-
-]
-/*
-=====================================
-4. MEMORY
-=====================================
-*/
-
-
-const memories =
-
-await getMemory({
-
-limit:10
-
-})
+        : normalizeArray(
+            memoryRetrieval.memories,
+          )
 
 
 
+    const spacemonkey =
+      buildSpacemonkeyContext()
 
 
 
+    const context =
+      await buildAIContext({
 
-/*
-=====================================
-5. BUILD CONTEXT
-=====================================
-*/
+        message,
 
+        knowledge:
+          combinedKnowledge,
 
-const context =
+        memory:
+          finalMemory,
 
-await buildAIContext({
+        conversation:
+          normalizeArray(
+            conversation,
+          ),
 
-message,
+        spacemonkey,
 
-knowledge,
-
-memory:memories,
-
-conversation
-
-})
+      })
 
 
 
+    const finalContext = `
 
+${systemContext}
 
-
-const finalContext =
-
-`
 
 ${truthContext}
-
 
 
 ${context}
 
 
-
 WOOD-BOOSTER AI RULES:
 
-- Vastaa vain annetun tiedon perusteella.
-- Älä keksi esimerkkejä materiaaleista.
-- Älä keksi hintoja.
-- Älä keksi ominaisuuksia.
-- Älä lisää uusia tuotteita tai materiaaleja.
-- Jos tietoa puuttuu, sano suoraan että tieto puuttuu.
-- Käytä Wood-Boosterin virallisia arvoja:
+- Vastaa annetun tiedon perusteella.
+- Älä keksi tietoa.
+- Jos tieto puuttuu, sano se.
+- Käytä Wood-Booster arvoja:
   Aitous
   Laatu
   Käsityö
   Puun tarina
 
-
 `
 
 
 
+    console.log(
+      "CONTEXT READY",
+      finalContext.length,
+    )
 
 
 
-/*
-=====================================
-6. OLLAMA
-=====================================
-*/
+    const answer =
+      await askOllama({
 
+        model,
 
-let answer =
+        context:
+          finalContext,
 
-await askOllama({
+        message,
 
-model,
+      })
 
-context:finalContext,
 
-message
 
-})
+    console.log(
+      "BRAIN RESULT RECEIVED",
+    )
 
 
 
+    const memoryPipelineResult =
+      await processMemoryPipeline({
 
+        message,
 
+        answer,
 
+        prismaClient:
+          prisma,
 
-/*
-=====================================
-7. VALIDATION
-=====================================
-*/
+        model,
 
+      })
 
-let quality =
 
-validateAIResponse({
 
-answer,
+    return {
 
-knowledge,
+      success:
+        true,
 
-memories
+      answer,
 
-})
+      model,
 
 
+      memoryProposalCreated:
+        memoryPipelineResult
+          ?.memoryProposalCreated === true,
 
-let grounding =
 
-validateGrounding({
+      memoryProposal:
+        memoryPipelineResult
+          ?.memoryProposal ||
+        null,
 
-answer,
 
-knowledge
+      knowledgeSources:
 
-})
+        combinedKnowledge.map(
+          item =>
+            item.name ||
+            item.title ||
+            item.file ||
+            "unknown",
+        ),
 
 
+      debug: {
 
-let brandIdentity =
+        systemsLoaded:
+          systems.length,
 
-validateBrandIdentity(
 
-answer
+        systemContextLoaded:
+          Boolean(
+            systemContext,
+          ),
 
-)
 
+        truthLayer:
+          truths.length > 0,
 
 
-let responseStyle =
+        spacemonkeyContext:
+          true,
 
-validateResponseStyle(
 
-answer
+        contextLength:
+          finalContext.length,
 
-)
+      },
 
+    }
 
 
-let philosophy =
+  }
 
-validatePhilosophyAnswer(
+  catch(error) {
 
-message,
 
-answer
+    console.error(
+      "AI BRAIN ERROR",
+      error,
+    )
 
-)
 
+    return {
 
+      success:
+        false,
 
-let knowledgeBoundary =
+      error:
+        error.message,
 
-validateKnowledgeBoundary(
+    }
 
-answer
-
-)
-
-let price =
-
-validatePriceClaims({
-
-answer,
-
-knowledge
-
-})
-
-
-
-
-
-let repairAttempts = 0
-
-
-
-
-
-
-
-/*
-=====================================
-8. REPAIR LOOP
-=====================================
-*/
-
-
-while (
-
-repairAttempts < 3 &&
-
-(
-
-!quality.approved ||
-
-!grounding.valid ||
-
-!brandIdentity.valid ||
-
-!responseStyle.valid ||
-
-!philosophy.valid ||
-
-!knowledgeBoundary.valid ||
-
-!price.valid
-
-)
-) {
-
-
-
-answer =
-
-await askOllama({
-
-model,
-
-
-context:
-
-`
-
-Korjaa vastaus.
-
-
-
-WOOD-BOOSTER VIRALLINEN TIETO:
-
-
-${truthContext}
-
-
-
-Säännöt:
-
-
-- Älä keksi tietoa.
-- Älä keksi arvoja.
-- Käytä vain annettua tietoa.
-- Vastaa lyhyesti.
-- Älä anna tarkkaa hintaa ilman kustannustietoja.
-
-
-
-Kysymys:
-
-${message}
-
-
-
-Nykyinen vastaus:
-
-${answer}
-
-`,
-
-message
-
-})
-
-
-
-repairAttempts++
-
-
-
-
-
-quality =
-
-validateAIResponse({
-
-answer,
-
-knowledge,
-
-memories
-
-})
-
-
-
-grounding =
-
-validateGrounding({
-
-answer,
-
-knowledge
-
-})
-
-
-
-brandIdentity =
-
-validateBrandIdentity(
-
-answer
-
-)
-
-
-
-responseStyle =
-
-validateResponseStyle(
-
-answer
-
-)
-
-
-
-philosophy =
-
-validatePhilosophyAnswer(
-
-message,
-
-answer
-
-)
-
-
-
-knowledgeBoundary =
-
-validateKnowledgeBoundary(
-
-answer
-
-)
-
-price =
-
-validatePriceClaims({
-
-answer,
-
-knowledge
-
-})
+  }
 
 }
-/*
-=====================================
-9. MEMORY EXTRACTION
-=====================================
-*/
-
-
-let memoryProposal = null
-
-let memoryProposalCreated = false
-
-
-
-
-
-const extracted =
-
-await extractMemory({
-
-conversation:
-
-`
-
-USER:
-
-${message}
-
-
-
-ASSISTANT:
-
-${answer}
-
-`
-
-})
-
-
-
-
-
-
-if (
-
-extracted?.shouldSave &&
-
-prisma
-
-) {
-
-
-const qualityCheck =
-
-validateMemoryQuality({
-
-key: extracted.key,
-
-content: extracted.content,
-
-})
-
-
-memoryProposal =
-
-await createMemoryProposal({
-
-prismaClient: prisma,
-
-memory: {
-
-category: extracted.category,
-
-key: extracted.key,
-
-content: extracted.content,
-
-importance: extracted.importance,
-
-warnings:
-
-qualityCheck.valid
-
-? null
-
-: qualityCheck.warnings,
-
-},
-
-})
-
-
-
-memoryProposalCreated =
-
-Boolean(memoryProposal)
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-=====================================
-10. FINAL RESPONSE
-=====================================
-*/
-
-
-return {
-
-
-success:true,
-
-
-answer,
-
-
-model,
-
-
-
-memoryProposalCreated,
-
-
-memoryProposal,
-
-
-
-knowledgeSources:
-
-
-[
-
-
-...(truthBundle
-
-?
-
-truthBundle.truths.map(
-
-truth =>
-
-truth.source
-
-)
-
-:
-
-[]),
-
-
-
-...knowledge.map(
-
-item =>
-
-item.name ||
-
-item.title ||
-
-item.file ||
-
-"unknown"
-
-)
-
-
-],
-
-
-
-
-debug:{
-
-
-truthLayer:
-
-Boolean(truthBundle),
-
-
-
-truthSources:
-
-truthBundle
-
-?
-
-truthBundle.truths.map(
-
-truth =>
-
-truth.source
-
-)
-
-:
-
-[],
-
-
-
-systemsLoaded:
-
-systems.length,
-
-
-
-databaseKnowledgeLoaded:
-
-databaseKnowledge.length,
-
-
-
-memoryLoaded:
-
-memories.length,
-
-
-
-contextLength:
-
-finalContext.length,
-
-
-
-repairAttempts,
-
-
-
-quality,
-
-
-grounding,
-
-
-brandIdentity,
-
-
-responseStyle,
-
-
-philosophy,
-
-
-knowledgeBoundary,
-
-price
-
-}
-
-
-}
-
-
-
-}
-
-
-
-catch(error){
-
-
-console.error(
-
-"AI BRAIN ERROR:",
-
-error
-
-)
-
-
-
-return {
-
-
-success:false,
-
-
-error:error.message
-
-
-}
-
-
-}
-
-
-
-}
-
-
-
-
-
-
 
 
 
 async function askOllama({
 
-model,
+  model,
 
-context,
+  context,
 
-message
+  message,
 
 }) {
 
 
+  console.log(
+    "OLLAMA REQUEST START",
+  )
 
-const response =
 
-await fetch(
+  const controller =
+    new AbortController()
 
-`${OLLAMA_URL}/api/chat`,
 
-{
 
+  const timeout =
+    setTimeout(
+      () => {
 
-method:"POST",
+        controller.abort()
 
+      },
+      60000,
+    )
 
-headers:{
 
-"Content-Type":
 
-"application/json"
+  try {
 
-},
 
+    const response =
+      await fetch(
 
-body:JSON.stringify({
+        `${OLLAMA_URL}/api/chat`,
 
+        {
 
-model,
+          method:
+            "POST",
 
+          signal:
+            controller.signal,
 
-stream:false,
 
+          headers: {
 
-messages:[
+            "Content-Type":
+              "application/json",
 
+          },
 
-{
 
-role:"system",
+          body:
 
-content:context
+            JSON.stringify({
 
-},
+              model,
 
+              stream:
+                false,
 
-{
 
-role:"user",
+              messages: [
 
-content:message
+                {
 
-}
+                  role:
+                    "system",
 
+                  content:
+                    context,
 
-],
+                },
 
 
-options:{
+                {
 
+                  role:
+                    "user",
 
-temperature:0.2,
+                  content:
+                    message,
 
+                },
 
-num_ctx:8192
+              ],
 
 
-}
+              options: {
 
+                temperature:
+                  0.2,
 
-})
 
+                num_ctx:
+                  4096,
 
-}
+              },
 
-)
+            }),
 
+        },
 
+      )
 
 
 
+    console.log(
+      "OLLAMA STATUS",
+      response.status,
+    )
 
 
-const data =
 
-await response.json()
+    const data =
+      await response.json()
 
 
 
+    console.log(
+      "OLLAMA JSON RECEIVED",
+    )
 
 
 
-if(!response.ok){
+    if (!response.ok) {
 
+      throw new Error(
+        data.error ||
+        "Ollama error",
+      )
 
-throw new Error(
+    }
 
-data.error ||
 
-"Ollama error"
 
-)
+    return String(
+      data.message?.content ||
+      "",
+    ).trim()
 
 
-}
+  }
 
+  catch(error) {
 
 
+    if (
+      error.name ===
+      "AbortError"
+    ) {
 
+      throw new Error(
+        "Ollama timeout 60s",
+      )
 
+    }
 
-return String(
 
-data.message?.content ||
+    throw error
 
-""
+  }
 
-).trim()
 
+  finally {
+
+    clearTimeout(
+      timeout,
+    )
+
+  }
 
 }
