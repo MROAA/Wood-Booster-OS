@@ -1,3 +1,6 @@
+import {
+  createSpacemonkeyKnowledgeRouter,
+} from "./routes/spacemonkeyKnowledge.js"
 import express from "express"
 import cors from "cors"
 import {
@@ -183,7 +186,10 @@ app.use(
 app.use(
   express.json()
 )
-
+app.use(
+  "/api",
+  createSpacemonkeyKnowledgeRouter()
+)
 
 
 
