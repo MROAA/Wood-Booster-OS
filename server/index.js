@@ -26,6 +26,9 @@ import {
 } from "./services/spacemonkey/spacemonkeyServerIntegrationRunner.js"
 import systemPulseRouter from "./routes/systemPulse.js"
 import {
+  createSpacemonkeyAgentSystemRouter,
+} from "./routes/spacemonkeyAgentSystem.js"
+import {
   createSpacemonkeyWorldModelRouter,
 } from "./routes/spacemonkeyWorldModel.js"
 import {
@@ -161,7 +164,10 @@ app.use(
   "/api",
   createSpacemonkeyMemoryRouter()
 )
-
+app.use(
+  "/api",
+  createSpacemonkeyAgentSystemRouter()
+)
 app.use(
   cors()
 )
