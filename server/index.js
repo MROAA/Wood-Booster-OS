@@ -1,4 +1,7 @@
 import {
+  createSpacemonkeySecurityOverviewRouter,
+} from "./routes/spacemonkeySecurityOverview.js"
+import {
   createSpacemonkeySecurityReflectionRouter,
 } from "./routes/spacemonkeySecurityReflection.js"
 import {
@@ -238,6 +241,10 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyCapabilityRegistryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecurityOverviewRouter()
 )
 app.use(
   "/api",
