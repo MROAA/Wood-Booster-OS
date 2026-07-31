@@ -4,7 +4,9 @@ import cors from "cors"
 import {
   PrismaClient,
 } from "./generated/prisma/client.js"
-
+import {
+  createSpacemonkeyDecisionRouter,
+} from "./routes/spacemonkeyDecision.js"
 import {
   createSpacemonkeyReflectionRouter,
 } from "./routes/spacemonkeyReflection.js"
@@ -489,6 +491,10 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyReflectionRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyDecisionRouter()
 )
 /*
 =====================================
