@@ -1,4 +1,7 @@
 import {
+  createSpacemonkeyCapabilityRegistryRouter,
+} from "./routes/spacemonkeyCapabilityRegistry.js"
+import {
   createSpacemonkeyKnowledgeRouter,
 } from "./routes/spacemonkeyKnowledge.js"
 import express from "express"
@@ -174,7 +177,10 @@ app.use(
 app.use(
   cors()
 )
-
+app.use(
+  "/api",
+  createSpacemonkeyCapabilityRegistryRouter()
+)
 app.use(
   "/api",
   createSpacemonkeyExecutionRouter()
