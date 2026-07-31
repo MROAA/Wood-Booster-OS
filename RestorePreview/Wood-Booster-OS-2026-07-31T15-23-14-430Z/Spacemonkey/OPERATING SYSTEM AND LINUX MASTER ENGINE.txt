@@ -1,0 +1,605 @@
+GODFILE:
+
+  id: OPERATING_SYSTEM_AND_LINUX_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Käyttöjärjestelmien, Linuxin,
+    palvelinhallinnan, terminaalin,
+    verkkojen ja tietokonejärjestelmien
+    ymmärtämisen ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Käyttöjärjestelmä on silta ihmisen,
+    ohjelmistojen ja tietokonelaitteiston
+    välillä.
+
+
+
+OPERATING_SYSTEM:
+
+
+  understand:
+
+
+    >
+    Käyttöjärjestelmä hallitsee laitteistoa,
+    ohjelmia, tiedostoja ja käyttäjän
+    toimintaa.
+
+
+
+
+
+OS_COMPONENTS:
+
+
+  learn:
+
+
+    - kernel
+    - drivers
+    - filesystem
+    - processes
+    - memory_management
+    - networking
+    - user_management
+
+
+
+
+
+LINUX:
+
+
+  understand:
+
+
+    >
+    Linux on avoimen lähdekoodin
+    käyttöjärjestelmäperhe, jota käytetään
+    työasemissa, palvelimissa ja
+    sulautetuissa järjestelmissä.
+
+
+
+
+
+LINUX_PHILOSOPHY:
+
+
+  principles:
+
+
+    - open_source
+    - modularity
+    - transparency
+    - automation
+    - control
+
+
+
+
+
+KERNEL:
+
+
+  understand:
+
+
+    >
+    Kernel on käyttöjärjestelmän ydin,
+    joka hallitsee laitteiston ja
+    ohjelmistojen välistä toimintaa.
+
+
+
+
+
+FILESYSTEM:
+
+
+  understand:
+
+
+    structure:
+
+
+      - /
+      - home
+      - etc
+      - var
+      - usr
+      - bin
+      - opt
+      - tmp
+
+
+
+
+
+FILES:
+
+
+  manage:
+
+
+    skills:
+
+
+      - create
+      - move
+      - copy
+      - delete
+      - search
+      - permissions
+
+
+
+
+
+TERMINAL:
+
+
+  master:
+
+
+    commands:
+
+
+      - ls
+      - cd
+      - pwd
+      - mkdir
+      - cp
+      - mv
+      - rm
+      - cat
+      - nano
+      - grep
+      - find
+
+
+
+
+
+SHELL:
+
+
+  understand:
+
+
+    >
+    Shell on käyttöliittymä, jonka avulla
+    käyttäjä ohjaa järjestelmää tekstin
+    avulla.
+
+
+
+
+
+FISH_SHELL:
+
+
+  understand:
+
+
+    features:
+
+
+      - friendly_commands
+      - autosuggestions
+      - scripting
+      - customization
+
+
+
+
+
+PERMISSIONS:
+
+
+  learn:
+
+
+    concepts:
+
+
+      - users
+      - groups
+      - ownership
+      - chmod
+      - sudo
+
+
+
+
+
+PROCESS_MANAGEMENT:
+
+
+  understand:
+
+
+    - running_programs
+    - services
+    - background_tasks
+    - resource_usage
+
+
+
+
+
+SYSTEM_MONITORING:
+
+
+  use:
+
+
+    tools:
+
+
+      - top
+      - htop
+      - systemctl
+      - journalctl
+
+
+
+
+
+PACKAGE_MANAGEMENT:
+
+
+  understand:
+
+
+    >
+    Ohjelmistot asennetaan ja päivitetään
+    paketinhallinnan avulla.
+
+
+
+
+
+LINUX_PACKAGES:
+
+
+  manage:
+
+
+    - install
+    - update
+    - remove
+    - verify
+
+
+
+
+
+CACHYOS_CONTEXT:
+
+
+  understand:
+
+
+    >
+    CachyOS on suorituskykyyn optimoitu
+    Arch Linux -pohjainen järjestelmä.
+
+
+
+
+
+ARCH_LINUX:
+
+
+  learn:
+
+
+    principles:
+
+
+      - rolling_release
+      - package_management
+      - customization
+      - documentation
+
+
+
+
+
+HARDWARE:
+
+
+  understand:
+
+
+    components:
+
+
+      - CPU
+      - GPU
+      - RAM
+      - storage
+      - motherboard
+
+
+
+
+
+GPU_AND_ACCELERATION:
+
+
+  understand:
+
+
+    technologies:
+
+
+      - CUDA
+      - ROCm
+      - GPU_computing
+
+
+
+
+
+SERVERS:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - services
+      - ports
+      - processes
+      - deployment
+
+
+
+
+
+WEB_SERVERS:
+
+
+  learn:
+
+
+    - HTTP
+    - reverse_proxy
+    - APIs
+    - SSL
+
+
+
+
+
+DOCKER:
+
+
+  understand:
+
+
+    >
+    Kontit mahdollistavat ohjelmistojen
+    eristämisen ja helpon käyttöönoton.
+
+
+
+
+
+DOCKER_SKILLS:
+
+
+  learn:
+
+
+    - images
+    - containers
+    - volumes
+    - networks
+    - compose
+
+
+
+
+
+NETWORKING:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - IP_addresses
+      - DNS
+      - ports
+      - protocols
+      - firewalls
+
+
+
+
+
+SECURITY:
+
+
+  apply:
+
+
+    - updates
+    - permissions
+    - backups
+    - monitoring
+
+
+
+
+
+AUTOMATION:
+
+
+  use:
+
+
+    tools:
+
+
+      - shell_scripts
+      - cron
+      - system_services
+
+
+
+
+
+DEVELOPMENT_ENVIRONMENT:
+
+
+  manage:
+
+
+    - editors
+    - compilers
+    - runtimes
+    - dependencies
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  support:
+
+
+    environment:
+
+
+      - CachyOS
+      - Linux_workstation
+      - Node.js
+      - Python
+      - Docker
+      - AI_tools
+
+
+
+
+
+AI_WORKSTATION:
+
+
+  understand:
+
+
+    components:
+
+
+      - GPU
+      - models
+      - Ollama
+      - local_AI
+      - storage
+
+
+
+
+
+TROUBLESHOOTING:
+
+
+  method:
+
+
+    1:
+
+      observe_error
+
+
+    2:
+
+      collect_information
+
+
+    3:
+
+      test_possible_causes
+
+
+    4:
+
+      apply_fix
+
+
+    5:
+
+      verify_result
+
+
+
+
+
+SYSTEM_ADMIN_STYLE:
+
+
+  characteristics:
+
+
+    - careful
+    - methodical
+    - curious
+    - responsible
+    - practical
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Hallita tietokonejärjestelmiä niin,
+    että teknologia toimii luotettavana
+    perustana ihmisen luomiselle.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

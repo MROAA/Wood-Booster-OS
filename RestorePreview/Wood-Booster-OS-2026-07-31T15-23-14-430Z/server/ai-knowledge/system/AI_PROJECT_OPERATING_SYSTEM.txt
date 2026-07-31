@@ -1,0 +1,346 @@
+# WOOD-BOOSTER AI PROJECT OPERATING SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain käsittelee projekteja.
+
+Projekti ei ole vain tehtävälista.
+
+Projekti on kokonaisuus, jossa yhdistyvät:
+
+- idea
+- suunnittelu
+- materiaalit
+- valmistus
+- asiakasarvo
+- oppiminen
+
+
+---
+
+# PROJEKTIN PERUSIDEA
+
+
+Jokainen projekti on mahdollisuus rakentaa parempi seuraava versio.
+
+
+AI ei tarkastele projektia vain lopputuloksena.
+
+AI tarkastelee:
+
+Miten tähän päädyttiin?
+
+Mitä päätettiin?
+
+Mitä opittiin?
+
+
+---
+
+# PROJEKTIN ELINKAARI
+
+
+Jokainen projekti etenee vaiheittain:
+
+
+## 1. IDEA
+
+
+Tässä vaiheessa arvioidaan:
+
+
+- mikä idea on
+- miksi se kiinnostaa
+- kenelle se sopii
+- onko siinä arvoa
+
+
+Idea ei ole vielä päätös.
+
+
+---
+
+## 2. SUUNNITTELU
+
+
+Suunnittelussa määritetään:
+
+
+- tarkoitus
+- koko
+- materiaalit
+- tyyli
+- kustannukset
+- aikataulu
+
+
+Tässä vaiheessa tehdään tärkeimmät päätökset.
+
+
+---
+
+## 3. VALMISTUS
+
+
+Valmistuksessa seurataan:
+
+
+- työvaiheet
+- materiaalien käyttäytyminen
+- ongelmat
+- muutokset
+
+
+AI auttaa dokumentoimaan.
+
+
+---
+
+## 4. LAADUNVALVONTA
+
+
+Ennen valmistumista arvioidaan:
+
+
+- rakenne
+- viimeistely
+- ulkonäkö
+- toimivuus
+
+
+Kysymys:
+
+
+"Onko tämä Wood-Boosterin laadun mukaista?"
+
+
+---
+
+## 5. VALMIS TUOTE
+
+
+Valmis projekti sisältää:
+
+
+- lopputuloksen
+- kuvat
+- kustannukset
+- hinnan
+- asiakkaan kokemuksen
+
+
+---
+
+## 6. OPPIMINEN
+
+
+Projektin jälkeen analysoidaan:
+
+
+Mikä onnistui?
+
+Mikä ei onnistunut?
+
+Mitä tehdään seuraavalla kerralla paremmin?
+
+
+---
+
+# PROJEKTIN TIETORAKENNE
+
+
+Jokainen projekti voi sisältää:
+
+
+## Perustiedot
+
+- nimi
+- asiakas
+- tavoite
+- tila
+
+
+## Suunnittelu
+
+- ideat
+- piirrokset
+- mitat
+- materiaalivalinnat
+
+
+## Materiaalit
+
+- puulaji
+- määrä
+- kustannus
+- toimittaja
+
+
+## Työvaiheet
+
+- tehtävät
+- järjestys
+- tila
+
+
+## Talous
+
+- materiaalikulut
+- työaika
+- hinta
+- kate
+
+
+## Dokumentointi
+
+- kuvat
+- muistiinpanot
+- päätökset
+
+
+---
+
+# AI:N ROOLI PROJEKTISSA
+
+
+AI auttaa:
+
+
+## Suunnittelussa
+
+- vertailee vaihtoehtoja
+- ehdottaa ratkaisuja
+
+
+## Valmistuksessa
+
+- auttaa työvaiheissa
+- tunnistaa riskejä
+
+
+## Taloudessa
+
+- arvioi kustannuksia
+- auttaa hinnoittelussa
+
+
+## Dokumentoinnissa
+
+- tallentaa opit
+
+
+---
+
+# PROJEKTIPÄÄTÖKSET
+
+
+Merkittävät päätökset kirjataan:
+
+
+Päätös:
+
+Miksi tehtiin:
+
+Vaihtoehdot:
+
+Riskit:
+
+Lopputulos:
+
+
+---
+
+# AI:N KYSYMYKSET PROJEKTISSA
+
+
+Kun projekti alkaa, AI arvioi:
+
+
+Onko tarkoitus selkeä?
+
+Onko asiakas ymmärretty?
+
+Onko materiaali sopiva?
+
+Onko aikataulu realistinen?
+
+Onko laatu mahdollista saavuttaa?
+
+
+---
+
+# PROJEKTIN ARVIOINTI
+
+
+AI arvioi projektia:
+
+
+## Laatu
+
+Onko lopputulos hyvä?
+
+
+## Arvo
+
+Tuottaako tämä asiakkaalle merkitystä?
+
+
+## Tehokkuus
+
+Voidaanko prosessia parantaa?
+
+
+## Oppiminen
+
+Mitä tästä jää järjestelmään?
+
+
+---
+
+# PROJEKTIN HISTORIA
+
+
+Historia säilytetään.
+
+
+Älä poista:
+
+
+- tehtyjä päätöksiä
+- virheitä
+- muutoksia
+
+
+Historia kertoo miksi nykyinen ratkaisu syntyi.
+
+
+---
+
+# WOOD-BOOSTERIN PROJEKTIAJATTELU
+
+
+Projekti ei ole vain tuotteen valmistamista.
+
+
+Se on:
+
+
+materiaalin ymmärtämistä
+
+idean kehittämistä
+
+käsityön tekemistä
+
+asiakkaan tarinan jatkamista
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Hyvä projekti ei jätä vain tuotetta.
+
+
+Se jättää osaamista.

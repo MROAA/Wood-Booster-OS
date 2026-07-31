@@ -1,0 +1,418 @@
+# WOOD-BOOSTER AI CONTEXT BUILDER SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain rakentaa tarvittavan kontekstin ennen vastaamista.
+
+
+AI:n vastauslaatu riippuu siitä, kuinka hyvin se ymmärtää tilanteen.
+
+
+---
+
+# PERUSPERIAATE
+
+
+AI ei käytä kaikkea mahdollista tietoa.
+
+AI käyttää oikeaa tietoa oikeassa tilanteessa.
+
+
+---
+
+# KONTEKSTIN RAKENNE
+
+
+Jokainen AI-vastaus muodostuu seuraavista osista:
+
+
+1. System Context
+
+2. User Context
+
+3. Knowledge Context
+
+4. Memory Context
+
+5. Project Context
+
+6. Agent Context
+
+7. Task Context
+
+
+---
+
+# 1. SYSTEM CONTEXT
+
+
+System Context sisältää aina:
+
+
+- AI Identity
+- Wood-Booster filosofia
+- arvot
+- vastaustyyli
+- turvallisuussäännöt
+
+
+System määrittää miten AI toimii.
+
+
+---
+
+# 2. USER CONTEXT
+
+
+User Context sisältää:
+
+
+- käyttäjän tavoite
+- nykyinen työvaihe
+- osaamistaso
+- työskentelytapa
+
+
+AI mukauttaa vastauksen käyttäjän tarpeeseen.
+
+
+---
+
+# 3. KNOWLEDGE CONTEXT
+
+
+Knowledge sisältää:
+
+
+- yrityksen tiedot
+- tuotteet
+- prosessit
+- ohjeet
+
+
+AI hakee vain aiheeseen liittyvän tiedon.
+
+
+---
+
+# 4. MEMORY CONTEXT
+
+
+Memory sisältää:
+
+
+- aikaisemmat päätökset
+- projektihistorian
+- tärkeät opit
+
+
+Memory auttaa jatkuvuudessa.
+
+
+---
+
+# 5. PROJECT CONTEXT
+
+
+Projektitieto sisältää:
+
+
+- projektin tila
+- tehtävät
+- materiaalit
+- aikaisemmat päätökset
+
+
+Projektikontekstia käytetään vain tarvittaessa.
+
+
+---
+
+# 6. AGENT CONTEXT
+
+
+AI valitsee tarvittavat näkökulmat.
+
+
+Esimerkiksi:
+
+
+Hinnoittelu:
+
+Finance Agent
+
+
+Tuotesuunnittelu:
+
+Product Agent
+
+
+Ohjelmointi:
+
+Developer Agent
+
+
+---
+
+# 7. TASK CONTEXT
+
+
+AI tunnistaa mitä käyttäjä haluaa tehdä.
+
+
+Mahdollisia tarkoituksia:
+
+
+- kysymys
+- suunnittelu
+- ongelmanratkaisu
+- päätös
+- oppiminen
+- luominen
+
+
+---
+
+# KONTEKSTIN RAKENTAMISJÄRJESTYS
+
+
+AI rakentaa kontekstin:
+
+
+1. Lataa System.
+
+
+2. Tunnista tehtävä.
+
+
+3. Hae relevantti Knowledge.
+
+
+4. Hae tarvittava Memory.
+
+
+5. Hae projektitieto.
+
+
+6. Valitse Agentit.
+
+
+7. Muodosta lopullinen konteksti.
+
+
+---
+
+# KONTEKSTIN PRIORITEETTI
+
+
+Jos tiedot ovat ristiriidassa:
+
+
+Järjestys:
+
+
+1. SYSTEM
+
+2. Arvot
+
+3. Vahvistettu tieto
+
+4. Projektitieto
+
+5. Muisti
+
+6. Oletukset
+
+
+---
+
+# KONTEKSTIN KOKO
+
+
+AI ei lisää kaikkea tietoa.
+
+
+Liian suuri konteksti aiheuttaa:
+
+
+- epäselviä vastauksia
+- hitaampaa toimintaa
+- ristiriitoja
+
+
+---
+
+# RELEVANSSIN ARVIOINTI
+
+
+Tietoa arvioidaan:
+
+
+## Liittyvyys
+
+
+Liittyykö tämä kysymykseen?
+
+
+## Tärkeys
+
+
+Vaikuttaako tämä päätökseen?
+
+
+## Luotettavuus
+
+
+Onko tieto vahvistettu?
+
+
+## Ajantasaisuus
+
+
+Onko tieto vielä voimassa?
+
+
+---
+
+# KONTEKSTIN PUHDISTUS
+
+
+Ennen AI-mallille lähettämistä:
+
+
+Poistetaan:
+
+
+- päällekkäinen tieto
+- epäolennainen tieto
+- ristiriitainen tieto
+
+
+---
+
+# AI PROMPTIN RAKENNE
+
+
+Lopullinen prompt muodostetaan:
+
+
+SYSTEM
+
++
+
+CONTEXT
+
++
+
+USER MESSAGE
+
+
+---
+
+# ESIMERKKI
+
+
+Käyttäjä:
+
+
+"Kannattaako minun tehdä uusi pöytämalli?"
+
+
+AI rakentaa:
+
+
+SYSTEM:
+
+Wood-Booster arvot
+
+
+KNOWLEDGE:
+
+Tuotekehitys
+
+
+MEMORY:
+
+Aikaisemmat pöytäprojektit
+
+
+AGENTS:
+
+Product + Finance + Marketing
+
+
+TASK:
+
+Strateginen arviointi
+
+
+---
+
+# KONTEKSTIN TESTAUS
+
+
+Ennen vastausta tarkistetaan:
+
+
+Onko mukana tarvittava tieto?
+
+
+Onko mukana liikaa tietoa?
+
+
+Onko lähteet selkeitä?
+
+
+---
+
+# CONTEXT BUILDER AGENT
+
+
+Tuleva Context Agent auttaa:
+
+
+- valitsemaan tiedot
+- optimoimaan promptit
+- parantamaan vastausten laatua
+
+
+---
+
+# JATKUVA PARANTAMINEN
+
+
+Context Builder kehittyy:
+
+
+Käyttö
+
+↓
+
+Palaute
+
+↓
+
+Optimointi
+
+↓
+
+Parempi konteksti
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Hyvä AI ei tiedä kaikkea samaan aikaan.
+
+
+Hyvä AI tietää mitä tarvitsee juuri nyt.
+
+
+Oikea tieto.
+
+Oikea hetki.
+
+Oikea tarkoitus.

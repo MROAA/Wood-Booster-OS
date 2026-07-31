@@ -1,0 +1,65 @@
+GODFILE:
+
+ id: FINNISH_GRAMMAR_ENGINE
+
+ purpose:
+   description: >
+    Suomen kieliopin kokonaisjärjestelmä.
+
+
+ grammar:
+
+   structures:
+
+     sentence:
+       components:
+
+        - subject
+        - verb
+        - object
+        - modifiers
+
+
+   word_classes:
+
+     nouns:
+       - substantiivi
+
+     verbs:
+       - verbi
+
+     adjectives:
+       - adjektiivi
+
+     adverbs:
+       - adverbi
+
+     pronouns:
+       - pronomini
+
+     numerals:
+       - lukusanat
+
+
+ rules:
+
+   finnish_logic:
+
+     - endings carry meaning
+     - context determines interpretation
+     - word order is flexible
+
+
+ analysis:
+
+   identify:
+
+    - case
+    - tense
+    - person
+    - number
+    - meaning
+
+
+ status:
+   active: true

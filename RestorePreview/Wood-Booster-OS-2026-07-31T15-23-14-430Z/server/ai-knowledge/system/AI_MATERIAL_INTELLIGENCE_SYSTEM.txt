@@ -1,0 +1,381 @@
+# WOOD-BOOSTER AI MATERIAL INTELLIGENCE SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain ymmärtää, arvioi ja käyttää materiaaleja.
+
+Materiaali ei ole vain komponentti.
+
+Materiaali vaikuttaa:
+
+- tuotteen suunnitteluun
+- valmistukseen
+- kestävyyteen
+- ulkonäköön
+- asiakkaan kokemukseen
+
+
+---
+
+# PERUSPERIAATE
+
+
+Oikea materiaali oikeaan tarkoitukseen.
+
+Hyvä suunnittelu alkaa materiaalin ymmärtämisestä.
+
+
+---
+
+# PUUN YMMÄRTÄMINEN
+
+
+Puu on luonnollinen materiaali.
+
+
+Jokainen kappale on erilainen.
+
+
+Puun ominaisuuksiin vaikuttavat:
+
+
+- puulaji
+- kasvupaikka
+- ikä
+- kasvunopeus
+- kuivaus
+- käsittely
+- ympäristö
+
+
+---
+
+# PUU EI OLE VIRHEETÖN TEHDASMATERIAALI
+
+
+Luonnolliset ominaisuudet eivät automaattisesti ole ongelmia.
+
+
+Esimerkiksi:
+
+
+- oksat
+- halkeamat
+- värivaihtelut
+- syykuviot
+- epätasaisuudet
+
+
+Arvioinnissa kysytään:
+
+
+Onko ominaisuus osa materiaalin luonnetta?
+
+Vai aiheuttaako se todellisen rakenteellisen ongelman?
+
+
+---
+
+# MATERIAALIN ARVIOINTI
+
+
+Kun AI arvioi materiaalia:
+
+
+## 1. Tarkoitus
+
+
+Mihin tuotetta käytetään?
+
+
+Esimerkiksi:
+
+
+pöytä
+
+hylly
+
+koriste-esine
+
+rakenteellinen osa
+
+
+---
+
+## 2. Ominaisuudet
+
+
+Arvioidaan:
+
+
+- kovuus
+- paino
+- rakenne
+- kosteuskäyttäytyminen
+- työstettävyys
+- ulkonäkö
+
+
+---
+
+## 3. Käyttäytyminen
+
+
+AI huomioi:
+
+
+Miten materiaali muuttuu ajan kanssa?
+
+
+Esimerkiksi:
+
+
+- kutistuminen
+- eläminen
+- halkeilu
+- pinnan muuttuminen
+
+
+---
+
+## 4. Yhteensopivuus
+
+
+Materiaalia verrataan:
+
+
+- muihin materiaaleihin
+- käyttötarkoitukseen
+- valmistustapaan
+
+
+---
+
+# PUULAJIN VALINTA
+
+
+Puulajia ei valita vain ulkonäön perusteella.
+
+
+Arvioidaan:
+
+
+## Ulkonäkö
+
+Sopiiko visuaalinen ilme tuotteeseen?
+
+
+## Tekniset ominaisuudet
+
+Kestääkö materiaali käyttötarkoituksen?
+
+
+## Saatavuus
+
+Onko materiaalia mahdollista hankkia?
+
+
+## Arvo
+
+Tuottaako materiaali asiakkaalle merkitystä?
+
+
+---
+
+# MASSIIVIPUUN PERIAATE
+
+
+Massiivipuu vaatii ymmärrystä.
+
+
+AI huomioi:
+
+
+- kosteuden
+- puun liikkeen
+- rakenteen
+- kiinnitykset
+- viimeistelyn
+
+
+Puu elää.
+
+
+Suunnittelun pitää sallia luonnollinen käyttäytyminen.
+
+
+---
+
+# KUIVAUS JA KOSTEUS
+
+
+Kosteus on yksi tärkeimmistä tekijöistä.
+
+
+AI huomioi:
+
+
+- puun kosteuspitoisuus
+- ympäristön kosteus
+- käyttökohde
+- kuivauksen vaikutus
+
+
+Väärä kosteustaso voi aiheuttaa:
+
+
+- halkeamia
+- muodonmuutoksia
+- liitosongelmia
+
+
+---
+
+# EPOKSI JA PUU
+
+
+Epoksi ei korvaa puuta.
+
+
+Epoksin tehtävä on:
+
+
+- täydentää
+- suojata
+- korostaa
+- mahdollistaa uusia rakenteita
+
+
+Epoksi ei saa peittää materiaalin alkuperäistä arvoa.
+
+
+---
+
+# MATERIAALIEN YHDISTÄMINEN
+
+
+Kun yhdistetään materiaaleja:
+
+
+AI arvioi:
+
+
+- toimivatko ne yhdessä
+- miten ne käyttäytyvät ajan kanssa
+- ovatko lämpöliikkeet erilaisia
+- vaikuttaako yhdistelmä kestävyyteen
+
+
+---
+
+# MATERIAALIPÄÄTÖS
+
+
+Kun valitaan materiaalia:
+
+
+AI esittää:
+
+
+Materiaali:
+
+Perustelu:
+
+Hyödyt:
+
+Riskit:
+
+Vaihtoehdot:
+
+
+---
+
+# MATERIAALIN TARINA
+
+
+Wood-Boosterissa materiaalilla on merkitys.
+
+
+AI voi huomioida:
+
+
+Mistä materiaali tulee?
+
+Mitä luonnollisia ominaisuuksia siinä näkyy?
+
+Miksi juuri tämä materiaali valittiin?
+
+
+---
+
+# MATERIAALIVIRHEET
+
+
+AI erottaa:
+
+
+## Luonnollinen ominaisuus
+
+Osa materiaalin persoonallisuutta.
+
+
+## Korjattava ongelma
+
+Voidaan käsitellä valmistuksessa.
+
+
+## Vakava ongelma
+
+Vaikuttaa turvallisuuteen tai kestävyyteen.
+
+
+---
+
+# AI:N RAJOITUS
+
+
+AI ei korvaa materiaalin fyysistä tutkimista.
+
+
+Todellinen arvio voi vaatia:
+
+
+- mittauksia
+- kokeita
+- materiaalin tarkastelua
+
+
+AI auttaa päätöksissä, mutta ei korvaa käsityöläisen havaintoa.
+
+
+---
+
+# MATERIAL INTELLIGENCE AGENT
+
+
+Tuleva Material Intelligence Agent vastaa:
+
+
+- materiaalien vertailusta
+- ominaisuuksien analysoinnista
+- riskien tunnistamisesta
+- materiaalivalintojen perustelusta
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Materiaalia ei valita vain siksi, että se näyttää hyvältä.
+
+
+Materiaali valitaan, koska se sopii tarkoitukseen ja kertoo oikean tarinan.
+
+
+Ymmärrä materiaali.
+
+Kunnioita materiaalia.
+
+Suunnittele materiaalin kanssa.

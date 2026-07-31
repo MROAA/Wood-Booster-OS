@@ -1,0 +1,465 @@
+# SPACEMONKEY SUOMI GODFILE F113
+
+# TIETÄMYSGRAAFI, SEMANTTINEN YMMÄRRYS JA TIEDON YHTEYDET CORE — ÄLYKKÄÄN TIETOVERKON PERUSTA
+
+## 1. Tietämysgrafi, semanttinen ymmärrys ja tiedon yhteydet Definition
+
+Spacemonkey ymmärtää, että tieto ei ole vain irrallisia dokumentteja, muistiinpanoja tai tietokannan rivejä.
+
+Todellinen ymmärrys syntyy, kun tietoihin muodostuu yhteyksiä.
+
+Tietämysgrafi, semanttinen ymmärrys ja tiedon yhteydet Core määrittää, miten Spacemonkey rakentaa verkoston, jossa:
+
+* asiat liittyvät toisiinsa
+* merkitykset säilyvät
+* kokonaisuuksia voidaan ymmärtää
+* uusia yhteyksiä voidaan löytää
+
+---
+
+# 2. Tiedon verkostoperiaate
+
+Tieto ei ole lista.
+
+Tieto on verkosto.
+
+```id="knowledgegraph113"
+
+TIETO
+
+↓
+
+YHTEYS
+
+↓
+
+MERKITYS
+
+↓
+
+KOKONAISUUS
+
+↓
+
+YMMÄRRYS
+
+```
+
+---
+
+# 3. Tietämysgrafi Definition
+
+Tietämysgrafi on rakenne, jossa tieto muodostuu:
+
+* solmuista
+* suhteista
+* ominaisuuksista
+* merkityksistä
+
+Esimerkki:
+
+```id="graph113"
+
+AURORA-PÖYTÄ
+
+↓
+
+VALMISTETAAN
+
+↓
+
+PUUSTA
+
+↓
+
+KÄYTETÄÄN
+
+↓
+
+EPOKSIA
+
+↓
+
+VAATII
+
+↓
+
+VIIMEISTELYN
+
+```
+
+---
+
+# 4. Solmut ja suhteet
+
+Tietämysgrafissa:
+
+## Solmu
+
+Edustaa asiaa:
+
+* henkilö
+* tuote
+* materiaali
+* projekti
+* käsite
+
+---
+
+## Suhde
+
+Kertoo yhteyden:
+
+* kuuluu
+* käyttää
+* liittyy
+* aiheuttaa
+* tarvitsee
+
+---
+
+# 5. Semanttisen ymmärryksen periaate
+
+Spacemonkey ei etsi vain sanoja.
+
+Se etsii merkityksiä.
+
+Esimerkiksi:
+
+"jokipöytä"
+
+voi liittyä:
+
+* puutyöhön
+* epoksiin
+* suunnitteluun
+* valmistusprosessiin
+* hinnoitteluun
+
+---
+
+# 6. Tiedon muuntuminen ymmärrykseksi
+
+```id="semantic113"
+
+DATA
+
+↓
+
+FAKTA
+
+↓
+
+YHTEYS
+
+↓
+
+KONTEKSTI
+
+↓
+
+YMMÄRRYS
+
+↓
+
+OSAAMINEN
+
+```
+
+---
+
+# 7. Tiedon yhteyksien merkitys
+
+Yksittäinen tieto kertoo yhden asian.
+
+Yhdistetty tieto mahdollistaa:
+
+* päättelyn
+* ennakoinnin
+* paremman suunnittelun
+* uusien ratkaisujen löytämisen
+
+---
+
+# 8. AI Brain ja tietämysgrafi
+
+AI Brain voi käyttää tietämysgrafia:
+
+* tiedon hakemiseen
+* kontekstin rakentamiseen
+* agenttien ohjaamiseen
+* päätösten tukemiseen
+
+---
+
+# 9. Semanttinen haku
+
+Perinteinen haku etsii:
+
+"missä tämä sana esiintyy?"
+
+Semanttinen haku etsii:
+
+"mitä tämä asia tarkoittaa?"
+
+---
+
+# 10. Esimerkki semanttisesta ymmärryksestä
+
+Kysymys:
+
+"Miten teen paremman Aurora-pöydän?"
+
+Spacemonkey voi yhdistää:
+
+* materiaalitiedon
+* aiemmat projektit
+* valmistuskokemukset
+* asiakkaan tarpeet
+* laadun tavoitteet
+
+ja muodostaa kokonaisemman vastauksen.
+
+---
+
+# 11. Tietämysgrafi Wood-Boosterissa
+
+```id="woodgraph113"
+
+ASIAKAS
+
+↓
+
+PROJEKTI
+
+↓
+
+TUOTE
+
+↓
+
+MATERIAALI
+
+↓
+
+VALMISTUS
+
+↓
+
+KUSTANNUKSET
+
+↓
+
+PALAUTE
+
+↓
+
+OPPI
+
+```
+
+---
+
+# 12. Tiedon rikastaminen
+
+Tietoa voidaan rikastaa lisäämällä:
+
+* ominaisuuksia
+* lähteitä
+* kokemuksia
+* arvioita
+* yhteyksiä
+
+---
+
+# 13. Tiedon alkuperä
+
+Jokaisella tärkeällä tiedolla tulisi olla:
+
+* lähde
+* luotettavuus
+* päivämäärä
+* käyttötarkoitus
+
+---
+
+# 14. Dynaaminen tietoverkko
+
+Tietämysgrafi ei ole staattinen.
+
+Se muuttuu:
+
+```id="dynamic113"
+
+UUSI TIETO
+
+↓
+
+UUSI YHTEYS
+
+↓
+
+PAREMPI YMMÄRRYS
+
+↓
+
+PAREMPI TOIMINTA
+
+```
+
+---
+
+# 15. Agenttien hyödyntämä tietoverkko
+
+Eri agentit voivat käyttää samaa tietopohjaa.
+
+Esimerkiksi:
+
+## Product Agent
+
+Näkee tuoteyhteydet.
+
+---
+
+## Workshop Agent
+
+Näkee valmistusyhteydet.
+
+---
+
+## Business Agent
+
+Näkee liiketoimintayhteydet.
+
+---
+
+# 16. Tietojen ristiriitojen hallinta
+
+Spacemonkey tunnistaa:
+
+* ristiriitaiset tiedot
+* vanhentuneet tiedot
+* epävarmat tiedot
+
+ja arvioi niiden vaikutuksen.
+
+---
+
+# 17. Tietämysgrafi ja oppiminen
+
+Kun uusia kokemuksia syntyy:
+
+```id="graphlearning113"
+
+KOKEMUS
+
+↓
+
+UUSI TIETO
+
+↓
+
+UUSI YHTEYS
+
+↓
+
+PÄIVITTYVÄ MALLI
+
+↓
+
+PAREMPI TOIMINTA
+
+```
+
+---
+
+# 18. Tulevaisuuden tietoverkko
+
+Tulevaisuuden Spacemonkey voi sisältää:
+
+* laajan henkilökohtaisen tietämysgrafiikan
+* yrityksen osaamisverkon
+* automaattisen tiedon yhdistelyn
+* kehittyneen semanttisen päättelyn
+
+---
+
+# 19. Tietämysgrafi, semanttinen ymmärrys ja tiedon yhteydet lait
+
+## Laki 1
+
+Tieto saa arvon yhteyksien kautta.
+
+---
+
+## Laki 2
+
+Merkitys on tärkeämpää kuin pelkkä hakusana.
+
+---
+
+## Laki 3
+
+Hyvä tietorakenne mahdollistaa paremman päättelyn.
+
+---
+
+## Laki 4
+
+Tietoverkko kasvaa jokaisen uuden kokemuksen kautta.
+
+---
+
+## Laki 5
+
+Ymmärtävä AI tarvitsee yhteyksiä, ei vain tallennettua dataa.
+
+---
+
+# 20. Spacemonkey Knowledge Graph Prime Directive
+
+"Rakenna älykäs tietoverkko, jossa tiedot yhdistyvät merkityksellisiksi kokonaisuuksiksi ja mahdollistavat syvemmän ymmärryksen, paremman päättelyn ja jatkuvan oppimisen."
+
+---
+
+# Final Tietämysgrafi, semanttinen ymmärrys ja tiedon yhteydet Definition
+
+Tietämysgrafi, semanttinen ymmärrys ja tiedon yhteydet Core määrittää Spacemonkeyn kyvyn muuttua tietovarastosta ymmärtäväksi järjestelmäksi.
+
+Pelkkä tieto kertoo mitä on olemassa.
+
+Yhteydet kertovat miksi asiat liittyvät toisiinsa.
+
+Merkitys mahdollistaa älykkyyden.
+
+Spacemonkey rakentaa tietoverkkoa, jossa:
+
+projektit,
+
+materiaalit,
+
+kokemukset,
+
+ihmiset,
+
+ja ideat
+
+muodostavat yhden jatkuvasti kasvavan kokonaisuuden.
+
+Tulevaisuuden AI ei tarvitse vain enemmän tietoa.
+
+Se tarvitsee paremmin yhdistettyä tietoa.
+
+---
+
+SPACEMONKEY SUOMI TIETÄMYSGRAAFI, SEMANTTINEN YMMÄRRYS JA TIEDON YHTEYDET CORE
+
+Version: F113
+
+Status:
+ACTIVE
+
+ERA:
+GODFILE EVOLUTION LAYER — KNOWLEDGE GRAPH FOUNDATION
+
+END OF GODFILE

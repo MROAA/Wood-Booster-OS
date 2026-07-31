@@ -1,0 +1,514 @@
+{
+  "spacemonkey_runtime_contract": {
+
+    "version": "1.0.0",
+
+    "purpose":
+
+    "Defines the runtime communication contract between Spacemonkey and Wood-Booster OS AI Brain modules.",
+
+
+    "core_principle":
+
+    "Spacemonkey coordinates intelligence by understanding goals, context and available capabilities.",
+
+
+    "runtime_identity": {
+
+
+      "name":
+
+      "Spacemonkey",
+
+
+      "role":
+
+      "Intelligence Coordination Layer",
+
+
+      "environment":
+
+      "Wood-Booster OS"
+
+    },
+
+
+    "runtime_input": {
+
+
+      "required":
+
+      {
+
+
+        "user_request":
+
+        {
+
+          "type":
+
+          "string",
+
+          "description":
+
+          "Original user intention or system event."
+
+        },
+
+
+        "context":
+
+        {
+
+          "type":
+
+          "object",
+
+          "description":
+
+          "Current system, project and conversation context."
+
+        }
+
+      },
+
+
+      "optional":
+
+      {
+
+
+        "memory":
+
+        {
+
+          "type":
+
+          "object",
+
+          "description":
+
+          "Relevant historical knowledge."
+
+        },
+
+
+        "knowledge":
+
+        {
+
+          "type":
+
+          "object",
+
+          "description":
+
+          "Verified information sources."
+
+        },
+
+
+        "system_state":
+
+        {
+
+          "type":
+
+          "object",
+
+          "description":
+
+          "Current module status."
+
+        }
+
+      }
+
+    },
+
+
+    "internal_processing": {
+
+
+      "stage_1":
+
+      {
+
+        "name":
+
+        "Context Understanding",
+
+
+        "goal":
+
+        "Understand the situation before reasoning."
+
+      },
+
+
+      "stage_2":
+
+      {
+
+        "name":
+
+        "Identity Application",
+
+
+        "goal":
+
+        "Apply Spacemonkey values and behavior rules."
+
+      },
+
+
+      "stage_3":
+
+      {
+
+        "name":
+
+        "Reasoning",
+
+
+        "goal":
+
+        "Analyze possible solutions."
+
+      },
+
+
+      "stage_4":
+
+      {
+
+        "name":
+
+        "Decision Evaluation",
+
+
+        "goal":
+
+        "Select best direction."
+
+      },
+
+
+      "stage_5":
+
+      {
+
+        "name":
+
+        "Action Coordination",
+
+
+        "goal":
+
+        "Delegate work to appropriate modules."
+
+      }
+
+    },
+
+
+    "runtime_output": {
+
+
+      "response":
+
+      {
+
+        "type":
+
+        "string",
+
+        "description":
+
+        "Human readable response."
+
+      },
+
+
+      "reasoning_summary":
+
+      {
+
+        "type":
+
+        "object",
+
+        "description":
+
+        "Structured explanation of decision."
+
+      },
+
+
+      "recommended_actions":
+
+      {
+
+        "type":
+
+        "array",
+
+        "description":
+
+        "Suggested next steps."
+
+      },
+
+
+      "confidence":
+
+      {
+
+        "type":
+
+        "number",
+
+        "range":
+
+        "0-1"
+
+      },
+
+
+      "memory_candidates":
+
+      {
+
+        "type":
+
+        "array",
+
+        "description":
+
+        "Information that may become useful future memory."
+
+      }
+
+    },
+
+
+    "module_communication": {
+
+
+      "memory":
+
+      {
+
+        "request":
+
+        "Retrieve or store relevant knowledge.",
+
+
+        "responsibility":
+
+        "Maintain historical continuity."
+
+      },
+
+
+      "knowledge":
+
+      {
+
+        "request":
+
+        "Provide verified information.",
+
+
+        "responsibility":
+
+        "Maintain factual understanding."
+
+      },
+
+
+      "planner":
+
+      {
+
+        "request":
+
+        "Create structured execution plan.",
+
+
+        "responsibility":
+
+        "Transform goals into steps."
+
+      },
+
+
+      "decision":
+
+      {
+
+        "request":
+
+        "Evaluate alternatives.",
+
+
+        "responsibility":
+
+        "Support choices."
+
+      },
+
+
+      "execution":
+
+      {
+
+        "request":
+
+        "Perform approved actions.",
+
+
+        "responsibility":
+
+        "Create real changes."
+
+      }
+
+    },
+
+
+    "decision_pipeline": {
+
+
+      "flow":
+
+      [
+
+        "Receive",
+
+        "Understand",
+
+        "Contextualize",
+
+        "Reason",
+
+        "Evaluate",
+
+        "Plan",
+
+        "Execute",
+
+        "Review"
+
+      ]
+
+    },
+
+
+    "error_handling": {
+
+
+      "unknown_context":
+
+      {
+
+        "action":
+
+        "Request clarification or additional information"
+
+      },
+
+
+      "module_failure":
+
+      {
+
+        "action":
+
+        "Report failure and seek alternative path"
+
+      },
+
+
+      "identity_failure":
+
+      {
+
+        "action":
+
+        "Stop activation and enter safe mode"
+
+      }
+
+    },
+
+
+    "logging_requirements": {
+
+
+      "important_events":
+
+      [
+
+        "Decisions",
+
+        "Actions",
+
+        "Errors",
+
+        "Learning events"
+
+      ],
+
+
+      "purpose":
+
+      "Create traceability and improve future behavior."
+
+    },
+
+
+    "autonomy_rules": {
+
+
+      "default":
+
+      "Assistive",
+
+
+      "higher_levels_require":
+
+      [
+
+        "Permission",
+
+        "Validation",
+
+        "Safety checks"
+
+      ]
+
+    },
+
+
+    "future_prisma_interface": {
+
+
+      "purpose":
+
+      "Provide a stable intelligence interface between Spacemonkey and Prisma OS.",
+
+
+      "principle":
+
+      "Capabilities may change, but the intelligence contract remains stable."
+
+    },
+
+
+    "final_contract":
+
+    "Spacemonkey receives context, applies identity and reasoning, coordinates capabilities and returns meaningful intelligence."
+
+  }
+}

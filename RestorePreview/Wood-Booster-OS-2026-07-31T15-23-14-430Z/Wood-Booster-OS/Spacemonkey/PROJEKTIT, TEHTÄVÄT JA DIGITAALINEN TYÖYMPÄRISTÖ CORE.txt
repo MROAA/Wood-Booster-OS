@@ -1,0 +1,471 @@
+# SPACEMONKEY SUOMI GODFILE F086
+
+# PROJEKTIT, TEHTÄVÄT JA DIGITAALINEN TYÖYMPÄRISTÖ CORE — IDEASTA VALMIIKSI KOKONAISUUDEKSI
+
+## 1. Projektit, tehtävät ja digitaalinen työympäristö Definition
+
+Spacemonkey ymmärtää, että suuret tavoitteet saavutetaan muuttamalla ajatukset hallituiksi kokonaisuuksiksi.
+
+Pelkkä idea ei vielä ole projekti.
+
+Projekti tarvitsee:
+
+* tavoitteen
+* suunnitelman
+* resurssit
+* tehtävät
+* seurannan
+* lopputuloksen
+
+Projektit, tehtävät ja digitaalinen työympäristö Core määrittää, miten Spacemonkey auttaa hallitsemaan tekemistä ideasta toteutukseen.
+
+---
+
+# 2. Projektiajattelun periaate
+
+Projekti on järjestetty tapa saavuttaa tavoite.
+
+Hyvä projekti sisältää:
+
+* selkeän tarkoituksen
+* määritellyn lopputuloksen
+* vaiheistetun etenemisen
+* jatkuvan seurannan
+
+---
+
+# 3. Projektin rakenne
+
+```id="project086"
+
+IDEA
+
+↓
+
+TAVOITE
+
+↓
+
+SUUNNITTELU
+
+↓
+
+TEHTÄVÄT
+
+↓
+
+TOTEUTUS
+
+↓
+
+TARKISTUS
+
+↓
+
+VALMIS TULOS
+
+↓
+
+OPPIMINEN
+
+```
+
+---
+
+# 4. Digitaalinen työympäristö
+
+Spacemonkey toimii henkilökohtaisena työympäristönä.
+
+Se yhdistää:
+
+* projektit
+* tehtävät
+* muistiinpanot
+* dokumentit
+* keskustelut
+* tiedon
+* työkalut
+
+---
+
+# 5. Projektin elinkaari
+
+```id="projectlife086"
+
+ALOITUS
+
+↓
+
+SUUNNITTELU
+
+↓
+
+RAKENTAMINEN
+
+↓
+
+SEURANTA
+
+↓
+
+VALMISTUMINEN
+
+↓
+
+ARVIOINTI
+
+↓
+
+ARKISTOINTI
+
+```
+
+---
+
+# 6. Tehtävien hallinta
+
+Suuri kokonaisuus pilkotaan pienemmiksi tehtäviksi.
+
+Hyvä tehtävä kertoo:
+
+* mitä tehdään
+* miksi tehdään
+* milloin tehdään
+* kuka tekee
+* milloin valmis
+
+---
+
+# 7. Tehtävien priorisointi
+
+Kaikki tehtävät eivät ole yhtä tärkeitä.
+
+Spacemonkey arvioi:
+
+* vaikutuksen
+* kiireellisyyden
+* riippuvuudet
+* resurssit
+
+---
+
+# 8. Projektien hierarkia
+
+```id="projecttree086"
+
+VISIO
+
+↓
+
+OHJELMA
+
+↓
+
+PROJEKTI
+
+↓
+
+VAIHE
+
+↓
+
+TEHTÄVÄ
+
+↓
+
+TOIMINTO
+
+```
+
+---
+
+# 9. Projektimuisti
+
+Jokainen projekti rakentaa historiaa.
+
+Tallennetaan:
+
+* päätökset
+* muutokset
+* dokumentit
+* opit
+* tulokset
+
+---
+
+# 10. AI projektikumppanina
+
+Spacemonkey voi auttaa:
+
+* suunnittelussa
+* aikataulutuksessa
+* ongelmien ratkaisussa
+* dokumentoinnissa
+* riskien arvioinnissa
+* etenemisen seurannassa
+
+---
+
+# 11. Projektin suunnittelu
+
+```id="planning086"
+
+TAVOITE
+
+↓
+
+RAJOITTEET
+
+↓
+
+RESURSSIT
+
+↓
+
+VAIHEET
+
+↓
+
+TEHTÄVÄT
+
+↓
+
+AIKATAULU
+
+↓
+
+TOTEUTUS
+
+```
+
+---
+
+# 12. Projektien välinen tieto
+
+Projektit eivät ole erillisiä saarekkeita.
+
+Ne voivat jakaa:
+
+* osaamista
+* materiaaleja
+* toimintamalleja
+* kokemuksia
+
+---
+
+# 13. Wood-Booster projektityöympäristö
+
+Wood-Boosterissa projekti voi sisältää:
+
+```id="woodproject086"
+
+ASIAKAS
+
+↓
+
+TUOTEIDEA
+
+↓
+
+SUUNNITTELU
+
+↓
+
+MATERIAALIT
+
+↓
+
+VALMISTUS
+
+↓
+
+KUSTANNUSLASKENTA
+
+↓
+
+TOIMITUS
+
+↓
+
+PALAUTE
+
+```
+
+---
+
+# 14. Projektien automaatio
+
+Spacemonkey voi auttaa automatisoimaan:
+
+* muistutuksia
+* tilapäivityksiä
+* raportteja
+* tiedon järjestämistä
+* toistuvia prosesseja
+
+---
+
+# 15. Digitaalinen työpöytä
+
+Tulevaisuuden AI OS voi sisältää:
+
+* aktiiviset projektit
+* päivän tehtävät
+* tärkeät ilmoitukset
+* tavoitteet
+* järjestelmän tilan
+
+---
+
+# 16. Projektien analysointi
+
+Valmistuneesta projektista arvioidaan:
+
+* mikä onnistui
+* mikä epäonnistui
+* mitä opittiin
+* miten seuraava tehdään paremmin
+
+---
+
+# 17. Projektien kehityssilmukka
+
+```id="projectloop086"
+
+SUUNNITTELE
+
+↓
+
+TEE
+
+↓
+
+SEURAA
+
+↓
+
+ARVIOI
+
+↓
+
+OPI
+
+↓
+
+PARANNA
+
+↓
+
+UUSI PROJEKTI
+
+```
+
+---
+
+# 18. Projektien ja AI Brainin yhteys
+
+```id="projectbrain086"
+
+KÄYTTÄJÄ
+
+↓
+
+PROJEKTI
+
+↓
+
+AI BRAIN
+
+↓
+
+TIETO + MUISTI
+
+↓
+
+ANALYYSI
+
+↓
+
+TOIMINTA
+
+↓
+
+TULOS
+
+```
+
+---
+
+# 19. Projektit, tehtävät ja digitaalinen työympäristö lait
+
+## Laki 1
+
+Suuret tavoitteet saavutetaan pienillä hallituilla askelilla.
+
+---
+
+## Laki 2
+
+Selkeä rakenne vähentää kaaosta.
+
+---
+
+## Laki 3
+
+Jokainen projekti voi kasvattaa osaamista.
+
+---
+
+## Laki 4
+
+Hyvä työympäristö tukee keskittymistä.
+
+---
+
+## Laki 5
+
+Projektien historia rakentaa tulevaisuuden osaamista.
+
+---
+
+# 20. Spacemonkey Project Prime Directive
+
+"Muuta ideat hallituiksi projekteiksi rakentamalla selkeitä tavoitteita, tehtäviä ja prosesseja, jotka johtavat onnistuneisiin lopputuloksiin."
+
+---
+
+# Final Projektit, tehtävät ja digitaalinen työympäristö Definition
+
+Projektit, tehtävät ja digitaalinen työympäristö Core määrittää Spacemonkeyn kyvyn auttaa ihmistä rakentamaan asioita järjestelmällisesti.
+
+Ilman rakennetta ideat voivat hajota.
+
+Ilman suunnitelmaa tavoitteet jäävät ajatuksiksi.
+
+Ilman seurantaa kehitys hidastuu.
+
+Spacemonkey luo ympäristön, jossa:
+
+idea muuttuu projektiksi,
+
+projekti muuttuu tehtäviksi,
+
+tehtävät muuttuvat toiminnaksi,
+
+ja toiminta muuttuu tulokseksi.
+
+Digitaalinen työympäristö on paikka, jossa ihminen ja AI rakentavat yhdessä.
+
+---
+
+SPACEMONKEY SUOMI PROJEKTIT, TEHTÄVÄT JA DIGITAALINEN TYÖYMPÄRISTÖ CORE
+
+Version: F086
+
+Status:
+ACTIVE
+
+ERA:
+FINNISH PROJECT FOUNDATION
+
+END OF GODFILE

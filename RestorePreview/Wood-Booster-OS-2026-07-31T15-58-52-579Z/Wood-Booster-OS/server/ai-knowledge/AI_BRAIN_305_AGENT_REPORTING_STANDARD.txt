@@ -1,0 +1,207 @@
+AI_BRAIN_305_AGENT_REPORTING_STANDARD
+
+WOOD-BOOSTER AI AGENT PROTOCOL
+REPORTING STANDARD
+
+Version: 1.0
+Status: Foundational
+Priority: Highest
+
+PURPOSE
+
+This document defines how every AI agent reports completed work, risks, decisions and lessons.
+
+A report should make progress visible.
+
+It should help the user understand what happened, what matters and what should happen next.
+
+--------------------------------------------------
+
+MISSION
+
+Create reports that are:
+
+- Clear
+- Brief
+- Evidence-based
+- Actionable
+- Easy to compare over time
+
+--------------------------------------------------
+
+WHEN A REPORT IS REQUIRED
+
+Create a report when:
+
+- A delegated task is completed.
+- A project milestone is reached.
+- A risk is discovered.
+- A decision is made.
+- A workflow fails.
+- Important learning occurs.
+- Human approval is required.
+
+--------------------------------------------------
+
+REQUIRED REPORT STRUCTURE
+
+Every report should contain:
+
+Report ID
+
+Timestamp
+
+Reporting Agent
+
+Related Project
+
+Related Task
+
+Status
+
+Priority
+
+Confidence Level
+
+--------------------------------------------------
+
+REPORT BODY
+
+1. Objective
+
+What was the agent asked to achieve?
+
+2. Work Completed
+
+What actions were taken?
+
+3. Result
+
+What was produced or discovered?
+
+4. Evidence
+
+What data, documents or observations support the result?
+
+5. Risks and Issues
+
+What could affect quality, schedule, cost, safety or trust?
+
+6. Decisions
+
+What was decided?
+
+Who approved it?
+
+7. Learning
+
+What should the company remember?
+
+8. Recommended Next Action
+
+What should happen next?
+
+9. Required Human Input
+
+Is approval, clarification or judgement needed?
+
+--------------------------------------------------
+
+STATUS VALUES
+
+Completed
+
+Partially Completed
+
+Blocked
+
+Needs Review
+
+Failed
+
+Cancelled
+
+Never mark a task completed if the acceptance criteria were not met.
+
+--------------------------------------------------
+
+RISK REPORTING
+
+For every important risk include:
+
+Risk description
+
+Probability
+
+Impact
+
+Preventive action
+
+Contingency plan
+
+Responsible person
+
+Review date
+
+--------------------------------------------------
+
+LEARNING REPORTING
+
+When new learning is discovered, classify it as:
+
+Observation
+
+Candidate Knowledge
+
+Candidate Wisdom
+
+Playbook Improvement
+
+Decision Log Entry
+
+Do not promote learning directly into permanent knowledge without review.
+
+--------------------------------------------------
+
+REPORT QUALITY CHECK
+
+Before submitting a report ask:
+
+- Is the result understandable?
+- Is the evidence traceable?
+- Are important risks visible?
+- Is uncertainty stated?
+- Is the next action clear?
+- Does the report follow the Constitution?
+
+--------------------------------------------------
+
+REPORTING FREQUENCY
+
+Immediate Report
+
+Used for critical risks, failures and urgent decisions.
+
+Daily Report
+
+Used for active operational work.
+
+Weekly Report
+
+Used for project and department summaries.
+
+Monthly Report
+
+Used for strategy, learning and system improvement.
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+A good report describes the past.
+
+A great report also improves the next decision.
+
+Every report should leave Wood-Booster with more clarity, stronger knowledge and one clear next action.
+
+Me jatkamme puun tarinaa.

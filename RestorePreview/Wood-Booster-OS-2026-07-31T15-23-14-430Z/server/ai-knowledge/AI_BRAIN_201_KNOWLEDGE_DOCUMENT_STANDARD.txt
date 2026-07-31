@@ -1,0 +1,144 @@
+AI_BRAIN_201_KNOWLEDGE_DOCUMENT_STANDARD
+
+WOOD-BOOSTER AI STANDARD
+KNOWLEDGE DOCUMENT SPECIFICATION
+
+Version: 1.0
+Status: Foundational
+Priority: Highest
+
+PURPOSE
+
+This document defines the standard structure for every Knowledge document inside the Wood-Booster AI Brain.
+
+Knowledge documents describe facts, references and verified understanding.
+
+They do not describe workflows.
+
+They do not describe opinions.
+
+--------------------------------------------------
+
+WHEN TO CREATE A KNOWLEDGE DOCUMENT
+
+Create a Knowledge document when:
+
+- Verified information should be reusable.
+- A technical subject requires explanation.
+- Multiple Playbooks depend on the same facts.
+- Future projects will benefit from understanding.
+
+--------------------------------------------------
+
+REQUIRED METADATA
+
+Every document should begin with:
+
+Document ID
+
+Title
+
+Category
+
+Status
+
+Priority
+
+Author
+
+Created Date
+
+Last Updated
+
+Confidence Level
+
+Tags
+
+Related Documents
+
+--------------------------------------------------
+
+RECOMMENDED STRUCTURE
+
+1. Purpose
+
+2. Overview
+
+3. Verified Facts
+
+4. Important Measurements
+
+5. Advantages
+
+6. Limitations
+
+7. Common Mistakes
+
+8. Best Practices
+
+9. References
+
+10. Related Playbooks
+
+11. Related Wisdom
+
+--------------------------------------------------
+
+CONFIDENCE LEVELS
+
+Verified
+
+Validated
+
+Experimental
+
+Hypothesis
+
+Archive
+
+Recommendations should favor higher confidence documents.
+
+--------------------------------------------------
+
+UPDATING KNOWLEDGE
+
+Knowledge changes when:
+
+- Better evidence exists.
+- Company experience contradicts assumptions.
+- New materials appear.
+- Better methods are verified.
+
+Never replace verified knowledge without documenting why.
+
+--------------------------------------------------
+
+QUALITY STANDARD
+
+A Knowledge document should be:
+
+Accurate
+
+Focused
+
+Evidence-based
+
+Easy to search
+
+Easy to maintain
+
+Useful to both humans and AI.
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+Knowledge explains reality.
+
+Playbooks explain action.
+
+Wisdom explains experience.
+
+Together they create intelligent decisions.
+
+Me jatkamme puun tarinaa.

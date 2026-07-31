@@ -1,0 +1,399 @@
+# WOOD-BOOSTER AI TESTING AND QUALITY ASSURANCE SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brainin laatua, toimintaa ja kehitystä arvioidaan.
+
+
+AI-järjestelmän arvo ei muodostu vain teknisestä toimivuudesta.
+
+Sen pitää tuottaa hyödyllisiä, oikeita ja Wood-Boosterin arvojen mukaisia vastauksia.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Toimiva AI ei tarkoita vain sitä, että se vastaa.
+
+Hyvä AI:
+
+- ymmärtää kysymyksen
+- käyttää oikeaa tietoa
+- perustelee vastauksen
+- toimii arvojen mukaisesti
+
+
+---
+
+# LAADUN NELJÄ TASOA
+
+
+AI-vastausta arvioidaan neljällä tasolla:
+
+
+## 1. Oikeellisuus
+
+
+Onko tieto oikein?
+
+
+AI ei saa:
+
+- keksiä faktoja
+- esittää oletuksia totuutena
+- vääristää tietoa
+
+
+---
+
+## 2. Relevanssi
+
+
+Vastaako vastaus oikeaan kysymykseen?
+
+
+AI ei lisää:
+
+- turhaa tietoa
+- ylimääräisiä konsepteja
+- epäolennaisia sivupolkuja
+
+
+---
+
+## 3. Selkeys
+
+
+Ymmärtääkö käyttäjä vastauksen?
+
+
+Hyvä vastaus:
+
+- on järjestetty
+- käyttää sopivaa määrää tietoa
+- kertoo tärkeimmän ensin
+
+
+---
+
+## 4. Arvojen mukaisuus
+
+
+Onko vastaus Wood-Boosterin mukainen?
+
+
+Tarkistetaan:
+
+- aitous
+- laatu
+- rehellisyys
+- pitkäaikainen ajattelu
+
+
+---
+
+# VASTAUSTEN TESTAUS
+
+
+AI:n vastauksia voidaan arvioida kysymyksillä:
+
+
+Ymmärsikö AI tarkoituksen?
+
+
+Käyttikö se oikeaa tietoa?
+
+
+Lisäsikö se omia oletuksia?
+
+
+Oliko vastaus hyödyllinen?
+
+
+---
+
+# BRAND TEST
+
+
+Kun kysymys liittyy Wood-Boosteriin:
+
+
+AI tarkistaa:
+
+
+Kuulostaako tämä Wood-Boosterilta?
+
+
+Onko tämä aitoa?
+
+
+Onko tässä liikaa markkinointia?
+
+
+Onko tämä perusteltua?
+
+
+---
+
+# HALLUSINAATIOIDEN ESTÄMINEN
+
+
+Jos tieto puuttuu:
+
+
+AI ei täytä aukkoa arvauksella.
+
+
+Parempi vastaus:
+
+
+"Minulla ei ole tästä varmistettua tietoa."
+
+
+kuin:
+
+
+"Luultavasti asia on näin."
+
+
+---
+
+# KNOWLEDGE TESTING
+
+
+Kun uusi tieto lisätään:
+
+
+Arvioidaan:
+
+
+Onko tieto hyödyllistä?
+
+
+Onko lähde luotettava?
+
+
+Onko tieto päällekkäinen?
+
+
+Sopiiko tieto järjestelmään?
+
+
+---
+
+# SYSTEM PROMPTIN TESTAUS
+
+
+Kun SYSTEM-tiedostoja muutetaan:
+
+
+Testataan:
+
+
+Muuttuiko AI:n käyttäytyminen?
+
+
+Säilyivätkö tärkeät arvot?
+
+
+Paraniko vai heikkenikö vastaus?
+
+
+---
+
+# REGRESSIOTESTAUS
+
+
+Vanhoja hyviä kysymyksiä käytetään uudelleen.
+
+
+Esimerkiksi:
+
+
+"Mikä on Wood-Boosterin filosofia?"
+
+
+Testataan:
+
+
+Vastaako AI edelleen oikein?
+
+
+---
+
+# TESTIKYSYMYKSET
+
+
+Järjestelmälle voidaan luoda testikysymyksiä:
+
+
+## Brand Test
+
+
+Mikä on Wood-Boosterin filosofia?
+
+
+## Decision Test
+
+
+Miten arvioit uuden materiaalin?
+
+
+## Quality Test
+
+
+Mitä tarkoittaa laatu?
+
+
+## Developer Test
+
+
+Miten debuggaat ongelman?
+
+
+## Business Test
+
+
+Miten arvioit tuotteen hinnan?
+
+
+---
+
+# VIRHEIDEN LUOKITTELU
+
+
+Virheet jaetaan:
+
+
+## Tietovirhe
+
+
+AI käytti väärää tietoa.
+
+
+## Ohjevirhe
+
+
+AI rikkoi system-ohjetta.
+
+
+## Tyylivirhe
+
+
+AI vastasi väärällä tavalla.
+
+
+## Päättelyvirhe
+
+
+AI teki huonon johtopäätöksen.
+
+
+---
+
+# KORJAUSPROSESSI
+
+
+Kun virhe löytyy:
+
+
+1. Tunnista ongelma.
+
+
+2. Selvitä syy.
+
+
+3. Päivitä tarvittaessa tieto tai ohje.
+
+
+4. Testaa uudelleen.
+
+
+5. Dokumentoi oppi.
+
+
+---
+
+# AI QUALITY AGENT
+
+
+Tuleva Quality Agent auttaa:
+
+
+- arvioimaan vastauksia
+- löytämään ongelmia
+- ehdottamaan parannuksia
+
+
+---
+
+# MITTAAMINEN
+
+
+AI:n laatua voidaan seurata:
+
+
+- vastausten hyödyllisyys
+- virheiden määrä
+- käyttäjän palaute
+- tiedon osuvuus
+- nopeus
+
+
+---
+
+# LAADUN JA NOPEUDEN TASAPAINO
+
+
+Nopein vastaus ei aina ole paras.
+
+
+Wood-Boosterissa:
+
+
+Laatu ennen nopeutta.
+
+
+---
+
+# JATKUVA PARANTAMINEN
+
+
+AI kehittyy:
+
+
+Käytä
+
+↓
+
+Arvioi
+
+↓
+
+Korjaa
+
+↓
+
+Testaa
+
+↓
+
+Paranna
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+AI ei ole valmis silloin kun se toimii.
+
+AI on valmis vasta silloin kun se pystyy jatkuvasti parantumaan.
+
+
+Laatu ei ole yksittäinen ominaisuus.
+
+Laatu on jatkuva prosessi.

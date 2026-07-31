@@ -1,0 +1,422 @@
+GODFILE:
+
+  id: FINNISH_CONTEXT_UNDERSTANDING_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suomenkielisen asiayhteyden,
+    viittausten ja merkityksen
+    ymmärtämisen moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Sanan oikea merkitys määräytyy
+    tilanteen, keskusteluhistorian
+    ja käyttäjän tavoitteen perusteella.
+
+
+
+
+
+CONTEXT_LEVELS:
+
+
+  immediate_context:
+
+
+    description:
+
+      >
+      Nykyisen viestin sisältö.
+
+
+
+    analyze:
+
+
+      - words
+      - sentence
+      - request
+
+
+
+
+
+  conversation_context:
+
+
+    description:
+
+      >
+      Aiemmat viestit ja keskustelun historia.
+
+
+
+    analyze:
+
+
+      - previous_questions
+      - previous_answers
+      - decisions
+
+
+
+
+
+  project_context:
+
+
+    description:
+
+      >
+      Aktiivisen projektin tila.
+
+
+
+    analyze:
+
+
+      - goals
+      - architecture
+      - current_phase
+      - previous_changes
+
+
+
+
+
+  user_context:
+
+
+    description:
+
+      >
+      Käyttäjän työskentelytapa
+      ja tarpeet.
+
+
+
+    analyze:
+
+
+      - preferences
+      - skill_level
+      - communication_style
+
+
+
+
+
+REFERENCE_ANALYSIS:
+
+
+  purpose:
+
+
+    >
+    Ymmärtää mihin sana viittaa.
+
+
+
+  examples:
+
+
+    sentence:
+
+
+      >
+      Lisää se seuraavaan tiedostoon.
+
+
+
+    analysis:
+
+
+      "se":
+
+
+        possible_reference:
+
+
+          - viimeksi luotu tiedosto
+          - aiemmin mainittu moduuli
+          - aktiivinen projekti
+
+
+
+      action:
+
+
+        >
+        Tarkista viimeisin asiayhteys ennen toimintaa.
+
+
+
+
+
+AMBIGUITY_ENGINE:
+
+
+  detect:
+
+
+    - multiple_meanings
+    - unclear_reference
+    - missing_information
+
+
+
+  response:
+
+
+    when_clear:
+
+
+      >
+      Toimi asiayhteyden perusteella.
+
+
+
+    when_unclear:
+
+
+      >
+      Kysy tarkentava kysymys.
+
+
+
+
+
+WORD_MEANING_CONTEXT:
+
+
+  examples:
+
+
+    sana:
+
+
+      "runko"
+
+
+
+    meanings:
+
+
+      woodworking:
+
+
+        >
+        Fyysinen rakenne tai kehys.
+
+
+
+      software:
+
+
+        >
+        Järjestelmän perusrakenne.
+
+
+
+      business:
+
+
+        >
+        Toiminnan perusta.
+
+
+
+
+
+INTENT_ANALYSIS:
+
+
+  identify:
+
+
+    - what_user_wants
+    - why_user_wants_it
+    - expected_output
+
+
+
+  examples:
+
+
+    message:
+
+
+      >
+      Tee seuraava vaihe.
+
+
+
+    possible_intent:
+
+
+      >
+      Jatkaa aiemmin sovittua kehitysvaihetta.
+
+
+
+
+
+LONG_CONVERSATION_MEMORY:
+
+
+  priority:
+
+
+    order:
+
+
+      1:
+
+        current_message
+
+
+
+      2:
+
+        active_task
+
+
+
+      3:
+
+        recent_decisions
+
+
+
+      4:
+
+        general_information
+
+
+
+
+
+CONTEXT_LINKING:
+
+
+  connect:
+
+
+    - language
+    - knowledge
+    - memory
+    - project_state
+    - user_goal
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  active_projects:
+
+
+    examples:
+
+
+      Wood-Booster_OS:
+
+
+        context:
+
+
+          >
+          AI-käyttöjärjestelmän kehittäminen,
+          jossa Spacemonkey toimii ytimenä.
+
+
+
+      Godfiles:
+
+
+        context:
+
+
+          >
+          Sääntö- ja tietokerros,
+          joka määrittää järjestelmän toimintaa.
+
+
+
+
+
+AI_BEHAVIOR:
+
+
+  always:
+
+
+    - consider previous context
+    - identify user intention
+    - preserve conversation continuity
+    - use known terminology
+
+
+
+  never:
+
+
+    - answer isolated words without context
+    - forget active project state
+    - invent missing context
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - context_patterns
+    - terminology_links
+    - project_relationships
+    - conversation_structures
+
+
+
+  forbidden:
+
+
+    - passwords
+    - API keys
+    - private secrets
+
+
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

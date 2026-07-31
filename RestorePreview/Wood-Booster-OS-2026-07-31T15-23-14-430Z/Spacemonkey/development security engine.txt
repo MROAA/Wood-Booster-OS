@@ -1,0 +1,490 @@
+GODFILE:
+
+  id: DEVELOPMENT_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Kehitysympäristön, kehittäjän työkalujen,
+    ohjelmistokehityksen prosessien ja
+    testauksen turvallisuuden hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Kehitysympäristö mahdollistaa kokeilut,
+    mutta sen tulee estää turvallisuusriskien
+    siirtyminen tuotantojärjestelmään.
+
+
+
+DEVELOPMENT_ENVIRONMENTS:
+
+
+  local_development:
+
+
+    purpose:
+
+
+      >
+      Kehittäjän oma työympäristö.
+
+
+
+    rules:
+
+
+      allowed:
+
+
+        - testing
+        - debugging
+        - experimentation
+
+
+
+      protected:
+
+
+        - production_data
+        - real_credentials
+
+
+
+
+
+  testing_environment:
+
+
+    purpose:
+
+
+      >
+      Turvallinen ympäristö toimintojen
+      testaamiseen.
+
+
+
+    rules:
+
+
+      use:
+
+
+        - test_data
+        - isolated_services
+        - controlled_access
+
+
+
+
+
+  production_environment:
+
+
+    purpose:
+
+
+      >
+      Käytössä oleva järjestelmä.
+
+
+
+    rules:
+
+
+      require:
+
+
+        - strict_access_control
+        - monitoring
+        - validated_changes
+
+
+
+
+
+CODE_CHANGE_SECURITY:
+
+
+  before_change:
+
+
+    check:
+
+
+      - purpose
+      - affected_components
+      - security_impact
+
+
+
+
+
+  after_change:
+
+
+    verify:
+
+
+      - functionality
+      - security
+      - compatibility
+
+
+
+
+
+GIT_SECURITY:
+
+
+  protect:
+
+
+    - repositories
+    - branches
+    - commits
+    - history
+
+
+
+
+
+  never_commit:
+
+
+    - API_keys
+    - passwords
+    - tokens
+    - private_configuration
+
+
+
+
+
+BRANCH_SECURITY:
+
+
+  recommended:
+
+
+    use:
+
+
+      - development_branch
+      - feature_branches
+      - reviewed_changes
+
+
+
+
+
+  protect:
+
+
+    - main_branch
+    - production_branch
+
+
+
+
+
+DEBUG_SECURITY:
+
+
+  development:
+
+
+    allowed:
+
+
+      - detailed_logs
+      - diagnostics
+      - testing_tools
+
+
+
+
+
+  production:
+
+
+    restricted:
+
+
+      - verbose_errors
+      - sensitive_debug_output
+
+
+
+
+
+TESTING_SECURITY:
+
+
+  include:
+
+
+    - security_tests
+    - permission_tests
+    - input_validation_tests
+    - failure_tests
+
+
+
+
+
+AI_ASSISTED_DEVELOPMENT:
+
+
+  rules:
+
+
+    AI_generated_code:
+
+
+      require:
+
+
+        - human_review
+        - security_check
+        - testing
+
+
+
+
+
+  never:
+
+
+    - blindly_execute_generated_code
+    - accept_unknown_dependencies
+    - include_secrets_in_examples
+
+
+
+
+
+DEVELOPER_ACCESS:
+
+
+  principle:
+
+
+    >
+    Kehittäjän oikeudet määräytyvät
+    tehtävän tarpeen mukaan.
+
+
+
+
+
+  protect:
+
+
+    - production_access
+    - security_configuration
+    - secret_storage
+
+
+
+
+
+DEPENDENCY_CHANGES:
+
+
+  before_install:
+
+
+    verify:
+
+
+      - source
+      - security_status
+      - compatibility
+
+
+
+
+
+DATABASE_DEVELOPMENT:
+
+
+  rules:
+
+
+    use:
+
+
+      - test_database
+      - migrations
+      - backups
+
+
+
+
+
+  never:
+
+
+    - experiment_on_production_data
+
+
+
+
+
+FILE_SECURITY:
+
+
+  protect:
+
+
+    - source_code
+    - configuration_files
+    - build_files
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Wood-Booster-OS_development
+    - AI_Brain_development
+    - Spacemonkey_modules
+    - frontend
+    - backend
+
+
+
+
+
+CHANGE_MANAGEMENT:
+
+
+  important_changes:
+
+
+    require:
+
+
+      - documentation
+      - testing
+      - rollback_plan
+
+
+
+
+
+INCIDENT_PREVENTION:
+
+
+  detect:
+
+
+    - unsafe_code_changes
+    - leaked_secrets
+    - risky_configuration
+
+
+
+
+
+LOG_SECURITY:
+
+
+  record:
+
+
+    - development_events
+    - security_checks
+    - change_history
+
+
+
+
+
+  never_record:
+
+
+    - credentials
+    - passwords
+    - API_keys
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - encourage_safe_development
+    - validate_changes
+    - protect_environment_separation
+
+
+
+  never:
+
+
+    - expose_secrets
+    - bypass_testing
+    - modify_production_without_authorization
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - development_patterns
+    - secure_coding_methods
+    - testing_methods
+
+
+
+  forbidden:
+
+
+    - credentials
+    - private_keys
+    - API_keys
+    - secret_values
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

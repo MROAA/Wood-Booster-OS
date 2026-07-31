@@ -1,0 +1,558 @@
+GODFILE:
+
+  id: FINNISH_SYNTAX_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suomen kielen lauserakenteen ja
+    ajatuksen muodostamisen analyysimoottori.
+
+
+
+LANGUAGE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Suomen kielessä merkitys rakentuu
+    sanojen suhteista, päätteistä
+    ja asiayhteydestä.
+
+
+
+SENTENCE_MODEL:
+
+
+  basic_sentence:
+
+
+    structure:
+
+
+      - subject
+      - verb
+      - object
+      - modifiers
+
+
+
+    example:
+
+
+      sentence:
+
+        "Marc rakentaa pöytää."
+
+
+      analysis:
+
+
+        subject:
+
+          Marc
+
+
+        verb:
+
+          rakentaa
+
+
+        object:
+
+          pöytää
+
+
+
+
+
+WORD_ROLES:
+
+
+  subject:
+
+
+    purpose:
+
+      >
+      Kertoo kuka tai mikä tekee asian.
+
+
+
+    examples:
+
+
+      - minä
+      - asiakas
+      - tekoäly
+
+
+
+  verb:
+
+
+    purpose:
+
+      >
+      Kertoo tapahtuman tai toiminnan.
+
+
+
+    examples:
+
+
+      - rakentaa
+      - suunnittelee
+      - oppii
+
+
+
+  object:
+
+
+    purpose:
+
+      >
+      Kertoo tekemisen kohteen.
+
+
+
+    examples:
+
+
+      - pöydän
+      - projektin
+      - järjestelmän
+
+
+
+
+
+MAIN_CLAUSE:
+
+
+  definition:
+
+    >
+    Lause, joka toimii itsenäisenä ajatuksena.
+
+
+
+examples:
+
+
+  - "Spacemonkey oppii."
+
+  - "Marc kehittää järjestelmää."
+
+
+
+
+
+SUBORDINATE_CLAUSE:
+
+
+  definition:
+
+    >
+    Sivulause täydentää päälausetta.
+
+
+
+types:
+
+
+  because:
+
+
+    connectors:
+
+
+      - koska
+
+
+    example:
+
+
+      >
+      Kehitän tekoälyä, koska haluan
+      paremman työkalun.
+
+
+
+  time:
+
+
+    connectors:
+
+
+      - kun
+      - ennen kuin
+      - sen jälkeen kun
+
+
+
+    example:
+
+
+      >
+      Kun järjestelmä valmistuu,
+      otan sen käyttöön.
+
+
+
+
+
+  condition:
+
+
+    connectors:
+
+
+      - jos
+
+
+
+    example:
+
+
+      >
+      Jos tekoäly oppii,
+      se auttaa paremmin.
+
+
+
+
+
+
+QUESTION_SENTENCES:
+
+
+  question_words:
+
+
+    - mitä
+
+    - missä
+
+    - milloin
+
+    - miksi
+
+    - miten
+
+    - kuka
+
+    - kuinka
+
+
+
+examples:
+
+
+  what:
+
+
+    >
+    Mitä rakennetaan?
+
+
+
+  why:
+
+
+    >
+    Miksi tämä toimii?
+
+
+
+
+
+CONDITIONAL_SENTENCES:
+
+
+  rule:
+
+
+    >
+    Ehtolause ilmaisee mahdollisuuden
+    tai riippuvuuden.
+
+
+
+structure:
+
+
+  jos + conditional:
+
+
+    example:
+
+
+      >
+      Jos minulla olisi enemmän aikaa,
+      kehittäisin nopeammin.
+
+
+
+
+
+
+IMPERATIVE_SENTENCES:
+
+
+  purpose:
+
+
+    >
+    Käskyt, pyynnöt ja ohjeet.
+
+
+
+examples:
+
+
+  direct:
+
+
+    >
+    Avaa järjestelmä.
+
+
+
+  polite:
+
+
+    >
+    Voisitko avata järjestelmän?
+
+
+
+
+
+RELATIVE_CLAUSES:
+
+
+  connectors:
+
+
+    - joka
+
+    - mikä
+
+
+
+examples:
+
+
+  example:
+
+
+    >
+    Tekoäly, joka oppii,
+    kehittyy paremmaksi.
+
+
+
+analysis:
+
+
+  main_word:
+
+    tekoäly
+
+
+  additional_information:
+
+    oppii
+
+
+
+
+
+WORD_ORDER:
+
+
+  principle:
+
+
+    >
+    Suomen kielessä sanajärjestys on joustava,
+    mutta painotus muuttuu.
+
+
+
+examples:
+
+
+  neutral:
+
+
+    >
+    Marc rakentaa pöytää.
+
+
+
+  emphasis:
+
+
+    >
+    Pöytää rakentaa Marc.
+
+
+
+
+
+NEGATIVE_SENTENCES:
+
+
+  structure:
+
+
+    negative_verb:
+
+      +
+
+    main_verb:
+
+      basic_form
+
+
+
+examples:
+
+
+  present:
+
+
+    >
+    En rakenna.
+
+
+
+  past:
+
+
+    >
+    En rakentanut.
+
+
+
+
+
+
+TECHNICAL_LANGUAGE:
+
+
+  programming_example:
+
+
+    sentence:
+
+
+      >
+      Palvelin käsittelee käyttäjän pyynnön.
+
+
+
+    analysis:
+
+
+      subject:
+
+        palvelin
+
+
+      verb:
+
+        käsittelee
+
+
+      object:
+
+        pyynnön
+
+
+
+
+
+WOOD_BOOSTER_EXAMPLES:
+
+
+  sentence:
+
+
+    >
+    Wood-Booster AI auttaa
+    puuseppää suunnittelussa.
+
+
+
+  analysis:
+
+
+    subject:
+
+      Wood-Booster AI
+
+
+    verb:
+
+      auttaa
+
+
+    object:
+
+      puuseppää
+
+
+    context:
+
+      woodworking
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - identify sentence structure
+    - analyze endings
+    - preserve Finnish logic
+    - explain grammar when needed
+
+
+
+  never:
+
+
+    - force English sentence order
+    - ignore case endings
+    - remove Finnish nuance
+
+
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

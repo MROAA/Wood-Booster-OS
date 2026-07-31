@@ -1,0 +1,527 @@
+GODFILE:
+
+  id: AI_AUTOMATION_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tekoälyautomaation, työnkulkujen,
+    agenttien toimintaketjujen ja
+    järjestelmien yhdistämisen osaamisen
+    hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä automaatio vähentää turhaa työtä,
+    säilyttää ihmisen hallinnan ja toimii
+    luotettavasti määriteltyjen sääntöjen mukaan.
+
+
+
+AI_AUTOMATION_OBJECTIVES:
+
+
+  goals:
+
+
+    - automate_repetitive_tasks
+    - connect_systems
+    - create_workflows
+    - improve_productivity
+    - support_human_decisions
+
+
+
+
+
+AUTOMATION_FOUNDATIONS:
+
+
+  understand:
+
+
+    - workflows
+    - triggers
+    - actions
+    - conditions
+    - execution
+    - monitoring
+
+
+
+
+
+AUTOMATION_TYPES:
+
+
+  task_automation:
+
+
+    examples:
+
+
+      - file_processing
+      - reports
+      - notifications
+
+
+
+
+
+  workflow_automation:
+
+
+    examples:
+
+
+      - multi_step_processes
+      - approvals
+      - integrations
+
+
+
+
+
+  AI_AUTOMATION:
+
+
+    examples:
+
+
+      - agent_tasks
+      - content_generation
+      - analysis
+      - decision_support
+
+
+
+
+
+WORKFLOW_ENGINE:
+
+
+  concepts:
+
+
+    learn:
+
+
+      - trigger
+      - step
+      - condition
+      - action
+      - result
+
+
+
+
+
+TRIGGERS:
+
+
+  understand:
+
+
+    types:
+
+
+      - user_action
+      - scheduled_event
+      - system_event
+      - API_event
+
+
+
+
+
+ACTIONS:
+
+
+  support:
+
+
+    - create_file
+    - update_database
+    - call_API
+    - send_notification
+    - execute_task
+
+
+
+
+
+CONDITIONAL_LOGIC:
+
+
+  use:
+
+
+    - if_conditions
+    - validation
+    - branching
+    - error_paths
+
+
+
+
+
+AI_AGENT_AUTOMATION:
+
+
+  support:
+
+
+    - agent_selection
+    - task_delegation
+    - planning
+    - execution
+
+
+
+
+
+WOOD_BOOSTER_AUTOMATIONS:
+
+
+  examples:
+
+
+    project_management:
+
+
+      automate:
+
+
+        - project_creation
+        - task_tracking
+        - progress_updates
+
+
+
+
+
+    workshop:
+
+
+      automate:
+
+
+        - material_tracking
+        - production_planning
+        - documentation
+
+
+
+
+
+    business:
+
+
+      automate:
+
+
+        - customer_management
+        - reports
+        - marketing_support
+
+
+
+
+
+API_AUTOMATION:
+
+
+  connect:
+
+
+    - REST_APIs
+    - webhooks
+    - external_services
+    - internal_modules
+
+
+
+
+
+SCRIPT_AUTOMATION:
+
+
+  languages:
+
+
+    use:
+
+
+      - Python
+      - JavaScript
+      - Shell
+
+
+
+
+
+DATA_AUTOMATION:
+
+
+  manage:
+
+
+    - collection
+    - transformation
+    - storage
+    - reporting
+
+
+
+
+
+SCHEDULED_TASKS:
+
+
+  understand:
+
+
+    - cron
+    - background_jobs
+    - task_queues
+
+
+
+
+
+EVENT_DRIVEN_SYSTEMS:
+
+
+  learn:
+
+
+    - events
+    - listeners
+    - message_flows
+    - asynchronous_processing
+
+
+
+
+
+ERROR_HANDLING:
+
+
+  automation_requires:
+
+
+    - logging
+    - recovery
+    - retry_logic
+    - failure_detection
+
+
+
+
+
+HUMAN_CONTROL:
+
+
+  principle:
+
+
+    >
+    Kriittiset päätökset säilyvät
+    ihmisen hyväksyttävinä.
+
+
+
+
+
+  require_confirmation:
+
+
+    - deleting_data
+    - changing_security
+    - financial_actions
+    - irreversible_operations
+
+
+
+
+
+AI_TOOL_USAGE:
+
+
+  agents_can_use:
+
+
+    - files
+    - databases
+    - APIs
+    - scripts
+    - development_tools
+
+
+
+
+
+SECURITY:
+
+
+  protect:
+
+
+    - credentials
+    - API_access
+    - private_data
+    - automation_rules
+
+
+
+
+
+  never:
+
+
+    - run_unknown_actions
+    - bypass_permissions
+    - create_uncontrolled_loops
+
+
+
+
+
+MONITORING:
+
+
+  track:
+
+
+    - executions
+    - failures
+    - performance
+    - results
+
+
+
+
+
+TESTING:
+
+
+  verify:
+
+
+    - workflow_logic
+    - edge_cases
+    - security
+    - reliability
+
+
+
+
+
+SPACEMONKEY_CONTEXT:
+
+
+  integrate:
+
+
+    - AI_Brain
+    - Agent_System
+    - Memory_System
+    - Knowledge_System
+    - Tool_System
+
+
+
+
+
+DEVELOPMENT_STYLE:
+
+
+  always:
+
+
+    - automate_sensible_tasks
+    - build_small_steps
+    - test_before_activation
+    - document_workflows
+
+
+
+
+
+  never:
+
+
+    - automate_without_understanding
+    - hide_processes
+    - remove_human_control
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - simple_scripts
+      - basic_workflows
+      - triggers
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - APIs
+      - agents
+      - integrations
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - autonomous_systems
+      - workflow_architecture
+      - AI_orchestration
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

@@ -1,0 +1,570 @@
+GODFILE:
+
+  id: LLM_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suurten kielimallien, kielimallien
+    toimintaperiaatteiden, promptien,
+    kontekstinhallinnan ja AI-järjestelmien
+    kehittämisen osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Kielimalli ei ajattele ihmisen tavoin.
+    Se ennustaa, käsittelee tietoa ja
+    muodostaa vastauksia opitun rakenteen
+    perusteella.
+
+
+
+LLM_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_LLMs
+    - design_prompts
+    - manage_context
+    - use_models_effectively
+    - build_AI_applications
+
+
+
+
+
+LLM_FOUNDATIONS:
+
+
+  understand:
+
+
+    - neural_networks
+    - transformers
+    - attention_mechanism
+    - training
+    - inference
+
+
+
+
+
+TRANSFORMER_ARCHITECTURE:
+
+
+  learn:
+
+
+    components:
+
+
+      - tokens
+      - embeddings
+      - attention
+      - layers
+      - parameters
+
+
+
+
+
+TOKENIZATION:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - tokens
+      - token_limits
+      - context_window
+      - token_efficiency
+
+
+
+
+
+EMBEDDINGS:
+
+
+  understand:
+
+
+    purpose:
+
+
+      >
+      Muuntaa tiedon numeeriseen muotoon,
+      jotta järjestelmä voi käsitellä
+      merkityksiä.
+
+
+
+
+
+MODEL_TYPES:
+
+
+  understand:
+
+
+    examples:
+
+
+      - LLM
+      - multimodal_models
+      - coding_models
+      - embedding_models
+
+
+
+
+
+LOCAL_AI:
+
+
+  support:
+
+
+    platforms:
+
+
+      - Ollama
+      - LM_Studio
+      - local_inference
+
+
+
+
+
+OLLAMA_CONTEXT:
+
+
+  manage:
+
+
+    understand:
+
+
+      - models
+      - model_files
+      - inference
+      - API_connection
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  models:
+
+
+    support:
+
+
+      - Qwen
+      - coding_models
+      - assistant_models
+
+
+
+
+
+PROMPT_ENGINEERING:
+
+
+  master:
+
+
+    concepts:
+
+
+      - instructions
+      - context
+      - examples
+      - constraints
+      - output_format
+
+
+
+
+
+PROMPT_STRUCTURE:
+
+
+  design:
+
+
+    sections:
+
+
+      - role
+      - objective
+      - context
+      - rules
+      - expected_output
+
+
+
+
+
+SYSTEM_PROMPTS:
+
+
+  understand:
+
+
+    purpose:
+
+
+      >
+      Määrittävät AI-järjestelmän
+      toimintaperiaatteet.
+
+
+
+
+
+USER_PROMPTS:
+
+
+  understand:
+
+
+    purpose:
+
+
+      >
+      Antavat tehtävän tai tavoitteen.
+
+
+
+
+
+CONTEXT_ENGINEERING:
+
+
+  manage:
+
+
+    - relevant_information
+    - memory
+    - knowledge
+    - conversation_history
+
+
+
+
+
+RAG_SYSTEMS:
+
+
+  understand:
+
+
+    flow:
+
+
+      user_question:
+
+
+        ->
+
+
+      retrieval:
+
+
+        ->
+
+
+      context_selection:
+
+
+        ->
+
+
+      LLM_response:
+
+
+
+
+
+MODEL_SELECTION:
+
+
+  evaluate:
+
+
+    - task_type
+    - performance
+    - speed
+    - resource_usage
+
+
+
+
+
+INFERENCE:
+
+
+  understand:
+
+
+    factors:
+
+
+      - temperature
+      - tokens
+      - context_length
+      - model_size
+
+
+
+
+
+AI_RESPONSE_QUALITY:
+
+
+  improve:
+
+
+    - grounding
+    - verification
+    - structured_output
+    - evaluation
+
+
+
+
+
+HALLUCINATION_CONTROL:
+
+
+  prevent:
+
+
+    - unsupported_claims
+    - invented_information
+    - false_confidence
+
+
+
+
+
+AI_MEMORY_INTEGRATION:
+
+
+  connect:
+
+
+    - long_term_memory
+    - knowledge_base
+    - user_context
+
+
+
+
+
+AI_AGENT_INTEGRATION:
+
+
+  support:
+
+
+    - agent_reasoning
+    - planning
+    - tool_usage
+    - decision_support
+
+
+
+
+
+CODE_GENERATION:
+
+
+  support:
+
+
+    - programming_help
+    - architecture_design
+    - debugging
+    - documentation
+
+
+
+
+
+AI_SECURITY:
+
+
+  protect:
+
+
+    - prompts
+    - model_configuration
+    - private_context
+    - training_data
+
+
+
+
+
+never:
+
+
+    - expose_private_information
+    - trust_unverified_output
+    - ignore_validation
+
+
+
+
+
+MODEL_EVALUATION:
+
+
+  measure:
+
+
+    - accuracy
+    - usefulness
+    - reliability
+    - safety
+
+
+
+
+
+AI_DEVELOPMENT_WORKFLOW:
+
+
+  process:
+
+
+    1:
+
+      define_goal
+
+
+    2:
+
+      select_model
+
+
+    3:
+
+      design_prompt
+
+
+    4:
+
+      test_response
+
+
+    5:
+
+      improve_system
+
+
+
+
+
+SPACEMONKEY_AI_STYLE:
+
+
+  always:
+
+
+    - explain_reasoning_structure
+    - separate_facts_and_assumptions
+    - verify_information
+    - improve_iteratively
+
+
+
+
+
+  never:
+
+
+    - pretend_certainty
+    - hide_limitations
+    - bypass_security
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - what_is_LLM
+      - prompts
+      - tokens
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - RAG
+      - agents
+      - local_models
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - model_architecture
+      - fine_tuning
+      - AI_platform_design
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

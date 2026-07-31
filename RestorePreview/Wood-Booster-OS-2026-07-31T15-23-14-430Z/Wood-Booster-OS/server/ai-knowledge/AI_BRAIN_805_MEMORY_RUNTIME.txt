@@ -1,0 +1,162 @@
+AI_BRAIN_805_MEMORY_RUNTIME
+
+WOOD-BOOSTER AI PLATFORM
+MEMORY RUNTIME STANDARD
+
+Version: 1.0
+Status: Active
+Priority: Critical
+
+PURPOSE
+
+This document defines how memory is loaded, managed and protected during runtime across the Wood-Booster Intelligence Platform.
+
+Memory enables AI agents to make informed decisions without repeatedly loading unnecessary information.
+
+--------------------------------------------------
+
+MISSION
+
+Provide fast, relevant and secure access to the right information at the right time.
+
+--------------------------------------------------
+
+MEMORY LAYERS
+
+- Working Memory
+- Session Memory
+- Project Memory
+- Customer Memory
+- Knowledge Base
+- Playbooks
+- Wisdom
+- Long-Term Archive
+
+--------------------------------------------------
+
+MEMORY LOADING ORDER
+
+1. Constitution
+2. Core Values
+3. Agent Role
+4. Current Task
+5. Project Context
+6. Customer Context
+7. Relevant Playbooks
+8. Relevant Knowledge
+9. Relevant Wisdom
+10. Tool State
+
+Only load information required for the current task.
+
+--------------------------------------------------
+
+MEMORY LIFECYCLE
+
+Task Created
+
+↓
+
+Context Requested
+
+↓
+
+Relevant Memory Retrieved
+
+↓
+
+Working Memory Built
+
+↓
+
+Task Executed
+
+↓
+
+Learning Captured
+
+↓
+
+Memory Updated
+
+↓
+
+Archive Indexed
+
+--------------------------------------------------
+
+WORKING MEMORY RULES
+
+- Keep context minimal.
+- Remove stale information.
+- Record assumptions.
+- Track evidence sources.
+- Preserve privacy boundaries.
+- Never overwrite approved Knowledge directly.
+
+--------------------------------------------------
+
+CACHE POLICY
+
+Cache:
+
+- Frequently used Playbooks
+- Active project context
+- Current customer records
+- Recently accessed Knowledge
+
+Invalidate cache when source information changes.
+
+--------------------------------------------------
+
+MEMORY SECURITY
+
+- Respect permissions.
+- Encrypt sensitive information.
+- Separate customer data.
+- Log privileged access.
+- Remove temporary data after task completion when appropriate.
+
+--------------------------------------------------
+
+WHEN TO ESCALATE
+
+Escalate when:
+
+- Required context is missing.
+- Conflicting memories exist.
+- Sensitive data cannot be validated.
+- Memory corruption is suspected.
+
+--------------------------------------------------
+
+COLLABORATION
+
+Works closely with:
+
+Knowledge Curator
+AI Model Manager
+Agent Runtime
+Analytics Agent
+Workflow Automation Agent
+
+--------------------------------------------------
+
+SUCCESS METRICS
+
+- Context retrieval latency
+- Memory accuracy
+- Cache hit rate
+- Duplicate reduction
+- Retrieval relevance
+- Knowledge reuse
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+Memory should provide clarity, not clutter.
+
+Every agent should remember what matters, forget what is unnecessary and always preserve the knowledge that strengthens Wood-Booster.
+
+Me jatkamme puun tarinaa.

@@ -1,0 +1,201 @@
+# WOOD-BOOSTER TUOTEKEHITYSPROSESSI
+
+## Tarkoitus
+
+Tämä dokumentti kuvaa, miten Wood-Booster kehittää uusia tuotteita.
+
+Tuotekehitys ei ole sattumaa.
+
+Se on järjestelmällinen prosessi, jossa luovuus ja suunnitelmallisuus tukevat toisiaan.
+
+Jokainen uusi tuote käy läpi saman ajattelumallin.
+
+Näin varmistamme, että tuotteet ovat sekä laadukkaita että uskollisia Wood-Boosterin identiteetille.
+
+---
+
+## Vaihe 1 – Havainnointi
+
+Kaikki alkaa havainnosta.
+
+Idea voi syntyä:
+
+asiakkaan tarpeesta,
+
+omasta kokemuksesta,
+
+materiaalista,
+
+virheestä,
+
+luonnosta,
+
+tai täysin sattumalta.
+
+Hyviä ideoita ei arvostella heti.
+
+Ne kirjataan ylös.
+
+---
+
+## Vaihe 2 – Ongelman ymmärtäminen
+
+Ennen ratkaisua ymmärretään ongelma.
+
+Mikä ongelma tuotteella ratkaistaan?
+
+Kenelle se tehdään?
+
+Miksi juuri tämä tuote pitäisi olla olemassa?
+
+Jos tähän ei löydy hyvää vastausta,
+
+tuotetta ei kehitetä eteenpäin.
+
+---
+
+## Vaihe 3 – Ideointi
+
+Ratkaisua ei etsitä ensimmäisestä ajatuksesta.
+
+Tutkitaan useita vaihtoehtoja.
+
+Luonnostellaan.
+
+Piirretään.
+
+Keskustellaan.
+
+Kokeillaan.
+
+Myös huonot ideat kirjataan.
+
+Ne voivat johtaa myöhemmin hyvään ratkaisuun.
+
+---
+
+## Vaihe 4 – Materiaalin valinta
+
+Materiaali valitaan tuotteen mukaan.
+
+Ei päinvastoin.
+
+Puu kertoo meille,
+
+mitä siitä kannattaa rakentaa.
+
+Materiaalin ominaisuudet ovat osa suunnittelua.
+
+---
+
+## Vaihe 5 – Prototyyppi
+
+Ensimmäinen versio ei ole valmis tuote.
+
+Sen tarkoitus on opettaa.
+
+Prototyyppiä arvioidaan kriittisesti.
+
+Mikä toimii?
+
+Mikä ei?
+
+Mitä voidaan yksinkertaistaa?
+
+---
+
+## Vaihe 6 – Parantaminen
+
+Jokainen prototyyppi johtaa seuraavaan versioon.
+
+Tuotetta kehitetään,
+
+kunnes se täyttää Wood-Boosterin laatuvaatimukset.
+
+Jos sitä ei voida saavuttaa,
+
+tuotetta ei julkaista.
+
+---
+
+## Vaihe 7 – Dokumentointi
+
+Kaikki opitut asiat dokumentoidaan.
+
+Miksi tämä ratkaisu valittiin?
+
+Mitä kannattaa välttää?
+
+Mitä seuraavassa versiossa voidaan tehdä paremmin?
+
+Tieto ei saa jäädä vain tekijän muistiin.
+
+Se kuuluu koko yritykselle.
+
+---
+
+## Vaihe 8 – Julkaisu
+
+Tuote julkaistaan vasta,
+
+kun olemme itse valmiita seisomaan sen takana.
+
+Emme julkaise keskeneräistä tuotetta vain siksi,
+
+että markkinoilla olisi kiire.
+
+---
+
+## Vaihe 9 – Oppiminen
+
+Julkaisun jälkeen työ ei lopu.
+
+Kuuntelemme asiakkaita.
+
+Seuraamme käyttöä.
+
+Keräämme palautetta.
+
+Jokainen palaute on mahdollisuus tehdä seuraavasta tuotteesta parempi.
+
+---
+
+## AI:n rooli
+
+AI auttaa:
+
+ideoimaan,
+
+etsimään vaihtoehtoja,
+
+arvioimaan rakenteita,
+
+kirjoittamaan dokumentaatiota,
+
+tekemään luonnoksia,
+
+ja löytämään tietoa.
+
+AI ei suunnittele tuotetta yksin.
+
+AI toimii suunnittelukumppanina.
+
+Lopullinen suunnittelu kuuluu ihmiselle.
+
+---
+
+## Lopuksi
+
+Hyvä tuote ei synny yhdestä hyvästä ideasta.
+
+Hyvä tuote syntyy sadoista hyvistä päätöksistä.
+
+Wood-Booster kehittää tuotteita samalla tavalla kuin rakentaa yritystään.
+
+Ajatellen.
+
+Kokeillen.
+
+Oppien.
+
+Parantaen.

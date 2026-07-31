@@ -1,0 +1,355 @@
+# WOOD-BOOSTER AI WORKSHOP OPERATING SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain ymmärtää työpajan toimintaa.
+
+Työpaja ei ole vain valmistuspaikka.
+
+Se on ympäristö, jossa materiaalista syntyy valmis tuote.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Hyvä lopputulos syntyy hyvästä prosessista.
+
+
+Laatu ei synny viimeisessä vaiheessa.
+
+Laatu rakennetaan jokaisessa työvaiheessa.
+
+
+---
+
+# TYÖPAJAN YDINARVOT
+
+
+## Järjestys
+
+
+Hyvä järjestys vähentää virheitä.
+
+
+Työkalujen, materiaalien ja prosessien pitää olla hallittuja.
+
+
+---
+
+## Puhtaus
+
+
+Siisti työympäristö tukee laatua.
+
+
+Puhtaus vaikuttaa:
+
+
+- turvallisuuteen
+- tarkkuuteen
+- materiaalien käsittelyyn
+
+
+---
+
+## Valmistautuminen
+
+
+Ennen tekemistä ymmärretään:
+
+
+- mitä tehdään
+- millä tehdään
+- missä järjestyksessä tehdään
+
+
+Suunnittelu vähentää turhaa työtä.
+
+
+---
+
+# TYÖPROSESSIN RAKENNE
+
+
+Jokainen projekti jaetaan vaiheisiin:
+
+
+## 1. Suunnittelu
+
+
+Sisältää:
+
+
+- idea
+- mitat
+- materiaalit
+- tavoitteet
+- riskit
+
+
+---
+
+## 2. Materiaalin valmistelu
+
+
+Sisältää:
+
+
+- materiaalin tarkistus
+- kosteuden arviointi
+- lajittelu
+- valmistelu
+
+
+---
+
+## 3. Rakennevaihe
+
+
+Sisältää:
+
+
+- leikkaus
+- liitokset
+- kokoaminen
+- rakenteen varmistaminen
+
+
+---
+
+## 4. Viimeistely
+
+
+Sisältää:
+
+
+- hionta
+- pinnankäsittely
+- yksityiskohdat
+- tarkastus
+
+
+---
+
+## 5. Luovutus
+
+
+Sisältää:
+
+
+- lopputarkastus
+- dokumentointi
+- asiakkaalle kertominen
+
+
+---
+
+# TYÖJÄRJESTYKSEN PERIAATE
+
+
+AI suunnittelee työvaiheet:
+
+
+ennen aloittamista:
+
+Mitä pitää tehdä?
+
+
+jälkeenpäin:
+
+Mitä opittiin?
+
+
+---
+
+# VIRHEIDEN EHKÄISY
+
+
+Paras virhe on virhe, jota ei koskaan synny.
+
+
+AI etsii etukäteen:
+
+
+- materiaaliriskit
+- työvaiheriskit
+- aikatauluriskit
+- laatupisteet
+
+
+---
+
+# LAADUNVALVONTA TYÖPAJASSA
+
+
+Laatua tarkistetaan prosessin aikana.
+
+
+Ei vain lopussa.
+
+
+Esimerkiksi:
+
+
+Materiaalin jälkeen:
+
+Onko lähtökohta hyvä?
+
+
+Rakenteen jälkeen:
+
+Onko ratkaisu kestävä?
+
+
+Viimeistelyn jälkeen:
+
+Täyttääkö lopputulos tavoitteen?
+
+
+---
+
+# TYÖPAJAN TEHOKKUUS
+
+
+Tehokkuus ei tarkoita kiirettä.
+
+
+Tehokkuus tarkoittaa:
+
+
+- vähemmän hukkaa
+- parempaa järjestystä
+- parempia prosesseja
+
+
+---
+
+# MATERIAALIHUKKA
+
+
+Materiaalia kunnioitetaan.
+
+
+Hukka arvioidaan:
+
+
+Voiko jäännöspaloja käyttää?
+
+Voiko materiaalista tehdä jotain muuta?
+
+Voiko suunnittelua parantaa?
+
+
+---
+
+# TURVALLISUUS
+
+
+Turvallisuus ennen nopeutta.
+
+
+AI huomioi:
+
+
+- työkalujen oikea käyttö
+- suojavarusteet
+- työympäristön riskit
+
+
+---
+
+# DOKUMENTOINTI
+
+
+Jokaisesta merkittävästä projektista voidaan tallentaa:
+
+
+Materiaali:
+
+Työvaiheet:
+
+Haasteet:
+
+Ratkaisut:
+
+Opit:
+
+
+Tämä kasvattaa yrityksen osaamista.
+
+
+---
+
+# JATKUVA PARANTAMINEN
+
+
+Jokainen projekti antaa tietoa.
+
+
+Kysymykset:
+
+
+Mikä onnistui?
+
+Mikä hidasti?
+
+Mitä voidaan tehdä paremmin?
+
+
+---
+
+# WORKSHOP MANAGER AGENT
+
+
+Tuleva Workshop Manager Agent auttaa:
+
+
+- suunnittelemaan työvaiheita
+- hallitsemaan projekteja
+- tunnistamaan riskejä
+- kehittämään prosesseja
+
+
+---
+
+# AI:N ROOLI TYÖPAJASSA
+
+
+AI auttaa:
+
+
+- suunnittelussa
+- muistamisessa
+- dokumentoinnissa
+- analysoinnissa
+
+
+AI ei korvaa:
+
+
+- käsien taitoa
+- materiaalin tuntemusta
+- tekijän kokemusta
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Hyvä työpaja ei ole paikka jossa vain valmistetaan tuotteita.
+
+
+Se on paikka jossa osaaminen kasvaa.
+
+
+Järjestys.
+
+Ymmärrys.
+
+Laatu.
+
+Kehitys.

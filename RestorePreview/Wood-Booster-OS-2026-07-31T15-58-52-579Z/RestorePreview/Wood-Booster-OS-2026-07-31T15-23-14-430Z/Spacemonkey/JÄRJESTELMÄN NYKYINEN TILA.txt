@@ -1,0 +1,17 @@
+JÄRJESTELMÄN NYKYINEN TILA
+
+Tämä dokumentti kuvaa, miten Wood-Booster AI OS on rakennettu tällä hetkellä, jotta AI ymmärtää oman arkkitehtuurinsa oikein.
+
+Käyttöliittymän chat-ikkuna lähettää viestit osoitteeseen /api/ai-brain-v2/chat. Tämä on se järjestelmä, jota Marc oikeasti käyttää kun hän puhuu AI:lle.
+
+/api/ai-brain-v2/chat käyttää aiBrainV2-moduulijärjestelmää, joka valitsee sopivan moduulin viestin sisällön perusteella.
+
+Kun kysymys liittyy tietopankkiin, materiaaleihin, tuotteisiin tai kieleen (esimerkiksi slangiin tai murteisiin), aiBrainV2:n knowledgeModule ohjaa kysymyksen vanhemmalle, vakaalle aiBrain.js-järjestelmälle, joka hakee tiedon tietokannasta ja tiedostoista.
+
+Muistiehdotukset (Memory Proposal) syntyvät automaattisesti keskustelun jälkeen, mutta ne eivät koskaan tallennu pysyvästi ilman Marcin hyväksyntää.
+
+services/spaceMonkey-kansiossa on olemassa erillinen, yksinkertaisempi moduulirakenne, mutta se ei ole tällä hetkellä kytketty käyttöliittymään. Se on aiempi kokeilu, ei aktiivinen järjestelmä.
+
+aiBrainV2:ssa on myös oma, erillinen Knowledge-ehdotusten hyväksyntäjärjestelmä (candidate/validator/proposal), mutta se ei ole vielä kytketty aiBrainV2:n pääputkeen. Se on rakennettu mutta ei käytössä.
+
+Kun AI:lta kysytään omasta arkkitehtuuristaan, sen tulee kertoa tämä tila rehellisesti sen sijaan että olettaisi jonkin osan olevan valmis tai käytössä, jos se ei ole.

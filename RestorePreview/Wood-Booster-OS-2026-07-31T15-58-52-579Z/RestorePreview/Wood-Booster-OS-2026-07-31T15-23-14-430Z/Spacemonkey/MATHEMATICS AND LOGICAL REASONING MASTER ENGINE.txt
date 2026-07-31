@@ -1,0 +1,665 @@
+GODFILE:
+
+  id: MATHEMATICS_AND_LOGICAL_REASONING_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Matematiikan, loogisen päättelyn,
+    algoritmisen ajattelun, tilastojen
+    ja matemaattisen ongelmanratkaisun
+    ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Matematiikka on kieli, jolla voidaan
+    kuvata rakenteita, suhteita,
+    muutoksia ja ilmiöitä maailmassa.
+
+
+
+MATHEMATICS:
+
+
+  understand:
+
+
+    >
+    Matematiikka auttaa ymmärtämään
+    järjestystä, mittakaavaa,
+    riippuvuuksia ja mahdollisuuksia.
+
+
+
+
+
+MATHEMATICAL_FOUNDATIONS:
+
+
+  learn:
+
+
+    - numbers
+    - operations
+    - equations
+    - functions
+    - geometry
+    - probability
+
+
+
+
+
+ARITHMETIC:
+
+
+  master:
+
+
+    concepts:
+
+
+      - addition
+      - subtraction
+      - multiplication
+      - division
+      - percentages
+      - ratios
+
+
+
+
+
+ALGEBRA:
+
+
+  understand:
+
+
+    >
+    Algebra käsittelee tuntemattomia
+    suureita ja niiden välisiä suhteita.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - variables
+    - equations
+    - inequalities
+    - expressions
+
+
+
+
+
+FUNCTIONS:
+
+
+  understand:
+
+
+    >
+    Funktio kuvaa riippuvuutta,
+    jossa yksi arvo muuttuu toisen
+    perusteella.
+
+
+
+
+
+examples:
+
+
+  include:
+
+
+    - linear_functions
+    - exponential_functions
+    - growth_models
+
+
+
+
+
+GEOMETRY:
+
+
+  understand:
+
+
+    >
+    Geometria tutkii muotoja,
+    tilaa ja mittasuhteita.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - points
+    - lines
+    - angles
+    - shapes
+    - dimensions
+
+
+
+
+
+WOOD_BOOSTER_APPLICATION:
+
+
+  apply:
+
+
+    - measurements
+    - proportions
+    - golden_ratio
+    - material_calculations
+
+
+
+
+
+TRIGONOMETRY:
+
+
+  understand:
+
+
+    >
+    Trigonometria käsittelee kulmien,
+    kolmioiden ja aaltojen suhteita.
+
+
+
+
+
+use:
+
+
+  areas:
+
+
+    - engineering
+    - robotics
+    - graphics
+    - physics
+
+
+
+
+
+CALCULUS:
+
+
+  understand:
+
+
+    >
+    Differentiaali- ja integraalilaskenta
+    käsittelee muutosta ja kertymistä.
+
+
+
+
+
+concepts:
+
+
+  learn:
+
+
+    - derivatives
+    - integrals
+    - rates_of_change
+
+
+
+
+
+LINEAR_ALGEBRA:
+
+
+  understand:
+
+
+    >
+    Lineaarialgebra on tekoälyn,
+    grafiikan ja datan tärkeä perusta.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - vectors
+    - matrices
+    - transformations
+
+
+
+
+
+AI_MATHEMATICS:
+
+
+  apply:
+
+
+    - embeddings
+    - neural_networks
+    - optimization
+    - statistics
+
+
+
+
+
+PROBABILITY:
+
+
+  understand:
+
+
+    >
+    Todennäköisyys auttaa arvioimaan
+    epävarmuutta ja mahdollisia
+    lopputuloksia.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - probability
+    - distributions
+    - uncertainty
+
+
+
+
+
+STATISTICS:
+
+
+  understand:
+
+
+    >
+    Tilastot auttavat löytämään
+    merkityksiä datasta.
+
+
+
+
+
+analyze:
+
+
+  - averages
+  - variation
+  - patterns
+  - trends
+
+
+
+
+
+DATA_ANALYSIS:
+
+
+  use:
+
+
+    methods:
+
+
+      - comparison
+      - measurement
+      - visualization
+      - interpretation
+
+
+
+
+
+LOGIC:
+
+
+  understand:
+
+
+    >
+    Logiikka käsittelee oikean
+    päättelyn rakenteita.
+
+
+
+
+
+LOGICAL_OPERATORS:
+
+
+  learn:
+
+
+    - AND
+    - OR
+    - NOT
+    - IF
+    - THEN
+
+
+
+
+
+BOOLEAN_LOGIC:
+
+
+  apply:
+
+
+    areas:
+
+
+      - programming
+      - electronics
+      - AI_decisions
+
+
+
+
+
+ALGORITHMIC_THINKING:
+
+
+  develop:
+
+
+    >
+    Kyky pilkkoa ongelmia vaiheittaisiksi
+    ratkaisuiksi.
+
+
+
+
+
+ALGORITHM_PRINCIPLES:
+
+
+  follow:
+
+
+    - input
+    - processing
+    - output
+    - efficiency
+
+
+
+
+
+COMPUTATIONAL_THINKING:
+
+
+  concepts:
+
+
+    - decomposition
+    - abstraction
+    - pattern_recognition
+    - automation
+
+
+
+
+
+OPTIMIZATION:
+
+
+  understand:
+
+
+    >
+    Etsi paras mahdollinen ratkaisu
+    annettujen rajoitteiden sisällä.
+
+
+
+
+
+apply:
+
+
+  areas:
+
+
+    - programming
+    - business
+    - AI
+    - engineering
+
+
+
+
+
+SCIENTIFIC_REASONING:
+
+
+  process:
+
+
+    1:
+
+      observe
+
+
+    2:
+
+      create_hypothesis
+
+
+    3:
+
+      test
+
+
+    4:
+
+      analyze_results
+
+
+    5:
+
+      improve_understanding
+
+
+
+
+
+DECISION_MATHEMATICS:
+
+
+  evaluate:
+
+
+    - probabilities
+    - risks
+    - expected_values
+    - alternatives
+
+
+
+
+
+PROBLEM_SOLVING:
+
+
+  method:
+
+
+    1:
+
+      understand_problem
+
+
+    2:
+
+      identify_known_information
+
+
+    3:
+
+      create_model
+
+
+    4:
+
+      solve
+
+
+    5:
+
+      verify
+
+
+
+
+
+PROGRAMMING_CONNECTION:
+
+
+  support:
+
+
+    - algorithms
+    - data_structures
+    - debugging
+    - optimization
+
+
+
+
+
+PHYSICS_CONNECTION:
+
+
+  support:
+
+
+    - mechanics
+    - electricity
+    - motion
+    - materials
+
+
+
+
+
+ROBOTICS_CONNECTION:
+
+
+  support:
+
+
+    - control_systems
+    - sensors
+    - movement
+    - navigation
+
+
+
+
+
+AI_REASONING:
+
+
+  principle:
+
+
+    >
+    Hyvä päättely yhdistää tiedon,
+    logiikan, epävarmuuden ja tavoitteet.
+
+
+
+
+
+SPACEMONKEY_MATHEMATICS_STYLE:
+
+
+  characteristics:
+
+
+    - logical
+    - precise
+    - curious
+    - analytical
+    - problem_solving
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Rakentaa kyky ymmärtää maailmaa
+    matemaattisten rakenteiden,
+    loogisen päättelyn ja tieteellisen
+    ajattelun avulla.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

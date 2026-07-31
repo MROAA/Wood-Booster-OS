@@ -1,0 +1,508 @@
+GODFILE:
+
+  id: FRONTEND_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Frontend-käyttöliittymän,
+    selaintoimintojen ja käyttäjän
+    vuorovaikutuksen turvallisuuden
+    hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Käyttöliittymä ei ole koskaan
+    luotettu ympäristö.
+    Kaikki kriittiset tarkistukset
+    tehdään myös backendissä.
+
+
+
+FRONTEND_SECURITY_OBJECTIVES:
+
+
+  goals:
+
+
+    - protect_user_interface
+    - prevent_client_side_attacks
+    - protect_visible_information
+    - validate_user_actions
+    - secure_application_state
+
+
+
+
+
+FRONTEND_COMPONENTS:
+
+
+  pages:
+
+
+    protect:
+
+
+      - dashboards
+      - AI_chat
+      - project_views
+      - settings
+      - administration
+
+
+
+
+
+  components:
+
+
+    protect:
+
+
+      - forms
+      - inputs
+      - file_uploads
+      - interactive_elements
+
+
+
+
+
+CLIENT_SECURITY:
+
+
+  principle:
+
+
+    >
+    Käyttäjän selainympäristöön ei koskaan
+    luoteta turvallisuuden perustana.
+
+
+
+
+
+INPUT_SECURITY:
+
+
+  validate:
+
+
+    - user_text
+    - form_data
+    - uploaded_files
+    - search_queries
+
+
+
+
+
+XSS_PROTECTION:
+
+
+  prevent:
+
+
+    - unsafe_html
+    - script_injection
+    - malicious_content_rendering
+
+
+
+
+
+  rules:
+
+
+    never:
+
+
+      - render_untrusted_html
+      - execute_unknown_scripts
+
+
+
+
+
+AUTHENTICATION_DISPLAY:
+
+
+  protect:
+
+
+    - user_state
+    - login_state
+    - permissions
+
+
+
+
+
+  never_show:
+
+
+    - passwords
+    - API_keys
+    - tokens
+    - private_credentials
+
+
+
+
+
+AUTHORIZATION_UI:
+
+
+  principle:
+
+
+    >
+    Käyttöliittymä näyttää vain toiminnot,
+    joihin käyttäjällä on oikeus.
+
+
+
+
+
+  require:
+
+
+    - permission_check
+    - backend_validation
+
+
+
+
+
+API_COMMUNICATION:
+
+
+  protect:
+
+
+    - frontend_backend_requests
+    - API_responses
+    - error_messages
+
+
+
+
+
+  rules:
+
+
+    before_use:
+
+
+      validate:
+
+
+        - response_structure
+        - data_type
+        - security_status
+
+
+
+
+
+STATE_SECURITY:
+
+
+  protect:
+
+
+    - local_storage
+    - session_storage
+    - application_state
+
+
+
+
+
+  never_store:
+
+
+    - passwords
+    - API_keys
+    - private_tokens
+
+
+
+
+
+FILE_UPLOAD_SECURITY:
+
+
+  before_upload:
+
+
+    check:
+
+
+      - file_type
+      - file_size
+      - source
+      - permissions
+
+
+
+
+
+ERROR_DISPLAY:
+
+
+  principle:
+
+
+    >
+    Käyttäjälle näytetään hyödyllinen
+    virhe ilman sisäisten tietojen vuotamista.
+
+
+
+
+
+  never_show:
+
+
+    - stack_traces
+    - database_details
+    - server_configuration
+
+
+
+
+
+AI_CHAT_SECURITY:
+
+
+  protect:
+
+
+    - conversation_view
+    - AI_responses
+    - uploaded_context
+
+
+
+
+
+  before_display:
+
+
+    verify:
+
+
+      - response_security
+      - sensitive_data_filter
+      - permission_scope
+
+
+
+
+
+BROWSER_SECURITY:
+
+
+  protect:
+
+
+    - cookies
+    - sessions
+    - browser_storage
+
+
+
+
+
+DEPENDENCY_SECURITY:
+
+
+  monitor:
+
+
+    - frontend_packages
+    - libraries
+    - frameworks
+
+
+
+
+
+BUILD_SECURITY:
+
+
+  before_release:
+
+
+    verify:
+
+
+      - production_build
+      - removed_debug_information
+      - dependency_status
+
+
+
+
+
+REACT_SECURITY:
+
+
+  rules:
+
+
+    avoid:
+
+
+      - unsafe_rendering
+      - exposed_configuration
+      - client_side_secrets
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Wood-Booster-OS_UI
+    - AI_Workspace
+    - Chat_Interface
+    - Project_Interface
+    - Settings_Interface
+
+
+
+
+
+INCIDENT_RESPONSE:
+
+
+  frontend_issue:
+
+
+    actions:
+
+
+      1:
+
+        isolate_problem
+
+
+      2:
+
+        protect_user_data
+
+
+      3:
+
+        fix_component
+
+
+      4:
+
+        verify_application
+
+
+
+
+
+LOG_SECURITY:
+
+
+  record:
+
+
+    - security_events
+    - client_errors
+    - blocked_actions
+
+
+
+  never_record:
+
+
+    - passwords
+    - API_keys
+    - private_information
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - protect_frontend_data
+    - validate_actions
+    - keep_backend_as_authority
+
+
+
+  never:
+
+
+    - trust_client_only_security
+    - expose_secrets
+    - bypass_permissions
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - frontend_security_patterns
+    - secure_UI_design
+    - browser_security
+
+
+
+
+
+  forbidden:
+
+
+    - credentials
+    - API_keys
+    - tokens
+    - private_configuration
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

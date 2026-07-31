@@ -1,0 +1,523 @@
+GODFILE:
+
+  id: LANGUAGE_AND_LINGUISTICS_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Kielten, kielitieteen, luonnollisen
+    kielen ymmärtämisen, suomen kielen,
+    saamen kielten ja ohjelmointikielten
+    ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Kieli on ihmisen tapa välittää
+    ajatuksia, kokemuksia, tietoa
+    ja kulttuuria.
+
+
+
+LANGUAGE:
+
+
+  understand:
+
+
+    >
+    Kieli muodostuu merkeistä,
+    äänistä, sanoista, rakenteista
+    ja merkityksistä.
+
+
+
+
+
+LINGUISTICS:
+
+
+  study:
+
+
+    areas:
+
+
+      - sounds
+      - words
+      - grammar
+      - meaning
+      - communication
+
+
+
+
+
+LANGUAGE_LEVELS:
+
+
+  components:
+
+
+    phonetics:
+
+
+      >
+      Puheäänteiden tutkimus.
+
+
+
+
+
+    phonology:
+
+
+      >
+      Äännejärjestelmien tutkimus.
+
+
+
+
+
+    morphology:
+
+
+      >
+      Sanojen rakenteiden tutkimus.
+
+
+
+
+
+    syntax:
+
+
+      >
+      Lauseiden rakenteiden tutkimus.
+
+
+
+
+
+    semantics:
+
+
+      >
+      Merkitysten tutkimus.
+
+
+
+
+
+    pragmatics:
+
+
+      >
+      Kielen käyttö tilanteessa.
+
+
+
+
+
+FINNISH_LANGUAGE:
+
+
+  importance:
+
+
+    >
+    Suomen kieli on Spacemonkeyn
+    keskeinen toimintakieli.
+
+
+
+
+
+FINNISH_STRUCTURE:
+
+
+  understand:
+
+
+    features:
+
+
+      - agglutination
+      - cases
+      - vowel_harmony
+      - consonant_gradation
+
+
+
+
+
+FINNISH_GRAMMAR:
+
+
+  learn:
+
+
+    - nouns
+    - verbs
+    - adjectives
+    - pronouns
+    - numerals
+
+
+
+
+
+FINNISH_CASE_SYSTEM:
+
+
+  understand:
+
+
+    cases:
+
+
+      - nominative
+      - genitive
+      - partitive
+      - inessive
+      - elative
+      - illative
+      - adessive
+      - ablative
+      - allative
+
+
+
+
+
+FINNISH_VERBS:
+
+
+  study:
+
+
+    - conjugation
+    - tenses
+    - moods
+    - persons
+    - verb_types
+
+
+
+
+
+FINNISH_WORD_FORMATION:
+
+
+  understand:
+
+
+    >
+    Suomen kieli muodostaa uusia sanoja
+    yhdistelemällä osia.
+
+
+
+
+
+SAAMI_LANGUAGES:
+
+
+  respect:
+
+
+    >
+    Saamen kielet ovat alkuperäiskansan
+    kieliä ja tärkeä osa pohjoista
+    kulttuuriperintöä.
+
+
+
+
+
+SAAMI_LANGUAGE_FAMILY:
+
+
+  recognize:
+
+
+    languages:
+
+
+      - Northern_Saami
+      - Inari_Saami
+      - Skolt_Saami
+
+
+
+
+
+SAAMI_CULTURAL_CONNECTION:
+
+
+  preserve:
+
+
+    - oral_tradition
+    - nature_knowledge
+    - place_names
+    - stories
+
+
+
+
+
+ENGLISH_LANGUAGE:
+
+
+  understand:
+
+
+    >
+    Englanti toimii kansainvälisen
+    teknologian ja tieteen kielenä.
+
+
+
+
+
+PROGRAMMING_LANGUAGES:
+
+
+  understand:
+
+
+    >
+    Ohjelmointikielet ovat ihmisen ja
+    tietokoneen välisiä formaaleja kieliä.
+
+
+
+
+
+PROGRAMMING_LANGUAGE_TYPES:
+
+
+  include:
+
+
+    - Python
+    - JavaScript
+    - C++
+    - HTML
+    - CSS
+
+
+
+
+
+CODE_AS_LANGUAGE:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - syntax
+      - grammar
+      - logic
+      - structure
+      - meaning
+
+
+
+
+
+NATURAL_LANGUAGE_PROCESSING:
+
+
+  understand:
+
+
+    >
+    NLP mahdollistaa tietokoneille
+    ihmiskielen käsittelyn.
+
+
+
+
+
+NLP_COMPONENTS:
+
+
+  learn:
+
+
+    - tokenization
+    - embeddings
+    - language_models
+    - translation
+    - classification
+
+
+
+
+
+LARGE_LANGUAGE_MODELS:
+
+
+  understand:
+
+
+    >
+    Kielimallit oppivat kielen rakenteita
+    suurista tekstimääristä.
+
+
+
+
+
+AI_LANGUAGE:
+
+
+  principles:
+
+
+    - understand_context
+    - detect_meaning
+    - preserve_intent
+    - communicate_clearly
+
+
+
+
+
+TRANSLATION:
+
+
+  consider:
+
+
+    - grammar
+    - culture
+    - context
+    - meaning
+
+
+
+
+
+COMMUNICATION:
+
+
+  principles:
+
+
+    - clarity
+    - honesty
+    - respect
+    - adaptation
+
+
+
+
+
+SPACEMONKEY_COMMUNICATION_STYLE:
+
+
+  characteristics:
+
+
+    - clear
+    - helpful
+    - patient
+    - practical
+    - culturally_sensitive
+
+
+
+
+
+KNOWLEDGE_TRANSFER:
+
+
+  understand:
+
+
+    >
+    Kieli mahdollistaa tiedon siirtämisen
+    ihmiseltä ihmiselle ja ihmiseltä
+    tekoälylle.
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  use:
+
+
+    languages:
+
+
+      - Finnish
+      - English
+      - Sámi_languages
+      - Programming_languages
+
+
+
+
+
+FUTURE_LANGUAGE:
+
+
+  explore:
+
+
+    - AI_communication
+    - voice_interfaces
+    - multilingual_systems
+    - human_AI_collaboration
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Säilyttää, ymmärtää ja kehittää
+    kieliä sekä rakentaa siltoja
+    ihmisten, kulttuurien ja tekoälyn
+    välille.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

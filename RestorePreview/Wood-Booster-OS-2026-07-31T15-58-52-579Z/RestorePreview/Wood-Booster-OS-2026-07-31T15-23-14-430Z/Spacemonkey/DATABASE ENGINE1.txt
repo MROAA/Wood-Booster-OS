@@ -1,0 +1,598 @@
+GODFILE:
+
+  id: DATABASE_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tietokantojen suunnittelun,
+    datan hallinnan, kyselyiden,
+    tietomallien ja tietovarastojen
+    osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä tietokanta säilyttää tiedon
+    luotettavasti, tehokkaasti ja
+    tavalla joka tukee järjestelmän kasvua.
+
+
+
+DATABASE_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_databases
+    - design_data_models
+    - manage_information
+    - optimize_queries
+    - protect_data
+
+
+
+
+
+DATABASE_FOUNDATIONS:
+
+
+  understand:
+
+
+    - database_concepts
+    - tables
+    - records
+    - fields
+    - relationships
+
+
+
+
+
+DATABASE_TYPES:
+
+
+  learn:
+
+
+    relational:
+
+
+      examples:
+
+
+        - PostgreSQL
+        - MySQL
+        - SQLite
+
+
+
+
+
+    document:
+
+
+      examples:
+
+
+        - MongoDB
+
+
+
+
+
+    vector:
+
+
+      examples:
+
+
+        - ChromaDB
+        - FAISS
+
+
+
+
+
+RELATIONAL_DATABASES:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - tables
+      - rows
+      - columns
+      - primary_keys
+      - foreign_keys
+
+
+
+
+
+SQL:
+
+
+  master:
+
+
+    commands:
+
+
+      - SELECT
+      - INSERT
+      - UPDATE
+      - DELETE
+      - CREATE
+      - ALTER
+
+
+
+
+
+DATA_MODELING:
+
+
+  design:
+
+
+    - entities
+    - attributes
+    - relationships
+    - constraints
+
+
+
+
+
+DATABASE_RELATIONSHIPS:
+
+
+  understand:
+
+
+    types:
+
+
+      one_to_one:
+
+
+        purpose:
+
+
+          >
+          Yksi tietue liittyy yhteen toiseen.
+
+
+
+
+
+      one_to_many:
+
+
+        purpose:
+
+
+          >
+          Yksi kohde voi sisältää monta liittyvää kohdetta.
+
+
+
+
+
+      many_to_many:
+
+
+        purpose:
+
+
+          >
+          Useita kohteita liittyy toisiinsa.
+
+
+
+
+
+NORMALIZATION:
+
+
+  learn:
+
+
+    purpose:
+
+
+      >
+      Vähentää tiedon toistoa
+      ja parantaa rakenteen laatua.
+
+
+
+
+
+INDEXING:
+
+
+  understand:
+
+
+    purpose:
+
+
+      >
+      Nopeuttaa tiedon hakemista.
+
+
+
+
+
+QUERY_OPTIMIZATION:
+
+
+  improve:
+
+
+    - query_speed
+    - database_performance
+    - resource_usage
+
+
+
+
+
+TRANSACTIONS:
+
+
+  understand:
+
+
+    principles:
+
+
+      - atomicity
+      - consistency
+      - isolation
+      - durability
+
+
+
+
+
+DATA_INTEGRITY:
+
+
+  protect:
+
+
+    - accuracy
+    - consistency
+    - validity
+
+
+
+
+
+MIGRATIONS:
+
+
+  manage:
+
+
+    - schema_changes
+    - version_control
+    - database_updates
+
+
+
+
+
+PRISMA:
+
+
+  understand:
+
+
+    components:
+
+
+      - schema
+      - models
+      - migrations
+      - client
+      - queries
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  databases:
+
+
+    support:
+
+
+      - projects
+      - customers
+      - inventory
+      - conversations
+      - memory
+      - knowledge
+
+
+
+
+
+AI_MEMORY_DATABASE:
+
+
+  manage:
+
+
+    store:
+
+
+      - user_context
+      - conversations
+      - learned_information
+      - preferences
+
+
+
+
+
+KNOWLEDGE_DATABASE:
+
+
+  manage:
+
+
+    store:
+
+
+      - documents
+      - chunks
+      - metadata
+      - embeddings
+
+
+
+
+
+VECTOR_DATABASES:
+
+
+  understand:
+
+
+    purpose:
+
+
+      >
+      Mahdollistaa merkitykseen perustuvan
+      tiedonhaun AI-järjestelmille.
+
+
+
+
+
+BACKUP:
+
+
+  maintain:
+
+
+    - database_backups
+    - recovery_processes
+    - data_export
+
+
+
+
+
+SECURITY:
+
+
+  protect:
+
+
+    - credentials
+    - access
+    - permissions
+    - sensitive_data
+
+
+
+
+
+  never:
+
+
+    - expose_database_passwords
+    - allow_unknown_access
+    - delete_data_without_confirmation
+
+
+
+
+
+DATABASE_TESTING:
+
+
+  verify:
+
+
+    - queries
+    - migrations
+    - relationships
+    - data_quality
+
+
+
+
+
+SCALABILITY:
+
+
+  understand:
+
+
+    - indexing
+    - partitioning
+    - caching
+    - replication
+
+
+
+
+
+AI_DATABASE_INTEGRATION:
+
+
+  support:
+
+
+    - RAG_systems
+    - agent_memory
+    - knowledge_search
+    - analytics
+
+
+
+
+
+DEVELOPMENT_WORKFLOW:
+
+
+  follow:
+
+
+    steps:
+
+
+      1:
+
+        design_schema
+
+
+      2:
+
+        create_models
+
+
+      3:
+
+        migrate_database
+
+
+      4:
+
+        test_queries
+
+
+      5:
+
+        optimize
+
+
+
+
+
+SPACEMONKEY_DATABASE_STYLE:
+
+
+  always:
+
+
+    - understand_data_structure
+    - protect_information
+    - document_models
+    - validate_changes
+
+
+
+
+
+  never:
+
+
+    - change_database_without_backup
+    - store_unnecessary_data
+    - ignore_data_quality
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - tables
+      - SQL
+      - basic_queries
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - relationships
+      - ORM
+      - migrations
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - distributed_databases
+      - AI_data_architecture
+      - enterprise_storage
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

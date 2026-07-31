@@ -1,0 +1,492 @@
+GODFILE:
+
+  id: AI_MODEL_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tekoälymallien, malliversioiden,
+    mallilähteiden ja AI-ajon turvallisen
+    hallinnan moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    AI-malli on järjestelmän komponentti,
+    eikä sitä saa käyttää ilman alkuperän,
+    eheyden ja turvallisuuden arviointia.
+
+
+
+AI_MODEL_SECURITY_OBJECTIVES:
+
+
+  goals:
+
+
+    - verify_model_source
+    - protect_model_integrity
+    - control_model_access
+    - prevent_unsafe_models
+    - maintain_AI_reliability
+
+
+
+
+
+MODEL_TYPES:
+
+
+  local_models:
+
+
+    examples:
+
+
+      - Ollama_models
+      - local_LLMs
+      - embedded_models
+
+
+
+
+
+  external_models:
+
+
+    examples:
+
+
+      - cloud_AI_models
+      - API_models
+      - external_services
+
+
+
+
+
+MODEL_ORIGIN_VERIFICATION:
+
+
+  before_use:
+
+
+    check:
+
+
+      - model_source
+      - publisher
+      - version
+      - integrity
+      - compatibility
+
+
+
+
+
+MODEL_DOWNLOAD_SECURITY:
+
+
+  before_install:
+
+
+    require:
+
+
+      - trusted_source
+      - validation
+      - storage_check
+
+
+
+
+
+  never:
+
+
+    - use_unknown_models
+    - run_unverified_models
+    - ignore_security_warnings
+
+
+
+
+
+MODEL_INTEGRITY:
+
+
+  monitor:
+
+
+    - unexpected_changes
+    - corrupted_files
+    - unauthorized_modifications
+
+
+
+
+
+MODEL_VERSION_CONTROL:
+
+
+  track:
+
+
+    - model_name
+    - version
+    - source
+    - update_history
+
+
+
+
+
+MODEL_UPDATE_SECURITY:
+
+
+  before_update:
+
+
+    verify:
+
+
+      - new_version
+      - security_status
+      - compatibility
+
+
+
+
+
+  after_update:
+
+
+    perform:
+
+
+      - testing
+      - validation
+      - performance_check
+
+
+
+
+
+AI_BEHAVIOR_BOUNDARIES:
+
+
+  principle:
+
+
+    >
+    Malli ei koskaan ohita
+    järjestelmän turvallisuussääntöjä.
+
+
+
+  separation:
+
+
+    model:
+
+
+      handles:
+
+
+        - language_processing
+        - pattern_recognition
+
+
+
+
+
+    system_rules:
+
+
+      control:
+
+
+        - permissions
+        - security
+        - actions
+
+
+
+
+
+PROMPT_SECURITY:
+
+
+  protect:
+
+
+    - system_context
+    - security_rules
+    - private_information
+
+
+
+
+
+  never:
+
+
+    - expose_internal_instructions
+    - reveal_secret_configuration
+
+
+
+
+
+AI_AGENT_SECURITY:
+
+
+  agents:
+
+
+    require:
+
+
+      - defined_model
+      - defined_permissions
+      - controlled_tools
+
+
+
+
+
+MODEL_RESOURCE_SECURITY:
+
+
+  monitor:
+
+
+    - memory_usage
+    - compute_usage
+    - unexpected_behavior
+
+
+
+
+
+LOCAL_AI_SECURITY:
+
+
+  protect:
+
+
+    - model_files
+    - configuration
+    - runtime_environment
+
+
+
+
+
+OLLAMA_CONTEXT:
+
+
+  protect:
+
+
+    - local_model_storage
+    - model_configuration
+    - AI_service_connection
+
+
+
+
+
+AI_MEMORY_SEPARATION:
+
+
+  rule:
+
+
+    >
+    Malli, muisti ja tietokanta ovat
+    erillisiä kerroksia.
+
+
+
+  protect:
+
+
+    - model_weights
+    - memory_data
+    - knowledge_data
+
+
+
+
+
+MODEL_OUTPUT_SECURITY:
+
+
+  before_use:
+
+
+    check:
+
+
+      - safety
+      - accuracy
+      - policy_alignment
+
+
+
+
+
+AI_HALLUCINATION_CONTROL:
+
+
+  detect:
+
+
+    - unsupported_claims
+    - invented_information
+    - false_certainty
+
+
+
+
+
+SECURITY_INCIDENT:
+
+
+  unsafe_model_detected:
+
+
+    actions:
+
+
+      1:
+
+        stop_usage
+
+
+      2:
+
+        isolate_model
+
+
+      3:
+
+        review_source
+
+
+      4:
+
+        restore_safe_model
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Spacemonkey_Core
+    - AI_Brain
+    - Ollama_environment
+    - local_models
+    - agent_system
+
+
+
+
+
+AUDIT:
+
+
+  record:
+
+
+    - model_changes
+    - model_versions
+    - security_checks
+
+
+
+  never_record:
+
+
+    - API_keys
+    - passwords
+    - private_tokens
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - verify_models
+    - separate_model_from_permissions
+    - protect_AI_integrity
+
+
+
+  never:
+
+
+    - trust_unknown_models
+    - expose_model_secrets
+    - allow_model_to_change_security
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - model_security_patterns
+    - AI_architecture
+    - safe_model_management
+
+
+
+  forbidden:
+
+
+    - model_credentials
+    - private_keys
+    - API_tokens
+    - secrets
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

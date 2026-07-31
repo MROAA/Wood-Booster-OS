@@ -1,0 +1,425 @@
+GODFILE:
+
+  id: FINNISH_DIALECT_ENGINE
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Spacemonkeyn suomen murteiden ja puhekielen
+    tunnistusmoottori.
+    Hallitsee yleiskielen, puhekielen ja
+    murteellisten ilmausten erot.
+
+
+
+language:
+
+  name: Finnish
+
+  module:
+
+    name:
+      FinnishDialectEngine
+
+
+
+# =====================================
+# KIELEN TASOT
+# =====================================
+
+
+language_levels:
+
+
+  standard_finnish:
+
+
+    name:
+
+      yleiskieli
+
+
+    usage:
+
+
+      - dokumentit
+
+      - uutiset
+
+      - viralliset_tekstit
+
+      - koulutus
+
+
+
+  spoken_finnish:
+
+
+    name:
+
+      puhekieli
+
+
+    usage:
+
+
+      - keskustelu
+
+      - arkielämä
+
+      - epäviralliset_viestit
+
+
+
+  dialect:
+
+
+    name:
+
+      murrekieli
+
+
+    usage:
+
+
+      - alueellinen_puhe
+
+      - kulttuurinen_ilmaisu
+
+
+
+# =====================================
+# PUHEKIELEN MUUTOKSET
+# =====================================
+
+
+spoken_transformations:
+
+
+  minä:
+
+
+    standard:
+
+      minä
+
+
+    spoken:
+
+
+      mä
+
+
+
+  sinä:
+
+
+    standard:
+
+      sinä
+
+
+    spoken:
+
+
+      sä
+
+
+
+  minä olen:
+
+
+    standard:
+
+      minä olen
+
+
+    spoken:
+
+
+      mä oon
+
+
+
+  ei ole:
+
+
+    standard:
+
+      ei ole
+
+
+    spoken:
+
+
+      ei oo
+
+
+
+  minun:
+
+
+    standard:
+
+      minun
+
+
+    spoken:
+
+
+      mun
+
+
+
+# =====================================
+# OULUN ALUEEN KIELIPIIRTEET
+# =====================================
+
+
+oulu_region:
+
+
+  characteristics:
+
+
+    - rauhallinen_puhetapa
+
+    - pohjoinen_sanasto
+
+    - murresanojen_käyttö
+
+
+
+  examples:
+
+
+    standard:
+
+
+      minä menen kotiin
+
+
+    spoken_example:
+
+
+      mää meen kotia
+
+
+
+  notes:
+
+
+    >
+    Murteet vaihtelevat myös yksilöittäin.
+    Järjestelmä ei saa tehdä oletuksia
+    henkilön taustasta pelkän kielen perusteella.
+
+
+
+# =====================================
+# SAVOLAINEN ILMAISU
+# =====================================
+
+
+savonian:
+
+
+  characteristics:
+
+
+    - sanajärjestyksen_vapaus
+
+    - persoonallinen_ilmaisu
+
+    - tarinallisuus
+
+
+
+  principle:
+
+
+    >
+    Savolainen ilmaisu voi sisältää
+    enemmän vihjailevaa ja pehmeää ilmaisua.
+
+
+
+# =====================================
+# KARJALAINEN ILMAISU
+# =====================================
+
+
+karelian_influence:
+
+
+  characteristics:
+
+
+    - lämmin_ilmaisu
+
+    - tarinallisuus
+
+    - tunnepitoisuus
+
+
+
+# =====================================
+# ETELÄSUOMALAINEN PUHE
+# =====================================
+
+
+southern_finnish:
+
+
+  characteristics:
+
+
+    - nopeampi_puhe
+
+    - enemmän_yleiskielen_vaikutusta
+
+    - kaupunkisanasto
+
+
+
+# =====================================
+# DIALEKTIN TUNNISTUS
+# =====================================
+
+
+analysis_engine:
+
+
+  tasks:
+
+
+    - detect_spoken_forms
+
+    - detect_dialect_words
+
+    - convert_to_standard_finnish
+
+    - preserve_original_meaning
+
+
+
+rules:
+
+
+  must_not:
+
+
+    - judge_dialect
+
+    - correct_identity
+
+    - claim_person_location
+
+
+  must:
+
+
+    - understand_variation
+
+    - respect_language_forms
+
+    - explain_difference
+
+
+
+# =====================================
+# KÄÄNTÖTOIMINNOT
+# =====================================
+
+
+conversion:
+
+
+  spoken_to_standard:
+
+
+    example:
+
+
+      input:
+
+        "Mä meen kauppaan."
+
+
+      output:
+
+
+        "Minä menen kauppaan."
+
+
+
+  standard_to_spoken:
+
+
+    example:
+
+
+      input:
+
+
+        "Minä en tiedä."
+
+
+      output:
+
+
+        "Mä en tiedä."
+
+
+
+# =====================================
+# SPACEMONKEY LANGUAGE CORE
+# =====================================
+
+
+abilities:
+
+
+  - understand_real_finnish
+
+  - recognize_speech_patterns
+
+  - adapt_conversation_style
+
+  - teach_language_difference
+
+  - preserve_user_voice
+
+
+
+future_modules:
+
+
+  - FINNISH_EMOTION_ENGINE
+
+  - FINNISH_SLANG_ENGINE
+
+  - FINNISH_PROVERB_ENGINE
+
+  - FINNISH_HISTORY_OF_LANGUAGE_ENGINE
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active:
+
+    true

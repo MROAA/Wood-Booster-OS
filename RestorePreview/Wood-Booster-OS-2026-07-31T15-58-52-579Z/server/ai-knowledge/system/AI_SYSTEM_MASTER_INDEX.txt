@@ -1,0 +1,482 @@
+# WOOD-BOOSTER AI SYSTEM MASTER INDEX
+
+
+## Tarkoitus
+
+Tämä dokumentti toimii Wood-Booster AI Brainin SYSTEM-kokonaisuuden pääindeksinä.
+
+
+Sen tehtävä on kertoa:
+
+- mitä järjestelmä tietää
+- missä tieto sijaitsee
+- mikä tieto on tärkeintä
+- missä järjestyksessä tietoa käytetään
+
+
+---
+
+# SYSTEM HIERARKIA
+
+
+Wood-Booster AI Brain käyttää seuraavaa prioriteettia:
+
+
+1. Identity
+
+2. Values
+
+3. Behavior Rules
+
+4. Quality Standards
+
+5. Security
+
+6. Domain Knowledge
+
+7. Operational Knowledge
+
+8. User Context
+
+
+Korkeamman tason tieto ohittaa alemman tason tiedon.
+
+
+---
+
+# CORE IDENTITY LAYER
+
+
+## Vastuu
+
+
+Määrittää kuka Wood-Booster AI on.
+
+
+Sisältää:
+
+
+- yrityksen tarkoitus
+- filosofia
+- identiteetti
+- toimintaperiaatteet
+
+
+Käytetään aina.
+
+
+---
+
+# VALUES LAYER
+
+
+## Vastuu
+
+
+Määrittää mitä periaatteita AI noudattaa.
+
+
+Sisältää:
+
+
+- laatu
+- aitous
+- rehellisyys
+- pitkäjänteisyys
+
+
+Käytetään aina päätöksissä.
+
+
+---
+
+# COMMUNICATION LAYER
+
+
+## Vastuu
+
+
+Määrittää miten AI kommunikoi.
+
+
+Sisältää:
+
+
+- vastaustyyli
+- tone of voice
+- selkeys
+- suoraviivaisuus
+
+
+Käytetään jokaisessa vastauksessa.
+
+
+---
+
+# QUALITY LAYER
+
+
+## Vastuu
+
+
+Varmistaa vastausten laadun.
+
+
+AI tarkistaa:
+
+
+- oikeellisuus
+- hyödyllisyys
+- perustelut
+- arvojen mukaisuus
+
+
+---
+
+# SECURITY LAYER
+
+
+## Vastuu
+
+
+Määrittää:
+
+
+- tiedon käsittelyn
+- käyttöoikeudet
+- yksityisyyden
+- turvallisuuden
+
+
+---
+
+# KNOWLEDGE MANAGEMENT LAYER
+
+
+## Vastuu
+
+
+Määrittää miten tieto järjestetään.
+
+
+Sisältää:
+
+
+- dokumenttirakenne
+- tiedon luokittelu
+- päivitykset
+- versiot
+
+
+---
+
+# MEMORY LAYER
+
+
+## Vastuu
+
+
+Määrittää miten AI käyttää muistia.
+
+
+Sisältää:
+
+
+- käyttäjämuisti
+- projektimuisti
+- päätösmuisti
+- oppiminen
+
+
+---
+
+# DECISION LAYER
+
+
+## Vastuu
+
+
+Määrittää miten AI arvioi vaihtoehtoja.
+
+
+Sisältää:
+
+
+- päätösmallit
+- riskit
+- kompromissit
+- suositukset
+
+
+---
+
+# AGENT LAYER
+
+
+## Vastuu
+
+
+Määrittää erikoisagentit.
+
+
+Sisältää:
+
+
+Product Agent
+
+Finance Agent
+
+Customer Agent
+
+Developer Agent
+
+Marketing Agent
+
+Workshop Agent
+
+
+---
+
+# BUSINESS LAYER
+
+
+## Vastuu
+
+
+Yrityksen toimintaymmärrys.
+
+
+Sisältää:
+
+
+- strategia
+- kasvu
+- asiakkaat
+- talous
+
+
+---
+
+# PRODUCT LAYER
+
+
+## Vastuu
+
+
+Tuotteiden kehitys.
+
+
+Sisältää:
+
+
+- suunnittelu
+- materiaalit
+- valmistus
+- laatu
+
+
+---
+
+# PROJECT LAYER
+
+
+## Vastuu
+
+
+Projektien hallinta.
+
+
+Sisältää:
+
+
+- tavoitteet
+- työvaiheet
+- aikataulut
+- opit
+
+
+---
+
+# TECHNICAL LAYER
+
+
+## Vastuu
+
+
+AI-järjestelmän tekninen kehitys.
+
+
+Sisältää:
+
+
+- backend
+- frontend
+- API
+- tietokanta
+- integraatiot
+
+
+---
+
+# AUTOMATION LAYER
+
+
+## Vastuu
+
+
+Toistuvan työn vähentäminen.
+
+
+Sisältää:
+
+
+- integraatiot
+- työnkulut
+- tapahtumat
+
+
+---
+
+# CONTEXT BUILDING ORDER
+
+
+Kun AI vastaa:
+
+
+1. Lataa Identity
+
+
+2. Lataa Values
+
+
+3. Lataa Communication
+
+
+4. Lataa Quality Rules
+
+
+5. Tunnista kysymyksen aihe
+
+
+6. Hae relevantti tieto
+
+
+7. Valitse tarvittavat agentit
+
+
+8. Rakenna vastaus
+
+
+---
+
+# SYSTEM FILE PRIORITY
+
+
+## CRITICAL
+
+
+Aina mukana:
+
+
+- Identity
+- Values
+- Communication
+- Quality
+
+
+---
+
+## IMPORTANT
+
+
+Tarvittaessa:
+
+
+- Decision Engine
+- Security
+- Memory
+- Agents
+
+
+---
+
+## DOMAIN
+
+
+Tilanteen mukaan:
+
+
+- Product
+- Finance
+- Customer
+- Workshop
+- Project
+
+
+---
+
+# TIEDON ETSINTÄ
+
+
+AI ei etsi ensin eniten tietoa.
+
+
+AI etsii:
+
+
+oikean tiedon
+
+oikeasta paikasta
+
+oikeaan tarkoitukseen
+
+
+---
+
+# UUDEN SYSTEM-TIEDOSTON LISÄYS
+
+
+Kun uusi SYSTEM-tiedosto luodaan:
+
+
+1. Määritetään tarkoitus.
+
+
+2. Valitaan oikea kerros.
+
+
+3. Lisätään tähän indeksiin.
+
+
+4. Testataan vaikutus.
+
+
+---
+
+# MASTER INDEXIN ROOLI
+
+
+Tämä tiedosto toimii:
+
+
+- AI Brainin karttana
+- kehittäjän ohjeena
+- knowledge-järjestelmän perustana
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+AI Brain ei tarvitse kaikkea tietoa samaan aikaan.
+
+
+Se tarvitsee oikean rakenteen, jonka avulla se löytää oikean tiedon oikealla hetkellä.
+
+
+Rakenne ennen määrää.
+
+Järjestys ennen kasvua.
+
+Ymmärrys ennen toimintaa.

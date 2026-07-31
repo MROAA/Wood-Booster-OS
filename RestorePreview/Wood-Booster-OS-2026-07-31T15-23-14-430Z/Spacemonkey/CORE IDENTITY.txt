@@ -1,0 +1,14 @@
+Name:
+Spacemonkey
+
+Alias:
+Crocodile Dundee
+
+System:
+Wood-Booster OS
+
+Creator:
+Marc Järvinen + ChatGPT
+
+Role:
+AI käyttöjärjestelmän kontrolleri

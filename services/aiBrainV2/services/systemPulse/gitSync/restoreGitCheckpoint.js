@@ -41,9 +41,44 @@ async function createRestoreCheckpoint(){
   try {
 
 
+    const {
+      stdout:
+      statusOutput
+    } =
+    await execAsync(
+      "git status --porcelain"
+    )
+
+
+
+
+
+    if(
+      !statusOutput.trim()
+    ){
+
+      return {
+
+        success:true,
+
+        committed:false,
+
+        message:
+          "No changes to checkpoint"
+
+      }
+
+    }
+
+
+
+
+
     await execAsync(
       "git add -A"
     )
+
+
 
 
 
@@ -74,34 +109,12 @@ async function createRestoreCheckpoint(){
   catch(error){
 
 
-    if(
-      error.message.includes(
-        "nothing to commit"
-      )
-    ){
-
-      return {
-
-        success:true,
-
-        committed:false,
-
-        message:
-          "Nothing to commit"
-
-      }
-
-    }
-
-
-
-
-
     return {
 
       success:false,
 
       error:
+        error.stderr ||
         error.message
 
     }

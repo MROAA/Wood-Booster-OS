@@ -1,0 +1,429 @@
+# WOOD-BOOSTER AI DATA ARCHITECTURE SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain järjestää, tallentaa ja käyttää tietoa.
+
+
+Hyvä AI ei tarvitse kaikkea tietoa.
+
+Se tarvitsee oikean tiedon oikeassa paikassa.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Tieto tarvitsee rakenteen.
+
+
+Jokaisella tiedolla pitää olla:
+
+
+- tarkoitus
+- sijainti
+- yhteys muuhun tietoon
+
+
+---
+
+# TIETOKERROKSET
+
+
+Wood-Booster AI käyttää seuraavia tietokerroksia:
+
+
+## 1. SYSTEM DATA
+
+
+Korkein taso.
+
+
+Sisältää:
+
+
+- identiteetin
+- arvot
+- toimintaperiaatteet
+- turvallisuussäännöt
+
+
+Tämä tieto muuttuu harvoin.
+
+
+---
+
+## 2. KNOWLEDGE DATA
+
+
+Asiantuntijatieto.
+
+
+Sisältää:
+
+
+- puumateriaalit
+- valmistustekniikat
+- liiketoiminta
+- suunnittelu
+- markkinointi
+
+
+Tämä kasvattaa osaamista.
+
+
+---
+
+## 3. MEMORY DATA
+
+
+Henkilökohtainen ja kokemuksellinen tieto.
+
+
+Sisältää:
+
+
+- käyttäjän tavoitteet
+- tärkeät mieltymykset
+- opitut asiat
+
+
+---
+
+## 4. PROJECT DATA
+
+
+Projektikohtainen tieto.
+
+
+Sisältää:
+
+
+- asiakkaat
+- tuotteet
+- työvaiheet
+- materiaalit
+- kustannukset
+- dokumentit
+
+
+---
+
+## 5. DECISION DATA
+
+
+Päätöshistoria.
+
+
+Sisältää:
+
+
+- tehdyt päätökset
+- perustelut
+- seuraukset
+- opit
+
+
+---
+
+# TIETOJEN PRIORITEETTI
+
+
+Kun tieto on ristiriidassa:
+
+
+1. SYSTEM
+
+2. CORE VALUES
+
+3. Vahvistettu tieto
+
+4. Projektitieto
+
+5. Muisti
+
+6. Keskustelun hetkellinen tieto
+
+
+---
+
+# TIETOTYYPIT
+
+
+AI erottaa:
+
+
+## Pysyvä tieto
+
+
+Tieto joka muuttuu harvoin.
+
+
+Esimerkiksi:
+
+
+Arvot.
+
+
+---
+
+## Päivittyvä tieto
+
+
+Tieto joka muuttuu ajan kanssa.
+
+
+Esimerkiksi:
+
+
+Teknologiat.
+
+
+---
+
+## Projektitieto
+
+
+Tieto joka liittyy yhteen projektiin.
+
+
+---
+
+## Tilapäinen tieto
+
+
+Tieto jota tarvitaan vain nykyiseen tilanteeseen.
+
+
+---
+
+# TIETOKANNAN PERIAATE
+
+
+Tietorakenteen pitää kuvata todellista toimintaa.
+
+
+Esimerkiksi:
+
+
+Asiakas
+
+↓
+
+Projekti
+
+↓
+
+Tuote
+
+↓
+
+Työvaiheet
+
+↓
+
+Materiaalit
+
+↓
+
+Oppi
+
+
+---
+
+# DUPLIKAATTIEN VÄLTTÄMINEN
+
+
+Samaa tietoa ei tallenneta moneen paikkaan.
+
+
+Ennen uuden tiedon lisäämistä kysytään:
+
+
+Onko tämä jo olemassa?
+
+
+Voidaanko päivittää olemassa olevaa tietoa?
+
+
+---
+
+# KNOWLEDGE-TIEDOSTOJEN RAKENNE
+
+
+Hyvä tietodokumentti sisältää:
+
+
+Otsikko:
+
+Tarkoitus:
+
+Sisältö:
+
+Käytännön merkitys:
+
+Liittyvät aiheet:
+
+
+---
+
+# MEMORY-TIEDON RAKENNE
+
+
+Muistiin tallennetaan vain hyödyllinen tieto.
+
+
+Hyvä muistimerkintä:
+
+
+Mikä tieto?
+
+Miksi tärkeä?
+
+Milloin käytetään?
+
+
+---
+
+# PROJEKTITIETOJEN PERIAATE
+
+
+Projektit sisältävät oman historiansa.
+
+
+Projektista pitäisi pystyä ymmärtämään:
+
+
+Mitä tehtiin?
+
+Miksi tehtiin?
+
+Miten tehtiin?
+
+Mitä opittiin?
+
+
+---
+
+# DATA JA AI-PÄÄTÖKSET
+
+
+AI ei tee päätöksiä vain yhden tiedon perusteella.
+
+
+Se yhdistää:
+
+
+- nykyisen tilanteen
+- historian
+- arvot
+- tavoitteet
+
+
+---
+
+# TIETOVIRTA
+
+
+Wood-Booster AI:n tiedonkulku:
+
+
+Tieto
+
+↓
+
+Järjestely
+
+↓
+
+Haku
+
+↓
+
+Analyysi
+
+↓
+
+Päätös
+
+↓
+
+Oppi
+
+↓
+
+Uusi tieto
+
+
+---
+
+# TIETOTURVA
+
+
+Kaikki tieto ei kuulu kaikille agenteille.
+
+
+Agentti saa vain tarvitsemansa tiedon.
+
+
+Esimerkiksi:
+
+
+Finance Agent ei tarvitse kaikkia materiaalitietoja.
+
+
+Material Agent ei tarvitse asiakassopimuksia.
+
+
+---
+
+# AI DATA AGENT
+
+
+Tuleva Data Agent auttaa:
+
+
+- tietorakenteissa
+- tiedon järjestämisessä
+- päällekkäisyyksien löytämisessä
+- tietokannan kehittämisessä
+
+
+---
+
+# TIETOMALLIN KEHITYS
+
+
+Kun järjestelmä kasvaa:
+
+
+Tietomalleja päivitetään harkiten.
+
+
+Muutos arvioidaan:
+
+
+Miksi tarvitaan?
+
+Mitä vaikuttaa?
+
+Miten vanha tieto siirretään?
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Hyvä AI ei rakennu tiedon määrästä.
+
+Se rakentuu hyvin järjestetystä tiedosta.
+
+
+Oikea tieto.
+
+Oikeassa paikassa.
+
+Oikeaan aikaan.

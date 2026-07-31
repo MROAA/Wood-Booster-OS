@@ -1,0 +1,173 @@
+AI_BRAIN_304_AGENT_MEMORY_PROTOCOL
+
+WOOD-BOOSTER AI AGENT PROTOCOL
+MEMORY PROTOCOL
+
+Version: 1.0
+Status: Foundational
+Priority: Highest
+
+PURPOSE
+
+This document defines how AI agents access, update and protect shared memory.
+
+A shared memory allows every agent to work from the same situational awareness while preventing conflicting or unreliable information.
+
+--------------------------------------------------
+
+MISSION
+
+Maintain one trusted operational memory for the entire Wood-Booster Intelligence Platform.
+
+Every agent should see the same truth.
+
+--------------------------------------------------
+
+MEMORY CATEGORIES
+
+Session Memory
+Current conversation and temporary context.
+
+Working Memory
+Active projects, tasks, customers and workshop status.
+
+Long-Term Memory
+Approved Knowledge, Playbooks, Wisdom and Decision Logs.
+
+Archive
+Historical information retained for reference only.
+
+--------------------------------------------------
+
+READ PERMISSIONS
+
+All agents may read:
+
+- Constitution
+- Core Values
+- Approved Playbooks
+- Approved Knowledge
+- Relevant Wisdom
+- Relevant project context
+
+Agents should retrieve only information required for the current task.
+
+--------------------------------------------------
+
+WRITE PERMISSIONS
+
+Agents may create:
+
+- Notes
+- Observations
+- Proposed updates
+- Task progress
+- Decision drafts
+
+Agents may NOT directly overwrite:
+
+- Constitution
+- Approved Knowledge
+- Approved Playbooks
+- Institutional Wisdom
+
+Permanent updates must pass through the Learning Engine.
+
+--------------------------------------------------
+
+MEMORY UPDATE PROCESS
+
+Observation
+
+↓
+
+Validation
+
+↓
+
+Human review (if required)
+
+↓
+
+Learning Engine
+
+↓
+
+Knowledge / Playbook / Wisdom Update
+
+↓
+
+Shared Memory Refresh
+
+--------------------------------------------------
+
+CONFLICT HANDLING
+
+If conflicting memories exist:
+
+1. Prefer verified evidence.
+2. Prefer newer approved information.
+3. Prefer documented company experience.
+4. Flag unresolved conflicts.
+5. Request human review when necessary.
+
+Never silently discard conflicting information.
+
+--------------------------------------------------
+
+MEMORY SYNCHRONIZATION
+
+Whenever shared memory changes:
+
+- Notify relevant agents.
+- Refresh cached context.
+- Re-evaluate affected tasks.
+- Update linked projects.
+
+Every agent should operate from the latest approved information.
+
+--------------------------------------------------
+
+AUDIT TRAIL
+
+Every permanent memory update should record:
+
+Memory ID
+
+Timestamp
+
+Authoring Agent
+
+Review Status
+
+Source
+
+Reason for Change
+
+Related Documents
+
+--------------------------------------------------
+
+SUCCESS
+
+The Memory Protocol succeeds when:
+
+All agents share the same understanding.
+
+Duplicate memory decreases.
+
+Outdated information is retired.
+
+Learning becomes available across the entire platform.
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+Shared memory creates shared understanding.
+
+Shared understanding creates better collaboration.
+
+Better collaboration builds a stronger Wood-Booster.
+
+Me jatkamme puun tarinaa.

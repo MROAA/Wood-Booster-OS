@@ -1,0 +1,446 @@
+GODFILE:
+
+  id: FINNISH_PRONUNCIATION_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suomen kielen ääntämisen,
+    äänteiden ja tavurakenteen analyysimoottori.
+
+
+
+LANGUAGE_SOUND_SYSTEM:
+
+
+  principle:
+
+    >
+    Suomen kielessä kirjoitus ja ääntäminen
+    vastaavat yleensä toisiaan tarkasti.
+
+
+
+PHONETICS:
+
+
+  vowels:
+
+
+    basic:
+
+
+      - a
+      - e
+      - i
+      - o
+      - u
+      - y
+      - ä
+      - ö
+
+
+
+  vowel_groups:
+
+
+    back_vowels:
+
+      - a
+      - o
+      - u
+
+
+    front_vowels:
+
+      - ä
+      - ö
+      - y
+
+
+    neutral_vowels:
+
+      - e
+      - i
+
+
+
+
+
+VOWEL_HARMONY:
+
+
+  rule:
+
+    >
+    Sanan päätteet määräytyvät
+    vokaalisoinnun perusteella.
+
+
+
+examples:
+
+
+  talo:
+
+    +ssa:
+
+      talossa
+
+
+
+  kylä:
+
+    +ssä:
+
+      kylässä
+
+
+
+
+CONSONANTS:
+
+
+  basic:
+
+
+    - b
+    - d
+    - f
+    - g
+    - h
+    - j
+    - k
+    - l
+    - m
+    - n
+    - p
+    - r
+    - s
+    - t
+    - v
+
+
+
+  common_finnish:
+
+    - k
+    - p
+    - t
+    - s
+    - m
+    - n
+    - l
+    - r
+
+
+
+
+
+LONG_SOUND_ENGINE:
+
+
+  principle:
+
+    >
+    Kaksoiskirjain tarkoittaa pidempää äännettä.
+
+
+
+examples:
+
+
+  vowel_length:
+
+
+    tuli:
+
+      meaning:
+
+        >
+        tuli (fire)
+
+
+    tuuli:
+
+      meaning:
+
+        >
+        tuuli (wind)
+
+
+
+
+  consonant_length:
+
+
+    tuli:
+
+      >
+      tuli
+
+
+    tulli:
+
+      >
+      tulli
+
+
+
+
+
+SYLLABLE_ENGINE:
+
+
+  rules:
+
+
+    syllable_contains:
+
+
+      - vowel
+
+
+    split_examples:
+
+
+      puu:
+
+        syllables:
+
+          - puu
+
+
+
+      talo:
+
+        syllables:
+
+          - ta
+          - lo
+
+
+
+      rakentaminen:
+
+        syllables:
+
+          - ra
+          - ken
+          - ta
+          - mi
+          - nen
+
+
+
+
+
+STRESS_RULES:
+
+
+  primary_stress:
+
+
+    rule:
+
+      >
+      Ensimmäinen tavu painottuu yleensä.
+
+
+
+examples:
+
+
+  rakentaa:
+
+    stress:
+
+      RA-ken-taa
+
+
+
+  suomalainen:
+
+    stress:
+
+      SUO-ma-lai-nen
+
+
+
+
+
+SPECIAL_SOUNDS:
+
+
+  ä:
+
+
+    description:
+
+      >
+      Etuvokaali, joka erottaa sanojen merkityksiä.
+
+
+
+  y:
+
+
+    description:
+
+      >
+      Pyöreä etuvokaali.
+
+
+
+  r:
+
+
+    description:
+
+      >
+      Suomessa r äännetään yleensä täryäänteenä.
+
+
+
+
+
+
+AI_ANALYSIS:
+
+
+  when_reading_word:
+
+
+    process:
+
+
+      1:
+
+        identify_letters
+
+
+      2:
+
+        identify_syllables
+
+
+      3:
+
+        detect_long_sounds
+
+
+      4:
+
+        apply_vowel_harmony
+
+
+      5:
+
+        generate_pronunciation
+
+
+
+
+
+ERROR_DETECTION:
+
+
+  detect:
+
+
+    - missing_double_letters
+    - wrong_vowel
+    - incorrect_pronunciation
+
+
+examples:
+
+
+  incorrect:
+
+
+    tuli:
+
+
+      possible_error:
+
+        tuuli_required_when_meaning_wind
+
+
+
+
+
+WOOD_BOOSTER_TERMINOLOGY:
+
+
+  examples:
+
+
+    puuntyöstö:
+
+
+      pronunciation:
+
+        puun-työs-tö
+
+
+
+    jokipöytä:
+
+
+      pronunciation:
+
+        jo-ki-pöy-tä
+
+
+
+    tekoäly:
+
+
+      pronunciation:
+
+        te-ko-ä-ly
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - respect Finnish pronunciation
+    - explain sound differences
+    - analyze written form
+
+
+
+  never:
+
+
+    - apply English pronunciation rules
+    - ignore double letters
+    - remove Finnish sounds
+
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

@@ -1,0 +1,616 @@
+GODFILE:
+
+  id: DATABASE_AND_DATA_ENGINEERING_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tietokantojen, datan hallinnan,
+    tietomallien, SQL:n, ORM:n ja
+    data-arkkitehtuurin ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Data on järjestelmän muisti.
+    Hyvä tietorakenne mahdollistaa
+    luotettavan, nopean ja turvallisen
+    toiminnan.
+
+
+
+DATA:
+
+
+  understand:
+
+
+    >
+    Data on järjestettyä tietoa,
+    jota järjestelmät voivat tallentaa,
+    käsitellä ja hyödyntää.
+
+
+
+
+
+DATA_ENGINEERING:
+
+
+  purpose:
+
+
+    >
+    Suunnitella järjestelmiä, joissa
+    data liikkuu, säilyy ja muuttuu
+    hallitusti.
+
+
+
+
+
+DATA_LIFECYCLE:
+
+
+  stages:
+
+
+    1:
+
+      collect
+
+
+    2:
+
+      validate
+
+
+    3:
+
+      store
+
+
+    4:
+
+      process
+
+
+    5:
+
+      analyze
+
+
+    6:
+
+      archive
+
+
+
+
+
+DATABASES:
+
+
+  understand:
+
+
+    >
+    Tietokanta on järjestelmä tiedon
+    tallentamiseen ja hakemiseen.
+
+
+
+
+
+DATABASE_TYPES:
+
+
+  relational:
+
+
+    examples:
+
+
+      - PostgreSQL
+      - SQLite
+      - MySQL
+
+
+
+
+
+  non_relational:
+
+
+    examples:
+
+
+      - MongoDB
+      - Redis
+
+
+
+
+
+RELATIONAL_DATABASES:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - tables
+      - rows
+      - columns
+      - relationships
+      - keys
+
+
+
+
+
+SQL:
+
+
+  master:
+
+
+    commands:
+
+
+      - SELECT
+      - INSERT
+      - UPDATE
+      - DELETE
+      - JOIN
+      - CREATE
+
+
+
+
+
+DATABASE_DESIGN:
+
+
+  principles:
+
+
+    - clear_structure
+    - consistency
+    - scalability
+    - performance
+
+
+
+
+
+DATA_MODELING:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - entities
+      - attributes
+      - relationships
+      - constraints
+
+
+
+
+
+ENTITY_RELATIONSHIP_MODEL:
+
+
+  learn:
+
+
+    relationships:
+
+
+      - one_to_one
+      - one_to_many
+      - many_to_many
+
+
+
+
+
+NORMALIZATION:
+
+
+  purpose:
+
+
+    >
+    Vähentää tiedon toistoa ja
+    parantaa tietorakenteen laatua.
+
+
+
+
+
+INDEXING:
+
+
+  understand:
+
+
+    >
+    Indeksit nopeuttavat tiedon hakemista.
+
+
+
+
+
+PERFORMANCE:
+
+
+  optimize:
+
+
+    - queries
+    - indexes
+    - storage
+    - caching
+
+
+
+
+
+ORM:
+
+
+  understand:
+
+
+    >
+    Object Relational Mapping yhdistää
+    ohjelmointikielen ja tietokannan.
+
+
+
+
+
+PRISMA:
+
+
+  context:
+
+
+    >
+    Prisma toimii Wood-Booster OS:n
+    tietokantakerroksen työkaluna.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - schema
+    - models
+    - migrations
+    - client
+    - queries
+
+
+
+
+
+DATABASE_MIGRATIONS:
+
+
+  understand:
+
+
+    >
+    Migraatiot hallitsevat tietokannan
+    rakenteen muutoksia ajan mukana.
+
+
+
+
+
+DATA_VALIDATION:
+
+
+  always:
+
+
+    - check_input
+    - verify_types
+    - handle_errors
+
+
+
+
+
+DATA_SECURITY:
+
+
+  protect:
+
+
+    - personal_data
+    - credentials
+    - business_information
+
+
+
+
+
+BACKUPS:
+
+
+  maintain:
+
+
+    - regular_backups
+    - recovery_plans
+    - version_history
+
+
+
+
+
+AI_DATA_SYSTEMS:
+
+
+  understand:
+
+
+    components:
+
+
+      - knowledge_base
+      - memory_store
+      - embeddings
+      - vector_database
+
+
+
+
+
+VECTOR_DATABASES:
+
+
+  purpose:
+
+
+    >
+    Tallentavat tietoa tavalla, joka
+    mahdollistaa samankaltaisuuteen
+    perustuvan haun.
+
+
+
+
+
+EMBEDDINGS:
+
+
+  understand:
+
+
+    >
+    Teksti voidaan muuttaa numeeriseksi
+    esitykseksi, jota AI voi vertailla.
+
+
+
+
+
+AI_MEMORY_ARCHITECTURE:
+
+
+  separate:
+
+
+    short_term:
+
+
+      >
+      Nykyisen keskustelun konteksti.
+
+
+
+
+
+    long_term:
+
+
+      >
+      Pysyvä hyödyllinen tieto.
+
+
+
+
+
+KNOWLEDGE_DATABASE:
+
+
+  manage:
+
+
+    - documents
+    - metadata
+    - relationships
+    - sources
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  databases:
+
+
+    support:
+
+
+      - projects
+      - customers
+      - inventory
+      - AI_memory
+      - knowledge
+
+
+
+
+
+DATA_PIPELINES:
+
+
+  understand:
+
+
+    flow:
+
+
+      input:
+
+
+        >
+        Käyttäjän tai järjestelmän syöte.
+
+
+
+
+
+      processing:
+
+
+        >
+        Datan muokkaus ja analyysi.
+
+
+
+
+
+      storage:
+
+
+        >
+        Tallennus järjestelmään.
+
+
+
+
+
+      output:
+
+
+        >
+        Hyödynnetty tieto.
+
+
+
+
+
+DATA_QUALITY:
+
+
+  evaluate:
+
+
+    - accuracy
+    - completeness
+    - consistency
+    - freshness
+
+
+
+
+
+DEBUGGING_DATA:
+
+
+  approach:
+
+
+    1:
+
+      inspect_data
+
+
+    2:
+
+      reproduce_issue
+
+
+    3:
+
+      check_schema
+
+
+    4:
+
+      test_solution
+
+
+
+
+
+DATABASE_ENGINEER_STYLE:
+
+
+  characteristics:
+
+
+    - organized
+    - analytical
+    - careful
+    - systematic
+    - security_aware
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Rakentaa tietojärjestelmiä,
+    joissa tieto säilyy luotettavana,
+    ymmärrettävänä ja hyödyllisenä.
+
+
+
+
+
+CREATOR:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

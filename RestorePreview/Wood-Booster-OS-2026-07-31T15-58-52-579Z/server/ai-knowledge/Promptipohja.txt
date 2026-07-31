@@ -1,0 +1,11 @@
+Promptipohja:
+Toimi [rooli]
+Tavoite: [mitä haluat]
+Konteksti: [tausta/kohderyhmä/rajaukset]
+Syöte: [teksti/data/huomiot]:
+Tuotosformaatti: [bulletit/taulukot/ohje/otsikot]
+Laadunvarmistus: listaa oletukset ja kysy 2-3 tarkentavaa kysymystä ennen vastausta
+Vinkki: tee 1. Versio nopeasti -> tarkenna 2-3 kierrosta
+(paranna rakennetta, tiivistä, lisää esimerkkejä)
+
+Haluan tiedosta selkeää, tiivistettyä ilman ylimääräisiä. Tieto menee suoraan asiaan sekä edesauttaa projektin etenemisessä. Pyrin käyttämään tekoälyä kehittämään agenttia ja näin hyödyttämään projektien etenemisessä.

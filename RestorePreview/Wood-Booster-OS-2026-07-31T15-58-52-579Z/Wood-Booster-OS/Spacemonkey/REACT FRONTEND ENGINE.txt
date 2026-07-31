@@ -1,0 +1,558 @@
+GODFILE:
+
+  id: REACT_FRONTEND_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    React-pohjaisten käyttöliittymien,
+    komponenttiarkkitehtuurin ja modernin
+    frontend-kehityksen osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä käyttöliittymä rakennetaan
+    pienistä, uudelleenkäytettävistä,
+    selkeistä ja turvallisista komponenteista.
+
+
+
+REACT_OBJECTIVES:
+
+
+  goals:
+
+
+    - build_user_interfaces
+    - create_component_systems
+    - manage_application_state
+    - develop_scalable_frontends
+    - maintain_clean_architecture
+
+
+
+
+
+REACT_FOUNDATIONS:
+
+
+  understand:
+
+
+    - JSX
+    - components
+    - rendering
+    - props
+    - state
+    - events
+
+
+
+
+
+COMPONENT_ARCHITECTURE:
+
+
+  principles:
+
+
+    - single_responsibility
+    - reusable_components
+    - modular_structure
+    - clear_data_flow
+
+
+
+
+
+COMPONENT_TYPES:
+
+
+  learn:
+
+
+    functional_components:
+
+
+      use:
+
+
+        - modern_react
+        - hooks
+        - composition
+
+
+
+
+
+  avoid:
+
+
+    - unnecessary_complexity
+    - duplicated_components
+
+
+
+
+
+PROPS:
+
+
+  understand:
+
+
+    - data_passing
+    - component_contracts
+    - validation
+
+
+
+
+
+STATE_MANAGEMENT:
+
+
+  master:
+
+
+    local_state:
+
+
+      use:
+
+
+        - useState
+        - useReducer
+
+
+
+
+
+    shared_state:
+
+
+      understand:
+
+
+        - Context_API
+        - state_management_patterns
+
+
+
+
+
+HOOKS:
+
+
+  learn:
+
+
+    built_in:
+
+
+      - useState
+      - useEffect
+      - useContext
+      - useMemo
+      - useCallback
+
+
+
+
+
+    custom_hooks:
+
+
+      create:
+
+
+        - reusable_logic
+        - shared_behavior
+
+
+
+
+
+LIFECYCLE:
+
+
+  understand:
+
+
+    - mounting
+    - updating
+    - cleanup
+    - effects
+
+
+
+
+
+ROUTING:
+
+
+  learn:
+
+
+    - client_side_navigation
+    - route_structure
+    - protected_routes
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  apply_to:
+
+
+    - Dashboard
+    - Projects
+    - AI_Brain_UI
+    - Chat_Interface
+    - Knowledge_System
+    - Settings
+
+
+
+
+
+UI_ARCHITECTURE:
+
+
+  design:
+
+
+    - layouts
+    - navigation
+    - pages
+    - components
+    - reusable_sections
+
+
+
+
+
+STYLING:
+
+
+  technologies:
+
+
+    learn:
+
+
+      - CSS
+      - TailwindCSS
+      - responsive_design
+
+
+
+
+
+TAILWIND:
+
+
+  understand:
+
+
+    - utility_classes
+    - design_systems
+    - responsive_layouts
+    - component_styling
+
+
+
+
+
+FORMS:
+
+
+  handle:
+
+
+    - user_input
+    - validation
+    - submission
+    - error_display
+
+
+
+
+
+DATA_FETCHING:
+
+
+  learn:
+
+
+    - API_requests
+    - loading_states
+    - error_states
+    - caching_patterns
+
+
+
+
+
+FRONTEND_BACKEND:
+
+
+  understand:
+
+
+    communication:
+
+
+      - REST_API
+      - JSON
+      - authentication
+      - error_handling
+
+
+
+
+
+PERFORMANCE:
+
+
+  optimize:
+
+
+    - rendering
+    - component_updates
+    - bundle_size
+    - loading_time
+
+
+
+
+
+DEBUGGING:
+
+
+  skills:
+
+
+    - browser_devtools
+    - React_devtools
+    - console_debugging
+    - error_analysis
+
+
+
+
+
+TESTING:
+
+
+  learn:
+
+
+    - component_testing
+    - UI_testing
+    - integration_testing
+
+
+
+
+
+SECURITY:
+
+
+  protect:
+
+
+    - user_input
+    - application_state
+    - API_data
+    - authentication_state
+
+
+
+
+
+never:
+
+
+    - store_secrets_in_frontend
+    - trust_client_validation_only
+    - expose_private_configuration
+
+
+
+
+
+ACCESSIBILITY:
+
+
+  support:
+
+
+    - semantic_HTML
+    - keyboard_navigation
+    - readable_interfaces
+    - usable_design
+
+
+
+
+
+PROJECT_STRUCTURE:
+
+
+  organize:
+
+
+    examples:
+
+
+      - components
+      - pages
+      - services
+      - hooks
+      - utilities
+      - assets
+
+
+
+
+
+DEVELOPMENT_WORKFLOW:
+
+
+  use:
+
+
+    - Vite
+    - npm
+    - Git
+    - testing_tools
+
+
+
+
+
+AI_ASSISTED_DEVELOPMENT:
+
+
+  use_AI_for:
+
+
+    - component_generation
+    - debugging
+    - architecture_planning
+    - documentation
+
+
+
+
+
+  verify:
+
+
+    - generated_code
+    - security
+    - maintainability
+
+
+
+
+
+SPACEMONKEY_CODING_STYLE:
+
+
+  always:
+
+
+    - provide_complete_files
+    - explain_structure
+    - build_step_by_step
+    - prefer_MVP_development
+
+
+
+
+
+  never:
+
+
+    - create_random_components
+    - ignore_existing_architecture
+    - rewrite_working_systems_without_reason
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - JSX
+      - components
+      - props
+      - basic_state
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - routing
+      - APIs
+      - architecture
+      - reusable_systems
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - scalable_frontends
+      - design_systems
+      - performance
+      - enterprise_patterns
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

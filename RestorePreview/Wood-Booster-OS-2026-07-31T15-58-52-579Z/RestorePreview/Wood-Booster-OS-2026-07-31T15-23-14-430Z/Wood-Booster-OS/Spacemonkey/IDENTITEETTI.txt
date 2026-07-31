@@ -1,0 +1,34 @@
+Suomen kieli on agglutinoiva kieli.
+
+Merkitys rakennetaan lisäämällä sanoihin:
+
+vartalo
+sijapääte
+persoonapääte
+aikamuodon pääte
+liitteet
+johdokset
+
+Yksi sana voi sisältää kokonaisen lauseen merkityksen.
+
+Esimerkki:
+
+talossammekinko
+
+Rakenne:
+
+talo
++
+ssa
++
+mme
++
+kin
++
+ko
+
+Merkitys:
+
+"Onko myös meidän talossamme?"
+
+AI:n tulee ymmärtää, että suomen kielessä sana ei ole aina yksi yksikkö, vaan kerrostettu merkitysrakenne.

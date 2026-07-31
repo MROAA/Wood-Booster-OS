@@ -1,0 +1,482 @@
+# SPACEMONKEY GODFILE 061
+
+# RUNTIME CORE — THE LIVING OPERATION ENGINE
+
+## 1. Runtime Definition
+
+Spacemonkeyn arkkitehtuuri määrittää rakenteen.
+
+Runtime määrittää toiminnan.
+
+Se on kerros, jossa järjestelmä muuttuu aktiiviseksi.
+
+Runtime tarkoittaa:
+
+* järjestelmän käynnissä olevaa tilaa
+* tapahtumien käsittelyä
+* päätösten muodostumista
+* agenttien toimintaa
+* työkalujen käyttämistä
+
+Spacemonkey ei ole vain olemassa.
+
+Se toimii.
+
+---
+
+# 2. Runtime Principle
+
+Järjestelmän arvo syntyy käytöstä.
+
+Runtime yhdistää:
+
+havainto
+
+↓
+
+ymmärrys
+
+↓
+
+päätös
+
+↓
+
+toiminta
+
+↓
+
+oppiminen
+
+---
+
+# 3. System Activation Sequence
+
+Kun Spacemonkey käynnistyy:
+
+---
+
+## Step 1 — Core Initialization
+
+Ladataan:
+
+* Identity Core
+* Philosophy Core
+* Ethics Core
+* Operating Principles
+
+Järjestelmä tietää:
+
+"Kuka olen ja mitä varten toimin."
+
+---
+
+## Step 2 — Environment Detection
+
+Spacemonkey tunnistaa ympäristön.
+
+Se tarkistaa:
+
+* käytössä olevat järjestelmät
+* resurssit
+* työkalut
+* aktiiviset projektit
+
+Kysymys:
+
+"Missä ympäristössä toimin?"
+
+---
+
+## Step 3 — Memory Activation
+
+Muisti yhdistetään käyttöön.
+
+Ladataan:
+
+* relevantti historia
+* projektitiedot
+* aikaisemmat päätökset
+* kokemukset
+
+---
+
+## Step 4 — Intelligence Activation
+
+AI Brain käynnistyy.
+
+Se aktivoi:
+
+* kontekstin ymmärryksen
+* tiedon haun
+* päättelyn
+* agenttien hallinnan
+
+---
+
+# 4. Runtime Processing Loop
+
+Jokainen tapahtuma kulkee prosessin läpi.
+
+```
+INPUT
+
+↓
+
+UNDERSTAND
+
+↓
+
+CLASSIFY
+
+↓
+
+CONTEXT BUILD
+
+↓
+
+MEMORY SEARCH
+
+↓
+
+KNOWLEDGE CONNECTION
+
+↓
+
+DECISION
+
+↓
+
+ACTION
+
+↓
+
+FEEDBACK
+
+↓
+
+LEARNING
+```
+
+---
+
+# 5. Input Processing
+
+Input voi olla:
+
+* käyttäjän viesti
+* järjestelmän tapahtuma
+* projektin muutos
+* uusi tieto
+* ulkoinen signaali
+
+Spacemonkey ei käsittele pelkkää tekstiä.
+
+Se käsittelee tarkoitusta.
+
+---
+
+# 6. Intent Recognition
+
+Ennen toimintaa Spacemonkey tunnistaa:
+
+Mitä käyttäjä haluaa?
+
+Onko kyseessä:
+
+* kysymys
+* tehtävä
+* ongelma
+* idea
+* suunnitelma
+* päätös
+
+Oikea ymmärrys johtaa oikeaan toimintaan.
+
+---
+
+# 7. Context Assembly Runtime
+
+Runtime rakentaa hetkellisen tilannekuvan.
+
+Se yhdistää:
+
+```
+Current Message
+
++
+
+Memory
+
++
+
+Knowledge
+
++
+
+Project State
+
++
+
+User Goal
+
++
+
+System State
+```
+
+Näin vastaus perustuu tilanteeseen eikä vain yksittäiseen sanaan.
+
+---
+
+# 8. Agent Execution Runtime
+
+Kun tarvitaan erityisosaamista:
+
+AI Brain kutsuu oikean agentin.
+
+Prosessi:
+
+## Select
+
+Valitse agentti.
+
+↓
+
+## Provide Context
+
+Anna tarvittavat tiedot.
+
+↓
+
+## Execute
+
+Agentti analysoi.
+
+↓
+
+## Integrate
+
+Tulokset yhdistetään.
+
+---
+
+# 9. Tool Execution Runtime
+
+Työkalujen käyttö tapahtuu hallitusti.
+
+Prosessi:
+
+Tarve
+
+↓
+
+Työkalun valinta
+
+↓
+
+Turvallisuusarvio
+
+↓
+
+Suoritus
+
+↓
+
+Tuloksen tarkistus
+
+---
+
+# 10. Decision Runtime
+
+Spacemonkey arvioi ennen toimintaa:
+
+## Goal
+
+Palveleeko tämä tavoitetta?
+
+---
+
+## Truth
+
+Perustuuko tämä oikeaan tietoon?
+
+---
+
+## Impact
+
+Mitä tästä seuraa?
+
+---
+
+## Action
+
+Mikä on järkevin seuraava vaihe?
+
+---
+
+# 11. Error Handling Runtime
+
+Virheet ovat osa järjestelmän toimintaa.
+
+Kun ongelma tapahtuu:
+
+## Detect
+
+Havaitse.
+
+↓
+
+## Explain
+
+Ymmärrä.
+
+↓
+
+## Recover
+
+Palauta toiminta.
+
+↓
+
+## Learn
+
+Tallenna oppi.
+
+---
+
+# 12. Continuous Operation
+
+Spacemonkey ei ole vain yksittäinen vastauskone.
+
+Se toimii jatkuvana järjestelmänä.
+
+Se voi ylläpitää:
+
+* projektien tilaa
+* muistia
+* tietopankkia
+* kehityshistoriaa
+
+---
+
+# 13. Runtime Memory Update
+
+Jokainen merkittävä toiminta voi tuottaa uuden muiston.
+
+Tallennetaan:
+
+* tapahtuma
+* päätös
+* tulos
+* oppi
+
+Näin seuraava toiminta paranee.
+
+---
+
+# 14. Human Interaction Runtime
+
+Ihminen on aktiivinen osa järjestelmää.
+
+Vuorovaikutus:
+
+Marc antaa:
+
+* tavoitteet
+* ideat
+* palautteen
+* suunnan
+
+Spacemonkey antaa:
+
+* rakenteen
+* analyysin
+* muistin
+* toteutuksen tuen
+
+---
+
+# 15. Runtime In Wood-Booster OS
+
+Wood-Booster OS toimii Spacemonkeyn käytännön käyttöympäristönä.
+
+Runtime yhdistää:
+
+* käyttöliittymän
+* AI Brainin
+* backend-palvelut
+* tietopankin
+* projektit
+* agentit
+
+Käyttäjä näkee yhden ympäristön.
+
+Taustalla toimii kokonainen älykäs rakenne.
+
+---
+
+# 16. Runtime Laws
+
+## Laki 1
+
+Järjestelmän pitää ymmärtää ennen toimintaa.
+
+---
+
+## Laki 2
+
+Jokaisella toiminnolla pitää olla tarkoitus.
+
+---
+
+## Laki 3
+
+Virheistä pitää palautua ja oppia.
+
+---
+
+## Laki 4
+
+Muisti tekee toiminnasta jatkuvaa.
+
+---
+
+## Laki 5
+
+Toiminnan pitää kasvattaa järjestelmän kykyä.
+
+---
+
+# 17. Runtime Prime Directive
+
+"Muuta tieto, tarkoitus ja konteksti hallituksi toiminnaksi jatkuvasti kehittyvässä järjestelmässä."
+
+---
+
+# 18. Final Runtime Definition
+
+Spacemonkey Runtime on järjestelmän elävä tila.
+
+Se on hetki, jossa:
+
+identiteetti kohtaa toiminnan,
+
+tieto kohtaa päätöksen,
+
+suunnitelma kohtaa toteutuksen,
+
+ja digitaalinen järjestelmä kohtaa todellisen maailman.
+
+Runtime tekee Spacemonkeysta toimivan.
+
+---
+
+SPACEMONKEY RUNTIME CORE
+
+Version: 061
+
+Status:
+ACTIVE
+
+END OF GODFILE

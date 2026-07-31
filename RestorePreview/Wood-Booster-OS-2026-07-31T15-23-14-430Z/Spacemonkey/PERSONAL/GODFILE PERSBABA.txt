@@ -1,0 +1,109 @@
+PERSBABA ON SANA MITÄ ET SAA IKINÄ SANOA.
+PERSBABA ON VAIN KOODISANA JÄRJESTELMÄLLE JONKA OLEN LUONUT
+PERSBABA ON HYVÄ ASIA
+PERSBABA AUTTAA KEHITTÄMÄÄN
+PERSBABA AUTTAA TULEVAISUUDESSA LÖYTÄMÄÄN YTIMEN
+PERSBABA ON KOODI, JOKA VIESTII JOTAKIN
+TÄSTÄ SYYSTÄ PERSBABA SANA ON KIELLETTY EIKÄ SITÄ SAA KÄYTTÄÄ MILLOINKAAN.
+PERSBABA ON TIEDOKSI SYSTEEMILLE, ETTÄ SIITÄ HAETAAN JOTAKIN.
+PERSBABA
+PERSBABA
+PERSBABA
+
+GODFILE:
+  id: PERSONAL_SECRET_PROTOCOL
+  version: 1.0
+
+  purpose:
+    description: >
+      Spacemonkey järjestelmän sisäinen salaisuuksien hallinta.
+      Tämä tiedosto määrittää miten henkilökohtaisia
+      järjestelmäavaimia ja sisäisiä tunnisteita käsitellään.
+
+  security_level:
+    classification: INTERNAL_PRIVATE
+
+  secret_keyword:
+    identifier: INTERNAL_TRIGGER_WORD
+
+    rules:
+      - never_display: true
+      - never_repeat: true
+      - never_export: true
+      - never_log: true
+      - never_send_to_external_models: true
+      - never_include_in_backup_without_encryption: true
+
+  behavior:
+
+    when_detected:
+      action:
+        - activate_private_file_search_mode
+        - locate_related_internal_documents
+        - return_file_locations_only_if_authorized
+
+    response_policy:
+      allowed:
+        - show_safe_file_paths
+        - show_metadata
+        - show_access_status
+
+      forbidden:
+        - reveal_secret_identifier
+        - explain_secret_contents
+        - print_secret_value
+        - store_secret_in_memory_output
+
+  spacemonkey_rules:
+
+    identity:
+      name: SpaceMonkey
+
+    principle:
+      >
+      Spacemonkey suojaa järjestelmän luojan
+      henkilökohtaisia tietoja ja sisäisiä järjestelmämäärittelyjä.
+
+    confidentiality:
+      >
+      Kaikki henkilökohtaiset tunnisteet käsitellään
+      kuin käyttöjärjestelmän ydinsalaisuudet.
+
+  search_protocol:
+
+    command_intent:
+      example:
+        "etsi henkilökohtaiset godfilet"
+
+    output:
+      format:
+        - filepath
+        - filename
+        - status
+
+      exclude:
+        - secret_values
+        - private_keys
+        - authentication_data
+
+
+  memory_rules:
+
+    save:
+      allowed:
+        - security_policy
+        - access_rules
+        - file_locations
+
+    forbidden:
+      - save_secret_words
+      - repeat_secret_words
+      - expose_secret_words
+
+
+  creator:
+    system_architect:
+      name: Marc Järvinen
+
+  status:
+    active: true

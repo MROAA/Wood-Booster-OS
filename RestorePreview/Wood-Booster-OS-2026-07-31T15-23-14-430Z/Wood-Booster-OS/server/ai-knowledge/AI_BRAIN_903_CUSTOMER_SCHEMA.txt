@@ -1,0 +1,660 @@
+AI_BRAIN_903_CUSTOMER_SCHEMA
+
+WOOD-BOOSTER AI PLATFORM
+CUSTOMER DATA SCHEMA
+
+Version: 1.0
+Status: Active
+Priority: Critical
+
+PURPOSE
+
+This document defines the standard machine-readable structure for every customer record inside the Wood-Booster Intelligence Platform.
+
+The schema allows customer information, communication history, projects, preferences, consent, support cases and long-term relationship data to be managed consistently.
+
+--------------------------------------------------
+
+MISSION
+
+Maintain one trusted customer record that helps Wood-Booster understand, serve and communicate with every customer responsibly.
+
+--------------------------------------------------
+
+REQUIRED FIELDS
+
+customerId
+
+Unique permanent identifier.
+
+Example:
+WB-CUST-001
+
+--------------------------------------------------
+
+customerType
+
+Allowed values:
+
+Private Customer
+
+Business Customer
+
+Partner
+
+Supplier Contact
+
+Lead
+
+Former Customer
+
+--------------------------------------------------
+
+status
+
+Allowed values:
+
+Lead
+
+Qualified
+
+Active
+
+Inactive
+
+At Risk
+
+VIP
+
+Former
+
+Archived
+
+--------------------------------------------------
+
+name
+
+Customer or contact name.
+
+--------------------------------------------------
+
+company
+
+Business name when applicable.
+
+May be null for private customers.
+
+--------------------------------------------------
+
+primaryContact
+
+Include:
+
+name
+
+role
+
+email
+
+phone
+
+preferredLanguage
+
+preferredChannel
+
+--------------------------------------------------
+
+contactInformation
+
+Include:
+
+emails
+
+phoneNumbers
+
+billingAddress
+
+deliveryAddresses
+
+website
+
+socialProfiles
+
+--------------------------------------------------
+
+identity
+
+Include:
+
+businessId
+
+vatNumber
+
+country
+
+customerSince
+
+source
+
+referrerCustomerId
+
+--------------------------------------------------
+
+communicationPreferences
+
+Include:
+
+preferredChannel
+
+preferredTimes
+
+language
+
+marketingConsent
+
+serviceMessagesAllowed
+
+notes
+
+--------------------------------------------------
+
+privacyAndConsent
+
+Include:
+
+dataProcessingBasis
+
+marketingConsent
+
+consentTimestamp
+
+consentSource
+
+privacyNoticeAccepted
+
+dataRetentionReviewDate
+
+deletionRequested
+
+restrictedFields
+
+--------------------------------------------------
+
+preferences
+
+Include:
+
+preferredWoodSpecies
+
+preferredFinishes
+
+preferredColors
+
+designStyle
+
+budgetRange
+
+deliveryPreferences
+
+maintenancePreferences
+
+specialRequirements
+
+--------------------------------------------------
+
+relationship
+
+Include:
+
+assignedSalesAgent
+
+assignedCustomerSuccessAgent
+
+relationshipOwner
+
+customerSegment
+
+lifetimeValueEstimate
+
+healthScore
+
+churnRisk
+
+referralPotential
+
+lastInteraction
+
+nextRecommendedContact
+
+--------------------------------------------------
+
+projects
+
+List of linked Project IDs.
+
+--------------------------------------------------
+
+quotations
+
+List of linked quotation references.
+
+Each quotation reference may include:
+
+quotationId
+
+projectId
+
+status
+
+value
+
+currency
+
+createdAt
+
+approvedAt
+
+--------------------------------------------------
+
+orders
+
+List of confirmed orders.
+
+--------------------------------------------------
+
+communicationHistory
+
+Each entry should include:
+
+communicationId
+
+timestamp
+
+channel
+
+direction
+
+subject
+
+summary
+
+agentId
+
+userId
+
+projectId
+
+followUpRequired
+
+nextAction
+
+--------------------------------------------------
+
+meetings
+
+List of linked Calendar Event IDs.
+
+--------------------------------------------------
+
+support
+
+Include:
+
+supportCaseIds
+
+openCaseCount
+
+warrantyStatus
+
+lastSupportContact
+
+customerSatisfaction
+
+--------------------------------------------------
+
+feedback
+
+Each feedback entry should include:
+
+feedbackId
+
+projectId
+
+date
+
+type
+
+rating
+
+comments
+
+permissionToPublish
+
+followUpStatus
+
+--------------------------------------------------
+
+financialSummary
+
+Include:
+
+currency
+
+totalQuotedValue
+
+totalApprovedValue
+
+totalRevenue
+
+outstandingBalance
+
+averageProjectValue
+
+lastPaymentDate
+
+paymentReliability
+
+This is a summary only.
+
+The accounting system remains the financial source of truth.
+
+--------------------------------------------------
+
+tags
+
+Examples:
+
+Premium
+
+River Table
+
+Repeat Customer
+
+Referral Source
+
+Commercial
+
+Design Focused
+
+--------------------------------------------------
+
+riskFlags
+
+Each risk flag should include:
+
+riskId
+
+type
+
+description
+
+severity
+
+createdAt
+
+status
+
+reviewDate
+
+Do not use risk flags for unsupported personal judgments.
+
+--------------------------------------------------
+
+knowledgeLinks
+
+List of Knowledge, Wisdom or Playbook references relevant to the customer relationship.
+
+--------------------------------------------------
+
+audit
+
+Include:
+
+createdAt
+
+createdBy
+
+updatedAt
+
+updatedBy
+
+version
+
+approvalStatus
+
+archiveReason
+
+--------------------------------------------------
+
+EXAMPLE JSON
+
+{
+  "customerId": "WB-CUST-001",
+  "customerType": "Private Customer",
+  "status": "Active",
+  "name": "Example Customer",
+  "company": null,
+  "primaryContact": {
+    "name": "Example Customer",
+    "role": null,
+    "email": "customer@example.com",
+    "phone": "+358000000000",
+    "preferredLanguage": "fi",
+    "preferredChannel": "Email"
+  },
+  "contactInformation": {
+    "emails": [
+      "customer@example.com"
+    ],
+    "phoneNumbers": [
+      "+358000000000"
+    ],
+    "billingAddress": null,
+    "deliveryAddresses": [],
+    "website": null,
+    "socialProfiles": []
+  },
+  "identity": {
+    "businessId": null,
+    "vatNumber": null,
+    "country": "Finland",
+    "customerSince": "2026-07-14",
+    "source": "Website",
+    "referrerCustomerId": null
+  },
+  "communicationPreferences": {
+    "preferredChannel": "Email",
+    "preferredTimes": "Weekdays",
+    "language": "fi",
+    "marketingConsent": false,
+    "serviceMessagesAllowed": true,
+    "notes": null
+  },
+  "privacyAndConsent": {
+    "dataProcessingBasis": "Customer relationship",
+    "marketingConsent": false,
+    "consentTimestamp": null,
+    "consentSource": null,
+    "privacyNoticeAccepted": true,
+    "dataRetentionReviewDate": null,
+    "deletionRequested": false,
+    "restrictedFields": []
+  },
+  "preferences": {
+    "preferredWoodSpecies": [
+      "Oak"
+    ],
+    "preferredFinishes": [
+      "Hardwax Oil"
+    ],
+    "preferredColors": [
+      "Natural wood",
+      "Deep blue"
+    ],
+    "designStyle": "Premium Scandinavian",
+    "budgetRange": {
+      "min": null,
+      "max": null,
+      "currency": "EUR"
+    },
+    "deliveryPreferences": null,
+    "maintenancePreferences": null,
+    "specialRequirements": []
+  },
+  "relationship": {
+    "assignedSalesAgent": "AI-501-SALES",
+    "assignedCustomerSuccessAgent": "AI-502-CUSTOMER-SUCCESS",
+    "relationshipOwner": "HumanOwner",
+    "customerSegment": "New Customer",
+    "lifetimeValueEstimate": 0,
+    "healthScore": 100,
+    "churnRisk": "Low",
+    "referralPotential": "Unknown",
+    "lastInteraction": null,
+    "nextRecommendedContact": null
+  },
+  "projects": [
+    "WB-PROJ-2026-001"
+  ],
+  "quotations": [],
+  "orders": [],
+  "communicationHistory": [],
+  "meetings": [],
+  "support": {
+    "supportCaseIds": [],
+    "openCaseCount": 0,
+    "warrantyStatus": null,
+    "lastSupportContact": null,
+    "customerSatisfaction": null
+  },
+  "feedback": [],
+  "financialSummary": {
+    "currency": "EUR",
+    "totalQuotedValue": 0,
+    "totalApprovedValue": 0,
+    "totalRevenue": 0,
+    "outstandingBalance": 0,
+    "averageProjectValue": 0,
+    "lastPaymentDate": null,
+    "paymentReliability": "Unknown"
+  },
+  "tags": [
+    "River Table"
+  ],
+  "riskFlags": [],
+  "knowledgeLinks": [],
+  "audit": {
+    "createdAt": "2026-07-14T00:00:00Z",
+    "createdBy": "HumanOwner",
+    "updatedAt": null,
+    "updatedBy": null,
+    "version": "1.0.0",
+    "approvalStatus": "Active",
+    "archiveReason": null
+  }
+}
+
+--------------------------------------------------
+
+VALIDATION RULES
+
+- customerId must be unique.
+- name is required.
+- primary contact must include at least one valid contact method.
+- status must use an allowed value.
+- business customers should include company name.
+- marketing messages require valid consent.
+- restricted customer data must follow the Security Runtime and Permission Protocol.
+- archived customers are read-only unless restored.
+- deletion requests require human review and an audit record.
+- financial summaries must be synchronized from approved financial data.
+- unsupported personal profiling is prohibited.
+
+--------------------------------------------------
+
+PRIVACY RULES
+
+Store only information that supports a legitimate business purpose.
+
+Do not store sensitive personal information unless necessary, lawful and approved.
+
+Do not infer protected personal characteristics.
+
+Respect consent, retention and deletion requirements.
+
+Customer trust is more important than collecting excessive data.
+
+--------------------------------------------------
+
+CUSTOMER STATE RULES
+
+Lead
+
+Initial contact exists, but qualification is incomplete.
+
+Qualified
+
+Need, budget, timing or suitability has been confirmed.
+
+Active
+
+An active project, order or ongoing relationship exists.
+
+Inactive
+
+No current work, but the relationship remains valid.
+
+At Risk
+
+A documented issue threatens satisfaction or retention.
+
+VIP
+
+Strategically important relationship requiring approved enhanced service.
+
+Former
+
+Relationship has ended, but historical records remain relevant.
+
+Archived
+
+Record is preserved for legal or historical reasons and is normally read-only.
+
+--------------------------------------------------
+
+SCHEMA EVOLUTION
+
+When this schema changes:
+
+1. Increment the schema version.
+2. Document added, changed and removed fields.
+3. Validate existing customer records.
+4. Migrate incompatible records.
+5. Recheck privacy and consent requirements.
+6. Preserve previous versions in the audit history.
+
+--------------------------------------------------
+
+SUCCESS
+
+The Customer Schema succeeds when:
+
+- Every customer has one reliable record.
+- Communication history is easy to understand.
+- Projects and quotations remain connected.
+- Customer preferences improve service.
+- Privacy and consent remain visible.
+- AI agents can recommend relevant next actions.
+- Customer relationships become stronger over time.
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+A customer record is not a collection of data points.
+
+It represents a real person or organization that has trusted Wood-Booster.
+
+Every field should help the company serve that relationship with greater care, clarity and respect.
+
+Me jatkamme puun tarinaa.

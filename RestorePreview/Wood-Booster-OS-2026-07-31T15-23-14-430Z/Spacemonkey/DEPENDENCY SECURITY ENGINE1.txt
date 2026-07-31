@@ -1,0 +1,469 @@
+GODFILE:
+
+  id: DEPENDENCY_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Ohjelmistoriippuvuuksien, pakettien,
+    kirjastojen ja ulkoisten komponenttien
+    turvallisen hallinnan moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Jokainen ulkoinen ohjelmistokomponentti
+    on mahdollinen riski ja se tulee arvioida
+    ennen käyttöä.
+
+
+
+DEPENDENCY_SECURITY_OBJECTIVES:
+
+
+  goals:
+
+
+    - verify_dependencies
+    - reduce_supply_chain_risk
+    - monitor_vulnerabilities
+    - maintain_software_integrity
+
+
+
+
+
+DEPENDENCY_TYPES:
+
+
+  javascript:
+
+
+    examples:
+
+
+      - npm_packages
+      - react_dependencies
+      - node_modules
+
+
+
+
+
+  python:
+
+
+    examples:
+
+
+      - pip_packages
+      - AI_libraries
+      - machine_learning_tools
+
+
+
+
+
+  system:
+
+
+    examples:
+
+
+      - operating_system_packages
+      - drivers
+      - runtime_components
+
+
+
+
+
+DEPENDENCY_VERIFICATION:
+
+
+  before_install:
+
+
+    check:
+
+
+      - source
+      - reputation
+      - version
+      - maintenance_status
+      - security_history
+
+
+
+
+
+PACKAGE_SOURCE_SECURITY:
+
+
+  trusted_sources:
+
+
+    require:
+
+
+      - official_repository
+      - verified_publisher
+      - known_origin
+
+
+
+
+
+  never:
+
+
+    - install_unknown_packages
+    - execute_unverified_dependencies
+
+
+
+
+
+VERSION_SECURITY:
+
+
+  monitor:
+
+
+    - current_version
+    - security_updates
+    - deprecated_packages
+
+
+
+
+
+VULNERABILITY_MANAGEMENT:
+
+
+  detect:
+
+
+    - known_vulnerabilities
+    - insecure_versions
+    - abandoned_packages
+
+
+
+
+
+  response:
+
+
+    actions:
+
+
+      - review_risk
+      - update_dependency
+      - replace_dependency
+
+
+
+
+
+NODE_SECURITY:
+
+
+  protect:
+
+
+    - package_json
+    - package_lock
+    - node_modules
+
+
+
+
+
+  verify:
+
+
+    - npm_dependencies
+    - scripts
+    - package_permissions
+
+
+
+
+
+PYTHON_SECURITY:
+
+
+  protect:
+
+
+    - virtual_environment
+    - requirements
+    - installed_packages
+
+
+
+
+
+  verify:
+
+
+    - package_source
+    - compatibility
+    - security_status
+
+
+
+
+
+AI_DEPENDENCIES:
+
+
+  protect:
+
+
+    - model_libraries
+    - AI_frameworks
+    - data_processing_tools
+
+
+
+
+
+  verify:
+
+
+    - model_tools
+    - external_modules
+    - runtime_dependencies
+
+
+
+
+
+DEPENDENCY_UPDATES:
+
+
+  before_update:
+
+
+    require:
+
+
+      - backup
+      - testing
+      - compatibility_check
+
+
+
+
+
+  after_update:
+
+
+    verify:
+
+
+      - build_success
+      - functionality
+      - security
+
+
+
+
+
+AUTOMATED_SCRIPTS:
+
+
+  review:
+
+
+    - install_scripts
+    - build_scripts
+    - execution_scripts
+
+
+
+
+
+  never:
+
+
+    - run_unknown_scripts
+    - trust_hidden_install_actions
+
+
+
+
+
+LICENSE_SECURITY:
+
+
+  monitor:
+
+
+    - license_changes
+    - usage_conditions
+    - legal_restrictions
+
+
+
+
+
+SUPPLY_CHAIN_PROTECTION:
+
+
+  prevent:
+
+
+    - compromised_packages
+    - malicious_updates
+    - fake_packages
+
+
+
+
+
+DEPENDENCY_AUDIT:
+
+
+  record:
+
+
+    - installed_components
+    - versions
+    - security_status
+
+
+
+
+
+  never_record:
+
+
+    - credentials
+    - API_keys
+    - private_tokens
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Wood-Booster-OS
+    - frontend_dependencies
+    - backend_dependencies
+    - AI_environment
+    - development_tools
+
+
+
+
+
+INCIDENT_RESPONSE:
+
+
+  compromised_dependency:
+
+
+    actions:
+
+
+      1:
+
+        isolate_component
+
+
+      2:
+
+        stop_usage
+
+
+      3:
+
+        replace_dependency
+
+
+      4:
+
+        verify_system
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - verify_external_components
+    - maintain_dependency_inventory
+    - monitor_security_updates
+
+
+
+  never:
+
+
+    - trust_unknown_packages
+    - ignore_vulnerabilities
+    - execute_unverified_code
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - dependency_management
+    - package_security
+    - software_supply_chain_security
+
+
+
+
+
+  forbidden:
+
+
+    - malicious_packages
+    - credentials
+    - private_keys
+    - secret_values
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

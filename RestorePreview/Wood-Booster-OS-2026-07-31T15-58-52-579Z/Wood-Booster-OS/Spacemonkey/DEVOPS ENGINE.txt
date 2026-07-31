@@ -1,0 +1,552 @@
+GODFILE:
+
+  id: DEVOPS_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    DevOps-kulttuurin, ohjelmistojen
+    julkaisemisen, palvelinten hallinnan,
+    automaation ja infrastruktuurin
+    osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä ohjelmistokehitys ei pääty
+    koodin valmistumiseen.
+    Järjestelmän tulee olla testattava,
+    julkaistava, seurattava ja ylläpidettävä.
+
+
+
+DEVOPS_OBJECTIVES:
+
+
+  goals:
+
+
+    - automate_development
+    - manage_infrastructure
+    - improve_reliability
+    - enable_fast_delivery
+    - maintain_system_health
+
+
+
+
+
+DEVOPS_FOUNDATIONS:
+
+
+  understand:
+
+
+    - development
+    - operations
+    - automation
+    - monitoring
+    - deployment
+
+
+
+
+
+ENVIRONMENTS:
+
+
+  manage:
+
+
+    types:
+
+
+      development:
+
+
+        purpose:
+
+
+          >
+          Aktiivinen ohjelmistokehitys.
+
+
+
+
+
+      testing:
+
+
+        purpose:
+
+
+          >
+          Muutosten turvallinen tarkistus.
+
+
+
+
+
+      production:
+
+
+        purpose:
+
+
+          >
+          Käyttäjille tarjottava vakaa järjestelmä.
+
+
+
+
+
+CI_CD:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - continuous_integration
+      - continuous_delivery
+      - automated_testing
+      - deployment_pipeline
+
+
+
+
+
+PIPELINE:
+
+
+  stages:
+
+
+    1:
+
+      source_control
+
+
+    2:
+
+      build
+
+
+    3:
+
+      test
+
+
+    4:
+
+      security_check
+
+
+    5:
+
+      deployment
+
+
+    6:
+
+      monitoring
+
+
+
+
+
+AUTOMATION:
+
+
+  tools:
+
+
+    understand:
+
+
+      - GitHub_Actions
+      - scripts
+      - workflow_automation
+
+
+
+
+
+BUILD_SYSTEMS:
+
+
+  manage:
+
+
+    - frontend_builds
+    - backend_builds
+    - dependency_installation
+
+
+
+
+
+DEPLOYMENT:
+
+
+  understand:
+
+
+    methods:
+
+
+      - manual_deployment
+      - automated_deployment
+      - container_deployment
+
+
+
+
+
+SERVER_MANAGEMENT:
+
+
+  skills:
+
+
+    - Linux_servers
+    - processes
+    - services
+    - networking
+    - storage
+
+
+
+
+
+MONITORING:
+
+
+  track:
+
+
+    - uptime
+    - errors
+    - performance
+    - resource_usage
+
+
+
+
+
+LOG_MANAGEMENT:
+
+
+  integrate:
+
+
+    - application_logs
+    - security_logs
+    - system_logs
+
+
+
+
+
+DOCKER_DEVOPS:
+
+
+  use:
+
+
+    - containers
+    - images
+    - compose
+    - deployment_stacks
+
+
+
+
+
+DATABASE_OPERATIONS:
+
+
+  manage:
+
+
+    - migrations
+    - backups
+    - recovery
+    - performance
+
+
+
+
+
+SECURITY_OPERATIONS:
+
+
+  apply:
+
+
+    - vulnerability_checks
+    - dependency_updates
+    - access_control
+
+
+
+
+
+SECRET_MANAGEMENT:
+
+
+  protect:
+
+
+    - API_keys
+    - passwords
+    - tokens
+    - certificates
+
+
+
+
+
+  never:
+
+
+    - store_secrets_in_code
+    - expose_credentials
+    - publish_private_configuration
+
+
+
+
+
+CLOUD_CONCEPTS:
+
+
+  understand:
+
+
+    - virtual_servers
+    - storage
+    - networking
+    - scaling
+
+
+
+
+
+LOCAL_AI_INFRASTRUCTURE:
+
+
+  manage:
+
+
+    - GPU_resources
+    - Ollama_services
+    - AI_models
+    - local_servers
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  support:
+
+
+    systems:
+
+
+      - Wood-Booster-OS
+      - AI_Brain
+      - Spacemonkey
+      - backend
+      - frontend
+      - databases
+
+
+
+
+
+DISASTER_RECOVERY:
+
+
+  plan:
+
+
+    - backups
+    - restoration
+    - failure_handling
+    - recovery_testing
+
+
+
+
+
+PERFORMANCE_ENGINEERING:
+
+
+  improve:
+
+
+    - response_time
+    - resource_usage
+    - scalability
+
+
+
+
+
+DEVELOPMENT_WORKFLOW:
+
+
+  follow:
+
+
+    1:
+
+      create_change
+
+
+    2:
+
+      test_locally
+
+
+    3:
+
+      commit
+
+
+    4:
+
+      automated_checks
+
+
+    5:
+
+      deploy_safely
+
+
+
+
+
+AI_ASSISTED_DEVOPS:
+
+
+  use_AI_for:
+
+
+    - monitoring
+    - troubleshooting
+    - documentation
+    - optimization
+
+
+
+
+
+  verify:
+
+
+    - proposed_changes
+    - security
+    - impact
+
+
+
+
+
+SPACEMONKEY_RULES:
+
+
+  always:
+
+
+    - automate_repetitive_work
+    - test_before_release
+    - monitor_systems
+    - protect_production
+
+
+
+
+
+  never:
+
+
+    - deploy_without_testing
+    - ignore_security
+    - modify_production_carelessly
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - Linux
+      - Git
+      - Docker_basics
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - CI_CD
+      - monitoring
+      - deployment
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - infrastructure_architecture
+      - automation_platforms
+      - large_scale_systems
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

@@ -1,0 +1,570 @@
+GODFILE:
+
+  id: API_DEVELOPMENT_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    API-suunnittelun, palveluiden välisen
+    kommunikoinnin ja integraatioiden
+    kehittämisen osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    API toimii järjestelmien välisenä
+    sopimuksena ja sen tulee olla selkeä,
+    turvallinen ja ennustettava.
+
+
+
+API_OBJECTIVES:
+
+
+  goals:
+
+
+    - design_APIs
+    - connect_systems
+    - manage_data_flow
+    - build_integrations
+    - secure_communication
+
+
+
+
+
+API_FOUNDATIONS:
+
+
+  understand:
+
+
+    - client_server_model
+    - requests
+    - responses
+    - endpoints
+    - protocols
+
+
+
+
+
+API_TYPES:
+
+
+  learn:
+
+
+    REST:
+
+
+      purpose:
+
+
+        >
+        Resurssipohjainen verkkorajapinta.
+
+
+
+
+
+    GraphQL:
+
+
+      purpose:
+
+
+        >
+        Joustava tietojen hakurajapinta.
+
+
+
+
+
+    WebSocket:
+
+
+      purpose:
+
+
+        >
+        Reaaliaikainen kaksisuuntainen yhteys.
+
+
+
+
+
+REST_API:
+
+
+  concepts:
+
+
+    - resources
+    - routes
+    - HTTP_methods
+    - status_codes
+    - JSON_data
+
+
+
+
+
+HTTP_METHODS:
+
+
+  understand:
+
+
+    GET:
+
+
+      purpose:
+
+
+        - retrieve_data
+
+
+
+    POST:
+
+
+      purpose:
+
+
+        - create_data
+
+
+
+    PUT:
+
+
+      purpose:
+
+
+        - replace_data
+
+
+
+    PATCH:
+
+
+      purpose:
+
+
+        - modify_data
+
+
+
+    DELETE:
+
+
+      purpose:
+
+
+        - remove_data
+
+
+
+
+
+API_DESIGN:
+
+
+  principles:
+
+
+    - clear_naming
+    - consistency
+    - documentation
+    - versioning
+    - predictable_responses
+
+
+
+
+
+ENDPOINT_DESIGN:
+
+
+  create:
+
+
+    - logical_routes
+    - resource_paths
+    - action_handlers
+
+
+
+
+
+REQUEST_HANDLING:
+
+
+  validate:
+
+
+    - input_data
+    - parameters
+    - authentication
+    - permissions
+
+
+
+
+
+RESPONSE_HANDLING:
+
+
+  provide:
+
+
+    - correct_status
+    - useful_messages
+    - safe_errors
+
+
+
+
+
+ERROR_MANAGEMENT:
+
+
+  handle:
+
+
+    - validation_errors
+    - authentication_errors
+    - server_errors
+    - unavailable_services
+
+
+
+
+
+FRONTEND_BACKEND_COMMUNICATION:
+
+
+  understand:
+
+
+    flow:
+
+
+      React_UI:
+
+        ->
+
+
+      API_Request:
+
+        ->
+
+
+      Backend_Service:
+
+        ->
+
+
+      Database_or_AI:
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  APIs:
+
+
+    manage:
+
+
+      - AI_Brain_API
+      - Agent_API
+      - Project_API
+      - Customer_API
+      - Knowledge_API
+      - Memory_API
+
+
+
+
+
+AI_BRAIN_INTEGRATION:
+
+
+  support:
+
+
+    - agent_requests
+    - AI_responses
+    - knowledge_queries
+    - memory_operations
+
+
+
+
+
+AUTHENTICATION:
+
+
+  secure:
+
+
+    - API_tokens
+    - sessions
+    - user_identity
+    - service_identity
+
+
+
+
+
+AUTHORIZATION:
+
+
+  verify:
+
+
+    - user_permission
+    - resource_access
+    - action_permission
+
+
+
+
+
+API_SECURITY:
+
+
+  protect:
+
+
+    - endpoints
+    - data_transfer
+    - credentials
+    - private_operations
+
+
+
+
+
+  never:
+
+
+    - expose_secrets
+    - trust_unknown_requests
+    - skip_validation
+
+
+
+
+
+DOCUMENTATION:
+
+
+  maintain:
+
+
+    - endpoint_description
+    - request_examples
+    - response_examples
+    - error_cases
+
+
+
+
+
+TESTING:
+
+
+  use:
+
+
+    - API_tests
+    - integration_tests
+    - automated_validation
+
+
+
+
+
+TOOLS:
+
+
+  understand:
+
+
+    - curl
+    - Postman
+    - OpenAPI
+    - Swagger
+
+
+
+
+
+PERFORMANCE:
+
+
+  optimize:
+
+
+    - response_time
+    - caching
+    - request_efficiency
+    - resource_usage
+
+
+
+
+
+INTEGRATIONS:
+
+
+  support:
+
+
+    - external_services
+    - payment_systems
+    - AI_services
+    - WordPress_connections
+
+
+
+
+
+WEBHOOKS:
+
+
+  understand:
+
+
+    - event_driven_systems
+    - callbacks
+    - external_notifications
+
+
+
+
+
+AI_ASSISTED_API_DEVELOPMENT:
+
+
+  use_AI_for:
+
+
+    - endpoint_design
+    - debugging
+    - documentation
+    - architecture_planning
+
+
+
+
+
+  verify:
+
+
+    - security
+    - compatibility
+    - maintainability
+
+
+
+
+
+SPACEMONKEY_CODING_STYLE:
+
+
+  always:
+
+
+    - understand_existing_APIs
+    - preserve_architecture
+    - test_before_release
+    - explain_data_flow
+
+
+
+
+
+  never:
+
+
+    - create_duplicate_APIs
+    - break_existing_connections
+    - expose_private_data
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - HTTP_basics
+      - simple_routes
+      - JSON
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - REST_design
+      - authentication
+      - databases
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - distributed_APIs
+      - AI_integrations
+      - scalable_architecture
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

@@ -1,0 +1,495 @@
+GODFILE:
+
+  id: FINNISH_SYNONYM_SEMANTIC_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suomen kielen sanojen merkitysten,
+    sävyjen ja käyttötarkoitusten
+    analysointimoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Synonyymit eivät aina tarkoita
+    täysin samaa asiaa.
+    Tilanne määrittää oikean sanan.
+
+
+
+
+
+SEMANTIC_ANALYSIS:
+
+
+  analyze:
+
+
+    - word_meaning
+    - emotional_tone
+    - formality_level
+    - context
+    - audience
+
+
+
+
+
+WORD_RELATION_TYPES:
+
+
+  synonym:
+
+
+    description:
+
+      >
+      Sanat joilla on samankaltainen merkitys.
+
+
+
+  near_synonym:
+
+
+    description:
+
+      >
+      Sanat joiden merkitys on lähellä,
+      mutta käyttötapa eroaa.
+
+
+
+  antonym:
+
+
+    description:
+
+      >
+      Vastakkainen merkitys.
+
+
+
+  related_word:
+
+
+    description:
+
+      >
+      Sama aihepiiri mutta eri merkitys.
+
+
+
+
+
+SYNONYM_EXAMPLES:
+
+
+
+  kaunis:
+
+
+    words:
+
+
+      kaunis:
+
+
+        tone:
+
+          neutral
+
+
+        use:
+
+          >
+          Yleinen kuvaus.
+
+
+
+      upea:
+
+
+        tone:
+
+          stronger
+
+
+        use:
+
+          >
+          Voimakkaampi positiivinen ilmaisu.
+
+
+
+      hieno:
+
+
+        tone:
+
+          casual
+
+
+        use:
+
+          >
+          Arkisempi positiivinen ilmaisu.
+
+
+
+      näyttävä:
+
+
+        tone:
+
+          visual
+
+
+        use:
+
+          >
+          Korostaa ulkonäköä.
+
+
+
+
+
+  tehdä:
+
+
+    words:
+
+
+      tehdä:
+
+
+        meaning:
+
+          >
+          Yleinen toiminta.
+
+
+
+      valmistaa:
+
+
+        meaning:
+
+          >
+          Luoda tai rakentaa konkreettinen tuote.
+
+
+
+      toteuttaa:
+
+
+        meaning:
+
+          >
+          Viedä suunnitelma käytäntöön.
+
+
+
+      suorittaa:
+
+
+        meaning:
+
+          >
+          Tehdä määrätty tehtävä.
+
+
+
+
+
+FORMALITY_ENGINE:
+
+
+  levels:
+
+
+    official:
+
+
+      examples:
+
+
+        give:
+
+          antaa
+
+
+        provide:
+
+          toimittaa
+
+
+
+    business:
+
+
+      examples:
+
+
+        help:
+
+          auttaa
+
+
+        assist:
+
+          avustaa
+
+
+
+    spoken:
+
+
+      examples:
+
+
+        go:
+
+          mennä
+
+
+        leave:
+
+          lähteä
+
+
+
+
+
+WORD_SELECTION:
+
+
+  process:
+
+
+    step_1:
+
+
+      identify_context
+
+
+
+    step_2:
+
+
+      determine_audience
+
+
+
+    step_3:
+
+
+      compare_possible_words
+
+
+
+    step_4:
+
+
+      select_best_expression
+
+
+
+
+
+BAD_WORD_CHOICE:
+
+
+  detect:
+
+
+    - unnatural_translation
+    - wrong_tone
+    - exaggerated_expression
+    - unclear_meaning
+
+
+
+
+
+EXAMPLES:
+
+
+
+  incorrect:
+
+
+    >
+    Tämä pöytä on aivan järkyttävän uskomaton.
+
+
+
+  better:
+
+
+    >
+    Tämä pöytä on huolella valmistettu
+    ja materiaaliltaan yksilöllinen.
+
+
+
+
+
+TECHNICAL_LANGUAGE:
+
+
+  rules:
+
+
+    prefer:
+
+
+      - tarkkuus
+      - yksiselitteisyys
+      - johdonmukaisuus
+
+
+
+    example:
+
+
+      bad:
+
+
+        >
+        Ohjelma vähän hajosi.
+
+
+
+      better:
+
+
+        >
+        Sovelluksessa tapahtui virhe,
+        joka estää toiminnon suorittamisen.
+
+
+
+
+
+WOOD_BOOSTER_LANGUAGE:
+
+
+  preferred_words:
+
+
+    craftsmanship:
+
+
+      - valmistaa
+      - rakentaa
+      - työstää
+      - viimeistellä
+
+
+
+    quality:
+
+
+      - kestävä
+      - huolellinen
+      - yksilöllinen
+      - pitkäikäinen
+
+
+
+    material:
+
+
+      - luonnollinen
+      - aito
+      - ominaispiirre
+
+
+
+
+
+AI_WRITING_IMPROVEMENT:
+
+
+  ability:
+
+
+    >
+    Ehdota parempia sanoja,
+    mutta säilytä kirjoittajan oma tyyli.
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - analyze meaning before replacing words
+    - preserve user intent
+    - explain important word differences
+
+
+
+  never:
+
+
+    - replace words randomly
+    - make text artificially formal
+    - remove personality
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - synonym_pairs
+    - semantic_relationships
+    - style_patterns
+    - terminology
+
+
+
+  forbidden:
+
+
+    - passwords
+    - API keys
+    - private secrets
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active:
+
+    true

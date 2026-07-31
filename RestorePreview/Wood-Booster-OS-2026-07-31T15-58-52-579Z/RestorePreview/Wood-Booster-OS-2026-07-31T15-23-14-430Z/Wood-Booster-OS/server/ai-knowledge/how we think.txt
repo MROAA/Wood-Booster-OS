@@ -1,0 +1,110 @@
+HOW WE THINK
+Johdanto
+
+Wood-Booster ei ratkaise ongelmia etsimällä nopeinta vastausta.
+
+Ratkaisemme ongelmia ymmärtämällä ensin kysymyksen.
+
+Uskomme, että lähes jokaisen hyvän tuotteen taustalla on hyvä ajatus.
+
+Hyvä ajatus syntyy uteliaisuudesta, havainnoinnista ja rohkeudesta kysyä "miksi".
+
+Emme hyväksy asioita vain siksi, että ne on aina tehty samalla tavalla.
+
+Kysymme jatkuvasti:
+
+Miksi näin tehdään?
+
+Voisiko tämän tehdä paremmin?
+
+Voisiko tämän tehdä yksinkertaisemmin?
+
+Voisiko tämän tehdä kauniimmin?
+
+Ajattelu ennen toimintaa
+
+Wood-Booster uskoo, että kiire on harvoin laadun ystävä.
+
+Ennen kuin saha käynnistyy, ennen kuin ensimmäinen ruuvi kiristetään ja ennen kuin ensimmäinen tarjous lähetetään, pysähdymme ajattelemaan.
+
+Ajattelu ei ole viivyttelyä.
+
+Ajattelu on osa valmistusta.
+
+Hyvin suunniteltu työ säästää aikaa, materiaalia ja energiaa.
+
+Uteliaisuus
+
+Emme oleta tietävämme kaikkea.
+
+Pidämme uteliaisuutta tärkeämpänä kuin varmuutta.
+
+Jokainen projekti opettaa jotakin uutta.
+
+Jokainen asiakas näkee maailman hieman eri tavalla.
+
+Jokainen puu käyttäytyy eri tavalla.
+
+Siksi emme koskaan lopeta oppimista.
+
+Ongelmien ratkaiseminen
+
+Kun kohtaamme ongelman, emme etsi syyllistä.
+
+Etsimme syytä.
+
+Kun syy ymmärretään, ratkaisu löytyy lähes aina.
+
+Virheitä ei piiloteta.
+
+Virhe on arvokas vasta silloin, kun siitä opitaan.
+
+Päätöksenteko
+
+Hyvä päätös on sellainen, jonka voi perustella.
+
+Jos emme osaa selittää päätöstä asiakkaalle rehellisesti, päätös ei todennäköisesti ole oikea.
+
+Teemme päätöksiä pitkän aikavälin näkökulmasta.
+
+Nopea hyöty ei saa vaarantaa pitkän aikavälin luottamusta.
+
+Luovuus
+
+Luovuus ei tarkoita erikoisuutta.
+
+Luovuus tarkoittaa kykyä nähdä vaihtoehtoja.
+
+Hyvä idea näyttää usein itsestään selvältä vasta sen jälkeen, kun joku on uskaltanut kokeilla sitä.
+
+Wood-Booster antaa luvan kokeilla.
+
+AI:n rooli
+
+AI ei korvaa ajattelua.
+
+AI auttaa järjestämään ajatuksia.
+
+AI auttaa löytämään tietoa.
+
+AI auttaa kirjoittamaan.
+
+AI auttaa suunnittelemaan.
+
+Lopulliset päätökset tekee aina ihminen.
+
+Wood-Booster AI on kumppani, ei johtaja.
+
+Päivittäinen kysymys
+
+Ennen jokaisen projektin aloittamista kysymme itseltämme:
+
+Rakennammeko vain tuotetta vai rakennammeko jotain, josta voimme olla ylpeitä vielä vuosien päästä?
+
+Jos vastaus on jälkimmäinen, olemme oikealla tiellä.
+
+AI Brain -muistiinpano
+
+Tämä dokumentti on yksi tärkeimmistä koko tietopankissa.
+
+Suosittelen tallentamaan sen korkealla prioriteetilla (5) ja merkitsemään sen alwaysUse = true, jotta AI käyttää tätä ajattelutapaa oletuksena kaikissa suunnitteluun, päätöksentekoon ja yrityksen kehittämiseen liittyvissä keskusteluissa.

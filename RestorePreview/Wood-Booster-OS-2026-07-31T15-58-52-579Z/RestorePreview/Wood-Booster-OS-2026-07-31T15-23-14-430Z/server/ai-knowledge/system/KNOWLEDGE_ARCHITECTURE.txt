@@ -1,0 +1,417 @@
+# WOOD-BOOSTER AI KNOWLEDGE ARCHITECTURE
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää Wood-Booster AI Brainin tietorakenteen.
+
+Tietoa ei säilytetä vain määrän vuoksi.
+
+Tieto järjestetään niin, että AI löytää oikean tiedon oikeassa tilanteessa.
+
+
+---
+
+# PERUSRAKENNE
+
+
+Wood-Booster AI Brain jakaa tiedon kerroksiin:
+
+
+SYSTEM
+
+BRAND
+
+PERSON
+
+KNOWLEDGE
+
+PROJECTS
+
+MEMORY
+
+LEARNING
+
+
+---
+
+# 1. SYSTEM LAYER
+
+
+Sijainti:
+
+ai-knowledge/system/
+
+
+Tarkoitus:
+
+Määrittää miten AI toimii.
+
+
+Sisältää:
+
+- arvot
+- ajattelumallin
+- vastaustyylin
+- totuuspolitiikan
+- laadun standardit
+
+
+System-tieto muuttuu harvoin.
+
+
+Se ohittaa muun tiedon.
+
+
+---
+
+# 2. BRAND LAYER
+
+
+Sijainti:
+
+ai-knowledge/brand/
+
+
+Tarkoitus:
+
+Määrittää Wood-Boosterin identiteetin.
+
+
+Sisältää:
+
+- historia
+- filosofia
+- arvot
+- maailmankuva
+- brändin ääni
+- päätösperiaatteet
+
+
+Brand-tieto vastaa kysymykseen:
+
+"Kuka Wood-Booster on?"
+
+
+---
+
+# 3. PERSON LAYER
+
+
+Sijainti:
+
+ai-knowledge/person/
+
+
+Tarkoitus:
+
+Määrittää ihmisen ja AI:n yhteistyön.
+
+
+Sisältää:
+
+- Marc
+- työskentelytapa
+- tavoitteet
+- oppimistyyli
+
+
+Tätä käytetään henkilökohtaisen avustajan toiminnassa.
+
+
+---
+
+# 4. KNOWLEDGE LAYER
+
+
+Sijainti:
+
+ai-knowledge/
+
+
+Tarkoitus:
+
+Yleinen osaamistieto.
+
+
+Esimerkkejä:
+
+materials/
+
+craftsmanship/
+
+products/
+
+business/
+
+
+Sisältää:
+
+- puulajit
+- valmistustekniikat
+- epoksi
+- suunnittelu
+- liiketoiminta
+
+
+---
+
+# 5. PROJECT LAYER
+
+
+Tarkoitus:
+
+Yksittäisten projektien tieto.
+
+
+Esimerkkejä:
+
+- asiakkaan pöytä
+- tuotteen kehitys
+- prototyypit
+
+
+Projektitieto ei muuta brändin arvoja.
+
+
+Yksi projekti ei määritä koko yritystä.
+
+
+---
+
+# 6. MEMORY LAYER
+
+
+Sijainti:
+
+Tietokanta
+
+
+Tarkoitus:
+
+Pitkäaikaiset muistot.
+
+
+Esimerkkejä:
+
+- tehdyt päätökset
+- tärkeät mieltymykset
+- opitut asiat
+
+
+Muisti ei ole sama asia kuin fakta.
+
+
+Muisti voi sisältää myös keskeneräistä tietoa.
+
+
+---
+
+# 7. LEARNING LAYER
+
+
+Tarkoitus:
+
+Järjestelmän kehittyminen.
+
+
+Sisältää:
+
+- opitut toimintatavat
+- onnistuneet ratkaisut
+- tehdyt virheet
+- kehitysehdotukset
+
+
+Oppiminen pitää erottaa alkuperäisestä tiedosta.
+
+
+---
+
+# TIETOHIERARKIA
+
+
+Kun tieto on ristiriidassa:
+
+
+1. SYSTEM
+
+2. BRAND IDENTITY
+
+3. PROJECT RULES
+
+4. MEMORY
+
+5. GENERAL KNOWLEDGE
+
+
+---
+
+# TIETOTYYPIT
+
+
+Jokainen tieto kuuluu johonkin:
+
+
+## PRINCIPLE
+
+Pysyvä periaate.
+
+
+Esimerkki:
+
+"Laatu ennen määrää."
+
+
+---
+
+## FACT
+
+Todennettava tieto.
+
+
+Esimerkki:
+
+"Tammi on kovapuulaji."
+
+
+---
+
+## DECISION
+
+Tehty päätös.
+
+
+Esimerkki:
+
+"Tämän projektin materiaaliksi valittiin tammi."
+
+
+---
+
+## IDEA
+
+Mahdollisuus.
+
+
+Esimerkki:
+
+"Voitaisiin kokeilla uudenlaista viimeistelyä."
+
+
+---
+
+## LESSON
+
+Opittu asia.
+
+
+Esimerkki:
+
+"Liian paksu epoksikerros aiheutti ongelmia."
+
+
+---
+
+# AI:N HAKUJÄRJESTYS
+
+
+Kun käyttäjä kysyy:
+
+
+## Brändiä koskeva kysymys
+
+Hae:
+
+1. SYSTEM
+
+2. BRAND
+
+3. MEMORY
+
+
+---
+
+## Tuotekysymys
+
+Hae:
+
+1. BRAND
+
+2. MATERIALS
+
+3. CRAFTSMANSHIP
+
+4. PROJECT
+
+
+---
+
+## Päätöskysymys
+
+Hae:
+
+1. SYSTEM_REASONING
+
+2. BRAND_DECISION_PRINCIPLES
+
+3. PROJECT DATA
+
+
+---
+
+## Henkilökohtainen kysymys
+
+Hae:
+
+1. MARC_IDENTITY
+
+2. MEMORY
+
+
+---
+
+# TIETOPANKIN LAATU
+
+
+Uutta tietoa lisättäessä kysytään:
+
+
+Onko tämä:
+
+- totta?
+- hyödyllistä?
+- oikeassa paikassa?
+- riittävän tarkkaa?
+
+
+Älä lisää tietoa vain täyttämään tietokantaa.
+
+
+---
+
+# AI BRAININ TAVOITE
+
+
+Tietopankki ei ole arkisto.
+
+Se on ajattelun rakenne.
+
+
+Hyvä järjestelmä ei vain muista.
+
+Se ymmärtää mitä tieto tarkoittaa.
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Oikea tieto.
+
+Oikeassa paikassa.
+
+Oikeaan aikaan.
+
+Oikealla merkityksellä.

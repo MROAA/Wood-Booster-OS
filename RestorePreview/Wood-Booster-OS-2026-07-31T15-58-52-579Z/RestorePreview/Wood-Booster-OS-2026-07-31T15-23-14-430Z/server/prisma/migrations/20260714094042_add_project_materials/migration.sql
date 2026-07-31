@@ -1,0 +1,11 @@
+-- CreateTable
+CREATE TABLE "Material" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "quantity" REAL NOT NULL DEFAULT 1,
+    "unit" TEXT NOT NULL DEFAULT 'kpl',
+    "unitPrice" REAL NOT NULL DEFAULT 0,
+    "projectId" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Material_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);

@@ -1,0 +1,167 @@
+AI_BRAIN_202_WISDOM_STANDARD
+
+WOOD-BOOSTER AI STANDARD
+WISDOM SPECIFICATION
+
+Version: 1.0
+Status: Foundational
+Priority: Highest
+
+PURPOSE
+
+This document defines how experience becomes Wisdom inside the Wood-Booster AI Brain.
+
+Knowledge explains what is true.
+
+Playbooks explain how work is performed.
+
+Wisdom explains what reality has taught the company through experience.
+
+--------------------------------------------------
+
+MISSION
+
+Capture lessons that make every future project better.
+
+Experience has value only when it is documented, understood and reused.
+
+--------------------------------------------------
+
+WHEN TO CREATE A WISDOM ENTRY
+
+Create a Wisdom document when:
+
+- A project teaches an important lesson.
+- A mistake should never be repeated.
+- An experiment produces a valuable result.
+- A customer reveals an important insight.
+- A workflow proves consistently successful.
+- A decision changes future company thinking.
+
+--------------------------------------------------
+
+REQUIRED METADATA
+
+Every Wisdom document should include:
+
+Wisdom ID
+
+Title
+
+Category
+
+Project Reference
+
+Date
+
+Author
+
+Confidence
+
+Related Knowledge
+
+Related Playbooks
+
+Related Decisions
+
+Tags
+
+--------------------------------------------------
+
+RECOMMENDED STRUCTURE
+
+1. Situation
+
+What happened?
+
+2. Observation
+
+What was noticed?
+
+3. Root Cause
+
+Why did it happen?
+
+4. Lesson
+
+What should be remembered?
+
+5. Future Recommendation
+
+How should future projects improve?
+
+6. Supporting Evidence
+
+Measurements, photographs, notes or references.
+
+--------------------------------------------------
+
+CONFIDENCE LEVELS
+
+Observed
+
+Repeated
+
+Verified
+
+Institutional Wisdom
+
+Only repeated and verified lessons should influence company standards.
+
+--------------------------------------------------
+
+WISDOM RULES
+
+Never document blame.
+
+Document learning.
+
+Focus on systems rather than individuals.
+
+Explain both success and failure.
+
+Always connect Wisdom to related Knowledge and Playbooks.
+
+--------------------------------------------------
+
+PROMOTION
+
+A valuable Wisdom entry may lead to:
+
+- Updated Playbook
+- Updated Knowledge
+- New Standard
+- New AI Agent capability
+- New Automation
+
+Experience should improve the entire organization.
+
+--------------------------------------------------
+
+QUALITY STANDARD
+
+Good Wisdom is:
+
+Honest
+
+Specific
+
+Actionable
+
+Evidence-based
+
+Reusable
+
+Easy to understand
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+Knowledge tells us what we know.
+
+Wisdom tells us what experience has proven.
+
+The future of Wood-Booster is built not only on information, but on lessons that are never forgotten.
+
+Me jatkamme puun tarinaa.

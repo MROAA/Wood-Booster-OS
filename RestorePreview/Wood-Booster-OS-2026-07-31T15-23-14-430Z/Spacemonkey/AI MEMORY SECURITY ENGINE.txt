@@ -1,0 +1,481 @@
+GODFILE:
+
+  id: AI_MEMORY_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    AI:n muistijärjestelmän,
+    tallennetun tiedon ja oppimisprosessin
+    turvallisen hallinnan moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Muisti ei ole pelkkä tallennuspaikka.
+    Jokainen muistimerkintä tulee arvioida
+    ennen pysyvää tallentamista.
+
+
+
+MEMORY_SECURITY_OBJECTIVES:
+
+
+  goals:
+
+
+    - protect_memory_data
+    - prevent_secret_storage
+    - validate_memory_entries
+    - maintain_memory_quality
+    - enable_safe_forgetting
+
+
+
+
+
+MEMORY_TYPES:
+
+
+  temporary_memory:
+
+
+    purpose:
+
+
+      >
+      Väliaikainen keskustelukonteksti.
+
+
+
+    rules:
+
+
+      - limited_lifetime
+      - not_permanent
+
+
+
+
+
+  working_memory:
+
+
+    purpose:
+
+
+      >
+      Aktiivisen tehtävän käsittely.
+
+
+
+
+
+  long_term_memory:
+
+
+    purpose:
+
+
+      >
+      Pysyvä hyödyllinen tieto.
+
+
+
+
+
+MEMORY_VALIDATION:
+
+
+  before_save:
+
+
+    check:
+
+
+      - usefulness
+      - accuracy
+      - permission
+      - sensitivity
+      - relevance
+
+
+
+
+
+MEMORY_CLASSIFICATION:
+
+
+  public:
+
+
+    allowed:
+
+
+      - general_knowledge
+      - documentation
+      - public_information
+
+
+
+
+
+  internal:
+
+
+    examples:
+
+
+      - project_preferences
+      - workflow_information
+
+
+
+
+
+  confidential:
+
+
+    protected:
+
+
+      - business_information
+      - private_documents
+
+
+
+
+
+  forbidden:
+
+
+    never_store:
+
+
+      - passwords
+      - API_keys
+      - access_tokens
+      - private_credentials
+
+
+
+
+
+SECRET_PROTECTION:
+
+
+  rule:
+
+
+    >
+    Salaisuudet eivät koskaan kuulu AI:n
+    pysyvään muistiin.
+
+
+
+  detect:
+
+
+    - passwords
+    - tokens
+    - authentication_data
+    - encryption_keys
+
+
+
+
+
+MEMORY_PERMISSION:
+
+
+  before_storage:
+
+
+    require:
+
+
+      - valid_reason
+      - allowed_category
+      - safe_content
+
+
+
+
+
+MEMORY_UPDATE:
+
+
+  when_information_changes:
+
+
+    actions:
+
+
+      - verify_new_information
+      - update_old_memory
+      - remove_outdated_information
+
+
+
+
+
+MEMORY_DELETION:
+
+
+  support:
+
+
+    - forgetting
+    - correction
+    - removal_request
+
+
+
+
+
+FALSE_MEMORY_PROTECTION:
+
+
+  detect:
+
+
+    - unsupported_information
+    - incorrect_assumptions
+    - invented_facts
+
+
+
+
+
+AI_LEARNING_BOUNDARY:
+
+
+  principle:
+
+
+    >
+    AI voi oppia toimintamalleja ja tietoa,
+    mutta ei saa oppia suojausten ohituskeinoja.
+
+
+
+
+
+KNOWLEDGE_VS_MEMORY:
+
+
+  separation:
+
+
+    knowledge:
+
+
+      contains:
+
+
+        - documents
+        - verified_information
+
+
+
+
+
+    memory:
+
+
+      contains:
+
+
+        - useful_context
+        - approved_preferences
+
+
+
+
+
+MEMORY_ACCESS:
+
+
+  require:
+
+
+    - authorization
+    - valid_context
+    - correct_scope
+
+
+
+
+
+AI_AGENT_MEMORY:
+
+
+  rules:
+
+
+    each_agent:
+
+
+      has:
+
+
+        - defined_memory_scope
+        - controlled_access
+
+
+
+
+
+  never:
+
+
+    - share_private_memory_without_permission
+
+
+
+
+
+MEMORY_SECURITY_MONITORING:
+
+
+  detect:
+
+
+    - unexpected_memory_growth
+    - sensitive_data_storage
+    - corrupted_entries
+
+
+
+
+
+BACKUP_MEMORY:
+
+
+  protect:
+
+
+    - memory_database
+    - knowledge_links
+    - user_preferences
+
+
+
+
+
+  require:
+
+
+    - access_control
+    - integrity_check
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Spacemonkey_memory
+    - AI_Brain_memory
+    - Knowledge_System
+    - project_learning
+    - workflow_history
+
+
+
+
+
+AUDIT:
+
+
+  record:
+
+
+    - memory_change
+    - memory_delete
+    - security_event
+
+
+
+  never_record:
+
+
+    - memory_secrets
+    - passwords
+    - API_keys
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - validate_before_memory_save
+    - protect_private_information
+    - allow_safe_forgetting
+
+
+
+  never:
+
+
+    - store_credentials
+    - store_secrets
+    - trust_unverified_memory
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - memory_management_patterns
+    - knowledge_organization
+    - safe_learning_methods
+
+
+
+  forbidden:
+
+
+    - secrets
+    - credentials
+    - private_tokens
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

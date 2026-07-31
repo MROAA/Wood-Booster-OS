@@ -1,0 +1,351 @@
+AI_BRAIN_804_TASK_QUEUE
+
+WOOD-BOOSTER AI PLATFORM
+TASK QUEUE STANDARD
+
+Version: 1.0
+Status: Active
+Priority: Critical
+
+PURPOSE
+
+This document defines how tasks are queued, prioritized, assigned, retried and completed inside the Wood-Booster Intelligence Platform.
+
+The Task Queue ensures that work is processed in the correct order without losing tasks or overloading agents.
+
+--------------------------------------------------
+
+MISSION
+
+Deliver every task to the right agent at the right time with clear priority, ownership and completion status.
+
+--------------------------------------------------
+
+TASK QUEUE PRINCIPLES
+
+- Every task has a unique Task ID.
+- Every task has one primary owner.
+- Every task has a defined priority.
+- Every task has measurable completion criteria.
+- Every status change is auditable.
+- No task should disappear silently.
+
+--------------------------------------------------
+
+TASK RECORD
+
+Every queued task should include:
+
+Task ID
+
+Created Timestamp
+
+Requested By
+
+Assigned Agent
+
+Project ID (optional)
+
+Customer ID (optional)
+
+Title
+
+Objective
+
+Priority
+
+Status
+
+Deadline
+
+Dependencies
+
+Required Tools
+
+Required Knowledge
+
+Acceptance Criteria
+
+Retry Count
+
+Correlation ID
+
+--------------------------------------------------
+
+TASK PRIORITIES
+
+Critical
+
+Used for safety risks, production outages, urgent customer issues and severe financial risks.
+
+High
+
+Used for important deadlines, blocked projects and high-value customer work.
+
+Normal
+
+Used for ordinary operational work.
+
+Low
+
+Used for maintenance, experiments and non-urgent improvements.
+
+--------------------------------------------------
+
+TASK STATUSES
+
+Queued
+
+Assigned
+
+Accepted
+
+In Progress
+
+Waiting
+
+Blocked
+
+Review
+
+Completed
+
+Failed
+
+Cancelled
+
+Archived
+
+--------------------------------------------------
+
+QUEUE FLOW
+
+Task Created
+
+↓
+
+Validate Task
+
+↓
+
+Assign Priority
+
+↓
+
+Check Dependencies
+
+↓
+
+Select Agent
+
+↓
+
+Queue Task
+
+↓
+
+Agent Accepts
+
+↓
+
+Execute
+
+↓
+
+Review
+
+↓
+
+Complete or Retry
+
+↓
+
+Archive
+
+--------------------------------------------------
+
+DEPENDENCIES
+
+A task should not begin until required dependencies are complete.
+
+Dependencies may include:
+
+- Another task
+- Human approval
+- Material availability
+- Tool availability
+- Customer response
+- Knowledge review
+- External system availability
+
+--------------------------------------------------
+
+ASSIGNMENT RULES
+
+The Orchestrator should assign tasks based on:
+
+- Agent capability
+- Agent permissions
+- Current workload
+- Required tools
+- Project context
+- Deadline
+- Priority
+
+Avoid assigning the same task to multiple agents unless parallel review is intentional.
+
+--------------------------------------------------
+
+CONCURRENCY
+
+Tasks may run in parallel when:
+
+- They are independent.
+- They do not modify the same protected record.
+- Resource capacity is available.
+- Parallel execution does not create safety or quality risk.
+
+--------------------------------------------------
+
+RETRY POLICY
+
+Retry only when failure is temporary and safe to repeat.
+
+Examples:
+
+- Temporary model outage
+- Tool connection timeout
+- External API unavailable
+- Short-lived resource exhaustion
+
+Do not retry automatically when:
+
+- Data may be duplicated
+- Financial actions are involved
+- Human approval is required
+- The root cause is unknown
+- The previous action may already have succeeded
+
+--------------------------------------------------
+
+DEAD-LETTER QUEUE
+
+Move a task to the dead-letter queue when:
+
+- Maximum retries are reached.
+- Task data is invalid.
+- No capable agent exists.
+- Required dependency cannot be resolved.
+- Security validation fails.
+
+Dead-letter tasks require review and a documented resolution.
+
+--------------------------------------------------
+
+BLOCKED TASKS
+
+When a task is blocked, record:
+
+- Blocker
+- Responsible party
+- Required action
+- Expected resolution date
+- Impact on project
+- Escalation status
+
+Blocked tasks should remain visible on the Command Center.
+
+--------------------------------------------------
+
+DEADLINES AND TIMEOUTS
+
+Every time-sensitive task should include:
+
+- Deadline
+- Expected duration
+- Timeout policy
+- Reminder schedule
+- Escalation threshold
+
+Warn before deadlines are missed.
+
+--------------------------------------------------
+
+HUMAN APPROVAL
+
+Tasks requiring human approval must pause before the protected action.
+
+Examples:
+
+- Sending a binding quotation
+- Large purchases
+- Deleting approved knowledge
+- Changing strategic rules
+- Publishing sensitive content
+- High-risk automation
+
+--------------------------------------------------
+
+TASK COMPLETION
+
+Before marking a task completed, verify:
+
+- Objective achieved
+- Acceptance criteria met
+- Required evidence stored
+- Audit record created
+- Relevant agents notified
+- Learning candidates identified
+- Next action recorded when needed
+
+--------------------------------------------------
+
+QUEUE MONITORING
+
+Continuously track:
+
+- Total queued tasks
+- Tasks by priority
+- Oldest waiting task
+- Blocked tasks
+- Failed tasks
+- Average queue time
+- Average execution time
+- Agent workload
+- Retry count
+
+--------------------------------------------------
+
+OVERLOAD HANDLING
+
+When demand exceeds capacity:
+
+1. Protect Critical tasks.
+2. Reprioritize High tasks.
+3. Delay Low tasks safely.
+4. Add capable agents when available.
+5. Notify the Orchestrator.
+6. Escalate sustained overload.
+
+--------------------------------------------------
+
+SUCCESS METRICS
+
+- Task completion rate
+- Average queue time
+- Deadline success rate
+- Retry success rate
+- Blocked task duration
+- Lost task count
+- Agent workload balance
+- User satisfaction
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+A reliable queue turns requests into controlled work.
+
+Every task should have a clear place, a clear owner and a clear path to completion.
+
+Me jatkamme puun tarinaa.

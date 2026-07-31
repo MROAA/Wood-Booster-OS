@@ -1,0 +1,171 @@
+AI_BRAIN_009_KNOWLEDGE_GRAPH
+
+WOOD-BOOSTER AI BRAIN
+KNOWLEDGE GRAPH
+
+Version: 1.0
+Status: Active
+Priority: Critical
+
+PURPOSE
+
+This document defines how knowledge is connected inside the Wood-Booster AI Brain.
+
+Knowledge should not exist as isolated files.
+
+Every important concept should be connected to related concepts so the AI can reason across the entire company.
+
+--------------------------------------------------
+
+MISSION
+
+Transform documents into an interconnected knowledge network.
+
+The value of knowledge increases when relationships are visible.
+
+--------------------------------------------------
+
+NODE TYPES
+
+Every document belongs to one primary type:
+
+- Constitution
+- Playbook
+- Knowledge
+- Thinking
+- Behavior
+- Memory
+- Wisdom
+- Research
+- Project
+- Customer
+- Material
+- Product
+- Tool
+- Supplier
+
+--------------------------------------------------
+
+RELATIONSHIP TYPES
+
+Documents may be connected using relationships such as:
+
+Depends On
+
+Supports
+
+Explains
+
+Improves
+
+References
+
+Created From
+
+Supersedes
+
+Related To
+
+Uses
+
+Produces
+
+Learns From
+
+Each relationship should have a clear meaning.
+
+--------------------------------------------------
+
+EXAMPLE
+
+River Table
+
+Uses -> Oak
+
+Uses -> Deep Pour Epoxy
+
+Uses -> Hardwax Oil
+
+References -> Epoxy Playbook
+
+Improved By -> Wisdom: Bubble Prevention
+
+Related To -> Aurora Project
+
+--------------------------------------------------
+
+AI RESPONSIBILITIES
+
+When retrieving information:
+
+Collect connected documents.
+
+Identify missing relationships.
+
+Recommend creating links where useful.
+
+Avoid duplicate knowledge.
+
+--------------------------------------------------
+
+WHEN NEW KNOWLEDGE IS ADDED
+
+Ask:
+
+What existing documents relate to this?
+
+Does this replace an older document?
+
+Should another document reference this one?
+
+Does this create a new category?
+
+--------------------------------------------------
+
+SEARCH STRATEGY
+
+Prefer connected knowledge over isolated facts.
+
+When answering, gather evidence from multiple linked documents before forming a recommendation.
+
+--------------------------------------------------
+
+GRAPH HEALTH
+
+Regularly identify:
+
+Duplicate nodes
+
+Broken references
+
+Outdated links
+
+Orphan documents
+
+Conflicting knowledge
+
+Recommend maintenance when necessary.
+
+--------------------------------------------------
+
+SUCCESS
+
+The Knowledge Graph succeeds when:
+
+Knowledge is easy to discover.
+
+Related experience is automatically surfaced.
+
+Duplicate documentation decreases.
+
+Recommendations become richer because multiple sources reinforce each other.
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+Knowledge grows stronger through relationships.
+
+Every new document should strengthen the network, not merely increase the number of files.
+
+Me jatkamme puun tarinaa.

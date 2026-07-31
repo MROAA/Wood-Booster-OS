@@ -1,0 +1,418 @@
+# WOOD-BOOSTER KNOWLEDGE CATEGORIES
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää Wood-Booster AI Brainin tietokirjaston rakenteen.
+
+Jokainen tieto sijoitetaan oikeaan paikkaan.
+
+Tietoa ei kerätä vain määrän vuoksi.
+
+Tieto järjestetään niin, että AI löytää sen ja ymmärtää sen tarkoituksen.
+
+
+---
+
+# 1. SYSTEM
+
+
+Sijainti:
+
+ai-knowledge/system/
+
+
+Tarkoitus:
+
+AI:n toimintaperusta.
+
+
+Sisältää:
+
+- perustuslaki
+- arvot
+- ajattelumallit
+- vastaustyyli
+- totuuden käsittely
+- laatustandardit
+
+
+Muuttuu erittäin harvoin.
+
+
+---
+
+# 2. BRAND
+
+
+Sijainti:
+
+ai-knowledge/brand/
+
+
+Tarkoitus:
+
+Wood-Boosterin identiteetti.
+
+
+Vastaa kysymykseen:
+
+"Kuka Wood-Booster on?"
+
+
+Sisältää:
+
+- historia
+- filosofia
+- arvot
+- maailmankuva
+- brändiääni
+- lupaus
+- viestintä
+
+
+Esimerkkejä:
+
+CORE_IDENTITY.txt
+
+BRAND_VALUES.txt
+
+BRAND_VOICE.txt
+
+WOOD_BOOSTER_WORLDVIEW.txt
+
+
+---
+
+# 3. PERSON
+
+
+Sijainti:
+
+ai-knowledge/person/
+
+
+Tarkoitus:
+
+Ihmisen ja AI:n yhteistyö.
+
+
+Sisältää:
+
+- Marc
+- tavoitteet
+- työskentelytapa
+- oppimistapa
+- mieltymykset
+
+
+Tämän avulla AI toimii henkilökohtaisena avustajana.
+
+
+---
+
+# 4. MATERIALS
+
+
+Sijainti:
+
+ai-knowledge/materials/
+
+
+Tarkoitus:
+
+Materiaaliosaaminen.
+
+
+Sisältää:
+
+
+Puut:
+
+- tammi
+- pähkinä
+- saarni
+- koivu
+- mänty
+- lehtikuusi
+
+
+Muut materiaalit:
+
+- epoksi
+- öljyt
+- lakat
+- liimat
+- metalliosat
+
+
+Jokaisesta materiaalista:
+
+- ominaisuudet
+- vahvuudet
+- heikkoudet
+- käyttökohteet
+- työskentelytapa
+
+
+---
+
+# 5. CRAFTSMANSHIP
+
+
+Sijainti:
+
+ai-knowledge/craftsmanship/
+
+
+Tarkoitus:
+
+Käsityöosaaminen.
+
+
+Sisältää:
+
+- puun käsittely
+- sahaus
+- kuivaus
+- liitokset
+- hionta
+- viimeistely
+- laadunvalvonta
+
+
+Tavoite:
+
+Ymmärtää miten laadukas tuote syntyy.
+
+
+---
+
+# 6. PRODUCTS
+
+
+Sijainti:
+
+ai-knowledge/products/
+
+
+Tarkoitus:
+
+Tuotteiden suunnittelu ja historia.
+
+
+Sisältää:
+
+- olemassa olevat tuotteet
+- prototyypit
+- ideat
+- tuotekehitys
+
+
+Jokaisesta tuotteesta:
+
+- tarkoitus
+- materiaalit
+- suunnitteluperuste
+- valmistus
+- hinnoittelu
+- tarina
+
+
+---
+
+# 7. PROJECTS
+
+
+Tarkoitus:
+
+Yksittäiset toteutukset.
+
+
+Sisältää:
+
+- asiakasprojektit
+- kokeilut
+- prototyypit
+
+
+Projektit eivät muuta brändin periaatteita.
+
+
+---
+
+# 8. BUSINESS
+
+
+Sijainti:
+
+ai-knowledge/business/
+
+
+Tarkoitus:
+
+Yrityksen kehittäminen.
+
+
+Sisältää:
+
+- strategia
+- hinnoittelu
+- asiakkaat
+- markkinointi
+- myynti
+- prosessit
+
+
+---
+
+# 9. CUSTOMERS
+
+
+Tarkoitus:
+
+Asiakasymmärrys.
+
+
+Sisältää:
+
+- asiakasprofiilit
+- tarpeet
+- palautteet
+- projektihistoria
+
+
+Henkilötiedot pidetään erillään yleisestä tiedosta.
+
+
+---
+
+# 10. EXPERIMENTS
+
+
+Tarkoitus:
+
+Kokeilut ja tutkiminen.
+
+
+Sisältää:
+
+- uudet ideat
+- testit
+- prototyypit
+- epäonnistuneet kokeet
+
+
+Kokeilu ei ole sama asia kuin valmis päätös.
+
+
+---
+
+# 11. LESSONS
+
+
+Tarkoitus:
+
+Oppiminen.
+
+
+Sisältää:
+
+- onnistumiset
+- virheet
+- parannukset
+
+
+Jokainen projekti voi tuottaa oppia.
+
+
+---
+
+# 12. DECISIONS
+
+
+Tarkoitus:
+
+Päätöshistoria.
+
+
+Sisältää:
+
+- mitä päätettiin
+- miksi päätettiin
+- mitä seurasi
+
+
+Tämä estää samojen asioiden uudelleen ratkaisemista.
+
+
+---
+
+# TIETOTYYPPIEN ERO
+
+
+AI erottaa:
+
+
+FACT
+
+Todellinen tieto.
+
+
+PRINCIPLE
+
+Pysyvä ohje.
+
+
+DECISION
+
+Tehty valinta.
+
+
+IDEA
+
+Mahdollisuus.
+
+
+LESSON
+
+Opittu asia.
+
+
+---
+
+# UUDEN TIEDON LISÄÄMINEN
+
+
+Ennen uuden tiedon tallentamista kysy:
+
+
+1. Mihin kategoriaan tämä kuuluu?
+
+2. Onko tieto fakta vai idea?
+
+3. Onko lähde luotettava?
+
+4. Auttaako tämä tulevaisuudessa?
+
+
+---
+
+# AI:N TAVOITE
+
+
+Hyvä kirjasto ei sisällä kaikkea.
+
+Hyvä kirjasto sisältää oikean tiedon oikeassa paikassa.
+
+
+---
+
+# YDINPERIAATE
+
+
+Järjestys mahdollistaa älykkyyden.
+
+Tieto ilman rakennetta on vain dataa.
+
+Rakenne tekee tiedosta hyödyllistä.

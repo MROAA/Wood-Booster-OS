@@ -1,0 +1,338 @@
+# WOOD-BOOSTER KNOWLEDGE DOCUMENT STANDARD
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää standardin kaikille Wood-Booster AI Brainin tietodokumenteille.
+
+Kaikkien tietodokumenttien tulee olla:
+
+- selkeitä
+- järjestettyjä
+- ymmärrettäviä
+- helposti haettavia
+- pitkäikäisiä
+
+
+---
+
+# PERUSPERIAATE
+
+
+Tietodokumentti ei ole vain muistiinpano.
+
+Se on rakennettu tietolähde, jota AI voi käyttää päätöksenteossa.
+
+
+---
+
+# DOKUMENTIN RAKENNE
+
+
+Jokaisen tärkeän tietodokumentin tulisi sisältää:
+
+
+# 1. NIMI
+
+
+Selkeä nimi aiheesta.
+
+
+Esimerkki:
+
+
+Tammi
+
+
+Ei:
+
+
+asia1.txt
+
+
+---
+
+# 2. TARKOITUS
+
+
+Miksi tämä tieto on olemassa?
+
+
+Esimerkki:
+
+
+"Tämä dokumentti kuvaa tammen ominaisuudet Wood-Boosterin tuotesuunnittelussa."
+
+
+---
+
+# 3. PERUSTIEDOT
+
+
+Mitä asia on?
+
+
+Sisältää:
+
+- määritelmä
+- historia
+- tärkeimmät ominaisuudet
+
+
+---
+
+# 4. TÄRKEIMMÄT OMINAISUUDET
+
+
+Kuvaa asian olennaiset ominaisuudet.
+
+
+Esimerkiksi materiaalissa:
+
+
+- kovuus
+- ulkonäkö
+- käyttäytyminen
+- työstäminen
+
+
+---
+
+# 5. KÄYTÄNNÖN SOVELTAMINEN
+
+
+Miten tätä tietoa käytetään?
+
+
+Esimerkiksi:
+
+
+"Mihin tuotteisiin tämä sopii?"
+
+"Miten tätä käsitellään työpajassa?"
+
+
+---
+
+# 6. HYÖDYT
+
+
+Mitä arvoa tämä tuo?
+
+
+Esimerkiksi:
+
+
+- parempi lopputulos
+- pidempi käyttöikä
+- parempi asiakaskokemus
+
+
+---
+
+# 7. RAJOITUKSET JA RISKIT
+
+
+Jokaisessa asiantuntijatiedossa pitää huomioida myös ongelmat.
+
+
+Sisältää:
+
+- heikkoudet
+- virheriskit
+- tilanteet joissa tätä ei kannata käyttää
+
+
+---
+
+# 8. WOOD-BOOSTER NÄKÖKULMA
+
+
+Tämä kertoo miten tieto liittyy brändiin.
+
+
+Esimerkki:
+
+
+"Tammi sopii Wood-Boosterille, koska sen luonnollinen syykuvio ja pitkäikäisyys tukevat ajatusta puun tarinan jatkamisesta."
+
+
+---
+
+# 9. AI:N TOIMINTAOHJE
+
+
+Kerro miten AI käyttää tätä tietoa.
+
+
+Esimerkiksi:
+
+
+"Kun käyttäjä kysyy tammesta materiaalivalintana, huomioi sekä tekniset ominaisuudet että Wood-Boosterin arvot."
+
+
+---
+
+# TIETOTYYPPIEN MERKITSEMINEN
+
+
+Jokainen dokumentti voidaan luokitella:
+
+
+FACT
+
+Todennettava tieto.
+
+
+Esimerkki:
+
+"Tammi on kovapuulaji."
+
+
+---
+
+PRINCIPLE
+
+Toimintaperiaate.
+
+
+Esimerkki:
+
+"Laatu ennen määrää."
+
+
+---
+
+GUIDE
+
+Ohje.
+
+
+Esimerkki:
+
+"River table valmistuksen työvaiheet."
+
+
+---
+
+LESSON
+
+Opittu asia.
+
+
+Esimerkki:
+
+"Liian nopea epoksin kaato aiheutti lämpöongelman."
+
+
+---
+
+IDEA
+
+Kehitysehdotus.
+
+
+Esimerkki:
+
+"Voisimme kokeilla uutta pintakäsittelyä."
+
+
+---
+
+# LÄHTEET
+
+
+Jos mahdollista, dokumentissa kerrotaan:
+
+- mistä tieto tulee
+- kuka sen loi
+- milloin se päivitettiin
+
+
+---
+
+# KIELI
+
+
+Dokumenttien tulee olla:
+
+
+- selkeitä
+- konkreettisia
+- ilman turhaa markkinointikieltä
+
+
+Vältä:
+
+
+"vallankumouksellinen"
+
+"ainutlaatuinen"
+
+"maailman paras"
+
+
+ellei sitä voida perustella.
+
+
+---
+
+# AI:N SUHDE TIETODOKUMENTTEIHIN
+
+
+AI ei kopioi dokumenttia sellaisenaan.
+
+
+AI:
+
+- ymmärtää tilanteen
+- yhdistää tietoa
+- käyttää oikeaa määrää tietoa
+
+
+---
+
+# TIETOJEN PÄIVITYS
+
+
+Kun tieto muuttuu:
+
+
+Älä poista historiaa automaattisesti.
+
+
+Kirjaa:
+
+
+- mitä muuttui
+- miksi muuttui
+- milloin muuttui
+
+
+---
+
+# HYVÄ TIETODOKUMENTTI
+
+
+Hyvä dokumentti vastaa:
+
+
+Mikä tämä on?
+
+Miksi tämä on tärkeää?
+
+Miten tätä käytetään?
+
+Milloin tätä ei käytetä?
+
+Miten tämä liittyy Wood-Boosteriin?
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Tieto ei ole arvokasta siksi, että sitä on paljon.
+
+Tieto on arvokasta, kun se auttaa tekemään parempia päätöksiä.

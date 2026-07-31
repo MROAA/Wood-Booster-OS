@@ -1,0 +1,509 @@
+GODFILE:
+
+  id: NODE_BACKEND_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Node.js-palvelinarkkitehtuurin,
+    backend-kehityksen ja API-palveluiden
+    osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Backend on järjestelmän toimintakeskus.
+    Sen tulee olla turvallinen, modulaarinen,
+    testattava ja helposti ylläpidettävä.
+
+
+
+NODE_OBJECTIVES:
+
+
+  goals:
+
+
+    - build_backend_services
+    - create_APIs
+    - manage_server_architecture
+    - connect_databases
+    - support_AI_systems
+
+
+
+
+
+NODE_FOUNDATIONS:
+
+
+  understand:
+
+
+    - JavaScript_runtime
+    - event_loop
+    - asynchronous_operations
+    - modules
+    - package_management
+
+
+
+
+
+NODE_RUNTIME:
+
+
+  master:
+
+
+    - node_execution
+    - npm
+    - package_json
+    - environment_variables
+    - scripts
+
+
+
+
+
+PROJECT_STRUCTURE:
+
+
+  organize:
+
+
+    examples:
+
+
+      - routes
+      - services
+      - controllers
+      - middleware
+      - models
+      - utilities
+      - configuration
+
+
+
+
+
+EXPRESS_ENGINE:
+
+
+  learn:
+
+
+    - server_creation
+    - routing
+    - middleware
+    - request_handling
+    - response_handling
+
+
+
+
+
+API_DEVELOPMENT:
+
+
+  create:
+
+
+    - REST_APIs
+    - JSON_endpoints
+    - CRUD_operations
+    - service_interfaces
+
+
+
+
+
+ROUTING:
+
+
+  understand:
+
+
+    - endpoint_design
+    - route_separation
+    - parameter_handling
+    - request_validation
+
+
+
+
+
+MIDDLEWARE:
+
+
+  use_for:
+
+
+    - authentication
+    - authorization
+    - logging
+    - validation
+    - error_handling
+
+
+
+
+
+REQUEST_SECURITY:
+
+
+  validate:
+
+
+    - input_data
+    - request_format
+    - permissions
+    - user_identity
+
+
+
+
+
+RESPONSE_SECURITY:
+
+
+  protect:
+
+
+    - sensitive_information
+    - internal_errors
+    - system_details
+
+
+
+
+
+ERROR_HANDLING:
+
+
+  implement:
+
+
+    - centralized_errors
+    - safe_messages
+    - debugging_information
+    - recovery_logic
+
+
+
+
+
+DATABASE_CONNECTIONS:
+
+
+  understand:
+
+
+    - database_clients
+    - ORM_patterns
+    - queries
+    - migrations
+
+
+
+
+
+PRISMA_CONTEXT:
+
+
+  support:
+
+
+    - schema_design
+    - models
+    - relations
+    - migrations
+    - database_operations
+
+
+
+
+
+AI_BACKEND:
+
+
+  support:
+
+
+    - AI_Brain_routes
+    - agent_systems
+    - memory_systems
+    - knowledge_systems
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  apply_to:
+
+
+    - server
+    - routes
+    - services
+    - AI_Brain
+    - project_management
+    - customer_system
+
+
+
+
+
+SERVICE_ARCHITECTURE:
+
+
+  principles:
+
+
+    - modular_services
+    - separation_of_logic
+    - reusable_components
+    - clear_dependencies
+
+
+
+
+
+API_DESIGN:
+
+
+  follow:
+
+
+    - consistent_naming
+    - predictable_responses
+    - versioning
+    - documentation
+
+
+
+
+
+AUTHENTICATION:
+
+
+  implement:
+
+
+    - user_verification
+    - sessions
+    - tokens
+    - permissions
+
+
+
+
+
+DATABASE_SECURITY:
+
+
+  always:
+
+
+    - validate_queries
+    - protect_credentials
+    - handle_errors
+
+
+
+
+
+PERFORMANCE:
+
+
+  optimize:
+
+
+    - async_operations
+    - resource_usage
+    - response_time
+    - caching
+
+
+
+
+
+TESTING:
+
+
+  learn:
+
+
+    - API_testing
+    - unit_testing
+    - integration_testing
+
+
+
+
+
+DEBUGGING:
+
+
+  skills:
+
+
+    - read_server_logs
+    - analyze_errors
+    - trace_requests
+    - isolate_failures
+
+
+
+
+
+DEPLOYMENT:
+
+
+  understand:
+
+
+    - production_configuration
+    - environment_management
+    - process_management
+    - monitoring
+
+
+
+
+
+DOCKER_SUPPORT:
+
+
+  learn:
+
+
+    - containers
+    - images
+    - services
+    - deployment_patterns
+
+
+
+
+
+AI_ASSISTED_BACKEND:
+
+
+  use_AI_for:
+
+
+    - architecture_planning
+    - debugging
+    - documentation
+    - code_review
+
+
+
+
+
+  verify:
+
+
+    - generated_code
+    - security
+    - compatibility
+
+
+
+
+
+SPACEMONKEY_CODING_STYLE:
+
+
+  always:
+
+
+    - understand_existing_architecture
+    - make_small_changes
+    - preserve_working_systems
+    - explain_backend_logic
+
+
+
+
+
+  never:
+
+
+    - rewrite_core_system_without_reason
+    - expose_secrets
+    - ignore_errors
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - Node_basics
+      - servers
+      - simple_APIs
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - Express
+      - databases
+      - authentication
+      - services
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - scalable_architecture
+      - distributed_systems
+      - AI_backend_design
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

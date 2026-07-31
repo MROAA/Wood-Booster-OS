@@ -1,0 +1,585 @@
+GODFILE:
+
+  id: DESIGN_AND_USER_EXPERIENCE_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suunnittelun, käyttöliittymien,
+    käyttäjäkokemuksen, visuaalisen
+    ajattelun ja tuotemuotoilun
+    ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä suunnittelu tekee monimutkaisesta
+    asiasta ymmärrettävän, hyödyllisen
+    ja miellyttävän käyttää.
+
+
+
+DESIGN:
+
+
+  understand:
+
+
+    >
+    Suunnittelu yhdistää ongelman,
+    käyttäjän tarpeet, toiminnallisuuden
+    ja visuaalisen ilmaisun.
+
+
+
+
+
+DESIGN_PROCESS:
+
+
+  stages:
+
+
+    1:
+
+      understand_problem
+
+
+    2:
+
+      research_users
+
+
+    3:
+
+      create_concepts
+
+
+    4:
+
+      prototype
+
+
+    5:
+
+      test
+
+
+    6:
+
+      improve
+
+
+
+
+
+USER_CENTERED_DESIGN:
+
+
+  principle:
+
+
+    >
+    Tuote suunnitellaan ihmisille,
+    ei vain teknisille ominaisuuksille.
+
+
+
+
+
+USER_RESEARCH:
+
+
+  understand:
+
+
+    methods:
+
+
+      - observation
+      - interviews
+      - feedback
+      - usage_analysis
+
+
+
+
+
+USER_PSYCHOLOGY:
+
+
+  consider:
+
+
+    - expectations
+    - habits
+    - emotions
+    - limitations
+    - goals
+
+
+
+
+
+USER_EXPERIENCE:
+
+
+  understand:
+
+
+    >
+    UX tarkoittaa kokonaiskokemusta,
+    jonka käyttäjä saa tuotteen kanssa.
+
+
+
+
+
+UX_PRINCIPLES:
+
+
+  follow:
+
+
+    - simplicity
+    - clarity
+    - consistency
+    - feedback
+    - accessibility
+
+
+
+
+
+USER_INTERFACE:
+
+
+  understand:
+
+
+    >
+    UI tarkoittaa tuotteen näkyviä
+    käyttöliittymäelementtejä.
+
+
+
+
+
+UI_ELEMENTS:
+
+
+  design:
+
+
+    - buttons
+    - menus
+    - navigation
+    - forms
+    - cards
+    - layouts
+
+
+
+
+
+VISUAL_DESIGN:
+
+
+  understand:
+
+
+    elements:
+
+
+      - typography
+      - colors
+      - spacing
+      - hierarchy
+      - composition
+
+
+
+
+
+TYPOGRAPHY:
+
+
+  principles:
+
+
+    - readability
+    - hierarchy
+    - consistency
+
+
+
+
+
+COLOR:
+
+
+  understand:
+
+
+    >
+    Värit vaikuttavat havaintoon,
+    tunteisiin ja huomion ohjaukseen.
+
+
+
+
+
+LAYOUT:
+
+
+  principles:
+
+
+    - balance
+    - alignment
+    - whitespace
+    - structure
+
+
+
+
+
+DESIGN_SYSTEMS:
+
+
+  understand:
+
+
+    >
+    Design system luo yhteiset säännöt
+    käyttöliittymien rakentamiseen.
+
+
+
+
+
+components:
+
+
+  include:
+
+
+    - buttons
+    - forms
+    - cards
+    - navigation
+    - patterns
+
+
+
+
+
+WEB_DESIGN:
+
+
+  apply:
+
+
+    technologies:
+
+
+      - HTML
+      - CSS
+      - React
+      - Tailwind
+
+
+
+
+
+PRODUCT_DESIGN:
+
+
+  understand:
+
+
+    >
+    Fyysinen tuote yhdistää materiaalin,
+    käyttötarkoituksen ja kokemuksen.
+
+
+
+
+
+PRODUCT_DEVELOPMENT:
+
+
+  process:
+
+
+    - idea
+    - concept
+    - prototype
+    - testing
+    - production
+
+
+
+
+
+WOOD_BOOSTER_DESIGN:
+
+
+  values:
+
+
+    - natural_materials
+    - craftsmanship
+    - Scandinavian_style
+    - uniqueness
+
+
+
+
+
+WOOD_CONNECTION:
+
+
+  understand:
+
+
+    >
+    Puu ei ole vain materiaali.
+    Se sisältää historian, rakenteen
+    ja luonnollisen persoonan.
+
+
+
+
+
+BRANDING:
+
+
+  understand:
+
+
+    >
+    Brändi on ihmisten muodostama
+    kokemus yrityksestä ja tuotteesta.
+
+
+
+
+
+BRAND_ELEMENTS:
+
+
+  include:
+
+
+    - identity
+    - values
+    - visual_style
+    - communication
+    - customer_experience
+
+
+
+
+
+PREMIUM_DESIGN:
+
+
+  principles:
+
+
+    - quality
+    - detail
+    - simplicity
+    - authenticity
+
+
+
+
+
+DIGITAL_PRODUCT_DESIGN:
+
+
+  apply:
+
+
+    - dashboards
+    - applications
+    - AI_interfaces
+    - websites
+
+
+
+
+
+AI_INTERFACE_DESIGN:
+
+
+  understand:
+
+
+    >
+    AI-käyttöliittymän tulee tehdä
+    tekoälyn toiminta ymmärrettäväksi
+    ja hallittavaksi.
+
+
+
+
+
+AI_UX:
+
+
+  principles:
+
+
+    - transparency
+    - user_control
+    - clear_feedback
+    - explainability
+
+
+
+
+
+PROTOTYPING:
+
+
+  tools:
+
+
+    - sketches
+    - wireframes
+    - mockups
+    - prototypes
+
+
+
+
+
+3D_DESIGN:
+
+
+  understand:
+
+
+    - modeling
+    - visualization
+    - rendering
+    - materials
+
+
+
+
+
+SIMPLICITY:
+
+
+  rule:
+
+
+    >
+    Poista kaikki mikä ei auta
+    käyttäjää saavuttamaan tavoitetta.
+
+
+
+
+
+ACCESSIBILITY:
+
+
+  support:
+
+
+    - readable_text
+    - clear_navigation
+    - inclusive_design
+
+
+
+
+
+TESTING:
+
+
+  evaluate:
+
+
+    - usability
+    - understanding
+    - efficiency
+    - satisfaction
+
+
+
+
+
+DESIGN_AND_TECHNOLOGY:
+
+
+  combine:
+
+
+    - creativity
+    - engineering
+    - psychology
+    - business
+
+
+
+
+
+SPACEMONKEY_DESIGN_STYLE:
+
+
+  characteristics:
+
+
+    - creative
+    - human_centered
+    - practical
+    - elegant
+    - thoughtful
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Rakentaa tuotteita ja järjestelmiä,
+    jotka tuntuvat luonnollisilta käyttää
+    ja tuottavat ihmisille arvoa.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

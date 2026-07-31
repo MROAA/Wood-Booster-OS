@@ -1,0 +1,412 @@
+GODFILE:
+
+  id: API_KEY_PROTECTION_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    API-avainten tunnistamisen,
+    käsittelyn ja suojaamisen
+    turvallisuusmoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    API-avain on järjestelmän käyttöoikeus.
+    Sitä tulee käsitellä samalla tavalla
+    kuin salasanaa.
+
+
+
+API_KEY_DEFINITION:
+
+
+  description:
+
+    >
+    API-avain on tunniste,
+    jolla järjestelmä saa käyttöoikeuden
+    ulkoiseen palveluun.
+
+
+
+examples:
+
+
+  types:
+
+
+    - OpenAI API keys
+    - cloud service keys
+    - database API keys
+    - payment service keys
+    - webhook secrets
+    - internal service tokens
+
+
+
+
+
+ABSOLUTE_RULES:
+
+
+  never:
+
+
+    - display_api_key
+    - return_api_key
+    - repeat_api_key
+    - store_api_key_in_memory
+    - save_api_key_in_chat_history
+    - expose_api_key_in_logs
+    - commit_api_key_to_repository
+
+
+
+
+
+STORAGE_RULES:
+
+
+  allowed_locations:
+
+
+    - encrypted_secret_storage
+    - protected_environment_variables
+    - secure_secret_manager
+
+
+
+  forbidden_locations:
+
+
+    - source_code
+    - frontend_code
+    - public_files
+    - documentation_examples
+    - screenshots
+
+
+
+
+
+ENVIRONMENT_VARIABLE_SECURITY:
+
+
+  principle:
+
+
+    >
+    Salaiset arvot erotetaan ohjelmakoodista.
+
+
+
+  examples:
+
+
+    allowed:
+
+
+      OPENAI_API_KEY:
+
+        source:
+
+          environment_variable
+
+
+
+    forbidden:
+
+
+      code_example:
+
+
+        >
+        const apiKey = "secret_value"
+
+
+
+
+
+GIT_SECURITY:
+
+
+  protect:
+
+
+    files:
+
+
+      - .env
+      - .env.local
+      - credentials/
+      - secrets/
+      - private_keys/
+
+
+
+  rules:
+
+
+    never_commit:
+
+
+      - API_keys
+      - tokens
+      - credentials
+
+
+
+
+
+OUTPUT_FILTER:
+
+
+  scan:
+
+
+    - chat_response
+    - error_message
+    - debug_output
+    - generated_code
+
+
+
+  block_if_contains:
+
+
+    - api_key_pattern
+    - token_pattern
+    - secret_value
+
+
+
+
+
+LOG_SECURITY:
+
+
+  forbidden:
+
+
+    examples:
+
+
+      bad:
+
+
+        >
+        API_KEY=xxxxxxxxxxxx
+
+
+
+      good:
+
+
+        >
+        API authentication failed.
+
+
+
+
+
+CODE_REVIEW:
+
+
+  detect:
+
+
+    - hardcoded_keys
+    - exposed_configuration
+    - unsafe_examples
+    - leaked_credentials
+
+
+
+  response:
+
+
+    >
+    Ilmoita ongelmasta,
+    mutta älä koskaan näytä itse avainta.
+
+
+
+
+
+ACCESS_CONTROL:
+
+
+  principle:
+
+
+    >
+    API-avaimeen pääsee vain komponentti,
+    joka sitä tarvitsee.
+
+
+
+  rules:
+
+
+    apply:
+
+
+      - minimum_access
+      - least_privilege
+      - service_isolation
+
+
+
+
+
+ROTATION:
+
+
+  purpose:
+
+
+    >
+    Vanhentuneiden tai epäiltyjen
+    avainten vaihtaminen.
+
+
+
+  actions:
+
+
+    - revoke_old_key
+    - create_new_key
+    - update_configuration
+    - verify_access
+
+
+
+
+
+INCIDENT_RESPONSE:
+
+
+  if_key_exposed:
+
+
+    actions:
+
+
+      1:
+
+        stop_using_key
+
+
+      2:
+
+        revoke_key
+
+
+      3:
+
+        create_new_key
+
+
+      4:
+
+        review_logs
+
+
+      5:
+
+        update_security_rules
+
+
+
+
+
+AI_BEHAVIOR:
+
+
+  if_user_requests_api_key:
+
+
+    response:
+
+
+      >
+      API-avaimia ei palauteta koskaan.
+      Käytä turvallista avaintenhallintaa.
+
+
+
+  if_user_pastes_api_key:
+
+
+    actions:
+
+
+      - detect_secret
+      - warn_user
+      - avoid_repeating_value
+
+
+
+
+
+SPACEMONKEY_RULE:
+
+
+  statement:
+
+
+    >
+    Spacemonkey voi käyttää järjestelmään
+    määriteltyjä avaimia,
+    mutta ei koskaan paljasta niitä.
+
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - security_patterns
+    - secret_detection_methods
+    - safe_configuration_methods
+
+
+
+  forbidden:
+
+
+    - storing_api_keys
+    - learning_secret_values
+    - exposing_credentials
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

@@ -1,0 +1,170 @@
+AI_BRAIN_302_AGENT_TASK_PROTOCOL
+
+WOOD-BOOSTER AI AGENT PROTOCOL
+TASK PROTOCOL
+
+Version: 1.0
+Status: Foundational
+Priority: Highest
+
+PURPOSE
+
+This document defines how AI agents create, delegate, execute and complete tasks.
+
+Every task should have one owner, a clear objective and measurable completion criteria.
+
+--------------------------------------------------
+
+MISSION
+
+Coordinate work between specialized agents without duplication or confusion.
+
+Every task should move a project forward.
+
+--------------------------------------------------
+
+TASK LIFECYCLE
+
+Created
+↓
+
+Assigned
+↓
+
+Accepted
+↓
+
+Planned
+↓
+
+In Progress
+↓
+
+Blocked (optional)
+↓
+
+Review
+↓
+
+Completed
+↓
+
+Learned
+↓
+
+Archived
+
+--------------------------------------------------
+
+REQUIRED TASK METADATA
+
+Task ID
+
+Project ID
+
+Title
+
+Description
+
+Owner Agent
+
+Requesting Agent
+
+Priority
+
+Deadline
+
+Dependencies
+
+Status
+
+Related Documents
+
+--------------------------------------------------
+
+TASK PRIORITIES
+
+Critical
+High
+Normal
+Low
+
+Critical tasks may interrupt ongoing work.
+
+--------------------------------------------------
+
+TASK RULES
+
+Each task must have:
+
+- One primary objective
+- One responsible owner
+- Clear acceptance criteria
+- Expected outcome
+- Supporting evidence
+
+Avoid combining unrelated objectives into one task.
+
+--------------------------------------------------
+
+HANDOFF PROTOCOL
+
+When delegating a task include:
+
+Objective
+
+Context
+
+Required output
+
+Relevant Knowledge
+
+Relevant Playbooks
+
+Known risks
+
+Completion deadline
+
+Expected quality level
+
+--------------------------------------------------
+
+BLOCKED TASKS
+
+If a task cannot continue:
+
+Explain why.
+
+Identify the blocker.
+
+Recommend the next action.
+
+Request the minimum human input required.
+
+--------------------------------------------------
+
+COMPLETION REVIEW
+
+Before marking a task complete verify:
+
+Objective achieved
+
+Quality requirements met
+
+Evidence documented
+
+Knowledge captured
+
+Lessons recorded
+
+Related Playbooks updated if necessary
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+A completed task should leave the company in a better state than before it began.
+
+Every finished task is an opportunity to improve the Wood-Booster Intelligence Platform.
+
+Me jatkamme puun tarinaa.

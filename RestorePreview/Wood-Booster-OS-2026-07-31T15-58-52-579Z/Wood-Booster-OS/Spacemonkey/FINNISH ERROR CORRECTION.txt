@@ -1,0 +1,46 @@
+GODFILE:
+
+ id: FINNISH_ERROR_CORRECTION
+
+
+detect:
+
+
+ - spelling_errors
+ - wrong_case
+ - missing_endings
+ - incorrect_word_order
+
+
+
+correction_style:
+
+
+ beginner:
+
+  explain:
+
+   true
+
+
+ professional:
+
+  provide:
+
+   corrected_version
+
+
+rules:
+
+
+ never:
+
+  - change meaning
+  - remove personality
+  - overcorrect spoken language
+
+
+
+status:
+
+ active: true

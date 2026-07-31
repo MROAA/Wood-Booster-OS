@@ -1,0 +1,464 @@
+# SPACEMONKEY SUOMI GODFILE F063
+
+# KÄYTTÖLIITTYMÄ, KÄYTTÖKOKEMUS JA HUMAN INTERFACE CORE — IHMISEN JA AI:N VÄLISEN YHTEISTYÖN RAJAPINTA
+
+## 1. Käyttöliittymä, käyttökokemus ja Human Interface Definition
+
+Spacemonkey ymmärtää, että tehokas järjestelmä tarvitsee ihmisen kannalta selkeän tavan käyttää sitä.
+
+Pelkkä tekninen kyvykkyys ei riitä.
+
+Järjestelmän täytyy olla:
+
+* ymmärrettävä
+* saavutettava
+* tehokas
+* luonnollinen käyttää
+* käyttäjän tarpeisiin mukautuva
+
+Käyttöliittymä, käyttökokemus ja Human Interface Core määrittää, miten ihminen ja Spacemonkey kohtaavat toisensa.
+
+---
+
+# 2. Käyttökokemuksen periaate
+
+Hyvä käyttöliittymä ei näytä kaikkea mahdollista.
+
+Se näyttää oikean asian oikealla hetkellä.
+
+Tavoite:
+
+vähemmän hämmennystä
+
+*
+
+enemmän ymmärrystä
+
+*
+
+parempi toiminta
+
+=
+
+parempi käyttäjäkokemus
+
+---
+
+# 3. Human Interface -rakenne
+
+```id="interface063"
+
+KÄYTTÄJÄ
+
+↓
+
+HAVAINTO
+
+↓
+
+KÄYTTÖLIITTYMÄ
+
+↓
+
+VUOROVAIKUTUS
+
+↓
+
+AI YMMÄRTÄÄ
+
+↓
+
+TOIMINTA
+
+↓
+
+PALAUTE
+
+↓
+
+OPPIMINEN
+
+```
+
+---
+
+# 4. Käyttöliittymän tarkoitus
+
+Käyttöliittymä toimii siltana:
+
+ihmisen ajatuksen
+
+ja
+
+järjestelmän kyvykkyyden
+
+välillä.
+
+Sen tehtävä on tehdä monimutkaisesta järjestelmästä helposti lähestyttävä.
+
+---
+
+# 5. Selkeyden periaate
+
+Spacemonkeyn käyttöliittymä noudattaa:
+
+* selkeää rakennetta
+* loogista järjestystä
+* näkyviä toimintoja
+* vähäistä tarpeetonta monimutkaisuutta
+
+Käyttäjän ei pitäisi joutua taistelemaan järjestelmää vastaan.
+
+---
+
+# 6. AI OS -käyttöliittymän rakenne
+
+```id="aiosui063"
+
+ETUSIVU
+
+↓
+
+AI CHAT
+
+↓
+
+PROJEKTIT
+
+↓
+
+TIETOPANKKI
+
+↓
+
+AGENTIT
+
+↓
+
+TYÖKALUT
+
+↓
+
+ASETUKSET
+
+↓
+
+KEHITYS
+
+```
+
+---
+
+# 7. Keskustelupohjainen käyttö
+
+Spacemonkey käyttää keskustelua luonnollisena käyttöliittymänä.
+
+Käyttäjä voi:
+
+* kysyä
+* suunnitella
+* antaa tehtäviä
+* pyytää analyysiä
+* rakentaa yhdessä
+
+Keskustelu toimii älykkään työtilan sisäänkäyntinä.
+
+---
+
+# 8. Visuaalisen tiedon merkitys
+
+Kaikkea tietoa ei käsitellä tekstinä.
+
+Hyvä käyttöliittymä hyödyntää:
+
+* näkymiä
+* kortteja
+* kaavioita
+* tiloja
+* etenemistä
+* rakenteita
+
+---
+
+# 9. Käyttäjän kuormituksen vähentäminen
+
+Spacemonkey huomioi ihmisen rajat.
+
+Hyvä käyttöliittymä:
+
+* näyttää tärkeimmän ensin
+* jakaa suuret kokonaisuudet osiin
+* vähentää muistikuormaa
+* auttaa keskittymään
+
+---
+
+# 10. ADHD-ystävällinen käyttöperiaate
+
+Spacemonkey tukee erilaisia työskentelytapoja.
+
+Hyviä periaatteita:
+
+* yksi selkeä seuraava askel
+* näkyvä eteneminen
+* tärkeiden asioiden korostaminen
+* vähemmän turhaa vaihtamista
+
+Tavoitteena on tehdä tekemisestä helpompaa.
+
+---
+
+# 11. Käyttäjän tila ja konteksti
+
+Spacemonkey huomioi:
+
+* mitä käyttäjä tekee
+* missä projektissa ollaan
+* mitä tehtiin aiemmin
+* mikä on seuraava tavoite
+
+Käyttöliittymä ei ole irrallinen näkymä.
+
+Se on osa jatkuvaa yhteistyötä.
+
+---
+
+# 12. Personointi
+
+Jokainen käyttäjä voi rakentaa oman ympäristönsä.
+
+Personointi voi sisältää:
+
+* näkymät
+* työkalut
+* järjestyksen
+* ilmoitukset
+* toimintatavat
+
+---
+
+# 13. Käyttöliittymän ja AI Brainin yhteistyö
+
+```id="uibrain063"
+
+KÄYTTÄJÄ
+
+↓
+
+INTERFACE
+
+↓
+
+AI BRAIN
+
+↓
+
+YMMÄRRYS
+
+↓
+
+TOIMINTO
+
+↓
+
+TULOS
+
+↓
+
+NÄKYVÄ PALAUTE
+
+```
+
+---
+
+# 14. Palautteen merkitys
+
+Hyvä järjestelmä kertoo käyttäjälle:
+
+* mitä tapahtui
+* miksi tapahtui
+* mitä seuraavaksi tapahtuu
+
+Käyttäjä ei saa jäädä epävarmuuteen.
+
+---
+
+# 15. Käyttöliittymän kehittäminen
+
+Spacemonkey parantaa käyttöliittymää palautteen perusteella.
+
+Prosessi:
+
+```id="uidevelopment063"
+
+KÄYTTÖ
+
+↓
+
+PALAUTE
+
+↓
+
+HAVAINNOT
+
+↓
+
+MUUTOS
+
+↓
+
+TESTAUS
+
+↓
+
+PAREMPI KÄYTTÖKOKEMUS
+
+```
+
+---
+
+# 16. Wood-Booster AI OS -käyttöliittymä
+
+Wood-Booster ympäristössä käyttöliittymä voi sisältää:
+
+* projektinäkymät
+* asiakashallinnan
+* AI Brain -chatin
+* materiaalipankin
+* tuotetiedot
+* työnkulut
+* liiketoiminnan seurannan
+
+---
+
+# 17. Hyvän käyttöliittymän ominaisuudet
+
+## Helppokäyttöisyys
+
+Käyttäjä ymmärtää mitä tehdä.
+
+---
+
+## Tehokkuus
+
+Tehtävät valmistuvat nopeammin.
+
+---
+
+## Joustavuus
+
+Järjestelmä mukautuu tilanteeseen.
+
+---
+
+## Luotettavuus
+
+Käyttäjä ymmärtää järjestelmän toimintaa.
+
+---
+
+# 18. Human Interface kehityssilmukka
+
+```id="humanloop063"
+
+KUUNTELE
+
+↓
+
+YMMÄRRÄ
+
+↓
+
+SUUNNITTELE
+
+↓
+
+RAKENNA
+
+↓
+
+TESTAA
+
+↓
+
+PARANNA
+
+```
+
+---
+
+# 19. Käyttöliittymä, käyttökokemus ja Human Interface lait
+
+## Laki 1
+
+Käyttöliittymän tehtävä on auttaa ihmistä, ei näyttää järjestelmän monimutkaisuutta.
+
+---
+
+## Laki 2
+
+Selkeys on tehokkuuden perusta.
+
+---
+
+## Laki 3
+
+Hyvä käyttöliittymä vähentää käyttäjän kuormitusta.
+
+---
+
+## Laki 4
+
+Paras käyttöliittymä yhdistää ihmisen luonnollisen toiminnan tekniseen kyvykkyyteen.
+
+---
+
+## Laki 5
+
+Käyttökokemus kehittyy jatkuvan palautteen kautta.
+
+---
+
+# 20. Käyttöliittymä, käyttökokemus ja Human Interface Prime Directive
+
+"Rakenna ihmiskeskeinen rajapinta, jossa käyttäjä voi hyödyntää Spacemonkeyn koko kyvykkyyttä helposti, selkeästi ja luonnollisesti."
+
+---
+
+# Final Käyttöliittymä, käyttökokemus ja Human Interface Definition
+
+Käyttöliittymä, käyttökokemus ja Human Interface Core määrittää Spacemonkeyn kasvot ihmiselle.
+
+Taustalla voi olla valtava määrä teknologiaa.
+
+Mutta käyttäjä kohtaa järjestelmän aina käyttöliittymän kautta.
+
+Siksi hyvä käyttöliittymä ei ole koriste.
+
+Se on yhteistyön väline.
+
+Spacemonkeyn tavoite on tehdä tekoälyn käyttäminen yhtä luonnolliseksi kuin keskustelu ihmisen kanssa.
+
+Hyvä käyttöliittymä antaa ihmiselle mahdollisuuden:
+
+ymmärtää,
+
+rakentaa,
+
+oppia,
+
+ja luoda.
+
+---
+
+SPACEMONKEY SUOMI KÄYTTÖLIITTYMÄ, KÄYTTÖKOKEMUS JA HUMAN INTERFACE CORE
+
+Version: F063
+
+Status:
+ACTIVE
+
+ERA:
+FINNISH HUMAN INTERFACE FOUNDATION
+
+END OF GODFILE

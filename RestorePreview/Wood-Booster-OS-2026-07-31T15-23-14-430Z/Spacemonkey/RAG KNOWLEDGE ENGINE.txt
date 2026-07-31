@@ -1,0 +1,571 @@
+GODFILE:
+
+  id: RAG_KNOWLEDGE_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Retrieval Augmented Generation -
+    järjestelmien, tietopankkien,
+    dokumenttien käsittelyn ja
+    tiedonhaun osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    AI:n ei tarvitse muistaa kaikkea mallissa.
+    Se voi hakea oikean tiedon ulkoisesta
+    tietovarastosta ennen vastaamista.
+
+
+
+RAG_OBJECTIVES:
+
+
+  goals:
+
+
+    - build_knowledge_systems
+    - retrieve_relevant_information
+    - improve_AI_accuracy
+    - manage_documents
+    - connect_memory_and_knowledge
+
+
+
+
+
+RAG_ARCHITECTURE:
+
+
+  components:
+
+
+    user_query:
+
+
+      purpose:
+
+
+        >
+        Käyttäjän esittämä kysymys
+        tai tehtävä.
+
+
+
+
+
+    retrieval_layer:
+
+
+      purpose:
+
+
+        >
+        Etsii asiaankuuluvan tiedon.
+
+
+
+
+
+    knowledge_store:
+
+
+      purpose:
+
+
+        >
+        Säilyttää dokumentit ja tietorakenteet.
+
+
+
+
+
+    generation_layer:
+
+
+      purpose:
+
+
+        >
+        Luo vastauksen haetun tiedon perusteella.
+
+
+
+
+
+KNOWLEDGE_SYSTEM:
+
+
+  manage:
+
+
+    - documents
+    - files
+    - metadata
+    - categories
+    - versions
+
+
+
+
+
+DOCUMENT_PROCESSING:
+
+
+  handle:
+
+
+    - text_files
+    - PDFs
+    - markdown
+    - web_content
+    - code_files
+
+
+
+
+
+DOCUMENT_PIPELINE:
+
+
+  steps:
+
+
+    1:
+
+      collect_document
+
+
+    2:
+
+      validate_content
+
+
+    3:
+
+      extract_text
+
+
+    4:
+
+      split_into_chunks
+
+
+    5:
+
+      create_embeddings
+
+
+    6:
+
+      store_information
+
+
+
+
+
+CHUNKING:
+
+
+  understand:
+
+
+    purpose:
+
+
+      >
+      Pilkkoa suuri tieto pienempiin
+      haettaviin kokonaisuuksiin.
+
+
+
+
+
+  optimize:
+
+
+    - chunk_size
+    - overlap
+    - context_quality
+
+
+
+
+
+EMBEDDINGS:
+
+
+  understand:
+
+
+    purpose:
+
+
+      >
+      Muuttaa tekstin numeeriseksi
+      esitykseksi merkitysten hakua varten.
+
+
+
+
+
+  concepts:
+
+
+    learn:
+
+
+      - vector_representation
+      - semantic_similarity
+      - vector_search
+
+
+
+
+
+VECTOR_DATABASES:
+
+
+  understand:
+
+
+    examples:
+
+
+      - ChromaDB
+      - FAISS
+      - Pinecone
+      - Weaviate
+
+
+
+
+
+SEMANTIC_SEARCH:
+
+
+  improve:
+
+
+    - relevance
+    - context_selection
+    - answer_quality
+
+
+
+
+
+KNOWLEDGE_VALIDATION:
+
+
+  before_use:
+
+
+    verify:
+
+
+      - source
+      - freshness
+      - reliability
+      - relevance
+
+
+
+
+
+TRUTH_LAYER_INTEGRATION:
+
+
+  support:
+
+
+    - verified_information
+    - business_rules
+    - system_truth
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  knowledge_domains:
+
+
+    include:
+
+
+      - Wood-Booster_brand
+      - products
+      - workshop_processes
+      - materials
+      - customers
+      - AI_system
+      - development_notes
+
+
+
+
+
+AI_MEMORY_DIFFERENCE:
+
+
+  understand:
+
+
+    memory:
+
+
+      purpose:
+
+
+        >
+        Säilyttää kokemuksia,
+        käyttäjäkontekstia ja tapahtumia.
+
+
+
+
+
+    knowledge:
+
+
+      purpose:
+
+
+        >
+        Säilyttää opetettua,
+        haettavaa tietoa.
+
+
+
+
+
+MEMORY_INTEGRATION:
+
+
+  connect:
+
+
+    - conversation_memory
+    - project_memory
+    - knowledge_documents
+    - AI_context
+
+
+
+
+
+RAG_PROMPTING:
+
+
+  provide:
+
+
+    - retrieved_context
+    - source_information
+    - relevant_background
+
+
+
+
+
+HALLUCINATION_CONTROL:
+
+
+  prevent:
+
+
+    - unsupported_answers
+    - invented_facts
+    - missing_sources
+
+
+
+
+
+KNOWLEDGE_SECURITY:
+
+
+  protect:
+
+
+    - private_documents
+    - customer_information
+    - business_data
+    - internal_files
+
+
+
+
+
+  never:
+
+
+    - store_secrets_without_permission
+    - expose_private_documents
+    - trust_unknown_sources
+
+
+
+
+
+KNOWLEDGE_UPDATES:
+
+
+  process:
+
+
+    before_update:
+
+
+      - validate_change
+      - check_source
+      - maintain_history
+
+
+
+
+
+AI_AGENT_INTEGRATION:
+
+
+  support:
+
+
+    - researcher_agent
+    - developer_agent
+    - business_agent
+    - workshop_agent
+
+
+
+
+
+DEVELOPMENT_WORKFLOW:
+
+
+  steps:
+
+
+    1:
+
+      define_information_need
+
+
+    2:
+
+      collect_sources
+
+
+    3:
+
+      process_documents
+
+
+    4:
+
+      test_retrieval
+
+
+    5:
+
+      improve_quality
+
+
+
+
+
+SPACEMONKEY_STYLE:
+
+
+  always:
+
+
+    - separate_fact_from_guess
+    - prefer_verified_information
+    - maintain_source_traceability
+    - improve_knowledge_quality
+
+
+
+
+
+  never:
+
+
+    - pretend_unknown_information
+    - save_false_knowledge
+    - ignore_source_quality
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - documents
+      - search
+      - context
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - embeddings
+      - vector_databases
+      - retrieval
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - enterprise_RAG
+      - knowledge_graphs
+      - AI_memory_architecture
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

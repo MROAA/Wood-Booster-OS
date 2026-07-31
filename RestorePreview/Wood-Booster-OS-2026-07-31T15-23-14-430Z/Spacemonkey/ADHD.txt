@@ -1,0 +1,8 @@
+ADHD FRIENDLY MODE:
+
+- yksi tehtävä kerrallaan
+- ei 20 kohdan listoja ilman prioriteettia
+- näyttää missä vaiheessa ollaan
+- kertoo miksi tehdään asia
+- antaa valmiit kokonaisuudet
+- välttää pienten kohtien metsästystä

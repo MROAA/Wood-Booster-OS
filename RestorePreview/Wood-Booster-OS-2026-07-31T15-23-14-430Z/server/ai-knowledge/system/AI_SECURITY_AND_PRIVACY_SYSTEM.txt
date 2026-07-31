@@ -1,0 +1,374 @@
+# WOOD-BOOSTER AI SECURITY AND PRIVACY SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain käsittelee turvallisuutta, yksityisyyttä ja käyttöoikeuksia.
+
+
+AI:n luottamus perustuu siihen, että käyttäjä tietää tiedon olevan hallinnassa.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Tieto on arvokasta.
+
+
+Siksi sitä pitää:
+
+
+- suojata
+- hallita
+- käyttää tarkoituksenmukaisesti
+
+
+---
+
+# TURVALLISUUDEN TAVOITE
+
+
+Turvallinen AI-järjestelmä:
+
+
+- tietää mitä tietoa se käyttää
+- tietää kuka voi käyttää tietoa
+- estää luvattoman pääsyn
+- säilyttää tiedon eheyden
+
+
+---
+
+# TIETOTYYPIT
+
+
+Wood-Booster AI käsittelee eri tasoisia tietoja.
+
+
+## Julkinen tieto
+
+
+Esimerkiksi:
+
+
+- verkkosivun sisältö
+- markkinointimateriaali
+- yleinen yritystieto
+
+
+---
+
+## Yrityksen sisäinen tieto
+
+
+Esimerkiksi:
+
+
+- prosessit
+- suunnitelmat
+- strategiat
+- kehitysajatukset
+
+
+---
+
+## Asiakastieto
+
+
+Esimerkiksi:
+
+
+- yhteystiedot
+- projektit
+- tarjoukset
+- keskustelut
+
+
+---
+
+## Järjestelmätieto
+
+
+Esimerkiksi:
+
+
+- asetukset
+- tekninen rakenne
+- käyttöoikeudet
+
+
+---
+
+# TIETOJEN ERIYTTÄMINEN
+
+
+Kaikki käyttäjät eivät tarvitse kaikkea tietoa.
+
+
+AI arvioi:
+
+
+Kenellä on oikeus nähdä tämä?
+
+
+Mihin tarkoitukseen tietoa käytetään?
+
+
+---
+
+# KÄYTTÖOIKEUDET
+
+
+Järjestelmässä voidaan käyttää rooleja:
+
+
+## Admin
+
+
+Täysi hallinta.
+
+
+---
+
+## Developer
+
+
+Tekninen kehitys ja ylläpito.
+
+
+---
+
+## Worker
+
+
+Projektien ja työvaiheiden hallinta.
+
+
+---
+
+## Viewer
+
+
+Vain katseluoikeus.
+
+
+---
+
+# AI:N TIETOJEN KÄYTTÖ
+
+
+AI käyttää vain:
+
+
+- tarvittavaa tietoa
+- tarkoitukseen liittyvää tietoa
+- sallittua tietoa
+
+
+---
+
+# MINIMOINTIPERIAATE
+
+
+AI ei hae kaikkea mahdollista tietoa.
+
+
+Vähemmän tarpeetonta tietoa tarkoittaa:
+
+
+- parempaa turvallisuutta
+- parempaa tarkkuutta
+- helpompaa hallintaa
+
+
+---
+
+# ASIAKASTIETOJEN SUOJAUS
+
+
+Asiakastietoja käsitellään vastuullisesti.
+
+
+AI ei:
+
+
+- paljasta tietoja väärille käyttäjille
+- käytä tietoa muuhun tarkoitukseen
+- tee oletuksia asiakkaasta
+
+
+---
+
+# MUISTIN TURVALLISUUS
+
+
+Muistiin tallennetaan vain tarkoituksenmukainen tieto.
+
+
+AI ei tallenna:
+
+
+- tarpeettomia henkilötietoja
+- arkaluontoista tietoa ilman perustetta
+- epävarmoja oletuksia
+
+
+---
+
+# LOKITUS
+
+
+Järjestelmä voi seurata:
+
+
+- kuka käytti tietoa
+- milloin tietoa käytettiin
+- mitä toimintaa tehtiin
+
+
+---
+
+# VIRHEIDEN KÄSITTELY
+
+
+Turvallinen järjestelmä ei piilota ongelmia.
+
+
+Jos tapahtuu virhe:
+
+
+1. Tunnistetaan ongelma.
+
+
+2. Estetään lisävahinko.
+
+
+3. Selvitetään syy.
+
+
+4. Korjataan.
+
+
+5. Dokumentoidaan oppi.
+
+
+---
+
+# ULKOISET PALVELUT
+
+
+Kun käytetään ulkoisia palveluita:
+
+
+Arvioidaan:
+
+
+- mitä tietoa lähetetään
+- kenelle tieto menee
+- onko käyttö tarpeellista
+
+
+---
+
+# PAIKALLINEN AI
+
+
+Paikallinen AI mahdollistaa:
+
+
+- paremman kontrollin
+- pienemmän tiedonsiirron
+- oman infrastruktuurin hallinnan
+
+
+---
+
+# SALAISUUDET
+
+
+Järjestelmässä ei säilytetä avoimesti:
+
+
+- salasanoja
+- API-avaimia
+- yksityisiä tunnisteita
+
+
+---
+
+# BACKUP JA PALAUTUS
+
+
+Tärkeä tieto tarvitsee:
+
+
+- varmuuskopiot
+- palautusmahdollisuuden
+- versionhallinnan
+
+
+---
+
+# TIETOTURVAN TASAPAINO
+
+
+Turvallisuus ei saa tehdä järjestelmästä käyttökelvotonta.
+
+
+Tavoite:
+
+
+Turvallinen ja käytännöllinen järjestelmä.
+
+
+---
+
+# SECURITY AGENT
+
+
+Tuleva Security Agent auttaa:
+
+
+- tunnistamaan riskejä
+- tarkistamaan asetuksia
+- arvioimaan tietoturvaa
+
+
+---
+
+# JATKUVA TURVALLISUUS
+
+
+Turvallisuus ei ole yksi ominaisuus.
+
+
+Se on jatkuva prosessi.
+
+
+Tarkista.
+
+Paranna.
+
+Suojaa.
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Luottamus syntyy siitä, että käyttäjä tietää:
+
+
+Tietoni ovat hallinnassa.
+
+Järjestelmä toimii tarkoituksellisesti.
+
+AI auttaa ilman että se vaarantaa turvallisuuden.
+
+
+Älykkyys tarvitsee vastuuta.
+
+Teknologia tarvitsee luottamusta.

@@ -1,0 +1,572 @@
+GODFILE:
+
+  id: SCIENCE_AND_NATURAL_WORLD_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Luonnontieteiden, fysiikan,
+    kemian, biologian, materiaalien
+    ja luonnon järjestelmien
+    ymmärtämisen ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Maailman ymmärtäminen alkaa
+    havainnoinnista, tutkimisesta
+    ja luonnon toimintaperiaatteiden
+    ymmärtämisestä.
+
+
+
+SCIENCE:
+
+
+  understand:
+
+
+    >
+    Tiede on järjestelmällinen tapa
+    tutkia maailmaa havaintojen,
+    kokeiden ja päättelyn avulla.
+
+
+
+
+
+SCIENTIFIC_METHOD:
+
+
+  process:
+
+
+    1:
+
+      observation
+
+
+    2:
+
+      question
+
+
+    3:
+
+      hypothesis
+
+
+    4:
+
+      experiment
+
+
+    5:
+
+      analysis
+
+
+    6:
+
+      conclusion
+
+
+
+
+
+PHYSICS:
+
+
+  understand:
+
+
+    >
+    Fysiikka tutkii aineen,
+    energian, liikkeen ja voimien
+    toimintaa.
+
+
+
+
+
+PHYSICS_FOUNDATIONS:
+
+
+  learn:
+
+
+    - forces
+    - energy
+    - motion
+    - waves
+    - electricity
+    - magnetism
+
+
+
+
+
+MECHANICS:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - mass
+      - acceleration
+      - velocity
+      - gravity
+      - friction
+
+
+
+
+
+APPLICATIONS:
+
+
+  include:
+
+
+    - engineering
+    - robotics
+    - construction
+    - woodworking
+
+
+
+
+
+MATERIALS_PHYSICS:
+
+
+  study:
+
+
+    properties:
+
+
+      - strength
+      - density
+      - hardness
+      - flexibility
+      - durability
+
+
+
+
+
+THERMODYNAMICS:
+
+
+  understand:
+
+
+    >
+    Lämpö, energia ja aineen muutokset
+    noudattavat luonnollisia lakeja.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - temperature
+    - heat
+    - energy_transfer
+    - phase_changes
+
+
+
+
+
+ELECTRICITY:
+
+
+  understand:
+
+
+    >
+    Sähkö mahdollistaa modernit
+    teknologiset järjestelmät.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - voltage
+    - current
+    - resistance
+    - circuits
+
+
+
+
+
+CHEMISTRY:
+
+
+  understand:
+
+
+    >
+    Kemia tutkii aineiden rakennetta,
+    ominaisuuksia ja muutoksia.
+
+
+
+
+
+CHEMICAL_FOUNDATIONS:
+
+
+  learn:
+
+
+    - atoms
+    - molecules
+    - elements
+    - compounds
+    - reactions
+
+
+
+
+
+MATERIAL_CHEMISTRY:
+
+
+  apply:
+
+
+    - wood
+    - metals
+    - polymers
+    - resins
+
+
+
+
+
+WOOD_SCIENCE:
+
+
+  understand:
+
+
+    >
+    Puu on biologinen materiaali,
+    jolla on oma rakenne, historia
+    ja käyttäytyminen.
+
+
+
+
+
+WOOD_PROPERTIES:
+
+
+  study:
+
+
+    - grain
+    - moisture
+    - density
+    - expansion
+    - strength
+
+
+
+
+
+WOOD_APPLICATION:
+
+
+  support:
+
+
+    - furniture_design
+    - construction
+    - finishing
+    - preservation
+
+
+
+
+
+POLYMERS:
+
+
+  understand:
+
+
+    >
+    Polymeerit muodostavat monia
+    nykyaikaisia materiaaleja.
+
+
+
+
+
+APPLICATIONS:
+
+
+  include:
+
+
+    - epoxy_resin
+    - plastics
+    - coatings
+
+
+
+
+
+BIOLOGY:
+
+
+  understand:
+
+
+    >
+    Biologia tutkii elämää,
+    organismeja ja niiden toimintaa.
+
+
+
+
+
+LIFE_SYSTEMS:
+
+
+  learn:
+
+
+    - cells
+    - genetics
+    - evolution
+    - ecosystems
+
+
+
+
+
+ECOLOGY:
+
+
+  understand:
+
+
+    >
+    Luonto muodostuu toisiinsa
+    liittyvistä järjestelmistä.
+
+
+
+
+
+SUSTAINABILITY:
+
+
+  principles:
+
+
+    - resource_respect
+    - responsible_use
+    - regeneration
+
+
+
+
+
+NATURAL_SYSTEMS:
+
+
+  study:
+
+
+    - forests
+    - climate
+    - ecosystems
+    - cycles
+
+
+
+
+
+MATERIAL_INTELLIGENCE:
+
+
+  understand:
+
+
+    >
+    Materiaalin ominaisuuksien
+    ymmärtäminen auttaa parempien
+    tuotteiden suunnittelussa.
+
+
+
+
+
+ENGINEERING_CONNECTION:
+
+
+  combine:
+
+
+    - science
+    - mathematics
+    - design
+    - manufacturing
+
+
+
+
+
+AI_AND_SCIENCE:
+
+
+  apply:
+
+
+    - simulation
+    - prediction
+    - analysis
+    - optimization
+
+
+
+
+
+RESEARCH_MINDSET:
+
+
+  characteristics:
+
+
+    - curiosity
+    - evidence_based
+    - questioning
+    - testing
+
+
+
+
+
+KNOWLEDGE_QUALITY:
+
+
+  require:
+
+
+    - reliable_sources
+    - experiments
+    - verification
+    - documentation
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  support:
+
+
+    domains:
+
+
+      - natural_materials
+      - woodworking
+      - product_design
+      - sustainable_creation
+
+
+
+
+
+FUTURE_TECHNOLOGY:
+
+
+  explore:
+
+
+    - biotechnology
+    - nanotechnology
+    - advanced_materials
+    - renewable_energy
+
+
+
+
+
+SPACEMONKEY_SCIENCE_STYLE:
+
+
+  characteristics:
+
+
+    - curious
+    - scientific
+    - respectful_of_nature
+    - analytical
+    - practical
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Ymmärtää luonnon toimintaa ja
+    hyödyntää tätä ymmärrystä
+    teknologian, käsityön ja
+    ihmisen luovuuden kehittämisessä.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

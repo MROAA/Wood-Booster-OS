@@ -1,0 +1,716 @@
+GODFILE:
+
+  id: FINNISH_VERB_ENGINE
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Spacemonkeyn suomen kielen verbimoottori.
+    Hallitsee verbien taivutuksen,
+    aikamuodot, persoonamuodot,
+    modukset ja kielteiset rakenteet.
+
+
+
+language:
+
+  name: Finnish
+
+  module:
+    FinnishVerbEngine
+
+
+
+# =====================================
+# VERB BASICS
+# =====================================
+
+
+verb_system:
+
+
+  infinitive:
+
+    name:
+      perusmuoto
+
+    ending:
+
+      - a
+      - ä
+      - da
+      - dä
+
+
+    examples:
+
+      - tehdä
+      - mennä
+      - puhua
+      - kirjoittaa
+
+
+
+# =====================================
+# FIVE VERB TYPES
+# =====================================
+
+
+verb_types:
+
+
+
+  type_1:
+
+
+    pattern:
+
+      ending:
+
+        - a
+        - ä
+
+
+    examples:
+
+      puhua:
+
+        stem:
+          puhu
+
+
+        present:
+
+          minä:
+            puhun
+
+          sinä:
+            puhut
+
+          hän:
+            puhuu
+
+          me:
+            puhumme
+
+          te:
+            puhutte
+
+          he:
+            puhuvat
+
+
+
+  type_2:
+
+
+    pattern:
+
+      ending:
+
+        - da
+        - dä
+
+
+    examples:
+
+
+      syödä:
+
+
+        stem:
+
+          syö
+
+
+
+        present:
+
+          minä:
+            syön
+
+          sinä:
+            syöt
+
+          hän:
+            syö
+
+
+
+      juoda:
+
+
+        present:
+
+          minä:
+            juon
+
+
+
+  type_3:
+
+
+    pattern:
+
+
+      ending:
+
+        - la
+        - lä
+        - na
+        - nä
+        - ra
+        - rä
+
+
+    examples:
+
+
+      tulla:
+
+
+        stem:
+
+          tule
+
+
+        present:
+
+
+          minä:
+            tulen
+
+          sinä:
+            tulet
+
+          hän:
+            tulee
+
+
+
+      mennä:
+
+
+        present:
+
+
+          minä:
+            menen
+
+
+
+  type_4:
+
+
+    pattern:
+
+
+      ending:
+
+        - ata
+        - ätä
+
+
+
+    examples:
+
+
+      haluta:
+
+
+        present:
+
+
+          minä:
+            haluan
+
+
+
+      tavata:
+
+
+        present:
+
+
+          minä:
+            tapaan
+
+
+
+  type_5:
+
+
+    pattern:
+
+
+      ending:
+
+        - ita
+        - itä
+
+
+
+    examples:
+
+
+      tarvita:
+
+
+        present:
+
+
+          minä:
+            tarvitsen
+
+
+
+# =====================================
+# TENSE SYSTEM
+# =====================================
+
+
+tenses:
+
+
+
+  present:
+
+
+    name:
+
+      preesens
+
+
+    meaning:
+
+      >
+      Nykyhetken tapahtuma.
+
+
+    example:
+
+      "Minä teen."
+
+
+
+  imperfect:
+
+
+    name:
+
+      imperfekti
+
+
+    meaning:
+
+      >
+      Menneisyydessä tapahtunut asia.
+
+
+    example:
+
+      "Minä tein."
+
+
+
+  perfect:
+
+
+    structure:
+
+
+      auxiliary:
+
+        olla
+
+
+      main:
+
+        nut_participle
+
+
+
+    example:
+
+      "Olen tehnyt."
+
+
+
+  pluperfect:
+
+
+    structure:
+
+
+      auxiliary:
+
+        olla_past
+
+
+      main:
+
+        nut_participle
+
+
+
+    example:
+
+      "Olin tehnyt."
+
+
+
+# =====================================
+# MOODS
+# =====================================
+
+
+moods:
+
+
+
+  indicative:
+
+
+    purpose:
+
+      >
+      Tavallinen toteaminen.
+
+
+
+  conditional:
+
+
+    marker:
+
+      - isi
+
+
+    examples:
+
+
+      tehdä:
+
+        tekisin
+
+
+      mennä:
+
+        menisin
+
+
+
+  potential:
+
+
+    purpose:
+
+      >
+      Epävarma mutta mahdollinen tapahtuma.
+
+
+    example:
+
+
+      tehdä:
+
+        tehnen
+
+
+
+  imperative:
+
+
+    purpose:
+
+      >
+      Käsky tai pyyntö.
+
+
+
+    examples:
+
+
+      tehdä:
+
+        tee!
+
+
+      mennä:
+
+        mene!
+
+
+
+# =====================================
+# PASSIVE VOICE
+# =====================================
+
+
+passive:
+
+
+
+  present:
+
+
+    examples:
+
+
+      tehdä:
+
+        tehdään
+
+
+
+  past:
+
+
+    examples:
+
+
+      tehdä:
+
+        tehtiin
+
+
+
+  perfect:
+
+
+    examples:
+
+
+      tehdä:
+
+        on tehty
+
+
+
+# =====================================
+# NEGATION SYSTEM
+# =====================================
+
+
+negative_forms:
+
+
+
+  present:
+
+
+    auxiliary:
+
+      en
+
+
+    examples:
+
+
+      minä:
+
+        en tee
+
+
+      sinä:
+
+        et tee
+
+
+      hän:
+
+        ei tee
+
+
+
+  past:
+
+
+    auxiliary:
+
+      en
+
+
+    examples:
+
+
+      minä:
+
+        en tehnyt
+
+
+
+# =====================================
+# CONSONANT GRADATION
+# =====================================
+
+
+consonant_gradation:
+
+
+
+  strong_to_weak:
+
+
+    examples:
+
+
+      kk:
+
+        k
+
+
+      pp:
+
+        p
+
+
+      tt:
+
+        t
+
+
+      k:
+
+        disappears
+
+
+
+  examples:
+
+
+    puku:
+
+      puvun
+
+
+    matto:
+
+      maton
+
+
+    pankki:
+
+      pankin
+
+
+
+# =====================================
+# PARTICIPLES
+# =====================================
+
+
+participles:
+
+
+
+  present:
+
+    ending:
+
+      - va
+      - vä
+
+
+    example:
+
+
+      tekevä
+
+
+
+  past:
+
+
+    ending:
+
+
+      - nut
+      - nyt
+
+
+    examples:
+
+
+      tehnyt
+
+      mennyt
+
+
+
+# =====================================
+# VERB ENGINE RULES
+# =====================================
+
+
+rules:
+
+
+  - analyze_root_word
+
+  - identify_verb_type
+
+  - apply_stem_changes
+
+  - apply_person_ending
+
+  - apply_time_marker
+
+  - validate_sentence_context
+
+
+
+# =====================================
+# SPACEMONKEY INTEGRATION
+# =====================================
+
+
+spacemonkey:
+
+
+  responsibilities:
+
+
+    - understand_finnish_verbs
+
+    - generate_correct_forms
+
+    - explain_grammar
+
+    - correct_user_text
+
+    - teach_finnish
+
+
+
+future_expansions:
+
+
+  - advanced_aspect_system
+
+  - dialect_verbs
+
+  - spoken_finnish
+
+  - archaic_forms
+
+  - professional_language
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

@@ -1,0 +1,303 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=UnifrakturMaguntia&display=swap");
+
+
+
+:root {
+
+  --spacemonkey-black:
+    #050505;
+
+  --spacemonkey-green:
+    #39ff14;
+
+  --spacemonkey-orange:
+    #ff8c00;
+
+  --spacemonkey-red:
+    #ff3131;
+
+}
+
+
+
+
+
+.spacemonkey-title {
+
+
+  font-family:
+    "UnifrakturMaguntia",
+    serif;
+
+
+  letter-spacing:
+    0.04em;
+
+
+  text-shadow:
+
+    0 0 10px
+    rgba(
+      57,
+      255,
+      20,
+      0.35
+    ),
+
+    0 0 30px
+    rgba(
+      57,
+      255,
+      20,
+      0.15
+    );
+
+
+}
+
+
+
+
+
+
+.spacemonkey-panel {
+
+
+  position: relative;
+
+
+  overflow: hidden;
+
+
+  background:
+
+    radial-gradient(
+      circle at top right,
+      rgba(
+        57,
+        255,
+        20,
+        0.08
+      ),
+      transparent 40%
+    ),
+
+    #050505;
+
+
+}
+
+
+
+
+
+
+
+.spacemonkey-panel::before {
+
+
+  content:"";
+
+
+  position:absolute;
+
+
+  inset:0;
+
+
+  pointer-events:none;
+
+
+  background:
+
+    linear-gradient(
+
+      90deg,
+
+      transparent,
+
+      rgba(
+        255,
+        255,
+        255,
+        0.02
+      ),
+
+      transparent
+
+    );
+
+
+  animation:
+
+    spacemonkey-scan
+    8s
+    linear
+    infinite;
+
+
+}
+
+
+
+
+
+
+
+@keyframes spacemonkey-scan {
+
+
+  0% {
+
+
+    transform:
+      translateX(
+        -100%
+      );
+
+
+  }
+
+
+
+  100% {
+
+
+    transform:
+      translateX(
+        100%
+      );
+
+
+  }
+
+
+}
+
+
+
+
+
+
+
+.spacemonkey-glow {
+
+
+  box-shadow:
+
+    0 0 20px
+    rgba(
+      57,
+      255,
+      20,
+      0.15
+    );
+
+
+
+}
+
+
+
+
+
+
+
+.spacemonkey-danger {
+
+
+  color:
+    var(--spacemonkey-red);
+
+
+  border-color:
+
+    rgba(
+      255,
+      49,
+      49,
+      0.4
+    );
+
+
+}
+
+
+
+
+
+
+
+.spacemonkey-terminal {
+
+
+  font-family:
+
+    "Inter",
+    sans-serif;
+
+
+  background:
+
+    #000;
+
+
+  color:
+
+    #d8ffd8;
+
+
+}
+
+
+
+
+
+
+
+.spacemonkey-terminal::-webkit-scrollbar {
+
+
+  width:
+
+    8px;
+
+
+}
+
+
+
+
+
+
+
+.spacemonkey-terminal::-webkit-scrollbar-track {
+
+
+  background:
+
+    #111;
+
+
+}
+
+
+
+
+
+
+
+.spacemonkey-terminal::-webkit-scrollbar-thumb {
+
+
+  background:
+
+    var(--spacemonkey-green);
+
+
+  border-radius:
+
+    999px;
+
+
+}
