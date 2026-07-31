@@ -1,3 +1,7 @@
+
+import {
+  createSpacemonkeySecurityCoreRouter,
+} from "./routes/spacemonkeySecurityCore.js"
 import {
   createSpacemonkeyPersonalityRuntimeRouter,
 } from "./routes/spacemonkeyPersonalityRuntime.js"
@@ -168,6 +172,11 @@ app.locals.prisma =
 const PORT =
   process.env.PORT || 3001
 
+ 
+app.use(
+  "/api",
+  createSpacemonkeySecurityCoreRouter()
+)
 app.use(
   "/api",
   createSpacemonkeyPersonalityRuntimeRouter()
