@@ -54,6 +54,7 @@ function Spacemonkey(){
         snapshot,
         modules,
         runtime,
+        capabilities,
       ] =
       await Promise.all([
 
@@ -112,7 +113,16 @@ function Spacemonkey(){
           r=>r.json()
         ),
 
+
+        fetch(
+          `${API_URL}/spacemonkey/capabilities`
+        )
+        .then(
+          r=>r.json()
+        ),
+
       ])
+
 
 
 
@@ -132,6 +142,8 @@ function Spacemonkey(){
         modules,
 
         runtime,
+
+        capabilities,
 
       })
 
@@ -156,13 +168,6 @@ function Spacemonkey(){
 
 
   }
-
-
-
-
-
-
-
   useEffect(()=>{
 
 
@@ -295,6 +300,19 @@ function Spacemonkey(){
 
 
 
+  const capabilities =
+    data.capabilities?.capabilities
+    ||
+    {
+      total:0,
+      available:0,
+      capabilities:[]
+    }
+
+
+
+
+
 
 
   return (
@@ -304,46 +322,31 @@ function Spacemonkey(){
 
       <header>
 
-
-        <p
-          className="
-            text-sm
-            uppercase
-            tracking-[0.3em]
-            text-amber-500
-          "
-        >
-
+        <p className="
+          text-sm
+          uppercase
+          tracking-[0.3em]
+          text-amber-500
+        ">
           AI Operator
-
         </p>
 
 
-
-        <h1
-          className="
-            mt-2
-            text-4xl
-            font-bold
-          "
-        >
-
+        <h1 className="
+          mt-2
+          text-4xl
+          font-bold
+        ">
           🐒 Spacemonkey
-
         </h1>
 
 
-
-        <p
-          className="
-            mt-3
-            text-neutral-400
-          "
-        >
-
+        <p className="
+          mt-3
+          text-neutral-400
+        ">
           Wood-Booster OS:n AI-operaattori
           ja järjestelmän valvoja.
-
         </p>
 
 
@@ -353,20 +356,15 @@ function Spacemonkey(){
 
 
 
-
-
-      <div
-        className="
-          grid
-          grid-cols-1
-          gap-5
-          md:grid-cols-3
-        "
-      >
+      <div className="
+        grid
+        grid-cols-1
+        gap-5
+        md:grid-cols-3
+      ">
 
 
         <Card title="Identity">
-
 
           <p>
             Name:
@@ -383,11 +381,8 @@ function Spacemonkey(){
 
 
           <p className="text-green-400">
-
             🟢 Active
-
           </p>
-
 
         </Card>
 
@@ -396,7 +391,6 @@ function Spacemonkey(){
 
 
         <Card title="Kernel">
-
 
           <p>
             Core:
@@ -413,11 +407,8 @@ function Spacemonkey(){
 
 
           <p className="text-green-400">
-
             🟢 Healthy
-
           </p>
-
 
         </Card>
 
@@ -426,7 +417,6 @@ function Spacemonkey(){
 
 
         <Card title="Safety">
-
 
           <p>
             Snapshots:
@@ -449,11 +439,8 @@ function Spacemonkey(){
 
 
           <p className="text-green-400">
-
             🛡 Protected
-
           </p>
-
 
         </Card>
 
@@ -464,10 +451,7 @@ function Spacemonkey(){
 
 
 
-
-
       <Card title="API Gateway">
-
 
         {
           catalog.apis.map(
@@ -484,23 +468,17 @@ function Spacemonkey(){
               >
 
                 <p className="font-bold">
-
                   {api.id}
-
                 </p>
 
 
                 <p className="text-neutral-400">
-
                   {api.path}
-
                 </p>
 
 
                 <p className="text-green-400">
-
                   {api.status}
-
                 </p>
 
               </div>
@@ -509,17 +487,13 @@ function Spacemonkey(){
           )
         }
 
-
       </Card>
 
 
 
 
 
-
-
       <Card title="Modules">
-
 
         {
           modules.map(
@@ -536,27 +510,20 @@ function Spacemonkey(){
               >
 
                 <p className="font-bold">
-
                   {module.name}
-
                 </p>
 
 
                 <p className="text-neutral-400">
-
                   Version:
                   {" "}
                   {module.version}
-
                 </p>
 
 
                 <p className="text-green-400">
-
                   🟢 {module.health}
-
                 </p>
-
 
               </div>
 
@@ -564,17 +531,13 @@ function Spacemonkey(){
           )
         }
 
-
       </Card>
 
 
 
 
 
-
-
       <Card title="Runtime Awareness">
-
 
         <p>
           Platform:
@@ -605,10 +568,57 @@ function Spacemonkey(){
 
 
         <p className="text-green-400">
-
           🟢 Healthy
-
         </p>
+
+      </Card>
+
+
+
+
+
+      <Card title="Capability Health">
+
+
+        <p>
+          Available:
+          {" "}
+          {capabilities.available}
+          /
+          {capabilities.total}
+        </p>
+
+
+
+        {
+          capabilities.capabilities.map(
+            capability=>(
+
+              <div
+                key={capability.id}
+                className="
+                  border-b
+                  border-neutral-800
+                  pb-2
+                "
+              >
+
+                <p>
+                  {capability.name}
+                </p>
+
+
+                <p className="text-green-400">
+
+                  🟢 {capability.status}
+
+                </p>
+
+              </div>
+
+            )
+          )
+        }
 
 
       </Card>
@@ -617,28 +627,20 @@ function Spacemonkey(){
 
 
 
-
-
       <Card title="Snapshot">
 
-
         <p>
-
           Version:
           {" "}
           {data.snapshot.version}
-
         </p>
 
 
         <p>
-
           Status:
           {" "}
           ACTIVE
-
         </p>
-
 
       </Card>
 
@@ -673,7 +675,6 @@ function Card({
       "
     >
 
-
       <h2
         className="
           mb-4
@@ -681,9 +682,7 @@ function Card({
           font-bold
         "
       >
-
         {title}
-
       </h2>
 
 
