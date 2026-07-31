@@ -27,7 +27,9 @@ import systemPulseRouter from "./routes/systemPulse.js"
 import {
   integrateSystemLayer,
 } from "./services/systemServerIntegration.js"
-
+import {
+  createSpacemonkeyLearningRouter,
+} from "./routes/spacemonkeyLearning.js"
 import {
   createSpacemonkeyExecutionRouter,
 } from "./routes/spacemonkeyExecution.js"
@@ -571,7 +573,10 @@ app.get(
 
 
 
-
+app.use(
+  "/api",
+  createSpacemonkeyLearningRouter()
+)
 
 app.use(
   (
