@@ -1,4 +1,7 @@
 import {
+  createSpacemonkeySecurityMemoryRouter,
+} from "./routes/spacemonkeySecurityMemory.js"
+import {
   createSpacemonkeyInternetSafetyRouter,
 } from "./routes/spacemonkeyInternetSafety.js"
 import {
@@ -235,6 +238,10 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeySecurityReflectionRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecurityMemoryRouter()
 )
 app.use(
   "/api",
