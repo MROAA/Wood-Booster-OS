@@ -5,7 +5,9 @@ import {
   PrismaClient,
 } from "./generated/prisma/client.js"
 
-
+import {
+  createSpacemonkeyReflectionRouter,
+} from "./routes/spacemonkeyReflection.js"
 import createAIBrainChatRouter from "./routes/ai-brain-chat.js"
 import createAIBrainV2Router from "./routes/ai-brain-v2.js"
 import {
@@ -483,6 +485,10 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyCapabilitiesRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyReflectionRouter()
 )
 /*
 =====================================
