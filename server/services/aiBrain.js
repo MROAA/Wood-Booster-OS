@@ -3,8 +3,17 @@ import {
 } from "./systemFilter.js"
 
 import {
+  isRestrictedWorkshopQuestion,
+  createWorkshopRestrictionAnswer,
+} from "./workshopPolicyGate.js"
+
+import {
   buildAIContext,
 } from "./contextBuilder.js"
+
+import {
+  applySpacemonkeyResponseGuard,
+} from "./spacemonkey/responseGuard.js"
 
 import {
   processMemoryPipeline,
@@ -49,6 +58,130 @@ function normalizeArray(value) {
 
 
 
+function cleanMemory(memory = []) {
+
+  return normalizeArray(memory)
+    .filter(
+      item => {
+
+        const content =
+          String(
+            item.content || "",
+          )
+          .toLowerCase()
+
+
+        return (
+          content &&
+
+          !content.startsWith("mitä muistat") &&
+
+          !content.startsWith("miten haluan") &&
+
+          !content.startsWith("mikä on")
+        )
+
+      },
+    )
+
+}
+
+
+
+function filterKnowledgeByTruth({
+  knowledge = [],
+  truths = [],
+}) {
+
+  const hasProductTruth =
+    truths.some(
+      truth =>
+        truth.source === "PRODUCT_TRUTH",
+    )
+
+
+  if (!hasProductTruth) {
+
+    return knowledge
+
+  }
+
+
+  return knowledge.filter(
+    item => {
+
+      const name =
+        String(
+          item.name ||
+          item.file ||
+          "",
+        )
+        .toLowerCase()
+
+
+      return (
+
+        !name.includes("engineer") &&
+
+        !name.includes("brain_505") &&
+
+        !name.includes("implementation") &&
+
+        !name.includes("workshop") &&
+
+        !name.includes("manufacturing") &&
+
+        !name.includes("development") &&
+
+        !name.includes("product_design")
+
+      )
+
+    },
+  )
+
+}
+
+
+
+function buildMemoryInstruction(
+  memory = [],
+) {
+
+  if (
+    memory.length === 0
+  ) {
+
+    return ""
+
+  }
+
+
+  return `
+
+==================================================
+USER MEMORY INSTRUCTIONS
+==================================================
+
+Nämä ovat käyttäjän pysyviä toimintatapoja.
+
+Noudata niitä vastauksessa.
+
+${memory
+.map(
+  item =>
+    `- ${item.content}`,
+)
+.join("\n")}
+
+==================================================
+
+`
+
+}
+
+
+
 export async function runAIBrain({
 
   message,
@@ -65,22 +198,22 @@ export async function runAIBrain({
 
   prisma,
 
+  runtimeContext = {},
+
 }) {
+
 
   try {
 
 
-    console.log(
-      "AI BRAIN START",
-    )
-
-
-
     const systems =
+
       normalizeArray(
+
         await filterSystemFiles(
           message,
         ),
+
       )
 
 
@@ -91,6 +224,7 @@ export async function runAIBrain({
       )
 
 
+
     const truths =
       normalizeArray(
         truthBundle?.truths,
@@ -99,6 +233,7 @@ export async function runAIBrain({
 
 
     const truthContext =
+
       truths.length
 
         ? `
@@ -106,8 +241,9 @@ export async function runAIBrain({
 WOOD-BOOSTER OFFICIAL TRUTH
 
 ${truths
-  .map(
-    truth => `
+.map(
+truth =>
+`
 
 SOURCE:
 ${truth.source}
@@ -115,12 +251,14 @@ ${truth.source}
 ${truth.answer}
 
 `,
-  )
-  .join("\n")}
+)
+.join("\n")}
 
 `
 
-        : ""
+        :
+
+        ""
 
 
 
@@ -131,30 +269,47 @@ ${truth.answer}
     if (prisma) {
 
       databaseKnowledge =
+
         normalizeArray(
+
           await readDatabaseKnowledge({
+
             prisma,
+
             message,
+
           }),
+
         )
 
     }
 
 
 
+    const filteredKnowledge =
+
+      filterKnowledgeByTruth({
+
+        knowledge:
+          normalizeArray(
+            knowledge,
+          ),
+
+        truths,
+
+      })
+
+
+
     const combinedKnowledge = [
 
-      ...normalizeArray(
-        knowledge,
-      ),
+      ...filteredKnowledge,
 
       ...databaseKnowledge,
 
     ]
+        const memoryRetrieval =
 
-
-
-    const memoryRetrieval =
       await retrieveRelevantMemories({
 
         prisma,
@@ -170,13 +325,19 @@ ${truth.answer}
 
     const finalMemory =
 
-      memory.length > 0
+      cleanMemory([
 
-        ? memory
+        ...normalizeArray(memory),
 
-        : normalizeArray(
-            memoryRetrieval.memories,
-          )
+        ...normalizeArray(
+          memoryRetrieval.memories,
+        ),
+
+      ])
+      .slice(
+        0,
+        8,
+      )
 
 
 
@@ -186,6 +347,7 @@ ${truth.answer}
 
 
     const context =
+
       await buildAIContext({
 
         message,
@@ -207,6 +369,14 @@ ${truth.answer}
 
 
 
+    const memoryInstructions =
+
+      buildMemoryInstruction(
+        finalMemory,
+      )
+
+
+
     const finalContext = `
 
 ${systemContext}
@@ -218,29 +388,86 @@ ${truthContext}
 ${context}
 
 
-WOOD-BOOSTER AI RULES:
+${memoryInstructions}
 
-- Vastaa annetun tiedon perusteella.
-- Älä keksi tietoa.
-- Jos tieto puuttuu, sano se.
-- Käytä Wood-Booster arvoja:
-  Aitous
-  Laatu
-  Käsityö
-  Puun tarina
+
+AI SYSTEM RULES:
+
+- Vastaa vain annetun ja vahvistetun tiedon perusteella.
+- Älä keksi puuttuvia faktoja.
+- Jos tieto puuttuu, ilmoita että sitä ei ole vahvistettu.
+- Ole selkeä ja suora.
+
+
+TRUTH AUTHORITY LOCK:
+
+Jos WOOD-BOOSTER OFFICIAL TRUTH sisältää rajoituksen,
+sitä tulee noudattaa ennen muuta tietoa.
+
+
+IDENTITY SEPARATION:
+
+- Spacemonkey on AI-käyttöjärjestelmän operaattori.
+- Wood-Booster on projektiympäristö.
+- Älä sekoita projektin arvoja Spacemonkeyn identiteettiin.
 
 `
 
 
 
-    console.log(
-      "CONTEXT READY",
-      finalContext.length,
-    )
+    if (
+      isRestrictedWorkshopQuestion(
+        message,
+      )
+    ) {
+
+      return {
+
+        success:
+          true,
+
+        answer:
+          createWorkshopRestrictionAnswer(),
+
+        model,
+
+        knowledgeSources:
+
+          combinedKnowledge.map(
+            item =>
+              item.name ||
+              item.title ||
+              item.file ||
+              "unknown",
+          ),
+
+        memoryContext:
+          finalMemory,
+
+        debug: {
+
+          systemsLoaded:
+            systems.length,
+
+          truthLayer:
+            truths.length > 0,
+
+          spacemonkeyContext:
+            true,
+
+          workshopBlocked:
+            true,
+
+        },
+
+      }
+
+    }
 
 
 
     const answer =
+
       await askOllama({
 
         model,
@@ -254,18 +481,22 @@ WOOD-BOOSTER AI RULES:
 
 
 
-    console.log(
-      "BRAIN RESULT RECEIVED",
-    )
+    const guardedAnswer =
+
+      applySpacemonkeyResponseGuard(
+        answer,
+      )
 
 
 
     const memoryPipelineResult =
+
       await processMemoryPipeline({
 
         message,
 
-        answer,
+        answer:
+          guardedAnswer,
 
         prismaClient:
           prisma,
@@ -281,17 +512,20 @@ WOOD-BOOSTER AI RULES:
       success:
         true,
 
-      answer,
+      answer:
+        guardedAnswer,
 
       model,
 
 
       memoryProposalCreated:
+
         memoryPipelineResult
           ?.memoryProposalCreated === true,
 
 
       memoryProposal:
+
         memoryPipelineResult
           ?.memoryProposal ||
         null,
@@ -300,24 +534,25 @@ WOOD-BOOSTER AI RULES:
       knowledgeSources:
 
         combinedKnowledge.map(
+
           item =>
+
             item.name ||
             item.title ||
             item.file ||
             "unknown",
+
         ),
+
+
+      memoryContext:
+        finalMemory,
 
 
       debug: {
 
         systemsLoaded:
           systems.length,
-
-
-        systemContextLoaded:
-          Boolean(
-            systemContext,
-          ),
 
 
         truthLayer:
@@ -337,9 +572,7 @@ WOOD-BOOSTER AI RULES:
 
 
   }
-
   catch(error) {
-
 
     console.error(
       "AI BRAIN ERROR",
@@ -363,6 +596,8 @@ WOOD-BOOSTER AI RULES:
 
 
 
+
+
 async function askOllama({
 
   model,
@@ -374,171 +609,101 @@ async function askOllama({
 }) {
 
 
-  console.log(
-    "OLLAMA REQUEST START",
-  )
+  const response =
 
+    await fetch(
 
-  const controller =
-    new AbortController()
+      `${OLLAMA_URL}/api/chat`,
 
+      {
 
+        method:
+          "POST",
 
-  const timeout =
-    setTimeout(
-      () => {
+        headers: {
 
-        controller.abort()
-
-      },
-      60000,
-    )
-
-
-
-  try {
-
-
-    const response =
-      await fetch(
-
-        `${OLLAMA_URL}/api/chat`,
-
-        {
-
-          method:
-            "POST",
-
-          signal:
-            controller.signal,
-
-
-          headers: {
-
-            "Content-Type":
-              "application/json",
-
-          },
-
-
-          body:
-
-            JSON.stringify({
-
-              model,
-
-              stream:
-                false,
-
-
-              messages: [
-
-                {
-
-                  role:
-                    "system",
-
-                  content:
-                    context,
-
-                },
-
-
-                {
-
-                  role:
-                    "user",
-
-                  content:
-                    message,
-
-                },
-
-              ],
-
-
-              options: {
-
-                temperature:
-                  0.2,
-
-
-                num_ctx:
-                  4096,
-
-              },
-
-            }),
+          "Content-Type":
+            "application/json",
 
         },
 
-      )
+
+        body:
+
+          JSON.stringify({
+
+            model,
+
+            stream:
+              false,
 
 
+            messages: [
 
-    console.log(
-      "OLLAMA STATUS",
-      response.status,
+              {
+
+                role:
+                  "system",
+
+                content:
+                  context,
+
+              },
+
+
+              {
+
+                role:
+                  "user",
+
+                content:
+                  message,
+
+              },
+
+            ],
+
+
+            options: {
+
+              temperature:
+                0.2,
+
+
+              num_ctx:
+                8192,
+
+            },
+
+          }),
+
+      },
+
     )
 
 
 
-    const data =
-      await response.json()
+  const data =
+    await response.json()
 
 
 
-    console.log(
-      "OLLAMA JSON RECEIVED",
-    )
+  if (!response.ok) {
 
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        data.error ||
-        "Ollama error",
-      )
-
-    }
-
-
-
-    return String(
-      data.message?.content ||
-      "",
-    ).trim()
-
-
-  }
-
-  catch(error) {
-
-
-    if (
-      error.name ===
-      "AbortError"
-    ) {
-
-      throw new Error(
-        "Ollama timeout 60s",
-      )
-
-    }
-
-
-    throw error
-
-  }
-
-
-  finally {
-
-    clearTimeout(
-      timeout,
+    throw new Error(
+      data.error ||
+      "Ollama error",
     )
 
   }
+
+
+
+  return String(
+
+    data.message?.content ||
+    "",
+
+  ).trim()
 
 }

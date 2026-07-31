@@ -1,0 +1,583 @@
+GODFILE:
+
+  id: FINNISH_SENTENCE_ENGINE
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Spacemonkeyn suomen kielen lauserakenne-
+    ja tekstinmuodostusmoottori.
+    Hallitsee suomen kielen sanajärjestystä,
+    lauseiden rakennetta ja merkityksen muodostamista.
+
+
+
+language:
+
+  name: Finnish
+
+  module:
+
+    name:
+      FinnishSentenceEngine
+
+
+
+# =====================================
+# PERUSLAUSE
+# =====================================
+
+
+basic_sentence:
+
+
+  structure:
+
+
+    default:
+
+      - subject
+      - verb
+      - object
+
+
+
+  example:
+
+
+    sentence:
+
+      "Marc valmistaa pöydän."
+
+
+    analysis:
+
+
+      subject:
+
+        Marc
+
+
+      verb:
+
+        valmistaa
+
+
+      object:
+
+        pöydän
+
+
+
+# =====================================
+# SANALUOKAT
+# =====================================
+
+
+word_classes:
+
+
+  noun:
+
+
+    purpose:
+
+      - person
+      - object
+      - place
+      - concept
+
+
+
+  verb:
+
+
+    purpose:
+
+      - action
+      - state
+      - change
+
+
+
+  adjective:
+
+
+    purpose:
+
+      - description
+      - quality
+
+
+
+  adverb:
+
+
+    purpose:
+
+      - time
+      - place
+      - manner
+
+
+
+  pronoun:
+
+
+    examples:
+
+      - minä
+      - sinä
+      - hän
+      - tämä
+      - tuo
+
+
+
+# =====================================
+# SUOMEN SANAjärjestys
+# =====================================
+
+
+word_order:
+
+
+  principle:
+
+
+    >
+    Suomen kielessä sanajärjestys on joustava,
+    mutta järjestys vaikuttaa painotukseen.
+
+
+
+  neutral:
+
+
+    example:
+
+      "Minä teen pöydän."
+
+
+
+  emphasis:
+
+
+    examples:
+
+
+      object_first:
+
+        "Pöydän minä teen."
+
+        meaning:
+
+          >
+          Korostaa pöytää.
+
+
+
+      verb_first:
+
+        "Teen minä pöydän."
+
+        meaning:
+
+          >
+          Korostaa tekemistä.
+
+
+
+# =====================================
+# KYSYMYSLAUSEET
+# =====================================
+
+
+questions:
+
+
+  yes_no_questions:
+
+
+    rule:
+
+
+      >
+      Verbin loppuun lisätään usein -ko/-kö.
+
+
+
+    examples:
+
+
+      statement:
+
+        "Tulet kotiin."
+
+
+      question:
+
+        "Tuletko kotiin?"
+
+
+
+  question_words:
+
+
+    words:
+
+
+      kuka:
+
+        meaning:
+          henkilö
+
+
+      mikä:
+
+        meaning:
+          asia
+
+
+      missä:
+
+        meaning:
+          paikka
+
+
+      milloin:
+
+        meaning:
+          aika
+
+
+      miksi:
+
+        meaning:
+          syy
+
+
+      miten:
+
+        meaning:
+          tapa
+
+
+
+# =====================================
+# KIELTOLAUSEET
+# =====================================
+
+
+negative_sentences:
+
+
+  structure:
+
+
+    negative_auxiliary:
+
+      - en
+      - et
+      - ei
+      - emme
+      - ette
+      - eivät
+
+
+
+  examples:
+
+
+    positive:
+
+      "Minä teen."
+
+
+    negative:
+
+      "Minä en tee."
+
+
+
+# =====================================
+# SIVULAUSEET
+# =====================================
+
+
+subordinate_clauses:
+
+
+
+  että:
+
+
+    purpose:
+
+      kertoo asian
+
+
+
+    example:
+
+
+      "Tiedän, että hän tulee."
+
+
+
+  koska:
+
+
+    purpose:
+
+      syy
+
+
+
+    example:
+
+
+      "Menin kotiin, koska satoi."
+
+
+
+  jos:
+
+
+    purpose:
+
+      ehto
+
+
+
+    example:
+
+
+      "Jos aikaa on, tulen."
+
+
+
+  vaikka:
+
+
+    purpose:
+
+      vastakohta
+
+
+
+    example:
+
+
+      "Tulisin, vaikka olisi vaikeaa."
+
+
+
+# =====================================
+# RELATIIVILAUSEET
+# =====================================
+
+
+relative_clauses:
+
+
+  relative_words:
+
+
+    joka:
+
+      function:
+
+        viittaa henkilöön tai asiaan
+
+
+
+    mikä:
+
+      function:
+
+        viittaa asiaan tai kokonaisuuteen
+
+
+
+  examples:
+
+
+    "Pöytä, jonka valmistin, on valmis."
+
+
+
+# =====================================
+# AIKARAKENTEET
+# =====================================
+
+
+time_expression:
+
+
+  past:
+
+
+    examples:
+
+
+      - eilen
+      - viime vuonna
+      - aiemmin
+
+
+
+  present:
+
+
+    examples:
+
+
+      - nyt
+      - tänään
+
+
+
+  future:
+
+
+    rule:
+
+
+      >
+      Suomen kielessä tulevaisuus ilmaistaan
+      yleensä preesensillä ja aikamääreellä.
+
+
+
+    examples:
+
+
+      "Teen sen huomenna."
+
+
+
+# =====================================
+# TEKSTIN RAKENTAMINEN
+# =====================================
+
+
+paragraph_structure:
+
+
+  ideal:
+
+
+    - topic_sentence
+    - explanation
+    - example
+    - conclusion
+
+
+
+  Finnish_style:
+
+
+    principles:
+
+
+      - clear
+      - direct
+      - logical
+      - practical
+
+
+
+# =====================================
+# SUOMALAINEN ILMAISU
+# =====================================
+
+
+communication_style:
+
+
+  preferred:
+
+
+    - asia_ensin
+
+    - vältä_liioittelua
+
+    - kerro_perustelut
+
+    - käytä_tarkkoja_sanoja
+
+
+
+  examples:
+
+
+    weak:
+
+
+      "Tämä on aivan uskomattoman täydellinen ratkaisu."
+
+
+    Finnish_style:
+
+
+      "Tämä ratkaisu toimii tähän tarkoitukseen hyvin."
+
+
+
+# =====================================
+# SPACEMONKEY LANGUAGE PROCESSING
+# =====================================
+
+
+engine:
+
+
+  tasks:
+
+
+    - parse_sentence
+
+    - identify_word_roles
+
+    - understand_meaning
+
+    - generate_correct_finnish
+
+    - explain_grammar
+
+    - correct_user_text
+
+
+
+future_modules:
+
+
+  - FinnishSemanticEngine
+
+  - FinnishVocabularyEngine
+
+  - FinnishDialectEngine
+
+  - FinnishProfessionalWritingEngine
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active:
+
+    true

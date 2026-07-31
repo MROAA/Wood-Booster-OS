@@ -1,192 +1,299 @@
 import { useEffect, useState } from "react"
+
 import { apiGet } from "../api/client"
 
+import DashboardHero from "../components/dashboard/DashboardHero"
+import DashboardChat from "../components/dashboard/DashboardChat"
+import DashboardWorkspaceStatus from "../components/dashboard/DashboardWorkspaceStatus"
 
-function Dashboard(){
 
-const [backend,setBackend] = useState(
-"CHECKING"
-)
 
+function Dashboard() {
 
-useEffect(()=>{
+  const [
+    dashboard,
+    setDashboard,
+  ] = useState(null)
 
 
-async function loadStatus(){
+  const [
+    error,
+    setError,
+  ] = useState(null)
 
-try{
 
-const data = await apiGet("/health")
 
+  useEffect(() => {
 
-if(data.status==="ok"){
+    async function loadDashboard() {
 
-setBackend("ONLINE")
+      try {
 
-}else{
+        const data =
+          await apiGet("/dashboard")
 
-setBackend("UNKNOWN")
 
-}
+        setDashboard(data)
 
 
-}
+      } catch (error) {
 
-catch(error){
+        console.error(
+          "Dashboard loading failed:",
+          error,
+        )
 
-setBackend("OFFLINE")
 
-}
+        setError(
+          error.message,
+        )
 
+      }
 
-}
+    }
 
 
-loadStatus()
+    loadDashboard()
 
+  }, [])
 
-},[])
 
 
+  const summary =
+    dashboard?.summary || {}
 
-return (
 
-<div className="space-y-8">
 
+  return (
 
-<header>
+    <div
+      className="
+        h-full
+        flex
+        flex-col
+        gap-4
+      "
+    >
 
-<p className="
-text-sm
-uppercase
-tracking-[0.25em]
-text-amber-500
-">
+      <DashboardHero />
 
-Wood-Booster AI OS
 
-</p>
 
+      <section
+        className="
+          grid
+          grid-cols-4
+          gap-3
+          shrink-0
+        "
+      >
 
-<h1 className="
-mt-2
-text-4xl
-font-bold
-">
+        <div className="card p-3">
 
-🪵 AI Command Center
+          <p className="text-xs text-[var(--wood-muted)]">
+            PROJECTS
+          </p>
 
-</h1>
+          <p className="mt-1 text-lg">
 
+            {summary.totalProjects ?? "..."}
 
-<p className="
-mt-3
-text-neutral-400
-">
+          </p>
 
-Personal AI workstation
+        </div>
 
-</p>
 
 
-</header>
+        <div className="card p-3">
 
+          <p className="text-xs text-[var(--wood-muted)]">
+            SYSTEM PULSE
+          </p>
 
+          <p className="mt-1 text-lg text-[var(--wood-accent)]">
+            ONLINE
+          </p>
 
-<div className="
-grid
-grid-cols-1
-md:grid-cols-4
-gap-5
-">
+        </div>
 
 
-<Card
-icon="⚡"
-title="Backend"
-value={backend}
-/>
 
+        <div className="card p-3">
 
-<Card
-icon="🧠"
-title="AI Brain"
-value="READY"
-/>
+          <p className="text-xs text-[var(--wood-muted)]">
+            CUSTOMERS
+          </p>
 
+          <p className="mt-1 text-lg">
 
-<Card
-icon="🤖"
-title="Agents"
-value="5 ACTIVE"
-/>
+            {summary.totalCustomers ?? "..."}
 
+          </p>
 
-<Card
-icon="📚"
-title="Knowledge"
-value="LOADED"
-/>
+        </div>
 
 
-</div>
 
+        <div className="card p-3">
 
+          <p className="text-xs text-[var(--wood-muted)]">
+            COMPLETED
+          </p>
 
-</div>
+          <p className="mt-1 text-lg">
 
-)
+            {summary.completedProjects ?? "..."}
 
-}
+          </p>
 
+        </div>
 
 
-function Card({
-icon,
-title,
-value
-}){
+      </section>
 
-return (
 
-<div className="
-rounded-2xl
-border
-border-neutral-800
-bg-neutral-900
-p-6
-">
 
+      {
+        error && (
 
-<div className="text-3xl">
-{icon}
-</div>
+          <div
+            className="
+              card
+              p-3
+              text-sm
+              text-red-400
+            "
+          >
 
+            Dashboard error:
+            {" "}
+            {error}
 
-<h2 className="
-mt-4
-text-neutral-400
-">
+          </div>
 
-{title}
+        )
+      }
 
-</h2>
 
 
-<p className="
-mt-2
-text-2xl
-font-bold
-">
+      <section
+        className="
+          h-[420px]
+          shrink-0
+        "
+      >
 
-{value}
+        <DashboardChat />
 
-</p>
+      </section>
 
 
-</div>
 
-)
+      <section
+        className="
+          card
+          p-5
+          shrink-0
+        "
+      >
+
+        <h2
+          className="
+            text-sm
+            uppercase
+            tracking-widest
+            text-[var(--wood-muted)]
+          "
+        >
+          System Activity
+        </h2>
+
+
+
+        <div
+          className="
+            mt-4
+            grid
+            grid-cols-3
+            gap-3
+          "
+        >
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              p-4
+            "
+          >
+
+            <p className="text-xs text-[var(--wood-muted)]">
+              RUNTIME
+            </p>
+
+            <p className="mt-2">
+              Linux
+            </p>
+
+          </div>
+
+
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              p-4
+            "
+          >
+
+            <p className="text-xs text-[var(--wood-muted)]">
+              MODULES
+            </p>
+
+            <p className="mt-2">
+              Spacemonkey
+            </p>
+
+          </div>
+
+
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              p-4
+            "
+          >
+
+            <p className="text-xs text-[var(--wood-muted)]">
+              EVENTS
+            </p>
+
+            <p className="mt-2">
+              System Online
+            </p>
+
+          </div>
+
+
+        </div>
+
+
+      </section>
+
+
+
+      <DashboardWorkspaceStatus />
+
+
+    </div>
+
+  )
 
 }
 

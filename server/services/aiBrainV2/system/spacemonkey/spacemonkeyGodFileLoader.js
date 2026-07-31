@@ -2,11 +2,16 @@ import fs from "fs/promises"
 import path from "path"
 
 
-const DEFAULT_GODFILE_DIRECTORY =
-  path.resolve(
-    process.cwd(),
-    "../Spacemonkey"
-  )
+
+
+
+const SPACEMONKEY_ROOT =
+
+  "/home/marc/Wood-Booster-AI/Wood-Booster-OS/Spacemonkey"
+
+
+
+
 
 
 
@@ -14,27 +19,46 @@ async function loadGodFile({
 
   filePath
 
-}) {
-
-
-  if(!filePath){
-
-    throw new Error(
-      "Godfile path required"
-    )
-
-  }
+}){
 
 
   const content =
+
     await fs.readFile(
       filePath,
       "utf-8"
     )
 
 
-  return JSON.parse(
+  return {
+
     content
+
+  }
+
+
+}
+
+
+
+
+
+
+
+
+function resolveGodfileDirectory(directory){
+
+
+  if(!directory){
+
+    return SPACEMONKEY_ROOT
+
+  }
+
+
+
+  return path.resolve(
+    directory
   )
 
 }
@@ -43,139 +67,199 @@ async function loadGodFile({
 
 
 
+
+
 async function loadGodFiles({
 
-  directory =
-    DEFAULT_GODFILE_DIRECTORY
+  directory
 
-} = {}) {
-
-
-  try {
+} = {}){
 
 
-    const files =
-      await fs.readdir(
-        directory
+  const godfileDirectory =
+
+    resolveGodfileDirectory(
+      directory
+    )
+
+
+
+
+
+  console.log(
+    "GODFILE DIRECTORY:",
+    godfileDirectory
+  )
+
+
+
+
+
+
+
+  const files =
+
+    await fs.readdir(
+      godfileDirectory
+    )
+
+
+
+
+
+
+
+  const godfiles = []
+
+
+
+
+
+  let context = ""
+
+
+
+
+
+
+
+
+  for(
+    const file
+    of files
+  ){
+
+
+    const fullPath =
+
+      path.join(
+        godfileDirectory,
+        file
       )
 
 
-    const godfiles = []
+
+    const stat =
+
+      await fs.stat(
+        fullPath
+      )
 
 
 
-    for(
-      const file
-      of files
+    if(
+      !stat.isFile()
     ){
 
+      continue
 
-      if(
-        !file.endsWith(".json")
-      ){
-
-        continue
-
-      }
+    }
 
 
 
-      const fullPath =
-        path.join(
-          directory,
-          file
-        )
+
+
+    if(
+      !file.endsWith(".txt")
+    ){
+
+      continue
+
+    }
 
 
 
-      const data =
-        await loadGodFile({
-
-          filePath:
-            fullPath
-
-        })
 
 
 
-      godfiles.push({
 
-        file,
+    const data =
 
-        data
+      await loadGodFile({
+
+        filePath:
+          fullPath
 
       })
 
-    }
 
 
 
-    return {
 
 
-      system:
-        "Spacemonkey Godfile Loader",
+
+    godfiles.push({
+
+      file,
+
+      data
+
+    })
 
 
-      version:
-        "1.0.0",
 
 
-      status:
-        "loaded",
 
 
-      directory,
+
+    context += `
+
+==================================================
+GODFILE: ${file}
+==================================================
+
+${data.content}
+
+`
+
+  }
 
 
-      count:
-        godfiles.length,
 
 
-      godfiles
 
 
-    }
+
+  return {
+
+
+    system:
+
+      "Spacemonkey Godfile Loader",
+
+
+    version:
+
+      "2.0.2",
+
+
+    status:
+
+      "loaded",
+
+
+    directory:
+
+      godfileDirectory,
+
+
+    count:
+
+      godfiles.length,
+
+
+    context,
+
+
+    godfiles
 
 
   }
 
-  catch(error){
-
-
-    return {
-
-
-      system:
-        "Spacemonkey Godfile Loader",
-
-
-      version:
-        "1.0.0",
-
-
-      status:
-        "empty",
-
-
-      directory,
-
-
-      count:
-        0,
-
-
-      godfiles: [],
-
-
-      error:
-        error.message
-
-    }
-
-  }
 
 }
+
+
 
 
 

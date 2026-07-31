@@ -2,6 +2,50 @@ const responseHistory = []
 
 
 
+
+
+function formatMemoryContext({
+
+  memoryContext = []
+
+} = {}) {
+
+
+  if(
+    !Array.isArray(memoryContext) ||
+    memoryContext.length === 0
+  ){
+
+    return "Ei tallennettua käyttäjämuistia."
+
+  }
+
+
+
+
+
+  return memoryContext
+
+    .slice(0,5)
+
+    .map(
+
+      memory =>
+
+`- ${memory.content}`
+
+    )
+
+    .join("\n")
+
+}
+
+
+
+
+
+
+
 function generateResponse({
 
   message,
@@ -12,7 +56,9 @@ function generateResponse({
 
   plan,
 
-  codePipeline
+  codePipeline,
+
+  memoryContext
 
 }) {
 
@@ -24,6 +70,20 @@ function generateResponse({
 
 
   let response = ""
+
+
+
+
+
+  const memoryText =
+
+    formatMemoryContext({
+
+      memoryContext
+
+    })
+
+
 
 
 
@@ -88,14 +148,17 @@ ${
 
 `
 
-
     }
+
+
+
 
 
 
     response =
 
 `Käsittelen tämän koodimuutoksena.
+
 
 ${pipelineReport}
 
@@ -107,9 +170,17 @@ ${instructions
   .join("\n")}
 
 
+
+Aiempi muistini käyttäjästä:
+
+${memoryText}
+
+
+
 Pyyntö:
 
 ${message}
+
 
 
 Suunnitelma:
@@ -135,6 +206,12 @@ ${plan?.steps
 
 `Analysoin pyynnön.
 
+
+Aiempi muistini käyttäjästä:
+
+${memoryText}
+
+
 ${message}`
 
 
@@ -153,6 +230,11 @@ ${message}`
     mode:
 
       strategy?.mode || "unknown",
+
+
+    memoryUsed:
+
+      memoryContext?.length || 0,
 
 
     createdAt:
@@ -192,7 +274,7 @@ function getResponseGeneratorStatus(){
 
     version:
 
-      "0.2.0",
+      "0.3.0",
 
 
     responses:

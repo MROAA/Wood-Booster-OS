@@ -1,0 +1,429 @@
+# WOOD-BOOSTER AI API AND SYSTEM INTEGRATION PROTOCOL
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain yhdistyy sovellukseen, tietokantaan, käyttöliittymään ja muihin järjestelmän osiin.
+
+
+AI Brain ei ole irrallinen chatbot.
+
+Se on osa suurempaa järjestelmää.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Jokaisella järjestelmän osalla on selkeä vastuu.
+
+
+Frontend näyttää.
+
+Backend käsittelee.
+
+AI ajattelee.
+
+Database muistaa.
+
+
+---
+
+# JÄRJESTELMÄN RAKENNE
+
+
+Kokonaisuus:
+
+
+Frontend
+
+↓
+
+API Layer
+
+↓
+
+AI Brain Controller
+
+↓
+
+Knowledge / Memory / Database
+
+↓
+
+AI Model
+
+↓
+
+Response
+
+
+---
+
+# FRONTENDIN TEHTÄVÄ
+
+
+Frontend vastaa:
+
+
+- käyttäjän syötteestä
+- keskustelun näyttämisestä
+- käyttöliittymästä
+- tilan hallinnasta
+
+
+Frontend ei päätä:
+
+
+- mitä tietoa käytetään
+- miten AI toimii
+- mitä muistetaan
+
+
+---
+
+# BACKENDIN TEHTÄVÄ
+
+
+Backend toimii välittäjänä.
+
+
+Sen tehtävät:
+
+
+- vastaanottaa pyynnöt
+- tarkistaa tiedot
+- hakea tarvittava tieto
+- kutsua AI-mallia
+- tallentaa keskustelut
+
+
+---
+
+# AI BRAIN CONTROLLER
+
+
+AI Brain Controller yhdistää:
+
+
+- system identity
+- knowledge
+- memory
+- projects
+- decisions
+
+
+Sen tehtävä:
+
+
+rakentaa oikea konteksti AI:lle.
+
+
+---
+
+# API-PYYNNÖN RAKENNE
+
+
+Käyttäjän viesti sisältää:
+
+
+message:
+
+Käyttäjän kysymys.
+
+
+conversationId:
+
+Keskustelun historia.
+
+
+context:
+
+Mahdollinen lisätieto.
+
+
+---
+
+# AI-PROSESSI
+
+
+Kun käyttäjä lähettää kysymyksen:
+
+
+1. Vastaanota viesti.
+
+
+2. Tunnista tarkoitus.
+
+
+3. Hae tarvittava tieto.
+
+
+4. Rakenna konteksti.
+
+
+5. Lähetä AI-mallille.
+
+
+6. Tarkista vastaus.
+
+
+7. Tallenna oppi tarvittaessa.
+
+
+8. Palauta käyttäjälle.
+
+
+---
+
+# KNOWLEDGE INTEGRATION
+
+
+Knowledge toimii AI:n asiantuntijatietona.
+
+
+AI hakee ensin:
+
+
+- system-ohjeet
+- arvot
+- relevantti tieto
+
+
+ennen yleistä tietoa.
+
+
+---
+
+# MEMORY INTEGRATION
+
+
+Memory sisältää:
+
+
+- käyttäjän tavoitteet
+- tärkeät asetukset
+- aiemmat opit
+
+
+Memory ei korvaa knowledgea.
+
+
+---
+
+# PROJECT INTEGRATION
+
+
+Projektitieto sisältää:
+
+
+- asiakkaat
+- tuotteet
+- tehtävät
+- työvaiheet
+- kustannukset
+
+
+AI käyttää projektitietoa vain kun se liittyy kysymykseen.
+
+
+---
+
+# AGENT INTEGRATION
+
+
+Agentit eivät ole erillisiä AI-malleja välttämättä.
+
+
+Ne ovat näkökulmia ja toimintatapoja.
+
+
+Esimerkiksi:
+
+
+Finance Agent
+
+=
+
+taloudellinen analyysitapa.
+
+
+---
+
+# AGENTIN KUTSUMINEN
+
+
+Agenttia käytetään kun:
+
+
+kysymys vaatii erityisosaamista.
+
+
+Esimerkiksi:
+
+
+"Hinnoittele tämä pöytä"
+
+
+voi käyttää:
+
+
+- Finance Agent
+- Material Agent
+- Product Agent
+
+
+---
+
+# VASTAUKSEN MUODOSTUS
+
+
+Lopullinen vastaus sisältää:
+
+
+- suora vastaus
+- perustelu
+- tarvittaessa seuraava vaihe
+
+
+---
+
+# API:N VIRHEENHALLINTA
+
+
+Jos jokin epäonnistuu:
+
+
+AI ei piilota virhettä.
+
+
+Esimerkiksi:
+
+
+Tietoa ei löytynyt.
+
+Palvelu ei vastannut.
+
+Tietokantaongelma.
+
+
+---
+
+# JÄRJESTELMÄN LAAJENNETTAVUUS
+
+
+Uusia ominaisuuksia lisätään:
+
+
+uusi moduuli
+
+↓
+
+selkeä vastuu
+
+↓
+
+API-liitäntä
+
+↓
+
+testaus
+
+
+---
+
+# ULKOISET PALVELUT
+
+
+Mahdolliset integraatiot:
+
+
+- WordPress
+- sähköposti
+- kalenteri
+- pilvipalvelut
+- analytiikka
+
+
+Jokainen arvioidaan erikseen.
+
+
+---
+
+# TIETOVIRRAN HALLINTA
+
+
+Tieto kulkee:
+
+
+Käyttäjä
+
+↓
+
+Frontend
+
+↓
+
+Backend
+
+↓
+
+AI Brain
+
+↓
+
+Knowledge / Memory
+
+↓
+
+AI Model
+
+↓
+
+Vastaus
+
+
+---
+
+# JÄRJESTELMÄN VALVONTA
+
+
+AI-järjestelmää seurataan:
+
+
+- virheet
+- käyttömäärät
+- vastausten laatu
+- suorituskyky
+
+
+---
+
+# TURVALLISUUS
+
+
+API suojaa:
+
+
+- käyttöoikeudet
+- tietokannan
+- käyttäjätiedot
+- järjestelmän asetukset
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Hyvä AI-järjestelmä ei ole yksi suuri ohjelma.
+
+Se on joukko selkeitä osia, jotka toimivat yhdessä.
+
+
+Selkeä rakenne.
+
+Selkeä vastuu.
+
+Selkeä kehitys.

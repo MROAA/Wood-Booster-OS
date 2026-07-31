@@ -1,0 +1,689 @@
+GODFILE:
+
+  id: FINNISH_CASE_SYSTEM
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Spacemonkeyn suomen kielen sijamuotojen
+    analyysi- ja muodostusmoottori.
+    Hallitsee sanan taivutuksen,
+    merkityksen ja käyttötarkoituksen.
+
+
+
+language:
+
+  name: Finnish
+
+  module:
+
+    name:
+      FinnishCaseEngine
+
+
+
+# =====================================
+# SIJAMUOTOJEN YDIN
+# =====================================
+
+
+case_system:
+
+
+  total_cases:
+
+    count:
+
+      15
+
+
+
+# =====================================
+# GRAMMATICAL CASES
+# =====================================
+
+
+grammatical_cases:
+
+
+
+  nominative:
+
+
+    question:
+
+      kuka?
+      mikä?
+
+
+    ending:
+
+      none
+
+
+    purpose:
+
+      - subject
+      - basic_form
+
+
+    examples:
+
+
+      puu:
+
+        "Puu kasvaa."
+
+
+
+  genitive:
+
+
+    question:
+
+
+      kenen?
+      minkä?
+
+
+    ending:
+
+
+      n
+
+
+    purpose:
+
+
+      - ownership
+      - specification
+
+
+    examples:
+
+
+      puun:
+
+        "Puun pinta."
+
+
+
+  accusative:
+
+
+    question:
+
+
+      kenet?
+      minkä?
+
+
+    purpose:
+
+
+      - complete_object
+
+
+    examples:
+
+
+      "Rakennan pöydän."
+
+
+
+  partitive:
+
+
+    question:
+
+
+      ketä?
+      mitä?
+
+
+    endings:
+
+
+      - a
+      - ä
+      - ta
+      - tä
+
+
+    purpose:
+
+
+      - incomplete_action
+      - quantity
+      - substance
+
+
+    examples:
+
+
+      puuta:
+
+        "Työstän puuta."
+
+
+
+# =====================================
+# INTERNAL LOCAL CASES
+# =====================================
+
+
+internal_local_cases:
+
+
+
+  inessive:
+
+
+    question:
+
+
+      missä?
+
+
+    ending:
+
+
+      - ssa
+      - ssä
+
+
+    meaning:
+
+
+      inside_location
+
+
+    example:
+
+
+      talossa:
+
+        "Olen talossa."
+
+
+
+  elative:
+
+
+    question:
+
+
+      mistä?
+
+
+    ending:
+
+
+      - sta
+      - stä
+
+
+    meaning:
+
+
+      movement_out
+
+
+    example:
+
+
+      talosta:
+
+        "Tulin talosta."
+
+
+
+  illative:
+
+
+    question:
+
+
+      mihin?
+
+
+    ending:
+
+
+      - Vn
+      - seen
+      - hin
+
+
+    meaning:
+
+
+      movement_inside
+
+
+    example:
+
+
+      taloon:
+
+        "Menen taloon."
+
+
+
+# =====================================
+# EXTERNAL LOCAL CASES
+# =====================================
+
+
+external_local_cases:
+
+
+
+  adessive:
+
+
+    question:
+
+
+      millä?
+
+
+    ending:
+
+
+      - lla
+      - llä
+
+
+    meaning:
+
+
+      surface_location
+      possession
+
+
+    examples:
+
+
+      pöydällä:
+
+        "Kirja on pöydällä."
+
+
+      minulla:
+
+        "Minulla on idea."
+
+
+
+  ablative:
+
+
+    question:
+
+
+      miltä?
+
+
+    ending:
+
+
+      - lta
+      - ltä
+
+
+    meaning:
+
+
+      movement_from_surface
+
+
+    example:
+
+
+      pöydältä:
+
+        "Otin kirjan pöydältä."
+
+
+
+  allative:
+
+
+    question:
+
+
+      mille?
+
+
+    ending:
+
+
+      - lle
+
+
+    meaning:
+
+
+      movement_towards
+
+
+    example:
+
+
+      minulle:
+
+        "Anna se minulle."
+
+
+
+# =====================================
+# STATE CASES
+# =====================================
+
+
+state_cases:
+
+
+
+  essive:
+
+
+    question:
+
+
+      minä?
+
+
+    ending:
+
+
+      - na
+      - nä
+
+
+    meaning:
+
+
+      temporary_state
+
+
+    examples:
+
+
+      lapsena:
+
+        "Lapsena olin iloinen."
+
+
+
+  translative:
+
+
+    question:
+
+
+      miksi?
+
+
+    ending:
+
+
+      - ksi
+
+
+    meaning:
+
+
+      change_of_state
+
+
+    examples:
+
+
+      opettajaksi:
+
+        "Hän tuli opettajaksi."
+
+
+
+# =====================================
+# ADDITIONAL CASES
+# =====================================
+
+
+additional_cases:
+
+
+
+  abessive:
+
+
+    ending:
+
+
+      - tta
+      - ttä
+
+
+    meaning:
+
+
+      without
+
+
+    example:
+
+
+      rahatta:
+
+        "Ilman rahaa."
+
+
+
+  comitative:
+
+
+    ending:
+
+
+      - ine
+
+
+    meaning:
+
+
+      together_with
+
+
+    example:
+
+
+      perheineen:
+
+        "Hän tuli perheineen."
+
+
+
+  instructive:
+
+
+    ending:
+
+
+      - n
+
+
+    meaning:
+
+
+      method
+
+
+    example:
+
+
+      käsin:
+
+        "Tehty käsin."
+
+
+
+# =====================================
+# CASE ENGINE
+# =====================================
+
+
+processing:
+
+
+
+  analyze:
+
+
+    steps:
+
+
+      - identify_word_root
+
+      - identify_case
+
+      - detect_suffix
+
+      - check_vowel_harmony
+
+      - apply_consonant_gradation
+
+      - validate_meaning
+
+
+
+  generate:
+
+
+    steps:
+
+
+      - choose_case
+
+      - modify_word
+
+      - check_context
+
+      - produce_sentence
+
+
+
+# =====================================
+# VOKAALIHARMONIA
+# =====================================
+
+
+vowel_harmony:
+
+
+  front_vowels:
+
+
+    - ä
+    - ö
+    - y
+
+
+  back_vowels:
+
+
+    - a
+    - o
+    - u
+
+
+  neutral:
+
+
+    - e
+    - i
+
+
+
+  rule:
+
+
+    >
+    Päätteet muuttuvat sanan vokaalien mukaan.
+
+
+
+  examples:
+
+
+    talo:
+
+
+      talossa
+
+
+
+    kylä:
+
+
+      kylässä
+
+
+
+# =====================================
+# SPACEMONKEY LANGUAGE CORE
+# =====================================
+
+
+integration:
+
+
+  abilities:
+
+
+    - understand_cases
+
+    - generate_correct_forms
+
+    - explain_case_usage
+
+    - translate_meanings
+
+    - correct_finnish
+
+
+
+future_extensions:
+
+
+  - advanced_case_examples
+
+  - noun_declension_database
+
+  - exception_dictionary
+
+  - spoken_finnish_cases
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+
+  active:
+
+    true

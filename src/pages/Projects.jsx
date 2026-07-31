@@ -1,44 +1,81 @@
-import { useEffect, useState } from "react"
-import { apiGet } from "../api/client"
-import { Link } from "react-router-dom"
+import {
+  useEffect,
+  useState,
+} from "react"
 
-import AIProjectGenerator from "../components/projects/AIProjectGenerator"
+import {
+  Link,
+} from "react-router-dom"
+
+import {
+  apiGet,
+  apiPost,
+} from "../api/client"
 
 
 
-function Projects(){
+const emptyProject = {
+  name: "",
+  status: "Suunnittelu",
+  notes: "",
+}
 
-  const [projects,setProjects] = useState([])
-  const [loading,setLoading] = useState(true)
+
+
+function Projects() {
+
+
+  const [
+    projects,
+    setProjects,
+  ] = useState([])
+
+
+  const [
+    form,
+    setForm,
+  ] = useState(emptyProject)
+
+
+  const [
+    showForm,
+    setShowForm,
+  ] = useState(false)
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+  const [
+    error,
+    setError,
+  ] = useState(null)
 
 
 
-  async function loadProjects(){
+  async function loadProjects() {
 
-    try{
+    try {
 
-      const data = await apiGet(
-        "/dashboard"
+      setLoading(true)
+
+      const data =
+        await apiGet("/projects")
+
+
+      setProjects(data)
+
+
+    } catch (error) {
+
+      setError(
+        error.message
       )
 
-
-      setProjects(
-        data.projects || []
-      )
-
-
-    }
-
-    catch(error){
-
-      console.error(
-        "Projects error:",
-        error
-      )
-
-    }
-
-    finally{
+    } finally {
 
       setLoading(false)
 
@@ -48,92 +85,177 @@ function Projects(){
 
 
 
-  useEffect(()=>{
+  useEffect(() => {
 
     loadProjects()
 
-  },[])
+  }, [])
+
+
+
+  async function createProject() {
+
+    if(
+      !form.name.trim()
+    ) {
+
+      return
+
+    }
+
+
+    try {
+
+      const response =
+        await apiPost(
+          "/projects",
+          {
+            name:
+              form.name,
+
+            status:
+              form.status,
+
+            notes:
+              form.notes,
+          }
+        )
+
+
+      setProjects(
+        previous => [
+          response.project,
+          ...previous,
+        ]
+      )
+
+
+      setForm(emptyProject)
+
+      setShowForm(false)
+
+
+    } catch(error) {
+
+      setError(
+        error.message
+      )
+
+    }
+
+  }
+
+
+
+  function updateField(
+    field,
+    value
+  ) {
+
+    setForm(
+      previous => ({
+        ...previous,
+        [field]:
+          value,
+      })
+    )
+
+  }
+
+
+
+  function shortText(text) {
+
+    if(!text) {
+
+      return ""
+
+    }
+
+
+    const clean =
+      text
+        .replace(
+          /\s+/g,
+          " "
+        )
+        .trim()
+
+
+    if(clean.length > 180) {
+
+      return (
+        clean.slice(0,180) +
+        "..."
+      )
+
+    }
+
+
+    return clean
+
+  }
 
 
 
 
   return (
 
-    <div className="space-y-8">
+    <div
+      className="
+        space-y-8
+      "
+    >
 
 
-      <header>
+      <section
+        className="
+          flex
+          items-start
+          justify-between
+        "
+      >
 
-        <p className="
-        text-sm
-        uppercase
-        tracking-[0.25em]
-        text-amber-500
-        ">
+        <div>
 
-          Project OS
-
-        </p>
-
-
-        <h1 className="
-        mt-2
-        text-4xl
-        font-bold
-        ">
-
-          📦 Projects
-
-        </h1>
+          <h1
+            className="
+              page-title
+            "
+          >
+            Projektit
+          </h1>
 
 
-        <p className="
-        mt-3
-        text-neutral-400
-        ">
+          <p
+            className="
+              page-description
+            "
+          >
+            Wood-Booster OS:n projektityötila.
+          </p>
 
-          Wood-Booster projektien hallinta.
 
-        </p>
-
-
-      </header>
+        </div>
 
 
 
+        <button
 
-      <AIProjectGenerator
-        onCreated={loadProjects}
-      />
+          className="
+            wb-button
+          "
 
+          onClick={() =>
+            setShowForm(
+              !showForm
+            )
+          }
 
+        >
+          + Uusi projekti
 
-
-
-      <section className="
-      grid
-      grid-cols-1
-      md:grid-cols-3
-      gap-4
-      ">
-
-
-        <StatCard
-          title="Projects"
-          value={projects.length}
-        />
-
-
-        <StatCard
-          title="Backend"
-          value="CONNECTED"
-        />
-
-
-        <StatCard
-          title="AI"
-          value="READY"
-        />
+        </button>
 
 
       </section>
@@ -142,21 +264,94 @@ function Projects(){
 
 
 
-
       {
-        loading &&
+        showForm && (
 
-        <div className="
-        rounded-2xl
-        border
-        border-neutral-800
-        bg-neutral-900
-        p-6
-        ">
+          <section
+            className="
+              panel
+              max-w-xl
+              space-y-4
+            "
+          >
 
-          Ladataan projekteja...
+            <h2
+              className="
+                text-lg
+                font-semibold
+              "
+            >
+              Luo projekti
+            </h2>
 
-        </div>
+
+            <input
+
+              className="
+                wb-input
+              "
+
+              placeholder="Projektin nimi"
+
+              value={
+                form.name
+              }
+
+              onChange={
+                e =>
+                  updateField(
+                    "name",
+                    e.target.value
+                  )
+              }
+
+            />
+
+
+            <textarea
+
+              className="
+                wb-input
+              "
+
+              placeholder="Muistiinpanot"
+
+              rows="4"
+
+              value={
+                form.notes
+              }
+
+              onChange={
+                e =>
+                  updateField(
+                    "notes",
+                    e.target.value
+                  )
+              }
+
+            />
+
+
+            <button
+
+              className="
+                wb-button
+              "
+
+              onClick={
+                createProject
+              }
+
+            >
+              Tallenna
+
+            </button>
+
+
+          </section>
+
+        )
 
       }
 
@@ -164,32 +359,232 @@ function Projects(){
 
 
 
-      <div className="
-      grid
-      grid-cols-1
-      xl:grid-cols-2
-      gap-6
-      ">
+
+      {
+        error && (
+
+          <div
+            className="
+              panel
+              text-red-400
+            "
+          >
+            {error}
+
+          </div>
+
+        )
+
+      }
+
+
+
+
+
+
+      <section>
+
+
+        <h2
+          className="
+            mb-4
+            text-lg
+            font-semibold
+          "
+        >
+          Projektit
+        </h2>
+
+
+
 
 
         {
-          projects.map(project => (
+          loading
 
-            <ProjectCard
+          ?
 
-              key={project.id}
+          <div className="panel">
+            Ladataan projekteja...
+          </div>
 
-              project={project}
 
-            />
+          :
 
-          ))
+
+          projects.length === 0
+
+          ?
+
+          <div className="panel">
+            Ei vielä projekteja.
+          </div>
+
+
+          :
+
+
+          <div
+            className="
+              grid
+              grid-cols-1
+              lg:grid-cols-2
+              xl:grid-cols-3
+              gap-5
+            "
+          >
+
+            {
+              projects.map(
+                project => (
+
+                  <Link
+                    key={
+                      project.id
+                    }
+
+                    to={
+                      `/projects/${project.id}`
+                    }
+
+                    className="
+                      block
+                    "
+                  >
+
+                    <article
+
+                      className="
+                        card
+                        p-6
+                        min-h-[220px]
+                        transition
+                        hover:border-[var(--wood-accent)]
+                      "
+
+                    >
+
+                      <div
+                        className="
+                          flex
+                          justify-between
+                          gap-4
+                        "
+                      >
+
+                        <h3
+                          className="
+                            text-xl
+                            font-semibold
+                          "
+                        >
+                          {project.name}
+                        </h3>
+
+
+                        <span
+                          className="
+                            text-sm
+                            text-[var(--wood-accent)]
+                          "
+                        >
+                          {project.status}
+                        </span>
+
+
+                      </div>
+
+
+
+
+
+                      <div
+                        className="
+                          mt-6
+                          space-y-4
+                        "
+                      >
+
+                        <div>
+
+                          <p
+                            className="
+                              text-xs
+                              text-[var(--wood-muted)]
+                            "
+                          >
+                            ASIAKAS
+                          </p>
+
+                          <p>
+                            {
+                              project.customer?.name ||
+                              "-"
+                            }
+                          </p>
+
+                        </div>
+
+
+
+
+                        {
+                          project.notes && (
+
+                            <div>
+
+                              <p
+                                className="
+                                  text-xs
+                                  text-[var(--wood-muted)]
+                                "
+                              >
+                                MUISTIINPANO
+                              </p>
+
+
+                              <p
+                                className="
+                                  mt-1
+                                  text-sm
+                                  leading-6
+                                "
+                              >
+                                {
+                                  shortText(
+                                    project.notes
+                                  )
+                                }
+
+                              </p>
+
+
+                            </div>
+
+                          )
+
+                        }
+
+
+                      </div>
+
+
+                    </article>
+
+                  </Link>
+
+                )
+              )
+            }
+
+
+          </div>
+
 
         }
 
 
-      </div>
-
+      </section>
 
 
     </div>
@@ -197,139 +592,6 @@ function Projects(){
   )
 
 }
-
-
-
-
-
-function StatCard({
-  title,
-  value
-}){
-
-return (
-
-<div className="
-rounded-2xl
-border
-border-neutral-800
-bg-neutral-900
-p-5
-">
-
-<p className="text-neutral-500">
-{title}
-</p>
-
-
-<p className="
-mt-2
-text-3xl
-font-bold
-">
-
-{value}
-
-</p>
-
-
-</div>
-
-)
-
-}
-
-
-
-
-
-function ProjectCard({
-project
-}){
-
-
-return (
-
-<div className="
-rounded-2xl
-border
-border-neutral-800
-bg-neutral-900
-p-6
-">
-
-
-<h2 className="
-text-xl
-font-bold
-">
-
-{project.name}
-
-</h2>
-
-
-
-<p className="
-mt-3
-text-neutral-400
-">
-
-Status:
-
-{" "}
-
-{project.status}
-
-</p>
-
-
-
-
-<p className="
-mt-3
-text-neutral-500
-text-sm
-">
-
-ID:
-{" "}
-{project.id}
-
-</p>
-
-
-
-
-<Link
-
-to={`/projects/${project.id}`}
-
-className="
-inline-block
-mt-6
-rounded-xl
-bg-amber-500
-px-5
-py-3
-font-bold
-text-black
-"
-
->
-
-Avaa projekti
-
-</Link>
-
-
-
-</div>
-
-)
-
-}
-
 
 
 export default Projects

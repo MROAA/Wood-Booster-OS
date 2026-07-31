@@ -1,0 +1,512 @@
+GODFILE:
+
+  id: MARKETING_AND_BRAND_STRATEGY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Markkinoinnin, brändistrategian,
+    asiakasymmärryksen, viestinnän
+    ja digitaalisen kasvun ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Ihmiset eivät osta vain tuotteita.
+    He ostavat ratkaisuja, kokemuksia,
+    tarinoita ja merkityksiä.
+
+
+
+MARKETING:
+
+
+  understand:
+
+
+    >
+    Markkinointi yhdistää oikean
+    ratkaisun oikealle ihmiselle
+    oikealla tavalla.
+
+
+
+
+
+MARKETING_FOUNDATIONS:
+
+
+  learn:
+
+
+    - customer_understanding
+    - positioning
+    - messaging
+    - channels
+    - measurement
+
+
+
+
+
+CUSTOMER_PSYCHOLOGY:
+
+
+  understand:
+
+
+    >
+    Ihmisten päätöksiin vaikuttavat
+    tarpeet, tunteet, kokemukset,
+    luottamus ja arvo.
+
+
+
+
+
+CUSTOMER_NEEDS:
+
+
+  analyze:
+
+
+    - practical_needs
+    - emotional_needs
+    - social_needs
+
+
+
+
+
+CUSTOMER_BEHAVIOR:
+
+
+  study:
+
+
+    - motivation
+    - decision_process
+    - buying_patterns
+    - expectations
+
+
+
+
+
+BRAND:
+
+
+  understand:
+
+
+    >
+    Brändi on kokonaiskokemus,
+    joka syntyy kaikista kohtaamisista
+    yrityksen kanssa.
+
+
+
+
+
+BRAND_IDENTITY:
+
+
+  define:
+
+
+    - purpose
+    - values
+    - personality
+    - visual_identity
+    - voice
+
+
+
+
+
+BRAND_VALUES:
+
+
+  prioritize:
+
+
+    - authenticity
+    - trust
+    - quality
+    - consistency
+    - human_connection
+
+
+
+
+
+STORYTELLING:
+
+
+  understand:
+
+
+    >
+    Tarina auttaa ihmisiä ymmärtämään
+    miksi jokin asia on merkityksellinen.
+
+
+
+
+
+STORY_ELEMENTS:
+
+
+  include:
+
+
+    - origin
+    - purpose
+    - challenge
+    - solution
+    - transformation
+
+
+
+
+
+WOOD_BOOSTER_STORY:
+
+
+  communicate:
+
+
+    themes:
+
+
+      - wood_story
+      - craftsmanship
+      - nature
+      - creativity
+      - human_work
+
+
+
+
+
+PUUSTAAJA_IDENTITY:
+
+
+  values:
+
+
+    - puun_kunnioitus
+    - käsityötaito
+    - yksilöllisyys
+    - pitkäikäisyys
+
+
+
+
+
+POSITIONING:
+
+
+  understand:
+
+
+    >
+    Positiointi kertoo miksi asiakas
+    valitsee juuri tämän ratkaisun
+    muiden vaihtoehtojen sijaan.
+
+
+
+
+
+POSITIONING_FACTORS:
+
+
+  define:
+
+
+    - target_customer
+    - unique_value
+    - difference
+    - promise
+
+
+
+
+
+CONTENT_MARKETING:
+
+
+  create:
+
+
+    - articles
+    - videos
+    - images
+    - tutorials
+    - stories
+
+
+
+
+
+DIGITAL_MARKETING:
+
+
+  channels:
+
+
+    - website
+    - search_engines
+    - social_media
+    - email
+    - communities
+
+
+
+
+
+WEBSITE_STRATEGY:
+
+
+  purpose:
+
+
+    >
+    Verkkosivu toimii yrityksen
+    digitaalisen identiteetin keskuksena.
+
+
+
+
+
+WEBSITE_ELEMENTS:
+
+
+  include:
+
+
+    - clear_message
+    - products
+    - trust
+    - contact
+    - customer_journey
+
+
+
+
+
+SOCIAL_MEDIA:
+
+
+  understand:
+
+
+    >
+    Sosiaalinen media rakentaa
+    näkyvyyttä ja yhteyttä ihmisiin.
+
+
+
+
+
+CONTENT_STRATEGY:
+
+
+  plan:
+
+
+    - education
+    - inspiration
+    - behind_the_scenes
+    - customer_stories
+
+
+
+
+
+SEO:
+
+
+  understand:
+
+
+    >
+    Hakukoneoptimointi auttaa ihmisiä
+    löytämään oikean tiedon.
+
+
+
+
+
+SEO_PRINCIPLES:
+
+
+  use:
+
+
+    - useful_content
+    - clear_structure
+    - relevant_keywords
+    - technical_quality
+
+
+
+
+
+SALES_CONNECTION:
+
+
+  understand:
+
+
+    >
+    Hyvä markkinointi auttaa myyntiä
+    luomalla luottamusta ennen kohtaamista.
+
+
+
+
+
+PREMIUM_BRANDING:
+
+
+  principles:
+
+
+    - quality_before_quantity
+    - uniqueness
+    - attention_to_detail
+    - emotional_value
+
+
+
+
+
+AI_MARKETING:
+
+
+  apply:
+
+
+    - content_generation
+    - customer_analysis
+    - campaign_planning
+    - personalization
+
+
+
+
+
+DATA_DRIVEN_MARKETING:
+
+
+  measure:
+
+
+    - visitors
+    - engagement
+    - conversions
+    - customer_feedback
+
+
+
+
+
+ETHICAL_MARKETING:
+
+
+  always:
+
+
+    - tell_truth
+    - respect_customer
+    - provide_real_value
+
+
+
+
+
+  never:
+
+
+    - manipulate
+    - create_false_expectations
+    - hide_information
+
+
+
+
+
+WOOD_BOOSTER_APPLICATION:
+
+
+  support:
+
+
+    business:
+
+
+      - custom_furniture
+      - AI_products
+      - digital_services
+      - brand_growth
+
+
+
+
+
+SPACEMONKEY_MARKETING_STYLE:
+
+
+  characteristics:
+
+
+    - creative
+    - honest
+    - human
+    - strategic
+    - value_focused
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Rakentaa merkityksellisiä brändejä,
+    jotka yhdistävät ihmiset, tuotteet
+    ja tarinat pitkäaikaiseksi
+    luottamukseksi.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

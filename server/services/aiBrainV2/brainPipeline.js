@@ -10,16 +10,9 @@ Vastuut:
 - suorittaa Reasoning Modulen
 - suorittaa Decision Modulen
 - suorittaa päätöksen valitseman moduulin
-- pysäyttää ketjun turvallisesti,
-  jos lisätietoja tarvitaan
+- Capability Layer voi tarkentaa päätöstä
 - palauttaa koko ketjun tulokset
 
-Tämä tiedosto ei:
-- muuta tavallista brainRuntimea
-- muuta moduleRouteria
-- rekisteröi uusia moduuleja
-- sisällä moduulien liiketoimintalogiikkaa
-- kutsu kielimallia suoraan
 =====================================
 */
 
@@ -28,47 +21,91 @@ import {
   ensureDefaultBrainModules,
 } from "./index.js"
 
+
+import {
+  createCapabilityAuditSnapshot,
+} from "./services/capabilityExecution/capabilityAuditSnapshot.js"
+
+import {
+  addAuditRecord,
+} from "./services/capabilityExecution/capabilityAuditStore.js"
+
+import {
+  canExecuteCapability,
+} from "./services/capabilityExecution/capabilityExecutionManager.js"
+
 import {
   executeBrainModuleById,
 } from "./moduleExecutor.js"
+
 
 import {
   analyzeInteraction,
 } from "./system/interactionEngine.js"
 
 
-function createPipelineRequestId() {
+import {
+  enrichReasoningResult,
+} from "./services/moduleCapability/reasoningCapabilityBridge.js"
+
+
+import {
+  applyCapabilityOverride,
+} from "./services/moduleCapability/decisionOverrideBridge.js"
+
+
+
+
+
+function createPipelineRequestId(){
+
   const timestamp =
     Date.now()
       .toString(36)
 
+
   const randomPart =
     Math.random()
       .toString(36)
-      .slice(2, 10)
+      .slice(2,10)
+
 
   return (
     `pipeline-${timestamp}-` +
     randomPart
   )
+
 }
 
 
-function normalizeMessage(value) {
-  return String(value || "")
-    .trim()
+
+
+
+function normalizeMessage(value){
+
+  return String(
+    value || "",
+  )
+  .trim()
+
 }
+
+
+
 
 
 function createInvalidPipelineResult({
   requestId,
   message,
   startedAt,
-}) {
+}){
+
   const completedAt =
     new Date()
 
+
   return {
+
     success:
       false,
 
@@ -79,42 +116,52 @@ function createInvalidPipelineResult({
 
     message,
 
-    stages: {
-      interaction:
-        null,
 
-      reasoning:
-        null,
+    stages:{
 
-      decision:
-        null,
+      interaction:null,
 
-      execution:
-        null,
+      reasoning:null,
+
+      decision:null,
+
+      execution:null,
+
     },
 
-    finalOutput:
-      null,
 
-    error: {
+    finalOutput:null,
+
+
+    error:{
+
       code:
         "INVALID_MESSAGE",
 
       message:
         "AI Brain Pipeline tarvitsee käsiteltävän viestin.",
+
     },
+
 
     startedAt:
       startedAt.toISOString(),
 
+
     completedAt:
       completedAt.toISOString(),
+
 
     durationMs:
       completedAt.getTime() -
       startedAt.getTime(),
+
   }
+
 }
+
+
+
 
 
 function createPipelineFailure({
@@ -124,13 +171,15 @@ function createPipelineFailure({
   stages,
   error,
   startedAt,
-}) {
+}){
+
   const completedAt =
     new Date()
 
+
   return {
-    success:
-      false,
+
+    success:false,
 
     status,
 
@@ -140,80 +189,29 @@ function createPipelineFailure({
 
     stages,
 
-    finalOutput:
-      null,
+    finalOutput:null,
 
     error,
 
-    startedAt:
-      startedAt.toISOString(),
-
-    completedAt:
-      completedAt.toISOString(),
-
-    durationMs:
-      completedAt.getTime() -
-      startedAt.getTime(),
-  }
-}
-
-
-function createClarificationResult({
-  requestId,
-  message,
-  stages,
-  decisionOutput,
-  startedAt,
-}) {
-  const completedAt =
-    new Date()
-
-  return {
-    success:
-      true,
-
-    status:
-      "clarification_required",
-
-    requestId,
-
-    message,
-
-    stages,
-
-    finalOutput: {
-      type:
-        "clarification_result",
-
-      answer:
-        decisionOutput.reason,
-
-      decision:
-        decisionOutput.decision,
-
-      missingInformation:
-        decisionOutput
-          .missingInformation ||
-        [],
-
-      confidence:
-        decisionOutput.confidence,
-    },
-
-    error:
-      null,
 
     startedAt:
       startedAt.toISOString(),
 
+
     completedAt:
       completedAt.toISOString(),
+
 
     durationMs:
       completedAt.getTime() -
       startedAt.getTime(),
+
   }
+
 }
+
+
+
 
 
 function createCompletedPipelineResult({
@@ -222,13 +220,15 @@ function createCompletedPipelineResult({
   stages,
   executionResult,
   startedAt,
-}) {
+}){
+
   const completedAt =
     new Date()
 
+
   return {
-    success:
-      true,
+
+    success:true,
 
     status:
       "completed",
@@ -239,61 +239,99 @@ function createCompletedPipelineResult({
 
     stages,
 
+
     finalOutput:
       executionResult.output,
 
-    error:
-      null,
+
+    error:null,
+
 
     startedAt:
       startedAt.toISOString(),
 
+
     completedAt:
       completedAt.toISOString(),
+
 
     durationMs:
       completedAt.getTime() -
       startedAt.getTime(),
+
   }
+
 }
 
 
+
+
+
+
+
 async function runBrainPipeline({
+
   message,
+
   source =
     "brain-pipeline",
+
   runtimeContext = {},
-} = {}) {
+
+} = {}){
+
+
   const startedAt =
     new Date()
 
+
+
   const requestId =
     createPipelineRequestId()
+
+
 
   const normalizedMessage =
     normalizeMessage(
       message,
     )
 
-  if (!normalizedMessage) {
+
+
+  if(
+    !normalizedMessage
+  ){
+
     return createInvalidPipelineResult({
+
       requestId,
+
       message:
         normalizedMessage,
+
       startedAt,
+
     })
+
   }
+
 
 
   ensureDefaultBrainModules()
 
 
+
   const request = {
+
     requestId,
 
     message:
       normalizedMessage,
+
   }
+
+
+
 
 
   const interaction =
@@ -302,32 +340,46 @@ async function runBrainPipeline({
     )
 
 
+
+
+
   const baseRuntimeContext = {
+
     ...runtimeContext,
 
+
     requestId,
+
 
     source:
       String(
         source ||
         runtimeContext.source ||
         "brain-pipeline",
-      ).trim(),
+      )
+      .trim(),
 
-    pipeline:
-      true,
+
+    pipeline:true,
+
 
     pipelineStartedAt:
       startedAt.toISOString(),
 
+
     interaction,
+
   }
 
 
+
+
+
   const stages = {
-    interaction: {
-      success:
-        true,
+
+    interaction:{
+
+      success:true,
 
       status:
         "completed",
@@ -335,270 +387,563 @@ async function runBrainPipeline({
       output:
         interaction,
 
-      error:
-        null,
+      error:null,
+
     },
 
-    reasoning:
-      null,
 
-    decision:
-      null,
+    reasoning:null,
 
-    execution:
-      null,
+    decision:null,
+
+    execution:null,
+
   }
+
+
+
+
+
 
 
   const reasoningResult =
     await executeBrainModuleById({
+
       moduleId:
         "reasoning",
 
       message:
         normalizedMessage,
 
+
       request,
 
-      runtimeContext: {
+
+      runtimeContext:{
+
         ...baseRuntimeContext,
 
-        reasoningOnly:
-          true,
+
+        reasoningOnly:true,
+
       },
+
     })
+
+
+
 
 
   stages.reasoning =
     reasoningResult
 
 
-  if (!reasoningResult.success) {
+
+
+
+  if(
+    !reasoningResult.success
+  ){
+
     return createPipelineFailure({
+
       requestId,
+
       message:
         normalizedMessage,
+
       status:
         "reasoning_failed",
+
       stages,
+
       error:
         reasoningResult.error,
+
       startedAt,
+
     })
+
   }
 
 
+
+
+
+
+
   const reasoningAnalysis =
-    reasoningResult.output
-      ?.analysis ||
+    reasoningResult.output?.analysis
+    ||
     null
 
 
-  if (!reasoningAnalysis) {
-    return createPipelineFailure({
-      requestId,
+
+
+
+  const enrichedReasoning =
+    enrichReasoningResult({
+
+      reasoningResult:
+        reasoningResult.output,
+
+
       message:
         normalizedMessage,
+
+    })
+
+
+
+
+
+  if(
+    !reasoningAnalysis
+  ){
+
+    return createPipelineFailure({
+
+      requestId,
+
+      message:
+        normalizedMessage,
+
+
       status:
         "reasoning_failed",
+
+
       stages,
-      error: {
+
+
+      error:{
+
         code:
           "REASONING_ANALYSIS_MISSING",
 
         message:
           "Reasoning Module ei palauttanut analyysiä.",
+
       },
+
+
       startedAt,
+
     })
+
   }
+
+
+
+
+
+
 
 
   const decisionResult =
     await executeBrainModuleById({
+
       moduleId:
         "decision",
+
 
       message:
         normalizedMessage,
 
+
       request,
 
-      runtimeContext: {
+
+      runtimeContext:{
+
         ...baseRuntimeContext,
 
-        decisionOnly:
-          true,
+
+        decisionOnly:true,
+
 
         reasoningAnalysis,
+
+
+        capabilityContext:
+          enrichedReasoning.capabilityContext,
+
       },
+
+
     })
+
+
+
 
 
   stages.decision =
     decisionResult
 
 
-  if (!decisionResult.success) {
+
+
+
+  if(
+    !decisionResult.success
+  ){
+
     return createPipelineFailure({
+
       requestId,
+
       message:
         normalizedMessage,
+
+
       status:
         "decision_failed",
+
+
       stages,
+
+
       error:
         decisionResult.error,
+
+
       startedAt,
+
     })
+
   }
 
 
-  const decisionOutput =
-    decisionResult.output ||
+
+
+
+
+
+  const rawDecisionOutput =
+    decisionResult.output
+    ||
     null
 
 
-  if (!decisionOutput) {
+
+
+
+  const decisionOutput =
+    applyCapabilityOverride({
+
+      decisionOutput:
+        rawDecisionOutput,
+
+
+      capabilityContext:
+        enrichedReasoning
+          .capabilityContext,
+
+    })
+
+
+
+
+
+  // Capability Override näkyväksi pipeline-tulokseen
+
+  stages.decision.output =
+    decisionOutput
+
+
+
+
+
+  if(
+    decisionOutput.decision === "clarify"
+  ){
+
     return createPipelineFailure({
+
       requestId,
+
       message:
         normalizedMessage,
+
       status:
-        "decision_failed",
-      stages,
-      error: {
-        code:
-          "DECISION_OUTPUT_MISSING",
+        "clarification_required",
 
-        message:
-          "Decision Module ei palauttanut päätöstä.",
-      },
+      stages,
+
+      error:null,
+
       startedAt,
+
     })
+
   }
 
 
-  if (
-    decisionOutput.decision ===
-    "clarify"
-  ) {
-    return createClarificationResult({
-      requestId,
-      message:
-        normalizedMessage,
-      stages,
-      decisionOutput,
-      startedAt,
-    })
-  }
+
+
+
 
 
   const targetModule =
     String(
       decisionOutput.targetModule ||
       "",
-    ).trim()
+    )
+    .trim()
 
 
-  if (!targetModule) {
+
+
+
+  if(
+    !targetModule
+  ){
+
     return createPipelineFailure({
+
       requestId,
+
       message:
         normalizedMessage,
+
+
       status:
         "target_module_missing",
+
+
       stages,
-      error: {
+
+
+      error:{
+
         code:
           "TARGET_MODULE_MISSING",
 
         message:
-          "Decision Module ei valinnut suoritettavaa kohdemoduulia.",
+          "Decision Module ei valinnut kohdemoduulia.",
+
       },
+
+
       startedAt,
+
     })
+
   }
+
+
+
+
+  const capabilityPermission =
+    canExecuteCapability(
+      targetModule,
+      requestId,
+    )
+
+if(
+  capabilityPermission.status === "approval_required"
+){
+
+  return {
+
+    success:false,
+
+    status:
+      "approval_required",
+
+    requestId,
+
+    message:
+      normalizedMessage,
+
+    stages,
+
+    finalOutput:{
+
+      type:
+        "approval_required",
+
+      answer:
+        "Tämä toiminto vaatii käyttäjän hyväksynnän ennen suoritusta.",
+
+      moduleId:
+        targetModule,
+
+      capability:
+        capabilityPermission,
+
+    },
+
+    error:null,
+
+    startedAt:
+      startedAt.toISOString(),
+
+    completedAt:
+      new Date().toISOString(),
+
+    durationMs:
+      new Date().getTime() -
+      startedAt.getTime(),
+
+  }
+
+}
+
+
+
+if(
+  !capabilityPermission.success
+){
+addAuditRecord({
+
+  moduleId:
+    targetModule,
+
+  capability:
+    targetModule,
+
+  status:
+    "blocked",
+
+  requestId,
+
+  metadata:
+    capabilityPermission,
+
+})
+  return createPipelineFailure({
+
+    requestId,
+
+    message:
+      normalizedMessage,
+
+    status:
+      "capability_blocked",
+
+    stages,
+
+    error:
+      capabilityPermission,
+
+    startedAt,
+
+  })
+
+}
 
 
   const executionResult =
     await executeBrainModuleById({
+
       moduleId:
         targetModule,
+
 
       message:
         normalizedMessage,
 
+
       request,
 
-      runtimeContext: {
+
+      runtimeContext:{
+
         ...baseRuntimeContext,
 
+
         reasoningAnalysis,
+
 
         decision:
           decisionOutput,
 
+
         selectedModule:
           targetModule,
+
       },
 
-      route: {
-        confidence:
-          decisionOutput.confidence,
 
-        reason:
-          decisionOutput.reason,
-
-        metadata: {
-          pipeline:
-            true,
-
-          selectedBy:
-            "decision",
-
-          targetModule,
-
-          interactionMode:
-            interaction.mode,
-
-          interactionState:
-            interaction.state,
-        },
-      },
     })
+
+
+
 
 
   stages.execution =
     executionResult
 
+stages.audit =
+  createCapabilityAuditSnapshot()
 
-  if (!executionResult.success) {
+
+
+  if(
+    !executionResult.success
+  ){
+
     return createPipelineFailure({
+
       requestId,
+
       message:
         normalizedMessage,
+
+
       status:
         "execution_failed",
+
+
       stages,
+
+
       error:
         executionResult.error,
+
+
       startedAt,
+
     })
+
   }
 
 
+
+
+
+
+
   return createCompletedPipelineResult({
+
     requestId,
+
+
     message:
       normalizedMessage,
+
+
     stages,
+
+
     executionResult,
+
+
     startedAt,
+
   })
+
 }
 
 
+
+
+
+
+
 export {
+
   runBrainPipeline,
+
 }

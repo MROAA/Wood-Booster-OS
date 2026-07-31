@@ -1,103 +1,16 @@
+import {
+  rankMemories,
+} from "./spacemonkeyMemoryRanking.js"
+
+
+
+
+
 const retrievalHistory = []
 
 
 
-function normalizeText(text){
 
-  return String(text || "")
-
-    .toLowerCase()
-
-    .replace(
-      /[^a-z0-9äöå\s]/g,
-      ""
-    )
-
-    .split(" ")
-
-    .filter(Boolean)
-
-}
-
-
-
-function calculateMatchScore({
-
-  query,
-
-  memory
-
-}) {
-
-
-  const queryWords =
-
-    normalizeText(query)
-
-
-
-  const memoryWords =
-
-    normalizeText(
-      memory.content
-    )
-
-
-
-  let matches = 0
-
-
-
-  for(
-    const word
-    of queryWords
-  ){
-
-    if(
-      memoryWords.includes(word)
-    ){
-
-      matches++
-
-    }
-
-  }
-
-
-
-  const wordScore =
-
-    queryWords.length > 0
-
-      ?
-
-      matches / queryWords.length
-
-      :
-
-      0
-
-
-
-  const importanceScore =
-
-    Number(memory.importance || 0)
-      /
-    10
-
-
-
-  return (
-
-    wordScore * 0.7
-
-    +
-
-    importanceScore * 0.3
-
-  )
-
-}
 
 
 
@@ -112,50 +25,32 @@ function retrieveRelevantMemories({
 }) {
 
 
-  const ranked =
 
-    memories.map(
+  const rankedResult =
 
-      memory => ({
+    rankMemories({
 
-        memory,
+      query,
+
+      memories
+
+    })
 
 
-        score:
 
-          calculateMatchScore({
 
-            query,
-
-            memory
-
-          })
-
-      })
-
-    )
 
 
 
   const result =
 
-    ranked
+    rankedResult.memories
 
       .filter(
 
         item =>
 
           item.score > 0
-
-      )
-
-      .sort(
-
-        (a,b)=>
-
-          b.score -
-
-          a.score
 
       )
 
@@ -169,7 +64,9 @@ function retrieveRelevantMemories({
 
       .map(
 
-        item => ({
+        item =>
+
+        ({
 
           ...item.memory,
 
@@ -177,12 +74,18 @@ function retrieveRelevantMemories({
           relevance:
 
             Number(
+
               item.score.toFixed(2)
+
             )
 
         })
 
       )
+
+
+
+
 
 
 
@@ -207,11 +110,18 @@ function retrieveRelevantMemories({
       result,
 
 
+    ranking:
+
+      rankedResult,
+
+
     createdAt:
 
       new Date().toISOString()
 
   }
+
+
 
 
 
@@ -223,13 +133,20 @@ function retrieveRelevantMemories({
 
 
 
+
+
   return response
 
 }
 
 
 
+
+
+
+
 function getMemoryRetrievalStatus(){
+
 
   return {
 
@@ -241,7 +158,7 @@ function getMemoryRetrievalStatus(){
 
     version:
 
-      "0.1.0",
+      "0.2.0",
 
 
     retrievals:
@@ -254,11 +171,13 @@ function getMemoryRetrievalStatus(){
 
 
 
+
+
+
+
 export {
 
   retrieveRelevantMemories,
-
-  calculateMatchScore,
 
   getMemoryRetrievalStatus
 

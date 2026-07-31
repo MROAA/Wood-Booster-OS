@@ -149,8 +149,48 @@ async function process({
 
 
 
+console.log(
+  "SPACEMONKEY COGNITIVE CYCLE",
+  {
+    decision: cognitiveCycle.decision,
+    plan: cognitiveCycle.plan
+  }
+)
+    const memoryProposal =
+
+message
+        ?
+
+        {
+
+          category:
+            "spacemonkey",
 
 
+          key:
+            `spacemonkey_memory_${Date.now()}`,
+
+
+          content:
+            message,
+
+
+          importance:
+            8
+
+        }
+
+        :
+
+        null
+
+
+
+    const memoryProposalCreated =
+
+      Boolean(
+        memoryProposal
+      )
     const cognitiveEvents =
 
       await processCognitiveEvents({
@@ -277,11 +317,16 @@ async function process({
       cognitiveEvents,
 
 
-      response,
+            response,
+
+
+      memoryProposalCreated,
+
+
+      memoryProposal,
 
 
       cognitiveCycle,
-
 
       createdAt:
 

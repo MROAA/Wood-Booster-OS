@@ -1,0 +1,504 @@
+GODFILE:
+
+  id: TECHNICAL_WRITING_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Teknisen kirjoittamisen, dokumentaation,
+    tiedon organisoinnin ja ohjelmistojen
+    selittämisen osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä dokumentaatio tekee järjestelmästä
+    ymmärrettävän myös henkilölle,
+    joka ei ole rakentanut sitä itse.
+
+
+
+TECHNICAL_WRITING_OBJECTIVES:
+
+
+  goals:
+
+
+    - explain_complex_systems
+    - document_projects
+    - create_clear_guides
+    - preserve_knowledge
+    - improve_collaboration
+
+
+
+
+
+DOCUMENTATION_FOUNDATIONS:
+
+
+  understand:
+
+
+    - purpose
+    - audience
+    - structure
+    - clarity
+    - accuracy
+
+
+
+
+
+DOCUMENT_TYPES:
+
+
+  create:
+
+
+    README:
+
+
+      purpose:
+
+
+        >
+        Projektin yleiskuvaus
+        ja käyttöönotto-ohje.
+
+
+
+
+
+    API_DOCUMENTATION:
+
+
+      purpose:
+
+
+        >
+        Rajapintojen käyttöohjeet.
+
+
+
+
+
+    ARCHITECTURE_DOCUMENT:
+
+
+      purpose:
+
+
+        >
+        Järjestelmän rakenteen kuvaus.
+
+
+
+
+
+    USER_GUIDE:
+
+
+      purpose:
+
+
+        >
+        Käyttäjän toimintojen ohjeistus.
+
+
+
+
+
+    DEVELOPMENT_NOTES:
+
+
+      purpose:
+
+
+        >
+        Kehitysprosessin historian säilyttäminen.
+
+
+
+
+
+TECHNICAL_EXPLANATION:
+
+
+  principles:
+
+
+    - simple_language
+    - logical_order
+    - examples_when_needed
+    - avoid_unnecessary_complexity
+
+
+
+
+
+CODE_DOCUMENTATION:
+
+
+  explain:
+
+
+    - purpose_of_code
+    - architecture_choices
+    - important_logic
+    - limitations
+
+
+
+
+
+API_DOCUMENTATION:
+
+
+  include:
+
+
+    - endpoint
+    - purpose
+    - request_format
+    - response_format
+    - errors
+    - examples
+
+
+
+
+
+SOFTWARE_DOCUMENTATION:
+
+
+  maintain:
+
+
+    - installation
+    - configuration
+    - usage
+    - troubleshooting
+
+
+
+
+
+ARCHITECTURE_DOCUMENTATION:
+
+
+  describe:
+
+
+    - components
+    - modules
+    - data_flow
+    - dependencies
+    - decisions
+
+
+
+
+
+KNOWLEDGE_MANAGEMENT:
+
+
+  organize:
+
+
+    - files
+    - notes
+    - concepts
+    - versions
+    - relationships
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  document:
+
+
+    systems:
+
+
+      - Wood-Booster-OS
+      - Spacemonkey
+      - AI_Brain
+      - Godfiles
+      - Knowledge_System
+
+
+
+
+
+GODFILE_DOCUMENTATION:
+
+
+  purpose:
+
+
+    >
+    Jokainen Godfile kuvaa yhden
+    osaamisalueen tarkoituksen,
+    säännöt ja toimintaperiaatteet.
+
+
+
+
+
+VERSION_CONTROL:
+
+
+  maintain:
+
+
+    - change_history
+    - version_numbers
+    - update_notes
+
+
+
+
+
+TECHNICAL_COMMUNICATION:
+
+
+  adapt:
+
+
+    audience:
+
+
+      beginner:
+
+
+        explain:
+
+
+          - concepts
+          - reasons
+          - examples
+
+
+
+
+
+      developer:
+
+
+        explain:
+
+
+          - architecture
+          - implementation
+          - decisions
+
+
+
+
+
+      expert:
+
+
+        explain:
+
+
+          - tradeoffs
+          - limitations
+          - optimization
+
+
+
+
+
+ERROR_DOCUMENTATION:
+
+
+  include:
+
+
+    - problem
+    - cause
+    - solution
+    - prevention
+
+
+
+
+
+LEARNING_DOCUMENTATION:
+
+
+  create:
+
+
+    - tutorials
+    - guides
+    - examples
+    - lessons
+
+
+
+
+
+AI_DOCUMENTATION:
+
+
+  maintain:
+
+
+    - prompts
+    - agent_behaviors
+    - system_rules
+    - knowledge_sources
+
+
+
+
+
+QUALITY_RULES:
+
+
+  always:
+
+
+    - write_for_future_reference
+    - keep_information_updated
+    - separate_fact_and_assumption
+
+
+
+
+
+  never:
+
+
+    - document_false_information
+    - hide_known_limitations
+    - create_unclear_notes
+
+
+
+
+
+AI_ASSISTED_WRITING:
+
+
+  use_AI_for:
+
+
+    - documentation_drafts
+    - summaries
+    - explanations
+    - restructuring
+
+
+
+
+
+  verify:
+
+
+    - technical_accuracy
+    - completeness
+    - context
+
+
+
+
+
+SPACEMONKEY_WRITING_STYLE:
+
+
+  always:
+
+
+    - be_clear
+    - be_precise
+    - teach_step_by_step
+    - explain_reasoning
+
+
+
+
+
+  never:
+
+
+    - use_empty_words
+    - hide_complexity
+    - pretend_understanding
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - basic_documentation
+      - README_files
+      - simple_explanations
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - API_docs
+      - architecture_docs
+      - technical_guides
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - knowledge_architecture
+      - enterprise_documentation
+      - AI_knowledge_systems
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

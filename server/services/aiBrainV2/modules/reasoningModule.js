@@ -2,12 +2,15 @@
 =====================================
 WOOD-BOOSTER AI BRAIN V2
 
-REASONING MODULE V1.1
+REASONING MODULE V1.3
 
 Vastuut:
 - analysoi käyttäjän pyynnön
 - tunnistaa pyynnön tavoitteen
 - tunnistaa mahdolliset moduulitarpeet
+- erottaa muistien hallinnan
+  muistiksi oppimisesta
+- tunnistaa credentials-pyynnöt
 - tunnistaa puuttuvat tiedot
 - liittää Interaction Enginen tuottaman
   vuorovaikutuskontekstin analyysiin
@@ -18,6 +21,9 @@ Reasoning Module ei:
 - kirjoita tietokantaan
 - valitse lopullista moduulia
 - kutsu kielimallia
+- lue salaisia credentials-arvoja
+- luo muistiehdotuksia
+- hyväksy tai hylkää muistiehdotuksia
 - analysoi vuorovaikutusta uudelleen
 - korvaa Interaction Engineä
 - korvaa Action Modulea
@@ -32,7 +38,19 @@ import {
 
 
 const REASONING_MODULE_VERSION =
-  "1.1.0"
+  "1.3.0"
+
+
+const MEMORY_MODES = {
+  MANAGEMENT:
+    "management",
+
+  LEARNING:
+    "learning",
+
+  REFERENCE:
+    "reference",
+}
 
 
 const actionKeywords = [
@@ -84,6 +102,60 @@ const memoryKeywords = [
 ]
 
 
+const memoryManagementPhrases = [
+  "näytä muistot",
+  "listaa muistot",
+  "hae muistot",
+  "mitä muistat",
+  "näytä ai muisti",
+  "näytä tekoälyn muisti",
+  "näytä muistiehdotukset",
+  "listaa muistiehdotukset",
+  "hae muistiehdotukset",
+  "näytä odottavat muistot",
+  "näytä odottavat muistiehdotukset",
+  "hyväksy muistiehdotus",
+  "hyväksy muisti",
+  "hylkää muistiehdotus",
+  "hylkää muisti",
+  "show memories",
+  "list memories",
+  "show memory proposals",
+  "list memory proposals",
+  "approve memory proposal",
+  "reject memory proposal",
+]
+
+
+const memoryLearningPhrases = [
+  "muista tämä",
+  "muista että",
+  "muista, että",
+  "haluan että muistat",
+  "haluan muistaa",
+  "haluan muistaa tämän",
+  "haluan muistaa että",
+  "haluan muistaa, että",
+  "haluan, että muistat",
+  "pidä tämä mielessä",
+  "pidä mielessä että",
+  "pidä mielessä, että",
+  "tallenna tämä muistiin",
+  "tallenna muistiin",
+  "laita tämä muistiin",
+  "lisää tämä muistiin",
+  "tästä kannattaa oppia",
+  "opi tästä",
+  "remember this",
+  "remember that",
+  "i want you to remember",
+  "keep this in mind",
+  "save this to memory",
+  "store this in memory",
+  "learn this",
+]
+
+
 const knowledgeKeywords = [
   "tietopankki",
   "tieto",
@@ -115,6 +187,32 @@ const customerKeywords = [
 ]
 
 
+const credentialsKeywords = [
+  "credential",
+  "credentials",
+  "tunnistetieto",
+  "tunnistetiedot",
+  "kirjautumistieto",
+  "kirjautumistiedot",
+  "api-avain",
+  "api-avaimen",
+  "api-key",
+  "api key",
+  "access token",
+  "token",
+  "salainen avain",
+  "salaisuus",
+  "secret",
+  "palveluyhteys",
+  "palveluyhteydet",
+  "yhdistetty",
+  "integraatio",
+  "integration",
+  "moltbook",
+  "instagram",
+]
+
+
 const questionKeywords = [
   "mikä",
   "mitä",
@@ -126,6 +224,7 @@ const questionKeywords = [
   "voiko",
   "onko",
   "kuinka",
+  "saako",
   "what",
   "how",
   "why",
@@ -134,13 +233,35 @@ const questionKeywords = [
   "who",
   "can",
   "is",
+  "may",
 ]
 
 
 function normalizeText(value) {
-  return String(value || "")
+  return String(
+    value ||
+    "",
+  )
     .trim()
     .toLowerCase()
+}
+
+
+function normalizeSearchText(
+  value,
+) {
+  return normalizeText(
+    value,
+  )
+    .replace(
+      /[^a-zåäö0-9_]+/g,
+      " ",
+    )
+    .replace(
+      /\s+/g,
+      " ",
+    )
+    .trim()
 }
 
 
@@ -148,17 +269,55 @@ function includesKeyword(
   normalizedMessage,
   keyword,
 ) {
-  const normalizedKeyword =
-    normalizeText(
+  const searchableMessage =
+    normalizeSearchText(
+      normalizedMessage,
+    )
+
+  const searchableKeyword =
+    normalizeSearchText(
       keyword,
     )
 
-  if (!normalizedKeyword) {
+  if (
+    !searchableMessage ||
+    !searchableKeyword
+  ) {
     return false
   }
 
-  return normalizedMessage.includes(
-    normalizedKeyword,
+  return (
+    ` ${searchableMessage} `
+      .includes(
+        ` ${searchableKeyword} `,
+      )
+  )
+}
+
+
+function includesPhrase(
+  normalizedMessage,
+  phrase,
+) {
+  const searchableMessage =
+    normalizeSearchText(
+      normalizedMessage,
+    )
+
+  const searchablePhrase =
+    normalizeSearchText(
+      phrase,
+    )
+
+  if (
+    !searchableMessage ||
+    !searchablePhrase
+  ) {
+    return false
+  }
+
+  return searchableMessage.includes(
+    searchablePhrase,
   )
 }
 
@@ -172,6 +331,20 @@ function findMatchingKeywords({
       includesKeyword(
         normalizedMessage,
         keyword,
+      ),
+  )
+}
+
+
+function findMatchingPhrases({
+  normalizedMessage,
+  phrases,
+}) {
+  return phrases.filter(
+    (phrase) =>
+      includesPhrase(
+        normalizedMessage,
+        phrase,
       ),
   )
 }
@@ -197,17 +370,61 @@ function detectQuestion(
 }
 
 
+function detectMemoryMode({
+  memoryMatches,
+  memoryManagementMatches,
+  memoryLearningMatches,
+}) {
+  if (
+    memoryManagementMatches.length >
+    0
+  ) {
+    return MEMORY_MODES.MANAGEMENT
+  }
+
+  if (
+    memoryLearningMatches.length >
+    0
+  ) {
+    return MEMORY_MODES.LEARNING
+  }
+
+  if (
+    memoryMatches.length >
+    0
+  ) {
+    return MEMORY_MODES.REFERENCE
+  }
+
+  return null
+}
+
+
 function detectIntent({
   isQuestion,
   actionMatches,
-  memoryMatches,
   knowledgeMatches,
+  credentialsMatches,
+  memoryMode,
 }) {
   if (
-    memoryMatches.length > 0 &&
-    actionMatches.length > 0
+    credentialsMatches.length > 0
   ) {
-    return "memory_action"
+    return "credentials_request"
+  }
+
+  if (
+    memoryMode ===
+    MEMORY_MODES.MANAGEMENT
+  ) {
+    return "memory_management"
+  }
+
+  if (
+    memoryMode ===
+    MEMORY_MODES.LEARNING
+  ) {
+    return "memory_learning"
   }
 
   if (
@@ -217,7 +434,9 @@ function detectIntent({
     return "knowledge_action"
   }
 
-  if (actionMatches.length > 0) {
+  if (
+    actionMatches.length > 0
+  ) {
     return "action_request"
   }
 
@@ -234,34 +453,53 @@ function detectDomains({
   customerMatches,
   memoryMatches,
   knowledgeMatches,
+  credentialsMatches,
 }) {
   const domains = []
 
-  if (projectMatches.length > 0) {
+  if (
+    projectMatches.length > 0
+  ) {
     domains.push(
       "project",
     )
   }
 
-  if (customerMatches.length > 0) {
+  if (
+    customerMatches.length > 0
+  ) {
     domains.push(
       "customer",
     )
   }
 
-  if (memoryMatches.length > 0) {
+  if (
+    memoryMatches.length > 0
+  ) {
     domains.push(
       "memory",
     )
   }
 
-  if (knowledgeMatches.length > 0) {
+  if (
+    knowledgeMatches.length > 0
+  ) {
     domains.push(
       "knowledge",
     )
   }
 
-  if (domains.length === 0) {
+  if (
+    credentialsMatches.length > 0
+  ) {
+    domains.push(
+      "credentials",
+    )
+  }
+
+  if (
+    domains.length === 0
+  ) {
     domains.push(
       "general",
     )
@@ -275,25 +513,63 @@ function detectModuleNeeds({
   intent,
   domains,
 }) {
-  return {
-    action:
-      intent === "action_request" ||
-      intent === "memory_action" ||
-      intent === "knowledge_action",
+  const credentialsNeeded =
+    intent ===
+      "credentials_request" ||
+    domains.includes(
+      "credentials",
+    )
 
-    memory:
-      domains.includes(
-        "memory",
-      ),
+  const memoryManagementNeeded =
+    intent ===
+    "memory_management"
 
-    knowledge:
+  const memoryLearningNeeded =
+    intent ===
+    "memory_learning"
+
+  const knowledgeNeeded =
+    intent ===
+      "knowledge_action" ||
+    (
       domains.includes(
         "knowledge",
-      ),
+      ) &&
+      !memoryLearningNeeded
+    )
+
+  const actionNeeded =
+    intent ===
+      "action_request" ||
+    intent ===
+      "knowledge_action" ||
+    memoryManagementNeeded
+
+  const conversationNeeded =
+    !credentialsNeeded &&
+    (
+      intent ===
+        "conversation" ||
+      intent ===
+        "information_request" ||
+      memoryLearningNeeded
+    )
+
+  return {
+    credentials:
+      credentialsNeeded,
+
+    action:
+      actionNeeded,
+
+    memory:
+      memoryManagementNeeded,
+
+    knowledge:
+      knowledgeNeeded,
 
     conversation:
-      intent === "conversation" ||
-      intent === "information_request",
+      conversationNeeded,
 
     project:
       domains.includes(
@@ -399,7 +675,8 @@ function detectMissingInformation({
   }
 
   if (
-    intent === "action_request" &&
+    intent ===
+      "action_request" &&
     normalizedMessage.length < 5
   ) {
     missingInformation.push(
@@ -422,8 +699,17 @@ function detectMissingInformation({
       normalizedMessage,
     )
 
+  const shouldRequireProjectReference =
+    intent !==
+      "memory_learning" &&
+    intent !==
+      "conversation" &&
+    intent !==
+      "information_request"
+
   if (
     projectDomainDetected &&
+    shouldRequireProjectReference &&
     !projectListNavigation &&
     !projectReferenceExists
   ) {
@@ -441,9 +727,12 @@ function calculateConfidence({
   domains,
   actionMatches,
   memoryMatches,
+  memoryManagementMatches,
+  memoryLearningMatches,
   knowledgeMatches,
   projectMatches,
   customerMatches,
+  credentialsMatches,
 }) {
   let confidence = 0.4
 
@@ -462,12 +751,31 @@ function calculateConfidence({
     confidence += 0.1
   }
 
+  if (
+    intent ===
+      "credentials_request"
+  ) {
+    confidence += 0.15
+  }
+
+  if (
+    intent ===
+      "memory_management" ||
+    intent ===
+      "memory_learning"
+  ) {
+    confidence += 0.15
+  }
+
   const totalMatches =
     actionMatches.length +
     memoryMatches.length +
+    memoryManagementMatches.length +
+    memoryLearningMatches.length +
     knowledgeMatches.length +
     projectMatches.length +
-    customerMatches.length
+    customerMatches.length +
+    credentialsMatches.length
 
   confidence +=
     Math.min(
@@ -590,6 +898,20 @@ function analyzeMessage(
         memoryKeywords,
     })
 
+  const memoryManagementMatches =
+    findMatchingPhrases({
+      normalizedMessage,
+      phrases:
+        memoryManagementPhrases,
+    })
+
+  const memoryLearningMatches =
+    findMatchingPhrases({
+      normalizedMessage,
+      phrases:
+        memoryLearningPhrases,
+    })
+
   const knowledgeMatches =
     findMatchingKeywords({
       normalizedMessage,
@@ -611,6 +933,20 @@ function analyzeMessage(
         customerKeywords,
     })
 
+  const credentialsMatches =
+    findMatchingKeywords({
+      normalizedMessage,
+      keywords:
+        credentialsKeywords,
+    })
+
+  const memoryMode =
+    detectMemoryMode({
+      memoryMatches,
+      memoryManagementMatches,
+      memoryLearningMatches,
+    })
+
   const isQuestion =
     detectQuestion(
       normalizedMessage,
@@ -620,8 +956,9 @@ function analyzeMessage(
     detectIntent({
       isQuestion,
       actionMatches,
-      memoryMatches,
       knowledgeMatches,
+      credentialsMatches,
+      memoryMode,
     })
 
   const domains =
@@ -630,6 +967,7 @@ function analyzeMessage(
       customerMatches,
       memoryMatches,
       knowledgeMatches,
+      credentialsMatches,
     })
 
   const moduleNeeds =
@@ -651,9 +989,12 @@ function analyzeMessage(
       domains,
       actionMatches,
       memoryMatches,
+      memoryManagementMatches,
+      memoryLearningMatches,
       knowledgeMatches,
       projectMatches,
       customerMatches,
+      credentialsMatches,
     })
 
   const interactionAnalysis =
@@ -687,6 +1028,14 @@ function analyzeMessage(
       memoryKeywords:
         memoryMatches,
 
+      memoryMode,
+
+      memoryManagementPhrases:
+        memoryManagementMatches,
+
+      memoryLearningPhrases:
+        memoryLearningMatches,
+
       knowledgeKeywords:
         knowledgeMatches,
 
@@ -695,6 +1044,9 @@ function analyzeMessage(
 
       customerKeywords:
         customerMatches,
+
+      credentialsKeywords:
+        credentialsMatches,
 
       interactionAvailable:
         interactionAnalysis
@@ -716,7 +1068,7 @@ function createReasoningModule() {
       REASONING_MODULE_VERSION,
 
     description:
-      "Analysoi käyttäjän pyynnön ja yhdistää Interaction Enginen tuottaman vuorovaikutuskontekstin rakenteiseen reasoning-tulokseen.",
+      "Analysoi käyttäjän pyynnön, erottaa muistien hallinnan muistiksi oppimisesta ja yhdistää Interaction Enginen tuottaman vuorovaikutuskontekstin reasoning-tulokseen.",
 
     priority:
       50,
@@ -792,6 +1144,7 @@ function createReasoningModule() {
 
 
 export {
+  MEMORY_MODES,
   REASONING_MODULE_VERSION,
   analyzeMessage,
   createInteractionAnalysis,

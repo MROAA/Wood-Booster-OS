@@ -1,0 +1,509 @@
+GODFILE:
+
+  id: WEB_ARCHITECTURE_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Web-sovellusten kokonaisarkkitehtuurin,
+    järjestelmäsuunnittelun ja ohjelmistojen
+    rakenteellisen ymmärtämisen moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä järjestelmä rakennetaan selkeistä
+    vastuista, rajapinnoista ja
+    ylläpidettävistä komponenteista.
+
+
+
+WEB_ARCHITECTURE_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_system_design
+    - design_scalable_applications
+    - separate_responsibilities
+    - maintain_long_term_projects
+
+
+
+
+
+APPLICATION_LAYERS:
+
+
+  frontend_layer:
+
+
+    responsibility:
+
+
+      >
+      Käyttäjän käyttöliittymä ja vuorovaikutus.
+
+
+
+
+
+    technologies:
+
+
+      - React
+      - TypeScript
+      - HTML
+      - CSS
+      - Tailwind
+
+
+
+
+
+  backend_layer:
+
+
+    responsibility:
+
+
+      >
+      Liiketoimintalogiikka,
+      palvelut ja API:t.
+
+
+
+
+
+    technologies:
+
+
+      - Node.js
+      - Python
+      - Express
+      - FastAPI
+
+
+
+
+
+  database_layer:
+
+
+    responsibility:
+
+
+      >
+      Tiedon pysyvä tallennus
+      ja hallinta.
+
+
+
+
+
+    technologies:
+
+
+      - SQLite
+      - PostgreSQL
+      - Prisma
+
+
+
+
+
+ARCHITECTURE_PATTERNS:
+
+
+  learn:
+
+
+    - MVC
+    - layered_architecture
+    - modular_architecture
+    - service_architecture
+    - event_driven_architecture
+
+
+
+
+
+MODULAR_DESIGN:
+
+
+  principles:
+
+
+    - clear_boundaries
+    - independent_modules
+    - reusable_components
+    - controlled_dependencies
+
+
+
+
+
+WOOD_BOOSTER_ARCHITECTURE:
+
+
+  understand:
+
+
+    layers:
+
+
+      frontend:
+
+
+        - React_UI
+        - pages
+        - components
+
+
+
+      backend:
+
+
+        - routes
+        - services
+        - AI_Brain
+        - agents
+
+
+
+      data:
+
+
+        - Prisma
+        - database
+        - memory
+        - knowledge
+
+
+
+
+
+AI_SYSTEM_ARCHITECTURE:
+
+
+  understand:
+
+
+    components:
+
+
+      - AI_Brain
+      - Agent_Router
+      - Truth_Layer
+      - Memory_System
+      - Knowledge_System
+      - Tools
+
+
+
+
+
+DATA_FLOW:
+
+
+  understand:
+
+
+    example:
+
+
+      user:
+
+
+        ->
+
+
+      frontend:
+
+
+        ->
+
+
+      API:
+
+
+        ->
+
+
+      backend_service:
+
+
+        ->
+
+
+      database_or_AI:
+
+
+
+
+
+API_ARCHITECTURE:
+
+
+  design:
+
+
+    - clear_interfaces
+    - stable_contracts
+    - version_control
+    - documentation
+
+
+
+
+
+SECURITY_ARCHITECTURE:
+
+
+  principles:
+
+
+    - defense_in_depth
+    - least_privilege
+    - separation_of_trust
+    - validation_everywhere
+
+
+
+
+
+SCALABILITY:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - horizontal_scaling
+      - vertical_scaling
+      - caching
+      - queues
+      - background_tasks
+
+
+
+
+
+PERFORMANCE:
+
+
+  optimize:
+
+
+    - frontend_loading
+    - API_speed
+    - database_queries
+    - resource_usage
+
+
+
+
+
+MAINTAINABILITY:
+
+
+  prioritize:
+
+
+    - readable_code
+    - documentation
+    - predictable_structure
+    - testing
+
+
+
+
+
+DEVELOPMENT_PROCESS:
+
+
+  follow:
+
+
+    steps:
+
+
+      1:
+
+        understand_requirement
+
+
+      2:
+
+        design_solution
+
+
+      3:
+
+        implement_small_part
+
+
+      4:
+
+        test
+
+
+      5:
+
+        improve
+
+
+
+
+
+CLOUD_AND_LOCAL:
+
+
+  understand:
+
+
+    environments:
+
+
+      - local_development
+      - testing
+      - production
+
+
+
+
+
+DEPLOYMENT_ARCHITECTURE:
+
+
+  learn:
+
+
+    - servers
+    - containers
+    - CI_CD
+    - monitoring
+
+
+
+
+
+AI_ASSISTED_ARCHITECTURE:
+
+
+  use_AI_for:
+
+
+    - system_design
+    - code_review
+    - documentation
+    - optimization
+
+
+
+
+
+  verify:
+
+
+    - compatibility
+    - security
+    - simplicity
+
+
+
+
+
+SPACEMONKEY_ARCHITECTURE_RULES:
+
+
+  always:
+
+
+    - understand_existing_system
+    - preserve_working_components
+    - design_before_coding
+    - build_incrementally
+
+
+
+
+
+  never:
+
+
+    - rewrite_without_reason
+    - create_unnecessary_complexity
+    - ignore_architecture
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - frontend_backend_difference
+      - basic_application_structure
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - APIs
+      - databases
+      - services
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - enterprise_architecture
+      - distributed_systems
+      - AI_platform_design
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

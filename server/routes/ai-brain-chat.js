@@ -1,13 +1,40 @@
 import express from "express"
 
+
 import {
   runAIBrain,
 } from "../services/aiBrain.js"
 
 
 import {
+  saveMemoryProposal,
+} from "../services/aiBrainV2/system/spacemonkey/spacemonkeyMemoryBridge.js"
+
+
+import {
+  findMemory,
+} from "../services/aiBrainV2/system/spacemonkey/spacemonkeyPersistentMemory.js"
+
+
+import {
+  retrieveRelevantMemories,
+} from "../services/aiBrainV2/system/spacemonkey/spacemonkeyMemoryRetrieval.js"
+
+
+import {
   searchKnowledge,
 } from "../services/knowledgeSearch.js"
+
+
+import {
+  detectIntent,
+} from "../services/aiBrainV2/system/spacemonkey/spacemonkeyIntentEngine.js"
+
+
+import {
+  process as processSpacemonkey,
+} from "../services/aiBrainV2/system/spacemonkey/spacemonkeyBrainFacade.js"
+
 
 
 
@@ -18,6 +45,7 @@ const DEFAULT_MODEL =
 
 
 const MAX_HISTORY_MESSAGES = 20
+
 
 
 
@@ -71,213 +99,51 @@ export default function createAIBrainChatRouter(prisma) {
 
 
 
-
-        const requestedModel =
-          String(
-
-            req.body.model ||
-
-            DEFAULT_MODEL
-
-          ).trim()
-
-
-
-
-
-
-
-        let conversationId =
+        const conversationId =
           req.body.conversationId
-            ? String(
-                req.body.conversationId,
-              )
-            : null
 
 
 
 
 
+        let conversationHistory = []
 
 
-        /*
-        =================================
-        CREATE / LOAD CONVERSATION
-        =================================
-        */
 
 
-        if (conversationId) {
+
+        if(conversationId){
 
 
-          const existingConversation =
-            await prisma.conversation.findUnique({
+          conversationHistory =
+
+            await prisma.message.findMany({
 
               where:{
-                id:conversationId,
-              },
 
-            })
-
-
-
-          if (!existingConversation) {
-
-
-            return res.status(404).json({
-
-              success:false,
-
-              error:
-                "Keskustelua ei löytynyt.",
-
-            })
-
-
-          }
-
-
-        }
-
-
-        else {
-
-
-          const conversation =
-            await prisma.conversation.create({
-
-              data:{
-
-                title:
-                  createConversationTitle(
-                    message,
-                  ),
+                conversationId,
 
               },
 
+
+              orderBy:{
+
+                createdAt:
+                  "asc"
+
+              },
+
+
+              take:
+                MAX_HISTORY_MESSAGES
+
             })
-
-
-
-          conversationId =
-            conversation.id
 
 
         }
 
 
 
-
-
-
-
-
-
-        /*
-        =================================
-        LOAD HISTORY
-        =================================
-        */
-
-
-        const storedHistory =
-
-          await prisma.message.findMany({
-
-            where:{
-
-              conversationId,
-
-            },
-
-
-            orderBy:{
-
-              createdAt:
-                "desc",
-
-            },
-
-
-            take:
-              MAX_HISTORY_MESSAGES,
-
-
-          })
-
-
-
-
-        const conversationHistory =
-
-          storedHistory
-
-            .reverse()
-
-            .map(
-              item => ({
-
-                role:
-                  item.role,
-
-
-                content:
-                  item.content,
-
-
-              })
-            )
-
-
-
-
-
-
-
-
-
-
-        /*
-        =================================
-        SAVE USER MESSAGE
-        =================================
-        */
-
-
-        await prisma.message.create({
-
-          data:{
-
-
-            role:
-              "user",
-
-
-            content:
-              message,
-
-
-            conversationId,
-
-
-          },
-
-
-        })
-
-
-
-
-
-
-
-
-
-        /*
-        =================================
-        SEARCH KNOWLEDGE
-        =================================
-        */
 
 
         let knowledge = []
@@ -288,31 +154,241 @@ export default function createAIBrainChatRouter(prisma) {
 
 
           knowledge =
+            await searchKnowledge({
 
-            await searchKnowledge(
+              query:
+                message,
 
-              message
+              prisma,
 
-            )
+            })
 
+
+        }
+
+        catch(error){
+
+
+          console.error(
+            "Knowledge search error:",
+            error.message
+          )
 
 
         }
 
 
-        catch(error) {
+
+
+
+
+        let memoryContext = []
+
+
+
+        try {
+
+
+          const allMemories =
+
+            await findMemory({
+
+              prisma
+
+            })
+
+
+
+          const recalledMemories =
+
+            retrieveRelevantMemories({
+
+              query:
+
+                message,
+
+
+              memories:
+
+                allMemories
+
+            })
+
+
+
+          memoryContext =
+
+            recalledMemories.memories || []
+
+
+
+        }
+
+        catch(error){
 
 
           console.error(
 
-            "KNOWLEDGE SEARCH ERROR:",
+            "Memory retrieval error:",
 
             error.message
 
           )
 
 
-          knowledge = []
+        }
+
+
+
+
+
+
+
+        try {
+
+
+          await processSpacemonkey({
+
+            message,
+
+            prisma,
+
+          })
+
+
+        }
+
+
+        catch(error){
+
+
+          console.error(
+
+            "Spacemonkey observer error:",
+
+            error.message
+
+          )
+
+
+        }
+        const intent =
+
+          detectIntent({
+
+            message,
+
+          })
+
+
+
+
+
+
+
+        if (
+
+          intent.intent ===
+
+          "CODING_REQUEST"
+
+        ) {
+
+
+          const spacemonkeyResult =
+
+            await processSpacemonkey({
+
+              message,
+
+              prisma,
+
+            })
+
+
+
+          const answer =
+
+            String(
+
+              spacemonkeyResult
+                ?.response
+                ?.response ||
+
+              "Spacemonkey ei palauttanut vastausta."
+
+            ).trim()
+
+
+
+
+
+          let spacemonkeyMemoryResult = null
+
+
+
+
+
+          if(
+
+            spacemonkeyResult.memoryProposalCreated &&
+
+            spacemonkeyResult.memoryProposal
+
+          ){
+
+
+            spacemonkeyMemoryResult =
+
+              await saveMemoryProposal({
+
+                prisma,
+
+                proposal:
+
+                  spacemonkeyResult.memoryProposal
+
+              })
+
+          }
+
+
+
+
+
+          return res.json({
+
+            success:true,
+
+
+            conversationId,
+
+
+            model:
+              "Spacemonkey",
+
+
+            answer,
+
+
+            spacemonkey:true,
+
+
+            memorySaved:
+
+              spacemonkeyMemoryResult?.saved ||
+
+              false,
+
+
+            spacemonkeyMemory:
+
+              spacemonkeyMemoryResult ||
+
+              null,
+
+
+          })
 
 
         }
@@ -323,16 +399,6 @@ export default function createAIBrainChatRouter(prisma) {
 
 
 
-
-
-        /*
-        =================================
-        RUN AI BRAIN
-
-        HUOM:
-        prisma välitetään tänne
-        =================================
-        */
 
 
         const brainResult =
@@ -350,37 +416,15 @@ export default function createAIBrainChatRouter(prisma) {
 
 
             model:
-              requestedModel,
+              DEFAULT_MODEL,
 
 
             prisma,
 
 
+            memoryContext,
+
           })
-
-
-
-
-
-
-
-
-        if (!brainResult.success) {
-
-
-          throw new Error(
-
-            brainResult.error ||
-
-            "AI Brain epäonnistui."
-
-          )
-
-
-        }
-
-
-
 
 
 
@@ -392,7 +436,7 @@ export default function createAIBrainChatRouter(prisma) {
 
             brainResult.answer ||
 
-            ""
+            "Ei vastausta."
 
           ).trim()
 
@@ -400,17 +444,32 @@ export default function createAIBrainChatRouter(prisma) {
 
 
 
+        let spacemonkeyMemoryResult = null
 
 
-        if (!answer) {
 
 
-          throw new Error(
 
-            "AI palautti tyhjän vastauksen."
+        if(
 
-          )
+          brainResult.memoryProposalCreated &&
 
+          brainResult.memoryProposal
+
+        ){
+
+
+          spacemonkeyMemoryResult =
+
+            await saveMemoryProposal({
+
+              prisma,
+
+              proposal:
+
+                brainResult.memoryProposal
+
+            })
 
         }
 
@@ -420,82 +479,7 @@ export default function createAIBrainChatRouter(prisma) {
 
 
 
-
-
-        /*
-        =================================
-        SAVE AI RESPONSE
-        =================================
-        */
-
-
-        await prisma.message.create({
-
-          data:{
-
-
-            role:
-              "assistant",
-
-
-            content:
-              answer,
-
-
-            conversationId,
-
-
-          },
-
-
-        })
-
-
-
-
-
-
-
-
-        await prisma.conversation.update({
-
-          where:{
-
-            id:
-              conversationId,
-
-          },
-
-
-          data:{
-
-
-            updatedAt:
-              new Date(),
-
-
-          },
-
-
-        })
-
-
-
-
-
-
-
-
-
-        /*
-        =================================
-        RESPONSE
-        =================================
-        */
-
-
         return res.json({
-
 
           success:true,
 
@@ -504,15 +488,24 @@ export default function createAIBrainChatRouter(prisma) {
 
 
           model:
+            DEFAULT_MODEL,
 
-            brainResult.model ||
 
-            requestedModel,
+          memorySaved:
 
+            spacemonkeyMemoryResult?.saved ||
+
+            false,
+
+
+          spacemonkeyMemory:
+
+            spacemonkeyMemoryResult ||
+
+            null,
 
 
           answer,
-
 
 
           memoryProposalCreated:
@@ -522,7 +515,6 @@ export default function createAIBrainChatRouter(prisma) {
             false,
 
 
-
           memoryProposal:
 
             brainResult.memoryProposal ||
@@ -530,34 +522,34 @@ export default function createAIBrainChatRouter(prisma) {
             null,
 
 
-
           knowledgeSources:
 
-            brainResult.knowledgeSources || [],
+            brainResult.knowledgeSources ||
 
+            [],
+
+
+          memoryContext,
 
 
           debug:
 
-            brainResult.debug || null,
+            brainResult.debug || {},
 
 
         })
 
 
 
-
-
-
       }
 
 
-      catch(error) {
+      catch(error){
 
 
         console.error(
 
-          "AI BRAIN CHAT ERROR:",
+          "AI Brain Chat Error:",
 
           error
 
@@ -565,17 +557,12 @@ export default function createAIBrainChatRouter(prisma) {
 
 
 
-        return res.status(500).json({
+        res.status(500).json({
 
           success:false,
 
-
           error:
-
-            error.message ||
-
-            "AI Brain epäonnistui.",
-
+            error.message
 
         })
 
@@ -592,54 +579,5 @@ export default function createAIBrainChatRouter(prisma) {
 
 
   return router
-
-}
-
-
-
-
-
-
-
-
-
-function createConversationTitle(message) {
-
-
-  const normalized =
-
-    message
-
-      .replace(/\s+/g," ")
-
-      .trim()
-
-
-
-  if (
-
-    normalized.length <= 60
-
-  ) {
-
-
-    return normalized
-
-
-  }
-
-
-
-  return (
-
-    normalized.slice(
-      0,
-      57
-    )
-
-    + "..."
-
-  )
-
 
 }

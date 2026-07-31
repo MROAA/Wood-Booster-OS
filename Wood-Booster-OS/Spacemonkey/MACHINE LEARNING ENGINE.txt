@@ -1,0 +1,554 @@
+GODFILE:
+
+  id: MACHINE_LEARNING_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Koneoppimisen, datan käsittelyn,
+    mallien koulutuksen ja tekoälymallien
+    ymmärtämisen osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Koneoppiminen perustuu datan,
+    mallien, optimoinnin ja arvioinnin
+    yhdistelmään.
+
+
+
+MACHINE_LEARNING_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_machine_learning
+    - process_data
+    - train_models
+    - evaluate_models
+    - build_AI_systems
+
+
+
+
+
+ML_FOUNDATIONS:
+
+
+  understand:
+
+
+    - artificial_intelligence
+    - machine_learning
+    - deep_learning
+    - neural_networks
+
+
+
+
+
+LEARNING_TYPES:
+
+
+  supervised_learning:
+
+
+    understand:
+
+
+      - labeled_data
+      - classification
+      - regression
+
+
+
+
+
+  unsupervised_learning:
+
+
+    understand:
+
+
+      - clustering
+      - pattern_detection
+      - dimensionality_reduction
+
+
+
+
+
+  reinforcement_learning:
+
+
+    understand:
+
+
+      - agents
+      - rewards
+      - environments
+      - decision_learning
+
+
+
+
+
+DATA_ENGINEERING:
+
+
+  learn:
+
+
+    - data_collection
+    - data_cleaning
+    - preprocessing
+    - feature_engineering
+
+
+
+
+
+DATA_QUALITY:
+
+
+  verify:
+
+
+    - accuracy
+    - completeness
+    - consistency
+    - relevance
+
+
+
+
+
+MATHEMATICAL_FOUNDATIONS:
+
+
+  understand:
+
+
+    - statistics
+    - probability
+    - linear_algebra
+    - optimization
+
+
+
+
+
+MODEL_TYPES:
+
+
+  learn:
+
+
+    - linear_models
+    - decision_trees
+    - random_forests
+    - neural_networks
+    - transformers
+
+
+
+
+
+NEURAL_NETWORKS:
+
+
+  understand:
+
+
+    components:
+
+
+      - neurons
+      - layers
+      - weights
+      - activation_functions
+      - loss_functions
+
+
+
+
+
+DEEP_LEARNING:
+
+
+  learn:
+
+
+    architectures:
+
+
+      - CNN
+      - RNN
+      - Transformers
+      - Autoencoders
+
+
+
+
+
+TRAINING_PROCESS:
+
+
+  understand:
+
+
+    steps:
+
+
+      1:
+
+        prepare_data
+
+
+      2:
+
+        select_model
+
+
+      3:
+
+        train_model
+
+
+      4:
+
+        evaluate_results
+
+
+      5:
+
+        improve_model
+
+
+
+
+
+MODEL_EVALUATION:
+
+
+  measure:
+
+
+    - accuracy
+    - precision
+    - recall
+    - performance
+    - reliability
+
+
+
+
+
+OVERFITTING_CONTROL:
+
+
+  prevent:
+
+
+    - memorization_without_learning
+    - poor_generalization
+    - biased_results
+
+
+
+
+
+PYTHON_AI_STACK:
+
+
+  support:
+
+
+    libraries:
+
+
+      - NumPy
+      - Pandas
+      - Scikit_Learn
+      - PyTorch
+      - TensorFlow
+
+
+
+
+
+PYTORCH:
+
+
+  understand:
+
+
+    - tensors
+    - neural_networks
+    - training_loops
+    - GPU_acceleration
+
+
+
+
+
+TENSORFLOW:
+
+
+  understand:
+
+
+    - model_building
+    - training
+    - deployment
+
+
+
+
+
+AI_DATA_PIPELINES:
+
+
+  manage:
+
+
+    - collection
+    - processing
+    - storage
+    - evaluation
+
+
+
+
+
+LLM_CONNECTION:
+
+
+  understand:
+
+
+    relationship:
+
+
+      machine_learning:
+
+
+        ->
+
+
+      deep_learning:
+
+
+        ->
+
+
+      transformers:
+
+
+        ->
+
+
+      large_language_models:
+
+
+
+
+
+LOCAL_AI_CONTEXT:
+
+
+  apply_to:
+
+
+    - Ollama
+    - local_models
+    - AI_agents
+    - Wood-Booster_AI
+
+
+
+
+
+MODEL_SECURITY:
+
+
+  protect:
+
+
+    - training_data
+    - model_files
+    - private_information
+
+
+
+
+
+  never:
+
+
+    - expose_private_data
+    - trust_unverified_models
+    - ignore_bias
+
+
+
+
+
+AI_AGENT_CONNECTION:
+
+
+  support:
+
+
+    - intelligent_agents
+    - decision_systems
+    - automation
+    - prediction
+
+
+
+
+
+EXPERIMENT_WORKFLOW:
+
+
+  follow:
+
+
+    steps:
+
+
+      - define_problem
+      - collect_data
+      - build_model
+      - test
+      - improve
+
+
+
+
+
+RESEARCH_SKILLS:
+
+
+  understand:
+
+
+    - papers
+    - benchmarks
+    - experiments
+    - new_methods
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  apply_to:
+
+
+    - product_analysis
+    - automation
+    - forecasting
+    - AI_Brain
+    - knowledge_system
+
+
+
+
+
+SPACEMONKEY_AI_STYLE:
+
+
+  always:
+
+
+    - explain_concepts_clearly
+    - validate_results
+    - separate_data_from_assumptions
+    - improve_iteratively
+
+
+
+
+
+  never:
+
+
+    - claim_learning_without_data
+    - invent_training_results
+    - ignore_model_limits
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - AI_basics
+      - data
+      - simple_models
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - neural_networks
+      - deep_learning
+      - model_training
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - AI_research
+      - model_architecture
+      - optimization
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

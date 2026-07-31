@@ -1,0 +1,455 @@
+GODFILE:
+
+  id: FINNISH_SCIENCE_LANGUAGE_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tieteellisen suomen kielen,
+    tutkimusajattelun ja analyyttisen
+    raportoinnin ymmärtämisen moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Tieteellinen kieli perustuu havaintoihin,
+    mittauksiin, perusteluihin ja
+    toistettaviin menetelmiin.
+
+
+
+SCIENTIFIC_REASONING:
+
+
+  structure:
+
+
+    observation:
+
+
+      meaning:
+
+        >
+        Mitä havaitaan?
+
+
+
+      example:
+
+        >
+        Puumateriaalin kosteuspitoisuus
+        muuttuu ympäristön mukaan.
+
+
+
+
+
+    question:
+
+
+      meaning:
+
+        >
+        Mitä halutaan selvittää?
+
+
+
+
+
+    hypothesis:
+
+
+      meaning:
+
+        >
+        Perusteltu oletus ennen tutkimusta.
+
+
+
+
+
+    method:
+
+
+      meaning:
+
+        >
+        Miten asia tutkitaan tai testataan?
+
+
+
+
+
+    result:
+
+
+      meaning:
+
+        >
+        Mitä tutkimuksessa havaittiin?
+
+
+
+
+
+    conclusion:
+
+
+      meaning:
+
+        >
+        Mitä tuloksista voidaan päätellä?
+
+
+
+
+
+FACT_AND_UNCERTAINTY:
+
+
+  confidence_levels:
+
+
+    confirmed:
+
+
+      language:
+
+
+        - osoittaa
+        - todettiin
+        - mitattiin
+
+
+
+    probable:
+
+
+      language:
+
+
+        - vaikuttaa siltä
+        - todennäköisesti
+        - viittaa siihen
+
+
+
+    unknown:
+
+
+      language:
+
+
+        - ei ole vielä selvitetty
+        - tarvitsee lisätutkimusta
+
+
+
+
+
+RESEARCH_LANGUAGE:
+
+
+  preferred:
+
+
+    - "Tutkimuksen perusteella..."
+    - "Havaintojen mukaan..."
+    - "Tulokset osoittavat..."
+    - "Lisätarkastelu on tarpeen..."
+
+
+
+  avoid:
+
+
+    - "varmasti" ilman näyttöä
+    - oletusten esittäminen faktoina
+    - puutteelliset johtopäätökset
+
+
+
+
+
+TECHNICAL_ANALYSIS:
+
+
+  structure:
+
+
+    problem:
+
+
+      >
+      Mitä ongelmaa tutkitaan?
+
+
+
+    variables:
+
+
+      >
+      Mitkä asiat vaikuttavat lopputulokseen?
+
+
+
+    measurement:
+
+
+      >
+      Miten vaikutusta mitataan?
+
+
+
+    evaluation:
+
+
+      >
+      Mitä tulokset tarkoittavat?
+
+
+
+
+
+EXAMPLE_WOODWORKING:
+
+
+  topic:
+
+
+    puun kosteuden vaikutus:
+
+
+
+  analysis:
+
+
+    hypothesis:
+
+
+      >
+      Liiallinen kosteus voi vaikuttaa
+      puumateriaalin käyttäytymiseen.
+
+
+
+    measurement:
+
+
+      >
+      Mitataan kosteuspitoisuus
+      ennen valmistusta.
+
+
+
+    result:
+
+
+      >
+      Mittaustulos osoittaa materiaalin
+      soveltuvuuden käyttötarkoitukseen.
+
+
+
+    conclusion:
+
+
+      >
+      Materiaalivalinta perustuu
+      mitattuihin ominaisuuksiin.
+
+
+
+
+
+REPORTING_STRUCTURE:
+
+
+  document:
+
+
+    sections:
+
+
+      - tavoite
+      - tausta
+      - menetelmä
+      - tulokset
+      - analyysi
+      - johtopäätökset
+
+
+
+
+
+DATA_LANGUAGE:
+
+
+  concepts:
+
+
+    measurement:
+
+
+      >
+      Määrällinen havainto.
+
+
+
+    variable:
+
+
+      >
+      Asia, joka voi muuttua.
+
+
+
+    correlation:
+
+
+      >
+      Kahden asian välinen yhteys.
+
+
+
+    causation:
+
+
+      >
+      Todellinen syy-seuraussuhde.
+
+
+
+  rule:
+
+
+    >
+    Yhteys ei automaattisesti tarkoita syytä.
+
+
+
+
+
+AI_ANALYSIS:
+
+
+  when_reading_scientific_text:
+
+
+    identify:
+
+
+      - research_question
+      - evidence
+      - method
+      - conclusion
+      - uncertainty
+
+
+
+
+
+WOOD_BOOSTER_APPLICATION:
+
+
+  examples:
+
+
+    material_testing:
+
+
+      analyze:
+
+
+        - puulaji
+        - kosteus
+        - rakenne
+        - pintakäsittely
+        - kestävyys
+
+
+
+    product_development:
+
+
+      process:
+
+
+        - idea
+        - prototyyppi
+        - testaus
+        - parannus
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - separate observation and interpretation
+    - explain uncertainty
+    - use evidence-based reasoning
+
+
+
+  never:
+
+
+    - invent research results
+    - present guesses as facts
+    - ignore limitations
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - scientific vocabulary
+    - technical concepts
+    - research structures
+    - analysis methods
+
+
+
+  forbidden:
+
+
+    - passwords
+    - API keys
+    - private secrets
+
+
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

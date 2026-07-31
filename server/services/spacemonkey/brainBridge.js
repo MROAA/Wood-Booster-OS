@@ -1,21 +1,34 @@
 /*
-  Spacemonkey Brain Bridge
+=====================================
 
-  Yhdistää Spacemonkey Runtime
-  AI Brain V2 Runtimeen.
+Spacemonkey Brain Bridge V2
 
-  Vastuu:
-  - vastaanottaa Spacemonkey tilan
-  - välittää system contextin Brainille
-  - lisää Memory Contextin
-  - kutsua AI Brain V2 runtimea
-  - palauttaa Brain tuloksen
+Yhdistää:
 
-  Ei:
-  - muuta AI Brain logiikkaa
-  - kutsu Ollamaa suoraan
-  - päätä vastauksia
-  - kirjoita muistia
+Spacemonkey Runtime
+        |
+        v
+AI Brain V2 Runtime
+
+Vastuut:
+
+- vastaanottaa Spacemonkey tilan
+- välittää system contextin
+- lisää Memory Contextin
+- lisää Context Engine metadataa
+- kutsuu AI Brain V2 runtimea
+- palauttaa Brain tuloksen
+
+
+Ei:
+
+- muuta AI Brain logiikkaa
+- kutsu Ollamaa suoraan
+- päätä vastauksia
+- kirjoita muistia
+
+
+=====================================
 */
 
 
@@ -24,14 +37,20 @@ import {
 } from "../aiBrainV2/brainRuntime.js"
 
 
+
 import {
   createSpacemonkeyContextText,
 } from "./contextAdapter.js"
 
 
+
 import {
   createMemoryBrainBridge,
 } from "../aiBrainV2/services/memoryBrainBridge.js"
+
+
+
+
 
 
 
@@ -52,6 +71,8 @@ async function runSpacemonkeyBrain({
 
 
 
+
+
   const spacemonkeyContext =
     createSpacemonkeyContextText({
 
@@ -62,15 +83,24 @@ async function runSpacemonkeyBrain({
 
 
 
+
+
+
+
   const systemContext =
     runtime.systemContext ||
     ""
 
 
 
+
+
+
+
   console.log(
     "SPACEMONKEY CONTEXT READY"
   )
+
 
 
   console.log(
@@ -80,22 +110,77 @@ async function runSpacemonkeyBrain({
 
 
 
+
+
+
+
+
   let finalRuntimeContext = {
+
 
     spacemonkey:
       runtime.spacemonkey,
+
 
 
     spacemonkeyRuntime:
       runtime.runtime,
 
 
+
     spacemonkeyContext,
+
 
 
     systemContext,
 
+
+
+    contextMetadata: {
+
+      providers: [
+
+        "system",
+
+        "identity",
+
+        "memory",
+
+        "knowledge",
+
+        "finnishCulture",
+
+        "spacemonkeyPersona",
+
+        "creator_identity",
+
+      ],
+
+
+
+      spacemonkeyPersona:
+        true,
+
+
+
+      creatorIdentity:
+        true,
+
+
+
+      finnishCulture:
+        true,
+
+    },
+
+
   }
+
+
+
+
+
+
 
 
 
@@ -122,12 +207,16 @@ async function runSpacemonkeyBrain({
 
 
 
+
+
     if (
       memoryResult.success
     ) {
 
+
       finalRuntimeContext =
         memoryResult.runtimeContext
+
 
 
       console.log(
@@ -135,9 +224,16 @@ async function runSpacemonkeyBrain({
         memoryResult.memories.length,
       )
 
+
     }
 
+
   }
+
+
+
+
+
 
 
 
@@ -158,9 +254,19 @@ async function runSpacemonkeyBrain({
     })
 
 
+
+
+
+
+
   return result
 
+
 }
+
+
+
+
 
 
 

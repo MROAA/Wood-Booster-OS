@@ -3,14 +3,27 @@ import {
   useState,
 } from "react"
 
+
+
 import ProjectAIChat from "./ProjectAIChat"
 import ProjectTools from "./ProjectTools"
 import ProjectMemory from "./ProjectMemory"
 import ProjectKnowledge from "./ProjectKnowledge"
 
+import MaterialsTab from "./MaterialsTab"
+import NotesTab from "./NotesTab"
+import GalleryTab from "./GalleryTab"
+import TimelineTab from "./TimelineTab"
+import WorkflowTab from "./WorkflowTab"
+import QuoteTab from "./QuoteTab"
+
+import FilesTab from "./project/FilesTab"
+
+
 import {
   ProjectAIProvider,
 } from "./ProjectAIContext"
+
 
 import {
   setActiveTab,
@@ -18,65 +31,212 @@ import {
 } from "../services/runtime/runtimeContext"
 
 
+
+
+
+
+
 const tabs = [
+
   {
-    id: "overview",
-    label: "Overview",
-    icon: "📋",
+    id:
+      "overview",
+
+    label:
+      "Overview",
+
+    icon:
+      "📋",
   },
+
+
   {
-    id: "ai",
-    label: "AI Assistant",
-    icon: "🤖",
+    id:
+      "ai",
+
+    label:
+      "AI Assistant",
+
+    icon:
+      "🤖",
   },
+
+
   {
-    id: "tools",
-    label: "Tools",
-    icon: "🛠",
+    id:
+      "tools",
+
+    label:
+      "Tools",
+
+    icon:
+      "🛠",
   },
+
+
   {
-    id: "memory",
-    label: "Memory",
-    icon: "🧠",
+    id:
+      "materials",
+
+    label:
+      "Materials",
+
+    icon:
+      "🪵",
   },
+
+
   {
-    id: "knowledge",
-    label: "Knowledge",
-    icon: "📚",
+    id:
+      "timeline",
+
+    label:
+      "Timeline",
+
+    icon:
+      "📅",
   },
+
+
   {
-    id: "notes",
-    label: "Notes",
-    icon: "📝",
+    id:
+      "gallery",
+
+    label:
+      "Gallery",
+
+    icon:
+      "🖼",
   },
+
+
   {
-    id: "files",
-    label: "Files",
-    icon: "📁",
+    id:
+      "workflow",
+
+    label:
+      "Workflow",
+
+    icon:
+      "⚙️",
   },
+
+
+  {
+    id:
+      "quote",
+
+    label:
+      "Quote",
+
+    icon:
+      "💶",
+  },
+
+
+  {
+    id:
+      "memory",
+
+    label:
+      "Memory",
+
+    icon:
+      "🧠",
+  },
+
+
+  {
+    id:
+      "knowledge",
+
+    label:
+      "Knowledge",
+
+    icon:
+      "📚",
+  },
+
+
+  {
+    id:
+      "notes",
+
+    label:
+      "Notes",
+
+    icon:
+      "📝",
+  },
+
+
+  {
+    id:
+      "files",
+
+    label:
+      "Files",
+
+    icon:
+      "📁",
+  },
+
 ]
+
+
+
+
+
 
 
 function ProjectOverview({
   project,
 }) {
+
+
   return (
-    <div className="space-y-6">
+
+    <div
+      className="
+        space-y-6
+      "
+    >
 
       <div>
 
-        <h2 className="text-xl font-bold">
+        <h2
+          className="
+            text-xl
+            font-bold
+          "
+        >
           Projektin yhteenveto
         </h2>
 
-        <p className="mt-2 text-neutral-400">
+
+        <p
+          className="
+            mt-2
+            text-[var(--wood-muted)]
+          "
+        >
           Projektin tärkeimmät perustiedot.
         </p>
+
 
       </div>
 
 
-      <div className="grid gap-4 md:grid-cols-2">
+
+
+
+      <div
+        className="
+          grid
+          gap-4
+          md:grid-cols-2
+        "
+      >
 
         <InfoCard
           title="Projektin nimi"
@@ -86,6 +246,7 @@ function ProjectOverview({
           }
         />
 
+
         <InfoCard
           title="Tila"
           value={
@@ -93,6 +254,7 @@ function ProjectOverview({
             "Ei tilaa"
           }
         />
+
 
         <InfoCard
           title="Asiakas"
@@ -102,6 +264,7 @@ function ProjectOverview({
           }
         />
 
+
         <InfoCard
           title="Projektin ID"
           value={
@@ -110,219 +273,246 @@ function ProjectOverview({
           }
         />
 
+
       </div>
 
 
-      <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5">
 
-        <p className="text-sm text-neutral-500">
+
+
+      <div
+        className="
+          card
+          p-5
+        "
+      >
+
+        <p
+          className="
+            text-sm
+            text-[var(--wood-muted)]
+          "
+        >
           Muistiinpanot
         </p>
 
-        <p className="mt-3 whitespace-pre-wrap break-words leading-7 text-neutral-300">
-          {project?.notes ||
-            "Projektille ei ole vielä muistiinpanoja."}
+
+        <p
+          className="
+            mt-3
+            whitespace-pre-wrap
+            break-words
+            leading-7
+          "
+        >
+
+          {
+            project?.notes ||
+            "Projektille ei ole vielä muistiinpanoja."
+          }
+
         </p>
+
 
       </div>
 
+
     </div>
+
   )
+
 }
-
-
 function InfoCard({
   title,
   value,
 }) {
-  return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5">
 
-      <p className="text-sm text-neutral-500">
+  return (
+
+    <div
+      className="
+        card
+        p-5
+      "
+    >
+
+      <p
+        className="
+          text-sm
+          text-[var(--wood-muted)]
+        "
+      >
+
         {title}
+
       </p>
 
-      <p className="mt-2 break-words font-semibold">
+
+      <p
+        className="
+          mt-2
+          break-words
+          font-semibold
+        "
+      >
+
         {value}
+
       </p>
 
+
     </div>
+
   )
+
 }
 
 
-function ProjectNotes({
-  project,
-}) {
-  return (
-    <div className="space-y-5">
-
-      <div>
-
-        <h2 className="text-xl font-bold">
-          📝 Projektin muistiinpanot
-        </h2>
-
-        <p className="mt-2 text-neutral-400">
-          Projektin nykyiset muistiinpanot.
-        </p>
-
-      </div>
 
 
-      <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6">
 
-        <p className="whitespace-pre-wrap break-words leading-7 text-neutral-300">
-          {project?.notes ||
-            "Muistiinpanoja ei ole vielä lisätty."}
-        </p>
-
-      </div>
-
-    </div>
-  )
-}
-
-
-function ProjectFiles() {
-  return (
-    <div className="space-y-5">
-
-      <div>
-
-        <h2 className="text-xl font-bold">
-          📁 Projektin tiedostot
-        </h2>
-
-        <p className="mt-2 text-neutral-400">
-          Tiedostojen hallinta lisätään myöhemmässä
-          vaiheessa.
-        </p>
-
-      </div>
-
-
-      <div className="rounded-2xl border border-dashed border-neutral-700 bg-neutral-950 p-10 text-center">
-
-        <div className="text-4xl">
-          📂
-        </div>
-
-        <p className="mt-4 font-semibold">
-          Ei tiedostoja
-        </p>
-
-        <p className="mt-2 text-sm text-neutral-500">
-          Tänne voidaan myöhemmin lisätä kuvat,
-          piirustukset, tarjoukset ja muut
-          projektitiedostot.
-        </p>
-
-      </div>
-
-    </div>
-  )
-}
 
 
 function ProjectTabs({
   project,
   onProjectUpdated,
 }) {
-  const [activeTab, setLocalActiveTab] =
-    useState("overview")
+
+
+  const [
+    activeTab,
+    setLocalActiveTab,
+  ] = useState(
+    "overview"
+  )
+
+
+
+
+
 
 
   useEffect(() => {
-    setLocalActiveTab("overview")
-  }, [project?.id])
+
+    setLocalActiveTab(
+      "overview"
+    )
+
+  },[
+    project?.id,
+  ])
+
+
+
+
+
 
 
   useEffect(() => {
+
+
     function handleOpenProjectTab(
-      event,
+      event
     ) {
+
+
       const requestedTab =
         String(
           event?.detail?.tab ||
-          "",
+          ""
         )
-          .trim()
-          .toLowerCase()
+        .trim()
+        .toLowerCase()
 
-      const requestedProjectId =
-        event?.detail?.projectId ||
-        null
 
-      if (!requestedTab) {
+
+      if(!requestedTab) {
+
         return
+
       }
 
-      const tabExists =
+
+
+      const exists =
         tabs.some(
-          (tab) =>
-            tab.id ===
-            requestedTab,
+          tab =>
+            tab.id === requestedTab
         )
 
-      if (!tabExists) {
-        console.warn(
-          "Tuntematon projektivälilehti:",
-          requestedTab,
-        )
+
+
+      if(!exists) {
 
         return
+
       }
 
-      /*
-       * Jos tapahtuma koskee eri projektia,
-       * odotetaan että navigointi avaa ensin
-       * oikean ProjectDetails-sivun.
-       */
-      if (
-        requestedProjectId &&
-        project?.id &&
-        String(requestedProjectId) !==
-          String(project.id)
-      ) {
-        return
-      }
+
 
       setLocalActiveTab(
-        requestedTab,
+        requestedTab
       )
+
+
     }
+
+
+
+
+
 
 
     window.addEventListener(
+
       "wood-booster:open-project-tab",
-      handleOpenProjectTab,
+
+      handleOpenProjectTab
+
     )
 
 
+
     return () => {
+
       window.removeEventListener(
+
         "wood-booster:open-project-tab",
-        handleOpenProjectTab,
+
+        handleOpenProjectTab
+
       )
+
     }
-  }, [project?.id])
+
+
+  },[])
+
+
+
+
+
 
 
   useEffect(() => {
-    const currentTab =
+
+
+    const current =
       tabs.find(
-        (tab) =>
-          tab.id === activeTab,
+        tab =>
+          tab.id === activeTab
       )
 
+
+
     setActiveTab({
+
       id:
-        currentTab?.id ||
+        current?.id ||
         activeTab,
 
       label:
-        currentTab?.label ||
+        current?.label ||
         activeTab,
 
       scope:
@@ -331,305 +521,433 @@ function ProjectTabs({
       projectId:
         project?.id ||
         null,
+
     })
+
 
 
     setAvailableActions(
       createTabActions({
         activeTab,
         project,
-      }),
+      })
     )
-  }, [
+
+
+  },[
     activeTab,
     project,
   ])
 
 
-  function handleTabChange(
-    tabId,
-  ) {
-    const tabExists =
-      tabs.some(
-        (tab) =>
-          tab.id === tabId,
-      )
-
-    if (!tabExists) {
-      return
-    }
-
-    setLocalActiveTab(
-      tabId,
-    )
-  }
 
 
-  function handleProjectUpdated(
-    updatedProject,
-  ) {
-    if (
-      !updatedProject ||
-      typeof onProjectUpdated !==
-        "function"
-    ) {
-      return
-    }
 
-    onProjectUpdated(
-      updatedProject,
-    )
-  }
 
 
   function renderActiveTab() {
-    switch (activeTab) {
+
+
+    switch(activeTab) {
+
+
       case "overview":
+
         return (
+
           <ProjectOverview
             project={project}
           />
+
         )
+
+
+
+
 
       case "ai":
+
         return (
+
           <ProjectAIChat />
+
         )
+
+
+
+
 
       case "tools":
+
         return (
+
           <ProjectTools
+
             project={project}
+
             onProjectUpdated={
-              handleProjectUpdated
+              onProjectUpdated
             }
+
           />
+
         )
+
+
+
+
+
+      case "materials":
+
+        return (
+
+          <MaterialsTab
+
+            projectId={
+              project.id
+            }
+
+          />
+
+        )
+
+
+
+
+
+      case "timeline":
+
+        return (
+
+          <TimelineTab
+
+            projectId={
+              project.id
+            }
+
+            onProjectUpdated={
+              onProjectUpdated
+            }
+
+          />
+
+        )
+
+
+
+
+
+      case "gallery":
+
+        return (
+
+          <GalleryTab
+
+            projectId={
+              project.id
+            }
+
+          />
+
+        )
+
+
+
+
+
+      case "workflow":
+
+        return (
+
+          <WorkflowTab
+
+            projectId={
+              project.id
+            }
+
+          />
+
+        )
+
+
+
+
+
+      case "quote":
+
+        return (
+
+          <QuoteTab
+
+            project={
+              project
+            }
+
+          />
+
+        )
+
+
+
+
 
       case "memory":
+
         return (
+
           <ProjectMemory
-            project={project}
+
+            project={
+              project
+            }
+
           />
+
         )
+
+
+
+
 
       case "knowledge":
+
         return (
+
           <ProjectKnowledge
-            project={project}
+
+            project={
+              project
+            }
+
           />
+
         )
+
+
+
+
 
       case "notes":
+
         return (
-          <ProjectNotes
-            project={project}
+
+          <NotesTab
+
+            projectId={
+              project.id
+            }
+
           />
+
         )
+
+
+
+
 
       case "files":
+
         return (
-          <ProjectFiles />
+
+          <FilesTab
+
+            projectId={
+              project.id
+            }
+
+          />
+
         )
 
+
+
+
+
       default:
+
         return (
+
           <ProjectOverview
             project={project}
           />
+
         )
+
+
     }
+
+
   }
 
 
+
+
+
+
+
   return (
+
     <ProjectAIProvider
-      project={project}
-      onProjectUpdated={
-        handleProjectUpdated
+
+      project={
+        project
       }
+
+      onProjectUpdated={
+        onProjectUpdated
+      }
+
     >
-      <div className="space-y-6">
 
-        <div className="overflow-x-auto border-b border-neutral-800">
+      <div
+        className="
+          space-y-6
+        "
+      >
 
-          <div className="flex min-w-max gap-2">
+        <div
+          className="
+            overflow-x-auto
+            border-b
+            border-[var(--wood-border)]
+          "
+        >
 
-            {tabs.map((tab) => {
-              const isActive =
-                activeTab === tab.id
+          <div
+            className="
+              flex
+              min-w-max
+              gap-2
+            "
+          >
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() =>
-                    handleTabChange(
-                      tab.id,
-                    )
-                  }
-                  className={`
-                    flex
-                    items-center
-                    gap-2
-                    border-b-2
-                    px-4
-                    py-3
-                    text-sm
-                    font-semibold
-                    transition
+            {
+              tabs.map(
+                tab => (
 
-                    ${
-                      isActive
-                        ? "border-amber-500 text-amber-400"
-                        : "border-transparent text-neutral-400 hover:text-white"
+                  <button
+
+                    key={
+                      tab.id
                     }
-                  `}
-                >
-                  <span>
-                    {tab.icon}
-                  </span>
 
-                  <span>
-                    {tab.label}
-                  </span>
-                </button>
+                    type="button"
+
+                    onClick={() =>
+                      setLocalActiveTab(
+                        tab.id
+                      )
+                    }
+
+                    className={`
+
+                      flex
+                      items-center
+                      gap-2
+                      border-b-2
+                      px-4
+                      py-3
+                      text-sm
+                      font-semibold
+
+                      ${
+                        activeTab === tab.id
+
+                        ?
+
+                        "border-[var(--wood-accent)] text-[var(--wood-accent)]"
+
+                        :
+
+                        "border-transparent text-[var(--wood-muted)]"
+
+                      }
+
+                    `}
+
+                  >
+
+                    <span>
+                      {tab.icon}
+                    </span>
+
+
+                    <span>
+                      {tab.label}
+                    </span>
+
+
+                  </button>
+
+                )
+
               )
-            })}
+
+            }
+
 
           </div>
 
+
         </div>
 
 
-        <div>
-          {renderActiveTab()}
-        </div>
+
+
+
+        {
+          renderActiveTab()
+        }
+
 
       </div>
+
+
     </ProjectAIProvider>
+
   )
+
+
 }
+
+
+
+
+
 
 
 function createTabActions({
   activeTab,
   project,
 }) {
-  const projectId =
-    project?.id ||
-    null
-
-  const actions =
-    tabs.map(
-      (tab) => ({
-        type:
-          "open_project_tab",
-
-        label:
-          `Avaa ${tab.label}`,
-
-        tab:
-          tab.id,
-
-        projectId,
-      }),
-    )
 
 
-  if (activeTab === "overview") {
-    actions.push({
+  return tabs.map(
+    tab => ({
+
       type:
-        "update_project",
+        "open_project_tab",
 
       label:
-        "Päivitä projektin tiedot",
+        `Avaa ${tab.label}`,
 
-      projectId,
+      tab:
+        tab.id,
+
+      projectId:
+        project?.id ||
+        null,
+
     })
-  }
+  )
 
 
-  if (activeTab === "ai") {
-    actions.push({
-      type:
-        "send_project_ai_message",
-
-      label:
-        "Lähetä viesti projektin AI-avustajalle",
-
-      projectId,
-    })
-  }
-
-
-  if (activeTab === "tools") {
-    actions.push({
-      type:
-        "use_project_tool",
-
-      label:
-        "Käytä projektityökalua",
-
-      projectId,
-    })
-  }
-
-
-  if (activeTab === "memory") {
-    actions.push({
-      type:
-        "create_project_memory",
-
-      label:
-        "Tallenna projektimuisti",
-
-      projectId,
-    })
-  }
-
-
-  if (activeTab === "knowledge") {
-    actions.push({
-      type:
-        "add_project_knowledge",
-
-      label:
-        "Lisää projektitietoa",
-
-      projectId,
-    })
-  }
-
-
-  if (activeTab === "notes") {
-    actions.push({
-      type:
-        "create_project_note",
-
-      label:
-        "Luo projektimuistiinpano",
-
-      projectId,
-    })
-  }
-
-
-  if (activeTab === "files") {
-    actions.push({
-      type:
-        "upload_project_file",
-
-      label:
-        "Lisää projektitiedosto",
-
-      projectId,
-    })
-  }
-
-
-  return actions
 }
+
+
+
+
+
 
 
 export default ProjectTabs

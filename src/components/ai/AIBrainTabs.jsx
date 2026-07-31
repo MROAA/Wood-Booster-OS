@@ -1,53 +1,216 @@
+import {
+  useState
+} from "react"
+
+
+import ChatPanel from "./ChatPanel"
+import KnowledgePanel from "./KnowledgePanel"
+import MemoryPanel from "./MemoryPanel"
+import AgentsPanel from "./AgentsPanel"
+import ToolsPanel from "./ToolsPanel"
+
+
+
 const tabs = [
+
   {
     id: "chat",
-    name: "Chat",
-    icon: "💬",
+    label: "Chat"
   },
+
   {
     id: "knowledge",
-    name: "Knowledge",
-    icon: "📚",
+    label: "Knowledge"
   },
+
   {
     id: "memory",
-    name: "Memory",
-    icon: "🧠",
+    label: "Memory"
   },
+
   {
     id: "agents",
-    name: "Agents",
-    icon: "🤖",
+    label: "Agents"
   },
+
   {
     id: "tools",
-    name: "Tools",
-    icon: "🛠️",
-  },
+    label: "Tools"
+  }
+
 ]
 
-function AIBrainTabs({
-  activeTab,
-  setActiveTab,
-}) {
+
+
+function AIBrainTabs() {
+
+
+  const [
+    activeTab,
+    setActiveTab
+  ] = useState("chat")
+
+
+
+
+
+  function renderTab() {
+
+
+    switch(activeTab) {
+
+
+      case "chat":
+
+        return <ChatPanel />
+
+
+
+      case "knowledge":
+
+        return <KnowledgePanel />
+
+
+
+      case "memory":
+
+        return <MemoryPanel />
+
+
+
+      case "agents":
+
+        return <AgentsPanel />
+
+
+
+      case "tools":
+
+        return <ToolsPanel />
+
+
+
+      default:
+
+        return <ChatPanel />
+
+
+    }
+
+
+  }
+
+
+
+
+
   return (
-    <div className="flex flex-wrap gap-2 rounded-2xl border border-neutral-800 bg-neutral-900 p-3">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          onClick={() => setActiveTab(tab.id)}
-          className={
-            activeTab === tab.id
-              ? "rounded-xl bg-amber-500 px-4 py-3 font-semibold text-neutral-950"
-              : "rounded-xl px-4 py-3 text-neutral-400 hover:bg-neutral-800 hover:text-white"
-          }
-        >
-          {tab.icon} {tab.name}
-        </button>
-      ))}
+
+    <div
+      className="
+        space-y-6
+      "
+    >
+
+
+
+      <div
+        className="
+          flex
+          flex-wrap
+          gap-2
+          rounded-2xl
+          border
+          border-[var(--wb-grey-dark)]
+          bg-[var(--wb-surface)]
+          p-2
+        "
+      >
+
+        {
+          tabs.map(
+
+            tab => (
+
+              <button
+
+                key={tab.id}
+
+                onClick={() =>
+                  setActiveTab(tab.id)
+                }
+
+                className={
+
+                  `
+                  rounded-xl
+                  px-4
+                  py-2
+                  text-sm
+                  font-medium
+                  transition-all
+
+                  ${
+                    activeTab === tab.id
+
+                    ?
+
+                    `
+                    bg-[var(--wb-card)]
+                    text-[var(--wb-copper)]
+                    border
+                    border-[var(--wb-grey-dark)]
+                    `
+
+                    :
+
+                    `
+                    text-[var(--wb-text-muted)]
+                    hover:text-[var(--wb-text)]
+                    hover:bg-[var(--wb-card)]
+                    `
+                  }
+
+                  `
+
+                }
+
+              >
+
+                {tab.label}
+
+              </button>
+
+            )
+
+          )
+
+        }
+
+
+      </div>
+
+
+
+
+
+      <div
+        className="
+          fade-in
+        "
+      >
+
+        {renderTab()}
+
+      </div>
+
+
+
     </div>
+
   )
+
 }
+
 
 export default AIBrainTabs

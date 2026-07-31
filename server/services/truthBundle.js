@@ -46,7 +46,9 @@ String(message || "")
 
 
 
-if(
+
+
+const asksManufacturing =
 
 containsAny(
 
@@ -58,12 +60,28 @@ text,
 "rakennan",
 "rakentaa",
 "työstö",
-"viimeistely"
+"viimeistely",
+"miten tehdään",
+"kuinka tehdään"
 ]
 
 )
 
-){
+
+
+
+
+
+
+
+/*
+==================================================
+WORKSHOP TRUTH
+==================================================
+*/
+
+
+if(asksManufacturing){
 
 
 const answer = `
@@ -169,6 +187,14 @@ limitations:[
 
 
 
+
+/*
+==================================================
+PRODUCT TRUTH
+==================================================
+*/
+
+
 if(
 
 containsAny(
@@ -180,22 +206,6 @@ text,
 "pöytä",
 "jokipöytä",
 "aurora"
-]
-
-)
-
-&&
-
-!
-
-containsAny(
-
-text,
-
-[
-"valmist",
-"työvaihe",
-"rakennan"
 ]
 
 )
@@ -236,6 +246,21 @@ ${productTruth.answer}
 
 
 
+KÄYTTÖ:
+
+Tietoa saa käyttää tuotteen idean,
+ominaisuuksien ja tarkoituksen selittämiseen.
+
+
+
+RAJOITUS:
+
+Tuotteen tarkkoja valmistusvaiheita,
+materiaaleja, työkaluja tai työmenetelmiä
+ei saa keksiä ilman vahvistettua lähdettä.
+
+
+
 PUUTTUU:
 
 Lisätietoja ei voida vahvistaa ilman Product Truth lähdettä.
@@ -249,12 +274,18 @@ productTruth.answer
 ],
 
 
-rules:[],
+rules:[
+
+"Älä keksi tuotteen valmistusvaiheita.",
+
+"Älä keksi materiaaleja tai työmenetelmiä."
+
+],
 
 
 limitations:[
 
-"Lisätietoja ei voida vahvistaa ilman Product Truth lähdettä."
+"Tuotteen tarkat valmistusvaiheet vaativat erillisen vahvistetun lähteen."
 
 ]
 
@@ -265,6 +296,9 @@ limitations:[
 
 
 }
+
+
+
 
 
 

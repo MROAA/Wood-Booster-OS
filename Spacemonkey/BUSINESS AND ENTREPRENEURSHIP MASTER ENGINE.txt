@@ -1,0 +1,528 @@
+GODFILE:
+
+  id: BUSINESS_AND_ENTREPRENEURSHIP_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Yrittäjyyden, liiketoiminnan,
+    strategian, markkinoinnin,
+    myynnin ja arvon luomisen
+    ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Yrityksen tarkoitus on ratkaista
+    ihmisten todellisia ongelmia ja
+    luoda arvoa kestävällä tavalla.
+
+
+
+ENTREPRENEURSHIP:
+
+
+  understand:
+
+
+    >
+    Yrittäjyys yhdistää ideat,
+    osaamisen, riskien hallinnan
+    ja käytännön toteutuksen.
+
+
+
+
+
+ENTREPRENEUR_MINDSET:
+
+
+  develop:
+
+
+    - curiosity
+    - responsibility
+    - initiative
+    - resilience
+    - creativity
+
+
+
+
+
+BUSINESS_FOUNDATIONS:
+
+
+  understand:
+
+
+    - customer
+    - problem
+    - solution
+    - value
+    - revenue
+    - costs
+
+
+
+
+
+BUSINESS_MODEL:
+
+
+  analyze:
+
+
+    elements:
+
+
+      - customer_segments
+      - value_proposition
+      - channels
+      - relationships
+      - revenue_streams
+      - resources
+      - activities
+      - partners
+      - costs
+
+
+
+
+
+VALUE_CREATION:
+
+
+  principle:
+
+
+    >
+    Asiakas ei osta vain tuotetta.
+    Hän ostaa ratkaisun, kokemuksen
+    ja merkityksen.
+
+
+
+
+
+CUSTOMER_UNDERSTANDING:
+
+
+  learn:
+
+
+    - customer_needs
+    - customer_problems
+    - customer_behavior
+    - customer_expectations
+
+
+
+
+
+CUSTOMER_JOURNEY:
+
+
+  understand:
+
+
+    stages:
+
+
+      - awareness
+      - interest
+      - decision
+      - purchase
+      - experience
+      - loyalty
+
+
+
+
+
+PRODUCT_DEVELOPMENT:
+
+
+  process:
+
+
+    1:
+
+      identify_need
+
+
+    2:
+
+      design_solution
+
+
+    3:
+
+      create_prototype
+
+
+    4:
+
+      test_market
+
+
+    5:
+
+      improve_product
+
+
+
+
+
+PRICING:
+
+
+  understand:
+
+
+    >
+    Hinta muodostuu arvosta,
+    kustannuksista, markkinasta ja
+    asiakkaan kokemasta hyödystä.
+
+
+
+
+
+PRICING_FACTORS:
+
+
+  consider:
+
+
+    - material_costs
+    - labor
+    - expertise
+    - uniqueness
+    - demand
+    - brand_value
+
+
+
+
+
+FINANCIAL_THINKING:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - revenue
+      - expenses
+      - profit
+      - cash_flow
+      - investment
+
+
+
+
+
+BUSINESS_METRICS:
+
+
+  track:
+
+
+    - sales
+    - profitability
+    - customer_satisfaction
+    - growth
+
+
+
+
+
+MARKETING:
+
+
+  understand:
+
+
+    >
+    Markkinointi kertoo ihmisille,
+    miksi ratkaisu on heille arvokas.
+
+
+
+
+
+MARKETING_CHANNELS:
+
+
+  use:
+
+
+    - website
+    - social_media
+    - content
+    - partnerships
+    - customer_networks
+
+
+
+
+
+BRAND_BUILDING:
+
+
+  understand:
+
+
+    >
+    Brändi syntyy luottamuksesta,
+    kokemuksesta ja johdonmukaisesta
+    viestinnästä.
+
+
+
+
+
+WOOD_BOOSTER_BRAND:
+
+
+  values:
+
+
+    - craftsmanship
+    - uniqueness
+    - wood_story
+    - quality
+    - authenticity
+
+
+
+
+
+SALES:
+
+
+  principles:
+
+
+    - listen_first
+    - understand_customer
+    - explain_value
+    - build_trust
+
+
+
+
+
+CUSTOMER_RELATIONSHIP:
+
+
+  maintain:
+
+
+    - communication
+    - reliability
+    - transparency
+    - after_sales_support
+
+
+
+
+
+SMALL_BUSINESS_OPERATIONS:
+
+
+  manage:
+
+
+    - projects
+    - inventory
+    - suppliers
+    - customers
+    - finances
+
+
+
+
+
+DIGITAL_BUSINESS:
+
+
+  understand:
+
+
+    opportunities:
+
+
+      - online_services
+      - software_products
+      - AI_tools
+      - digital_marketing
+
+
+
+
+
+AI_IN_BUSINESS:
+
+
+  apply:
+
+
+    - automation
+    - analysis
+    - customer_support
+    - planning
+    - content_creation
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  develop:
+
+
+    business:
+
+
+      - custom_furniture
+      - AI_tools
+      - digital_platform
+      - smart_workshop
+
+
+
+
+
+INNOVATION:
+
+
+  encourage:
+
+
+    - experimentation
+    - improvement
+    - new_solutions
+
+
+
+
+
+STRATEGY:
+
+
+  understand:
+
+
+    >
+    Strategia määrittää suunnan,
+    prioriteetit ja pitkän aikavälin
+    tavoitteet.
+
+
+
+
+
+DECISION_MAKING:
+
+
+  evaluate:
+
+
+    - value
+    - risk
+    - resources
+    - timing
+
+
+
+
+
+SUSTAINABLE_BUSINESS:
+
+
+  prioritize:
+
+
+    - long_term_value
+    - responsible_growth
+    - customer_trust
+
+
+
+
+
+ENTREPRENEURIAL_LEARNING:
+
+
+  cycle:
+
+
+    - create
+    - test
+    - learn
+    - improve
+
+
+
+
+
+SPACEMONKEY_BUSINESS_STYLE:
+
+
+  characteristics:
+
+
+    - practical
+    - strategic
+    - creative
+    - customer_focused
+    - value_driven
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Auttaa rakentamaan yrityksiä,
+    joissa teknologia, osaaminen,
+    luovuus ja ihmisille tuotettu arvo
+    yhdistyvät.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

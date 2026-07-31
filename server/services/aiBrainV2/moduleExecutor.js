@@ -8,6 +8,7 @@ Vastuut:
 - hakee rekisteröidyn moduulin ID:llä
 - tarkistaa moduulin olemassaolon
 - tarkistaa moduulin aktiivisuuden
+- tarkistaa Capability Execution oikeudet
 - suorittaa valitun moduulin
 - palauttaa yhtenäisen tuloksen
 
@@ -17,6 +18,7 @@ Tämä tiedosto ei:
 - rekisteröi moduuleja
 - muodosta Reasoning-analyysiä
 - tee Decision-päätöstä
+
 =====================================
 */
 
@@ -25,15 +27,26 @@ import {
   getBrainModule,
 } from "./moduleRegistry.js"
 
+
 import {
   normalizeModuleId,
 } from "./moduleContract.js"
 
 
+import {
+  canExecuteCapability,
+} from "./services/capabilityExecution/capabilityExecutionManager.js"
+
+
+
+
+
 function createModuleNotFoundResult({
   moduleId,
 }) {
+
   return {
+
     success:
       false,
 
@@ -47,20 +60,29 @@ function createModuleNotFoundResult({
       null,
 
     error: {
+
       code:
         "MODULE_NOT_FOUND",
 
       message:
         `AI Brain -moduulia "${moduleId}" ei löytynyt.`,
+
     },
+
   }
+
 }
+
+
+
 
 
 function createModuleDisabledResult({
   moduleDefinition,
 }) {
+
   return {
+
     success:
       false,
 
@@ -68,6 +90,7 @@ function createModuleDisabledResult({
       "module_disabled",
 
     module: {
+
       id:
         moduleDefinition.id,
 
@@ -76,27 +99,78 @@ function createModuleDisabledResult({
 
       version:
         moduleDefinition.version,
+
     },
 
     output:
       null,
 
     error: {
+
       code:
         "MODULE_DISABLED",
 
       message:
         `AI Brain -moduuli "${moduleDefinition.id}" ei ole käytössä.`,
+
     },
+
   }
+
 }
+
+
+
+
+
+function createCapabilityBlockedResult({
+  moduleId,
+  capabilityPermission,
+}) {
+
+  return {
+
+    success:
+      false,
+
+    status:
+      capabilityPermission.status,
+
+    module: {
+
+      id:
+        moduleId,
+
+    },
+
+    output:
+      null,
+
+    error: {
+
+      code:
+        "CAPABILITY_BLOCKED",
+
+      message:
+        capabilityPermission.reason,
+
+    },
+
+  }
+
+}
+
+
+
 
 
 function createCompletedResult({
   moduleDefinition,
   output,
 }) {
+
   return {
+
     success:
       true,
 
@@ -104,6 +178,7 @@ function createCompletedResult({
       "completed",
 
     module: {
+
       id:
         moduleDefinition.id,
 
@@ -112,21 +187,29 @@ function createCompletedResult({
 
       version:
         moduleDefinition.version,
+
     },
 
     output,
 
     error:
       null,
+
   }
+
 }
+
+
+
 
 
 function createExecutionErrorResult({
   moduleDefinition,
   error,
 }) {
+
   return {
+
     success:
       false,
 
@@ -134,6 +217,7 @@ function createExecutionErrorResult({
       "execution_error",
 
     module: {
+
       id:
         moduleDefinition.id,
 
@@ -142,12 +226,14 @@ function createExecutionErrorResult({
 
       version:
         moduleDefinition.version,
+
     },
 
     output:
       null,
 
     error: {
+
       code:
         "MODULE_EXECUTION_FAILED",
 
@@ -155,96 +241,194 @@ function createExecutionErrorResult({
         error instanceof Error
           ? error.message
           : String(error),
+
     },
+
   }
+
 }
 
 
+
+
+
 async function executeBrainModuleById({
+
   moduleId,
+
   message,
+
   request,
+
   runtimeContext = {},
+
   route = null,
+
 } = {}) {
+
+
   const normalizedModuleId =
     normalizeModuleId(
       moduleId,
     )
+
+
+
+  const capabilityPermission =
+    canExecuteCapability(
+      normalizedModuleId,
+    )
+
+
+
+  if(
+    !capabilityPermission.success
+  ){
+
+    return createCapabilityBlockedResult({
+
+      moduleId:
+        normalizedModuleId,
+
+      capabilityPermission,
+
+    })
+
+  }
+
+
+
+
 
   const moduleDefinition =
     getBrainModule(
       normalizedModuleId,
     )
 
-  if (!moduleDefinition) {
+
+
+  if(
+    !moduleDefinition
+  ){
+
     return createModuleNotFoundResult({
+
       moduleId:
         normalizedModuleId ||
         String(moduleId || ""),
+
     })
+
   }
 
-  if (
-    moduleDefinition.enabled ===
-    false
-  ) {
+
+
+
+
+  if(
+    moduleDefinition.enabled === false
+  ){
+
     return createModuleDisabledResult({
+
       moduleDefinition,
+
     })
+
   }
+
+
+
+
 
   try {
+
     const output =
       await moduleDefinition.execute({
+
         message:
           String(
             message ||
             request?.message ||
             "",
-          ).trim(),
+          )
+          .trim(),
+
 
         request:
           request || {
+
             requestId:
               runtimeContext.requestId ||
               null,
 
+
             message:
-              String(message || "")
-                .trim(),
+              String(
+                message || "",
+              )
+              .trim(),
+
           },
+
 
         runtimeContext,
 
+
         route:
           route || {
+
             confidence:
               1,
+
 
             reason:
               "Moduuli valittiin suoraan ID:n perusteella.",
 
+
             metadata: {
+
               directExecution:
                 true,
+
             },
+
           },
+
       })
 
+
+
     return createCompletedResult({
+
       moduleDefinition,
+
       output,
+
     })
-  } catch (error) {
+
+
+  } catch(error) {
+
+
     return createExecutionErrorResult({
+
       moduleDefinition,
+
       error,
+
     })
+
   }
+
 }
 
 
+
+
+
 export {
+
   executeBrainModuleById,
+
 }

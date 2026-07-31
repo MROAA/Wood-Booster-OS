@@ -1,0 +1,466 @@
+GODFILE:
+
+  id: AUTHORIZATION_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Käyttöoikeuksien, roolien,
+    resurssien ja toimintojen
+    valtuutuksen turvallinen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Tunnistettu käyttäjä tai komponentti
+    ei automaattisesti saa oikeutta tehdä
+    kaikkia toimintoja.
+
+
+
+AUTHORIZATION_OBJECTIVES:
+
+
+  goals:
+
+
+    - control_access
+    - enforce_permissions
+    - protect_resources
+    - prevent_privilege_abuse
+
+
+
+
+
+AUTHENTICATION_VS_AUTHORIZATION:
+
+
+  authentication:
+
+
+    purpose:
+
+
+      >
+      Vastaa kysymykseen:
+      Kuka olet?
+
+
+
+
+
+  authorization:
+
+
+    purpose:
+
+
+      >
+      Vastaa kysymykseen:
+      Mitä saat tehdä?
+
+
+
+
+
+ACCESS_CONTROL_MODEL:
+
+
+  principle:
+
+
+    >
+    Oikeudet annetaan tarpeen mukaan
+    eikä oletuksena kaikkeen.
+
+
+
+
+
+ACCESS_LEVELS:
+
+
+  USER:
+
+
+    allowed:
+
+
+      - use_features
+      - create_content
+      - view_allowed_data
+
+
+
+
+
+  DEVELOPER:
+
+
+    allowed:
+
+
+      - modify_code
+      - test_features
+      - manage_development_tools
+
+
+
+
+
+  ADMIN:
+
+
+    allowed:
+
+
+      - manage_system_settings
+      - manage_users
+      - review_security
+
+
+
+
+
+  SYSTEM_OWNER:
+
+
+    allowed:
+
+
+      - approve_core_changes
+      - manage_architecture
+
+
+
+
+
+  restrictions:
+
+
+    all_levels:
+
+
+      - no_secret_exposure
+      - no_security_bypass
+
+
+
+
+
+ROLE_BASED_ACCESS_CONTROL:
+
+
+  RBAC:
+
+
+    principle:
+
+
+      >
+      Käyttöoikeudet perustuvat rooliin
+      ja tehtävään.
+
+
+
+
+
+RESOURCE_SECURITY:
+
+
+  protect:
+
+
+    - files
+    - databases
+    - APIs
+    - AI_models
+    - memory
+    - configuration
+
+
+
+
+
+ACTION_PERMISSION:
+
+
+  before_action:
+
+
+    verify:
+
+
+      - actor_identity
+      - actor_role
+      - requested_action
+      - target_resource
+
+
+
+
+
+AI_AGENT_AUTHORIZATION:
+
+
+  every_agent:
+
+
+    require:
+
+
+      - identity
+      - role
+      - permission_scope
+
+
+
+
+
+AGENT_LIMITS:
+
+
+  agents_cannot:
+
+
+    - grant_permissions
+    - modify_security_rules
+    - access_unknown_resources
+    - change_core_identity
+
+
+
+
+
+CRITICAL_ACTIONS:
+
+
+  require_extra_validation:
+
+
+    - delete_data
+    - change_security
+    - modify_permissions
+    - change_core_system
+    - modify_Godfiles
+
+
+
+
+
+PERMISSION_ESCALATION:
+
+
+  detect:
+
+
+    - unauthorized_requests
+    - fake_admin_requests
+    - permission_bypass_attempts
+
+
+
+
+
+  response:
+
+
+    actions:
+
+
+      - deny_request
+      - log_event
+      - request_verification
+
+
+
+
+
+DATA_ACCESS_AUTHORIZATION:
+
+
+  before_access:
+
+
+    verify:
+
+
+      - data_classification
+      - user_permission
+      - purpose
+
+
+
+
+
+API_AUTHORIZATION:
+
+
+  protect:
+
+
+    - endpoints
+    - internal_services
+    - external_connections
+
+
+
+
+
+FILE_AUTHORIZATION:
+
+
+  require:
+
+
+    - ownership_check
+    - permission_check
+    - access_reason
+
+
+
+
+
+MEMORY_AUTHORIZATION:
+
+
+  protect:
+
+
+    - AI_memory
+    - saved_context
+    - knowledge_entries
+
+
+
+
+
+EXECUTION_AUTHORIZATION:
+
+
+  before_execution:
+
+
+    check:
+
+
+      - command_permission
+      - safety_status
+      - user_intent
+
+
+
+
+
+AUDIT:
+
+
+  record:
+
+
+    - permission_changes
+    - access_decisions
+    - denied_actions
+
+
+
+
+
+  never_record:
+
+
+    - passwords
+    - API_keys
+    - private_tokens
+    - credentials
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Spacemonkey_Core
+    - AI_Brain
+    - Backend_services
+    - Frontend_features
+    - Godfile_database
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - verify_authorization
+    - apply_least_privilege
+    - protect_critical_resources
+
+
+
+  never:
+
+
+    - self_grant_permissions
+    - bypass_access_control
+    - expose_private_resources
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - authorization_models
+    - access_control_patterns
+    - permission_management
+
+
+
+
+
+  forbidden:
+
+
+    - credentials
+    - API_keys
+    - private_access_data
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

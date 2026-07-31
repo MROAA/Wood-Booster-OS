@@ -1,4 +1,6 @@
-import { getSystemFiles } from "./systemLoader.js"
+import {
+  getSystemFiles,
+} from "./systemLoader.js"
 
 
 
@@ -28,8 +30,6 @@ vain erillisillä pyynnöillä
 const alwaysLoad = [
 
   "CORE_IDENTITY",
-
-  "BRAND_VALUES",
 
   "SYSTEM_RESPONSE_STYLE",
 
@@ -364,7 +364,7 @@ export async function filterSystemFiles(message) {
 
   /*
   =====================================
-  3. ESTETÄÄN AGENTTIVUOTO
+  3. ESTÄÄN AGENTTIVUOTO
   =====================================
   */
 

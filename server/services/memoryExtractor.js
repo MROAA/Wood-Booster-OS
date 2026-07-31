@@ -6,27 +6,19 @@ import {
 
 
 
-/*
-==================================================
+const ALLOWED_CATEGORIES = [
 
-WOOD-BOOSTER MEMORY EXTRACTION ENGINE v2
+  "preference",
 
-Memory EI ole tietopankki.
+  "decision",
 
-Knowledge:
-- yrityksen faktat
-- tuotteet
-- filosofia
-- materiaalit
-- historia
+  "project",
 
-Memory:
-- käyttäjän mieltymykset
-- pysyvät päätökset
-- projektin tärkeät valinnat
+  "learning",
 
-==================================================
-*/
+  "workflow",
+
+]
 
 
 
@@ -34,59 +26,79 @@ Memory:
 
 
 
-function extractJSON(text) {
+const EXPLICIT_MEMORY_PATTERNS = [
 
+  /^muista\s+tämä\s*[:,-]?\s*/i,
 
-  try {
+  /^muista\s+pysyvästi\s*[:,-]?\s*/i,
 
+  /^muista\s+tämä\s+pysyvästi\s*[:,-]?\s*/i,
 
-    return JSON.parse(text)
+  /^muista\s+että\s*/i,
 
+  /^muista\s+etta\s*/i,
 
-  }
+  /^tallenna\s+tämä\s+muistiin\s*[:,-]?\s*/i,
 
-  catch {
+  /^tallenna\s+muistiin\s*[:,-]?\s*/i,
 
+  /^laita\s+tämä\s+muistiin\s*[:,-]?\s*/i,
 
-    const match =
+  /^pidä\s+tämä\s+muistissa\s*[:,-]?\s*/i,
 
-      text.match(
-        /\{[\s\S]*\}/
-      )
-
-
-
-    if (!match) {
-
-
-      return null
-
-
-    }
+]
 
 
 
-    try {
 
 
-      return JSON.parse(
-        match[0]
-      )
 
 
-    }
+const BLOCKED_QUESTION_PATTERNS = [
 
-    catch {
+  /^mitä\s/i,
+
+  /^mita\s/i,
+
+  /^miten\s/i,
+
+  /^kuinka\s/i,
+
+  /^milloin\s/i,
+
+  /^missä\s/i,
+
+  /^missa\s/i,
+
+  /^kuka\s/i,
+
+  /^miksi\s/i,
+
+]
 
 
-      return null
 
 
-    }
 
 
-  }
 
+function normalizeIdentifier(value){
+
+  return String(value || "")
+
+    .trim()
+
+    .toLowerCase()
+
+    .replace(/ä/g,"a")
+
+    .replace(/ö/g,"o")
+
+    .replace(/å/g,"a")
+
+    .replace(/[^a-z0-9]+/g,"_")
+
+    .replace(/^_+|_+$/g,"")
 
 }
 
@@ -96,41 +108,45 @@ function extractJSON(text) {
 
 
 
+function extractJSON(text){
 
+  try{
 
-function validateMemory(memory) {
-
-
-  if (!memory) {
-
-
-    return null
-
+    return JSON.parse(text)
 
   }
 
+  catch{
+
+    const match =
+
+      String(text || "")
+
+        .match(/\{[\s\S]*\}/)
 
 
+    if(!match){
 
-
-
-
-  if (
-
-    memory.shouldSave !== true
-
-  ) {
-
-
-    return {
-
-      shouldSave:false
+      return null
 
     }
 
 
+    try{
+
+      return JSON.parse(match[0])
+
+    }
+
+    catch{
+
+      return null
+
+    }
+
   }
 
+}
 
 
 
@@ -138,156 +154,181 @@ function validateMemory(memory) {
 
 
 
+function isQuestionMessage(content){
 
-  const blockedKeys = [
+  const text =
 
-    "wood-booster",
+    String(content || "")
 
-    "product",
+      .trim()
 
-    "products",
+      .toLowerCase()
 
-    "product_type",
 
-    "company",
 
-    "business",
+  return BLOCKED_QUESTION_PATTERNS.some(
 
-    "brand",
+    pattern =>
 
-    "philosophy",
+      pattern.test(text)
 
-    "values",
+  )
 
-    "information",
+}
 
-    "general",
 
-    "fact",
 
-    "history",
 
-    "description"
+
+
+
+function isBadMemoryContent(content){
+
+  const text =
+
+    String(content || "")
+
+      .toLowerCase()
+
+
+
+  const blockedPatterns = [
+
+    "based on the current context",
+
+    "here is a summary",
+
+    "the current goal is",
+
+    "spacemonkey has decided",
+
+    "i will proceed",
+
+    "based on the information provided",
+
+    "here's a detailed response",
 
   ]
 
 
 
+  if(
 
+    blockedPatterns.some(
+
+      pattern =>
+
+        text.includes(pattern)
+
+    )
+
+  ){
+
+    return true
+
+  }
+
+
+
+  if(
+
+    content.length > 500
+
+  ){
+
+    return true
+
+  }
+
+
+
+  return false
+
+}
+
+
+
+
+
+
+
+function validateMemory(memory){
+
+  if(!memory){
+
+    return null
+
+  }
+
+
+
+  if(
+
+    memory.shouldSave !== true
+
+  ){
+
+    return {
+
+      shouldSave:false,
+
+    }
+
+  }
+
+
+
+  const content =
+
+    String(
+
+      memory.content || ""
+
+    )
+
+      .trim()
+
+
+
+  if(
+
+    isQuestionMessage(content)
+
+  ){
+
+    return {
+
+      shouldSave:false,
+
+    }
+
+  }
+
+
+
+  if(
+
+    isBadMemoryContent(content)
+
+  ){
+
+    return {
+
+      shouldSave:false,
+
+    }
+
+  }
 
 
 
   const key =
 
-    String(
+    normalizeIdentifier(
 
-      memory.key || ""
-
-    )
-
-      .toLowerCase()
-
-
-
-
-
-
-
-  if (
-
-    !key ||
-
-    blockedKeys.some(
-
-      item =>
-
-        key.includes(item)
+      memory.key
 
     )
-
-  ) {
-
-
-    return {
-
-      shouldSave:false
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-
-  const category =
-
-    String(
-
-      memory.category || ""
-
-    )
-
-      .toLowerCase()
-
-
-
-
-
-
-
-
-  const allowedCategories = [
-
-    "preference",
-
-    "decision",
-
-    "project",
-
-    "learning",
-
-    "workflow"
-
-  ]
-
-
-
-
-
-
-
-
-  if (
-
-    !allowedCategories.includes(
-
-      category
-
-    )
-
-  ) {
-
-
-    return {
-
-      shouldSave:false
-
-    }
-
-
-  }
-
-
-
-
-
-
 
 
 
@@ -301,90 +342,55 @@ function validateMemory(memory) {
 
 
 
+  if(
 
+    !key ||
 
+    !content ||
 
-
-
-  if (
+    !Number.isFinite(importance) ||
 
     importance < 7
 
-  ) {
-
+  ){
 
     return {
 
-      shouldSave:false
+      shouldSave:false,
 
     }
-
 
   }
 
 
 
+  const category =
 
+    ALLOWED_CATEGORIES.includes(
 
+      memory.category
 
+    )
 
+      ?
 
-  if (
+      memory.category
 
-    !memory.content
+      :
 
-  ) {
-
-
-    return {
-
-      shouldSave:false
-
-    }
-
-
-  }
-
-
-
-
-
-
+      "preference"
 
 
 
   return {
 
-
     shouldSave:true,
-
 
     category,
 
+    key,
 
-    key:
-
-      key
-
-        .replace(
-
-          /[^a-z0-9_]/g,
-
-          "_"
-
-        ),
-
-
-
-    content:
-
-      String(
-
-        memory.content
-
-      ),
-
-
+    content,
 
     importance:
 
@@ -402,13 +408,211 @@ function validateMemory(memory) {
 
       )
 
-
   }
-
 
 }
 
 
+
+
+
+
+
+function getLatestUserMessage(conversation){
+
+  const text =
+
+    String(
+
+      conversation || ""
+
+    )
+
+
+
+  const match =
+
+    text.match(
+
+      /USER:\s*([\s\S]*?)(?=\n\nASSISTANT:|$)/i
+
+    )
+
+
+
+  return (
+
+    match?.[1] ||
+
+    text
+
+  ).trim()
+
+}
+
+
+
+
+
+
+
+function detectCategory(content){
+
+  const text =
+
+    content.toLowerCase()
+
+
+
+  if(
+
+    text.includes("aina") ||
+
+    text.includes("jatkossa") ||
+
+    text.includes("kokonaiset tiedostot") ||
+
+    text.includes("työskentely")
+
+  ){
+
+    return "workflow"
+
+  }
+
+
+
+  if(
+
+    text.includes("haluan") ||
+
+    text.includes("pidän") ||
+
+    text.includes("suosin")
+
+  ){
+
+    return "preference"
+
+  }
+
+
+
+  if(
+
+    text.includes("opin") ||
+
+    text.includes("selitä")
+
+  ){
+
+    return "learning"
+
+  }
+
+
+
+  return "preference"
+
+}
+
+
+
+
+
+
+
+function createExplicitMemory(conversation){
+
+  const message =
+
+    getLatestUserMessage(
+
+      conversation
+
+    )
+
+
+
+  for(
+
+    const pattern
+
+    of EXPLICIT_MEMORY_PATTERNS
+
+  ){
+
+    if(
+
+      pattern.test(message)
+
+    ){
+
+      const content =
+
+        message
+
+          .replace(
+
+            pattern,
+
+            ""
+
+          )
+
+          .trim()
+
+
+
+      if(!content){
+
+        return null
+
+      }
+
+
+
+      return validateMemory({
+
+        shouldSave:true,
+
+        category:
+
+          detectCategory(
+
+            content
+
+          ),
+
+        key:
+
+          normalizeIdentifier(
+
+            content
+
+          ).slice(
+
+            0,
+
+            100
+
+          ),
+
+        content,
+
+        importance:9,
+
+      })
+
+    }
+
+  }
+
+
+
+  return null
+
+}
 
 
 
@@ -420,9 +624,60 @@ export async function extractMemory({
 
   conversation,
 
-  model = "qwen2.5:7b"
+  model = "qwen2.5:7b",
 
-}) {
+}){
+
+
+  const latestUserMessage =
+
+    getLatestUserMessage(
+
+      conversation
+
+    )
+
+
+
+  if(
+
+    isQuestionMessage(
+
+      latestUserMessage
+
+    )
+
+  ){
+
+    return {
+
+      shouldSave:false,
+
+    }
+
+  }
+
+
+
+
+
+  const explicitMemory =
+
+    createExplicitMemory(
+
+      conversation
+
+    )
+
+
+
+  if(explicitMemory){
+
+    return explicitMemory
+
+  }
+
+
 
 
 
@@ -430,119 +685,28 @@ export async function extractMemory({
 
   const prompt = `
 
+Decide if this conversation contains permanent user memory.
 
-You are the Wood-Booster AI Memory Evaluation System.
+Save only:
 
+- user preferences
+- workflow rules
+- permanent decisions
+- learning preferences
 
-Your task:
+Never save:
 
-Decide if this conversation contains information
-that should become PERMANENT USER MEMORY.
+- assistant explanations
+- summaries
+- reasoning
+- plans
+- answers to questions
 
-
-
-IMPORTANT:
-
-Memory is NOT knowledge.
-
-Do NOT save:
-
-- company descriptions
-- products
-- services
-- brand philosophy
-- marketing text
-- facts about Wood-Booster
-- explanations
-- answers from AI
-
-
-
-Save ONLY:
-
-
-1. USER PREFERENCES
-
-Examples:
-
-"The user prefers complete files instead of small code edits."
-
-"The user prefers step-by-step instructions."
-
-
-2. IMPORTANT DECISIONS
-
-Examples:
-
-"The project will use Prisma instead of localStorage."
-
-"The first version will not auto publish."
-
-
-3. WORKFLOW RULES
-
-Examples:
-
-"The user wants testing after every major change."
-
-
-
-4. LONG TERM PROJECT FACTS
-
-Only if they affect future development.
-
-
-
-Importance:
-
-10:
-Critical permanent rule
-
-
-8-9:
-Important long term preference
-
-
-7:
-Useful permanent information
-
-
-Below 7:
-Do not save.
-
-
-
-Return ONLY JSON.
-
-
-
-If memory exists:
-
-
-{
- "shouldSave": true,
- "category": "preference",
- "key": "short_identifier",
- "content": "clear statement",
- "importance": 8
-}
-
-
-
-If nothing should be saved:
-
-
-{
- "shouldSave": false
-}
-
-
+Return only JSON.
 
 Conversation:
 
-
 ${conversation}
-
 
 `
 
@@ -550,118 +714,82 @@ ${conversation}
 
 
 
+  try{
 
 
-  const result =
+    const result =
 
-    await generateWithOllama({
+      await generateWithOllama({
 
-      prompt,
+        prompt,
 
-      model,
+        model,
 
-    })
-
-
-
+      })
 
 
 
-  if (!result.success) {
+    if(!result.success){
 
+      return {
 
-    return {
+        shouldSave:false,
 
-      shouldSave:false
+      }
 
     }
 
 
+
+    const json =
+
+      extractJSON(
+
+        result.response
+
+      )
+
+
+
+    return (
+
+      validateMemory(
+
+        json
+
+      )
+
+      ||
+
+      {
+
+        shouldSave:false,
+
+      }
+
+    )
+
+
   }
 
+  catch(error){
 
 
+    console.error(
 
+      "MEMORY EXTRACTION ERROR:",
 
-
-
-
-  console.log(
-
-    "RAW MEMORY RESPONSE:"
-
-  )
-
-
-  console.log(
-
-    result.response
-
-  )
-
-
-
-
-
-
-
-
-
-  const json =
-
-    extractJSON(
-
-      result.response
-
-    )
-
-
-
-
-
-
-
-  const memory =
-
-    validateMemory(
-
-      json
-
-    )
-
-
-
-
-
-
-
-  if (!memory) {
-
-
-    console.log(
-
-      "MEMORY REJECTED"
+      error
 
     )
 
 
     return {
 
-      shouldSave:false
+      shouldSave:false,
 
     }
 
-
   }
-
-
-
-
-
-
-
-
-  return memory
-
 
 }

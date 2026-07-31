@@ -2,7 +2,7 @@
 =====================================
 WOOD-BOOSTER AI BRAIN V2
 
-SPACEMONKEY MODULE V1
+SPACEMONKEY MODULE V2
 
 Vastuut:
 - tunnistaa Spacemonkeyta koskevat pyynnöt
@@ -11,6 +11,7 @@ Vastuut:
 - näyttää synergiaperiaatteet
 - näyttää AI Constitutionin yhteenvedon
 - kuvaa ihmisen ja koneen erillistä kasvua
+- tarjoaa Knowledge Layer näkyvyyden
 
 Tämä tiedosto ei:
 - muuta Spacemonkey Core -periaatteita
@@ -29,10 +30,12 @@ import {
   createBrainModule,
 } from "../moduleContract.js"
 
+
 import {
   getSpacemonkeyCore,
   getSpacemonkeyCoreSummary,
 } from "../system/spacemonkeyCore.js"
+
 
 import {
   getAIConstitution,
@@ -40,7 +43,14 @@ import {
 } from "../system/aiConstitution.js"
 
 
+import {
+  getSpacemonkeyKnowledge,
+} from "../spacemonkey/spacemonkeyKnowledgeProvider.js"
+
+
+
 const SPACEMONKEY_ACTIONS = {
+
   SHOW_SUMMARY:
     "show_summary",
 
@@ -58,9 +68,8 @@ const SPACEMONKEY_ACTIONS = {
 
   SHOW_CONSTITUTION:
     "show_constitution",
+
 }
-
-
 const SUMMARY_PHRASES = [
   "näytä spacemonkey",
   "spacemonkey yhteenveto",
@@ -75,8 +84,10 @@ const DEFINITION_PHRASES = [
   "selitä spacemonkey",
   "kerro spacemonkeysta",
   "kerro spacemonkey",
+  "kerro mikä spacemonkey on",
+  "mikä spacemonkey on",
+  "selitä mikä spacemonkey on",
 ]
-
 
 const IDENTITY_PHRASES = [
   "näytä identiteettirajat",
@@ -114,41 +125,52 @@ const CONSTITUTION_PHRASES = [
 ]
 
 
+
 function normalizeMessage(
   message,
 ) {
+
   return String(
     message ||
     "",
   )
     .trim()
     .toLowerCase()
+
 }
+
 
 
 function containsPhrase(
   message,
   phrases,
 ) {
+
   return phrases.some(
     (phrase) =>
       message.includes(
         phrase,
       ),
   )
+
 }
+
 
 
 function analyzeSpacemonkeyRequest(
   message,
 ) {
+
   const normalizedMessage =
     normalizeMessage(
       message,
     )
 
+
   if (!normalizedMessage) {
+
     return {
+
       matched:
         false,
 
@@ -160,8 +182,11 @@ function analyzeSpacemonkeyRequest(
 
       action:
         null,
+
     }
+
   }
+
 
   if (
     containsPhrase(
@@ -169,7 +194,9 @@ function analyzeSpacemonkeyRequest(
       CONSTITUTION_PHRASES,
     )
   ) {
+
     return {
+
       matched:
         true,
 
@@ -182,8 +209,11 @@ function analyzeSpacemonkeyRequest(
       action:
         SPACEMONKEY_ACTIONS
           .SHOW_CONSTITUTION,
+
     }
+
   }
+
 
   if (
     containsPhrase(
@@ -191,7 +221,9 @@ function analyzeSpacemonkeyRequest(
       IDENTITY_PHRASES,
     )
   ) {
+
     return {
+
       matched:
         true,
 
@@ -204,8 +236,11 @@ function analyzeSpacemonkeyRequest(
       action:
         SPACEMONKEY_ACTIONS
           .SHOW_IDENTITY_BOUNDARIES,
+
     }
+
   }
+
 
   if (
     containsPhrase(
@@ -213,7 +248,9 @@ function analyzeSpacemonkeyRequest(
       SYNERGY_PHRASES,
     )
   ) {
+
     return {
+
       matched:
         true,
 
@@ -226,8 +263,11 @@ function analyzeSpacemonkeyRequest(
       action:
         SPACEMONKEY_ACTIONS
           .SHOW_SYNERGY_PRINCIPLES,
+
     }
+
   }
+
 
   if (
     containsPhrase(
@@ -235,7 +275,9 @@ function analyzeSpacemonkeyRequest(
       GROWTH_PHRASES,
     )
   ) {
+
     return {
+
       matched:
         true,
 
@@ -248,8 +290,11 @@ function analyzeSpacemonkeyRequest(
       action:
         SPACEMONKEY_ACTIONS
           .SHOW_GROWTH_MODEL,
+
     }
+
   }
+
 
   if (
     containsPhrase(
@@ -257,7 +302,9 @@ function analyzeSpacemonkeyRequest(
       DEFINITION_PHRASES,
     )
   ) {
+
     return {
+
       matched:
         true,
 
@@ -270,8 +317,11 @@ function analyzeSpacemonkeyRequest(
       action:
         SPACEMONKEY_ACTIONS
           .SHOW_DEFINITION,
+
     }
+
   }
+
 
   if (
     containsPhrase(
@@ -279,7 +329,9 @@ function analyzeSpacemonkeyRequest(
       SUMMARY_PHRASES,
     )
   ) {
+
     return {
+
       matched:
         true,
 
@@ -292,10 +344,14 @@ function analyzeSpacemonkeyRequest(
       action:
         SPACEMONKEY_ACTIONS
           .SHOW_SUMMARY,
+
     }
+
   }
 
+
   return {
+
     matched:
       false,
 
@@ -307,20 +363,22 @@ function analyzeSpacemonkeyRequest(
 
     action:
       null,
+
   }
+
 }
-
-
 function createNumberedList(
   entries,
   valueKey =
     "principle",
 ) {
+
   return entries.map(
     (
       entry,
       index,
     ) => {
+
       const value =
         entry[valueKey] ||
         ""
@@ -330,109 +388,176 @@ function createNumberedList(
           ? ` ${entry.explanation}`
           : ""
 
+
       return `${index + 1}. ${value}${explanation}`
+
     },
   )
+
 }
 
 
+
 function createSummaryAnswer() {
+
   const spacemonkeySummary =
     getSpacemonkeyCoreSummary()
+
 
   const constitutionSummary =
     getAIConstitutionSummary()
 
+
   return [
+
     "Spacemonkey Core on aktiivinen.",
+
     "",
+
     spacemonkeySummary.definition,
+
     "",
+
     `Spacemonkey Core: ${spacemonkeySummary.version}`,
+
     `AI Constitution: ${constitutionSummary.version}`,
+
     `Identiteettirajoja: ${spacemonkeySummary.identityBoundaryCount}`,
+
     `Synergiaperiaatteita: ${spacemonkeySummary.synergyPrincipleCount}`,
+
     `Perustuslaillisia sääntöjä: ${constitutionSummary.ruleCount}`,
+
   ].join("\n")
+
 }
+
 
 
 function createDefinitionAnswer(
   core,
 ) {
+
   return [
+
     "Spacemonkey",
+
     "",
+
     core.definition,
+
     "",
+
     "Spacemonkey ei ole Marc.",
+
     "Spacemonkey ei ole tekoäly.",
+
     "Spacemonkey ei ole kielimalli.",
+
     "",
+
     "Se tarkoittaa ihmisen ja koneen yhteistyöstä syntyvää modulaarista synergiarakennetta.",
+
   ].join("\n")
+
 }
+
 
 
 function createIdentityBoundaryAnswer(
   core,
 ) {
+
   return [
+
     "Spacemonkeyn identiteettirajat:",
+
     "",
+
     ...createNumberedList(
       core.identityBoundaries,
     ),
+
   ].join("\n")
+
 }
+
 
 
 function createSynergyAnswer(
   core,
 ) {
+
   return [
+
     "Spacemonkeyn synergiaperiaatteet:",
+
     "",
+
     ...createNumberedList(
       core.synergyPrinciples,
     ),
+
   ].join("\n")
+
 }
+
 
 
 function createGrowthModelAnswer(
   core,
 ) {
+
   const human =
     core.growthModel.human
+
 
   const machine =
     core.growthModel.machine
 
+
   const synergy =
     core.growthModel.synergy
 
+
   return [
+
     "Spacemonkeyn kasvumalli",
+
     "",
+
     "IHMINEN",
+
     `Kasvun lähteet: ${human.growthSources.join(", ")}.`,
+
     human.responsibility,
+
     "",
+
     "KONE",
+
     `Kasvun lähteet: ${machine.growthSources.join(", ")}.`,
+
     machine.responsibility,
+
     "",
+
     "SYNERGIA",
+
     `Kasvun lähteet: ${synergy.growthSources.join(", ")}.`,
+
     synergy.responsibility,
+
   ].join("\n")
+
 }
+
 
 
 function createConstitutionAnswer(
   constitution,
 ) {
+
   const rules =
     constitution.rules
       .sort(
@@ -448,48 +573,71 @@ function createConstitutionAnswer(
           `${rule.order}. ${rule.title}: ${rule.rule}`,
       )
 
+
   return [
+
     "AI Constitution V1",
+
     "",
+
     ...rules,
+
   ].join("\n")
+
 }
 
 
+
+
+
 function createSpacemonkeyModule() {
+
   return createBrainModule({
+
     id:
       "spacemonkey",
+
 
     name:
       "Spacemonkey Module",
 
+
     version:
-      "1.0.0",
+      "2.0.0",
+
 
     description:
-      "Tarjoaa Spacemonkey Coren, identiteettirajojen, synergian, kasvumallin ja AI Constitutionin turvalliset perustiedot.",
+      "Tarjoaa Spacemonkey Coren, identiteettirajojen, synergian, kasvumallin, AI Constitutionin ja Knowledge Layer näkyvyyden.",
+
 
     priority:
       90,
 
+
+
     canHandle({
       request,
     }) {
+
       const analysis =
         analyzeSpacemonkeyRequest(
           request?.message,
         )
 
+
       return {
+
         matched:
           analysis.matched,
+
 
         confidence:
           analysis.confidence,
 
+
         reason:
           analysis.reason,
+
 
         metadata:
           analysis.matched
@@ -498,134 +646,218 @@ function createSpacemonkeyModule() {
                   analysis.action,
               }
             : null,
+
       }
+
     },
+
+
 
     async execute({
       message,
       request,
       runtimeContext,
     }) {
+
+
       const analysis =
         analyzeSpacemonkeyRequest(
           message,
         )
 
+
       if (!analysis.matched) {
+
         throw new Error(
           "Spacemonkey Module ei tunnistanut pyyntöä.",
         )
+
       }
+
+
 
       const core =
         getSpacemonkeyCore()
 
+
+
       const constitution =
         getAIConstitution()
 
+
+
+      const knowledge =
+        getSpacemonkeyKnowledge({
+          runtimeContext,
+        })
+
+
+
       let answer =
         ""
+
+
 
       if (
         analysis.action ===
         SPACEMONKEY_ACTIONS
           .SHOW_SUMMARY
       ) {
+
         answer =
           createSummaryAnswer()
+
       }
+
+
 
       if (
         analysis.action ===
         SPACEMONKEY_ACTIONS
           .SHOW_DEFINITION
       ) {
+
         answer =
           createDefinitionAnswer(
             core,
           )
+
       }
+
+
 
       if (
         analysis.action ===
         SPACEMONKEY_ACTIONS
           .SHOW_IDENTITY_BOUNDARIES
       ) {
+
         answer =
           createIdentityBoundaryAnswer(
             core,
           )
+
       }
+
+
 
       if (
         analysis.action ===
         SPACEMONKEY_ACTIONS
           .SHOW_SYNERGY_PRINCIPLES
       ) {
+
         answer =
           createSynergyAnswer(
             core,
           )
+
       }
+
+
 
       if (
         analysis.action ===
         SPACEMONKEY_ACTIONS
           .SHOW_GROWTH_MODEL
       ) {
+
         answer =
           createGrowthModelAnswer(
             core,
           )
+
       }
+
+
 
       if (
         analysis.action ===
         SPACEMONKEY_ACTIONS
           .SHOW_CONSTITUTION
       ) {
+
         answer =
           createConstitutionAnswer(
             constitution,
           )
+
       }
 
+
+
       if (!answer) {
+
         throw new Error(
           "Spacemonkey Module sai tuntemattoman toiminnon.",
         )
+
       }
 
+
+
       return {
+
         type:
           "spacemonkey_result",
+
 
         mode:
           analysis.action,
 
+
         answer,
+
 
         coreVersion:
           core.version,
 
+
         constitutionVersion:
           constitution.version,
+
+
+        knowledge: {
+
+          enabled:
+            knowledge.enabled,
+
+
+          sources:
+            knowledge.sources,
+
+
+          characters:
+            knowledge.characters,
+
+        },
+
 
         requestId:
           request?.requestId ||
           null,
 
+
         source:
           runtimeContext?.source ||
           "ai-brain-v2",
+
       }
+
     },
+
   })
+
 }
 
 
+
 export {
+
   SPACEMONKEY_ACTIONS,
+
   analyzeSpacemonkeyRequest,
+
   createSpacemonkeyModule,
+
 }

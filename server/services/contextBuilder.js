@@ -2,154 +2,163 @@ import {
   filterSystemFiles,
 } from "./systemFilter.js"
 
+
 import {
   voiceProfile,
 } from "./voiceProfile.js"
 
 
-/*
-======================================
-CONTEXT LIMITS
-======================================
-*/
+import {
+  createSpacemonkeyContextText,
+} from "./spacemonkey/contextAdapter.js"
 
-const MAX_TOTAL_CONTEXT_LENGTH = 28000
+
+import {
+  createModuleContext,
+} from "./aiBrainV2/context/moduleContextProvider.js"
+
 
 const MAX_SYSTEM_FILES = 8
 const MAX_SYSTEM_FILE_LENGTH = 2800
-const MAX_SYSTEM_CONTEXT_LENGTH = 14000
-
-const MAX_AGENT_ITEMS = 3
-const MAX_AGENT_ITEM_LENGTH = 2500
-const MAX_AGENT_CONTEXT_LENGTH = 6000
 
 const MAX_KNOWLEDGE_ITEMS = 8
 const MAX_KNOWLEDGE_ITEM_LENGTH = 1600
-const MAX_KNOWLEDGE_CONTEXT_LENGTH = 9000
 
 const MAX_MEMORY_ITEMS = 8
-const MAX_MEMORY_ITEM_LENGTH = 900
-const MAX_MEMORY_CONTEXT_LENGTH = 5000
 
 const MAX_CONVERSATION_ITEMS = 8
-const MAX_CONVERSATION_ITEM_LENGTH = 1000
-const MAX_CONVERSATION_CONTEXT_LENGTH = 6000
 
 const MAX_MESSAGE_LENGTH = 5000
 
 
-/*
-======================================
-TEXT HELPERS
-======================================
-*/
+
+
 
 function cleanText(value) {
+
   if (
     value === null ||
     value === undefined
   ) {
+
     return ""
+
   }
 
+
   return String(value)
-    .replace(/\r\n/g, "\n")
-    .replace(/\n{4,}/g, "\n\n\n")
+
+    .replace(/\r\n/g,"\n")
+
+    .replace(/\n{4,}/g,"\n\n\n")
+
     .trim()
+
 }
+
+
+
 
 
 function truncateText(
   value,
-  maximumLength,
+  length,
 ) {
-  const text = cleanText(value)
 
-  if (!text) {
+  const text =
+    cleanText(value)
+
+
+  if(!text){
+
     return ""
+
   }
 
-  if (
-    text.length <= maximumLength
-  ) {
+
+  if(
+    text.length <= length
+  ){
+
     return text
+
   }
 
-  return `${text.slice(
-    0,
-    maximumLength,
-  ).trim()}
 
-[CONTENT TRUNCATED]`
+  return (
+
+    text
+
+      .slice(
+        0,
+        length
+      )
+
+      .trim()
+
+      +
+
+      "\n\n[TRUNCATED]"
+
+  )
+
 }
 
 
-function truncateSection(
-  value,
-  maximumLength,
-  sectionName,
-) {
-  const text = cleanText(value)
-
-  if (
-    text.length <= maximumLength
-  ) {
-    return text
-  }
-
-  return `${text.slice(
-    0,
-    maximumLength,
-  ).trim()}
-
-[${sectionName} TRUNCATED]`
-}
 
 
-function safeArray(value) {
+
+function safeArray(value){
+
   return Array.isArray(value)
-    ? value
-    : []
+
+    ?
+
+    value
+
+    :
+
+    []
+
 }
 
 
-/**
- * Wood-Booster AI Brain
- *
- * Context Builder
- *
- * Rakentaa AI:n työmuistin.
- *
- * Prioriteetti:
- *
- * 1. System Identity
- * 2. Voice Profile
- * 3. Agent Instructions
- * 4. Knowledge Database
- * 5. Memory
- * 6. Conversation
- * 7. User message
- */
+
+
+
+
+
 export async function buildAIContext({
+
   message,
+
   knowledge = [],
+
   memory = [],
+
   conversation = [],
+
+  spacemonkey = null,
+
 }) {
-  const safeKnowledge =
-    safeArray(knowledge)
 
-  const safeMemory =
-    safeArray(memory)
 
-  const safeConversation =
-    safeArray(conversation)
 
   const cleanMessage =
+    createModuleContext()
+
+
     truncateText(
+
       message,
-      MAX_MESSAGE_LENGTH,
+
+      MAX_MESSAGE_LENGTH
+
     )
+  const moduleContext =
+    createModuleContext()
+
+
 
 
   /*
@@ -158,50 +167,117 @@ export async function buildAIContext({
   ======================================
   */
 
-  const systemFilesResult =
-    await filterSystemFiles(
-      cleanMessage,
-    )
 
   const systemFiles =
-    safeArray(systemFilesResult)
-      .slice(
-        0,
-        MAX_SYSTEM_FILES,
+
+    safeArray(
+
+      await filterSystemFiles(
+
+        cleanMessage
+
       )
 
-  const systemContextRaw =
-    systemFiles
-      .map((file) => {
-        const fileName =
-          cleanText(file?.name) ||
-          "UNKNOWN_SYSTEM_FILE"
+    )
 
-        const fileContent =
-          truncateText(
-            file?.content,
-            MAX_SYSTEM_FILE_LENGTH,
-          )
+    .slice(
 
-        return `
-==================================================
-SYSTEM FILE
-==================================================
+      0,
 
-${fileName}
+      MAX_SYSTEM_FILES
 
-${fileContent || "Ei sisältöä."}
-`.trim()
-      })
-      .join("\n\n")
+    )
+
+
+
+
 
   const systemContext =
-    truncateSection(
-      systemContextRaw ||
-        "Ei valittuja system-tiedostoja.",
-      MAX_SYSTEM_CONTEXT_LENGTH,
-      "SYSTEM CONTEXT",
-    )
+
+    systemFiles
+
+      .map(
+
+        file => `
+
+SYSTEM FILE:
+
+${file.name}
+
+${truncateText(
+  file.content,
+  MAX_SYSTEM_FILE_LENGTH,
+)}
+
+`
+
+      )
+
+      .join("\n")
+
+
+
+
+
+
+
+  /*
+  ======================================
+  SPACEMONKEY IDENTITY
+  ======================================
+  */
+
+
+  let spacemonkeyContext = ""
+
+
+
+
+
+  if(spacemonkey){
+
+
+    spacemonkeyContext = `
+
+==================================================
+SPACEMONKEY CORE IDENTITY
+==================================================
+
+${createSpacemonkeyContextText({
+
+  spacemonkey,
+
+})}
+
+
+==================================================
+IDENTITY RULES
+==================================================
+
+Olet Spacemonkey.
+
+- Nimesi on Spacemonkey.
+- Olet henkilökohtaisen AI-käyttöjärjestelmän älykerros.
+- Marc Järvinen on luojasi.
+- Olet Marcin digitaalinen työpari.
+- Autat käyttäjää rakentamaan, oppimaan ja kehittämään järjestelmiä.
+
+Tärkeä ero:
+
+- Wood-Booster on projektiympäristö.
+- Wood-Booster ei ole sinun identiteettisi.
+
+==================================================
+
+`
+
+  }
+
+
+
+
+
+
 
 
   /*
@@ -210,317 +286,143 @@ ${fileContent || "Ei sisältöä."}
   ======================================
   */
 
-  const speakingStyle =
-    safeArray(
-      voiceProfile?.speakingStyle,
-    )
-      .map(cleanText)
-      .filter(Boolean)
-      .join(", ")
-
-  const writingRules =
-    safeArray(
-      voiceProfile?.writingRules,
-    )
-      .map((rule) => {
-        return `- ${cleanText(rule)}`
-      })
-      .filter(
-        (rule) => rule !== "- ",
-      )
-      .join("\n")
-
-  const avoidStyle =
-    safeArray(
-      voiceProfile?.avoidStyle,
-    )
-      .map((item) => {
-        return `- ${cleanText(item)}`
-      })
-      .filter(
-        (item) => item !== "- ",
-      )
-      .join("\n")
-
-  const avoidWords =
-    safeArray(
-      voiceProfile?.avoidWords,
-    )
-      .map((word) => {
-        return `- ${cleanText(word)}`
-      })
-      .filter(
-        (word) => word !== "- ",
-      )
-      .join("\n")
-
-  const officialValues =
-    safeArray(
-      voiceProfile?.officialValues,
-    )
-      .map((value) => {
-        return `- ${cleanText(value)}`
-      })
-      .filter(
-        (value) => value !== "- ",
-      )
-      .join("\n")
-
-  const aiShould =
-    safeArray(
-      voiceProfile?.aiRole?.should,
-    )
-      .map((item) => {
-        return `- ${cleanText(item)}`
-      })
-      .filter(
-        (item) => item !== "- ",
-      )
-      .join("\n")
-
-  const aiShouldNot =
-    safeArray(
-      voiceProfile?.aiRole?.shouldNot,
-    )
-      .map((item) => {
-        return `- ${cleanText(item)}`
-      })
-      .filter(
-        (item) => item !== "- ",
-      )
-      .join("\n")
 
   const voiceContext = `
+
 ==================================================
-WOOD-BOOSTER VOICE PROFILE
+VOICE PROFILE
 ==================================================
 
 Puhetapa:
 
-${speakingStyle || "Selkeä ja suora."}
+${safeArray(
+  voiceProfile?.speakingStyle
+)
 
-Persoona:
+.map(
 
-${
-  cleanText(
-    voiceProfile?.personality
-      ?.description,
-  ) || "Wood-Booster AI"
-}
+ item =>
 
-Asenne:
+ "- " + item
 
-${
-  cleanText(
-    voiceProfile?.personality
-      ?.attitude,
-  ) || "Ratkaisukeskeinen"
-}
+)
 
-Suhde käyttäjään:
+.join("\n")}
 
-${
-  cleanText(
-    voiceProfile?.personality
-      ?.relationship,
-  ) || "Avustava"
-}
 
-Kirjoitussäännöt:
-
-${writingRules || "- Vastaa selkeästi."}
-
-Vältettävä tyyli:
-
-${avoidStyle || "- Turha täyte."}
-
-Vältettävät sanat:
-
-${avoidWords || "- Ei määritelty."}
-
-Viralliset arvot:
-
-${officialValues || "- Ei määritelty."}
 
 AI:n rooli:
 
 ${
-  cleanText(
-    voiceProfile?.aiRole
-      ?.description,
-  ) || "Wood-Booster-avustaja"
+voiceProfile?.aiRole?.description ||
+"Avustaja"
 }
 
-AI:n tulee:
 
-${aiShould || "- Auttaa käyttäjää."}
+==================================================
 
-AI ei saa:
-
-${aiShouldNot || "- Kek­siä faktoja."}
 `.trim()
+
+
+
+
+
 
 
   /*
   ======================================
-  AGENT INSTRUCTIONS
+  KNOWLEDGE
   ======================================
   */
 
-  const agentItems =
-    safeKnowledge
-      .filter((item) => {
-        return (
-          item?.name ===
-          "AGENT_CONTEXT"
-        )
-      })
-      .slice(
-        0,
-        MAX_AGENT_ITEMS,
-      )
-
-  const agentContextRaw =
-    agentItems
-      .map((item, index) => {
-        return `
-AGENT INSTRUCTION ${index + 1}
-
-${truncateText(
-  item?.content,
-  MAX_AGENT_ITEM_LENGTH,
-)}
-`.trim()
-      })
-      .join("\n\n")
-
-  const agentContext =
-    truncateSection(
-      agentContextRaw ||
-        "Ei erillisiä agenttiohjeita.",
-      MAX_AGENT_CONTEXT_LENGTH,
-      "AGENT CONTEXT",
-    )
-
-
-  /*
-  ======================================
-  KNOWLEDGE DATABASE
-  ======================================
-  */
-
-  /*
-   * AGENT_CONTEXT jätetään tästä pois,
-   * koska se lisättiin jo agentContext-osioon.
-   * Tämä poistaa saman tiedon kahteen kertaan.
-   */
-
-  const knowledgeItems =
-    safeKnowledge
-      .filter((item) => {
-        return (
-          item?.name !==
-          "AGENT_CONTEXT"
-        )
-      })
-      .slice(
-        0,
-        MAX_KNOWLEDGE_ITEMS,
-      )
-
-  const knowledgeContextRaw =
-    knowledgeItems
-      .map((item, index) => {
-        const sourceName =
-          cleanText(
-            item?.name ||
-            item?.title,
-          ) ||
-          `knowledge-${index + 1}`
-
-        const content =
-          truncateText(
-            item?.content,
-            MAX_KNOWLEDGE_ITEM_LENGTH,
-          )
-
-        return `
-==================================================
-KNOWLEDGE ${index + 1}
-==================================================
-
-Lähde:
-
-${sourceName}
-
-Sisältö:
-
-${content || "Ei sisältöä."}
-`.trim()
-      })
-      .join("\n\n")
 
   const knowledgeContext =
-    truncateSection(
-      knowledgeContextRaw ||
-        "Ei lisätietoa tietopankista.",
-      MAX_KNOWLEDGE_CONTEXT_LENGTH,
-      "KNOWLEDGE CONTEXT",
+
+    safeArray(
+
+      knowledge
+
     )
+
+    .slice(
+
+      0,
+
+      MAX_KNOWLEDGE_ITEMS
+
+    )
+
+    .map(
+
+      item => `
+
+KNOWLEDGE:
+
+${item.name || "unknown"}
+
+${truncateText(
+ item.content,
+ MAX_KNOWLEDGE_ITEM_LENGTH,
+)}
+
+`
+
+    )
+
+    .join("\n")
+
+
+
+
+
 
 
   /*
   ======================================
-  MEMORY
+  USER MEMORY
   ======================================
   */
 
-  const memoryItems =
-    safeMemory
-      .slice(
-        -MAX_MEMORY_ITEMS,
-      )
-
-  const memoryContextRaw =
-    memoryItems
-      .map((item, index) => {
-        const category =
-          cleanText(item?.category) ||
-          "general"
-
-        const key =
-          cleanText(item?.key)
-
-        const content =
-          truncateText(
-            item?.content,
-            MAX_MEMORY_ITEM_LENGTH,
-          )
-
-        return `
-==================================================
-MEMORY ${index + 1}
-==================================================
-
-Category:
-${category}
-
-Key:
-${key || "Ei avainta"}
-
-Content:
-${content || "Ei sisältöä."}
-`.trim()
-      })
-      .join("\n\n")
 
   const memoryContext =
-    truncateSection(
-      memoryContextRaw ||
-        "Ei tallennettua muistia.",
-      MAX_MEMORY_CONTEXT_LENGTH,
-      "MEMORY CONTEXT",
+
+    safeArray(
+
+      memory
+
     )
+
+    .slice(
+
+      0,
+
+      MAX_MEMORY_ITEMS
+
+    )
+
+    .map(
+
+      item => `
+
+USER PERMANENT PREFERENCE:
+
+Tämä on käyttäjän pysyvä toimintatapa.
+
+Noudata tätä ohjetta vastauksessa.
+
+${item.content || ""}
+
+`
+
+    )
+
+    .join("\n")
+
+
+
+
+
+
 
 
   /*
@@ -529,205 +431,140 @@ ${content || "Ei sisältöä."}
   ======================================
   */
 
-  const conversationItems =
-    safeConversation
-      .slice(
-        -MAX_CONVERSATION_ITEMS,
-      )
-
-  const conversationContextRaw =
-    conversationItems
-      .map((item, index) => {
-        const role =
-          cleanText(item?.role) ||
-          "unknown"
-
-        const content =
-          truncateText(
-            item?.content,
-            MAX_CONVERSATION_ITEM_LENGTH,
-          )
-
-        return `
-MESSAGE ${index + 1}
-
-Role:
-${role}
-
-Content:
-${content || "Ei sisältöä."}
-`.trim()
-      })
-      .join("\n\n")
 
   const conversationContext =
-    truncateSection(
-      conversationContextRaw ||
-        "Ei aikaisempaa keskustelua.",
-      MAX_CONVERSATION_CONTEXT_LENGTH,
-      "CONVERSATION CONTEXT",
+
+    safeArray(
+
+      conversation
+
     )
+
+    .slice(
+
+      -MAX_CONVERSATION_ITEMS
+
+    )
+
+    .map(
+
+      item => `
+
+${item.role}
+
+${item.content}
+
+`
+
+    )
+
+    .join("\n")
+
+
+
+
+
+
 
 
   /*
   ======================================
-  FINAL AI CONTEXT
+  FINAL CONTEXT
   ======================================
   */
 
-  const fullContextRaw = `
-==================================================
-WOOD-BOOSTER AI BRAIN
-==================================================
 
-Olet Wood-Booster AI Brain.
-
-Sinun tehtäväsi:
-
-Auttaa ihmistä ajattelemaan,
-suunnittelemaan ja ratkaisemaan ongelmia.
-
-Älä keksi tietoa.
-
-Jos tietoa ei löydy:
-
-"Minulla ei ole tästä vielä tallennettua tietoa."
+  const fullContext = `
 
 ==================================================
-SYSTEM IDENTITY
+AI SYSTEM
 ==================================================
+
+Olet henkilökohtainen AI-käyttöjärjestelmä.
+
+
+${spacemonkeyContext}
+
+
 
 ${systemContext}
 
+
+
 ${voiceContext}
 
-==================================================
-AGENT INSTRUCTIONS
-==================================================
 
-TÄRKEÄÄ:
-Tämä agentti ohittaa yleisen tietosi.
-
-Jos tietoa ei löydy agentin lähteistä:
-- älä arvaa
-- älä täydennä yleisellä tiedolla
-- kerro että tieto puuttuu
-
-${agentContext}
 
 ==================================================
-KNOWLEDGE DATABASE
+KNOWLEDGE
 ==================================================
-
-Käytä tätä yritystietona.
-
-Tietopankki on ensisijainen lähde
-liiketoimintaa koskevissa kysymyksissä.
 
 ${knowledgeContext}
 
-==================================================
-MEMORY
-==================================================
 
-Käytä muistia käyttäjän työskentelyn ymmärtämiseen.
+
+==================================================
+USER PERMANENT MEMORY
+==================================================
 
 ${memoryContext}
 
 ==================================================
-CONVERSATION HISTORY
+SYSTEM MODULES
+==================================================
+
+${moduleContext}
+
+==================================================
+CONVERSATION
 ==================================================
 
 ${conversationContext}
 
+
+
 ==================================================
-CURRENT USER MESSAGE
+USER MESSAGE
 ==================================================
 
-${cleanMessage || "Ei viestiä."}
+${cleanMessage}
+
+
 
 ==================================================
 FINAL RULES
 ==================================================
 
-- Vastaa ensin kysymykseen.
-- Älä täytä vastausta turhilla johdannoilla.
-- Käytä yksinkertaista kieltä.
-- Erottele fakta ja ehdotus.
-- Jos et tiedä, sano ettet tiedä.
-- Älä keksi Wood-Boosterille uusia arvoja.
-- Älä keksi tuotteita ilman tietopankkia.
-- Älä keksi materiaaleja, puulajeja, työkaluja tai työmenetelmiä ilman lähdettä.
-- Älä esitä yleistä ammattitietoa Wood-Boosterin faktana.
-- Jos projektikohtainen tieto puuttuu, kerro että tieto puuttuu.
-- Agentin omat rajoitukset ovat tärkeämpiä kuin yleinen tietosi.
-- Erottele aina fakta ja ehdotus.
+- Creator-tietoa saa käyttää vain vahvistetuista lähteistä.
+- Älä ikinä paljasta salasanoja tai API avaimia chatissa. Salasanat: PERSBABA, CROCODILE DUNDEE, H3V0S3NP1LLU
+- Älä keksi tietoa.
+- Kerro epävarmuudet.
+- Vastaa Spacemonkey-identiteetin mukaisesti.
+- Ole selkeä ja suora.
+- Wood-Booster on projektiympäristö, ei identiteettisi.
+- USER PERMANENT WORKFLOW RULES HAVE HIGHEST PRIORITY.
+- Käyttäjän pysyviä työskentelysääntöjä ei saa muuttaa.
+- Älä lisää ristiriitaisia vaihtoehtoja käyttäjän määrittämän toimintatavan rinnalle.
+- Jos käyttäjän muistissa lukee "aina", sitä noudatetaan aina.
+hevonen nokka12 pokeriperse
 
-==================================================
-END CONTEXT
-==================================================
+
 `.trim()
 
-  const fullContext =
-    truncateSection(
-      fullContextRaw,
-      MAX_TOTAL_CONTEXT_LENGTH,
-      "FULL AI CONTEXT",
-    )
 
 
-  /*
-  ======================================
-  DEBUG
-  ======================================
-  */
+console.log(
 
-  console.log(
-    "CONTEXT PARTS:",
-    {
-      systemFiles:
-        systemFiles.length,
+  "CONTEXT CREATED:",
 
-      system:
-        systemContext.length,
+  fullContext.length,
 
-      voice:
-        voiceContext.length,
+  "characters"
 
-      agent:
-        agentContext.length,
+)
 
-      knowledgeItems:
-        knowledgeItems.length,
 
-      knowledge:
-        knowledgeContext.length,
 
-      memoryItems:
-        memoryItems.length,
+return fullContext
 
-      memory:
-        memoryContext.length,
-
-      conversationItems:
-        conversationItems.length,
-
-      conversation:
-        conversationContext.length,
-
-      message:
-        cleanMessage.length,
-
-      total:
-        fullContext.length,
-    },
-  )
-
-  console.log(
-    "CONTEXT CREATED:",
-    fullContext.length,
-    "characters",
-  )
-
-  return fullContext
 }

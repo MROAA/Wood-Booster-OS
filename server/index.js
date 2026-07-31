@@ -7,7 +7,23 @@ import {
 
 
 import createAIBrainChatRouter from "./routes/ai-brain-chat.js"
+import createAIBrainV2Router from "./routes/ai-brain-v2.js"
+import {
+  setGitSyncPrisma,
+} from "./services/aiBrainV2/services/systemPulse/gitSyncHistory.js"
 import createMemoryRouter from "./routes/memory.js"
+import {
+  startGitSyncWatcher,
+} from "./services/aiBrainV2/services/systemPulse/gitSyncWatcher.js"
+import {
+  runSpacemonkeyServerIntegration,
+} from "./services/spacemonkey/spacemonkeyServerIntegrationRunner.js"
+import systemPulseRouter from "./routes/systemPulse.js"
+
+import {
+  integrateSystemLayer,
+} from "./services/systemServerIntegration.js"
+
 
 import createDashboardRouter from "./routes/dashboard.js"
 import createKnowledgeRouter from "./routes/knowledge.js"
@@ -16,19 +32,97 @@ import createInventoryRouter from "./routes/inventory.js"
 import createPurchasesRouter from "./routes/purchases.js"
 import createConversationsRouter from "./routes/conversations.js"
 import createAIRouter from "./routes/ai.js"
+import createSpacemonkeyBrainStateRouter from "./routes/spacemonkeyBrainState.js"
 import createFilesRouter from "./routes/files.js"
 import createAgentChatRouter from "./routes/agentChat.js"
 import createProjectsRouter from "./routes/projects.js"
+import createCustomersRouter from "./routes/customers.js"
+import {
+  createAgentsRouter,
+} from "./routes/agents.js"
+
+import createBackupRouter from "./routes/backup.js"
+import createBackupsRouter from "./routes/backups.js"
+import createSystemRestoreRouter from "./routes/systemRestore.js"
+import {
+  integrateToolsLayer,
+} from "./services/toolsServerIntegration.js"
+
+
+import createSpacemonkeyRouter from "./routes/spacemonkey.js"
+
+
+import {
+  createSpacemonkeySnapshotRouter,
+} from "./routes/spacemonkeySnapshot.js"
+
+
+import {
+  createSpacemonkeyRestoreRouter,
+} from "./routes/spacemonkeyRestore.js"
+
+
+import {
+  createSpacemonkeySafetyRouter,
+} from "./routes/spacemonkeySafety.js"
+
+
+import {
+  createSpacemonkeyRestoreApprovalRouter,
+} from "./routes/spacemonkeyRestoreApproval.js"
+
+
+import {
+  createSpacemonkeyActivityRouter,
+} from "./routes/spacemonkeyActivity.js"
+
+
+import {
+  createSpacemonkeyRestoreDryRunRouter,
+} from "./routes/spacemonkeyRestoreDryRun.js"
+
+
+import {
+  createSpacemonkeyIdentityRouter,
+} from "./routes/spacemonkeyIdentity.js"
+
+
+
+import {
+  createSpacemonkeyCoreRouter,
+} from "./routes/spacemonkeyCore.js"
+
+import {
+  createSpacemonkeyDashboardRouter,
+} from "./routes/spacemonkeyDashboard.js"
+
+import {
+  createSpacemonkeySnapshotV3ApiRouter,
+} from "./routes/spacemonkeySnapshotV3Api.js"
+
+
+
+import {
+  publicSpacemonkeyRouter,
+} from "./routes/spacemonkeyPublic.js"
+
 
 
 
 const prisma =
   new PrismaClient()
 
-
+setGitSyncPrisma(
+  prisma
+)
 
 const app =
   express()
+
+
+
+app.locals.prisma =
+  prisma
 
 
 
@@ -38,16 +132,10 @@ const PORT =
 
 
 
-/*
-=====================================
-MIDDLEWARE
-=====================================
-*/
-
-
 app.use(
   cors()
 )
+
 
 
 app.use(
@@ -57,18 +145,17 @@ app.use(
 
 
 
-/*
-=====================================
-DATABASE
-=====================================
-*/
-
 
 app.get(
   "/api/database",
-  async (req,res)=>{
+  async (
+    req,
+    res
+  )=>{
 
-    try {
+
+    try{
+
 
       await prisma.$queryRaw`
         SELECT 1
@@ -85,8 +172,8 @@ app.get(
 
 
     }
-
     catch(error){
+
 
       res.status(500).json({
 
@@ -94,7 +181,9 @@ app.get(
 
       })
 
+
     }
+
 
   }
 )
@@ -103,16 +192,13 @@ app.get(
 
 
 
-/*
-=====================================
-HEALTH
-=====================================
-*/
-
-
 app.get(
   "/api/health",
-  (req,res)=>{
+  (
+    req,
+    res
+  )=>{
+
 
     res.json({
 
@@ -124,6 +210,7 @@ app.get(
 
     })
 
+
   }
 )
 
@@ -131,290 +218,300 @@ app.get(
 
 
 
-/*
-=====================================
-AI BRAIN
-=====================================
-*/
-
-
 app.use(
-
   "/api/ai-brain",
-
   createAIBrainChatRouter(
-
     prisma
-
   )
-
 )
 
 
 
+app.use(
+  "/api/ai-brain-v2",
+  createAIBrainV2Router(
+    prisma
+  )
+)
 
-
-/*
-=====================================
-MEMORY
-=====================================
-*/
 
 
 app.use(
-
   "/api",
-
   createMemoryRouter(
-
     prisma
-
   )
-
 )
 
 
 
-
-
-/*
-=====================================
-DASHBOARD
-=====================================
-*/
-
-
 app.use(
-
   "/api",
-
   createDashboardRouter(
-
     prisma
-
   )
-
 )
 
 
 
-
-
-/*
-=====================================
-KNOWLEDGE
-=====================================
-*/
-
-
 app.use(
-
   "/api",
-
   createKnowledgeRouter(
-
     prisma
-
   )
-
 )
 
 
+
 app.use(
-
   "/api",
-
   createKnowledgeUploadRouter(
-
     prisma
-
   )
-
 )
 
 
 
-
-
-/*
-=====================================
-INVENTORY
-=====================================
-*/
-
-
 app.use(
-
   "/api",
-
   createInventoryRouter(
-
     prisma
-
   )
-
 )
 
 
 
-
-
-/*
-=====================================
-PURCHASES
-=====================================
-*/
-
-
 app.use(
-
   "/api",
-
   createPurchasesRouter(
-
     prisma
-
   )
-
 )
 
 
 
-
-
-/*
-=====================================
-CONVERSATIONS
-=====================================
-*/
-
-
 app.use(
-
   "/api",
-
   createConversationsRouter(
-
     prisma
-
   )
-
 )
 
 
 
-
-
-/*
-=====================================
-AI PROJECT GENERATOR
-=====================================
-*/
-
-
 app.use(
-
   "/api",
-
   createAIRouter(
-
     prisma
-
   )
-
 )
 
 
 
-
-
-/*
-=====================================
-AGENTS
-=====================================
-*/
-
-
 app.use(
-
   "/api/agents",
-
   createAgentChatRouter(
-
     prisma
-
   )
-
 )
 
 
 
-
-
-/*
-=====================================
-PROJECTS
-=====================================
-*/
-
-
 app.use(
-
   "/api",
-
   createProjectsRouter(
-
     prisma
-
   )
-
+)
+app.use(
+  "/api",
+  createCustomersRouter(
+    prisma
+  )
+)
+app.use(
+  "/api",
+  createAgentsRouter()
 )
 
-
-
-
-
-/*
-=====================================
-FILES
-=====================================
-*/
 
 
 app.use(
-
   "/api",
-
   createFilesRouter(
-
     prisma
-
   )
-
 )
 
 
 
 
 
+app.use(
+  "/api",
+  createBackupRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createBackupsRouter()
+)
+
+app.use(
+  "/api",
+  systemPulseRouter
+)
+
+app.use(
+  "/api",
+  createSystemRestoreRouter()
+)
+
+
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeyIdentityRouter()
+)
+
+app.use(
+  "/api",
+  createSpacemonkeyBrainStateRouter()
+)
+
+app.use(
+  "/api",
+  createSpacemonkeySafetyRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeyCoreRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeySnapshotRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeySnapshotV3ApiRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeyRestoreRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeyRestoreApprovalRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeyRestoreDryRunRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeyActivityRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createSpacemonkeyRouter(
+    prisma
+  )
+)
+
+
+
 /*
 =====================================
-ROOT
+PUBLIC INTERNET GATEWAY
+
+Wordpress:
+puustaaja.tehopirtti.net
+
+↓
+
+Spacemonkey Public API
+
 =====================================
 */
+
+app.use(
+  "/api",
+  publicSpacemonkeyRouter
+)
+
+
+app.use(
+  "/api",
+  createSpacemonkeyDashboardRouter()
+)
+
+
+runSpacemonkeyServerIntegration({
+  app
+})
+
+
+
+
+
+integrateSystemLayer(
+  app
+)
+
+
+integrateToolsLayer(
+  app
+)
+
+
 
 
 app.get(
   "/",
-  (req,res)=>{
+  (
+    req,
+    res
+  )=>{
+
 
     res.json({
 
-      name:"Wood-Booster AI Server",
+      name:
+        "Wood-Booster AI Server",
 
-      status:"running"
+      status:
+        "running"
 
     })
+
 
   }
 )
@@ -423,42 +520,32 @@ app.get(
 
 
 
-/*
-=====================================
-404
-=====================================
-*/
-
-
 app.use(
+  (
+    req,
+    res
+  )=>{
 
-  (req,res)=>{
 
     res.status(404).json({
 
-      error:"Route not found",
+      error:
+        "Route not found",
 
-      path:req.originalUrl
+      path:
+        req.originalUrl
 
     })
 
-  }
 
+  }
 )
 
 
 
 
 
-/*
-=====================================
-ERROR HANDLER
-=====================================
-*/
-
-
 app.use(
-
   (
     error,
     req,
@@ -468,34 +555,29 @@ app.use(
 
 
     console.error(
-
       "SERVER ERROR:",
-
       error
-
     )
 
 
     res.status(500).json({
 
-      error:error.message
+      success:false,
+
+      error:
+        error.message,
+
+      code:
+        "INTERNAL_SERVER_ERROR"
 
     })
 
 
   }
-
 )
 
 
 
-
-
-/*
-=====================================
-START
-=====================================
-*/
 
 
 async function start(){
@@ -506,68 +588,70 @@ async function start(){
 
     await prisma.$connect()
 
-
+startGitSyncWatcher()
 
     app.listen(
-
       PORT,
-
       ()=>{
 
 
-        console.log(
+        console.log(`
 
-`
 🪵 Wood-Booster Server käynnissä
 
 http://localhost:${PORT}
 
 
-AI Brain:
+Public Spacemonkey:
+/api/spacemonkey/public
+
+
+Backup:
+/api/backup
+
+
+Backup History:
+/api/backups
+
+
+System Restore:
+/api/system/restore
+
+
+System Registry:
+/api/system/registry
+
+
+AI Brain V1:
 /api/ai-brain
 
 
-Memory:
-/api/memory
+AI Brain V2:
+/api/ai-brain-v2
 
 
 Dashboard:
 /api/dashboard
 
-
-Knowledge:
-/api/knowledge
-
-
-Projects:
-/api/projects/:id
-
-`
-
-        )
+`)
 
 
       }
-
     )
 
 
   }
-
-
   catch(error){
 
 
     console.error(
-
       "Database connection failed:",
-
       error
-
     )
 
 
     process.exit(1)
+
 
   }
 

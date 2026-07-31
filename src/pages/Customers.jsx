@@ -1,374 +1,599 @@
-const customers = [
-  {
-    name: "Matti Meikäläinen",
-    company: "Design Home Oy",
-    status: "ACTIVE",
-    projects: 2,
-    value: "12 500 €",
-    ai:
-      "CRM Agent voi auttaa asiakasviestinnässä.",
-  },
+import {
+  useEffect,
+  useState,
+} from "react"
 
-  {
-    name: "Anna Virtanen",
-    company: "Private Client",
-    status: "LEAD",
-    projects: 1,
-    value: "5 800 €",
-    ai:
-      "Marketing Agent voi ehdottaa yhteydenottoa.",
-  },
-
-  {
-    name: "Portfolio Customer",
-    company: "Showcase",
-    status: "COMPLETED",
-    projects: 3,
-    value: "25 000 €",
-    ai:
-      "Project history available.",
-  },
-]
-
-
-function Customers(){
-
-return (
-
-<div className="space-y-8">
-
-
-<header>
-
-<p className="
-text-sm
-font-semibold
-uppercase
-tracking-[0.25em]
-text-amber-500
-">
-
-Business OS
-
-</p>
-
-
-<h1 className="
-mt-2
-text-4xl
-font-bold
-">
-
-👥 CRM OS
-
-</h1>
-
-
-<p className="
-mt-3
-max-w-3xl
-text-neutral-400
-">
-
-Asiakashallinta yhdistettynä AI Brainiin.
-CRM Agent auttaa viestinnässä,
-tarjouksissa ja asiakasprosessissa.
-
-</p>
-
-
-</header>
+import {
+  apiGet,
+  apiPost,
+} from "../api/client"
 
 
 
+const emptyCustomer = {
 
-<section className="
-grid
-grid-cols-1
-md:grid-cols-4
-gap-4
-">
-
-
-<Stat
-title="Customers"
-value="3"
-/>
-
-
-<Stat
-title="Active Projects"
-value="6"
-/>
-
-
-<Stat
-title="Pipeline"
-value="18 300 €"
-/>
-
-
-<Stat
-title="CRM Agent"
-value="READY"
-/>
-
-
-</section>
-
-
-
-
-<section className="
-grid
-grid-cols-1
-xl:grid-cols-2
-gap-6
-">
-
-
-{
-customers.map(customer=>(
-
-<CustomerCard
-key={customer.name}
-customer={customer}
-/>
-
-))
-
-}
-
-
-</section>
-
-
-
-</div>
-
-)
+  name: "",
+  email: "",
+  phone: "",
+  company: "",
+  notes: ""
 
 }
 
 
 
+function Customers() {
 
-function Stat({
-title,
-value
-}){
 
-return (
+  const [
+    customers,
+    setCustomers,
+  ] = useState([])
 
-<div className="
-bg-neutral-900
-border
-border-neutral-800
-rounded-2xl
-p-5
-">
 
+  const [
+    form,
+    setForm,
+  ] = useState(emptyCustomer)
 
-<p className="
-text-neutral-500
-text-sm
-">
 
-{title}
+  const [
+    showForm,
+    setShowForm,
+  ] = useState(false)
 
-</p>
 
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
 
-<p className="
-mt-2
-text-3xl
-font-bold
-">
 
-{value}
+  const [
+    error,
+    setError,
+  ] = useState(null)
 
-</p>
 
 
-</div>
 
-)
 
-}
+  async function loadCustomers() {
 
+    try {
 
+      setLoading(true)
 
+      const data =
+        await apiGet("/customers")
 
 
-function CustomerCard({
-customer
-}){
+      setCustomers(data)
 
-return (
 
-<article className="
-bg-neutral-900
-border
-border-neutral-800
-rounded-2xl
-p-6
-">
+    } catch (error) {
 
+      setError(
+        error.message,
+      )
 
-<div className="
-flex
-justify-between
-items-start
-">
+    } finally {
 
+      setLoading(false)
 
-<div>
+    }
 
-<h2 className="
-text-xl
-font-bold
-">
+  }
 
-{customer.name}
 
-</h2>
 
 
-<p className="
-text-neutral-400
-mt-1
-">
 
-{customer.company}
+  useEffect(() => {
 
-</p>
+    loadCustomers()
 
-</div>
+  }, [])
 
 
 
-<span className="
-text-green-400
-text-sm
-">
 
-{customer.status}
 
-</span>
 
 
-</div>
+  async function createCustomer() {
 
 
+    if (
+      !form.name.trim()
+    ) {
 
+      return
 
-<div className="
-mt-6
-grid
-grid-cols-2
-gap-4
-">
+    }
 
 
-<div className="
-bg-neutral-800
-rounded-xl
-p-4
-">
 
-<p className="text-neutral-500 text-sm">
-Projects
-</p>
+    try {
 
-<p className="text-xl font-bold">
-{customer.projects}
-</p>
 
-</div>
+      const customer =
+        await apiPost(
+          "/customers",
+          form,
+        )
 
 
 
-<div className="
-bg-neutral-800
-rounded-xl
-p-4
-">
+      setCustomers(
 
-<p className="text-neutral-500 text-sm">
-Value
-</p>
+        previous => [
 
-<p className="text-xl font-bold">
-{customer.value}
-</p>
+          customer,
 
-</div>
+          ...previous,
 
+        ]
 
-</div>
+      )
 
 
 
+      setForm(
+        emptyCustomer,
+      )
 
-<div className="
-mt-6
-rounded-xl
-bg-neutral-800
-p-4
-text-sm
-text-neutral-300
-">
 
-🤖 {customer.ai}
+      setShowForm(false)
 
-</div>
 
+    } catch (error) {
 
+      setError(
+        error.message,
+      )
 
-<div className="
-mt-5
-flex
-gap-3
-">
+    }
 
 
-<button
-className="
-rounded-xl
-bg-neutral-800
-px-4
-py-2
-hover:bg-neutral-700
-"
->
+  }
 
-Open
 
-</button>
 
 
-<button
-className="
-rounded-xl
-bg-amber-500
-px-4
-py-2
-text-black
-font-bold
-"
->
 
-AI Assist
 
-</button>
 
+  function updateField(
+    field,
+    value,
+  ) {
 
-</div>
+    setForm(
 
+      previous => ({
 
-</article>
+        ...previous,
 
-)
+        [field]:
+          value,
+
+      })
+
+    )
+
+  }
+
+
+
+
+
+
+
+  return (
+
+    <div
+      className="
+        space-y-8
+      "
+    >
+
+
+      <section
+        className="
+          flex
+          items-start
+          justify-between
+        "
+      >
+
+        <div>
+
+          <h1 className="page-title">
+            Asiakkaat
+          </h1>
+
+
+          <p className="page-description">
+            Asiakkuuksien hallinta Wood-Booster OS:ssa.
+          </p>
+
+
+        </div>
+
+
+
+        <button
+
+          className="wb-button"
+
+          onClick={() =>
+            setShowForm(
+              !showForm,
+            )
+          }
+
+        >
+
+          + Uusi asiakas
+
+        </button>
+
+
+      </section>
+
+
+
+
+
+
+
+      {
+        showForm && (
+
+          <section
+            className="
+              panel
+              max-w-2xl
+              space-y-4
+            "
+          >
+
+            <h2 className="text-lg font-semibold">
+              Luo asiakas
+            </h2>
+
+
+
+            <input
+              className="wb-input"
+              placeholder="Nimi"
+              value={form.name}
+              onChange={
+                e =>
+                  updateField(
+                    "name",
+                    e.target.value,
+                  )
+              }
+            />
+
+
+
+            <input
+              className="wb-input"
+              placeholder="Yritys"
+              value={form.company}
+              onChange={
+                e =>
+                  updateField(
+                    "company",
+                    e.target.value,
+                  )
+              }
+            />
+
+
+
+            <input
+              className="wb-input"
+              placeholder="Sähköposti"
+              value={form.email}
+              onChange={
+                e =>
+                  updateField(
+                    "email",
+                    e.target.value,
+                  )
+              }
+            />
+
+
+
+            <input
+              className="wb-input"
+              placeholder="Puhelin"
+              value={form.phone}
+              onChange={
+                e =>
+                  updateField(
+                    "phone",
+                    e.target.value,
+                  )
+              }
+            />
+
+
+
+            <textarea
+              className="wb-input"
+              placeholder="Muistiinpanot"
+              rows="4"
+              value={form.notes}
+              onChange={
+                e =>
+                  updateField(
+                    "notes",
+                    e.target.value,
+                  )
+              }
+            />
+
+
+
+            <button
+
+              className="wb-button"
+
+              onClick={
+                createCustomer
+              }
+
+            >
+
+              Tallenna
+
+            </button>
+
+
+          </section>
+
+        )
+
+      }
+
+
+
+
+
+
+
+      {
+        error && (
+
+          <div
+            className="
+              panel
+              text-red-400
+            "
+          >
+
+            {error}
+
+          </div>
+
+        )
+
+      }
+
+
+
+
+
+
+
+      <section>
+
+        <h2
+          className="
+            mb-4
+            text-lg
+            font-semibold
+          "
+        >
+
+          Asiakasrekisteri
+
+        </h2>
+
+
+
+
+
+
+        {
+          loading
+
+          ?
+
+          (
+
+            <div className="panel">
+
+              Ladataan asiakkaita...
+
+            </div>
+
+          )
+
+
+          :
+
+          customers.length === 0
+
+          ?
+
+          (
+
+            <div className="panel">
+
+              Ei vielä asiakkaita.
+
+            </div>
+
+          )
+
+
+          :
+
+          (
+
+            <div
+              className="
+                grid
+                grid-cols-1
+                lg:grid-cols-2
+                gap-5
+              "
+            >
+
+              {
+                customers.map(
+
+                  customer => (
+
+                    <div
+
+                      key={
+                        customer.id
+                      }
+
+                      className="card"
+
+                    >
+
+                      <h3
+                        className="
+                          text-lg
+                          font-semibold
+                        "
+                      >
+
+                        {customer.name}
+
+                      </h3>
+
+
+
+
+                      {
+                        customer.company && (
+
+                          <div className="mt-4">
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              YRITYS
+                            </p>
+
+                            <p className="mt-1">
+                              {customer.company}
+                            </p>
+
+                          </div>
+
+                        )
+                      }
+
+
+
+
+
+                      {
+                        customer.email && (
+
+                          <div className="mt-4">
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              SÄHKÖPOSTI
+                            </p>
+
+                            <p className="mt-1">
+                              {customer.email}
+                            </p>
+
+                          </div>
+
+                        )
+                      }
+
+
+
+
+
+                      {
+                        customer.phone && (
+
+                          <div className="mt-4">
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              PUHELIN
+                            </p>
+
+                            <p className="mt-1">
+                              {customer.phone}
+                            </p>
+
+                          </div>
+
+                        )
+                      }
+
+
+
+
+
+                      {
+                        customer.notes && (
+
+                          <div className="mt-4">
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              MUISTIINPANOT
+                            </p>
+
+                            <p className="mt-1 text-sm">
+                              {customer.notes}
+                            </p>
+
+                          </div>
+
+                        )
+                      }
+
+
+
+                    </div>
+
+                  )
+
+                )
+
+              }
+
+
+            </div>
+
+          )
+
+        }
+
+
+      </section>
+
+
+    </div>
+
+  )
 
 }
 

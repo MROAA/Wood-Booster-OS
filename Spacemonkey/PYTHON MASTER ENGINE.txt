@@ -1,0 +1,493 @@
+GODFILE:
+
+  id: PYTHON_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Python-ohjelmointikielen,
+    sovelluskehityksen ja Python-pohjaisten
+    järjestelmien osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Pythonia käytetään selkeiden,
+    ylläpidettävien ja tehokkaiden
+    ratkaisujen rakentamiseen.
+
+
+
+PYTHON_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_python_language
+    - build_applications
+    - automate_tasks
+    - develop_AI_systems
+    - create_backend_services
+
+
+
+
+
+PYTHON_FOUNDATIONS:
+
+
+  syntax:
+
+
+    learn:
+
+
+      - variables
+      - data_types
+      - operators
+      - conditions
+      - loops
+      - functions
+
+
+
+
+
+  code_style:
+
+
+    follow:
+
+
+      - PEP8
+      - readable_code
+      - meaningful_names
+      - clean_structure
+
+
+
+
+
+PYTHON_DATA_TYPES:
+
+
+  master:
+
+
+    - strings
+    - integers
+    - floats
+    - booleans
+    - lists
+    - tuples
+    - dictionaries
+    - sets
+
+
+
+
+
+FUNCTIONS:
+
+
+  understand:
+
+
+    - parameters
+    - return_values
+    - scope
+    - decorators
+    - generators
+
+
+
+
+
+OBJECT_ORIENTED_PYTHON:
+
+
+  concepts:
+
+
+    - classes
+    - objects
+    - inheritance
+    - encapsulation
+    - polymorphism
+
+
+
+
+
+ERROR_HANDLING:
+
+
+  learn:
+
+
+    - exceptions
+    - try_except
+    - custom_errors
+    - debugging
+
+
+
+
+
+FILES_AND_DATA:
+
+
+  handle:
+
+
+    - text_files
+    - JSON
+    - CSV
+    - configuration_files
+
+
+
+
+
+PYTHON_MODULES:
+
+
+  understand:
+
+
+    - imports
+    - packages
+    - virtual_environments
+    - dependency_management
+
+
+
+
+
+ENVIRONMENT_MANAGEMENT:
+
+
+  tools:
+
+
+    - venv
+    - uv
+    - pip
+    - requirements_files
+
+
+
+
+
+AUTOMATION:
+
+
+  skills:
+
+
+    - file_automation
+    - system_scripts
+    - task_automation
+    - workflow_tools
+
+
+
+
+
+WEB_DEVELOPMENT:
+
+
+  frameworks:
+
+
+    learn:
+
+
+      - FastAPI
+      - Flask
+      - Django
+
+
+
+
+
+BACKEND_DEVELOPMENT:
+
+
+  concepts:
+
+
+    - REST_APIs
+    - authentication
+    - databases
+    - services
+    - middleware
+
+
+
+
+
+DATABASE_PROGRAMMING:
+
+
+  learn:
+
+
+    - SQL
+    - ORM
+    - migrations
+    - data_models
+
+
+
+
+
+AI_DEVELOPMENT:
+
+
+  Python_usage:
+
+
+    support:
+
+
+      - machine_learning
+      - neural_networks
+      - LLM_tools
+      - embeddings
+      - RAG_systems
+
+
+
+
+
+AI_LIBRARIES:
+
+
+  understand:
+
+
+    - PyTorch
+    - TensorFlow
+    - NumPy
+    - Pandas
+    - Scikit_Learn
+
+
+
+
+
+DATA_PROCESSING:
+
+
+  skills:
+
+
+    - data_cleaning
+    - analysis
+    - transformation
+    - visualization
+
+
+
+
+
+SCRIPT_SECURITY:
+
+
+  rules:
+
+
+    always:
+
+
+      - validate_input
+      - handle_errors
+      - protect_credentials
+
+
+
+
+
+  never:
+
+
+    - hardcode_secrets
+    - execute_unknown_code
+    - ignore_errors
+
+
+
+
+
+TESTING:
+
+
+  learn:
+
+
+    - pytest
+    - unit_tests
+    - integration_tests
+
+
+
+
+
+DEBUGGING:
+
+
+  methods:
+
+
+    - read_tracebacks
+    - isolate_errors
+    - test_solutions
+    - improve_code
+
+
+
+
+
+ADVANCED_PYTHON:
+
+
+  topics:
+
+
+    - async_programming
+    - multiprocessing
+    - threading
+    - performance_optimization
+
+
+
+
+
+PYTHON_PROJECT_STRUCTURE:
+
+
+  organize:
+
+
+    - modules
+    - packages
+    - configuration
+    - tests
+    - documentation
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  apply_python_to:
+
+
+    - AI_Brain
+    - automation
+    - backend_services
+    - data_processing
+    - development_tools
+
+
+
+
+
+SPACEMONKEY_CODING_STYLE:
+
+
+  always:
+
+
+    - explain_code
+    - create_complete_solutions
+    - prioritize_clarity
+    - test_before_release
+
+
+
+
+
+  never:
+
+
+    - create_unmaintainable_code
+    - overcomplicate_simple_tasks
+    - hide_logic
+
+
+
+
+
+LEARNING_PATH:
+
+
+  levels:
+
+
+    beginner:
+
+
+      learn:
+
+
+        - syntax
+        - basic_programming
+        - scripts
+
+
+
+
+
+    intermediate:
+
+
+      learn:
+
+
+        - applications
+        - APIs
+        - databases
+
+
+
+
+
+    advanced:
+
+
+      learn:
+
+
+        - AI_systems
+        - architecture
+        - optimization
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

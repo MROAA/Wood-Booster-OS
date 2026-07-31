@@ -2,149 +2,116 @@ const consolidationHistory = []
 
 
 
-function normalizeText(text){
 
-  return String(text || "")
+
+function normalizeText(
+  content = ""
+){
+
+  return String(content)
 
     .toLowerCase()
 
-}
+    .replace(
+      /\s+/g,
+      " "
+    )
 
-
-
-function detectCategory(content){
-
-  const text =
-    normalizeText(content)
-
-
-
-  if(
-    text.includes("suomen") ||
-    text.includes("kieli") ||
-    text.includes("suomeksi")
-  ){
-
-    return "language"
-
-  }
-
-
-
-  if(
-    text.includes("selkeä") ||
-    text.includes("selkeät") ||
-    text.includes("vaihe")
-  ){
-
-    return "communication"
-
-  }
-
-
-
-  if(
-    text.includes("muista") ||
-    text.includes("haluan")
-  ){
-
-    return "user_preference"
-
-  }
-
-
-
-  return "general"
+    .trim()
 
 }
 
 
 
-function consolidateMemories({
+
+
+
+
+function mergeMemories({
 
   memories = []
 
-}) {
+} = {}) {
 
 
-  const groups = {}
-
-
-
-  for(
-    const memory
-    of memories
+  if(
+    memories.length === 0
   ){
 
+    return {
 
-    const category =
+      merged:false,
 
-      detectCategory(
-        memory.content
-      )
-
-
-
-    if(
-      !groups[category]
-    ){
-
-      groups[category] = []
+      reason:
+        "No memories."
 
     }
-
-
-
-    groups[category].push(
-
-      memory
-
-    )
 
   }
 
 
 
-  const consolidated =
+
+
+  const contents =
+
+    memories.map(
+
+      memory =>
+
+        normalizeText(
+          memory.content
+        )
+
+    )
 
 
 
-    Object.entries(groups)
+
+
+
+
+  const mergedContent =
+
+    memories
 
       .map(
 
-        ([category, items]) => ({
+        memory =>
 
-          category,
-
-
-          count:
-            items.length,
-
-
-          memories:
-            items,
-
-
-          summary:
-
-            createSummary(
-              category,
-              items
-            )
-
-        })
+          memory.content
 
       )
+
+      .join(" ")
+
+
+
+
 
 
 
   const result = {
 
 
-    groups:
+    merged:true,
 
-      consolidated,
+
+    sourceCount:
+
+      memories.length,
+
+
+    original:
+
+      contents,
+
+
+
+    content:
+
+      mergedContent,
+
 
 
     createdAt:
@@ -152,6 +119,8 @@ function consolidateMemories({
       new Date().toISOString()
 
   }
+
+
 
 
 
@@ -163,54 +132,101 @@ function consolidateMemories({
 
 
 
+
+
   return result
 
 }
 
 
 
-function createSummary(
-
-  category,
-
-  memories
-
-){
 
 
-  if(
-    category === "language"
+
+
+function findConsolidationCandidates({
+
+  memories = [],
+
+  threshold = 0.8
+
+} = {}) {
+
+
+  const groups = []
+
+
+
+
+
+  for(
+    let i = 0;
+    i < memories.length;
+    i++
   ){
 
-    return "Käyttäjä haluaa vastaukset suomen kielellä."
+    const current =
+
+      memories[i]
+
+
+
+    const matches =
+
+      memories.filter(
+
+        memory =>
+
+          memory.id !== current.id &&
+
+          normalizeText(
+            memory.content
+          )
+
+          .includes(
+
+            normalizeText(
+              current.content
+            )
+
+          )
+
+      )
+
+
+
+    if(
+      matches.length
+    ){
+
+      groups.push({
+
+        primary:
+
+          current,
+
+
+        duplicates:
+
+          matches
+
+      })
+
+    }
 
   }
 
 
 
-  if(
-    category === "communication"
-  ){
-
-    return "Käyttäjä haluaa selkeät ja vaiheittaiset vastaukset."
-
-  }
 
 
-
-  if(
-    category === "user_preference"
-  ){
-
-    return "Käyttäjän henkilökohtainen toimintatapa."
-
-  }
-
-
-
-  return "Yleinen käyttäjätieto."
+  return groups
 
 }
+
+
+
+
 
 
 
@@ -218,13 +234,19 @@ function getMemoryConsolidationStatus(){
 
   return {
 
+
     engine:
-      "Spacemonkey Memory Consolidation Engine",
+
+      "Spacemonkey Memory Consolidation",
+
 
     version:
-      "0.1.0",
+
+      "1.0.0",
+
 
     consolidations:
+
       consolidationHistory.length
 
   }
@@ -233,11 +255,15 @@ function getMemoryConsolidationStatus(){
 
 
 
+
+
+
+
 export {
 
-  consolidateMemories,
+  mergeMemories,
 
-  detectCategory,
+  findConsolidationCandidates,
 
   getMemoryConsolidationStatus
 

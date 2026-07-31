@@ -1,34 +1,56 @@
+/*
+=====================================
+
+SPACEMONKEY MEMORY INTELLIGENCE V2
+
+Vastuut:
+
+- arvioi muistiehdotusten tärkeyttä
+- erottaa käskyt kysymyksistä
+- estää keskustelun tallentamisen muistiksi
+
+=====================================
+*/
+
+
+import {
+  shouldBlockMemoryProposal,
+} from "../../../spacemonkey/spacemonkeyMemoryPolicyGuard.js"
+
+
+
+
+
 const memoryRules = {
 
 
-  saveKeywords:
+  savePatterns:
 
   [
 
     "muista",
 
-    "haluan",
-
-    "aina",
-
-    "käytä",
-
     "pidä mielessä",
 
-    "preferenssi",
+    "haluan aina",
+
+    "käytä aina",
+
+    "jatkossa haluan",
 
     "asetus"
 
   ],
 
 
-  ignorePatterns:
+
+  questionPatterns:
 
   [
 
-    "mikä",
-
     "mitä",
+
+    "mikä",
 
     "milloin",
 
@@ -36,7 +58,9 @@ const memoryRules = {
 
     "kuka",
 
-    "kuinka"
+    "kuinka",
+
+    "muistatko"
 
   ]
 
@@ -44,9 +68,17 @@ const memoryRules = {
 
 
 
+
+
+
+
 function evaluateMemoryImportance({
 
-  content
+  content,
+
+  key,
+
+  category,
 
 }) {
 
@@ -57,31 +89,120 @@ function evaluateMemoryImportance({
 
       .toLowerCase()
 
+      .trim()
+
+
+
+
+
+  const policyBlocked =
+
+    shouldBlockMemoryProposal({
+
+      key,
+
+      category,
+
+    })
+
+
+
+
+
+  if(
+    policyBlocked
+  ){
+
+    return {
+
+      shouldSave:false,
+
+      importance:"blocked",
+
+      score:0,
+
+      reasons:[
+        "Memory Policy Guard esti muistiehdotuksen."
+      ]
+
+    }
+
+  }
+
+
+
+
+
 
 
   let score = 0
-
-
 
   const reasons = []
 
 
 
+
+
+
+
+  const isQuestion =
+
+    memoryRules.questionPatterns.some(
+
+      pattern =>
+
+        text.startsWith(pattern)
+
+    )
+
+
+
+
+
+
+
+  if(
+    isQuestion
+  ){
+
+    return {
+
+      shouldSave:false,
+
+      importance:"low",
+
+      score:0,
+
+      reasons:[
+
+        "Sisältö on kysymys eikä pysyvä muistiehdotus."
+
+      ]
+
+    }
+
+  }
+
+
+
+
+
+
+
   for(
-    const keyword
-    of memoryRules.saveKeywords
+    const pattern
+    of memoryRules.savePatterns
   ){
 
     if(
-      text.includes(keyword)
+      text.includes(pattern)
     ){
 
-      score += 2
-
+      score += 3
 
       reasons.push(
 
-        `Sisältää muistamiseen viittaavan sanan: ${keyword}`
+        `Sisältää muistiasetuksen: ${pattern}`
 
       )
 
@@ -91,26 +212,17 @@ function evaluateMemoryImportance({
 
 
 
-  for(
-    const pattern
-    of memoryRules.ignorePatterns
-  ){
 
-    if(
-      text.startsWith(pattern)
-    ){
-
-      score -= 2
-
-    }
-
-  }
 
 
 
   const shouldSave =
 
-    score >= 2
+    score >= 3
+
+
+
+
 
 
 
@@ -120,8 +232,10 @@ function evaluateMemoryImportance({
 
 
 
+
+
   if(
-    score >= 5
+    score >= 6
   ){
 
     importance =
@@ -137,6 +251,10 @@ function evaluateMemoryImportance({
       "medium"
 
   }
+
+
+
+
 
 
 
@@ -156,29 +274,44 @@ function evaluateMemoryImportance({
 
 
     evaluatedAt:
-      new Date().toISOString()
+
+      new Date()
+        .toISOString()
+
 
   }
 
 }
+
+
+
+
 
 
 
 function getMemoryIntelligenceStatus(){
 
-
   return {
 
     engine:
+
       "Spacemonkey Memory Intelligence",
 
-
     version:
-      "0.1.0"
+
+      "2.0.0",
+
+    policyGuard:
+
+      true
 
   }
 
 }
+
+
+
+
 
 
 

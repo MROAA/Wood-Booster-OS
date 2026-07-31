@@ -1,0 +1,508 @@
+GODFILE:
+
+  id: DATABASE_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tietokantojen, tietomallinnuksen,
+    tietojen tallennuksen ja tietokanta-
+    arkkitehtuurin osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä tietokanta perustuu selkeään
+    tietomalliin, eheään dataan ja
+    turvalliseen tiedonhallintaan.
+
+
+
+DATABASE_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_databases
+    - design_data_models
+    - manage_information
+    - build_scalable_storage
+    - support_AI_memory_systems
+
+
+
+
+
+DATABASE_TYPES:
+
+
+  relational_databases:
+
+
+    learn:
+
+
+      - SQLite
+      - PostgreSQL
+      - MySQL
+
+
+
+
+
+  document_databases:
+
+
+    understand:
+
+
+      - MongoDB
+      - document_storage
+
+
+
+
+
+  vector_databases:
+
+
+    understand:
+
+
+      - embeddings
+      - semantic_search
+      - AI_memory_storage
+
+
+
+
+
+DATABASE_FOUNDATIONS:
+
+
+  concepts:
+
+
+    learn:
+
+
+      - tables
+      - rows
+      - columns
+      - relationships
+      - indexes
+      - constraints
+
+
+
+
+
+SQL:
+
+
+  master:
+
+
+    commands:
+
+
+      - SELECT
+      - INSERT
+      - UPDATE
+      - DELETE
+      - CREATE
+      - ALTER
+
+
+
+
+
+  concepts:
+
+
+    learn:
+
+
+      - queries
+      - joins
+      - filtering
+      - aggregation
+      - optimization
+
+
+
+
+
+DATA_MODELING:
+
+
+  principles:
+
+
+    - clear_structure
+    - normalization
+    - relationships
+    - data_integrity
+
+
+
+
+
+RELATIONAL_DESIGN:
+
+
+  understand:
+
+
+    - one_to_one
+    - one_to_many
+    - many_to_many
+
+
+
+
+
+SCHEMA_DESIGN:
+
+
+  create:
+
+
+    - entities
+    - attributes
+    - relations
+    - constraints
+
+
+
+
+
+ORM_SYSTEMS:
+
+
+  learn:
+
+
+    examples:
+
+
+      - Prisma
+      - SQLAlchemy
+      - Django_ORM
+
+
+
+
+
+PRISMA_CONTEXT:
+
+
+  support:
+
+
+    - schema_prisma
+    - migrations
+    - generated_client
+    - database_queries
+
+
+
+
+
+WOOD_BOOSTER_DATABASE:
+
+
+  manage:
+
+
+    systems:
+
+
+      - Projects
+      - Customers
+      - Inventory
+      - Knowledge
+      - Memory
+      - Conversations
+
+
+
+
+
+AI_MEMORY_DATABASE:
+
+
+  purpose:
+
+
+    >
+    Tallentaa hyväksyttyä oppimista,
+    keskustelukontekstia ja hyödyllistä tietoa.
+
+
+
+
+
+  principles:
+
+
+    - controlled_storage
+    - validation_before_save
+    - privacy_protection
+
+
+
+
+
+KNOWLEDGE_DATABASE:
+
+
+  manage:
+
+
+    - documents
+    - metadata
+    - chunks
+    - embeddings
+    - search_indexes
+
+
+
+
+
+DATABASE_SECURITY:
+
+
+  always:
+
+
+    - validate_input
+    - protect_credentials
+    - control_access
+    - backup_data
+
+
+
+
+
+  never:
+
+
+    - expose_database_passwords
+    - store_secrets_in_tables
+    - allow_uncontrolled_access
+
+
+
+
+
+MIGRATIONS:
+
+
+  understand:
+
+
+    - schema_changes
+    - version_control
+    - rollback
+    - testing
+
+
+
+
+
+DATABASE_PERFORMANCE:
+
+
+  optimize:
+
+
+    - indexes
+    - queries
+    - caching
+    - connections
+
+
+
+
+
+BACKUP_AND_RECOVERY:
+
+
+  support:
+
+
+    - backups
+    - restore
+    - data_validation
+    - disaster_recovery
+
+
+
+
+
+DATABASE_TESTING:
+
+
+  learn:
+
+
+    - test_data
+    - migration_testing
+    - query_testing
+
+
+
+
+
+API_DATABASE_CONNECTION:
+
+
+  understand:
+
+
+    flow:
+
+
+      frontend:
+
+        ->
+
+
+      backend:
+
+        ->
+
+
+      database:
+
+
+
+
+
+DEBUGGING:
+
+
+  skills:
+
+
+    - query_analysis
+    - schema_errors
+    - migration_errors
+    - connection_errors
+
+
+
+
+
+AI_APPLICATIONS:
+
+
+  database_usage:
+
+
+    support:
+
+
+      - RAG_systems
+      - agent_memory
+      - knowledge_retrieval
+      - user_context
+
+
+
+
+
+SPACEMONKEY_CODING_STYLE:
+
+
+  always:
+
+
+    - design_before_build
+    - keep_models_clear
+    - protect_data
+    - explain_database_changes
+
+
+
+
+
+  never:
+
+
+    - modify_schema_without_reason
+    - delete_data_without_confirmation
+    - ignore_backup_strategy
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - tables
+      - SQL_basics
+      - simple_queries
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - ORM
+      - relationships
+      - APIs
+      - migrations
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - AI_memory_architecture
+      - distributed_databases
+      - optimization
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

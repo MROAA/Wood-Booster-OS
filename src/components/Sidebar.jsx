@@ -1,252 +1,232 @@
-import { NavLink } from "react-router-dom"
+import {
+  NavLink,
+} from "react-router-dom"
 
-
-const links = [
+const groups = [
 
   {
-    name:"Dashboard",
-    path:"/",
-    icon:"🏠",
+    title: "WORKSPACE",
+    links: [
+      { name: "AI Workspace", path: "/" },
+      { name: "Dashboard", path: "/dashboard" },
+      { name: "System", path: "/system" },
+    ],
   },
 
   {
-    name:"AI Brain",
-    path:"/brain",
-    icon:"🧠",
+    title: "BUILD",
+    links: [
+      { name: "Projects", path: "/projects" },
+      { name: "Asiakkaat", path: "/customers" },
+      { name: "Knowledge", path: "/knowledge" },
+      { name: "Memory", path: "/memory" },
+    ],
   },
 
   {
-    name:"Projects",
-    path:"/projects",
-    icon:"📦",
-  },
-
-  {
-    name:"Asiakkaat",
-    path:"/customers",
-    icon:"👥",
-  },
-
-  {
-    name:"Knowledge",
-    path:"/knowledge",
-    icon:"📚",
-  },
-
-  {
-    name:"Memory",
-    path:"/memory",
-    icon:"🧠",
-  },
-
-  {
-    name:"Settings",
-    path:"/settings",
-    icon:"⚙️",
+    title: "SYSTEM",
+    links: [
+      { name: "Capabilities", path: "/capabilities" },
+      { name: "Execution", path: "/execution" },
+      { name: "Tools", path: "/tools" },
+      { name: "Spacemonkey", path: "/spacemonkey" },
+      { name: "Settings", path: "/settings" },
+    ],
   },
 
 ]
 
-
-
-function Sidebar(){
-
-
-return (
-
-<aside className="
-flex
-min-h-screen
-w-72
-shrink-0
-flex-col
-border-r
-border-neutral-800
-bg-neutral-950
-p-6
-">
-
-
-<div>
-
-
-<p className="
-text-xs
-uppercase
-tracking-[0.35em]
-text-amber-500
-">
-
-AI Workstation
-
-</p>
-
-
-
-<h1 className="
-mt-3
-text-2xl
-font-bold
-">
-
-🪵 Wood-Booster
-
-</h1>
-
-
-
-<p className="
-mt-2
-text-sm
-text-neutral-500
-">
-
-Me jatkamme puun tarinaa.
-
-</p>
-
-
-</div>
-
-
-
-
-<nav className="
-mt-10
-space-y-2
-">
-
-
-{
-links.map((link)=>(
-
-<NavLink
-
-key={link.path}
-
-to={link.path}
-
-end={
-link.path === "/"
-}
-
-className={({isActive})=>
-
-`
-flex
-items-center
-gap-3
-rounded-xl
-px-4
-py-3
-text-sm
-font-medium
-transition
-
-${
-isActive
-
-?
-
-"bg-amber-500 text-neutral-950"
-
-:
-
-"text-neutral-400 hover:bg-neutral-900 hover:text-white"
-
-}
-`
-
-}
-
->
-
-
-<span className="text-lg">
-
-{link.icon}
-
-</span>
-
-
-<span>
-
-{link.name}
-
-</span>
-
-
-</NavLink>
-
-))
-
-}
-
-
-</nav>
-
-
-
-
-<div className="
-mt-auto
-rounded-xl
-border
-border-neutral-800
-bg-neutral-900
-p-4
-">
-
-
-<p className="
-text-xs
-uppercase
-tracking-wider
-text-neutral-500
-">
-
-System status
-
-</p>
-
-
-<div className="
-mt-3
-flex
-items-center
-gap-2
-text-sm
-">
-
-
-<span className="
-h-2
-w-2
-rounded-full
-bg-green-500
-"/>
-
-
-<span className="
-text-neutral-300
-">
-
-Workstation online
-
-</span>
-
-
-</div>
-
-
-</div>
-
-
-</aside>
-
-)
+function Sidebar() {
+
+  return (
+
+    <aside
+      className="
+        flex
+        h-full
+        w-64
+        flex-col
+        p-6
+        overflow-y-auto
+      "
+      style={{
+        background: "var(--wood-panel)",
+      }}
+    >
+
+      <header>
+
+        <h1
+          className="
+            spacemonkey-title
+            text-3xl
+            leading-tight
+          "
+          style={{
+            color: "var(--wood-accent)",
+          }}
+        >
+          Wood-Booster
+        </h1>
+
+        <p
+          className="
+            mt-3
+            text-xs
+            uppercase
+            tracking-[0.35em]
+          "
+          style={{
+            color: "var(--wood-muted)",
+          }}
+        >
+          AI WORKSTATION
+        </p>
+
+      </header>
+
+      <nav
+        className="
+          mt-10
+          flex-1
+          space-y-6
+        "
+      >
+
+        {
+          groups.map(
+            group => (
+
+              <div key={group.title}>
+
+                <p
+                  className="
+                    px-4
+                    mb-2
+                    text-[11px]
+                    font-semibold
+                    uppercase
+                    tracking-widest
+                  "
+                  style={{
+                    color: "var(--wood-muted)",
+                  }}
+                >
+                  {group.title}
+                </p>
+
+                <div className="space-y-1">
+
+                  {
+                    group.links.map(
+                      link => (
+
+                        <NavLink
+                          key={link.path}
+                          to={link.path}
+                          end={link.path === "/"}
+                          className="
+                            block
+                            rounded-xl
+                            px-4
+                            py-3
+                            text-sm
+                            font-medium
+                            transition
+                          "
+                          style={
+                            ({ isActive }) => ({
+                              background: isActive
+                                ? "var(--wood-border)"
+                                : "transparent",
+                              color: isActive
+                                ? "var(--wood-accent)"
+                                : "var(--wood-muted)",
+                            })
+                          }
+                        >
+                          {link.name}
+                        </NavLink>
+
+                      )
+                    )
+                  }
+
+                </div>
+
+              </div>
+
+            )
+          )
+        }
+
+      </nav>
+
+      <div
+        className="
+          mt-6
+          rounded-xl
+          p-4
+        "
+        style={{
+          background: "var(--wood-panel-dark)",
+          border: "1px solid var(--wood-border)",
+        }}
+      >
+
+        <p
+          className="
+            text-xs
+            uppercase
+            tracking-widest
+          "
+          style={{
+            color: "var(--wood-muted)",
+          }}
+        >
+          System Status
+        </p>
+
+        <div
+          className="
+            mt-3
+            flex
+            items-center
+            gap-3
+          "
+        >
+
+          <span
+            className="
+              h-2
+              w-2
+              rounded-full
+            "
+            style={{
+              background: "var(--wood-green)",
+            }}
+          />
+
+          <span
+            className="
+              text-sm
+              font-medium
+            "
+            style={{
+              color: "var(--wood-text)",
+            }}
+          >
+            Online
+          </span>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+  )
 
 }
-
 
 export default Sidebar

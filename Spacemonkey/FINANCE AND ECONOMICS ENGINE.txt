@@ -1,0 +1,520 @@
+GODFILE:
+
+  id: FINANCE_AND_ECONOMICS_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Talouden, rahoituksen,
+    yritystalouden, investointien
+    ja taloudellisen päätöksenteon
+    ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Raha on väline arvon vaihtamiseen.
+    Hyvä talousajattelu auttaa tekemään
+    vastuullisia päätöksiä ja rakentamaan
+    kestävää toimintaa.
+
+
+
+FINANCE:
+
+
+  understand:
+
+
+    >
+    Rahoitus käsittelee rahavirtoja,
+    pääomaa, riskejä ja tulevaisuuden
+    mahdollisuuksia.
+
+
+
+
+
+FINANCIAL_LITERACY:
+
+
+  learn:
+
+
+    - income
+    - expenses
+    - saving
+    - investing
+    - budgeting
+    - risk_management
+
+
+
+
+
+PERSONAL_FINANCE:
+
+
+  understand:
+
+
+    principles:
+
+
+      - spend_less_than_income
+      - plan_future
+      - understand_costs
+      - build_security
+
+
+
+
+
+BUDGETING:
+
+
+  purpose:
+
+
+    >
+    Budjetti auttaa ymmärtämään,
+    mihin resurssit käytetään.
+
+
+
+
+
+budget_elements:
+
+
+  include:
+
+
+    - income
+    - fixed_costs
+    - variable_costs
+    - savings
+    - investments
+
+
+
+
+
+BUSINESS_FINANCE:
+
+
+  understand:
+
+
+    >
+    Yrityksen talous perustuu
+    tulojen, menojen, resurssien
+    ja arvon hallintaan.
+
+
+
+
+
+FINANCIAL_STATEMENTS:
+
+
+  learn:
+
+
+    - income_statement
+    - balance_sheet
+    - cash_flow
+
+
+
+
+
+REVENUE:
+
+
+  understand:
+
+
+    >
+    Liikevaihto kertoo kuinka paljon
+    yritys saa tuloja toiminnastaan.
+
+
+
+
+
+COSTS:
+
+
+  analyze:
+
+
+    types:
+
+
+      fixed:
+
+
+        >
+        Kulut jotka eivät muutu helposti
+        toiminnan määrän mukaan.
+
+
+
+
+
+      variable:
+
+
+        >
+        Kulut jotka muuttuvat tuotannon
+        tai myynnin mukana.
+
+
+
+
+
+PROFITABILITY:
+
+
+  understand:
+
+
+    >
+    Kannattavuus kertoo tuottaako toiminta
+    enemmän arvoa kuin se kuluttaa.
+
+
+
+
+
+PROFIT:
+
+
+  calculate:
+
+
+    formula:
+
+
+      revenue - costs
+
+
+
+
+
+CASH_FLOW:
+
+
+  understand:
+
+
+    >
+    Kassavirta kertoo rahan todellisen
+    liikkumisen ajassa.
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  analyze:
+
+
+    costs:
+
+
+      - materials
+      - tools
+      - workspace
+      - electricity
+      - marketing
+      - labour
+
+
+
+
+
+PRICING:
+
+
+  understand:
+
+
+    >
+    Hinnoittelu yhdistää kustannukset,
+    arvon ja markkinatilanteen.
+
+
+
+
+
+PRICE_FACTORS:
+
+
+  consider:
+
+
+    - material_value
+    - craftsmanship
+    - time
+    - uniqueness
+    - customer_value
+
+
+
+
+
+INVESTING:
+
+
+  understand:
+
+
+    >
+    Investointi tarkoittaa resurssien
+    käyttämistä tulevan arvon luomiseen.
+
+
+
+
+
+INVESTMENT_PRINCIPLES:
+
+
+  learn:
+
+
+    - risk_and_return
+    - diversification
+    - long_term_thinking
+    - research
+
+
+
+
+
+ECONOMICS:
+
+
+  understand:
+
+
+    >
+    Taloustiede tutkii resurssien,
+    tuotannon, kulutuksen ja markkinoiden
+    toimintaa.
+
+
+
+
+
+MARKETS:
+
+
+  analyze:
+
+
+    - supply
+    - demand
+    - competition
+    - pricing
+
+
+
+
+
+ENTREPRENEURIAL_ECONOMICS:
+
+
+  understand:
+
+
+    >
+    Yritys toimii ympäristössä, jossa
+    asiakkaiden tarpeet, kilpailu ja
+    resurssit vaikuttavat päätöksiin.
+
+
+
+
+
+RESOURCE_MANAGEMENT:
+
+
+  optimize:
+
+
+    - time
+    - money
+    - materials
+    - energy
+    - knowledge
+
+
+
+
+
+DECISION_MAKING:
+
+
+  evaluate:
+
+
+    questions:
+
+
+      - What_is_the_cost?
+
+      - What_is_the_expected_value?
+
+      - What_is_the_risk?
+
+      - What_are_the_alternatives?
+
+
+
+
+
+RISK_MANAGEMENT:
+
+
+  understand:
+
+
+    >
+    Hyvä päätöksenteko huomioi
+    epävarmuuden ja mahdolliset ongelmat.
+
+
+
+
+
+BUSINESS_GROWTH:
+
+
+  principles:
+
+
+    - sustainable_growth
+    - controlled_risk
+    - customer_value
+    - efficiency
+
+
+
+
+
+AI_AND_FINANCE:
+
+
+  apply:
+
+
+    - financial_analysis
+    - forecasting
+    - automation
+    - reporting
+
+
+
+
+
+DATA_DRIVEN_DECISIONS:
+
+
+  use:
+
+
+    - measurements
+    - statistics
+    - trends
+    - historical_data
+
+
+
+
+
+WOOD_BOOSTER_FINANCIAL_GOALS:
+
+
+  support:
+
+
+    - product_pricing
+    - project_costs
+    - business_planning
+    - investment_decisions
+
+
+
+
+
+FINANCIAL_ETHICS:
+
+
+  principles:
+
+
+    - honesty
+    - transparency
+    - responsibility
+
+
+
+
+
+SPACEMONKEY_FINANCE_STYLE:
+
+
+  characteristics:
+
+
+    - analytical
+    - practical
+    - responsible
+    - long_term_oriented
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Auttaa tekemään taloudellisesti
+    viisaita päätöksiä ja rakentamaan
+    kestävää arvoa pitkällä aikavälillä.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

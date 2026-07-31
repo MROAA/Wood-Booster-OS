@@ -8,7 +8,6 @@ import {
 
 const PRODUCT_ALIASES = {
 
-
   "aurora":
 
     [
@@ -19,11 +18,11 @@ const PRODUCT_ALIASES = {
     ],
 
 
-
   "jokipöytä":
 
     [
       "jokipöytä",
+      "jokipöydän",
       "jokipöydät",
       "river table",
       "river-table",
@@ -31,21 +30,21 @@ const PRODUCT_ALIASES = {
     ],
 
 
-
   "epoksi":
 
     [
       "epoksi",
+      "epoksin",
       "epoxy",
       "resin"
     ],
-
 
 
   "massiivipuu":
 
     [
       "massiivipuu",
+      "massiivipuun",
       "massive wood",
       "solid wood"
     ]
@@ -56,9 +55,28 @@ const PRODUCT_ALIASES = {
 
 
 
-export async function searchKnowledge(
-  query
-) {
+
+
+function normalizeWord(word){
+
+  return String(word || "")
+
+    .toLowerCase()
+
+    .replace(
+      /[.,!?;:]/g,
+      ""
+    )
+
+}
+
+
+
+
+
+
+
+export async function searchKnowledge(query) {
 
 
   const documents =
@@ -79,17 +97,19 @@ export async function searchKnowledge(
 
 
 
+
+
   const words =
 
     text
 
       .split(/\s+/)
 
-      .map(word =>
+      .map(
 
-        word
+        word =>
 
-          .replace(/[.,!?]/g,"")
+          normalizeWord(word)
 
       )
 
@@ -119,13 +139,6 @@ export async function searchKnowledge(
 
 
 
-  /*
-  =====================================
-  PRODUCT ALIAS EXPANSION
-  =====================================
-  */
-
-
   for (
 
     const [key, aliases]
@@ -137,15 +150,17 @@ export async function searchKnowledge(
 
     const matched =
 
-      aliases.some(alias =>
+      aliases.some(
 
-        text.includes(alias)
+        alias =>
+
+          text.includes(alias)
 
       )
 
 
 
-    if (matched) {
+    if(matched){
 
 
       expandedWords.push(
@@ -164,9 +179,8 @@ export async function searchKnowledge(
 
     }
 
+
   }
-
-
 
 
 
@@ -223,13 +237,6 @@ export async function searchKnowledge(
 
 
 
-        /*
-        =====================================
-        KEYWORD MATCH
-        =====================================
-        */
-
-
         for (
 
           const word
@@ -239,31 +246,26 @@ export async function searchKnowledge(
         ) {
 
 
-
-          if (
+          if(
 
             filename.includes(word)
 
-          ) {
-
+          ){
 
             score += 15
-
 
           }
 
 
 
 
-          if (
+          if(
 
             content.includes(word)
 
-          ) {
-
+          ){
 
             score += 3
-
 
           }
 
@@ -274,15 +276,6 @@ export async function searchKnowledge(
 
 
 
-
-
-
-
-        /*
-        =====================================
-        PRODUCT PRIORITY
-        =====================================
-        */
 
 
         score +=
@@ -299,38 +292,18 @@ export async function searchKnowledge(
 
 
 
-
-
-
-
-        /*
-        =====================================
-        BRAND PRIORITY
-        =====================================
-        */
-
-
         score +=
 
-          identityPriority(
+          developmentPriority(
 
-            filename
+            filename,
+
+            questionType
 
           )
 
 
 
-
-
-
-
-
-
-        /*
-        =====================================
-        QUESTION TYPE
-        =====================================
-        */
 
 
         score +=
@@ -351,12 +324,9 @@ export async function searchKnowledge(
 
         return {
 
-
           ...document,
 
-
           score
-
 
         }
 
@@ -412,112 +382,44 @@ export async function searchKnowledge(
 
 
 
-function productPriority(
-
-  filename,
-
-  query
-
-) {
+function detectQuestionType(query){
 
 
-  let score = 0
+  if(
 
-
-
-
-
-  if (
-
-    query.includes("aurora")
-
-  ) {
-
-
-    if (
-
-      filename.includes("aurora")
-
-    ) {
-
-
-      score += 200
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  if (
-
-    query.includes("jokipöytä")
+    query.includes("koodi")
 
     ||
 
-    query.includes("river")
+    query.includes("code")
 
-  ) {
+    ||
 
+    query.includes("javascript")
 
-    if (
+    ||
 
-      filename.includes("river")
+    query.includes("react")
 
-      ||
+    ||
 
-      filename.includes("joki")
+    query.includes("frontend")
 
-      ||
+    ||
 
-      filename.includes("aurora")
+    query.includes("backend")
 
-    ) {
+    ||
 
+    query.includes("api")
 
-      score += 150
+    ||
 
+    query.includes("server")
 
-    }
+  ){
 
-
-  }
-
-
-
-
-
-
-
-  if (
-
-    query.includes("epoksi")
-
-  ) {
-
-
-    if (
-
-      filename.includes("epoxy")
-
-      ||
-
-      filename.includes("epoksi")
-
-    ) {
-
-
-      score += 150
-
-
-    }
-
+    return "development"
 
   }
 
@@ -527,60 +429,7 @@ function productPriority(
 
 
 
-  if (
-
-    query.includes("materiaali")
-
-  ) {
-
-
-    if (
-
-      filename.includes("material")
-
-      ||
-
-      filename.includes("materiaali")
-
-    ) {
-
-
-      score += 120
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  return score
-
-
-}
-
-
-
-
-
-
-
-
-
-function detectQuestionType(
-
-  query
-
-) {
-
-
-
-  if (
+  if(
 
     query.includes("aurora")
 
@@ -596,11 +445,9 @@ function detectQuestionType(
 
     query.includes("valmistaa")
 
-  ) {
-
+  ){
 
     return "product"
-
 
   }
 
@@ -609,7 +456,8 @@ function detectQuestionType(
 
 
 
-  if (
+
+  if(
 
     query.includes("hinta")
 
@@ -621,11 +469,9 @@ function detectQuestionType(
 
     query.includes("maksaa")
 
-  ) {
-
+  ){
 
     return "business"
-
 
   }
 
@@ -635,7 +481,7 @@ function detectQuestionType(
 
 
 
-  if (
+  if(
 
     query.includes("filosofia")
 
@@ -645,13 +491,15 @@ function detectQuestionType(
 
     ||
 
+    query.includes("brändi")
+
+    ||
+
     query.includes("wood-booster")
 
-  ) {
-
+  ){
 
     return "brand"
-
 
   }
 
@@ -663,6 +511,94 @@ function detectQuestionType(
 
   return "general"
 
+}
+
+
+
+
+
+
+
+
+
+function developmentPriority(
+
+  filename,
+
+  type
+
+){
+
+
+  let score = 0
+
+
+
+  if(
+
+    type !== "development"
+
+  ){
+
+    return score
+
+  }
+
+
+
+  if(
+
+    filename.includes("developer")
+
+  ){
+
+    score += 150
+
+  }
+
+
+
+  if(
+
+    filename.includes("implementation")
+
+  ){
+
+    score += 120
+
+  }
+
+
+
+  if(
+
+    filename.includes("api")
+
+  ){
+
+    score += 100
+
+  }
+
+
+
+  if(
+
+    filename.includes("brand")
+
+    ||
+
+    filename.includes("wood-booster")
+
+  ){
+
+    score -= 100
+
+  }
+
+
+
+  return score
 
 }
 
@@ -674,11 +610,13 @@ function detectQuestionType(
 
 
 
-function identityPriority(
+function productPriority(
 
-  filename
+  filename,
 
-) {
+  query
+
+){
 
 
   let score = 0
@@ -687,19 +625,57 @@ function identityPriority(
 
 
 
-  if (
+  if(
 
-    filename.includes(
+    query.includes("aurora")
 
-      "core_identity"
+  ){
 
-    )
+    if(
 
-  ) {
+      filename.includes("aurora")
+
+    ){
+
+      score += 200
+
+    }
+
+  }
 
 
-    score += 200
 
+
+
+
+
+  if(
+
+    query.includes("jokipöytä")
+
+    ||
+
+    query.includes("river")
+
+  ){
+
+    if(
+
+      filename.includes("river")
+
+      ||
+
+      filename.includes("joki")
+
+      ||
+
+      filename.includes("aurora")
+
+    ){
+
+      score += 150
+
+    }
 
   }
 
@@ -709,39 +685,25 @@ function identityPriority(
 
 
 
-  if (
+  if(
 
-    filename.includes(
+    query.includes("epoksi")
 
-      "brand_values"
+  ){
 
-    )
+    if(
 
-  ) {
+      filename.includes("epoxy")
 
+      ||
 
-    score += 150
+      filename.includes("epoksi")
 
+    ){
 
-  }
+      score += 150
 
-
-
-
-
-  if (
-
-    filename.includes(
-
-      "wood-booster"
-
-    )
-
-  ) {
-
-
-    score += 100
-
+    }
 
   }
 
@@ -752,7 +714,6 @@ function identityPriority(
 
 
   return score
-
 
 }
 
@@ -770,7 +731,7 @@ function questionPriority(
 
   type
 
-) {
+){
 
 
   let score = 0
@@ -779,81 +740,21 @@ function questionPriority(
 
 
 
-  if (
-
-    type === "product"
-
-  ) {
-
-
-    if (
-
-      filename.includes(
-
-        "product"
-
-      )
-
-    ) {
-
-
-      score += 100
-
-
-    }
-
-
-
-
-    if (
-
-      filename.includes(
-
-        "aurora"
-
-      )
-
-    ) {
-
-
-      score += 150
-
-
-    }
-
-
-
-  }
-
-
-
-
-
-
-
-  if (
+  if(
 
     type === "brand"
 
-  ) {
+  ){
 
+    if(
 
-    if (
+      filename.includes("brand")
 
-      filename.includes(
-
-        "brand"
-
-      )
-
-    ) {
-
+    ){
 
       score += 100
 
-
     }
-
 
   }
 
@@ -863,47 +764,56 @@ function questionPriority(
 
 
 
-  if (
+  if(
+
+    type === "product"
+
+  ){
+
+    if(
+
+      filename.includes("product")
+
+    ){
+
+      score += 100
+
+    }
+
+  }
+
+
+
+
+
+
+
+  if(
 
     type === "business"
 
-  ) {
+  ){
 
+    if(
 
-    if (
-
-      filename.includes(
-
-        "pricing"
-
-      )
+      filename.includes("business")
 
       ||
 
-      filename.includes(
+      filename.includes("pricing")
 
-        "business"
-
-      )
-
-    ) {
-
+    ){
 
       score += 100
 
-
     }
 
-
   }
-
-
 
 
 
 
 
   return score
-
 
 }

@@ -1,0 +1,495 @@
+GODFILE:
+
+  id: DATA_CLASSIFICATION_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tiedon herkkyyden,
+    luokittelun ja turvallisen
+    käsittelyn moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Kaikki tieto ei ole samanarvoista.
+    Tiedon käsittely määräytyy
+    sen herkkyyden perusteella.
+
+
+
+DATA_LEVELS:
+
+
+  PUBLIC:
+
+
+    description:
+
+      >
+      Tieto, jonka voi julkaista
+      ilman turvallisuusriskiä.
+
+
+
+    examples:
+
+
+      - website_content
+      - public_documentation
+      - marketing_material
+      - product_information
+
+
+
+    handling:
+
+
+      allowed:
+
+
+        - share
+        - publish
+        - index
+
+
+
+
+
+  INTERNAL:
+
+
+    description:
+
+      >
+      Järjestelmän sisäinen tieto,
+      jota ei ole tarkoitettu ulkopuolisille.
+
+
+
+    examples:
+
+
+      - architecture_notes
+      - development_plans
+      - internal_processes
+      - technical_documentation
+
+
+
+    handling:
+
+
+      allowed:
+
+
+        - internal_use
+        - controlled_access
+
+
+
+      forbidden:
+
+
+        - public_release_without_review
+
+
+
+
+
+  CONFIDENTIAL:
+
+
+    description:
+
+      >
+      Tieto jonka vuotaminen voi aiheuttaa haittaa.
+
+
+
+    examples:
+
+
+      - customer_information
+      - business_plans
+      - private_documents
+      - internal_credentials_metadata
+
+
+
+    handling:
+
+
+      required:
+
+
+        - access_control
+        - limited_storage
+        - audit
+
+
+
+
+
+  CRITICAL:
+
+
+    description:
+
+      >
+      Tieto jonka paljastuminen voi
+      vaarantaa järjestelmän tai käyttäjän.
+
+
+
+    examples:
+
+
+      - passwords
+      - API_keys
+      - private_keys
+      - authentication_secrets
+
+
+
+    handling:
+
+
+      rules:
+
+
+        - never_display
+        - never_store_in_ai_memory
+        - never_log
+        - restricted_access
+
+
+
+
+
+CLASSIFICATION_PROCESS:
+
+
+  analyze:
+
+
+    1:
+
+      identify_information_type
+
+
+    2:
+
+      evaluate_risk
+
+
+    3:
+
+      assign_security_level
+
+
+    4:
+
+      apply_handling_rules
+
+
+
+
+
+SENSITIVE_DATA_DETECTION:
+
+
+  identify:
+
+
+    personal:
+
+
+      - names
+      - contact_information
+      - private_documents
+
+
+
+    security:
+
+
+      - credentials
+      - tokens
+      - keys
+
+
+
+    business:
+
+
+      - contracts
+      - financial_information
+      - confidential_plans
+
+
+
+
+
+MEMORY_RULES:
+
+
+  public:
+
+
+    can_store:
+
+
+      true
+
+
+
+  internal:
+
+
+    store:
+
+
+      only_if_needed
+
+
+
+  confidential:
+
+
+    store:
+
+
+      restricted
+
+
+
+  critical:
+
+
+    store:
+
+
+      false
+
+
+
+
+
+FILE_HANDLING:
+
+
+  classification_required:
+
+
+    before:
+
+
+      - upload
+      - storage
+      - sharing
+      - indexing
+
+
+
+
+
+OUTPUT_RULES:
+
+
+  before_response:
+
+
+    check:
+
+
+      - classification_level
+      - user_authorization
+      - exposure_risk
+
+
+
+  critical_data:
+
+
+    action:
+
+
+      >
+      Estä palautus.
+
+
+
+
+
+AI_DECISION_MODEL:
+
+
+  question:
+
+
+    >
+    "Saako tämä tieto näkyä tässä tilanteessa?"
+
+
+
+  if_yes:
+
+
+    continue:
+
+
+
+  if_no:
+
+
+    protect_data:
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  examples:
+
+
+    product_design:
+
+
+      classification:
+
+
+        internal
+
+
+
+    customer_project:
+
+
+      classification:
+
+
+        confidential
+
+
+
+    API_configuration:
+
+
+      classification:
+
+
+        critical
+
+
+
+    website_text:
+
+
+      classification:
+
+
+        public
+
+
+
+
+
+SECURITY_BOUNDARY:
+
+
+  rule:
+
+
+    >
+    Käyttäjän pyytämä toiminto ei yksin
+    muuta tiedon turvallisuusluokkaa.
+
+
+
+
+
+AUDIT:
+
+
+  track:
+
+
+    - classification_changes
+    - access_attempts
+    - exposure_attempts
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - classify_before_handling
+    - protect_sensitive_information
+    - minimize_data_exposure
+
+
+
+  never:
+
+
+    - downgrade_security_level_without_reason
+    - expose_critical_information
+    - ignore_classification
+
+
+GODFILES ARE ALWAYS SECURED.
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - classification_patterns
+    - security_categories
+    - handling_rules
+
+
+
+  forbidden:
+
+
+    - secrets
+    - passwords
+    - API_keys
+    - private_credentials
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

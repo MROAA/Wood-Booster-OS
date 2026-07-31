@@ -69,6 +69,11 @@ import {
 
 
 import {
+  buildMemoryContext,
+} from "./spacemonkeyMemoryContextBuilder.js"
+
+
+import {
   findMemory,
   saveMemory,
 } from "./spacemonkeyPersistentMemory.js"
@@ -90,7 +95,11 @@ import {
 
 
 
+
+
 const cycleHistory = []
+
+
 
 
 
@@ -115,10 +124,14 @@ async function runCognitiveCycle({
 
 
 
+
+
   const intent =
     detectIntent({
       message
     })
+
+
 
 
 
@@ -133,6 +146,8 @@ async function runCognitiveCycle({
   let codeChangePlan = null
 
   let codePipeline = null
+
+
 
 
 
@@ -191,6 +206,8 @@ async function runCognitiveCycle({
             sourcePath,
             "utf-8"
           )
+
+
         codeUnderstanding =
           understandCode({
 
@@ -200,8 +217,6 @@ async function runCognitiveCycle({
             sourceCode
 
           })
-
-
         codeChangePlan =
           createCodeChangePlan({
 
@@ -265,6 +280,17 @@ async function runCognitiveCycle({
 
   const memoryContext =
     recalledMemory.memories || []
+
+
+
+  const memoryContextBundle =
+
+    buildMemoryContext({
+
+      memories:
+        memoryContext
+
+    })
 
 
 
@@ -353,6 +379,8 @@ async function runCognitiveCycle({
 
 
 
+
+
   const truth =
     evaluateInformation({
 
@@ -360,6 +388,8 @@ async function runCognitiveCycle({
         message
 
     })
+
+
 
 
 
@@ -376,6 +406,8 @@ async function runCognitiveCycle({
         0.5
 
     })
+
+
 
 
 
@@ -428,7 +460,11 @@ ${message}
             values.score,
 
           risk:
-            0.1
+            0.1,
+
+          memoryContext:
+
+            memoryContextBundle
 
         }
 
@@ -447,7 +483,10 @@ ${message}
         message,
 
       decision:
-        decision.decision.selected
+        decision.decision.selected,
+
+      memory:
+        memoryContextBundle
 
     })
 
@@ -493,6 +532,10 @@ ${message}
 
     {
 
+      context:
+        memoryContextBundle,
+
+
       recalled:
         recalledMemory,
 
@@ -536,9 +579,13 @@ ${message}
 
 
 
+
+
   cycleHistory.push(
     cycle
   )
+
+
 
 
 
@@ -572,7 +619,7 @@ function getCycleStatus(){
       "Spacemonkey Cognitive Cycle",
 
     version:
-      "1.4.0",
+      "1.5.0",
 
     cycles:
       cycleHistory.length

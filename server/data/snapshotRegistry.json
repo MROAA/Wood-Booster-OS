@@ -1,0 +1,34 @@
+{
+  "snapshots": [
+    {
+      "id": 1785232559201,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-07-28T09:55:59.201Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-07-28_12-55-58.tar.gz",
+      "size": "13 MB"
+    },
+    {
+      "id": 1785231677294,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-07-28T09:41:17.294Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-07-28_12-41-16.tar.gz",
+      "size": "13 MB"
+    },
+    {
+      "id": 1785231556137,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-07-28T09:39:16.137Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-07-28_12-39-15.tar.gz",
+      "size": "13 MB"
+    }
+  ]
+}

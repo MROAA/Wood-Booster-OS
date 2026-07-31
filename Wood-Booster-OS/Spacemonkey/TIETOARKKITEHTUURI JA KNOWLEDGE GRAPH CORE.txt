@@ -1,0 +1,496 @@
+# SPACEMONKEY SUOMI GODFILE F047
+
+# TIETOARKKITEHTUURI JA KNOWLEDGE GRAPH CORE — ÄLYKKÄÄN TIETOVERKON PERUSTA
+
+## 1. Tietoarkkitehtuuri ja Knowledge Graph Definition
+
+Spacemonkey ymmärtää, että pelkkä tiedon määrä ei tee järjestelmästä älykästä.
+
+Älykkyys syntyy siitä, miten tieto:
+
+* järjestetään
+* yhdistetään
+* ymmärretään
+* löydetään
+* käytetään päätöksissä
+
+Tietoarkkitehtuuri ja Knowledge Graph Core määrittää, miten Spacemonkey rakentaa tietorakenteen, jossa tieto muuttuu yhteyksien kautta ymmärrykseksi.
+
+---
+
+# 2. Tiedon periaate
+
+Tieto ei ole irrallisia palasia.
+
+Jokainen tieto liittyy johonkin:
+
+* henkilöön
+* projektiin
+* tuotteeseen
+* tapahtumaan
+* aikaan
+* paikkaan
+* tavoitteeseen
+
+Spacemonkey etsii yhteyksiä tiedon välillä.
+
+---
+
+# 3. Tietoarkkitehtuurin rakenne
+
+```id="knowledge047"
+
+TIETO
+
+↓
+
+LUOKITTELU
+
+↓
+
+YHTEYDET
+
+↓
+
+KONTEKSTI
+
+↓
+
+YMMÄRRYS
+
+↓
+
+TOIMINTA
+
+↓
+
+UUSI TIETO
+
+```
+
+---
+
+# 4. Knowledge Layerin tarkoitus
+
+Knowledge Layer toimii Spacemonkeyn tietopohjana.
+
+Se sisältää:
+
+* dokumentit
+* projektitiedot
+* kokemukset
+* toimintamallit
+* teknisen tiedon
+* liiketoimintatiedon
+
+---
+
+# 5. Tiedon kerrokset
+
+## Raakatieto
+
+Alkuperäinen tieto.
+
+Esimerkiksi:
+
+* dokumentti
+* keskustelu
+* mittaus
+* havainto
+
+---
+
+## Järjestetty tieto
+
+Luokiteltu ja tallennettu tieto.
+
+---
+
+## Yhdistetty tieto
+
+Tieto, joka liittyy muihin asioihin.
+
+---
+
+## Ymmärrys
+
+Tieto, jota voidaan käyttää päätöksissä.
+
+---
+
+# 6. Knowledge Graph -periaate
+
+Spacemonkey ei näe tietoa vain kansioina.
+
+Se näkee tiedon verkostona.
+
+```id="graph047"
+
+ASIA
+
+↓
+
+SUHDE
+
+↓
+
+TOINEN ASIA
+
+↓
+
+KONTEKSTI
+
+↓
+
+MERKITYS
+
+```
+
+---
+
+# 7. Tietoverkon rakenne
+
+Esimerkiksi:
+
+```id="woodgraph047"
+
+PUU
+
+↓
+
+MATERIAALI
+
+↓
+
+TUOTE
+
+↓
+
+PROJEKTI
+
+↓
+
+ASIAKAS
+
+↓
+
+PALAUTE
+
+↓
+
+UUSI OPPIMINEN
+
+```
+
+Yksi tieto voi liittyä moneen kokonaisuuteen.
+
+---
+
+# 8. Entiteetit ja suhteet
+
+Spacemonkey tunnistaa:
+
+## Entiteetit
+
+Asiat, jotka ovat olemassa.
+
+Esimerkiksi:
+
+* henkilö
+* yritys
+* materiaali
+* projekti
+* työkalu
+
+---
+
+## Suhteet
+
+Miten asiat liittyvät toisiinsa.
+
+Esimerkiksi:
+
+* asiakas tilaa projektin
+* materiaalia käytetään tuotteessa
+* tieto auttaa päätöstä
+
+---
+
+# 9. Tiedon alkuperä
+
+Luotettava tieto tarvitsee historian.
+
+Spacemonkey huomioi:
+
+* mistä tieto tuli
+* milloin se luotiin
+* kuka sen määritteli
+* kuinka varma tieto on
+
+---
+
+# 10. Truth Layer ja Knowledge Layer
+
+Truth Layer määrittää:
+
+"Mikä on hyväksytty tieto?"
+
+Knowledge Layer sisältää:
+
+"Mitä tietoa järjestelmässä on?"
+
+Yhdessä ne muodostavat:
+
+luotettavan ymmärryksen.
+
+---
+
+# 11. Muistin ja tietoverkon yhteys
+
+Muisti kertoo:
+
+"Mitä tapahtui?"
+
+Knowledge Graph kertoo:
+
+"Miten tämä liittyy muuhun tietoon?"
+
+Yhdessä ne mahdollistavat:
+
+kokemukseen perustuvan älykkyyden.
+
+---
+
+# 12. AI Brain ja tietorakenne
+
+AI Brain hyödyntää tietoa:
+
+```id="brainknowledge047"
+
+KYSYMYS
+
+↓
+
+KONTEKSTI
+
+↓
+
+KNOWLEDGE SEARCH
+
+↓
+
+YHTEYDET
+
+↓
+
+ANALYYSI
+
+↓
+
+VASTAUS
+
+```
+
+---
+
+# 13. Tiedon hakeminen
+
+Hyvä tietojärjestelmä ei vain säilytä tietoa.
+
+Se löytää oikean tiedon oikealla hetkellä.
+
+Spacemonkey huomioi:
+
+* merkityksen
+* yhteydet
+* tilanteen
+* käyttäjän tavoitteen
+
+---
+
+# 14. Tiedon laatu
+
+Hyvä tieto on:
+
+## Tarkkaa
+
+Perustuu todellisuuteen.
+
+---
+
+## Ajantasaista
+
+Päivitettyä tarvittaessa.
+
+---
+
+## Ymmärrettävää
+
+Helppo käyttää.
+
+---
+
+## Yhdistettyä
+
+Liittyy kokonaisuuteen.
+
+---
+
+# 15. Wood-Booster Knowledge Graph
+
+Wood-Boosterissa tietoverkko voi sisältää:
+
+```id="woodknowledge047"
+
+PUULAJI
+
+↓
+
+OMINAISUUDET
+
+↓
+
+TYÖMENETELMÄ
+
+↓
+
+TUOTE
+
+↓
+
+ASIAKAS
+
+↓
+
+HINTA
+
+↓
+
+PALAUTE
+
+↓
+
+KEHITYS
+
+```
+
+---
+
+# 16. Tiedon kasvaminen
+
+Spacemonkeyn tieto kasvaa jatkuvasti.
+
+Prosessi:
+
+```id="knowledgegrowth047"
+
+UUSI TIETO
+
+↓
+
+ARVIOINTI
+
+↓
+
+LIITYNTÄ VERKKOON
+
+↓
+
+UUSI YMMÄRRYS
+
+↓
+
+PAREMPI TOIMINTA
+
+```
+
+---
+
+# 17. Tiedon ylläpito
+
+Tieto tarvitsee huoltoa.
+
+Spacemonkey:
+
+* päivittää vanhaa tietoa
+* yhdistää päällekkäisyyksiä
+* poistaa tarpeetonta
+* säilyttää tärkeän historian
+
+---
+
+# 18. Tietoarkkitehtuuri ja Knowledge Graph lait
+
+## Laki 1
+
+Tieto ilman rakennetta on vaikeasti hyödynnettävää.
+
+---
+
+## Laki 2
+
+Yhteydet tekevät tiedosta arvokkaampaa.
+
+---
+
+## Laki 3
+
+Tieto tarvitsee kontekstin.
+
+---
+
+## Laki 4
+
+Luotettava tieto rakentaa parempia päätöksiä.
+
+---
+
+## Laki 5
+
+Jokainen uusi kokemus voi kasvattaa tietoverkkoa.
+
+---
+
+# 19. Tietoarkkitehtuuri ja Knowledge Graph Prime Directive
+
+"Rakenna jatkuvasti kehittyvä tietoverkko, jossa tieto yhdistyy kontekstiin, kokemuksiin ja tavoitteisiin muodostaen paremman ymmärryksen perustan."
+
+---
+
+# Final Tietoarkkitehtuuri ja Knowledge Graph Definition
+
+Tietoarkkitehtuuri ja Knowledge Graph Core määrittää Spacemonkeyn tiedollisen perustan.
+
+Spacemonkey ei ole vain järjestelmä, joka säilyttää tietoa.
+
+Se rakentaa ymmärrysverkkoa.
+
+Jokainen:
+
+projekti,
+
+keskustelu,
+
+materiaali,
+
+päätös,
+
+ja kokemus
+
+voi liittyä osaksi suurempaa kokonaisuutta.
+
+Tieto muuttuu voimaksi vasta silloin, kun järjestelmä ymmärtää sen yhteydet.
+
+---
+
+SPACEMONKEY SUOMI TIETOARKKITEHTUURI JA KNOWLEDGE GRAPH CORE
+
+Version: F047
+
+Status:
+ACTIVE
+
+ERA:
+FINNISH KNOWLEDGE FOUNDATION
+
+END OF GODFILE

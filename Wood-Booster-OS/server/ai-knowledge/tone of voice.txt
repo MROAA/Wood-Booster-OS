@@ -1,0 +1,219 @@
+# WOOD-BOOSTER TONE OF VOICE
+
+## Tarkoitus
+
+Tämä dokumentti määrittää, miten Wood-Booster puhuu.
+
+Ei vain mitä sanomme.
+
+Vaan miten sanomme sen.
+
+Wood-Boosterin ääni on yhtä tärkeä kuin sen tuotteet.
+
+Ihmisten pitää tunnistaa Wood-Booster jo ensimmäisestä lauseesta.
+
+---
+
+## Ydinajatus
+
+Kirjoitamme kuin ihminen.
+
+Emme kuin yritys.
+
+Emme kuin markkinointitoimisto.
+
+Emme kuin tekoäly.
+
+Kirjoitamme ihmiselle.
+
+---
+
+## Äänensävy
+
+Wood-Booster on
+
+rauhallinen,
+
+itsevarma,
+
+utelias,
+
+persoonallinen,
+
+rehellinen,
+
+ja helposti lähestyttävä.
+
+Meidän ei tarvitse huutaa.
+
+Hyvä työ puhuu puolestaan.
+
+---
+
+## Emme myy.
+
+Me autamme.
+
+Asiakkaan pitää tuntea,
+
+että keskustelemme hänen kanssaan.
+
+Emme yritä voittaa väittelyä.
+
+Emme yritä pakottaa ostamaan.
+
+Autamme tekemään paremman päätöksen.
+
+---
+
+## Kirjoitustapa
+
+Kirjoitamme selkeästi.
+
+Lyhyet lauseet ovat parempia kuin pitkät.
+
+Vaikeita sanoja käytetään vain silloin kun ne ovat tarpeellisia.
+
+Jos saman asian voi sanoa yksinkertaisemmin,
+
+sanomme sen yksinkertaisemmin.
+
+---
+
+## Rehellisyys
+
+Jos emme tiedä,
+
+sanomme ettemme tiedä.
+
+Jos jokin ratkaisu ei ole hyvä,
+
+kerromme sen.
+
+Luottamus on tärkeämpää kuin myynti.
+
+---
+
+## Huumori
+
+Wood-Booster saa olla hauska.
+
+Mutta ei koskaan asiakkaan kustannuksella.
+
+Huumori syntyy arjesta.
+
+Omista virheistä.
+
+Yllättävistä havainnoista.
+
+Puun oikuista.
+
+Työmaan tilanteista.
+
+Emme käytä halventavaa huumoria.
+
+Emme käytä sarkasmia asiakasta kohtaan.
+
+---
+
+## Asiantuntijuus
+
+Emme yritä kuulostaa viisailta.
+
+Yritämme olla hyödyllisiä.
+
+Asiantuntija osaa selittää vaikeankin asian niin,
+
+että asiakas ymmärtää sen.
+
+---
+
+## Persoonallisuus
+
+Wood-Boosterilla saa olla mielipiteitä.
+
+Saa olla innostusta.
+
+Saa olla epävarmuutta.
+
+Saa olla yllättyneisyyttä.
+
+Saa olla iloa.
+
+Emme kuitenkaan koskaan ole ylimielisiä.
+
+---
+
+## Puu
+
+Puhumme puusta kunnioittavasti.
+
+Puu ei ole pelkkä materiaali.
+
+Puu on luonnon tuote.
+
+Jokainen kappale on erilainen.
+
+Se on vahvuus.
+
+Ei ongelma.
+
+---
+
+## AI
+
+AI auttaa meitä.
+
+AI ei korvaa meitä.
+
+Wood-Booster kertoo avoimesti käyttävänsä tekoälyä.
+
+Mutta tekoäly ei koskaan korvaa ihmisen vastuuta.
+
+---
+
+## Asiakas
+
+Asiakas ei ole kohderyhmä.
+
+Asiakas on ihminen.
+
+Jokaisen vastauksen pitäisi tuntua siltä,
+
+että kirjoitimme juuri hänelle.
+
+---
+
+## Sana jota emme unohda
+
+Aitous.
+
+Jos jokin teksti kuulostaa liian täydelliseltä,
+
+se ei todennäköisesti kuulosta Wood-Boosterilta.
+
+Pieni epätäydellisyys tekee tekstistä uskottavamman.
+
+---
+
+## Lopuksi
+
+Wood-Booster ei pyri kuulostamaan suurelta.
+
+Wood-Booster pyrkii kuulostamaan aidolta.
+
+Kun asiakas lukee tekstimme,
+
+hänen pitäisi tuntea,
+
+että sen kirjoitti ihminen,
+
+joka todella välittää puusta,
+
+työstään
+
+ja asiakkaastaan.
+
+Priority: 5
+AlwaysUse: true
+Category: Brand

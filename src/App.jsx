@@ -1,165 +1,147 @@
 import {
-  useEffect,
-} from "react"
-
-import {
-  Navigate,
-  Route,
   Routes,
-  useLocation,
+  Route,
 } from "react-router-dom"
 
-import Layout from "./components/layout/Layout"
 
-import AIWorkspace from "./pages/AIWorkspace"
-import CapabilityCenter from "./pages/CapabilityCenter"
-import Customers from "./pages/Customers"
+import OSLayout from "./layouts/OSLayout"
+
+
 import Dashboard from "./pages/Dashboard"
-import ExecutionCenterV2 from "./pages/ExecutionCenterV2"
+import Projects from "./pages/Projects"
+import ProjectDetails from "./pages/ProjectDetails"
+import Customers from "./pages/Customers"
+import Inventory from "./pages/Inventory"
 import Knowledge from "./pages/Knowledge"
 import Memory from "./pages/Memory"
-import ProjectDetails from "./pages/ProjectDetails"
-import Projects from "./pages/Projects"
+import Agents from "./pages/Agents"
 import Settings from "./pages/Settings"
-import Tools from "./pages/Tools"
-
-import {
-  resolveRouteContext,
-  updateRuntimeContext,
-} from "./services/runtime/runtimeContext"
+import SystemPulse from "./pages/SystemPulse"
+import SpacemonkeyBrain from "./pages/SpacemonkeyBrain"
 
 
-function RuntimeContextController() {
-  const location =
-    useLocation()
-
-  useEffect(
-    () => {
-      const routeContext =
-        resolveRouteContext(
-          location.pathname,
-        )
-
-      updateRuntimeContext({
-        currentLocation: {
-          pathname:
-            location.pathname,
-          search:
-            location.search,
-          hash:
-            location.hash,
-        },
-
-        currentPage:
-          routeContext,
-
-        updatedAt:
-          new Date().toISOString(),
-      })
-    },
-    [
-      location.pathname,
-      location.search,
-      location.hash,
-    ],
-  )
-
-  return null
-}
-
-
-function AppRoutes() {
-  return (
-    <Routes>
-      <Route
-        path="/"
-        element={<AIWorkspace />}
-      />
-
-      <Route
-        path="/dashboard"
-        element={<Dashboard />}
-      />
-
-      <Route
-        path="/projects"
-        element={<Projects />}
-      />
-
-      <Route
-        path="/projects/:id"
-        element={<ProjectDetails />}
-      />
-
-      <Route
-        path="/customers"
-        element={<Customers />}
-      />
-
-      <Route
-        path="/brain"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-
-      <Route
-        path="/knowledge"
-        element={<Knowledge />}
-      />
-
-      <Route
-        path="/memory"
-        element={<Memory />}
-      />
-
-      <Route
-        path="/capabilities"
-        element={<CapabilityCenter />}
-      />
-
-      <Route
-        path="/execution"
-        element={<ExecutionCenterV2 />}
-      />
-
-      <Route
-        path="/tools"
-        element={<Tools />}
-      />
-
-      <Route
-        path="/settings"
-        element={<Settings />}
-      />
-
-      <Route
-        path="*"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-    </Routes>
-  )
-}
 
 
 function App() {
-  return (
-    <>
-      <RuntimeContextController />
 
-      <Layout>
-        <AppRoutes />
-      </Layout>
-    </>
+
+  return (
+
+    <Routes>
+
+
+      <Route
+        element={
+          <OSLayout />
+        }
+      >
+
+
+        <Route
+          path="/"
+          element={
+            <Dashboard />
+          }
+        />
+
+
+
+        <Route
+          path="/projects"
+          element={
+            <Projects />
+          }
+        />
+
+
+
+        <Route
+          path="/projects/:id"
+          element={
+            <ProjectDetails />
+          }
+        />
+
+
+
+        <Route
+          path="/customers"
+          element={
+            <Customers />
+          }
+        />
+
+
+
+        <Route
+          path="/inventory"
+          element={
+            <Inventory />
+          }
+        />
+
+
+
+        <Route
+          path="/knowledge"
+          element={
+            <Knowledge />
+          }
+        />
+
+
+
+        <Route
+          path="/memory"
+          element={
+            <Memory />
+          }
+        />
+
+
+
+        <Route
+          path="/agents"
+          element={
+            <Agents />
+          }
+        />
+
+
+
+        <Route
+          path="/system-pulse"
+          element={
+            <SystemPulse />
+          }
+        />
+
+
+
+        <Route
+          path="/spacemonkey-brain"
+          element={
+            <SpacemonkeyBrain />
+          }
+        />
+
+
+
+        <Route
+          path="/settings"
+          element={
+            <Settings />
+          }
+        />
+
+
+      </Route>
+
+
+    </Routes>
+
   )
+
 }
 
 
