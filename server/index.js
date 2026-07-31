@@ -57,7 +57,9 @@ import {
 import {
   createSpacemonkeyModulesRouter,
 } from "./routes/spacemonkeyModules.js"
-
+import {
+  createSpacemonkeyRuntimeRouter,
+} from "./routes/spacemonkeyRuntime.js"
 import {
   createSpacemonkeyApiCatalogRouter,
 } from "./routes/spacemonkeyApiCatalog.js"
@@ -469,6 +471,11 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyModulesRouter()
+  
+)
+app.use(
+  "/api",
+  createSpacemonkeyRuntimeRouter()
 )
 /*
 =====================================

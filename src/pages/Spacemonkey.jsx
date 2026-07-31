@@ -53,6 +53,7 @@ function Spacemonkey(){
         catalog,
         snapshot,
         modules,
+        runtime,
       ] =
       await Promise.all([
 
@@ -103,7 +104,16 @@ function Spacemonkey(){
           r=>r.json()
         ),
 
+
+        fetch(
+          `${API_URL}/spacemonkey/runtime`
+        )
+        .then(
+          r=>r.json()
+        ),
+
       ])
+
 
 
 
@@ -120,6 +130,8 @@ function Spacemonkey(){
         snapshot,
 
         modules,
+
+        runtime,
 
       })
 
@@ -266,6 +278,18 @@ function Spacemonkey(){
     data.modules?.modules
     ||
     []
+
+
+
+
+
+  const runtime =
+    data.runtime?.runtime
+    ||
+    {
+      environment:{},
+      system:{}
+    }
 
 
 
@@ -445,51 +469,45 @@ function Spacemonkey(){
       <Card title="API Gateway">
 
 
-        <div className="space-y-3">
+        {
+          catalog.apis.map(
+            api=>(
+
+              <div
+                key={api.id}
+                className="
+                  border-b
+                  border-neutral-800
+                  pb-2
+                  mb-3
+                "
+              >
+
+                <p className="font-bold">
+
+                  {api.id}
+
+                </p>
 
 
-          {
-            catalog.apis.map(
-              api=>(
+                <p className="text-neutral-400">
 
-                <div
-                  key={api.id}
-                  className="
-                    border-b
-                    border-neutral-800
-                    pb-2
-                  "
-                >
+                  {api.path}
 
-                  <p className="font-bold">
-
-                    {api.id}
-
-                  </p>
+                </p>
 
 
-                  <p className="text-neutral-400">
+                <p className="text-green-400">
 
-                    {api.path}
+                  {api.status}
 
-                  </p>
+                </p>
 
+              </div>
 
-                  <p className="text-green-400">
-
-                    {api.status}
-
-                  </p>
-
-
-                </div>
-
-              )
             )
-          }
-
-
-        </div>
+          )
+        }
 
 
       </Card>
@@ -503,55 +521,94 @@ function Spacemonkey(){
       <Card title="Modules">
 
 
-        <div className="space-y-3">
+        {
+          modules.map(
+            module=>(
+
+              <div
+                key={module.id}
+                className="
+                  border-b
+                  border-neutral-800
+                  pb-2
+                  mb-3
+                "
+              >
+
+                <p className="font-bold">
+
+                  {module.name}
+
+                </p>
 
 
-          {
-            modules.map(
-              module=>(
+                <p className="text-neutral-400">
 
-                <div
-                  key={module.id}
-                  className="
-                    border-b
-                    border-neutral-800
-                    pb-2
-                  "
-                >
+                  Version:
+                  {" "}
+                  {module.version}
 
-                  <p className="font-bold">
-
-                    {module.name}
-
-                  </p>
+                </p>
 
 
-                  <p className="text-neutral-400">
+                <p className="text-green-400">
 
-                    Version:
-                    {" "}
-                    {module.version}
+                  🟢 {module.health}
 
-                  </p>
+                </p>
 
 
-                  <p className="text-green-400">
+              </div>
 
-                    🟢
-                    {" "}
-                    {module.health}
-
-                  </p>
-
-
-                </div>
-
-              )
             )
-          }
+          )
+        }
 
 
-        </div>
+      </Card>
+
+
+
+
+
+
+
+      <Card title="Runtime Awareness">
+
+
+        <p>
+          Platform:
+          {" "}
+          {runtime.environment.platform}
+        </p>
+
+
+        <p>
+          Node:
+          {" "}
+          {runtime.environment.nodeVersion}
+        </p>
+
+
+        <p>
+          System:
+          {" "}
+          {runtime.system.state}
+        </p>
+
+
+        <p>
+          Awareness:
+          {" "}
+          {runtime.system.awareness}
+        </p>
+
+
+        <p className="text-green-400">
+
+          🟢 Healthy
+
+        </p>
 
 
       </Card>
