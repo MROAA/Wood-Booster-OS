@@ -50,7 +50,17 @@ import {
 
 
 import createSpacemonkeyRouter from "./routes/spacemonkey.js"
+import {
+  createSpacemonkeyGatewayRouter,
+} from "./routes/spacemonkeyGateway.js"
 
+import {
+  createSpacemonkeyModulesRouter,
+} from "./routes/spacemonkeyModules.js"
+
+import {
+  createSpacemonkeyApiCatalogRouter,
+} from "./routes/spacemonkeyApiCatalog.js"
 
 import {
   createSpacemonkeySnapshotRouter,
@@ -446,8 +456,20 @@ app.use(
   )
 )
 
+app.use(
+  "/api",
+  createSpacemonkeyGatewayRouter()
+)
 
 
+app.use(
+  "/api",
+  createSpacemonkeyApiCatalogRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyModulesRouter()
+)
 /*
 =====================================
 PUBLIC INTERNET GATEWAY

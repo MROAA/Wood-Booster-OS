@@ -6,7 +6,7 @@ import {
 
 import OSLayout from "./layouts/OSLayout"
 
-
+import Spacemonkey from "./pages/Spacemonkey"
 import Dashboard from "./pages/Dashboard"
 import Projects from "./pages/Projects"
 import ProjectDetails from "./pages/ProjectDetails"
@@ -125,7 +125,12 @@ function App() {
           }
         />
 
-
+<Route
+  path="/spacemonkey"
+  element={
+    <Spacemonkey />
+  }
+/>
 
         <Route
           path="/settings"
