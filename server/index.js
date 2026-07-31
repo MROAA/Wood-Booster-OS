@@ -1,4 +1,7 @@
 import {
+  createSpacemonkeyInternetSafetyRouter,
+} from "./routes/spacemonkeyInternetSafety.js"
+import {
   createSpacemonkeySecuritySandboxRouter,
 } from "./routes/spacemonkeySecuritySandbox.js"
 import {
@@ -212,6 +215,10 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeySecurityCoreRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyInternetSafetyRouter()
 )
 app.use(
   "/api",
