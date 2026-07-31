@@ -5,9 +5,9 @@ import {
 
 
 import StatusGlow from "../components/systemPulse/StatusGlow"
-import RestoreResultCard from "../components/systemPulse/RestoreResultCard"
+
 import EnvironmentCard from "../components/systemPulse/EnvironmentCard"
-import RestorePreviewHistoryCard from "../components/systemPulse/RestorePreviewHistoryCard"
+
 import GitSyncCard from "../components/systemPulse/GitSyncCard"
 
 import HardwareCard from "../components/systemPulse/HardwareCard"
@@ -365,11 +365,9 @@ function SystemPulse() {
         pulse={pulse}
       />
 
-      <RestoreResultCard />
 
-<RestorePreviewHistoryCard />
 
-<RestoreResultCard />
+
 
       <HardwareCard
         pulse={pulse}
