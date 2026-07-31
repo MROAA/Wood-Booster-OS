@@ -90,3 +90,7 @@ Thumbs.db
 # =====================================
 
 Backups/
+# System Pulse restore data
+
+RestorePreview/
+Wood-Booster-Restore-Backups/
