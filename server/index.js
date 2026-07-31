@@ -1,4 +1,7 @@
 import {
+  createSpacemonkeySecuritySandboxRouter,
+} from "./routes/spacemonkeySecuritySandbox.js"
+import {
   createSpacemonkeySecurityCapabilitiesRouter,
 } from "./routes/spacemonkeySecurityCapabilities.js"
 import {
@@ -217,6 +220,10 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyMemoryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecuritySandboxRouter()
 )
 app.use(
   "/api",
