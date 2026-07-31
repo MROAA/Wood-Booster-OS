@@ -55,6 +55,7 @@ function Spacemonkey(){
         modules,
         runtime,
         capabilities,
+        reflection,
       ] =
       await Promise.all([
 
@@ -120,7 +121,12 @@ function Spacemonkey(){
         .then(
           r=>r.json()
         ),
-
+fetch(
+  `${API_URL}/spacemonkey/reflection`
+)
+.then(
+  r=>r.json()
+)
       ])
 
 
@@ -144,6 +150,8 @@ function Spacemonkey(){
         runtime,
 
         capabilities,
+
+        reflection,
 
       })
 
@@ -624,7 +632,91 @@ function Spacemonkey(){
       </Card>
 
 
+      <Card title="🧠 Reflection Intelligence">
 
+
+        <p>
+
+          State:
+          {" "}
+          {data.reflection?.reflection?.state
+            ||
+            "unknown"}
+
+        </p>
+
+
+        <p>
+
+          Focus:
+          {" "}
+          {data.reflection?.reflection?.currentFocus
+            ||
+            "No reflection data"}
+
+        </p>
+
+
+        <p>
+
+          Decisions:
+          {" "}
+          {data.reflection?.reflection?.decisions
+            ||
+            0}
+
+        </p>
+
+
+        <p>
+
+          Health:
+          {" "}
+          {data.reflection?.reflection?.health?.status
+            ||
+            data.reflection?.health?.status
+            ||
+            "unknown"}
+
+        </p>
+
+
+
+        <div className="mt-4">
+
+
+          <p className="font-bold">
+
+            Improvements:
+
+          </p>
+
+
+
+          {
+            data.reflection?.reflection?.improvements?.map(
+
+              improvement => (
+
+                <p
+                  key={improvement}
+                  className="text-neutral-400"
+                >
+
+                  • {improvement}
+
+                </p>
+
+              )
+
+            )
+          }
+
+
+        </div>
+
+
+      </Card>
 
 
       <Card title="Snapshot">
