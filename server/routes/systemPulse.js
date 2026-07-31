@@ -5,17 +5,8 @@ WOOD-BOOSTER AI BRAIN V2
 
 SYSTEM PULSE ROUTE
 
-GET /api/system-pulse
-
-Palauttaa:
-- AI Brain tila
-- moduulit
-- capabilityt
-- runtime
-- hardware
-- git
-- git sync
-- git history
+GET  /api/system-pulse
+POST /api/system-pulse/snapshot
 
 =====================================
 */
@@ -27,6 +18,11 @@ import express from "express"
 import {
   getSystemPulseState,
 } from "../services/aiBrainV2/services/systemPulse/systemPulseState.js"
+
+
+import {
+  createSnapshot,
+} from "../../services/aiBrainV2/services/systemPulse/gitSync/snapshotService.js"
 
 
 
@@ -63,6 +59,51 @@ router.get(
         pulse,
 
       })
+
+
+    }
+    catch(error){
+
+
+      res.status(500).json({
+
+        success:
+          false,
+
+
+        error:
+          error.message,
+
+      })
+
+
+    }
+
+  },
+)
+
+
+
+
+
+router.post(
+  "/system-pulse/snapshot",
+  async (
+    req,
+    res,
+  ) => {
+
+    try {
+
+
+      const snapshot =
+        await createSnapshot()
+
+
+
+      res.json(
+        snapshot
+      )
 
 
     }
