@@ -1,4 +1,7 @@
 import {
+  createSpacemonkeyPermissionsRouter,
+} from "./routes/spacemonkeyPermissions.js"
+import {
   createSpacemonkeyApprovalGatewayRouter,
 } from "./routes/spacemonkeyApprovalGateway.js"
 import {
@@ -177,6 +180,10 @@ const PORT =
  app.use(
   "/api",
   createSpacemonkeyApprovalGatewayRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPermissionsRouter()
 )
 app.use(
   "/api",
