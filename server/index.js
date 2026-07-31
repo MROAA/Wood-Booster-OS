@@ -1,4 +1,7 @@
 import {
+  createSpacemonkeyToolSecurityRouter,
+} from "./routes/spacemonkeyToolSecurity.js"
+import {
   createSpacemonkeySecurityRuntimeRouter,
 } from "./routes/spacemonkeySecurityRuntime.js"
 import {
@@ -206,6 +209,10 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeySecurityRuntimeRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyToolSecurityRouter()
 )
 app.use(
   "/api",
