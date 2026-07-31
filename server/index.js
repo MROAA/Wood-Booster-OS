@@ -1,6 +1,8 @@
 import express from "express"
 import cors from "cors"
-
+import {
+  createSpacemonkeyMemoryRouter,
+} from "./routes/spacemonkeyMemory.js"
 import {
   PrismaClient,
 } from "./generated/prisma/client.js"
@@ -155,7 +157,10 @@ const PORT =
   process.env.PORT || 3001
 
 
-
+app.use(
+  "/api",
+  createSpacemonkeyMemoryRouter()
+)
 
 app.use(
   cors()
