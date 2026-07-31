@@ -133,71 +133,83 @@ function RestorePreviewHistoryCard() {
 
         {
           loading
-            ?
 
-            (
-              <p>
-                Loading restore previews...
-              </p>
-            )
+          ?
 
-            :
+          (
+            <p>
+              Loading restore previews...
+            </p>
+          )
 
-            previews.length === 0
+          :
 
-              ?
+          previews.length === 0
 
-              (
-                <p>
-                  No restore previews
+          ?
+
+          (
+            <p>
+              No restore previews
+            </p>
+          )
+
+          :
+
+          previews.map(
+            preview => (
+
+              <div
+                key={preview.name}
+                className="
+                  border-l
+                  border-green-500
+                  pl-4
+                "
+              >
+
+                <p
+                  className="
+                    text-green-400
+                  "
+                >
+                  🟢 {preview.name}
                 </p>
-              )
-
-              :
-
-              previews.map(
-                preview => (
-
-                  <div
-                    key={preview.name}
-                    className="
-                      border-l
-                      border-green-500
-                      pl-4
-                    "
-                  >
-
-                    <p
-                      className="
-                        text-green-400
-                      "
-                    >
-                      🟢 {preview.name}
-                    </p>
 
 
-                    <p
-                      className="
-                        mt-2
-                        text-xs
-                        text-[var(--wood-muted)]
-                      "
-                    >
-                      Restore Preview valmis
-                    </p>
+
+                <p
+                  className="
+                    mt-2
+                    text-xs
+                    text-[var(--wood-muted)]
+                  "
+                >
+                  Restore Preview valmis
+                </p>
 
 
-                    <ConfirmRestoreButton
-                      snapshot={
-                        preview.name
-                      }
-                    />
+
+                <div
+                  className="
+                    mt-4
+                  "
+                >
+
+                  <ConfirmRestoreButton
+                    snapshot={
+                      preview.name
+                    }
+                  />
+
+                </div>
 
 
-                  </div>
 
-                )
-              )
+              </div>
+
+            )
+          )
 
         }
 

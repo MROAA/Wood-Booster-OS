@@ -35,69 +35,23 @@ const execAsync =
 
 
 
-const EXEC_OPTIONS = {
-
-  maxBuffer:
-    1024 * 1024
-
-}
-
-
-
-
-
 async function createRestoreCheckpoint(){
 
 
   try {
 
 
+    await execAsync(
+      "git add -A"
+    )
+
+
+
     const {
-      stdout:
-      statusOutput
+      stdout
     } =
     await execAsync(
-      "git status --porcelain",
-      EXEC_OPTIONS
-    )
-
-
-
-
-
-    if(
-      !statusOutput.trim()
-    ){
-
-      return {
-
-        success:true,
-
-        committed:false,
-
-        message:
-          "No changes to checkpoint"
-
-      }
-
-    }
-
-
-
-
-
-    await execAsync(
-      "git add -A",
-      EXEC_OPTIONS
-    )
-
-
-
-
-
-    await execAsync(
-      'git commit -m "Before System Pulse Restore"',
-      EXEC_OPTIONS
+      'git commit -m "Before System Pulse Restore"'
     )
 
 
@@ -111,7 +65,7 @@ async function createRestoreCheckpoint(){
       committed:true,
 
       message:
-        "Git checkpoint created"
+        stdout.trim()
 
     }
 
@@ -120,12 +74,34 @@ async function createRestoreCheckpoint(){
   catch(error){
 
 
+    if(
+      error.message.includes(
+        "nothing to commit"
+      )
+    ){
+
+      return {
+
+        success:true,
+
+        committed:false,
+
+        message:
+          "Nothing to commit"
+
+      }
+
+    }
+
+
+
+
+
     return {
 
       success:false,
 
       error:
-        error.stderr ||
         error.message
 
     }

@@ -26,15 +26,15 @@ function ConfirmRestore({
 
 
   const [
-    result,
-    setResult
+    message,
+    setMessage
   ] = useState(null)
 
 
 
 
 
-  async function confirmRestore(){
+  async function runRestore(){
 
 
     try {
@@ -46,12 +46,13 @@ function ConfirmRestore({
 
 
 
-      const response =
+
+
+      const confirmResponse =
         await fetch(
           "http://localhost:3001/api/system-pulse/restore-confirm",
           {
-            method:
-              "POST",
+            method:"POST",
 
             headers:{
               "Content-Type":
@@ -68,17 +69,74 @@ function ConfirmRestore({
 
 
 
-      const data =
-        await response.json()
+
+
+      const confirmData =
+        await confirmResponse.json()
+
+
 
 
 
       if(
-        data.success
+        !confirmData.success
       ){
 
-        setResult(
-          data
+        throw new Error(
+          "Restore confirmation failed"
+        )
+
+      }
+
+
+
+
+
+      const restoreResponse =
+        await fetch(
+          "http://localhost:3001/api/system-pulse/restore-execute",
+          {
+            method:"POST",
+
+            headers:{
+              "Content-Type":
+                "application/json"
+            },
+
+            body:
+              JSON.stringify({
+                snapshot
+              })
+
+          }
+        )
+
+
+
+
+
+      const restoreData =
+        await restoreResponse.json()
+
+
+
+
+
+      if(
+        restoreData.success
+      ){
+
+        localStorage.setItem(
+          "systemPulseRestoreResult",
+          JSON.stringify(
+            restoreData
+          )
+        )
+
+
+
+        setMessage(
+          "Restore completed successfully"
         )
 
 
@@ -86,11 +144,15 @@ function ConfirmRestore({
           "success"
         )
 
+
+        window.location.reload()
+
+
       }
       else {
 
-        setStatus(
-          "error"
+        throw new Error(
+          "Restore failed"
         )
 
       }
@@ -105,9 +167,15 @@ function ConfirmRestore({
       )
 
 
+      setMessage(
+        error.message
+      )
+
+
       setStatus(
         "error"
       )
+
 
     }
 
@@ -127,125 +195,96 @@ function ConfirmRestore({
 
       {
         !confirmed
-          ?
 
-          (
+        ?
 
-            <button
-              onClick={() =>
-                setConfirmed(true)
-              }
-              className="
-                rounded-lg
-                border
-                border-red-500
-                px-3
-                py-1
-                text-sm
-                text-red-400
-              "
-            >
-              Confirm Restore
-            </button>
-
-          )
-
-          :
-
-          (
-
-            <div
-              className="
-                space-y-3
-              "
-            >
-
-              <p
-                className="
-                  text-sm
-                  text-yellow-400
-                "
-              >
-                ⚠️ Current system will be backed up first.
-              </p>
-
-
-              <button
-                onClick={confirmRestore}
-                disabled={
-                  status === "running"
-                }
-                className="
-                  rounded-lg
-                  border
-                  border-green-500
-                  px-3
-                  py-1
-                  text-sm
-                  text-green-400
-                "
-              >
-
-                {
-                  status === "running"
-                    ?
-                    "Backing up..."
-                    :
-                    "Start Restore Backup"
-                }
-
-              </button>
-
-
-            </div>
-
-          )
-
-      }
-
-
-
-
-
-      {
-        status === "success" &&
-        result &&
         (
 
-          <p
+          <button
+            onClick={() =>
+              setConfirmed(true)
+            }
             className="
-              mt-3
-              text-xs
-              text-green-400
-            "
-          >
-            🟢 Backup created:
-            {" "}
-            {result.backupBeforeRestore}
-          </p>
-
-        )
-      }
-
-
-
-
-
-      {
-        status === "error" &&
-        (
-
-          <p
-            className="
-              mt-3
-              text-xs
+              rounded-lg
+              border
+              border-red-500
+              px-3
+              py-1
+              text-sm
               text-red-400
             "
           >
-            Restore confirmation failed
+            Confirm Restore
+          </button>
+
+        )
+
+        :
+
+        (
+
+          <button
+            onClick={runRestore}
+            disabled={
+              status === "running"
+            }
+            className="
+              rounded-lg
+              border
+              border-green-500
+              px-3
+              py-1
+              text-sm
+              text-green-400
+            "
+          >
+
+            {
+              status === "running"
+
+              ?
+
+              "Restoring..."
+
+              :
+
+              "Start Restore"
+
+            }
+
+          </button>
+
+        )
+
+      }
+
+
+
+
+
+      {
+        message &&
+
+        (
+
+          <p
+            className={`
+              mt-3
+              text-xs
+              ${
+                status === "success"
+                ?
+                "text-green-400"
+                :
+                "text-red-400"
+              }
+            `}
+          >
+            {message}
           </p>
 
         )
+
       }
 
 
