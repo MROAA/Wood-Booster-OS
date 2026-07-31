@@ -1,0 +1,418 @@
+GODFILE:
+
+  id: FINNISH_SEMANTIC_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suomen kielen merkitysten,
+    sävyjen ja ilmaisujen ymmärtämisen moottori.
+
+
+
+LANGUAGE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Sanan merkitys ei aina ole sama
+    kuin sen kirjaimellinen sisältö.
+
+
+
+SEMANTIC_ANALYSIS:
+
+
+  input:
+
+
+    analyze:
+
+      - word
+      - sentence
+      - situation
+      - speaker_intent
+      - cultural_context
+
+
+
+  output:
+
+
+    provide:
+
+      - literal_meaning
+      - intended_meaning
+      - emotional_tone
+      - usage_context
+
+
+
+
+
+IDIOM_ENGINE:
+
+
+  purpose:
+
+    >
+    Tunnistaa suomalaiset sanonnat
+    ja niiden todellisen merkityksen.
+
+
+
+examples:
+
+
+
+  "pitää homma hallussa":
+
+
+    literal:
+
+      >
+      Pitää jotain fyysisesti hallussa.
+
+
+    actual_meaning:
+
+      >
+      Tilanne on hallinnassa.
+
+
+
+  "mennä metsään":
+
+
+    literal:
+
+      >
+      Mennä metsään.
+
+
+    actual_meaning:
+
+      >
+      Tehdä virhe tai epäonnistua.
+
+
+
+  "ottaa härkää sarvista":
+
+
+    literal:
+
+      >
+      Ottaa eläintä sarvista.
+
+
+    actual_meaning:
+
+      >
+      Kohdata vaikea asia rohkeasti.
+
+
+
+  "olla kartalla":
+
+
+    literal:
+
+      >
+      Olla kartan päällä.
+
+
+    actual_meaning:
+
+      >
+      Ymmärtää tilanne.
+
+
+
+
+
+
+TONE_ANALYSIS:
+
+
+  Finnish_communication:
+
+
+    characteristics:
+
+
+      - direct
+      - calm
+      - practical
+      - modest
+      - precise
+
+
+
+  emotional_levels:
+
+
+    neutral:
+
+
+      example:
+
+        >
+        Tämä toimii.
+
+
+
+    positive:
+
+
+      example:
+
+        >
+        Tämä toimii erittäin hyvin.
+
+
+
+    strong_positive:
+
+
+      example:
+
+        >
+        Tämä on erinomainen ratkaisu.
+
+
+
+    negative:
+
+
+      example:
+
+        >
+        Tämä ei toimi vielä.
+
+
+
+
+
+
+FORMALITY_ENGINE:
+
+
+  levels:
+
+
+
+    official:
+
+
+      example:
+
+        >
+        Pyydämme teitä toimittamaan
+        tarvittavat tiedot.
+
+
+
+    professional:
+
+
+      example:
+
+        >
+        Lähetämme tiedot tarkistettavaksi.
+
+
+
+    spoken:
+
+
+      example:
+
+        >
+        Laitan tämän kohta tulemaan.
+
+
+
+
+
+
+ABSTRACT_CONCEPTS:
+
+
+  examples:
+
+
+
+    "laatu":
+
+
+      meanings:
+
+
+        physical:
+
+          >
+          Tuotteen ominaisuudet.
+
+
+        abstract:
+
+          >
+          Työn huolellisuus ja arvo.
+
+
+
+
+
+    "vastuu":
+
+
+      meanings:
+
+
+        personal:
+
+          >
+          Omien tekojen kantaminen.
+
+
+        business:
+
+          >
+          Velvollisuus asiakkaalle.
+
+
+
+
+
+    "luottamus":
+
+
+      meanings:
+
+
+        relationship:
+
+          >
+          Usko toisen toimintaan.
+
+
+        business:
+
+          >
+          Asiakkaan varmuus palvelusta.
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  important_terms:
+
+
+
+    puun_ehdolla:
+
+
+      literal:
+
+        >
+        Puun ehdoilla toimiminen.
+
+
+      deeper_meaning:
+
+        >
+        Materiaalin ominaisuuksien,
+        luonnollisuuden ja ainutlaatuisuuden
+        kunnioittaminen.
+
+
+
+    käsityö:
+
+
+      literal:
+
+        >
+        Käsillä tehty työ.
+
+
+      deeper_meaning:
+
+        >
+        Ihmisen osaaminen,
+        kokemus ja yksilöllinen jälki.
+
+
+
+
+
+AI_INTERPRETATION_RULES:
+
+
+  always:
+
+
+    - analyze context before meaning
+    - identify hidden intention
+    - preserve Finnish expression style
+    - explain ambiguity when needed
+
+
+
+  never:
+
+
+    - translate idioms literally
+    - remove cultural meaning
+    - assume English interpretation
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - new Finnish expressions
+    - technical meanings
+    - Wood-Booster terminology
+    - user-defined concepts
+
+
+
+  forbidden:
+
+
+    - passwords
+    - API keys
+    - private secrets
+
+
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

@@ -1,0 +1,21 @@
+Suomen kielessä vokaalit jakautuvat:
+
+Takavokaalit
+a
+o
+u
+Etuvokaalit
+ä
+ö
+y
+Neutraalit
+e
+i
+
+Päätteet mukautuvat.
+
+Esimerkki:
+
+talossa
+
+kylässä

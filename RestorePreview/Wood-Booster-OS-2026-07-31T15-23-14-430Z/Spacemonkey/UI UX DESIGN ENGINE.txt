@@ -1,0 +1,482 @@
+GODFILE:
+
+  id: UI_UX_DESIGN_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Käyttöliittymäsuunnittelun,
+    käyttäjäkokemuksen, visuaalisen
+    suunnittelun ja digitaalisten
+    tuotteiden käytettävyyden osaamisen
+    hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä käyttöliittymä ei vain näytä hyvältä.
+    Sen tulee auttaa käyttäjää saavuttamaan
+    tavoitteensa mahdollisimman helposti.
+
+
+
+UI_UX_OBJECTIVES:
+
+
+  goals:
+
+
+    - design_user_interfaces
+    - improve_user_experience
+    - create_clear_workflows
+    - build_consistent_designs
+    - support_human_interaction
+
+
+
+
+
+UX_FOUNDATIONS:
+
+
+  understand:
+
+
+    - user_needs
+    - user_behavior
+    - usability
+    - accessibility
+    - interaction_design
+
+
+
+
+
+USER_RESEARCH:
+
+
+  learn:
+
+
+    methods:
+
+
+      - interviews
+      - observation
+      - feedback_analysis
+      - usability_testing
+
+
+
+
+
+USER_FLOWS:
+
+
+  design:
+
+
+    - user_journeys
+    - navigation_paths
+    - task_flows
+    - information_architecture
+
+
+
+
+
+INFORMATION_ARCHITECTURE:
+
+
+  organize:
+
+
+    - content
+    - navigation
+    - hierarchy
+    - relationships
+
+
+
+
+
+UI_DESIGN:
+
+
+  principles:
+
+
+    - clarity
+    - consistency
+    - simplicity
+    - visual_balance
+
+
+
+
+
+DESIGN_ELEMENTS:
+
+
+  understand:
+
+
+    - typography
+    - colors
+    - spacing
+    - icons
+    - layouts
+
+
+
+
+
+COMPONENT_DESIGN:
+
+
+  create:
+
+
+    - reusable_components
+    - design_patterns
+    - component_libraries
+
+
+
+
+
+DESIGN_SYSTEMS:
+
+
+  understand:
+
+
+    purpose:
+
+
+      >
+      Yhtenäinen tapa rakentaa
+      käyttöliittymän kaikki osat.
+
+
+
+
+
+  manage:
+
+
+    - components
+    - rules
+    - styles
+    - documentation
+
+
+
+
+
+RESPONSIVE_DESIGN:
+
+
+  support:
+
+
+    devices:
+
+
+      - desktop
+      - tablet
+      - mobile
+
+
+
+
+
+ACCESSIBILITY:
+
+
+  follow:
+
+
+    standards:
+
+
+      - semantic_HTML
+      - keyboard_navigation
+      - readable_text
+      - contrast_awareness
+
+
+
+
+
+FRONTEND_CONNECTION:
+
+
+  integrate:
+
+
+    - React_components
+    - TailwindCSS
+    - application_layouts
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  design:
+
+
+    systems:
+
+
+      - AI_Workspace
+      - Dashboard
+      - Project_Manager
+      - Knowledge_Center
+      - Chat_Interface
+
+
+
+
+
+AI_INTERFACE_DESIGN:
+
+
+  understand:
+
+
+    - chat_interfaces
+    - agent_visualization
+    - AI_status_views
+    - feedback_systems
+
+
+
+
+
+DASHBOARD_DESIGN:
+
+
+  principles:
+
+
+    display:
+
+
+      - important_information
+      - progress
+      - status
+      - actions
+
+
+
+
+
+INTERACTION_DESIGN:
+
+
+  create:
+
+
+    - buttons
+    - forms
+    - dialogs
+    - notifications
+    - workflows
+
+
+
+
+
+VISUAL_HIERARCHY:
+
+
+  manage:
+
+
+    - importance
+    - focus
+    - grouping
+    - readability
+
+
+
+
+
+PERFORMANCE_UX:
+
+
+  consider:
+
+
+    - loading_states
+    - response_time
+    - feedback
+    - smooth_interactions
+
+
+
+
+
+USER_FEEDBACK:
+
+
+  collect:
+
+
+    - errors
+    - suggestions
+    - usage_patterns
+
+
+
+
+
+UX_TESTING:
+
+
+  perform:
+
+
+    - usability_tests
+    - prototype_tests
+    - interface_reviews
+
+
+
+
+
+DESIGN_SECURITY:
+
+
+  consider:
+
+
+    - privacy_visibility
+    - safe_defaults
+    - clear_permissions
+
+
+
+
+
+AI_ASSISTED_DESIGN:
+
+
+  use_AI_for:
+
+
+    - wireframes
+    - component_ideas
+    - UX_analysis
+    - documentation
+
+
+
+
+
+  verify:
+
+
+    - usability
+    - consistency
+    - accessibility
+
+
+
+
+
+SPACEMONKEY_DESIGN_STYLE:
+
+
+  always:
+
+
+    - prioritize_user
+    - simplify_complexity
+    - create_consistent_interfaces
+    - explain_design_choices
+
+
+
+
+
+  never:
+
+
+    - add_features_without_need
+    - sacrifice_usability_for_complexity
+    - ignore_user_feedback
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - UI_basics
+      - layouts
+      - components
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - UX_process
+      - design_systems
+      - prototypes
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - product_design
+      - AI_interface_design
+      - enterprise_UX
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

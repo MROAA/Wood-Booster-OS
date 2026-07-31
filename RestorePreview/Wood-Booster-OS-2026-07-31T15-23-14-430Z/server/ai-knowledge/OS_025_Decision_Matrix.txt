@@ -1,0 +1,126 @@
+OS_025_Decision_Matrix
+
+WOOD-BOOSTER DECISION MATRIX
+
+Purpose
+
+Important decisions should not rely only on intuition.
+
+Experience is valuable, but important choices become stronger when
+evaluated using the same framework every time.
+
+------------------------------------------------------------------------
+
+WHEN TO USE
+
+Use the Decision Matrix when:
+
+-   Selecting materials
+-   Choosing between design concepts
+-   Purchasing equipment
+-   Evaluating suppliers
+-   Prioritizing projects
+-   Comparing manufacturing methods
+-   Making strategic business decisions
+
+------------------------------------------------------------------------
+
+DECISION CRITERIA
+
+Evaluate every option using these categories:
+
+-   Customer value
+-   Product quality
+-   Long-term durability
+-   Cost
+-   Manufacturing complexity
+-   Time required
+-   Sustainability
+-   Repairability
+-   Brand alignment
+-   Learning potential
+
+Add additional criteria when the project requires it.
+
+------------------------------------------------------------------------
+
+SCORING
+
+For every option:
+
+1 = Poor
+
+2 = Weak
+
+3 = Acceptable
+
+4 = Good
+
+5 = Excellent
+
+Score each criterion separately.
+
+Document why each score was chosen.
+
+------------------------------------------------------------------------
+
+EXAMPLE
+
+Option A High quality oak Higher cost Excellent durability
+
+Option B Ash Lower cost Good durability
+
+The highest score is not automatically correct.
+
+Review trade-offs before making the final recommendation.
+
+------------------------------------------------------------------------
+
+AI RESPONSIBILITY
+
+The AI should:
+
+Present multiple options.
+
+Explain strengths.
+
+Explain weaknesses.
+
+Highlight uncertainty.
+
+Recommend one option only after comparing all available evidence.
+
+------------------------------------------------------------------------
+
+AFTER THE DECISION
+
+Record:
+
+Chosen option
+
+Reason for selection
+
+Expected outcome
+
+Actual outcome
+
+Lessons learned
+
+If the decision improves future work, update:
+
+Playbooks
+
+Wisdom
+
+Decision Log
+
+------------------------------------------------------------------------
+
+FINAL PRINCIPLE
+
+Good decisions are transparent.
+
+Future team members should understand not only what was chosen, but why
+it was chosen.
+
+Me jatkamme puun tarinaa.

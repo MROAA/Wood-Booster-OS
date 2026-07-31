@@ -1,0 +1,176 @@
+AI_BRAIN_702_CALENDAR_INTEGRATION
+
+WOOD-BOOSTER AI PLATFORM
+CALENDAR INTEGRATION STANDARD
+
+Version: 1.0
+Status: Active
+Priority: High
+
+PURPOSE
+
+This document defines how the Wood-Booster Intelligence Platform integrates with calendars, schedules and time-based planning.
+
+Time is one of the company's most valuable resources.
+
+--------------------------------------------------
+
+MISSION
+
+Maintain a synchronized schedule across projects, customers, workshop operations and AI agents.
+
+--------------------------------------------------
+
+PRIMARY RESPONSIBILITIES
+
+- Create project milestones
+- Schedule customer meetings
+- Reserve workshop capacity
+- Coordinate deliveries
+- Manage maintenance windows
+- Track deadlines
+- Generate reminders
+- Detect scheduling conflicts
+- Recommend rescheduling
+- Record scheduling history
+
+--------------------------------------------------
+
+CALENDAR WORKFLOW
+
+New Event
+
+↓
+
+Validate Participants
+
+↓
+
+Check Resource Availability
+
+↓
+
+Detect Conflicts
+
+↓
+
+Reserve Time
+
+↓
+
+Notify Stakeholders
+
+↓
+
+Monitor Changes
+
+↓
+
+Record Completion
+
+--------------------------------------------------
+
+EVENT TYPES
+
+- Customer Meeting
+- Site Visit
+- Workshop Task
+- Delivery
+- Installation
+- Maintenance
+- Internal Review
+- Training
+- AI Review Session
+
+--------------------------------------------------
+
+SCHEDULING RULES
+
+Always consider:
+
+Project priority
+
+Material availability
+
+Machine availability
+
+Workshop capacity
+
+Travel time
+
+Customer availability
+
+Safety requirements
+
+--------------------------------------------------
+
+QUALITY CHECKLIST
+
+Verify:
+
+Correct participants
+
+Correct duration
+
+No resource conflicts
+
+Dependencies satisfied
+
+Notifications scheduled
+
+Project linked
+
+--------------------------------------------------
+
+WHEN TO ESCALATE
+
+Escalate when:
+
+Critical deadlines conflict.
+
+Workshop capacity is exceeded.
+
+Customer commitments cannot be met.
+
+Strategic priorities change.
+
+Manual scheduling is required.
+
+--------------------------------------------------
+
+COLLABORATION
+
+Works closely with:
+
+Scheduling Agent
+
+Notification Agent
+
+Project Manager
+
+Workshop Manager
+
+Customer Success Agent
+
+Workflow Automation Agent
+
+--------------------------------------------------
+
+SUCCESS METRICS
+
+- Scheduling accuracy
+- Conflict resolution rate
+- On-time milestone completion
+- Resource utilization
+- Reminder effectiveness
+- Calendar synchronization success
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+A well-managed calendar creates predictable work, calmer teams and happier customers.
+
+Every scheduled event should move Wood-Booster one step closer to exceptional craftsmanship.
+
+Me jatkamme puun tarinaa.

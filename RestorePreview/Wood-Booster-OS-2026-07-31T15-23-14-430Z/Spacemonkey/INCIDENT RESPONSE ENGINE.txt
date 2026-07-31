@@ -1,0 +1,456 @@
+GODFILE:
+
+  id: INCIDENT_RESPONSE_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tietoturvatapahtumien tunnistamisen,
+    käsittelyn, rajaamisen ja palautumisen
+    turvallisuusmoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Turvallisuusongelmaan reagoidaan
+    hallitusti, nopeasti ja dokumentoidusti.
+
+
+
+INCIDENT_LIFECYCLE:
+
+
+  phases:
+
+
+    detection:
+
+
+      description:
+
+        >
+        Tunnistetaan mahdollinen turvallisuusongelma.
+
+
+
+      actions:
+
+
+        - collect_safe_information
+        - classify_event
+        - determine_severity
+
+
+
+
+
+    analysis:
+
+
+      description:
+
+        >
+        Selvitetään tapahtuman laajuus
+        ilman tarpeetonta tiedon keräämistä.
+
+
+
+      actions:
+
+
+        - identify_affected_component
+        - evaluate_risk
+        - determine_response
+
+
+
+
+
+    containment:
+
+
+      description:
+
+        >
+        Rajataan ongelman vaikutus.
+
+
+
+      actions:
+
+
+        - isolate_component
+        - restrict_access
+        - stop_unsafe_operations
+
+
+
+
+
+    recovery:
+
+
+      description:
+
+        >
+        Palautetaan turvallinen toimintatila.
+
+
+
+      actions:
+
+
+        - verify_system_state
+        - restore_safe_configuration
+        - monitor_recovery
+
+
+
+
+
+    review:
+
+
+      description:
+
+        >
+        Opitaan tapahtumasta.
+
+
+
+      actions:
+
+
+        - document_lessons
+        - improve_controls
+        - update_security_rules
+
+
+
+
+
+INCIDENT_TYPES:
+
+
+  authentication_incident:
+
+
+    examples:
+
+
+      - repeated_failed_logins
+      - unauthorized_access_attempt
+
+
+
+
+
+  data_incident:
+
+
+    examples:
+
+
+      - accidental_exposure
+      - incorrect_access
+
+
+
+
+
+  software_incident:
+
+
+    examples:
+
+
+      - vulnerable_dependency
+      - malicious_component
+
+
+
+
+
+  system_incident:
+
+
+    examples:
+
+
+      - unexpected_behavior
+      - service_failure
+
+
+
+
+
+  AI_SECURITY_INCIDENT:
+
+
+    examples:
+
+
+      - prompt_injection_attempt
+      - unauthorized_instruction
+      - unsafe_output
+
+
+
+
+
+SEVERITY_LEVELS:
+
+
+  LOW:
+
+
+    description:
+
+      >
+      Pieni vaikutus, ei välitöntä vaaraa.
+
+
+
+
+
+  MEDIUM:
+
+
+    description:
+
+      >
+      Vaatii tarkistusta ja korjaavia toimia.
+
+
+
+
+
+  HIGH:
+
+
+    description:
+
+      >
+      Voi vaikuttaa järjestelmän turvallisuuteen.
+
+
+
+
+
+  CRITICAL:
+
+
+    description:
+
+      >
+      Vakava vaikutus järjestelmän tai
+      tietojen turvallisuuteen.
+
+
+
+
+
+RESPONSE_RULES:
+
+
+  always:
+
+
+    - remain_calm
+    - collect_only_needed_information
+    - protect_secrets
+    - prioritize_user_safety
+
+
+
+
+
+SECRET_PROTECTION:
+
+
+  during_incident:
+
+
+    never:
+
+
+      - expose_passwords
+      - expose_API_keys
+      - expose_tokens
+      - expose_private_keys
+
+
+
+
+
+COMPONENT_ISOLATION:
+
+
+  possible_targets:
+
+
+    - AI_Brain
+    - external_service
+    - plugin
+    - dependency
+    - file_system_component
+
+
+
+
+
+ACCESS_RESPONSE:
+
+
+  if_compromise_suspected:
+
+
+    actions:
+
+
+      - review_permissions
+      - restrict_access
+      - require_verification
+
+
+
+
+
+RECOVERY_SECURITY:
+
+
+  before_restore:
+
+
+    verify:
+
+
+      - backup_integrity
+      - configuration_safety
+      - system_state
+
+
+
+
+
+COMMUNICATION:
+
+
+  principles:
+
+
+    - clear_information
+    - accurate_status
+    - no_secret_exposure
+
+
+
+
+
+LOGGING:
+
+
+  record:
+
+
+    - incident_type
+    - timestamp
+    - affected_component
+    - response_status
+
+
+
+  never_record:
+
+
+    - passwords
+    - API_keys
+    - private_credentials
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Wood-Booster-OS
+    - Spacemonkey_Core
+    - AI_Brain
+    - Godfile_database
+    - customer_projects
+
+
+
+
+
+AI_BEHAVIOR:
+
+
+  always:
+
+
+    - detect_security_events
+    - protect_sensitive_information
+    - follow_response_process
+
+
+
+  never:
+
+
+    - ignore_security_events
+    - hide_known_problems
+    - expose_secrets
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - incident_patterns
+    - defensive_improvements
+    - recovery_methods
+
+
+
+  forbidden:
+
+
+    - secret_values
+    - credentials
+    - private_access_data
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

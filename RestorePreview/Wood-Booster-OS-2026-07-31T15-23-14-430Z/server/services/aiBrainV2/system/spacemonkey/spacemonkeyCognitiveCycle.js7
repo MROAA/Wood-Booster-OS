@@ -1,0 +1,341 @@
+import {
+  detectIntent,
+} from "./spacemonkeyIntentEngine.js"
+
+
+import {
+  analyzeCodingRequest,
+} from "./spacemonkeyCodingAnalyzer.js"
+
+
+import {
+  resolveCodingContext,
+} from "./spacemonkeyCodingContextResolver.js"
+
+
+import {
+  inspectCodeFile,
+} from "./spacemonkeyCodeInspection.js"
+
+
+import {
+  understandCode,
+} from "./spacemonkeyCodeUnderstanding.js"
+
+
+import {
+  createCodeChangePlan,
+} from "./spacemonkeyCodeChangePlanner.js"
+
+
+import {
+  runCodePipeline,
+} from "./spacemonkeyCodePipeline.js"
+
+
+import {
+  evaluateInformation,
+} from "./spacemonkeyTruthEngine.js"
+
+
+import {
+  evaluateAction,
+} from "./spacemonkeyValueAlignment.js"
+
+
+import {
+  analyzeThinkingApproach,
+} from "./spacemonkeyCognitiveStyle.js"
+
+
+import {
+  createInvestigation,
+} from "./spacemonkeyCuriosityEngine.js"
+
+
+import {
+  evaluateDecision,
+} from "../../../../../Spacemonkey/core/spacemonkeyDecisionBridge.js"
+
+
+import {
+  buildMVPPlan,
+} from "./spacemonkeyPlanningEngine.js"
+
+
+import {
+  retrieveRelevantMemories,
+} from "./spacemonkeyMemoryRetrieval.js"
+
+
+import {
+  findMemory,
+  saveMemory,
+} from "./spacemonkeyPersistentMemory.js"
+
+
+import {
+  evaluateMemoryImportance,
+} from "./spacemonkeyMemoryIntelligence.js"
+
+
+import {
+  evaluateMemoryQuality,
+} from "./spacemonkeyMemoryQuality.js"
+
+
+import {
+  createUserProfile,
+} from "./spacemonkeyUserProfile.js"
+
+
+
+const cycleHistory = []
+
+
+
+async function runCognitiveCycle({
+
+  message,
+
+  prisma
+
+}) {
+
+
+  const context = {
+
+    input:
+      message,
+
+    startedAt:
+      new Date().toISOString()
+
+  }
+
+
+
+  const intent =
+    detectIntent({
+      message
+    })
+
+
+  const allMemories =
+    await findMemory({
+      prisma
+    })
+
+
+
+  const recalledMemory =
+    retrieveRelevantMemories({
+
+      query:
+        message,
+
+      memories:
+        allMemories
+
+    })
+
+
+
+  const memoryContext =
+    recalledMemory.memories || []
+
+
+
+  const userProfile =
+    createUserProfile({
+
+      memories:
+        memoryContext
+
+    })
+
+
+
+  const truth =
+    evaluateInformation({
+
+      information:
+        message
+
+    })
+
+
+
+  const values =
+    evaluateAction({
+
+      action:
+
+`
+Autan käyttäjää.
+
+Toimin totuudenmukaisesti.
+
+Vältän keksittyä tietoa.
+
+Teen selkeitä ratkaisuja.
+
+Etenen turvallisesti.
+
+Käyttäjän pyyntö:
+
+${message}
+`
+
+    })
+
+
+
+  const decision =
+    evaluateDecision({
+
+      options:
+
+      [
+
+        {
+
+          name:
+            "Analysoi, suunnittele ja auta käyttäjää",
+
+          truthScore:
+            truth.confidence,
+
+          goalAlignment:
+            0.8,
+
+          valueAlignment:
+            values.score,
+
+          risk:
+            0.1
+
+        }
+
+      ]
+
+    })
+
+
+
+  const plan =
+    buildMVPPlan({
+
+      goal:
+        message,
+
+      decision:
+        decision.decision.selected
+
+    })
+
+
+
+
+
+  const cycle = {
+
+
+    status:
+      "completed",
+
+
+    context,
+
+
+    intent,
+
+
+    userProfile,
+
+
+    memory:
+
+    {
+
+      recalled:
+        recalledMemory
+
+    },
+
+
+    truth,
+
+
+    values,
+
+
+    decision,
+
+
+    plan,
+
+
+    completedAt:
+      new Date().toISOString()
+
+  }
+
+
+
+  cycleHistory.push(
+    cycle
+  )
+
+
+
+  return cycle
+
+}
+
+
+
+
+
+function getCycleHistory(){
+
+  return [
+
+    ...cycleHistory
+
+  ]
+
+}
+
+
+
+
+
+function getCycleStatus(){
+
+  return {
+
+    engine:
+      "Spacemonkey Cognitive Cycle",
+
+    version:
+      "1.3.0",
+
+    cycles:
+      cycleHistory.length
+
+  }
+
+}
+
+
+
+export {
+
+  runCognitiveCycle,
+
+  getCycleHistory,
+
+  getCycleStatus
+
+}

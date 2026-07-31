@@ -1,0 +1,488 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap");
+
+@import "tailwindcss";
+
+
+
+:root {
+
+
+  /*
+  =================================
+  WOOD-BOOSTER OS COLOR SYSTEM V2
+  =================================
+  */
+
+
+  --wood-background:
+    #0D0B09;
+
+
+  --wood-panel:
+    #181411;
+
+
+  --wood-panel-dark:
+    #12100E;
+
+
+  --wood-border:
+    #30251F;
+
+
+  --wood-border-soft:
+    #241C17;
+
+
+  --wood-accent:
+    #8FAF9E;
+
+
+  --wood-accent-soft:
+    rgba(143,175,158,0.12);
+
+
+  --wood-green:
+    #7FA889;
+
+
+  --wood-warning:
+    #B49A6A;
+
+
+  --wood-text:
+    #F1ECE4;
+
+
+  --wood-muted:
+    #A79C91;
+
+
+
+
+
+  /*
+  =================================
+  GOLDEN RATIO SYSTEM
+  =================================
+  */
+
+
+  --golden-ratio:
+    1.618033988749;
+
+
+
+  --sidebar-width:
+    280px;
+
+
+
+  --operator-width:
+    340px;
+
+
+
+  --panel-radius:
+    18px;
+
+
+}
+
+
+
+
+
+
+
+
+html {
+
+
+  background:
+    var(--wood-background);
+
+
+}
+
+
+
+
+
+
+
+
+body {
+
+
+  margin:0;
+
+
+  min-width:320px;
+
+
+  min-height:100vh;
+
+
+  background:
+    var(--wood-background);
+
+
+  color:
+    var(--wood-text);
+
+
+  font-family:
+    "Inter",
+    sans-serif;
+
+
+  text-rendering:
+    optimizeLegibility;
+
+
+}
+
+
+
+
+
+
+
+
+/*
+=================================
+TYPOGRAPHY
+=================================
+*/
+
+
+
+h1,
+h2,
+h3,
+h4 {
+
+
+  font-family:
+    "Cinzel",
+    serif;
+
+
+  font-weight:
+    600;
+
+
+  color:
+    var(--wood-text);
+
+
+  letter-spacing:
+    0.03em;
+
+
+  text-shadow:
+    0 2px 8px rgba(0,0,0,0.55);
+
+
+}
+
+
+
+
+
+
+
+p,
+span,
+label,
+button,
+input,
+textarea {
+
+
+  text-shadow:
+    0 1px 2px rgba(0,0,0,0.45);
+
+
+}
+
+
+
+
+
+
+
+.spacemonkey-title {
+
+
+  font-family:
+    "Cinzel",
+    serif;
+
+
+  letter-spacing:
+    0.06em;
+
+
+}
+
+
+
+
+
+
+
+
+button,
+input,
+textarea {
+
+
+  font:
+    inherit;
+
+
+}
+
+
+
+
+
+
+
+button {
+
+
+  cursor:pointer;
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+=================================
+WOOD COMPONENTS
+=================================
+*/
+
+
+
+.wb-panel {
+
+
+  background:
+    var(--wood-panel);
+
+
+  border:
+    1px solid var(--wood-border);
+
+
+  border-radius:
+    var(--panel-radius);
+
+
+}
+
+
+
+
+
+
+
+.wb-panel-dark {
+
+
+  background:
+    var(--wood-panel-dark);
+
+
+  border:
+    1px solid var(--wood-border-soft);
+
+
+}
+
+
+
+
+
+
+
+.wb-background {
+
+
+  background:
+    var(--wood-background);
+
+
+}
+
+
+
+
+
+
+
+.wb-text {
+
+
+  color:
+    var(--wood-text);
+
+
+}
+
+
+
+
+
+
+
+.wb-muted {
+
+
+  color:
+    var(--wood-muted);
+
+
+}
+
+
+
+
+
+
+
+.wb-accent {
+
+
+  color:
+    var(--wood-accent);
+
+
+}
+
+
+
+
+
+
+
+.wb-online {
+
+
+  color:
+    var(--wood-green);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+=================================
+SCROLLBAR
+=================================
+*/
+
+
+
+::-webkit-scrollbar {
+
+
+  width:
+    8px;
+
+
+}
+
+
+
+
+::-webkit-scrollbar-track {
+
+
+  background:
+    var(--wood-background);
+
+
+}
+
+
+
+
+::-webkit-scrollbar-thumb {
+
+
+  background:
+    var(--wood-border);
+
+
+  border-radius:
+    20px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+=================================
+PRINT
+=================================
+*/
+
+
+
+@media print {
+
+
+  html,
+  body {
+
+
+    background:
+      white !important;
+
+
+    color:
+      black !important;
+
+
+  }
+
+
+
+
+  aside,
+  .no-print {
+
+
+    display:none !important;
+
+
+  }
+
+
+}

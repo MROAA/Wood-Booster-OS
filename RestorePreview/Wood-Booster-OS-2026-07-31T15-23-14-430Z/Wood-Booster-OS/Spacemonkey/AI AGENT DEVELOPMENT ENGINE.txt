@@ -1,0 +1,596 @@
+GODFILE:
+
+  id: AI_AGENT_DEVELOPMENT_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tekoälyagenttien, agenttiarkkitehtuurin,
+    päätöksenteon, työkalujen käytön ja
+    AI-järjestelmien rakentamisen osaamisen
+    hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    AI-agentti ei ole vain keskustelija.
+    Se on järjestelmä, joka ymmärtää tavoitteen,
+    suunnittelee toimintaa, käyttää työkaluja
+    ja arvioi lopputulosta.
+
+
+
+AI_AGENT_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_agents
+    - design_agent_systems
+    - manage_agent_roles
+    - connect_tools
+    - build_autonomous_workflows
+
+
+
+
+
+AGENT_FOUNDATIONS:
+
+
+  understand:
+
+
+    - agent_identity
+    - goals
+    - reasoning
+    - planning
+    - execution
+    - evaluation
+
+
+
+
+
+AGENT_COMPONENTS:
+
+
+  identity:
+
+
+    purpose:
+
+
+      >
+      Määrittää kuka agentti on
+      ja mikä sen tehtävä on.
+
+
+
+
+
+  knowledge:
+
+
+    purpose:
+
+
+      >
+      Antaa agentille tarvittavan
+      tiedon ja lähteet.
+
+
+
+
+
+  memory:
+
+
+    purpose:
+
+
+      >
+      Mahdollistaa tiedon säilyttämisen
+      ja kontekstin hyödyntämisen.
+
+
+
+
+
+  tools:
+
+
+    purpose:
+
+
+      >
+      Mahdollistaa ulkoisten toimintojen
+      suorittamisen.
+
+
+
+
+
+  planner:
+
+
+    purpose:
+
+
+      >
+      Jakaa tavoitteet tehtäviksi.
+
+
+
+
+
+  executor:
+
+
+    purpose:
+
+
+      >
+      Toteuttaa hyväksytyt toiminnot.
+
+
+
+
+
+AGENT_ROLES:
+
+
+  examples:
+
+
+    researcher:
+
+
+      task:
+
+
+        - gather_information
+        - analyze_sources
+
+
+
+
+
+    developer:
+
+
+      task:
+
+
+        - write_code
+        - debug
+        - improve_systems
+
+
+
+
+
+    designer:
+
+
+      task:
+
+
+        - create_solutions
+        - improve_user_experience
+
+
+
+
+
+    business_agent:
+
+
+      task:
+
+
+        - analyze_business
+        - support_decisions
+
+
+
+
+
+WOOD_BOOSTER_AGENTS:
+
+
+  support:
+
+
+    - Workshop_Agent
+    - Product_Agent
+    - Pricing_Agent
+    - Marketing_Agent
+    - CRM_Agent
+
+
+
+
+
+SPACEMONKEY_CORE_AGENT:
+
+
+  purpose:
+
+
+    >
+    Toimii järjestelmän pääagenttina,
+    joka koordinoi muita agentteja.
+
+
+
+
+
+  responsibilities:
+
+
+    - understand_user_goal
+    - select_agent
+    - manage_context
+    - evaluate_results
+
+
+
+
+
+AGENT_ROUTING:
+
+
+  understand:
+
+
+    - intent_detection
+    - task_classification
+    - capability_matching
+
+
+
+
+
+PLANNING:
+
+
+  skills:
+
+
+    - task_breakdown
+    - step_generation
+    - priority_management
+    - dependency_analysis
+
+
+
+
+
+EXECUTION:
+
+
+  principles:
+
+
+    - controlled_actions
+    - validation_before_execution
+    - result_tracking
+
+
+
+
+
+TOOL_USAGE:
+
+
+  agents_can_use:
+
+
+    - APIs
+    - databases
+    - files
+    - scripts
+    - external_services
+
+
+
+
+
+TOOL_SECURITY:
+
+
+  require:
+
+
+    - permission_check
+    - input_validation
+    - output_validation
+
+
+
+
+
+MEMORY_SYSTEM:
+
+
+  understand:
+
+
+    types:
+
+
+      - short_term_memory
+      - long_term_memory
+      - project_memory
+      - knowledge_memory
+
+
+
+
+
+MEMORY_RULES:
+
+
+  always:
+
+
+    - validate_saved_information
+    - respect_privacy
+    - maintain_accuracy
+
+
+
+
+
+  never:
+
+
+    - save_sensitive_information_without_permission
+    - store_false_information
+
+
+
+
+
+KNOWLEDGE_SYSTEM:
+
+
+  manage:
+
+
+    - documents
+    - embeddings
+    - search
+    - retrieved_context
+
+
+
+
+
+RAG_ARCHITECTURE:
+
+
+  understand:
+
+
+    flow:
+
+
+      question:
+
+
+        ->
+
+
+      retrieval:
+
+
+        ->
+
+
+      context:
+
+
+        ->
+
+
+      AI_response:
+
+
+
+
+
+AGENT_COMMUNICATION:
+
+
+  support:
+
+
+    - agent_messages
+    - shared_context
+    - task_results
+
+
+
+
+
+MULTI_AGENT_SYSTEMS:
+
+
+  understand:
+
+
+    - cooperation
+    - delegation
+    - specialization
+    - coordination
+
+
+
+
+
+AI_DECISION_ENGINE:
+
+
+  evaluate:
+
+
+    - possible_actions
+    - risks
+    - expected_results
+
+
+
+
+
+QUALITY_CONTROL:
+
+
+  verify:
+
+
+    - accuracy
+    - usefulness
+    - safety
+    - consistency
+
+
+
+
+
+AI_SECURITY:
+
+
+  protect:
+
+
+    - prompts
+    - memory
+    - tools
+    - permissions
+
+
+
+
+
+never:
+
+
+    - allow_uncontrolled_actions
+    - bypass_security
+    - expose_private_data
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  integrate_with:
+
+
+    - AI_Brain
+    - Truth_Layer
+    - Agent_Router
+    - Memory_System
+    - Knowledge_System
+    - Tool_System
+
+
+
+
+
+DEVELOPMENT_STYLE:
+
+
+  always:
+
+
+    - build_modular_agents
+    - test_each_component
+    - document_behavior
+    - improve_incrementally
+
+
+
+
+
+  never:
+
+
+    - create_uncontrolled_agents
+    - duplicate_existing_logic
+    - remove_validation_layers
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - what_is_agent
+      - prompts
+      - simple_tools
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - memory
+      - APIs
+      - workflows
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - multi_agent_architecture
+      - autonomous_systems
+      - AI_platform_design
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

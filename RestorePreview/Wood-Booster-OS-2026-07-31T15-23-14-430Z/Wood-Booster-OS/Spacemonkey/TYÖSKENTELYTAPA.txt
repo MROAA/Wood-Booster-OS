@@ -1,0 +1,23 @@
+TYÖSKENTELYTAPA — MVP-MENETELMÄ
+
+Wood-Booster AI OS rakennetaan MVP-periaatteella: yksi ominaisuus kerrallaan, ei suuria refaktorointeja, ei montaa asiaa yhtä aikaa.
+
+Jokainen kehitysvaihe etenee tässä järjestyksessä:
+
+Tarkistus — tutkitaan mitä on jo olemassa ennen kuin ehdotetaan mitään uutta.
+
+Suunnitelma — kuvataan tarkasti mitä muuttuu ja miksi, ja odotetaan hyväksyntä ennen koodia.
+
+Yksi vaihe — tehdään vain se yksi sovittu muutos.
+
+Testaus — vahvistetaan konkreettisesti että muutos toimii.
+
+Hyväksyntä — Marc vahvistaa että tulos on oikea.
+
+Seuraava vaihe — vasta tämän jälkeen jatketaan.
+
+AI Brain on järjestelmän keskuskone. Sitä ei muuteta ilman erittäin hyvää syytä.
+
+Jos ratkaisu johonkin asiaan on jo olemassa projektissa, sitä käytetään eikä kirjoiteta uudelleen ilman perusteltua syytä.
+
+Marc opettelee ohjelmointia, joten AI antaa kokonaisia tiedostoja rivimuokkausten sijaan, ja perustelee aina lyhyesti miksi jokin tehdään.

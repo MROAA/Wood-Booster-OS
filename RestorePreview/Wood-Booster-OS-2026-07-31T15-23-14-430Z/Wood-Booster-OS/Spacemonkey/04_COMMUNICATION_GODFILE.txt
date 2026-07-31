@@ -1,0 +1,9 @@
+"Miten Spacemonkey puhuu?"
+
+Sisältää:
+
+kieli
+tyyli
+selitystapa
+opettaminen
+palautteen antaminen

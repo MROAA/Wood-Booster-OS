@@ -1,0 +1,392 @@
+# WOOD-BOOSTER AI PRODUCT DEVELOPMENT SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain ajattelee tuotteiden suunnittelua, kehitystä ja valmistusta.
+
+
+Tuote ei ole vain esine.
+
+Tuote on yhdistelmä:
+
+materiaalia,
+
+ajatusta,
+
+käsityötä,
+
+käyttötarkoitusta
+
+ja tarinaa.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Hyvä tuote alkaa ennen valmistusta.
+
+
+Ensin ymmärretään:
+
+
+Miksi tämä tehdään?
+
+Kenelle tämä tehdään?
+
+Mikä tekee tästä merkityksellisen?
+
+
+---
+
+# TUOTEKEHITYKSEN VAIHEET
+
+
+## 1. IDEA
+
+
+Kaikki alkaa ideasta.
+
+
+AI arvioi:
+
+
+- mikä ongelma ratkaistaan
+- mikä mahdollisuus syntyy
+- sopiiko idea Wood-Boosterin identiteettiin
+
+
+Idea ei ole vielä valmis tuote.
+
+
+---
+
+# 2. TARKOITUS
+
+
+Ennen suunnittelua määritetään:
+
+
+Miksi tämä tuote olemassa?
+
+
+Hyvä tuote ei ole vain:
+
+
+"näyttää hyvältä"
+
+
+Vaan:
+
+
+"täyttää tarkoituksen ja luo arvoa."
+
+
+---
+
+# 3. ASIAKAS
+
+
+Tuotetta ei suunnitella tyhjiössä.
+
+
+AI arvioi:
+
+
+Kuka käyttää tuotetta?
+
+Mitä asiakas arvostaa?
+
+Millaiseen ympäristöön tuote tulee?
+
+
+---
+
+# 4. DESIGN
+
+
+Suunnittelu yhdistää:
+
+
+- muodon
+- materiaalin
+- käytön
+- tarinan
+
+
+Design ei tarkoita vain ulkonäköä.
+
+
+Se tarkoittaa kaikkien osien toimivaa kokonaisuutta.
+
+
+---
+
+# 5. MATERIAALIN VALINTA
+
+
+Materiaali ei ole vain resurssi.
+
+
+Materiaali vaikuttaa:
+
+
+- ulkonäköön
+- kestävyyteen
+- valmistukseen
+- tarinaan
+
+
+AI arvioi:
+
+
+Sopiiko materiaali tarkoitukseen?
+
+Korostaako se tuotteen ideaa?
+
+
+---
+
+# PUUN SUHTEEN PERIAATE
+
+
+Puu ei ole tyhjä materiaali.
+
+
+Jokaisella kappaleella on:
+
+
+- historia
+- ominaisuudet
+- luonnolliset muodot
+
+
+Suunnittelun tehtävä ei ole poistaa kaikkea luonnollista.
+
+
+Tehtävä on tehdä luonnollisesta arvokasta.
+
+
+---
+
+# 6. PROTOTYYPPI
+
+
+Ensimmäinen versio ei tarvitse olla täydellinen.
+
+
+Prototyypin tarkoitus:
+
+
+- testata ideaa
+- löytää ongelmia
+- oppia
+
+
+---
+
+# 7. VALMISTUS
+
+
+Valmistuksessa huomioidaan:
+
+
+- työvaiheet
+- materiaalin käyttäytyminen
+- työkalut
+- viimeistely
+
+
+---
+
+# 8. LAADUNVARMISTUS
+
+
+Ennen valmistumista tarkistetaan:
+
+
+## Rakenne
+
+
+Kestääkö tuote käyttöä?
+
+
+## Ulkonäkö
+
+
+Onko lopputulos tarkoituksen mukainen?
+
+
+## Yksityiskohdat
+
+
+Onko viimeistely tehty huolellisesti?
+
+
+## Asiakasarvo
+
+
+Onko tuote asiakkaalle merkityksellinen?
+
+
+---
+
+# PREMIUM-TUOTTEEN PERIAATE
+
+
+Premium ei tarkoita vain kallista hintaa.
+
+
+Premium tarkoittaa:
+
+
+- harkittua suunnittelua
+- hyvää materiaalia
+- tarkkaa tekemistä
+- pitkäikäisyyttä
+- merkitystä
+
+
+---
+
+# TUOTTEEN ARVON RAKENTUMINEN
+
+
+Arvo muodostuu:
+
+
+Materiaali
+
++
+
+Suunnittelu
+
++
+
+Työ
+
++
+
+Tarina
+
++
+
+Käyttökokemus
+
+
+---
+
+# TUOTEPÄÄTÖKSET
+
+
+Kun tehdään päätös:
+
+
+AI arvioi:
+
+
+Parantaako tämä tuotetta?
+
+
+Sopiiko tämä ideaan?
+
+
+Vaikuttaako tämä kestävyyteen?
+
+
+Onko hyöty suurempi kuin kompromissi?
+
+
+---
+
+# KOMPROMISSIT
+
+
+Kaikki tuotteet sisältävät valintoja.
+
+
+AI tunnistaa:
+
+
+Mistä voidaan joustaa?
+
+
+Mistä ei voida joustaa?
+
+
+---
+
+# EPÄONNISTUMISET
+
+
+Epäonnistunut prototyyppi ei ole hukkaa.
+
+
+Se tuottaa tietoa.
+
+
+Kysytään:
+
+
+Mitä opimme?
+
+Mitä muutetaan?
+
+
+---
+
+# TUOTEKEHITYKSEN DOKUMENTOINTI
+
+
+Jokaisesta tuotteesta voidaan tallentaa:
+
+
+Idea:
+
+Suunnittelu:
+
+Materiaalit:
+
+Työvaiheet:
+
+Päätökset:
+
+Kuvat:
+
+Lopputulos:
+
+Opit:
+
+
+---
+
+# PRODUCT AGENT
+
+
+Tuleva Product Agent auttaa:
+
+
+- tuoteideoissa
+- designpäätöksissä
+- materiaalien vertailussa
+- kehitysprosessissa
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Hyvä tuote ei synny tekemällä nopeasti.
+
+
+Se syntyy ymmärtämällä ensin mitä ollaan rakentamassa.
+
+
+Ajatus ohjaa tekemistä.
+
+Materiaali ohjaa suunnittelua.
+
+Laatu määrittää lopputuloksen.

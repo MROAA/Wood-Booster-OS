@@ -1,0 +1,178 @@
+@keyframes woodFloat {
+
+  0% {
+    transform: translateY(0);
+  }
+
+
+  50% {
+    transform: translateY(-4px);
+  }
+
+
+  100% {
+    transform: translateY(0);
+  }
+
+}
+
+
+
+
+
+@keyframes systemPulse {
+
+  0% {
+    opacity: 0.7;
+  }
+
+
+  50% {
+    opacity: 1;
+  }
+
+
+  100% {
+    opacity: 0.7;
+  }
+
+}
+
+
+
+
+
+@keyframes softGlow {
+
+  0% {
+    box-shadow: 0 0 0 rgba(120,90,50,0);
+  }
+
+
+  50% {
+    box-shadow:
+      0 0 18px
+      rgba(120,90,50,0.15);
+  }
+
+
+  100% {
+    box-shadow: 0 0 0 rgba(120,90,50,0);
+  }
+
+}
+
+
+
+
+
+@keyframes messageAppear {
+
+  from {
+
+    opacity: 0;
+
+    transform:
+      translateY(8px);
+
+  }
+
+
+  to {
+
+    opacity: 1;
+
+    transform:
+      translateY(0);
+
+  }
+
+}
+
+
+
+
+
+.wood-float {
+
+  animation:
+    woodFloat
+    5s
+    ease-in-out
+    infinite;
+
+}
+
+
+
+
+
+.system-pulse {
+
+  animation:
+    systemPulse
+    3s
+    ease-in-out
+    infinite;
+
+}
+
+
+
+
+
+.soft-glow {
+
+  animation:
+    softGlow
+    4s
+    ease-in-out
+    infinite;
+
+}
+
+
+
+
+
+.message-appear {
+
+  animation:
+    messageAppear
+    350ms
+    ease-out;
+
+}
+
+
+
+
+
+.wood-hover {
+
+  transition:
+
+    transform
+    250ms
+    ease,
+
+    border-color
+    250ms
+    ease,
+
+    box-shadow
+    250ms
+    ease;
+
+}
+
+
+
+
+
+.wood-hover:hover {
+
+  transform:
+    translateY(-3px);
+
+}

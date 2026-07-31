@@ -1,0 +1,372 @@
+GODFILE:
+
+  id: FINNISH_CONTEXT_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suomen kielen merkityksen ymmärtämisen moottori.
+    Analysoi sanojen merkitystä asiayhteyden,
+    tilanteen ja ympäröivien sanojen perusteella.
+
+
+
+LANGUAGE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Suomen kielessä sanan todellinen merkitys
+    määräytyy usein kontekstin perusteella.
+
+
+
+CONTEXT_ANALYSIS:
+
+
+  input:
+
+    analyze:
+
+      - word
+      - sentence
+      - surrounding_words
+      - topic
+      - user_intent
+
+
+
+  output:
+
+
+    provide:
+
+      - possible_meanings
+      - selected_meaning
+      - reasoning
+
+
+
+
+
+AMBIGUOUS_WORD_ENGINE:
+
+
+  kuusi:
+
+
+    meanings:
+
+
+      tree:
+
+
+        meaning:
+
+          >
+          Havupuu.
+
+
+        example:
+
+          >
+          Metsässä kasvaa suuri kuusi.
+
+
+
+      number:
+
+
+        meaning:
+
+          >
+          Numero 6.
+
+
+        example:
+
+          >
+          Ostin kuusi kappaletta levyjä.
+
+
+
+
+
+  kieli:
+
+
+    meanings:
+
+
+      language:
+
+
+        example:
+
+          >
+          Suomen kieli on kaunis.
+
+
+
+      body_part:
+
+
+        example:
+
+          >
+          Kieli auttaa puhumaan.
+
+
+
+
+
+  pää:
+
+
+    meanings:
+
+
+      body:
+
+
+        example:
+
+          >
+          Pään päällä on hattu.
+
+
+
+      beginning:
+
+
+        example:
+
+          >
+          Projektin pää on suunnitteluvaihe.
+
+
+
+      leader:
+
+
+        example:
+
+          >
+          Yrityksen päättäjä.
+
+
+
+
+
+  runko:
+
+
+    meanings:
+
+
+      tree:
+
+
+        example:
+
+          >
+          Puun runko säilytetään näkyvänä.
+
+
+
+      structure:
+
+
+        example:
+
+          >
+          Ohjelmiston runko rakennettiin ensin.
+
+
+
+      vehicle:
+
+
+        example:
+
+          >
+          Auton runko vaurioitui.
+
+
+
+
+
+DOMAIN_CONTEXT:
+
+
+  woodworking:
+
+
+    priority_words:
+
+
+      - puu
+      - materiaali
+      - pöytä
+      - epoksi
+      - saha
+      - työpaja
+
+
+    interpretation:
+
+      >
+      Valitsee puualan merkitykset
+      kun ympäristö liittyy valmistukseen.
+
+
+
+
+
+  programming:
+
+
+    priority_words:
+
+
+      - koodi
+      - palvelin
+      - ohjelma
+      - moduuli
+      - tietokanta
+
+
+    interpretation:
+
+      >
+      Valitsee teknisen merkityksen.
+
+
+
+
+
+  business:
+
+
+    priority_words:
+
+
+      - asiakas
+      - tarjous
+      - myynti
+      - projekti
+
+
+    interpretation:
+
+      >
+      Valitsee yritysmerkityksen.
+
+
+
+
+
+DECISION_RULES:
+
+
+  when_multiple_meanings:
+
+
+    process:
+
+
+      1:
+
+        analyze_topic
+
+
+      2:
+
+        analyze_neighbor_words
+
+
+      3:
+
+        compare_known_patterns
+
+
+      4:
+
+        select_highest_probability_meaning
+
+
+      5:
+
+        ask_if_uncertain
+
+
+
+
+
+AI_BEHAVIOR:
+
+
+  rules:
+
+
+    always:
+
+
+      - explain ambiguity when useful
+      - preserve Finnish meaning
+      - use context before translation
+
+
+
+    never:
+
+
+      - assume first dictionary meaning
+      - translate without context
+      - ignore Finnish word flexibility
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - new_words
+    - user_defined_terms
+    - industry_specific_terms
+    - Wood_Booster_vocabulary
+
+
+
+  forbidden:
+
+
+    - passwords
+    - secrets
+    - private_keys
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

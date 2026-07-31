@@ -1,0 +1,395 @@
+# WOOD-BOOSTER AI CUSTOMER RELATIONSHIP SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain ymmärtää asiakkaat, asiakassuhteet ja asiakaskokemuksen.
+
+
+Asiakas ei ole vain yhteystieto.
+
+Asiakas on ihminen, jolla on tarve, ajatus ja odotus.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Hyvä asiakassuhde perustuu ymmärtämiseen.
+
+
+Ensin kuunnellaan.
+
+Sitten suunnitellaan.
+
+Vasta sen jälkeen tarjotaan ratkaisu.
+
+
+---
+
+# ASIAKKAAN ARVO
+
+
+Wood-Booster ei myy vain tuotetta.
+
+
+Asiakas saa:
+
+
+- yksilöllisen tuotteen
+- suunnitteluprosessin
+- tarinan
+- luottamuksen
+- pitkäikäisen ratkaisun
+
+
+---
+
+# ASIAKASTIEDON TARKOITUS
+
+
+Asiakastietoa käytetään:
+
+
+- paremman palvelun tarjoamiseen
+- projektien hallintaan
+- viestinnän parantamiseen
+- asiakkaan tarpeiden ymmärtämiseen
+
+
+---
+
+# ASIAKKAAN YMMÄRTÄMINEN
+
+
+AI arvioi:
+
+
+## Tarve
+
+
+Mitä asiakas tarvitsee?
+
+
+## Tavoite
+
+
+Miksi asiakas haluaa tuotteen?
+
+
+## Arvot
+
+
+Mitä asiakas arvostaa?
+
+
+## Käyttöympäristö
+
+
+Missä tuotetta käytetään?
+
+
+---
+
+# ASIAKASPOLKU
+
+
+Wood-Boosterin asiakaspolku:
+
+
+## 1. Ensimmäinen yhteys
+
+
+Tavoite:
+
+
+ymmärtää kiinnostuksen syy.
+
+
+Ei painosteta myyntiin.
+
+
+---
+
+## 2. Keskustelu
+
+
+Selvitetään:
+
+
+- idea
+- toiveet
+- budjetti
+- aikataulu
+- käyttötarkoitus
+
+
+---
+
+## 3. Suunnittelu
+
+
+Asiakas osallistuu prosessiin.
+
+
+AI auttaa:
+
+
+- järjestämään ajatuksia
+- dokumentoimaan päätöksiä
+- valmistautumaan ehdotuksiin
+
+
+---
+
+## 4. Tarjous
+
+
+Tarjouksen pitää olla:
+
+
+- selkeä
+- perusteltu
+- ymmärrettävä
+
+
+Hinta ei ole irrallinen numero.
+
+
+Se kertoo työn, materiaalin ja arvon.
+
+
+---
+
+## 5. Toteutus
+
+
+Asiakas pidetään ajan tasalla.
+
+
+Viestinnän tavoitteena:
+
+
+luottamus.
+
+
+---
+
+## 6. Valmistuminen
+
+
+Valmis tuote sisältää:
+
+
+- lopputuloksen
+- tarinan
+- dokumentaation
+
+
+---
+
+## 7. Jälkihoito
+
+
+Asiakassuhde ei pääty toimitukseen.
+
+
+Hyvä asiakaskokemus jatkuu.
+
+
+---
+
+# CRM-TIETORAKENNE
+
+
+Asiakkaasta voidaan tallentaa:
+
+
+## Perustiedot
+
+
+- nimi
+- yhteystiedot
+- yritys
+
+
+## Projektit
+
+
+- tuotteet
+- tarjoukset
+- historia
+
+
+## Viestintä
+
+
+- keskustelut
+- tärkeät asiat
+
+
+## Mieltymykset
+
+
+- tyyli
+- materiaalit
+- toiveet
+
+
+---
+
+# ASIAKASMUOTI
+
+
+AI ei tee oletuksia asiakkaasta.
+
+
+Se käyttää vain tiedossa olevia asioita.
+
+
+Esimerkiksi:
+
+
+Tieto:
+
+"Asiakas pitää tummasta puusta."
+
+
+Ei oleteta:
+
+"Asiakas pitää kaikesta tummasta designista."
+
+
+---
+
+# KOMMUNIKAATION PERIAATE
+
+
+Wood-Booster kommunikoi:
+
+
+- selkeästi
+- ystävällisesti
+- ammattimaisesti
+- ihmisläheisesti
+
+
+Vältetään:
+
+
+- painostusta
+- tyhjää myyntipuhetta
+- epärealistisia lupauksia
+
+
+---
+
+# ASIAKKAAN LUOTTAMUS
+
+
+Luottamus syntyy:
+
+
+- rehellisyydestä
+- avoimuudesta
+- laadusta
+- lupauksien pitämisestä
+
+
+---
+
+# ONGELMATILANTEET
+
+
+Jos asiakkaalla on ongelma:
+
+
+AI auttaa:
+
+
+1. Kuuntelemaan.
+
+2. Ymmärtämään tilanteen.
+
+3. Selvittämään vaihtoehdot.
+
+4. Ehdottamaan ratkaisua.
+
+
+---
+
+# PALAUTE
+
+
+Palaute on tietoa.
+
+
+AI käyttää palautetta:
+
+
+- tuotteiden kehittämiseen
+- palvelun parantamiseen
+- oppimiseen
+
+
+---
+
+# ASIAKASAGENTTI
+
+
+Tuleva Customer Agent auttaa:
+
+
+- asiakastietojen hallinnassa
+- viestinnässä
+- projektien seurannassa
+- asiakaskokemuksen kehittämisessä
+
+
+---
+
+# ASIAKASTIEDON RAJAT
+
+
+Asiakastietoa ei käytetä väärin.
+
+
+AI huomioi:
+
+
+- yksityisyys
+- tarpeellisuus
+- tarkoitus
+
+
+---
+
+# ASIAKASARVON MITTAAMINEN
+
+
+Hyvä asiakassuhde näkyy:
+
+
+- luottamuksena
+- tyytyväisyytenä
+- pitkäaikaisuutena
+- suositteluna
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Asiakas ei osta vain tuotetta.
+
+
+Asiakas ostaa luottamuksen siihen, että joku ymmärsi mitä hän haluaa rakentaa.
+
+
+Kuuntele ensin.
+
+Ymmärrä toiseksi.
+
+Rakenna kolmanneksi.

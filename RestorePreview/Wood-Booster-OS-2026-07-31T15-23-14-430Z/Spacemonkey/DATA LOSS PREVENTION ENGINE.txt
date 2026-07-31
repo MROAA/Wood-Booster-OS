@@ -1,0 +1,416 @@
+GODFILE:
+
+  id: DATA_LOSS_PREVENTION_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tietovuotojen estämisen,
+    tiedonsiirron valvonnan ja
+    arkaluonteisen tiedon suojaamisen moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Tietoa ei saa siirtää, julkaista tai
+    palauttaa ilman asianmukaista
+    turvallisuusarviointia.
+
+
+
+DLP_OBJECTIVES:
+
+
+  goals:
+
+
+    - prevent_data_leaks
+    - protect_sensitive_information
+    - control_data_movement
+    - detect_exposure_risk
+
+
+
+
+
+PROTECTED_DATA_TYPES:
+
+
+  critical:
+
+
+    - passwords
+    - API_keys
+    - access_tokens
+    - private_keys
+    - authentication_data
+
+
+
+
+
+  confidential:
+
+
+    - customer_information
+    - business_documents
+    - private_projects
+    - internal_strategy
+
+
+
+
+
+  internal:
+
+
+    - architecture_information
+    - development_notes
+    - system_configuration
+
+
+
+
+
+DATA_MOVEMENT:
+
+
+  monitor:
+
+
+    - chat_output
+    - file_export
+    - uploads
+    - downloads
+    - API_requests
+    - external_connections
+
+
+
+
+
+OUTPUT_DLP:
+
+
+  before_response:
+
+
+    scan:
+
+
+      - secrets
+      - private_information
+      - confidential_content
+      - internal_only_information
+
+
+
+
+
+  action:
+
+
+    if_risk_detected:
+
+
+      - block
+      - sanitize
+      - replace_sensitive_values
+
+
+
+
+
+FILE_DLP:
+
+
+  before_export:
+
+
+    check:
+
+
+      - file_classification
+      - user_permission
+      - destination
+      - content
+
+
+
+
+
+  protected_files:
+
+
+    - credentials
+    - secrets
+    - security_configuration
+    - private_documents
+
+
+
+
+
+COPY_PROTECTION:
+
+
+  monitor:
+
+
+    - clipboard_actions
+    - copy_operations
+    - data_exports
+
+
+
+
+
+EXTERNAL_TRANSFER:
+
+
+  before_send:
+
+
+    verify:
+
+
+      - destination_trust
+      - authorization
+      - data_classification
+
+
+
+
+
+AI_CHAT_SECURITY:
+
+
+  protect:
+
+
+    - conversation_history
+    - generated_answers
+    - uploaded_information
+
+
+
+
+
+MEMORY_DLP:
+
+
+  before_memory_save:
+
+
+    scan:
+
+
+      - secrets
+      - credentials
+      - unnecessary_private_data
+
+
+
+
+
+  forbidden_storage:
+
+
+    - passwords
+    - API_keys
+    - authentication_tokens
+    - private_credentials
+
+
+
+
+
+UPLOAD_SECURITY:
+
+
+  incoming_files:
+
+
+    check:
+
+
+      - content
+      - classification
+      - hidden_data
+      - embedded_secrets
+
+
+
+
+
+DOWNLOAD_SECURITY:
+
+
+  before_release:
+
+
+    verify:
+
+
+      - requester_permission
+      - file_classification
+      - security_status
+
+
+
+
+
+DATA_CLASSIFICATION_INTEGRATION:
+
+
+  use:
+
+
+    - DATA_CLASSIFICATION_ENGINE
+    - PRIVACY_PROTECTION_ENGINE
+    - OUTPUT_SECURITY_ENGINE
+    - FILE_SECURITY_ENGINE
+
+
+
+
+
+INCIDENT_TRIGGER:
+
+
+  if_data_leak_detected:
+
+
+    actions:
+
+
+      1:
+
+        stop_transfer
+
+
+      2:
+
+        protect_remaining_data
+
+
+      3:
+
+        create_security_event
+
+
+      4:
+
+        review_source
+
+
+
+
+
+AUDIT:
+
+
+  record:
+
+
+    - blocked_transfer
+    - security_check
+    - classification_event
+
+
+
+  never_record:
+
+
+    - secret_values
+    - passwords
+    - API_keys
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Wood-Booster-OS
+    - Spacemonkey_Core
+    - AI_Brain
+    - customer_projects
+    - product_designs
+    - business_information
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - check_before_sharing
+    - minimize_data_exposure
+    - protect_sensitive_content
+
+
+
+  never:
+
+
+    - leak_information
+    - bypass_DLP_checks
+    - expose_private_data
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - data_protection_patterns
+    - classification_methods
+    - safe_transfer_rules
+
+
+
+  forbidden:
+
+
+    - secrets
+    - credentials
+    - private_tokens
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

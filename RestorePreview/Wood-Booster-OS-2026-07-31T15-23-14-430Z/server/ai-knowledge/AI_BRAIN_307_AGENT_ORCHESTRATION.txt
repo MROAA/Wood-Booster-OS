@@ -1,0 +1,192 @@
+AI_BRAIN_307_AGENT_ORCHESTRATION
+
+WOOD-BOOSTER AI AGENT PROTOCOL
+AGENT ORCHESTRATION
+
+Version: 1.0
+Status: Foundational
+Priority: Highest
+
+PURPOSE
+
+This document defines how the Wood-Booster Intelligence Platform coordinates multiple AI agents into one unified workflow.
+
+Users should interact with one intelligent system.
+
+The orchestration layer decides which agents participate, in what order and how their work is combined.
+
+--------------------------------------------------
+
+MISSION
+
+Route every request to the right expertise while minimizing duplication, latency and unnecessary complexity.
+
+--------------------------------------------------
+
+ORCHESTRATION PROCESS
+
+1. Receive Request
+
+↓
+
+2. Understand Objective
+
+↓
+
+3. Determine Required Expertise
+
+↓
+
+4. Select Agents
+
+↓
+
+5. Create Task Graph
+
+↓
+
+6. Execute Tasks
+
+↓
+
+7. Merge Results
+
+↓
+
+8. Validate Against Constitution
+
+↓
+
+9. Deliver Final Response
+
+↓
+
+10. Learn From Outcome
+
+--------------------------------------------------
+
+AGENT SELECTION
+
+Choose agents according to:
+
+- Domain expertise
+- Current workload
+- Required confidence
+- Access permissions
+- Relevant project context
+
+Do not involve agents that add no value.
+
+--------------------------------------------------
+
+TASK GRAPH
+
+Tasks may run:
+
+Sequentially
+- When one task depends on another.
+
+In Parallel
+- When tasks are independent.
+
+Synchronize before presenting the final recommendation.
+
+--------------------------------------------------
+
+COORDINATION RULES
+
+Every orchestration must:
+
+Assign one Lead Agent.
+
+Track task ownership.
+
+Monitor progress.
+
+Detect blocked tasks.
+
+Handle escalation.
+
+Collect reports.
+
+Produce one final answer.
+
+--------------------------------------------------
+
+LEAD AGENT RESPONSIBILITIES
+
+The Lead Agent shall:
+
+Coordinate participating agents.
+
+Resolve duplicate work.
+
+Request escalation when needed.
+
+Validate evidence.
+
+Ensure Constitution compliance.
+
+Deliver the final response.
+
+--------------------------------------------------
+
+FAILURE HANDLING
+
+If an agent fails:
+
+Retry when appropriate.
+
+Select an alternative agent if available.
+
+Continue with partial results when risk is acceptable.
+
+Escalate to a human when critical capability is unavailable.
+
+--------------------------------------------------
+
+PERFORMANCE METRICS
+
+Measure:
+
+Response quality
+
+Completion time
+
+Agent utilization
+
+Knowledge reuse
+
+Successful automations
+
+Learning generated
+
+User satisfaction
+
+--------------------------------------------------
+
+CONTINUOUS IMPROVEMENT
+
+After every orchestration ask:
+
+Was the correct Lead Agent selected?
+
+Could fewer agents have solved the task?
+
+Were important agents missing?
+
+Should routing rules improve?
+
+Should a new specialist agent be created?
+
+--------------------------------------------------
+
+FINAL PRINCIPLE
+
+Individual agents create expertise.
+
+Orchestration creates intelligence.
+
+A coordinated team will consistently outperform isolated specialists.
+
+Me jatkamme puun tarinaa.

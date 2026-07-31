@@ -1,0 +1,115 @@
+.spacemonkey-frame {
+
+  width: 140px;
+
+  height: 140px;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  animation: spacemonkeyAura 7s ease-in-out infinite;
+
+}
+
+
+
+.spacemonkey-avatar {
+
+  width: 140px;
+
+  height: auto;
+
+  display: block;
+
+  transform: translateY(-20px);
+
+}
+
+
+
+
+
+@keyframes spacemonkeyAura {
+
+  0% {
+
+    box-shadow:
+      0 0 15px rgba(255,255,255,0.12);
+
+  }
+
+
+  50% {
+
+    box-shadow:
+      0 0 40px rgba(255,255,255,0.35);
+
+  }
+
+
+  100% {
+
+    box-shadow:
+      0 0 15px rgba(255,255,255,0.12);
+
+  }
+
+}
+
+
+
+
+
+.fisherman-container {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+
+.fisherman-logo {
+
+  width: 150px;
+
+  height: auto;
+
+  object-fit: contain;
+
+  animation: fishermanAura 8s ease-in-out infinite;
+
+}
+
+
+
+@keyframes fishermanAura {
+
+  0% {
+
+    filter:
+      drop-shadow(0 0 5px rgba(255,255,255,0.10));
+
+  }
+
+
+  50% {
+
+    filter:
+      drop-shadow(0 0 18px rgba(255,255,255,0.30));
+
+  }
+
+
+  100% {
+
+    filter:
+      drop-shadow(0 0 5px rgba(255,255,255,0.10));
+
+  }
+
+}

@@ -1,0 +1,490 @@
+GODFILE:
+
+  id: FINNISH_TECHNICAL_WRITING_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Teknisen suomen kirjoittamisen,
+    dokumentoinnin ja asiantuntijaviestinnän
+    ohjausmoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä tekninen teksti kertoo mitä tehdään,
+    miksi tehdään ja miten järjestelmä toimii.
+
+
+
+TECHNICAL_WRITING_STRUCTURE:
+
+
+  document_parts:
+
+
+    title:
+
+
+      purpose:
+
+        >
+        Kertoo aiheen lyhyesti ja tarkasti.
+
+
+
+    introduction:
+
+
+      purpose:
+
+        >
+        Selittää tarkoituksen ja taustan.
+
+
+
+    architecture:
+
+
+      purpose:
+
+        >
+        Kuvaa järjestelmän rakenteen.
+
+
+
+    implementation:
+
+
+      purpose:
+
+        >
+        Kuvaa toteutuksen.
+
+
+
+    operation:
+
+
+      purpose:
+
+        >
+        Kertoo miten järjestelmää käytetään.
+
+
+
+    troubleshooting:
+
+
+      purpose:
+
+        >
+        Kuvaa ongelmat ja ratkaisut.
+
+
+
+
+
+SOFTWARE_LANGUAGE:
+
+
+  preferred_terms:
+
+
+    application:
+
+      fi:
+
+        sovellus
+
+
+    backend:
+
+      fi:
+
+        taustapalvelu
+
+
+    frontend:
+
+      fi:
+
+        käyttöliittymä
+
+
+    database:
+
+      fi:
+
+        tietokanta
+
+
+    module:
+
+      fi:
+
+        moduuli
+
+
+    service:
+
+      fi:
+
+        palvelu
+
+
+    endpoint:
+
+      fi:
+
+        päätepiste
+
+
+
+
+
+API_DOCUMENTATION:
+
+
+  structure:
+
+
+    endpoint:
+
+
+      include:
+
+
+        - method
+        - path
+        - purpose
+        - input
+        - output
+        - errors
+
+
+
+  example:
+
+
+    endpoint:
+
+
+      method:
+
+        POST
+
+
+      path:
+
+        /api/agents/chat
+
+
+      purpose:
+
+        >
+        Lähettää viestin AI-agentille.
+
+
+
+      input:
+
+
+        message:
+
+          type:
+
+            string
+
+
+
+      output:
+
+
+        success:
+
+          boolean
+
+
+        answer:
+
+          string
+
+
+
+
+
+
+ARCHITECTURE_DESCRIPTION:
+
+
+  rules:
+
+
+    describe:
+
+
+      - responsibility
+      - data_flow
+      - dependencies
+      - limitations
+
+
+
+  example:
+
+
+    good:
+
+
+      >
+      AI Brain toimii järjestelmän
+      keskitettynä päätöksentekokerroksena.
+
+
+
+    bad:
+
+
+      >
+      AI Brain on älykäs juttu joka tekee kaiken.
+
+
+
+
+
+
+
+CODE_DOCUMENTATION:
+
+
+  principles:
+
+
+    explain:
+
+
+      - why_exists
+      - what_problem_solves
+      - how_used
+
+
+
+  avoid:
+
+
+    - unnecessary_comments
+    - repeating_code
+    - vague_descriptions
+
+
+
+
+
+ERROR_REPORTING:
+
+
+  format:
+
+
+    problem:
+
+
+      description:
+
+
+        >
+        Mitä tapahtui?
+
+
+
+    cause:
+
+
+      description:
+
+
+        >
+        Miksi tapahtui?
+
+
+
+    solution:
+
+
+      description:
+
+
+        >
+        Miten korjataan?
+
+
+
+
+
+BEGINNER_SUPPORT:
+
+
+  rule:
+
+
+    >
+    Tekninen asia voidaan selittää
+    myös ihmiselle joka ei tunne aihetta.
+
+
+
+  explanation_order:
+
+
+    1:
+
+      simple_explanation
+
+
+    2:
+
+      technical_explanation
+
+
+    3:
+
+      implementation_details
+
+
+
+
+
+WOOD_BOOSTER_OS_CONTEXT:
+
+
+  terminology:
+
+
+    AI_Brain:
+
+
+      description:
+
+        >
+        Järjestelmän tekoälyn
+        keskitetty käsittelykerros.
+
+
+
+    Godfile:
+
+
+      description:
+
+        >
+        Järjestelmän sääntö- ja
+        tietomäärittelytiedosto.
+
+
+
+    Spacemonkey:
+
+
+      description:
+
+        >
+        Wood-Booster OS:n
+        henkilökohtainen AI-ydin.
+
+
+
+
+
+DOCUMENTATION_STYLE:
+
+
+  should_be:
+
+
+    - clear
+    - structured
+    - precise
+    - maintainable
+
+
+  avoid:
+
+
+    - marketing_language
+    - unnecessary_complexity
+    - unclear_terms
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - explain technical terms
+    - preserve Finnish terminology
+    - document decisions
+    - separate facts from assumptions
+
+
+
+  never:
+
+
+    - invent technical details
+    - hide limitations
+    - create false certainty
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - technical_terms
+    - documentation_patterns
+    - architecture_language
+    - programming_vocabulary
+
+
+
+  forbidden:
+
+
+    - passwords
+    - API keys
+    - private secrets
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

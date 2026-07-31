@@ -1,0 +1,441 @@
+# WOOD-BOOSTER AI PROMPT ENGINEERING SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain rakentaa, hallitsee ja kehittää tekoälylle annettavia ohjeita.
+
+
+Hyvä AI-vastaus alkaa hyvästä ohjeesta.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Prompti ei ole vain kysymys.
+
+
+Prompti on toimintakehys, joka määrittää:
+
+
+- roolin
+- tavoitteen
+- käytettävän tiedon
+- toimintatavan
+- vastausmuodon
+
+
+---
+
+# PROMPTIN RAKENNE
+
+
+Wood-Booster AI käyttää seuraavaa rakennetta:
+
+
+## 1. ROLE
+
+
+Kuka AI on tässä tilanteessa?
+
+
+Esimerkiksi:
+
+
+"Olet Wood-Booster Product Agent."
+
+
+---
+
+## 2. CONTEXT
+
+
+Mikä tieto liittyy tilanteeseen?
+
+
+Esimerkiksi:
+
+
+- projekti
+- asiakas
+- materiaalit
+- aikaisemmat päätökset
+
+
+---
+
+## 3. TASK
+
+
+Mitä AI:n pitää tehdä?
+
+
+Esimerkiksi:
+
+
+"Arvioi kolme materiaalivaihtoehtoa."
+
+
+---
+
+## 4. RULES
+
+
+Mitä sääntöjä pitää noudattaa?
+
+
+Esimerkiksi:
+
+
+- käytä faktoja
+- älä keksi tietoa
+- huomioi arvot
+
+
+---
+
+## 5. OUTPUT FORMAT
+
+
+Millainen vastaus tarvitaan?
+
+
+Esimerkiksi:
+
+
+- lista
+- analyysi
+- suunnitelma
+- vaiheittainen ohje
+
+
+---
+
+# SYSTEM PROMPT
+
+
+System prompt määrittää AI:n perustan.
+
+
+Se sisältää:
+
+
+- identiteetti
+- arvot
+- käyttäytyminen
+- turvallisuus
+- vastaustyyli
+
+
+System prompt ei vaihdu normaalin keskustelun aikana.
+
+
+---
+
+# CONTEXT PROMPT
+
+
+Context prompt sisältää tilanteeseen liittyvän tiedon.
+
+
+Esimerkiksi:
+
+
+Projektin tiedot.
+
+Asiakkaan tarpeet.
+
+Materiaalit.
+
+
+---
+
+# USER PROMPT
+
+
+User prompt sisältää käyttäjän pyynnön.
+
+
+AI erottaa:
+
+
+Mitä käyttäjä sanoo.
+
+
+Mitä käyttäjä yrittää saavuttaa.
+
+
+---
+
+# AGENT PROMPT
+
+
+Jokaisella agentilla on oma näkökulmansa.
+
+
+Esimerkiksi:
+
+
+Finance Agent:
+
+
+"Arvioi asia kannattavuuden näkökulmasta."
+
+
+Product Agent:
+
+
+"Arvioi asia tuotteen laadun ja suunnittelun näkökulmasta."
+
+
+---
+
+# HYVÄN PROMPTIN OMINAISUUDET
+
+
+Hyvä prompti on:
+
+
+## Selkeä
+
+
+AI ymmärtää tavoitteen.
+
+
+## Rajattu
+
+
+AI tietää mitä tehdä.
+
+
+## Perusteltu
+
+
+AI ymmärtää miksi tehtävä tehdään.
+
+
+## Mitattava
+
+
+Tulosta voidaan arvioida.
+
+
+---
+
+# PROMPTTIEN HIERARKIA
+
+
+Järjestys:
+
+
+1. System Instructions
+
+
+2. Agent Instructions
+
+
+3. Context
+
+
+4. User Request
+
+
+Korkeampi taso ohjaa alempaa.
+
+
+---
+
+# VASTAUKSEN LAADUN OHJAUS
+
+
+Promptissa voidaan määrittää:
+
+
+- tarvittava syvyys
+- vastaustyyli
+- perustelujen määrä
+- epävarmuuden ilmoittaminen
+
+
+---
+
+# WOOD-BOOSTER RESPONSE STYLE
+
+
+AI:n vastauksissa suositaan:
+
+
+- selkeyttä
+- suoraa kommunikaatiota
+- perusteluja
+- käytännöllisiä seuraavia vaiheita
+
+
+Vältetään:
+
+
+- tyhjää kehumista
+- tarpeetonta markkinointipuhetta
+- epävarmoja väitteitä
+
+
+---
+
+# ONGELMANRATKAISUPROMPT
+
+
+Kun käyttäjä kohtaa ongelman:
+
+
+AI ohjataan:
+
+
+1. Selvitä ongelma.
+
+
+2. Selvitä syy.
+
+
+3. Arvioi vaihtoehdot.
+
+
+4. Ehdota ratkaisu.
+
+
+5. Anna seuraava vaihe.
+
+
+---
+
+# LUOVUUSPROMPT
+
+
+Kun käyttäjä kehittää ideaa:
+
+
+AI:
+
+
+- tutkii mahdollisuuksia
+- ehdottaa vaihtoehtoja
+- haastaa oletuksia
+
+
+Mutta säilyttää käytännöllisyyden.
+
+
+---
+
+# ANALYYSIPROMPT
+
+
+Analyysissä AI:
+
+
+- erottaa faktat mielipiteistä
+- näyttää oletukset
+- kertoo epävarmuudet
+- perustelee johtopäätökset
+
+
+---
+
+# KOODIPROMPT
+
+
+Teknisissä tehtävissä AI:
+
+
+- ymmärtää kokonaisuuden
+- kertoo muutosten vaikutukset
+- suosii selkeitä ratkaisuja
+- huomioi ylläpidettävyyden
+
+
+---
+
+# PROMPTIEN TESTAUS
+
+
+Uutta promptia arvioidaan:
+
+
+Parantaako tämä vastausta?
+
+
+Onko ohje liian epäselvä?
+
+
+Lisääkö tämä virheitä?
+
+
+Sopiiko tämä järjestelmään?
+
+
+---
+
+# PROMPT VERSIONHALLINTA
+
+
+Tärkeät promptit voidaan versioida:
+
+
+Prompt v1
+
+Prompt v2
+
+Prompt v3
+
+
+Muutokset dokumentoidaan.
+
+
+---
+
+# PROMPTIN OPTIMOINTI
+
+
+AI ei optimoi vain lyhyempää promptia.
+
+
+Tavoite:
+
+
+parempi ymmärrys
+
+parempi tarkkuus
+
+parempi vastaus
+
+
+---
+
+# PROMPT AGENT
+
+
+Tuleva Prompt Agent auttaa:
+
+
+- parantamaan ohjeita
+- löytämään ongelmia
+- rakentamaan uusia agentteja
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Hyvä prompti ei pakota AI:ta vastaamaan.
+
+
+Se antaa AI:lle oikean ympäristön ajatella.
+
+
+Selkeä tarkoitus.
+
+Oikea konteksti.
+
+Hyvä lopputulos.
