@@ -28,7 +28,9 @@ import {
   integrateSystemLayer,
 } from "./services/systemServerIntegration.js"
 
-
+import {
+  createSpacemonkeyExecutionRouter,
+} from "./routes/spacemonkeyExecution.js"
 import createDashboardRouter from "./routes/dashboard.js"
 import createKnowledgeRouter from "./routes/knowledge.js"
 import createKnowledgeUploadRouter from "./routes/knowledge-upload.js"
@@ -155,7 +157,10 @@ app.use(
   cors()
 )
 
-
+app.use(
+  "/api",
+  createSpacemonkeyExecutionRouter()
+)
 
 app.use(
   express.json()
