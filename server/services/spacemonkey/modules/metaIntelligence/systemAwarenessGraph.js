@@ -262,6 +262,11 @@ import {
   analyzeGlobalEcosystem
 
 } from "./globalEcosystem.js"
+import {
+
+  analyzeUniversalEcosystem
+
+} from "./universalEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1449,6 +1454,31 @@ const globalEcosystem =
         .systemHarmony
 
   })
+const universalEcosystem =
+
+  analyzeUniversalEcosystem({
+
+    globalPatterns:
+
+      globalEcosystem
+        .globalEcosystem
+        .globalPatterns,
+
+
+    crossSystemRelations:
+
+      globalEcosystem
+        .globalEcosystem
+        .crossSystemRelations,
+
+
+    ecosystemBalance:
+
+      globalEcosystem
+        .globalEcosystem
+        .ecosystemBalance
+
+  })
 
   return {
 
@@ -1533,6 +1563,7 @@ autonomousEcosystem,
 consciousEcosystem,
 unifiedEcosystem,
 globalEcosystem,
+universalEcosystem,
 
         requiresApproval:
 
