@@ -115,6 +115,14 @@ import {
 
 
 
+import {
+
+  synthesizeKnowledge
+
+} from "./knowledgeSynthesis.js"
+
+
+
 
 
 
@@ -599,6 +607,63 @@ function createSystemAwarenessGraph(){
 
 
 
+  const knowledgeSynthesis =
+
+    synthesizeKnowledge({
+
+      sources:
+
+        [
+
+          "Memory Intelligence",
+
+          "Knowledge Intelligence",
+
+          "Meta Intelligence"
+
+        ],
+
+
+      connections:
+
+        [
+
+          ...innovationDiscovery
+            .innovationDiscovery
+            .ideas
+
+        ],
+
+
+      patterns:
+
+        [
+
+          ...innovationDiscovery
+            .innovationDiscovery
+            .innovationAreas
+
+        ],
+
+
+      insights:
+
+        [
+
+          ...innovationDiscovery
+            .innovationDiscovery
+            .valuePotential
+
+        ]
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -680,6 +745,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        knowledgeSynthesis,
+
+
+
         awareness:
 
           [
@@ -710,11 +779,13 @@ function createSystemAwarenessGraph(){
 
             "Arvioi etenemisen laatua",
 
-            "Tunnistaa mahdollisia riskejä",
+            "Tunnistaa riskejä",
 
-            "Tunnistaa kehitysmahdollisuuksia",
+            "Tunnistaa mahdollisuuksia",
 
-            "Tunnistaa innovaatioalueita"
+            "Tunnistaa innovaatioita",
+
+            "Syntetisoi tietoa kokonaisymmärrykseksi"
 
           ],
 
