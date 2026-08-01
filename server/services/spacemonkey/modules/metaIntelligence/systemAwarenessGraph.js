@@ -11,9 +11,24 @@ import {
 
 
 
+import {
+
+  analyzeSystemState
+
+} from "./systemStateReasoning.js"
+
+
+
+
+
 
 
 function createSystemAwarenessGraph(){
+
+
+  const liveAwareness =
+    collectSystemAwareness()
+
 
 
   return {
@@ -54,9 +69,30 @@ function createSystemAwarenessGraph(){
 
 
 
-        liveAwareness:
+        liveAwareness,
 
-          collectSystemAwareness(),
+
+
+        reasoning:
+
+          analyzeSystemState({
+
+            modules:
+              liveAwareness.liveSystem.liveGraph.modules.count,
+
+
+            dependencies:
+              liveAwareness.liveSystem.liveGraph.dependencies.state,
+
+
+            capabilities:
+              liveAwareness.liveSystem.liveGraph.capabilities.state,
+
+
+            health:
+              liveAwareness.liveSystem.liveGraph.health.state
+
+          }),
 
 
 
@@ -70,7 +106,7 @@ function createSystemAwarenessGraph(){
 
             "Seuraa järjestelmän kehitysrakennetta",
 
-            "Lukee järjestelmän tilaa turvallisesti"
+            "Arvioi järjestelmän tilaa"
 
           ],
 
