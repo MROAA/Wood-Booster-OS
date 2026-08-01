@@ -67,6 +67,14 @@ import {
 
 
 
+import {
+
+  createPlanningSupport
+
+} from "./planningSupport.js"
+
+
+
 
 
 
@@ -338,6 +346,38 @@ function createSystemAwarenessGraph(){
 
 
 
+  const planningSupport =
+
+    createPlanningSupport({
+
+      options:
+
+        decisionSupport
+          .decisionSupport
+          .options,
+
+
+      impacts:
+
+        decisionSupport
+          .decisionSupport
+          .impacts,
+
+
+      directions:
+
+        strategicReasoning
+          .strategy
+          .directions
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -415,6 +455,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        planningSupport,
+
+
+
         awareness:
 
           [
@@ -437,7 +481,9 @@ function createSystemAwarenessGraph(){
 
             "Arvioi strategisia kehityssuuntia",
 
-            "Tukee päätöksentekoa"
+            "Tukee päätöksentekoa",
+
+            "Muodostaa kehityssuunnitelmia päätöksenteon tueksi"
 
           ],
 
