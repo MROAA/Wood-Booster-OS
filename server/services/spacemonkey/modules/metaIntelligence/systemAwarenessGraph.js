@@ -242,6 +242,11 @@ import {
   analyzeGovernanceEcosystem
 
 } from "./governanceEcosystem.js"
+import {
+
+  analyzeAutonomousEcosystem
+
+} from "./autonomousEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1329,6 +1334,31 @@ const governanceEcosystem =
         .longTermPlanning
 
   })
+const autonomousEcosystem =
+
+  analyzeAutonomousEcosystem({
+
+    governancePatterns:
+
+      governanceEcosystem
+        .governanceEcosystem
+        .governancePatterns,
+
+
+    controlSystems:
+
+      governanceEcosystem
+        .governanceEcosystem
+        .controlSystems,
+
+
+    decisionFrameworks:
+
+      governanceEcosystem
+        .governanceEcosystem
+        .decisionFrameworks
+
+  })
 
   return {
 
@@ -1409,6 +1439,7 @@ evolutionaryEcosystem,
 predictiveEcosystem,
 strategicEcosystem,
 governanceEcosystem,
+autonomousEcosystem,
 
         requiresApproval:
 
