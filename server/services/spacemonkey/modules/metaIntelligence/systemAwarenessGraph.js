@@ -347,6 +347,11 @@ import {
   analyzeAdaptationEcosystem
 
 } from "./adaptationEcosystem.js"
+import {
+
+  analyzeEvolutionEcosystem
+
+} from "./evolutionEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1959,6 +1964,31 @@ const perceptionEcosystem =
         .reflectionEvolution
 
   })
+  const evolutionEcosystem =
+
+  analyzeEvolutionEcosystem({
+
+    adaptationPatterns:
+
+      adaptationEcosystem
+        .adaptationEcosystem
+        .adaptationPatterns,
+
+
+    environmentalRelations:
+
+      adaptationEcosystem
+        .adaptationEcosystem
+        .environmentalRelations,
+
+
+    adaptationEvolution:
+
+      adaptationEcosystem
+        .adaptationEcosystem
+        .adaptationEvolution
+
+  })
   return {
 
 
@@ -2059,6 +2089,7 @@ wisdomEcosystem,
 insightEcosystem,
 reflectionEcosystem,
 adaptationEcosystem,
+evolutionEcosystem,
 
         requiresApproval:
 
