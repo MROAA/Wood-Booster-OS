@@ -18,6 +18,7 @@ Vastuut:
 - kokoaa Git historian
 - kokoaa Git Summaryn
 - kokoaa Security Monitor tilan
+- kokoaa Health Scoren
 
 =====================================
 */
@@ -96,6 +97,12 @@ import {
 
 
 
+import {
+  calculateHealthScore,
+} from "./healthScore.js"
+
+
+
 
 
 
@@ -171,6 +178,32 @@ async function getSystemPulse(){
 
 
 
+  const healthScore =
+    calculateHealthScore({
+
+      modules,
+
+      capability:
+        capability.summary,
+
+
+      security:
+        securityHealth,
+
+
+      hardware,
+
+      runtime,
+
+      git,
+
+    })
+
+
+
+
+
+
 
   const healthy =
     capability.healthy &&
@@ -241,6 +274,9 @@ async function getSystemPulse(){
 
 
       securityHealth,
+
+
+      healthScore,
 
 
     },

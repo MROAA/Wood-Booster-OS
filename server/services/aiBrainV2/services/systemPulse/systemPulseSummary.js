@@ -51,6 +51,10 @@ async function getSystemPulseSummary(){
     pulse.components.security
 
 
+  const securityHealth =
+    pulse.components.securityHealth
+
+
   const hardware =
     pulse.components.hardware
 
@@ -69,6 +73,10 @@ async function getSystemPulseSummary(){
 
   const gitHistory =
     pulse.components.gitHistory
+
+
+  const healthScore =
+    pulse.components.healthScore
 
 
 
@@ -90,6 +98,24 @@ async function getSystemPulseSummary(){
         pulse.system,
 
 
+
+      healthScore: {
+
+        score:
+          healthScore?.score
+          ??
+          0,
+
+
+        status:
+          healthScore?.status
+          ||
+          "unknown",
+
+      },
+
+
+
       modules: {
 
         total:
@@ -108,6 +134,7 @@ async function getSystemPulseSummary(){
       },
 
 
+
       capability: {
 
         approved:
@@ -124,33 +151,36 @@ async function getSystemPulseSummary(){
       },
 
 
+
       security: {
 
-status:
-  security.health?.status
-  ||
-  "available",
+        status:
+          securityHealth?.status
+          ||
+          security.status
+          ||
+          "available",
+
 
         blockedEvents:
-          security.securityEvents?.length
-          ||
+          securityHealth?.blockedEvents
+          ??
           0,
 
 
         approvalRequired:
-          security.auditSummary?.approvalRequired
-          ||
+          securityHealth?.approvalRequired
+          ??
           0,
 
 
         message:
-          security.health?.message
-          ||
-          security.message
+          securityHealth?.message
           ||
           "",
 
       },
+
 
 
       environment: {
@@ -176,6 +206,7 @@ status:
       },
 
 
+
       hardware: {
 
         cpu:
@@ -187,7 +218,7 @@ status:
         gpu:
           hardware.gpu
           ||
-          [],
+          null,
 
 
         memory:
@@ -196,6 +227,7 @@ status:
           null,
 
       },
+
 
 
       runtime: {
@@ -212,6 +244,7 @@ status:
           runtime.cpuCount,
 
       },
+
 
 
       git: {
@@ -237,6 +270,7 @@ status:
       },
 
 
+
       gitSync: {
 
         status:
@@ -253,6 +287,7 @@ status:
       },
 
 
+
       gitWatcher: {
 
         status:
@@ -261,6 +296,7 @@ status:
           "stopped",
 
       },
+
 
 
       gitHistory: {
