@@ -192,6 +192,11 @@ import {
   analyzeSelfGovernance
 
 } from "./selfGovernance.js"
+import {
+
+  analyzeEthicalAlignment
+
+} from "./ethicalAlignment.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1029,6 +1034,31 @@ function createSystemAwarenessGraph(){
           .awarenessLoop
 
     })
+  const ethicalAlignment =
+
+    analyzeEthicalAlignment({
+
+      principleMonitoring:
+
+        selfGovernance
+          .selfGovernance
+          .principleMonitoring,
+
+
+      ruleAwareness:
+
+        selfGovernance
+          .selfGovernance
+          .ruleAwareness,
+
+
+      safetyAlignment:
+
+        selfGovernance
+          .selfGovernance
+          .safetyAlignment
+
+    })
 
   return {
 
@@ -1099,6 +1129,7 @@ adaptiveIntelligence,
 resilienceIntelligence,
 autonomousAwareness,
 selfGovernance,
+ethicalAlignment,
 
         requiresApproval:
 
