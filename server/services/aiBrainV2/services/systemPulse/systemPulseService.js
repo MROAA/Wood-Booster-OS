@@ -17,6 +17,7 @@ Vastuut:
 - kokoaa Git Watcher tilan
 - kokoaa Git historian
 - kokoaa Git Summaryn
+- kokoaa Security Monitor tilan
 
 =====================================
 */
@@ -88,6 +89,12 @@ import {
 
 
 
+import {
+  getSecurityPulseStatus,
+} from "./securityMonitor.js"
+
+
+
 
 
 
@@ -151,12 +158,18 @@ async function getSystemPulse(){
 
 
 
+  const security =
+    getSecurityPulseStatus()
+
+
+
 
 
 
   const healthy =
     capability.healthy &&
-    modules.active >= 0
+    modules.active >= 0 &&
+    security.auditSummary.blocked === 0
 
 
 
@@ -216,6 +229,9 @@ async function getSystemPulse(){
 
 
       gitSummary,
+
+
+      security,
 
 
     },
