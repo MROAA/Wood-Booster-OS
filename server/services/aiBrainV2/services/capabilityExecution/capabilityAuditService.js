@@ -10,6 +10,7 @@ Vastuut:
 - yhdistää audit-toiminnot yhteen palveluun
 - tarjoaa turvallisen rajapinnan audit-tietoihin
 - valmistaa System Pulse käyttöä varten
+- erottaa Constitution Audit -tapahtumat
 
 Ei:
 - suorita capabilityjä
@@ -72,6 +73,30 @@ function getRecentAuditEvents(
 
 
 
+function getConstitutionAuditEvents(
+  limit = 10,
+){
+
+  const records =
+    getAuditRecords()
+
+
+  return records
+    .filter(
+      (record) =>
+        record.type ===
+        "constitution_check",
+    )
+    .slice(
+      -limit,
+    )
+
+}
+
+
+
+
+
 function getCapabilityUsage(){
 
   const usage = {}
@@ -87,19 +112,27 @@ function getCapabilityUsage(){
     of records
   ){
 
+    const id =
+      record.moduleId ||
+      record.capability ||
+      "unknown"
+
+
+
     if(
-      !usage[record.moduleId]
+      !usage[id]
     ){
 
-      usage[record.moduleId] =
+      usage[id] =
         0
 
     }
 
 
-    usage[record.moduleId]++
+    usage[id]++
 
   }
+
 
 
   return usage
@@ -130,6 +163,9 @@ function createAuditReport(){
     recent:
       getRecentAuditEvents(),
 
+    constitution:
+      getConstitutionAuditEvents(),
+
   }
 
 }
@@ -143,6 +179,8 @@ export {
   getCapabilityAuditStatus,
 
   getRecentAuditEvents,
+
+  getConstitutionAuditEvents,
 
   getCapabilityUsage,
 
