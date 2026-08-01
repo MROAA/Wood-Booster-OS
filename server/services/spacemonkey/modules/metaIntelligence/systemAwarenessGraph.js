@@ -131,6 +131,14 @@ import {
 
 
 
+import {
+
+  analyzeReflection
+
+} from "./consciousReflection.js"
+
+
+
 
 
 
@@ -692,6 +700,38 @@ function createSystemAwarenessGraph(){
 
 
 
+  const consciousReflection =
+
+    analyzeReflection({
+
+      understanding:
+
+        wisdomIntegration
+          .wisdomIntegration
+          .understanding,
+
+
+      lessons:
+
+        wisdomIntegration
+          .wisdomIntegration
+          .lessons,
+
+
+      principles:
+
+        wisdomIntegration
+          .wisdomIntegration
+          .principles
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -781,66 +821,7 @@ function createSystemAwarenessGraph(){
 
 
 
-        awareness:
-
-          [
-
-            "Tunnistaa järjestelmän komponentteja",
-
-            "Ymmärtää moduulien välisiä suhteita",
-
-            "Seuraa järjestelmän kehitysrakennetta",
-
-            "Arvioi järjestelmän tilaa",
-
-            "Arvioi tulevaa kehityssuuntaa",
-
-            "Muodostaa adaptiivisia havaintoja",
-
-            "Yhdistää havaintoja tietokerroksiin",
-
-            "Tulkitsee havaintoja kontekstissa",
-
-            "Arvioi strategisia kehityssuuntia",
-
-            "Tukee päätöksentekoa",
-
-            "Muodostaa kehityssuunnitelmia",
-
-            "Seuraa tavoitteiden etenemistä",
-
-            "Arvioi etenemisen laatua",
-
-            "Tunnistaa riskejä",
-
-            "Tunnistaa mahdollisuuksia",
-
-            "Tunnistaa innovaatioita",
-
-            "Syntetisoi tietoa kokonaisymmärrykseksi",
-
-            "Tulkitsee tiedosta muodostettua ymmärrystä",
-
-            "Arvioi periaatteita ja pitkäaikaisia vaikutuksia"
-
-          ],
-
-
-
-        principles:
-
-          [
-
-            "Älä muuta lähdejärjestelmiä",
-
-            "Käytä vain analyysitietoa",
-
-            "Säilytä käyttäjän hallinta",
-
-            "Raportoi ennen toimintaa"
-
-          ],
-
+        consciousReflection,
 
 
         requiresApproval:
