@@ -172,7 +172,11 @@ import {
   analyzeSystemCoherence
 
 } from "./systemCoherence.js"
+import {
 
+  analyzeAdaptation
+
+} from "./adaptiveIntelligence.js"
 function createSystemAwarenessGraph(){
 
 
@@ -909,6 +913,32 @@ function createSystemAwarenessGraph(){
 
     })
 
+    const adaptiveIntelligence =
+
+  analyzeAdaptation({
+
+    moduleAlignment:
+
+      systemCoherence
+        .systemCoherence
+        .moduleAlignment,
+
+
+    informationFlow:
+
+      systemCoherence
+        .systemCoherence
+        .informationFlow,
+
+
+    systemHarmony:
+
+      systemCoherence
+        .systemCoherence
+        .systemHarmony
+
+  })
+
   return {
 
 
@@ -974,6 +1004,7 @@ evolutionOptimization,
 systemImprovementOptimization,
 architecturalIntelligence,
 systemCoherence,
+adaptiveIntelligence,
 
         requiresApproval:
 
