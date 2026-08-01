@@ -139,6 +139,14 @@ import {
 
 
 
+import {
+
+  evaluateSelf
+
+} from "./selfEvaluation.js"
+
+
+
 
 
 
@@ -371,14 +379,7 @@ function createSystemAwarenessGraph(){
           .recommendations
 
     })
-
-
-
-
-
-
-
-  const decisionSupport =
+      const decisionSupport =
 
     analyzeDecisionSupport({
 
@@ -732,6 +733,38 @@ function createSystemAwarenessGraph(){
 
 
 
+  const selfEvaluation =
+
+    evaluateSelf({
+
+      reflections:
+
+        consciousReflection
+          .consciousReflection
+          .understandingReview,
+
+
+      insights:
+
+        consciousReflection
+          .consciousReflection
+          .improvementInsights,
+
+
+      recommendations:
+
+        consciousReflection
+          .consciousReflection
+          .recommendations
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -759,69 +792,40 @@ function createSystemAwarenessGraph(){
 
         liveAwareness,
 
-
-
         reasoning,
-
-
 
         prediction,
 
-
-
         insight,
-
-
 
         knowledgeCorrelation,
 
-
-
         contextualReasoning,
-
-
 
         strategicReasoning,
 
-
-
         decisionSupport,
-
-
 
         planningSupport,
 
-
-
         goalManagement,
-
-
 
         progressEvaluation,
 
-
-
         riskAssessment,
-
-
 
         opportunityDiscovery,
 
-
-
         innovationDiscovery,
-
-
 
         knowledgeSynthesis,
 
-
-
         wisdomIntegration,
 
-
-
         consciousReflection,
+
+        selfEvaluation,
+
 
 
         requiresApproval:
