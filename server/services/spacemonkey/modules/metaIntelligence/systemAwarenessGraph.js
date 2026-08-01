@@ -123,6 +123,14 @@ import {
 
 
 
+import {
+
+  integrateWisdom
+
+} from "./wisdomIntegration.js"
+
+
+
 
 
 
@@ -626,35 +634,55 @@ function createSystemAwarenessGraph(){
 
       connections:
 
-        [
-
-          ...innovationDiscovery
-            .innovationDiscovery
-            .ideas
-
-        ],
+        innovationDiscovery
+          .innovationDiscovery
+          .ideas,
 
 
       patterns:
 
-        [
-
-          ...innovationDiscovery
-            .innovationDiscovery
-            .innovationAreas
-
-        ],
+        innovationDiscovery
+          .innovationDiscovery
+          .innovationAreas,
 
 
       insights:
 
-        [
+        innovationDiscovery
+          .innovationDiscovery
+          .valuePotential
 
-          ...innovationDiscovery
-            .innovationDiscovery
-            .valuePotential
+    })
 
-        ]
+
+
+
+
+
+
+  const wisdomIntegration =
+
+    integrateWisdom({
+
+      synthesizedKnowledge:
+
+        knowledgeSynthesis
+          .knowledgeSynthesis
+          .synthesizedKnowledge,
+
+
+      patterns:
+
+        knowledgeSynthesis
+          .knowledgeSynthesis
+          .patterns,
+
+
+      recommendations:
+
+        knowledgeSynthesis
+          .knowledgeSynthesis
+          .recommendations
 
     })
 
@@ -749,6 +777,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        wisdomIntegration,
+
+
+
         awareness:
 
           [
@@ -785,7 +817,11 @@ function createSystemAwarenessGraph(){
 
             "Tunnistaa innovaatioita",
 
-            "Syntetisoi tietoa kokonaisymmärrykseksi"
+            "Syntetisoi tietoa kokonaisymmärrykseksi",
+
+            "Tulkitsee tiedosta muodostettua ymmärrystä",
+
+            "Arvioi periaatteita ja pitkäaikaisia vaikutuksia"
 
           ],
 
