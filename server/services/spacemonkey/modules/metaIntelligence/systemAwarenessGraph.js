@@ -287,6 +287,11 @@ import {
   analyzeEternalEcosystem
 
 } from "./eternalEcosystem.js"
+import {
+
+  analyzeAbsoluteEcosystem
+
+} from "./absoluteEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1599,6 +1604,31 @@ const eternalEcosystem =
         .endlessAdaptation
 
   })
+const absoluteEcosystem =
+
+  analyzeAbsoluteEcosystem({
+
+    continuityPatterns:
+
+      eternalEcosystem
+        .eternalEcosystem
+        .continuityPatterns,
+
+
+    stabilityRelations:
+
+      eternalEcosystem
+        .eternalEcosystem
+        .stabilityRelations,
+
+
+    persistentEvolution:
+
+      eternalEcosystem
+        .eternalEcosystem
+        .persistentEvolution
+
+  })
 
   return {
 
@@ -1688,6 +1718,7 @@ transcendentEcosystem,
 cosmicEcosystem,
 infiniteEcosystem,
 eternalEcosystem,
+absoluteEcosystem,
 
         requiresApproval:
 
