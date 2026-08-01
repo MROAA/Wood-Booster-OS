@@ -167,6 +167,12 @@ import {
   analyzeArchitecture
 
 } from "./architecturalIntelligence.js"
+import {
+
+  analyzeSystemCoherence
+
+} from "./systemCoherence.js"
+
 function createSystemAwarenessGraph(){
 
 
@@ -877,6 +883,31 @@ function createSystemAwarenessGraph(){
           .optimizationPaths
 
     })
+  const systemCoherence =
+
+    analyzeSystemCoherence({
+
+      architectureMap:
+
+        architecturalIntelligence
+          .architecturalIntelligence
+          .architectureMap,
+
+
+      dependencyAnalysis:
+
+        architecturalIntelligence
+          .architecturalIntelligence
+          .dependencyAnalysis,
+
+
+      layerAnalysis:
+
+        architecturalIntelligence
+          .architecturalIntelligence
+          .layerAnalysis
+
+    })
 
   return {
 
@@ -942,6 +973,7 @@ learningOptimization,
 evolutionOptimization,
 systemImprovementOptimization,
 architecturalIntelligence,
+systemCoherence,
 
         requiresApproval:
 
