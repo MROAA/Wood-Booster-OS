@@ -66,6 +66,20 @@ function SystemPulse() {
 
 
 
+  const [
+    previousHealth,
+    setPreviousHealth
+  ] = useState(null)
+
+
+
+  const [
+    healthChange,
+    setHealthChange
+  ] = useState(null)
+
+
+
 
 
   async function loadSystemData(){
@@ -90,6 +104,41 @@ function SystemPulse() {
 
         const summary =
           pulseData.pulse.summary
+
+
+
+        const currentHealth =
+          summary.healthScore
+
+
+
+        if(
+          previousHealth
+        ){
+
+          setHealthChange({
+
+            from:
+              previousHealth.score,
+
+
+            to:
+              currentHealth.score,
+
+
+            difference:
+              currentHealth.score -
+              previousHealth.score,
+
+          })
+
+        }
+
+
+
+        setPreviousHealth(
+          currentHealth
+        )
 
 
 
@@ -449,6 +498,12 @@ function SystemPulse() {
       <MonitorCard
         connection={connection}
         lastUpdate={lastUpdate}
+        pulse={
+          pulse?.summary
+        }
+        healthChange={
+          healthChange
+        }
       />
 
 
@@ -458,7 +513,6 @@ function SystemPulse() {
       <ActivityTimelineCard
         activities={activities}
       />
-
 
 
     </div>

@@ -22,6 +22,14 @@ import {
 
 
 
+import {
+
+  createSystemPulseAwarenessModule
+
+} from "./modules/systemPulseAwareness/index.js"
+
+
+
 
 
 
@@ -32,7 +40,10 @@ function loadSpacemonkeyModules(){
   return [
 
 
-    createSpacemonkeyMemoryModule()
+    createSpacemonkeyMemoryModule(),
+
+
+    createSystemPulseAwarenessModule()
 
 
   ]
