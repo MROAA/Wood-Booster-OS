@@ -3,12 +3,13 @@
 
 WOOD-BOOSTER AI BRAIN V2
 
-SYSTEM PULSE SECURITY MONITOR V1
+SYSTEM PULSE SECURITY MONITOR V1.1
 
 Vastuut:
 
 - lukee audit turvallisuustiedot
 - muodostaa Security Pulse yhteenvedon
+- muodostaa security health tilan
 - tarjoaa näkyvyyden System Pulse käyttöön
 
 Ei:
@@ -27,14 +28,78 @@ import {
 
 
 
-
-
 const SECURITY_MONITOR_ID =
   "system-pulse-security-monitor"
 
 
 const SECURITY_MONITOR_VERSION =
-  "1.0.0"
+  "1.1.0"
+
+
+
+
+
+function getSecurityStatus(summary){
+
+  if(
+    summary.blocked > 0
+  ){
+
+    return "warning"
+
+  }
+
+
+
+  if(
+    summary.approvalRequired > 0
+  ){
+
+    return "attention"
+
+  }
+
+
+
+  return "healthy"
+
+}
+
+
+
+
+
+function getSecurityMessage(summary){
+
+  if(
+    summary.blocked > 0
+  ){
+
+    return (
+      "Constitution Guard havaitsi estettyjä tapahtumia."
+    )
+
+  }
+
+
+
+  if(
+    summary.approvalRequired > 0
+  ){
+
+    return (
+      "Järjestelmä odottaa hyväksyntää vaativia toimintoja."
+    )
+
+  }
+
+
+
+  return (
+    "Ei havaittuja turvallisuustapahtumia."
+  )
+
+}
 
 
 
@@ -87,30 +152,40 @@ function getSecurityHealth(){
 
 
 
-  const blocked =
-    report.summary.blocked
-
-
-  const approvalRequired =
-    report.summary.approvalRequired
+  const summary =
+    report.summary
 
 
 
   return {
 
+    status:
+      getSecurityStatus(
+        summary,
+      ),
+
+
     healthy:
-      blocked === 0 &&
-      approvalRequired === 0,
+      summary.blocked === 0 &&
+      summary.approvalRequired === 0,
 
 
-    blocked,
+    blockedEvents:
+      summary.blocked,
 
-    approvalRequired,
+
+    approvalRequired:
+      summary.approvalRequired,
 
 
     totalEvents:
-      report.summary.total,
+      summary.total,
 
+
+    message:
+      getSecurityMessage(
+        summary,
+      ),
 
   }
 
