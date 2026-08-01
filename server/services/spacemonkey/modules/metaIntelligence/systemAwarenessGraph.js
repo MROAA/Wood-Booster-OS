@@ -162,7 +162,11 @@ import {
   optimizeSystemImprovement
 
 } from "./systemImprovementOptimization.js"
+import {
 
+  analyzeArchitecture
+
+} from "./architecturalIntelligence.js"
 function createSystemAwarenessGraph(){
 
 
@@ -848,6 +852,31 @@ function createSystemAwarenessGraph(){
           .optimizationStrategies
 
     })
+  const architecturalIntelligence =
+
+    analyzeArchitecture({
+
+      improvementAreas:
+
+        systemImprovementOptimization
+          .systemImprovementOptimization
+          .improvementAreas,
+
+
+      architectureInsights:
+
+        systemImprovementOptimization
+          .systemImprovementOptimization
+          .architectureInsights,
+
+
+      optimizationPaths:
+
+        systemImprovementOptimization
+          .systemImprovementOptimization
+          .optimizationPaths
+
+    })
 
   return {
 
@@ -912,6 +941,7 @@ function createSystemAwarenessGraph(){
 learningOptimization,
 evolutionOptimization,
 systemImprovementOptimization,
+architecturalIntelligence,
 
         requiresApproval:
 
