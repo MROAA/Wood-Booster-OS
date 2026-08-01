@@ -83,6 +83,14 @@ import {
 
 
 
+import {
+
+  evaluateProgress
+
+} from "./progressEvaluation.js"
+
+
+
 
 
 
@@ -397,7 +405,14 @@ function createSystemAwarenessGraph(){
           .plans,
 
 
-      steps:
+      milestones:
+
+        planningSupport
+          .planning
+          .steps,
+
+
+      tracking:
 
         planningSupport
           .planning
@@ -409,6 +424,45 @@ function createSystemAwarenessGraph(){
         planningSupport
           .planning
           .requirements
+
+    })
+
+
+
+
+
+
+
+  const progressEvaluation =
+
+    evaluateProgress({
+
+      goals:
+
+        goalManagement
+          .goalManagement
+          .goals,
+
+
+      milestones:
+
+        goalManagement
+          .goalManagement
+          .milestones,
+
+
+      tracking:
+
+        goalManagement
+          .goalManagement
+          .tracking,
+
+
+      conditions:
+
+        goalManagement
+          .goalManagement
+          .conditions
 
     })
 
@@ -440,26 +494,6 @@ function createSystemAwarenessGraph(){
         state:
 
           "active",
-
-
-
-        source:
-
-          [
-
-            "system-inventory",
-
-            "module-dependency-map",
-
-            "health-monitoring",
-
-            "capability-registry",
-
-            "memory-intelligence",
-
-            "knowledge-intelligence"
-
-          ],
 
 
 
@@ -503,6 +537,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        progressEvaluation,
+
+
+
         awareness:
 
           [
@@ -529,7 +567,9 @@ function createSystemAwarenessGraph(){
 
             "Muodostaa kehityssuunnitelmia",
 
-            "Seuraa tavoitteiden etenemistä"
+            "Seuraa tavoitteiden etenemistä",
+
+            "Arvioi etenemisen laatua"
 
           ],
 
