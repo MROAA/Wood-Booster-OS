@@ -44,7 +44,7 @@ function createSpacemonkeySnapshotV3ApiRouter(){
 
     "/spacemonkey/snapshot-v3",
 
-    (
+    async (
 
       req,
 
@@ -56,9 +56,17 @@ function createSpacemonkeySnapshotV3ApiRouter(){
       try{
 
 
+        const snapshot =
+
+          await getSpacemonkeySnapshotV3()
+
+
+
+
+
         res.json(
 
-          getSpacemonkeySnapshotV3()
+          snapshot
 
         )
 

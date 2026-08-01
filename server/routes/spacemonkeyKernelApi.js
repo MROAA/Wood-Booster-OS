@@ -42,15 +42,26 @@ function createSpacemonkeyKernelApiRouter(){
 
     "/",
 
-    (req,res)=>{
+    async (
+      req,
+      res
+    )=>{
 
 
       try{
 
 
+        const kernel =
+
+          await getSpacemonkeyKernel()
+
+
+
+
+
         res.json(
 
-          getSpacemonkeyKernel()
+          kernel
 
         )
 

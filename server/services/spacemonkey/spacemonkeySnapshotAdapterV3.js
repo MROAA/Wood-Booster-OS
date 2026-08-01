@@ -26,12 +26,12 @@ import {
 
 
 
-function getSpacemonkeySnapshotV3(){
+async function getSpacemonkeySnapshotV3(){
 
 
   const snapshot =
 
-    createSpacemonkeySystemSnapshotV3()
+    await createSpacemonkeySystemSnapshotV3()
 
 
 

@@ -5,13 +5,31 @@ SPACEMONKEY ROUTE INTEGRATION
 
 Keskitetty Spacemonkey API routejen lataus.
 
+Yhdistää:
+
+- Cognitive API
+- Kernel API
+- System API
+- Snapshot API
+- Catalog API
+
 =====================================
 */
 
 
 import {
+
   createSpacemonkeyCognitiveRouter,
+
 } from "../../routes/spacemonkeyCognitive.js"
+
+
+
+import {
+
+  mountSpacemonkeyExpressRoutes,
+
+} from "./spacemonkeyExpressMountManager.js"
 
 
 
@@ -20,13 +38,19 @@ import {
 
 
 export function integrateSpacemonkeyRoutes(
+
   app
+
 ){
 
 
   console.log(
+
     "SPACEMONKEY ROUTES START"
+
   )
+
+
 
 
 
@@ -44,8 +68,22 @@ export function integrateSpacemonkeyRoutes(
 
 
 
+
+
+  mountSpacemonkeyExpressRoutes({
+
+    app
+
+  })
+
+
+
+
+
   console.log(
+
     "SPACEMONKEY ROUTES READY"
+
   )
 
 
