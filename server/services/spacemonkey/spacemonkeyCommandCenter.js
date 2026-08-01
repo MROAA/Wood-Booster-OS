@@ -19,6 +19,7 @@ Tarjoaa:
 - Learning
 - Evolution
 - System Improvement
+- Meta
 - External APIs
 
 Read-only.
@@ -128,6 +129,14 @@ import {
   getSpacemonkeySystemImprovement
 
 } from "./spacemonkeySystemImprovementAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeyMeta
+
+} from "./spacemonkeyMetaAdapter.js"
 
 
 
@@ -248,6 +257,14 @@ async function getSpacemonkeyCommandCenter(){
     systemImprovement:
 
       getSpacemonkeySystemImprovement(),
+
+
+
+
+
+    meta:
+
+      getSpacemonkeyMeta(),
 
 
 
