@@ -19,6 +19,14 @@ import {
 
 
 
+import {
+
+  createSystemAwarenessGraph
+
+} from "./systemAwarenessGraph.js"
+
+
+
 
 
 
@@ -82,7 +90,9 @@ function createMetaReport(){
 
             "development-awareness",
 
-            "system-analysis"
+            "system-analysis",
+
+            "system-awareness"
 
           ],
 
@@ -97,6 +107,12 @@ function createMetaReport(){
         relationships:
 
           analyzeRelationships(),
+
+
+
+        systemAwareness:
+
+          createSystemAwarenessGraph(),
 
 
 
