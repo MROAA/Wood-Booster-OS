@@ -3,6 +3,14 @@ const MODULE_ID =
 
 
 
+import {
+
+  collectSystemAwareness
+
+} from "./systemAwarenessAdapter.js"
+
+
+
 
 
 function createSystemAwarenessGraph(){
@@ -46,28 +54,9 @@ function createSystemAwarenessGraph(){
 
 
 
-        systems:
+        liveAwareness:
 
-          {
-
-
-            modules:
-              0,
-
-
-            dependencies:
-              0,
-
-
-            capabilities:
-              0,
-
-
-            healthStatus:
-              "unknown"
-
-
-          },
+          collectSystemAwareness(),
 
 
 
@@ -79,7 +68,9 @@ function createSystemAwarenessGraph(){
 
             "Ymmärtää moduulien välisiä suhteita",
 
-            "Seuraa järjestelmän kehitysrakennetta"
+            "Seuraa järjestelmän kehitysrakennetta",
+
+            "Lukee järjestelmän tilaa turvallisesti"
 
           ],
 
