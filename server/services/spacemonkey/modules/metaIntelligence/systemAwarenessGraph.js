@@ -75,6 +75,14 @@ import {
 
 
 
+import {
+
+  analyzeGoals
+
+} from "./goalManagement.js"
+
+
+
 
 
 
@@ -378,6 +386,38 @@ function createSystemAwarenessGraph(){
 
 
 
+  const goalManagement =
+
+    analyzeGoals({
+
+      plans:
+
+        planningSupport
+          .planning
+          .plans,
+
+
+      steps:
+
+        planningSupport
+          .planning
+          .steps,
+
+
+      requirements:
+
+        planningSupport
+          .planning
+          .requirements
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -459,6 +499,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        goalManagement,
+
+
+
         awareness:
 
           [
@@ -483,7 +527,9 @@ function createSystemAwarenessGraph(){
 
             "Tukee päätöksentekoa",
 
-            "Muodostaa kehityssuunnitelmia päätöksenteon tueksi"
+            "Muodostaa kehityssuunnitelmia",
+
+            "Seuraa tavoitteiden etenemistä"
 
           ],
 
