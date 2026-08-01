@@ -26,12 +26,12 @@ import {
 
 
 
-function getSpacemonkeyDashboard(){
+async function getSpacemonkeyDashboard(){
 
 
   const dashboard =
 
-    getSpacemonkeyCommandCenter()
+    await getSpacemonkeyCommandCenter()
 
 
 

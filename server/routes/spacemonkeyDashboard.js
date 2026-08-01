@@ -46,7 +46,7 @@ function createSpacemonkeyDashboardRouter(){
 
     "/spacemonkey/dashboard",
 
-    (
+    async (
 
       req,
 
@@ -58,9 +58,17 @@ function createSpacemonkeyDashboardRouter(){
       try{
 
 
+        const dashboard =
+
+          await getSpacemonkeyDashboard()
+
+
+
+
+
         res.json(
 
-          getSpacemonkeyDashboard()
+          dashboard
 
         )
 

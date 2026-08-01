@@ -54,7 +54,7 @@ import {
 
 
 
-function getSpacemonkeyCommandCenter(){
+async function getSpacemonkeyCommandCenter(){
 
 
   return {
@@ -73,14 +73,23 @@ function getSpacemonkeyCommandCenter(){
       "1.0.0",
 
 
+
+
+
     kernel:
 
-      getSpacemonkeyKernel(),
+      await getSpacemonkeyKernel(),
+
+
+
 
 
     snapshot:
 
-      getSpacemonkeySnapshotV3(),
+      await getSpacemonkeySnapshotV3(),
+
+
+
 
 
     health:
@@ -88,9 +97,15 @@ function getSpacemonkeyCommandCenter(){
       checkSpacemonkeyBootstrapHealth(),
 
 
+
+
+
     apis:
 
       getSpacemonkeyExternalApiCatalog(),
+
+
+
 
 
     createdAt:
