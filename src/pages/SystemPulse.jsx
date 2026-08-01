@@ -18,6 +18,8 @@ import GitHistoryCard from "../components/systemPulse/GitHistoryCard"
 
 import IdentityCard from "../components/systemPulse/IdentityCard"
 
+import SecurityCard from "../components/systemPulse/SecurityCard"
+
 import MonitorCard from "../components/systemPulse/MonitorCard"
 
 import ActivityTimelineCard from "../components/systemPulse/ActivityTimelineCard"
@@ -134,6 +136,7 @@ function SystemPulse() {
 
           runtime:
             summary.runtime,
+
 
         })
 
@@ -373,33 +376,6 @@ function SystemPulse() {
               }
             />
 
-
-
-            <StatusGlow
-              label="Security"
-              value={`
-                ${
-                  pulse?.security?.capabilitiesApproved
-                  ||
-                  0
-                }
-                approved /
-                ${
-                  pulse?.security?.blocked
-                  ||
-                  0
-                }
-                blocked
-              `}
-              status={
-                pulse?.security?.status === "warning"
-                  ?
-                  "warning"
-                  :
-                  "healthy"
-              }
-            />
-
           </div>
 
 
@@ -430,6 +406,16 @@ function SystemPulse() {
 
       <HardwareCard
         pulse={pulse}
+      />
+
+
+
+
+
+      <SecurityCard
+        security={
+          pulse?.security
+        }
       />
 
 
