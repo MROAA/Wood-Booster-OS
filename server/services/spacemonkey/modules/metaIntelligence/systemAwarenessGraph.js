@@ -177,6 +177,11 @@ import {
   analyzeAdaptation
 
 } from "./adaptiveIntelligence.js"
+import {
+
+  analyzeResilience
+
+} from "./resilienceIntelligence.js"
 function createSystemAwarenessGraph(){
 
 
@@ -938,6 +943,31 @@ function createSystemAwarenessGraph(){
         .systemHarmony
 
   })
+  const resilienceIntelligence =
+
+    analyzeResilience({
+
+      adaptationSignals:
+
+        adaptiveIntelligence
+          .adaptiveIntelligence
+          .adaptationSignals,
+
+
+      environmentalAwareness:
+
+        adaptiveIntelligence
+          .adaptiveIntelligence
+          .environmentalAwareness,
+
+
+      flexibilityAssessment:
+
+        adaptiveIntelligence
+          .adaptiveIntelligence
+          .flexibilityAssessment
+
+    })
 
   return {
 
@@ -1005,6 +1035,7 @@ systemImprovementOptimization,
 architecturalIntelligence,
 systemCoherence,
 adaptiveIntelligence,
+resilienceIntelligence,
 
         requiresApproval:
 
