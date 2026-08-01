@@ -292,6 +292,11 @@ import {
   analyzeAbsoluteEcosystem
 
 } from "./absoluteEcosystem.js"
+import {
+
+  analyzeOriginEcosystem
+
+} from "./originEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1629,7 +1634,31 @@ const absoluteEcosystem =
         .persistentEvolution
 
   })
+const originEcosystem =
 
+  analyzeOriginEcosystem({
+
+    corePatterns:
+
+      absoluteEcosystem
+        .absoluteEcosystem
+        .corePatterns,
+
+
+    fundamentalBalance:
+
+      absoluteEcosystem
+        .absoluteEcosystem
+        .fundamentalBalance,
+
+
+    ultimatePrinciples:
+
+      absoluteEcosystem
+        .absoluteEcosystem
+        .ultimatePrinciples
+
+  })
   return {
 
 
@@ -1719,6 +1748,7 @@ cosmicEcosystem,
 infiniteEcosystem,
 eternalEcosystem,
 absoluteEcosystem,
+originEcosystem,
 
         requiresApproval:
 
