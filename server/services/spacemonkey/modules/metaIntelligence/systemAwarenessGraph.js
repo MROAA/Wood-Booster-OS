@@ -307,6 +307,11 @@ import {
   analyzeKnowledgeEcosystem
 
 } from "./knowledgeEcosystem.js"
+import {
+
+  analyzeIntelligenceEcosystem
+
+} from "./intelligenceEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1719,6 +1724,31 @@ const knowledgeEcosystem =
         .influenceRelations
 
   })
+const intelligenceEcosystem =
+
+  analyzeIntelligenceEcosystem({
+
+    knowledgePatterns:
+
+      knowledgeEcosystem
+        .knowledgeEcosystem
+        .knowledgePatterns,
+
+
+    knowledgeRelations:
+
+      knowledgeEcosystem
+        .knowledgeEcosystem
+        .knowledgeRelations,
+
+
+    knowledgeEvolution:
+
+      knowledgeEcosystem
+        .knowledgeEcosystem
+        .knowledgeEvolution
+
+  })
 
   return {
 
@@ -1812,6 +1842,7 @@ absoluteEcosystem,
 originEcosystem,
 sourceEcosystem,
 knowledgeEcosystem,
+intelligenceEcosystem,
 
         requiresApproval:
 
