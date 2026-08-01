@@ -227,6 +227,11 @@ import {
   analyzeEvolutionaryEcosystem
 
 } from "./evolutionaryEcosystem.js"
+import {
+
+  analyzePredictiveEcosystem
+
+} from "./predictiveEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1239,6 +1244,31 @@ function createSystemAwarenessGraph(){
           .changePatterns
 
     })
+  const predictiveEcosystem =
+
+    analyzePredictiveEcosystem({
+
+      evolutionPatterns:
+
+        evolutionaryEcosystem
+          .evolutionaryEcosystem
+          .evolutionPatterns,
+
+
+      growthDynamics:
+
+        evolutionaryEcosystem
+          .evolutionaryEcosystem
+          .growthDynamics,
+
+
+      futureTrajectory:
+
+        evolutionaryEcosystem
+          .evolutionaryEcosystem
+          .futureTrajectory
+
+    })
 
   return {
 
@@ -1316,6 +1346,7 @@ emergentIntelligence,
 systemicIntelligence,
 adaptiveEcosystem,
 evolutionaryEcosystem,
+predictiveEcosystem,
 
         requiresApproval:
 
