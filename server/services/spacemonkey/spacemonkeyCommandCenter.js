@@ -15,6 +15,8 @@ Tarjoaa:
 - Knowledge
 - Decision
 - Execution
+- Reflection
+- Learning
 - External APIs
 
 Read-only.
@@ -92,6 +94,22 @@ import {
   getSpacemonkeyExecution
 
 } from "./spacemonkeyExecutionAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeyReflection
+
+} from "./spacemonkeyReflectionAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeyLearning
+
+} from "./spacemonkeyLearningAdapter.js"
 
 
 
@@ -180,6 +198,22 @@ async function getSpacemonkeyCommandCenter(){
     execution:
 
       getSpacemonkeyExecution(),
+
+
+
+
+
+    reflection:
+
+      getSpacemonkeyReflection(),
+
+
+
+
+
+    learning:
+
+      getSpacemonkeyLearning(),
 
 
 
