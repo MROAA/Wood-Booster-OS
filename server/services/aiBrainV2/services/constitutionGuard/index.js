@@ -9,6 +9,7 @@ Vastuut:
 - tarkistaa AI Constitution säännöt
 - toimii päätöksen ja capability layerin välissä
 - palauttaa sallitun etenemisen tilan
+- kirjoittaa audit-tapahtuman
 
 
 Ei:
@@ -29,6 +30,14 @@ import {
 
 
 
+import {
+  auditConstitutionDecision,
+} from "./constitutionAuditAdapter.js"
+
+
+
+
+
 const CONSTITUTION_GUARD_ID =
   "constitution-guard"
 
@@ -36,6 +45,8 @@ const CONSTITUTION_GUARD_ID =
 
 const CONSTITUTION_GUARD_VERSION =
   "1.0.0"
+
+
 
 
 
@@ -67,6 +78,25 @@ function evaluateConstitutionGuard({
       requiresHumanApproval,
 
     })
+
+
+
+
+
+  auditConstitutionDecision({
+
+    actionType,
+
+    decision:
+      constitutionResult.decision,
+
+
+    reason:
+      constitutionResult.reason,
+
+  })
+
+
 
 
 
@@ -111,6 +141,8 @@ function evaluateConstitutionGuard({
 
 
 
+
+
 function getConstitutionGuardStatus(){
 
   return {
@@ -133,6 +165,8 @@ function getConstitutionGuardStatus(){
   }
 
 }
+
+
 
 
 
