@@ -3,6 +3,14 @@ const MODULE_ID =
 
 
 
+import {
+
+  analyzeSystem
+
+} from "./metaAnalyzer.js"
+
+
+
 
 
 function createMetaReport(){
@@ -62,9 +70,17 @@ function createMetaReport(){
 
             "module-relationship-analysis",
 
-            "development-awareness"
+            "development-awareness",
+
+            "system-analysis"
 
           ],
+
+
+
+        analysis:
+
+          analyzeSystem(),
 
 
 
