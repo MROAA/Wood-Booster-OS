@@ -31,7 +31,11 @@ import {
 
 } from "./spacemonkeyKernelAdapter.js"
 
+import {
 
+  getSpacemonkeyEvolution
+
+} from "./spacemonkeyEvolutionAdapter.js"
 
 import {
 
@@ -216,7 +220,9 @@ async function getSpacemonkeyCommandCenter(){
       getSpacemonkeyLearning(),
 
 
+evolution:
 
+  getSpacemonkeyEvolution(),
 
 
     apis:
