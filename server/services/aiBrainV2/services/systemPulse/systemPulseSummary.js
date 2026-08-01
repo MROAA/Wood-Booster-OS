@@ -10,7 +10,6 @@ Vastuut:
 - muodostaa selkeän järjestelmäyhteenvedon
 - yhdistää System Pulse tiedot
 - tarjoaa frontendille helposti luettavan tilan
-- sisältää Security tilan
 
 Ei:
 - suorita toimintoja
@@ -30,6 +29,7 @@ import {
 
 
 async function getSystemPulseSummary(){
+
   const pulse =
     await getSystemPulse()
 
@@ -47,8 +47,29 @@ async function getSystemPulseSummary(){
     pulse.components.modules
 
 
-const security =
-  pulse.components.securityHealth
+  const security =
+    pulse.components.security
+
+
+  const hardware =
+    pulse.components.hardware
+
+
+  const git =
+    pulse.components.git
+
+
+  const gitSync =
+    pulse.components.gitSync
+
+
+  const gitWatcher =
+    pulse.components.gitWatcher
+
+
+  const gitHistory =
+    pulse.components.gitHistory
+
 
 
 
@@ -65,10 +86,8 @@ const security =
 
     summary: {
 
-
       system:
         pulse.system,
-
 
 
       modules: {
@@ -89,7 +108,6 @@ const security =
       },
 
 
-
       capability: {
 
         approved:
@@ -106,34 +124,78 @@ const security =
       },
 
 
-
       security: {
 
-        status:
-          security
-            ?.status ||
-          "unknown",
-
+status:
+  security.health?.status
+  ||
+  "available",
 
         blockedEvents:
-          security
-            ?.blockedEvents ||
+          security.securityEvents?.length
+          ||
           0,
 
 
         approvalRequired:
-          security
-            ?.approvalRequired ||
+          security.auditSummary?.approvalRequired
+          ||
           0,
 
 
         message:
-          security
-            ?.message ||
+          security.health?.message
+          ||
+          security.message
+          ||
           "",
 
       },
 
+
+      environment: {
+
+        os:
+          runtime.platform
+          ||
+          "-",
+
+
+        kernel:
+          hardware.kernel
+          ||
+          "-",
+
+
+        host:
+          hardware.hostname
+          ||
+          "-",
+
+
+      },
+
+
+      hardware: {
+
+        cpu:
+          hardware.cpu
+          ||
+          null,
+
+
+        gpu:
+          hardware.gpu
+          ||
+          [],
+
+
+        memory:
+          hardware.memory
+          ||
+          null,
+
+      },
 
 
       runtime: {
@@ -148,6 +210,65 @@ const security =
 
         cpuCount:
           runtime.cpuCount,
+
+      },
+
+
+      git: {
+
+        repository:
+          git.repository
+          ||
+          "-",
+
+
+        branch:
+          git.branch
+          ||
+          "-",
+
+
+        commit:
+          git.commit
+          ||
+          "-",
+
+
+      },
+
+
+      gitSync: {
+
+        status:
+          gitSync.status
+          ||
+          "-",
+
+
+        changes:
+          gitSync.changes
+          ||
+          0,
+
+      },
+
+
+      gitWatcher: {
+
+        status:
+          gitWatcher.status
+          ||
+          "stopped",
+
+      },
+
+
+      gitHistory: {
+
+        total:
+          gitHistory?.length
+          ||
+          0,
 
       },
 

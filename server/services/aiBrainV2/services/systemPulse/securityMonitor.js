@@ -3,7 +3,7 @@
 
 WOOD-BOOSTER AI BRAIN V2
 
-SYSTEM PULSE SECURITY MONITOR V1.1
+SYSTEM PULSE SECURITY MONITOR V1.2
 
 Vastuut:
 
@@ -33,7 +33,7 @@ const SECURITY_MONITOR_ID =
 
 
 const SECURITY_MONITOR_VERSION =
-  "1.1.0"
+  "1.2.0"
 
 
 
@@ -105,57 +105,7 @@ function getSecurityMessage(summary){
 
 
 
-function getSecurityPulseStatus(){
-
-  const report =
-    createAuditReport()
-
-
-
-  return {
-
-    id:
-      SECURITY_MONITOR_ID,
-
-
-    version:
-      SECURITY_MONITOR_VERSION,
-
-
-    status:
-      "available",
-
-
-    auditSummary:
-      report.summary,
-
-
-    securityEvents:
-      report.constitution,
-
-
-    recentEvents:
-      report.recent,
-
-  }
-
-}
-
-
-
-
-
-function getSecurityHealth(){
-
-  const report =
-    createAuditReport()
-
-
-
-  const summary =
-    report.summary
-
-
+function buildSecurityHealth(summary){
 
   return {
 
@@ -188,6 +138,73 @@ function getSecurityHealth(){
       ),
 
   }
+
+}
+
+
+
+
+
+function getSecurityPulseStatus(){
+
+  const report =
+    createAuditReport()
+
+
+
+  const health =
+    buildSecurityHealth(
+      report.summary,
+    )
+
+
+
+  return {
+
+    id:
+      SECURITY_MONITOR_ID,
+
+
+    version:
+      SECURITY_MONITOR_VERSION,
+
+
+    status:
+      "available",
+
+
+    auditSummary:
+      report.summary,
+
+
+    health,
+
+
+    securityEvents:
+      report.constitution,
+
+
+    recentEvents:
+      report.recent,
+
+  }
+
+}
+
+
+
+
+
+function getSecurityHealth(){
+
+  const report =
+    createAuditReport()
+
+
+
+  return buildSecurityHealth(
+    report.summary,
+  )
 
 }
 

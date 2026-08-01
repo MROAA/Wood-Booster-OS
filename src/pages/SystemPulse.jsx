@@ -86,9 +86,56 @@ function SystemPulse() {
         pulseData.success
       ){
 
-        setPulse(
-          pulseData.pulse
-        )
+        const summary =
+          pulseData.pulse.summary
+
+
+
+        setPulse({
+
+          ...pulseData.pulse,
+
+
+          brain: {
+
+            modules:
+              summary.modules.total,
+
+
+            activeModules:
+              summary.modules.active,
+
+          },
+
+
+          security: {
+
+            capabilitiesApproved:
+              summary.capability.approved,
+
+
+            blocked:
+              summary.security.blockedEvents,
+
+
+            approvalRequired:
+              summary.security.approvalRequired,
+
+
+            status:
+              summary.security.status,
+
+
+            message:
+              summary.security.message,
+
+          },
+
+
+          runtime:
+            summary.runtime,
+
+        })
 
       }
 
@@ -336,9 +383,21 @@ function SystemPulse() {
                   ||
                   0
                 }
-                approved
+                approved /
+                ${
+                  pulse?.security?.blocked
+                  ||
+                  0
+                }
+                blocked
               `}
-              status="healthy"
+              status={
+                pulse?.security?.status === "warning"
+                  ?
+                  "warning"
+                  :
+                  "healthy"
+              }
             />
 
           </div>
