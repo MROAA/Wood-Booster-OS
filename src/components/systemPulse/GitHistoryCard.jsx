@@ -1,3 +1,9 @@
+import PulseCard from "./PulseCard"
+
+
+
+
+
 function GitHistoryCard({
   pulse,
 }) {
@@ -21,23 +27,13 @@ function GitHistoryCard({
 
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Git Sync History"
     >
-
-      <h2>
-        Git Sync History
-      </h2>
-
 
 
       <p
         className="
-          mt-3
           text-sm
           text-[var(--wood-muted)]
         "
@@ -79,16 +75,22 @@ function GitHistoryCard({
                 "
               >
 
-                <p>
+                <p
+                  className="
+                    text-[var(--wood-text)]
+                  "
+                >
                   {
                     event.type
                   }
                 </p>
 
 
+
                 <p
                   className="
                     text-sm
+                    text-[var(--wood-muted)]
                   "
                 >
 
@@ -103,9 +105,11 @@ function GitHistoryCard({
                 </p>
 
 
+
                 <p
                   className="
                     text-sm
+                    text-[var(--wood-muted)]
                   "
                 >
 
@@ -120,9 +124,11 @@ function GitHistoryCard({
                 </p>
 
 
+
                 <p
                   className="
                     text-sm
+                    text-[var(--wood-muted)]
                   "
                 >
 
@@ -135,6 +141,7 @@ function GitHistoryCard({
                   }
 
                 </p>
+
 
 
                 <p
@@ -163,7 +170,7 @@ function GitHistoryCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 

@@ -1,3 +1,9 @@
+import PulseCard from "./PulseCard"
+
+
+
+
+
 function MonitorCard({
   connection,
   lastUpdate,
@@ -6,31 +12,25 @@ function MonitorCard({
 
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Pulse Monitor"
     >
-
-      <h2>
-        Pulse Monitor
-      </h2>
-
 
 
       <div
         className="
-          mt-5
           space-y-3
+          text-sm
+          text-[var(--wood-muted)]
         "
       >
 
         <p>
           Connection:
           {" "}
-          {connection}
+          {
+            connection
+          }
         </p>
 
 
@@ -51,7 +51,7 @@ function MonitorCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 

@@ -1,3 +1,9 @@
+import PulseCard from "./PulseCard"
+
+
+
+
+
 function ActivityTimelineCard({
   activities,
 }) {
@@ -5,23 +11,13 @@ function ActivityTimelineCard({
 
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Activity Timeline"
     >
-
-      <h2>
-        Activity Timeline
-      </h2>
-
 
 
       <div
         className="
-          mt-5
           space-y-4
         "
       >
@@ -39,12 +35,22 @@ function ActivityTimelineCard({
                 "
               >
 
-                <p>
+                <p
+                  className="
+                    text-[var(--wood-text)]
+                  "
+                >
                   {event.type}
                 </p>
 
 
-                <p>
+
+                <p
+                  className="
+                    text-sm
+                    text-[var(--wood-muted)]
+                  "
+                >
                   {event.module}
                   {" • "}
                   {event.status}
@@ -60,7 +66,7 @@ function ActivityTimelineCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 

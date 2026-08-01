@@ -1,3 +1,5 @@
+import PulseCard from "./PulseCard"
+
 import StatusGlow from "./StatusGlow"
 
 
@@ -43,25 +45,17 @@ function HardwareCard({
 
 
 
+
+
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Hardware"
     >
-
-      <h2>
-        Hardware
-      </h2>
-
 
 
       <div
         className="
-          mt-5
           space-y-3
         "
       >
@@ -108,7 +102,7 @@ function HardwareCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 

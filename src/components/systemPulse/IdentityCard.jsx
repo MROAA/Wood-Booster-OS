@@ -1,3 +1,9 @@
+import PulseCard from "./PulseCard"
+
+
+
+
+
 function IdentityCard({
   core,
 }) {
@@ -5,24 +11,16 @@ function IdentityCard({
 
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Spacemonkey Identity"
     >
-
-      <h2>
-        Spacemonkey Identity
-      </h2>
-
 
 
       <div
         className="
-          mt-5
           space-y-3
+          text-sm
+          text-[var(--wood-muted)]
         "
       >
 
@@ -64,7 +62,7 @@ function IdentityCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 

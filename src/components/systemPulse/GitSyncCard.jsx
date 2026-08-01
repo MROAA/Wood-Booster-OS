@@ -1,3 +1,11 @@
+import PulseCard from "./PulseCard"
+
+import StatusGlow from "./StatusGlow"
+
+
+
+
+
 function GitSyncCard({
   pulse,
 }) {
@@ -13,16 +21,18 @@ function GitSyncCard({
 
 
 
-  const healthStyle =
+
+
+  const statusType =
     health === "healthy"
       ?
-      "text-green-400 border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.7)]"
+      "healthy"
       :
       health === "changes"
         ?
-        "text-yellow-400 border-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.7)]"
+        "warning"
         :
-        "text-red-400 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.7)]"
+        "error"
 
 
 
@@ -30,65 +40,27 @@ function GitSyncCard({
 
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Git Sync"
     >
-
-      <h2>
-        Git Sync
-      </h2>
-
-
 
 
       <div
         className="
-          mt-5
           space-y-3
         "
       >
 
 
-        <div
-          className={`
-            inline-flex
-            items-center
-            gap-2
-            rounded-full
-            border
-            px-4
-            py-2
-            transition-all
-            duration-500
-            ${healthStyle}
-          `}
-        >
-
-          <span
-            className="
-              h-3
-              w-3
-              rounded-full
-              animate-pulse
-              bg-current
-            "
-          />
-
-          <span>
-            {
-              summary?.health?.label
-              ||
-              "-"
-            }
-          </span>
-
-        </div>
-
-
+        <StatusGlow
+          label="Health"
+          value={
+            summary?.health?.label
+            ||
+            "-"
+          }
+          status={statusType}
+        />
 
 
 
@@ -223,7 +195,7 @@ function GitSyncCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 

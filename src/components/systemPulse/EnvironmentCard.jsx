@@ -1,3 +1,9 @@
+import PulseCard from "./PulseCard"
+
+
+
+
+
 function EnvironmentCard({
   pulse,
 }) {
@@ -5,24 +11,16 @@ function EnvironmentCard({
 
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Environment"
     >
-
-      <h2>
-        Environment
-      </h2>
-
 
 
       <div
         className="
-          mt-5
           space-y-3
+          text-sm
+          text-[var(--wood-muted)]
         "
       >
 
@@ -64,7 +62,7 @@ function EnvironmentCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 

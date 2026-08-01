@@ -1,3 +1,5 @@
+import PulseCard from "./PulseCard"
+
 import StatusGlow from "./StatusGlow"
 
 
@@ -14,25 +16,17 @@ function RuntimeCard({
 
 
 
+
+
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Runtime"
     >
-
-      <h2>
-        Runtime
-      </h2>
-
 
 
       <div
         className="
-          mt-5
           space-y-3
         "
       >
@@ -66,7 +60,7 @@ function RuntimeCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 

@@ -1,3 +1,9 @@
+import PulseCard from "./PulseCard"
+
+
+
+
+
 function SecurityCard({
   security,
 }) {
@@ -18,22 +24,13 @@ function SecurityCard({
 
   return (
 
-    <section
-      className="
-        card
-        p-6
-        wood-hover
-      "
+    <PulseCard
+      title="Security"
     >
-
-      <h2>
-        Security
-      </h2>
 
 
       <div
         className="
-          mt-5
           space-y-3
           text-sm
           text-[var(--wood-muted)]
@@ -126,6 +123,7 @@ function SecurityCard({
               className="
                 pt-3
                 text-xs
+                text-[var(--wood-muted)]
               "
             >
               {security.message}
@@ -139,7 +137,7 @@ function SecurityCard({
       </div>
 
 
-    </section>
+    </PulseCard>
 
   )
 
