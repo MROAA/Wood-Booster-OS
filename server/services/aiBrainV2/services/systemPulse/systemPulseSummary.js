@@ -10,6 +10,7 @@ Vastuut:
 - muodostaa selkeän järjestelmäyhteenvedon
 - yhdistää System Pulse tiedot
 - tarjoaa frontendille helposti luettavan tilan
+- sisältää Security tilan
 
 Ei:
 - suorita toimintoja
@@ -28,10 +29,9 @@ import {
 
 
 
-function getSystemPulseSummary(){
-
+async function getSystemPulseSummary(){
   const pulse =
-    getSystemPulse()
+    await getSystemPulse()
 
 
 
@@ -46,6 +46,9 @@ function getSystemPulseSummary(){
   const modules =
     pulse.components.modules
 
+
+const security =
+  pulse.components.securityHealth
 
 
 
@@ -62,8 +65,10 @@ function getSystemPulseSummary(){
 
     summary: {
 
+
       system:
         pulse.system,
+
 
 
       modules: {
@@ -84,6 +89,7 @@ function getSystemPulseSummary(){
       },
 
 
+
       capability: {
 
         approved:
@@ -98,6 +104,36 @@ function getSystemPulseSummary(){
           capability.summary.approvalRequired,
 
       },
+
+
+
+      security: {
+
+        status:
+          security
+            ?.status ||
+          "unknown",
+
+
+        blockedEvents:
+          security
+            ?.blockedEvents ||
+          0,
+
+
+        approvalRequired:
+          security
+            ?.approvalRequired ||
+          0,
+
+
+        message:
+          security
+            ?.message ||
+          "",
+
+      },
+
 
 
       runtime: {

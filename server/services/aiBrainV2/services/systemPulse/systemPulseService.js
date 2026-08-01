@@ -91,6 +91,7 @@ import {
 
 import {
   getSecurityPulseStatus,
+  getSecurityHealth,
 } from "./securityMonitor.js"
 
 
@@ -163,13 +164,18 @@ async function getSystemPulse(){
 
 
 
+  const securityHealth =
+    getSecurityHealth()
+
+
+
 
 
 
   const healthy =
     capability.healthy &&
     modules.active >= 0 &&
-    security.auditSummary.blocked === 0
+    securityHealth.healthy
 
 
 
@@ -232,6 +238,9 @@ async function getSystemPulse(){
 
 
       security,
+
+
+      securityHealth,
 
 
     },

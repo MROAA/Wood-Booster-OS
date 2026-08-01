@@ -16,9 +16,8 @@ import express from "express"
 
 
 import {
-  getSystemPulseState,
-} from "../services/aiBrainV2/services/systemPulse/systemPulseState.js"
-
+  getSystemPulseSummary,
+} from "../services/aiBrainV2/services/systemPulse/systemPulseSummary.js"
 
 import {
   createSnapshot,
@@ -45,9 +44,8 @@ router.get(
     try {
 
 
-      const pulse =
-        await getSystemPulseState()
-
+const pulse =
+  await getSystemPulseSummary()
 
 
       res.json({
