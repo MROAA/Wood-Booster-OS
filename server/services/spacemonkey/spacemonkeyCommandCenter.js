@@ -12,6 +12,7 @@ Tarjoaa:
 - Health
 - Capabilities
 - Memory
+- Knowledge
 - External APIs
 
 Read-only.
@@ -65,6 +66,14 @@ import {
   getSpacemonkeyMemory
 
 } from "./spacemonkeyMemoryAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeyKnowledge
+
+} from "./spacemonkeyKnowledgeAdapter.js"
 
 
 
@@ -129,6 +138,14 @@ async function getSpacemonkeyCommandCenter(){
     memory:
 
       getSpacemonkeyMemory(),
+
+
+
+
+
+    knowledge:
+
+      getSpacemonkeyKnowledge(),
 
 
 
