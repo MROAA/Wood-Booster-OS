@@ -272,6 +272,11 @@ import {
   analyzeTranscendentEcosystem
 
 } from "./transcendentEcosystem.js"
+import {
+
+  analyzeCosmicEcosystem
+
+} from "./cosmicEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1509,6 +1514,31 @@ const transcendentEcosystem =
         .ecosystemPrinciples
 
   })
+const cosmicEcosystem =
+
+  analyzeCosmicEcosystem({
+
+    transformationPatterns:
+
+      transcendentEcosystem
+        .transcendentEcosystem
+        .transformationPatterns,
+
+
+    evolutionRelations:
+
+      transcendentEcosystem
+        .transcendentEcosystem
+        .evolutionRelations,
+
+
+    adaptivePrinciples:
+
+      transcendentEcosystem
+        .transcendentEcosystem
+        .adaptivePrinciples
+
+  })
 
   return {
 
@@ -1595,6 +1625,7 @@ unifiedEcosystem,
 globalEcosystem,
 universalEcosystem,
 transcendentEcosystem,
+cosmicEcosystem,
 
         requiresApproval:
 
