@@ -187,6 +187,11 @@ import {
   analyzeAutonomousAwareness
 
 } from "./autonomousAwareness.js"
+import {
+
+  analyzeSelfGovernance
+
+} from "./selfGovernance.js"
 function createSystemAwarenessGraph(){
 
 
@@ -999,6 +1004,32 @@ function createSystemAwarenessGraph(){
 
     })
 
+      const selfGovernance =
+
+    analyzeSelfGovernance({
+
+      selfMonitoring:
+
+        autonomousAwareness
+          .autonomousAwareness
+          .selfMonitoring,
+
+
+      stateRecognition:
+
+        autonomousAwareness
+          .autonomousAwareness
+          .stateRecognition,
+
+
+      awarenessLoop:
+
+        autonomousAwareness
+          .autonomousAwareness
+          .awarenessLoop
+
+    })
+
   return {
 
 
@@ -1067,6 +1098,7 @@ systemCoherence,
 adaptiveIntelligence,
 resilienceIntelligence,
 autonomousAwareness,
+selfGovernance,
 
         requiresApproval:
 
