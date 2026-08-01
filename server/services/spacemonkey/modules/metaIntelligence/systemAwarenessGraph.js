@@ -43,6 +43,14 @@ import {
 
 
 
+import {
+
+  analyzeContext
+
+} from "./contextualReasoning.js"
+
+
+
 
 
 
@@ -99,7 +107,6 @@ function createSystemAwarenessGraph(){
           .health
           .state
 
-
     })
 
 
@@ -148,7 +155,6 @@ function createSystemAwarenessGraph(){
 
         "active"
 
-
     })
 
 
@@ -182,7 +188,6 @@ function createSystemAwarenessGraph(){
         prediction
           .prediction
           .recommendations
-
 
     })
 
@@ -222,6 +227,43 @@ function createSystemAwarenessGraph(){
 
         "active"
 
+    })
+
+
+
+
+
+
+
+  const contextualReasoning =
+
+    analyzeContext({
+
+      correlations:
+
+        knowledgeCorrelation
+          .correlation
+          .correlations,
+
+
+
+      signals:
+
+        knowledgeCorrelation
+          .correlation
+          .knowledgeSignals,
+
+
+
+      systemState:
+
+        "stable",
+
+
+
+      developmentState:
+
+        "active"
 
     })
 
@@ -296,6 +338,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        contextualReasoning,
+
+
+
         awareness:
 
           [
@@ -312,7 +358,9 @@ function createSystemAwarenessGraph(){
 
             "Muodostaa adaptiivisia havaintoja",
 
-            "Yhdistää havaintoja tietokerroksiin"
+            "Yhdistää havaintoja tietokerroksiin",
+
+            "Tulkitsee havaintoja kontekstissa"
 
           ],
 
