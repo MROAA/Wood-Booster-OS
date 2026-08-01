@@ -222,6 +222,11 @@ import {
   analyzeAdaptiveEcosystem
 
 } from "./adaptiveEcosystem.js"
+import {
+
+  analyzeEvolutionaryEcosystem
+
+} from "./evolutionaryEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1209,6 +1214,31 @@ function createSystemAwarenessGraph(){
           .ecosystemAwareness
 
     })
+  const evolutionaryEcosystem =
+
+    analyzeEvolutionaryEcosystem({
+
+      environmentSignals:
+
+        adaptiveEcosystem
+          .adaptiveEcosystem
+          .environmentSignals,
+
+
+      ecosystemAdaptation:
+
+        adaptiveEcosystem
+          .adaptiveEcosystem
+          .ecosystemAdaptation,
+
+
+      changePatterns:
+
+        adaptiveEcosystem
+          .adaptiveEcosystem
+          .changePatterns
+
+    })
 
   return {
 
@@ -1285,6 +1315,7 @@ collectiveIntelligence,
 emergentIntelligence,
 systemicIntelligence,
 adaptiveEcosystem,
+evolutionaryEcosystem,
 
         requiresApproval:
 
