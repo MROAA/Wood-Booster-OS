@@ -11,6 +11,7 @@ Tarjoaa:
 - Snapshot
 - Health
 - External APIs
+- Capabilities
 
 Read-only.
 
@@ -47,6 +48,14 @@ import {
   getSpacemonkeyExternalApiCatalog
 
 } from "./spacemonkeyExternalApiCatalogAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeyCapabilities
+
+} from "./spacemonkeyCapabilityAdapter.js"
 
 
 
@@ -95,6 +104,14 @@ async function getSpacemonkeyCommandCenter(){
     health:
 
       checkSpacemonkeyBootstrapHealth(),
+
+
+
+
+
+    capabilities:
+
+      getSpacemonkeyCapabilities(),
 
 
 
