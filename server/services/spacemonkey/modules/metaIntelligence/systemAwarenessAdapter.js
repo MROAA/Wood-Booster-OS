@@ -3,6 +3,16 @@ const MODULE_ID =
 
 
 
+import {
+
+  collectLiveSystemAwareness
+
+} from "./systemAwarenessLiveAdapter.js"
+
+
+
+
+
 
 
 function collectSystemAwareness(){
@@ -20,68 +30,46 @@ function collectSystemAwareness(){
 
 
 
-    systems:
+    mode:
+
+      "live-read-only-observation",
+
+
+
+    liveSystem:
+
+      collectLiveSystemAwareness(),
+
+
+
+    awareness:
 
       {
 
 
         modules:
-
-          [
-
-            "memory-intelligence",
-
-            "knowledge-intelligence",
-
-            "decision-intelligence",
-
-            "execution-intelligence",
-
-            "reflection-intelligence",
-
-            "learning-intelligence",
-
-            "evolution-intelligence",
-
-            "system-improvement-intelligence",
-
-            "meta-intelligence"
-
-          ],
+          "observed",
 
 
-
-        moduleCount:
-          9,
-
+        dependencies:
+          "observed",
 
 
-        dependencyAwareness:
-          "available",
+        capabilities:
+          "observed",
 
 
-
-        capabilityAwareness:
-          "available",
-
-
-
-        healthAwareness:
-          "available"
+        health:
+          "observed"
 
 
       },
 
 
 
-    state:
-
-      "observing",
-
-
-
     readOnly:
       true,
+
 
 
     requiresApproval:
