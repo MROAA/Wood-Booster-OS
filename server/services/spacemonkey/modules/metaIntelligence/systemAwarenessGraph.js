@@ -277,6 +277,11 @@ import {
   analyzeCosmicEcosystem
 
 } from "./cosmicEcosystem.js"
+import {
+
+  analyzeInfiniteEcosystem
+
+} from "./infiniteEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1539,6 +1544,31 @@ const cosmicEcosystem =
         .adaptivePrinciples
 
   })
+const infiniteEcosystem =
+
+  analyzeInfiniteEcosystem({
+
+    universalConnections:
+
+      cosmicEcosystem
+        .cosmicEcosystem
+        .universalConnections,
+
+
+    largeScalePatterns:
+
+      cosmicEcosystem
+        .cosmicEcosystem
+        .largeScalePatterns,
+
+
+    systemicCycles:
+
+      cosmicEcosystem
+        .cosmicEcosystem
+        .systemicCycles
+
+  })
 
   return {
 
@@ -1626,6 +1656,7 @@ globalEcosystem,
 universalEcosystem,
 transcendentEcosystem,
 cosmicEcosystem,
+infiniteEcosystem,
 
         requiresApproval:
 
