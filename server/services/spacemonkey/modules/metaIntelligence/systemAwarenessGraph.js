@@ -19,6 +19,14 @@ import {
 
 
 
+import {
+
+  analyzeFutureDirection
+
+} from "./predictiveAwareness.js"
+
+
+
 
 
 
@@ -28,6 +36,8 @@ function createSystemAwarenessGraph(){
 
   const liveAwareness =
     collectSystemAwareness()
+
+
 
 
 
@@ -73,26 +83,101 @@ function createSystemAwarenessGraph(){
 
 
 
+
+
         reasoning:
 
           analyzeSystemState({
 
             modules:
-              liveAwareness.liveSystem.liveGraph.modules.count,
+
+              liveAwareness
+                .liveSystem
+                .liveGraph
+                .modules
+                .count,
+
 
 
             dependencies:
-              liveAwareness.liveSystem.liveGraph.dependencies.state,
+
+              liveAwareness
+                .liveSystem
+                .liveGraph
+                .dependencies
+                .state,
+
 
 
             capabilities:
-              liveAwareness.liveSystem.liveGraph.capabilities.state,
+
+              liveAwareness
+                .liveSystem
+                .liveGraph
+                .capabilities
+                .state,
+
 
 
             health:
-              liveAwareness.liveSystem.liveGraph.health.state
+
+              liveAwareness
+                .liveSystem
+                .liveGraph
+                .health
+                .state
+
 
           }),
+
+
+
+
+
+        prediction:
+
+          analyzeFutureDirection({
+
+            modules:
+
+              liveAwareness
+                .liveSystem
+                .liveGraph
+                .modules
+                .count,
+
+
+
+            health:
+
+              liveAwareness
+                .liveSystem
+                .liveGraph
+                .health
+                .state,
+
+
+
+            learning:
+
+              "active",
+
+
+
+            evolution:
+
+              "active",
+
+
+
+            improvement:
+
+              "active"
+
+
+          }),
+
+
 
 
 
@@ -106,9 +191,13 @@ function createSystemAwarenessGraph(){
 
             "Seuraa järjestelmän kehitysrakennetta",
 
-            "Arvioi järjestelmän tilaa"
+            "Arvioi järjestelmän tilaa",
+
+            "Arvioi tulevaa kehityssuuntaa"
 
           ],
+
+
 
 
 
@@ -125,6 +214,8 @@ function createSystemAwarenessGraph(){
             "Raportoi ennen toimintaa"
 
           ],
+
+
 
 
 
