@@ -91,6 +91,14 @@ import {
 
 
 
+import {
+
+  assessRisks
+
+} from "./riskAssessment.js"
+
+
+
 
 
 
@@ -472,6 +480,45 @@ function createSystemAwarenessGraph(){
 
 
 
+  const riskAssessment =
+
+    assessRisks({
+
+      progress:
+
+        progressEvaluation
+          .progressEvaluation
+          .progress,
+
+
+      blockers:
+
+        progressEvaluation
+          .progressEvaluation
+          .blockers,
+
+
+      risks:
+
+        progressEvaluation
+          .progressEvaluation
+          .risks,
+
+
+      recommendations:
+
+        progressEvaluation
+          .progressEvaluation
+          .recommendations
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -541,6 +588,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        riskAssessment,
+
+
+
         awareness:
 
           [
@@ -569,7 +620,9 @@ function createSystemAwarenessGraph(){
 
             "Seuraa tavoitteiden etenemistä",
 
-            "Arvioi etenemisen laatua"
+            "Arvioi etenemisen laatua",
+
+            "Tunnistaa mahdollisia riskejä"
 
           ],
 
