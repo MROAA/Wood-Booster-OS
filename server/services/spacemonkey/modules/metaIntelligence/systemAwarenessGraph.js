@@ -99,6 +99,14 @@ import {
 
 
 
+import {
+
+  discoverOpportunities
+
+} from "./opportunityDiscovery.js"
+
+
+
 
 
 
@@ -519,6 +527,38 @@ function createSystemAwarenessGraph(){
 
 
 
+  const opportunityDiscovery =
+
+    discoverOpportunities({
+
+      risks:
+
+        riskAssessment
+          .riskAssessment
+          .identifiedRisks,
+
+
+      recommendations:
+
+        riskAssessment
+          .riskAssessment
+          .recommendations,
+
+
+      directions:
+
+        strategicReasoning
+          .strategy
+          .directions
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -592,6 +632,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        opportunityDiscovery,
+
+
+
         awareness:
 
           [
@@ -622,7 +666,9 @@ function createSystemAwarenessGraph(){
 
             "Arvioi etenemisen laatua",
 
-            "Tunnistaa mahdollisia riskejä"
+            "Tunnistaa mahdollisia riskejä",
+
+            "Tunnistaa kehitysmahdollisuuksia"
 
           ],
 
