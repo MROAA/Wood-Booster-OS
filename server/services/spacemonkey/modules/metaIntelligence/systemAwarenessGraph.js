@@ -35,6 +35,14 @@ import {
 
 
 
+import {
+
+  correlateKnowledge
+
+} from "./knowledgeCorrelation.js"
+
+
+
 
 
 
@@ -184,6 +192,45 @@ function createSystemAwarenessGraph(){
 
 
 
+  const knowledgeCorrelation =
+
+    correlateKnowledge({
+
+      observations:
+
+        reasoning
+          .reasoning
+          .observations,
+
+
+
+      insights:
+
+        insight
+          .insight
+          .insights,
+
+
+
+      memoryState:
+
+        "active",
+
+
+
+      knowledgeState:
+
+        "active"
+
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -219,7 +266,11 @@ function createSystemAwarenessGraph(){
 
             "health-monitoring",
 
-            "capability-registry"
+            "capability-registry",
+
+            "memory-intelligence",
+
+            "knowledge-intelligence"
 
           ],
 
@@ -241,6 +292,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        knowledgeCorrelation,
+
+
+
         awareness:
 
           [
@@ -255,7 +310,9 @@ function createSystemAwarenessGraph(){
 
             "Arvioi tulevaa kehityssuuntaa",
 
-            "Muodostaa adaptiivisia havaintoja"
+            "Muodostaa adaptiivisia havaintoja",
+
+            "Yhdistää havaintoja tietokerroksiin"
 
           ],
 
