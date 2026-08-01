@@ -252,6 +252,11 @@ import {
   analyzeConsciousEcosystem
 
 } from "./consciousEcosystem.js"
+import {
+
+  analyzeUnifiedEcosystem
+
+} from "./unifiedEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1389,6 +1394,31 @@ const consciousEcosystem =
         .autonomousBoundaries
 
   })
+const unifiedEcosystem =
+
+  analyzeUnifiedEcosystem({
+
+    awarenessPatterns:
+
+      consciousEcosystem
+        .consciousEcosystem
+        .awarenessPatterns,
+
+
+    identityCoherence:
+
+      consciousEcosystem
+        .consciousEcosystem
+        .identityCoherence,
+
+
+    governancePatterns:
+
+      autonomousEcosystem
+        .autonomousEcosystem
+        .autonomyPatterns
+
+  })
 
   return {
 
@@ -1471,6 +1501,7 @@ strategicEcosystem,
 governanceEcosystem,
 autonomousEcosystem,
 consciousEcosystem,
+unifiedEcosystem,
 
         requiresApproval:
 
