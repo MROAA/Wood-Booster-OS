@@ -207,6 +207,11 @@ import {
   analyzeCollectiveIntelligence
 
 } from "./collectiveIntelligence.js"
+import {
+
+  analyzeEmergentIntelligence
+
+} from "./emergentIntelligence.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1119,6 +1124,31 @@ function createSystemAwarenessGraph(){
           .intentAnalysis
 
     })
+  const emergentIntelligence =
+
+    analyzeEmergentIntelligence({
+
+      moduleCollaboration:
+
+        collectiveIntelligence
+          .collectiveIntelligence
+          .moduleCollaboration,
+
+
+      knowledgeSharing:
+
+        collectiveIntelligence
+          .collectiveIntelligence
+          .knowledgeSharing,
+
+
+      collectivePatterns:
+
+        collectiveIntelligence
+          .collectiveIntelligence
+          .collectivePatterns
+
+    })
 
   return {
 
@@ -1192,6 +1222,7 @@ selfGovernance,
 ethicalAlignment,
 purposeAlignment,
 collectiveIntelligence,
+emergentIntelligence,
 
         requiresApproval:
 
