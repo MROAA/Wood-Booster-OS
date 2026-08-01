@@ -182,6 +182,11 @@ import {
   analyzeResilience
 
 } from "./resilienceIntelligence.js"
+import {
+
+  analyzeAutonomousAwareness
+
+} from "./autonomousAwareness.js"
 function createSystemAwarenessGraph(){
 
 
@@ -968,6 +973,31 @@ function createSystemAwarenessGraph(){
           .flexibilityAssessment
 
     })
+  const autonomousAwareness =
+
+    analyzeAutonomousAwareness({
+
+      stabilitySignals:
+
+        resilienceIntelligence
+          .resilienceIntelligence
+          .stabilitySignals,
+
+
+      failureAwareness:
+
+        resilienceIntelligence
+          .resilienceIntelligence
+          .failureAwareness,
+
+
+      recoveryStrategies:
+
+        resilienceIntelligence
+          .resilienceIntelligence
+          .recoveryStrategies
+
+    })
 
   return {
 
@@ -1036,6 +1066,7 @@ architecturalIntelligence,
 systemCoherence,
 adaptiveIntelligence,
 resilienceIntelligence,
+autonomousAwareness,
 
         requiresApproval:
 
