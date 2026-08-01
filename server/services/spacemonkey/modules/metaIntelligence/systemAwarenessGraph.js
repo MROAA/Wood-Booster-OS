@@ -237,6 +237,11 @@ import {
   analyzeStrategicEcosystem
 
 } from "./strategicEcosystem.js"
+import {
+
+  analyzeGovernanceEcosystem
+
+} from "./governanceEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1299,6 +1304,31 @@ function createSystemAwarenessGraph(){
           .scenarioModeling
 
     })
+const governanceEcosystem =
+
+  analyzeGovernanceEcosystem({
+
+    strategicPatterns:
+
+      strategicEcosystem
+        .strategicEcosystem
+        .strategicPatterns,
+
+
+    priorityMapping:
+
+      strategicEcosystem
+        .strategicEcosystem
+        .priorityMapping,
+
+
+    longTermPlanning:
+
+      strategicEcosystem
+        .strategicEcosystem
+        .longTermPlanning
+
+  })
 
   return {
 
@@ -1378,6 +1408,7 @@ adaptiveEcosystem,
 evolutionaryEcosystem,
 predictiveEcosystem,
 strategicEcosystem,
+governanceEcosystem,
 
         requiresApproval:
 
