@@ -28,6 +28,13 @@ function HealthScoreCard({
 
 
 
+  const details =
+    healthScore?.details
+    ||
+    []
+
+
+
 
 
   return (
@@ -39,7 +46,7 @@ function HealthScoreCard({
 
       <div
         className="
-          space-y-4
+          space-y-5
         "
       >
 
@@ -59,7 +66,11 @@ function HealthScoreCard({
             </span>
 
 
-            <span>
+            <span
+              className="
+                text-[var(--wood-text)]
+              "
+            >
               {
                 score
               }
@@ -93,7 +104,6 @@ function HealthScoreCard({
 
           </div>
 
-
         </div>
 
 
@@ -122,6 +132,74 @@ function HealthScoreCard({
           </span>
 
         </p>
+
+
+
+
+
+        <div
+          className="
+            space-y-3
+          "
+        >
+
+          <h3
+            className="
+              text-sm
+              text-[var(--wood-text)]
+            "
+          >
+            Checks
+          </h3>
+
+
+
+          {
+            details.map(
+              item => (
+
+                <div
+                  key={item.name}
+                  className="
+                    flex
+                    justify-between
+                    text-sm
+                    text-[var(--wood-muted)]
+                  "
+                >
+
+                  <span>
+                    {
+                      item.status === "healthy"
+                        ?
+                        "✅"
+                        :
+                        "⚠️"
+                    }
+
+                    {" "}
+
+                    {
+                      item.name
+                    }
+                  </span>
+
+
+
+                  <span>
+                    {
+                      item.score
+                    }
+                  </span>
+
+                </div>
+
+              )
+            )
+          }
+
+
+        </div>
 
 
       </div>

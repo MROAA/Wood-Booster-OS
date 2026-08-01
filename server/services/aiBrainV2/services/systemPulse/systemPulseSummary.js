@@ -99,21 +99,26 @@ async function getSystemPulseSummary(){
 
 
 
-      healthScore: {
+healthScore: {
 
-        score:
-          healthScore?.score
-          ??
-          0,
+  score:
+    healthScore?.score
+    ??
+    0,
 
 
-        status:
-          healthScore?.status
-          ||
-          "unknown",
+  status:
+    healthScore?.status
+    ||
+    "unknown",
 
-      },
 
+  details:
+    healthScore?.details
+    ||
+    [],
+
+},
 
 
       modules: {
