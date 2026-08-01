@@ -202,6 +202,11 @@ import {
   analyzePurposeAlignment
 
 } from "./purposeAlignment.js"
+import {
+
+  analyzeCollectiveIntelligence
+
+} from "./collectiveIntelligence.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1089,6 +1094,31 @@ function createSystemAwarenessGraph(){
           .humanAlignment
 
     })
+  const collectiveIntelligence =
+
+    analyzeCollectiveIntelligence({
+
+      missionMonitoring:
+
+        purposeAlignment
+          .purposeAlignment
+          .missionMonitoring,
+
+
+      goalAlignment:
+
+        purposeAlignment
+          .purposeAlignment
+          .goalAlignment,
+
+
+      intentAnalysis:
+
+        purposeAlignment
+          .purposeAlignment
+          .intentAnalysis
+
+    })
 
   return {
 
@@ -1161,6 +1191,7 @@ autonomousAwareness,
 selfGovernance,
 ethicalAlignment,
 purposeAlignment,
+collectiveIntelligence,
 
         requiresApproval:
 
