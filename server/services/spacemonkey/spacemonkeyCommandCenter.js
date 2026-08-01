@@ -13,6 +13,7 @@ Tarjoaa:
 - Capabilities
 - Memory
 - Knowledge
+- Decision
 - External APIs
 
 Read-only.
@@ -74,6 +75,14 @@ import {
   getSpacemonkeyKnowledge
 
 } from "./spacemonkeyKnowledgeAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeyDecision
+
+} from "./spacemonkeyDecisionAdapter.js"
 
 
 
@@ -146,6 +155,14 @@ async function getSpacemonkeyCommandCenter(){
     knowledge:
 
       getSpacemonkeyKnowledge(),
+
+
+
+
+
+    decision:
+
+      getSpacemonkeyDecision(),
 
 
 
