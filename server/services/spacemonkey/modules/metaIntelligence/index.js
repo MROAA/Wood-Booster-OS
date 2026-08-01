@@ -11,6 +11,16 @@ import {
 
 
 
+import {
+
+  analyzeRelationships
+
+} from "./metaRelationshipAnalyzer.js"
+
+
+
+
+
 
 
 function createMetaReport(){
@@ -81,6 +91,12 @@ function createMetaReport(){
         analysis:
 
           analyzeSystem(),
+
+
+
+        relationships:
+
+          analyzeRelationships(),
 
 
 
