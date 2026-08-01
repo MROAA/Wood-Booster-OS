@@ -107,6 +107,14 @@ import {
 
 
 
+import {
+
+  discoverInnovations
+
+} from "./innovationDiscovery.js"
+
+
+
 
 
 
@@ -559,6 +567,38 @@ function createSystemAwarenessGraph(){
 
 
 
+  const innovationDiscovery =
+
+    discoverInnovations({
+
+      opportunities:
+
+        opportunityDiscovery
+          .opportunityDiscovery
+          .opportunities,
+
+
+      benefits:
+
+        opportunityDiscovery
+          .opportunityDiscovery
+          .benefits,
+
+
+      feasibility:
+
+        opportunityDiscovery
+          .opportunityDiscovery
+          .feasibility
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -636,6 +676,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        innovationDiscovery,
+
+
+
         awareness:
 
           [
@@ -668,7 +712,9 @@ function createSystemAwarenessGraph(){
 
             "Tunnistaa mahdollisia riskejä",
 
-            "Tunnistaa kehitysmahdollisuuksia"
+            "Tunnistaa kehitysmahdollisuuksia",
+
+            "Tunnistaa innovaatioalueita"
 
           ],
 
