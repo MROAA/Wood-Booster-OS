@@ -27,6 +27,14 @@ import {
 
 
 
+import {
+
+  generateAdaptiveInsight
+
+} from "./adaptiveInsight.js"
+
+
+
 
 
 
@@ -41,14 +49,151 @@ function createSystemAwarenessGraph(){
 
 
 
+  const reasoning =
+
+    analyzeSystemState({
+
+      modules:
+
+        liveAwareness
+          .liveSystem
+          .liveGraph
+          .modules
+          .count,
+
+
+
+      dependencies:
+
+        liveAwareness
+          .liveSystem
+          .liveGraph
+          .dependencies
+          .state,
+
+
+
+      capabilities:
+
+        liveAwareness
+          .liveSystem
+          .liveGraph
+          .capabilities
+          .state,
+
+
+
+      health:
+
+        liveAwareness
+          .liveSystem
+          .liveGraph
+          .health
+          .state
+
+
+    })
+
+
+
+
+
+
+
+  const prediction =
+
+    analyzeFutureDirection({
+
+      modules:
+
+        liveAwareness
+          .liveSystem
+          .liveGraph
+          .modules
+          .count,
+
+
+
+      health:
+
+        liveAwareness
+          .liveSystem
+          .liveGraph
+          .health
+          .state,
+
+
+
+      learning:
+
+        "active",
+
+
+
+      evolution:
+
+        "active",
+
+
+
+      improvement:
+
+        "active"
+
+
+    })
+
+
+
+
+
+
+
+  const insight =
+
+    generateAdaptiveInsight({
+
+      observations:
+
+        reasoning
+          .reasoning
+          .observations,
+
+
+
+      predictions:
+
+        prediction
+          .prediction
+          .futureDirection,
+
+
+
+      recommendations:
+
+        prediction
+          .prediction
+          .recommendations
+
+
+    })
+
+
+
+
+
+
+
   return {
 
 
     moduleId:
+
       MODULE_ID,
 
 
     timestamp:
+
       new Date().toISOString(),
 
 
@@ -59,6 +204,7 @@ function createSystemAwarenessGraph(){
 
 
         state:
+
           "active",
 
 
@@ -83,101 +229,15 @@ function createSystemAwarenessGraph(){
 
 
 
-
-
-        reasoning:
-
-          analyzeSystemState({
-
-            modules:
-
-              liveAwareness
-                .liveSystem
-                .liveGraph
-                .modules
-                .count,
+        reasoning,
 
 
 
-            dependencies:
-
-              liveAwareness
-                .liveSystem
-                .liveGraph
-                .dependencies
-                .state,
+        prediction,
 
 
 
-            capabilities:
-
-              liveAwareness
-                .liveSystem
-                .liveGraph
-                .capabilities
-                .state,
-
-
-
-            health:
-
-              liveAwareness
-                .liveSystem
-                .liveGraph
-                .health
-                .state
-
-
-          }),
-
-
-
-
-
-        prediction:
-
-          analyzeFutureDirection({
-
-            modules:
-
-              liveAwareness
-                .liveSystem
-                .liveGraph
-                .modules
-                .count,
-
-
-
-            health:
-
-              liveAwareness
-                .liveSystem
-                .liveGraph
-                .health
-                .state,
-
-
-
-            learning:
-
-              "active",
-
-
-
-            evolution:
-
-              "active",
-
-
-
-            improvement:
-
-              "active"
-
-
-          }),
-
-
+        insight,
 
 
 
@@ -193,11 +253,11 @@ function createSystemAwarenessGraph(){
 
             "Arvioi järjestelmän tilaa",
 
-            "Arvioi tulevaa kehityssuuntaa"
+            "Arvioi tulevaa kehityssuuntaa",
+
+            "Muodostaa adaptiivisia havaintoja"
 
           ],
-
-
 
 
 
@@ -217,9 +277,8 @@ function createSystemAwarenessGraph(){
 
 
 
-
-
         requiresApproval:
+
           true
 
 
@@ -244,18 +303,22 @@ function getSystemAwarenessState(){
 
 
     moduleId:
+
       MODULE_ID,
 
 
     state:
+
       "active",
 
 
     available:
+
       true,
 
 
     approvalRequired:
+
       true
 
 
