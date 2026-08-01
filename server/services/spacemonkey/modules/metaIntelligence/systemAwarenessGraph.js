@@ -232,6 +232,11 @@ import {
   analyzePredictiveEcosystem
 
 } from "./predictiveEcosystem.js"
+import {
+
+  analyzeStrategicEcosystem
+
+} from "./strategicEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1269,6 +1274,31 @@ function createSystemAwarenessGraph(){
           .futureTrajectory
 
     })
+  const strategicEcosystem =
+
+    analyzeStrategicEcosystem({
+
+      trendAnalysis:
+
+        predictiveEcosystem
+          .predictiveEcosystem
+          .trendAnalysis,
+
+
+      futureSignals:
+
+        predictiveEcosystem
+          .predictiveEcosystem
+          .futureSignals,
+
+
+      scenarioModeling:
+
+        predictiveEcosystem
+          .predictiveEcosystem
+          .scenarioModeling
+
+    })
 
   return {
 
@@ -1347,6 +1377,7 @@ systemicIntelligence,
 adaptiveEcosystem,
 evolutionaryEcosystem,
 predictiveEcosystem,
+strategicEcosystem,
 
         requiresApproval:
 
