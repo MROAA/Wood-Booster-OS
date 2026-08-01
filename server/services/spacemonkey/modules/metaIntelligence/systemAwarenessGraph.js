@@ -197,6 +197,11 @@ import {
   analyzeEthicalAlignment
 
 } from "./ethicalAlignment.js"
+import {
+
+  analyzePurposeAlignment
+
+} from "./purposeAlignment.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1059,6 +1064,31 @@ function createSystemAwarenessGraph(){
           .safetyAlignment
 
     })
+  const purposeAlignment =
+
+    analyzePurposeAlignment({
+
+      valueMonitoring:
+
+        ethicalAlignment
+          .ethicalAlignment
+          .valueMonitoring,
+
+
+      ethicalAssessment:
+
+        ethicalAlignment
+          .ethicalAlignment
+          .ethicalAssessment,
+
+
+      humanAlignment:
+
+        ethicalAlignment
+          .ethicalAlignment
+          .humanAlignment
+
+    })
 
   return {
 
@@ -1130,6 +1160,7 @@ resilienceIntelligence,
 autonomousAwareness,
 selfGovernance,
 ethicalAlignment,
+purposeAlignment,
 
         requiresApproval:
 
