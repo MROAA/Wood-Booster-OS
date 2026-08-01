@@ -362,6 +362,11 @@ import {
   analyzeComplexityEcosystem
 
 } from "./complexityEcosystem.js"
+import {
+
+  analyzeNetworkEcosystem
+
+} from "./networkEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -2049,6 +2054,31 @@ const perceptionEcosystem =
         .emergenceEvolution
 
   })
+  const networkEcosystem =
+
+  analyzeNetworkEcosystem({
+
+    complexityPatterns:
+
+      complexityEcosystem
+        .complexityEcosystem
+        .complexityPatterns,
+
+
+    dependencyRelations:
+
+      complexityEcosystem
+        .complexityEcosystem
+        .dependencyRelations,
+
+
+    complexityEvolution:
+
+      complexityEcosystem
+        .complexityEcosystem
+        .complexityEvolution
+
+  })
   return {
 
 
@@ -2152,6 +2182,7 @@ adaptationEcosystem,
 evolutionEcosystem,
 emergenceEcosystem,
 complexityEcosystem,
+networkEcosystem,
 
         requiresApproval:
 
