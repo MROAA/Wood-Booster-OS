@@ -10,8 +10,9 @@ Tarjoaa:
 - Kernel
 - Snapshot
 - Health
-- External APIs
 - Capabilities
+- Memory
+- External APIs
 
 Read-only.
 
@@ -56,6 +57,14 @@ import {
   getSpacemonkeyCapabilities
 
 } from "./spacemonkeyCapabilityAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeyMemory
+
+} from "./spacemonkeyMemoryAdapter.js"
 
 
 
@@ -112,6 +121,14 @@ async function getSpacemonkeyCommandCenter(){
     capabilities:
 
       getSpacemonkeyCapabilities(),
+
+
+
+
+
+    memory:
+
+      getSpacemonkeyMemory(),
 
 
 
