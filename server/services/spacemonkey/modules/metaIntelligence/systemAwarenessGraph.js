@@ -151,7 +151,11 @@ import {
 
 } from "./learningOptimization.js"
 
+import {
 
+  optimizeEvolution
+
+} from "./evolutionOptimization.js"
 
 
 
@@ -789,7 +793,31 @@ function createSystemAwarenessGraph(){
 
     })
 
+  const evolutionOptimization =
 
+    optimizeEvolution({
+
+      learningPatterns:
+
+        learningOptimization
+          .learningOptimization
+          .learningPatterns,
+
+
+      improvementPaths:
+
+        learningOptimization
+          .learningOptimization
+          .improvementPaths,
+
+
+      adaptationStrategies:
+
+        learningOptimization
+          .learningOptimization
+          .adaptationStrategies
+
+    })
 
 
 
@@ -854,7 +882,7 @@ function createSystemAwarenessGraph(){
 
         selfEvaluation,
 learningOptimization,
-
+evolutionOptimization,
 
         requiresApproval:
 
