@@ -212,6 +212,11 @@ import {
   analyzeEmergentIntelligence
 
 } from "./emergentIntelligence.js"
+import {
+
+  analyzeSystemicIntelligence
+
+} from "./systemicIntelligence.js"
 function createSystemAwarenessGraph(){
 
 
@@ -1149,6 +1154,31 @@ function createSystemAwarenessGraph(){
           .collectivePatterns
 
     })
+  const systemicIntelligence =
+
+    analyzeSystemicIntelligence({
+
+      emergentPatterns:
+
+        emergentIntelligence
+          .emergentIntelligence
+          .emergentPatterns,
+
+
+      systemInsights:
+
+        emergentIntelligence
+          .emergentIntelligence
+          .systemInsights,
+
+
+      capabilityEmergence:
+
+        emergentIntelligence
+          .emergentIntelligence
+          .capabilityEmergence
+
+    })
 
   return {
 
@@ -1223,6 +1253,7 @@ ethicalAlignment,
 purposeAlignment,
 collectiveIntelligence,
 emergentIntelligence,
+systemicIntelligence,
 
         requiresApproval:
 
