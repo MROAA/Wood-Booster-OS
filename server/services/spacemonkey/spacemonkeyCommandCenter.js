@@ -17,6 +17,8 @@ Tarjoaa:
 - Execution
 - Reflection
 - Learning
+- Evolution
+- System Improvement
 - External APIs
 
 Read-only.
@@ -31,11 +33,7 @@ import {
 
 } from "./spacemonkeyKernelAdapter.js"
 
-import {
 
-  getSpacemonkeyEvolution
-
-} from "./spacemonkeyEvolutionAdapter.js"
 
 import {
 
@@ -114,6 +112,22 @@ import {
   getSpacemonkeyLearning
 
 } from "./spacemonkeyLearningAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeyEvolution
+
+} from "./spacemonkeyEvolutionAdapter.js"
+
+
+
+import {
+
+  getSpacemonkeySystemImprovement
+
+} from "./spacemonkeySystemImprovementAdapter.js"
 
 
 
@@ -220,9 +234,23 @@ async function getSpacemonkeyCommandCenter(){
       getSpacemonkeyLearning(),
 
 
-evolution:
 
-  getSpacemonkeyEvolution(),
+
+
+    evolution:
+
+      getSpacemonkeyEvolution(),
+
+
+
+
+
+    systemImprovement:
+
+      getSpacemonkeySystemImprovement(),
+
+
+
 
 
     apis:
