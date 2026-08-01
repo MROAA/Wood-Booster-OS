@@ -59,6 +59,14 @@ import {
 
 
 
+import {
+
+  analyzeDecisionSupport
+
+} from "./decisionSupport.js"
+
+
+
 
 
 
@@ -86,7 +94,6 @@ function createSystemAwarenessGraph(){
           .count,
 
 
-
       dependencies:
 
         liveAwareness
@@ -96,7 +103,6 @@ function createSystemAwarenessGraph(){
           .state,
 
 
-
       capabilities:
 
         liveAwareness
@@ -104,7 +110,6 @@ function createSystemAwarenessGraph(){
           .liveGraph
           .capabilities
           .state,
-
 
 
       health:
@@ -136,7 +141,6 @@ function createSystemAwarenessGraph(){
           .count,
 
 
-
       health:
 
         liveAwareness
@@ -146,17 +150,14 @@ function createSystemAwarenessGraph(){
           .state,
 
 
-
       learning:
 
         "active",
 
 
-
       evolution:
 
         "active",
-
 
 
       improvement:
@@ -182,13 +183,11 @@ function createSystemAwarenessGraph(){
           .observations,
 
 
-
       predictions:
 
         prediction
           .prediction
           .futureDirection,
-
 
 
       recommendations:
@@ -216,7 +215,6 @@ function createSystemAwarenessGraph(){
           .observations,
 
 
-
       insights:
 
         insight
@@ -224,11 +222,9 @@ function createSystemAwarenessGraph(){
           .insights,
 
 
-
       memoryState:
 
         "active",
-
 
 
       knowledgeState:
@@ -254,7 +250,6 @@ function createSystemAwarenessGraph(){
           .correlations,
 
 
-
       signals:
 
         knowledgeCorrelation
@@ -262,11 +257,9 @@ function createSystemAwarenessGraph(){
           .knowledgeSignals,
 
 
-
       systemState:
 
         "stable",
-
 
 
       developmentState:
@@ -292,7 +285,6 @@ function createSystemAwarenessGraph(){
           .contexts,
 
 
-
       interpretations:
 
         contextualReasoning
@@ -300,12 +292,43 @@ function createSystemAwarenessGraph(){
           .interpretations,
 
 
-
       recommendations:
 
         contextualReasoning
           .context
           .recommendations
+
+    })
+
+
+
+
+
+
+
+  const decisionSupport =
+
+    analyzeDecisionSupport({
+
+      contexts:
+
+        contextualReasoning
+          .context
+          .contexts,
+
+
+      directions:
+
+        strategicReasoning
+          .strategy
+          .directions,
+
+
+      priorities:
+
+        strategicReasoning
+          .strategy
+          .priorities
 
     })
 
@@ -388,6 +411,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        decisionSupport,
+
+
+
         awareness:
 
           [
@@ -408,7 +435,9 @@ function createSystemAwarenessGraph(){
 
             "Tulkitsee havaintoja kontekstissa",
 
-            "Arvioi strategisia kehityssuuntia"
+            "Arvioi strategisia kehityssuuntia",
+
+            "Tukee päätöksentekoa"
 
           ],
 
