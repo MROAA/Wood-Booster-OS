@@ -16,7 +16,9 @@ Vastuut:
 =====================================
 */
 
-
+import {
+  evaluateConstitutionGuard,
+} from "./services/constitutionGuard/index.js"
 import {
   ensureDefaultBrainModules,
 } from "./index.js"
@@ -378,7 +380,7 @@ async function runBrainPipeline({
   const stages = {
 
     interaction:{
-
+constitution:null,
       success:true,
 
       status:
@@ -732,7 +734,42 @@ async function runBrainPipeline({
   }
 
 
+const constitutionResult =
+  evaluateConstitutionGuard({
 
+    actionType:
+      targetModule,
+
+    requiresHumanApproval:
+      false,
+
+  })
+
+
+if(
+  constitutionResult.decision === "deny"
+){
+
+  return createPipelineFailure({
+
+    requestId,
+
+    message:
+      normalizedMessage,
+
+    status:
+      "constitution_blocked",
+
+    stages,
+
+    error:
+      constitutionResult,
+
+    startedAt,
+
+  })
+
+}
 
   const capabilityPermission =
     canExecuteCapability(

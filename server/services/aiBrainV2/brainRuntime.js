@@ -292,12 +292,20 @@ function createCompletedResult({
     message,
 
 
-    output:
-      guarded.output,
+output:
+  guarded.output,
 
 
-    error:null,
+module:
+  orchestratorResult
+    ?.pipelineResult
+    ?.stages
+    ?.execution
+    ?.module ||
+  null,
 
+
+error:null,
 
     metadata:{
 
