@@ -51,6 +51,14 @@ import {
 
 
 
+import {
+
+  analyzeStrategy
+
+} from "./strategicReasoning.js"
+
+
+
 
 
 
@@ -273,6 +281,40 @@ function createSystemAwarenessGraph(){
 
 
 
+  const strategicReasoning =
+
+    analyzeStrategy({
+
+      contexts:
+
+        contextualReasoning
+          .context
+          .contexts,
+
+
+
+      interpretations:
+
+        contextualReasoning
+          .context
+          .interpretations,
+
+
+
+      recommendations:
+
+        contextualReasoning
+          .context
+          .recommendations
+
+    })
+
+
+
+
+
+
+
   return {
 
 
@@ -342,6 +384,10 @@ function createSystemAwarenessGraph(){
 
 
 
+        strategicReasoning,
+
+
+
         awareness:
 
           [
@@ -360,7 +406,9 @@ function createSystemAwarenessGraph(){
 
             "Yhdistää havaintoja tietokerroksiin",
 
-            "Tulkitsee havaintoja kontekstissa"
+            "Tulkitsee havaintoja kontekstissa",
+
+            "Arvioi strategisia kehityssuuntia"
 
           ],
 
