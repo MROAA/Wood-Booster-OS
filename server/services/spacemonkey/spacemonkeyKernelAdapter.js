@@ -1,7 +1,7 @@
 /*
 =====================================
 
-SPACEMONKEY KERNEL ADAPTER
+SPACEMONEKY KERNEL ADAPTER
 
 Turvallinen lukuväylä
 Spacemonkey Kernel Catalogille.
@@ -26,12 +26,12 @@ import {
 
 
 
-function getSpacemonkeyKernel(){
+async function getSpacemonkeyKernel(){
 
 
   const catalog =
 
-    createKernelCatalog()
+    await createKernelCatalog()
 
 
 

@@ -45,7 +45,7 @@ import {
 
 
 
-function createSpacemonkeySystemSnapshotV3(){
+async function createSpacemonkeySystemSnapshotV3(){
 
 
   return {
@@ -61,14 +61,23 @@ function createSpacemonkeySystemSnapshotV3(){
       "3.0.0",
 
 
+
+
+
     manifest:
 
       createSpacemonkeyBootstrapManifest(),
 
 
+
+
+
     kernel:
 
-      createKernelCatalog(),
+      await createKernelCatalog(),
+
+
+
 
 
     health:
@@ -76,9 +85,15 @@ function createSpacemonkeySystemSnapshotV3(){
       checkSpacemonkeyBootstrapHealth(),
 
 
+
+
+
     status:
 
       "active",
+
+
+
 
 
     createdAt:

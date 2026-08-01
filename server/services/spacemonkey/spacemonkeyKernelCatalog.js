@@ -30,11 +30,19 @@ import {
 
 
 
+import {
+
+  getSpacemonkeySystemPulseStatus
+
+} from "./spacemonkeySystemPulseIntegration.js"
 
 
 
 
-function createKernelCatalog(){
+
+
+
+async function createKernelCatalog(){
 
 
   const snapshot =
@@ -50,6 +58,16 @@ function createKernelCatalog(){
   const gateway =
 
     getGatewayStatus()
+
+
+
+
+
+
+
+  const systemPulse =
+
+    await getSpacemonkeySystemPulseStatus()
 
 
 
@@ -100,6 +118,12 @@ function createKernelCatalog(){
     health:
 
       snapshot.health,
+
+
+
+
+
+    systemPulse,
 
 
 
