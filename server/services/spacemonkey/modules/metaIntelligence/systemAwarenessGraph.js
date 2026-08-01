@@ -145,7 +145,11 @@ import {
 
 } from "./selfEvaluation.js"
 
+import {
 
+  optimizeLearning
+
+} from "./learningOptimization.js"
 
 
 
@@ -759,7 +763,31 @@ function createSystemAwarenessGraph(){
 
     })
 
+  const learningOptimization =
 
+    optimizeLearning({
+
+      evaluations:
+
+        selfEvaluation
+          .selfEvaluation
+          .qualityAssessment,
+
+
+      reflections:
+
+        consciousReflection
+          .consciousReflection
+          .learningSignals,
+
+
+      improvements:
+
+        consciousReflection
+          .consciousReflection
+          .improvementInsights
+
+    })
 
 
 
@@ -825,7 +853,7 @@ function createSystemAwarenessGraph(){
         consciousReflection,
 
         selfEvaluation,
-
+learningOptimization,
 
 
         requiresApproval:
