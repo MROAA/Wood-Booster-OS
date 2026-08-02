@@ -372,6 +372,11 @@ import {
   analyzeSynchronizationEcosystem
 
 } from "./synchronizationEcosystem.js"
+import {
+
+  analyzeCoordinationEcosystem
+
+} from "./coordinationEcosystem.js"
 function createSystemAwarenessGraph(){
 
 
@@ -2109,6 +2114,31 @@ const perceptionEcosystem =
         .networkEvolution
 
   })
+  const coordinationEcosystem =
+
+  analyzeCoordinationEcosystem({
+
+    synchronizationPatterns:
+
+      synchronizationEcosystem
+        .synchronizationEcosystem
+        .synchronizationPatterns,
+
+
+    alignmentRelations:
+
+      synchronizationEcosystem
+        .synchronizationEcosystem
+        .alignmentRelations,
+
+
+    synchronizationEvolution:
+
+      synchronizationEcosystem
+        .synchronizationEcosystem
+        .synchronizationEvolution
+
+  })
   return {
 
 
@@ -2214,6 +2244,7 @@ emergenceEcosystem,
 complexityEcosystem,
 networkEcosystem,
 synchronizationEcosystem,
+coordinationEcosystem,
 
         requiresApproval:
 
