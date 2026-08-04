@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard"
 import Projects from "./pages/Projects"
 import ProjectDetails from "./pages/ProjectDetails"
 import Customers from "./pages/Customers"
+import CustomerDetails from "./pages/CustomerDetails"
 import Inventory from "./pages/Inventory"
 import Knowledge from "./pages/Knowledge"
 import Memory from "./pages/Memory"
@@ -68,6 +69,15 @@ function App() {
           path="/customers"
           element={
             <Customers />
+          }
+        />
+
+
+
+        <Route
+          path="/customers/:id"
+          element={
+            <CustomerDetails />
           }
         />
 

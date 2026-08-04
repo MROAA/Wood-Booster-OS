@@ -1,170 +1,984 @@
-import { useEffect, useState } from "react"
-import { Link, useParams } from "react-router"
+import {
+  Link,
+  useParams,
+  useNavigate,
+} from "react-router-dom"
 
-import { getCustomer } from "../data/customers"
+import {
+  useEffect,
+  useState,
+} from "react"
+
+import {
+  apiGet,
+  apiPut,
+  apiDelete,
+} from "../api/client"
+
+
 
 function CustomerDetails() {
-  const { customerId } = useParams()
 
-  const [customer, setCustomer] = useState(null)
-  const [projects, setProjects] = useState([])
-  const [projectName, setProjectName] = useState("")
+
+  const { id } = useParams()
+
+  const navigate = useNavigate()
+
+
+  const [
+    customer,
+    setCustomer,
+  ] = useState(null)
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+  const [
+    error,
+    setError,
+  ] = useState("")
+
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false)
+
+
+  const [
+    saved,
+    setSaved,
+  ] = useState(false)
+
+
+  const [
+    form,
+    setForm,
+  ] = useState({
+
+    name:
+      "",
+
+    company:
+      "",
+
+    email:
+      "",
+
+    phone:
+      "",
+
+    notes:
+      "",
+
+  })
+
+
 
 
   useEffect(() => {
-    async function loadData() {
-      const customerData = await getCustomer(customerId)
 
-      const projectsResponse = await fetch(
-        `http://localhost:3001/api/customers/${customerId}/projects`,
-      )
+    let cancelled = false
 
-      const projectsData =
-        await projectsResponse.json()
 
-      setCustomer(customerData)
-      setProjects(projectsData)
+    setLoading(true)
+
+    setError("")
+
+
+    apiGet(`/customers/${id}`)
+      .then(data => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setCustomer(data)
+
+      })
+      .catch(loadError => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setError(
+          loadError.message ||
+          "Asiakkaan lataaminen epäonnistui."
+        )
+
+      })
+      .finally(() => {
+
+        if(!cancelled) {
+
+          setLoading(false)
+
+        }
+
+      })
+
+
+    return () => {
+
+      cancelled = true
+
     }
 
-    loadData()
-  }, [customerId])
+  },[
+    id,
+  ])
 
 
-  async function handleCreateProject(event) {
+
+
+  useEffect(() => {
+
+    if(!customer) {
+
+      return
+
+    }
+
+
+    setForm({
+
+      name:
+        customer.name || "",
+
+      company:
+        customer.company || "",
+
+      email:
+        customer.email || "",
+
+      phone:
+        customer.phone || "",
+
+      notes:
+        customer.notes || "",
+
+    })
+
+
+    setSaved(false)
+
+  },[
+    customer?.id,
+  ])
+
+
+
+
+  function handleChange(
+    event
+  ) {
+
+
+    const {
+      name,
+      value,
+    } =
+      event.target
+
+
+    setForm(
+      current => ({
+
+        ...current,
+
+        [name]:
+          value,
+
+      })
+    )
+
+
+    setSaved(false)
+
+  }
+
+
+
+
+  async function handleSubmit(
+    event
+  ) {
+
+
     event.preventDefault()
 
-    if (!projectName.trim()) {
+
+    if(!form.name.trim()) {
+
+      setError(
+        "Asiakkaan nimi puuttuu."
+      )
+
+
       return
+
     }
 
-    const response = await fetch(
-      "http://localhost:3001/api/projects",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: projectName,
-          customerId,
-        }),
-      },
-    )
 
-    const newProject = await response.json()
+    try {
 
-    setProjects((current) => [
-      ...current,
-      newProject,
-    ])
+      setSaving(true)
 
-    setProjectName("")
+      setError("")
+
+
+      const updated =
+        await apiPut(
+          `/customers/${id}`,
+          {
+
+            name:
+              form.name,
+
+            company:
+              form.company,
+
+            email:
+              form.email,
+
+            phone:
+              form.phone,
+
+            notes:
+              form.notes,
+
+          }
+        )
+
+
+      setCustomer(
+        current => ({
+
+          ...current,
+
+          ...updated,
+
+        })
+      )
+
+
+      setSaved(true)
+
+    } catch(saveError) {
+
+      setError(
+        saveError.message ||
+        "Asiakkaan päivittäminen epäonnistui."
+      )
+
+    } finally {
+
+      setSaving(false)
+
+    }
+
+
   }
 
 
-  if (!customer) {
+
+
+  async function handleDelete() {
+
+
+    const shouldDelete =
+      window.confirm(
+        "Poistetaanko asiakas?"
+      )
+
+
+    if(!shouldDelete) {
+
+      return
+
+    }
+
+
+    try {
+
+      await apiDelete(
+        `/customers/${id}`
+      )
+
+
+      navigate(
+        "/customers"
+      )
+
+    } catch(deleteError) {
+
+      setError(
+        deleteError.message ||
+        "Asiakkaan poistaminen epäonnistui."
+      )
+
+    }
+
+
+  }
+
+
+
+
+  if(loading) {
+
     return (
-      <div className="min-h-screen bg-neutral-950 p-10 text-white">
+
+      <div className="panel p-6">
+
         Ladataan asiakasta...
+
       </div>
+
     )
+
   }
 
 
-  return (
-    <main className="min-h-screen bg-neutral-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-10">
+
+
+  if(error && !customer) {
+
+    return (
+
+      <div className="space-y-5">
 
         <Link
           to="/customers"
-          className="text-amber-400"
+          className="
+            text-[var(--wood-accent)]
+          "
         >
-          ← Takaisin asiakkaisiin
+
+          ← Asiakkaat
+
         </Link>
 
 
-        <section className="mt-8 rounded-2xl border border-neutral-800 bg-neutral-900 p-8">
+        <div className="panel p-6">
 
-          <h1 className="text-4xl font-bold">
+          {error}
+
+        </div>
+
+
+      </div>
+
+    )
+
+  }
+
+
+
+
+  if(!customer) {
+
+    return (
+
+      <div className="panel p-6">
+
+        Asiakasta ei löytynyt.
+
+      </div>
+
+    )
+
+  }
+
+
+
+
+  return (
+
+    <div
+      className="
+        space-y-8
+      "
+    >
+
+
+      <Link
+        to="/customers"
+        className="
+          text-[var(--wood-accent)]
+        "
+      >
+
+        ← Asiakkaat
+
+      </Link>
+
+
+
+
+      <div
+        className="
+          flex
+          flex-col
+          gap-4
+          sm:flex-row
+          sm:items-start
+          sm:justify-between
+        "
+      >
+
+        <div>
+
+          <p
+            className="
+              text-sm
+              uppercase
+              tracking-widest
+              text-[var(--wood-muted)]
+            "
+          >
+
+            Asiakas
+
+          </p>
+
+
+          <h1
+            className="
+              mt-3
+              text-4xl
+              font-semibold
+            "
+          >
+
             {customer.name}
+
           </h1>
 
 
-          <div className="mt-6 space-y-2 text-neutral-300">
-            <p>
-              🏢 {customer.company || "Ei yritystä"}
-            </p>
+          {
+            customer.company && (
 
-            <p>
-              ✉ {customer.email || "Ei sähköpostia"}
-            </p>
+              <p
+                className="
+                  mt-2
+                  text-[var(--wood-muted)]
+                "
+              >
 
-            <p>
-              ☎ {customer.phone || "Ei puhelinta"}
-            </p>
+                {customer.company}
+
+              </p>
+
+            )
+          }
+
+
+        </div>
+
+
+
+        <button
+
+          type="button"
+
+          onClick={
+            handleDelete
+          }
+
+          className="
+            wb-button
+            shrink-0
+          "
+
+        >
+
+          Poista asiakas
+
+        </button>
+
+
+      </div>
+
+
+
+
+      {
+        error && (
+
+          <div
+            className="
+              card
+              border-red-900/60
+              bg-red-950/30
+              p-3
+              text-sm
+              text-red-300
+            "
+          >
+
+            {error}
+
+          </div>
+
+        )
+      }
+
+
+
+
+      <section
+        className="
+          panel
+          p-6
+        "
+      >
+
+        <h2
+          className="
+            text-lg
+            font-semibold
+          "
+        >
+
+          Asiakastiedot
+
+        </h2>
+
+
+
+        <form
+
+          onSubmit={
+            handleSubmit
+          }
+
+          className="
+            mt-5
+          "
+
+        >
+
+          <div
+            className="
+              grid
+              gap-4
+              md:grid-cols-2
+            "
+          >
+
+            <label>
+
+              <span
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Nimi
+
+              </span>
+
+
+              <input
+
+                type="text"
+
+                name="name"
+
+                value={
+                  form.name
+                }
+
+                onChange={
+                  handleChange
+                }
+
+                required
+
+                className="
+                  mt-2
+                  wb-input
+                "
+
+              />
+
+            </label>
+
+
+
+            <label>
+
+              <span
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Yritys
+
+              </span>
+
+
+              <input
+
+                type="text"
+
+                name="company"
+
+                value={
+                  form.company
+                }
+
+                onChange={
+                  handleChange
+                }
+
+                className="
+                  mt-2
+                  wb-input
+                "
+
+              />
+
+            </label>
+
+
+
+            <label>
+
+              <span
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Sähköposti
+
+              </span>
+
+
+              <input
+
+                type="email"
+
+                name="email"
+
+                value={
+                  form.email
+                }
+
+                onChange={
+                  handleChange
+                }
+
+                className="
+                  mt-2
+                  wb-input
+                "
+
+              />
+
+            </label>
+
+
+
+            <label>
+
+              <span
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Puhelin
+
+              </span>
+
+
+              <input
+
+                type="text"
+
+                name="phone"
+
+                value={
+                  form.phone
+                }
+
+                onChange={
+                  handleChange
+                }
+
+                className="
+                  mt-2
+                  wb-input
+                "
+
+              />
+
+            </label>
+
+
           </div>
 
 
-          <section className="mt-8 rounded-xl bg-neutral-950 p-5">
 
-            <h2 className="text-xl font-semibold">
-              Projektit
-            </h2>
+          <label
+            className="
+              mt-4
+              block
+            "
+          >
 
-
-            <form
-              onSubmit={handleCreateProject}
-              className="mt-5 flex gap-3"
+            <span
+              className="
+                text-sm
+                text-[var(--wood-muted)]
+              "
             >
 
-              <input
-                value={projectName}
-                onChange={(event) =>
-                  setProjectName(event.target.value)
-                }
-                placeholder="Projektin nimi"
-                className="flex-1 rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3"
-              />
+              Muistiinpanot
+
+            </span>
 
 
-              <button
-                className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-black"
-              >
-                + Lisää
-              </button>
+            <textarea
 
-            </form>
+              name="notes"
+
+              rows={4}
+
+              value={
+                form.notes
+              }
+
+              onChange={
+                handleChange
+              }
+
+              className="
+                mt-2
+                wb-input
+                resize-y
+              "
+
+            />
+
+          </label>
 
 
-            <div className="mt-6 space-y-3">
 
-              {projects.map((project) => (
-                <Link
-                  key={project.id}
-                  to={`/projects/${project.id}`}
-                  className="block rounded-xl border border-neutral-800 bg-neutral-900 p-4 transition hover:border-amber-500"
+          <div
+            className="
+              mt-6
+              flex
+              flex-wrap
+              items-center
+              gap-4
+            "
+          >
+
+            <button
+
+              type="submit"
+
+              disabled={
+                saving
+              }
+
+              className="
+                wb-button
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+
+            >
+
+              {
+                saving
+                ?
+                "Tallennetaan..."
+                :
+                "Tallenna muutokset"
+              }
+
+            </button>
+
+
+            {
+              saved && (
+
+                <span
+                  className="
+                    text-sm
+                    font-medium
+                    text-green-400
+                  "
                 >
-                  🪵 {project.name}
-                </Link>
-              ))}
+
+                  ✓ Muutokset tallennettu
+
+                </span>
+
+              )
+            }
 
 
-              {projects.length === 0 && (
-                <p className="text-neutral-500">
-                  Ei projekteja vielä
-                </p>
-              )}
+          </div>
+
+
+        </form>
+
+
+      </section>
+
+
+
+
+      <section
+        className="
+          panel
+          p-6
+        "
+      >
+
+        <h2
+          className="
+            text-lg
+            font-semibold
+          "
+        >
+
+          Asiakkaan projektit
+
+        </h2>
+
+
+
+        {
+          !customer.projects ||
+          customer.projects.length === 0
+
+          ?
+
+          (
+
+            <p
+              className="
+                mt-4
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              Ei projekteja vielä.
+
+            </p>
+
+          )
+
+          :
+
+          (
+
+            <div
+              className="
+                mt-4
+                grid
+                gap-3
+                sm:grid-cols-2
+              "
+            >
+
+              {
+                customer.projects.map(
+                  project => (
+
+                    <Link
+
+                      key={
+                        project.id
+                      }
+
+                      to={
+                        `/projects/${project.id}`
+                      }
+
+                      className="
+                        card
+                        flex
+                        items-center
+                        justify-between
+                        gap-3
+                        p-4
+                        transition
+                        hover:border-[var(--wood-accent)]
+                      "
+
+                    >
+
+                      <span
+                        className="
+                          font-medium
+                        "
+                      >
+
+                        {project.name}
+
+                      </span>
+
+
+                      <span
+                        className="
+                          text-sm
+                          text-[var(--wood-accent)]
+                        "
+                      >
+
+                        {project.status}
+
+                      </span>
+
+
+                    </Link>
+
+                  )
+                )
+              }
+
 
             </div>
 
-          </section>
+          )
+
+        }
 
 
-        </section>
+      </section>
 
-      </div>
-    </main>
+
+    </div>
+
   )
+
 }
+
+
 
 export default CustomerDetails
