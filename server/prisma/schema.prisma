@@ -389,27 +389,49 @@ model InventoryItem {
 
   updatedAt DateTime @updatedAt
 
+  purchaseOrderItems PurchaseOrderItem[]
+
 }
 
 
 
-model Purchase {
+model PurchaseOrder {
 
   id Int @id @default(autoincrement())
 
-  name String
+  supplier String
 
-  supplier String?
+  status String @default("Luonnos")
 
-  price Float @default(0)
+  totalPrice Float @default(0)
 
-  status String @default("Suunnittelu")
-
-  notes String?
+  items PurchaseOrderItem[]
 
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
+
+}
+
+
+
+model PurchaseOrderItem {
+
+  id Int @id @default(autoincrement())
+
+  purchaseOrderId Int
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  inventoryItemId Int
+
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+
+  quantity Float
+
+  unitPrice Float
+
+  createdAt DateTime @default(now())
 
 }
 
