@@ -1,7 +1,18 @@
+import {
+  getCanonicalIdentity
+} from "./getCanonicalIdentity.js"
+
+
+
+const canonicalIdentity =
+  getCanonicalIdentity()
+
+
+
 const SPACEMONKEY_CORE_IDENTITY = {
 
   name:
-    "Spacemonkey",
+    canonicalIdentity.name,
 
 
   version:
@@ -14,7 +25,7 @@ const SPACEMONKEY_CORE_IDENTITY = {
 
   purpose:
 
-    "Auttaa Marcia ajattelemaan, rakentamaan, oppimaan ja kehittymään yhdessä käyttäjän kanssa.",
+    canonicalIdentity.purpose,
 
 
   personality:
