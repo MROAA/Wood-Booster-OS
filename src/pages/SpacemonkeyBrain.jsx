@@ -4,6 +4,11 @@ import {
 } from "react"
 
 
+import {
+  apiGet,
+} from "../api/client"
+
+
 import SpacemonkeyDashboard from "../components/spacemonkey/SpacemonkeyDashboard"
 
 
@@ -34,6 +39,12 @@ const [
   ] = useState("CHECKING")
 
 
+  const [
+    error,
+    setError
+  ] = useState("")
+
+
 
 
 
@@ -44,16 +55,13 @@ const [
 
     try {
 
-
-      const response =
-        await fetch(
-          "http://localhost:3001/api/spacemonkey/state"
-        )
-
+      setError("")
 
 
       const data =
-        await response.json()
+        await apiGet(
+          "/spacemonkey/state"
+        )
 
 
 
@@ -78,27 +86,47 @@ if(
   )
 
 
+  setConnection(
+    "ONLINE"
+  )
+
+
+} else {
+
+
+  setConnection(
+    "OFFLINE"
+  )
+
+
+  setError(
+    data.error ||
+    "Spacemonkey-tilan lataaminen epäonnistui."
+  )
+
+
 }
-
-
-      setConnection(
-        "ONLINE"
-      )
 
 
     }
 
 
-    catch(error) {
+    catch(loadError) {
 
 
       console.error(
-        error
+        loadError
       )
 
 
       setConnection(
         "OFFLINE"
+      )
+
+
+      setError(
+        loadError.message ||
+        "Spacemonkey-tilan lataaminen epäonnistui."
       )
 
 
@@ -149,12 +177,37 @@ if(
 
       <div
         className="
-          panel
-          p-6
+          space-y-5
         "
       >
 
-        Loading Spacemonkey Core...
+        {
+          error && (
+
+            <div className="panel text-red-400">
+              {error}
+            </div>
+
+          )
+        }
+
+
+        <div
+          className="
+            panel
+            p-6
+          "
+        >
+
+          {
+            error
+            ?
+            "Spacemonkey Coreen ei saada yhteyttä."
+            :
+            "Loading Spacemonkey Core..."
+          }
+
+        </div>
 
       </div>
 
