@@ -3,18 +3,17 @@ import {
   useState,
 } from "react"
 
-
-
-const STORAGE_KEY =
-  "woodBoosterProjects"
-
-
+import {
+  apiGet,
+  apiPost,
+  apiPut,
+  apiDelete,
+} from "../api/client"
 
 
 
 function TimelineTab({
   projectId,
-  onProjectUpdated,
 }) {
 
 
@@ -22,6 +21,20 @@ function TimelineTab({
     tasks,
     setTasks,
   ] = useState([])
+
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+
+  const [
+    error,
+    setError,
+  ] = useState("")
 
 
 
@@ -42,54 +55,70 @@ function TimelineTab({
 
 
 
-
-
   useEffect(() => {
 
+    if(!projectId) {
 
-    const projects =
-      readProjects()
+      return
 
-
-
-    const project =
-      projects.find(
-        item =>
-          String(item.id)
-          ===
-          String(projectId)
-      )
+    }
 
 
-
-    const savedTasks =
-      Array.isArray(
-        project?.timeline
-      )
-
-      ?
-
-      project.timeline
-
-      :
-
-      []
+    let cancelled = false
 
 
+    setLoading(true)
 
-    setTasks(
-      savedTasks.map(
-        normalizeTask
-      )
-    )
 
+    apiGet(`/projects/${projectId}/timeline`)
+      .then(data => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setTasks(
+          data.tasks || []
+        )
+
+      })
+      .catch(loadError => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setError(
+          loadError.message
+        )
+
+      })
+      .finally(() => {
+
+        if(!cancelled) {
+
+          setLoading(false)
+
+        }
+
+      })
+
+
+    return () => {
+
+      cancelled = true
+
+    }
 
   },[
     projectId,
   ])
-
-
-
 
 
 
@@ -124,104 +153,7 @@ function TimelineTab({
 
 
 
-
-
-
-  function saveTasks(
-    updatedTasks
-  ) {
-
-
-    const normalizedTasks =
-      updatedTasks.map(
-        normalizeTask
-      )
-
-
-
-    setTasks(
-      normalizedTasks
-    )
-
-
-
-    const projects =
-      readProjects()
-
-
-
-    const updatedProjects =
-      projects.map(
-        project => {
-
-
-          if(
-            String(project.id)
-            !==
-            String(projectId)
-          ) {
-
-            return project
-
-          }
-
-
-
-          return {
-
-            ...project,
-
-            timeline:
-              normalizedTasks,
-
-            updatedAt:
-              new Date().toISOString(),
-
-          }
-
-
-        }
-      )
-
-
-
-    localStorage.setItem(
-
-      STORAGE_KEY,
-
-      JSON.stringify(
-        updatedProjects
-      )
-
-    )
-
-
-
-    const updatedProject =
-      updatedProjects.find(
-        project =>
-          String(project.id)
-          ===
-          String(projectId)
-      )
-
-
-
-    onProjectUpdated?.(
-      updatedProject,
-      updatedProjects
-    )
-
-
-  }
-
-
-
-
-
-
-
-  function addTask(
+  async function addTask(
     event
   ) {
 
@@ -243,47 +175,53 @@ function TimelineTab({
 
 
 
-    const newTask = {
+    try {
 
-      id:
-        createId(),
+      const data =
+        await apiPost(
+          `/projects/${projectId}/timeline`,
+          {
 
-      name,
+            name,
 
-      deadline:
-        taskForm.deadline,
+            deadline:
+              taskForm.deadline || null,
 
-      completed:
-        false,
+          }
+        )
 
-      createdAt:
-        new Date().toISOString(),
+
+      setTasks(
+        current => [
+          ...current,
+          data.task,
+        ]
+      )
+
+
+      setTaskForm({
+
+        name:
+          "",
+
+        deadline:
+          "",
+
+      })
+
+    } catch(addError) {
+
+      console.error(
+        "Työvaiheen lisääminen epäonnistui:",
+        addError,
+      )
+
+
+      setError(
+        addError.message
+      )
 
     }
-
-
-
-    saveTasks([
-
-      ...tasks,
-
-      newTask,
-
-    ])
-
-
-
-
-
-    setTaskForm({
-
-      name:
-        "",
-
-      deadline:
-        "",
-
-    })
 
 
   }
@@ -291,47 +229,64 @@ function TimelineTab({
 
 
 
-
-
-
-  function toggleTask(
+  async function toggleTask(
     taskId
   ) {
 
 
-    const updatedTasks =
-      tasks.map(
-        task => {
+    const task =
+      tasks.find(
+        item =>
+          item.id === taskId
+      )
 
 
-          if(
-            task.id !== taskId
-          ) {
+    if(!task) {
 
-            return task
+      return
 
-          }
+    }
 
 
+    try {
 
-          return {
-
-            ...task,
+      const data =
+        await apiPut(
+          `/projects/${projectId}/timeline/${taskId}`,
+          {
 
             completed:
               !task.completed,
 
           }
+        )
 
 
-        }
+      setTasks(
+        current =>
+          current.map(
+            item =>
+              item.id === taskId
+              ?
+              data.task
+              :
+              item
+          )
+      )
+
+    } catch(toggleError) {
+
+      console.error(
+        "Työvaiheen päivittäminen epäonnistui:",
+        toggleError,
       )
 
 
+      setError(
+        toggleError.message
+      )
 
-    saveTasks(
-      updatedTasks
-    )
+    }
 
 
   }
@@ -339,10 +294,7 @@ function TimelineTab({
 
 
 
-
-
-
-  function deleteTask(
+  async function deleteTask(
     taskId
   ) {
 
@@ -362,20 +314,37 @@ function TimelineTab({
 
 
 
-    saveTasks(
+    try {
 
-      tasks.filter(
-        task =>
-          task.id !== taskId
+      await apiDelete(
+        `/projects/${projectId}/timeline/${taskId}`
       )
 
-    )
+
+      setTasks(
+        current =>
+          current.filter(
+            task =>
+              task.id !== taskId
+          )
+      )
+
+    } catch(deleteError) {
+
+      console.error(
+        "Työvaiheen poistaminen epäonnistui:",
+        deleteError,
+      )
+
+
+      setError(
+        deleteError.message
+      )
+
+    }
 
 
   }
-
-
-
 
 
 
@@ -386,7 +355,6 @@ function TimelineTab({
         task.completed
     )
     .length
-
 
 
 
@@ -459,6 +427,28 @@ function TimelineTab({
         </p>
 
 
+        {
+          error && (
+
+            <div
+              className="
+                mt-5
+                card
+                border-red-900/60
+                bg-red-950/30
+                p-3
+                text-sm
+                text-red-300
+              "
+            >
+
+              {error}
+
+            </div>
+
+          )
+        }
+
 
 
 
@@ -511,7 +501,6 @@ function TimelineTab({
           %
 
         </p>
-
 
 
 
@@ -639,7 +628,6 @@ function TimelineTab({
 
 
 
-
       <section
         className="
           space-y-4
@@ -647,6 +635,29 @@ function TimelineTab({
       >
 
         {
+          loading
+
+          ?
+
+          (
+
+            <div
+              className="
+                panel
+                p-6
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              Ladataan työvaiheita...
+
+            </div>
+
+          )
+
+          :
+
           tasks.length === 0
 
           ?
@@ -918,199 +929,6 @@ function TimelineTab({
 
 
 
-function normalizeTask(
-  task
-) {
-
-  if(
-    typeof task === "string"
-  ) {
-
-    return {
-
-      id:
-        createId(),
-
-      name:
-        task,
-
-      deadline:
-        "",
-
-      completed:
-        false,
-
-      createdAt:
-        new Date().toISOString(),
-
-    }
-
-  }
-
-
-
-  if(
-    !task ||
-    typeof task !== "object"
-  ) {
-
-    return {
-
-      id:
-        createId(),
-
-      name:
-        "Nimetön työvaihe",
-
-      deadline:
-        "",
-
-      completed:
-        false,
-
-      createdAt:
-        new Date().toISOString(),
-
-    }
-
-  }
-
-
-
-
-
-  let name =
-    "Nimetön työvaihe"
-
-
-
-  if(
-    typeof task.name === "string"
-  ) {
-
-    name =
-      task.name
-
-  }
-
-  else if(
-    typeof task.text === "string"
-  ) {
-
-    name =
-      task.text
-
-  }
-
-
-
-
-
-  return {
-
-    id:
-      task.id ||
-      createId(),
-
-    name,
-
-    deadline:
-      typeof task.deadline === "string"
-      ?
-      task.deadline
-      :
-      "",
-
-    completed:
-      Boolean(
-        task.completed
-      ),
-
-    createdAt:
-      task.createdAt ||
-      new Date().toISOString(),
-
-  }
-
-}
-
-
-
-
-
-
-
-function readProjects() {
-
-  try {
-
-    const saved =
-      localStorage.getItem(
-        STORAGE_KEY
-      )
-
-
-
-    const projects =
-      saved
-      ?
-      JSON.parse(saved)
-      :
-      []
-
-
-
-    return Array.isArray(projects)
-      ?
-      projects
-      :
-      []
-
-
-  }
-
-  catch {
-
-    return []
-
-  }
-
-}
-
-
-
-
-
-
-
-function createId() {
-
-  if(
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-
-    return crypto.randomUUID()
-
-  }
-
-
-  return (
-    Date.now()
-    +
-    "-"
-    +
-    Math.random()
-  )
-
-}
-
-
-
-
-
-
-
 function formatDate(
   dateValue
 ) {
@@ -1140,10 +958,6 @@ function formatDate(
   .format(date)
 
 }
-
-
-
-
 
 
 

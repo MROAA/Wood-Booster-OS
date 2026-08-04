@@ -659,10 +659,6 @@ function ProjectTabs({
               project.id
             }
 
-            onProjectUpdated={
-              onProjectUpdated
-            }
-
           />
 
         )
