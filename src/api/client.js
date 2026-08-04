@@ -108,3 +108,19 @@ export async function apiDelete(path) {
     },
   )
 }
+
+
+export async function apiUpload(
+  path,
+  formData,
+) {
+  return apiRequest(
+    path,
+    {
+      method: "POST",
+
+      body:
+        formData,
+    },
+  )
+}
