@@ -75,6 +75,10 @@ async function getSystemPulseSummary(){
     pulse.components.gitHistory
 
 
+  const gitSummary =
+    pulse.components.gitSummary
+
+
   const healthScore =
     pulse.components.healthScore
 
@@ -307,11 +311,20 @@ healthScore: {
       gitHistory: {
 
         total:
-          gitHistory?.length
+          gitHistory?.total
           ||
           0,
 
+
+        events:
+          gitHistory?.events
+          ||
+          [],
+
       },
+
+
+      gitSummary,
 
     },
 
