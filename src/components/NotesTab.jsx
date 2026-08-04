@@ -3,10 +3,11 @@ import {
   useState,
 } from "react"
 
-
-
-const PROJECT_STORAGE_KEY =
-  "woodBoosterProjects"
+import {
+  apiGet,
+  apiPost,
+  apiDelete,
+} from "../api/client"
 
 
 
@@ -51,38 +52,80 @@ function NotesTab({
 
 
 
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+
+  const [
+    error,
+    setError,
+  ] = useState("")
+
+
+
   useEffect(() => {
 
+    if(!projectId) {
 
-    const projects =
-      readProjects()
+      return
 
-
-
-    const project =
-      projects.find(
-        item =>
-          item.id === projectId
-      )
+    }
 
 
+    let cancelled = false
 
-    setNotes(
 
-      Array.isArray(
-        project?.noteItems
-      )
+    setLoading(true)
 
-      ?
 
-      project.noteItems
+    apiGet(`/projects/${projectId}/notes`)
+      .then(data => {
 
-      :
+        if(cancelled) {
 
-      []
+          return
 
-    )
+        }
 
+
+        setNotes(
+          data.notes || []
+        )
+
+      })
+      .catch(loadError => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setError(
+          loadError.message
+        )
+
+      })
+      .finally(() => {
+
+        if(!cancelled) {
+
+          setLoading(false)
+
+        }
+
+      })
+
+
+    return () => {
+
+      cancelled = true
+
+    }
 
   },[
     projectId,
@@ -127,64 +170,7 @@ function NotesTab({
 
 
 
-  function saveNotes(
-    updatedNotes
-  ) {
-
-
-    setNotes(
-      updatedNotes
-    )
-
-
-
-    const projects =
-      readProjects()
-
-
-
-    const updatedProjects =
-      projects.map(
-        project => {
-
-
-          if(
-            project.id !== projectId
-          ) {
-
-            return project
-
-          }
-
-
-
-          return {
-
-            ...project,
-
-            noteItems:
-              updatedNotes,
-
-          }
-
-
-        }
-      )
-
-
-
-    localStorage.setItem(
-
-      PROJECT_STORAGE_KEY,
-
-      JSON.stringify(
-        updatedProjects
-      )
-
-    )
-
-
-  }
+  // saveNotes removed: replaced by direct API calls in addNote/deleteNote
 
 
 
@@ -192,7 +178,7 @@ function NotesTab({
 
 
 
-  function addNote(
+  async function addNote(
     event
   ) {
 
@@ -226,35 +212,54 @@ function NotesTab({
 
 
 
-    const newNote = {
+    let data
 
-      id:
-        crypto.randomUUID(),
 
-      title:
-        title ||
-        "Muistiinpano",
 
-      content,
 
-      createdAt:
-        new Date().toISOString(),
+
+
+
+    try {
+
+      data =
+        await apiPost(
+          `/projects/${projectId}/notes`,
+          {
+
+            title:
+              title ||
+              "Muistiinpano",
+
+            content,
+
+          }
+        )
+
+    } catch(addError) {
+
+      console.error(
+        "Muistiinpanon lisays epaonnistui:",
+        addError,
+      )
+
+
+      setError(
+        addError.message
+      )
+
+
+      return
 
     }
 
 
-
-
-
-
-
-    saveNotes([
-
-      newNote,
-
-      ...notes,
-
-    ])
+    setNotes(
+      current => [
+        data.note,
+        ...current,
+      ]
+    )
 
 
 
@@ -285,7 +290,7 @@ function NotesTab({
 
 
 
-  function deleteNote(
+  async function deleteNote(
     noteId
   ) {
 
@@ -307,14 +312,34 @@ function NotesTab({
 
 
 
-    saveNotes(
+    try {
 
-      notes.filter(
-        note =>
-          note.id !== noteId
+      await apiDelete(
+        `/projects/${projectId}/notes/${noteId}`
       )
 
-    )
+
+      setNotes(
+        current =>
+          current.filter(
+            note =>
+              note.id !== noteId
+          )
+      )
+
+    } catch(deleteError) {
+
+      console.error(
+        "Muistiinpanon poisto epaonnistui:",
+        deleteError,
+      )
+
+
+      setError(
+        deleteError.message
+      )
+
+    }
 
 
   }
@@ -604,9 +629,53 @@ function NotesTab({
 
 
 
+      {
+        error && (
+
+          <div
+            className="
+              card
+              border-red-900/60
+              bg-red-950/30
+              p-3
+              text-sm
+              text-red-300
+            "
+          >
+            {error}
+          </div>
+
+        )
+      }
+
+
+
       <section>
 
         {
+          loading
+
+          ?
+
+          (
+
+            <div
+              className="
+                panel
+                p-6
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              Ladataan muistiinpanoja...
+
+            </div>
+
+          )
+
+          :
+
           notes.length === 0
 
           ?
@@ -884,43 +953,7 @@ function EmptyNotes({
 
 
 
-function readProjects() {
 
-  try {
-
-
-    const saved =
-      localStorage.getItem(
-        PROJECT_STORAGE_KEY
-      )
-
-
-
-    const projects =
-      saved
-      ?
-      JSON.parse(saved)
-      :
-      []
-
-
-
-    return Array.isArray(projects)
-      ?
-      projects
-      :
-      []
-
-
-  }
-
-  catch {
-
-    return []
-
-  }
-
-}
 
 
 
