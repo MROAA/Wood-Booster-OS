@@ -13,6 +13,7 @@ import ProjectDetails from "./pages/ProjectDetails"
 import Customers from "./pages/Customers"
 import CustomerDetails from "./pages/CustomerDetails"
 import Inventory from "./pages/Inventory"
+import Purchases from "./pages/Purchases"
 import Knowledge from "./pages/Knowledge"
 import Memory from "./pages/Memory"
 import Agents from "./pages/Agents"
@@ -87,6 +88,15 @@ function App() {
           path="/inventory"
           element={
             <Inventory />
+          }
+        />
+
+
+
+        <Route
+          path="/purchases"
+          element={
+            <Purchases />
           }
         />
 

@@ -45,6 +45,13 @@ const groups = [
         label: "Materiaalit",
         path: "/inventory",
         icon: "◇"
+      },
+
+
+      {
+        label: "Ostot",
+        path: "/purchases",
+        icon: "▦"
       }
 
     ]
