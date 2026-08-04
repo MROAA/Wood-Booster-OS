@@ -3,11 +3,36 @@ import {
   useState,
 } from "react"
 
+import {
+  apiGet,
+} from "../api/client"
 
 
-const API_URL =
-  "http://localhost:3001/api"
 
+
+const HEALTHY_VALUES =
+  new Set([
+    "active",
+    "healthy",
+    "protected",
+    "available",
+    "ok",
+    "online",
+    "operational",
+    "created",
+    true,
+  ])
+
+
+const UNHEALTHY_VALUES =
+  new Set([
+    "down",
+    "error",
+    "unavailable",
+    "offline",
+    "failed",
+    false,
+  ])
 
 
 
@@ -37,9 +62,6 @@ function Spacemonkey(){
 
 
 
-
-
-
   async function loadData(){
 
 
@@ -59,74 +81,49 @@ function Spacemonkey(){
       ] =
       await Promise.all([
 
-        fetch(
-          `${API_URL}/spacemonkey/identity`
-        )
-        .then(
-          r=>r.json()
+        apiGet(
+          "/spacemonkey/identity"
         ),
 
 
-        fetch(
-          `${API_URL}/spacemonkey/safety`
-        )
-        .then(
-          r=>r.json()
+        apiGet(
+          "/spacemonkey/safety"
         ),
 
 
-        fetch(
-          `${API_URL}/spacemonkey/system`
-        )
-        .then(
-          r=>r.json()
+        apiGet(
+          "/spacemonkey/system"
         ),
 
 
-        fetch(
-          `${API_URL}/spacemonkey/api-catalog`
-        )
-        .then(
-          r=>r.json()
+        apiGet(
+          "/spacemonkey/api-catalog"
         ),
 
 
-        fetch(
-          `${API_URL}/spacemonkey/snapshot-v3`
-        )
-        .then(
-          r=>r.json()
+        apiGet(
+          "/spacemonkey/snapshot-v3"
         ),
 
 
-        fetch(
-          `${API_URL}/spacemonkey/modules`
-        )
-        .then(
-          r=>r.json()
+        apiGet(
+          "/spacemonkey/modules"
         ),
 
 
-        fetch(
-          `${API_URL}/spacemonkey/runtime`
-        )
-        .then(
-          r=>r.json()
+        apiGet(
+          "/spacemonkey/runtime"
         ),
 
 
-        fetch(
-          `${API_URL}/spacemonkey/capabilities`
-        )
-        .then(
-          r=>r.json()
+        apiGet(
+          "/spacemonkey/capabilities"
         ),
-fetch(
-  `${API_URL}/spacemonkey/reflection`
-)
-.then(
-  r=>r.json()
-)
+
+        apiGet(
+          "/spacemonkey/reflection"
+        ),
+
       ])
 
 
@@ -157,11 +154,11 @@ fetch(
 
 
     }
-    catch(error){
+    catch(loadError){
 
 
       setError(
-        error.message
+        loadError.message
       )
 
 
@@ -176,6 +173,8 @@ fetch(
 
 
   }
+
+
   useEffect(()=>{
 
 
@@ -187,15 +186,12 @@ fetch(
 
 
 
-
-
-
   if(loading){
 
 
     return (
 
-      <div className="text-neutral-400">
+      <div className="panel p-6">
 
         Loading Spacemonkey...
 
@@ -208,15 +204,12 @@ fetch(
 
 
 
-
-
-
   if(error){
 
 
     return (
 
-      <div className="text-red-400">
+      <div className="panel text-red-400">
 
         Spacemonkey error:
         {" "}
@@ -231,7 +224,8 @@ fetch(
 
 
 
-
+  const identityStatus =
+    data.identity?.data?.status
 
 
   const identity =
@@ -241,7 +235,6 @@ fetch(
       name:"Unknown",
       creator:"Unknown"
     }
-
 
 
 
@@ -259,11 +252,11 @@ fetch(
 
 
 
-
   const safety =
     data.safety?.data
     ||
     {
+      status: "unknown",
       snapshots:{
         count:0
       },
@@ -271,7 +264,6 @@ fetch(
         available:false
       }
     }
-
 
 
 
@@ -286,12 +278,10 @@ fetch(
 
 
 
-
   const modules =
     data.modules?.modules
     ||
     []
-
 
 
 
@@ -304,6 +294,9 @@ fetch(
       system:{}
     }
 
+
+  const runtimeHealthy =
+    data.runtime?.health?.healthy
 
 
 
@@ -318,7 +311,8 @@ fetch(
     }
 
 
-
+  const snapshotStatus =
+    data.snapshot?.snapshot?.manifest?.status
 
 
 
@@ -330,29 +324,12 @@ fetch(
 
       <header>
 
-        <p className="
-          text-sm
-          uppercase
-          tracking-[0.3em]
-          text-amber-500
-        ">
-          AI Operator
-        </p>
-
-
-        <h1 className="
-          mt-2
-          text-4xl
-          font-bold
-        ">
+        <h1 className="page-title">
           🐒 Spacemonkey
         </h1>
 
 
-        <p className="
-          mt-3
-          text-neutral-400
-        ">
+        <p className="page-description">
           Wood-Booster OS:n AI-operaattori
           ja järjestelmän valvoja.
         </p>
@@ -363,13 +340,7 @@ fetch(
 
 
 
-
-      <div className="
-        grid
-        grid-cols-1
-        gap-5
-        md:grid-cols-3
-      ">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
 
 
         <Card title="Identity">
@@ -388,12 +359,11 @@ fetch(
           </p>
 
 
-          <p className="text-green-400">
-            🟢 Active
-          </p>
+          <StatusBadge
+            value={identityStatus}
+          />
 
         </Card>
-
 
 
 
@@ -414,12 +384,11 @@ fetch(
           </p>
 
 
-          <p className="text-green-400">
-            🟢 Healthy
-          </p>
+          <StatusBadge
+            value={system.core.status}
+          />
 
         </Card>
-
 
 
 
@@ -446,15 +415,15 @@ fetch(
           </p>
 
 
-          <p className="text-green-400">
-            🛡 Protected
-          </p>
+          <StatusBadge
+            value={safety.status}
+            icon="🛡"
+          />
 
         </Card>
 
 
       </div>
-
 
 
 
@@ -467,12 +436,7 @@ fetch(
 
               <div
                 key={api.id}
-                className="
-                  border-b
-                  border-neutral-800
-                  pb-2
-                  mb-3
-                "
+                className="border-b border-[var(--wood-border)] pb-2 mb-3"
               >
 
                 <p className="font-bold">
@@ -480,14 +444,14 @@ fetch(
                 </p>
 
 
-                <p className="text-neutral-400">
+                <p className="text-[var(--wood-muted)]">
                   {api.path}
                 </p>
 
 
-                <p className="text-green-400">
-                  {api.status}
-                </p>
+                <StatusBadge
+                  value={api.status}
+                />
 
               </div>
 
@@ -496,7 +460,6 @@ fetch(
         }
 
       </Card>
-
 
 
 
@@ -509,12 +472,7 @@ fetch(
 
               <div
                 key={module.id}
-                className="
-                  border-b
-                  border-neutral-800
-                  pb-2
-                  mb-3
-                "
+                className="border-b border-[var(--wood-border)] pb-2 mb-3"
               >
 
                 <p className="font-bold">
@@ -522,16 +480,16 @@ fetch(
                 </p>
 
 
-                <p className="text-neutral-400">
+                <p className="text-[var(--wood-muted)]">
                   Version:
                   {" "}
                   {module.version}
                 </p>
 
 
-                <p className="text-green-400">
-                  🟢 {module.health}
-                </p>
+                <StatusBadge
+                  value={module.health}
+                />
 
               </div>
 
@@ -540,7 +498,6 @@ fetch(
         }
 
       </Card>
-
 
 
 
@@ -575,12 +532,11 @@ fetch(
         </p>
 
 
-        <p className="text-green-400">
-          🟢 Healthy
-        </p>
+        <StatusBadge
+          value={runtimeHealthy}
+        />
 
       </Card>
-
 
 
 
@@ -604,11 +560,7 @@ fetch(
 
               <div
                 key={capability.id}
-                className="
-                  border-b
-                  border-neutral-800
-                  pb-2
-                "
+                className="border-b border-[var(--wood-border)] pb-2"
               >
 
                 <p>
@@ -616,11 +568,9 @@ fetch(
                 </p>
 
 
-                <p className="text-green-400">
-
-                  🟢 {capability.status}
-
-                </p>
+                <StatusBadge
+                  value={capability.status}
+                />
 
               </div>
 
@@ -700,7 +650,7 @@ fetch(
 
                 <p
                   key={improvement}
-                  className="text-neutral-400"
+                  className="text-[var(--wood-muted)]"
                 >
 
                   • {improvement}
@@ -728,11 +678,9 @@ fetch(
         </p>
 
 
-        <p>
-          Status:
-          {" "}
-          ACTIVE
-        </p>
+        <StatusBadge
+          value={snapshotStatus}
+        />
 
       </Card>
 
@@ -746,9 +694,6 @@ fetch(
 
 
 
-
-
-
 function Card({
   title,
   children,
@@ -757,33 +702,14 @@ function Card({
 
   return (
 
-    <section
-      className="
-        rounded-2xl
-        border
-        border-neutral-800
-        bg-neutral-900
-        p-6
-      "
-    >
+    <section className="card p-6">
 
-      <h2
-        className="
-          mb-4
-          text-xl
-          font-bold
-        "
-      >
+      <h2 className="mb-4 text-xl font-bold">
         {title}
       </h2>
 
 
-      <div
-        className="
-          space-y-2
-          text-neutral-300
-        "
-      >
+      <div className="space-y-2 text-[var(--wood-text)]">
 
         {children}
 
@@ -798,6 +724,84 @@ function Card({
 
 
 
+
+function StatusBadge({
+  value,
+  icon,
+}){
+
+
+  const normalized =
+    typeof value === "string"
+    ?
+    value.toLowerCase()
+    :
+    value
+
+
+  const isHealthy =
+    HEALTHY_VALUES.has(
+      normalized
+    )
+
+
+  const isUnhealthy =
+    UNHEALTHY_VALUES.has(
+      normalized
+    )
+
+
+  const colorClass =
+    isHealthy
+    ?
+    "text-green-400"
+    :
+    isUnhealthy
+    ?
+    "text-red-400"
+    :
+    "text-[var(--wood-muted)]"
+
+
+  const label =
+    value === undefined ||
+    value === null ||
+    value === ""
+    ?
+    "UNKNOWN"
+    :
+    String(value).toUpperCase()
+
+
+  const displayIcon =
+    icon
+    ||
+    (
+      isHealthy
+      ?
+      "🟢"
+      :
+      isUnhealthy
+      ?
+      "🔴"
+      :
+      "⚪"
+    )
+
+
+  return (
+
+    <p className={colorClass}>
+
+      {displayIcon}
+      {" "}
+      {label}
+
+    </p>
+
+  )
+
+}
 
 
 
