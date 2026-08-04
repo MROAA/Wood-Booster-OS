@@ -85,6 +85,22 @@ export default function createInventoryRouter(prisma) {
 
 
 
+        const unitPrice =
+          Number(
+            req.body.unitPrice || 0,
+          )
+
+
+
+        const supplier =
+          req.body.supplier
+            ? String(
+                req.body.supplier,
+              ).trim()
+            : null
+
+
+
         const notes =
           req.body.notes
             ? String(
@@ -125,6 +141,22 @@ export default function createInventoryRouter(prisma) {
 
 
 
+        if (
+          !Number.isFinite(unitPrice) ||
+          unitPrice < 0
+        ) {
+
+          return res.status(400).json({
+
+            error:
+              "Virheellinen hinta",
+
+          })
+
+        }
+
+
+
 
 
 
@@ -140,6 +172,10 @@ export default function createInventoryRouter(prisma) {
               quantity,
 
               unit,
+
+              unitPrice,
+
+              supplier,
 
               notes,
 
@@ -189,6 +225,49 @@ export default function createInventoryRouter(prisma) {
           Number(
             req.params.id,
           )
+
+
+
+        if (
+          !Number.isInteger(itemId) ||
+          itemId <= 0
+        ) {
+
+          return res.status(400).json({
+
+            error:
+              "Virheellinen materiaalin ID",
+
+          })
+
+        }
+
+
+
+        const existingItem =
+          await prisma.inventoryItem.findUnique({
+
+            where: {
+
+              id:
+                itemId,
+
+            },
+
+          })
+
+
+
+        if (!existingItem) {
+
+          return res.status(404).json({
+
+            error:
+              "Materiaalia ei löytynyt.",
+
+          })
+
+        }
 
 
 
@@ -247,6 +326,54 @@ export default function createInventoryRouter(prisma) {
             String(
               req.body.unit,
             ).trim()
+
+        }
+
+
+
+
+        if (
+          req.body.unitPrice !== undefined
+        ) {
+
+          const unitPrice =
+            Number(
+              req.body.unitPrice,
+            )
+
+
+          if (
+            !Number.isFinite(unitPrice) ||
+            unitPrice < 0
+          ) {
+
+            return res.status(400).json({
+
+              error:
+                "Virheellinen hinta",
+
+            })
+
+          }
+
+
+          data.unitPrice = unitPrice
+
+        }
+
+
+
+
+        if (
+          req.body.supplier !== undefined
+        ) {
+
+          data.supplier =
+            req.body.supplier
+              ? String(
+                  req.body.supplier,
+                ).trim()
+              : null
 
         }
 
@@ -331,6 +458,49 @@ export default function createInventoryRouter(prisma) {
           Number(
             req.params.id,
           )
+
+
+
+        if (
+          !Number.isInteger(itemId) ||
+          itemId <= 0
+        ) {
+
+          return res.status(400).json({
+
+            error:
+              "Virheellinen materiaalin ID",
+
+          })
+
+        }
+
+
+
+        const existingItem =
+          await prisma.inventoryItem.findUnique({
+
+            where: {
+
+              id:
+                itemId,
+
+            },
+
+          })
+
+
+
+        if (!existingItem) {
+
+          return res.status(404).json({
+
+            error:
+              "Materiaalia ei löytynyt.",
+
+          })
+
+        }
 
 
 
