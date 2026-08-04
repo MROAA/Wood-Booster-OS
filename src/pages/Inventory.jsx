@@ -6,6 +6,8 @@ import {
 import {
   apiGet,
   apiPost,
+  apiPut,
+  apiDelete,
 } from "../api/client"
 
 
@@ -16,6 +18,8 @@ const emptyMaterial = {
   category: "",
   quantity: "",
   unit: "kpl",
+  unitPrice: "",
+  supplier: "",
   notes: "",
 
 }
@@ -53,6 +57,18 @@ function Inventory() {
     error,
     setError,
   ] = useState(null)
+
+
+  const [
+    editingId,
+    setEditingId,
+  ] = useState(null)
+
+
+  const [
+    editForm,
+    setEditForm,
+  ] = useState(emptyMaterial)
 
 
 
@@ -134,6 +150,14 @@ function Inventory() {
             unit:
               form.unit,
 
+            unitPrice:
+              Number(
+                form.unitPrice || 0,
+              ),
+
+            supplier:
+              form.supplier,
+
             notes:
               form.notes,
 
@@ -153,6 +177,209 @@ function Inventory() {
       setForm(emptyMaterial)
 
       setShowForm(false)
+
+
+    } catch (error) {
+
+      setError(
+        error.message,
+      )
+
+    }
+
+
+  }
+
+
+
+
+  function startEdit(
+    material,
+  ) {
+
+    setEditingId(
+      material.id,
+    )
+
+
+    setEditForm({
+
+      name:
+        material.name || "",
+
+      category:
+        material.category || "",
+
+      quantity:
+        String(
+          material.quantity ?? "",
+        ),
+
+      unit:
+        material.unit || "kpl",
+
+      unitPrice:
+        String(
+          material.unitPrice ?? "",
+        ),
+
+      supplier:
+        material.supplier || "",
+
+      notes:
+        material.notes || "",
+
+    })
+
+  }
+
+
+
+
+  function cancelEdit() {
+
+    setEditingId(null)
+
+  }
+
+
+
+
+  function updateEditField(
+    field,
+    value,
+  ) {
+
+    setEditForm(
+
+      previous => ({
+
+        ...previous,
+
+        [field]:
+          value,
+
+      })
+
+    )
+
+  }
+
+
+
+
+  async function saveEdit() {
+
+
+    if (
+      !editForm.name.trim()
+    ) {
+
+      return
+
+    }
+
+
+    try {
+
+      const updated =
+        await apiPut(
+          `/inventory/${editingId}`,
+          {
+
+            name:
+              editForm.name,
+
+            category:
+              editForm.category,
+
+            quantity:
+              Number(
+                editForm.quantity || 0,
+              ),
+
+            unit:
+              editForm.unit,
+
+            unitPrice:
+              Number(
+                editForm.unitPrice || 0,
+              ),
+
+            supplier:
+              editForm.supplier,
+
+            notes:
+              editForm.notes,
+
+          },
+        )
+
+
+      setMaterials(
+
+        previous =>
+          previous.map(
+            material =>
+              material.id === updated.id
+                ? updated
+                : material,
+          )
+
+      )
+
+
+      setEditingId(null)
+
+
+    } catch (error) {
+
+      setError(
+        error.message,
+      )
+
+    }
+
+
+  }
+
+
+
+
+  async function deleteMaterial(
+    id,
+  ) {
+
+
+    const shouldDelete =
+      window.confirm(
+        "Poistetaanko materiaali?",
+      )
+
+
+    if (!shouldDelete) {
+
+      return
+
+    }
+
+
+    try {
+
+      await apiDelete(
+        `/inventory/${id}`,
+      )
+
+
+      setMaterials(
+
+        previous =>
+          previous.filter(
+            material =>
+              material.id !== id,
+          )
+
+      )
 
 
     } catch (error) {
@@ -352,6 +579,45 @@ function Inventory() {
 
 
 
+            <div
+              className="
+                grid
+                grid-cols-2
+                gap-4
+              "
+            >
+
+              <input
+                className="wb-input"
+                placeholder="Hinta (€)"
+                value={form.unitPrice}
+                onChange={
+                  e =>
+                    updateField(
+                      "unitPrice",
+                      e.target.value
+                    )
+                }
+              />
+
+
+              <input
+                className="wb-input"
+                placeholder="Toimittaja"
+                value={form.supplier}
+                onChange={
+                  e =>
+                    updateField(
+                      "supplier",
+                      e.target.value
+                    )
+                }
+              />
+
+            </div>
+
+
+
             <textarea
               className="wb-input"
               placeholder="Muistiinpanot"
@@ -475,88 +741,361 @@ function Inventory() {
                   >
 
 
-                    <h3
-                      className="
-                        text-xl
-                        font-semibold
-                      "
-                    >
-                      {material.name}
-                    </h3>
-
-
-
                     <div
                       className="
-                        mt-5
-                        space-y-4
+                        flex
+                        items-start
+                        justify-between
+                        gap-3
                       "
                     >
 
-
-                      <div>
-
-                        <p className="text-xs text-[var(--wood-muted)]">
-                          KATEGORIA
-                        </p>
-
-                        <p>
-                          {material.category || "-"}
-                        </p>
-
-                      </div>
-
-
-
-
-                      <div>
-
-                        <p className="text-xs text-[var(--wood-muted)]">
-                          VARASTOSSA
-                        </p>
-
-                        <p
-                          className="
-                            text-lg
-                            text-[var(--wood-accent)]
-                          "
-                        >
-                          {material.quantity}
-                          {" "}
-                          {material.unit}
-                        </p>
-
-                      </div>
-
-
-
+                      <h3
+                        className="
+                          text-xl
+                          font-semibold
+                        "
+                      >
+                        {material.name}
+                      </h3>
 
 
                       {
-                        material.notes && (
+                        editingId !== material.id && (
 
-                          <div>
+                          <div
+                            className="
+                              flex
+                              shrink-0
+                              gap-3
+                            "
+                          >
 
-                            <p className="text-xs text-[var(--wood-muted)]">
-                              MUISTIINPANOT
-                            </p>
+                            <button
 
-                            <p
+                              type="button"
+
+                              onClick={() =>
+                                startEdit(material)
+                              }
+
                               className="
                                 text-sm
-                                mt-1
+                                text-[var(--wood-accent)]
+                                hover:opacity-80
                               "
+
                             >
-                              {material.notes}
-                            </p>
+                              Muokkaa
+                            </button>
+
+
+                            <button
+
+                              type="button"
+
+                              onClick={() =>
+                                deleteMaterial(material.id)
+                              }
+
+                              className="
+                                text-sm
+                                text-red-400
+                                hover:text-red-300
+                              "
+
+                            >
+                              Poista
+                            </button>
 
                           </div>
 
                         )
                       }
 
-
                     </div>
+
+
+
+                    {
+                      editingId === material.id
+
+                      ?
+
+                      (
+
+                        <div
+                          className="
+                            mt-5
+                            space-y-3
+                          "
+                        >
+
+                          <input
+                            className="wb-input"
+                            placeholder="Materiaalin nimi"
+                            value={editForm.name}
+                            onChange={
+                              e =>
+                                updateEditField(
+                                  "name",
+                                  e.target.value
+                                )
+                            }
+                          />
+
+
+                          <input
+                            className="wb-input"
+                            placeholder="Kategoria"
+                            value={editForm.category}
+                            onChange={
+                              e =>
+                                updateEditField(
+                                  "category",
+                                  e.target.value
+                                )
+                            }
+                          />
+
+
+                          <div
+                            className="
+                              grid
+                              grid-cols-2
+                              gap-3
+                            "
+                          >
+
+                            <input
+                              className="wb-input"
+                              placeholder="Määrä"
+                              value={editForm.quantity}
+                              onChange={
+                                e =>
+                                  updateEditField(
+                                    "quantity",
+                                    e.target.value
+                                  )
+                              }
+                            />
+
+
+                            <input
+                              className="wb-input"
+                              placeholder="Yksikkö"
+                              value={editForm.unit}
+                              onChange={
+                                e =>
+                                  updateEditField(
+                                    "unit",
+                                    e.target.value
+                                  )
+                              }
+                            />
+
+                          </div>
+
+
+                          <div
+                            className="
+                              grid
+                              grid-cols-2
+                              gap-3
+                            "
+                          >
+
+                            <input
+                              className="wb-input"
+                              placeholder="Hinta (€)"
+                              value={editForm.unitPrice}
+                              onChange={
+                                e =>
+                                  updateEditField(
+                                    "unitPrice",
+                                    e.target.value
+                                  )
+                              }
+                            />
+
+
+                            <input
+                              className="wb-input"
+                              placeholder="Toimittaja"
+                              value={editForm.supplier}
+                              onChange={
+                                e =>
+                                  updateEditField(
+                                    "supplier",
+                                    e.target.value
+                                  )
+                              }
+                            />
+
+                          </div>
+
+
+                          <textarea
+                            className="wb-input"
+                            placeholder="Muistiinpanot"
+                            rows="3"
+                            value={editForm.notes}
+                            onChange={
+                              e =>
+                                updateEditField(
+                                  "notes",
+                                  e.target.value
+                                )
+                            }
+                          />
+
+
+                          <div
+                            className="
+                              flex
+                              gap-3
+                            "
+                          >
+
+                            <button
+                              className="wb-button"
+                              onClick={saveEdit}
+                            >
+                              Tallenna
+                            </button>
+
+
+                            <button
+
+                              type="button"
+
+                              onClick={cancelEdit}
+
+                              className="
+                                text-sm
+                                text-[var(--wood-muted)]
+                                hover:opacity-80
+                              "
+
+                            >
+                              Peruuta
+                            </button>
+
+                          </div>
+
+                        </div>
+
+                      )
+
+                      :
+
+                      (
+
+                        <div
+                          className="
+                            mt-5
+                            space-y-4
+                          "
+                        >
+
+
+                          <div>
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              KATEGORIA
+                            </p>
+
+                            <p>
+                              {material.category || "-"}
+                            </p>
+
+                          </div>
+
+
+
+
+                          <div>
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              VARASTOSSA
+                            </p>
+
+                            <p
+                              className="
+                                text-lg
+                                text-[var(--wood-accent)]
+                              "
+                            >
+                              {material.quantity}
+                              {" "}
+                              {material.unit}
+                            </p>
+
+                          </div>
+
+
+
+
+                          <div>
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              HINTA
+                            </p>
+
+                            <p>
+                              {material.unitPrice ?? 0} €
+                            </p>
+
+                          </div>
+
+
+
+
+                          <div>
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              TOIMITTAJA
+                            </p>
+
+                            <p>
+                              {material.supplier || "-"}
+                            </p>
+
+                          </div>
+
+
+
+
+
+                          {
+                            material.notes && (
+
+                              <div>
+
+                                <p className="text-xs text-[var(--wood-muted)]">
+                                  MUISTIINPANOT
+                                </p>
+
+                                <p
+                                  className="
+                                    text-sm
+                                    mt-1
+                                  "
+                                >
+                                  {material.notes}
+                                </p>
+
+                              </div>
+
+                            )
+                          }
+
+
+                        </div>
+
+                      )
+
+                    }
 
 
                   </article>
