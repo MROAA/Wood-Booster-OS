@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-const API_URL = "http://localhost:3001/api"
+import { apiGet, apiPut } from "../api/client"
 
 function ProjectEditor({
   project,
@@ -12,11 +12,24 @@ function ProjectEditor({
     deadline: "",
     description: "",
     notes: "",
+    customerId: "",
   })
 
+  const [customers, setCustomers] = useState([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    apiGet("/customers")
+      .then(setCustomers)
+      .catch((loadError) => {
+        console.error(
+          "Asiakkaiden haku epäonnistui:",
+          loadError,
+        )
+      })
+  }, [])
 
   useEffect(() => {
     if (!project) {
@@ -29,6 +42,10 @@ function ProjectEditor({
       deadline: formatDateInput(project.deadline),
       description: project.description || "",
       notes: project.notes || "",
+      customerId:
+        project.customerId ??
+        project.customer?.id ??
+        "",
     })
 
     setSaved(false)
@@ -67,42 +84,39 @@ function ProjectEditor({
       setSaved(false)
       setError("")
 
-      const response = await fetch(
-        `${API_URL}/projects/${project.id}`,
+      const data = await apiPut(
+        `/projects/${project.id}`,
         {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            status: form.status,
-            deadline: form.deadline || null,
-            description:
-              form.description.trim() || null,
-            notes: form.notes.trim() || null,
-          }),
+          name,
+          status: form.status,
+          deadline: form.deadline || null,
+          description:
+            form.description.trim() || null,
+          notes: form.notes.trim() || null,
+          customerId: form.customerId || null,
         },
       )
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            "Projektin päivittäminen epäonnistui",
-        )
-      }
+      const updatedProject = data.project
 
       setForm({
-        name: data.name || "",
-        status: data.status || "Suunnittelu",
-        deadline: formatDateInput(data.deadline),
-        description: data.description || "",
-        notes: data.notes || "",
+        name: updatedProject.name || "",
+        status:
+          updatedProject.status ||
+          "Suunnittelu",
+        deadline: formatDateInput(
+          updatedProject.deadline,
+        ),
+        description:
+          updatedProject.description || "",
+        notes: updatedProject.notes || "",
+        customerId:
+          updatedProject.customerId ??
+          updatedProject.customer?.id ??
+          "",
       })
 
-      onProjectUpdated?.(data)
+      onProjectUpdated?.(updatedProject)
       setSaved(true)
     } catch (saveError) {
       console.error(
@@ -120,8 +134,8 @@ function ProjectEditor({
   }
 
   return (
-    <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-      <p className="text-xs uppercase tracking-wider text-neutral-500">
+    <section className="card p-6">
+      <p className="text-xs uppercase tracking-wider text-[var(--wood-muted)]">
         Project settings
       </p>
 
@@ -129,9 +143,9 @@ function ProjectEditor({
         Muokkaa projektia
       </h3>
 
-      <p className="mt-2 text-neutral-400">
+      <p className="mt-2 text-[var(--wood-muted)]">
         Päivitä projektin perustiedot, tila,
-        deadline ja muistiinpanot.
+        deadline ja asiakas.
       </p>
 
       <form
@@ -146,7 +160,7 @@ function ProjectEditor({
               value={form.name}
               onChange={handleChange}
               required
-              className={inputClasses}
+              className="wb-input"
             />
           </FormField>
 
@@ -155,7 +169,7 @@ function ProjectEditor({
               name="status"
               value={form.status}
               onChange={handleChange}
-              className={inputClasses}
+              className="wb-input"
             >
               <option value="Idea">Idea</option>
               <option value="Suunnittelu">
@@ -185,20 +199,30 @@ function ProjectEditor({
               name="deadline"
               value={form.deadline}
               onChange={handleChange}
-              className={inputClasses}
+              className="wb-input"
             />
           </FormField>
 
           <FormField label="Asiakas">
-            <input
-              type="text"
-              value={
-                project?.customer?.name ||
-                "Ei asiakasta"
-              }
-              readOnly
-              className={`${inputClasses} cursor-not-allowed opacity-70`}
-            />
+            <select
+              name="customerId"
+              value={form.customerId}
+              onChange={handleChange}
+              className="wb-input"
+            >
+              <option value="">
+                Ei asiakasta
+              </option>
+
+              {customers.map((customer) => (
+                <option
+                  key={customer.id}
+                  value={customer.id}
+                >
+                  {customer.name}
+                </option>
+              ))}
+            </select>
           </FormField>
         </div>
 
@@ -210,26 +234,26 @@ function ProjectEditor({
               onChange={handleChange}
               rows={5}
               placeholder="Kuvaile tuotetta, asiakkaan toiveita ja projektin tavoitetta..."
-              className={`${inputClasses} resize-y`}
+              className="wb-input resize-y"
             />
           </FormField>
         </div>
 
         <div className="mt-5">
-          <FormField label="Muistiinpanot">
+          <FormField label="Yleiset muistiinpanot (näkyvät myös Yhteenveto-välilehdellä)">
             <textarea
               name="notes"
               value={form.notes}
               onChange={handleChange}
               rows={5}
               placeholder="Projektin sisäiset muistiinpanot..."
-              className={`${inputClasses} resize-y`}
+              className="wb-input resize-y"
             />
           </FormField>
         </div>
 
         {error && (
-          <div className="mt-5 rounded-xl border border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+          <div className="mt-5 card border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-300">
             {error}
           </div>
         )}
@@ -238,7 +262,7 @@ function ProjectEditor({
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="wb-button disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving
               ? "Tallennetaan..."
@@ -259,11 +283,13 @@ function ProjectEditor({
 function FormField({ label, children }) {
   return (
     <label className="block">
-      <span className="text-sm text-neutral-300">
+      <span className="text-sm text-[var(--wood-muted)]">
         {label}
       </span>
 
-      {children}
+      <div className="mt-2">
+        {children}
+      </div>
     </label>
   )
 }
@@ -281,8 +307,5 @@ function formatDateInput(value) {
 
   return date.toISOString().slice(0, 10)
 }
-
-const inputClasses =
-  "mt-2 w-full rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-amber-500"
 
 export default ProjectEditor

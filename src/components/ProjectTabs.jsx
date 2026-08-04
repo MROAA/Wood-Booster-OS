@@ -9,6 +9,7 @@ import ProjectAIChat from "./ProjectAIChat"
 import ProjectTools from "./ProjectTools"
 import ProjectMemory from "./ProjectMemory"
 import ProjectKnowledge from "./ProjectKnowledge"
+import ProjectEditor from "./ProjectEditor"
 
 import MaterialsTab from "./MaterialsTab"
 import NotesTab from "./NotesTab"
@@ -47,6 +48,18 @@ const tabs = [
 
     icon:
       "📋",
+  },
+
+
+  {
+    id:
+      "edit",
+
+    label:
+      "Muokkaa",
+
+    icon:
+      "✏️",
   },
 
 
@@ -557,6 +570,27 @@ function ProjectTabs({
 
           <ProjectOverview
             project={project}
+          />
+
+        )
+
+
+
+
+      case "edit":
+
+        return (
+
+          <ProjectEditor
+
+            project={
+              project
+            }
+
+            onProjectUpdated={
+              onProjectUpdated
+            }
+
           />
 
         )

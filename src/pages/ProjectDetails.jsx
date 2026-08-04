@@ -436,33 +436,69 @@ function ProjectDetails() {
 
 
 
-      <header>
+      <header
+        className="
+          flex
+          items-start
+          justify-between
+          gap-4
+        "
+      >
 
-        <p
+        <div>
+
+          <p
+            className="
+              text-sm
+              uppercase
+              tracking-widest
+              text-[var(--wood-muted)]
+            "
+          >
+
+            PROJECT WORKSPACE
+
+          </p>
+
+
+          <h1
+            className="
+              mt-3
+              text-4xl
+              font-semibold
+            "
+          >
+
+            {project.name}
+
+          </h1>
+
+        </div>
+
+
+
+        <button
+          type="button"
           className="
-            text-sm
-            uppercase
-            tracking-widest
-            text-[var(--wood-muted)]
+            wb-button
+            shrink-0
           "
+          onClick={() =>
+            window.dispatchEvent(
+              new CustomEvent(
+                "wood-booster:open-project-tab",
+                {
+                  detail: {
+                    tab: "edit",
+                    projectId: project.id,
+                  },
+                },
+              ),
+            )
+          }
         >
-
-          PROJECT WORKSPACE
-
-        </p>
-
-
-        <h1
-          className="
-            mt-3
-            text-4xl
-            font-semibold
-          "
-        >
-
-          {project.name}
-
-        </h1>
+          ✏️ Muokkaa projektia
+        </button>
 
 
       </header>
