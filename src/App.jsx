@@ -15,6 +15,7 @@ import CustomerDetails from "./pages/CustomerDetails"
 import Inventory from "./pages/Inventory"
 import Purchases from "./pages/Purchases"
 import Knowledge from "./pages/Knowledge"
+import KnowledgeDocumentDetails from "./pages/KnowledgeDocumentDetails"
 import Memory from "./pages/Memory"
 import Agents from "./pages/Agents"
 import Settings from "./pages/Settings"
@@ -106,6 +107,15 @@ function App() {
           path="/knowledge"
           element={
             <Knowledge />
+          }
+        />
+
+
+
+        <Route
+          path="/knowledge/:id"
+          element={
+            <KnowledgeDocumentDetails />
           }
         />
 
