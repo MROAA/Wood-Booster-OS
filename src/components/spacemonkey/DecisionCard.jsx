@@ -116,7 +116,7 @@ function DecisionCard({
         <Metric
           name="Truth Score"
           value={
-            decision?.truthScore
+            decision?.alignment?.truth
           }
         />
 
@@ -125,7 +125,7 @@ function DecisionCard({
         <Metric
           name="Goal Alignment"
           value={
-            decision?.goalAlignment
+            decision?.alignment?.goal
           }
         />
 
@@ -134,7 +134,7 @@ function DecisionCard({
         <Metric
           name="Value Alignment"
           value={
-            decision?.valueAlignment
+            decision?.alignment?.value
           }
         />
 

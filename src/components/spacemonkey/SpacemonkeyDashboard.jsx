@@ -18,6 +18,8 @@ import ActivityFeed from "./ActivityFeed"
 
 import DecisionCard from "./DecisionCard"
 
+import SafetyCard from "./SafetyCard"
+
 
 
 
@@ -219,7 +221,16 @@ function SpacemonkeyDashboard({
 
       <DecisionCard
         decision={
-          core?.cognitive?.decision
+          core?.decision
+        }
+      />
+
+
+
+
+      <SafetyCard
+        safety={
+          core?.safety
         }
       />
 
