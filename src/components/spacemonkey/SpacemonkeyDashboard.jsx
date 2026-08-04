@@ -20,6 +20,14 @@ import DecisionCard from "./DecisionCard"
 
 import SafetyCard from "./SafetyCard"
 
+import SpacemonkeyCognitiveTimeline from "./SpacemonkeyCognitiveTimeline"
+
+import SpacemonkeyPipeline from "./SpacemonkeyPipeline"
+
+import SpacemonkeyModules from "./SpacemonkeyModules"
+
+import SpacemonkeyRuntime from "./SpacemonkeyRuntime"
+
 
 
 
@@ -162,6 +170,24 @@ function SpacemonkeyDashboard({
 />
 
 
+
+
+      <SpacemonkeyCognitiveTimeline
+        activity={
+          activities
+        }
+      />
+
+
+
+
+      <SpacemonkeyPipeline
+        activity={
+          activities
+        }
+      />
+
+
       <section
         className="
           card
@@ -233,6 +259,16 @@ function SpacemonkeyDashboard({
           core?.safety
         }
       />
+
+
+
+
+      <SpacemonkeyModules />
+
+
+
+
+      <SpacemonkeyRuntime />
 
 
     </div>
