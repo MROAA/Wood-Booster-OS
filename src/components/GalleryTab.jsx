@@ -6,6 +6,21 @@ import {
 
 
 
+const API_URL =
+  "http://localhost:3001/api"
+
+
+
+const FILE_URL =
+  "http://localhost:3001/uploads"
+
+
+
+const GALLERY_CATEGORY =
+  "Kuvat"
+
+
+
 function GalleryTab({
   projectId,
 }) {
@@ -31,6 +46,20 @@ function GalleryTab({
 
 
   const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+
+  const [
+    uploading,
+    setUploading,
+  ] = useState(false)
+
+
+
+  const [
     errorMessage,
     setErrorMessage,
   ] = useState("")
@@ -39,28 +68,119 @@ function GalleryTab({
 
 
 
-
-
   useEffect(() => {
 
+    if(!projectId) {
 
-    setImages(
-      readImages(projectId)
-    )
+      return
+
+    }
+
+
+    let cancelled = false
+
+
+    async function loadImages() {
+
+      try {
+
+        setLoading(true)
+
+        setErrorMessage("")
+
+
+        const response =
+          await fetch(
+            `${API_URL}/projects/${projectId}/files`,
+          )
+
+
+        const data =
+          await response.json()
+
+
+        if(!response.ok) {
+
+          throw new Error(
+            data.error ||
+            "Kuvien hakeminen epäonnistui"
+          )
+
+        }
+
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        const files =
+          Array.isArray(data)
+          ?
+          data
+          :
+          []
+
+
+        setImages(
+          files.filter(
+            file =>
+              file.category === GALLERY_CATEGORY
+          )
+        )
+
+      }
+
+      catch(loadError) {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        console.error(
+          loadError
+        )
+
+
+        setErrorMessage(
+          loadError.message
+        )
+
+      }
+
+      finally {
+
+        if(!cancelled) {
+
+          setLoading(false)
+
+        }
+
+      }
+
+    }
+
+
+    loadImages()
 
 
     setSelectedImage(null)
 
 
-    setErrorMessage("")
+    return () => {
 
+      cancelled = true
+
+    }
 
   },[
     projectId,
   ])
-
-
-
 
 
 
@@ -74,9 +194,6 @@ function GalleryTab({
 
 
 
-
-
-
   async function handleFilesSelected(
     event
   ) {
@@ -85,30 +202,31 @@ function GalleryTab({
     const files =
       Array.from(
         event.target.files || []
+      ).filter(
+        file =>
+          file.type.startsWith("image/")
       )
-
 
 
     if(
       files.length === 0
     ) {
 
+      event.target.value =
+        ""
+
+
       return
 
     }
 
 
-
     setErrorMessage("")
-
 
 
     try {
 
-
-      const newImages =
-        []
-
+      setUploading(true)
 
 
       for(
@@ -116,104 +234,78 @@ function GalleryTab({
       ) {
 
 
-        if(
-          !file.type.startsWith(
-            "image/"
-          )
-        ) {
+        const formData =
+          new FormData()
 
-          continue
+
+        formData.append(
+          "file",
+          file
+        )
+
+
+        formData.append(
+          "category",
+          GALLERY_CATEGORY
+        )
+
+
+        const response =
+          await fetch(
+            `${API_URL}/projects/${projectId}/files`,
+            {
+
+              method:
+                "POST",
+
+              body:
+                formData,
+
+            }
+          )
+
+
+        const data =
+          await response.json()
+
+
+        if(!response.ok) {
+
+          throw new Error(
+            data.error ||
+            `Kuvan ${file.name} lataaminen epäonnistui`
+          )
 
         }
 
 
-
-        const dataUrl =
-          await resizeImage(
-            file
-          )
-
-
-
-        newImages.push({
-
-          id:
-            createId(),
-
-          name:
-            file.name,
-
-          dataUrl,
-
-          createdAt:
-            new Date().toISOString(),
-
-        })
-
-
-      }
-
-
-
-
-
-      if(
-        newImages.length === 0
-      ) {
-
-        setErrorMessage(
-          "Valitse vähintään yksi kuvatiedosto."
+        setImages(
+          current => [
+            data,
+            ...current,
+          ]
         )
 
-
-        return
-
       }
-
-
-
-
-
-      const updatedImages =
-        [
-          ...newImages,
-          ...images,
-        ]
-
-
-
-      saveImages(
-        projectId,
-        updatedImages
-      )
-
-
-
-      setImages(
-        updatedImages
-      )
-
-
 
     }
 
-    catch(error) {
-
+    catch(uploadError) {
 
       console.error(
-        error
+        uploadError
       )
-
 
 
       setErrorMessage(
-        "Kuvien tallennus epäonnistui."
+        uploadError.message
       )
-
 
     }
 
     finally {
+
+      setUploading(false)
 
 
       event.target.value =
@@ -227,11 +319,8 @@ function GalleryTab({
 
 
 
-
-
-
-  function deleteImage(
-    imageId
+  async function deleteImage(
+    image
   ) {
 
 
@@ -239,7 +328,6 @@ function GalleryTab({
       window.confirm(
         "Poistetaanko tämä kuva projektista?"
       )
-
 
 
     if(
@@ -251,35 +339,63 @@ function GalleryTab({
     }
 
 
+    try {
+
+      const response =
+        await fetch(
+          `${API_URL}/files/${image.id}`,
+          {
+
+            method:
+              "DELETE",
+
+          }
+        )
 
 
+      const data =
+        await response.json()
 
-    const updatedImages =
-      images.filter(
-        image =>
-          image.id !== imageId
+
+      if(!response.ok) {
+
+        throw new Error(
+          data.error ||
+          "Kuvan poistaminen epäonnistui"
+        )
+
+      }
+
+
+      setImages(
+        current =>
+          current.filter(
+            item =>
+              item.id !== image.id
+          )
       )
 
 
+      if(
+        selectedImage?.id === image.id
+      ) {
 
-    saveImages(
-      projectId,
-      updatedImages
-    )
+        setSelectedImage(null)
+
+      }
+
+    }
+
+    catch(deleteError) {
+
+      console.error(
+        deleteError
+      )
 
 
-
-    setImages(
-      updatedImages
-    )
-
-
-
-    if(
-      selectedImage?.id === imageId
-    ) {
-
-      setSelectedImage(null)
+      setErrorMessage(
+        deleteError.message
+      )
 
     }
 
@@ -288,6 +404,14 @@ function GalleryTab({
 
 
 
+
+  function imageUrl(
+    image
+  ) {
+
+    return `${FILE_URL}/projects/${projectId}/${image.storedName}`
+
+  }
 
 
 
@@ -363,13 +487,25 @@ function GalleryTab({
               openFilePicker
             }
 
+            disabled={
+              uploading
+            }
+
             className="
               wb-button
+              disabled:cursor-not-allowed
+              disabled:opacity-50
             "
 
           >
 
-            + Lisää kuvia
+            {
+              uploading
+              ?
+              "Ladataan..."
+              :
+              "+ Lisää kuvia"
+            }
 
           </button>
 
@@ -405,12 +541,10 @@ function GalleryTab({
             <div
               className="
                 mt-5
-                rounded-xl
-                border
-                border-red-900
-                bg-red-950/20
-                px-4
-                py-3
+                card
+                border-red-900/60
+                bg-red-950/30
+                p-3
                 text-sm
                 text-red-300
               "
@@ -428,6 +562,28 @@ function GalleryTab({
 
 
         {
+          loading
+
+          ?
+
+          (
+
+            <div
+              className="
+                mt-6
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              Ladataan kuvia...
+
+            </div>
+
+          )
+
+          :
+
           images.length === 0
 
           ?
@@ -547,11 +703,11 @@ function GalleryTab({
                         <img
 
                           src={
-                            image.dataUrl
+                            imageUrl(image)
                           }
 
                           alt={
-                            image.name ||
+                            image.originalName ||
                             "Projektin kuva"
                           }
 
@@ -593,7 +749,7 @@ function GalleryTab({
                           >
 
                             {
-                              image.name ||
+                              image.originalName ||
                               "Nimetön kuva"
                             }
 
@@ -629,7 +785,7 @@ function GalleryTab({
 
                           onClick={() =>
                             deleteImage(
-                              image.id
+                              image
                             )
                           }
 
@@ -668,7 +824,6 @@ function GalleryTab({
 
 
       </section>
-
 
 
 
@@ -738,7 +893,7 @@ function GalleryTab({
                   >
 
                     {
-                      selectedImage.name
+                      selectedImage.originalName
                     }
 
                   </p>
@@ -810,11 +965,11 @@ function GalleryTab({
                 <img
 
                   src={
-                    selectedImage.dataUrl
+                    imageUrl(selectedImage)
                   }
 
                   alt={
-                    selectedImage.name
+                    selectedImage.originalName
                   }
 
                   className="
@@ -839,258 +994,6 @@ function GalleryTab({
 
     </>
 
-  )
-
-}
-
-
-
-
-
-
-
-function readImages(
-  projectId
-) {
-
-  try {
-
-    const saved =
-      localStorage.getItem(
-        getStorageKey(
-          projectId
-        )
-      )
-
-
-    const images =
-      saved
-      ?
-      JSON.parse(saved)
-      :
-      []
-
-
-    return Array.isArray(images)
-      ?
-      images
-      :
-      []
-
-
-  }
-
-  catch {
-
-    return []
-
-  }
-
-}
-
-
-
-
-
-
-
-function saveImages(
-  projectId,
-  images
-) {
-
-  localStorage.setItem(
-
-    getStorageKey(
-      projectId
-    ),
-
-    JSON.stringify(
-      images
-    )
-
-  )
-
-}
-
-
-
-
-
-
-
-function getStorageKey(
-  projectId
-) {
-
-  return `woodBoosterGallery:${projectId}`
-
-}
-
-
-
-
-
-
-
-function resizeImage(
-  file
-) {
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-
-      const reader =
-        new FileReader()
-
-
-
-      reader.onerror = () =>
-        reject(
-          new Error(
-            "Kuvan lukeminen epäonnistui."
-          )
-        )
-
-
-
-      reader.onload = () => {
-
-
-        const image =
-          new Image()
-
-
-
-        image.onerror = () =>
-          reject(
-            new Error(
-              "Kuvan avaaminen epäonnistui."
-            )
-          )
-
-
-
-        image.onload = () => {
-
-
-          const maximumSize =
-            1600
-
-
-
-          const scale =
-            Math.min(
-
-              1,
-
-              maximumSize /
-              image.width,
-
-              maximumSize /
-              image.height
-
-            )
-
-
-
-          const width =
-            Math.max(
-              1,
-              Math.round(
-                image.width * scale
-              )
-            )
-
-
-
-          const height =
-            Math.max(
-              1,
-              Math.round(
-                image.height * scale
-              )
-            )
-
-
-
-          const canvas =
-            document.createElement(
-              "canvas"
-            )
-
-
-          const context =
-            canvas.getContext(
-              "2d"
-            )
-
-
-
-          if(!context) {
-
-            reject(
-              new Error(
-                "Kuvan käsittely epäonnistui."
-              )
-            )
-
-            return
-
-          }
-
-
-
-          canvas.width =
-            width
-
-          canvas.height =
-            height
-
-
-
-          context.drawImage(
-            image,
-            0,
-            0,
-            width,
-            height
-          )
-
-
-
-          resolve(
-            canvas.toDataURL(
-              "image/jpeg",
-              0.82
-            )
-          )
-
-
-        }
-
-
-
-        image.src =
-          String(
-            reader.result
-          )
-
-
-      }
-
-
-
-      reader.readAsDataURL(
-        file
-      )
-
-
-    }
   )
 
 }
@@ -1128,39 +1031,6 @@ function formatDate(
   )
 
 }
-
-
-
-
-
-
-
-function createId() {
-
-  if(
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-
-    return crypto.randomUUID()
-
-  }
-
-
-
-  return (
-    Date.now()
-    +
-    "-"
-    +
-    Math.random()
-  )
-
-}
-
-
-
-
 
 
 
