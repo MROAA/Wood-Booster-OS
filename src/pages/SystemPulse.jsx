@@ -4,6 +4,13 @@ import {
 } from "react"
 
 
+import {
+  apiGet,
+} from "../api/client"
+
+
+import PulseCard from "../components/systemPulse/PulseCard"
+
 import StatusGlow from "../components/systemPulse/StatusGlow"
 
 import EnvironmentCard from "../components/systemPulse/EnvironmentCard"
@@ -22,7 +29,11 @@ import SecurityCard from "../components/systemPulse/SecurityCard"
 
 import MonitorCard from "../components/systemPulse/MonitorCard"
 
+import HealthScoreCard from "../components/systemPulse/HealthScoreCard"
+
 import ActivityTimelineCard from "../components/systemPulse/ActivityTimelineCard"
+
+import SnapshotCard from "../components/systemPulse/SnapshotCard"
 
 
 
@@ -67,7 +78,7 @@ function SystemPulse() {
 
 
   const [
-    previousHealth,
+    ,
     setPreviousHealth
   ] = useState(null)
 
@@ -80,21 +91,33 @@ function SystemPulse() {
 
 
 
+  const [
+    loading,
+    setLoading
+  ] = useState(true)
+
+
+
+  const [
+    error,
+    setError
+  ] = useState("")
+
+
+
 
 
   async function loadSystemData(){
 
     try {
 
-
-      const pulseResponse =
-        await fetch(
-          "http://localhost:3001/api/system-pulse"
-        )
+      setError("")
 
 
       const pulseData =
-        await pulseResponse.json()
+        await apiGet(
+          "/system-pulse"
+        )
 
 
 
@@ -112,32 +135,35 @@ function SystemPulse() {
 
 
 
-        if(
-          previousHealth
-        ){
-
-          setHealthChange({
-
-            from:
-              previousHealth.score,
-
-
-            to:
-              currentHealth.score,
-
-
-            difference:
-              currentHealth.score -
-              previousHealth.score,
-
-          })
-
-        }
-
-
-
         setPreviousHealth(
-          currentHealth
+          prevHealth => {
+
+            if(
+              prevHealth
+            ){
+
+              setHealthChange({
+
+                from:
+                  prevHealth.score,
+
+
+                to:
+                  currentHealth.score,
+
+
+                difference:
+                  currentHealth.score -
+                  prevHealth.score,
+
+              })
+
+            }
+
+
+            return currentHealth
+
+          }
         )
 
 
@@ -187,6 +213,22 @@ function SystemPulse() {
             summary.runtime,
 
 
+          environment:
+            summary.environment,
+
+
+          hardware:
+            summary.hardware,
+
+
+          gitSummary:
+            summary.gitSummary,
+
+
+          gitHistory:
+            summary.gitHistory,
+
+
         })
 
       }
@@ -195,14 +237,10 @@ function SystemPulse() {
 
 
 
-      const coreResponse =
-        await fetch(
-          "http://localhost:3001/api/spacemonkey/core"
-        )
-
-
       const coreData =
-        await coreResponse.json()
+        await apiGet(
+          "/spacemonkey/core"
+        )
 
 
 
@@ -220,14 +258,10 @@ function SystemPulse() {
 
 
 
-      const activityResponse =
-        await fetch(
-          "http://localhost:3001/api/spacemonkey/activity"
-        )
-
-
       const activityData =
-        await activityResponse.json()
+        await apiGet(
+          "/spacemonkey/activity"
+        )
 
 
 
@@ -259,16 +293,27 @@ function SystemPulse() {
 
 
     }
-    catch(error){
+    catch(loadError){
 
       console.error(
-        error
+        loadError
       )
 
 
       setConnection(
         "OFFLINE"
       )
+
+
+      setError(
+        loadError.message ||
+        "Järjestelmätilan lataaminen epäonnistui."
+      )
+
+    }
+    finally {
+
+      setLoading(false)
 
     }
 
@@ -354,6 +399,31 @@ function SystemPulse() {
 
 
 
+      {
+        error && (
+
+          <div className="panel text-red-400">
+            {error}
+          </div>
+
+        )
+      }
+
+
+
+
+      {
+        loading && !pulse && (
+
+          <div className="panel p-6">
+            Ladataan järjestelmätilaa...
+          </div>
+
+        )
+      }
+
+
+
 
       <section
         className="
@@ -363,22 +433,12 @@ function SystemPulse() {
         "
       >
 
-        <div
-          className="
-            card
-            p-6
-            wood-hover
-          "
+        <PulseCard
+          title="Status"
         >
-
-          <h2>
-            Status
-          </h2>
-
 
           <div
             className="
-              mt-5
               space-y-3
             "
           >
@@ -428,7 +488,7 @@ function SystemPulse() {
           </div>
 
 
-        </div>
+        </PulseCard>
 
 
       </section>
@@ -509,10 +569,22 @@ function SystemPulse() {
 
 
 
+      <HealthScoreCard
+        pulse={pulse?.summary}
+      />
+
+
+
+
 
       <ActivityTimelineCard
         activities={activities}
       />
+
+
+
+
+      <SnapshotCard />
 
 
     </div>

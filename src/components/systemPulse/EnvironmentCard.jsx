@@ -28,7 +28,7 @@ function EnvironmentCard({
           OS:
           {" "}
           {
-            pulse?.environment?.operatingSystem
+            pulse?.environment?.os
             ||
             "-"
           }
@@ -52,7 +52,7 @@ function EnvironmentCard({
           Host:
           {" "}
           {
-            pulse?.environment?.hostname
+            pulse?.environment?.host
             ||
             "-"
           }

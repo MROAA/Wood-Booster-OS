@@ -2,6 +2,10 @@ import {
   useState
 } from "react"
 
+import {
+  apiPost,
+} from "../../api/client"
+
 
 
 
@@ -37,19 +41,11 @@ function SnapshotCard() {
 
 
 
-      const response =
-        await fetch(
-          "http://localhost:3001/api/system-pulse/snapshot",
-          {
-            method:
-              "POST"
-          }
-        )
-
-
-
       const data =
-        await response.json()
+        await apiPost(
+          "/system-pulse/snapshot",
+          {}
+        )
 
 
 
