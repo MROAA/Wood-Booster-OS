@@ -4,6 +4,13 @@ import {
   useState,
 } from "react"
 
+import {
+  apiGet,
+  apiPost,
+  apiPut,
+  apiDelete,
+} from "../api/client"
+
 
 
 const VAT_PERCENT =
@@ -11,179 +18,206 @@ const VAT_PERCENT =
 
 
 
-
-
 function QuoteTab({
-
   project,
-
-  materialTotal,
-
-  laborTotal,
-
-  otherCosts,
-
-  productionCost,
-
-  recommendedPrice,
-
+  onProjectUpdated,
 }) {
 
 
-  const storageKey =
-    `woodBoosterQuote:${project.id}`
+  const [
+    quoteMeta,
+    setQuoteMeta,
+  ] = useState(null)
 
 
 
   const [
-    quote,
-    setQuote,
-  ] = useState(
-    () =>
-      readQuote(storageKey)
-  )
+    lineItems,
+    setLineItems,
+  ] = useState([])
 
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false)
+
+
+
+  const [
+    error,
+    setError,
+  ] = useState("")
+
+
+
+  const [
+    form,
+    setForm,
+  ] = useState({
+
+    validDays:
+      "14",
+
+    paymentTerms:
+      "14 pv netto",
+
+    deliveryTime:
+      "",
+
+    laborCost:
+      "0",
+
+    otherCosts:
+      "0",
+
+    customPrice:
+      "",
+
+  })
+
+
+
+  const [
+    newItemForm,
+    setNewItemForm,
+  ] = useState({
+
+    name:
+      "",
+
+    unit:
+      "kpl",
+
+    quantity:
+      "1",
+
+    unitPrice:
+      "0",
+
+  })
 
 
 
 
   useEffect(() => {
 
-    setQuote(
-      readQuote(storageKey)
-    )
+    if(!project?.id) {
+
+      return
+
+    }
+
+
+    let cancelled = false
+
+
+    setLoading(true)
+
+
+    apiGet(`/projects/${project.id}/quote`)
+      .then(data => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        const quote =
+          data.quote
+
+
+        setQuoteMeta(
+          quote
+        )
+
+
+        setLineItems(
+          quote?.lineItems || []
+        )
+
+
+        if(quote) {
+
+          setForm({
+
+            validDays:
+              String(quote.validDays),
+
+            paymentTerms:
+              quote.paymentTerms,
+
+            deliveryTime:
+              quote.deliveryTime || "",
+
+            laborCost:
+              String(quote.laborCost),
+
+            otherCosts:
+              String(quote.otherCosts),
+
+            customPrice:
+              quote.customPrice === null ||
+              quote.customPrice === undefined
+                ?
+                ""
+                :
+                String(quote.customPrice),
+
+          })
+
+        }
+
+      })
+      .catch(loadError => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setError(
+          loadError.message
+        )
+
+      })
+      .finally(() => {
+
+        if(!cancelled) {
+
+          setLoading(false)
+
+        }
+
+      })
+
+
+    return () => {
+
+      cancelled = true
+
+    }
 
   },[
-    storageKey,
+    project?.id,
   ])
 
 
 
 
-
-
-
-  const netPrice =
-    useMemo(() => {
-
-      const customPrice =
-        toNumber(
-          quote.customPrice
-        )
-
-
-      return customPrice > 0
-
-        ?
-
-        customPrice
-
-        :
-
-        toNumber(
-          recommendedPrice
-        )
-
-    },[
-      quote.customPrice,
-      recommendedPrice,
-    ])
-
-
-
-
-
-
-
-  const vatAmount =
-    netPrice *
-    (
-      VAT_PERCENT /
-      100
-    )
-
-
-
-  const totalWithVat =
-    netPrice +
-    vatAmount
-
-
-
-
-
-
-
-  const quoteNumber =
-    useMemo(
-      () =>
-        createQuoteNumber(
-          project
-        ),
-
-      [
-        project,
-      ]
-    )
-
-
-
-
-
-
-
-  const quoteDate =
-    useMemo(
-      () =>
-        new Date(),
-
-      [
-        project.id,
-      ]
-    )
-
-
-
-
-
-
-
-  const validUntil =
-    useMemo(() => {
-
-
-      const date =
-        new Date(
-          quoteDate
-        )
-
-
-      date.setDate(
-
-        date.getDate()
-        +
-        toNumber(
-          quote.validDays
-        )
-
-      )
-
-
-      return date
-
-
-    },[
-      quoteDate,
-      quote.validDays,
-    ])
-
-
-
-
-
-
-
-  function handleChange(
+  function handleFormChange(
     event
   ) {
 
@@ -195,8 +229,7 @@ function QuoteTab({
       event.target
 
 
-
-    setQuote(
+    setForm(
       current => ({
 
         ...current,
@@ -207,57 +240,380 @@ function QuoteTab({
       })
     )
 
-
   }
 
 
 
 
+  async function saveQuote() {
 
 
+    try {
 
-  function saveQuote() {
+      setSaving(true)
+
+      setError("")
 
 
-    const savedQuote = {
+      const data =
+        await apiPut(
+          `/projects/${project.id}/quote`,
+          {
 
-      ...quote,
+            validDays:
+              form.validDays,
 
-      quoteNumber,
+            paymentTerms:
+              form.paymentTerms,
 
-      updatedAt:
-        new Date().toISOString(),
+            deliveryTime:
+              form.deliveryTime,
+
+            laborCost:
+              form.laborCost,
+
+            otherCosts:
+              form.otherCosts,
+
+            customPrice:
+              form.customPrice,
+
+          }
+        )
+
+
+      setQuoteMeta(
+        data.quote
+      )
+
+
+      onProjectUpdated?.(
+        data.project
+      )
+
+
+      window.alert(
+        "Tarjous tallennettu."
+      )
+
+    } catch(saveError) {
+
+      console.error(
+        "Tarjouksen tallennus epäonnistui:",
+        saveError,
+      )
+
+
+      setError(
+        saveError.message
+      )
+
+    } finally {
+
+      setSaving(false)
 
     }
 
 
+  }
 
-    localStorage.setItem(
 
-      storageKey,
 
-      JSON.stringify(
-        savedQuote
+
+  async function importMaterials() {
+
+
+    try {
+
+      const data =
+        await apiPost(
+          `/projects/${project.id}/quote/import-materials`,
+          {}
+        )
+
+
+      if(!quoteMeta) {
+
+        setQuoteMeta(
+          data.quote
+        )
+
+      }
+
+
+      setLineItems(
+        data.lineItems
       )
 
-    )
+    } catch(importError) {
+
+      console.error(
+        "Materiaalien tuominen epäonnistui:",
+        importError,
+      )
 
 
+      setError(
+        importError.message
+      )
 
-    setQuote(
-      savedQuote
-    )
-
-
-    window.alert(
-      "Tarjous tallennettu."
-    )
+    }
 
 
   }
 
 
 
+
+  function handleNewItemChange(
+    event
+  ) {
+
+
+    const {
+      name,
+      value,
+    } =
+      event.target
+
+
+    setNewItemForm(
+      current => ({
+
+        ...current,
+
+        [name]:
+          value,
+
+      })
+    )
+
+  }
+
+
+
+
+  async function addLineItem(
+    event
+  ) {
+
+
+    event.preventDefault()
+
+
+    const cleanName =
+      newItemForm.name.trim()
+
+
+    if(!cleanName) {
+
+      return
+
+    }
+
+
+    try {
+
+      const data =
+        await apiPost(
+          `/projects/${project.id}/quote/items`,
+          {
+
+            name:
+              cleanName,
+
+            unit:
+              newItemForm.unit,
+
+            quantity:
+              newItemForm.quantity,
+
+            unitPrice:
+              newItemForm.unitPrice,
+
+          }
+        )
+
+
+      if(!quoteMeta) {
+
+        setQuoteMeta(
+          data.quote
+        )
+
+      }
+
+
+      setLineItems(
+        current => [
+          ...current,
+          data.item,
+        ]
+      )
+
+
+      setNewItemForm({
+
+        name:
+          "",
+
+        unit:
+          "kpl",
+
+        quantity:
+          "1",
+
+        unitPrice:
+          "0",
+
+      })
+
+    } catch(addError) {
+
+      console.error(
+        "Rivin lisääminen epäonnistui:",
+        addError,
+      )
+
+
+      setError(
+        addError.message
+      )
+
+    }
+
+
+  }
+
+
+
+
+  function handleLineItemChange(
+    itemId,
+    field,
+    value
+  ) {
+
+
+    setLineItems(
+      current =>
+        current.map(
+          item =>
+            item.id === itemId
+            ?
+            { ...item, [field]: value }
+            :
+            item
+        )
+    )
+
+  }
+
+
+
+
+  async function commitLineItem(
+    itemId,
+    field,
+    value
+  ) {
+
+
+    try {
+
+      const data =
+        await apiPut(
+          `/projects/${project.id}/quote/items/${itemId}`,
+          {
+
+            [field]:
+              value,
+
+          }
+        )
+
+
+      setLineItems(
+        current =>
+          current.map(
+            item =>
+              item.id === itemId
+              ?
+              data.item
+              :
+              item
+          )
+      )
+
+    } catch(updateError) {
+
+      console.error(
+        "Rivin päivittäminen epäonnistui:",
+        updateError,
+      )
+
+
+      setError(
+        updateError.message
+      )
+
+    }
+
+
+  }
+
+
+
+
+  async function deleteLineItem(
+    itemId
+  ) {
+
+
+    const shouldDelete =
+      window.confirm(
+        "Poistetaanko tämä rivi?"
+      )
+
+
+    if(!shouldDelete) {
+
+      return
+
+    }
+
+
+    try {
+
+      await apiDelete(
+        `/projects/${project.id}/quote/items/${itemId}`
+      )
+
+
+      setLineItems(
+        current =>
+          current.filter(
+            item =>
+              item.id !== itemId
+          )
+      )
+
+    } catch(deleteError) {
+
+      console.error(
+        "Rivin poistaminen epäonnistui:",
+        deleteError,
+      )
+
+
+      setError(
+        deleteError.message
+      )
+
+    }
+
+
+  }
 
 
 
@@ -267,6 +623,90 @@ function QuoteTab({
     window.print()
 
   }
+
+
+
+
+  const materialsSubtotal =
+    useMemo(
+      () =>
+
+        lineItems.reduce(
+          (
+            total,
+            item
+          ) =>
+
+            total +
+            (
+              toNumber(item.quantity) *
+              toNumber(item.unitPrice)
+            ),
+
+          0
+
+        ),
+
+      [
+        lineItems,
+      ]
+
+    )
+
+
+
+  const netTotal =
+    materialsSubtotal +
+    toNumber(form.laborCost) +
+    toNumber(form.otherCosts)
+
+
+
+  const effectivePrice =
+    form.customPrice !== "" &&
+    form.customPrice !== null &&
+    form.customPrice !== undefined
+      ?
+      toNumber(form.customPrice)
+      :
+      netTotal
+
+
+
+  const vatAmount =
+    effectivePrice *
+    (VAT_PERCENT / 100)
+
+
+
+  const totalWithVat =
+    effectivePrice +
+    vatAmount
+
+
+
+  const quoteDate =
+    quoteMeta
+    ?
+    new Date(quoteMeta.createdAt)
+    :
+    null
+
+
+
+  const validUntil =
+    quoteMeta
+    ?
+    new Date(
+      new Date(quoteMeta.createdAt).getTime() +
+      quoteMeta.validDays * 24 * 60 * 60 * 1000
+    )
+    :
+    null
+
+
+
+
   return (
 
     <div
@@ -274,6 +714,7 @@ function QuoteTab({
         space-y-6
       "
     >
+
 
       <section
         className="
@@ -301,9 +742,9 @@ function QuoteTab({
             font-semibold
           "
         >
-          Tarjous
-          {" "}
-          {project.name}
+
+          Tarjous {project.name}
+
         </h2>
 
 
@@ -313,203 +754,31 @@ function QuoteTab({
             text-[var(--wood-muted)]
           "
         >
-          Luo projektista tarjouslaskelma.
+          Kokoa tarjous, tuo materiaalit ja tulosta asiakkaalle.
         </p>
 
 
-      </section>
+        {
+          error && (
 
+            <div
+              className="
+                mt-5
+                card
+                border-red-900/60
+                bg-red-950/30
+                p-3
+                text-sm
+                text-red-300
+              "
+            >
 
+              {error}
 
+            </div>
 
-
-
-      <section
-        className="
-          panel
-          p-6
-        "
-      >
-
-        <div
-          className="
-            grid
-            gap-5
-            md:grid-cols-2
-          "
-        >
-
-          <Field
-            label="Tarjouksen voimassaolo (päivää)"
-            name="validDays"
-            value={quote.validDays}
-            onChange={handleChange}
-          />
-
-
-          <Field
-            label="Maksuehto"
-            name="paymentTerms"
-            value={quote.paymentTerms}
-            onChange={handleChange}
-          />
-
-
-          <Field
-            label="Toimitusaika"
-            name="deliveryTime"
-            value={quote.deliveryTime}
-            onChange={handleChange}
-          />
-
-
-          <Field
-            label="Mukautettu hinta"
-            name="customPrice"
-            value={quote.customPrice}
-            onChange={handleChange}
-          />
-
-        </div>
-
-
-
-
-        <div
-          className="
-            mt-6
-            grid
-            gap-4
-            md:grid-cols-3
-          "
-        >
-
-          <Summary
-            label="Materiaalit"
-            value={materialTotal}
-          />
-
-
-          <Summary
-            label="Työ"
-            value={laborTotal}
-          />
-
-
-          <Summary
-            label="Muut kulut"
-            value={otherCosts}
-          />
-
-        </div>
-
-
-
-
-
-
-        <div
-          className="
-            mt-6
-            rounded-2xl
-            border
-            border-[var(--wood-border)]
-            p-5
-          "
-        >
-
-          <p
-            className="
-              text-sm
-              text-[var(--wood-muted)]
-            "
-          >
-            Tarjoushinta
-          </p>
-
-
-          <p
-            className="
-              mt-2
-              text-3xl
-              font-bold
-            "
-          >
-            {formatMoney(totalWithVat)}
-          </p>
-
-
-          <p
-            className="
-              mt-2
-              text-sm
-              text-[var(--wood-muted)]
-            "
-          >
-
-            Alv {VAT_PERCENT} %
-            {" "}
-            {formatMoney(vatAmount)}
-
-          </p>
-
-
-        </div>
-
-
-
-
-
-
-        <div
-          className="
-            mt-6
-            flex
-            flex-wrap
-            gap-3
-          "
-        >
-
-          <button
-
-            className="
-              wb-button
-            "
-
-            onClick={
-              saveQuote
-            }
-
-          >
-            Tallenna tarjous
-
-          </button>
-
-
-
-
-          <button
-
-            className="
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              px-5
-              py-3
-            "
-
-            onClick={
-              printQuote
-            }
-
-          >
-
-            Tulosta
-
-          </button>
-
-
-        </div>
+          )
+        }
 
 
       </section>
@@ -527,7 +796,7 @@ function QuoteTab({
 
         <h3
           className="
-            text-xl
+            text-lg
             font-semibold
           "
         >
@@ -537,188 +806,1292 @@ function QuoteTab({
 
         <div
           className="
-            mt-4
-            space-y-2
-            text-sm
+            mt-5
+            grid
+            gap-4
+            md:grid-cols-2
           "
         >
 
-          <p>
-            Numero:
-            {" "}
-            {quoteNumber}
-          </p>
+          <label>
+
+            <span
+              className="
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+              Voimassaolo (päivää)
+            </span>
 
 
-          <p>
-            Päivä:
-            {" "}
-            {formatDate(quoteDate)}
-          </p>
+            <input
+
+              type="number"
+
+              name="validDays"
+
+              value={
+                form.validDays
+              }
+
+              onChange={
+                handleFormChange
+              }
+
+              className="
+                mt-2
+                wb-input
+              "
+
+            />
+
+          </label>
 
 
-          <p>
-            Voimassa:
-            {" "}
-            {formatDate(validUntil)}
-          </p>
+
+          <label>
+
+            <span
+              className="
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+              Maksuehto
+            </span>
+
+
+            <input
+
+              type="text"
+
+              name="paymentTerms"
+
+              value={
+                form.paymentTerms
+              }
+
+              onChange={
+                handleFormChange
+              }
+
+              className="
+                mt-2
+                wb-input
+              "
+
+            />
+
+          </label>
+
+
+
+          <label>
+
+            <span
+              className="
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+              Toimitusaika
+            </span>
+
+
+            <input
+
+              type="text"
+
+              name="deliveryTime"
+
+              value={
+                form.deliveryTime
+              }
+
+              onChange={
+                handleFormChange
+              }
+
+              placeholder="Esimerkiksi 4-6 viikkoa"
+
+              className="
+                mt-2
+                wb-input
+              "
+
+            />
+
+          </label>
+
+
+
+          <label>
+
+            <span
+              className="
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+              Mukautettu hinta €
+              {" "}
+              (jätä tyhjäksi jos lasketaan riveistä)
+            </span>
+
+
+            <input
+
+              type="text"
+
+              name="customPrice"
+
+              value={
+                form.customPrice
+              }
+
+              onChange={
+                handleFormChange
+              }
+
+              className="
+                mt-2
+                wb-input
+              "
+
+            />
+
+          </label>
+
+
+
+          <label>
+
+            <span
+              className="
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+              Työkustannus €
+            </span>
+
+
+            <input
+
+              type="text"
+
+              name="laborCost"
+
+              value={
+                form.laborCost
+              }
+
+              onChange={
+                handleFormChange
+              }
+
+              className="
+                mt-2
+                wb-input
+              "
+
+            />
+
+          </label>
+
+
+
+          <label>
+
+            <span
+              className="
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+              Muut kulut €
+            </span>
+
+
+            <input
+
+              type="text"
+
+              name="otherCosts"
+
+              value={
+                form.otherCosts
+              }
+
+              onChange={
+                handleFormChange
+              }
+
+              className="
+                mt-2
+                wb-input
+              "
+
+            />
+
+          </label>
 
 
         </div>
 
 
+
+        <button
+
+          type="button"
+
+          onClick={
+            saveQuote
+          }
+
+          disabled={
+            saving
+          }
+
+          className="
+            mt-6
+            wb-button
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+
+        >
+
+          {
+            saving
+            ?
+            "Tallennetaan..."
+            :
+            "Tallenna tarjous"
+          }
+
+        </button>
+
+
       </section>
 
 
+
+
+
+      <section
+        className="
+          panel
+          p-6
+        "
+      >
+
+        <div
+          className="
+            flex
+            flex-col
+            gap-3
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
+
+          <h3
+            className="
+              text-lg
+              font-semibold
+            "
+          >
+            Tarjousrivit
+          </h3>
+
+
+          <button
+
+            type="button"
+
+            onClick={
+              importMaterials
+            }
+
+            className="
+              wb-button
+            "
+
+          >
+
+            Tuo materiaaleista
+
+          </button>
+
+
+        </div>
+
+
+
+        <form
+
+          onSubmit={
+            addLineItem
+          }
+
+          className="
+            mt-5
+            grid
+            gap-3
+            md:grid-cols-5
+          "
+
+        >
+
+          <input
+
+            name="name"
+
+            value={
+              newItemForm.name
+            }
+
+            onChange={
+              handleNewItemChange
+            }
+
+            placeholder="Rivin nimi"
+
+            className="
+              wb-input
+              md:col-span-2
+            "
+
+          />
+
+
+          <input
+
+            name="quantity"
+
+            value={
+              newItemForm.quantity
+            }
+
+            onChange={
+              handleNewItemChange
+            }
+
+            placeholder="Määrä"
+
+            className="
+              wb-input
+            "
+
+          />
+
+
+          <input
+
+            name="unit"
+
+            value={
+              newItemForm.unit
+            }
+
+            onChange={
+              handleNewItemChange
+            }
+
+            placeholder="Yksikkö"
+
+            className="
+              wb-input
+            "
+
+          />
+
+
+          <input
+
+            name="unitPrice"
+
+            value={
+              newItemForm.unitPrice
+            }
+
+            onChange={
+              handleNewItemChange
+            }
+
+            placeholder="Hinta €"
+
+            className="
+              wb-input
+            "
+
+          />
+
+
+          <button
+
+            type="submit"
+
+            className="
+              wb-button
+              md:col-span-5
+            "
+
+          >
+
+            + Lisää rivi
+
+          </button>
+
+
+        </form>
+
+
+
+        {
+          loading
+
+          ?
+
+          (
+
+            <p
+              className="
+                mt-5
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              Ladataan tarjousta...
+
+            </p>
+
+          )
+
+          :
+
+          lineItems.length === 0
+
+          ?
+
+          (
+
+            <p
+              className="
+                mt-5
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              Ei rivejä vielä.
+
+            </p>
+
+          )
+
+          :
+
+          (
+
+            <div
+              className="
+                mt-5
+                space-y-3
+              "
+            >
+
+              {
+                lineItems.map(
+                  item => (
+
+                    <div
+
+                      key={
+                        item.id
+                      }
+
+                      className="
+                        card
+                        grid
+                        gap-3
+                        p-4
+                        md:grid-cols-[2fr_1fr_1fr_1fr_auto]
+                        md:items-center
+                      "
+
+                    >
+
+                      <span>
+                        {item.name}
+                      </span>
+
+
+                      <input
+
+                        type="text"
+
+                        value={
+                          item.quantity
+                        }
+
+                        onChange={
+                          event =>
+                            handleLineItemChange(
+                              item.id,
+                              "quantity",
+                              event.target.value
+                            )
+                        }
+
+                        onBlur={
+                          event =>
+                            commitLineItem(
+                              item.id,
+                              "quantity",
+                              event.target.value
+                            )
+                        }
+
+                        className="
+                          wb-input
+                        "
+
+                      />
+
+
+                      <span
+                        className="
+                          text-sm
+                          text-[var(--wood-muted)]
+                        "
+                      >
+                        {item.unit}
+                      </span>
+
+
+                      <input
+
+                        type="text"
+
+                        value={
+                          item.unitPrice
+                        }
+
+                        onChange={
+                          event =>
+                            handleLineItemChange(
+                              item.id,
+                              "unitPrice",
+                              event.target.value
+                            )
+                        }
+
+                        onBlur={
+                          event =>
+                            commitLineItem(
+                              item.id,
+                              "unitPrice",
+                              event.target.value
+                            )
+                        }
+
+                        className="
+                          wb-input
+                        "
+
+                      />
+
+
+                      <button
+
+                        type="button"
+
+                        onClick={() =>
+                          deleteLineItem(
+                            item.id
+                          )
+                        }
+
+                        className="
+                          text-sm
+                          text-red-400
+                        "
+
+                      >
+
+                        Poista
+
+                      </button>
+
+
+                    </div>
+
+                  )
+
+                )
+
+              }
+
+
+            </div>
+
+          )
+
+        }
+
+
+        <p
+          className="
+            mt-5
+            text-sm
+            text-[var(--wood-muted)]
+          "
+        >
+
+          Rivien summa:
+          {" "}
+          {
+            formatMoney(
+              materialsSubtotal
+            )
+          }
+
+        </p>
+
+
+      </section>
+
+
+
+
+
+      <section
+        id="quote-print-area"
+
+        className="
+          panel
+          p-8
+        "
+      >
+
+        {
+          !quoteMeta
+
+          ?
+
+          (
+
+            <p
+              className="
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              Tallenna tarjous ensin nähdäksesi tulostettavan version.
+
+            </p>
+
+          )
+
+          :
+
+          (
+
+            <div>
+
+              <div
+                className="
+                  flex
+                  flex-col
+                  gap-4
+                  sm:flex-row
+                  sm:items-start
+                  sm:justify-between
+                "
+              >
+
+                <div>
+
+                  <p
+                    className="
+                      text-xs
+                      uppercase
+                      tracking-widest
+                      text-[var(--wood-muted)]
+                    "
+                  >
+                    Tarjous
+                  </p>
+
+
+                  <h2
+                    className="
+                      mt-2
+                      text-2xl
+                      font-semibold
+                    "
+                  >
+
+                    {project.name}
+
+                  </h2>
+
+                </div>
+
+
+
+                <div
+                  className="
+                    text-sm
+                    text-[var(--wood-muted)]
+                  "
+                >
+
+                  <p>
+
+                    Tarjousnumero:
+                    {" "}
+                    {quoteMeta.quoteNumber}
+
+                  </p>
+
+
+                  <p>
+
+                    Päivä:
+                    {" "}
+                    {
+                      formatDate(
+                        quoteDate
+                      )
+                    }
+
+                  </p>
+
+
+                  <p>
+
+                    Voimassa:
+                    {" "}
+                    {
+                      formatDate(
+                        validUntil
+                      )
+                    }
+                    {" "}
+                    asti
+
+                  </p>
+
+                </div>
+
+
+              </div>
+
+
+
+
+              {
+                project.customer && (
+
+                  <div
+                    className="
+                      mt-6
+                    "
+                  >
+
+                    <p
+                      className="
+                        text-xs
+                        uppercase
+                        tracking-wider
+                        text-[var(--wood-muted)]
+                      "
+                    >
+                      Asiakas
+                    </p>
+
+
+                    <p
+                      className="
+                        mt-1
+                        font-medium
+                      "
+                    >
+
+                      {project.customer.name}
+
+                    </p>
+
+
+                    {
+                      project.customer.company && (
+
+                        <p>
+                          {project.customer.company}
+                        </p>
+
+                      )
+                    }
+
+
+                    {
+                      project.customer.email && (
+
+                        <p>
+                          {project.customer.email}
+                        </p>
+
+                      )
+                    }
+
+
+                    {
+                      project.customer.phone && (
+
+                        <p>
+                          {project.customer.phone}
+                        </p>
+
+                      )
+                    }
+
+
+                  </div>
+
+                )
+              }
+
+
+
+
+              <table
+                className="
+                  mt-8
+                  w-full
+                  text-sm
+                "
+              >
+
+                <thead>
+
+                  <tr
+                    className="
+                      border-b
+                      border-[var(--wood-border)]
+                      text-left
+                      text-xs
+                      uppercase
+                      tracking-wider
+                      text-[var(--wood-muted)]
+                    "
+                  >
+
+                    <th
+                      className="
+                        py-2
+                      "
+                    >
+                      Nimike
+                    </th>
+
+
+                    <th
+                      className="
+                        py-2
+                      "
+                    >
+                      Määrä
+                    </th>
+
+
+                    <th
+                      className="
+                        py-2
+                      "
+                    >
+                      Yksikkö
+                    </th>
+
+
+                    <th
+                      className="
+                        py-2
+                        text-right
+                      "
+                    >
+                      À-hinta
+                    </th>
+
+
+                    <th
+                      className="
+                        py-2
+                        text-right
+                      "
+                    >
+                      Yhteensä
+                    </th>
+
+
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  {
+                    lineItems.map(
+                      item => (
+
+                        <tr
+
+                          key={
+                            item.id
+                          }
+
+                          className="
+                            border-b
+                            border-[var(--wood-border)]
+                          "
+
+                        >
+
+                          <td
+                            className="
+                              py-2
+                            "
+                          >
+                            {item.name}
+                          </td>
+
+
+                          <td
+                            className="
+                              py-2
+                            "
+                          >
+                            {item.quantity}
+                          </td>
+
+
+                          <td
+                            className="
+                              py-2
+                            "
+                          >
+                            {item.unit}
+                          </td>
+
+
+                          <td
+                            className="
+                              py-2
+                              text-right
+                            "
+                          >
+
+                            {
+                              formatMoney(
+                                item.unitPrice
+                              )
+                            }
+
+                          </td>
+
+
+                          <td
+                            className="
+                              py-2
+                              text-right
+                            "
+                          >
+
+                            {
+                              formatMoney(
+                                toNumber(item.quantity) *
+                                toNumber(item.unitPrice)
+                              )
+                            }
+
+                          </td>
+
+
+                        </tr>
+
+                      )
+                    )
+                  }
+
+                </tbody>
+
+
+              </table>
+
+
+
+
+              <div
+                className="
+                  mt-6
+                  flex
+                  justify-end
+                "
+              >
+
+                <div
+                  className="
+                    w-full
+                    max-w-xs
+                    space-y-1
+                    text-sm
+                  "
+                >
+
+                  <div
+                    className="
+                      flex
+                      justify-between
+                    "
+                  >
+
+                    <span>Materiaalit</span>
+
+
+                    <span>
+                      {
+                        formatMoney(
+                          materialsSubtotal
+                        )
+                      }
+                    </span>
+
+                  </div>
+
+
+                  <div
+                    className="
+                      flex
+                      justify-between
+                    "
+                  >
+
+                    <span>Työ</span>
+
+
+                    <span>
+                      {
+                        formatMoney(
+                          toNumber(form.laborCost)
+                        )
+                      }
+                    </span>
+
+                  </div>
+
+
+                  <div
+                    className="
+                      flex
+                      justify-between
+                    "
+                  >
+
+                    <span>Muut kulut</span>
+
+
+                    <span>
+                      {
+                        formatMoney(
+                          toNumber(form.otherCosts)
+                        )
+                      }
+                    </span>
+
+                  </div>
+
+
+                  <div
+                    className="
+                      flex
+                      justify-between
+                      border-t
+                      border-[var(--wood-border)]
+                      pt-1
+                      font-medium
+                    "
+                  >
+
+                    <span>Veroton hinta</span>
+
+
+                    <span>
+                      {
+                        formatMoney(
+                          effectivePrice
+                        )
+                      }
+                    </span>
+
+                  </div>
+
+
+                  <div
+                    className="
+                      flex
+                      justify-between
+                      text-[var(--wood-muted)]
+                    "
+                  >
+
+                    <span>
+
+                      Alv
+                      {" "}
+                      {VAT_PERCENT}
+                      %
+
+                    </span>
+
+
+                    <span>
+                      {
+                        formatMoney(
+                          vatAmount
+                        )
+                      }
+                    </span>
+
+                  </div>
+
+
+                  <div
+                    className="
+                      flex
+                      justify-between
+                      border-t
+                      border-[var(--wood-border)]
+                      pt-1
+                      text-lg
+                      font-semibold
+                      text-[var(--wood-accent)]
+                    "
+                  >
+
+                    <span>Yhteensä</span>
+
+
+                    <span>
+                      {
+                        formatMoney(
+                          totalWithVat
+                        )
+                      }
+                    </span>
+
+                  </div>
+
+
+                </div>
+
+
+              </div>
+
+
+
+
+              <div
+                className="
+                  mt-6
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                <p>
+
+                  Maksuehto:
+                  {" "}
+                  {form.paymentTerms}
+
+                </p>
+
+
+                {
+                  form.deliveryTime && (
+
+                    <p>
+
+                      Toimitusaika:
+                      {" "}
+                      {form.deliveryTime}
+
+                    </p>
+
+                  )
+                }
+
+
+              </div>
+
+
+            </div>
+
+          )
+
+        }
+
+
+      </section>
+
+
+
+
+      <div
+        className="
+          flex
+          gap-3
+        "
+      >
+
+        <button
+
+          type="button"
+
+          onClick={
+            printQuote
+          }
+
+          disabled={
+            !quoteMeta
+          }
+
+          className="
+            wb-button
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+
+        >
+
+          Tulosta
+
+        </button>
+
+
+      </div>
+
+
     </div>
 
   )
-
-}
-
-
-
-
-
-
-
-function Field({
-  label,
-  name,
-  value,
-  onChange,
-}) {
-
-  return (
-
-    <label>
-
-      <span
-        className="
-          text-sm
-          text-[var(--wood-muted)]
-        "
-      >
-
-        {label}
-
-      </span>
-
-
-      <input
-
-        className="
-          wb-input
-        "
-
-        name={name}
-
-        value={value || ""}
-
-        onChange={onChange}
-
-      />
-
-
-    </label>
-
-  )
-
-}
-
-
-
-
-
-
-
-function Summary({
-  label,
-  value,
-}) {
-
-  return (
-
-    <div
-      className="
-        card
-        p-4
-      "
-    >
-
-      <p
-        className="
-          text-xs
-          text-[var(--wood-muted)]
-        "
-      >
-
-        {label}
-
-      </p>
-
-
-      <p
-        className="
-          mt-2
-          text-xl
-          font-semibold
-        "
-      >
-
-        {formatMoney(value)}
-
-      </p>
-
-
-    </div>
-
-  )
-
-}
-
-
-
-
-
-
-
-function readQuote(
-  key
-) {
-
-  try {
-
-    const saved =
-      localStorage.getItem(
-        key
-      )
-
-
-    return saved
-      ?
-      JSON.parse(saved)
-      :
-      {
-        validDays: 14,
-        paymentTerms: "14 pv netto",
-        deliveryTime: "",
-        customPrice: "",
-      }
-
-
-  }
-
-  catch {
-
-    return {
-      validDays: 14,
-      paymentTerms: "14 pv netto",
-      deliveryTime: "",
-      customPrice: "",
-    }
-
-  }
 
 }
 
@@ -733,21 +2106,21 @@ function toNumber(
 ) {
 
   const number =
-    Number(
-      value
-    )
+    Number(value)
 
 
-  return Number.isFinite(number)
-    ?
-    number
-    :
-    0
+  if(
+    Number.isFinite(number)
+  ) {
+
+    return number
+
+  }
+
+
+  return 0
 
 }
-
-
-
 
 
 
@@ -765,8 +2138,7 @@ function formatMoney(
       currency:
         "EUR",
     }
-  )
-  .format(
+  ).format(
     toNumber(value)
   )
 
@@ -775,45 +2147,26 @@ function formatMoney(
 
 
 
-
-
-
-function createQuoteNumber(
-  project
-) {
-
-  return (
-    "WB-"
-    +
-    String(project.id)
-      .slice(-6)
-      .toUpperCase()
-  )
-
-}
-
-
-
-
-
-
-
 function formatDate(
-  value
+  date
 ) {
+
+  if(
+    !date ||
+    Number.isNaN(date.getTime())
+  ) {
+
+    return ""
+
+  }
+
 
   return new Intl.DateTimeFormat(
     "fi-FI"
   )
-  .format(
-    new Date(value)
-  )
+  .format(date)
 
 }
-
-
-
-
 
 
 

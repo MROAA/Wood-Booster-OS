@@ -713,6 +713,10 @@ function ProjectTabs({
               project
             }
 
+            onProjectUpdated={
+              onProjectUpdated
+            }
+
           />
 
         )

@@ -232,3 +232,69 @@ h1,
     none;
 
 }
+
+
+
+@media print {
+
+  body * {
+
+    visibility:
+      hidden;
+
+  }
+
+  #quote-print-area,
+  #quote-print-area * {
+
+    visibility:
+      visible;
+
+  }
+
+  #quote-print-area {
+
+    position:
+      absolute;
+
+    inset:
+      0;
+
+    width:
+      100%;
+
+  }
+
+  html,
+  body,
+  #root,
+  main {
+
+    overflow:
+      visible !important;
+
+    height:
+      auto !important;
+
+  }
+
+  #quote-print-area {
+
+    --wood-bg: #ffffff;
+    --wood-panel: #ffffff;
+    --wood-card: #ffffff;
+    --wood-border: #cccccc;
+    --wood-text: #111111;
+    --wood-muted: #555555;
+    --wood-accent: #111111;
+
+  }
+
+  @page {
+
+    margin:
+      18mm;
+
+  }
+
+}
