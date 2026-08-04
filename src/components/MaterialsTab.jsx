@@ -1,40 +1,47 @@
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react"
 
 import {
-  readInventory,
-  saveInventory,
-} from "../data/inventory"
+  apiGet,
+  apiPost,
+  apiDelete,
+} from "../api/client"
 
 
 
 function MaterialsTab({
-  project,
-  onProjectUpdated,
+  projectId,
 }) {
 
 
   const [
     inventory,
     setInventory,
-  ] = useState(
-    () =>
-      readInventory()
-  )
+  ] = useState([])
 
 
 
   const [
-    projectMaterials,
-    setProjectMaterials,
-  ] = useState(
-    () =>
-      Array.isArray(project?.materials)
-        ? project.materials
-        : []
-  )
+    materials,
+    setMaterials,
+  ] = useState([])
+
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+
+  const [
+    error,
+    setError,
+  ] = useState("")
 
 
 
@@ -46,39 +53,106 @@ function MaterialsTab({
     inventoryItemId:
       "",
 
+    name:
+      "",
+
+    category:
+      "",
+
+    unit:
+      "kpl",
+
     quantity:
       "1",
+
+    unitPrice:
+      "0",
 
   })
 
 
 
+  useEffect(() => {
 
+    apiGet("/inventory")
+      .then(setInventory)
+      .catch(loadError => {
 
-
-
-  const selectedInventoryItem =
-    useMemo(
-      () =>
-
-        inventory.find(
-          item =>
-            String(item.id) ===
-            String(form.inventoryItemId)
+        console.error(
+          "Varaston haku epäonnistui:",
+          loadError,
         )
-        ||
-        null,
 
-      [
-        inventory,
-        form.inventoryItemId,
-      ]
-    )
+      })
+
+  }, [])
 
 
 
+  useEffect(() => {
+
+    if(!projectId) {
+
+      return
+
+    }
 
 
+    let cancelled = false
+
+
+    setLoading(true)
+
+
+    apiGet(`/projects/${projectId}/materials`)
+      .then(data => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setMaterials(
+          data.materials || []
+        )
+
+      })
+      .catch(loadError => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setError(
+          loadError.message
+        )
+
+      })
+      .finally(() => {
+
+        if(!cancelled) {
+
+          setLoading(false)
+
+        }
+
+      })
+
+
+    return () => {
+
+      cancelled = true
+
+    }
+
+  }, [
+    projectId,
+  ])
 
 
 
@@ -92,7 +166,6 @@ function MaterialsTab({
       value,
     } =
       event.target
-
 
 
     setForm(
@@ -110,11 +183,69 @@ function MaterialsTab({
 
 
 
+  function handleInventoryPick(
+    event
+  ) {
+
+
+    const inventoryItemId =
+      event.target.value
+
+
+    const item =
+      inventory.find(
+        candidate =>
+          String(candidate.id) ===
+          String(inventoryItemId)
+      )
+
+
+    if(!item) {
+
+      setForm(
+        current => ({
+
+          ...current,
+
+          inventoryItemId:
+            "",
+
+        })
+      )
+
+
+      return
+
+    }
+
+
+    setForm(
+      current => ({
+
+        ...current,
+
+        inventoryItemId,
+
+        name:
+          item.name,
+
+        category:
+          item.category || "",
+
+        unit:
+          item.unit || "kpl",
+
+        unitPrice:
+          String(item.unitPrice ?? current.unitPrice),
+
+      })
+    )
+
+  }
 
 
 
-
-  function addMaterial(
+  async function addMaterial(
     event
   ) {
 
@@ -122,246 +253,100 @@ function MaterialsTab({
     event.preventDefault()
 
 
-
-    const quantity =
-      toNumber(
-        form.quantity
-      )
+    const cleanName =
+      form.name.trim()
 
 
-
-    if(
-      !selectedInventoryItem ||
-      quantity <= 0 ||
-      quantity >
-        toNumber(
-          selectedInventoryItem.quantity
-        )
-    ) {
+    if(!cleanName) {
 
       return
 
     }
 
 
+    try {
 
+      const data =
+        await apiPost(
+          `/projects/${projectId}/materials`,
+          {
 
+            name:
+              cleanName,
 
+            category:
+              form.category.trim() || null,
 
+            unit:
+              form.unit.trim() || "kpl",
 
-    const existingMaterial =
-      projectMaterials.find(
-        material =>
-          String(material.inventoryItemId)
-          ===
-          String(selectedInventoryItem.id)
-      )
+            quantity:
+              toNumber(form.quantity),
 
-
-
-
-
-
-
-    let updatedMaterials
-
-
-
-
-
-
-
-    if(existingMaterial) {
-
-
-      updatedMaterials =
-        projectMaterials.map(
-          material => {
-
-
-            if(
-              String(material.inventoryItemId)
-              !==
-              String(selectedInventoryItem.id)
-            ) {
-
-              return material
-
-            }
-
-
-
-            return {
-
-              ...material,
-
-              quantity:
-                toNumber(material.quantity)
-                +
-                quantity,
-
-            }
-
+            unitPrice:
+              toNumber(form.unitPrice),
 
           }
         )
 
 
-    }
-
-    else {
-
-
-      updatedMaterials = [
-
-        ...projectMaterials,
-
-        {
-
-          id:
-            createId(),
-
-          inventoryItemId:
-            selectedInventoryItem.id,
-
-          name:
-            selectedInventoryItem.name,
-
-          category:
-            selectedInventoryItem.category,
-
-          unit:
-            selectedInventoryItem.unit,
-
-          unitPrice:
-            toNumber(
-              selectedInventoryItem.unitPrice
-            ),
-
-          quantity,
-
-          createdAt:
-            new Date().toISOString(),
-
-        },
-
-      ]
-
-    }
-
-
-
-
-
-
-
-
-    const updatedInventory =
-      inventory.map(
-        item => {
-
-
-          if(
-            String(item.id)
-            !==
-            String(selectedInventoryItem.id)
-          ) {
-
-            return item
-
-          }
-
-
-
-
-          return {
-
-            ...item,
-
-            quantity:
-              toNumber(item.quantity)
-              -
-              quantity,
-
-            updatedAt:
-              new Date().toISOString(),
-
-          }
-
-
-        }
+      setMaterials(
+        current => [
+          ...current,
+          data.material,
+        ]
       )
 
 
+      setForm({
+
+        inventoryItemId:
+          "",
+
+        name:
+          "",
+
+        category:
+          "",
+
+        unit:
+          "kpl",
+
+        quantity:
+          "1",
+
+        unitPrice:
+          "0",
+
+      })
+
+    } catch(addError) {
+
+      console.error(
+        "Materiaalin lisääminen epäonnistui:",
+        addError,
+      )
 
 
+      setError(
+        addError.message
+      )
 
-
-
-    saveInventory(
-      updatedInventory
-    )
-
-
-    setInventory(
-      updatedInventory
-    )
-
-
-
-    saveProjectMaterials(
-      updatedMaterials
-    )
-
-
-
-    setForm({
-
-      inventoryItemId:
-        "",
-
-      quantity:
-        "1",
-
-    })
-
+    }
 
   }
 
 
 
-
-
-
-
-  function deleteMaterial(
+  async function deleteMaterial(
     materialId
   ) {
 
 
-    const material =
-      projectMaterials.find(
-        item =>
-          String(item.id)
-          ===
-          String(materialId)
-      )
-
-
-
-    if(!material) {
-
-      return
-
-    }
-
-
-
     const shouldDelete =
       window.confirm(
-        "Poistetaanko materiaali projektilta ja palautetaanko määrä varastoon?"
+        "Poistetaanko materiaali projektilta?"
       )
-
 
 
     if(!shouldDelete) {
@@ -371,126 +356,36 @@ function MaterialsTab({
     }
 
 
+    try {
 
-
-
-
-
-    const updatedMaterials =
-      projectMaterials.filter(
-        item =>
-          String(item.id)
-          !==
-          String(materialId)
+      await apiDelete(
+        `/projects/${projectId}/materials/${materialId}`
       )
 
 
+      setMaterials(
+        current =>
+          current.filter(
+            item =>
+              item.id !== materialId
+          )
+      )
 
+    } catch(deleteError) {
 
-
-
-
-    let updatedInventory =
-      inventory
-
-
-
-    if(material.inventoryItemId) {
-
-
-      updatedInventory =
-        inventory.map(
-          item => {
-
-
-            if(
-              String(item.id)
-              !==
-              String(material.inventoryItemId)
-            ) {
-
-              return item
-
-            }
-
-
-
-            return {
-
-              ...item,
-
-              quantity:
-                toNumber(item.quantity)
-                +
-                toNumber(material.quantity),
-
-              updatedAt:
-                new Date().toISOString(),
-
-            }
-
-
-          }
-        )
-
-
-      saveInventory(
-        updatedInventory
+      console.error(
+        "Materiaalin poistaminen epäonnistui:",
+        deleteError,
       )
 
 
-      setInventory(
-        updatedInventory
+      setError(
+        deleteError.message
       )
-
 
     }
-
-
-
-    saveProjectMaterials(
-      updatedMaterials
-    )
-
 
   }
-  function saveProjectMaterials(
-    materials
-  ) {
-
-
-    const updatedProject = {
-
-      ...project,
-
-      materials,
-
-    }
-
-
-
-    setProjectMaterials(
-      materials
-    )
-
-
-
-    if(
-      onProjectUpdated
-    ) {
-
-      onProjectUpdated(
-        updatedProject
-      )
-
-    }
-
-
-  }
-
-
-
-
 
 
 
@@ -498,7 +393,7 @@ function MaterialsTab({
     useMemo(
       () =>
 
-        projectMaterials.reduce(
+        materials.reduce(
           (
             total,
             material
@@ -520,15 +415,10 @@ function MaterialsTab({
         ),
 
       [
-        projectMaterials,
+        materials,
       ]
 
     )
-
-
-
-
-
 
 
 
@@ -625,6 +515,26 @@ function MaterialsTab({
 
 
 
+        {
+          error && (
+
+            <div
+              className="
+                mt-4
+                card
+                border-red-900/60
+                bg-red-950/30
+                p-3
+                text-sm
+                text-red-300
+              "
+            >
+              {error}
+            </div>
+
+          )
+        }
+
 
 
         <form
@@ -634,13 +544,9 @@ function MaterialsTab({
 
           className="
             mt-6
-            grid
-            gap-4
-            md:grid-cols-[1fr_180px_auto]
+            space-y-3
           "
         >
-
-
 
           <select
 
@@ -651,7 +557,7 @@ function MaterialsTab({
             }
 
             onChange={
-              handleChange
+              handleInventoryPick
             }
 
             className="
@@ -661,7 +567,7 @@ function MaterialsTab({
           >
 
             <option value="">
-              Valitse materiaali
+              Valitse varastosta (esitäyttää tiedot) — valinnainen
             </option>
 
 
@@ -681,7 +587,8 @@ function MaterialsTab({
 
                     {item.name}
                     {" "}
-                    (
+                    (varastossa
+                    {" "}
                     {item.quantity}
                     {" "}
                     {item.unit}
@@ -697,28 +604,99 @@ function MaterialsTab({
 
 
 
-
-          <input
-
-            name="quantity"
-
-            value={
-              form.quantity
-            }
-
-            onChange={
-              handleChange
-            }
-
+          <div
             className="
-              wb-input
+              grid
+              gap-3
+              md:grid-cols-5
             "
+          >
 
-            placeholder="Määrä"
+            <input
 
-          />
+              name="name"
+
+              value={
+                form.name
+              }
+
+              onChange={
+                handleChange
+              }
+
+              className="
+                wb-input
+                md:col-span-2
+              "
+
+              placeholder="Materiaalin nimi"
+
+            />
 
 
+            <input
+
+              name="quantity"
+
+              value={
+                form.quantity
+              }
+
+              onChange={
+                handleChange
+              }
+
+              className="
+                wb-input
+              "
+
+              placeholder="Määrä"
+
+            />
+
+
+            <input
+
+              name="unit"
+
+              value={
+                form.unit
+              }
+
+              onChange={
+                handleChange
+              }
+
+              className="
+                wb-input
+              "
+
+              placeholder="Yksikkö"
+
+            />
+
+
+            <input
+
+              name="unitPrice"
+
+              value={
+                form.unitPrice
+              }
+
+              onChange={
+                handleChange
+              }
+
+              className="
+                wb-input
+              "
+
+              placeholder="Yksikköhinta €"
+
+            />
+
+          </div>
 
 
 
@@ -732,19 +710,15 @@ function MaterialsTab({
 
           >
 
-            + Lisää
+            + Lisää materiaali
 
           </button>
-
 
 
         </form>
 
 
       </section>
-
-
-
 
 
 
@@ -757,7 +731,30 @@ function MaterialsTab({
 
 
         {
-          projectMaterials.length === 0
+          loading
+
+          ?
+
+          (
+
+            <div
+              className="
+                panel
+                p-6
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              Ladataan materiaaleja...
+
+            </div>
+
+          )
+
+          :
+
+          materials.length === 0
 
           ?
 
@@ -793,7 +790,7 @@ function MaterialsTab({
             >
 
               {
-                projectMaterials.map(
+                materials.map(
                   material => (
 
                     <article
@@ -970,22 +967,6 @@ function toNumber(
 
 
 
-function createId() {
-
-  return (
-    crypto.randomUUID
-      ? crypto.randomUUID()
-      : Date.now().toString()
-  )
-
-}
-
-
-
-
-
-
-
 function formatMoney(
   value
 ) {
@@ -1004,10 +985,6 @@ function formatMoney(
   )
 
 }
-
-
-
-
 
 
 
