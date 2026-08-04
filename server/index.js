@@ -46,6 +46,9 @@ import {
 import {
   createSpacemonkeyKnowledgeRouter,
 } from "./routes/spacemonkeyKnowledge.js"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+
 import express from "express"
 import cors from "cors"
 import {
@@ -287,6 +290,17 @@ app.use(
 )
 app.use(
   express.json()
+)
+app.use(
+  "/uploads",
+  express.static(
+    path.join(
+      path.dirname(
+        fileURLToPath(import.meta.url)
+      ),
+      "uploads"
+    )
+  )
 )
 app.use(
   "/api",
