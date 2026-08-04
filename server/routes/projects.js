@@ -371,6 +371,8 @@ export default function createProjectsRouter(
         name,
         status,
         notes,
+        deadline,
+        description,
         customerId,
       } =
         request.body
@@ -430,49 +432,174 @@ export default function createProjectsRouter(
 
 
 
-      if (customerId !== undefined) {
+      if (deadline !== undefined) {
 
-        updateData.customerId =
-          customerId === null ||
-          customerId === ""
-            ? null
-            : Number(customerId)
+        updateData.deadline =
+          deadline
+            ? new Date(deadline)
+            : null
 
       }
 
 
 
-      const updatedProject =
-        await prisma.project.update({
+      if (description !== undefined) {
 
-          where: {
-            id:
-              projectId,
-          },
+        updateData.description =
+          description === null
+            ? null
+            : String(description)
 
-
-          data:
-            updateData,
+      }
 
 
-          include: {
 
-            customer: true,
+      if (customerId !== undefined) {
 
-          },
+        if (
+          customerId === null ||
+          customerId === ""
+        ) {
+
+          updateData.customerId =
+            null
+
+        }
+
+        else {
+
+          const parsedCustomerId =
+            Number(customerId)
+
+
+          if (
+            !Number.isInteger(
+              parsedCustomerId,
+            ) ||
+            parsedCustomerId <= 0
+          ) {
+
+            return response
+              .status(400)
+              .json({
+
+                success: false,
+
+                error:
+                  "Virheellinen asiakkaan ID.",
+
+              })
+
+          }
+
+
+          const customer =
+            await prisma.customer.findUnique({
+
+              where: {
+                id:
+                  parsedCustomerId,
+              },
+
+              select: {
+                id: true,
+              },
+
+            })
+
+
+          if (!customer) {
+
+            return response
+              .status(404)
+              .json({
+
+                success: false,
+
+                error:
+                  "Valittua asiakasta ei löytynyt.",
+
+              })
+
+          }
+
+
+          updateData.customerId =
+            parsedCustomerId
+
+        }
+
+      }
+
+
+
+      try {
+
+        const updatedProject =
+          await prisma.project.update({
+
+            where: {
+              id:
+                projectId,
+            },
+
+
+            data:
+              updateData,
+
+
+            include: {
+
+              customer: true,
+
+            },
+
+          })
+
+
+        response.json({
+
+          success: true,
+
+          project:
+            updatedProject,
 
         })
 
+      } catch (error) {
 
-      response.json({
+        console.error(
+          "Project PUT error:",
+          error,
+        )
 
-        success: true,
 
-        project:
-          updatedProject,
+        if (error.code === "P2025") {
 
-      })
+          return response
+            .status(404)
+            .json({
 
+              success: false,
+
+              error:
+                "Projektia ei löytynyt.",
+
+            })
+
+        }
+
+
+        response.status(500).json({
+
+          success: false,
+
+          error:
+            "Projektin päivittäminen epäonnistui.",
+
+        })
+
+      }
 
     },
   )
