@@ -334,6 +334,38 @@ export default function createMemoryRouter(
             req.params.id,
           )
 
+        if (
+          !Number.isInteger(id) ||
+          id <= 0
+        ) {
+          return res.status(400).json({
+            success:
+              false,
+
+            error:
+              "Virheellinen muiston tunniste.",
+          })
+        }
+
+        const existingMemory =
+          await prisma
+            .memory
+            .findUnique({
+              where: {
+                id,
+              },
+            })
+
+        if (!existingMemory) {
+          return res.status(404).json({
+            success:
+              false,
+
+            error:
+              "Muistoa ei löytynyt.",
+          })
+        }
+
         const memory =
           await prisma
             .memory
