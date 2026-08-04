@@ -4,7 +4,6 @@ import { apiGet } from "../api/client"
 
 import DashboardHero from "../components/dashboard/DashboardHero"
 import DashboardChat from "../components/dashboard/DashboardChat"
-import DashboardWorkspaceStatus from "../components/dashboard/DashboardWorkspaceStatus"
 
 
 
@@ -178,117 +177,14 @@ function Dashboard() {
 
       <section
         className="
-          h-[420px]
-          shrink-0
+          flex-1
+          min-h-0
         "
       >
 
         <DashboardChat />
 
       </section>
-
-
-
-      <section
-        className="
-          card
-          p-5
-          shrink-0
-        "
-      >
-
-        <h2
-          className="
-            text-sm
-            uppercase
-            tracking-widest
-            text-[var(--wood-muted)]
-          "
-        >
-          System Activity
-        </h2>
-
-
-
-        <div
-          className="
-            mt-4
-            grid
-            grid-cols-3
-            gap-3
-          "
-        >
-
-          <div
-            className="
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              p-4
-            "
-          >
-
-            <p className="text-xs text-[var(--wood-muted)]">
-              RUNTIME
-            </p>
-
-            <p className="mt-2">
-              Linux
-            </p>
-
-          </div>
-
-
-
-          <div
-            className="
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              p-4
-            "
-          >
-
-            <p className="text-xs text-[var(--wood-muted)]">
-              MODULES
-            </p>
-
-            <p className="mt-2">
-              Spacemonkey
-            </p>
-
-          </div>
-
-
-
-          <div
-            className="
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              p-4
-            "
-          >
-
-            <p className="text-xs text-[var(--wood-muted)]">
-              EVENTS
-            </p>
-
-            <p className="mt-2">
-              System Online
-            </p>
-
-          </div>
-
-
-        </div>
-
-
-      </section>
-
-
-
-      <DashboardWorkspaceStatus />
 
 
     </div>
