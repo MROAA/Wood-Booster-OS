@@ -31,7 +31,7 @@ function SafetyCard({
         className="
           mt-6
           grid
-          grid-cols-2
+          grid-cols-3
           gap-4
         "
       >
@@ -85,7 +85,7 @@ function SafetyCard({
             "
           >
             {
-              safety?.snapshots?.count ??
+              safety?.snapshots ??
               0
             }
           </p>
@@ -128,99 +128,6 @@ function SafetyCard({
             }
             {" "}
             pending)
-          </p>
-
-        </div>
-
-
-
-        <div>
-
-          <p
-            className="
-              text-xs
-              uppercase
-              tracking-widest
-              text-[var(--wood-muted)]
-            "
-          >
-            Approvals
-          </p>
-
-          <p
-            className="
-              mt-2
-              text-sm
-            "
-          >
-            {
-              safety?.approvals?.waiting ??
-              0
-            }
-            {" "}
-            waiting
-            {" "}
-            /
-            {" "}
-            {
-              safety?.approvals?.total ??
-              0
-            }
-            {" "}
-            total
-          </p>
-
-        </div>
-
-
-
-        <div
-          className="
-            col-span-2
-          "
-        >
-
-          <p
-            className="
-              text-xs
-              uppercase
-              tracking-widest
-              text-[var(--wood-muted)]
-            "
-          >
-            Audit
-          </p>
-
-          <p
-            className="
-              mt-2
-              text-sm
-            "
-          >
-            {
-              safety?.audit?.total ??
-              0
-            }
-            {" "}
-            events
-
-            {
-              safety?.audit?.latest?.event && (
-
-                <>
-
-                  {" — "}
-
-                  latest:
-
-                  {" "}
-
-                  {safety.audit.latest.event}
-
-                </>
-
-              )
-            }
           </p>
 
         </div>
