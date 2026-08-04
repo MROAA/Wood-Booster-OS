@@ -4,8 +4,13 @@ import {
 } from "react"
 
 import {
+  Link,
+} from "react-router-dom"
+
+import {
   apiGet,
   apiPost,
+  apiDelete,
 } from "../api/client"
 
 
@@ -145,6 +150,64 @@ function Customers() {
 
 
       setShowForm(false)
+
+
+    } catch (error) {
+
+      setError(
+        error.message,
+      )
+
+    }
+
+
+  }
+
+
+
+
+  async function deleteCustomer(
+    event,
+    customerId,
+  ) {
+
+
+    event.preventDefault()
+
+    event.stopPropagation()
+
+
+
+    const shouldDelete =
+      window.confirm(
+        "Poistetaanko asiakas?",
+      )
+
+
+    if (!shouldDelete) {
+
+      return
+
+    }
+
+
+
+    try {
+
+      await apiDelete(
+        `/customers/${customerId}`,
+      )
+
+
+      setCustomers(
+
+        previous =>
+          previous.filter(
+            customer =>
+              customer.id !== customerId,
+          )
+
+      )
 
 
     } catch (error) {
@@ -462,26 +525,72 @@ function Customers() {
 
                   customer => (
 
-                    <div
+                    <Link
 
                       key={
                         customer.id
                       }
 
-                      className="card"
+                      to={
+                        `/customers/${customer.id}`
+                      }
+
+                      className="
+                        card
+                        block
+                        transition
+                        hover:border-[var(--wood-accent)]
+                      "
 
                     >
 
-                      <h3
+                      <div
                         className="
-                          text-lg
-                          font-semibold
+                          flex
+                          items-start
+                          justify-between
+                          gap-3
                         "
                       >
 
-                        {customer.name}
+                        <h3
+                          className="
+                            text-lg
+                            font-semibold
+                          "
+                        >
 
-                      </h3>
+                          {customer.name}
+
+                        </h3>
+
+
+                        <button
+
+                          type="button"
+
+                          onClick={
+                            event =>
+                              deleteCustomer(
+                                event,
+                                customer.id,
+                              )
+                          }
+
+                          className="
+                            text-sm
+                            text-red-400
+                            hover:text-red-300
+                          "
+
+                        >
+
+                          Poista
+
+                        </button>
+
+
+                      </div>
 
 
 
@@ -572,7 +681,7 @@ function Customers() {
 
 
 
-                    </div>
+                    </Link>
 
                   )
 
