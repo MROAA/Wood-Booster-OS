@@ -3,11 +3,9 @@ import {
   useState,
 } from "react"
 
-
-
-const API_URL =
-  "http://localhost:3001/api"
-
+import {
+  apiGet,
+} from "../../api/client"
 
 
 
@@ -37,9 +35,6 @@ function SpacemonkeyModules(){
 
 
 
-
-
-
   useEffect(()=>{
 
 
@@ -49,15 +44,10 @@ function SpacemonkeyModules(){
       try{
 
 
-        const response =
-          await fetch(
-            `${API_URL}/spacemonkey/system`
-          )
-
-
-
         const data =
-          await response.json()
+          await apiGet(
+            "/spacemonkey/system"
+          )
 
 
 
@@ -71,11 +61,11 @@ function SpacemonkeyModules(){
 
 
       }
-      catch(error){
+      catch(loadError){
 
 
         setError(
-          error.message
+          loadError.message
         )
 
 
@@ -101,21 +91,12 @@ function SpacemonkeyModules(){
 
 
 
-
-
-
   if(loading){
 
 
     return (
 
-      <section className="
-        rounded-2xl
-        border
-        border-neutral-800
-        bg-neutral-900
-        p-6
-      ">
+      <section className="panel p-6">
 
         Loading modules...
 
@@ -128,22 +109,12 @@ function SpacemonkeyModules(){
 
 
 
-
-
-
   if(error){
 
 
     return (
 
-      <section className="
-        rounded-2xl
-        border
-        border-red-900
-        bg-neutral-900
-        p-6
-        text-red-400
-      ">
+      <section className="panel text-red-400">
 
         Module error:
         {" "}
@@ -158,30 +129,15 @@ function SpacemonkeyModules(){
 
 
 
-
-
-
   return (
 
-    <section className="
-      rounded-2xl
-      border
-      border-neutral-800
-      bg-neutral-900
-      p-6
-      transition-colors
-      hover:border-neutral-700
-    ">
+    <section className="card p-6 wood-hover">
 
 
       <header>
 
 
-        <h2 className="
-          text-xl
-          font-bold
-          text-white
-        ">
+        <h2 className="text-sm uppercase tracking-widest text-[var(--wood-muted)]">
 
           Modules
 
@@ -189,11 +145,7 @@ function SpacemonkeyModules(){
 
 
 
-        <p className="
-          mt-2
-          text-sm
-          text-neutral-400
-        ">
+        <p className="mt-2 text-sm text-[var(--wood-muted)]">
 
           Spacemonkey runtime modules.
 
@@ -205,24 +157,13 @@ function SpacemonkeyModules(){
 
 
 
-
-
-
-      <div className="
-        mt-6
-        grid
-        grid-cols-1
-        gap-4
-        md:grid-cols-2
-      ">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
 
 
         {
           modules.length === 0 && (
 
-            <p className="
-              text-neutral-500
-            ">
+            <p className="text-sm text-[var(--wood-muted)]">
 
               No modules registered.
 
@@ -230,9 +171,6 @@ function SpacemonkeyModules(){
 
           )
         }
-
-
-
 
 
 
@@ -271,9 +209,6 @@ function SpacemonkeyModules(){
 
 
 
-
-
-
 function ModuleCard({
   module,
 }){
@@ -281,28 +216,13 @@ function ModuleCard({
 
   return (
 
-    <article className="
-      rounded-xl
-      border
-      border-neutral-800
-      bg-black/30
-      p-5
-      transition-colors
-      hover:border-neutral-700
-    ">
+    <article className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-card)] p-5">
 
 
-      <div className="
-        flex
-        items-center
-        justify-between
-      ">
+      <div className="flex items-center justify-between">
 
 
-        <h3 className="
-          font-semibold
-          text-white
-        ">
+        <h3 className="font-semibold">
 
           {module.name}
 
@@ -310,21 +230,19 @@ function ModuleCard({
 
 
 
-        <Status />
+        <ModuleStatus
+          state={
+            module.state
+          }
+        />
+
 
       </div>
 
 
 
 
-
-
-
-      <div className="
-        mt-4
-        space-y-2
-        text-sm
-      ">
+      <div className="mt-4 space-y-2 text-sm">
 
 
         <Info
@@ -374,9 +292,6 @@ function ModuleCard({
 
 
 
-
-
-
 function Info({
   label,
   value,
@@ -388,21 +303,15 @@ function Info({
     <div>
 
 
-      <p className="
-        text-xs
-        uppercase
-        tracking-wider
-        text-neutral-500
-      ">
+      <p className="text-xs uppercase tracking-wider text-[var(--wood-muted)]">
 
         {label}
 
       </p>
 
 
-      <p className="
-        text-neutral-300
-      ">
+
+      <p className="text-[var(--wood-text)]">
 
         {value}
 
@@ -418,32 +327,56 @@ function Info({
 
 
 
+function ModuleStatus({
+  state,
+}){
 
 
+  const isActive =
+    state === "active" ||
+    state === "healthy"
 
-function Status(){
+
+  const isUnknown =
+    !state ||
+    state === "unknown"
+
+
+  const colorClass =
+    isActive
+    ?
+    "text-green-400"
+    :
+    isUnknown
+    ?
+    "text-[var(--wood-muted)]"
+    :
+    "text-red-400"
+
+
+  const dotClass =
+    isActive
+    ?
+    "bg-green-400"
+    :
+    isUnknown
+    ?
+    "bg-[var(--wood-muted)]"
+    :
+    "bg-red-400"
 
 
   return (
 
-    <span className="
-      flex
-      items-center
-      gap-2
-      text-xs
-      text-green-400
-    ">
+    <span className={`flex items-center gap-2 text-xs ${colorClass}`}>
 
 
-      <span className="
-        h-2
-        w-2
-        rounded-full
-        bg-green-400
-      "/>
+      <span className={`h-2 w-2 rounded-full ${dotClass}`} />
 
 
-      ACTIVE
+      {
+        (state || "unknown").toUpperCase()
+      }
 
 
     </span>
@@ -451,9 +384,6 @@ function Status(){
   )
 
 }
-
-
-
 
 
 

@@ -3,11 +3,9 @@ import {
   useState,
 } from "react"
 
-
-
-const API_URL =
-  "http://localhost:3001/api"
-
+import {
+  apiGet,
+} from "../../api/client"
 
 
 
@@ -37,9 +35,6 @@ function SpacemonkeyRuntime(){
 
 
 
-
-
-
   useEffect(()=>{
 
 
@@ -55,25 +50,15 @@ function SpacemonkeyRuntime(){
         ] =
         await Promise.all([
 
-
-          fetch(
-            `${API_URL}/spacemonkey/system`
-          )
-          .then(
-            r=>r.json()
+          apiGet(
+            "/spacemonkey/system"
           ),
 
-
-          fetch(
-            `${API_URL}/health`
-          )
-          .then(
-            r=>r.json()
+          apiGet(
+            "/health"
           ),
-
 
         ])
-
 
 
 
@@ -90,11 +75,11 @@ function SpacemonkeyRuntime(){
 
 
       }
-      catch(error){
+      catch(loadError){
 
 
         setError(
-          error.message
+          loadError.message
         )
 
 
@@ -120,21 +105,12 @@ function SpacemonkeyRuntime(){
 
 
 
-
-
-
   if(loading){
 
 
     return (
 
-      <section className="
-        rounded-2xl
-        border
-        border-neutral-800
-        bg-neutral-900
-        p-6
-      ">
+      <section className="panel p-6">
 
         Loading Runtime...
 
@@ -147,22 +123,12 @@ function SpacemonkeyRuntime(){
 
 
 
-
-
-
   if(error){
 
 
     return (
 
-      <section className="
-        rounded-2xl
-        border
-        border-red-900
-        bg-neutral-900
-        p-6
-        text-red-400
-      ">
+      <section className="panel text-red-400">
 
         Runtime error:
         {" "}
@@ -177,39 +143,21 @@ function SpacemonkeyRuntime(){
 
 
 
-
-
-
   const system =
     runtime.system
 
 
 
 
-
-
-
   return (
 
-    <section className="
-      rounded-2xl
-      border
-      border-neutral-800
-      bg-neutral-900
-      p-6
-      transition-colors
-      hover:border-neutral-700
-    ">
+    <section className="card p-6 wood-hover">
 
 
       <header>
 
 
-        <h2 className="
-          text-xl
-          font-bold
-          text-white
-        ">
+        <h2 className="text-sm uppercase tracking-widest text-[var(--wood-muted)]">
 
           Runtime
 
@@ -217,11 +165,7 @@ function SpacemonkeyRuntime(){
 
 
 
-        <p className="
-          mt-2
-          text-sm
-          text-neutral-400
-        ">
+        <p className="mt-2 text-sm text-[var(--wood-muted)]">
 
           Spacemonkey system runtime status.
 
@@ -233,19 +177,10 @@ function SpacemonkeyRuntime(){
 
 
 
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
 
 
-
-      <div className="
-        mt-6
-        grid
-        grid-cols-1
-        gap-4
-        md:grid-cols-2
-      ">
-
-
-        <RuntimeCard
+        <RuntimeStat
 
           title="Backend"
 
@@ -255,11 +190,15 @@ function SpacemonkeyRuntime(){
             : "OFFLINE"
           }
 
+          healthy={
+            runtime.health.status === "ok"
+          }
+
         />
 
 
 
-        <RuntimeCard
+        <RuntimeStat
 
           title="Kernel"
 
@@ -267,11 +206,16 @@ function SpacemonkeyRuntime(){
             system.core.status
           }
 
+          healthy={
+            system.core.status === "active" ||
+            system.core.status === "healthy"
+          }
+
         />
 
 
 
-        <RuntimeCard
+        <RuntimeStat
 
           title="Modules"
 
@@ -279,16 +223,24 @@ function SpacemonkeyRuntime(){
             `${system.modules.length} loaded`
           }
 
+          healthy={
+            system.modules.length > 0
+          }
+
         />
 
 
 
-        <RuntimeCard
+        <RuntimeStat
 
           title="Health"
 
           value={
             system.health.status
+          }
+
+          healthy={
+            system.health.status === "healthy"
           }
 
         />
@@ -306,57 +258,49 @@ function SpacemonkeyRuntime(){
 
 
 
-
-
-
-function RuntimeCard({
+function RuntimeStat({
   title,
   value,
+  healthy,
 }){
+
+
+  const colorClass =
+    healthy
+    ?
+    "text-green-400"
+    :
+    "text-red-400"
+
+
+  const dotClass =
+    healthy
+    ?
+    "bg-green-400"
+    :
+    "bg-red-400"
 
 
   return (
 
-    <article className="
-      rounded-xl
-      border
-      border-neutral-800
-      bg-black/30
-      p-4
-    ">
+    <article className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-card)] p-4">
 
 
-      <p className="
-        text-xs
-        uppercase
-        tracking-wider
-        text-neutral-500
-      ">
+      <p className="text-xs uppercase tracking-wider text-[var(--wood-muted)]">
 
         {title}
 
       </p>
 
 
-      <div className="
-        mt-2
-        flex
-        items-center
-        gap-2
-      ">
+
+      <div className={`mt-2 flex items-center gap-2 ${colorClass}`}>
 
 
-        <span className="
-          h-2
-          w-2
-          rounded-full
-          bg-green-400
-        "/>
+        <span className={`h-2 w-2 rounded-full ${dotClass}`} />
 
 
-        <span className="
-          text-green-400
-        ">
+        <span>
 
           {value}
 
@@ -371,9 +315,6 @@ function RuntimeCard({
   )
 
 }
-
-
-
 
 
 
