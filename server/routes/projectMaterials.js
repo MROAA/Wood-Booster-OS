@@ -150,6 +150,60 @@ export default function createProjectMaterialsRouter(
       }
 
 
+      const cleanQuantity =
+        quantity !== undefined &&
+        quantity !== null &&
+        quantity !== ""
+          ? Number(quantity)
+          : 1
+
+
+      if (
+        !Number.isFinite(cleanQuantity) ||
+        cleanQuantity < 0
+      ) {
+
+        return response
+          .status(400)
+          .json({
+
+            success: false,
+
+            error:
+              "Virheellinen määrä.",
+
+          })
+
+      }
+
+
+      const cleanUnitPrice =
+        unitPrice !== undefined &&
+        unitPrice !== null &&
+        unitPrice !== ""
+          ? Number(unitPrice)
+          : 0
+
+
+      if (
+        !Number.isFinite(cleanUnitPrice) ||
+        cleanUnitPrice < 0
+      ) {
+
+        return response
+          .status(400)
+          .json({
+
+            success: false,
+
+            error:
+              "Virheellinen hinta.",
+
+          })
+
+      }
+
+
       try {
 
         const project =
@@ -204,18 +258,10 @@ export default function createProjectMaterialsRouter(
                   : "kpl",
 
               quantity:
-                quantity !== undefined &&
-                quantity !== null &&
-                quantity !== ""
-                  ? Number(quantity)
-                  : 1,
+                cleanQuantity,
 
               unitPrice:
-                unitPrice !== undefined &&
-                unitPrice !== null &&
-                unitPrice !== ""
-                  ? Number(unitPrice)
-                  : 0,
+                cleanUnitPrice,
 
             },
 
@@ -244,6 +290,240 @@ export default function createProjectMaterialsRouter(
 
           error:
             "Materiaalin lisääminen epäonnistui.",
+
+        })
+
+      }
+
+    },
+  )
+
+
+
+  /*
+   * PUT /api/projects/:id/materials/:materialId
+   *
+   * Päivittää projektin materiaalin.
+   */
+  router.put(
+    "/projects/:id/materials/:materialId",
+    async (request, response) => {
+
+      const projectId =
+        Number(request.params.id)
+
+      const materialId =
+        Number(request.params.materialId)
+
+
+      if (
+        !Number.isInteger(projectId) ||
+        projectId <= 0 ||
+        !Number.isInteger(materialId) ||
+        materialId <= 0
+      ) {
+
+        return response
+          .status(400)
+          .json({
+
+            success: false,
+
+            error:
+              "Virheellinen tunniste.",
+
+          })
+
+      }
+
+
+      try {
+
+        const existingMaterial =
+          await prisma.projectMaterial.findUnique({
+
+            where: {
+              id:
+                materialId,
+            },
+
+          })
+
+
+        if (
+          !existingMaterial ||
+          existingMaterial.projectId !== projectId
+        ) {
+
+          return response
+            .status(404)
+            .json({
+
+              success: false,
+
+              error:
+                "Materiaalia ei löytynyt.",
+
+            })
+
+        }
+
+
+        const {
+          name,
+          category,
+          unit,
+          quantity,
+          unitPrice,
+        } =
+          request.body
+
+
+        const data = {}
+
+
+        if (name !== undefined) {
+
+          const cleanName =
+            String(name || "").trim()
+
+
+          if (!cleanName) {
+
+            return response
+              .status(400)
+              .json({
+
+                success: false,
+
+                error:
+                  "Materiaalin nimi ei voi olla tyhjä.",
+
+              })
+
+          }
+
+
+          data.name = cleanName
+
+        }
+
+
+        if (category !== undefined) {
+
+          data.category =
+            category
+              ? String(category)
+              : null
+
+        }
+
+
+        if (unit !== undefined) {
+
+          data.unit =
+            unit
+              ? String(unit)
+              : "kpl"
+
+        }
+
+
+        if (quantity !== undefined) {
+
+          const cleanQuantity =
+            Number(quantity)
+
+
+          if (
+            !Number.isFinite(cleanQuantity) ||
+            cleanQuantity < 0
+          ) {
+
+            return response
+              .status(400)
+              .json({
+
+                success: false,
+
+                error:
+                  "Virheellinen määrä.",
+
+              })
+
+          }
+
+
+          data.quantity = cleanQuantity
+
+        }
+
+
+        if (unitPrice !== undefined) {
+
+          const cleanUnitPrice =
+            Number(unitPrice)
+
+
+          if (
+            !Number.isFinite(cleanUnitPrice) ||
+            cleanUnitPrice < 0
+          ) {
+
+            return response
+              .status(400)
+              .json({
+
+                success: false,
+
+                error:
+                  "Virheellinen hinta.",
+
+              })
+
+          }
+
+
+          data.unitPrice = cleanUnitPrice
+
+        }
+
+
+        const material =
+          await prisma.projectMaterial.update({
+
+            where: {
+              id:
+                materialId,
+            },
+
+            data,
+
+          })
+
+
+        response.json({
+
+          success: true,
+
+          material,
+
+        })
+
+      } catch (error) {
+
+        console.error(
+          "Project materials PUT error:",
+          error,
+        )
+
+
+        response.status(500).json({
+
+          success: false,
+
+          error:
+            "Materiaalin päivittäminen epäonnistui.",
 
         })
 
