@@ -4,10 +4,11 @@ import {
 } from "react"
 
 import {
-  getWorkflow,
-  saveWorkflow,
-  getProgress,
-} from "../data/WorkflowStore"
+  apiGet,
+  apiPost,
+  apiPut,
+  apiDelete,
+} from "../api/client"
 
 
 
@@ -23,15 +24,88 @@ function WorkflowTab({
 
 
 
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+
+  const [
+    error,
+    setError,
+  ] = useState("")
+
+
+
+  const [
+    newStepTitle,
+    setNewStepTitle,
+  ] = useState("")
+
+
 
 
   useEffect(() => {
 
-    setWorkflow(
-      getWorkflow(
-        projectId
-      )
-    )
+    if(!projectId) {
+
+      return
+
+    }
+
+
+    let cancelled = false
+
+
+    setLoading(true)
+
+
+    apiGet(`/projects/${projectId}/workflow`)
+      .then(data => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setWorkflow(
+          data.steps || []
+        )
+
+      })
+      .catch(loadError => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setError(
+          loadError.message
+        )
+
+      })
+      .finally(() => {
+
+        if(!cancelled) {
+
+          setLoading(false)
+
+        }
+
+      })
+
+
+    return () => {
+
+      cancelled = true
+
+    }
 
   },[
     projectId,
@@ -40,144 +114,201 @@ function WorkflowTab({
 
 
 
-
-
-
-  function updateWorkflow(
-    updated
-  ) {
-
-    setWorkflow(
-      updated
-    )
-
-    saveWorkflow(
-      projectId,
-      updated
-    )
-
-  }
-
-
-
-
-
-
-
-  function toggleStep(
+  async function toggleStep(
     stepId
   ) {
 
-    const updated =
-      workflow.map(
-        step => {
 
-          if(
-            step.id !== stepId
-          ) {
-
-            return step
-
-          }
-
-
-          return {
-
-            ...step,
-
-            done:
-              !step.done,
-
-          }
-
-        }
+    const step =
+      workflow.find(
+        item =>
+          item.id === stepId
       )
 
 
-    updateWorkflow(
-      updated
-    )
-
-  }
-
-
-
-
-
-
-
-  function addStep() {
-
-    const title =
-      window.prompt(
-        "Uuden työvaiheen nimi"
-      )
-
-
-    if(
-      !title?.trim()
-    ) {
+    if(!step) {
 
       return
 
     }
 
 
-    updateWorkflow([
+    try {
 
-      ...workflow,
+      const data =
+        await apiPut(
+          `/projects/${projectId}/workflow/${stepId}`,
+          {
 
-      {
-        id:
-          crypto.randomUUID(),
+            done:
+              !step.done,
 
-        title:
-          title.trim(),
-
-        done:
-          false,
-      },
-
-    ])
-
-  }
+          }
+        )
 
 
+      setWorkflow(
+        current =>
+          current.map(
+            item =>
+              item.id === stepId
+              ?
+              data.step
+              :
+              item
+          )
+      )
 
+    } catch(toggleError) {
 
-
-
-
-  function deleteStep(
-    stepId
-  ) {
-
-    const updated =
-      workflow.filter(
-        step =>
-          step.id !== stepId
+      console.error(
+        "Vaiheen päivittäminen epäonnistui:",
+        toggleError,
       )
 
 
-    updateWorkflow(
-      updated
-    )
+      setError(
+        toggleError.message
+      )
+
+    }
+
 
   }
 
 
 
 
+  async function addStep(
+    event
+  ) {
+
+
+    event.preventDefault()
+
+
+    const title =
+      newStepTitle.trim()
+
+
+    if(!title) {
+
+      return
+
+    }
+
+
+    try {
+
+      const data =
+        await apiPost(
+          `/projects/${projectId}/workflow`,
+          {
+
+            title,
+
+          }
+        )
+
+
+      setWorkflow(
+        current => [
+          ...current,
+          data.step,
+        ]
+      )
+
+
+      setNewStepTitle(
+        ""
+      )
+
+    } catch(addError) {
+
+      console.error(
+        "Vaiheen lisääminen epäonnistui:",
+        addError,
+      )
+
+
+      setError(
+        addError.message
+      )
+
+    }
+
+
+  }
+
+
+
+
+  async function deleteStep(
+    stepId
+  ) {
+
+
+    try {
+
+      await apiDelete(
+        `/projects/${projectId}/workflow/${stepId}`
+      )
+
+
+      setWorkflow(
+        current =>
+          current.filter(
+            step =>
+              step.id !== stepId
+          )
+      )
+
+    } catch(deleteError) {
+
+      console.error(
+        "Vaiheen poistaminen epäonnistui:",
+        deleteError,
+      )
+
+
+      setError(
+        deleteError.message
+      )
+
+    }
+
+
+  }
+
+
+
+
+  const doneCount =
+    workflow.filter(
+      step =>
+        step.done
+    )
+    .length
 
 
 
   const progress =
-    getProgress(
-      workflow
+    workflow.length === 0
+
+    ?
+
+    0
+
+    :
+
+    Math.round(
+      (
+        doneCount /
+        workflow.length
+      )
+      *
+      100
     )
-
-
-
 
 
 
@@ -231,6 +362,29 @@ function WorkflowTab({
         </p>
 
 
+        {
+          error && (
+
+            <div
+              className="
+                mt-5
+                card
+                border-red-900/60
+                bg-red-950/30
+                p-3
+                text-sm
+                text-red-300
+              "
+            >
+
+              {error}
+
+            </div>
+
+          )
+        }
+
+
 
 
         <div
@@ -239,7 +393,7 @@ function WorkflowTab({
             h-3
             overflow-hidden
             rounded-full
-            bg-neutral-800
+            bg-[var(--wood-bg)]
           "
         >
 
@@ -247,7 +401,8 @@ function WorkflowTab({
 
             className="
               h-full
-              bg-amber-500
+              rounded-full
+              bg-[var(--wood-accent)]
               transition-all
             "
 
@@ -271,6 +426,12 @@ function WorkflowTab({
 
           Valmis:
           {" "}
+          {doneCount}
+          {" / "}
+          {workflow.length}
+          {" "}
+          —
+          {" "}
           {progress} %
 
         </p>
@@ -278,28 +439,66 @@ function WorkflowTab({
 
 
 
-        <button
+        <form
 
-          type="button"
-
-          onClick={
+          onSubmit={
             addStep
           }
 
           className="
             mt-6
-            wb-button
+            flex
+            flex-col
+            gap-3
+            sm:flex-row
           "
 
         >
 
-          + Lisää työvaihe
+          <input
 
-        </button>
+            type="text"
+
+            value={
+              newStepTitle
+            }
+
+            onChange={
+              event =>
+                setNewStepTitle(
+                  event.target.value
+                )
+            }
+
+            placeholder="Uuden työvaiheen nimi"
+
+            className="
+              wb-input
+              flex-1
+            "
+
+          />
+
+
+          <button
+
+            type="submit"
+
+            className="
+              wb-button
+            "
+
+          >
+
+            + Lisää työvaihe
+
+          </button>
+
+
+        </form>
 
 
       </section>
-
 
 
 
@@ -313,101 +512,128 @@ function WorkflowTab({
       >
 
         {
-          workflow.map(
-            step => (
+          loading
 
-              <article
+          ?
 
-                key={
-                  step.id
-                }
+          (
 
-                className="
-                  card
-                  flex
-                  items-center
-                  justify-between
-                  gap-4
-                  p-5
-                "
+            <div
+              className="
+                panel
+                p-6
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
 
-              >
+              Ladataan työvaiheita...
 
-                <button
+            </div>
 
-                  type="button"
+          )
 
-                  onClick={() =>
-                    toggleStep(
-                      step.id
-                    )
+          :
+
+          (
+
+            workflow.map(
+              step => (
+
+                <article
+
+                  key={
+                    step.id
                   }
 
                   className="
+                    card
                     flex
                     items-center
-                    gap-3
+                    justify-between
+                    gap-4
+                    p-5
                   "
 
                 >
 
-                  <span>
+                  <button
 
-                    {
-                      step.done
-                      ?
-                      "✅"
-                      :
-                      "⬜"
+                    type="button"
+
+                    onClick={() =>
+                      toggleStep(
+                        step.id
+                      )
                     }
 
-                  </span>
+                    className="
+                      flex
+                      items-center
+                      gap-3
+                    "
 
-
-                  <span
-                    className={
-                      step.done
-                      ?
-                      "line-through text-neutral-500"
-                      :
-                      ""
-                    }
                   >
 
-                    {step.title}
+                    <span>
 
-                  </span>
+                      {
+                        step.done
+                        ?
+                        "✅"
+                        :
+                        "⬜"
+                      }
 
-
-                </button>
-
-
-
-
-
-                <button
-
-                  type="button"
-
-                  onClick={() =>
-                    deleteStep(
-                      step.id
-                    )
-                  }
-
-                  className="
-                    text-sm
-                    text-red-400
-                  "
-
-                >
-
-                  Poista
-
-                </button>
+                    </span>
 
 
-              </article>
+                    <span
+                      className={
+                        step.done
+                        ?
+                        "line-through text-[var(--wood-muted)]"
+                        :
+                        ""
+                      }
+                    >
+
+                      {step.title}
+
+                    </span>
+
+
+                  </button>
+
+
+
+
+
+                  <button
+
+                    type="button"
+
+                    onClick={() =>
+                      deleteStep(
+                        step.id
+                      )
+                    }
+
+                    className="
+                      text-sm
+                      text-red-400
+                    "
+
+                  >
+
+                    Poista
+
+                  </button>
+
+
+                </article>
+
+              )
 
             )
 
