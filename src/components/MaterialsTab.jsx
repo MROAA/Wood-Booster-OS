@@ -7,6 +7,7 @@ import {
 import {
   apiGet,
   apiPost,
+  apiPut,
   apiDelete,
 } from "../api/client"
 
@@ -52,6 +53,37 @@ function MaterialsTab({
 
     inventoryItemId:
       "",
+
+    name:
+      "",
+
+    category:
+      "",
+
+    unit:
+      "kpl",
+
+    quantity:
+      "1",
+
+    unitPrice:
+      "0",
+
+  })
+
+
+
+  const [
+    editingId,
+    setEditingId,
+  ] = useState(null)
+
+
+
+  const [
+    editForm,
+    setEditForm,
+  ] = useState({
 
     name:
       "",
@@ -320,6 +352,9 @@ function MaterialsTab({
 
       })
 
+
+      setError("")
+
     } catch(addError) {
 
       console.error(
@@ -371,6 +406,9 @@ function MaterialsTab({
           )
       )
 
+
+      setError("")
+
     } catch(deleteError) {
 
       console.error(
@@ -381,6 +419,150 @@ function MaterialsTab({
 
       setError(
         deleteError.message
+      )
+
+    }
+
+  }
+
+
+
+  function startEdit(
+    material
+  ) {
+
+    setEditingId(
+      material.id
+    )
+
+
+    setEditForm({
+
+      name:
+        material.name || "",
+
+      category:
+        material.category || "",
+
+      unit:
+        material.unit || "kpl",
+
+      quantity:
+        String(
+          material.quantity ?? "1"
+        ),
+
+      unitPrice:
+        String(
+          material.unitPrice ?? "0"
+        ),
+
+    })
+
+  }
+
+
+
+  function cancelEdit() {
+
+    setEditingId(null)
+
+  }
+
+
+
+  function handleEditChange(
+    event
+  ) {
+
+
+    const {
+      name,
+      value,
+    } =
+      event.target
+
+
+    setEditForm(
+      current => ({
+
+        ...current,
+
+        [name]:
+          value,
+
+      })
+    )
+
+  }
+
+
+
+  async function saveEdit() {
+
+
+    const cleanName =
+      editForm.name.trim()
+
+
+    if(!cleanName) {
+
+      return
+
+    }
+
+
+    try {
+
+      const data =
+        await apiPut(
+          `/projects/${projectId}/materials/${editingId}`,
+          {
+
+            name:
+              cleanName,
+
+            category:
+              editForm.category.trim() || null,
+
+            unit:
+              editForm.unit.trim() || "kpl",
+
+            quantity:
+              toNumber(editForm.quantity),
+
+            unitPrice:
+              toNumber(editForm.unitPrice),
+
+          }
+        )
+
+
+      setMaterials(
+        current =>
+          current.map(
+            item =>
+              item.id === data.material.id
+                ? data.material
+                : item
+          )
+      )
+
+
+      setEditingId(null)
+
+      setError("")
+
+    } catch(editError) {
+
+      console.error(
+        "Materiaalin päivittäminen epäonnistui:",
+        editError,
+      )
+
+
+      setError(
+        editError.message
       )
 
     }
@@ -608,7 +790,7 @@ function MaterialsTab({
             className="
               grid
               gap-3
-              md:grid-cols-5
+              md:grid-cols-6
             "
           >
 
@@ -630,6 +812,27 @@ function MaterialsTab({
               "
 
               placeholder="Materiaalin nimi"
+
+            />
+
+
+            <input
+
+              name="category"
+
+              value={
+                form.category
+              }
+
+              onChange={
+                handleChange
+              }
+
+              className="
+                wb-input
+              "
+
+              placeholder="Kategoria"
 
             />
 
@@ -845,69 +1048,324 @@ function MaterialsTab({
 
 
 
-                        <button
+                        {
+                          editingId !== material.id && (
 
-                          type="button"
+                            <div
+                              className="
+                                flex
+                                shrink-0
+                                gap-3
+                              "
+                            >
 
-                          onClick={() =>
-                            deleteMaterial(
-                              material.id
-                            )
-                          }
+                              <button
 
-                          className="
-                            text-sm
-                            text-red-400
-                            hover:text-red-300
-                          "
+                                type="button"
 
-                        >
-                          Poista
-                        </button>
+                                onClick={() =>
+                                  startEdit(
+                                    material
+                                  )
+                                }
 
+                                className="
+                                  text-sm
+                                  text-[var(--wood-accent)]
+                                  hover:opacity-80
+                                "
 
-                      </div>
-
-
-
-
-
-                      <div
-                        className="
-                          mt-4
-                          border-t
-                          border-[var(--wood-border)]
-                          pt-4
-                        "
-                      >
-
-                        <p
-                          className="
-                            text-xs
-                            text-[var(--wood-muted)]
-                          "
-                        >
-                          HINTA
-                        </p>
+                              >
+                                Muokkaa
+                              </button>
 
 
-                        <p
-                          className="
-                            mt-1
-                          "
-                        >
+                              <button
 
-                          {
-                            formatMoney(
-                              material.quantity *
-                              material.unitPrice
-                            )
-                          }
+                                type="button"
 
-                        </p>
+                                onClick={() =>
+                                  deleteMaterial(
+                                    material.id
+                                  )
+                                }
+
+                                className="
+                                  text-sm
+                                  text-red-400
+                                  hover:text-red-300
+                                "
+
+                              >
+                                Poista
+                              </button>
+
+
+                            </div>
+
+                          )
+                        }
 
 
                       </div>
+
+
+
+
+
+                      {
+                        editingId === material.id
+
+                        ?
+
+                        (
+
+                          <div
+                            className="
+                              mt-4
+                              space-y-3
+                              border-t
+                              border-[var(--wood-border)]
+                              pt-4
+                            "
+                          >
+
+                            <input
+
+                              name="name"
+
+                              value={
+                                editForm.name
+                              }
+
+                              onChange={
+                                handleEditChange
+                              }
+
+                              className="
+                                wb-input
+                              "
+
+                              placeholder="Materiaalin nimi"
+
+                            />
+
+
+                            <div
+                              className="
+                                grid
+                                grid-cols-2
+                                gap-3
+                              "
+                            >
+
+                              <input
+
+                                name="category"
+
+                                value={
+                                  editForm.category
+                                }
+
+                                onChange={
+                                  handleEditChange
+                                }
+
+                                className="
+                                  wb-input
+                                "
+
+                                placeholder="Kategoria"
+
+                              />
+
+
+                              <input
+
+                                name="unit"
+
+                                value={
+                                  editForm.unit
+                                }
+
+                                onChange={
+                                  handleEditChange
+                                }
+
+                                className="
+                                  wb-input
+                                "
+
+                                placeholder="Yksikkö"
+
+                              />
+
+                            </div>
+
+
+                            <div
+                              className="
+                                grid
+                                grid-cols-2
+                                gap-3
+                              "
+                            >
+
+                              <input
+
+                                name="quantity"
+
+                                value={
+                                  editForm.quantity
+                                }
+
+                                onChange={
+                                  handleEditChange
+                                }
+
+                                className="
+                                  wb-input
+                                "
+
+                                placeholder="Määrä"
+
+                              />
+
+
+                              <input
+
+                                name="unitPrice"
+
+                                value={
+                                  editForm.unitPrice
+                                }
+
+                                onChange={
+                                  handleEditChange
+                                }
+
+                                className="
+                                  wb-input
+                                "
+
+                                placeholder="Yksikköhinta €"
+
+                              />
+
+                            </div>
+
+
+                            <div
+                              className="
+                                flex
+                                gap-3
+                              "
+                            >
+
+                              <button
+
+                                type="button"
+
+                                onClick={
+                                  saveEdit
+                                }
+
+                                className="
+                                  wb-button
+                                "
+
+                              >
+                                Tallenna
+                              </button>
+
+
+                              <button
+
+                                type="button"
+
+                                onClick={
+                                  cancelEdit
+                                }
+
+                                className="
+                                  text-sm
+                                  text-[var(--wood-muted)]
+                                  hover:opacity-80
+                                "
+
+                              >
+                                Peruuta
+                              </button>
+
+
+                            </div>
+
+
+                          </div>
+
+                        )
+
+                        :
+
+                        (
+
+                          <div
+                            className="
+                              mt-4
+                              border-t
+                              border-[var(--wood-border)]
+                              pt-4
+                            "
+                          >
+
+                            {
+                              material.category && (
+
+                                <p
+                                  className="
+                                    text-sm
+                                    text-[var(--wood-muted)]
+                                  "
+                                >
+                                  {material.category}
+                                </p>
+
+                              )
+                            }
+
+
+                            <p
+                              className="
+                                text-xs
+                                text-[var(--wood-muted)]
+                                mt-2
+                              "
+                            >
+                              HINTA
+                            </p>
+
+
+                            <p
+                              className="
+                                mt-1
+                              "
+                            >
+
+                              {
+                                formatMoney(
+                                  material.quantity *
+                                  material.unitPrice
+                                )
+                              }
+
+                            </p>
+
+
+                          </div>
+
+                        )
+
+                      }
 
 
 
