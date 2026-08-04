@@ -1,18 +1,18 @@
 import {
   useEffect,
+  useMemo,
   useState,
 } from "react"
 
+import {
+  apiGet,
+  apiPost,
+  apiDelete,
+} from "../api/client"
 
 
-const API_URL =
-  "http://localhost:3001/api"
 
-
-
-
-
-function Memory(){
+function Memory() {
 
 
   const [
@@ -21,29 +21,55 @@ function Memory(){
   ] = useState([])
 
 
-
   const [
     memories,
     setMemories,
   ] = useState([])
 
 
-
-  async function loadMemory(){
-
-
-    try{
-
-
-      const proposalResponse =
-        await fetch(
-          `${API_URL}/memory/proposals`
-        )
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
 
 
-      const proposalData =
-        await proposalResponse.json()
+  const [
+    error,
+    setError,
+  ] = useState("")
 
+
+  const [
+    search,
+    setSearch,
+  ] = useState("")
+
+
+  const [
+    category,
+    setCategory,
+  ] = useState("all")
+
+
+
+
+  async function loadMemory() {
+
+    try {
+
+      setLoading(true)
+
+      setError("")
+
+
+      const [
+        proposalData,
+        memoryData,
+      ] =
+        await Promise.all([
+          apiGet("/memory/proposals"),
+          apiGet("/memory"),
+        ])
 
 
       setProposals(
@@ -51,316 +77,467 @@ function Memory(){
       )
 
 
-
-
-
-      const memoryResponse =
-        await fetch(
-          `${API_URL}/memory`
-        )
-
-
-      const memoryData =
-        await memoryResponse.json()
-
-
-
       setMemories(
         memoryData.memories || []
       )
 
-
-    }
-
-
-    catch(error){
-
+    } catch(loadError) {
 
       console.error(
         "Memory loading error:",
-        error
+        loadError
       )
 
+      setError(
+        loadError.message ||
+        "Muistin lataaminen epäonnistui."
+      )
+
+    } finally {
+
+      setLoading(false)
+
+    }
+
+  }
+
+
+
+
+  useEffect(() => {
+
+    loadMemory()
+
+  }, [])
+
+
+
+
+  async function approve(id) {
+
+    try {
+
+      setError("")
+
+      await apiPost(
+        `/memory/proposals/${id}/approve`,
+        {}
+      )
+
+      await loadMemory()
+
+    } catch(approveError) {
+
+      console.error(
+        "Memory approve error:",
+        approveError
+      )
+
+      setError(
+        approveError.message ||
+        "Muistiehdotuksen hyväksyminen epäonnistui."
+      )
+
+    }
+
+  }
+
+
+
+
+  async function reject(id) {
+
+    try {
+
+      setError("")
+
+      await apiPost(
+        `/memory/proposals/${id}/reject`,
+        {}
+      )
+
+      await loadMemory()
+
+    } catch(rejectError) {
+
+      console.error(
+        "Memory reject error:",
+        rejectError
+      )
+
+      setError(
+        rejectError.message ||
+        "Muistiehdotuksen hylkääminen epäonnistui."
+      )
+
+    }
+
+  }
+
+
+
+
+  async function deleteMemory(id) {
+
+    const shouldDelete =
+      window.confirm(
+        "Poistetaanko tämä muisto?"
+      )
+
+
+    if(!shouldDelete) {
+
+      return
 
     }
 
 
+    try {
+
+      setError("")
+
+      await apiDelete(
+        `/memory/${id}`
+      )
+
+
+      setMemories(
+        current =>
+          current.filter(
+            memory =>
+              memory.id !== id
+          )
+      )
+
+    } catch(deleteError) {
+
+      console.error(
+        "Memory delete error:",
+        deleteError
+      )
+
+      setError(
+        deleteError.message ||
+        "Muiston poistaminen epäonnistui."
+      )
+
+    }
+
   }
 
 
 
 
+  const categories =
+    useMemo(
+      () => [
 
+        "all",
 
-  useEffect(()=>{
+        ...new Set(
+          memories
+            .map(
+              memory =>
+                memory.category
+            )
+            .filter(Boolean)
+        ),
 
-
-    loadMemory()
-
-
-  },[])
-
-
-
-
-
-
-
-
-  async function approve(id){
-
-
-    await fetch(
-
-      `${API_URL}/memory/proposals/${id}/approve`,
-
-      {
-        method:"POST",
-      }
-
+      ],
+      [memories]
     )
 
 
-    loadMemory()
-
-  }
 
 
+  const filteredMemories =
+    useMemo(
+      () =>
+
+        memories.filter(
+          memory => {
+
+            const query =
+              search.trim().toLowerCase()
 
 
+            const matchesSearch =
+
+              !query ||
+
+              [
+                memory.key,
+                memory.content,
+                memory.category,
+              ]
+                .join(" ")
+                .toLowerCase()
+                .includes(query)
 
 
+            const matchesCategory =
+
+              category === "all" ||
+              memory.category === category
 
 
-  async function reject(id){
+            return (
+              matchesSearch &&
+              matchesCategory
+            )
 
+          }
+        ),
 
-    await fetch(
-
-      `${API_URL}/memory/proposals/${id}/reject`,
-
-      {
-        method:"POST",
-      }
-
+      [
+        memories,
+        search,
+        category,
+      ]
     )
 
 
-    loadMemory()
-
-  }
 
 
+  const stats =
+    useMemo(
+      () => {
+
+        const averageImportance =
+          memories.length > 0
+            ?
+            Math.round(
+              (
+                memories.reduce(
+                  (total, memory) =>
+                    total + (memory.importance || 0),
+                  0
+                ) /
+                memories.length
+              ) * 10
+            ) / 10
+            :
+            0
 
 
+        return {
+
+          total:
+            memories.length,
+
+          pending:
+            proposals.length,
+
+          categories:
+            categories.filter(
+              item => item !== "all"
+            ).length,
+
+          averageImportance,
+
+        }
+
+      },
+      [
+        memories,
+        proposals,
+        categories,
+      ]
+    )
 
 
 
 
   return (
 
-    <div
-      className="
-        space-y-8
-      "
-    >
+    <div className="space-y-8">
 
 
       <header>
 
-        <p
-          className="
-            text-sm
-            uppercase
-            tracking-widest
-            text-amber-500
-          "
-        >
-
-          AI Memory System
-
-        </p>
-
-
-        <h1
-          className="
-            mt-2
-            text-4xl
-            font-bold
-          "
-        >
-
+        <h1 className="page-title">
           🧠 Memory
-
         </h1>
 
 
-        <p
-          className="
-            mt-3
-            text-neutral-400
-          "
-        >
-
-          Spacemonkeyn pitkäaikainen muisti.
-
+        <p className="page-description">
+          Tekoälyn pitkäaikainen muisti. Hyväksy tai hylkää
+          ehdotukset, ja hallitse jo hyväksyttyjä muistoja.
         </p>
-
 
       </header>
 
 
 
 
+      <section
+        className="
+          grid
+          grid-cols-2
+          lg:grid-cols-4
+          gap-4
+        "
+      >
+
+        <Stat
+          label="Muistoja"
+          value={stats.total}
+        />
+
+        <Stat
+          label="Odottavia ehdotuksia"
+          value={stats.pending}
+        />
+
+        <Stat
+          label="Kategorioita"
+          value={stats.categories}
+        />
+
+        <Stat
+          label="Keskimääräinen tärkeys"
+          value={stats.averageImportance}
+        />
+
+      </section>
+
+
+
+
+      {
+        error && (
+
+          <div className="panel text-red-400">
+            {error}
+          </div>
+
+        )
+      }
+
 
 
 
       <section>
 
-        <h2
-          className="
-            mb-4
-            text-2xl
-            font-bold
-          "
-        >
-
-          Pending Proposals
-
+        <h2 className="mb-4 text-lg font-semibold">
+          Odottavat ehdotukset
         </h2>
 
 
+        {
+          loading
 
+          ?
 
-        <div
-          className="
-            space-y-4
-          "
-        >
+          (
 
+            <div className="panel p-6">
+              Ladataan...
+            </div>
 
-          {
-            proposals.length === 0 && (
+          )
 
-              <p
-                className="
-                  text-neutral-500
-                "
-              >
+          :
 
-                Ei odottavia muistiehdotuksia.
+          proposals.length === 0
 
-              </p>
+          ?
 
-            )
-          }
+          (
 
+            <div className="panel p-6 text-sm text-[var(--wood-muted)]">
+              Ei odottavia muistiehdotuksia.
+            </div>
 
+          )
 
+          :
 
+          (
 
+            <div className="space-y-4">
 
-          {
-            proposals.map(
+              {
+                proposals.map(
+                  proposal => (
 
-              proposal => (
-
-                <article
-
-                  key={proposal.id}
-
-                  className="
-                    rounded-2xl
-                    border
-                    border-neutral-800
-                    bg-neutral-900
-                    p-5
-                  "
-
-                >
-
-                  <p
-                    className="
-                      text-white
-                    "
-                  >
-
-                    {proposal.content}
-
-                  </p>
-
-
-
-                  <div
-                    className="
-                      mt-4
-                      flex
-                      gap-3
-                    "
-                  >
-
-
-                    <button
-
-                      onClick={() =>
-                        approve(
-                          proposal.id
-                        )
-                      }
-
-                      className="
-                        rounded-xl
-                        bg-green-500
-                        px-4
-                        py-2
-                        text-black
-                      "
-
+                    <article
+                      key={proposal.id}
+                      className="card p-5"
                     >
 
-                      Hyväksy
-
-                    </button>
-
-
+                      <p>
+                        {proposal.content}
+                      </p>
 
 
-                    <button
+                      <div className="mt-3 flex flex-wrap gap-2">
 
-                      onClick={() =>
-                        reject(
-                          proposal.id
-                        )
-                      }
+                        {
+                          proposal.category && (
 
-                      className="
-                        rounded-xl
-                        border
-                        border-red-500
-                        px-4
-                        py-2
-                        text-red-400
-                      "
+                            <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
+                              {proposal.category}
+                            </span>
 
-                    >
-
-                      Hylkää
-
-                    </button>
+                          )
+                        }
 
 
-                  </div>
+                        <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
+                          Tärkeys: {proposal.importance}
+                        </span>
+
+                      </div>
 
 
-                </article>
 
-              )
+                      <div className="mt-4 flex gap-3">
 
-            )
-          }
+                        <button
+
+                          type="button"
+
+                          onClick={() =>
+                            approve(proposal.id)
+                          }
+
+                          className="wb-button"
+
+                        >
+                          Hyväksy
+                        </button>
 
 
-        </div>
+                        <button
+
+                          type="button"
+
+                          onClick={() =>
+                            reject(proposal.id)
+                          }
+
+                          className="text-sm text-red-400 hover:text-red-300"
+
+                        >
+                          Hylkää
+                        </button>
+
+
+                      </div>
+
+
+                    </article>
+
+                  )
+                )
+              }
+
+            </div>
+
+          )
+
+        }
 
 
       </section>
@@ -368,75 +545,226 @@ function Memory(){
 
 
 
+      <section
+        className="
+          flex
+          flex-col
+          gap-3
+          md:flex-row
+        "
+      >
 
+        <input
+
+          className="wb-input"
+
+          placeholder="Hae muistoista..."
+
+          value={search}
+
+          onChange={
+            e =>
+              setSearch(e.target.value)
+          }
+
+        />
+
+
+        <select
+
+          className="wb-input md:w-64"
+
+          value={category}
+
+          onChange={
+            e =>
+              setCategory(e.target.value)
+          }
+
+        >
+
+          {
+            categories.map(
+              item => (
+
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {
+                    item === "all"
+                    ?
+                    "Kaikki kategoriat"
+                    :
+                    item
+                  }
+                </option>
+
+              )
+            )
+          }
+
+        </select>
+
+
+      </section>
 
 
 
 
       <section>
 
-
-        <h2
-          className="
-            mb-4
-            text-2xl
-            font-bold
-          "
-        >
-
-          Approved Memories
-
+        <h2 className="mb-4 text-lg font-semibold">
+          Hyväksytyt muistot
         </h2>
 
 
+        {
+          loading
 
-        <div
-          className="
-            space-y-4
-          "
-        >
+          ?
+
+          (
+
+            <div className="panel p-6">
+              Ladataan...
+            </div>
+
+          )
+
+          :
+
+          filteredMemories.length === 0
+
+          ?
+
+          (
+
+            <div className="panel p-6 text-sm text-[var(--wood-muted)]">
+              Ei muistoja hakuehdoilla.
+            </div>
+
+          )
+
+          :
+
+          (
+
+            <div
+              className="
+                grid
+                grid-cols-1
+                xl:grid-cols-2
+                gap-5
+              "
+            >
+
+              {
+                filteredMemories.map(
+                  memory => (
+
+                    <article
+                      key={memory.id}
+                      className="card p-5"
+                    >
+
+                      <div className="flex items-start justify-between gap-4">
+
+                        <p className="flex-1">
+                          {memory.content}
+                        </p>
 
 
-          {
-            memories.map(
+                        <button
 
-              memory => (
+                          type="button"
 
-                <article
+                          onClick={() =>
+                            deleteMemory(memory.id)
+                          }
 
-                  key={memory.id}
+                          className="shrink-0 text-sm text-red-400 hover:text-red-300"
 
-                  className="
-                    rounded-2xl
-                    border
-                    border-neutral-800
-                    bg-neutral-900
-                    p-5
-                  "
+                        >
+                          Poista
+                        </button>
 
-                >
-
-                  <p>
-
-                    {memory.content}
-
-                  </p>
+                      </div>
 
 
-                </article>
 
-              )
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
 
-            )
-          }
+                        {
+                          memory.category && (
+
+                            <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
+                              {memory.category}
+                            </span>
+
+                          )
+                        }
 
 
-        </div>
+                        <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
+                          Tärkeys: {memory.importance}
+                        </span>
+
+
+                        {
+                          memory.key && (
+
+                            <span className="text-xs text-[var(--wood-muted)]">
+                              {memory.key}
+                            </span>
+
+                          )
+                        }
+
+                      </div>
+
+
+                    </article>
+
+                  )
+                )
+              }
+
+            </div>
+
+          )
+
+        }
 
 
       </section>
 
 
+    </div>
+
+  )
+
+}
+
+
+
+
+function Stat({
+  label,
+  value,
+}) {
+
+  return (
+
+    <div className="card p-5">
+
+      <p className="text-sm text-[var(--wood-muted)]">
+        {label}
+      </p>
+
+      <p className="mt-3 text-3xl font-semibold">
+        {value}
+      </p>
 
     </div>
 
