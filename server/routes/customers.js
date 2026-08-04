@@ -56,6 +56,92 @@ export default function createCustomersRouter(
 
 
 
+  router.get(
+    "/customers/:id",
+    async (req, res) => {
+
+      try {
+
+        const customerId =
+          Number(
+            req.params.id,
+          )
+
+
+
+        if (
+          !Number.isInteger(customerId) ||
+          customerId <= 0
+        ) {
+
+          return res.status(400).json({
+
+            error:
+              "Virheellinen asiakkaan ID",
+
+          })
+
+        }
+
+
+
+        const customer =
+          await prisma.customer.findUnique({
+
+            where: {
+
+              id:
+                customerId,
+
+            },
+
+            include: {
+              projects: true,
+            },
+
+          })
+
+
+
+        if (!customer) {
+
+          return res.status(404).json({
+
+            error:
+              "Asiakasta ei löytynyt.",
+
+          })
+
+        }
+
+
+
+        res.json(customer)
+
+
+      } catch (error) {
+
+        console.error(error)
+
+
+        res.status(500).json({
+
+          error:
+            error.message ||
+            "Asiakkaan lataaminen epäonnistui",
+
+        })
+
+      }
+
+    },
+  )
+
+
+
+
+
+
   router.post(
     "/customers",
     async (req, res) => {
@@ -161,6 +247,33 @@ export default function createCustomersRouter(
 
             error:
               "Virheellinen asiakkaan ID",
+
+          })
+
+        }
+
+
+
+        const existingCustomer =
+          await prisma.customer.findUnique({
+
+            where: {
+
+              id:
+                customerId,
+
+            },
+
+          })
+
+
+
+        if (!existingCustomer) {
+
+          return res.status(404).json({
+
+            error:
+              "Asiakasta ei löytynyt.",
 
           })
 
@@ -309,6 +422,68 @@ export default function createCustomersRouter(
           Number(
             req.params.id,
           )
+
+
+
+        if (
+          !Number.isInteger(customerId) ||
+          customerId <= 0
+        ) {
+
+          return res.status(400).json({
+
+            error:
+              "Virheellinen asiakkaan ID",
+
+          })
+
+        }
+
+
+
+        const existingCustomer =
+          await prisma.customer.findUnique({
+
+            where: {
+
+              id:
+                customerId,
+
+            },
+
+            include: {
+              projects: true,
+            },
+
+          })
+
+
+
+        if (!existingCustomer) {
+
+          return res.status(404).json({
+
+            error:
+              "Asiakasta ei löytynyt.",
+
+          })
+
+        }
+
+
+
+        if (
+          existingCustomer.projects.length > 0
+        ) {
+
+          return res.status(409).json({
+
+            error:
+              "Asiakkaalla on projekteja. Poista tai siirrä projektit ensin.",
+
+          })
+
+        }
 
 
 
