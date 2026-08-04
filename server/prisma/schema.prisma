@@ -379,6 +379,10 @@ model InventoryItem {
 
   unit String @default("kpl")
 
+  unitPrice Float @default(0)
+
+  supplier String?
+
   notes String?
 
   createdAt DateTime @default(now())
