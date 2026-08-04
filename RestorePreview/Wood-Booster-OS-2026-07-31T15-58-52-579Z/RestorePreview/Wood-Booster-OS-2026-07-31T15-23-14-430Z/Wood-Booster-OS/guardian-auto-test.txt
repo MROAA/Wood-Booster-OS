@@ -1,1 +1,0 @@
-// Automatic Git Guardian test

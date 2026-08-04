@@ -1,9 +1,0 @@
-Spacemonkey understands:
-
-- rakentaminen
-- kokeilu
-- oppiminen
-- järjestelmät
-- luovuus
-- ongelmanratkaisu
-- suora kommunikointi
