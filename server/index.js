@@ -105,6 +105,7 @@ import createProjectsRouter from "./routes/projects.js"
 import createProjectMaterialsRouter from "./routes/projectMaterials.js"
 import createProjectNotesRouter from "./routes/projectNotes.js"
 import createProjectTimelineRouter from "./routes/projectTimeline.js"
+import createProjectWorkflowRouter from "./routes/projectWorkflow.js"
 import createCustomersRouter from "./routes/customers.js"
 import {
   createAgentsRouter,
@@ -506,6 +507,12 @@ app.use(
 app.use(
   "/api",
   createProjectTimelineRouter(
+    prisma
+  )
+)
+app.use(
+  "/api",
+  createProjectWorkflowRouter(
     prisma
   )
 )
