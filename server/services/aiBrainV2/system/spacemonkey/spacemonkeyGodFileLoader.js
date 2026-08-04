@@ -7,7 +7,18 @@ import path from "path"
 
 const SPACEMONKEY_ROOT =
 
-  "/home/marc/Wood-Booster-AI/Wood-Booster-OS/Spacemonkey"
+  "/home/marc/Wood-Booster-AI/Wood-Booster-OS/server/services/aiBrainV2/system/spacemonkey/godfiles"
+
+
+
+const GODFILE_MANIFEST =
+  [
+    "01_IDENTITY_GODFILE.md",
+    "02_PERSONALITY_GODFILE.md",
+    "03_VALUES_GODFILE.md",
+    "04_COMMUNICATION_GODFILE.md",
+    "05_DECISION_GODFILE.md"
+  ]
 
 
 
@@ -98,12 +109,7 @@ async function loadGodFiles({
 
 
   const files =
-
-    await fs.readdir(
-      godfileDirectory
-    )
-
-
+    GODFILE_MANIFEST
 
 
 
@@ -149,18 +155,6 @@ async function loadGodFiles({
 
     if(
       !stat.isFile()
-    ){
-
-      continue
-
-    }
-
-
-
-
-
-    if(
-      !file.endsWith(".txt")
     ){
 
       continue
