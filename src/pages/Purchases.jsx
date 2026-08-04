@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
 
-const PURCHASES_API =
-  "http://localhost:3001/api/purchases"
-
-const INVENTORY_API =
-  "http://localhost:3001/api/inventory"
+import {
+  apiGet,
+  apiPost,
+  apiPut,
+  apiDelete,
+} from "../api/client"
 
 const emptyLine = {
   inventoryItemId: "",
@@ -33,31 +34,11 @@ function Purchases() {
       setLoading(true)
       setError("")
 
-      const [purchasesResponse, inventoryResponse] =
+      const [purchasesData, inventoryData] =
         await Promise.all([
-          fetch(PURCHASES_API),
-          fetch(INVENTORY_API),
+          apiGet("/purchases"),
+          apiGet("/inventory"),
         ])
-
-      const purchasesData =
-        await purchasesResponse.json()
-
-      const inventoryData =
-        await inventoryResponse.json()
-
-      if (!purchasesResponse.ok) {
-        throw new Error(
-          purchasesData.error ||
-            "Ostotilausten lataaminen epäonnistui",
-        )
-      }
-
-      if (!inventoryResponse.ok) {
-        throw new Error(
-          inventoryData.error ||
-            "Varaston lataaminen epäonnistui",
-        )
-      }
 
       setPurchases(
         Array.isArray(purchasesData)
@@ -244,28 +225,10 @@ function Purchases() {
       setSaving(true)
       setError("")
 
-      const response = await fetch(
-        PURCHASES_API,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            supplier: cleanSupplier,
-            items: cleanItems,
-          }),
-        },
-      )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            "Ostotilauksen luominen epäonnistui",
-        )
-      }
+      const data = await apiPost("/purchases", {
+        supplier: cleanSupplier,
+        items: cleanItems,
+      })
 
       setPurchases((current) => [
         data,
@@ -286,27 +249,10 @@ function Purchases() {
     try {
       setError("")
 
-      const response = await fetch(
-        `${PURCHASES_API}/${purchase.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status,
-          }),
-        },
+      const data = await apiPut(
+        `/purchases/${purchase.id}`,
+        { status },
       )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            "Tilauksen päivittäminen epäonnistui",
-        )
-      }
 
       replacePurchase(data)
     } catch (updateError) {
@@ -327,38 +273,20 @@ function Purchases() {
     try {
       setError("")
 
-      const response = await fetch(
-        `${PURCHASES_API}/${purchase.id}/receive`,
-        {
-          method: "POST",
-        },
+      const data = await apiPost(
+        `/purchases/${purchase.id}/receive`,
       )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            "Tilauksen vastaanottaminen epäonnistui",
-        )
-      }
 
       replacePurchase(data)
 
-      const inventoryResponse = await fetch(
-        INVENTORY_API,
-      )
-
       const inventoryData =
-        await inventoryResponse.json()
+        await apiGet("/inventory")
 
-      if (inventoryResponse.ok) {
-        setInventory(
-          Array.isArray(inventoryData)
-            ? inventoryData
-            : [],
-        )
-      }
+      setInventory(
+        Array.isArray(inventoryData)
+          ? inventoryData
+          : [],
+      )
     } catch (receiveError) {
       console.error(receiveError)
       setError(receiveError.message)
@@ -377,21 +305,9 @@ function Purchases() {
     try {
       setError("")
 
-      const response = await fetch(
-        `${PURCHASES_API}/${purchase.id}`,
-        {
-          method: "DELETE",
-        },
+      await apiDelete(
+        `/purchases/${purchase.id}`,
       )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            "Ostotilauksen poistaminen epäonnistui",
-        )
-      }
 
       setPurchases((current) =>
         current.filter(
@@ -415,198 +331,179 @@ function Purchases() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <header>
-          <p className="text-xs uppercase tracking-[0.35em] text-amber-500">
-            Wood-Booster Purchasing
-          </p>
+    <div className="space-y-8">
+      <section>
+        <h1 className="page-title">
+          Ostot
+        </h1>
 
-          <h1 className="mt-3 text-4xl font-bold md:text-5xl">
-            Ostot
-          </h1>
+        <p className="page-description">
+          Luo ostotilauksia, seuraa niiden tilaa ja
+          vastaanota materiaalit suoraan varastoon.
+        </p>
+      </section>
 
-          <p className="mt-4 max-w-2xl text-neutral-400">
-            Luo ostotilauksia, seuraa niiden
-            tilaa ja vastaanota materiaalit suoraan
-            varastoon.
-          </p>
-        </header>
+      {error && (
+        <div className="panel text-red-400">
+          {error}
+        </div>
+      )}
 
-        {error && (
-          <div className="mt-6 rounded-xl border border-red-900/60 bg-red-950/30 px-4 py-3 text-red-300">
-            {error}
-          </div>
-        )}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <SummaryCard
+          label="Avoimet tilaukset"
+          value={summary.openCount}
+          detail="Luonnos- ja tilatut tilaukset"
+        />
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <SummaryCard
-            label="Avoimet tilaukset"
-            value={summary.openCount}
-            detail="Luonnos- ja tilatut tilaukset"
-          />
+        <SummaryCard
+          label="Vastaanotetut"
+          value={summary.receivedCount}
+          detail="Varastoon lisätyt tilaukset"
+        />
 
-          <SummaryCard
-            label="Vastaanotetut"
-            value={summary.receivedCount}
-            detail="Varastoon lisätyt tilaukset"
-          />
+        <SummaryCard
+          label="Ostojen arvo"
+          value={formatCurrency(
+            summary.totalValue,
+          )}
+          detail="Kaikki ostotilaukset yhteensä"
+          highlight
+        />
+      </section>
 
-          <SummaryCard
-            label="Ostojen arvo"
-            value={formatCurrency(
-              summary.totalValue,
-            )}
-            detail="Kaikki ostotilaukset yhteensä"
-            highlight
-          />
-        </section>
+      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.45fr]">
+        <section className="panel p-6">
+          <h2 className="text-lg font-semibold">
+            Luo ostotilaus
+          </h2>
 
-        <div className="mt-8 grid gap-6 xl:grid-cols-[0.95fr_1.45fr]">
-          <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">
-              New purchase order
-            </p>
-
-            <h2 className="mt-2 text-2xl font-semibold">
-              Luo ostotilaus
-            </h2>
-
-            <form
-              onSubmit={handleCreatePurchase}
-              className="mt-6 space-y-5"
-            >
-              <label className="block">
-                <span className="text-sm text-neutral-300">
-                  Toimittaja
-                </span>
-
-                <input
-                  value={supplier}
-                  onChange={(event) =>
-                    setSupplier(event.target.value)
-                  }
-                  placeholder="Esimerkiksi Puukeskus"
-                  className={inputClasses}
-                />
-              </label>
-
-              <div className="space-y-4">
-                {lines.map((line, index) => (
-                  <OrderLine
-                    key={index}
-                    line={line}
-                    index={index}
-                    inventory={inventory}
-                    onChange={updateLine}
-                    onSelectItem={
-                      selectInventoryItem
-                    }
-                    onRemove={removeLine}
-                  />
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={addLine}
-                className="w-full rounded-xl border border-neutral-700 px-4 py-3 text-neutral-300 transition hover:border-amber-500 hover:text-amber-400"
-              >
-                + Lisää tuoterivi
-              </button>
-
-              <div className="rounded-xl bg-neutral-950 p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-neutral-400">
-                    Tilauksen yhteensä
-                  </span>
-
-                  <span className="text-2xl font-bold text-amber-400">
-                    {formatCurrency(orderTotal)}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {saving
-                  ? "Tallennetaan..."
-                  : "Luo ostotilaus"}
-              </button>
-            </form>
-          </section>
-
-          <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-neutral-500">
-                  Purchase orders
-                </p>
-
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Ostotilaukset
-                </h2>
-              </div>
-
-              <span className="rounded-full bg-amber-500/10 px-3 py-1 text-sm text-amber-400">
-                {purchases.length} tilausta
-              </span>
-            </div>
-
-            <label className="mt-6 block">
-              <span className="text-sm text-neutral-300">
-                Hae tilauksista
+          <form
+            onSubmit={handleCreatePurchase}
+            className="mt-6 space-y-5"
+          >
+            <label className="block">
+              <span className="text-sm text-[var(--wood-muted)]">
+                Toimittaja
               </span>
 
               <input
-                value={search}
+                className="mt-2 wb-input"
+                value={supplier}
                 onChange={(event) =>
-                  setSearch(event.target.value)
+                  setSupplier(event.target.value)
                 }
-                placeholder="Hae toimittajalla, tilalla tai tuotteella..."
-                className={inputClasses}
+                placeholder="Esimerkiksi Puukeskus"
               />
             </label>
 
-            {loading ? (
-              <p className="mt-6 text-neutral-400">
-                Ladataan ostotilauksia...
+            <div className="space-y-4">
+              {lines.map((line, index) => (
+                <OrderLine
+                  key={index}
+                  line={line}
+                  index={index}
+                  inventory={inventory}
+                  onChange={updateLine}
+                  onSelectItem={
+                    selectInventoryItem
+                  }
+                  onRemove={removeLine}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={addLine}
+              className="w-full rounded-xl border border-[var(--wood-border)] px-4 py-3 text-[var(--wood-muted)] transition hover:border-[var(--wood-accent)] hover:text-[var(--wood-accent)]"
+            >
+              + Lisää tuoterivi
+            </button>
+
+            <div className="card p-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[var(--wood-muted)]">
+                  Tilauksen yhteensä
+                </span>
+
+                <span className="text-2xl font-bold text-[var(--wood-accent)]">
+                  {formatCurrency(orderTotal)}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="wb-button w-full disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving
+                ? "Tallennetaan..."
+                : "Luo ostotilaus"}
+            </button>
+          </form>
+        </section>
+
+        <section className="panel p-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-lg font-semibold">
+              Ostotilaukset
+            </h2>
+
+            <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-sm text-[var(--wood-accent)]">
+              {purchases.length} tilausta
+            </span>
+          </div>
+
+          <label className="mt-6 block">
+            <span className="text-sm text-[var(--wood-muted)]">
+              Hae tilauksista
+            </span>
+
+            <input
+              className="mt-2 wb-input"
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
+              placeholder="Hae toimittajalla, tilalla tai tuotteella..."
+            />
+          </label>
+
+          {loading ? (
+            <p className="mt-6 text-[var(--wood-muted)]">
+              Ladataan ostotilauksia...
+            </p>
+          ) : filteredPurchases.length === 0 ? (
+            <div className="mt-6 card p-10 text-center">
+              <h3 className="text-lg font-semibold">
+                Ei ostotilauksia
+              </h3>
+
+              <p className="mt-2 text-[var(--wood-muted)]">
+                Luo ensimmäinen ostotilaus
+                vasemmalla olevalla lomakkeella.
               </p>
-            ) : filteredPurchases.length === 0 ? (
-              <div className="mt-6 rounded-xl border border-dashed border-neutral-700 p-10 text-center">
-                <p className="text-4xl">🛒</p>
-
-                <h3 className="mt-4 text-lg font-semibold">
-                  Ei ostotilauksia
-                </h3>
-
-                <p className="mt-2 text-neutral-400">
-                  Luo ensimmäinen ostotilaus
-                  vasemmalla olevalla lomakkeella.
-                </p>
-              </div>
-            ) : (
-              <div className="mt-6 space-y-4">
-                {filteredPurchases.map(
-                  (purchase) => (
-                    <PurchaseCard
-                      key={purchase.id}
-                      purchase={purchase}
-                      onStatusChange={updateStatus}
-                      onReceive={receivePurchase}
-                      onDelete={deletePurchase}
-                    />
-                  ),
-                )}
-              </div>
-            )}
-          </section>
-        </div>
+            </div>
+          ) : (
+            <div className="mt-6 space-y-4">
+              {filteredPurchases.map(
+                (purchase) => (
+                  <PurchaseCard
+                    key={purchase.id}
+                    purchase={purchase}
+                    onStatusChange={updateStatus}
+                    onReceive={receivePurchase}
+                    onDelete={deletePurchase}
+                  />
+                ),
+              )}
+            </div>
+          )}
+        </section>
       </div>
-    </main>
+    </div>
   )
 }
 
@@ -629,10 +526,10 @@ function OrderLine({
     toNumber(line.unitPrice)
 
   return (
-    <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+    <div className="card p-4">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block md:col-span-2">
-          <span className="text-sm text-neutral-300">
+          <span className="text-sm text-[var(--wood-muted)]">
             Varastotuote
           </span>
 
@@ -644,7 +541,7 @@ function OrderLine({
                 event.target.value,
               )
             }
-            className={inputClasses}
+            className="mt-2 wb-input"
           >
             <option value="">
               Valitse tuote
@@ -664,7 +561,7 @@ function OrderLine({
         </label>
 
         <label className="block">
-          <span className="text-sm text-neutral-300">
+          <span className="text-sm text-[var(--wood-muted)]">
             Määrä
           </span>
 
@@ -680,12 +577,12 @@ function OrderLine({
                 event.target.value,
               )
             }
-            className={inputClasses}
+            className="mt-2 wb-input"
           />
         </label>
 
         <label className="block">
-          <span className="text-sm text-neutral-300">
+          <span className="text-sm text-[var(--wood-muted)]">
             Yksikköhinta €
           </span>
 
@@ -701,20 +598,20 @@ function OrderLine({
                 event.target.value,
               )
             }
-            className={inputClasses}
+            className="mt-2 wb-input"
           />
         </label>
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-[var(--wood-muted)]">
             {selectedItem
               ? `Yksikkö: ${selectedItem.unit}`
               : "Valitse tuote"}
           </p>
 
-          <p className="mt-1 font-semibold text-amber-400">
+          <p className="mt-1 font-semibold text-[var(--wood-accent)]">
             {formatCurrency(rowTotal)}
           </p>
         </div>
@@ -722,7 +619,7 @@ function OrderLine({
         <button
           type="button"
           onClick={() => onRemove(index)}
-          className="rounded-lg px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10"
+          className="text-sm text-red-400 hover:text-red-300"
         >
           Poista rivi
         </button>
@@ -742,7 +639,7 @@ function PurchaseCard({
     : []
 
   return (
-    <article className="rounded-xl border border-neutral-800 bg-neutral-950 p-5">
+    <article className="card p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -755,16 +652,16 @@ function PurchaseCard({
             />
           </div>
 
-          <p className="mt-2 text-neutral-300">
+          <p className="mt-2">
             {purchase.supplier}
           </p>
 
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-[var(--wood-muted)]">
             {formatDate(purchase.createdAt)}
           </p>
         </div>
 
-        <p className="text-2xl font-bold text-amber-400">
+        <p className="text-2xl font-bold text-[var(--wood-accent)]">
           {formatCurrency(purchase.totalPrice)}
         </p>
       </div>
@@ -773,7 +670,7 @@ function PurchaseCard({
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between gap-4 rounded-lg bg-neutral-900 px-4 py-3"
+            className="flex items-center justify-between gap-4 rounded-lg bg-[var(--wood-panel)] px-4 py-3"
           >
             <div className="min-w-0">
               <p className="truncate font-medium">
@@ -781,7 +678,7 @@ function PurchaseCard({
                   "Tuntematon tuote"}
               </p>
 
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-1 text-sm text-[var(--wood-muted)]">
                 {formatNumber(item.quantity)}{" "}
                 {item.inventoryItem?.unit || ""}
                 {" × "}
@@ -799,7 +696,7 @@ function PurchaseCard({
         ))}
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-3">
         {purchase.status === "Luonnos" && (
           <button
             type="button"
@@ -809,7 +706,7 @@ function PurchaseCard({
                 "Tilattu",
               )
             }
-            className="rounded-lg border border-amber-500 px-3 py-2 text-sm text-amber-400 transition hover:bg-amber-500/10"
+            className="text-sm text-[var(--wood-accent)] hover:opacity-80"
           >
             Merkitse tilatuksi
           </button>
@@ -822,7 +719,7 @@ function PurchaseCard({
               onClick={() =>
                 onReceive(purchase)
               }
-              className="rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-green-500"
+              className="wb-button"
             >
               Vastaanota varastoon
             </button>
@@ -837,7 +734,7 @@ function PurchaseCard({
                 "Peruttu",
               )
             }
-            className="rounded-lg border border-neutral-700 px-3 py-2 text-sm text-neutral-400 transition hover:bg-neutral-800"
+            className="text-sm text-[var(--wood-muted)] hover:opacity-80"
           >
             Peru tilaus
           </button>
@@ -849,7 +746,7 @@ function PurchaseCard({
             onClick={() =>
               onDelete(purchase)
             }
-            className="rounded-lg px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10"
+            className="text-sm text-red-400 hover:text-red-300"
           >
             Poista
           </button>
@@ -862,9 +759,9 @@ function PurchaseCard({
 function StatusBadge({ status }) {
   const classes = {
     Luonnos:
-      "bg-neutral-800 text-neutral-300",
+      "bg-[var(--wood-card)] text-[var(--wood-muted)]",
     Tilattu:
-      "bg-amber-500/10 text-amber-400",
+      "bg-[var(--wood-accent)]/10 text-[var(--wood-accent)]",
     Vastaanotettu:
       "bg-green-500/10 text-green-400",
     Peruttu:
@@ -875,7 +772,7 @@ function StatusBadge({ status }) {
     <span
       className={`rounded-full px-3 py-1 text-xs font-medium ${
         classes[status] ||
-        "bg-neutral-800 text-neutral-300"
+        "bg-[var(--wood-card)] text-[var(--wood-muted)]"
       }`}
     >
       {status || "Tuntematon"}
@@ -890,22 +787,22 @@ function SummaryCard({
   highlight = false,
 }) {
   return (
-    <article className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-      <p className="text-sm text-neutral-400">
+    <article className="card p-5">
+      <p className="text-sm text-[var(--wood-muted)]">
         {label}
       </p>
 
       <p
         className={`mt-3 text-3xl font-bold ${
           highlight
-            ? "text-amber-400"
-            : "text-neutral-100"
+            ? "text-[var(--wood-accent)]"
+            : ""
         }`}
       >
         {value}
       </p>
 
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-[var(--wood-muted)]">
         {detail}
       </p>
     </article>
@@ -945,8 +842,5 @@ function formatDate(value) {
     timeStyle: "short",
   }).format(date)
 }
-
-const inputClasses =
-  "mt-2 w-full rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none transition placeholder:text-neutral-600 focus:border-amber-500"
 
 export default Purchases
