@@ -14,6 +14,7 @@ import Customers from "./pages/Customers"
 import CustomerDetails from "./pages/CustomerDetails"
 import Inventory from "./pages/Inventory"
 import Purchases from "./pages/Purchases"
+import Invoices from "./pages/Invoices"
 import Knowledge from "./pages/Knowledge"
 import KnowledgeDocumentDetails from "./pages/KnowledgeDocumentDetails"
 import Memory from "./pages/Memory"
@@ -98,6 +99,15 @@ function App() {
           path="/purchases"
           element={
             <Purchases />
+          }
+        />
+
+
+
+        <Route
+          path="/invoices"
+          element={
+            <Invoices />
           }
         />
 
