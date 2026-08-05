@@ -17,6 +17,26 @@
 }
 
 
+:root {
+
+  --wb-background: var(--wood-bg);
+  --wb-surface: var(--wood-panel);
+  --wb-panel: var(--wood-panel);
+  --wb-card: var(--wood-card);
+
+  --wb-grey-dark: var(--wood-border);
+  --wb-grey-light: var(--wood-muted);
+
+  --wb-text: var(--wood-text);
+  --wb-text-muted: var(--wood-muted);
+
+  --wb-copper: var(--wood-accent);
+  --wb-border: var(--wood-border);
+  --wb-accent: var(--wood-accent);
+
+}
+
+
 
 html,
 body,
