@@ -107,6 +107,7 @@ import createProjectNotesRouter from "./routes/projectNotes.js"
 import createProjectTimelineRouter from "./routes/projectTimeline.js"
 import createProjectWorkflowRouter from "./routes/projectWorkflow.js"
 import createProjectQuoteRouter from "./routes/projectQuote.js"
+import createBusinessSettingsRouter from "./routes/businessSettings.js"
 import createCustomersRouter from "./routes/customers.js"
 import {
   createAgentsRouter,
@@ -539,6 +540,15 @@ app.use(
 app.use(
   "/api",
   createFilesRouter(
+    prisma
+  )
+)
+
+
+
+app.use(
+  "/api",
+  createBusinessSettingsRouter(
     prisma
   )
 )
