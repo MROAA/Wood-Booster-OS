@@ -615,3 +615,47 @@ model GitSyncEvent {
   createdAt DateTime @default(now())
 
 }
+
+
+
+model BusinessSettings {
+
+  id Int @id @default(autoincrement())
+
+  companyName String?
+
+  streetAddress String?
+
+  postalCode String?
+
+  city String?
+
+  businessId String?
+
+  phone String?
+
+  email String?
+
+  website String?
+
+  iban String?
+
+  logoOriginalName String?
+
+  logoStoredName String?
+
+  logoMimeType String?
+
+  vatPercent Float @default(25.5)
+
+  defaultPaymentTerms String @default("14 pv netto")
+
+  defaultValidDays Int @default(14)
+
+  quoteNumberPrefix String @default("WB-Q")
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
