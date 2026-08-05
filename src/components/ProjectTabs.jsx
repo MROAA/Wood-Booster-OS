@@ -17,6 +17,7 @@ import GalleryTab from "./GalleryTab"
 import TimelineTab from "./TimelineTab"
 import WorkflowTab from "./WorkflowTab"
 import QuoteTab from "./QuoteTab"
+import InvoiceTab from "./InvoiceTab"
 
 import FilesTab from "./project/FilesTab"
 
@@ -144,6 +145,18 @@ const tabs = [
 
     icon:
       "💶",
+  },
+
+
+  {
+    id:
+      "invoice",
+
+    label:
+      "Lasku",
+
+    icon:
+      "🧾",
   },
 
 
@@ -715,6 +728,23 @@ function ProjectTabs({
 
             onProjectUpdated={
               onProjectUpdated
+            }
+
+          />
+
+        )
+
+
+
+
+      case "invoice":
+
+        return (
+
+          <InvoiceTab
+
+            project={
+              project
             }
 
           />

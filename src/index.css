@@ -281,14 +281,17 @@ h1,
   }
 
   #quote-print-area,
-  #quote-print-area * {
+  #quote-print-area *,
+  #invoice-print-area,
+  #invoice-print-area * {
 
     visibility:
       visible;
 
   }
 
-  #quote-print-area {
+  #quote-print-area,
+  #invoice-print-area {
 
     position:
       absolute;
@@ -314,7 +317,8 @@ h1,
 
   }
 
-  #quote-print-area {
+  #quote-print-area,
+  #invoice-print-area {
 
     --wood-bg: #ffffff;
     --wood-panel: #ffffff;

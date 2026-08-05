@@ -324,6 +324,12 @@ function ProjectDetails() {
         tab:"quote",
       },
 
+      {
+        type:"open_project_tab",
+        label:"Avaa lasku",
+        tab:"invoice",
+      },
+
     ])
 
 
