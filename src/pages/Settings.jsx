@@ -39,6 +39,9 @@ const emptyForm = {
   defaultValidDays: "14",
   quoteNumberPrefix: "WB-Q",
 
+  invoiceNumberPrefix: "WB-L",
+  defaultInvoiceDueDays: "14",
+
 }
 
 
@@ -209,6 +212,15 @@ function Settings() {
         settings.quoteNumberPrefix ||
         "WB-Q",
 
+      invoiceNumberPrefix:
+        settings.invoiceNumberPrefix ||
+        "WB-L",
+
+      defaultInvoiceDueDays:
+        String(
+          settings.defaultInvoiceDueDays ?? "14"
+        ),
+
     })
 
 
@@ -305,6 +317,12 @@ function Settings() {
 
             quoteNumberPrefix:
               form.quoteNumberPrefix,
+
+            invoiceNumberPrefix:
+              form.invoiceNumberPrefix,
+
+            defaultInvoiceDueDays:
+              Number(form.defaultInvoiceDueDays),
 
           }
         )
@@ -962,6 +980,73 @@ function Settings() {
                     name="quoteNumberPrefix"
 
                     value={form.quoteNumberPrefix}
+
+                    onChange={handleChange}
+
+                    className="mt-2 wb-input"
+
+                  />
+
+                </label>
+
+              </div>
+
+
+            </section>
+
+
+
+
+            <section className="panel space-y-5">
+
+              <h2 className="text-lg font-semibold">
+                Laskutuksen oletusarvot
+              </h2>
+
+
+              <div className="grid gap-4 md:grid-cols-2">
+
+                <label>
+
+                  <span className="text-sm text-[var(--wood-muted)]">
+                    Eräpäivä (päivää)
+                  </span>
+
+
+                  <input
+
+                    type="number"
+
+                    min="1"
+
+                    name="defaultInvoiceDueDays"
+
+                    value={form.defaultInvoiceDueDays}
+
+                    onChange={handleChange}
+
+                    className="mt-2 wb-input"
+
+                  />
+
+                </label>
+
+
+
+                <label>
+
+                  <span className="text-sm text-[var(--wood-muted)]">
+                    Laskunumeroinnin etuliite
+                  </span>
+
+
+                  <input
+
+                    type="text"
+
+                    name="invoiceNumberPrefix"
+
+                    value={form.invoiceNumberPrefix}
 
                     onChange={handleChange}
 
