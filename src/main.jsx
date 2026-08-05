@@ -22,6 +22,13 @@ import {
 import "./index.css"
 import "./styles/animations.css"
 
+import {
+  initTheme,
+} from "./services/theme"
+
+
+initTheme()
+
 
 
 

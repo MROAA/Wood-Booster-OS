@@ -37,6 +37,22 @@
 }
 
 
+:root[data-theme="light"] {
+
+  --wood-bg: #f6f1e9;
+  --wood-panel: #ffffff;
+  --wood-card: #fbf8f2;
+
+  --wood-border: #ddd2bf;
+
+  --wood-text: #2a2419;
+  --wood-muted: #766b58;
+
+  --wood-accent: #9c7a3c;
+
+}
+
+
 
 html,
 body,
