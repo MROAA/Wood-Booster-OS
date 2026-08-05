@@ -37,12 +37,28 @@ function shouldAdvanceToQuoteStatus(
 }
 
 
+async function getBusinessSettings(
+  prisma
+) {
+
+  return await prisma.businessSettings.findUnique({
+
+    where: {
+      id: 1,
+    },
+
+  })
+
+}
+
+
 function generateQuoteNumber(
-  quoteId
+  quoteId,
+  prefix
 ) {
 
   return (
-    "WB-Q" +
+    (prefix || "WB-Q") +
     String(quoteId).padStart(5, "0")
   )
 
@@ -50,7 +66,8 @@ function generateQuoteNumber(
 
 
 function parseQuoteScalars(
-  body
+  body,
+  businessSettings
 ) {
 
   const {
@@ -62,6 +79,15 @@ function parseQuoteScalars(
     customPrice,
   } =
     body || {}
+
+
+  const defaultValidDays =
+    businessSettings?.defaultValidDays ??
+    14
+
+  const defaultPaymentTerms =
+    businessSettings?.defaultPaymentTerms ||
+    "14 pv netto"
 
 
   const scalars = {}
@@ -77,7 +103,7 @@ function parseQuoteScalars(
       Number.isFinite(parsedValidDays) &&
       parsedValidDays >= 0
         ? Math.round(parsedValidDays)
-        : 14
+        : defaultValidDays
 
   }
 
@@ -86,7 +112,7 @@ function parseQuoteScalars(
 
     scalars.paymentTerms =
       String(paymentTerms || "").trim() ||
-      "14 pv netto"
+      defaultPaymentTerms
 
   }
 
@@ -334,9 +360,16 @@ export default function createProjectQuoteRouter(
         }
 
 
+        const businessSettings =
+          await getBusinessSettings(
+            prisma
+          )
+
+
         const scalars =
           parseQuoteScalars(
-            request.body
+            request.body,
+            businessSettings,
           )
 
 
@@ -381,6 +414,14 @@ export default function createProjectQuoteRouter(
                 quoteNumber:
                   "",
 
+                validDays:
+                  businessSettings?.defaultValidDays ??
+                  14,
+
+                paymentTerms:
+                  businessSettings?.defaultPaymentTerms ||
+                  "14 pv netto",
+
                 ...scalars,
 
               },
@@ -400,7 +441,8 @@ export default function createProjectQuoteRouter(
 
                 quoteNumber:
                   generateQuoteNumber(
-                    created.id
+                    created.id,
+                    businessSettings?.quoteNumberPrefix,
                   ),
 
               },
@@ -608,6 +650,12 @@ export default function createProjectQuoteRouter(
 
         if (!quote) {
 
+          const businessSettings =
+            await getBusinessSettings(
+              prisma
+            )
+
+
           const created =
             await prisma.quote.create({
 
@@ -635,7 +683,8 @@ export default function createProjectQuoteRouter(
 
                 quoteNumber:
                   generateQuoteNumber(
-                    created.id
+                    created.id,
+                    businessSettings?.quoteNumberPrefix,
                   ),
 
               },
@@ -1091,6 +1140,12 @@ export default function createProjectQuoteRouter(
 
         if (!quote) {
 
+          const businessSettings =
+            await getBusinessSettings(
+              prisma
+            )
+
+
           const created =
             await prisma.quote.create({
 
@@ -1118,7 +1173,8 @@ export default function createProjectQuoteRouter(
 
                 quoteNumber:
                   generateQuoteNumber(
-                    created.id
+                    created.id,
+                    businessSettings?.quoteNumberPrefix,
                   ),
 
               },

@@ -13,8 +13,8 @@ import {
 
 
 
-const VAT_PERCENT =
-  25.5
+const FILE_URL =
+  "http://localhost:3001/uploads"
 
 
 
@@ -27,6 +27,13 @@ function QuoteTab({
   const [
     quoteMeta,
     setQuoteMeta,
+  ] = useState(null)
+
+
+
+  const [
+    businessSettings,
+    setBusinessSettings,
   ] = useState(null)
 
 
@@ -123,8 +130,15 @@ function QuoteTab({
     setLoading(true)
 
 
-    apiGet(`/projects/${project.id}/quote`)
-      .then(data => {
+    Promise.all([
+
+      apiGet(`/projects/${project.id}/quote`),
+
+      apiGet("/business-settings")
+        .catch(() => null),
+
+    ])
+      .then(([data, settings]) => {
 
         if(cancelled) {
 
@@ -139,6 +153,11 @@ function QuoteTab({
 
         setQuoteMeta(
           quote
+        )
+
+
+        setBusinessSettings(
+          settings
         )
 
 
@@ -175,6 +194,26 @@ function QuoteTab({
                 String(quote.customPrice),
 
           })
+
+        } else if(settings) {
+
+          setForm(
+            current => ({
+
+              ...current,
+
+              validDays:
+                String(
+                  settings.defaultValidDays ??
+                  current.validDays
+                ),
+
+              paymentTerms:
+                settings.defaultPaymentTerms ||
+                current.paymentTerms,
+
+            })
+          )
 
         }
 
@@ -673,9 +712,15 @@ function QuoteTab({
 
 
 
+  const vatPercent =
+    businessSettings?.vatPercent ??
+    25.5
+
+
+
   const vatAmount =
     effectivePrice *
-    (VAT_PERCENT / 100)
+    (vatPercent / 100)
 
 
 
@@ -1505,6 +1550,181 @@ function QuoteTab({
 
             <div>
 
+              {
+                businessSettings && (
+
+                  <div
+                    className="
+                      mb-6
+                      flex
+                      flex-col
+                      gap-4
+                      border-b
+                      border-[var(--wood-border)]
+                      pb-6
+                      sm:flex-row
+                      sm:items-center
+                      sm:justify-between
+                    "
+                  >
+
+                    <div
+                      className="
+                        flex
+                        items-center
+                        gap-4
+                      "
+                    >
+
+                      {
+                        businessSettings.logoStoredName && (
+
+                          <img
+
+                            src={
+                              `${FILE_URL}/business/${businessSettings.logoStoredName}`
+                            }
+
+                            alt="Logo"
+
+                            className="
+                              h-14
+                              w-14
+                              rounded-lg
+                              border
+                              border-[var(--wood-border)]
+                              bg-white
+                              object-contain
+                              p-1
+                            "
+
+                          />
+
+                        )
+                      }
+
+
+                      <div
+                        className="
+                          text-sm
+                          text-[var(--wood-muted)]
+                        "
+                      >
+
+                        {
+                          businessSettings.companyName && (
+
+                            <p
+                              className="
+                                text-base
+                                font-semibold
+                                text-[var(--wood-text)]
+                              "
+                            >
+                              {businessSettings.companyName}
+                            </p>
+
+                          )
+                        }
+
+
+                        {
+                          (
+                            businessSettings.streetAddress ||
+                            businessSettings.postalCode ||
+                            businessSettings.city
+                          ) && (
+
+                            <p>
+                              {businessSettings.streetAddress}
+                              {" "}
+                              {businessSettings.postalCode}
+                              {" "}
+                              {businessSettings.city}
+                            </p>
+
+                          )
+                        }
+
+
+                        {
+                          businessSettings.businessId && (
+
+                            <p>
+                              Y-tunnus:
+                              {" "}
+                              {businessSettings.businessId}
+                            </p>
+
+                          )
+                        }
+
+                      </div>
+
+                    </div>
+
+
+
+                    <div
+                      className="
+                        text-sm
+                        text-[var(--wood-muted)]
+                      "
+                    >
+
+                      {
+                        businessSettings.phone && (
+
+                          <p>
+                            {businessSettings.phone}
+                          </p>
+
+                        )
+                      }
+
+
+                      {
+                        businessSettings.email && (
+
+                          <p>
+                            {businessSettings.email}
+                          </p>
+
+                        )
+                      }
+
+
+                      {
+                        businessSettings.website && (
+
+                          <p>
+                            {businessSettings.website}
+                          </p>
+
+                        )
+                      }
+
+
+                      {
+                        businessSettings.iban && (
+
+                          <p>
+                            {businessSettings.iban}
+                          </p>
+
+                        )
+                      }
+
+                    </div>
+
+
+                  </div>
+
+                )
+              }
+
+
+
               <div
                 className="
                   flex
@@ -1955,7 +2175,7 @@ function QuoteTab({
 
                       Alv
                       {" "}
-                      {VAT_PERCENT}
+                      {vatPercent}
                       %
 
                     </span>
