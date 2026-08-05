@@ -59,6 +59,8 @@ const DEFAULT_SETTINGS = {
   defaultPaymentTerms: "14 pv netto",
   defaultValidDays: 14,
   quoteNumberPrefix: "WB-Q",
+  invoiceNumberPrefix: "WB-L",
+  defaultInvoiceDueDays: 14,
 }
 
 export default function createBusinessSettingsRouter(prisma) {
@@ -122,6 +124,10 @@ export default function createBusinessSettingsRouter(prisma) {
             "quoteNumberPrefix",
             "Tarjousnumeroinnin etuliite ei voi olla tyhjä",
           ],
+          [
+            "invoiceNumberPrefix",
+            "Laskunumeroinnin etuliite ei voi olla tyhjä",
+          ],
         ]
 
         for (const [
@@ -173,6 +179,23 @@ export default function createBusinessSettingsRouter(prisma) {
           }
 
           data.defaultValidDays = defaultValidDays
+        }
+
+        if (req.body.defaultInvoiceDueDays !== undefined) {
+          const defaultInvoiceDueDays =
+            Number(req.body.defaultInvoiceDueDays)
+
+          if (
+            !Number.isInteger(defaultInvoiceDueDays) ||
+            defaultInvoiceDueDays <= 0
+          ) {
+            return res.status(400).json({
+              error:
+                "Virheellinen eräpäivän oletusarvo",
+            })
+          }
+
+          data.defaultInvoiceDueDays = defaultInvoiceDueDays
         }
 
         const settings =

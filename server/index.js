@@ -107,6 +107,7 @@ import createProjectNotesRouter from "./routes/projectNotes.js"
 import createProjectTimelineRouter from "./routes/projectTimeline.js"
 import createProjectWorkflowRouter from "./routes/projectWorkflow.js"
 import createProjectQuoteRouter from "./routes/projectQuote.js"
+import createProjectInvoiceRouter from "./routes/projectInvoice.js"
 import createBusinessSettingsRouter from "./routes/businessSettings.js"
 import createCustomersRouter from "./routes/customers.js"
 import {
@@ -521,6 +522,12 @@ app.use(
 app.use(
   "/api",
   createProjectQuoteRouter(
+    prisma
+  )
+)
+app.use(
+  "/api",
+  createProjectInvoiceRouter(
     prisma
   )
 )
