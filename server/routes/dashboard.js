@@ -103,25 +103,6 @@ export default function createDashboardRouter(prisma) {
 
 
 
-        const estimatedRevenue =
-          projects.reduce(
-            (sum, project) => {
-
-              return (
-                sum +
-                Number(
-                  project.price ||
-                  project.totalPrice ||
-                  0,
-                )
-              )
-
-            },
-            0,
-          )
-
-
-
 
 
 
@@ -171,8 +152,6 @@ export default function createDashboardRouter(prisma) {
               completedProjects.length,
 
             totalCustomers,
-
-            estimatedRevenue,
 
           },
 
