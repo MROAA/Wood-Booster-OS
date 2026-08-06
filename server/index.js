@@ -95,6 +95,7 @@ import createDashboardRouter from "./routes/dashboard.js"
 import createKnowledgeRouter from "./routes/knowledge.js"
 import createKnowledgeUploadRouter from "./routes/knowledge-upload.js"
 import createInventoryRouter from "./routes/inventory.js"
+import createRemindersRouter from "./routes/reminders.js"
 import createPurchasesRouter from "./routes/purchases.js"
 import createConversationsRouter from "./routes/conversations.js"
 import createAIRouter from "./routes/ai.js"
@@ -447,6 +448,13 @@ app.use(
 app.use(
   "/api",
   createInventoryRouter(
+    prisma
+  )
+)
+
+app.use(
+  "/api",
+  createRemindersRouter(
     prisma
   )
 )
