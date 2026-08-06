@@ -19,6 +19,7 @@ const emptyMaterial = {
   quantity: "",
   unit: "kpl",
   unitPrice: "",
+  minStock: "",
   supplier: "",
   notes: "",
 
@@ -155,6 +156,13 @@ function Inventory() {
                 form.unitPrice || 0,
               ),
 
+            minStock:
+              form.minStock === ""
+                ? null
+                : Number(
+                    form.minStock,
+                  ),
+
             supplier:
               form.supplier,
 
@@ -222,6 +230,14 @@ function Inventory() {
         String(
           material.unitPrice ?? "",
         ),
+
+      minStock:
+        material.minStock === null ||
+        material.minStock === undefined
+          ? ""
+          : String(
+              material.minStock,
+            ),
 
       supplier:
         material.supplier || "",
@@ -305,6 +321,13 @@ function Inventory() {
               Number(
                 editForm.unitPrice || 0,
               ),
+
+            minStock:
+              editForm.minStock === ""
+                ? null
+                : Number(
+                    editForm.minStock,
+                  ),
 
             supplier:
               editForm.supplier,
@@ -615,6 +638,21 @@ function Inventory() {
               />
 
             </div>
+
+
+
+            <input
+              className="wb-input"
+              placeholder="Hälytysraja (väh. määrä, valinnainen)"
+              value={form.minStock}
+              onChange={
+                e =>
+                  updateField(
+                    "minStock",
+                    e.target.value
+                  )
+              }
+            />
 
 
 
@@ -935,6 +973,20 @@ function Inventory() {
                           </div>
 
 
+                          <input
+                            className="wb-input"
+                            placeholder="Hälytysraja (väh. määrä, valinnainen)"
+                            value={editForm.minStock}
+                            onChange={
+                              e =>
+                                updateEditField(
+                                  "minStock",
+                                  e.target.value
+                                )
+                            }
+                          />
+
+
                           <textarea
                             className="wb-input"
                             placeholder="Muistiinpanot"
@@ -1044,6 +1096,26 @@ function Inventory() {
 
                             <p>
                               {material.unitPrice ?? 0} €
+                            </p>
+
+                          </div>
+
+
+
+
+                          <div>
+
+                            <p className="text-xs text-[var(--wood-muted)]">
+                              HÄLYTYSRAJA
+                            </p>
+
+                            <p>
+                              {
+                                material.minStock === null ||
+                                material.minStock === undefined
+                                  ? "Ei asetettu"
+                                  : `${material.minStock} ${material.unit}`
+                              }
                             </p>
 
                           </div>
