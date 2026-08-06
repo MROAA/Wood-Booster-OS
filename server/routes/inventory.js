@@ -92,6 +92,17 @@ export default function createInventoryRouter(prisma) {
 
 
 
+        const minStock =
+          req.body.minStock === undefined ||
+          req.body.minStock === null ||
+          req.body.minStock === ""
+            ? null
+            : Number(
+                req.body.minStock,
+              )
+
+
+
         const supplier =
           req.body.supplier
             ? String(
@@ -157,6 +168,24 @@ export default function createInventoryRouter(prisma) {
 
 
 
+        if (
+          minStock !== null &&
+          (
+            !Number.isFinite(minStock) ||
+            minStock < 0
+          )
+        ) {
+
+          return res.status(400).json({
+
+            error:
+              "Virheellinen hälytysraja",
+
+          })
+
+        }
+
+
 
 
 
@@ -174,6 +203,8 @@ export default function createInventoryRouter(prisma) {
               unit,
 
               unitPrice,
+
+              minStock,
 
               supplier,
 
@@ -358,6 +389,44 @@ export default function createInventoryRouter(prisma) {
 
 
           data.unitPrice = unitPrice
+
+        }
+
+
+
+
+        if (
+          req.body.minStock !== undefined
+        ) {
+
+          const minStock =
+            req.body.minStock === null ||
+            req.body.minStock === ""
+              ? null
+              : Number(
+                  req.body.minStock,
+                )
+
+
+          if (
+            minStock !== null &&
+            (
+              !Number.isFinite(minStock) ||
+              minStock < 0
+            )
+          ) {
+
+            return res.status(400).json({
+
+              error:
+                "Virheellinen hälytysraja",
+
+            })
+
+          }
+
+
+          data.minStock = minStock
 
         }
 
