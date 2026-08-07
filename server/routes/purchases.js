@@ -14,6 +14,7 @@ export default function createPurchasesRouter(prisma) {
                 inventoryItem: true,
               },
             },
+            project: true,
           },
           orderBy: {
             createdAt: "desc",
@@ -54,6 +55,7 @@ export default function createPurchasesRouter(prisma) {
                 inventoryItem: true,
               },
             },
+            project: true,
           },
         })
 
@@ -99,6 +101,36 @@ export default function createPurchasesRouter(prisma) {
           error:
             "Ostotilauksessa täytyy olla vähintään yksi tuote",
         })
+      }
+
+      const cleanProjectId =
+        req.body.projectId !== undefined &&
+        req.body.projectId !== null &&
+        req.body.projectId !== ""
+          ? Number(req.body.projectId)
+          : null
+
+      if (
+        cleanProjectId !== null &&
+        !Number.isInteger(cleanProjectId)
+      ) {
+        return res.status(400).json({
+          error: "Virheellinen projekti",
+        })
+      }
+
+      if (cleanProjectId !== null) {
+        const project =
+          await prisma.project.findUnique({
+            where: { id: cleanProjectId },
+            select: { id: true },
+          })
+
+        if (!project) {
+          return res.status(400).json({
+            error: "Projektia ei löytynyt",
+          })
+        }
       }
 
       const cleanItems = requestedItems.map(
@@ -165,6 +197,7 @@ export default function createPurchasesRouter(prisma) {
             supplier,
             status: "Luonnos",
             totalPrice,
+            projectId: cleanProjectId,
             items: {
               create: cleanItems,
             },
@@ -175,6 +208,7 @@ export default function createPurchasesRouter(prisma) {
                 inventoryItem: true,
               },
             },
+            project: true,
           },
         })
 
@@ -233,6 +267,39 @@ export default function createPurchasesRouter(prisma) {
         data.supplier = supplier
       }
 
+      if (req.body.projectId !== undefined) {
+        const cleanProjectId =
+          req.body.projectId === null ||
+          req.body.projectId === ""
+            ? null
+            : Number(req.body.projectId)
+
+        if (
+          cleanProjectId !== null &&
+          !Number.isInteger(cleanProjectId)
+        ) {
+          return res.status(400).json({
+            error: "Virheellinen projekti",
+          })
+        }
+
+        if (cleanProjectId !== null) {
+          const project =
+            await prisma.project.findUnique({
+              where: { id: cleanProjectId },
+              select: { id: true },
+            })
+
+          if (!project) {
+            return res.status(400).json({
+              error: "Projektia ei löytynyt",
+            })
+          }
+        }
+
+        data.projectId = cleanProjectId
+      }
+
       if (req.body.status !== undefined) {
         const status = String(
           req.body.status,
@@ -277,6 +344,7 @@ export default function createPurchasesRouter(prisma) {
                 inventoryItem: true,
               },
             },
+            project: true,
           },
         })
 
@@ -372,6 +440,7 @@ export default function createPurchasesRouter(prisma) {
                   inventoryItem: true,
                 },
               },
+              project: true,
             },
           })
 

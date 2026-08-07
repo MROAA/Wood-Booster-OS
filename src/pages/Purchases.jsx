@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 
 import {
   apiGet,
@@ -16,7 +17,9 @@ const emptyLine = {
 function Purchases() {
   const [purchases, setPurchases] = useState([])
   const [inventory, setInventory] = useState([])
+  const [projects, setProjects] = useState([])
   const [supplier, setSupplier] = useState("")
+  const [projectId, setProjectId] = useState("")
   const [lines, setLines] = useState([
     { ...emptyLine },
   ])
@@ -34,11 +37,15 @@ function Purchases() {
       setLoading(true)
       setError("")
 
-      const [purchasesData, inventoryData] =
-        await Promise.all([
-          apiGet("/purchases"),
-          apiGet("/inventory"),
-        ])
+      const [
+        purchasesData,
+        inventoryData,
+        projectsData,
+      ] = await Promise.all([
+        apiGet("/purchases"),
+        apiGet("/inventory"),
+        apiGet("/projects"),
+      ])
 
       setPurchases(
         Array.isArray(purchasesData)
@@ -50,6 +57,12 @@ function Purchases() {
         Array.isArray(inventoryData)
           ? inventoryData
           : [],
+      )
+
+      setProjects(
+        Array.isArray(projectsData)
+          ? projectsData
+          : projectsData?.projects || [],
       )
     } catch (loadError) {
       console.error(loadError)
@@ -228,6 +241,7 @@ function Purchases() {
       const data = await apiPost("/purchases", {
         supplier: cleanSupplier,
         items: cleanItems,
+        projectId: projectId || null,
       })
 
       setPurchases((current) => [
@@ -236,6 +250,7 @@ function Purchases() {
       ])
 
       setSupplier("")
+      setProjectId("")
       setLines([{ ...emptyLine }])
     } catch (saveError) {
       console.error(saveError)
@@ -395,6 +410,35 @@ function Purchases() {
                 }
                 placeholder="Esimerkiksi Puukeskus"
               />
+            </label>
+
+            <label className="block">
+              <span className="text-sm text-[var(--wood-muted)]">
+                Projekti (valinnainen)
+              </span>
+
+              <select
+                className="mt-2 wb-input"
+                value={projectId}
+                onChange={(event) =>
+                  setProjectId(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  Ei liitetä projektiin
+                </option>
+
+                {projects.map((project) => (
+                  <option
+                    key={project.id}
+                    value={project.id}
+                  >
+                    {project.name}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <div className="space-y-4">
@@ -655,6 +699,17 @@ function PurchaseCard({
           <p className="mt-2">
             {purchase.supplier}
           </p>
+
+          {purchase.project && (
+            <p className="mt-1 text-sm">
+              <Link
+                to={`/projects/${purchase.project.id}`}
+                className="text-[var(--wood-accent)] hover:opacity-80"
+              >
+                {purchase.project.name}
+              </Link>
+            </p>
+          )}
 
           <p className="mt-1 text-sm text-[var(--wood-muted)]">
             {formatDate(purchase.createdAt)}

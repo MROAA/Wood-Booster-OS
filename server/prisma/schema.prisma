@@ -69,6 +69,8 @@ model Project {
 
   invoice Invoice?
 
+  purchaseOrders PurchaseOrder[]
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -486,6 +488,10 @@ model PurchaseOrder {
   totalPrice Float @default(0)
 
   items PurchaseOrderItem[]
+
+  projectId Int?
+
+  project Project? @relation(fields: [projectId], references: [id])
 
   createdAt DateTime @default(now())
 
