@@ -278,32 +278,14 @@ function ProjectDetails() {
 
       {
         type:"open_project_tab",
-        label:"Avaa projektin yleisnäkymä",
-        tab:"overview",
+        label:"Avaa AI Assistant",
+        tab:"ai",
       },
 
       {
         type:"open_project_tab",
-        label:"Avaa materiaalit",
-        tab:"materials",
-      },
-
-      {
-        type:"open_project_tab",
-        label:"Avaa tiedostot",
-        tab:"files",
-      },
-
-      {
-        type:"open_project_tab",
-        label:"Avaa muistiinpanot",
-        tab:"notes",
-      },
-
-      {
-        type:"open_project_tab",
-        label:"Avaa aikajana",
-        tab:"timeline",
+        label:"Avaa työkalut",
+        tab:"tools",
       },
 
       {
@@ -314,8 +296,8 @@ function ProjectDetails() {
 
       {
         type:"open_project_tab",
-        label:"Avaa työnkulku",
-        tab:"workflow",
+        label:"Avaa aikajana",
+        tab:"timeline",
       },
 
       {
@@ -328,6 +310,24 @@ function ProjectDetails() {
         type:"open_project_tab",
         label:"Avaa lasku",
         tab:"invoice",
+      },
+
+      {
+        type:"open_project_tab",
+        label:"Avaa muisti",
+        tab:"memory",
+      },
+
+      {
+        type:"open_project_tab",
+        label:"Avaa knowledge",
+        tab:"knowledge",
+      },
+
+      {
+        type:"open_project_tab",
+        label:"Avaa tiedostot",
+        tab:"files",
       },
 
     ])

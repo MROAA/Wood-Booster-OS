@@ -72,19 +72,6 @@ const projectStatusDefinitions = [
 const projectTabDefinitions = [
   {
     id:
-      "overview",
-
-    keywords: [
-      "projektin tiedot",
-      "perustiedot",
-      "yleiskatsaus",
-      "yhteenveto",
-      "overview",
-    ],
-  },
-
-  {
-    id:
       "ai",
 
     keywords: [
@@ -106,21 +93,6 @@ const projectTabDefinitions = [
       "työkalut",
       "tools",
       "tool",
-    ],
-  },
-
-  {
-    id:
-      "notes",
-
-    keywords: [
-      "notes välilehti",
-      "muistiinpanoihin",
-      "muistiinpanot",
-      "muistiinpano",
-      "notesiin",
-      "notes",
-      "note",
     ],
   },
 
@@ -158,7 +130,55 @@ const projectTabDefinitions = [
       "tiedostot",
       "files",
       "file",
+    ],
+  },
+
+  {
+    id:
+      "gallery",
+
+    keywords: [
+      "gallery",
+      "galleria",
       "kuvat",
+      "kuviin",
+      "projektikuvat",
+    ],
+  },
+
+  {
+    id:
+      "timeline",
+
+    keywords: [
+      "timeline",
+      "aikajana",
+      "aikataulu",
+      "aikatauluun",
+    ],
+  },
+
+  {
+    id:
+      "quote",
+
+    keywords: [
+      "quote",
+      "tarjous",
+      "tarjoukseen",
+      "tarjoukseksi",
+    ],
+  },
+
+  {
+    id:
+      "invoice",
+
+    keywords: [
+      "invoice",
+      "lasku",
+      "laskuun",
+      "laskutukseen",
     ],
   },
 ]

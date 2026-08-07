@@ -10,22 +10,6 @@ import {
 const projectTabs = [
   {
     id:
-      "overview",
-
-    label:
-      "Overview",
-
-    keywords: [
-      "overview",
-      "yhteenveto",
-      "yleiskatsaus",
-      "projektin tiedot",
-      "perustiedot",
-    ],
-  },
-
-  {
-    id:
       "ai",
 
     label:
@@ -89,24 +73,6 @@ const projectTabs = [
 
   {
     id:
-      "notes",
-
-    label:
-      "Notes",
-
-    keywords: [
-      "notes",
-      "note",
-      "muistiinpanot",
-      "muistiinpano",
-      "muistiinpanoihin",
-      "notesiin",
-      "notes välilehti",
-    ],
-  },
-
-  {
-    id:
       "files",
 
     label:
@@ -118,7 +84,67 @@ const projectTabs = [
       "tiedostot",
       "tiedostoihin",
       "projektitiedostot",
+    ],
+  },
+
+  {
+    id:
+      "gallery",
+
+    label:
+      "Gallery",
+
+    keywords: [
+      "gallery",
+      "galleria",
       "kuvat",
+      "kuviin",
+      "projektikuvat",
+    ],
+  },
+
+  {
+    id:
+      "timeline",
+
+    label:
+      "Timeline",
+
+    keywords: [
+      "timeline",
+      "aikajana",
+      "aikataulu",
+      "aikatauluun",
+    ],
+  },
+
+  {
+    id:
+      "quote",
+
+    label:
+      "Quote",
+
+    keywords: [
+      "quote",
+      "tarjous",
+      "tarjoukseen",
+      "tarjoukseksi",
+    ],
+  },
+
+  {
+    id:
+      "invoice",
+
+    label:
+      "Lasku",
+
+    keywords: [
+      "invoice",
+      "lasku",
+      "laskuun",
+      "laskutukseen",
     ],
   },
 ]

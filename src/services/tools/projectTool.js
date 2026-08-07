@@ -5,23 +5,27 @@ import {
 
 
 const supportedProjectTabs = [
-  "overview",
   "ai",
   "tools",
+  "gallery",
+  "timeline",
+  "quote",
+  "invoice",
   "memory",
   "knowledge",
-  "notes",
   "files",
 ]
 
 
 const projectTabLabels = {
-  overview: "Overview",
   ai: "AI Assistant",
   tools: "Tools",
+  gallery: "Gallery",
+  timeline: "Timeline",
+  quote: "Quote",
+  invoice: "Lasku",
   memory: "Memory",
   knowledge: "Knowledge",
-  notes: "Notes",
   files: "Files",
 }
 

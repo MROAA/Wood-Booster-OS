@@ -24,7 +24,6 @@ import QuoteTab from "./QuoteTab"
 import InvoiceTab from "./InvoiceTab"
 
 import FilesTab from "./project/FilesTab"
-import OverviewTab from "./project/OverviewTab"
 
 
 import {
@@ -39,191 +38,68 @@ import {
 
 
 
-
-
-
-
-const tabs = [
+/*
+ * Toissijaiset toiminnot - eivät näy suoraan projektisivulla, vaan
+ * "Lisää toimintoja" -valikon kautta. Marc: "loput toiminnot ei ole
+ * oleellisia ja voidaan tehdä viimeiseksi."
+ */
+const secondaryTabs = [
 
   {
-    id:
-      "overview",
-
-    label:
-      "Overview",
-
-    icon:
-      "▤",
+    id: "ai",
+    label: "AI Assistant",
+    icon: "△",
   },
 
-
   {
-    id:
-      "edit",
-
-    label:
-      "Muokkaa",
-
-    icon:
-      "▤",
+    id: "tools",
+    label: "Tools",
+    icon: "▨",
   },
 
-
   {
-    id:
-      "ai",
-
-    label:
-      "AI Assistant",
-
-    icon:
-      "△",
+    id: "gallery",
+    label: "Gallery",
+    icon: "▧",
   },
 
-
   {
-    id:
-      "tools",
-
-    label:
-      "Tools",
-
-    icon:
-      "▨",
+    id: "timeline",
+    label: "Timeline",
+    icon: "■",
   },
 
-
   {
-    id:
-      "materials",
-
-    label:
-      "Materials",
-
-    icon:
-      "◇",
+    id: "quote",
+    label: "Quote",
+    icon: "✚",
   },
 
-
   {
-    id:
-      "timeline",
-
-    label:
-      "Timeline",
-
-    icon:
-      "■",
+    id: "invoice",
+    label: "Lasku",
+    icon: "▥",
   },
 
-
   {
-    id:
-      "gallery",
-
-    label:
-      "Gallery",
-
-    icon:
-      "▧",
+    id: "memory",
+    label: "Memory",
+    icon: "⬢",
   },
 
-
   {
-    id:
-      "workflow",
-
-    label:
-      "Workflow",
-
-    icon:
-      "⚙",
+    id: "knowledge",
+    label: "Knowledge",
+    icon: "◌",
   },
 
-
   {
-    id:
-      "quote",
-
-    label:
-      "Quote",
-
-    icon:
-      "✚",
-  },
-
-
-  {
-    id:
-      "invoice",
-
-    label:
-      "Lasku",
-
-    icon:
-      "▥",
-  },
-
-
-  {
-    id:
-      "memory",
-
-    label:
-      "Memory",
-
-    icon:
-      "⬢",
-  },
-
-
-  {
-    id:
-      "knowledge",
-
-    label:
-      "Knowledge",
-
-    icon:
-      "◌",
-  },
-
-
-  {
-    id:
-      "notes",
-
-    label:
-      "Notes",
-
-    icon:
-      "▤",
-  },
-
-
-  {
-    id:
-      "files",
-
-    label:
-      "Files",
-
-    icon:
-      "▣",
+    id: "files",
+    label: "Files",
+    icon: "▣",
   },
 
 ]
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -235,6 +111,7 @@ function ProjectTabs({
 
   const [
     searchParams,
+    setSearchParams,
   ] = useSearchParams()
 
 
@@ -245,46 +122,40 @@ function ProjectTabs({
 
 
   const [
-    activeTab,
-    setLocalActiveTab,
+    activeSecondaryTab,
+    setActiveSecondaryTab,
   ] = useState(
     () =>
-      tabs.some(
+      secondaryTabs.some(
         tab =>
           tab.id === requestedTab
       )
       ?
       requestedTab
       :
-      "overview"
+      null
   )
-
-
-
 
 
 
 
   useEffect(() => {
 
-    setLocalActiveTab(
-      tabs.some(
+    setActiveSecondaryTab(
+      secondaryTabs.some(
         tab =>
           tab.id === requestedTab
       )
       ?
       requestedTab
       :
-      "overview"
+      null
     )
 
   },[
     project?.id,
     requestedTab,
   ])
-
-
-
 
 
 
@@ -297,7 +168,7 @@ function ProjectTabs({
     ) {
 
 
-      const requestedTab =
+      const requested =
         String(
           event?.detail?.tab ||
           ""
@@ -306,21 +177,22 @@ function ProjectTabs({
         .toLowerCase()
 
 
+      if(!requested || requested === "edit") {
 
-      if(!requestedTab) {
+        setActiveSecondaryTab(
+          null
+        )
 
         return
 
       }
 
 
-
       const exists =
-        tabs.some(
+        secondaryTabs.some(
           tab =>
-            tab.id === requestedTab
+            tab.id === requested
         )
-
 
 
       if(!exists) {
@@ -330,18 +202,12 @@ function ProjectTabs({
       }
 
 
-
-      setLocalActiveTab(
-        requestedTab
+      setActiveSecondaryTab(
+        requested
       )
 
 
     }
-
-
-
-
-
 
 
     window.addEventListener(
@@ -351,7 +217,6 @@ function ProjectTabs({
       handleOpenProjectTab
 
     )
-
 
 
     return () => {
@@ -372,29 +237,25 @@ function ProjectTabs({
 
 
 
-
-
-
   useEffect(() => {
 
 
     const current =
-      tabs.find(
+      secondaryTabs.find(
         tab =>
-          tab.id === activeTab
+          tab.id === activeSecondaryTab
       )
-
 
 
     setActiveTab({
 
       id:
         current?.id ||
-        activeTab,
+        "workbench",
 
       label:
         current?.label ||
-        activeTab,
+        "Työtila",
 
       scope:
         "project",
@@ -406,66 +267,65 @@ function ProjectTabs({
     })
 
 
-
     setAvailableActions(
       createTabActions({
-        activeTab,
         project,
       })
     )
 
 
   },[
-    activeTab,
+    activeSecondaryTab,
     project,
   ])
 
 
 
 
+  function openSecondaryTab(
+    tabId
+  ) {
+
+    setActiveSecondaryTab(
+      tabId || null
+    )
+
+    const nextParams =
+      new URLSearchParams(
+        searchParams
+      )
+
+    if(tabId) {
+
+      nextParams.set(
+        "tab",
+        tabId
+      )
+
+    } else {
+
+      nextParams.delete(
+        "tab"
+      )
+
+    }
+
+    setSearchParams(
+      nextParams,
+      {
+        replace: true,
+      }
+    )
+
+  }
 
 
 
-  function renderActiveTab() {
+
+  function renderSecondaryTab() {
 
 
-    switch(activeTab) {
-
-
-      case "overview":
-
-        return (
-
-          <OverviewTab
-            project={project}
-            noteCount={project?.projectNotes?.length || 0}
-          />
-
-        )
-
-
-
-
-      case "edit":
-
-        return (
-
-          <ProjectEditor
-
-            project={
-              project
-            }
-
-            onProjectUpdated={
-              onProjectUpdated
-            }
-
-          />
-
-        )
-
-
-
+    switch(activeSecondaryTab) {
 
 
       case "ai":
@@ -475,9 +335,6 @@ function ProjectTabs({
           <ProjectAIChat />
 
         )
-
-
-
 
 
       case "tools":
@@ -497,45 +354,6 @@ function ProjectTabs({
         )
 
 
-
-
-
-      case "materials":
-
-        return (
-
-          <MaterialsTab
-
-            projectId={
-              project.id
-            }
-
-          />
-
-        )
-
-
-
-
-
-      case "timeline":
-
-        return (
-
-          <TimelineTab
-
-            projectId={
-              project.id
-            }
-
-          />
-
-        )
-
-
-
-
-
       case "gallery":
 
         return (
@@ -551,14 +369,11 @@ function ProjectTabs({
         )
 
 
-
-
-
-      case "workflow":
+      case "timeline":
 
         return (
 
-          <WorkflowTab
+          <TimelineTab
 
             projectId={
               project.id
@@ -567,9 +382,6 @@ function ProjectTabs({
           />
 
         )
-
-
-
 
 
       case "quote":
@@ -591,8 +403,6 @@ function ProjectTabs({
         )
 
 
-
-
       case "invoice":
 
         return (
@@ -606,9 +416,6 @@ function ProjectTabs({
           />
 
         )
-
-
-
 
 
       case "memory":
@@ -626,9 +433,6 @@ function ProjectTabs({
         )
 
 
-
-
-
       case "knowledge":
 
         return (
@@ -642,27 +446,6 @@ function ProjectTabs({
           />
 
         )
-
-
-
-
-
-      case "notes":
-
-        return (
-
-          <NotesTab
-
-            projectId={
-              project.id
-            }
-
-          />
-
-        )
-
-
-
 
 
       case "files":
@@ -680,19 +463,9 @@ function ProjectTabs({
         )
 
 
-
-
-
       default:
 
-        return (
-
-          <OverviewTab
-            project={project}
-            noteCount={project?.projectNotes?.length || 0}
-          />
-
-        )
+        return null
 
 
     }
@@ -702,6 +475,13 @@ function ProjectTabs({
 
 
 
+
+  const activeSecondaryLabel =
+    secondaryTabs.find(
+      tab =>
+        tab.id === activeSecondaryTab
+    )
+    ?.label
 
 
 
@@ -728,86 +508,134 @@ function ProjectTabs({
 
         <div
           className="
-            overflow-x-auto
-            border-b
-            border-[var(--wood-border)]
+            flex
+            flex-wrap
+            items-center
+            justify-between
+            gap-3
           "
         >
 
-          <div
+          {
+            activeSecondaryTab
+            ?
+            (
+
+              <button
+
+                type="button"
+
+                onClick={() =>
+                  openSecondaryTab(
+                    null
+                  )
+                }
+
+                className="
+                  text-sm
+                  font-semibold
+                  text-[var(--wood-accent)]
+                  hover:opacity-80
+                "
+
+              >
+
+                ← Takaisin työtilaan
+
+              </button>
+
+            )
+            :
+            (
+
+              <span
+                className="
+                  text-sm
+                  font-semibold
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Työtila
+
+              </span>
+
+            )
+          }
+
+
+          <label
             className="
               flex
-              min-w-max
+              items-center
               gap-2
+              text-sm
             "
           >
 
-            {
-              tabs.map(
-                tab => (
+            <span
+              className="
+                text-[var(--wood-muted)]
+              "
+            >
 
-                  <button
+              Lisää toimintoja
 
-                    key={
-                      tab.id
-                    }
+            </span>
 
-                    type="button"
 
-                    onClick={() =>
-                      setLocalActiveTab(
+            <select
+
+              value={
+                activeSecondaryTab || ""
+              }
+
+              onChange={
+                event =>
+                  openSecondaryTab(
+                    event.target.value || null
+                  )
+              }
+
+              className="
+                wb-input
+              "
+
+            >
+
+              <option value="">
+                Valitse...
+              </option>
+
+              {
+                secondaryTabs.map(
+                  tab => (
+
+                    <option
+
+                      key={
                         tab.id
-                      )
-                    }
-
-                    className={`
-
-                      flex
-                      items-center
-                      gap-2
-                      border-b-2
-                      px-4
-                      py-3
-                      text-sm
-                      font-semibold
-
-                      ${
-                        activeTab === tab.id
-
-                        ?
-
-                        "border-[var(--wood-accent)] text-[var(--wood-accent)]"
-
-                        :
-
-                        "border-transparent text-[var(--wood-muted)]"
-
                       }
 
-                    `}
+                      value={
+                        tab.id
+                      }
 
-                  >
+                    >
 
-                    <span>
                       {tab.icon}
-                    </span>
-
-
-                    <span>
+                      {" "}
                       {tab.label}
-                    </span>
 
+                    </option>
 
-                  </button>
-
+                  )
                 )
+              }
 
-              )
+            </select>
 
-            }
-
-
-          </div>
+          </label>
 
 
         </div>
@@ -815,9 +643,87 @@ function ProjectTabs({
 
 
 
-
         {
-          renderActiveTab()
+
+          activeSecondaryTab
+
+          ?
+          (
+
+            <div>
+
+              <h2
+                className="
+                  mb-4
+                  text-lg
+                  font-semibold
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                {activeSecondaryLabel}
+
+              </h2>
+
+
+              {renderSecondaryTab()}
+
+            </div>
+
+          )
+
+          :
+          (
+
+            <div
+              className="
+                space-y-6
+              "
+            >
+
+              <WorkflowTab
+
+                projectId={
+                  project.id
+                }
+
+              />
+
+
+              <MaterialsTab
+
+                projectId={
+                  project.id
+                }
+
+              />
+
+
+              <NotesTab
+
+                projectId={
+                  project.id
+                }
+
+              />
+
+
+              <ProjectEditor
+
+                project={
+                  project
+                }
+
+                onProjectUpdated={
+                  onProjectUpdated
+                }
+
+              />
+
+            </div>
+
+          )
+
         }
 
 
@@ -833,17 +739,12 @@ function ProjectTabs({
 
 
 
-
-
-
-
 function createTabActions({
-  activeTab,
   project,
 }) {
 
 
-  return tabs.map(
+  return secondaryTabs.map(
     tab => ({
 
       type:
@@ -864,10 +765,6 @@ function createTabActions({
 
 
 }
-
-
-
-
 
 
 
