@@ -118,34 +118,6 @@ const groups = [
     items: [
 
       {
-        label: "AI Brain",
-        path: "/ai-brain",
-        icon: "⬢"
-      },
-
-
-      {
-        label: "AI Chat",
-        path: "/ai-chat",
-        icon: "◐"
-      },
-
-
-      {
-        label: "AI Generator",
-        path: "/ai-generator",
-        icon: "✦"
-      },
-
-
-      {
-        label: "AI Workspace",
-        path: "/ai-workspace",
-        icon: "▤"
-      },
-
-
-      {
         label: "Capabilities",
         path: "/capabilities",
         icon: "⚡"
