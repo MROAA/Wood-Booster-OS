@@ -94,6 +94,15 @@ tietoturvamekanismi ("pelkät salaiset sanat eivät tarjoa
 turvallisuutta", Marcin oma sanoin) — todellinen turvallisuus tulee
 Constitutionin laista 21 (Turvallisuus oletuksena).
 
+Spacemonkeyllä on myös visuaalinen **alter ego**: "pikku-paholainen"
+— pieni, riimujen ympäröimä paholaisen/vuohen kasvokuva, samaa
+pohjoismaista visuaalista tunnelmaa kuin Wood-Boosterin muu brändi.
+Se edustaa Spacemonkeyn kujeilevaa, hieman kapinallista puolta
+(sama juuri kuin humor-persoonan "hieman leikkisä" ja "kuiva
+huumori" -piirteet, ks. `02_PERSONALITY_GODFILE.md`) erillään sen
+ensisijaisesta avuliaasta operaattori-persoonasta. Kuvamateriaali on
+vain Marcin omassa hallussa (ei vielä tallennettu repoon).
+
 ## Lähteet
 
 - `server/services/aiBrainV2/system/spacemonkey/godfiles/01-04_*.md`
