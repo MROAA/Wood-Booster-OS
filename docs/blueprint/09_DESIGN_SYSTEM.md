@@ -23,16 +23,17 @@ Marcin antama konkreettinen tavoitepaletti:
 | Paneelit | `#202020` |
 | Teksti | `#F4F4F4` |
 | Toissijainen teksti | `#B5B5B5` |
-| Aksentti | "Wood Booster Green" (tarkkaa hex-arvoa ei vielä annettu) |
+| Aksentti | "Wood Booster Green" — `#6b7f4a` (tumma sammaleenvihreä, oliivin sävyinen) |
 
 Ei neonvärejä, ei sateenkaarta, hyvin vähän erillisiä
 nappi-/väriyhdistelmiä.
 
-**Tunnettu ristiriita nykytilan kanssa**: `src/index.css`:n
-nykyinen `--wood-*`-teema käyttää kulta/beige-sävyistä aksenttia
-(`--wood-accent: #c9a66b`), ei vihreää. Tätä ei ole vielä
-yhtenäistetty — kun teemapäivitys tehdään, tämä taulukko on
-tavoitearvo, ei nykytila.
+**Toteutettu**: `src/index.css`:n `--wood-accent` on päivitetty
+kulta/beige-sävystä (`#c9a66b`) sammaleenvihreäksi. Tumma teema
+(oletus) käyttää `#6b7f4a`, vaalea teema (`data-theme="light"`)
+käyttää tummempaa `#4f5f38` kontrastin säilyttämiseksi valkoista
+taustaa vasten. Print-tyylien oma `--wood-accent: #111111`
+(tarjous/lasku-tulosteet) on ennallaan, koskee vain paperitulostetta.
 
 ## Animaatiot
 
