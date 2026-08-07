@@ -2,9 +2,10 @@
  * Wood-Booster OS
  * Spacemonkey
  *
- * File Search Skill
+ * File Search Skill v2
  *
- * Etsii tiedostoja hakemistosta.
+ * Etsii projektitiedostoja
+ * ja suodattaa generoidut kansiot.
  */
 
 import fs from "fs/promises"
@@ -13,26 +14,65 @@ import path from "path"
 
 class FileSearchSkill {
 
+
     constructor({
+
         logger = console,
+
     } = {}) {
 
-        this.id = "file-search"
 
-        this.name = "File Search Skill"
+        this.id =
+            "file-search"
 
-        this.logger = logger
+
+        this.name =
+            "File Search Skill"
+
+
+        this.logger =
+            logger
+
+
+        this.ignoreDirectories = [
+
+            "node_modules",
+
+            "dist",
+
+            "build",
+
+            "target",
+
+            ".git",
+
+            ".cache",
+
+            ".vite",
+
+            "coverage",
+
+            ".next",
+
+            ".turbo",
+"src-tauri",
+
+        ]
 
     }
 
 
+
     async execute(context) {
+
 
         const directory =
             context?.directory
 
+
         const search =
             context?.search
+
 
 
         if (!directory) {
@@ -44,6 +84,7 @@ class FileSearchSkill {
         }
 
 
+
         if (!search) {
 
             throw new Error(
@@ -53,87 +94,155 @@ class FileSearchSkill {
         }
 
 
+
         const results = []
 
 
+
         await this.scan(
+
             path.resolve(directory),
+
             search,
+
             results
+
         )
+
 
 
         return {
 
+
             success: true,
 
-            skill: this.id,
+
+            skill:
+                this.id,
+
 
             search,
 
+
             results,
+
 
             count:
                 results.length,
+
 
         }
 
     }
 
 
+
     async scan(
+
         directory,
+
         search,
+
         results
+
     ) {
 
+
         const entries =
+
             await fs.readdir(
+
                 directory,
+
                 {
                     withFileTypes: true,
                 }
+
             )
+
 
 
         for (const entry of entries) {
 
 
-            const fullPath =
-                path.join(
-                    directory,
+
+            if (
+
+                entry.isDirectory()
+
+                &&
+
+                this.ignoreDirectories.includes(
                     entry.name
                 )
 
-
-            if (entry.isDirectory()) {
-
-                await this.scan(
-                    fullPath,
-                    search,
-                    results
-                )
+            ) {
 
                 continue
 
             }
 
 
-            if (
-                entry.name
-                    .toLowerCase()
-                    .includes(
-                        search.toLowerCase()
-                    )
-            ) {
 
-                results.push(fullPath)
+            const fullPath =
+
+                path.join(
+
+                    directory,
+
+                    entry.name
+
+                )
+
+
+
+            if (entry.isDirectory()) {
+
+
+                await this.scan(
+
+                    fullPath,
+
+                    search,
+
+                    results
+
+                )
+
+
+                continue
 
             }
 
+
+
+            if (
+
+                entry.name
+
+                    .toLowerCase()
+
+                    .includes(
+
+                        search.toLowerCase()
+
+                    )
+
+            ) {
+
+
+                results.push(
+                    fullPath
+                )
+
+            }
+
+
         }
 
+
     }
+
 
 }
 
