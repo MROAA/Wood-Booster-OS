@@ -2,13 +2,16 @@
  * Wood-Booster OS
  * Spacemonkey
  *
- * Architecture Intelligence Analyzer v2
+ * Architecture Intelligence Analyzer v3
  *
- * Yhdistää dependency graphin
- * ja arkkitehtuuriroolien tunnistuksen.
+ * Yhdistää:
+ * - dependency graph
+ * - architecture roles
+ * - importance scoring
  */
 
 import ArchitectureRoleDetector from "./ArchitectureRoleDetector.js"
+import ArchitectureImportanceScorer from "./ArchitectureImportanceScorer.js"
 
 
 class ArchitectureIntelligenceAnalyzer {
@@ -20,6 +23,11 @@ class ArchitectureIntelligenceAnalyzer {
 
         roleDetector =
             new ArchitectureRoleDetector({
+                logger,
+            }),
+
+        importanceScorer =
+            new ArchitectureImportanceScorer({
                 logger,
             }),
 
@@ -40,6 +48,10 @@ class ArchitectureIntelligenceAnalyzer {
 
         this.roleDetector =
             roleDetector
+
+
+        this.importanceScorer =
+            importanceScorer
 
     }
 
@@ -67,36 +79,56 @@ class ArchitectureIntelligenceAnalyzer {
                     )
 
 
+
+                const dependencyCount =
+                    this.getDependencyCount(
+                        node.id,
+                        edges
+                    )
+
+
+
+                const importance =
+                    this.importanceScorer.score({
+
+                        file:
+                            node.id,
+
+                        role:
+                            architecture.role,
+
+                        layer:
+                            architecture.layer,
+
+                        dependencyCount,
+
+                    })
+
+
+
                 return {
 
                     file:
                         node.id,
 
-
                     imports:
                         node.imports ?? [],
-
 
                     exports:
                         node.exports ?? [],
 
-
                     role:
                         architecture.role,
-
 
                     layer:
                         architecture.layer,
 
+                    dependencyCount,
 
                     importance:
-                        this.calculateImportance(
-                            node.id,
-                            edges
-                        ),
+                        importance.importance,
 
                 }
-
 
             })
 
@@ -118,20 +150,15 @@ class ArchitectureIntelligenceAnalyzer {
 
         return {
 
-
             moduleCount:
                 modules.length,
-
 
             connectionCount:
                 edges.length,
 
-
             modules,
 
-
             criticalFiles,
-
 
         }
 
@@ -139,30 +166,15 @@ class ArchitectureIntelligenceAnalyzer {
 
 
 
-    calculateImportance(file, edges) {
+    getDependencyCount(file, edges) {
 
 
-        let score = 0
+        return edges.filter(
 
-
-
-        for (const edge of edges) {
-
-
-            if (
+            edge =>
                 edge.to === file
-            ) {
 
-                score++
-
-            }
-
-
-        }
-
-
-
-        return score
+        ).length
 
     }
 
