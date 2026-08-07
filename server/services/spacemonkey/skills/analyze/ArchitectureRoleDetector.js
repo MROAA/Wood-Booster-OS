@@ -2,10 +2,10 @@
  * Wood-Booster OS
  * Spacemonkey
  *
- * Architecture Role Detector v1
+ * Architecture Role Detector v2
  *
  * Tunnistaa tiedoston arkkitehtuurisen roolin
- * polun ja tiedostonimen perusteella.
+ * absoluuttisista ja suhteellisista poluista.
  */
 
 class ArchitectureRoleDetector {
@@ -36,13 +36,16 @@ class ArchitectureRoleDetector {
     detect(file) {
 
 
-        const lower =
-            file.toLowerCase()
+        const normalized =
+            file
+                .toLowerCase()
+                .replaceAll("\\", "/")
 
 
 
         if (
-            lower.includes("/src/pages/")
+            normalized.includes("/src/pages/") ||
+            normalized.startsWith("src/pages/")
         ) {
 
             return {
@@ -60,7 +63,8 @@ class ArchitectureRoleDetector {
 
 
         if (
-            lower.includes("/src/components/")
+            normalized.includes("/src/components/") ||
+            normalized.startsWith("src/components/")
         ) {
 
             return {
@@ -78,7 +82,8 @@ class ArchitectureRoleDetector {
 
 
         if (
-            lower.includes("/server/routes/")
+            normalized.includes("/server/routes/") ||
+            normalized.startsWith("server/routes/")
         ) {
 
             return {
@@ -96,7 +101,8 @@ class ArchitectureRoleDetector {
 
 
         if (
-            lower.includes("/server/services/")
+            normalized.includes("/server/services/") ||
+            normalized.startsWith("server/services/")
         ) {
 
             return {
@@ -114,7 +120,7 @@ class ArchitectureRoleDetector {
 
 
         if (
-            lower.endsWith(
+            normalized.endsWith(
                 "schema.prisma"
             )
         ) {
@@ -134,7 +140,8 @@ class ArchitectureRoleDetector {
 
 
         if (
-            lower.includes("/tests/")
+            normalized.includes("/tests/") ||
+            normalized.startsWith("tests/")
         ) {
 
             return {
@@ -144,6 +151,25 @@ class ArchitectureRoleDetector {
 
                 layer:
                     "testing",
+
+            }
+
+        }
+
+
+
+        if (
+            normalized === "src/app.jsx" ||
+            normalized.endsWith("/src/app.jsx")
+        ) {
+
+            return {
+
+                role:
+                    "Frontend Entry Point",
+
+                layer:
+                    "frontend",
 
             }
 

@@ -2,11 +2,14 @@
  * Wood-Booster OS
  * Spacemonkey
  *
- * Architecture Intelligence Analyzer v1
+ * Architecture Intelligence Analyzer v2
  *
- * Muodostaa korkeamman tason
- * ymmärryksen dependency graphista.
+ * Yhdistää dependency graphin
+ * ja arkkitehtuuriroolien tunnistuksen.
  */
+
+import ArchitectureRoleDetector from "./ArchitectureRoleDetector.js"
+
 
 class ArchitectureIntelligenceAnalyzer {
 
@@ -14,6 +17,11 @@ class ArchitectureIntelligenceAnalyzer {
     constructor({
 
         logger = console,
+
+        roleDetector =
+            new ArchitectureRoleDetector({
+                logger,
+            }),
 
     } = {}) {
 
@@ -28,6 +36,10 @@ class ArchitectureIntelligenceAnalyzer {
 
         this.logger =
             logger
+
+
+        this.roleDetector =
+            roleDetector
 
     }
 
@@ -46,28 +58,47 @@ class ArchitectureIntelligenceAnalyzer {
 
 
         const modules =
-            nodes.map(node => ({
+            nodes.map(node => {
 
 
-                file:
-                    node.id,
-
-
-                imports:
-                    node.imports ?? [],
-
-
-                exports:
-                    node.exports ?? [],
-
-
-                importance:
-                    this.calculateImportance(
-                        node.id,
-                        edges
+                const architecture =
+                    this.roleDetector.detect(
+                        node.id
                     )
 
-            }))
+
+                return {
+
+                    file:
+                        node.id,
+
+
+                    imports:
+                        node.imports ?? [],
+
+
+                    exports:
+                        node.exports ?? [],
+
+
+                    role:
+                        architecture.role,
+
+
+                    layer:
+                        architecture.layer,
+
+
+                    importance:
+                        this.calculateImportance(
+                            node.id,
+                            edges
+                        ),
+
+                }
+
+
+            })
 
 
 
@@ -100,6 +131,7 @@ class ArchitectureIntelligenceAnalyzer {
 
 
             criticalFiles,
+
 
         }
 
