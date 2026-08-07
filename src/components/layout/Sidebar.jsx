@@ -2,6 +2,8 @@ import {
   NavLink
 } from "react-router-dom"
 
+import logo from "../../assets/branding/wood-booster-logo.png"
+
 
 
 const groups = [
@@ -214,7 +216,24 @@ function Sidebar() {
     >
 
 
-      <header>
+      <header
+        className="
+          flex
+          items-center
+          gap-3
+        "
+      >
+
+        <img
+          src={logo}
+          alt="Wood-Booster"
+          className="
+            h-10
+            w-10
+            shrink-0
+            object-contain
+          "
+        />
 
         <h1
           className="

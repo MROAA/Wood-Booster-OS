@@ -46,11 +46,26 @@ function DashboardChat() {
 
         <span
           className="
+            flex
+            items-center
+            gap-2
             text-xs
             text-[var(--wood-accent)]
           "
         >
+
+          <span
+            className="
+              h-2
+              w-2
+              rounded-full
+              bg-[var(--wood-accent)]
+              animate-pulse
+            "
+          />
+
           AI Brain Online
+
         </span>
 
 

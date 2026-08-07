@@ -308,6 +308,12 @@ function ChatPanel() {
               bg-[var(--wood-accent)]
               text-black
               font-medium
+              transition-all
+              duration-200
+              ease-out
+              hover:scale-[1.03]
+              hover:opacity-90
+              active:scale-95
             "
 
           >

@@ -1,3 +1,7 @@
+import logo from "../../assets/branding/wood-booster-logo.png"
+
+
+
 function DashboardHero() {
 
 
@@ -10,10 +14,22 @@ function DashboardHero() {
         flex
         items-center
         justify-center
+        gap-8
         px-8
         py-10
       "
     >
+
+      <img
+        src={logo}
+        alt="Wood-Booster"
+        className="
+          h-24
+          w-24
+          shrink-0
+          object-contain
+        "
+      />
 
       <div
         className="
@@ -29,7 +45,7 @@ function DashboardHero() {
             text-[var(--wood-muted)]
           "
         >
-          🌲 Wood-Booster
+          Wood-Booster
         </p>
 
 
