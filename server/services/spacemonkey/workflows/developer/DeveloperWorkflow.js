@@ -33,6 +33,8 @@ class DeveloperWorkflow {
 
         projectUnderstandingAnalyzer,
 
+        codeIntelligenceAnalyzer,
+
         logger = console,
 
     } = {}) {
@@ -80,6 +82,10 @@ class DeveloperWorkflow {
 
         this.projectUnderstandingAnalyzer =
             projectUnderstandingAnalyzer
+
+
+        this.codeIntelligenceAnalyzer =
+            codeIntelligenceAnalyzer
 
 
         this.logger =
@@ -152,6 +158,13 @@ class DeveloperWorkflow {
 
 
 
+        const codeIntelligence =
+            this.codeIntelligenceAnalyzer.analyze(
+                files.results
+            )
+
+
+
         const contents = []
 
 
@@ -196,6 +209,8 @@ class DeveloperWorkflow {
 
             understanding,
 
+            codeIntelligence,
+
         }
 
 
@@ -226,16 +241,24 @@ class DeveloperWorkflow {
                 status:
                     "waiting-for-approval",
 
+
                 state:
                     state.snapshot(),
 
+
                 plan,
+
 
                 analysis,
 
+
                 structure,
 
+
                 understanding,
+
+
+                codeIntelligence,
 
             }
 
@@ -319,6 +342,9 @@ class DeveloperWorkflow {
 
 
             understanding,
+
+
+            codeIntelligence,
 
 
             contents,
