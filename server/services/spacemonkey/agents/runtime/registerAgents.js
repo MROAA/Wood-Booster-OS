@@ -11,7 +11,7 @@ import DeveloperAgent from "../developer/DeveloperAgent.js"
 import WordPressAgent from "../wordpress/WordPressAgent.js"
 import InstagramAgent from "../instagram/InstagramAgent.js"
 import ProjectStructureAnalyzer from "../../skills/analyze/ProjectStructureAnalyzer.js"
-
+import ProjectUnderstandingAnalyzer from "../../skills/analyze/ProjectUnderstandingAnalyzer.js"
 import DeveloperWorkflow from "../../workflows/developer/DeveloperWorkflow.js"
 
 
@@ -101,7 +101,10 @@ const projectStructureAnalyzer =
     new ProjectStructureAnalyzer({
         logger,
     })
-
+const projectUnderstandingAnalyzer =
+new ProjectUnderstandingAnalyzer({
+    logger,
+})
     const developerWorkflow =
         new DeveloperWorkflow({
 
@@ -118,7 +121,7 @@ const projectStructureAnalyzer =
             testRunnerSkill,
 
             gitCommitSkill,
-
+projectUnderstandingAnalyzer,
             logger,
 projectStructureAnalyzer,
 

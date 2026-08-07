@@ -12,6 +12,7 @@ import DeveloperWorkflowState from "./DeveloperWorkflowState.js"
 
 class DeveloperWorkflow {
 
+
     constructor({
 
         analyzeSkill,
@@ -26,11 +27,14 @@ class DeveloperWorkflow {
 
         testRunnerSkill,
 
-gitCommitSkill,
+        gitCommitSkill,
 
-projectStructureAnalyzer,
+        projectStructureAnalyzer,
 
-logger = console,
+        projectUnderstandingAnalyzer,
+
+        logger = console,
+
     } = {}) {
 
 
@@ -66,18 +70,23 @@ logger = console,
             testRunnerSkill
 
 
-this.gitCommitSkill =
-    gitCommitSkill
+        this.gitCommitSkill =
+            gitCommitSkill
 
 
-this.projectStructureAnalyzer =
-    projectStructureAnalyzer
+        this.projectStructureAnalyzer =
+            projectStructureAnalyzer
 
 
-this.logger =
-    logger
+        this.projectUnderstandingAnalyzer =
+            projectUnderstandingAnalyzer
+
+
+        this.logger =
+            logger
 
     }
+
 
 
     async execute(context) {
@@ -85,67 +94,92 @@ this.logger =
 
         const state =
             new DeveloperWorkflowState({
+
                 logger:
                     this.logger,
+
             })
 
 
-state.transition(
-    "ANALYZING"
-)
+        state.transition(
+            "ANALYZING"
+        )
 
 
-const files =
-    await this.fileSearchSkill.execute({
 
-        directory:
-            context.projectPath,
+        const files =
+            await this.fileSearchSkill.execute({
 
-        search:
-            context.search ?? ""
+                directory:
+                    context.projectPath,
 
-    })
+                search:
+                    context.search ?? "",
+
+            })
 
 
-const analysis =
-    await this.analyzeSkill.execute({
 
-        ...context,
+        const analysis =
+            await this.analyzeSkill.execute({
 
-        files:
-            files.results,
+                ...context,
 
-    })
-const structure =
-    this.projectStructureAnalyzer.analyze(
-        files.results
-    )
-    this.logger.info(
-    "PROJECT STRUCTURE RESULT",
-    structure
-)
+                files:
+                    files.results,
+
+            })
+
+
+
+        const structure =
+            this.projectStructureAnalyzer.analyze(
+                files.results
+            )
+
+
+        this.logger.info(
+            "PROJECT STRUCTURE RESULT",
+            structure
+        )
+
+
+
+        const understanding =
+            this.projectUnderstandingAnalyzer.analyze(
+                structure
+            )
+
+
+
         const contents = []
 
 
+
         for (const file of files.results) {
+
 
             const content =
                 await this.readFileSkill.execute({
 
                     path:
-                        file
+                        file,
 
                 })
 
 
-            contents.push(content)
+            contents.push(
+                content
+            )
 
         }
+
 
 
         state.transition(
             "PLANNING"
         )
+
 
 
         const plan = {
@@ -158,7 +192,12 @@ const structure =
 
             analysis,
 
+            structure,
+
+            understanding,
+
         }
+
 
 
         state.transition(
@@ -166,16 +205,19 @@ const structure =
         )
 
 
+
         const approval =
             await this.approvalSkill.execute({
 
                 action:
-                    plan
+                    plan,
 
             })
 
 
+
         if (!approval.approved) {
+
 
             return {
 
@@ -189,14 +231,22 @@ const structure =
 
                 plan,
 
+                analysis,
+
+                structure,
+
+                understanding,
+
             }
 
         }
 
 
+
         state.transition(
             "EXECUTING"
         )
+
 
 
         const writeResult =
@@ -205,9 +255,11 @@ const structure =
             )
 
 
+
         state.transition(
             "TESTING"
         )
+
 
 
         const tests =
@@ -222,9 +274,11 @@ const structure =
             })
 
 
+
         state.transition(
             "COMMITTING"
         )
+
 
 
         const commit =
@@ -239,9 +293,11 @@ const structure =
             })
 
 
+
         state.transition(
             "COMPLETED"
         )
+
 
 
         return {
@@ -251,23 +307,36 @@ const structure =
             workflow:
                 this.id,
 
+
             state:
                 state.snapshot(),
 
+
             analysis,
+
+
+            structure,
+
+
+            understanding,
+
 
             contents,
 
+
             writeResult,
+
 
             tests,
 
+
             commit,
-structure,
 
         }
 
+
     }
+
 
 }
 
