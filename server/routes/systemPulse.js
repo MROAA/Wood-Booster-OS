@@ -6,7 +6,10 @@ WOOD-BOOSTER AI BRAIN V2
 SYSTEM PULSE ROUTE
 
 GET  /api/system-pulse
-POST /api/system-pulse/snapshot
+
+Varmuuskopiot ja palautus: ks. /api/backup, /api/backups,
+/api/system/restore (server/routes/backup.js, backups.js,
+systemRestore.js).
 
 =====================================
 */
@@ -18,10 +21,6 @@ import express from "express"
 import {
   getSystemPulseSummary,
 } from "../services/aiBrainV2/services/systemPulse/systemPulseSummary.js"
-
-import {
-  createSnapshot,
-} from "../../services/aiBrainV2/services/systemPulse/gitSync/snapshotService.js"
 
 
 
@@ -80,50 +79,6 @@ const pulse =
   },
 )
 
-
-
-
-
-router.post(
-  "/system-pulse/snapshot",
-  async (
-    req,
-    res,
-  ) => {
-
-    try {
-
-
-      const snapshot =
-        await createSnapshot()
-
-
-
-      res.json(
-        snapshot
-      )
-
-
-    }
-    catch(error){
-
-
-      res.status(500).json({
-
-        success:
-          false,
-
-
-        error:
-          error.message,
-
-      })
-
-
-    }
-
-  },
-)
 
 
 

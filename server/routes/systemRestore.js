@@ -27,6 +27,7 @@ export default function createSystemRestoreRouter(){
 
         const {
           file,
+          confirm,
         } =
           req.body
 
@@ -34,7 +35,8 @@ export default function createSystemRestoreRouter(){
 
         const result =
           await restoreSnapshot(
-            file
+            file,
+            { confirm },
           )
 
 

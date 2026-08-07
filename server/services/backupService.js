@@ -60,7 +60,8 @@ export function createSnapshot(){
         [],
 
         {
-          timeout:300000
+          timeout:300000,
+          maxBuffer:1024 * 1024 * 50
         },
 
         async (

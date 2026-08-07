@@ -1,5 +1,8 @@
 import { execFile } from "child_process"
 import path from "path"
+import { access } from "fs/promises"
+
+import { createSnapshot } from "./backupService.js"
 
 
 
@@ -13,102 +16,99 @@ const PROJECT_DIR =
 
 
 
+function execFileAsync(command, args){
 
+  return new Promise((resolve, reject) => {
 
-export function restoreSnapshot(file){
+    execFile(
+      command,
+      args,
+      { maxBuffer: 1024 * 1024 * 100 },
+      (error, stdout, stderr) => {
 
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    )=>{
-
-
-      if(!file){
-
-        reject({
-
-          success:false,
-
-          error:
-            "Snapshot file missing"
-
-        })
-
-        return
-
-      }
-
-
-
-      const snapshotPath =
-        path.join(
-          BACKUP_DIR,
-          file
-        )
-
-
-
-      execFile(
-
-        "tar",
-
-        [
-          "-tzf",
-          snapshotPath
-        ],
-
-        (
-          error,
-          stdout,
-          stderr
-        )=>{
-
-
-          if(error){
-
-            reject({
-
-              success:false,
-
-              error:
-                stderr ||
-                error.message
-
-            })
-
-            return
-
-          }
-
-
-
-          resolve({
-
-            success:true,
-
-            message:
-              "Restore validation successful",
-
-            snapshot:
-              file,
-
-            preview:
-              stdout
-                .split("\n")
-                .slice(0,10)
-
+        if(error){
+          reject({
+            success: false,
+            error: stderr || error.message,
           })
-
-
+          return
         }
 
-      )
+        resolve(stdout)
+
+      }
+    )
+
+  })
+
+}
 
 
+
+export async function restoreSnapshot(file, { confirm } = {}){
+
+  if(!file){
+    throw {
+      success: false,
+      error: "Snapshot file missing",
     }
-  )
+  }
 
+  if(confirm !== true){
+    throw {
+      success: false,
+      error: "Restore requires explicit confirmation",
+    }
+  }
+
+  const snapshotPath =
+    path.join(BACKUP_DIR, file)
+
+  try {
+    await access(snapshotPath)
+  }
+  catch {
+    throw {
+      success: false,
+      error: `Snapshot not found: ${file}`,
+    }
+  }
+
+  let safetyBackup = null
+
+  try {
+    const safety = await createSnapshot()
+    safetyBackup = path.basename(safety.file)
+  }
+  catch(error){
+    throw {
+      success: false,
+      error: `Safety backup failed, restore aborted: ${
+        error.error || error.message
+      }`,
+    }
+  }
+
+  try {
+    await execFileAsync(
+      "tar",
+      ["-xzf", snapshotPath, "-C", PROJECT_DIR]
+    )
+  }
+  catch(error){
+    throw {
+      success: false,
+      error: `Restore extraction failed (safety backup ${
+        safetyBackup
+      } was created before this attempt): ${error.error}`,
+    }
+  }
+
+  return {
+    success: true,
+    message: "Restore completed successfully",
+    restoredFrom: file,
+    safetyBackup,
+  }
 
 }
