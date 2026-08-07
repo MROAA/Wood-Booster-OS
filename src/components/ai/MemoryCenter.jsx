@@ -856,6 +856,42 @@ function MemoryCenter() {
         </div>
 
 
+
+        {
+          visibleCount < filteredMemories.length && (
+
+            <div className="
+              mt-6
+              flex
+              justify-center
+            ">
+
+              <button
+
+                onClick={() =>
+                  setVisibleCount(
+                    count => count + PAGE_SIZE
+                  )
+                }
+
+                className="wb-button"
+
+              >
+
+                Näytä lisää
+                {" "}
+                ({visibleMemories.length}
+                {" / "}
+                {filteredMemories.length})
+
+              </button>
+
+            </div>
+
+          )
+        }
+
+
       </section>
 
 

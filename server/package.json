@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "brain:import": "node scripts/import-brain.js",
-    "brain:watch": "node scripts/watch-brain.js"
+    "brain:watch": "node scripts/watch-brain.js",
+    "build:sidecar": "node scripts/prepare-sidecar.js"
   },
   "keywords": [],
   "type": "module",

@@ -1,0 +1,57 @@
+{
+  "id": "python-developer",
+  "name": "Python Developer",
+  "version": "1.0.0",
+  "description": "Professional Python development plugin for Spacemonkey.",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "development",
+  "dependencies": [
+    "development-pack",
+    "python-pack",
+    "git-pack",
+    "linux-pack"
+  ],
+  "capabilities": [
+    "python",
+    "debugging",
+    "testing",
+    "architecture",
+    "documentation",
+    "automation"
+  ],
+  "skills": [
+    "write-python",
+    "read-python",
+    "explain-python",
+    "debug-python",
+    "refactor-python",
+    "generate-tests",
+    "optimize-python",
+    "review-python",
+    "create-api",
+    "build-cli"
+  ],
+  "tools": [
+    "python",
+    "terminal",
+    "filesystem",
+    "git",
+    "docker"
+  ],
+  "workflows": [
+    "new-python-project",
+    "fix-python-project",
+    "review-python-project",
+    "build-python-api",
+    "automation-script"
+  ],
+  "permissions": [
+    "filesystem.read",
+    "filesystem.write",
+    "terminal.execute",
+    "python.execute",
+    "git.commit"
+  ],
+  "entry": "index.js"
+}

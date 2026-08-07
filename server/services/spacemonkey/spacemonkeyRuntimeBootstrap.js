@@ -1,216 +1,215 @@
-/*
-=====================================
-
-SPACEMONKEY RUNTIME BOOTSTRAP V1
-
-
-Vastuut:
-
-- käynnistää Spacemonkey moduulit
-- yhdistää integraatiot
-- luo System Kernelin
-- tarjoaa yhtenäisen käynnistyspisteen
-
-
-Ei:
-
-- ei tee AI päätöksiä
-- ei kutsu LLM:ää
-- ei suorita työkaluja
-- ei kirjoita muistia
-
-
-=====================================
-*/
-
+/**
+ * Wood-Booster OS
+ * Spacemonkey
+ *
+ * SPACEMONKEY RUNTIME BOOTSTRAP V1
+ *
+ * Vastuut:
+ *
+ * - käynnistää Spacemonkey moduulit
+ * - yhdistää integraatiot
+ * - luo System Kernelin
+ * - käynnistää Agent Runtime Layerin
+ *
+ * Ei:
+ *
+ * - ei tee AI päätöksiä
+ * - ei kutsu LLM:ää
+ * - ei suorita työkaluja
+ * - ei kirjoita muistia
+ */
 
 import {
-  createSpacemonkeySystemKernel,
+    createSpacemonkeySystemKernel,
 } from "./spacemonkeySystemKernel.js"
 
 
-
 import {
-  startSpacemonkeyEventIntegration,
+    startSpacemonkeyEventIntegration,
 } from "./spacemonkeyEventIntegration.js"
 
 
-
 import {
-  startSpacemonkeyLearningIntegration,
+    startSpacemonkeyLearningIntegration,
 } from "./spacemonkeyLearningIntegration.js"
 
 
-
 import {
-  startSpacemonkeyLearningEventBridge,
+    startSpacemonkeyLearningEventBridge,
 } from "./spacemonkeyLearningEventBridge.js"
 
 
-
-
+import {
+    integrateAgentRuntime,
+} from "./agents/runtime/agentRuntimeIntegration.js"
 
 
 
 let booted = false
 
-
 let kernel = null
 
+let agentRuntime = null
 
 
 
+function startSpacemonkeyRuntimeBootstrap({
+
+    planner,
+
+    toolBus,
+
+    memory,
+
+    logger = console,
+
+} = {}) {
 
 
+    if (booted) {
 
-function startSpacemonkeyRuntimeBootstrap(){
+        return {
 
+            success: true,
 
-  if(booted){
+            status:
+                "already_started",
 
-    return {
+            kernel,
 
-      success:
-        true,
+            agentRuntime,
 
-
-      status:
-        "already_started",
-
-
-      kernel,
+        }
 
     }
 
-  }
+
+
+    const eventResult =
+        startSpacemonkeyEventIntegration()
 
 
 
-
-
-  const eventResult =
-
-    startSpacemonkeyEventIntegration()
+    const learningBridgeResult =
+        startSpacemonkeyLearningEventBridge()
 
 
 
-
-
-  const learningBridgeResult =
-
-    startSpacemonkeyLearningEventBridge()
+    const learningResult =
+        startSpacemonkeyLearningIntegration()
 
 
 
-
-
-  const learningResult =
-
-    startSpacemonkeyLearningIntegration()
+    kernel =
+        createSpacemonkeySystemKernel()
 
 
 
+    const agentRuntimeResult =
+        integrateAgentRuntime({
+
+            planner,
+
+            toolBus,
+
+            memory,
+
+            logger,
+
+        })
 
 
-  kernel =
 
-    createSpacemonkeySystemKernel()
-
-
+    agentRuntime =
+        agentRuntimeResult.runtime
 
 
 
-  booted = true
+    booted = true
 
 
 
+    console.log(
+        "SPACEMONKEY RUNTIME BOOTSTRAP READY"
+    )
 
 
-  return {
+
+    return {
+
+        success: true,
+
+        status:
+            "started",
 
 
-    success:
-      true,
+        startup: {
+
+            events:
+                eventResult,
 
 
-    status:
-      "started",
+            learningBridge:
+                learningBridgeResult,
 
 
-    startup:
-
-      {
-
-        events:
-          eventResult,
+            learning:
+                learningResult,
 
 
-        learningBridge:
-          learningBridgeResult,
+            agentRuntime:
+                agentRuntimeResult,
+
+        },
 
 
-        learning:
-          learningResult,
+        kernel,
 
-      },
+        agentRuntime,
 
-
-    kernel,
-
-
-  }
-
+    }
 
 }
-
-
-
-
 
 
 
 function getSpacemonkeyBootstrapStatus(){
 
 
-  return {
+    return {
+
+        system:
+            "Spacemonkey Runtime Bootstrap",
 
 
-    system:
-
-      "Spacemonkey Runtime Bootstrap",
-
+        version:
+            "1.0.0",
 
 
-    version:
-
-      "1.0.0",
+        booted,
 
 
+        kernel:
+            kernel
+                ? "READY"
+                : "NOT_STARTED",
 
-    booted,
 
+        agentRuntime:
+            agentRuntime
+                ? "READY"
+                : "NOT_STARTED",
 
-
-    kernel:
-
-      kernel
-        ? "READY"
-        : "NOT_STARTED",
-
-  }
+    }
 
 }
 
 
 
-
-
-
-
 export {
 
-  startSpacemonkeyRuntimeBootstrap,
+    startSpacemonkeyRuntimeBootstrap,
 
-  getSpacemonkeyBootstrapStatus,
+    getSpacemonkeyBootstrapStatus,
 
 }

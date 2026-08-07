@@ -20,6 +20,13 @@ mitä teknologiaa tulevaisuudessa käytetään.
 12. [Future Roadmap](12_FUTURE_ROADMAP.md) — Vaiheet 1-7, työkalusta toimialariippumattomaksi käyttöjärjestelmäksi.
 13. [Legacy](13_LEGACY.md) — miksi tämä tehdään.
 
+## Raakamateriaali (ei vielä kanonisoitu)
+
+- [Boosterverse Vision Draft](14_BOOSTERVERSE_VISION.md) — Marcin oma,
+  muokkaamaton lore-/visioluonnos Boosterversesta ja Spacemonkeyn
+  persoonallisuuden kasvusta. Ei osa virallista 13 volyymin sarjaa
+  ennen kuin se on kuratoitu ja testattu Constitutionia vasten.
+
 ## Periaate
 
 Kun uutta ominaisuutta, näkymää tai automaatiota suunnitellaan, se
