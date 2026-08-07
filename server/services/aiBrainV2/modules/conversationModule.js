@@ -114,7 +114,7 @@ function normalizeAnswer(value) {
 
 
 
-function createSpacemonkeyKnowledge(
+async function createSpacemonkeyKnowledge(
   runtimeContext,
 ) {
 
@@ -151,7 +151,7 @@ function createSpacemonkeyKnowledge(
         "SPACEMONKEY_SYSTEM_IDENTITY",
 
       content:
-        createSpacemonkeySystemPrompt({
+        await createSpacemonkeySystemPrompt({
           spacemonkey,
         }),
 

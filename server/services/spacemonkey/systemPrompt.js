@@ -59,7 +59,7 @@ function createList(values){
 
 
 
-function createSpacemonkeySystemPrompt({
+async function createSpacemonkeySystemPrompt({
 
   spacemonkey,
 
@@ -110,7 +110,7 @@ function createSpacemonkeySystemPrompt({
 
   const godFiles =
 
-    loadGodFiles()
+    await loadGodFiles()
 
 
 

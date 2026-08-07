@@ -131,7 +131,7 @@ async function process({
 
 
     const godFiles =
-      loadGodFiles()
+      await loadGodFiles()
 
 
 
