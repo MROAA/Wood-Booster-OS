@@ -119,13 +119,17 @@ function buildFocusOptions(runtimeContext) {
 
   const options = []
 
+  const activeTab =
+    safeObject(runtimeContext.activeTab)
+
   if (hasEntries(activeProject)) {
     options.push({
       goal:
         `Projekti: ${activeProject.name || activeProject.id}`,
 
       task:
-        runtimeContext.activeTab ||
+        activeTab.label ||
+        activeTab.id ||
         route.pageName ||
         "yleiskatsaus",
 
@@ -198,7 +202,7 @@ function buildContextSnapshot(runtimeContext) {
       safeObject(safeContext.activeCustomer),
 
     activeTab:
-      safeContext.activeTab || null,
+      safeObject(safeContext.activeTab),
 
     selectedItems:
       safeArray(safeContext.selectedItems),

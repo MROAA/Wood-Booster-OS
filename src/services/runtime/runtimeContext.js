@@ -129,21 +129,6 @@ function resolveRouteContext(
   ) {
     return {
       routeId:
-        "ai-workspace",
-
-      pageName:
-        "AI Workspace",
-
-      pageType:
-        "ai-workspace",
-    }
-  }
-
-  if (
-    path === "/dashboard"
-  ) {
-    return {
-      routeId:
         "dashboard",
 
       pageName:
@@ -155,7 +140,52 @@ function resolveRouteContext(
   }
 
   if (
-    path === "/system"
+    path === "/purchases"
+  ) {
+    return {
+      routeId:
+        "purchases",
+
+      pageName:
+        "Ostot",
+
+      pageType:
+        "purchases",
+    }
+  }
+
+  if (
+    path === "/invoices"
+  ) {
+    return {
+      routeId:
+        "invoices",
+
+      pageName:
+        "Laskut",
+
+      pageType:
+        "invoices",
+    }
+  }
+
+  if (
+    path === "/system-pulse"
+  ) {
+    return {
+      routeId:
+        "system-pulse",
+
+      pageName:
+        "System Pulse",
+
+      pageType:
+        "system-pulse",
+    }
+  }
+
+  if (
+    path === "/system-center"
   ) {
     return {
       routeId:
@@ -166,6 +196,36 @@ function resolveRouteContext(
 
       pageType:
         "system-center",
+    }
+  }
+
+  if (
+    path === "/spacemonkey-brain"
+  ) {
+    return {
+      routeId:
+        "spacemonkey-brain",
+
+      pageName:
+        "Spacemonkey Brain",
+
+      pageType:
+        "spacemonkey-brain",
+    }
+  }
+
+  if (
+    path === "/spacemonkey"
+  ) {
+    return {
+      routeId:
+        "spacemonkey",
+
+      pageName:
+        "Spacemonkey",
+
+      pageType:
+        "spacemonkey",
     }
   }
 
@@ -277,6 +337,37 @@ function resolveRouteContext(
   }
 
   if (
+    path.startsWith(
+      "/knowledge/",
+    )
+  ) {
+    const knowledgeId =
+      path
+        .replace(
+          "/knowledge/",
+          "",
+        )
+        .split("/")[0]
+
+    return {
+      routeId:
+        "knowledge-details",
+
+      pageName:
+        "Knowledge Document",
+
+      pageType:
+        "knowledge-details",
+
+      resourceId:
+        cleanText(knowledgeId),
+
+      resourceType:
+        "knowledge-document",
+    }
+  }
+
+  if (
     path === "/memory"
   ) {
     return {
@@ -382,9 +473,52 @@ function resolveRouteContext(
   }
 
   if (
-    path === "/brain" ||
-    path === "/ai-brain" ||
-    path === "/ai"
+    path === "/ai-brain"
+  ) {
+    return {
+      routeId:
+        "ai-brain",
+
+      pageName:
+        "AI Brain",
+
+      pageType:
+        "ai-workspace",
+    }
+  }
+
+  if (
+    path === "/ai-chat"
+  ) {
+    return {
+      routeId:
+        "ai-chat",
+
+      pageName:
+        "AI Chat",
+
+      pageType:
+        "ai-workspace",
+    }
+  }
+
+  if (
+    path === "/ai-generator"
+  ) {
+    return {
+      routeId:
+        "ai-generator",
+
+      pageName:
+        "AI Generator",
+
+      pageType:
+        "ai-workspace",
+    }
+  }
+
+  if (
+    path === "/ai-workspace"
   ) {
     return {
       routeId:
@@ -591,7 +725,7 @@ function createRuntimeContext(
       ),
 
     activeTab:
-      cleanText(
+      safeObject(
         merged.activeTab,
       ),
 
@@ -742,7 +876,7 @@ function setActiveTab(
 ) {
   return updateRuntimeContext({
     activeTab:
-      cleanText(activeTab),
+      safeObject(activeTab),
   })
 }
 

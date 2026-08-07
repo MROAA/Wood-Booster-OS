@@ -16,7 +16,10 @@ const fakeRuntimeContext = {
     name: "Aurora-jokipöytä",
   },
   activeCustomer: {},
-  activeTab: "materials",
+  activeTab: {
+    id: "materials",
+    label: "Materials",
+  },
   selectedItems: [],
   metadata: {
     missingMaterials: [
