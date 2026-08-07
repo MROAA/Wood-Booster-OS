@@ -41,7 +41,7 @@ function Tools() {
           font-semibold
           uppercase
           tracking-[0.25em]
-          text-amber-500
+          text-[var(--wood-accent)]
         ">
           AI Operating System
         </p>
@@ -50,7 +50,7 @@ function Tools() {
           mt-2
           text-4xl
           font-bold
-          text-white
+          text-[var(--wood-text)]
         ">
           ▨ Tools Center
         </h1>
@@ -58,7 +58,7 @@ function Tools() {
         <p className="
           mt-3
           max-w-3xl
-          text-neutral-400
+          text-[var(--wood-muted)]
         ">
           Wood-Booster AI:n työkalut,
           niiden toimintotyypit,
@@ -104,8 +104,8 @@ function Tools() {
       <section className="
         rounded-2xl
         border
-        border-neutral-800
-        bg-neutral-900
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
         p-5
       ">
         <div className="
@@ -122,7 +122,7 @@ function Tools() {
               font-semibold
               uppercase
               tracking-[0.2em]
-              text-neutral-500
+              text-[var(--wood-muted)]
             ">
               Tool Architecture
             </p>
@@ -131,7 +131,7 @@ function Tools() {
               mt-2
               text-xl
               font-bold
-              text-white
+              text-[var(--wood-text)]
             ">
               Työkalujen suoritusketju
             </h2>
@@ -196,7 +196,7 @@ function Tools() {
             <h2 className="
               text-2xl
               font-bold
-              text-white
+              text-[var(--wood-text)]
             ">
               Rekisteröidyt työkalut
             </h2>
@@ -204,7 +204,7 @@ function Tools() {
             <p className="
               mt-1
               text-sm
-              text-neutral-500
+              text-[var(--wood-muted)]
             ">
               Health Check vertaa Tool
               Manifestia oikeisiin
@@ -214,7 +214,7 @@ function Tools() {
 
           <p className="
             text-sm
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             {summary.healthy} /{" "}
             {summary.total} täysin
@@ -256,19 +256,19 @@ function StatCard({
   label,
   value,
   valueClassName =
-    "text-white",
+    "text-[var(--wood-text)]",
 }) {
   return (
     <div className="
       rounded-2xl
       border
-      border-neutral-800
-      bg-neutral-900
+      border-[var(--wood-border)]
+      bg-[var(--wood-panel)]
       p-5
     ">
       <p className="
         text-sm
-        text-neutral-500
+        text-[var(--wood-muted)]
       ">
         {label}
       </p>
@@ -295,12 +295,12 @@ function ArchitectureNode({
     <span className="
       rounded-lg
       border
-      border-neutral-700
-      bg-neutral-950
+      border-[var(--wood-border)]
+      bg-[var(--wood-bg)]
       px-3
       py-2
       font-medium
-      text-neutral-300
+      text-[var(--wood-text)]
     ">
       {label}
     </span>
@@ -311,7 +311,7 @@ function ArchitectureNode({
 function ArchitectureArrow() {
   return (
     <span className="
-      text-neutral-600
+      text-[var(--wood-muted)]
     ">
       →
     </span>
@@ -383,8 +383,8 @@ function ToolCard({
     <article className="
       rounded-2xl
       border
-      border-neutral-800
-      bg-neutral-900
+      border-[var(--wood-border)]
+      bg-[var(--wood-panel)]
       p-5
     ">
       <div className="
@@ -399,7 +399,7 @@ function ToolCard({
             font-semibold
             uppercase
             tracking-[0.2em]
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             {tool.id}
           </p>
@@ -408,7 +408,7 @@ function ToolCard({
             mt-2
             text-lg
             font-bold
-            text-white
+            text-[var(--wood-text)]
           ">
             {tool.name}
           </h3>
@@ -423,7 +423,7 @@ function ToolCard({
         mt-4
         text-sm
         leading-6
-        text-neutral-400
+        text-[var(--wood-muted)]
       ">
         {tool.description}
       </p>
@@ -438,7 +438,7 @@ function ToolCard({
           <p className="
             text-sm
             font-semibold
-            text-neutral-300
+            text-[var(--wood-text)]
           ">
             Executor readiness
           </p>
@@ -446,7 +446,7 @@ function ToolCard({
           <span className="
             text-xs
             font-semibold
-            text-neutral-400
+            text-[var(--wood-muted)]
           ">
             {readiness} %
           </span>
@@ -457,7 +457,7 @@ function ToolCard({
           h-2
           overflow-hidden
           rounded-full
-          bg-neutral-800
+          bg-[var(--wood-card)]
         ">
           <div
             className={
@@ -481,14 +481,14 @@ function ToolCard({
           <h4 className="
             text-sm
             font-semibold
-            text-neutral-300
+            text-[var(--wood-text)]
           ">
             Käyttävät capabilityt
           </h4>
 
           <span className="
             text-xs
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             {capabilities.length}
           </span>
@@ -504,7 +504,7 @@ function ToolCard({
             0 && (
             <span className="
               text-xs
-              text-neutral-600
+              text-[var(--wood-muted)]
             ">
               Ei capability-riippuvuuksia
             </span>
@@ -542,14 +542,14 @@ function ToolCard({
           <h4 className="
             text-sm
             font-semibold
-            text-neutral-300
+            text-[var(--wood-text)]
           ">
             Tuetut toiminnot
           </h4>
 
           <span className="
             text-xs
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             {
               tool.supportedActions
@@ -580,13 +580,13 @@ function ToolCard({
                       ? `
                         rounded-lg
                         border
-                        border-neutral-700
-                        bg-neutral-950
+                        border-[var(--wood-border)]
+                        bg-[var(--wood-bg)]
                         px-2.5
                         py-1.5
                         font-mono
                         text-xs
-                        text-amber-400
+                        text-[var(--wood-accent)]
                       `
                       : `
                         rounded-lg
@@ -651,13 +651,13 @@ function ToolHealthBadge({
       <span className="
         rounded-full
         border
-        border-neutral-700
-        bg-neutral-800
+        border-[var(--wood-border)]
+        bg-[var(--wood-card)]
         px-3
         py-1
         text-xs
         font-semibold
-        text-neutral-400
+        text-[var(--wood-muted)]
       ">
         ● DISABLED
       </span>

@@ -86,7 +86,7 @@ function HealthScoreCard({
               mt-2
               h-2
               rounded-full
-              bg-neutral-800
+              bg-[var(--wood-card)]
               overflow-hidden
             "
           >

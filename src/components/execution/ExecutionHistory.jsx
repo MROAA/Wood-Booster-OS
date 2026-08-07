@@ -333,38 +333,38 @@ function HistoryDetails({
     )
 
   return (
-    <div className="mt-4 space-y-4 border-t border-neutral-800 pt-4">
+    <div className="mt-4 space-y-4 border-t border-[var(--wood-border)] pt-4">
       <div className="grid gap-3 lg:grid-cols-3">
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/60 p-4">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">
+        <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)]/60 p-4">
+          <p className="text-xs uppercase tracking-wide text-[var(--wood-muted)]">
             Agentti
           </p>
 
-          <p className="mt-2 text-sm font-semibold text-white">
+          <p className="mt-2 text-sm font-semibold text-[var(--wood-text)]">
             {formatAgentName(
               item?.agent,
             )}
           </p>
         </div>
 
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/60 p-4">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">
+        <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)]/60 p-4">
+          <p className="text-xs uppercase tracking-wide text-[var(--wood-muted)]">
             Intent
           </p>
 
-          <p className="mt-2 break-words text-sm font-semibold text-white">
+          <p className="mt-2 break-words text-sm font-semibold text-[var(--wood-text)]">
             {getIntent(
               item,
             )}
           </p>
         </div>
 
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/60 p-4">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">
+        <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)]/60 p-4">
+          <p className="text-xs uppercase tracking-wide text-[var(--wood-muted)]">
             Planner
           </p>
 
-          <p className="mt-2 break-words text-sm font-semibold text-white">
+          <p className="mt-2 break-words text-sm font-semibold text-[var(--wood-text)]">
             {String(
               getPlannerId(
                 item?.plannerDecision,
@@ -375,12 +375,12 @@ function HistoryDetails({
       </div>
 
       {item?.question && (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-amber-400">
+        <div className="rounded-xl border border-[var(--wood-accent)]/20 bg-[var(--wood-accent)]/5 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--wood-accent)]">
             Käyttäjän pyyntö
           </p>
 
-          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-200">
+          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--wood-text)]">
             {item.question}
           </p>
         </div>
@@ -392,19 +392,19 @@ function HistoryDetails({
             AI-vastaus
           </p>
 
-          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-200">
+          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--wood-text)]">
             {item.answer}
           </p>
         </div>
       )}
 
       {item?.reason && (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/60 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+        <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)]/60 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
             Perustelu
           </p>
 
-          <p className="mt-2 whitespace-pre-wrap break-words text-sm text-neutral-300">
+          <p className="mt-2 whitespace-pre-wrap break-words text-sm text-[var(--wood-text)]">
             {item.reason}
           </p>
         </div>
@@ -437,9 +437,9 @@ function HistoryDetails({
                     step?.id ||
                     `history-step-${index}`
                   }
-                  className="rounded-lg border border-neutral-800 bg-neutral-950/50 px-3 py-3"
+                  className="rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)]/50 px-3 py-3"
                 >
-                  <p className="text-sm font-medium text-neutral-200">
+                  <p className="text-sm font-medium text-[var(--wood-text)]">
                     {index +
                       1}
                     .{" "}
@@ -456,7 +456,7 @@ function HistoryDetails({
                       step.dependsOn,
                     ).length >
                       0 && (
-                      <p className="mt-1 text-xs text-neutral-500">
+                      <p className="mt-1 text-xs text-[var(--wood-muted)]">
                         Riippuu vaiheista:{" "}
                         {normalizeItems(
                           step.dependsOn,
@@ -474,9 +474,9 @@ function HistoryDetails({
 
       {actions.length >
         0 && (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+        <div className="rounded-xl border border-[var(--wood-accent)]/20 bg-[var(--wood-accent)]/5 p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-amber-300">
+            <p className="text-sm font-semibold text-[var(--wood-accent)]">
               Action Queue
             </p>
 
@@ -499,9 +499,9 @@ function HistoryDetails({
                     action?.id ||
                     `history-action-${index}`
                   }
-                  className="rounded-lg border border-neutral-800 bg-neutral-950/50 px-3 py-3"
+                  className="rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)]/50 px-3 py-3"
                 >
-                  <p className="text-sm font-medium text-neutral-200">
+                  <p className="text-sm font-medium text-[var(--wood-text)]">
                     {index +
                       1}
                     .{" "}
@@ -511,7 +511,7 @@ function HistoryDetails({
                   </p>
 
                   {action?.type && (
-                    <p className="mt-1 text-xs text-neutral-500">
+                    <p className="mt-1 text-xs text-[var(--wood-muted)]">
                       Tyyppi:{" "}
                       {action.type}
                     </p>
@@ -524,9 +524,9 @@ function HistoryDetails({
       )}
 
       {item?.actionResult && (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/60 p-4">
+        <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)]/60 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-[var(--wood-text)]">
               Suorituksen yhteenveto
             </p>
 
@@ -576,7 +576,7 @@ function HistoryDetails({
 
           {item.actionResult
             .message && (
-            <p className="mt-3 text-sm text-neutral-400">
+            <p className="mt-3 text-sm text-[var(--wood-muted)]">
               {
                 item.actionResult
                   .message
@@ -589,7 +589,7 @@ function HistoryDetails({
       {results.length >
         0 && (
         <div className="space-y-3">
-          <p className="text-sm font-semibold text-white">
+          <p className="text-sm font-semibold text-[var(--wood-text)]">
             Toimintojen tulokset
           </p>
 
@@ -640,7 +640,7 @@ function ExecutionHistoryItem({
     )
 
   return (
-    <article className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4">
+    <article className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)]/70 p-4">
       <button
         type="button"
         onClick={() =>
@@ -664,7 +664,7 @@ function ExecutionHistoryItem({
                 }
               </StatusBadge>
 
-              <span className="text-xs text-neutral-500">
+              <span className="text-xs text-[var(--wood-muted)]">
                 {formatDate(
                   item?.timestamp ||
                   item?.completedAt ||
@@ -673,14 +673,14 @@ function ExecutionHistoryItem({
               </span>
             </div>
 
-            <p className="mt-3 truncate text-sm font-semibold text-white">
+            <p className="mt-3 truncate text-sm font-semibold text-[var(--wood-text)]">
               {item?.question ||
                 item?.answer ||
                 item?.message ||
                 `AI-suoritus ${index + 1}`}
             </p>
 
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-[var(--wood-muted)]">
               {formatAgentName(
                 item?.agent,
               )}
@@ -690,7 +690,7 @@ function ExecutionHistoryItem({
             </p>
           </div>
 
-          <span className="shrink-0 text-sm font-medium text-amber-400">
+          <span className="shrink-0 text-sm font-medium text-[var(--wood-accent)]">
             {isOpen
               ? "Sulje tiedot ▲"
               : "Avaa tiedot ▼"}
@@ -815,8 +815,8 @@ function ExecutionHistory({
 
       {historyItems.length ===
       0 ? (
-        <div className="mt-4 rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-6 text-center">
-          <p className="text-sm text-neutral-500">
+        <div className="mt-4 rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-6 text-center">
+          <p className="text-sm text-[var(--wood-muted)]">
             Suoritushistoria on tyhjä.
           </p>
         </div>

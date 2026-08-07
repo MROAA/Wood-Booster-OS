@@ -97,16 +97,16 @@ function StatusCard({
       description={
         description
       }
-      className="bg-neutral-900"
+      className="bg-[var(--wood-panel)]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="break-words text-2xl font-bold text-white">
+          <p className="break-words text-2xl font-bold text-[var(--wood-text)]">
             {value}
           </p>
 
           {secondaryValue && (
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-[var(--wood-muted)]">
               {secondaryValue}
             </p>
           )}

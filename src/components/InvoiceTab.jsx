@@ -1062,7 +1062,7 @@ function InvoiceTab({
                       ?
                       "card border-emerald-900/60 bg-emerald-950/30 px-3 py-1 text-sm text-emerald-300"
                       :
-                      "card border-amber-900/60 bg-amber-950/30 px-3 py-1 text-sm text-amber-300"
+                      "card border-[var(--wood-accent)]/60 bg-[var(--wood-accent)]/10 px-3 py-1 text-sm text-[var(--wood-accent)]"
                     }
 
                   >
@@ -2012,7 +2012,7 @@ function InvoiceTab({
                         ?
                         "font-medium text-emerald-400"
                         :
-                        "font-medium text-amber-400"
+                        "font-medium text-[var(--wood-accent)]"
                       }
                     >
 

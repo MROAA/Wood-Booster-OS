@@ -373,7 +373,7 @@ function ActionResultCard({
     "-"
 
   return (
-    <article className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+    <article className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
       <div className="flex items-start gap-4">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-sm font-bold text-violet-300">
           {index + 1}
@@ -382,12 +382,12 @@ function ActionResultCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="break-words font-semibold text-white">
+              <h3 className="break-words font-semibold text-[var(--wood-text)]">
                 {title}
               </h3>
 
               {type && (
-                <p className="mt-1 break-words text-xs uppercase tracking-wider text-neutral-500">
+                <p className="mt-1 break-words text-xs uppercase tracking-wider text-[var(--wood-muted)]">
                   {type}
                 </p>
               )}
@@ -457,7 +457,7 @@ function ActionResultCard({
               label="Tulos"
               className="mt-3 border-emerald-500/20 bg-emerald-500/5"
             >
-              <p className="whitespace-pre-wrap break-words text-sm leading-6 text-neutral-300">
+              <p className="whitespace-pre-wrap break-words text-sm leading-6 text-[var(--wood-text)]">
                 {message}
               </p>
             </InfoCard>
@@ -479,7 +479,7 @@ function ActionResultCard({
               label="Payload"
               className="mt-3"
             >
-              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs leading-5 text-neutral-300">
+              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs leading-5 text-[var(--wood-text)]">
                 {stringifyValue(
                   payload,
                 )}
@@ -492,7 +492,7 @@ function ActionResultCard({
               label="Palautettu data"
               className="mt-3"
             >
-              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs leading-5 text-neutral-300">
+              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs leading-5 text-[var(--wood-text)]">
                 {stringifyValue(
                   resultData,
                 )}

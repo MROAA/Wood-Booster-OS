@@ -769,7 +769,7 @@ function TimelineTab({
 
                             ?
 
-                            "border-green-500 bg-green-500 text-black"
+                            "border-green-500 bg-green-500 text-[#17120c]"
 
                             :
 

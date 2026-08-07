@@ -75,7 +75,7 @@ function CapabilityCenter() {
           font-semibold
           uppercase
           tracking-[0.25em]
-          text-amber-500
+          text-[var(--wood-accent)]
         ">
           AI Operating System
         </p>
@@ -84,7 +84,7 @@ function CapabilityCenter() {
           mt-2
           text-4xl
           font-bold
-          text-white
+          text-[var(--wood-text)]
         ">
           ⬢ Capability Center
         </h1>
@@ -92,7 +92,7 @@ function CapabilityCenter() {
         <p className="
           mt-3
           max-w-3xl
-          text-neutral-400
+          text-[var(--wood-muted)]
         ">
           Wood-Booster AI:n
           kyvykkyysrekisteri,
@@ -126,7 +126,7 @@ function CapabilityCenter() {
           valueClassName={
             summary.unhealthy > 0
               ? "text-red-400"
-              : "text-neutral-300"
+              : "text-[var(--wood-text)]"
           }
         />
 
@@ -142,7 +142,7 @@ function CapabilityCenter() {
             readiness === 100
               ? "text-emerald-400"
               : readiness >= 50
-                ? "text-amber-400"
+                ? "text-[var(--wood-accent)]"
                 : "text-red-400"
           }
         />
@@ -151,8 +151,8 @@ function CapabilityCenter() {
       <section className="
         rounded-2xl
         border
-        border-neutral-800
-        bg-neutral-900
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
         p-5
       ">
         <div className="
@@ -169,7 +169,7 @@ function CapabilityCenter() {
               font-semibold
               uppercase
               tracking-[0.2em]
-              text-neutral-500
+              text-[var(--wood-muted)]
             ">
               Capability Architecture
             </p>
@@ -178,7 +178,7 @@ function CapabilityCenter() {
               mt-2
               text-xl
               font-bold
-              text-white
+              text-[var(--wood-text)]
             ">
               AI:n toimintaketju
             </h2>
@@ -274,7 +274,7 @@ function CapabilityCenter() {
             <h2 className="
               text-2xl
               font-bold
-              text-white
+              text-[var(--wood-text)]
             ">
               Rekisteröidyt kyvykkyydet
             </h2>
@@ -282,7 +282,7 @@ function CapabilityCenter() {
             <p className="
               mt-1
               text-sm
-              text-neutral-500
+              text-[var(--wood-muted)]
             ">
               Health Check vertaa
               Capability Manifestia
@@ -293,7 +293,7 @@ function CapabilityCenter() {
 
           <p className="
             text-sm
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             {summary.healthy} /{" "}
             {summary.total} täysin
@@ -329,19 +329,19 @@ function StatCard({
   label,
   value,
   valueClassName =
-    "text-white",
+    "text-[var(--wood-text)]",
 }) {
   return (
     <div className="
       rounded-2xl
       border
-      border-neutral-800
-      bg-neutral-900
+      border-[var(--wood-border)]
+      bg-[var(--wood-panel)]
       p-5
     ">
       <p className="
         text-sm
-        text-neutral-500
+        text-[var(--wood-muted)]
       ">
         {label}
       </p>
@@ -370,15 +370,15 @@ function InfoCard({
     <div className="
       rounded-xl
       border
-      border-neutral-800
-      bg-neutral-950
+      border-[var(--wood-border)]
+      bg-[var(--wood-bg)]
       p-4
     ">
       <p className="
         text-xs
         uppercase
         tracking-wider
-        text-neutral-500
+        text-[var(--wood-muted)]
       ">
         {label}
       </p>
@@ -387,7 +387,7 @@ function InfoCard({
         mt-2
         text-2xl
         font-bold
-        text-white
+        text-[var(--wood-text)]
       ">
         {value}
       </p>
@@ -395,7 +395,7 @@ function InfoCard({
       <p className="
         mt-2
         text-xs
-        text-neutral-600
+        text-[var(--wood-muted)]
       ">
         {description}
       </p>
@@ -411,12 +411,12 @@ function ArchitectureNode({
     <span className="
       rounded-lg
       border
-      border-neutral-700
-      bg-neutral-950
+      border-[var(--wood-border)]
+      bg-[var(--wood-bg)]
       px-3
       py-2
       font-medium
-      text-neutral-300
+      text-[var(--wood-text)]
     ">
       {label}
     </span>
@@ -427,7 +427,7 @@ function ArchitectureNode({
 function ArchitectureArrow() {
   return (
     <span className="
-      text-neutral-600
+      text-[var(--wood-muted)]
     ">
       →
     </span>
@@ -498,8 +498,8 @@ function CapabilityCard({
     <article className="
       rounded-2xl
       border
-      border-neutral-800
-      bg-neutral-900
+      border-[var(--wood-border)]
+      bg-[var(--wood-panel)]
       p-5
     ">
       <div className="
@@ -514,7 +514,7 @@ function CapabilityCard({
             font-semibold
             uppercase
             tracking-[0.2em]
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             {capability.id}
           </p>
@@ -523,7 +523,7 @@ function CapabilityCard({
             mt-2
             text-lg
             font-bold
-            text-white
+            text-[var(--wood-text)]
           ">
             {capability.name}
           </h3>
@@ -540,7 +540,7 @@ function CapabilityCard({
         mt-4
         text-sm
         leading-6
-        text-neutral-400
+        text-[var(--wood-muted)]
       ">
         {capability.description}
       </p>
@@ -555,7 +555,7 @@ function CapabilityCard({
           <p className="
             text-sm
             font-semibold
-            text-neutral-300
+            text-[var(--wood-text)]
           ">
             Tool readiness
           </p>
@@ -563,7 +563,7 @@ function CapabilityCard({
           <span className="
             text-xs
             font-semibold
-            text-neutral-400
+            text-[var(--wood-muted)]
           ">
             {toolReadiness} %
           </span>
@@ -574,7 +574,7 @@ function CapabilityCard({
           h-2
           overflow-hidden
           rounded-full
-          bg-neutral-800
+          bg-[var(--wood-card)]
         ">
           <div
             className={
@@ -583,7 +583,7 @@ function CapabilityCard({
                 ? "h-full rounded-full bg-emerald-500"
                 : capability.health ===
                     "partial"
-                  ? "h-full rounded-full bg-amber-500"
+                  ? "h-full rounded-full bg-[var(--wood-accent)]"
                   : "h-full rounded-full bg-red-500"
             }
             style={{
@@ -603,14 +603,14 @@ function CapabilityCard({
           <h4 className="
             text-sm
             font-semibold
-            text-neutral-300
+            text-[var(--wood-text)]
           ">
             Työkalut
           </h4>
 
           <span className="
             text-xs
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             {
               capability
@@ -646,8 +646,8 @@ function CapabilityCard({
                       ? `
                         rounded-lg
                         border
-                        border-neutral-700
-                        bg-neutral-950
+                        border-[var(--wood-border)]
+                        bg-[var(--wood-bg)]
                         px-2.5
                         py-1.5
                         font-mono
@@ -684,14 +684,14 @@ function CapabilityCard({
           <h4 className="
             text-sm
             font-semibold
-            text-neutral-300
+            text-[var(--wood-text)]
           ">
             Toiminnot
           </h4>
 
           <span className="
             text-xs
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             {capability.actions.length}
           </span>
@@ -710,13 +710,13 @@ function CapabilityCard({
                 className="
                   rounded-lg
                   border
-                  border-neutral-700
-                  bg-neutral-950
+                  border-[var(--wood-border)]
+                  bg-[var(--wood-bg)]
                   px-2.5
                   py-1.5
                   font-mono
                   text-xs
-                  text-amber-400
+                  text-[var(--wood-accent)]
                 "
               >
                 {action}
@@ -770,13 +770,13 @@ function CapabilityHealthBadge({
       <span className="
         rounded-full
         border
-        border-neutral-700
-        bg-neutral-800
+        border-[var(--wood-border)]
+        bg-[var(--wood-card)]
         px-3
         py-1
         text-xs
         font-semibold
-        text-neutral-400
+        text-[var(--wood-muted)]
       ">
         ● DISABLED
       </span>
@@ -812,13 +812,13 @@ function CapabilityHealthBadge({
       <span className="
         rounded-full
         border
-        border-amber-900
-        bg-amber-950/40
+        border-[var(--wood-accent)]
+        bg-[var(--wood-accent)]/10
         px-3
         py-1
         text-xs
         font-semibold
-        text-amber-400
+        text-[var(--wood-accent)]
       ">
         ● PARTIAL
       </span>

@@ -12,16 +12,16 @@ import WorkspaceExecutionPanel from "../components/execution/WorkspaceExecutionP
 function SystemCenter() {
   return (
     <div className="mx-auto max-w-7xl">
-      <header className="border-b border-neutral-800 pb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-500">
+      <header className="border-b border-[var(--wood-border)] pb-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--wood-accent)]">
           Wood-Booster OS
         </p>
 
-        <h1 className="mt-2 text-4xl font-bold text-white">
+        <h1 className="mt-2 text-4xl font-bold text-[var(--wood-text)]">
           System Center
         </h1>
 
-        <p className="mt-2 max-w-3xl text-neutral-400">
+        <p className="mt-2 max-w-3xl text-[var(--wood-muted)]">
           Seuraa AI Brainin toimintaa, järjestelmän tilaa,
           ilmoituksia, agentteja ja tallennettua muistia.
         </p>
@@ -36,13 +36,13 @@ function SystemCenter() {
 
         <TodaysFocusWidget />
 
-        <section className="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900">
-          <div className="border-b border-neutral-800 px-5 py-4">
-            <h2 className="text-lg font-semibold text-white">
+        <section className="overflow-hidden rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)]">
+          <div className="border-b border-[var(--wood-border)] px-5 py-4">
+            <h2 className="text-lg font-semibold text-[var(--wood-text)]">
               System Status
             </h2>
 
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-[var(--wood-muted)]">
               AI Workspacen palveluiden nykyinen tila.
             </p>
           </div>
@@ -58,11 +58,11 @@ function SystemCenter() {
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
         <section className="min-w-0">
           <div className="mb-3">
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-[var(--wood-text)]">
               Agentit
             </h2>
 
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-[var(--wood-muted)]">
               AI Brainin käytettävissä olevat asiantuntijat.
             </p>
           </div>
@@ -72,11 +72,11 @@ function SystemCenter() {
 
         <section className="min-w-0">
           <div className="mb-3">
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-[var(--wood-text)]">
               Muisti
             </h2>
 
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-[var(--wood-muted)]">
               Järjestelmän tallentama pitkäaikainen konteksti.
             </p>
           </div>

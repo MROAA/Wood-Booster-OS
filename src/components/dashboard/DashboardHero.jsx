@@ -57,7 +57,7 @@ function DashboardHero() {
             mt-4
             brand-font
             text-4xl
-            text-white
+            text-[var(--wood-text)]
             tracking-wide
           "
         >

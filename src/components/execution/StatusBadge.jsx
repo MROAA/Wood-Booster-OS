@@ -204,7 +204,7 @@ function getStatusClasses(
       normalizedStatus,
     )
   ) {
-    return "border-amber-500/30 bg-amber-500/10 text-amber-300"
+    return "border-[var(--wood-accent)]/30 bg-[var(--wood-accent)]/10 text-[var(--wood-accent)]"
   }
 
   if (
@@ -228,10 +228,10 @@ function getStatusClasses(
       normalizedStatus,
     )
   ) {
-    return "border-neutral-700 bg-neutral-800 text-neutral-400"
+    return "border-[var(--wood-border)] bg-[var(--wood-card)] text-[var(--wood-muted)]"
   }
 
-  return "border-neutral-700 bg-neutral-800 text-neutral-300"
+  return "border-[var(--wood-border)] bg-[var(--wood-card)] text-[var(--wood-text)]"
 }
 
 

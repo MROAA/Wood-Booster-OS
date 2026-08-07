@@ -374,8 +374,8 @@ function CurrentSessionCard({
       }
     >
       {!hasActivity ? (
-        <div className="rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-6 text-center">
-          <p className="text-sm text-neutral-500">
+        <div className="rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-6 text-center">
+          <p className="text-sm text-[var(--wood-muted)]">
             Aktiivista AI-istuntoa ei ole.
           </p>
         </div>
@@ -496,7 +496,7 @@ function CurrentSessionCard({
             label="Käyttäjän pyyntö"
             className="mt-4"
           >
-            <p className="whitespace-pre-wrap break-words text-white">
+            <p className="whitespace-pre-wrap break-words text-[var(--wood-text)]">
               {safeActivity.question ||
                 "Ei käyttäjän pyyntöä."}
             </p>
@@ -507,7 +507,7 @@ function CurrentSessionCard({
               label="Intent Analysis"
               className="mt-4 border-sky-500/20 bg-sky-500/5"
             >
-              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-300">
+              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--wood-text)]">
                 {JSON.stringify(
                   safeActivity.intentAnalysis,
                   null,
@@ -522,7 +522,7 @@ function CurrentSessionCard({
               label="Planner Decision"
               className="mt-4 border-violet-500/20 bg-violet-500/5"
             >
-              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-300">
+              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--wood-text)]">
                 {JSON.stringify(
                   safeActivity.plannerDecision,
                   null,
@@ -566,7 +566,7 @@ function CurrentSessionCard({
                           step?.id ||
                           `execution-step-${index}`
                         }
-                        className="rounded-lg border border-neutral-800 bg-neutral-950 p-3"
+                        className="rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className="flex min-w-0 items-center gap-3">
@@ -574,7 +574,7 @@ function CurrentSessionCard({
                               {index + 1}
                             </span>
 
-                            <p className="break-words text-sm font-semibold text-white">
+                            <p className="break-words text-sm font-semibold text-[var(--wood-text)]">
                               {title}
                             </p>
                           </div>
@@ -598,7 +598,7 @@ function CurrentSessionCard({
               label="AI:n vastaus"
               className="mt-4 border-emerald-500/20 bg-emerald-500/5"
             >
-              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-300">
+              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--wood-text)]">
                 {safeActivity.answer}
               </p>
             </InfoCard>
@@ -609,7 +609,7 @@ function CurrentSessionCard({
               label="Päätöksen peruste"
               className="mt-4 border-sky-500/20 bg-sky-500/5"
             >
-              <p className="whitespace-pre-wrap break-words text-sm text-neutral-300">
+              <p className="whitespace-pre-wrap break-words text-sm text-[var(--wood-text)]">
                 {safeActivity.reason}
               </p>
             </InfoCard>

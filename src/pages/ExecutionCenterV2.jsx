@@ -640,20 +640,20 @@ function ExecutionCenterV2() {
                 className="
                   rounded-xl
                   border
-                  border-amber-500/30
-                  bg-amber-500/10
+                  border-[var(--wood-accent)]/30
+                  bg-[var(--wood-accent)]/10
                   px-4
                   py-3
                   text-sm
                   font-semibold
-                  text-amber-300
+                  text-[var(--wood-accent)]
                   transition
-                  hover:border-amber-400/50
-                  hover:bg-amber-500/20
+                  hover:border-[var(--wood-accent)]
+                  hover:opacity-90
                   disabled:cursor-not-allowed
-                  disabled:border-neutral-800
-                  disabled:bg-neutral-950
-                  disabled:text-neutral-600
+                  disabled:border-[var(--wood-border)]
+                  disabled:bg-[var(--wood-bg)]
+                  disabled:text-[var(--wood-muted)]
                 "
               >
                 Tyhjennä nykyinen
@@ -682,9 +682,9 @@ function ExecutionCenterV2() {
                   hover:border-red-400/50
                   hover:bg-red-500/20
                   disabled:cursor-not-allowed
-                  disabled:border-neutral-800
-                  disabled:bg-neutral-950
-                  disabled:text-neutral-600
+                  disabled:border-[var(--wood-border)]
+                  disabled:bg-[var(--wood-bg)]
+                  disabled:text-[var(--wood-muted)]
                 "
               >
                 Tyhjennä historia
@@ -703,19 +703,19 @@ function ExecutionCenterV2() {
                 className="
                   rounded-xl
                   border
-                  border-neutral-700
-                  bg-neutral-950
+                  border-[var(--wood-border)]
+                  bg-[var(--wood-bg)]
                   px-4
                   py-3
                   text-sm
                   font-semibold
-                  text-neutral-300
+                  text-[var(--wood-text)]
                   transition
-                  hover:border-neutral-500
-                  hover:bg-neutral-800
+                  hover:border-[var(--wood-accent)]
+                  hover:bg-[var(--wood-card)]
                   disabled:cursor-not-allowed
-                  disabled:border-neutral-800
-                  disabled:text-neutral-600
+                  disabled:border-[var(--wood-border)]
+                  disabled:text-[var(--wood-muted)]
                 "
               >
                 Tyhjennä kaikki

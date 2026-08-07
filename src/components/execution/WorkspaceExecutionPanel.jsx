@@ -254,20 +254,20 @@ function WorkspaceExecutionPanel() {
       0
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900">
-      <header className="flex items-start justify-between gap-4 border-b border-neutral-800 px-5 py-4">
+    <section className="overflow-hidden rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)]">
+      <header className="flex items-start justify-between gap-4 border-b border-[var(--wood-border)] px-5 py-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-lg">
               ⚡
             </span>
 
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-[var(--wood-text)]">
               Live Execution
             </h2>
           </div>
 
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-[var(--wood-muted)]">
             AI Brainin nykyinen suoritus.
           </p>
         </div>
@@ -286,16 +286,16 @@ function WorkspaceExecutionPanel() {
 
       {!hasSession && (
         <div className="p-5">
-          <div className="rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-5 text-center">
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-900 text-xl">
+          <div className="rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-5 text-center">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--wood-panel)] text-xl">
               ○
             </div>
 
-            <p className="mt-3 font-medium text-neutral-300">
+            <p className="mt-3 font-medium text-[var(--wood-text)]">
               Ei aktiivista istuntoa
             </p>
 
-            <p className="mt-1 text-sm leading-5 text-neutral-600">
+            <p className="mt-1 text-sm leading-5 text-[var(--wood-muted)]">
               Lähetä AI Brainille viesti tai komento.
             </p>
           </div>
@@ -304,20 +304,20 @@ function WorkspaceExecutionPanel() {
 
       {hasSession && (
         <div className="space-y-4 p-5">
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">
+          <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--wood-muted)]">
               Nykyinen pyyntö
             </p>
 
-            <p className="mt-2 line-clamp-3 text-sm leading-6 text-neutral-300">
+            <p className="mt-2 line-clamp-3 text-sm leading-6 text-[var(--wood-text)]">
               {question ||
                 "AI-istunto on käynnissä."}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-3">
-              <p className="text-xs text-neutral-600">
+            <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3">
+              <p className="text-xs text-[var(--wood-muted)]">
                 Intent
               </p>
 
@@ -330,8 +330,8 @@ function WorkspaceExecutionPanel() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-3">
-              <p className="text-xs text-neutral-600">
+            <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3">
+              <p className="text-xs text-[var(--wood-muted)]">
                 Capability
               </p>
 
@@ -347,9 +347,9 @@ function WorkspaceExecutionPanel() {
 
           {confidence !==
             null && (
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+            <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-medium text-neutral-500">
+                <p className="text-xs font-medium text-[var(--wood-muted)]">
                   Planner confidence
                 </p>
 
@@ -358,7 +358,7 @@ function WorkspaceExecutionPanel() {
                 </p>
               </div>
 
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-800">
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--wood-card)]">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all"
                   style={{
@@ -370,14 +370,14 @@ function WorkspaceExecutionPanel() {
             </div>
           )}
 
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+          <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-[var(--wood-text)]">
                   Action Queue
                 </p>
 
-                <p className="mt-1 text-xs text-neutral-600">
+                <p className="mt-1 text-xs text-[var(--wood-muted)]">
                   {actions.length} toimintoa
                 </p>
               </div>
@@ -396,7 +396,7 @@ function WorkspaceExecutionPanel() {
 
             {visibleActions.length ===
               0 && (
-              <p className="mt-4 text-sm text-neutral-600">
+              <p className="mt-4 text-sm text-[var(--wood-muted)]">
                 Ei jonossa olevia toimintoja.
               </p>
             )}
@@ -422,13 +422,13 @@ function WorkspaceExecutionPanel() {
                             ?.id ||
                           `workspace-action-${index}`
                         }
-                        className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2.5"
+                        className="flex items-center gap-3 rounded-lg border border-[var(--wood-border)] bg-[var(--wood-panel)] px-3 py-2.5"
                       >
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-xs font-bold text-neutral-400">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--wood-card)] text-xs font-bold text-[var(--wood-muted)]">
                           {index + 1}
                         </span>
 
-                        <p className="min-w-0 flex-1 truncate text-xs text-neutral-300">
+                        <p className="min-w-0 flex-1 truncate text-xs text-[var(--wood-text)]">
                           {getActionLabel(
                             item,
                             index,
@@ -454,7 +454,7 @@ function WorkspaceExecutionPanel() {
 
             {actions.length >
               visibleActions.length && (
-              <p className="mt-3 text-xs text-neutral-600">
+              <p className="mt-3 text-xs text-[var(--wood-muted)]">
                 Lisäksi{" "}
                 {actions.length -
                   visibleActions.length}{" "}
@@ -465,7 +465,7 @@ function WorkspaceExecutionPanel() {
         </div>
       )}
 
-      <footer className="border-t border-neutral-800 p-4">
+      <footer className="border-t border-[var(--wood-border)] p-4">
         <button
           type="button"
           onClick={() =>
@@ -473,7 +473,7 @@ function WorkspaceExecutionPanel() {
               "/execution",
             )
           }
-          className="flex w-full items-center justify-between rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-sm font-semibold text-neutral-300 transition hover:border-violet-500/50 hover:bg-neutral-800 hover:text-white"
+          className="flex w-full items-center justify-between rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] px-4 py-3 text-sm font-semibold text-[var(--wood-text)] transition hover:border-violet-500/50 hover:bg-[var(--wood-card)] hover:text-[var(--wood-text)]"
         >
           <span>
             Avaa Execution Center

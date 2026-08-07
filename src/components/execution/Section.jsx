@@ -19,8 +19,8 @@ function Section({
         min-w-0
         rounded-2xl
         border
-        border-neutral-800
-        bg-neutral-900
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
         p-5
         ${className}
       `}
@@ -43,7 +43,7 @@ function Section({
                   break-words
                   text-lg
                   font-semibold
-                  text-white
+                  text-[var(--wood-text)]
                   ${titleClassName}
                 `}
               >
@@ -52,7 +52,7 @@ function Section({
             )}
 
             {description && (
-              <p className="mt-1 max-w-3xl break-words text-sm leading-6 text-neutral-500">
+              <p className="mt-1 max-w-3xl break-words text-sm leading-6 text-[var(--wood-muted)]">
                 {description}
               </p>
             )}
@@ -74,8 +74,8 @@ function Section({
         `}
       >
         {children || (
-          <div className="rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-5 text-center">
-            <p className="text-sm text-neutral-500">
+          <div className="rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-5 text-center">
+            <p className="text-sm text-[var(--wood-muted)]">
               Ei näytettävää sisältöä.
             </p>
           </div>

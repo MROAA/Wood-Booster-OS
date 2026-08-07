@@ -433,7 +433,7 @@ function ActionQueueItem({
         ${
           isCurrent
             ? "border-violet-500/50 bg-violet-500/5"
-            : "border-neutral-800 bg-neutral-950"
+            : "border-[var(--wood-border)] bg-[var(--wood-bg)]"
         }
       `}
     >
@@ -463,7 +463,7 @@ function ActionQueueItem({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="break-words font-semibold text-white">
+                <h3 className="break-words font-semibold text-[var(--wood-text)]">
                   {actionLabel}
                 </h3>
 
@@ -475,7 +475,7 @@ function ActionQueueItem({
               </div>
 
               {actionType && (
-                <p className="mt-1 text-xs uppercase tracking-wider text-neutral-500">
+                <p className="mt-1 text-xs uppercase tracking-wider text-[var(--wood-muted)]">
                   {actionType}
                 </p>
               )}
@@ -489,7 +489,7 @@ function ActionQueueItem({
           </div>
 
           {description && (
-            <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-400">
+            <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--wood-muted)]">
               {description}
             </p>
           )}
@@ -529,7 +529,7 @@ function ActionQueueItem({
               label="Tulos"
               className="mt-3"
             >
-              <p className="whitespace-pre-wrap break-words text-sm text-neutral-300">
+              <p className="whitespace-pre-wrap break-words text-sm text-[var(--wood-text)]">
                 {resultMessage}
               </p>
             </InfoCard>
@@ -540,7 +540,7 @@ function ActionQueueItem({
               label="Payload"
               className="mt-3"
             >
-              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs leading-relaxed text-neutral-300">
+              <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--wood-text)]">
                 {JSON.stringify(
                   payload,
                   null,
@@ -740,14 +740,14 @@ function LiveActionQueue({
         {currentAction ? (
           <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="font-semibold text-white">
+              <p className="font-semibold text-[var(--wood-text)]">
                 {getActionLabel(
                   currentAction,
                   currentActionIndex,
                 )}
               </p>
 
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-[var(--wood-muted)]">
                 Toiminto{" "}
                 {currentActionIndex +
                   1}{" "}
@@ -760,7 +760,7 @@ function LiveActionQueue({
             </StatusBadge>
           </div>
         ) : (
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-[var(--wood-muted)]">
             Yhtään toimintoa ei suoriteta juuri nyt.
           </p>
         )}
@@ -768,8 +768,8 @@ function LiveActionQueue({
 
       {queueActions.length ===
       0 ? (
-        <div className="mt-4 rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-6 text-center">
-          <p className="text-sm text-neutral-500">
+        <div className="mt-4 rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-6 text-center">
+          <p className="text-sm text-[var(--wood-muted)]">
             Toimintojono on tyhjä.
           </p>
         </div>
@@ -809,11 +809,11 @@ function LiveActionQueue({
         <div className="mt-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-white">
+              <h3 className="font-semibold text-[var(--wood-text)]">
                 Action Results
               </h3>
 
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-1 text-sm text-[var(--wood-muted)]">
                 Action Queuen erilliseen tuloslistaan tallennetut tulokset.
               </p>
             </div>

@@ -201,24 +201,24 @@ function PipelineStep({
   return (
     <div className="relative flex gap-4">
       <div className="flex flex-col items-center">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-neutral-950 text-sm font-bold text-neutral-300">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--wood-border)] bg-[var(--wood-bg)] text-sm font-bold text-[var(--wood-text)]">
           {number}
         </div>
 
         {!isLast && (
-          <div className="mt-2 h-full min-h-8 w-px bg-neutral-800" />
+          <div className="mt-2 h-full min-h-8 w-px bg-[var(--wood-card)]" />
         )}
       </div>
 
       <div className="min-w-0 flex-1 pb-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-white">
+            <h3 className="font-semibold text-[var(--wood-text)]">
               {title}
             </h3>
 
             {description && (
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-1 text-sm text-[var(--wood-muted)]">
                 {description}
               </p>
             )}
@@ -416,8 +416,8 @@ function PlanningPipeline({
       }
     >
       {!hasPlanningData ? (
-        <div className="rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-6 text-center">
-          <p className="text-sm text-neutral-500">
+        <div className="rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-6 text-center">
+          <p className="text-sm text-[var(--wood-muted)]">
             Suunnittelutietoja ei ole vielä muodostettu.
           </p>
         </div>
@@ -435,11 +435,11 @@ function PlanningPipeline({
               label="Käyttäjän pyyntö"
             >
               {hasRequest ? (
-                <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-300">
+                <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--wood-text)]">
                   {question}
                 </p>
               ) : (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-[var(--wood-muted)]">
                   Pyyntöä ei ole tallennettu.
                 </p>
               )}
@@ -544,14 +544,14 @@ function PlanningPipeline({
                         action?.actionId ||
                         `planner-action-${index}`
                       }
-                      className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2"
+                      className="flex items-center gap-3 rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] px-3 py-2"
                     >
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-xs font-bold text-violet-300">
                         {index + 1}
                       </span>
 
                       <div className="min-w-0">
-                        <p className="break-words text-sm text-neutral-300">
+                        <p className="break-words text-sm text-[var(--wood-text)]">
                           {getActionLabel(
                             action,
                             index,
@@ -559,7 +559,7 @@ function PlanningPipeline({
                         </p>
 
                         {action?.type && (
-                          <p className="mt-1 text-xs text-neutral-500">
+                          <p className="mt-1 text-xs text-[var(--wood-muted)]">
                             Tyyppi:{" "}
                             {action.type}
                           </p>
@@ -601,8 +601,8 @@ function PlanningPipeline({
 
             {executionSteps.length ===
             0 ? (
-              <div className="mt-3 rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-4">
-                <p className="text-sm text-neutral-500">
+              <div className="mt-3 rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
+                <p className="text-sm text-[var(--wood-muted)]">
                   Varsinaista execution plania ei ole vielä muodostettu.
                 </p>
               </div>
@@ -619,15 +619,15 @@ function PlanningPipeline({
                         step?.stepId ||
                         `execution-step-${index}`
                       }
-                      className="rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-3"
+                      className="rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] px-3 py-3"
                     >
                       <div className="flex items-start gap-3">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-xs font-bold text-amber-300">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--wood-accent)]/15 text-xs font-bold text-[var(--wood-accent)]">
                           {index + 1}
                         </span>
 
                         <div className="min-w-0">
-                          <p className="break-words text-sm font-medium text-neutral-300">
+                          <p className="break-words text-sm font-medium text-[var(--wood-text)]">
                             {getExecutionStepLabel(
                               step,
                               index,
@@ -638,7 +638,7 @@ function PlanningPipeline({
                             step?.dependsOn,
                           ).length >
                             0 && (
-                            <p className="mt-1 text-xs text-neutral-500">
+                            <p className="mt-1 text-xs text-[var(--wood-muted)]">
                               Riippuu vaiheista:{" "}
                               {normalizeArray(
                                 step.dependsOn,

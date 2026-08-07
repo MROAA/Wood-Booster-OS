@@ -208,8 +208,8 @@ function CapabilityPlanCard({
       }
     >
       {!capabilityPlan ? (
-        <div className="rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-6 text-center">
-          <p className="text-sm text-neutral-500">
+        <div className="rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-6 text-center">
+          <p className="text-sm text-[var(--wood-muted)]">
             Capability Plania ei ole vielä muodostettu.
           </p>
         </div>
@@ -247,14 +247,14 @@ function CapabilityPlanCard({
             />
           </div>
 
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+          <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--wood-muted)]">
                   Planner Confidence
                 </p>
 
-                <p className="mt-1 text-sm font-semibold text-white">
+                <p className="mt-1 text-sm font-semibold text-[var(--wood-text)]">
                   {formatConfidence(
                     confidence,
                   )}
@@ -274,7 +274,7 @@ function CapabilityPlanCard({
               />
             </div>
 
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-800">
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--wood-card)]">
               <div
                 className="h-full rounded-full bg-violet-500 transition-all duration-500"
                 style={{
@@ -289,7 +289,7 @@ function CapabilityPlanCard({
             label="Planner Source"
             className="border-sky-500/20 bg-sky-500/5"
           >
-            <p className="break-words text-sm text-neutral-300">
+            <p className="break-words text-sm text-[var(--wood-text)]">
               {source}
             </p>
           </InfoCard>
@@ -297,11 +297,11 @@ function CapabilityPlanCard({
           <div>
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-white">
+                <h3 className="font-semibold text-[var(--wood-text)]">
                   Capability Actions
                 </h3>
 
-                <p className="mt-1 text-xs text-neutral-500">
+                <p className="mt-1 text-xs text-[var(--wood-muted)]">
                   Plannerin tähän capabilityyn liittämät suoritettavat toiminnot.
                 </p>
               </div>
@@ -320,8 +320,8 @@ function CapabilityPlanCard({
 
             {actions.length ===
             0 ? (
-              <div className="rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-5">
-                <p className="text-sm text-neutral-500">
+              <div className="rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-5">
+                <p className="text-sm text-[var(--wood-muted)]">
                   Capability ei sisältänyt suoritettavia toimintoja.
                 </p>
               </div>
@@ -346,7 +346,7 @@ function CapabilityPlanCard({
                             index,
                           )}-${index}`
                         }
-                        className="rounded-xl border border-neutral-800 bg-neutral-950 p-4"
+                        className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4"
                       >
                         <div className="flex items-start gap-4">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-sm font-bold text-violet-300">
@@ -357,7 +357,7 @@ function CapabilityPlanCard({
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div>
-                                <p className="break-words font-semibold text-white">
+                                <p className="break-words font-semibold text-[var(--wood-text)]">
                                   {getActionLabel(
                                     action,
                                     index,
@@ -365,7 +365,7 @@ function CapabilityPlanCard({
                                 </p>
 
                                 {action?.type && (
-                                  <p className="mt-1 text-xs text-neutral-500">
+                                  <p className="mt-1 text-xs text-[var(--wood-muted)]">
                                     Tyyppi:{" "}
                                     {
                                       action.type
@@ -383,7 +383,7 @@ function CapabilityPlanCard({
                             </div>
 
                             {description && (
-                              <p className="mt-3 break-words text-sm leading-6 text-neutral-400">
+                              <p className="mt-3 break-words text-sm leading-6 text-[var(--wood-muted)]">
                                 {
                                   description
                                 }
@@ -391,12 +391,12 @@ function CapabilityPlanCard({
                             )}
 
                             {action?.payload && (
-                              <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-900 p-3">
-                                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                              <div className="mt-3 rounded-lg border border-[var(--wood-border)] bg-[var(--wood-panel)] p-3">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--wood-muted)]">
                                   Payload
                                 </p>
 
-                                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words text-xs leading-5 text-neutral-300">
+                                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words text-xs leading-5 text-[var(--wood-text)]">
                                   {JSON.stringify(
                                     action.payload,
                                     null,

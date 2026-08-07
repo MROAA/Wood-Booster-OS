@@ -81,14 +81,14 @@ function InfoCard({
         min-w-0
         rounded-xl
         border
-        border-neutral-800
-        bg-neutral-950
+        border-[var(--wood-border)]
+        bg-[var(--wood-bg)]
         p-4
         ${className}
       `}
     >
       {label && (
-        <p className="break-words text-xs font-semibold uppercase tracking-wider text-neutral-500">
+        <p className="break-words text-xs font-semibold uppercase tracking-wider text-[var(--wood-muted)]">
           {label}
         </p>
       )}
@@ -105,7 +105,7 @@ function InfoCard({
                     break-words
                     text-sm
                     leading-6
-                    text-neutral-300
+                    text-[var(--wood-text)]
                     ${valueClassName}
                   `}
                 >
@@ -120,7 +120,7 @@ function InfoCard({
                     mt-2
                     break-words
                     font-medium
-                    text-white
+                    text-[var(--wood-text)]
                     ${valueClassName}
                   `}
                 >
@@ -138,7 +138,7 @@ function InfoCard({
       )}
 
       {description && (
-        <p className="mt-2 break-words text-sm leading-6 text-neutral-500">
+        <p className="mt-2 break-words text-sm leading-6 text-[var(--wood-muted)]">
           {description}
         </p>
       )}
@@ -146,7 +146,7 @@ function InfoCard({
       {!hasValue &&
         !children &&
         !description && (
-          <p className="mt-2 text-neutral-500">
+          <p className="mt-2 text-[var(--wood-muted)]">
             -
           </p>
         )}

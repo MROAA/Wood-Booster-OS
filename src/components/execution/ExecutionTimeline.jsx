@@ -890,21 +890,21 @@ function TimelineRow({
   return (
     <div className="relative flex gap-4">
       <div className="flex flex-col items-center">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-neutral-950 text-lg">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--wood-border)] bg-[var(--wood-bg)] text-lg">
           {item.icon}
         </div>
 
         {!isLast && (
-          <div className="my-2 h-full min-h-10 w-px bg-neutral-800" />
+          <div className="my-2 h-full min-h-10 w-px bg-[var(--wood-card)]" />
         )}
       </div>
 
       <div className="min-w-0 flex-1 pb-6">
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+        <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="font-mono text-xs text-neutral-500">
+                <span className="font-mono text-xs text-[var(--wood-muted)]">
                   {formatTimestamp(
                     item.timestamp,
                   )}
@@ -917,14 +917,14 @@ function TimelineRow({
                 />
               </div>
 
-              <h3 className="mt-2 break-words font-semibold text-white">
+              <h3 className="mt-2 break-words font-semibold text-[var(--wood-text)]">
                 {item.title}
               </h3>
             </div>
           </div>
 
           {item.description && (
-            <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-400">
+            <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--wood-muted)]">
               {String(
                 item.description,
               )}
@@ -980,8 +980,8 @@ function ExecutionTimeline({
     >
       {timelineItems.length ===
       0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-6 text-center">
-          <p className="text-sm text-neutral-500">
+        <div className="rounded-xl border border-dashed border-[var(--wood-border)] bg-[var(--wood-bg)] p-6 text-center">
+          <p className="text-sm text-[var(--wood-muted)]">
             Aikajanalla ei ole vielä tapahtumia.
           </p>
         </div>

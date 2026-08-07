@@ -89,7 +89,7 @@ if(loading){
 return (
 
 <p className="
-text-neutral-400
+text-[var(--wood-muted)]
 ">
 
 Ladataan tietopankkia...
@@ -126,7 +126,7 @@ font-bold
 
 <p className="
 mt-2
-text-neutral-400
+text-[var(--wood-muted)]
 ">
 
 Tämä on koko Wood-Booster AI:n yhteinen tietopankki, ei vain
@@ -176,8 +176,8 @@ key={document.id}
 className="
 rounded-xl
 border
-border-neutral-800
-bg-neutral-950
+border-[var(--wood-border)]
+bg-[var(--wood-bg)]
 p-5
 "
 
@@ -202,7 +202,7 @@ font-bold
 
 <span className="
 text-xs
-text-neutral-500
+text-[var(--wood-muted)]
 ">
 
 {document.status}
@@ -218,7 +218,7 @@ text-neutral-500
 <p className="
 mt-3
 text-sm
-text-neutral-300
+text-[var(--wood-text)]
 line-clamp-4
 ">
 
@@ -239,11 +239,11 @@ gap-2
 
 <span className="
 rounded-lg
-bg-neutral-800
+bg-[var(--wood-card)]
 px-3
 py-1
 text-xs
-text-neutral-400
+text-[var(--wood-muted)]
 ">
 
 {document.topic}
@@ -254,11 +254,11 @@ text-neutral-400
 
 <span className="
 rounded-lg
-bg-neutral-800
+bg-[var(--wood-card)]
 px-3
 py-1
 text-xs
-text-neutral-400
+text-[var(--wood-muted)]
 ">
 
 Priority {document.priority}
