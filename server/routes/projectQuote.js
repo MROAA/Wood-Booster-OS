@@ -1217,6 +1217,9 @@ export default function createProjectQuoteRouter(
                   unitPrice:
                     material.unitPrice,
 
+                  inventoryItemId:
+                    material.inventoryItemId,
+
                 })
               ),
 

@@ -318,6 +318,11 @@ function MaterialsTab({
             unitPrice:
               toNumber(form.unitPrice),
 
+            inventoryItemId:
+              form.inventoryItemId
+                ? Number(form.inventoryItemId)
+                : null,
+
           }
         )
 

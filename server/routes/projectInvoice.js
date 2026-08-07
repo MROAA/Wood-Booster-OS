@@ -535,6 +535,9 @@ export default function createProjectInvoiceRouter(
                   unitPrice:
                     item.unitPrice,
 
+                  inventoryItemId:
+                    item.inventoryItemId,
+
                 })
               ),
 

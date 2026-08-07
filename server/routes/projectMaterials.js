@@ -126,6 +126,7 @@ export default function createProjectMaterialsRouter(
         unit,
         quantity,
         unitPrice,
+        inventoryItemId,
       } =
         request.body
 
@@ -237,6 +238,33 @@ export default function createProjectMaterialsRouter(
         }
 
 
+        const cleanInventoryItemId =
+          inventoryItemId !== undefined &&
+          inventoryItemId !== null &&
+          inventoryItemId !== ""
+            ? Number(inventoryItemId)
+            : null
+
+
+        if (
+          cleanInventoryItemId !== null &&
+          !Number.isInteger(cleanInventoryItemId)
+        ) {
+
+          return response
+            .status(400)
+            .json({
+
+              success: false,
+
+              error:
+                "Virheellinen varastotuote.",
+
+            })
+
+        }
+
+
         const material =
           await prisma.projectMaterial.create({
 
@@ -262,6 +290,9 @@ export default function createProjectMaterialsRouter(
 
               unitPrice:
                 cleanUnitPrice,
+
+              inventoryItemId:
+                cleanInventoryItemId,
 
             },
 
@@ -375,6 +406,7 @@ export default function createProjectMaterialsRouter(
           unit,
           quantity,
           unitPrice,
+          inventoryItemId,
         } =
           request.body
 
@@ -485,6 +517,39 @@ export default function createProjectMaterialsRouter(
 
 
           data.unitPrice = cleanUnitPrice
+
+        }
+
+
+        if (inventoryItemId !== undefined) {
+
+          const cleanInventoryItemId =
+            inventoryItemId === null ||
+            inventoryItemId === ""
+              ? null
+              : Number(inventoryItemId)
+
+
+          if (
+            cleanInventoryItemId !== null &&
+            !Number.isInteger(cleanInventoryItemId)
+          ) {
+
+            return response
+              .status(400)
+              .json({
+
+                success: false,
+
+                error:
+                  "Virheellinen varastotuote.",
+
+              })
+
+          }
+
+
+          data.inventoryItemId = cleanInventoryItemId
 
         }
 

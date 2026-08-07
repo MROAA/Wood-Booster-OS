@@ -125,6 +125,10 @@ model QuoteLineItem {
 
   unitPrice Float @default(0)
 
+  inventoryItemId Int?
+
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+
   createdAt DateTime @default(now())
 
 }
@@ -182,6 +186,10 @@ model InvoiceLineItem {
   quantity Float @default(1)
 
   unitPrice Float @default(0)
+
+  inventoryItemId Int?
+
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -244,6 +252,10 @@ model ProjectMaterial {
   quantity Float @default(1)
 
   unitPrice Float @default(0)
+
+  inventoryItemId Int?
+
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -452,6 +464,12 @@ model InventoryItem {
   updatedAt DateTime @updatedAt
 
   purchaseOrderItems PurchaseOrderItem[]
+
+  projectMaterials ProjectMaterial[]
+
+  quoteLineItems QuoteLineItem[]
+
+  invoiceLineItems InvoiceLineItem[]
 
 }
 
