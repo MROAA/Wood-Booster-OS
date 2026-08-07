@@ -607,6 +607,564 @@ function createRuntimeContextKnowledge(
 
 
 
+/*
+ * Varsinainen agent-chat-logiikka omana, uudelleenkäytettävänä
+ * funktiona. Palauttaa vastauksen datana res.json:n sijaan, jotta
+ * muutkin reitit (/api/ai-brain/chat, /api/ai-brain-v2/chat)
+ * voivat kutsua tismalleen samaa polkua sen sijaan että ne
+ * toteuttaisivat oman rinnakkaisen version samasta logiikasta -
+ * "Yksi totuus", Constitution laki 5.
+ */
+async function runAgentChat({
+
+  message,
+
+  conversation = [],
+
+  systemContext = null,
+
+  runtimeContext = null,
+
+  prisma,
+
+}){
+
+
+  if(
+
+    typeof message !== "string"
+
+    ||
+
+    !message.trim()
+
+  ){
+
+    return {
+
+      status: 400,
+
+      body: {
+
+        success:false,
+
+        error:
+          "Message puuttuu",
+
+        ...createEmptyActionResponse(),
+
+      },
+
+    }
+
+  }
+  /*
+  =====================================
+
+  ACTION PLANNER
+
+  =====================================
+  */
+
+
+  const actionPlan =
+
+    planActions(
+      message
+    )
+
+
+  if(
+
+    actionPlan.matched &&
+
+    actionPlan.complete &&
+
+    actionPlan.actions.length > 1
+
+  ){
+
+    return {
+
+      status: 200,
+
+      body: {
+
+        success:true,
+
+
+        agent:
+          "system",
+
+
+        reason:
+          "backend action plan",
+
+
+        answer:
+          createActionPlanAnswer(
+            actionPlan.actions,
+          ),
+
+
+        ...createActionsResponse(
+          actionPlan.actions,
+        ),
+
+
+        intentAnalysis:
+          actionPlan.intentAnalysis,
+
+
+        plannerDecision:
+          actionPlan.plannerDecision,
+
+
+        executionPlan:
+          actionPlan.executionPlan,
+
+      },
+
+    }
+
+  }
+
+
+
+
+
+  const generatedAction =
+
+    generateAIActions({
+
+      message,
+
+      runtimeContext,
+
+    })
+
+
+
+
+
+  if(
+
+    generatedAction.matched &&
+
+    generatedAction.actions.length > 0
+
+  ){
+
+    return {
+
+      status: 200,
+
+      body: {
+
+        success:true,
+
+
+        agent:
+          "system",
+
+
+        reason:
+          generatedAction.reason,
+
+
+        answer:
+          generatedAction.answer,
+
+
+        ...createActionsResponse(
+          generatedAction.actions,
+        ),
+
+      },
+
+    }
+
+  }
+
+
+
+
+
+  const requestedProjectName =
+
+    getRequestedProjectName(
+      message
+    )
+
+
+
+
+
+  if(requestedProjectName){
+
+    const result =
+
+      await findProjectByName(
+
+        prisma,
+
+        requestedProjectName,
+
+      )
+
+
+    if(result.project){
+
+      return {
+
+        status: 200,
+
+        body: {
+
+          success:true,
+
+
+          agent:
+            "system",
+
+
+          reason:
+            "project navigation command",
+
+
+          answer:
+
+            `Avataan projekti ${result.project.name}.`,
+
+
+          ...createActionResponse({
+
+            type:
+              "navigate",
+
+
+            path:
+
+              `/projects/${result.project.id}`,
+
+
+            label:
+              result.project.name,
+
+          }),
+
+        },
+
+      }
+
+    }
+
+  }
+
+
+
+
+
+  const navigationCommand =
+
+    findNavigationCommand(
+      message
+    )
+
+
+
+
+
+  if(navigationCommand){
+
+    return {
+
+      status: 200,
+
+      body: {
+
+        success:true,
+
+
+        agent:
+          "system",
+
+
+        reason:
+          "workspace navigation command",
+
+
+        answer:
+
+          `Avataan ${navigationCommand.label}.`,
+
+
+        ...createActionResponse({
+
+          type:
+            "navigate",
+
+
+          path:
+            navigationCommand.path,
+
+
+          label:
+            navigationCommand.label,
+
+        }),
+
+      },
+
+    }
+
+  }
+
+
+
+
+
+  /*
+  =====================================
+
+  AGENT ROUTING
+
+  =====================================
+  */
+
+
+  const agent =
+
+    await buildAgentContext(
+      message,
+    )
+
+
+
+
+
+  /*
+  =====================================
+
+  SPACEMONKEY IDENTITY PROTECTION
+
+  Tämä vastaus ei mene Ollamalle.
+
+  =====================================
+  */
+
+
+  if(
+
+    agent.identityResponse
+
+  ){
+
+    return {
+
+      status: 200,
+
+      body: {
+
+        success:true,
+
+
+        agent:
+          agent.agent,
+
+
+        reason:
+          agent.reason,
+
+
+        answer:
+          agent.identityResponse,
+
+
+        ...createEmptyActionResponse(),
+
+
+        debug:{
+
+          identityProtected:true,
+
+        },
+
+      },
+
+    }
+
+  }
+
+
+
+
+
+  const knowledge = [
+
+    {
+
+      name:
+        "AGENT_CONTEXT",
+
+
+      content:
+        agent.context,
+
+    },
+
+  ]
+
+
+
+
+
+  const systemRegistryKnowledge =
+
+    createSystemContextKnowledge(
+      systemContext,
+    )
+
+
+
+
+
+  if(systemRegistryKnowledge){
+
+    knowledge.push(
+      systemRegistryKnowledge,
+    )
+
+  }
+
+
+
+
+
+  const runtimeContextKnowledge =
+
+    createRuntimeContextKnowledge(
+      runtimeContext,
+    )
+
+
+
+
+
+  if(runtimeContextKnowledge){
+
+    knowledge.push(
+      runtimeContextKnowledge,
+    )
+
+  }
+
+
+
+
+
+  if(agent.truth){
+
+    knowledge.push({
+
+      name:
+        "TRUTH_CONTEXT",
+
+
+      content:
+
+        JSON.stringify(
+
+          agent.truth,
+
+          null,
+
+          2,
+
+        ),
+
+    })
+
+  }
+
+
+
+
+
+  const safeConversation =
+
+    Array.isArray(
+      conversation,
+    )
+
+      ? conversation
+
+      : []
+
+
+
+
+
+  const result =
+
+    await runAIBrain({
+
+      message,
+
+      knowledge,
+
+
+      conversation:
+        safeConversation,
+
+
+      prisma,
+
+    })
+
+
+
+
+
+  return {
+
+    status: 200,
+
+    body: {
+
+      success:true,
+
+
+      agent:
+        agent.agent,
+
+
+      reason:
+        agent.reason,
+
+
+      answer:
+        result.answer,
+
+
+      ...createEmptyActionResponse(),
+
+
+      debug:
+        result.debug,
+
+    },
+
+  }
+
+}
+
+
+
+
+
+
+
 export default function createAgentChatRouter(
   prisma,
 ){
@@ -614,7 +1172,6 @@ export default function createAgentChatRouter(
   const router =
 
     express.Router()
-
 
 
 
@@ -646,526 +1203,28 @@ export default function createAgentChatRouter(
         } = req.body
 
 
-
-
-
-        if(
-
-          typeof message !== "string"
-
-          ||
-
-          !message.trim()
-
-        ){
-
-          return res
-
-            .status(400)
-
-            .json({
-
-              success:false,
-
-              error:
-                "Message puuttuu",
-
-              ...createEmptyActionResponse(),
-
-            })
-
-        }
-        /*
-        =====================================
-
-        ACTION PLANNER
-
-        =====================================
-        */
-
-
-        const actionPlan =
-
-          planActions(
-            message
-          )
-
-
-        if(
-
-          actionPlan.matched &&
-
-          actionPlan.complete &&
-
-          actionPlan.actions.length > 1
-
-        ){
-
-          return res.json({
-
-            success:true,
-
-
-            agent:
-              "system",
-
-
-            reason:
-              "backend action plan",
-
-
-            answer:
-              createActionPlanAnswer(
-                actionPlan.actions,
-              ),
-
-
-            ...createActionsResponse(
-              actionPlan.actions,
-            ),
-
-
-            intentAnalysis:
-              actionPlan.intentAnalysis,
-
-
-            plannerDecision:
-              actionPlan.plannerDecision,
-
-
-            executionPlan:
-              actionPlan.executionPlan,
-
-
-          })
-
-        }
-
-
-
-
-
-
-
-        const generatedAction =
-
-          generateAIActions({
+        const {
+          status,
+          body,
+        } =
+          await runAgentChat({
 
             message,
 
-            runtimeContext,
-
-          })
-
-
-
-
-
-        if(
-
-          generatedAction.matched &&
-
-          generatedAction.actions.length > 0
-
-        ){
-
-          return res.json({
-
-            success:true,
-
-
-            agent:
-              "system",
-
-
-            reason:
-              generatedAction.reason,
-
-
-            answer:
-              generatedAction.answer,
-
-
-            ...createActionsResponse(
-              generatedAction.actions,
-            ),
-
-          })
-
-        }
-
-
-
-
-
-
-
-        const requestedProjectName =
-
-          getRequestedProjectName(
-            message
-          )
-
-
-
-
-
-        if(requestedProjectName){
-
-          const result =
-
-            await findProjectByName(
-
-              prisma,
-
-              requestedProjectName,
-
-            )
-
-
-
-          if(result.project){
-
-            return res.json({
-
-              success:true,
-
-
-              agent:
-                "system",
-
-
-              reason:
-                "project navigation command",
-
-
-              answer:
-
-                `Avataan projekti ${result.project.name}.`,
-
-
-              ...createActionResponse({
-
-                type:
-                  "navigate",
-
-
-                path:
-
-                  `/projects/${result.project.id}`,
-
-
-                label:
-                  result.project.name,
-
-              }),
-
-            })
-
-          }
-
-        }
-
-
-
-
-
-
-
-        const navigationCommand =
-
-          findNavigationCommand(
-            message
-          )
-
-
-
-
-
-        if(navigationCommand){
-
-          return res.json({
-
-            success:true,
-
-
-            agent:
-              "system",
-
-
-            reason:
-              "workspace navigation command",
-
-
-            answer:
-
-              `Avataan ${navigationCommand.label}.`,
-
-
-            ...createActionResponse({
-
-              type:
-                "navigate",
-
-
-              path:
-                navigationCommand.path,
-
-
-              label:
-                navigationCommand.label,
-
-            }),
-
-          })
-
-        }
-
-
-
-
-
-
-
-        /*
-        =====================================
-
-        AGENT ROUTING
-
-        =====================================
-        */
-
-
-
-        const agent =
-
-          await buildAgentContext(
-            message,
-          )
-
-
-
-
-
-
-
-        /*
-        =====================================
-
-        SPACEMONKEY IDENTITY PROTECTION
-
-        Tämä vastaus ei mene Ollamalle.
-
-        =====================================
-        */
-
-
-
-        if(
-
-          agent.identityResponse
-
-        ){
-
-          return res.json({
-
-            success:true,
-
-
-            agent:
-              agent.agent,
-
-
-            reason:
-              agent.reason,
-
-
-            answer:
-              agent.identityResponse,
-
-
-            ...createEmptyActionResponse(),
-
-
-            debug:{
-
-              identityProtected:true,
-
-            },
-
-          })
-
-        }
-
-
-
-
-
-
-
-        const knowledge = [
-
-          {
-
-            name:
-              "AGENT_CONTEXT",
-
-
-            content:
-              agent.context,
-
-          },
-
-        ]
-
-
-
-
-
-
-
-        const systemRegistryKnowledge =
-
-          createSystemContextKnowledge(
-            systemContext,
-          )
-
-
-
-
-
-        if(systemRegistryKnowledge){
-
-          knowledge.push(
-            systemRegistryKnowledge,
-          )
-
-        }
-
-
-
-
-
-
-
-        const runtimeContextKnowledge =
-
-          createRuntimeContextKnowledge(
-            runtimeContext,
-          )
-
-
-
-
-
-        if(runtimeContextKnowledge){
-
-          knowledge.push(
-            runtimeContextKnowledge,
-          )
-
-        }
-
-
-
-
-
-
-
-        if(agent.truth){
-
-          knowledge.push({
-
-            name:
-              "TRUTH_CONTEXT",
-
-
-            content:
-
-              JSON.stringify(
-
-                agent.truth,
-
-                null,
-
-                2,
-
-              ),
-
-          })
-
-        }
-
-
-
-
-
-
-
-        const safeConversation =
-
-          Array.isArray(
             conversation,
-          )
 
-            ? conversation
+            systemContext,
 
-            : []
-
-
-
-
-
-
-
-        const result =
-
-          await runAIBrain({
-
-            message,
-
-            knowledge,
-
-
-            conversation:
-              safeConversation,
-
+            runtimeContext,
 
             prisma,
 
           })
 
 
-
-
-
-
-
-        return res.json({
-
-          success:true,
-
-
-          agent:
-            agent.agent,
-
-
-          reason:
-            agent.reason,
-
-
-          answer:
-            result.answer,
-
-
-          ...createEmptyActionResponse(),
-
-
-          debug:
-            result.debug,
-
-        })
-
+        return res
+          .status(status)
+          .json(body)
 
 
       }
@@ -1210,7 +1269,12 @@ export default function createAgentChatRouter(
 
 
 
-
   return router
 
+}
+
+
+
+export {
+  runAgentChat,
 }

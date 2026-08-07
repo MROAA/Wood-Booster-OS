@@ -2,7 +2,7 @@
 =====================================
 WOOD-BOOSTER AI BRAIN V2
 
-EXPRESS ROUTER V1.2
+EXPRESS ROUTER V1.3
 
 Endpointit:
 
@@ -14,15 +14,22 @@ POST
 
 Sisältää:
 - AI Brain V2 HTTP -rajapinnan
-- frontend-yhteensopivan Session Adapterin
-- alkuperäisen Brain-tuloksen säilyttämisen
 - modulaarisen Memory Pipeline -liitännän
 
+POST /chat on ohut kääre /api/agents/chat:n ympärille (runAgentChat,
+agentChat.js). Aiemmin tämä reitti kutsui aiBrainV2/index.js:n omaa
+runBrain()-moduulijärjestelmää ja sisälsi ison adapterikerroksen sen
+tuloksen kääntämiseksi frontend-yhteensopivaksi ("Session Adapter") -
+se oli toinen, rinnakkainen toteutus samasta chat-logiikasta kuin
+/api/agents/chat, vaikka mikään käyttöliittymän osa ei koskaan
+kutsunut tätä reittiä. Adapterikerros poistettu tarpeettomana; jäljellä
+on vain tämän reitin oma, aidosti erillinen lisäarvo: Memory Pipeline
+(muistiehdotusten generointi vastauksesta).
+
 Router ei:
-- sisällä Brainin sisäistä logiikkaa
+- sisällä chat-logiikkaa itse (se on agentChat.js:ssä)
 - valitse moduulia itse
 - käsittele credentials-salaisuuksia
-- korvaa vanhaa AI Brain -reittiä
 - hyväksy muistiehdotuksia pysyvään muistiin
 =====================================
 */
@@ -32,8 +39,11 @@ import express from "express"
 
 import {
   getBrainModuleInfo,
-  runBrain,
 } from "../services/aiBrainV2/index.js"
+
+import {
+  runAgentChat,
+} from "./agentChat.js"
 
 import {
   processMemoryPipeline,
@@ -97,415 +107,6 @@ function normalizeConversation(value) {
           ),
       }),
     )
-}
-
-
-function normalizeActions(value) {
-  if (!value) {
-    return []
-  }
-
-  if (Array.isArray(value)) {
-    return value.filter(Boolean)
-  }
-
-  if (
-    typeof value === "object"
-  ) {
-    return [value]
-  }
-
-  return []
-}
-
-
-function getOutput(result) {
-  return normalizeObject(
-    result?.output,
-  )
-}
-
-
-function getAgent(result) {
-  return (
-    result?.agent ||
-    result?.module?.id ||
-    result?.selectedModule?.id ||
-    result?.routing?.moduleId ||
-    "system"
-  )
-}
-
-
-function getReason(result) {
-  const output =
-    getOutput(result)
-
-  return (
-    result?.reason ||
-    output?.reason ||
-    result?.routing?.reason ||
-    result?.decision?.reason ||
-    result?.module?.description ||
-    ""
-  )
-}
-
-
-function getAnswer(result) {
-  const output =
-    getOutput(result)
-
-  const directAnswer =
-    output.answer ||
-    output.response ||
-    output.message ||
-    output.content ||
-    result?.answer ||
-    result?.response ||
-    result?.message
-
-  if (
-    typeof directAnswer ===
-      "string" &&
-    directAnswer.trim()
-  ) {
-    return directAnswer.trim()
-  }
-
-  const actions =
-    getActions(result)
-
-  if (actions.length > 1) {
-    return `AI Brain V2 valmisteli ${actions.length} toimintoa.`
-  }
-
-  if (actions.length === 1) {
-    return "AI Brain V2 valmisteli toiminnon."
-  }
-
-  if (result?.success === false) {
-    return (
-      result?.error?.message ||
-      result?.error ||
-      "AI Brain V2 ei pystynyt käsittelemään pyyntöä."
-    )
-  }
-
-  return "AI Brain V2 käsitteli pyynnön."
-}
-
-
-function getActions(result) {
-  const output =
-    getOutput(result)
-
-  const possibleActions = [
-    output.actions,
-    output.action,
-    result?.actions,
-    result?.action,
-    result?.executionPlan
-      ?.actions,
-    result?.executionPlan
-      ?.steps
-      ?.map(
-        (step) =>
-          step?.action,
-      ),
-    result?.decision?.actions,
-    result?.decision?.action,
-  ]
-
-  for (
-    const actionValue
-    of possibleActions
-  ) {
-    const actions =
-      normalizeActions(
-        actionValue,
-      )
-
-    if (actions.length > 0) {
-      return actions
-    }
-  }
-
-  return []
-}
-
-
-function getIntentAnalysis(result) {
-  const output =
-    getOutput(result)
-
-  return (
-    result?.intentAnalysis ||
-    result?.intent_analysis ||
-    result?.reasoningAnalysis ||
-    result?.reasoning?.analysis ||
-    result?.pipeline
-      ?.intentAnalysis ||
-    output?.intentAnalysis ||
-    output?.intent_analysis ||
-    output?.reasoningAnalysis ||
-    output?.analysis ||
-    null
-  )
-}
-
-
-function getPlannerDecision(result) {
-  const output =
-    getOutput(result)
-
-  return (
-    result?.plannerDecision ||
-    result?.planner_decision ||
-    result?.decision ||
-    result?.pipeline
-      ?.plannerDecision ||
-    output?.plannerDecision ||
-    output?.planner_decision ||
-    output?.decision ||
-    null
-  )
-}
-
-
-function createExecutionSteps(
-  actions,
-  moduleId,
-) {
-  return actions.map(
-    (action, index) => ({
-      id:
-        `ai-brain-v2-step-${index + 1}`,
-
-      index,
-
-      order:
-        index + 1,
-
-      plannerId:
-        moduleId ||
-        "ai-brain-v2",
-
-      command:
-        action?.label ||
-        action?.name ||
-        action?.type ||
-        `Toiminto ${index + 1}`,
-
-      action,
-
-      dependsOn:
-        index === 0
-          ? []
-          : [
-              `ai-brain-v2-step-${index}`,
-            ],
-    }),
-  )
-}
-
-
-function getExecutionPlan({
-  result,
-  actions,
-  moduleId,
-}) {
-  const output =
-    getOutput(result)
-
-  const existingPlan =
-    result?.executionPlan ||
-    result?.execution_plan ||
-    result?.pipeline
-      ?.executionPlan ||
-    output?.executionPlan ||
-    output?.execution_plan
-
-  if (existingPlan) {
-    return existingPlan
-  }
-
-  if (actions.length === 0) {
-    return null
-  }
-
-  return {
-    type:
-      "sequential",
-
-    source:
-      "ai-brain-v2-session-adapter",
-
-    moduleId,
-
-    totalSteps:
-      actions.length,
-
-    actions,
-
-    steps:
-      createExecutionSteps(
-        actions,
-        moduleId,
-      ),
-  }
-}
-
-
-function getPlan({
-  result,
-  actions,
-  executionPlan,
-}) {
-  const output =
-    getOutput(result)
-
-  const existingPlan =
-    result?.plan ||
-    result?.capabilityPlan ||
-    result?.planning?.plan ||
-    output?.plan ||
-    output?.capabilityPlan
-
-  if (existingPlan) {
-    return existingPlan
-  }
-
-  if (
-    !executionPlan &&
-    actions.length === 0
-  ) {
-    return null
-  }
-
-  return {
-    type:
-      "ai_brain_v2_plan",
-
-    source:
-      "ai-brain-v2-session-adapter",
-
-    actions,
-
-    executionPlan,
-  }
-}
-
-
-function createSessionCompatibleResult(
-  result,
-) {
-  const safeResult =
-    normalizeObject(result)
-
-  const moduleId =
-    safeResult?.module?.id ||
-    safeResult?.selectedModule?.id ||
-    "conversation"
-
-  const actions =
-    getActions(safeResult)
-
-  const executionPlan =
-    getExecutionPlan({
-      result:
-        safeResult,
-
-      actions,
-
-      moduleId,
-    })
-
-  const plan =
-    getPlan({
-      result:
-        safeResult,
-
-      actions,
-
-      executionPlan,
-    })
-
-  const answer =
-    getAnswer(safeResult)
-
-  const agent =
-    getAgent(safeResult)
-
-  const reason =
-    getReason(safeResult)
-
-  const intentAnalysis =
-    getIntentAnalysis(
-      safeResult,
-    )
-
-  const plannerDecision =
-    getPlannerDecision(
-      safeResult,
-    )
-
-  return {
-    ...safeResult,
-
-    success:
-      safeResult.success !==
-      false,
-
-    type:
-      safeResult.type ||
-      safeResult.output?.type ||
-      "ai_brain_v2",
-
-    source:
-      safeResult.source ||
-      "ai-brain-v2",
-
-    answer,
-
-    response:
-      answer,
-
-    message:
-      answer,
-
-    agent,
-
-    reason,
-
-    plan,
-
-    intentAnalysis,
-
-    plannerDecision,
-
-    executionPlan,
-
-    actions,
-
-    action:
-      actions[0] ||
-      null,
-
-    sessionAdapter: {
-      name:
-        "ai-brain-v2-session-adapter",
-
-      version:
-        "1.1",
-
-      compatible:
-        true,
-    },
-
-    brainResult:
-      safeResult,
-  }
 }
 
 
@@ -707,18 +308,6 @@ function createAIBrainV2Router(
               action:
                 null,
 
-              plan:
-                null,
-
-              intentAnalysis:
-                null,
-
-              plannerDecision:
-                null,
-
-              executionPlan:
-                null,
-
               memoryPipeline:
                 createSkippedMemoryPipeline(
                   "message_missing",
@@ -766,8 +355,6 @@ function createAIBrainV2Router(
         const runtimeContext = {
           ...providedRuntimeContext,
 
-          prisma,
-
           conversation,
 
           systemContext: {
@@ -795,24 +382,29 @@ function createAIBrainV2Router(
           },
         }
 
-        const brainResult =
-          await runBrain({
+        const {
+          status,
+          body: chatResponse,
+        } =
+          await runAgentChat({
             message,
-            source,
-            runtimeContext,
-          })
 
-        const sessionResponse =
-          createSessionCompatibleResult(
-            brainResult,
-          )
+            conversation,
+
+            systemContext:
+              runtimeContext.systemContext,
+
+            runtimeContext,
+
+            prisma,
+          })
 
         const memoryPipeline =
           await runResponseMemoryPipeline({
             message,
 
             response:
-              sessionResponse,
+              chatResponse,
 
             prisma,
           })
@@ -820,18 +412,13 @@ function createAIBrainV2Router(
         const response =
           attachMemoryPipeline({
             response:
-              sessionResponse,
+              chatResponse,
 
             memoryPipeline,
           })
 
-        const statusCode =
-          response.success
-            ? 200
-            : 400
-
         return res
-          .status(statusCode)
+          .status(status)
           .json(response)
       }
 
@@ -848,7 +435,6 @@ function createAIBrainV2Router(
 
 export {
   attachMemoryPipeline,
-  createSessionCompatibleResult,
   createSkippedMemoryPipeline,
   runResponseMemoryPipeline,
 }
