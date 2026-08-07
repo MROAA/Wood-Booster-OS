@@ -5,6 +5,11 @@ import {
 
 
 import {
+  Link,
+} from "react-router-dom"
+
+
+import {
   apiGet,
 } from "../api/client"
 
@@ -114,7 +119,7 @@ text-xl
 font-bold
 ">
 
-📚 Project Knowledge
+📚 Tietopankki
 
 </h2>
 
@@ -124,9 +129,26 @@ mt-2
 text-neutral-400
 ">
 
-Wood-Booster AI:n tietopankki.
+Tämä on koko Wood-Booster AI:n yhteinen tietopankki, ei vain
+tämän projektin - samat dokumentit näkyvät kaikissa projekteissa.
 
 </p>
+
+
+<Link
+to="/knowledge"
+className="
+mt-2
+inline-block
+text-sm
+text-[var(--wood-accent)]
+hover:opacity-80
+"
+>
+
+Hallinnoi tietopankkia →
+
+</Link>
 
 
 </div>
