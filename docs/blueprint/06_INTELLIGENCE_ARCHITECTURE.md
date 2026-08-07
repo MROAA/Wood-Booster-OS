@@ -82,6 +82,50 @@ Tämä ei ole tämän istunnon skoopissa toteutettava muutos — se on
 seuraava, isompi arkkitehtuurinen harppaus, kun Master Blueprintin
 muu osa on vakiintunut.
 
+## Kehitysportaat — älykkyys kasvaa portaittain, ei hypäten
+
+Marcin antama järjestys (PRD 7.0), johon tavoitearkkitehtuuria
+kohti edetään yksi porras kerrallaan, ei suoraan huipulle:
+
+0. **Tool** — käyttäjä käyttää ohjelmaa.
+1. **Context** — järjestelmä tietää tilanteen.
+2. **Assistance** — järjestelmä vastaa kontekstin perusteella.
+3. **Suggestion** — järjestelmä huomaa hyödyllisiä seuraavia toimia.
+4. **Preparation** — järjestelmä tekee työn valmiiksi hyväksyttäväksi.
+5. **Automation** — hyväksytyt, turvalliset rutiinit tapahtuvat automaattisesti.
+6. **Optimization** — järjestelmä löytää käyttäjän työnkuluista parannuskohteita.
+
+Nykytila (yllä kuvattu pyyntö-vastaus-malli) vastaa tasoa **0-1**:
+käyttäjä saa vastauksia, mutta järjestelmä ei vielä ylläpidä jatkuvaa
+tilannekuvaa. "Ensin tietoisuus. Sitten ehdotukset. Sitten
+valmistelu. Vasta lopuksi automaatio." — tätä järjestystä ei saa
+hypätä yli, vaikka Automation Engine (ks.
+[Automation Bible](07_AUTOMATION_BIBLE.md)) onkin jo kuvattu
+tavoitteena.
+
+## Suositeltu seuraava tekninen kehitysaskel: Spacemonkey Live Context v1
+
+Tämä on Marcin oma, konkreettinen suositus siitä mikä on juuri nyt
+oikea kokoinen seuraava askel — ei koko Live Context Engine -konseptin
+täysi toteutus, vaan sen ensimmäinen, rajattu versio:
+
+Version 1 tarvitsee tietää vain:
+- nykyinen käyttäjän näkymä
+- aktiivinen projekti
+- projektin perustiedot
+- viimeisimmät tapahtumat
+- avoimet projektitehtävät
+
+Tämä konteksti annetaan Spacemonkeylle jokaisen relevantin
+keskustelun yhteydessä. **Ei vielä**: autonomiaa, taustalla
+tapahtuvaa päätöksentekoa, automaattista lähettämistä, jatkuvaa
+raskasta AI-ajamista — nämä tulevat vasta myöhemmillä
+kehitysportailla.
+
+Tämä on pienin muutos joka tekee nykyisestä AI:sta ensimmäistä
+kertaa aidosti *osan* Wood-Booster OS:ää sen sijaan että se olisi
+vain kysymys-vastaus-rajapinta sen vieressä.
+
 ## Lähteet
 
 - `server/services/agentExecutor.js`, `aiBrain.js`,

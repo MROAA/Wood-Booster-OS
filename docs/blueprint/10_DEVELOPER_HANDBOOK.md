@@ -8,6 +8,50 @@ vaan sitä mitä git-historia jo osoittaa toimivaksi. Kun uutta
 kehitystä (ihmisen tai AI-avustajan tekemää) tehdään, näitä
 käytäntöjä kannattaa jatkaa.
 
+## Vibe Coding Protocol
+
+Marcin antama nimi sille prosessille jota tässä projektissa on jo
+tosiasiallisesti noudatettu (ks. PRD 7.0). Jokainen kehitysaskel,
+oli tekijä ihminen tai AI-avustaja, kulkee näiden vaiheiden läpi
+järjestyksessä:
+
+1. **Observe** — tutki nykyinen järjestelmä, älä oleta.
+2. **Understand** — selvitä mitä on jo olemassa ennen kuin ehdotat mitään.
+3. **Plan** — valitse pienin hyödyllinen seuraava muutos.
+4. **Implement** — toteuta modulaarisesti, älä riko ydintä ilman perusteltua tarvetta.
+5. **Verify** — build, lint, live-testi.
+6. **Document** — päivitä dokumentaatio (tämä Blueprint mukaan lukien).
+7. **Commit** — hallittu Git-committi, ei ennen kuin edelliset vaiheet on tehty.
+
+**AI:lle annettava kehys on aina tehtäväkohtainen, ei avoin.** Ei
+"rakenna Wood-Booster OS", vaan "tutki nykyinen rakenne ja toteuta
+yksi määritelty parannus nykyistä arkkitehtuuria säilyttäen." Tämä
+estää rinnakkaisten, päällekkäisten järjestelmien syntymisen — täsmälleen
+se ongelma joka löydettiin ja korjattiin tämän projektin kahden
+AI-järjestelmän kohdalla (ks. Intelligence Architecture).
+
+## Definition of Done
+
+Ominaisuus ei ole valmis vain siksi että se näkyy selaimessa. Se on
+valmis kun: se toimii, build onnistuu, virhetilanteet käsitellään,
+nykyiset ominaisuudet eivät rikkoudu, käyttöliittymä on ymmärrettävä,
+se noudattaa Blueprintia, ja käyttäjähyöty voidaan selittää yhdellä
+lauseella.
+
+## Älä vaihda teknologiaa ennenaikaisesti
+
+Kaksi konkreettista esimerkkiä joita Marc itse nosti esiin:
+
+- **Vektoritietokanta** ei ole järjestelmän pääasiallinen tietokanta.
+  Asiakkaat, projektit, hinnat ja materiaalit ovat rakenteista tietoa
+  ja kuuluvat tavalliseen relaatiotietokantaan (Prisma/SQLite).
+  Vektorihaku voi tulla myöhemmin dokumenteille/muistiinpanoille,
+  vasta kun siitä on todellinen hyöty.
+- **Electron/Tauri-paketointi** on jakelukerros, ei arkkitehtuurin
+  lähtökohta. Wood-Booster OS pitää ensin saada hyväksi sovellukseksi
+  nykyisellä (React+Vite+Express) arkkitehtuurilla — älä vaihda
+  teknologiaa vain saadaksesi sovellusikonin työpöydälle.
+
 ## Stack
 
 - Frontend: React 19 + Vite + Tailwind, `src/`.
