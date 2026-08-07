@@ -143,6 +143,25 @@ pub fn run() {
         panic!("wood-booster-server did not become ready in time");
       }
 
+      // The window's webview begins loading and firing the frontend's
+      // initial API calls as soon as it's created, in parallel with
+      // this setup() function - it doesn't wait for the backend to be
+      // ready first. On a slow first run (seed-db copy, cold disk
+      // cache) those calls hit the backend before it's listening and
+      // fail with no retry, so every page looks permanently empty even
+      // once the backend comes up seconds later.
+      //
+      // Tried hiding the window (visible: false) until here and
+      // showing it only now - that made Tauri treat the app as having
+      // zero open windows at startup and exit immediately, which is
+      // worse than the bug it was meant to fix. Settled for a forced
+      // reload instead: the window still appears right away, but its
+      // content refreshes once the backend is confirmed healthy,
+      // trading a brief visible reload flash for actually working.
+      if let Some(window) = app.get_webview_window("main") {
+        let _ = window.eval("window.location.reload()");
+      }
+
       // Windowless shutdown (SIGTERM/SIGINT: session logout, `kill`,
       // systemd stop) bypasses RunEvent::Exit, which only fires on a
       // window-driven exit. Without this, the sidecar orphans. Signal
