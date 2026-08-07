@@ -11,6 +11,10 @@ import {
 
 
 
+const PAGE_SIZE = 12
+
+
+
 
 function MemoryCenter() {
 
@@ -54,6 +58,13 @@ function MemoryCenter() {
     error,
     setError,
   ] = useState("")
+
+
+
+  const [
+    visibleCount,
+    setVisibleCount,
+  ] = useState(PAGE_SIZE)
 
 
 
@@ -284,6 +295,23 @@ function MemoryCenter() {
 
 
 
+  useEffect(() => {
+
+    setVisibleCount(PAGE_SIZE)
+
+  }, [search, category])
+
+
+
+  const visibleMemories =
+
+    filteredMemories.slice(
+      0,
+      visibleCount,
+    )
+
+
+
 
 
 
@@ -403,7 +431,7 @@ function MemoryCenter() {
           font-semibold
         ">
 
-          🧠 Memory Center
+          ⬢ Memory Center
 
         </h2>
 
@@ -727,7 +755,7 @@ function MemoryCenter() {
 
 
           {
-            filteredMemories.map(
+            visibleMemories.map(
               memory => (
 
                 <article
@@ -781,6 +809,7 @@ function MemoryCenter() {
 
                   <p className="
                     mt-3
+                    line-clamp-3
                     text-sm
                   ">
 
@@ -810,7 +839,7 @@ function MemoryCenter() {
 
                   >
 
-                    🗑 Poista
+                    ✕ Poista
 
                   </button>
 

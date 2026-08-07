@@ -109,7 +109,7 @@ function AIProjectGenerator({ onCreated }){
       font-bold
       ">
 
-        🤖 AI Project Generator
+        △ AI Project Generator
 
       </h2>
 

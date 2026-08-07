@@ -110,6 +110,16 @@
       "category": "system",
       "enabled": true,
       "priority": 10
+    },
+
+    {
+      "id": "ahma",
+      "name": "Ahma - Finnish Language Agent",
+      "description": "Ulkopuolinen suomen kielen erikoisagentti (Poro-2, paikallinen Ollama). Viimeistelee Spacemonkeyn vastauksen suomen kielen back-to-back-ketjussa ennen vastausvartijaa.",
+      "engine": "ahmaClient",
+      "category": "language",
+      "enabled": true,
+      "priority": 11
     }
 
   ],

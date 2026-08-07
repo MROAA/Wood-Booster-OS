@@ -192,7 +192,7 @@ function SnapshotCard() {
                 text-green-400
               "
             >
-              🟢 Snapshot created
+              ● Snapshot created
             </p>
 
 

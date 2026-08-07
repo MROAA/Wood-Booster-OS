@@ -503,7 +503,7 @@ function ProjectDetails() {
             )
           }
         >
-          ✏️ Muokkaa projektia
+          ▤ Muokkaa projektia
         </button>
 
 

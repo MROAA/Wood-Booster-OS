@@ -21,7 +21,7 @@ function ActivityModule({
           text-[var(--wood-muted)]
         "
       >
-        🐒 Activity
+        ⬡ Activity
       </h2>
 
 

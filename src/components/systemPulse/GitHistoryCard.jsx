@@ -58,7 +58,10 @@ function GitHistoryCard({
       <div
         className="
           mt-5
+          max-h-[420px]
           space-y-4
+          overflow-y-auto
+          pr-2
         "
       >
 

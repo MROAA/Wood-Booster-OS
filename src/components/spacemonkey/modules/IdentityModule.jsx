@@ -21,7 +21,7 @@ function IdentityModule({
           text-[var(--wood-muted)]
         "
       >
-        🐒 Identity
+        ⬡ Identity
       </h2>
 
 

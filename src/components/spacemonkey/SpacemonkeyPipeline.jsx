@@ -5,7 +5,7 @@ const stageMap = {
       "Päätös",
 
     icon:
-      "🧠",
+      "⬢",
   },
 
 
@@ -14,7 +14,7 @@ const stageMap = {
       "Suunnittelu",
 
     icon:
-      "📐",
+      "▽",
   },
 
 
@@ -23,7 +23,7 @@ const stageMap = {
       "Toteutus",
 
     icon:
-      "⚙️",
+      "⚙",
   },
 
 
@@ -32,7 +32,7 @@ const stageMap = {
       "Valmis",
 
     icon:
-      "✅",
+      "✓",
   },
 
 
@@ -41,7 +41,7 @@ const stageMap = {
       "Aktiivinen",
 
     icon:
-      "🔄",
+      "↻",
   },
 
 }
@@ -95,7 +95,7 @@ function SpacemonkeyPipeline({
 
       >
 
-        🔄 Spacemonkey tapahtumat
+        ↻ Spacemonkey tapahtumat
 
       </h3>
 
@@ -171,7 +171,7 @@ function SpacemonkeyPipeline({
                         item.status,
 
                       icon:
-                        "📌"
+                        "◉"
 
                     }
 

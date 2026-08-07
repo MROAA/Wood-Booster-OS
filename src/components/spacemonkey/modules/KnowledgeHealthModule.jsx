@@ -21,7 +21,7 @@ function KnowledgeHealthModule({
           text-[var(--wood-muted)]
         "
       >
-        📚 Knowledge Health
+        ◌ Knowledge Health
       </h2>
 
 

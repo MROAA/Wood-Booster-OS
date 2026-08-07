@@ -11,6 +11,10 @@ import {
   apiDelete,
 } from "../api/client"
 
+import {
+  updateRuntimeContext,
+} from "../services/runtime/runtimeContext"
+
 
 
 function MaterialsTab({
@@ -606,6 +610,99 @@ function MaterialsTab({
       ]
 
     )
+
+
+
+  const missingMaterials =
+    useMemo(
+      () =>
+
+        materials
+          .filter(
+            material =>
+              material.inventoryItemId
+          )
+          .map(
+            material => {
+
+              const stockItem =
+                inventory.find(
+                  item =>
+                    String(item.id) ===
+                    String(material.inventoryItemId)
+                )
+
+
+              if(!stockItem) {
+
+                return null
+
+              }
+
+
+              const shortage =
+                toNumber(material.quantity) -
+                toNumber(stockItem.quantity)
+
+
+              if(shortage <= 0) {
+
+                return null
+
+              }
+
+
+              return {
+
+                materialId:
+                  material.id,
+
+                name:
+                  material.name,
+
+                unit:
+                  material.unit,
+
+                shortage,
+
+              }
+
+            }
+          )
+          .filter(Boolean),
+
+      [
+        materials,
+        inventory,
+      ]
+
+    )
+
+
+
+  useEffect(() => {
+
+    if(!projectId) {
+
+      return
+
+    }
+
+
+    updateRuntimeContext({
+
+      metadata: {
+
+        missingMaterials,
+
+      },
+
+    })
+
+  }, [
+    projectId,
+    missingMaterials,
+  ])
 
 
 

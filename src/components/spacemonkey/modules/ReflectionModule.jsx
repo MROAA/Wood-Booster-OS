@@ -21,7 +21,7 @@ function ReflectionModule({
           text-[var(--wood-muted)]
         "
       >
-        🪞 Reflection
+        ◑ Reflection
       </h2>
 
 

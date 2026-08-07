@@ -52,7 +52,7 @@ function Tools() {
           font-bold
           text-white
         ">
-          🛠 Tools Center
+          ▨ Tools Center
         </h1>
 
         <p className="

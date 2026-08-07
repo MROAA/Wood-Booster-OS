@@ -616,7 +616,7 @@ function GalleryTab({
                   text-5xl
                 "
               >
-                📷
+                ▧
               </span>
 
 

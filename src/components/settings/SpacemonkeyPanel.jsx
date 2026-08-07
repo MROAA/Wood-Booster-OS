@@ -238,7 +238,7 @@ function SpacemonkeyPanel(){
         font-bold
       ">
 
-        🐒 Spacemonkey Control
+        ⬡ Spacemonkey Control
 
       </h2>
 
@@ -288,7 +288,7 @@ function SpacemonkeyPanel(){
 
           <p className="text-green-400">
 
-            🟢 Active
+            ● Active
 
           </p>
 
@@ -325,7 +325,7 @@ function SpacemonkeyPanel(){
 
           <p className="text-green-400">
 
-            🟢 {system?.health?.status}
+            ● {system?.health?.status}
 
           </p>
 
@@ -364,7 +364,7 @@ function SpacemonkeyPanel(){
 
           <p className="text-green-400">
 
-            🛡 Protected
+            ▩ Protected
 
           </p>
 
@@ -464,7 +464,7 @@ function SpacemonkeyPanel(){
 
           <p className="text-green-400">
 
-            🟢 Loaded
+            ● Loaded
 
           </p>
 

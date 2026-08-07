@@ -202,7 +202,7 @@ function SpacemonkeyDashboard({
             tracking-widest
           "
         >
-          🧠 Cognitive State
+          ⬢ Cognitive State
         </h2>
 
 

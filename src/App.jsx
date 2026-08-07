@@ -30,6 +30,7 @@ import CapabilityCenter from "./pages/CapabilityCenter"
 import ExecutionCenterV2 from "./pages/ExecutionCenterV2"
 import SystemCenter from "./pages/SystemCenter"
 import Tools from "./pages/Tools"
+import SpiderSolitaire from "./pages/SpiderSolitaire"
 
 
 
@@ -248,6 +249,14 @@ function App() {
           path="/tools"
           element={
             <Tools />
+          }
+        />
+
+
+        <Route
+          path="/spider-solitaire"
+          element={
+            <SpiderSolitaire />
           }
         />
 

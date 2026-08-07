@@ -75,7 +75,7 @@ function SpacemonkeyLaws(){
 
       >
 
-        📜 Spacemonkey Laws
+        ▤ Spacemonkey Laws
 
       </h3>
 

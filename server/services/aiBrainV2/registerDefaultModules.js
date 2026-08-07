@@ -78,6 +78,12 @@ import {
 
 
 
+import {
+  createLiveContextModule,
+} from "./modules/liveContextModule.js"
+
+
+
 
 function registerModuleIfMissing(
   moduleDefinition,
@@ -128,6 +134,9 @@ function registerDefaultBrainModules(){
 
 
     createTruthModule(),
+
+
+    createLiveContextModule(),
 
 
     createMemoryLearningModule(),

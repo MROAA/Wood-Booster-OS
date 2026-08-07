@@ -418,5 +418,301 @@
       "reason": "Toiminto voisi paljastaa yksityistä tietoa."
     },
     "createdAt": "2026-08-01T10:49:12.885Z"
+  },
+  {
+    "id": "audit-msi9hk48-gh8bg5",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T01:24:02.457Z"
+  },
+  {
+    "id": "audit-msi9hk4b-bkuc2o",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T01:24:02.459Z"
+  },
+  {
+    "id": "audit-msi9hk4c-cmtktp",
+    "type": "constitution_check",
+    "capability": "conversation",
+    "status": "approved",
+    "metadata": {
+      "guard": "constitution-guard",
+      "decision": "allow",
+      "reason": "Toiminto ei riko AI Constitution V1:n tarkistettuja sääntöjä."
+    },
+    "createdAt": "2026-08-07T01:24:02.460Z"
+  },
+  {
+    "id": "audit-msi9hk4c-5pavpv",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": "pipeline-msi9hk48-ge5jn308",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T01:24:02.460Z"
+  },
+  {
+    "id": "audit-msi9hk4c-tbspb7",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T01:24:02.460Z"
+  },
+  {
+    "id": "audit-msihrn4d-vqmhw7",
+    "moduleId": "live_context",
+    "capability": "live_context",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "live_context",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:15:49.837Z"
+  },
+  {
+    "id": "audit-msihvz38-abn0ea",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:19:11.972Z"
+  },
+  {
+    "id": "audit-msihvz3a-oq56wn",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:19:11.974Z"
+  },
+  {
+    "id": "audit-msihvz3b-b1loyc",
+    "type": "constitution_check",
+    "capability": "conversation",
+    "status": "approved",
+    "metadata": {
+      "guard": "constitution-guard",
+      "decision": "allow",
+      "reason": "Toiminto ei riko AI Constitution V1:n tarkistettuja sääntöjä."
+    },
+    "createdAt": "2026-08-07T05:19:11.975Z"
+  },
+  {
+    "id": "audit-msihvz3b-hvllm7",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": "pipeline-msihvz38-jqrgiuiz",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:19:11.975Z"
+  },
+  {
+    "id": "audit-msihvz3b-5fpwgx",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:19:11.975Z"
+  },
+  {
+    "id": "audit-msihy5kj-azxw0g",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:20:53.683Z"
+  },
+  {
+    "id": "audit-msihy5kk-e0ek5i",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:20:53.684Z"
+  },
+  {
+    "id": "audit-msihy5kl-7ww6vt",
+    "type": "constitution_check",
+    "capability": "live_context",
+    "status": "approved",
+    "metadata": {
+      "guard": "constitution-guard",
+      "decision": "allow",
+      "reason": "Toiminto ei riko AI Constitution V1:n tarkistettuja sääntöjä."
+    },
+    "createdAt": "2026-08-07T05:20:53.685Z"
+  },
+  {
+    "id": "audit-msihy5kl-9tc4l9",
+    "moduleId": "live_context",
+    "capability": "live_context",
+    "status": "approved",
+    "requestId": "pipeline-msihy5ki-10q5bc8y",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "live_context",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:20:53.685Z"
+  },
+  {
+    "id": "audit-msihy5km-o3yav4",
+    "moduleId": "live_context",
+    "capability": "live_context",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "live_context",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:20:53.686Z"
   }
 ]

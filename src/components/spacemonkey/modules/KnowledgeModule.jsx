@@ -21,7 +21,7 @@ function KnowledgeModule({
           text-[var(--wood-muted)]
         "
       >
-        📚 Knowledge
+        ◌ Knowledge
       </h2>
 
 

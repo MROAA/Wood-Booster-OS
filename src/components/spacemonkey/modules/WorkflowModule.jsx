@@ -21,7 +21,7 @@ function WorkflowModule({
           text-[var(--wood-muted)]
         "
       >
-        🔄 Workflow
+        ↻ Workflow
       </h2>
 
 

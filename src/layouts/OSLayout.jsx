@@ -27,6 +27,7 @@ function OSLayout() {
           w-[260px]
           shrink-0
           h-full
+          overflow-y-auto
           border-r
           border-[var(--wood-border)]
           bg-[var(--wood-panel)]

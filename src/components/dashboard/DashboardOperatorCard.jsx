@@ -27,7 +27,7 @@ function DashboardOperatorCard() {
             text-base
           "
         >
-          🐒
+          ⬡
         </span>
 
 

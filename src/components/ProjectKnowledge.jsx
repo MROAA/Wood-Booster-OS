@@ -119,7 +119,7 @@ text-xl
 font-bold
 ">
 
-📚 Tietopankki
+◌ Tietopankki
 
 </h2>
 

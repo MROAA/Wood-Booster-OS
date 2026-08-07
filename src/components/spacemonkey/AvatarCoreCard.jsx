@@ -22,7 +22,7 @@ function AvatarCoreCard({
           text-[var(--wood-muted)]
         "
       >
-        🐒 Spacemonkey Core
+        ⬡ Spacemonkey Core
       </h2>
 
 
@@ -52,7 +52,7 @@ function AvatarCoreCard({
             system-pulse
           "
         >
-          🐒
+          ⬡
         </div>
 
 

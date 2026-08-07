@@ -74,7 +74,7 @@ function truncateText(
 function getNotificationStyle(status) {
   if (status === "error") {
     return {
-      icon: "⚠️",
+      icon: "⚠",
       label: "Virhe",
       border:
         "border-red-500/30",
@@ -99,7 +99,7 @@ function getNotificationStyle(status) {
   }
 
   return {
-    icon: "✅",
+    icon: "✓",
     label: "Valmis",
     border:
       "border-emerald-500/30",
@@ -257,7 +257,7 @@ function NotificationCenter() {
           bg-amber-500/10
           text-xl
         ">
-          🔔
+          ✦
         </span>
       </header>
 
@@ -276,7 +276,7 @@ function NotificationCenter() {
             <span className="
               text-3xl
             ">
-              🔕
+              ✧
             </span>
 
             <p className="

@@ -12,6 +12,10 @@ import {
 
 
 
+const PAGE_SIZE = 12
+
+
+
 function Memory() {
 
 
@@ -49,6 +53,12 @@ function Memory() {
     category,
     setCategory,
   ] = useState("all")
+
+
+  const [
+    visibleCount,
+    setVisibleCount,
+  ] = useState(PAGE_SIZE)
 
 
 
@@ -299,6 +309,24 @@ function Memory() {
 
 
 
+  useEffect(() => {
+
+    setVisibleCount(PAGE_SIZE)
+
+  }, [search, category])
+
+
+
+
+  const visibleMemories =
+    filteredMemories.slice(
+      0,
+      visibleCount,
+    )
+
+
+
+
   const stats =
     useMemo(
       () => {
@@ -356,7 +384,7 @@ function Memory() {
       <header>
 
         <h1 className="page-title">
-          🧠 Memory
+          ⬢ Memory
         </h1>
 
 
@@ -660,7 +688,7 @@ function Memory() {
             >
 
               {
-                filteredMemories.map(
+                visibleMemories.map(
                   memory => (
 
                     <article
@@ -670,7 +698,7 @@ function Memory() {
 
                       <div className="flex items-start justify-between gap-4">
 
-                        <p className="flex-1">
+                        <p className="line-clamp-3 flex-1">
                           {memory.content}
                         </p>
 
@@ -734,6 +762,40 @@ function Memory() {
 
           )
 
+        }
+
+
+
+
+        {
+          !loading &&
+          visibleCount < filteredMemories.length && (
+
+            <div className="mt-6 flex justify-center">
+
+              <button
+
+                type="button"
+
+                onClick={() =>
+                  setVisibleCount(
+                    count => count + PAGE_SIZE
+                  )
+                }
+
+                className="wb-button"
+
+              >
+                Näytä lisää
+                {" "}
+                ({visibleMemories.length}
+                {" / "}
+                {filteredMemories.length})
+              </button>
+
+            </div>
+
+          )
         }
 
 

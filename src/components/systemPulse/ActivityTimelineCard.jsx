@@ -18,7 +18,10 @@ function ActivityTimelineCard({
 
       <div
         className="
+          max-h-[420px]
           space-y-4
+          overflow-y-auto
+          pr-2
         "
       >
 

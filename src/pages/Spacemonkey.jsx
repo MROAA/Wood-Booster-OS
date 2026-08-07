@@ -325,7 +325,7 @@ function Spacemonkey(){
       <header>
 
         <h1 className="page-title">
-          🐒 Spacemonkey
+          ⬡ Spacemonkey
         </h1>
 
 
@@ -417,7 +417,7 @@ function Spacemonkey(){
 
           <StatusBadge
             value={safety.status}
-            icon="🛡"
+            icon="▩"
           />
 
         </Card>
@@ -582,7 +582,7 @@ function Spacemonkey(){
       </Card>
 
 
-      <Card title="🧠 Reflection Intelligence">
+      <Card title="⬢ Reflection Intelligence">
 
 
         <p>
@@ -779,13 +779,13 @@ function StatusBadge({
     (
       isHealthy
       ?
-      "🟢"
+      "●"
       :
       isUnhealthy
       ?
-      "🔴"
+      "◆"
       :
-      "⚪"
+      "○"
     )
 
 

@@ -172,9 +172,9 @@ function HealthScoreCard({
                     {
                       item.status === "healthy"
                         ?
-                        "✅"
+                        "✓"
                         :
-                        "⚠️"
+                        "⚠"
                     }
 
                     {" "}

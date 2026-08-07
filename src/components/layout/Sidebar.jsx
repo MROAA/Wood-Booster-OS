@@ -60,7 +60,7 @@ const groups = [
       {
         label: "Laskut",
         path: "/invoices",
-        icon: "🧾"
+        icon: "▥"
       }
 
     ]
@@ -104,7 +104,7 @@ const groups = [
       {
         label: "Spacemonkey Brain",
         path: "/spacemonkey-brain",
-        icon: "🐒"
+        icon: "⬡"
       }
 
     ]
@@ -120,21 +120,21 @@ const groups = [
       {
         label: "AI Brain",
         path: "/ai-brain",
-        icon: "🧠"
+        icon: "⬢"
       },
 
 
       {
         label: "AI Chat",
         path: "/ai-chat",
-        icon: "💬"
+        icon: "◐"
       },
 
 
       {
         label: "AI Generator",
         path: "/ai-generator",
-        icon: "✨"
+        icon: "✦"
       },
 
 
@@ -162,14 +162,14 @@ const groups = [
       {
         label: "System Center",
         path: "/system-center",
-        icon: "🖥"
+        icon: "⊞"
       },
 
 
       {
         label: "Tools",
         path: "/tools",
-        icon: "🔧"
+        icon: "▨"
       }
 
     ]
@@ -186,6 +186,22 @@ const groups = [
         label: "Settings",
         path: "/settings",
         icon: "⚙"
+      }
+
+    ]
+
+  },
+
+
+  {
+    title: "TAUKO",
+
+    items: [
+
+      {
+        label: "Spider-pasianssi",
+        path: "/spider-solitaire",
+        icon: "♤"
       }
 
     ]
@@ -208,10 +224,11 @@ function Sidebar() {
         h-screen
         w-full
         bg-[var(--wood-panel)]
-        px-6
-        py-8
+        px-5
+        py-5
         flex
         flex-col
+        overflow-y-auto
       "
     >
 
@@ -220,7 +237,7 @@ function Sidebar() {
         className="
           flex
           items-center
-          gap-3
+          gap-2.5
         "
       >
 
@@ -228,8 +245,8 @@ function Sidebar() {
           src={logo}
           alt="Wood-Booster"
           className="
-            h-10
-            w-10
+            h-8
+            w-8
             shrink-0
             object-contain
           "
@@ -237,26 +254,14 @@ function Sidebar() {
 
         <h1
           className="
-            text-3xl
+            text-xl
+            leading-tight
             brand-font
             text-[var(--wood-text)]
           "
         >
-          Wood-Booster
+          Wood-Booster OS
         </h1>
-
-
-        <p
-          className="
-            mt-2
-            text-sm
-            uppercase
-            tracking-widest
-            text-[var(--wood-muted)]
-          "
-        >
-          OS Workspace
-        </p>
 
 
       </header>
@@ -267,9 +272,9 @@ function Sidebar() {
 
       <nav
         className="
-          mt-10
+          mt-6
           flex-1
-          space-y-8
+          space-y-3.5
         "
       >
 
@@ -283,8 +288,8 @@ function Sidebar() {
 
                 <p
                   className="
-                    mb-3
-                    text-xs
+                    mb-1.5
+                    text-[10px]
                     uppercase
                     tracking-widest
                     text-[var(--wood-muted)]
@@ -297,7 +302,7 @@ function Sidebar() {
 
                 <div
                   className="
-                    space-y-2
+                    space-y-0.5
                   "
                 >
 
@@ -314,14 +319,14 @@ function Sidebar() {
 
                               flex
                               items-center
-                              gap-4
+                              gap-3
 
-                              rounded-xl
+                              rounded-lg
 
-                              px-5
-                              py-4
+                              px-3
+                              py-2
 
-                              text-base
+                              text-sm
 
                               transition
 
@@ -345,7 +350,7 @@ function Sidebar() {
 
                           <span
                             className="
-                              text-xl
+                              text-base
                             "
                           >
                             {item.icon}
@@ -380,21 +385,27 @@ function Sidebar() {
 
 
 
-      <footer>
+      <footer
+        className="
+          mt-4
+          shrink-0
+        "
+      >
 
         <div
           className="
-            rounded-xl
+            rounded-lg
             border
             border-[var(--wood-border)]
             bg-[var(--wood-card)]
-            p-5
+            px-4
+            py-3
           "
         >
 
           <p
             className="
-              text-xs
+              text-[10px]
               uppercase
               tracking-widest
               text-[var(--wood-muted)]
@@ -406,8 +417,8 @@ function Sidebar() {
 
           <p
             className="
-              mt-2
-              text-base
+              mt-1
+              text-sm
               text-[var(--wood-text)]
             "
           >

@@ -174,7 +174,7 @@ export default function SystemRegistry(){
           font-bold
         ">
 
-          🖥️ Live System Registry
+          ⊞ Live System Registry
 
         </h2>
 
@@ -296,7 +296,7 @@ export default function SystemRegistry(){
             font-bold
           ">
 
-            🟢 {registry.status}
+            ● {registry.status}
 
           </p>
 
@@ -378,7 +378,7 @@ export default function SystemRegistry(){
                   text-green-400
                 ">
 
-                  🟢 {module.status}
+                  ● {module.status}
 
                 </span>
 

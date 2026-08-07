@@ -48,7 +48,7 @@ function CapabilityModule({
           text-[var(--wood-muted)]
         "
       >
-        🧠 Capabilities
+        ⬢ Capabilities
       </h2>
 
 

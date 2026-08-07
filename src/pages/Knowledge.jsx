@@ -17,6 +17,10 @@ import {
 
 
 
+const PAGE_SIZE = 12
+
+
+
 const emptyTextForm = {
 
   title: "",
@@ -71,6 +75,12 @@ function Knowledge() {
     folder,
     setFolder,
   ] = useState("all")
+
+
+  const [
+    visibleCount,
+    setVisibleCount,
+  ] = useState(PAGE_SIZE)
 
 
   const [
@@ -230,6 +240,24 @@ function Knowledge() {
         search,
         folder,
       ]
+    )
+
+
+
+
+  useEffect(() => {
+
+    setVisibleCount(PAGE_SIZE)
+
+  }, [search, folder])
+
+
+
+
+  const visibleDocuments =
+    filteredDocuments.slice(
+      0,
+      visibleCount,
     )
 
 
@@ -584,7 +612,7 @@ function Knowledge() {
         <div>
 
           <h1 className="page-title">
-            📚 Knowledge Center
+            ◌ Knowledge Center
           </h1>
 
 
@@ -1062,7 +1090,7 @@ function Knowledge() {
           >
 
             {
-              filteredDocuments.map(
+              visibleDocuments.map(
                 document => (
 
                   <Link
@@ -1135,7 +1163,7 @@ function Knowledge() {
                         document.folder && (
 
                           <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
-                            📁 {document.folder}
+                            ▣ {document.folder}
                           </span>
 
                         )
@@ -1182,6 +1210,40 @@ function Knowledge() {
 
         )
 
+      }
+
+
+
+
+      {
+        !loading &&
+        visibleCount < filteredDocuments.length && (
+
+          <div className="flex justify-center">
+
+            <button
+
+              type="button"
+
+              onClick={() =>
+                setVisibleCount(
+                  count => count + PAGE_SIZE
+                )
+              }
+
+              className="wb-button"
+
+            >
+              Näytä lisää
+              {" "}
+              ({visibleDocuments.length}
+              {" / "}
+              {filteredDocuments.length})
+            </button>
+
+          </div>
+
+        )
       }
 
 

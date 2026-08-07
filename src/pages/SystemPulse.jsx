@@ -372,8 +372,21 @@ function SystemPulse() {
 
       <header>
 
+        <p
+          className="
+            text-sm
+            font-semibold
+            uppercase
+            tracking-[0.25em]
+            text-[var(--wood-accent)]
+          "
+        >
+          Diagnostiikka
+        </p>
+
         <h1
           className="
+            mt-2
             text-4xl
             brand-font
             text-[var(--wood-text)]
@@ -385,7 +398,8 @@ function SystemPulse() {
 
         <p
           className="
-            mt-2
+            mt-3
+            max-w-2xl
             text-sm
             text-[var(--wood-muted)]
           "
@@ -428,8 +442,10 @@ function SystemPulse() {
       <section
         className="
           grid
-          grid-cols-2
+          grid-cols-1
           gap-6
+          lg:grid-cols-2
+          xl:grid-cols-3
         "
       >
 
@@ -491,100 +507,81 @@ function SystemPulse() {
         </PulseCard>
 
 
+        <EnvironmentCard
+          pulse={pulse}
+        />
+
+
+        <GitSyncCard
+          pulse={pulse}
+        />
+
+
+        <HardwareCard
+          pulse={pulse}
+        />
+
+
+        <SecurityCard
+          security={
+            pulse?.security
+          }
+        />
+
+
+        <RuntimeCard
+          pulse={pulse}
+        />
+
+
+        <IdentityCard
+          core={core}
+        />
+
+
+        <MonitorCard
+          connection={connection}
+          lastUpdate={lastUpdate}
+          pulse={
+            pulse?.summary
+          }
+          healthChange={
+            healthChange
+          }
+        />
+
+
+        <HealthScoreCard
+          pulse={pulse?.summary}
+        />
+
+
+        <SnapshotCard />
+
       </section>
 
 
 
 
+      <section
+        className="
+          grid
+          grid-cols-1
+          gap-6
+          lg:grid-cols-2
+        "
+      >
 
-      <EnvironmentCard
-        pulse={pulse}
-      />
-
-
-
-
-
-      <GitSyncCard
-        pulse={pulse}
-      />
-
-
+        <ActivityTimelineCard
+          activities={activities}
+        />
 
 
+        <GitHistoryCard
+          pulse={pulse}
+        />
 
-      <HardwareCard
-        pulse={pulse}
-      />
-
-
-
-
-
-      <SecurityCard
-        security={
-          pulse?.security
-        }
-      />
-
-
-
-
-
-      <RuntimeCard
-        pulse={pulse}
-      />
-
-
-
-
-
-      <GitHistoryCard
-        pulse={pulse}
-      />
-
-
-
-
-
-      <IdentityCard
-        core={core}
-      />
-
-
-
-
-
-      <MonitorCard
-        connection={connection}
-        lastUpdate={lastUpdate}
-        pulse={
-          pulse?.summary
-        }
-        healthChange={
-          healthChange
-        }
-      />
-
-
-
-
-      <HealthScoreCard
-        pulse={pulse?.summary}
-      />
-
-
-
-
-
-      <ActivityTimelineCard
-        activities={activities}
-      />
-
-
-
-
-      <SnapshotCard />
+      </section>
 
 
     </div>

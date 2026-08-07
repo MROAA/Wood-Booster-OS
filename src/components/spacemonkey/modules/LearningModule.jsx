@@ -21,7 +21,7 @@ function LearningModule({
           text-[var(--wood-muted)]
         "
       >
-        🧠 Learning
+        ⬢ Learning
       </h2>
 
 

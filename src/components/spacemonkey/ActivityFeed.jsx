@@ -21,7 +21,7 @@ function ActivityFeed({
           text-[var(--wood-muted)]
         "
       >
-        🐒 Spacemonkey Activity
+        ⬡ Spacemonkey Activity
       </h2>
 
 

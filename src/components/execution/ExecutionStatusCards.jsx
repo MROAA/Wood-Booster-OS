@@ -127,24 +127,12 @@ function ExecutionStatusCards({
   activityStatus = "idle",
   queueStatus = "idle",
   totalCount = 0,
-  pendingCount = 0,
-  runningCount = 0,
   completedCount = 0,
   failedCount = 0,
 }) {
   const safeTotalCount =
     Number(
       totalCount,
-    ) || 0
-
-  const safePendingCount =
-    Number(
-      pendingCount,
-    ) || 0
-
-  const safeRunningCount =
-    Number(
-      runningCount,
     ) || 0
 
   const safeCompletedCount =
@@ -253,74 +241,6 @@ function ExecutionStatusCards({
               : "Ei virheitä"
           }
         />
-      </div>
-
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-              Execution Progress
-            </p>
-
-            <p className="mt-1 text-sm font-semibold text-white">
-              {safeCompletedCount +
-                safeFailedCount}{" "}
-              / {safeTotalCount} toimintoa käsitelty
-            </p>
-          </div>
-
-          <p className="text-lg font-bold text-violet-300">
-            {progressPercentage} %
-          </p>
-        </div>
-
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-800">
-          <div
-            className="h-full rounded-full bg-violet-500 transition-all duration-500"
-            style={{
-              width:
-                `${progressPercentage}%`,
-            }}
-          />
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-neutral-800 bg-neutral-950 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">
-              Odottaa
-            </p>
-
-            <p className="mt-1 text-xl font-bold text-white">
-              {
-                safePendingCount
-              }
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-neutral-800 bg-neutral-950 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">
-              Suoritetaan
-            </p>
-
-            <p className="mt-1 text-xl font-bold text-white">
-              {
-                safeRunningCount
-              }
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-neutral-800 bg-neutral-950 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">
-              Yhteensä
-            </p>
-
-            <p className="mt-1 text-xl font-bold text-white">
-              {
-                safeTotalCount
-              }
-            </p>
-          </div>
-        </div>
       </div>
     </section>
   )

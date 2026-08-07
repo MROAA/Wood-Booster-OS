@@ -215,6 +215,31 @@ const capabilityExecutionMap = {
 
 
 
+  "live_context": {
+
+    execution:
+      "automatic",
+
+    requiresApproval:
+      false,
+
+    permissions: {
+
+      database:
+        false,
+
+      execution:
+        false,
+
+    },
+
+    description:
+      "Tulkitsee käyttäjän nykyisen runtimeContextin (projekti, asiakas, välilehti, fokus).",
+
+  },
+
+
+
   "credentials": {
 
     execution:

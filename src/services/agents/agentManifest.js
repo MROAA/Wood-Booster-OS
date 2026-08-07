@@ -2,7 +2,7 @@ const agentManifest = [
   {
     id: "product",
     name: "Product Agent",
-    icon: "📦",
+    icon: "▣",
     status: "ACTIVE",
     description:
       "Vastaa tuotteista, tuoterakenteista, ominaisuuksista ja Wood-Booster-tuotekokonaisuuksista.",
@@ -21,7 +21,7 @@ const agentManifest = [
   {
     id: "workshop",
     name: "Workshop Agent",
-    icon: "🪚",
+    icon: "▨",
     status: "ACTIVE",
     description:
       "Vastaa valmistuksesta, työvaiheista, materiaaleista, työkaluista ja verstaalla tapahtuvasta työstä.",
@@ -40,7 +40,7 @@ const agentManifest = [
   {
     id: "pricing",
     name: "Pricing Agent",
-    icon: "💶",
+    icon: "✚",
     status: "ACTIVE",
     description:
       "Vastaa kustannuksista, hinnoittelusta, katteista ja tuotteiden taloudellisesta arvioinnista.",
@@ -59,7 +59,7 @@ const agentManifest = [
   {
     id: "marketing",
     name: "Marketing Agent",
-    icon: "📣",
+    icon: "▶",
     status: "ACTIVE",
     description:
       "Vastaa Wood-Booster-brändistä, markkinointiteksteistä, kampanjoista ja sisältöideoista.",
@@ -78,7 +78,7 @@ const agentManifest = [
   {
     id: "crm",
     name: "CRM Agent",
-    icon: "👥",
+    icon: "◎",
     status: "ACTIVE",
     description:
       "Vastaa asiakkaisiin, yhteydenpitoon, asiakastietoihin ja myynnin jatkotoimiin liittyvistä tehtävistä.",

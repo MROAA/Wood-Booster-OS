@@ -5,6 +5,10 @@ import {
   useState,
 } from "react"
 
+import {
+  updateRuntimeContext,
+} from "../../services/runtime/runtimeContext"
+
 
 
 const API_URL =
@@ -250,6 +254,11 @@ function FilesTab({
 
 
 
+    const uploadedFiles =
+      []
+
+
+
     try {
 
 
@@ -326,6 +335,20 @@ function FilesTab({
         )
 
 
+        uploadedFiles.push({
+
+          id:
+            data.id,
+
+          name:
+            data.originalName,
+
+          category:
+            data.category,
+
+        })
+
+
       }
 
 
@@ -336,6 +359,25 @@ function FilesTab({
 
         fileInputRef.current.value =
           ""
+
+      }
+
+
+
+      if(
+        uploadedFiles.length > 0
+      ) {
+
+        updateRuntimeContext({
+
+          metadata: {
+
+            recentFiles:
+              uploadedFiles,
+
+          },
+
+        })
 
       }
 
@@ -695,7 +737,7 @@ function FilesTab({
                 text-4xl
               "
             >
-              📁
+              ▣
             </p>
 
 
@@ -870,7 +912,7 @@ function FilesTab({
                 text-5xl
               "
             >
-              📂
+              ▣
             </p>
 
 
@@ -1287,22 +1329,22 @@ function getCategoryIcon(
   const icons = {
 
     Kuvat:
-      "📷",
+      "▧",
 
     Tarjoukset:
-      "📄",
+      "□",
 
     CAD:
-      "📐",
+      "▽",
 
     CNC:
-      "🛠️",
+      "▨",
 
     Dokumentit:
-      "📋",
+      "▤",
 
     Muut:
-      "📦",
+      "▣",
 
   }
 
@@ -1310,7 +1352,7 @@ function getCategoryIcon(
   return (
     icons[category]
     ||
-    "📁"
+    "▣"
   )
 
 }
@@ -1338,7 +1380,7 @@ function getFileIcon(
     "application/pdf"
   ) {
 
-    return "📄"
+    return "□"
 
   }
 
@@ -1350,7 +1392,7 @@ function getFileIcon(
     name.endsWith(".dwg")
   ) {
 
-    return "📐"
+    return "▽"
 
   }
 
@@ -1362,7 +1404,7 @@ function getFileIcon(
     name.endsWith(".stp")
   ) {
 
-    return "🧊"
+    return "⬣"
 
   }
 
@@ -1373,13 +1415,13 @@ function getFileIcon(
     name.endsWith(".rar")
   ) {
 
-    return "🗜️"
+    return "⊖"
 
   }
 
 
 
-  return "📦"
+  return "▣"
 
 }
 

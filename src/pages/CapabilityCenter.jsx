@@ -86,7 +86,7 @@ function CapabilityCenter() {
           font-bold
           text-white
         ">
-          🧠 Capability Center
+          ⬢ Capability Center
         </h1>
 
         <p className="

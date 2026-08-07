@@ -21,7 +21,7 @@ function DecisionHealthModule({
           text-[var(--wood-muted)]
         "
       >
-        ⚖ Decision Health
+        ⊗ Decision Health
       </h2>
 
 

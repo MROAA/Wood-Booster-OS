@@ -9,39 +9,39 @@ function SpacemonkeyCognitiveTimeline({
     switch(type){
 
       case "PLAN_CREATED":
-        return "📋"
+        return "▤"
 
 
       case "DECISION_CREATED":
-        return "🧠"
+        return "⬢"
 
 
       case "code_generation_completed":
-        return "💻"
+        return "⊞"
 
 
       case "write_completed":
-        return "✍️"
+        return "▤"
 
 
       case "approval_requested":
-        return "🔐"
+        return "⊟"
 
 
       case "release_gate_evaluated":
-        return "🚦"
+        return "◒"
 
 
       case "code_quality_evaluated":
-        return "🔍"
+        return "◌"
 
 
       case "code_execution_simulated":
-        return "⚙️"
+        return "⚙"
 
 
       default:
-        return "📌"
+        return "◉"
 
     }
 
@@ -67,7 +67,7 @@ function SpacemonkeyCognitiveTimeline({
         return {
 
           icon:
-            "🔴",
+            "◆",
 
           accent:
             true,
@@ -86,7 +86,7 @@ function SpacemonkeyCognitiveTimeline({
         return {
 
           icon:
-            "🟡",
+            "◒",
 
           accent:
             true,
@@ -105,7 +105,7 @@ function SpacemonkeyCognitiveTimeline({
         return {
 
           icon:
-            "⚪",
+            "○",
 
           accent:
             false,
@@ -182,7 +182,7 @@ function SpacemonkeyCognitiveTimeline({
 
       >
 
-        🧠 Cognitive Timeline
+        ⬢ Cognitive Timeline
 
       </h2>
 

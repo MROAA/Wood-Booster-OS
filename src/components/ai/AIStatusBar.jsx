@@ -188,7 +188,7 @@ function AIStatusBar({
 
         value="AI Brain"
 
-        icon="🧠"
+        icon="⬢"
 
       />
 
@@ -200,7 +200,7 @@ function AIStatusBar({
 
         value="ACTIVE"
 
-        icon="💾"
+        icon="◈"
 
       />
 
@@ -212,7 +212,7 @@ function AIStatusBar({
 
         value={spacemonkey}
 
-        icon="🐒"
+        icon="⬡"
 
       />
 
@@ -224,7 +224,7 @@ function AIStatusBar({
 
         value={messages.length}
 
-        icon="💬"
+        icon="◐"
 
       />
 

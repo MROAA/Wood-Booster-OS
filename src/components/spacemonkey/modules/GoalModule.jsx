@@ -21,7 +21,7 @@ function GoalModule({
           text-[var(--wood-muted)]
         "
       >
-        🎯 Goal
+        ◉ Goal
       </h2>
 
 

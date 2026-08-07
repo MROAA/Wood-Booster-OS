@@ -21,7 +21,7 @@ function MemoryCard({
           text-[var(--wood-muted)]
         "
       >
-        💾 Memory
+        ◈ Memory
       </h2>
 
 

@@ -18,6 +18,13 @@ function ChatPanel() {
 
 
   const [
+    isThinking,
+    setIsThinking
+  ] = useState(false)
+
+
+
+  const [
     messages,
     setMessages
   ] = useState([
@@ -25,7 +32,7 @@ function ChatPanel() {
     {
       role: "assistant",
       content:
-        "Terve Marc.\n\nWood-Booster OS on valmis.\n\nJärjestelmätila: ONLINE\n\nKuinka voin auttaa?"
+        "Terve.\n\nMitäs tänään?"
     }
 
   ])
@@ -63,6 +70,8 @@ function ChatPanel() {
 
 
     setMessage("")
+
+    setIsThinking(true)
 
 
 
@@ -124,6 +133,10 @@ function ChatPanel() {
 
         ]
       )
+
+    } finally {
+
+      setIsThinking(false)
 
     }
 
@@ -222,6 +235,56 @@ function ChatPanel() {
               </div>
 
             )
+          )
+        }
+
+
+        {
+          isThinking && (
+
+            <div
+              className="
+                flex
+                gap-3
+                items-start
+              "
+            >
+
+              <div
+                className="
+                  shrink-0
+                "
+              >
+
+                <SpacemonkeyIcon />
+
+              </div>
+
+
+
+              <div
+                className="
+                  max-w-[65%]
+                  rounded-xl
+                  px-4
+                  py-3
+                  text-sm
+                  leading-relaxed
+                  animate-pulse
+                  border
+                  border-[var(--wood-border)]
+                  bg-[var(--wood-panel)]
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Spacemonkey miettii...
+
+              </div>
+
+
+            </div>
+
           )
         }
 

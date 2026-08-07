@@ -92,7 +92,7 @@ function RecentProjectsWidget() {
         </div>
 
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-800 text-xl">
-          📦
+          ▣
         </span>
       </div>
 
@@ -137,7 +137,7 @@ function RecentProjectsWidget() {
                   className="group flex w-full items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-950 p-3 text-left transition hover:border-amber-500/40 hover:bg-neutral-800"
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-base">
-                    🪵
+                    ◇
                   </span>
 
                   <span className="min-w-0 flex-1">

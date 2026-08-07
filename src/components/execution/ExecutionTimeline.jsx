@@ -275,7 +275,7 @@ function createActivityTimeline(
             : "completed",
 
         icon:
-          "🧠",
+          "⬢",
       }),
     )
   }
@@ -308,7 +308,7 @@ function createActivityTimeline(
           "completed",
 
         icon:
-          "🔎",
+          "◌",
       }),
     )
   } else if (
@@ -341,7 +341,7 @@ function createActivityTimeline(
           "running",
 
         icon:
-          "🔎",
+          "◌",
       }),
     )
   }
@@ -374,7 +374,7 @@ function createActivityTimeline(
           "completed",
 
         icon:
-          "🧩",
+          "▦",
       }),
     )
   } else if (
@@ -403,7 +403,7 @@ function createActivityTimeline(
           "running",
 
         icon:
-          "🧩",
+          "▦",
       }),
     )
   }
@@ -435,7 +435,7 @@ function createActivityTimeline(
           "completed",
 
         icon:
-          "📋",
+          "▤",
       }),
     )
   } else if (
@@ -463,7 +463,7 @@ function createActivityTimeline(
           "ready",
 
         icon:
-          "📋",
+          "▤",
       }),
     )
   }
@@ -495,7 +495,7 @@ function createActivityTimeline(
           "completed",
 
         icon:
-          "🎉",
+          "✦",
       }),
     )
   }
@@ -534,7 +534,7 @@ function createActivityTimeline(
           "failed",
 
         icon:
-          "❌",
+          "✗",
       }),
     )
   }
@@ -601,7 +601,7 @@ function createExecutionTimeline(
           : queueStatus,
 
       icon:
-        "📦",
+        "▣",
     }),
   )
 
@@ -740,8 +740,8 @@ function createExecutionTimeline(
 
             icon:
               wasSuccessful
-                ? "✅"
-                : "❌",
+                ? "✓"
+                : "✗",
           }),
         )
       }
@@ -820,11 +820,11 @@ function createExecutionTimeline(
 
         icon:
           queueSucceeded
-            ? "🏁"
+            ? "✓"
             : queueStatus ===
                 "completed_with_errors"
-              ? "⚠️"
-              : "❌",
+              ? "⚠"
+              : "✗",
       }),
     )
   }

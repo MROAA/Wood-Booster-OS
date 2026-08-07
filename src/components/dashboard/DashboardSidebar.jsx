@@ -71,7 +71,7 @@ function DashboardSidebar() {
           path: "/system-pulse"
         },
         {
-          icon: "🐒",
+          icon: "⬡",
           label: "Spacemonkey",
           path: "/spacemonkey-brain"
         }

@@ -122,7 +122,7 @@ function Agents() {
       <header>
 
         <h1 className="page-title">
-          🤖 Agent Control Center
+          △ Agent Control Center
         </h1>
 
 

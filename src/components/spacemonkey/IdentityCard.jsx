@@ -21,7 +21,7 @@ function IdentityCard({
           text-[var(--wood-muted)]
         "
       >
-        🐒 Identity
+        ⬡ Identity
       </h2>
 
 

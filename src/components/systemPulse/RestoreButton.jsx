@@ -165,7 +165,7 @@ function RestoreButton({
           >
 
             <p>
-              🟢 Restore preview created
+              ● Restore preview created
             </p>
 
 

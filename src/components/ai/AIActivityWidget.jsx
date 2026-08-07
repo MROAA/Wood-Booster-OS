@@ -269,7 +269,7 @@ function AIActivityWidget() {
             {activity.reason && (
               <div className="flex items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-950 p-4">
                 <span className="text-lg">
-                  🧭
+                  ◉
                 </span>
 
                 <div>
@@ -326,7 +326,7 @@ function AIActivityWidget() {
                       className="flex items-center gap-3 rounded-lg bg-neutral-950 px-3 py-3"
                     >
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-sm">
-                        🧠
+                        ⬢
                       </span>
 
                       <div className="min-w-0 flex-1">

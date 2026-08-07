@@ -69,7 +69,7 @@ function PersonalityCard({
           text-[var(--wood-muted)]
         "
       >
-        🧬 Spacemonkey Personality
+        ⬣ Spacemonkey Personality
       </h2>
 
 
@@ -140,7 +140,7 @@ function PersonalityCard({
                           text-[var(--wood-text)]
                         "
                       >
-                        🟢 {trait}
+                        ● {trait}
 
                       </p>
 
@@ -252,7 +252,7 @@ function PersonalityCard({
                           text-[var(--wood-text)]
                         "
                       >
-                        🛡️ {rule}
+                        ▩ {rule}
 
                       </p>
 

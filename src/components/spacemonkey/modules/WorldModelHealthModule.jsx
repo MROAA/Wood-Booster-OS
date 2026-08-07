@@ -21,7 +21,7 @@ function WorldModelHealthModule({
           text-[var(--wood-muted)]
         "
       >
-        🌍 World Model Health
+        ◓ World Model Health
       </h2>
 
 

@@ -94,7 +94,7 @@ function QuickActions(){
 
 
       setMessage(
-        "🚫 SecurityGuard esti komennon"
+        "✗ SecurityGuard esti komennon"
       )
 
 

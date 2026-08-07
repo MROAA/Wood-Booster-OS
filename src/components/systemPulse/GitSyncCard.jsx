@@ -150,9 +150,9 @@ function GitSyncCard({
           {
             summary?.watcherActive
             ?
-            "🟢 Running"
+            "● Running"
             :
-            "🔴 Stopped"
+            "◆ Stopped"
           }
 
         </p>

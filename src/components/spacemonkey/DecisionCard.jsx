@@ -99,7 +99,7 @@ function DecisionCard({
           text-[var(--wood-muted)]
         "
       >
-        ⚖ Decision Quality
+        ⊗ Decision Quality
       </h2>
 
 

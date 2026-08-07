@@ -21,7 +21,7 @@ function KnowledgeCard({
           text-[var(--wood-muted)]
         "
       >
-        📚 Knowledge
+        ◌ Knowledge
       </h2>
 
 
@@ -140,7 +140,7 @@ function KnowledgeCard({
                       text-[var(--wood-text)]
                     "
                   >
-                    📖 {domain}
+                    ◌ {domain}
 
                   </p>
 

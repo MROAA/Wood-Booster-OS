@@ -295,7 +295,7 @@ function AIGenerator() {
               >
                 {generating
                   ? "Luodaan projektia..."
-                  : "✨ Luo oikea projekti AI:lla"}
+                  : "✦ Luo oikea projekti AI:lla"}
               </button>
 
               <button

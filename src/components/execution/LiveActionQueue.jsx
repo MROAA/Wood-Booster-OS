@@ -732,36 +732,6 @@ function LiveActionQueue({
         />
       </div>
 
-      <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-              Queue Progress
-            </p>
-
-            <p className="mt-1 text-sm font-semibold text-white">
-              {completedCount +
-                failedCount}{" "}
-              / {totalCount} toimintoa käsitelty
-            </p>
-          </div>
-
-          <p className="text-lg font-bold text-violet-300">
-            {progressPercentage} %
-          </p>
-        </div>
-
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-800">
-          <div
-            className="h-full rounded-full bg-violet-500 transition-all duration-500"
-            style={{
-              width:
-                `${progressPercentage}%`,
-            }}
-          />
-        </div>
-      </div>
-
       <div className="mt-4 rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
           Current Action

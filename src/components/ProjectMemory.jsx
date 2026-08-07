@@ -170,7 +170,7 @@ function ProjectMemory() {
 
         <h2 className="mt-2 text-2xl font-semibold">
 
-          🧠 Memory Proposals
+          ⬢ Memory Proposals
 
         </h2>
 
@@ -302,7 +302,7 @@ function ProjectMemory() {
 
         <h2 className="text-2xl font-semibold">
 
-          🧠 Saved Memory
+          ⬢ Saved Memory
 
         </h2>
 

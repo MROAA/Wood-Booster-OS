@@ -208,7 +208,7 @@ function SpacemonkeyConsciousnessCard(){
 
           >
 
-            🧠 Spacemonkey Consciousness
+            ⬢ Spacemonkey Consciousness
 
           </h2>
 
@@ -303,7 +303,7 @@ function SpacemonkeyConsciousnessCard(){
 
         <InfoBlock
 
-          title="🧠 State"
+          title="⬢ State"
 
           value={
             consciousness.state ||
@@ -319,7 +319,7 @@ function SpacemonkeyConsciousnessCard(){
 
         <InfoBlock
 
-          title="⚖️ Risk"
+          title="⊗ Risk"
 
           value={
             consciousness.decision?.risk
@@ -339,7 +339,7 @@ function SpacemonkeyConsciousnessCard(){
 
           wide
 
-          title="🎯 Current Goal"
+          title="◉ Current Goal"
 
           value={
             consciousness.goal
@@ -359,7 +359,7 @@ function SpacemonkeyConsciousnessCard(){
 
           wide
 
-          title="➡️ Next Action"
+          title="→ Next Action"
 
           value={
             consciousness.nextAction
@@ -379,7 +379,7 @@ function SpacemonkeyConsciousnessCard(){
 
           wide
 
-          title="🧩 Decision"
+          title="▦ Decision"
 
           value={
             consciousness.decision?.name

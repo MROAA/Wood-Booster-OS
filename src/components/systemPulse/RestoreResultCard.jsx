@@ -84,7 +84,7 @@ function RestoreResultCard() {
             text-green-400
           "
         >
-          ✅ {result.status}
+          ✓ {result.status}
         </p>
 
 

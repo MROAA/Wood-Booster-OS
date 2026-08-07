@@ -169,7 +169,7 @@ function SnapshotHistoryCard() {
                         text-green-400
                       "
                     >
-                      🟢 {snapshot.name}
+                      ● {snapshot.name}
                     </p>
 
 

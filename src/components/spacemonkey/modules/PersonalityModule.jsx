@@ -44,7 +44,7 @@ function PersonalityModule({
           text-[var(--wood-muted)]
         "
       >
-        🧬 Personality
+        ⬣ Personality
       </h2>
 
 

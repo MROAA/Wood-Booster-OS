@@ -35,6 +35,10 @@ import {
   buildSpacemonkeyContext,
 } from "./spacemonkey/index.js"
 
+import {
+  refineWithAhma,
+} from "./ahmaClient.js"
+
 
 
 const OLLAMA_URL =
@@ -481,10 +485,24 @@ IDENTITY SEPARATION:
 
 
 
+    const ahmaResult =
+
+      await refineWithAhma({
+        text: answer,
+      })
+
+
+    const finnishRefinedAnswer =
+
+      ahmaResult.text ||
+      answer
+
+
+
     const guardedAnswer =
 
       applySpacemonkeyResponseGuard(
-        answer,
+        finnishRefinedAnswer,
       )
 
 

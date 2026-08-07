@@ -327,7 +327,7 @@ function KnowledgePanel() {
           "
         >
 
-          📚 Knowledge Center
+          ◌ Knowledge Center
 
         </h2>
 
@@ -595,7 +595,7 @@ function KnowledgePanel() {
                 >
 
                   <span>
-                    📁 {document.folder}
+                    ▣ {document.folder}
                   </span>
 
                   <span>

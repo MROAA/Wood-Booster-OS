@@ -115,7 +115,7 @@ function ConversationList(){
         font-bold
       ">
 
-        📚 Conversations
+        ◌ Conversations
 
       </h2>
 

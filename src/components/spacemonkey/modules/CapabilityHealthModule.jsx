@@ -66,7 +66,7 @@ function CapabilityHealthModule({
           text-[var(--wood-muted)]
         "
       >
-        🩺 Capability Health
+        ⊕ Capability Health
       </h2>
 
 

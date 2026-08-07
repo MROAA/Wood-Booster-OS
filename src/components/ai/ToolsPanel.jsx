@@ -209,7 +209,7 @@ function ToolsPanel() {
           "
         >
 
-          🛠 Tools
+          ▨ Tools
 
         </h2>
 

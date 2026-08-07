@@ -29,6 +29,11 @@ import {
 
 
 import {
+  liveContextKnowledge,
+} from "./modules/liveContextKnowledge.js"
+
+
+import {
   spacemonkeyKnowledge,
 } from "./modules/spacemonkeyKnowledge.js"
 
@@ -62,6 +67,8 @@ const moduleKnowledgeRegistry = [
   memoryKnowledge,
 
   truthKnowledge,
+
+  liveContextKnowledge,
 
   spacemonkeyKnowledge,
 

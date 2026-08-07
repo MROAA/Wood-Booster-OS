@@ -606,42 +606,29 @@ function ExecutionCenterV2() {
 
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-        <header className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-violet-400">
-                Wood-Booster AI OS
-              </p>
+    <div className="space-y-6">
+      <header>
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--wood-accent)]">
+              Wood-Booster AI OS
+            </p>
 
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
-                Execution Center
-              </h1>
+            <h1 className="mt-2 text-4xl font-bold text-[var(--wood-text)]">
+              Execution Center
+            </h1>
 
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">
-                Seuraa AI-pyyntöä,
-                intentin analysointia,
-                plannerin päätöstä,
-                suoritussuunnitelmaa,
-                toimintojonoa ja tuloksia
-                reaaliaikaisesti.
-              </p>
-            </div>
+            <p className="mt-3 max-w-2xl text-[var(--wood-muted)]">
+              Seuraa AI-pyyntöä,
+              intentin analysointia,
+              plannerin päätöstä,
+              suoritussuunnitelmaa,
+              toimintojonoa ja tuloksia
+              reaaliaikaisesti.
+            </p>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-neutral-500">
-                  Tallennetut istunnot
-                </p>
-
-                <p className="mt-1 text-xl font-bold text-white">
-                  {
-                    history.length
-                  }
-                </p>
-              </div>
-
+          <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={
@@ -823,8 +810,7 @@ function ExecutionCenterV2() {
             history
           }
         />
-      </div>
-    </main>
+    </div>
   )
 }
 

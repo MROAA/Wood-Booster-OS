@@ -25,7 +25,7 @@ function ModuleStatusModule() {
           text-[var(--wood-muted)]
         "
       >
-        🐒 Module Status
+        ⬡ Module Status
       </h2>
 
 

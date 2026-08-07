@@ -21,7 +21,7 @@ function SecurityModule({
           text-[var(--wood-muted)]
         "
       >
-        🔒 Security
+        ⊟ Security
       </h2>
 
 

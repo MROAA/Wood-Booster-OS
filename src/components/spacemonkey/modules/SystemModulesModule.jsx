@@ -33,7 +33,7 @@ function SystemModulesModule() {
           text-[var(--wood-muted)]
         "
       >
-        🐒 System Modules
+        ⬡ System Modules
       </h2>
 
 

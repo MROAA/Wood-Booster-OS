@@ -288,7 +288,7 @@ function WorkspaceExecutionPanel() {
         <div className="p-5">
           <div className="rounded-xl border border-dashed border-neutral-700 bg-neutral-950 p-5 text-center">
             <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-900 text-xl">
-              💤
+              ○
             </div>
 
             <p className="mt-3 font-medium text-neutral-300">

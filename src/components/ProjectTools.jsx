@@ -14,7 +14,7 @@ const API_URL =
 const tools = [
   {
     id: "workflow",
-    icon: "🪚",
+    icon: "▨",
     title: "Luo työvaiheet",
     description:
       "Workshop Agent laatii projektille selkeän valmistusjärjestyksen.",
@@ -23,7 +23,7 @@ const tools = [
   },
   {
     id: "materials",
-    icon: "🪵",
+    icon: "◇",
     title: "Luo materiaalilista",
     description:
       "Product Agent arvioi projektiin tarvittavat materiaalit.",
@@ -32,7 +32,7 @@ const tools = [
   },
   {
     id: "pricing",
-    icon: "💶",
+    icon: "✚",
     title: "Laske hinta",
     description:
       "Pricing Agent tekee alustavan kustannus- ja hintalaskelman.",
@@ -41,7 +41,7 @@ const tools = [
   },
   {
     id: "quote",
-    icon: "📄",
+    icon: "□",
     title: "Luo tarjousluonnos",
     description:
       "CRM Agent laatii asiakkaalle tarkistettavan tarjousluonnoksen.",
@@ -50,7 +50,7 @@ const tools = [
   },
   {
     id: "marketing",
-    icon: "📣",
+    icon: "▶",
     title: "Luo markkinointiluonnos",
     description:
       "Marketing Agent kirjoittaa Wood-Booster-brändin mukaisen tekstin.",
@@ -355,7 +355,7 @@ ${result}
 
       <div>
         <h2 className="text-xl font-bold">
-          🛠 Project AI Tools
+          ▨ Project AI Tools
         </h2>
 
         <p className="mt-2 max-w-3xl text-neutral-400">

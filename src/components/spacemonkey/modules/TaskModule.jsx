@@ -50,7 +50,7 @@ function TaskModule({
           text-[var(--wood-muted)]
         "
       >
-        📋 Tasks
+        ▤ Tasks
       </h2>
 
 

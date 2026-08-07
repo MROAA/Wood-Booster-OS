@@ -173,7 +173,7 @@ function RestorePreviewHistoryCard() {
                     text-green-400
                   "
                 >
-                  🟢 {preview.name}
+                  ● {preview.name}
                 </p>
 
 

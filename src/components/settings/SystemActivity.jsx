@@ -124,7 +124,7 @@ export default function SystemActivity(){
           font-bold
         ">
 
-          📜 System Activity
+          ▤ System Activity
 
         </h2>
 
@@ -226,7 +226,7 @@ export default function SystemActivity(){
                       font-bold
                     ">
 
-                      🟢 {event.type}
+                      ● {event.type}
 
                     </p>
 

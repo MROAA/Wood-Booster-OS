@@ -21,7 +21,7 @@ function ReflectionHealthModule({
           text-[var(--wood-muted)]
         "
       >
-        🪞 Reflection Health
+        ◑ Reflection Health
       </h2>
 
 

@@ -22,7 +22,7 @@ function ReflectionCard({
           text-[var(--wood-muted)]
         "
       >
-        🪞 Reflection
+        ◑ Reflection
       </h2>
 
 

@@ -21,7 +21,7 @@ function MemoryHealthModule({
           text-[var(--wood-muted)]
         "
       >
-        💾 Memory Health
+        ◈ Memory Health
       </h2>
 
 

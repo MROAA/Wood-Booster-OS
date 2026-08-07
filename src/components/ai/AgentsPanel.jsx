@@ -200,7 +200,7 @@ function AgentsPanel() {
           "
         >
 
-          🧠 Agents
+          ⬢ Agents
 
         </h2>
 

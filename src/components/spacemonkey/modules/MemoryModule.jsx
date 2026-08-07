@@ -21,7 +21,7 @@ function MemoryModule({
           text-[var(--wood-muted)]
         "
       >
-        💾 Memory
+        ◈ Memory
       </h2>
 
 

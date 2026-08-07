@@ -53,7 +53,7 @@ const tabs = [
       "Overview",
 
     icon:
-      "📋",
+      "▤",
   },
 
 
@@ -65,7 +65,7 @@ const tabs = [
       "Muokkaa",
 
     icon:
-      "✏️",
+      "▤",
   },
 
 
@@ -77,7 +77,7 @@ const tabs = [
       "AI Assistant",
 
     icon:
-      "🤖",
+      "△",
   },
 
 
@@ -89,7 +89,7 @@ const tabs = [
       "Tools",
 
     icon:
-      "🛠",
+      "▨",
   },
 
 
@@ -101,7 +101,7 @@ const tabs = [
       "Materials",
 
     icon:
-      "🪵",
+      "◇",
   },
 
 
@@ -113,7 +113,7 @@ const tabs = [
       "Timeline",
 
     icon:
-      "📅",
+      "■",
   },
 
 
@@ -125,7 +125,7 @@ const tabs = [
       "Gallery",
 
     icon:
-      "🖼",
+      "▧",
   },
 
 
@@ -137,7 +137,7 @@ const tabs = [
       "Workflow",
 
     icon:
-      "⚙️",
+      "⚙",
   },
 
 
@@ -149,7 +149,7 @@ const tabs = [
       "Quote",
 
     icon:
-      "💶",
+      "✚",
   },
 
 
@@ -161,7 +161,7 @@ const tabs = [
       "Lasku",
 
     icon:
-      "🧾",
+      "▥",
   },
 
 
@@ -173,7 +173,7 @@ const tabs = [
       "Memory",
 
     icon:
-      "🧠",
+      "⬢",
   },
 
 
@@ -185,7 +185,7 @@ const tabs = [
       "Knowledge",
 
     icon:
-      "📚",
+      "◌",
   },
 
 
@@ -197,7 +197,7 @@ const tabs = [
       "Notes",
 
     icon:
-      "📝",
+      "▤",
   },
 
 
@@ -209,7 +209,7 @@ const tabs = [
       "Files",
 
     icon:
-      "📁",
+      "▣",
   },
 
 ]

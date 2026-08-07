@@ -26,9 +26,6 @@ function DashboardChat() {
           py-3
           border-b
           border-[var(--wood-border)]
-          flex
-          items-center
-          justify-between
         "
       >
 
@@ -40,33 +37,8 @@ function DashboardChat() {
             text-[var(--wood-muted)]
           "
         >
-          🐒 Spacemonkey Chat
+          Spacemonkey Chat
         </h2>
-
-
-        <span
-          className="
-            flex
-            items-center
-            gap-2
-            text-xs
-            text-[var(--wood-accent)]
-          "
-        >
-
-          <span
-            className="
-              h-2
-              w-2
-              rounded-full
-              bg-[var(--wood-accent)]
-              animate-pulse
-            "
-          />
-
-          AI Brain Online
-
-        </span>
 
 
       </div>

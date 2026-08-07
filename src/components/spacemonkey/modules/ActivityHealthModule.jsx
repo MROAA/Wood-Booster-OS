@@ -21,7 +21,7 @@ function ActivityHealthModule({
           text-[var(--wood-muted)]
         "
       >
-        🐒 Activity Health
+        ⬡ Activity Health
       </h2>
 
 

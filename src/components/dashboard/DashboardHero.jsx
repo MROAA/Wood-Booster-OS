@@ -85,7 +85,7 @@ function DashboardHero() {
 
 
           <span>
-            🌱
+            ↑
           </span>
 
 
@@ -114,19 +114,6 @@ function DashboardHero() {
 
 
 
-
-
-        <p
-          className="
-            mt-4
-            max-w-xl
-            text-sm
-            text-[var(--wood-muted)]
-          "
-        >
-          Älykäs työympäristö puun,
-          luovuuden ja kestävän kehityksen tueksi.
-        </p>
 
 
       </div>

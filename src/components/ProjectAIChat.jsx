@@ -466,7 +466,7 @@ ${noteEntry}`
         <div>
 
           <h2 className="text-xl font-bold">
-            🤖 Project AI Assistant
+            △ Project AI Assistant
           </h2>
 
           <p className="mt-2 text-neutral-400">
@@ -524,7 +524,7 @@ ${noteEntry}`
             <div className="max-w-md">
 
               <div className="text-4xl">
-                🪵
+                ◇
               </div>
 
               <p className="mt-4 font-semibold">

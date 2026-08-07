@@ -892,7 +892,7 @@ function EmptyNotes({
           text-5xl
         "
       >
-        📝
+        ▤
       </p>
 
 

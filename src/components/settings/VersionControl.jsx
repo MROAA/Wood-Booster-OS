@@ -142,7 +142,7 @@ function VersionControl(){
 
 
     setMessage(
-      "🟡 Creating Snapshot..."
+      "◒ Creating Snapshot..."
     )
 
 
@@ -174,7 +174,7 @@ function VersionControl(){
 
 
         setMessage(
-          "🟢 New Snapshot Created"
+          "● New Snapshot Created"
         )
 
 
@@ -211,7 +211,7 @@ function VersionControl(){
 
 
       setMessage(
-        "🔴 Snapshot failed"
+        "◆ Snapshot failed"
       )
 
 
@@ -359,7 +359,7 @@ function VersionControl(){
             font-bold
           ">
 
-            🛡️ Version Control
+            ▩ Version Control
 
           </h2>
 
@@ -499,7 +499,7 @@ function VersionControl(){
               text-green-400
             ">
 
-              🟢 Restore Validation Successful
+              ● Restore Validation Successful
 
             </h3>
 
@@ -669,7 +669,7 @@ function VersionControl(){
                     text-green-400
                   ">
 
-                    🟢 {snapshot.status}
+                    ● {snapshot.status}
 
                   </span>
 

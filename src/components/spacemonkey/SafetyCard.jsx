@@ -21,7 +21,7 @@ function SafetyCard({
           text-[var(--wood-muted)]
         "
       >
-        🛡 Safety
+        ▩ Safety
       </h2>
 
 

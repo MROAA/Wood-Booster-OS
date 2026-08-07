@@ -145,19 +145,19 @@ function SystemStatus() {
       name: "Backend API",
       description: backendMessage,
       status: backendStatus,
-      icon: "🖥️",
+      icon: "⊞",
     },
     {
       name: "Database",
       description: "Prisma ja SQLite",
       status: databaseStatus,
-      icon: "🗄️",
+      icon: "▤",
     },
     {
       name: "Ollama",
       description: "qwen2.5:7b · portti 11434",
       status: ollamaStatus,
-      icon: "🧠",
+      icon: "⬢",
     },
     {
       name: "Active Agent",

@@ -25,7 +25,7 @@ function ModuleRegistryViewer() {
           text-[var(--wood-muted)]
         "
       >
-        🐒 Module Registry
+        ⬡ Module Registry
       </h2>
 
 

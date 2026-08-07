@@ -32,7 +32,24 @@ import {
 
 
 
+import {
+  createLiveContextModule,
+} from "../services/aiBrainV2/modules/liveContextModule.js"
 
+
+
+import {
+  checkTrigger,
+} from "../services/spacemonkey/modules/personalityTrigger/index.js"
+
+
+
+
+
+
+
+const liveContextModule =
+  createLiveContextModule()
 
 
 
@@ -557,7 +574,7 @@ async function findProjectByName(
 
 
 
-function createRuntimeContextKnowledge(
+async function createRuntimeContextKnowledge(
   runtimeContext,
 ){
 
@@ -577,25 +594,63 @@ function createRuntimeContextKnowledge(
 
 
 
+  try {
 
+    const liveContextResult =
+      await liveContextModule.execute({
 
-  return {
-
-    name:
-      "RUNTIME_CONTEXT",
-
-
-    content:
-
-      JSON.stringify(
+        request: {},
 
         runtimeContext,
 
-        null,
+      })
 
-        2,
+    return {
 
-      ),
+      name:
+        "RUNTIME_CONTEXT",
+
+
+      content:
+
+        JSON.stringify(
+
+          liveContextResult.snapshot,
+
+          null,
+
+          2,
+
+        ),
+
+    }
+
+  } catch(error) {
+
+    console.error(
+      "LIVE CONTEXT MODULE ERROR:",
+      error,
+    )
+
+    return {
+
+      name:
+        "RUNTIME_CONTEXT",
+
+
+      content:
+
+        JSON.stringify(
+
+          runtimeContext,
+
+          null,
+
+          2,
+
+        ),
+
+    }
 
   }
 
@@ -658,6 +713,59 @@ async function runAgentChat({
     }
 
   }
+
+
+  /*
+  =====================================
+
+  PERSONALITY TRIGGER
+
+  =====================================
+  */
+
+
+  const personalityTrigger =
+
+    checkTrigger(
+      message
+    )
+
+
+  if(
+
+    personalityTrigger.triggered
+
+  ){
+
+    return {
+
+      status: 200,
+
+      body: {
+
+        success:true,
+
+
+        agent:
+          "personality",
+
+
+        reason:
+          "personality trigger",
+
+
+        answer:
+          personalityTrigger.response,
+
+        ...createEmptyActionResponse(),
+
+      },
+
+    }
+
+  }
+
+
   /*
   =====================================
 
@@ -1043,7 +1151,7 @@ async function runAgentChat({
 
   const runtimeContextKnowledge =
 
-    createRuntimeContextKnowledge(
+    await createRuntimeContextKnowledge(
       runtimeContext,
     )
 

@@ -21,7 +21,7 @@ function WorldModelModule({
           text-[var(--wood-muted)]
         "
       >
-        🌍 World Model
+        ◓ World Model
       </h2>
 
 

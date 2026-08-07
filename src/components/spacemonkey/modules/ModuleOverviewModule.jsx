@@ -47,7 +47,7 @@ function ModuleOverviewModule() {
           text-[var(--wood-muted)]
         "
       >
-        🐒 Module Overview
+        ⬡ Module Overview
       </h2>
 
 

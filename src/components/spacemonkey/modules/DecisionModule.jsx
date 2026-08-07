@@ -98,7 +98,7 @@ function DecisionModule({
           text-[var(--wood-muted)]
         "
       >
-        ⚖ Decision
+        ⊗ Decision
       </h2>
 
 

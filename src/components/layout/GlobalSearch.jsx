@@ -20,7 +20,7 @@ const systemPages = [
     title: "AI Workspace",
     description:
       "Avaa AI Brain ja järjestelmän päätyötila.",
-    icon: "🧠",
+    icon: "⬢",
     path: "/",
     keywords:
       "workspace ai brain etusivu koti",
@@ -31,7 +31,7 @@ const systemPages = [
     title: "Dashboard",
     description:
       "Avaa projektien ja liiketoiminnan yhteenveto.",
-    icon: "📊",
+    icon: "▦",
     path: "/dashboard",
     keywords:
       "dashboard yhteenveto tilastot",
@@ -42,7 +42,7 @@ const systemPages = [
     title: "Projects",
     description:
       "Avaa kaikki Wood-Booster-projektit.",
-    icon: "📦",
+    icon: "▣",
     path: "/projects",
     keywords:
       "projektit projects tuotteet",
@@ -53,7 +53,7 @@ const systemPages = [
     title: "Customers",
     description:
       "Avaa asiakkaat ja CRM.",
-    icon: "👥",
+    icon: "◎",
     path: "/customers",
     keywords:
       "asiakkaat customers crm",
@@ -64,7 +64,7 @@ const systemPages = [
     title: "Knowledge",
     description:
       "Avaa AI Brainin tietopankki.",
-    icon: "📚",
+    icon: "◌",
     path: "/knowledge",
     keywords:
       "knowledge tieto tietopankki",
@@ -75,7 +75,7 @@ const systemPages = [
     title: "Memory",
     description:
       "Avaa AI Brainin muisti.",
-    icon: "💾",
+    icon: "◈",
     path: "/memory",
     keywords:
       "memory muisti historia",
@@ -86,7 +86,7 @@ const systemPages = [
     title: "Tools",
     description:
       "Avaa järjestelmän työkalut.",
-    icon: "🛠️",
+    icon: "▨",
     path: "/tools",
     keywords:
       "tools työkalut",
@@ -97,7 +97,7 @@ const systemPages = [
     title: "AI Agents",
     description:
       "Avaa AI Brainin agentit.",
-    icon: "🤖",
+    icon: "△",
     path: "/agents",
     keywords:
       "agents agentit tekoäly",
@@ -108,7 +108,7 @@ const systemPages = [
     title: "Settings",
     description:
       "Avaa järjestelmän asetukset.",
-    icon: "⚙️",
+    icon: "⚙",
     path: "/settings",
     keywords:
       "settings asetukset",
@@ -237,7 +237,7 @@ function GlobalSearch({
           ]
             .filter(Boolean)
             .join(" • "),
-          icon: "📦",
+          icon: "▣",
           path:
             getProjectPath(project),
           keywords: [
@@ -266,7 +266,7 @@ function GlobalSearch({
           ]
             .filter(Boolean)
             .join(" • "),
-          icon: "👤",
+          icon: "◎",
           path:
             getCustomerPath(customer),
           keywords: [
@@ -450,7 +450,7 @@ function GlobalSearch({
               text-neutral-500
             "
           >
-            🔎
+            ◌
           </span>
 
           <input
@@ -592,7 +592,7 @@ function GlobalSearch({
                     text-3xl
                   "
                 >
-                  🕵️
+                  ◌
                 </span>
 
                 <p

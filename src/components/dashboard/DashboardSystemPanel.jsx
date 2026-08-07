@@ -47,7 +47,7 @@ function DashboardSystemPanel() {
             text-[var(--wood-muted)]
           "
         >
-          🟢 System
+          ● System
         </p>
 
 
@@ -81,7 +81,7 @@ function DashboardSystemPanel() {
             text-[var(--wood-muted)]
           "
         >
-          🐒 Operator
+          ⬡ Operator
         </p>
 
 
@@ -186,7 +186,7 @@ function DashboardSystemPanel() {
             text-[var(--wood-muted)]
           "
         >
-          🔒 Security
+          ⊟ Security
         </p>
 
 
@@ -256,7 +256,7 @@ function DashboardSystemPanel() {
             text-[var(--wood-muted)]
           "
         >
-          📦 Version
+          ▣ Version
         </p>
 
 

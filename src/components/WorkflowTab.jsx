@@ -580,7 +580,7 @@ function WorkflowTab({
                       {
                         step.done
                         ?
-                        "✅"
+                        "✓"
                         :
                         "⬜"
                       }
