@@ -6,39 +6,28 @@ echo "🚀 Wood-Booster OS release builder"
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-RELEASE_DIR="$PROJECT_ROOT/release"
+cd "$PROJECT_ROOT"
 
-rm -rf "$RELEASE_DIR"
-mkdir -p "$RELEASE_DIR"
 
 echo ""
-echo "1/3 Building packages"
+echo "1/3 Building Tauri packages"
 
-"$PROJECT_ROOT/scripts/build-all.sh"
+npm run tauri build
 
-echo ""
-echo "2/3 Collecting packages"
-
-cp "$PROJECT_ROOT/src-tauri/target/release/bundle/appimage/"*.AppImage \
-"$RELEASE_DIR/"
-
-cp "$PROJECT_ROOT/src-tauri/target/release/bundle/deb/"*.deb \
-"$RELEASE_DIR/"
-
-cp "$PROJECT_ROOT/src-tauri/target/release/bundle/rpm/"*.rpm \
-"$RELEASE_DIR/"
-
-cp "$PROJECT_ROOT/src-tauri/packaging/arch/"*.pkg.tar.zst \
-"$RELEASE_DIR/"
 
 echo ""
-echo "3/3 Creating checksums"
+echo "2/3 Building Arch package"
 
-cd "$RELEASE_DIR"
+./scripts/build-arch.sh
 
-sha256sum * > SHA256SUMS
 
 echo ""
-echo "✅ Release ready"
+echo "3/3 Collecting release packages"
 
-ls -lh "$RELEASE_DIR"
+./scripts/package-all.sh
+
+
+echo ""
+echo "🎉 Wood-Booster OS release ready"
+
+ls -lh release
