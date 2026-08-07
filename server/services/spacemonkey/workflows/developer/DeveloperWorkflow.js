@@ -26,10 +26,11 @@ class DeveloperWorkflow {
 
         testRunnerSkill,
 
-        gitCommitSkill,
+gitCommitSkill,
 
-        logger = console,
+projectStructureAnalyzer,
 
+logger = console,
     } = {}) {
 
 
@@ -65,13 +66,16 @@ class DeveloperWorkflow {
             testRunnerSkill
 
 
-        this.gitCommitSkill =
-            gitCommitSkill
+this.gitCommitSkill =
+    gitCommitSkill
 
 
-        this.logger =
-            logger
+this.projectStructureAnalyzer =
+    projectStructureAnalyzer
 
+
+this.logger =
+    logger
 
     }
 
@@ -112,7 +116,14 @@ const analysis =
             files.results,
 
     })
-
+const structure =
+    this.projectStructureAnalyzer.analyze(
+        files.results
+    )
+    this.logger.info(
+    "PROJECT STRUCTURE RESULT",
+    structure
+)
         const contents = []
 
 
@@ -252,6 +263,7 @@ const analysis =
             tests,
 
             commit,
+structure,
 
         }
 

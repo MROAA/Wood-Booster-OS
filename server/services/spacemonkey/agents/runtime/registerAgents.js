@@ -10,7 +10,7 @@
 import DeveloperAgent from "../developer/DeveloperAgent.js"
 import WordPressAgent from "../wordpress/WordPressAgent.js"
 import InstagramAgent from "../instagram/InstagramAgent.js"
-
+import ProjectStructureAnalyzer from "../../skills/analyze/ProjectStructureAnalyzer.js"
 
 import DeveloperWorkflow from "../../workflows/developer/DeveloperWorkflow.js"
 
@@ -97,7 +97,10 @@ function registerAgents({
 
         })
 
-
+const projectStructureAnalyzer =
+    new ProjectStructureAnalyzer({
+        logger,
+    })
 
     const developerWorkflow =
         new DeveloperWorkflow({
@@ -117,6 +120,7 @@ function registerAgents({
             gitCommitSkill,
 
             logger,
+projectStructureAnalyzer,
 
         })
 
