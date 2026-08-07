@@ -1,0 +1,54 @@
+pkgname=wood-booster-os
+pkgver=0.1.0
+pkgrel=3
+pkgdesc="Wood-Booster OS desktop application"
+arch=('x86_64')
+url="https://github.com/MROAA/Wood-Booster-OS"
+license=('custom')
+
+depends=(
+  'gtk3'
+  'webkit2gtk-4.1'
+  'libappindicator-gtk3'
+  'librsvg'
+)
+
+options=('!strip')
+
+source=(
+  "wood-booster-os"
+  "wood-booster-server"
+  "wood-booster-os.desktop"
+)
+
+sha256sums=(
+  'SKIP'
+  'SKIP'
+  'SKIP'
+)
+
+package() {
+
+  install -Dm755 \
+    "$srcdir/wood-booster-os" \
+    "$pkgdir/usr/bin/wood-booster-os"
+
+  install -Dm755 \
+    "$srcdir/wood-booster-server" \
+    "$pkgdir/usr/bin/wood-booster-server"
+
+  install -Dm644 \
+    "$srcdir/wood-booster-os.desktop" \
+    "$pkgdir/usr/share/applications/wood-booster-os.desktop"
+
+  mkdir -p \
+    "$pkgdir/usr/lib/Wood-Booster OS/resources"
+
+  cp -r \
+    "$startdir/server" \
+    "$pkgdir/usr/lib/Wood-Booster OS/resources/server"
+
+  cp -r \
+    "$startdir/services" \
+    "$pkgdir/usr/lib/Wood-Booster OS/resources/services"
+}

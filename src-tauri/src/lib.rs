@@ -81,10 +81,13 @@ pub fn run() {
         .sidecar("wood-booster-server")?
         .current_dir(server_dir)
         .arg("index.js")
-        .env("DATABASE_URL", database_url)
-        .env("PORT", BACKEND_PORT.to_string())
-        .spawn()
-        .expect("failed to spawn wood-booster-server sidecar");
+.env("DATABASE_URL", database_url)
+.env("PORT", BACKEND_PORT.to_string())
+.env(
+    "WOOD_BOOSTER_DATA_DIR",
+    app_data_dir.to_string_lossy().to_string(),
+)
+.spawn()        .expect("failed to spawn wood-booster-server sidecar");
 
       *app.state::<SidecarProcess>().0.lock().unwrap() = Some(child);
 

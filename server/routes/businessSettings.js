@@ -10,10 +10,16 @@ const router = express.Router()
 const currentFile = fileURLToPath(import.meta.url)
 const currentDirectory = path.dirname(currentFile)
 
-const uploadsRoot = path.resolve(
-  currentDirectory,
-  "../uploads/business",
-)
+const uploadsRoot = process.env.WOOD_BOOSTER_DATA_DIR
+  ? path.join(
+      process.env.WOOD_BOOSTER_DATA_DIR,
+      "uploads",
+      "business",
+    )
+  : path.resolve(
+      currentDirectory,
+      "../uploads/business",
+    )
 
 fs.mkdirSync(uploadsRoot, {
   recursive: true,
@@ -25,8 +31,10 @@ const storage = multer.diskStorage({
   },
 
   filename(req, file, callback) {
-    const safeName = file.originalname
-      .replace(/[^a-zA-Z0-9._-]/g, "_")
+    const safeName = file.originalname.replace(
+      /[^a-zA-Z0-9.*-]/g,
+      "*",
+    )
 
     const storedName = `${Date.now()}-${safeName}`
 
@@ -149,7 +157,9 @@ export default function createBusinessSettingsRouter(prisma) {
         }
 
         if (req.body.vatPercent !== undefined) {
-          const vatPercent = Number(req.body.vatPercent)
+          const vatPercent = Number(
+            req.body.vatPercent,
+          )
 
           if (
             !Number.isFinite(vatPercent) ||
@@ -165,8 +175,9 @@ export default function createBusinessSettingsRouter(prisma) {
         }
 
         if (req.body.defaultValidDays !== undefined) {
-          const defaultValidDays =
-            Number(req.body.defaultValidDays)
+          const defaultValidDays = Number(
+            req.body.defaultValidDays,
+          )
 
           if (
             !Number.isInteger(defaultValidDays) ||
@@ -181,9 +192,12 @@ export default function createBusinessSettingsRouter(prisma) {
           data.defaultValidDays = defaultValidDays
         }
 
-        if (req.body.defaultInvoiceDueDays !== undefined) {
-          const defaultInvoiceDueDays =
-            Number(req.body.defaultInvoiceDueDays)
+        if (
+          req.body.defaultInvoiceDueDays !== undefined
+        ) {
+          const defaultInvoiceDueDays = Number(
+            req.body.defaultInvoiceDueDays,
+          )
 
           if (
             !Number.isInteger(defaultInvoiceDueDays) ||
@@ -195,7 +209,8 @@ export default function createBusinessSettingsRouter(prisma) {
             })
           }
 
-          data.defaultInvoiceDueDays = defaultInvoiceDueDays
+          data.defaultInvoiceDueDays =
+            defaultInvoiceDueDays
         }
 
         const settings =
@@ -257,9 +272,12 @@ export default function createBusinessSettingsRouter(prisma) {
         }
 
         const logoData = {
-          logoOriginalName: req.file.originalname,
-          logoStoredName: req.file.filename,
-          logoMimeType: req.file.mimetype,
+          logoOriginalName:
+            req.file.originalname,
+          logoStoredName:
+            req.file.filename,
+          logoMimeType:
+            req.file.mimetype,
         }
 
         const settings =
