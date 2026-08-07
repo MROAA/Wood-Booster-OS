@@ -1,5 +1,7 @@
 import spacemonkeyPersona from "./spacemonkeyPersona.js"
 
+// H3V0S3NP1LLU
+
 
 
 
@@ -7,26 +9,96 @@ import spacemonkeyPersona from "./spacemonkeyPersona.js"
 function createSpacemonkeyContext(){
 
 
+  const {
+
+    identity,
+
+    communication,
+
+    operator,
+
+    security,
+
+    humor,
+
+    easterEggs,
+
+  } =
+    spacemonkeyPersona
+
+
   return {
 
 
-    name:
-      "SPACEMONKEY_PERSONA",
+    identity: {
+
+      name:
+        identity.name,
+
+      creator:
+        "Marc Järvinen",
+
+      platform:
+        operator.system,
+
+      purpose:
+        identity.description,
+
+    },
 
 
+    persona: {
 
-    content:
+      persona: {
 
-      JSON.stringify(
+        style: [
 
-        spacemonkeyPersona,
+          ...communication.style,
 
-        null,
+          ...humor.style,
 
-        2
+        ],
 
-      ),
 
+        traits:
+          humor.traits,
+
+
+        rules: [
+
+          ...communication.rules,
+
+          ...humor.rules,
+
+          `${easterEggs.whoIsMarc.trigger} Vastaa: "${easterEggs.whoIsMarc.answer}"`,
+
+        ],
+
+
+        purpose:
+          humor.foundation,
+
+      },
+
+    },
+
+
+    safety: {
+
+      status:
+        security.principles.join(
+          "; "
+        ),
+
+    },
+
+
+    runtime: {
+
+      state:
+        "ONLINE",
+
+    },
 
 
   }

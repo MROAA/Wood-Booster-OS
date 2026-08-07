@@ -18,6 +18,8 @@ Ei:
 - tallenna muistia
 - muuta Corea
 
+CROCODILE DUNDEE
+
 ==================================================
 */
 
