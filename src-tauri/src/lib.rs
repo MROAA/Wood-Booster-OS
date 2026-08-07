@@ -46,13 +46,14 @@ pub fn run() {
     .plugin(tauri_plugin_shell::init())
     .manage(SidecarProcess(Mutex::new(None)))
     .setup(|app| {
-      if cfg!(debug_assertions) {
-        app.handle().plugin(
-          tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build(),
-        )?;
-      }
+      // Logging stays on in release too: this is the only window into
+      // sidecar startup failures once the app is out of dev mode, and
+      // Marc can hand us a log file instead of a screen-share.
+      app.handle().plugin(
+        tauri_plugin_log::Builder::default()
+          .level(log::LevelFilter::Info)
+          .build(),
+      )?;
 
       let app_data_dir = app.path().app_data_dir()?;
       std::fs::create_dir_all(&app_data_dir)?;
@@ -61,8 +62,15 @@ pub fn run() {
       let resource_dir = app.path().resource_dir()?;
       let server_dir = resource_dir.join("resources").join("server");
 
+      log::info!("app_data_dir: {}", app_data_dir.display());
+      log::info!("resource_dir: {}", resource_dir.display());
+      log::info!("server_dir: {}", server_dir.display());
+      log::info!("server_dir exists: {}", server_dir.exists());
+      log::info!("index.js exists: {}", server_dir.join("index.js").exists());
+
       if !db_path.exists() {
         let seed_db_path = server_dir.join("seed").join("wood-booster-seed.db");
+        log::info!("copying seed db from: {}", seed_db_path.display());
         std::fs::copy(&seed_db_path, &db_path)?;
       }
 
@@ -100,15 +108,24 @@ pub fn run() {
 
       // Windowless shutdown (SIGTERM/SIGINT: session logout, `kill`,
       // systemd stop) bypasses RunEvent::Exit, which only fires on a
-      // window-driven exit. Without this, the sidecar orphans.
-      let signal_app_handle = app.handle().clone();
-      let mut signals = Signals::new([SIGTERM, SIGINT])?;
-      std::thread::spawn(move || {
-        if signals.forever().next().is_some() {
-          kill_sidecar(&signal_app_handle);
-          std::process::exit(0);
+      // window-driven exit. Without this, the sidecar orphans. Signal
+      // registration itself must never take the whole app down if the
+      // platform refuses it - that would trade a rare orphan process
+      // for a guaranteed broken launch.
+      match Signals::new([SIGTERM, SIGINT]) {
+        Ok(mut signals) => {
+          let signal_app_handle = app.handle().clone();
+          std::thread::spawn(move || {
+            if signals.forever().next().is_some() {
+              kill_sidecar(&signal_app_handle);
+              std::process::exit(0);
+            }
+          });
         }
-      });
+        Err(err) => {
+          log::warn!("could not register shutdown signal handler: {}", err);
+        }
+      }
 
       Ok(())
     })
