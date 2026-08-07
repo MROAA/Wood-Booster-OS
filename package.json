@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:desktop": "vite build && npm --prefix server run build:sidecar",
     "lint": "oxlint",
     "preview": "vite preview",
     "tauri": "tauri"
