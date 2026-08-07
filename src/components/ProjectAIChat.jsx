@@ -26,6 +26,10 @@ import {
   hasAIActions,
 } from "../services/aiActionDispatcher"
 
+import {
+  createRuntimeContext,
+} from "../services/runtime/runtimeContext"
+
 
 function ProjectAIChat() {
   const navigate =
@@ -159,34 +163,37 @@ function ProjectAIChat() {
 
             conversation,
 
-            runtimeContext: {
-              activeProject: {
-                id:
-                  context.project.id,
+            runtimeContext:
+              createRuntimeContext({
 
-                name:
-                  context.project.name ||
+                activeProject: {
+                  id:
+                    context.project.id,
+
+                  name:
+                    context.project.name ||
+                    null,
+
+                  status:
+                    context.project.status ||
+                    null,
+                },
+
+                activeCustomer:
+                  context.project.customer ||
                   null,
 
-                status:
-                  context.project.status ||
-                  null,
-              },
+                activeTab: {
+                  id: "ai",
+                  label:
+                    "AI Assistant",
+                  scope:
+                    "project",
+                  projectId:
+                    context.project.id,
+                },
 
-              activeCustomer:
-                context.project.customer ||
-                null,
-
-              activeTab: {
-                id: "ai",
-                label:
-                  "AI Assistant",
-                scope:
-                  "project",
-                projectId:
-                  context.project.id,
-              },
-            },
+              }),
           },
         )
 

@@ -5,6 +5,10 @@ import {
 
 import SpacemonkeyIcon from "../branding/SpacemonkeyIcon"
 
+import {
+  createRuntimeContext,
+} from "../../services/runtime/runtimeContext"
+
 
 
 function ChatPanel() {
@@ -88,7 +92,8 @@ function ChatPanel() {
             },
 
             body: JSON.stringify({
-              message: userText
+              message: userText,
+              runtimeContext: createRuntimeContext(),
             })
 
           }
