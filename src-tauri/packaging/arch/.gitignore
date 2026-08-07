@@ -1,3 +1,9 @@
 pkg/
 src/
 *.pkg.tar.zst
+
+wood-booster-os
+wood-booster-server
+
+server/
+services/
