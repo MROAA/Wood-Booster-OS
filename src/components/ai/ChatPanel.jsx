@@ -221,7 +221,7 @@ function ChatPanel() {
 
                       ?
 
-                      "ml-auto bg-[var(--wood-accent)] text-black"
+                      "ml-auto bg-[var(--wood-accent)] text-[#17120c]"
 
                       :
 
@@ -374,7 +374,7 @@ function ChatPanel() {
               px-8
               rounded-xl
               bg-[var(--wood-accent)]
-              text-black
+              text-[#17120c]
               font-medium
               transition-all
               duration-200

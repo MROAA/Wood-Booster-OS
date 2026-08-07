@@ -37,8 +37,8 @@ function AIChat() {
         overflow-hidden
         rounded-2xl
         border
-        border-neutral-800
-        bg-neutral-950
+        border-[var(--wood-border)]
+        bg-[var(--wood-bg)]
       "
     >
 

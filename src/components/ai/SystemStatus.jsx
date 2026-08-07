@@ -12,28 +12,28 @@ function StatusRow({
     ONLINE: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
     CONNECTED: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
     READY: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
-    ACTIVE: "border-amber-500/20 bg-amber-500/10 text-amber-400",
+    ACTIVE: "border-[var(--wood-accent)]/20 bg-[var(--wood-accent)]/10 text-[var(--wood-accent)]",
     CHECKING: "border-sky-500/20 bg-sky-500/10 text-sky-400",
     OFFLINE: "border-red-500/20 bg-red-500/10 text-red-400",
     ERROR: "border-red-500/20 bg-red-500/10 text-red-400",
-    UNKNOWN: "border-neutral-700 bg-neutral-800 text-neutral-400",
+    UNKNOWN: "border-[var(--wood-border)] bg-[var(--wood-card)] text-[var(--wood-muted)]",
   }
 
   const badgeStyle =
     statusStyles[status] || statusStyles.UNKNOWN
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-lg">
+    <div className="flex items-center gap-3 rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--wood-card)] text-lg">
         {icon}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-white">
+        <p className="font-medium text-[var(--wood-text)]">
           {name}
         </p>
 
-        <p className="mt-0.5 truncate text-xs text-neutral-500">
+        <p className="mt-0.5 truncate text-xs text-[var(--wood-muted)]">
           {description}
         </p>
       </div>
@@ -179,7 +179,7 @@ function SystemStatus() {
         />
       ))}
 
-      <p className="px-1 pt-1 text-xs text-neutral-600">
+      <p className="px-1 pt-1 text-xs text-[var(--wood-muted)]">
         Järjestelmän tila tarkistetaan automaattisesti
         30 sekunnin välein.
       </p>

@@ -85,9 +85,9 @@ function AIActivityWidget() {
         description:
           "AI Brain käsittelee parhaillaan pyyntöä.",
         className:
-          "border-amber-500/30 bg-amber-500/10 text-amber-300",
+          "border-[var(--wood-accent)]/30 bg-[var(--wood-accent)]/10 text-[var(--wood-accent)]",
         dotClassName:
-          "bg-amber-500",
+          "bg-[var(--wood-accent)]",
       }
     }
 
@@ -126,9 +126,9 @@ function AIActivityWidget() {
       description:
         "AI Brain odottaa seuraavaa tehtävää.",
       className:
-        "border-neutral-700 bg-neutral-800 text-neutral-400",
+        "border-[var(--wood-border)] bg-[var(--wood-card)] text-[var(--wood-muted)]",
       dotClassName:
-        "bg-neutral-500",
+        "bg-[var(--wood-muted)]",
     }
   }, [
     activity.status,
@@ -142,19 +142,19 @@ function AIActivityWidget() {
     )
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900">
-      <header className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+    <section className="overflow-hidden rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)]">
+      <header className="flex items-center justify-between border-b border-[var(--wood-border)] px-5 py-4">
         <div>
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-[var(--wood-text)]">
             AI Activity
           </h2>
 
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-[var(--wood-muted)]">
             AI Brainin viimeisin toiminta.
           </p>
         </div>
 
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-xl">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--wood-accent)]/10 text-xl">
           ⚡
         </span>
       </header>
@@ -195,24 +195,24 @@ function AIActivityWidget() {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-600">
+          <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3">
+            <p className="text-xs uppercase tracking-wider text-[var(--wood-muted)]">
               Aktiivinen agentti
             </p>
 
-            <p className="mt-2 text-sm font-semibold text-white">
+            <p className="mt-2 text-sm font-semibold text-[var(--wood-text)]">
               {formatAgentName(
                 activeAgent,
               )}
             </p>
           </div>
 
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-600">
+          <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3">
+            <p className="text-xs uppercase tracking-wider text-[var(--wood-muted)]">
               Tapahtumia
             </p>
 
-            <p className="mt-2 text-sm font-semibold text-white">
+            <p className="mt-2 text-sm font-semibold text-[var(--wood-text)]">
               {
                 activityHistory.length
               }
@@ -221,12 +221,12 @@ function AIActivityWidget() {
         </div>
 
         {!hasActivity && (
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-5">
-            <p className="text-sm font-medium text-white">
+          <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] px-4 py-5">
+            <p className="text-sm font-medium text-[var(--wood-text)]">
               Ei AI-toimintaa
             </p>
 
-            <p className="mt-1 text-xs leading-5 text-neutral-500">
+            <p className="mt-1 text-xs leading-5 text-[var(--wood-muted)]">
               Lähetä AI Brainille kysymys
               tai tehtävä. Viimeisin
               tapahtuma ilmestyy tähän.
@@ -237,12 +237,12 @@ function AIActivityWidget() {
         {hasActivity && (
           <div className="space-y-3">
             {activity.question && (
-              <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">
+              <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--wood-muted)]">
                   Viimeisin kysymys
                 </p>
 
-                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-neutral-300">
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-[var(--wood-text)]">
                   {truncateText(
                     activity.question,
                     180,
@@ -252,12 +252,12 @@ function AIActivityWidget() {
             )}
 
             {activity.answer && (
-              <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">
+              <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--wood-muted)]">
                   Viimeisin vastaus
                 </p>
 
-                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-neutral-300">
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-[var(--wood-text)]">
                   {truncateText(
                     activity.answer,
                     220,
@@ -267,17 +267,17 @@ function AIActivityWidget() {
             )}
 
             {activity.reason && (
-              <div className="flex items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+              <div className="flex items-start gap-3 rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
                 <span className="text-lg">
                   ◉
                 </span>
 
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[var(--wood-muted)]">
                     Agentin valinta
                   </p>
 
-                  <p className="mt-1 text-sm text-neutral-300">
+                  <p className="mt-1 text-sm text-[var(--wood-text)]">
                     {
                       activity.reason
                     }
@@ -287,12 +287,12 @@ function AIActivityWidget() {
             )}
 
             {activity.action && (
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+              <div className="rounded-xl border border-[var(--wood-accent)]/30 bg-[var(--wood-accent)]/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--wood-accent)]">
                   Suoritettu toiminto
                 </p>
 
-                <p className="mt-2 text-sm text-amber-200">
+                <p className="mt-2 text-sm text-[var(--wood-accent)]">
                   {activity.action
                     .label ||
                     activity.action
@@ -308,8 +308,8 @@ function AIActivityWidget() {
 
         {activityHistory.length >
           1 && (
-          <div className="border-t border-neutral-800 pt-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-600">
+          <div className="border-t border-[var(--wood-border)] pt-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--wood-muted)]">
               Viimeisimmät tapahtumat
             </p>
 
@@ -323,26 +323,26 @@ function AIActivityWidget() {
                   ) => (
                     <div
                       key={`${historyItem.timestamp}-${index}`}
-                      className="flex items-center gap-3 rounded-lg bg-neutral-950 px-3 py-3"
+                      className="flex items-center gap-3 rounded-lg bg-[var(--wood-bg)] px-3 py-3"
                     >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-sm">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--wood-card)] text-sm">
                         ⬢
                       </span>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-medium text-neutral-300">
+                        <p className="truncate text-xs font-medium text-[var(--wood-text)]">
                           {historyItem.question ||
                             "AI-tapahtuma"}
                         </p>
 
-                        <p className="mt-0.5 text-[11px] text-neutral-600">
+                        <p className="mt-0.5 text-[11px] text-[var(--wood-muted)]">
                           {formatAgentName(
                             historyItem.agent,
                           )}
                         </p>
                       </div>
 
-                      <span className="shrink-0 text-[11px] text-neutral-600">
+                      <span className="shrink-0 text-[11px] text-[var(--wood-muted)]">
                         {formatTime(
                           historyItem.timestamp,
                         )}

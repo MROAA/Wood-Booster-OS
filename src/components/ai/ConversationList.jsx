@@ -104,8 +104,8 @@ function ConversationList(){
       className="
         rounded-2xl
         border
-        border-neutral-800
-        bg-neutral-900
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
         p-5
       "
     >
@@ -124,7 +124,7 @@ function ConversationList(){
       <p className="
         mt-2
         text-sm
-        text-neutral-400
+        text-[var(--wood-muted)]
       ">
 
         Tallennetut AI Brain keskustelut
@@ -182,11 +182,11 @@ function ConversationList(){
                   w-full
                   rounded-xl
                   border
-                  border-neutral-800
-                  bg-neutral-950
+                  border-[var(--wood-border)]
+                  bg-[var(--wood-bg)]
                   p-4
                   text-left
-                  hover:bg-neutral-800
+                  hover:bg-[var(--wood-card)]
                 "
 
               >
@@ -203,7 +203,7 @@ function ConversationList(){
                 <p className="
                   mt-1
                   text-xs
-                  text-neutral-500
+                  text-[var(--wood-muted)]
                 ">
 
                   {

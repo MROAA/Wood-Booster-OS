@@ -693,8 +693,8 @@ function MemoryCenter() {
               w-full
               rounded-xl
               border
-              border-neutral-700
-              bg-neutral-950
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
               px-4
               py-3
             "
@@ -717,8 +717,8 @@ function MemoryCenter() {
             className="
               rounded-xl
               border
-              border-neutral-700
-              bg-neutral-950
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
               px-4
             "
 

@@ -90,11 +90,11 @@ function getNotificationStyle(status) {
       icon: "⏳",
       label: "Käsittelee",
       border:
-        "border-amber-500/30",
+        "border-[var(--wood-accent)]/30",
       background:
-        "bg-amber-500/5",
+        "bg-[var(--wood-accent)]/5",
       badge:
-        "bg-amber-500/10 text-amber-300",
+        "bg-[var(--wood-accent)]/10 text-[var(--wood-accent)]",
     }
   }
 
@@ -187,8 +187,8 @@ function NotificationCenter() {
       overflow-hidden
       rounded-2xl
       border
-      border-neutral-800
-      bg-neutral-900
+      border-[var(--wood-border)]
+      bg-[var(--wood-panel)]
     ">
       <header className="
         flex
@@ -196,7 +196,7 @@ function NotificationCenter() {
         justify-between
         gap-4
         border-b
-        border-neutral-800
+        border-[var(--wood-border)]
         px-5
         py-4
       ">
@@ -209,7 +209,7 @@ function NotificationCenter() {
             <h2 className="
               text-lg
               font-semibold
-              text-white
+              text-[var(--wood-text)]
             ">
               Notification Center
             </h2>
@@ -222,12 +222,12 @@ function NotificationCenter() {
                 items-center
                 justify-center
                 rounded-full
-                bg-amber-500
+                bg-[var(--wood-accent)]
                 px-2
                 py-0.5
                 text-xs
                 font-bold
-                text-black
+                text-[#17120c]
               ">
                 {
                   visibleNotifications.length
@@ -239,7 +239,7 @@ function NotificationCenter() {
           <p className="
             mt-1
             text-sm
-            text-neutral-500
+            text-[var(--wood-muted)]
           ">
             AI Brainin ilmoitukset ja
             valmistuneet tehtävät.
@@ -254,7 +254,7 @@ function NotificationCenter() {
           items-center
           justify-center
           rounded-xl
-          bg-amber-500/10
+          bg-[var(--wood-accent)]/10
           text-xl
         ">
           ✦
@@ -267,8 +267,8 @@ function NotificationCenter() {
           <div className="
             rounded-xl
             border
-            border-neutral-800
-            bg-neutral-950
+            border-[var(--wood-border)]
+            bg-[var(--wood-bg)]
             px-4
             py-6
             text-center
@@ -283,7 +283,7 @@ function NotificationCenter() {
               mt-3
               text-sm
               font-medium
-              text-white
+              text-[var(--wood-text)]
             ">
               Ei uusia ilmoituksia
             </p>
@@ -292,7 +292,7 @@ function NotificationCenter() {
               mt-1
               text-xs
               leading-5
-              text-neutral-500
+              text-[var(--wood-muted)]
             ">
               AI Brainin tehtävät ja
               virheet ilmestyvät tähän.
@@ -309,15 +309,15 @@ function NotificationCenter() {
                   mt-4
                   rounded-lg
                   border
-                  border-neutral-700
+                  border-[var(--wood-border)]
                   px-3
                   py-2
                   text-xs
                   font-medium
-                  text-neutral-300
+                  text-[var(--wood-text)]
                   transition
-                  hover:border-amber-500/50
-                  hover:text-white
+                  hover:border-[var(--wood-accent)]/50
+                  hover:text-[var(--wood-text)]
                 "
               >
                 Palauta ilmoitukset
@@ -372,7 +372,7 @@ function NotificationCenter() {
                             items-center
                             justify-center
                             rounded-lg
-                            bg-neutral-950
+                            bg-[var(--wood-bg)]
                             text-base
                           ">
                             {
@@ -417,7 +417,7 @@ function NotificationCenter() {
                                 <span className="
                                   text-xs
                                   font-medium
-                                  text-neutral-400
+                                  text-[var(--wood-muted)]
                                 ">
                                   {formatAgentName(
                                     notification.agent,
@@ -437,10 +437,10 @@ function NotificationCenter() {
                                   px-2
                                   py-1
                                   text-xs
-                                  text-neutral-600
+                                  text-[var(--wood-muted)]
                                   transition
-                                  hover:bg-neutral-800
-                                  hover:text-white
+                                  hover:bg-[var(--wood-card)]
+                                  hover:text-[var(--wood-text)]
                                 "
                                 aria-label="Poista ilmoitus"
                               >
@@ -453,7 +453,7 @@ function NotificationCenter() {
                               text-sm
                               font-medium
                               leading-5
-                              text-neutral-200
+                              text-[var(--wood-text)]
                             ">
                               {truncateText(
                                 notification.question ||
@@ -467,7 +467,7 @@ function NotificationCenter() {
                                 mt-2
                                 text-xs
                                 leading-5
-                                text-neutral-500
+                                text-[var(--wood-muted)]
                               ">
                                 {truncateText(
                                   notification.answer,
@@ -483,7 +483,7 @@ function NotificationCenter() {
                               items-center
                               gap-3
                               text-[11px]
-                              text-neutral-600
+                              text-[var(--wood-muted)]
                             ">
                               {notification.timestamp && (
                                 <span>
@@ -521,13 +521,13 @@ function NotificationCenter() {
                 w-full
                 rounded-xl
                 border
-                border-neutral-800
-                bg-neutral-950
+                border-[var(--wood-border)]
+                bg-[var(--wood-bg)]
                 px-4
                 py-3
                 text-sm
                 font-medium
-                text-neutral-400
+                text-[var(--wood-muted)]
                 transition
                 hover:border-red-500/30
                 hover:bg-red-500/5

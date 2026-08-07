@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate } from "react-router-dom"
 
 const API_URL =
   "http://localhost:3001/api/ai/generate-project"
@@ -117,10 +117,10 @@ function AIGenerator() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
+    <main className="min-h-screen bg-[var(--wood-bg)] text-[var(--wood-text)]">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <header>
-          <p className="text-xs uppercase tracking-[0.35em] text-amber-500">
+          <p className="text-xs uppercase tracking-[0.35em] text-[var(--wood-accent)]">
             Wood-Booster AI
           </p>
 
@@ -128,7 +128,7 @@ function AIGenerator() {
             AI Project Generator
           </h1>
 
-          <p className="mt-4 max-w-3xl text-neutral-400">
+          <p className="mt-4 max-w-3xl text-[var(--wood-muted)]">
             Kuvaile asiakkaan toive. Wood-Booster
             luo oikean projektin, materiaalit,
             työvaiheet ja kustannusarvion suoraan
@@ -143,8 +143,8 @@ function AIGenerator() {
         )}
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_0.8fr]">
-          <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">
+          <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-6">
+            <p className="text-xs uppercase tracking-wider text-[var(--wood-muted)]">
               Project brief
             </p>
 
@@ -223,9 +223,9 @@ function AIGenerator() {
               </div>
 
               {estimatedArea > 0 && (
-                <p className="rounded-xl bg-neutral-950 px-4 py-3 text-sm text-neutral-400">
+                <p className="rounded-xl bg-[var(--wood-bg)] px-4 py-3 text-sm text-[var(--wood-muted)]">
                   Arvioitu kansipinta-ala:{" "}
-                  <span className="font-semibold text-amber-400">
+                  <span className="font-semibold text-[var(--wood-accent)]">
                     {formatNumber(estimatedArea)} m²
                   </span>
                 </p>
@@ -291,7 +291,7 @@ function AIGenerator() {
               <button
                 type="submit"
                 disabled={generating}
-                className="w-full rounded-xl bg-amber-500 px-5 py-3 font-semibold text-neutral-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl bg-[var(--wood-accent)] px-5 py-3 font-semibold text-[#17120c] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {generating
                   ? "Luodaan projektia..."
@@ -302,15 +302,15 @@ function AIGenerator() {
                 type="button"
                 onClick={resetForm}
                 disabled={generating}
-                className="w-full rounded-xl border border-neutral-700 px-5 py-3 font-semibold text-neutral-300 transition hover:bg-neutral-800 disabled:opacity-50"
+                className="w-full rounded-xl border border-[var(--wood-border)] px-5 py-3 font-semibold text-[var(--wood-text)] transition hover:bg-[var(--wood-card)] disabled:opacity-50"
               >
                 Tyhjennä
               </button>
             </form>
           </section>
 
-          <aside className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">
+          <aside className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-6">
+            <p className="text-xs uppercase tracking-wider text-[var(--wood-muted)]">
               Automation
             </p>
 
@@ -330,21 +330,21 @@ function AIGenerator() {
               ].map((item) => (
                 <div
                   key={item}
-                  className="flex items-center gap-3 rounded-xl bg-neutral-950 px-4 py-3"
+                  className="flex items-center gap-3 rounded-xl bg-[var(--wood-bg)] px-4 py-3"
                 >
                   <span className="text-green-400">
                     ✓
                   </span>
 
-                  <span className="text-neutral-300">
+                  <span className="text-[var(--wood-text)]">
                     {item}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5">
-              <p className="text-sm leading-6 text-neutral-300">
+            <div className="mt-6 rounded-xl border border-[var(--wood-accent)]/30 bg-[var(--wood-accent)]/5 p-5">
+              <p className="text-sm leading-6 text-[var(--wood-text)]">
                 Onnistuneen luonnin jälkeen selain
                 siirtyy automaattisesti uuden projektin
                 sivulle.
@@ -360,7 +360,7 @@ function AIGenerator() {
 function FormField({ label, children }) {
   return (
     <label className="block">
-      <span className="text-sm text-neutral-300">
+      <span className="text-sm text-[var(--wood-text)]">
         {label}
       </span>
 
@@ -384,6 +384,6 @@ function formatNumber(value) {
 }
 
 const inputClasses =
-  "mt-2 w-full rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none transition placeholder:text-neutral-600 focus:border-amber-500"
+  "mt-2 w-full rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] px-4 py-3 text-[var(--wood-text)] outline-none transition placeholder:text-[var(--wood-muted)] focus:border-[var(--wood-accent)]"
 
 export default AIGenerator
