@@ -96,7 +96,27 @@ export default function createCustomersRouter(
             },
 
             include: {
-              projects: true,
+
+              projects: {
+
+                include: {
+
+                  quote: true,
+
+                  invoice: {
+
+                    include: {
+
+                      lineItems: true,
+
+                    },
+
+                  },
+
+                },
+
+              },
+
             },
 
           })

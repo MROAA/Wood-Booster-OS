@@ -6,6 +6,7 @@ import {
 
 import {
   useEffect,
+  useMemo,
   useState,
 } from "react"
 
@@ -76,6 +77,19 @@ function CustomerDetails() {
       "",
 
   })
+
+
+
+  const summary =
+    useMemo(
+      () =>
+        summarizeCustomer(
+          customer
+        ),
+      [
+        customer,
+      ]
+    )
 
 
 
@@ -872,6 +886,44 @@ function CustomerDetails() {
 
 
         {
+          (
+            summary.quoteCount > 0 ||
+            summary.invoiceCount > 0
+          ) && (
+
+            <p
+              className="
+                mt-2
+                text-sm
+                text-[var(--wood-muted)]
+              "
+            >
+
+              {summary.quoteCount} tarjousta,
+              {" "}
+              {summary.invoiceCount} laskua
+
+              {
+                summary.openInvoiceCount > 0 && (
+
+                  <>
+                    {", "}
+                    {summary.openInvoiceCount} auki
+                    {" "}
+                    ({formatCurrency(summary.openTotal)})
+                  </>
+
+                )
+              }
+
+            </p>
+
+          )
+        }
+
+
+
+        {
           !customer.projects ||
           customer.projects.length === 0
 
@@ -975,6 +1027,146 @@ function CustomerDetails() {
 
     </div>
 
+  )
+
+}
+
+
+
+
+function summarizeCustomer(
+  customer
+) {
+
+  const projects =
+    customer?.projects ||
+    []
+
+
+  const quoteCount =
+    projects.filter(
+      project => project.quote
+    ).length
+
+
+  const invoices =
+    projects
+      .map(
+        project => project.invoice
+      )
+      .filter(Boolean)
+
+
+  const openInvoices =
+    invoices.filter(
+      invoice => !invoice.isPaid
+    )
+
+
+  const openTotal =
+    openInvoices.reduce(
+      (sum, invoice) =>
+        sum +
+        computeInvoiceTotal(invoice),
+      0
+    )
+
+
+  return {
+
+    quoteCount,
+
+    invoiceCount:
+      invoices.length,
+
+    openInvoiceCount:
+      openInvoices.length,
+
+    openTotal,
+
+  }
+
+}
+
+
+
+
+function computeInvoiceTotal(
+  invoice
+) {
+
+  const materialsSubtotal =
+    (invoice.lineItems || []).reduce(
+
+      (total, item) =>
+        total +
+        (
+          toNumber(item.quantity) *
+          toNumber(item.unitPrice)
+        ),
+
+      0,
+
+    )
+
+
+  const netTotal =
+    materialsSubtotal +
+    toNumber(invoice.laborCost) +
+    toNumber(invoice.otherCosts)
+
+
+  const effectivePrice =
+    invoice.customPrice !== null &&
+    invoice.customPrice !== undefined
+      ? toNumber(invoice.customPrice)
+      : netTotal
+
+
+  const vatAmount =
+    effectivePrice *
+    (toNumber(invoice.vatPercent) / 100)
+
+
+  return (
+    effectivePrice +
+    vatAmount
+  )
+
+}
+
+
+
+
+function toNumber(
+  value
+) {
+
+  const number =
+    Number(value)
+
+
+  return Number.isFinite(number)
+    ? number
+    : 0
+
+}
+
+
+
+
+function formatCurrency(
+  value
+) {
+
+  return new Intl.NumberFormat(
+    "fi-FI",
+    {
+      style: "currency",
+      currency: "EUR",
+    }
+  ).format(
+    toNumber(value)
   )
 
 }

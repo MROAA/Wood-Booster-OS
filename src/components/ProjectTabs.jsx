@@ -3,6 +3,11 @@ import {
   useState,
 } from "react"
 
+import {
+  Link,
+  useSearchParams,
+} from "react-router-dom"
+
 
 
 import ProjectAIChat from "./ProjectAIChat"
@@ -285,7 +290,29 @@ function ProjectOverview({
         <InfoCard
           title="Asiakas"
           value={
-            project?.customer?.name ||
+            project?.customer
+            ?
+            (
+
+              <Link
+
+                to={
+                  `/customers/${project.customer.id}`
+                }
+
+                className="
+                  text-[var(--wood-accent)]
+                  hover:opacity-80
+                "
+
+              >
+
+                {project.customer.name}
+
+              </Link>
+
+            )
+            :
             "Ei asiakasta"
           }
         />
@@ -406,10 +433,29 @@ function ProjectTabs({
 
 
   const [
+    searchParams,
+  ] = useSearchParams()
+
+
+  const requestedTab =
+    searchParams.get(
+      "tab"
+    )
+
+
+  const [
     activeTab,
     setLocalActiveTab,
   ] = useState(
-    "overview"
+    () =>
+      tabs.some(
+        tab =>
+          tab.id === requestedTab
+      )
+      ?
+      requestedTab
+      :
+      "overview"
   )
 
 
@@ -421,11 +467,19 @@ function ProjectTabs({
   useEffect(() => {
 
     setLocalActiveTab(
+      tabs.some(
+        tab =>
+          tab.id === requestedTab
+      )
+      ?
+      requestedTab
+      :
       "overview"
     )
 
   },[
     project?.id,
+    requestedTab,
   ])
 
 

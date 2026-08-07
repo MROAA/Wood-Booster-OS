@@ -5,6 +5,7 @@ import {
 
 import {
   Link,
+  useNavigate,
 } from "react-router-dom"
 
 import {
@@ -23,6 +24,10 @@ const emptyProject = {
 
 
 function Projects() {
+
+
+  const navigate =
+    useNavigate()
 
 
   const [
@@ -518,7 +523,42 @@ function Projects() {
 
                           <p>
                             {
-                              project.customer?.name ||
+                              project.customer
+                              ?
+                              (
+
+                                <span
+
+                                  role="link"
+
+                                  tabIndex={0}
+
+                                  onClick={
+                                    event => {
+
+                                      event.preventDefault()
+                                      event.stopPropagation()
+
+                                      navigate(
+                                        `/customers/${project.customer.id}`
+                                      )
+
+                                    }
+                                  }
+
+                                  className="
+                                    text-[var(--wood-accent)]
+                                    hover:opacity-80
+                                  "
+
+                                >
+
+                                  {project.customer.name}
+
+                                </span>
+
+                              )
+                              :
                               "-"
                             }
                           </p>

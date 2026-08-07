@@ -227,7 +227,7 @@ function InvoiceCard({ invoice, onTogglePaid }) {
 
           <p className="mt-2">
             <Link
-              to={`/projects/${invoice.projectId}`}
+              to={`/projects/${invoice.projectId}?tab=invoice`}
               className="text-[var(--wood-accent)] hover:opacity-80"
             >
               {invoice.projectName}

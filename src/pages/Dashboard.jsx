@@ -27,6 +27,18 @@ const REMINDER_LABELS = {
 
 
 
+const REMINDER_TABS = {
+
+  overdue_invoice:
+    "invoice",
+
+  expired_quote:
+    "quote",
+
+}
+
+
+
 function Dashboard() {
 
   const [
@@ -331,6 +343,10 @@ function Dashboard() {
                                 <Link
 
                                   to={
+                                    REMINDER_TABS[reminder.type]
+                                    ?
+                                    `/projects/${reminder.projectId}?tab=${REMINDER_TABS[reminder.type]}`
+                                    :
                                     `/projects/${reminder.projectId}`
                                   }
 
