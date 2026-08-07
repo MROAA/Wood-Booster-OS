@@ -424,8 +424,8 @@ function GlobalSearch({
           overflow-hidden
           rounded-2xl
           border
-          border-neutral-700
-          bg-neutral-900
+          border-[var(--wood-border)]
+          bg-[var(--wood-panel)]
           shadow-2xl
           shadow-black/60
         "
@@ -439,7 +439,7 @@ function GlobalSearch({
             items-center
             gap-3
             border-b
-            border-neutral-800
+            border-[var(--wood-border)]
             px-5
             py-4
           "
@@ -447,7 +447,7 @@ function GlobalSearch({
           <span
             className="
               text-xl
-              text-neutral-500
+              text-[var(--wood-muted)]
             "
           >
             ◌
@@ -467,9 +467,9 @@ function GlobalSearch({
               flex-1
               bg-transparent
               text-lg
-              text-white
+              text-[var(--wood-text)]
               outline-none
-              placeholder:text-neutral-600
+              placeholder:text-[var(--wood-muted)]
             "
           />
 
@@ -479,15 +479,15 @@ function GlobalSearch({
             className="
               rounded-lg
               border
-              border-neutral-700
+              border-[var(--wood-border)]
               px-2
               py-1
               text-xs
               font-medium
-              text-neutral-400
+              text-[var(--wood-muted)]
               transition
-              hover:bg-neutral-800
-              hover:text-white
+              hover:bg-[var(--wood-card)]
+              hover:text-[var(--wood-text)]
             "
           >
             ESC
@@ -500,12 +500,12 @@ function GlobalSearch({
             items-center
             justify-between
             border-b
-            border-neutral-800
-            bg-neutral-950/50
+            border-[var(--wood-border)]
+            bg-[var(--wood-card)]
             px-5
             py-2
             text-xs
-            text-neutral-600
+            text-[var(--wood-muted)]
           "
         >
           <span>
@@ -532,12 +532,12 @@ function GlobalSearch({
                 gap-3
                 rounded-xl
                 border
-                border-neutral-800
-                bg-neutral-950
+                border-[var(--wood-border)]
+                bg-[var(--wood-card)]
                 px-4
                 py-5
                 text-sm
-                text-neutral-400
+                text-[var(--wood-muted)]
               "
             >
               <span
@@ -546,7 +546,7 @@ function GlobalSearch({
                   w-2
                   animate-pulse
                   rounded-full
-                  bg-amber-500
+                  bg-[var(--wood-accent)]
                 "
               />
 
@@ -580,8 +580,8 @@ function GlobalSearch({
                 className="
                   rounded-xl
                   border
-                  border-neutral-800
-                  bg-neutral-950
+                  border-[var(--wood-border)]
+                  bg-[var(--wood-card)]
                   px-4
                   py-8
                   text-center
@@ -599,7 +599,7 @@ function GlobalSearch({
                   className="
                     mt-3
                     font-medium
-                    text-white
+                    text-[var(--wood-text)]
                   "
                 >
                   Ei hakutuloksia
@@ -609,7 +609,7 @@ function GlobalSearch({
                   className="
                     mt-1
                     text-sm
-                    text-neutral-500
+                    text-[var(--wood-muted)]
                   "
                 >
                   Kokeile toista
@@ -665,8 +665,8 @@ function GlobalSearch({
 
                           ${
                             selected
-                              ? "bg-amber-500 text-black"
-                              : "text-neutral-300 hover:bg-neutral-800"
+                              ? "bg-[var(--wood-accent)] text-[#17120c]"
+                              : "text-[var(--wood-text)] hover:bg-[var(--wood-card)]"
                           }
                         `}
                       >
@@ -684,7 +684,7 @@ function GlobalSearch({
                             ${
                               selected
                                 ? "bg-black/10"
-                                : "bg-neutral-800"
+                                : "bg-[var(--wood-card)]"
                             }
                           `}
                         >
@@ -720,8 +720,8 @@ function GlobalSearch({
 
                               ${
                                 selected
-                                  ? "text-black/65"
-                                  : "text-neutral-500"
+                                  ? "text-[#17120c]/65"
+                                  : "text-[var(--wood-muted)]"
                               }
                             `}
                           >
@@ -743,8 +743,8 @@ function GlobalSearch({
 
                             ${
                               selected
-                                ? "bg-black/10 text-black"
-                                : "bg-neutral-800 text-neutral-500"
+                                ? "bg-black/10 text-[#17120c]"
+                                : "bg-[var(--wood-card)] text-[var(--wood-muted)]"
                             }
                           `}
                         >
