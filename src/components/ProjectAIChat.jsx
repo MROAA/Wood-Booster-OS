@@ -454,9 +454,9 @@ ${noteEntry}`
 
   if (contextLoading) {
     return (
-      <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6">
+      <div className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-6">
 
-        <p className="text-neutral-400">
+        <p className="text-[var(--wood-muted)]">
           Valmistellaan AI-kontekstia...
         </p>
 
@@ -476,7 +476,7 @@ ${noteEntry}`
             △ Project AI Assistant
           </h2>
 
-          <p className="mt-2 text-neutral-400">
+          <p className="mt-2 text-[var(--wood-muted)]">
             Keskustele projektista ja pyydä AI:ta
             suorittamaan käyttöliittymän toimintoja.
           </p>
@@ -494,7 +494,7 @@ ${noteEntry}`
               loading ||
               savingMessageIndex !== null
             }
-            className="rounded-xl border border-neutral-700 px-4 py-2 text-sm font-semibold text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl border border-[var(--wood-border)] px-4 py-2 text-sm font-semibold text-[var(--wood-muted)] transition hover:bg-[var(--wood-panel)] hover:text-[var(--wood-text)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Tyhjennä keskustelu
           </button>
@@ -504,17 +504,17 @@ ${noteEntry}`
 
 
       {contextError && (
-        <div className="rounded-2xl border border-amber-800 bg-amber-950/30 p-4">
+        <div className="rounded-2xl border border-[var(--wood-accent)] bg-[var(--wood-accent)]/10 p-4">
 
-          <p className="font-semibold text-amber-300">
+          <p className="font-semibold text-[var(--wood-accent)]">
             Osa AI-kontekstista puuttuu
           </p>
 
-          <p className="mt-2 text-sm text-amber-200">
+          <p className="mt-2 text-sm text-[var(--wood-accent)]">
             {contextError}
           </p>
 
-          <p className="mt-2 text-sm text-neutral-400">
+          <p className="mt-2 text-sm text-[var(--wood-muted)]">
             Projektikeskustelua voi silti käyttää
             projektitiedoilla.
           </p>
@@ -523,7 +523,7 @@ ${noteEntry}`
       )}
 
 
-      <div className="h-[30rem] space-y-4 overflow-y-auto rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+      <div className="h-[30rem] space-y-4 overflow-y-auto rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4">
 
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center text-center">
@@ -538,12 +538,12 @@ ${noteEntry}`
                 Kysy tästä projektista
               </p>
 
-              <p className="mt-2 text-sm leading-6 text-neutral-500">
+              <p className="mt-2 text-sm leading-6 text-[var(--wood-muted)]">
                 Voit keskustella projektista tai pyytää
                 AI:ta avaamaan projektin välilehden.
               </p>
 
-              <div className="mt-5 space-y-2 text-left text-sm text-neutral-500">
+              <div className="mt-5 space-y-2 text-left text-sm text-[var(--wood-muted)]">
 
                 <p>
                   Esimerkki: Avaa projektin Notes.
@@ -603,8 +603,8 @@ ${noteEntry}`
 
                     ${
                       isUser
-                        ? "bg-amber-500 text-black"
-                        : "bg-neutral-800 text-white"
+                        ? "bg-[var(--wood-accent)] text-[#17120c]"
+                        : "bg-[var(--wood-card)] text-[var(--wood-text)]"
                     }
                   `}
                 >
@@ -642,7 +642,7 @@ ${noteEntry}`
                         ${
                           isSaved
                             ? "border-green-800 bg-green-950/40 text-green-300"
-                            : "border-neutral-700 bg-neutral-900 text-neutral-300 hover:border-amber-500 hover:text-amber-400"
+                            : "border-[var(--wood-border)] bg-[var(--wood-panel)] text-[var(--wood-text)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-accent)]"
                         }
                       `}
                     >
@@ -665,7 +665,7 @@ ${noteEntry}`
         {loading && (
           <div className="text-left">
 
-            <div className="inline-block rounded-2xl bg-neutral-800 px-4 py-3 text-neutral-400">
+            <div className="inline-block rounded-2xl bg-[var(--wood-card)] px-4 py-3 text-[var(--wood-muted)]">
               AI ajattelee...
             </div>
 
@@ -718,7 +718,7 @@ ${noteEntry}`
             contextLoading
           }
           placeholder="Kysy projektista tai anna toiminto..."
-          className="min-h-24 flex-1 resize-y rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3 text-white outline-none transition placeholder:text-neutral-600 focus:border-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-24 flex-1 resize-y rounded-xl border border-[var(--wood-border)] bg-[var(--wood-panel)] px-4 py-3 text-[var(--wood-text)] outline-none transition placeholder:text-[var(--wood-muted)] focus:border-[var(--wood-accent)] disabled:cursor-not-allowed disabled:opacity-60"
         />
 
 
@@ -732,7 +732,7 @@ ${noteEntry}`
             contextLoading ||
             !message.trim()
           }
-          className="rounded-xl bg-amber-500 px-6 py-3 font-bold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50 sm:self-end"
+          className="rounded-xl bg-[var(--wood-accent)] px-6 py-3 font-bold text-[#17120c] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:self-end"
         >
           {loading
             ? "Lähetetään..."
@@ -742,20 +742,20 @@ ${noteEntry}`
       </div>
 
 
-      <p className="text-xs text-neutral-600">
+      <p className="text-xs text-[var(--wood-muted)]">
         Enter lähettää. Shift + Enter tekee uuden rivin.
       </p>
 
 
       {debug && (
-        <div className="space-y-3 rounded-xl border border-neutral-800 bg-neutral-950 p-4 text-sm">
+        <div className="space-y-3 rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-4 text-sm">
 
           <div className="flex flex-wrap gap-x-6 gap-y-2">
 
             <p>
               Agent:
               {" "}
-              <span className="font-semibold text-neutral-200">
+              <span className="font-semibold text-[var(--wood-text)]">
                 {debug.agent}
               </span>
             </p>
@@ -763,7 +763,7 @@ ${noteEntry}`
             <p>
               Reason:
               {" "}
-              <span className="text-neutral-300">
+              <span className="text-[var(--wood-text)]">
                 {debug.reason}
               </span>
             </p>
@@ -774,11 +774,11 @@ ${noteEntry}`
           {debug.actions && (
             <details>
 
-              <summary className="cursor-pointer text-neutral-400">
+              <summary className="cursor-pointer text-[var(--wood-muted)]">
                 AI Actions
               </summary>
 
-              <pre className="mt-3 overflow-auto whitespace-pre-wrap break-words text-xs text-neutral-400">
+              <pre className="mt-3 overflow-auto whitespace-pre-wrap break-words text-xs text-[var(--wood-muted)]">
                 {JSON.stringify(
                   debug.actions,
                   null,
@@ -793,11 +793,11 @@ ${noteEntry}`
           {debug.debug && (
             <details>
 
-              <summary className="cursor-pointer text-neutral-400">
+              <summary className="cursor-pointer text-[var(--wood-muted)]">
                 Raw debug
               </summary>
 
-              <pre className="mt-3 overflow-auto whitespace-pre-wrap break-words text-xs text-neutral-400">
+              <pre className="mt-3 overflow-auto whitespace-pre-wrap break-words text-xs text-[var(--wood-muted)]">
                 {JSON.stringify(
                   debug.debug,
                   null,
@@ -828,7 +828,7 @@ function ActionStatusCard({
       ? "border-green-900 bg-green-950/40 text-green-200"
       : type === "error"
         ? "border-red-900 bg-red-950/40 text-red-200"
-        : "border-amber-800 bg-amber-950/30 text-amber-200"
+        : "border-[var(--wood-accent)] bg-[var(--wood-accent)]/10 text-[var(--wood-accent)]"
 
   const title =
     type === "success"

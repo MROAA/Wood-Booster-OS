@@ -358,7 +358,7 @@ ${result}
           ▨ Project AI Tools
         </h2>
 
-        <p className="mt-2 max-w-3xl text-neutral-400">
+        <p className="mt-2 max-w-3xl text-[var(--wood-muted)]">
           Käytä Wood-Boosterin agentteja projektin
           suunnitteluun, materiaalien arviointiin,
           hinnoitteluun ja viestintään.
@@ -396,8 +396,8 @@ ${result}
 
                 ${
                   isActive
-                    ? "border-amber-500 bg-amber-500/10"
-                    : "border-neutral-800 bg-neutral-950 hover:border-neutral-700 hover:bg-neutral-900"
+                    ? "border-[var(--wood-accent)] bg-[var(--wood-accent)]/10"
+                    : "border-[var(--wood-border)] bg-[var(--wood-bg)] hover:border-[var(--wood-accent)] hover:bg-[var(--wood-panel)]"
                 }
               `}
             >
@@ -409,11 +409,11 @@ ${result}
                 {tool.title}
               </h3>
 
-              <p className="mt-2 text-sm leading-6 text-neutral-400">
+              <p className="mt-2 text-sm leading-6 text-[var(--wood-muted)]">
                 {tool.description}
               </p>
 
-              <p className="mt-4 text-sm font-semibold text-amber-400">
+              <p className="mt-4 text-sm font-semibold text-[var(--wood-accent)]">
                 {isProcessing
                   ? "AI käsittelee..."
                   : "Suorita työkalu →"}
@@ -426,12 +426,12 @@ ${result}
 
 
       {loading && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
-          <p className="font-semibold text-amber-300">
+        <div className="rounded-2xl border border-[var(--wood-accent)]/30 bg-[var(--wood-accent)]/10 p-5">
+          <p className="font-semibold text-[var(--wood-accent)]">
             AI käsittelee työkalua
           </p>
 
-          <p className="mt-2 text-sm text-neutral-400">
+          <p className="mt-2 text-sm text-[var(--wood-muted)]">
             {selectedTool?.title ||
               "Project AI Tool"}
           </p>
@@ -463,9 +463,9 @@ ${result}
 
 
       {result && (
-        <section className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6">
+        <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-6">
 
-          <div className="flex flex-col gap-4 border-b border-neutral-800 pb-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-4 border-b border-[var(--wood-border)] pb-5 sm:flex-row sm:items-start sm:justify-between">
 
             <div>
               <div className="flex flex-wrap items-center gap-3">
@@ -483,12 +483,12 @@ ${result}
 
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-neutral-400">
+              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--wood-muted)]">
 
                 <p>
                   Agentti:
                   {" "}
-                  <span className="font-semibold text-neutral-200">
+                  <span className="font-semibold text-[var(--wood-text)]">
                     {agent}
                   </span>
                 </p>
@@ -496,7 +496,7 @@ ${result}
                 <p>
                   Reititys:
                   {" "}
-                  <span className="text-neutral-300">
+                  <span className="text-[var(--wood-text)]">
                     {reason}
                   </span>
                 </p>
@@ -515,7 +515,7 @@ ${result}
                 disabled={
                   saving || saved
                 }
-                className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-[var(--wood-accent)] px-4 py-2 text-sm font-bold text-[#17120c] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {saving
                   ? "Tallennetaan..."
@@ -528,7 +528,7 @@ ${result}
                 type="button"
                 onClick={copyResult}
                 disabled={saving}
-                className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm font-semibold text-neutral-200 transition hover:bg-neutral-800 disabled:opacity-60"
+                className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-panel)] px-4 py-2 text-sm font-semibold text-[var(--wood-text)] transition hover:bg-[var(--wood-card)] disabled:opacity-60"
               >
                 {copied
                   ? "Kopioitu ✓"
@@ -539,7 +539,7 @@ ${result}
                 type="button"
                 onClick={clearResult}
                 disabled={saving}
-                className="rounded-xl border border-neutral-700 px-4 py-2 text-sm font-semibold text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-60"
+                className="rounded-xl border border-[var(--wood-border)] px-4 py-2 text-sm font-semibold text-[var(--wood-muted)] transition hover:bg-[var(--wood-panel)] hover:text-[var(--wood-text)] disabled:opacity-60"
               >
                 Tyhjennä
               </button>
@@ -549,7 +549,7 @@ ${result}
           </div>
 
 
-          <div className="mt-6 whitespace-pre-wrap leading-7 text-neutral-300">
+          <div className="mt-6 whitespace-pre-wrap leading-7 text-[var(--wood-text)]">
             {result}
           </div>
 
