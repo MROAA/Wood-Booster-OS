@@ -354,7 +354,27 @@ function SystemPulse() {
     pulse?.brain?.modules > 0 &&
     pulse?.brain?.modules === pulse?.brain?.activeModules
 
+function getPulseStatus(status){
 
+  if(status === "healthy"){
+    return "healthy"
+  }
+
+  if(status === "degraded"){
+    return "warning"
+  }
+
+  if(status === "warning"){
+    return "warning"
+  }
+
+  if(status === "error"){
+    return "error"
+  }
+
+  return "warning"
+
+}
 
 
 
@@ -466,14 +486,11 @@ function SystemPulse() {
                 ||
                 "-"
               }
-              status={
-                pulse?.status === "healthy"
-                  ?
-                  "healthy"
-                  :
-                  "error"
-              }
-            />
+status={
+  getPulseStatus(
+    pulse?.status
+  )
+}            />
 
 
 
