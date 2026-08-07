@@ -284,6 +284,8 @@ export default function createProjectsRouter(
 
               customer: true,
 
+              projectNotes: true,
+
             },
 
           })

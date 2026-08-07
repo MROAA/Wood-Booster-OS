@@ -4,7 +4,6 @@ import {
 } from "react"
 
 import {
-  Link,
   useSearchParams,
 } from "react-router-dom"
 
@@ -25,6 +24,7 @@ import QuoteTab from "./QuoteTab"
 import InvoiceTab from "./InvoiceTab"
 
 import FilesTab from "./project/FilesTab"
+import OverviewTab from "./project/OverviewTab"
 
 
 import {
@@ -220,205 +220,6 @@ const tabs = [
 
 
 
-function ProjectOverview({
-  project,
-}) {
-
-
-  return (
-
-    <div
-      className="
-        space-y-6
-      "
-    >
-
-      <div>
-
-        <h2
-          className="
-            text-xl
-            font-bold
-          "
-        >
-          Projektin yhteenveto
-        </h2>
-
-
-        <p
-          className="
-            mt-2
-            text-[var(--wood-muted)]
-          "
-        >
-          Projektin tärkeimmät perustiedot.
-        </p>
-
-
-      </div>
-
-
-
-
-
-      <div
-        className="
-          grid
-          gap-4
-          md:grid-cols-2
-        "
-      >
-
-        <InfoCard
-          title="Projektin nimi"
-          value={
-            project?.name ||
-            "Ei nimeä"
-          }
-        />
-
-
-        <InfoCard
-          title="Tila"
-          value={
-            project?.status ||
-            "Ei tilaa"
-          }
-        />
-
-
-        <InfoCard
-          title="Asiakas"
-          value={
-            project?.customer
-            ?
-            (
-
-              <Link
-
-                to={
-                  `/customers/${project.customer.id}`
-                }
-
-                className="
-                  text-[var(--wood-accent)]
-                  hover:opacity-80
-                "
-
-              >
-
-                {project.customer.name}
-
-              </Link>
-
-            )
-            :
-            "Ei asiakasta"
-          }
-        />
-
-
-        <InfoCard
-          title="Projektin ID"
-          value={
-            project?.id ||
-            "Ei ID:tä"
-          }
-        />
-
-
-      </div>
-
-
-
-
-
-      <div
-        className="
-          card
-          p-5
-        "
-      >
-
-        <p
-          className="
-            text-sm
-            text-[var(--wood-muted)]
-          "
-        >
-          Muistiinpanot
-        </p>
-
-
-        <p
-          className="
-            mt-3
-            whitespace-pre-wrap
-            break-words
-            leading-7
-          "
-        >
-
-          {
-            project?.notes ||
-            "Projektille ei ole vielä muistiinpanoja."
-          }
-
-        </p>
-
-
-      </div>
-
-
-    </div>
-
-  )
-
-}
-function InfoCard({
-  title,
-  value,
-}) {
-
-  return (
-
-    <div
-      className="
-        card
-        p-5
-      "
-    >
-
-      <p
-        className="
-          text-sm
-          text-[var(--wood-muted)]
-        "
-      >
-
-        {title}
-
-      </p>
-
-
-      <p
-        className="
-          mt-2
-          break-words
-          font-semibold
-        "
-      >
-
-        {value}
-
-      </p>
-
-
-    </div>
-
-  )
-
-}
 
 
 
@@ -635,8 +436,9 @@ function ProjectTabs({
 
         return (
 
-          <ProjectOverview
+          <OverviewTab
             project={project}
+            noteCount={project?.projectNotes?.length || 0}
           />
 
         )
@@ -885,8 +687,9 @@ function ProjectTabs({
 
         return (
 
-          <ProjectOverview
+          <OverviewTab
             project={project}
+            noteCount={project?.projectNotes?.length || 0}
           />
 
         )

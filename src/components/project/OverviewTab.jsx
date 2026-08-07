@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 function OverviewTab({
   project,
   noteCount,
@@ -36,7 +38,18 @@ function OverviewTab({
         <dl className="mt-6 space-y-5">
           <InfoRow
             label="Asiakas"
-            value={project.customer || "Ei määritetty"}
+            value={
+              project.customer ? (
+                <Link
+                  to={`/customers/${project.customer.id}`}
+                  className="text-[var(--wood-accent)] hover:opacity-80"
+                >
+                  {project.customer.name}
+                </Link>
+              ) : (
+                "Ei määritetty"
+              )
+            }
           />
 
           <InfoRow
