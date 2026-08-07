@@ -42,6 +42,17 @@ fn wait_for_backend_ready(port: u16) -> bool {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  // WebKitGTK 2.52.5's DMA-BUF renderer crashes under this system's
+  // Wayland/KWin setup ("Protocol error 71 dispatching to Wayland
+  // display", then repeated internal WebKit errors, taking the whole
+  // process down after the window has already rendered once). This
+  // must be set before the first webview is created, and must not
+  // depend on the launcher setting an env var - a desktop icon / app
+  // menu launch never would. Set unconditionally on Linux; harmless
+  // if the underlying bug doesn't apply to a given machine.
+  #[cfg(target_os = "linux")]
+  std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+
   tauri::Builder::default()
     .plugin(tauri_plugin_shell::init())
     .manage(SidecarProcess(Mutex::new(None)))
