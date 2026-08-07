@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react"
 
-import { apiGet, apiPut } from "../api/client"
+import { useNavigate } from "react-router-dom"
+
+import { apiDelete, apiGet, apiPut } from "../api/client"
+
+import {
+  clearActiveCustomer,
+  clearActiveProject,
+} from "../services/runtime/runtimeContext"
 
 function ProjectEditor({
   project,
   onProjectUpdated,
 }) {
+  const navigate = useNavigate()
+
   const [form, setForm] = useState({
     name: "",
     status: "Suunnittelu",
@@ -19,6 +28,11 @@ function ProjectEditor({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
+
+  const [confirmingDelete, setConfirmingDelete] =
+    useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState("")
 
   useEffect(() => {
     apiGet("/customers")
@@ -130,6 +144,35 @@ function ProjectEditor({
       )
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!project?.id) {
+      return
+    }
+
+    try {
+      setDeleting(true)
+      setDeleteError("")
+
+      await apiDelete(`/projects/${project.id}`)
+
+      clearActiveProject()
+      clearActiveCustomer()
+
+      navigate("/projects")
+    } catch (deleteErr) {
+      console.error(
+        "Projektin poisto epäonnistui:",
+        deleteErr,
+      )
+
+      setDeleteError(
+        deleteErr.message ||
+          "Projektin poistaminen epäonnistui",
+      )
+      setDeleting(false)
     }
   }
 
@@ -276,6 +319,60 @@ function ProjectEditor({
           )}
         </div>
       </form>
+
+      <div className="mt-10 card border-red-900/60 bg-red-950/20 p-5">
+        <p className="text-xs uppercase tracking-wider text-red-400">
+          Vaarallinen alue
+        </p>
+
+        <p className="mt-2 text-sm text-[var(--wood-muted)]">
+          Projektin poistaminen poistaa pysyvästi myös
+          sen materiaalit, muistiinpanot, työvaiheet,
+          tarjoukset ja laskut. Tätä ei voi perua.
+        </p>
+
+        {!confirmingDelete ? (
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(true)}
+            className="mt-4 rounded-lg border border-red-500 px-4 py-2 text-sm text-red-400 transition hover:scale-105"
+          >
+            Poista projekti
+          </button>
+        ) : (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="text-sm text-red-400">
+              Varma? Tätä ei voi perua.
+            </span>
+
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="rounded-lg border border-red-500 bg-red-500/10 px-4 py-2 text-sm text-red-400 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {deleting
+                ? "Poistetaan..."
+                : "Vahvista poisto"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(false)}
+              disabled={deleting}
+              className="rounded-lg border border-[var(--wood-border)] px-4 py-2 text-sm"
+            >
+              Peru
+            </button>
+          </div>
+        )}
+
+        {deleteError && (
+          <div className="mt-4 card border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            {deleteError}
+          </div>
+        )}
+      </div>
     </section>
   )
 }

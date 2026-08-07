@@ -608,5 +608,129 @@ export default function createProjectsRouter(
 
 
 
+  /*
+   * DELETE /api/projects/:id
+   *
+   * Poistaa projektin ja siihen liittyvät tiedostot, materiaalit,
+   * muistiinpanot, työvaiheet, tarjoukset ja laskut (kaskadi määritelty
+   * schema.prisma:ssa). Ostotilausten projektiviite nollautuu, itse
+   * ostotilaukset säilyvät.
+   */
+  router.delete(
+    "/projects/:id",
+    async (request, response) => {
+
+      const projectId =
+        Number(request.params.id)
+
+
+      if (
+        !Number.isInteger(projectId) ||
+        projectId <= 0
+      ) {
+
+        return response
+          .status(400)
+          .json({
+
+            success: false,
+
+            error:
+              "Virheellinen projektin ID.",
+
+          })
+
+      }
+
+
+      try {
+
+        const existingProject =
+          await prisma.project.findUnique({
+
+            where: {
+              id:
+                projectId,
+            },
+
+            select: {
+              id: true,
+            },
+
+          })
+
+
+        if (!existingProject) {
+
+          return response
+            .status(404)
+            .json({
+
+              success: false,
+
+              error:
+                "Projektia ei löytynyt.",
+
+            })
+
+        }
+
+
+        await prisma.project.delete({
+
+          where: {
+            id:
+              projectId,
+          },
+
+        })
+
+
+        response.json({
+
+          success: true,
+
+        })
+
+      } catch (error) {
+
+        console.error(
+          "Project DELETE error:",
+          error,
+        )
+
+
+        if (error.code === "P2025") {
+
+          return response
+            .status(404)
+            .json({
+
+              success: false,
+
+              error:
+                "Projektia ei löytynyt.",
+
+            })
+
+        }
+
+
+        response.status(500).json({
+
+          success: false,
+
+          error:
+            "Projektin poistaminen epäonnistui.",
+
+        })
+
+      }
+
+    },
+  )
+
+
+
   return router
 }
