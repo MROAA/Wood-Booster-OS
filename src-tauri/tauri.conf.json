@@ -1,13 +1,18 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+
   "productName": "Wood-Booster OS",
+
   "version": "0.1.0",
-  "identifier": "com.woodbooster.os",
+
+  "identifier": "wood-booster-os",
+
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
     "beforeBuildCommand": "npm run build:desktop"
   },
+
   "app": {
     "windows": [
       {
@@ -18,13 +23,19 @@
         "fullscreen": false
       }
     ],
+
     "security": {
       "csp": null
     }
   },
+
   "bundle": {
     "active": true,
+
     "targets": "all",
+
+    "category": "Business",
+
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -32,13 +43,16 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+
     "resources": [
       "resources/server",
       "resources/services"
     ],
+
     "externalBin": [
       "binaries/wood-booster-server"
     ],
+
     "android": {
       "debugApplicationIdSuffix": ".debug"
     }
