@@ -7,3 +7,4 @@
 # source before every build, not checked in.
 /binaries/
 /resources/
+resources/server/node_modules
