@@ -27,6 +27,14 @@ rm -rf "$ARCH_DIR/server" "$ARCH_DIR/services"
 cp -r "$PROJECT_ROOT/src-tauri/resources/server" "$ARCH_DIR/server"
 cp -r "$PROJECT_ROOT/src-tauri/resources/services" "$ARCH_DIR/services"
 
+# The .desktop file's Icon=wood-booster-os only resolves if an icon by
+# that name actually gets installed - PKGBUILD's package() never did
+# this, so the app showed up with no logo anywhere.
+cp "$PROJECT_ROOT/src-tauri/icons/32x32.png" "$ARCH_DIR/icon-32.png"
+cp "$PROJECT_ROOT/src-tauri/icons/128x128.png" "$ARCH_DIR/icon-128.png"
+cp "$PROJECT_ROOT/src-tauri/icons/128x128@2x.png" "$ARCH_DIR/icon-256.png"
+cp "$PROJECT_ROOT/src-tauri/icons/icon.png" "$ARCH_DIR/icon-512.png"
+
 cd "$ARCH_DIR"
 
 rm -rf pkg src
