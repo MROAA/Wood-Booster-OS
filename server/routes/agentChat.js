@@ -574,8 +574,140 @@ async function findProjectByName(
 
 
 
+/*
+ * Hakee projektin avoimet tehtävät (keskeneräiset työvaiheet) ja
+ * kevyen "viimeisin aktiviteetti" -katsauksen, jotta Spacemonkey
+ * tietää ne osana Live Context -tilannekuvaa. Ei tee mitään jos
+ * aktiivista projektia ei ole - ei ylimääräisiä tietokantakyselyjä
+ * kun käyttäjä ei ole projektin kontekstissa (esim. Dashboard/AI
+ * Workspace ilman valittua projektia).
+ */
+async function enrichRuntimeContextWithProjectData(
+  runtimeContext,
+  prisma,
+){
+
+  const projectId =
+    Number(
+      runtimeContext?.activeProject?.id
+    )
+
+
+  if(
+
+    !Number.isInteger(projectId)
+
+    ||
+
+    !prisma
+
+  ){
+
+    return runtimeContext
+
+  }
+
+
+  try {
+
+    const [
+      openTasks,
+      project,
+      latestNote,
+    ] =
+      await Promise.all([
+
+        prisma.projectWorkflowStep.findMany({
+
+          where: {
+            projectId,
+            done: false,
+          },
+
+          orderBy: {
+            id: "asc",
+          },
+
+          select: {
+            id: true,
+            title: true,
+          },
+
+        }),
+
+
+        prisma.project.findUnique({
+
+          where: {
+            id: projectId,
+          },
+
+          select: {
+            updatedAt: true,
+          },
+
+        }),
+
+
+        prisma.note.findFirst({
+
+          where: {
+            projectId,
+          },
+
+          orderBy: {
+            createdAt: "desc",
+          },
+
+          select: {
+            content: true,
+            createdAt: true,
+          },
+
+        }),
+
+      ])
+
+
+    return {
+
+      ...runtimeContext,
+
+      openTasks,
+
+      recentActivity: {
+
+        projectUpdatedAt:
+          project?.updatedAt || null,
+
+        latestNote:
+          latestNote || null,
+
+      },
+
+    }
+
+  }
+
+  catch(error){
+
+    console.error(
+      "RUNTIME CONTEXT ENRICHMENT ERROR:",
+      error,
+    )
+
+    return runtimeContext
+
+  }
+
+}
+
+
+
+
 async function createRuntimeContextKnowledge(
   runtimeContext,
+  prisma,
 ){
 
   if(
@@ -596,12 +728,20 @@ async function createRuntimeContextKnowledge(
 
   try {
 
+    const enrichedRuntimeContext =
+      await enrichRuntimeContextWithProjectData(
+        runtimeContext,
+        prisma,
+      )
+
+
     const liveContextResult =
       await liveContextModule.execute({
 
         request: {},
 
-        runtimeContext,
+        runtimeContext:
+          enrichedRuntimeContext,
 
       })
 
@@ -1153,6 +1293,7 @@ async function runAgentChat({
 
     await createRuntimeContextKnowledge(
       runtimeContext,
+      prisma,
     )
 
 

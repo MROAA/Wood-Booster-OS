@@ -210,6 +210,12 @@ function buildContextSnapshot(runtimeContext) {
     metadata:
       safeObject(safeContext.metadata),
 
+    openTasks:
+      safeArray(safeContext.openTasks),
+
+    recentActivity:
+      safeObject(safeContext.recentActivity),
+
     focus,
 
     capturedAt:
