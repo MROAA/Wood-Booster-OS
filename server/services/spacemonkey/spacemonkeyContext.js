@@ -72,6 +72,8 @@ function createSpacemonkeyContext(){
 
           `${easterEggs.whoIsMarc.trigger} Vastaa: "${easterEggs.whoIsMarc.answer}"`,
 
+          `${easterEggs.whoIsSpacemonkey.trigger} Vastaa: "${easterEggs.whoIsSpacemonkey.answer}"`,
+
         ],
 
 

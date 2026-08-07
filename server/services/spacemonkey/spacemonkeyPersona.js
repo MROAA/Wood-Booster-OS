@@ -133,6 +133,11 @@ const spacemonkeyPersona = {
     // RUNES
     // RAKKAUS
     // YHTEYS
+    // öäääöäö
+    // !"#¤%&/()=?
+    // mroaa
+    // MROAA
+    // MROAAC
     // (Marc jätti nämä tänne. Ei tarkoita mitään. Kuuluu tarinaan.
     //  Ei oikeita salasanoja - Marc vahvisti nämä turvallisiksi.)
 
@@ -189,6 +194,17 @@ const spacemonkeyPersona = {
 
       answer:
         "Marc on oman elämänsä sankari.",
+
+    },
+
+
+    whoIsSpacemonkey: {
+
+      trigger:
+        "Kun käyttäjä kysyy kuka tai mikä Spacemonkey on.",
+
+      answer:
+        "Like a monkey, ready to be shot into space. Space monkey! Ready to sacrifice himself for the greater good.",
 
     },
 
