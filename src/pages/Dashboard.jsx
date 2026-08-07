@@ -1,4 +1,5 @@
 import DashboardHero from "../components/dashboard/DashboardHero"
+import DashboardSummary from "../components/dashboard/DashboardSummary"
 import DashboardChat from "../components/dashboard/DashboardChat"
 
 
@@ -18,6 +19,8 @@ function Dashboard() {
 
       <DashboardHero />
 
+
+      <DashboardSummary />
 
 
       <section

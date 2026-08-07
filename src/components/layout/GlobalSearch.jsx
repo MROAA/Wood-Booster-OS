@@ -146,6 +146,9 @@ function GlobalSearch({
   const [customers, setCustomers] =
     useState([])
 
+  const [materials, setMaterials] =
+    useState([])
+
   const [loading, setLoading] =
     useState(false)
 
@@ -181,9 +184,11 @@ function GlobalSearch({
         const [
           projectResponse,
           customerResponse,
+          materialResponse,
         ] = await Promise.all([
           apiGet("/projects"),
           apiGet("/customers"),
+          apiGet("/inventory"),
         ])
 
         const nextProjects =
@@ -198,8 +203,15 @@ function GlobalSearch({
             : customerResponse?.customers ||
               []
 
+        const nextMaterials =
+          Array.isArray(materialResponse)
+            ? materialResponse
+            : materialResponse?.items ||
+              []
+
         setProjects(nextProjects)
         setCustomers(nextCustomers)
+        setMaterials(nextMaterials)
       } catch (loadError) {
         console.error(
           "Global search error:",
@@ -207,7 +219,7 @@ function GlobalSearch({
         )
 
         setError(
-          "Projektien tai asiakkaiden hakeminen epäonnistui.",
+          "Projektien, asiakkaiden tai materiaalien hakeminen epäonnistui.",
         )
       } finally {
         setLoading(false)
@@ -280,10 +292,35 @@ function GlobalSearch({
             .join(" "),
         }))
 
+      const materialResults =
+        materials.map((material) => ({
+          id: `material-${material.id}`,
+          type: "material",
+          title:
+            material.name ||
+            "Nimetön materiaali",
+          description: [
+            material.category,
+            `${material.quantity} ${material.unit}`,
+          ]
+            .filter(Boolean)
+            .join(" • "),
+          icon: "◆",
+          path: "/inventory",
+          keywords: [
+            material.name,
+            material.category,
+            material.supplier,
+          ]
+            .filter(Boolean)
+            .join(" "),
+        }))
+
       const allResults = [
         ...systemPages,
         ...projectResults,
         ...customerResults,
+        ...materialResults,
       ]
 
       if (!normalizedQuery) {
@@ -307,6 +344,7 @@ function GlobalSearch({
         .slice(0, 20)
     }, [
       customers,
+      materials,
       projects,
       query,
     ])
