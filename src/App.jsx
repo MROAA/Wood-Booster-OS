@@ -22,6 +22,14 @@ import Agents from "./pages/Agents"
 import Settings from "./pages/Settings"
 import SystemPulse from "./pages/SystemPulse"
 import SpacemonkeyBrain from "./pages/SpacemonkeyBrain"
+import AIBrain from "./pages/AIBrain"
+import AIChat from "./pages/AIChat"
+import AIGenerator from "./pages/AIGenerator"
+import AIWorkspace from "./pages/AIWorkspace"
+import CapabilityCenter from "./pages/CapabilityCenter"
+import ExecutionCenterV2 from "./pages/ExecutionCenterV2"
+import SystemCenter from "./pages/SystemCenter"
+import Tools from "./pages/Tools"
 
 
 
@@ -176,6 +184,70 @@ function App() {
           path="/settings"
           element={
             <Settings />
+          }
+        />
+
+
+        <Route
+          path="/ai-brain"
+          element={
+            <AIBrain />
+          }
+        />
+
+
+        <Route
+          path="/ai-chat"
+          element={
+            <AIChat />
+          }
+        />
+
+
+        <Route
+          path="/ai-generator"
+          element={
+            <AIGenerator />
+          }
+        />
+
+
+        <Route
+          path="/ai-workspace"
+          element={
+            <AIWorkspace />
+          }
+        />
+
+
+        <Route
+          path="/capabilities"
+          element={
+            <CapabilityCenter />
+          }
+        />
+
+
+        <Route
+          path="/execution"
+          element={
+            <ExecutionCenterV2 />
+          }
+        />
+
+
+        <Route
+          path="/system-center"
+          element={
+            <SystemCenter />
+          }
+        />
+
+
+        <Route
+          path="/tools"
+          element={
+            <Tools />
           }
         />
 

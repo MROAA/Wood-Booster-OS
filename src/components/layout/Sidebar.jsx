@@ -111,6 +111,71 @@ const groups = [
 
 
   {
+    title: "AI TYÖTILA",
+
+    items: [
+
+      {
+        label: "AI Brain",
+        path: "/ai-brain",
+        icon: "🧠"
+      },
+
+
+      {
+        label: "AI Chat",
+        path: "/ai-chat",
+        icon: "💬"
+      },
+
+
+      {
+        label: "AI Generator",
+        path: "/ai-generator",
+        icon: "✨"
+      },
+
+
+      {
+        label: "AI Workspace",
+        path: "/ai-workspace",
+        icon: "▤"
+      },
+
+
+      {
+        label: "Capabilities",
+        path: "/capabilities",
+        icon: "⚡"
+      },
+
+
+      {
+        label: "Execution",
+        path: "/execution",
+        icon: "▶"
+      },
+
+
+      {
+        label: "System Center",
+        path: "/system-center",
+        icon: "🖥"
+      },
+
+
+      {
+        label: "Tools",
+        path: "/tools",
+        icon: "🔧"
+      }
+
+    ]
+
+  },
+
+
+  {
     title: "JÄRJESTELMÄ",
 
     items: [
