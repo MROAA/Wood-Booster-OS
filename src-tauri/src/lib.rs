@@ -3,13 +3,21 @@ use std::net::TcpStream;
 use std::sync::Mutex;
 use std::time::Duration;
 
-use tauri::{Manager, RunEvent};
+use signal_hook::consts::{SIGINT, SIGTERM};
+use signal_hook::iterator::Signals;
+use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
 const BACKEND_PORT: u16 = 3001;
 
 struct SidecarProcess(Mutex<Option<CommandChild>>);
+
+fn kill_sidecar(app_handle: &AppHandle) {
+  if let Some(child) = app_handle.state::<SidecarProcess>().0.lock().unwrap().take() {
+    let _ = child.kill();
+  }
+}
 
 fn wait_for_backend_ready(port: u16) -> bool {
   let request =
@@ -90,15 +98,25 @@ pub fn run() {
         panic!("wood-booster-server did not become ready in time");
       }
 
+      // Windowless shutdown (SIGTERM/SIGINT: session logout, `kill`,
+      // systemd stop) bypasses RunEvent::Exit, which only fires on a
+      // window-driven exit. Without this, the sidecar orphans.
+      let signal_app_handle = app.handle().clone();
+      let mut signals = Signals::new([SIGTERM, SIGINT])?;
+      std::thread::spawn(move || {
+        if signals.forever().next().is_some() {
+          kill_sidecar(&signal_app_handle);
+          std::process::exit(0);
+        }
+      });
+
       Ok(())
     })
     .build(tauri::generate_context!())
     .expect("error while building tauri application")
     .run(|app_handle, event| {
       if let RunEvent::Exit = event {
-        if let Some(child) = app_handle.state::<SidecarProcess>().0.lock().unwrap().take() {
-          let _ = child.kill();
-        }
+        kill_sidecar(app_handle);
       }
     });
 }
