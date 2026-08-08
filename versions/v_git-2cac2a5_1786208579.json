@@ -1,0 +1,30 @@
+{
+  "snapshot_id": "v_git-2cac2a5_1786208579",
+  "timestamp": 1786208579.4173608,
+  "version_label": "git-2cac2a5",
+  "description": "Auto-snapshot via Git/GitGuardian: Lisätty interaktiivinen spc_cli.py työkalu",
+  "layers": {
+    "core": {
+      "layer_name": "CoreIdentity",
+      "version": "1.0.0",
+      "attributes": {
+        "base_model": "Spacemonkeybrain",
+        "git_commit": "2cac2a5",
+        "security_status": "VERIFIED_BY_GIT_GUARDIAN"
+      },
+      "metadata": {}
+    },
+    "limbic": {
+      "layer_name": "LimbicState",
+      "version": "0.1.0",
+      "attributes": {
+        "valence": 0.0,
+        "arousal": 0.0,
+        "stress": 0.0,
+        "curiosity": 0.5
+      },
+      "metadata": {}
+    }
+  },
+  "checksum": "aab69dcb1bf1f9a82ff3fac66461168aede896790f12a083f310d45489566101"
+}
