@@ -11,6 +11,8 @@ function GitGuardianCard() {
   const [backupResult, setBackupResult] = useState(null)
   const [restoringCommit, setRestoringCommit] = useState(null)
   const [restoreResult, setRestoreResult] = useState(null)
+  const [autonomous, setAutonomous] = useState(null)
+  const [togglingAutonomous, setTogglingAutonomous] = useState(false)
 
   async function loadStatus() {
     try {
@@ -19,6 +21,32 @@ function GitGuardianCard() {
       setStatus(data)
     } catch (error) {
       setStatus({ online: false, error: error.message })
+    }
+  }
+
+  async function loadAutonomous() {
+    try {
+      const res = await fetch(`${GITGUARDIAN_BASE}/autonomous`)
+      const data = await res.json()
+      setAutonomous(data)
+    } catch (error) {
+      setAutonomous(null)
+    }
+  }
+
+  async function toggleAutonomous() {
+    if (!autonomous) return
+    try {
+      setTogglingAutonomous(true)
+      const res = await fetch(`${GITGUARDIAN_BASE}/autonomous/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !autonomous.enabled }),
+      })
+      const data = await res.json()
+      setAutonomous(data)
+    } finally {
+      setTogglingAutonomous(false)
     }
   }
 
@@ -34,7 +62,11 @@ function GitGuardianCard() {
 
   useEffect(() => {
     loadStatus()
-    const interval = setInterval(loadStatus, 10000)
+    loadAutonomous()
+    const interval = setInterval(() => {
+      loadStatus()
+      loadAutonomous()
+    }, 10000)
     return () => clearInterval(interval)
   }, [])
 
@@ -169,6 +201,35 @@ function GitGuardianCard() {
               {showHistory ? "Hide History" : "View History"}
             </button>
           </div>
+
+          {autonomous && (
+            <div className="mt-3 p-3 rounded-lg bg-black/10 flex items-center justify-between gap-3">
+              <div>
+                <div>
+                  Automaattinen varmuuskopiointi:
+                  {" "}
+                  {autonomous.enabled ? "PÄÄLLÄ" : "POIS PÄÄLTÄ"}
+                </div>
+                <div className="text-gray-400">
+                  {autonomous.enabled
+                    ? `Tarkistaa muutokset ${autonomous.interval_minutes} min välein`
+                    : "Käytä \"Backup Now\" -nappia tallentaaksesi manuaalisesti"}
+                </div>
+                {autonomous.last_run_at && (
+                  <div className="text-gray-400">
+                    Viimeisin automaattinen tarkistus: {autonomous.last_run_at}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={toggleAutonomous}
+                disabled={togglingAutonomous}
+                className="px-3 py-1 rounded-lg border border-[var(--wood-border)] text-xs whitespace-nowrap"
+              >
+                {autonomous.enabled ? "Poista käytöstä" : "Ota käyttöön"}
+              </button>
+            </div>
+          )}
 
           {backupResult && (
             <div className="mt-3 p-3 rounded-lg bg-black/10">
