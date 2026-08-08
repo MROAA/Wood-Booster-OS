@@ -53,6 +53,11 @@ snapshotHistory?.latest
 
 
 
+const history =
+snapshotHistory?.history || []
+
+
+
 return (
 
 <div
@@ -245,6 +250,121 @@ snapshotRestorePlan?.requiresConfirmation
 :
 "-"
 }
+
+</div>
+
+
+
+<div
+className="
+pt-2
+border-t
+border-[var(--wood-border)]
+"
+>
+
+Snapshot History
+
+</div>
+
+
+
+<div>
+
+Total:
+
+{" "}
+
+{
+snapshotHistory?.count
+||
+0
+}
+
+</div>
+
+
+
+<div
+className="
+space-y-2
+text-sm
+"
+>
+
+{
+history
+.slice(
+0,
+3
+)
+.map(
+(snapshot)=>(
+
+
+<div
+key={
+snapshot.id
+}
+className="
+p-2
+rounded
+border
+border-[var(--wood-border)]
+"
+>
+
+
+<div>
+
+{
+snapshot.id
+}
+
+</div>
+
+
+<div>
+
+Git:
+
+{" "}
+
+{
+snapshot.metadata?.git?.available
+?
+"available"
+:
+"not available"
+}
+
+</div>
+
+
+<div>
+
+Created:
+
+{" "}
+
+{
+snapshot.metadata?.createdAt
+||
+"-"
+}
+
+</div>
+
+
+</div>
+
+
+)
+
+)
+
+}
+
 
 </div>
 
