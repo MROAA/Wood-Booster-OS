@@ -36,6 +36,11 @@ function InstallerCard({
 
 
 
+    const dependencies =
+        installer.dependencies
+
+
+
     return (
 
         <section
@@ -201,14 +206,31 @@ function InstallerCard({
                             ||
                             "-"
                         }
+
                         {" "}
+
                         /
+
                         {" "}
+
                         {
                             runtime?.platform
                             ||
                             "-"
                         }
+
+                        {" "}
+
+                        /
+
+                        {" "}
+
+                        {
+                            runtime?.architecture
+                            ||
+                            "-"
+                        }
+
                     </p>
 
                 </div>
@@ -237,14 +259,19 @@ function InstallerCard({
                             ||
                             "-"
                         }
+
                         {" "}
+
                         -
+
                         {" "}
+
                         {
                             system?.release
                             ||
                             "-"
                         }
+
                     </p>
 
                 </div>
@@ -309,7 +336,98 @@ function InstallerCard({
                             ||
                             "-"
                         }
+
                     </p>
+
+                </div>
+
+
+
+                <div>
+
+                    <span
+                        className="
+                            text-sm
+                            text-[var(--wood-muted)]
+                        "
+                    >
+                        Dependencies
+                    </span>
+
+
+                    <p
+                        className="
+                            text-[var(--wood-text)]
+                        "
+                    >
+                        {
+                            dependencies?.score
+                            ||
+                            0
+                        }%
+
+                    </p>
+
+
+                </div>
+
+
+
+                <div
+                    className="
+                        mt-3
+                        space-y-2
+                    "
+                >
+
+                    {
+                        Object.entries(
+                            dependencies?.checks || {}
+                        )
+                        .map(
+                            ([key,value]) => (
+
+                                <div
+                                    key={key}
+                                    className="
+                                        flex
+                                        justify-between
+                                        text-sm
+                                    "
+                                >
+
+                                    <span
+                                        className="
+                                            text-[var(--wood-muted)]
+                                        "
+                                    >
+                                        {key}
+                                    </span>
+
+
+                                    <span
+                                        className="
+                                            text-[var(--wood-text)]
+                                        "
+                                    >
+
+                                        {
+                                            value.exists
+                                                ?
+                                                "✓"
+                                                :
+                                                "✗"
+                                        }
+
+                                    </span>
+
+
+                                </div>
+
+                            )
+                        )
+
+                    }
 
                 </div>
 
