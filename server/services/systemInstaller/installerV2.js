@@ -10,10 +10,10 @@ Vastuut:
 - yhdistää Installer moduulit
 - muodostaa asennusyhteenvedon
 - yhdistää Recovery valmiuden
-- yhdistää Snapshot tilan
-- yhdistää Snapshot Engine tilan
+- yhdistää Snapshot järjestelmän
 - yhdistää Snapshot Historian
 - yhdistää Snapshot Validatorin
+- yhdistää Snapshot Repair Readinessin
 
 Ei:
 
@@ -97,6 +97,12 @@ import {
 
 
 
+import {
+    getInstallerSnapshotRepair,
+} from "./installerSnapshotRepair.js"
+
+
+
 function getInstallerV2(){
 
 
@@ -155,6 +161,11 @@ function getInstallerV2(){
 
 
 
+    const snapshotRepair =
+        getInstallerSnapshotRepair()
+
+
+
     const report =
         getInstallerReport()
 
@@ -165,7 +176,8 @@ function getInstallerV2(){
         Math.min(
             health.score,
             dependencies.score,
-            snapshotValidator.score
+            snapshotValidator.score,
+            snapshotRepair.score
         )
 
 
@@ -236,6 +248,10 @@ function getInstallerV2(){
 
 
         snapshotValidator,
+
+
+
+        snapshotRepair,
 
 
 
