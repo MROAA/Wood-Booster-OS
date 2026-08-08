@@ -10,7 +10,7 @@ Vastuut:
 - tarkistaa restore suunnitelman
 - vaatii käyttäjän vahvistuksen
 - hallitsee approval-tilan
-- luo audit tiedon
+- luo audit tapahtuman
 
 Ei:
 
@@ -20,6 +20,12 @@ Ei:
 
 =====================================
 */
+
+
+import {
+addInstallerAuditEvent,
+} from "./installerAuditLog.js"
+
 
 
 function getInstallerRestoreApproval({
@@ -32,6 +38,7 @@ confirmed = false
 
 
 const validPlan =
+
 restorePlan &&
 restorePlan.status === "ready"
 
@@ -39,11 +46,13 @@ restorePlan.status === "ready"
 
 const status =
 
+
 !validPlan
 
 ?
 
 "unavailable"
+
 
 :
 
@@ -53,9 +62,63 @@ confirmed
 
 "approved"
 
+
 :
 
 "waiting-confirmation"
+
+
+
+
+const approved =
+
+status === "approved"
+
+
+
+if(approved){
+
+
+addInstallerAuditEvent({
+
+event:
+
+"restore-approved",
+
+
+snapshot:
+
+restorePlan?.targetSnapshot?.id
+||
+null,
+
+
+result:
+
+"approved",
+
+
+metadata: {
+
+validation:
+
+restorePlan?.validation
+||
+"unknown",
+
+
+score:
+
+restorePlan?.score
+||
+0
+
+}
+
+})
+
+
+}
 
 
 
@@ -84,7 +147,7 @@ confirmed,
 
 canRestore:
 
-status === "approved",
+approved,
 
 
 
@@ -124,10 +187,7 @@ true,
 confirmed,
 
 
-approved:
-
-status === "approved"
-
+approved
 
 },
 
@@ -139,7 +199,7 @@ audit:
 
 event:
 
-confirmed
+approved
 
 ?
 
@@ -160,7 +220,7 @@ new Date()
 
 result:
 
-confirmed
+approved
 
 ?
 
@@ -181,6 +241,7 @@ new Date()
 
 
 }
+
 
 
 }
