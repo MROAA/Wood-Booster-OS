@@ -94,3 +94,9 @@ Backups/
 RestorePreview/
 release/
 snapshots/
+
+# =====================================
+# Generated runtime data (regenerates on use, not source)
+# =====================================
+
+server/data/*.json
