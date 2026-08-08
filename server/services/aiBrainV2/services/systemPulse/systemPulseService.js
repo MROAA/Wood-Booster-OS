@@ -205,11 +205,9 @@ async function getSystemPulse(){
 
 
 
-  const healthy =
-    capability.healthy &&
-    modules.active >= 0 &&
-    securityHealth.healthy
-
+const healthy =
+capability.healthy &&
+modules.active >= modules.total
 
 
 
@@ -224,11 +222,10 @@ async function getSystemPulse(){
 
 
 
-    status:
-      healthy
-        ? "healthy"
-        : "degraded",
-
+status:
+  healthy
+    ? "healthy"
+    : "degraded",
 
 
     healthy,
