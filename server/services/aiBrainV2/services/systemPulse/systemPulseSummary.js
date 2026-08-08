@@ -10,8 +10,10 @@ Vastuut:
 - muodostaa selkeän järjestelmäyhteenvedon
 - yhdistää System Pulse tiedot
 - tarjoaa frontendille helposti luettavan tilan
+- yhdistää Installer Health tiedon
 
 Ei:
+
 - suorita toimintoja
 - muuta järjestelmää
 - tee päätöksiä
@@ -21,327 +23,347 @@ Ei:
 
 
 import {
-  getSystemPulse,
+    getSystemPulse,
 } from "./systemPulseService.js"
 
 
+
+import {
+    getInstallerHealth,
+} from "../../../systemInstaller/installerHealth.js"
 
 
 
 async function getSystemPulseSummary(){
 
-  const pulse =
-    await getSystemPulse()
+
+    const pulse =
+        await getSystemPulse()
 
 
 
-  const capability =
-    pulse.components.capability
-
-
-  const runtime =
-    pulse.components.runtime
-
-
-  const modules =
-    pulse.components.modules
-
-
-  const security =
-    pulse.components.security
-
-
-  const securityHealth =
-    pulse.components.securityHealth
-
-
-  const hardware =
-    pulse.components.hardware
-
-
-  const git =
-    pulse.components.git
-
-
-  const gitSync =
-    pulse.components.gitSync
-
-
-  const gitWatcher =
-    pulse.components.gitWatcher
-
-
-  const gitHistory =
-    pulse.components.gitHistory
-
-
-  const gitSummary =
-    pulse.components.gitSummary
-
-
-  const healthScore =
-    pulse.components.healthScore
+    const installer =
+        getInstallerHealth()
 
 
 
+    const capability =
+        pulse.components.capability
 
 
-  return {
-
-    status:
-      pulse.status,
+    const runtime =
+        pulse.components.runtime
 
 
-    healthy:
-      pulse.healthy,
+    const modules =
+        pulse.components.modules
 
 
-    summary: {
-
-      system:
-        pulse.system,
+    const security =
+        pulse.components.security
 
 
-
-healthScore: {
-
-  score:
-    healthScore?.score
-    ??
-    0,
+    const securityHealth =
+        pulse.components.securityHealth
 
 
-  status:
-    healthScore?.status
-    ||
-    "unknown",
+    const hardware =
+        pulse.components.hardware
 
 
-  details:
-    healthScore?.details
-    ||
-    [],
-
-},
+    const git =
+        pulse.components.git
 
 
-      modules: {
-
-        total:
-          modules.total,
+    const gitSync =
+        pulse.components.gitSync
 
 
-        active:
-          modules.active,
+    const gitWatcher =
+        pulse.components.gitWatcher
+
+
+    const gitHistory =
+        pulse.components.gitHistory
+
+
+    const gitSummary =
+        pulse.components.gitSummary
+
+
+    const healthScore =
+        pulse.components.healthScore
+
+
+
+    return {
 
 
         status:
-          modules.active === modules.total
-            ? "healthy"
-            : "degraded",
+            pulse.status,
 
-      },
 
 
+        healthy:
+            pulse.healthy,
 
-      capability: {
 
-        approved:
-          capability.summary.approved,
 
+        summary: {
 
-        blocked:
-          capability.summary.blocked,
 
+            system:
+                pulse.system,
 
-        approvalRequired:
-          capability.summary.approvalRequired,
 
-      },
 
+            installer,
 
 
-      security: {
 
-        status:
-          securityHealth?.status
-          ||
-          security.status
-          ||
-          "available",
+            healthScore: {
 
+                score:
+                    healthScore?.score
+                    ??
+                    0,
 
-        blockedEvents:
-          securityHealth?.blockedEvents
-          ??
-          0,
 
+                status:
+                    healthScore?.status
+                    ||
+                    "unknown",
 
-        approvalRequired:
-          securityHealth?.approvalRequired
-          ??
-          0,
 
+                details:
+                    healthScore?.details
+                    ||
+                    [],
 
-        message:
-          securityHealth?.message
-          ||
-          "",
+            },
 
-      },
 
 
+            modules: {
 
-      environment: {
+                total:
+                    modules.total,
 
-        os:
-          runtime.platform
-          ||
-          "-",
 
+                active:
+                    modules.active,
 
-        kernel:
-          hardware.kernel
-          ||
-          "-",
 
+                status:
+                    modules.active === modules.total
+                        ? "healthy"
+                        : "degraded",
 
-        host:
-          hardware.hostname
-          ||
-          "-",
+            },
 
 
-      },
 
+            capability: {
 
+                approved:
+                    capability.summary.approved,
 
-      hardware: {
 
-        cpu:
-          hardware.cpu
-          ||
-          null,
+                blocked:
+                    capability.summary.blocked,
 
 
-        gpu:
-          hardware.gpu
-          ||
-          null,
+                approvalRequired:
+                    capability.summary.approvalRequired,
 
+            },
 
-        memory:
-          hardware.memory
-          ||
-          null,
 
-      },
 
+            security: {
 
+                status:
+                    securityHealth?.status
+                    ||
+                    security.status
+                    ||
+                    "available",
 
-      runtime: {
 
-        platform:
-          runtime.platform,
 
+                blockedEvents:
+                    securityHealth?.blockedEvents
+                    ??
+                    0,
 
-        nodeVersion:
-          runtime.nodeVersion,
 
 
-        cpuCount:
-          runtime.cpuCount,
+                approvalRequired:
+                    securityHealth?.approvalRequired
+                    ??
+                    0,
 
-      },
 
 
+                message:
+                    securityHealth?.message
+                    ||
+                    "",
 
-      git: {
+            },
 
-        repository:
-          git.repository
-          ||
-          "-",
 
 
-        branch:
-          git.branch
-          ||
-          "-",
+            environment: {
 
+                os:
+                    runtime.platform
+                    ||
+                    "-",
 
-        commit:
-          git.commit
-          ||
-          "-",
 
+                kernel:
+                    hardware.kernel
+                    ||
+                    "-",
 
-      },
 
+                host:
+                    hardware.hostname
+                    ||
+                    "-",
 
 
-      gitSync: {
+            },
 
-        status:
-          gitSync.status
-          ||
-          "-",
 
 
-        changes:
-          gitSync.changes
-          ||
-          0,
+            hardware: {
 
-      },
+                cpu:
+                    hardware.cpu
+                    ||
+                    null,
 
 
+                gpu:
+                    hardware.gpu
+                    ||
+                    null,
 
-      gitWatcher: {
 
-        status:
-          gitWatcher.status
-          ||
-          "stopped",
+                memory:
+                    hardware.memory
+                    ||
+                    null,
 
-      },
+            },
 
 
 
-      gitHistory: {
+            runtime: {
 
-        total:
-          gitHistory?.total
-          ||
-          0,
+                platform:
+                    runtime.platform,
 
 
-        events:
-          gitHistory?.events
-          ||
-          [],
+                nodeVersion:
+                    runtime.nodeVersion,
 
-      },
 
+                cpuCount:
+                    runtime.cpuCount,
 
-      gitSummary,
+            },
 
-    },
 
 
-    checkedAt:
-      pulse.checkedAt,
+            git: {
 
-  }
+                repository:
+                    git.repository
+                    ||
+                    "-",
+
+
+                branch:
+                    git.branch
+                    ||
+                    "-",
+
+
+                commit:
+                    git.commit
+                    ||
+                    "-",
+
+
+            },
+
+
+
+            gitSync: {
+
+                status:
+                    gitSync.status
+                    ||
+                    "-",
+
+
+                changes:
+                    gitSync.changes
+                    ||
+                    0,
+
+            },
+
+
+
+            gitWatcher: {
+
+                status:
+                    gitWatcher.status
+                    ||
+                    "stopped",
+
+            },
+
+
+
+            gitHistory: {
+
+                total:
+                    gitHistory?.total
+                    ||
+                    0,
+
+
+                events:
+                    gitHistory?.events
+                    ||
+                    [],
+
+            },
+
+
+
+            gitSummary,
+
+        },
+
+
+
+        checkedAt:
+            pulse.checkedAt,
+
+    }
 
 }
 
 
 
-
-
 export {
 
-  getSystemPulseSummary,
+    getSystemPulseSummary,
 
 }

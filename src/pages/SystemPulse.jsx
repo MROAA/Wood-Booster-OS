@@ -34,7 +34,7 @@ import HealthScoreCard from "../components/systemPulse/HealthScoreCard"
 import ActivityTimelineCard from "../components/systemPulse/ActivityTimelineCard"
 
 import SnapshotCard from "../components/systemPulse/SnapshotCard"
-
+import InstallerCard from "../components/systemPulse/InstallerCard"
 
 
 
@@ -227,7 +227,8 @@ function SystemPulse() {
 
           gitHistory:
             summary.gitHistory,
-
+installer:
+    summary.installer,
 
         })
 
@@ -556,26 +557,33 @@ status={
         />
 
 
-        <MonitorCard
-          connection={connection}
-          lastUpdate={lastUpdate}
-          pulse={
-            pulse?.summary
-          }
-          healthChange={
-            healthChange
-          }
-        />
+<MonitorCard
+  connection={connection}
+  lastUpdate={lastUpdate}
+  pulse={
+    pulse?.summary
+  }
+  healthChange={
+    healthChange
+  }
+/>
 
 
-        <HealthScoreCard
-          pulse={pulse?.summary}
-        />
+<InstallerCard
+  installer={
+    pulse?.installer
+  }
+/>
+
+<HealthScoreCard
+  pulse={pulse?.summary}
+/>
 
 
-        <SnapshotCard />
 
-      </section>
+
+
+<SnapshotCard />      </section>
 
 
 
