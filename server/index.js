@@ -7,6 +7,7 @@ import {
 import {
   createSpacemonkeySecuritySandboxRouter,
 } from "./routes/spacemonkeySecuritySandbox.js"
+import systemInstallerRouter from "./routes/systemInstaller.js"
 import {
   createSpacemonkeySecurityCapabilitiesRouter,
 } from "./routes/spacemonkeySecurityCapabilities.js"
@@ -76,7 +77,7 @@ import {
   runSpacemonkeyServerIntegration,
 } from "./services/spacemonkey/spacemonkeyServerIntegrationRunner.js"
 import systemPulseRouter from "./routes/systemPulse.js"
-import systemInstallerRouter from "./routes/systemInstaller.js"
+import systemInstallerSnapshotRouter from "./routes/systemInstallerSnapshot.js"
 import {
   createSpacemonkeyAgentSystemRouter,
 } from "./routes/spacemonkeyAgentSystem.js"
@@ -823,7 +824,10 @@ app.use(
   "/api",
   createSpacemonkeyLearningRouter()
 )
-
+app.use(
+"/api/system-installer/snapshot",
+systemInstallerSnapshotRouter
+)
 app.use(
   (
     req,
