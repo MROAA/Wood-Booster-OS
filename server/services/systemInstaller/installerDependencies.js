@@ -23,6 +23,9 @@ Ei:
 
 import fs from "fs"
 import path from "path"
+import {
+    fileURLToPath
+} from "url"
 
 
 
@@ -34,11 +37,33 @@ function checkExists(target){
 
 
 
+function getProjectRoot(){
+
+    const currentFile =
+        fileURLToPath(
+            import.meta.url
+        )
+
+
+    const installerDirectory =
+        path.dirname(
+            currentFile
+        )
+
+
+    return path.resolve(
+        installerDirectory,
+        "../../.."
+    )
+
+}
+
+
+
 function getInstallerDependencies(){
 
-
     const root =
-        process.cwd()
+        getProjectRoot()
 
 
 
@@ -162,10 +187,17 @@ function getInstallerDependencies(){
 
 
         system:
+
             "Wood-Booster OS Installer Dependency Check",
 
 
+
+        root,
+
+
+
         status:
+
             score === 100
                 ?
                 "healthy"
@@ -177,10 +209,13 @@ function getInstallerDependencies(){
         score,
 
 
+
         checks,
 
 
+
         checkedAt:
+
             new Date()
             .toISOString(),
 
