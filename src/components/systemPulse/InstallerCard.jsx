@@ -56,8 +56,13 @@ const snapshots =
 
 
 
+const snapshotHistory =
+    installer.snapshotHistory
+
+
+
 const latestSnapshot =
-    snapshots?.latest
+    snapshotHistory?.latest
 
 
 
@@ -103,10 +108,10 @@ Status
 <p className="text-lg text-[var(--wood-text)]">
 {
     installer.status === "healthy"
-    ?
-    "✓ Healthy"
-    :
-    "⚠ Warning"
+        ?
+        "✓ Healthy"
+        :
+        "⚠ Warning"
 }
 </p>
 </div>
@@ -137,14 +142,6 @@ Report
     "-"
 }
 </p>
-
-<p className="text-sm text-[var(--wood-text)]">
-{
-    report?.recommendation
-    ||
-    "-"
-}
-</p>
 </div>
 
 
@@ -162,7 +159,7 @@ Recovery
 }
 </p>
 
-<p className="text-[var(--wood-text)]">
+<p className="text-sm text-[var(--wood-text)]">
 Score {recovery?.score ?? 0}%
 </p>
 </div>
@@ -185,8 +182,28 @@ Snapshots
 <p className="text-[var(--wood-text)]">
 Count {snapshots?.count ?? 0}
 </p>
+</div>
 
-<p className="text-xs text-[var(--wood-muted)]">
+
+
+<div>
+<span className="text-sm text-[var(--wood-muted)]">
+Snapshot History
+</span>
+
+<p className="text-[var(--wood-text)]">
+{
+    snapshotHistory?.status
+    ||
+    "-"
+}
+</p>
+
+<p className="text-[var(--wood-text)]">
+Total {snapshotHistory?.count ?? 0}
+</p>
+
+<p className="text-xs text-[var(--wood-text)]">
 {
     latestSnapshot?.id
     ||
@@ -200,7 +217,7 @@ Count {snapshots?.count ?? 0}
 
 <div>
 <span className="text-sm text-[var(--wood-muted)]">
-Latest Snapshot Created
+Created
 </span>
 
 <p className="text-xs text-[var(--wood-text)]">
@@ -216,46 +233,12 @@ Latest Snapshot Created
 
 <div>
 <span className="text-sm text-[var(--wood-muted)]">
-Snapshot Git
-</span>
-
-<p className="text-[var(--wood-text)]">
-{
-    latestMetadata?.git?.available
-    ?
-    "✓ Available"
-    :
-    "-"
-}
-</p>
-</div>
-
-
-
-<div>
-<span className="text-sm text-[var(--wood-muted)]">
 Install Mode
 </span>
 
 <p className="text-[var(--wood-text)]">
 {
     manager?.installation?.packageType
-    ||
-    "-"
-}
-</p>
-</div>
-
-
-
-<div>
-<span className="text-sm text-[var(--wood-muted)]">
-Root
-</span>
-
-<p className="text-xs text-[var(--wood-text)]">
-{
-    manager?.paths?.root
     ||
     "-"
 }
@@ -364,6 +347,7 @@ Version
 
 
 <div>
+
 <span className="text-sm text-[var(--wood-muted)]">
 Dependencies
 </span>
@@ -375,12 +359,11 @@ Dependencies
     0
 }%
 </p>
-</div>
-
 
 
 <div
 className="
+mt-2
 space-y-2
 "
 >
@@ -424,6 +407,7 @@ text-sm
 
 </div>
 
+</div>
 
 
 </div>
