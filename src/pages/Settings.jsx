@@ -15,6 +15,8 @@ import {
   setTheme as persistTheme,
 } from "../services/theme"
 
+import CollapsibleSection from "../components/ui/CollapsibleSection"
+
 
 
 const FILE_URL =
@@ -874,14 +876,22 @@ function Settings() {
 
 
 
-            <section className="panel space-y-5">
+            <CollapsibleSection
 
-              <h2 className="text-lg font-semibold">
+              title="Laskutus- ja tarjousasetukset"
+
+              summary={
+                `ALV ${form.vatPercent}% · Tarjous voimassa ${form.defaultValidDays} pv · Laskun eräpäivä ${form.defaultInvoiceDueDays} pv`
+              }
+
+            >
+
+              <h3 className="text-sm font-semibold text-[var(--wood-muted)]">
                 Tarjousten oletusarvot
-              </h2>
+              </h3>
 
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
 
                 <label>
 
@@ -992,19 +1002,12 @@ function Settings() {
               </div>
 
 
-            </section>
-
-
-
-
-            <section className="panel space-y-5">
-
-              <h2 className="text-lg font-semibold">
+              <h3 className="mt-6 text-sm font-semibold text-[var(--wood-muted)]">
                 Laskutuksen oletusarvot
-              </h2>
+              </h3>
 
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
 
                 <label>
 
@@ -1059,7 +1062,7 @@ function Settings() {
               </div>
 
 
-            </section>
+            </CollapsibleSection>
 
 
 
@@ -1162,61 +1165,130 @@ function Settings() {
 
 
 
-      <section
-        className="
-          grid
-          grid-cols-1
-          lg:grid-cols-2
-          gap-5
-        "
-      >
+      <CollapsibleSection
 
+        title="Tietoa järjestelmästä"
+
+        summary="Tekninen yleiskatsaus ja tulevat ominaisuudet"
+
+      >
 
         <div
           className="
-            panel
-            space-y-5
+            grid
+            grid-cols-1
+            gap-8
+            lg:grid-cols-2
           "
         >
 
 
-          <h2
+          <div
             className="
-              text-lg
-              font-semibold
+              space-y-4
             "
           >
 
-            Workspace
 
-          </h2>
-
-
-
-          <div>
-
-            <p
+            <h3
               className="
                 text-sm
-                text-[var(--wb-text-muted)]
+                font-semibold
+                text-[var(--wood-muted)]
               "
             >
 
-              Järjestelmä
+              Workspace
 
-            </p>
+            </h3>
 
 
-            <p
-              className="
-                mt-1
-                text-[var(--wb-text)]
-              "
-            >
 
-              Wood-Booster OS
+            <div>
 
-            </p>
+              <p
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Järjestelmä
+
+              </p>
+
+
+              <p
+                className="
+                  mt-1
+                  text-[var(--wood-text)]
+                "
+              >
+
+                Wood-Booster OS
+
+              </p>
+
+
+            </div>
+
+
+            <div>
+
+              <p
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Käyttötila
+
+              </p>
+
+
+              <p
+                className="
+                  mt-1
+                  text-[var(--wood-text)]
+                "
+              >
+
+                Local Workspace
+
+              </p>
+
+
+            </div>
+
+
+            <div>
+
+              <p
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Interface
+
+              </p>
+
+
+              <p
+                className="
+                  mt-1
+                  text-[var(--wood-text)]
+                "
+              >
+
+                Minimal Natural Theme
+
+              </p>
+
+
+            </div>
 
 
           </div>
@@ -1224,61 +1296,112 @@ function Settings() {
 
 
 
-          <div>
+          <div
+            className="
+              space-y-4
+            "
+          >
 
-            <p
+
+            <h3
               className="
                 text-sm
-                text-[var(--wb-text-muted)]
+                font-semibold
+                text-[var(--wood-muted)]
               "
             >
 
-              Käyttötila
+              System
 
-            </p>
-
-
-            <p
-              className="
-                mt-1
-                text-[var(--wb-text)]
-              "
-            >
-
-              Local Workspace
-
-            </p>
-
-
-          </div>
+            </h3>
 
 
 
+            <div>
 
-          <div>
+              <p
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
 
-            <p
-              className="
-                text-sm
-                text-[var(--wb-text-muted)]
-              "
-            >
+                Frontend
 
-              Interface
-
-            </p>
+              </p>
 
 
-            <p
-              className="
-                mt-1
-                text-[var(--wb-text)]
-              "
-            >
+              <p
+                className="
+                  mt-1
+                  text-[var(--wood-text)]
+                "
+              >
 
-              Minimal Natural Theme
+                React Workspace
 
-            </p>
+              </p>
+
+
+            </div>
+
+
+            <div>
+
+              <p
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                AI Layer
+
+              </p>
+
+
+              <p
+                className="
+                  mt-1
+                  text-[var(--wood-text)]
+                "
+              >
+
+                Spacemonkey
+
+              </p>
+
+
+            </div>
+
+
+            <div>
+
+              <p
+                className="
+                  text-sm
+                  text-[var(--wood-muted)]
+                "
+              >
+
+                Storage
+
+              </p>
+
+
+              <p
+                className="
+                  mt-1
+                  text-[var(--wood-text)]
+                "
+              >
+
+                Local Data
+
+              </p>
+
+
+            </div>
 
 
           </div>
@@ -1289,150 +1412,18 @@ function Settings() {
 
 
 
-        <div
+        <h3
           className="
-            panel
-            space-y-5
-          "
-        >
-
-
-          <h2
-            className="
-              text-lg
-              font-semibold
-            "
-          >
-
-            System
-
-          </h2>
-
-
-
-
-          <div>
-
-            <p
-              className="
-                text-sm
-                text-[var(--wb-text-muted)]
-              "
-            >
-
-              Frontend
-
-            </p>
-
-
-            <p
-              className="
-                mt-1
-                text-[var(--wb-text)]
-              "
-            >
-
-              React Workspace
-
-            </p>
-
-
-          </div>
-
-
-
-
-
-          <div>
-
-            <p
-              className="
-                text-sm
-                text-[var(--wb-text-muted)]
-              "
-            >
-
-              AI Layer
-
-            </p>
-
-
-            <p
-              className="
-                mt-1
-                text-[var(--wb-text)]
-              "
-            >
-
-              Spacemonkey
-
-            </p>
-
-
-          </div>
-
-
-
-
-
-          <div>
-
-            <p
-              className="
-                text-sm
-                text-[var(--wb-text-muted)]
-              "
-            >
-
-              Storage
-
-            </p>
-
-
-            <p
-              className="
-                mt-1
-                text-[var(--wb-text)]
-              "
-            >
-
-              Local Data
-
-            </p>
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-
-      </section>
-
-
-
-
-      <section
-        className="
-          panel
-        "
-      >
-
-
-        <h2
-          className="
-            text-lg
+            mt-8
+            text-sm
             font-semibold
+            text-[var(--wood-muted)]
           "
         >
 
           Wood-Booster Identity
 
-        </h2>
-
+        </h3>
 
 
         <p
@@ -1440,7 +1431,7 @@ function Settings() {
             mt-3
             text-sm
             leading-6
-            text-[var(--wb-text-muted)]
+            text-[var(--wood-muted)]
           "
         >
 
@@ -1453,29 +1444,19 @@ function Settings() {
 
 
 
-      </section>
 
-
-
-
-      <section
-        className="
-          panel
-        "
-      >
-
-
-        <h2
+        <h3
           className="
-            text-lg
+            mt-8
+            text-sm
             font-semibold
+            text-[var(--wood-muted)]
           "
         >
 
           Future Modules
 
-        </h2>
-
+        </h3>
 
 
         <div
@@ -1490,8 +1471,8 @@ function Settings() {
             className="
               rounded-xl
               border
-              border-[var(--wb-grey-dark)]
-              bg-[var(--wb-surface)]
+              border-[var(--wood-border)]
+              bg-[var(--wood-card)]
               p-4
             "
           >
@@ -1499,7 +1480,7 @@ function Settings() {
             <p
               className="
                 text-sm
-                text-[var(--wb-text)]
+                text-[var(--wood-text)]
               "
             >
 
@@ -1511,7 +1492,7 @@ function Settings() {
               className="
                 mt-1
                 text-sm
-                text-[var(--wb-text-muted)]
+                text-[var(--wood-muted)]
               "
             >
 
@@ -1523,14 +1504,12 @@ function Settings() {
           </div>
 
 
-
-
           <div
             className="
               rounded-xl
               border
-              border-[var(--wb-grey-dark)]
-              bg-[var(--wb-surface)]
+              border-[var(--wood-border)]
+              bg-[var(--wood-card)]
               p-4
             "
           >
@@ -1538,7 +1517,7 @@ function Settings() {
             <p
               className="
                 text-sm
-                text-[var(--wb-text)]
+                text-[var(--wood-text)]
               "
             >
 
@@ -1550,7 +1529,7 @@ function Settings() {
               className="
                 mt-1
                 text-sm
-                text-[var(--wb-text-muted)]
+                text-[var(--wood-muted)]
               "
             >
 
@@ -1562,11 +1541,10 @@ function Settings() {
           </div>
 
 
-
         </div>
 
 
-      </section>
+      </CollapsibleSection>
 
 
 

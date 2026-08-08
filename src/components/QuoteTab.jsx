@@ -359,6 +359,48 @@ function QuoteTab({
 
 
 
+  async function updateQuoteStatus(
+    status
+  ) {
+
+
+    try {
+
+      const data =
+        await apiPut(
+          `/projects/${project.id}/quote/status`,
+          {
+
+            status,
+
+          }
+        )
+
+
+      setQuoteMeta(
+        data.quote
+      )
+
+    } catch(statusError) {
+
+      console.error(
+        "Tarjouksen tilan päivittäminen epäonnistui:",
+        statusError,
+      )
+
+
+      setError(
+        statusError.message
+      )
+
+    }
+
+
+  }
+
+
+
+
   async function importMaterials() {
 
 
@@ -801,6 +843,83 @@ function QuoteTab({
         >
           Kokoa tarjous, tuo materiaalit ja tulosta asiakkaalle.
         </p>
+
+
+        {
+          quoteMeta && (
+
+            <div
+              className="
+                mt-5
+                flex
+                flex-wrap
+                items-center
+                gap-3
+              "
+            >
+
+              <span
+                className={`
+                  text-sm
+                  font-medium
+                  ${
+                    quoteMeta.status === "Hyväksytty"
+                      ? "text-green-400"
+                      : quoteMeta.status === "Hylätty"
+                        ? "text-red-400"
+                        : "text-[var(--wood-muted)]"
+                  }
+                `}
+              >
+                Tila: {quoteMeta.status}
+              </span>
+
+
+              {
+                [
+                  "Avoin",
+                  "Hyväksytty",
+                  "Hylätty",
+                ].map(
+                  status => (
+
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() =>
+                        updateQuoteStatus(status)
+                      }
+                      disabled={
+                        quoteMeta.status === status
+                      }
+                      className={`
+                        rounded-lg
+                        border
+                        px-3
+                        py-1
+                        text-xs
+                        transition
+                        hover:opacity-90
+                        disabled:cursor-not-allowed
+                        disabled:opacity-50
+                        ${
+                          quoteMeta.status === status
+                            ? "border-[var(--wood-accent)] text-[var(--wood-accent)]"
+                            : "border-[var(--wood-border)] text-[var(--wood-muted)]"
+                        }
+                      `}
+                    >
+                      {status}
+                    </button>
+
+                  )
+                )
+              }
+
+            </div>
+
+          )
+        }
 
 
         {

@@ -58,6 +58,13 @@ const groups = [
 
 
       {
+        label: "Tarjoukset",
+        path: "/quotes",
+        icon: "▧"
+      },
+
+
+      {
         label: "Laskut",
         path: "/invoices",
         icon: "▥"
@@ -116,27 +123,6 @@ const groups = [
     title: "AI TYÖTILA",
 
     items: [
-
-      {
-        label: "Capabilities",
-        path: "/capabilities",
-        icon: "⚡"
-      },
-
-
-      {
-        label: "Execution",
-        path: "/execution",
-        icon: "▶"
-      },
-
-
-      {
-        label: "System Center",
-        path: "/system-center",
-        icon: "⊞"
-      },
-
 
       {
         label: "Tools",

@@ -1145,58 +1145,36 @@ function Knowledge() {
 
 
 
-                    <p className="mt-3 text-sm text-[var(--wood-muted)]">
-                      {document.topic || "Yleinen"}
-                    </p>
+                    {
+                      (document.folder || document.alwaysUse) && (
+
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+
+                          {
+                            document.folder && (
+
+                              <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
+                                ▣ {document.folder}
+                              </span>
+
+                            )
+                          }
 
 
+                          {
+                            document.alwaysUse && (
 
-                    <p className="mt-4 line-clamp-3 text-sm">
-                      {document.content}
-                    </p>
+                              <span className="rounded-full bg-[var(--wood-accent)]/10 px-3 py-1 text-xs text-[var(--wood-accent)]">
+                                CORE
+                              </span>
 
+                            )
+                          }
 
+                        </div>
 
-                    <div className="mt-5 flex flex-wrap items-center gap-2">
-
-                      {
-                        document.folder && (
-
-                          <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
-                            ▣ {document.folder}
-                          </span>
-
-                        )
-                      }
-
-
-                      {
-                        document.author && (
-
-                          <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
-                            {document.author}
-                          </span>
-
-                        )
-                      }
-
-
-                      <span className="rounded-full bg-[var(--wood-card)] px-3 py-1 text-xs text-[var(--wood-muted)]">
-                        {document._count?.chunks || 0} katkelmaa
-                      </span>
-
-
-                      {
-                        document.alwaysUse && (
-
-                          <span className="rounded-full bg-[var(--wood-accent)]/10 px-3 py-1 text-xs text-[var(--wood-accent)]">
-                            CORE
-                          </span>
-
-                        )
-                      }
-
-                    </div>
+                      )
+                    }
 
 
                   </Link>

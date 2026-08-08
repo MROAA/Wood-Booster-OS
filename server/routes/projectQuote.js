@@ -65,6 +65,51 @@ function generateQuoteNumber(
 }
 
 
+const QUOTE_STATUSES =
+  [
+    "Avoin",
+    "Hyväksytty",
+    "Hylätty",
+  ]
+
+
+function computeQuoteTotal(
+  quote
+) {
+
+  const materialsSubtotal =
+    (quote.lineItems || []).reduce(
+
+      (total, item) =>
+        total +
+        (
+          Number(item.quantity) *
+          Number(item.unitPrice)
+        ),
+
+      0,
+
+    )
+
+
+  const netTotal =
+    materialsSubtotal +
+    Number(quote.laborCost) +
+    Number(quote.otherCosts)
+
+
+  const effectivePrice =
+    quote.customPrice !== null &&
+    quote.customPrice !== undefined
+      ? Number(quote.customPrice)
+      : netTotal
+
+
+  return effectivePrice
+
+}
+
+
 function parseQuoteScalars(
   body,
   businessSettings
@@ -1267,6 +1312,264 @@ export default function createProjectQuoteRouter(
 
           error:
             "Materiaalien tuominen epäonnistui.",
+
+        })
+
+      }
+
+    },
+  )
+
+
+
+  /*
+   * PUT /api/projects/:id/quote/status
+   *
+   * Asettaa tarjouksen tilan (Avoin/Hyväksytty/Hylätty).
+   */
+  router.put(
+    "/projects/:id/quote/status",
+    async (request, response) => {
+
+      const projectId =
+        Number(request.params.id)
+
+
+      if (
+        !Number.isInteger(projectId) ||
+        projectId <= 0
+      ) {
+
+        return response
+          .status(400)
+          .json({
+
+            success: false,
+
+            error:
+              "Virheellinen projektin ID.",
+
+          })
+
+      }
+
+
+      const {
+        status,
+      } =
+        request.body
+
+
+      if (
+        !QUOTE_STATUSES.includes(status)
+      ) {
+
+        return response
+          .status(400)
+          .json({
+
+            success: false,
+
+            error:
+              "Virheellinen tarjouksen tila.",
+
+          })
+
+      }
+
+
+      try {
+
+        const existingQuote =
+          await prisma.quote.findUnique({
+
+            where: {
+              projectId,
+            },
+
+          })
+
+
+        if (!existingQuote) {
+
+          return response
+            .status(404)
+            .json({
+
+              success: false,
+
+              error:
+                "Tarjousta ei löytynyt.",
+
+            })
+
+        }
+
+
+        const quote =
+          await prisma.quote.update({
+
+            where: {
+              projectId,
+            },
+
+            data: {
+
+              status,
+
+            },
+
+          })
+
+
+        response.json({
+
+          success: true,
+
+          quote,
+
+        })
+
+      } catch (error) {
+
+        console.error(
+          "Project quote status PUT error:",
+          error,
+        )
+
+
+        response.status(500).json({
+
+          success: false,
+
+          error:
+            "Tarjouksen tilan päivittäminen epäonnistui.",
+
+        })
+
+      }
+
+    },
+  )
+
+
+
+  /*
+   * GET /api/quotes
+   *
+   * Kaikki tarjoukset yli projektien, tuoreimmat ensin.
+   */
+  router.get(
+    "/quotes",
+    async (request, response) => {
+
+      try {
+
+        const quotes =
+          await prisma.quote.findMany({
+
+            include: {
+
+              project: {
+
+                include: {
+
+                  customer: true,
+
+                },
+
+              },
+
+              lineItems: true,
+
+            },
+
+            orderBy: {
+              createdAt: "desc",
+            },
+
+          })
+
+
+        const result =
+          quotes.map(
+            quote => {
+
+              const expiresAt =
+                new Date(
+                  quote.createdAt.getTime() +
+                  quote.validDays * 24 * 60 * 60 * 1000
+                )
+
+
+              return {
+
+                id:
+                  quote.id,
+
+                quoteNumber:
+                  quote.quoteNumber,
+
+                status:
+                  quote.status,
+
+                projectId:
+                  quote.projectId,
+
+                projectName:
+                  quote.project?.name ||
+                  "",
+
+                customerName:
+                  quote.project?.customer?.name ||
+                  "",
+
+                customerCompany:
+                  quote.project?.customer?.company ||
+                  "",
+
+                createdAt:
+                  quote.createdAt,
+
+                validDays:
+                  quote.validDays,
+
+                expiresAt,
+
+                total:
+                  computeQuoteTotal(
+                    quote
+                  ),
+
+              }
+
+            }
+          )
+
+
+        response.json({
+
+          success: true,
+
+          quotes:
+            result,
+
+        })
+
+      } catch (error) {
+
+        console.error(
+          "Quotes GET error:",
+          error,
+        )
+
+
+        response.status(500).json({
+
+          success: false,
+
+          error:
+            "Tarjousten haku epäonnistui.",
 
         })
 

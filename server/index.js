@@ -76,6 +76,7 @@ import {
   runSpacemonkeyServerIntegration,
 } from "./services/spacemonkey/spacemonkeyServerIntegrationRunner.js"
 import systemPulseRouter from "./routes/systemPulse.js"
+import systemInstallerRouter from "./routes/systemInstaller.js"
 import {
   createSpacemonkeyAgentSystemRouter,
 } from "./routes/spacemonkeyAgentSystem.js"
@@ -236,6 +237,10 @@ const PORT =
  app.use(
   "/api",
   createSpacemonkeyApprovalGatewayRouter()
+)
+app.use(
+    "/api",
+    systemInstallerRouter
 )
 app.use(
   "/api",

@@ -24,6 +24,10 @@ import QuoteTab from "./QuoteTab"
 import InvoiceTab from "./InvoiceTab"
 
 import FilesTab from "./project/FilesTab"
+import MediaStudioTab from "./MediaStudioTab"
+import SocialStudioTab from "./SocialStudioTab"
+
+import ProjectStatusSummary from "./ProjectStatusSummary"
 
 
 import {
@@ -61,6 +65,18 @@ const secondaryTabs = [
     id: "gallery",
     label: "Gallery",
     icon: "▧",
+  },
+
+  {
+    id: "media-studio",
+    label: "Media Studio",
+    icon: "◨",
+  },
+
+  {
+    id: "social",
+    label: "Somejulkaisu",
+    icon: "◎",
   },
 
   {
@@ -137,6 +153,12 @@ function ProjectTabs({
   )
 
 
+  const [
+    expandedSection,
+    setExpandedSection,
+  ] = useState(null)
+
+
 
 
   useEffect(() => {
@@ -180,6 +202,14 @@ function ProjectTabs({
       if(!requested || requested === "edit") {
 
         setActiveSecondaryTab(
+          null
+        )
+
+        setExpandedSection(
+          requested === "edit"
+          ?
+          "edit"
+          :
           null
         )
 
@@ -359,6 +389,36 @@ function ProjectTabs({
         return (
 
           <GalleryTab
+
+            projectId={
+              project.id
+            }
+
+          />
+
+        )
+
+
+      case "media-studio":
+
+        return (
+
+          <MediaStudioTab
+
+            projectId={
+              project.id
+            }
+
+          />
+
+        )
+
+
+      case "social":
+
+        return (
+
+          <SocialStudioTab
 
             projectId={
               project.id
@@ -675,52 +735,73 @@ function ProjectTabs({
           :
           (
 
-            <div
-              className="
-                space-y-6
-              "
-            >
+            <ProjectStatusSummary
 
-              <WorkflowTab
+              projectId={
+                project.id
+              }
 
-                projectId={
-                  project.id
-                }
+              expandedSection={
+                expandedSection
+              }
 
-              />
+              onExpandedSectionChange={
+                setExpandedSection
+              }
 
+              workflowContent={
 
-              <MaterialsTab
+                <WorkflowTab
 
-                projectId={
-                  project.id
-                }
+                  projectId={
+                    project.id
+                  }
 
-              />
+                />
 
+              }
 
-              <NotesTab
+              materialsContent={
 
-                projectId={
-                  project.id
-                }
+                <MaterialsTab
 
-              />
+                  projectId={
+                    project.id
+                  }
 
+                />
 
-              <ProjectEditor
+              }
 
-                project={
-                  project
-                }
+              notesContent={
 
-                onProjectUpdated={
-                  onProjectUpdated
-                }
+                <NotesTab
 
-              />
+                  projectId={
+                    project.id
+                  }
 
-            </div>
+                />
+
+              }
+
+              editContent={
+
+                <ProjectEditor
+
+                  project={
+                    project
+                  }
+
+                  onProjectUpdated={
+                    onProjectUpdated
+                  }
+
+                />
+
+              }
+
+            />
 
           )
 

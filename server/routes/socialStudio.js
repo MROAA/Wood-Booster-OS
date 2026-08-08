@@ -1,6 +1,9 @@
 import express from "express"
 
-import { generateSocialDraft } from "../services/socialContentGenerator.js"
+import {
+  generateSocialDraft,
+  PLATFORMS,
+} from "../services/socialContentGenerator.js"
 
 import {
   getSpacemonkeyToolBus,
@@ -24,6 +27,10 @@ export default function createSocialStudioRouter(prisma) {
       try {
         const projectId = Number(request.params.id)
 
+        const platform = PLATFORMS.includes(request.body?.platform)
+          ? request.body.platform
+          : "instagram"
+
         const project = await prisma.project.findUnique({
           where: {
             id: projectId,
@@ -42,6 +49,7 @@ export default function createSocialStudioRouter(prisma) {
 
         const generated = await generateSocialDraft({
           project,
+          platform,
         })
 
         const draft = await prisma.socialPostDraft.create({
@@ -49,7 +57,7 @@ export default function createSocialStudioRouter(prisma) {
             projectId,
             caption: generated.caption,
             hashtags: generated.hashtags,
-            platform: "instagram",
+            platform,
             status: "draft",
           },
         })

@@ -25,8 +25,9 @@ Ei:
 import {
     getSystemPulse,
 } from "./systemPulseService.js"
-
-
+import {
+getInstallerManager,
+} from "../../../systemInstaller/installerManager.js"
 
 import {
     getInstallerHealth,
@@ -42,9 +43,12 @@ async function getSystemPulseSummary(){
 
 
 
-    const installer =
-        getInstallerHealth()
+const installer =
+    getInstallerHealth()
 
+
+const installerManager =
+    getInstallerManager()
 
 
     const capability =
@@ -117,9 +121,16 @@ async function getSystemPulseSummary(){
 
 
 
-            installer,
+installer: {
+
+    health:
+        installer,
 
 
+    manager:
+        installerManager,
+
+},
 
             healthScore: {
 

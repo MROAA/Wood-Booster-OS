@@ -54,7 +54,6 @@ function StatBlock({ label, value }) {
 function DashboardSummary() {
 
   const [summary, setSummary] = useState(null)
-  const [upcomingDeadlines, setUpcomingDeadlines] = useState([])
   const [todayTasks, setTodayTasks] = useState([])
   const [reminders, setReminders] = useState([])
 
@@ -83,7 +82,6 @@ function DashboardSummary() {
       }
 
       setSummary(dashboardData.summary)
-      setUpcomingDeadlines(dashboardData.upcomingDeadlines || [])
       setTodayTasks(dashboardData.todayTasks || [])
       setReminders(remindersData.reminders || [])
 
@@ -176,8 +174,6 @@ function DashboardSummary() {
   }
 
 
-  const nextDeadline = upcomingDeadlines[0]
-
   const visibleReminders = reminders.slice(0, 5)
 
   async function handleMarkDone(task) {
@@ -268,24 +264,6 @@ function DashboardSummary() {
         )}
 
       </div>
-
-
-      {nextDeadline && (
-        <div className="card p-4">
-          <p className="text-xs uppercase tracking-wider text-[var(--wood-muted)]">
-            Seuraava deadline
-          </p>
-
-          <Link
-            to={`/projects/${nextDeadline.id}`}
-            className="mt-2 block text-lg font-medium text-[var(--wood-accent)] hover:opacity-90"
-          >
-            {nextDeadline.name}
-            {" — "}
-            {formatDate(nextDeadline.deadline)}
-          </Link>
-        </div>
-      )}
 
 
       <div className="card p-4">

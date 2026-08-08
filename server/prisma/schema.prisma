@@ -161,6 +161,8 @@ model Quote {
 
   quoteNumber String
 
+  status String @default("Avoin")
+
   validDays Int @default(14)
 
   paymentTerms String @default("14 pv netto")

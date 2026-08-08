@@ -15,6 +15,7 @@ import CustomerDetails from "./pages/CustomerDetails"
 import Inventory from "./pages/Inventory"
 import Purchases from "./pages/Purchases"
 import Invoices from "./pages/Invoices"
+import Quotes from "./pages/Quotes"
 import Knowledge from "./pages/Knowledge"
 import KnowledgeDocumentDetails from "./pages/KnowledgeDocumentDetails"
 import Memory from "./pages/Memory"
@@ -22,6 +23,7 @@ import Agents from "./pages/Agents"
 import Settings from "./pages/Settings"
 import SystemPulse from "./pages/SystemPulse"
 import SpacemonkeyBrain from "./pages/SpacemonkeyBrain"
+import SpacemonkeyPersona from "./pages/SpacemonkeyPersona"
 import AIBrain from "./pages/AIBrain"
 import AIChat from "./pages/AIChat"
 import AIGenerator from "./pages/AIGenerator"
@@ -123,6 +125,15 @@ function App() {
 
 
         <Route
+          path="/quotes"
+          element={
+            <Quotes />
+          }
+        />
+
+
+
+        <Route
           path="/knowledge"
           element={
             <Knowledge />
@@ -169,6 +180,13 @@ function App() {
 
         <Route
           path="/spacemonkey-brain"
+          element={
+            <SpacemonkeyPersona />
+          }
+        />
+
+        <Route
+          path="/spacemonkey-diagnostics"
           element={
             <SpacemonkeyBrain />
           }

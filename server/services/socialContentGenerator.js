@@ -30,16 +30,52 @@ function loadToneOfVoice() {
   return cachedToneOfVoice
 }
 
-function buildSystemPrompt() {
+export const PLATFORMS = ["instagram", "facebook", "linkedin"]
+
+const DEFAULT_PLATFORM = "instagram"
+
+const PLATFORM_SPECS = {
+  instagram: {
+    label: "Instagram",
+    instructions:
+      "Kirjoita Instagram-julkaisuteksti valmistuneesta " +
+      "puutyöprojektista. Kuvateksti 2-4 lausetta, rento mutta " +
+      "asiantunteva sävy. 8-12 hashtagia.",
+  },
+
+  facebook: {
+    label: "Facebook",
+    instructions:
+      "Kirjoita Facebook-julkaisuteksti valmistuneesta " +
+      "puutyöprojektista. Kuvateksti saa olla pidempi ja " +
+      "jutusteleva (4-6 lausetta) kuin Instagramissa - Facebookin " +
+      "yleisö lukee mielellään taustatarinaa. Korkeintaan 3 " +
+      "hashtagia, koska ne eivät ole Facebookissa yhtä oleellisia.",
+  },
+
+  linkedin: {
+    label: "LinkedIn",
+    instructions:
+      "Kirjoita LinkedIn-julkaisuteksti valmistuneesta " +
+      "puutyöprojektista. Sävy ammattimaisempi ja liiketoiminta- " +
+      "painotteinen kuin Instagramissa/Facebookissa - painota " +
+      "käsityötaitoa, laatua ja asiakastyötä, ei some-fiilistä. " +
+      "3-5 lausetta, 3-5 asiallista hashtagia " +
+      "(esim. #puuseppä #käsityöyrittäjä #suomalainenkäsityö).",
+  },
+}
+
+function buildSystemPrompt(platform) {
+  const spec = PLATFORM_SPECS[platform] || PLATFORM_SPECS[DEFAULT_PLATFORM]
+
   return (
     loadToneOfVoice() +
     "\n\n---\n\n" +
-    "TEHTÄVÄ: Kirjoita Instagram-julkaisuteksti valmistuneesta " +
-    "puutyöprojektista yllä olevan äänensävyn mukaisesti. " +
+    `TEHTÄVÄ: ${spec.instructions} ` +
     "Vastaa TARKALLEEN tässä muodossa, kahdella rivillä:\n" +
-    "KUVATEKSTI: <kuvateksti, 2-4 lausetta>\n" +
-    "HASHTAGIT: <8-12 hashtagia välilyönnillä eroteltuna, " +
-    "esim. #puuseppä #käsityö>\n" +
+    "KUVATEKSTI: <kuvateksti>\n" +
+    "HASHTAGIT: <hashtagit välilyönnillä eroteltuna, tai tyhjä " +
+    "jos niitä ei pyydetty>\n" +
     "Älä käytä ylisanoja (\"vallankumouksellinen\", " +
     "\"ainutlaatuinen\", \"täydellinen\"). " +
     "Älä keksi tietoja joita ei ole annettu."
@@ -87,7 +123,7 @@ function parseGeneratedText(text) {
   }
 }
 
-async function askOllama({ model, message }) {
+async function askOllama({ model, message, platform }) {
   const response = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: "POST",
     headers: {
@@ -99,7 +135,7 @@ async function askOllama({ model, message }) {
       messages: [
         {
           role: "system",
-          content: buildSystemPrompt(),
+          content: buildSystemPrompt(platform),
         },
         {
           role: "user",
@@ -131,10 +167,12 @@ async function askOllama({ model, message }) {
  */
 export async function generateSocialDraft({
   project,
+  platform = DEFAULT_PLATFORM,
   model = DEFAULT_MODEL,
 }) {
   const rawText = await askOllama({
     model,
+    platform,
     message: buildUserMessage(project),
   })
 

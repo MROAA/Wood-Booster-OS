@@ -19,6 +19,37 @@ const FILE_URL =
 const GALLERY_CATEGORY =
   "Kuvat"
 
+const VIDEO_CATEGORY =
+  "Video"
+
+const GALLERY_CATEGORIES =
+  [
+    GALLERY_CATEGORY,
+    VIDEO_CATEGORY,
+  ]
+
+function categoryForFile(
+  file
+) {
+
+  return file.type.startsWith("video/")
+    ?
+    VIDEO_CATEGORY
+    :
+    GALLERY_CATEGORY
+
+}
+
+function isVideoFile(
+  image
+) {
+
+  return Boolean(
+    image.mimeType?.startsWith("video/")
+  )
+
+}
+
 
 
 function GalleryTab({
@@ -127,7 +158,9 @@ function GalleryTab({
         setImages(
           files.filter(
             file =>
-              file.category === GALLERY_CATEGORY
+              GALLERY_CATEGORIES.includes(
+                file.category
+              )
           )
         )
 
@@ -204,7 +237,8 @@ function GalleryTab({
         event.target.files || []
       ).filter(
         file =>
-          file.type.startsWith("image/")
+          file.type.startsWith("image/") ||
+          file.type.startsWith("video/")
       )
 
 
@@ -246,7 +280,9 @@ function GalleryTab({
 
         formData.append(
           "category",
-          GALLERY_CATEGORY
+          categoryForFile(
+            file
+          )
         )
 
 
@@ -326,7 +362,7 @@ function GalleryTab({
 
     const shouldDelete =
       window.confirm(
-        "Poistetaanko tämä kuva projektista?"
+        "Poistetaanko tämä tiedosto projektista?"
       )
 
 
@@ -415,6 +451,16 @@ function GalleryTab({
 
 
 
+  function thumbnailUrl(
+    image
+  ) {
+
+    return `${FILE_URL}/projects/${projectId}/${image.storedName}.thumb.jpg`
+
+  }
+
+
+
 
   return (
 
@@ -459,7 +505,7 @@ function GalleryTab({
                 font-semibold
               "
             >
-              Projektin kuvat
+              Kuvat ja videot
             </h2>
 
 
@@ -470,7 +516,7 @@ function GalleryTab({
               "
             >
               Tallenna työvaiheet,
-              luonnokset ja valmiit kuvat.
+              luonnokset ja valmiit kuvat ja videot.
             </p>
 
 
@@ -504,7 +550,7 @@ function GalleryTab({
               ?
               "Ladataan..."
               :
-              "+ Lisää kuvia"
+              "+ Lisää kuvia/videoita"
             }
 
           </button>
@@ -519,7 +565,7 @@ function GalleryTab({
 
             type="file"
 
-            accept="image/*"
+            accept="image/*,video/*"
 
             multiple
 
@@ -628,7 +674,7 @@ function GalleryTab({
                   font-semibold
                 "
               >
-                Ei kuvia vielä
+                Ei kuvia tai videoita vielä
               </span>
 
 
@@ -641,7 +687,7 @@ function GalleryTab({
                   text-[var(--wood-muted)]
                 "
               >
-                Lisää ensimmäinen kuva projektiin.
+                Lisää ensimmäinen kuva tai video projektiin.
               </span>
 
 
@@ -700,24 +746,56 @@ function GalleryTab({
 
                       >
 
-                        <img
+                        {
+                          isVideoFile(image)
+                          ?
+                          (
 
-                          src={
-                            imageUrl(image)
-                          }
+                            <video
 
-                          alt={
-                            image.originalName ||
-                            "Projektin kuva"
-                          }
+                              src={
+                                imageUrl(image)
+                              }
 
-                          className="
-                            aspect-square
-                            w-full
-                            object-cover
-                          "
+                              poster={
+                                thumbnailUrl(image)
+                              }
 
-                        />
+                              muted
+
+                              className="
+                                aspect-square
+                                w-full
+                                object-cover
+                              "
+
+                            />
+
+                          )
+                          :
+                          (
+
+                            <img
+
+                              src={
+                                imageUrl(image)
+                              }
+
+                              alt={
+                                image.originalName ||
+                                "Projektin kuva"
+                              }
+
+                              className="
+                                aspect-square
+                                w-full
+                                object-cover
+                              "
+
+                            />
+
+                          )
+                        }
 
                       </button>
 
@@ -962,23 +1040,57 @@ function GalleryTab({
                 "
               >
 
-                <img
+                {
+                  isVideoFile(selectedImage)
+                  ?
+                  (
 
-                  src={
-                    imageUrl(selectedImage)
-                  }
+                    <video
 
-                  alt={
-                    selectedImage.originalName
-                  }
+                      src={
+                        imageUrl(selectedImage)
+                      }
 
-                  className="
-                    max-h-[72vh]
-                    max-w-full
-                    object-contain
-                  "
+                      poster={
+                        thumbnailUrl(selectedImage)
+                      }
 
-                />
+                      controls
+
+                      autoPlay
+
+                      className="
+                        max-h-[72vh]
+                        max-w-full
+                        object-contain
+                      "
+
+                    />
+
+                  )
+                  :
+                  (
+
+                    <img
+
+                      src={
+                        imageUrl(selectedImage)
+                      }
+
+                      alt={
+                        selectedImage.originalName
+                      }
+
+                      className="
+                        max-h-[72vh]
+                        max-w-full
+                        object-contain
+                      "
+
+                    />
+
+                  )
+                }
 
               </div>
 

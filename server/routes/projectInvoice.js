@@ -579,6 +579,22 @@ export default function createProjectInvoiceRouter(
           })
 
 
+        await prisma.quote.update({
+
+          where: {
+            projectId,
+          },
+
+          data: {
+
+            status:
+              "Hyväksytty",
+
+          },
+
+        })
+
+
         response.status(201).json({
 
           success: true,

@@ -282,6 +282,7 @@ export default function createRemindersRouter(
             )
             .filter(
               quote =>
+                quote.status === "Avoin" &&
                 quote.expiresAt.getTime() < now.getTime() &&
                 !quote.project?.invoice
             )
