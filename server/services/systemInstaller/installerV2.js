@@ -17,28 +17,44 @@ Vastuut:
 
 
 import {
-    getInstallerHealth,
+getInstallerHealth,
 } from "./installerHealth.js"
 
 
+
 import {
-    getInstallerManager,
+getInstallerManager,
 } from "./installerManager.js"
 
 
+
 import {
-    getInstallerRuntime,
+getInstallerRuntime,
 } from "./installerRuntime.js"
 
 
+
 import {
-    getInstallerVersion,
+getInstallerVersion,
 } from "./installerVersion.js"
 
 
+
 import {
-    getInstallerSystem,
+getInstallerSystem,
 } from "./installerSystem.js"
+
+
+
+import {
+getInstallerDependencies,
+} from "./installerDependencies.js"
+
+
+
+import {
+getInstallerReport,
+} from "./installerReport.js"
 
 
 
@@ -70,47 +86,84 @@ function getInstallerV2(){
 
 
 
+    const dependencies =
+        getInstallerDependencies()
+
+
+
+    const report =
+        getInstallerReport()
+
+
+
     const score =
-        health.score
-        ||
-        0
+        Math.min(
+            health.score,
+            dependencies.score
+        )
 
 
 
     return {
 
+
         system:
+
             "Wood-Booster OS Installer V2",
 
 
+
         status:
-            health.status,
+
+            score === 100
+                ?
+                "healthy"
+                :
+                "warning",
+
 
 
         score,
 
 
+
         health,
+
 
 
         manager,
 
 
+
         runtime,
+
 
 
         version,
 
 
+
         systemInfo:
+
             system,
 
 
+
+        dependencies,
+
+
+
+        report,
+
+
+
         checkedAt:
+
             new Date()
             .toISOString(),
 
     }
+
 
 }
 
