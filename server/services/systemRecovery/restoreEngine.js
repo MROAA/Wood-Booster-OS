@@ -9,6 +9,7 @@ Vastuut:
 - valmistelee palautuksen
 - varmistaa palautuksen ehdot
 - yhdistää Restore Adapterin
+- kirjaa restore audit tapahtumat
 
 Ei:
 
@@ -21,6 +22,11 @@ Ei:
 import {
 prepareRestoreExecution,
 } from "./restoreAdapter.js"
+
+
+import {
+recordRestoreEvent,
+} from "./restoreAudit.js"
 
 
 
@@ -158,7 +164,6 @@ new Date()
 
 
 
-
 export function executeRestore(
 {
 approval,
@@ -207,6 +212,32 @@ approval
 
 
 
+const audit =
+recordRestoreEvent({
+
+event:
+"restore-prepared",
+
+snapshot:
+approval.snapshot,
+
+status:
+"prepared",
+
+operator:
+"Marc",
+
+metadata:{
+
+source:
+"Restore Engine"
+
+}
+
+})
+
+
+
 const adapterResult =
 prepareRestoreExecution({
 
@@ -240,6 +271,8 @@ restorePlan,
 
 adapter:
 adapterResult,
+
+audit,
 
 rollbackAvailable:
 true,
