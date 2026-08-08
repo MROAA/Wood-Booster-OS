@@ -51,6 +51,11 @@ installer.snapshotRestorePlan
 
 
 
+const snapshotRestoreApproval =
+installer.snapshotRestoreApproval
+
+
+
 const latestSnapshot =
 snapshotHistory?.latest
 
@@ -450,17 +455,85 @@ key={step}
 
 
 
+<h3
+className="
+pt-3
+border-t
+border-[var(--wood-border)]
+"
+>
+Restore Approval
+</h3>
+
+
+
 <StatusGlow
-label="Restore"
+label="Approval"
 value={
-snapshotRestorePlan?.requiresConfirmation
+snapshotRestoreApproval?.status
+||
+"-"
+}
+status={
+snapshotRestoreApproval?.status === "approved"
 ?
-"Confirmation required"
+"healthy"
+:
+"warning"
+}
+/>
+
+
+
+<div>
+
+Confirmation:
+
+{" "}
+
+{
+snapshotRestoreApproval?.requiresConfirmation
+?
+"required"
 :
 "-"
 }
-status="warning"
-/>
+
+</div>
+
+
+
+<div>
+
+Can Restore:
+
+{" "}
+
+{
+snapshotRestoreApproval?.canRestore
+?
+"true"
+:
+"false"
+}
+
+</div>
+
+
+
+<div>
+
+Audit:
+
+{" "}
+
+{
+snapshotRestoreApproval?.audit?.event
+||
+"-"
+}
+
+</div>
 
 
 
