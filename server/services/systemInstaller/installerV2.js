@@ -12,6 +12,7 @@ Vastuut:
 - yhdistää Recovery valmiuden
 - yhdistää Snapshot tilan
 - yhdistää Snapshot Engine tilan
+- yhdistää Snapshot Historian
 
 Ei:
 
@@ -83,6 +84,12 @@ import {
 
 
 
+import {
+    getInstallerSnapshotHistory,
+} from "./installerSnapshotHistory.js"
+
+
+
 function getInstallerV2(){
 
 
@@ -128,6 +135,11 @@ function getInstallerV2(){
 
     const snapshotEngine =
         getSnapshotEngine()
+
+
+
+    const snapshotHistory =
+        getInstallerSnapshotHistory()
 
 
 
@@ -203,6 +215,10 @@ function getInstallerV2(){
 
 
         snapshotEngine,
+
+
+
+        snapshotHistory,
 
 
 
