@@ -10,6 +10,7 @@ export const MainDashboard = () => {
 
   const [backupStatus, setBackupStatus] = useState('pending');
   const [backupMessage, setBackupMessage] = useState('Ladataan...');
+  const [changeCount, setChangeCount] = useState(0);
 
   const [chatMessages, setChatMessages] = useState([
     { sender: 'HQ System', text: 'Moduulit ladattu. Valmiina.', avatar: 'https://api.iconify.design/lucide:terminal.svg' },
@@ -31,6 +32,8 @@ export const MainDashboard = () => {
           return;
         }
 
+        setChangeCount(data.changes || 0);
+
         if (data.security?.safe === false) {
           setBackupStatus('error');
           setBackupMessage('Turvallisuusriski havaittu - varmuuskopiointi estetty');
@@ -39,7 +42,7 @@ export const MainDashboard = () => {
           setBackupMessage('Vakaa - kaikki varmuuskopioitu');
         } else {
           setBackupStatus('pending');
-          setBackupMessage(`${data.changes} tallentamatonta muutosta`);
+          setBackupMessage('Tallentamaton');
         }
       })
       .catch((err) => {
@@ -151,7 +154,11 @@ export const MainDashboard = () => {
           <div
             className={`hq-card action-card ${backupStatus}`}
             onClick={handleTriggerBackup}
-            title="Paina tehdäksesi varmuuskopio (Git Guardian)"
+            title={
+              backupStatus === 'pending'
+                ? `${changeCount} tallentamatonta muutosta - paina varmuuskopioidaksesi`
+                : 'Paina tehdäksesi varmuuskopio (Git Guardian)'
+            }
           >
             <span className="card-icon">🛡</span>
             <div>
