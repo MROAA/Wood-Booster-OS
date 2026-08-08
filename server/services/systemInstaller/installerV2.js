@@ -9,6 +9,7 @@ Vastuut:
 
 - yhdistää Installer moduulit
 - muodostaa asennusyhteenvedon
+- yhdistää Recovery valmiuden
 - ei suorita asennuksia
 - ei muuta järjestelmää
 
@@ -17,44 +18,51 @@ Vastuut:
 
 
 import {
-getInstallerHealth,
+    getInstallerHealth,
 } from "./installerHealth.js"
 
 
 
 import {
-getInstallerManager,
+    getInstallerReport,
+} from "./installerReport.js"
+
+
+
+import {
+    getInstallerManager,
 } from "./installerManager.js"
 
 
 
 import {
-getInstallerRuntime,
+    getInstallerRuntime,
 } from "./installerRuntime.js"
 
 
 
 import {
-getInstallerVersion,
+    getInstallerVersion,
 } from "./installerVersion.js"
 
 
 
 import {
-getInstallerSystem,
+    getInstallerSystem,
 } from "./installerSystem.js"
 
 
 
 import {
-getInstallerDependencies,
+    getInstallerDependencies,
 } from "./installerDependencies.js"
 
 
 
 import {
-getInstallerReport,
-} from "./installerReport.js"
+    getInstallerRecovery,
+} from "./installerRecovery.js"
+
 
 
 
@@ -91,12 +99,18 @@ function getInstallerV2(){
 
 
 
+    const recovery =
+        getInstallerRecovery()
+
+
+
     const report =
         getInstallerReport()
 
 
 
     const score =
+
         Math.min(
             health.score,
             dependencies.score
@@ -150,6 +164,10 @@ function getInstallerV2(){
 
 
         dependencies,
+
+
+
+        recovery,
 
 
 

@@ -46,6 +46,11 @@ const report =
 
 
 
+const recovery =
+    installer.recovery
+
+
+
 return (
 
 <section
@@ -148,6 +153,115 @@ return (
 >
 {
     report?.recommendation
+    ||
+    "-"
+}
+</p>
+
+</div>
+
+
+
+<div>
+
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Recovery Status
+</span>
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    recovery?.status
+    ||
+    "-"
+}
+</p>
+
+</div>
+
+
+
+<div>
+
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Recovery Score
+</span>
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    recovery?.score
+    ??
+    0
+}%
+</p>
+
+</div>
+
+
+
+<div>
+
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Install Mode
+</span>
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    manager?.installation?.packageType
+    ||
+    "-"
+}
+</p>
+
+</div>
+
+
+
+<div>
+
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Root
+</span>
+
+<p
+    className="
+        text-xs
+        text-[var(--wood-text)]
+    "
+>
+{
+    manager?.paths?.root
     ||
     "-"
 }
@@ -380,6 +494,75 @@ Object.entries(
 )
 
 }
+
+</div>
+
+
+
+<div
+    className="
+        mt-3
+        space-y-2
+    "
+>
+
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Recovery Checks
+</span>
+
+
+{
+Object.entries(
+    recovery?.checks || {}
+)
+.map(
+([key,value]) => (
+
+<div
+    key={key}
+    className="
+        flex
+        justify-between
+        text-sm
+    "
+>
+
+<span
+    className="
+        text-[var(--wood-muted)]
+    "
+>
+{key}
+</span>
+
+
+<span
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    value.exists
+    ?
+    "✓"
+    :
+    "✗"
+}
+</span>
+
+
+</div>
+
+)
+)
+
+}
+
 
 </div>
 
