@@ -1,42 +1,57 @@
 /* src/components/hq/MainDashboard.css */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-:root {
-  --bg-deep: #0B3B24;          /* Tumma sammaleenvihreä */
-  --bg-sidebar: #072618;       /* Sivupaneelin tummempi sävy */
-  --bg-card: #14532D;          /* Korttien sävy */
-  --text-light: #F0FDF4;       /* Vaalea teksti */
-  --text-muted: #9ca3af;       /* Harmaa aputeksti */
-  --accent-brown: #713f12;     /* Tummanruskea (lähetä-nappi) */
-  --border-green: #166534;     /* Rajaukset */
-  --accent-yellow: #ca8a04;    /* Keltainen tila */
-  --accent-green-btn: #16a34a; /* Vihreä tila */
-  --accent-red: #dc2626;       /* Punainen tila (turvariski) */
-}
-
-body {
-  margin: 0;
-  background-color: var(--bg-deep);
-  color: var(--text-light);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
+/* Colors, fonts and spacing come from the shared tokens in src/index.css
+   (--wood-*, --space-*) so this component stays visually consistent with
+   the rest of the app instead of running its own parallel theme. */
 
 .hq-layout-container {
+  position: relative;
   display: flex;
   min-height: 100vh;
+  background-color: var(--wood-bg);
+  color: var(--wood-text);
+}
+
+/* Calm, low-opacity ambient photo behind the whole shell. Panels sit fully
+   opaque on top, so it only shows in the negative space between them.
+   Drop the file in public/branding/ambient-forest.jpg to activate it —
+   until then this is simply invisible, no broken box. */
+.hq-layout-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(180deg, rgba(20, 18, 16, 0.88), rgba(20, 18, 16, 0.94)),
+    url('/branding/ambient-forest.jpg');
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+
+.hq-layout-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Status colors for the Git Guardian action card — functional states,
+   not brand identity, so kept local rather than in the shared tokens. */
+:root {
+  --status-pending: #ca8a04;
+  --status-ready: #4ade80;
+  --status-error: #dc2626;
 }
 
 /* Sivupaneeli */
 .hq-sidebar {
   width: 70px;
-  background-color: var(--bg-sidebar);
-  border-right: 1px solid var(--border-green);
+  background-color: var(--wood-panel);
+  border-right: 1px solid var(--wood-border);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem 0;
-  gap: 2rem;
+  padding: var(--space-2) 0;
+  gap: var(--space-4);
 }
 
 .hq-sidebar-logo .sidebar-logo-img {
@@ -44,33 +59,33 @@ body {
   height: 45px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--accent-brown);
+  border: 2px solid var(--wood-accent);
 }
 
 .logo-fallback {
   width: 40px;
   height: 40px;
-  background-color: var(--accent-brown);
+  background-color: var(--wood-accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: 0.9rem;
-  color: white;
+  color: var(--wood-bg);
 }
 
 .hq-nav-links {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-2);
 }
 
 .nav-btn {
   background: transparent;
   border: none;
   font-size: 1.25rem;
-  color: var(--text-muted);
+  color: var(--wood-muted);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 6px;
@@ -78,8 +93,8 @@ body {
 }
 
 .nav-btn:hover, .nav-btn.active {
-  background-color: var(--bg-card);
-  color: var(--text-light);
+  background-color: var(--wood-card);
+  color: var(--wood-text);
 }
 
 /* Pääsisältö */
@@ -87,47 +102,46 @@ body {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-deep);
 }
 
 .hq-header {
-  padding: 1.25rem 2rem;
-  background-color: var(--bg-sidebar);
-  border-bottom: 1px solid var(--border-green);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--wood-panel);
+  border-bottom: 1px solid var(--wood-border);
 }
 
 .hq-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
 }
 
 .hq-highlight {
-  color: #4ade80;
+  color: var(--wood-accent);
 }
 
 .hq-description {
   margin: 0.25rem 0 0 0;
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--wood-muted);
 }
 
 /* Ylätason kortit */
 .hq-top-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem 2rem 0 2rem;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) 0 var(--space-4);
 }
 
 .hq-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-green);
-  padding: 1rem;
+  background-color: var(--wood-card);
+  border: 1px solid var(--wood-border);
+  padding: var(--space-2);
   border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-2);
   transition: transform 0.1s, border-color 0.2s;
 }
 
@@ -136,28 +150,28 @@ body {
 }
 
 .hq-card.clickable:hover {
-  border-color: #4ade80;
+  border-color: var(--wood-accent);
 }
 
 .hq-card .card-label {
   display: block;
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--wood-text);
 }
 
 .action-card {
   cursor: pointer;
-  border-left: 4px solid var(--accent-yellow);
-  background: linear-gradient(135deg, #14532D 0%, #1c4a28 100%);
+  border-left: 4px solid var(--status-pending);
+  background: linear-gradient(135deg, var(--wood-card), var(--wood-panel));
 }
 
 .action-card.ready {
-  border-left: 4px solid var(--accent-green-btn);
+  border-left: 4px solid var(--status-ready);
 }
 
 .action-card.error {
-  border-left: 4px solid var(--accent-red);
+  border-left: 4px solid var(--status-error);
 }
 
 .card-icon {
@@ -166,7 +180,7 @@ body {
 
 .card-val {
   font-size: 1rem;
-  color: var(--text-light);
+  color: var(--wood-text);
 }
 
 /* Tekstin hengittävä animaatio */
@@ -179,15 +193,15 @@ body {
 .text-pulse-glow {
   animation: text-breath 4s ease-in-out infinite;
   display: inline-block;
-  color: #86efac;
+  color: var(--wood-accent);
 }
 
 /* Chat-osio */
 .hq-chat-section {
   flex-grow: 1;
-  margin: 1.5rem 2rem;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-green);
+  margin: var(--space-3) var(--space-4);
+  background-color: var(--wood-card);
+  border: 1px solid var(--wood-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -195,17 +209,17 @@ body {
 }
 
 .hq-chat-toolbar {
-  padding: 0.75rem 1.25rem;
-  background-color: var(--bg-sidebar);
-  border-bottom: 1px solid var(--border-green);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--wood-panel);
+  border-bottom: 1px solid var(--wood-border);
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--wood-muted);
   font-weight: 600;
 }
 
 .hq-chat-box {
   flex-grow: 1;
-  padding: 1.25rem;
+  padding: var(--space-3);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -225,50 +239,50 @@ body {
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--border-green);
+  border: 1px solid var(--wood-border);
   flex-shrink: 0;
 }
 
 .chat-content {
   font-size: 0.95rem;
   line-height: 1.4;
-  color: var(--text-light);
+  color: var(--wood-text);
 }
 
 .chat-sender {
   font-weight: 700;
   margin-right: 0.4rem;
-  color: #86efac;
+  color: var(--wood-accent);
 }
 
 /* Syöttökenttä */
 .hq-input-row {
   display: flex;
-  padding: 1rem;
-  background-color: var(--bg-sidebar);
-  border-top: 1px solid var(--border-green);
+  padding: var(--space-2);
+  background-color: var(--wood-panel);
+  border-top: 1px solid var(--wood-border);
   gap: 0.75rem;
 }
 
 .hq-text-input {
   flex-grow: 1;
   padding: 0.75rem;
-  background-color: var(--bg-deep);
-  border: 1px solid var(--border-green);
+  background-color: var(--wood-bg);
+  border: 1px solid var(--wood-border);
   border-radius: 6px;
-  color: var(--text-light);
+  color: var(--wood-text);
   font-size: 0.95rem;
 }
 
 .hq-text-input:focus {
   outline: none;
-  border-color: #4ade80;
+  border-color: var(--wood-accent);
 }
 
 .hq-send-btn {
-  padding: 0 1.5rem;
-  background-color: var(--accent-brown);
-  color: white;
+  padding: 0 var(--space-3);
+  background-color: var(--wood-accent);
+  color: var(--wood-bg);
   border: none;
   border-radius: 6px;
   font-weight: 600;
@@ -276,17 +290,17 @@ body {
 }
 
 .hq-send-btn:hover {
-  background-color: #92400e;
+  opacity: 0.88;
 }
 
 /* Footer */
 .hq-footer {
-  padding: 0.75rem 2rem;
+  padding: var(--space-2) var(--space-4);
   text-align: right;
   font-size: 0.75rem;
-  color: var(--text-muted);
-  background-color: var(--bg-sidebar);
-  border-top: 1px solid var(--border-green);
+  color: var(--wood-muted);
+  background-color: var(--wood-panel);
+  border-top: 1px solid var(--wood-border);
 }
 
 .hq-loading {
@@ -294,6 +308,6 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: var(--bg-deep);
-  color: #4ade80;
+  background-color: var(--wood-bg);
+  color: var(--wood-accent);
 }

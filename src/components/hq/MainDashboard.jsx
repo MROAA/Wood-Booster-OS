@@ -67,14 +67,14 @@ export const MainDashboard = () => {
           setBackupMessage(data.message);
           setChatMessages(prev => [
             ...prev,
-            { sender: 'Spacemonkey', text: `Varmuuskopiointi estetty: ${data.message}`, avatar: '/spacemonkey-avatar.png' }
+            { sender: 'Spacemonkey', text: `Varmuuskopiointi estetty: ${data.message}`, avatar: '/spacemonkey.png' }
           ]);
           return;
         }
 
         setChatMessages(prev => [
           ...prev,
-          { sender: 'Spacemonkey', text: data.message, avatar: '/spacemonkey-avatar.png' }
+          { sender: 'Spacemonkey', text: data.message, avatar: '/spacemonkey.png' }
         ]);
 
         loadGitGuardianStatus();
@@ -88,7 +88,7 @@ export const MainDashboard = () => {
 
   const handleSendMessage = () => {
     if (currentInput.trim() === '') return;
-    setChatMessages(prev => [...prev, { sender: 'User', text: currentInput, avatar: '/fisherman-logo.png' }]);
+    setChatMessages(prev => [...prev, { sender: 'User', text: currentInput, avatar: '/fisherman.png' }]);
     setCurrentInput('');
   };
 
@@ -102,9 +102,9 @@ export const MainDashboard = () => {
       {/* Vasen sivupaneeli */}
       <aside className="hq-sidebar">
         <div className="hq-sidebar-logo">
-          <img 
-            src="/fisherman-logo.png" 
-            alt="Wood-Booster Logo" 
+          <img
+            src="/fisherman.png"
+            alt="Wood-Booster Logo"
             className="sidebar-logo-img" 
             onError={(e) => {
               e.target.style.display = 'none';
