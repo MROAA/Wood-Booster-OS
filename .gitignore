@@ -94,3 +94,5 @@ Backups/
 RestorePreview/
 release/
 snapshots/
+__pycache__/
+*.pyc
