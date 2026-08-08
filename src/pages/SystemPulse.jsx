@@ -11,7 +11,6 @@ apiPost,
 import PulseCard from "../components/systemPulse/PulseCard"
 import InstallerManagerCard from "../components/systemPulse/InstallerManagerCard"
 import StatusGlow from "../components/systemPulse/StatusGlow"
-
 import SecurityCard from "../components/systemPulse/SecurityCard"
 import InstallerCard from "../components/systemPulse/InstallerCard"
 
@@ -110,6 +109,7 @@ result.snapshot
 
 
 }
+
 catch(error){
 
 
@@ -119,6 +119,7 @@ error
 
 
 }
+
 
 }
 
@@ -145,7 +146,6 @@ pulseData.success
 ){
 
 
-
 const summary =
 pulseData.pulse.summary
 
@@ -157,25 +157,27 @@ summary.healthScore
 
 
 setPreviousHealth(
-prevHealth => {
+previous => {
 
 
 if(
-prevHealth
+previous
 ){
-
 
 setHealthChange({
 
 from:
-prevHealth.score,
+previous.score,
+
 
 to:
 currentHealth.score,
 
+
 difference:
 currentHealth.score -
-prevHealth.score,
+previous.score,
+
 
 })
 
@@ -187,6 +189,7 @@ return currentHealth
 
 
 }
+
 )
 
 
@@ -205,10 +208,13 @@ summary.modules.total,
 activeModules:
 summary.modules.active,
 
+
 },
 
 
+
 security: {
+
 
 capabilitiesApproved:
 summary.capability.approved,
@@ -229,35 +235,50 @@ summary.security.status,
 message:
 summary.security.message,
 
+
 },
+
 
 
 runtime:
 summary.runtime,
 
 
+
 environment:
 summary.environment,
+
 
 
 hardware:
 summary.hardware,
 
 
+
 gitSummary:
 summary.gitSummary,
+
 
 
 gitHistory:
 summary.gitHistory,
 
 
+
+/*
+Korjaus:
+lähetetään koko Installer V3
+data InstallerCardille.
+*/
+
 installer:
-summary.installer?.health,
+summary.installer,
+
 
 
 installerManager:
 summary.installer?.manager,
+
 
 })
 
@@ -353,6 +374,7 @@ setLoading(false)
 
 }
 
+
 }
 
 
@@ -422,6 +444,7 @@ pulse?.brain?.modules === pulse?.brain?.activeModules
 return (
 
 <>
+
 
 {
 error && (
