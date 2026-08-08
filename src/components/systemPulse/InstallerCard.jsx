@@ -1,3 +1,6 @@
+import StatusGlow from "./StatusGlow"
+
+
 function InstallerCard({
 installer,
 onCreateSnapshot,
@@ -67,8 +70,8 @@ return (
 
 <div
 className="
-space-y-4
-p-4
+space-y-5
+p-5
 rounded-lg
 border
 border-[var(--wood-border)]
@@ -77,29 +80,34 @@ bg-[var(--wood-panel)]
 >
 
 
-<div>
-
+<h2
+className="
+text-lg
+text-[var(--wood-text)]
+"
+>
 Installer System
-
-</div>
-
+</h2>
 
 
-<div>
 
-Recovery:
-
-{" "}
-
-{
+<StatusGlow
+label="Recovery"
+value={
 snapshotRepair?.canRestore
 ?
 "Ready"
 :
 "Unavailable"
 }
-
-</div>
+status={
+snapshotRepair?.canRestore
+?
+"healthy"
+:
+"warning"
+}
+/>
 
 
 
@@ -143,27 +151,33 @@ system?.release
 
 
 
-<div>
-
+<h3
+className="
+pt-3
+border-t
+border-[var(--wood-border)]
+"
+>
 Snapshot Engine
-
-</div>
-
+</h3>
 
 
-<div>
 
-Status:
-
-{" "}
-
-{
+<StatusGlow
+label="Engine"
+value={
 snapshotEngine?.status
 ||
 "-"
 }
-
-</div>
+status={
+snapshotEngine?.status === "ready"
+?
+"healthy"
+:
+"warning"
+}
+/>
 
 
 
@@ -199,61 +213,51 @@ latestSnapshot?.id
 
 
 
-<div>
-
-Validator:
-
-{" "}
-
-{
+<StatusGlow
+label="Validator"
+value={
 snapshotValidator?.status
 ||
 "-"
 }
+status={
+snapshotValidator?.status === "healthy"
+?
+"healthy"
+:
+"warning"
+}
+/>
 
-</div>
 
 
-
-<div>
-
-Repair:
-
-{" "}
-
-{
+<StatusGlow
+label="Repair"
+value={
 snapshotRepair?.status
 ||
 "-"
 }
-
-</div>
-
-
-
-<div>
-
-Restore:
-
-{" "}
-
-{
-snapshotRestorePlan?.requiresConfirmation
+status={
+snapshotRepair?.status === "ready"
 ?
-"Confirmation required"
+"healthy"
 :
-"-"
+"warning"
 }
-
-</div>
-
+/>
 
 
-<div>
 
+<h3
+className="
+pt-3
+border-t
+border-[var(--wood-border)]
+"
+>
 Snapshot History
-
-</div>
+</h3>
 
 
 
@@ -273,6 +277,13 @@ snapshotHistory?.count
 
 
 
+<div
+className="
+space-y-2
+text-sm
+"
+>
+
 {
 history
 .slice(
@@ -287,7 +298,10 @@ key={
 snapshot.id
 }
 className="
-space-y-1
+p-3
+rounded
+border
+border-[var(--wood-border)]
 "
 >
 
@@ -298,6 +312,7 @@ snapshot.id
 }
 
 </div>
+
 
 
 <div>
@@ -317,6 +332,7 @@ snapshot.metadata?.git?.available
 </div>
 
 
+
 <div>
 
 Created:
@@ -331,6 +347,7 @@ snapshot.metadata?.createdAt
 
 </div>
 
+
 </div>
 
 )
@@ -339,13 +356,19 @@ snapshot.metadata?.createdAt
 
 }
 
-
-
-<div>
-
-Restore Preview
-
 </div>
+
+
+
+<h3
+className="
+pt-3
+border-t
+border-[var(--wood-border)]
+"
+>
+Restore Preview
+</h3>
 
 
 
@@ -365,19 +388,21 @@ restoreTarget?.id
 
 
 
-<div>
-
-Validation:
-
-{" "}
-
-{
+<StatusGlow
+label="Validation"
+value={
 snapshotRestorePlan?.validation
 ||
 "-"
 }
-
-</div>
+status={
+snapshotRestorePlan?.validation === "healthy"
+?
+"healthy"
+:
+"warning"
+}
+/>
 
 
 
@@ -422,6 +447,20 @@ key={step}
 )
 
 }
+
+
+
+<StatusGlow
+label="Restore"
+value={
+snapshotRestorePlan?.requiresConfirmation
+?
+"Confirmation required"
+:
+"-"
+}
+status="warning"
+/>
 
 
 
