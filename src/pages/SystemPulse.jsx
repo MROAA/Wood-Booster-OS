@@ -20,7 +20,7 @@ import BuildGuardianCard from "../components/systemPulse/BuildGuardianCard"
 import ArchitectureCard from "../components/systemPulse/ArchitectureCard"
 import ArchitectureRepairQueueCard from "../components/systemPulse/ArchitectureRepairQueueCard"
 import StableBuildCard from "../components/systemPulse/StableBuildCard"
-
+import RestoreAuditCard from "../components/systemPulse/RestoreAuditCard"
 function SystemPulse(){
 
 
@@ -44,7 +44,10 @@ restorePlan,
 setRestorePlan
 ] = useState(null)
 
-
+const [
+restoreAudit,
+setRestoreAudit
+] = useState(null)
 const [
 core,
 setCore
@@ -519,7 +522,20 @@ setLastUpdate(
 new Date()
 )
 
+const restoreAuditData =
+await apiGet(
+"/recovery/audit"
+)
 
+if(
+restoreAuditData.success
+){
+
+setRestoreAudit(
+restoreAuditData.audit
+)
+
+}
 
 }
 
@@ -561,7 +577,6 @@ setLoading(false)
 useEffect(()=>{
 
 loadSystemData()
-
 
 const interval =
 setInterval(
@@ -749,6 +764,13 @@ recovery
 
 restorePlan={
 restorePlan
+}
+
+/>
+<RestoreAuditCard
+
+audit={
+restoreAudit
 }
 
 />

@@ -1,6 +1,16 @@
 {
   "snapshots": [
     {
+      "id": 1786205431784,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T16:10:31.783Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_19-10-30.tar.gz",
+      "size": "20 MB"
+    },
+    {
       "id": 1786201156907,
       "name": "Manual System Snapshot",
       "version": "v0.1.0-mvp",

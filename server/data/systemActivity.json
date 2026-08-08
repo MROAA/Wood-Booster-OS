@@ -1,6 +1,14 @@
 {
   "events": [
     {
+      "id": 1786205431784,
+      "time": "2026-08-08T16:10:31.784Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_19-10-30.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
       "id": 1786201156907,
       "time": "2026-08-08T14:59:16.907Z",
       "type": "SNAPSHOT_CREATED",
