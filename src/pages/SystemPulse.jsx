@@ -22,6 +22,7 @@ import ArchitectureCard from "../components/systemPulse/ArchitectureCard"
 import ArchitectureRepairQueueCard from "../components/systemPulse/ArchitectureRepairQueueCard"
 import StableBuildCard from "../components/systemPulse/StableBuildCard"
 import RestoreAuditCard from "../components/systemPulse/RestoreAuditCard"
+import GitGuardianCard from "../components/systemPulse/GitGuardianCard"
 function SystemPulse(){
 
 
@@ -856,6 +857,10 @@ pulse?.python
 }
 
 />
+
+
+
+<GitGuardianCard />
 
 
 

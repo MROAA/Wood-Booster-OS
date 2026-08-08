@@ -9,7 +9,7 @@ import {
   apiPost,
   apiDelete,
 } from "../api/client"
-
+import { DataMemoryModule } from "../components/DataMemoryModule"
 
 
 const PAGE_SIZE = 12
@@ -800,7 +800,7 @@ function Memory() {
 
 
       </section>
-
+<DataMemoryModule/>
 
     </div>
 
