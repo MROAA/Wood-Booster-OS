@@ -27,6 +27,7 @@ import {
 } from "./systemPulseService.js"
 
 
+
 import {
     getInstallerV2,
 } from "../../../systemInstaller/installerV2.js"
@@ -50,44 +51,55 @@ async function getSystemPulseSummary(){
         pulse.components.capability
 
 
+
     const runtime =
         pulse.components.runtime
+
 
 
     const modules =
         pulse.components.modules
 
 
+
     const security =
         pulse.components.security
+
 
 
     const securityHealth =
         pulse.components.securityHealth
 
 
+
     const hardware =
         pulse.components.hardware
+
 
 
     const git =
         pulse.components.git
 
 
+
     const gitSync =
         pulse.components.gitSync
+
 
 
     const gitWatcher =
         pulse.components.gitWatcher
 
 
+
     const gitHistory =
         pulse.components.gitHistory
 
 
+
     const gitSummary =
         pulse.components.gitSummary
+
 
 
     const healthScore =
@@ -99,10 +111,13 @@ async function getSystemPulseSummary(){
 
 
         status:
+
             pulse.status,
 
 
+
         healthy:
+
             pulse.healthy,
 
 
@@ -111,6 +126,7 @@ async function getSystemPulseSummary(){
 
 
             system:
+
                 pulse.system,
 
 
@@ -123,18 +139,23 @@ async function getSystemPulseSummary(){
 
 
                 score:
+
                     healthScore?.score
                     ??
                     0,
 
 
+
                 status:
+
                     healthScore?.status
                     ||
                     "unknown",
 
 
+
                 details:
+
                     healthScore?.details
                     ||
                     [],
@@ -147,14 +168,19 @@ async function getSystemPulseSummary(){
 
 
                 total:
+
                     modules.total,
 
 
+
                 active:
+
                     modules.active,
 
 
+
                 status:
+
                     modules.active === modules.total
                         ?
                         "healthy"
@@ -169,14 +195,19 @@ async function getSystemPulseSummary(){
 
 
                 approved:
+
                     capability.summary.approved,
 
 
+
                 blocked:
+
                     capability.summary.blocked,
 
 
+
                 approvalRequired:
+
                     capability.summary.approvalRequired,
 
             },
@@ -187,6 +218,7 @@ async function getSystemPulseSummary(){
 
 
                 status:
+
                     securityHealth?.status
                     ||
                     security.status
@@ -196,6 +228,7 @@ async function getSystemPulseSummary(){
 
 
                 blockedEvents:
+
                     securityHealth?.blockedEvents
                     ??
                     0,
@@ -203,6 +236,7 @@ async function getSystemPulseSummary(){
 
 
                 approvalRequired:
+
                     securityHealth?.approvalRequired
                     ??
                     0,
@@ -210,6 +244,7 @@ async function getSystemPulseSummary(){
 
 
                 message:
+
                     securityHealth?.message
                     ||
                     "",
@@ -222,18 +257,23 @@ async function getSystemPulseSummary(){
 
 
                 os:
+
                     runtime.platform
                     ||
                     "-",
 
 
+
                 kernel:
+
                     hardware.kernel
                     ||
                     "-",
 
 
+
                 host:
+
                     hardware.hostname
                     ||
                     "-",
@@ -247,18 +287,23 @@ async function getSystemPulseSummary(){
 
 
                 cpu:
+
                     hardware.cpu
                     ||
                     null,
 
 
+
                 gpu:
+
                     hardware.gpu
                     ||
                     null,
 
 
+
                 memory:
+
                     hardware.memory
                     ||
                     null,
@@ -271,14 +316,19 @@ async function getSystemPulseSummary(){
 
 
                 platform:
+
                     runtime.platform,
 
 
+
                 nodeVersion:
+
                     runtime.nodeVersion,
 
 
+
                 cpuCount:
+
                     runtime.cpuCount,
 
             },
@@ -289,18 +339,23 @@ async function getSystemPulseSummary(){
 
 
                 repository:
+
                     git.repository
                     ||
                     "-",
 
 
+
                 branch:
+
                     git.branch
                     ||
                     "-",
 
 
+
                 commit:
+
                     git.commit
                     ||
                     "-",
@@ -314,12 +369,15 @@ async function getSystemPulseSummary(){
 
 
                 status:
+
                     gitSync.status
                     ||
                     "-",
 
 
+
                 changes:
+
                     gitSync.changes
                     ||
                     0,
@@ -332,6 +390,7 @@ async function getSystemPulseSummary(){
 
 
                 status:
+
                     gitWatcher.status
                     ||
                     "stopped",
@@ -344,12 +403,15 @@ async function getSystemPulseSummary(){
 
 
                 total:
+
                     gitHistory?.total
                     ||
                     0,
 
 
+
                 events:
+
                     gitHistory?.events
                     ||
                     [],
@@ -365,8 +427,8 @@ async function getSystemPulseSummary(){
 
 
         checkedAt:
-            pulse.checkedAt,
 
+            pulse.checkedAt,
 
     }
 

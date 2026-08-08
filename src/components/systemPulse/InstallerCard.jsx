@@ -1,443 +1,459 @@
 function InstallerCard({
-    installer
+installer
 }) {
 
 
-    if (!installer) {
+if (!installer) {
 
-        return null
+    return null
 
-    }
-
-
-
-    const runtime =
-        installer.runtime?.runtime
+}
 
 
 
-    const system =
-        installer.systemInfo?.operatingSystem
+const runtime =
+    installer.runtime?.runtime
 
 
 
-    const user =
-        installer.systemInfo?.user
+const system =
+    installer.systemInfo?.operatingSystem
 
 
 
-    const version =
-        installer.version?.application
+const user =
+    installer.systemInfo?.user
 
 
 
-    const manager =
-        installer.manager
+const version =
+    installer.version?.application
 
 
 
-    const dependencies =
-        installer.dependencies
+const manager =
+    installer.manager
 
 
 
-    return (
+const dependencies =
+    installer.dependencies
 
-        <section
+
+
+const report =
+    installer.report
+
+
+
+return (
+
+<section
+    className="
+        card
+        p-6
+    "
+>
+
+
+<h2
+    className="
+        text-lg
+        font-medium
+        text-[var(--wood-text)]
+    "
+>
+    Installer V2
+</h2>
+
+
+
+<div
+    className="
+        mt-5
+        space-y-4
+    "
+>
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        Status
+    </span>
+
+    <p
+        className="
+            text-lg
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            installer.status === "healthy"
+            ?
+            "✓ Healthy"
+            :
+            "⚠ Warning"
+        }
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        Installer Score
+    </span>
+
+    <p
+        className="
+            text-lg
+            text-[var(--wood-text)]
+        "
+    >
+        {installer.score}%
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        Report Status
+    </span>
+
+    <p
+        className="
+            text-lg
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            report?.status
+            ||
+            "-"
+        }
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        Recommendation
+    </span>
+
+    <p
+        className="
+            text-sm
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            report?.recommendation
+            ||
+            "-"
+        }
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        Install Mode
+    </span>
+
+    <p
+        className="
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            manager?.installation?.packageType
+            ||
+            "-"
+        }
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        Root
+    </span>
+
+    <p
+        className="
+            text-xs
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            manager?.paths?.root
+            ||
+            "-"
+        }
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        Runtime
+    </span>
+
+    <p
+        className="
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            runtime?.nodeVersion
+            ||
+            "-"
+        }
+
+        {" / "}
+
+        {
+            runtime?.platform
+            ||
+            "-"
+        }
+
+        {" / "}
+
+        {
+            runtime?.architecture
+            ||
+            "-"
+        }
+
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        System
+    </span>
+
+    <p
+        className="
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            system?.type
+            ||
+            "-"
+        }
+
+        {" - "}
+
+        {
+            system?.release
+            ||
+            "-"
+        }
+
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        User
+    </span>
+
+    <p
+        className="
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            user?.username
+            ||
+            "-"
+        }
+    </p>
+</div>
+
+
+
+<div>
+    <span
+        className="
+            text-sm
+            text-[var(--wood-muted)]
+        "
+    >
+        Version
+    </span>
+
+    <p
+        className="
+            text-[var(--wood-text)]
+        "
+    >
+        {
+            version?.name
+            ||
+            "-"
+        }
+
+        {" "}
+
+        {
+            version?.version
+            ||
+            "-"
+        }
+
+    </p>
+</div>
+
+
+
+<div>
+
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Dependencies
+</span>
+
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+    {
+        dependencies?.score
+        ||
+        0
+    }%
+</p>
+
+</div>
+
+
+
+<div
+    className="
+        mt-3
+        space-y-2
+    "
+>
+
+{
+    Object.entries(
+        dependencies?.checks || {}
+    )
+    .map(
+        ([key,value]) => (
+
+        <div
+            key={key}
             className="
-                card
-                p-6
+                flex
+                justify-between
+                text-sm
             "
         >
 
-
-            <h2
+            <span
                 className="
-                    text-lg
-                    font-medium
+                    text-[var(--wood-muted)]
+                "
+            >
+                {key}
+            </span>
+
+
+            <span
+                className="
                     text-[var(--wood-text)]
                 "
             >
-                Installer V2
-            </h2>
-
-
-
-            <div
-                className="
-                    mt-5
-                    space-y-4
-                "
-            >
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        Status
-                    </span>
-
-
-                    <p
-                        className="
-                            text-lg
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {
-                            installer.status === "healthy"
-                                ?
-                                "✓ Healthy"
-                                :
-                                "⚠ Warning"
-                        }
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        Score
-                    </span>
-
-
-                    <p
-                        className="
-                            text-lg
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {installer.score}%
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        Install Mode
-                    </span>
-
-
-                    <p
-                        className="
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {
-                            manager?.installation?.packageType
-                            ||
-                            "-"
-                        }
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        Root
-                    </span>
-
-
-                    <p
-                        className="
-                            text-xs
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {
-                            manager?.paths?.root
-                            ||
-                            "-"
-                        }
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        Runtime
-                    </span>
-
-
-                    <p
-                        className="
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {
-                            runtime?.nodeVersion
-                            ||
-                            "-"
-                        }
-
-                        {" "}
-
-                        /
-
-                        {" "}
-
-                        {
-                            runtime?.platform
-                            ||
-                            "-"
-                        }
-
-                        {" "}
-
-                        /
-
-                        {" "}
-
-                        {
-                            runtime?.architecture
-                            ||
-                            "-"
-                        }
-
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        System
-                    </span>
-
-
-                    <p
-                        className="
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {
-                            system?.type
-                            ||
-                            "-"
-                        }
-
-                        {" "}
-
-                        -
-
-                        {" "}
-
-                        {
-                            system?.release
-                            ||
-                            "-"
-                        }
-
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        User
-                    </span>
-
-
-                    <p
-                        className="
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {
-                            user?.username
-                            ||
-                            "-"
-                        }
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        Version
-                    </span>
-
-
-                    <p
-                        className="
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {
-                            version?.name
-                            ||
-                            "-"
-                        }
-
-                        {" "}
-
-                        {
-                            version?.version
-                            ||
-                            "-"
-                        }
-
-                    </p>
-
-                </div>
-
-
-
-                <div>
-
-                    <span
-                        className="
-                            text-sm
-                            text-[var(--wood-muted)]
-                        "
-                    >
-                        Dependencies
-                    </span>
-
-
-                    <p
-                        className="
-                            text-[var(--wood-text)]
-                        "
-                    >
-                        {
-                            dependencies?.score
-                            ||
-                            0
-                        }%
-
-                    </p>
-
-
-                </div>
-
-
-
-                <div
-                    className="
-                        mt-3
-                        space-y-2
-                    "
-                >
-
-                    {
-                        Object.entries(
-                            dependencies?.checks || {}
-                        )
-                        .map(
-                            ([key,value]) => (
-
-                                <div
-                                    key={key}
-                                    className="
-                                        flex
-                                        justify-between
-                                        text-sm
-                                    "
-                                >
-
-                                    <span
-                                        className="
-                                            text-[var(--wood-muted)]
-                                        "
-                                    >
-                                        {key}
-                                    </span>
-
-
-                                    <span
-                                        className="
-                                            text-[var(--wood-text)]
-                                        "
-                                    >
-
-                                        {
-                                            value.exists
-                                                ?
-                                                "✓"
-                                                :
-                                                "✗"
-                                        }
-
-                                    </span>
-
-
-                                </div>
-
-                            )
-                        )
-
-                    }
-
-                </div>
-
-
-            </div>
-
-
-        </section>
-
+                {
+                    value.exists
+                    ?
+                    "✓"
+                    :
+                    "✗"
+                }
+            </span>
+
+
+        </div>
+
+        )
     )
+}
+
+</div>
+
+
+</div>
+
+
+</section>
+
+)
 
 }
 
