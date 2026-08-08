@@ -10,6 +10,7 @@ Vastuut:
 - näyttää stable build tiedot
 - näyttää recovery orchestrator tilan
 - käynnistää hyväksytyn restore-prosessin
+- näyttää restore audit historian
 
 Ei:
 
@@ -60,6 +61,14 @@ executeRestore,
 
 
 
+import {
+
+getRestoreAudit,
+
+} from "../services/systemRecovery/restoreAudit.js"
+
+
+
 const router =
 express.Router()
 
@@ -71,17 +80,14 @@ router.post(
 
 try{
 
-
 const result =
 requestRestoreApproval(
 req.body || {}
 )
 
-
 res.json(
 result
 )
-
 
 }
 
@@ -109,17 +115,14 @@ router.post(
 
 try{
 
-
 const result =
 approveRestore(
 req.body.id
 )
 
-
 res.json(
 result
 )
-
 
 }
 
@@ -147,17 +150,14 @@ router.post(
 
 try{
 
-
 const result =
 rejectRestore(
 req.body.id
 )
 
-
 res.json(
 result
 )
-
 
 }
 
@@ -204,7 +204,6 @@ router.get(
 
 try{
 
-
 res.json({
 
 success:true,
@@ -213,7 +212,6 @@ stableBuild:
 getStableBuildStatus()
 
 })
-
 
 }
 
@@ -241,7 +239,6 @@ router.get(
 
 try{
 
-
 res.json({
 
 success:true,
@@ -250,7 +247,6 @@ recovery:
 getRecoverySystemStatus()
 
 })
-
 
 }
 
@@ -278,13 +274,11 @@ router.post(
 
 try{
 
-
 const result =
 executeRestore({
 
 approval:
 req.body.approval,
-
 
 integrity:
 req.body.integrity
@@ -296,6 +290,40 @@ res.json(
 result
 )
 
+}
+
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+error:error.message
+
+})
+
+}
+
+}
+
+)
+
+
+
+router.get(
+"/audit",
+(req,res)=>{
+
+try{
+
+res.json({
+
+success:true,
+
+audit:
+getRestoreAudit()
+
+})
 
 }
 
