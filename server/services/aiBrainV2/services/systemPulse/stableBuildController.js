@@ -21,6 +21,8 @@ Ei:
 */
 
 
+import path from "path"
+
 import {
 createSnapshot,
 } from "../../../backupService.js"
@@ -146,9 +148,17 @@ new Error(
 
 
 
+const snapshotFile =
+path.basename(
+snapshot.file,
+)
+
+
+
+
 console.log(
 "[StableBuild] Snapshot created:",
-snapshot.file,
+snapshotFile,
 )
 
 
@@ -162,7 +172,7 @@ version,
 commit,
 
 snapshot:
-snapshot.file,
+snapshotFile,
 
 })
 
@@ -176,7 +186,7 @@ event:
 
 
 snapshot:
-snapshot.file,
+snapshotFile,
 
 
 result:

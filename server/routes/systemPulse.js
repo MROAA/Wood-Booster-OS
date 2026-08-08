@@ -23,6 +23,11 @@ import {
 } from "../services/aiBrainV2/services/systemPulse/systemPulseSummary.js"
 
 
+import {
+  getStableBuilds,
+} from "../services/aiBrainV2/services/systemPulse/stableBuildRegistry.js"
+
+
 
 
 
@@ -54,6 +59,54 @@ const pulse =
 
 
         pulse,
+
+      })
+
+
+    }
+    catch(error){
+
+
+      res.status(500).json({
+
+        success:
+          false,
+
+
+        error:
+          error.message,
+
+      })
+
+
+    }
+
+  },
+)
+
+
+
+router.get(
+  "/system-pulse/stable-builds",
+  async (
+    req,
+    res,
+  ) => {
+
+    try {
+
+
+const builds =
+  await getStableBuilds()
+
+
+      res.json({
+
+        success:
+          true,
+
+
+        builds,
 
       })
 
