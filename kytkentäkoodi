@@ -1,0 +1,16 @@
+const express = require('express');
+// Importataan luomasi Git Guardian -reititin
+const gitGuardianRouter = require('./services/spacemonkey/modules/gitGuardian/index.js').default;
+
+const app = express();
+
+app.use(express.json());
+
+// Kytketään Git Guardian
+app.use('/api/gitguardian', gitGuardianRouter);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Wood-Booster HQ käynnissä portissa ${PORT}`);
+  console.log(`🛡️  Git Guardian aktiivinen osoitteessa http://localhost:${PORT}/api/gitguardian/status`);
+});

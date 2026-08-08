@@ -1,0 +1,30 @@
+{
+  "snapshot_id": "v_git-9395efb_1786207757",
+  "timestamp": 1786207757.60475,
+  "version_label": "git-9395efb",
+  "description": "Auto-snapshot via Git/GitGuardian: Add version manager and git guardian integration hook",
+  "layers": {
+    "core": {
+      "layer_name": "CoreIdentity",
+      "version": "1.0.0",
+      "attributes": {
+        "base_model": "Spacemonkeybrain",
+        "git_commit": "9395efb",
+        "security_status": "VERIFIED_BY_GIT_GUARDIAN"
+      },
+      "metadata": {}
+    },
+    "limbic": {
+      "layer_name": "LimbicState",
+      "version": "0.1.0",
+      "attributes": {
+        "valence": 0.0,
+        "arousal": 0.0,
+        "stress": 0.0,
+        "curiosity": 0.5
+      },
+      "metadata": {}
+    }
+  },
+  "checksum": "3779413d8ab97f773a8311b6857cc77e08d5fc21dc2f76d38745457f3d8c547e"
+}

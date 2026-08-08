@@ -94,6 +94,9 @@ Backups/
 RestorePreview/
 release/
 snapshots/
+__pycache__/
+*.pyc
+versions/
 
 # =====================================
 # Generated runtime data (regenerates on use, not source)

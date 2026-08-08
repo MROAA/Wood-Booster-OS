@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "v_1.1.0_1786207608",
+  "timestamp": 1786207608.4261334,
+  "version_label": "1.1.0",
+  "description": "High stress update",
+  "layers": {
+    "core": {
+      "layer_name": "CoreIdentity",
+      "version": "1.0.0",
+      "attributes": {
+        "base_model": "Spacemonkeybrain",
+        "safety_mode": "STRICT"
+      },
+      "metadata": {}
+    },
+    "limbic": {
+      "layer_name": "LimbicState",
+      "version": "0.1.0",
+      "attributes": {
+        "valence": 0.2,
+        "arousal": 0.5,
+        "stress": 0.8
+      },
+      "metadata": {}
+    }
+  },
+  "checksum": "3819648632633f5f553f16fff3435fbe231c698aa218b71093daf59362ee708e"
+}
