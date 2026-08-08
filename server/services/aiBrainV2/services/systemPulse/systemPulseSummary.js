@@ -10,7 +10,7 @@ Vastuut:
 - muodostaa selkeän järjestelmäyhteenvedon
 - yhdistää System Pulse tiedot
 - tarjoaa frontendille helposti luettavan tilan
-- yhdistää Installer Health tiedon
+- yhdistää Installer V2 tiedon
 
 Ei:
 
@@ -25,13 +25,11 @@ Ei:
 import {
     getSystemPulse,
 } from "./systemPulseService.js"
-import {
-getInstallerManager,
-} from "../../../systemInstaller/installerManager.js"
+
 
 import {
-    getInstallerHealth,
-} from "../../../systemInstaller/installerHealth.js"
+    getInstallerV2,
+} from "../../../systemInstaller/installerV2.js"
 
 
 
@@ -43,12 +41,9 @@ async function getSystemPulseSummary(){
 
 
 
-const installer =
-    getInstallerHealth()
+    const installer =
+        getInstallerV2()
 
-
-const installerManager =
-    getInstallerManager()
 
 
     const capability =
@@ -107,7 +102,6 @@ const installerManager =
             pulse.status,
 
 
-
         healthy:
             pulse.healthy,
 
@@ -121,18 +115,12 @@ const installerManager =
 
 
 
-installer: {
-
-    health:
-        installer,
+            installer,
 
 
-    manager:
-        installerManager,
-
-},
 
             healthScore: {
+
 
                 score:
                     healthScore?.score
@@ -157,6 +145,7 @@ installer: {
 
             modules: {
 
+
                 total:
                     modules.total,
 
@@ -167,14 +156,17 @@ installer: {
 
                 status:
                     modules.active === modules.total
-                        ? "healthy"
-                        : "degraded",
+                        ?
+                        "healthy"
+                        :
+                        "degraded",
 
             },
 
 
 
             capability: {
+
 
                 approved:
                     capability.summary.approved,
@@ -192,6 +184,7 @@ installer: {
 
 
             security: {
+
 
                 status:
                     securityHealth?.status
@@ -227,6 +220,7 @@ installer: {
 
             environment: {
 
+
                 os:
                     runtime.platform
                     ||
@@ -251,6 +245,7 @@ installer: {
 
             hardware: {
 
+
                 cpu:
                     hardware.cpu
                     ||
@@ -274,6 +269,7 @@ installer: {
 
             runtime: {
 
+
                 platform:
                     runtime.platform,
 
@@ -290,6 +286,7 @@ installer: {
 
 
             git: {
+
 
                 repository:
                     git.repository
@@ -315,6 +312,7 @@ installer: {
 
             gitSync: {
 
+
                 status:
                     gitSync.status
                     ||
@@ -332,6 +330,7 @@ installer: {
 
             gitWatcher: {
 
+
                 status:
                     gitWatcher.status
                     ||
@@ -342,6 +341,7 @@ installer: {
 
 
             gitHistory: {
+
 
                 total:
                     gitHistory?.total
@@ -366,6 +366,7 @@ installer: {
 
         checkedAt:
             pulse.checkedAt,
+
 
     }
 
