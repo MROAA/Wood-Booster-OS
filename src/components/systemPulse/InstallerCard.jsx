@@ -51,6 +51,11 @@ const recovery =
 
 
 
+const snapshots =
+    installer.snapshots
+
+
+
 return (
 
 <section
@@ -68,7 +73,7 @@ return (
         text-[var(--wood-text)]
     "
 >
-    Installer Status
+    Installer V3
 </h2>
 
 
@@ -92,6 +97,7 @@ return (
     Status
 </span>
 
+
 <p
     className="
         text-lg
@@ -100,10 +106,10 @@ return (
 >
 {
     installer.status === "healthy"
-    ?
-    "✓ READY"
-    :
-    "⚠ Warning"
+        ?
+        "✓ Healthy"
+        :
+        "⚠ Warning"
 }
 </p>
 
@@ -119,8 +125,9 @@ return (
         text-[var(--wood-muted)]
     "
 >
-    Installation Score
+    Score
 </span>
+
 
 <p
     className="
@@ -146,8 +153,23 @@ return (
     Report
 </span>
 
+
 <p
     className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    report?.status
+    ||
+    "-"
+}
+</p>
+
+
+<p
+    className="
+        text-sm
         text-[var(--wood-text)]
     "
 >
@@ -170,8 +192,9 @@ return (
         text-[var(--wood-muted)]
     "
 >
-    Recovery Status
+    Recovery
 </span>
+
 
 <p
     className="
@@ -183,6 +206,24 @@ return (
     ||
     "-"
 }
+</p>
+
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+Score:
+
+{" "}
+
+{
+    recovery?.score
+    ??
+    0
+}%
+
 </p>
 
 </div>
@@ -197,8 +238,9 @@ return (
         text-[var(--wood-muted)]
     "
 >
-    Recovery Score
+    Snapshots
 </span>
+
 
 <p
     className="
@@ -206,11 +248,49 @@ return (
     "
 >
 {
-    recovery?.score
+    snapshots?.status
+    ||
+    "-"
+}
+</p>
+
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+Count:
+
+{" "}
+
+{
+    snapshots?.count
     ??
     0
-}%
+}
+
 </p>
+
+
+<p
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+Latest:
+
+{" "}
+
+{
+    snapshots?.latest
+    ||
+    "-"
+}
+
+</p>
+
 
 </div>
 
@@ -226,6 +306,7 @@ return (
 >
     Install Mode
 </span>
+
 
 <p
     className="
@@ -254,6 +335,7 @@ return (
     Root
 </span>
 
+
 <p
     className="
         text-xs
@@ -281,6 +363,7 @@ return (
 >
     Runtime
 </span>
+
 
 <p
     className="
@@ -326,6 +409,7 @@ return (
     System
 </span>
 
+
 <p
     className="
         text-[var(--wood-text)]
@@ -362,6 +446,7 @@ return (
     User
 </span>
 
+
 <p
     className="
         text-[var(--wood-text)]
@@ -388,6 +473,7 @@ return (
 >
     Version
 </span>
+
 
 <p
     className="
@@ -425,6 +511,7 @@ return (
     Dependencies
 </span>
 
+
 <p
     className="
         text-[var(--wood-text)]
@@ -432,9 +519,10 @@ return (
 >
 {
     dependencies?.score
-    ||
+    ??
     0
 }%
+
 </p>
 
 </div>
@@ -443,7 +531,6 @@ return (
 
 <div
     className="
-        mt-3
         space-y-2
     "
 >
@@ -497,74 +584,6 @@ Object.entries(
 
 </div>
 
-
-
-<div
-    className="
-        mt-3
-        space-y-2
-    "
->
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Recovery Checks
-</span>
-
-
-{
-Object.entries(
-    recovery?.checks || {}
-)
-.map(
-([key,value]) => (
-
-<div
-    key={key}
-    className="
-        flex
-        justify-between
-        text-sm
-    "
->
-
-<span
-    className="
-        text-[var(--wood-muted)]
-    "
->
-{key}
-</span>
-
-
-<span
-    className="
-        text-[var(--wood-text)]
-    "
->
-{
-    value.exists
-    ?
-    "✓"
-    :
-    "✗"
-}
-</span>
-
-
-</div>
-
-)
-)
-
-}
-
-
-</div>
 
 
 </div>
