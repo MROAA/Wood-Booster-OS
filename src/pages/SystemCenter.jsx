@@ -14,7 +14,7 @@ function SystemCenter() {
     <div className="mx-auto max-w-7xl">
       <header className="border-b border-[var(--wood-border)] pb-6">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--wood-accent)]">
-          Wood-Booster OS
+          Wood-Booster HQ
         </p>
 
         <h1 className="mt-2 text-4xl font-bold text-[var(--wood-text)]">

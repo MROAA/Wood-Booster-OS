@@ -25,7 +25,7 @@ function TopBar({
           text-[var(--wood-text)]
         "
       >
-        Wood-Booster OS
+        Wood-Booster HQ
       </h1>
 
 

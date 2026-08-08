@@ -65,7 +65,7 @@ function AIBrain() {
               "
             >
 
-              Wood-Booster OS:n operaattori ja keskustelukumppani.
+              Wood-Booster HQ:n operaattori ja keskustelukumppani.
 
             </p>
 

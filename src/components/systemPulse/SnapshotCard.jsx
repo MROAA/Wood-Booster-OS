@@ -206,7 +206,7 @@ function SnapshotCard() {
       <h2>System Snapshot</h2>
 
       <p className="mt-2 text-sm text-[var(--wood-muted)]">
-        Luo ja palauta Wood-Booster OS -varmuuskopioita
+        Luo ja palauta Wood-Booster HQ -varmuuskopioita
       </p>
 
       <button

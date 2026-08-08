@@ -3,7 +3,7 @@ const toolManifest = [
     id: "navigation",
     name: "Navigation Tool",
     description:
-      "Avaa Wood-Booster OS:n sisäisiä näkymiä.",
+      "Avaa Wood-Booster HQ:n sisäisiä näkymiä.",
     enabled: true,
     actions: [
       "navigate",

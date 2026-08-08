@@ -477,7 +477,7 @@ function Inventory() {
               page-description
             "
           >
-            Materiaalikirjasto Wood-Booster OS:ssa.
+            Materiaalikirjasto Wood-Booster HQ:ssa.
           </p>
 
 

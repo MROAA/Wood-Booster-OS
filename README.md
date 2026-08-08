@@ -16,15 +16,15 @@ The React Compiler is not enabled on this template because of its impact on dev 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
 
 07.08.2026
-# 🪵 Wood-Booster OS
+# 🪵 Wood-Booster HQ
 
 > **An AI-native operating system for intelligent automation, autonomous agents and digital workflows.**
 
-Wood-Booster OS is a modular AI platform designed to build, manage and orchestrate autonomous AI agents capable of assisting humans in real-world work.
+Wood-Booster HQ is a modular AI platform designed to build, manage and orchestrate autonomous AI agents capable of assisting humans in real-world work.
 
 The project is built around **Spacemonkey**, an evolving AI operator responsible for coordinating modules, reasoning about tasks and interacting with external services.
 
-Unlike traditional chat applications, Wood-Booster OS is designed as an operating system where AI becomes a long-term digital collaborator rather than a single conversation.
+Unlike traditional chat applications, Wood-Booster HQ is designed as an operating system where AI becomes a long-term digital collaborator rather than a single conversation.
 
 ---
 
@@ -43,7 +43,7 @@ Our goal is to create an operating system where AI can:
 * Automate repetitive work
 * Become increasingly capable over time
 
-Wood-Booster OS is built to evolve.
+Wood-Booster HQ is built to evolve.
 
 ---
 
@@ -67,7 +67,7 @@ This makes the system:
 
 # Spacemonkey
 
-Spacemonkey is the operator of Wood-Booster OS.
+Spacemonkey is the operator of Wood-Booster HQ.
 
 Responsibilities include:
 
@@ -111,7 +111,7 @@ Current development includes:
 # Architecture
 
 ```
-Wood-Booster OS
+Wood-Booster HQ
 
 ├── Frontend
 │
@@ -170,7 +170,7 @@ Platform
 
 # Project Goals
 
-Wood-Booster OS aims to become a platform capable of:
+Wood-Booster HQ aims to become a platform capable of:
 
 * autonomous AI workflows
 * AI powered business automation
@@ -303,6 +303,6 @@ This project is licensed under the MIT License unless otherwise specified.
 
 **Marc Järvinen**
 
-Creator of Wood-Booster OS
+Creator of Wood-Booster HQ
 
 Building an AI operating system focused on autonomous agents, intelligent automation and modular artificial intelligence.

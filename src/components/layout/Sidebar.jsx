@@ -218,7 +218,7 @@ function Sidebar() {
             text-[var(--wood-text)]
           "
         >
-          Wood-Booster OS
+          Wood-Booster HQ
         </h1>
 
 
@@ -380,7 +380,7 @@ function Sidebar() {
               text-[var(--wood-text)]
             "
           >
-            Wood-Booster OS
+            Wood-Booster HQ
           </p>
 
 

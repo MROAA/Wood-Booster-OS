@@ -278,7 +278,7 @@ function Customers() {
 
 
           <p className="page-description">
-            Asiakkuuksien hallinta Wood-Booster OS:ssa.
+            Asiakkuuksien hallinta Wood-Booster HQ:ssa.
           </p>
 
 

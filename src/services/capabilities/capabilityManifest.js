@@ -3,7 +3,7 @@ const capabilityManifest = [
     id: "workspace_navigation",
     name: "Workspace Navigation",
     description:
-      "Mahdollistaa Wood-Booster OS:n sisäisissä näkymissä liikkumisen.",
+      "Mahdollistaa Wood-Booster HQ:n sisäisissä näkymissä liikkumisen.",
     enabled: true,
     tools: [
       "navigation",

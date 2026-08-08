@@ -61,7 +61,7 @@ function DashboardHero() {
             tracking-wide
           "
         >
-          Wood-Booster OS
+          Wood-Booster HQ
         </h1>
 
 

@@ -237,7 +237,7 @@ function Projects() {
               page-description
             "
           >
-            Wood-Booster OS:n projektityötila.
+            Wood-Booster HQ:n projektityötila.
           </p>
 
 

@@ -499,7 +499,7 @@ function Settings() {
           "
         >
 
-          Wood-Booster OS:n järjestelmäasetukset ja ympäristö.
+          Wood-Booster HQ:n järjestelmäasetukset ja ympäristö.
 
         </p>
 
@@ -1225,7 +1225,7 @@ function Settings() {
                 "
               >
 
-                Wood-Booster OS
+                Wood-Booster HQ
 
               </p>
 
@@ -1435,7 +1435,7 @@ function Settings() {
           "
         >
 
-          Wood-Booster OS rakentuu rauhallisen työympäristön,
+          Wood-Booster HQ rakentuu rauhallisen työympäristön,
           kestävän kehityksen ja ihmislähtöisen teknologian
           ympärille. Järjestelmä toimii käyttäjän työkaluna,
           ei käyttäjän korvaajana.
