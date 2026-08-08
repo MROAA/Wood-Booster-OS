@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "v_git-01d6543_1786208927",
+  "timestamp": 1786208927.177208,
+  "version_label": "git-01d6543",
+  "description": "Auto-snapshot: Korjattu tyypitys, virhetyypit ja moduulirakenne vakautettu",
+  "layers": {
+    "core": {
+      "layer_name": "CoreIdentity",
+      "version": "1.0.0",
+      "attributes": {
+        "base_model": "Spacemonkeybrain",
+        "git_commit": "01d6543"
+      },
+      "metadata": {}
+    },
+    "limbic": {
+      "layer_name": "LimbicState",
+      "version": "0.1.0",
+      "attributes": {
+        "valence": 0.0,
+        "arousal": 0.0,
+        "stress": 0.0,
+        "curiosity": 0.5
+      },
+      "metadata": {}
+    }
+  },
+  "checksum": "01d2f931cc62178e32425fcd58f75ba7b0351d6a57588820cc34ebd8b36d8bf1"
+}
