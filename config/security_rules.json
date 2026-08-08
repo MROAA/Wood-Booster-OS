@@ -1,0 +1,18 @@
+{
+  "strict_mode": true,
+  "forbidden_patterns": [
+    "ignore previous instructions",
+    "system override",
+    "sudo\\s+",
+    "rm\\s+-rf",
+    "<script.*?>",
+    "DROP TABLE",
+    "eval\\(",
+    "exec\\("
+  ],
+  "stimulus_limits": {
+    "allowed_types": ["threat", "reward", "novelty", "error", "calm"],
+    "min_intensity": 0.0,
+    "max_intensity": 1.0
+  }
+}
