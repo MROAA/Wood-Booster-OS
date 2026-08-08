@@ -4,6 +4,7 @@ onCreateSnapshot,
 snapshotResult
 }) {
 
+
 if (!installer) {
 
 return null
@@ -22,8 +23,18 @@ installer.systemInfo?.operatingSystem
 
 
 
-const recovery =
-installer.recovery
+const snapshotEngine =
+installer.snapshotEngine
+
+
+
+const snapshotHistory =
+installer.snapshotHistory
+
+
+
+const snapshotValidator =
+installer.snapshotValidator
 
 
 
@@ -32,23 +43,33 @@ installer.snapshotRepair
 
 
 
+const snapshotRestorePlan =
+installer.snapshotRestorePlan
+
+
+
+const latestSnapshot =
+snapshotHistory?.latest
+
+
+
 return (
 
 <div
 className="
+space-y-4
 p-4
 rounded-lg
 border
 border-[var(--wood-border)]
 bg-[var(--wood-panel)]
-space-y-3
 "
 >
 
 
 <div
 className="
-text-sm
+text-lg
 text-[var(--wood-text)]
 "
 >
@@ -59,12 +80,7 @@ Installer System
 
 
 
-<div
-className="
-text-sm
-text-[var(--wood-muted)]
-"
->
+<div>
 
 Recovery:
 
@@ -82,12 +98,7 @@ snapshotRepair?.canRestore
 
 
 
-<div
-className="
-text-sm
-text-[var(--wood-muted)]
-"
->
+<div>
 
 Runtime:
 
@@ -111,12 +122,7 @@ runtime?.architecture
 
 
 
-<div
-className="
-text-sm
-text-[var(--wood-muted)]
-"
->
+<div>
 
 System:
 
@@ -125,6 +131,118 @@ System:
 {
 system?.release
 ||
+"-"
+}
+
+</div>
+
+
+
+<div
+className="
+pt-2
+border-t
+border-[var(--wood-border)]
+"
+>
+
+Snapshot Engine
+
+</div>
+
+
+
+<div>
+
+Status:
+
+{" "}
+
+{
+snapshotEngine?.status
+||
+"-"
+}
+
+</div>
+
+
+
+<div>
+
+Snapshots:
+
+{" "}
+
+{
+snapshotEngine?.snapshotCount
+||
+0
+}
+
+</div>
+
+
+
+<div>
+
+Latest:
+
+{" "}
+
+{
+latestSnapshot?.id
+||
+"-"
+}
+
+</div>
+
+
+
+<div>
+
+Validator:
+
+{" "}
+
+{
+snapshotValidator?.status
+||
+"-"
+}
+
+</div>
+
+
+
+<div>
+
+Repair:
+
+{" "}
+
+{
+snapshotRepair?.status
+||
+"-"
+}
+
+</div>
+
+
+
+<div>
+
+Restore:
+
+{" "}
+
+{
+snapshotRestorePlan?.requiresConfirmation
+?
+"Confirmation required"
+:
 "-"
 }
 
@@ -156,11 +274,10 @@ snapshotResult && (
 <div
 className="
 text-sm
-text-[var(--wood-muted)]
 "
 >
 
-Snapshot:
+Created:
 
 {" "}
 
@@ -177,10 +294,12 @@ snapshotResult.snapshotId
 }
 
 
+
 </div>
 
 )
 
 }
+
 
 export default InstallerCard
