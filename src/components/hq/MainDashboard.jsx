@@ -11,11 +11,7 @@ export const MainDashboard = () => {
   const [backupStatus, setBackupStatus] = useState('pending');
   const [backupMessage, setBackupMessage] = useState('Ladataan...');
 
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'HQ System', text: 'Moduulit ladattu. Valmiina.', avatar: 'https://api.iconify.design/lucide:terminal.svg' },
-    { sender: 'System Pulse', text: 'Kaikki järjestelmät vihreällä. Viive 12ms.', avatar: 'https://api.iconify.design/lucide:activity.svg' },
-    { sender: 'Spacemonkey', text: 'Yo! Kaikki järjestelmät rullaavat timmissä kunnossa.', avatar: 'https://api.iconify.design/lucide:bot.svg' },
-  ]);
+  const [chatMessages, setChatMessages] = useState([]);
   const [currentInput, setCurrentInput] = useState('');
 
   const loadGitGuardianStatus = () => {
