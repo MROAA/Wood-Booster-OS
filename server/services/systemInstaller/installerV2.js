@@ -13,6 +13,7 @@ Vastuut:
 - yhdistää Snapshot tilan
 - yhdistää Snapshot Engine tilan
 - yhdistää Snapshot Historian
+- yhdistää Snapshot Validatorin
 
 Ei:
 
@@ -90,6 +91,12 @@ import {
 
 
 
+import {
+    getInstallerSnapshotValidator,
+} from "./installerSnapshotValidator.js"
+
+
+
 function getInstallerV2(){
 
 
@@ -143,6 +150,11 @@ function getInstallerV2(){
 
 
 
+    const snapshotValidator =
+        getInstallerSnapshotValidator()
+
+
+
     const report =
         getInstallerReport()
 
@@ -152,7 +164,8 @@ function getInstallerV2(){
 
         Math.min(
             health.score,
-            dependencies.score
+            dependencies.score,
+            snapshotValidator.score
         )
 
 
@@ -219,6 +232,10 @@ function getInstallerV2(){
 
 
         snapshotHistory,
+
+
+
+        snapshotValidator,
 
 
 
