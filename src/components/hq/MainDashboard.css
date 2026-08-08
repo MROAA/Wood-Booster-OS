@@ -35,11 +35,13 @@
 }
 
 /* Status colors for the Git Guardian action card — functional states,
-   not brand identity, so kept local rather than in the shared tokens. */
+   not brand identity, so kept local rather than in the shared tokens.
+   Muted to sit with the dark/gold palette instead of the old neon
+   green/red, which clashed badly against it. */
 :root {
-  --status-pending: #ca8a04;
-  --status-ready: #4ade80;
-  --status-error: #dc2626;
+  --status-pending: var(--wood-accent);
+  --status-ready: #7a9670;
+  --status-error: #a8483a;
 
   --panel-texture: url('/branding/texture-panel.jpg');
 }
