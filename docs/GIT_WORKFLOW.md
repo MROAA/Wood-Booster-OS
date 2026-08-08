@@ -88,3 +88,20 @@ work (`git checkout`, `git restore`, `git reset`, `git clean`), run
 `git status` first, and prefer `git stash push -- <path>` over
 discarding — it keeps the other session's draft recoverable instead of
 deleting it outright.
+
+---
+
+# One-time setup: git hooks
+
+`.git/config` is not version-controlled, so `core.hooksPath` has to be
+set once per machine (or per fresh clone) for the hooks in `.githooks/`
+to actually run:
+
+```
+git config core.hooksPath .githooks
+```
+
+Without this, `pre-commit` (Git Guardian's secret scanner — see
+`src/spacemonkey/git_guardian.py`) and `post-commit` (the identity
+snapshot hook) silently do nothing. If a commit with an obvious secret
+in it goes through without being blocked, check this first.

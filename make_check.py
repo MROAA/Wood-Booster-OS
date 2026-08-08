@@ -40,6 +40,7 @@ def run_checks():
         "src/spacemonkey/types.py",
         "src/spacemonkey/audit_logger.py",
         "src/spacemonkey/config_validator.py",
+        "src/spacemonkey/git_guardian.py",
         "spc.py",
         "spc_cli.py"
     ]
