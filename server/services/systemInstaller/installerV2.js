@@ -81,7 +81,7 @@ import {
 
 
 import {
-    getSnapshotEngine,
+    getSnapshotEngineStatus,
 } from "./installerSnapshotEngine.js"
 
 
@@ -154,7 +154,7 @@ function getInstallerV2(){
 
 
     const snapshotEngine =
-        getSnapshotEngine()
+        getSnapshotEngineStatus()
 
 
 

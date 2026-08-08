@@ -3,7 +3,7 @@
 
 WOOD-BOOSTER OS INSTALLER V3
 
-SNAPSHOT ENGINE V2
+SNAPSHOT ENGINE V3
 
 Vastuut:
 
@@ -11,12 +11,13 @@ Vastuut:
 - tallentaa snapshot tiedoston
 - tallentaa runtime tiedot
 - tallentaa projektitiedot
+- raportoi snapshot tilan
 
 Ei:
 
 - kopioi projektia
 - palauta järjestelmää
-- muuta järjestelmää
+- muuta järjestelmää automaattisesti
 
 =====================================
 */
@@ -27,7 +28,18 @@ import path from "path"
 
 
 
-function getSnapshotEngine(){
+function getSnapshotRoot(){
+
+    return path.join(
+        process.cwd(),
+        "snapshots"
+    )
+
+}
+
+
+
+function createSnapshot(){
 
 
     const root =
@@ -36,10 +48,7 @@ function getSnapshotEngine(){
 
 
     const snapshotRoot =
-        path.join(
-            root,
-            "snapshots"
-        )
+        getSnapshotRoot()
 
 
 
@@ -104,6 +113,7 @@ function getSnapshotEngine(){
         git: {
 
             available:
+
                 fs.existsSync(
                     path.join(
                         root,
@@ -165,7 +175,7 @@ function getSnapshotEngine(){
 
         system:
 
-            "Wood-Booster OS Snapshot Engine V2",
+            "Wood-Booster OS Snapshot Engine V3",
 
 
 
@@ -211,8 +221,96 @@ function getSnapshotEngine(){
 
 
 
+function getSnapshotEngineStatus(){
+
+
+    const snapshotRoot =
+        getSnapshotRoot()
+
+
+
+    const exists =
+        fs.existsSync(
+            snapshotRoot
+        )
+
+
+
+    let count = 0
+
+
+
+    if(exists){
+
+
+        count =
+
+            fs.readdirSync(
+                snapshotRoot,
+                {
+                    withFileTypes: true
+                }
+            )
+
+            .filter(
+                item =>
+                    item.isDirectory()
+            )
+
+            .length
+
+
+    }
+
+
+
+    return {
+
+
+        system:
+
+            "Wood-Booster OS Snapshot Engine Status",
+
+
+
+        status:
+
+            exists
+                ?
+                "ready"
+                :
+                "empty",
+
+
+
+        snapshotPath:
+
+            snapshotRoot,
+
+
+
+        snapshotCount:
+
+            count,
+
+
+
+        checkedAt:
+
+            new Date()
+            .toISOString(),
+
+    }
+
+
+}
+
+
+
 export {
 
-    getSnapshotEngine,
+    createSnapshot,
+
+    getSnapshotEngineStatus,
 
 }
