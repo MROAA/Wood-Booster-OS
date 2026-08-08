@@ -261,6 +261,21 @@ One responsibility per module.
 
 ---
 
+# Version Control
+
+Multiple AI sessions work on this repository at once, often in the same
+directory. This has already caused real damage: a fix silently
+overwritten by another session, and a core file nearly reduced to a
+prototype stub.
+
+Every non-trivial task works in its own git worktree, on its own
+branch, never directly in the main checkout. Never commit directly to
+`development` or `main`. Push and open a Pull Request before merging.
+
+See `docs/GIT_WORKFLOW.md` for the exact steps.
+
+---
+
 # Long-Term Goal
 
 Wood-Booster HQ should evolve into a modular AI Operating System capable of supporting software development, business management, content creation, automation, and future capabilities through Boosterverse.
