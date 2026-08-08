@@ -1,27 +1,18 @@
 import {
-  useEffect,
-  useState
+useEffect,
+useState
 } from "react"
 
 import {
-  apiGet,
+apiGet,
+apiPost,
 } from "../api/client"
 
 import PulseCard from "../components/systemPulse/PulseCard"
 import InstallerManagerCard from "../components/systemPulse/InstallerManagerCard"
 import StatusGlow from "../components/systemPulse/StatusGlow"
 
-import EnvironmentCard from "../components/systemPulse/EnvironmentCard"
-import GitSyncCard from "../components/systemPulse/GitSyncCard"
-import HardwareCard from "../components/systemPulse/HardwareCard"
-import RuntimeCard from "../components/systemPulse/RuntimeCard"
-import GitHistoryCard from "../components/systemPulse/GitHistoryCard"
-import IdentityCard from "../components/systemPulse/IdentityCard"
 import SecurityCard from "../components/systemPulse/SecurityCard"
-import MonitorCard from "../components/systemPulse/MonitorCard"
-import HealthScoreCard from "../components/systemPulse/HealthScoreCard"
-import ActivityTimelineCard from "../components/systemPulse/ActivityTimelineCard"
-import SnapshotCard from "../components/systemPulse/SnapshotCard"
 import InstallerCard from "../components/systemPulse/InstallerCard"
 
 
@@ -29,65 +20,107 @@ import InstallerCard from "../components/systemPulse/InstallerCard"
 function SystemPulse(){
 
 const [
-  pulse,
-  setPulse
+pulse,
+setPulse
 ] = useState(null)
 
 
 
 const [
-  core,
-  setCore
+core,
+setCore
 ] = useState(null)
 
 
 
 const [
-  activities,
-  setActivities
+activities,
+setActivities
 ] = useState([])
 
 
 
 const [
-  connection,
-  setConnection
+connection,
+setConnection
 ] = useState("CHECKING")
 
 
 
 const [
-  lastUpdate,
-  setLastUpdate
+lastUpdate,
+setLastUpdate
 ] = useState(null)
 
 
 
 const [
-  ,
-  setPreviousHealth
+,
+setPreviousHealth
 ] = useState(null)
 
 
 
 const [
-  healthChange,
-  setHealthChange
+healthChange,
+setHealthChange
 ] = useState(null)
 
 
 
 const [
-  loading,
-  setLoading
+loading,
+setLoading
 ] = useState(true)
 
 
 
 const [
-  error,
-  setError
+error,
+setError
 ] = useState("")
+
+
+
+const [
+snapshotResult,
+setSnapshotResult
+] = useState(null)
+
+
+
+async function createSnapshot(){
+
+
+try {
+
+
+const result =
+await apiPost(
+"/system-installer/snapshot/create",
+{}
+)
+
+
+
+setSnapshotResult(
+result.snapshot
+)
+
+
+
+}
+catch(error){
+
+
+console.error(
+error
+)
+
+
+}
+
+}
 
 
 
@@ -95,214 +128,228 @@ async function loadSystemData(){
 
 try {
 
-  setError("")
 
+setError("")
 
-  const pulseData =
-    await apiGet(
-      "/system-pulse"
-    )
 
 
-  if(
-    pulseData.success
-  ){
+const pulseData =
+await apiGet(
+"/system-pulse"
+)
 
-    const summary =
-      pulseData.pulse.summary
 
 
+if(
+pulseData.success
+){
 
-    const currentHealth =
-      summary.healthScore
 
 
+const summary =
+pulseData.pulse.summary
 
-    console.log(
-      "SUMMARY INSTALLER",
-      summary.installer
-    )
 
 
+const currentHealth =
+summary.healthScore
 
-    setPreviousHealth(
-      prevHealth => {
 
-        if(
-          prevHealth
-        ){
 
-          setHealthChange({
+setPreviousHealth(
+prevHealth => {
 
-            from:
-              prevHealth.score,
 
+if(
+prevHealth
+){
 
-            to:
-              currentHealth.score,
 
+setHealthChange({
 
-            difference:
-              currentHealth.score -
-              prevHealth.score,
+from:
+prevHealth.score,
 
-          })
+to:
+currentHealth.score,
 
-        }
+difference:
+currentHealth.score -
+prevHealth.score,
 
-
-        return currentHealth
-
-      }
-    )
-
-
-
-    setPulse({
-
-      ...pulseData.pulse,
-
-
-      brain: {
-
-        modules:
-          summary.modules.total,
-
-
-        activeModules:
-          summary.modules.active,
-
-      },
-
-
-      security: {
-
-        capabilitiesApproved:
-          summary.capability.approved,
-
-
-        blocked:
-          summary.security.blockedEvents,
-
-
-        approvalRequired:
-          summary.security.approvalRequired,
-
-
-        status:
-          summary.security.status,
-
-
-        message:
-          summary.security.message,
-
-      },
-
-
-      runtime:
-        summary.runtime,
-
-
-      environment:
-        summary.environment,
-
-
-      hardware:
-        summary.hardware,
-
-
-      gitSummary:
-        summary.gitSummary,
-
-
-      gitHistory:
-        summary.gitHistory,
-
-
-      installer:
-        summary.installer?.health,
-
-
-      installerManager:
-        summary.installer?.manager,
-
-    })
-
-  }
-
-
-
-  const coreData =
-    await apiGet(
-      "/spacemonkey/core"
-    )
-
-
-  if(
-    coreData.success
-  ){
-
-    setCore(
-      coreData.data
-    )
-
-  }
-
-
-
-  const activityData =
-    await apiGet(
-      "/spacemonkey/activity"
-    )
-
-
-  if(
-    activityData.success
-  ){
-
-    setActivities(
-      activityData.data.slice(
-        0,
-        10
-      )
-    )
-
-  }
-
-
-
-  setConnection(
-    "ONLINE"
-  )
-
-
-  setLastUpdate(
-    new Date()
-  )
+})
 
 
 }
+
+
+return currentHealth
+
+
+}
+)
+
+
+
+setPulse({
+
+...pulseData.pulse,
+
+
+brain: {
+
+modules:
+summary.modules.total,
+
+
+activeModules:
+summary.modules.active,
+
+},
+
+
+security: {
+
+capabilitiesApproved:
+summary.capability.approved,
+
+
+blocked:
+summary.security.blockedEvents,
+
+
+approvalRequired:
+summary.security.approvalRequired,
+
+
+status:
+summary.security.status,
+
+
+message:
+summary.security.message,
+
+},
+
+
+runtime:
+summary.runtime,
+
+
+environment:
+summary.environment,
+
+
+hardware:
+summary.hardware,
+
+
+gitSummary:
+summary.gitSummary,
+
+
+gitHistory:
+summary.gitHistory,
+
+
+installer:
+summary.installer?.health,
+
+
+installerManager:
+summary.installer?.manager,
+
+})
+
+
+}
+
+
+
+const coreData =
+await apiGet(
+"/spacemonkey/core"
+)
+
+
+
+if(
+coreData.success
+){
+
+setCore(
+coreData.data
+)
+
+}
+
+
+
+const activityData =
+await apiGet(
+"/spacemonkey/activity"
+)
+
+
+
+if(
+activityData.success
+){
+
+setActivities(
+activityData.data.slice(
+0,
+10
+)
+)
+
+}
+
+
+
+setConnection(
+"ONLINE"
+)
+
+
+
+setLastUpdate(
+new Date()
+)
+
+
+
+}
+
 catch(loadError){
 
-  console.error(
-    loadError
-  )
+
+console.error(
+loadError
+)
 
 
-  setConnection(
-    "OFFLINE"
-  )
+
+setConnection(
+"OFFLINE"
+)
 
 
-  setError(
-    loadError.message ||
-    "Järjestelmätilan lataaminen epäonnistui."
-  )
+
+setError(
+loadError.message ||
+"Järjestelmätilan lataaminen epäonnistui."
+)
+
+
 
 }
+
 finally{
 
-  setLoading(false)
+
+setLoading(false)
+
 
 }
 
@@ -312,22 +359,57 @@ finally{
 
 useEffect(()=>{
 
-  loadSystemData()
+
+loadSystemData()
 
 
-  const interval =
-    setInterval(
-      loadSystemData,
-      10000
-    )
+
+const interval =
+setInterval(
+loadSystemData,
+10000
+)
 
 
-  return () =>
-    clearInterval(
-      interval
-    )
+
+return () =>
+clearInterval(
+interval
+)
+
+
 
 },[])
+
+
+
+function getPulseStatus(status){
+
+
+if(status === "healthy"){
+return "healthy"
+}
+
+
+if(status === "degraded"){
+return "warning"
+}
+
+
+if(status === "warning"){
+return "warning"
+}
+
+
+if(status === "error"){
+return "error"
+}
+
+
+return "warning"
+
+
+}
 
 
 
@@ -337,93 +419,26 @@ pulse?.brain?.modules === pulse?.brain?.activeModules
 
 
 
-function getPulseStatus(status){
-
-if(status === "healthy"){
-return "healthy"
-}
-
-if(status === "degraded"){
-return "warning"
-}
-
-if(status === "warning"){
-return "warning"
-}
-
-if(status === "error"){
-return "error"
-}
-
-return "warning"
-
-}
-
-
-
 return (
 
-<div
-className="
-w-full
-flex
-flex-col
-gap-6
-"
->
-
-
-<header>
-
-<p
-className="
-text-sm
-font-semibold
-uppercase
-tracking-[0.25em]
-text-[var(--wood-accent)]
-"
->
-Diagnostiikka
-</p>
-
-
-<h1
-className="
-mt-2
-text-4xl
-brand-font
-text-[var(--wood-text)]
-"
->
-System Pulse
-</h1>
-
-
-<p
-className="
-mt-3
-max-w-2xl
-text-sm
-text-[var(--wood-muted)]
-"
->
-Wood-Booster OS järjestelmän tila
-</p>
-
-
-</header>
-
-
+<>
 
 {
 error && (
 
-<div className="panel text-red-400">
+<div
+className="
+text-sm
+text-red-500
+"
+>
+
 {error}
+
 </div>
 
 )
+
 }
 
 
@@ -431,34 +446,20 @@ error && (
 {
 loading && !pulse && (
 
-<div className="panel p-6">
-Ladataan järjestelmätilaa...
+<div>
+
+Loading System Pulse...
+
 </div>
 
 )
+
 }
 
 
 
-<section
-className="
-grid
-grid-cols-1
-gap-6
-lg:grid-cols-2
-xl:grid-cols-3
-"
->
-
-
 <PulseCard
 title="Status"
->
-
-<div
-className="
-space-y-3
-"
 >
 
 
@@ -475,13 +476,10 @@ pulse?.status
 />
 
 
+
 <StatusGlow
 label="AI Brain"
-value={`
-${pulse?.brain?.activeModules || 0}
-/
-${pulse?.brain?.modules || 0}
-`}
+value={`${pulse?.brain?.activeModules || 0}/${pulse?.brain?.modules || 0}`}
 status={
 brainHealthy
 ?
@@ -489,30 +487,6 @@ brainHealthy
 :
 "warning"
 }
-/>
-
-
-</div>
-
-
-</PulseCard>
-
-
-
-<EnvironmentCard
-pulse={pulse}
-/>
-
-
-
-<GitSyncCard
-pulse={pulse}
-/>
-
-
-
-<HardwareCard
-pulse={pulse}
 />
 
 
@@ -525,30 +499,15 @@ pulse?.security
 
 
 
-<RuntimeCard
-pulse={pulse}
-/>
-
-
-
-<IdentityCard
-core={core}
-/>
-
-
-
-<MonitorCard
-connection={connection}
-lastUpdate={lastUpdate}
-pulse={pulse?.summary}
-healthChange={healthChange}
-/>
-
-
-
 <InstallerCard
 installer={
 pulse?.installer
+}
+onCreateSnapshot={
+createSnapshot
+}
+snapshotResult={
+snapshotResult
 }
 />
 
@@ -562,40 +521,10 @@ pulse?.installerManager
 
 
 
-</section>
+</PulseCard>
 
 
-
-<section
-className="
-grid
-grid-cols-1
-gap-6
-lg:grid-cols-2
-"
->
-
-
-<ActivityTimelineCard
-activities={activities}
-/>
-
-
-<GitHistoryCard
-pulse={pulse}
-/>
-
-
-
-</section>
-
-
-
-<SnapshotCard />
-
-
-
-</div>
+</>
 
 )
 
