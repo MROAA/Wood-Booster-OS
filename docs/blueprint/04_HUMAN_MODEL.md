@@ -1,8 +1,8 @@
-# Wood-Booster OS — Human Model
+# Wood-Booster HQ — Human Model
 
 *Master Blueprint, Volume IV.*
 
-Wood-Booster OS ei mallinna ohjelmaa — se mallintaa puusepän työn.
+Wood-Booster HQ ei mallinna ohjelmaa — se mallintaa puusepän työn.
 Tämä on hienovarainen mutta merkittävä ero: sen sijaan että
 lähdettäisiin liikkeelle näkymistä kuten "Projektit", "CRM" tai
 "Varasto", lähdetään liikkeelle oikeasta työpäivästä. Jokainen

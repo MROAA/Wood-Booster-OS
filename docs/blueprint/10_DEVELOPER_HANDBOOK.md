@@ -1,4 +1,4 @@
-# Wood-Booster OS — Developer Handbook
+# Wood-Booster HQ — Developer Handbook
 
 *Master Blueprint, Volume X.*
 
@@ -24,7 +24,7 @@ järjestyksessä:
 7. **Commit** — hallittu Git-committi, ei ennen kuin edelliset vaiheet on tehty.
 
 **AI:lle annettava kehys on aina tehtäväkohtainen, ei avoin.** Ei
-"rakenna Wood-Booster OS", vaan "tutki nykyinen rakenne ja toteuta
+"rakenna Wood-Booster HQ", vaan "tutki nykyinen rakenne ja toteuta
 yksi määritelty parannus nykyistä arkkitehtuuria säilyttäen." Tämä
 estää rinnakkaisten, päällekkäisten järjestelmien syntymisen — täsmälleen
 se ongelma joka löydettiin ja korjattiin tämän projektin kahden
@@ -48,7 +48,7 @@ Kaksi konkreettista esimerkkiä joita Marc itse nosti esiin:
   Vektorihaku voi tulla myöhemmin dokumenteille/muistiinpanoille,
   vasta kun siitä on todellinen hyöty.
 - **Electron/Tauri-paketointi** on jakelukerros, ei arkkitehtuurin
-  lähtökohta. Wood-Booster OS pitää ensin saada hyväksi sovellukseksi
+  lähtökohta. Wood-Booster HQ pitää ensin saada hyväksi sovellukseksi
   nykyisellä (React+Vite+Express) arkkitehtuurilla — älä vaihda
   teknologiaa vain saadaksesi sovellusikonin työpöydälle.
 

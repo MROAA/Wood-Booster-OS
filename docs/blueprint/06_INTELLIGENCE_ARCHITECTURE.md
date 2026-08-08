@@ -1,4 +1,4 @@
-# Wood-Booster OS — Intelligence Architecture
+# Wood-Booster HQ — Intelligence Architecture
 
 *Master Blueprint, Volume VI.*
 
@@ -123,7 +123,7 @@ raskasta AI-ajamista — nämä tulevat vasta myöhemmillä
 kehitysportailla.
 
 Tämä on pienin muutos joka tekee nykyisestä AI:sta ensimmäistä
-kertaa aidosti *osan* Wood-Booster OS:ää sen sijaan että se olisi
+kertaa aidosti *osan* Wood-Booster HQ:ää sen sijaan että se olisi
 vain kysymys-vastaus-rajapinta sen vieressä.
 
 ## Lähteet

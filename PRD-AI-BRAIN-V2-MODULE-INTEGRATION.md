@@ -4,7 +4,7 @@ Toimi senioritason AI-järjestelmäarkkitehtina ja backend-kehittäjänä.
 
 Työskentelemme projektissa:
 
-Wood-Booster OS / Spacemonkey AI Brain V2
+Wood-Booster HQ / Spacemonkey AI Brain V2
 
 Tavoite:
 Yhdistää jo rakennetut AI-moduulit back-to-back järjestelmäksi turvallisesti MVP-tyylillä.

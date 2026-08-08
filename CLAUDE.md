@@ -1,5 +1,5 @@
 # CLAUDE.md
-# Wood-Booster OS Engineering Guide
+# Wood-Booster HQ Engineering Guide
 
 Version: 1.0
 
@@ -7,9 +7,9 @@ Version: 1.0
 
 # Mission
 
-You are contributing to Wood-Booster OS.
+You are contributing to Wood-Booster HQ.
 
-Wood-Booster OS is an AI Operating System.
+Wood-Booster HQ is an AI Operating System.
 
 Spacemonkey is the operating intelligence.
 
@@ -263,6 +263,6 @@ One responsibility per module.
 
 # Long-Term Goal
 
-Wood-Booster OS should evolve into a modular AI Operating System capable of supporting software development, business management, content creation, automation, and future capabilities through Boosterverse.
+Wood-Booster HQ should evolve into a modular AI Operating System capable of supporting software development, business management, content creation, automation, and future capabilities through Boosterverse.
 
 Every contribution should move the project closer to that goal.

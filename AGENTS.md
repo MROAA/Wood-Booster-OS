@@ -1,5 +1,5 @@
 # AGENTS.md
-# Wood-Booster OS
+# Wood-Booster HQ
 # Spacemonkey AI Operating System
 
 This file defines how AI coding agents should contribute to this repository.

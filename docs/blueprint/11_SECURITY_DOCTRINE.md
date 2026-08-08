@@ -1,4 +1,4 @@
-# Wood-Booster OS — Security Doctrine
+# Wood-Booster HQ — Security Doctrine
 
 *Master Blueprint, Volume XI.*
 
@@ -9,7 +9,7 @@ tästä vaatii vielä hänen oman päätöksensä ennen kuin sitä voi laajentaa
 
 ## Nykytila (todennettu koodista)
 
-Wood-Booster OS on tänään **yhden käyttäjän, paikallisesti ajettava
+Wood-Booster HQ on tänään **yhden käyttäjän, paikallisesti ajettava
 sovellus**, ei monen käyttäjän julkiseen verkkoon avoin palvelu:
 
 - Ei kirjautumisjärjestelmää (ei passport/jwt/bcrypt-riippuvuuksia,

@@ -1,4 +1,4 @@
-# Wood-Booster OS — Automation Bible
+# Wood-Booster HQ — Automation Bible
 
 *Master Blueprint, Volume VII.*
 

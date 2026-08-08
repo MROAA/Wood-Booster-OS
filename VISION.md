@@ -1,5 +1,5 @@
 # VISION.md
-# Wood-Booster OS Vision
+# Wood-Booster HQ Vision
 # Spacemonkey AI Operating System
 
 Version: 1.0
@@ -8,7 +8,7 @@ Version: 1.0
 
 # Vision
 
-Wood-Booster OS is a modular AI Operating System.
+Wood-Booster HQ is a modular AI Operating System.
 
 Spacemonkey is not a chatbot.
 

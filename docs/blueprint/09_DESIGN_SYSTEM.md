@@ -1,4 +1,4 @@
-# Wood-Booster OS — Design System
+# Wood-Booster HQ — Design System
 
 *Master Blueprint, Volume IX.*
 

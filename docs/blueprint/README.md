@@ -1,6 +1,6 @@
-# Wood-Booster OS — Master Blueprint
+# Wood-Booster HQ — Master Blueprint
 
-Wood-Booster OS Canon: yksi totuuden lähde projektin tarkoituksesta,
+Wood-Booster HQ Canon: yksi totuuden lähde projektin tarkoituksesta,
 säännöistä ja suunnasta — riippumatta siitä kuka koodia kirjoittaa tai
 mitä teknologiaa tulevaisuudessa käytetään.
 

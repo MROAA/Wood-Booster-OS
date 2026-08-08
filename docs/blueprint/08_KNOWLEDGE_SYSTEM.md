@@ -1,10 +1,10 @@
-# Wood-Booster OS — Knowledge System
+# Wood-Booster HQ — Knowledge System
 
 *Master Blueprint, Volume VIII.*
 
 ## Periaate: tieto on verkko, ei tiedostoja
 
-Wood-Booster OS:n tieto ei elä irrallisina tiedostoina. Se muodostaa
+Wood-Booster HQ:n tieto ei elä irrallisina tiedostoina. Se muodostaa
 yhteyksien verkoston: asiakas ↔ projekti ↔ materiaali ↔ kuva ↔ video
 ↔ työvaihe ↔ tarjous ↔ dokumentti ↔ Spacemonkey ↔ oppiminen. Yksi
 haku löytää kaiken olennaisen ("Yksi haku", Constitution laki 13).

@@ -1,8 +1,8 @@
-# Wood-Booster OS — Constitution (Perustuslaki)
+# Wood-Booster HQ — Constitution (Perustuslaki)
 
 *Master Blueprint, Volume II.*
 
-Nämä ovat Wood-Booster OS:n muuttumattomat suunnitteluperiaatteet.
+Nämä ovat Wood-Booster HQ:n muuttumattomat suunnitteluperiaatteet.
 Ne ohjaavat projektia riippumatta siitä, miltä teknologia näyttää
 10, 50 tai 100 vuoden kuluttua. Kun uusi ominaisuus, näkymä tai
 automaatio suunnitellaan, se testataan näitä lakeja vasten — jos se
@@ -125,7 +125,7 @@ kopiota Constitutionista muualla.
 
 ## Tunnuslause
 
-"Wood-Booster OS säästää käyttäjän aikaa, säilyttää yrityksen
+"Wood-Booster HQ säästää käyttäjän aikaa, säilyttää yrityksen
 tiedon ja tekee päivittäisestä työstä miellyttävämpää."
 
 Tämä toimii suodattimena: jos uusi ominaisuus ei säästä aikaa, auta

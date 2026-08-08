@@ -1,9 +1,9 @@
-# Wood-Booster OS — Legacy
+# Wood-Booster HQ — Legacy
 
 *Master Blueprint, Volume XIII.*
 
 [Founder's Charterin](03_FOUNDERS_CHARTER.md) "Perintö"-osio kertoo
-*miksi* Wood-Booster OS tähtää vuosikymmeniin. Tämä volyymi kuvaa
+*miksi* Wood-Booster HQ tähtää vuosikymmeniin. Tämä volyymi kuvaa
 *mitä perintö tarkoittaa käytännössä* — konkreettisemmin.
 
 ## Yrityksen tieto ei koskaan kuole
@@ -53,7 +53,7 @@ näytöllä, vaan olennaisen säilyttämistä tiedossa.
 
 ## Lopullinen ajatus
 
-Wood-Booster OS:n arvo ei muodostu sen koodista, vaan siitä tiedosta,
+Wood-Booster HQ:n arvo ei muodostu sen koodista, vaan siitä tiedosta,
 kokemuksesta ja käytännöstä jota se auttaa säilyttämään sukupolvelta
 toiselle (ks. Founder's Charter). Tämä Master Blueprint itsessään on
 osa sitä perintöä — kirjoitettu niin että sekä ihminen että

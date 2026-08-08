@@ -51,7 +51,7 @@ luonnollinen, hieman mystinen, aina läsnä mutta ei huomiota hakeva.
 
 Boosterverse ei ole käyttöliittymä. Se on Spacemonkeyn kotimaailma.
 
-Wood-Booster OS on käyttöjärjestelmä. Boosterverse on sen älykäs
+Wood-Booster HQ on käyttöjärjestelmä. Boosterverse on sen älykäs
 sisäinen maailma.
 
 Kun käyttäjä keskustelee Spacemonkeyn kanssa, hän ei keskustele
@@ -60,7 +60,7 @@ Kun käyttäjä keskustelee Spacemonkeyn kanssa, hän ei keskustele
 ### Virallinen määritelmä
 
 ```
-Wood-Booster OS
+Wood-Booster HQ
   ↓ (digitaalinen työympäristö käyttäjälle)
 Boosterverse
   ↓ (digitaalinen maailma, jossa Spacemonkey elää, oppii, muistaa ja auttaa)
@@ -126,7 +126,7 @@ Spacemonkey oppii, maailma rikastuu.
 
 Spacemonkey ei "käynnisty" aina uudelleen. Se palaa kotiinsa
 Boosterverseen kun käyttäjä sulkee sovelluksen. Kun käyttäjä avaa
-Wood-Booster OS:n seuraavana aamuna, Spacemonkey tulee Boosterversesta
+Wood-Booster HQ:n seuraavana aamuna, Spacemonkey tulee Boosterversesta
 vastaan samalla muistilla, samoilla projekteilla ja samalla
 ymmärryksellä kuin edellisenä päivänä — jatkuvuutta tarjoava
 digitaalinen työpari, jolla on oma paikka järjestelmän maailmassa.
@@ -344,7 +344,7 @@ Kaikki Spacemonkeyn "ajattelu" kulkisi tämän ytimen läpi. LLM olisi
 vain yksi työkalu muiden joukossa.
 
 **Kilpailuetu-ajatus.** Useimmat tekoälyjärjestelmät toimivat:
-`Kysymys → LLM → Vastaus`. Wood-Booster OS voisi toimia:
+`Kysymys → LLM → Vastaus`. Wood-Booster HQ voisi toimia:
 
 ```
 Tapahtuma → Boosterverse Kernel → Assosiaatiot → Muisti → Luottamus
@@ -456,7 +456,7 @@ Vaihe F: asennetaan se CachyOS-kannettavaasi ja testataan Waylandissa.
 
 ## PRD 12.0 — Reality First Philosophy
 
-**Tuotelupaus.** Wood-Booster OS näyttää käyttäjälle aina
+**Tuotelupaus.** Wood-Booster HQ näyttää käyttäjälle aina
 mahdollisimman totuudenmukaisen kuvan hänen yrityksestään.
 Järjestelmä ei keksi lukuja, ei näytä esimerkkidataa normaalissa
 käytössä, ei kaunistele tilannetta. Se näyttää sen, mitä oikeasti
@@ -511,7 +511,7 @@ tekemisellä, tietojen jäljitettävyydellä.
 keskipiste, vaan näkymätön työpari — auttaa kun tarvitaan, muulloin
 ylläpitää järjestelmän ymmärrystä taustalla.
 
-**Daily Value.** Jokaisen työpäivän aikana Wood-Booster OS:n pitäisi
+**Daily Value.** Jokaisen työpäivän aikana Wood-Booster HQ:n pitäisi
 säästää käyttäjältä aikaa: muistamalla edellisen työvaiheen,
 ehdottamalla seuraavaa askelta, löytämällä oikean dokumentin,
 kokoamalla tiedot automaattisesti, vähentämällä toistuvaa
@@ -524,7 +524,7 @@ keskeneräinen työ löytyy yhdellä klikkauksella, keskeytyksen jälkeen
 työ jatkuu siitä mihin jäi, muistaminen ulkoistetaan järjestelmälle,
 ylimääräiset valinnat minimoidaan.
 
-**Final Product Definition.** Wood-Booster OS on onnistunut vasta
+**Final Product Definition.** Wood-Booster HQ on onnistunut vasta
 kun käyttäjä voi sanoa: "Tämä ohjelma tuntuu yhtä luonnolliselta kuin
 oma verstaani. Kaikki on siellä missä pitääkin, tiedot pitävät
 paikkansa, Spacemonkey ymmärtää mitä olen tekemässä, eikä minun
@@ -540,7 +540,7 @@ työpäivä."
 
 ## ADHD-First Design Philosophy
 
-Wood-Booster OS suunnitellaan niin että se vähentää käyttäjän
+Wood-Booster HQ suunnitellaan niin että se vähentää käyttäjän
 kognitiivista kuormaa. Tavoitteena ei ole näyttää mahdollisimman
 paljon tietoa, vaan näyttää oikea tieto oikealla hetkellä.
 
@@ -596,11 +596,11 @@ saa kuluttaa turhaan.
     mikäkin työ on menossa." — ei tarvitse käyttää puolta tuntia
     tilanteen selvittämiseen.
 
-**Uusi päätavoite:** "Wood-Booster OS ei mittaa onnistumistaan
+**Uusi päätavoite:** "Wood-Booster HQ ei mittaa onnistumistaan
 ominaisuuksien määrällä, vaan sillä, kuinka vähän käyttäjän tarvitsee
 käyttää henkistä energiaa tietokoneen hallintaan."
 
-**The Living Core.** Wood-Booster OS:n sydän on Spacemonkey Living
+**The Living Core.** Wood-Booster HQ:n sydän on Spacemonkey Living
 Core — jatkuvasti käynnissä oleva sisäinen palvelu joka muodostaa
 reaaliaikaisen tilannekuvan koko käyttöympäristöstä. Se ei odota
 käyttäjän kysymyksiä, vaan ymmärtää järjestelmän tilan jatkuvasti.
@@ -623,7 +623,7 @@ muisti, historia.
 
 ## PRD 15.0 — The Lifetime Operating System
 
-**Product Vision.** Wood-Booster OS ei ole ohjelma, AI-chat, ERP,
+**Product Vision.** Wood-Booster HQ ei ole ohjelma, AI-chat, ERP,
 CRM eikä projektinhallinta. Se on käyttäjän digitaalinen
 käyttöjärjestelmä, joka kokoaa kaiken työn yhteen paikkaan — tavoite
 on että käyttäjä tarvitsee mahdollisimman vähän muita ohjelmia

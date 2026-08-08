@@ -1,4 +1,4 @@
-# Wood-Booster OS — Vision
+# Wood-Booster HQ — Vision
 
 *Master Blueprint, Volume I.*
 
@@ -7,13 +7,13 @@
 
 ## Johdanto
 
-Wood-Booster OS ei ole tarkoitettu seuraavaksi
+Wood-Booster HQ ei ole tarkoitettu seuraavaksi
 projektinhallintaohjelmaksi. Sen tarkoitus on muodostaa yrityksen
 digitaalinen käyttöjärjestelmä — rakennettu siten, että sitä voidaan
 kehittää jatkuvasti vuosikymmenten ajan ilman, että sen ydintä
 tarvitsee rakentaa uudelleen.
 
-Wood-Booster OS:n tärkein ominaisuus ei ole yksittäinen AI-toiminto
+Wood-Booster HQ:n tärkein ominaisuus ei ole yksittäinen AI-toiminto
 tai näyttävä käyttöliittymä. Sen tärkein ominaisuus on kyky oppia,
 laajentua ja säilyttää yrityksen tieto sukupolvelta toiselle.
 
@@ -33,11 +33,11 @@ Jokainen uusi moduuli täyttää seuraavat ehdot: tekee työstä
 nopeampaa, vähentää virheitä, tekee järjestelmästä yksinkertaisemman,
 voidaan vaihtaa ilman että koko järjestelmä muuttuu, ja toimii
 yhdessä muiden moduulien kanssa. Mikään yksittäinen teknologia ei saa
-määrittää Wood-Booster OS:n tulevaisuutta.
+määrittää Wood-Booster HQ:n tulevaisuutta.
 
 ## Tuotefilosofia
 
-Seitsemän periaatetta, joille Wood-Booster OS rakentuu:
+Seitsemän periaatetta, joille Wood-Booster HQ rakentuu:
 
 1. **Ihminen ensin** — käyttöliittymä tukee käyttäjää, ei kilpaile
    hänen huomiostaan.
@@ -58,7 +58,7 @@ Seitsemän periaatetta, joille Wood-Booster OS rakentuu:
 
 ## Käyttökokemus
 
-Wood-Booster OS:n käyttö tuntuu luonnolliselta. Käyttäjän ei tarvitse
+Wood-Booster HQ:n käyttö tuntuu luonnolliselta. Käyttäjän ei tarvitse
 miettiä, mistä jokin löytyy. Hakeminen on nopeaa, näkymät selkeitä,
 tieto löytyy yhdestä paikasta. Sovellus on miellyttävä käyttää myös
 koko työpäivän ajan.
@@ -84,13 +84,13 @@ yrityksen osaaminen säilyy vaikka henkilöstö vaihtuu.
 
 ## Lopullinen tavoite
 
-Sadan vuoden näkökulmasta Wood-Booster OS:n tavoitteena ei ole olla
+Sadan vuoden näkökulmasta Wood-Booster HQ:n tavoitteena ei ole olla
 maailman suurin ohjelmisto. Tavoitteena on olla ohjelmisto, joka
 säilyy hyödyllisenä sukupolvesta toiseen — kasvaa käyttäjiensä
 mukana, mukautuu uusiin teknologioihin ja säilyttää yrityksen
 tärkeimmän voimavaran: sen tiedon, kokemuksen ja osaamisen.
 
-Wood-Booster OS ei ole vain sovellus. Se on yrityksen digitaalinen
+Wood-Booster HQ ei ole vain sovellus. Se on yrityksen digitaalinen
 perusta, jonka päälle voidaan rakentaa uusia palveluita vielä
 vuosikymmenten ja tulevien sukupolvien aikana.
 

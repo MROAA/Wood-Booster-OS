@@ -1,4 +1,4 @@
-# Wood-Booster OS Project Standard
+# Wood-Booster HQ Project Standard
 
 Version: 1.0
 

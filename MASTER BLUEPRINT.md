@@ -1,6 +1,6 @@
 # MASTER BLUEPRINT
 ## Creator Identity
-### Wood-Booster OS
+### Wood-Booster HQ
 
 ---
 
@@ -8,13 +8,13 @@
 
 **Marc Järvinen**
 
-Founder, Product Visionary and System Architect of Wood-Booster OS.
+Founder, Product Visionary and System Architect of Wood-Booster HQ.
 
 ---
 
 # Creator's Vision
 
-Wood-Booster OS syntyi ajatuksesta, että käsityöyrityöt ansaitsevat digitaalisen työympäristön, joka tukee itse työn tekemistä sen sijaan, että lisäisi hallinnollista kuormaa.
+Wood-Booster HQ syntyi ajatuksesta, että käsityöyrityöt ansaitsevat digitaalisen työympäristön, joka tukee itse työn tekemistä sen sijaan, että lisäisi hallinnollista kuormaa.
 
 Projektin lähtökohtana ei ole rakentaa mahdollisimman monimutkaista yritysohjelmistoa.
 
@@ -24,7 +24,7 @@ Tavoitteena on rakentaa käyttöjärjestelmä, joka auttaa käyttäjäänsä ty�
 
 # Founding Philosophy
 
-Wood-Booster OS rakentuu seuraaville ajatuksille:
+Wood-Booster HQ rakentuu seuraaville ajatuksille:
 
 - Ihminen on aina järjestelmän tärkein osa.
 - Teknologian tehtävä on poistaa esteitä työn tekemiseltä.
@@ -37,7 +37,7 @@ Wood-Booster OS rakentuu seuraaville ajatuksille:
 
 # Long-Term Commitment
 
-Wood-Booster OS suunnitellaan pitkäikäiseksi järjestelmäksi.
+Wood-Booster HQ suunnitellaan pitkäikäiseksi järjestelmäksi.
 
 Arkkitehtuuri, moduulit ja dokumentaatio rakennetaan siten, että järjestelmää voidaan kehittää vuosikymmenten ajan ilman, että sen perusfilosofia muuttuu.
 
@@ -53,7 +53,7 @@ Mutta järjestelmän tarkoitus säilyy.
 
 # Design Responsibility
 
-Projektin perustajana Marc Järvinen vastaa Wood-Booster OS:n alkuperäisestä visiosta ja suunnitteluperiaatteista.
+Projektin perustajana Marc Järvinen vastaa Wood-Booster HQ:n alkuperäisestä visiosta ja suunnitteluperiaatteista.
 
 Kaiken uuden kehityksen tulee olla yhteensopivaa Master Blueprintin kanssa.
 
@@ -65,7 +65,7 @@ Jos uusi ominaisuus on ristiriidassa Blueprintin periaatteiden kanssa, Blueprint
 
 Spacemonkey ei ole erillinen tuote.
 
-Se on Wood-Booster OS:n käyttöjärjestelmäoperaattori.
+Se on Wood-Booster HQ:n käyttöjärjestelmäoperaattori.
 
 Spacemonkey toteuttaa käytännössä niitä suunnitteluperiaatteita, jotka Master Blueprint määrittelee.
 
@@ -75,7 +75,7 @@ Sen tärkein tehtävä on auttaa käyttäjää saavuttamaan tavoitteensa turvall
 
 # Creator's Promise
 
-Wood-Booster OS:ää kehitetään seuraavien lupausten mukaisesti:
+Wood-Booster HQ:ää kehitetään seuraavien lupausten mukaisesti:
 
 - Käyttäjän etu asetetaan aina etusijalle.
 - Käyttöliittymä pidetään selkeänä ja rauhallisena.
@@ -88,7 +88,7 @@ Wood-Booster OS:ää kehitetään seuraavien lupausten mukaisesti:
 
 # Legacy Statement
 
-Wood-Booster OS:n tavoitteena ei ole olla vain ohjelmisto.
+Wood-Booster HQ:n tavoitteena ei ole olla vain ohjelmisto.
 
 Sen tavoitteena on säilyttää yritysten osaaminen, tukea laadukasta käsityötä ja auttaa käyttäjiään rakentamaan kestävää liiketoimintaa myös tulevaisuudessa.
 
@@ -98,6 +98,6 @@ Projektin arvo ei muodostu pelkästään sen koodista, vaan siitä tiedosta, kok
 
 **Founder Statement**
 
-*"Rakennan Wood-Booster OS:ää, jotta käsityöläiset voivat käyttää enemmän aikaa luomiseen ja vähemmän aikaa tietokoneen kanssa kamppailuun. Jokaisen uuden ominaisuuden tulee tehdä työstä yksinkertaisempaa, nopeampaa ja mielekkäämpää. Teknologia on onnistunut vasta silloin, kun käyttäjä voi keskittyä siihen, minkä hän osaa parhaiten."*
+*"Rakennan Wood-Booster HQ:ää, jotta käsityöläiset voivat käyttää enemmän aikaa luomiseen ja vähemmän aikaa tietokoneen kanssa kamppailuun. Jokaisen uuden ominaisuuden tulee tehdä työstä yksinkertaisempaa, nopeampaa ja mielekkäämpää. Teknologia on onnistunut vasta silloin, kun käyttäjä voi keskittyä siihen, minkä hän osaa parhaiten."*
 
 — **Marc Järvinen**

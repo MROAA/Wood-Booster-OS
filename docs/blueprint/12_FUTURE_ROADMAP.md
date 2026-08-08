@@ -1,8 +1,8 @@
-# Wood-Booster OS — Future Roadmap
+# Wood-Booster HQ — Future Roadmap
 
 *Master Blueprint, Volume XII.*
 
-Seitsemän kehitysvaihetta, joiden kautta Wood-Booster OS kasvaa
+Seitsemän kehitysvaihetta, joiden kautta Wood-Booster HQ kasvaa
 yhden puusepän työkalusta toimialariippumattomaksi
 käyttöjärjestelmäksi. Ydin ("Digitaalinen verstas", ks.
 [Human Model](04_HUMAN_MODEL.md)) pysyy samana koko matkan — jokainen
@@ -10,19 +10,19 @@ vaihe lisää kerroksia, ei rakenna uudestaan.
 
 ## Vaihe 1 — Työkalu
 
-Wood-Booster OS auttaa puuseppää. Sisältää: projektit, asiakkaat,
+Wood-Booster HQ auttaa puuseppää. Sisältää: projektit, asiakkaat,
 tarjoukset, materiaalit, työvaiheet, tiedostot, AI-avustajan. *(Tämä
 vaihe on suurelta osin jo rakennettu ja käytössä.)*
 
 ## Vaihe 2 — Työympäristö
 
-Wood-Booster OS muuttuu koko yrityksen päivittäiseksi työtilaksi.
+Wood-Booster HQ muuttuu koko yrityksen päivittäiseksi työtilaksi.
 Mukana: Media Studio, Social Studio, dokumenttien hallinta,
 automaatiot, työnkulut, mobiilituki.
 
 ## Vaihe 3 — Yrityksen käyttöjärjestelmä
 
-Kaikki yrityksen toiminta kulkee Wood-Booster OS:n kautta:
+Kaikki yrityksen toiminta kulkee Wood-Booster HQ:n kautta:
 varasto, tuotanto, CRM, laskutus, verkkokauppa, markkinointi,
 analytiikka, AI-agentit.
 
@@ -42,13 +42,13 @@ ohjelmasta toiseen vaihtamista.
 
 ## Vaihe 6 — Laajennusalusta
 
-Wood-Booster OS toimii alustana, jolle kolmannet osapuolet voivat
+Wood-Booster HQ toimii alustana, jolle kolmannet osapuolet voivat
 rakentaa moduuleja: CNC-ohjaus, CAD-liitännät, ERP-liitännät,
 verkkokauppaintegraatiot, kirjanpito, logistiikka, analytiikka.
 
 ## Vaihe 7 — Toimialariippumaton käyttöjärjestelmä
 
-Wood-Booster OS:n ydin ei enää ole sidottu puusepänalaan.
+Wood-Booster HQ:n ydin ei enää ole sidottu puusepänalaan.
 Toimialakohtainen osaaminen toimitetaan moduuleina — sama
 käyttöjärjestelmä voidaan ottaa käyttöön myös muilla valmistavilla
 aloilla.

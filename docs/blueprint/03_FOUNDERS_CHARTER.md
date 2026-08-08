@@ -1,8 +1,8 @@
-# Wood-Booster OS — Founder's Charter
+# Wood-Booster HQ — Founder's Charter
 
 *Master Blueprint, Volume III.*
 
-Perustaja: **Marc Järvinen** — Wood-Booster OS:n perustaja,
+Perustaja: **Marc Järvinen** — Wood-Booster HQ:n perustaja,
 Spacemonkey-käsitteen luoja.
 
 Tämä dokumentti on koostettu kahdesta lähettämästäsi versiosta
@@ -12,16 +12,16 @@ oma alkuperäinen suomenkielinen tekstisi sellaisenaan.
 
 ---
 
-## Miksi Wood-Booster OS on olemassa
+## Miksi Wood-Booster HQ on olemassa
 
-Wood-Booster OS ei syntynyt siitä, että maailma tarvitsi vielä yhden
+Wood-Booster HQ ei syntynyt siitä, että maailma tarvitsi vielä yhden
 yritysohjelmiston. Se syntyi siitä, että taitavat käsityöläiset
 käyttävät liian suuren osan elämästään tietokoneen kanssa
 kamppailuun sen sijaan, että tekisivät merkityksellistä työtä.
 
 Teknologian tehtävä on vähentää monimutkaisuutta. Ei lisätä sitä.
 
-Wood-Booster OS on olemassa palauttaakseen käyttäjilleen aikaa,
+Wood-Booster HQ on olemassa palauttaakseen käyttäjilleen aikaa,
 keskittymiskykyä ja tietoa.
 
 ## Perustajan visio
@@ -31,7 +31,7 @@ uudelleenkirjoittamiseen, tiedon siirtämiseen sovellusten välillä
 tai unohtuneiden yksityiskohtien muisteluun, on tunti pois
 käsityöstä.
 
-Wood-Booster OS on suunniteltu antamaan se tunti takaisin.
+Wood-Booster HQ on suunniteltu antamaan se tunti takaisin.
 
 ## Ydinusko
 
@@ -58,7 +58,7 @@ olemassa palvellakseen tietokonetta.
 
 ## Pitkä visio
 
-Wood-Booster OS on suunniteltu elämään pidempään kuin tämän päivän
+Wood-Booster HQ on suunniteltu elämään pidempään kuin tämän päivän
 teknologiat. Ohjelmointikielet vaihtuvat. Kehykset vaihtuvat. Tekoäly
 vaihtuu. Laitteistot vaihtuvat. Filosofia pysyy.
 
@@ -67,7 +67,7 @@ vaihtuu. Laitteistot vaihtuvat. Filosofia pysyy.
 Spacemonkey ei ole chatbot. Spacemonkey ei ole maskotti. Spacemonkey
 ei ole pelkkä avustaja.
 
-Spacemonkey on Wood-Booster OS:n käyttöjärjestelmäoperaattori — se
+Spacemonkey on Wood-Booster HQ:n käyttöjärjestelmäoperaattori — se
 toteuttaa käytännössä niitä periaatteita, jotka
 [Constitution](01_CONSTITUTION.md) määrittelee.
 
@@ -76,16 +76,16 @@ järjestää, oppia, opastaa. Ei koskaan hallita. Aina auttaa.
 
 ## Jokaisen ominaisuuden pitää vastata
 
-Ennen kuin mikään ominaisuus hyväksytään Wood-Booster OS:ään, sen
+Ennen kuin mikään ominaisuus hyväksytään Wood-Booster HQ:ään, sen
 pitää vastata yhteen kysymykseen:
 
 **Parantaako tämä oikeasti käyttäjän työtä?**
 
-Jos vastaus on ei, se ei kuulu Wood-Booster OS:ään.
+Jos vastaus on ei, se ei kuulu Wood-Booster HQ:ään.
 
 ## Vastuu
 
-Jokainen Wood-Booster OS:n parissa työskentelevä kehittäjä perii
+Jokainen Wood-Booster HQ:n parissa työskentelevä kehittäjä perii
 vastuun:
 
 - Suojele yksinkertaisuutta.
@@ -98,13 +98,13 @@ Teknologia saa kehittyä. Missio ei saa muuttua.
 
 ## Lupaus
 
-Wood-Booster OS ei koskaan mittaa onnistumistaan ominaisuuksien
+Wood-Booster HQ ei koskaan mittaa onnistumistaan ominaisuuksien
 määrällä. Se mittaa onnistumistaan sillä, kuinka paljon aikaa,
 osaamista ja mielenrauhaa se palauttaa käyttäjilleen.
 
 ## Perintö
 
-Wood-Booster OS ei ole rakennettu yhtä julkaisua varten. Se on
+Wood-Booster HQ ei ole rakennettu yhtä julkaisua varten. Se on
 rakennettu vuosikymmeniksi. Tavoitteena on, että siitä tulee osa
 käsityöläisten päivittäistä työtä — säilyttäen osaamista ja
 välittäen sitä tuleville sukupolville.
@@ -117,11 +117,11 @@ työtään.
 
 ## Perustajan lausunto
 
-*"Rakennan Wood-Booster OS:ää, jotta käsityöläiset voivat käyttää
+*"Rakennan Wood-Booster HQ:ää, jotta käsityöläiset voivat käyttää
 enemmän aikaa luomiseen ja vähemmän aikaa tietokoneen kanssa
 kamppailuun. Jokaisen uuden ominaisuuden tulee tehdä työstä
 yksinkertaisempaa, nopeampaa ja mielekkäämpää. Teknologia on
 onnistunut vasta silloin, kun käyttäjä voi keskittyä siihen, minkä
 hän osaa parhaiten."*
 
-— **Marc Järvinen**, perustaja, Wood-Booster OS
+— **Marc Järvinen**, perustaja, Wood-Booster HQ
