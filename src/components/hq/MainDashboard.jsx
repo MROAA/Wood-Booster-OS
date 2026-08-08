@@ -1,12 +1,15 @@
 // src/components/hq/MainDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import './MainDashboard.css';
+import AltrakoPage from '../../pages/Altrako.jsx';
 
 export const MainDashboard = () => {
+  const [activeView, setActiveView] = useState('dashboard');
   const [statusData, setStatusData] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   const GITGUARDIAN_BASE = 'http://localhost:8002/api/gitguardian';
+  const SPACEMONKEY_BASE = 'http://localhost:8002/api/spacemonkey';
 
   const [backupStatus, setBackupStatus] = useState('pending');
   const [backupMessage, setBackupMessage] = useState('Ladataan...');
@@ -91,8 +94,29 @@ export const MainDashboard = () => {
 
   const handleSendMessage = () => {
     if (currentInput.trim() === '') return;
-    setChatMessages(prev => [...prev, { sender: 'User', text: currentInput, avatar: '/fisherman-logo.png' }]);
+    const userMessage = currentInput;
+    setChatMessages(prev => [...prev, { sender: 'User', text: userMessage, avatar: '/fisherman-logo.png' }]);
     setCurrentInput('');
+
+    fetch(`${SPACEMONKEY_BASE}/process`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: userMessage }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        setChatMessages(prev => [
+          ...prev,
+          { sender: 'Spacemonkey', text: data.reply, avatar: '/spacemonkey-avatar.png' }
+        ]);
+      })
+      .catch(err => {
+        console.error(err);
+        setChatMessages(prev => [
+          ...prev,
+          { sender: 'Spacemonkey', text: 'Yhteys Spacemonkey-ytimeen katkesi.', avatar: '/spacemonkey-avatar.png' }
+        ]);
+      });
   };
 
   if (loading) {
@@ -117,16 +141,28 @@ export const MainDashboard = () => {
           <div className="logo-fallback" style={{display: 'none'}}>WB</div>
         </div>
         <nav className="hq-nav-links">
-          <button className="nav-btn active" title="Komentokeskus" onClick={() => window.location.href = '/'}>🏠</button>
+          <button
+            className={`nav-btn ${activeView === 'dashboard' ? 'active' : ''}`}
+            title="Komentokeskus"
+            onClick={() => setActiveView('dashboard')}
+          >🏠</button>
           <button className="nav-btn" title="Projektit" onClick={() => window.location.href = '/projects'}>📊</button>
-          <button className="nav-btn" title="Spacemonkey: aktiivinen">🧠</button>
+          <button
+            className={`nav-btn ${activeView === 'altrako' ? 'active' : ''}`}
+            title="Altrako: Core Guardian & Shield"
+            onClick={() => setActiveView('altrako')}
+          >🧠</button>
           <button className="nav-btn" title="System pulse">⚙️</button>
         </nav>
       </aside>
 
       {/* Pääsisällön alue */}
       <div className="hq-main-content">
-        
+
+        {activeView === 'altrako' ? (
+          <AltrakoPage />
+        ) : (
+          <>
         <header className="hq-header">
           <div>
             <h1 className="hq-title">Wood-Booster <span className="hq-highlight">HQ</span></h1>
@@ -154,16 +190,14 @@ export const MainDashboard = () => {
           <div
             className={`hq-card action-card ${backupStatus}`}
             onClick={handleTriggerBackup}
-            title={
-              backupStatus === 'pending'
-                ? `${changeCount} tallentamatonta muutosta - paina varmuuskopioidaksesi`
-                : 'Paina tehdäksesi varmuuskopio (Git Guardian)'
-            }
           >
             <span className="card-icon">🛡</span>
             <div>
               <span className="card-label">Git Guardian</span>
               <strong className="card-val text-pulse-glow">{backupMessage}</strong>
+              {backupStatus === 'pending' && (
+                <span className="card-sub">{changeCount} muutosta</span>
+              )}
             </div>
           </div>
         </section>
@@ -207,6 +241,8 @@ export const MainDashboard = () => {
         <footer className="hq-footer">
           <span>Viimeisin päivitys: {statusData?.pulse?.lastChecked || 'Juuri nyt'}</span>
         </footer>
+          </>
+        )}
 
       </div>
     </div>

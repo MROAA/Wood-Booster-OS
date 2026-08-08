@@ -169,6 +169,12 @@ body {
   color: var(--text-light);
 }
 
+.card-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 /* Tekstin hengittävä animaatio */
 @keyframes text-breath {
   0% { opacity: 0.6; }
