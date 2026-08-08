@@ -96,3 +96,9 @@ release/
 snapshots/
 __pycache__/
 *.pyc
+
+# =====================================
+# Generated runtime data (regenerates on use, not source)
+# =====================================
+
+server/data/*.json
