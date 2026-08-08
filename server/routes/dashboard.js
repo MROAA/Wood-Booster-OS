@@ -21,6 +21,7 @@ export default function createDashboardRouter(prisma) {
         const [
           projects,
           customers,
+          openWorkflowSteps,
         ] =
           await Promise.all([
 
@@ -55,6 +56,46 @@ export default function createDashboardRouter(prisma) {
 
                 name:
                   "asc",
+
+              },
+
+            }),
+
+
+
+            prisma.projectWorkflowStep.findMany({
+
+              where: {
+
+                done:
+                  false,
+
+                project: {
+
+                  status: {
+                    not: "Valmis",
+                  },
+
+                },
+
+              },
+
+              orderBy: [
+                { projectId: "asc" },
+                { id: "asc" },
+              ],
+
+              include: {
+
+                project: {
+
+                  select: {
+                    id: true,
+                    name: true,
+                    deadline: true,
+                  },
+
+                },
 
               },
 
@@ -135,6 +176,90 @@ export default function createDashboardRouter(prisma) {
 
 
 
+        const seenProjectIds =
+          new Set()
+
+        const todayTasks =
+          openWorkflowSteps
+
+            .filter(
+              (step) => {
+
+                if (
+                  seenProjectIds.has(
+                    step.projectId,
+                  )
+                ) {
+
+                  return false
+
+                }
+
+
+                seenProjectIds.add(
+                  step.projectId,
+                )
+
+                return true
+
+              },
+            )
+
+            .map(
+              (step) => ({
+
+                projectId:
+                  step.project.id,
+
+                projectName:
+                  step.project.name,
+
+                deadline:
+                  step.project.deadline,
+
+                stepId:
+                  step.id,
+
+                stepTitle:
+                  step.title,
+
+              }),
+            )
+
+            .sort(
+              (a, b) => {
+
+                if (
+                  a.deadline &&
+                  b.deadline
+                ) {
+
+                  return (
+                    new Date(a.deadline) -
+                    new Date(b.deadline)
+                  )
+
+                }
+
+
+                if (a.deadline) {
+                  return -1
+                }
+
+
+                if (b.deadline) {
+                  return 1
+                }
+
+
+                return 0
+
+              },
+            )
+
+
+
+
 
 
 
@@ -172,6 +297,9 @@ export default function createDashboardRouter(prisma) {
 
 
           upcomingDeadlines,
+
+
+          todayTasks,
 
 
         })
