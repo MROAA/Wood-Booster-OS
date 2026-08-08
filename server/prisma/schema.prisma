@@ -71,6 +71,42 @@ model Project {
 
   purchaseOrders PurchaseOrder[]
 
+  socialPostDrafts SocialPostDraft[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model SocialPostDraft {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  caption String
+
+  hashtags String
+
+  platform String @default("instagram")
+
+  status String @default("draft")
+
+  selectedFileIds String?
+
+  publishedPostId String?
+
+  publishedPermalink String?
+
+  publishError String?
+
+  publishedAt DateTime?
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -301,7 +337,17 @@ model ProjectFile {
 
   category String @default("Muut")
 
+  sourceFileId Int?
+
+  sourceFile ProjectFile? @relation("FileEdits", fields: [sourceFileId], references: [id], onDelete: SetNull)
+
+  edits ProjectFile[] @relation("FileEdits")
+
+  status String @default("ready")
+
   createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
 
 }
 

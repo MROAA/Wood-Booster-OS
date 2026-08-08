@@ -44,6 +44,17 @@ import {
 } from "./agents/runtime/agentRuntimeIntegration.js"
 
 
+import ToolBus from "./toolbus/ToolBus.js"
+
+import SkillEngine from "./skills/SkillEngine.js"
+
+import WorkflowEngine from "./workflows/WorkflowEngine.js"
+
+import PluginManager from "./plugins/PluginManager.js"
+
+import { registerInstagramPublisherPlugin } from "./plugins/instagram-publisher/index.js"
+
+
 
 let booted = false
 
@@ -51,13 +62,21 @@ let kernel = null
 
 let agentRuntime = null
 
+let activeToolBus = null
+
+let activeSkillEngine = null
+
+let activeWorkflowEngine = null
+
+let activePluginManager = null
+
 
 
 function startSpacemonkeyRuntimeBootstrap({
 
     planner,
 
-    toolBus,
+    toolBus: injectedToolBus,
 
     memory,
 
@@ -102,6 +121,36 @@ function startSpacemonkeyRuntimeBootstrap({
 
     kernel =
         createSpacemonkeySystemKernel()
+
+
+
+    const toolBus =
+        injectedToolBus || new ToolBus({ logger })
+
+    const skillEngine =
+        new SkillEngine({ logger })
+
+    const workflowEngine =
+        new WorkflowEngine({ skillEngine, logger })
+
+    const pluginManager =
+        new PluginManager({ logger })
+
+    registerInstagramPublisherPlugin({
+        toolBus,
+        skillEngine,
+        workflowEngine,
+        pluginManager,
+        logger,
+    })
+
+    activeToolBus = toolBus
+
+    activeSkillEngine = skillEngine
+
+    activeWorkflowEngine = workflowEngine
+
+    activePluginManager = pluginManager
 
 
 
@@ -206,10 +255,50 @@ function getSpacemonkeyBootstrapStatus(){
 
 
 
+function getSpacemonkeyToolBus() {
+
+    return activeToolBus
+
+}
+
+
+
+function getSpacemonkeySkillEngine() {
+
+    return activeSkillEngine
+
+}
+
+
+
+function getSpacemonkeyWorkflowEngine() {
+
+    return activeWorkflowEngine
+
+}
+
+
+
+function getSpacemonkeyPluginManager() {
+
+    return activePluginManager
+
+}
+
+
+
 export {
 
     startSpacemonkeyRuntimeBootstrap,
 
     getSpacemonkeyBootstrapStatus,
+
+    getSpacemonkeyToolBus,
+
+    getSpacemonkeySkillEngine,
+
+    getSpacemonkeyWorkflowEngine,
+
+    getSpacemonkeyPluginManager,
 
 }

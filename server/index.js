@@ -101,6 +101,10 @@ import createConversationsRouter from "./routes/conversations.js"
 import createAIRouter from "./routes/ai.js"
 import createSpacemonkeyBrainStateRouter from "./routes/spacemonkeyBrainState.js"
 import createFilesRouter from "./routes/files.js"
+import createMediaEditsRouter, {
+  recoverStuckVideoJobs,
+} from "./routes/mediaEdits.js"
+import createSocialStudioRouter from "./routes/socialStudio.js"
 import createAgentChatRouter from "./routes/agentChat.js"
 import createProjectsRouter from "./routes/projects.js"
 import createProjectMaterialsRouter from "./routes/projectMaterials.js"
@@ -203,6 +207,16 @@ const prisma =
 
 setGitSyncPrisma(
   prisma
+)
+
+recoverStuckVideoJobs(
+  prisma
+).catch(
+  error =>
+    console.error(
+      "Jumittuneiden videokäsittelyjen palautus epäonnistui:",
+      error,
+    )
 )
 
 const app =
@@ -555,6 +569,24 @@ app.use(
 app.use(
   "/api",
   createFilesRouter(
+    prisma
+  )
+)
+
+
+
+app.use(
+  "/api",
+  createMediaEditsRouter(
+    prisma
+  )
+)
+
+
+
+app.use(
+  "/api",
+  createSocialStudioRouter(
     prisma
   )
 )

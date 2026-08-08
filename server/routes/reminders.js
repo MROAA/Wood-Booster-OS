@@ -23,11 +23,12 @@ export default function createRemindersRouter(
   /*
    * GET /api/reminders
    *
-   * Kokoaa neljä automaattista muistutusta yhteen listaan:
+   * Kokoaa viisi automaattista muistutusta yhteen listaan:
    * myöhässä olevat projektit, vähissä olevat materiaalit,
-   * myöhässä maksamattomat laskut, ja vanhentuneet tarjoukset
-   * joita ei ole vielä muutettu laskuksi. Lasketaan aina
-   * pyynnön hetkellä, ei taustaprosessia.
+   * myöhässä maksamattomat laskut, vanhentuneet tarjoukset
+   * joita ei ole vielä muutettu laskuksi, ja valmiit projektit
+   * joille ei ole vielä luonnosteltu somejulkaisua. Lasketaan
+   * aina pyynnön hetkellä, ei taustaprosessia.
    */
   router.get(
     "/reminders",
@@ -44,6 +45,7 @@ export default function createRemindersRouter(
           lowStockItems,
           unpaidInvoices,
           quotes,
+          finishedProjectsWithoutDraft,
         ] =
           await Promise.all([
 
@@ -118,6 +120,25 @@ export default function createRemindersRouter(
 
                 },
 
+              },
+
+            }),
+
+
+            prisma.project.findMany({
+
+              where: {
+
+                status: "Valmis",
+
+                socialPostDrafts: {
+                  none: {},
+                },
+
+              },
+
+              orderBy: {
+                updatedAt: "desc",
               },
 
             }),
@@ -290,6 +311,31 @@ export default function createRemindersRouter(
 
             severity:
               "warning",
+
+          })
+
+        }
+
+
+
+        for (const project of finishedProjectsWithoutDraft) {
+
+          reminders.push({
+
+            type: "social_draft_missing",
+
+            message:
+              `Projekti "${project.name}" on valmis — ` +
+              "luonnostele somejulkaisu.",
+
+            projectId:
+              project.id,
+
+            inventoryItemId:
+              null,
+
+            severity:
+              "info",
 
           })
 

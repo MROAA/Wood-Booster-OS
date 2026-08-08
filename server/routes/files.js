@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url"
 import express from "express"
 import multer from "multer"
 
+import { generateThumbnail } from "../services/videoEditor.js"
+
 const router = express.Router()
 
 const currentFile = fileURLToPath(import.meta.url)
@@ -54,7 +56,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 50 * 1024 * 1024,
+    fileSize: 500 * 1024 * 1024,
   },
 })
 
@@ -120,6 +122,21 @@ export default function createFilesRouter(prisma) {
             },
           })
 
+        if (req.file.mimetype.startsWith("video/")) {
+          try {
+            await generateThumbnail({
+              inputPath: req.file.path,
+              outputDirectory: path.dirname(req.file.path),
+              outputFilename: `${req.file.filename}.thumb.jpg`,
+            })
+          } catch (thumbnailError) {
+            console.error(
+              "Esikatselukuvan luonti epäonnistui:",
+              thumbnailError,
+            )
+          }
+        }
+
         res.status(201).json(projectFile)
       } catch (error) {
         console.error(error)
@@ -169,6 +186,10 @@ export default function createFilesRouter(prisma) {
         })
 
         fs.rmSync(filePath, {
+          force: true,
+        })
+
+        fs.rmSync(`${filePath}.thumb.jpg`, {
           force: true,
         })
 
