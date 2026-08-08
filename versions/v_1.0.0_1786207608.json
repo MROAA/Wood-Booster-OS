@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "v_1.0.0_1786207608",
+  "timestamp": 1786207608.4259362,
+  "version_label": "1.0.0",
+  "description": "Initial Spacemonkey core snapshot",
+  "layers": {
+    "core": {
+      "layer_name": "CoreIdentity",
+      "version": "1.0.0",
+      "attributes": {
+        "base_model": "Spacemonkeybrain",
+        "safety_mode": "STRICT"
+      },
+      "metadata": {}
+    },
+    "limbic": {
+      "layer_name": "LimbicState",
+      "version": "0.1.0",
+      "attributes": {
+        "valence": 0.2,
+        "arousal": 0.5,
+        "stress": 0.1
+      },
+      "metadata": {}
+    }
+  },
+  "checksum": "8391bb26c870fe70f501999d12f46991089781cbefc83f8846e3da36ed36a67f"
+}
