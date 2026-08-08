@@ -3,10 +3,12 @@ useEffect,
 useState
 } from "react"
 
+
 import {
 apiGet,
 apiPost,
 } from "../api/client"
+
 
 import PulseCard from "../components/systemPulse/PulseCard"
 import InstallerManagerCard from "../components/systemPulse/InstallerManagerCard"
@@ -17,6 +19,7 @@ import InstallerCard from "../components/systemPulse/InstallerCard"
 
 
 function SystemPulse(){
+
 
 const [
 pulse,
@@ -88,8 +91,14 @@ setSnapshotResult
 
 
 
-async function createSnapshot(){
+const [
+restoreApprovalResult,
+setRestoreApprovalResult
+] = useState(null)
 
+
+
+async function createSnapshot(){
 
 try {
 
@@ -112,6 +121,40 @@ result.snapshot
 
 catch(error){
 
+console.error(
+error
+)
+
+}
+
+}
+
+
+
+async function requestRestore(){
+
+try {
+
+
+const result =
+await apiPost(
+"/system-installer/restore-approval/check",
+{
+confirmed:false
+}
+)
+
+
+
+setRestoreApprovalResult(
+result.approval
+)
+
+
+
+}
+
+catch(error){
 
 console.error(
 error
@@ -119,7 +162,6 @@ error
 
 
 }
-
 
 }
 
@@ -145,7 +187,6 @@ if(
 pulseData.success
 ){
 
-
 const summary =
 pulseData.pulse.summary
 
@@ -160,9 +201,7 @@ setPreviousHealth(
 previous => {
 
 
-if(
-previous
-){
+if(previous){
 
 setHealthChange({
 
@@ -176,11 +215,9 @@ currentHealth.score,
 
 difference:
 currentHealth.score -
-previous.score,
-
+previous.score
 
 })
-
 
 }
 
@@ -206,15 +243,13 @@ summary.modules.total,
 
 
 activeModules:
-summary.modules.active,
-
+summary.modules.active
 
 },
 
 
 
 security: {
-
 
 capabilitiesApproved:
 summary.capability.approved,
@@ -233,8 +268,7 @@ summary.security.status,
 
 
 message:
-summary.security.message,
-
+summary.security.message
 
 },
 
@@ -244,44 +278,30 @@ runtime:
 summary.runtime,
 
 
-
 environment:
 summary.environment,
-
 
 
 hardware:
 summary.hardware,
 
 
-
 gitSummary:
 summary.gitSummary,
-
 
 
 gitHistory:
 summary.gitHistory,
 
 
-
-/*
-Korjaus:
-lähetetään koko Installer V3
-data InstallerCardille.
-*/
-
 installer:
 summary.installer,
 
 
-
 installerManager:
-summary.installer?.manager,
-
+summary.installer?.manager
 
 })
-
 
 }
 
@@ -344,7 +364,6 @@ new Date()
 
 catch(loadError){
 
-
 console.error(
 loadError
 )
@@ -368,19 +387,15 @@ loadError.message ||
 
 finally{
 
-
 setLoading(false)
 
-
 }
-
 
 }
 
 
 
 useEffect(()=>{
-
 
 loadSystemData()
 
@@ -449,15 +464,8 @@ return (
 {
 error && (
 
-<div
-className="
-text-sm
-text-red-500
-"
->
-
+<div>
 {error}
-
 </div>
 
 )
@@ -470,9 +478,7 @@ text-red-500
 loading && !pulse && (
 
 <div>
-
 Loading System Pulse...
-
 </div>
 
 )
@@ -502,7 +508,9 @@ pulse?.status
 
 <StatusGlow
 label="AI Brain"
-value={`${pulse?.brain?.activeModules || 0}/${pulse?.brain?.modules || 0}`}
+value={
+`${pulse?.brain?.activeModules || 0}/${pulse?.brain?.modules || 0}`
+}
 status={
 brainHealthy
 ?
@@ -532,6 +540,12 @@ createSnapshot
 snapshotResult={
 snapshotResult
 }
+onRequestRestore={
+requestRestore
+}
+restoreApprovalResult={
+restoreApprovalResult
+}
 />
 
 
@@ -552,7 +566,6 @@ pulse?.installerManager
 )
 
 }
-
 
 
 export default SystemPulse
