@@ -61,6 +61,11 @@ const snapshotHistory =
 
 
 
+const snapshotValidator =
+    installer.snapshotValidator
+
+
+
 const latestSnapshot =
     snapshotHistory?.latest
 
@@ -108,10 +113,10 @@ Status
 <p className="text-lg text-[var(--wood-text)]">
 {
     installer.status === "healthy"
-        ?
-        "✓ Healthy"
-        :
-        "⚠ Warning"
+    ?
+    "✓ Healthy"
+    :
+    "⚠ Warning"
 }
 </p>
 </div>
@@ -211,22 +216,83 @@ Total {snapshotHistory?.count ?? 0}
 }
 </p>
 
-</div>
-
-
-
-<div>
-<span className="text-sm text-[var(--wood-muted)]">
-Created
-</span>
-
-<p className="text-xs text-[var(--wood-text)]">
+<p className="text-xs text-[var(--wood-muted)]">
 {
     latestMetadata?.createdAt
     ||
     "-"
 }
 </p>
+
+</div>
+
+
+
+<div>
+<span className="text-sm text-[var(--wood-muted)]">
+Snapshot Validation
+</span>
+
+<p className="text-[var(--wood-text)]">
+{
+    snapshotValidator?.status
+    ||
+    "-"
+}
+</p>
+
+<p className="text-[var(--wood-text)]">
+Score {snapshotValidator?.score ?? 0}%
+</p>
+
+
+<div
+className="
+mt-2
+space-y-1
+"
+>
+
+{
+Object.entries(
+    snapshotValidator?.checks || {}
+)
+.map(
+([key,value]) => (
+
+<div
+key={key}
+className="
+flex
+justify-between
+text-sm
+"
+>
+
+<span className="text-[var(--wood-muted)]">
+{key}
+</span>
+
+
+<span className="text-[var(--wood-text)]">
+{
+    value.exists || value.valid
+    ?
+    "✓"
+    :
+    "✗"
+}
+</span>
+
+</div>
+
+)
+)
+
+}
+
+</div>
+
 </div>
 
 
@@ -359,53 +425,6 @@ Dependencies
     0
 }%
 </p>
-
-
-<div
-className="
-mt-2
-space-y-2
-"
->
-
-{
-Object.entries(
-    dependencies?.checks || {}
-)
-.map(
-([key,value]) => (
-
-<div
-key={key}
-className="
-flex
-justify-between
-text-sm
-"
->
-
-<span className="text-[var(--wood-muted)]">
-{key}
-</span>
-
-<span className="text-[var(--wood-text)]">
-{
-    value.exists
-    ?
-    "✓"
-    :
-    "✗"
-}
-</span>
-
-</div>
-
-)
-)
-
-}
-
-</div>
 
 </div>
 
