@@ -1,0 +1,27 @@
+{
+  "id": "wordpress-publisher",
+  "name": "WordPress Publisher",
+  "version": "1.0.0",
+  "description": "Publishes approved Wood-Booster blog drafts to a WordPress site via the WordPress REST API.",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "marketing",
+  "dependencies": [],
+  "capabilities": [
+    "wordpress-publishing"
+  ],
+  "skills": [
+    "publish-wordpress-post"
+  ],
+  "tools": [
+    "wordpress-rest-publish"
+  ],
+  "workflows": [
+    "publish-wordpress-post-workflow"
+  ],
+  "permissions": [
+    "wordpress.publish",
+    "network.http"
+  ],
+  "entry": "index.js"
+}

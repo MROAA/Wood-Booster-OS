@@ -54,6 +54,8 @@ import PluginManager from "./plugins/PluginManager.js"
 
 import { registerInstagramPublisherPlugin } from "./plugins/instagram-publisher/index.js"
 
+import { registerWordPressPublisherPlugin } from "./plugins/wordpress-publisher/index.js"
+
 
 
 let booted = false
@@ -137,6 +139,14 @@ function startSpacemonkeyRuntimeBootstrap({
         new PluginManager({ logger })
 
     registerInstagramPublisherPlugin({
+        toolBus,
+        skillEngine,
+        workflowEngine,
+        pluginManager,
+        logger,
+    })
+
+    registerWordPressPublisherPlugin({
         toolBus,
         skillEngine,
         workflowEngine,

@@ -84,6 +84,9 @@ const SERVICE_IDS =
 
     FACEBOOK:
       "facebook",
+
+    WORDPRESS:
+      "wordpress",
   })
 
 
@@ -219,6 +222,37 @@ const credentialRegistry =
 
       description:
         "Facebook-sivun Meta API -yhteys.",
+    },
+
+    wordpress: {
+      id:
+        SERVICE_IDS.WORDPRESS,
+
+      name:
+        "WordPress",
+
+      authType:
+        AUTH_TYPES.API_KEY,
+
+      enabled:
+        true,
+
+      requiredEnvironmentVariables: [
+        "WORDPRESS_BASE_URL",
+        "WORDPRESS_USERNAME",
+        "WORDPRESS_APPLICATION_PASSWORD",
+      ],
+
+      optionalEnvironmentVariables: [],
+
+      humanLoginRequired:
+        false,
+
+      supportsTokenRefresh:
+        false,
+
+      description:
+        "WordPress-sivuston REST API -yhteys (Application Password).",
     },
   })
 

@@ -105,6 +105,7 @@ import createMediaEditsRouter, {
   recoverStuckVideoJobs,
 } from "./routes/mediaEdits.js"
 import createSocialStudioRouter from "./routes/socialStudio.js"
+import createWordpressStudioRouter from "./routes/wordpressStudio.js"
 import createAgentChatRouter from "./routes/agentChat.js"
 import createProjectsRouter from "./routes/projects.js"
 import createProjectMaterialsRouter from "./routes/projectMaterials.js"
@@ -587,6 +588,15 @@ app.use(
 app.use(
   "/api",
   createSocialStudioRouter(
+    prisma
+  )
+)
+
+
+
+app.use(
+  "/api",
+  createWordpressStudioRouter(
     prisma
   )
 )

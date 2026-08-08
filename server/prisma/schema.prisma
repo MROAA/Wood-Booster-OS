@@ -73,6 +73,8 @@ model Project {
 
   socialPostDrafts SocialPostDraft[]
 
+  blogPostDrafts BlogPostDraft[]
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -102,6 +104,40 @@ model SocialPostDraft {
   publishedPostId String?
 
   publishedPermalink String?
+
+  publishError String?
+
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model BlogPostDraft {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title String
+
+  content String
+
+  excerpt String?
+
+  wordpressPostStatus String @default("publish")
+
+  status String @default("draft")
+
+  wordpressPostId String?
+
+  wordpressPermalink String?
 
   publishError String?
 
