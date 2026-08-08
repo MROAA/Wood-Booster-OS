@@ -279,7 +279,7 @@ parempi järjestelmä
 
 ---
 
-# 14. Wood-Booster OS Self Management
+# 14. Wood-Booster HQ Self Management
 
 Wood-Booster ympäristössä tämä tarkoittaa:
 

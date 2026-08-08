@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS
+WOOD-BOOSTER HQ
 
 SYSTEM INSTALLER RESTORE APPROVAL API
 

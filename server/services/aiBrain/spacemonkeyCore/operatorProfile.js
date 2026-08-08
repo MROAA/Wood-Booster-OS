@@ -33,7 +33,7 @@ export const operatorProfile = {
 
   project:
 
-    "Wood-Booster OS",
+    "Wood-Booster HQ",
 
 
 

@@ -4,7 +4,9 @@ import StatusGlow from "./StatusGlow"
 function InstallerCard({
 installer,
 onCreateSnapshot,
-snapshotResult
+snapshotResult,
+onRequestRestore,
+restoreApprovalResult
 }) {
 
 
@@ -75,7 +77,7 @@ return (
 
 <div
 className="
-space-y-5
+space-y-4
 p-5
 rounded-lg
 border
@@ -85,12 +87,7 @@ bg-[var(--wood-panel)]
 >
 
 
-<h2
-className="
-text-lg
-text-[var(--wood-text)]
-"
->
+<h2>
 Installer System
 </h2>
 
@@ -156,13 +153,7 @@ system?.release
 
 
 
-<h3
-className="
-pt-3
-border-t
-border-[var(--wood-border)]
-"
->
+<h3>
 Snapshot Engine
 </h3>
 
@@ -254,13 +245,7 @@ snapshotRepair?.status === "ready"
 
 
 
-<h3
-className="
-pt-3
-border-t
-border-[var(--wood-border)]
-"
->
+<h3>
 Snapshot History
 </h3>
 
@@ -282,13 +267,6 @@ snapshotHistory?.count
 
 
 
-<div
-className="
-space-y-2
-text-sm
-"
->
-
 {
 history
 .slice(
@@ -302,22 +280,11 @@ history
 key={
 snapshot.id
 }
-className="
-p-3
-rounded
-border
-border-[var(--wood-border)]
-"
 >
 
 <div>
-
-{
-snapshot.id
-}
-
+{snapshot.id}
 </div>
-
 
 
 <div>
@@ -335,7 +302,6 @@ snapshot.metadata?.git?.available
 }
 
 </div>
-
 
 
 <div>
@@ -361,17 +327,9 @@ snapshot.metadata?.createdAt
 
 }
 
-</div>
 
 
-
-<h3
-className="
-pt-3
-border-t
-border-[var(--wood-border)]
-"
->
+<h3>
 Restore Preview
 </h3>
 
@@ -442,9 +400,7 @@ snapshotRestorePlan?.steps?.map(
 <div
 key={step}
 >
-
 ✓ {step}
-
 </div>
 
 )
@@ -455,13 +411,7 @@ key={step}
 
 
 
-<h3
-className="
-pt-3
-border-t
-border-[var(--wood-border)]
-"
->
+<h3>
 Restore Approval
 </h3>
 
@@ -534,6 +484,51 @@ snapshotRestoreApproval?.audit?.event
 }
 
 </div>
+
+
+
+<button
+onClick={onRequestRestore}
+className="
+px-4
+py-2
+rounded
+border
+border-[var(--wood-border)]
+text-sm
+"
+>
+
+Request Restore
+
+</button>
+
+
+
+{
+restoreApprovalResult && (
+
+<div
+className="
+text-sm
+"
+>
+
+Restore request:
+
+{" "}
+
+{
+restoreApprovalResult.status
+||
+"-"
+}
+
+</div>
+
+)
+
+}
 
 
 

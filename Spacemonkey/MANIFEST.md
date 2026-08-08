@@ -4,7 +4,7 @@ Version:
 1.0.0
 
 System:
-Wood-Booster OS
+Wood-Booster HQ
 
 Creator:
 Marc Järvinen

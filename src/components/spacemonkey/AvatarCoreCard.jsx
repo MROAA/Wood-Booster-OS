@@ -81,7 +81,7 @@ function AvatarCoreCard({
               text-[var(--wood-muted)]
             "
           >
-            Operator of Wood-Booster OS
+            Operator of Wood-Booster HQ
           </p>
 
 

@@ -1,5 +1,5 @@
 # ENGINEERING CONSTITUTION
-## Wood-Booster OS
+## Wood-Booster HQ
 ## Spacemonkey AI Operating System
 
 Version: 1.0
@@ -8,7 +8,7 @@ Version: 1.0
 
 # Article 1 — Mission
 
-Wood-Booster OS is built to become a long-term AI Operating System.
+Wood-Booster HQ is built to become a long-term AI Operating System.
 
 Every change must move the project closer to this vision.
 

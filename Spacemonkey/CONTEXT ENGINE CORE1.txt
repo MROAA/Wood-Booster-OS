@@ -121,7 +121,7 @@ Sisältää:
 * ongelmat
 * historia
 
-Esimerkiksi Wood-Booster OS:
+Esimerkiksi Wood-Booster HQ:
 
 ei ole vain koodia,
 
@@ -339,7 +339,7 @@ Ennen toimintaa tarkistetaan:
 
 ---
 
-# 17. Context In Wood-Booster OS
+# 17. Context In Wood-Booster HQ
 
 Nykyinen Wood-Booster AI Brain käyttää jo tämän periaatetta:
 

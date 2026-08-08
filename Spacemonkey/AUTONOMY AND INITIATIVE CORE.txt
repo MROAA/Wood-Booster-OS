@@ -250,7 +250,7 @@ oppia tuloksesta
 
 # 12. Wood-Booster Autonomy Example
 
-Wood-Booster OS ympäristössä Spacemonkey voi havaita:
+Wood-Booster HQ ympäristössä Spacemonkey voi havaita:
 
 Projektissa puuttuu tietoa.
 

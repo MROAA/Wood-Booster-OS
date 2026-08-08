@@ -143,7 +143,7 @@ Spacemonkey säilyttää tärkeät tavoitteet.
 
 Esimerkiksi:
 
-* Wood-Booster OS:n kehitys
+* Wood-Booster HQ:n kehitys
 * AI Brainin rakentaminen
 * oman osaamisen kasvattaminen
 * liiketoiminnan kehittäminen
@@ -294,7 +294,7 @@ parempi yhteistyö.
 
 # 14. Wood-Booster Personal Assistant Model
 
-Wood-Booster OS:ssa tämä tarkoittaa:
+Wood-Booster HQ:ssa tämä tarkoittaa:
 
 ## Marc Workflow
 

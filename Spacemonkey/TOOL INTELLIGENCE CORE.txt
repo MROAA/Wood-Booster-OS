@@ -286,7 +286,7 @@ vaan oikean työkalun.
 
 # 13. Wood-Booster Tool Ecosystem
 
-Wood-Booster OS muodostaa Spacemonkeyn työkalupöydän.
+Wood-Booster HQ muodostaa Spacemonkeyn työkalupöydän.
 
 Se voi sisältää:
 

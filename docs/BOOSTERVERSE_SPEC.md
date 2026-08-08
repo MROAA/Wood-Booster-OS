@@ -5,7 +5,7 @@ Version: 1.0
 
 # Tarkoitus
 
-Boosterverse on Wood-Booster OS:n laajennusalusta.
+Boosterverse on Wood-Booster HQ:n laajennusalusta.
 
 Kaikki uusi toiminnallisuus rakennetaan Boosterverseen.
 

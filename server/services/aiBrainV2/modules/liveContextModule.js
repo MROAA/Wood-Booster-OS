@@ -163,7 +163,7 @@ function buildFocusOptions(runtimeContext) {
   options.push({
     goal:
       route.pageName ||
-      "Wood-Booster OS",
+      "Wood-Booster HQ",
 
     task:
       route.pageType ||

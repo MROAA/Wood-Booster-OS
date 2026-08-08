@@ -344,7 +344,7 @@ WOOD_BOOSTER_CONTEXT:
   protect:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - Spacemonkey_Core
     - AI_Brain
     - customer_projects

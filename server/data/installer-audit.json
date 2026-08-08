@@ -1,0 +1,83 @@
+{
+  "events": [
+    {
+      "event": "restore-approved",
+      "snapshot": "snapshot-1786188377660",
+      "result": "approved",
+      "metadata": {
+        "validation": "healthy",
+        "score": 100
+      },
+      "createdAt": "2026-08-08T11:58:49.600Z"
+    },
+    {
+      "event": "stable-build-failed",
+      "snapshot": null,
+      "result": "failed",
+      "metadata": {
+        "error": "Snapshot timeout after 60 seconds"
+      },
+      "createdAt": "2026-08-08T12:40:16.005Z"
+    },
+    {
+      "event": "stable-build-created",
+      "snapshot": "/home/marc/Wood-Booster-AI/backups/snapshot_2026-08-08_15-45-02.tar.gz",
+      "result": "stable",
+      "metadata": {
+        "version": "0.0.1-test",
+        "commit": "audit-test"
+      },
+      "createdAt": "2026-08-08T12:45:04.163Z"
+    },
+    {
+      "event": "stable-build-created",
+      "snapshot": "/home/marc/Wood-Booster-AI/backups/snapshot_2026-08-08_15-47-48.tar.gz",
+      "result": "stable",
+      "metadata": {
+        "version": "0.0.1-test2",
+        "commit": "audit-test2"
+      },
+      "createdAt": "2026-08-08T12:47:49.745Z"
+    },
+    {
+      "event": "stable-build-created",
+      "snapshot": "/home/marc/Wood-Booster-AI/backups/snapshot_2026-08-08_15-51-01.tar.gz",
+      "result": "stable",
+      "metadata": {
+        "version": "0.0.0",
+        "commit": "unknown"
+      },
+      "createdAt": "2026-08-08T12:51:03.187Z"
+    },
+    {
+      "event": "stable-build-created",
+      "snapshot": "/home/marc/Wood-Booster-AI/backups/snapshot_2026-08-08_16-39-00.tar.gz",
+      "result": "stable",
+      "metadata": {
+        "version": "0.0.0",
+        "commit": "5073c774cdac6bfab5109dcda8de072a1e92571c"
+      },
+      "createdAt": "2026-08-08T13:39:01.540Z"
+    },
+    {
+      "event": "stable-build-created",
+      "snapshot": "snapshot_2026-08-08_16-58-46.tar.gz",
+      "result": "stable",
+      "metadata": {
+        "version": "0.0.0",
+        "commit": "fd4e9a03673d8c804b455385a0efdac433995d9f"
+      },
+      "createdAt": "2026-08-08T13:58:47.437Z"
+    },
+    {
+      "event": "stable-build-created",
+      "snapshot": "snapshot_2026-08-08_17-05-51.tar.gz",
+      "result": "stable",
+      "metadata": {
+        "version": "0.0.0",
+        "commit": "d447cee5140a7a29c354eb844f74eee96b56f974"
+      },
+      "createdAt": "2026-08-08T14:05:52.330Z"
+    }
+  ]
+}

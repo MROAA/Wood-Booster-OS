@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS
+WOOD-BOOSTER HQ
 
 INSTALLER RESTORE APPROVAL
 
@@ -127,7 +127,7 @@ return {
 
 system:
 
-"Wood-Booster OS Restore Approval",
+"Wood-Booster HQ Restore Approval",
 
 
 

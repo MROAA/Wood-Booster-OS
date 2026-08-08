@@ -83,7 +83,7 @@ function getGitIdentity(){
   return {
 
     repository:
-      "Wood-Booster-OS",
+      "Wood-Booster-HQ",
 
 
     branch:

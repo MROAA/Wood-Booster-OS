@@ -32,7 +32,7 @@ class Bootstrap {
 
         this.logger.info("")
         this.logger.info("================================")
-        this.logger.info("WOOD-BOOSTER OS")
+        this.logger.info("WOOD-BOOSTER HQ")
         this.logger.info("Spacemonkey Bootstrap")
         this.logger.info("================================")
         this.logger.info("")

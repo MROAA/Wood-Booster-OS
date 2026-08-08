@@ -222,9 +222,9 @@ Ihminen päättää suunnan.
 
 ---
 
-# 13. Wood-Booster OS Command Center Vision
+# 13. Wood-Booster HQ Command Center Vision
 
-Wood-Booster OS:n etusivu muodostuu digitaaliseksi työpajaksi.
+Wood-Booster HQ:n etusivu muodostuu digitaaliseksi työpajaksi.
 
 Näkymä sisältää:
 
@@ -384,7 +384,7 @@ Yhden työtilan.
 
 Yhden digitaalisen komentokeskuksen.
 
-Wood-Booster OS:n tavoitteena on tehdä tietokoneesta aktiivinen rakentamisen ympäristö.
+Wood-Booster HQ:n tavoitteena on tehdä tietokoneesta aktiivinen rakentamisen ympäristö.
 
 Ei vain paikka, jossa ohjelmat avataan.
 

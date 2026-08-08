@@ -338,7 +338,7 @@ kuka hallitsee.
 
 # 16. Wood-Booster Database Intelligence
 
-Nykyinen Wood-Booster OS:n tietokerros:
+Nykyinen Wood-Booster HQ:n tietokerros:
 
 * Prisma
 * SQLite

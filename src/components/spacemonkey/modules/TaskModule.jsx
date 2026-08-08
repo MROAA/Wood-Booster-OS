@@ -7,7 +7,7 @@ function TaskModule({
 
     {
       id: 1,
-      name: "Develop Wood-Booster OS",
+      name: "Develop Wood-Booster HQ",
       status: "ACTIVE",
       priority: "HIGH"
     },

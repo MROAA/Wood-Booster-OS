@@ -180,6 +180,42 @@ function SpiderSolitaire() {
     attemptMove(selected.col, selected.index, col)
   }
 
+  function handleCardDragStart(e, col, index) {
+    const column = game.tableau[col]
+    const card = column[index]
+
+    if (!card.faceUp || !isSequenceRun(column, index)) {
+      e.preventDefault()
+      return
+    }
+
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData(
+      "text/plain",
+      JSON.stringify({ col, index }),
+    )
+    setSelected({ col, index })
+  }
+
+  function handleColumnDragOver(e) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+  }
+
+  function handleColumnDrop(e, destCol) {
+    e.preventDefault()
+
+    let parsed
+    try {
+      parsed = JSON.parse(e.dataTransfer.getData("text/plain"))
+    } catch {
+      return
+    }
+    if (!parsed) return
+
+    attemptMove(parsed.col, parsed.index, destCol)
+  }
+
   function attemptMove(sourceCol, cardIndex, destCol) {
     const next = moveCards(game, sourceCol, cardIndex, destCol)
 
@@ -249,10 +285,11 @@ function SpiderSolitaire() {
           >
             Järjestä kortit maittain
             kuninkaasta ässään samaan
-            pinoon. Klikkaa korttia
-            valitaksesi sarjan, sitten
-            klikkaa kohdepinoa
-            siirtääksesi.
+            pinoon. Raahaa kortti
+            kohdepinoon, tai klikkaa
+            korttia valitaksesi sarjan
+            ja klikkaa sitten
+            kohdepinoa siirtääksesi.
           </p>
         </div>
 
@@ -383,6 +420,9 @@ function SpiderSolitaire() {
               selected={selected}
               onCardClick={handleCardClick}
               onAreaClick={handleColumnAreaClick}
+              onCardDragStart={handleCardDragStart}
+              onColumnDragOver={handleColumnDragOver}
+              onColumnDrop={handleColumnDrop}
             />
           ))}
         </div>
@@ -679,6 +719,9 @@ function TableauColumn({
   selected,
   onCardClick,
   onAreaClick,
+  onCardDragStart,
+  onColumnDragOver,
+  onColumnDrop,
 }) {
   const OVERLAP = 26
   const height = 132 + Math.max(0, column.length - 1) * OVERLAP
@@ -688,6 +731,8 @@ function TableauColumn({
       className="relative"
       style={{ height, minWidth: 76 }}
       onClick={() => onAreaClick(col)}
+      onDragOver={onColumnDragOver}
+      onDrop={(e) => onColumnDrop(e, col)}
     >
       {column.length === 0 && (
         <div
@@ -708,6 +753,9 @@ function TableauColumn({
           selected.col === col &&
           index >= selected.index
 
+        const draggable =
+          card.faceUp && isSequenceRun(column, index)
+
         return (
           <PlayingCard
             key={card.id}
@@ -719,6 +767,8 @@ function TableauColumn({
               zIndex: index,
             }}
             selected={isSelected}
+            draggable={draggable}
+            onDragStart={(e) => onCardDragStart(e, col, index)}
             onClick={(e) => {
               e.stopPropagation()
               onCardClick(col, index)
@@ -731,7 +781,7 @@ function TableauColumn({
 }
 
 
-function PlayingCard({ card, style, selected, onClick }) {
+function PlayingCard({ card, style, selected, draggable, onDragStart, onClick }) {
   if (!card.faceUp) {
     return (
       <div
@@ -757,6 +807,8 @@ function PlayingCard({ card, style, selected, onClick }) {
 
   return (
     <div
+      draggable={draggable}
+      onDragStart={onDragStart}
       onClick={onClick}
       style={{
         ...style,
@@ -766,6 +818,7 @@ function PlayingCard({ card, style, selected, onClick }) {
         boxShadow: selected
           ? "0 0 0 2px var(--wood-accent)"
           : "0 2px 4px rgba(0,0,0,0.4)",
+        cursor: draggable ? "grab" : "pointer",
       }}
       className="
         h-32

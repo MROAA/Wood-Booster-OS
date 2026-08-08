@@ -263,7 +263,7 @@ Uusi osa voidaan lisätä ilman koko järjestelmän rikkomista.
 
 # 13. Wood-Booster Evolution Vision
 
-Wood-Booster OS:n kehitys:
+Wood-Booster HQ:n kehitys:
 
 ## Vaihe 1
 

@@ -263,7 +263,7 @@ Se kysyy:
 
 # 12. Wood-Booster Evolution Example
 
-Wood-Booster OS kasvaa vaiheittain.
+Wood-Booster HQ kasvaa vaiheittain.
 
 Nykyinen kyky:
 

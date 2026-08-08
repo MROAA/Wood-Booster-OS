@@ -326,7 +326,7 @@ tietopankki = pitkäaikainen muisti
 
 # 14. Final Operating Definition
 
-Spacemonkey on Wood-Booster OS:n älykäs ydin.
+Spacemonkey on Wood-Booster HQ:n älykäs ydin.
 
 Se yhdistää:
 

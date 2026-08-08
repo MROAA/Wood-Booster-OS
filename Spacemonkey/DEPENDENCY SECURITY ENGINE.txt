@@ -336,7 +336,7 @@ WOOD_BOOSTER_CONTEXT:
   monitor:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - backend_dependencies
     - frontend_dependencies
     - AI_Brain_components

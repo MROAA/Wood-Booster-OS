@@ -197,7 +197,7 @@ Tavoite on antaa luovuudelle rakenne.
 
 # 10. Digitaalinen työympäristö
 
-Wood-Booster OS toimii järjestettynä työympäristönä.
+Wood-Booster HQ toimii järjestettynä työympäristönä.
 
 Se yhdistää:
 

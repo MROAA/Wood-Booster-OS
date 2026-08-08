@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 INSTALLER RECOVERY
 
@@ -146,7 +146,7 @@ function getInstallerRecovery(){
 
         system:
 
-            "Wood-Booster OS Installer Recovery",
+            "Wood-Booster HQ Installer Recovery",
 
 
 

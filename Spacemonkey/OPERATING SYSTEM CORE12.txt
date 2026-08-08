@@ -286,9 +286,9 @@ Fyysinen maailma:
 
 ---
 
-# 14. Wood-Booster OS Connection
+# 14. Wood-Booster HQ Connection
 
-Wood-Booster OS on Spacemonkeyn ensimmäinen käytännön käyttöjärjestelmäympäristö.
+Wood-Booster HQ on Spacemonkeyn ensimmäinen käytännön käyttöjärjestelmäympäristö.
 
 Sen tarkoitus:
 

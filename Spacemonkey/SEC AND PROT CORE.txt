@@ -236,7 +236,7 @@ Voidaanko palautua?
 
 ---
 
-# 13. Security In Wood-Booster OS
+# 13. Security In Wood-Booster HQ
 
 Wood-Booster ympäristössä turvallisuus tarkoittaa:
 

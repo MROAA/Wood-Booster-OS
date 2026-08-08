@@ -360,7 +360,7 @@ WOOD_BOOSTER_CONTEXT:
   deployment_targets:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - backend
     - frontend
     - AI_Brain

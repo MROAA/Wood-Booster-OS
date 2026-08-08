@@ -10,11 +10,9 @@ import {
 
 import path from "path"
 
-
 import {
   addSnapshot,
 } from "./snapshotRegistryService.js"
-
 
 import {
   addSystemActivity,
@@ -22,273 +20,326 @@ import {
 
 
 
-
-
 const BACKUP_SCRIPT =
-  "/home/marc/Wood-Booster-AI/backup-system/backup.sh"
+"/home/marc/Wood-Booster-AI/backup-system/backup.sh"
 
 
 
 const BACKUP_DIR =
-  "/home/marc/Wood-Booster-AI/backups"
+"/home/marc/Wood-Booster-AI/backups"
 
 
 
 const VERSION =
-  "v0.1.0-mvp"
+"v0.1.0-mvp"
 
 
 
+function execFileAsync(){
 
+return new Promise(
+(
+resolve,
+reject,
+)=>{
 
 
+execFile(
 
-export function createSnapshot(){
+  BACKUP_SCRIPT,
 
+  [],
 
-  return new Promise(
-    (
-      resolve,
-      reject
-    )=>{
 
+  {
+    timeout:
+      300000,
 
-      execFile(
+    maxBuffer:
+      1024 * 1024 * 100,
+  },
 
-        BACKUP_SCRIPT,
 
-        [],
+  (
+    error,
+    stdout,
+    stderr,
+  )=>{
 
-        {
-          timeout:300000,
-          maxBuffer:1024 * 1024 * 50
-        },
 
-        async (
-          error,
-          stdout,
-          stderr
-        )=>{
+    if(error){
 
+      reject({
 
-          if(error){
+        success:false,
 
+        error:
+          stderr ||
+          error.message,
 
-            reject({
 
-              success:false,
+        stdout,
 
-              error:
-                stderr ||
-                error.message
+      })
 
-            })
 
-
-            return
-
-          }
-
-
-
-
-
-          const lines =
-            stdout
-              .trim()
-              .split("\n")
-              .filter(Boolean)
-
-
-
-          const backupFile =
-            lines.find(
-              line =>
-                line.includes(
-                  BACKUP_DIR
-                )
-            )
-
-
-
-          if(!backupFile){
-
-
-            reject({
-
-              success:false,
-
-              error:
-                "Backup file not found"
-
-            })
-
-
-            return
-
-          }
-
-
-
-
-
-          try{
-
-
-            const fileName =
-              path.basename(
-                backupFile
-              )
-
-
-
-            const fileInfo =
-              await stat(
-                backupFile
-              )
-
-
-
-            const metadata = {
-
-
-              name:
-                "Manual System Snapshot",
-
-
-
-              version:
-                VERSION,
-
-
-
-              created:
-                new Date()
-                  .toISOString(),
-
-
-
-              type:
-                "manual",
-
-
-
-              status:
-                "SAFE",
-
-
-
-              file:
-                fileName,
-
-
-
-              size:
-                `${Math.round(
-                  fileInfo.size / 1024 / 1024
-                )} MB`
-
-
-            }
-
-
-
-
-
-            const metadataPath =
-              backupFile.replace(
-                ".tar.gz",
-                ".json"
-              )
-
-
-
-            await writeFile(
-
-              metadataPath,
-
-              JSON.stringify(
-                metadata,
-                null,
-                2
-              )
-
-            )
-
-
-
-
-
-            await addSnapshot(
-              metadata
-            )
-
-
-
-
-
-            await addSystemActivity({
-
-              type:
-                "SNAPSHOT_CREATED",
-
-
-              file:
-                fileName,
-
-
-              status:
-                "SUCCESS",
-
-
-              version:
-                VERSION
-
-            })
-
-
-
-
-
-
-
-            resolve({
-
-              success:true,
-
-              file:
-                backupFile,
-
-              metadata
-
-            })
-
-
-          }
-          catch(error){
-
-
-            reject({
-
-              success:false,
-
-              error:
-                error.message
-
-            })
-
-
-          }
-
-
-        }
-
-      )
-
+      return
 
     }
 
-  )
+
+    resolve({
+
+      stdout,
+
+      stderr,
+
+    })
+
+
+  },
+
+)
+
+
+}
+
+)
+
+}
+
+
+
+export async function createSnapshot(){
+
+try {
+
+
+const result =
+  await execFileAsync()
+
+
+
+console.log(
+"[BackupService] backup output:",
+result.stdout,
+)
+
+
+
+const output =
+(
+result.stdout || ""
+)
+
+
+
+const lines =
+output
+.trim()
+.split("\n")
+.filter(Boolean)
+
+
+
+let backupFile =
+lines.find(
+line =>
+line.includes(
+BACKUP_DIR
+)
+)
+
+
+
+if(!backupFile){
+
+const files =
+await readdir(
+BACKUP_DIR,
+)
+
+
+
+const snapshots =
+files
+.filter(
+file =>
+file.startsWith(
+"snapshot_"
+)
+&&
+file.endsWith(
+".tar.gz"
+)
+)
+.sort()
+.reverse()
+
+
+
+if(
+snapshots.length
+){
+
+backupFile =
+path.join(
+BACKUP_DIR,
+snapshots[0],
+)
+
+}
+
+}
+
+
+
+if(!backupFile){
+
+
+throw new Error(
+"Backup file not found after snapshot creation"
+)
+
+}
+
+
+
+const fileName =
+path.basename(
+backupFile,
+)
+
+
+
+const fileInfo =
+await stat(
+backupFile,
+)
+
+
+
+const metadata = {
+
+
+name:
+"Manual System Snapshot",
+
+
+
+version:
+VERSION,
+
+
+
+created:
+new Date()
+.toISOString(),
+
+
+
+type:
+"manual",
+
+
+
+status:
+"SAFE",
+
+
+
+file:
+fileName,
+
+
+
+size:
+`${Math.round(
+fileInfo.size / 1024 / 1024
+)} MB`
+
+}
+
+
+
+const metadataPath =
+backupFile.replace(
+".tar.gz",
+".json",
+)
+
+
+
+await writeFile(
+
+metadataPath,
+
+JSON.stringify(
+metadata,
+null,
+2,
+)
+
+)
+
+
+
+await addSnapshot(
+metadata,
+)
+
+
+
+await addSystemActivity({
+
+type:
+"SNAPSHOT_CREATED",
+
+
+file:
+fileName,
+
+
+status:
+"SUCCESS",
+
+
+version:
+VERSION,
+
+})
+
+
+
+return {
+
+success:true,
+
+file:
+backupFile,
+
+metadata,
+
+}
+
+
+
+}
+
+catch(error){
+
+
+throw {
+
+success:false,
+
+error:
+error.message ||
+String(error),
+
+}
+
+}
 
 }
 
@@ -296,67 +347,62 @@ export function createSnapshot(){
 
 
 
-
-
 export async function getSnapshots(){
 
-
-  const files =
-    await readdir(
-      BACKUP_DIR
-    )
-
+const files =
+await readdir(
+BACKUP_DIR,
+)
 
 
-  return files
 
-    .filter(
-      file =>
-        file.startsWith(
-          "snapshot_"
-        ) &&
-        file.endsWith(
-          ".tar.gz"
-        )
-    )
+return files
 
-    .sort()
+.filter(
+file =>
+file.startsWith(
+"snapshot_"
+)
+&&
+file.endsWith(
+".tar.gz"
+)
+)
 
-    .reverse()
+.sort()
 
-    .map(
+.reverse()
 
-      (
-        file,
-        index
-      )=>({
-
-
-        id:
-          index + 1,
+.map(
+(
+file,
+index,
+)=>({
 
 
-        name:
-          "System Snapshot",
+id:
+index + 1,
 
 
-        file,
+name:
+"System Snapshot",
 
 
-        path:
-          path.join(
-            BACKUP_DIR,
-            file
-          ),
+file,
 
 
-        status:
-          "SAFE"
+path:
+path.join(
+BACKUP_DIR,
+file,
+),
 
 
-      })
+status:
+"SAFE",
 
-    )
+})
 
+)
 
 }

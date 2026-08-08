@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 INSTALLER SNAPSHOT MANAGER V2
 
@@ -223,7 +223,7 @@ return {
 
 system:
 
-"Wood-Booster OS Snapshot Manager V2",
+"Wood-Booster HQ Snapshot Manager V2",
 
 
 

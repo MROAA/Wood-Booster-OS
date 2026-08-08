@@ -70,7 +70,7 @@ Sisältää:
 
 ## Integration Layer
 
-Wood-Booster OS:
+Wood-Booster HQ:
 
 - AI Brain
 - Dashboard

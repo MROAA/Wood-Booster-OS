@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 SNAPSHOT VALIDATOR
 
@@ -177,7 +177,7 @@ function getInstallerSnapshotValidator(){
 
         system:
 
-            "Wood-Booster OS Snapshot Validator",
+            "Wood-Booster HQ Snapshot Validator",
 
 
 

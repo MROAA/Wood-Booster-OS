@@ -294,7 +294,7 @@ WOOD_BOOSTER_CONTEXT:
     develop:
 
 
-      - Wood-Booster-OS
+      - Wood-Booster-HQ
       - Spacemonkey
       - AI_Brain
       - workshop_tools

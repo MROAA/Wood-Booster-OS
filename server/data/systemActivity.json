@@ -1,6 +1,70 @@
 {
   "events": [
     {
+      "id": 1786197952328,
+      "time": "2026-08-08T14:05:52.328Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_17-05-51.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
+      "id": 1786197527436,
+      "time": "2026-08-08T13:58:47.436Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_16-58-46.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
+      "id": 1786197053003,
+      "time": "2026-08-08T13:50:53.003Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_16-50-51.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
+      "id": 1786196341539,
+      "time": "2026-08-08T13:39:01.539Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_16-39-00.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
+      "id": 1786193463185,
+      "time": "2026-08-08T12:51:03.185Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_15-51-01.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
+      "id": 1786193269743,
+      "time": "2026-08-08T12:47:49.743Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_15-47-48.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
+      "id": 1786193104162,
+      "time": "2026-08-08T12:45:04.162Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_15-45-02.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
+      "id": 1786192201255,
+      "time": "2026-08-08T12:30:01.255Z",
+      "type": "SNAPSHOT_CREATED",
+      "file": "snapshot_2026-08-08_15-26-37.tar.gz",
+      "status": "SUCCESS",
+      "version": "v0.1.0-mvp"
+    },
+    {
       "id": 1785232559202,
       "time": "2026-07-28T09:55:59.202Z",
       "type": "SNAPSHOT_CREATED",

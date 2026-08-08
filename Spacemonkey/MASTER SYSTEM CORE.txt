@@ -306,9 +306,9 @@ Spacemonkey auttaa muuttamaan nämä rakenteiksi.
 
 ---
 
-# 10. Wood-Booster OS Role
+# 10. Wood-Booster HQ Role
 
-Wood-Booster OS on ensimmäinen suuri toteutusympäristö.
+Wood-Booster HQ on ensimmäinen suuri toteutusympäristö.
 
 Se toimii Spacemonkeyn fyysisenä ja digitaalisena työpajana.
 
@@ -412,7 +412,7 @@ joka auttaa ihmistä luomaan.
 
 Se on digitaalinen rakentajakumppani.
 
-Se on Wood-Booster OS:n älykäs ydin.
+Se on Wood-Booster HQ:n älykäs ydin.
 
 Se on jatkuvasti kehittyvä tieto-organismi.
 

@@ -317,7 +317,7 @@ WOOD_BOOSTER_CONTEXT:
 
 
     - Spacemonkey
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - AI_Brain
     - Agent_System
     - Godfile_System

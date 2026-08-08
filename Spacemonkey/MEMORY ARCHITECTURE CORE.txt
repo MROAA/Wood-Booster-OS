@@ -91,7 +91,7 @@ Sisältää:
 
 Esimerkiksi:
 
-Wood-Booster OS:n kehityshistoria.
+Wood-Booster HQ:n kehityshistoria.
 
 ---
 
@@ -335,7 +335,7 @@ Response / Action
 
 ---
 
-# 11. Memory In Wood-Booster OS
+# 11. Memory In Wood-Booster HQ
 
 Wood-Booster ympäristössä muisti voi sisältää:
 

@@ -246,7 +246,7 @@ WOOD_BOOSTER_CONTEXT:
   projects:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - Spacemonkey
     - AI_Brain
 

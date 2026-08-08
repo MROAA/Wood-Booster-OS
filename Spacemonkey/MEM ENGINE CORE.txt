@@ -306,7 +306,7 @@ Väärä muisti voi johtaa väärään toimintaan.
 
 ---
 
-# 16. Memory In Wood-Booster OS
+# 16. Memory In Wood-Booster HQ
 
 Wood-Booster ympäristössä Memory Engine hallitsee:
 

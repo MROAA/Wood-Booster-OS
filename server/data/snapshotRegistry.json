@@ -1,6 +1,86 @@
 {
   "snapshots": [
     {
+      "id": 1786197952328,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T14:05:52.327Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_17-05-51.tar.gz",
+      "size": "20 MB"
+    },
+    {
+      "id": 1786197527436,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T13:58:47.435Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_16-58-46.tar.gz",
+      "size": "20 MB"
+    },
+    {
+      "id": 1786197053002,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T13:50:53.001Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_16-50-51.tar.gz",
+      "size": "20 MB"
+    },
+    {
+      "id": 1786196341538,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T13:39:01.537Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_16-39-00.tar.gz",
+      "size": "20 MB"
+    },
+    {
+      "id": 1786193463185,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T12:51:03.184Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_15-51-01.tar.gz",
+      "size": "20 MB"
+    },
+    {
+      "id": 1786193269742,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T12:47:49.742Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_15-47-48.tar.gz",
+      "size": "20 MB"
+    },
+    {
+      "id": 1786193104161,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T12:45:04.161Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_15-45-02.tar.gz",
+      "size": "20 MB"
+    },
+    {
+      "id": 1786192201254,
+      "name": "Manual System Snapshot",
+      "version": "v0.1.0-mvp",
+      "created": "2026-08-08T12:30:01.252Z",
+      "type": "manual",
+      "status": "SAFE",
+      "file": "snapshot_2026-08-08_15-26-37.tar.gz",
+      "size": "3539 MB"
+    },
+    {
       "id": 1785232559201,
       "name": "Manual System Snapshot",
       "version": "v0.1.0-mvp",

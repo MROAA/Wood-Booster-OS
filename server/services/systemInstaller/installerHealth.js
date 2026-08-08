@@ -161,7 +161,7 @@ function getInstallerHealth(){
     return {
 
         system:
-            "Wood-Booster OS Installer Health",
+            "Wood-Booster HQ Installer Health",
 
 
 

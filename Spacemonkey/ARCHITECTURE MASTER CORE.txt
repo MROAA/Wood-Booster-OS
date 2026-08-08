@@ -342,7 +342,7 @@ Tämä mahdollistaa pitkäaikaisen kehityksen.
 
 ---
 
-# 13. Wood-Booster OS Architecture
+# 13. Wood-Booster HQ Architecture
 
 Wood-Booster toimii Spacemonkeyn käytännön ympäristönä.
 

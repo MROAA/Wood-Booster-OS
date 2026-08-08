@@ -403,7 +403,7 @@ WOOD_BOOSTER_CONTEXT:
   protect:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - Spacemonkey_Core
     - Godfile_database
     - AI_memory

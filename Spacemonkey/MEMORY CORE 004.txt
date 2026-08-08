@@ -71,7 +71,7 @@ Kaikki rakennettavat asiat.
 
 Esimerkiksi:
 
-* Wood-Booster OS
+* Wood-Booster HQ
 * AI Brain
 * Spacemonkey Core
 * yritysjärjestelmät

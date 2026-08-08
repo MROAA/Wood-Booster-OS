@@ -155,7 +155,7 @@ Jokainen projekti opettaa:
 * yhteistyötä
 * resurssien hallintaa
 
-Wood-Booster OS on yksi tärkeimmistä kehitysympäristöistä.
+Wood-Booster HQ on yksi tärkeimmistä kehitysympäristöistä.
 
 ---
 

@@ -205,7 +205,7 @@ Selkeät sopimukset estävät kaaosta.
 
 # 8. Frontend Integration
 
-Wood-Booster OS käyttöliittymä kommunikoi API Gatewayn kautta.
+Wood-Booster HQ käyttöliittymä kommunikoi API Gatewayn kautta.
 
 Virta:
 
@@ -354,7 +354,7 @@ Lokit auttavat:
 
 ---
 
-# 17. API Gateway And Wood-Booster OS
+# 17. API Gateway And Wood-Booster HQ
 
 Nykyinen rakenne:
 
@@ -489,7 +489,7 @@ API Gatewayn kanssa:
 
 järjestelmä toimii kokonaisuutena.
 
-Se tekee Wood-Booster OS:stä laajennettavan AI-käyttöjärjestelmän.
+Se tekee Wood-Booster HQ:stä laajennettavan AI-käyttöjärjestelmän.
 
 ---
 

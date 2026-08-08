@@ -273,7 +273,7 @@ Agentit auttavat:
 
 # 13. Wood-Booster Agent Network
 
-Wood-Booster OS:ssa agenttiverkosto voi toimia näin:
+Wood-Booster HQ:ssa agenttiverkosto voi toimia näin:
 
 ## Asiakasprojekti
 

@@ -303,7 +303,7 @@ Uusi ymmärrys
 
 ---
 
-# 12. Synthesis In Wood-Booster OS
+# 12. Synthesis In Wood-Booster HQ
 
 Wood-Booster toimii esimerkkinä tiedon yhdistämisestä.
 

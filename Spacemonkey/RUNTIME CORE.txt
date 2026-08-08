@@ -397,9 +397,9 @@ Spacemonkey antaa:
 
 ---
 
-# 15. Runtime In Wood-Booster OS
+# 15. Runtime In Wood-Booster HQ
 
-Wood-Booster OS toimii Spacemonkeyn käytännön käyttöympäristönä.
+Wood-Booster HQ toimii Spacemonkeyn käytännön käyttöympäristönä.
 
 Runtime yhdistää:
 

@@ -222,9 +222,9 @@ Tallennetaan kokemus.
 
 ---
 
-# 12. Integration And Wood-Booster OS
+# 12. Integration And Wood-Booster HQ
 
-Wood-Booster OS toimii ekosysteemin keskuksena.
+Wood-Booster HQ toimii ekosysteemin keskuksena.
 
 Se yhdistää:
 

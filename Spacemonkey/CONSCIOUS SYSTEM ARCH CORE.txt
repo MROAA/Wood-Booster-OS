@@ -314,7 +314,7 @@ LEARNING
 
 ---
 
-# 18. Wood-Booster OS Implementation Vision
+# 18. Wood-Booster HQ Implementation Vision
 
 Tämä arkkitehtuuri voidaan toteuttaa vaiheittain:
 

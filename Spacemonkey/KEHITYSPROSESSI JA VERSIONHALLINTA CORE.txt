@@ -399,7 +399,7 @@ Järjestelmää voidaan kehittää.
 
 ---
 
-# 17. Wood-Booster OS kehitysmalli
+# 17. Wood-Booster HQ kehitysmalli
 
 ```id="wooddev025"
 

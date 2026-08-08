@@ -401,7 +401,7 @@ Visuaalinen suunnittelu.
 
 ---
 
-# 15. Agent Engine In Wood-Booster OS
+# 15. Agent Engine In Wood-Booster HQ
 
 Nykyinen Wood-Booster AI Brain voi kehittyä tähän suuntaan:
 

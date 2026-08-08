@@ -354,7 +354,7 @@ WOOD_BOOSTER_CONTEXT:
     systems:
 
 
-      - Wood-Booster-OS
+      - Wood-Booster-HQ
       - AI_Brain
       - Knowledge_System
       - Memory_System

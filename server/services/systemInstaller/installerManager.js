@@ -166,7 +166,7 @@ function getInstallerManager(){
 
 
         system:
-            "Wood-Booster OS Installer Manager",
+            "Wood-Booster HQ Installer Manager",
 
 
 

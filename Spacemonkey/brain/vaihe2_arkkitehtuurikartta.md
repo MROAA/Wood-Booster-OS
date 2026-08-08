@@ -1,4 +1,4 @@
-# Wood-Booster OS — Arkkitehtuurikartta (Vaihe 2)
+# Wood-Booster HQ — Arkkitehtuurikartta (Vaihe 2)
 2026-07-29 — laadittu koodista jäljittäen, ei oletuksista
 
 ---

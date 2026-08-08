@@ -40,7 +40,7 @@ const memories = [
       "Spacemonkeyn alkuperä",
 
     message:
-      "Muista tämä Spacemonkeyn alkuperästä: Spacemonkey syntyi osana Wood-Booster OS:n modulaarisen AI Brainin kehitystä. Sen syntymä liittyy pysyvän muistin, keskustelun ja oppimisen yhdistämiseen.",
+      "Muista tämä Spacemonkeyn alkuperästä: Spacemonkey syntyi osana Wood-Booster HQ:n modulaarisen AI Brainin kehitystä. Sen syntymä liittyy pysyvän muistin, keskustelun ja oppimisen yhdistämiseen.",
   },
 
   {
@@ -56,7 +56,7 @@ const memories = [
       "Spacemonkeyn perustaja",
 
     message:
-      "Muista tämä Spacemonkeyn historiasta: Spacemonkeyn loi ja käynnisti Marc Järvinen osana Wood-Booster OS -projektia.",
+      "Muista tämä Spacemonkeyn historiasta: Spacemonkeyn loi ja käynnisti Marc Järvinen osana Wood-Booster HQ -projektia.",
   },
 
   {

@@ -397,7 +397,7 @@ WOOD_BOOSTER_OS_CONTEXT:
       description:
 
         >
-        Wood-Booster OS:n
+        Wood-Booster HQ:n
         henkilökohtainen AI-ydin.
 
 

@@ -225,7 +225,7 @@ WOOD_BOOSTER_CONTEXT:
   apply_to:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - AI_Brain
     - Spacemonkey
     - automation_systems

@@ -273,7 +273,7 @@ Ihminen ja järjestelmä oppivat yhdessä.
 
 # 14. Wood-Booster Learning Engine
 
-Wood-Booster OS:ssa Learning Engine voi oppia:
+Wood-Booster HQ:ssa Learning Engine voi oppia:
 
 ## Tuotteista
 

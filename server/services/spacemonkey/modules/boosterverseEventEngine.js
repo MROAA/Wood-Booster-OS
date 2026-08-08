@@ -74,7 +74,7 @@ function normalizeEventType(type) {
  */
 function createEvent({
   type,
-  source = "wood-booster-os",
+  source = "wood-booster-hq",
   entityType = null,
   entityId = null,
   message = null,

@@ -256,7 +256,7 @@ Agentti ei voi laajentaa omaa toimivaltaansa ilman järjestelmän hyväksyntää
 
 ---
 
-# 14. Security In Wood-Booster OS
+# 14. Security In Wood-Booster HQ
 
 Wood-Booster ympäristössä Guardian suojaa:
 

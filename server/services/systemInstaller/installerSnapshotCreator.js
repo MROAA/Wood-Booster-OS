@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 SNAPSHOT CREATOR
 
@@ -40,7 +40,7 @@ function createInstallerSnapshot(){
 
         system:
 
-            "Wood-Booster OS Snapshot Creator",
+            "Wood-Booster HQ Snapshot Creator",
 
 
 

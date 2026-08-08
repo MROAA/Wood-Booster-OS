@@ -288,7 +288,7 @@ Arkisto auttaa palauttamaan:
 
 # 14. Wood-Booster Memory Archive
 
-Wood-Booster OS:n arkisto sisältää:
+Wood-Booster HQ:n arkisto sisältää:
 
 ## Tuotehistoria
 

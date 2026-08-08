@@ -1,6 +1,6 @@
 # MASTER PRD
 ## Spacemonkey AI Operating System
-### Wood-Booster OS
+### Wood-Booster HQ
 
 Version: 1.0
 Status: Living Document

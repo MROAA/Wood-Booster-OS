@@ -296,7 +296,7 @@ Spacemonkey tuo:
 
 ---
 
-# 12. Observation In Wood-Booster OS
+# 12. Observation In Wood-Booster HQ
 
 Wood-Booster ympäristössä Spacemonkey havaitsee:
 

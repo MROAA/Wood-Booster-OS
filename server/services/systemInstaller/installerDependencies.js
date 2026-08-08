@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V2
+WOOD-BOOSTER HQ INSTALLER V2
 
 INSTALLER DEPENDENCIES
 
@@ -188,7 +188,7 @@ function getInstallerDependencies(){
 
         system:
 
-            "Wood-Booster OS Installer Dependency Check",
+            "Wood-Booster HQ Installer Dependency Check",
 
 
 

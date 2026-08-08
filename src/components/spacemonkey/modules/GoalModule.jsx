@@ -49,7 +49,7 @@ function GoalModule({
 
           {
             goal?.current ||
-            "Building Wood-Booster OS"
+            "Building Wood-Booster HQ"
           }
 
         </p>

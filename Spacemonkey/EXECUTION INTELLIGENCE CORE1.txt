@@ -344,7 +344,7 @@ Parempi toteutus
 
 ---
 
-# 15. Execution In Wood-Booster OS
+# 15. Execution In Wood-Booster HQ
 
 Wood-Booster ympäristössä toteutus tarkoittaa:
 

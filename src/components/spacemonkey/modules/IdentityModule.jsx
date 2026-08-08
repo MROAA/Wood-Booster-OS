@@ -66,7 +66,7 @@ function IdentityModule({
 
           {
             identity?.role ||
-            "Wood-Booster OS Operator"
+            "Wood-Booster HQ Operator"
           }
 
         </p>

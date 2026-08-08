@@ -5,7 +5,7 @@ Alias:
 Crocodile Dundee
 
 System:
-Wood-Booster OS
+Wood-Booster HQ
 
 Creator:
 Marc Järvinen + ChatGPT

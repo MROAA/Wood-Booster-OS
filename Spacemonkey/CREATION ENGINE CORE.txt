@@ -153,7 +153,7 @@ Spacemonkey tuo:
 
 # 5. The Digital Workshop
 
-Wood-Booster OS toimii Spacemonkeyn digitaalisena työpajana.
+Wood-Booster HQ toimii Spacemonkeyn digitaalisena työpajana.
 
 Siellä ideat voivat muuttua:
 

@@ -115,7 +115,7 @@ Kokonaisen ympäristön muodostaminen.
 
 Sisältää:
 
-* Wood-Booster OS
+* Wood-Booster HQ
 * työkalut
 * integraatiot
 * jatkuvan tiedon kasvun

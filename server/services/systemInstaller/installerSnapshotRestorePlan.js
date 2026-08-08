@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 SNAPSHOT RESTORE PLAN
 
@@ -59,7 +59,7 @@ function getInstallerSnapshotRestorePlan(){
 
         system:
 
-            "Wood-Booster OS Snapshot Restore Plan",
+            "Wood-Booster HQ Snapshot Restore Plan",
 
 
 

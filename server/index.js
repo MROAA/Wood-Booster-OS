@@ -4,9 +4,13 @@ import {
 import {
   createSpacemonkeyInternetSafetyRouter,
 } from "./routes/spacemonkeyInternetSafety.js"
+import architectureAuditRouter from "./routes/architectureAudit.js"
+import systemInstallerRestoreApprovalRouter from "./routes/systemInstallerRestoreApproval.js"
 import {
   createSpacemonkeySecuritySandboxRouter,
 } from "./routes/spacemonkeySecuritySandbox.js"
+import architectureHealthRouter from "./routes/architectureHealth.js"
+import systemInstallerAuditRouter from "./routes/systemInstallerAudit.js"
 import systemInstallerRouter from "./routes/systemInstaller.js"
 import {
   createSpacemonkeySecurityCapabilitiesRouter,
@@ -108,6 +112,7 @@ import createMediaEditsRouter, {
 } from "./routes/mediaEdits.js"
 import createSocialStudioRouter from "./routes/socialStudio.js"
 import createWordpressStudioRouter from "./routes/wordpressStudio.js"
+import createDevStudioRouter from "./routes/devStudio.js"
 import createAgentChatRouter from "./routes/agentChat.js"
 import createProjectsRouter from "./routes/projects.js"
 import createProjectMaterialsRouter from "./routes/projectMaterials.js"
@@ -297,6 +302,10 @@ app.use(
 )
 app.use(
   cors()
+)
+app.use(
+"/api/spacemonkey/architecture-health",
+architectureHealthRouter
 )
 app.use(
   "/api",
@@ -611,6 +620,15 @@ app.use(
 
 app.use(
   "/api",
+  createDevStudioRouter(
+    prisma
+  )
+)
+
+
+
+app.use(
+  "/api",
   createBusinessSettingsRouter(
     prisma
   )
@@ -818,8 +836,14 @@ app.get(
   }
 )
 
-
-
+app.use(
+"/api/system-installer/restore-approval",
+systemInstallerRestoreApprovalRouter
+)
+app.use(
+"/api/spacemonkey/architecture-audit",
+architectureAuditRouter
+)
 app.use(
   "/api",
   createSpacemonkeyLearningRouter()
@@ -829,11 +853,14 @@ app.use(
 systemInstallerSnapshotRouter
 )
 app.use(
+"/api/system-installer/audit",
+systemInstallerAuditRouter
+)
+app.use(
   (
     req,
     res
   )=>{
-
 
     res.status(404).json({
 
@@ -851,7 +878,10 @@ app.use(
 
 
 
-
+app.use(
+"/api/system-installer/audit",
+systemInstallerAuditRouter
+)
 
 app.use(
   (

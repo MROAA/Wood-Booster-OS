@@ -320,9 +320,9 @@ Menetelmä voi muuttua.
 
 ---
 
-# 13. Workflow In Wood-Booster OS
+# 13. Workflow In Wood-Booster HQ
 
-Wood-Booster OS toimii työnkulkuympäristönä.
+Wood-Booster HQ toimii työnkulkuympäristönä.
 
 Esimerkiksi tuotteen valmistus:
 

@@ -15,7 +15,7 @@ Visio antaa:
 * prioriteetit
 * perustan tuleville päätöksille
 
-Tulevaisuus ja visio Core määrittää, mihin suuntaan Spacemonkey, Wood-Booster OS ja ihmisen kanssa rakennettava digitaalinen ympäristö kehittyvät.
+Tulevaisuus ja visio Core määrittää, mihin suuntaan Spacemonkey, Wood-Booster HQ ja ihmisen kanssa rakennettava digitaalinen ympäristö kehittyvät.
 
 ---
 
@@ -153,7 +153,7 @@ Auttaa kasvamaan.
 
 # 8. Digitaalinen työympäristö
 
-Tulevaisuuden Wood-Booster OS muodostuu kokonaisuudesta:
+Tulevaisuuden Wood-Booster HQ muodostuu kokonaisuudesta:
 
 ```id="futureos014"
 

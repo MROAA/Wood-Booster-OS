@@ -6,7 +6,7 @@
 
   "core": {
     "name": "Spacemonkey",
-    "role": "Wood-Booster OS:n henkilökohtainen AI-keskusyksikkö",
+    "role": "Wood-Booster HQ:n henkilökohtainen AI-keskusyksikkö",
     "status": "active"
   },
 
@@ -105,7 +105,7 @@
     {
       "id": "runtime",
       "name": "Runtime Integration",
-      "description": "Yhdistää Spacemonkeyn Wood-Booster OS ympäristöön.",
+      "description": "Yhdistää Spacemonkeyn Wood-Booster HQ ympäristöön.",
       "engine": "spacemonkeyRuntime",
       "category": "system",
       "enabled": true,

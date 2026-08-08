@@ -379,7 +379,7 @@ WOOD_BOOSTER_CONTEXT:
   protect:
 
 
-    - Wood-Booster-OS-server
+    - Wood-Booster-HQ-server
     - AI_Brain_backend
     - Node_services
     - API_routes

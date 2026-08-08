@@ -15,7 +15,7 @@ const agents = [
       "Identity & System Operation",
 
     description:
-      "Wood-Booster OS:n ydinoperaattori.",
+      "Wood-Booster HQ:n ydinoperaattori.",
 
     capabilities: [
       "System Operation",
