@@ -24,189 +24,244 @@ Ei:
 
 import fs from "fs"
 import path from "path"
+import {
+fileURLToPath
+} from "url"
+
+
+
+const __filename =
+fileURLToPath(
+import.meta.url
+)
+
+
+
+const __dirname =
+path.dirname(
+__filename
+)
+
+
+
+function getProjectRoot(){
+
+
+return path.resolve(
+__dirname,
+"../../../"
+)
+
+
+}
 
 
 
 function getInstallerSnapshots(){
 
 
-    const root =
-        process.cwd()
+const root =
+    getProjectRoot()
 
 
 
-    const snapshotRoot =
-        path.join(
-            root,
-            "snapshots"
-        )
+const snapshotRoot =
+    path.join(
+        root,
+        "snapshots"
+    )
 
 
 
-    const exists =
-        fs.existsSync(
-            snapshotRoot
-        )
+const exists =
+    fs.existsSync(
+        snapshotRoot
+    )
 
 
 
-    let snapshots = []
+let snapshots = []
 
 
 
-    if(exists){
+if(exists){
 
 
-        snapshots =
+snapshots =
 
-            fs.readdirSync(
-                snapshotRoot,
-                {
-                    withFileTypes: true
-                }
-            )
+    fs.readdirSync(
+        snapshotRoot,
+        {
+            withFileTypes:true
+        }
+    )
 
-            .filter(
-                item =>
-                    item.isDirectory()
-            )
+    .filter(
+        item =>
+            item.isDirectory()
+    )
 
-            .map(
-                item => {
-
-
-                    const folder =
-                        item.name
+    .map(
+        item => {
 
 
+            const folder =
+                item.name
 
-                    const metadataPath =
-                        path.join(
-                            snapshotRoot,
-                            folder,
-                            "metadata.json"
+
+
+            const metadataPath =
+                path.join(
+                    snapshotRoot,
+                    folder,
+                    "metadata.json"
+                )
+
+
+
+            let metadata =
+                null
+
+
+
+            if(
+                fs.existsSync(
+                    metadataPath
+                )
+            ){
+
+                try {
+
+
+                    metadata =
+                        JSON.parse(
+                            fs.readFileSync(
+                                metadataPath,
+                                "utf-8"
+                            )
                         )
-
-
-
-                    let metadata = null
-
-
-
-                    if(
-                        fs.existsSync(
-                            metadataPath
-                        )
-                    ){
-
-                        try {
-
-                            metadata =
-                                JSON.parse(
-                                    fs.readFileSync(
-                                        metadataPath,
-                                        "utf-8"
-                                    )
-                                )
-
-                        }
-
-                        catch {
-
-                            metadata = null
-
-                        }
-
-                    }
-
-
-
-                    return {
-
-                        id:
-                            folder,
-
-
-                        metadataPath,
-
-
-                        metadata,
-
-                    }
 
 
                 }
 
-            )
+                catch {
 
 
-    }
+                    metadata =
+                        null
 
 
-
-    const count =
-        snapshots.length
+                }
 
 
-
-    const latest =
-
-        count > 0
-
-            ?
-            snapshots[
-                count - 1
-            ]
-
-            :
-
-            null
+            }
 
 
 
-    return {
+            return {
+
+                id:
+                    folder,
 
 
-        system:
-
-            "Wood-Booster OS Snapshot Manager V2",
+                metadataPath,
 
 
+                metadata,
 
-        status:
-
-            count > 0
-                ?
-                "available"
-                :
-                "empty",
+            }
 
 
+        }
+    )
 
-        snapshotPath:
 
-            snapshotRoot,
+}
 
 
 
-        count,
+snapshots =
+snapshots.filter(
+snapshot =>
+snapshot.metadata
+)
 
 
 
-        snapshots,
+snapshots.sort(
+(a,b) =>
+
+new Date(
+b.metadata.createdAt
+)
+-
+new Date(
+a.metadata.createdAt
+)
+
+)
 
 
 
-        latest,
+const count =
+    snapshots.length
 
 
 
-        checkedAt:
+const latest =
 
-            new Date()
-            .toISOString(),
+count > 0
+?
+snapshots[0]
+:
+null
 
-    }
+
+
+return {
+
+
+system:
+
+"Wood-Booster OS Snapshot Manager V2",
+
+
+
+status:
+
+count > 0
+?
+"available"
+:
+"empty",
+
+
+
+snapshotPath:
+
+snapshotRoot,
+
+
+
+count,
+
+
+
+snapshots,
+
+
+
+latest,
+
+
+
+checkedAt:
+
+new Date()
+.toISOString(),
+
+
+}
 
 
 }
@@ -215,6 +270,6 @@ function getInstallerSnapshots(){
 
 export {
 
-    getInstallerSnapshots,
+getInstallerSnapshots,
 
 }
