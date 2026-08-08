@@ -184,7 +184,7 @@ export const MainDashboard = () => {
             <input 
               type="text" 
               className="hq-text-input"
-              placeholder="Kirjoita komento tai kysymys agentille (esim. 'Analysoi hinta...')"
+              placeholder="Kirjoita viesti Spacemonkeylle"
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
