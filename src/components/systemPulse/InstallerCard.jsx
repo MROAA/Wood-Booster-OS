@@ -56,6 +56,16 @@ const snapshots =
 
 
 
+const latestSnapshot =
+    snapshots?.latest
+
+
+
+const latestMetadata =
+    latestSnapshot?.metadata
+
+
+
 return (
 
 <section
@@ -64,7 +74,6 @@ return (
         p-6
     "
 >
-
 
 <h2
     className="
@@ -87,78 +96,41 @@ return (
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Status
+<span className="text-sm text-[var(--wood-muted)]">
+Status
 </span>
 
-
-<p
-    className="
-        text-lg
-        text-[var(--wood-text)]
-    "
->
+<p className="text-lg text-[var(--wood-text)]">
 {
     installer.status === "healthy"
-        ?
-        "✓ Healthy"
-        :
-        "⚠ Warning"
+    ?
+    "✓ Healthy"
+    :
+    "⚠ Warning"
 }
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Score
+<span className="text-sm text-[var(--wood-muted)]">
+Score
 </span>
 
-
-<p
-    className="
-        text-lg
-        text-[var(--wood-text)]
-    "
->
+<p className="text-lg text-[var(--wood-text)]">
 {installer.score}%
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Report
+<span className="text-sm text-[var(--wood-muted)]">
+Report
 </span>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+<p className="text-[var(--wood-text)]">
 {
     report?.status
     ||
@@ -166,41 +138,23 @@ return (
 }
 </p>
 
-
-<p
-    className="
-        text-sm
-        text-[var(--wood-text)]
-    "
->
+<p className="text-sm text-[var(--wood-text)]">
 {
     report?.recommendation
     ||
     "-"
 }
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Recovery
+<span className="text-sm text-[var(--wood-muted)]">
+Recovery
 </span>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+<p className="text-[var(--wood-text)]">
 {
     recovery?.status
     ||
@@ -208,45 +162,19 @@ return (
 }
 </p>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
-Score:
-
-{" "}
-
-{
-    recovery?.score
-    ??
-    0
-}%
-
+<p className="text-[var(--wood-text)]">
+Score {recovery?.score ?? 0}%
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Snapshots
+<span className="text-sm text-[var(--wood-muted)]">
+Snapshots
 </span>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+<p className="text-[var(--wood-text)]">
 {
     snapshots?.status
     ||
@@ -254,122 +182,94 @@ Score:
 }
 </p>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
-Count:
-
-{" "}
-
-{
-    snapshots?.count
-    ??
-    0
-}
-
+<p className="text-[var(--wood-text)]">
+Count {snapshots?.count ?? 0}
 </p>
 
-
-<p
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-Latest:
-
-{" "}
-
+<p className="text-xs text-[var(--wood-muted)]">
 {
-    snapshots?.latest
+    latestSnapshot?.id
     ||
     "-"
 }
-
 </p>
-
 
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Install Mode
+<span className="text-sm text-[var(--wood-muted)]">
+Latest Snapshot Created
 </span>
 
+<p className="text-xs text-[var(--wood-text)]">
+{
+    latestMetadata?.createdAt
+    ||
+    "-"
+}
+</p>
+</div>
 
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+
+
+<div>
+<span className="text-sm text-[var(--wood-muted)]">
+Snapshot Git
+</span>
+
+<p className="text-[var(--wood-text)]">
+{
+    latestMetadata?.git?.available
+    ?
+    "✓ Available"
+    :
+    "-"
+}
+</p>
+</div>
+
+
+
+<div>
+<span className="text-sm text-[var(--wood-muted)]">
+Install Mode
+</span>
+
+<p className="text-[var(--wood-text)]">
 {
     manager?.installation?.packageType
     ||
     "-"
 }
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Root
+<span className="text-sm text-[var(--wood-muted)]">
+Root
 </span>
 
-
-<p
-    className="
-        text-xs
-        text-[var(--wood-text)]
-    "
->
+<p className="text-xs text-[var(--wood-text)]">
 {
     manager?.paths?.root
     ||
     "-"
 }
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Runtime
+<span className="text-sm text-[var(--wood-muted)]">
+Runtime
 </span>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+<p className="text-[var(--wood-text)]">
 {
     runtime?.nodeVersion
     ||
@@ -393,28 +293,16 @@ Latest:
 }
 
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    System
+<span className="text-sm text-[var(--wood-muted)]">
+System
 </span>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+<p className="text-[var(--wood-text)]">
 {
     system?.type
     ||
@@ -430,56 +318,32 @@ Latest:
 }
 
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    User
+<span className="text-sm text-[var(--wood-muted)]">
+User
 </span>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+<p className="text-[var(--wood-text)]">
 {
     user?.username
     ||
     "-"
 }
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Version
+<span className="text-sm text-[var(--wood-muted)]">
+Version
 </span>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+<p className="text-[var(--wood-text)]">
 {
     version?.name
     ||
@@ -495,44 +359,30 @@ Latest:
 }
 
 </p>
-
 </div>
 
 
 
 <div>
-
-<span
-    className="
-        text-sm
-        text-[var(--wood-muted)]
-    "
->
-    Dependencies
+<span className="text-sm text-[var(--wood-muted)]">
+Dependencies
 </span>
 
-
-<p
-    className="
-        text-[var(--wood-text)]
-    "
->
+<p className="text-[var(--wood-text)]">
 {
     dependencies?.score
     ??
     0
 }%
-
 </p>
-
 </div>
 
 
 
 <div
-    className="
-        space-y-2
-    "
+className="
+space-y-2
+"
 >
 
 {
@@ -543,28 +393,19 @@ Object.entries(
 ([key,value]) => (
 
 <div
-    key={key}
-    className="
-        flex
-        justify-between
-        text-sm
-    "
+key={key}
+className="
+flex
+justify-between
+text-sm
+"
 >
 
-<span
-    className="
-        text-[var(--wood-muted)]
-    "
->
+<span className="text-[var(--wood-muted)]">
 {key}
 </span>
 
-
-<span
-    className="
-        text-[var(--wood-text)]
-    "
->
+<span className="text-[var(--wood-text)]">
 {
     value.exists
     ?
@@ -573,7 +414,6 @@ Object.entries(
     "✗"
 }
 </span>
-
 
 </div>
 
