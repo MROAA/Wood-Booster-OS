@@ -8,13 +8,20 @@ Vastuut:
 - muodostaa palautussuunnitelman
 - valmistelee palautuksen
 - varmistaa palautuksen ehdot
+- yhdistää Restore Adapterin
 
 Ei:
 
-- ylikirjoita tiedostoja
+- ylikirjoita tiedostoja ilman adapterin lupaa
 - poista nykyistä järjestelmää
-- suorita palautusta ilman erillistä lupaa
+- ohita hyväksyntää
 */
+
+
+import {
+prepareRestoreExecution,
+} from "./restoreAdapter.js"
+
 
 
 function validateRestoreInput(
@@ -27,10 +34,8 @@ const checks = {
 approvalValid:
 approval?.status === "approved",
 
-
 integrityHealthy:
 integrity?.status === "healthy",
-
 
 snapshotAvailable:
 Boolean(
@@ -38,6 +43,7 @@ approval?.snapshot
 )
 
 }
+
 
 
 const failedChecks =
@@ -48,6 +54,7 @@ Object.entries(checks)
 .map(
 ([key]) => key
 )
+
 
 
 return {
@@ -65,13 +72,47 @@ failedChecks
 
 
 
+function createRestorePlan(
+approval
+){
+
+return {
+
+source:
+approval.snapshot,
+
+target:
+"Wood-Booster HQ",
+
+operations:[
+
+"backup current state",
+
+"prepare restore environment",
+
+"restore snapshot",
+
+"validate restored files",
+
+"run system health check"
+
+],
+
+rollbackAvailable:
+true
+
+}
+
+}
+
+
+
 export function createRestoreDryRun(
 {
 approval,
 integrity
 } = {}
 ){
-
 
 const validation =
 validateRestoreInput(
@@ -86,10 +127,8 @@ return {
 system:
 "Wood-Booster HQ Restore Engine",
 
-
 mode:
 "dry-run",
-
 
 status:
 validation.allowed
@@ -98,39 +137,112 @@ validation.allowed
 :
 "blocked",
 
-
 validation,
-
 
 restorePlan:
 validation.allowed
 ?
-{
-
-source:
-approval.snapshot,
-
-
-target:
-"Wood-Booster HQ",
-
-
-operations:[
-"backup current state",
-"prepare restore environment",
-"restore snapshot",
-"validate restored files",
-"run system health check"
-],
-
-
-rollbackAvailable:
-true
-
-}
+createRestorePlan(
+approval
+)
 :
 null,
 
+createdAt:
+new Date()
+.toISOString()
+
+}
+
+}
+
+
+
+
+export function executeRestore(
+{
+approval,
+integrity
+} = {}
+){
+
+const validation =
+validateRestoreInput(
+approval,
+integrity
+)
+
+
+
+if(
+!validation.allowed
+){
+
+return {
+
+success:false,
+
+system:
+"Wood-Booster HQ Restore Engine",
+
+status:
+"blocked",
+
+validation,
+
+createdAt:
+new Date()
+.toISOString()
+
+}
+
+}
+
+
+
+const restorePlan =
+createRestorePlan(
+approval
+)
+
+
+
+const adapterResult =
+prepareRestoreExecution({
+
+approval,
+
+integrity
+
+})
+
+
+
+return {
+
+success:true,
+
+system:
+"Wood-Booster HQ Restore Engine",
+
+mode:
+"execution",
+
+status:
+adapterResult.status,
+
+message:
+"Restore execution prepared.",
+
+validation,
+
+restorePlan,
+
+adapter:
+adapterResult,
+
+rollbackAvailable:
+true,
 
 createdAt:
 new Date()

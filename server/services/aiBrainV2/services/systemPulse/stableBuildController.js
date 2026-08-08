@@ -12,6 +12,7 @@ Vastuut:
 - yhdistää snapshot-järjestelmän
 - rekisteröi stable build tiedon
 - kirjoittaa Installer Audit tapahtuman
+- yhdistää Recovery Stable Build Registryyn
 
 Ei:
 
@@ -23,41 +24,46 @@ Ei:
 
 import path from "path"
 
+
 import {
-  createSnapshot,
+createSnapshot,
 } from "../../../backupService.js"
 
 
 import {
-  registerStableBuild,
-  getStableBuildStatus,
+registerStableBuild,
+getStableBuildStatus,
 } from "./buildGuardian.js"
 
 
 import {
-  addInstallerAuditEvent,
+registerStableBuild as registerRecoveryStableBuild,
+} from "../../../systemRecovery/stableBuildRegistry.js"
+
+
+import {
+addInstallerAuditEvent,
 } from "../../../systemInstaller/installerAuditLog.js"
 
 
 
 export async function createStableBuildCheckpoint(
 {
-  version,
-  commit,
+version,
+commit,
 } = {},
 ){
-
 
 try {
 
 
 const current =
-  await getStableBuildStatus()
+await getStableBuildStatus()
 
 
 
 const latest =
-  current.latestStableBuild
+current.latestStableBuild
 
 
 
@@ -67,154 +73,161 @@ latest.version === version &&
 latest.commit === commit
 ){
 
-
 console.log(
-  "[StableBuild] Already stable, snapshot skipped"
+"[StableBuild] Already stable, snapshot skipped"
 )
-
 
 
 return {
 
-  success:true,
+success:true,
 
-  status:
-    "already_stable",
+status:
+"already_stable",
 
-
-  build:
-    latest,
+build:
+latest,
 
 }
-
 
 }
 
 
 
 console.log(
-  "[StableBuild] New stable build detected"
+"[StableBuild] New stable build detected"
 )
 
 
 
 console.log(
-  "[StableBuild] Creating snapshot..."
+"[StableBuild] Creating snapshot..."
 )
 
 
 
 const snapshot =
-  await Promise.race([
+await Promise.race([
 
 
-    createSnapshot(),
+createSnapshot(),
 
 
 
-    new Promise(
-      (
-        _,
-        reject,
-      ) => {
+new Promise(
+(
+_,
+reject
+)=>{
 
-        setTimeout(
-          ()=>{
+setTimeout(
+()=>{
 
-            reject(
-              new Error(
-                "Snapshot timeout after 60 seconds"
-              )
-            )
+reject(
+new Error(
+"Snapshot timeout after 60 seconds"
+)
+)
 
-          },
-          60000,
-        )
+},
+60000
+)
 
-      },
-    ),
+}
+)
 
-  ])
+
+])
 
 
 
 const snapshotFile =
-  path.basename(
-    snapshot.file,
-  )
+path.basename(
+snapshot.file
+)
 
 
 
 console.log(
-  "[StableBuild] Snapshot created:",
-  snapshotFile,
+"[StableBuild] Snapshot created:",
+snapshotFile
 )
 
 
 
 const result =
-  await registerStableBuild({
+await registerStableBuild({
 
-    version,
+version,
 
-    commit,
+commit,
 
-    snapshot:
-      snapshotFile,
+snapshot:
+snapshotFile,
 
-  })
+})
+
+
+
+await registerRecoveryStableBuild({
+
+version,
+
+commit,
+
+snapshot:
+snapshotFile,
+
+})
 
 
 
 addInstallerAuditEvent({
 
-  event:
-    "stable-build-created",
+event:
+"stable-build-created",
 
 
-  snapshot:
-    snapshotFile,
+snapshot:
+snapshotFile,
 
 
-  result:
-    "stable",
+result:
+"stable",
 
 
-  metadata: {
+metadata:{
 
-    version,
+version,
 
-    commit,
+commit,
 
-  },
+}
 
 })
 
 
 
 console.log(
-  "[StableBuild] Registry updated"
+"[StableBuild] Registry updated"
 )
 
 
 
 return {
 
-  success:true,
+success:true,
 
-  status:
-    "stable",
+status:
+"stable",
 
+snapshot:
+snapshotFile,
 
-  snapshot:
-    snapshotFile,
-
-
-  build:
-    result.build,
+build:
+result.build,
 
 }
-
 
 }
 
@@ -222,28 +235,28 @@ catch(error){
 
 
 console.error(
-  "[StableBuild] Failed:",
-  error,
+"[StableBuild] Failed:",
+error
 )
 
 
 
 addInstallerAuditEvent({
 
-  event:
-    "stable-build-failed",
+event:
+"stable-build-failed",
 
 
-  result:
-    "failed",
+result:
+"failed",
 
 
-  metadata: {
+metadata:{
 
-    error:
-      error.message,
+error:
+error.message,
 
-  },
+}
 
 })
 
@@ -251,17 +264,15 @@ addInstallerAuditEvent({
 
 return {
 
-  success:false,
+success:false,
 
-  status:
-    "failed",
+status:
+"failed",
 
-
-  error:
-    error.message,
+error:
+error.message,
 
 }
-
 
 }
 

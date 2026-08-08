@@ -230,10 +230,22 @@ recoverStuckVideoJobs(
 
 const app =
   express()
+
+
 app.use(
-  express.json()
+  cors({
+    origin:[
+      "http://localhost:5173",
+      "http://localhost:5174"
+    ],
+    credentials:true
+  })
 )
 
+
+app.use(
+express.json()
+)
 
 app.locals.prisma =
   prisma
@@ -306,9 +318,6 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyAgentSystemRouter()
-)
-app.use(
-  cors()
 )
 app.use(
 "/api/spacemonkey/architecture-health",

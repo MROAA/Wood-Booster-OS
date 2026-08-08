@@ -5,25 +5,58 @@ RECOVERY API ROUTES
 
 Vastuut:
 
-- tarjoaa API-rajapinnan Recovery Approval Gatewaylle
 - vastaanottaa palautuspyynnöt
 - hallitsee hyväksyntää
+- näyttää stable build tiedot
+- näyttää recovery orchestrator tilan
+- käynnistää hyväksytyn restore-prosessin
 
 Ei:
 
-- suorita palautusta
-- muuta järjestelmätiedostoja
+- ohita validointia
+- suorita suoraa tiedostojen ylikirjoitusta
+- palauta ilman hyväksyntää
 */
 
 
 import express from "express"
 
+
 import {
+
 requestRestoreApproval,
+
 approveRestore,
+
 rejectRestore,
+
 getRestoreApprovalStatus,
+
 } from "../services/systemRecovery/approvalGateway.js"
+
+
+
+import {
+
+getStableBuildStatus,
+
+} from "../services/aiBrainV2/services/systemPulse/buildGuardian.js"
+
+
+
+import {
+
+getRecoverySystemStatus,
+
+} from "../services/systemRecovery/recoveryOrchestrator.js"
+
+
+
+import {
+
+executeRestore,
+
+} from "../services/systemRecovery/restoreEngine.js"
 
 
 
@@ -34,27 +67,15 @@ express.Router()
 
 router.post(
 "/request",
-(req, res)=>{
+(req,res)=>{
 
-try {
-
-
-console.log(
-"RECOVERY REQUEST BODY:",
-JSON.stringify(
-req.body,
-null,
-2
-)
-)
-
+try{
 
 
 const result =
 requestRestoreApproval(
 req.body || {}
 )
-
 
 
 res.json(
@@ -66,12 +87,6 @@ result
 
 catch(error){
 
-console.error(
-"Recovery request error:",
-error
-)
-
-
 res.status(500).json({
 
 success:false,
@@ -79,7 +94,6 @@ success:false,
 error:error.message
 
 })
-
 
 }
 
@@ -91,10 +105,9 @@ error:error.message
 
 router.post(
 "/approve",
-(req, res)=>{
+(req,res)=>{
 
-
-try {
+try{
 
 
 const result =
@@ -112,7 +125,6 @@ result
 
 catch(error){
 
-
 res.status(500).json({
 
 success:false,
@@ -121,9 +133,7 @@ error:error.message
 
 })
 
-
 }
-
 
 }
 
@@ -135,8 +145,7 @@ router.post(
 "/reject",
 (req,res)=>{
 
-
-try {
+try{
 
 
 const result =
@@ -154,7 +163,6 @@ result
 
 catch(error){
 
-
 res.status(500).json({
 
 success:false,
@@ -163,9 +171,7 @@ error:error.message
 
 })
 
-
 }
-
 
 }
 
@@ -177,7 +183,6 @@ router.get(
 "/status",
 (req,res)=>{
 
-
 res.json({
 
 success:true,
@@ -187,6 +192,124 @@ getRestoreApprovalStatus()
 
 })
 
+}
+
+)
+
+
+
+router.get(
+"/stable-build",
+(req,res)=>{
+
+try{
+
+
+res.json({
+
+success:true,
+
+stableBuild:
+getStableBuildStatus()
+
+})
+
+
+}
+
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+error:error.message
+
+})
+
+}
+
+}
+
+)
+
+
+
+router.get(
+"/orchestrator",
+(req,res)=>{
+
+try{
+
+
+res.json({
+
+success:true,
+
+recovery:
+getRecoverySystemStatus()
+
+})
+
+
+}
+
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+error:error.message
+
+})
+
+}
+
+}
+
+)
+
+
+
+router.post(
+"/execute",
+(req,res)=>{
+
+try{
+
+
+const result =
+executeRestore({
+
+approval:
+req.body.approval,
+
+
+integrity:
+req.body.integrity
+
+})
+
+
+res.json(
+result
+)
+
+
+}
+
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+error:error.message
+
+})
+
+}
 
 }
 
