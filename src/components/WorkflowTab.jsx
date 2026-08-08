@@ -247,6 +247,15 @@ function WorkflowTab({
     stepId
   ) {
 
+    const shouldDelete =
+      window.confirm(
+        "Poistetaanko tämä työvaihe?"
+      )
+
+    if (!shouldDelete) {
+      return
+    }
+
 
     try {
 
