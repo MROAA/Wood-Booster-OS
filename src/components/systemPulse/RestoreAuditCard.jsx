@@ -8,7 +8,7 @@ RESTORE AUDIT CARD
 Vastuut:
 
 - näyttää restore audit historian
-- näyttää viimeisimmän palautustapahtuman
+- näyttää viimeisimmät palautustapahtumat
 
 Ei:
 
@@ -16,134 +16,146 @@ Ei:
 - muuta järjestelmää
 */
 
-
 function RestoreAuditCard({
-audit
+  audit
 }) {
 
+  if(
+    !audit ||
+    audit.length === 0
+  ){
 
-if(
-!audit ||
-audit.length === 0
-){
+    return null
 
-return null
+  }
+
+
+
+  const events =
+    [...audit]
+      .reverse()
+
+
+
+  return (
+
+    <div
+      className="
+        p-6
+        rounded-xl
+        border
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
+        space-y-4
+      "
+    >
+
+      <h3
+        className="
+          text-lg
+          font-semibold
+          text-[var(--wood-text)]
+        "
+      >
+        Restore Audit
+      </h3>
+
+
+
+      <div>
+        Events:
+
+        {" "}
+
+        {audit.length}
+
+      </div>
+
+
+
+      {
+        events.map(
+          (event,index)=>(
+
+            <div
+              key={
+                event.id ||
+                index
+              }
+              className="
+                p-4
+                rounded-lg
+                border
+                border-[var(--wood-border)]
+                space-y-2
+              "
+            >
+
+              <div>
+                Event:
+
+                {" "}
+
+                {event.event}
+
+              </div>
+
+
+
+              <div>
+                Snapshot:
+
+                {" "}
+
+                {event.snapshot || "-"}
+
+              </div>
+
+
+
+              <div>
+                Status:
+
+                {" "}
+
+                {event.status}
+
+              </div>
+
+
+
+              <div>
+                Operator:
+
+                {" "}
+
+                {event.operator}
+
+              </div>
+
+
+
+              <div>
+                Created:
+
+                {" "}
+
+                {event.createdAt}
+
+              </div>
+
+            </div>
+
+          )
+
+        )
+      }
+
+
+    </div>
+
+  )
 
 }
-
-
-
-const latest =
-audit[
-audit.length - 1
-]
-
-
-
-return (
-
-<section
-
-className="
-p-6
-rounded-xl
-border
-border-[var(--wood-border)]
-bg-[var(--wood-panel)]
-space-y-4
-"
-
->
-
-
-<h2
-className="
-text-lg
-font-semibold
-"
->
-Restore Audit
-</h2>
-
-
-
-<div>
-
-Events:
-
-{" "}
-
-{audit.length}
-
-</div>
-
-
-
-<div>
-
-Latest Event:
-
-{" "}
-
-{latest.event}
-
-</div>
-
-
-
-<div>
-
-Snapshot:
-
-{" "}
-
-{latest.snapshot || "-"}
-
-</div>
-
-
-
-<div>
-
-Status:
-
-{" "}
-
-{latest.status}
-
-</div>
-
-
-
-<div>
-
-Operator:
-
-{" "}
-
-{latest.operator}
-
-</div>
-
-
-
-<div>
-
-Created:
-
-{" "}
-
-{latest.createdAt}
-
-</div>
-
-
-
-</section>
-
-)
-
-}
-
 
 export default RestoreAuditCard
