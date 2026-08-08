@@ -5,7 +5,7 @@ RECOVERY APPROVAL REGISTRY
 
 Vastuut:
 
-- tallentaa palautuspyynnöt
+- tallentaa palautuspyynnöt pysyvästi
 - ylläpitää hyväksynnän tilaa
 - tarjoaa historian
 
@@ -17,7 +17,73 @@ Ei:
 */
 
 
-const approvals = []
+import fs from "fs"
+import path from "path"
+import {
+fileURLToPath
+} from "url"
+
+
+const __filename =
+fileURLToPath(
+import.meta.url
+)
+
+const __dirname =
+path.dirname(
+__filename
+)
+
+
+const STORE_PATH =
+path.join(
+__dirname,
+"approvalStore.json"
+)
+
+
+
+function readApprovals(){
+
+if(
+!fs.existsSync(
+STORE_PATH
+)
+){
+
+fs.writeFileSync(
+STORE_PATH,
+"[]"
+)
+
+}
+
+
+return JSON.parse(
+fs.readFileSync(
+STORE_PATH,
+"utf-8"
+)
+)
+
+}
+
+
+
+function saveApprovals(
+approvals
+){
+
+fs.writeFileSync(
+STORE_PATH,
+JSON.stringify(
+approvals,
+null,
+2
+)
+)
+
+}
 
 
 
@@ -28,6 +94,10 @@ requestedBy = "system",
 validation = {},
 } = {}
 ){
+
+const approvals =
+readApprovals()
+
 
 const request = {
 
@@ -57,6 +127,11 @@ request
 )
 
 
+saveApprovals(
+approvals
+)
+
+
 return request
 
 }
@@ -65,13 +140,17 @@ return request
 
 export function getApprovalRequests(){
 
-return approvals
+return readApprovals()
 
 }
 
 
 
 export function getLatestApproval(){
+
+const approvals =
+readApprovals()
+
 
 return approvals[
 approvals.length - 1
@@ -85,6 +164,10 @@ export function updateApprovalStatus(
 id,
 status
 ){
+
+const approvals =
+readApprovals()
+
 
 const approval =
 approvals.find(
@@ -107,7 +190,6 @@ error:
 }
 
 
-
 approval.status =
 status
 
@@ -115,6 +197,10 @@ status
 approval.updatedAt =
 new Date().toISOString()
 
+
+saveApprovals(
+approvals
+)
 
 
 return {

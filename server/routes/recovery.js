@@ -1,23 +1,22 @@
 /*
 WOOD-BOOSTER HQ
 
-RECOVERY ROUTES
+RECOVERY API ROUTES
 
 Vastuut:
 
-- tarjoaa API:n Recovery Approval Gatewaylle
+- tarjoaa API-rajapinnan Recovery Approval Gatewaylle
 - vastaanottaa palautuspyynnöt
-- hyväksyy tai hylkää palautuksia
+- hallitsee hyväksyntää
 
 Ei:
 
 - suorita palautusta
-- muuta tiedostoja
+- muuta järjestelmätiedostoja
 */
 
 
 import express from "express"
-
 
 import {
 requestRestoreApproval,
@@ -35,24 +34,42 @@ express.Router()
 
 router.post(
 "/request",
-(req,res)=>{
-
+(req, res)=>{
 
 try {
 
 
-const result =
-requestRestoreApproval(
-req.body
+console.log(
+"RECOVERY REQUEST BODY:",
+JSON.stringify(
+req.body,
+null,
+2
+)
 )
 
 
-res.json(result)
+
+const result =
+requestRestoreApproval(
+req.body || {}
+)
+
+
+
+res.json(
+result
+)
 
 
 }
 
 catch(error){
+
+console.error(
+"Recovery request error:",
+error
+)
 
 
 res.status(500).json({
@@ -66,7 +83,6 @@ error:error.message
 
 }
 
-
 }
 
 )
@@ -75,7 +91,7 @@ error:error.message
 
 router.post(
 "/approve",
-(req,res)=>{
+(req, res)=>{
 
 
 try {
@@ -87,7 +103,9 @@ req.body.id
 )
 
 
-res.json(result)
+res.json(
+result
+)
 
 
 }
@@ -127,7 +145,9 @@ req.body.id
 )
 
 
-res.json(result)
+res.json(
+result
+)
 
 
 }

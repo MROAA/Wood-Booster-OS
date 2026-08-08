@@ -39,11 +39,16 @@ validation = {},
 } = {}
 ){
 
+
 const policy =
 validateRestoreApproval({
+
 snapshot,
+
 validation,
+
 })
+
 
 
 if(!policy.allowed){
@@ -69,15 +74,19 @@ snapshot,
 
 requestedBy,
 
-validation:{
+validation,
+
+})
+
+
+
+approval.validation = {
 
 ...validation,
 
 policy,
 
-},
-
-})
+}
 
 
 
@@ -95,9 +104,7 @@ approval,
 
 
 
-export function approveRestore(
-id
-){
+export function approveRestore(id){
 
 return updateApprovalStatus(
 id,
@@ -108,9 +115,7 @@ id,
 
 
 
-export function rejectRestore(
-id
-){
+export function rejectRestore(id){
 
 return updateApprovalStatus(
 id,

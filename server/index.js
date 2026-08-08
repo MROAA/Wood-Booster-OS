@@ -130,6 +130,7 @@ import {
 import createBackupRouter from "./routes/backup.js"
 import createBackupsRouter from "./routes/backups.js"
 import createSystemRestoreRouter from "./routes/systemRestore.js"
+import recoveryRouter from "./routes/recovery.js"
 import {
   integrateToolsLayer,
 } from "./services/toolsServerIntegration.js"
@@ -229,7 +230,9 @@ recoverStuckVideoJobs(
 
 const app =
   express()
-
+app.use(
+  express.json()
+)
 
 
 app.locals.prisma =
@@ -247,6 +250,10 @@ const PORT =
 app.use(
     "/api",
     systemInstallerRouter
+)
+app.use(
+  "/api/recovery",
+  recoveryRouter
 )
 app.use(
   "/api",
@@ -323,9 +330,6 @@ app.use(
   "/api",
   createSpacemonkeyWorldModelRouter()
   
-)
-app.use(
-  express.json()
 )
 app.use(
   "/uploads",

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "restore-request-1786200352175",
+    "snapshot": "snapshot-test",
+    "requestedBy": "Marc",
+    "status": "approved",
+    "validation": {
+      "status": "healthy",
+      "score": 100,
+      "metadata": {
+        "source": "System Pulse"
+      }
+    },
+    "createdAt": "2026-08-08T14:45:52.175Z",
+    "updatedAt": "2026-08-08T14:46:46.788Z"
+  }
+]
