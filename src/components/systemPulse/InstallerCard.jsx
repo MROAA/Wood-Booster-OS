@@ -58,6 +58,11 @@ snapshotHistory?.history || []
 
 
 
+const restoreTarget =
+snapshotRestorePlan?.targetSnapshot
+
+
+
 return (
 
 <div
@@ -72,12 +77,7 @@ bg-[var(--wood-panel)]
 >
 
 
-<div
-className="
-text-lg
-text-[var(--wood-text)]
-"
->
+<div>
 
 Installer System
 
@@ -143,13 +143,7 @@ system?.release
 
 
 
-<div
-className="
-pt-2
-border-t
-border-[var(--wood-border)]
-"
->
+<div>
 
 Snapshot Engine
 
@@ -255,13 +249,7 @@ snapshotRestorePlan?.requiresConfirmation
 
 
 
-<div
-className="
-pt-2
-border-t
-border-[var(--wood-border)]
-"
->
+<div>
 
 Snapshot History
 
@@ -285,13 +273,6 @@ snapshotHistory?.count
 
 
 
-<div
-className="
-space-y-2
-text-sm
-"
->
-
 {
 history
 .slice(
@@ -301,19 +282,14 @@ history
 .map(
 (snapshot)=>(
 
-
 <div
 key={
 snapshot.id
 }
 className="
-p-2
-rounded
-border
-border-[var(--wood-border)]
+space-y-1
 "
 >
-
 
 <div>
 
@@ -355,9 +331,7 @@ snapshot.metadata?.createdAt
 
 </div>
 
-
 </div>
-
 
 )
 
@@ -366,7 +340,88 @@ snapshot.metadata?.createdAt
 }
 
 
+
+<div>
+
+Restore Preview
+
 </div>
+
+
+
+<div>
+
+Target:
+
+{" "}
+
+{
+restoreTarget?.id
+||
+"-"
+}
+
+</div>
+
+
+
+<div>
+
+Validation:
+
+{" "}
+
+{
+snapshotRestorePlan?.validation
+||
+"-"
+}
+
+</div>
+
+
+
+<div>
+
+Score:
+
+{" "}
+
+{
+snapshotRestorePlan?.score
+||
+0
+}
+
+</div>
+
+
+
+<div>
+
+Steps:
+
+</div>
+
+
+
+{
+snapshotRestorePlan?.steps?.map(
+(step)=>(
+
+<div
+key={step}
+>
+
+✓ {step}
+
+</div>
+
+)
+
+)
+
+}
 
 
 
@@ -391,11 +446,7 @@ Create Snapshot
 {
 snapshotResult && (
 
-<div
-className="
-text-sm
-"
->
+<div>
 
 Created:
 
