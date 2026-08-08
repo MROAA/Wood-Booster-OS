@@ -66,13 +66,13 @@ const snapshotValidator =
 
 
 
+const snapshotRepair =
+    installer.snapshotRepair
+
+
+
 const latestSnapshot =
     snapshotHistory?.latest
-
-
-
-const latestMetadata =
-    latestSnapshot?.metadata
 
 
 
@@ -96,7 +96,6 @@ return (
 </h2>
 
 
-
 <div
     className="
         mt-5
@@ -110,7 +109,7 @@ return (
 Status
 </span>
 
-<p className="text-lg text-[var(--wood-text)]">
+<p className="text-[var(--wood-text)]">
 {
     installer.status === "healthy"
     ?
@@ -128,7 +127,7 @@ Status
 Score
 </span>
 
-<p className="text-lg text-[var(--wood-text)]">
+<p className="text-[var(--wood-text)]">
 {installer.score}%
 </p>
 </div>
@@ -163,10 +162,6 @@ Recovery
     "-"
 }
 </p>
-
-<p className="text-sm text-[var(--wood-text)]">
-Score {recovery?.score ?? 0}%
-</p>
 </div>
 
 
@@ -178,14 +173,10 @@ Snapshots
 
 <p className="text-[var(--wood-text)]">
 {
-    snapshots?.status
-    ||
-    "-"
+    snapshots?.count
+    ??
+    0
 }
-</p>
-
-<p className="text-[var(--wood-text)]">
-Count {snapshots?.count ?? 0}
 </p>
 </div>
 
@@ -204,21 +195,9 @@ Snapshot History
 }
 </p>
 
-<p className="text-[var(--wood-text)]">
-Total {snapshotHistory?.count ?? 0}
-</p>
-
 <p className="text-xs text-[var(--wood-text)]">
 {
     latestSnapshot?.id
-    ||
-    "-"
-}
-</p>
-
-<p className="text-xs text-[var(--wood-muted)]">
-{
-    latestMetadata?.createdAt
     ||
     "-"
 }
@@ -245,53 +224,40 @@ Snapshot Validation
 Score {snapshotValidator?.score ?? 0}%
 </p>
 
+</div>
 
-<div
-className="
-mt-2
-space-y-1
-"
->
 
-{
-Object.entries(
-    snapshotValidator?.checks || {}
-)
-.map(
-([key,value]) => (
 
-<div
-key={key}
-className="
-flex
-justify-between
-text-sm
-"
->
-
-<span className="text-[var(--wood-muted)]">
-{key}
+<div>
+<span className="text-sm text-[var(--wood-muted)]">
+Snapshot Repair
 </span>
 
-
-<span className="text-[var(--wood-text)]">
+<p className="text-[var(--wood-text)]">
 {
-    value.exists || value.valid
+    snapshotRepair?.status
+    ||
+    "-"
+}
+</p>
+
+<p className="text-[var(--wood-text)]">
+Can Restore:
+{" "}
+
+{
+    snapshotRepair?.canRestore
     ?
-    "✓"
+    "true"
     :
-    "✗"
-}
-</span>
-
-</div>
-
-)
-)
-
+    "false"
 }
 
-</div>
+</p>
+
+<p className="text-[var(--wood-text)]">
+Score {snapshotRepair?.score ?? 0}%
+</p>
 
 </div>
 
@@ -309,6 +275,7 @@ Install Mode
     "-"
 }
 </p>
+
 </div>
 
 
@@ -342,6 +309,7 @@ Runtime
 }
 
 </p>
+
 </div>
 
 
@@ -353,20 +321,12 @@ System
 
 <p className="text-[var(--wood-text)]">
 {
-    system?.type
-    ||
-    "-"
-}
-
-{" "}
-
-{
     system?.release
     ||
     "-"
 }
-
 </p>
+
 </div>
 
 
@@ -383,6 +343,7 @@ User
     "-"
 }
 </p>
+
 </div>
 
 
@@ -394,20 +355,12 @@ Version
 
 <p className="text-[var(--wood-text)]">
 {
-    version?.name
-    ||
-    "-"
-}
-
-{" "}
-
-{
     version?.version
     ||
     "-"
 }
-
 </p>
+
 </div>
 
 
@@ -426,7 +379,9 @@ Dependencies
 }%
 </p>
 
+
 </div>
+
 
 
 </div>
