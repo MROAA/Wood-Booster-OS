@@ -15,6 +15,7 @@ Vastuut:
 - yhdistää Snapshot Validatorin
 - yhdistää Snapshot Repair Readinessin
 - yhdistää Snapshot Restore Planin
+- yhdistää Snapshot Restore Approvalin
 
 Ei:
 
@@ -27,261 +28,269 @@ Ei:
 
 
 import {
-    getInstallerHealth,
+getInstallerHealth,
 } from "./installerHealth.js"
 
 
-
 import {
-    getInstallerReport,
+getInstallerReport,
 } from "./installerReport.js"
 
 
-
 import {
-    getInstallerManager,
+getInstallerManager,
 } from "./installerManager.js"
 
 
-
 import {
-    getInstallerRuntime,
+getInstallerRuntime,
 } from "./installerRuntime.js"
 
 
-
 import {
-    getInstallerVersion,
+getInstallerVersion,
 } from "./installerVersion.js"
 
 
-
 import {
-    getInstallerSystem,
+getInstallerSystem,
 } from "./installerSystem.js"
 
 
-
 import {
-    getInstallerDependencies,
+getInstallerDependencies,
 } from "./installerDependencies.js"
 
 
-
 import {
-    getInstallerRecovery,
+getInstallerRecovery,
 } from "./installerRecovery.js"
 
 
-
 import {
-    getInstallerSnapshots,
+getInstallerSnapshots,
 } from "./installerSnapshots.js"
 
 
-
 import {
-    getSnapshotEngineStatus,
+getSnapshotEngineStatus,
 } from "./installerSnapshotEngine.js"
 
 
-
 import {
-    getInstallerSnapshotHistory,
+getInstallerSnapshotHistory,
 } from "./installerSnapshotHistory.js"
 
 
-
 import {
-    getInstallerSnapshotValidator,
+getInstallerSnapshotValidator,
 } from "./installerSnapshotValidator.js"
 
 
-
 import {
-    getInstallerSnapshotRepair,
+getInstallerSnapshotRepair,
 } from "./installerSnapshotRepair.js"
 
 
+import {
+getInstallerSnapshotRestorePlan,
+} from "./installerSnapshotRestorePlan.js"
+
 
 import {
-    getInstallerSnapshotRestorePlan,
-} from "./installerSnapshotRestorePlan.js"
+getInstallerRestoreApproval,
+} from "./installerRestoreApproval.js"
 
 
 
 function getInstallerV2(){
 
 
-    const health =
-        getInstallerHealth()
+const health =
+    getInstallerHealth()
 
 
 
-    const manager =
-        getInstallerManager()
+const manager =
+    getInstallerManager()
 
 
 
-    const runtime =
-        getInstallerRuntime()
+const runtime =
+    getInstallerRuntime()
 
 
 
-    const version =
-        getInstallerVersion()
+const version =
+    getInstallerVersion()
 
 
 
-    const system =
-        getInstallerSystem()
+const system =
+    getInstallerSystem()
 
 
 
-    const dependencies =
-        getInstallerDependencies()
+const dependencies =
+    getInstallerDependencies()
 
 
 
-    const recovery =
-        getInstallerRecovery()
+const recovery =
+    getInstallerRecovery()
 
 
 
-    const snapshots =
-        getInstallerSnapshots()
+const snapshots =
+    getInstallerSnapshots()
 
 
 
-    const snapshotEngine =
-        getSnapshotEngineStatus()
+const snapshotEngine =
+    getSnapshotEngineStatus()
 
 
 
-    const snapshotHistory =
-        getInstallerSnapshotHistory()
+const snapshotHistory =
+    getInstallerSnapshotHistory()
 
 
 
-    const snapshotValidator =
-        getInstallerSnapshotValidator()
+const snapshotValidator =
+    getInstallerSnapshotValidator()
 
 
 
-    const snapshotRepair =
-        getInstallerSnapshotRepair()
+const snapshotRepair =
+    getInstallerSnapshotRepair()
 
 
 
-    const snapshotRestorePlan =
-        getInstallerSnapshotRestorePlan()
+const snapshotRestorePlan =
+    getInstallerSnapshotRestorePlan()
 
 
 
-    const report =
-        getInstallerReport()
+const snapshotRestoreApproval =
+    getInstallerRestoreApproval({
 
+        restorePlan:
+            snapshotRestorePlan,
 
+        confirmed:
+            false
 
-    const score =
+    })
 
-        Math.min(
-            health.score,
-            dependencies.score,
-            snapshotValidator.score,
-            snapshotRepair.score,
-            snapshotRestorePlan.score
-        )
 
 
+const report =
+    getInstallerReport()
 
-    return {
 
 
-        system:
+const score =
 
-            "Wood-Booster OS Installer V3",
+    Math.min(
+        health.score,
+        dependencies.score,
+        snapshotValidator.score,
+        snapshotRepair.score,
+        snapshotRestorePlan.score
+    )
 
 
 
-        status:
+return {
 
-            score === 100
-                ?
-                "healthy"
-                :
-                "warning",
 
+    system:
 
+        "Wood-Booster OS Installer V3",
 
-        score,
 
 
+    status:
 
-        health,
+        score === 100
+            ?
+            "healthy"
+            :
+            "warning",
 
 
 
-        manager,
+    score,
 
 
 
-        runtime,
+    health,
 
 
 
-        version,
+    manager,
 
 
 
-        systemInfo:
+    runtime,
 
-            system,
 
 
+    version,
 
-        dependencies,
 
 
+    systemInfo:
 
-        recovery,
+        system,
 
 
 
-        snapshots,
+    dependencies,
 
 
 
-        snapshotEngine,
+    recovery,
 
 
 
-        snapshotHistory,
+    snapshots,
 
 
 
-        snapshotValidator,
+    snapshotEngine,
 
 
 
-        snapshotRepair,
+    snapshotHistory,
 
 
 
-        snapshotRestorePlan,
+    snapshotValidator,
 
 
 
-        report,
+    snapshotRepair,
 
 
 
-        checkedAt:
+    snapshotRestorePlan,
 
-            new Date()
-            .toISOString(),
 
-    }
+    snapshotRestoreApproval,
+
+
+
+    report,
+
+
+
+    checkedAt:
+
+        new Date()
+        .toISOString(),
+
+}
 
 
 }
@@ -290,6 +299,6 @@ function getInstallerV2(){
 
 export {
 
-    getInstallerV2,
+getInstallerV2,
 
 }
