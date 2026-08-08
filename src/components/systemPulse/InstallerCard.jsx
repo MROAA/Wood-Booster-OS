@@ -1,5 +1,5 @@
 function InstallerCard({
-installer
+    installer
 }) {
 
 
@@ -63,7 +63,7 @@ return (
         text-[var(--wood-text)]
     "
 >
-    Installer V2
+    Installer Status
 </h2>
 
 
@@ -77,289 +77,225 @@ return (
 
 
 <div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        Status
-    </span>
 
-    <p
-        className="
-            text-lg
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            installer.status === "healthy"
-            ?
-            "✓ Healthy"
-            :
-            "⚠ Warning"
-        }
-    </p>
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Status
+</span>
+
+<p
+    className="
+        text-lg
+        text-[var(--wood-text)]
+    "
+>
+{
+    installer.status === "healthy"
+    ?
+    "✓ READY"
+    :
+    "⚠ Warning"
+}
+</p>
+
 </div>
 
 
 
 <div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        Installer Score
-    </span>
 
-    <p
-        className="
-            text-lg
-            text-[var(--wood-text)]
-        "
-    >
-        {installer.score}%
-    </p>
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Installation Score
+</span>
+
+<p
+    className="
+        text-lg
+        text-[var(--wood-text)]
+    "
+>
+{installer.score}%
+</p>
+
 </div>
 
 
 
 <div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        Report Status
-    </span>
 
-    <p
-        className="
-            text-lg
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            report?.status
-            ||
-            "-"
-        }
-    </p>
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Report
+</span>
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    report?.recommendation
+    ||
+    "-"
+}
+</p>
+
 </div>
 
 
 
 <div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        Recommendation
-    </span>
 
-    <p
-        className="
-            text-sm
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            report?.recommendation
-            ||
-            "-"
-        }
-    </p>
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Runtime
+</span>
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    runtime?.nodeVersion
+    ||
+    "-"
+}
+
+{" / "}
+
+{
+    runtime?.platform
+    ||
+    "-"
+}
+
+{" / "}
+
+{
+    runtime?.architecture
+    ||
+    "-"
+}
+
+</p>
+
 </div>
 
 
 
 <div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        Install Mode
-    </span>
 
-    <p
-        className="
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            manager?.installation?.packageType
-            ||
-            "-"
-        }
-    </p>
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    System
+</span>
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    system?.type
+    ||
+    "-"
+}
+
+{" "}
+
+{
+    system?.release
+    ||
+    "-"
+}
+
+</p>
+
 </div>
 
 
 
 <div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        Root
-    </span>
 
-    <p
-        className="
-            text-xs
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            manager?.paths?.root
-            ||
-            "-"
-        }
-    </p>
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    User
+</span>
+
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    user?.username
+    ||
+    "-"
+}
+</p>
+
 </div>
 
 
 
 <div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        Runtime
-    </span>
 
-    <p
-        className="
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            runtime?.nodeVersion
-            ||
-            "-"
-        }
+<span
+    className="
+        text-sm
+        text-[var(--wood-muted)]
+    "
+>
+    Version
+</span>
 
-        {" / "}
+<p
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    version?.name
+    ||
+    "-"
+}
 
-        {
-            runtime?.platform
-            ||
-            "-"
-        }
+{" "}
 
-        {" / "}
+{
+    version?.version
+    ||
+    "-"
+}
 
-        {
-            runtime?.architecture
-            ||
-            "-"
-        }
+</p>
 
-    </p>
-</div>
-
-
-
-<div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        System
-    </span>
-
-    <p
-        className="
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            system?.type
-            ||
-            "-"
-        }
-
-        {" - "}
-
-        {
-            system?.release
-            ||
-            "-"
-        }
-
-    </p>
-</div>
-
-
-
-<div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        User
-    </span>
-
-    <p
-        className="
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            user?.username
-            ||
-            "-"
-        }
-    </p>
-</div>
-
-
-
-<div>
-    <span
-        className="
-            text-sm
-            text-[var(--wood-muted)]
-        "
-    >
-        Version
-    </span>
-
-    <p
-        className="
-            text-[var(--wood-text)]
-        "
-    >
-        {
-            version?.name
-            ||
-            "-"
-        }
-
-        {" "}
-
-        {
-            version?.version
-            ||
-            "-"
-        }
-
-    </p>
 </div>
 
 
@@ -375,17 +311,16 @@ return (
     Dependencies
 </span>
 
-
 <p
     className="
         text-[var(--wood-text)]
     "
 >
-    {
-        dependencies?.score
-        ||
-        0
-    }%
+{
+    dependencies?.score
+    ||
+    0
+}%
 </p>
 
 </div>
@@ -400,49 +335,50 @@ return (
 >
 
 {
-    Object.entries(
-        dependencies?.checks || {}
-    )
-    .map(
-        ([key,value]) => (
+Object.entries(
+    dependencies?.checks || {}
+)
+.map(
+([key,value]) => (
 
-        <div
-            key={key}
-            className="
-                flex
-                justify-between
-                text-sm
-            "
-        >
+<div
+    key={key}
+    className="
+        flex
+        justify-between
+        text-sm
+    "
+>
 
-            <span
-                className="
-                    text-[var(--wood-muted)]
-                "
-            >
-                {key}
-            </span>
-
-
-            <span
-                className="
-                    text-[var(--wood-text)]
-                "
-            >
-                {
-                    value.exists
-                    ?
-                    "✓"
-                    :
-                    "✗"
-                }
-            </span>
+<span
+    className="
+        text-[var(--wood-muted)]
+    "
+>
+{key}
+</span>
 
 
-        </div>
+<span
+    className="
+        text-[var(--wood-text)]
+    "
+>
+{
+    value.exists
+    ?
+    "✓"
+    :
+    "✗"
+}
+</span>
 
-        )
-    )
+
+</div>
+
+)
+)
+
 }
 
 </div>
