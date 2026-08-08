@@ -10,11 +10,13 @@ apiPost,
 } from "../api/client"
 
 
+
 import PulseCard from "../components/systemPulse/PulseCard"
 import InstallerManagerCard from "../components/systemPulse/InstallerManagerCard"
 import StatusGlow from "../components/systemPulse/StatusGlow"
 import SecurityCard from "../components/systemPulse/SecurityCard"
 import InstallerCard from "../components/systemPulse/InstallerCard"
+import InstallerAuditCard from "../components/systemPulse/InstallerAuditCard"
 
 
 
@@ -98,6 +100,15 @@ setRestoreApprovalResult
 
 
 
+const [
+installerAudit,
+setInstallerAudit
+] = useState(null)
+
+
+
+
+
 async function createSnapshot(){
 
 try {
@@ -131,6 +142,8 @@ error
 
 
 
+
+
 async function requestRestore(){
 
 try {
@@ -160,14 +173,17 @@ console.error(
 error
 )
 
-
 }
 
 }
+
+
+
 
 
 
 async function loadSystemData(){
+
 
 try {
 
@@ -187,6 +203,7 @@ if(
 pulseData.success
 ){
 
+
 const summary =
 pulseData.pulse.summary
 
@@ -203,6 +220,7 @@ previous => {
 
 if(previous){
 
+
 setHealthChange({
 
 from:
@@ -218,6 +236,7 @@ currentHealth.score -
 previous.score
 
 })
+
 
 }
 
@@ -307,6 +326,28 @@ summary.installer?.manager
 
 
 
+
+const auditData =
+await apiGet(
+"/system-installer/audit"
+)
+
+
+
+if(
+auditData.success
+){
+
+setInstallerAudit(
+auditData.audit
+)
+
+}
+
+
+
+
+
 const coreData =
 await apiGet(
 "/spacemonkey/core"
@@ -323,6 +364,8 @@ coreData.data
 )
 
 }
+
+
 
 
 
@@ -348,6 +391,8 @@ activityData.data.slice(
 
 
 
+
+
 setConnection(
 "ONLINE"
 )
@@ -362,7 +407,9 @@ new Date()
 
 }
 
+
 catch(loadError){
+
 
 console.error(
 loadError
@@ -385,17 +432,25 @@ loadError.message ||
 
 }
 
+
 finally{
+
 
 setLoading(false)
 
-}
 
 }
+
+
+}
+
+
+
 
 
 
 useEffect(()=>{
+
 
 loadSystemData()
 
@@ -420,26 +475,37 @@ interval
 
 
 
+
+
+
 function getPulseStatus(status){
 
 
 if(status === "healthy"){
+
 return "healthy"
+
 }
 
 
 if(status === "degraded"){
+
 return "warning"
+
 }
 
 
 if(status === "warning"){
+
 return "warning"
+
 }
 
 
 if(status === "error"){
+
 return "error"
+
 }
 
 
@@ -450,9 +516,20 @@ return "warning"
 
 
 
+
+
+
+
 const brainHealthy =
+
 pulse?.brain?.modules > 0 &&
-pulse?.brain?.modules === pulse?.brain?.activeModules
+
+pulse?.brain?.modules ===
+pulse?.brain?.activeModules
+
+
+
+
 
 
 
@@ -461,16 +538,21 @@ return (
 <>
 
 
+
 {
 error && (
 
 <div>
+
 {error}
+
 </div>
 
 )
 
 }
+
+
 
 
 
@@ -478,12 +560,16 @@ error && (
 loading && !pulse && (
 
 <div>
+
 Loading System Pulse...
+
 </div>
 
 )
 
 }
+
+
 
 
 
@@ -492,25 +578,35 @@ title="Status"
 >
 
 
+
 <StatusGlow
+
 label="System"
+
 value={
 pulse?.status || "-"
 }
+
 status={
 getPulseStatus(
 pulse?.status
 )
 }
+
 />
 
 
 
+
+
 <StatusGlow
+
 label="AI Brain"
+
 value={
 `${pulse?.brain?.activeModules || 0}/${pulse?.brain?.modules || 0}`
 }
+
 status={
 brainHealthy
 ?
@@ -518,42 +614,75 @@ brainHealthy
 :
 "warning"
 }
+
 />
+
+
 
 
 
 <SecurityCard
+
 security={
 pulse?.security
 }
+
 />
+
+
 
 
 
 <InstallerCard
+
 installer={
 pulse?.installer
 }
+
 onCreateSnapshot={
 createSnapshot
 }
+
 snapshotResult={
 snapshotResult
 }
+
 onRequestRestore={
 requestRestore
 }
+
 restoreApprovalResult={
 restoreApprovalResult
 }
+
+installerAudit={
+installerAudit
+}
+
 />
 
 
 
+
+
+<InstallerAuditCard
+
+audit={
+installerAudit
+}
+
+/>
+
+
+
+
+
 <InstallerManagerCard
+
 manager={
 pulse?.installerManager
 }
+
 />
 
 
@@ -561,11 +690,13 @@ pulse?.installerManager
 </PulseCard>
 
 
+
 </>
 
 )
 
 }
+
 
 
 export default SystemPulse
