@@ -15,7 +15,7 @@ Vastuut:
 
 Ei:
 
-- kopioi projektia
+- kopioi koko projektia
 - palauta järjestelmää
 - muuta järjestelmää automaattisesti
 
@@ -28,12 +28,42 @@ import path from "path"
 
 
 
+function getProjectRoot(){
+
+
+    const current =
+        process.cwd()
+
+
+
+    if(
+        current.endsWith("/server")
+    ){
+
+        return path.resolve(
+            current,
+            ".."
+        )
+
+    }
+
+
+
+    return current
+
+
+}
+
+
+
 function getSnapshotRoot(){
 
+
     return path.join(
-        process.cwd(),
+        getProjectRoot(),
         "snapshots"
     )
+
 
 }
 
@@ -43,7 +73,7 @@ function createSnapshot(){
 
 
     const root =
-        process.cwd()
+        getProjectRoot()
 
 
 
@@ -91,18 +121,24 @@ function createSnapshot(){
 
         system: {
 
+
             platform:
+
                 process.platform,
 
 
+
             nodeVersion:
+
                 process.version,
+
 
         },
 
 
 
         project: {
+
 
             root,
 
@@ -112,6 +148,7 @@ function createSnapshot(){
 
         git: {
 
+
             available:
 
                 fs.existsSync(
@@ -119,7 +156,8 @@ function createSnapshot(){
                         root,
                         ".git"
                     )
-                )
+                ),
+
 
         }
 
