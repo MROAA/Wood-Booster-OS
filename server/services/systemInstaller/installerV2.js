@@ -14,6 +14,7 @@ Vastuut:
 - yhdistää Snapshot Historian
 - yhdistää Snapshot Validatorin
 - yhdistää Snapshot Repair Readinessin
+- yhdistää Snapshot Restore Planin
 
 Ei:
 
@@ -103,6 +104,12 @@ import {
 
 
 
+import {
+    getInstallerSnapshotRestorePlan,
+} from "./installerSnapshotRestorePlan.js"
+
+
+
 function getInstallerV2(){
 
 
@@ -166,6 +173,11 @@ function getInstallerV2(){
 
 
 
+    const snapshotRestorePlan =
+        getInstallerSnapshotRestorePlan()
+
+
+
     const report =
         getInstallerReport()
 
@@ -177,7 +189,8 @@ function getInstallerV2(){
             health.score,
             dependencies.score,
             snapshotValidator.score,
-            snapshotRepair.score
+            snapshotRepair.score,
+            snapshotRestorePlan.score
         )
 
 
@@ -252,6 +265,10 @@ function getInstallerV2(){
 
 
         snapshotRepair,
+
+
+
+        snapshotRestorePlan,
 
 
 
