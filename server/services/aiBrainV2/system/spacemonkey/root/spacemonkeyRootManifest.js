@@ -10,7 +10,7 @@ const SPACEMONKEY_ROOT_MANIFEST = {
     "Marc Järvinen",
 
   platform:
-    "Wood-Booster OS",
+    "Wood-Booster HQ",
 
   genesis:
     "2026-07-26 23:14",

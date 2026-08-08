@@ -1,11 +1,11 @@
 {
-  "name": "wood-booster-os",
+  "name": "wood-booster-hq",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+"build": "node scripts/stable-build-check.js",
     "build:desktop": "vite build && npm --prefix server run build:sidecar",
     "lint": "oxlint",
     "preview": "vite preview",

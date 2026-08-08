@@ -60,7 +60,7 @@ async function getSpacemonkeyGenesisIdentity(){
 
 
     platform:
-      "Wood-Booster OS",
+      "Wood-Booster HQ",
 
 
     genesis:

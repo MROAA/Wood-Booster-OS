@@ -12,7 +12,7 @@ import {
 
 
 const systemMetadata = {
-  id: "wood-booster-os",
+  id: "wood-booster-hq",
   name: "Wood-Booster AI Operating System",
   version: "0.1.0-mvp",
   environment: "local",
