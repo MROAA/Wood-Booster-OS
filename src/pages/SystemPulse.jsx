@@ -17,6 +17,7 @@ import InstallerCard from "../components/systemPulse/InstallerCard"
 import InstallerAuditCard from "../components/systemPulse/InstallerAuditCard"
 import RecoveryCard from "../components/systemPulse/RecoveryCard"
 import BuildGuardianCard from "../components/systemPulse/BuildGuardianCard"
+import PythonSpacemonkeyCard from "../components/systemPulse/PythonSpacemonkeyCard"
 import ArchitectureCard from "../components/systemPulse/ArchitectureCard"
 import ArchitectureRepairQueueCard from "../components/systemPulse/ArchitectureRepairQueueCard"
 import StableBuildCard from "../components/systemPulse/StableBuildCard"
@@ -327,7 +328,11 @@ pulseData.pulse.components?.recovery,
 
 
 build:
-pulseData.pulse.components?.lastKnownGood
+pulseData.pulse.components?.lastKnownGood,
+
+
+python:
+pulseData.pulse.components?.pythonSpacemonkey
 
 
 })
@@ -838,6 +843,16 @@ pulse?.recovery
 
 build={
 pulse?.build
+}
+
+/>
+
+
+
+<PythonSpacemonkeyCard
+
+python={
+pulse?.python
 }
 
 />

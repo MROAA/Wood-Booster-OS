@@ -89,6 +89,11 @@ import {
 } from "./buildGuardian.js"
 
 
+import {
+  getPythonSpacemonkeyStatus,
+} from "./pythonSpacemonkeyStatus.js"
+
+
 
 function createFailureComponent(
   component,
@@ -317,6 +322,14 @@ async function getSystemPulse(){
     )
 
 
+  const pythonSpacemonkey =
+    await safeCheck(
+      "pythonSpacemonkey",
+      () =>
+        getPythonSpacemonkeyStatus(),
+    )
+
+
   const healthScore =
     await safeCheck(
       "healthScore",
@@ -375,6 +388,8 @@ async function getSystemPulse(){
     recovery,
 
     lastKnownGood,
+
+    pythonSpacemonkey,
 
     healthScore,
 

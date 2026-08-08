@@ -106,6 +106,9 @@ async function getSystemPulseSummary() {
   const lastKnownGood =
     safeObject(components.lastKnownGood)
 
+  const pythonSpacemonkey =
+    safeObject(components.pythonSpacemonkey)
+
   const moduleTotal =
     Number.isFinite(modules.total)
       ? modules.total
@@ -298,6 +301,20 @@ async function getSystemPulseSummary() {
 
         latestStableBuild:
           lastKnownGood.latestStableBuild ?? null,
+      },
+
+      pythonSpacemonkey: {
+        available:
+          pythonSpacemonkey.available === true,
+
+        status:
+          pythonSpacemonkey.status ?? "unknown",
+
+        system:
+          pythonSpacemonkey.system ?? null,
+
+        error:
+          pythonSpacemonkey.error ?? null,
       },
     },
 
