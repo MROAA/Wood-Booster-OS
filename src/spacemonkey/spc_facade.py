@@ -1,8 +1,8 @@
 """
 SpacemonkeyFacade Module - Wood-Booster-OS / Spacemonkeybrain
 
-Päärajapinta, joka yhdistää suojauksen, tunnetilan, persoonallisuuden
-ja versioinnin yhteen hiljaiseen ja vakautettuun kokonaisuuteen.
+Päärajapinta, joka yhdistää suojauksen, tunnetilan, persoonallisuuden,
+versioinnin ja audit-lokituksen yhteen hiljaiseen ja vakautettuun kokonaisuuteen.
 """
 
 import logging
@@ -12,21 +12,22 @@ from .limbic_system import LimbicSystem
 from .version_manager import IdentityVersionManager, IdentityLayer, IdentitySnapshot
 from .personality_core import PersonalityCore, PersonalityProfile
 from .security_guard import SecurityGuard
+from .audit_logger import AuditLogger
 from .types import SecurityError, ProcessResult
 
-# Hiljennetään lokitus turhan kohinan välttämiseksi
 logging.basicConfig(level=logging.ERROR)
 
 
 class SpacemonkeyFacade:
     """Yhtenäistetty ja vakaa päärajapinta moottorille."""
 
-    def __init__(self, system_name: str = "SpacemonkeyCore", storage_dir: str = "./versions"):
+    def __init__(self, system_name: str = "SpacemonkeyCore", storage_dir: str = "./versions", log_file: str = "./audit.log"):
         self.system_name = system_name
         self.guard = SecurityGuard(strict_mode=True)
         self.limbic = LimbicSystem()
         self.personality_core = PersonalityCore()
         self.version_manager = IdentityVersionManager(storage_dir=storage_dir)
+        self.audit_logger = AuditLogger(log_file=log_file)
         
         self.layers: Dict[str, IdentityLayer] = {
             "core": IdentityLayer(
@@ -47,16 +48,24 @@ class SpacemonkeyFacade:
         }
         
         self.save_snapshot("0.1.0-init", "Facade initialized silently")
+        self.audit_logger.log_event("SYSTEM_INIT", "SUCCESS", {"system_name": self.system_name})
 
     def process_input_stimulus(self, stimulus_type: str, intensity: float) -> Dict[str, Any]:
-        """Prosessoi tunne-ärsykkeen turvatarkastettuna."""
+        """Prosessoi tunne-ärsykkeen turvatarkastettuna ja lokitettuna."""
         clean_type, clean_intensity = self.guard.validate_stimulus(stimulus_type, intensity)
         self.limbic.process_stimulus(clean_type, clean_intensity)
         self.layers["limbic"].attributes = self.limbic.to_dict()
-        return self.get_full_status()
+        
+        status = self.get_full_status()
+        self.audit_logger.log_event("STIMULUS_PROCESSED", "SUCCESS", {
+            "type": clean_type,
+            "intensity": clean_intensity,
+            "limbic_state": self.limbic.to_dict()
+        })
+        return status
 
     def process_text_prompt(self, user_prompt: str) -> Dict[str, Any]:
-        """Tarkistaa ja prosessoi tekstisyötteen turvallisesti."""
+        """Tarkistaa, prosessoi ja lokitsee tekstisyötteen turvallisesti."""
         try:
             sanitized_prompt = self.guard.sanitize_text_input(user_prompt)
             result = ProcessResult(
@@ -64,6 +73,7 @@ class SpacemonkeyFacade:
                 message="Syöte hyväksytty turvallisesti.",
                 details={"prompt": sanitized_prompt}
             )
+            self.audit_logger.log_event("TEXT_PROMPT", "ALLOWED", {"prompt_length": len(sanitized_prompt)})
             return {"status": result.status, "prompt": sanitized_prompt, "system": self.get_full_status()}
         except SecurityError as e:
             self.limbic.process_stimulus("threat", 0.9)
@@ -75,6 +85,7 @@ class SpacemonkeyFacade:
                 status="BLOCKED",
                 message=str(e)
             )
+            self.audit_logger.log_event("TEXT_PROMPT", "BLOCKED", {"reason": str(e)})
             return {"status": result.status, "reason": result.message, "system": self.get_full_status()}
 
     def get_personality_profile(self) -> PersonalityProfile:
@@ -82,11 +93,16 @@ class SpacemonkeyFacade:
 
     def save_snapshot(self, version_label: str, description: str = "") -> IdentitySnapshot:
         self.layers["limbic"].attributes = self.limbic.to_dict()
-        return self.version_manager.create_snapshot(
+        snapshot = self.version_manager.create_snapshot(
             version_label=version_label,
             layers=self.layers,
             description=description
         )
+        self.audit_logger.log_event("SNAPSHOT_CREATED", "SUCCESS", {
+            "snapshot_id": snapshot.snapshot_id,
+            "version_label": version_label
+        })
+        return snapshot
 
     def get_full_status(self) -> Dict[str, Any]:
         profile = self.get_personality_profile()
