@@ -64,6 +64,13 @@ class RestoreResponse(BaseModel):
 
 COMMIT_HASH_PATTERN = re.compile(r"^[0-9a-fA-F]{7,40}$")
 
+# Checkpointit menevät AINA tälle erilliselle branchille, ei koskaan
+# suoraan sille branchille joka sattuu olemaan checkoutissa (development/
+# main). Tämä on tarkoituksella eri asia kuin repositoryn worktree+PR-
+# työnkulku (docs/GIT_WORKFLOW.md) - Git Guardian on nopea, automaattinen
+# turvaverkko, ei koskaan tarkoitettu ohittamaan sitä.
+BACKUP_BRANCH = "git-guardian/backups"
+
 
 def run_git(args: List[str]) -> str:
     result = subprocess.run(
@@ -152,9 +159,44 @@ def append_history_entry(entry: Dict[str, Any]):
     save_history(entries)
 
 
+def _backup_branch_parent() -> str:
+    """Löytää git-guardian/backups-branchin nykyisen kärjen (paikallinen tai
+    remote), tai HEAD jos branchia ei ole vielä olemassa lainkaan."""
+    for ref in (f"refs/heads/{BACKUP_BRANCH}", f"refs/remotes/origin/{BACKUP_BRANCH}"):
+        try:
+            return run_git(["rev-parse", ref])
+        except RuntimeError:
+            continue
+    return run_git(["rev-parse", "HEAD"])
+
+
+def _commit_snapshot_to_backup_branch(commit_message: str) -> str:
+    """Ottaa nykyisen työhakemiston tilan talteen omana committinaan
+    git-guardian/backups-branchille git-plumbingilla (write-tree +
+    commit-tree + update-ref) - HEAD ja nykyinen checkout eivät liiku
+    hetkeksikään. Tämä ei koskaan kosketa developmentia/maina eikä häiritse
+    samassa hakemistossa mahdollisesti samaan aikaan työskenteleviä muita
+    sessioita. Palauttaa uuden committin täyden SHA:n."""
+    run_git(["add", "-A"])
+    try:
+        tree_sha = run_git(["write-tree"])
+        parent = _backup_branch_parent()
+        new_commit = run_git(["commit-tree", tree_sha, "-p", parent, "-m", commit_message])
+        run_git(["update-ref", f"refs/heads/{BACKUP_BRANCH}", new_commit])
+    finally:
+        # Mixed reset: palauttaa vain indeksin (staging-alueen) ennalleen.
+        # Työhakemiston tiedostot eivät muutu - käyttäjän oma checkout
+        # pysyy täsmälleen samassa, koskemattomassa tilassa kuin ennen.
+        run_git(["reset"])
+    return new_commit
+
+
 def create_backup() -> Dict[str, Any]:
-    """Turvallinen commit + push. Ei koskaan force-pushia, branchien poistoa tai historian
-    uudelleenkirjoitusta - näitä komentoja ei kutsuta missään koodipolussa (PRD osio 10)."""
+    """Ottaa turvatarkistetun snapshotin nykyisestä työhakemistosta erilliselle
+    git-guardian/backups-branchille. Ei koskaan force-pushia, branchien poistoa,
+    historian uudelleenkirjoitusta EIKÄ committia/pushia sille branchille joka
+    sattuu olemaan checkoutissa (PRD osio 10 + korjaus 2026-08-09: aiempi versio
+    pushasi vahingossa suoraan development-branchille)."""
     status = get_git_status()
 
     if not status["online"]:
@@ -179,15 +221,14 @@ def create_backup() -> Dict[str, Any]:
 
     changed_files = status["changed_files"]
 
-    run_git(["add", "-A"])
     commit_message = f"Git Guardian checkpoint - {datetime.now(timezone.utc).isoformat()}"
-    run_git(["commit", "-m", commit_message])
-    commit_hash = run_git(["rev-parse", "--short", "HEAD"])
+    commit_hash_full = _commit_snapshot_to_backup_branch(commit_message)
+    commit_hash = commit_hash_full[:7]
 
     pushed = True
     push_error = None
     try:
-        run_git(["push"])
+        run_git(["push", "origin", f"refs/heads/{BACKUP_BRANCH}:refs/heads/{BACKUP_BRANCH}"])
     except RuntimeError as error:
         pushed = False
         push_error = str(error)
@@ -205,7 +246,7 @@ def create_backup() -> Dict[str, Any]:
     if not pushed:
         return {
             "success": True,
-            "message": f"Committi luotu, mutta push epäonnistui: {push_error}",
+            "message": f"Snapshot otettu talteen {BACKUP_BRANCH}-branchille, mutta push epäonnistui: {push_error}",
             "commit": commit_hash,
             "pushed": False,
             "files": changed_files,
@@ -213,7 +254,7 @@ def create_backup() -> Dict[str, Any]:
 
     return {
         "success": True,
-        "message": "✅ Varmuuskopiointi onnistui.",
+        "message": f"✅ Varmuuskopiointi onnistui ({BACKUP_BRANCH}-branchille, oma checkoutisi pysyi koskemattomana).",
         "commit": commit_hash,
         "pushed": True,
         "files": changed_files,
@@ -239,10 +280,13 @@ def get_restore_points() -> List[Dict[str, Any]]:
 
 
 def restore_to_commit(commit: str) -> Dict[str, Any]:
-    """Palauttaa työhakemiston tiedostot valittuun committiin ilman historian
-    uudelleenkirjoitusta - palautus tallennetaan itse uutena committina, joten
-    mikään aiempi commit ei koskaan katoa eikä historiaa kirjoiteta uudelleen
-    (PRD osio 3 Palautuspisteet ja osio 10 turvallisuussäännöt)."""
+    """Palauttaa työhakemiston TIEDOSTOT (ei branchia/HEADia) valittuun committiin.
+    Tuloksena olevat muutokset jätetään tallentamattomiksi nykyiselle branchille -
+    käyttäjä näkee ja committoi ne itse normaalisti (worktree+PR-työnkulun kautta,
+    docs/GIT_WORKFLOW.md) - Git Guardian ei koskaan committoi/pushaa niitä suoraan
+    development/main-branchille puolestasi. Restaus-tapahtuma tallennetaan omana
+    merkintänään git-guardian/backups-branchille historiaa varten samalla tavalla
+    kuin create_backup() (PRD osio 3 Palautuspisteet ja osio 10 turvallisuussäännöt)."""
     try:
         run_git(["cat-file", "-e", commit])
     except RuntimeError:
@@ -291,45 +335,44 @@ def restore_to_commit(commit: str) -> Dict[str, Any]:
             "risks": security["risks"],
         }
 
-    run_git(["add", "-A"])
-    commit_message = f"Git Guardian restore to {commit}"
-    run_git(["commit", "-m", commit_message])
-    new_commit = run_git(["rev-parse", "--short", "HEAD"])
+    # Tiedostot ovat nyt palautetussa tilassa työhakemistossa, mutta
+    # tallentamattomina nykyiselle branchille - Git Guardian ei koskaan
+    # committoi/pushaa tätä puolestasi. Merkintä restauksesta talletetaan
+    # silti git-guardian/backups-branchille (samalla turvallisella
+    # plumbing-mekanismilla kuin create_backup), jotta se näkyy historiassa.
+    restore_commit_message = f"Git Guardian restore event to {commit}"
+    marker_commit_full = _commit_snapshot_to_backup_branch(restore_commit_message)
+    marker_commit = marker_commit_full[:7]
 
     pushed = True
     push_error = None
     try:
-        run_git(["push"])
+        run_git(["push", "origin", f"refs/heads/{BACKUP_BRANCH}:refs/heads/{BACKUP_BRANCH}"])
     except RuntimeError as error:
         pushed = False
         push_error = str(error)
 
     entry = {
         "date": datetime.now(timezone.utc).isoformat(),
-        "commit": new_commit,
+        "commit": marker_commit,
         "files": post_status["changed_files"],
         "status": "pushed" if pushed else "committed_no_push",
         "verified": pushed,
-        "message": commit_message,
+        "message": restore_commit_message,
         "restored_from": commit,
     }
     append_history_entry(entry)
 
-    if not pushed:
-        return {
-            "success": True,
-            "message": f"Palautus tehty, mutta push epäonnistui: {push_error}",
-            "restored_commit": commit,
-            "new_commit": new_commit,
-            "pushed": False,
-        }
-
     return {
         "success": True,
-        "message": "✅ Palautus onnistui.",
+        "message": (
+            "✅ Tiedostot palautettu työhakemistoosi (tallentamattomina - "
+            "katso ja committoi ne itse kun olet valmis). Palautustapahtuma "
+            f"kirjattu {BACKUP_BRANCH}-branchille."
+        ),
         "restored_commit": commit,
-        "new_commit": new_commit,
-        "pushed": True,
+        "new_commit": marker_commit,
+        "pushed": pushed,
     }
 
 
