@@ -3,12 +3,10 @@ useEffect,
 useState
 } from "react"
 
-
 import {
 apiGet,
 apiPost,
 } from "../api/client"
-
 
 
 import PulseCard from "../components/systemPulse/PulseCard"
@@ -17,7 +15,10 @@ import StatusGlow from "../components/systemPulse/StatusGlow"
 import SecurityCard from "../components/systemPulse/SecurityCard"
 import InstallerCard from "../components/systemPulse/InstallerCard"
 import InstallerAuditCard from "../components/systemPulse/InstallerAuditCard"
-
+import RecoveryCard from "../components/systemPulse/RecoveryCard"
+import BuildGuardianCard from "../components/systemPulse/BuildGuardianCard"
+import ArchitectureCard from "../components/systemPulse/ArchitectureCard"
+import ArchitectureRepairQueueCard from "../components/systemPulse/ArchitectureRepairQueueCard"
 
 
 function SystemPulse(){
@@ -107,12 +108,21 @@ setInstallerAudit
 
 
 
+const [
+architecture,
+setArchitecture
+] = useState(null)
+const [
+repairQueue,
+setRepairQueue
+] = useState(null)
+
+
 
 
 async function createSnapshot(){
 
-try {
-
+try{
 
 const result =
 await apiPost(
@@ -121,33 +131,27 @@ await apiPost(
 )
 
 
-
 setSnapshotResult(
 result.snapshot
 )
-
 
 
 }
 
 catch(error){
 
-console.error(
-error
-)
+console.error(error)
 
 }
 
 }
-
 
 
 
 
 async function requestRestore(){
 
-try {
-
+try{
 
 const result =
 await apiPost(
@@ -158,25 +162,20 @@ confirmed:false
 )
 
 
-
 setRestoreApprovalResult(
 result.approval
 )
-
 
 
 }
 
 catch(error){
 
-console.error(
-error
-)
+console.error(error)
 
 }
 
 }
-
 
 
 
@@ -184,8 +183,7 @@ error
 
 async function loadSystemData(){
 
-
-try {
+try{
 
 
 setError("")
@@ -215,28 +213,23 @@ summary.healthScore
 
 
 setPreviousHealth(
-previous => {
-
+previous=>{
 
 if(previous){
-
 
 setHealthChange({
 
 from:
 previous.score,
 
-
 to:
 currentHealth.score,
-
 
 difference:
 currentHealth.score -
 previous.score
 
 })
-
 
 }
 
@@ -255,11 +248,10 @@ setPulse({
 ...pulseData.pulse,
 
 
-brain: {
+brain:{
 
 modules:
 summary.modules.total,
-
 
 activeModules:
 summary.modules.active
@@ -268,23 +260,19 @@ summary.modules.active
 
 
 
-security: {
+security:{
 
 capabilitiesApproved:
 summary.capability.approved,
 
-
 blocked:
 summary.security.blockedEvents,
-
 
 approvalRequired:
 summary.security.approvalRequired,
 
-
 status:
 summary.security.status,
-
 
 message:
 summary.security.message
@@ -296,18 +284,14 @@ summary.security.message
 runtime:
 summary.runtime,
 
-
 environment:
 summary.environment,
-
 
 hardware:
 summary.hardware,
 
-
 gitSummary:
 summary.gitSummary,
-
 
 gitHistory:
 summary.gitHistory,
@@ -318,11 +302,21 @@ summary.installer,
 
 
 installerManager:
-summary.installer?.manager
+summary.installer?.manager,
+
+
+recovery:
+pulseData.pulse.components?.recovery,
+
+
+build:
+pulseData.pulse.components?.lastKnownGood
+
 
 })
 
 }
+
 
 
 
@@ -347,6 +341,30 @@ auditData.audit
 
 
 
+const architectureData =
+await apiGet(
+"/spacemonkey/architecture-health"
+)
+
+
+
+if(
+architectureData.success
+){
+
+setArchitecture(
+architectureData.architecture
+)
+
+
+setRepairQueue(
+architectureData.architecture.repairQueue
+)
+
+}
+
+
+
 
 const coreData =
 await apiGet(
@@ -364,7 +382,6 @@ coreData.data
 )
 
 }
-
 
 
 
@@ -392,7 +409,6 @@ activityData.data.slice(
 
 
 
-
 setConnection(
 "ONLINE"
 )
@@ -407,9 +423,7 @@ new Date()
 
 }
 
-
 catch(loadError){
-
 
 console.error(
 loadError
@@ -429,21 +443,16 @@ loadError.message ||
 )
 
 
-
 }
-
 
 finally{
 
-
 setLoading(false)
 
-
 }
 
 
 }
-
 
 
 
@@ -451,9 +460,7 @@ setLoading(false)
 
 useEffect(()=>{
 
-
 loadSystemData()
-
 
 
 const interval =
@@ -463,12 +470,10 @@ loadSystemData,
 )
 
 
-
 return () =>
 clearInterval(
 interval
 )
-
 
 
 },[])
@@ -477,32 +482,27 @@ interval
 
 
 
-
 function getPulseStatus(status){
 
 
-if(status === "healthy"){
+if(status==="healthy"){
 
 return "healthy"
 
 }
 
 
-if(status === "degraded"){
+if(
+status==="degraded" ||
+status==="warning"
+){
 
 return "warning"
 
 }
 
 
-if(status === "warning"){
-
-return "warning"
-
-}
-
-
-if(status === "error"){
+if(status==="error"){
 
 return "error"
 
@@ -511,10 +511,7 @@ return "error"
 
 return "warning"
 
-
 }
-
-
 
 
 
@@ -531,21 +528,16 @@ pulse?.brain?.activeModules
 
 
 
-
-
 return (
 
 <>
-
 
 
 {
 error && (
 
 <div>
-
 {error}
-
 </div>
 
 )
@@ -555,14 +547,11 @@ error && (
 
 
 
-
 {
 loading && !pulse && (
 
 <div>
-
 Loading System Pulse...
-
 </div>
 
 )
@@ -597,8 +586,6 @@ pulse?.status
 
 
 
-
-
 <StatusGlow
 
 label="AI Brain"
@@ -619,8 +606,6 @@ brainHealthy
 
 
 
-
-
 <SecurityCard
 
 security={
@@ -631,6 +616,20 @@ pulse?.security
 
 
 
+<ArchitectureCard
+
+architecture={
+architecture
+}
+
+/>
+<ArchitectureRepairQueueCard
+
+repairQueue={
+repairQueue
+}
+
+/>
 
 
 <InstallerCard
@@ -663,8 +662,6 @@ installerAudit
 
 
 
-
-
 <InstallerAuditCard
 
 audit={
@@ -672,8 +669,6 @@ installerAudit
 }
 
 />
-
-
 
 
 
@@ -687,8 +682,27 @@ pulse?.installerManager
 
 
 
-</PulseCard>
+<RecoveryCard
 
+recovery={
+pulse?.recovery
+}
+
+/>
+
+
+
+<BuildGuardianCard
+
+build={
+pulse?.build
+}
+
+/>
+
+
+
+</PulseCard>
 
 
 </>
