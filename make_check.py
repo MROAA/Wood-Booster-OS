@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Make Check - Wood-Booster-OS
-Ajaa järjestelmän kuntotarkastuksen ja testisarjan.
+Ajaa järjestelmän kuntotarkastuksen, testisarjan ja konfiguraatiovalidoinnin.
 """
 
 import unittest
@@ -11,6 +11,8 @@ import os
 # Lisätään src moduulipolkuun
 sys.path.insert(0, os.path.abspath("./src"))
 
+from spacemonkey.config_validator import ConfigValidator
+
 
 def run_checks():
     print("=" * 50)
@@ -18,7 +20,7 @@ def run_checks():
     print("=" * 50)
 
     # 1. Ajetaan automaattitestit
-    print("\n[1/2] Suoritetaan automaattiset unittest-testit...")
+    print("\n[1/3] Suoritetaan automaattiset unittest-testit...")
     loader = unittest.TestLoader()
     suite = loader.discover(start_dir="tests", pattern="test_*.py")
     runner = unittest.TextTestRunner(verbosity=1)
@@ -29,7 +31,7 @@ def run_checks():
         sys.exit(1)
 
     # 2. Varmistetaan tiedostostruktuuri
-    print("\n[2/2] Tarkistetaan kriittiset tiedostot...")
+    print("\n[2/3] Tarkistetaan kriittiset tiedostot...")
     required_files = [
         "src/spacemonkey/spc_facade.py",
         "src/spacemonkey/security_guard.py",
@@ -37,6 +39,7 @@ def run_checks():
         "src/spacemonkey/personality_core.py",
         "src/spacemonkey/types.py",
         "src/spacemonkey/audit_logger.py",
+        "src/spacemonkey/config_validator.py",
         "spc.py",
         "spc_cli.py"
     ]
@@ -51,6 +54,15 @@ def run_checks():
         sys.exit(1)
 
     print(" -> Kaikki vaaditut moduulit ja tiedostot löydetty.")
+
+    # 3. Tarkistetaan JSON-konfiguraatiot
+    print("\n[3/3] Validoidaan JSON-asetukset...")
+    valid, errors = ConfigValidator.validate_identity_json("./config/identities.json")
+    if not valid:
+        print(f"\n[VIRHE] identities.json virheet: {errors}")
+        sys.exit(1)
+    print(" -> JSON-konfiguraatiot validoitu onnistuneesti.")
+
     print("\n" + "=" * 50)
     print("   TARKASTUS VALMIS: JÄRJESTELMÄ 100% KUNNOSSA!")
     print("=" * 50 + "\n")
