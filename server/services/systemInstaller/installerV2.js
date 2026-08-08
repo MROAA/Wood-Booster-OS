@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V2
+WOOD-BOOSTER OS INSTALLER V3
 
 INSTALLER CORE
 
@@ -10,8 +10,14 @@ Vastuut:
 - yhdistää Installer moduulit
 - muodostaa asennusyhteenvedon
 - yhdistää Recovery valmiuden
-- ei suorita asennuksia
-- ei muuta järjestelmää
+- yhdistää Snapshot tilan
+- yhdistää Snapshot Engine tilan
+
+Ei:
+
+- suorita asennuksia
+- muuta järjestelmää
+- palauta järjestelmää
 
 =====================================
 */
@@ -65,6 +71,17 @@ import {
 
 
 
+import {
+    getInstallerSnapshots,
+} from "./installerSnapshots.js"
+
+
+
+import {
+    getSnapshotEngine,
+} from "./installerSnapshotEngine.js"
+
+
 
 function getInstallerV2(){
 
@@ -104,6 +121,16 @@ function getInstallerV2(){
 
 
 
+    const snapshots =
+        getInstallerSnapshots()
+
+
+
+    const snapshotEngine =
+        getSnapshotEngine()
+
+
+
     const report =
         getInstallerReport()
 
@@ -123,7 +150,7 @@ function getInstallerV2(){
 
         system:
 
-            "Wood-Booster OS Installer V2",
+            "Wood-Booster OS Installer V3",
 
 
 
@@ -168,6 +195,14 @@ function getInstallerV2(){
 
 
         recovery,
+
+
+
+        snapshots,
+
+
+
+        snapshotEngine,
 
 
 
