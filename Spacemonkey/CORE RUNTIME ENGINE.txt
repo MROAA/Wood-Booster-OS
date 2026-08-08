@@ -292,7 +292,7 @@ Runtime hallitsee:
 
 ---
 
-# 15. Runtime In Wood-Booster OS
+# 15. Runtime In Wood-Booster HQ
 
 Wood-Booster backendissä Core Runtime näkyy rakenteina kuten:
 

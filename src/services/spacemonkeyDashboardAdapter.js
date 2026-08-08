@@ -28,7 +28,7 @@ export function adaptSpacemonkeyDashboard(
 
 
       role:
-        "Wood-Booster OS Operator",
+        "Wood-Booster HQ Operator",
 
 
       creator:
@@ -38,7 +38,7 @@ export function adaptSpacemonkeyDashboard(
 
       purpose:
         dashboard?.identity?.purpose ||
-        "Building and operating Wood-Booster OS",
+        "Building and operating Wood-Booster HQ",
 
 
       status:

@@ -70,7 +70,7 @@ Käynnissä olevat kokonaisuudet.
 
 Esimerkiksi:
 
-* Wood-Booster OS
+* Wood-Booster HQ
 * AI Brain
 * Spacemonkey Core
 * yrityksen kehitys

@@ -294,7 +294,7 @@ Parannus
 
 ---
 
-# 15. Wood-Booster OS Observability Vision
+# 15. Wood-Booster HQ Observability Vision
 
 Nykyinen ympäristö:
 

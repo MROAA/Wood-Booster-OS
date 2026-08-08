@@ -366,7 +366,7 @@ USER_LEARNED_TERMS:
 
 
         >
-        Wood-Booster OS:n AI-ydin.
+        Wood-Booster HQ:n AI-ydin.
 
 
 

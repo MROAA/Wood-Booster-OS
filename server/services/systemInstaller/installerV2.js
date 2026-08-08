@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 INSTALLER CORE
 
@@ -206,7 +206,7 @@ return {
 
     system:
 
-        "Wood-Booster OS Installer V3",
+        "Wood-Booster HQ Installer V3",
 
 
 

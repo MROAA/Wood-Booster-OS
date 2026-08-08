@@ -360,7 +360,7 @@ Se ymmärtää:
 
 # 15. Wood-Booster Conscious Workspace
 
-Wood-Booster OS toimii ensimmäisenä käytännön tietoisen työtilan toteutuksena.
+Wood-Booster HQ toimii ensimmäisenä käytännön tietoisen työtilan toteutuksena.
 
 Se yhdistää:
 

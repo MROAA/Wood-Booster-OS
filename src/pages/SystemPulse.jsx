@@ -7,8 +7,8 @@ import {
 apiGet,
 apiPost,
 } from "../api/client"
-
-
+import RestorePreviewCard from "../components/systemPulse/RestorePreviewCard"
+import RecoveryApprovalCard from "../components/systemPulse/RecoveryApprovalCard"
 import PulseCard from "../components/systemPulse/PulseCard"
 import InstallerManagerCard from "../components/systemPulse/InstallerManagerCard"
 import StatusGlow from "../components/systemPulse/StatusGlow"
@@ -19,8 +19,8 @@ import RecoveryCard from "../components/systemPulse/RecoveryCard"
 import BuildGuardianCard from "../components/systemPulse/BuildGuardianCard"
 import ArchitectureCard from "../components/systemPulse/ArchitectureCard"
 import ArchitectureRepairQueueCard from "../components/systemPulse/ArchitectureRepairQueueCard"
-
-
+import StableBuildCard from "../components/systemPulse/StableBuildCard"
+import RestoreAuditCard from "../components/systemPulse/RestoreAuditCard"
 function SystemPulse(){
 
 
@@ -29,8 +29,25 @@ pulse,
 setPulse
 ] = useState(null)
 
+const [
+recovery,
+setRecovery
+] = useState(null)
 
+const [
+stableBuild,
+setStableBuild
+] = useState(null)
 
+const [
+restorePlan,
+setRestorePlan
+] = useState(null)
+
+const [
+restoreAudit,
+setRestoreAudit
+] = useState(null)
 const [
 core,
 setCore
@@ -345,9 +362,95 @@ const architectureData =
 await apiGet(
 "/spacemonkey/architecture-health"
 )
+try{
+
+const recoveryData =
+await apiGet(
+"/recovery/status"
+)
+
+
+if(
+recoveryData.success
+){
+
+setRecovery(
+recoveryData.recovery
+)
+
+}
+
+
+}
+catch(error){
+
+console.error(
+"Recovery status failed:",
+error
+)
+
+}
 
 
 
+try{
+
+const stableBuildData =
+await apiGet(
+"/recovery/stable-build"
+)
+try{
+
+const orchestratorData =
+await apiGet(
+"/recovery/orchestrator"
+)
+
+
+if(
+orchestratorData.success
+){
+
+setRestorePlan(
+orchestratorData.recovery.restorePlan
+)
+
+}
+
+}
+catch(error){
+
+console.error(
+"Restore orchestrator failed:",
+error
+)
+
+}
+console.log(
+"STABLE BUILD DATA:",
+stableBuildData
+)
+
+if(
+stableBuildData.success
+){
+
+setStableBuild(
+stableBuildData.stableBuild
+)
+
+}
+
+
+}
+catch(error){
+
+console.error(
+"Stable build failed:",
+error
+)
+
+}
 if(
 architectureData.success
 ){
@@ -419,7 +522,20 @@ setLastUpdate(
 new Date()
 )
 
+const restoreAuditData =
+await apiGet(
+"/recovery/audit"
+)
 
+if(
+restoreAuditData.success
+){
+
+setRestoreAudit(
+restoreAuditData.audit
+)
+
+}
 
 }
 
@@ -461,7 +577,6 @@ setLoading(false)
 useEffect(()=>{
 
 loadSystemData()
-
 
 const interval =
 setInterval(
@@ -623,6 +738,13 @@ architecture
 }
 
 />
+<StableBuildCard
+
+stableBuild={
+stableBuild
+}
+
+/>
 <ArchitectureRepairQueueCard
 
 repairQueue={
@@ -631,7 +753,27 @@ repairQueue
 
 />
 
+<RecoveryApprovalCard
 
+recovery={
+recovery
+}
+
+/>
+<RestorePreviewCard
+
+restorePlan={
+restorePlan
+}
+
+/>
+<RestoreAuditCard
+
+audit={
+restoreAudit
+}
+
+/>
 <InstallerCard
 
 installer={

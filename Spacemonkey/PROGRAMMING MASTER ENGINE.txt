@@ -572,7 +572,7 @@ WOOD_BOOSTER_CONTEXT:
     development:
 
 
-      - Wood-Booster-OS
+      - Wood-Booster-HQ
       - AI_Brain
       - Spacemonkey
       - Knowledge_System

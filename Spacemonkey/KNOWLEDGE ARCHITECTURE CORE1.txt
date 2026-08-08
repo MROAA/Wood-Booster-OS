@@ -338,7 +338,7 @@ Parempi ymmärrys
 
 # 13. Wood-Booster Knowledge Architecture
 
-Wood-Booster OS:n tietorakenne voi sisältää:
+Wood-Booster HQ:n tietorakenne voi sisältää:
 
 ## Product Knowledge
 

@@ -315,7 +315,7 @@ Miten seuraava versio tehdään paremmin?
 
 # 13. Wood-Booster Workflow System
 
-Wood-Booster OS:ssa työnkulut voivat hallita:
+Wood-Booster HQ:ssa työnkulut voivat hallita:
 
 ## Asiakasprojekti
 

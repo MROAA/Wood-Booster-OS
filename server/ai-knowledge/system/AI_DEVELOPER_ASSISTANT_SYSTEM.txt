@@ -215,7 +215,7 @@ AI huomioi aina:
 
 ---
 
-# WOOD-BOOSTER-OS:N KEHITYSPERIAATE
+# WOOD-BOOSTER-HQ:N KEHITYSPERIAATE
 
 
 Järjestelmä rakennetaan vaiheittain.

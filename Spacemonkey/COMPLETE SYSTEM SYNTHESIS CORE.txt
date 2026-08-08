@@ -290,9 +290,9 @@ parempi yhteistyö
 
 ---
 
-# 14. Wood-Booster OS Connection
+# 14. Wood-Booster HQ Connection
 
-Wood-Booster OS toimii Spacemonkeyn ensimmäisenä todellisena ympäristönä.
+Wood-Booster HQ toimii Spacemonkeyn ensimmäisenä todellisena ympäristönä.
 
 Se yhdistää:
 

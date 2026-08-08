@@ -99,7 +99,7 @@ Käyttäjä rakentaa Wood-Booster AI Brainia.
 Esimerkiksi:
 
 
-Wood-Booster-OS kehitys.
+Wood-Booster-HQ kehitys.
 
 
 ---
@@ -298,7 +298,7 @@ Esimerkiksi:
 Hyvä käyttö:
 
 
-"Koska olet rakentamassa Wood-Booster OS:ää..."
+"Koska olet rakentamassa Wood-Booster HQ:ää..."
 
 
 Huono käyttö:

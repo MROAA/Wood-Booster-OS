@@ -128,7 +128,7 @@ Jokainen projekti muodostaa oman muistialueensa.
 
 Esimerkiksi:
 
-Wood-Booster OS
+Wood-Booster HQ
 
 sisältää:
 

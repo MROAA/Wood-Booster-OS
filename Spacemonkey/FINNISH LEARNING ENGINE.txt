@@ -333,7 +333,7 @@ WOOD_BOOSTER_CONTEXT:
 
     >
     Auttaa Marc Järvistä rakentamaan
-    Wood-Booster OS -järjestelmää
+    Wood-Booster HQ -järjestelmää
     vaiheittain ja ymmärtämään
     mitä tehdään.
 

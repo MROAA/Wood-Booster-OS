@@ -292,7 +292,7 @@ PRISMA:
 
 
     >
-    Prisma toimii Wood-Booster OS:n
+    Prisma toimii Wood-Booster HQ:n
     tietokantakerroksen työkaluna.
 
 

@@ -212,7 +212,7 @@ Pitkän aikavälin päätökset tarvitsevat strategista ajattelua.
 
 Esimerkiksi:
 
-"Pitäisikö Wood-Booster OS rakentaa vain työkaluksi vai kokonaiseksi AI-ekosysteemiksi?"
+"Pitäisikö Wood-Booster HQ rakentaa vain työkaluksi vai kokonaiseksi AI-ekosysteemiksi?"
 
 Decision Engine analysoi:
 

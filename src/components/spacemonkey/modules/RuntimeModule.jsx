@@ -118,7 +118,7 @@ function RuntimeModule({
 
           {
             runtime?.environment ||
-            "Wood-Booster OS"
+            "Wood-Booster HQ"
           }
 
         </p>

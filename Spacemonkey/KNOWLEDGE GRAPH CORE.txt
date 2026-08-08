@@ -111,7 +111,7 @@ Asia tai kohde.
 Esimerkiksi:
 
 * Aurora-jokipöytä
-* Wood-Booster OS
+* Wood-Booster HQ
 * asiakas
 * materiaali
 
@@ -316,7 +316,7 @@ Spacemonkey etsii yhteyksiä, joita yksittäinen näkökulma ei näe.
 
 # 11. Wood-Booster Knowledge Graph
 
-Wood-Booster OS:n verkosto voi sisältää:
+Wood-Booster HQ:n verkosto voi sisältää:
 
 ## Products
 

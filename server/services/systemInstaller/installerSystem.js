@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V2
+WOOD-BOOSTER HQ INSTALLER V2
 
 INSTALLER SYSTEM
 

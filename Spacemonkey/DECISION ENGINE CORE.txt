@@ -293,7 +293,7 @@ Se tarkastelee polkua.
 
 # 13. Wood-Booster Decision Intelligence
 
-Wood-Booster OS:ssa Decision Engine auttaa:
+Wood-Booster HQ:ssa Decision Engine auttaa:
 
 ## Tuotepäätökset
 

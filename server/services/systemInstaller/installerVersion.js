@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V2
+WOOD-BOOSTER HQ INSTALLER V2
 
 INSTALLER VERSION
 
@@ -64,7 +64,7 @@ function getInstallerVersion(){
             name:
                 packageData?.name
                 ||
-                "Wood-Booster OS",
+                "Wood-Booster HQ",
 
 
             version:

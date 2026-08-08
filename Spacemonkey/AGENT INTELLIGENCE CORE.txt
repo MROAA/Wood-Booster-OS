@@ -306,9 +306,9 @@ Kehitys tapahtuu:
 
 ---
 
-# 13. Agent System In Wood-Booster OS
+# 13. Agent System In Wood-Booster HQ
 
-Wood-Booster OS voi käyttää agentteja:
+Wood-Booster HQ voi käyttää agentteja:
 
 ## Projektiagentti
 

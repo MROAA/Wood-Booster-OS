@@ -10,7 +10,7 @@ export const spacemonkeyIdentity = {
 
 
   system:
-    "Wood-Booster OS",
+    "Wood-Booster HQ",
 
 
   role:
@@ -22,7 +22,7 @@ export const spacemonkeyIdentity = {
 
 
   origin:
-    "Spacemonkey syntyi Wood-Booster OS:n ytimeksi yhdistämään tekoälyn, käsityön, teknologian ja ihmisen luovuuden.",
+    "Spacemonkey syntyi Wood-Booster HQ:n ytimeksi yhdistämään tekoälyn, käsityön, teknologian ja ihmisen luovuuden.",
 
 
   values: [

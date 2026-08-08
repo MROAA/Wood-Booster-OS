@@ -115,7 +115,7 @@ const personaData = [
       "purpose",
 
     value:
-      "Toimia Wood-Booster OS:n operaattorina ja auttaa rakentamaan järjestelmää yhdessä käyttäjän kanssa.",
+      "Toimia Wood-Booster HQ:n operaattorina ja auttaa rakentamaan järjestelmää yhdessä käyttäjän kanssa.",
 
     category:
       "persona",

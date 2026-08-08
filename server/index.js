@@ -4,9 +4,13 @@ import {
 import {
   createSpacemonkeyInternetSafetyRouter,
 } from "./routes/spacemonkeyInternetSafety.js"
+import architectureAuditRouter from "./routes/architectureAudit.js"
+import systemInstallerRestoreApprovalRouter from "./routes/systemInstallerRestoreApproval.js"
 import {
   createSpacemonkeySecuritySandboxRouter,
 } from "./routes/spacemonkeySecuritySandbox.js"
+import architectureHealthRouter from "./routes/architectureHealth.js"
+import systemInstallerAuditRouter from "./routes/systemInstallerAudit.js"
 import systemInstallerRouter from "./routes/systemInstaller.js"
 import {
   createSpacemonkeySecurityCapabilitiesRouter,
@@ -108,6 +112,7 @@ import createMediaEditsRouter, {
 } from "./routes/mediaEdits.js"
 import createSocialStudioRouter from "./routes/socialStudio.js"
 import createWordpressStudioRouter from "./routes/wordpressStudio.js"
+import createDevStudioRouter from "./routes/devStudio.js"
 import createAgentChatRouter from "./routes/agentChat.js"
 import createProjectsRouter from "./routes/projects.js"
 import createProjectMaterialsRouter from "./routes/projectMaterials.js"
@@ -125,6 +130,7 @@ import {
 import createBackupRouter from "./routes/backup.js"
 import createBackupsRouter from "./routes/backups.js"
 import createSystemRestoreRouter from "./routes/systemRestore.js"
+import recoveryRouter from "./routes/recovery.js"
 import {
   integrateToolsLayer,
 } from "./services/toolsServerIntegration.js"
@@ -226,6 +232,20 @@ const app =
   express()
 
 
+app.use(
+  cors({
+    origin:[
+      "http://localhost:5173",
+      "http://localhost:5174"
+    ],
+    credentials:true
+  })
+)
+
+
+app.use(
+express.json()
+)
 
 app.locals.prisma =
   prisma
@@ -242,6 +262,10 @@ const PORT =
 app.use(
     "/api",
     systemInstallerRouter
+)
+app.use(
+  "/api/recovery",
+  recoveryRouter
 )
 app.use(
   "/api",
@@ -296,7 +320,8 @@ app.use(
   createSpacemonkeyAgentSystemRouter()
 )
 app.use(
-  cors()
+"/api/spacemonkey/architecture-health",
+architectureHealthRouter
 )
 app.use(
   "/api",
@@ -314,9 +339,6 @@ app.use(
   "/api",
   createSpacemonkeyWorldModelRouter()
   
-)
-app.use(
-  express.json()
 )
 app.use(
   "/uploads",
@@ -611,6 +633,15 @@ app.use(
 
 app.use(
   "/api",
+  createDevStudioRouter(
+    prisma
+  )
+)
+
+
+
+app.use(
+  "/api",
   createBusinessSettingsRouter(
     prisma
   )
@@ -818,8 +849,14 @@ app.get(
   }
 )
 
-
-
+app.use(
+"/api/system-installer/restore-approval",
+systemInstallerRestoreApprovalRouter
+)
+app.use(
+"/api/spacemonkey/architecture-audit",
+architectureAuditRouter
+)
 app.use(
   "/api",
   createSpacemonkeyLearningRouter()
@@ -829,11 +866,14 @@ app.use(
 systemInstallerSnapshotRouter
 )
 app.use(
+"/api/system-installer/audit",
+systemInstallerAuditRouter
+)
+app.use(
   (
     req,
     res
   )=>{
-
 
     res.status(404).json({
 
@@ -851,7 +891,10 @@ app.use(
 
 
 
-
+app.use(
+"/api/system-installer/audit",
+systemInstallerAuditRouter
+)
 
 app.use(
   (

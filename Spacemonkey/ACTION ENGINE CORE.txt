@@ -295,7 +295,7 @@ Virhe muuttuu kehitystiedoksi.
 
 ---
 
-# 15. Action Engine In Wood-Booster OS
+# 15. Action Engine In Wood-Booster HQ
 
 Wood-Booster ympäristössä Action Engine hallitsee:
 

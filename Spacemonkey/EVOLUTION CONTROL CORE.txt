@@ -248,7 +248,7 @@ Spacemonkey auttaa:
 
 # 13. Wood-Booster Evolution Model
 
-Wood-Booster OS:n kehitys tapahtuu vaiheittain.
+Wood-Booster HQ:n kehitys tapahtuu vaiheittain.
 
 ## Foundation
 

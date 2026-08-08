@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Spacemonkey
  *
  * SPACEMONKEY RUNTIME BOOTSTRAP V1
@@ -55,6 +55,8 @@ import PluginManager from "./plugins/PluginManager.js"
 import { registerInstagramPublisherPlugin } from "./plugins/instagram-publisher/index.js"
 
 import { registerWordPressPublisherPlugin } from "./plugins/wordpress-publisher/index.js"
+
+import { registerPythonDeveloperPlugin } from "./plugins/PythonDeveloper/index.js"
 
 
 
@@ -147,6 +149,14 @@ function startSpacemonkeyRuntimeBootstrap({
     })
 
     registerWordPressPublisherPlugin({
+        toolBus,
+        skillEngine,
+        workflowEngine,
+        pluginManager,
+        logger,
+    })
+
+    registerPythonDeveloperPlugin({
         toolBus,
         skillEngine,
         workflowEngine,

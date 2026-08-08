@@ -330,7 +330,7 @@ function Spacemonkey(){
 
 
         <p className="page-description">
-          Wood-Booster OS:n AI-operaattori
+          Wood-Booster HQ:n AI-operaattori
           ja järjestelmän valvoja.
         </p>
 

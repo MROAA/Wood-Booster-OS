@@ -1,4 +1,4 @@
-# Wood-Booster OS – Perustuslaki / Vision (arkistoitu sijainti)
+# Wood-Booster HQ – Perustuslaki / Vision (arkistoitu sijainti)
 
 Tämän tiedoston koko sisältö on siirretty ja koostettu Master
 Blueprintiin (`docs/blueprint/`), eikä sitä enää ylläpidetä täällä

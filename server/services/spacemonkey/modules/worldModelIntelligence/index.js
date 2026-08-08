@@ -41,7 +41,7 @@ function createWorldModelReport(){
 
             {
               id:
-                "wood-booster-os",
+                "wood-booster-hq",
 
               type:
                 "system",
@@ -91,7 +91,7 @@ function createWorldModelReport(){
                 "spacemonkey",
 
               to:
-                "wood-booster-os",
+                "wood-booster-hq",
 
               relation:
                 "operates",

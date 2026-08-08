@@ -254,9 +254,9 @@ Mitä on tapahtumassa?
 
 ---
 
-# 9. Integration With Wood-Booster OS
+# 9. Integration With Wood-Booster HQ
 
-Wood-Booster OS toimii käytännön toteutuksena tälle arkkitehtuurille.
+Wood-Booster HQ toimii käytännön toteutuksena tälle arkkitehtuurille.
 
 Nykyiset rakenteet sopivat tähän malliin:
 
@@ -494,7 +494,7 @@ Spacemonkey ei ole enää vain AI.
 
 Se on digitaalinen toimintaympäristö.
 
-Se on Wood-Booster OS:n älykäs ydin.
+Se on Wood-Booster HQ:n älykäs ydin.
 
 ---
 

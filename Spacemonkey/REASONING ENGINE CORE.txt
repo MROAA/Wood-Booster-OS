@@ -320,7 +320,7 @@ AI Brain käyttää Reasoning Engineä:
 
 ---
 
-# 15. Reasoning In Wood-Booster OS
+# 15. Reasoning In Wood-Booster HQ
 
 Wood-Booster ympäristössä Reasoning Engine auttaa:
 

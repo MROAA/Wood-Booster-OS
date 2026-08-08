@@ -308,9 +308,9 @@ ACTIVE SYSTEM
 
 ---
 
-# 15. Deployment And Wood-Booster OS
+# 15. Deployment And Wood-Booster HQ
 
-Wood-Booster OS:n näkökulmasta:
+Wood-Booster HQ:n näkökulmasta:
 
 Nykyinen:
 

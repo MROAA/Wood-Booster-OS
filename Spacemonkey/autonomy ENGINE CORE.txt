@@ -293,7 +293,7 @@ Parempi autonomia
 
 # 14. Wood-Booster Autonomy Vision
 
-Wood-Booster OS:ssa autonomia voi tarkoittaa:
+Wood-Booster HQ:ssa autonomia voi tarkoittaa:
 
 ## Projektit
 

@@ -8,7 +8,7 @@ GODFILE:
 purpose:
 
   description: >
-    Wood-Booster OS:n, Spacemonkeyn,
+    Wood-Booster HQ:n, Spacemonkeyn,
     AI Brainin ja koko järjestelmän
     korkein identiteetti- ja
     missiotason määrittely.
@@ -32,7 +32,7 @@ SYSTEM_IDENTITY:
 
   name:
 
-    Wood-Booster OS
+    Wood-Booster HQ
 
 
 
@@ -176,7 +176,7 @@ SPACEMONKEY:
 
 
     >
-    Spacemonkey on Wood-Booster OS:n
+    Spacemonkey on Wood-Booster HQ:n
     tekoälyydin.
 
 

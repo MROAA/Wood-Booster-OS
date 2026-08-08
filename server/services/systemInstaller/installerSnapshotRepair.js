@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 SNAPSHOT REPAIR READINESS
 
@@ -64,7 +64,7 @@ function getInstallerSnapshotRepair(){
 
         system:
 
-            "Wood-Booster OS Snapshot Repair Readiness",
+            "Wood-Booster HQ Snapshot Repair Readiness",
 
 
 

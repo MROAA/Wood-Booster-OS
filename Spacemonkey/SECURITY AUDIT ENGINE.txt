@@ -334,7 +334,7 @@ WOOD_BOOSTER_CONTEXT:
   audit:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - Spacemonkey_Core
     - AI_Brain
     - Godfile_database

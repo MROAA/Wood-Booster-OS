@@ -36,7 +36,7 @@ function createDefaultKnowledge(){
         "fact",
 
       content:
-        "Wood-Booster OS yhdistää AI Brainin, Memory Layerin ja Knowledge Layerin."
+        "Wood-Booster HQ yhdistää AI Brainin, Memory Layerin ja Knowledge Layerin."
     },
 
 
@@ -61,7 +61,7 @@ function createDefaultSystemState(){
   return {
 
     project:
-      "Wood-Booster OS",
+      "Wood-Booster HQ",
 
     environment:
       "development",

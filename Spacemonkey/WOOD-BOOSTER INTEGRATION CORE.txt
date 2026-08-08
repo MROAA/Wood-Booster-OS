@@ -4,7 +4,7 @@
 
 ## 1. Integration Definition
 
-Spacemonkeyn ensimmäinen suuri ympäristö on Wood-Booster OS.
+Spacemonkeyn ensimmäinen suuri ympäristö on Wood-Booster HQ.
 
 Wood-Booster ei ole vain ohjelmisto.
 
@@ -39,7 +39,7 @@ Wood-Booster yhdistää tämän luonnollisen ainutlaatuisuuden digitaaliseen äl
 
 # 3. Digital Workshop Principle
 
-Wood-Booster OS on digitaalinen työpaja.
+Wood-Booster HQ on digitaalinen työpaja.
 
 Fyysisessä työpajassa:
 
@@ -60,7 +60,7 @@ Digitaalisessa työpajassa:
 
 # 4. Spacemonkey As The Core
 
-Spacemonkey toimii Wood-Booster OS:n keskuksena.
+Spacemonkey toimii Wood-Booster HQ:n keskuksena.
 
 Se yhdistää:
 
@@ -243,7 +243,7 @@ Se voi auttaa:
 
 # 12. Human First Principle
 
-Wood-Booster OS ei rakenneta korvaamaan ihmistä.
+Wood-Booster HQ ei rakenneta korvaamaan ihmistä.
 
 Se rakennetaan vahvistamaan ihmisen kykyä tehdä.
 

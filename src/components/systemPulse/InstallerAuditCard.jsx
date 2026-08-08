@@ -2,7 +2,6 @@ function InstallerAuditCard({
 audit
 }) {
 
-
 if(!audit){
 
 return null
@@ -10,14 +9,41 @@ return null
 }
 
 
-
 const events =
 audit.events || []
 
 
-
 const latest =
 audit.latest
+
+
+
+function getEventStyle(event){
+
+if(event === "stable-build-created"){
+
+return "text-green-400 border-green-700 bg-green-950/20"
+
+}
+
+
+if(event === "stable-build-failed"){
+
+return "text-red-400 border-red-700 bg-red-950/20"
+
+}
+
+
+if(event === "restore-approved"){
+
+return "text-blue-400 border-blue-700 bg-blue-950/20"
+
+}
+
+
+return "text-yellow-400 border-yellow-700 bg-yellow-950/20"
+
+}
 
 
 
@@ -52,9 +78,7 @@ Total Events:
 
 {" "}
 
-{
-audit.count || 0
-}
+{audit.count || 0}
 
 </div>
 
@@ -62,7 +86,9 @@ audit.count || 0
 
 <div
 className="
-space-y-1
+border
+rounded
+p-3
 "
 >
 
@@ -70,14 +96,9 @@ space-y-1
 
 Latest Event:
 
-</div>
+{" "}
 
-
-<div>
-
-{
-latest?.event || "-"
-}
+{latest?.event || "-"}
 
 </div>
 
@@ -88,9 +109,7 @@ Snapshot:
 
 {" "}
 
-{
-latest?.snapshot || "-"
-}
+{latest?.snapshot || "-"}
 
 </div>
 
@@ -101,9 +120,7 @@ Result:
 
 {" "}
 
-{
-latest?.result || "-"
-}
+{latest?.result || "-"}
 
 </div>
 
@@ -114,9 +131,7 @@ Validation:
 
 {" "}
 
-{
-latest?.metadata?.validation || "-"
-}
+{latest?.metadata?.validation || "-"}
 
 </div>
 
@@ -127,9 +142,7 @@ Score:
 
 {" "}
 
-{
-latest?.metadata?.score || 0
-}
+{latest?.metadata?.score || 0}
 
 </div>
 
@@ -163,12 +176,13 @@ events
 
 <div
 key={index}
-className="
+className={`
 border
 rounded
-p-2
+p-3
 text-sm
-"
+${getEventStyle(event.event)}
+`}
 >
 
 
@@ -185,9 +199,7 @@ Event:
 
 {" "}
 
-{
-event.event
-}
+{event.event}
 
 </div>
 
@@ -198,9 +210,7 @@ Snapshot:
 
 {" "}
 
-{
-event.snapshot || "-"
-}
+{event.snapshot || "-"}
 
 </div>
 
@@ -211,11 +221,27 @@ Result:
 
 {" "}
 
-{
-event.result
-}
+{event.result || "-"}
 
 </div>
+
+
+{
+event.metadata?.error && (
+
+<div>
+
+Error:
+
+{" "}
+
+{event.metadata.error}
+
+</div>
+
+)
+
+}
 
 
 <div>
@@ -224,9 +250,7 @@ Time:
 
 {" "}
 
-{
-event.createdAt
-}
+{event.createdAt || "-"}
 
 </div>
 
@@ -241,9 +265,7 @@ event.createdAt
 }
 
 
-
 </div>
-
 
 
 </div>

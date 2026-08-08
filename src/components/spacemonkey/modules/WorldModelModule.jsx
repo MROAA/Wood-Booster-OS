@@ -72,7 +72,7 @@ function WorldModelModule({
 
           {
             worldModel?.environment ||
-            "Wood-Booster OS"
+            "Wood-Booster HQ"
           }
 
         </p>

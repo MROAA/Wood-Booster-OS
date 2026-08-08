@@ -121,7 +121,7 @@ FACT_ANALYSIS:
 
 
         >
-        Wood-Booster OS käyttää Reactia.
+        Wood-Booster HQ käyttää Reactia.
 
 
 

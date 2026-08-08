@@ -1,0 +1,22 @@
+[
+  {
+    "id": "restore-1786204441597",
+    "event": "restore-prepared",
+    "snapshot": "snapshot-test",
+    "status": "prepared",
+    "operator": "Marc",
+    "metadata": {},
+    "createdAt": "2026-08-08T15:54:01.597Z"
+  },
+  {
+    "id": "restore-1786204511964",
+    "event": "restore-prepared",
+    "snapshot": "snapshot-test",
+    "status": "prepared",
+    "operator": "Marc",
+    "metadata": {
+      "source": "Restore Engine"
+    },
+    "createdAt": "2026-08-08T15:55:11.964Z"
+  }
+]

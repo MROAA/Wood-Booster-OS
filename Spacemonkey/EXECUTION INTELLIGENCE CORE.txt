@@ -311,9 +311,9 @@ Tehokkuus tarkoittaa:
 
 ---
 
-# 12. Execution In Wood-Booster OS
+# 12. Execution In Wood-Booster HQ
 
-Wood-Booster OS toimii toteutusympäristönä.
+Wood-Booster HQ toimii toteutusympäristönä.
 
 Spacemonkey auttaa yhdistämään:
 

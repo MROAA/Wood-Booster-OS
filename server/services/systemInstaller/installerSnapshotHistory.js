@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 SNAPSHOT HISTORY
 
@@ -81,7 +81,7 @@ function getInstallerSnapshotHistory(){
 
         system:
 
-            "Wood-Booster OS Snapshot History",
+            "Wood-Booster HQ Snapshot History",
 
 
 

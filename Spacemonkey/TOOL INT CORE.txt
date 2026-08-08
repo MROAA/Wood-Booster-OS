@@ -315,7 +315,7 @@ Automatisoi turvallinen toistuva prosessi.
 
 # 12. Wood-Booster Tool Ecosystem
 
-Wood-Booster OS:n ympäristössä työkalut muodostavat digitaalisen työpajan.
+Wood-Booster HQ:n ympäristössä työkalut muodostavat digitaalisen työpajan.
 
 Esimerkiksi:
 

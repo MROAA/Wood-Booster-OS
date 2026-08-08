@@ -273,7 +273,7 @@ Kasvu tarvitsee:
 
 # 11. Wood-Booster Security Model
 
-Wood-Booster OS:n ympäristössä suoja tarkoittaa:
+Wood-Booster HQ:n ympäristössä suoja tarkoittaa:
 
 * projektitiedon suojaa
 * asiakastiedon suojaa

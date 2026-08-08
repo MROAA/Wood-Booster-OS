@@ -89,7 +89,7 @@ function IdentityCard({
           >
             {
               identity?.role ||
-              "Wood-Booster OS Operator"
+              "Wood-Booster HQ Operator"
             }
           </p>
 
@@ -154,7 +154,7 @@ function IdentityCard({
           >
             {
               identity?.purpose ||
-              "Building and operating Wood-Booster OS"
+              "Building and operating Wood-Booster HQ"
             }
           </p>
 

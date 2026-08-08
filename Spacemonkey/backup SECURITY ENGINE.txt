@@ -327,7 +327,7 @@ WOOD_BOOSTER_CONTEXT:
     protect:
 
 
-      - Wood-Booster-OS
+      - Wood-Booster-HQ
       - Spacemonkey
       - AI_Brain
       - Godfile_database

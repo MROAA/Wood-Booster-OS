@@ -363,7 +363,7 @@ WOOD_BOOSTER_CONTEXT:
   protect:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - frontend_dependencies
     - backend_dependencies
     - AI_environment

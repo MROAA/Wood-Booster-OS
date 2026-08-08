@@ -20,4 +20,4 @@ Creator:
 Marc Järvinen
 
 System:
-Wood-Booster OS
+Wood-Booster HQ

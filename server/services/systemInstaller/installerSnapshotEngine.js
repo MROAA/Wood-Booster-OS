@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V3
+WOOD-BOOSTER HQ INSTALLER V3
 
 SNAPSHOT ENGINE V3
 
@@ -213,7 +213,7 @@ function createSnapshot(){
 
         system:
 
-            "Wood-Booster OS Snapshot Engine V3",
+            "Wood-Booster HQ Snapshot Engine V3",
 
 
 
@@ -307,7 +307,7 @@ function getSnapshotEngineStatus(){
 
         system:
 
-            "Wood-Booster OS Snapshot Engine Status",
+            "Wood-Booster HQ Snapshot Engine Status",
 
 
 

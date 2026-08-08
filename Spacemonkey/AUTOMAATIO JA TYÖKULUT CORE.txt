@@ -213,7 +213,7 @@ Tuote
 
 # 9. AI OS työnkulut
 
-Wood-Booster OS:ssa työnkulut yhdistävät:
+Wood-Booster HQ:ssa työnkulut yhdistävät:
 
 * AI Brain
 * projektit

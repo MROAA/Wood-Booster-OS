@@ -371,7 +371,7 @@ WOOD_BOOSTER_CONTEXT:
     systems:
 
 
-      - Wood-Booster-OS
+      - Wood-Booster-HQ
       - Spacemonkey
       - AI_Brain
       - Knowledge_System

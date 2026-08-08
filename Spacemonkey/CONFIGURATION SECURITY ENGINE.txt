@@ -312,7 +312,7 @@ WOOD_BOOSTER_CONTEXT:
   protect:
 
 
-    - Wood-Booster-OS
+    - Wood-Booster-HQ
     - backend_configuration
     - frontend_configuration
     - Spacemonkey_Core

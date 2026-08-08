@@ -76,7 +76,7 @@ INSTRUCTION_HIERARCHY:
       purpose:
 
         >
-        Wood-Booster OS:n toimintalogiikka.
+        Wood-Booster HQ:n toimintalogiikka.
 
 
 

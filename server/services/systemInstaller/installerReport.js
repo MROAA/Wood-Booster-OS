@@ -1,7 +1,7 @@
 /*
 =====================================
 
-WOOD-BOOSTER OS INSTALLER V2
+WOOD-BOOSTER HQ INSTALLER V2
 
 INSTALLER REPORT
 
@@ -81,7 +81,7 @@ function getInstallerReport(){
 
         system:
 
-            "Wood-Booster OS Installation Report",
+            "Wood-Booster HQ Installation Report",
 
 
 

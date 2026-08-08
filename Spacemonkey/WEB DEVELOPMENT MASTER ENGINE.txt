@@ -552,7 +552,7 @@ WOOD_BOOSTER_CONTEXT:
     projects:
 
 
-      - Wood-Booster-OS
+      - Wood-Booster-HQ
       - AI_Workspace
       - Spacemonkey_UI
       - Business_Dashboard

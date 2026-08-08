@@ -327,7 +327,7 @@ Työkalut:
 
 ---
 
-# 13. Wood-Booster OS Tool Ecosystem
+# 13. Wood-Booster HQ Tool Ecosystem
 
 Wood-Booster ympäristössä työkaluja voivat olla:
 

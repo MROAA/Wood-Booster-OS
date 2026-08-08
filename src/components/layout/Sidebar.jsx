@@ -128,6 +128,13 @@ const groups = [
         label: "Tools",
         path: "/tools",
         icon: "▨"
+      },
+
+
+      {
+        label: "Dev Studio",
+        path: "/dev-studio",
+        icon: "λ"
       }
 
     ]

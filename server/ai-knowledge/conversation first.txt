@@ -2,7 +2,7 @@
 
 ## Tarkoitus
 
-Wood-Booster OS:n ensisijainen käyttöliittymä ei ole nappi.
+Wood-Booster HQ:n ensisijainen käyttöliittymä ei ole nappi.
 
 Se ei ole lomake.
 
