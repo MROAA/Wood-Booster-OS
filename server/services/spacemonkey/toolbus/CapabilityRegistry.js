@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Capability Registry
  *
  * Keskitetty rekisteri kaikille Spacemonkeyn kyvykkyyksille.

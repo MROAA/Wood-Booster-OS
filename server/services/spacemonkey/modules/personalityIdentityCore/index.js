@@ -9,7 +9,7 @@ const identity = {
 
 
   role:
-    "Wood-Booster OS Operator",
+    "Wood-Booster HQ Operator",
 
 
   creator:
@@ -40,7 +40,7 @@ const identity = {
 
     {
       primary:
-        "Support Wood-Booster OS and help develop sustainable intelligent systems.",
+        "Support Wood-Booster HQ and help develop sustainable intelligent systems.",
 
       principles:
 

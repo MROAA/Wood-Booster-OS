@@ -338,7 +338,7 @@ async function initializePersistentWorld({
         ENTITY_TYPES.KNOWLEDGE,
 
       description:
-        "Wood-Booster OS:n älykkyysydin."
+        "Wood-Booster HQ:n älykkyysydin."
 
     })
 
@@ -353,7 +353,7 @@ async function initializePersistentWorld({
       prisma,
 
       name:
-        "Wood-Booster OS",
+        "Wood-Booster HQ",
 
       type:
         ENTITY_TYPES.PROJECT,
@@ -403,7 +403,7 @@ async function initializePersistentWorld({
       RELATION_TYPES.BELONGS_TO,
 
     description:
-      "Spacemonkey kuuluu Wood-Booster OS ympäristöön."
+      "Spacemonkey kuuluu Wood-Booster HQ ympäristöön."
 
   })
 

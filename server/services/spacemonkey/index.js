@@ -52,7 +52,7 @@ const spacemonkey = {
 
 
       operator:
-        "Wood-Booster OS",
+        "Wood-Booster HQ",
 
 
       status:

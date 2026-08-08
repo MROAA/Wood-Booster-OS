@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse SDK
  *
  * ModuleFactory

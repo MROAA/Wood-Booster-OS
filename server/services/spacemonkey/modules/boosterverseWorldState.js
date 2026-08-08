@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse World State
  *
  * Boosterverse-maailman reaaliaikainen tilannekuva.
@@ -13,12 +13,12 @@
  * - muodostaa Spacemonkeylle kevyt live context
  *
  * Tämä moduuli EI:
- * - seuraa käyttäjää Wood-Booster OS:n ulkopuolella
+ * - seuraa käyttäjää Wood-Booster HQ:n ulkopuolella
  * - käynnistä automaatioita
  * - kutsu LLM:ää
  * - tee päätöksiä käyttäjän puolesta
  *
- * Se ylläpitää vain Wood-Booster OS:n sisäistä maailmantilaa.
+ * Se ylläpitää vain Wood-Booster HQ:n sisäistä maailmantilaa.
  */
 
 const MODULE_ID = "boosterverse-world-state"

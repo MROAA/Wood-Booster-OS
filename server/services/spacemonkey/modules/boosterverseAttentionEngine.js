@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse Attention Engine
  *
  * Tarkoitus:
@@ -10,7 +10,7 @@
  * - auttaa Spacemonkeyta ymmärtämään mitä käyttäjä juuri nyt käsittelee
  *
  * Tämä moduuli EI:
- * - seuraa käyttäjää Wood-Booster OS:n ulkopuolella
+ * - seuraa käyttäjää Wood-Booster HQ:n ulkopuolella
  * - käytä kameraa tai mikrofonia
  * - tee terveydellisiä tai psykologisia päätelmiä
  * - käynnistä automaatioita
@@ -738,7 +738,7 @@ function getAttentionContext() {
       buildAttentionGuidance(),
 
     rule:
-      "Attention describes only the currently active Wood-Booster OS context. It must not be interpreted as the user's psychological state.",
+      "Attention describes only the currently active Wood-Booster HQ context. It must not be interpreted as the user's psychological state.",
   })
 }
 
@@ -1322,7 +1322,7 @@ export default {
     MODULE_VERSION,
 
   description:
-    "Boosterversen Wood-Booster OS:n sisäisen aktiivisen huomio- ja kontekstikohteen seuranta- ja Focus-tukikerros.",
+    "Boosterversen Wood-Booster HQ:n sisäisen aktiivisen huomio- ja kontekstikohteen seuranta- ja Focus-tukikerros.",
 
   initialize:
     initializeBoosterverseAttentionEngine,

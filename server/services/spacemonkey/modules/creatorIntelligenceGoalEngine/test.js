@@ -22,7 +22,7 @@ const goal =
 
 
     description:
-      "Develop Wood-Booster OS with modular intelligence.",
+      "Develop Wood-Booster HQ with modular intelligence.",
 
 
     priority:

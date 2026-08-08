@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Permission Manager
  *
  * Hallitsee mitä Spacemonkey saa tehdä.

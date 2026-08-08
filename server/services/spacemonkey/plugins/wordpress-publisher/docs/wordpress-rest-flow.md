@@ -7,7 +7,7 @@ sovelluksille, ei OAuth-kirjautumista:
 
 1. Kirjaudu wp-adminiin.
 2. Käyttäjät → Profiili (oma tili) → "Sovellussalasanat".
-3. Anna nimi (esim. "Wood-Booster OS"), luo.
+3. Anna nimi (esim. "Wood-Booster HQ"), luo.
 4. Kopioi näytetty salasana `WORDPRESS_APPLICATION_PASSWORD`:ksi
    (näytetään vain kerran).
 

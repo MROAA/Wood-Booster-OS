@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Spacemonkey
  *
  * Project Structure Analyzer

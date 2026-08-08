@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Spacemonkey
  *
  * Architecture Role Detector v2

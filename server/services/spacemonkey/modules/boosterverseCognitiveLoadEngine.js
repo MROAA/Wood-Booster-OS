@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse Cognitive Load Engine
  *
  * Tarkoitus:
@@ -11,7 +11,7 @@
  * TÄMÄ MODUULI EI:
  * - diagnosoi käyttäjää
  * - arvioi käyttäjän mielenterveyttä
- * - seuraa käyttäjää Wood-Booster OS:n ulkopuolella
+ * - seuraa käyttäjää Wood-Booster HQ:n ulkopuolella
  * - tee lääketieteellisiä päätelmiä
  * - muuta käyttöliittymää itsenäisesti
  *

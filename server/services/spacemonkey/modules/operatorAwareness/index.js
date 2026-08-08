@@ -8,7 +8,7 @@ const operatorContext = {
 
     {
       name:
-        "Wood-Booster OS",
+        "Wood-Booster HQ",
 
       role:
         "AI Operating Environment",
@@ -26,7 +26,7 @@ const operatorContext = {
         "Spacemonkey",
 
       role:
-        "Wood-Booster OS Operator",
+        "Wood-Booster HQ Operator",
 
       creator:
         "Marc Järvinen",

@@ -52,7 +52,7 @@ function normalizeFinnishResponse(
 
     [
       "olen luotu ympäristöön Wood-Booster",
-      "Marc Järvinen loi minut Wood-Booster OS:n AI-operaattoriksi"
+      "Marc Järvinen loi minut Wood-Booster HQ:n AI-operaattoriksi"
     ],
 
 

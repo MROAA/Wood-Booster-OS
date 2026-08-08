@@ -23,7 +23,7 @@ const summary =
           "Marc Järvinen",
 
         role:
-          "Creator of Wood-Booster OS",
+          "Creator of Wood-Booster HQ",
 
       },
 
@@ -54,7 +54,7 @@ const summary =
     knowledge:
 
       [
-        "Wood-Booster OS architecture.",
+        "Wood-Booster HQ architecture.",
       ],
 
 

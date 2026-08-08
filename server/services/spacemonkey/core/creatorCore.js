@@ -34,7 +34,7 @@ const creatorCore = {
 
   platform:
 
-    "Wood-Booster OS",
+    "Wood-Booster HQ",
 
 
 

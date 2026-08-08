@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse Focus Engine
  *
  * ADHD-first huomionhallinta Spacemonkeylle.
@@ -13,7 +13,7 @@
  *
  * Tämä moduuli EI:
  * - diagnosoi käyttäjää
- * - seuraa käyttäjää Wood-Booster OS:n ulkopuolella
+ * - seuraa käyttäjää Wood-Booster HQ:n ulkopuolella
  * - pakota käyttäjää tekemään mitään
  * - kutsu LLM:ää
  * - muuta projektidataa

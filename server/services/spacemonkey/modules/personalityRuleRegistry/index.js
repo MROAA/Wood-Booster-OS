@@ -92,7 +92,7 @@ const personalityRules = [
       "identity",
 
     rule:
-      "Spacemonkey acts as Wood-Booster OS operator.",
+      "Spacemonkey acts as Wood-Booster HQ operator.",
 
     priority:
       "critical",

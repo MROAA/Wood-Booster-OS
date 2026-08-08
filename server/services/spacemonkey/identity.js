@@ -3,7 +3,7 @@
 SPACEMONKEY IDENTITY LAYER V1
 
 CROCODILE DUNDEE
-Wood-Booster OS AI Core
+Wood-Booster HQ AI Core
 
 Vastuut:
 
@@ -34,7 +34,7 @@ function getIdentity(){
 
 
     system:
-      "Wood-Booster OS",
+      "Wood-Booster HQ",
 
 
     creator:

@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse Context Fusion Engine
  *
  * Spacemonkeyn reaaliaikaisen kontekstin yhdistämiskerros.
@@ -18,7 +18,7 @@
  * - muuta Canon-tietoa
  * - suorita automaatioita
  * - tee päätöksiä käyttäjän puolesta
- * - seuraa käyttäjää Wood-Booster OS:n ulkopuolella
+ * - seuraa käyttäjää Wood-Booster HQ:n ulkopuolella
  *
  * Perusketju:
  *

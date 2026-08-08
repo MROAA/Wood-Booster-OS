@@ -30,7 +30,7 @@ const context = {
     "Build modular systems.",
 
   system:
-    "Wood-Booster OS",
+    "Wood-Booster HQ",
 
 }
 

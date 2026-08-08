@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse Association Engine
  *
  * Boosterversen assosiatiivinen "hermosto".

@@ -101,7 +101,7 @@ function analyzeSystemicIntelligence({
 
 
   ecosystemAwareness.push(
-    "Wood-Booster OS voidaan nähdä toisiinsa liittyvien kerrosten ekosysteeminä"
+    "Wood-Booster HQ voidaan nähdä toisiinsa liittyvien kerrosten ekosysteeminä"
   )
 
 

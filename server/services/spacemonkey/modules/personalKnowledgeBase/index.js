@@ -23,7 +23,7 @@ const knowledgeEntries = [
     id: "wood-booster-project",
 
     title:
-      "Wood-Booster OS",
+      "Wood-Booster HQ",
 
     category:
       "project",

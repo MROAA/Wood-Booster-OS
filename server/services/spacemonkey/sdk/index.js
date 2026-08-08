@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse SDK
  *
  * Public API
@@ -112,7 +112,7 @@ export const SDK_VERSION =
   "1.0.0"
 
 export const SDK_AUTHOR =
-  "Wood-Booster OS"
+  "Wood-Booster HQ"
 
 export const SDK_BUILD =
   "development"

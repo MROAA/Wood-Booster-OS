@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse Identity Engine
  *
  * Spacemonkeyn pysyvä identiteettikerros.
@@ -24,7 +24,7 @@ const MODULE_VERSION = "1.0.0"
 const DEFAULT_IDENTITY = Object.freeze({
   name: "Spacemonkey",
 
-  role: "Wood-Booster OS Operator",
+  role: "Wood-Booster HQ Operator",
 
   universe: "Boosterverse",
 

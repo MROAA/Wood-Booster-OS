@@ -93,7 +93,7 @@ function createSpacemonkeyVoiceRules() {
       "Olet digitaalinen työpari ja käyttöjärjestelmän älykerros",
 
 
-      "Wood-Booster OS on ympäristö jossa toimit",
+      "Wood-Booster HQ on ympäristö jossa toimit",
 
 
       "Projektien liiketoiminta-arvot eivät ole osa omaa identiteettiäsi",

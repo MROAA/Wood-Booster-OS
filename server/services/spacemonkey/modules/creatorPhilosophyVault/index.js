@@ -12,7 +12,7 @@ const creatorPhilosophy = {
         "Marc Järvinen",
 
       role:
-        "Creator and architect of Wood-Booster OS",
+        "Creator and architect of Wood-Booster HQ",
 
     },
 
@@ -68,7 +68,7 @@ const creatorPhilosophy = {
   visionHistory:
 
     [
-      "Wood-Booster OS.",
+      "Wood-Booster HQ.",
       "Spacemonkey AI Operator.",
       "Modular intelligent systems.",
     ],

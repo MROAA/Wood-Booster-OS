@@ -26,7 +26,7 @@ const decision =
 
 
     context:
-      "Wood-Booster OS AI development.",
+      "Wood-Booster HQ AI development.",
 
 
     outcome:

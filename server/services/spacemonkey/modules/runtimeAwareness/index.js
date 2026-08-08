@@ -16,7 +16,7 @@ function getRuntimeState(){
 
       {
         name: "Spacemonkey",
-        role: "Wood-Booster OS Operator",
+        role: "Wood-Booster HQ Operator",
         status: "online",
       },
 

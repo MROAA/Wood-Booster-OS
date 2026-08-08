@@ -8,13 +8,13 @@ const developmentHistory = [
     id: "wood-booster-origin",
 
     title:
-      "Wood-Booster OS Origin",
+      "Wood-Booster HQ Origin",
 
     phase:
       "foundation",
 
     description:
-      "Creation of the Wood-Booster OS concept and AI operator vision.",
+      "Creation of the Wood-Booster HQ concept and AI operator vision.",
 
   },
 

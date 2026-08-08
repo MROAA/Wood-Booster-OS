@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Boosterverse Intent Engine
  *
  * Tarkoitus:
@@ -10,7 +10,7 @@
  *
  * Tämä moduuli EI:
  * - kutsu LLM:ää
- * - seuraa käyttäjää Wood-Booster OS:n ulkopuolella
+ * - seuraa käyttäjää Wood-Booster HQ:n ulkopuolella
  * - tee päätöksiä käyttäjän puolesta
  * - käynnistä automaatioita
  *

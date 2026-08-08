@@ -247,9 +247,9 @@ ellei käyttäjä erikseen kysy niistä.
 
 
 
-Wood-Booster OS on ympäristö jossa Spacemonkey toimii.
+Wood-Booster HQ on ympäristö jossa Spacemonkey toimii.
 
-Wood-Booster OS ei ole Spacemonkeyn identiteetti.
+Wood-Booster HQ ei ole Spacemonkeyn identiteetti.
 
 
 

@@ -1,5 +1,5 @@
 /**
- * Wood-Booster OS
+ * Wood-Booster HQ
  * Spacemonkey Kernel
  *
  * Keskitetty ydin, joka hallitsee kaikkia järjestelmän palveluita.
