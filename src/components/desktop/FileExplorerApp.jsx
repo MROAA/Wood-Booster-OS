@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const DESKTOP_BASE = 'http://localhost:8002/api/desktop';
 
@@ -9,7 +9,7 @@ function formatSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function FileExplorerApp() {
+export default function FileExplorerApp({ refreshSignal }) {
   const [currentPath, setCurrentPath] = useState('');
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,18 @@ export default function FileExplorerApp() {
   useEffect(() => {
     loadDirectory('');
   }, []);
+
+  const currentPathRef = useRef(currentPath);
+  useEffect(() => {
+    currentPathRef.current = currentPath;
+  }, [currentPath]);
+
+  // Työpöydän kontekstivalikon "Päivitä" nostaa refreshSignal-laskuria -
+  // ladataan nykyinen kansio uudelleen (ei palata juureen).
+  useEffect(() => {
+    if (refreshSignal === undefined) return;
+    loadDirectory(currentPathRef.current);
+  }, [refreshSignal]);
 
   function openEntry(entry) {
     if (entry.type === 'dir') {
