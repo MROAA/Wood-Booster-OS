@@ -2,13 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
 import FileExplorerApp from '../components/desktop/FileExplorerApp.jsx';
 import TerminalApp from '../components/desktop/TerminalApp.jsx';
-import SpacemonkeyChatApp from '../components/desktop/SpacemonkeyChatApp.jsx';
 import './BoosterverseDesktop.css';
 
 const APPS = {
   explorer: { title: 'Tiedostonhallinta', icon: '📁' },
   terminal: { title: 'Pääte (fish)', icon: '💻' },
-  spacemonkey: { title: 'Spacemonkey', icon: '🐒' },
 };
 
 function createWindow(app, zIndex) {
@@ -27,7 +25,7 @@ function createWindow(app, zIndex) {
   };
 }
 
-export default function BoosterverseDesktop() {
+export default function BoosterverseDesktop({ onExit }) {
   const [windows, setWindows] = useState(() => [createWindow('explorer', 1)]);
   const [nextZ, setNextZ] = useState(2);
   const [startOpen, setStartOpen] = useState(false);
@@ -153,10 +151,6 @@ export default function BoosterverseDesktop() {
             <span className="win-desktop-icon-glyph">💻</span>
             <span className="win-desktop-icon-label">Pääte</span>
           </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkey')}>
-            <span className="win-desktop-icon-glyph">🐒</span>
-            <span className="win-desktop-icon-label">Spacemonkey</span>
-          </button>
         </div>
       )}
 
@@ -183,7 +177,6 @@ export default function BoosterverseDesktop() {
               <TerminalApp resizeSignal={w.minimized ? undefined : `${w.width}x${w.height}-${w.maximized}`} />
             </div>
           )}
-          {w.app === 'spacemonkey' && <SpacemonkeyChatApp />}
         </WindowFrame>
       ))}
 
@@ -284,6 +277,15 @@ export default function BoosterverseDesktop() {
             <div>{clock.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}</div>
             <div className="win-taskbar-date">{clock.toLocaleDateString('fi-FI')}</div>
           </div>
+          {onExit && (
+            <button
+              className="win-exit-corner"
+              onClick={onExit}
+              title="Takaisin Wood-Booster HQ:hon"
+            >
+              ⌂
+            </button>
+          )}
         </div>
       </div>
     </div>

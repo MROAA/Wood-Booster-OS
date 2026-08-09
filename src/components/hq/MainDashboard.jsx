@@ -128,10 +128,15 @@ export const MainDashboard = () => {
     return <div className="hq-loading">Ladataan Wood-Booster HQ...</div>;
   }
 
-  return (
-    <div className="hq-layout-container">
+  const isFullscreenDesktop = activeView === 'boosterdesktop';
 
-      {/* Vasen sivupaneeli */}
+  return (
+    <div className={`hq-layout-container ${isFullscreenDesktop ? 'hq-layout-fullscreen' : ''}`}>
+
+      {/* Vasen sivupaneeli - piilotettu Boosterverse Desktopissa, jotta
+          se näyttää oikealta käyttöjärjestelmältä eikä HQ:n sisällä
+          olevalta välilehdeltä (Marc: "haluan sen näyttävän Windows 11"). */}
+      {!isFullscreenDesktop && (
       <aside className="hq-sidebar">
         <div className="hq-sidebar-logo">
           <img 
@@ -174,9 +179,10 @@ export const MainDashboard = () => {
           >🖥</button>
         </nav>
       </aside>
+      )}
 
       {/* Pääsisällön alue */}
-      <div className="hq-main-content">
+      <div className={`hq-main-content ${isFullscreenDesktop ? 'hq-main-content-fullscreen' : ''}`}>
 
         {activeView === 'altrako' ? (
           <AltrakoPage />
@@ -184,6 +190,8 @@ export const MainDashboard = () => {
           <SystemPulse />
         ) : activeView === 'devstudio' ? (
           <DevStudio />
+        ) : activeView === 'boosterdesktop' ? (
+          <BoosterverseDesktop onExit={() => setActiveView('dashboard')} />
         ) : (
           <>
         <header className="hq-header">
@@ -225,18 +233,7 @@ export const MainDashboard = () => {
           </div>
         </section>
 
-        {/* Chatti-alue TAI virtuaalinen työpöytä samassa paikassa - sivupaneelin
-            🖥-nappi vaihtaa kumpi näkyy, otsikko ja yläkortit pysyvät paikallaan. */}
-        {activeView === 'boosterdesktop' ? (
-          <section className="hq-chat-section hq-desktop-embed">
-            <div className="hq-chat-toolbar">
-              <span>Boosterverse Desktop / Virtuaalinen työpöytä</span>
-            </div>
-            <div className="hq-desktop-embed-body">
-              <BoosterverseDesktop />
-            </div>
-          </section>
-        ) : (
+        {/* Chatti- ja keskustelualue */}
         <section className="hq-chat-section">
           <div className="hq-chat-toolbar">
             <span>Spacemonkey / Keskusteluhistoria</span>
@@ -244,13 +241,13 @@ export const MainDashboard = () => {
           <div className="hq-chat-box">
             {chatMessages.map((msg, idx) => (
               <div key={idx} className="chat-message-row">
-                <img
-                  src={msg.avatar}
-                  alt="avatar"
-                  className="chat-avatar"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/32';
-                  }}
+                <img 
+                  src={msg.avatar} 
+                  alt="avatar" 
+                  className="chat-avatar" 
+                  onError={(e) => { 
+                    e.target.src = 'https://via.placeholder.com/32'; 
+                  }} 
                 />
                 <div className="chat-content">
                   <span className="chat-sender">{msg.sender}:</span>
@@ -260,8 +257,8 @@ export const MainDashboard = () => {
             ))}
           </div>
           <div className="hq-input-row">
-            <input
-              type="text"
+            <input 
+              type="text" 
               className="hq-text-input"
               placeholder="Kirjoita komento tai kysymys agentille (esim. 'Analysoi hinta...')"
               value={currentInput}
@@ -271,7 +268,6 @@ export const MainDashboard = () => {
             <button className="hq-send-btn" onClick={handleSendMessage}>Lähetä</button>
           </div>
         </section>
-        )}
 
         <footer className="hq-footer">
           <span>Viimeisin päivitys: {statusData?.pulse?.lastChecked || 'Juuri nyt'}</span>
