@@ -142,7 +142,16 @@ async function findMemory({
 
 
 
-function getPersistentMemoryStatus(){
+async function getPersistentMemoryStatus({
+
+  prisma,
+
+} = {}){
+
+  const saved =
+    prisma
+      ? await prisma.memory.count()
+      : memorySaveHistory.length
 
   return {
 
@@ -154,8 +163,7 @@ function getPersistentMemoryStatus(){
       "0.1.0",
 
 
-    saved:
-      memorySaveHistory.length
+    saved
 
   }
 
