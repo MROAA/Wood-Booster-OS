@@ -128,6 +128,16 @@
   background: rgba(18, 20, 28, 0.6);
 }
 
+/* System Pulse -sovellus - sivu on suunniteltu koko selainikkunan
+   korkuiseksi omalla vieritysalueellaan, mutta ikkunan sisällä
+   .win-content rajaa korkeuden (overflow: hidden), joten tarvitaan
+   oma vieritettävä kääre jottei sisältö vain leikkaudu pois. */
+.systempulse-app-wrapper {
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
 /* Pääte-sovellus */
 .terminal-app-wrapper {
   display: flex;
