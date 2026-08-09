@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-"build": "node scripts/stable-build-check.js",
+    "build": "node scripts/stable-build-check.js",
     "build:desktop": "vite build && npm --prefix server run build:sidecar",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router": "^8.2.0",

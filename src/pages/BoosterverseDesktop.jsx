@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
 import FileExplorerApp from '../components/desktop/FileExplorerApp.jsx';
+import TerminalApp from '../components/desktop/TerminalApp.jsx';
 import './BoosterverseDesktop.css';
 
 const APPS = {
   explorer: { title: 'Tiedostonhallinta', icon: '📁' },
+  terminal: { title: 'Pääte (fish)', icon: '💻' },
 };
 
 function createWindow(app, zIndex) {
@@ -117,6 +119,10 @@ export default function BoosterverseDesktop() {
             <span className="win-desktop-icon-glyph">📁</span>
             <span className="win-desktop-icon-label">Tiedostonhallinta</span>
           </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('terminal')}>
+            <span className="win-desktop-icon-glyph">💻</span>
+            <span className="win-desktop-icon-label">Pääte</span>
+          </button>
         </div>
       )}
 
@@ -132,6 +138,14 @@ export default function BoosterverseDesktop() {
           onMaximize={() => maximizeWindow(w.id)}
         >
           {w.app === 'explorer' && <FileExplorerApp refreshSignal={refreshCounter} />}
+          {w.app === 'terminal' && (
+            <div className="terminal-app-wrapper">
+              <div className="terminal-warning">
+                ⚠️ Oikea pääte - komennot suoritetaan oikeasti tällä koneella.
+              </div>
+              <TerminalApp resizeSignal={`${w.width}x${w.height}-${w.maximized}-${w.minimized}`} />
+            </div>
+          )}
         </WindowFrame>
       ))}
 

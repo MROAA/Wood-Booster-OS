@@ -127,6 +127,22 @@
   background: rgba(18, 20, 28, 0.6);
 }
 
+/* Pääte-sovellus */
+.terminal-app-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.terminal-warning {
+  flex-shrink: 0;
+  padding: 0.3rem 0.6rem;
+  background: rgba(202, 138, 4, 0.18);
+  border-bottom: 1px solid rgba(202, 138, 4, 0.35);
+  color: #f5c866;
+  font-size: 0.7rem;
+}
+
 .win-resize-handle {
   position: absolute;
   right: 0;
