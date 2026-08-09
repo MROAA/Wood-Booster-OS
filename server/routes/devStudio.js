@@ -4,6 +4,8 @@ import { generatePythonDraft } from "../services/pythonCodeGenerator.js"
 
 import { explainPythonCode } from "../services/pythonCodeExplainer.js"
 
+import { reviewPythonCode } from "../services/pythonCodeReviewer.js"
+
 import {
   getSpacemonkeyToolBus,
   getSpacemonkeyWorkflowEngine,
@@ -327,6 +329,66 @@ export default function createDevStudioRouter(prisma) {
         response.json({
           filePath: skillResult.filePath,
           explanation: skillResult.explanation,
+        })
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * POST /api/python-review
+   *
+   * Antaa rakentavan katselmoinnin olemassa olevalle .py-tiedostolle.
+   * Vain luku - ei hyväksymiskiertoa, ei tallennusta.
+   */
+  router.post(
+    "/python-review",
+    async (request, response) => {
+      try {
+        const { filePath } = request.body || {}
+
+        if (!filePath) {
+          return response.status(400).json({
+            error: "Tiedostopolku (filePath) vaaditaan",
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "review-python-workflow",
+          {
+            filePath,
+            toolBus,
+            reviewPythonCode,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+          })
+        }
+
+        response.json({
+          filePath: skillResult.filePath,
+          review: skillResult.review,
         })
       } catch (error) {
         console.error(error)
