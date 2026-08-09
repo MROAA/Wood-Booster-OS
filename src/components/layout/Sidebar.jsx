@@ -179,8 +179,7 @@ const groups = [
 
 
 
-function Sidebar() {
-
+function Sidebar({ onOpenChat }) {
 
   return (
 
@@ -232,7 +231,26 @@ function Sidebar() {
       </header>
 
 
-
+<button
+        onClick={onOpenChat}
+        className="
+          mt-4
+          flex
+          items-center
+          gap-2
+          rounded-lg
+          bg-[var(--wood-accent)]
+          text-white
+          px-3
+          py-2
+          text-sm
+          font-medium
+          hover:opacity-90
+          transition
+        "
+      >
+        🐵 Spacemonkey Chat
+      </button>
 
 
       <nav

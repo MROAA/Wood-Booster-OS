@@ -1,281 +1,183 @@
-// src/components/hq/MainDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './MainDashboard.css';
-import AltrakoPage from '../../pages/Altrako.jsx';
-import SystemPulse from '../../pages/SystemPulse.jsx';
-import DevStudio from '../../pages/DevStudio.jsx';
-import BoosterverseDesktop from '../../pages/BoosterverseDesktop.jsx';
-
 export const MainDashboard = () => {
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState('dashboard');
-  const [statusData, setStatusData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const GITGUARDIAN_BASE = 'http://localhost:8002/api/gitguardian';
-  const SPACEMONKEY_BASE = 'http://localhost:8002/api/spacemonkey';
-
-  const [backupStatus, setBackupStatus] = useState('pending');
-  const [backupMessage, setBackupMessage] = useState('Ladataan...');
-  const [changeCount, setChangeCount] = useState(0);
-
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'HQ System', text: 'Moduulit ladattu. Valmiina.', avatar: 'https://api.iconify.design/lucide:terminal.svg' },
-    { sender: 'System Pulse', text: 'Kaikki järjestelmät vihreällä. Viive 12ms.', avatar: 'https://api.iconify.design/lucide:activity.svg' },
-    { sender: 'Spacemonkey', text: 'Yo! Kaikki järjestelmät rullaavat timmissä kunnossa.', avatar: 'https://api.iconify.design/lucide:bot.svg' },
-  ]);
-  const [currentInput, setCurrentInput] = useState('');
-
-  const loadGitGuardianStatus = () => {
-    fetch(`${GITGUARDIAN_BASE}/status`)
+  const [items, setItems] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+  const uploadFile = useCallback((file) => {
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    setItems((prev) => [
+      ...prev,
+      { id: tempId, name: file.name, status: 'uploading' },
+    ]);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', file.name);
+    fetch('http://localhost:3001/api/knowledge/upload', {
+      method: 'POST',
+      body: formData,
+    })
       .then((res) => res.json())
       .then((data) => {
-        setStatusData(data);
-        setLoading(false);
-
-        if (!data.online) {
-          setBackupStatus('error');
-          setBackupMessage(data.error || 'Git Guardian ei tavoitettavissa');
+        if (data.error) {
+          setItems((prev) =>
+            prev.map((item) =>
+              item.id === tempId
+                ? { ...item, status: 'error', error: data.error }
+                : item
+            )
+          );
           return;
         }
-
-        setChangeCount(data.changes || 0);
-
-        if (data.security?.safe === false) {
-          setBackupStatus('error');
-          setBackupMessage('Turvallisuusriski havaittu - varmuuskopiointi estetty');
-        } else if (!data.is_dirty) {
-          setBackupStatus('ready');
-          setBackupMessage('Vakaa - kaikki varmuuskopioitu');
-        } else {
-          setBackupStatus('pending');
-          setBackupMessage('Tallentamaton');
-        }
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === tempId
+              ? {
+                  ...item,
+                  status: 'done',
+                  documentId: data.document.id,
+                  title: data.document.title,
+                }
+              : item
+          )
+        );
       })
       .catch((err) => {
-        console.error("Virhe haettaessa Git Guardian -tietoja:", err);
-        setLoading(false);
-        setBackupStatus('error');
-        setBackupMessage('Git Guardian ei tavoitettavissa');
+        console.error(err);
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === tempId
+              ? { ...item, status: 'error', error: 'Yhteysvirhe' }
+              : item
+          )
+        );
       });
-  };
-
-  useEffect(() => {
-    loadGitGuardianStatus();
-    const interval = setInterval(loadGitGuardianStatus, 10000);
-    return () => clearInterval(interval);
   }, []);
-
-  const handleTriggerBackup = () => {
-    setBackupMessage('Luodaan varmuuskopiota...');
-
-    fetch(`${GITGUARDIAN_BASE}/backup`, { method: 'POST' })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) {
-          setBackupStatus('error');
-          setBackupMessage(data.message);
-          setChatMessages(prev => [
-            ...prev,
-            { sender: 'Spacemonkey', text: `Varmuuskopiointi estetty: ${data.message}`, avatar: '/spacemonkey-avatar.png' }
-          ]);
-          return;
-        }
-
-        setChatMessages(prev => [
-          ...prev,
-          { sender: 'Spacemonkey', text: data.message, avatar: '/spacemonkey-avatar.png' }
-        ]);
-
-        loadGitGuardianStatus();
-      })
-      .catch(err => {
-        console.error(err);
-        setBackupStatus('error');
-        setBackupMessage('Virhe varmuuskopioinnissa');
-      });
-  };
-
-  const handleSendMessage = () => {
-    if (currentInput.trim() === '') return;
-    const userMessage = currentInput;
-    setChatMessages(prev => [...prev, { sender: 'User', text: userMessage, avatar: '/fisherman-logo.png' }]);
-    setCurrentInput('');
-
-    fetch(`${SPACEMONKEY_BASE}/process`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ command: userMessage }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        setChatMessages(prev => [
-          ...prev,
-          { sender: 'Spacemonkey', text: data.reply, avatar: '/spacemonkey-avatar.png' }
-        ]);
-      })
-      .catch(err => {
-        console.error(err);
-        setChatMessages(prev => [
-          ...prev,
-          { sender: 'Spacemonkey', text: 'Yhteys Spacemonkey-ytimeen katkesi.', avatar: '/spacemonkey-avatar.png' }
-        ]);
-      });
-  };
-
-  if (loading) {
-    return <div className="hq-loading">Ladataan Wood-Booster HQ...</div>;
-  }
-
-  const isFullscreenDesktop = activeView === 'boosterdesktop';
-
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const files = Array.from(e.dataTransfer.files || []);
+      files.forEach(uploadFile);
+    },
+    [uploadFile]
+  );
+  const handleFileInputChange = useCallback(
+    (e) => {
+      const files = Array.from(e.target.files || []);
+      files.forEach(uploadFile);
+      e.target.value = '';
+    },
+    [uploadFile]
+  );
   return (
-    <div className={`hq-layout-container ${isFullscreenDesktop ? 'hq-layout-fullscreen' : ''}`}>
-
-      {/* Vasen sivupaneeli - piilotettu Boosterverse Desktopissa, jotta
-          se näyttää oikealta käyttöjärjestelmältä eikä HQ:n sisällä
-          olevalta välilehdeltä (Marc: "haluan sen näyttävän Windows 11"). */}
-      {!isFullscreenDesktop && (
-      <aside className="hq-sidebar">
-        <div className="hq-sidebar-logo">
-          <img 
-            src="/fisherman-logo.png" 
-            alt="Wood-Booster Logo" 
-            className="sidebar-logo-img" 
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
-          />
-          <div className="logo-fallback" style={{display: 'none'}}>WB</div>
+    <div className="flex flex-col gap-8">
+      <header>
+        <h1 className="text-2xl font-semibold text-[var(--wood-text)]">
+          Wood-Booster <span className="text-[var(--wood-accent)]">HQ</span>
+        </h1>
+        <p className="text-sm text-[var(--wood-muted)]">
+          Työpöytä — pudota tiedostoja tallentaaksesi ne tietopankkiin
+        </p>
+      </header>
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div
+          className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-card)] p-4 cursor-pointer hover:border-[var(--wood-accent)] transition"
+          onClick={() => navigate('/projects')}
+        >
+          <span className="text-2xl">📁</span>
+          <p className="mt-2 text-sm text-[var(--wood-text)]">Projektit</p>
         </div>
-        <nav className="hq-nav-links">
-          <button
-            className={`nav-btn ${activeView === 'dashboard' ? 'active' : ''}`}
-            title="Komentokeskus"
-            onClick={() => setActiveView('dashboard')}
-          >🏠</button>
-          <button className="nav-btn" title="Projektit" onClick={() => navigate('/projects')}>📊</button>
-          <button
-            className={`nav-btn ${activeView === 'altrako' ? 'active' : ''}`}
-            title="Altrako: Core Guardian & Shield"
-            onClick={() => setActiveView('altrako')}
-          >🧠</button>
-          <button
-            className={`nav-btn ${activeView === 'systempulse' ? 'active' : ''}`}
-            title="System Pulse: järjestelmän ydin ja rytmi"
-            onClick={() => setActiveView('systempulse')}
-          >⚙️</button>
-          <button
-            className={`nav-btn ${activeView === 'devstudio' ? 'active' : ''}`}
-            title="Dev Studio: Python-koodin luonti ja selitys"
-            onClick={() => setActiveView('devstudio')}
-          >🐍</button>
-          <button
-            className={`nav-btn ${activeView === 'boosterdesktop' ? 'active' : ''}`}
-            title="Boosterverse Desktop: tiedostonhallinta"
-            onClick={() => setActiveView('boosterdesktop')}
-          >🖥</button>
-        </nav>
-      </aside>
-      )}
-
-      {/* Pääsisällön alue */}
-      <div className={`hq-main-content ${isFullscreenDesktop ? 'hq-main-content-fullscreen' : ''}`}>
-
-        {activeView === 'altrako' ? (
-          <AltrakoPage />
-        ) : activeView === 'systempulse' ? (
-          <SystemPulse />
-        ) : activeView === 'devstudio' ? (
-          <DevStudio />
-        ) : activeView === 'boosterdesktop' ? (
-          <BoosterverseDesktop onExit={() => setActiveView('dashboard')} />
-        ) : (
-          <>
-        <header className="hq-header">
-          <div>
-            <h1 className="hq-title">Wood-Booster <span className="hq-highlight">HQ</span></h1>
-            <p className="hq-description">Älykäs puualan liiketoiminnan komentokeskus</p>
-          </div>
-        </header>
-
-        {/* Yläosan kortit */}
-        <section className="hq-top-cards">
-          <div className="hq-card clickable" onClick={() => navigate('/projects')}>
-            <span className="card-icon">📁</span>
-            <div>
-              <span className="card-label">Projektit</span>
-            </div>
-          </div>
-
-          <div className="hq-card">
-            <span className="card-icon">🧠</span>
-            <div>
-              <span className="card-label">Spacemonkey</span>
-              <strong className="card-val text-pulse-glow">aktiivinen</strong>
-            </div>
-          </div>
-
-          <div
-            className={`hq-card action-card ${backupStatus}`}
-            onClick={handleTriggerBackup}
-          >
-            <span className="card-icon">🛡</span>
-            <div>
-              <span className="card-label">Git Guardian</span>
-              <strong className="card-val text-pulse-glow">{backupMessage}</strong>
-              {backupStatus === 'pending' && (
-                <span className="card-sub">{changeCount} muutosta</span>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Chatti- ja keskustelualue */}
-        <section className="hq-chat-section">
-          <div className="hq-chat-toolbar">
-            <span>Spacemonkey / Keskusteluhistoria</span>
-          </div>
-          <div className="hq-chat-box">
-            {chatMessages.map((msg, idx) => (
-              <div key={idx} className="chat-message-row">
-                <img 
-                  src={msg.avatar} 
-                  alt="avatar" 
-                  className="chat-avatar" 
-                  onError={(e) => { 
-                    e.target.src = 'https://via.placeholder.com/32'; 
-                  }} 
-                />
-                <div className="chat-content">
-                  <span className="chat-sender">{msg.sender}:</span>
-                  <span className="chat-text">{msg.text}</span>
-                </div>
+        <div
+          className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-card)] p-4 cursor-pointer hover:border-[var(--wood-accent)] transition"
+          onClick={() => navigate('/knowledge')}
+        >
+          <span className="text-2xl">◌</span>
+          <p className="mt-2 text-sm text-[var(--wood-text)]">Knowledge</p>
+        </div>
+        <div
+          className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-card)] p-4 cursor-pointer hover:border-[var(--wood-accent)] transition"
+          onClick={() => navigate('/customers')}
+        >
+          <span className="text-2xl">◎</span>
+          <p className="mt-2 text-sm text-[var(--wood-text)]">Asiakkaat</p>
+        </div>
+      </section>
+      <section
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        className={`
+          flex-1
+          min-h-[320px]
+          rounded-2xl
+          border-2
+          border-dashed
+          flex
+          flex-col
+          items-center
+          justify-center
+          gap-3
+          cursor-pointer
+          transition
+          ${
+            isDragging
+              ? 'border-[var(--wood-accent)] bg-[var(--wood-card)]'
+              : 'border-[var(--wood-border)] bg-[var(--wood-bg)]'
+          }
+        `}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={handleFileInputChange}
+        />
+        <span className="text-4xl">📥</span>
+        <p className="text-[var(--wood-text)] font-medium">
+          Pudota tiedostoja tähän, tai klikkaa valitaksesi
+        </p>
+        <p className="text-xs text-[var(--wood-muted)]">
+          Tuetut: TXT, MD, PDF, DOCX
+        </p>
+        {items.length > 0 && (
+          <div className="w-full max-w-md mt-4 space-y-2">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (item.documentId) navigate(`/knowledge/${item.documentId}`);
+                }}
+                className="flex items-center justify-between rounded-lg bg-[var(--wood-card)] border border-[var(--wood-border)] px-3 py-2 text-sm"
+              >
+                <span className="text-[var(--wood-text)] truncate">
+                  {item.title || item.name}
+                </span>
+                <span
+                  className={
+                    item.status === 'done'
+                      ? 'text-emerald-500'
+                      : item.status === 'error'
+                      ? 'text-red-500'
+                      : 'text-[var(--wood-muted)]'
+                  }
+                >
+                  {item.status === 'uploading' && 'Ladataan...'}
+                  {item.status === 'done' && 'Valmis ✓'}
+                  {item.status === 'error' && (item.error || 'Virhe')}
+                </span>
               </div>
             ))}
           </div>
-          <div className="hq-input-row">
-            <input 
-              type="text" 
-              className="hq-text-input"
-              placeholder="Kirjoita komento tai kysymys agentille (esim. 'Analysoi hinta...')"
-              value={currentInput}
-              onChange={(e) => setCurrentInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            />
-            <button className="hq-send-btn" onClick={handleSendMessage}>Lähetä</button>
-          </div>
-        </section>
-
-        <footer className="hq-footer">
-          <span>Viimeisin päivitys: {statusData?.pulse?.lastChecked || 'Juuri nyt'}</span>
-        </footer>
-          </>
         )}
-
-      </div>
+      </section>
     </div>
   );
 };
