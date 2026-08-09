@@ -25,7 +25,7 @@ function createWindow(app, zIndex) {
   };
 }
 
-export default function BoosterverseDesktop() {
+export default function BoosterverseDesktop({ onExit }) {
   const [windows, setWindows] = useState(() => [createWindow('explorer', 1)]);
   const [nextZ, setNextZ] = useState(2);
   const [startOpen, setStartOpen] = useState(false);
@@ -277,6 +277,15 @@ export default function BoosterverseDesktop() {
             <div>{clock.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}</div>
             <div className="win-taskbar-date">{clock.toLocaleDateString('fi-FI')}</div>
           </div>
+          {onExit && (
+            <button
+              className="win-exit-corner"
+              onClick={onExit}
+              title="Takaisin Wood-Booster HQ:hon"
+            >
+              ⌂
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -425,6 +425,26 @@
   color: #9aa4c0;
 }
 
+/* Windows 11:n oikean reunan "näytä työpöytä" -kulman malliin -
+   ainoa poistumistie takaisin Wood-Booster HQ:hon kun sivupaneeli
+   on piilotettu (ks. MainDashboard.jsx, isFullscreenDesktop). */
+.win-exit-corner {
+  background: transparent;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0 0.6rem;
+  margin-left: 0.4rem;
+  height: 100%;
+  color: #dfe4f0;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.win-exit-corner:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 /* Tiedostonhallinta-sovelluksen sisältö ikkunan sisällä */
 .explorer-app {
   display: flex;

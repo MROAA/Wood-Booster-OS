@@ -128,10 +128,15 @@ export const MainDashboard = () => {
     return <div className="hq-loading">Ladataan Wood-Booster HQ...</div>;
   }
 
+  const isFullscreenDesktop = activeView === 'boosterdesktop';
+
   return (
-    <div className="hq-layout-container">
-      
-      {/* Vasen sivupaneeli */}
+    <div className={`hq-layout-container ${isFullscreenDesktop ? 'hq-layout-fullscreen' : ''}`}>
+
+      {/* Vasen sivupaneeli - piilotettu Boosterverse Desktopissa, jotta
+          se näyttää oikealta käyttöjärjestelmältä eikä HQ:n sisällä
+          olevalta välilehdeltä (Marc: "haluan sen näyttävän Windows 11"). */}
+      {!isFullscreenDesktop && (
       <aside className="hq-sidebar">
         <div className="hq-sidebar-logo">
           <img 
@@ -174,9 +179,10 @@ export const MainDashboard = () => {
           >🖥</button>
         </nav>
       </aside>
+      )}
 
       {/* Pääsisällön alue */}
-      <div className="hq-main-content">
+      <div className={`hq-main-content ${isFullscreenDesktop ? 'hq-main-content-fullscreen' : ''}`}>
 
         {activeView === 'altrako' ? (
           <AltrakoPage />
@@ -185,7 +191,7 @@ export const MainDashboard = () => {
         ) : activeView === 'devstudio' ? (
           <DevStudio />
         ) : activeView === 'boosterdesktop' ? (
-          <BoosterverseDesktop />
+          <BoosterverseDesktop onExit={() => setActiveView('dashboard')} />
         ) : (
           <>
         <header className="hq-header">
