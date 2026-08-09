@@ -1,5 +1,8 @@
+import os
 import re
-from typing import Any, Dict, Optional
+import json
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -15,6 +18,48 @@ DEFAULT_TEXT_BY_MODE = {
     "council": "Tilannekatsaus.",
     "altrako": "tila",
 }
+
+# Keskusteluhistoria - PRD osio 6, "keskustelumuistina". Tallennetaan JSON-
+# tiedostoon (sama kevyt kuvio kuin Git Guardianilla), jotta historia säilyy
+# yli sivunpäivitysten/uudelleenkäynnistysten sen sijaan että se katoaisi
+# aina kun selainikkuna suljetaan. Tämä EI tee vastauksista "älykkäämpiä"
+# tai kontekstitietoisia - ei ole oikeaa kielimallia joka lukisi historiaa
+# ennen vastaamista (ks. src/spacemonkey/spc_facade.py). Tämä on rehellisesti
+# vain pysyvä loki: käyttäjä (ja Spacemonkey UI) voi selata sitä, mutta
+# itse vastauslogiikka ei vielä käytä sitä syötteenä.
+HISTORY_FILE = os.path.join(
+    os.path.dirname(__file__), "..", "data", "chat_history.json"
+)
+MAX_HISTORY_ENTRIES = 200
+
+
+def load_chat_history() -> List[Dict[str, Any]]:
+    if not os.path.exists(HISTORY_FILE):
+        return []
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+def save_chat_history(entries: List[Dict[str, Any]]):
+    os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(entries, f, ensure_ascii=False, indent=2)
+
+
+def append_chat_entry(mode: str, message: str, reply: str):
+    entries = load_chat_history()
+    entries.append({
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "mode": mode,
+        "message": message,
+        "reply": reply,
+    })
+    # Rajataan tiedoston koko - vanhin pudotetaan pois kun raja ylittyy.
+    entries = entries[-MAX_HISTORY_ENTRIES:]
+    save_chat_history(entries)
 
 
 class ChatRequest(BaseModel):
@@ -51,6 +96,7 @@ def process_chat(payload: ChatRequest):
 
     if mode == "altrako":
         altrako_result = process_altrako(AltrakoRequest(command=text))
+        append_chat_entry(mode, payload.message, altrako_result.reply)
         return ChatResponse(
             mode="altrako",
             reply=altrako_result.reply,
@@ -64,6 +110,7 @@ def process_chat(payload: ChatRequest):
             f"🧠 Spacemonkey ehdottaa:\n{sm_result['reply']}\n\n"
             f"🐵 Altrako arvioi:\n{altrako_result.reply}"
         )
+        append_chat_entry(mode, payload.message, joint_reply)
         return ChatResponse(
             mode="council",
             reply=joint_reply,
@@ -73,4 +120,13 @@ def process_chat(payload: ChatRequest):
 
     # Oletustila: spacemonkey
     sm_result = run_spacemonkey(text)
+    append_chat_entry(mode, payload.message, sm_result["reply"])
     return ChatResponse(mode="spacemonkey", reply=sm_result["reply"], spacemonkey=sm_result)
+
+
+@router.get("/history")
+def get_chat_history(limit: int = 50):
+    """Palauttaa viimeisimmät keskustelumerkinnät (PRD osio 6, keskustelumuisti)."""
+    entries = load_chat_history()
+    limit = max(1, min(limit, MAX_HISTORY_ENTRIES))
+    return {"status": "success", "history": entries[-limit:]}
