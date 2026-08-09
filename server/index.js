@@ -78,6 +78,9 @@ import {
   startGitSyncWatcher,
 } from "./services/aiBrainV2/services/systemPulse/gitSyncWatcher.js"
 import {
+  startSpacemonkeyImpulseScheduler,
+} from "./services/aiBrainV2/system/spacemonkey/spacemonkeyImpulseScheduler.js"
+import {
   runSpacemonkeyServerIntegration,
 } from "./services/spacemonkey/spacemonkeyServerIntegrationRunner.js"
 import systemPulseRouter from "./routes/systemPulse.js"
@@ -952,6 +955,8 @@ async function start(){
     await prisma.$connect()
 
 startGitSyncWatcher()
+
+startSpacemonkeyImpulseScheduler({ prisma })
 
     app.listen(
       PORT,

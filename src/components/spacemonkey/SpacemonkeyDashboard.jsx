@@ -18,6 +18,8 @@ import ActivityFeed from "./ActivityFeed"
 
 import DecisionCard from "./DecisionCard"
 
+import ImpulseCard from "./ImpulseCard"
+
 import SafetyCard from "./SafetyCard"
 
 import SpacemonkeyCognitiveTimeline from "./SpacemonkeyCognitiveTimeline"
@@ -250,6 +252,11 @@ function SpacemonkeyDashboard({
           core?.decision
         }
       />
+
+
+
+
+      <ImpulseCard />
 
 
 
