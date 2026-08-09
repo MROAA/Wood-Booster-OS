@@ -99,6 +99,7 @@ def search_files(q: str):
     scanned = 0
     for dirpath, dirnames, filenames in os.walk(ROOT_DIR):
         dirnames[:] = [d for d in dirnames if not d.startswith(".") and d not in SKIP_DIR_NAMES]
+        filenames = [f for f in filenames if not f.startswith(".")]
         for name in dirnames + filenames:
             scanned += 1
             if scanned > MAX_SEARCH_SCAN or len(matches) >= MAX_SEARCH_RESULTS:
