@@ -237,12 +237,24 @@ const app =
   express()
 
 
+// Useita git worktreeja voi olla auki yhtä aikaa, ja Vite ottaa
+// automaattisesti seuraavan vapaan portin (5173, 5174, 5175, ...) kun
+// edelliset ovat varattuja - kiinteä kahden portin lista jätti kaikki
+// muut kehityspalvelimet ilman virheilmoitusta CORS:n taakse (Projektit,
+// System Pulse, Dev Studio hajosivat näkymättömästi). Sama
+// mikä-tahansa-localhost-portti-periaate kuin Python-backendin
+// allow_origin_regex:issä (backend/main.py).
+const LOCALHOST_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/
+
 app.use(
   cors({
-    origin:[
-      "http://localhost:5173",
-      "http://localhost:5174"
-    ],
+    origin(origin, callback) {
+      if (!origin || LOCALHOST_ORIGIN.test(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error("Not allowed by CORS"))
+      }
+    },
     credentials:true
   })
 )
