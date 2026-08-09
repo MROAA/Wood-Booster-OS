@@ -139,7 +139,11 @@ async function loadMemoryKnowledge({
 
           status:
 
-            getPersistentMemoryStatus(),
+            await getPersistentMemoryStatus({
+
+              prisma,
+
+            }),
 
 
 

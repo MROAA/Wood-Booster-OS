@@ -1,7 +1,8 @@
 // src/components/hq/MainDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MainDashboard.css';
+import { apiGet } from '../../api/client.js';
 import AltrakoPage from '../../pages/Altrako.jsx';
 import SystemPulse from '../../pages/SystemPulse.jsx';
 import DevStudio from '../../pages/DevStudio.jsx';
@@ -12,6 +13,7 @@ export const MainDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [statusData, setStatusData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const chatInputRef = useRef(null);
 
   const GITGUARDIAN_BASE = 'http://localhost:8002/api/gitguardian';
   const SPACEMONKEY_BASE = 'http://localhost:8002/api/spacemonkey';
@@ -19,6 +21,8 @@ export const MainDashboard = () => {
   const [backupStatus, setBackupStatus] = useState('pending');
   const [backupMessage, setBackupMessage] = useState('Ladataan...');
   const [changeCount, setChangeCount] = useState(0);
+
+  const [spacemonkeyState, setSpacemonkeyState] = useState(null);
 
   const [chatMessages, setChatMessages] = useState([
     { sender: 'HQ System', text: 'Moduulit ladattu. Valmiina.', avatar: 'https://api.iconify.design/lucide:terminal.svg' },
@@ -66,6 +70,27 @@ export const MainDashboard = () => {
     const interval = setInterval(loadGitGuardianStatus, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const loadSpacemonkeyState = () => {
+    apiGet('/spacemonkey/state')
+      .then((res) => {
+        if (res?.success) {
+          setSpacemonkeyState(res.data);
+        }
+      })
+      .catch(() => setSpacemonkeyState(null));
+  };
+
+  useEffect(() => {
+    loadSpacemonkeyState();
+    const interval = setInterval(loadSpacemonkeyState, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const openSpacemonkeyChat = () => {
+    setActiveView('dashboard');
+    setTimeout(() => chatInputRef.current?.focus(), 0);
+  };
 
   const handleTriggerBackup = () => {
     setBackupMessage('Luodaan varmuuskopiota...');
@@ -128,15 +153,10 @@ export const MainDashboard = () => {
     return <div className="hq-loading">Ladataan Wood-Booster HQ...</div>;
   }
 
-  const isFullscreenDesktop = activeView === 'boosterdesktop';
-
   return (
-    <div className={`hq-layout-container ${isFullscreenDesktop ? 'hq-layout-fullscreen' : ''}`}>
+    <div className="hq-layout-container">
 
-      {/* Vasen sivupaneeli - piilotettu Boosterverse Desktopissa, jotta
-          se näyttää oikealta käyttöjärjestelmältä eikä HQ:n sisällä
-          olevalta välilehdeltä (Marc: "haluan sen näyttävän Windows 11"). */}
-      {!isFullscreenDesktop && (
+      {/* Vasen sivupaneeli */}
       <aside className="hq-sidebar">
         <div className="hq-sidebar-logo">
           <img 
@@ -179,10 +199,9 @@ export const MainDashboard = () => {
           >🖥</button>
         </nav>
       </aside>
-      )}
 
       {/* Pääsisällön alue */}
-      <div className={`hq-main-content ${isFullscreenDesktop ? 'hq-main-content-fullscreen' : ''}`}>
+      <div className="hq-main-content">
 
         {activeView === 'altrako' ? (
           <AltrakoPage />
@@ -190,8 +209,6 @@ export const MainDashboard = () => {
           <SystemPulse />
         ) : activeView === 'devstudio' ? (
           <DevStudio />
-        ) : activeView === 'boosterdesktop' ? (
-          <BoosterverseDesktop onExit={() => setActiveView('dashboard')} />
         ) : (
           <>
         <header className="hq-header">
@@ -210,11 +227,16 @@ export const MainDashboard = () => {
             </div>
           </div>
 
-          <div className="hq-card">
+          <div className="hq-card clickable" onClick={openSpacemonkeyChat}>
             <span className="card-icon">🧠</span>
             <div>
               <span className="card-label">Spacemonkey</span>
-              <strong className="card-val text-pulse-glow">aktiivinen</strong>
+              <strong className="card-val text-pulse-glow">
+                {spacemonkeyState?.persona?.status === 'active' ? 'aktiivinen' : spacemonkeyState ? spacemonkeyState.persona?.status : 'ei tavoitettavissa'}
+              </strong>
+              {spacemonkeyState?.cognitive?.nextAction && (
+                <span className="card-sub">{spacemonkeyState.cognitive.nextAction}</span>
+              )}
             </div>
           </div>
 
@@ -233,7 +255,18 @@ export const MainDashboard = () => {
           </div>
         </section>
 
-        {/* Chatti- ja keskustelualue */}
+        {/* Chatti-alue TAI virtuaalinen työpöytä samassa paikassa - sivupaneelin
+            🖥-nappi vaihtaa kumpi näkyy, otsikko ja yläkortit pysyvät paikallaan. */}
+        {activeView === 'boosterdesktop' ? (
+          <section className="hq-chat-section hq-desktop-embed">
+            <div className="hq-chat-toolbar">
+              <span>Boosterverse Desktop / Virtuaalinen työpöytä</span>
+            </div>
+            <div className="hq-desktop-embed-body">
+              <BoosterverseDesktop />
+            </div>
+          </section>
+        ) : (
         <section className="hq-chat-section">
           <div className="hq-chat-toolbar">
             <span>Spacemonkey / Keskusteluhistoria</span>
@@ -241,13 +274,13 @@ export const MainDashboard = () => {
           <div className="hq-chat-box">
             {chatMessages.map((msg, idx) => (
               <div key={idx} className="chat-message-row">
-                <img 
-                  src={msg.avatar} 
-                  alt="avatar" 
-                  className="chat-avatar" 
-                  onError={(e) => { 
-                    e.target.src = 'https://via.placeholder.com/32'; 
-                  }} 
+                <img
+                  src={msg.avatar}
+                  alt="avatar"
+                  className="chat-avatar"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/32';
+                  }}
                 />
                 <div className="chat-content">
                   <span className="chat-sender">{msg.sender}:</span>
@@ -257,8 +290,9 @@ export const MainDashboard = () => {
             ))}
           </div>
           <div className="hq-input-row">
-            <input 
-              type="text" 
+            <input
+              ref={chatInputRef}
+              type="text"
               className="hq-text-input"
               placeholder="Kirjoita komento tai kysymys agentille (esim. 'Analysoi hinta...')"
               value={currentInput}
@@ -268,6 +302,7 @@ export const MainDashboard = () => {
             <button className="hq-send-btn" onClick={handleSendMessage}>Lähetä</button>
           </div>
         </section>
+        )}
 
         <footer className="hq-footer">
           <span>Viimeisin päivitys: {statusData?.pulse?.lastChecked || 'Juuri nyt'}</span>

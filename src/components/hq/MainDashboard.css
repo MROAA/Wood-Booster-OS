@@ -100,18 +100,6 @@ body {
   background: transparent;
 }
 
-/* Boosterverse Desktop koko ruudulla (ei sivupaneelia, ei HQ-taustaa
-   näkyvissä) - katso isFullscreenDesktop MainDashboard.jsx:ssä.
-   Marc: "haluan sen näyttämään Windows 11", ei HQ:n sisällä olevalta
-   välilehdeltä. */
-.hq-layout-fullscreen {
-  background-image: none;
-}
-
-.hq-main-content-fullscreen {
-  flex-grow: 1;
-}
-
 .hq-header {
   padding: 1.25rem 2rem;
   background-color: rgba(var(--bg-sidebar-rgb), 0.75);
@@ -243,6 +231,29 @@ body {
   flex-direction: column;
   gap: 0.75rem;
   max-height: 350px;
+}
+
+/* Virtuaalinen työpöytä chat-laatikon paikalla - Boosterverse Desktop
+   olettaa normaalisti koko näytön korkeuden (100vh), tässä se pitää
+   sovittaa isäntäkontin (hq-chat-section) todelliseen, rajattuun tilaan. */
+.hq-desktop-embed-body {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.hq-desktop-embed-body .win-desktop {
+  height: 100%;
+  min-height: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Pienemmässä, upotetussa tilassa työpöydän kuvakkeet eivät mahdu yhtä
+   väljästi kuin koko näytön versiossa - tiivistetään rivivälit. */
+.hq-desktop-embed-body .win-desktop-icons {
+  gap: 0.5rem;
+  top: 1rem;
+  left: 1rem;
 }
 
 .chat-message-row {
