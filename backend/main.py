@@ -7,6 +7,7 @@ from backend.modules.constitution_guard import ConstitutionGuardMiddleware
 from backend.modules.spacemonkey_alter_ego import router as altrako_router
 from backend.modules.git_guardian import router as gitguardian_router
 from backend.modules.spacemonkey_core import router as spacemonkey_router
+from backend.modules.chat import router as chat_router
 
 app = FastAPI(
     title="Wood Booster HQ - Python Core Engine",
@@ -27,6 +28,7 @@ app.include_router(data_router, prefix="/api/data", tags=["Data Layer"])
 app.include_router(gitguardian_router, prefix="/api/gitguardian", tags=["Git Guardian"])
 app.include_router(spacemonkey_router, prefix="/api/spacemonkey", tags=["Spacemonkey Core"])
 app.include_router(altrako_router, prefix="/api/altrako", tags=["Altrako"])
+app.include_router(chat_router, prefix="/api/chat", tags=["Chat (Spacemonkey/Altrako/Council)"])
 app.add_middleware(ParanoiaShieldMiddleware)
 @app.get("/")
 def read_root():

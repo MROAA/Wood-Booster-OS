@@ -247,6 +247,15 @@ body {
   color: #86efac;
 }
 
+/* Spacemonkeyn "sisäinen ääni" - tunnelmaa, ei järjestelmätietoa,
+   siksi selvästi omalla, hillityllä tyylillään erillään itse vastauksesta. */
+.chat-inner-voice {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
 /* Syöttökenttä */
 .hq-input-row {
   display: flex;

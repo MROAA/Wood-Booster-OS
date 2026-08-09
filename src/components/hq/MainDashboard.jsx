@@ -9,7 +9,7 @@ export const MainDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const GITGUARDIAN_BASE = 'http://localhost:8002/api/gitguardian';
-  const SPACEMONKEY_BASE = 'http://localhost:8002/api/spacemonkey';
+  const CHAT_BASE = 'http://localhost:8002/api/chat';
 
   const [backupStatus, setBackupStatus] = useState('pending');
   const [backupMessage, setBackupMessage] = useState('Ladataan...');
@@ -92,22 +92,33 @@ export const MainDashboard = () => {
       });
   };
 
+  const MODE_SENDER = {
+    spacemonkey: 'Spacemonkey',
+    altrako: 'Altrako',
+    council: 'Council (Spacemonkey + Altrako)',
+  };
+
   const handleSendMessage = () => {
     if (currentInput.trim() === '') return;
     const userMessage = currentInput;
     setChatMessages(prev => [...prev, { sender: 'User', text: userMessage, avatar: '/fisherman-logo.png' }]);
     setCurrentInput('');
 
-    fetch(`${SPACEMONKEY_BASE}/process`, {
+    fetch(`${CHAT_BASE}/process`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ command: userMessage }),
+      body: JSON.stringify({ message: userMessage }),
     })
       .then(res => res.json())
       .then(data => {
         setChatMessages(prev => [
           ...prev,
-          { sender: 'Spacemonkey', text: data.reply, avatar: '/spacemonkey-avatar.png' }
+          {
+            sender: MODE_SENDER[data.mode] || 'Spacemonkey',
+            text: data.reply,
+            avatar: '/spacemonkey-avatar.png',
+            innerVoice: data.spacemonkey?.inner_voice,
+          }
         ]);
       })
       .catch(err => {
@@ -221,15 +232,20 @@ export const MainDashboard = () => {
                 <div className="chat-content">
                   <span className="chat-sender">{msg.sender}:</span>
                   <span className="chat-text">{msg.text}</span>
+                  {msg.innerVoice && (
+                    <div className="chat-inner-voice">
+                      {msg.innerVoice.mood} — {msg.innerVoice.inner_thought}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
           <div className="hq-input-row">
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="hq-text-input"
-              placeholder="Kirjoita komento tai kysymys agentille (esim. 'Analysoi hinta...')"
+              placeholder="Kirjoita viesti Spacemonkeylle (tai /altrako, /council)"
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}

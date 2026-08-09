@@ -14,6 +14,7 @@ from .personality_core import PersonalityCore, PersonalityProfile
 from .security_guard import SecurityGuard
 from .audit_logger import AuditLogger
 from .types import SecurityError, ProcessResult
+from .lore import LoreVoice
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -28,7 +29,8 @@ class SpacemonkeyFacade:
         self.personality_core = PersonalityCore()
         self.version_manager = IdentityVersionManager(storage_dir=storage_dir)
         self.audit_logger = AuditLogger(log_file=log_file)
-        
+        self.lore_voice = LoreVoice()
+
         self.layers: Dict[str, IdentityLayer] = {
             "core": IdentityLayer(
                 layer_name="CoreIdentity",
@@ -74,7 +76,12 @@ class SpacemonkeyFacade:
                 details={"prompt": sanitized_prompt}
             )
             self.audit_logger.log_event("TEXT_PROMPT", "ALLOWED", {"prompt_length": len(sanitized_prompt)})
-            return {"status": result.status, "prompt": sanitized_prompt, "system": self.get_full_status()}
+            return {
+                "status": result.status,
+                "prompt": sanitized_prompt,
+                "system": self.get_full_status(),
+                "inner_voice": self.lore_voice.reflect(),
+            }
         except SecurityError as e:
             self.limbic.process_stimulus("threat", 0.9)
             sec_layer = self.layers["security"]

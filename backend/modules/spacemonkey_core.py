@@ -2,7 +2,7 @@ import os
 import sys
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Optional
+from typing import Any, Dict, Optional
 
 router = APIRouter()
 
@@ -38,6 +38,7 @@ class CommandResponse(BaseModel):
     status: str
     reply: str
     system: dict
+    inner_voice: Optional[Dict[str, Any]] = None
 
 
 def build_reply(result: dict) -> str:
@@ -48,13 +49,27 @@ def build_reply(result: dict) -> str:
     return f"[{profile['primary_mode']}] {profile['tone_of_voice']}"
 
 
+def run_spacemonkey(text: str) -> dict:
+    """Jaettu ydinlogiikka - kutsutaan sekä suoraan /process-reitiltä että
+    yhtenäisestä chat-tilareitittimestä (backend/modules/chat.py), jotta
+    Facade-instanssi ja logiikka pysyvät yhdessä paikassa."""
+    result = _facade.process_text_prompt(text.strip())
+    return {
+        "status": result["status"],
+        "reply": build_reply(result),
+        "system": result["system"],
+        "inner_voice": result.get("inner_voice"),
+    }
+
+
 @router.post("/process", response_model=CommandResponse)
 def process_spacemonkey_command(payload: CommandRequest):
     """Vie käyttäjän viestin oikean Spacemonkey-ytimen läpi (turvatarkistus,
     tunnetila, persoonallisuus) ja palauttaa sen todellisen reaktion."""
-    result = _facade.process_text_prompt(payload.command.strip())
+    result = run_spacemonkey(payload.command)
     return CommandResponse(
         status=result["status"],
-        reply=build_reply(result),
+        reply=result["reply"],
         system=result["system"],
+        inner_voice=result["inner_voice"],
     )
