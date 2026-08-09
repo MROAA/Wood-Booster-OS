@@ -1,0 +1,29 @@
+[theme]
+base = "dark"
+primaryColor = "#b97b3f"
+backgroundColor = "#14110f"
+secondaryBackgroundColor = "#1e1a17"
+textColor = "#ece5da"
+borderColor = "#332c26"
+linkColor = "#c98a4b"
+linkUnderline = false
+
+greenColor = "#5c7a52"
+blueColor = "#3f8fa3"
+orangeColor = "#c98a4b"
+grayColor = "#8a8178"
+violetColor = "#8a7ba0"
+
+baseRadius = "8px"
+buttonRadius = "8px"
+showWidgetBorder = true
+showSidebarBorder = true
+
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "'Cormorant Garamond':https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap"
+baseFontSize = 15
+baseFontWeight = 400
+headingFontWeights = [700, 600, 600, 600, 500, 500]
+
+[server]
+headless = true

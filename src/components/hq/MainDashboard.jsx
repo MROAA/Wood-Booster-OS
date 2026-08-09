@@ -1,5 +1,6 @@
 // src/components/hq/MainDashboard.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './MainDashboard.css';
 import AltrakoPage from '../../pages/Altrako.jsx';
 import SystemPulse from '../../pages/SystemPulse.jsx';
@@ -7,6 +8,7 @@ import DevStudio from '../../pages/DevStudio.jsx';
 import BoosterverseDesktop from '../../pages/BoosterverseDesktop.jsx';
 
 export const MainDashboard = () => {
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState('dashboard');
   const [statusData, setStatusData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -149,7 +151,7 @@ export const MainDashboard = () => {
             title="Komentokeskus"
             onClick={() => setActiveView('dashboard')}
           >🏠</button>
-          <button className="nav-btn" title="Projektit" onClick={() => window.location.href = '/projects'}>📊</button>
+          <button className="nav-btn" title="Projektit" onClick={() => navigate('/projects')}>📊</button>
           <button
             className={`nav-btn ${activeView === 'altrako' ? 'active' : ''}`}
             title="Altrako: Core Guardian & Shield"
@@ -195,7 +197,7 @@ export const MainDashboard = () => {
 
         {/* Yläosan kortit */}
         <section className="hq-top-cards">
-          <div className="hq-card clickable" onClick={() => window.location.href = '/projects'}>
+          <div className="hq-card clickable" onClick={() => navigate('/projects')}>
             <span className="card-icon">📁</span>
             <div>
               <span className="card-label">Projektit</span>

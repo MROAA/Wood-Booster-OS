@@ -9,12 +9,13 @@ const DEFAULT_MODEL =
 
 function buildSystemPrompt() {
   return (
-    "TEHTÄVÄ: Selitä annettu Python-koodi selkeällä, ei-teknisellä " +
-    "suomen kielellä henkilölle joka ei ole ohjelmoija. Kerro mitä " +
-    "koodi tekee ja miksi, älä käy läpi riviä riveltä syntaksia. " +
-    "Älä toista koodia takaisin. Pidä vastaus lyhyenä (muutama " +
-    "kappale, ei luettelo jokaisesta funktiosta jos koodi on pitkä " +
-    "- keskity kokonaiskuvaan)."
+    "TEHTÄVÄ: Arvioi annettu Python-koodi ja anna rakentava " +
+    "katselmointi selkeällä suomen kielellä. Kerro mikä koodissa on " +
+    "hyvää, ja nosta esiin 2-4 konkreettista parannusehdotusta " +
+    "(esim. mahdolliset virheet, epäselvät kohdat, turvallisuus, " +
+    "luettavuus). Älä toista koodia takaisin, älä kirjoita uutta " +
+    "koodia - vain sanallinen arvio. Jos et löydä mitään " +
+    "huomautettavaa, sano niin suoraan äläkä keksi ongelmia."
   )
 }
 
@@ -54,26 +55,26 @@ async function askOllama({ model, code }) {
 }
 
 /*
- * Selittää annetun Python-koodin luonnollisella kielellä. Kutsuu
- * Ollamaa suoraan, samaan tapaan kuin generatePythonDraft() -
- * ei tallenna mitään, palauttaa vain selityksen kutsujalle.
+ * Antaa katselmoinnin annetulle Python-koodille luonnollisella
+ * kielellä. Ei koskaan kirjoita tai suorita mitään - pelkkä
+ * sanallinen arvio, ei koodimuutoksia.
  */
-export async function explainPythonCode({
+export async function reviewPythonCode({
   code,
   model = DEFAULT_MODEL,
 }) {
   if (!code || !code.trim()) {
     return {
-      explanation: "Tiedosto on tyhjä, ei mitään selitettävää.",
+      review: "Tiedosto on tyhjä, ei mitään arvioitavaa.",
     }
   }
 
-  const explanation = await askOllama({
+  const review = await askOllama({
     model,
     code,
   })
 
   return {
-    explanation,
+    review,
   }
 }
