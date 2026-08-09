@@ -130,7 +130,7 @@ export const MainDashboard = () => {
 
   return (
     <div className="hq-layout-container">
-      
+
       {/* Vasen sivupaneeli */}
       <aside className="hq-sidebar">
         <div className="hq-sidebar-logo">

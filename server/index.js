@@ -78,6 +78,9 @@ import {
   startGitSyncWatcher,
 } from "./services/aiBrainV2/services/systemPulse/gitSyncWatcher.js"
 import {
+  startSpacemonkeyImpulseScheduler,
+} from "./services/aiBrainV2/system/spacemonkey/spacemonkeyImpulseScheduler.js"
+import {
   runSpacemonkeyServerIntegration,
 } from "./services/spacemonkey/spacemonkeyServerIntegrationRunner.js"
 import systemPulseRouter from "./routes/systemPulse.js"
@@ -106,6 +109,8 @@ import createPurchasesRouter from "./routes/purchases.js"
 import createConversationsRouter from "./routes/conversations.js"
 import createAIRouter from "./routes/ai.js"
 import createSpacemonkeyBrainStateRouter from "./routes/spacemonkeyBrainState.js"
+import createSpacemonkeyBrainwaveRouter from "./routes/spacemonkeyBrainwave.js"
+import createSpacemonkeyImpulseRouter from "./routes/spacemonkeyImpulse.js"
 import createFilesRouter from "./routes/files.js"
 import createMediaEditsRouter, {
   recoverStuckVideoJobs,
@@ -689,6 +694,16 @@ app.use(
 
 app.use(
   "/api",
+  createSpacemonkeyBrainwaveRouter()
+)
+
+app.use(
+  "/api",
+  createSpacemonkeyImpulseRouter()
+)
+
+app.use(
+  "/api",
   createSpacemonkeySafetyRouter()
 )
 
@@ -940,6 +955,8 @@ async function start(){
     await prisma.$connect()
 
 startGitSyncWatcher()
+
+startSpacemonkeyImpulseScheduler({ prisma })
 
     app.listen(
       PORT,
