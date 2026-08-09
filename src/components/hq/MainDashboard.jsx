@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './MainDashboard.css';
 import AltrakoPage from '../../pages/Altrako.jsx';
+import SystemPulse from '../../pages/SystemPulse.jsx';
 
 export const MainDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -152,7 +153,11 @@ export const MainDashboard = () => {
             title="Altrako: Core Guardian & Shield"
             onClick={() => setActiveView('altrako')}
           >🧠</button>
-          <button className="nav-btn" title="System pulse">⚙️</button>
+          <button
+            className={`nav-btn ${activeView === 'systempulse' ? 'active' : ''}`}
+            title="System Pulse: järjestelmän ydin ja rytmi"
+            onClick={() => setActiveView('systempulse')}
+          >⚙️</button>
         </nav>
       </aside>
 
@@ -161,6 +166,8 @@ export const MainDashboard = () => {
 
         {activeView === 'altrako' ? (
           <AltrakoPage />
+        ) : activeView === 'systempulse' ? (
+          <SystemPulse />
         ) : (
           <>
         <header className="hq-header">
