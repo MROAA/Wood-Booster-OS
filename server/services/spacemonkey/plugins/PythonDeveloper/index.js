@@ -17,6 +17,18 @@ import writePythonCodeSkill from "./skills/writePythonCodeSkill.js"
 
 import writePythonCodeWorkflow from "./workflows/writePythonCodeWorkflow.js"
 
+import explainPythonCodeSkill from "./skills/explainPythonCodeSkill.js"
+
+import explainPythonCodeWorkflow from "./workflows/explainPythonCodeWorkflow.js"
+
+import reviewPythonCodeSkill from "./skills/reviewPythonCodeSkill.js"
+
+import reviewPythonCodeWorkflow from "./workflows/reviewPythonCodeWorkflow.js"
+
+import refactorPythonCodeSkill from "./skills/refactorPythonCodeSkill.js"
+
+import refactorPythonCodeWorkflow from "./workflows/refactorPythonCodeWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -51,8 +63,32 @@ function registerPythonDeveloperPlugin({
         writePythonCodeSkill,
     )
 
+    skillEngine.register(
+        explainPythonCodeSkill,
+    )
+
+    skillEngine.register(
+        reviewPythonCodeSkill,
+    )
+
+    skillEngine.register(
+        refactorPythonCodeSkill,
+    )
+
     workflowEngine.register(
         writePythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        explainPythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        reviewPythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        refactorPythonCodeWorkflow,
     )
 
     pluginManager.register(plugin)

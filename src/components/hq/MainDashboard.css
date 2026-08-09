@@ -6,6 +6,9 @@
   --bg-deep: #0B3B24;          /* Tumma sammaleenvihreä */
   --bg-sidebar: #072618;       /* Sivupaneelin tummempi sävy */
   --bg-card: #14532D;          /* Korttien sävy */
+  --bg-deep-rgb: 11, 59, 36;
+  --bg-sidebar-rgb: 7, 38, 24;
+  --bg-card-rgb: 20, 83, 45;
   --text-light: #F0FDF4;       /* Vaalea teksti */
   --text-muted: #9ca3af;       /* Harmaa aputeksti */
   --accent-brown: #713f12;     /* Tummanruskea (lähetä-nappi) */
@@ -25,12 +28,19 @@ body {
 .hq-layout-container {
   display: flex;
   min-height: 100vh;
+  background-image:
+    linear-gradient(rgba(11, 59, 36, 0.55), rgba(11, 59, 36, 0.55)),
+    url('../../assets/branding/dashboard-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 /* Sivupaneeli */
 .hq-sidebar {
   width: 70px;
-  background-color: var(--bg-sidebar);
+  background-color: rgba(var(--bg-sidebar-rgb), 0.72);
+  backdrop-filter: blur(10px);
   border-right: 1px solid var(--border-green);
   display: flex;
   flex-direction: column;
@@ -87,12 +97,13 @@ body {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-deep);
+  background: transparent;
 }
 
 .hq-header {
   padding: 1.25rem 2rem;
-  background-color: var(--bg-sidebar);
+  background-color: rgba(var(--bg-sidebar-rgb), 0.75);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-green);
 }
 
@@ -121,7 +132,8 @@ body {
 }
 
 .hq-card {
-  background-color: var(--bg-card);
+  background-color: rgba(var(--bg-card-rgb), 0.78);
+  backdrop-filter: blur(8px);
   border: 1px solid var(--border-green);
   padding: 1rem;
   border-radius: 8px;
@@ -149,7 +161,8 @@ body {
 .action-card {
   cursor: pointer;
   border-left: 4px solid var(--accent-yellow);
-  background: linear-gradient(135deg, #14532D 0%, #1c4a28 100%);
+  background: linear-gradient(135deg, rgba(20, 83, 45, 0.78) 0%, rgba(28, 74, 40, 0.78) 100%);
+  backdrop-filter: blur(8px);
 }
 
 .action-card.ready {
@@ -192,7 +205,8 @@ body {
 .hq-chat-section {
   flex-grow: 1;
   margin: 1.5rem 2rem;
-  background-color: var(--bg-card);
+  background-color: rgba(var(--bg-card-rgb), 0.78);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--border-green);
   border-radius: 8px;
   display: flex;
@@ -202,7 +216,7 @@ body {
 
 .hq-chat-toolbar {
   padding: 0.75rem 1.25rem;
-  background-color: var(--bg-sidebar);
+  background-color: rgba(var(--bg-sidebar-rgb), 0.8);
   border-bottom: 1px solid var(--border-green);
   font-size: 0.85rem;
   color: var(--text-muted);
@@ -217,6 +231,29 @@ body {
   flex-direction: column;
   gap: 0.75rem;
   max-height: 350px;
+}
+
+/* Virtuaalinen työpöytä chat-laatikon paikalla - Boosterverse Desktop
+   olettaa normaalisti koko näytön korkeuden (100vh), tässä se pitää
+   sovittaa isäntäkontin (hq-chat-section) todelliseen, rajattuun tilaan. */
+.hq-desktop-embed-body {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.hq-desktop-embed-body .win-desktop {
+  height: 100%;
+  min-height: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Pienemmässä, upotetussa tilassa työpöydän kuvakkeet eivät mahdu yhtä
+   väljästi kuin koko näytön versiossa - tiivistetään rivivälit. */
+.hq-desktop-embed-body .win-desktop-icons {
+  gap: 0.5rem;
+  top: 1rem;
+  left: 1rem;
 }
 
 .chat-message-row {
@@ -251,7 +288,7 @@ body {
 .hq-input-row {
   display: flex;
   padding: 1rem;
-  background-color: var(--bg-sidebar);
+  background-color: rgba(var(--bg-sidebar-rgb), 0.8);
   border-top: 1px solid var(--border-green);
   gap: 0.75rem;
 }
@@ -259,7 +296,7 @@ body {
 .hq-text-input {
   flex-grow: 1;
   padding: 0.75rem;
-  background-color: var(--bg-deep);
+  background-color: rgba(var(--bg-deep-rgb), 0.6);
   border: 1px solid var(--border-green);
   border-radius: 6px;
   color: var(--text-light);
@@ -291,7 +328,7 @@ body {
   text-align: right;
   font-size: 0.75rem;
   color: var(--text-muted);
-  background-color: var(--bg-sidebar);
+  background-color: rgba(var(--bg-sidebar-rgb), 0.8);
   border-top: 1px solid var(--border-green);
 }
 

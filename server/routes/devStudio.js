@@ -1,6 +1,14 @@
 import express from "express"
 
+import path from "node:path"
+
 import { generatePythonDraft } from "../services/pythonCodeGenerator.js"
+
+import { explainPythonCode } from "../services/pythonCodeExplainer.js"
+
+import { reviewPythonCode } from "../services/pythonCodeReviewer.js"
+
+import { refactorPythonCode } from "../services/pythonCodeRefactorer.js"
 
 import {
   getSpacemonkeyToolBus,
@@ -59,6 +67,79 @@ export default function createDevStudioRouter(prisma) {
         })
 
         response.status(201).json(draft)
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * POST /api/python-drafts/refactor
+   *
+   * Lukee olemassa olevan .py-tiedoston, pyytää AI:ta
+   * refaktoroimaan sen, ja tallentaa tuloksen uudeksi
+   * PythonCodeDraftiksi ihmisen tarkistettavaksi ja hyväksyttäväksi.
+   * Sama draft/approve/write-kierto kuin muillakin luonnoksilla -
+   * ei koskaan kirjoita alkuperäistä tiedostoa suoraan.
+   */
+  router.post(
+    "/python-drafts/refactor",
+    async (request, response) => {
+      try {
+        const { filePath } = request.body || {}
+
+        if (!filePath) {
+          return response.status(400).json({
+            error: "Tiedostopolku (filePath) vaaditaan",
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "refactor-python-workflow",
+          {
+            filePath,
+            toolBus,
+            refactorPythonCode,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+          })
+        }
+
+        const draft = await prisma.pythonCodeDraft.create({
+          data: {
+            prompt: `Refaktoroi: ${filePath}`,
+            title: skillResult.title,
+            code: skillResult.code,
+            filePath: path.basename(filePath),
+            status: "draft",
+          },
+        })
+
+        response.status(201).json({
+          ...draft,
+          explanation: skillResult.explanation,
+        })
       } catch (error) {
         console.error(error)
 
@@ -129,6 +210,12 @@ export default function createDevStudioRouter(prisma) {
 
         response.json(draft)
       } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
         console.error(error)
 
         response.status(500).json({
@@ -161,6 +248,12 @@ export default function createDevStudioRouter(prisma) {
 
         response.json(draft)
       } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
         console.error(error)
 
         response.status(500).json({
@@ -253,6 +346,127 @@ export default function createDevStudioRouter(prisma) {
         })
 
         response.json(written)
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * POST /api/python-explain
+   *
+   * Selittää olemassa olevan .py-tiedoston sisällön luonnollisella
+   * kielellä. Vain luku - ei hyväksymiskiertoa, ei tallennusta,
+   * turvallinen suorittaa suoraan.
+   */
+  router.post(
+    "/python-explain",
+    async (request, response) => {
+      try {
+        const { filePath } = request.body || {}
+
+        if (!filePath) {
+          return response.status(400).json({
+            error: "Tiedostopolku (filePath) vaaditaan",
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "explain-python-workflow",
+          {
+            filePath,
+            toolBus,
+            explainPythonCode,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+          })
+        }
+
+        response.json({
+          filePath: skillResult.filePath,
+          explanation: skillResult.explanation,
+        })
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * POST /api/python-review
+   *
+   * Antaa rakentavan katselmoinnin olemassa olevalle .py-tiedostolle.
+   * Vain luku - ei hyväksymiskiertoa, ei tallennusta.
+   */
+  router.post(
+    "/python-review",
+    async (request, response) => {
+      try {
+        const { filePath } = request.body || {}
+
+        if (!filePath) {
+          return response.status(400).json({
+            error: "Tiedostopolku (filePath) vaaditaan",
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "review-python-workflow",
+          {
+            filePath,
+            toolBus,
+            reviewPythonCode,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+          })
+        }
+
+        response.json({
+          filePath: skillResult.filePath,
+          review: skillResult.review,
+        })
       } catch (error) {
         console.error(error)
 

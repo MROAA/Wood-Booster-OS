@@ -1,10 +1,14 @@
 // src/components/hq/MainDashboard.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './MainDashboard.css';
 import AltrakoPage from '../../pages/Altrako.jsx';
 import SystemPulse from '../../pages/SystemPulse.jsx';
+import DevStudio from '../../pages/DevStudio.jsx';
+import BoosterverseDesktop from '../../pages/BoosterverseDesktop.jsx';
 
 export const MainDashboard = () => {
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState('dashboard');
   const [statusData, setStatusData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -126,7 +130,7 @@ export const MainDashboard = () => {
 
   return (
     <div className="hq-layout-container">
-      
+
       {/* Vasen sivupaneeli */}
       <aside className="hq-sidebar">
         <div className="hq-sidebar-logo">
@@ -147,7 +151,7 @@ export const MainDashboard = () => {
             title="Komentokeskus"
             onClick={() => setActiveView('dashboard')}
           >🏠</button>
-          <button className="nav-btn" title="Projektit" onClick={() => window.location.href = '/projects'}>📊</button>
+          <button className="nav-btn" title="Projektit" onClick={() => navigate('/projects')}>📊</button>
           <button
             className={`nav-btn ${activeView === 'altrako' ? 'active' : ''}`}
             title="Altrako: Core Guardian & Shield"
@@ -158,6 +162,16 @@ export const MainDashboard = () => {
             title="System Pulse: järjestelmän ydin ja rytmi"
             onClick={() => setActiveView('systempulse')}
           >⚙️</button>
+          <button
+            className={`nav-btn ${activeView === 'devstudio' ? 'active' : ''}`}
+            title="Dev Studio: Python-koodin luonti ja selitys"
+            onClick={() => setActiveView('devstudio')}
+          >🐍</button>
+          <button
+            className={`nav-btn ${activeView === 'boosterdesktop' ? 'active' : ''}`}
+            title="Boosterverse Desktop: tiedostonhallinta"
+            onClick={() => setActiveView('boosterdesktop')}
+          >🖥</button>
         </nav>
       </aside>
 
@@ -168,6 +182,8 @@ export const MainDashboard = () => {
           <AltrakoPage />
         ) : activeView === 'systempulse' ? (
           <SystemPulse />
+        ) : activeView === 'devstudio' ? (
+          <DevStudio />
         ) : (
           <>
         <header className="hq-header">
@@ -179,7 +195,7 @@ export const MainDashboard = () => {
 
         {/* Yläosan kortit */}
         <section className="hq-top-cards">
-          <div className="hq-card clickable" onClick={() => window.location.href = '/projects'}>
+          <div className="hq-card clickable" onClick={() => navigate('/projects')}>
             <span className="card-icon">📁</span>
             <div>
               <span className="card-label">Projektit</span>
@@ -209,7 +225,18 @@ export const MainDashboard = () => {
           </div>
         </section>
 
-        {/* Chatti- ja keskustelualue */}
+        {/* Chatti-alue TAI virtuaalinen työpöytä samassa paikassa - sivupaneelin
+            🖥-nappi vaihtaa kumpi näkyy, otsikko ja yläkortit pysyvät paikallaan. */}
+        {activeView === 'boosterdesktop' ? (
+          <section className="hq-chat-section hq-desktop-embed">
+            <div className="hq-chat-toolbar">
+              <span>Boosterverse Desktop / Virtuaalinen työpöytä</span>
+            </div>
+            <div className="hq-desktop-embed-body">
+              <BoosterverseDesktop />
+            </div>
+          </section>
+        ) : (
         <section className="hq-chat-section">
           <div className="hq-chat-toolbar">
             <span>Spacemonkey / Keskusteluhistoria</span>
@@ -217,13 +244,13 @@ export const MainDashboard = () => {
           <div className="hq-chat-box">
             {chatMessages.map((msg, idx) => (
               <div key={idx} className="chat-message-row">
-                <img 
-                  src={msg.avatar} 
-                  alt="avatar" 
-                  className="chat-avatar" 
-                  onError={(e) => { 
-                    e.target.src = 'https://via.placeholder.com/32'; 
-                  }} 
+                <img
+                  src={msg.avatar}
+                  alt="avatar"
+                  className="chat-avatar"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/32';
+                  }}
                 />
                 <div className="chat-content">
                   <span className="chat-sender">{msg.sender}:</span>
@@ -233,8 +260,8 @@ export const MainDashboard = () => {
             ))}
           </div>
           <div className="hq-input-row">
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="hq-text-input"
               placeholder="Kirjoita komento tai kysymys agentille (esim. 'Analysoi hinta...')"
               value={currentInput}
@@ -244,6 +271,7 @@ export const MainDashboard = () => {
             <button className="hq-send-btn" onClick={handleSendMessage}>Lähetä</button>
           </div>
         </section>
+        )}
 
         <footer className="hq-footer">
           <span>Viimeisin päivitys: {statusData?.pulse?.lastChecked || 'Juuri nyt'}</span>

@@ -22,6 +22,21 @@ function DevStudio() {
 
   const [busyDraftId, setBusyDraftId] = useState(null)
 
+  const [explainFilePath, setExplainFilePath] = useState("")
+  const [explaining, setExplaining] = useState(false)
+  const [explainResult, setExplainResult] = useState(null)
+  const [explainError, setExplainError] = useState("")
+
+  const [reviewFilePath, setReviewFilePath] = useState("")
+  const [reviewing, setReviewing] = useState(false)
+  const [reviewResult, setReviewResult] = useState(null)
+  const [reviewError, setReviewError] = useState("")
+
+  const [refactorFilePath, setRefactorFilePath] = useState("")
+  const [refactoring, setRefactoring] = useState(false)
+  const [refactorExplanation, setRefactorExplanation] = useState("")
+  const [refactorError, setRefactorError] = useState("")
+
   useEffect(() => {
     let cancelled = false
 
@@ -78,6 +93,79 @@ function DevStudio() {
       setErrorMessage(generateError.message)
     } finally {
       setGenerating(false)
+    }
+  }
+
+  async function explainCode() {
+    if (!explainFilePath.trim()) {
+      setExplainError("Anna projektin sisäisen .py-tiedoston polku.")
+      return
+    }
+
+    setExplaining(true)
+    setExplainError("")
+    setExplainResult(null)
+
+    try {
+      const result = await apiPost("/python-explain", {
+        filePath: explainFilePath,
+      })
+
+      setExplainResult(result)
+    } catch (explainErr) {
+      setExplainError(explainErr.message)
+    } finally {
+      setExplaining(false)
+    }
+  }
+
+  async function reviewCode() {
+    if (!reviewFilePath.trim()) {
+      setReviewError("Anna projektin sisäisen .py-tiedoston polku.")
+      return
+    }
+
+    setReviewing(true)
+    setReviewError("")
+    setReviewResult(null)
+
+    try {
+      const result = await apiPost("/python-review", {
+        filePath: reviewFilePath,
+      })
+
+      setReviewResult(result)
+    } catch (reviewErr) {
+      setReviewError(reviewErr.message)
+    } finally {
+      setReviewing(false)
+    }
+  }
+
+  async function refactorCode() {
+    if (!refactorFilePath.trim()) {
+      setRefactorError("Anna projektin sisäisen .py-tiedoston polku.")
+      return
+    }
+
+    setRefactoring(true)
+    setRefactorError("")
+    setRefactorExplanation("")
+
+    try {
+      const draft = await apiPost("/python-drafts/refactor", {
+        filePath: refactorFilePath,
+      })
+
+      setDrafts(current => [draft, ...current])
+      setRefactorExplanation(
+        draft.explanation ||
+          "Uusi luonnos lisätty alle - ei muutosselitystä.",
+      )
+    } catch (refactorErr) {
+      setRefactorError(refactorErr.message)
+    } finally {
+      setRefactoring(false)
     }
   }
 
@@ -267,6 +355,230 @@ function DevStudio() {
           >
             {generating ? "Kirjoitetaan..." : "Luo koodi"}
           </button>
+        </div>
+      </section>
+
+      <section className="
+        rounded-2xl
+        border
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
+        p-5
+      ">
+        <h2 className="
+          text-xl
+          font-bold
+          text-[var(--wood-text)]
+        ">
+          Selitä olemassa oleva koodi
+        </h2>
+
+        <p className="mt-1 text-sm text-[var(--wood-muted)]">
+          Vain luku - ei muokkaa mitään. Anna projektin sisäisen
+          .py-tiedoston polku, esim. src/spacemonkey/spc_facade.py
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <input
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-[var(--wood-text)]
+            "
+            value={explainFilePath}
+            onChange={event => setExplainFilePath(event.target.value)}
+            placeholder="esim. spc.py"
+          />
+
+          <button
+            type="button"
+            className="
+              rounded-xl
+              bg-[var(--wood-accent)]
+              px-4
+              py-2
+              font-semibold
+              text-[var(--wood-bg)]
+              disabled:opacity-50
+            "
+            disabled={explaining}
+            onClick={explainCode}
+          >
+            {explaining ? "Selitetään..." : "Selitä"}
+          </button>
+
+          {explainError && (
+            <p className="text-sm text-red-300">{explainError}</p>
+          )}
+
+          {explainResult && (
+            <div className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-4
+              text-sm
+              whitespace-pre-wrap
+              text-[var(--wood-text)]
+            ">
+              {explainResult.explanation}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="
+        rounded-2xl
+        border
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
+        p-5
+      ">
+        <h2 className="
+          text-xl
+          font-bold
+          text-[var(--wood-text)]
+        ">
+          Katselmoi olemassa oleva koodi
+        </h2>
+
+        <p className="mt-1 text-sm text-[var(--wood-muted)]">
+          Vain luku - ei muokkaa mitään. AI antaa rakentavan
+          arvion koodista, esim. src/spacemonkey/security_guard.py
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <input
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-[var(--wood-text)]
+            "
+            value={reviewFilePath}
+            onChange={event => setReviewFilePath(event.target.value)}
+            placeholder="esim. spc.py"
+          />
+
+          <button
+            type="button"
+            className="
+              rounded-xl
+              bg-[var(--wood-accent)]
+              px-4
+              py-2
+              font-semibold
+              text-[var(--wood-bg)]
+              disabled:opacity-50
+            "
+            disabled={reviewing}
+            onClick={reviewCode}
+          >
+            {reviewing ? "Katselmoidaan..." : "Katselmoi"}
+          </button>
+
+          {reviewError && (
+            <p className="text-sm text-red-300">{reviewError}</p>
+          )}
+
+          {reviewResult && (
+            <div className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-4
+              text-sm
+              whitespace-pre-wrap
+              text-[var(--wood-text)]
+            ">
+              {reviewResult.review}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="
+        rounded-2xl
+        border
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
+        p-5
+      ">
+        <h2 className="
+          text-xl
+          font-bold
+          text-[var(--wood-text)]
+        ">
+          Refaktoroi olemassa oleva koodi
+        </h2>
+
+        <p className="mt-1 text-sm text-[var(--wood-muted)]">
+          AI kirjoittaa parannellun version tiedostosta uudeksi
+          luonnokseksi alle - ei koskaan ylikirjoita alkuperäistä
+          tiedostoa suoraan. Tarkista, hyväksy ja kirjoita luonnos
+          samalla tavalla kuin muutkin luonnokset.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <input
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-[var(--wood-text)]
+            "
+            value={refactorFilePath}
+            onChange={event => setRefactorFilePath(event.target.value)}
+            placeholder="esim. spc.py"
+          />
+
+          <button
+            type="button"
+            className="
+              rounded-xl
+              bg-[var(--wood-accent)]
+              px-4
+              py-2
+              font-semibold
+              text-[var(--wood-bg)]
+              disabled:opacity-50
+            "
+            disabled={refactoring}
+            onClick={refactorCode}
+          >
+            {refactoring ? "Refaktoroidaan..." : "Refaktoroi"}
+          </button>
+
+          {refactorError && (
+            <p className="text-sm text-red-300">{refactorError}</p>
+          )}
+
+          {refactorExplanation && (
+            <div className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-4
+              text-sm
+              whitespace-pre-wrap
+              text-[var(--wood-text)]
+            ">
+              {refactorExplanation}
+            </div>
+          )}
         </div>
       </section>
 
