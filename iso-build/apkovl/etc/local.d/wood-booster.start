@@ -1,0 +1,75 @@
+#!/bin/sh
+# Wood-Booster OS autostart: find our squashfs on the boot media, mount it,
+# and launch the bundled self-contained Python runtime against server.py.
+
+WB_SQUASHFS="wood-booster.squashfs"
+MNT_CD=/mnt/wb-cd
+MNT_APP=/mnt/wb-app
+
+mkdir -p "$MNT_CD" "$MNT_APP"
+
+find_source_dir() {
+	for d in /media/*; do
+		[ -f "$d/$WB_SQUASHFS" ] && { echo "$d"; return 0; }
+	done
+	for dev in /dev/sr0 /dev/sr1 /dev/cdrom /dev/disk/by-label/WOOD_BOOSTER_OS /dev/sda1 /dev/sdb1 /dev/sdc1; do
+		[ -e "$dev" ] || continue
+		if mount -t iso9660 -o ro "$dev" "$MNT_CD" 2>/dev/null || mount -o ro "$dev" "$MNT_CD" 2>/dev/null; then
+			if [ -f "$MNT_CD/$WB_SQUASHFS" ]; then
+				echo "$MNT_CD"
+				return 0
+			fi
+			umount "$MNT_CD" 2>/dev/null
+		fi
+	done
+	return 1
+}
+
+SRC_DIR=$(find_source_dir)
+if [ -z "$SRC_DIR" ]; then
+	echo "[Wood-Booster OS] VIRHE: wood-booster.squashfs ei loytynyt kaynnistysmedialta." > /dev/console
+	exit 1
+fi
+
+mount -t squashfs -o loop,ro "$SRC_DIR/$WB_SQUASHFS" "$MNT_APP"
+
+export PYTHONHOME="$MNT_APP/usr"
+export LD_LIBRARY_PATH="$MNT_APP/usr/lib:$MNT_APP/lib"
+
+# Live boot mounts the kernel modules image (modloop) and loads the NIC
+# driver in the sysinit runlevel, but "local" (default runlevel) isn't
+# guaranteed to wait for that to finish - so wait here for a real interface
+# to show up before requesting a DHCP lease on it.
+ifaces=""
+i=0
+while [ -z "$ifaces" ] && [ $i -lt 20 ]; do
+	ifaces=$(ls /sys/class/net 2>/dev/null | grep -v '^lo$')
+	[ -z "$ifaces" ] && sleep 1
+	i=$((i + 1))
+done
+
+for iface in $ifaces; do
+	ip link set "$iface" up 2>/dev/null
+	udhcpc -i "$iface" -n -q -t 5 -T 2 >/dev/null 2>&1
+done
+
+IP=""
+i=0
+while [ -z "$IP" ] && [ $i -lt 10 ]; do
+	IP=$(ip -4 addr show scope global 2>/dev/null | awk '/inet /{print $2}' | cut -d/ -f1 | head -n1)
+	[ -z "$IP" ] && sleep 1
+	i=$((i + 1))
+done
+[ -z "$IP" ] && IP="(ei loytynyt - tarkista verkkokaapeli/wifi)"
+
+BANNER="
+=== Wood-Booster OS ===
+Avaa selaimella TOISELLA laitteella samassa verkossa:
+  http://$IP:5000
+========================
+"
+printf '%s\n' "$BANNER" > /dev/console
+printf '%s\n' "$BANNER" >> /etc/motd
+
+cd "$MNT_APP/opt/wood-booster" || exit 1
+"$MNT_APP/usr/bin/python3.12" server.py > /var/log/wood-booster.log 2>&1 &

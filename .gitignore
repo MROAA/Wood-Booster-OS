@@ -103,3 +103,11 @@ versions/
 # =====================================
 
 server/data/*.json
+
+# =====================================
+# ISO build artifacts/inputs (downloaded Alpine ISO, squashfs, final .iso -
+# multi-hundred-MB, not source, regenerate via iso-build/build-wood-booster-iso.sh)
+# =====================================
+
+iso-build/.work/
+iso-build/out/
