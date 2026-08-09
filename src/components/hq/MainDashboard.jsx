@@ -4,6 +4,7 @@ import './MainDashboard.css';
 import AltrakoPage from '../../pages/Altrako.jsx';
 import SystemPulse from '../../pages/SystemPulse.jsx';
 import DevStudio from '../../pages/DevStudio.jsx';
+import BoosterverseDesktop from '../../pages/BoosterverseDesktop.jsx';
 
 export const MainDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -164,6 +165,11 @@ export const MainDashboard = () => {
             title="Dev Studio: Python-koodin luonti ja selitys"
             onClick={() => setActiveView('devstudio')}
           >🐍</button>
+          <button
+            className={`nav-btn ${activeView === 'boosterdesktop' ? 'active' : ''}`}
+            title="Boosterverse Desktop: tiedostonhallinta"
+            onClick={() => setActiveView('boosterdesktop')}
+          >🖥</button>
         </nav>
       </aside>
 
@@ -176,6 +182,8 @@ export const MainDashboard = () => {
           <SystemPulse />
         ) : activeView === 'devstudio' ? (
           <DevStudio />
+        ) : activeView === 'boosterdesktop' ? (
+          <BoosterverseDesktop />
         ) : (
           <>
         <header className="hq-header">
