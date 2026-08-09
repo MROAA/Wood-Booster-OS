@@ -1,0 +1,373 @@
+/* Windows 11 -tyylinen työpöytäkuori Boosterverse Desktopille.
+   Fontti- ja väripaletti jäljittelee Windows 11 Fluent-tyyliä
+   (tumma teema, pyöristetyt kulmat, acrylic-henkinen läpikuultavuus)
+   ilman lisensoituja Windows-resursseja. */
+
+.win-desktop {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 0px);
+  min-height: 640px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(60, 90, 160, 0.35), transparent 55%),
+    radial-gradient(circle at 80% 75%, rgba(30, 60, 120, 0.4), transparent 55%),
+    linear-gradient(160deg, #1c2a4a 0%, #0f1626 100%);
+  font-family: 'Segoe UI', system-ui, -apple-system, 'Inter', sans-serif;
+  color: #f2f4f8;
+  user-select: none;
+}
+
+/* Työpöytäkuvakkeet */
+.win-desktop-icons {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.win-desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 84px;
+  padding: 0.5rem 0.25rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #f2f4f8;
+  cursor: pointer;
+}
+
+.win-desktop-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.win-desktop-icon-glyph {
+  font-size: 2rem;
+}
+
+.win-desktop-icon-label {
+  font-size: 0.75rem;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Ikkuna */
+.win-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: rgba(32, 36, 48, 0.92);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.win-window.maximized {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: calc(100% - 52px) !important;
+  border-radius: 0;
+}
+
+.win-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem 0 0.85rem;
+  height: 40px;
+  background: rgba(20, 23, 32, 0.85);
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.win-titlebar-icon {
+  font-size: 1rem;
+}
+
+.win-titlebar-title {
+  flex-grow: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.win-titlebar-controls {
+  display: flex;
+}
+
+.win-titlebar-controls button {
+  width: 44px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  color: #f2f4f8;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.win-titlebar-controls button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.win-titlebar-controls button.win-close:hover {
+  background: #c42b1c;
+}
+
+.win-content {
+  flex-grow: 1;
+  overflow: hidden;
+  background: rgba(18, 20, 28, 0.6);
+}
+
+.win-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+}
+
+/* Start-valikko */
+.win-start-menu {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  background: rgba(32, 36, 48, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+  padding: 0.85rem;
+  z-index: 9000;
+}
+
+.win-start-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9aa4c0;
+  margin-bottom: 0.5rem;
+  padding: 0 0.35rem;
+}
+
+.win-start-app {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #f2f4f8;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.win-start-app:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.win-start-footer {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.35rem 0.1rem;
+  font-size: 0.7rem;
+  color: #7c88a8;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Tehtäväpalkki */
+.win-taskbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.75rem;
+  background: rgba(20, 23, 32, 0.82);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 8000;
+}
+
+.win-start-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #f2f4f8;
+}
+
+.win-start-button:hover,
+.win-start-button.active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.win-taskbar-apps {
+  display: flex;
+  gap: 0.4rem;
+  flex-grow: 1;
+}
+
+.win-taskbar-app {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #f2f4f8;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.win-taskbar-app.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-bottom: 2px solid #6ea8fe;
+}
+
+.win-taskbar-app:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.win-taskbar-clock {
+  font-size: 0.8rem;
+  padding: 0 0.5rem;
+  color: #dfe4f0;
+}
+
+/* Tiedostonhallinta-sovelluksen sisältö ikkunan sisällä */
+.explorer-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.explorer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.explorer-up-btn {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: #f2f4f8;
+  cursor: pointer;
+}
+
+.explorer-up-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.explorer-breadcrumb {
+  color: #9aa4c0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.explorer-panes {
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.explorer-pane-list {
+  flex: 1 1 45%;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.explorer-pane-preview {
+  flex: 1 1 55%;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+.explorer-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.explorer-entry {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #f2f4f8;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.explorer-entry.selected {
+  background: rgba(110, 168, 254, 0.18);
+}
+
+.explorer-entry:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.explorer-entry-size {
+  color: #7c88a8;
+  font-size: 0.7rem;
+}
+
+.explorer-hint {
+  font-size: 0.8rem;
+  color: #7c88a8;
+}
+
+.explorer-error {
+  font-size: 0.8rem;
+  color: #ff8a80;
+}
+
+.explorer-preview-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.explorer-preview-content {
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.65rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  max-height: 100%;
+  overflow-y: auto;
+}
