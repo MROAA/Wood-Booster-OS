@@ -1,7 +1,8 @@
 // src/components/hq/MainDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MainDashboard.css';
+import { apiGet } from '../../api/client.js';
 import AltrakoPage from '../../pages/Altrako.jsx';
 import SystemPulse from '../../pages/SystemPulse.jsx';
 import DevStudio from '../../pages/DevStudio.jsx';
@@ -12,6 +13,7 @@ export const MainDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [statusData, setStatusData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const chatInputRef = useRef(null);
 
   const GITGUARDIAN_BASE = 'http://localhost:8002/api/gitguardian';
   const SPACEMONKEY_BASE = 'http://localhost:8002/api/spacemonkey';
@@ -19,6 +21,8 @@ export const MainDashboard = () => {
   const [backupStatus, setBackupStatus] = useState('pending');
   const [backupMessage, setBackupMessage] = useState('Ladataan...');
   const [changeCount, setChangeCount] = useState(0);
+
+  const [spacemonkeyState, setSpacemonkeyState] = useState(null);
 
   const [chatMessages, setChatMessages] = useState([
     { sender: 'HQ System', text: 'Moduulit ladattu. Valmiina.', avatar: 'https://api.iconify.design/lucide:terminal.svg' },
@@ -66,6 +70,27 @@ export const MainDashboard = () => {
     const interval = setInterval(loadGitGuardianStatus, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const loadSpacemonkeyState = () => {
+    apiGet('/spacemonkey/state')
+      .then((res) => {
+        if (res?.success) {
+          setSpacemonkeyState(res.data);
+        }
+      })
+      .catch(() => setSpacemonkeyState(null));
+  };
+
+  useEffect(() => {
+    loadSpacemonkeyState();
+    const interval = setInterval(loadSpacemonkeyState, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const openSpacemonkeyChat = () => {
+    setActiveView('dashboard');
+    setTimeout(() => chatInputRef.current?.focus(), 0);
+  };
 
   const handleTriggerBackup = () => {
     setBackupMessage('Luodaan varmuuskopiota...');
@@ -202,11 +227,16 @@ export const MainDashboard = () => {
             </div>
           </div>
 
-          <div className="hq-card">
+          <div className="hq-card clickable" onClick={openSpacemonkeyChat}>
             <span className="card-icon">🧠</span>
             <div>
               <span className="card-label">Spacemonkey</span>
-              <strong className="card-val text-pulse-glow">aktiivinen</strong>
+              <strong className="card-val text-pulse-glow">
+                {spacemonkeyState?.persona?.status === 'active' ? 'aktiivinen' : spacemonkeyState ? spacemonkeyState.persona?.status : 'ei tavoitettavissa'}
+              </strong>
+              {spacemonkeyState?.cognitive?.nextAction && (
+                <span className="card-sub">{spacemonkeyState.cognitive.nextAction}</span>
+              )}
             </div>
           </div>
 
@@ -261,6 +291,7 @@ export const MainDashboard = () => {
           </div>
           <div className="hq-input-row">
             <input
+              ref={chatInputRef}
               type="text"
               className="hq-text-input"
               placeholder="Kirjoita komento tai kysymys agentille (esim. 'Analysoi hinta...')"
