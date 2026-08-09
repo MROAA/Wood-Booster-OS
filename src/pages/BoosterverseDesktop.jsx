@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
 import FileExplorerApp from '../components/desktop/FileExplorerApp.jsx';
 import TerminalApp from '../components/desktop/TerminalApp.jsx';
+import SystemPulse from './SystemPulse.jsx';
 import SpacemonkeyChatApp from '../components/desktop/SpacemonkeyChatApp.jsx';
 import './BoosterverseDesktop.css';
 
 const APPS = {
   explorer: { title: 'Tiedostonhallinta', icon: '📁' },
   terminal: { title: 'Pääte (fish)', icon: '💻' },
+  systempulse: { title: 'System Pulse', icon: '🛡' },
   spacemonkey: { title: 'Spacemonkey', icon: '🐒' },
 };
 
@@ -153,6 +155,10 @@ export default function BoosterverseDesktop() {
             <span className="win-desktop-icon-glyph">💻</span>
             <span className="win-desktop-icon-label">Pääte</span>
           </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('systempulse')}>
+            <span className="win-desktop-icon-glyph">🛡</span>
+            <span className="win-desktop-icon-label">System Pulse</span>
+          </button>
           <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkey')}>
             <span className="win-desktop-icon-glyph">🐒</span>
             <span className="win-desktop-icon-label">Spacemonkey</span>
@@ -181,6 +187,11 @@ export default function BoosterverseDesktop() {
                   (display:none) - piilotettu elementti mittautuisi 0x0:ksi
                   ja lähettäisi virheellisen koon päätteelle. */}
               <TerminalApp resizeSignal={w.minimized ? undefined : `${w.width}x${w.height}-${w.maximized}`} />
+            </div>
+          )}
+          {w.app === 'systempulse' && (
+            <div className="systempulse-app-wrapper">
+              <SystemPulse />
             </div>
           )}
           {w.app === 'spacemonkey' && <SpacemonkeyChatApp />}
