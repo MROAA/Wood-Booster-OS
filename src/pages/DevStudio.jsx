@@ -22,6 +22,11 @@ function DevStudio() {
 
   const [busyDraftId, setBusyDraftId] = useState(null)
 
+  const [explainFilePath, setExplainFilePath] = useState("")
+  const [explaining, setExplaining] = useState(false)
+  const [explainResult, setExplainResult] = useState(null)
+  const [explainError, setExplainError] = useState("")
+
   useEffect(() => {
     let cancelled = false
 
@@ -78,6 +83,29 @@ function DevStudio() {
       setErrorMessage(generateError.message)
     } finally {
       setGenerating(false)
+    }
+  }
+
+  async function explainCode() {
+    if (!explainFilePath.trim()) {
+      setExplainError("Anna projektin sisäisen .py-tiedoston polku.")
+      return
+    }
+
+    setExplaining(true)
+    setExplainError("")
+    setExplainResult(null)
+
+    try {
+      const result = await apiPost("/python-explain", {
+        filePath: explainFilePath,
+      })
+
+      setExplainResult(result)
+    } catch (explainErr) {
+      setExplainError(explainErr.message)
+    } finally {
+      setExplaining(false)
     }
   }
 
@@ -267,6 +295,80 @@ function DevStudio() {
           >
             {generating ? "Kirjoitetaan..." : "Luo koodi"}
           </button>
+        </div>
+      </section>
+
+      <section className="
+        rounded-2xl
+        border
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
+        p-5
+      ">
+        <h2 className="
+          text-xl
+          font-bold
+          text-[var(--wood-text)]
+        ">
+          Selitä olemassa oleva koodi
+        </h2>
+
+        <p className="mt-1 text-sm text-[var(--wood-muted)]">
+          Vain luku - ei muokkaa mitään. Anna projektin sisäisen
+          .py-tiedoston polku, esim. src/spacemonkey/spc_facade.py
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <input
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-[var(--wood-text)]
+            "
+            value={explainFilePath}
+            onChange={event => setExplainFilePath(event.target.value)}
+            placeholder="esim. spc.py"
+          />
+
+          <button
+            type="button"
+            className="
+              rounded-xl
+              bg-[var(--wood-accent)]
+              px-4
+              py-2
+              font-semibold
+              text-[var(--wood-bg)]
+              disabled:opacity-50
+            "
+            disabled={explaining}
+            onClick={explainCode}
+          >
+            {explaining ? "Selitetään..." : "Selitä"}
+          </button>
+
+          {explainError && (
+            <p className="text-sm text-red-300">{explainError}</p>
+          )}
+
+          {explainResult && (
+            <div className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-4
+              text-sm
+              whitespace-pre-wrap
+              text-[var(--wood-text)]
+            ">
+              {explainResult.explanation}
+            </div>
+          )}
         </div>
       </section>
 
