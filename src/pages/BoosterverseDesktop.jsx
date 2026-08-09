@@ -1,198 +1,282 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import WindowFrame from '../components/desktop/WindowFrame.jsx';
+import FileExplorerApp from '../components/desktop/FileExplorerApp.jsx';
+import TerminalApp from '../components/desktop/TerminalApp.jsx';
+import './BoosterverseDesktop.css';
 
-const DESKTOP_BASE = 'http://localhost:8002/api/desktop';
+const APPS = {
+  explorer: { title: 'Tiedostonhallinta', icon: '📁' },
+  terminal: { title: 'Pääte (fish)', icon: '💻' },
+};
 
-function formatSize(bytes) {
-  if (bytes === null || bytes === undefined) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+function createWindow(app, zIndex) {
+  return {
+    id: `${app}-${Date.now()}`,
+    app,
+    title: APPS[app].title,
+    icon: APPS[app].icon,
+    x: 140 + Math.round(Math.random() * 60),
+    y: 90 + Math.round(Math.random() * 40),
+    width: 760,
+    height: 500,
+    zIndex,
+    minimized: false,
+    maximized: false,
+  };
 }
 
 export default function BoosterverseDesktop() {
-  const [currentPath, setCurrentPath] = useState('');
-  const [entries, setEntries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [fileContent, setFileContent] = useState(null);
-  const [fileLoading, setFileLoading] = useState(false);
-
-  function loadDirectory(path) {
-    setLoading(true);
-    setError('');
-    setSelectedFile(null);
-    setFileContent(null);
-    fetch(`${DESKTOP_BASE}/list?path=${encodeURIComponent(path)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.detail) {
-          setError(data.detail);
-          setEntries([]);
-        } else {
-          setCurrentPath(data.path);
-          setEntries(data.entries);
-        }
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }
+  const [windows, setWindows] = useState(() => [createWindow('explorer', 1)]);
+  const [nextZ, setNextZ] = useState(2);
+  const [startOpen, setStartOpen] = useState(false);
+  const [clock, setClock] = useState(new Date());
+  const [search, setSearch] = useState('');
+  const [showDesktopIcons, setShowDesktopIcons] = useState(true);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const [contextMenu, setContextMenu] = useState(null);
+  const contextMenuRef = useRef(null);
+  const desktopRef = useRef(null);
+  const startButtonRef = useRef(null);
+  const [startMenuLeft, setStartMenuLeft] = useState(null);
 
   useEffect(() => {
-    loadDirectory('');
+    const interval = setInterval(() => setClock(new Date()), 30 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  function openEntry(entry) {
-    if (entry.type === 'dir') {
-      loadDirectory(entry.path);
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target)) {
+        setContextMenu(null);
+      }
+    }
+    if (contextMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [contextMenu]);
+
+  function focusWindow(id) {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, zIndex: nextZ, minimized: false } : w)));
+    setNextZ((z) => z + 1);
+  }
+
+  function moveWindow(id, x, y) {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, x, y } : w)));
+  }
+
+  function resizeWindow(id, width, height) {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, width, height } : w)));
+  }
+
+  function closeWindow(id) {
+    setWindows((prev) => prev.filter((w) => w.id !== id));
+  }
+
+  function minimizeWindow(id) {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, minimized: true } : w)));
+  }
+
+  function maximizeWindow(id) {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w)));
+  }
+
+  function minimizeAll() {
+    setWindows((prev) => prev.map((w) => ({ ...w, minimized: true })));
+    setStartOpen(false);
+  }
+
+  function openApp(app) {
+    setStartOpen(false);
+    setSearch('');
+    const existing = windows.find((w) => w.app === app);
+    if (existing) {
+      focusWindow(existing.id);
       return;
     }
-    setSelectedFile(entry);
-    setFileLoading(true);
-    setFileContent(null);
-    fetch(`${DESKTOP_BASE}/read?path=${encodeURIComponent(entry.path)}`)
-      .then((res) => res.json())
-      .then((data) => setFileContent(data))
-      .catch((err) => setFileContent({ readable: false, message: err.message }))
-      .finally(() => setFileLoading(false));
+    setWindows((prev) => [...prev, createWindow(app, nextZ)]);
+    setNextZ((z) => z + 1);
   }
 
-  function goUp() {
-    if (!currentPath) return;
-    const parts = currentPath.split('/');
-    parts.pop();
-    loadDirectory(parts.join('/'));
+  function handleDesktopContextMenu(e) {
+    e.preventDefault();
+    setStartOpen(false);
+    // Valikko asemoituu (position: absolute) suhteessa .win-desktop-
+    // konttiin, mutta clientX/clientY ovat koko selainikkunan koordinaatteja
+    // - .win-desktop ei ala näytön vasemmasta yläkulmasta (sivupalkki vie
+    // tilaa), joten offset pitää vähentää tai valikko ilmestyy väärään kohtaan.
+    const rect = e.currentTarget.getBoundingClientRect();
+    setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   }
 
-  const breadcrumbParts = currentPath ? currentPath.split('/') : [];
+  function handleRefresh() {
+    setRefreshCounter((c) => c + 1);
+    setContextMenu(null);
+  }
+
+  function toggleStart() {
+    setStartOpen((prev) => {
+      const next = !prev;
+      // Keskitetään Start-valikko oikeasti Start-napin päälle (ei koko
+      // ruudun keskelle) - napin sijainti riippuu tehtäväpalkin muiden
+      // kohteiden leveydestä, joten sitä ei voi tietää etukäteen CSS:llä.
+      if (next && startButtonRef.current && desktopRef.current) {
+        const btnRect = startButtonRef.current.getBoundingClientRect();
+        const deskRect = desktopRef.current.getBoundingClientRect();
+        setStartMenuLeft(btnRect.left + btnRect.width / 2 - deskRect.left);
+      }
+      return next;
+    });
+  }
+
+  const query = search.trim().toLowerCase();
+  const visibleApps = Object.entries(APPS).filter(([, app]) =>
+    app.title.toLowerCase().includes(query)
+  );
 
   return (
-    <div style={{ padding: '1.5rem', color: 'var(--wood-text)', maxWidth: '1100px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem' }}>
-        🖥 Boosterverse <span style={{ color: 'var(--wood-accent)' }}>Desktop</span>
-      </h1>
-      <p style={{ color: 'var(--wood-muted, #9ca3af)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-        Vain katselu - Wood-Booster-AI-projektikansio. Spacemonkey ei vielä siirrä tai poista mitään.
-      </p>
+    <div
+      ref={desktopRef}
+      className="win-desktop"
+      onMouseDown={() => setStartOpen(false)}
+      onContextMenu={handleDesktopContextMenu}
+    >
+      {showDesktopIcons && (
+        <div className="win-desktop-icons">
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('explorer')}>
+            <span className="win-desktop-icon-glyph">📁</span>
+            <span className="win-desktop-icon-label">Tiedostonhallinta</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('terminal')}>
+            <span className="win-desktop-icon-glyph">💻</span>
+            <span className="win-desktop-icon-label">Pääte</span>
+          </button>
+        </div>
+      )}
 
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <div
-          style={{
-            flex: '1 1 45%',
-            border: '1px solid var(--wood-border)',
-            borderRadius: '8px',
-            background: 'var(--wood-panel)',
-            padding: '0.75rem',
-            minHeight: '420px',
-          }}
+      {windows.map((w) => (
+        <WindowFrame
+          key={w.id}
+          win={w}
+          onFocus={() => focusWindow(w.id)}
+          onMove={(x, y) => moveWindow(w.id, x, y)}
+          onResize={(width, height) => resizeWindow(w.id, width, height)}
+          onClose={() => closeWindow(w.id)}
+          onMinimize={() => minimizeWindow(w.id)}
+          onMaximize={() => maximizeWindow(w.id)}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
-            <button
-              onClick={goUp}
-              disabled={!currentPath}
-              style={{
-                padding: '0.25rem 0.6rem',
-                borderRadius: '6px',
-                border: '1px solid var(--wood-border)',
-                background: 'transparent',
-                color: 'var(--wood-text)',
-                cursor: currentPath ? 'pointer' : 'default',
-                opacity: currentPath ? 1 : 0.4,
-              }}
-            >
-              ↑ Ylös
-            </button>
-            <span style={{ color: 'var(--wood-muted, #9ca3af)' }}>
-              /{breadcrumbParts.join(' / ')}
-            </span>
-          </div>
-
-          {loading && <p style={{ fontSize: '0.85rem' }}>Ladataan...</p>}
-          {error && <p style={{ fontSize: '0.85rem', color: '#c96f5c' }}>{error}</p>}
-
-          {!loading && !error && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-              {entries.map((entry) => (
-                <button
-                  key={entry.path}
-                  onClick={() => openEntry(entry)}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '0.35rem 0.5rem',
-                    borderRadius: '6px',
-                    border: 'none',
-                    background:
-                      selectedFile?.path === entry.path ? 'rgba(107, 127, 74, 0.15)' : 'transparent',
-                    color: 'var(--wood-text)',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  <span>
-                    {entry.type === 'dir' ? '📁' : '📄'} {entry.name}
-                  </span>
-                  <span style={{ color: 'var(--wood-muted, #9ca3af)', fontSize: '0.75rem' }}>
-                    {formatSize(entry.size)}
-                  </span>
-                </button>
-              ))}
-              {entries.length === 0 && (
-                <p style={{ fontSize: '0.85rem', color: 'var(--wood-muted, #9ca3af)' }}>
-                  Kansio on tyhjä.
-                </p>
-              )}
+          {w.app === 'explorer' && <FileExplorerApp refreshSignal={refreshCounter} />}
+          {w.app === 'terminal' && (
+            <div className="terminal-app-wrapper">
+              <div className="terminal-warning">
+                ⚠️ Oikea pääte - komennot suoritetaan oikeasti tällä koneella.
+              </div>
+              {/* Ei päivitetä resizeSignal-arvoa kun ikkuna on pienennetty
+                  (display:none) - piilotettu elementti mittautuisi 0x0:ksi
+                  ja lähettäisi virheellisen koon päätteelle. */}
+              <TerminalApp resizeSignal={w.minimized ? undefined : `${w.width}x${w.height}-${w.maximized}`} />
             </div>
           )}
+        </WindowFrame>
+      ))}
+
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="win-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button onClick={handleRefresh}>↻ Päivitä</button>
+          <button
+            onClick={() => {
+              setShowDesktopIcons((v) => !v);
+              setContextMenu(null);
+            }}
+          >
+            {showDesktopIcons ? '⬚ Piilota työpöydän kuvakkeet' : '⬚ Näytä työpöydän kuvakkeet'}
+          </button>
+          <button className="disabled" disabled title="Tulossa myöhemmin">
+            🎨 Mukauta
+          </button>
+        </div>
+      )}
+
+      {startOpen && (
+        <div
+          className="win-start-menu"
+          style={startMenuLeft !== null ? { left: startMenuLeft } : undefined}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <img
+            src="/branding/wood-booster-banner.jpg"
+            alt="Wood-Booster - Puun ehdoilla"
+            className="win-start-banner"
+          />
+          <input
+            type="text"
+            className="win-start-search"
+            placeholder="Hae sovelluksia"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+          />
+
+          <div className="win-start-section-label">Kiinnitetyt</div>
+          <div className="win-start-grid">
+            {visibleApps.map(([key, app]) => (
+              <button key={key} className="win-start-tile" onClick={() => openApp(key)}>
+                <span className="win-start-tile-glyph">{app.icon}</span>
+                <span className="win-start-tile-label">{app.title}</span>
+              </button>
+            ))}
+            {visibleApps.length === 0 && (
+              <div className="win-start-empty">Ei tuloksia haulle "{search}".</div>
+            )}
+          </div>
+
+          <div className="win-start-footer-row">
+            <span className="win-start-footer">Vain katselu - Wood-Booster-AI-projektikansio.</span>
+            <button className="win-power-button" onClick={minimizeAll} title="Pienennä kaikki ikkunat">
+              ⏻
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="win-taskbar" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="win-taskbar-center">
+          <button
+            ref={startButtonRef}
+            className={`win-start-button ${startOpen ? 'active' : ''}`}
+            onClick={toggleStart}
+          >
+            🪟
+          </button>
+          <div className="win-taskbar-search" onClick={() => !startOpen && toggleStart()}>
+            🔍 <span>Hae</span>
+          </div>
+          <div className="win-taskbar-apps">
+            {windows.map((w) => (
+              <button
+                key={w.id}
+                className={`win-taskbar-app ${!w.minimized ? 'active' : ''}`}
+                onClick={() => (w.minimized ? focusWindow(w.id) : minimizeWindow(w.id))}
+              >
+                {w.icon} {w.title}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div
-          style={{
-            flex: '1 1 55%',
-            border: '1px solid var(--wood-border)',
-            borderRadius: '8px',
-            background: 'var(--wood-panel)',
-            padding: '0.75rem',
-            minHeight: '420px',
-          }}
-        >
-          {!selectedFile && (
-            <p style={{ fontSize: '0.85rem', color: 'var(--wood-muted, #9ca3af)' }}>
-              Valitse tiedosto vasemmalta esikatsellaksesi sen sisällön.
-            </p>
-          )}
-          {selectedFile && (
-            <>
-              <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-                {selectedFile.name}
-              </div>
-              {fileLoading && <p style={{ fontSize: '0.85rem' }}>Ladataan...</p>}
-              {!fileLoading && fileContent && !fileContent.readable && (
-                <p style={{ fontSize: '0.85rem', color: 'var(--wood-muted, #9ca3af)' }}>
-                  {fileContent.message}
-                </p>
-              )}
-              {!fileLoading && fileContent?.readable && (
-                <pre
-                  style={{
-                    fontSize: '0.8rem',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    maxHeight: '380px',
-                    overflowY: 'auto',
-                    background: 'var(--wood-bg)',
-                    padding: '0.75rem',
-                    borderRadius: '6px',
-                    border: '1px solid var(--wood-border)',
-                  }}
-                >
-                  {fileContent.content}
-                </pre>
-              )}
-            </>
-          )}
+        <div className="win-taskbar-tray">
+          <span className="win-tray-icon" title="Wi-Fi">📶</span>
+          <span className="win-tray-icon" title="Äänenvoimakkuus">🔊</span>
+          <span className="win-tray-icon" title="Akku">🔋</span>
+          <div className="win-taskbar-clock">
+            <div>{clock.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}</div>
+            <div className="win-taskbar-date">{clock.toLocaleDateString('fi-FI')}</div>
+          </div>
         </div>
       </div>
     </div>
