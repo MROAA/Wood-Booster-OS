@@ -26,6 +26,7 @@ import InvoiceTab from "./InvoiceTab"
 import FilesTab from "./project/FilesTab"
 import MediaStudioTab from "./MediaStudioTab"
 import SocialStudioTab from "./SocialStudioTab"
+import BlogStudioTab from "./BlogStudioTab"
 
 import ProjectStatusSummary from "./ProjectStatusSummary"
 
@@ -77,6 +78,12 @@ const secondaryTabs = [
     id: "social",
     label: "Somejulkaisu",
     icon: "◎",
+  },
+
+  {
+    id: "blog",
+    label: "Blogi",
+    icon: "✎",
   },
 
   {
@@ -419,6 +426,21 @@ function ProjectTabs({
         return (
 
           <SocialStudioTab
+
+            projectId={
+              project.id
+            }
+
+          />
+
+        )
+
+
+      case "blog":
+
+        return (
+
+          <BlogStudioTab
 
             projectId={
               project.id
