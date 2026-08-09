@@ -154,6 +154,12 @@ export default function createWordpressStudioRouter(prisma) {
 
         response.json(draft)
       } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
         console.error(error)
 
         response.status(500).json({
@@ -186,6 +192,12 @@ export default function createWordpressStudioRouter(prisma) {
 
         response.json(draft)
       } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
         console.error(error)
 
         response.status(500).json({
