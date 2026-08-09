@@ -106,6 +106,8 @@ import createPurchasesRouter from "./routes/purchases.js"
 import createConversationsRouter from "./routes/conversations.js"
 import createAIRouter from "./routes/ai.js"
 import createSpacemonkeyBrainStateRouter from "./routes/spacemonkeyBrainState.js"
+import createSpacemonkeyBrainwaveRouter from "./routes/spacemonkeyBrainwave.js"
+import createSpacemonkeyImpulseRouter from "./routes/spacemonkeyImpulse.js"
 import createFilesRouter from "./routes/files.js"
 import createMediaEditsRouter, {
   recoverStuckVideoJobs,
@@ -685,6 +687,16 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyBrainStateRouter()
+)
+
+app.use(
+  "/api",
+  createSpacemonkeyBrainwaveRouter()
+)
+
+app.use(
+  "/api",
+  createSpacemonkeyImpulseRouter()
 )
 
 app.use(
