@@ -21,6 +21,10 @@ import explainPythonCodeSkill from "./skills/explainPythonCodeSkill.js"
 
 import explainPythonCodeWorkflow from "./workflows/explainPythonCodeWorkflow.js"
 
+import reviewPythonCodeSkill from "./skills/reviewPythonCodeSkill.js"
+
+import reviewPythonCodeWorkflow from "./workflows/reviewPythonCodeWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -59,12 +63,20 @@ function registerPythonDeveloperPlugin({
         explainPythonCodeSkill,
     )
 
+    skillEngine.register(
+        reviewPythonCodeSkill,
+    )
+
     workflowEngine.register(
         writePythonCodeWorkflow,
     )
 
     workflowEngine.register(
         explainPythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        reviewPythonCodeWorkflow,
     )
 
     pluginManager.register(plugin)
