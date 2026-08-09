@@ -48,20 +48,13 @@ def build_reply(result: dict) -> str:
     return f"[{profile['primary_mode']}] {profile['tone_of_voice']}"
 
 
-def run_spacemonkey(command: str) -> dict:
-    """Jaettu polku ytimen läpi - käytetään sekä /process-reitiltä että
-    spacemonkey_chat.py:n oikeasta keskustelusta, jotta molemmat jakavat
-    saman tunnetilan sen sijaan että sillä olisi kaksi erillistä instanssia."""
-    result = _facade.process_text_prompt(command.strip())
-    return {
-        "status": result["status"],
-        "reply": build_reply(result),
-        "system": result["system"],
-    }
-
-
 @router.post("/process", response_model=CommandResponse)
 def process_spacemonkey_command(payload: CommandRequest):
     """Vie käyttäjän viestin oikean Spacemonkey-ytimen läpi (turvatarkistus,
     tunnetila, persoonallisuus) ja palauttaa sen todellisen reaktion."""
-    return CommandResponse(**run_spacemonkey(payload.command))
+    result = _facade.process_text_prompt(payload.command.strip())
+    return CommandResponse(
+        status=result["status"],
+        reply=build_reply(result),
+        system=result["system"],
+    )

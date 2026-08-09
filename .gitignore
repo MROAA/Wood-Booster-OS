@@ -103,4 +103,3 @@ versions/
 # =====================================
 
 server/data/*.json
-backend/data_store.json

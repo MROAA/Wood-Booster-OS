@@ -82,41 +82,6 @@ def list_directory(path: str = ""):
     return ListResponse(path=current_rel, entries=entries)
 
 
-MAX_SEARCH_RESULTS = 50
-MAX_SEARCH_SCAN = 20_000
-SKIP_DIR_NAMES = {"node_modules", ".git", "venv", "build", ".dart_tool", "__pycache__"}
-
-
-@router.get("/search", response_model=ListResponse)
-def search_files(q: str):
-    """Etsii tiedosto- ja kansionimiä koko sallitun kansion alta (rekursiivisesti).
-    Sama sandbox kuin list/read-reiteillä - ei koskaan ROOT_DIR:in ulkopuolelle."""
-    query = (q or "").strip().lower()
-    if not query:
-        return ListResponse(path="", entries=[])
-
-    matches: List[FileEntry] = []
-    scanned = 0
-    for dirpath, dirnames, filenames in os.walk(ROOT_DIR):
-        dirnames[:] = [d for d in dirnames if not d.startswith(".") and d not in SKIP_DIR_NAMES]
-        filenames = [f for f in filenames if not f.startswith(".")]
-        for name in dirnames + filenames:
-            scanned += 1
-            if scanned > MAX_SEARCH_SCAN or len(matches) >= MAX_SEARCH_RESULTS:
-                return ListResponse(path=query, entries=matches)
-            if query in name.lower():
-                full = os.path.join(dirpath, name)
-                is_dir = os.path.isdir(full)
-                try:
-                    size = None if is_dir else os.path.getsize(full)
-                except OSError:
-                    continue
-                rel = os.path.relpath(full, ROOT_DIR)
-                matches.append(FileEntry(name=name, path=rel, type="dir" if is_dir else "file", size=size))
-
-    return ListResponse(path=query, entries=matches)
-
-
 @router.get("/read", response_model=ReadResponse)
 def read_file(path: str):
     """Lukee tekstitiedoston sisällön esikatselua varten - vain luku, ei koskaan kirjoita."""
