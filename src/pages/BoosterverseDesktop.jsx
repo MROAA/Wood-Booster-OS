@@ -173,6 +173,11 @@ export default function BoosterverseDesktop() {
 
       {startOpen && (
         <div className="win-start-menu" onMouseDown={(e) => e.stopPropagation()}>
+          <img
+            src="/branding/wood-booster-banner.jpg"
+            alt="Wood-Booster - Puun ehdoilla"
+            className="win-start-banner"
+          />
           <input
             type="text"
             className="win-start-search"
