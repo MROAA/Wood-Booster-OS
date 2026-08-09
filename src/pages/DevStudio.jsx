@@ -32,6 +32,11 @@ function DevStudio() {
   const [reviewResult, setReviewResult] = useState(null)
   const [reviewError, setReviewError] = useState("")
 
+  const [refactorFilePath, setRefactorFilePath] = useState("")
+  const [refactoring, setRefactoring] = useState(false)
+  const [refactorExplanation, setRefactorExplanation] = useState("")
+  const [refactorError, setRefactorError] = useState("")
+
   useEffect(() => {
     let cancelled = false
 
@@ -134,6 +139,33 @@ function DevStudio() {
       setReviewError(reviewErr.message)
     } finally {
       setReviewing(false)
+    }
+  }
+
+  async function refactorCode() {
+    if (!refactorFilePath.trim()) {
+      setRefactorError("Anna projektin sisäisen .py-tiedoston polku.")
+      return
+    }
+
+    setRefactoring(true)
+    setRefactorError("")
+    setRefactorExplanation("")
+
+    try {
+      const draft = await apiPost("/python-drafts/refactor", {
+        filePath: refactorFilePath,
+      })
+
+      setDrafts(current => [draft, ...current])
+      setRefactorExplanation(
+        draft.explanation ||
+          "Uusi luonnos lisätty alle - ei muutosselitystä.",
+      )
+    } catch (refactorErr) {
+      setRefactorError(refactorErr.message)
+    } finally {
+      setRefactoring(false)
     }
   }
 
@@ -469,6 +501,82 @@ function DevStudio() {
               text-[var(--wood-text)]
             ">
               {reviewResult.review}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="
+        rounded-2xl
+        border
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
+        p-5
+      ">
+        <h2 className="
+          text-xl
+          font-bold
+          text-[var(--wood-text)]
+        ">
+          Refaktoroi olemassa oleva koodi
+        </h2>
+
+        <p className="mt-1 text-sm text-[var(--wood-muted)]">
+          AI kirjoittaa parannellun version tiedostosta uudeksi
+          luonnokseksi alle - ei koskaan ylikirjoita alkuperäistä
+          tiedostoa suoraan. Tarkista, hyväksy ja kirjoita luonnos
+          samalla tavalla kuin muutkin luonnokset.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <input
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-[var(--wood-text)]
+            "
+            value={refactorFilePath}
+            onChange={event => setRefactorFilePath(event.target.value)}
+            placeholder="esim. spc.py"
+          />
+
+          <button
+            type="button"
+            className="
+              rounded-xl
+              bg-[var(--wood-accent)]
+              px-4
+              py-2
+              font-semibold
+              text-[var(--wood-bg)]
+              disabled:opacity-50
+            "
+            disabled={refactoring}
+            onClick={refactorCode}
+          >
+            {refactoring ? "Refaktoroidaan..." : "Refaktoroi"}
+          </button>
+
+          {refactorError && (
+            <p className="text-sm text-red-300">{refactorError}</p>
+          )}
+
+          {refactorExplanation && (
+            <div className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-4
+              text-sm
+              whitespace-pre-wrap
+              text-[var(--wood-text)]
+            ">
+              {refactorExplanation}
             </div>
           )}
         </div>
