@@ -6,6 +6,7 @@ from backend.modules.data_layer import router as data_router
 from backend.modules.constitution_guard import ConstitutionGuardMiddleware
 from backend.modules.spacemonkey_alter_ego import router as altrako_router
 from backend.modules.git_guardian import router as gitguardian_router
+from backend.modules.git_guardian_scheduler import router as gitguardian_scheduler_router, start_autonomous_loop
 from backend.modules.spacemonkey_core import router as spacemonkey_router
 
 app = FastAPI(
@@ -25,9 +26,17 @@ app.add_middleware(
 app.include_router(pulse_router, prefix="/api/pulse", tags=["System Pulse & Version Control"])
 app.include_router(data_router, prefix="/api/data", tags=["Data Layer"])
 app.include_router(gitguardian_router, prefix="/api/gitguardian", tags=["Git Guardian"])
+app.include_router(gitguardian_scheduler_router, prefix="/api/gitguardian", tags=["Git Guardian"])
 app.include_router(spacemonkey_router, prefix="/api/spacemonkey", tags=["Spacemonkey Core"])
 app.include_router(altrako_router, prefix="/api/altrako", tags=["Altrako"])
 app.add_middleware(ParanoiaShieldMiddleware)
+
+
+@app.on_event("startup")
+async def _start_git_guardian_autonomous():
+    start_autonomous_loop()
+
+
 @app.get("/")
 def read_root():
     return {"status": "online", "system": "Wood Booster HQ Python Core Engine"}
