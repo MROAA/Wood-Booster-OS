@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import './MainDashboard.css';
 import AltrakoPage from '../../pages/Altrako.jsx';
 import SystemPulse from '../../pages/SystemPulse.jsx';
+import DevStudio from '../../pages/DevStudio.jsx';
 
 export const MainDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -158,6 +159,11 @@ export const MainDashboard = () => {
             title="System Pulse: järjestelmän ydin ja rytmi"
             onClick={() => setActiveView('systempulse')}
           >⚙️</button>
+          <button
+            className={`nav-btn ${activeView === 'devstudio' ? 'active' : ''}`}
+            title="Dev Studio: Python-koodin luonti ja selitys"
+            onClick={() => setActiveView('devstudio')}
+          >🐍</button>
         </nav>
       </aside>
 
@@ -168,6 +174,8 @@ export const MainDashboard = () => {
           <AltrakoPage />
         ) : activeView === 'systempulse' ? (
           <SystemPulse />
+        ) : activeView === 'devstudio' ? (
+          <DevStudio />
         ) : (
           <>
         <header className="hq-header">
