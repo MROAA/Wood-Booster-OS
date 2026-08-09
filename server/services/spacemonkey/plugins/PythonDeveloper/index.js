@@ -29,6 +29,10 @@ import refactorPythonCodeSkill from "./skills/refactorPythonCodeSkill.js"
 
 import refactorPythonCodeWorkflow from "./workflows/refactorPythonCodeWorkflow.js"
 
+import debugPythonCodeSkill from "./skills/debugPythonCodeSkill.js"
+
+import debugPythonCodeWorkflow from "./workflows/debugPythonCodeWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -75,6 +79,10 @@ function registerPythonDeveloperPlugin({
         refactorPythonCodeSkill,
     )
 
+    skillEngine.register(
+        debugPythonCodeSkill,
+    )
+
     workflowEngine.register(
         writePythonCodeWorkflow,
     )
@@ -89,6 +97,10 @@ function registerPythonDeveloperPlugin({
 
     workflowEngine.register(
         refactorPythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        debugPythonCodeWorkflow,
     )
 
     pluginManager.register(plugin)
