@@ -37,6 +37,12 @@ function DevStudio() {
   const [refactorExplanation, setRefactorExplanation] = useState("")
   const [refactorError, setRefactorError] = useState("")
 
+  const [debugFilePath, setDebugFilePath] = useState("")
+  const [debugErrorMessage, setDebugErrorMessage] = useState("")
+  const [debugging, setDebugging] = useState(false)
+  const [debugDiagnosis, setDebugDiagnosis] = useState("")
+  const [debugError, setDebugError] = useState("")
+
   useEffect(() => {
     let cancelled = false
 
@@ -166,6 +172,34 @@ function DevStudio() {
       setRefactorError(refactorErr.message)
     } finally {
       setRefactoring(false)
+    }
+  }
+
+  async function debugCode() {
+    if (!debugFilePath.trim()) {
+      setDebugError("Anna projektin sisäisen .py-tiedoston polku.")
+      return
+    }
+
+    setDebugging(true)
+    setDebugError("")
+    setDebugDiagnosis("")
+
+    try {
+      const draft = await apiPost("/python-drafts/debug", {
+        filePath: debugFilePath,
+        errorMessage: debugErrorMessage,
+      })
+
+      setDrafts(current => [draft, ...current])
+      setDebugDiagnosis(
+        draft.diagnosis ||
+          "Uusi luonnos lisätty alle - ei diagnoosia.",
+      )
+    } catch (debugErr) {
+      setDebugError(debugErr.message)
+    } finally {
+      setDebugging(false)
     }
   }
 
@@ -577,6 +611,98 @@ function DevStudio() {
               text-[var(--wood-text)]
             ">
               {refactorExplanation}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="
+        rounded-2xl
+        border
+        border-[var(--wood-border)]
+        bg-[var(--wood-panel)]
+        p-5
+      ">
+        <h2 className="
+          text-xl
+          font-bold
+          text-[var(--wood-text)]
+        ">
+          Debugaa olemassa oleva koodi
+        </h2>
+
+        <p className="mt-1 text-sm text-[var(--wood-muted)]">
+          AI etsii todennäköisen syyn ja kirjoittaa korjatun version
+          uudeksi luonnokseksi alle - ei koskaan aja koodia eikä
+          ylikirjoita alkuperäistä tiedostoa suoraan. Virheilmoitus
+          on valinnainen, mutta auttaa AI:ta huomattavasti.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <input
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-[var(--wood-text)]
+            "
+            value={debugFilePath}
+            onChange={event => setDebugFilePath(event.target.value)}
+            placeholder="esim. spc.py"
+          />
+
+          <textarea
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-[var(--wood-text)]
+            "
+            rows={3}
+            value={debugErrorMessage}
+            onChange={event => setDebugErrorMessage(event.target.value)}
+            placeholder="Liitä virheilmoitus tai kuvaile ongelma (valinnainen)"
+          />
+
+          <button
+            type="button"
+            className="
+              rounded-xl
+              bg-[var(--wood-accent)]
+              px-4
+              py-2
+              font-semibold
+              text-[var(--wood-bg)]
+              disabled:opacity-50
+            "
+            disabled={debugging}
+            onClick={debugCode}
+          >
+            {debugging ? "Debugataan..." : "Debugaa"}
+          </button>
+
+          {debugError && (
+            <p className="text-sm text-red-300">{debugError}</p>
+          )}
+
+          {debugDiagnosis && (
+            <div className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-4
+              text-sm
+              whitespace-pre-wrap
+              text-[var(--wood-text)]
+            ">
+              {debugDiagnosis}
             </div>
           )}
         </div>
