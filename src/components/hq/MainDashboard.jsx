@@ -3,6 +3,16 @@ import React, { useState, useEffect } from 'react';
 import './MainDashboard.css';
 import AltrakoPage from '../../pages/Altrako.jsx';
 
+const MODE_SENDER = {
+  spacemonkey: 'Spacemonkey',
+  altrako: 'Altrako',
+  council: 'Council (Spacemonkey + Altrako)',
+};
+
+const WELCOME_MESSAGES = [
+  { sender: 'HQ System', text: 'Moduulit ladattu. Valmiina.', avatar: 'https://api.iconify.design/lucide:terminal.svg' },
+];
+
 export const MainDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [statusData, setStatusData] = useState(null);
@@ -15,12 +25,29 @@ export const MainDashboard = () => {
   const [backupMessage, setBackupMessage] = useState('Ladataan...');
   const [changeCount, setChangeCount] = useState(0);
 
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'HQ System', text: 'Moduulit ladattu. Valmiina.', avatar: 'https://api.iconify.design/lucide:terminal.svg' },
-    { sender: 'System Pulse', text: 'Kaikki järjestelmät vihreällä. Viive 12ms.', avatar: 'https://api.iconify.design/lucide:activity.svg' },
-    { sender: 'Spacemonkey', text: 'Yo! Kaikki järjestelmät rullaavat timmissä kunnossa.', avatar: 'https://api.iconify.design/lucide:bot.svg' },
-  ]);
+  const [chatMessages, setChatMessages] = useState(WELCOME_MESSAGES);
   const [currentInput, setCurrentInput] = useState('');
+
+  useEffect(() => {
+    fetch(`${CHAT_BASE}/history?limit=50`)
+      .then((res) => res.json())
+      .then((data) => {
+        const history = data.history || [];
+        if (history.length === 0) {
+          return;
+        }
+        const restored = history.flatMap((entry) => [
+          { sender: 'User', text: entry.message, avatar: '/fisherman-logo.png' },
+          {
+            sender: MODE_SENDER[entry.mode] || 'Spacemonkey',
+            text: entry.reply,
+            avatar: '/spacemonkey-avatar.png',
+          },
+        ]);
+        setChatMessages(restored);
+      })
+      .catch((err) => console.error('Keskusteluhistorian lataus epäonnistui:', err));
+  }, []);
 
   const loadGitGuardianStatus = () => {
     fetch(`${GITGUARDIAN_BASE}/status`)
@@ -90,12 +117,6 @@ export const MainDashboard = () => {
         setBackupStatus('error');
         setBackupMessage('Virhe varmuuskopioinnissa');
       });
-  };
-
-  const MODE_SENDER = {
-    spacemonkey: 'Spacemonkey',
-    altrako: 'Altrako',
-    council: 'Council (Spacemonkey + Altrako)',
   };
 
   const handleSendMessage = () => {
