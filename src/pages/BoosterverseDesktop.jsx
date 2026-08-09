@@ -35,6 +35,9 @@ export default function BoosterverseDesktop() {
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [contextMenu, setContextMenu] = useState(null);
   const contextMenuRef = useRef(null);
+  const desktopRef = useRef(null);
+  const startButtonRef = useRef(null);
+  const [startMenuLeft, setStartMenuLeft] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(() => setClock(new Date()), 30 * 1000);
@@ -98,12 +101,32 @@ export default function BoosterverseDesktop() {
   function handleDesktopContextMenu(e) {
     e.preventDefault();
     setStartOpen(false);
-    setContextMenu({ x: e.clientX, y: e.clientY });
+    // Valikko asemoituu (position: absolute) suhteessa .win-desktop-
+    // konttiin, mutta clientX/clientY ovat koko selainikkunan koordinaatteja
+    // - .win-desktop ei ala näytön vasemmasta yläkulmasta (sivupalkki vie
+    // tilaa), joten offset pitää vähentää tai valikko ilmestyy väärään kohtaan.
+    const rect = e.currentTarget.getBoundingClientRect();
+    setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   }
 
   function handleRefresh() {
     setRefreshCounter((c) => c + 1);
     setContextMenu(null);
+  }
+
+  function toggleStart() {
+    setStartOpen((prev) => {
+      const next = !prev;
+      // Keskitetään Start-valikko oikeasti Start-napin päälle (ei koko
+      // ruudun keskelle) - napin sijainti riippuu tehtäväpalkin muiden
+      // kohteiden leveydestä, joten sitä ei voi tietää etukäteen CSS:llä.
+      if (next && startButtonRef.current && desktopRef.current) {
+        const btnRect = startButtonRef.current.getBoundingClientRect();
+        const deskRect = desktopRef.current.getBoundingClientRect();
+        setStartMenuLeft(btnRect.left + btnRect.width / 2 - deskRect.left);
+      }
+      return next;
+    });
   }
 
   const query = search.trim().toLowerCase();
@@ -112,7 +135,12 @@ export default function BoosterverseDesktop() {
   );
 
   return (
-    <div className="win-desktop" onMouseDown={() => setStartOpen(false)} onContextMenu={handleDesktopContextMenu}>
+    <div
+      ref={desktopRef}
+      className="win-desktop"
+      onMouseDown={() => setStartOpen(false)}
+      onContextMenu={handleDesktopContextMenu}
+    >
       {showDesktopIcons && (
         <div className="win-desktop-icons">
           <button className="win-desktop-icon" onDoubleClick={() => openApp('explorer')}>
@@ -143,7 +171,10 @@ export default function BoosterverseDesktop() {
               <div className="terminal-warning">
                 ⚠️ Oikea pääte - komennot suoritetaan oikeasti tällä koneella.
               </div>
-              <TerminalApp resizeSignal={`${w.width}x${w.height}-${w.maximized}-${w.minimized}`} />
+              {/* Ei päivitetä resizeSignal-arvoa kun ikkuna on pienennetty
+                  (display:none) - piilotettu elementti mittautuisi 0x0:ksi
+                  ja lähettäisi virheellisen koon päätteelle. */}
+              <TerminalApp resizeSignal={w.minimized ? undefined : `${w.width}x${w.height}-${w.maximized}`} />
             </div>
           )}
         </WindowFrame>
@@ -172,7 +203,11 @@ export default function BoosterverseDesktop() {
       )}
 
       {startOpen && (
-        <div className="win-start-menu" onMouseDown={(e) => e.stopPropagation()}>
+        <div
+          className="win-start-menu"
+          style={startMenuLeft !== null ? { left: startMenuLeft } : undefined}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <img
             src="/branding/wood-booster-banner.jpg"
             alt="Wood-Booster - Puun ehdoilla"
@@ -212,12 +247,13 @@ export default function BoosterverseDesktop() {
       <div className="win-taskbar" onMouseDown={(e) => e.stopPropagation()}>
         <div className="win-taskbar-center">
           <button
+            ref={startButtonRef}
             className={`win-start-button ${startOpen ? 'active' : ''}`}
-            onClick={() => setStartOpen((v) => !v)}
+            onClick={toggleStart}
           >
             🪟
           </button>
-          <div className="win-taskbar-search" onClick={() => setStartOpen(true)}>
+          <div className="win-taskbar-search" onClick={() => !startOpen && toggleStart()}>
             🔍 <span>Hae</span>
           </div>
           <div className="win-taskbar-apps">

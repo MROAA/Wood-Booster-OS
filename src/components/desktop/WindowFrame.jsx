@@ -14,8 +14,10 @@ function startDrag(e, onDelta) {
 }
 
 export default function WindowFrame({ win, onFocus, onMove, onResize, onClose, onMinimize, onMaximize, children }) {
-  if (win.minimized) return null;
-
+  // display:none piilottaa ikkunan MUTTA pitää sen Reactin puussa mukana -
+  // tarkoituksella, jotta pienentäminen ei tapa esim. päätteen kuoriprosessia
+  // tai nollaa tiedostonhallinnan sijaintia. Oikea ikkuna pysyy hengissä
+  // taustalla, kuten oikeassa käyttöjärjestelmässä.
   const originX = win.x;
   const originY = win.y;
   const originW = win.width;
@@ -33,14 +35,16 @@ export default function WindowFrame({ win, onFocus, onMove, onResize, onClose, o
     startDrag(e, (dx, dy) => onResize(Math.max(360, originW + dx), Math.max(240, originH + dy)));
   }
 
+  const style = win.minimized
+    ? { display: 'none' }
+    : win.maximized
+      ? { zIndex: win.zIndex }
+      : { left: win.x, top: win.y, width: win.width, height: win.height, zIndex: win.zIndex };
+
   return (
     <div
       className={`win-window ${win.maximized ? 'maximized' : ''}`}
-      style={
-        win.maximized
-          ? { zIndex: win.zIndex }
-          : { left: win.x, top: win.y, width: win.width, height: win.height, zIndex: win.zIndex }
-      }
+      style={style}
       onMouseDown={onFocus}
     >
       <div className="win-titlebar" onMouseDown={handleTitleMouseDown} onDoubleClick={onMaximize}>

@@ -17,7 +17,11 @@ Dependencies:
 
 Turvallisuus:
     - Kuunnellaan VAIN 127.0.0.1 (backend/main.py).
-    - CORS rajattu localhost-origineihin (backend/main.py).
+    - HUOM: Starletten CORSMiddleware EI koske WebSocket-yhteyksiä
+      lainkaan (se ohittaa kaiken paitsi scope["type"] == "http") -
+      backend/main.py:n CORS-rajaus ei siis suojaa tätä reittiä.
+      Origin tarkistetaan siksi manuaalisesti täällä, ennen kuin
+      yhteys hyväksytään tai mitään kuorta käynnistetään.
     - Työhakemisto asetetaan Wood-Booster-AI-projektikansioon käynnistyessä
       (sama lähtöpiste kuin tiedostonhallinnalla), mutta käyttäjä voi
       tietysti "cd" minne tahansa - se on juuri sitä mitä oikea pääte
@@ -30,6 +34,7 @@ import asyncio
 import fcntl
 import os
 import pty
+import re
 import shutil
 import struct
 import termios
@@ -40,6 +45,17 @@ router = APIRouter()
 PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..")
 )
+
+ALLOWED_ORIGIN = re.compile(r"^https?://(localhost|127\.0\.0\.1):\d+$")
+
+
+def is_allowed_origin(websocket: WebSocket) -> bool:
+    """CORSMiddleware ei tarkista WebSocket-yhteyksiä (ks. tiedoston
+    yläosan huomautus) - tehdään sama origin-tarkistus tässä käsin.
+    Puuttuva Origin-header (esim. suora websocket-työkalu, ei selain)
+    hylätään myös - vain oikea selainyhteys localhostilta sallitaan."""
+    origin = websocket.headers.get("origin")
+    return bool(origin) and bool(ALLOWED_ORIGIN.match(origin))
 
 
 def resolve_shell() -> str:
@@ -59,6 +75,12 @@ def set_winsize(fd: int, rows: int, cols: int):
 
 @router.websocket("/terminal")
 async def terminal_ws(websocket: WebSocket):
+    if not is_allowed_origin(websocket):
+        # Hylätään ENNEN accept()-kutsua - yhteys ei koskaan avaudu,
+        # eikä mitään kuorta käynnistetä.
+        await websocket.close(code=4403)
+        return
+
     await websocket.accept()
 
     shell = resolve_shell()
