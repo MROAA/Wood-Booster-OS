@@ -3,9 +3,9 @@ const OLLAMA_URL =
   "http://localhost:11434"
 
 const DEFAULT_MODEL =
-  process.env.PYTHON_OLLAMA_MODEL ||
+  process.env.FINNISH_CONTENT_MODEL ||
   process.env.OLLAMA_MODEL ||
-  "qwen2.5:7b"
+  "kahnwong/poro-2:8b-it"
 
 function buildSystemPrompt() {
   return (
