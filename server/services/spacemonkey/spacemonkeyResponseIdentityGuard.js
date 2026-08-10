@@ -201,11 +201,11 @@ function validateSpacemonkeyIdentityResponse({
 
   const normalized =
 
-    normalizeIdentity({
+    normalizeIdentity(
 
       answer,
 
-    })
+    )
 
 
 

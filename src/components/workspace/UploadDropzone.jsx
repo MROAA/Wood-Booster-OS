@@ -48,6 +48,7 @@ function UploadDropzone({ folderId, onUploaded }) {
   const handleDrop = useCallback(
     (e) => {
       e.preventDefault();
+      e.stopPropagation();
       setIsDragging(false);
       const files = Array.from(e.dataTransfer.files || []);
       files.forEach(uploadFile);
@@ -69,9 +70,13 @@ function UploadDropzone({ folderId, onUploaded }) {
       <section
         onDragOver={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           setIsDragging(true);
         }}
-        onDragLeave={() => setIsDragging(false)}
+        onDragLeave={(e) => {
+          e.stopPropagation();
+          setIsDragging(false);
+        }}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
         className={`

@@ -127,6 +127,32 @@ h1,
 
 
 
+.wood-scroll {
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--wood-border) transparent;
+
+}
+
+.wood-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wood-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wood-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--wood-border);
+  border-radius: 999px;
+}
+
+.wood-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--wood-accent);
+}
+
+
+
 .page-title {
 
   font-size:

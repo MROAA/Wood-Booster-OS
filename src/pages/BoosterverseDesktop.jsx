@@ -1,21 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
-import FileExplorerApp from '../components/desktop/FileExplorerApp.jsx';
 import TerminalApp from '../components/desktop/TerminalApp.jsx';
+import VirtualWorkspacePanel from '../components/workspace/VirtualWorkspacePanel.jsx';
 import Projects from './Projects.jsx';
 import Settings from './Settings.jsx';
 import SystemPulse from './SystemPulse.jsx';
 import SpacemonkeyChat from './SpacemonkeyChat.jsx';
+import Knowledge from './Knowledge.jsx';
+import KnowledgeUpload from './KnowledgeUpload.jsx';
+import Memory from './Memory.jsx';
+import SpacemonkeyBrain from './SpacemonkeyBrain.jsx';
 import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
+const WORKSPACE_API = 'http://127.0.0.1:8002/api/workspace';
+
 const APPS = {
-  explorer: { title: 'Tiedostonhallinta', icon: '📁', component: FileExplorerApp, defaultWidth: 760, defaultHeight: 500 },
+  explorer: { title: 'Tiedostonhallinta', icon: '📁', component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
   terminal: { title: 'Pääte (fish)', icon: '💻', component: TerminalApp, defaultWidth: 760, defaultHeight: 500 },
   projects: { title: 'Projektit', icon: '📁', component: Projects, defaultWidth: 800, defaultHeight: 560 },
   spacemonkey: { title: 'Spacemonkey', icon: '🐒', component: SpacemonkeyChat, defaultWidth: 520, defaultHeight: 600 },
   systempulse: { title: 'System Pulse', icon: '🧠', component: SystemPulse, defaultWidth: 700, defaultHeight: 650 },
   gitguardian: { title: 'Git Guardian', icon: '🛡', component: GitGuardianCard, defaultWidth: 480, defaultHeight: 520 },
+  knowledge: { title: 'Knowledge', icon: '◌', component: Knowledge, defaultWidth: 820, defaultHeight: 620 },
+  knowledgeupload: { title: 'Tiedostojen lataus', icon: '📥', component: KnowledgeUpload, defaultWidth: 560, defaultHeight: 520 },
+  memory: { title: 'Memory', icon: '◈', component: Memory, defaultWidth: 780, defaultHeight: 620 },
+  spacemonkeybrain: { title: 'Spacemonkey Brain', icon: '⬡', component: SpacemonkeyBrain, defaultWidth: 660, defaultHeight: 560 },
   settings: { title: 'Asetukset', icon: '⚙', component: Settings, defaultWidth: 700, defaultHeight: 600 },
 };
 
@@ -36,8 +46,8 @@ function createWindow(app, zIndex) {
 }
 
 export default function BoosterverseDesktop({ onExit }) {
-  const [windows, setWindows] = useState(() => [createWindow('explorer', 1)]);
-  const [nextZ, setNextZ] = useState(2);
+  const [windows, setWindows] = useState(() => []);
+  const [nextZ, setNextZ] = useState(1);
   const [startOpen, setStartOpen] = useState(false);
   const [clock, setClock] = useState(new Date());
   const [search, setSearch] = useState('');
@@ -48,6 +58,14 @@ export default function BoosterverseDesktop({ onExit }) {
   const desktopRef = useRef(null);
   const startButtonRef = useRef(null);
   const [startMenuLeft, setStartMenuLeft] = useState(null);
+  const [isDesktopDragging, setIsDesktopDragging] = useState(false);
+  const [dropFeedback, setDropFeedback] = useState(null);
+
+  useEffect(() => {
+    if (!dropFeedback) return;
+    const timeout = setTimeout(() => setDropFeedback(null), 3500);
+    return () => clearTimeout(timeout);
+  }, [dropFeedback]);
 
   useEffect(() => {
     const interval = setInterval(() => setClock(new Date()), 30 * 1000);
@@ -124,6 +142,55 @@ export default function BoosterverseDesktop({ onExit }) {
     setContextMenu(null);
   }
 
+  function handleDesktopDragOver(e) {
+    e.preventDefault();
+    setIsDesktopDragging(true);
+  }
+
+  function handleDesktopDragLeave(e) {
+    // Työpöytä sisältää kuvakkeita, ikkunoita ja tehtäväpalkin - hiiri
+    // liikkuu jatkuvasti lapsielementtien rajojen yli raahauksen aikana,
+    // mikä laukaisisi dragLeaven turhaan ellei tarkisteta ettei kohde ole
+    // yhä työpöydän sisällä.
+    if (desktopRef.current && desktopRef.current.contains(e.relatedTarget)) {
+      return;
+    }
+    setIsDesktopDragging(false);
+  }
+
+  async function handleDesktopDrop(e) {
+    e.preventDefault();
+    setIsDesktopDragging(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length === 0) return;
+
+    const results = await Promise.allSettled(
+      files.map((file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return fetch(`${WORKSPACE_API}/upload`, { method: 'POST', body: formData }).then((res) => {
+          if (!res.ok) throw new Error(res.status);
+          return res.json();
+        });
+      })
+    );
+
+    const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+    const failed = results.length - succeeded;
+    setDropFeedback({
+      message:
+        failed === 0
+          ? `${succeeded} tiedosto${succeeded === 1 ? '' : 'a'} tallennettu Tiedostonhallintaan.`
+          : `${succeeded} tallennettu, ${failed} epäonnistui.`,
+      tone: failed === 0 ? 'success' : 'error',
+    });
+
+    if (succeeded > 0) {
+      setRefreshCounter((c) => c + 1);
+      openApp('explorer');
+    }
+  }
+
   function toggleStart() {
     setStartOpen((prev) => {
       const next = !prev;
@@ -174,7 +241,25 @@ export default function BoosterverseDesktop({ onExit }) {
       className="win-desktop"
       onMouseDown={() => setStartOpen(false)}
       onContextMenu={handleDesktopContextMenu}
+      onDragOver={handleDesktopDragOver}
+      onDragLeave={handleDesktopDragLeave}
+      onDrop={handleDesktopDrop}
     >
+      {isDesktopDragging && (
+        <div className="win-desktop-drop-overlay">
+          <div className="win-desktop-drop-hint">
+            <span className="win-desktop-drop-hint-glyph">📥</span>
+            <span>Pudota tiedostot tähän tallentaaksesi ne Tiedostonhallintaan</span>
+          </div>
+        </div>
+      )}
+
+      {dropFeedback && (
+        <div className={`win-desktop-toast win-desktop-toast-${dropFeedback.tone}`}>
+          {dropFeedback.message}
+        </div>
+      )}
+
       {showDesktopIcons && (
         <div className="win-desktop-icons">
           <button className="win-desktop-icon" onDoubleClick={() => openApp('explorer')}>
@@ -200,6 +285,22 @@ export default function BoosterverseDesktop({ onExit }) {
           <button className="win-desktop-icon" onDoubleClick={() => openApp('gitguardian')}>
             <span className="win-desktop-icon-glyph">🛡</span>
             <span className="win-desktop-icon-label">Git Guardian</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('knowledge')}>
+            <span className="win-desktop-icon-glyph">◌</span>
+            <span className="win-desktop-icon-label">Knowledge</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('knowledgeupload')}>
+            <span className="win-desktop-icon-glyph">📥</span>
+            <span className="win-desktop-icon-label">Tiedostojen lataus</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('memory')}>
+            <span className="win-desktop-icon-glyph">◈</span>
+            <span className="win-desktop-icon-label">Memory</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkeybrain')}>
+            <span className="win-desktop-icon-glyph">⬡</span>
+            <span className="win-desktop-icon-label">Spacemonkey Brain</span>
           </button>
           <button className="win-desktop-icon" onDoubleClick={() => openApp('settings')}>
             <span className="win-desktop-icon-glyph">⚙</span>

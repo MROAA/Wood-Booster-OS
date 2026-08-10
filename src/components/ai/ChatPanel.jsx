@@ -156,6 +156,7 @@ function ChatPanel() {
 
     <div
       className="
+        relative
         h-full
         min-h-0
         flex
@@ -163,9 +164,26 @@ function ChatPanel() {
       "
     >
 
+      {/* Hyvin himmeä lämmin hehku taustalla - antaa paneelille syvyyttä
+          ilman että se kilpailee viestien kanssa huomiosta. */}
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          -z-10
+          opacity-40
+        "
+        style={{
+          background:
+            "radial-gradient(circle at 15% 0%, rgba(107,127,74,0.10), transparent 55%)",
+        }}
+        aria-hidden="true"
+      />
 
       <div
         className="
+          wood-scroll
           flex-1
           min-h-0
           overflow-y-auto
@@ -181,6 +199,7 @@ function ChatPanel() {
               <div
                 key={index}
                 className="
+                  message-appear
                   flex
                   gap-3
                   items-start
@@ -193,7 +212,9 @@ function ChatPanel() {
 
                     <div
                       className="
+                        soft-glow
                         shrink-0
+                        rounded-lg
                       "
                     >
 
@@ -209,23 +230,23 @@ function ChatPanel() {
                 <div
                   className={`
                     max-w-[65%]
-                    rounded-xl
                     px-4
                     py-3
                     text-sm
                     leading-relaxed
                     whitespace-pre-line
+                    shadow-sm
 
                     ${
                       item.role === "user"
 
                       ?
 
-                      "ml-auto bg-[var(--wood-accent)] text-[#17120c]"
+                      "ml-auto rounded-2xl rounded-br-md bg-[var(--wood-accent)] text-[#17120c]"
 
                       :
 
-                      "border border-[var(--wood-border)] bg-[var(--wood-panel)] text-[var(--wood-text)]"
+                      "rounded-2xl rounded-bl-md border border-[var(--wood-border)] bg-gradient-to-br from-[var(--wood-panel)] to-[var(--wood-card)] text-[var(--wood-text)]"
 
                     }
 
@@ -249,6 +270,7 @@ function ChatPanel() {
 
             <div
               className="
+                message-appear
                 flex
                 gap-3
                 items-start
@@ -257,7 +279,9 @@ function ChatPanel() {
 
               <div
                 className="
+                  soft-glow
                   shrink-0
+                  rounded-lg
                 "
               >
 
@@ -269,21 +293,51 @@ function ChatPanel() {
 
               <div
                 className="
-                  max-w-[65%]
-                  rounded-xl
+                  flex
+                  items-center
+                  gap-1.5
+                  rounded-2xl
+                  rounded-bl-md
                   px-4
-                  py-3
-                  text-sm
-                  leading-relaxed
-                  animate-pulse
+                  py-3.5
                   border
                   border-[var(--wood-border)]
                   bg-[var(--wood-panel)]
-                  text-[var(--wood-muted)]
                 "
               >
 
-                Spacemonkey miettii...
+                <span
+                  className="
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    bg-[var(--wood-accent)]
+                    animate-bounce
+                  "
+                  style={{ animationDelay: "0ms" }}
+                />
+
+                <span
+                  className="
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    bg-[var(--wood-accent)]
+                    animate-bounce
+                  "
+                  style={{ animationDelay: "120ms" }}
+                />
+
+                <span
+                  className="
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    bg-[var(--wood-accent)]
+                    animate-bounce
+                  "
+                  style={{ animationDelay: "240ms" }}
+                />
 
               </div>
 
@@ -350,7 +404,7 @@ function ChatPanel() {
             className="
               flex-1
               h-12
-              rounded-xl
+              rounded-full
               px-5
               bg-[var(--wood-bg)]
               border
@@ -359,6 +413,10 @@ function ChatPanel() {
               text-[var(--wood-text)]
               placeholder:text-[var(--wood-muted)]
               outline-none
+              transition-shadow
+              duration-200
+              focus:border-[var(--wood-accent)]
+              focus:shadow-[0_0_0_3px_rgba(107,127,74,0.15)]
             "
 
           />
@@ -372,7 +430,7 @@ function ChatPanel() {
             className="
               h-12
               px-8
-              rounded-xl
+              rounded-full
               bg-[var(--wood-accent)]
               text-[#17120c]
               font-medium
@@ -386,7 +444,7 @@ function ChatPanel() {
 
           >
 
-            Lähetä
+            Lähetä  ➤
 
           </button>
 
