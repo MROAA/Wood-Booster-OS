@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
-import FileExplorerApp from '../components/desktop/FileExplorerApp.jsx';
 import TerminalApp from '../components/desktop/TerminalApp.jsx';
+import VirtualWorkspacePanel from '../components/workspace/VirtualWorkspacePanel.jsx';
 import Projects from './Projects.jsx';
 import Settings from './Settings.jsx';
 import SystemPulse from './SystemPulse.jsx';
@@ -14,7 +14,7 @@ import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
 const APPS = {
-  explorer: { title: 'Tiedostonhallinta', icon: '📁', component: FileExplorerApp, defaultWidth: 760, defaultHeight: 500 },
+  explorer: { title: 'Tiedostonhallinta', icon: '📁', component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
   terminal: { title: 'Pääte (fish)', icon: '💻', component: TerminalApp, defaultWidth: 760, defaultHeight: 500 },
   projects: { title: 'Projektit', icon: '📁', component: Projects, defaultWidth: 800, defaultHeight: 560 },
   spacemonkey: { title: 'Spacemonkey', icon: '🐒', component: SpacemonkeyChat, defaultWidth: 520, defaultHeight: 600 },

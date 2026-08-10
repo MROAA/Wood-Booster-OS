@@ -17,7 +17,7 @@ function formatSize(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-function VirtualWorkspacePanel() {
+function VirtualWorkspacePanel({ refreshSignal } = {}) {
   const [breadcrumb, setBreadcrumb] = useState([{ id: null, name: 'Työtila' }]);
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
@@ -47,7 +47,7 @@ function VirtualWorkspacePanel() {
 
   useEffect(() => {
     loadFolder(currentFolderId);
-  }, [currentFolderId, loadFolder]);
+  }, [currentFolderId, loadFolder, refreshSignal]);
 
   const openFolder = (folder) => {
     setBreadcrumb((prev) => [...prev, { id: folder.id, name: folder.name }]);
