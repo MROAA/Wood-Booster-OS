@@ -18,12 +18,6 @@ const groups = [
         label: "Dashboard",
         path: "/",
         icon: "⌂"
-      },
-
-      {
-        label: "Työpöytä näkymä",
-        path: "/desktop",
-        icon: "🖥"
       }
 
     ]
@@ -75,57 +69,6 @@ const groups = [
         label: "Laskut",
         path: "/invoices",
         icon: "▥"
-      }
-
-    ]
-
-  },
-
-
-  {
-    title: "ÄLY",
-
-    items: [
-
-      {
-        label: "Knowledge",
-        path: "/knowledge",
-        icon: "◌"
-      },
-
-
-      {
-        label: "Tiedostojen lataus",
-        path: "/knowledge/upload",
-        icon: "📥"
-      },
-
-
-      {
-        label: "Memory",
-        path: "/memory",
-        icon: "◈"
-      },
-
-
-      {
-        label: "Agents",
-        path: "/agents",
-        icon: "△"
-      },
-
-
-      {
-        label: "System Pulse",
-        path: "/system-pulse",
-        icon: "◉"
-      },
-
-
-      {
-        label: "Spacemonkey Brain",
-        path: "/spacemonkey-brain",
-        icon: "⬡"
       }
 
     ]
@@ -205,6 +148,7 @@ function Sidebar() {
 
     <aside
       className="
+        relative
         h-screen
         w-full
         bg-[var(--wood-panel)]
@@ -216,6 +160,25 @@ function Sidebar() {
       "
     >
 
+      {/* Himmennetty puusyy-tausta - sama resepti kuin aiemmin kokeiltu
+          dashboard-tekstuuri, mutta kiinnitettynä sivupalkin omaan
+          laatikkoon (position: absolute) niin ettei se vieri listan
+          mukana kun sivupalkki itse on scrollattavissa. */}
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          -z-10
+          bg-cover
+          bg-center
+          opacity-[0.12]
+        "
+        style={{
+          backgroundImage: "url('/branding/dashboard-texture.jpg')",
+        }}
+        aria-hidden="true"
+      />
 
       <Link
         to="/"
@@ -249,28 +212,6 @@ function Sidebar() {
         </h1>
 
 
-      </Link>
-
-
-<Link
-        to="/spacemonkey-chat"
-        className="
-          mt-4
-          flex
-          items-center
-          gap-2
-          rounded-lg
-          bg-[var(--wood-accent)]
-          text-white
-          px-3
-          py-2
-          text-sm
-          font-medium
-          hover:opacity-90
-          transition
-        "
-      >
-        🐵 Spacemonkey Chat
       </Link>
 
 
