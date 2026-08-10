@@ -21,7 +21,7 @@ const spacemonkeyKnowledge =
 
 
     description:
-      "Tarjoaa Spacemonkey Core -identiteetin, operaattorikerroksen, identiteettirajat, kasvumallin, järjestelmäymmärryksen ja Boosterverse-tarustosisällön (Yggdrasil, manifesti, metsäverkosto, ikuinen juuri, arkkitehtien tarina).",
+      "Tarjoaa Spacemonkey Core -identiteetin, operaattorikerroksen, identiteettirajat, kasvumallin, järjestelmäymmärryksen ja Boosterverse-tarustosisällön (Yggdrasil, manifesti, metsäverkosto, ikuinen juuri, arkkitehtien tarina, Aatos poro, Tommi kissa, Fenrir suojelija, suuri liitto, boosterversen historia).",
 
 
     capabilities: [
@@ -49,6 +49,44 @@ const spacemonkeyKnowledge =
       "metsäverkosto",
 
       "myseeliverkko",
+
+      "aatoksesta",
+
+      "aatoksen",
+
+      "aatos",
+
+      "tommista",
+
+      "tommin",
+
+      "tommi",
+
+      "fenriristä",
+
+      "fenririn",
+
+      "fenrir",
+
+      "alliance",
+
+      "grand",
+
+      "liitto",
+
+      "assistentti",
+
+      "assistant",
+
+      "guardian",
+
+      "poro",
+
+      "kissa",
+
+      "historia",
+
+      "timeline",
 
     ],
 

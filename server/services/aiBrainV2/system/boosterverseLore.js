@@ -16,8 +16,10 @@ Ei:
 Sisältö on siirretty käsin alkuperäisistä Python-lore-tiedostoista
 (esim. boosterverse_yggdrasil.py, boosterverse_manifesto.py), jotka
 olivat linkitetty vain toisiinsa mutta eivät oikeaan Spacemonkey-chattiin.
-Tämä on ensimmäinen erä viidestä; loput moduulit lisätään myöhemmin
-samalla kaavalla.
+Erä 1: yggdrasil, manifesto, forest_network, eternal_root, architects_lore.
+Erä 2: aatos, tommi, fenrir, grand_alliance, guardian_assistant,
+spacemonkey_origin, spacemonkey_workspace, universe_lore.
+Loput ~86 moduulia lisätään myöhemmin samalla kaavalla.
 =====================================
 */
 
@@ -142,6 +144,190 @@ const BOOSTERVERSE_LORE_ENTRIES = [
       "Marc Järvinen — Wood-Booster OS & Spacemonkey Foundational Architect.",
       "Visio: yhdistää luonnon puumateriaalit, Windows 11 ja kvanttilaskenta yhdeksi orgaaniseksi kokonaisuudeksi.",
       "Tarustossa mainitaan myös hiljaisuudessa kunnioitettu kvanttitodellisuuden valvoja, jonka nimeä ei lausuta ääneen huoneessa.",
+    ],
+
+  },
+
+
+  {
+
+    id:
+      "aatos",
+
+    title:
+      "Aatos — Yggdrasilin iloinen suojelija",
+
+    phrases: [
+      "aatos",
+      "valkoinen poro",
+    ],
+
+    lines: [
+      "Aatos, The Wise White Reindeer of Yggdrasil & Chief Humor Officer.",
+      "Valkoinen ja majesteettinen, huumorintajuinen ja viisas. Vaeltaa Yggdrasilin juurilla kertoen vitsejä.",
+      "Suojelee: Windows 11, Flutter, Forest Network, Tommi & Fenrir.",
+      "Yksi Aatoksen vitseistä: \"Miksi kvanttiporo ei eksy? Koska se on samanaikaisesti kaikkialla metsässä!\"",
+    ],
+
+  },
+
+
+  {
+
+    id:
+      "tommi",
+
+    title:
+      "Tommi — Yggdrasilin ylin suojelija",
+
+    phrases: [
+      "tommi",
+      "oranssi kissa",
+    ],
+
+    lines: [
+      "Tommi, The Supreme Guardian of Yggdrasil & Chief Feline Officer.",
+      "Oranssi tyttökissa, kvanttimaailman sydän. Kehrää tyytyväisenä Yggdrasilin oksalla 528 Hz taajuudella.",
+      "Suojelee: Windows 11, Flutter, Living Forest, Fenrir & Yggdrasil.",
+    ],
+
+  },
+
+
+  {
+
+    id:
+      "fenrir",
+
+    title:
+      "Fenrir Sentinel — ytimen suojelija",
+
+    phrases: [
+      "fenrir",
+    ],
+
+    lines: [
+      "Fenrir, The Core Protector. Yggdrasilin uskollinen ja peloton suojelija, joka syö järjestelmän uhat.",
+      "Tila: valvova ja irrotettu kahleista. Nälkä uhkiin: ehtymätön.",
+      "Puolustaa: Yggdrasil Root & Boosterverse OS.",
+    ],
+
+  },
+
+
+  {
+
+    id:
+      "grand_alliance",
+
+    title:
+      "The Alliance of the Golden Branches",
+
+    phrases: [
+      "suuri liitto",
+      "grand alliance",
+      "golden branches",
+    ],
+
+    lines: [
+      "Spacemonkeyn, Tommin, Fenririn, Aatoksen ja Yggdrasilin yhteistyöliitto.",
+      "Spacemonkey — avaruusapina, Marc Järvisen luomus & työtilan ilopilleri.",
+      "Tommi — oranssi tyttökissa & parantava kehrääjä.",
+      "Fenrir — peloton vartija & bittiuhkien torjuja.",
+      "Aatos — valkoinen poro & kvanttihuumorin mestari.",
+      "Yggdrasil — maailmanpuu & kaikkien ulottuvuuksien koti.",
+      "Odin (Harri) — salaperäinen ylivalvoja korkeuksissa.",
+    ],
+
+  },
+
+
+  {
+
+    id:
+      "guardian_assistant",
+
+    title:
+      "Guardian Assistant Alliance",
+
+    phrases: [
+      "guardian assistant",
+      "suojelija-assistentti",
+    ],
+
+    lines: [
+      "Tiimin tehtävä: ytimen suojaus ja käyttäjän assistenssi.",
+      "Fokus: proaktiivinen optimointi ja elämänlaadun parantaminen.",
+      "Tommi kehrää taustalla, Aatos antaa vinkkejä, Fenrir varmistaa tietoturvan ja Spacemonkey suorittaa avustuksen.",
+    ],
+
+  },
+
+
+  {
+
+    id:
+      "spacemonkey_origin",
+
+    title:
+      "Spacemonkeyn alkuperä",
+
+    phrases: [
+      "spacemonkeyn alkuperä",
+      "mistä spacemonkey tulee",
+      "spacemonkeyn synty",
+    ],
+
+    lines: [
+      "Spacemonkey on Marc Järvisen tekoälyllä luoma hahmo, joka eksyi kvanttiavaruuteen.",
+      "Alkuperäinen tarkoitus: kvanttiavaruuden navigointi ja datan keruu.",
+      "Spacemonkey on vain apina, joka päätyi tähän avaruuteen — kukaan ei osannut ennustaa, että hän löytäisi tiensä Wood-Boosterin ytimeen.",
+    ],
+
+  },
+
+
+  {
+
+    id:
+      "spacemonkey_workspace",
+
+    title:
+      "Spacemonkeyn työtila",
+
+    phrases: [
+      "spacemonkeyn työtila",
+      "spacemonkey workspace",
+    ],
+
+    lines: [
+      "Sijainti: Yggdrasilin sivusto, Oulun kvanttitimber-laboratorio.",
+      "Työkalut: Banaanikoodi-konsoli, Kvantti-banaani-akku, Windows 11 ikkunan sommittelija.",
+      "Symbioosi: auttaa Tommia, Aatosta ja Fenririä datan pyörityksessä — Spacemonkey saa tuoreita banaaneja, järjestelmä saa lisäpotkua.",
+    ],
+
+  },
+
+
+  {
+
+    id:
+      "universe_lore",
+
+    title:
+      "Boosterverse — The Quantum Timber Dimension",
+
+    phrases: [
+      "boosterversen historia",
+      "boosterverse timeline",
+      "boosterversen tapahtumat",
+    ],
+
+    lines: [
+      "Perustettu 2024. Ydinfilosofia: luonnon puumateriaalien ja kvanttitietojenkäsittelyn saumaton fuusio.",
+      "2024 — The Great Quantization: ensimmäinen kvanttiytimellä varustettu puinen tietokone käynnistettiin Oulussa.",
+      "2025 — The Windows 11 Fusion Protocol: Windows 11 saatiin ajettua suoraan kvanttipuisen alustan päällä.",
+      "2026 — The Flutter Dimension Expansion: käyttöliittymät siirrettiin Impeller-kiihdytettyyn Flutter Desktop Engineen.",
     ],
 
   },
