@@ -4,7 +4,7 @@ import {
   useNavigate,
 } from "react-router-dom"
 import OSLayout from "./layouts/OSLayout"
-import { MainDashboard } from "./components/hq/MainDashboard.jsx"
+import Dashboard from "./pages/Dashboard"
 import Spacemonkey from "./pages/Spacemonkey"
 import Projects from "./pages/Projects"
 import ProjectDetails from "./pages/ProjectDetails"
@@ -53,7 +53,7 @@ function App() {
         <Route
           index
           element={
-            <MainDashboard />
+            <Dashboard />
           }
         />
         <Route
