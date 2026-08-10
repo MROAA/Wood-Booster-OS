@@ -5,7 +5,7 @@ class Windows11KernelDriver:
     """Simuloi Windows 11 Ring 0 -tason ydinajuria (WDM Driver Architecture)."""
     def __init__(self, driver_name="BoosterQuantumKernelDriver.sys"):
         self.driver_name = driver_name
-        self.registry_path = f"Registry\Machine\System\CurrentControlSet\Services\{driver_name}"
+        self.registry_path = rf"Registry\Machine\System\CurrentControlSet\Services\{driver_name}"
         self.state = "DRIVER_RUNNING_RING_0"
         self.base_address = f"0xFFFFF880{random.randint(1000000, 9999999)}"
         self.io_requests_handled = 0

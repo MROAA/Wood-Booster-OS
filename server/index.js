@@ -78,6 +78,9 @@ import {
   startGitSyncWatcher,
 } from "./services/aiBrainV2/services/systemPulse/gitSyncWatcher.js"
 import {
+  startSpacemonkeyImpulseScheduler,
+} from "./services/aiBrainV2/system/spacemonkey/spacemonkeyImpulseScheduler.js"
+import {
   runSpacemonkeyServerIntegration,
 } from "./services/spacemonkey/spacemonkeyServerIntegrationRunner.js"
 import systemPulseRouter from "./routes/systemPulse.js"
@@ -106,6 +109,8 @@ import createPurchasesRouter from "./routes/purchases.js"
 import createConversationsRouter from "./routes/conversations.js"
 import createAIRouter from "./routes/ai.js"
 import createSpacemonkeyBrainStateRouter from "./routes/spacemonkeyBrainState.js"
+import createSpacemonkeyBrainwaveRouter from "./routes/spacemonkeyBrainwave.js"
+import createSpacemonkeyImpulseRouter from "./routes/spacemonkeyImpulse.js"
 import createFilesRouter from "./routes/files.js"
 import createMediaEditsRouter, {
   recoverStuckVideoJobs,
@@ -232,12 +237,24 @@ const app =
   express()
 
 
+// Useita git worktreeja voi olla auki yhtä aikaa, ja Vite ottaa
+// automaattisesti seuraavan vapaan portin (5173, 5174, 5175, ...) kun
+// edelliset ovat varattuja - kiinteä kahden portin lista jätti kaikki
+// muut kehityspalvelimet ilman virheilmoitusta CORS:n taakse (Projektit,
+// System Pulse, Dev Studio hajosivat näkymättömästi). Sama
+// mikä-tahansa-localhost-portti-periaate kuin Python-backendin
+// allow_origin_regex:issä (backend/main.py).
+const LOCALHOST_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/
+
 app.use(
   cors({
-    origin:[
-      "http://localhost:5173",
-      "http://localhost:5174"
-    ],
+    origin(origin, callback) {
+      if (!origin || LOCALHOST_ORIGIN.test(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error("Not allowed by CORS"))
+      }
+    },
     credentials:true
   })
 )
@@ -689,6 +706,16 @@ app.use(
 
 app.use(
   "/api",
+  createSpacemonkeyBrainwaveRouter()
+)
+
+app.use(
+  "/api",
+  createSpacemonkeyImpulseRouter()
+)
+
+app.use(
+  "/api",
   createSpacemonkeySafetyRouter()
 )
 
@@ -940,6 +967,8 @@ async function start(){
     await prisma.$connect()
 
 startGitSyncWatcher()
+
+startSpacemonkeyImpulseScheduler({ prisma })
 
     app.listen(
       PORT,

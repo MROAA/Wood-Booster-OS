@@ -3,7 +3,7 @@ import {
   useRef,
   useState,
 } from "react"
-
+import { motion } from "framer-motion"
 import {
   dealInitialGame,
   isSequenceRun,
@@ -16,29 +16,28 @@ import {
   rankLabel,
   isRedSuit,
 } from "../services/spiderSolitaireEngine"
-
 import {
   getHighScores,
   addHighScore,
 } from "../services/spiderSolitaireHighScores"
-
-
+import {
+  loadGameState,
+  saveGameState,
+  clearGameState,
+} from "../services/spiderSolitaireSaveState"
 const DIFFICULTIES = [
   { value: 1, label: "1 maa", hint: "Helpoin" },
   { value: 2, label: "2 maata", hint: "Keskitaso" },
   { value: 4, label: "4 maata", hint: "Vaikein" },
 ]
-
 function difficultyLabel(value) {
   return DIFFICULTIES.find((d) => d.value === value)?.label || `${value} maata`
 }
-
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60)
   const s = seconds % 60
   return `${m}:${String(s).padStart(2, "0")}`
 }
-
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("fi-FI", {
     day: "2-digit",
@@ -46,68 +45,56 @@ function formatDate(iso) {
     year: "2-digit",
   })
 }
-
-
 function SpiderSolitaire() {
   const [game, setGame] = useState(
-    () => dealInitialGame(2),
+    () => loadGameState()?.game || dealInitialGame(2),
   )
-
   const [selected, setSelected] =
     useState(null)
-
   const [history, setHistory] =
-    useState([])
-
+    useState(() => loadGameState()?.history || [])
   const [gameId, setGameId] =
     useState(0)
-
   const [elapsedSeconds, setElapsedSeconds] =
-    useState(0)
-
+    useState(() => loadGameState()?.elapsedSeconds || 0)
   const [highScores, setHighScores] =
     useState(() => getHighScores(game.difficulty))
-
   const [justRecorded, setJustRecorded] =
     useState(null)
-
   const recordedRef = useRef(false)
-
   const won = isGameWon(game)
-
   useEffect(() => {
     if (won) return
-
     const id = setInterval(
       () => setElapsedSeconds((s) => s + 1),
       1000,
     )
-
     return () => clearInterval(id)
   }, [won, gameId])
-
   useEffect(() => {
     if (!won || recordedRef.current) return
-
     recordedRef.current = true
-
     const score = computeScore({
       difficulty: game.difficulty,
       moveCount: game.moveCount,
       seconds: elapsedSeconds,
     })
-
     const { list, rank } = addHighScore(game.difficulty, {
       score,
       moves: game.moveCount,
       seconds: elapsedSeconds,
       date: new Date().toISOString(),
     })
-
     setHighScores(list)
     setJustRecorded({ rank, score })
   }, [won, game.difficulty, game.moveCount, elapsedSeconds])
-
+  useEffect(() => {
+    if (won) {
+      clearGameState()
+      return
+    }
+    saveGameState({ game, history, elapsedSeconds })
+  }, [game, history, elapsedSeconds, won])
   function startNewGame(difficulty) {
     setGame(dealInitialGame(difficulty))
     setSelected(null)
@@ -118,13 +105,11 @@ function SpiderSolitaire() {
     setJustRecorded(null)
     recordedRef.current = false
   }
-
   function pushHistory(prevState) {
     setHistory(
       (h) => [...h, prevState].slice(-50),
     )
   }
-
   function handleUndo() {
     if (history.length === 0) return
     const prev = history[history.length - 1]
@@ -132,45 +117,36 @@ function SpiderSolitaire() {
     setHistory((h) => h.slice(0, -1))
     setSelected(null)
   }
-
   function handleStockClick() {
     if (!canDealFromStock(game)) return
-
     const next = dealFromStock(game)
     if (!next) return
-
     pushHistory(cloneState(game))
     setGame(next)
     setSelected(null)
   }
-
   function handleCardClick(col, index) {
     const column = game.tableau[col]
     const card = column[index]
     if (!card.faceUp) return
-
     if (!selected) {
       if (isSequenceRun(column, index)) {
         setSelected({ col, index })
       }
       return
     }
-
     if (selected.col === col && selected.index === index) {
       setSelected(null)
       return
     }
-
     if (selected.col === col) {
       if (isSequenceRun(column, index)) {
         setSelected({ col, index })
       }
       return
     }
-
     attemptMove(selected.col, selected.index, col)
   }
-
   function handleColumnAreaClick(col) {
     if (!selected) return
     if (selected.col === col) {
@@ -179,16 +155,13 @@ function SpiderSolitaire() {
     }
     attemptMove(selected.col, selected.index, col)
   }
-
   function handleCardDragStart(e, col, index) {
     const column = game.tableau[col]
     const card = column[index]
-
     if (!card.faceUp || !isSequenceRun(column, index)) {
       e.preventDefault()
       return
     }
-
     e.dataTransfer.effectAllowed = "move"
     e.dataTransfer.setData(
       "text/plain",
@@ -196,15 +169,12 @@ function SpiderSolitaire() {
     )
     setSelected({ col, index })
   }
-
   function handleColumnDragOver(e) {
     e.preventDefault()
     e.dataTransfer.dropEffect = "move"
   }
-
   function handleColumnDrop(e, destCol) {
     e.preventDefault()
-
     let parsed
     try {
       parsed = JSON.parse(e.dataTransfer.getData("text/plain"))
@@ -212,13 +182,10 @@ function SpiderSolitaire() {
       return
     }
     if (!parsed) return
-
     attemptMove(parsed.col, parsed.index, destCol)
   }
-
   function attemptMove(sourceCol, cardIndex, destCol) {
     const next = moveCards(game, sourceCol, cardIndex, destCol)
-
     if (!next) {
       const destColumn = game.tableau[destCol]
       if (
@@ -234,12 +201,10 @@ function SpiderSolitaire() {
       }
       return
     }
-
     pushHistory(cloneState(game))
     setGame(next)
     setSelected(null)
   }
-
   return (
     <div className="space-y-8">
       <header
@@ -264,7 +229,6 @@ function SpiderSolitaire() {
           >
             Tauko
           </p>
-
           <h1
             className="
               mt-2
@@ -275,7 +239,6 @@ function SpiderSolitaire() {
           >
             ♤ Spider-pasianssi
           </h1>
-
           <p
             className="
               mt-3
@@ -292,7 +255,6 @@ function SpiderSolitaire() {
             kohdepinoa siirtääksesi.
           </p>
         </div>
-
         <GameStatus
           game={game}
           won={won}
@@ -300,7 +262,6 @@ function SpiderSolitaire() {
           justRecorded={justRecorded}
         />
       </header>
-
       <section
         className="
           flex
@@ -350,7 +311,6 @@ function SpiderSolitaire() {
             </span>
           </button>
         ))}
-
         <button
           type="button"
           onClick={handleUndo}
@@ -373,7 +333,6 @@ function SpiderSolitaire() {
           ↶ Kumoa
         </button>
       </section>
-
       <section
         className="
           rounded-2xl
@@ -397,12 +356,10 @@ function SpiderSolitaire() {
             canDeal={canDealFromStock(game)}
             onClick={handleStockClick}
           />
-
           <CompletedFoundations
             completed={game.completed}
           />
         </div>
-
         <div
           className="
             mt-8
@@ -427,7 +384,6 @@ function SpiderSolitaire() {
           ))}
         </div>
       </section>
-
       <HighScoresPanel
         difficulty={game.difficulty}
         highScores={highScores}
@@ -435,8 +391,6 @@ function SpiderSolitaire() {
     </div>
   )
 }
-
-
 function HighScoresPanel({ difficulty, highScores }) {
   return (
     <section
@@ -459,7 +413,6 @@ function HighScoresPanel({ difficulty, highScores }) {
       >
         ✦ Parhaat tulokset · {difficultyLabel(difficulty)}
       </h2>
-
       {highScores.length === 0 ? (
         <p
           className="
@@ -496,7 +449,6 @@ function HighScoresPanel({ difficulty, highScores }) {
                 <th className="pb-2">Pvm</th>
               </tr>
             </thead>
-
             <tbody>
               {highScores.map((entry, i) => (
                 <tr
@@ -548,8 +500,6 @@ function HighScoresPanel({ difficulty, highScores }) {
     </section>
   )
 }
-
-
 function GameStatus({ game, won, elapsedSeconds, justRecorded }) {
   if (won) {
     return (
@@ -583,7 +533,6 @@ function GameStatus({ game, won, elapsedSeconds, justRecorded }) {
       </div>
     )
   }
-
   return (
     <div
       className="
@@ -601,11 +550,8 @@ function GameStatus({ game, won, elapsedSeconds, justRecorded }) {
     </div>
   )
 }
-
-
 function StockPile({ count, canDeal, onClick }) {
   const stacks = Math.min(5, Math.ceil(count / 10) || 0)
-
   return (
     <button
       type="button"
@@ -647,7 +593,6 @@ function StockPile({ count, canDeal, onClick }) {
           Tyhjä
         </div>
       )}
-
       {Array.from({ length: stacks }).map((_, i) => (
         <div
           key={i}
@@ -670,14 +615,11 @@ function StockPile({ count, canDeal, onClick }) {
     </button>
   )
 }
-
-
 function CompletedFoundations({ completed }) {
   return (
     <div className="flex gap-2">
       {Array.from({ length: 8 }).map((_, i) => {
         const entry = completed[i]
-
         return (
           <div
             key={i}
@@ -711,8 +653,6 @@ function CompletedFoundations({ completed }) {
     </div>
   )
 }
-
-
 function TableauColumn({
   column,
   col,
@@ -725,7 +665,6 @@ function TableauColumn({
 }) {
   const OVERLAP = 26
   const height = 132 + Math.max(0, column.length - 1) * OVERLAP
-
   return (
     <div
       className="relative"
@@ -746,16 +685,13 @@ function TableauColumn({
           style={{ borderColor: "var(--wood-border)" }}
         />
       )}
-
       {column.map((card, index) => {
         const isSelected =
           selected &&
           selected.col === col &&
           index >= selected.index
-
         const draggable =
           card.faceUp && isSequenceRun(column, index)
-
         return (
           <PlayingCard
             key={card.id}
@@ -779,91 +715,110 @@ function TableauColumn({
     </div>
   )
 }
-
-
 function PlayingCard({ card, style, selected, draggable, onDragStart, onClick }) {
-  if (!card.faceUp) {
-    return (
-      <div
-        onClick={onClick}
-        style={{
-          ...style,
-          borderColor: "var(--wood-border)",
-          background:
-            "repeating-linear-gradient(45deg, var(--wood-card), var(--wood-card) 6px, var(--wood-border) 6px, var(--wood-border) 12px)",
-        }}
-        className="
-          h-32
-          w-[76px]
-          cursor-pointer
-          rounded-lg
-          border
-        "
-      />
-    )
-  }
-
   const red = isRedSuit(card.suit)
-
   return (
     <div
-      draggable={draggable}
-      onDragStart={onDragStart}
-      onClick={onClick}
       style={{
         ...style,
-        borderColor: selected
-          ? "var(--wood-accent)"
-          : "var(--wood-border)",
-        boxShadow: selected
-          ? "0 0 0 2px var(--wood-accent)"
-          : "0 2px 4px rgba(0,0,0,0.4)",
-        cursor: draggable ? "grab" : "pointer",
+        perspective: 1000,
       }}
-      className="
-        h-32
-        w-[76px]
-        cursor-pointer
-        select-none
-        rounded-lg
-        border
-        bg-[#f4ecd8]
-        px-2
-        py-1
-        text-black
-      "
+      className="h-32 w-[76px]"
     >
-      <div
-        className="
-          flex
-          items-center
-          gap-1
-          text-sm
-          font-bold
-          leading-none
-        "
-        style={{ color: red ? "#b91c1c" : "#111827" }}
+      <motion.div
+        animate={{ rotateY: card.faceUp ? 0 : 180 }}
+        transition={{ duration: 0.35, ease: "easeInOut" }}
+        style={{ transformStyle: "preserve-3d" }}
+        className="relative h-full w-full"
       >
-        <span>{rankLabel(card.rank)}</span>
-        <span>{card.suit}</span>
-      </div>
-
-      <div
-        className="
-          mt-1
-          flex
-          h-full
-          items-center
-          justify-center
-          text-3xl
-        "
-        style={{ color: red ? "#b91c1c" : "#111827" }}
-      >
-        {card.suit}
-      </div>
+        <motion.div
+          onClick={onClick}
+          draggable={draggable}
+          onDragStart={onDragStart}
+          whileHover={draggable ? { y: -6, scale: 1.03 } : {}}
+          whileTap={draggable ? { scale: 0.98 } : {}}
+          animate={
+            selected
+              ? {
+                  boxShadow: [
+                    "0 0 0 2px var(--wood-accent)",
+                    "0 0 0 5px var(--wood-accent)",
+                    "0 0 0 2px var(--wood-accent)",
+                  ],
+                }
+              : { boxShadow: "0 2px 4px rgba(0,0,0,0.4)" }
+          }
+          transition={
+            selected
+              ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+              : { duration: 0.2 }
+          }
+          style={{
+            backfaceVisibility: "hidden",
+            borderColor: selected
+              ? "var(--wood-accent)"
+              : "var(--wood-border)",
+            cursor: draggable ? "grab" : "pointer",
+          }}
+          className="
+            absolute
+            inset-0
+            select-none
+            rounded-lg
+            border
+            bg-[#f4ecd8]
+            px-2
+            py-1
+            text-black
+          "
+        >
+          <div
+            className="
+              flex
+              items-center
+              gap-1
+              text-sm
+              font-bold
+              leading-none
+            "
+            style={{ color: red ? "#b91c1c" : "#111827" }}
+          >
+            <span>{rankLabel(card.rank)}</span>
+            <span>{card.suit}</span>
+          </div>
+          <div
+            className="
+              mt-1
+              flex
+              h-full
+              items-center
+              justify-center
+              text-3xl
+            "
+            style={{ color: red ? "#b91c1c" : "#111827" }}
+          >
+            {card.suit}
+          </div>
+        </motion.div>
+        <div
+          onClick={onClick}
+          style={{
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            borderColor: "var(--wood-border)",
+            background:
+              "repeating-linear-gradient(45deg, var(--wood-card), var(--wood-card) 6px, var(--wood-border) 6px, var(--wood-border) 12px)",
+          }}
+          className="
+            absolute
+            inset-0
+            cursor-pointer
+            rounded-lg
+            border
+          "
+        />
+      </motion.div>
     </div>
   )
 }
-
-
 export default SpiderSolitaire

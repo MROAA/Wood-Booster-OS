@@ -15,3 +15,18 @@ class Windows11FileExplorer:
             "drives": self.drives,
             "quick_access": self.quick_access_folders
         }
+
+    def list_directory(self, path: str = "C:/Users/Marc/Desktop"):
+        return {
+            "success": True,
+            "path": path,
+            "items": ["Documents", "Downloads", "Pictures", "Music", "Desktop"]
+        }
+
+    def create_virtual_file(self, path: str, filename: str):
+        return {
+            "success": True,
+            "message": f"Tiedosto {filename} luotu polkuun {path} onnistuneesti.",
+            "path": path,
+            "filename": filename
+        }

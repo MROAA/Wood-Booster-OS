@@ -96,8 +96,7 @@ from brain import get_brain_decision
 class BoosterverseCore:
     """Boosterversen ja Wood-Booster OS:n virallinen Root & Core -keskus."""
     def __init__(self):
-        from boosterverse_autonomy import BoosterverseAutonomy
-        self.true_autonomy = BoosterverseAutonomy()
+        self.true_autonomy = TrueAutonomyEngine()
         print("[BOOSTERVERSE CORE] Käynnistetään ydinjärjestelmää...")
         self.spacemonkey = SpaceMonkey()
         self.wp_engine = SpaceMonkeyWordPressEngine()
@@ -165,6 +164,32 @@ class BoosterverseCore:
         self.identity = Identity()
         self.knowledge = KnowledgeBank()
         self.win_fs = WindowsFileSystem()
+        self.win11_defender = Windows11Defender()
+        self.flutter_engine = FlutterDesktopEngine()
+        self.lore = BoosterverseLore()
+        self.expansion_lore = BoosterverseExpansionLore()
+        self.manifesto = BoosterverseManifesto()
+        self.forest_network = BoosterverseForestNetwork()
+        self.eternal_root = BoosterverseEternalRoot()
+        self.yggdrasil = BoosterverseYggdrasil()
+        self.yggdrasil_guardian = BoosterverseYggdrasilGuardian()
+        self.fenrir = BoosterverseFenrirSentinel()
+        self.tommi = BoosterverseTommiGuardian()
+        self.aatos = BoosterverseAatosGuardian()
+        self.yggdrasil_defenses = YggdrasilDefenses()
+        self.supreme_protection = SupremeProtectionEngine()
+        self.architects_lore = BoosterverseArchitectsLore()
+        self.monkey_lore = SpacemonkeyOrigin()
+        self.monkey_workspace = SpacemonkeyWorkspace()
+        self.grand_alliance = GrandAllianceEngine()
+        self.guardian_assistant = GuardianAssistantAlliance()
+        self.dimension_engine = BoosterverseDimensionEngine()
+        self.entropy_harvester = EntropyHarvesterEngine()
+        self.void_anchor = VoidAnchorEngine()
+        self.echo_memories = EchoingMemoriesEngine()
+        self.manual_engine = BoosterverseManualEngine()
+        self.extension_hub = BoosterverseExtensionHub()
+        self.infinite_cosmos = InfiniteCosmosEngine()
         print("[BOOSTERVERSE CORE] Kaikki alijärjestelmät ja maailmat sidottu yhteen.")
 
 

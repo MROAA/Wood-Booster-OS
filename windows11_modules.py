@@ -5,8 +5,8 @@ class Windows11ExtraModules:
     """Tarjoaa valmiita Windows 11 -moduuleja (Win32, Virtual Desktops, Registry) kasvualustalle."""
     def __init__(self):
         self.registry_hive = {
-            "HKEY_LOCAL_MACHINE\SOFTWARE\Boosterverse": {"Version": "11.432", "Owner": "Marc Järvinen"},
-            "HKEY_CURRENT_USER\Control Panel\Appearance": {"Theme": "DarkMica", "AccentColor": "QuantumBlue"}
+            r"HKEY_LOCAL_MACHINE\SOFTWARE\Boosterverse": {"Version": "11.432", "Owner": "Marc Järvinen"},
+            r"HKEY_CURRENT_USER\Control Panel\Appearance": {"Theme": "DarkMica", "AccentColor": "QuantumBlue"}
         }
         self.virtual_desktops = ["Desktop 1", "Gaming", "Quantum Coding"]
 

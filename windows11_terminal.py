@@ -22,3 +22,10 @@ class Windows11Terminal:
             return {"output": out_text, "path": self.current_directory}
         else:
             return {"output": f"Command executed: {command}", "path": self.current_directory}
+
+    def get_terminal_overview(self):
+        return {
+            "component": "Windows 11 Terminal",
+            "current_directory": self.current_directory,
+            "shells": ["PowerShell", "Command Prompt", "WSL (Ubuntu)"]
+        }

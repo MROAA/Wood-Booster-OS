@@ -112,7 +112,11 @@ async function getSpacemonkeyCoreStatus({
 
 
   const memory =
-    getPersistentMemoryStatus()
+    await getPersistentMemoryStatus({
+
+      prisma
+
+    })
 
 
 

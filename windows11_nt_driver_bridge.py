@@ -6,7 +6,7 @@ class Windows11NTDriverBridge:
     def __init__(self):
         self.driver_name = "BoosterNTDriver.sys"
         self.status = "Loaded (Ring 0 Kernel Mode)"
-        self.device_object = "\Device\BoosterQuantumDevice"
+        self.device_object = r"\Device\BoosterQuantumDevice"
         self.irp_requests_processed = 0
 
     def send_irp_request(self, major_function: str, info: str):

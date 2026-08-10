@@ -26,3 +26,6 @@ class Windows11OneDrive:
             "component": "Windows 11 OneDrive Cloud Engine",
             "state": self.onedrive_state
         }
+
+    def trigger_sync(self):
+        return self.sync_now()

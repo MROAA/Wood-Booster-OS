@@ -691,7 +691,7 @@ def win11_structural_toggle():
 
 @app.route("/api/win11/taskmgr/status", methods=["GET"])
 def win11_taskmgr_status():
-    return jsonify(core.win11_taskmgr_overview())
+    return jsonify(core.win11_taskman_overview())
 
 @app.route("/api/win11/taskmgr/kill", methods=["POST"])
 def win11_taskmgr_kill():

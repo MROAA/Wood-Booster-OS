@@ -44,3 +44,27 @@ test("falls back to text after KOODI: when there is no fenced block", () => {
     assert.equal(result.code, "print('hi')")
 
 })
+
+
+
+test("strips the file-start sentinel line and preserves a leading triple-quote docstring (the real bug found live)", () => {
+
+    // Katso perustelu pythonCodeDebugger.test.js:n vastaavasta testistä.
+    const text =
+        "OTSIKKO: Siistitty koodi\n" +
+        "SELITYS: Ei toiminnallisia muutoksia.\n" +
+        "KOODI:\n" +
+        "```python\n" +
+        "# TIEDOSTO ALKAA TÄSTÄ\n" +
+        '"""\nModuulin docstring\n"""\n' +
+        "import json\n" +
+        "```"
+
+    const result = parseRefactoredText(text)
+
+    assert.equal(
+        result.code,
+        '"""\nModuulin docstring\n"""\nimport json',
+    )
+
+})
