@@ -89,22 +89,6 @@ const groups = [
 
     ]
 
-  },
-
-
-  {
-    title: "TAUKO",
-
-    items: [
-
-      {
-        label: "Spider-pasianssi",
-        path: "/spider-solitaire",
-        icon: "♤"
-      }
-
-    ]
-
   }
 
 ]
