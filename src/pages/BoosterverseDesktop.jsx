@@ -246,6 +246,16 @@ export default function BoosterverseDesktop({ onExit }) {
     const files = Array.from(e.dataTransfer.files || []);
     if (files.length === 0) return;
 
+    // Tallennetaan pudotuskohta ennen await:eja - Marc: "sijoittamaan
+    // tiedoston mihin haluan työpöytänäkymässä", "sen pitää toimia kuin
+    // Windows 96 käyttöjärjestelmä" - uusi tiedosto ilmestyy tarkalleen
+    // siihen kohtaan johon se pudotettiin, ei oletus-ruudukkoon. Useampi
+    // samalla kertaa pudotettu tiedosto porrastetaan hieman ettei kuvakkeet
+    // mene täysin päällekkäin.
+    const dropRect = iconsAreaRef.current?.getBoundingClientRect();
+    const dropX = dropRect ? Math.max(0, e.clientX - dropRect.left - ICON_WIDTH / 2) : null;
+    const dropY = dropRect ? Math.max(0, e.clientY - dropRect.top - 24) : null;
+
     const results = await Promise.allSettled(
       files.map((file) => {
         const formData = new FormData();
@@ -271,6 +281,16 @@ export default function BoosterverseDesktop({ onExit }) {
     // kuvakkeina työpöydälle refreshCounterin päivityksen kautta, kuten
     // Marc pyysi ("voisin vain pudottaa tiedoston työpöydälle").
     if (succeeded > 0) {
+      if (dropX !== null && dropY !== null) {
+        const placed = { ...iconPositions };
+        let placedIndex = 0;
+        for (const result of results) {
+          if (result.status !== 'fulfilled') continue;
+          placed[`file:${result.value.id}`] = { x: dropX + placedIndex * 18, y: dropY + placedIndex * 18 };
+          placedIndex += 1;
+        }
+        persistIconPositions(placed);
+      }
       setRefreshCounter((c) => c + 1);
     }
   }
