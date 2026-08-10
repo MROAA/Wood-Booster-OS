@@ -21,7 +21,7 @@ const spacemonkeyKnowledge =
 
 
     description:
-      "Tarjoaa Spacemonkey Core -identiteetin, operaattorikerroksen, identiteettirajat, kasvumallin, järjestelmäymmärryksen ja Boosterverse-tarustosisällön (Yggdrasil, manifesti, metsäverkosto, ikuinen juuri, arkkitehtien tarina, Aatos poro, Tommi kissa, Fenrir suojelija, suuri liitto, boosterversen historia).",
+      "Tarjoaa Spacemonkey Core -identiteetin, operaattorikerroksen, identiteettirajat, kasvumallin, järjestelmäymmärryksen ja Boosterverse-tarustosisällön (Yggdrasil, manifesti, metsäverkosto, ikuinen juuri, arkkitehtien tarina, Aatos poro, Tommi kissa, Fenrir suojelija, suuri liitto, boosterversen historia, boosterversen ulottuvuus, kaikuvat muistokiteet, entropian keräin, Oulun kvanttilabra, laajennushubi, ääretön kosmos, boosterversen käsikirja, muinaiset riimut, vapaa tahto, tyhjiön ankkuri, puolustusmatriisi, kvanttikilpi).",
 
 
     capabilities: [
@@ -87,6 +87,50 @@ const spacemonkeyKnowledge =
       "historia",
 
       "timeline",
+
+      "dimensio",
+
+      "ulottuvuus",
+
+      "muistokiteet",
+
+      "entropian",
+
+      "harvester",
+
+      "kosmos",
+
+      "käsikirja",
+
+      "manuaali",
+
+      "riimut",
+
+      "autonomia",
+
+      "ankkuri",
+
+      "revontuli",
+
+      "puolustusmatriisi",
+
+      "kaarnapanssari",
+
+      "kvanttikilpi",
+
+      "laajennushubi",
+
+      "oqtl-9",
+
+      "todellinen",
+
+      "muistot",
+
+      "kosmoksesta",
+
+      "kosmoksen",
+
+      "keräimestä",
 
     ],
 
