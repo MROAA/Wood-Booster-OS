@@ -169,13 +169,46 @@ export default function BoosterverseDesktop({ onExit }) {
     // konttiin, mutta clientX/clientY ovat koko selainikkunan koordinaatteja
     // - .win-desktop ei ala näytön vasemmasta yläkulmasta (sivupalkki vie
     // tilaa), joten offset pitää vähentää tai valikko ilmestyy väärään kohtaan.
+    // clientX/clientY talletetaan sellaisenaan myös, jotta "Uusi kansio"
+    // -toiminto voi sijoittaa uuden kuvakkeen tarkalleen klikkauskohtaan
+    // (sama laskutapa kuin handleDesktopDrop:issa).
     const rect = e.currentTarget.getBoundingClientRect();
-    setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, clientX: e.clientX, clientY: e.clientY });
   }
 
   function handleRefresh() {
     setRefreshCounter((c) => c + 1);
     setContextMenu(null);
+  }
+
+  function handleCreateFolderFromContextMenu() {
+    const clickPoint = contextMenu;
+    setContextMenu(null);
+    const name = window.prompt('Kansion nimi:', 'Uusi kansio');
+    if (!name || !name.trim()) return;
+
+    fetch(`${WORKSPACE_API}/folders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim(), parent_id: null }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((folder) => {
+        if (clickPoint && iconsAreaRef.current) {
+          const rect = iconsAreaRef.current.getBoundingClientRect();
+          const x = Math.min(
+            Math.max(0, clickPoint.clientX - rect.left - ICON_WIDTH / 2),
+            Math.max(0, rect.width - ICON_WIDTH)
+          );
+          const y = Math.min(
+            Math.max(0, clickPoint.clientY - rect.top - 24),
+            Math.max(0, rect.height - ICON_HEIGHT)
+          );
+          persistIconPositions({ ...iconPositions, [`folder:${folder.id}`]: { x, y } });
+        }
+        setRefreshCounter((c) => c + 1);
+      })
+      .catch(() => setDropFeedback({ message: 'Kansion luonti epäonnistui.', tone: 'error' }));
   }
 
   function handleDesktopDragOver(e) {
@@ -481,6 +514,7 @@ export default function BoosterverseDesktop({ onExit }) {
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onMouseDown={(e) => e.stopPropagation()}
         >
+          <button onClick={handleCreateFolderFromContextMenu}>📁 Uusi kansio</button>
           <button onClick={handleRefresh}>↻ Päivitä</button>
           <button
             onClick={() => {
