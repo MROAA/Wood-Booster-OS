@@ -35,6 +35,7 @@ import SpiderSolitaire from "./pages/SpiderSolitaire"
 import KnowledgeUpload from "./pages/KnowledgeUpload"
 import SpacemonkeyChat from "./pages/SpacemonkeyChat"
 import BoosterverseDesktop from "./pages/BoosterverseDesktop"
+import ProjectWorkspace from "./pages/ProjectWorkspace"
 
 function BoosterverseDesktopRoute() {
   const navigate = useNavigate()
@@ -161,6 +162,12 @@ function App() {
           path="/spacemonkey-chat"
           element={
             <SpacemonkeyChat />
+          }
+        />
+        <Route
+          path="/project-workspace"
+          element={
+            <ProjectWorkspace />
           }
         />
         <Route
