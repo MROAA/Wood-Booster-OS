@@ -2,11 +2,21 @@ import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
 import FileExplorerApp from '../components/desktop/FileExplorerApp.jsx';
 import TerminalApp from '../components/desktop/TerminalApp.jsx';
+import Projects from './Projects.jsx';
+import Settings from './Settings.jsx';
+import SystemPulse from './SystemPulse.jsx';
+import SpacemonkeyChat from './SpacemonkeyChat.jsx';
+import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
 const APPS = {
-  explorer: { title: 'Tiedostonhallinta', icon: '📁' },
-  terminal: { title: 'Pääte (fish)', icon: '💻' },
+  explorer: { title: 'Tiedostonhallinta', icon: '📁', component: FileExplorerApp, defaultWidth: 760, defaultHeight: 500 },
+  terminal: { title: 'Pääte (fish)', icon: '💻', component: TerminalApp, defaultWidth: 760, defaultHeight: 500 },
+  projects: { title: 'Projektit', icon: '📁', component: Projects, defaultWidth: 800, defaultHeight: 560 },
+  spacemonkey: { title: 'Spacemonkey', icon: '🐒', component: SpacemonkeyChat, defaultWidth: 520, defaultHeight: 600 },
+  systempulse: { title: 'System Pulse', icon: '🧠', component: SystemPulse, defaultWidth: 700, defaultHeight: 650 },
+  gitguardian: { title: 'Git Guardian', icon: '🛡', component: GitGuardianCard, defaultWidth: 480, defaultHeight: 520 },
+  settings: { title: 'Asetukset', icon: '⚙', component: Settings, defaultWidth: 700, defaultHeight: 600 },
 };
 
 function createWindow(app, zIndex) {
@@ -17,8 +27,8 @@ function createWindow(app, zIndex) {
     icon: APPS[app].icon,
     x: 140 + Math.round(Math.random() * 60),
     y: 90 + Math.round(Math.random() * 40),
-    width: 760,
-    height: 500,
+    width: APPS[app].defaultWidth,
+    height: APPS[app].defaultHeight,
     zIndex,
     minimized: false,
     maximized: false,
@@ -129,6 +139,30 @@ export default function BoosterverseDesktop({ onExit }) {
     });
   }
 
+  function renderAppContent(w) {
+    const AppComponent = APPS[w.app]?.component;
+    if (!AppComponent) return null;
+    if (w.app === 'explorer') return <AppComponent refreshSignal={refreshCounter} />;
+    if (w.app === 'terminal') {
+      return (
+        <div className="terminal-app-wrapper">
+          <div className="terminal-warning">
+            ⚠️ Oikea pääte - komennot suoritetaan oikeasti tällä koneella.
+          </div>
+          {/* Ei päivitetä resizeSignal-arvoa kun ikkuna on pienennetty
+              (display:none) - piilotettu elementti mittautuisi 0x0:ksi
+              ja lähettäisi virheellisen koon päätteelle. */}
+          <AppComponent resizeSignal={w.minimized ? undefined : `${w.width}x${w.height}-${w.maximized}`} />
+        </div>
+      );
+    }
+    return (
+      <div className="desktop-app-scroll">
+        <AppComponent />
+      </div>
+    );
+  }
+
   const query = search.trim().toLowerCase();
   const visibleApps = Object.entries(APPS).filter(([, app]) =>
     app.title.toLowerCase().includes(query)
@@ -151,6 +185,26 @@ export default function BoosterverseDesktop({ onExit }) {
             <span className="win-desktop-icon-glyph">💻</span>
             <span className="win-desktop-icon-label">Pääte</span>
           </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('projects')}>
+            <span className="win-desktop-icon-glyph">📁</span>
+            <span className="win-desktop-icon-label">Projektit</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkey')}>
+            <span className="win-desktop-icon-glyph">🐒</span>
+            <span className="win-desktop-icon-label">Spacemonkey</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('systempulse')}>
+            <span className="win-desktop-icon-glyph">🧠</span>
+            <span className="win-desktop-icon-label">System Pulse</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('gitguardian')}>
+            <span className="win-desktop-icon-glyph">🛡</span>
+            <span className="win-desktop-icon-label">Git Guardian</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('settings')}>
+            <span className="win-desktop-icon-glyph">⚙</span>
+            <span className="win-desktop-icon-label">Asetukset</span>
+          </button>
         </div>
       )}
 
@@ -165,18 +219,7 @@ export default function BoosterverseDesktop({ onExit }) {
           onMinimize={() => minimizeWindow(w.id)}
           onMaximize={() => maximizeWindow(w.id)}
         >
-          {w.app === 'explorer' && <FileExplorerApp refreshSignal={refreshCounter} />}
-          {w.app === 'terminal' && (
-            <div className="terminal-app-wrapper">
-              <div className="terminal-warning">
-                ⚠️ Oikea pääte - komennot suoritetaan oikeasti tällä koneella.
-              </div>
-              {/* Ei päivitetä resizeSignal-arvoa kun ikkuna on pienennetty
-                  (display:none) - piilotettu elementti mittautuisi 0x0:ksi
-                  ja lähettäisi virheellisen koon päätteelle. */}
-              <TerminalApp resizeSignal={w.minimized ? undefined : `${w.width}x${w.height}-${w.maximized}`} />
-            </div>
-          )}
+          {renderAppContent(w)}
         </WindowFrame>
       ))}
 

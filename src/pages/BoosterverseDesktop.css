@@ -144,6 +144,17 @@
   font-size: 0.7rem;
 }
 
+/* Yleiskäyttöiset työpöytäsovellukset (Projektit, Asetukset, System Pulse,
+   Spacemonkey, Git Guardian) - nämä on rakennettu koko sivun mittaisiksi,
+   selain vierittää normaalisti, joten ikkunan sisällä pitää itse tarjota
+   vieritys ettei sisältö vain leikkaudu pois .win-content:in overflow:hidden
+   -säännön takia. */
+.desktop-app-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
 .win-resize-handle {
   position: absolute;
   right: 0;
