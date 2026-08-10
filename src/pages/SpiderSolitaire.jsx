@@ -156,6 +156,13 @@ function SpiderSolitaire() {
     attemptMove(selected.col, selected.index, col)
   }
   function handleCardDragStart(e, col, index) {
+    // stopPropagation joka kädessä (tässä ja alla) - peli on avattavissa
+    // ikkunana virtuaalityöpöydällä, ja työpöydän oma raahaus/pudotus-
+    // käsittely (tiedostojen tuonti, kuvakkeiden siirto) on kiinnitetty
+    // koko .win-desktop-elementtiin. Ilman tätä jokainen kortin raahaus
+    // kuplii sinne asti ja laukaisee "pudota tiedosto tähän" -ylälaskoksen
+    // pelin taustalle.
+    e.stopPropagation()
     const column = game.tableau[col]
     const card = column[index]
     if (!card.faceUp || !isSequenceRun(column, index)) {
@@ -171,10 +178,12 @@ function SpiderSolitaire() {
   }
   function handleColumnDragOver(e) {
     e.preventDefault()
+    e.stopPropagation()
     e.dataTransfer.dropEffect = "move"
   }
   function handleColumnDrop(e, destCol) {
     e.preventDefault()
+    e.stopPropagation()
     let parsed
     try {
       parsed = JSON.parse(e.dataTransfer.getData("text/plain"))

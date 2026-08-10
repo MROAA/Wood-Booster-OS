@@ -10,6 +10,10 @@ import Knowledge from './Knowledge.jsx';
 import KnowledgeUpload from './KnowledgeUpload.jsx';
 import Memory from './Memory.jsx';
 import SpacemonkeyBrain from './SpacemonkeyBrain.jsx';
+import Tools from './Tools.jsx';
+import DevStudio from './DevStudio.jsx';
+import ProjectWorkspace from './ProjectWorkspace.jsx';
+import SpiderSolitaire from './SpiderSolitaire.jsx';
 import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
@@ -50,6 +54,10 @@ const APPS = {
   knowledgeupload: { title: 'Tiedostojen lataus', icon: '📥', component: KnowledgeUpload, defaultWidth: 560, defaultHeight: 520 },
   memory: { title: 'Memory', icon: '◈', component: Memory, defaultWidth: 780, defaultHeight: 620 },
   spacemonkeybrain: { title: 'Spacemonkey Brain', icon: '⬡', component: SpacemonkeyBrain, defaultWidth: 660, defaultHeight: 560 },
+  tools: { title: 'Tools', icon: '▨', component: Tools, defaultWidth: 820, defaultHeight: 620 },
+  devstudio: { title: 'Dev Studio', icon: 'λ', component: DevStudio, defaultWidth: 900, defaultHeight: 650 },
+  projectworkspace: { title: 'Projektityötila', icon: '🗂', component: ProjectWorkspace, defaultWidth: 920, defaultHeight: 600 },
+  spidersolitaire: { title: 'Spider-pasianssi', icon: '♤', component: SpiderSolitaire, defaultWidth: 900, defaultHeight: 650 },
   settings: { title: 'Asetukset', icon: '⚙', component: Settings, defaultWidth: 700, defaultHeight: 600 },
 };
 

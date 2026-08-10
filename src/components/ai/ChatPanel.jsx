@@ -229,7 +229,7 @@ function ChatPanel() {
 
                 <div
                   className={`
-                    max-w-[65%]
+                    max-w-[90%]
                     px-4
                     py-3
                     text-sm
