@@ -2,7 +2,10 @@ import {
   Routes,
   Route,
 } from "react-router-dom"
+
+
 import OSLayout from "./layouts/OSLayout"
+
 import { MainDashboard } from "./components/hq/MainDashboard.jsx"
 import Spacemonkey from "./pages/Spacemonkey"
 import Projects from "./pages/Projects"
@@ -31,184 +34,268 @@ import SystemCenter from "./pages/SystemCenter"
 import Tools from "./pages/Tools"
 import DevStudio from "./pages/DevStudio"
 import SpiderSolitaire from "./pages/SpiderSolitaire"
+
+
+
+
 function App() {
+
+
   return (
+
     <Routes>
+
+
+      <Route
+        path="/"
+        element={
+          <MainDashboard />
+        }
+      />
+
+
       <Route
         element={
           <OSLayout />
         }
       >
-        <Route
-          index
-          element={
-            <MainDashboard />
-          }
-        />
+
+
         <Route
           path="/projects"
           element={
             <Projects />
           }
         />
+
+
+
         <Route
           path="/projects/:id"
           element={
             <ProjectDetails />
           }
         />
+
+
+
         <Route
           path="/customers"
           element={
             <Customers />
           }
         />
+
+
+
         <Route
           path="/customers/:id"
           element={
             <CustomerDetails />
           }
         />
+
+
+
         <Route
           path="/inventory"
           element={
             <Inventory />
           }
         />
+
+
+
         <Route
           path="/purchases"
           element={
             <Purchases />
           }
         />
+
+
+
         <Route
           path="/invoices"
           element={
             <Invoices />
           }
         />
+
+
+
         <Route
           path="/quotes"
           element={
             <Quotes />
           }
         />
+
+
+
         <Route
           path="/knowledge"
           element={
             <Knowledge />
           }
         />
+
+
+
         <Route
           path="/knowledge/:id"
           element={
             <KnowledgeDocumentDetails />
           }
         />
+
+
+
         <Route
           path="/memory"
           element={
             <Memory />
           }
         />
+
+
+
         <Route
           path="/agents"
           element={
             <Agents />
           }
         />
+
+
+
         <Route
           path="/system-pulse"
           element={
             <SystemPulse />
           }
         />
+
+
+
         <Route
           path="/spacemonkey-brain"
           element={
             <SpacemonkeyPersona />
           }
         />
+
         <Route
           path="/spacemonkey-diagnostics"
           element={
             <SpacemonkeyBrain />
           }
         />
-        <Route
-          path="/spacemonkey"
-          element={
-            <Spacemonkey />
-          }
-        />
+
+<Route
+  path="/spacemonkey"
+  element={
+    <Spacemonkey />
+  }
+/>
+
         <Route
           path="/settings"
           element={
             <Settings />
           }
         />
+
+
         <Route
           path="/ai-brain"
           element={
             <AIBrain />
           }
         />
+
+
         <Route
           path="/ai-chat"
           element={
             <AIChat />
           }
         />
+
+
         <Route
           path="/ai-generator"
           element={
             <AIGenerator />
           }
         />
+
+
         <Route
           path="/ai-workspace"
           element={
             <AIWorkspace />
           }
         />
+
+
         <Route
           path="/capabilities"
           element={
             <CapabilityCenter />
           }
         />
+
+
         <Route
           path="/execution"
           element={
             <ExecutionCenterV2 />
           }
         />
+
+
         <Route
           path="/system-center"
           element={
             <SystemCenter />
           }
         />
+
+
         <Route
           path="/tools"
           element={
             <Tools />
           }
         />
+
+
+
         <Route
           path="/dev-studio"
           element={
             <DevStudio />
           }
         />
+
+
         <Route
           path="/spider-solitaire"
           element={
             <SpiderSolitaire />
           }
         />
+
+
       </Route>
+
+
     </Routes>
+
   )
+
 }
+
+
 export default App
