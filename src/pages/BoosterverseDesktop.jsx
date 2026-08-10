@@ -14,6 +14,8 @@ import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
 const WORKSPACE_API = 'http://127.0.0.1:8002/api/workspace';
+const PULSE_STATUS_API = 'http://127.0.0.1:8002/api/pulse/status';
+const PULSE_POLL_INTERVAL = 20000;
 const DRAG_FILE_TYPE = 'application/x-wb-file-id';
 const DRAG_ICON_TYPE = 'application/x-wb-icon-key';
 const ICON_POSITIONS_KEY = 'wb-desktop-icon-positions';
@@ -86,6 +88,35 @@ export default function BoosterverseDesktop({ onExit }) {
   const [rootItems, setRootItems] = useState({ folders: [], files: [] });
   const [iconPositions, setIconPositions] = useState(loadIconPositions);
   const [dragOverIconKey, setDragOverIconKey] = useState(null);
+  const [pulseStatus, setPulseStatus] = useState({ online: null, disk: null, git: null });
+
+  useEffect(() => {
+    // Tehtäväpalkin tarjonta-alue näytti aiemmin pelkkiä koriste-emojeja
+    // (wifi/äänenvoimakkuus/akku, ei mitään kytköstä oikeaan tilaan) - Marc
+    // halusi oikeaa tietoa niiden tilalle. System Pulse -moduuli laskee jo
+    // levytilan ja git-tilan reaalisesti /api/pulse/status:issa - käytetään
+    // sitä sellaisenaan sen sijaan että keksittäisiin uusi rinnakkainen
+    // tietolähde vain työpöytää varten.
+    let cancelled = false;
+    function poll() {
+      fetch(PULSE_STATUS_API)
+        .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+        .then((data) => {
+          if (cancelled) return;
+          setPulseStatus({ online: true, disk: data.disk_usage, git: data.git_info });
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setPulseStatus((prev) => ({ ...prev, online: false }));
+        });
+    }
+    poll();
+    const interval = setInterval(poll, PULSE_POLL_INTERVAL);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!dropFeedback) return;
@@ -598,9 +629,41 @@ export default function BoosterverseDesktop({ onExit }) {
         </div>
 
         <div className="win-taskbar-tray">
-          <span className="win-tray-icon" title="Wi-Fi">📶</span>
-          <span className="win-tray-icon" title="Äänenvoimakkuus">🔊</span>
-          <span className="win-tray-icon" title="Akku">🔋</span>
+          <span
+            className="win-tray-icon"
+            title={
+              pulseStatus.online === null
+                ? 'Tarkistetaan taustapalvelinta...'
+                : pulseStatus.online
+                ? 'Taustapalvelin yhteydessä'
+                : 'Taustapalvelin ei vastaa'
+            }
+          >
+            {pulseStatus.online === null ? '⚪' : pulseStatus.online ? '🟢' : '🔴'}
+          </span>
+          <span
+            className="win-tray-icon"
+            title={
+              pulseStatus.disk
+                ? `Levytila: ${pulseStatus.disk.free_gb} GB vapaana / ${pulseStatus.disk.total_gb} GB (${pulseStatus.disk.used_percentage}% käytetty)`
+                : 'Levytila ei tiedossa'
+            }
+          >
+            💾 {pulseStatus.disk ? `${pulseStatus.disk.used_percentage}%` : '…'}
+          </span>
+          <span
+            className="win-tray-icon"
+            title={
+              pulseStatus.git
+                ? pulseStatus.git.uncommitted_changes
+                  ? `Tallentamattomia muutoksia (${pulseStatus.git.branch})`
+                  : `Kaikki tallennettu (${pulseStatus.git.branch})`
+                : 'Git-tieto ei saatavilla'
+            }
+          >
+            {pulseStatus.git ? (pulseStatus.git.uncommitted_changes ? '🟠' : '✅') : '◌'}{' '}
+            {pulseStatus.git?.branch || 'git'}
+          </span>
           <div className="win-taskbar-clock">
             <div>{clock.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}</div>
             <div className="win-taskbar-date">{clock.toLocaleDateString('fi-FI')}</div>
