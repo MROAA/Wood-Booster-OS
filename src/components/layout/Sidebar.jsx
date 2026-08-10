@@ -18,12 +18,6 @@ const groups = [
         label: "Dashboard",
         path: "/",
         icon: "⌂"
-      },
-
-      {
-        label: "Työpöytä näkymä",
-        path: "/desktop",
-        icon: "🖥"
       }
 
     ]
@@ -249,28 +243,6 @@ function Sidebar() {
         </h1>
 
 
-      </Link>
-
-
-<Link
-        to="/spacemonkey-chat"
-        className="
-          mt-4
-          flex
-          items-center
-          gap-2
-          rounded-lg
-          bg-[var(--wood-accent)]
-          text-white
-          px-3
-          py-2
-          text-sm
-          font-medium
-          hover:opacity-90
-          transition
-        "
-      >
-        🐵 Spacemonkey Chat
       </Link>
 
 
