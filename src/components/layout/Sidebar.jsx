@@ -149,6 +149,12 @@ const groups = [
         label: "Dev Studio",
         path: "/dev-studio",
         icon: "λ"
+      },
+
+      {
+        label: "Projektityötila",
+        path: "/project-workspace",
+        icon: "🗂"
       }
 
     ]
