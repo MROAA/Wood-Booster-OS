@@ -20,6 +20,11 @@ import {
   getHighScores,
   addHighScore,
 } from "../services/spiderSolitaireHighScores"
+import {
+  loadGameState,
+  saveGameState,
+  clearGameState,
+} from "../services/spiderSolitaireSaveState"
 const DIFFICULTIES = [
   { value: 1, label: "1 maa", hint: "Helpoin" },
   { value: 2, label: "2 maata", hint: "Keskitaso" },
@@ -42,16 +47,16 @@ function formatDate(iso) {
 }
 function SpiderSolitaire() {
   const [game, setGame] = useState(
-    () => dealInitialGame(2),
+    () => loadGameState()?.game || dealInitialGame(2),
   )
   const [selected, setSelected] =
     useState(null)
   const [history, setHistory] =
-    useState([])
+    useState(() => loadGameState()?.history || [])
   const [gameId, setGameId] =
     useState(0)
   const [elapsedSeconds, setElapsedSeconds] =
-    useState(0)
+    useState(() => loadGameState()?.elapsedSeconds || 0)
   const [highScores, setHighScores] =
     useState(() => getHighScores(game.difficulty))
   const [justRecorded, setJustRecorded] =
@@ -83,6 +88,13 @@ function SpiderSolitaire() {
     setHighScores(list)
     setJustRecorded({ rank, score })
   }, [won, game.difficulty, game.moveCount, elapsedSeconds])
+  useEffect(() => {
+    if (won) {
+      clearGameState()
+      return
+    }
+    saveGameState({ game, history, elapsedSeconds })
+  }, [game, history, elapsedSeconds, won])
   function startNewGame(difficulty) {
     setGame(dealInitialGame(difficulty))
     setSelected(null)
