@@ -17,6 +17,8 @@ function formatSize(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+const DRAG_FILE_TYPE = 'application/x-wb-file-id';
+
 function VirtualWorkspacePanel({ refreshSignal } = {}) {
   const [breadcrumb, setBreadcrumb] = useState([{ id: null, name: 'Työtila' }]);
   const [folders, setFolders] = useState([]);
@@ -25,6 +27,7 @@ function VirtualWorkspacePanel({ refreshSignal } = {}) {
   const [error, setError] = useState(null);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [dragOverFolderId, setDragOverFolderId] = useState(null);
 
   const currentFolderId = breadcrumb[breadcrumb.length - 1].id;
 
@@ -94,6 +97,19 @@ function VirtualWorkspacePanel({ refreshSignal } = {}) {
     fetch(`${WORKSPACE_API}/files/${file.id}`, { method: 'DELETE' })
       .then((res) => {
         if (!res.ok) throw new Error(`Tiedoston poisto epäonnistui (${res.status}).`);
+        loadFolder(currentFolderId);
+      })
+      .catch((err) => setError(err.message));
+  };
+
+  const handleMoveFile = (fileId, targetFolderId) => {
+    fetch(`${WORKSPACE_API}/files/${fileId}/move`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder_id: targetFolderId }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Tiedoston siirto epäonnistui (${res.status}).`);
         loadFolder(currentFolderId);
       })
       .catch((err) => setError(err.message));
@@ -179,8 +195,27 @@ function VirtualWorkspacePanel({ refreshSignal } = {}) {
             {folders.map((folder) => (
               <div
                 key={folder.id}
-                className="group relative rounded-lg border border-[var(--wood-border)] bg-[var(--wood-card)] p-3 cursor-pointer hover:border-[var(--wood-accent)]"
+                className={`group relative rounded-lg border p-3 cursor-pointer transition-colors ${
+                  dragOverFolderId === folder.id
+                    ? 'border-[var(--wood-accent)] bg-[var(--wood-accent)]/10'
+                    : 'border-[var(--wood-border)] bg-[var(--wood-card)] hover:border-[var(--wood-accent)]'
+                }`}
                 onClick={() => openFolder(folder)}
+                onDragOver={(e) => {
+                  if (!e.dataTransfer.types.includes(DRAG_FILE_TYPE)) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragOverFolderId(folder.id);
+                }}
+                onDragLeave={() => setDragOverFolderId((prev) => (prev === folder.id ? null : prev))}
+                onDrop={(e) => {
+                  if (!e.dataTransfer.types.includes(DRAG_FILE_TYPE)) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragOverFolderId(null);
+                  const fileId = e.dataTransfer.getData(DRAG_FILE_TYPE);
+                  if (fileId) handleMoveFile(fileId, folder.id);
+                }}
               >
                 <button
                   type="button"
@@ -200,7 +235,12 @@ function VirtualWorkspacePanel({ refreshSignal } = {}) {
             {files.map((file) => (
               <div
                 key={file.id}
-                className="group relative rounded-lg border border-[var(--wood-border)] bg-[var(--wood-card)] p-3"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(DRAG_FILE_TYPE, file.id);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                className="group relative rounded-lg border border-[var(--wood-border)] bg-[var(--wood-card)] p-3 cursor-grab active:cursor-grabbing"
               >
                 <button
                   type="button"

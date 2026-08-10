@@ -14,6 +14,11 @@ import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
 const WORKSPACE_API = 'http://127.0.0.1:8002/api/workspace';
+const DRAG_FILE_TYPE = 'application/x-wb-file-id';
+const DRAG_ICON_TYPE = 'application/x-wb-icon-key';
+const ICON_POSITIONS_KEY = 'wb-desktop-icon-positions';
+const ICON_WIDTH = 84;
+const ICON_HEIGHT = 92;
 
 const FILE_CATEGORY_ICON = {
   image: '🖼️',
@@ -22,6 +27,15 @@ const FILE_CATEGORY_ICON = {
   archive: '🗜️',
   generic: '📦',
 };
+
+function loadIconPositions() {
+  try {
+    const raw = localStorage.getItem(ICON_POSITIONS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
 
 const APPS = {
   explorer: { title: 'Tiedostonhallinta', icon: '📁', component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
@@ -64,11 +78,14 @@ export default function BoosterverseDesktop({ onExit }) {
   const [contextMenu, setContextMenu] = useState(null);
   const contextMenuRef = useRef(null);
   const desktopRef = useRef(null);
+  const iconsAreaRef = useRef(null);
   const startButtonRef = useRef(null);
   const [startMenuLeft, setStartMenuLeft] = useState(null);
   const [isDesktopDragging, setIsDesktopDragging] = useState(false);
   const [dropFeedback, setDropFeedback] = useState(null);
   const [rootItems, setRootItems] = useState({ folders: [], files: [] });
+  const [iconPositions, setIconPositions] = useState(loadIconPositions);
+  const [dragOverIconKey, setDragOverIconKey] = useState(null);
 
   useEffect(() => {
     if (!dropFeedback) return;
@@ -163,6 +180,10 @@ export default function BoosterverseDesktop({ onExit }) {
 
   function handleDesktopDragOver(e) {
     e.preventDefault();
+    // Kuvakkeen siirto työpöydällä (raahaus toiseen kohtaan) ei ole
+    // ulkoisen tiedoston pudotus - ei näytetä "pudota tiedosto tähän"
+    // -ylälaskosta silloin, Marc: "ilman että se herjaa tiedostonpudotuksesta".
+    if (e.dataTransfer.types.includes(DRAG_ICON_TYPE)) return;
     setIsDesktopDragging(true);
   }
 
@@ -177,9 +198,51 @@ export default function BoosterverseDesktop({ onExit }) {
     setIsDesktopDragging(false);
   }
 
+  function persistIconPositions(next) {
+    setIconPositions(next);
+    try {
+      localStorage.setItem(ICON_POSITIONS_KEY, JSON.stringify(next));
+    } catch {
+      // localStorage voi olla estetty (esim. yksityinen selaus) - sijainnit
+      // toimivat silti tämän istunnon ajan, vain eivät säily seuraavaan kertaan.
+    }
+  }
+
+  function moveFileToFolder(fileId, folderId) {
+    fetch(`${WORKSPACE_API}/files/${fileId}/move`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder_id: folderId }),
+    }).then((res) => {
+      if (res.ok) setRefreshCounter((c) => c + 1);
+    });
+  }
+
   async function handleDesktopDrop(e) {
     e.preventDefault();
     setIsDesktopDragging(false);
+
+    // Työpöydän kuvakkeen raahaus vapaaseen kohtaan - pelkkä sijainnin
+    // muutos, ei tiedoston lataus. Kansion päälle pudotus käsitellään sen
+    // omassa onDrop:issa (stopPropagation), joten tänne asti asti päätyvät
+    // vain tyhjälle työpöydälle pudotetut kuvakkeet.
+    if (e.dataTransfer.types.includes(DRAG_ICON_TYPE)) {
+      const key = e.dataTransfer.getData(DRAG_ICON_TYPE);
+      if (key && iconsAreaRef.current) {
+        const rect = iconsAreaRef.current.getBoundingClientRect();
+        const x = Math.min(
+          Math.max(0, e.clientX - rect.left - ICON_WIDTH / 2),
+          Math.max(0, rect.width - ICON_WIDTH)
+        );
+        const y = Math.min(
+          Math.max(0, e.clientY - rect.top - 24),
+          Math.max(0, rect.height - ICON_HEIGHT)
+        );
+        persistIconPositions({ ...iconPositions, [key]: { x, y } });
+      }
+      return;
+    }
+
     const files = Array.from(e.dataTransfer.files || []);
     if (files.length === 0) return;
 
@@ -260,6 +323,39 @@ export default function BoosterverseDesktop({ onExit }) {
     app.title.toLowerCase().includes(query)
   );
 
+  // Yksi yhtenäinen kuvakelista (kiinnitetyt sovellukset + työpöydän
+  // juurikansion kansiot/tiedostot) - sama raahaus/pudotus-logiikka
+  // pätee kaikkiin, riippumatta siitä ovatko ne sovellus-, kansio- vai
+  // tiedostokuvakkeita.
+  const desktopIcons = [
+    ...Object.entries(APPS).map(([key, app]) => ({
+      key: `app:${key}`,
+      glyph: app.icon,
+      label: app.title,
+      isFolder: false,
+      isFile: false,
+      onOpen: () => openApp(key),
+    })),
+    ...rootItems.folders.map((folder) => ({
+      key: `folder:${folder.id}`,
+      glyph: '📁',
+      label: folder.name,
+      isFolder: true,
+      isFile: false,
+      onOpen: () => openApp('explorer'),
+    })),
+    ...rootItems.files.map((file) => ({
+      key: `file:${file.id}`,
+      glyph: FILE_CATEGORY_ICON[file.category] || FILE_CATEGORY_ICON.generic,
+      thumb: file.category === 'image' && file.has_thumbnail ? `${WORKSPACE_API}/files/${file.id}/thumbnail` : null,
+      label: file.original_name,
+      isFolder: false,
+      isFile: true,
+      fileId: file.id,
+      onOpen: () => openFileIcon(file),
+    })),
+  ];
+
   return (
     <div
       ref={desktopRef}
@@ -286,85 +382,60 @@ export default function BoosterverseDesktop({ onExit }) {
       )}
 
       {showDesktopIcons && (
-        <div className="win-desktop-icons">
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('explorer')}>
-            <span className="win-desktop-icon-glyph">📁</span>
-            <span className="win-desktop-icon-label">Tiedostonhallinta</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('terminal')}>
-            <span className="win-desktop-icon-glyph">💻</span>
-            <span className="win-desktop-icon-label">Pääte</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('projects')}>
-            <span className="win-desktop-icon-glyph">📁</span>
-            <span className="win-desktop-icon-label">Projektit</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkey')}>
-            <span className="win-desktop-icon-glyph">🐒</span>
-            <span className="win-desktop-icon-label">Spacemonkey</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('systempulse')}>
-            <span className="win-desktop-icon-glyph">🧠</span>
-            <span className="win-desktop-icon-label">System Pulse</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('gitguardian')}>
-            <span className="win-desktop-icon-glyph">🛡</span>
-            <span className="win-desktop-icon-label">Git Guardian</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('knowledge')}>
-            <span className="win-desktop-icon-glyph">◌</span>
-            <span className="win-desktop-icon-label">Knowledge</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('knowledgeupload')}>
-            <span className="win-desktop-icon-glyph">📥</span>
-            <span className="win-desktop-icon-label">Tiedostojen lataus</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('memory')}>
-            <span className="win-desktop-icon-glyph">◈</span>
-            <span className="win-desktop-icon-label">Memory</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkeybrain')}>
-            <span className="win-desktop-icon-glyph">⬡</span>
-            <span className="win-desktop-icon-label">Spacemonkey Brain</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('settings')}>
-            <span className="win-desktop-icon-glyph">⚙</span>
-            <span className="win-desktop-icon-label">Asetukset</span>
-          </button>
-
-          {rootItems.folders.map((folder) => (
-            <button
-              key={folder.id}
-              className="win-desktop-icon"
-              onDoubleClick={() => openApp('explorer')}
-              title={folder.name}
-            >
-              <span className="win-desktop-icon-glyph">📁</span>
-              <span className="win-desktop-icon-label">{folder.name}</span>
-            </button>
-          ))}
-
-          {rootItems.files.map((file) => (
-            <button
-              key={file.id}
-              className="win-desktop-icon"
-              onDoubleClick={() => openFileIcon(file)}
-              title={file.original_name}
-            >
-              {file.category === 'image' && file.has_thumbnail ? (
-                <img
-                  className="win-desktop-icon-thumb"
-                  src={`${WORKSPACE_API}/files/${file.id}/thumbnail`}
-                  alt=""
-                />
-              ) : (
-                <span className="win-desktop-icon-glyph">
-                  {FILE_CATEGORY_ICON[file.category] || FILE_CATEGORY_ICON.generic}
-                </span>
-              )}
-              <span className="win-desktop-icon-label">{file.original_name}</span>
-            </button>
-          ))}
+        <div ref={iconsAreaRef} className="win-desktop-icons">
+          {desktopIcons.map((item) => {
+            const pos = iconPositions[item.key];
+            return (
+              <button
+                key={item.key}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(DRAG_ICON_TYPE, item.key);
+                  if (item.isFile) e.dataTransfer.setData(DRAG_FILE_TYPE, item.fileId);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={
+                  item.isFolder
+                    ? (e) => {
+                        if (!e.dataTransfer.types.includes(DRAG_FILE_TYPE)) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOverIconKey(item.key);
+                      }
+                    : undefined
+                }
+                onDragLeave={
+                  item.isFolder
+                    ? () => setDragOverIconKey((prev) => (prev === item.key ? null : prev))
+                    : undefined
+                }
+                onDrop={
+                  item.isFolder
+                    ? (e) => {
+                        if (!e.dataTransfer.types.includes(DRAG_FILE_TYPE)) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOverIconKey(null);
+                        const fileId = e.dataTransfer.getData(DRAG_FILE_TYPE);
+                        const folderId = item.key.slice('folder:'.length);
+                        if (fileId) moveFileToFolder(fileId, folderId);
+                      }
+                    : undefined
+                }
+                onDoubleClick={item.onOpen}
+                title={item.label}
+                className={`win-desktop-icon ${dragOverIconKey === item.key ? 'win-desktop-icon-drop-target' : ''}`}
+                style={pos ? { position: 'absolute', left: pos.x, top: pos.y } : undefined}
+              >
+                {item.thumb ? (
+                  <img className="win-desktop-icon-thumb" src={item.thumb} alt="" />
+                ) : (
+                  <span className="win-desktop-icon-glyph">{item.glyph}</span>
+                )}
+                <span className="win-desktop-icon-label">{item.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
