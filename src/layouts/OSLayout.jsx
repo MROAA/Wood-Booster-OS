@@ -1,5 +1,6 @@
 import {
   Outlet,
+  useLocation,
 } from "react-router-dom"
 import {
   useEffect,
@@ -11,6 +12,11 @@ import GlobalSearch from "../components/layout/GlobalSearch"
 function OSLayout() {
   const [searchOpen, setSearchOpen] =
     useState(false)
+  const location = useLocation()
+  // Boosterverse Desktop hallinnoi omaa vieritystään ja haluaa täyttää
+  // koko käytettävissä olevan tilan reunasta reunaan (oma tehtäväpalkki,
+  // ikkunat jne.) - normaali sivun p-8/overflow-auto rikkoisi sen.
+  const isFullBleed = location.pathname === "/desktop"
   useEffect(() => {
     function handleKeyDown(event) {
       if (
@@ -70,12 +76,11 @@ function OSLayout() {
           <Sidebar />
         </aside>
         <main
-          className="
-            flex-1
-            h-full
-            overflow-auto
-            p-8
-          "
+          className={
+            isFullBleed
+              ? "flex-1 h-full overflow-hidden"
+              : "flex-1 h-full overflow-auto p-8"
+          }
         >
           <Outlet />
         </main>
