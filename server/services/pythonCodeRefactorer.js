@@ -1,3 +1,5 @@
+import { isValidPythonSyntax } from "./pythonSyntaxValidator.js"
+
 const OLLAMA_URL =
   process.env.OLLAMA_URL ||
   "http://localhost:11434"
@@ -25,18 +27,27 @@ function buildSystemPrompt() {
     "SELITYS: <lyhyt suomenkielinen kuvaus tehdyistä muutoksista>\n" +
     "KOODI:\n" +
     "```python\n" +
+    "# TIEDOSTO ALKAA TÄSTÄ\n" +
     "<koko refaktoroitu tiedosto>\n" +
-    "```"
+    "```\n" +
+    "TÄRKEÄÄ: rivi \"# TIEDOSTO ALKAA TÄSTÄ\" on vain merkki koodin " +
+    "alusta, ei osa tiedostoa - kirjoita sen JÄLKEEN tiedoston oma " +
+    "sisältö kokonaisuudessaan alusta asti, myös jos tiedosto alkaa " +
+    "kolmoislainausmerkillä (\"\"\") - älä koskaan jätä sitä pois vain " +
+    "koska se muistuttaa koodilohkon omaa ```-rajaa."
   )
 }
 
 export function parseRefactoredText(text) {
+  // Pysähdytään ennemmin koodilohkon alkuun (```) kuin
+  // kirjaimelliseen "KOODI:"-tekstiin - katso perustelu
+  // pythonCodeDebugger.js:n parseDebugText()-funktiosta.
   const titleMatch = text.match(
-    /OTSIKKO:\s*([\s\S]*?)(?:\nSELITYS:|\nKOODI:|$)/i,
+    /OTSIKKO:\s*([\s\S]*?)(?:\nSELITYS:|\n```|\nKOODI:|$)/i,
   )
 
   const explanationMatch = text.match(
-    /SELITYS:\s*([\s\S]*?)(?:\nKOODI:|$)/i,
+    /SELITYS:\s*([\s\S]*?)(?:\n```|\nKOODI:|$)/i,
   )
 
   const codeBlockMatch = text.match(
@@ -45,13 +56,37 @@ export function parseRefactoredText(text) {
 
   const fallbackCodeMatch = text.match(/KOODI:\s*([\s\S]*)$/i)
 
+  const rawCode = codeBlockMatch
+    ? codeBlockMatch[1].trim()
+    : (fallbackCodeMatch ? fallbackCodeMatch[1].trim() : text.trim())
+
+  // Katso perustelu pythonCodeDebugger.js:n parseDebugText()-funktiosta.
+  const code = rawCode.replace(/^#\s*TIEDOSTO ALKAA TÄSTÄ\s*\n/i, "")
+
   return {
     title: titleMatch ? titleMatch[1].trim() : "",
     explanation: explanationMatch ? explanationMatch[1].trim() : "",
-    code: codeBlockMatch
-      ? codeBlockMatch[1].trim()
-      : (fallbackCodeMatch ? fallbackCodeMatch[1].trim() : text.trim()),
+    code,
   }
+}
+
+/*
+ * Suojaus samaa vikaa vastaan kuin pythonCodeDebugger.js:ssä -
+ * malli voi joskus palauttaa kirjaimellisesti kehotteen oman
+ * placeholder-tekstin koodina takaisin oikean koodin sijaan.
+ */
+function looksLikeValidCode(code) {
+  const trimmed = (code || "").trim()
+
+  if (trimmed.length < 10) {
+    return false
+  }
+
+  if (/^<[^<>]*>$/.test(trimmed)) {
+    return false
+  }
+
+  return true
 }
 
 async function askOllama({ model, code }) {
@@ -89,6 +124,8 @@ async function askOllama({ model, code }) {
   return String(data.message?.content || "").trim()
 }
 
+const MAX_ATTEMPTS = 2
+
 /*
  * Refaktoroi annetun Python-koodin. Ei koskaan kirjoita mihinkään
  * itse - palauttaa vain ehdotetun koodin ja selityksen, jonka
@@ -100,12 +137,30 @@ export async function refactorPythonCode({
   code,
   model = DEFAULT_MODEL,
 }) {
-  const rawText = await askOllama({
-    model,
-    code,
-  })
+  let parsed = null
 
-  const parsed = parseRefactoredText(rawText)
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    const rawText = await askOllama({
+      model,
+      code,
+    })
+
+    parsed = parseRefactoredText(rawText)
+
+    if (
+      looksLikeValidCode(parsed.code) &&
+      (await isValidPythonSyntax(parsed.code))
+    ) {
+      break
+    }
+
+    if (attempt === MAX_ATTEMPTS) {
+      throw new Error(
+        "AI ei pystynyt tuottamaan kelvollista refaktorointia " +
+          `${MAX_ATTEMPTS} yrityksellä. Kokeile uudelleen.`,
+      )
+    }
+  }
 
   return {
     title: parsed.title || "Refaktoroitu koodi",

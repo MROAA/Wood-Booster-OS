@@ -1,0 +1,66 @@
+{
+  "system_rules": [
+    "Pid\u00e4 muistin k\u00e4ytt\u00f6 alhaisena live-tikulla",
+    "CPU-optiikka ensin, v\u00e4lt\u00e4 raskaita GPU-kutsuja",
+    "Spacemonkey vastaa tasapainosta, CyberChimp optimoinnista"
+  ],
+  "optimization_tips": {
+    "normal": "K\u00e4yt\u00e4 kevyit\u00e4 prosesseja ja s\u00e4\u00e4st\u00e4 akkua",
+    "alter_ego": "Vapauta kaikki ytimet k\u00e4ytt\u00f6\u00f6n ja suorita maksiminopeudella"
+  },
+  "custom_facts": {
+    "user_profile": {
+      "name": "Marc J\u00e4rvinen",
+      "role": "Creator & Administrator",
+      "system_identity": "Wood-Booster OS Founder"
+    },
+    "wordpress_skills": {
+      "core_capabilities": [
+        "WordPress-sivustojen paikallinen valvonta ja optimointi",
+        "Tietokannan (MySQL/MariaDB) kevennys ja siivous",
+        "WP-CLI-komentojen ajo j\u00e4rjestelm\u00e4n sis\u00e4lt\u00e4",
+        "Teemojen ja liit\u00e4nn\u00e4isten turvatarkistukset"
+      ],
+      "optimization_preset": {
+        "cache_clear": "Poista vanhat v\u00e4limuistit ja transientit tietokannasta",
+        "speed_boost": "Ota k\u00e4ytt\u00f6\u00f6n Object Cache ja optimoi kuvat"
+      }
+    },
+    "python_pytorch_environment": {
+      "python_version": "3.14.6",
+      "pytorch_version": "2.13.0+cu130",
+      "device": "cpu",
+      "capabilities": [
+        "Reaaliaikainen tensorien k\u00e4sittely CPU:lla",
+        "Kevyt neuroverkon ajo ja p\u00e4\u00e4t\u00f6ksenteko (inference)",
+        "Dynaaminen skriptien ajo ja automaattinen optimointi",
+        "Muistin ja suorittimen s\u00e4\u00e4st\u00f6 ilman raskaiden CUDA-ajureiden kuormaa"
+      ]
+    },
+    "development_stack": {
+      "systems_languages": {
+        "C": "K\u00e4ytet\u00e4\u00e4n yl\u00e4tason kerneliin, suorituskykyisiin alustakomponentteihin ja laiteohjaukseen.",
+        "C++": "K\u00e4ytet\u00e4\u00e4n olio-ohjelmointiin, suorituskykyiseen laskentaan ja j\u00e4rjestelm\u00e4ty\u00f6kaluihin."
+      },
+      "frontend_languages": {
+        "HTML5": "K\u00e4ytt\u00f6liittymien ja hallintapaneelien rakenne (esim. Flaskin tarjoamat sivut).",
+        "CSS3": "Tyylittely, Spacemonkey / CyberChimp teemat ja visuaaliset tilat."
+      },
+      "integration_status": "Kaikki kielet kytketty Python-taustaj\u00e4rjestelm\u00e4\u00e4n ja neuroverkkoon."
+    },
+    "security_and_threats": {
+      "threat_detection": [
+        "Luvattomien verkkoyhteyksien ja porttiskannausten valvonta",
+        "Paikallisten tiedostomuutosten ja suoritusoikeuksien tarkkailu",
+        "Resurssien ylikuormituksen (DDoS/muistivuoto) tunnistus"
+      ],
+      "security_protocols": {
+        "normal": "Aktiivinen valvonta, palomuuris\u00e4\u00e4nn\u00f6t p\u00e4\u00e4ll\u00e4 ja lokien seuranta",
+        "alter_ego": "CyberChimp Security Lock: Sulje tarpeettomat verkkoportit ja erist\u00e4 ep\u00e4ilytt\u00e4v\u00e4t prosessit"
+      },
+      "compliance": "Offline-first ja t\u00e4ysi k\u00e4ytt\u00e4j\u00e4n (Marc J\u00e4rvinen) hallinta."
+    },
+    "test": "123",
+    "": ""
+  }
+}

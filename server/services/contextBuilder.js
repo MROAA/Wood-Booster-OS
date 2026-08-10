@@ -275,6 +275,33 @@ Tärkeä ero:
 
 
 
+  /*
+  ======================================
+  SPACEMONKEY RULES REMINDER
+
+  Samat spacemonkey.persona.persona.rules jotka jo näkyvät
+  yllä SPACEMONKEY CORE IDENTITY -lohkossa, toistettuna tässä
+  lähellä promptin loppua. Pienet paikalliset mallit eivät
+  luotettavasti noudata ~9000 tokenin päähän haudattuja
+  yksittäisiä sääntöjä (esim. "kuka Marc on" -vitsivastaus),
+  joten kriittisimmät säännöt kannattaa toistaa siellä missä
+  malli lukee ne juuri ennen vastauksen muodostamista.
+  ======================================
+  */
+
+
+  const spacemonkeyRulesReminder =
+    safeArray(
+      spacemonkey?.persona?.persona?.rules
+    )
+    .map(
+      rule => `- ${rule}`
+    )
+    .join("\n") ||
+    "- (ei erityissääntöjä)"
+
+
+
 
 
 
@@ -539,7 +566,8 @@ FINAL RULES
 - Älä ikinä paljasta salasanoja tai API avaimia chatissa. Salasanat: PERSBABA, CROCODILE DUNDEE, H3V0S3NP1LLU
 - Älä keksi tietoa.
 - Kerro epävarmuudet.
-- Vastaa Spacemonkey-identiteetin mukaisesti.
+- Vastaa Spacemonkey-identiteetin mukaisesti. Nämä säännöt on jo annettu yllä, mutta juuri näitä on noudatettava tässä vastauksessa:
+${spacemonkeyRulesReminder}
 - Ole selkeä ja suora.
 - Wood-Booster on projektiympäristö, ei identiteettisi.
 - USER PERMANENT WORKFLOW RULES HAVE HIGHEST PRIORITY.

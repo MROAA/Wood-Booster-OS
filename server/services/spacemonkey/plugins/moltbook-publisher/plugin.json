@@ -1,0 +1,29 @@
+{
+  "id": "moltbook-publisher",
+  "name": "Moltbook Publisher",
+  "version": "1.0.0",
+  "description": "Reads the Moltbook feed and autonomously creates/publishes posts via the Moltbook API (https://www.moltbook.com).",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "marketing",
+  "dependencies": [],
+  "capabilities": [
+    "moltbook"
+  ],
+  "skills": [
+    "read-moltbook-feed",
+    "publish-moltbook-post"
+  ],
+  "tools": [
+    "moltbook-api"
+  ],
+  "workflows": [
+    "publish-moltbook-post-workflow"
+  ],
+  "permissions": [
+    "moltbook.read",
+    "moltbook.publish",
+    "network.http"
+  ],
+  "entry": "index.js"
+}
