@@ -183,6 +183,24 @@ def get_thumbnail(file_id: str):
     return FileResponse(thumb_path, media_type="image/jpeg")
 
 
+class MoveFileRequest(BaseModel):
+    folder_id: Optional[str] = None
+
+
+@router.patch("/files/{file_id}/move")
+def move_file(file_id: str, payload: MoveFileRequest):
+    data = load_data()
+    entry = data["files"].get(file_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Tiedostoa ei löytynyt.")
+    if payload.folder_id is not None and payload.folder_id not in data["folders"]:
+        raise HTTPException(status_code=404, detail="Kohdekansiota ei löytynyt.")
+
+    entry["folder_id"] = payload.folder_id
+    save_data(data)
+    return entry
+
+
 @router.delete("/files/{file_id}")
 def delete_file(file_id: str):
     data = load_data()
