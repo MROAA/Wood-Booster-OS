@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
 import TerminalApp from '../components/desktop/TerminalApp.jsx';
+import CalculatorApp from '../components/desktop/CalculatorApp.jsx';
+import NotepadApp from '../components/desktop/NotepadApp.jsx';
 import VirtualWorkspacePanel from '../components/workspace/VirtualWorkspacePanel.jsx';
 import Projects from './Projects.jsx';
 import Settings from './Settings.jsx';
@@ -60,6 +62,8 @@ const APPS = {
   projectworkspace: { title: 'Projektityötila', icon: '🗂', component: ProjectWorkspace, defaultWidth: 920, defaultHeight: 600 },
   spidersolitaire: { title: 'Spider-pasianssi', icon: '♤', component: SpiderSolitaire, defaultWidth: 900, defaultHeight: 650 },
   settings: { title: 'Asetukset', icon: '⚙', component: Settings, defaultWidth: 700, defaultHeight: 600 },
+  calculator: { title: 'Laskin', icon: '🧮', component: CalculatorApp, defaultWidth: 320, defaultHeight: 480 },
+  notepad: { title: 'Muistio', icon: '📝', component: NotepadApp, defaultWidth: 520, defaultHeight: 480 },
 };
 
 function createWindow(app, zIndex) {
