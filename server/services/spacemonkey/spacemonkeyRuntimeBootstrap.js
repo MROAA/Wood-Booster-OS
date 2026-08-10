@@ -56,6 +56,8 @@ import { registerInstagramPublisherPlugin } from "./plugins/instagram-publisher/
 
 import { registerWordPressPublisherPlugin } from "./plugins/wordpress-publisher/index.js"
 
+import { registerMoltbookPublisherPlugin } from "./plugins/moltbook-publisher/index.js"
+
 import { registerPythonDeveloperPlugin } from "./plugins/PythonDeveloper/index.js"
 
 
@@ -149,6 +151,14 @@ function startSpacemonkeyRuntimeBootstrap({
     })
 
     registerWordPressPublisherPlugin({
+        toolBus,
+        skillEngine,
+        workflowEngine,
+        pluginManager,
+        logger,
+    })
+
+    registerMoltbookPublisherPlugin({
         toolBus,
         skillEngine,
         workflowEngine,
