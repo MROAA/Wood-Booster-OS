@@ -1,46 +1,14 @@
-import { useNavigate } from 'react-router-dom';
+import DashboardChat from "../dashboard/DashboardChat"
+import BoosterverseDesktop from "../../pages/BoosterverseDesktop"
+
 export const MainDashboard = () => {
-  const navigate = useNavigate();
   return (
-    <div className="relative flex flex-col gap-8">
-      {/* Himmennetty puusyy-tekstuuri taustalla - kokeilu, helppo poistaa jos ei toimi.
-          Lähde: boosterverse/ec36b216-...png -moodboardin yksi ruutu. */}
-      <img
-        src="/branding/dashboard-texture.jpg"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 h-full w-full rounded-2xl object-cover opacity-[0.08]"
-      />
-      <header>
-        <h1 className="text-2xl font-semibold text-[var(--wood-text)]">
-          Tervetuloa Wood-booster <span className="text-[var(--wood-accent)]">HQ</span>
-        </h1>
-        <p className="text-sm text-[var(--wood-muted)]">
-          Työpöytä — pikalinkit tärkeimpiin osiin
-        </p>
-      </header>
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div
-          className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-card)] p-4 cursor-pointer hover:border-[var(--wood-accent)] transition"
-          onClick={() => navigate('/projects')}
-        >
-          <span className="text-2xl">📁</span>
-          <p className="mt-2 text-sm text-[var(--wood-text)]">Projektit</p>
-        </div>
-        <div
-          className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-card)] p-4 cursor-pointer hover:border-[var(--wood-accent)] transition"
-          onClick={() => navigate('/knowledge')}
-        >
-          <span className="text-2xl">◌</span>
-          <p className="mt-2 text-sm text-[var(--wood-text)]">Knowledge</p>
-        </div>
-        <div
-          className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-card)] p-4 cursor-pointer hover:border-[var(--wood-accent)] transition"
-          onClick={() => navigate('/customers')}
-        >
-          <span className="text-2xl">◎</span>
-          <p className="mt-2 text-sm text-[var(--wood-text)]">Asiakkaat</p>
-        </div>
+    <div className="flex h-[calc(100vh-120px)] gap-4">
+      <section className="w-2/5 min-w-0">
+        <DashboardChat />
+      </section>
+      <section className="w-3/5 min-w-0 rounded-2xl border border-[var(--wood-border)] overflow-hidden">
+        <BoosterverseDesktop />
       </section>
     </div>
   );
