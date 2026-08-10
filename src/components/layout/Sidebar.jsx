@@ -77,35 +77,6 @@ const groups = [
 
 
   {
-    title: "AI TYÖTILA",
-
-    items: [
-
-      {
-        label: "Tools",
-        path: "/tools",
-        icon: "▨"
-      },
-
-
-      {
-        label: "Dev Studio",
-        path: "/dev-studio",
-        icon: "λ"
-      },
-
-      {
-        label: "Projektityötila",
-        path: "/project-workspace",
-        icon: "🗂"
-      }
-
-    ]
-
-  },
-
-
-  {
     title: "JÄRJESTELMÄ",
 
     items: [
