@@ -15,6 +15,14 @@ import './BoosterverseDesktop.css';
 
 const WORKSPACE_API = 'http://127.0.0.1:8002/api/workspace';
 
+const FILE_CATEGORY_ICON = {
+  image: '🖼️',
+  video: '🎬',
+  pdf: '📄',
+  archive: '🗜️',
+  generic: '📦',
+};
+
 const APPS = {
   explorer: { title: 'Tiedostonhallinta', icon: '📁', component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
   terminal: { title: 'Pääte (fish)', icon: '💻', component: TerminalApp, defaultWidth: 760, defaultHeight: 500 },
@@ -60,12 +68,23 @@ export default function BoosterverseDesktop({ onExit }) {
   const [startMenuLeft, setStartMenuLeft] = useState(null);
   const [isDesktopDragging, setIsDesktopDragging] = useState(false);
   const [dropFeedback, setDropFeedback] = useState(null);
+  const [rootItems, setRootItems] = useState({ folders: [], files: [] });
 
   useEffect(() => {
     if (!dropFeedback) return;
     const timeout = setTimeout(() => setDropFeedback(null), 3500);
     return () => clearTimeout(timeout);
   }, [dropFeedback]);
+
+  useEffect(() => {
+    // Työpöydän juurikansion sisältö näkyy suoraan kuvakkeina työpöydällä,
+    // kuten oikealla käyttöjärjestelmällä - ei tarvitse avata mitään
+    // ikkunaa nähdäkseen mitä sinne on tallennettu.
+    fetch(`${WORKSPACE_API}/folders`)
+      .then((res) => (res.ok ? res.json() : { folders: [], files: [] }))
+      .then((data) => setRootItems({ folders: data.folders || [], files: data.files || [] }))
+      .catch(() => {});
+  }, [refreshCounter]);
 
   useEffect(() => {
     const interval = setInterval(() => setClock(new Date()), 30 * 1000);
@@ -180,15 +199,21 @@ export default function BoosterverseDesktop({ onExit }) {
     setDropFeedback({
       message:
         failed === 0
-          ? `${succeeded} tiedosto${succeeded === 1 ? '' : 'a'} tallennettu Tiedostonhallintaan.`
+          ? `${succeeded} tiedosto${succeeded === 1 ? '' : 'a'} tallennettu työpöydälle.`
           : `${succeeded} tallennettu, ${failed} epäonnistui.`,
       tone: failed === 0 ? 'success' : 'error',
     });
 
+    // Ei avata mitään ikkunaa - uudet tiedostot ilmestyvät suoraan
+    // kuvakkeina työpöydälle refreshCounterin päivityksen kautta, kuten
+    // Marc pyysi ("voisin vain pudottaa tiedoston työpöydälle").
     if (succeeded > 0) {
       setRefreshCounter((c) => c + 1);
-      openApp('explorer');
     }
+  }
+
+  function openFileIcon(file) {
+    window.open(`${WORKSPACE_API}/files/${file.id}/download`, '_blank', 'noopener');
   }
 
   function toggleStart() {
@@ -249,7 +274,7 @@ export default function BoosterverseDesktop({ onExit }) {
         <div className="win-desktop-drop-overlay">
           <div className="win-desktop-drop-hint">
             <span className="win-desktop-drop-hint-glyph">📥</span>
-            <span>Pudota tiedostot tähän tallentaaksesi ne Tiedostonhallintaan</span>
+            <span>Pudota tiedostot tähän - ne ilmestyvät kuvakkeina työpöydälle</span>
           </div>
         </div>
       )}
@@ -306,6 +331,40 @@ export default function BoosterverseDesktop({ onExit }) {
             <span className="win-desktop-icon-glyph">⚙</span>
             <span className="win-desktop-icon-label">Asetukset</span>
           </button>
+
+          {rootItems.folders.map((folder) => (
+            <button
+              key={folder.id}
+              className="win-desktop-icon"
+              onDoubleClick={() => openApp('explorer')}
+              title={folder.name}
+            >
+              <span className="win-desktop-icon-glyph">📁</span>
+              <span className="win-desktop-icon-label">{folder.name}</span>
+            </button>
+          ))}
+
+          {rootItems.files.map((file) => (
+            <button
+              key={file.id}
+              className="win-desktop-icon"
+              onDoubleClick={() => openFileIcon(file)}
+              title={file.original_name}
+            >
+              {file.category === 'image' && file.has_thumbnail ? (
+                <img
+                  className="win-desktop-icon-thumb"
+                  src={`${WORKSPACE_API}/files/${file.id}/thumbnail`}
+                  alt=""
+                />
+              ) : (
+                <span className="win-desktop-icon-glyph">
+                  {FILE_CATEGORY_ICON[file.category] || FILE_CATEGORY_ICON.generic}
+                </span>
+              )}
+              <span className="win-desktop-icon-label">{file.original_name}</span>
+            </button>
+          ))}
         </div>
       )}
 
