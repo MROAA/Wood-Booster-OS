@@ -2,7 +2,15 @@ import { useNavigate } from 'react-router-dom';
 export const MainDashboard = () => {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col gap-8">
+    <div className="relative flex flex-col gap-8">
+      {/* Himmennetty puusyy-tekstuuri taustalla - kokeilu, helppo poistaa jos ei toimi.
+          Lähde: boosterverse/ec36b216-...png -moodboardin yksi ruutu. */}
+      <img
+        src="/branding/dashboard-texture.jpg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 h-full w-full rounded-2xl object-cover opacity-[0.08]"
+      />
       <header>
         <h1 className="text-2xl font-semibold text-[var(--wood-text)]">
           Tervetuloa Wood-Booster <span className="text-[var(--wood-accent)]">HQ</span>:hon
