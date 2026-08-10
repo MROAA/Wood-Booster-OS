@@ -6,6 +6,10 @@ import Projects from './Projects.jsx';
 import Settings from './Settings.jsx';
 import SystemPulse from './SystemPulse.jsx';
 import SpacemonkeyChat from './SpacemonkeyChat.jsx';
+import Knowledge from './Knowledge.jsx';
+import KnowledgeUpload from './KnowledgeUpload.jsx';
+import Memory from './Memory.jsx';
+import SpacemonkeyBrain from './SpacemonkeyBrain.jsx';
 import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
@@ -16,6 +20,10 @@ const APPS = {
   spacemonkey: { title: 'Spacemonkey', icon: '🐒', component: SpacemonkeyChat, defaultWidth: 520, defaultHeight: 600 },
   systempulse: { title: 'System Pulse', icon: '🧠', component: SystemPulse, defaultWidth: 700, defaultHeight: 650 },
   gitguardian: { title: 'Git Guardian', icon: '🛡', component: GitGuardianCard, defaultWidth: 480, defaultHeight: 520 },
+  knowledge: { title: 'Knowledge', icon: '◌', component: Knowledge, defaultWidth: 820, defaultHeight: 620 },
+  knowledgeupload: { title: 'Tiedostojen lataus', icon: '📥', component: KnowledgeUpload, defaultWidth: 560, defaultHeight: 520 },
+  memory: { title: 'Memory', icon: '◈', component: Memory, defaultWidth: 780, defaultHeight: 620 },
+  spacemonkeybrain: { title: 'Spacemonkey Brain', icon: '⬡', component: SpacemonkeyBrain, defaultWidth: 660, defaultHeight: 560 },
   settings: { title: 'Asetukset', icon: '⚙', component: Settings, defaultWidth: 700, defaultHeight: 600 },
 };
 
@@ -36,8 +44,8 @@ function createWindow(app, zIndex) {
 }
 
 export default function BoosterverseDesktop({ onExit }) {
-  const [windows, setWindows] = useState(() => [createWindow('explorer', 1)]);
-  const [nextZ, setNextZ] = useState(2);
+  const [windows, setWindows] = useState(() => []);
+  const [nextZ, setNextZ] = useState(1);
   const [startOpen, setStartOpen] = useState(false);
   const [clock, setClock] = useState(new Date());
   const [search, setSearch] = useState('');
@@ -200,6 +208,22 @@ export default function BoosterverseDesktop({ onExit }) {
           <button className="win-desktop-icon" onDoubleClick={() => openApp('gitguardian')}>
             <span className="win-desktop-icon-glyph">🛡</span>
             <span className="win-desktop-icon-label">Git Guardian</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('knowledge')}>
+            <span className="win-desktop-icon-glyph">◌</span>
+            <span className="win-desktop-icon-label">Knowledge</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('knowledgeupload')}>
+            <span className="win-desktop-icon-glyph">📥</span>
+            <span className="win-desktop-icon-label">Tiedostojen lataus</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('memory')}>
+            <span className="win-desktop-icon-glyph">◈</span>
+            <span className="win-desktop-icon-label">Memory</span>
+          </button>
+          <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkeybrain')}>
+            <span className="win-desktop-icon-glyph">⬡</span>
+            <span className="win-desktop-icon-label">Spacemonkey Brain</span>
           </button>
           <button className="win-desktop-icon" onDoubleClick={() => openApp('settings')}>
             <span className="win-desktop-icon-glyph">⚙</span>
