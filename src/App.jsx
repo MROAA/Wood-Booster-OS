@@ -229,13 +229,13 @@ function App() {
             <SpiderSolitaire />
           }
         />
+        <Route
+          path="/desktop"
+          element={
+            <BoosterverseDesktopRoute />
+          }
+        />
       </Route>
-      <Route
-        path="/desktop"
-        element={
-          <BoosterverseDesktopRoute />
-        }
-      />
     </Routes>
   )
 }
