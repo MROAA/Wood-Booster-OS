@@ -78,8 +78,11 @@
   position: absolute;
   top: 1.5rem;
   left: 1.5rem;
+  bottom: 76px;
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
   gap: 1rem;
 }
 
@@ -104,6 +107,14 @@
 
 .win-desktop-icon-glyph {
   font-size: 2rem;
+}
+
+.win-desktop-icon-thumb {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgba(242, 244, 248, 0.25);
 }
 
 .win-desktop-icon-label {
