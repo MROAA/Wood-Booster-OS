@@ -38,6 +38,36 @@ function OSLayout() {
       )
     }
   }, [])
+  useEffect(() => {
+    // Ilman tätä selain avaa pudotetun tiedoston omana sivunaan aina kun
+    // raahaus osuu minkään pudotusalueen ulkopuolelle (esim. sivupalkkiin
+    // tai ikkunoiden väliin) - koko sovellus vaihtuisi sen tiedoston
+    // näkymäksi. Pudotusalueet (UploadDropzone, työpöydän tausta) pysäyttävät
+    // tapahtuman etenemisen omilla preventDefault/stopPropagation-kutsuillaan
+    // ennen kuin se ehtii tänne asti, joten tämä toimii vain varmistuksena
+    // muualle pudotetuille tiedostoille.
+    function preventStrayDrop(event) {
+      event.preventDefault()
+    }
+    window.addEventListener(
+      "dragover",
+      preventStrayDrop,
+    )
+    window.addEventListener(
+      "drop",
+      preventStrayDrop,
+    )
+    return () => {
+      window.removeEventListener(
+        "dragover",
+        preventStrayDrop,
+      )
+      window.removeEventListener(
+        "drop",
+        preventStrayDrop,
+      )
+    }
+  }, [])
   return (
     <div
       className="
