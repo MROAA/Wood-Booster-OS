@@ -11,6 +11,7 @@ from backend.modules.spacemonkey_core import router as spacemonkey_router
 from backend.modules.spacemonkey_chat import router as spacemonkey_chat_router
 from backend.modules.desktop_files import router as desktop_files_router
 from backend.modules.desktop_terminal import router as desktop_terminal_router
+from backend.modules.virtual_storage import router as virtual_storage_router
 
 app = FastAPI(
     title="Wood Booster HQ - Python Core Engine",
@@ -40,6 +41,7 @@ app.include_router(spacemonkey_chat_router, prefix="/api/spacemonkey", tags=["Sp
 app.include_router(altrako_router, prefix="/api/altrako", tags=["Altrako"])
 app.include_router(desktop_files_router, prefix="/api/desktop", tags=["Boosterverse Desktop"])
 app.include_router(desktop_terminal_router, prefix="/api/desktop", tags=["Boosterverse Desktop"])
+app.include_router(virtual_storage_router, prefix="/api/workspace", tags=["Project Workspace"])
 app.add_middleware(ParanoiaShieldMiddleware)
 
 
