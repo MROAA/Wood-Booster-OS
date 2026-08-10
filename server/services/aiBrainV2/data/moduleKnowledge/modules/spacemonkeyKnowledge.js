@@ -21,7 +21,7 @@ const spacemonkeyKnowledge =
 
 
     description:
-      "Tarjoaa Spacemonkey Core -identiteetin, operaattorikerroksen, identiteettirajat, kasvumallin ja järjestelmäymmärryksen.",
+      "Tarjoaa Spacemonkey Core -identiteetin, operaattorikerroksen, identiteettirajat, kasvumallin, järjestelmäymmärryksen ja Boosterverse-tarustosisällön (Yggdrasil, manifesti, metsäverkosto, ikuinen juuri, arkkitehtien tarina).",
 
 
     capabilities: [
@@ -35,6 +35,20 @@ const spacemonkeyKnowledge =
       "self_reflection",
 
       "knowledge_layer_visibility",
+
+      "boosterverse_lore",
+
+      "yggdrasil",
+
+      "yggdrasilista",
+
+      "yggdrasilin",
+
+      "manifesti",
+
+      "metsäverkosto",
+
+      "myseeliverkko",
 
     ],
 

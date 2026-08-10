@@ -48,6 +48,12 @@ import {
 } from "../spacemonkey/spacemonkeyKnowledgeProvider.js"
 
 
+import {
+  findLoreEntryByMessage,
+  getAllLoreEntries,
+} from "../system/boosterverseLore.js"
+
+
 
 const SPACEMONKEY_ACTIONS = {
 
@@ -69,7 +75,22 @@ const SPACEMONKEY_ACTIONS = {
   SHOW_CONSTITUTION:
     "show_constitution",
 
+  SHOW_LORE_LIST:
+    "show_lore_list",
+
+  SHOW_LORE_ENTRY:
+    "show_lore_entry",
+
 }
+
+
+const LORE_LIST_PHRASES = [
+  "boosterverse lore",
+  "listaa boosterverse lore",
+  "mitä loreja on",
+  "näytä boosterverse lore",
+  "boosterverse tarusto",
+]
 const SUMMARY_PHRASES = [
   "näytä spacemonkey",
   "spacemonkey yhteenveto",
@@ -182,6 +203,63 @@ function analyzeSpacemonkeyRequest(
 
       action:
         null,
+
+    }
+
+  }
+
+
+  if (
+    containsPhrase(
+      normalizedMessage,
+      LORE_LIST_PHRASES,
+    )
+  ) {
+
+    return {
+
+      matched:
+        true,
+
+      confidence:
+        0.95,
+
+      reason:
+        "Viesti pyytää Boosterverse-loren listausta.",
+
+      action:
+        SPACEMONKEY_ACTIONS
+          .SHOW_LORE_LIST,
+
+    }
+
+  }
+
+
+  const matchedLoreEntry =
+    findLoreEntryByMessage(
+      normalizedMessage,
+    )
+
+  if (matchedLoreEntry) {
+
+    return {
+
+      matched:
+        true,
+
+      confidence:
+        1,
+
+      reason:
+        `Viesti viittaa Boosterverse-lore-kohteeseen "${matchedLoreEntry.id}".`,
+
+      action:
+        SPACEMONKEY_ACTIONS
+          .SHOW_LORE_ENTRY,
+
+      loreEntryId:
+        matchedLoreEntry.id,
 
     }
 
@@ -590,6 +668,46 @@ function createConstitutionAnswer(
 
 
 
+function createLoreListAnswer() {
+
+  const entries =
+    getAllLoreEntries()
+
+  return [
+
+    "Boosterverse-tarusto sisältää tällä hetkellä nämä kohteet:",
+
+    "",
+
+    ...entries.map(
+      (entry) =>
+        `- ${entry.title} (kysy esim. "kerro ${entry.phrases[0]}")`,
+    ),
+
+  ].join("\n")
+
+}
+
+
+
+function createLoreEntryAnswer(
+  entry,
+) {
+
+  return [
+
+    entry.title,
+
+    "",
+
+    ...entry.lines,
+
+  ].join("\n")
+
+}
+
+
+
 function createSpacemonkeyModule() {
 
   return createBrainModule({
@@ -607,7 +725,7 @@ function createSpacemonkeyModule() {
 
 
     description:
-      "Tarjoaa Spacemonkey Coren, identiteettirajojen, synergian, kasvumallin, AI Constitutionin ja Knowledge Layer näkyvyyden.",
+      "Tarjoaa Spacemonkey Coren, identiteettirajojen, synergian, kasvumallin, AI Constitutionin, Boosterverse-lore-sisällön ja Knowledge Layer näkyvyyden.",
 
 
     priority:
@@ -780,6 +898,49 @@ function createSpacemonkeyModule() {
         answer =
           createConstitutionAnswer(
             constitution,
+          )
+
+      }
+
+
+
+      if (
+        analysis.action ===
+        SPACEMONKEY_ACTIONS
+          .SHOW_LORE_LIST
+      ) {
+
+        answer =
+          createLoreListAnswer()
+
+      }
+
+
+
+      if (
+        analysis.action ===
+        SPACEMONKEY_ACTIONS
+          .SHOW_LORE_ENTRY
+      ) {
+
+        const loreEntry =
+          getAllLoreEntries().find(
+            (entry) =>
+              entry.id ===
+              analysis.loreEntryId,
+          )
+
+        if (!loreEntry) {
+
+          throw new Error(
+            "Spacemonkey Module ei löytänyt tunnistettua lore-kohdetta.",
+          )
+
+        }
+
+        answer =
+          createLoreEntryAnswer(
+            loreEntry,
           )
 
       }
