@@ -494,41 +494,27 @@ model MemoryProposal {
 
 
 model KnowledgeDocument {
-
   id Int @id @default(autoincrement())
-
   title String
-
   content String
-
   topic String @default("general")
-
   folder String @default("Yleinen")
-
   tags String?
-
   author String?
-
   sourceType String @default("text")
-
   sourceUrl String?
-
+  storedFileName String?
+  originalFileName String?
+  mimeType String?
+  fileSize Int?
   status String @default("Luonnos")
-
   priority Int @default(3)
-
   confidence Int @default(100)
-
   alwaysUse Boolean @default(false)
-
   chunks KnowledgeChunk[]
-
   createdAt DateTime @default(now())
-
   updatedAt DateTime @updatedAt
-
 }
-
 
 
 model KnowledgeChunk {
