@@ -1,3 +1,7 @@
+import {
+  Link,
+} from "react-router-dom"
+
 function TopBar({
   onOpenSearch,
 }) {
@@ -19,14 +23,19 @@ function TopBar({
       "
     >
 
-      <h1
+      <Link
+        to="/"
         className="
           text-xl
           text-[var(--wood-text)]
+          hover:text-[var(--wood-accent)]
+          transition
         "
       >
-        Wood-Booster HQ
-      </h1>
+        <h1>
+          Wood-Booster HQ
+        </h1>
+      </Link>
 
 
 
