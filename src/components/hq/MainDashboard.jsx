@@ -13,7 +13,7 @@ export const MainDashboard = () => {
       />
       <header>
         <h1 className="text-2xl font-semibold text-[var(--wood-text)]">
-          Tervetuloa Wood-Booster <span className="text-[var(--wood-accent)]">HQ</span>:hon
+          Tervetuloa Wood-booster <span className="text-[var(--wood-accent)]">HQ</span>
         </h1>
         <p className="text-sm text-[var(--wood-muted)]">
           Työpöytä — pikalinkit tärkeimpiin osiin
