@@ -152,6 +152,13 @@ function ChatPanel() {
 
 
 
+  // Marc: "haluan extend the chatbox of his first message and center it
+  // properly" - ensimmäinen tervehdys näytettiin pienenä, vasempaan
+  // reunaan kiinnittyvänä kuplana ison tyhjän tilan yläkulmassa. Kun
+  // keskustelussa on vain tämä yksi viesti, näytetään se sen sijaan
+  // leveämpänä, keskitettynä "tervetuloa"-korttina.
+  const isWelcomeState = messages.length === 1
+
   return (
 
     <div
@@ -182,85 +189,152 @@ function ChatPanel() {
       />
 
       <div
-        className="
+        className={`
           wood-scroll
           flex-1
           min-h-0
           overflow-y-auto
           p-5
-          space-y-4
-        "
+
+          ${
+            isWelcomeState
+
+            ?
+
+            "flex flex-col items-center justify-center"
+
+            :
+
+            "space-y-4"
+
+          }
+        `}
       >
 
         {
-          messages.map(
-            (item,index) => (
+          isWelcomeState ? (
+
+            <div
+              className="
+                message-appear
+                flex
+                flex-col
+                items-center
+                gap-4
+                text-center
+                max-w-md
+                mx-auto
+              "
+            >
 
               <div
-                key={index}
                 className="
-                  message-appear
-                  flex
-                  gap-3
-                  items-start
+                  soft-glow
+                  rounded-lg
                 "
               >
 
-
-                {
-                  item.role === "assistant" && (
-
-                    <div
-                      className="
-                        soft-glow
-                        shrink-0
-                        rounded-lg
-                      "
-                    >
-
-                      <SpacemonkeyIcon />
-
-                    </div>
-
-                  )
-                }
-
-
-
-                <div
-                  className={`
-                    max-w-[65%]
-                    px-4
-                    py-3
-                    text-sm
-                    leading-relaxed
-                    whitespace-pre-line
-                    shadow-sm
-
-                    ${
-                      item.role === "user"
-
-                      ?
-
-                      "ml-auto rounded-2xl rounded-br-md bg-[var(--wood-accent)] text-[#17120c]"
-
-                      :
-
-                      "rounded-2xl rounded-bl-md border border-[var(--wood-border)] bg-gradient-to-br from-[var(--wood-panel)] to-[var(--wood-card)] text-[var(--wood-text)]"
-
-                    }
-
-                  `}
-                >
-
-                  {item.content}
-
-                </div>
-
+                <SpacemonkeyIcon />
 
               </div>
 
+              <div
+                className="
+                  w-full
+                  rounded-2xl
+                  border
+                  border-[var(--wood-border)]
+                  bg-gradient-to-br
+                  from-[var(--wood-panel)]
+                  to-[var(--wood-card)]
+                  px-6
+                  py-5
+                  text-sm
+                  leading-relaxed
+                  whitespace-pre-line
+                  text-[var(--wood-text)]
+                  shadow-sm
+                "
+              >
+
+                {messages[0].content}
+
+              </div>
+
+            </div>
+
+          ) : (
+
+            messages.map(
+              (item,index) => (
+
+                <div
+                  key={index}
+                  className="
+                    message-appear
+                    flex
+                    gap-3
+                    items-start
+                  "
+                >
+
+
+                  {
+                    item.role === "assistant" && (
+
+                      <div
+                        className="
+                          soft-glow
+                          shrink-0
+                          rounded-lg
+                        "
+                      >
+
+                        <SpacemonkeyIcon />
+
+                      </div>
+
+                    )
+                  }
+
+
+
+                  <div
+                    className={`
+                      max-w-[65%]
+                      px-4
+                      py-3
+                      text-sm
+                      leading-relaxed
+                      whitespace-pre-line
+                      shadow-sm
+
+                      ${
+                        item.role === "user"
+
+                        ?
+
+                        "ml-auto rounded-2xl rounded-br-md bg-[var(--wood-accent)] text-[#17120c]"
+
+                        :
+
+                        "rounded-2xl rounded-bl-md border border-[var(--wood-border)] bg-gradient-to-br from-[var(--wood-panel)] to-[var(--wood-card)] text-[var(--wood-text)]"
+
+                      }
+
+                    `}
+                  >
+
+                    {item.content}
+
+                  </div>
+
+
+                </div>
+
+              )
             )
+
           )
         }
 
