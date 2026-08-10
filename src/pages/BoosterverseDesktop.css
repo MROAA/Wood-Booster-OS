@@ -78,8 +78,12 @@
   position: absolute;
   top: 1.5rem;
   left: 1.5rem;
+  right: 1.5rem;
+  bottom: 76px;
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
   gap: 1rem;
 }
 
@@ -97,6 +101,11 @@
   cursor: pointer;
 }
 
+.win-desktop-icon-drop-target {
+  background: rgba(139, 158, 106, 0.18) !important;
+  border-color: rgba(139, 158, 106, 0.75) !important;
+}
+
 .win-desktop-icon:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.15);
@@ -104,6 +113,14 @@
 
 .win-desktop-icon-glyph {
   font-size: 2rem;
+}
+
+.win-desktop-icon-thumb {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgba(242, 244, 248, 0.25);
 }
 
 .win-desktop-icon-label {

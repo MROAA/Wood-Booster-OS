@@ -14,6 +14,30 @@ import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
 const WORKSPACE_API = 'http://127.0.0.1:8002/api/workspace';
+const PULSE_STATUS_API = 'http://127.0.0.1:8002/api/pulse/status';
+const PULSE_POLL_INTERVAL = 20000;
+const DRAG_FILE_TYPE = 'application/x-wb-file-id';
+const DRAG_ICON_TYPE = 'application/x-wb-icon-key';
+const ICON_POSITIONS_KEY = 'wb-desktop-icon-positions';
+const ICON_WIDTH = 84;
+const ICON_HEIGHT = 92;
+
+const FILE_CATEGORY_ICON = {
+  image: '🖼️',
+  video: '🎬',
+  pdf: '📄',
+  archive: '🗜️',
+  generic: '📦',
+};
+
+function loadIconPositions() {
+  try {
+    const raw = localStorage.getItem(ICON_POSITIONS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
 
 const APPS = {
   explorer: { title: 'Tiedostonhallinta', icon: '📁', component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
@@ -56,16 +80,59 @@ export default function BoosterverseDesktop({ onExit }) {
   const [contextMenu, setContextMenu] = useState(null);
   const contextMenuRef = useRef(null);
   const desktopRef = useRef(null);
+  const iconsAreaRef = useRef(null);
   const startButtonRef = useRef(null);
   const [startMenuLeft, setStartMenuLeft] = useState(null);
   const [isDesktopDragging, setIsDesktopDragging] = useState(false);
   const [dropFeedback, setDropFeedback] = useState(null);
+  const [rootItems, setRootItems] = useState({ folders: [], files: [] });
+  const [iconPositions, setIconPositions] = useState(loadIconPositions);
+  const [dragOverIconKey, setDragOverIconKey] = useState(null);
+  const [pulseStatus, setPulseStatus] = useState({ online: null, disk: null, git: null });
+
+  useEffect(() => {
+    // Tehtäväpalkin tarjonta-alue näytti aiemmin pelkkiä koriste-emojeja
+    // (wifi/äänenvoimakkuus/akku, ei mitään kytköstä oikeaan tilaan) - Marc
+    // halusi oikeaa tietoa niiden tilalle. System Pulse -moduuli laskee jo
+    // levytilan ja git-tilan reaalisesti /api/pulse/status:issa - käytetään
+    // sitä sellaisenaan sen sijaan että keksittäisiin uusi rinnakkainen
+    // tietolähde vain työpöytää varten.
+    let cancelled = false;
+    function poll() {
+      fetch(PULSE_STATUS_API)
+        .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+        .then((data) => {
+          if (cancelled) return;
+          setPulseStatus({ online: true, disk: data.disk_usage, git: data.git_info });
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setPulseStatus((prev) => ({ ...prev, online: false }));
+        });
+    }
+    poll();
+    const interval = setInterval(poll, PULSE_POLL_INTERVAL);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!dropFeedback) return;
     const timeout = setTimeout(() => setDropFeedback(null), 3500);
     return () => clearTimeout(timeout);
   }, [dropFeedback]);
+
+  useEffect(() => {
+    // Työpöydän juurikansion sisältö näkyy suoraan kuvakkeina työpöydällä,
+    // kuten oikealla käyttöjärjestelmällä - ei tarvitse avata mitään
+    // ikkunaa nähdäkseen mitä sinne on tallennettu.
+    fetch(`${WORKSPACE_API}/folders`)
+      .then((res) => (res.ok ? res.json() : { folders: [], files: [] }))
+      .then((data) => setRootItems({ folders: data.folders || [], files: data.files || [] }))
+      .catch(() => {});
+  }, [refreshCounter]);
 
   useEffect(() => {
     const interval = setInterval(() => setClock(new Date()), 30 * 1000);
@@ -133,8 +200,11 @@ export default function BoosterverseDesktop({ onExit }) {
     // konttiin, mutta clientX/clientY ovat koko selainikkunan koordinaatteja
     // - .win-desktop ei ala näytön vasemmasta yläkulmasta (sivupalkki vie
     // tilaa), joten offset pitää vähentää tai valikko ilmestyy väärään kohtaan.
+    // clientX/clientY talletetaan sellaisenaan myös, jotta "Uusi kansio"
+    // -toiminto voi sijoittaa uuden kuvakkeen tarkalleen klikkauskohtaan
+    // (sama laskutapa kuin handleDesktopDrop:issa).
     const rect = e.currentTarget.getBoundingClientRect();
-    setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, clientX: e.clientX, clientY: e.clientY });
   }
 
   function handleRefresh() {
@@ -142,8 +212,42 @@ export default function BoosterverseDesktop({ onExit }) {
     setContextMenu(null);
   }
 
+  function handleCreateFolderFromContextMenu() {
+    const clickPoint = contextMenu;
+    setContextMenu(null);
+    const name = window.prompt('Kansion nimi:', 'Uusi kansio');
+    if (!name || !name.trim()) return;
+
+    fetch(`${WORKSPACE_API}/folders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim(), parent_id: null }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((folder) => {
+        if (clickPoint && iconsAreaRef.current) {
+          const rect = iconsAreaRef.current.getBoundingClientRect();
+          const x = Math.min(
+            Math.max(0, clickPoint.clientX - rect.left - ICON_WIDTH / 2),
+            Math.max(0, rect.width - ICON_WIDTH)
+          );
+          const y = Math.min(
+            Math.max(0, clickPoint.clientY - rect.top - 24),
+            Math.max(0, rect.height - ICON_HEIGHT)
+          );
+          persistIconPositions({ ...iconPositions, [`folder:${folder.id}`]: { x, y } });
+        }
+        setRefreshCounter((c) => c + 1);
+      })
+      .catch(() => setDropFeedback({ message: 'Kansion luonti epäonnistui.', tone: 'error' }));
+  }
+
   function handleDesktopDragOver(e) {
     e.preventDefault();
+    // Kuvakkeen siirto työpöydällä (raahaus toiseen kohtaan) ei ole
+    // ulkoisen tiedoston pudotus - ei näytetä "pudota tiedosto tähän"
+    // -ylälaskosta silloin, Marc: "ilman että se herjaa tiedostonpudotuksesta".
+    if (e.dataTransfer.types.includes(DRAG_ICON_TYPE)) return;
     setIsDesktopDragging(true);
   }
 
@@ -158,11 +262,63 @@ export default function BoosterverseDesktop({ onExit }) {
     setIsDesktopDragging(false);
   }
 
+  function persistIconPositions(next) {
+    setIconPositions(next);
+    try {
+      localStorage.setItem(ICON_POSITIONS_KEY, JSON.stringify(next));
+    } catch {
+      // localStorage voi olla estetty (esim. yksityinen selaus) - sijainnit
+      // toimivat silti tämän istunnon ajan, vain eivät säily seuraavaan kertaan.
+    }
+  }
+
+  function moveFileToFolder(fileId, folderId) {
+    fetch(`${WORKSPACE_API}/files/${fileId}/move`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder_id: folderId }),
+    }).then((res) => {
+      if (res.ok) setRefreshCounter((c) => c + 1);
+    });
+  }
+
   async function handleDesktopDrop(e) {
     e.preventDefault();
     setIsDesktopDragging(false);
+
+    // Työpöydän kuvakkeen raahaus vapaaseen kohtaan - pelkkä sijainnin
+    // muutos, ei tiedoston lataus. Kansion päälle pudotus käsitellään sen
+    // omassa onDrop:issa (stopPropagation), joten tänne asti asti päätyvät
+    // vain tyhjälle työpöydälle pudotetut kuvakkeet.
+    if (e.dataTransfer.types.includes(DRAG_ICON_TYPE)) {
+      const key = e.dataTransfer.getData(DRAG_ICON_TYPE);
+      if (key && iconsAreaRef.current) {
+        const rect = iconsAreaRef.current.getBoundingClientRect();
+        const x = Math.min(
+          Math.max(0, e.clientX - rect.left - ICON_WIDTH / 2),
+          Math.max(0, rect.width - ICON_WIDTH)
+        );
+        const y = Math.min(
+          Math.max(0, e.clientY - rect.top - 24),
+          Math.max(0, rect.height - ICON_HEIGHT)
+        );
+        persistIconPositions({ ...iconPositions, [key]: { x, y } });
+      }
+      return;
+    }
+
     const files = Array.from(e.dataTransfer.files || []);
     if (files.length === 0) return;
+
+    // Tallennetaan pudotuskohta ennen await:eja - Marc: "sijoittamaan
+    // tiedoston mihin haluan työpöytänäkymässä", "sen pitää toimia kuin
+    // Windows 96 käyttöjärjestelmä" - uusi tiedosto ilmestyy tarkalleen
+    // siihen kohtaan johon se pudotettiin, ei oletus-ruudukkoon. Useampi
+    // samalla kertaa pudotettu tiedosto porrastetaan hieman ettei kuvakkeet
+    // mene täysin päällekkäin.
+    const dropRect = iconsAreaRef.current?.getBoundingClientRect();
+    const dropX = dropRect ? Math.max(0, e.clientX - dropRect.left - ICON_WIDTH / 2) : null;
+    const dropY = dropRect ? Math.max(0, e.clientY - dropRect.top - 24) : null;
 
     const results = await Promise.allSettled(
       files.map((file) => {
@@ -180,15 +336,31 @@ export default function BoosterverseDesktop({ onExit }) {
     setDropFeedback({
       message:
         failed === 0
-          ? `${succeeded} tiedosto${succeeded === 1 ? '' : 'a'} tallennettu Tiedostonhallintaan.`
+          ? `${succeeded} tiedosto${succeeded === 1 ? '' : 'a'} tallennettu työpöydälle.`
           : `${succeeded} tallennettu, ${failed} epäonnistui.`,
       tone: failed === 0 ? 'success' : 'error',
     });
 
+    // Ei avata mitään ikkunaa - uudet tiedostot ilmestyvät suoraan
+    // kuvakkeina työpöydälle refreshCounterin päivityksen kautta, kuten
+    // Marc pyysi ("voisin vain pudottaa tiedoston työpöydälle").
     if (succeeded > 0) {
+      if (dropX !== null && dropY !== null) {
+        const placed = { ...iconPositions };
+        let placedIndex = 0;
+        for (const result of results) {
+          if (result.status !== 'fulfilled') continue;
+          placed[`file:${result.value.id}`] = { x: dropX + placedIndex * 18, y: dropY + placedIndex * 18 };
+          placedIndex += 1;
+        }
+        persistIconPositions(placed);
+      }
       setRefreshCounter((c) => c + 1);
-      openApp('explorer');
     }
+  }
+
+  function openFileIcon(file) {
+    window.open(`${WORKSPACE_API}/files/${file.id}/download`, '_blank', 'noopener');
   }
 
   function toggleStart() {
@@ -235,6 +407,39 @@ export default function BoosterverseDesktop({ onExit }) {
     app.title.toLowerCase().includes(query)
   );
 
+  // Yksi yhtenäinen kuvakelista (kiinnitetyt sovellukset + työpöydän
+  // juurikansion kansiot/tiedostot) - sama raahaus/pudotus-logiikka
+  // pätee kaikkiin, riippumatta siitä ovatko ne sovellus-, kansio- vai
+  // tiedostokuvakkeita.
+  const desktopIcons = [
+    ...Object.entries(APPS).map(([key, app]) => ({
+      key: `app:${key}`,
+      glyph: app.icon,
+      label: app.title,
+      isFolder: false,
+      isFile: false,
+      onOpen: () => openApp(key),
+    })),
+    ...rootItems.folders.map((folder) => ({
+      key: `folder:${folder.id}`,
+      glyph: '📁',
+      label: folder.name,
+      isFolder: true,
+      isFile: false,
+      onOpen: () => openApp('explorer'),
+    })),
+    ...rootItems.files.map((file) => ({
+      key: `file:${file.id}`,
+      glyph: FILE_CATEGORY_ICON[file.category] || FILE_CATEGORY_ICON.generic,
+      thumb: file.category === 'image' && file.has_thumbnail ? `${WORKSPACE_API}/files/${file.id}/thumbnail` : null,
+      label: file.original_name,
+      isFolder: false,
+      isFile: true,
+      fileId: file.id,
+      onOpen: () => openFileIcon(file),
+    })),
+  ];
+
   return (
     <div
       ref={desktopRef}
@@ -249,7 +454,7 @@ export default function BoosterverseDesktop({ onExit }) {
         <div className="win-desktop-drop-overlay">
           <div className="win-desktop-drop-hint">
             <span className="win-desktop-drop-hint-glyph">📥</span>
-            <span>Pudota tiedostot tähän tallentaaksesi ne Tiedostonhallintaan</span>
+            <span>Pudota tiedostot tähän - ne ilmestyvät kuvakkeina työpöydälle</span>
           </div>
         </div>
       )}
@@ -261,51 +466,60 @@ export default function BoosterverseDesktop({ onExit }) {
       )}
 
       {showDesktopIcons && (
-        <div className="win-desktop-icons">
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('explorer')}>
-            <span className="win-desktop-icon-glyph">📁</span>
-            <span className="win-desktop-icon-label">Tiedostonhallinta</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('terminal')}>
-            <span className="win-desktop-icon-glyph">💻</span>
-            <span className="win-desktop-icon-label">Pääte</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('projects')}>
-            <span className="win-desktop-icon-glyph">📁</span>
-            <span className="win-desktop-icon-label">Projektit</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkey')}>
-            <span className="win-desktop-icon-glyph">🐒</span>
-            <span className="win-desktop-icon-label">Spacemonkey</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('systempulse')}>
-            <span className="win-desktop-icon-glyph">🧠</span>
-            <span className="win-desktop-icon-label">System Pulse</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('gitguardian')}>
-            <span className="win-desktop-icon-glyph">🛡</span>
-            <span className="win-desktop-icon-label">Git Guardian</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('knowledge')}>
-            <span className="win-desktop-icon-glyph">◌</span>
-            <span className="win-desktop-icon-label">Knowledge</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('knowledgeupload')}>
-            <span className="win-desktop-icon-glyph">📥</span>
-            <span className="win-desktop-icon-label">Tiedostojen lataus</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('memory')}>
-            <span className="win-desktop-icon-glyph">◈</span>
-            <span className="win-desktop-icon-label">Memory</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('spacemonkeybrain')}>
-            <span className="win-desktop-icon-glyph">⬡</span>
-            <span className="win-desktop-icon-label">Spacemonkey Brain</span>
-          </button>
-          <button className="win-desktop-icon" onDoubleClick={() => openApp('settings')}>
-            <span className="win-desktop-icon-glyph">⚙</span>
-            <span className="win-desktop-icon-label">Asetukset</span>
-          </button>
+        <div ref={iconsAreaRef} className="win-desktop-icons">
+          {desktopIcons.map((item) => {
+            const pos = iconPositions[item.key];
+            return (
+              <button
+                key={item.key}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(DRAG_ICON_TYPE, item.key);
+                  if (item.isFile) e.dataTransfer.setData(DRAG_FILE_TYPE, item.fileId);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={
+                  item.isFolder
+                    ? (e) => {
+                        if (!e.dataTransfer.types.includes(DRAG_FILE_TYPE)) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOverIconKey(item.key);
+                      }
+                    : undefined
+                }
+                onDragLeave={
+                  item.isFolder
+                    ? () => setDragOverIconKey((prev) => (prev === item.key ? null : prev))
+                    : undefined
+                }
+                onDrop={
+                  item.isFolder
+                    ? (e) => {
+                        if (!e.dataTransfer.types.includes(DRAG_FILE_TYPE)) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOverIconKey(null);
+                        const fileId = e.dataTransfer.getData(DRAG_FILE_TYPE);
+                        const folderId = item.key.slice('folder:'.length);
+                        if (fileId) moveFileToFolder(fileId, folderId);
+                      }
+                    : undefined
+                }
+                onDoubleClick={item.onOpen}
+                title={item.label}
+                className={`win-desktop-icon ${dragOverIconKey === item.key ? 'win-desktop-icon-drop-target' : ''}`}
+                style={pos ? { position: 'absolute', left: pos.x, top: pos.y } : undefined}
+              >
+                {item.thumb ? (
+                  <img className="win-desktop-icon-thumb" src={item.thumb} alt="" />
+                ) : (
+                  <span className="win-desktop-icon-glyph">{item.glyph}</span>
+                )}
+                <span className="win-desktop-icon-label">{item.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -331,6 +545,7 @@ export default function BoosterverseDesktop({ onExit }) {
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onMouseDown={(e) => e.stopPropagation()}
         >
+          <button onClick={handleCreateFolderFromContextMenu}>📁 Uusi kansio</button>
           <button onClick={handleRefresh}>↻ Päivitä</button>
           <button
             onClick={() => {
@@ -414,9 +629,41 @@ export default function BoosterverseDesktop({ onExit }) {
         </div>
 
         <div className="win-taskbar-tray">
-          <span className="win-tray-icon" title="Wi-Fi">📶</span>
-          <span className="win-tray-icon" title="Äänenvoimakkuus">🔊</span>
-          <span className="win-tray-icon" title="Akku">🔋</span>
+          <span
+            className="win-tray-icon"
+            title={
+              pulseStatus.online === null
+                ? 'Tarkistetaan taustapalvelinta...'
+                : pulseStatus.online
+                ? 'Taustapalvelin yhteydessä'
+                : 'Taustapalvelin ei vastaa'
+            }
+          >
+            {pulseStatus.online === null ? '⚪' : pulseStatus.online ? '🟢' : '🔴'}
+          </span>
+          <span
+            className="win-tray-icon"
+            title={
+              pulseStatus.disk
+                ? `Levytila: ${pulseStatus.disk.free_gb} GB vapaana / ${pulseStatus.disk.total_gb} GB (${pulseStatus.disk.used_percentage}% käytetty)`
+                : 'Levytila ei tiedossa'
+            }
+          >
+            💾 {pulseStatus.disk ? `${pulseStatus.disk.used_percentage}%` : '…'}
+          </span>
+          <span
+            className="win-tray-icon"
+            title={
+              pulseStatus.git
+                ? pulseStatus.git.uncommitted_changes
+                  ? `Tallentamattomia muutoksia (${pulseStatus.git.branch})`
+                  : `Kaikki tallennettu (${pulseStatus.git.branch})`
+                : 'Git-tieto ei saatavilla'
+            }
+          >
+            {pulseStatus.git ? (pulseStatus.git.uncommitted_changes ? '🟠' : '✅') : '◌'}{' '}
+            {pulseStatus.git?.branch || 'git'}
+          </span>
           <div className="win-taskbar-clock">
             <div>{clock.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}</div>
             <div className="win-taskbar-date">{clock.toLocaleDateString('fi-FI')}</div>
