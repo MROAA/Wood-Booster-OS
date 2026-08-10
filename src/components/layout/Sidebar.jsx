@@ -1,5 +1,6 @@
 import {
-  NavLink
+  NavLink,
+  Link
 } from "react-router-dom"
 
 import logo from "../../assets/branding/wood-booster-logo.png"
@@ -17,6 +18,12 @@ const groups = [
         label: "Dashboard",
         path: "/",
         icon: "⌂"
+      },
+
+      {
+        label: "Työpöytä näkymä",
+        path: "/desktop",
+        icon: "🖥"
       }
 
     ]
@@ -84,6 +91,13 @@ const groups = [
         label: "Knowledge",
         path: "/knowledge",
         icon: "◌"
+      },
+
+
+      {
+        label: "Tiedostojen lataus",
+        path: "/knowledge/upload",
+        icon: "📥"
       },
 
 
@@ -179,7 +193,7 @@ const groups = [
 
 
 
-function Sidebar({ onOpenChat }) {
+function Sidebar() {
 
   return (
 
@@ -197,7 +211,8 @@ function Sidebar({ onOpenChat }) {
     >
 
 
-      <header
+      <Link
+        to="/"
         className="
           flex
           items-center
@@ -228,11 +243,11 @@ function Sidebar({ onOpenChat }) {
         </h1>
 
 
-      </header>
+      </Link>
 
 
-<button
-        onClick={onOpenChat}
+<Link
+        to="/spacemonkey-chat"
         className="
           mt-4
           flex
@@ -250,7 +265,7 @@ function Sidebar({ onOpenChat }) {
         "
       >
         🐵 Spacemonkey Chat
-      </button>
+      </Link>
 
 
       <nav

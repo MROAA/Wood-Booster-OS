@@ -1,6 +1,7 @@
 import {
   Routes,
   Route,
+  useNavigate,
 } from "react-router-dom"
 import OSLayout from "./layouts/OSLayout"
 import { MainDashboard } from "./components/hq/MainDashboard.jsx"
@@ -31,6 +32,15 @@ import SystemCenter from "./pages/SystemCenter"
 import Tools from "./pages/Tools"
 import DevStudio from "./pages/DevStudio"
 import SpiderSolitaire from "./pages/SpiderSolitaire"
+import KnowledgeUpload from "./pages/KnowledgeUpload"
+import SpacemonkeyChat from "./pages/SpacemonkeyChat"
+import BoosterverseDesktop from "./pages/BoosterverseDesktop"
+
+function BoosterverseDesktopRoute() {
+  const navigate = useNavigate()
+  return <BoosterverseDesktop onExit={() => navigate("/")} />
+}
+
 function App() {
   return (
     <Routes>
@@ -100,6 +110,12 @@ function App() {
           }
         />
         <Route
+          path="/knowledge/upload"
+          element={
+            <KnowledgeUpload />
+          }
+        />
+        <Route
           path="/knowledge/:id"
           element={
             <KnowledgeDocumentDetails />
@@ -139,6 +155,12 @@ function App() {
           path="/spacemonkey"
           element={
             <Spacemonkey />
+          }
+        />
+        <Route
+          path="/spacemonkey-chat"
+          element={
+            <SpacemonkeyChat />
           }
         />
         <Route
@@ -208,6 +230,12 @@ function App() {
           }
         />
       </Route>
+      <Route
+        path="/desktop"
+        element={
+          <BoosterverseDesktopRoute />
+        }
+      />
     </Routes>
   )
 }

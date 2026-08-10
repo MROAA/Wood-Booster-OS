@@ -8,11 +8,8 @@ import {
 import Sidebar from "../components/layout/Sidebar"
 import TopBar from "../components/layout/TopBar"
 import GlobalSearch from "../components/layout/GlobalSearch"
-import SpacemonkeyDrawer from "../components/ai/SpacemonkeyDrawer"
 function OSLayout() {
   const [searchOpen, setSearchOpen] =
-    useState(false)
-  const [chatOpen, setChatOpen] =
     useState(false)
   useEffect(() => {
     function handleKeyDown(event) {
@@ -70,11 +67,7 @@ function OSLayout() {
             bg-[var(--wood-panel)]
           "
         >
-          <Sidebar
-            onOpenChat={() =>
-              setChatOpen(true)
-            }
-          />
+          <Sidebar />
         </aside>
         <main
           className="
@@ -91,12 +84,6 @@ function OSLayout() {
         open={searchOpen}
         onClose={() =>
           setSearchOpen(false)
-        }
-      />
-      <SpacemonkeyDrawer
-        open={chatOpen}
-        onClose={() =>
-          setChatOpen(false)
         }
       />
     </div>
