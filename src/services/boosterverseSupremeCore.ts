@@ -16,6 +16,7 @@ import { tehdaanUniversumi } from './tehdaanUniversumiLayer';
 import { helloGit } from './helloGitLayer';
 import { bitchesPlease } from './bitchesPleaseLayer';
 import { impulsivity } from './impulsivityLayer';
+import { chickenLover } from './chickenLoverLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -28,7 +29,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 18 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 19 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -40,10 +41,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & INSTANTLY IMPULSIVE",
-      activeLayersCount: 18,
-      workshopVibe: "Warm Coffee, Zero Filters, Slap-Bass, and Universes",
-      masterManifesto: "Impulsivity: Tehdään se nyt heti, mietitään joskus toiste!"
+      systemStatus: "FULLY OPERATIONAL & CRISPY FRIED CHICKEN FUELED",
+      activeLayersCount: 19,
+      workshopVibe: "Warm Coffee, Crispy Chicken, Slap-Bass, and Universes",
+      masterManifesto: "Chicken Lover: Koska mikään ei voita kunnon siipiä koodauksen lomassa!"
     };
   }
 
@@ -67,7 +68,8 @@ export class BoosterverseSupremeCore {
       `15. ${tehdaanUniversumi.spawnNewUniverse()}`,
       `16. ${helloGit.celebrateGitFlow()}`,
       `17. ${bitchesPlease.deliverEverything()}`,
-      `18. ${impulsivity.triggerImpulse("seuraavan koodirivin pakotus ilman testausta")}`,
+      `18. ${impulsivity.triggerImpulse("syödä siipiä suoraan näppäimistön äärellä")}`,
+      `19. ${chickenLover.enjoyChicken("rapeat tulisat siivet")}`,
       `------------------------------------------`
     ].join('\n');
   }
