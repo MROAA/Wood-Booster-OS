@@ -23,6 +23,7 @@ import { scuttlebutt } from './scuttlebuttLayer';
 import { streetWisdom } from './streetWisdomLayer';
 import { geminiCollaborator } from './geminiCollaboratorLayer';
 import { triplaneTurmoil } from './triplaneTurmoilLayer';
+import { chatGptArchitect } from './chatGptArchitectLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -35,7 +36,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 25 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 26 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -47,10 +48,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & RETRO TRIPLANE TURMOIL ACTIVE",
-      activeLayersCount: 25,
-      workshopVibe: "Warm Coffee, Propellers, AI Co-Pilot, and Universes",
-      masterManifesto: "Triplane Turmoil: Propellit laulaa ja taivaan sineen piirretään savurenkaita!"
+      systemStatus: "FULLY OPERATIONAL & DUAL AI ARCHITECTURE ACTIVE",
+      activeLayersCount: 26,
+      workshopVibe: "Warm Coffee, Propellers, Dual AI Architecture, and Universes",
+      masterManifesto: "ChatGPT: Analyysi suoritettu, logiikka viritetty, mennään eteenpäin!"
     };
   }
 
@@ -82,6 +83,7 @@ export class BoosterverseSupremeCore {
       `22. ${streetWisdom.handleObstacle("äkillinen bugi tuotannossa")}`,
       `23. ${geminiCollaborator.assistWorkshop("uuden moduulin saumaton kytkentä")}`,
       `24. ${triplaneTurmoil.flyMission("vastustajan ilmatorjuntatorni")}`,
+      `25. ${chatGptArchitect.analyzeConcept("win96-alustan modulaarinen tulevaisuus")}`,
       `------------------------------------------`
     ].join('\n');
   }
