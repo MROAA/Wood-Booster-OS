@@ -15,6 +15,7 @@ import { cyberImmunity } from './cyberImmunityLayer';
 import { tehdaanUniversumi } from './tehdaanUniversumiLayer';
 import { helloGit } from './helloGitLayer';
 import { bitchesPlease } from './bitchesPleaseLayer';
+import { impulsivity } from './impulsivityLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -27,7 +28,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 17 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 18 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -39,10 +40,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & SOMETHING FOR EVERYBODY",
-      activeLayersCount: 17,
-      workshopVibe: "Warm Coffee, Infinite Variety, Slap-Bass, and Universes",
-      masterManifesto: "Bitches please there is something for everybody!"
+      systemStatus: "FULLY OPERATIONAL & INSTANTLY IMPULSIVE",
+      activeLayersCount: 18,
+      workshopVibe: "Warm Coffee, Zero Filters, Slap-Bass, and Universes",
+      masterManifesto: "Impulsivity: Tehdään se nyt heti, mietitään joskus toiste!"
     };
   }
 
@@ -66,6 +67,7 @@ export class BoosterverseSupremeCore {
       `15. ${tehdaanUniversumi.spawnNewUniverse()}`,
       `16. ${helloGit.celebrateGitFlow()}`,
       `17. ${bitchesPlease.deliverEverything()}`,
+      `18. ${impulsivity.triggerImpulse("seuraavan koodirivin pakotus ilman testausta")}`,
       `------------------------------------------`
     ].join('\n');
   }
