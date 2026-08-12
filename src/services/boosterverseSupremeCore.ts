@@ -18,6 +18,7 @@ import { bitchesPlease } from './bitchesPleaseLayer';
 import { impulsivity } from './impulsivityLayer';
 import { chickenLover } from './chickenLoverLayer';
 import { identity } from './identityLayer';
+import { allopylly } from './allopyllyLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -30,7 +31,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 20 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 21 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -42,10 +43,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & IDENTITY VERIFIED",
-      activeLayersCount: 20,
-      workshopVibe: "Warm Coffee, Crispy Chicken, Slap-Bass, and Infinite Universes",
-      masterManifesto: "Tämä on Boosterverse – Marc Järvisen luoma voimanpesä!"
+      systemStatus: "FULLY OPERATIONAL & ABSURDLY FUN",
+      activeLayersCount: 21,
+      workshopVibe: "Warm Coffee, Crispy Chicken, Absurdity, and Universes",
+      masterManifesto: "Ällöpylly!"
     };
   }
 
@@ -72,6 +73,7 @@ export class BoosterverseSupremeCore {
       `17. ${bitchesPlease.deliverEverything()}`,
       `18. ${impulsivity.triggerImpulse("syödä siipiä suoraan näppäimistön äärellä")}`,
       `19. ${chickenLover.enjoyChicken("rapeat tulisat siivet")}`,
+      `20. ${allopylly.triggerSilliness()}`,
       `------------------------------------------`
     ].join('\n');
   }
