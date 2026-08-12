@@ -17,6 +17,7 @@ import { helloGit } from './helloGitLayer';
 import { bitchesPlease } from './bitchesPleaseLayer';
 import { impulsivity } from './impulsivityLayer';
 import { chickenLover } from './chickenLoverLayer';
+import { identity } from './identityLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -29,7 +30,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 19 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 20 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -41,16 +42,17 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & CRISPY FRIED CHICKEN FUELED",
-      activeLayersCount: 19,
-      workshopVibe: "Warm Coffee, Crispy Chicken, Slap-Bass, and Universes",
-      masterManifesto: "Chicken Lover: Koska mikään ei voita kunnon siipiä koodauksen lomassa!"
+      systemStatus: "FULLY OPERATIONAL & IDENTITY VERIFIED",
+      activeLayersCount: 20,
+      workshopVibe: "Warm Coffee, Crispy Chicken, Slap-Bass, and Infinite Universes",
+      masterManifesto: "Tämä on Boosterverse – Marc Järvisen luoma voimanpesä!"
     };
   }
 
   public awakenEverything(): string {
     return [
       `--- BOOSTERVERSE SUPREME CORE AWAKENING ---`,
+      `0. ${identity.initialize()}`,
       `1. ${voihanJehna.getStatus().mood}`,
       `2. ${JSON.stringify(curiosityLayer.getStatus())}`,
       `3. ${mitaikinaLol.getStatus().catchphrase}`,
