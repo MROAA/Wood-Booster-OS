@@ -25,7 +25,8 @@ import { geminiCollaborator } from './geminiCollaboratorLayer';
 import { triplaneTurmoil } from './triplaneTurmoilLayer';
 import { chatGptArchitect } from './chatGptArchitectLayer';
 import { claudeCodeGrail } from './claudeCodeHolyGrailLayer';
-import { dundeeLegend } from './dundeeLegendLayer'; // UUSI
+import { dundeeLegend } from './dundeeLegendLayer';
+import { copyPaste } from './copyPasteLayer'; // UUSI
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -38,7 +39,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 28 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 29 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -50,10 +51,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & LEGENDARY DUNDEE STATUS",
-      activeLayersCount: 28,
-      workshopVibe: "Warm Coffee, Big Knives, Legends, and Universes",
-      masterManifesto: "Crocodile Dundee oli legenda: Ratkaise bugit tyylillä!"
+      systemStatus: "FULLY OPERATIONAL & INFINITE COPY-PASTE ACTIVE",
+      activeLayersCount: 29,
+      workshopVibe: "Warm Coffee, Instant Duplication, Legends, and Universes",
+      masterManifesto: "Copy Paste: Ideasta toteutukseen sekunnin murto-osassa!"
     };
   }
 
@@ -88,6 +89,7 @@ export class BoosterverseSupremeCore {
       `25. ${chatGptArchitect.analyzeConcept("win96-alustan modulaarinen tulevaisuus")}`,
       `26. ${claudeCodeGrail.invokeGrail("koko repositorion itseoikaiseva yliajo")}`,
       `27. ${dundeeLegend.handleCrisis("mahdottoman vaikea arkkitehtuuriongelma")}`,
+      `28. ${copyPaste.duplicateIdea("universaali automaatioratkaisu")}`,
       `------------------------------------------`
     ].join('\n');
   }
