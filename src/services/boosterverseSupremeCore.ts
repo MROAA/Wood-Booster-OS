@@ -25,6 +25,7 @@ import { geminiCollaborator } from './geminiCollaboratorLayer';
 import { triplaneTurmoil } from './triplaneTurmoilLayer';
 import { chatGptArchitect } from './chatGptArchitectLayer';
 import { claudeCodeGrail } from './claudeCodeHolyGrailLayer';
+import { dundeeLegend } from './dundeeLegendLayer'; // UUSI
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -37,7 +38,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 27 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 28 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -49,10 +50,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & CLAUDE CODE HOLY GRAIL UNLOCKED",
-      activeLayersCount: 27,
-      workshopVibe: "Warm Coffee, Holy Grail Terminal, AI Co-Pilots, and Universes",
-      masterManifesto: "Claude Code as the Holy Grail: Terminaali laulaa ja koodi syntyy itsestään!"
+      systemStatus: "FULLY OPERATIONAL & LEGENDARY DUNDEE STATUS",
+      activeLayersCount: 28,
+      workshopVibe: "Warm Coffee, Big Knives, Legends, and Universes",
+      masterManifesto: "Crocodile Dundee oli legenda: Ratkaise bugit tyylillä!"
     };
   }
 
@@ -86,6 +87,7 @@ export class BoosterverseSupremeCore {
       `24. ${triplaneTurmoil.flyMission("vastustajan ilmatorjuntatorni")}`,
       `25. ${chatGptArchitect.analyzeConcept("win96-alustan modulaarinen tulevaisuus")}`,
       `26. ${claudeCodeGrail.invokeGrail("koko repositorion itseoikaiseva yliajo")}`,
+      `27. ${dundeeLegend.handleCrisis("mahdottoman vaikea arkkitehtuuriongelma")}`,
       `------------------------------------------`
     ].join('\n');
   }
