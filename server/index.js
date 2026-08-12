@@ -1,59 +1,8 @@
-import {
-  createSpacemonkeySecurityMemoryRouter,
-} from "./routes/spacemonkeySecurityMemory.js"
-import {
-  createSpacemonkeyInternetSafetyRouter,
-} from "./routes/spacemonkeyInternetSafety.js"
-import architectureAuditRouter from "./routes/architectureAudit.js"
-import systemInstallerRestoreApprovalRouter from "./routes/systemInstallerRestoreApproval.js"
-import {
-  createSpacemonkeySecuritySandboxRouter,
-} from "./routes/spacemonkeySecuritySandbox.js"
-import architectureHealthRouter from "./routes/architectureHealth.js"
-import systemInstallerAuditRouter from "./routes/systemInstallerAudit.js"
-import systemInstallerRouter from "./routes/systemInstaller.js"
-import {
-  createSpacemonkeySecurityCapabilitiesRouter,
-} from "./routes/spacemonkeySecurityCapabilities.js"
-import {
-  createSpacemonkeySecurityOverviewRouter,
-} from "./routes/spacemonkeySecurityOverview.js"
-import {
-  createSpacemonkeySecurityReflectionRouter,
-} from "./routes/spacemonkeySecurityReflection.js"
-import {
-  createSpacemonkeySecurityAuditRouter,
-} from "./routes/spacemonkeySecurityAudit.js"
-import {
-  createSpacemonkeyToolSecurityRouter,
-} from "./routes/spacemonkeyToolSecurity.js"
-import {
-  createSpacemonkeySecurityRuntimeRouter,
-} from "./routes/spacemonkeySecurityRuntime.js"
-import {
-  createSpacemonkeySecurityPolicyRouter,
-} from "./routes/spacemonkeySecurityPolicy.js"
-import {
-  createSpacemonkeyPermissionsRouter,
-} from "./routes/spacemonkeyPermissions.js"
-import {
-  createSpacemonkeyApprovalGatewayRouter,
-} from "./routes/spacemonkeyApprovalGateway.js"
-import {
-  createSpacemonkeySecurityCoreRouter,
-} from "./routes/spacemonkeySecurityCore.js"
-import {
-  createSpacemonkeyPersonalityRuntimeRouter,
-} from "./routes/spacemonkeyPersonalityRuntime.js"
-import {
-  createSpacemonkeyCapabilityRegistryRouter,
-} from "./routes/spacemonkeyCapabilityRegistry.js"
-import {
-  createSpacemonkeyKnowledgeRouter,
-} from "./routes/spacemonkeyKnowledge.js"
-import path from "node:path"
-import { fileURLToPath } from "node:url"
+// server/index.js - Wood-Booster HQ Backend Hub
+import express from 'express';
+import cors from 'cors';
 
+<<<<<<< Updated upstream
 import express from "express"
 import cors from "cors"
 import {
@@ -428,9 +377,25 @@ app.get(
     req,
     res
   )=>{
+=======
+// Tuodaan luodut palvelut
+import altrakoEngine from './services/altrako/reflectionEngine.js';
+import systemPulse from './services/systemPulse/pulseService.js';
+import gitGuardian from './services/gitGuardian/guardianService.js';
+import aiBrain from './services/aiBrain/brainService.js';
+import recoveryService from './services/systemRecovery/recoveryService.js';
 
+const app = express();
+const PORT = process.env.PORT || 5000;
+>>>>>>> Stashed changes
 
+app.use(express.json());
+app.use(cors());
+
+// Status & Yhteenveto
+app.get('/api/status', (req, res) => {
     res.json({
+<<<<<<< Updated upstream
 
       status:"ok",
 
@@ -1041,3 +1006,43 @@ Dashboard:
 
 
 start()
+=======
+        system: "Wood-Booster HQ",
+        version: "v2.0",
+        pulse: systemPulse.getMetrics(),
+        guardian: gitGuardian.getStatus(),
+        brain: aiBrain.getStatus(),
+        recovery: recoveryService.getStatus()
+    });
+});
+
+// Altrako Evaluointi
+app.post('/api/altrako/evaluate', async (req, res) => {
+    const proposal = req.body;
+    const result = await altrakoEngine.evaluateDecision(proposal);
+    res.json(result);
+});
+
+// AI Brain Tehtävät
+app.post('/api/brain/task', async (req, res) => {
+    const { agentName, taskData } = req.body;
+    const result = await aiBrain.processAgentTask(agentName, taskData);
+    res.json(result);
+});
+
+// Git Guardian Varmuuskopiointi
+app.post('/api/guardian/backup', (req, res) => {
+    const result = gitGuardian.triggerBackup();
+    res.json(result);
+});
+
+// Recovery Snapshot
+app.post('/api/recovery/snapshot', (req, res) => {
+    const result = recoveryService.createSnapshot();
+    res.json(result);
+});
+
+app.listen(PORT, () => {
+    console.log(`[Wood-Booster HQ] Backend käynnissä portissa ${PORT}`);
+});
+>>>>>>> Stashed changes

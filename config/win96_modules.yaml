@@ -1,0 +1,62 @@
+# Win96 ja Wood-Booster OS -moduulien kattava konfiguraatio
+version: "1.2.0"
+environment: "win96-wood-booster"
+
+desktop:
+  theme: "classic-96"
+  resolution: "auto"
+  background_color: "#008080"
+  taskbar:
+    position: "bottom"
+    show_clock: true
+    start_menu_label: "Start"
+    active_indicators: true
+
+modules:
+  - id: "spacemonkey_core"
+    name: "Spacemonkey Core"
+    enabled: true
+    native_integration: true
+    consciousness_level: "god-mode"
+    permissions:
+      - "audio_input"
+      - "ai_consciousness"
+      - "self_healing"
+      - "filesystem_write"
+    settings:
+      log_level: "debug"
+      auto_optimize: true
+      voice_recognition:
+        enabled: true
+        trigger_phrase: "Spacemonkey"
+        microphone_device: "default"
+
+  - id: "cpp_quantum_matrix"
+    name: "C++ Quantum Matrix"
+    enabled: true
+    sync_rate_hz: 60
+    memory_pool_mb: 1024
+    synchronization:
+      threads: 4
+      real_time_logging: true
+
+  - id: "terminal"
+    name: "Win96 Terminal"
+    enabled: true
+    shell: "bash"
+    font_family: "monospace"
+    xterm_addons:
+      - "fit"
+      - "webgl"
+
+filesystems:
+  workspace_root: "/home/marc/Wood-Booster-AI/Wood-Booster-OS"
+  context_menu:
+    right_click_file_creation: true
+  auto_create_templates:
+    - extension: ".txt"
+      default_content: "Uusi tekstitiedosto luotu win96-ympäristössä."
+    - extension: ".md"
+      default_content: "# Spacemonkey Workspace\n\nKirjaa muistiinpanot tähän."
+    - extension: ".yaml"
+      default_content: "version: '1.0'\nmodule: 'new_component'"
