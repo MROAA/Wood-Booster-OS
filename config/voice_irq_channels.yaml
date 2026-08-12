@@ -1,0 +1,17 @@
+voice_irq_channels:
+  microphone_device: "Default Hardware Mic"
+  listener_state: "Active / Spacemonkey Voice IRQ"
+  command_triggers:
+    - phrase: "Spacemonkey boost"
+      action: "SpacemonkeyClockBoost"
+      frequency_hz: 432
+    - phrase: "Purge entropy"
+      action: "SpacemonkeyQuantumCoreFix"
+      frequency_hz: 528
+    - phrase: "Scan ecosystem"
+      action: "WoodBoosterEcoSensor"
+      frequency_hz: 741
+    - phrase: "Engage shield"
+      action: "SpacemonkeyRadiationShield"
+      frequency_hz: 852
+  interrupt_priority: "High"

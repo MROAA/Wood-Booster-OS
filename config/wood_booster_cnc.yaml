@@ -1,0 +1,10 @@
+wood_booster_cnc:
+  hardware_node: "Wood Booster Workshop CNC"
+  laser_sensor_calibration: "100.0%"
+  biomass_flow_target: 98.5
+  axis_controls:
+    x_axis: "Precision Laser Guide"
+    y_axis: "Biomass Feed Mechanism"
+    z_axis: "Quantum Depth Adjuster"
+  safety_interlock: "Enabled"
+  integration: "Win96 Real-time Dashboard"
