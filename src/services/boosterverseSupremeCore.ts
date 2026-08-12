@@ -27,7 +27,8 @@ import { chatGptArchitect } from './chatGptArchitectLayer';
 import { claudeCodeGrail } from './claudeCodeHolyGrailLayer';
 import { dundeeLegend } from './dundeeLegendLayer';
 import { copyPaste } from './copyPasteLayer';
-import { marcMaster } from './marcJarvinenMasterLayer'; // UUSI
+import { marcMaster } from './marcJarvinenMasterLayer';
+import { fuckWindows } from './fuckWindowsLiberationLayer'; // UUSI
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -40,7 +41,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 30 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 31 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -52,10 +53,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & MASTER CREATOR MARC JÄRVINEN ACTIVE",
-      activeLayersCount: 30,
-      workshopVibe: "Warm Coffee, Master Architect, Infinite Universes, and Code",
-      masterManifesto: "Marc Järvinen: Pääkonttori on hallinnassa ja universumi laajenee!"
+      systemStatus: "FULLY OPERATIONAL & DIGITAL SOVEREIGNTY SECURED",
+      activeLayersCount: 31,
+      workshopVibe: "Warm Coffee, Master Architect, Freedom, and Universes",
+      masterManifesto: "Fuck Windows: Rakennamme oman vapaan universumin!"
     };
   }
 
@@ -92,6 +93,7 @@ export class BoosterverseSupremeCore {
       `27. ${dundeeLegend.handleCrisis("mahdottoman vaikea arkkitehtuuriongelma")}`,
       `28. ${copyPaste.duplicateIdea("universaali automaatioratkaisu")}`,
       `29. ${marcMaster.executeMasterVision()}`,
+      `30. ${fuckWindows.declareIndependence("rajoittava käyttöjärjestelmä")}`,
       `------------------------------------------`
     ].join('\n');
   }
