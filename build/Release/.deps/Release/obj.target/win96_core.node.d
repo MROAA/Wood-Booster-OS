@@ -1,0 +1,1 @@
+cmd_Release/obj.target/win96_core.node := g++ -o Release/obj.target/win96_core.node -shared -pthread -rdynamic -m64 -flto=4 -ffat-lto-objects -fprofile-use -fprofile-correction   -Wl,-soname=win96_core.node -Wl,--start-group Release/obj.target/win96_core/src/main.o Release/obj.target/node_modules/node-addon-api/nothing.a -Wl,--end-group 

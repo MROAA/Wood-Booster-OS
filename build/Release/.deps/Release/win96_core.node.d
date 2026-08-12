@@ -1,0 +1,1 @@
+cmd_Release/win96_core.node := ln -f "Release/obj.target/win96_core.node" "Release/win96_core.node" 2>/dev/null || (rm -rf "Release/win96_core.node" && cp -af "Release/obj.target/win96_core.node" "Release/win96_core.node")
