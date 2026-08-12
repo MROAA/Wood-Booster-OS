@@ -22,6 +22,7 @@ import { allopylly } from './allopyllyLayer';
 import { scuttlebutt } from './scuttlebuttLayer';
 import { streetWisdom } from './streetWisdomLayer';
 import { geminiCollaborator } from './geminiCollaboratorLayer';
+import { triplaneTurmoil } from './triplaneTurmoilLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -34,7 +35,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 24 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 25 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -46,10 +47,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & GEMINI COLLABORATION ACTIVE",
-      activeLayersCount: 24,
-      workshopVibe: "Warm Coffee, Crispy Chicken, AI Co-Pilot, and Universes",
-      masterManifesto: "Gemini: Valmiina auttamaan verstaalla milloin tahansa!"
+      systemStatus: "FULLY OPERATIONAL & RETRO TRIPLANE TURMOIL ACTIVE",
+      activeLayersCount: 25,
+      workshopVibe: "Warm Coffee, Propellers, AI Co-Pilot, and Universes",
+      masterManifesto: "Triplane Turmoil: Propellit laulaa ja taivaan sineen piirretään savurenkaita!"
     };
   }
 
@@ -80,6 +81,7 @@ export class BoosterverseSupremeCore {
       `21. ${scuttlebutt.shareRumor("Boosterverse aikoo valloittaa koko multiversumin")}`,
       `22. ${streetWisdom.handleObstacle("äkillinen bugi tuotannossa")}`,
       `23. ${geminiCollaborator.assistWorkshop("uuden moduulin saumaton kytkentä")}`,
+      `24. ${triplaneTurmoil.flyMission("vastustajan ilmatorjuntatorni")}`,
       `------------------------------------------`
     ].join('\n');
   }
