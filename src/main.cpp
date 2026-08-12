@@ -266,7 +266,7 @@ Napi::Value HWGetReg(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, g_hwRegisters.GetReg(reg));
 }
 
-// --- 9. UUSI: VirtualMemoryPaging (Muistisivutus) ---
+// --- 9. VirtualMemoryPaging ---
 struct PageTableEntry {
     int pageId;
     bool present;
@@ -309,7 +309,7 @@ Napi::Value VMPagingGet(const Napi::CallbackInfo& info) {
     return obj;
 }
 
-// --- 10. UUSI: InterruptVectorTable (Laitteistokeskeytykset) ---
+// --- 10. InterruptVectorTable ---
 class InterruptVectorTable {
 private:
     std::unordered_map<int, std::string> handlers;
@@ -342,6 +342,184 @@ Napi::Value IVTTrigger(const Napi::CallbackInfo& info) {
     return Napi::String::New(env, res);
 }
 
+// --- 11. AudioMixerEngine ---
+struct AudioChannel {
+    int channelId;
+    std::string soundName;
+    float volume;
+    bool playing;
+};
+
+class AudioMixerEngine {
+private:
+    std::unordered_map<int, AudioChannel> channels;
+public:
+    void PlaySound(int id, const std::string& name, float vol) {
+        channels[id] = {id, name, vol, true};
+    }
+    std::vector<AudioChannel> GetActiveChannels() {
+        std::vector<AudioChannel> active;
+        for (const auto& pair : channels) {
+            if (pair.second.playing) active.push_back(pair.second);
+        }
+        return active;
+    }
+};
+static AudioMixerEngine g_audioMixer;
+
+Napi::Value AudioPlay(const Napi::CallbackInfo& info) {
+    g_audioMixer.PlaySound(
+        info[0].As<Napi::Number>().Int32Value(),
+        info[1].As<Napi::String>(),
+        (float)info[2].As<Napi::Number>().DoubleValue()
+    );
+    return Napi::Boolean::New(info.Env(), true);
+}
+
+Napi::Value AudioGetActive(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    std::vector<AudioChannel> list = g_audioMixer.GetActiveChannels();
+    Napi::Array arr = Napi::Array::New(env, list.size());
+    for (size_t i = 0; i < list.size(); i++) {
+        Napi::Object obj = Napi::Object::New(env);
+        obj.Set("channelId", list[i].channelId);
+        obj.Set("soundName", list[i].soundName);
+        obj.Set("volume", list[i].volume);
+        obj.Set("playing", list[i].playing);
+        arr[i] = obj;
+    }
+    return arr;
+}
+
+// --- 12. NetworkSocketTable ---
+struct SocketConnection {
+    int socketId;
+    std::string host;
+    int port;
+    bool connected;
+};
+
+class NetworkSocketTable {
+private:
+    std::unordered_map<int, SocketConnection> sockets;
+public:
+    bool Connect(int id, const std::string& host, int port) {
+        sockets[id] = {id, host, port, true};
+        return true;
+    }
+    std::vector<SocketConnection> GetSockets() {
+        std::vector<SocketConnection> list;
+        for (const auto& pair : sockets) list.push_back(pair.second);
+        return list;
+    }
+};
+static NetworkSocketTable g_netSockets;
+
+Napi::Value NetConnect(const Napi::CallbackInfo& info) {
+    bool res = g_netSockets.Connect(
+        info[0].As<Napi::Number>().Int32Value(),
+        info[1].As<Napi::String>(),
+        info[2].As<Napi::Number>().Int32Value()
+    );
+    return Napi::Boolean::New(info.Env(), res);
+}
+
+Napi::Value NetGetSockets(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    std::vector<SocketConnection> list = g_netSockets.GetSockets();
+    Napi::Array arr = Napi::Array::New(env, list.size());
+    for (size_t i = 0; i < list.size(); i++) {
+        Napi::Object obj = Napi::Object::New(env);
+        obj.Set("socketId", list[i].socketId);
+        obj.Set("host", list[i].host);
+        obj.Set("port", list[i].port);
+        obj.Set("connected", list[i].connected);
+        arr[i] = obj;
+    }
+    return arr;
+}
+
+// --- 13. UUSI: ProcessMonitor (Käyttäjäprosessien taulu) ---
+struct KernelProcess {
+    int pid;
+    std::string name;
+    std::string status;
+};
+
+class ProcessMonitor {
+private:
+    std::unordered_map<int, KernelProcess> processes;
+public:
+    void Spawn(int pid, const std::string& name, const std::string& status) {
+        processes[pid] = {pid, name, status};
+    }
+    void Kill(int pid) {
+        processes.erase(pid);
+    }
+    std::vector<KernelProcess> ListProcesses() {
+        std::vector<KernelProcess> list;
+        for (const auto& pair : processes) list.push_back(pair.second);
+        return list;
+    }
+};
+static ProcessMonitor g_processMonitor;
+
+Napi::Value ProcSpawn(const Napi::CallbackInfo& info) {
+    g_processMonitor.Spawn(
+        info[0].As<Napi::Number>().Int32Value(),
+        info[1].As<Napi::String>(),
+        info[2].As<Napi::String>()
+    );
+    return Napi::Boolean::New(info.Env(), true);
+}
+
+Napi::Value ProcList(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    std::vector<KernelProcess> list = g_processMonitor.ListProcesses();
+    Napi::Array arr = Napi::Array::New(env, list.size());
+    for (size_t i = 0; i < list.size(); i++) {
+        Napi::Object obj = Napi::Object::New(env);
+        obj.Set("pid", list[i].pid);
+        obj.Set("name", list[i].name);
+        obj.Set("status", list[i].status);
+        arr[i] = obj;
+    }
+    return arr;
+}
+
+// --- 14. UUSI: KernelLoggerRingBuffer (Ytimen lokipuskuri) ---
+class KernelLoggerRingBuffer {
+private:
+    std::vector<std::string> logs;
+    size_t maxSize = 100;
+public:
+    void Log(const std::string& message) {
+        if (logs.size() >= maxSize) {
+            logs.erase(logs.begin());
+        }
+        logs.push_back(message);
+    }
+    std::vector<std::string> GetLogs() {
+        return logs;
+    }
+};
+static KernelLoggerRingBuffer g_kernelLogger;
+
+Napi::Value KernelLog(const Napi::CallbackInfo& info) {
+    g_kernelLogger.Log(info[0].As<Napi::String>());
+    return Napi::Boolean::New(info.Env(), true);
+}
+
+Napi::Value KernelGetLogs(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    std::vector<std::string> logs = g_kernelLogger.GetLogs();
+    Napi::Array arr = Napi::Array::New(env, logs.size());
+    for (size_t i = 0; i < logs.size(); i++) {
+        arr[i] = Napi::String::New(env, logs[i]);
+    }
+    return arr;
+}
+
 // --- Moduulien rekisteröinti ytimeen ---
 Napi::Object InitCore(Napi::Env env, Napi::Object exports) {
     exports.Set("getSystemStats", Napi::Function::New(env, GetSystemStats));
@@ -360,11 +538,19 @@ Napi::Object InitCore(Napi::Env env, Napi::Object exports) {
     exports.Set("ipcReceive", Napi::Function::New(env, IPCReceive));
     exports.Set("hwSetReg", Napi::Function::New(env, HWSetReg));
     exports.Set("hwGetReg", Napi::Function::New(env, HWGetReg));
-    // Uudet sivutus- ja keskeytysmoduulit
     exports.Set("vmPagingSet", Napi::Function::New(env, VMPagingSet));
     exports.Set("vmPagingGet", Napi::Function::New(env, VMPagingGet));
     exports.Set("ivtRegister", Napi::Function::New(env, IVTRegister));
     exports.Set("ivtTrigger", Napi::Function::New(env, IVTTrigger));
+    exports.Set("audioPlay", Napi::Function::New(env, AudioPlay));
+    exports.Set("audioGetActive", Napi::Function::New(env, AudioGetActive));
+    exports.Set("netConnect", Napi::Function::New(env, NetConnect));
+    exports.Set("netGetSockets", Napi::Function::New(env, NetGetSockets));
+    // Uudet prosessi- ja lokimoduulit
+    exports.Set("procSpawn", Napi::Function::New(env, ProcSpawn));
+    exports.Set("procList", Napi::Function::New(env, ProcList));
+    exports.Set("kernelLog", Napi::Function::New(env, KernelLog));
+    exports.Set("kernelGetLogs", Napi::Function::New(env, KernelGetLogs));
 
     return exports;
 }

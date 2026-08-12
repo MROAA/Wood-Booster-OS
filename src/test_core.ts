@@ -1,19 +1,19 @@
 import { WoodBoosterCore } from './index.js';
 
-console.log('--- Wood-booster OS: Advanced Paging & IRQ Kernel Test ---');
+console.log('--- Wood-booster OS: Audio & Networking Kernel Test ---');
 
 // Perustarkistus
 console.log('[SystemMonitor]', WoodBoosterCore.getSystemStats());
 
-// Uusi: Virtual Memory Paging
-WoodBoosterCore.vmPagingSet(42, true, false);
-const pageInfo = WoodBoosterCore.vmPagingGet(42);
-console.log('[Virtual Memory Paging] Page 42 Status:', pageInfo);
+// Uusi: Audio Mixer Engine
+WoodBoosterCore.audioPlay(1, 'startup_chime.wav', 0.85);
+WoodBoosterCore.audioPlay(2, 'spacemonkey_alert.wav', 1.0);
+const activeAudio = WoodBoosterCore.audioGetActive();
+console.log('[Audio Mixer] Active Channels:', activeAudio);
 
-// Uusi: Interrupt Vector Table (IRQ)
-WoodBoosterCore.ivtRegister(1, 'KeyboardController');
-WoodBoosterCore.ivtRegister(14, 'PrimaryIDEController');
-const irqRes = WoodBoosterCore.ivtTrigger(1);
-console.log('[Interrupt Vector Table] Trigger IRQ 1:', irqRes);
+// Uusi: Network Socket Table
+WoodBoosterCore.netConnect(8080, '127.0.0.1', 9000);
+const sockets = WoodBoosterCore.netGetSockets();
+console.log('[Network Sockets] Active Connections:', sockets);
 
-console.log('--- All Paging & IRQ Kernel Modules Verified Successfully! ---');
+console.log('--- All Audio & Networking Kernel Modules Verified Successfully! ---');

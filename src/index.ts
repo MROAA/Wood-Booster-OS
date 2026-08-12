@@ -39,6 +39,26 @@ export interface PageTableEntryData {
     dirty: boolean;
 }
 
+export interface AudioChannelData {
+    channelId: number;
+    soundName: string;
+    volume: number;
+    playing: boolean;
+}
+
+export interface SocketConnectionData {
+    socketId: number;
+    host: string;
+    port: number;
+    connected: boolean;
+}
+
+export interface KernelProcessData {
+    pid: number;
+    name: string;
+    status: string;
+}
+
 export class WoodBoosterCore {
     public static getSystemStats(): SystemStats {
         return typeof win96Core.getSystemStats === 'function' ? win96Core.getSystemStats() : { totalMemory: 0, freeMemory: 0, activeLayers: 33, timestamp: Date.now() };
@@ -106,7 +126,6 @@ export class WoodBoosterCore {
         return typeof win96Core.hwGetReg === 'function' ? win96Core.hwGetReg(reg) : 0;
     }
 
-    // Uudet sivutus- ja keskeytysmetodit
     public static vmPagingSet(pageId: number, present: boolean, dirty: boolean): boolean {
         return typeof win96Core.vmPagingSet === 'function' ? win96Core.vmPagingSet(pageId, present, dirty) : false;
     }
@@ -121,5 +140,38 @@ export class WoodBoosterCore {
 
     public static ivtTrigger(irq: number): string {
         return typeof win96Core.ivtTrigger === 'function' ? win96Core.ivtTrigger(irq) : 'ERR_IVT_NOT_LOADED';
+    }
+
+    public static audioPlay(channelId: number, soundName: string, volume: number): boolean {
+        return typeof win96Core.audioPlay === 'function' ? win96Core.audioPlay(channelId, soundName, volume) : false;
+    }
+
+    public static audioGetActive(): AudioChannelData[] {
+        return typeof win96Core.audioGetActive === 'function' ? win96Core.audioGetActive() : [];
+    }
+
+    public static netConnect(socketId: number, host: string, port: number): boolean {
+        return typeof win96Core.netConnect === 'function' ? win96Core.netConnect(socketId, host, port) : false;
+    }
+
+    public static netGetSockets(): SocketConnectionData[] {
+        return typeof win96Core.netGetSockets === 'function' ? win96Core.netGetSockets() : [];
+    }
+
+    // Uudet prosessi- ja lokimetodit
+    public static procSpawn(pid: number, name: string, status: string): boolean {
+        return typeof win96Core.procSpawn === 'function' ? win96Core.procSpawn(pid, name, status) : false;
+    }
+
+    public static procList(): KernelProcessData[] {
+        return typeof win96Core.procList === 'function' ? win96Core.procList() : [];
+    }
+
+    public static kernelLog(message: string): boolean {
+        return typeof win96Core.kernelLog === 'function' ? win96Core.kernelLog(message) : false;
+    }
+
+    public static kernelGetLogs(): string[] {
+        return typeof win96Core.kernelGetLogs === 'function' ? win96Core.kernelGetLogs() : [];
     }
 }
