@@ -26,7 +26,8 @@ import { triplaneTurmoil } from './triplaneTurmoilLayer';
 import { chatGptArchitect } from './chatGptArchitectLayer';
 import { claudeCodeGrail } from './claudeCodeHolyGrailLayer';
 import { dundeeLegend } from './dundeeLegendLayer';
-import { copyPaste } from './copyPasteLayer'; // UUSI
+import { copyPaste } from './copyPasteLayer';
+import { marcMaster } from './marcJarvinenMasterLayer'; // UUSI
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -39,7 +40,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 29 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 30 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -51,10 +52,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & INFINITE COPY-PASTE ACTIVE",
-      activeLayersCount: 29,
-      workshopVibe: "Warm Coffee, Instant Duplication, Legends, and Universes",
-      masterManifesto: "Copy Paste: Ideasta toteutukseen sekunnin murto-osassa!"
+      systemStatus: "FULLY OPERATIONAL & MASTER CREATOR MARC JÄRVINEN ACTIVE",
+      activeLayersCount: 30,
+      workshopVibe: "Warm Coffee, Master Architect, Infinite Universes, and Code",
+      masterManifesto: "Marc Järvinen: Pääkonttori on hallinnassa ja universumi laajenee!"
     };
   }
 
@@ -90,6 +91,7 @@ export class BoosterverseSupremeCore {
       `26. ${claudeCodeGrail.invokeGrail("koko repositorion itseoikaiseva yliajo")}`,
       `27. ${dundeeLegend.handleCrisis("mahdottoman vaikea arkkitehtuuriongelma")}`,
       `28. ${copyPaste.duplicateIdea("universaali automaatioratkaisu")}`,
+      `29. ${marcMaster.executeMasterVision()}`,
       `------------------------------------------`
     ].join('\n');
   }
