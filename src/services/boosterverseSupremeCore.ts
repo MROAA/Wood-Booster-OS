@@ -12,6 +12,8 @@ import { noIdea } from './noIdeaLayer';
 import { loveDoingShit } from './loveDoingShitLayer';
 import { bashHead } from './bashHeadLayer';
 import { cyberImmunity } from './cyberImmunityLayer';
+import { tehdaanUniversumi } from './tehdaanUniversumiLayer';
+import { helloGit } from './helloGitLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -24,7 +26,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 14 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 16 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -36,10 +38,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & ABSOLUTELY RIDICULOUS",
-      activeLayersCount: 14,
-      workshopVibe: "Warm Coffee, Shaking Roof, Slap-Bass, and Infinite Curiosity",
-      masterManifesto: "But I love it. It's fun to do shit :)"
+      systemStatus: "FULLY OPERATIONAL & MASTERING GIT WITH STYLE",
+      activeLayersCount: 16,
+      workshopVibe: "Warm Coffee, Clean Commits, Slap-Bass, and Infinite Universes",
+      masterManifesto: "Hello Git yup i got the hang of this!"
     };
   }
 
@@ -60,6 +62,8 @@ export class BoosterverseSupremeCore {
       `12. ${loveDoingShit.celebrateMakerSpirit()}`,
       `13. ${bashHead.breakthroughObstacle("mahdoton seinä")}`,
       `14. ${cyberImmunity.repelIntruders("urkkiva kyylä")}`,
+      `15. ${tehdaanUniversumi.spawnNewUniverse()}`,
+      `16. ${helloGit.celebrateGitFlow()}`,
       `------------------------------------------`
     ].join('\n');
   }
