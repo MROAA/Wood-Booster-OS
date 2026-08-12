@@ -14,6 +14,7 @@ import { bashHead } from './bashHeadLayer';
 import { cyberImmunity } from './cyberImmunityLayer';
 import { tehdaanUniversumi } from './tehdaanUniversumiLayer';
 import { helloGit } from './helloGitLayer';
+import { bitchesPlease } from './bitchesPleaseLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -26,7 +27,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 16 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 17 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -38,10 +39,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & MASTERING GIT WITH STYLE",
-      activeLayersCount: 16,
-      workshopVibe: "Warm Coffee, Clean Commits, Slap-Bass, and Infinite Universes",
-      masterManifesto: "Hello Git yup i got the hang of this!"
+      systemStatus: "FULLY OPERATIONAL & SOMETHING FOR EVERYBODY",
+      activeLayersCount: 17,
+      workshopVibe: "Warm Coffee, Infinite Variety, Slap-Bass, and Universes",
+      masterManifesto: "Bitches please there is something for everybody!"
     };
   }
 
@@ -64,6 +65,7 @@ export class BoosterverseSupremeCore {
       `14. ${cyberImmunity.repelIntruders("urkkiva kyylä")}`,
       `15. ${tehdaanUniversumi.spawnNewUniverse()}`,
       `16. ${helloGit.celebrateGitFlow()}`,
+      `17. ${bitchesPlease.deliverEverything()}`,
       `------------------------------------------`
     ].join('\n');
   }
