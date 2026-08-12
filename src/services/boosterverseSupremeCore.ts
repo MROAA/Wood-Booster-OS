@@ -20,6 +20,7 @@ import { chickenLover } from './chickenLoverLayer';
 import { identity } from './identityLayer';
 import { allopylly } from './allopyllyLayer';
 import { scuttlebutt } from './scuttlebuttLayer';
+import { streetWisdom } from './streetWisdomLayer';
 
 export interface SupremeCoreStatus {
   systemStatus: string;
@@ -32,7 +33,7 @@ export class BoosterverseSupremeCore {
   private static instance: BoosterverseSupremeCore;
 
   private constructor() {
-    console.log(`[BoosterverseSupremeCore] Kaikki 22 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
+    console.log(`[BoosterverseSupremeCore] Kaikki 23 legendaarista kerrosta on integroitu saumattomasti yhteen!`);
   }
 
   public static getInstance(): BoosterverseSupremeCore {
@@ -44,10 +45,10 @@ export class BoosterverseSupremeCore {
 
   public getFullStatus(): SupremeCoreStatus {
     return {
-      systemStatus: "FULLY OPERATIONAL & WHISPERING SECRETS",
-      activeLayersCount: 22,
-      workshopVibe: "Warm Coffee, Crispy Chicken, Absurdity, Gossip, and Universes",
-      masterManifesto: "Scuttlebutt: Kuulitko jo uusimman huhun?"
+      systemStatus: "FULLY OPERATIONAL & STREET-WISE UNFAZED",
+      activeLayersCount: 23,
+      workshopVibe: "Warm Coffee, Crispy Chicken, Street Wisdom, and Universes",
+      masterManifesto: "Shit aint nothing but hoes and tricks!"
     };
   }
 
@@ -76,6 +77,7 @@ export class BoosterverseSupremeCore {
       `19. ${chickenLover.enjoyChicken("rapeat tulisat siivet")}`,
       `20. ${allopylly.triggerSilliness()}`,
       `21. ${scuttlebutt.shareRumor("Boosterverse aikoo valloittaa koko multiversumin")}`,
+      `22. ${streetWisdom.handleObstacle("äkillinen bugi tuotannossa")}`,
       `------------------------------------------`
     ].join('\n');
   }
