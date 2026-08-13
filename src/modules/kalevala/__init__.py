@@ -4,10 +4,10 @@ Wood-Booster OS - Kalevala Subsystem Master Index
 Kokoaa kaikki tarut ja moduulit yhteen yhtenäiseksi eeppiseksi järjestelmäkirjastoksi.
 """
 
-from .vainamoinen_startup import VäinämöinenManager
+from .kannel_genesis import KannelManager
 from .ilmarinen_forge import IlmarinenManager
-from .leminkainen_turtles import LemminkäinenManager
-from .joukahainen_bog import JoukahainenManager
+from .lemminkainen_quest import LemminkäinenManager
+from .joukahainen_contest import JoukahainenManager
 from .aino_escape import AinoManager
 from .pohjola_wedding import WeddingManager
 from .sampo_forging import SampoManager
@@ -22,13 +22,14 @@ from .imatra_rapids import RapidsManager
 from .talking_pike import PikeManager
 from .marjatta_child import MarjattaManager
 from .väinämöisen_lähtö import DepartureManager
+from .kullervo_wrath import KullervoManager
 
 
 class KalevalaSubsystem:
     """Yhdistää koko Kalevala-eepoksen yhdeksi hallittavaksi Wood-Booster OS -alijärjestelmäksi."""
     def __init__(self):
         self.modules = [
-            VäinämöinenManager(),
+            KannelManager(),
             IlmarinenManager(),
             LemminkäinenManager(),
             JoukahainenManager(),
@@ -45,7 +46,8 @@ class KalevalaSubsystem:
             RapidsManager(),
             PikeManager(),
             MarjattaManager(),
-            DepartureManager()
+            DepartureManager(),
+            KullervoManager()
         ]
 
     def run_epic_chronicles(self):
@@ -59,7 +61,8 @@ class KalevalaSubsystem:
                 'run_sampo_cycle', 'run_backup_heist', 'run_restoration_routine',
                 'run_security_protocol', 'run_assistant_sequence', 'run_surveillance',
                 'run_speed_test', 'run_deep_query', 'run_load_test',
-                'run_oracle_session', 'run_upgrade_routine', 'run_shutdown_sequence'
+                'run_oracle_session', 'run_upgrade_routine', 'run_shutdown_sequence',
+                'run_wrath_routine'
             ]:
                 if hasattr(mod, method_name):
                     getattr(mod, method_name)()
