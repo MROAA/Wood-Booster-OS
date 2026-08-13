@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Wood-Booster OS - Kalevala Subsystem Master Index
-Kokoaa kaikki 20 tarua ja moduulia yhteen yhtenäiseksi eeppiseksi järjestelmäkirjastoksi.
+Kokoaa kaikki tarut ja moduulit yhteen yhtenäiseksi eeppiseksi järjestelmäkirjastoksi.
 """
 
 from .vakavanha_vaynamoinen import VäinämöinenManager
@@ -53,24 +53,16 @@ class KalevalaSubsystem:
         print("   WOOD-BOOSTER OS: KALEVALA SUBSYSTEM EPIC RUN     ")
         print("==================================================")
         for mod in self.modules:
-            mod.run_startup_routine() if hasattr(mod, 'run_startup_routine') else None
-            mod.run_forging_sequence() if hasattr(mod, 'run_forging_sequence') else None
-            mod.run_adventure() if hasattr(mod, 'run_adventure') else None
-            mod.run_challenge() if hasattr(mod, 'run_challenge') else None
-            mod.run_emergency_release() if hasattr(mod, 'run_emergency_release') else None
-            mod.run_wedding_feast() if hasattr(mod, 'run_wedding_feast') else None
-            mod.run_sampo_cycle() if hasattr(mod, 'run_sampo_cycle') else None
-            mod.run_backup_heist() if hasattr(mod, 'run_backup_heist') else None
-            mod.run_restoration_routine() if hasattr(mod, 'run_restoration_routine') else None
-            mod.run_security_protocol() if hasattr(mod, 'run_security_protocol') else None
-            mod.run_assistant_sequence() if hasattr(mod, 'run_assistant_sequence') else None
-            mod.run_surveillance() if hasattr(mod, 'run_surveillance') else None
-            mod.run_speed_test() if hasattr(mod, 'run_speed_test') else None
-            mod.run_deep_query() if hasattr(mod, 'run_deep_query') else None
-            mod.run_load_test() if hasattr(mod, 'run_load_test') else None
-            mod.run_oracle_session() if hasattr(mod, 'run_oracle_session') else None
-            mod.run_upgrade_routine() if hasattr(mod, 'run_upgrade_routine') else None
-            mod.run_shutdown_sequence() if hasattr(mod, 'run_shutdown_sequence') else None
+            for method_name in [
+                'run_startup_routine', 'run_forging_sequence', 'run_adventure',
+                'run_challenge', 'run_emergency_release', 'run_wedding_feast',
+                'run_sampo_cycle', 'run_backup_heist', 'run_restoration_routine',
+                'run_security_protocol', 'run_assistant_sequence', 'run_surveillance',
+                'run_speed_test', 'run_deep_query', 'run_load_test',
+                'run_oracle_session', 'run_upgrade_routine', 'run_shutdown_sequence'
+            ]:
+                if hasattr(mod, method_name):
+                    getattr(mod, method_name)()
         print("==================================================")
         print("   KALEVALAN TARU ON SAATETTU PÄÄTÖSEEN.           ")
         print("==================================================")
