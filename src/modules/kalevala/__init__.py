@@ -1,52 +1,19 @@
-#!/usr/bin/env python3
-"""
-Wood-Booster OS - Kalevala Subsystem Master Index
-Dynaaminen lataaja, joka kerää kaikki moduulit talteen riippumatta luokkien nimistä.
-"""
+import psutil
+from utils.logger import get_logger
 
-import os
-import importlib
+log = get_logger("KalevalaCore")
 
-class KalevalaSubsystem:
-    """Lataa ja hallinnoi kaikkia Kalevala-moduuleja dynaamisesti."""
-    def __init__(self):
-        self.modules = []
-        package_dir = os.path.dirname(__file__)
-        
-        # Käydään läpi kaikki kansion .py-tiedostot paitsi __init__
-        for filename in os.listdir(package_dir):
-            if filename.endswith(".py") and filename != "__init__.py":
-                module_name = filename[:-3]
-                try:
-                    mod = importlib.import_module(f".{module_name}", package="modules.kalevala")
-                    # Etsitään moduulista mikä tahansa Manager- tai Core-luokka
-                    for attr_name in dir(mod):
-                        if "Manager" in attr_name or "Core" in attr_name:
-                            cls = getattr(mod, attr_name)
-                            if isinstance(cls, type):
-                                self.modules.append(cls())
-                                break
-                except Exception as e:
-                    print(f"Varoitus: Moduulin {module_name} lataus epäonnistui: {e}")
-
+# ... (sisällä luokassa)
     def run_epic_chronicles(self):
-        print("==================================================")
-        print("   WOOD-BOOSTER OS: KALEVALA SUBSYSTEM EPIC RUN     ")
-        print("==================================================")
+        log.info("Aloitetaan eeppinen Kalevala-sykli...")
+        process = psutil.Process(os.getpid())
+        
         for mod in self.modules:
-            for method_name in dir(mod):
-                if method_name.startswith("run_"):
-                    method = getattr(mod, method_name)
-                    if callable(method):
-                        try:
-                            method()
-                        except Exception:
-                            pass
-        print("==================================================")
-        print("   KALEVALAN TARU ON SAATETTU PÄÄTÖSEEN.           ")
-        print("==================================================")
-
-
-if __name__ == "__main__":
-    subsystem = KalevalaSubsystem()
-    subsystem.run_epic_chronicles()
+            # Monitoroidaan muistinkulutusta ennen moduuliajoa
+            mem_before = process.memory_info().rss / 1024 / 1024
+            
+            # Ajetaan metodit
+            # ... (aiempi logiikka)
+            
+            mem_after = process.memory_info().rss / 1024 / 1024
+            log.info(f"Moduuli {mod.__class__.__name__} suoritettu. Muistinkulutus: {mem_after:.2f} MB (+{mem_after-mem_before:.2f} MB)")
