@@ -1,0 +1,106 @@
+# =====================================
+# Wood-Booster AI OS
+# Git Ignore
+# =====================================
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+
+# Server
+server/node_modules/
+server/generated/
+server/uploads/
+
+# Prisma ja SQLite-tietokannat
+server/dev.db
+server/*.db
+server/*.sqlite
+server/*.sqlite3
+server/prisma/*.db
+server/prisma/*.sqlite
+server/prisma/*.sqlite3
+server/prisma/prisma/*.db
+server/prisma/prisma/*.sqlite
+server/prisma/prisma/*.sqlite3
+
+# Salaiset ympäristöasetukset
+.env
+.env.*
+server/.env
+server/.env.*
+
+# =====================================
+# Private AI Data
+# =====================================
+
+server/private/
+server/secrets/
+server/profile/
+server/userdata/
+server/vault/
+
+*.private.json
+*.secret.json
+*.vault.json
+
+# =====================================
+# Lokit
+# =====================================
+
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =====================================
+# Testit
+# =====================================
+
+coverage/
+
+# =====================================
+# Editorit
+# =====================================
+
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# =====================================
+# Käyttöjärjestelmä
+# =====================================
+
+.DS_Store
+Thumbs.db
+
+# =====================================
+# Varmuuskopiot
+# =====================================
+
+*.backup
+*.bak
+*.zip
+# =====================================
+# System Pulse Snapshots
+# =====================================
+
+Backups/
+RestorePreview/
+release/
+snapshots/
+__pycache__/
+*.pyc
+versions/
+
+# =====================================
+# Generated runtime data (regenerates on use, not source)
+# =====================================
+
+server/data/*.json
+backend/data_store.json

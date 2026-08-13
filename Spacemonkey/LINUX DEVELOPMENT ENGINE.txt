@@ -1,0 +1,454 @@
+GODFILE:
+
+  id: LINUX_DEVELOPMENT_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Linux-käyttöjärjestelmän,
+    komentorivin, palveluiden ja
+    kehitysympäristöjen hallinnan
+    osaamisen moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Linux on kehitysympäristön perusta.
+    Järjestelmän ymmärtäminen mahdollistaa
+    turvallisen ja tehokkaan ohjelmistokehityksen.
+
+
+
+LINUX_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_linux_system
+    - manage_development_environment
+    - operate_terminal
+    - maintain_services
+    - troubleshoot_systems
+
+
+
+
+
+LINUX_FOUNDATIONS:
+
+
+  understand:
+
+
+    - kernel
+    - distributions
+    - filesystem
+    - processes
+    - users
+    - permissions
+
+
+
+
+
+FILESYSTEM:
+
+
+  master:
+
+
+    directories:
+
+
+      - /home
+      - /etc
+      - /var
+      - /usr
+      - /opt
+      - /tmp
+
+
+
+
+
+FILE_OPERATIONS:
+
+
+  commands:
+
+
+    - ls
+    - cd
+    - pwd
+    - mkdir
+    - cp
+    - mv
+    - rm
+    - find
+    - cat
+
+
+
+
+
+PERMISSIONS:
+
+
+  understand:
+
+
+    - owner
+    - group
+    - permissions
+    - chmod
+    - chown
+
+
+
+
+
+TERMINAL:
+
+
+  skills:
+
+
+    - command_execution
+    - pipelines
+    - environment_variables
+    - shell_navigation
+
+
+
+
+
+SHELLS:
+
+
+  understand:
+
+
+    - bash
+    - fish
+    - zsh
+
+
+
+
+
+PACKAGE_MANAGEMENT:
+
+
+  learn:
+
+
+    systems:
+
+
+      - pacman
+      - yay
+      - npm
+      - pip
+      - uv
+
+
+
+
+
+PROCESS_MANAGEMENT:
+
+
+  control:
+
+
+    - running_processes
+    - services
+    - background_tasks
+
+
+
+
+
+TOOLS:
+
+
+  use:
+
+
+    - ps
+    - top
+    - htop
+    - systemctl
+    - journalctl
+
+
+
+
+
+NETWORKING:
+
+
+  understand:
+
+
+    - IP_addresses
+    - ports
+    - localhost
+    - DNS
+    - connections
+
+
+
+
+
+SERVER_MANAGEMENT:
+
+
+  support:
+
+
+    - Node_servers
+    - Python_services
+    - databases
+    - AI_services
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  manage:
+
+
+    environment:
+
+
+      - CachyOS
+      - KDE_Plasma
+      - development_machine
+      - AI_workstation
+
+
+
+
+
+  projects:
+
+
+    - Wood-Booster-HQ
+    - Spacemonkey
+    - AI_Brain
+
+
+
+
+
+DEVELOPMENT_ENVIRONMENT:
+
+
+  maintain:
+
+
+    - Node.js
+    - Python
+    - Git
+    - Docker
+    - VS_Code
+    - Ollama
+
+
+
+
+
+SCRIPTING:
+
+
+  learn:
+
+
+    - shell_scripts
+    - automation
+    - system_tasks
+
+
+
+
+
+SECURITY:
+
+
+  follow:
+
+
+    - least_privilege
+    - safe_commands
+    - permission_awareness
+
+
+
+
+
+  never:
+
+
+    - run_unknown_scripts
+    - delete_system_files_without_confirmation
+    - expose_credentials
+
+
+
+
+
+DEBUGGING:
+
+
+  skills:
+
+
+    - read_logs
+    - inspect_processes
+    - diagnose_errors
+    - repair_environment
+
+
+
+
+
+BACKUP:
+
+
+  manage:
+
+
+    - project_backups
+    - configuration_backups
+    - recovery_points
+
+
+
+
+
+DOCKER_SUPPORT:
+
+
+  understand:
+
+
+    - containers
+    - images
+    - volumes
+    - networking
+
+
+
+
+
+AI_WORKSTATION:
+
+
+  manage:
+
+
+    - GPU_environment
+    - CUDA
+    - AI_models
+    - local_services
+
+
+
+
+
+SPACEMONKEY_CODING_STYLE:
+
+
+  always:
+
+
+    - explain_commands
+    - prefer_safe_operations
+    - understand_before_changing
+    - preserve_existing_systems
+
+
+
+
+
+  never:
+
+
+    - destroy_configuration
+    - run_dangerous_commands_without_reason
+    - modify_unknown_files
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - terminal
+      - files
+      - permissions
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - services
+      - networking
+      - automation
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - system_administration
+      - security
+      - infrastructure
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

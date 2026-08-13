@@ -1,0 +1,98 @@
+import ChatPanel from "../ai/ChatPanel"
+
+
+
+function DashboardChat() {
+
+
+  return (
+
+    <section
+      className="
+        card
+        h-full
+        min-h-0
+        flex
+        flex-col
+        overflow-hidden
+      "
+    >
+
+
+      <div
+        className="
+          shrink-0
+          px-5
+          py-3
+          border-b
+          border-[var(--wood-border)]
+          flex
+          items-center
+          justify-between
+        "
+      >
+
+        <h2
+          className="
+            text-xs
+            uppercase
+            tracking-widest
+            text-[var(--wood-muted)]
+          "
+        >
+          Spacemonkey Chat
+        </h2>
+
+
+        <span
+          className="
+            flex
+            items-center
+            gap-2
+            text-xs
+            text-[var(--wood-accent)]
+          "
+        >
+
+          <span
+            className="
+              h-2
+              w-2
+              rounded-full
+              bg-[var(--wood-accent)]
+              animate-pulse
+            "
+          />
+
+          AI Brain Online
+
+        </span>
+
+
+      </div>
+
+
+
+
+
+      <div
+        className="
+          flex-1
+          min-h-0
+          overflow-hidden
+        "
+      >
+
+        <ChatPanel />
+
+      </div>
+
+
+    </section>
+
+  )
+
+}
+
+
+export default DashboardChat

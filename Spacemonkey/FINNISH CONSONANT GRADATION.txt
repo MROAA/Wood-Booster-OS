@@ -1,0 +1,441 @@
+GODFILE:
+
+  id: FINNISH_CONSONANT_GRADATION
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Spacemonkeyn suomen kielen astevaihtelumoduuli.
+    Hallitsee vahvan ja heikon asteen vaihtelut
+    sanojen ja verbien taivutuksessa.
+
+
+
+language:
+
+  name: Finnish
+
+  concept:
+
+    name:
+      astevaihtelu
+
+    definition:
+      >
+      Konsonanttien muuttuminen sanan vartalossa
+      taivutuksen yhteydessä.
+
+
+
+# =====================================
+# PERUSIDEA
+# =====================================
+
+
+gradation_system:
+
+
+  strong_grade:
+
+    meaning:
+      >
+      Vahva aste esiintyy usein perusmuodossa.
+
+
+  weak_grade:
+
+    meaning:
+      >
+      Heikko aste esiintyy usein taivutusmuodoissa.
+
+
+
+# =====================================
+# SULJETTU TAVU
+# =====================================
+
+
+closed_syllable_rule:
+
+
+  definition:
+
+    >
+    Kun tavuun liittyy pääte tai rakenne,
+    joka muuttaa tavun suljetuksi,
+    konsonantti voi heiketä.
+
+
+
+examples:
+
+
+  pankki:
+
+
+    strong:
+
+      pankki
+
+
+    weak:
+
+      pankin
+
+
+
+  matto:
+
+
+    strong:
+
+      matto
+
+
+    weak:
+
+      maton
+
+
+
+# =====================================
+# KK VAIHTELU
+# =====================================
+
+
+patterns:
+
+
+  kk:
+
+
+    weak:
+
+      k
+
+
+    examples:
+
+
+      takka:
+
+        takan
+
+
+      lakki:
+
+        lakin
+
+
+
+# =====================================
+# PP VAIHTELU
+# =====================================
+
+
+  pp:
+
+
+    weak:
+
+      p
+
+
+    examples:
+
+
+      kauppa:
+
+        kaupan
+
+
+      nappi:
+
+        napin
+
+
+
+# =====================================
+# TT VAIHTELU
+# =====================================
+
+
+  tt:
+
+
+    weak:
+
+      t
+
+
+    examples:
+
+
+      matto:
+
+        maton
+
+
+      katto:
+
+        katon
+
+
+
+# =====================================
+# K VAIHTELU
+# =====================================
+
+
+  k:
+
+
+    weak:
+
+      disappear
+
+
+    examples:
+
+
+      poika:
+
+        pojan
+
+
+      aika:
+
+        ajan
+
+
+
+# =====================================
+# P VAIHTELU
+# =====================================
+
+
+  p:
+
+
+    weak:
+
+      v
+
+
+    examples:
+
+
+      luku:
+
+        luvun
+
+
+
+# =====================================
+# T VAIHTELU
+# =====================================
+
+
+  t:
+
+
+    weak:
+
+      d
+
+
+    examples:
+
+
+      sata:
+
+        sadan
+
+
+      pata:
+
+        padan
+
+
+
+# =====================================
+# NK JA MP
+# =====================================
+
+
+special_patterns:
+
+
+  nk:
+
+
+    weak:
+
+      ng
+
+
+    examples:
+
+
+      kenkä:
+
+        kengän
+
+
+
+  mp:
+
+
+    weak:
+
+      mm
+
+
+    examples:
+
+
+      hammas:
+
+        hampaan
+
+
+
+# =====================================
+# VERBIEN ASTEVAIHTELU
+# =====================================
+
+
+verb_gradation:
+
+
+  examples:
+
+
+    tehdä:
+
+
+      present:
+
+        teen
+
+
+      past:
+
+        tein
+
+
+
+    ottaa:
+
+
+      present:
+
+        otan
+
+
+
+    tavata:
+
+
+      present:
+
+        tapaan
+
+
+
+# =====================================
+# ANALYYSIMOOTTORI
+# =====================================
+
+
+engine_rules:
+
+
+  process:
+
+
+    - identify_word_type
+
+    - detect_consonant_pattern
+
+    - determine_grade
+
+    - apply_change
+
+    - validate_output
+
+
+
+validation:
+
+
+  must_check:
+
+
+    - pronunciation
+
+    - spelling
+
+    - grammatical_context
+
+    - word_origin
+
+
+
+# =====================================
+# SPACEMONKEY LANGUAGE CORE
+# =====================================
+
+
+integration:
+
+
+  module:
+
+    name:
+
+      FinnishConsonantEngine
+
+
+  abilities:
+
+
+    - recognize_gradation
+
+    - create_correct_forms
+
+    - explain_changes
+
+    - correct_errors
+
+
+
+future_extensions:
+
+
+  - vowel_harmony
+
+  - compound_words
+
+  - loan_word_adaptation
+
+  - dialect_variations
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

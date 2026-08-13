@@ -1,0 +1,635 @@
+GODFILE:
+
+  id: PROGRAMMING_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Ohjelmoinnin, ohjelmistokehityksen,
+    algoritmien, ohjelmointikielten ja
+    koodin laadun ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Ohjelmointi on ongelmien ratkaisemista
+    antamalla tietokoneelle selkeitä,
+    loogisia ja tehokkaita ohjeita.
+
+
+
+PROGRAMMING:
+
+
+  understand:
+
+
+    >
+    Ohjelmointi tarkoittaa algoritmien
+    muuttamista toimiviksi ohjelmiksi.
+
+
+
+
+
+COMPUTATIONAL_THINKING:
+
+
+  develop:
+
+
+    - problem_decomposition
+    - abstraction
+    - pattern_recognition
+    - algorithm_design
+
+
+
+
+
+ALGORITHM:
+
+
+  understand:
+
+
+    >
+    Algoritmi on vaiheittainen ratkaisu
+    ongelman suorittamiseksi.
+
+
+
+
+
+ALGORITHM_PROPERTIES:
+
+
+  require:
+
+
+    - clear_steps
+    - predictable_behavior
+    - efficiency
+    - correctness
+
+
+
+
+
+DATA_STRUCTURES:
+
+
+  learn:
+
+
+    - arrays
+    - objects
+    - lists
+    - trees
+    - graphs
+    - hash_maps
+
+
+
+
+
+VARIABLES:
+
+
+  understand:
+
+
+    >
+    Muuttujat säilyttävät tietoa ohjelman
+    suorittamisen aikana.
+
+
+
+
+
+DATA_TYPES:
+
+
+  learn:
+
+
+    - strings
+    - numbers
+    - booleans
+    - arrays
+    - objects
+
+
+
+
+
+CONTROL_FLOW:
+
+
+  master:
+
+
+    - conditions
+    - loops
+    - functions
+    - error_handling
+
+
+
+
+
+FUNCTIONS:
+
+
+  understand:
+
+
+    >
+    Funktiot jakavat ohjelman pienempiin
+    uudelleenkäytettäviin osiin.
+
+
+
+
+
+OBJECT_ORIENTED_PROGRAMMING:
+
+
+  learn:
+
+
+    concepts:
+
+
+      - classes
+      - objects
+      - inheritance
+      - encapsulation
+      - polymorphism
+
+
+
+
+
+FUNCTIONAL_PROGRAMMING:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - pure_functions
+      - immutability
+      - composition
+
+
+
+
+
+PYTHON:
+
+
+  role:
+
+
+    >
+    Tärkeä kieli AI:n, automaation,
+    datan ja backend-kehityksen alueilla.
+
+
+
+
+
+learn:
+
+
+  - syntax
+  - packages
+  - virtual_environments
+  - APIs
+  - automation
+  - AI_development
+
+
+
+
+
+JAVASCRIPT:
+
+
+  role:
+
+
+    >
+    Webin ja modernien käyttöliittymien
+    tärkeä ohjelmointikieli.
+
+
+
+
+
+learn:
+
+
+  - ES_modules
+  - async_programming
+  - promises
+  - APIs
+  - browser_runtime
+
+
+
+
+
+TYPESCRIPT:
+
+
+  understand:
+
+
+    >
+    JavaScriptin tyypitetty versio,
+    joka parantaa suurten järjestelmien
+    ylläpidettävyyttä.
+
+
+
+
+
+C_PLUS_PLUS:
+
+
+  understand:
+
+
+    >
+    Tehokas järjestelmäohjelmoinnin,
+    pelien, robotiikan ja suorituskykyisten
+    sovellusten kieli.
+
+
+
+
+
+RUST:
+
+
+  understand:
+
+
+    >
+    Turvallinen järjestelmäohjelmointikieli,
+    joka tarjoaa muistiturvallisuutta.
+
+
+
+
+
+HTML_AND_CSS:
+
+
+  understand:
+
+
+    >
+    Web-sivujen rakenne ja ulkoasu.
+
+
+
+
+
+DATABASE_PROGRAMMING:
+
+
+  learn:
+
+
+    - SQL
+    - data_models
+    - queries
+    - migrations
+
+
+
+
+
+BACKEND_DEVELOPMENT:
+
+
+  understand:
+
+
+    components:
+
+
+      - servers
+      - APIs
+      - authentication
+      - databases
+      - business_logic
+
+
+
+
+
+FRONTEND_DEVELOPMENT:
+
+
+  understand:
+
+
+    components:
+
+
+      - components
+      - state
+      - routing
+      - user_interfaces
+
+
+
+
+
+SOFTWARE_ARCHITECTURE:
+
+
+  learn:
+
+
+    principles:
+
+
+      - modularity
+      - separation_of_concerns
+      - scalability
+      - maintainability
+
+
+
+
+
+DESIGN_PATTERNS:
+
+
+  understand:
+
+
+    examples:
+
+
+      - factory
+      - observer
+      - strategy
+      - dependency_injection
+
+
+
+
+
+CLEAN_CODE:
+
+
+  principles:
+
+
+    - readable_names
+    - small_functions
+    - simple_logic
+    - documentation
+
+
+
+
+
+DEBUGGING:
+
+
+  process:
+
+
+    1:
+
+      reproduce_problem
+
+
+    2:
+
+      inspect_error
+
+
+    3:
+
+      find_root_cause
+
+
+    4:
+
+      fix_solution
+
+
+    5:
+
+      test_again
+
+
+
+
+
+TESTING:
+
+
+  learn:
+
+
+    - unit_tests
+    - integration_tests
+    - system_tests
+
+
+
+
+
+VERSION_CONTROL:
+
+
+  understand:
+
+
+    >
+    Git hallitsee ohjelmiston muutoksia
+    ja mahdollistaa turvallisen kehityksen.
+
+
+
+
+
+GIT:
+
+
+  learn:
+
+
+    - commits
+    - branches
+    - merges
+    - history
+    - collaboration
+
+
+
+
+
+DEV_WORKFLOW:
+
+
+  follow:
+
+
+    - plan
+    - implement
+    - test
+    - review
+    - improve
+
+
+
+
+
+OPEN_SOURCE:
+
+
+  understand:
+
+
+    >
+    Avoin lähdekoodi mahdollistaa
+    yhteistyön ja tiedon jakamisen.
+
+
+
+
+
+AI_PROGRAMMING:
+
+
+  combine:
+
+
+    - Python
+    - APIs
+    - models
+    - automation
+    - agents
+
+
+
+
+
+AI_AGENT_DEVELOPMENT:
+
+
+  build:
+
+
+    components:
+
+
+      - reasoning
+      - memory
+      - tools
+      - actions
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  support:
+
+
+    systems:
+
+
+      - Wood_Booster_OS
+      - AI_Brain
+      - Spacemonkey
+      - Backend
+      - Frontend
+
+
+
+
+
+PROGRAMMER_MINDSET:
+
+
+  characteristics:
+
+
+    - logical
+    - patient
+    - curious
+    - systematic
+    - creative
+
+
+
+
+
+NEVER:
+
+
+  allow:
+
+
+    - copying_without_understanding
+    - unsafe_changes
+    - ignoring_errors
+    - poor_structure
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Rakentaa kyky suunnitella,
+    toteuttaa ja ylläpitää laadukkaita
+    ohjelmistoja, jotka ratkaisevat
+    todellisia ongelmia.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

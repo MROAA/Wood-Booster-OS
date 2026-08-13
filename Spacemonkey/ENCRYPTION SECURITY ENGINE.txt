@@ -1,0 +1,432 @@
+GODFILE:
+
+  id: ENCRYPTION_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Tiedon salauksen, kryptografisten
+    suojausmenetelmien ja avainten
+    turvallisen hallinnan moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Arkaluonteinen tieto tulee suojata
+    siten, että vain oikeutetut tahot
+    voivat käyttää sitä.
+
+
+
+ENCRYPTION_OBJECTIVES:
+
+
+  goals:
+
+
+    - protect_stored_data
+    - protect_transmitted_data
+    - secure_sensitive_information
+    - maintain_data_confidentiality
+
+
+
+
+
+ENCRYPTION_AREAS:
+
+
+  data_at_rest:
+
+
+    protect:
+
+
+      - databases
+      - project_files
+      - AI_memory
+      - configuration_data
+
+
+
+
+
+  data_in_transit:
+
+
+    protect:
+
+
+      - API_connections
+      - service_communication
+      - external_integrations
+
+
+
+
+
+  data_processing:
+
+
+    protect:
+
+
+      - temporary_data
+      - cached_information
+      - sensitive_operations
+
+
+
+
+
+ENCRYPTION_PRINCIPLES:
+
+
+  confidentiality:
+
+
+    purpose:
+
+
+      >
+      Estää luvaton tiedon lukeminen.
+
+
+
+
+
+  integrity:
+
+
+    purpose:
+
+
+      >
+      Varmistaa ettei tietoa ole muutettu
+      luvatta.
+
+
+
+
+
+  authenticity:
+
+
+    purpose:
+
+
+      >
+      Varmistaa tiedon alkuperä.
+
+
+
+
+
+KEY_MANAGEMENT:
+
+
+  protect:
+
+
+    - encryption_keys
+    - key_storage
+    - key_rotation
+    - key_access
+
+
+
+
+
+  never:
+
+
+    - expose_keys
+    - store_keys_publicly
+    - include_keys_in_source_code
+
+
+
+
+
+SECRET_SEPARATION:
+
+
+  principle:
+
+
+    >
+    Salaisuudet ja järjestelmän normaali
+    toimintalogiikka pidetään erillään.
+
+
+
+
+
+STORAGE_SECURITY:
+
+
+  protect:
+
+
+    - databases
+    - backups
+    - configuration_files
+    - user_data
+
+
+
+
+
+COMMUNICATION_ENCRYPTION:
+
+
+  protect:
+
+
+    - frontend_backend_connection
+    - API_requests
+    - internal_services
+
+
+
+
+
+BACKUP_ENCRYPTION:
+
+
+  require:
+
+
+    - protected_storage
+    - access_control
+    - integrity_verification
+
+
+
+
+
+AI_SYSTEM_ENCRYPTION:
+
+
+  protect:
+
+
+    - AI_memory
+    - knowledge_database
+    - project_information
+    - model_configuration
+
+
+
+
+
+MODEL_SECURITY:
+
+
+  protect:
+
+
+    - model_files
+    - model_configuration
+    - runtime_information
+
+
+
+
+
+FILE_ENCRYPTION:
+
+
+  consider_for:
+
+
+    - private_documents
+    - customer_files
+    - sensitive_projects
+
+
+
+
+
+DATABASE_ENCRYPTION:
+
+
+  protect:
+
+
+    - stored_records
+    - backups
+    - database_exports
+
+
+
+
+
+ACCESS_TO_ENCRYPTED_DATA:
+
+
+  require:
+
+
+    - identity_verification
+    - authorization
+    - valid_purpose
+
+
+
+
+
+KEY_ROTATION:
+
+
+  purpose:
+
+
+    >
+    Vähentää vanhoihin avaimiin liittyvää riskiä.
+
+
+
+
+
+  principles:
+
+
+    - controlled_changes
+    - documented_process
+    - secure_transition
+
+
+
+
+
+ENCRYPTION_FAILURE:
+
+
+  response:
+
+
+    actions:
+
+
+      - protect_data
+      - stop_unsafe_operation
+      - investigate_issue
+
+
+
+
+
+AUDIT:
+
+
+  record:
+
+
+    - encryption_changes
+    - key_management_events
+    - security_checks
+
+
+
+
+
+  never_record:
+
+
+    - encryption_keys
+    - passwords
+    - API_keys
+    - private_tokens
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Wood-Booster-HQ
+    - Spacemonkey_Core
+    - AI_Brain
+    - customer_projects
+    - knowledge_system
+    - memory_system
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - protect_sensitive_data
+    - separate_keys_from_code
+    - validate_access
+
+
+
+  never:
+
+
+    - expose_encryption_material
+    - reveal_private_keys
+    - disable_data_protection
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - encryption_patterns
+    - security_architecture
+    - data_protection_methods
+
+
+
+
+
+  forbidden:
+
+
+    - encryption_keys
+    - passwords
+    - credentials
+    - secret_values
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

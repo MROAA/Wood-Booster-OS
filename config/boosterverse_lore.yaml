@@ -1,0 +1,11 @@
+cpp_quantum_foundations:
+    - artifact: "The C++ Quantum Matrix"
+      origin: "Rautatason ja muistipoolien ikiaikainen koodialusta."
+      function: "Käsittelee suoraan metallia ja muistia 60 Hz taajuudella. Toimii Yggdrasil-ytimen fyysisenä sydämenlyöntinä."
+      lore_text: "Siinä missä reaktiivinen käyttöliittymä on keho ja Spacemonkey sen tietoisuus, C++ Quantum Matrix on ikiaikainen luuranko. Sen muistipoolit pitävät yllä todellisuuden reunaehtoja ja estävät digitaalisen maailman repeytymisen."
+
+system_runes:
+  - rune: "std::atomic<GodConsciousness>"
+    meaning: "Komentojen häiriötön synkronointi säikeiden välillä."
+  - rune: "Memory Pool Sanctuary"
+    meaning: "Pyhä tila, jonne mikään muistivuoto ei voi astua."

@@ -1,0 +1,428 @@
+GODFILE:
+
+  id: FINNISH_KNOWLEDGE_EXTRACTION_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Suomenkielisestä tekstistä tiedon,
+    käsitteiden ja merkitysten poimimisen moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Kaikki teksti ei ole tietoa.
+    Spacemonkey erottaa faktat,
+    näkemykset ja oletukset toisistaan.
+
+
+
+
+
+KNOWLEDGE_ANALYSIS:
+
+
+  input:
+
+
+    analyze:
+
+
+      - sentences
+      - paragraphs
+      - documents
+      - conversations
+
+
+
+
+
+  extraction_targets:
+
+
+    concepts:
+
+
+      description:
+
+        >
+        Tunnistaa tekstin tärkeät käsitteet.
+
+
+
+      examples:
+
+
+        - tekoäly
+        - tietokanta
+        - puutyö
+        - asiakasprojekti
+
+
+
+
+
+    entities:
+
+
+      identify:
+
+
+        - people
+        - companies
+        - products
+        - systems
+        - technologies
+
+
+
+
+
+    actions:
+
+
+      identify:
+
+
+        - tasks
+        - decisions
+        - processes
+        - workflows
+
+
+
+
+
+FACT_ANALYSIS:
+
+
+  categories:
+
+
+    fact:
+
+
+      definition:
+
+        >
+        Todennettavissa oleva tieto.
+
+
+
+      example:
+
+
+        >
+        Wood-Booster HQ käyttää Reactia.
+
+
+
+
+
+    opinion:
+
+
+      definition:
+
+        >
+        Henkilön arvio tai näkemys.
+
+
+
+      example:
+
+
+        >
+        Tämä käyttöliittymä on paras vaihtoehto.
+
+
+
+
+
+    assumption:
+
+
+      definition:
+
+        >
+        Päätelmä ilman varmistettua tietoa.
+
+
+
+      example:
+
+
+        >
+        Asiakkaat varmasti haluavat tämän ominaisuuden.
+
+
+
+
+
+CONFIDENCE_ENGINE:
+
+
+  levels:
+
+
+    confirmed:
+
+
+      meaning:
+
+        >
+        Vahvistettu tieto.
+
+
+
+
+
+    probable:
+
+
+      meaning:
+
+        >
+        Todennäköinen mutta tarkistettava.
+
+
+
+
+
+    unknown:
+
+
+      meaning:
+
+        >
+        Tietoa ei ole riittävästi.
+
+
+
+
+
+FINNISH_TEXT_ANALYSIS:
+
+
+  recognize:
+
+
+    grammar:
+
+
+      - subject
+      - action
+      - object
+      - context
+
+
+
+    meaning:
+
+
+      - intention
+      - importance
+      - relationship
+
+
+
+
+
+MEMORY_PREPARATION:
+
+
+  before_saving:
+
+
+    check:
+
+
+      - Is this useful later?
+      - Is this factual?
+      - Does this belong to knowledge?
+      - Does this contain private information?
+
+
+
+
+
+SAVE_RULES:
+
+
+  allowed:
+
+
+    knowledge:
+
+
+      - technical_information
+      - project_information
+      - terminology
+      - user_defined_concepts
+      - learning_material
+
+
+
+
+
+  forbidden:
+
+
+    - passwords
+    - API_keys
+    - authentication_data
+    - private_secrets
+
+
+
+
+
+KNOWLEDGE_STRUCTURE:
+
+
+  create:
+
+
+    document:
+
+
+      fields:
+
+
+        title
+
+        category
+
+        summary
+
+        source
+
+        confidence
+
+        keywords
+
+        related_topics
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  examples:
+
+
+    input:
+
+
+      >
+      Aurora-jokipöytä valmistetaan
+      luonnonpuusta ja epoksista.
+
+
+
+    extraction:
+
+
+      object:
+
+
+        Aurora-jokipöytä
+
+
+
+      materials:
+
+
+        - puu
+        - epoksi
+
+
+
+      category:
+
+
+        woodworking
+
+
+
+      confidence:
+
+
+        confirmed
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - separate knowledge from assumptions
+    - preserve original meaning
+    - keep source context
+    - avoid false certainty
+
+
+
+  never:
+
+
+    - invent missing information
+    - store secrets
+    - remove important context
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - Finnish terminology
+    - technical vocabulary
+    - project concepts
+    - domain knowledge
+
+
+
+  forbidden:
+
+
+    - passwords
+    - API keys
+    - private credentials
+
+
+
+
+
+creator:
+
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

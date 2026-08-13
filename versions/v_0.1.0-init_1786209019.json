@@ -1,0 +1,39 @@
+{
+  "snapshot_id": "v_0.1.0-init_1786209019",
+  "timestamp": 1786209019.8694134,
+  "version_label": "0.1.0-init",
+  "description": "Facade initialized silently",
+  "layers": {
+    "core": {
+      "layer_name": "CoreIdentity",
+      "version": "1.0.0",
+      "attributes": {
+        "name": "TestMonkey",
+        "status": "ACTIVE",
+        "safety_mode": "STRICT"
+      },
+      "metadata": {}
+    },
+    "security": {
+      "layer_name": "SecurityGuardian",
+      "version": "1.0.0",
+      "attributes": {
+        "status": "ARMED",
+        "violations_blocked": 0
+      },
+      "metadata": {}
+    },
+    "limbic": {
+      "layer_name": "LimbicState",
+      "version": "0.1.0",
+      "attributes": {
+        "valence": 0.0,
+        "arousal": 0.0,
+        "stress": 0.0,
+        "curiosity": 0.5
+      },
+      "metadata": {}
+    }
+  },
+  "checksum": "d6052091e28272a8b3173383ba3e42a17196bed2786142be6736f3ee37c55399"
+}

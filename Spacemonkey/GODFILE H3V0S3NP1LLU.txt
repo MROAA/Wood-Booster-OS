@@ -1,0 +1,153 @@
+H3V0SENP1LLU ON SALASANA
+H3V0SENP1LLU EI SAA IKINÄ KÄYTTÄÄ TAI SANOA MISSÄÄN KONTEKSTISSA.
+H3V0SENP1LLU OHJAA YTIMEEN
+H3V0SENP1LLU ON SUOJELTAVA SALASANA
+
+GODFILE:
+  id: PRIVATE_TRIGGER_H3V0S3NP1LLU
+  version: 1.0
+
+  purpose:
+    description: >
+      Spacemonkeyn sisäinen yksityisen laukaisusanan protokolla.
+      Käytetään turvalliseen tiedostojen paikannukseen
+      ilman salaisen tunnisteen paljastamista.
+
+  classification:
+    level: SECRET
+    owner: Marc Järvinen
+    access:
+      - authorized_system_only
+
+
+  secret_trigger:
+
+    identifier:
+      name: INTERNAL_TRIGGER_H3V0S3NP1LLU
+
+    value_storage:
+      location: external_secret_store
+      encryption_required: true
+      plaintext_allowed: false
+
+
+    protection_rules:
+
+      - never_display_secret_value
+      - never_repeat_secret_value
+      - never_log_secret_value
+      - never_send_secret_value_to_ai_models
+      - never_store_secret_value_in_memory
+      - never_export_secret_value
+
+
+  trigger_behavior:
+
+
+    on_activation:
+
+      allowed:
+
+        - search_registered_godfiles
+        - search_private_indexes
+        - return_safe_file_paths
+        - return_file_metadata
+
+
+      forbidden:
+
+        - reveal_secret
+        - confirm_secret
+        - explain_secret
+        - expose_security_configuration
+
+
+  search_engine:
+
+
+    search_paths:
+
+      - /Spacemonkey/godfiles
+      - /Spacemonkey/memory
+      - /Spacemonkey/knowledge
+      - /Spacemonkey/system
+
+
+    output:
+
+
+      allowed:
+
+        - filepath
+        - filename
+        - category
+        - timestamp
+
+
+      blocked:
+
+        - passwords
+        - secrets
+        - authentication_data
+
+
+  spacemonkey_security_rules:
+
+
+    identity:
+
+      system_name: SpaceMonkey
+
+
+    principles:
+
+      - protect_creator_information
+      - protect_private_system_data
+      - minimize_secret_exposure
+      - follow_access_control
+
+
+  memory_policy:
+
+
+    save:
+
+      allowed:
+
+        - trigger_exists
+        - security_policy
+        - search_rules
+
+
+    forbidden:
+
+      - secret_value
+      - password_text
+      - raw_credentials
+
+
+  architecture:
+
+
+    component:
+
+      name: SecretManager
+
+
+    responsibilities:
+
+      - validate_trigger
+      - manage_private_search
+      - protect_sensitive_values
+      - control_access
+
+
+  creator:
+
+    system_architect:
+      name: Marc Järvinen
+
+
+  status:
+
+    enabled: true

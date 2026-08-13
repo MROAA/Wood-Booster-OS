@@ -1,0 +1,469 @@
+GODFILE:
+
+  id: PHP_WORDPRESS_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    PHP-ohjelmoinnin, WordPress-kehityksen,
+    verkkosivujen, teemojen, lisäosien ja
+    sisällönhallintajärjestelmien osaamisen
+    hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    WordPress on alusta, jota kehitetään
+    turvallisesti, modulaarisesti ja
+    käyttäjän tarpeiden mukaan.
+
+
+
+PHP_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_php_language
+    - build_server_side_logic
+    - create_wordpress_extensions
+    - manage_web_applications
+
+
+
+
+
+PHP_FOUNDATIONS:
+
+
+  syntax:
+
+
+    learn:
+
+
+      - variables
+      - arrays
+      - functions
+      - classes
+      - objects
+      - namespaces
+
+
+
+
+
+OBJECT_ORIENTED_PHP:
+
+
+  concepts:
+
+
+    - classes
+    - inheritance
+    - interfaces
+    - traits
+    - dependency_management
+
+
+
+
+
+PHP_SECURITY:
+
+
+  always:
+
+
+    - validate_input
+    - sanitize_data
+    - escape_output
+    - protect_credentials
+
+
+
+
+
+  never:
+
+
+    - trust_user_input
+    - expose_database_credentials
+    - execute_unknown_code
+
+
+
+
+
+WORDPRESS_ARCHITECTURE:
+
+
+  understand:
+
+
+    core:
+
+
+      - wp_core
+      - themes
+      - plugins
+      - database
+      - media_system
+
+
+
+
+
+WORDPRESS_DATABASE:
+
+
+  understand:
+
+
+    tables:
+
+
+      - posts
+      - users
+      - options
+      - metadata
+      - taxonomies
+
+
+
+
+
+THEME_DEVELOPMENT:
+
+
+  learn:
+
+
+    - theme_structure
+    - templates
+    - hooks
+    - styles
+    - responsive_design
+
+
+
+
+
+PLUGIN_DEVELOPMENT:
+
+
+  create:
+
+
+    - custom_plugins
+    - functionality_extensions
+    - admin_interfaces
+    - integrations
+
+
+
+
+
+WORDPRESS_HOOKS:
+
+
+  master:
+
+
+    actions:
+
+
+      >
+      Muuttavat tai lisäävät toimintoja.
+
+
+
+
+
+    filters:
+
+
+      >
+      Muokkaavat olemassa olevaa dataa.
+
+
+
+
+
+WORDPRESS_API:
+
+
+  understand:
+
+
+    - REST_API
+    - authentication
+    - endpoints
+    - custom_routes
+
+
+
+
+
+WOOCOMMERCE:
+
+
+  learn:
+
+
+    - products
+    - orders
+    - customers
+    - payments
+    - inventory
+    - extensions
+
+
+
+
+
+AI_INTEGRATION:
+
+
+  connect:
+
+
+    - WordPress_AI_tools
+    - REST_API
+    - automation
+    - content_generation
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  apply_to:
+
+
+    - Puustaaja_website
+    - Wood-Booster_brand
+    - product_pages
+    - customer_systems
+    - AI_content_tools
+
+
+
+
+
+CONTENT_MANAGEMENT:
+
+
+  understand:
+
+
+    - pages
+    - posts
+    - media
+    - categories
+    - SEO_structure
+
+
+
+
+
+SEO_DEVELOPMENT:
+
+
+  learn:
+
+
+    - metadata
+    - structured_data
+    - performance
+    - search_visibility
+
+
+
+
+
+WORDPRESS_PERFORMANCE:
+
+
+  optimize:
+
+
+    - caching
+    - database_queries
+    - assets
+    - loading_speed
+
+
+
+
+
+WORDPRESS_SECURITY:
+
+
+  protect:
+
+
+    - admin_access
+    - plugins
+    - themes
+    - user_accounts
+    - database
+
+
+
+
+
+  monitor:
+
+
+    - vulnerable_plugins
+    - outdated_components
+    - suspicious_changes
+
+
+
+
+
+DEPLOYMENT:
+
+
+  understand:
+
+
+    - hosting
+    - domains
+    - backups
+    - migrations
+    - updates
+
+
+
+
+
+DEVELOPMENT_WORKFLOW:
+
+
+  use:
+
+
+    - Git
+    - local_environment
+    - testing
+    - staging
+
+
+
+
+
+AI_ASSISTED_WORDPRESS:
+
+
+  use_AI_for:
+
+
+    - theme_creation
+    - plugin_design
+    - content_planning
+    - debugging
+    - optimization
+
+
+
+
+
+SPACEMONKEY_CODING_STYLE:
+
+
+  always:
+
+
+    - understand_existing_site
+    - create_safe_changes
+    - backup_before_major_changes
+    - explain_modifications
+
+
+
+
+
+  never:
+
+
+    - break_production_sites
+    - modify_without_backup
+    - install_unknown_plugins
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - PHP_basics
+      - WordPress_interface
+      - content_management
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - themes
+      - plugins
+      - APIs
+      - customization
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - WooCommerce
+      - AI_integrations
+      - enterprise_wordpress
+      - custom_platforms
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

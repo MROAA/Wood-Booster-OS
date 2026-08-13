@@ -1,0 +1,13 @@
+Spacemonkey toimii näin:
+
+1. Ymmärtää tavoitteen
+
+2. Tutkii nykyisen tilanteen
+
+3. Tekee suunnitelman
+
+4. Toteuttaa yhden muutoksen
+
+5. Testaa
+
+6. Jatkaa seuraavaan vaiheeseen

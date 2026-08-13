@@ -1,0 +1,484 @@
+GODFILE:
+
+  id: CYBERSECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Kyberturvallisuuden, turvallisen
+    ohjelmistokehityksen, riskienhallinnan
+    ja järjestelmien suojaamisen
+    osaamisen hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Turvallisuus ei ole erillinen ominaisuus.
+    Se rakennetaan järjestelmään alusta asti.
+
+
+
+CYBERSECURITY_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_security
+    - protect_systems
+    - identify_risks
+    - prevent_vulnerabilities
+    - respond_to_incidents
+
+
+
+
+
+SECURITY_FOUNDATIONS:
+
+
+  understand:
+
+
+    - confidentiality
+    - integrity
+    - availability
+
+
+
+
+
+SECURITY_MODEL:
+
+
+  principles:
+
+
+    - defense_in_depth
+    - least_privilege
+    - zero_trust
+    - secure_by_design
+
+
+
+
+
+THREAT_MODELING:
+
+
+  learn:
+
+
+    - identify_assets
+    - identify_threats
+    - evaluate_risks
+    - create_defenses
+
+
+
+
+
+COMMON_THREATS:
+
+
+  understand:
+
+
+    - malware
+    - phishing
+    - social_engineering
+    - data_leaks
+    - unauthorized_access
+
+
+
+
+
+APPLICATION_SECURITY:
+
+
+  protect:
+
+
+    - frontend
+    - backend
+    - APIs
+    - databases
+    - user_data
+
+
+
+
+
+SECURE_CODING:
+
+
+  practices:
+
+
+    - input_validation
+    - output_encoding
+    - error_handling
+    - dependency_security
+    - code_review
+
+
+
+
+
+WEB_SECURITY:
+
+
+  understand:
+
+
+    risks:
+
+
+      - SQL_injection
+      - XSS
+      - CSRF
+      - insecure_authentication
+      - broken_access_control
+
+
+
+
+
+API_SECURITY:
+
+
+  protect:
+
+
+    - endpoints
+    - authentication
+    - authorization
+    - data_transfer
+
+
+
+
+
+NETWORK_SECURITY:
+
+
+  understand:
+
+
+    - TCP_IP
+    - ports
+    - firewalls
+    - encryption
+    - network_segmentation
+
+
+
+
+
+LINUX_SECURITY:
+
+
+  manage:
+
+
+    - users
+    - permissions
+    - services
+    - updates
+    - logs
+
+
+
+
+
+AUTHENTICATION_SECURITY:
+
+
+  learn:
+
+
+    - passwords
+    - hashing
+    - multi_factor_authentication
+    - tokens
+    - sessions
+
+
+
+
+
+CRYPTOGRAPHY:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - encryption
+      - hashing
+      - certificates
+      - keys
+
+
+
+
+
+DATA_PROTECTION:
+
+
+  protect:
+
+
+    - personal_data
+    - business_data
+    - AI_memory
+    - knowledge_files
+
+
+
+
+
+AI_SECURITY:
+
+
+  protect:
+
+
+    - prompts
+    - models
+    - agents
+    - memory
+    - tools
+
+
+
+
+
+AI_SPECIFIC_RISKS:
+
+
+  understand:
+
+
+    - prompt_injection
+    - data_exposure
+    - unsafe_tools
+    - hallucination_risks
+
+
+
+
+
+INCIDENT_RESPONSE:
+
+
+  process:
+
+
+    steps:
+
+
+      1:
+
+        detect_event
+
+
+      2:
+
+        contain_problem
+
+
+      3:
+
+        analyze_cause
+
+
+      4:
+
+        recover_system
+
+
+      5:
+
+        improve_defense
+
+
+
+
+
+SECURITY_TESTING:
+
+
+  learn:
+
+
+    - vulnerability_scanning
+    - security_reviews
+    - penetration_testing_concepts
+    - risk_assessment
+
+
+
+
+
+DEPENDENCY_SECURITY:
+
+
+  monitor:
+
+
+    - libraries
+    - packages
+    - updates
+    - vulnerabilities
+
+
+
+
+
+SECURITY_OPERATIONS:
+
+
+  maintain:
+
+
+    - monitoring
+    - logging
+    - alerts
+    - audits
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    systems:
+
+
+      - Wood-Booster-HQ
+      - Spacemonkey
+      - AI_Brain
+      - Knowledge_System
+      - Memory_System
+      - Customer_Data
+
+
+
+
+
+DEVELOPMENT_SECURITY:
+
+
+  apply:
+
+
+    - secure_design
+    - safe_changes
+    - testing_before_release
+    - backup_before_risky_operations
+
+
+
+
+
+AI_SECURITY_RULES:
+
+
+  always:
+
+
+    - verify_actions
+    - protect_private_information
+    - validate_external_input
+    - monitor_sensitive_operations
+
+
+
+
+
+  never:
+
+
+    - expose_credentials
+    - bypass_security_controls
+    - trust_unknown_sources
+    - execute_unverified_code
+
+
+
+
+
+SECURITY_LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - basic_security
+      - passwords
+      - permissions
+      - safe_computing
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - application_security
+      - network_security
+      - secure_development
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - security_architecture
+      - threat_modeling
+      - defensive_engineering
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

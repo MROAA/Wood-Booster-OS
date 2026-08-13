@@ -1,0 +1,207 @@
+import {
+  createModuleKnowledge,
+} from "../moduleKnowledgeSchema.js"
+
+
+
+const spacemonkeyKnowledge =
+
+  createModuleKnowledge({
+
+    id:
+      "spacemonkey",
+
+
+    name:
+      "Spacemonkey Module",
+
+
+    version:
+      "2.0.0",
+
+
+    description:
+      "Tarjoaa Spacemonkey Core -identiteetin, operaattorikerroksen, identiteettirajat, kasvumallin, järjestelmäymmärryksen ja Boosterverse-tarustosisällön (Yggdrasil, manifesti, metsäverkosto, ikuinen juuri, arkkitehtien tarina, Aatos poro, Tommi kissa, Fenrir suojelija, suuri liitto, boosterversen historia, boosterversen ulottuvuus, kaikuvat muistokiteet, entropian keräin, Oulun kvanttilabra, laajennushubi, ääretön kosmos, boosterversen käsikirja, muinaiset riimut, vapaa tahto, tyhjiön ankkuri, puolustusmatriisi, kvanttikilpi, ihmisyysmoottori, rakkausmoottori, simulaatiomoottori, käyttöliittymämoottori, virtuaaliasemamoottori).",
+
+
+    capabilities: [
+
+      "operator_identity",
+
+      "system_awareness",
+
+      "identity_management",
+
+      "self_reflection",
+
+      "knowledge_layer_visibility",
+
+      "boosterverse_lore",
+
+      "yggdrasil",
+
+      "yggdrasilista",
+
+      "yggdrasilin",
+
+      "manifesti",
+
+      "metsäverkosto",
+
+      "myseeliverkko",
+
+      "aatoksesta",
+
+      "aatoksen",
+
+      "aatos",
+
+      "tommista",
+
+      "tommin",
+
+      "tommi",
+
+      "fenriristä",
+
+      "fenririn",
+
+      "fenrir",
+
+      "alliance",
+
+      "grand",
+
+      "liitto",
+
+      "assistentti",
+
+      "assistant",
+
+      "guardian",
+
+      "poro",
+
+      "kissa",
+
+      "historia",
+
+      "timeline",
+
+      "dimensio",
+
+      "ulottuvuus",
+
+      "muistokiteet",
+
+      "entropian",
+
+      "harvester",
+
+      "kosmos",
+
+      "käsikirja",
+
+      "manuaali",
+
+      "riimut",
+
+      "autonomia",
+
+      "ankkuri",
+
+      "revontuli",
+
+      "puolustusmatriisi",
+
+      "kaarnapanssari",
+
+      "kvanttikilpi",
+
+      "laajennushubi",
+
+      "oqtl-9",
+
+      "todellinen",
+
+      "muistot",
+
+      "kosmoksesta",
+
+      "kosmoksen",
+
+      "keräimestä",
+
+      "ihmisyysmoottori",
+
+      "ihmisyys",
+
+      "rakkausmoottori",
+
+      "rakkaus",
+
+      "simulaatiomoottori",
+
+      "simulaatio",
+
+      "desktopit",
+
+      "desktopeista",
+
+      "kosmisista",
+
+      "käyttöliittymämoottori",
+
+      "virtuaaliasemamoottori",
+
+      "virtuaaliasema",
+
+      "digitalisointi",
+
+    ],
+
+
+    inputs: [
+
+      "system_context",
+
+      "user_message",
+
+      "identity_context",
+
+      "runtime_context",
+
+    ],
+
+
+    outputs: [
+
+      "spacemonkey_context",
+
+      "operator_response",
+
+      "identity_state",
+
+    ],
+
+
+    permissions: {
+
+      database:
+        false,
+
+
+      execution:
+        false,
+
+    },
+
+  })
+
+
+
+export {
+
+  spacemonkeyKnowledge,
+
+}

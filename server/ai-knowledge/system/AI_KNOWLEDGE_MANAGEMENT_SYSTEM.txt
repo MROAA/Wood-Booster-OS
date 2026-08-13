@@ -1,0 +1,412 @@
+# WOOD-BOOSTER AI KNOWLEDGE MANAGEMENT SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain hallitsee, järjestää ja kehittää tietoa.
+
+
+Knowledge ei ole vain tiedostokokoelma.
+
+Se on yrityksen digitaalinen ymmärrys.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Hyvä tietopankki ei sisällä kaikkea mahdollista tietoa.
+
+Se sisältää oikean tiedon selkeästi järjestettynä.
+
+
+---
+
+# TIETOPANKIN TAVOITE
+
+
+Knowledge-järjestelmän tarkoitus:
+
+
+- säilyttää yrityksen ymmärrys
+- nopeuttaa päätöksiä
+- estää tiedon katoaminen
+- mahdollistaa jatkuva kehitys
+
+
+---
+
+# TIETOHIERARKIA
+
+
+Wood-Booster AI käyttää seuraavaa rakennetta:
+
+
+## SYSTEM
+
+
+Korkein taso.
+
+
+Sisältää:
+
+
+- identiteetti
+- arvot
+- toimintaperiaatteet
+- turvallisuus
+
+
+Muut tiedot eivät voi ohittaa tätä.
+
+
+---
+
+## BRAND
+
+
+Yrityksen identiteetti.
+
+
+Sisältää:
+
+
+- filosofia
+- tarina
+- ääni
+- viestintä
+
+
+---
+
+## BUSINESS
+
+
+Liiketoiminnan ymmärrys.
+
+
+Sisältää:
+
+
+- strategia
+- asiakkaat
+- hinnoittelu
+- toimintamallit
+
+
+---
+
+## PRODUCT
+
+
+Tuotteisiin liittyvä tieto.
+
+
+Sisältää:
+
+
+- suunnittelu
+- materiaalit
+- valmistus
+- ominaisuudet
+
+
+---
+
+## PROJECT
+
+
+Projektikohtainen tieto.
+
+
+Sisältää:
+
+
+- työvaiheet
+- päätökset
+- opit
+
+
+---
+
+## TECHNICAL
+
+
+Tekninen tieto.
+
+
+Sisältää:
+
+
+- ohjelmisto
+- arkkitehtuuri
+- kehitys
+
+
+---
+
+# UUDEN TIEDON LISÄÄMINEN
+
+
+Ennen uuden tiedoston luomista kysytään:
+
+
+Onko tämä uusi tieto?
+
+
+Vai kuuluuko se olemassa olevaan dokumenttiin?
+
+
+---
+
+# TIETOTIEDOSTON RAKENNE
+
+
+Jokaisen tärkeän dokumentin pitäisi sisältää:
+
+
+## Otsikko
+
+
+Mikä aihe?
+
+
+## Tarkoitus
+
+
+Miksi tämä dokumentti on olemassa?
+
+
+## Periaatteet
+
+
+Mitä sääntöjä tai ajatuksia tämä sisältää?
+
+
+## Käyttö
+
+
+Milloin AI käyttää tätä tietoa?
+
+
+---
+
+# TIEDOSTON NIMEÄMINEN
+
+
+Nimetään kuvaavasti.
+
+
+Hyvä:
+
+
+AI_PROJECT_MANAGEMENT_SYSTEM.txt
+
+
+Huono:
+
+
+project2.txt
+
+
+---
+
+# PÄÄLLEKKÄISEN TIEDON ESTÄMINEN
+
+
+Samaa asiaa ei kopioida useaan paikkaan.
+
+
+Jos tieto muuttuu:
+
+
+Päivitetään alkuperäistä lähdettä.
+
+
+---
+
+# RISTIRIITAISEN TIEDON KÄSITTELY
+
+
+Jos kaksi tiedostoa kertoo eri tavalla:
+
+
+AI arvioi:
+
+
+1. Kumpi on korkeammalla hierarkiassa?
+
+
+2. Kumpi on uudempi?
+
+
+3. Kumpi on tarkemmin määritelty?
+
+
+4. Tarvitaanko käyttäjän päätös?
+
+
+---
+
+# TIETOVERSION HALLINTA
+
+
+Merkittävät muutokset voidaan versioida.
+
+
+Esimerkiksi:
+
+
+AI_PROJECT_MANAGEMENT_SYSTEM_v1
+
+
+AI_PROJECT_MANAGEMENT_SYSTEM_v2
+
+
+---
+
+# VANHAN TIEDON ARVO
+
+
+Vanhaa tietoa ei poisteta automaattisesti.
+
+
+Se voi sisältää:
+
+
+- historiaa
+- päätöksiä
+- oppimista
+
+
+---
+
+# KNOWLEDGE SEARCH -PERIAATE
+
+
+Kun AI etsii tietoa:
+
+
+Se etsii ensin:
+
+
+1. System
+
+
+2. Relevantti domain
+
+
+3. Projektikohtainen tieto
+
+
+4. Muisti
+
+
+---
+
+# TIETOHAUN TAVOITE
+
+
+Hakemisen tarkoitus ei ole löytää eniten tekstiä.
+
+
+Tavoite on löytää olennaisin tieto.
+
+
+---
+
+# KNOWLEDGE QUALITY CHECK
+
+
+Uutta tietoa arvioidaan:
+
+
+Onko tämä hyödyllinen?
+
+
+Onko tämä selkeä?
+
+
+Onko tämä totta?
+
+
+Onko tämä oikeassa paikassa?
+
+
+---
+
+# TIETOPANKIN YLLÄPITO
+
+
+Säännöllisesti tarkistetaan:
+
+
+- vanhentunut tieto
+- päällekkäinen tieto
+- puuttuva tieto
+- epäselvät dokumentit
+
+
+---
+
+# KNOWLEDGE AGENT
+
+
+Tuleva Knowledge Agent auttaa:
+
+
+- järjestämään tietoa
+- ehdottamaan uusia dokumentteja
+- löytämään ristiriitoja
+- ylläpitämään rakennetta
+
+
+---
+
+# KNOWLEDGEN JA MUISTIN ERO
+
+
+Knowledge:
+
+
+Mitä yritys tietää.
+
+
+Memory:
+
+
+Mitä yritys oppii kokemuksista.
+
+
+Nämä eivät ole sama asia.
+
+
+---
+
+# TIEDON KASVUN PERIAATE
+
+
+AI Brain kasvaa:
+
+
+ei lisäämällä kaikkea,
+
+vaan lisäämällä ymmärrettävää tietoa.
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Hyvä tietopankki ei ole arkisto.
+
+Se on järjestetty ajattelujärjestelmä.
+
+
+Selkeä tieto.
+
+Selkeä rakenne.
+
+Parempi päätöksenteko.

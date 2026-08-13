@@ -1,0 +1,205 @@
+const MODULE_ID =
+  "meta-intelligence"
+
+
+
+import {
+
+  analyzeSystem
+
+} from "./metaAnalyzer.js"
+
+
+
+import {
+
+  analyzeRelationships
+
+} from "./metaRelationshipAnalyzer.js"
+
+
+
+import {
+
+  createSystemAwarenessGraph
+
+} from "./systemAwarenessGraph.js"
+
+
+
+
+
+
+
+function createMetaReport(){
+
+
+  return {
+
+
+    moduleId:
+      MODULE_ID,
+
+
+    timestamp:
+      new Date().toISOString(),
+
+
+
+    meta:
+
+      {
+
+        state:
+          "active",
+
+
+        mode:
+          "assisted-meta-analysis",
+
+
+
+        observations:
+          0,
+
+
+
+        connectedSystems:
+
+          [
+
+            "reflection-intelligence",
+
+            "learning-intelligence",
+
+            "evolution-intelligence",
+
+            "system-improvement-intelligence"
+
+          ],
+
+
+
+        capabilities:
+
+          [
+
+            "system-understanding",
+
+            "module-relationship-analysis",
+
+            "development-awareness",
+
+            "system-analysis",
+
+            "system-awareness"
+
+          ],
+
+
+
+        analysis:
+
+          analyzeSystem(),
+
+
+
+        relationships:
+
+          analyzeRelationships(),
+
+
+
+        systemAwareness:
+
+          createSystemAwarenessGraph(),
+
+
+
+        principles:
+
+          [
+
+            "Ymmärrä ennen muutosta",
+
+            "Säilytä järjestelmän turvallisuus",
+
+            "Analysoi kokonaisuutta",
+
+            "Älä tee päätöksiä ilman hyväksyntää"
+
+          ],
+
+
+
+        requiresApproval:
+          true,
+
+
+      },
+
+
+
+    health:
+
+      {
+
+        status:
+          "healthy"
+
+      }
+
+
+  }
+
+
+}
+
+
+
+
+
+
+
+function getMetaState(){
+
+
+  return {
+
+
+    moduleId:
+      MODULE_ID,
+
+
+    state:
+      "active",
+
+
+    available:
+      true,
+
+
+    approvalRequired:
+      true,
+
+
+  }
+
+
+}
+
+
+
+
+
+
+
+export {
+
+  MODULE_ID,
+
+  createMetaReport,
+
+  getMetaState,
+
+}

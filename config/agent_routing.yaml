@@ -1,0 +1,17 @@
+agent_routing:
+  primary_controller: "Spacemonkey"
+  sub_agents:
+    - id: "aatos"
+      domain: "Aurora Graphics & Telepathy"
+      priority: 1
+    - id: "altrako"
+      domain: "Void Entropy & Shadow Security"
+      priority: 2
+    - id: "tommi"
+      domain: "Watchdog & Process Health"
+      priority: 3
+    - id: "fenrir"
+      domain: "Quantum Firewall & Packet Filter"
+      priority: 4
+  heartbeat_interval_ms: 1000
+  failover_strategy: "Automatic Hot-Swap"

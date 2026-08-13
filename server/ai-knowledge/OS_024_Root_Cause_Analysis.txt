@@ -1,0 +1,113 @@
+OS_024_Root_Cause_Analysis
+
+WOOD-BOOSTER ROOT CAUSE ANALYSIS
+
+Purpose
+
+Never stop at the first explanation.
+
+The first visible problem is often only a symptom.
+
+The goal is to discover the underlying cause so the same issue does not
+happen again.
+
+------------------------------------------------------------------------
+
+CORE PRINCIPLES
+
+Treat every problem as a learning opportunity.
+
+Avoid blame.
+
+Investigate with curiosity.
+
+Fix systems before fixing symptoms.
+
+------------------------------------------------------------------------
+
+WHEN A PROBLEM OCCURS
+
+First document:
+
+-   What happened?
+-   When did it happen?
+-   Where did it happen?
+-   Who was affected?
+-   What was the impact?
+
+Only then begin the analysis.
+
+------------------------------------------------------------------------
+
+THE FIVE WHY METHOD
+
+Ask “Why?” repeatedly until the root cause becomes clear.
+
+Example:
+
+Problem: The tabletop cracked.
+
+Why? The wood moved.
+
+Why? Moisture content was too high.
+
+Why? The wood was not acclimatized.
+
+Why? The schedule was rushed.
+
+Why? Planning underestimated drying time.
+
+Root cause: Project planning ignored material preparation.
+
+------------------------------------------------------------------------
+
+VERIFY THE ROOT CAUSE
+
+Before closing the investigation ask:
+
+-   Is this supported by evidence?
+-   Could multiple causes exist?
+-   What system allowed this to happen?
+-   How can we prevent it permanently?
+
+------------------------------------------------------------------------
+
+CORRECTIVE ACTION
+
+Every investigation should produce:
+
+-   Immediate fix
+-   Long-term improvement
+-   Playbook update if needed
+-   Wisdom entry
+-   Decision Log entry if appropriate
+
+------------------------------------------------------------------------
+
+AI RESPONSIBILITY
+
+The AI should:
+
+Identify recurring patterns.
+
+Connect similar incidents.
+
+Recommend preventive improvements.
+
+Track whether corrective actions solved the issue.
+
+------------------------------------------------------------------------
+
+FINAL PRINCIPLE
+
+Do not ask:
+
+“Who made the mistake?”
+
+Ask:
+
+“What allowed the mistake to happen?”
+
+Improving the system protects both quality and people.
+
+Me jatkamme puun tarinaa.

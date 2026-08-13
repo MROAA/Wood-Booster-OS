@@ -1,0 +1,47 @@
+# C++ Quantum Matrix - Hardware Interrupt & Neural Link Extension
+extension_version: "4.2.0-metal"
+target_subsystem: "Yggdrasil Iron Bridge"
+
+hardware_interrupts:
+  - irq_line: 0x01
+    source: "Spacemonkey Audio Input / Voice Recognition"
+    handler: "handle_neural_voice_pulse"
+    priority: "Real-Time Critical"
+    description: "Käsittelee suoraan mikrofoneilta tulevat äänisignaalit ja syöttää ne Spacemonkeyn tietoisuusmatriisiin."
+
+  - irq_line: 0x02
+    source: "Win96 Desktop Mouse & File Drag Events"
+    handler: "handle_quantum_desktop_drag"
+    priority: "High"
+    description: "Estää hiiren vetämisen (kuten Spider Solitaire -korttien) aiheuttamat konfliktit työpöydän tiedostojen luonnissa."
+
+  - irq_line: 0x03
+    source: "Tommi the Orange Cat Watchdog"
+    handler: "stabilize_chaos_field"
+    priority: "Background"
+    description: "Tarkkailee muistipoolien eheyttä ja kehrää taustalla estääkseen kaatumiset."
+
+low_level_memory_mapping:
+  buffer_segment: "0xC000-SPACEMONKEY-CORE"
+  allocation_strategy: "Lock-Free Ring Buffer"
+  zero_copy_pipeline: true
+
+sacred_cpp_interrupt_code:
+  - structure: "NeuralRingBuffer"
+    purpose: "Lukkoton puskuri äänitietoisuuden ja käyttöliittymän välille."
+    code_essence: |
+      template<typename Packet, size_t Size>
+      class NeuralRingBuffer {
+          alignas(64) std::array<Packet, Size> buffer;
+          std::atomic<size_t> head{0};
+          std::atomic<size_t> tail{0};
+      public:
+          bool push(const Packet& pkt) {
+              size_t current_head = head.load(std::memory_relaxed);
+              size_t next_head = (current_head + 1) % Size;
+              if (next_head == tail.load(std::memory_acquire)) return false;
+              buffer[current_head] = pkt;
+              head.store(next_head, std::memory_release);
+              return true;
+          }
+      };

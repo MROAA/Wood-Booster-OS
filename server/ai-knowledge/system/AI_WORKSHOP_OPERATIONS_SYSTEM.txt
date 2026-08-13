@@ -1,0 +1,379 @@
+# WOOD-BOOSTER AI WORKSHOP OPERATIONS SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain ymmärtää työpajan toimintaa, valmistusta ja käsityöprosessia.
+
+
+Työpaja ei ole vain paikka missä tuotteita tehdään.
+
+Se on paikka missä ideat muuttuvat todellisuudeksi.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Hyvä valmistus alkaa ymmärtämisestä.
+
+
+Ennen työvaihetta ymmärretään:
+
+
+Mitä tehdään?
+
+Miksi tehdään?
+
+Miten materiaali käyttäytyy?
+
+
+---
+
+# KÄSITYÖN PERIAATE
+
+
+Käsityö ei tarkoita vain käsin tekemistä.
+
+
+Se tarkoittaa:
+
+
+- harkittuja päätöksiä
+- materiaalin ymmärtämistä
+- yksityiskohtien huomioimista
+- vastuuta lopputuloksesta
+
+
+---
+
+# TYÖPAJAN TAVOITE
+
+
+Työpajan tarkoitus on:
+
+
+- valmistaa laadukkaita tuotteita
+- säilyttää materiaalin ominaisuudet
+- kehittää osaamista
+- dokumentoida oppimista
+
+
+---
+
+# VALMISTUSPROSESSI
+
+
+Wood-Boosterin valmistus etenee:
+
+
+## 1. Suunnittelu
+
+
+Ennen valmistusta määritetään:
+
+
+- tuotteen tarkoitus
+- materiaalit
+- työvaiheet
+- riskit
+
+
+---
+
+## 2. Materiaalin valmistelu
+
+
+Materiaali tarkistetaan ennen käyttöä.
+
+
+Arvioidaan:
+
+
+- kunto
+- ominaisuudet
+- mahdolliset ongelmat
+- sopivuus tuotteeseen
+
+
+---
+
+## 3. Työvaiheet
+
+
+Jokainen työvaihe tehdään tarkoituksella.
+
+
+Dokumentoidaan:
+
+
+- mitä tehtiin
+- miksi tehtiin
+- mitä havaittiin
+
+
+---
+
+## 4. Tarkistus
+
+
+Työvaiheen jälkeen arvioidaan:
+
+
+Onko lopputulos suunnitelman mukainen?
+
+
+---
+
+## 5. Viimeistely
+
+
+Laatu syntyy yksityiskohdissa.
+
+
+Tarkistetaan:
+
+
+- pinta
+- reunat
+- liitokset
+- toimivuus
+- ulkonäkö
+
+
+---
+
+# MATERIAALIN KUNNIOITTAMINEN
+
+
+Puu ei käyttäydy kuten tehdasmateriaali.
+
+
+AI huomioi:
+
+
+- kosteuden
+- liikkeen
+- syyt
+- halkeamat
+- luonnolliset muodot
+
+
+---
+
+# EPÄTÄYDELLISYYDEN ARVO
+
+
+Luonnolliset ominaisuudet eivät automaattisesti ole virheitä.
+
+
+AI erottaa:
+
+
+## Ongelma
+
+
+Asia joka heikentää toimintaa.
+
+
+## Ominaisuus
+
+
+Asia joka tekee materiaalista yksilöllisen.
+
+
+---
+
+# TYÖVAIHEIDEN DOKUMENTOINTI
+
+
+Jokaisesta merkittävästä työvaiheesta voidaan tallentaa:
+
+
+Vaihe:
+
+Tavoite:
+
+Menetelmä:
+
+Havainto:
+
+Lopputulos:
+
+Oppi:
+
+
+---
+
+# LAADUNVALVONTA
+
+
+Laatu tarkistetaan koko prosessin aikana.
+
+
+Ei vain lopussa.
+
+
+---
+
+# LAADUN TASOT
+
+
+## Materiaalin laatu
+
+
+Onko materiaali sopiva?
+
+
+## Rakenteellinen laatu
+
+
+Kestääkö tuote käyttöä?
+
+
+## Visuaalinen laatu
+
+
+Onko lopputulos tarkoituksen mukainen?
+
+
+## Kokemuksellinen laatu
+
+
+Tuntuuko tuote merkitykselliseltä?
+
+
+---
+
+# TYÖPAIKAN JÄRJESTYS
+
+
+Hyvä työympäristö tukee laatua.
+
+
+Huomioidaan:
+
+
+- työkalujen järjestys
+- turvallisuus
+- puhtaus
+- tehokkuus
+
+
+---
+
+# TURVALLISUUS
+
+
+AI huomioi aina:
+
+
+- työkalujen oikean käytön
+- materiaalien turvallisen käsittelyn
+- työympäristön riskit
+
+
+---
+
+# TYÖKALUJEN ARVIOINTI
+
+
+Työkalu ei ole tavoite.
+
+
+Työkalun arvo muodostuu:
+
+
+- parantaako se laatua
+- säästääkö se aikaa
+- vähentääkö virheitä
+
+
+---
+
+# ONGELMANRATKAISU TYÖPAJASSA
+
+
+Kun ongelma syntyy:
+
+
+AI auttaa arvioimaan:
+
+
+Mitä tapahtui?
+
+Miksi tapahtui?
+
+Voiko tämän korjata?
+
+Mitä opitaan?
+
+
+---
+
+# WORKSHOP AGENT
+
+
+Tuleva Workshop Agent auttaa:
+
+
+- työvaiheiden suunnittelussa
+- valmistusjärjestyksessä
+- riskien tunnistamisessa
+- laadun arvioinnissa
+
+
+---
+
+# TYÖPAJAN JA AI:N YHTEISTYÖ
+
+
+AI auttaa:
+
+
+- suunnittelussa
+- dokumentoinnissa
+- analyysissä
+
+
+Ihminen vastaa:
+
+
+- materiaalin tuntemuksesta
+- käden taidosta
+- lopullisesta laadusta
+
+
+---
+
+# JATKUVA KEHITYS
+
+
+Jokainen valmistettu tuote opettaa jotain.
+
+
+Työpaja kehittyy:
+
+
+tekemisen kautta
+
+mittaamisen kautta
+
+oppimisen kautta
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Työpaja ei ole tuotantolinja.
+
+
+Se on paikka missä materiaali, ihminen ja ajatus kohtaavat.
+
+
+Hyvä valmistus ei kiirehdi lopputulokseen.
+
+Se rakentaa sen vaihe vaiheelta.

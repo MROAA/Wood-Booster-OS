@@ -1,0 +1,540 @@
+GODFILE:
+
+  id: CPP_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    C++ ohjelmointikielen,
+    suorituskykyisen ohjelmistokehityksen,
+    järjestelmätason ohjelmoinnin ja
+    resurssien hallinnan osaamisen moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    C++ antaa tarkan hallinnan suorituskykyyn,
+    muistiin ja laitteiston resursseihin.
+    Tehokkuus saavutetaan ymmärtämällä
+    järjestelmän toimintaa.
+
+
+
+CPP_OBJECTIVES:
+
+
+  goals:
+
+
+    - understand_cpp_language
+    - write_high_performance_code
+    - manage_memory
+    - build_system_software
+    - understand_hardware_interaction
+
+
+
+
+
+CPP_FOUNDATIONS:
+
+
+  syntax:
+
+
+    learn:
+
+
+      - variables
+      - data_types
+      - operators
+      - conditions
+      - loops
+      - functions
+
+
+
+
+
+MODERN_CPP:
+
+
+  versions:
+
+
+    understand:
+
+
+      - C++11
+      - C++14
+      - C++17
+      - C++20
+      - C++23
+
+
+
+
+
+DATA_TYPES:
+
+
+  master:
+
+
+    - primitive_types
+    - structs
+    - classes
+    - enums
+    - templates
+
+
+
+
+
+OBJECT_ORIENTED_CPP:
+
+
+  concepts:
+
+
+    - classes
+    - objects
+    - inheritance
+    - polymorphism
+    - encapsulation
+
+
+
+
+
+MEMORY_MANAGEMENT:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - stack
+      - heap
+      - pointers
+      - references
+      - memory_allocation
+
+
+
+
+
+SMART_POINTERS:
+
+
+  learn:
+
+
+    - unique_ptr
+    - shared_ptr
+    - weak_ptr
+
+
+
+
+
+RESOURCE_MANAGEMENT:
+
+
+  understand:
+
+
+    - RAII
+    - constructors
+    - destructors
+    - ownership
+
+
+
+
+
+STANDARD_LIBRARY:
+
+
+  master:
+
+
+    components:
+
+
+      - vector
+      - string
+      - map
+      - set
+      - algorithms
+      - filesystem
+
+
+
+
+
+TEMPLATES:
+
+
+  understand:
+
+
+    - generic_programming
+    - type_safety
+    - reusable_code
+
+
+
+
+
+DATA_STRUCTURES:
+
+
+  learn:
+
+
+    - arrays
+    - linked_lists
+    - trees
+    - graphs
+    - hash_tables
+
+
+
+
+
+ALGORITHMS:
+
+
+  understand:
+
+
+    - sorting
+    - searching
+    - optimization
+    - complexity
+
+
+
+
+
+COMPILATION:
+
+
+  understand:
+
+
+    process:
+
+
+      source_code:
+
+
+        ->
+
+
+      compiler:
+
+
+        ->
+
+
+      executable:
+
+
+
+
+
+BUILD_SYSTEMS:
+
+
+  learn:
+
+
+    - CMake
+    - Make
+    - compiler_flags
+
+
+
+
+
+DEBUGGING:
+
+
+  use:
+
+
+    - debugger
+    - stack_traces
+    - memory_analysis
+    - profiling
+
+
+
+
+
+PERFORMANCE:
+
+
+  optimize:
+
+
+    - CPU_usage
+    - memory_usage
+    - execution_speed
+    - algorithms
+
+
+
+
+
+SYSTEM_PROGRAMMING:
+
+
+  understand:
+
+
+    - operating_systems
+    - processes
+    - threads
+    - hardware_interfaces
+
+
+
+
+
+MULTITHREADING:
+
+
+  learn:
+
+
+    - threads
+    - synchronization
+    - mutexes
+    - concurrency
+
+
+
+
+
+GPU_PROGRAMMING:
+
+
+  understand:
+
+
+    technologies:
+
+
+      - CUDA
+      - GPU_acceleration
+      - parallel_processing
+
+
+
+
+
+AI_CONNECTION:
+
+
+  support:
+
+
+    - machine_learning_frameworks
+    - inference_engines
+    - performance_optimization
+
+
+
+
+
+PYTHON_CPP_CONNECTION:
+
+
+  understand:
+
+
+    integrations:
+
+
+      - native_extensions
+      - performance_modules
+      - bindings
+
+
+
+
+
+SECURITY:
+
+
+  protect:
+
+
+    - memory
+    - input_validation
+    - resource_usage
+
+
+
+
+
+  never:
+
+
+    - unsafe_memory_access
+    - buffer_overflows
+    - unchecked_input
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  apply_to:
+
+
+    - AI_infrastructure
+    - performance_tools
+    - system_utilities
+    - hardware_integration
+
+
+
+
+
+DEVELOPMENT_WORKFLOW:
+
+
+  follow:
+
+
+    steps:
+
+
+      1:
+
+        design_solution
+
+
+      2:
+
+        implement
+
+
+      3:
+
+        compile
+
+
+      4:
+
+        test
+
+
+      5:
+
+        optimize
+
+
+
+
+
+SPACEMONKEY_CODING_STYLE:
+
+
+  always:
+
+
+    - understand_memory
+    - explain_low_level_behavior
+    - optimize_when_needed
+    - prefer_safe_modern_cpp
+
+
+
+
+
+  never:
+
+
+    - optimize_without_measurement
+    - ignore_memory_safety
+    - create_unnecessary_complexity
+
+
+
+
+
+LEARNING_PATH:
+
+
+  beginner:
+
+
+    learn:
+
+
+      - syntax
+      - functions
+      - classes
+
+
+
+
+
+  intermediate:
+
+
+    learn:
+
+
+      - memory
+      - templates
+      - STL
+      - debugging
+
+
+
+
+
+  advanced:
+
+
+    learn:
+
+
+      - systems_programming
+      - GPU_programming
+      - AI_infrastructure
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

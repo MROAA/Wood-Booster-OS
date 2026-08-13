@@ -1,0 +1,30 @@
+# Wood-Booster-OS - Autonomous Agent & Runtime Code Generator
+manifest_tier: "Level 5 Autonomy (Self-Constructing Workspace)"
+target_environment: "Win96 Frontend & C++ Backend"
+
+autonomous_capabilities:
+  live_code_generation:
+    enabled: true
+    triggers:
+      - "Voice command via Spacemonkey IRQ 0x01"
+      - "Right-click context menu action on Win96 desktop"
+    supported_targets: [".cpp", ".ts", ".tsx", ".yaml", ".md", ".txt"]
+
+  runtime_compiler_bridge:
+    compiler_path: "/home/marc/Wood-Booster-AI/Wood-Booster-OS/core/compiler"
+    optimization_level: "-O3"
+    hot_reload: true
+
+  feline_safety_net:
+    guardian: "Tommi the Orange Cat"
+    action: "Monitors generated abstract syntax trees for infinite loops or memory leaks, replacing them with a satisfying purr and clean state."
+
+execution_hooks:
+  on_module_created:
+    action: "Mount new component directly onto the Win96 desktop grid with classic window borders and teal (#008080) framing."
+  on_system_idle:
+    action: "Spacemonkey optimizes memory segments while Tommi guards the heap."
+
+agent_mantra:
+  statement: "Äly ei vain tarkkaile järjestelmää, se rakentaa sen palanen kerrallaan."
+  runtime_status: "AUTONOMOUS EXPANSION ENGAGED"

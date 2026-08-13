@@ -1,0 +1,16 @@
+SUBJEKTI + VERBI + OBJEKTI + MUUT MÄÄREET
+
+Esimerkki:
+
+Minä rakennan pöydän.
+
+Rakenne:
+
+Minä
+= tekijä
+
+rakennan
+= toiminta
+
+pöydän
+= kohde

@@ -1,0 +1,22 @@
+{
+  "name": "wood-booster-hq",
+  "version": "0.0.0",
+  "description": "Wood-booster OS (Win96 Supreme OS)",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build:cpp": "node-gyp rebuild",
+    "test:core": "tsx src/test_core.ts",
+    "rebuild-and-test": "node-gyp rebuild && tsx src/test_core.ts"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "node-addon-api": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "node-gyp": "^13.0.1",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,14 @@
+multiverse_gateway:
+  portal_status: "Open & Stable"
+  active_dimensions:
+    - dimension: "Dimension-96"
+      description: "Classic Retro Win96 Environment"
+      stability: 100.0
+    - dimension: "Aurora-Prime"
+      description: "Aatos Crystal Light Realm"
+      stability: 99.8
+    - dimension: "Void-Zero"
+      description: "Altrako Shadow & Entropy Chamber"
+      stability: 99.5
+  navigation_protocol: "Spacemonkey Quantum Leap"
+  entropy_leak: "Zero"

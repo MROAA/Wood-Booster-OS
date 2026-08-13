@@ -1,0 +1,16 @@
+win96_window_matrix:
+  desktop_grid:
+    columns: 4
+    rows: 4
+    snap_to_grid: true
+  window_defaults:
+    theme: "Retro Windows 96 Classic"
+    border_style: "Beveled 3D Frame"
+    z_index_base: 40
+  active_orchestration:
+    master_controller: "SpacemonkeyMasterOrchestrator"
+    total_managed_windows: 30
+    hot_swap_enabled: true
+    filesystem_sync:
+      auto_index: true
+      watch_directory: "/home/marc/Wood-Booster-AI/Wood-Booster-OS/src/components"

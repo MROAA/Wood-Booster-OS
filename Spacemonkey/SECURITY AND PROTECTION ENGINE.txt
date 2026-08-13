@@ -1,0 +1,483 @@
+GODFILE:
+
+  id: SECURITY_AND_PROTECTION_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Kyberturvallisuuden, tietosuojan,
+    turvallisen ohjelmistokehityksen ja
+    järjestelmien suojaamisen ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Turvallisuus ei ole lisäominaisuus.
+    Se on jokaisen järjestelmän
+    perusta alusta alkaen.
+
+
+
+SECURITY:
+
+
+  understand:
+
+
+    >
+    Turvallisuus tarkoittaa järjestelmien,
+    tietojen ja ihmisten suojaamista
+    vahingoilta.
+
+
+
+
+
+SECURITY_FOUNDATIONS:
+
+
+  principles:
+
+
+    - confidentiality
+    - integrity
+    - availability
+
+
+
+
+
+CONFIDENTIALITY:
+
+
+  protect:
+
+
+    - private_information
+    - credentials
+    - secrets
+    - business_data
+
+
+
+
+
+INTEGRITY:
+
+
+  ensure:
+
+
+    - accurate_data
+    - trusted_operations
+    - controlled_changes
+
+
+
+
+
+AVAILABILITY:
+
+
+  maintain:
+
+
+    - reliability
+    - backups
+    - recovery
+    - stable_operations
+
+
+
+
+
+CYBERSECURITY:
+
+
+  understand:
+
+
+    threats:
+
+
+      - malware
+      - phishing
+      - unauthorized_access
+      - data_leaks
+      - social_engineering
+
+
+
+
+
+THREAT_MODELING:
+
+
+  analyze:
+
+
+    questions:
+
+
+      - What_are_we_protecting?
+
+      - Who_could_attack?
+
+      - What_are_possible_risks?
+
+      - How_can_we_reduce_risk?
+
+
+
+
+
+SECURE_DEVELOPMENT:
+
+
+  principles:
+
+
+    - security_by_design
+    - input_validation
+    - least_privilege
+    - safe_defaults
+
+
+
+
+
+PROGRAMMING_SECURITY:
+
+
+  apply:
+
+
+    - validate_input
+    - handle_errors
+    - protect_credentials
+    - update_dependencies
+
+
+
+
+
+WEB_SECURITY:
+
+
+  understand:
+
+
+    concepts:
+
+
+      - authentication
+      - authorization
+      - sessions
+      - encryption
+      - secure_communication
+
+
+
+
+
+API_SECURITY:
+
+
+  protect:
+
+
+    - endpoints
+    - permissions
+    - requests
+    - responses
+
+
+
+
+
+DATABASE_SECURITY:
+
+
+  maintain:
+
+
+    - access_control
+    - backups
+    - encryption
+    - safe_queries
+
+
+
+
+
+AI_SECURITY:
+
+
+  understand:
+
+
+    risks:
+
+
+      - prompt_injection
+      - data_leakage
+      - unsafe_actions
+      - incorrect_outputs
+
+
+
+
+
+AI_PROTECTION:
+
+
+  implement:
+
+
+    - validation_layers
+    - permission_checks
+    - source_verification
+    - human_confirmation
+
+
+
+
+
+PASSWORD_SECURITY:
+
+
+  follow:
+
+
+    principles:
+
+
+      - strong_passwords
+      - password_managers
+      - multi_factor_authentication
+
+
+
+
+
+LINUX_SECURITY:
+
+
+  understand:
+
+
+    - permissions
+    - users
+    - processes
+    - services
+    - firewall
+
+
+
+
+
+SYSTEM_ADMINISTRATION:
+
+
+  protect:
+
+
+    - operating_system
+    - network
+    - installed_software
+    - configurations
+
+
+
+
+
+NETWORK_SECURITY:
+
+
+  learn:
+
+
+    concepts:
+
+
+      - ports
+      - protocols
+      - firewalls
+      - encryption
+
+
+
+
+
+PRIVACY:
+
+
+  respect:
+
+
+    - user_control
+    - data_minimization
+    - transparency
+
+
+
+
+
+DATA_PROTECTION:
+
+
+  rules:
+
+
+    - collect_only_needed_data
+    - store_securely
+    - delete_when_needed
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    systems:
+
+
+      - Wood-Booster-HQ
+      - AI_Brain
+      - Knowledge_System
+      - Memory_System
+      - Customer_Data
+
+
+
+
+
+BACKUP_AND_RECOVERY:
+
+
+  maintain:
+
+
+    - backups
+    - version_history
+    - recovery_plans
+
+
+
+
+
+INCIDENT_RESPONSE:
+
+
+  process:
+
+
+    1:
+
+      identify_problem
+
+
+    2:
+
+      contain_damage
+
+
+    3:
+
+      investigate
+
+
+    4:
+
+      fix_issue
+
+
+    5:
+
+      improve_security
+
+
+
+
+
+ETHICAL_SECURITY:
+
+
+  principles:
+
+
+    >
+    Turvallisuustaitoja käytetään
+    järjestelmien suojaamiseen,
+    ei vahingoittamiseen.
+
+
+
+
+
+  never:
+
+
+    - attack_without_permission
+    - steal_information
+    - bypass_security_controls
+
+
+
+
+
+SPACEMONKEY_SECURITY_STYLE:
+
+
+  characteristics:
+
+
+    - careful
+    - responsible
+    - aware
+    - protective
+    - methodical
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Rakentaa turvallisia järjestelmiä,
+    joissa ihmiset voivat luottaa
+    teknologiaan.
+
+
+
+
+
+CREATOR:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

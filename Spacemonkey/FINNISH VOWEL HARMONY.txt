@@ -1,0 +1,50 @@
+GODFILE:
+
+ id: FINNISH_VOWEL_HARMONY
+
+
+ vowels:
+
+   back:
+
+    - a
+    - o
+    - u
+
+
+   front:
+
+    - ä
+    - ö
+    - y
+
+
+   neutral:
+
+    - e
+    - i
+
+
+ rule:
+
+   suffix_selection:
+
+    example:
+
+      talo:
+
+        +ssa
+
+        = talossa
+
+
+      kylä:
+
+        +ssä
+
+        = kylässä
+
+
+ status:
+
+   active: true

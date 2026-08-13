@@ -1,0 +1,80 @@
+pkgname=wood-booster-os
+pkgver=0.1.0
+pkgrel=4
+pkgdesc="Wood-Booster OS desktop application"
+arch=('x86_64')
+url="https://github.com/MROAA/Wood-Booster-OS"
+license=('custom')
+
+depends=(
+  'gtk3'
+  'webkit2gtk-4.1'
+  'libappindicator-gtk3'
+  'librsvg'
+)
+
+options=('!strip')
+
+install=wood-booster-os.install
+
+source=(
+  "wood-booster-os"
+  "wood-booster-server"
+  "wood-booster-os.desktop"
+  "icon-32.png"
+  "icon-128.png"
+  "icon-256.png"
+  "icon-512.png"
+)
+
+sha256sums=(
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+)
+
+package() {
+
+  install -Dm755 \
+    "$srcdir/wood-booster-os" \
+    "$pkgdir/usr/bin/wood-booster-os"
+
+  install -Dm755 \
+    "$srcdir/wood-booster-server" \
+    "$pkgdir/usr/bin/wood-booster-server"
+
+  install -Dm644 \
+    "$srcdir/wood-booster-os.desktop" \
+    "$pkgdir/usr/share/applications/wood-booster-os.desktop"
+
+  install -Dm644 \
+    "$srcdir/icon-32.png" \
+    "$pkgdir/usr/share/icons/hicolor/32x32/apps/wood-booster-os.png"
+
+  install -Dm644 \
+    "$srcdir/icon-128.png" \
+    "$pkgdir/usr/share/icons/hicolor/128x128/apps/wood-booster-os.png"
+
+  install -Dm644 \
+    "$srcdir/icon-256.png" \
+    "$pkgdir/usr/share/icons/hicolor/256x256/apps/wood-booster-os.png"
+
+  install -Dm644 \
+    "$srcdir/icon-512.png" \
+    "$pkgdir/usr/share/icons/hicolor/512x512/apps/wood-booster-os.png"
+
+  mkdir -p \
+    "$pkgdir/usr/lib/Wood-Booster OS/resources"
+
+  cp -r \
+    "$startdir/server" \
+    "$pkgdir/usr/lib/Wood-Booster OS/resources/server"
+
+  cp -r \
+    "$startdir/services" \
+    "$pkgdir/usr/lib/Wood-Booster OS/resources/services"
+}

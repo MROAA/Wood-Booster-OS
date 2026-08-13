@@ -1,0 +1,847 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Customer {
+
+  id Int @id @default(autoincrement())
+
+  name String
+
+  company String?
+
+  email String?
+
+  phone String?
+
+  notes String?
+
+  projects Project[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model Project {
+
+  id Int @id @default(autoincrement())
+
+  name String
+
+  status String @default("Suunnittelu")
+
+  notes String?
+
+  deadline DateTime?
+
+  description String?
+
+  customerId Int?
+
+  customer Customer? @relation(fields: [customerId], references: [id])
+
+  files ProjectFile[]
+
+  materials ProjectMaterial[]
+
+  projectNotes Note[]
+
+  timelineTasks ProjectTimelineTask[]
+
+  workflowSteps ProjectWorkflowStep[]
+
+  workflowSeededAt DateTime?
+
+  quote Quote?
+
+  invoice Invoice?
+
+  purchaseOrders PurchaseOrder[]
+
+  socialPostDrafts SocialPostDraft[]
+
+  blogPostDrafts BlogPostDraft[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model SocialPostDraft {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  caption String
+
+  hashtags String
+
+  platform String @default("instagram")
+
+  status String @default("draft")
+
+  selectedFileIds String?
+
+  publishedPostId String?
+
+  publishedPermalink String?
+
+  publishError String?
+
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model BlogPostDraft {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title String
+
+  content String
+
+  excerpt String?
+
+  wordpressPostStatus String @default("publish")
+
+  status String @default("draft")
+
+  wordpressPostId String?
+
+  wordpressPermalink String?
+
+  publishError String?
+
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model PythonCodeDraft {
+
+  id Int @id @default(autoincrement())
+
+  prompt String
+
+  title String
+
+  code String
+
+  filePath String
+
+  status String @default("draft")
+
+  writeError String?
+
+  writtenAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model Quote {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int @unique
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  quoteNumber String
+
+  status String @default("Avoin")
+
+  validDays Int @default(14)
+
+  paymentTerms String @default("14 pv netto")
+
+  deliveryTime String?
+
+  laborCost Float @default(0)
+
+  otherCosts Float @default(0)
+
+  customPrice Float?
+
+  lineItems QuoteLineItem[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model QuoteLineItem {
+
+  id Int @id @default(autoincrement())
+
+  quoteId Int
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  name String
+
+  unit String @default("kpl")
+
+  quantity Float @default(1)
+
+  unitPrice Float @default(0)
+
+  inventoryItemId Int?
+
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model Invoice {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int @unique
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  invoiceNumber String
+
+  dueDays Int @default(14)
+
+  paymentTerms String @default("14 pv netto")
+
+  vatPercent Float @default(25.5)
+
+  laborCost Float @default(0)
+
+  otherCosts Float @default(0)
+
+  customPrice Float?
+
+  isPaid Boolean @default(false)
+
+  paidAt DateTime?
+
+  lineItems InvoiceLineItem[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model InvoiceLineItem {
+
+  id Int @id @default(autoincrement())
+
+  invoiceId Int
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  name String
+
+  unit String @default("kpl")
+
+  quantity Float @default(1)
+
+  unitPrice Float @default(0)
+
+  inventoryItemId Int?
+
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model ProjectTimelineTask {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name String
+
+  deadline String?
+
+  completed Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model ProjectWorkflowStep {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title String
+
+  done Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model ProjectMaterial {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name String
+
+  category String?
+
+  unit String @default("kpl")
+
+  quantity Float @default(1)
+
+  unitPrice Float @default(0)
+
+  inventoryItemId Int?
+
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model Note {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title String?
+
+  content String
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model ProjectFile {
+
+  id Int @id @default(autoincrement())
+
+  projectId Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  originalName String
+
+  storedName String
+
+  mimeType String
+
+  size Int @default(0)
+
+  category String @default("Muut")
+
+  sourceFileId Int?
+
+  sourceFile ProjectFile? @relation("FileEdits", fields: [sourceFileId], references: [id], onDelete: SetNull)
+
+  edits ProjectFile[] @relation("FileEdits")
+
+  status String @default("ready")
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model Conversation {
+
+  id String @id @default(cuid())
+
+  title String?
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model Message {
+
+  id String @id @default(cuid())
+
+  role String
+
+  content String
+
+  conversationId String
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model Memory {
+
+  id Int @id @default(autoincrement())
+
+  category String @default("general")
+
+  key String
+
+  content String
+
+  importance Int @default(5)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model MemoryProposal {
+
+  id Int @id @default(autoincrement())
+
+  category String
+
+  key String
+
+  content String
+
+  importance Int
+
+  status String @default("pending")
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model KnowledgeDocument {
+  id Int @id @default(autoincrement())
+  title String
+  content String
+  topic String @default("general")
+  folder String @default("Yleinen")
+  tags String?
+  author String?
+  sourceType String @default("text")
+  sourceUrl String?
+  storedFileName String?
+  originalFileName String?
+  mimeType String?
+  fileSize Int?
+  status String @default("Luonnos")
+  priority Int @default(3)
+  confidence Int @default(100)
+  alwaysUse Boolean @default(false)
+  chunks KnowledgeChunk[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model KnowledgeChunk {
+
+  id Int @id @default(autoincrement())
+
+  content String
+
+  chunkIndex Int
+
+  tokenCount Int @default(0)
+
+  documentId Int
+
+  document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model InventoryItem {
+
+  id Int @id @default(autoincrement())
+
+  name String
+
+  category String?
+
+  quantity Float @default(0)
+
+  unit String @default("kpl")
+
+  unitPrice Float @default(0)
+
+  minStock Float?
+
+  supplier String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  purchaseOrderItems PurchaseOrderItem[]
+
+  projectMaterials ProjectMaterial[]
+
+  quoteLineItems QuoteLineItem[]
+
+  invoiceLineItems InvoiceLineItem[]
+
+}
+
+
+
+model PurchaseOrder {
+
+  id Int @id @default(autoincrement())
+
+  supplier String
+
+  status String @default("Luonnos")
+
+  totalPrice Float @default(0)
+
+  items PurchaseOrderItem[]
+
+  projectId Int?
+
+  project Project? @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model PurchaseOrderItem {
+
+  id Int @id @default(autoincrement())
+
+  purchaseOrderId Int
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  inventoryItemId Int
+
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+
+  quantity Float
+
+  unitPrice Float
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model SpacemonkeyActivity {
+
+  id String @id @default(cuid())
+
+  type String
+
+  module String
+
+  status String
+
+  message String
+
+  metadata String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model SpacemonkeyApproval {
+
+  id String @id @default(cuid())
+
+  approved Boolean @default(false)
+
+  status String
+
+  risk String?
+
+  filePath String?
+
+  instruction String?
+
+  changePlan String?
+
+  reasons String?
+
+  requirements String?
+
+  nextAction String?
+
+  createdAt DateTime @default(now())
+
+  approvedAt DateTime?
+
+}
+
+
+
+model SpacemonkeyRoot {
+
+  id Int @id @default(autoincrement())
+
+  key String @unique
+
+  value String
+
+  category String @default("system")
+
+  importance Int @default(5)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model SpacemonkeySnapshot {
+
+  id Int @id @default(autoincrement())
+
+  filename String
+
+  path String
+
+  version String
+
+  description String?
+
+  status String @default("created")
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model SpacemonkeySnapshotAudit {
+
+  id Int @id @default(autoincrement())
+
+  event String
+
+  module String
+
+  changeType String
+
+  risk String
+
+  snapshot String?
+
+  status String @default("completed")
+
+  message String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model SpacemonkeyWorldEntity {
+
+  id String @id @default(cuid())
+
+  name String
+
+  type String
+
+  description String?
+
+  metadata String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  outgoingRelations SpacemonkeyWorldRelation[] @relation("WorldRelationFrom")
+
+  incomingRelations SpacemonkeyWorldRelation[] @relation("WorldRelationTo")
+
+}
+
+
+
+model SpacemonkeyWorldRelation {
+
+  id String @id @default(cuid())
+
+  fromEntityId String
+
+  toEntityId String
+
+  type String
+
+  description String?
+
+  createdAt DateTime @default(now())
+
+  fromEntity SpacemonkeyWorldEntity @relation("WorldRelationFrom", fields: [fromEntityId], references: [id])
+
+  toEntity SpacemonkeyWorldEntity @relation("WorldRelationTo", fields: [toEntityId], references: [id])
+
+}
+model GitSyncEvent {
+
+  id Int @id @default(autoincrement())
+
+  type String
+
+  status String
+
+  repository String?
+
+  branch String?
+
+  commit String?
+
+  changedFiles Int @default(0)
+
+  message String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model BusinessSettings {
+
+  id Int @id @default(autoincrement())
+
+  companyName String?
+
+  streetAddress String?
+
+  postalCode String?
+
+  city String?
+
+  businessId String?
+
+  phone String?
+
+  email String?
+
+  website String?
+
+  iban String?
+
+  logoOriginalName String?
+
+  logoStoredName String?
+
+  logoMimeType String?
+
+  vatPercent Float @default(25.5)
+
+  defaultPaymentTerms String @default("14 pv netto")
+
+  defaultValidDays Int @default(14)
+
+  quoteNumberPrefix String @default("WB-Q")
+
+  invoiceNumberPrefix String @default("WB-L")
+
+  defaultInvoiceDueDays Int @default(14)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}

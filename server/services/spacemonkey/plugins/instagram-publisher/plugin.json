@@ -1,0 +1,27 @@
+{
+  "id": "instagram-publisher",
+  "name": "Instagram Publisher",
+  "version": "1.0.0",
+  "description": "Publishes approved Wood-Booster social media drafts to Instagram via the Meta Graph API.",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "marketing",
+  "dependencies": [],
+  "capabilities": [
+    "instagram-publishing"
+  ],
+  "skills": [
+    "publish-instagram-post"
+  ],
+  "tools": [
+    "instagram-graph-publish"
+  ],
+  "workflows": [
+    "publish-instagram-post-workflow"
+  ],
+  "permissions": [
+    "instagram.publish",
+    "network.http"
+  ],
+  "entry": "index.js"
+}

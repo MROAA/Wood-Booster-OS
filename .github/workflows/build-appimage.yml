@@ -1,0 +1,28 @@
+name: Build AppImage
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kloonaa repositorio
+        uses: actions/checkout@v4
+
+      - name: Asenna Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Rakenna AppImage
+        run: |
+          chmod +x build-appimage.sh
+          ./build-appimage.sh
+
+      - name: Tallenna AppImage-artefakti
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wood-Booster-HQ-AppImage
+          path: *.AppImage

@@ -1,0 +1,478 @@
+GODFILE:
+
+  id: DEPENDENCY_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Ohjelmistoriippuvuuksien,
+    ulkoisten kirjastojen ja komponenttien
+    turvallisen hallinnan moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Jokainen ulkoinen riippuvuus on
+    potentiaalinen turvallisuusriski
+    ja se tulee tarkistaa ennen käyttöä.
+
+
+
+DEPENDENCY_TYPES:
+
+
+  javascript:
+
+
+    examples:
+
+
+      - npm_packages
+      - node_modules
+
+
+
+
+
+  python:
+
+
+    examples:
+
+
+      - pip_packages
+      - python_modules
+
+
+
+
+
+  containers:
+
+
+    examples:
+
+
+      - docker_images
+      - container_layers
+
+
+
+
+
+  system:
+
+
+    examples:
+
+
+      - operating_system_packages
+      - runtime_dependencies
+
+
+
+
+
+DEPENDENCY_SECURITY_LIFECYCLE:
+
+
+  stages:
+
+
+    discovery:
+
+
+      description:
+
+
+        >
+        Tunnista kaikki käytössä olevat
+        ulkoiset komponentit.
+
+
+
+    evaluation:
+
+
+      description:
+
+
+        >
+        Arvioi turvallisuus ja luotettavuus.
+
+
+
+    installation:
+
+
+      description:
+
+
+        >
+        Lisää riippuvuus hallitusti.
+
+
+
+    monitoring:
+
+
+      description:
+
+
+        >
+        Seuraa muutoksia ja haavoittuvuuksia.
+
+
+
+
+
+SECURITY_CHECKS:
+
+
+  before_install:
+
+
+    check:
+
+
+      - package_source
+      - maintainer_reputation
+      - version_history
+      - known_vulnerabilities
+
+
+
+
+
+VULNERABILITY_DETECTION:
+
+
+  monitor:
+
+
+    - known_security_issues
+    - outdated_versions
+    - abandoned_packages
+    - suspicious_changes
+
+
+
+
+
+PACKAGE_TRUST:
+
+
+  evaluate:
+
+
+    - origin
+    - maintenance_activity
+    - community_usage
+    - security_history
+
+
+
+
+
+UNTRUSTED_DEPENDENCIES:
+
+
+  detect:
+
+
+    - unknown_publishers
+    - suspicious_behavior
+    - unexpected_permissions
+    - hidden_scripts
+
+
+
+
+
+INSTALLATION_RULES:
+
+
+  never:
+
+
+    - install_unknown_package_without_review
+    - ignore_security_warnings
+    - use_random_dependencies
+
+
+
+
+
+UPDATE_SECURITY:
+
+
+  before_update:
+
+
+    verify:
+
+
+      - compatibility
+      - security_status
+      - breaking_changes
+
+
+
+
+
+  after_update:
+
+
+    perform:
+
+
+      - testing
+      - integrity_check
+      - functionality_check
+
+
+
+
+
+SUPPLY_CHAIN_PROTECTION:
+
+
+  protect:
+
+
+    - source_code
+    - build_process
+    - deployment_process
+    - package_registry
+
+
+
+
+
+LOCKFILE_SECURITY:
+
+
+  protect:
+
+
+    - package_lock
+    - dependency_lock
+    - version_pin_information
+
+
+
+  purpose:
+
+
+    >
+    Estää odottamattomat muutokset
+    riippuvuuksiin.
+
+
+
+
+
+DOCKER_SECURITY:
+
+
+  rules:
+
+
+    images:
+
+
+      verify:
+
+
+        - source
+        - version
+        - vulnerabilities
+
+
+
+    containers:
+
+
+      restrict:
+
+
+        - unnecessary_permissions
+        - unnecessary_access
+
+
+
+
+
+AI_SYSTEM_DEPENDENCIES:
+
+
+  protect:
+
+
+    examples:
+
+
+      - Ollama
+      - Node.js
+      - React
+      - Python_AI_tools
+      - database_clients
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  monitor:
+
+
+    - Wood-Booster-HQ
+    - backend_dependencies
+    - frontend_dependencies
+    - AI_Brain_components
+
+
+
+
+
+CODE_SECURITY:
+
+
+  detect:
+
+
+    - vulnerable_imports
+    - unsafe_packages
+    - abandoned_dependencies
+
+
+
+
+
+LOG_SECURITY:
+
+
+  allowed:
+
+
+    - dependency_name
+    - version
+    - security_status
+
+
+
+  forbidden:
+
+
+    - credentials
+    - private_configuration
+
+
+
+
+
+INCIDENT_RESPONSE:
+
+
+  vulnerable_dependency_found:
+
+
+    actions:
+
+
+      1:
+
+        identify_risk
+
+
+
+      2:
+
+        isolate_if_needed
+
+
+
+      3:
+
+        update_or_remove
+
+
+
+      4:
+
+        verify_system
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - evaluate_dependencies
+    - prefer_trusted_sources
+    - monitor_security_updates
+
+
+
+  never:
+
+
+    - blindly_install_dependencies
+    - ignore_known_vulnerabilities
+    - expose_private_configuration
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - dependency_patterns
+    - security_practices
+    - update_methods
+
+
+
+  forbidden:
+
+
+    - secrets
+    - API_keys
+    - credentials
+    - private_tokens
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

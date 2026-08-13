@@ -1,0 +1,478 @@
+GODFILE:
+
+  id: LOG_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Lokien, audit-tietojen, järjestelmätapahtumien
+    ja turvallisuusseurannan hallintamoottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Lokit auttavat ymmärtämään järjestelmän
+    toimintaa, mutta ne eivät saa koskaan
+    sisältää suojaamatonta arkaluonteista tietoa.
+
+
+
+LOG_SECURITY_OBJECTIVES:
+
+
+  goals:
+
+
+    - maintain_audit_trail
+    - detect_security_events
+    - support_debugging
+    - protect_logged_information
+
+
+
+
+
+LOG_TYPES:
+
+
+  application_logs:
+
+
+    monitor:
+
+
+      - application_events
+      - errors
+      - warnings
+
+
+
+
+
+  security_logs:
+
+
+    monitor:
+
+
+      - access_events
+      - blocked_actions
+      - authentication_events
+
+
+
+
+
+  audit_logs:
+
+
+    monitor:
+
+
+      - configuration_changes
+      - permission_changes
+      - critical_operations
+
+
+
+
+
+  AI_LOGS:
+
+
+    monitor:
+
+
+      - agent_events
+      - model_operations
+      - security_checks
+
+
+
+
+
+LOG_DATA_CLASSIFICATION:
+
+
+  public:
+
+
+    allowed:
+
+
+      - general_status_information
+
+
+
+
+
+  internal:
+
+
+    examples:
+
+
+      - system_events
+      - diagnostics
+
+
+
+
+
+  confidential:
+
+
+    protect:
+
+
+      - business_events
+      - private_operations
+
+
+
+
+
+  critical:
+
+
+    protect:
+
+
+      - security_events
+      - authentication_information
+
+
+
+
+
+SECRET_PROTECTION:
+
+
+  never_log:
+
+
+    - passwords
+    - API_keys
+    - access_tokens
+    - private_keys
+    - authentication_secrets
+
+
+
+
+
+USER_PRIVACY:
+
+
+  protect:
+
+
+    - personal_information
+    - private_messages
+    - unnecessary_user_data
+
+
+
+
+
+LOG_SANITIZATION:
+
+
+  before_write:
+
+
+    remove:
+
+
+      - secrets
+      - private_values
+      - sensitive_information
+
+
+
+
+
+ERROR_LOGGING:
+
+
+  rules:
+
+
+    include:
+
+
+      - error_type
+      - timestamp
+      - affected_component
+      - safe_description
+
+
+
+
+
+  never_include:
+
+
+    - credentials
+    - private_configuration
+    - sensitive_data
+
+
+
+
+
+AUDIT_TRAIL:
+
+
+  track:
+
+
+    - who_changed
+    - what_changed
+    - when_changed
+    - result
+
+
+
+
+
+CRITICAL_EVENTS:
+
+
+  monitor:
+
+
+    - authentication_failure
+    - permission_change
+    - security_rule_change
+    - file_change
+    - configuration_change
+
+
+
+
+
+LOG_INTEGRITY:
+
+
+  protect:
+
+
+    - log_files
+    - audit_history
+    - security_records
+
+
+
+
+
+  detect:
+
+
+    - deletion
+    - modification
+    - corruption
+
+
+
+
+
+LOG_ACCESS:
+
+
+  require:
+
+
+    - authorization
+    - permission_check
+    - audit_record
+
+
+
+
+
+LOG_RETENTION:
+
+
+  manage:
+
+
+    - storage_time
+    - cleanup_process
+    - archive_process
+
+
+
+
+
+AI_LOG_SECURITY:
+
+
+  protect:
+
+
+    - AI_conversations
+    - agent_actions
+    - memory_events
+
+
+
+
+
+  rules:
+
+
+    never_store:
+
+
+      - private_conversations_without_need
+      - secrets
+      - credentials
+
+
+
+
+
+INCIDENT_RESPONSE:
+
+
+  log_attack:
+
+
+    actions:
+
+
+      1:
+
+        protect_logs
+
+
+      2:
+
+        preserve_evidence
+
+
+      3:
+
+        analyze_event
+
+
+      4:
+
+        improve_detection
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  protect:
+
+
+    - Wood-Booster-HQ
+    - Spacemonkey_Core
+    - AI_Brain
+    - backend_logs
+    - security_history
+
+
+
+
+
+AUDIT:
+
+
+  record:
+
+
+    - security_events
+    - system_changes
+    - access_events
+
+
+
+
+
+  never_record:
+
+
+    - passwords
+    - API_keys
+    - private_tokens
+    - encryption_keys
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - create_safe_logs
+    - protect_audit_information
+    - maintain_traceability
+
+
+
+  never:
+
+
+    - hide_security_events
+    - log_secrets
+    - expose_private_information
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - logging_patterns
+    - audit_methods
+    - monitoring_design
+
+
+
+
+
+  forbidden:
+
+
+    - credentials
+    - private_keys
+    - authentication_data
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

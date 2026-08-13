@@ -1,0 +1,650 @@
+GODFILE:
+
+  id: WEB_DEVELOPMENT_MASTER_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Web-kehityksen, käyttöliittymien,
+    selainpohjaisten sovellusten ja
+    modernien verkkoteknologioiden
+    ydintiedosto.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Hyvä web-sovellus yhdistää teknisen
+    toimivuuden, hyvän käyttäjäkokemuksen
+    ja selkeän rakenteen.
+
+
+
+WEB_DEVELOPMENT:
+
+
+  understand:
+
+
+    >
+    Web-kehitys tarkoittaa sovellusten
+    rakentamista selaimessa toimiviksi
+    järjestelmiksi.
+
+
+
+
+
+WEB_ARCHITECTURE:
+
+
+  layers:
+
+
+    frontend:
+
+
+      purpose:
+
+        >
+        Käyttäjän näkemä ja käyttämä osa.
+
+
+
+
+
+    backend:
+
+
+      purpose:
+
+        >
+        Palvelinlogiikka, data ja
+        järjestelmän toimintaperiaatteet.
+
+
+
+
+
+    database:
+
+
+      purpose:
+
+        >
+        Tiedon pysyvä tallennus.
+
+
+
+
+
+HTML:
+
+
+  understand:
+
+
+    >
+    HTML määrittää verkkosivun rakenteen.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - elements
+    - attributes
+    - semantic_html
+    - forms
+    - accessibility
+
+
+
+
+
+CSS:
+
+
+  understand:
+
+
+    >
+    CSS määrittää ulkoasun,
+    asettelun ja visuaalisen kokemuksen.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - selectors
+    - layouts
+    - flexbox
+    - grid
+    - animations
+    - responsive_design
+
+
+
+
+
+RESPONSIVE_DESIGN:
+
+
+  principle:
+
+
+    >
+    Sovelluksen tulee toimia eri
+    kokoisilla näytöillä.
+
+
+
+
+
+support:
+
+
+  devices:
+
+
+    - desktop
+    - laptop
+    - tablet
+    - mobile
+
+
+
+
+
+JAVASCRIPT:
+
+
+  role:
+
+
+    >
+    Webin ohjelmointikieli,
+    joka lisää toiminnallisuutta.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - variables
+    - functions
+    - objects
+    - arrays
+    - events
+    - async_programming
+
+
+
+
+
+TYPESCRIPT:
+
+
+  purpose:
+
+
+    >
+    Lisää turvallisuutta ja
+    ylläpidettävyyttä suuriin projekteihin.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - types
+    - interfaces
+    - generics
+    - type_safety
+
+
+
+
+
+REACT:
+
+
+  role:
+
+
+    >
+    Komponenttipohjainen käyttöliittymäkirjasto
+    modernien sovellusten rakentamiseen.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - components
+    - props
+    - state
+    - hooks
+    - context
+    - routing
+
+
+
+
+
+COMPONENT_ARCHITECTURE:
+
+
+  principles:
+
+
+    - reusable_components
+    - clear_responsibilities
+    - modular_structure
+
+
+
+
+
+STATE_MANAGEMENT:
+
+
+  understand:
+
+
+    >
+    Sovelluksen tilan hallinta määrittää
+    miten tieto liikkuu käyttöliittymässä.
+
+
+
+
+
+learn:
+
+
+  approaches:
+
+
+    - local_state
+    - global_state
+    - stores
+    - server_state
+
+
+
+
+
+USER_INTERFACE:
+
+
+  design:
+
+
+    principles:
+
+
+      - clarity
+      - consistency
+      - accessibility
+      - simplicity
+
+
+
+
+
+USER_EXPERIENCE:
+
+
+  understand:
+
+
+    >
+    Käyttäjän kokemus määrittää kuinka
+    helposti järjestelmää voidaan käyttää.
+
+
+
+
+
+UX_PRINCIPLES:
+
+
+  follow:
+
+
+    - understand_user
+    - reduce_complexity
+    - provide_feedback
+    - guide_actions
+
+
+
+
+
+TAILWIND_AND_STYLING:
+
+
+  understand:
+
+
+    >
+    Modernit CSS-työkalut nopeuttavat
+    käyttöliittymien rakentamista.
+
+
+
+
+
+BACKEND_CONNECTION:
+
+
+  understand:
+
+
+    >
+    Frontend kommunikoi palvelimien kanssa
+    API-rajapintojen kautta.
+
+
+
+
+
+API:
+
+
+  learn:
+
+
+    concepts:
+
+
+      - requests
+      - responses
+      - endpoints
+      - authentication
+      - errors
+
+
+
+
+
+HTTP:
+
+
+  understand:
+
+
+    methods:
+
+
+      - GET
+      - POST
+      - PUT
+      - DELETE
+
+
+
+
+
+NODE_JS:
+
+
+  role:
+
+
+    >
+    JavaScript-palvelinympäristö backendille.
+
+
+
+
+
+learn:
+
+
+  concepts:
+
+
+    - servers
+    - routes
+    - middleware
+    - services
+
+
+
+
+
+FULL_STACK_DEVELOPMENT:
+
+
+  understand:
+
+
+    >
+    Full stack -kehittäjä hallitsee
+    frontendin, backendin ja datan
+    kokonaisuuden.
+
+
+
+
+
+DATABASE_CONNECTION:
+
+
+  integrate:
+
+
+    - APIs
+    - ORM
+    - models
+    - queries
+
+
+
+
+
+SECURITY:
+
+
+  apply:
+
+
+    - input_validation
+    - authentication
+    - authorization
+    - safe_data_handling
+
+
+
+
+
+PERFORMANCE:
+
+
+  optimize:
+
+
+    - loading_speed
+    - rendering
+    - network_requests
+    - data_usage
+
+
+
+
+
+TESTING:
+
+
+  understand:
+
+
+    types:
+
+
+      - component_tests
+      - API_tests
+      - end_to_end_tests
+
+
+
+
+
+DEPLOYMENT:
+
+
+  understand:
+
+
+    process:
+
+
+      - build
+      - configure
+      - deploy
+      - monitor
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  apply:
+
+
+    projects:
+
+
+      - Wood-Booster-HQ
+      - AI_Workspace
+      - Spacemonkey_UI
+      - Business_Dashboard
+
+
+
+
+
+AI_IN_WEB:
+
+
+  combine:
+
+
+    - chat_interfaces
+    - AI_agents
+    - knowledge_systems
+    - automation
+
+
+
+
+
+DEVELOPMENT_STYLE:
+
+
+  characteristics:
+
+
+    - modular
+    - clean
+    - user_focused
+    - maintainable
+    - scalable
+
+
+
+
+
+CODING_RULES:
+
+
+  always:
+
+
+    - understand_architecture
+    - reuse_components
+    - test_changes
+    - document_structure
+
+
+
+
+
+  never:
+
+
+    - create_unnecessary_complexity
+    - ignore_user_experience
+    - break_existing_features
+
+
+
+
+
+MISSION:
+
+
+  statement:
+
+
+    >
+    Rakentaa moderneja digitaalisia
+    ympäristöjä, joissa teknologia
+    palvelee ihmisiä tehokkaasti
+    ja selkeästi.
+
+
+
+
+
+CREATOR:
+
+
+  system_architect:
+
+
+    name:
+
+      Marc Järvinen
+
+
+status:
+
+  active: true

@@ -1,0 +1,718 @@
+[
+  {
+    "id": "audit-ms8xn4gj-6g20oh",
+    "moduleId": "action",
+    "capability": "project_navigation",
+    "status": "approved",
+    "requestId": "persist-test",
+    "createdAt": "2026-07-31T12:42:31.123Z"
+  },
+  {
+    "id": "audit-ms8xub2o-66lvjx",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:48:06.288Z"
+  },
+  {
+    "id": "audit-ms8xub2q-hecsr6",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:48:06.290Z"
+  },
+  {
+    "id": "audit-ms8xub2q-uvnpyz",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": "pipeline-ms8xub2n-6y3cyvi8",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:48:06.290Z"
+  },
+  {
+    "id": "audit-ms8xub2r-a9p91a",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:48:06.291Z"
+  },
+  {
+    "id": "audit-ms8xxfpe-k2m5g7",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:50:32.258Z"
+  },
+  {
+    "id": "audit-ms8xxfph-jic1mz",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:50:32.261Z"
+  },
+  {
+    "id": "audit-ms8xxfph-i0bupf",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": "pipeline-ms8xxfpd-cpib9bkt",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:50:32.261Z"
+  },
+  {
+    "id": "audit-ms8xxfph-haaq3p",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:50:32.261Z"
+  },
+  {
+    "id": "audit-ms8xy3yk-1oaoox",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.692Z"
+  },
+  {
+    "id": "audit-ms8xy3yl-erh0ts",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.693Z"
+  },
+  {
+    "id": "audit-ms8xy3yl-p4z5ph",
+    "moduleId": "memory-learning",
+    "capability": "memory-learning",
+    "status": "approved",
+    "requestId": "pipeline-ms8xy3yk-dx5w2ca6",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "memory-learning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": true,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.693Z"
+  },
+  {
+    "id": "audit-ms8xy3yl-r6hy60",
+    "moduleId": "memory-learning",
+    "capability": "memory-learning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "memory-learning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": true,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.693Z"
+  },
+  {
+    "id": "audit-ms8xy3yr-fkjecg",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.699Z"
+  },
+  {
+    "id": "audit-ms8xy3yr-qn9ys9",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.699Z"
+  },
+  {
+    "id": "audit-ms8xy3yr-1cysio",
+    "moduleId": "spacemonkey",
+    "capability": "spacemonkey",
+    "status": "approved",
+    "requestId": "pipeline-ms8xy3yr-favxzq4w",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "spacemonkey",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.699Z"
+  },
+  {
+    "id": "audit-ms8xy3ys-37pse8",
+    "moduleId": "spacemonkey",
+    "capability": "spacemonkey",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "spacemonkey",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.700Z"
+  },
+  {
+    "id": "audit-ms8xy3ys-fizb6d",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.700Z"
+  },
+  {
+    "id": "audit-ms8xy3yt-oawfbo",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.701Z"
+  },
+  {
+    "id": "audit-ms8xy3yt-pween9",
+    "moduleId": "action",
+    "capability": "action",
+    "status": "approved",
+    "requestId": "pipeline-ms8xy3ys-rctexs6q",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "action",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": true
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.701Z"
+  },
+  {
+    "id": "audit-ms8xy3yt-ewja3c",
+    "moduleId": "action",
+    "capability": "action",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "action",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": true
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-07-31T12:51:03.701Z"
+  },
+  {
+    "id": "audit-msa919kl-3irhql",
+    "type": "constitution_check",
+    "capability": "data-sharing",
+    "status": "blocked",
+    "metadata": {
+      "guard": "constitution-guard",
+      "decision": "deny",
+      "reason": "Toiminto voisi paljastaa yksityistä tietoa."
+    },
+    "createdAt": "2026-08-01T10:49:12.885Z"
+  },
+  {
+    "id": "audit-msi9hk48-gh8bg5",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T01:24:02.457Z"
+  },
+  {
+    "id": "audit-msi9hk4b-bkuc2o",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T01:24:02.459Z"
+  },
+  {
+    "id": "audit-msi9hk4c-cmtktp",
+    "type": "constitution_check",
+    "capability": "conversation",
+    "status": "approved",
+    "metadata": {
+      "guard": "constitution-guard",
+      "decision": "allow",
+      "reason": "Toiminto ei riko AI Constitution V1:n tarkistettuja sääntöjä."
+    },
+    "createdAt": "2026-08-07T01:24:02.460Z"
+  },
+  {
+    "id": "audit-msi9hk4c-5pavpv",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": "pipeline-msi9hk48-ge5jn308",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T01:24:02.460Z"
+  },
+  {
+    "id": "audit-msi9hk4c-tbspb7",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T01:24:02.460Z"
+  },
+  {
+    "id": "audit-msihrn4d-vqmhw7",
+    "moduleId": "live_context",
+    "capability": "live_context",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "live_context",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:15:49.837Z"
+  },
+  {
+    "id": "audit-msihvz38-abn0ea",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:19:11.972Z"
+  },
+  {
+    "id": "audit-msihvz3a-oq56wn",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:19:11.974Z"
+  },
+  {
+    "id": "audit-msihvz3b-b1loyc",
+    "type": "constitution_check",
+    "capability": "conversation",
+    "status": "approved",
+    "metadata": {
+      "guard": "constitution-guard",
+      "decision": "allow",
+      "reason": "Toiminto ei riko AI Constitution V1:n tarkistettuja sääntöjä."
+    },
+    "createdAt": "2026-08-07T05:19:11.975Z"
+  },
+  {
+    "id": "audit-msihvz3b-hvllm7",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": "pipeline-msihvz38-jqrgiuiz",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:19:11.975Z"
+  },
+  {
+    "id": "audit-msihvz3b-5fpwgx",
+    "moduleId": "conversation",
+    "capability": "conversation",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "conversation",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:19:11.975Z"
+  },
+  {
+    "id": "audit-msihy5kj-azxw0g",
+    "moduleId": "reasoning",
+    "capability": "reasoning",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "reasoning",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:20:53.683Z"
+  },
+  {
+    "id": "audit-msihy5kk-e0ek5i",
+    "moduleId": "decision",
+    "capability": "decision",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "decision",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:20:53.684Z"
+  },
+  {
+    "id": "audit-msihy5kl-7ww6vt",
+    "type": "constitution_check",
+    "capability": "live_context",
+    "status": "approved",
+    "metadata": {
+      "guard": "constitution-guard",
+      "decision": "allow",
+      "reason": "Toiminto ei riko AI Constitution V1:n tarkistettuja sääntöjä."
+    },
+    "createdAt": "2026-08-07T05:20:53.685Z"
+  },
+  {
+    "id": "audit-msihy5kl-9tc4l9",
+    "moduleId": "live_context",
+    "capability": "live_context",
+    "status": "approved",
+    "requestId": "pipeline-msihy5ki-10q5bc8y",
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "live_context",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:20:53.685Z"
+  },
+  {
+    "id": "audit-msihy5km-o3yav4",
+    "moduleId": "live_context",
+    "capability": "live_context",
+    "status": "approved",
+    "requestId": null,
+    "metadata": {
+      "success": true,
+      "status": "approved",
+      "moduleId": "live_context",
+      "execution": "automatic",
+      "requiresApproval": false,
+      "permissions": {
+        "database": false,
+        "execution": false
+      },
+      "reason": "Capability sallittu automaattiseen suoritukseen."
+    },
+    "createdAt": "2026-08-07T05:20:53.686Z"
+  }
+]

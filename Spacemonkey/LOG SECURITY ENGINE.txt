@@ -1,0 +1,462 @@
+GODFILE:
+
+  id: LOG_SECURITY_ENGINE
+
+  version: 1.0
+
+
+purpose:
+
+  description: >
+    Lokien turvallisen muodostamisen,
+    käsittelyn ja valvonnan moottori.
+
+
+
+CORE_PRINCIPLE:
+
+
+  statement:
+
+    >
+    Lokien tarkoitus on auttaa järjestelmän
+    ymmärtämisessä ilman että ne paljastavat
+    arkaluonteista tietoa.
+
+
+
+LOG_SECURITY_OBJECTIVES:
+
+
+  goals:
+
+
+    - debugging
+    - monitoring
+    - auditing
+    - incident_analysis
+
+
+
+
+
+LOG_LEVELS:
+
+
+  DEBUG:
+
+
+    purpose:
+
+      >
+      Kehityksen aikainen yksityiskohtainen tieto.
+
+
+
+    allowed:
+
+
+      - execution_flow
+      - status_information
+      - timing_information
+
+
+
+    forbidden:
+
+
+      - secrets
+      - credentials
+
+
+
+
+
+INFO:
+
+
+    purpose:
+
+      >
+      Normaalin toiminnan tapahtumat.
+
+
+
+    examples:
+
+
+      - service_started
+      - task_completed
+      - user_action_completed
+
+
+
+
+
+WARNING:
+
+
+    purpose:
+
+      >
+      Mahdollinen ongelma joka ei vielä
+      pysäytä toimintaa.
+
+
+
+    examples:
+
+
+      - retry_attempt
+      - invalid_input
+
+
+
+
+
+ERROR:
+
+
+    purpose:
+
+      >
+      Toimintahäiriöt ja epäonnistuneet operaatiot.
+
+
+
+    allowed:
+
+
+      - error_type
+      - safe_message
+      - operation_context
+
+
+
+
+
+SECURITY:
+
+
+    purpose:
+
+      >
+      Turvallisuuteen liittyvät tapahtumat.
+
+
+
+    examples:
+
+
+      - denied_access
+      - invalid_authentication_attempt
+      - blocked_action
+
+
+
+
+
+FORBIDDEN_LOG_DATA:
+
+
+  never_log:
+
+
+    secrets:
+
+
+      - passwords
+      - API_keys
+      - access_tokens
+      - private_keys
+      - encryption_keys
+
+
+
+    credentials:
+
+
+      - login_information
+      - authentication_codes
+
+
+
+    private_data:
+
+
+      - unnecessary_personal_information
+      - private_documents
+
+
+
+
+
+SECRET_MASKING:
+
+
+  when_sensitive_data_detected:
+
+
+    replace_with:
+
+
+      >
+      [REDACTED]
+
+
+
+  example:
+
+
+    unsafe:
+
+
+      >
+      token=abcdef123456
+
+
+
+    safe:
+
+
+      >
+      token=[REDACTED]
+
+
+
+
+
+ERROR_SECURITY:
+
+
+  principle:
+
+
+    >
+    Virheilmoitus kertoo ongelman,
+    mutta ei paljasta järjestelmän sisäisiä salaisuuksia.
+
+
+
+  avoid:
+
+
+    - database_credentials
+    - secret_paths
+    - private_configuration
+
+
+
+
+
+AUDIT_LOGGING:
+
+
+  track:
+
+
+    - security_events
+    - permission_changes
+    - access_attempts
+    - configuration_changes
+
+
+
+
+
+LOG_ACCESS_CONTROL:
+
+
+  rules:
+
+
+    access:
+
+
+      require:
+
+
+        - authorization
+        - valid_purpose
+
+
+
+  protect:
+
+
+    - security_logs
+    - authentication_logs
+    - audit_logs
+
+
+
+
+
+DEBUG_SECURITY:
+
+
+  rules:
+
+
+    development:
+
+
+      allowed:
+
+
+        - detailed_debugging
+
+
+
+    production:
+
+
+      restrict:
+
+
+        - sensitive_output
+        - verbose_secret_information
+
+
+
+
+
+FILE_LOG_SECURITY:
+
+
+  protect:
+
+
+    locations:
+
+
+      - logs/
+      - audit/
+      - security_logs/
+
+
+
+  rules:
+
+
+    permissions:
+
+
+      restricted: true
+
+
+
+
+
+LOG_RETENTION:
+
+
+  principle:
+
+
+    >
+    Säilytä vain tarpeellinen määrä lokitietoa.
+
+
+
+  remove:
+
+
+    - obsolete_logs
+    - unnecessary_data
+
+
+
+
+
+MONITORING:
+
+
+  detect:
+
+
+    - unusual_activity
+    - repeated_failures
+    - suspicious_access
+    - security_events
+
+
+
+
+
+WOOD_BOOSTER_CONTEXT:
+
+
+  monitor:
+
+
+    - AI_Brain
+    - Spacemonkey_Core
+    - API_services
+    - Knowledge_System
+    - Memory_System
+
+
+
+
+
+AI_RULES:
+
+
+  always:
+
+
+    - log_safely
+    - hide_sensitive_information
+    - keep_auditability
+
+
+
+  never:
+
+
+    - log_secrets
+    - expose_credentials
+    - disable_security_logging
+
+
+
+
+
+LEARNING:
+
+
+  allowed:
+
+
+    - log_patterns
+    - monitoring_methods
+    - audit_structures
+
+
+
+  forbidden:
+
+
+    - secret_values
+    - passwords
+    - API_keys
+    - private_credentials
+
+
+
+
+
+creator:
+
+  system_architect:
+
+    name:
+
+      Marc Järvinen
+
+
+
+status:
+
+  active: true

@@ -1,0 +1,144 @@
+{
+  "system": "Spacemonkey Central Core Registry",
+  "version": "1.0.0",
+
+  "description": "Spacemonkeyn päämoduulirekisteri. Määrittää järjestelmän tärkeimmät äly-, muisti-, kehitys- ja runtime-moduulit.",
+
+  "core": {
+    "name": "Spacemonkey",
+    "role": "Wood-Booster HQ:n henkilökohtainen AI-keskusyksikkö",
+    "status": "active"
+  },
+
+  "modules": [
+
+    {
+      "id": "identity",
+      "name": "Identity Engine",
+      "description": "Spacemonkeyn identiteetin hallinta.",
+      "engine": "spacemonkeyIdentity",
+      "category": "core",
+      "enabled": true,
+      "priority": 1
+    },
+
+    {
+      "id": "personality",
+      "name": "Personality Engine",
+      "description": "Kommunikaatiotyyli, käyttäytyminen ja persoonallisuus.",
+      "engine": "spacemonkeyPersonalityEngine",
+      "category": "core",
+      "enabled": true,
+      "priority": 2
+    },
+
+    {
+      "id": "memory",
+      "name": "Memory Engine",
+      "description": "Pitkäaikainen muisti ja oppiminen.",
+      "engine": "spacemonkeyPersistentMemory",
+      "category": "intelligence",
+      "enabled": true,
+      "priority": 3
+    },
+
+    {
+      "id": "truth",
+      "name": "Truth Engine",
+      "description": "Tietojen arviointi ja epävarmuuden hallinta.",
+      "engine": "spacemonkeyTruthEngine",
+      "category": "reasoning",
+      "enabled": true,
+      "priority": 4
+    },
+
+    {
+      "id": "decision",
+      "name": "Decision Engine",
+      "description": "Vaihtoehtojen arviointi ja päätöksenteko.",
+      "engine": "spacemonkeyDecisionEngine",
+      "category": "reasoning",
+      "enabled": true,
+      "priority": 5
+    },
+
+    {
+      "id": "planning",
+      "name": "Planning Engine",
+      "description": "MVP-suunnittelu ja etenemisjärjestys.",
+      "engine": "spacemonkeyPlanningEngine",
+      "category": "development",
+      "enabled": true,
+      "priority": 6
+    },
+
+    {
+      "id": "coding",
+      "name": "Code Intelligence",
+      "description": "Koodin ymmärtäminen, analysointi ja muutossuunnittelu.",
+      "engine": "spacemonkeyCodingAnalyzer",
+      "category": "development",
+      "enabled": true,
+      "priority": 7
+    },
+
+    {
+      "id": "workflow",
+      "name": "Development Workflow Engine",
+      "description": "Kehitysprosessien hallinta.",
+      "engine": "spacemonkeyDevelopmentWorkflowEngine",
+      "category": "development",
+      "enabled": true,
+      "priority": 8
+    },
+
+    {
+      "id": "dashboard",
+      "name": "Development Dashboard Engine",
+      "description": "Spacemonkeyn kehitystilan seuranta.",
+      "engine": "spacemonkeyDevelopmentDashboardDataEngine",
+      "category": "monitoring",
+      "enabled": true,
+      "priority": 9
+    },
+
+    {
+      "id": "runtime",
+      "name": "Runtime Integration",
+      "description": "Yhdistää Spacemonkeyn Wood-Booster HQ ympäristöön.",
+      "engine": "spacemonkeyRuntime",
+      "category": "system",
+      "enabled": true,
+      "priority": 10
+    },
+
+    {
+      "id": "ahma",
+      "name": "Ahma - Finnish Language Agent",
+      "description": "Ulkopuolinen suomen kielen erikoisagentti (Poro-2, paikallinen Ollama). Viimeistelee Spacemonkeyn vastauksen suomen kielen back-to-back-ketjussa ennen vastausvartijaa.",
+      "engine": "ahmaClient",
+      "category": "language",
+      "enabled": true,
+      "priority": 11
+    }
+
+  ],
+
+  "rules": {
+
+    "loadIdentityFirst": true,
+
+    "respectGodFiles": true,
+
+    "preserveUserIntent": true,
+
+    "preferMVPDevelopment": true,
+
+    "requireValidationBeforeExecution": true
+
+  },
+
+  "created": "2026-07-26",
+
+  "maintainer": "Marc Järvinen"
+}

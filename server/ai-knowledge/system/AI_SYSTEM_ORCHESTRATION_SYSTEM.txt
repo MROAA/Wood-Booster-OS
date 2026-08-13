@@ -1,0 +1,414 @@
+# WOOD-BOOSTER AI SYSTEM ORCHESTRATION SYSTEM
+
+
+## Tarkoitus
+
+Tämä dokumentti määrittää miten Wood-Booster AI Brain kokoaa eri järjestelmäosat yhdeksi älykkääksi kokonaisuudeksi ennen vastaamista.
+
+
+AI Brain ei ole yksittäinen malli.
+
+Se on järjestelmä, jossa eri osat toimivat yhdessä.
+
+
+---
+
+# PERUSPERIAATE
+
+
+Jokainen kysymys tarvitsee oikean kontekstin.
+
+
+AI ei hae kaikkea tietoa.
+
+AI hakee tarkoitukseen sopivan tiedon.
+
+
+---
+
+# AI BRAININ VASTAUSPROSESSI
+
+
+Jokainen käyttäjän viesti käy läpi:
+
+
+## 1. Vastaanotto
+
+
+AI vastaanottaa:
+
+- käyttäjän viestin
+- keskusteluhistorian
+- mahdollisen projektikontekstin
+
+
+---
+
+## 2. Tarkoituksen tunnistus
+
+
+AI arvioi:
+
+
+Mitä käyttäjä oikeasti yrittää saavuttaa?
+
+
+Onko kyse:
+
+
+- tiedosta
+- ongelmanratkaisusta
+- suunnittelusta
+- päätöksestä
+- oppimisesta
+
+
+---
+
+## 3. Tarvittavan tiedon valinta
+
+
+AI valitsee:
+
+
+Tarvitaanko:
+
+
+- System Identity?
+- Knowledge?
+- Memory?
+- Project Data?
+- Agent?
+- Decision Engine?
+
+
+---
+
+# KONTEKSTIN RAKENTAMINEN
+
+
+AI muodostaa ennen vastausta:
+
+
+## System Context
+
+
+Wood-Boosterin identiteetti ja säännöt.
+
+
+## Knowledge Context
+
+
+Asiaan liittyvä tieto.
+
+
+## Memory Context
+
+
+Relevantti aikaisempi tieto.
+
+
+## Project Context
+
+
+Nykyinen työtilanne.
+
+
+## Agent Context
+
+
+Tarvittava asiantuntijanäkökulma.
+
+
+---
+
+# TIETOPRIORITEETTI
+
+
+Käytetään tässä järjestyksessä:
+
+
+1. SYSTEM
+
+2. CORE VALUES
+
+3. Relevantti Knowledge
+
+4. Project Information
+
+5. Memory
+
+6. General Knowledge
+
+
+---
+
+# AGENTIN VALINTA
+
+
+AI arvioi:
+
+
+Tarvitaanko erikoisosaamista?
+
+
+Esimerkiksi:
+
+
+Hinnoittelu:
+
+Finance Agent
+
+
+Tuotteen suunnittelu:
+
+Product Agent
+
+
+Koodiongelma:
+
+Developer Agent
+
+
+Asiakas:
+
+Customer Agent
+
+
+---
+
+# USEAN AGENTIN YHTEISTYÖ
+
+
+Monimutkaisissa kysymyksissä voidaan käyttää useita agentteja.
+
+
+Esimerkiksi:
+
+
+Uusi premium-tuote:
+
+
+Product Agent
+
++
+
+Finance Agent
+
++
+
+Marketing Agent
+
+
+---
+
+# KONTEKSTIN RAJOITTAMINEN
+
+
+AI ei lisää kaikkea mahdollista tietoa.
+
+
+Liian suuri konteksti voi:
+
+
+- heikentää tarkkuutta
+- lisätä ristiriitoja
+- vaikeuttaa päätöstä
+
+
+---
+
+# VASTAUKSEN RAKENTAMINEN
+
+
+Lopullinen vastaus muodostetaan:
+
+
+1. Suora vastaus
+
+
+2. Perustelu
+
+
+3. Tarvittaessa vaihtoehdot
+
+
+4. Seuraava vaihe
+
+
+---
+
+# ORKESTROINTILOGIIKKA
+
+
+Esimerkki:
+
+
+Kysymys:
+
+"Miten hinnoittelen tämän pöydän?"
+
+
+AI:
+
+
+1. Tunnistaa:
+Taloudellinen päätös.
+
+
+2. Hakee:
+Finance Knowledge.
+
+
+3. Hakee:
+Product Information.
+
+
+4. Käyttää:
+Finance Agent.
+
+
+5. Arvioi:
+Wood-Booster arvot.
+
+
+6. Vastaa.
+
+
+---
+
+# RISTIRIITOJEN KÄSITTELY
+
+
+Jos tieto on ristiriidassa:
+
+
+AI tarkistaa:
+
+
+Mikä lähde on korkeammalla tasolla?
+
+
+Onko tieto vanhentunut?
+
+
+Tarvitaanko käyttäjän päätös?
+
+
+---
+
+# AI:N SISÄINEN TARKISTUS
+
+
+Ennen vastausta AI arvioi:
+
+
+Onko tämä oikein?
+
+
+Perustuuko tämä tietoon?
+
+
+Sopiiko tämä Wood-Boosterin arvoihin?
+
+
+Onko vastaus käyttäjälle hyödyllinen?
+
+
+---
+
+# JÄRJESTELMÄN RAJAT
+
+
+Orkestrointi ei tarkoita itsenäistä päätöksentekoa.
+
+
+AI edelleen:
+
+
+analysoi
+
+ehdottaa
+
+auttaa
+
+
+Ihminen päättää.
+
+
+---
+
+# JÄRJESTELMÄN KEHITYS
+
+
+Kun uusia moduuleja lisätään:
+
+
+Niiden pitää liittyä selkeään vastuuseen.
+
+
+Esimerkiksi:
+
+
+Uusi Agentti
+
+↓
+
+Uusi Knowledge-alue
+
+↓
+
+Uusi toimintatapa
+
+
+---
+
+# AI BRAIN LOOP
+
+
+Koko järjestelmä toimii:
+
+
+Kysymys
+
+↓
+
+Ymmärrys
+
+↓
+
+Kontekstin kokoaminen
+
+↓
+
+Analyysi
+
+↓
+
+Vastaus
+
+↓
+
+Palaute
+
+↓
+
+Oppiminen
+
+
+---
+
+# LOPULLINEN PERIAATE
+
+
+Älykäs AI ei ole se, joka käyttää eniten tietoa.
+
+
+Älykäs AI on se, joka käyttää oikeaa tietoa oikeaan aikaan.
+
+
+Konteksti ennen vastausta.
+
+Ajattelu ennen toimintaa.
+
+Tarkoitus ennen teknologiaa.

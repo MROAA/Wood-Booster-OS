@@ -1,0 +1,553 @@
+[33m0580c6d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: complete Spacemonkey Autonomous Ecosystem 1.0 (Freedom, Carpenter Tools, Neural Notifications)
+[33mb083fba[m feat: integrate Spacemonkey Voice Bridge, Heartbeat Engine, and complete E2E synchronization
+[33m53db581[m feat(desktop): add virtual desktop navigation
+[33m98bbace[m feat(desktop): integrate desktop runtime
+[33m8226af2[m feat(desktop): add modular desktop runtime
+[33m29911d4[m Merge remote-tracking branch 'origin/development'
+[33m2049685[m Merge pull request #62 from MROAA/feat/desktop-recycle-bin
+[33m4f58acb[m[33m ([m[1;31morigin/feat/desktop-recycle-bin[m[33m, [m[1;32mfeat/desktop-recycle-bin[m[33m)[m feat: add a real Recycle Bin to the desktop
+[33m38b5e8c[m Merge pull request #47 from MROAA/fix/remove-leaked-moltbook-key
+[33md2f9ca4[m Merge pull request #48 from MROAA/chore/remove-dart-mockup-pile
+[33mf1d3928[m Lisätty Win96 interaktiiviset työpöytämoduulit ja uudet ominaisuudet
+[33m4f86ebb[m[33m ([m[1;32mdevelopment[m[33m)[m Merge pull request #60 from MROAA/fix/chat-bubble-wider-not-centered
+[33m58519dd[m[33m ([m[1;31morigin/fix/chat-bubble-wider-not-centered[m[33m, [m[1;32mfix/chat-bubble-wider-not-centered[m[33m)[m fix: revert centered chat welcome card, just widen the bubble instead
+[33mc4430d5[m Merge pull request #59 from MROAA/feat/chat-welcome-state
+[33m63a451e[m[33m ([m[1;31morigin/feat/chat-welcome-state[m[33m, [m[1;32mfeat/chat-welcome-state[m[33m)[m feat: center and widen Spacemonkey's first greeting message
+[33m79e959c[m Merge pull request #58 from MROAA/fix/spider-solitaire-drag-conflict
+[33m795f4fe[m[33m ([m[1;31morigin/fix/spider-solitaire-drag-conflict[m[33m, [m[1;32mfix/spider-solitaire-drag-conflict[m[33m)[m fix: card drags in Spider Solitaire no longer trigger the desktop's file-drop UI
+[33m461d9ab[m Merge pull request #57 from MROAA/feat/spider-solitaire-desktop-app
+[33m2c11c23[m[33m ([m[1;31morigin/feat/spider-solitaire-desktop-app[m[33m, [m[1;32mfeat/spider-solitaire-desktop-app[m[33m)[m feat: Spider Solitaire is now a desktop app
+[33m8b7fabf[m Merge pull request #56 from MROAA/feat/ai-tyotila-to-desktop-apps
+[33m3c32ebd[m[33m ([m[1;31morigin/feat/ai-tyotila-to-desktop-apps[m[33m, [m[1;32mfeat/ai-tyotila-to-desktop-apps[m[33m)[m feat: move Tools, Dev Studio, Projektityötila into desktop apps
+[33me14fd6e[m Merge pull request #55 from MROAA/feat/desktop-taskbar-real-status
+[33mb121bcb[m[33m ([m[1;31morigin/feat/desktop-taskbar-real-status[m[33m, [m[1;32mfeat/desktop-taskbar-real-status[m[33m)[m feat: taskbar tray shows real backend/disk/git status, not decoration
+[33m2e0915b[m Merge pull request #54 from MROAA/fix/desktop-icon-drag-full-width
+[33mfb08024[m[33m ([m[1;31morigin/fix/desktop-icon-drag-full-width[m[33m, [m[1;32mfix/desktop-icon-drag-full-width[m[33m)[m fix: icons can be dragged across the whole desktop; add right-click New folder
+[33m10c654c[m Merge pull request #53 from MROAA/feat/drop-file-at-exact-position
+[33m7612a87[m[33m ([m[1;31morigin/feat/drop-file-at-exact-position[m[33m, [m[1;32mfeat/drop-file-at-exact-position[m[33m)[m feat: newly dropped files land exactly where you dropped them
+[33me3e8dbe[m Merge pull request #52 from MROAA/feat/move-file-to-folder
+[33m2fc6d7f[m[33m ([m[1;31morigin/feat/move-file-to-folder[m[33m, [m[1;32mfeat/move-file-to-folder[m[33m)[m feat: drag files onto folders to move them, drag any icon to reposition
+[33me1a3c5e[m Merge pull request #51 from MROAA/feat/desktop-native-file-icons
+[33m460473b[m[33m ([m[1;31morigin/feat/desktop-native-file-icons[m[33m, [m[1;32mfeat/desktop-native-file-icons[m[33m)[m feat: dropped files appear directly as desktop icons, no window step
+[33m463a0c3[m Merge pull request #50 from MROAA/fix/desktop-drag-drop-upload
+[33m7fe2263[m[33m ([m[1;31morigin/fix/desktop-drag-drop-upload[m[33m, [m[1;32mfix/desktop-drag-drop-upload[m[33m)[m fix: whole desktop background is now a file dropzone
+[33m13d0b4f[m Merge pull request #49 from MROAA/feat/writable-desktop-explorer
+[33m24c5ef6[m[33m ([m[1;31morigin/feat/writable-desktop-explorer[m[33m, [m[1;32mfeat/writable-desktop-explorer[m[33m)[m feat: make the desktop's Tiedostonhallinta writable
+[33m4735c2a[m[33m ([m[1;31morigin/chore/remove-dart-mockup-pile[m[33m, [m[1;32mchore/remove-dart-mockup-pile[m[33m)[m Remove the disconnected lib/modules/ Dart mockup pile (211 files)
+[33mae93ced[m[33m ([m[1;31morigin/fix/remove-leaked-moltbook-key[m[33m, [m[1;32mfix/remove-leaked-moltbook-key[m[33m)[m Remove lib/modules/moltbook_driver.dart - leaked live API key, orphaned duplicate
+[33m3b86d59[m Merge pull request #38 from MROAA/feat/boosterverse-lore-wiring
+[33mba5b58b[m[33m ([m[1;31morigin/feat/boosterverse-lore-wiring[m[33m)[m Merge pull request #45 from MROAA/feat/boosterverse-lore-batch4
+[33m2dcf300[m Merge pull request #46 from MROAA/feat/sidebar-declutter-desktop-apps
+[33me953f0a[m[33m ([m[1;31morigin/feat/sidebar-declutter-desktop-apps[m[33m, [m[1;32mfeat/sidebar-declutter-desktop-apps[m[33m)[m feat: declutter sidebar into desktop apps, polish sidebar + chat visuals
+[33m479869d[m[33m ([m[1;31morigin/feat/boosterverse-lore-batch4[m[33m, [m[1;32mfeat/boosterverse-lore-batch4[m[33m)[m Wire batch 4: the 5 spacemonkey_*.py files that are genuinely lore
+[33m30da6b5[m Merge pull request #44 from MROAA/fix/wire-dashboard-split-view
+[33m78c819f[m Wire the new split-screen Dashboard into the actual home route
+[33m837cd14[m Merge pull request #43 from MROAA/fix/main-dashboard-chat-desktop
+[33m29fec26[m[33m ([m[1;32mfeat/boosterverse-lore-wiring[m[33m)[m Merge pull request #42 from MROAA/feat/boosterverse-lore-batch3
+[33m486c5e5[m[33m ([m[1;31morigin/fix/main-dashboard-chat-desktop[m[33m, [m[1;32mfix/main-dashboard-chat-desktop[m[33m)[m fix: apply chat+desktop dashboard redesign to the actual live component
+[33ma66af38[m[33m ([m[1;31morigin/feat/boosterverse-lore-batch3[m[33m, [m[1;32mfeat/boosterverse-lore-batch3[m[33m)[m Wire third batch of Boosterverse lore, completing all boosterverse_*.py files
+[33mac98fd7[m Merge pull request #41 from MROAA/feat/dashboard-chat-desktop
+[33m288f88a[m[33m ([m[1;31morigin/feat/dashboard-chat-desktop[m[33m, [m[1;32mfeat/dashboard-chat-desktop[m[33m)[m feat: dashboard shows Spacemonkey chat + Boosterverse Desktop side by side
+[33meee176a[m Merge pull request #40 from MROAA/feat/boosterverse-lore-batch2
+[33m3f15b24[m[33m ([m[1;31morigin/feat/boosterverse-lore-batch2[m[33m, [m[1;32mfeat/boosterverse-lore-batch2[m[33m)[m Wire second batch of Boosterverse lore (guardians, alliance, origin) into Spacemonkey chat
+[33mb99981c[m Merge pull request #39 from MROAA/feat/project-workspace
+[33m7968996[m[33m ([m[1;31morigin/feat/project-workspace[m[33m, [m[1;32mfeat/project-workspace[m[33m)[m feat: add Project Workspace (Spacemonkey chat + virtual file organizer)
+[33m149138c[m Wire first batch of Boosterverse lore into the real Spacemonkey chat
+[33m6078130[m feat: add Wood-Booster OS core
+[33m89a15fe[m feat: add completed lib modules
+[33ma792281[m Merge pull request #37 from MROAA/fix/topbar-title-link
+[33m42ed7df[m[33m ([m[1;31morigin/fix/topbar-title-link[m[33m, [m[1;32mfix/topbar-title-link[m[33m)[m Make TopBar title a link back to Dashboard, same as the Sidebar logo
+[33m0cb3dff[m[33m ([m[1;32mfeat/desktop-persistent-sidebar[m[33m)[m Merge pull request #36 from MROAA/feat/desktop-persistent-sidebar
+[33mc59ca1b[m[33m ([m[1;31morigin/feat/desktop-persistent-sidebar[m[33m)[m Keep sidebar visible on Boosterverse Desktop; fix welcome text
+[33m0a42b87[m Merge pull request #33 from MROAA/feat/dashboard-rework
+[33m36d7963[m[33m ([m[1;31morigin/feat/dashboard-rework[m[33m, [m[1;32mfeat/dashboard-rework[m[33m)[m Merge development into feat/dashboard-rework
+[33maa208d6[m Merge pull request #35 from MROAA/feat/moltbook-plugin
+[33m8deea14[m[33m ([m[1;31morigin/feat/moltbook-plugin[m[33m, [m[1;32mfeat/moltbook-plugin[m[33m)[m Add Moltbook Publisher plugin: read feed, autonomous publish
+[33m6b630c2[m Add Altrako character icon (Spacemonkey's alter-ego protector)
+[33m82cd79f[m Add subtle Dashboard background texture + cropped Boosterverse character icons
+[33m4b591ff[m Merge pull request #34 from MROAA/feat/win11-lore-integration
+[33m4ca6d2f[m[33m ([m[1;31morigin/feat/win11-lore-integration[m[33m, [m[1;32mfeat/win11-lore-integration[m[33m)[m Commit Marc's Gemini-built AI Brain / Boosterverse backend (never in git)
+[33m682fd5f[m Add Projects, Spacemonkey, System Pulse, Git Guardian, Settings as desktop apps
+[33m87f2ba5[m Persist Spider Solitaire progress across navigation and reloads
+[33mc685b2e[m Rework navigation: dedicated upload page, inline chat, reachable desktop
+[33m8ce0dd6[m Import in-progress dashboard/routing rework + Spider Solitaire polish
+[33m8867ffd[m Merge pull request #24 from MROAA/feat/desktop-app-system-pulse
+[33m56a1b1a[m[33m ([m[1;31morigin/feat/desktop-app-system-pulse[m[33m, [m[1;32mfeat/desktop-app-system-pulse[m[33m)[m Merge origin/development into the desktop-apps branch
+[33m0b0154b[m[33m ([m[1;32mfeat/boosterverse-spider-solitaire[m[33m)[m Merge pull request #31 from MROAA/feat/dashboard-audit-polish
+[33m6319e58[m[33m ([m[1;31morigin/feat/dashboard-audit-polish[m[33m, [m[1;32mfeat/dashboard-audit-polish[m[33m)[m Merge remote-tracking branch 'origin/development' into feat/dashboard-audit-polish
+[33m34fb0e6[m Fix CORS allowlist and make the Spacemonkey dashboard card real
+[33m71abe37[m Merge pull request #28 from MROAA/feat/debug-python-skill
+[33mc14f6ea[m Merge pull request #30 from MROAA/feat/spacemonkey-real-chat
+[33m53e0b36[m[33m ([m[1;31morigin/feat/spacemonkey-real-chat[m[33m, [m[1;32mfeat/spacemonkey-real-chat[m[33m)[m Add real Notes/Settings persistence; fix hidden-file leak in file search
+[33md9ced48[m Merge pull request #29 from MROAA/feat/boosterverse-desktop-spacemonkey-app
+[33mabd7d0b[m[33m ([m[1;31morigin/feat/boosterverse-desktop-spacemonkey-app[m[33m, [m[1;32mfeat/boosterverse-desktop-spacemonkey-app[m[33m)[m Merge origin/development into the desktop-embed branch
+[33md68caf6[m[33m ([m[1;31morigin/feat/debug-python-skill[m[33m, [m[1;32mfeat/debug-python-skill[m[33m)[m Add debug-python skill to the Python Developer plugin
+[33m2fad4d3[m Add real free-form Spacemonkey chat via Anthropic API
+[33m5649264[m Merge pull request #27 from MROAA/fix/spacemonkey-memory-count
+[33mbbdc258[m[33m ([m[1;31morigin/fix/spacemonkey-memory-count[m[33m)[m Fix Spacemonkey dashboard showing wrong "Saved Memories" count
+[33m23bbd44[m Merge pull request #26 from MROAA/fix/spacemonkey-persona-recency
+[33mfab7c23[m[33m ([m[1;31morigin/fix/spacemonkey-persona-recency[m[33m)[m Repeat Spacemonkey's identity rules near the end of the prompt, not just the top
+[33md7dae02[m Merge pull request #25 from MROAA/feat/spacemonkey-autonomous-impulse
+[33mf40fb88[m[33m ([m[1;31morigin/feat/spacemonkey-autonomous-impulse[m[33m)[m Make Spacemonkey Impulse autonomous: it thinks on its own schedule now
+[33m6337397[m Embed the virtual desktop in place of the chat window, not the whole page
+[33m5189e25[m Add System Pulse as a windowed desktop app in Boosterverse Desktop
+[33m7a089ab[m Merge pull request #21 from MROAA/feat/spacemonkey-brainwave
+[33mb5f9fcc[m Merge pull request #22 from MROAA/feat/boosterverse-desktop-spacemonkey-app
+[33m2684142[m Merge pull request #23 from MROAA/feat/win11-desktop-polish
+[33m39eaf74[m[33m ([m[1;32mfeat/win11-desktop-polish[m[33m)[m Make Boosterverse Desktop full-screen so it actually looks like Windows 11
+[33m3689707[m Add POST /api/spacemonkey/impulse: autonomous brainstorm / architecture critique
+[33m77926ca[m Add Spacemonkey chat app to Boosterverse Desktop
+[33mea481b5[m Add /api/spacemonkey/brainwave: brain-region status view for the Neural Architecture PRD
+[33m1ca586e[m Merge pull request #20 from MROAA/feat/boosterverse-desktop-files
+[33mdc93803[m[33m ([m[1;31morigin/feat/boosterverse-desktop-files[m[33m, [m[1;32mfeat/boosterverse-desktop-files[m[33m)[m Merge remote-tracking branch 'origin/development' into feat/boosterverse-desktop-files
+[33m076c9c8[m Boosterverse Desktop: polish pass, one critical security fix
+[33m6c7f25b[m Merge pull request #19 from MROAA/feat/refactor-python-skill
+[33mbb44c99[m[33m ([m[1;32mfeat/refactor-python-skill[m[33m)[m Add refactor-python skill to the Python Developer Boosterverse plugin
+[33meae6451[m Boosterverse Desktop: real Wood-Booster brand imagery
+[33m3014f75[m Merge pull request #18 from MROAA/feat/review-python-skill
+[33mbec2be1[m[33m ([m[1;32mfeat/review-python-skill[m[33m)[m Add review-python skill to the Python Developer Boosterverse plugin
+[33m0b2279a[m Add a real terminal (fish) to Boosterverse Desktop
+[33m0e15d54[m Merge pull request #17 from MROAA/test/wordpress-publish-flow
+[33mcfca1c3[m[33m ([m[1;32mtest/wordpress-publish-flow[m[33m)[m Build Blog Studio for WordPress publishing, restore app-wide routing
+[33m196a03a[m Boosterverse Desktop: closer Windows 11 fidelity (bounded scope)
+[33m13ebcd6[m Boosterverse Desktop: Windows 11-style shell (taskbar, Start, windows)
+[33m1e797a9[m Merge pull request #15 from MROAA/feat/poro-python-explainer
+[33mecceb39[m[33m ([m[1;32mfeat/poro-python-explainer[m[33m)[m Switch Python code explainer to Poro-2, decouple from PYTHON_OLLAMA_MODEL
+[33mab5213b[m Merge pull request #5 from MROAA/feat/product-gallery
+[33m972a61f[m Merge pull request #9 from MROAA/feat/dashboard-background-image
+[33mc6a0caf[m Merge pull request #14 from MROAA/feat/boosterverse-desktop-files
+[33m72e3ea5[m Add Boosterverse Desktop: read-only file browser (first step)
+[33mbc569e0[m Merge pull request #13 from MROAA/feat/poro-finnish-content-models
+[33m439f7bb[m[33m ([m[1;32mfeat/poro-finnish-content-models[m[33m)[m Switch Finnish content generators to Poro-2 as primary model
+[33m6de6b68[m Merge pull request #12 from MROAA/feat/explain-python-skill
+[33m7f83a75[m[33m ([m[1;32mfeat/explain-python-skill[m[33m)[m Add explain-python skill to the Python Developer Boosterverse plugin
+[33mb8f9147[m Merge pull request #8 from MROAA/feat/git-guardian-auto-backup
+[33m944798f[m Record test checkpoint entry from Git Guardian scheduler verification
+[33md437f78[m Git Guardian checkpoint - 2026-08-08T22:15:10.960984+00:00
+[33md9e0318[m Merge pull request #7 from MROAA/fix/git-guardian-branch-safety
+[33m867d94e[m Merge pull request #10 from MROAA/chore/remove-orphaned-python-data-module
+[33m1e50028[m[33m ([m[1;32mchore/remove-orphaned-python-data-module[m[33m)[m Remove orphaned PythonDataModule.jsx
+[33m4dfeef5[m[33m ([m[1;31morigin/feat/dashboard-background-image[m[33m, [m[1;32mfeat/dashboard-background-image[m[33m)[m Add dark mossy-forest background image to the HQ dashboard
+[33m7259fd7[m Fix Git Guardian: never commit/push to the checked-out branch
+[33mf2b6664[m Git Guardian checkpoint - 2026-08-08T22:01:56.004106+00:00
+[33m296bb30[m Git Guardian checkpoint - 2026-08-08T21:51:00.028695+00:00
+[33md4a2271[m Git Guardian checkpoint - 2026-08-08T21:48:44.619233+00:00
+[33ma9faf48[m Git Guardian checkpoint - 2026-08-08T21:48:37.420369+00:00
+[33mee3af2f[m[33m ([m[1;31morigin/feat/product-gallery[m[33m, [m[1;32mfeat/product-gallery[m[33m)[m Add product gallery: a Streamlit showcase for Wood-Booster products
+[33m94605d0[m Merge pull request #4 from MROAA/feat/python-node-status-bridge
+[33me018fcc[m[33m ([m[1;32mfeat/python-node-status-bridge[m[33m)[m Bridge Python Spacemonkey status into System Pulse
+[33m3e33d3d[m Merge pull request #3 from MROAA/feat/git-guardian-python
+[33m876657e[m[33m ([m[1;32mfeat/git-guardian-python[m[33m)[m Add Git Guardian: pre-commit secret scanner for the Python prototype
+[33m93fb299[m Merge pull request #2 from MROAA/feat/python-spacemonkey-backup
+[33mc9fc96e[m[33m ([m[1;32mfeat/python-spacemonkey-backup[m[33m)[m Ignore versions/ (auto-generated identity snapshots)
+[33m646bafd[m Merge remote-tracking branch 'origin/development' into feat/python-spacemonkey-backup
+[33mb021c54[m Merge pull request #1 from MROAA/chore/version-control-workflow
+[33m35fe661[m Merge remote-tracking branch 'origin/development' into chore/version-control-workflow
+[33mb25c137[m Establish a git worktree + branch + PR workflow for concurrent sessions
+[33m857b109[m Lisatty ConfigValidator-yksikkotestit (test_config.py)
+[33mc78931b[m Lisatty ConfigValidator ja kytketty osaksi make_check.py tarkastusta
+[33m3cead5f[m Lisatty automaattinen make_check.py kuntotarkastusskripti
+[33madfec78[m Lisatty interaktiivinen spc_cli.py kayttoliittymä
+[33m8a70644[m Lisatty AuditLogger, siivottu datetime-varoitus ja kytketty lokitus Facadeen
+[33m1953e44[m Lisatty kattavat unittest-testit ja korjattu git-hookin moduulipolku
+[33m01d6543[m Korjattu tyypitys, virhetyypit ja moduulirakenne vakautettu
+[33md454b8d[m Refaktoroitu rakenne src/-pakettiin ja luotu tiivis spc.py-rajapinta
+[33m119b5b3[m Poistettu CLI-käyttöliittymä – siirrytty hiljaiseen ja selkeään ydinarkkitehtuuriin
+[33m2cac2a5[m Lisätty interaktiivinen spc_cli.py työkalu
+[33m65f8a9e[m Lisätty interaktiivinen spc_cli.py työkalu
+[33m49c5198[m Lisätty JSON-konfiguraatiot identiteeteille ja turvasäännöille sekä config_loader.py
+[33m4027a6e[m Lisätty SecurityGuard suojakerros ja kytketty spc_facade.py rajapintaan
+[33md884e7d[m Ignore python cache files
+[33m276adc5[m Integroituna PersonalityCore ja monikerroksiset identiteetit spc_facade.py-rajapintaan
+[33m4ba9c7d[m Lisätty spc_facade.py rajapinta
+[33m9395efb[m Add version manager and git guardian integration hook
+[33m4f592e3[m Repair Spacemonkey architecture module entry points
+[33m733afc0[m Improve Restore Audit card and update stable build records
+[33m41ba7bf[m Add restore audit card to System Pulse
+[33mef1067d[m Add restore audit API endpoint
+[33m08803f9[m Add restore audit integration
+[33m69f3efa[m Add System Pulse stable build recovery pipeline
+[33meffc5d8[m Add Wood-Booster HQ recovery safety pipeline
+[33mf2800db[m Update Wood-Booster HQ system
+[33md447cee[m Wire Build Guardian card into System Pulse page
+[33mfd4e9a0[m Restore basename fix + audit logging dropped by a reformat pass
+[33m7b7f816[m Rename product to Wood-Booster HQ in Spacemonkey file headers (Taso 3)
+[33m43ca0d4[m Rename technical identifiers to Wood-Booster HQ (safe subset, Taso 3b)
+[33m3dec2ca[m Wire System Pulse to restore the last known good stable build
+[33m5073c77[m Rename product to Wood-Booster HQ across documentation (Taso 2/4)
+[33meae6833[m Rename product to Wood-Booster HQ across frontend UI (Taso 1/4)
+[33m05f3a4a[m Add Stable Build audit integration
+[33m0321ebe[m Add Installer Audit history view
+[33m326a3da[m Add Installer Audit Card to System Pulse
+[33m8276e52[m Integrate Installer Audit Log with Restore Approval
+[33mbe62f8a[m Add Restore Approval confirmation flow
+[33mbbd0251[m Add Restore Approval request action
+[33m6df88f5[m Display Restore Approval status in Installer UI
+[33mcecd8bf[m Fix Installer Snapshot Manager project root
+[33mb730414[m Add Restore Approval module to Installer V3
+[33m7dac133[m Improve Installer UI status indicators
+[33m5ea5341[m Add Snapshot Restore Preview to Installer UI
+[33m320b976[m Display Snapshot History in Installer UI
+[33m61f1e53[m Display Snapshot Engine status in Installer UI
+[33m589209d[m Pass full Installer data to System Pulse UI
+[33mf2911a7[m Add Snapshot Creator button to System Pulse
+[33md4dab8d[m Add Installer Snapshot API route
+[33md5187e8[m Fix Snapshot Engine project root detection
+[33mf010304[m Add controlled Snapshot Creator module
+[33m80fe40b[m Separate Snapshot Engine creation from status checks
+[33ma728717[m Add Snapshot Restore Plan to Installer V3
+[33m14bd191[m Add Snapshot Repair readiness to Installer System Pulse UI
+[33m52059c0[m Add Snapshot Repair Readiness to Installer V3
+[33m6dc759e[m Add Snapshot Validator status to Installer System Pulse UI
+[33m41e15be[m Add Snapshot Validator to Installer V3
+[33m4ee00d9[m Add Snapshot History to Installer System Pulse UI
+[33m27d6a8c[m Add Snapshot History layer to Installer V3
+[33m6272a74[m Display Snapshot Manager V2 metadata in Installer UI
+[33me8b2143[m Add Installer Snapshot Engine and Snapshot Manager V2
+[33me453b60[m Add Snapshot Manager status to Installer V3
+[33mb86c134[m Add Installer Recovery layer to System Pulse
+[33m35c390a[m Improve Installer V2 System Pulse card
+[33mffc1508[m Integrate Installer V2 report into System Pulse
+[33m1ac4e34[m Fix Installer V2 root detection
+[33mb625a3b[m Add Installer V2 report system
+[33mc1ef4d3[m Add Installer V2 dependency status to System Pulse
+[33ma05dfe5[m Update System Pulse Installer card for Installer V2
+[33m60cc471[m Add Installer V2 system detection and System Pulse integration
+[33m5d5a3ab[m Separate system health from security warnings
+[33maa59ae2[m Connect Installer Manager to System Pulse dashboard
+[33m2563003[m Add Installer Manager detection system
+[33me35a2a5[m Add Installer Health monitoring to System Pulse
+[33m12b207b[m Add a "Tänään" task list to the Dashboard summary
+[33ma4dae96[m Add WordPress Publisher plugin (second Boosterverse plugin)
+[33mde130bf[m Add Instagram Publisher plugin, wire Boosterverse engines end to end
+[33mdb792f4[m Add missing delete confirmation to WorkflowTab
+[33me4aac23[m Restyle AI workspace widgets to wood-* tokens, fix a real crash
+[33md7b61b8[m Force page reload once backend is confirmed ready
+[33mfaf9d6c[m Wire up a real Dashboard summary, add materials to search
+[33m7f6ae92[m Restyle remaining hardcoded-color files to wood-* tokens
+[33m619aa52[m Restyle ProjectAIChat/ProjectTools to wood-* tokens
+[33mb2cd2bc[m Remove 20 confirmed-dead orphaned component files
+[33m05549c4[m Fix Linux desktop metadata for real, add old-identifier DB migration
+[33m2bceb39[m Restyle GlobalSearch to use the wood-* design tokens
+[33m7827343[m Wire up GlobalSearch: no way to open it existed until now
+[33m977fbba[m Add project deletion
+[33m54fd541[m Remove AI Brain/Chat/Generator/Workspace from sidebar nav
+[33mab27335[m Refresh icon/desktop caches on install so the fixed icon shows immediately
+[33me996ce3[m Install app icon in Arch package, fixing blank app-menu icon
+[33m8bfca85[m Improve System Pulse status handling
+[33m8de0f9e[m Force-disable WebKitGTK DMA-BUF renderer to fix crash-after-launch
+[33m0906574[m Fix sidecar orphan on startup timeout and stale build resources
+[33m46b129a[m Start v0.1.1 development
+[33m79ee9db[m[33m ([m[1;33mtag: [m[1;33mv0.1.0[m[33m)[m Optimize installer runtime resources
+[33m3f06cac[m Improve release build pipeline
+[33mdc6d31a[m Ignore generated release packages
+[33m8c98c94[m Add release automation script
+[33mc66c553[m Fix installer UTF-8 package filenames
+[33m20eefc0[m Update Arch installer ignore rules
+[33mf28dd79[m Add installer build pipeline
+[33m41fe237[m Add stable Tauri installer packaging
+[33mf6a6544[m Initialize Wood-Booster OS desktop application foundation
+[33m2faa5dd[m Integrate architecture role and importance intelligence
+[33m12b999c[m Add Spacemonkey architecture importance scorer
+[33mf92571b[m Upgrade Spacemonkey architecture intelligence with role detection
+[33mc1abadd[m Add Spacemonkey architecture role detector
+[33m44055ea[m Add Spacemonkey architecture intelligence analyzer
+[33m5b96e47[m Consolidate backup/restore into one working path on System Pulse
+[33mfcfa344[m Add Spacemonkey dependency resolver
+[33m4f3c3ee[m Add Spacemonkey dependency graph builder
+[33m9348d57[m Add Spacemonkey code dependency analyzer
+[33mae76211[m Integrate code intelligence into developer workflow
+[33mc53f1ad[m Integrate code intelligence into developer workflow
+[33mbac6279[m Add Spacemonkey code intelligence analyzer
+[33ma96b499[m Add Spacemonkey project understanding layer
+[33m0591e9d[m Add Spacemonkey project structure analysis
+[33m7d857d1[m Update Tauri configuration and runtime
+[33ma89a699[m Improve Spacemonkey file search filtering
+[33mf7abe8c[m Integrate Spacemonkey developer agent workflow
+[33mfd51c2a[m Remove aiSession.js - fully superseded dead code
+[33m8528cb0[m Vaihe 3: remove 91 more confirmed-dead files from aiBrainV2/ and services/spacemonkey/
+[33m6b121e2[m Live Context v1 (part 3/3): open tasks + recent activity enrichment
+[33mc389075[m Live Context v1 (part 2/3): send real runtime context from all 4 chat surfaces
+[33m4f933f7[m Live Context v1 (part 1/3): fix stale route table + activeTab object-shape bug
+[33m9db5975[m Redesign project page: primary workbench + secondary tabs behind a menu
+[33m88a558b[m Apply the Wood Booster Green accent color across the app
+[33m8215b30[m Blueprint update: Vibe Coding Protocol, Definition of Done, Kehitysportaat maturity ladder, concrete next step
+[33mb744c34[m Update Wood-Booster OS and Boosterverse modules
+[33mc9ba214[m Remove 3 more confirmed-dead files, stop the broader dead-code sweep here
+[33m77bd51d[m Remove 50 confirmed-dead files from the two AI system trees
+[33m7be71da[m Master Blueprint Volumes X & XIII + index: Developer Handbook, Legacy, README
+[33m0f476fc[m Master Blueprint Volume XI: Security Doctrine
+[33m25cdc5f[m Master Blueprint Volumes VI-IX: Intelligence Architecture, Automation Bible, Knowledge System, Design System
+[33ma0bfbe5[m Master Blueprint Volumes I & XII: Vision and Future Roadmap
+[33m78337fd[m Dashboard: remove the stat-card row and Huomioitavaa panel
+[33m125bb16[m Dashboard: pair the real logo with the Wood-Booster name, add restrained animations
+[33mf9363ff[m Deep AI consolidation: make /api/ai-brain and /api/ai-brain-v2 thin wrappers around the real chat path
+[33mac43690[m Spacemonkey Codex: document the 'pikku-paholainen' alter-ego lore Marc confirmed
+[33mcd4f30b[m Master Blueprint Volume IV: Human Model
+[33m633599c[m Master Blueprint Volume V: Spacemonkey Codex
+[33m098cebd[m Fix Blueprint file numbering: Constitution is Volume II, rename 01_ to 02_
+[33m356822c[m Master Blueprint Volume III: Founder's Charter
+[33mf209b51[m Master Blueprint Volume II: canonicalize the Constitution into its own document
+[33m46a5a7d[m Roadmap: fix Knowledge tab's misleading "per-project" framing
+[33m55963a5[m Roadmap: connect Purchases to Projects (nullable projectId FK)
+[33m3fa8812[m Roadmap: give ProjectMaterial/QuoteLineItem/InvoiceLineItem a real link to InventoryItem
+[33mc2dbba7[m Roadmap: revive the orphaned OverviewTab.jsx, replace the inline placeholder Overview
+[33m2daebbc[m Vaihe D: reconnect the 8 orphaned AI-workspace pages
+[33mdd773a6[m Vaihe B: fix missing await on loadGodFiles() in two live chat paths
+[33m9b8e08e[m Vaihe E: remove confirmed-dead mount files, server startup chains, and duplicate app shell
+[33m4cd7aed[m Add "who is Spacemonkey" easter egg alongside existing "who is Marc" one
+[33mfbbdb75[m Connect Spacemonkey's humor/personality data to the live chat prompt
+[33m1c663e4[m Add Wood-Booster OS Constitution (Perustuslaki)
+[33m544b1ff[m Vaihe 1: link customers, projects, and invoices/quotes to each other
+[33mfa05336[m Add low-stock threshold field to Inventory create/edit/display
+[33mfb1d4ec[m Show Huomioitavaa reminders section on Dashboard
+[33m8ffe3c6[m Add GET /api/reminders aggregating deadlines, low stock, overdue invoices, expired quotes
+[33mf186c1a[m Accept minStock on inventory create/update endpoints
+[33mbbeec7d[m Add minStock field to InventoryItem for low-stock reminders
+[33mb133629[m Remove dead estimatedRevenue calculation from dashboard.js
+[33m8fbac08[m Add invoice defaults section to Settings
+[33m8edb4ff[m Add Laskut list page for tracking open/paid invoices across projects
+[33m2d7ca39[m Build InvoiceTab.jsx: create from quote, editable fields, printable document
+[33m6d7d7cb[m Add Invoice backend: create-from-quote, line items, mark paid/unpaid, and global list
+[33me07a0d8[m Add Invoice, InvoiceLineItem models and invoice defaults to BusinessSettings
+[33m26e4fe3[m Wire business settings into the quote flow
+[33md30cc9f[m Build editable business info, quote defaults, and a light/dark theme toggle
+[33m8f48c55[m Add businessSettings routes: GET/PUT + logo upload/delete
+[33m08f7fb7[m Add BusinessSettings model for company info and quote defaults
+[33m6c78455[m Add missing --wb-* CSS variable aliases
+[33m7b0fb9c[m Fix /spacemonkey page's hardcoded "always healthy" status badges
+[33mafafb08[m Remove 5 unmounted dead Spacemonkey backend route files
+[33m41c4754[m Remove 32 orphaned Spacemonkey frontend files
+[33mb721bcb[m Add Cognitive Timeline, Pipeline, Modules, and Runtime cards
+[33mc99f511[m Fix SpacemonkeyModules/SpacemonkeyRuntime before wiring them in
+[33m15f9907[m Fix SafetyCard field shape to match the real API response
+[33m7403bfc[m Import animations.css so wood-hover/system-pulse actually work
+[33m25df7ba[m Fix Decision Quality card field paths, add Safety card
+[33m5b24134[m Fix SpacemonkeyBrain.jsx: use apiGet, add real error state
+[33m2e97746[m Remove dead spacemonkey/SystemStatus.jsx
+[33m7e82aa0[m Fix System Pulse data plumbing, stale-closure bug, and finish the page
+[33mae276c0[m Fix systemPulseSummary.js: include gitSummary, fix gitHistory field
+[33m7972176[m Wire Agents.jsx to the real /api/agents backend instead of a stale local copy
+[33m8dc11cf[m Remove dead MemoryReview.jsx
+[33m4196485[m Rewrite Memory.jsx: search, category filter, stats, delete, real errors
+[33m6f01e49[m Add ID validation and existence check to DELETE /memory/:id
+[33mce4a13e[m Build full CRUD UI for Knowledge Center
+[33m5fc4d63[m Add apiUpload helper for multipart file uploads
+[33m526e189[m Remove dead /content-drafts routes from knowledge.js
+[33m955757d[m Add edit UI, visible category field, and error-clearing to MaterialsTab
+[33meb5c378[m Add PUT route and quantity/price validation to project materials
+[33m577052c[m Route and link the Ostot (Purchases) page
+[33m9e5c108[m Restyle Purchases.jsx to match the app's theme and shared API client
+[33m0885708[m Restore PurchaseOrder/PurchaseOrderItem models for the Ostot feature
+[33m58f2de6[m Remove orphaned Materials.jsx/MaterialStore.js prototype
+[33maff3796[m Add edit/delete UI and price/supplier fields to Inventory.jsx
+[33mc281e7a[m Support unitPrice/supplier in inventory routes; align ID validation with customers.js
+[33m65d35a3[m Add unitPrice and supplier fields to InventoryItem
+[33mad20c13[m Remove src/data/customers.js and CustomerStore.js, now dead
+[33mb9df24d[m Rebuild CustomerDetails.jsx and route it at /customers/:id
+[33mb4248c0[m Make Customers.jsx cards link to a detail page, add delete
+[33m13fae14[m Add GET /customers/:id, fix missing validation on PUT/DELETE
+[33m262348b[m Build QuoteTab.jsx: real line items, real persistence, printable document
+[33m2537efd[m Add Quote backend: 6 routes plus auto status-advance to "Tarjous"
+[33m3055b0e[m Add Quote and QuoteLineItem models
+[33md2fbbca[m Add the WorkflowTab.jsx rewrite that belongs with the previous commit
+[33mb765555[m Move WorkflowTab.jsx from localStorage to real server persistence
+[33me5df1b6[m Add Workflow backend: ProjectWorkflowStep model with lazy-seeded defaults
+[33m10b85dd[m Move TimelineTab.jsx from localStorage to real server persistence
+[33m9ef258e[m Add Timeline backend: ProjectTimelineTask model and API routes
+[33md4ce241[m Rebuild GalleryTab.jsx on the existing Files system instead of localStorage
+[33m1c23fa2[m Serve /uploads statically - fixes broken image previews app-wide
+[33m09d221c[m Remove src/data/inventory.js, the now-unused shadow inventory
+[33mde2ce20[m Move NotesTab.jsx from localStorage to real server persistence
+[33m88716e9[m Fix MaterialsTab.jsx: prop mismatch bug and real persistence
+[33m847d9c3[m Reconnect and fix ProjectEditor.jsx, add a findable edit entry point
+[33mb72a419[m Add project-scoped Materials and Notes API endpoints
+[33m8bc407e[m Harden PUT /api/projects/:id: try/catch, deadline/description, customerId validation
+[33m1cc05ac[m Add deadline/description to Project, plus ProjectMaterial and Note models
+[33mba4a5f2[m Give Dashboard chat the full available height, remove placeholder sections
+[33m946766a[m Archive 33 root-level Spacemonkey/ godfiles merged into canonical set
+[33m67cf463[m Sync spacemonkeyCoreIdentity.js's name/purpose with canonical identity
+[33m4efeeec[m Fix identityResponse.js to read from canonical identity, not a hardcoded copy
+[33m91a4215[m Point spacemonkeyGodFileLoader.js at the canonical 6-file godfile set
+[33m6d4a23d[m Merge identity/persona content from 26 root Spacemonkey/ files
+[33me3ea318[m Add Vaihe 1 source inventory ledger for identity consolidation
+[33mbf25a77[m Add Vaihe 0 reachability recon for identity consolidation
+[33m2954bf6[m Gitignore RestorePreview/ to prevent it being re-tracked
+[33mb2d7edb[m Remove RestorePreview/ (git-tracked duplicate of Backups/ snapshots)
+[33m46b7a4e[m Remove nested duplicate Wood-Booster-OS/Wood-Booster-OS/ directory
+[33me6d9a9e[m Add investigation memo for Backups/, nested duplicate, and RestorePreview/
+[33m0ef99aa[m Add AI-systems map documenting the two live spacemonkey trees
+[33m72ec5c5[m Archive 213 loose server/test-*.js manual debug scripts
+[33mca44229[m Remove 47 stray .backup/.before files from live source tree
+[33m0c9e1bb[m Remove dead camelCase spaceMonkey directory (17 files)
+[33m19fd07b[m Add Meta Intelligence coordination ecosystem layer
+[33m00d366e[m Add Meta Intelligence synchronization ecosystem layer
+[33mcc1becd[m Add Meta Intelligence network ecosystem layer
+[33m85810e2[m Add Meta Intelligence complexity ecosystem layer
+[33m9b1fd37[m Add Meta Intelligence emergence ecosystem layer
+[33m1dc4de9[m Add Meta Intelligence evolution ecosystem layer
+[33me230c9d[m Add Meta Intelligence adaptation ecosystem layer
+[33m167d515[m Add Meta Intelligence reflection ecosystem layer
+[33mfdfb3cb[m Add Meta Intelligence insight ecosystem layer
+[33mfeb41aa[m Add Meta Intelligence wisdom ecosystem layer
+[33m3a3ff11[m Add Meta Intelligence understanding ecosystem layer
+[33m47b5a29[m Add Meta Intelligence perception ecosystem layer
+[33m75dcd80[m Add Meta Intelligence cognitive ecosystem layer
+[33m7eea7db[m Add Meta Intelligence intelligence ecosystem layer
+[33m095d676[m Add Meta Intelligence knowledge ecosystem layer
+[33m065da13[m Add Meta Intelligence source ecosystem layer
+[33m060be21[m Add Meta Intelligence origin ecosystem layer
+[33m06c2cb0[m Add Meta Intelligence absolute ecosystem layer
+[33m90856b6[m Add Meta Intelligence eternal ecosystem layer
+[33m4759313[m Add Meta Intelligence infinite ecosystem layer
+[33m1902254[m Add Meta Intelligence cosmic ecosystem layer
+[33mff06f36[m Add Meta Intelligence transcendent ecosystem layer
+[33ma0910ad[m Add Meta Intelligence universal ecosystem layer
+[33mbbdef5b[m Add Meta Intelligence global ecosystem layer
+[33m11ca096[m Add Meta Intelligence unified ecosystem layer
+[33mf8543c0[m Add Meta Intelligence conscious ecosystem layer
+[33m0999d82[m Add Meta Intelligence autonomous ecosystem layer
+[33m8dc55a3[m Add Meta Intelligence governance ecosystem layer
+[33m3a539b1[m Add Meta Intelligence strategic ecosystem layer
+[33m71cdd8f[m Add Meta Intelligence predictive ecosystem layer
+[33mdc45269[m Add Meta Intelligence evolutionary ecosystem layer
+[33m1a7fd5c[m Add Meta Intelligence adaptive ecosystem layer
+[33m5d34759[m Add Meta Intelligence systemic intelligence layer
+[33mfcd4c47[m Add Meta Intelligence emergent intelligence layer
+[33m1a0d635[m Add Meta Intelligence collective intelligence layer
+[33mcd43678[m Add Meta Intelligence purpose alignment layer
+[33mfd89175[m Add Meta Intelligence ethical alignment layer
+[33mfe764a7[m Add Meta Intelligence self governance layer
+[33m72b0c3c[m Add Meta Intelligence autonomous awareness layer
+[33mbe12fa3[m Add Meta Intelligence resilience intelligence layer
+[33mbf49bf2[m Add Meta Intelligence adaptive intelligence layer
+[33m7f4ffb9[m Add Meta Intelligence system coherence layer
+[33ma593595[m Add Meta Intelligence architectural intelligence layer
+[33m9c72255[m Add Meta Intelligence system improvement optimization layer
+[33mef5e53d[m Add Meta Intelligence evolution optimization layer
+[33m679fc67[m Add Meta Intelligence learning optimization layer
+[33m2897c03[m Add Meta Intelligence self evaluation layer
+[33md31a12d[m Add Meta Intelligence conscious reflection layer
+[33me187b28[m Add Meta Intelligence wisdom integration layer
+[33m474a277[m Add Meta Intelligence knowledge synthesis layer
+[33m03e57b4[m Add Meta Intelligence innovation discovery layer
+[33mccff917[m Add Meta Intelligence opportunity discovery layer
+[33m533b61a[m Add Meta Intelligence risk assessment layer
+[33m26180d2[m Add Meta Intelligence progress evaluation layer
+[33m2ab4af3[m Add Meta Intelligence goal management layer
+[33m49f2d03[m Add Meta Intelligence planning support layer
+[33m1419346[m Add Meta Intelligence decision support layer
+[33m13727aa[m Add Meta Intelligence strategic reasoning layer
+[33m28a2796[m Add Meta Intelligence contextual reasoning layer
+[33m479d914[m Add Meta Intelligence knowledge correlation layer
+[33mb04983d[m Add Meta Intelligence adaptive insight layer
+[33ma4e7346[m Add Meta Intelligence predictive awareness
+[33m7a31006[m Add Meta Intelligence system state reasoning
+[33mde96f56[m Add Meta Intelligence live system awareness adapter
+[33m20b14d7[m Add Meta Intelligence system awareness adapter
+[33maf59eb6[m Add Meta Intelligence system awareness graph
+[33m16b546a[m Add Meta Intelligence relationship analysis
+[33m8a49b3f[m Add Meta Intelligence analysis layer
+[33m4b134a1[m Add Spacemonkey meta intelligence layer
+[33ma58fd5c[m Add Spacemonkey evolution and system improvement intelligence modules
+[33m2daf6ab[m Add evolution intelligence to Spacemonkey Command Center
+[33m538243e[m Add reflection and learning intelligence to Spacemonkey Command Center
+[33m0c4e14d[m Add execution intelligence to Spacemonkey Command Center
+[33m9e822e7[m Add decision intelligence to Spacemonkey Command Center
+[33m0bc86c0[m Add knowledge intelligence to Spacemonkey Command Center
+[33mf463a1e[m Add memory intelligence to Spacemonkey Command Center
+[33m82b751a[m Add capability registry to Spacemonkey Command Center
+[33m9745ce7[m Fix Spacemonkey Command Center async integration
+[33m97bc7df[m Fix Spacemonkey kernel and snapshot async route integration
+[33mae0c783[m Integrate System Pulse awareness into Spacemonkey kernel
+[33m58b4931[m Add System Pulse awareness module and UI updates
+[33m3ec2156[m Expand System Pulse health score details
+[33m6ce3d27[m Add System Pulse health score
+[33mab81b19[m Refactor System Pulse cards to shared PulseCard
+[33m023a377[m Refactor System Pulse security UI
+[33mc181a8d[m Add System Pulse security monitoring
+[33m30bbcb3[m Expose System Pulse security summary API
+[33m09306e4[m Improve System Pulse security health status
+[33ma7db632[m Integrate security monitor into System Pulse
+[33mb0436a7[m Add System Pulse security monitor
+[33m9418ed0[m Add Constitution audit event reporting
+[33md83d31b[m Add Constitution Guard audit integration
+[33me9cbbe0[m Add Constitution Guard deny test
+[33m7906ef3[m Add Constitution Guard pipeline integration test
+[33m7034a00[m Add Constitution Guard to AI Brain V2 pipeline
+[33mea60887[m Add Spacemonkey Security Memory API
+[33m3af6ab2[m Add Spacemonkey Internet Safety API
+[33m918d6cf[m Add Spacemonkey Security Sandbox API
+[33me55db21[m Add Spacemonkey Security Capabilities API
+[33m0f44daf[m Add Spacemonkey Security Overview API
+[33m6e53b5c[m Add Spacemonkey Security Reflection API
+[33mb42ab74[m Add Spacemonkey Security Audit API
+[33ma6db76e[m Add Spacemonkey Tool Security API
+[33m9a3eda2[m Add Spacemonkey Security Runtime API
+[33m28d8894[m Add Spacemonkey Security Policy API
+[33m216295c[m Add Spacemonkey Permission Awareness API
+[33m2383643[m Add Spacemonkey Approval Gateway API
+[33m313a27f[m Add Spacemonkey Security Core API
+[33maf64a79[m Add Spacemonkey Personality Runtime API
+[33m5ef6d4f[m Add Spacemonkey Capability Registry API
+[33m266c2d4[m Add Spacemonkey Knowledge Intelligence API
+[33m2830077[m Add Spacemonkey Agent System Intelligence API
+[33mf1a8c67[m Add Spacemonkey Memory Intelligence API
+[33mb90f702[m Add Spacemonkey World Model Intelligence API
+[33mc8bab7b[m Add Spacemonkey Learning Intelligence API
+[33me7531ac[m Add Spacemonkey Execution Intelligence API
+[33mf832d6d[m Add Spacemonkey Decision Intelligence API
+[33mbaf5a97[m Add Spacemonkey Reflection Intelligence UI
+[33mbc74dd3[m Add Spacemonkey Reflection Intelligence API
+[33mf809a91[m Add Spacemonkey Capability Health UI
+[33m0d9cca6[m Add Spacemonkey Capability Health API
+[33mc8e863f[m Add Spacemonkey Runtime Awareness
+[33m248ecc8[m Add Spacemonkey Operator dashboard integration
+[33m3f707dd[m Add System Pulse restore UI
+[33me8ab92e[m Before System Pulse Restore
+[33m85c1f35[m Before System Pulse Restore
+[33m5e49683[m Before System Pulse Restore
+[33mfcb9d5d[m Ignore System Pulse restore data
+[33m8c7b12f[m Before System Pulse Restore
+[33md950606[m Add System Pulse restore execute route
+[33mad1181e[m Before System Pulse Restore
+[33m066b3ac[m System Pulse automatic checkpoint
+[33mfcd232a[m System Pulse automatic checkpoint
+[33mac4c9dd[m System Pulse automatic checkpoint
+[33m69a8dff[m System Pulse automatic checkpoint
+[33m19f13b4[m System Pulse automatic checkpoint
+[33m882747d[m System Pulse automatic checkpoint
+[33m41c8aa9[m Integrate Spacemonkey Core runtime v1.0
+[33m2aba27c[m Create Spacemonkey Core v1.0
+[33mdb4a005[m Create Wood-Booster Bootstrap v0.3.0
+[33m8497592[m Add credentials management MVP
+[33mabbce17[m chore: remove duplicate server directory
+[33md73bcad[m learning-engine: wire memoryValidator into auto pipeline, fix createMemoryProposal call, remove orphan route
+[33mb04292b[m checkpoint before learning-engine wiring fix
+[33m0d7af23[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-40-37-727Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-40-37-727Z
+[33m7e2fb63[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-36-57-089Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-36-57-089Z
+[33mdb94446[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-35-36-835Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-35-36-835Z
+[33m3ca324d[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-34-36-670Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-34-36-670Z
+[33mc9aab6c[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-32-06-061Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-32-06-061Z
+[33m031d57e[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-26-09-746Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-26-09-746Z
+[33m76684b7[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-24-09-401Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-24-09-401Z
+[33m73b2c22[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-23-04-152Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-23-04-152Z
+[33meee0928[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-22-19-006Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-22-19-006Z
+[33mcd36845[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-21-23-803Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-21-23-803Z
+[33mdef32a5[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-17-12-834Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-17-12-834Z
+[33m3e44081[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T14-09-06-373Z[m[33m)[m Git Guardian snapshot 2026-07-15T14-09-06-373Z
+[33m7071409[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T08-18-04-693Z[m[33m, [m[1;33mtag: [m[1;33mbefore-recovery-2026-07-15T08-31-15-133Z[m[33m)[m Git Guardian snapshot 2026-07-15T08-18-04-693Z
+[33mfa09896[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T07-41-45-986Z[m[33m)[m Git Guardian snapshot 2026-07-15T07-41-45-986Z
+[33m73baa4f[m[33m ([m[1;33mtag: [m[1;33msnapshot-2026-07-15T07-23-26-490Z[m[33m)[m Git Guardian snapshot 2026-07-15T07-23-26-490Z
+[33ma665c0f[m Extract dashboard stat card component
+[33mbf47138[m Add workflow management
+[33md2e5f45[m Connect pricing to quote
+[33m9820e84[m Add project cost calculator
+[33m59c42cb[m Add project materials management
+[33mbb14db2[m Fix notes model compatibility and quote tab
+[33m0dd7703[m Fix project card notes rendering
+[33m6668865[m Add materials page
+[33m6ad8522[m Add material store
+[33md1a623c[m Add customer CRM
+[33m7ba89a0[m Remove duplicate Dashboard file
+[33m3ab85f9[m Phase 1 - Foundation

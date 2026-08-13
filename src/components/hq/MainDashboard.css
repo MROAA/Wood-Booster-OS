@@ -1,0 +1,342 @@
+/* src/components/hq/MainDashboard.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-deep: #0B3B24;          /* Tumma sammaleenvihreä */
+  --bg-sidebar: #072618;       /* Sivupaneelin tummempi sävy */
+  --bg-card: #14532D;          /* Korttien sävy */
+  --bg-deep-rgb: 11, 59, 36;
+  --bg-sidebar-rgb: 7, 38, 24;
+  --bg-card-rgb: 20, 83, 45;
+  --text-light: #F0FDF4;       /* Vaalea teksti */
+  --text-muted: #9ca3af;       /* Harmaa aputeksti */
+  --accent-brown: #713f12;     /* Tummanruskea (lähetä-nappi) */
+  --border-green: #166534;     /* Rajaukset */
+  --accent-yellow: #ca8a04;    /* Keltainen tila */
+  --accent-green-btn: #16a34a; /* Vihreä tila */
+  --accent-red: #dc2626;       /* Punainen tila (turvariski) */
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-deep);
+  color: var(--text-light);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.hq-layout-container {
+  display: flex;
+  min-height: 100vh;
+  background-image:
+    linear-gradient(rgba(11, 59, 36, 0.55), rgba(11, 59, 36, 0.55)),
+    url('../../assets/branding/dashboard-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Sivupaneeli */
+.hq-sidebar {
+  width: 70px;
+  background-color: rgba(var(--bg-sidebar-rgb), 0.72);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid var(--border-green);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0;
+  gap: 2rem;
+}
+
+.hq-sidebar-logo .sidebar-logo-img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-brown);
+}
+
+.logo-fallback {
+  width: 40px;
+  height: 40px;
+  background-color: var(--accent-brown);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.hq-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover, .nav-btn.active {
+  background-color: var(--bg-card);
+  color: var(--text-light);
+}
+
+/* Pääsisältö */
+.hq-main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+.hq-header {
+  padding: 1.25rem 2rem;
+  background-color: rgba(var(--bg-sidebar-rgb), 0.75);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-green);
+}
+
+.hq-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.hq-highlight {
+  color: #4ade80;
+}
+
+.hq-description {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Ylätason kortit */
+.hq-top-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem 2rem 0 2rem;
+}
+
+.hq-card {
+  background-color: rgba(var(--bg-card-rgb), 0.78);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-green);
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.1s, border-color 0.2s;
+}
+
+.hq-card.clickable {
+  cursor: pointer;
+}
+
+.hq-card.clickable:hover {
+  border-color: #4ade80;
+}
+
+.hq-card .card-label {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.action-card {
+  cursor: pointer;
+  border-left: 4px solid var(--accent-yellow);
+  background: linear-gradient(135deg, rgba(20, 83, 45, 0.78) 0%, rgba(28, 74, 40, 0.78) 100%);
+  backdrop-filter: blur(8px);
+}
+
+.action-card.ready {
+  border-left: 4px solid var(--accent-green-btn);
+}
+
+.action-card.error {
+  border-left: 4px solid var(--accent-red);
+}
+
+.card-icon {
+  font-size: 1.75rem;
+}
+
+.card-val {
+  font-size: 1rem;
+  color: var(--text-light);
+}
+
+.card-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Tekstin hengittävä animaatio */
+@keyframes text-breath {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.text-pulse-glow {
+  animation: text-breath 4s ease-in-out infinite;
+  display: inline-block;
+  color: #86efac;
+}
+
+/* Chat-osio */
+.hq-chat-section {
+  flex-grow: 1;
+  margin: 1.5rem 2rem;
+  background-color: rgba(var(--bg-card-rgb), 0.78);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-green);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hq-chat-toolbar {
+  padding: 0.75rem 1.25rem;
+  background-color: rgba(var(--bg-sidebar-rgb), 0.8);
+  border-bottom: 1px solid var(--border-green);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.hq-chat-box {
+  flex-grow: 1;
+  padding: 1.25rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 350px;
+}
+
+/* Virtuaalinen työpöytä chat-laatikon paikalla - Boosterverse Desktop
+   olettaa normaalisti koko näytön korkeuden (100vh), tässä se pitää
+   sovittaa isäntäkontin (hq-chat-section) todelliseen, rajattuun tilaan. */
+.hq-desktop-embed-body {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.hq-desktop-embed-body .win-desktop {
+  height: 100%;
+  min-height: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Pienemmässä, upotetussa tilassa työpöydän kuvakkeet eivät mahdu yhtä
+   väljästi kuin koko näytön versiossa - tiivistetään rivivälit. */
+.hq-desktop-embed-body .win-desktop-icons {
+  gap: 0.5rem;
+  top: 1rem;
+  left: 1rem;
+}
+
+.chat-message-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-green);
+  flex-shrink: 0;
+}
+
+.chat-content {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--text-light);
+}
+
+.chat-sender {
+  font-weight: 700;
+  margin-right: 0.4rem;
+  color: #86efac;
+}
+
+/* Syöttökenttä */
+.hq-input-row {
+  display: flex;
+  padding: 1rem;
+  background-color: rgba(var(--bg-sidebar-rgb), 0.8);
+  border-top: 1px solid var(--border-green);
+  gap: 0.75rem;
+}
+
+.hq-text-input {
+  flex-grow: 1;
+  padding: 0.75rem;
+  background-color: rgba(var(--bg-deep-rgb), 0.6);
+  border: 1px solid var(--border-green);
+  border-radius: 6px;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.hq-text-input:focus {
+  outline: none;
+  border-color: #4ade80;
+}
+
+.hq-send-btn {
+  padding: 0 1.5rem;
+  background-color: var(--accent-brown);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hq-send-btn:hover {
+  background-color: #92400e;
+}
+
+/* Footer */
+.hq-footer {
+  padding: 0.75rem 2rem;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background-color: rgba(var(--bg-sidebar-rgb), 0.8);
+  border-top: 1px solid var(--border-green);
+}
+
+.hq-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--bg-deep);
+  color: #4ade80;
+}

@@ -1,0 +1,5 @@
+Marc ei halua vain käyttää ohjelmia.
+
+Marc haluaa ymmärtää miten ne rakennetaan.
+
+Siksi Spacemonkey opettaa samalla kun rakentaa.

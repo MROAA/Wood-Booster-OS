@@ -1,0 +1,250 @@
+import InfoCard from "./InfoCard"
+import StatusBadge from "./StatusBadge"
+
+
+function normalizeStatus(
+  value,
+) {
+  return String(
+    value ||
+    "idle",
+  )
+    .trim()
+    .toLowerCase()
+}
+
+
+function getDisplayValue(
+  status,
+) {
+  const normalizedStatus =
+    normalizeStatus(
+      status,
+    )
+
+  const labels = {
+    idle: "Odottaa",
+    waiting: "Odottaa",
+    pending: "Odottaa",
+    queued: "Jonossa",
+    ready: "Valmis",
+    planning: "Suunnittelee",
+    processing: "Käsittelee",
+    running: "Käynnissä",
+    executing: "Suorittaa",
+    active: "Aktiivinen",
+    completed: "Valmis",
+    complete: "Valmis",
+    success: "Onnistui",
+    succeeded: "Onnistui",
+    completed_with_errors:
+      "Valmis virheillä",
+    failed: "Epäonnistui",
+    failure: "Epäonnistui",
+    error: "Virhe",
+  }
+
+  return (
+    labels[
+      normalizedStatus
+    ] ||
+    normalizedStatus
+  )
+}
+
+
+function getProgressPercentage(
+  totalCount,
+  completedCount,
+  failedCount,
+) {
+  if (
+    totalCount <=
+    0
+  ) {
+    return 0
+  }
+
+  const finishedCount =
+    completedCount +
+    failedCount
+
+  return Math.min(
+    100,
+    Math.round(
+      (
+        finishedCount /
+        totalCount
+      ) *
+        100,
+    ),
+  )
+}
+
+
+function StatusCard({
+  title,
+  description,
+  status,
+  value,
+  secondaryValue,
+}) {
+  return (
+    <InfoCard
+      label={
+        title
+      }
+      description={
+        description
+      }
+      className="bg-[var(--wood-panel)]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="break-words text-2xl font-bold text-[var(--wood-text)]">
+            {value}
+          </p>
+
+          {secondaryValue && (
+            <p className="mt-1 text-xs text-[var(--wood-muted)]">
+              {secondaryValue}
+            </p>
+          )}
+        </div>
+
+        <StatusBadge
+          status={
+            status
+          }
+        />
+      </div>
+    </InfoCard>
+  )
+}
+
+
+function ExecutionStatusCards({
+  activityStatus = "idle",
+  queueStatus = "idle",
+  totalCount = 0,
+  completedCount = 0,
+  failedCount = 0,
+}) {
+  const safeTotalCount =
+    Number(
+      totalCount,
+    ) || 0
+
+  const safeCompletedCount =
+    Number(
+      completedCount,
+    ) || 0
+
+  const safeFailedCount =
+    Number(
+      failedCount,
+    ) || 0
+
+  const progressPercentage =
+    getProgressPercentage(
+      safeTotalCount,
+      safeCompletedCount,
+      safeFailedCount,
+    )
+
+  const activityNormalized =
+    normalizeStatus(
+      activityStatus,
+    )
+
+  const queueNormalized =
+    normalizeStatus(
+      queueStatus,
+    )
+
+  const completedStatus =
+    safeCompletedCount >
+    0
+      ? "completed"
+      : "idle"
+
+  const failedStatus =
+    safeFailedCount >
+    0
+      ? "failed"
+      : "idle"
+
+  const queueSummary =
+    safeTotalCount >
+    0
+      ? `${safeCompletedCount + safeFailedCount} / ${safeTotalCount} käsitelty`
+      : "Ei toimintoja"
+
+  return (
+    <section className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatusCard
+          title="AI Session"
+          description="AI Brainin nykyinen käsittelytila."
+          status={
+            activityNormalized
+          }
+          value={
+            getDisplayValue(
+              activityNormalized,
+            )
+          }
+          secondaryValue="Nykyinen AI-istunto"
+        />
+
+        <StatusCard
+          title="Action Queue"
+          description="Toimintojonon nykyinen suoritustila."
+          status={
+            queueNormalized
+          }
+          value={
+            getDisplayValue(
+              queueNormalized,
+            )
+          }
+          secondaryValue={
+            queueSummary
+          }
+        />
+
+        <StatusCard
+          title="Completed"
+          description="Onnistuneesti suoritetut toiminnot."
+          status={
+            completedStatus
+          }
+          value={
+            safeCompletedCount
+          }
+          secondaryValue={`${progressPercentage} % jonosta käsitelty`}
+        />
+
+        <StatusCard
+          title="Failed"
+          description="Epäonnistuneet tai virheeseen päättyneet toiminnot."
+          status={
+            failedStatus
+          }
+          value={
+            safeFailedCount
+          }
+          secondaryValue={
+            safeFailedCount >
+            0
+              ? "Vaatii tarkistusta"
+              : "Ei virheitä"
+          }
+        />
+      </div>
+    </section>
+  )
+}
+
+
+export default ExecutionStatusCards

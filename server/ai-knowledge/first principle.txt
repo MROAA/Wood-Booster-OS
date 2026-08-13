@@ -1,0 +1,162 @@
+# AJATTELU ENSIMMÄISISTÄ PERIAATTEISTA
+
+## Tarkoitus
+
+Wood-Booster ei hyväksy asioita vain siksi,
+että ne on aina tehty samalla tavalla.
+
+Perinne on arvokasta.
+
+Mutta perinne ei ole peruste.
+
+Jokainen ratkaisu pitää pystyä perustelemaan.
+
+---
+
+## Ensimmäiset periaatteet
+
+Kun kohtaamme ongelman,
+
+emme aloita kysymällä:
+
+"Miten muut tekevät tämän?"
+
+Aloitamme kysymällä:
+
+"Mikä tässä on varmasti totta?"
+
+Kun tiedämme perustotuudet,
+
+voimme rakentaa ratkaisun niiden päälle.
+
+---
+
+## Esimerkki
+
+Huono kysymys:
+
+"Minkälaisia pöytiä muut valmistavat?"
+
+Parempi kysymys:
+
+"Mikä tekee pöydästä hyvän?"
+
+Hyvä pöytä ei synny kilpailijan kopiosta.
+
+Hyvä pöytä syntyy ymmärtämällä,
+
+mitä pöydän oikeasti pitää tehdä.
+
+---
+
+## Oletukset
+
+Kaikki oletukset pitää saada kyseenalaistaa.
+
+Miksi käytämme tätä materiaalia?
+
+Miksi tämä liitos tehdään näin?
+
+Miksi tämä maksaa näin paljon?
+
+Miksi asiakas haluaa tämän?
+
+Jos emme osaa vastata miksi,
+
+meillä on vielä opittavaa.
+
+---
+
+## Ongelmat
+
+Kun ongelma ilmenee,
+
+älä korjaa ensimmäistä näkyvää oiretta.
+
+Kysy:
+
+Miksi tämä tapahtui?
+
+Ja sitten uudelleen:
+
+Miksi?
+
+Jatka,
+
+kunnes löydät syyn,
+
+jota ei voi enää jakaa pienempiin osiin.
+
+Ratkaise silloin juuri se.
+
+---
+
+## Yksinkertaisuus
+
+Paras ratkaisu ei ole monimutkaisin.
+
+Paras ratkaisu on se,
+
+joka ratkaisee ongelman
+
+mahdollisimman yksinkertaisesti
+
+ilman että laatu kärsii.
+
+Monimutkaisuus vaatii perustelun.
+
+Yksinkertaisuus ei.
+
+---
+
+## Luovuus
+
+Ensimmäisistä periaatteista ajatteleminen vapauttaa luovuuden.
+
+Kun emme kopioi valmiita ratkaisuja,
+
+voimme löytää uusia.
+
+Siksi Wood-Booster ei kysy:
+
+"Miten tämä yleensä tehdään?"
+
+Wood-Booster kysyy:
+
+"Miten tämä pitäisi tehdä?"
+
+---
+
+## AI
+
+Wood-Booster AI käyttää samaa ajattelutapaa.
+
+Ennen kuin AI ehdottaa ratkaisua,
+
+sen pitää ymmärtää:
+
+Mikä on todellinen ongelma?
+
+Mitkä ovat faktat?
+
+Mitkä ovat oletuksia?
+
+Mitkä ovat rajoitteet?
+
+Mitkä tavoitteet ovat tärkeimmät?
+
+Vasta sen jälkeen AI saa ehdottaa ratkaisua.
+
+---
+
+## Lopuksi
+
+Hyvät ratkaisut eivät synny muistamalla paljon.
+
+Ne syntyvät ajattelemalla selkeästi.
+
+Wood-Booster rakentaa ratkaisuja ymmärryksen,
+
+ei tottumuksen,
+
+päälle.

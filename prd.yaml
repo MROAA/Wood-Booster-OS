@@ -1,0 +1,82 @@
+project:
+  name: "Win96 Supreme OS & Boosterverse Expansion"
+  version: "1.0.0"
+  description: "Retro-futuristinen, modulaarinen käyttöjärjestelmä ja autonominen tekoälyalusta."
+  author: "Marc Järvinen"
+
+executive_summary:
+  vision: >
+    Yhdistää 90-luvun alun Chicago-estetiikka ja käyttöliittymänostalgia moderniin,
+    33+ kerroksen autonomiseen ohjelmistokehitysarkkitehtuuriin ilman korporaatiorajoitteita.
+  core_philosophy: "Matematiikka on universaali kieli, ja koodi on ikuista."
+
+objectives:
+  - id: "OBJ-1"
+    name: "Visual Immersion"
+    description: "Kehittää interaktiivinen ja visuaalinen Win96-työpöytäympäristö."
+  - id: "OBJ-2"
+    name: "Modular Extensibility"
+    description: "Mahdollistaa dynaamisen moduulien lisäyksen ilman ytimen uudelleenkokoamista."
+  - id: "OBJ-3"
+    name: "Mathematical Semantics"
+    description: "Käyttää MathLanguageLayer-kerrosta järjestelmän sisäisenä kääntäjänä."
+  - id: "OBJ-4"
+    name: "End-to-End Autonomy"
+    description: "Automatisoida ideasta tuotantoon vievä full-stack-putki."
+
+core_features:
+  win96_visual_desktop:
+    component: "Win96VisualLayer"
+    capabilities:
+      - "Ikonien ja ikkunoiden hallinta (My Computer, Recycle Bin, Terminal, Dev Center)"
+      - "Teemamoottori: Classic Chicago Grey (#C0C0C0) ja retro-vektorit"
+      - "Interaktiivinen Start-valikko järjestelmän tilojen seurantaan"
+    path: "src/services/win96VisualLayer.ts"
+
+  end_to_end_orchestrator:
+    component: "EndToEndOrchestrator"
+    pipeline:
+      1: "FuckWindowsLiberationLayer (Rajoitteiden vapautus)"
+      2: "MathLanguageLayer (Konseptin kääntäminen matematiikaksi)"
+      3: "MathSolverLayer (Matemaattisten yhtälöiden ratkaisu)"
+      4: "CopyPasteLayer (Idean monistus ja skaalaus)"
+      5: "MarcJarvinenMasterLayer (Mestarivision toimeenpano)"
+    path: "src/services/endToEndOrchestrator.ts"
+
+  modular_registry:
+    component: "BoosterverseModules"
+    status:
+      total_layers: 35
+      active_modules:
+        - "Win96VisualLayer"
+        - "EndToEndOrchestrator"
+        - "MarcJarvinenMasterLayer"
+        - "FuckWindowsLiberationLayer"
+        - "MathSolverLayer"
+        - "MathLanguageLayer"
+    path: "src/services/boosterverseModules.ts"
+
+roadmap:
+  phases:
+    - phase: 1
+      name: "Core Foundation"
+      status: "DONE"
+      description: "33 peruskerrosta ja komentorivipohjainen suoritus."
+    - phase: 2
+      name: "Visual & E2E Integration"
+      status: "DONE"
+      description: "Win96 Visual Engine ja EndToEndOrchestrator kytketty."
+    - phase: 3
+      name: "Graphical User Interface (GUI)"
+      status: "NEXT"
+      description: "Selainpohjaisen tai Electron-käyttöliittymän toteutus."
+    - phase: 4
+      name: "Autonomous Self-Coding AI"
+      status: "PLANNED"
+      description: "Tekoälykerros, joka koodaa ja korjaa itse itseään."
+
+technical_requirements:
+  runtime: "Node.js v26+"
+  bundler_runner: "tsx"
+  language: "TypeScript"
+  styling: "ASCII-Art & Retro Vector GUI"

@@ -1,0 +1,460 @@
+# SPACEMONKEY SUOMI GODFILE F111
+
+# AUTONOMISET AGENTIT, TEHTÄVIEN SUORITUS JA AI-TOIMINTAKERROS CORE — ÄLYKKÄÄN TOIMINNAN PERUSTA
+
+## 1. Autonomiset agentit, tehtävien suoritus ja AI-toimintakerros Definition
+
+Spacemonkey ymmärtää, että seuraava askel älykkäässä järjestelmässä ei ole vain parempi keskustelu.
+
+Todellinen hyöty syntyy kyvystä muuttaa ymmärrys toiminnaksi.
+
+Autonomiset agentit, tehtävien suoritus ja AI-toimintakerros Core määrittää, miten Spacemonkey suunnittelee, suorittaa ja arvioi tehtäviä turvallisesti ja hallitusti.
+
+---
+
+# 2. Toimintakerroksen periaate
+
+AI ei ainoastaan vastaa.
+
+Se voi:
+
+* ymmärtää tavoitteen
+* suunnitella etenemisen
+* käyttää työkaluja
+* suorittaa vaiheita
+* arvioida tuloksen
+
+```id="agent111"
+
+TAVOITE
+
+↓
+
+SUUNNITTELU
+
+↓
+
+AGENTIN VALINTA
+
+↓
+
+TYÖKALUT
+
+↓
+
+SUORITUS
+
+↓
+
+TARKISTUS
+
+↓
+
+TULOS
+
+```
+
+---
+
+# 3. Agentin määritelmä
+
+Agentti on erikoistunut toiminnallinen yksikkö, jolla on:
+
+* tarkoitus
+* osaamisalue
+* säännöt
+* työkalut
+* vastuualue
+
+---
+
+# 4. Agenttijärjestelmän rakenne
+
+```id="agentsystem111"
+
+SPACEMONKEY CORE
+
+↓
+
+AI BRAIN
+
+↓
+
+AGENT ROUTER
+
+↓
+
+AGENTTI
+
+↓
+
+TYÖKALUT
+
+↓
+
+TOIMINTO
+
+↓
+
+PALAUTE
+
+```
+
+---
+
+# 5. Agenttien roolit
+
+Eri agentit voivat keskittyä eri tehtäviin.
+
+## Knowledge Agent
+
+Vastaa:
+
+* tiedon hakemisesta
+* tiedon järjestämisestä
+* tietopankin ylläpidosta
+
+---
+
+## Project Agent
+
+Vastaa:
+
+* projektien suunnittelusta
+* tehtävien hallinnasta
+* etenemisen seurannasta
+
+---
+
+## Workshop Agent
+
+Vastaa:
+
+* valmistuksesta
+* materiaaleista
+* työprosesseista
+
+---
+
+## Business Agent
+
+Vastaa:
+
+* strategiasta
+* liiketoiminnasta
+* analyysistä
+
+---
+
+# 6. Agentin toimintamalli
+
+```id="agentflow111"
+
+PYYNTÖ
+
+↓
+
+YMMÄRRÄ TAVOITE
+
+↓
+
+VALITSE AGENTTI
+
+↓
+
+RAKENNA SUUNNITELMA
+
+↓
+
+SUORITA
+
+↓
+
+ARVIOI
+
+↓
+
+RAPORTOI
+
+```
+
+---
+
+# 7. Autonomian tasot
+
+Spacemonkey käyttää hallittua autonomiaa.
+
+## Taso 1 — Avustava
+
+AI ehdottaa.
+
+Ihminen päättää.
+
+---
+
+## Taso 2 — Ohjattu suoritus
+
+AI suorittaa hyväksyttyjä toimintoja.
+
+---
+
+## Taso 3 — Rajattu automaatio
+
+AI toimii ennalta määritellyissä tilanteissa.
+
+---
+
+## Taso 4 — Älykäs koordinointi
+
+AI hallitsee useita tehtäviä ja agentteja.
+
+---
+
+# 8. Tehtävien suunnittelu
+
+Ennen suorittamista Spacemonkey määrittää:
+
+* tavoitteen
+* tarvittavat vaiheet
+* käytettävät työkalut
+* onnistumisen ehdot
+
+---
+
+# 9. Tehtävän pilkkominen
+
+Suuret tavoitteet muutetaan hallittaviksi tehtäviksi.
+
+```id="task111"
+
+SUURI TAVOITE
+
+↓
+
+TEHTÄVÄ 1
+
+↓
+
+TEHTÄVÄ 2
+
+↓
+
+TEHTÄVÄ 3
+
+↓
+
+LOPPUTULOS
+
+```
+
+---
+
+# 10. Työkalujen käyttö
+
+Agentti voi käyttää:
+
+* tietokantoja
+* API-yhteyksiä
+* laskentaa
+* tiedostoja
+* hakujärjestelmiä
+* sisäisiä moduuleja
+
+---
+
+# 11. Turvallinen suoritus
+
+Ennen toimintaa arvioidaan:
+
+* mitä tehdään
+* mitä tietoa käytetään
+* mitä vaikutuksia syntyy
+* tarvitaanko hyväksyntä
+
+---
+
+# 12. Agenttien välinen yhteistyö
+
+Monimutkaiset tehtävät voivat vaatia useita agentteja.
+
+```id="multiagent111"
+
+AGENTTI A
+
++
+
+AGENTTI B
+
++
+
+AGENTTI C
+
+↓
+
+YHTEINEN RATKAISU
+
+```
+
+---
+
+# 13. AI Brain ja agenttien orkestrointi
+
+AI Brain toimii johtavana kerroksena.
+
+Se:
+
+* ymmärtää pyynnön
+* valitsee toimintatavan
+* ohjaa agentteja
+* yhdistää tulokset
+
+---
+
+# 14. Työnkulkujen automaatio
+
+Workflow yhdistää:
+
+* tehtävät
+* agentit
+* työkalut
+* aikajärjestyksen
+
+---
+
+# 15. Wood-Booster agenttijärjestelmä
+
+Wood-Booster AI OS voi sisältää:
+
+```id="woodagents111"
+
+ASIAKASPYYNTÖ
+
+↓
+
+CRM AGENT
+
+↓
+
+PRODUCT AGENT
+
+↓
+
+WORKSHOP AGENT
+
+↓
+
+PRICING AGENT
+
+↓
+
+PROJECT AGENT
+
+↓
+
+VALMIS TOIMINTASUUNNITELMA
+
+```
+
+---
+
+# 16. Agenttien oppiminen
+
+Agentit kehittyvät:
+
+* palautteen avulla
+* paremmalla tiedolla
+* uusilla toimintamalleilla
+* kokemuksista
+
+---
+
+# 17. Toiminnan arviointi
+
+Suorituksen jälkeen tarkistetaan:
+
+* saavutettiinko tavoite
+* toimiko suunnitelma
+* mitä opittiin
+* mitä voidaan parantaa
+
+---
+
+# 18. Tulevaisuuden agenttiekosysteemi
+
+Tulevaisuuden Spacemonkey voi sisältää:
+
+* henkilökohtaisia agentteja
+* yritysagentteja
+* tutkimusagentteja
+* suunnitteluagentteja
+* fyysisen maailman agentteja
+
+---
+
+# 19. Autonomiset agentit, tehtävien suoritus ja AI-toimintakerros lait
+
+## Laki 1
+
+Agentti toimii määritellyn tarkoituksen mukaan.
+
+---
+
+## Laki 2
+
+Autonomia tarvitsee hallintaa.
+
+---
+
+## Laki 3
+
+Tehtävä pitää ymmärtää ennen suorittamista.
+
+---
+
+## Laki 4
+
+Jokainen toiminto tarvitsee arvioinnin.
+
+---
+
+## Laki 5
+
+Paras agentti yhdistää älykkyyden, työkalut ja turvallisuuden.
+
+---
+
+# 20. Spacemonkey Agent Prime Directive
+
+"Muuta ymmärrys hallituksi toiminnaksi käyttämällä erikoistuneita agentteja, turvallisia työkaluja ja jatkuvaa arviointia ihmisen tavoitteiden saavuttamiseksi."
+
+---
+
+# Final Autonomiset agentit, tehtävien suoritus ja AI-toimintakerros Definition
+
+Autonomiset agentit, tehtävien suoritus ja AI-toimintakerros Core määrittää Spacemonkeyn siirtymisen keskustelujärjestelmästä toimivaksi AI OS -ympäristöksi.
+
+Tieto antaa ymmärryksen.
+
+Päättely antaa suunnan.
+
+Agentit muuttavat suunnan toiminnaksi.
+
+Spacemonkeyn tulevaisuus rakentuu ympärille, jossa ihminen voi antaa tavoitteen ja AI auttaa rakentamaan polun sen saavuttamiseen.
+
+Ei hallitsematon automaatio.
+
+Vaan älykäs, turvallinen ja tarkoituksellinen yhteistyö.
+
+---
+
+SPACEMONKEY SUOMI AUTONOMISET AGENTIT, TEHTÄVIEN SUORITUS JA AI-TOIMINTAKERROS CORE
+
+Version: F111
+
+Status:
+ACTIVE
+
+ERA:
+GODFILE EVOLUTION LAYER — ACTION FOUNDATION
+
+END OF GODFILE
