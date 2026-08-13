@@ -549,11 +549,12 @@
     "node_gyp": "/usr/lib/node_modules/node-gyp/bin/node-gyp.js",
     "allow_scripts": "",
     "user_agent": "npm/12.0.2 node/v26.4.0 linux x64 workspaces/false",
+    "include": "dev",
     "prefix": "/home/marc/.npm-global",
     "npm_version": "12.0.2",
     "init_module": "/home/marc/.npm-init.js",
     "globalconfig": "/etc/npmrc",
-    "local_prefix": "/home/marc/Wood-Booster-AI/Wood-Booster-OS",
+    "local_prefix": "/home/marc/Public/wood-booster-os",
     "cache": "/home/marc/.npm",
     "userconfig": "/home/marc/.npmrc"
   },

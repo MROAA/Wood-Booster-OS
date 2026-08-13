@@ -10,13 +10,19 @@
     "rebuild-and-test": "node-gyp rebuild && tsx src/test_core.ts"
   },
   "dependencies": {
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
     "express": "^5.2.1",
+    "framer-motion": "^13.1.0",
     "node-addon-api": "^8.0.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/express": "^5.0.6",
+    "@vitejs/plugin-react": "^6.0.5",
     "node-gyp": "^13.0.1",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vite": "^8.2.1"
   }
 }

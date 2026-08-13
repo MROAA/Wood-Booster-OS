@@ -43,7 +43,7 @@ INCS_Debug := \
 	-I/home/marc/.cache/node-gyp/26.4.0/deps/uv/include \
 	-I/home/marc/.cache/node-gyp/26.4.0/deps/zlib \
 	-I/home/marc/.cache/node-gyp/26.4.0/deps/v8/include \
-	-I/home/marc/Wood-Booster-AI/Wood-Booster-OS/node_modules/node-addon-api
+	-I/home/marc/Public/wood-booster-os/node_modules/node-addon-api
 
 DEFS_Release := \
 	'-DNODE_GYP_MODULE_NAME=win96_core' \
@@ -86,7 +86,7 @@ INCS_Release := \
 	-I/home/marc/.cache/node-gyp/26.4.0/deps/uv/include \
 	-I/home/marc/.cache/node-gyp/26.4.0/deps/zlib \
 	-I/home/marc/.cache/node-gyp/26.4.0/deps/v8/include \
-	-I/home/marc/Wood-Booster-AI/Wood-Booster-OS/node_modules/node-addon-api
+	-I/home/marc/Public/wood-booster-os/node_modules/node-addon-api
 
 OBJS := \
 	$(obj).target/$(TARGET)/src/main.o
