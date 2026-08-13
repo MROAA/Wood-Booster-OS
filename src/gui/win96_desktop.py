@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Wood-Booster OS - Win96 Desktop Environment
-Tarjoaa retrotyylisen Win96-käyttöliittymän Kalevala-moduulien, tiedostonhallinnan ja ohjauspaneelin hallintaan.
+Tarjoaa retrotyylisen Win96-käyttöliittymän Kalevala-moduulien, tiedostonhallinnan, 
+ohjauspaneelin, Spacemonkey Builderin ja Boosterverse Loren hallintaan.
 """
 
 from rich.console import Console
@@ -17,6 +18,8 @@ import time
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from modules.kalevala import KalevalaSubsystem
 from utils.logger import get_logger
+from dev.desktop_builder import DesktopBuilderEngine
+from lore.boosterverse_lore import display_lore
 
 log = get_logger("Win96GUI")
 console = Console()
@@ -114,11 +117,12 @@ class Win96Desktop:
     """Wood-Booster OS Win96 Työpöytäsovellus."""
     def __init__(self):
         self.kalevala = KalevalaSubsystem()
+        self.builder = DesktopBuilderEngine()
         self.running = True
 
     def make_header(self) -> Panel:
         return Panel(
-            "[bold white]WOOD-BOOSTER OS v2.0[/bold white] | [cyan]Win96 Desktop Environment[/cyan] | [yellow]Kalevala Edition[/yellow]",
+            "[bold white]WOOD-BOOSTER OS v2.0[/bold white] | [cyan]Win96 Desktop Environment[/cyan] | [yellow]Kalevala & Spacemonkey Studio[/yellow]",
             style="blue on blue"
         )
 
@@ -131,6 +135,8 @@ class Win96Desktop:
         table.add_row("[3]", "Järjestelmän tilatiedot (System Monitor)")
         table.add_row("[4]", "Käynnistä Win96 File Manager & Notepad")
         table.add_row("[5]", "Avaa Win96 Ohjauspaneeli (Control Panel)")
+        table.add_row("[6]", "Spacemonkey Python Desktop Builder (Build & Sandbox Preview)")
+        table.add_row("[7]", "Boosterverse Lore & Mytologia Registry")
         table.add_row("[0]", "Sulje käyttöjärjestelmä")
         return table
 
@@ -141,7 +147,7 @@ class Win96Desktop:
             console.print(self.make_header())
             console.print(Panel(self.make_menu(), title="Päävalikko", border_style="cyan"))
             
-            choice = Prompt.ask("\nValitse toiminto", choices=["1", "2", "3", "4", "5", "0"], default="1")
+            choice = Prompt.ask("\nValitse toiminto", choices=["1", "2", "3", "4", "5", "6", "7", "0"], default="1")
             
             if choice == "1":
                 console.clear()
@@ -172,6 +178,18 @@ class Win96Desktop:
             elif choice == "5":
                 cp = Win96ControlPanel()
                 cp.run()
+            elif choice == "6":
+                console.clear()
+                console.print(Panel("[bold magenta]Käynnistetään Spacemonkey Desktop Builder -sykli...[/bold magenta]"))
+                self.builder.create_specification("Win96 Studio Custom Desktop")
+                self.builder.generate_python_code()
+                if self.builder.validate_and_build():
+                    self.builder.run_preview()
+                Prompt.ask("\nPaina Enter palataksesi työpöydälle...")
+            elif choice == "7":
+                console.clear()
+                display_lore()
+                Prompt.ask("\nPaina Enter palataksesi työpöydälle...")
             elif choice == "0":
                 console.print("[red]Sammutetaan Wood-Booster OS... Heippa![/red]")
                 log.info("Win96 työpöytä sammutettu käyttäjän toimesta.")
