@@ -1,71 +1,47 @@
 #!/usr/bin/env python3
 """
 Wood-Booster OS - Kalevala Subsystem Master Index
-Kokoaa kaikki tarut ja moduulit yhteen yhtenäiseksi eeppiseksi järjestelmäkirjastoksi.
+Dynaaminen lataaja, joka kerää kaikki moduulit talteen riippumatta luokkien nimistä.
 """
 
-from .kannel_genesis import KannelManager
-from .ilmarinen_forge import IlmarinenManager
-from .lemminkainen_quest import LemminkäinenManager
-from .joukahainen_contest import JoukahainenManager
-from .aino_escape import AinoManager
-from .pohjola_wedding import WeddingManager
-from .sampo_forging import SampoManager
-from .sampo_theft import TheftManager
-from .sampo_fragments import FragmentsManager
-from .louhi_spells import LouhiManager
-from .kultaneito_factory import KultaneitoManager
-from .tuonela_swan import SwanManager
-from .hiiden_elk import ElkManager
-from .antero_vipunen import VipunenManager
-from .imatra_rapids import RapidsManager
-from .talking_pike import PikeManager
-from .marjatta_child import MarjattaManager
-from .väinämöisen_lähtö import DepartureManager
-from .kullervo_wrath import KullervoManager
-
+import os
+import importlib
 
 class KalevalaSubsystem:
-    """Yhdistää koko Kalevala-eepoksen yhdeksi hallittavaksi Wood-Booster OS -alijärjestelmäksi."""
+    """Lataa ja hallinnoi kaikkia Kalevala-moduuleja dynaamisesti."""
     def __init__(self):
-        self.modules = [
-            KannelManager(),
-            IlmarinenManager(),
-            LemminkäinenManager(),
-            JoukahainenManager(),
-            AinoManager(),
-            WeddingManager(),
-            SampoManager(),
-            TheftManager(),
-            FragmentsManager(),
-            LouhiManager(),
-            KultaneitoManager(),
-            SwanManager(),
-            ElkManager(),
-            VipunenManager(),
-            RapidsManager(),
-            PikeManager(),
-            MarjattaManager(),
-            DepartureManager(),
-            KullervoManager()
-        ]
+        self.modules = []
+        package_dir = os.path.dirname(__file__)
+        
+        # Käydään läpi kaikki kansion .py-tiedostot paitsi __init__
+        for filename in os.listdir(package_dir):
+            if filename.endswith(".py") and filename != "__init__.py":
+                module_name = filename[:-3]
+                try:
+                    mod = importlib.import_module(f".{module_name}", package="modules.kalevala")
+                    # Etsitään moduulista mikä tahansa Manager- tai Core-luokka
+                    for attr_name in dir(mod):
+                        if "Manager" in attr_name or "Core" in attr_name:
+                            cls = getattr(mod, attr_name)
+                            if isinstance(cls, type):
+                                self.modules.append(cls())
+                                break
+                except Exception as e:
+                    print(f"Varoitus: Moduulin {module_name} lataus epäonnistui: {e}")
 
     def run_epic_chronicles(self):
         print("==================================================")
         print("   WOOD-BOOSTER OS: KALEVALA SUBSYSTEM EPIC RUN     ")
         print("==================================================")
         for mod in self.modules:
-            for method_name in [
-                'run_startup_routine', 'run_forging_sequence', 'run_adventure',
-                'run_challenge', 'run_emergency_release', 'run_wedding_feast',
-                'run_sampo_cycle', 'run_backup_heist', 'run_restoration_routine',
-                'run_security_protocol', 'run_assistant_sequence', 'run_surveillance',
-                'run_speed_test', 'run_deep_query', 'run_load_test',
-                'run_oracle_session', 'run_upgrade_routine', 'run_shutdown_sequence',
-                'run_wrath_routine'
-            ]:
-                if hasattr(mod, method_name):
-                    getattr(mod, method_name)()
+            for method_name in dir(mod):
+                if method_name.startswith("run_"):
+                    method = getattr(mod, method_name)
+                    if callable(method):
+                        try:
+                            method()
+                        except Exception:
+                            pass
         print("==================================================")
         print("   KALEVALAN TARU ON SAATETTU PÄÄTÖSEEN.           ")
         print("==================================================")
