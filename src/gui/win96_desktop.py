@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Wood-Booster OS - Win96 Desktop Environment
-Tarjoaa retrotyylisen Win96-käyttöliittymän Kalevala-moduulien ja ytimen hallintaan.
+Tarjoaa retrotyylisen Win96-käyttöliittymän Kalevala-moduulien, tiedostonhallinnan ja ohjauspaneelin hallintaan.
 """
 
 from rich.console import Console
@@ -11,6 +11,7 @@ from rich.prompt import Prompt
 import sys
 import os
 import psutil
+import time
 
 # Lisätään polku moduuleille
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -19,6 +20,46 @@ from utils.logger import get_logger
 
 log = get_logger("Win96GUI")
 console = Console()
+
+class Win96ControlPanel:
+    """Win96 Ohjauspaneeli järjestelmän asetuksille ja diagnostiikalle."""
+    def run(self):
+        while True:
+            console.clear()
+            console.print(Panel("[bold yellow]Win96 Control Panel[/bold yellow]\nJärjestelmän hallinta ja asetukset", border_style="yellow"))
+            
+            console.print("[1] Näytä aktiiviset prosessit (psutil)")
+            console.print("[2] Palauta tehdasasetukset (Reset Cache)")
+            console.print("[3] Järjestelmän tietojen tarkastus (System Info)")
+            console.print("[0] Takaisin työpöydälle")
+            
+            choice = Prompt.ask("\nValitse toiminto", choices=["1", "2", "3", "0"], default="0")
+            
+            if choice == "1":
+                console.clear()
+                console.print(Panel("[bold cyan]Aktiiviset prosessit (Top 5 muistin mukaan):[/bold cyan]"))
+                processes = sorted(psutil.process_iter(['pid', 'name', 'memory_percent']), key=lambda p: p.info['memory_percent'] or 0, reverse=True)
+                for p in processes[:5]:
+                    console.print(f"PID: {p.info['pid']} | Nimi: {p.info['name']} | Muisti: {p.info['memory_percent']:.2f}%")
+                Prompt.ask("\nPaina Enter palataksesi...")
+            elif choice == "2":
+                console.clear()
+                console.print(Panel("[green]Tyhjennetään __pycache__ ja väliaikaistiedostot...[/green]"))
+                os.system("find . -type d -name '__pycache__' -exec rm -r {} + 2>/dev/null")
+                time.sleep(1)
+                console.print("[bold green]Välimuisti tyhjennetty onnistuneesti![/bold green]")
+                Prompt.ask("\nPaina Enter palataksesi...")
+            elif choice == "3":
+                console.clear()
+                console.print(Panel(f"[bold magenta]System Architecture Info:[/bold magenta]\n"
+                                    f"Käyttöjärjestelmä: Linux (Wood-Booster OS Core)\n"
+                                    f"Python Versio: {sys.version.split()[0]}\n"
+                                    f"Fyysiset CPU-ytimet: {psutil.cpu_count(logical=False)}\n"
+                                    f"Logiikkaprosessorit: {psutil.cpu_count(logical=True)}", title="About Win96"))
+                Prompt.ask("\nPaina Enter palataksesi...")
+            elif choice == "0":
+                break
+
 
 class Win96FileManager:
     """Win96 tyylinen tiedostonhallinta ja tekstieditori."""
@@ -87,8 +128,9 @@ class Win96Desktop:
         table.add_column("Action", style="white")
         table.add_row("[1]", "Aja Kalevala Epic Run (Kaikki tarut)")
         table.add_row("[2]", "Avaa järjestelmän lokit (Loguru)")
-        table.add_row("[3]", "Järjestelmän tilatiedot (psutil)")
+        table.add_row("[3]", "Järjestelmän tilatiedot (System Monitor)")
         table.add_row("[4]", "Käynnistä Win96 File Manager & Notepad")
+        table.add_row("[5]", "Avaa Win96 Ohjauspaneeli (Control Panel)")
         table.add_row("[0]", "Sulje käyttöjärjestelmä")
         return table
 
@@ -99,7 +141,7 @@ class Win96Desktop:
             console.print(self.make_header())
             console.print(Panel(self.make_menu(), title="Päävalikko", border_style="cyan"))
             
-            choice = Prompt.ask("\nValitse toiminto", choices=["1", "2", "3", "4", "0"], default="1")
+            choice = Prompt.ask("\nValitse toiminto", choices=["1", "2", "3", "4", "5", "0"], default="1")
             
             if choice == "1":
                 console.clear()
@@ -127,6 +169,9 @@ class Win96Desktop:
             elif choice == "4":
                 fm = Win96FileManager()
                 fm.run()
+            elif choice == "5":
+                cp = Win96ControlPanel()
+                cp.run()
             elif choice == "0":
                 console.print("[red]Sammutetaan Wood-Booster OS... Heippa![/red]")
                 log.info("Win96 työpöytä sammutettu käyttäjän toimesta.")
