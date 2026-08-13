@@ -4,7 +4,7 @@ Wood-Booster OS - Kalevala Subsystem Master Index
 Kokoaa kaikki tarut ja moduulit yhteen yhtenäiseksi eeppiseksi järjestelmäkirjastoksi.
 """
 
-from .vakavanha_vaynamoinen import VäinämöinenManager
+from .vainamoinen_startup import VäinämöinenManager
 from .ilmarinen_forge import IlmarinenManager
 from .leminkainen_turtles import LemminkäinenManager
 from .joukahainen_bog import JoukahainenManager
