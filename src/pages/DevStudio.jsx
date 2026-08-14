@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 
 import { apiGet, apiPost, apiPut } from "../api/client"
 
+import DevChatPanel from "../components/devstudio/DevChatPanel"
+
 
 const STATUS_LABELS = {
   draft: "Luonnos",
@@ -12,6 +14,8 @@ const STATUS_LABELS = {
 
 
 function DevStudio() {
+  const [activeTab, setActiveTab] = useState("chat")
+
   const [drafts, setDrafts] = useState([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
@@ -296,11 +300,71 @@ function DevStudio() {
           max-w-3xl
           text-[var(--wood-muted)]
         ">
-          Pyydä Python-koodia suomeksi, tarkista ja muokkaa
-          tulosta, hyväksy, ja kirjoita levylle vasta sen jälkeen.
-          Mitään ei koskaan kirjoiteta automaattisesti.
+          Pyydä muutosta luonnollisella kielellä, tarkista se diffinä,
+          hyväksy, ja kirjoita levylle vasta sen jälkeen. Mitään ei
+          koskaan kirjoiteta automaattisesti.
         </p>
+
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab("chat")}
+            className={`
+              rounded-full
+              border
+              px-4
+              py-1.5
+              text-sm
+              font-medium
+              transition-colors
+              ${
+                activeTab === "chat"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Chat
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("python")}
+            className={`
+              rounded-full
+              border
+              px-4
+              py-1.5
+              text-sm
+              font-medium
+              transition-colors
+              ${
+                activeTab === "python"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Python-työkalut
+          </button>
+        </div>
       </header>
+
+      {activeTab === "chat" && (
+        <section className="
+          h-[600px]
+          rounded-2xl
+          border
+          border-[var(--wood-border)]
+          bg-[var(--wood-panel)]
+          overflow-hidden
+        ">
+          <DevChatPanel />
+        </section>
+      )}
+
+      {activeTab === "python" && (
+      <>
 
       {errorMessage && (
         <div className="
@@ -735,6 +799,9 @@ function DevStudio() {
           />
         ))}
       </section>
+
+      </>
+      )}
     </div>
   )
 }
