@@ -19,6 +19,11 @@ import {
 } from "./context/ChatContext"
 
 
+import {
+  DesktopProvider,
+} from "./context/DesktopContext"
+
+
 import "./index.css"
 import "./styles/animations.css"
 
@@ -50,7 +55,13 @@ ReactDOM
           <ChatProvider>
 
 
-            <App />
+            <DesktopProvider>
+
+
+              <App />
+
+
+            </DesktopProvider>
 
 
           </ChatProvider>

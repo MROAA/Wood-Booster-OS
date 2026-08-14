@@ -28,6 +28,21 @@ const DEFAULT_MODEL =
   process.env.OLLAMA_MODEL ||
   "qwen2.5:7b"
 
+/*
+ * ES module -vaatimus koskee vain .js/.ts-tiedostoja - .jsx/.tsx
+ * (React-komponentit), .json/.md/.css/.html/.prisma/.py eivät käytä
+ * import/export-syntaksia samalla tavalla eikä ohjetta pidä lisätä
+ * niille. Lisätty sen jälkeen kun havaittiin manuaalisessa
+ * hyväksymistestissä, että malli tuotti CommonJS-koodia
+ * (module.exports) vaikka projektin oma CLAUDE.md vaatii ES moduulit
+ * - tämä ristiriita esti generoitua tarkistustestiä (joka aina
+ * käyttää import-syntaksia, ks. verificationTestGenerator.js)
+ * koskaan läpäisemästä.
+ */
+function requiresEsModules(filePath) {
+  return /\.(js|ts)$/i.test(filePath || "")
+}
+
 function buildSystemPrompt(filePath) {
   return (
     `TEHTÄVÄ: Muokkaa Wood-Booster HQ -projektin tiedostoa ` +
@@ -37,6 +52,12 @@ function buildSystemPrompt(filePath) {
     "älä lisää selityksiä koodin sekaan, älä poista toiminnallisuutta " +
     "jota pyyntö ei koske. Jos tiedostoa ei vielä ole, luo se " +
     "kokonaan pyynnön perusteella. " +
+    (
+      requiresEsModules(filePath)
+        ? "Käytä AINA ES-moduulisyntaksia (import/export) - älä " +
+          "koskaan CommonJS-syntaksia (require/module.exports). "
+        : ""
+    ) +
     "Vastaa TARKALLEEN tässä muodossa:\n" +
     "OTSIKKO: <lyhyt kuvaava otsikko>\n" +
     "SELITYS: <lyhyt suomenkielinen kuvaus tehdystä muutoksesta>\n" +
