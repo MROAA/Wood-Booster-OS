@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useState
 } from "react"
 
@@ -8,6 +9,14 @@ import SpacemonkeyIcon from "../branding/SpacemonkeyIcon"
 import {
   createRuntimeContext,
 } from "../../services/runtime/runtimeContext"
+
+
+
+const MODE_SENDER = {
+  spacemonkey: "Spacemonkey",
+  altrako: "Altrako",
+  council: "Council (Spacemonkey + Altrako)",
+}
 
 
 
@@ -40,6 +49,43 @@ function ChatPanel() {
     }
 
   ])
+
+
+
+  useEffect(() => {
+
+    fetch("http://localhost:3001/api/agents/history?limit=50")
+
+      .then(response => response.json())
+
+      .then(data => {
+
+        const history = data.history || []
+
+        if (history.length === 0) {
+          return
+        }
+
+        setMessages(
+          history.map(entry => ({
+            role: entry.role,
+            content: entry.content,
+            mode: entry.mode,
+          }))
+        )
+
+      })
+
+      .catch(error => {
+
+        console.error(
+          "Keskusteluhistorian lataus epäonnistui:",
+          error
+        )
+
+      })
+
+  }, [])
 
 
 
@@ -115,7 +161,11 @@ function ChatPanel() {
             role: "assistant",
             content:
               data.answer ||
-              "Ei vastausta."
+              "Ei vastausta.",
+            mode:
+              data.mode,
+            innerVoice:
+              data.innerVoice,
           }
 
         ]
@@ -253,7 +303,54 @@ function ChatPanel() {
                   `}
                 >
 
+                  {
+                    item.role === "assistant" &&
+                    item.mode &&
+                    MODE_SENDER[item.mode] && (
+
+                      <div
+                        className="
+                          mb-1
+                          text-xs
+                          font-semibold
+                          uppercase
+                          tracking-wide
+                          text-[var(--wood-accent)]
+                        "
+                      >
+
+                        {MODE_SENDER[item.mode]}
+
+                      </div>
+
+                    )
+                  }
+
                   {item.content}
+
+                  {
+                    item.innerVoice && (
+
+                      /* Spacemonkeyn "sisäinen ääni" - tunnelmaa, ei
+                         järjestelmätietoa, siksi selvästi omalla,
+                         hillityllä tyylillään erillään vastauksesta. */
+                      <div
+                        className="
+                          mt-2
+                          text-xs
+                          italic
+                          text-[var(--wood-muted)]
+                        "
+                      >
+
+                        {item.innerVoice.mood}
+                        {" — "}
+                        {item.innerVoice.innerThought}
+
+                      </div>
+
+                    )
+                  }
 
                 </div>
 
