@@ -23,6 +23,7 @@ import DevStudio from "../pages/DevStudio.jsx"
 import ProjectWorkspace from "../pages/ProjectWorkspace.jsx"
 import SpiderSolitaire from "../pages/SpiderSolitaire.jsx"
 import AIGenerator from "../pages/AIGenerator.jsx"
+import Altrako from "../pages/Altrako.jsx"
 import GitGuardianCard from "../components/systemPulse/GitGuardianCard.jsx"
 
 
@@ -51,6 +52,7 @@ export const APPS = {
   projectworkspace: { title: "Projektityötila", icon: "🗂", component: ProjectWorkspace, defaultWidth: 920, defaultHeight: 600 },
   spidersolitaire: { title: "Spider-pasianssi", icon: "♤", component: SpiderSolitaire, defaultWidth: 900, defaultHeight: 650 },
   aigenerator: { title: "AI Generator", icon: "✦", component: AIGenerator, defaultWidth: 620, defaultHeight: 640 },
+  altrako: { title: "Altrako", icon: "🍌", component: Altrako, defaultWidth: 640, defaultHeight: 600 },
   devverificationviewer: { title: "Tarkistustulos", icon: "🧪", component: VerificationResultViewer, defaultWidth: 700, defaultHeight: 600 },
   settings: { title: "Asetukset", icon: "⚙", component: Settings, defaultWidth: 700, defaultHeight: 600 },
   calculator: { title: "Laskin", icon: "🧮", component: CalculatorApp, defaultWidth: 320, defaultHeight: 480 },
