@@ -89,6 +89,13 @@ const groups = [
 
 
       {
+        label: "Dev Studio",
+        path: "/dev-studio",
+        icon: "λ"
+      },
+
+
+      {
         label: "Settings",
         path: "/settings",
         icon: "⚙"
