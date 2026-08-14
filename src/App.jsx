@@ -143,13 +143,13 @@ function App() {
         <Route
           path="/spacemonkey-brain"
           element={
-            <SpacemonkeyPersona />
+            <SpacemonkeyBrain />
           }
         />
         <Route
           path="/spacemonkey-diagnostics"
           element={
-            <SpacemonkeyBrain />
+            <SpacemonkeyPersona />
           }
         />
         <Route

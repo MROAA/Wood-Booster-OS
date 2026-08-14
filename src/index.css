@@ -12,7 +12,15 @@
   --wood-text: #e8dfd2;
   --wood-muted: #978b7b;
 
-  --wood-accent: #6b7f4a;
+  --wood-accent: #b97b3f;
+
+  /* Fibonacci-pohjainen väliscale - kalpee, hillitty "hengitystila" korteille/paneeleille. */
+  --space-1: 8px;
+  --space-2: 13px;
+  --space-3: 21px;
+  --space-4: 34px;
+  --space-5: 55px;
+  --space-6: 89px;
 
 }
 
@@ -48,7 +56,7 @@
   --wood-text: #2a2419;
   --wood-muted: #766b58;
 
-  --wood-accent: #4f5f38;
+  --wood-accent: #8a5a2b;
 
 }
 
@@ -84,7 +92,7 @@ h1,
 .brand-font {
 
   font-family:
-    Cinzel,
+    "Cormorant Garamond",
     serif;
 
 }
@@ -103,7 +111,7 @@ h1,
     14px;
 
   padding:
-    1rem;
+    var(--space-3);
 
 }
 
@@ -121,7 +129,7 @@ h1,
     14px;
 
   padding:
-    1.25rem;
+    var(--space-4);
 
 }
 

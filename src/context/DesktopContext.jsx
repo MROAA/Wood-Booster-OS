@@ -7,6 +7,8 @@ import {
 
 import VirtualWorkspacePanel from "../components/workspace/VirtualWorkspacePanel.jsx"
 import TerminalApp from "../components/desktop/TerminalApp.jsx"
+import CalculatorApp from "../components/desktop/CalculatorApp.jsx"
+import NotepadApp from "../components/desktop/NotepadApp.jsx"
 import VerificationResultViewer from "../components/desktop/VerificationResultViewer.jsx"
 import Projects from "../pages/Projects.jsx"
 import Settings from "../pages/Settings.jsx"
@@ -20,6 +22,7 @@ import Tools from "../pages/Tools.jsx"
 import DevStudio from "../pages/DevStudio.jsx"
 import ProjectWorkspace from "../pages/ProjectWorkspace.jsx"
 import SpiderSolitaire from "../pages/SpiderSolitaire.jsx"
+import AIGenerator from "../pages/AIGenerator.jsx"
 import GitGuardianCard from "../components/systemPulse/GitGuardianCard.jsx"
 
 
@@ -47,8 +50,11 @@ export const APPS = {
   devstudio: { title: "Dev Studio", icon: "λ", component: DevStudio, defaultWidth: 900, defaultHeight: 650 },
   projectworkspace: { title: "Projektityötila", icon: "🗂", component: ProjectWorkspace, defaultWidth: 920, defaultHeight: 600 },
   spidersolitaire: { title: "Spider-pasianssi", icon: "♤", component: SpiderSolitaire, defaultWidth: 900, defaultHeight: 650 },
+  aigenerator: { title: "AI Generator", icon: "✦", component: AIGenerator, defaultWidth: 620, defaultHeight: 640 },
   devverificationviewer: { title: "Tarkistustulos", icon: "🧪", component: VerificationResultViewer, defaultWidth: 700, defaultHeight: 600 },
   settings: { title: "Asetukset", icon: "⚙", component: Settings, defaultWidth: 700, defaultHeight: 600 },
+  calculator: { title: "Laskin", icon: "🧮", component: CalculatorApp, defaultWidth: 320, defaultHeight: 480 },
+  notepad: { title: "Muistio", icon: "📝", component: NotepadApp, defaultWidth: 520, defaultHeight: 480 },
 }
 
 

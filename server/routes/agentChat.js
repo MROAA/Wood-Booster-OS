@@ -44,6 +44,25 @@ import {
 
 
 
+import {
+  detectMode,
+} from "../services/chatModes/detectMode.js"
+
+import {
+  processAltrako,
+} from "../services/chatModes/altrako.js"
+
+import {
+  reflect,
+} from "../services/chatModes/loreVoice.js"
+
+import {
+  loadChatHistory,
+  appendChatTurn,
+} from "../services/chatModes/chatHistory.js"
+
+
+
 
 
 
@@ -803,6 +822,136 @@ async function createRuntimeContextKnowledge(
 
 
 /*
+ * Altrako-tila: ei mene lainkaan Ollama/agent-putken läpi, pelkkä
+ * suojelija-persoona (server/services/chatModes/altrako.js).
+ */
+function runAltrakoTurn(text){
+
+  const altrako =
+    processAltrako(text)
+
+  return {
+
+    status: 200,
+
+    body: {
+
+      success:true,
+
+      agent:
+        "altrako",
+
+      reason:
+        "altrako mode",
+
+      answer:
+        altrako.reply,
+
+      ...createEmptyActionResponse(),
+
+      altrako: {
+
+        name:
+          altrako.name,
+
+        currentMood:
+          altrako.currentMood,
+
+        blockedCount:
+          altrako.blockedCount,
+
+      },
+
+    },
+
+  }
+
+}
+
+
+
+/*
+ * Council-tila: Spacemonkey (tavallinen agent-putki) ja Altrako
+ * vastaavat molemmat, ja vastaukset yhdistetään yhdeksi näkyväksi
+ * vastaukseksi - sama idea kuin PR #11:n Python-puolen chat.py:ssä.
+ */
+async function runCouncilTurn({
+
+  text,
+
+  conversation,
+
+  systemContext,
+
+  runtimeContext,
+
+  prisma,
+
+}){
+
+  const [
+    spacemonkeyResult,
+    altrakoResult,
+  ] =
+    await Promise.all([
+
+      runAgentChat({
+
+        message: text,
+
+        conversation,
+
+        systemContext,
+
+        runtimeContext,
+
+        prisma,
+
+      }),
+
+      runAltrakoTurn(text),
+
+    ])
+
+
+
+  const combinedAnswer =
+
+    `🧠 Spacemonkey ehdottaa:\n${spacemonkeyResult.body.answer}\n\n` +
+    `🐵 Altrako arvioi:\n${altrakoResult.body.answer}`
+
+
+
+  return {
+
+    status:
+      spacemonkeyResult.status,
+
+    body: {
+
+      ...spacemonkeyResult.body,
+
+      agent:
+        "council",
+
+      reason:
+        "council mode",
+
+      answer:
+        combinedAnswer,
+
+      altrako:
+        altrakoResult.body.altrako,
+
+    },
+
+  }
+
+}
+
+
+
+/*
  * Varsinainen agent-chat-logiikka omana, uudelleenkäytettävänä
  * funktiona. Palauttaa vastauksen datana res.json:n sijaan, jotta
  * muutkin reitit (/api/ai-brain/chat, /api/ai-brain-v2/chat)
@@ -1453,26 +1602,98 @@ export default function createAgentChatRouter(
 
 
         const {
-          status,
-          body,
+          mode,
+          text,
         } =
-          await runAgentChat({
+          detectMode(message)
 
-            message,
 
-            conversation,
+        let result
 
-            systemContext,
+        if(mode === "altrako"){
 
-            runtimeContext,
+          result =
+            runAltrakoTurn(text)
 
-            prisma,
+        }
+        else if(mode === "council"){
 
-          })
+          result =
+            await runCouncilTurn({
+
+              text,
+
+              conversation,
+
+              systemContext,
+
+              runtimeContext,
+
+              prisma,
+
+            })
+
+        }
+        else {
+
+          result =
+            await runAgentChat({
+
+              message: text,
+
+              conversation,
+
+              systemContext,
+
+              runtimeContext,
+
+              prisma,
+
+            })
+
+        }
+
+
+        const body = {
+
+          ...result.body,
+
+          mode,
+
+          innerVoice:
+            reflect(),
+
+        }
+
+
+        if(prisma){
+
+          try {
+
+            await appendChatTurn(
+              prisma,
+              {
+                userText: text,
+                mode,
+                reply: body.answer,
+              },
+            )
+
+          }
+          catch(persistError){
+
+            console.error(
+              "CHAT HISTORY PERSIST ERROR:",
+              persistError,
+            )
+
+          }
+
+        }
 
 
         return res
-          .status(status)
+          .status(result.status)
           .json(body)
 
 
@@ -1510,6 +1731,62 @@ export default function createAgentChatRouter(
 
       }
 
+
+    },
+
+  )
+
+
+
+  router.get(
+
+    "/history",
+
+    async(
+      req,
+      res,
+    )=>{
+
+      try {
+
+        const limit =
+          Math.max(
+            1,
+            Math.min(
+              Number(req.query.limit) || 50,
+              200,
+            ),
+          )
+
+        const history =
+          prisma
+            ? await loadChatHistory(prisma, limit)
+            : []
+
+        return res.json({
+          success: true,
+          history,
+        })
+
+      }
+      catch(error){
+
+        console.error(
+          "CHAT HISTORY LOAD ERROR:",
+          error,
+        )
+
+        return res
+          .status(500)
+          .json({
+            success: false,
+            error:
+              error.message ||
+              "Tuntematon palvelinvirhe",
+            history: [],
+          })
+
+      }
 
     },
 

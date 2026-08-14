@@ -483,6 +483,8 @@ model Message {
 
   content String
 
+  mode String?
+
   conversationId String
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
