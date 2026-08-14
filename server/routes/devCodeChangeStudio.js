@@ -478,8 +478,7 @@ export default function createDevCodeChangeRouter(prisma) {
         const workflowResult = await workflowEngine.execute(
           "write-code-change-workflow",
           {
-            draftId,
-            prisma,
+            draft,
             toolBus,
           },
         )

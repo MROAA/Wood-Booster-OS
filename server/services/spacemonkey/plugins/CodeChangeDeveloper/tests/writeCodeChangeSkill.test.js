@@ -8,27 +8,25 @@ import { PROJECT_ROOT } from "../skills/projectSandbox.js"
 
 
 
-function fakePrisma({ draft }) {
+test("rejects a missing draft", async () => {
 
-    return {
-        codeChangeDraft: {
-            findUnique: async () => draft,
-        },
-    }
+    const result = await writeCodeChangeSkill.execute({
+        draft: null,
+        toolBus: { execute: async () => ({ success: true }) },
+    })
 
-}
+    assert.equal(result.success, false)
+
+    assert.equal(result.code, "draft_not_found")
+
+})
 
 
 
 test("rejects a draft that is not approved", async () => {
 
-    const prisma = fakePrisma({
-        draft: { id: 1, status: "draft" },
-    })
-
     const result = await writeCodeChangeSkill.execute({
-        draftId: 1,
-        prisma,
+        draft: { id: 1, status: "draft" },
         toolBus: { execute: async () => ({ success: true }) },
     })
 
@@ -42,7 +40,7 @@ test("rejects a draft that is not approved", async () => {
 
 test("rejects a path outside the project sandbox even if approved", async () => {
 
-    const prisma = fakePrisma({
+    const result = await writeCodeChangeSkill.execute({
         draft: {
             id: 1,
             status: "approved",
@@ -50,11 +48,6 @@ test("rejects a path outside the project sandbox even if approved", async () => 
             proposedCode: "hacked",
             originalHash: null,
         },
-    })
-
-    const result = await writeCodeChangeSkill.execute({
-        draftId: 1,
-        prisma,
         toolBus: { execute: async () => ({ success: true }) },
     })
 
@@ -67,16 +60,6 @@ test("rejects a path outside the project sandbox even if approved", async () => 
 
 
 test("refuses to write when the live file changed since the draft was generated", async () => {
-
-    const prisma = fakePrisma({
-        draft: {
-            id: 1,
-            status: "approved",
-            filePath: "README.md",
-            proposedCode: "# New content",
-            originalHash: sha256("# Content when drafted"),
-        },
-    })
 
     const toolBus = {
         execute: async (id, input) => {
@@ -91,8 +74,13 @@ test("refuses to write when the live file changed since the draft was generated"
     }
 
     const result = await writeCodeChangeSkill.execute({
-        draftId: 1,
-        prisma,
+        draft: {
+            id: 1,
+            status: "approved",
+            filePath: "README.md",
+            proposedCode: "# New content",
+            originalHash: sha256("# Content when drafted"),
+        },
         toolBus,
     })
 
@@ -106,16 +94,6 @@ test("refuses to write when the live file changed since the draft was generated"
 
 test("refuses to write when a file that existed at draft time has since been deleted", async () => {
 
-    const prisma = fakePrisma({
-        draft: {
-            id: 1,
-            status: "approved",
-            filePath: "README.md",
-            proposedCode: "# New content",
-            originalHash: sha256("# It existed before"),
-        },
-    })
-
     const toolBus = {
         execute: async (id, input) => {
             if (input.action === "exists") return { success: true, exists: false }
@@ -125,8 +103,13 @@ test("refuses to write when a file that existed at draft time has since been del
     }
 
     const result = await writeCodeChangeSkill.execute({
-        draftId: 1,
-        prisma,
+        draft: {
+            id: 1,
+            status: "approved",
+            filePath: "README.md",
+            proposedCode: "# New content",
+            originalHash: sha256("# It existed before"),
+        },
         toolBus,
     })
 
@@ -141,16 +124,6 @@ test("refuses to write when a file that existed at draft time has since been del
 test("happy path: backs up the old content, then writes the new content", async () => {
 
     const originalContent = "# Original README"
-
-    const prisma = fakePrisma({
-        draft: {
-            id: 1,
-            status: "approved",
-            filePath: "README.md",
-            proposedCode: "# Updated README",
-            originalHash: sha256(originalContent),
-        },
-    })
 
     const calls = []
 
@@ -169,8 +142,13 @@ test("happy path: backs up the old content, then writes the new content", async 
     }
 
     const result = await writeCodeChangeSkill.execute({
-        draftId: 1,
-        prisma,
+        draft: {
+            id: 1,
+            status: "approved",
+            filePath: "README.md",
+            proposedCode: "# Updated README",
+            originalHash: sha256(originalContent),
+        },
         toolBus,
     })
 
@@ -203,16 +181,6 @@ test("happy path: backs up the old content, then writes the new content", async 
 
 test("new file: no backup attempted when the file does not exist yet", async () => {
 
-    const prisma = fakePrisma({
-        draft: {
-            id: 1,
-            status: "approved",
-            filePath: "docs/new-file.md",
-            proposedCode: "# Brand new",
-            originalHash: null,
-        },
-    })
-
     const calls = []
 
     const toolBus = {
@@ -226,8 +194,13 @@ test("new file: no backup attempted when the file does not exist yet", async () 
     }
 
     const result = await writeCodeChangeSkill.execute({
-        draftId: 1,
-        prisma,
+        draft: {
+            id: 1,
+            status: "approved",
+            filePath: "docs/new-file.md",
+            proposedCode: "# Brand new",
+            originalHash: null,
+        },
         toolBus,
     })
 

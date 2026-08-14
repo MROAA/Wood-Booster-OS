@@ -120,6 +120,7 @@ import createWordpressStudioRouter from "./routes/wordpressStudio.js"
 import createDevStudioRouter from "./routes/devStudio.js"
 
 import createDevCodeChangeRouter from "./routes/devCodeChangeStudio.js"
+import createDevMultiFileChangeRouter from "./routes/devMultiFileChangeStudio.js"
 import createAgentChatRouter from "./routes/agentChat.js"
 import createProjectsRouter from "./routes/projects.js"
 import createProjectMaterialsRouter from "./routes/projectMaterials.js"
@@ -662,6 +663,15 @@ app.use(
 app.use(
   "/api",
   createDevCodeChangeRouter(
+    prisma
+  )
+)
+
+
+
+app.use(
+  "/api",
+  createDevMultiFileChangeRouter(
     prisma
   )
 )

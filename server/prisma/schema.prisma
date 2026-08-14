@@ -219,6 +219,78 @@ model CodeChangeDraft {
 
 
 
+model CodeChangeDraftSet {
+
+  id Int @id @default(autoincrement())
+
+  prompt String
+
+  status String @default("planning")
+
+  planExplanation String?
+
+  planError String?
+
+  writeError String?
+
+  writtenAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  files CodeChangeFileDraft[]
+
+}
+
+
+
+model CodeChangeFileDraft {
+
+  id Int @id @default(autoincrement())
+
+  setId Int
+
+  set CodeChangeDraftSet @relation(fields: [setId], references: [id])
+
+  filePath String
+
+  action String
+
+  reason String?
+
+  originalCode String?
+
+  proposedCode String?
+
+  originalHash String?
+
+  status String @default("planned")
+
+  blockedCode String?
+
+  generateError String?
+
+  writeError String?
+
+  backupPath String?
+
+  testCode String?
+
+  testStatus String?
+
+  testOutput String?
+
+  testSkippedReason String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
 model Quote {
 
   id Int @id @default(autoincrement())

@@ -29,6 +29,10 @@ import runVerificationTestSkill from "./skills/runVerificationTestSkill.js"
 
 import runVerificationTestWorkflow from "./workflows/runVerificationTestWorkflow.js"
 
+import generateChangePlanSkill from "./skills/generateChangePlanSkill.js"
+
+import generateChangePlanWorkflow from "./workflows/generateChangePlanWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -75,6 +79,10 @@ function registerCodeChangeDeveloperPlugin({
         runVerificationTestSkill,
     )
 
+    skillEngine.register(
+        generateChangePlanSkill,
+    )
+
     workflowEngine.register(
         generateCodeChangeWorkflow,
     )
@@ -89,6 +97,10 @@ function registerCodeChangeDeveloperPlugin({
 
     workflowEngine.register(
         runVerificationTestWorkflow,
+    )
+
+    workflowEngine.register(
+        generateChangePlanWorkflow,
     )
 
     pluginManager.register(plugin)
