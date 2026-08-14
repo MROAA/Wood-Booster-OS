@@ -86,6 +86,7 @@ Thumbs.db
 *.backup
 *.bak
 *.zip
+.dev-studio-backups/
 # =====================================
 # System Pulse Snapshots
 # =====================================

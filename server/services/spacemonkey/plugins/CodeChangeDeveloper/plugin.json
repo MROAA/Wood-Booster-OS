@@ -1,0 +1,29 @@
+{
+  "id": "code-change-developer",
+  "name": "Code Change Developer",
+  "version": "1.0.0",
+  "description": "Proposes and, after human approval, writes reviewed changes to the live Wood-Booster project source tree.",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "development",
+  "dependencies": [],
+  "capabilities": [
+    "code-change-writing"
+  ],
+  "skills": [
+    "generate-code-change",
+    "write-code-change"
+  ],
+  "tools": [
+    "file"
+  ],
+  "workflows": [
+    "generate-code-change-workflow",
+    "write-code-change-workflow"
+  ],
+  "permissions": [
+    "codechange.write",
+    "filesystem.write"
+  ],
+  "entry": "index.js"
+}

@@ -177,6 +177,40 @@ model PythonCodeDraft {
 
 
 
+model CodeChangeDraft {
+
+  id Int @id @default(autoincrement())
+
+  prompt String
+
+  title String
+
+  explanation String?
+
+  filePath String
+
+  originalCode String?
+
+  proposedCode String
+
+  originalHash String?
+
+  status String @default("draft")
+
+  writeError String?
+
+  backupPath String?
+
+  writtenAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
 model Quote {
 
   id Int @id @default(autoincrement())
