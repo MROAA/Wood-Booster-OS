@@ -16,6 +16,7 @@ import Tools from './Tools.jsx';
 import DevStudio from './DevStudio.jsx';
 import ProjectWorkspace from './ProjectWorkspace.jsx';
 import SpiderSolitaire from './SpiderSolitaire.jsx';
+import AIGenerator from './AIGenerator.jsx';
 import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
 import './BoosterverseDesktop.css';
 
@@ -61,6 +62,7 @@ const APPS = {
   devstudio: { title: 'Dev Studio', icon: 'λ', component: DevStudio, defaultWidth: 900, defaultHeight: 650 },
   projectworkspace: { title: 'Projektityötila', icon: '🗂', component: ProjectWorkspace, defaultWidth: 920, defaultHeight: 600 },
   spidersolitaire: { title: 'Spider-pasianssi', icon: '♤', component: SpiderSolitaire, defaultWidth: 900, defaultHeight: 650 },
+  aigenerator: { title: 'AI Generator', icon: '✦', component: AIGenerator, defaultWidth: 620, defaultHeight: 640 },
   settings: { title: 'Asetukset', icon: '⚙', component: Settings, defaultWidth: 700, defaultHeight: 600 },
   calculator: { title: 'Laskin', icon: '🧮', component: CalculatorApp, defaultWidth: 320, defaultHeight: 480 },
   notepad: { title: 'Muistio', icon: '📝', component: NotepadApp, defaultWidth: 520, defaultHeight: 480 },
