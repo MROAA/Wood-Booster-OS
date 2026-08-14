@@ -66,31 +66,3 @@ execSync(
 )
 
 console.log(`Server resource: ${resourceDir}`)
-
-// 3. server/routes/systemPulse.js viittaa juuritason services/-kansioon
-// (../../services/aiBrainV2/...) joka on server/:n ulkopuolella - se
-// pitää kopioida mukaan samaan suhteelliseen sijaintiin, tai import
-// hajoaa pakatussa versiossa.
-const rootServicesDir = path.join(serverRoot, "..", "services")
-
-if (fs.existsSync(rootServicesDir)) {
-  const resourceRootServicesDir =
-    path.join(tauriRoot, "resources", "services")
-
-  fs.rmSync(resourceRootServicesDir, {
-    recursive: true,
-    force: true,
-  })
-
-  fs.mkdirSync(resourceRootServicesDir, { recursive: true })
-
-  execSync(
-    [
-      "rsync -a",
-      `${rootServicesDir}/`,
-      `${resourceRootServicesDir}/`,
-    ].join(" "),
-  )
-
-  console.log(`Root services resource: ${resourceRootServicesDir}`)
-}
