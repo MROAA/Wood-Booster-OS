@@ -82,6 +82,13 @@ const groups = [
     items: [
 
       {
+        label: "Työpöytä",
+        path: "/desktop",
+        icon: "⧉"
+      },
+
+
+      {
         label: "Settings",
         path: "/settings",
         icon: "⚙"

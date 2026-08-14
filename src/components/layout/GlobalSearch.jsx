@@ -32,7 +32,7 @@ const systemPages = [
     description:
       "Avaa projektien ja liiketoiminnan yhteenveto.",
     icon: "▦",
-    path: "/dashboard",
+    path: "/",
     keywords:
       "dashboard yhteenveto tilastot",
   },
