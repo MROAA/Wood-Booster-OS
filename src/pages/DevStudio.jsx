@@ -4,6 +4,8 @@ import { apiGet, apiPost, apiPut } from "../api/client"
 
 import DevChatPanel from "../components/devstudio/DevChatPanel"
 
+import MultiFileChatPanel from "../components/devstudio/MultiFileChatPanel"
+
 
 const STATUS_LABELS = {
   draft: "Luonnos",
@@ -329,6 +331,27 @@ function DevStudio() {
 
           <button
             type="button"
+            onClick={() => setActiveTab("multifile")}
+            className={`
+              rounded-full
+              border
+              px-4
+              py-1.5
+              text-sm
+              font-medium
+              transition-colors
+              ${
+                activeTab === "multifile"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Useampi tiedosto
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab("python")}
             className={`
               rounded-full
@@ -360,6 +383,19 @@ function DevStudio() {
           overflow-hidden
         ">
           <DevChatPanel />
+        </section>
+      )}
+
+      {activeTab === "multifile" && (
+        <section className="
+          h-[600px]
+          rounded-2xl
+          border
+          border-[var(--wood-border)]
+          bg-[var(--wood-panel)]
+          overflow-hidden
+        ">
+          <MultiFileChatPanel />
         </section>
       )}
 

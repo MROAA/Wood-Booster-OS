@@ -4,9 +4,13 @@
  *
  * Write Code Change Skill
  *
- * Lukee hyväksytyn CodeChangeDraftin ja kirjoittaa sen ehdotetun
- * sisällön levylle File Toolin kautta - mutta vasta kolmen
- * tarkistuksen jälkeen:
+ * Kirjoittaa hyväksytyn luonnoksen (draft-olio annetaan valmiiksi
+ * haettuna context.draft:ina - skilli itse ei tee Prisma-hakua, jotta
+ * sama skilli toimii sekä yksittäisen tiedoston CodeChangeDraftille
+ * että moneen tiedostoon liittyvän CodeChangeDraftSetin
+ * CodeChangeFileDraft-riveille, kutsujan (reitin) vastuulla on hakea
+ * oikea rivi oikeasta Prisma-mallista) ehdotetun sisällön levylle
+ * File Toolin kautta - mutta vasta kolmen tarkistuksen jälkeen:
  *
  *  1. Luonnos on oikeasti hyväksytty (status: "approved"). Tarkistus
  *     tehdään myös täällä, vaikka reitti tarkistaa saman jo ennen
@@ -62,18 +66,14 @@ const writeCodeChangeSkill = {
     name: "Write Code Change",
 
     description:
-        "Reads an approved CodeChangeDraft and writes its proposed " +
+        "Writes an already-fetched, approved draft's proposed " +
         "content to disk, inside the project sandbox, after " +
         "re-checking approval, path safety, and that the live file " +
         "has not changed since the draft was generated.",
 
     async execute(context) {
 
-        const { draftId, prisma, toolBus } = context || {}
-
-        const draft = await prisma.codeChangeDraft.findUnique({
-            where: { id: draftId },
-        })
+        const { draft, toolBus } = context || {}
 
         if (!draft) {
 
