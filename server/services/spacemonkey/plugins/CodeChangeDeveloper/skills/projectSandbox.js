@@ -15,8 +15,11 @@
  * elävää lähdekoodia. Siksi rajaus on tiukempi kuin pelkkä
  * projektijuuren sisäpuoli:
  *
- *  - node_modules/, .git/ ja tämän pluginin omat varmuuskopiot on
- *    aina estetty
+ *  - node_modules/, .git/, tämän pluginin omat varmuuskopiot ja oma
+ *    testien hiekkalaatikko (.dev-studio-verification/, ks.
+ *    verificationSandbox.js) on aina estetty todellisena
+ *    kirjoituskohteena - ehdotettu muutos ei koskaan saa osua sinne
+ *    "vahingossa"
  *  - tunnetut arkaluontoiset tiedostonimet (.env, avaimet,
  *    kredentiaalit) on aina estetty
  *  - vain lähdekoodin kaltaiset tiedostopäätteet ovat sallittuja
@@ -38,10 +41,13 @@ const PROJECT_ROOT = path.resolve(
 
 const BACKUP_DIR_NAME = ".dev-studio-backups"
 
+const VERIFICATION_DIR_NAME = ".dev-studio-verification"
+
 const BLOCKED_DIR_SEGMENTS = new Set([
     "node_modules",
     ".git",
     BACKUP_DIR_NAME,
+    VERIFICATION_DIR_NAME,
 ])
 
 const BLOCKED_FILENAME_PATTERNS = [
@@ -143,5 +149,6 @@ function resolveSafeProjectFilePath(filePath) {
 export {
     PROJECT_ROOT,
     BACKUP_DIR_NAME,
+    VERIFICATION_DIR_NAME,
     resolveSafeProjectFilePath,
 }

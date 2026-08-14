@@ -1,24 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
-import TerminalApp from '../components/desktop/TerminalApp.jsx';
-import CalculatorApp from '../components/desktop/CalculatorApp.jsx';
-import NotepadApp from '../components/desktop/NotepadApp.jsx';
-import VirtualWorkspacePanel from '../components/workspace/VirtualWorkspacePanel.jsx';
-import Projects from './Projects.jsx';
-import Settings from './Settings.jsx';
-import SystemPulse from './SystemPulse.jsx';
-import SpacemonkeyChat from './SpacemonkeyChat.jsx';
-import Knowledge from './Knowledge.jsx';
-import KnowledgeUpload from './KnowledgeUpload.jsx';
-import Memory from './Memory.jsx';
-import SpacemonkeyBrain from './SpacemonkeyBrain.jsx';
-import Tools from './Tools.jsx';
-import DevStudio from './DevStudio.jsx';
-import ProjectWorkspace from './ProjectWorkspace.jsx';
-import SpiderSolitaire from './SpiderSolitaire.jsx';
-import AIGenerator from './AIGenerator.jsx';
-import Altrako from './Altrako.jsx';
-import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
+import { APPS, useDesktop } from '../context/DesktopContext.jsx';
 import './BoosterverseDesktop.css';
 
 const WORKSPACE_API = 'http://127.0.0.1:8002/api/workspace';
@@ -48,50 +30,24 @@ function loadIconPositions() {
   }
 }
 
-const APPS = {
-  explorer: { title: 'Tiedostonhallinta', icon: '📁', component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
-  terminal: { title: 'Pääte (fish)', icon: '💻', component: TerminalApp, defaultWidth: 760, defaultHeight: 500 },
-  projects: { title: 'Projektit', icon: '📁', component: Projects, defaultWidth: 800, defaultHeight: 560 },
-  spacemonkey: { title: 'Spacemonkey', icon: '🐒', component: SpacemonkeyChat, defaultWidth: 520, defaultHeight: 600 },
-  systempulse: { title: 'System Pulse', icon: '🧠', component: SystemPulse, defaultWidth: 700, defaultHeight: 650 },
-  gitguardian: { title: 'Git Guardian', icon: '🛡', component: GitGuardianCard, defaultWidth: 480, defaultHeight: 520 },
-  knowledge: { title: 'Knowledge', icon: '◌', component: Knowledge, defaultWidth: 820, defaultHeight: 620 },
-  knowledgeupload: { title: 'Tiedostojen lataus', icon: '📥', component: KnowledgeUpload, defaultWidth: 560, defaultHeight: 520 },
-  memory: { title: 'Memory', icon: '◈', component: Memory, defaultWidth: 780, defaultHeight: 620 },
-  spacemonkeybrain: { title: 'Spacemonkey Brain', icon: '⬡', component: SpacemonkeyBrain, defaultWidth: 660, defaultHeight: 560 },
-  tools: { title: 'Tools', icon: '▨', component: Tools, defaultWidth: 820, defaultHeight: 620 },
-  devstudio: { title: 'Dev Studio', icon: 'λ', component: DevStudio, defaultWidth: 900, defaultHeight: 650 },
-  projectworkspace: { title: 'Projektityötila', icon: '🗂', component: ProjectWorkspace, defaultWidth: 920, defaultHeight: 600 },
-  spidersolitaire: { title: 'Spider-pasianssi', icon: '♤', component: SpiderSolitaire, defaultWidth: 900, defaultHeight: 650 },
-  aigenerator: { title: 'AI Generator', icon: '✦', component: AIGenerator, defaultWidth: 620, defaultHeight: 640 },
-  altrako: { title: 'Altrako', icon: '🍌', component: Altrako, defaultWidth: 640, defaultHeight: 600 },
-  settings: { title: 'Asetukset', icon: '⚙', component: Settings, defaultWidth: 700, defaultHeight: 600 },
-  calculator: { title: 'Laskin', icon: '🧮', component: CalculatorApp, defaultWidth: 320, defaultHeight: 480 },
-  notepad: { title: 'Muistio', icon: '📝', component: NotepadApp, defaultWidth: 520, defaultHeight: 480 },
-};
-
-function createWindow(app, zIndex) {
-  return {
-    id: `${app}-${Date.now()}`,
-    app,
-    title: APPS[app].title,
-    icon: APPS[app].icon,
-    x: 140 + Math.round(Math.random() * 60),
-    y: 90 + Math.round(Math.random() * 40),
-    width: APPS[app].defaultWidth,
-    height: APPS[app].defaultHeight,
-    zIndex,
-    minimized: false,
-    maximized: false,
-  };
-}
-
 export default function BoosterverseDesktop({ onExit }) {
-  const [windows, setWindows] = useState(() => []);
-  const [nextZ, setNextZ] = useState(1);
-  const [startOpen, setStartOpen] = useState(false);
+  const {
+    windows,
+    startOpen,
+    setStartOpen,
+    search,
+    setSearch,
+    setIsDesktopActive,
+    openApp,
+    focusWindow,
+    moveWindow,
+    resizeWindow,
+    closeWindow,
+    minimizeWindow,
+    maximizeWindow,
+    minimizeAll,
+  } = useDesktop();
   const [clock, setClock] = useState(new Date());
-  const [search, setSearch] = useState('');
   const [showDesktopIcons, setShowDesktopIcons] = useState(true);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [contextMenu, setContextMenu] = useState(null);
@@ -204,6 +160,16 @@ export default function BoosterverseDesktop({ onExit }) {
   }, []);
 
   useEffect(() => {
+    // Kertoo DesktopContextille että oikea ikkunointi-UI on juuri nyt
+    // näkyvissä (esim. DevChatPanel.jsx tarkistaa tämän ennen kuin
+    // yrittää avata tulosikkunan - suoralla /dev-studio-reitillä tätä
+    // komponenttia ei ole kiinnitetty, jolloin ikkunan avaus olisi
+    // näkymätön no-op).
+    setIsDesktopActive(true);
+    return () => setIsDesktopActive(false);
+  }, [setIsDesktopActive]);
+
+  useEffect(() => {
     function handleClickOutside(e) {
       if (contextMenuRef.current && !contextMenuRef.current.contains(e.target)) {
         setContextMenu(null);
@@ -214,48 +180,6 @@ export default function BoosterverseDesktop({ onExit }) {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [contextMenu]);
-
-  function focusWindow(id) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, zIndex: nextZ, minimized: false } : w)));
-    setNextZ((z) => z + 1);
-  }
-
-  function moveWindow(id, x, y) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, x, y } : w)));
-  }
-
-  function resizeWindow(id, width, height) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, width, height } : w)));
-  }
-
-  function closeWindow(id) {
-    setWindows((prev) => prev.filter((w) => w.id !== id));
-  }
-
-  function minimizeWindow(id) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, minimized: true } : w)));
-  }
-
-  function maximizeWindow(id) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w)));
-  }
-
-  function minimizeAll() {
-    setWindows((prev) => prev.map((w) => ({ ...w, minimized: true })));
-    setStartOpen(false);
-  }
-
-  function openApp(app) {
-    setStartOpen(false);
-    setSearch('');
-    const existing = windows.find((w) => w.app === app);
-    if (existing) {
-      focusWindow(existing.id);
-      return;
-    }
-    setWindows((prev) => [...prev, createWindow(app, nextZ)]);
-    setNextZ((z) => z + 1);
-  }
 
   function handleDesktopContextMenu(e) {
     e.preventDefault();
@@ -480,7 +404,7 @@ export default function BoosterverseDesktop({ onExit }) {
     }
     return (
       <div className="desktop-app-scroll">
-        <AppComponent />
+        <AppComponent {...w.props} />
       </div>
     );
   }

@@ -4,6 +4,10 @@ import SpacemonkeyIcon from "../branding/SpacemonkeyIcon"
 
 import { apiPost, apiPut } from "../../api/client"
 
+import { useDesktop } from "../../context/DesktopContext"
+
+import DiffView from "./DiffView"
+
 const STATUS_LABELS = {
 
   draft: "Odottaa hyväksyntää",
@@ -20,15 +24,25 @@ const STATUS_LABELS = {
 
 }
 
-/*
- * Diff-näkymä. Diff on jo laskettu palvelimella (ks.
- * devCodeChangeStudio.js:n diffLines-kutsu), joten frontend ei
- * tarvitse omaa diff-kirjastoa - vain väritys valmiille
- * {added, removed, value}-paloille.
- */
-function DiffView({ diff }) {
+const TEST_STATUS_DISPLAY = {
 
-  if (!diff || diff.length === 0) {
+  passed: { icon: "✓", label: "Testi läpäisi", className: "text-emerald-400" },
+
+  failed: { icon: "✗", label: "Testi epäonnistui", className: "text-red-400" },
+
+  timeout: { icon: "⏱", label: "Testi aikakatkaistiin", className: "text-amber-400" },
+
+  error: { icon: "⚠", label: "Tarkistus epäonnistui", className: "text-amber-400" },
+
+  skipped: { icon: "—", label: "Ei toiminnallista testiä", className: "text-[var(--wood-muted)]" },
+
+}
+
+function TestStatusLine({ draft }) {
+
+  const display = TEST_STATUS_DISPLAY[draft.testStatus]
+
+  if (!display) {
 
     return null
 
@@ -36,54 +50,42 @@ function DiffView({ diff }) {
 
   return (
 
-    <pre
-      className="
-        wood-scroll
-        max-h-72
-        overflow-auto
-        rounded-lg
-        border
-        border-[var(--wood-border)]
-        bg-[var(--wood-bg)]
-        p-3
-        text-xs
-        leading-relaxed
-        whitespace-pre-wrap
-      "
-    >
+    <div className={`text-xs ${display.className}`}>
+
+      {display.icon} {display.label}
 
       {
-        diff.map(
-          (chunk, index) => (
-
-            <span
-              key={index}
-              className={
-                chunk.added
-                  ? "block bg-emerald-950/40 text-emerald-300"
-                  : chunk.removed
-                    ? "block bg-red-950/40 text-red-300 line-through"
-                    : "block text-[var(--wood-muted)]"
-              }
-            >
-
-              {
-                (
-                  chunk.added
-                    ? "+ "
-                    : chunk.removed
-                      ? "- "
-                      : "  "
-                ) + chunk.value
-              }
-
-            </span>
-
-          )
+        draft.testStatus === "skipped" && draft.testSkippedReason && (
+          <span className="text-[var(--wood-muted)]"> — {draft.testSkippedReason}</span>
         )
       }
 
-    </pre>
+      {
+        (draft.testStatus === "failed" || draft.testStatus === "timeout" || draft.testStatus === "error") &&
+        draft.testOutput && (
+          <pre
+            className="
+              wood-scroll
+              mt-1
+              max-h-40
+              overflow-auto
+              rounded-lg
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-2
+              text-[11px]
+              leading-relaxed
+              whitespace-pre-wrap
+              text-[var(--wood-muted)]
+            "
+          >
+            {draft.testOutput}
+          </pre>
+        )
+      }
+
+    </div>
 
   )
 
@@ -146,6 +148,8 @@ function ProposalBubble({ draft, onApprove, onReject, onWrite, busy }) {
       }
 
       <DiffView diff={draft.diff} />
+
+      <TestStatusLine draft={draft} />
 
       {
         draft.writeError && (
@@ -239,6 +243,8 @@ function ProposalBubble({ draft, onApprove, onReject, onWrite, busy }) {
 
 function DevChatPanel() {
 
+  const { isDesktopActive, openApp } = useDesktop()
+
   const [filePath, setFilePath] = useState("")
 
   const [prompt, setPrompt] = useState("")
@@ -331,6 +337,19 @@ function DevChatPanel() {
 
         ],
       )
+
+      // Avataan tulosikkuna vain jos ollaan oikeasti työpöydällä
+      // (esim. /desktop-reitin sisällä) - suoralla /dev-studio-reitillä
+      // isDesktopActive on false eikä ikkunaa ole minne avata,
+      // jolloin kuplassa näytetty tieto riittää yksinään.
+      if (isDesktopActive) {
+
+        openApp("devverificationviewer", {
+          props: { draft },
+          forceNew: true,
+        })
+
+      }
 
     } catch (error) {
 

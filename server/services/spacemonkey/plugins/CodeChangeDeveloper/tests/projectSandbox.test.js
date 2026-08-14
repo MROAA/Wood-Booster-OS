@@ -105,6 +105,20 @@ test("rejects the plugin's own backup directory as a write target", () => {
 
 
 
+test("rejects the plugin's own verification scratch directory as a write target", () => {
+
+    const result = resolveSafeProjectFilePath(
+        ".dev-studio-verification/some-run-id/target.mjs",
+    )
+
+    assert.equal(result.ok, false)
+
+    assert.equal(result.code, "blocked_directory")
+
+})
+
+
+
 test("rejects sensitive filenames", () => {
 
     assert.equal(

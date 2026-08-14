@@ -6,10 +6,96 @@ import { diffLines } from "diff"
 
 import { generateCodeChange } from "../services/codeChangeGenerator.js"
 
+import { generateVerificationTest } from "../services/verificationTestGenerator.js"
+
 import {
   getSpacemonkeyToolBus,
   getSpacemonkeyWorkflowEngine,
 } from "../services/spacemonkey/spacemonkeyRuntimeBootstrap.js"
+
+/*
+ * Ajaa tarkistustestin generoinnin ja suorituksen ehdotetulle
+ * muutokselle. Palauttaa aina jonkin testStatus-arvon eikä koskaan
+ * heitä - jos itse tarkistus epäonnistuu (esim. Ollama-virhe),
+ * palautetaan testStatus:"error" sen sijaan että estettäisiin koko
+ * koodiehdotuksen näyttäminen käyttäjälle. Ei koskaan kosketa
+ * todellista kohdetiedostoa - vain omaa hiekkalaatikkoaan
+ * (.dev-studio-verification/, ks. verificationSandbox.js).
+ */
+async function verifyProposedChange({
+  workflowEngine,
+  toolBus,
+  prompt,
+  filePath,
+  proposedCode,
+}) {
+  try {
+    const generateResult = await workflowEngine.execute(
+      "generate-verification-test-workflow",
+      {
+        prompt,
+        filePath,
+        proposedCode,
+        toolBus,
+        generateVerificationTest,
+      },
+    )
+
+    const generateSkillResult = generateResult.results?.[0]
+
+    if (!generateSkillResult?.success) {
+      return {
+        testCode: null,
+        testStatus: "error",
+        testOutput: generateSkillResult?.error || null,
+        testSkippedReason: null,
+      }
+    }
+
+    if (generateSkillResult.skipped) {
+      return {
+        testCode: null,
+        testStatus: "skipped",
+        testOutput: null,
+        testSkippedReason: generateSkillResult.skippedReason,
+      }
+    }
+
+    const runResult = await workflowEngine.execute(
+      "run-verification-test-workflow",
+      {
+        runId: generateSkillResult.runId,
+        testFilePath: generateSkillResult.testFilePath,
+        skipped: false,
+      },
+    )
+
+    const runSkillResult = runResult.results?.[0]
+
+    if (!runSkillResult?.success) {
+      return {
+        testCode: generateSkillResult.testCode,
+        testStatus: "error",
+        testOutput: runSkillResult?.error || null,
+        testSkippedReason: null,
+      }
+    }
+
+    return {
+      testCode: generateSkillResult.testCode,
+      testStatus: runSkillResult.testStatus,
+      testOutput: runSkillResult.testOutput || null,
+      testSkippedReason: null,
+    }
+  } catch (error) {
+    return {
+      testCode: null,
+      testStatus: "error",
+      testOutput: error.message,
+      testSkippedReason: null,
+    }
+  }
+}
 
 /*
  * Dev Studion "Chat"-välilehden reitit: chat-tyylinen
@@ -25,6 +111,13 @@ import {
  * write-code-change-workflow'n vain jos luonnoksen status on jo
  * "approved" - sama porttimalli kuin devStudio.js:n
  * python-drafts-reiteillä.
+ *
+ * POST /dev-drafts ajaa lisäksi automaattisesti (ilman erillistä
+ * hyväksyntää) tarkistustestin ehdotetulle muutokselle
+ * verifyProposedChange():n kautta - tämä on turvallista tehdä
+ * automaattisesti koska se koskee vain omaa hiekkalaatikkoaan
+ * (.dev-studio-verification/), ei koskaan todellista
+ * kohdetiedostoa.
  */
 export default function createDevCodeChangeRouter(prisma) {
   const router = express.Router()
@@ -92,6 +185,14 @@ export default function createDevCodeChangeRouter(prisma) {
                 .update(skillResult.originalCode, "utf8")
                 .digest("hex")
 
+        const verification = await verifyProposedChange({
+          workflowEngine,
+          toolBus,
+          prompt,
+          filePath: skillResult.filePath,
+          proposedCode: skillResult.proposedCode,
+        })
+
         const draft = await prisma.codeChangeDraft.create({
           data: {
             prompt,
@@ -102,6 +203,10 @@ export default function createDevCodeChangeRouter(prisma) {
             proposedCode: skillResult.proposedCode,
             originalHash,
             status: "draft",
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
           },
         })
 

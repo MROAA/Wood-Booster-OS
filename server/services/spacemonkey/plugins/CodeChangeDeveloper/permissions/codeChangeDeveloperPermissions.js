@@ -33,6 +33,19 @@ const codeChangeDeveloperPermissions = [
         requiresHumanApproval: true,
     },
 
+    {
+        id: "codechange.verify",
+        description:
+            "Allows generating and running a small test for a " +
+            "proposed change, strictly inside its own sandboxed " +
+            "scratch directory (.dev-studio-verification/, always " +
+            "cleaned up afterward) - never touches the real project " +
+            "tree, so this runs automatically alongside draft " +
+            "generation without a separate approval step.",
+        destructive: false,
+        requiresHumanApproval: false,
+    },
+
 ]
 
 export default codeChangeDeveloperPermissions
