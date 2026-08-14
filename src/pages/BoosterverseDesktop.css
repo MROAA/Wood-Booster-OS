@@ -723,6 +723,11 @@
   color: #7c88a8;
 }
 
+.chat-bubble-blocked {
+  background: rgba(255, 138, 128, 0.12);
+  border: 1px solid rgba(255, 138, 128, 0.3);
+}
+
 .chat-error {
   padding: 0 0.75rem 0.4rem;
   color: #ff8a80;
