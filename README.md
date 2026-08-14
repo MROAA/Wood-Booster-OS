@@ -1,268 +1,120 @@
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
-
-07.08.2026
 # 🪵 Wood-Booster HQ
 
-> **An AI-native operating system for intelligent automation, autonomous agents and digital workflows.**
+> **AI ei ole sovellus käyttöjärjestelmän päällä. AI on osa käyttöjärjestelmän toimintalogiikkaa.**
 
-Wood-Booster HQ is a modular AI platform designed to build, manage and orchestrate autonomous AI agents capable of assisting humans in real-world work.
+Wood-Booster OS on modulaarinen AI-keskeinen käyttöjärjestelmä- ja työympäristöprojekti. Se ei ole pelkkä verkkosovellus, CRM, AI-chat tai Linux-jakelu — se yhdistää AI-agentit, työpöytäympäristön, projektinhallinnan, yritystoiminnan työkalut, muisti- ja tietämysjärjestelmän, automaation sekä järjestelmän itsehavainnoinnin ja palautumiskyvyn yhdeksi koherentiksi kokonaisuudeksi.
 
-The project is built around **Spacemonkey**, an evolving AI operator responsible for coordinating modules, reasoning about tasks and interacting with external services.
-
-Unlike traditional chat applications, Wood-Booster HQ is designed as an operating system where AI becomes a long-term digital collaborator rather than a single conversation.
+Pitkän aikavälin tavoite: henkilökohtainen AI-käyttöjärjestelmä, joka toimii käyttäjän ja tietokoneen välisenä älykkäänä operaattorikerroksena — ymmärtää tarkoituksen, käyttää työkaluja turvallisesti, muistaa kontekstin, tarkistaa tuloksensa ja palautuu virheistä.
 
 ---
 
-# Vision
+## Arkkitehtuurin kerrosmalli
 
-Our goal is to create an operating system where AI can:
-
-* Learn continuously
-* Execute complex workflows
-* Coordinate multiple AI agents
-* Interact with external APIs
-* Manage projects
-* Generate content
-* Build websites
-* Edit images and videos
-* Automate repetitive work
-* Become increasingly capable over time
-
-Wood-Booster HQ is built to evolve.
-
----
-
-# Core Philosophy
-
-The system follows a modular architecture.
-
-Instead of one large AI model doing everything, intelligence is divided into independent components.
-
-Each module has one responsibility.
-
-This makes the system:
-
-* scalable
-* maintainable
-* secure
-* testable
-* replaceable
-
----
-
-# Spacemonkey
-
-Spacemonkey is the operator of Wood-Booster HQ.
-
-Responsibilities include:
-
-* AI orchestration
-* planning
-* execution
-* memory
-* reasoning
-* automation
-* capability management
-* runtime awareness
-* knowledge integration
-
-Spacemonkey is not simply a chatbot.
-
-It is intended to become an intelligent operating layer capable of coordinating an entire AI ecosystem.
-
----
-
-# Features
-
-Current development includes:
-
-* AI Chat
-* Modular AI Brain
-* Memory System
-* Knowledge Base
-* Project Management
-* Customer Management
-* Inventory Management
-* Agent Framework
-* System Pulse
-* Automation Engine
-* Capability Registry
-* Runtime Monitoring
-* Reflection System
-* Personality Engine
-
----
-
-# Architecture
-
-```
-Wood-Booster HQ
-
-├── Frontend
-│
-├── Backend API
-│
-├── AI Brain
-│
-├── Spacemonkey
-│   ├── Identity
-│   ├── Memory
-│   ├── Knowledge
-│   ├── Reflection
-│   ├── Runtime
-│   ├── Capabilities
-│   └── Agents
-│
-├── Automation Engine
-│
-├── Knowledge Database
-│
-└── External Services
+```text
+┌───────────────────────────────────────────────┐
+│                 USER / MARC                   │
+├───────────────────────────────────────────────┤
+│             SPACEMONKEY OPERATOR              │
+├───────────────────────────────────────────────┤
+│          SYSTEM PULSE / AI BRAIN              │
+├───────────────────────────────────────────────┤
+│              AGENT RUNTIME                    │
+├───────────────────────────────────────────────┤
+│        KNOWLEDGE / MEMORY / TRUTH             │
+├───────────────────────────────────────────────┤
+│         AUTOMATION / TOOLS / SERVICES         │
+├───────────────────────────────────────────────┤
+│          DESKTOP RUNTIME                      │
+├───────────────────────────────────────────────┤
+│      WINDOWS / APP / WORKSPACE MODEL          │
+├───────────────────────────────────────────────┤
+│       OS / SYSTEM SERVICES / HARDWARE         │
+└───────────────────────────────────────────────┘
 ```
 
----
-
-# Technology Stack
-
-Frontend
-
-* React
-* Vite
-* Tailwind CSS
-
-Backend
-
-* Node.js
-* Express
-
-AI
-
-* Ollama
-* Local LLM Support
-* Modular AI Brain
-
-Database
-
-* Prisma
-* SQLite
-
-Platform
-
-* Linux
-* Docker
+Jokaisella kerroksella on oma vastuunsa, ja kerrosten välinen kommunikaatio kulkee rajapintojen, event busien, palveluiden ja permission-kerrosten kautta. Ks. `docs/MASTER_PRD.md` osio 48 — järjestelmäongelmaa ei ratkaista lisäämällä logiikkaa väärään kerrokseen.
 
 ---
 
-# Project Goals
+## Spacemonkey
 
-Wood-Booster HQ aims to become a platform capable of:
+Spacemonkey on Wood-Booster OS:n AI-operaattori. Se ei ole chatbot eikä yksittäinen agentti — se on käyttöjärjestelmä, joka kykenee ajattelemaan, suunnittelemaan, suorittamaan, oppimaan ja auttamaan päivittäisessä työssä.
 
-* autonomous AI workflows
-* AI powered business automation
-* software development assistance
-* website generation
-* WordPress management
-* social media automation
-* image generation
-* video editing
-* content creation
-* knowledge management
-* personal productivity
-* future robotics integration
+Vastuualueita:
 
----
+* käyttäjän kanssa kommunikointi
+* tehtävien ymmärtäminen
+* agenttien koordinointi
+* järjestelmän tilan tulkinta
+* päätösten muodostaminen
+* toimintojen orkestrointi
+* palautuminen
+* järjestelmän tilan raportointi
 
-# Development Principles
-
-Every component should be:
-
-* Modular
-* Independent
-* Replaceable
-* Secure
-* Testable
-* Documented
+Spacemonkey ei saa ohittaa järjestelmän turvallisuus- ja permission-kerroksia.
 
 ---
 
-# Project Status
+## Keskeiset osajärjestelmät
 
-Current Stage
-
-**Active Development**
-
-The platform is under continuous development with new modules being added incrementally.
-
----
-
-# Roadmap
-
-## Phase 1
-
-* Core Backend
-* AI Brain
-* Frontend
-* Knowledge System
-
-## Phase 2
-
-* Memory Intelligence
-* Reflection Engine
-* Capability Registry
-* Automation Engine
-
-## Phase 3
-
-* Autonomous Agents
-* External Integrations
-* Workflow Execution
-* Multi-Agent Collaboration
-
-## Phase 4
-
-* Self-Improving AI
-* Long-Term Memory
-* Full Operating Environment
-* Personal AI Assistant
+* **System Pulse** — järjestelmän jatkuvasti päivittyvä tietoisuuskerros (terveys, prosessit, virheet, palautumismahdollisuudet)
+* **AI Brain** — kognitiivinen moottori: intentin tunnistus, kontekstin muodostus, reasoning, päätöksenteko
+* **Truth Layer** — luotettavan tiedon kerros, joka erottaa tunnetun tiedon oletuksista
+* **Memory** — Short-Term / Working / Long-Term / System Memory
+* **Knowledge** — dokumentaatio, tuote- ja yritystieto (eri asia kuin Memory)
+* **Agent Architecture & Runtime** — rajatun vastuualueen agentit, Spacemonkeyn koordinoimina
+* **Desktop Runtime** — DesktopManager, WindowManager, WorkspaceManager, AppRegistry, Desktop Event Bus
+* **Business Layer** — Dashboard, Projects, Customers, Inventory, Purchases, Quotes, Invoices
+* **Automation Layer** — tapahtuma- ja aikataulupohjaiset automaatiot permission-tarkistuksen ja audit login kautta
+* **Git Guardian** — projektin Git-turvakerros: snapshotit, turvalliset commitit, palautuminen
+* **Stable Build & Recovery** — tunnetusti toimivan buildin seuranta ja validoitu palautuminen
+* **Permission Architecture** — READ → WRITE → EXECUTE → SYSTEM → CRITICAL, kriittiset operaatiot aina erikseen validoiden
 
 ---
 
-# Installation
+## Teknologiapino
 
-Clone the repository
+**Frontend** — React, Vite, Tailwind CSS
+**Backend** — Node.js, Express, Prisma, SQLite
+**AI** — Ollama / paikalliset LLM:t, modulaarinen AI Brain, grounding, Truth Layer
+**System** — Linux, shell, Python, C
+**Desktop** — oma Desktop Runtime (WindowManager, WorkspaceManager, AppRegistry, Event Bus)
+
+---
+
+## Kehitysfilosofia
+
+* **Modular** — jokaisella komponentilla selkeä vastuu
+* **Observable** — järjestelmän tila on nähtävissä
+* **Recoverable** — virheistä pystytään palautumaan
+* **Verifiable** — toimintojen onnistuminen todennetaan
+* **AI-first** — AI on osa arkkitehtuuria, ei jälkikäteen lisätty
+* **Human-controlled** — käyttäjällä säilyy kontrolli kriittisissä operaatioissa
+* **Local-first** — mahdollisimman paljon suoritetaan paikallisesti
+* **Truth-grounded** — päätökset perustuvat järjestelmän todelliseen tilaan
+
+---
+
+## Nykyinen tila ja roadmap
+
+**Tila:** Active Development. Merkittävä osa arkkitehtuurista on jo olemassa: AI Brain V2, Spacemonkey, System Pulse, Truth Layer, Memory, Knowledge, Agent Runtime, Desktop Runtime, Git-integraatio, Stable Build ja Recovery-arkkitehtuuri. Kaikkia moduuleja ei vielä pidetä tuotantovalmiina.
+
+* **MVP** — toimiva frontend + backend, AI chat, System Pulse, agenttiarkkitehtuuri, Knowledge/Memory, Projects/CRM, Desktop Runtime, Git-integraatio, Stable Build, Recovery-perusta, audit logging
+* **Phase 2** — täydellinen Desktop Shell, taskbar, start menu, window/workspace persistence, Git Guardian, automaatiomoottori, system permissions
+* **Phase 3** — bootattava Wood-Booster OS, hardware/GPU awareness, offline AI, self-diagnostics, self-healing
+* **Phase 4** — täysi AI Operating System: Spacemonkey, AI Brain/System Pulse, agentti- ja automaatioruntime, muisti/tietämys/permission-kerrokset, desktop- ja sovellusruntime saman järjestelmän sisällä
+
+---
+
+## Asennus
 
 ```bash
 git clone https://github.com/MROAA/Wood-Booster-OS.git
-```
-
-Install dependencies
-
-```bash
 npm install
-```
-
-Run frontend
-
-```bash
 npm run dev
 ```
 
-Run backend
+Backend:
 
 ```bash
 cd server
@@ -272,37 +124,28 @@ npm start
 
 ---
 
-# Project Structure
+## Lisädokumentaatio
 
-```
-client/
-server/
-docs/
-Spacemonkey/
-knowledge/
-modules/
-```
+* [`docs/MASTER_PRD.md`](docs/MASTER_PRD.md) — täysi tuotevisio ja järjestelmäarkkitehtuuri (kanoninen PRD)
+* [`docs/blueprint/`](docs/blueprint/) — 13-osainen Master Blueprint (visio, konstituutio, Spacemonkey-koodeksi, tietoturva, roadmap ym.)
+* [`CLAUDE.md`](CLAUDE.md) — kehitysperiaatteet ja arkkitehtuurisäännöt AI-avusteiselle kehitykselle
+* [`docs/GIT_WORKFLOW.md`](docs/GIT_WORKFLOW.md) — git worktree -pohjainen kehitysworkflow
 
 ---
 
-# Contributing
+## Contributing
 
-Contributions are welcome.
-
-The architecture emphasizes clean code, modularity and long-term maintainability.
+Kontribuutiot ovat tervetulleita. Arkkitehtuuri painottaa selkeää koodia, modulaarisuutta ja pitkän aikavälin ylläpidettävyyttä. Ks. `docs/GIT_WORKFLOW.md` ennen muutosten tekemistä.
 
 ---
 
-# License
+## License
 
-This project is licensed under the MIT License unless otherwise specified.
+MIT License, ellei toisin mainita.
 
 ---
 
-# Author
+## Author
 
 **Marc Järvinen**
-
-Creator of Wood-Booster HQ
-
-Building an AI operating system focused on autonomous agents, intelligent automation and modular artificial intelligence.
+Wood-Booster HQ:n luoja — rakentamassa AI-käyttöjärjestelmää autonomisten agenttien, älykkään automaation ja modulaarisen tekoälyn varaan.
