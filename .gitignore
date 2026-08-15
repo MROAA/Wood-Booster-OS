@@ -106,3 +106,9 @@ versions/
 
 server/data/*.json
 backend/data_store.json
+
+# =====================================
+# Downloaded build tools (fetched on demand by build-appimage.sh)
+# =====================================
+
+*.AppImage
