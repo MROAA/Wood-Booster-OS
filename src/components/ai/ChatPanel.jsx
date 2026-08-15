@@ -6,6 +6,10 @@ import {
 
 import SpacemonkeyIcon from "../branding/SpacemonkeyIcon"
 
+import SetBubble from "../devstudio/SetBubble"
+
+import { apiPut } from "../../api/client"
+
 import {
   createRuntimeContext,
 } from "../../services/runtime/runtimeContext"
@@ -16,6 +20,7 @@ const MODE_SENDER = {
   spacemonkey: "Spacemonkey",
   altrako: "Altrako",
   council: "Council (Spacemonkey + Altrako)",
+  koodi: "Dev Studio",
 }
 
 
@@ -38,17 +43,153 @@ function ChatPanel() {
 
 
   const [
+    busySetId,
+    setBusySetId
+  ] = useState(null)
+
+
+
+  const [
     messages,
     setMessages
   ] = useState([
 
     {
       role: "assistant",
+      kind: "text",
       content:
-        "Terve.\n\nMitäs tänään?"
+        "Terve.\n\nMitäs tänään? (Vinkki: aloita viesti " +
+        "sanalla /koodi, jos haluat ehdottaa muutosta itse " +
+        "järjestelmään.)"
     }
 
   ])
+
+
+
+  function updateSetInPlace(set) {
+
+    setMessages(
+      previous =>
+        previous.map(
+          item =>
+            item.kind === "set" && item.set.id === set.id
+              ? { ...item, set }
+              : item,
+        ),
+    )
+
+  }
+
+
+
+  async function approvePlan(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/approve-plan`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Suunnitelman hyväksyntä epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
+  async function approveSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/approve`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Paketin hyväksyntä epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
+  async function rejectSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/reject`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Paketin hylkäys epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
+  async function writeSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/write`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Kirjoitus epäonnistui:", error)
+
+      try {
+
+        const refreshed = await fetch(
+          `http://localhost:3001/api/dev-draft-sets/${setId}`,
+        ).then(response => response.json())
+
+        updateSetInPlace(refreshed)
+
+      } catch {
+
+        // ei väliä, virhe on jo lokitettu yllä
+
+      }
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
 
 
 
@@ -69,6 +210,7 @@ function ChatPanel() {
         setMessages(
           history.map(entry => ({
             role: entry.role,
+            kind: "text",
             content: entry.content,
             mode: entry.mode,
           }))
@@ -111,6 +253,7 @@ function ChatPanel() {
 
         {
           role: "user",
+          kind: "text",
           content: userText
         }
 
@@ -157,16 +300,24 @@ function ChatPanel() {
 
           ...previous,
 
-          {
-            role: "assistant",
-            content:
-              data.answer ||
-              "Ei vastausta.",
-            mode:
-              data.mode,
-            innerVoice:
-              data.innerVoice,
-          }
+          data.kind === "code_plan"
+            ? {
+                role: "assistant",
+                kind: "set",
+                mode: data.mode,
+                set: data.draftSet,
+              }
+            : {
+                role: "assistant",
+                kind: "text",
+                content:
+                  data.answer ||
+                  "Ei vastausta.",
+                mode:
+                  data.mode,
+                innerVoice:
+                  data.innerVoice,
+              }
 
         ]
       )
@@ -182,6 +333,7 @@ function ChatPanel() {
 
           {
             role: "assistant",
+            kind: "text",
             content:
               "Yhteys Spacemonkeyhin epäonnistui."
           }
@@ -277,82 +429,99 @@ function ChatPanel() {
 
 
 
-                <div
-                  className={`
-                    max-w-[90%]
-                    px-4
-                    py-3
-                    text-sm
-                    leading-relaxed
-                    whitespace-pre-line
-                    shadow-sm
+                {
+                  item.kind === "set" ? (
 
-                    ${
-                      item.role === "user"
+                    <SetBubble
+                      set={item.set}
+                      busy={busySetId === item.set.id}
+                      onApprovePlan={() => approvePlan(item.set.id)}
+                      onApprove={() => approveSet(item.set.id)}
+                      onReject={() => rejectSet(item.set.id)}
+                      onWrite={() => writeSet(item.set.id)}
+                    />
 
-                      ?
+                  ) : (
 
-                      "ml-auto rounded-2xl rounded-br-md bg-[var(--wood-accent)] text-[#17120c]"
+                    <div
+                      className={`
+                        max-w-[90%]
+                        px-4
+                        py-3
+                        text-sm
+                        leading-relaxed
+                        whitespace-pre-line
+                        shadow-sm
 
-                      :
+                        ${
+                          item.role === "user"
 
-                      "rounded-2xl rounded-bl-md border border-[var(--wood-border)] bg-gradient-to-br from-[var(--wood-panel)] to-[var(--wood-card)] text-[var(--wood-text)]"
+                          ?
 
-                    }
+                          "ml-auto rounded-2xl rounded-br-md bg-[var(--wood-accent)] text-[#17120c]"
 
-                  `}
-                >
+                          :
 
-                  {
-                    item.role === "assistant" &&
-                    item.mode &&
-                    MODE_SENDER[item.mode] && (
+                          "rounded-2xl rounded-bl-md border border-[var(--wood-border)] bg-gradient-to-br from-[var(--wood-panel)] to-[var(--wood-card)] text-[var(--wood-text)]"
 
-                      <div
-                        className="
-                          mb-1
-                          text-xs
-                          font-semibold
-                          uppercase
-                          tracking-wide
-                          text-[var(--wood-accent)]
-                        "
-                      >
+                        }
 
-                        {MODE_SENDER[item.mode]}
+                      `}
+                    >
 
-                      </div>
+                      {
+                        item.role === "assistant" &&
+                        item.mode &&
+                        MODE_SENDER[item.mode] && (
 
-                    )
-                  }
+                          <div
+                            className="
+                              mb-1
+                              text-xs
+                              font-semibold
+                              uppercase
+                              tracking-wide
+                              text-[var(--wood-accent)]
+                            "
+                          >
 
-                  {item.content}
+                            {MODE_SENDER[item.mode]}
 
-                  {
-                    item.innerVoice && (
+                          </div>
 
-                      /* Spacemonkeyn "sisäinen ääni" - tunnelmaa, ei
-                         järjestelmätietoa, siksi selvästi omalla,
-                         hillityllä tyylillään erillään vastauksesta. */
-                      <div
-                        className="
-                          mt-2
-                          text-xs
-                          italic
-                          text-[var(--wood-muted)]
-                        "
-                      >
+                        )
+                      }
 
-                        {item.innerVoice.mood}
-                        {" — "}
-                        {item.innerVoice.innerThought}
+                      {item.content}
 
-                      </div>
+                      {
+                        item.innerVoice && (
 
-                    )
-                  }
+                          /* Spacemonkeyn "sisäinen ääni" - tunnelmaa, ei
+                             järjestelmätietoa, siksi selvästi omalla,
+                             hillityllä tyylillään erillään vastauksesta. */
+                          <div
+                            className="
+                              mt-2
+                              text-xs
+                              italic
+                              text-[var(--wood-muted)]
+                            "
+                          >
 
-                </div>
+                            {item.innerVoice.mood}
+                            {" — "}
+                            {item.innerVoice.innerThought}
+
+                          </div>
+
+                        )
+                      }
+
+                    </div>
+
+                  )
+                }
 
 
               </div>
@@ -495,7 +664,7 @@ function ChatPanel() {
             }
 
 
-            placeholder="Kirjoita viesti Spacemonkeylle..."
+            placeholder="Kirjoita viesti Spacemonkeylle... (/koodi = ehdota muutos)"
 
 
             className="

@@ -2,10 +2,6 @@ import express from "express"
 
 import crypto from "node:crypto"
 
-import { diffLines } from "diff"
-
-import { generateChangePlan } from "../services/changePlanGenerator.js"
-
 import { generateCodeChange } from "../services/codeChangeGenerator.js"
 
 import { generateVerificationTest } from "../services/verificationTestGenerator.js"
@@ -14,6 +10,11 @@ import {
   getSpacemonkeyToolBus,
   getSpacemonkeyWorkflowEngine,
 } from "../services/spacemonkey/spacemonkeyRuntimeBootstrap.js"
+
+import {
+  createDraftSetFromPrompt,
+  withSetDiffs,
+} from "../services/devStudio/draftSetService.js"
 
 /*
  * Dev Studion "Useampi tiedosto" -tilan reitit. Kolme vaihetta, jotka
@@ -40,22 +41,7 @@ import {
 export default function createDevMultiFileChangeRouter(prisma) {
   const router = express.Router()
 
-  function withDiff(fileDraft) {
-    return {
-      ...fileDraft,
-      diff: diffLines(
-        fileDraft.originalCode || "",
-        fileDraft.proposedCode || "",
-      ),
-    }
-  }
-
-  function withFiles(set) {
-    return {
-      ...set,
-      files: (set.files || []).map(withDiff),
-    }
-  }
+  const withFiles = withSetDiffs
 
   async function fetchSetWithFiles(setId) {
     return prisma.codeChangeDraftSet.findUnique({
@@ -144,47 +130,16 @@ export default function createDevMultiFileChangeRouter(prisma) {
         })
       }
 
-      const workflowEngine = getSpacemonkeyWorkflowEngine()
+      const result = await createDraftSetFromPrompt(prisma, prompt)
 
-      if (!workflowEngine) {
-        return response.status(503).json({
-          error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+      if (result.error) {
+        return response.status(result.status).json({
+          error: result.error,
+          code: result.code,
         })
       }
 
-      const workflowResult = await workflowEngine.execute(
-        "generate-change-plan-workflow",
-        { prompt, generateChangePlan },
-      )
-
-      const skillResult = workflowResult.results?.[0]
-
-      if (!skillResult?.success) {
-        return response.status(422).json({
-          error: skillResult?.error,
-          code: skillResult?.code,
-        })
-      }
-
-      const set = await prisma.codeChangeDraftSet.create({
-        data: {
-          prompt,
-          status: "plan_ready",
-          planExplanation: skillResult.explanation,
-          files: {
-            create: skillResult.files.map(file => ({
-              filePath: file.filePath,
-              action: file.action,
-              reason: file.reason,
-              status: file.blocked ? "blocked" : "planned",
-              blockedCode: file.blockedCode,
-            })),
-          },
-        },
-        include: { files: { orderBy: { id: "asc" } } },
-      })
-
-      response.status(201).json(withFiles(set))
+      response.status(201).json(result.set)
     } catch (error) {
       console.error(error)
 
