@@ -18,6 +18,12 @@ import {
 } from "./aiBrainV2/context/moduleContextProvider.js"
 
 
+import {
+  loadFinnishIdentity,
+  createFinnishIdentityContext,
+} from "./aiBrainV2/engines/finnishIdentityEngine.js"
+
+
 const MAX_SYSTEM_FILES = 8
 const MAX_SYSTEM_FILE_LENGTH = 2800
 
@@ -157,6 +163,24 @@ export async function buildAIContext({
 
   const moduleContext =
     createModuleContext()
+
+
+  /*
+  server/ai-knowledge/finnish/:n 5 tiedostoa (suomen kieli, kulttuuri,
+  huumori, työskentelytapa, identiteettipaketti) olivat valmiiksi
+  ladattavissa finnishIdentityEngine.js:n kautta, mutta mikään ei
+  koskaan kutsunut sitä - ainoa polku sinne kulki modules/
+  finnishLanguageModule.js:n läpi, ja koko se moduulijärjestelmä on jo
+  kuollut (routes/ai-brain-v2.js delegoi nykyään suoraan
+  agentChat.js:ään). Ladataan siis suoraan tässä.
+  */
+  const finnishIdentity =
+    await loadFinnishIdentity()
+
+  const finnishIdentityContext =
+    createFinnishIdentityContext(
+      finnishIdentity,
+    )
 
 
 
@@ -358,6 +382,31 @@ voiceProfile?.aiRole?.description ||
 
   /*
   ======================================
+  FINNISH IDENTITY
+  ======================================
+  */
+
+
+  const finnishIdentityBlock =
+    finnishIdentityContext
+      ? `
+
+==================================================
+FINNISH IDENTITY
+==================================================
+
+${finnishIdentityContext}
+
+==================================================
+
+`.trim()
+      : ""
+
+
+
+
+  /*
+  ======================================
   KNOWLEDGE
   ======================================
   */
@@ -519,6 +568,10 @@ ${systemContext}
 
 
 ${voiceContext}
+
+
+
+${finnishIdentityBlock}
 
 
 
