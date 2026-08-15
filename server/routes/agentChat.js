@@ -55,6 +55,10 @@ import {
 } from "../services/chatModes/detectMode.js"
 
 import {
+  detectCodeChangeIntent,
+} from "../services/chatModes/detectCodeIntent.js"
+
+import {
   processAltrako,
 } from "../services/chatModes/altrako.js"
 
@@ -1739,6 +1743,8 @@ export default function createAgentChatRouter(
 
           runtimeContext = null,
 
+          skipCodeDetection = false,
+
 
         } = req.body
 
@@ -1786,6 +1792,40 @@ export default function createAgentChatRouter(
               prisma,
 
             })
+
+        }
+        else if(
+          !skipCodeDetection &&
+          detectCodeChangeIntent(text).matched
+        ){
+
+          // Ei /koodi-etuliitettä, mutta viesti näyttää siltä että
+          // käyttäjä haluaa koodimuutoksen - kysytään varmistus sen
+          // sijaan että ehdotettaisiin suunnitelmaa suoraan (yksi
+          // ylimääräinen klikkaus väärän tunnistuksen sattuessa on
+          // halvempi kuin turha suunnitelma). Ei kutsu Ollamaa eikä
+          // runAgentChatia ollenkaan tässä haarassa - puhdas,
+          // synkroninen tunnistus, nolla lisäviivettä.
+          result = {
+
+            status: 200,
+
+            body: {
+
+              success: true,
+
+              kind:
+                "confirm_koodi",
+
+              answer:
+                "Näyttää siltä että haluat muuttaa koodia - jatanko?",
+
+              originalText:
+                text,
+
+            },
+
+          }
 
         }
         else {
