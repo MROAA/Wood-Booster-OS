@@ -43,6 +43,39 @@ import {
   createSpacemonkeyCybersecurityCapabilityRouter,
 } from "./routes/spacemonkeyCybersecurityCapability.js"
 import {
+  createSpacemonkeyCreatorDecisionsRouter,
+} from "./routes/spacemonkeyCreatorDecisions.js"
+import {
+  createSpacemonkeyCreatorDecisionMemoryRouter,
+} from "./routes/spacemonkeyCreatorDecisionMemory.js"
+import {
+  createSpacemonkeyCreatorDevelopmentHistoryRouter,
+} from "./routes/spacemonkeyCreatorDevelopmentHistory.js"
+import {
+  createSpacemonkeyCreatorIntentUnderstandingRouter,
+} from "./routes/spacemonkeyCreatorIntentUnderstanding.js"
+import {
+  createSpacemonkeyCreatorJournalRouter,
+} from "./routes/spacemonkeyCreatorJournal.js"
+import {
+  createSpacemonkeyCreatorKnowledgeGraphRouter,
+} from "./routes/spacemonkeyCreatorKnowledgeGraph.js"
+import {
+  createSpacemonkeyCreatorKnowledgeVaultRouter,
+} from "./routes/spacemonkeyCreatorKnowledgeVault.js"
+import {
+  createSpacemonkeyCreatorMemoryVaultRouter,
+} from "./routes/spacemonkeyCreatorMemoryVault.js"
+import {
+  createSpacemonkeyCreatorPatternRecognitionRouter,
+} from "./routes/spacemonkeyCreatorPatternRecognition.js"
+import {
+  createSpacemonkeyCreatorPhilosophyRouter,
+} from "./routes/spacemonkeyCreatorPhilosophy.js"
+import {
+  createSpacemonkeyCreatorPhilosophyVaultRouter,
+} from "./routes/spacemonkeyCreatorPhilosophyVault.js"
+import {
   createSpacemonkeySecurityRuntimeRouter,
 } from "./routes/spacemonkeySecurityRuntime.js"
 import {
@@ -369,6 +402,50 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyCybersecurityCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorDecisionsRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorDecisionMemoryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorDevelopmentHistoryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntentUnderstandingRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorJournalRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorKnowledgeGraphRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorKnowledgeVaultRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorMemoryVaultRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorPatternRecognitionRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorPhilosophyRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorPhilosophyVaultRouter()
 )
 app.use(
   "/api",
