@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState
 } from "react"
 
@@ -22,6 +23,8 @@ const MODE_SENDER = {
   council: "Council (Spacemonkey + Altrako)",
   koodi: "Dev Studio",
 }
+
+const KOODI_PREFIX_PATTERN = /^\/koodi\s*/i
 
 
 
@@ -49,6 +52,27 @@ function ChatPanel() {
 
 
 
+  const inputRef = useRef(null)
+
+  const isKoodiActive = KOODI_PREFIX_PATTERN.test(message)
+
+
+
+  function toggleKoodiMode() {
+
+    setMessage(
+      previous =>
+        KOODI_PREFIX_PATTERN.test(previous)
+          ? previous.replace(KOODI_PREFIX_PATTERN, "")
+          : "/koodi " + previous
+    )
+
+    inputRef.current?.focus()
+
+  }
+
+
+
   const [
     messages,
     setMessages
@@ -58,9 +82,8 @@ function ChatPanel() {
       role: "assistant",
       kind: "text",
       content:
-        "Terve.\n\nMitäs tänään? (Vinkki: aloita viesti " +
-        "sanalla /koodi, jos haluat ehdottaa muutosta itse " +
-        "järjestelmään.)"
+        "Terve.\n\nMitäs tänään? (Vinkki: λ-napista pääset " +
+        "ehdottamaan muutosta itse järjestelmään.)"
     }
 
   ])
@@ -637,7 +660,48 @@ function ChatPanel() {
           "
         >
 
+          <button
+
+            onClick={toggleKoodiMode}
+
+            title="Koodimuutostila - ehdota muutos järjestelmään"
+
+            aria-pressed={isKoodiActive}
+
+            className={`
+              h-12
+              w-12
+              shrink-0
+              rounded-full
+              border
+              text-lg
+              font-medium
+              transition-colors
+              duration-200
+
+              ${
+                isKoodiActive
+
+                ?
+
+                "border-[var(--wood-accent)] bg-[var(--wood-accent)]/15 text-[var(--wood-accent)]"
+
+                :
+
+                "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+
+              }
+            `}
+
+          >
+
+            λ
+
+          </button>
+
           <input
+
+            ref={inputRef}
 
             value={message}
 
@@ -664,7 +728,7 @@ function ChatPanel() {
             }
 
 
-            placeholder="Kirjoita viesti Spacemonkeylle... (/koodi = ehdota muutos)"
+            placeholder="Kirjoita viesti Spacemonkeylle..."
 
 
             className="
