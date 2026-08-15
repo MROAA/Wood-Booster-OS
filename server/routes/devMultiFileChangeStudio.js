@@ -16,6 +16,8 @@ import {
 
 import { verifyProposedChange } from "../services/devStudio/verifyProposedChange.js"
 
+import { triggerGitGuardianBackup } from "../services/devStudio/gitGuardianBackup.js"
+
 /*
  * Dev Studion "Useampi tiedosto" -tilan reitit. Kolme vaihetta, jotka
  * Marc nimenomaan valitsi haastattelussa:
@@ -345,6 +347,8 @@ export default function createDevMultiFileChangeRouter(prisma) {
       }
 
       const toolBus = getSpacemonkeyToolBus()
+
+      triggerGitGuardianBackup()
 
       const writableFiles = set.files.filter(
         file => file.status === "generated" || file.status === "write_failed",
