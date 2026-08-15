@@ -283,6 +283,8 @@ model CodeChangeFileDraft {
 
   testSkippedReason String?
 
+  unresolvedReferences String?
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt

@@ -57,9 +57,31 @@ function PlanFileRow({ file }) {
 
 }
 
+function parseUnresolvedReferences(file) {
+
+  if (!file.unresolvedReferences) {
+
+    return []
+
+  }
+
+  try {
+
+    return JSON.parse(file.unresolvedReferences)
+
+  } catch {
+
+    return []
+
+  }
+
+}
+
 function FileReviewCard({ file, onRevise, busy }) {
 
   const testDisplay = TEST_STATUS_DISPLAY[file.testStatus]
+
+  const unresolvedReferences = parseUnresolvedReferences(file)
 
   const [feedback, setFeedback] = useState("")
 
@@ -134,6 +156,21 @@ function FileReviewCard({ file, onRevise, busy }) {
                 <span className="text-[var(--wood-muted)]"> — {file.testSkippedReason}</span>
               )
             }
+          </div>
+        )
+      }
+
+      {
+        unresolvedReferences.length > 0 && (
+          <div className="rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
+            ⚠ Koodi viittaa tiedostoon jota ei löydy projektista - tarkista ennen hyväksyntää:
+            <ul className="mt-1 list-disc pl-4 font-mono">
+              {
+                unresolvedReferences.map((reference, referenceIndex) => (
+                  <li key={referenceIndex}>{reference}</li>
+                ))
+              }
+            </ul>
           </div>
         )
       }
