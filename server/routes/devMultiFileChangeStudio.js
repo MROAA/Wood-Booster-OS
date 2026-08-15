@@ -480,5 +480,96 @@ export default function createDevMultiFileChangeRouter(prisma) {
     }
   })
 
+  /*
+   * PUT /api/dev-draft-sets/:id/files/:fileId/revert
+   *
+   * Peruutus on tiedostokohtainen, ei koko paketille - paketissa voi
+   * olla joitain tiedostoja jotka kannattaa pitää ja toisia joita ei.
+   * Vain kyseisen CodeChangeFileDraft-rivin tila muuttuu; paketin oma
+   * status pysyy "written"-tilassa vaikka jokin sen tiedosto
+   * peruutettaisiin myöhemmin - tämä on tarkoituksellista, ei bugi.
+   */
+  router.put("/dev-draft-sets/:id/files/:fileId/revert", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const fileId = Number(request.params.fileId)
+
+      const set = await fetchSetWithFiles(setId)
+
+      if (!set) {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      const file = set.files.find(candidate => candidate.id === fileId)
+
+      if (!file) {
+        return response.status(404).json({ error: "Tiedostoa ei löytynyt paketista" })
+      }
+
+      if (file.status !== "written") {
+        return response.status(409).json({
+          error: `Tiedostoa ei ole kirjoitettu levylle (status: ${file.status}).`,
+        })
+      }
+
+      const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+      if (!workflowEngine) {
+        return response.status(503).json({
+          error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+        })
+      }
+
+      const toolBus = getSpacemonkeyToolBus()
+
+      const workflowResult = await workflowEngine.execute(
+        "revert-code-change-workflow",
+        { draft: file, toolBus },
+      )
+
+      const skillResult = workflowResult.results?.[0]
+
+      if (!skillResult?.success) {
+        const nextStatus =
+          skillResult?.code === "file_changed_since_write"
+            ? "revert_conflict"
+            : "revert_failed"
+
+        await prisma.codeChangeFileDraft.update({
+          where: { id: fileId },
+          data: {
+            status: nextStatus,
+            writeError:
+              skillResult?.error ||
+              "Peruutus epäonnistui tuntemattomasta syystä.",
+          },
+        })
+
+        const updatedSet = await fetchSetWithFiles(setId)
+
+        const statusCode = nextStatus === "revert_conflict" ? 409 : 422
+
+        return response.status(statusCode).json(withFiles(updatedSet))
+      }
+
+      await prisma.codeChangeFileDraft.update({
+        where: { id: fileId },
+        data: {
+          status: "reverted",
+          writeError: null,
+        },
+      })
+
+      const updatedSet = await fetchSetWithFiles(setId)
+
+      response.json(withFiles(updatedSet))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
   return router
 }
