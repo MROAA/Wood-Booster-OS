@@ -28,6 +28,21 @@ import {
   createSpacemonkeyToolSecurityRouter,
 } from "./routes/spacemonkeyToolSecurity.js"
 import {
+  createSpacemonkeyDockerCapabilityRouter,
+} from "./routes/spacemonkeyDockerCapability.js"
+import {
+  createSpacemonkeyDatabaseCapabilityRouter,
+} from "./routes/spacemonkeyDatabaseCapability.js"
+import {
+  createSpacemonkeyNetworkingCapabilityRouter,
+} from "./routes/spacemonkeyNetworkingCapability.js"
+import {
+  createSpacemonkeyLinuxAdvancedCapabilityRouter,
+} from "./routes/spacemonkeyLinuxAdvancedCapability.js"
+import {
+  createSpacemonkeyCybersecurityCapabilityRouter,
+} from "./routes/spacemonkeyCybersecurityCapability.js"
+import {
   createSpacemonkeySecurityRuntimeRouter,
 } from "./routes/spacemonkeySecurityRuntime.js"
 import {
@@ -334,6 +349,26 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyToolSecurityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyDockerCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyDatabaseCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyNetworkingCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyLinuxAdvancedCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCybersecurityCapabilityRouter()
 )
 app.use(
   "/api",
