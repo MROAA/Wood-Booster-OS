@@ -31,6 +31,27 @@ import {
   createSpacemonkeyDockerCapabilityRouter,
 } from "./routes/spacemonkeyDockerCapability.js"
 import {
+  createSpacemonkeyCreatorContextAuditIntegrationRouter,
+} from "./routes/spacemonkeyCreatorContextAuditIntegration.js"
+import {
+  createSpacemonkeyCreatorContextBoundaryLayerRouter,
+} from "./routes/spacemonkeyCreatorContextBoundaryLayer.js"
+import {
+  createSpacemonkeyCreatorContextExportGatewayRouter,
+} from "./routes/spacemonkeyCreatorContextExportGateway.js"
+import {
+  createSpacemonkeyCreatorContextPermissionEngineRouter,
+} from "./routes/spacemonkeyCreatorContextPermissionEngine.js"
+import {
+  createSpacemonkeyCreatorContextPolicyEngineRouter,
+} from "./routes/spacemonkeyCreatorContextPolicyEngine.js"
+import {
+  createSpacemonkeyCreatorContextProviderRouter,
+} from "./routes/spacemonkeyCreatorContextProvider.js"
+import {
+  createSpacemonkeyCreatorContextSecurityGuardRouter,
+} from "./routes/spacemonkeyCreatorContextSecurityGuard.js"
+import {
   createSpacemonkeyDatabaseCapabilityRouter,
 } from "./routes/spacemonkeyDatabaseCapability.js"
 import {
@@ -386,6 +407,34 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyDockerCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorContextAuditIntegrationRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorContextBoundaryLayerRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorContextExportGatewayRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorContextPermissionEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorContextPolicyEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorContextProviderRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorContextSecurityGuardRouter()
 )
 app.use(
   "/api",
