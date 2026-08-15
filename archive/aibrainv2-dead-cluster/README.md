@@ -59,17 +59,29 @@ template content or duplicate an already-live implementation:
   same cleanup initiative); the rest are thin wrappers around it or
   around already-live pieces.
 
-**Left in place for a possible future look**, not archived here:
-`snapshots/spacemonkeySnapshotPolicyEngine.js` (small, real, no live
-equivalent found - a plausible drop-in "should this change need a
-snapshot/approval" gate for Dev Studio), `spacemonkeyCodeUnderstanding.js`
-(real regex-based code structure extraction, marginal value over just
-letting the model read the file), `knowledge/builders/
-knowledgeContextBuilder.js` (real godfile-index builder, needs a head-
-to-head comparison against the live `spacemonkeyGodFileLoader.js`
-before deciding), and `spacemonkeyRootService.js` (real DB accessor,
-not really a "feature" - a consolidation candidate if the two live
-services that query the same table directly are ever refactored).
+**Update:** the 4 files originally left in place for a closer look
+were followed up on and archived here too, in a later pass:
+
+- `snapshots/spacemonkeySnapshotPolicyEngine.js` - real, no live
+  duplicate, but its only plausible integration point (an automatic
+  "require a snapshot/approval before this change" gate in Dev
+  Studio's code-change flow) would be a genuinely new safety behavior,
+  not just wiring - Dev Studio's draft/approve flow already requires a
+  human to approve every change regardless of risk level, so this
+  would need real design work, not a drop-in connection.
+- `spacemonkeyCodeUnderstanding.js` - real regex-based code structure
+  extraction, but the original investigation was already skeptical it
+  beats just letting the model read the file directly (regex, not an
+  AST) - not confirmed as an actual improvement.
+- `knowledge/builders/knowledgeContextBuilder.js` - real, but
+  functionally overlaps the live `spacemonkeyGodFileLoader.js`; would
+  need a head-to-head comparison to justify adding a second godfile
+  loading path, not just connecting an empty gap.
+- `spacemonkeyRootService.js` - real DB accessor, but the same
+  `SpacemonkeyRoot` table queries it performs are already done
+  directly by two live services (`spacemonkeyGenesisIdentityService.js`,
+  `persona/spacemonkeyPersonaService.js`). Not a missing capability -
+  a future refactor candidate if that duplication is ever consolidated.
 
 Moved as-is (not deleted), same treatment as the earlier archive
 rounds. Verified: `node --check` passes on every remaining file in
