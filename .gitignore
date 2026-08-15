@@ -112,3 +112,9 @@ backend/data_store.json
 # =====================================
 
 *.AppImage
+
+# =====================================
+# Kernel build output (make / Makefile at repo root)
+# =====================================
+
+/build/
