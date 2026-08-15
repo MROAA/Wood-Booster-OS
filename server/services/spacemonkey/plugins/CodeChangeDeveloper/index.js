@@ -21,6 +21,10 @@ import writeCodeChangeSkill from "./skills/writeCodeChangeSkill.js"
 
 import writeCodeChangeWorkflow from "./workflows/writeCodeChangeWorkflow.js"
 
+import revertCodeChangeSkill from "./skills/revertCodeChangeSkill.js"
+
+import revertCodeChangeWorkflow from "./workflows/revertCodeChangeWorkflow.js"
+
 import generateVerificationTestSkill from "./skills/generateVerificationTestSkill.js"
 
 import generateVerificationTestWorkflow from "./workflows/generateVerificationTestWorkflow.js"
@@ -72,6 +76,10 @@ function registerCodeChangeDeveloperPlugin({
     )
 
     skillEngine.register(
+        revertCodeChangeSkill,
+    )
+
+    skillEngine.register(
         generateVerificationTestSkill,
     )
 
@@ -89,6 +97,10 @@ function registerCodeChangeDeveloperPlugin({
 
     workflowEngine.register(
         writeCodeChangeWorkflow,
+    )
+
+    workflowEngine.register(
+        revertCodeChangeWorkflow,
     )
 
     workflowEngine.register(

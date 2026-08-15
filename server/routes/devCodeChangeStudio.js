@@ -535,5 +535,105 @@ export default function createDevCodeChangeRouter(prisma) {
     },
   )
 
+  /*
+   * PUT /api/dev-drafts/:id/revert
+   *
+   * Peruuttaa jo levylle kirjoitetun (status: "written") luonnoksen -
+   * ks. revertCodeChangeSkill.js varmuuskopion palautuksen/poiston
+   * tarkasta logiikasta. Voidaan kutsua milloin tahansa myöhemmin
+   * (esim. Historia-välilehdeltä), ei vain samassa keskustelussa.
+   */
+  router.put(
+    "/dev-drafts/:id/revert",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (draft.status !== "written") {
+          return response.status(409).json({
+            error: `Luonnosta ei ole kirjoitettu levylle (status: ${draft.status}).`,
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "revert-code-change-workflow",
+          {
+            draft,
+            toolBus,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          const nextStatus =
+            skillResult?.code === "file_changed_since_write"
+              ? "revert_conflict"
+              : "revert_failed"
+
+          const failed = await prisma.codeChangeDraft.update({
+            where: {
+              id: draftId,
+            },
+            data: {
+              status: nextStatus,
+              writeError:
+                skillResult?.error ||
+                "Peruutus epäonnistui tuntemattomasta syystä.",
+            },
+          })
+
+          const statusCode = nextStatus === "revert_conflict" ? 409 : 422
+
+          return response.status(statusCode).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+            draft: withDiff(failed),
+          })
+        }
+
+        const reverted = await prisma.codeChangeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            status: "reverted",
+            writeError: null,
+          },
+        })
+
+        response.json(withDiff(reverted))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
   return router
 }

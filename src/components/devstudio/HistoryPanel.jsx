@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import { apiGet } from "../../api/client"
+import { apiGet, apiPut } from "../../api/client"
 
 import DiffView from "./DiffView"
 
@@ -74,13 +74,52 @@ function TestStatusBlock({ testStatus, testSkippedReason, testOutput }) {
 
 }
 
-function SingleDraftDetail({ draft }) {
+function RevertButton({ onRevert, busy }) {
+
+  return (
+
+    <button
+      disabled={busy}
+      onClick={onRevert}
+      className="
+        rounded-full
+        border
+        border-red-900
+        px-3
+        py-1
+        text-xs
+        font-medium
+        text-red-400
+        transition-opacity
+        disabled:opacity-30
+        disabled:cursor-not-allowed
+        hover:bg-red-950/30
+      "
+    >
+      Peruuta
+    </button>
+
+  )
+
+}
+
+function SingleDraftDetail({ draft, onRevert, busy }) {
 
   return (
 
     <div className="space-y-2">
 
-      <div className="text-xs text-[var(--wood-muted)]">{draft.filePath}</div>
+      <div className="flex items-center justify-between gap-2">
+
+        <div className="text-xs text-[var(--wood-muted)]">{draft.filePath}</div>
+
+        {
+          draft.status === "written" && (
+            <RevertButton onRevert={onRevert} busy={busy} />
+          )
+        }
+
+      </div>
 
       {
         draft.explanation && (
@@ -102,7 +141,7 @@ function SingleDraftDetail({ draft }) {
 
 }
 
-function SetDetail({ set }) {
+function SetDetail({ set, onRevertFile, busyFileId }) {
 
   const visibleFiles = set.files.filter(file => !file.blocked)
 
@@ -148,9 +187,22 @@ function SetDetail({ set }) {
                 {file.filePath}
               </span>
 
-              <span className="text-[10px] text-[var(--wood-muted)]">
-                {FILE_STATUS_LABELS[file.status] || file.status}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+
+                <span className="text-[10px] text-[var(--wood-muted)]">
+                  {FILE_STATUS_LABELS[file.status] || file.status}
+                </span>
+
+                {
+                  file.status === "written" && (
+                    <RevertButton
+                      onRevert={() => onRevertFile(file.id)}
+                      busy={busyFileId === file.id}
+                    />
+                  )
+                }
+
+              </div>
 
             </div>
 
@@ -173,7 +225,7 @@ function SetDetail({ set }) {
 
 }
 
-function HistoryEntryRow({ entry, expanded, onToggle }) {
+function HistoryEntryRow({ entry, expanded, onToggle, onRevertDraft, onRevertFile, busyDraftId, busyFileId }) {
 
   return (
 
@@ -244,8 +296,20 @@ function HistoryEntryRow({ entry, expanded, onToggle }) {
 
             {
               entry.kind === "set"
-                ? <SetDetail set={entry.raw} />
-                : <SingleDraftDetail draft={entry.raw} />
+                ? (
+                  <SetDetail
+                    set={entry.raw}
+                    onRevertFile={fileId => onRevertFile(entry.raw.id, fileId)}
+                    busyFileId={busyFileId}
+                  />
+                )
+                : (
+                  <SingleDraftDetail
+                    draft={entry.raw}
+                    onRevert={() => onRevertDraft(entry.raw.id)}
+                    busy={busyDraftId === entry.raw.id}
+                  />
+                )
             }
 
           </div>
@@ -268,6 +332,112 @@ function HistoryPanel() {
   const [isLoading, setIsLoading] = useState(true)
 
   const [errorMessage, setErrorMessage] = useState("")
+
+  const [busyDraftId, setBusyDraftId] = useState(null)
+
+  const [busyFileId, setBusyFileId] = useState(null)
+
+  function updateEntryRaw(key, raw) {
+
+    setEntries(
+      previous =>
+        previous.map(
+          entry =>
+            entry.key === key
+              ? { ...entry, raw, status: raw.status }
+              : entry,
+        ),
+    )
+
+  }
+
+  async function revertDraft(draftId) {
+
+    if (!window.confirm("Peruuta tämä muutos ja palauta aiempi tila?")) {
+
+      return
+
+    }
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/revert`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      // Ristiriitatilanteessa (esim. tiedosto muuttunut kirjoituksen
+      // jälkeen) reitti palauttaa silti tuoreen tilan JSON-rungossa,
+      // mutta apiPut heittää vain tekstiviestin - haetaan tuore tila
+      // erikseen, jotta status (esim. "revert_conflict") näkyy oikein.
+      try {
+
+        const refreshed = await apiGet(`/dev-drafts/${draftId}`)
+
+        updateEntryRaw(`draft-${draftId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function revertFile(setId, fileId) {
+
+    if (!window.confirm("Peruuta tämä tiedosto ja palauta aiempi tila?")) {
+
+      return
+
+    }
+
+    setBusyFileId(fileId)
+
+    setErrorMessage("")
+
+    try {
+
+      const updatedSet = await apiPut(`/dev-draft-sets/${setId}/files/${fileId}/revert`)
+
+      updateEntryRaw(`set-${setId}`, updatedSet)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/dev-draft-sets/${setId}`)
+
+        updateEntryRaw(`set-${setId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyFileId(null)
+
+    }
+
+  }
 
   useEffect(() => {
 
@@ -365,6 +535,10 @@ function HistoryPanel() {
                     previous => previous === entry.key ? null : entry.key,
                   )
               }
+              onRevertDraft={revertDraft}
+              onRevertFile={revertFile}
+              busyDraftId={busyDraftId}
+              busyFileId={busyFileId}
             />
 
           ))
