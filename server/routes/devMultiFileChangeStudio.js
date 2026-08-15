@@ -4,8 +4,6 @@ import crypto from "node:crypto"
 
 import { generateCodeChange } from "../services/codeChangeGenerator.js"
 
-import { generateVerificationTest } from "../services/verificationTestGenerator.js"
-
 import {
   getSpacemonkeyToolBus,
   getSpacemonkeyWorkflowEngine,
@@ -15,6 +13,8 @@ import {
   createDraftSetFromPrompt,
   withSetDiffs,
 } from "../services/devStudio/draftSetService.js"
+
+import { verifyProposedChange } from "../services/devStudio/verifyProposedChange.js"
 
 /*
  * Dev Studion "Useampi tiedosto" -tilan reitit. Kolme vaihetta, jotka
@@ -48,69 +48,6 @@ export default function createDevMultiFileChangeRouter(prisma) {
       where: { id: setId },
       include: { files: { orderBy: { id: "asc" } } },
     })
-  }
-
-  async function verifyOneFile({ workflowEngine, toolBus, prompt, filePath, proposedCode }) {
-    try {
-      const generateResult = await workflowEngine.execute(
-        "generate-verification-test-workflow",
-        { prompt, filePath, proposedCode, toolBus, generateVerificationTest },
-      )
-
-      const generateSkillResult = generateResult.results?.[0]
-
-      if (!generateSkillResult?.success) {
-        return {
-          testCode: null,
-          testStatus: "error",
-          testOutput: generateSkillResult?.error || null,
-          testSkippedReason: null,
-        }
-      }
-
-      if (generateSkillResult.skipped) {
-        return {
-          testCode: null,
-          testStatus: "skipped",
-          testOutput: null,
-          testSkippedReason: generateSkillResult.skippedReason,
-        }
-      }
-
-      const runResult = await workflowEngine.execute(
-        "run-verification-test-workflow",
-        {
-          runId: generateSkillResult.runId,
-          testFilePath: generateSkillResult.testFilePath,
-          skipped: false,
-        },
-      )
-
-      const runSkillResult = runResult.results?.[0]
-
-      if (!runSkillResult?.success) {
-        return {
-          testCode: generateSkillResult.testCode,
-          testStatus: "error",
-          testOutput: runSkillResult?.error || null,
-          testSkippedReason: null,
-        }
-      }
-
-      return {
-        testCode: generateSkillResult.testCode,
-        testStatus: runSkillResult.testStatus,
-        testOutput: runSkillResult.testOutput || null,
-        testSkippedReason: null,
-      }
-    } catch (error) {
-      return {
-        testCode: null,
-        testStatus: "error",
-        testOutput: error.message,
-        testSkippedReason: null,
-      }
-    }
   }
 
   /*
@@ -262,7 +199,7 @@ export default function createDevMultiFileChangeRouter(prisma) {
                 .update(generateSkillResult.originalCode, "utf8")
                 .digest("hex")
 
-        const verification = await verifyOneFile({
+        const verification = await verifyProposedChange({
           workflowEngine,
           toolBus,
           prompt: combinedPrompt,
@@ -558,6 +495,123 @@ export default function createDevMultiFileChangeRouter(prisma) {
         data: {
           status: "reverted",
           writeError: null,
+        },
+      })
+
+      const updatedSet = await fetchSetWithFiles(setId)
+
+      response.json(withFiles(updatedSet))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
+   * PUT /api/dev-draft-sets/:id/files/:fileId/revise
+   *
+   * Sama idea kuin devCodeChangeStudio.js:n /dev-drafts/:id/revise -
+   * pyytää AI:ta tuottamaan uuden version SAMASTA tiedostoehdotuksesta
+   * käyttäjän palautteen perusteella, samaan riviin, koko paketin
+   * suunnitelmaa (set.prompt) ja tämän tiedoston roolia (file.reason)
+   * unohtamatta. Toimii vain vielä hyväksymättömälle tiedostolle
+   * (status: "generated").
+   */
+  router.put("/dev-draft-sets/:id/files/:fileId/revise", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const fileId = Number(request.params.fileId)
+
+      const set = await fetchSetWithFiles(setId)
+
+      if (!set) {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      const file = set.files.find(candidate => candidate.id === fileId)
+
+      if (!file) {
+        return response.status(404).json({ error: "Tiedostoa ei löytynyt paketista" })
+      }
+
+      if (file.status !== "generated") {
+        return response.status(409).json({
+          error: `Tiedosto ei odota tarkistusta (status: ${file.status}).`,
+        })
+      }
+
+      const { feedback } = request.body || {}
+
+      if (!feedback || !String(feedback).trim()) {
+        return response.status(400).json({ error: "Palaute (feedback) vaaditaan" })
+      }
+
+      const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+      if (!workflowEngine) {
+        return response.status(503).json({
+          error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+        })
+      }
+
+      const toolBus = getSpacemonkeyToolBus()
+
+      const augmentedPrompt =
+        `KOKONAISPYYNTÖ:\n${set.prompt}\n\n` +
+        `TÄMÄN TIEDOSTON ROOLI SUUNNITELMASSA:\n${file.reason || ""}\n\n` +
+        `AIEMPI EHDOTUS (koko tiedoston sisältö):\n${file.proposedCode || ""}\n\n` +
+        `KÄYTTÄJÄN PALAUTE EHDOTUKSEEN:\n${String(feedback).trim()}\n\n` +
+        "TEHTÄVÄ: Tuota UUSI versio koko tiedoston sisällöstä, joka " +
+        "toteuttaa alkuperäisen pyynnön ja ottaa huomioon käyttäjän " +
+        "palautteen."
+
+      const generateResult = await workflowEngine.execute(
+        "generate-code-change-workflow",
+        {
+          prompt: augmentedPrompt,
+          filePath: file.filePath,
+          toolBus,
+          generateCodeChange,
+        },
+      )
+
+      const generateSkillResult = generateResult.results?.[0]
+
+      if (!generateSkillResult?.success) {
+        return response.status(422).json({
+          error: generateSkillResult?.error,
+          code: generateSkillResult?.code,
+        })
+      }
+
+      const originalHash =
+        generateSkillResult.originalCode === null
+          ? null
+          : crypto
+              .createHash("sha256")
+              .update(generateSkillResult.originalCode, "utf8")
+              .digest("hex")
+
+      const verification = await verifyProposedChange({
+        workflowEngine,
+        toolBus,
+        prompt: augmentedPrompt,
+        filePath: generateSkillResult.filePath,
+        proposedCode: generateSkillResult.proposedCode,
+      })
+
+      await prisma.codeChangeFileDraft.update({
+        where: { id: fileId },
+        data: {
+          originalCode: generateSkillResult.originalCode,
+          proposedCode: generateSkillResult.proposedCode,
+          originalHash,
+          testCode: verification.testCode,
+          testStatus: verification.testStatus,
+          testOutput: verification.testOutput,
+          testSkippedReason: verification.testSkippedReason,
         },
       })
 

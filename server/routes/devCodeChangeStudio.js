@@ -6,96 +6,12 @@ import { diffLines } from "diff"
 
 import { generateCodeChange } from "../services/codeChangeGenerator.js"
 
-import { generateVerificationTest } from "../services/verificationTestGenerator.js"
-
 import {
   getSpacemonkeyToolBus,
   getSpacemonkeyWorkflowEngine,
 } from "../services/spacemonkey/spacemonkeyRuntimeBootstrap.js"
 
-/*
- * Ajaa tarkistustestin generoinnin ja suorituksen ehdotetulle
- * muutokselle. Palauttaa aina jonkin testStatus-arvon eikä koskaan
- * heitä - jos itse tarkistus epäonnistuu (esim. Ollama-virhe),
- * palautetaan testStatus:"error" sen sijaan että estettäisiin koko
- * koodiehdotuksen näyttäminen käyttäjälle. Ei koskaan kosketa
- * todellista kohdetiedostoa - vain omaa hiekkalaatikkoaan
- * (.dev-studio-verification/, ks. verificationSandbox.js).
- */
-async function verifyProposedChange({
-  workflowEngine,
-  toolBus,
-  prompt,
-  filePath,
-  proposedCode,
-}) {
-  try {
-    const generateResult = await workflowEngine.execute(
-      "generate-verification-test-workflow",
-      {
-        prompt,
-        filePath,
-        proposedCode,
-        toolBus,
-        generateVerificationTest,
-      },
-    )
-
-    const generateSkillResult = generateResult.results?.[0]
-
-    if (!generateSkillResult?.success) {
-      return {
-        testCode: null,
-        testStatus: "error",
-        testOutput: generateSkillResult?.error || null,
-        testSkippedReason: null,
-      }
-    }
-
-    if (generateSkillResult.skipped) {
-      return {
-        testCode: null,
-        testStatus: "skipped",
-        testOutput: null,
-        testSkippedReason: generateSkillResult.skippedReason,
-      }
-    }
-
-    const runResult = await workflowEngine.execute(
-      "run-verification-test-workflow",
-      {
-        runId: generateSkillResult.runId,
-        testFilePath: generateSkillResult.testFilePath,
-        skipped: false,
-      },
-    )
-
-    const runSkillResult = runResult.results?.[0]
-
-    if (!runSkillResult?.success) {
-      return {
-        testCode: generateSkillResult.testCode,
-        testStatus: "error",
-        testOutput: runSkillResult?.error || null,
-        testSkippedReason: null,
-      }
-    }
-
-    return {
-      testCode: generateSkillResult.testCode,
-      testStatus: runSkillResult.testStatus,
-      testOutput: runSkillResult.testOutput || null,
-      testSkippedReason: null,
-    }
-  } catch (error) {
-    return {
-      testCode: null,
-      testStatus: "error",
-      testOutput: error.message,
-      testSkippedReason: null,
-    }
-  }
-}
+import { verifyProposedChange } from "../services/devStudio/verifyProposedChange.js"
 
 /*
  * Dev Studion "Chat"-välilehden reitit: chat-tyylinen
@@ -324,6 +240,133 @@ export default function createDevCodeChangeRouter(prisma) {
         })
 
         response.json(withDiff(draft))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/dev-drafts/:id/revise
+   *
+   * Pyytää AI:ta tuottamaan UUDEN version SAMASTA ehdotuksesta,
+   * käyttäjän vapaan palautteen perusteella - ei hylkää+aloita
+   * alusta, vaan täydentää samaa luonnosriviä. Toimii vain
+   * odottavalle luonnokselle (status: "draft") - hyväksynnän jälkeen
+   * hyväksyntä on tarkoituksella pysyvä yhdelle konkreettiselle
+   * ehdotukselle, ks. hylkää+aloita-alusta-polku sen jälkeen.
+   *
+   * Käyttää samaa generate-code-change-workflow'ta kuin uuden
+   * luonnoksen luonti - se lukee kohdetiedoston aina tuoreena, joten
+   * revise "korjaa itsensä" automaattisesti jos tiedosto on ehtinyt
+   * muuttua alkuperäisen luonnoksen jälkeen.
+   */
+  router.put(
+    "/dev-drafts/:id/revise",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const existing = await prisma.codeChangeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!existing) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (existing.status !== "draft") {
+          return response.status(409).json({
+            error: `Luonnos ei odota tarkistusta (status: ${existing.status}).`,
+          })
+        }
+
+        const { feedback } = request.body || {}
+
+        if (!feedback || !String(feedback).trim()) {
+          return response.status(400).json({
+            error: "Palaute (feedback) vaaditaan",
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const augmentedPrompt =
+          `ALKUPERÄINEN PYYNTÖ:\n${existing.prompt}\n\n` +
+          `AIEMPI EHDOTUS (koko tiedoston sisältö):\n${existing.proposedCode}\n\n` +
+          `KÄYTTÄJÄN PALAUTE EHDOTUKSEEN:\n${String(feedback).trim()}\n\n` +
+          "TEHTÄVÄ: Tuota UUSI versio koko tiedoston sisällöstä, joka " +
+          "toteuttaa alkuperäisen pyynnön ja ottaa huomioon käyttäjän " +
+          "palautteen."
+
+        const workflowResult = await workflowEngine.execute(
+          "generate-code-change-workflow",
+          {
+            prompt: augmentedPrompt,
+            filePath: existing.filePath,
+            toolBus,
+            generateCodeChange,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+          })
+        }
+
+        const originalHash =
+          skillResult.originalCode === null
+            ? null
+            : crypto
+                .createHash("sha256")
+                .update(skillResult.originalCode, "utf8")
+                .digest("hex")
+
+        const verification = await verifyProposedChange({
+          workflowEngine,
+          toolBus,
+          prompt: augmentedPrompt,
+          filePath: skillResult.filePath,
+          proposedCode: skillResult.proposedCode,
+        })
+
+        const revised = await prisma.codeChangeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            explanation: skillResult.explanation,
+            originalCode: skillResult.originalCode,
+            proposedCode: skillResult.proposedCode,
+            originalHash,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
+          },
+        })
+
+        response.json(withDiff(revised))
       } catch (error) {
         console.error(error)
 

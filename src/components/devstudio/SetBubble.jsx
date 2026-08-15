@@ -1,3 +1,5 @@
+import { useState } from "react"
+
 import DiffView from "./DiffView"
 
 import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY } from "./statusLabels"
@@ -55,9 +57,25 @@ function PlanFileRow({ file }) {
 
 }
 
-function FileReviewCard({ file }) {
+function FileReviewCard({ file, onRevise, busy }) {
 
   const testDisplay = TEST_STATUS_DISPLAY[file.testStatus]
+
+  const [feedback, setFeedback] = useState("")
+
+  function submitRevise() {
+
+    if (!feedback.trim()) {
+
+      return
+
+    }
+
+    onRevise(feedback.trim())
+
+    setFeedback("")
+
+  }
 
   return (
 
@@ -120,13 +138,65 @@ function FileReviewCard({ file }) {
         )
       }
 
+      {
+        file.status === "generated" && (
+
+          <div className="space-y-2 pt-1">
+
+            <textarea
+              value={feedback}
+              onChange={event => setFeedback(event.target.value)}
+              disabled={busy}
+              rows={2}
+              placeholder="Pyydä muutosta tähän tiedostoon, esim. 'käytä eri muuttujan nimeä'"
+              className="
+                w-full
+                rounded-lg
+                border
+                border-[var(--wood-border)]
+                bg-[var(--wood-panel)]
+                p-2
+                text-xs
+                text-[var(--wood-text)]
+                placeholder:text-[var(--wood-muted)]
+                outline-none
+                focus:border-[var(--wood-accent)]
+              "
+            />
+
+            <button
+              disabled={busy || !feedback.trim()}
+              onClick={submitRevise}
+              className="
+                rounded-full
+                border
+                border-[var(--wood-border)]
+                px-3
+                py-1
+                text-xs
+                font-medium
+                text-[var(--wood-text)]
+                transition-opacity
+                disabled:opacity-30
+                disabled:cursor-not-allowed
+                hover:border-[var(--wood-accent)]
+              "
+            >
+              Pyydä muutosta
+            </button>
+
+          </div>
+
+        )
+      }
+
     </div>
 
   )
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, busy }) {
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, busy }) {
 
   const status = set.status
 
@@ -258,7 +328,16 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, busy }) {
               )
             }
 
-            {visibleFiles.map(file => <FileReviewCard key={file.id} file={file} />)}
+            {
+              visibleFiles.map(file => (
+                <FileReviewCard
+                  key={file.id}
+                  file={file}
+                  busy={busy}
+                  onRevise={feedback => onReviseFile(file.id, feedback)}
+                />
+              ))
+            }
 
             <div className="flex gap-2 pt-1">
 
