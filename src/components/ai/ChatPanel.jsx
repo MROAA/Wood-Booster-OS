@@ -58,6 +58,13 @@ function ChatPanel() {
 
 
 
+  const [
+    resolvingIndex,
+    setResolvingIndex
+  ] = useState(null)
+
+
+
   const inputRef = useRef(null)
 
   const isKoodiActive = KOODI_PREFIX_PATTERN.test(message)
@@ -286,6 +293,70 @@ function ChatPanel() {
 
 
 
+  async function postChatMessage(payload) {
+
+    const response =
+      await fetch(
+        "http://localhost:3001/api/agents/chat",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify(payload)
+
+        }
+      )
+
+    return response.json()
+
+  }
+
+
+
+  function appendAssistantReply(data) {
+
+    setMessages(
+      previous => [
+
+        ...previous,
+
+        data.kind === "code_plan"
+          ? {
+              role: "assistant",
+              kind: "set",
+              mode: data.mode,
+              set: data.draftSet,
+            }
+          : data.kind === "confirm_koodi"
+            ? {
+                role: "assistant",
+                kind: "confirm_koodi",
+                content: data.answer,
+                originalText: data.originalText,
+                resolved: false,
+              }
+            : {
+                role: "assistant",
+                kind: "text",
+                content:
+                  data.answer ||
+                  "Ei vastausta.",
+                mode:
+                  data.mode,
+                innerVoice:
+                  data.innerVoice,
+              }
+
+      ]
+    )
+
+  }
+
+
+
   async function sendMessage() {
 
 
@@ -348,58 +419,14 @@ function ChatPanel() {
 
     try {
 
-      const response =
-        await fetch(
-          "http://localhost:3001/api/agents/chat",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-              message: userText,
-              runtimeContext: createRuntimeContext(),
-              systemContext: getSystemContextPayload(),
-            })
-
-          }
-        )
-
-
-
       const data =
-        await response.json()
+        await postChatMessage({
+          message: userText,
+          runtimeContext: createRuntimeContext(),
+          systemContext: getSystemContextPayload(),
+        })
 
-
-
-      setMessages(
-        previous => [
-
-          ...previous,
-
-          data.kind === "code_plan"
-            ? {
-                role: "assistant",
-                kind: "set",
-                mode: data.mode,
-                set: data.draftSet,
-              }
-            : {
-                role: "assistant",
-                kind: "text",
-                content:
-                  data.answer ||
-                  "Ei vastausta.",
-                mode:
-                  data.mode,
-                innerVoice:
-                  data.innerVoice,
-              }
-
-        ]
-      )
+      appendAssistantReply(data)
 
 
     } catch(error) {
@@ -426,6 +453,73 @@ function ChatPanel() {
 
     }
 
+
+  }
+
+
+
+  async function resolveCodeIntent(index, originalText, confirmed) {
+
+    setResolvingIndex(index)
+
+    setMessages(
+      previous =>
+        previous.map(
+          (item, itemIndex) =>
+            itemIndex === index
+              ? { ...item, resolved: true }
+              : item,
+        ),
+    )
+
+    setIsThinking(true)
+
+
+
+    try {
+
+      const data =
+        await postChatMessage(
+          confirmed
+            ? {
+                message: "/koodi " + originalText,
+                runtimeContext: createRuntimeContext(),
+                systemContext: getSystemContextPayload(),
+              }
+            : {
+                message: originalText,
+                skipCodeDetection: true,
+                runtimeContext: createRuntimeContext(),
+                systemContext: getSystemContextPayload(),
+              }
+        )
+
+      appendAssistantReply(data)
+
+    } catch(error) {
+
+      setMessages(
+        previous => [
+
+          ...previous,
+
+          {
+            role: "assistant",
+            kind: "text",
+            content:
+              "Yhteys Spacemonkeyhin epäonnistui."
+          }
+
+        ]
+      )
+
+    } finally {
+
+      setIsThinking(false)
+
+      setResolvingIndex(null)
+
+    }
 
   }
 
@@ -520,6 +614,76 @@ function ChatPanel() {
                       onWrite={() => writeSet(item.set.id)}
                       onReviseFile={(fileId, feedback) => reviseFile(item.set.id, fileId, feedback)}
                     />
+
+                  ) : item.kind === "confirm_koodi" ? (
+
+                    <div
+                      className="
+                        max-w-[90%]
+                        rounded-2xl
+                        rounded-bl-md
+                        border
+                        border-[var(--wood-border)]
+                        bg-gradient-to-br
+                        from-[var(--wood-panel)]
+                        to-[var(--wood-card)]
+                        px-4
+                        py-3
+                        text-sm
+                        leading-relaxed
+                        text-[var(--wood-text)]
+                        shadow-sm
+                      "
+                    >
+
+                      {item.content}
+
+                      <div className="flex gap-2 pt-2">
+
+                        <button
+                          disabled={item.resolved || resolvingIndex === index}
+                          onClick={() => resolveCodeIntent(index, item.originalText, true)}
+                          className="
+                            rounded-full
+                            px-4
+                            py-1.5
+                            text-xs
+                            font-medium
+                            bg-[var(--wood-accent)]
+                            text-[#17120c]
+                            transition-opacity
+                            disabled:opacity-30
+                            disabled:cursor-not-allowed
+                            hover:opacity-90
+                          "
+                        >
+                          Kyllä, tee suunnitelma
+                        </button>
+
+                        <button
+                          disabled={item.resolved || resolvingIndex === index}
+                          onClick={() => resolveCodeIntent(index, item.originalText, false)}
+                          className="
+                            rounded-full
+                            border
+                            border-[var(--wood-border)]
+                            px-4
+                            py-1.5
+                            text-xs
+                            font-medium
+                            text-[var(--wood-muted)]
+                            transition-opacity
+                            disabled:opacity-30
+                            disabled:cursor-not-allowed
+                            hover:text-[var(--wood-text)]
+                          "
+                        >
+                          Ei, tavallinen viesti
+                        </button>
+
+                      </div>
+
+                    </div>
 
                   ) : (
 
