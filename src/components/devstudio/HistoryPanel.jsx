@@ -74,6 +74,49 @@ function TestStatusBlock({ testStatus, testSkippedReason, testOutput }) {
 
 }
 
+function UnresolvedReferencesBlock({ unresolvedReferences }) {
+
+  if (!unresolvedReferences) {
+
+    return null
+
+  }
+
+  let references
+
+  try {
+
+    references = JSON.parse(unresolvedReferences)
+
+  } catch {
+
+    return null
+
+  }
+
+  if (!Array.isArray(references) || references.length === 0) {
+
+    return null
+
+  }
+
+  return (
+
+    <div className="rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
+      ⚠ Koodi viittasi tiedostoon jota ei löytynyt projektista:
+      <ul className="mt-1 list-disc pl-4 font-mono">
+        {
+          references.map((reference, referenceIndex) => (
+            <li key={referenceIndex}>{reference}</li>
+          ))
+        }
+      </ul>
+    </div>
+
+  )
+
+}
+
 function RevertButton({ onRevert, busy }) {
 
   return (
@@ -212,6 +255,10 @@ function SetDetail({ set, onRevertFile, busyFileId }) {
               testStatus={file.testStatus}
               testSkippedReason={file.testSkippedReason}
               testOutput={file.testOutput}
+            />
+
+            <UnresolvedReferencesBlock
+              unresolvedReferences={file.unresolvedReferences}
             />
 
           </div>

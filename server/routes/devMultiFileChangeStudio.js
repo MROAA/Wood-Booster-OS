@@ -53,6 +53,30 @@ export default function createDevMultiFileChangeRouter(prisma) {
   }
 
   /*
+   * Turvaverkko pienen paikallisen mallin hallusinoimia
+   * import-polkuja vastaan - ei koskaan estä mitään, palauttaa aina
+   * listan (tyhjä jos ei huomautettavaa) tai tyhjän listan jos
+   * tarkistus itse epäonnistuu jostain syystä. siblingFilePaths
+   * kertoo mitkä muut tiedostot kuuluvat samaan suunnitelmaan, jotta
+   * kaksi UUTTA, toisiinsa viittaavaa tiedostoa ei näytä väärältä
+   * hälytykseltä ennen kuin kumpaakaan on kirjoitettu levylle.
+   */
+  async function checkReferences({ workflowEngine, toolBus, filePath, proposedCode, siblingFilePaths }) {
+    try {
+      const result = await workflowEngine.execute(
+        "check-code-references-workflow",
+        { filePath, proposedCode, toolBus, siblingFilePaths },
+      )
+
+      return result.results?.[0]?.unresolvedReferences || []
+    } catch (error) {
+      console.error("Viittaustarkistus epäonnistui:", error)
+
+      return []
+    }
+  }
+
+  /*
    * POST /api/dev-draft-sets
    *
    * Luo uuden CodeChangeDraftSetin ja sen CodeChangeFileDraft-rivit
@@ -209,6 +233,16 @@ export default function createDevMultiFileChangeRouter(prisma) {
           proposedCode: generateSkillResult.proposedCode,
         })
 
+        const unresolvedReferences = await checkReferences({
+          workflowEngine,
+          toolBus,
+          filePath: generateSkillResult.filePath,
+          proposedCode: generateSkillResult.proposedCode,
+          siblingFilePaths: set.files
+            .filter(candidate => candidate.id !== file.id)
+            .map(candidate => candidate.filePath),
+        })
+
         await prisma.codeChangeFileDraft.update({
           where: { id: file.id },
           data: {
@@ -220,6 +254,10 @@ export default function createDevMultiFileChangeRouter(prisma) {
             testStatus: verification.testStatus,
             testOutput: verification.testOutput,
             testSkippedReason: verification.testSkippedReason,
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
           },
         })
       }
@@ -606,6 +644,16 @@ export default function createDevMultiFileChangeRouter(prisma) {
         proposedCode: generateSkillResult.proposedCode,
       })
 
+      const unresolvedReferences = await checkReferences({
+        workflowEngine,
+        toolBus,
+        filePath: generateSkillResult.filePath,
+        proposedCode: generateSkillResult.proposedCode,
+        siblingFilePaths: set.files
+          .filter(candidate => candidate.id !== fileId)
+          .map(candidate => candidate.filePath),
+      })
+
       await prisma.codeChangeFileDraft.update({
         where: { id: fileId },
         data: {
@@ -616,6 +664,10 @@ export default function createDevMultiFileChangeRouter(prisma) {
           testStatus: verification.testStatus,
           testOutput: verification.testOutput,
           testSkippedReason: verification.testSkippedReason,
+          unresolvedReferences:
+            unresolvedReferences.length > 0
+              ? JSON.stringify(unresolvedReferences)
+              : null,
         },
       })
 

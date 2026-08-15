@@ -37,6 +37,10 @@ import generateChangePlanSkill from "./skills/generateChangePlanSkill.js"
 
 import generateChangePlanWorkflow from "./workflows/generateChangePlanWorkflow.js"
 
+import checkCodeReferencesSkill from "./skills/checkCodeReferencesSkill.js"
+
+import checkCodeReferencesWorkflow from "./workflows/checkCodeReferencesWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -91,6 +95,10 @@ function registerCodeChangeDeveloperPlugin({
         generateChangePlanSkill,
     )
 
+    skillEngine.register(
+        checkCodeReferencesSkill,
+    )
+
     workflowEngine.register(
         generateCodeChangeWorkflow,
     )
@@ -113,6 +121,10 @@ function registerCodeChangeDeveloperPlugin({
 
     workflowEngine.register(
         generateChangePlanWorkflow,
+    )
+
+    workflowEngine.register(
+        checkCodeReferencesWorkflow,
     )
 
     pluginManager.register(plugin)
