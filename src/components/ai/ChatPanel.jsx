@@ -52,6 +52,36 @@ const EXAMPLE_PROMPTS = [
   "Mitä tehtäviä on avoinna?",
 ]
 
+// Palvelin laskee useamman laatutarkistuksen jokaiselle vastaukselle
+// (ks. server/services/aiBrain.js:collectAnswerQualityWarnings), mutta
+// osa niistä (tyyli, brändi-identiteetti) on tarkoitettu Spacemonkeyn
+// omaan sävyyn, ei tosiasioiden luotettavuuteen - näytetään käyttäjälle
+// vain ne tyypit jotka oikeasti liittyvät hallusinaatioon/luotettavuu-
+// teen, jotta varoitus ei muutu kohinaksi.
+const SAFETY_WARNING_TYPES = new Set([
+  "possible_hallucination",
+  "possible_ungrounded_answer",
+  "unsupported_workshop_claim",
+  "unsupported_business_term",
+  "unsupported_price",
+  "unsupported_percentage",
+  "unverified_action_claim",
+])
+
+function filterSafetyWarnings(qualityWarnings) {
+
+  if (!Array.isArray(qualityWarnings)) {
+
+    return []
+
+  }
+
+  return qualityWarnings.filter(
+    warning => SAFETY_WARNING_TYPES.has(warning?.type),
+  )
+
+}
+
 
 
 function ChatPanel() {
@@ -391,6 +421,8 @@ function ChatPanel() {
                   data.mode,
                 innerVoice:
                   data.innerVoice,
+                safetyWarnings:
+                  filterSafetyWarnings(data.debug?.qualityWarnings),
               }
 
       ]
@@ -874,6 +906,31 @@ function ChatPanel() {
                             {item.innerVoice.mood}
                             {" — "}
                             {item.innerVoice.innerThought}
+
+                          </div>
+
+                        )
+                      }
+
+                      {
+                        item.safetyWarnings?.length > 0 && (
+
+                          <div className="mt-2 space-y-1">
+
+                            {
+                              item.safetyWarnings.map(
+                                (warning, warningIndex) => (
+
+                                  <div
+                                    key={warningIndex}
+                                    className="text-xs text-amber-400"
+                                  >
+                                    ⚠ {warning.message}
+                                  </div>
+
+                                )
+                              )
+                            }
 
                           </div>
 

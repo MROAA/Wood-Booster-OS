@@ -63,6 +63,10 @@ import {
   validateBrandIdentity,
 } from "./brandIdentityGuard.js"
 
+import {
+  validateActionClaims,
+} from "./aiActionClaimValidator.js"
+
 
 
 const OLLAMA_URL =
@@ -136,6 +140,10 @@ export function collectAnswerQualityWarnings({
     validateBrandIdentity(
       answer,
     ),
+
+    validateActionClaims({
+      answer,
+    }),
 
   ]
 
