@@ -39,6 +39,30 @@ import {
   refineWithAhma,
 } from "./ahmaClient.js"
 
+import {
+  validatePhilosophyAnswer,
+} from "./philosophyGuard.js"
+
+import {
+  validateAIResponse,
+} from "./aiQualityControl.js"
+
+import {
+  validateResponseStyle,
+} from "./responseStyleGuard.js"
+
+import {
+  validateGrounding,
+} from "./aiGroundingValidator.js"
+
+import {
+  validateKnowledgeBoundary,
+} from "./knowledgeBoundaryGuard.js"
+
+import {
+  validateBrandIdentity,
+} from "./brandIdentityGuard.js"
+
 
 
 const OLLAMA_URL =
@@ -57,6 +81,86 @@ function normalizeArray(value) {
   return Array.isArray(value)
     ? value
     : []
+
+}
+
+
+
+/*
+Kokoaa lämmittämättömät (fail-open) laatutarkistukset vastauksen
+ympärille. Nämä eivät koskaan muokkaa tai estä vastausta - ne olivat
+kaikki valmiiksi kirjoitettuja, testattuja funktioita jotka eivät
+koskaan olleet kytkettynä mihinkään (server/services/*Guard.js,
+aiQualityControl.js), joten mikään ei koskaan tarkistanut niiden
+avulla mitä mallille todella vastasi. Palautetaan varoitukset debug-
+kenttään havainnointia varten sen sijaan että hylättäisiin vastaus -
+osa näistä (esim. businessKnowledgeGuard-tyyppinen alimerkkijonon
+täsmäys) on tunnetusti kohinaista, joten pisteytys ei saa vielä
+estää mitään.
+*/
+export function collectAnswerQualityWarnings({
+  message,
+  answer,
+  knowledge,
+  memory,
+}) {
+
+  const checks = [
+
+    validatePhilosophyAnswer(
+      message,
+      answer,
+    ),
+
+    validateAIResponse({
+      answer,
+      knowledge,
+      memories: memory,
+    }),
+
+    validateResponseStyle(
+      answer,
+    ),
+
+    validateGrounding({
+      answer,
+      knowledge,
+    }),
+
+    validateKnowledgeBoundary({
+      message,
+      answer,
+      knowledge,
+    }),
+
+    validateBrandIdentity(
+      answer,
+    ),
+
+  ]
+
+  const warnings =
+    checks.flatMap(
+      (check) =>
+        normalizeArray(
+          check?.warnings,
+        ),
+    )
+
+  const lowestScore =
+    checks.reduce(
+      (lowest, check) =>
+        typeof check?.score === "number" &&
+        check.score < lowest
+          ? check.score
+          : lowest,
+      100,
+    )
+
+  return {
+    warnings,
+    score: lowestScore,
+  }
 
 }
 
@@ -507,6 +611,20 @@ IDENTITY SEPARATION:
 
 
 
+    const qualityCheck =
+
+      collectAnswerQualityWarnings({
+        message,
+        answer:
+          guardedAnswer,
+        knowledge:
+          combinedKnowledge,
+        memory:
+          finalMemory,
+      })
+
+
+
     const memoryPipelineResult =
 
       await processMemoryPipeline({
@@ -583,6 +701,14 @@ IDENTITY SEPARATION:
 
         contextLength:
           finalContext.length,
+
+
+        qualityScore:
+          qualityCheck.score,
+
+
+        qualityWarnings:
+          qualityCheck.warnings,
 
       },
 
