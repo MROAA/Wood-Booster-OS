@@ -13,7 +13,7 @@ import VerificationResultViewer from "../components/desktop/VerificationResultVi
 import Projects from "../pages/Projects.jsx"
 import Settings from "../pages/Settings.jsx"
 import SystemPulse from "../pages/SystemPulse.jsx"
-import SpacemonkeyChat from "../pages/SpacemonkeyChat.jsx"
+import SpacemonkeyChatApp from "../components/desktop/SpacemonkeyChatApp.jsx"
 import Knowledge from "../pages/Knowledge.jsx"
 import KnowledgeUpload from "../pages/KnowledgeUpload.jsx"
 import Memory from "../pages/Memory.jsx"
@@ -40,7 +40,7 @@ export const APPS = {
   explorer: { title: "Tiedostonhallinta", icon: "📁", component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
   terminal: { title: "Pääte (fish)", icon: "💻", component: TerminalApp, defaultWidth: 760, defaultHeight: 500 },
   projects: { title: "Projektit", icon: "📁", component: Projects, defaultWidth: 800, defaultHeight: 560 },
-  spacemonkey: { title: "Spacemonkey", icon: "🐒", component: SpacemonkeyChat, defaultWidth: 520, defaultHeight: 600 },
+  spacemonkey: { title: "Spacemonkey", icon: "🐒", component: SpacemonkeyChatApp, defaultWidth: 520, defaultHeight: 600 },
   systempulse: { title: "System Pulse", icon: "🧠", component: SystemPulse, defaultWidth: 700, defaultHeight: 650 },
   gitguardian: { title: "Git Guardian", icon: "🛡", component: GitGuardianCard, defaultWidth: 480, defaultHeight: 520 },
   knowledge: { title: "Knowledge", icon: "◌", component: Knowledge, defaultWidth: 820, defaultHeight: 620 },
