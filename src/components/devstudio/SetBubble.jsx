@@ -1,59 +1,13 @@
 import DiffView from "./DiffView"
 
+import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY } from "./statusLabels"
+
 /*
  * Suunnitelma/tiedostopaketti-kupla. Jaettu komponentti - sama kortti
  * jota käyttää sekä "Useampi tiedosto" -paneeli (MultiFileChatPanel)
  * että jaettu Spacemonkey-chat /koodi-tilassa (ChatPanel). "Yksi
  * totuus": ei kahta kopiota samasta kortista kahdessa paikassa.
  */
-
-const SET_STATUS_LABELS = {
-
-  plan_ready: "Suunnitelma odottaa hyväksyntää",
-
-  draft: "Odottaa hyväksyntää",
-
-  approved: "Hyväksytty",
-
-  rejected: "Hylätty",
-
-  written: "Kirjoitettu levylle",
-
-  partial_write_failed: "Osa epäonnistui",
-
-}
-
-const FILE_STATUS_LABELS = {
-
-  blocked: "Estetty",
-
-  planned: "Suunniteltu",
-
-  generated: "Valmis tarkistettavaksi",
-
-  generate_failed: "Generointi epäonnistui",
-
-  written: "Kirjoitettu",
-
-  write_failed: "Kirjoitus epäonnistui",
-
-  conflict: "Tiedosto muuttunut",
-
-}
-
-const TEST_STATUS_DISPLAY = {
-
-  passed: { icon: "✓", label: "Testi läpäisi", className: "text-emerald-400" },
-
-  failed: { icon: "✗", label: "Testi epäonnistui", className: "text-red-400" },
-
-  timeout: { icon: "⏱", label: "Testi aikakatkaistiin", className: "text-amber-400" },
-
-  error: { icon: "⚠", label: "Tarkistus epäonnistui", className: "text-amber-400" },
-
-  skipped: { icon: "—", label: "Ei toiminnallista testiä", className: "text-[var(--wood-muted)]" },
-
-}
 
 function PlanFileRow({ file }) {
 

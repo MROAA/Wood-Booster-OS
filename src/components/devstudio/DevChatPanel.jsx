@@ -8,35 +8,7 @@ import { useDesktop } from "../../context/DesktopContext"
 
 import DiffView from "./DiffView"
 
-const STATUS_LABELS = {
-
-  draft: "Odottaa hyväksyntää",
-
-  approved: "Hyväksytty",
-
-  rejected: "Hylätty",
-
-  written: "Kirjoitettu levylle",
-
-  write_failed: "Kirjoitus epäonnistui",
-
-  conflict: "Tiedosto muuttunut",
-
-}
-
-const TEST_STATUS_DISPLAY = {
-
-  passed: { icon: "✓", label: "Testi läpäisi", className: "text-emerald-400" },
-
-  failed: { icon: "✗", label: "Testi epäonnistui", className: "text-red-400" },
-
-  timeout: { icon: "⏱", label: "Testi aikakatkaistiin", className: "text-amber-400" },
-
-  error: { icon: "⚠", label: "Tarkistus epäonnistui", className: "text-amber-400" },
-
-  skipped: { icon: "—", label: "Ei toiminnallista testiä", className: "text-[var(--wood-muted)]" },
-
-}
+import { DRAFT_STATUS_LABELS as STATUS_LABELS, TEST_STATUS_DISPLAY } from "./statusLabels"
 
 function TestStatusLine({ draft }) {
 
