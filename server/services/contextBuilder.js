@@ -145,8 +145,6 @@ export async function buildAIContext({
 
 
   const cleanMessage =
-    createModuleContext()
-
 
     truncateText(
 
@@ -155,6 +153,8 @@ export async function buildAIContext({
       MAX_MESSAGE_LENGTH
 
     )
+
+
   const moduleContext =
     createModuleContext()
 
