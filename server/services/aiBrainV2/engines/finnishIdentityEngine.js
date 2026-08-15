@@ -23,11 +23,34 @@ Tämä EI:
 import fs from "fs/promises"
 import path from "path"
 
+import {
+  fileURLToPath,
+} from "url"
 
+
+
+/*
+path.resolve("server/ai-knowledge/finnish") resolves relative to
+process.cwd(), not to this file's own location - it only worked by
+coincidence because the server always happens to be launched from
+the repo root today. Same class of bug fixed in
+systemActivityService.js/snapshotRegistryService.js - resolve
+relative to this file instead.
+*/
+const currentFile =
+  fileURLToPath(
+    import.meta.url,
+  )
+
+const currentDirectory =
+  path.dirname(
+    currentFile,
+  )
 
 const FINNISH_KNOWLEDGE_PATH =
   path.resolve(
-    "server/ai-knowledge/finnish",
+    currentDirectory,
+    "../../../ai-knowledge/finnish",
   )
 
 
