@@ -31,6 +31,9 @@ import {
   createSpacemonkeyDockerCapabilityRouter,
 } from "./routes/spacemonkeyDockerCapability.js"
 import {
+  createSpacemonkeyCognitiveRuntimeRouter,
+} from "./routes/spacemonkeyCognitiveRuntime.js"
+import {
   createSpacemonkeyAiEngineeringCapabilityRouter,
 } from "./routes/spacemonkeyAiEngineeringCapability.js"
 import {
@@ -602,6 +605,10 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyDockerCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCognitiveRuntimeRouter()
 )
 app.use(
   "/api",
