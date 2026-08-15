@@ -5,7 +5,7 @@ import '@xterm/xterm/css/xterm.css';
 
 const TERMINAL_WS = 'ws://localhost:8002/api/desktop/terminal';
 
-export default function TerminalApp({ resizeSignal }) {
+export default function TerminalApp({ resizeSignal, autoRunCommand }) {
   const containerRef = useRef(null);
   const termRef = useRef(null);
   const fitRef = useRef(null);
@@ -37,6 +37,9 @@ export default function TerminalApp({ resizeSignal }) {
     socket.onopen = () => {
       const { cols, rows } = term;
       socket.send(`\x00RESIZE:${cols},${rows}`);
+      if (autoRunCommand) {
+        socket.send(`${autoRunCommand}\r`);
+      }
     };
 
     socket.onmessage = (event) => {

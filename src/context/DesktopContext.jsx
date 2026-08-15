@@ -7,6 +7,7 @@ import {
 
 import VirtualWorkspacePanel from "../components/workspace/VirtualWorkspacePanel.jsx"
 import TerminalApp from "../components/desktop/TerminalApp.jsx"
+import Ruf4App from "../components/desktop/Ruf4App.jsx"
 import CalculatorApp from "../components/desktop/CalculatorApp.jsx"
 import NotepadApp from "../components/desktop/NotepadApp.jsx"
 import VerificationResultViewer from "../components/desktop/VerificationResultViewer.jsx"
@@ -39,6 +40,7 @@ import GitGuardianCard from "../components/systemPulse/GitGuardianCard.jsx"
 export const APPS = {
   explorer: { title: "Tiedostonhallinta", icon: "📁", component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
   terminal: { title: "Pääte (fish)", icon: "💻", component: TerminalApp, defaultWidth: 760, defaultHeight: 500 },
+  ruf4: { title: "ruf4", icon: "🗃", component: Ruf4App, defaultWidth: 760, defaultHeight: 500 },
   projects: { title: "Projektit", icon: "📁", component: Projects, defaultWidth: 800, defaultHeight: 560 },
   spacemonkey: { title: "Spacemonkey", icon: "🐒", component: SpacemonkeyChatApp, defaultWidth: 520, defaultHeight: 600 },
   systempulse: { title: "System Pulse", icon: "🧠", component: SystemPulse, defaultWidth: 700, defaultHeight: 650 },
