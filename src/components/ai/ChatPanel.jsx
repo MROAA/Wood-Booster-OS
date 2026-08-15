@@ -15,6 +15,12 @@ import {
   createRuntimeContext,
 } from "../../services/runtime/runtimeContext"
 
+import SecurityGuard from "../spacemonkey/SecurityGuard"
+
+import {
+  getSystemContextPayload,
+} from "../../services/system/systemRegistry"
+
 
 
 const MODE_SENDER = {
@@ -265,7 +271,32 @@ function ChatPanel() {
 
 
 
-    const userText = message
+    const validation =
+      SecurityGuard.validateChatInput(message)
+
+    if (!validation.valid) {
+
+      setMessages(
+        previous => [
+
+          ...previous,
+
+          {
+            role: "assistant",
+            kind: "text",
+            content: validation.message
+          }
+
+        ]
+      )
+
+      return
+
+    }
+
+
+
+    const userText = validation.message
 
 
 
@@ -306,6 +337,7 @@ function ChatPanel() {
             body: JSON.stringify({
               message: userText,
               runtimeContext: createRuntimeContext(),
+              systemContext: getSystemContextPayload(),
             })
 
           }
