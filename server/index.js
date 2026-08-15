@@ -76,6 +76,72 @@ import {
   createSpacemonkeyCreatorPhilosophyVaultRouter,
 } from "./routes/spacemonkeyCreatorPhilosophyVault.js"
 import {
+  createSpacemonkeyCreatorIntelligenceGoalEngineRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceGoalEngine.js"
+import {
+  createSpacemonkeyCreatorIntelligenceActionRouterRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceActionRouter.js"
+import {
+  createSpacemonkeyCreatorIntelligenceApiGatewayRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceApiGateway.js"
+import {
+  createSpacemonkeyCreatorIntelligenceBackupRecoveryRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceBackupRecovery.js"
+import {
+  createSpacemonkeyCreatorIntelligenceControlCenterRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceControlCenter.js"
+import {
+  createSpacemonkeyCreatorIntelligenceDecisionEngineRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceDecisionEngine.js"
+import {
+  createSpacemonkeyCreatorIntelligenceDiagnosticsRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceDiagnostics.js"
+import {
+  createSpacemonkeyCreatorIntelligenceEventBusRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceEventBus.js"
+import {
+  createSpacemonkeyCreatorIntelligenceExecutionPlannerRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceExecutionPlanner.js"
+import {
+  createSpacemonkeyCreatorIntelligenceExplanationEngineRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceExplanationEngine.js"
+import {
+  createSpacemonkeyCreatorIntelligenceGovernanceEngineRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceGovernanceEngine.js"
+import {
+  createSpacemonkeyCreatorIntelligenceHealthMonitorRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceHealthMonitor.js"
+import {
+  createSpacemonkeyCreatorIntelligenceIntegrityMonitorRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceIntegrityMonitor.js"
+import {
+  createSpacemonkeyCreatorIntelligenceKnowledgeSynchronizerRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceKnowledgeSynchronizer.js"
+import {
+  createSpacemonkeyCreatorIntelligenceLearningBridgeRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceLearningBridge.js"
+import {
+  createSpacemonkeyCreatorIntelligenceReflectionEngineRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceReflectionEngine.js"
+import {
+  createSpacemonkeyCreatorIntelligenceSchedulerRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceScheduler.js"
+import {
+  createSpacemonkeyCreatorIntelligenceSimulationEngineRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceSimulationEngine.js"
+import {
+  createSpacemonkeyCreatorIntelligenceStrategyEngineRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceStrategyEngine.js"
+import {
+  createSpacemonkeyCreatorIntelligenceSummaryRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceSummary.js"
+import {
+  createSpacemonkeyCreatorIntelligenceTrustLayerRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceTrustLayer.js"
+import {
+  createSpacemonkeyCreatorIntelligenceVersionManagerRouter,
+} from "./routes/spacemonkeyCreatorIntelligenceVersionManager.js"
+import {
   createSpacemonkeySecurityRuntimeRouter,
 } from "./routes/spacemonkeySecurityRuntime.js"
 import {
@@ -446,6 +512,94 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyCreatorPhilosophyVaultRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceGoalEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceActionRouterRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceApiGatewayRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceBackupRecoveryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceControlCenterRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceDecisionEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceDiagnosticsRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceEventBusRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceExecutionPlannerRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceExplanationEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceGovernanceEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceHealthMonitorRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceIntegrityMonitorRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceKnowledgeSynchronizerRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceLearningBridgeRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceReflectionEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceSchedulerRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceSimulationEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceStrategyEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceSummaryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceTrustLayerRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCreatorIntelligenceVersionManagerRouter()
 )
 app.use(
   "/api",
