@@ -27,6 +27,12 @@ import {
 
 
 import {
+  searchKnowledge,
+} from "../services/knowledgeSearch.js"
+
+
+
+import {
   generateAIActions,
 } from "../services/aiActionGenerator.js"
 
@@ -1555,6 +1561,41 @@ async function runAgentChat({
     knowledge.push(
       runtimeContextKnowledge,
     )
+
+  }
+
+
+
+
+  /*
+  ai-knowledge/-kansiossa on 232 .txt-tiedostoa (brändi, tuotteet,
+  sisäiset periaatteet), mutta mikään ei koskaan hakenut niistä
+  osuvia tuloksia keskusteluun - searchKnowledge() oli valmis,
+  testattu funktio jota ei koskaan kutsuttu mistään. Otetaan vain 3
+  parasta osumaa (ei kaikkia 10:tä), koska contextBuilder.js:n
+  MAX_KNOWLEDGE_ITEMS-raja (8) jaetaan jo muiden kiinteiden
+  tietolähteiden kanssa - liian moni osuma tästä syrjäyttäisi
+  tärkeämpää kontekstia. Sisällön pituusrajaus tapahtuu jo
+  contextBuilder.js:ssä per kohde, ei tarvitse toistaa tässä.
+  */
+  const knowledgeFileMatches =
+    await searchKnowledge(
+      message,
+    )
+
+  for(
+    const match of knowledgeFileMatches.slice(0, 3)
+  ){
+
+    knowledge.push({
+
+      name:
+        `KNOWLEDGE_FILE:${match.file}`,
+
+      content:
+        match.content,
+
+    })
 
   }
 
