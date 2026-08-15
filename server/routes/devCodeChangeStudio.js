@@ -13,6 +13,8 @@ import {
 
 import { verifyProposedChange } from "../services/devStudio/verifyProposedChange.js"
 
+import { triggerGitGuardianBackup } from "../services/devStudio/gitGuardianBackup.js"
+
 /*
  * Dev Studion "Chat"-välilehden reitit: chat-tyylinen
  * draft/approve/write-kierto mille tahansa sallitulle
@@ -517,6 +519,8 @@ export default function createDevCodeChangeRouter(prisma) {
         }
 
         const toolBus = getSpacemonkeyToolBus()
+
+        triggerGitGuardianBackup()
 
         const workflowResult = await workflowEngine.execute(
           "write-code-change-workflow",
