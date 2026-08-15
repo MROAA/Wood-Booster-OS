@@ -1,11 +1,16 @@
 /*
- * Tunnistaa /spacemonkey, /altrako, /council -etuliitteen viestin alusta.
- * Oletustila (ei etuliitettä) on spacemonkey. Sama idea kuin PR #11:n
- * Python-puolen detect_mode(), mutta tässä siihen chat-putkeen jota
- * käyttöliittymä oikeasti käyttää (server/routes/agentChat.js).
+ * Tunnistaa /spacemonkey, /altrako, /council, /koodi -etuliitteen
+ * viestin alusta. Oletustila (ei etuliitettä) on spacemonkey. Sama
+ * idea kuin PR #11:n Python-puolen detect_mode(), mutta tässä siihen
+ * chat-putkeen jota käyttöliittymä oikeasti käyttää
+ * (server/routes/agentChat.js).
+ *
+ * /koodi on Marcin pyytämä "yksi chat, joka osaa molemmat" - sama
+ * jaettu keskustelu, josta pääsee myös Dev Studion
+ * koodimuutossuunnitelmiin ilman erillistä välilehteä.
  */
 
-const MODE_PATTERN = /^\/(spacemonkey|altrako|council)\b\s*/i
+const MODE_PATTERN = /^\/(spacemonkey|altrako|council|koodi)\b\s*/i
 
 const DEFAULT_TEXT_BY_MODE = {
   spacemonkey: "Tilannekatsaus.",

@@ -61,6 +61,10 @@ import {
   appendChatTurn,
 } from "../services/chatModes/chatHistory.js"
 
+import {
+  createDraftSetFromPrompt,
+} from "../services/devStudio/draftSetService.js"
+
 
 
 
@@ -952,6 +956,103 @@ async function runCouncilTurn({
 
 
 /*
+ * /koodi-tila: sama jaettu chat, mutta pyyntö menee Dev Studion
+ * suunnitelmageneraattorille (draftSetService.js) tavallisen
+ * agent-putken sijaan. Palauttaa "answer"-kentän aina (myös silloin
+ * kun kind on "code_plan"), jotta vanhemmatkin näkymät saavat
+ * järkevän tekstivastauksen - kind+draftSet ovat lisätietoa
+ * älykkäämmille käyttöliittymille (ChatPanel, MultiFileChatPanel).
+ */
+async function runCodeChangePlanTurn({
+
+  text,
+
+  prisma,
+
+}){
+
+  if(!text){
+
+    return {
+
+      status: 200,
+
+      body: {
+
+        success: true,
+
+        answer:
+          "Kerro mitä haluaisit muuttaa järjestelmässä (esim. " +
+          "\"lisää uusi sivu\"), niin ehdotan suunnitelman " +
+          "tarvittavista tiedostoista.",
+
+      },
+
+    }
+
+  }
+
+  const result =
+    await createDraftSetFromPrompt(prisma, text)
+
+  if(result.error){
+
+    return {
+
+      status:
+        result.status,
+
+      body: {
+
+        success: false,
+
+        answer:
+          `Suunnitelman luonti epäonnistui: ${result.error}`,
+
+      },
+
+    }
+
+  }
+
+  const fileList =
+    result.set.files
+      .map(
+        file =>
+          `${file.action === "create" ? "+ " : "~ "}${file.filePath}`,
+      )
+      .join("\n")
+
+  return {
+
+    status: 201,
+
+    body: {
+
+      success: true,
+
+      answer:
+        (
+          result.set.planExplanation
+            ? result.set.planExplanation + "\n\n"
+            : ""
+        ) + fileList,
+
+      kind:
+        "code_plan",
+
+      draftSet:
+        result.set,
+
+    },
+
+  }
+
+}
+
+
+
+/*
  * Varsinainen agent-chat-logiikka omana, uudelleenkäytettävänä
  * funktiona. Palauttaa vastauksen datana res.json:n sijaan, jotta
  * muutkin reitit (/api/ai-brain/chat, /api/ai-brain-v2/chat)
@@ -1628,6 +1729,18 @@ export default function createAgentChatRouter(
               systemContext,
 
               runtimeContext,
+
+              prisma,
+
+            })
+
+        }
+        else if(mode === "koodi"){
+
+          result =
+            await runCodeChangePlanTurn({
+
+              text,
 
               prisma,
 
