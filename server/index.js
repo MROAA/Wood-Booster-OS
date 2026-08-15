@@ -31,6 +31,33 @@ import {
   createSpacemonkeyDockerCapabilityRouter,
 } from "./routes/spacemonkeyDockerCapability.js"
 import {
+  createSpacemonkeySecretProtectionRouter,
+} from "./routes/spacemonkeySecretProtection.js"
+import {
+  createSpacemonkeySecretAliasProtectionRouter,
+} from "./routes/spacemonkeySecretAliasProtection.js"
+import {
+  createSpacemonkeySecretProtectionRegistryRouter,
+} from "./routes/spacemonkeySecretProtectionRegistry.js"
+import {
+  createSpacemonkeySecurityDecisionRecordRouter,
+} from "./routes/spacemonkeySecurityDecisionRecord.js"
+import {
+  createSpacemonkeySecurityEvolutionEngineRouter,
+} from "./routes/spacemonkeySecurityEvolutionEngine.js"
+import {
+  createSpacemonkeySecurityKnowledgeBaseRouter,
+} from "./routes/spacemonkeySecurityKnowledgeBase.js"
+import {
+  createSpacemonkeySecurityResponsePlannerRouter,
+} from "./routes/spacemonkeySecurityResponsePlanner.js"
+import {
+  createSpacemonkeySecurityTestFrameworkRouter,
+} from "./routes/spacemonkeySecurityTestFramework.js"
+import {
+  createSpacemonkeySecurityThreatIntelligenceRouter,
+} from "./routes/spacemonkeySecurityThreatIntelligence.js"
+import {
   createSpacemonkeyPersonalityAuditLogRouter,
 } from "./routes/spacemonkeyPersonalityAuditLog.js"
 import {
@@ -464,6 +491,42 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyDockerCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecretProtectionRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecretAliasProtectionRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecretProtectionRegistryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecurityDecisionRecordRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecurityEvolutionEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecurityKnowledgeBaseRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecurityResponsePlannerRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecurityTestFrameworkRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySecurityThreatIntelligenceRouter()
 )
 app.use(
   "/api",
