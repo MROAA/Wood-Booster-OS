@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 
 import { apiGet, apiPost, apiPut } from "../api/client"
 
-import DevChatPanel from "../components/devstudio/DevChatPanel"
+import ChatPanel from "../components/ai/ChatPanel"
 
 import MultiFileChatPanel from "../components/devstudio/MultiFileChatPanel"
 
@@ -405,7 +405,7 @@ function DevStudio() {
           bg-[var(--wood-panel)]
           overflow-hidden
         ">
-          <DevChatPanel />
+          <ChatPanel />
         </section>
       )}
 

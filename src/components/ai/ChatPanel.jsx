@@ -4,10 +4,19 @@ import {
   useState
 } from "react"
 
+import {
+  useNavigate,
+} from "react-router-dom"
+
 
 import SpacemonkeyIcon from "../branding/SpacemonkeyIcon"
 
 import SetBubble from "../devstudio/SetBubble"
+
+import ActionStatusCard, {
+  createActionStartMessage,
+  createQueueResultMessage,
+} from "./ActionStatusCard"
 
 import { apiPut } from "../../api/client"
 
@@ -21,6 +30,11 @@ import {
   getSystemContextPayload,
 } from "../../services/system/systemRegistry"
 
+import {
+  dispatchAIActions,
+  hasAIActions,
+} from "../../services/aiActionDispatcher"
+
 
 
 const MODE_SENDER = {
@@ -32,9 +46,26 @@ const MODE_SENDER = {
 
 const KOODI_PREFIX_PATTERN = /^\/koodi\s*/i
 
+const EXAMPLE_PROMPTS = [
+  "Luo uusi projekti Matti Meikäläiselle",
+  "/koodi lisää uusi sivu",
+  "Mitä tehtäviä on avoinna?",
+]
+
 
 
 function ChatPanel() {
+
+
+  const navigate = useNavigate()
+
+
+
+  const [
+    actionStatus,
+    setActionStatus
+  ] = useState(null)
+
 
 
   const [
@@ -86,6 +117,16 @@ function ChatPanel() {
 
 
 
+  function fillExamplePrompt(example) {
+
+    setMessage(example)
+
+    inputRef.current?.focus()
+
+  }
+
+
+
   const [
     messages,
     setMessages
@@ -100,6 +141,8 @@ function ChatPanel() {
     }
 
   ])
+
+  const isPristine = messages.length === 1
 
 
 
@@ -357,6 +400,77 @@ function ChatPanel() {
 
 
 
+  async function runActionsIfAny(data) {
+
+    if (!hasAIActions(data)) {
+
+      return
+
+    }
+
+    setActionStatus({
+      type: "running",
+      message: "AI-toimintoa suoritetaan...",
+    })
+
+    const actionResult =
+      await dispatchAIActions({
+
+        response: data,
+
+        navigate,
+
+        stopOnError: false,
+
+        onActionStart:
+          ({ action }) => {
+
+            setActionStatus({
+              type: "running",
+              message: createActionStartMessage(action),
+            })
+
+          },
+
+        onActionComplete:
+          ({ result }) => {
+
+            if (!result) {
+
+              return
+
+            }
+
+            setActionStatus({
+              type:
+                result.success
+                  ? "success"
+                  : "error",
+              message:
+                result.message ||
+                (
+                  result.success
+                    ? "AI-toiminto suoritettiin."
+                    : "AI-toiminto epäonnistui."
+                ),
+            })
+
+          },
+
+      })
+
+    setActionStatus({
+      type:
+        actionResult?.success
+          ? "success"
+          : "error",
+      message: createQueueResultMessage(actionResult),
+    })
+
+  }
+
+
+
   async function sendMessage() {
 
 
@@ -428,6 +542,8 @@ function ChatPanel() {
 
       appendAssistantReply(data)
 
+      await runActionsIfAny(data)
+
 
     } catch(error) {
 
@@ -495,6 +611,8 @@ function ChatPanel() {
         )
 
       appendAssistantReply(data)
+
+      await runActionsIfAny(data)
 
     } catch(error) {
 
@@ -858,6 +976,13 @@ function ChatPanel() {
         }
 
 
+        {
+          actionStatus && (
+            <ActionStatusCard status={actionStatus} />
+          )
+        }
+
+
       </div>
 
 
@@ -873,6 +998,50 @@ function ChatPanel() {
           bg-[var(--wood-panel)]
         "
       >
+
+        {
+          isPristine && (
+
+            <div
+              className="
+                flex
+                flex-wrap
+                gap-2
+                pb-3
+              "
+            >
+
+              {
+                EXAMPLE_PROMPTS.map(
+                  (example, exampleIndex) => (
+
+                    <button
+                      key={exampleIndex}
+                      onClick={() => fillExamplePrompt(example)}
+                      className="
+                        rounded-full
+                        border
+                        border-[var(--wood-border)]
+                        px-3
+                        py-1
+                        text-xs
+                        text-[var(--wood-muted)]
+                        transition-colors
+                        hover:border-[var(--wood-accent)]
+                        hover:text-[var(--wood-text)]
+                      "
+                    >
+                      {example}
+                    </button>
+
+                  )
+                )
+              }
+
+            </div>
+
+          )
+        }
 
         <div
           className="
