@@ -4,11 +4,18 @@ import {
 } from "fs/promises"
 
 import path from "path"
+import { fileURLToPath } from "node:url"
 
 
+
+const currentFile = fileURLToPath(import.meta.url)
+const currentDirectory = path.dirname(currentFile)
 
 const REGISTRY_PATH =
-  "/home/marc/Wood-Booster-AI/Wood-Booster-OS/server/data/snapshotRegistry.json"
+  path.resolve(
+    currentDirectory,
+    "../data/snapshotRegistry.json",
+  )
 
 
 
