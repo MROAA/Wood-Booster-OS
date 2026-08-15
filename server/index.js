@@ -31,6 +31,51 @@ import {
   createSpacemonkeyDockerCapabilityRouter,
 } from "./routes/spacemonkeyDockerCapability.js"
 import {
+  createSpacemonkeyAiEngineeringCapabilityRouter,
+} from "./routes/spacemonkeyAiEngineeringCapability.js"
+import {
+  createSpacemonkeyArchitectureReviewRouter,
+} from "./routes/spacemonkeyArchitectureReview.js"
+import {
+  createSpacemonkeyBehaviorResponseModifierRouter,
+} from "./routes/spacemonkeyBehaviorResponseModifier.js"
+import {
+  createSpacemonkeyCodeReviewIntelligenceRouter,
+} from "./routes/spacemonkeyCodeReviewIntelligence.js"
+import {
+  createSpacemonkeyDecisionSupportRouter,
+} from "./routes/spacemonkeyDecisionSupport.js"
+import {
+  createSpacemonkeyHealthMonitoringRouter,
+} from "./routes/spacemonkeyHealthMonitoring.js"
+import {
+  createSpacemonkeyHumorPersonalityRouter,
+} from "./routes/spacemonkeyHumorPersonality.js"
+import {
+  createSpacemonkeyModuleDependencyMapRouter,
+} from "./routes/spacemonkeyModuleDependencyMap.js"
+import {
+  createSpacemonkeyOperatorAwarenessRouter,
+} from "./routes/spacemonkeyOperatorAwareness.js"
+import {
+  createSpacemonkeyPersonalKnowledgeBaseRouter,
+} from "./routes/spacemonkeyPersonalKnowledgeBase.js"
+import {
+  createSpacemonkeySentenceStyleModifierRouter,
+} from "./routes/spacemonkeySentenceStyleModifier.js"
+import {
+  createSpacemonkeySoftwareEngineeringIntelligenceRouter,
+} from "./routes/spacemonkeySoftwareEngineeringIntelligence.js"
+import {
+  createSpacemonkeySystemDiagnosticsRouter,
+} from "./routes/spacemonkeySystemDiagnostics.js"
+import {
+  createSpacemonkeySystemInventoryRouter,
+} from "./routes/spacemonkeySystemInventory.js"
+import {
+  createSpacemonkeyTechnicalIntelligenceRouter,
+} from "./routes/spacemonkeyTechnicalIntelligence.js"
+import {
   createSpacemonkeySecretProtectionRouter,
 } from "./routes/spacemonkeySecretProtection.js"
 import {
@@ -557,6 +602,66 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyDockerCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyAiEngineeringCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyArchitectureReviewRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyBehaviorResponseModifierRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyCodeReviewIntelligenceRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyDecisionSupportRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyHealthMonitoringRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyHumorPersonalityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyModuleDependencyMapRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyOperatorAwarenessRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalKnowledgeBaseRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySentenceStyleModifierRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySoftwareEngineeringIntelligenceRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySystemDiagnosticsRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeySystemInventoryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyTechnicalIntelligenceRouter()
 )
 app.use(
   "/api",
