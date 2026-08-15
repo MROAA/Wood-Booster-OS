@@ -1,3 +1,7 @@
+> **Early draft, moved from the repo root.** The current canonical
+> Master Blueprint lives in `docs/blueprint/` (numbered volumes
+> 01–14). Kept here as historical record, not source of truth.
+
 # Wood-Booster OS
 # MASTER BLUEPRINT
 ## Version 1.0

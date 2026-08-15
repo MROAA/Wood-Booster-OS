@@ -1,3 +1,7 @@
+> **Early draft, moved from the repo root.** A more structured version
+> of this content lives in `docs/blueprint/03_FOUNDERS_CHARTER.md`.
+> Kept here as historical record, not source of truth.
+
 # Wood-Booster OS
 # Founder's Charter
 
