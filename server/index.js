@@ -31,6 +31,63 @@ import {
   createSpacemonkeyDockerCapabilityRouter,
 } from "./routes/spacemonkeyDockerCapability.js"
 import {
+  createSpacemonkeyPersonalityAuditLogRouter,
+} from "./routes/spacemonkeyPersonalityAuditLog.js"
+import {
+  createSpacemonkeyPersonalityCharacterRouter,
+} from "./routes/spacemonkeyPersonalityCharacter.js"
+import {
+  createSpacemonkeyPersonalityContextBuilderRouter,
+} from "./routes/spacemonkeyPersonalityContextBuilder.js"
+import {
+  createSpacemonkeyPersonalityEvolutionRouter,
+} from "./routes/spacemonkeyPersonalityEvolution.js"
+import {
+  createSpacemonkeyPersonalityGovernanceRouter,
+} from "./routes/spacemonkeyPersonalityGovernance.js"
+import {
+  createSpacemonkeyPersonalityIdentityCoreRouter,
+} from "./routes/spacemonkeyPersonalityIdentityCore.js"
+import {
+  createSpacemonkeyPersonalityIntegrationAdapterRouter,
+} from "./routes/spacemonkeyPersonalityIntegrationAdapter.js"
+import {
+  createSpacemonkeyPersonalityLearningBridgeRouter,
+} from "./routes/spacemonkeyPersonalityLearningBridge.js"
+import {
+  createSpacemonkeyPersonalityMemoryRouter,
+} from "./routes/spacemonkeyPersonalityMemory.js"
+import {
+  createSpacemonkeyPersonalityModuleLoaderRouter,
+} from "./routes/spacemonkeyPersonalityModuleLoader.js"
+import {
+  createSpacemonkeyPersonalityModuleRegistryRouter,
+} from "./routes/spacemonkeyPersonalityModuleRegistry.js"
+import {
+  createSpacemonkeyPersonalityReflectionConnectorRouter,
+} from "./routes/spacemonkeyPersonalityReflectionConnector.js"
+import {
+  createSpacemonkeyPersonalityRuleRegistryRouter,
+} from "./routes/spacemonkeyPersonalityRuleRegistry.js"
+import {
+  createSpacemonkeyPersonalityRuntimeEngineRouter,
+} from "./routes/spacemonkeyPersonalityRuntimeEngine.js"
+import {
+  createSpacemonkeyPersonalitySafetyBoundaryRouter,
+} from "./routes/spacemonkeyPersonalitySafetyBoundary.js"
+import {
+  createSpacemonkeyPersonalitySoulLayerRouter,
+} from "./routes/spacemonkeyPersonalitySoulLayer.js"
+import {
+  createSpacemonkeyPersonalityStateSnapshotRouter,
+} from "./routes/spacemonkeyPersonalityStateSnapshot.js"
+import {
+  createSpacemonkeyPersonalityTestFrameworkRouter,
+} from "./routes/spacemonkeyPersonalityTestFramework.js"
+import {
+  createSpacemonkeyPersonalityVersionControlRouter,
+} from "./routes/spacemonkeyPersonalityVersionControl.js"
+import {
   createSpacemonkeyCreatorContextAuditIntegrationRouter,
 } from "./routes/spacemonkeyCreatorContextAuditIntegration.js"
 import {
@@ -407,6 +464,82 @@ app.use(
 app.use(
   "/api",
   createSpacemonkeyDockerCapabilityRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityAuditLogRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityCharacterRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityContextBuilderRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityEvolutionRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityGovernanceRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityIdentityCoreRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityIntegrationAdapterRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityLearningBridgeRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityMemoryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityModuleLoaderRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityModuleRegistryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityReflectionConnectorRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityRuleRegistryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityRuntimeEngineRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalitySafetyBoundaryRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalitySoulLayerRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityStateSnapshotRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityTestFrameworkRouter()
+)
+app.use(
+  "/api",
+  createSpacemonkeyPersonalityVersionControlRouter()
 )
 app.use(
   "/api",
