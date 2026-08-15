@@ -63,9 +63,25 @@ function TestStatusLine({ draft }) {
 
 }
 
-function ProposalBubble({ draft, onApprove, onReject, onWrite, busy }) {
+function ProposalBubble({ draft, onApprove, onReject, onWrite, onRevise, busy }) {
 
   const status = draft.status
+
+  const [feedback, setFeedback] = useState("")
+
+  function submitRevise() {
+
+    if (!feedback.trim()) {
+
+      return
+
+    }
+
+    onRevise(feedback.trim())
+
+    setFeedback("")
+
+  }
 
   return (
 
@@ -122,6 +138,58 @@ function ProposalBubble({ draft, onApprove, onReject, onWrite, busy }) {
       <DiffView diff={draft.diff} />
 
       <TestStatusLine draft={draft} />
+
+      {
+        status === "draft" && (
+
+          <div className="space-y-2 pt-1">
+
+            <textarea
+              value={feedback}
+              onChange={event => setFeedback(event.target.value)}
+              disabled={busy}
+              rows={2}
+              placeholder="Pyydä muutosta ehdotukseen, esim. 'käytä eri muuttujan nimeä'"
+              className="
+                w-full
+                rounded-xl
+                border
+                border-[var(--wood-border)]
+                bg-[var(--wood-bg)]
+                p-2.5
+                text-xs
+                text-[var(--wood-text)]
+                placeholder:text-[var(--wood-muted)]
+                outline-none
+                focus:border-[var(--wood-accent)]
+              "
+            />
+
+            <button
+              disabled={busy || !feedback.trim()}
+              onClick={submitRevise}
+              className="
+                rounded-full
+                border
+                border-[var(--wood-border)]
+                px-4
+                py-1.5
+                text-xs
+                font-medium
+                text-[var(--wood-text)]
+                transition-opacity
+                disabled:opacity-30
+                disabled:cursor-not-allowed
+                hover:border-[var(--wood-accent)]
+              "
+            >
+              Pyydä muutosta
+            </button>
+
+          </div>
+
+        )
+      }
 
       {
         draft.writeError && (
@@ -395,6 +463,30 @@ function DevChatPanel() {
 
   }
 
+  async function reviseDraft(draftId, feedback) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/revise`, { feedback })
+
+      updateDraftInPlace(draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
   async function writeDraft(draftId) {
 
     setBusyDraftId(draftId)
@@ -517,6 +609,7 @@ function DevChatPanel() {
                       onApprove={() => approveDraft(turn.draft.id)}
                       onReject={() => rejectDraft(turn.draft.id)}
                       onWrite={() => writeDraft(turn.draft.id)}
+                      onRevise={feedback => reviseDraft(turn.draft.id, feedback)}
                     />
 
                   )

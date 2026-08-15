@@ -165,6 +165,30 @@ function MultiFileChatPanel() {
 
   }
 
+  async function reviseFile(setId, fileId, feedback) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/files/${fileId}/revise`, { feedback })
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
   async function writeSet(setId) {
 
     setBusySetId(setId)
@@ -254,6 +278,7 @@ function MultiFileChatPanel() {
                       onApprove={() => approveSet(turn.set.id)}
                       onReject={() => rejectSet(turn.set.id)}
                       onWrite={() => writeSet(turn.set.id)}
+                      onReviseFile={(fileId, feedback) => reviseFile(turn.set.id, fileId, feedback)}
                     />
 
                   )

@@ -184,6 +184,30 @@ function ChatPanel() {
 
 
 
+  async function reviseFile(setId, fileId, feedback) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/files/${fileId}/revise`, { feedback })
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Muutospyyntö epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
   async function writeSet(setId) {
 
     setBusySetId(setId)
@@ -494,6 +518,7 @@ function ChatPanel() {
                       onApprove={() => approveSet(item.set.id)}
                       onReject={() => rejectSet(item.set.id)}
                       onWrite={() => writeSet(item.set.id)}
+                      onReviseFile={(fileId, feedback) => reviseFile(item.set.id, fileId, feedback)}
                     />
 
                   ) : (
