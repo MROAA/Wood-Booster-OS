@@ -6,6 +6,8 @@ import { apiGet, apiPost, apiPut, apiDelete } from "../../api/client"
 
 import SetBubble from "./SetBubble"
 
+import SavedPromptsRow from "./SavedPromptsRow"
+
 import { NON_TERMINAL_SET_STATUSES } from "./statusLabels"
 
 function MultiFileChatPanel() {
@@ -454,6 +456,8 @@ function MultiFileChatPanel() {
             <div className="text-xs text-red-300">{errorMessage}</div>
           )
         }
+
+        <SavedPromptsRow lane="koodi" currentPrompt={prompt} onUseSaved={setPrompt} />
 
         <div className="flex gap-3">
 

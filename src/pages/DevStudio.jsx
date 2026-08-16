@@ -12,6 +12,8 @@ import { DRAFT_STATUS_LABELS, TEST_STATUS_DISPLAY } from "../components/devstudi
 
 import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolvedReferences"
 
+import SavedPromptsRow from "../components/devstudio/SavedPromptsRow"
+
 
 function DevStudio() {
   const [activeTab, setActiveTab] = useState("chat")
@@ -541,6 +543,8 @@ function DevStudio() {
               placeholder="Esim. kirjoita skripti joka muuttaa kansion tiedostonimet pieniksi kirjaimiksi"
             />
           </label>
+
+          <SavedPromptsRow lane="python" currentPrompt={prompt} onUseSaved={setPrompt} />
 
           <label className="block text-sm text-[var(--wood-muted)]">
             Tiedostonimi
