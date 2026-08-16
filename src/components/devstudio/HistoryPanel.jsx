@@ -370,6 +370,38 @@ function HistoryEntryRow({ entry, expanded, onToggle, onRevertDraft, onRevertFil
 
 }
 
+const ALL_STATUS_LABELS = {
+  ...SET_STATUS_LABELS,
+  ...DRAFT_STATUS_LABELS,
+  ...FILE_STATUS_LABELS,
+}
+
+function entrySearchText(entry) {
+
+  const filePaths =
+    entry.kind === "set"
+      ? entry.raw.files.map(file => file.filePath)
+      : [entry.raw.filePath]
+
+  return [entry.headline, ...filePaths]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+
+}
+
+function entryStatuses(entry) {
+
+  if (entry.kind === "set") {
+
+    return [entry.status, ...entry.raw.files.map(file => file.status)]
+
+  }
+
+  return [entry.status]
+
+}
+
 function HistoryPanel() {
 
   const [entries, setEntries] = useState([])
@@ -383,6 +415,29 @@ function HistoryPanel() {
   const [busyDraftId, setBusyDraftId] = useState(null)
 
   const [busyFileId, setBusyFileId] = useState(null)
+
+  const [searchText, setSearchText] = useState("")
+
+  const [statusFilter, setStatusFilter] = useState("")
+
+  const availableStatuses =
+    [...new Set(entries.flatMap(entryStatuses))]
+      .sort()
+
+  const filteredEntries =
+    entries.filter(entry => {
+
+      const matchesSearch =
+        !searchText.trim() ||
+        entrySearchText(entry).includes(searchText.trim().toLowerCase())
+
+      const matchesStatus =
+        !statusFilter ||
+        entryStatuses(entry).includes(statusFilter)
+
+      return matchesSearch && matchesStatus
+
+    })
 
   function updateEntryRaw(key, raw) {
 
@@ -547,6 +602,71 @@ function HistoryPanel() {
 
     <div className="h-full min-h-0 flex flex-col">
 
+      {
+        entries.length > 0 && (
+
+          <div
+            className="
+              shrink-0
+              flex
+              gap-2
+              p-4
+              border-b
+              border-[var(--wood-border)]
+            "
+          >
+
+            <input
+              value={searchText}
+              onChange={event => setSearchText(event.target.value)}
+              placeholder="Hae otsikon tai tiedostopolun mukaan..."
+              className="
+                flex-1
+                h-9
+                rounded-full
+                px-4
+                bg-[var(--wood-bg)]
+                border
+                border-[var(--wood-border)]
+                text-xs
+                text-[var(--wood-text)]
+                placeholder:text-[var(--wood-muted)]
+                outline-none
+                focus:border-[var(--wood-accent)]
+              "
+            />
+
+            <select
+              value={statusFilter}
+              onChange={event => setStatusFilter(event.target.value)}
+              className="
+                h-9
+                rounded-full
+                px-3
+                bg-[var(--wood-bg)]
+                border
+                border-[var(--wood-border)]
+                text-xs
+                text-[var(--wood-text)]
+                outline-none
+                focus:border-[var(--wood-accent)]
+              "
+            >
+              <option value="">Kaikki tilat</option>
+              {
+                availableStatuses.map(status => (
+                  <option key={status} value={status}>
+                    {ALL_STATUS_LABELS[status] || status}
+                  </option>
+                ))
+              }
+            </select>
+
+          </div>
+
+        )
+      }
+
       <div className="wood-scroll flex-1 min-h-0 overflow-y-auto p-5 space-y-3">
 
         {
@@ -570,7 +690,15 @@ function HistoryPanel() {
         }
 
         {
-          entries.map(entry => (
+          !isLoading && entries.length > 0 && filteredEntries.length === 0 && (
+            <div className="text-sm text-[var(--wood-muted)]">
+              Ei hakua vastaavia muutoksia.
+            </div>
+          )
+        }
+
+        {
+          filteredEntries.map(entry => (
 
             <HistoryEntryRow
               key={entry.key}
