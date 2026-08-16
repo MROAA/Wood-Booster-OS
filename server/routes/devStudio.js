@@ -60,6 +60,32 @@ async function readExistingGeneratedPythonContent(toolBus, filePath) {
   }
 }
 
+/*
+ * Turvaverkko pienen paikallisen mallin hallusinoimia Python-importteja
+ * vastaan - ei koskaan estä mitään, palauttaa aina listan (tyhjä jos ei
+ * huomautettavaa) tai tyhjän listan jos tarkistus itse epäonnistuu
+ * jostain syystä. Sama malli kuin devMultiFileChangeStudio.js:n
+ * checkReferences()-apufunktiolla JS-puolella.
+ */
+async function checkPythonReferences({ workflowEngine, toolBus, proposedCode }) {
+  if (!workflowEngine || !toolBus) {
+    return []
+  }
+
+  try {
+    const result = await workflowEngine.execute(
+      "check-python-references-workflow",
+      { proposedCode, toolBus },
+    )
+
+    return result.results?.[0]?.unresolvedReferences || []
+  } catch (error) {
+    console.error("Python-viittaustarkistus epäonnistui:", error)
+
+    return []
+  }
+}
+
 export default function createDevStudioRouter(prisma) {
   const router = express.Router()
 
@@ -103,9 +129,17 @@ export default function createDevStudioRouter(prisma) {
 
         const toolBus = getSpacemonkeyToolBus()
 
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
         const { originalCode, originalHash } = toolBus
           ? await readExistingGeneratedPythonContent(toolBus, filePath)
           : { originalCode: null, originalHash: null }
+
+        const unresolvedReferences = await checkPythonReferences({
+          workflowEngine,
+          toolBus,
+          proposedCode: draftCode,
+        })
 
         const draft = await prisma.pythonCodeDraft.create({
           data: {
@@ -116,6 +150,10 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath,
             status: "draft",
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
           },
         })
 
@@ -185,6 +223,12 @@ export default function createDevStudioRouter(prisma) {
             path.basename(filePath),
           )
 
+        const unresolvedReferences = await checkPythonReferences({
+          workflowEngine,
+          toolBus,
+          proposedCode: skillResult.code,
+        })
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: `Refaktoroi: ${filePath}`,
@@ -194,6 +238,10 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath: path.basename(filePath),
             status: "draft",
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
           },
         })
 
@@ -268,6 +316,12 @@ export default function createDevStudioRouter(prisma) {
             path.basename(filePath),
           )
 
+        const unresolvedReferences = await checkPythonReferences({
+          workflowEngine,
+          toolBus,
+          proposedCode: skillResult.code,
+        })
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: `Debug: ${filePath}`,
@@ -277,6 +331,10 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath: path.basename(filePath),
             status: "draft",
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
           },
         })
 
@@ -409,9 +467,17 @@ export default function createDevStudioRouter(prisma) {
 
         const toolBus = getSpacemonkeyToolBus()
 
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
         const { originalCode, originalHash } = toolBus
           ? await readExistingGeneratedPythonContent(toolBus, existing.filePath)
           : { originalCode: null, originalHash: null }
+
+        const unresolvedReferences = await checkPythonReferences({
+          workflowEngine,
+          toolBus,
+          proposedCode: generated.code,
+        })
 
         const revised = await prisma.pythonCodeDraft.update({
           where: {
@@ -421,6 +487,10 @@ export default function createDevStudioRouter(prisma) {
             title: generated.title,
             code: generated.code,
             originalCode,
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
             originalHash,
           },
         })

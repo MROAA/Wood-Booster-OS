@@ -16,7 +16,8 @@
     "explain-python",
     "review-python",
     "refactor-python",
-    "debug-python"
+    "debug-python",
+    "check-python-references"
   ],
   "tools": [
     "file"
@@ -26,7 +27,8 @@
     "explain-python-workflow",
     "review-python-workflow",
     "refactor-python-workflow",
-    "debug-python-workflow"
+    "debug-python-workflow",
+    "check-python-references-workflow"
   ],
   "permissions": [
     "python.write",

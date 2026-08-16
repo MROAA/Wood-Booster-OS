@@ -173,6 +173,8 @@ model PythonCodeDraft {
 
   backupPath String?
 
+  unresolvedReferences String?
+
   writtenAt DateTime?
 
   createdAt DateTime @default(now())
