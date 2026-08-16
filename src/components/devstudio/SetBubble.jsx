@@ -233,13 +233,21 @@ function FileReviewCard({ file, onRevise, busy }) {
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, busy }) {
+function isPreviewableFile(file) {
+
+  return !file.blocked && Boolean(file.proposedCode) && file.filePath.startsWith("src/")
+
+}
+
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, busy }) {
 
   const status = set.status
 
   const visibleFiles = set.files.filter(file => !file.blocked)
 
   const blockedFiles = set.files.filter(file => file.blocked)
+
+  const hasPreviewableFile = set.files.some(isPreviewableFile)
 
   return (
 
@@ -377,6 +385,36 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
             }
 
             <div className="flex gap-2 pt-1">
+
+              {
+                onPreview && (
+                  <button
+                    disabled={busy || previewBusy || (!previewing && !hasPreviewableFile)}
+                    onClick={previewing ? onStopPreview : onPreview}
+                    title={
+                      hasPreviewableFile
+                        ? undefined
+                        : "Paketissa ei ole yhtään esikatseltavaa (src/**) tiedostoa."
+                    }
+                    className="
+                      rounded-full
+                      px-4
+                      py-1.5
+                      text-xs
+                      font-medium
+                      border
+                      border-[var(--wood-border)]
+                      text-[var(--wood-text)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-[var(--wood-accent)]
+                    "
+                  >
+                    {previewing ? "Pysäytä esikatselu" : "Esikatsele"}
+                  </button>
+                )
+              }
 
               <button
                 disabled={status !== "draft" || busy}
