@@ -36,13 +36,11 @@ const groups = [
         icon: "▣"
       },
 
-
       {
         label: "Asiakkaat",
         path: "/customers",
         icon: "◎"
       },
-
 
       {
         label: "Materiaalit",
@@ -50,13 +48,11 @@ const groups = [
         icon: "◇"
       },
 
-
       {
         label: "Ostot",
         path: "/purchases",
         icon: "▦"
       },
-
 
       {
         label: "Tarjoukset",
@@ -64,11 +60,16 @@ const groups = [
         icon: "▧"
       },
 
-
       {
         label: "Laskut",
         path: "/invoices",
         icon: "▥"
+      },
+
+      {
+        label: "PrTestSivu",
+        path: "/prtests",
+        icon: "|,
       }
 
     ]
@@ -87,13 +88,11 @@ const groups = [
         icon: "⧉"
       },
 
-
       {
         label: "Dev Studio",
         path: "/dev-studio",
         icon: "λ"
       },
-
 
       {
         label: "Settings",
