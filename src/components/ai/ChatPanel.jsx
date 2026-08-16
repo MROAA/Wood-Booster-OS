@@ -22,6 +22,10 @@ import { apiGet, apiPut, apiPost, apiDelete } from "../../api/client"
 
 import { NON_TERMINAL_SET_STATUSES } from "../devstudio/statusLabels"
 
+import { useElapsedSeconds } from "../devstudio/useElapsedSeconds"
+
+import { useApprovePlanProgress } from "../devstudio/useApprovePlanProgress"
+
 import {
   createRuntimeContext,
 } from "../../services/runtime/runtimeContext"
@@ -111,6 +115,12 @@ function ChatPanel() {
     isThinking,
     setIsThinking
   ] = useState(false)
+
+
+
+  const elapsedSeconds = useElapsedSeconds(isThinking)
+
+  const approvePlanProgress = useApprovePlanProgress()
 
 
 
@@ -211,6 +221,8 @@ function ChatPanel() {
 
     setBusySetId(setId)
 
+    approvePlanProgress.start(setId, updateSetInPlace)
+
     try {
 
       const set = await apiPut(`/dev-draft-sets/${setId}/approve-plan`)
@@ -222,6 +234,8 @@ function ChatPanel() {
       console.error("Suunnitelman hyväksyntä epäonnistui:", error)
 
     } finally {
+
+      approvePlanProgress.stop(setId)
 
       setBusySetId(null)
 
@@ -1167,6 +1181,10 @@ function ChatPanel() {
                   "
                   style={{ animationDelay: "240ms" }}
                 />
+
+                <span className="text-[10px] text-[var(--wood-muted)] ml-1">
+                  {elapsedSeconds}s
+                </span>
 
               </div>
 

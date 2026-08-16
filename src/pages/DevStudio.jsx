@@ -14,6 +14,8 @@ import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolv
 
 import SavedPromptsRow from "../components/devstudio/SavedPromptsRow"
 
+import { useElapsedSeconds } from "../components/devstudio/useElapsedSeconds"
+
 
 function DevStudio() {
   const [activeTab, setActiveTab] = useState("chat")
@@ -25,6 +27,8 @@ function DevStudio() {
   const [prompt, setPrompt] = useState("")
   const [filePath, setFilePath] = useState("")
   const [generating, setGenerating] = useState(false)
+
+  const generatingElapsedSeconds = useElapsedSeconds(generating)
 
   const [busyDraftId, setBusyDraftId] = useState(null)
 
@@ -580,7 +584,7 @@ function DevStudio() {
             disabled={generating}
             onClick={generateDraft}
           >
-            {generating ? "Kirjoitetaan..." : "Luo koodi"}
+            {generating ? `Generoidaan... ${generatingElapsedSeconds}s` : "Luo koodi"}
           </button>
         </div>
       </section>
