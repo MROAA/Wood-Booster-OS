@@ -166,8 +166,7 @@ function ChatPanel() {
       role: "assistant",
       kind: "text",
       content:
-        "Terve.\n\nMitäs tänään? (Vinkki: λ-napista pääset " +
-        "ehdottamaan muutosta itse järjestelmään.)"
+        "Terve.\n\nMitäs tänään?"
     }
 
   ])
@@ -688,6 +687,30 @@ function ChatPanel() {
         flex-col
       "
     >
+
+      {/* Chatin oma taustakuva - viestikuplat käyttävät bg-gradient-to-br-
+          utiliteetteja (from-[...]/to-[...]), jotka asettavat oman
+          background-image:nsa, joten index.css:n yleinen paneelisääntö ei
+          koskaan yllä niihin (eri elementti kilpailisi samasta
+          ominaisuudesta). Sen sijaan kuva laitetaan tämän paneelin omaan
+          taustaan, kuplien takana - Marc: "kuva tulee myös chatin
+          taustakuvaksi". Sama tumma peittoväri+kuva-tekniikka kuin
+          index.css:n paneelisäännössä, jotta teksti pysyy luettavana. */}
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          -z-10
+        "
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(20,18,16,0.88), rgba(20,18,16,0.88)), url('/branding/panel-texture.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+        aria-hidden="true"
+      />
 
       {/* Hyvin himmeä lämmin hehku taustalla - antaa paneelille syvyyttä
           ilman että se kilpailee viestien kanssa huomiosta. */}

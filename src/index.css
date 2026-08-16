@@ -139,18 +139,24 @@ h1,
    sijaan että jokaista .card/.panel-käyttöä muokattaisiin erikseen.
    Tailwindin arbitrary-value-luokat (esim. bg-[var(--wood-card)]) näkyvät
    DOM:in class-attribuutissa kirjaimellisena merkkijonona, joten tavallinen
-   attribuuttivalitsija osuu niihin suoraan. background-image on eri
-   ominaisuus kuin background-color, joten tämä ei korvaa Tailwindin jo
-   asettamaa väriä - background-blend-mode sekoittaa ne samalla elementillä
-   ilman gradientti-peittokuvan tarvetta. */
+   attribuuttivalitsija osuu niihin suoraan.
+
+   Marc: "fontti on nyt vaikea lukea tee siitä selkeämpi" - background-
+   blend-mode: soft-light tuotti arvaamattoman kontrastin (vaalensi
+   joitain kohtia liikaa). Korvattu kiinteällä, lähes läpinäkymättömällä
+   tummalla peittovärillä kuvan päällä (molemmat samassa background-image-
+   ominaisuudessa, ei kosketa background-coloria) - kuva näkyy vain
+   hienovaraisena kuviona, teksti pysyy aina luettavana taustan väristä
+   riippumatta. */
 [class*="bg-[var(--wood-card)]"],
 [class*="bg-[var(--wood-panel)]"],
 .card,
 .panel {
-  background-image: url('/branding/panel-texture.jpg');
+  background-image:
+    linear-gradient(rgba(20, 18, 16, 0.88), rgba(20, 18, 16, 0.88)),
+    url('/branding/panel-texture.jpg');
   background-size: cover;
   background-position: center;
-  background-blend-mode: soft-light;
 }
 
 
