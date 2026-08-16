@@ -183,6 +183,12 @@ model PythonCodeDraft {
 
   testSkippedReason String?
 
+  prUrl String?
+
+  prNumber Int?
+
+  prBranch String?
+
   writtenAt DateTime?
 
   createdAt DateTime @default(now())
@@ -225,6 +231,12 @@ model CodeChangeDraft {
 
   testSkippedReason String?
 
+  prUrl String?
+
+  prNumber Int?
+
+  prBranch String?
+
   writtenAt DateTime?
 
   createdAt DateTime @default(now())
@@ -248,6 +260,12 @@ model CodeChangeDraftSet {
   planError String?
 
   writeError String?
+
+  prUrl String?
+
+  prNumber Int?
+
+  prBranch String?
 
   writtenAt DateTime?
 

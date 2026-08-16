@@ -16,7 +16,7 @@ import {
 
 import { verifyProposedChange } from "../services/devStudio/verifyProposedChange.js"
 
-import { triggerGitGuardianBackup } from "../services/devStudio/gitGuardianBackup.js"
+import { checkPullRequestStatus } from "../services/devStudio/pullRequestStatus.js"
 
 import { startPreview, stopPreview, getPreviewStatus } from "../services/devStudio/previewServer.js"
 
@@ -362,14 +362,19 @@ export default function createDevMultiFileChangeRouter(prisma) {
   /*
    * PUT /api/dev-draft-sets/:id/write
    *
-   * Kirjoittaa KAIKKI paketin tiedostot. Esivalidoi jokaisen tiedoston
-   * (hiekkalaatikko + ristiriitatarkistus write-code-change-skillin
-   * kautta ajamalla se "kuivana" ensin olisi monimutkaisempaa kuin
-   * hyötyä - sen sijaan skilli itse tekee saman tarkistuksen jokaiselle
-   * tiedostolle kirjoitushetkellä, ja tämä reitti pysäyttää koko
-   * paketin heti ensimmäiseen epäonnistumiseen asti kirjoitettujen
-   * tiedostojen tila jää näkyviin "written", loput "not_attempted"
-   * (paketin oma tila kertoo tämän: "partial_write_failed").
+   * Ei enää kirjoita suoraan levylle - luo tuoreen git-haaran,
+   * committaa KAIKKI paketin tiedostot yhtenä committina, pushaa, ja
+   * avaa yhden GitHub Pull Requestin koko paketille. Kaikki tai ei
+   * mitään: git-commit on jakamaton, joten toisin kuin ennen tätä
+   * ominaisuutta ei enää synny osittain kirjoitettua pakettia -
+   * "partial_write_failed" ei ole enää mahdollinen uusi tila (pysyy
+   * validina vanhoille riveille), koko paketti joko onnistuu
+   * ("pr_open") tai epäonnistuu kokonaan ("pr_failed").
+   *
+   * writeCodeChangeSkill.js/writeCodeChangeWorkflow.js EIVÄT käytä
+   * tätä reittiä enää, mutta pysyvät täysin ennallaan - Historian
+   * Peruuta-nappi toimii yhä jokaiselle jo ennen tätä ominaisuutta
+   * kirjoitetulle "written"-riville.
    */
   router.put("/dev-draft-sets/:id/write", async (request, response) => {
     try {
@@ -381,7 +386,11 @@ export default function createDevMultiFileChangeRouter(prisma) {
         return response.status(404).json({ error: "Pakettia ei löytynyt" })
       }
 
-      if (set.status !== "approved" && set.status !== "partial_write_failed") {
+      if (
+        set.status !== "approved" &&
+        set.status !== "partial_write_failed" &&
+        set.status !== "pr_failed"
+      ) {
         return response.status(409).json({
           error: `Pakettia ei ole hyväksytty (status: ${set.status}). Hyväksy paketti ensin.`,
         })
@@ -397,74 +406,116 @@ export default function createDevMultiFileChangeRouter(prisma) {
 
       const toolBus = getSpacemonkeyToolBus()
 
-      triggerGitGuardianBackup()
-
       await stopPreview().catch(() => {})
 
       const writableFiles = set.files.filter(
         file => file.status === "generated" || file.status === "write_failed",
       )
 
-      let anyFailed = false
+      const workflowResult = await workflowEngine.execute(
+        "write-code-change-pull-request-workflow",
+        {
+          title: set.prompt.slice(0, 80),
+          explanation: set.planExplanation,
+          prompt: set.prompt,
+          files: writableFiles.map(file => ({
+            filePath: file.filePath,
+            proposedCode: file.proposedCode,
+            originalHash: file.originalHash,
+          })),
+          toolBus,
+        },
+      )
 
-      for (const file of writableFiles) {
-        // write-code-change-skill tarkistaa hyväksynnän draft.statuksesta
-        // - CodeChangeFileDraft-rivillä ei ole omaa "approved"-tilaa
-        // (koko paketti hyväksytään kerralla), joten välitetään sille
-        // sama tieto olion muodossa jota skilli odottaa.
-        const draftForSkill = { ...file, status: "approved" }
+      const skillResult = workflowResult.results?.[0]
 
-        const workflowResult = await workflowEngine.execute(
-          "write-code-change-workflow",
-          { draft: draftForSkill, toolBus },
-        )
-
-        const skillResult = workflowResult.results?.[0]
-
-        if (!skillResult?.success) {
-          anyFailed = true
-
-          await prisma.codeChangeFileDraft.update({
-            where: { id: file.id },
-            data: {
-              status:
-                skillResult?.code === "file_changed_since_draft"
-                  ? "conflict"
-                  : "write_failed",
-              writeError:
-                skillResult?.error ||
-                "Kirjoitus epäonnistui tuntemattomasta syystä.",
-            },
-          })
-
-          continue
-        }
-
-        await prisma.codeChangeFileDraft.update({
-          where: { id: file.id },
+      if (!skillResult?.success) {
+        await prisma.codeChangeFileDraft.updateMany({
+          where: { id: { in: writableFiles.map(file => file.id) } },
           data: {
-            status: "written",
-            writeError: null,
-            backupPath: skillResult.backupPath,
+            status: "write_failed",
+            writeError: skillResult?.error || "Pull requestin luonti epäonnistui.",
           },
         })
+
+        const failedSet = await prisma.codeChangeDraftSet.update({
+          where: { id: setId },
+          data: {
+            status: "pr_failed",
+            writeError: skillResult?.error || "Pull requestin luonti epäonnistui.",
+          },
+          include: { files: { orderBy: { id: "asc" } } },
+        })
+
+        return response.status(422).json(withFiles(failedSet))
       }
+
+      await prisma.codeChangeFileDraft.updateMany({
+        where: { id: { in: writableFiles.map(file => file.id) } },
+        data: { status: "pr_written", writeError: null },
+      })
 
       const finalSet = await prisma.codeChangeDraftSet.update({
         where: { id: setId },
         data: {
-          status: anyFailed ? "partial_write_failed" : "written",
-          writtenAt: anyFailed ? null : new Date(),
-          writeError: anyFailed
-            ? "Osa tiedostoista ei kirjoittunut - katso tiedostokohtaiset virheet."
-            : null,
+          status: "pr_open",
+          writtenAt: new Date(),
+          writeError: null,
+          prUrl: skillResult.prUrl,
+          prNumber: skillResult.prNumber,
+          prBranch: skillResult.prBranch,
         },
         include: { files: { orderBy: { id: "asc" } } },
       })
 
-      response
-        .status(anyFailed ? 422 : 200)
-        .json(withFiles(finalSet))
+      response.json(withFiles(finalSet))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
+   * PUT /api/dev-draft-sets/:id/check-pr-status
+   *
+   * Ei automaattista pollausta - tarkistaa GitHubilta PR:n tilan vain
+   * kun ihminen sitä nimenomaan pyytää.
+   */
+  router.put("/dev-draft-sets/:id/check-pr-status", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const set = await prisma.codeChangeDraftSet.findUnique({
+        where: { id: setId },
+      })
+
+      if (!set) {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      if (!set.prNumber) {
+        return response.status(409).json({
+          error: "Paketilla ei ole avointa Pull Requestia.",
+        })
+      }
+
+      const { state } = await checkPullRequestStatus(set.prNumber)
+
+      const nextStatus =
+        state === "MERGED"
+          ? "pr_merged"
+          : state === "CLOSED"
+            ? "pr_closed"
+            : set.status
+
+      const updatedSet = await prisma.codeChangeDraftSet.update({
+        where: { id: setId },
+        data: { status: nextStatus },
+        include: { files: { orderBy: { id: "asc" } } },
+      })
+
+      response.json(withFiles(updatedSet))
     } catch (error) {
       console.error(error)
 

@@ -13,6 +13,8 @@ import fs from "node:fs"
 
 import FileTool from "../../tools/FileTool.js"
 
+import GitTool from "../../tools/GitTool.js"
+
 import writePythonCodeSkill from "./skills/writePythonCodeSkill.js"
 
 import writePythonCodeWorkflow from "./workflows/writePythonCodeWorkflow.js"
@@ -49,6 +51,10 @@ import runPythonTestSkill from "./skills/runPythonTestSkill.js"
 
 import runPythonTestWorkflow from "./workflows/runPythonTestWorkflow.js"
 
+import writePythonCodePullRequestSkill from "./skills/writePythonCodePullRequestSkill.js"
+
+import writePythonCodePullRequestWorkflow from "./workflows/writePythonCodePullRequestWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -76,6 +82,12 @@ function registerPythonDeveloperPlugin({
     if (!toolBus.has("file")) {
 
         toolBus.register(FileTool)
+
+    }
+
+    if (!toolBus.has("git")) {
+
+        toolBus.register(GitTool)
 
     }
 
@@ -115,6 +127,10 @@ function registerPythonDeveloperPlugin({
         runPythonTestSkill,
     )
 
+    skillEngine.register(
+        writePythonCodePullRequestSkill,
+    )
+
     workflowEngine.register(
         writePythonCodeWorkflow,
     )
@@ -149,6 +165,10 @@ function registerPythonDeveloperPlugin({
 
     workflowEngine.register(
         runPythonTestWorkflow,
+    )
+
+    workflowEngine.register(
+        writePythonCodePullRequestWorkflow,
     )
 
     pluginManager.register(plugin)

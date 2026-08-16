@@ -13,6 +13,8 @@ import fs from "node:fs"
 
 import FileTool from "../../tools/FileTool.js"
 
+import GitTool from "../../tools/GitTool.js"
+
 import generateCodeChangeSkill from "./skills/generateCodeChangeSkill.js"
 
 import generateCodeChangeWorkflow from "./workflows/generateCodeChangeWorkflow.js"
@@ -40,6 +42,10 @@ import generateChangePlanWorkflow from "./workflows/generateChangePlanWorkflow.j
 import checkCodeReferencesSkill from "./skills/checkCodeReferencesSkill.js"
 
 import checkCodeReferencesWorkflow from "./workflows/checkCodeReferencesWorkflow.js"
+
+import writeCodeChangePullRequestSkill from "./skills/writeCodeChangePullRequestSkill.js"
+
+import writeCodeChangePullRequestWorkflow from "./workflows/writeCodeChangePullRequestWorkflow.js"
 
 
 
@@ -71,6 +77,12 @@ function registerCodeChangeDeveloperPlugin({
 
     }
 
+    if (!toolBus.has("git")) {
+
+        toolBus.register(GitTool)
+
+    }
+
     skillEngine.register(
         generateCodeChangeSkill,
     )
@@ -99,6 +111,10 @@ function registerCodeChangeDeveloperPlugin({
         checkCodeReferencesSkill,
     )
 
+    skillEngine.register(
+        writeCodeChangePullRequestSkill,
+    )
+
     workflowEngine.register(
         generateCodeChangeWorkflow,
     )
@@ -125,6 +141,10 @@ function registerCodeChangeDeveloperPlugin({
 
     workflowEngine.register(
         checkCodeReferencesWorkflow,
+    )
+
+    workflowEngine.register(
+        writeCodeChangePullRequestWorkflow,
     )
 
     pluginManager.register(plugin)

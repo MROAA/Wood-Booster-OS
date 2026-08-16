@@ -17,21 +17,25 @@
     "write-code-change",
     "generate-verification-test",
     "run-verification-test",
-    "generate-change-plan"
+    "generate-change-plan",
+    "write-code-change-pull-request"
   ],
   "tools": [
-    "file"
+    "file",
+    "git"
   ],
   "workflows": [
     "generate-code-change-workflow",
     "write-code-change-workflow",
     "generate-verification-test-workflow",
     "run-verification-test-workflow",
-    "generate-change-plan-workflow"
+    "generate-change-plan-workflow",
+    "write-code-change-pull-request-workflow"
   ],
   "permissions": [
     "codechange.write",
-    "filesystem.write"
+    "filesystem.write",
+    "git.pull-request"
   ],
   "entry": "index.js"
 }

@@ -294,7 +294,7 @@ function isPreviewableFile(file) {
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, busy }) {
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, busy }) {
 
   const status = set.status
 
@@ -504,7 +504,7 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
 
               <button
                 disabled={
-                  (status !== "approved" && status !== "partial_write_failed") || busy
+                  (status !== "approved" && status !== "partial_write_failed" && status !== "pr_failed") || busy
                 }
                 onClick={onWrite}
                 className="
@@ -522,7 +522,7 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                   hover:bg-[var(--wood-accent)]/10
                 "
               >
-                Kirjoita kaikki
+                Tee Pull Request
               </button>
 
               <button
@@ -547,6 +547,54 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
               </button>
 
             </div>
+
+            {
+              status.startsWith("pr_") && (
+
+                <div className="flex items-center gap-2 pt-1">
+
+                  {
+                    set.prUrl && (
+                      <a
+                        href={set.prUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-[var(--wood-accent)] underline"
+                      >
+                        PR #{set.prNumber} ↗
+                      </a>
+                    )
+                  }
+
+                  {
+                    status === "pr_open" && onCheckPrStatus && (
+                      <button
+                        disabled={busy}
+                        onClick={onCheckPrStatus}
+                        className="
+                          rounded-full
+                          border
+                          border-[var(--wood-border)]
+                          px-3
+                          py-1
+                          text-xs
+                          text-[var(--wood-muted)]
+                          transition-opacity
+                          disabled:opacity-30
+                          disabled:cursor-not-allowed
+                          hover:border-[var(--wood-accent)]
+                          hover:text-[var(--wood-text)]
+                        "
+                      >
+                        Tarkista PR:n tila
+                      </button>
+                    )
+                  }
+
+                </div>
+
+              )
+            }
 
           </div>
 

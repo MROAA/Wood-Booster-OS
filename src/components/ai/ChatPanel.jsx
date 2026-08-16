@@ -405,6 +405,30 @@ function ChatPanel() {
 
 
 
+  async function checkPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-pr-status`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("PR:n tilan tarkistus epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
   useEffect(() => {
 
     async function restoreHistoryAndPendingSets() {
@@ -919,6 +943,7 @@ function ChatPanel() {
                         onStopPreview={() => stopPreviewForSet(item.set.id)}
                         previewing={previewingSetId === item.set.id}
                         previewBusy={previewBusySetId === item.set.id}
+                        onCheckPrStatus={() => checkPrStatus(item.set.id)}
                       />
 
                     </div>
