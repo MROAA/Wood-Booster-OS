@@ -7,6 +7,7 @@ import { apiGet, apiPost, apiPut, apiDelete } from "../../api/client"
 import SetBubble from "./SetBubble"
 
 import SavedPromptsRow from "./SavedPromptsRow"
+import PlaybookPicker from "./PlaybookPicker"
 
 import { NON_TERMINAL_SET_STATUSES } from "./statusLabels"
 
@@ -496,6 +497,8 @@ function MultiFileChatPanel() {
         }
 
         <SavedPromptsRow lane="koodi" currentPrompt={prompt} onUseSaved={setPrompt} />
+
+        <PlaybookPicker lane="koodi" onUsePlaybook={setPrompt} />
 
         <div className="flex gap-3">
 
