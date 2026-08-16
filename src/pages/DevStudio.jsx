@@ -13,6 +13,7 @@ import { DRAFT_STATUS_LABELS, TEST_STATUS_DISPLAY } from "../components/devstudi
 import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolvedReferences"
 
 import SavedPromptsRow from "../components/devstudio/SavedPromptsRow"
+import PlaybookPicker from "../components/devstudio/PlaybookPicker"
 
 import { useElapsedSeconds } from "../components/devstudio/useElapsedSeconds"
 
@@ -564,6 +565,8 @@ function DevStudio() {
           </label>
 
           <SavedPromptsRow lane="python" currentPrompt={prompt} onUseSaved={setPrompt} />
+
+          <PlaybookPicker lane="python" onUsePlaybook={setPrompt} />
 
           <label className="block text-sm text-[var(--wood-muted)]">
             Tiedostonimi
