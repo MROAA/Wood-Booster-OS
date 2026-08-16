@@ -10,6 +10,8 @@ import HistoryPanel from "../components/devstudio/HistoryPanel"
 
 import { DRAFT_STATUS_LABELS } from "../components/devstudio/statusLabels"
 
+import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolvedReferences"
+
 
 function DevStudio() {
   const [activeTab, setActiveTab] = useState("chat")
@@ -938,6 +940,8 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
 
   const isFinished = draft.status === "written" || draft.status === "rejected"
 
+  const unresolvedReferences = parseUnresolvedReferences(draft.unresolvedReferences)
+
   function submitRevise() {
     if (!reviseFeedback.trim()) {
       return
@@ -968,6 +972,17 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
 
         <StatusBadge status={draft.status} />
       </div>
+
+      {unresolvedReferences.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
+          ⚠ Koodi viittaa tiedostoon jota ei löydy - tarkista ennen hyväksyntää:
+          <ul className="mt-1 list-disc pl-4 font-mono">
+            {unresolvedReferences.map((reference, referenceIndex) => (
+              <li key={referenceIndex}>{reference}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <textarea
         className="

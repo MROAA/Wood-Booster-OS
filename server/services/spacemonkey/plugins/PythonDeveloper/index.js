@@ -37,6 +37,10 @@ import debugPythonCodeSkill from "./skills/debugPythonCodeSkill.js"
 
 import debugPythonCodeWorkflow from "./workflows/debugPythonCodeWorkflow.js"
 
+import checkPythonReferencesSkill from "./skills/checkPythonReferencesSkill.js"
+
+import checkPythonReferencesWorkflow from "./workflows/checkPythonReferencesWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -91,6 +95,10 @@ function registerPythonDeveloperPlugin({
         debugPythonCodeSkill,
     )
 
+    skillEngine.register(
+        checkPythonReferencesSkill,
+    )
+
     workflowEngine.register(
         writePythonCodeWorkflow,
     )
@@ -113,6 +121,10 @@ function registerPythonDeveloperPlugin({
 
     workflowEngine.register(
         debugPythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        checkPythonReferencesWorkflow,
     )
 
     pluginManager.register(plugin)

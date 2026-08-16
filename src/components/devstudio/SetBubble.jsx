@@ -4,6 +4,8 @@ import DiffView from "./DiffView"
 
 import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY } from "./statusLabels"
 
+import { parseUnresolvedReferences } from "./parseUnresolvedReferences"
+
 /*
  * Suunnitelma/tiedostopaketti-kupla. Jaettu komponentti - sama kortti
  * jota käyttää sekä "Useampi tiedosto" -paneeli (MultiFileChatPanel)
@@ -57,31 +59,11 @@ function PlanFileRow({ file }) {
 
 }
 
-function parseUnresolvedReferences(file) {
-
-  if (!file.unresolvedReferences) {
-
-    return []
-
-  }
-
-  try {
-
-    return JSON.parse(file.unresolvedReferences)
-
-  } catch {
-
-    return []
-
-  }
-
-}
-
 function FileReviewCard({ file, onRevise, busy }) {
 
   const testDisplay = TEST_STATUS_DISPLAY[file.testStatus]
 
-  const unresolvedReferences = parseUnresolvedReferences(file)
+  const unresolvedReferences = parseUnresolvedReferences(file.unresolvedReferences)
 
   const [feedback, setFeedback] = useState("")
 
