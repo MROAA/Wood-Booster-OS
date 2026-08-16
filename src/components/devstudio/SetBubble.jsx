@@ -42,8 +42,14 @@ function PlanFileRow({ file }) {
         </span>
 
         {
-          file.blocked && (
+          file.blocked ? (
             <span className="text-red-400">Estetty: {file.blockedCode}</span>
+          ) : (
+            file.status !== "planned" && (
+              <span className="text-[10px] text-[var(--wood-muted)]">
+                {FILE_STATUS_LABELS[file.status] || file.status}
+              </span>
+            )
           )
         }
 
@@ -354,6 +360,16 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
         status === "plan_ready" ? (
 
           <div className="space-y-2">
+
+            {
+              busy && (
+                <div className="text-xs text-[var(--wood-muted)]">
+                  {visibleFiles.filter(file => file.status === "generated" || file.status === "generate_failed").length}
+                  {" / "}
+                  {visibleFiles.length} tiedostoa valmiina
+                </div>
+              )
+            }
 
             {set.files.map(file => <PlanFileRow key={file.id} file={file} />)}
 

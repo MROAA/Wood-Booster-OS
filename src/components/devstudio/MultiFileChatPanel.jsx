@@ -10,11 +10,19 @@ import SavedPromptsRow from "./SavedPromptsRow"
 
 import { NON_TERMINAL_SET_STATUSES } from "./statusLabels"
 
+import { useElapsedSeconds } from "./useElapsedSeconds"
+
+import { useApprovePlanProgress } from "./useApprovePlanProgress"
+
 function MultiFileChatPanel() {
 
   const [prompt, setPrompt] = useState("")
 
   const [isThinking, setIsThinking] = useState(false)
+
+  const elapsedSeconds = useElapsedSeconds(isThinking)
+
+  const approvePlanProgress = useApprovePlanProgress()
 
   const [busySetId, setBusySetId] = useState(null)
 
@@ -148,6 +156,8 @@ function MultiFileChatPanel() {
 
     setErrorMessage("")
 
+    approvePlanProgress.start(setId, updateSetInPlace)
+
     try {
 
       const set = await apiPut(`/dev-draft-sets/${setId}/approve-plan`)
@@ -159,6 +169,8 @@ function MultiFileChatPanel() {
       setErrorMessage(error.message)
 
     } finally {
+
+      approvePlanProgress.stop(setId)
 
       setBusySetId(null)
 
@@ -431,6 +443,7 @@ function MultiFileChatPanel() {
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--wood-accent)] animate-bounce" style={{ animationDelay: "0ms" }} />
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--wood-accent)] animate-bounce" style={{ animationDelay: "120ms" }} />
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--wood-accent)] animate-bounce" style={{ animationDelay: "240ms" }} />
+                <span className="text-[10px] text-[var(--wood-muted)] ml-1">{elapsedSeconds}s</span>
               </div>
 
             </div>
