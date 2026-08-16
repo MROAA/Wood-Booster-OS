@@ -363,6 +363,54 @@ function MultiFileChatPanel() {
 
   }
 
+  async function revertSetPr(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/revert-pr`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function checkRevertSetPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-revert-pr-status`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
   return (
 
     <div className="relative h-full min-h-0 flex flex-col">
@@ -430,6 +478,8 @@ function MultiFileChatPanel() {
                         previewing={previewingSetId === turn.set.id}
                         previewBusy={previewBusySetId === turn.set.id}
                         onCheckPrStatus={() => checkPrStatus(turn.set.id)}
+                        onRevertPr={() => revertSetPr(turn.set.id)}
+                        onCheckRevertPrStatus={() => checkRevertSetPrStatus(turn.set.id)}
                       />
 
                     </div>

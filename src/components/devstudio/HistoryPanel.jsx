@@ -117,7 +117,7 @@ function UnresolvedReferencesBlock({ unresolvedReferences }) {
 
 }
 
-function RevertButton({ onRevert, busy }) {
+function RevertButton({ onRevert, busy, label = "Peruuta" }) {
 
   return (
 
@@ -139,14 +139,14 @@ function RevertButton({ onRevert, busy }) {
         hover:bg-red-950/30
       "
     >
-      Peruuta
+      {label}
     </button>
 
   )
 
 }
 
-function PrLinkBadge({ prUrl, prNumber }) {
+function PrLinkBadge({ prUrl, prNumber, label = "PR" }) {
 
   if (!prUrl) {
 
@@ -162,14 +162,14 @@ function PrLinkBadge({ prUrl, prNumber }) {
       rel="noreferrer"
       className="text-xs text-[var(--wood-accent)] underline"
     >
-      PR #{prNumber} ↗
+      {label} #{prNumber} ↗
     </a>
 
   )
 
 }
 
-function SingleDraftDetail({ draft, onRevert, busy }) {
+function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus, busy }) {
 
   return (
 
@@ -179,13 +179,66 @@ function SingleDraftDetail({ draft, onRevert, busy }) {
 
         <div className="text-xs text-[var(--wood-muted)]">{draft.filePath}</div>
 
-        {
-          draft.status === "written" ? (
-            <RevertButton onRevert={onRevert} busy={busy} />
-          ) : draft.status.startsWith("pr_") && (
-            <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
-          )
-        }
+        <div className="flex items-center gap-2">
+
+          {
+            draft.status === "written" && (
+              <RevertButton onRevert={onRevert} busy={busy} />
+            )
+          }
+
+          {
+            (draft.status === "pr_merged" || draft.status === "pr_revert_failed") && (
+              <RevertButton onRevert={onRevertPr} busy={busy} label="Peruuta (uusi PR)" />
+            )
+          }
+
+          {
+            draft.status.startsWith("pr_") && !draft.status.startsWith("pr_revert_") && (
+              <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
+            )
+          }
+
+          {
+            draft.status.startsWith("pr_revert_") && (
+
+              <>
+
+                <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
+
+                <PrLinkBadge prUrl={draft.revertPrUrl} prNumber={draft.revertPrNumber} label="Peruutus-PR" />
+
+                {
+                  draft.status === "pr_revert_open" && (
+                    <button
+                      disabled={busy}
+                      onClick={onCheckRevertPrStatus}
+                      className="
+                        rounded-full
+                        border
+                        border-[var(--wood-border)]
+                        px-3
+                        py-1
+                        text-xs
+                        text-[var(--wood-muted)]
+                        transition-opacity
+                        disabled:opacity-30
+                        disabled:cursor-not-allowed
+                        hover:border-[var(--wood-accent)]
+                        hover:text-[var(--wood-text)]
+                      "
+                    >
+                      Tarkista peruutus-PR:n tila
+                    </button>
+                  )
+                }
+
+              </>
+
+            )
+          }
+
+        </div>
 
       </div>
 
@@ -209,7 +262,7 @@ function SingleDraftDetail({ draft, onRevert, busy }) {
 
 }
 
-function SetDetail({ set, onRevertFile, busyFileId }) {
+function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus, busyFileId, busySet }) {
 
   const visibleFiles = set.files.filter(file => !file.blocked)
 
@@ -219,11 +272,60 @@ function SetDetail({ set, onRevertFile, busyFileId }) {
 
     <div className="space-y-3">
 
-      {
-        set.status.startsWith("pr_") && (
-          <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
-        )
-      }
+      <div className="flex items-center gap-2">
+
+        {
+          set.status.startsWith("pr_") && !set.status.startsWith("pr_revert_") && (
+            <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
+          )
+        }
+
+        {
+          set.status.startsWith("pr_revert_") && (
+
+            <>
+
+              <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
+
+              <PrLinkBadge prUrl={set.revertPrUrl} prNumber={set.revertPrNumber} label="Peruutus-PR" />
+
+              {
+                set.status === "pr_revert_open" && (
+                  <button
+                    disabled={busySet}
+                    onClick={onCheckRevertSetPrStatus}
+                    className="
+                      rounded-full
+                      border
+                      border-[var(--wood-border)]
+                      px-3
+                      py-1
+                      text-xs
+                      text-[var(--wood-muted)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-[var(--wood-accent)]
+                      hover:text-[var(--wood-text)]
+                    "
+                  >
+                    Tarkista peruutus-PR:n tila
+                  </button>
+                )
+              }
+
+            </>
+
+          )
+        }
+
+        {
+          (set.status === "pr_merged" || set.status === "pr_revert_failed") && (
+            <RevertButton onRevert={onRevertSetPr} busy={busySet} label="Peruuta (uusi PR)" />
+          )
+        }
+
+      </div>
 
       {
         blockedFiles.length > 0 && (
@@ -303,7 +405,20 @@ function SetDetail({ set, onRevertFile, busyFileId }) {
 
 }
 
-function HistoryEntryRow({ entry, expanded, onToggle, onRevertDraft, onRevertFile, busyDraftId, busyFileId }) {
+function HistoryEntryRow({
+  entry,
+  expanded,
+  onToggle,
+  onRevertDraft,
+  onRevertFile,
+  onRevertDraftPr,
+  onCheckRevertDraftPrStatus,
+  onRevertSetPr,
+  onCheckRevertSetPrStatus,
+  busyDraftId,
+  busyFileId,
+  busySetId,
+}) {
 
   return (
 
@@ -378,13 +493,18 @@ function HistoryEntryRow({ entry, expanded, onToggle, onRevertDraft, onRevertFil
                   <SetDetail
                     set={entry.raw}
                     onRevertFile={fileId => onRevertFile(entry.raw.id, fileId)}
+                    onRevertSetPr={() => onRevertSetPr(entry.raw.id)}
+                    onCheckRevertSetPrStatus={() => onCheckRevertSetPrStatus(entry.raw.id)}
                     busyFileId={busyFileId}
+                    busySet={busySetId === entry.raw.id}
                   />
                 )
                 : (
                   <SingleDraftDetail
                     draft={entry.raw}
                     onRevert={() => onRevertDraft(entry.raw.id)}
+                    onRevertPr={() => onRevertDraftPr(entry.raw.id)}
+                    onCheckRevertPrStatus={() => onCheckRevertDraftPrStatus(entry.raw.id)}
                     busy={busyDraftId === entry.raw.id}
                   />
                 )
@@ -446,6 +566,8 @@ function HistoryPanel() {
   const [busyDraftId, setBusyDraftId] = useState(null)
 
   const [busyFileId, setBusyFileId] = useState(null)
+
+  const [busySetId, setBusySetId] = useState(null)
 
   const [searchText, setSearchText] = useState("")
 
@@ -525,6 +647,138 @@ function HistoryPanel() {
     } finally {
 
       setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function revertDraftPr(draftId) {
+
+    if (!window.confirm("Peruuta tämä yhdistetty Pull Request avaamalla uusi, peruuttava PR?")) {
+
+      return
+
+    }
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/revert-pr`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/dev-drafts/${draftId}`)
+
+        updateEntryRaw(`draft-${draftId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkRevertDraftPrStatus(draftId) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/check-revert-pr-status`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function revertSetPr(setId) {
+
+    if (!window.confirm("Peruuta tämä yhdistetty Pull Request avaamalla uusi, peruuttava PR?")) {
+
+      return
+
+    }
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/revert-pr`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/dev-draft-sets/${setId}`)
+
+        updateEntryRaw(`set-${setId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function checkRevertSetPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-revert-pr-status`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
 
     }
 
@@ -743,8 +997,13 @@ function HistoryPanel() {
               }
               onRevertDraft={revertDraft}
               onRevertFile={revertFile}
+              onRevertDraftPr={revertDraftPr}
+              onCheckRevertDraftPrStatus={checkRevertDraftPrStatus}
+              onRevertSetPr={revertSetPr}
+              onCheckRevertSetPrStatus={checkRevertSetPrStatus}
               busyDraftId={busyDraftId}
               busyFileId={busyFileId}
+              busySetId={busySetId}
             />
 
           ))

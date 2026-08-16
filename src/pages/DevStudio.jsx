@@ -326,6 +326,40 @@ function DevStudio() {
     }
   }
 
+  async function revertPr(draft) {
+    if (!window.confirm("Peruuta tämä yhdistetty Pull Request avaamalla uusi, peruuttava PR?")) {
+      return
+    }
+
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/revert-pr`, {})
+
+      updateDraftInList(updated)
+    } catch (revertError) {
+      setErrorMessage(revertError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function checkRevertPrStatus(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/check-revert-pr-status`, {})
+
+      updateDraftInList(updated)
+    } catch (checkError) {
+      setErrorMessage(checkError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
   async function revertDraft(draft) {
     if (!window.confirm("Peruuta tämä muutos ja palauta aiempi tila?")) {
       return
@@ -920,6 +954,8 @@ function DevStudio() {
             onRevise={feedback => reviseDraft(draft, feedback)}
             onReject={() => rejectDraft(draft)}
             onCheckPrStatus={() => checkPrStatus(draft)}
+            onRevertPr={() => revertPr(draft)}
+            onCheckRevertPrStatus={() => checkRevertPrStatus(draft)}
           />
         ))}
       </section>
@@ -931,7 +967,7 @@ function DevStudio() {
 }
 
 
-function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus }) {
+function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus }) {
   const [reviseFeedback, setReviseFeedback] = useState("")
 
   const isFinished = [
@@ -940,6 +976,9 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
     "pr_open",
     "pr_merged",
     "pr_closed",
+    "pr_revert_open",
+    "pr_revert_merged",
+    "pr_revert_closed",
   ].includes(draft.status)
 
   const unresolvedReferences = parseUnresolvedReferences(draft.unresolvedReferences)
@@ -1016,7 +1055,7 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
         disabled={isFinished}
       />
 
-      {(draft.status === "write_failed" || draft.status === "pr_failed") && draft.writeError && (
+      {(draft.status === "write_failed" || draft.status === "pr_failed" || draft.status === "pr_revert_failed") && draft.writeError && (
         <p className="mt-2 text-xs text-red-400">{draft.writeError}</p>
       )}
 
@@ -1100,6 +1139,26 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
           </button>
         )}
 
+        {(draft.status === "pr_merged" || draft.status === "pr_revert_failed") && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-red-900
+              px-3
+              py-1.5
+              text-sm
+              text-red-400
+              disabled:opacity-50
+            "
+            disabled={busy}
+            onClick={onRevertPr}
+          >
+            Peruuta (uusi PR)
+          </button>
+        )}
+
         {!isFinished && (
           <button
             type="button"
@@ -1121,7 +1180,7 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
         )}
       </div>
 
-      {draft.status.startsWith("pr_") && (
+      {draft.status.startsWith("pr_") && !draft.status.startsWith("pr_revert_") && (
         <div className="mt-3 flex items-center gap-2">
           {draft.prUrl && (
             <a
@@ -1151,6 +1210,52 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
               onClick={onCheckPrStatus}
             >
               Tarkista PR:n tila
+            </button>
+          )}
+        </div>
+      )}
+
+      {draft.status.startsWith("pr_revert_") && (
+        <div className="mt-3 flex items-center gap-2">
+          {draft.prUrl && (
+            <a
+              href={draft.prUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-[var(--wood-accent)] underline"
+            >
+              PR #{draft.prNumber} ↗
+            </a>
+          )}
+
+          {draft.revertPrUrl && (
+            <a
+              href={draft.revertPrUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-red-300 underline"
+            >
+              Peruutus-PR #{draft.revertPrNumber} ↗
+            </a>
+          )}
+
+          {draft.status === "pr_revert_open" && (
+            <button
+              type="button"
+              className="
+                rounded-xl
+                border
+                border-[var(--wood-border)]
+                px-3
+                py-1
+                text-xs
+                text-[var(--wood-muted)]
+                disabled:opacity-50
+              "
+              disabled={busy}
+              onClick={onCheckRevertPrStatus}
+            >
+              Tarkista peruutus-PR:n tila
             </button>
           )}
         </div>

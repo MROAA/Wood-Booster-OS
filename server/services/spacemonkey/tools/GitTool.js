@@ -163,13 +163,50 @@ const GitTool = {
 
                     const { stdout } = await execFileAsync(
                         "gh",
-                        ["pr", "view", String(prNumber), "--json", "state,url"],
+                        ["pr", "view", String(prNumber), "--json", "state,url,mergeCommit"],
                         { cwd: repoRoot, timeout: NETWORK_TIMEOUT_MS, maxBuffer: MAX_BUFFER_BYTES, env: process.env },
                     )
 
                     const parsed = JSON.parse(stdout)
 
-                    return { success: true, state: parsed.state, url: parsed.url }
+                    return {
+                        success: true,
+                        state: parsed.state,
+                        url: parsed.url,
+                        mergeCommitSha: parsed.mergeCommit?.oid || null,
+                    }
+
+                }
+
+                case "mergeParentCount": {
+
+                    const { repoRoot, sha } = input
+
+                    const { stdout } = await execFileAsync(
+                        "git",
+                        ["rev-list", "--parents", "-n", "1", sha],
+                        { cwd: repoRoot, timeout: GIT_TIMEOUT_MS, maxBuffer: MAX_BUFFER_BYTES, env: process.env },
+                    )
+
+                    const tokens = stdout.trim().split(/\s+/)
+
+                    return { success: true, parentCount: tokens.length - 1 }
+
+                }
+
+                case "revert": {
+
+                    const { worktreeDir, sha, mainline } = input
+
+                    await execFileAsync(
+                        "git",
+                        mainline
+                            ? ["revert", "--no-edit", "-m", "1", sha]
+                            : ["revert", "--no-edit", sha],
+                        { cwd: worktreeDir, timeout: GIT_TIMEOUT_MS, maxBuffer: MAX_BUFFER_BYTES, env: process.env },
+                    )
+
+                    return { success: true }
 
                 }
 

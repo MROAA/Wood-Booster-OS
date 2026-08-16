@@ -189,6 +189,12 @@ model PythonCodeDraft {
 
   prBranch String?
 
+  revertPrUrl String?
+
+  revertPrNumber Int?
+
+  revertPrBranch String?
+
   writtenAt DateTime?
 
   createdAt DateTime @default(now())
@@ -237,6 +243,12 @@ model CodeChangeDraft {
 
   prBranch String?
 
+  revertPrUrl String?
+
+  revertPrNumber Int?
+
+  revertPrBranch String?
+
   writtenAt DateTime?
 
   createdAt DateTime @default(now())
@@ -266,6 +278,12 @@ model CodeChangeDraftSet {
   prNumber Int?
 
   prBranch String?
+
+  revertPrUrl String?
+
+  revertPrNumber Int?
+
+  revertPrBranch String?
 
   writtenAt DateTime?
 

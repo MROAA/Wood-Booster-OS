@@ -429,6 +429,54 @@ function ChatPanel() {
 
 
 
+  async function revertSetPr(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/revert-pr`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Peruutus-PR:n luonti epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
+  async function checkRevertSetPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-revert-pr-status`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Peruutus-PR:n tilan tarkistus epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
   useEffect(() => {
 
     async function restoreHistoryAndPendingSets() {
@@ -944,6 +992,8 @@ function ChatPanel() {
                         previewing={previewingSetId === item.set.id}
                         previewBusy={previewBusySetId === item.set.id}
                         onCheckPrStatus={() => checkPrStatus(item.set.id)}
+                        onRevertPr={() => revertSetPr(item.set.id)}
+                        onCheckRevertPrStatus={() => checkRevertSetPrStatus(item.set.id)}
                       />
 
                     </div>

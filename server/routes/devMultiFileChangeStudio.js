@@ -524,6 +524,140 @@ export default function createDevMultiFileChangeRouter(prisma) {
   })
 
   /*
+   * PUT /api/dev-draft-sets/:id/revert-pr
+   *
+   * Peruuttaa jo YHDISTETYN Pull Requestin avaamalla toisen,
+   * peruuttavan PR:n koko paketille (ei tiedostokohtainen - revertti
+   * kohdistuu koko yhdistettyyn committiin yhtenä yksikkönä, toisin
+   * kuin alkuperäinen kirjoitus jolla oli oikea tiedostokohtainen
+   * ero). Vain "pr_merged"-tilasta (tai uudelleenyritys
+   * "pr_revert_failed"-tilasta).
+   */
+  router.put("/dev-draft-sets/:id/revert-pr", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const set = await prisma.codeChangeDraftSet.findUnique({
+        where: { id: setId },
+      })
+
+      if (!set) {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      if (
+        set.status !== "pr_merged" &&
+        set.status !== "pr_revert_failed"
+      ) {
+        return response.status(409).json({
+          error: `Paketin Pull Request ei ole yhdistetty (status: ${set.status}).`,
+        })
+      }
+
+      const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+      if (!workflowEngine) {
+        return response.status(503).json({
+          error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+        })
+      }
+
+      const toolBus = getSpacemonkeyToolBus()
+
+      const workflowResult = await workflowEngine.execute(
+        "revert-pull-request-workflow",
+        {
+          prNumber: set.prNumber,
+          originalTitle: set.prompt.slice(0, 80),
+          toolBus,
+        },
+      )
+
+      const skillResult = workflowResult.results?.[0]
+
+      if (!skillResult?.success) {
+        const failedSet = await prisma.codeChangeDraftSet.update({
+          where: { id: setId },
+          data: {
+            status: "pr_revert_failed",
+            writeError:
+              skillResult?.error ||
+              "Peruutus-PR:n luonti epäonnistui tuntemattomasta syystä.",
+          },
+          include: { files: { orderBy: { id: "asc" } } },
+        })
+
+        return response.status(422).json(withFiles(failedSet))
+      }
+
+      const openedSet = await prisma.codeChangeDraftSet.update({
+        where: { id: setId },
+        data: {
+          status: "pr_revert_open",
+          writeError: null,
+          revertPrUrl: skillResult.prUrl,
+          revertPrNumber: skillResult.prNumber,
+          revertPrBranch: skillResult.prBranch,
+        },
+        include: { files: { orderBy: { id: "asc" } } },
+      })
+
+      response.json(withFiles(openedSet))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
+   * PUT /api/dev-draft-sets/:id/check-revert-pr-status
+   *
+   * Ei automaattista pollausta - tarkistaa GitHubilta peruutus-PR:n
+   * tilan vain kun ihminen sitä nimenomaan pyytää.
+   */
+  router.put("/dev-draft-sets/:id/check-revert-pr-status", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const set = await prisma.codeChangeDraftSet.findUnique({
+        where: { id: setId },
+      })
+
+      if (!set) {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      if (!set.revertPrNumber) {
+        return response.status(409).json({
+          error: "Paketilla ei ole avointa peruutus-Pull Requestia.",
+        })
+      }
+
+      const { state } = await checkPullRequestStatus(set.revertPrNumber)
+
+      const nextStatus =
+        state === "MERGED"
+          ? "pr_revert_merged"
+          : state === "CLOSED"
+            ? "pr_revert_closed"
+            : set.status
+
+      const updatedSet = await prisma.codeChangeDraftSet.update({
+        where: { id: setId },
+        data: { status: nextStatus },
+        include: { files: { orderBy: { id: "asc" } } },
+      })
+
+      response.json(withFiles(updatedSet))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
    * PUT /api/dev-draft-sets/:id/files/:fileId/revert
    *
    * Peruutus on tiedostokohtainen, ei koko paketille - paketissa voi
