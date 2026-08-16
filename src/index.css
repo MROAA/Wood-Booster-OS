@@ -135,6 +135,26 @@ h1,
 
 
 
+/* Paneelien taustakuva - yksi keskitetty sääntö koko sovellukselle sen
+   sijaan että jokaista .card/.panel-käyttöä muokattaisiin erikseen.
+   Tailwindin arbitrary-value-luokat (esim. bg-[var(--wood-card)]) näkyvät
+   DOM:in class-attribuutissa kirjaimellisena merkkijonona, joten tavallinen
+   attribuuttivalitsija osuu niihin suoraan. background-image on eri
+   ominaisuus kuin background-color, joten tämä ei korvaa Tailwindin jo
+   asettamaa väriä - background-blend-mode sekoittaa ne samalla elementillä
+   ilman gradientti-peittokuvan tarvetta. */
+[class*="bg-[var(--wood-card)]"],
+[class*="bg-[var(--wood-panel)]"],
+.card,
+.panel {
+  background-image: url('/branding/panel-texture.jpg');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: soft-light;
+}
+
+
+
 .wood-scroll {
 
   scrollbar-width: thin;
