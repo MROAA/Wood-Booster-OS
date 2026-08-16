@@ -319,6 +319,173 @@ export default function createDevStudioRouter(prisma) {
   )
 
   /*
+   * GET /api/python-drafts/:id
+   */
+  router.get(
+    "/python-drafts/:id",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        response.json(draft)
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/revise
+   *
+   * Pyytää AI:ta tuottamaan UUDEN version SAMASTA luonnoksesta,
+   * käyttäjän vapaan palautteen perusteella - sama idea kuin
+   * devCodeChangeStudio.js:n /dev-drafts/:id/revise. Toimii vain
+   * odottavalle luonnokselle (status: "draft").
+   *
+   * Lukee kohdetiedoston elävän sisällön uudelleen
+   * readExistingGeneratedPythonContent():lla ennen tallennusta - sama
+   * itsekorjautuva ajantasaisuus jonka write-python-skill jo antaa
+   * kirjoitukselle.
+   */
+  router.put(
+    "/python-drafts/:id/revise",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const existing = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!existing) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (existing.status !== "draft") {
+          return response.status(409).json({
+            error: `Luonnos ei odota tarkistusta (status: ${existing.status}).`,
+          })
+        }
+
+        const { feedback } = request.body || {}
+
+        if (!feedback || !String(feedback).trim()) {
+          return response.status(400).json({
+            error: "Palaute (feedback) vaaditaan",
+          })
+        }
+
+        const augmentedPrompt =
+          `ALKUPERÄINEN PYYNTÖ:\n${existing.prompt}\n\n` +
+          `AIEMPI EHDOTUS (koko tiedoston sisältö):\n${existing.code}\n\n` +
+          `KÄYTTÄJÄN PALAUTE EHDOTUKSEEN:\n${String(feedback).trim()}\n\n` +
+          "TEHTÄVÄ: Tuota UUSI versio koko tiedoston sisällöstä, joka " +
+          "toteuttaa alkuperäisen pyynnön ja ottaa huomioon käyttäjän " +
+          "palautteen."
+
+        const generated = await generatePythonDraft({
+          prompt: augmentedPrompt,
+        })
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const { originalCode, originalHash } = toolBus
+          ? await readExistingGeneratedPythonContent(toolBus, existing.filePath)
+          : { originalCode: null, originalHash: null }
+
+        const revised = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            title: generated.title,
+            code: generated.code,
+            originalCode,
+            originalHash,
+          },
+        })
+
+        response.json(revised)
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/reject
+   *
+   * Sama malli kuin devCodeChangeStudio.js:n /dev-drafts/:id/reject.
+   */
+  router.put(
+    "/python-drafts/:id/reject",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const existing = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!existing) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (existing.status === "written") {
+          return response.status(409).json({
+            error: "Jo levylle kirjoitettua luonnosta ei voi hylätä.",
+          })
+        }
+
+        const rejected = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            status: "rejected",
+          },
+        })
+
+        response.json(rejected)
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
    * PUT /api/python-drafts/:id
    *
    * Käsin tehdyt muokkaukset otsikkoon/koodiin/tiedostopolkuun.
