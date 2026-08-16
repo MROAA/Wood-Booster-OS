@@ -1,10 +1,12 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import SpacemonkeyIcon from "../branding/SpacemonkeyIcon"
 
-import { apiPost, apiPut, apiDelete } from "../../api/client"
+import { apiGet, apiPost, apiPut, apiDelete } from "../../api/client"
 
 import SetBubble from "./SetBubble"
+
+import { NON_TERMINAL_SET_STATUSES } from "./statusLabels"
 
 function MultiFileChatPanel() {
 
@@ -33,6 +35,47 @@ function MultiFileChatPanel() {
     },
 
   ])
+
+  useEffect(() => {
+
+    async function restorePendingSets() {
+
+      try {
+
+        const sets = await apiGet("/dev-draft-sets")
+
+        const restored = (sets || [])
+          .filter(set => NON_TERMINAL_SET_STATUSES.has(set.status))
+          .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+          .map(set => ({ role: "assistant", kind: "set", set, restored: true }))
+
+        if (restored.length === 0) {
+          return
+        }
+
+        setTurns(previous => [
+          ...previous,
+          ...restored.filter(
+            item => !previous.some(
+              existing => existing.kind === "set" && existing.set.id === item.set.id
+            )
+          ),
+        ])
+
+      } catch (error) {
+
+        console.error(
+          "Keskeneräisten suunnitelmien palautus epäonnistui:",
+          error
+        )
+
+      }
+
+    }
+
+    restorePendingSets()
+
+  }, [])
 
   function updateSetInPlace(set) {
 
@@ -325,19 +368,31 @@ function MultiFileChatPanel() {
 
                   ) : (
 
-                    <SetBubble
-                      set={turn.set}
-                      busy={busySetId === turn.set.id}
-                      onApprovePlan={() => approvePlan(turn.set.id)}
-                      onApprove={() => approveSet(turn.set.id)}
-                      onReject={() => rejectSet(turn.set.id)}
-                      onWrite={() => writeSet(turn.set.id)}
-                      onReviseFile={(fileId, feedback) => reviseFile(turn.set.id, fileId, feedback)}
-                      onPreview={() => startPreviewForSet(turn.set.id)}
-                      onStopPreview={() => stopPreviewForSet(turn.set.id)}
-                      previewing={previewingSetId === turn.set.id}
-                      previewBusy={previewBusySetId === turn.set.id}
-                    />
+                    <div className="flex flex-col gap-1">
+
+                      {
+                        turn.restored && NON_TERMINAL_SET_STATUSES.has(turn.set.status) && (
+                          <div className="text-xs italic text-[var(--wood-muted)]">
+                            Aiemmin aloitettu, ei vielä valmis.
+                          </div>
+                        )
+                      }
+
+                      <SetBubble
+                        set={turn.set}
+                        busy={busySetId === turn.set.id}
+                        onApprovePlan={() => approvePlan(turn.set.id)}
+                        onApprove={() => approveSet(turn.set.id)}
+                        onReject={() => rejectSet(turn.set.id)}
+                        onWrite={() => writeSet(turn.set.id)}
+                        onReviseFile={(fileId, feedback) => reviseFile(turn.set.id, fileId, feedback)}
+                        onPreview={() => startPreviewForSet(turn.set.id)}
+                        onStopPreview={() => stopPreviewForSet(turn.set.id)}
+                        previewing={previewingSetId === turn.set.id}
+                        previewBusy={previewBusySetId === turn.set.id}
+                      />
+
+                    </div>
 
                   )
                 }

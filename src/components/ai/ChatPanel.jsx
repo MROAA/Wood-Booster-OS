@@ -18,7 +18,9 @@ import ActionStatusCard, {
   createQueueResultMessage,
 } from "./ActionStatusCard"
 
-import { apiPut, apiPost, apiDelete } from "../../api/client"
+import { apiGet, apiPut, apiPost, apiDelete } from "../../api/client"
+
+import { NON_TERMINAL_SET_STATUSES } from "../devstudio/statusLabels"
 
 import {
   createRuntimeContext,
@@ -391,37 +393,76 @@ function ChatPanel() {
 
   useEffect(() => {
 
-    fetch("http://localhost:3001/api/agents/history?limit=50")
+    async function restoreHistoryAndPendingSets() {
 
-      .then(response => response.json())
+      try {
 
-      .then(data => {
+        const data = await fetch("http://localhost:3001/api/agents/history?limit=50")
+          .then(response => response.json())
 
         const history = data.history || []
 
-        if (history.length === 0) {
-          return
+        if (history.length > 0) {
+
+          setMessages(
+            history.map(entry => ({
+              role: entry.role,
+              kind: "text",
+              content: entry.content,
+              mode: entry.mode,
+            }))
+          )
+
         }
 
-        setMessages(
-          history.map(entry => ({
-            role: entry.role,
-            kind: "text",
-            content: entry.content,
-            mode: entry.mode,
-          }))
-        )
-
-      })
-
-      .catch(error => {
+      } catch (error) {
 
         console.error(
           "Keskusteluhistorian lataus epäonnistui:",
           error
         )
 
-      })
+      }
+
+      // Jatketaan SAMAA efektiä (ei erillistä useEffectiä) - jos tämä
+      // olisi oma efektinsä, sen ja yllä olevan historia-fetchin
+      // järjestys olisi arvaamaton, ja jos historia ehtisi ratketa
+      // jälkikäteen, sen setMessages-korvaus pyyhkisi juuri palautetut
+      // pakettikuplat pois.
+      try {
+
+        const sets = await apiGet("/dev-draft-sets")
+
+        const restored = (sets || [])
+          .filter(set => NON_TERMINAL_SET_STATUSES.has(set.status))
+          .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+          .map(set => ({ role: "assistant", kind: "set", set, restored: true }))
+
+        if (restored.length === 0) {
+          return
+        }
+
+        setMessages(previous => [
+          ...previous,
+          ...restored.filter(
+            item => !previous.some(
+              existing => existing.kind === "set" && existing.set.id === item.set.id
+            )
+          ),
+        ])
+
+      } catch (error) {
+
+        console.error(
+          "Keskeneräisten suunnitelmien palautus epäonnistui:",
+          error
+        )
+
+      }
+
+    }
+
+    restoreHistoryAndPendingSets()
 
   }, [])
 
@@ -842,19 +883,31 @@ function ChatPanel() {
                 {
                   item.kind === "set" ? (
 
-                    <SetBubble
-                      set={item.set}
-                      busy={busySetId === item.set.id}
-                      onApprovePlan={() => approvePlan(item.set.id)}
-                      onApprove={() => approveSet(item.set.id)}
-                      onReject={() => rejectSet(item.set.id)}
-                      onWrite={() => writeSet(item.set.id)}
-                      onReviseFile={(fileId, feedback) => reviseFile(item.set.id, fileId, feedback)}
-                      onPreview={() => startPreviewForSet(item.set.id)}
-                      onStopPreview={() => stopPreviewForSet(item.set.id)}
-                      previewing={previewingSetId === item.set.id}
-                      previewBusy={previewBusySetId === item.set.id}
-                    />
+                    <div className="flex flex-col gap-1">
+
+                      {
+                        item.restored && NON_TERMINAL_SET_STATUSES.has(item.set.status) && (
+                          <div className="text-xs italic text-[var(--wood-muted)]">
+                            Aiemmin aloitettu, ei vielä valmis.
+                          </div>
+                        )
+                      }
+
+                      <SetBubble
+                        set={item.set}
+                        busy={busySetId === item.set.id}
+                        onApprovePlan={() => approvePlan(item.set.id)}
+                        onApprove={() => approveSet(item.set.id)}
+                        onReject={() => rejectSet(item.set.id)}
+                        onWrite={() => writeSet(item.set.id)}
+                        onReviseFile={(fileId, feedback) => reviseFile(item.set.id, fileId, feedback)}
+                        onPreview={() => startPreviewForSet(item.set.id)}
+                        onStopPreview={() => stopPreviewForSet(item.set.id)}
+                        previewing={previewingSetId === item.set.id}
+                        previewBusy={previewBusySetId === item.set.id}
+                      />
+
+                    </div>
 
                   ) : item.kind === "confirm_koodi" ? (
 

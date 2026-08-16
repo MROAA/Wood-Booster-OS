@@ -28,6 +28,21 @@ export const DRAFT_STATUS_LABELS = {
 
 }
 
+/*
+ * Tilat joissa CodeChangeDraftSet vielä odottaa Marcin toimenpidettä -
+ * käytetään päättämään mitkä paketit palautetaan interaktiivisina
+ * kupliina chatin uudelleenlatauksen jälkeen (ks. ChatPanel.jsx ja
+ * MultiFileChatPanel.jsx). "written" ja "rejected" ovat lopputiloja,
+ * eivät koskaan tässä joukossa.
+ */
+export const NON_TERMINAL_SET_STATUSES = new Set([
+  "planning",
+  "plan_ready",
+  "draft",
+  "approved",
+  "partial_write_failed",
+])
+
 export const SET_STATUS_LABELS = {
 
   plan_ready: "Suunnitelma odottaa hyväksyntää",
