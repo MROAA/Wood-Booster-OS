@@ -80,4 +80,6 @@ export const TEST_STATUS_DISPLAY = {
 
   skipped: { icon: "—", label: "Ei toiminnallista testiä", className: "text-[var(--wood-muted)]" },
 
+  vacuous: { icon: "?", label: "Testi ei todista mitään", className: "text-amber-400" },
+
 }
