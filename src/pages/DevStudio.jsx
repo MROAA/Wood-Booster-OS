@@ -8,13 +8,7 @@ import MultiFileChatPanel from "../components/devstudio/MultiFileChatPanel"
 
 import HistoryPanel from "../components/devstudio/HistoryPanel"
 
-
-const STATUS_LABELS = {
-  draft: "Luonnos",
-  approved: "Hyväksytty",
-  written: "Kirjoitettu levylle",
-  write_failed: "Kirjoitus epäonnistui",
-}
+import { DRAFT_STATUS_LABELS } from "../components/devstudio/statusLabels"
 
 
 function DevStudio() {
@@ -264,6 +258,33 @@ function DevStudio() {
       updateDraftInList(updated)
     } catch (writeError) {
       setErrorMessage(writeError.message)
+
+      try {
+        const refreshed = await apiGet("/python-drafts")
+
+        setDrafts(Array.isArray(refreshed) ? refreshed : [])
+      } catch {
+        // ignore refresh failure, error message already shown
+      }
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function revertDraft(draft) {
+    if (!window.confirm("Peruuta tämä muutos ja palauta aiempi tila?")) {
+      return
+    }
+
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/revert`, {})
+
+      updateDraftInList(updated)
+    } catch (revertError) {
+      setErrorMessage(revertError.message)
 
       try {
         const refreshed = await apiGet("/python-drafts")
@@ -868,6 +889,7 @@ function DevStudio() {
             onSave={() => saveDraft(draft)}
             onApprove={() => approveDraft(draft)}
             onWrite={() => writeDraft(draft)}
+            onRevert={() => revertDraft(draft)}
           />
         ))}
       </section>
@@ -879,7 +901,7 @@ function DevStudio() {
 }
 
 
-function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite }) {
+function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert }) {
   return (
     <article className="
       rounded-2xl
@@ -982,6 +1004,26 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite }) {
         >
           Kirjoita levylle
         </button>
+
+        {draft.status === "written" && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-red-900
+              px-3
+              py-1.5
+              text-sm
+              text-red-400
+              disabled:opacity-50
+            "
+            disabled={busy}
+            onClick={onRevert}
+          >
+            Peruuta
+          </button>
+        )}
       </div>
     </article>
   )
@@ -989,7 +1031,7 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite }) {
 
 
 function StatusBadge({ status }) {
-  const label = STATUS_LABELS[status] || status
+  const label = DRAFT_STATUS_LABELS[status] || status
 
   const toneClass =
     status === "written"
