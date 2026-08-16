@@ -22,6 +22,8 @@ import {
   sha256,
 } from "../services/spacemonkey/plugins/PythonDeveloper/skills/writePythonCodeSkill.js"
 
+import { verifyProposedPythonChange } from "../services/devStudio/verifyProposedPythonChange.js"
+
 /*
  * Lukee kohdetiedoston NYKYISEN sisällön generated-python-hakemistosta
  * (jos sellainen jo on olemassa) ennen uuden luonnoksen luontia -
@@ -141,6 +143,21 @@ export default function createDevStudioRouter(prisma) {
           proposedCode: draftCode,
         })
 
+        const verification = (workflowEngine && toolBus)
+          ? await verifyProposedPythonChange({
+              workflowEngine,
+              toolBus,
+              prompt: prompt || "",
+              filePath,
+              proposedCode: draftCode,
+            })
+          : {
+              testCode: null,
+              testStatus: "error",
+              testOutput: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+              testSkippedReason: null,
+            }
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: prompt || "",
@@ -154,6 +171,10 @@ export default function createDevStudioRouter(prisma) {
               unresolvedReferences.length > 0
                 ? JSON.stringify(unresolvedReferences)
                 : null,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
           },
         })
 
@@ -229,6 +250,14 @@ export default function createDevStudioRouter(prisma) {
           proposedCode: skillResult.code,
         })
 
+        const verification = await verifyProposedPythonChange({
+          workflowEngine,
+          toolBus,
+          prompt: `Refaktoroi: ${filePath}`,
+          filePath: path.basename(filePath),
+          proposedCode: skillResult.code,
+        })
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: `Refaktoroi: ${filePath}`,
@@ -242,6 +271,10 @@ export default function createDevStudioRouter(prisma) {
               unresolvedReferences.length > 0
                 ? JSON.stringify(unresolvedReferences)
                 : null,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
           },
         })
 
@@ -322,6 +355,14 @@ export default function createDevStudioRouter(prisma) {
           proposedCode: skillResult.code,
         })
 
+        const verification = await verifyProposedPythonChange({
+          workflowEngine,
+          toolBus,
+          prompt: `Debug: ${filePath}`,
+          filePath: path.basename(filePath),
+          proposedCode: skillResult.code,
+        })
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: `Debug: ${filePath}`,
@@ -335,6 +376,10 @@ export default function createDevStudioRouter(prisma) {
               unresolvedReferences.length > 0
                 ? JSON.stringify(unresolvedReferences)
                 : null,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
           },
         })
 
@@ -479,6 +524,21 @@ export default function createDevStudioRouter(prisma) {
           proposedCode: generated.code,
         })
 
+        const verification = (workflowEngine && toolBus)
+          ? await verifyProposedPythonChange({
+              workflowEngine,
+              toolBus,
+              prompt: augmentedPrompt,
+              filePath: existing.filePath,
+              proposedCode: generated.code,
+            })
+          : {
+              testCode: null,
+              testStatus: "error",
+              testOutput: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+              testSkippedReason: null,
+            }
+
         const revised = await prisma.pythonCodeDraft.update({
           where: {
             id: draftId,
@@ -491,6 +551,10 @@ export default function createDevStudioRouter(prisma) {
               unresolvedReferences.length > 0
                 ? JSON.stringify(unresolvedReferences)
                 : null,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
             originalHash,
           },
         })

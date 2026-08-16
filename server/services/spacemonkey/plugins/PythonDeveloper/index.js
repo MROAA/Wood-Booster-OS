@@ -41,6 +41,14 @@ import checkPythonReferencesSkill from "./skills/checkPythonReferencesSkill.js"
 
 import checkPythonReferencesWorkflow from "./workflows/checkPythonReferencesWorkflow.js"
 
+import generatePythonTestSkill from "./skills/generatePythonTestSkill.js"
+
+import generatePythonTestWorkflow from "./workflows/generatePythonTestWorkflow.js"
+
+import runPythonTestSkill from "./skills/runPythonTestSkill.js"
+
+import runPythonTestWorkflow from "./workflows/runPythonTestWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -99,6 +107,14 @@ function registerPythonDeveloperPlugin({
         checkPythonReferencesSkill,
     )
 
+    skillEngine.register(
+        generatePythonTestSkill,
+    )
+
+    skillEngine.register(
+        runPythonTestSkill,
+    )
+
     workflowEngine.register(
         writePythonCodeWorkflow,
     )
@@ -125,6 +141,14 @@ function registerPythonDeveloperPlugin({
 
     workflowEngine.register(
         checkPythonReferencesWorkflow,
+    )
+
+    workflowEngine.register(
+        generatePythonTestWorkflow,
+    )
+
+    workflowEngine.register(
+        runPythonTestWorkflow,
     )
 
     pluginManager.register(plugin)
