@@ -1,1 +1,0 @@
-Disposable test file B.
