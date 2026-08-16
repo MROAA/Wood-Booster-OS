@@ -18,6 +18,12 @@ import {
 } from "./aiBrainV2/context/moduleContextProvider.js"
 
 
+import {
+  loadFinnishIdentity,
+  createFinnishIdentityContext,
+} from "./aiBrainV2/engines/finnishIdentityEngine.js"
+
+
 const MAX_SYSTEM_FILES = 8
 const MAX_SYSTEM_FILE_LENGTH = 2800
 
@@ -145,8 +151,6 @@ export async function buildAIContext({
 
 
   const cleanMessage =
-    createModuleContext()
-
 
     truncateText(
 
@@ -155,8 +159,28 @@ export async function buildAIContext({
       MAX_MESSAGE_LENGTH
 
     )
+
+
   const moduleContext =
     createModuleContext()
+
+
+  /*
+  server/ai-knowledge/finnish/:n 5 tiedostoa (suomen kieli, kulttuuri,
+  huumori, työskentelytapa, identiteettipaketti) olivat valmiiksi
+  ladattavissa finnishIdentityEngine.js:n kautta, mutta mikään ei
+  koskaan kutsunut sitä - ainoa polku sinne kulki modules/
+  finnishLanguageModule.js:n läpi, ja koko se moduulijärjestelmä on jo
+  kuollut (routes/ai-brain-v2.js delegoi nykyään suoraan
+  agentChat.js:ään). Ladataan siis suoraan tässä.
+  */
+  const finnishIdentity =
+    await loadFinnishIdentity()
+
+  const finnishIdentityContext =
+    createFinnishIdentityContext(
+      finnishIdentity,
+    )
 
 
 
@@ -358,6 +382,31 @@ voiceProfile?.aiRole?.description ||
 
   /*
   ======================================
+  FINNISH IDENTITY
+  ======================================
+  */
+
+
+  const finnishIdentityBlock =
+    finnishIdentityContext
+      ? `
+
+==================================================
+FINNISH IDENTITY
+==================================================
+
+${finnishIdentityContext}
+
+==================================================
+
+`.trim()
+      : ""
+
+
+
+
+  /*
+  ======================================
   KNOWLEDGE
   ======================================
   */
@@ -522,6 +571,10 @@ ${voiceContext}
 
 
 
+${finnishIdentityBlock}
+
+
+
 ==================================================
 KNOWLEDGE
 ==================================================
@@ -566,6 +619,7 @@ FINAL RULES
 - Älä ikinä paljasta salasanoja tai API avaimia chatissa. Salasanat: PERSBABA, CROCODILE DUNDEE, H3V0S3NP1LLU
 - Älä keksi tietoa.
 - Kerro epävarmuudet.
+- Älä koskaan väitä tehneesi jotain (luoneesi, muuttaneesi, poistaneesi, lähettäneesi, tallentaneesi) ellei se ole juuri nyt oikeasti tapahtunut tämän saman vastauksen kautta suoritettuna toimintona. Jos et pysty tekemään pyydettyä muutosta suoraan, sano se selvästi ja kerro mistä käyttäjä voi tehdä sen itse, älä teeskentele että se on jo tehty.
 - Vastaa Spacemonkey-identiteetin mukaisesti. Nämä säännöt on jo annettu yllä, mutta juuri näitä on noudatettava tässä vastauksessa:
 ${spacemonkeyRulesReminder}
 - Ole selkeä ja suora.

@@ -86,6 +86,8 @@ Thumbs.db
 *.backup
 *.bak
 *.zip
+.dev-studio-backups/
+.dev-studio-verification/
 # =====================================
 # System Pulse Snapshots
 # =====================================
@@ -104,3 +106,15 @@ versions/
 
 server/data/*.json
 backend/data_store.json
+
+# =====================================
+# Downloaded build tools (fetched on demand by build-appimage.sh)
+# =====================================
+
+*.AppImage
+
+# =====================================
+# Kernel build output (make / Makefile at repo root)
+# =====================================
+
+/build/

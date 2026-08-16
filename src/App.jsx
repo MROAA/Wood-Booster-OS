@@ -36,6 +36,7 @@ import KnowledgeUpload from "./pages/KnowledgeUpload"
 import SpacemonkeyChat from "./pages/SpacemonkeyChat"
 import BoosterverseDesktop from "./pages/BoosterverseDesktop"
 import ProjectWorkspace from "./pages/ProjectWorkspace"
+import Altrako from "./pages/Altrako"
 
 function BoosterverseDesktopRoute() {
   const navigate = useNavigate()
@@ -143,13 +144,13 @@ function App() {
         <Route
           path="/spacemonkey-brain"
           element={
-            <SpacemonkeyPersona />
+            <SpacemonkeyBrain />
           }
         />
         <Route
           path="/spacemonkey-diagnostics"
           element={
-            <SpacemonkeyBrain />
+            <SpacemonkeyPersona />
           }
         />
         <Route
@@ -168,6 +169,12 @@ function App() {
           path="/project-workspace"
           element={
             <ProjectWorkspace />
+          }
+        />
+        <Route
+          path="/altrako"
+          element={
+            <Altrako />
           }
         />
         <Route

@@ -161,13 +161,135 @@ model PythonCodeDraft {
 
   code String
 
+  originalCode String?
+
+  originalHash String?
+
   filePath String
 
   status String @default("draft")
 
   writeError String?
 
+  backupPath String?
+
   writtenAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model CodeChangeDraft {
+
+  id Int @id @default(autoincrement())
+
+  prompt String
+
+  title String
+
+  explanation String?
+
+  filePath String
+
+  originalCode String?
+
+  proposedCode String
+
+  originalHash String?
+
+  status String @default("draft")
+
+  writeError String?
+
+  backupPath String?
+
+  testCode String?
+
+  testStatus String?
+
+  testOutput String?
+
+  testSkippedReason String?
+
+  writtenAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model CodeChangeDraftSet {
+
+  id Int @id @default(autoincrement())
+
+  prompt String
+
+  status String @default("planning")
+
+  planExplanation String?
+
+  planError String?
+
+  writeError String?
+
+  writtenAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  files CodeChangeFileDraft[]
+
+}
+
+
+
+model CodeChangeFileDraft {
+
+  id Int @id @default(autoincrement())
+
+  setId Int
+
+  set CodeChangeDraftSet @relation(fields: [setId], references: [id])
+
+  filePath String
+
+  action String
+
+  reason String?
+
+  originalCode String?
+
+  proposedCode String?
+
+  originalHash String?
+
+  status String @default("planned")
+
+  blockedCode String?
+
+  generateError String?
+
+  writeError String?
+
+  backupPath String?
+
+  testCode String?
+
+  testStatus String?
+
+  testOutput String?
+
+  testSkippedReason String?
+
+  unresolvedReferences String?
 
   createdAt DateTime @default(now())
 
@@ -441,6 +563,8 @@ model Message {
 
   content String
 
+  mode String?
+
   conversationId String
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -494,27 +618,41 @@ model MemoryProposal {
 
 
 model KnowledgeDocument {
+
   id Int @id @default(autoincrement())
+
   title String
+
   content String
+
   topic String @default("general")
+
   folder String @default("Yleinen")
+
   tags String?
+
   author String?
+
   sourceType String @default("text")
+
   sourceUrl String?
-  storedFileName String?
-  originalFileName String?
-  mimeType String?
-  fileSize Int?
+
   status String @default("Luonnos")
+
   priority Int @default(3)
+
   confidence Int @default(100)
+
   alwaysUse Boolean @default(false)
+
   chunks KnowledgeChunk[]
+
   createdAt DateTime @default(now())
+
   updatedAt DateTime @updatedAt
+
 }
+
 
 
 model KnowledgeChunk {

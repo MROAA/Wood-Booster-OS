@@ -9,7 +9,8 @@
     "build:desktop": "vite build && npm --prefix server run build:sidecar",
     "lint": "oxlint",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test:python": "python3 -m unittest discover -s tests"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
@@ -18,7 +19,6 @@
     "framer-motion": "^13.0.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router": "^8.2.0",
     "react-router-dom": "^7.6.2",
     "tailwindcss": "^4.3.2"
   },

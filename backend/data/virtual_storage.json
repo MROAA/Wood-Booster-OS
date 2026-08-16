@@ -1,23 +1,11 @@
 {
   "folders": {
-    "f-366fd0ff-2e7b-4181-a333-11b9be21c555": {
-      "id": "f-366fd0ff-2e7b-4181-a333-11b9be21c555",
-      "name": "testieka",
+    "f-05a606ac-2e3c-48b8-80de-2cfdce456cea": {
+      "id": "f-05a606ac-2e3c-48b8-80de-2cfdce456cea",
+      "name": "Roskakori",
       "parent_id": null,
-      "created_at": "2026-08-10T16:03:24.704157+00:00"
+      "created_at": "2026-08-16T13:36:43.357054+00:00"
     }
   },
-  "files": {
-    "file-f8a073f9-739d-4ee0-a1a3-971a2613be51": {
-      "id": "file-f8a073f9-739d-4ee0-a1a3-971a2613be51",
-      "folder_id": "f-366fd0ff-2e7b-4181-a333-11b9be21c555",
-      "original_name": "favicon.png",
-      "stored_name": "52fe6ac6-c6dc-4f0a-b28f-69fd3bd1c263.png",
-      "mime_type": "image/png",
-      "category": "image",
-      "size_bytes": 256135,
-      "has_thumbnail": true,
-      "uploaded_at": "2026-08-10T15:26:07.439780+00:00"
-    }
-  }
+  "files": {}
 }

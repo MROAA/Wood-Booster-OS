@@ -1,0 +1,37 @@
+{
+  "id": "code-change-developer",
+  "name": "Code Change Developer",
+  "version": "3.0.0",
+  "description": "Proposes and, after human approval, writes reviewed changes to the live Wood-Booster project source tree. Also writes and safely runs a small targeted test for its own proposed change before you approve it, and can plan and apply changes spanning multiple files at once.",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "development",
+  "dependencies": [],
+  "capabilities": [
+    "code-change-writing",
+    "code-change-verification",
+    "multi-file-change-planning"
+  ],
+  "skills": [
+    "generate-code-change",
+    "write-code-change",
+    "generate-verification-test",
+    "run-verification-test",
+    "generate-change-plan"
+  ],
+  "tools": [
+    "file"
+  ],
+  "workflows": [
+    "generate-code-change-workflow",
+    "write-code-change-workflow",
+    "generate-verification-test-workflow",
+    "run-verification-test-workflow",
+    "generate-change-plan-workflow"
+  ],
+  "permissions": [
+    "codechange.write",
+    "filesystem.write"
+  ],
+  "entry": "index.js"
+}

@@ -82,6 +82,20 @@ const groups = [
     items: [
 
       {
+        label: "Työpöytä",
+        path: "/desktop",
+        icon: "⧉"
+      },
+
+
+      {
+        label: "Dev Studio",
+        path: "/dev-studio",
+        icon: "λ"
+      },
+
+
+      {
         label: "Settings",
         path: "/settings",
         icon: "⚙"
@@ -115,10 +129,12 @@ function Sidebar() {
       "
     >
 
-      {/* Himmennetty puusyy-tausta - sama resepti kuin aiemmin kokeiltu
-          dashboard-tekstuuri, mutta kiinnitettynä sivupalkin omaan
+      {/* Himmennetty taustakuva - kiinnitettynä sivupalkin omaan
           laatikkoon (position: absolute) niin ettei se vieri listan
-          mukana kun sivupalkki itse on scrollattavissa. */}
+          mukana kun sivupalkki itse on scrollattavissa. Marc: "kuva
+          tulee myös... vasemman sivupaneelin taustakuvaksi" - sama
+          panel-texture.jpg kuin muuallakin sovelluksessa (aiemmin
+          dashboard-texture.jpg). */}
       <div
         className="
           pointer-events-none
@@ -130,7 +146,7 @@ function Sidebar() {
           opacity-[0.12]
         "
         style={{
-          backgroundImage: "url('/branding/dashboard-texture.jpg')",
+          backgroundImage: "url('/branding/panel-texture.jpg')",
         }}
         aria-hidden="true"
       />

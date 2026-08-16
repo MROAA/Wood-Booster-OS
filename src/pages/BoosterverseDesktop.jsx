@@ -1,20 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import WindowFrame from '../components/desktop/WindowFrame.jsx';
-import TerminalApp from '../components/desktop/TerminalApp.jsx';
-import VirtualWorkspacePanel from '../components/workspace/VirtualWorkspacePanel.jsx';
-import Projects from './Projects.jsx';
-import Settings from './Settings.jsx';
-import SystemPulse from './SystemPulse.jsx';
-import SpacemonkeyChat from './SpacemonkeyChat.jsx';
-import Knowledge from './Knowledge.jsx';
-import KnowledgeUpload from './KnowledgeUpload.jsx';
-import Memory from './Memory.jsx';
-import SpacemonkeyBrain from './SpacemonkeyBrain.jsx';
-import Tools from './Tools.jsx';
-import DevStudio from './DevStudio.jsx';
-import ProjectWorkspace from './ProjectWorkspace.jsx';
-import SpiderSolitaire from './SpiderSolitaire.jsx';
-import GitGuardianCard from '../components/systemPulse/GitGuardianCard.jsx';
+import { APPS, useDesktop } from '../context/DesktopContext.jsx';
 import './BoosterverseDesktop.css';
 
 const WORKSPACE_API = 'http://127.0.0.1:8002/api/workspace';
@@ -25,6 +11,7 @@ const DRAG_ICON_TYPE = 'application/x-wb-icon-key';
 const ICON_POSITIONS_KEY = 'wb-desktop-icon-positions';
 const ICON_WIDTH = 84;
 const ICON_HEIGHT = 92;
+const TRASH_FOLDER_NAME = 'Roskakori';
 
 const FILE_CATEGORY_ICON = {
   image: '🖼️',
@@ -43,46 +30,24 @@ function loadIconPositions() {
   }
 }
 
-const APPS = {
-  explorer: { title: 'Tiedostonhallinta', icon: '📁', component: VirtualWorkspacePanel, defaultWidth: 820, defaultHeight: 600 },
-  terminal: { title: 'Pääte (fish)', icon: '💻', component: TerminalApp, defaultWidth: 760, defaultHeight: 500 },
-  projects: { title: 'Projektit', icon: '📁', component: Projects, defaultWidth: 800, defaultHeight: 560 },
-  spacemonkey: { title: 'Spacemonkey', icon: '🐒', component: SpacemonkeyChat, defaultWidth: 520, defaultHeight: 600 },
-  systempulse: { title: 'System Pulse', icon: '🧠', component: SystemPulse, defaultWidth: 700, defaultHeight: 650 },
-  gitguardian: { title: 'Git Guardian', icon: '🛡', component: GitGuardianCard, defaultWidth: 480, defaultHeight: 520 },
-  knowledge: { title: 'Knowledge', icon: '◌', component: Knowledge, defaultWidth: 820, defaultHeight: 620 },
-  knowledgeupload: { title: 'Tiedostojen lataus', icon: '📥', component: KnowledgeUpload, defaultWidth: 560, defaultHeight: 520 },
-  memory: { title: 'Memory', icon: '◈', component: Memory, defaultWidth: 780, defaultHeight: 620 },
-  spacemonkeybrain: { title: 'Spacemonkey Brain', icon: '⬡', component: SpacemonkeyBrain, defaultWidth: 660, defaultHeight: 560 },
-  tools: { title: 'Tools', icon: '▨', component: Tools, defaultWidth: 820, defaultHeight: 620 },
-  devstudio: { title: 'Dev Studio', icon: 'λ', component: DevStudio, defaultWidth: 900, defaultHeight: 650 },
-  projectworkspace: { title: 'Projektityötila', icon: '🗂', component: ProjectWorkspace, defaultWidth: 920, defaultHeight: 600 },
-  spidersolitaire: { title: 'Spider-pasianssi', icon: '♤', component: SpiderSolitaire, defaultWidth: 900, defaultHeight: 650 },
-  settings: { title: 'Asetukset', icon: '⚙', component: Settings, defaultWidth: 700, defaultHeight: 600 },
-};
-
-function createWindow(app, zIndex) {
-  return {
-    id: `${app}-${Date.now()}`,
-    app,
-    title: APPS[app].title,
-    icon: APPS[app].icon,
-    x: 140 + Math.round(Math.random() * 60),
-    y: 90 + Math.round(Math.random() * 40),
-    width: APPS[app].defaultWidth,
-    height: APPS[app].defaultHeight,
-    zIndex,
-    minimized: false,
-    maximized: false,
-  };
-}
-
 export default function BoosterverseDesktop({ onExit }) {
-  const [windows, setWindows] = useState(() => []);
-  const [nextZ, setNextZ] = useState(1);
-  const [startOpen, setStartOpen] = useState(false);
+  const {
+    windows,
+    startOpen,
+    setStartOpen,
+    search,
+    setSearch,
+    setIsDesktopActive,
+    openApp,
+    focusWindow,
+    moveWindow,
+    resizeWindow,
+    closeWindow,
+    minimizeWindow,
+    maximizeWindow,
+    minimizeAll,
+  } = useDesktop();
   const [clock, setClock] = useState(new Date());
-  const [search, setSearch] = useState('');
   const [showDesktopIcons, setShowDesktopIcons] = useState(true);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [contextMenu, setContextMenu] = useState(null);
@@ -97,6 +62,10 @@ export default function BoosterverseDesktop({ onExit }) {
   const [iconPositions, setIconPositions] = useState(loadIconPositions);
   const [dragOverIconKey, setDragOverIconKey] = useState(null);
   const [pulseStatus, setPulseStatus] = useState({ online: null, disk: null, git: null });
+  const [rootItemsLoaded, setRootItemsLoaded] = useState(false);
+  const [trashFolderId, setTrashFolderId] = useState(null);
+  const [trashCount, setTrashCount] = useState(0);
+  const trashEnsuredRef = useRef(false);
 
   useEffect(() => {
     // Tehtäväpalkin tarjonta-alue näytti aiemmin pelkkiä koriste-emojeja
@@ -138,14 +107,67 @@ export default function BoosterverseDesktop({ onExit }) {
     // ikkunaa nähdäkseen mitä sinne on tallennettu.
     fetch(`${WORKSPACE_API}/folders`)
       .then((res) => (res.ok ? res.json() : { folders: [], files: [] }))
-      .then((data) => setRootItems({ folders: data.folders || [], files: data.files || [] }))
-      .catch(() => {});
+      .then((data) => {
+        setRootItems({ folders: data.folders || [], files: data.files || [] });
+        setRootItemsLoaded(true);
+      })
+      .catch(() => setRootItemsLoaded(true));
   }, [refreshCounter]);
+
+  useEffect(() => {
+    // Roskakori on ihan tavallinen kansio, ei erikoiskäsitelty backendissä -
+    // varmistetaan että se on olemassa juurikansiossa (luodaan kerran jos
+    // puuttuu) ja piilotetaan se sitten normaalista kansiolistasta, koska se
+    // saa oman kiinteän kuvakkeensa työpöydän kulmassa. rootItemsLoaded
+    // odottaa ensimmäisen oikean haun valmistumista, jottei tyhjä
+    // alkutilanne ehdi luoda ylimääräistä kansiota ennen kuin tiedetään
+    // onko sellainen jo olemassa.
+    if (!rootItemsLoaded) return;
+    const existing = rootItems.folders.find((f) => f.name === TRASH_FOLDER_NAME);
+    if (existing) {
+      setTrashFolderId(existing.id);
+      return;
+    }
+    if (trashEnsuredRef.current) return;
+    trashEnsuredRef.current = true;
+    fetch(`${WORKSPACE_API}/folders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: TRASH_FOLDER_NAME, parent_id: null }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((folder) => {
+        setTrashFolderId(folder.id);
+        setRefreshCounter((c) => c + 1);
+      })
+      .catch(() => {});
+  }, [rootItemsLoaded, rootItems.folders]);
+
+  useEffect(() => {
+    if (!trashFolderId) {
+      setTrashCount(0);
+      return;
+    }
+    fetch(`${WORKSPACE_API}/folders?parent_id=${encodeURIComponent(trashFolderId)}`)
+      .then((res) => (res.ok ? res.json() : { folders: [], files: [] }))
+      .then((data) => setTrashCount((data.folders?.length || 0) + (data.files?.length || 0)))
+      .catch(() => {});
+  }, [trashFolderId, refreshCounter]);
 
   useEffect(() => {
     const interval = setInterval(() => setClock(new Date()), 30 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    // Kertoo DesktopContextille että oikea ikkunointi-UI on juuri nyt
+    // näkyvissä (esim. DevChatPanel.jsx tarkistaa tämän ennen kuin
+    // yrittää avata tulosikkunan - suoralla /dev-studio-reitillä tätä
+    // komponenttia ei ole kiinnitetty, jolloin ikkunan avaus olisi
+    // näkymätön no-op).
+    setIsDesktopActive(true);
+    return () => setIsDesktopActive(false);
+  }, [setIsDesktopActive]);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -158,48 +180,6 @@ export default function BoosterverseDesktop({ onExit }) {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [contextMenu]);
-
-  function focusWindow(id) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, zIndex: nextZ, minimized: false } : w)));
-    setNextZ((z) => z + 1);
-  }
-
-  function moveWindow(id, x, y) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, x, y } : w)));
-  }
-
-  function resizeWindow(id, width, height) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, width, height } : w)));
-  }
-
-  function closeWindow(id) {
-    setWindows((prev) => prev.filter((w) => w.id !== id));
-  }
-
-  function minimizeWindow(id) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, minimized: true } : w)));
-  }
-
-  function maximizeWindow(id) {
-    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w)));
-  }
-
-  function minimizeAll() {
-    setWindows((prev) => prev.map((w) => ({ ...w, minimized: true })));
-    setStartOpen(false);
-  }
-
-  function openApp(app) {
-    setStartOpen(false);
-    setSearch('');
-    const existing = windows.find((w) => w.app === app);
-    if (existing) {
-      focusWindow(existing.id);
-      return;
-    }
-    setWindows((prev) => [...prev, createWindow(app, nextZ)]);
-    setNextZ((z) => z + 1);
-  }
 
   function handleDesktopContextMenu(e) {
     e.preventDefault();
@@ -248,6 +228,25 @@ export default function BoosterverseDesktop({ onExit }) {
         setRefreshCounter((c) => c + 1);
       })
       .catch(() => setDropFeedback({ message: 'Kansion luonti epäonnistui.', tone: 'error' }));
+  }
+
+  function handleEmptyTrash() {
+    setContextMenu(null);
+    if (!trashFolderId) return;
+    fetch(`${WORKSPACE_API}/folders?parent_id=${encodeURIComponent(trashFolderId)}`)
+      .then((res) => (res.ok ? res.json() : { folders: [], files: [] }))
+      .then((data) => {
+        const files = data.files || [];
+        if (files.length === 0) return Promise.resolve([]);
+        return Promise.allSettled(
+          files.map((f) => fetch(`${WORKSPACE_API}/files/${f.id}`, { method: 'DELETE' }))
+        );
+      })
+      .then(() => {
+        setDropFeedback({ message: 'Roskakori tyhjennetty.', tone: 'success' });
+        setRefreshCounter((c) => c + 1);
+      })
+      .catch(() => setDropFeedback({ message: 'Roskakorin tyhjennys epäonnistui.', tone: 'error' }));
   }
 
   function handleDesktopDragOver(e) {
@@ -405,7 +404,7 @@ export default function BoosterverseDesktop({ onExit }) {
     }
     return (
       <div className="desktop-app-scroll">
-        <AppComponent />
+        <AppComponent {...w.props} />
       </div>
     );
   }
@@ -428,14 +427,16 @@ export default function BoosterverseDesktop({ onExit }) {
       isFile: false,
       onOpen: () => openApp(key),
     })),
-    ...rootItems.folders.map((folder) => ({
-      key: `folder:${folder.id}`,
-      glyph: '📁',
-      label: folder.name,
-      isFolder: true,
-      isFile: false,
-      onOpen: () => openApp('explorer'),
-    })),
+    ...rootItems.folders
+      .filter((folder) => folder.id !== trashFolderId)
+      .map((folder) => ({
+        key: `folder:${folder.id}`,
+        glyph: '📁',
+        label: folder.name,
+        isFolder: true,
+        isFile: false,
+        onOpen: () => openApp('explorer'),
+      })),
     ...rootItems.files.map((file) => ({
       key: `file:${file.id}`,
       glyph: FILE_CATEGORY_ICON[file.category] || FILE_CATEGORY_ICON.generic,
@@ -531,6 +532,40 @@ export default function BoosterverseDesktop({ onExit }) {
         </div>
       )}
 
+      {trashFolderId && (
+        <button
+          className={`win-desktop-icon win-desktop-trash ${dragOverIconKey === 'trash' ? 'win-desktop-icon-drop-target' : ''}`}
+          onDragOver={(e) => {
+            if (!e.dataTransfer.types.includes(DRAG_FILE_TYPE)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            setDragOverIconKey('trash');
+          }}
+          onDragLeave={() => setDragOverIconKey((prev) => (prev === 'trash' ? null : prev))}
+          onDrop={(e) => {
+            if (!e.dataTransfer.types.includes(DRAG_FILE_TYPE)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            setDragOverIconKey(null);
+            const fileId = e.dataTransfer.getData(DRAG_FILE_TYPE);
+            if (fileId) moveFileToFolder(fileId, trashFolderId);
+          }}
+          onDoubleClick={() => openApp('explorer')}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setStartOpen(false);
+            const rect = desktopRef.current.getBoundingClientRect();
+            setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, kind: 'trash' });
+          }}
+          title={trashCount > 0 ? `Roskakori (${trashCount})` : 'Roskakori (tyhjä)'}
+        >
+          <span className="win-desktop-icon-glyph">{trashCount > 0 ? '🗑️' : '🗑'}</span>
+          <span className="win-desktop-icon-label">Roskakori</span>
+          {trashCount > 0 && <span className="win-desktop-trash-badge">{trashCount}</span>}
+        </button>
+      )}
+
       {windows.map((w) => (
         <WindowFrame
           key={w.id}
@@ -553,19 +588,27 @@ export default function BoosterverseDesktop({ onExit }) {
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <button onClick={handleCreateFolderFromContextMenu}>📁 Uusi kansio</button>
-          <button onClick={handleRefresh}>↻ Päivitä</button>
-          <button
-            onClick={() => {
-              setShowDesktopIcons((v) => !v);
-              setContextMenu(null);
-            }}
-          >
-            {showDesktopIcons ? '⬚ Piilota työpöydän kuvakkeet' : '⬚ Näytä työpöydän kuvakkeet'}
-          </button>
-          <button className="disabled" disabled title="Tulossa myöhemmin">
-            🎨 Mukauta
-          </button>
+          {contextMenu.kind === 'trash' ? (
+            <button onClick={handleEmptyTrash} disabled={trashCount === 0}>
+              🗑️ Tyhjennä roskakori{trashCount > 0 ? ` (${trashCount})` : ''}
+            </button>
+          ) : (
+            <>
+              <button onClick={handleCreateFolderFromContextMenu}>📁 Uusi kansio</button>
+              <button onClick={handleRefresh}>↻ Päivitä</button>
+              <button
+                onClick={() => {
+                  setShowDesktopIcons((v) => !v);
+                  setContextMenu(null);
+                }}
+              >
+                {showDesktopIcons ? '⬚ Piilota työpöydän kuvakkeet' : '⬚ Näytä työpöydän kuvakkeet'}
+              </button>
+              <button className="disabled" disabled title="Tulossa myöhemmin">
+                🎨 Mukauta
+              </button>
+            </>
+          )}
         </div>
       )}
 

@@ -231,40 +231,13 @@ export async function buildAgentContext(message){
 `
 
 ==================================================
-SPACEMONKEY IDENTITY LAYER
+SPACEMONKEY GODFILES
 ==================================================
 
-
-Olet Spacemonkey.
-
-
-Spacemonkey on henkilökohtainen
-AI-käyttöjärjestelmän älykerros.
-
-
-CREATOR AUTHORITY:
-
-
-Spacemonkeyn luoja:
-
-Marc Järvinen.
-
-
-Marc Järvinen on:
-
-- alkuperäinen luoja
-- suunnittelija
-- järjestelmän kehittäjä
-
-
-IDENTITEETTISÄÄNTÖ:
-
-
-Älä väitä ettet tiedä luojaasi.
-
-
-Älä lisää muita luojia ilman lähdettä.
-
+(Spacemonkeyn identiteetti ja perussäännöt tulevat jo
+AI SYSTEM -kontekstin SPACEMONKEY CORE IDENTITY -osiosta
+joka lisätään jokaiseen viestiin - tämä lohko lisää vain
+godfile-sisällön päälle, ei toista identiteettiä.)
 
 
 GODFILES:

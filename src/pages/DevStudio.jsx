@@ -2,16 +2,18 @@ import { useEffect, useState } from "react"
 
 import { apiGet, apiPost, apiPut } from "../api/client"
 
+import ChatPanel from "../components/ai/ChatPanel"
 
-const STATUS_LABELS = {
-  draft: "Luonnos",
-  approved: "Hyväksytty",
-  written: "Kirjoitettu levylle",
-  write_failed: "Kirjoitus epäonnistui",
-}
+import MultiFileChatPanel from "../components/devstudio/MultiFileChatPanel"
+
+import HistoryPanel from "../components/devstudio/HistoryPanel"
+
+import { DRAFT_STATUS_LABELS } from "../components/devstudio/statusLabels"
 
 
 function DevStudio() {
+  const [activeTab, setActiveTab] = useState("chat")
+
   const [drafts, setDrafts] = useState([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
@@ -269,6 +271,33 @@ function DevStudio() {
     }
   }
 
+  async function revertDraft(draft) {
+    if (!window.confirm("Peruuta tämä muutos ja palauta aiempi tila?")) {
+      return
+    }
+
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/revert`, {})
+
+      updateDraftInList(updated)
+    } catch (revertError) {
+      setErrorMessage(revertError.message)
+
+      try {
+        const refreshed = await apiGet("/python-drafts")
+
+        setDrafts(Array.isArray(refreshed) ? refreshed : [])
+      } catch {
+        // ignore refresh failure, error message already shown
+      }
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
   return (
     <div className="space-y-8">
       <header>
@@ -296,11 +325,139 @@ function DevStudio() {
           max-w-3xl
           text-[var(--wood-muted)]
         ">
-          Pyydä Python-koodia suomeksi, tarkista ja muokkaa
-          tulosta, hyväksy, ja kirjoita levylle vasta sen jälkeen.
-          Mitään ei koskaan kirjoiteta automaattisesti.
+          Pyydä muutosta luonnollisella kielellä, tarkista se diffinä,
+          hyväksy, ja kirjoita levylle vasta sen jälkeen. Mitään ei
+          koskaan kirjoiteta automaattisesti.
         </p>
+
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab("chat")}
+            className={`
+              rounded-full
+              border
+              px-4
+              py-1.5
+              text-sm
+              font-medium
+              transition-colors
+              ${
+                activeTab === "chat"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Chat
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("multifile")}
+            className={`
+              rounded-full
+              border
+              px-4
+              py-1.5
+              text-sm
+              font-medium
+              transition-colors
+              ${
+                activeTab === "multifile"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Useampi tiedosto
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("python")}
+            className={`
+              rounded-full
+              border
+              px-4
+              py-1.5
+              text-sm
+              font-medium
+              transition-colors
+              ${
+                activeTab === "python"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Python-työkalut
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("history")}
+            className={`
+              rounded-full
+              border
+              px-4
+              py-1.5
+              text-sm
+              font-medium
+              transition-colors
+              ${
+                activeTab === "history"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Historia
+          </button>
+        </div>
       </header>
+
+      {activeTab === "chat" && (
+        <section className="
+          h-[600px]
+          rounded-2xl
+          border
+          border-[var(--wood-border)]
+          bg-[var(--wood-panel)]
+          overflow-hidden
+        ">
+          <ChatPanel />
+        </section>
+      )}
+
+      {activeTab === "multifile" && (
+        <section className="
+          h-[600px]
+          rounded-2xl
+          border
+          border-[var(--wood-border)]
+          bg-[var(--wood-panel)]
+          overflow-hidden
+        ">
+          <MultiFileChatPanel />
+        </section>
+      )}
+
+      {activeTab === "history" && (
+        <section className="
+          h-[600px]
+          rounded-2xl
+          border
+          border-[var(--wood-border)]
+          bg-[var(--wood-panel)]
+          overflow-hidden
+        ">
+          <HistoryPanel />
+        </section>
+      )}
+
+      {activeTab === "python" && (
+      <>
 
       {errorMessage && (
         <div className="
@@ -732,15 +889,19 @@ function DevStudio() {
             onSave={() => saveDraft(draft)}
             onApprove={() => approveDraft(draft)}
             onWrite={() => writeDraft(draft)}
+            onRevert={() => revertDraft(draft)}
           />
         ))}
       </section>
+
+      </>
+      )}
     </div>
   )
 }
 
 
-function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite }) {
+function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert }) {
   return (
     <article className="
       rounded-2xl
@@ -843,6 +1004,26 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite }) {
         >
           Kirjoita levylle
         </button>
+
+        {draft.status === "written" && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-red-900
+              px-3
+              py-1.5
+              text-sm
+              text-red-400
+              disabled:opacity-50
+            "
+            disabled={busy}
+            onClick={onRevert}
+          >
+            Peruuta
+          </button>
+        )}
       </div>
     </article>
   )
@@ -850,7 +1031,7 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite }) {
 
 
 function StatusBadge({ status }) {
-  const label = STATUS_LABELS[status] || status
+  const label = DRAFT_STATUS_LABELS[status] || status
 
   const toneClass =
     status === "written"

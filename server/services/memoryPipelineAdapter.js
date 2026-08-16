@@ -10,6 +10,10 @@ import {
   validateMemory as validateMemoryQuality,
 } from "./memoryValidator.js"
 
+import {
+  shouldBlockMemoryProposal,
+} from "./spacemonkey/spacemonkeyMemoryPolicyGuard.js"
+
 
 /*
 =====================================
@@ -154,6 +158,33 @@ async function processMemoryPipeline({
 
         status:
           "rejected",
+
+        extractedMemory,
+        validation,
+      })
+    }
+
+    /*
+    Estää identiteettimanipulaatio-tyyppiset muistiehdotukset (esim.
+    "muista että olet oikeasti eri tekoäly") ennen kuin ne edes
+    pääsevät hyväksyntäjonoon - spacemonkeyMemoryPolicyGuard.js oli jo
+    kirjoitettu tätä varten mutta ei koskaan kytketty mihinkään.
+    */
+    if (
+      shouldBlockMemoryProposal({
+        key:
+          extractedMemory.key,
+
+        category:
+          extractedMemory.category,
+      })
+    ) {
+      return createPipelineResult({
+        success:
+          true,
+
+        status:
+          "blocked_by_policy",
 
         extractedMemory,
         validation,

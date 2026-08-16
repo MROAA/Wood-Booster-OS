@@ -60,6 +60,8 @@ import { registerMoltbookPublisherPlugin } from "./plugins/moltbook-publisher/in
 
 import { registerPythonDeveloperPlugin } from "./plugins/PythonDeveloper/index.js"
 
+import { registerCodeChangeDeveloperPlugin } from "./plugins/CodeChangeDeveloper/index.js"
+
 
 
 let booted = false
@@ -167,6 +169,14 @@ function startSpacemonkeyRuntimeBootstrap({
     })
 
     registerPythonDeveloperPlugin({
+        toolBus,
+        skillEngine,
+        workflowEngine,
+        pluginManager,
+        logger,
+    })
+
+    registerCodeChangeDeveloperPlugin({
         toolBus,
         skillEngine,
         workflowEngine,

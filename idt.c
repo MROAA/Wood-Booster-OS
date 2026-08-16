@@ -16,9 +16,23 @@ struct IDTPtr {
 struct IDTEntry idt[256];
 struct IDTPtr idt_ptr;
 
+/* Lukee nykyisen koodisegmenttivalitsimen (CS) suoraan prosessorilta
+sen sijaan etta oletettaisiin se olevan aina 0x08. Multiboot-
+standardi ei maarita mika GDT-asettelu bootloaderin pitaa jattaa
+jalkeensa - tama koodikanta oletti aiemmin kiinteasti 0x08:aa, mika
+aiheutti General Protection Fault -poikkeuksen (ja siita kaskyvan
+double faultin) heti kun ensimmainen laitteistokeskeytys yritti
+laueta, koska tassa GRUB/QEMU-yhdistelmassa todellinen CS onkin
+0x10. Todennettu QEMU:n "-d int" -keskeytyslokista suoraan. */
+static unsigned short current_code_selector() {
+    unsigned short cs;
+    __asm__ __volatile__("mov %%cs, %0" : "=r"(cs));
+    return cs;
+}
+
 void idt_set_gate(int n, unsigned int handler) {
     idt[n].offset_lowerbits = handler & 0xFFFF;
-    idt[n].selector = 0x08; // Kernel code segment
+    idt[n].selector = current_code_selector();
     idt[n].zero = 0;
     idt[n].type_attr = 0x8E; // Interrupt Gate
     idt[n].offset_higherbits = (handler >> 16) & 0xFFFF;
