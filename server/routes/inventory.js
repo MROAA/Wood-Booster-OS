@@ -601,6 +601,18 @@ export default function createInventoryRouter(prisma) {
         console.error(error)
 
 
+        if (error.code === "P2003") {
+
+          return res.status(400).json({
+
+            error:
+              "Materiaalia ei voi poistaa, koska siihen on jo ostotilauksia.",
+
+          })
+
+        }
+
+
 
         res.status(500).json({
 
