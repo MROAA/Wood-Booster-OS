@@ -248,6 +248,36 @@ function DevStudio() {
     }
   }
 
+  async function reviseDraft(draft, feedback) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/revise`, { feedback })
+
+      updateDraftInList(updated)
+    } catch (reviseError) {
+      setErrorMessage(reviseError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function rejectDraft(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/reject`, {})
+
+      updateDraftInList(updated)
+    } catch (rejectError) {
+      setErrorMessage(rejectError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
   async function writeDraft(draft) {
     setBusyDraftId(draft.id)
     setErrorMessage("")
@@ -890,6 +920,8 @@ function DevStudio() {
             onApprove={() => approveDraft(draft)}
             onWrite={() => writeDraft(draft)}
             onRevert={() => revertDraft(draft)}
+            onRevise={feedback => reviseDraft(draft, feedback)}
+            onReject={() => rejectDraft(draft)}
           />
         ))}
       </section>
@@ -901,7 +933,20 @@ function DevStudio() {
 }
 
 
-function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert }) {
+function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject }) {
+  const [reviseFeedback, setReviseFeedback] = useState("")
+
+  const isFinished = draft.status === "written" || draft.status === "rejected"
+
+  function submitRevise() {
+    if (!reviseFeedback.trim()) {
+      return
+    }
+
+    onRevise(reviseFeedback.trim())
+    setReviseFeedback("")
+  }
+
   return (
     <article className="
       rounded-2xl
@@ -940,7 +985,7 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
         rows={10}
         value={draft.code}
         onChange={event => onCodeChange(event.target.value)}
-        disabled={draft.status === "written"}
+        disabled={isFinished}
       />
 
       {draft.status === "write_failed" && draft.writeError && (
@@ -960,7 +1005,7 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
             text-[var(--wood-text)]
             disabled:opacity-50
           "
-          disabled={busy || draft.status === "written"}
+          disabled={busy || isFinished}
           onClick={onSave}
         >
           Tallenna muokkaukset
@@ -1024,7 +1069,68 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
             Peruuta
           </button>
         )}
+
+        {!isFinished && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-red-900
+              px-3
+              py-1.5
+              text-sm
+              text-red-400
+              disabled:opacity-50
+            "
+            disabled={busy}
+            onClick={onReject}
+          >
+            Hylkää
+          </button>
+        )}
       </div>
+
+      {draft.status === "draft" && (
+        <div className="mt-4 space-y-2">
+          <textarea
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-xs
+              text-[var(--wood-text)]
+              placeholder:text-[var(--wood-muted)]
+            "
+            rows={2}
+            value={reviseFeedback}
+            onChange={event => setReviseFeedback(event.target.value)}
+            disabled={busy}
+            placeholder="Pyydä muutosta tähän luonnokseen, esim. 'lisää docstring'"
+          />
+
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              px-3
+              py-1.5
+              text-sm
+              text-[var(--wood-text)]
+              disabled:opacity-50
+            "
+            disabled={busy || !reviseFeedback.trim()}
+            onClick={submitRevise}
+          >
+            Pyydä muutosta
+          </button>
+        </div>
+      )}
     </article>
   )
 }
