@@ -18,7 +18,7 @@ import ActionStatusCard, {
   createQueueResultMessage,
 } from "./ActionStatusCard"
 
-import { apiPut } from "../../api/client"
+import { apiPut, apiPost, apiDelete } from "../../api/client"
 
 import {
   createRuntimeContext,
@@ -122,6 +122,20 @@ function ChatPanel() {
   const [
     resolvingIndex,
     setResolvingIndex
+  ] = useState(null)
+
+
+
+  const [
+    previewingSetId,
+    setPreviewingSetId
+  ] = useState(null)
+
+
+
+  const [
+    previewBusySetId,
+    setPreviewBusySetId
   ] = useState(null)
 
 
@@ -280,6 +294,56 @@ function ChatPanel() {
     } finally {
 
       setBusySetId(null)
+
+    }
+
+  }
+
+
+
+  async function startPreviewForSet(setId) {
+
+    setPreviewBusySetId(setId)
+
+    try {
+
+      const result = await apiPost(`/dev-draft-sets/${setId}/preview`)
+
+      window.open(result.url, "_blank")
+
+      setPreviewingSetId(setId)
+
+    } catch (error) {
+
+      console.error("Esikatselun käynnistys epäonnistui:", error)
+
+    } finally {
+
+      setPreviewBusySetId(null)
+
+    }
+
+  }
+
+
+
+  async function stopPreviewForSet(setId) {
+
+    setPreviewBusySetId(setId)
+
+    try {
+
+      await apiDelete(`/dev-draft-sets/${setId}/preview`)
+
+    } catch (error) {
+
+      console.error("Esikatselun pysäytys epäonnistui:", error)
+
+    } finally {
+
+      setPreviewingSetId(null)
+
+      setPreviewBusySetId(null)
 
     }
 
@@ -786,6 +850,10 @@ function ChatPanel() {
                       onReject={() => rejectSet(item.set.id)}
                       onWrite={() => writeSet(item.set.id)}
                       onReviseFile={(fileId, feedback) => reviseFile(item.set.id, fileId, feedback)}
+                      onPreview={() => startPreviewForSet(item.set.id)}
+                      onStopPreview={() => stopPreviewForSet(item.set.id)}
+                      previewing={previewingSetId === item.set.id}
+                      previewBusy={previewBusySetId === item.set.id}
                     />
 
                   ) : item.kind === "confirm_koodi" ? (

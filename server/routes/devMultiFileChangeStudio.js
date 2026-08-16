@@ -18,6 +18,10 @@ import { verifyProposedChange } from "../services/devStudio/verifyProposedChange
 
 import { triggerGitGuardianBackup } from "../services/devStudio/gitGuardianBackup.js"
 
+import { startPreview, stopPreview, getPreviewStatus } from "../services/devStudio/previewServer.js"
+
+import { resolveSafePreviewFilePath } from "../services/spacemonkey/plugins/CodeChangeDeveloper/skills/previewSandbox.js"
+
 /*
  * Dev Studion "Useampi tiedosto" -tilan reitit. Kolme vaihetta, jotka
  * Marc nimenomaan valitsi haastattelussa:
@@ -299,6 +303,11 @@ export default function createDevMultiFileChangeRouter(prisma) {
         })
       }
 
+      // Esikatselu näyttää vielä hyväksymätöntä sisältöä - kun paketti
+      // hyväksytään, se ei enää ole ajankohtainen (seuraava askel on
+      // kirjoitus, ei enää muokkaus).
+      await stopPreview().catch(() => {})
+
       const set = await prisma.codeChangeDraftSet.update({
         where: { id: setId },
         data: { status: "approved" },
@@ -333,6 +342,8 @@ export default function createDevMultiFileChangeRouter(prisma) {
           error: "Jo levylle kirjoitettua pakettia ei voi hylätä.",
         })
       }
+
+      await stopPreview().catch(() => {})
 
       const set = await prisma.codeChangeDraftSet.update({
         where: { id: setId },
@@ -387,6 +398,8 @@ export default function createDevMultiFileChangeRouter(prisma) {
       const toolBus = getSpacemonkeyToolBus()
 
       triggerGitGuardianBackup()
+
+      await stopPreview().catch(() => {})
 
       const writableFiles = set.files.filter(
         file => file.status === "generated" || file.status === "write_failed",
@@ -674,6 +687,103 @@ export default function createDevMultiFileChangeRouter(prisma) {
       const updatedSet = await fetchSetWithFiles(setId)
 
       response.json(withFiles(updatedSet))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
+   * POST /api/dev-draft-sets/:id/preview
+   *
+   * Käynnistää live-esikatselun (Phase 7, osa C) - näyttää paketin
+   * ehdotetun sisällön OIKEASSA sovelluksessa, oikeassa ympäristössä,
+   * ilman että mitään kirjoitetaan levylle. Vain src/**-tiedostot
+   * esikatsellaan; server/**-tiedostot suodatetaan pois
+   * (previewSandbox.js) koska niiden ajaminen osuisi oikeaan
+   * tietokantaan/tiedostojärjestelmään. Vain yksi esikatselu kerrallaan
+   * koko taustapalvelimelle - tämä käynnistys tappaa aina edellisen.
+   */
+  router.post("/dev-draft-sets/:id/preview", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const set = await fetchSetWithFiles(setId)
+
+      if (!set) {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      const previewableFiles = []
+
+      const skippedFiles = []
+
+      for (const file of set.files) {
+        if (file.blocked || !file.proposedCode) {
+          continue
+        }
+
+        const sandboxResult = resolveSafePreviewFilePath(file.filePath)
+
+        if (sandboxResult.ok) {
+          previewableFiles.push({
+            filePath: file.filePath,
+            action: file.action,
+            proposedCode: file.proposedCode,
+          })
+        } else {
+          skippedFiles.push(file.filePath)
+        }
+      }
+
+      if (previewableFiles.length === 0) {
+        return response.status(409).json({
+          error: "Paketissa ei ole yhtään esikatseltavaa (src/**) tiedostoa.",
+          code: "no_previewable_files",
+          skippedFiles,
+        })
+      }
+
+      const { url } = await startPreview({ setId, files: previewableFiles })
+
+      response.status(201).json({ url, skippedFiles })
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
+   * DELETE /api/dev-draft-sets/:id/preview
+   *
+   * Pysäyttää käynnissä olevan esikatselun (jos jokin on käynnissä -
+   * "parasta yritystä", ei virhettä jos mitään ei ole käynnissä).
+   */
+  router.delete("/dev-draft-sets/:id/preview", async (request, response) => {
+    try {
+      const result = await stopPreview()
+
+      response.json(result)
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
+   * GET /api/dev-draft-sets/:id/preview
+   *
+   * Esikatselun tila - jotta "Esikatsele"-napin tila ("pysäytä
+   * esikatselu" vs. "Esikatsele") säilyy sivun uudelleenlatauksen yli.
+   */
+  router.get("/dev-draft-sets/:id/preview", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      response.json(getPreviewStatus(setId))
     } catch (error) {
       console.error(error)
 

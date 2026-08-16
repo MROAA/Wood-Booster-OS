@@ -2,7 +2,7 @@ import { useState } from "react"
 
 import SpacemonkeyIcon from "../branding/SpacemonkeyIcon"
 
-import { apiPost, apiPut } from "../../api/client"
+import { apiPost, apiPut, apiDelete } from "../../api/client"
 
 import SetBubble from "./SetBubble"
 
@@ -13,6 +13,10 @@ function MultiFileChatPanel() {
   const [isThinking, setIsThinking] = useState(false)
 
   const [busySetId, setBusySetId] = useState(null)
+
+  const [previewingSetId, setPreviewingSetId] = useState(null)
+
+  const [previewBusySetId, setPreviewBusySetId] = useState(null)
 
   const [errorMessage, setErrorMessage] = useState("")
 
@@ -189,6 +193,56 @@ function MultiFileChatPanel() {
 
   }
 
+  async function startPreviewForSet(setId) {
+
+    setPreviewBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const result = await apiPost(`/dev-draft-sets/${setId}/preview`)
+
+      window.open(result.url, "_blank")
+
+      setPreviewingSetId(setId)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setPreviewBusySetId(null)
+
+    }
+
+  }
+
+  async function stopPreviewForSet(setId) {
+
+    setPreviewBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      await apiDelete(`/dev-draft-sets/${setId}/preview`)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setPreviewingSetId(null)
+
+      setPreviewBusySetId(null)
+
+    }
+
+  }
+
   async function writeSet(setId) {
 
     setBusySetId(setId)
@@ -279,6 +333,10 @@ function MultiFileChatPanel() {
                       onReject={() => rejectSet(turn.set.id)}
                       onWrite={() => writeSet(turn.set.id)}
                       onReviseFile={(fileId, feedback) => reviseFile(turn.set.id, fileId, feedback)}
+                      onPreview={() => startPreviewForSet(turn.set.id)}
+                      onStopPreview={() => stopPreviewForSet(turn.set.id)}
+                      previewing={previewingSetId === turn.set.id}
+                      previewBusy={previewBusySetId === turn.set.id}
                     />
 
                   )
