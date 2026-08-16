@@ -17,7 +17,9 @@
     "review-python",
     "refactor-python",
     "debug-python",
-    "check-python-references"
+    "check-python-references",
+    "generate-python-test",
+    "run-python-test"
   ],
   "tools": [
     "file"
@@ -28,7 +30,9 @@
     "review-python-workflow",
     "refactor-python-workflow",
     "debug-python-workflow",
-    "check-python-references-workflow"
+    "check-python-references-workflow",
+    "generate-python-test-workflow",
+    "run-python-test-workflow"
   ],
   "permissions": [
     "python.write",

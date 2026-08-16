@@ -8,7 +8,7 @@ import MultiFileChatPanel from "../components/devstudio/MultiFileChatPanel"
 
 import HistoryPanel from "../components/devstudio/HistoryPanel"
 
-import { DRAFT_STATUS_LABELS } from "../components/devstudio/statusLabels"
+import { DRAFT_STATUS_LABELS, TEST_STATUS_DISPLAY } from "../components/devstudio/statusLabels"
 
 import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolvedReferences"
 
@@ -942,6 +942,8 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
 
   const unresolvedReferences = parseUnresolvedReferences(draft.unresolvedReferences)
 
+  const testDisplay = TEST_STATUS_DISPLAY[draft.testStatus]
+
   function submitRevise() {
     if (!reviseFeedback.trim()) {
       return
@@ -972,6 +974,15 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
 
         <StatusBadge status={draft.status} />
       </div>
+
+      {testDisplay && (
+        <div className={`mt-2 text-xs ${testDisplay.className}`}>
+          {testDisplay.icon} {testDisplay.label}
+          {draft.testStatus === "skipped" && draft.testSkippedReason && (
+            <span className="text-[var(--wood-muted)]"> — {draft.testSkippedReason}</span>
+          )}
+        </div>
+      )}
 
       {unresolvedReferences.length > 0 && (
         <div className="mt-3 rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">

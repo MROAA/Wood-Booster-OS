@@ -175,6 +175,14 @@ model PythonCodeDraft {
 
   unresolvedReferences String?
 
+  testCode String?
+
+  testStatus String?
+
+  testOutput String?
+
+  testSkippedReason String?
+
   writtenAt DateTime?
 
   createdAt DateTime @default(now())
