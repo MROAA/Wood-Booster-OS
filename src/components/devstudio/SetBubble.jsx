@@ -2,6 +2,8 @@ import { useState } from "react"
 
 import DiffView from "./DiffView"
 
+import { computeDiffDelta } from "./diffDelta"
+
 import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY } from "./statusLabels"
 
 import { parseUnresolvedReferences } from "./parseUnresolvedReferences"
@@ -59,13 +61,45 @@ function PlanFileRow({ file }) {
 
 }
 
-function FileReviewCard({ file, onRevise, busy }) {
+// Multitiedostosuunnitelmassa tiedosto avataan oletuksena auki jos se
+// tarvitsee Marcin huomiota heti - kaikki muu pysyy kiinni, koska
+// kompakti otsikkorivi (tiedostonimi + tila + rivimäärä) riittää
+// kertomaan ettei siihen tarvitse koskea.
+function shouldExpandByDefault(file) {
+
+  if (file.status === "conflict") {
+
+    return true
+
+  }
+
+  if (file.testStatus === "vacuous" || file.testStatus === "failed") {
+
+    return true
+
+  }
+
+  if (parseUnresolvedReferences(file.unresolvedReferences).length > 0) {
+
+    return true
+
+  }
+
+  return false
+
+}
+
+function FileReviewCard({ file, onRevise, busy, collapsible }) {
 
   const testDisplay = TEST_STATUS_DISPLAY[file.testStatus]
 
   const unresolvedReferences = parseUnresolvedReferences(file.unresolvedReferences)
 
   const [feedback, setFeedback] = useState("")
+
+  const [isOpen, setIsOpen] = useState(!collapsible || shouldExpandByDefault(file))
+
+  const delta = collapsible ? computeDiffDelta(file.diff) : null
 
   function submitRevise() {
 
@@ -94,117 +128,150 @@ function FileReviewCard({ file, onRevise, busy }) {
       "
     >
 
-      <div className="flex items-center justify-between gap-2">
+      <div
+        className={`flex items-center justify-between gap-2 ${collapsible ? "cursor-pointer" : ""}`}
+        onClick={collapsible ? () => setIsOpen(open => !open) : undefined}
+      >
 
         <span className="font-mono text-xs text-[var(--wood-text)]">
           {file.action === "create" ? "+ " : "~ "}
           {file.filePath}
         </span>
 
-        <span className="text-[10px] text-[var(--wood-muted)]">
-          {FILE_STATUS_LABELS[file.status] || file.status}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+
+          {
+            collapsible && (delta.added > 0 || delta.removed > 0) && (
+              <span className="font-mono text-[10px]">
+                {delta.added > 0 && <span className="text-emerald-400">+{delta.added}</span>}
+                {delta.added > 0 && delta.removed > 0 && " "}
+                {delta.removed > 0 && <span className="text-red-400">-{delta.removed}</span>}
+              </span>
+            )
+          }
+
+          <span className="text-[10px] text-[var(--wood-muted)]">
+            {FILE_STATUS_LABELS[file.status] || file.status}
+          </span>
+
+          {
+            collapsible && (
+              <span className="text-[10px] text-[var(--wood-muted)]">{isOpen ? "▴" : "▾"}</span>
+            )
+          }
+
+        </div>
 
       </div>
 
       {
-        file.status === "generate_failed" && file.generateError && (
-          <div className="text-xs text-red-400">{file.generateError}</div>
-        )
-      }
+        isOpen && (
 
-      {
-        file.status === "write_failed" && file.writeError && (
-          <div className="text-xs text-red-400">{file.writeError}</div>
-        )
-      }
+          <>
 
-      {
-        file.status === "conflict" && (
-          <div className="text-xs text-amber-400">
-            Tiedosto on muuttunut suunnitelman luonnin jälkeen.
-          </div>
-        )
-      }
-
-      <DiffView diff={file.diff} />
-
-      {
-        testDisplay && (
-          <div className={`text-xs ${testDisplay.className}`}>
-            {testDisplay.icon} {testDisplay.label}
             {
-              file.testStatus === "skipped" && file.testSkippedReason && (
-                <span className="text-[var(--wood-muted)]"> — {file.testSkippedReason}</span>
+              file.status === "generate_failed" && file.generateError && (
+                <div className="text-xs text-red-400">{file.generateError}</div>
               )
             }
-          </div>
-        )
-      }
 
-      {
-        unresolvedReferences.length > 0 && (
-          <div className="rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
-            ⚠ Koodi viittaa tiedostoon jota ei löydy projektista - tarkista ennen hyväksyntää:
-            <ul className="mt-1 list-disc pl-4 font-mono">
-              {
-                unresolvedReferences.map((reference, referenceIndex) => (
-                  <li key={referenceIndex}>{reference}</li>
-                ))
-              }
-            </ul>
-          </div>
-        )
-      }
+            {
+              file.status === "write_failed" && file.writeError && (
+                <div className="text-xs text-red-400">{file.writeError}</div>
+              )
+            }
 
-      {
-        file.status === "generated" && (
+            {
+              file.status === "conflict" && (
+                <div className="text-xs text-amber-400">
+                  Tiedosto on muuttunut suunnitelman luonnin jälkeen.
+                </div>
+              )
+            }
 
-          <div className="space-y-2 pt-1">
+            <DiffView diff={file.diff} />
 
-            <textarea
-              value={feedback}
-              onChange={event => setFeedback(event.target.value)}
-              disabled={busy}
-              rows={2}
-              placeholder="Pyydä muutosta tähän tiedostoon, esim. 'käytä eri muuttujan nimeä'"
-              className="
-                w-full
-                rounded-lg
-                border
-                border-[var(--wood-border)]
-                bg-[var(--wood-panel)]
-                p-2
-                text-xs
-                text-[var(--wood-text)]
-                placeholder:text-[var(--wood-muted)]
-                outline-none
-                focus:border-[var(--wood-accent)]
-              "
-            />
+            {
+              testDisplay && (
+                <div className={`text-xs ${testDisplay.className}`}>
+                  {testDisplay.icon} {testDisplay.label}
+                  {
+                    file.testStatus === "skipped" && file.testSkippedReason && (
+                      <span className="text-[var(--wood-muted)]"> — {file.testSkippedReason}</span>
+                    )
+                  }
+                </div>
+              )
+            }
 
-            <button
-              disabled={busy || !feedback.trim()}
-              onClick={submitRevise}
-              className="
-                rounded-full
-                border
-                border-[var(--wood-border)]
-                px-3
-                py-1
-                text-xs
-                font-medium
-                text-[var(--wood-text)]
-                transition-opacity
-                disabled:opacity-30
-                disabled:cursor-not-allowed
-                hover:border-[var(--wood-accent)]
-              "
-            >
-              Pyydä muutosta
-            </button>
+            {
+              unresolvedReferences.length > 0 && (
+                <div className="rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
+                  ⚠ Koodi viittaa tiedostoon jota ei löydy projektista - tarkista ennen hyväksyntää:
+                  <ul className="mt-1 list-disc pl-4 font-mono">
+                    {
+                      unresolvedReferences.map((reference, referenceIndex) => (
+                        <li key={referenceIndex}>{reference}</li>
+                      ))
+                    }
+                  </ul>
+                </div>
+              )
+            }
 
-          </div>
+            {
+              file.status === "generated" && (
+
+                <div className="space-y-2 pt-1">
+
+                  <textarea
+                    value={feedback}
+                    onChange={event => setFeedback(event.target.value)}
+                    disabled={busy}
+                    rows={2}
+                    placeholder="Pyydä muutosta tähän tiedostoon, esim. 'käytä eri muuttujan nimeä'"
+                    className="
+                      w-full
+                      rounded-lg
+                      border
+                      border-[var(--wood-border)]
+                      bg-[var(--wood-panel)]
+                      p-2
+                      text-xs
+                      text-[var(--wood-text)]
+                      placeholder:text-[var(--wood-muted)]
+                      outline-none
+                      focus:border-[var(--wood-accent)]
+                    "
+                  />
+
+                  <button
+                    disabled={busy || !feedback.trim()}
+                    onClick={submitRevise}
+                    className="
+                      rounded-full
+                      border
+                      border-[var(--wood-border)]
+                      px-3
+                      py-1
+                      text-xs
+                      font-medium
+                      text-[var(--wood-text)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-[var(--wood-accent)]
+                    "
+                  >
+                    Pyydä muutosta
+                  </button>
+
+                </div>
+
+              )
+            }
+
+          </>
 
         )
       }
@@ -362,6 +429,7 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                   file={file}
                   busy={busy}
                   onRevise={feedback => onReviseFile(file.id, feedback)}
+                  collapsible={visibleFiles.length > 1}
                 />
               ))
             }

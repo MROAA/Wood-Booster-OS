@@ -2,7 +2,7 @@
  * Diff-näkymä. Diff on jo laskettu palvelimella (ks.
  * devCodeChangeStudio.js:n diffLines-kutsu), joten frontend ei
  * tarvitse omaa diff-kirjastoa - vain väritys valmiille
- * {added, removed, value}-paloille.
+ * {added, removed, value, count}-paloille.
  *
  * Jaettu DevChatPanel.jsx:n ja VerificationResultViewer.jsx:n kesken,
  * jotta diffin piirtotapa ei voi eriytyä kahdeksi hieman erilaiseksi
