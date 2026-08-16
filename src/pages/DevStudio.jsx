@@ -14,6 +14,7 @@ import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolv
 
 import SavedPromptsRow from "../components/devstudio/SavedPromptsRow"
 import PlaybookPicker from "../components/devstudio/PlaybookPicker"
+import FilePicker from "../components/devstudio/FilePicker"
 
 import { useElapsedSeconds } from "../components/devstudio/useElapsedSeconds"
 
@@ -628,19 +629,11 @@ function DevStudio() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <input
-            className="
-              w-full
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              bg-[var(--wood-bg)]
-              p-3
-              text-[var(--wood-text)]
-            "
+          <FilePicker
             value={explainFilePath}
             onChange={event => setExplainFilePath(event.target.value)}
             placeholder="esim. spc.py"
+            extensions={[".py"]}
           />
 
           <button
@@ -702,19 +695,11 @@ function DevStudio() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <input
-            className="
-              w-full
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              bg-[var(--wood-bg)]
-              p-3
-              text-[var(--wood-text)]
-            "
+          <FilePicker
             value={reviewFilePath}
             onChange={event => setReviewFilePath(event.target.value)}
             placeholder="esim. spc.py"
+            extensions={[".py"]}
           />
 
           <button
@@ -778,19 +763,11 @@ function DevStudio() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <input
-            className="
-              w-full
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              bg-[var(--wood-bg)]
-              p-3
-              text-[var(--wood-text)]
-            "
+          <FilePicker
             value={refactorFilePath}
             onChange={event => setRefactorFilePath(event.target.value)}
             placeholder="esim. spc.py"
+            extensions={[".py"]}
           />
 
           <button
@@ -854,19 +831,11 @@ function DevStudio() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <input
-            className="
-              w-full
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              bg-[var(--wood-bg)]
-              p-3
-              text-[var(--wood-text)]
-            "
+          <FilePicker
             value={debugFilePath}
             onChange={event => setDebugFilePath(event.target.value)}
             placeholder="esim. spc.py"
+            extensions={[".py"]}
           />
 
           <textarea
