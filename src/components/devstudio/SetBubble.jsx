@@ -294,7 +294,7 @@ function isPreviewableFile(file) {
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, busy }) {
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, busy }) {
 
   const status = set.status
 
@@ -546,10 +546,38 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                 Hylkää
               </button>
 
+              {
+                onRevertPr && (
+                  <button
+                    disabled={
+                      (status !== "pr_merged" && status !== "pr_revert_failed") || busy
+                    }
+                    onClick={onRevertPr}
+                    className="
+                      rounded-full
+                      px-4
+                      py-1.5
+                      text-xs
+                      font-medium
+                      border
+                      border-[var(--wood-border)]
+                      text-[var(--wood-muted)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-red-400
+                      hover:text-red-300
+                    "
+                  >
+                    Peruuta (uusi PR)
+                  </button>
+                )
+              }
+
             </div>
 
             {
-              status.startsWith("pr_") && (
+              status.startsWith("pr_") && !status.startsWith("pr_revert_") && (
 
                 <div className="flex items-center gap-2 pt-1">
 
@@ -587,6 +615,67 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                         "
                       >
                         Tarkista PR:n tila
+                      </button>
+                    )
+                  }
+
+                </div>
+
+              )
+            }
+
+            {
+              status.startsWith("pr_revert_") && (
+
+                <div className="flex items-center gap-2 pt-1">
+
+                  {
+                    set.prUrl && (
+                      <a
+                        href={set.prUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-[var(--wood-accent)] underline"
+                      >
+                        PR #{set.prNumber} ↗
+                      </a>
+                    )
+                  }
+
+                  {
+                    set.revertPrUrl && (
+                      <a
+                        href={set.revertPrUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-red-300 underline"
+                      >
+                        Peruutus-PR #{set.revertPrNumber} ↗
+                      </a>
+                    )
+                  }
+
+                  {
+                    status === "pr_revert_open" && onCheckRevertPrStatus && (
+                      <button
+                        disabled={busy}
+                        onClick={onCheckRevertPrStatus}
+                        className="
+                          rounded-full
+                          border
+                          border-[var(--wood-border)]
+                          px-3
+                          py-1
+                          text-xs
+                          text-[var(--wood-muted)]
+                          transition-opacity
+                          disabled:opacity-30
+                          disabled:cursor-not-allowed
+                          hover:border-[var(--wood-accent)]
+                          hover:text-[var(--wood-text)]
+                        "
+                      >
+                        Tarkista peruutus-PR:n tila
                       </button>
                     )
                   }

@@ -2,7 +2,15 @@ import { test } from "node:test"
 
 import assert from "node:assert/strict"
 
-import { slugify, buildBranchName, buildCommitMessage, buildPrBody } from "../skills/pullRequestMessages.js"
+import {
+    slugify,
+    buildBranchName,
+    buildCommitMessage,
+    buildPrBody,
+    buildRevertBranchName,
+    buildRevertPrTitle,
+    buildRevertPrBody,
+} from "../skills/pullRequestMessages.js"
 
 
 
@@ -92,5 +100,36 @@ test("buildPrBody pluralizes the file count correctly and never uses the Claude 
 
     assert.ok(!singleFile.includes("Co-Authored-By"))
     assert.ok(singleFile.includes("Dev Studio"))
+
+})
+
+
+
+test("buildRevertBranchName prefixes with devstudio/revert- and appends a short random suffix", () => {
+
+    const branch = buildRevertBranchName("Lisää uusi sivu")
+
+    assert.match(branch, /^devstudio\/revert-lis-uusi-sivu-[0-9a-f]{8}$/)
+
+})
+
+
+
+test("buildRevertPrTitle prefixes the original title with Revert:", () => {
+
+    assert.equal(buildRevertPrTitle("Lisää uusi sivu"), "Revert: Lisää uusi sivu")
+
+})
+
+
+
+test("buildRevertPrBody references the original PR number and never uses the Claude Code trailer", () => {
+
+    const body = buildRevertPrBody({ prNumber: 142, title: "Lisää uusi sivu" })
+
+    assert.match(body, /PR #142/)
+    assert.ok(body.includes("Lisää uusi sivu"))
+    assert.ok(!body.includes("Co-Authored-By"))
+    assert.ok(body.includes("Dev Studio"))
 
 })

@@ -34,6 +34,14 @@ export const DRAFT_STATUS_LABELS = {
 
   pr_closed: "Suljettu ilman yhdistämistä",
 
+  pr_revert_open: "Peruutus-PR avattu",
+
+  pr_revert_failed: "Peruutus-PR:n luonti epäonnistui",
+
+  pr_revert_merged: "Peruutus yhdistetty",
+
+  pr_revert_closed: "Peruutus-PR suljettu ilman yhdistämistä",
+
 }
 
 /*
@@ -73,6 +81,14 @@ export const SET_STATUS_LABELS = {
   pr_merged: "Yhdistetty (merged)",
 
   pr_closed: "Suljettu ilman yhdistämistä",
+
+  pr_revert_open: "Peruutus-PR avattu",
+
+  pr_revert_failed: "Peruutus-PR:n luonti epäonnistui",
+
+  pr_revert_merged: "Peruutus yhdistetty",
+
+  pr_revert_closed: "Peruutus-PR suljettu ilman yhdistämistä",
 
 }
 

@@ -57,4 +57,35 @@ function buildPrBody({ explanation, prompt, fileCount }) {
 
 }
 
-export { slugify, buildBranchName, buildCommitMessage, buildPrBody }
+function buildRevertBranchName(title) {
+
+    const shortId = crypto.randomUUID().split("-")[0]
+
+    return `devstudio/revert-${slugify(title)}-${shortId}`
+
+}
+
+function buildRevertPrTitle(title) {
+
+    return `Revert: ${title}`
+
+}
+
+function buildRevertPrBody({ prNumber, title }) {
+
+    return (
+        `Peruuttaa PR #${prNumber}: ${title}\n\n` +
+        "— Ehdottanut Dev Studio (Wood-Booster HQ), Marcin hyväksynnän jälkeen."
+    )
+
+}
+
+export {
+    slugify,
+    buildBranchName,
+    buildCommitMessage,
+    buildPrBody,
+    buildRevertBranchName,
+    buildRevertPrTitle,
+    buildRevertPrBody,
+}

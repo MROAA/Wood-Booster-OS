@@ -661,6 +661,153 @@ export default function createDevCodeChangeRouter(prisma) {
   )
 
   /*
+   * PUT /api/dev-drafts/:id/revert-pr
+   *
+   * Peruuttaa jo YHDISTETYN Pull Requestin avaamalla toisen,
+   * peruuttavan PR:n - ei koskaan kirjoita suoraan levylle. Vain
+   * "pr_merged"-tilasta (tai uudelleenyritys "pr_revert_failed"-
+   * tilasta).
+   */
+  router.put(
+    "/dev-drafts/:id/revert-pr",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (
+          draft.status !== "pr_merged" &&
+          draft.status !== "pr_revert_failed"
+        ) {
+          return response.status(409).json({
+            error: `Luonnoksen Pull Request ei ole yhdistetty (status: ${draft.status}).`,
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "revert-pull-request-workflow",
+          {
+            prNumber: draft.prNumber,
+            originalTitle: draft.title,
+            toolBus,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          const failed = await prisma.codeChangeDraft.update({
+            where: { id: draftId },
+            data: {
+              status: "pr_revert_failed",
+              writeError:
+                skillResult?.error ||
+                "Peruutus-PR:n luonti epäonnistui tuntemattomasta syystä.",
+            },
+          })
+
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+            draft: withDiff(failed),
+          })
+        }
+
+        const opened = await prisma.codeChangeDraft.update({
+          where: { id: draftId },
+          data: {
+            status: "pr_revert_open",
+            writeError: null,
+            revertPrUrl: skillResult.prUrl,
+            revertPrNumber: skillResult.prNumber,
+            revertPrBranch: skillResult.prBranch,
+          },
+        })
+
+        response.json(withDiff(opened))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/dev-drafts/:id/check-revert-pr-status
+   *
+   * Ei automaattista pollausta - tarkistaa GitHubilta peruutus-PR:n
+   * tilan vain kun ihminen sitä nimenomaan pyytää.
+   */
+  router.put(
+    "/dev-drafts/:id/check-revert-pr-status",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (!draft.revertPrNumber) {
+          return response.status(409).json({
+            error: "Luonnoksella ei ole avointa peruutus-Pull Requestia.",
+          })
+        }
+
+        const { state } = await checkPullRequestStatus(draft.revertPrNumber)
+
+        const nextStatus =
+          state === "MERGED"
+            ? "pr_revert_merged"
+            : state === "CLOSED"
+              ? "pr_revert_closed"
+              : draft.status
+
+        const updated = await prisma.codeChangeDraft.update({
+          where: { id: draftId },
+          data: { status: nextStatus },
+        })
+
+        response.json(withDiff(updated))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
    * PUT /api/dev-drafts/:id/revert
    *
    * Peruuttaa jo levylle kirjoitetun (status: "written") luonnoksen -

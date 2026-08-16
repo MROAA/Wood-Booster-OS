@@ -47,6 +47,10 @@ import writeCodeChangePullRequestSkill from "./skills/writeCodeChangePullRequest
 
 import writeCodeChangePullRequestWorkflow from "./workflows/writeCodeChangePullRequestWorkflow.js"
 
+import revertPullRequestSkill from "./skills/revertPullRequestSkill.js"
+
+import revertPullRequestWorkflow from "./workflows/revertPullRequestWorkflow.js"
+
 
 
 const plugin = JSON.parse(
@@ -115,6 +119,10 @@ function registerCodeChangeDeveloperPlugin({
         writeCodeChangePullRequestSkill,
     )
 
+    skillEngine.register(
+        revertPullRequestSkill,
+    )
+
     workflowEngine.register(
         generateCodeChangeWorkflow,
     )
@@ -145,6 +153,10 @@ function registerCodeChangeDeveloperPlugin({
 
     workflowEngine.register(
         writeCodeChangePullRequestWorkflow,
+    )
+
+    workflowEngine.register(
+        revertPullRequestWorkflow,
     )
 
     pluginManager.register(plugin)
