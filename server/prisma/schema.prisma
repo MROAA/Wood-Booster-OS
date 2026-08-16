@@ -993,3 +993,19 @@ model BusinessSettings {
   updatedAt DateTime @updatedAt
 
 }
+
+
+
+model SavedPrompt {
+
+  id Int @id @default(autoincrement())
+
+  lane String
+
+  label String
+
+  prompt String
+
+  createdAt DateTime @default(now())
+
+}
