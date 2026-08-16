@@ -17,6 +17,10 @@ import writePythonCodeSkill from "./skills/writePythonCodeSkill.js"
 
 import writePythonCodeWorkflow from "./workflows/writePythonCodeWorkflow.js"
 
+import revertPythonCodeSkill from "./skills/revertPythonCodeSkill.js"
+
+import revertPythonCodeWorkflow from "./workflows/revertPythonCodeWorkflow.js"
+
 import explainPythonCodeSkill from "./skills/explainPythonCodeSkill.js"
 
 import explainPythonCodeWorkflow from "./workflows/explainPythonCodeWorkflow.js"
@@ -68,6 +72,10 @@ function registerPythonDeveloperPlugin({
     )
 
     skillEngine.register(
+        revertPythonCodeSkill,
+    )
+
+    skillEngine.register(
         explainPythonCodeSkill,
     )
 
@@ -85,6 +93,10 @@ function registerPythonDeveloperPlugin({
 
     workflowEngine.register(
         writePythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        revertPythonCodeWorkflow,
     )
 
     workflowEngine.register(

@@ -13,11 +13,22 @@
  * generated-python-hakemiston sisään, jotta hyväksytty luonnos ei
  * voi koskaan kirjoittaa mihin tahansa tiedostojärjestelmässä
  * (esim. ".." -polkuliikenne tai absoluuttinen polku hylätään).
+ *
+ * Jos kohde on jo olemassa (esim. sama tiedostonimi on ehdotettu
+ * uudelleen), sen elävä sisältö tarkistetaan draft.originalHashia
+ * vasten (sama puolustus-syvyys-periaate kuin JS-puolen
+ * write-code-change-skillillä) ja varmuuskopioidaan
+ * .dev-studio-backups-hakemistoon ennen ylikirjoitusta, jotta
+ * revert-python-code-skill voi palauttaa sen tarvittaessa.
  */
 
 import path from "node:path"
 
 import { fileURLToPath } from "node:url"
+
+import crypto from "node:crypto"
+
+import { BACKUP_DIR_NAME, PROJECT_ROOT } from "../../CodeChangeDeveloper/skills/projectSandbox.js"
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url))
 
@@ -43,6 +54,34 @@ function resolveSafeFilePath(filePath) {
     }
 
     return resolved
+
+}
+
+
+
+function sha256(text) {
+
+    return crypto
+        .createHash("sha256")
+        .update(text ?? "", "utf8")
+        .digest("hex")
+
+}
+
+
+
+function buildBackupRelativePath(absoluteTargetPath) {
+
+    const relativeFromRoot = path.relative(PROJECT_ROOT, absoluteTargetPath)
+
+    const timestamp = new Date()
+        .toISOString()
+        .replace(/[:.]/g, "-")
+
+    return path.join(
+        BACKUP_DIR_NAME,
+        `${relativeFromRoot}.${timestamp}.bak`,
+    )
 
 }
 
@@ -101,6 +140,110 @@ const writePythonCodeSkill = {
 
         }
 
+        const existsResult = await toolBus.execute("file", {
+            action: "exists",
+            file: safePath,
+        })
+
+        if (!existsResult?.success) {
+
+            return {
+                success: false,
+                code: "exists_check_failed",
+                error:
+                    existsResult?.error ||
+                    "Tiedoston olemassaolon tarkistus epäonnistui.",
+            }
+
+        }
+
+        let backupRelativePath = null
+
+        if (existsResult.exists) {
+
+            const liveRead = await toolBus.execute("file", {
+                action: "read",
+                file: safePath,
+            })
+
+            if (!liveRead?.success) {
+
+                return {
+                    success: false,
+                    code: "read_failed",
+                    error: liveRead?.error || "Tiedoston luku epäonnistui.",
+                }
+
+            }
+
+            if (sha256(liveRead.content) !== draft.originalHash) {
+
+                return {
+                    success: false,
+                    code: "file_changed_since_draft",
+                    error:
+                        "Tiedosto on muuttunut sen jälkeen kun luonnos " +
+                        "luotiin. Luo luonnos uudelleen.",
+                }
+
+            }
+
+            backupRelativePath = buildBackupRelativePath(safePath)
+
+            const backupAbsolutePath = path.join(
+                PROJECT_ROOT,
+                backupRelativePath,
+            )
+
+            const backupMkdirResult = await toolBus.execute("file", {
+                action: "mkdir",
+                file: path.dirname(backupAbsolutePath),
+            })
+
+            if (!backupMkdirResult?.success) {
+
+                return {
+                    success: false,
+                    code: "backup_mkdir_failed",
+                    error:
+                        backupMkdirResult?.error ||
+                        "Varmuuskopiohakemiston luonti epäonnistui.",
+                }
+
+            }
+
+            const backupWrite = await toolBus.execute("file", {
+                action: "write",
+                file: backupAbsolutePath,
+                content: liveRead.content,
+            })
+
+            if (!backupWrite?.success) {
+
+                return {
+                    success: false,
+                    code: "backup_write_failed",
+                    error:
+                        backupWrite?.error ||
+                        "Varmuuskopion kirjoitus epäonnistui.",
+                }
+
+            }
+
+        } else if (draft.originalHash !== null && draft.originalHash !== undefined) {
+
+            // Tiedosto oli olemassa luonnosta luotaessa, mutta on nyt
+            // poistunut - sama ristiriita kuin JS-puolella.
+            return {
+                success: false,
+                code: "file_changed_since_draft",
+                error:
+                    "Tiedosto on poistunut sen jälkeen kun luonnos " +
+                    "luotiin. Luo luonnos uudelleen.",
+            }
+
+        }
+
         const mkdirResult = await toolBus.execute("file", {
             action: "mkdir",
             file: path.dirname(safePath),
@@ -135,6 +278,7 @@ const writePythonCodeSkill = {
         return {
             success: true,
             filePath: safePath,
+            backupPath: backupRelativePath,
         }
 
     },
@@ -143,4 +287,4 @@ const writePythonCodeSkill = {
 
 export default writePythonCodeSkill
 
-export { GENERATED_PYTHON_DIR, resolveSafeFilePath }
+export { GENERATED_PYTHON_DIR, resolveSafeFilePath, sha256 }

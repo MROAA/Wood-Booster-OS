@@ -161,11 +161,17 @@ model PythonCodeDraft {
 
   code String
 
+  originalCode String?
+
+  originalHash String?
+
   filePath String
 
   status String @default("draft")
 
   writeError String?
+
+  backupPath String?
 
   writtenAt DateTime?
 

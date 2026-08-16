@@ -17,6 +17,49 @@ import {
   getSpacemonkeyWorkflowEngine,
 } from "../services/spacemonkey/spacemonkeyRuntimeBootstrap.js"
 
+import {
+  resolveSafeFilePath as resolveSafeGeneratedPythonPath,
+  sha256,
+} from "../services/spacemonkey/plugins/PythonDeveloper/skills/writePythonCodeSkill.js"
+
+/*
+ * Lukee kohdetiedoston NYKYISEN sisällön generated-python-hakemistosta
+ * (jos sellainen jo on olemassa) ennen uuden luonnoksen luontia -
+ * sama idea kuin JS-puolen generate-code-change-skillillä, jotta
+ * write-python-skill voi myöhemmin vertailla originalHashia elävään
+ * tiedostoon ja ottaa varmuuskopion ennen ylikirjoitusta.
+ */
+async function readExistingGeneratedPythonContent(toolBus, filePath) {
+  const safePath = resolveSafeGeneratedPythonPath(filePath)
+
+  if (!safePath) {
+    return { originalCode: null, originalHash: null }
+  }
+
+  const existsResult = await toolBus.execute("file", {
+    action: "exists",
+    file: safePath,
+  })
+
+  if (!existsResult?.success || !existsResult.exists) {
+    return { originalCode: null, originalHash: null }
+  }
+
+  const readResult = await toolBus.execute("file", {
+    action: "read",
+    file: safePath,
+  })
+
+  if (!readResult?.success) {
+    return { originalCode: null, originalHash: null }
+  }
+
+  return {
+    originalCode: readResult.content,
+    originalHash: sha256(readResult.content),
+  }
+}
+
 export default function createDevStudioRouter(prisma) {
   const router = express.Router()
 
@@ -58,11 +101,19 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
+        const toolBus = getSpacemonkeyToolBus()
+
+        const { originalCode, originalHash } = toolBus
+          ? await readExistingGeneratedPythonContent(toolBus, filePath)
+          : { originalCode: null, originalHash: null }
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: prompt || "",
             title: draftTitle || "Python-skripti",
             code: draftCode,
+            originalCode,
+            originalHash,
             filePath,
             status: "draft",
           },
@@ -128,11 +179,19 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
+        const { originalCode, originalHash } =
+          await readExistingGeneratedPythonContent(
+            toolBus,
+            path.basename(filePath),
+          )
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: `Refaktoroi: ${filePath}`,
             title: skillResult.title,
             code: skillResult.code,
+            originalCode,
+            originalHash,
             filePath: path.basename(filePath),
             status: "draft",
           },
@@ -203,11 +262,19 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
+        const { originalCode, originalHash } =
+          await readExistingGeneratedPythonContent(
+            toolBus,
+            path.basename(filePath),
+          )
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: `Debug: ${filePath}`,
             title: skillResult.title,
             code: skillResult.code,
+            originalCode,
+            originalHash,
             filePath: path.basename(filePath),
             status: "draft",
           },
@@ -392,19 +459,26 @@ export default function createDevStudioRouter(prisma) {
         const skillResult = workflowResult.results?.[0]
 
         if (!skillResult?.success) {
+          const nextStatus =
+            skillResult?.code === "file_changed_since_draft"
+              ? "conflict"
+              : "write_failed"
+
           const failed = await prisma.pythonCodeDraft.update({
             where: {
               id: draftId,
             },
             data: {
-              status: "write_failed",
+              status: nextStatus,
               writeError:
                 skillResult?.error ||
                 "Kirjoitus epäonnistui tuntemattomasta syystä.",
             },
           })
 
-          return response.status(422).json({
+          const statusCode = nextStatus === "conflict" ? 409 : 422
+
+          return response.status(statusCode).json({
             error: skillResult?.error,
             code: skillResult?.code,
             draft: failed,
@@ -419,10 +493,111 @@ export default function createDevStudioRouter(prisma) {
             status: "written",
             writtenAt: new Date(),
             writeError: null,
+            backupPath: skillResult.backupPath,
           },
         })
 
         response.json(written)
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/revert
+   *
+   * Peruuttaa jo levylle kirjoitetun (status: "written")
+   * Python-luonnoksen - sama malli kuin JS-puolen
+   * /dev-drafts/:id/revert. Voidaan kutsua milloin tahansa
+   * myöhemmin, ei vain samassa istunnossa.
+   */
+  router.put(
+    "/python-drafts/:id/revert",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (draft.status !== "written") {
+          return response.status(409).json({
+            error: `Luonnosta ei ole kirjoitettu levylle (status: ${draft.status}).`,
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "revert-python-workflow",
+          {
+            draft,
+            toolBus,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          const nextStatus =
+            skillResult?.code === "file_changed_since_write"
+              ? "revert_conflict"
+              : "revert_failed"
+
+          const failed = await prisma.pythonCodeDraft.update({
+            where: {
+              id: draftId,
+            },
+            data: {
+              status: nextStatus,
+              writeError:
+                skillResult?.error ||
+                "Peruutus epäonnistui tuntemattomasta syystä.",
+            },
+          })
+
+          const statusCode = nextStatus === "revert_conflict" ? 409 : 422
+
+          return response.status(statusCode).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+            draft: failed,
+          })
+        }
+
+        const reverted = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            status: "reverted",
+            writeError: null,
+          },
+        })
+
+        response.json(reverted)
       } catch (error) {
         console.error(error)
 
