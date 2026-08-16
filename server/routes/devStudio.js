@@ -24,6 +24,8 @@ import {
 
 import { verifyProposedPythonChange } from "../services/devStudio/verifyProposedPythonChange.js"
 
+import { checkPullRequestStatus } from "../services/devStudio/pullRequestStatus.js"
+
 /*
  * Lukee kohdetiedoston NYKYISEN sisällön generated-python-hakemistosta
  * (jos sellainen jo on olemassa) ennen uuden luonnoksen luontia -
@@ -711,8 +713,13 @@ export default function createDevStudioRouter(prisma) {
   /*
    * PUT /api/python-drafts/:id/write
    *
-   * Kirjoittaa jo hyväksytyn (status: "approved") luonnoksen levylle
-   * Python Developer -pluginin workflow'n kautta.
+   * Ei enää kirjoita suoraan levylle - luo tuoreen git-haaran,
+   * committaa, pushaa, ja avaa GitHub Pull Requestin Python Developer
+   * -pluginin PR-workflow'n kautta. writePythonCodeSkill.js/
+   * writePythonCodeWorkflow.js EIVÄT käytä tätä reittiä enää, mutta
+   * pysyvät täysin ennallaan - Historian Peruuta-nappi toimii yhä
+   * jokaiselle jo ennen tätä ominaisuutta kirjoitetulle "written"-
+   * riville.
    */
   router.put(
     "/python-drafts/:id/write",
@@ -732,7 +739,7 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
-        if (draft.status !== "approved") {
+        if (draft.status !== "approved" && draft.status !== "pr_failed") {
           return response.status(409).json({
             error: `Luonnos ei ole hyväksytty (status: ${draft.status}). Hyväksy luonnos ensin.`,
           })
@@ -749,10 +756,14 @@ export default function createDevStudioRouter(prisma) {
         const toolBus = getSpacemonkeyToolBus()
 
         const workflowResult = await workflowEngine.execute(
-          "write-python-workflow",
+          "write-python-pull-request-workflow",
           {
-            draftId,
-            prisma,
+            title: draft.title,
+            explanation: null,
+            prompt: draft.prompt,
+            filePath: draft.filePath,
+            code: draft.code,
+            originalHash: draft.originalHash,
             toolBus,
           },
         )
@@ -763,7 +774,7 @@ export default function createDevStudioRouter(prisma) {
           const nextStatus =
             skillResult?.code === "file_changed_since_draft"
               ? "conflict"
-              : "write_failed"
+              : "pr_failed"
 
           const failed = await prisma.pythonCodeDraft.update({
             where: {
@@ -773,7 +784,7 @@ export default function createDevStudioRouter(prisma) {
               status: nextStatus,
               writeError:
                 skillResult?.error ||
-                "Kirjoitus epäonnistui tuntemattomasta syystä.",
+                "Pull requestin luonti epäonnistui tuntemattomasta syystä.",
             },
           })
 
@@ -786,19 +797,74 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
-        const written = await prisma.pythonCodeDraft.update({
+        const opened = await prisma.pythonCodeDraft.update({
           where: {
             id: draftId,
           },
           data: {
-            status: "written",
+            status: "pr_open",
             writtenAt: new Date(),
             writeError: null,
-            backupPath: skillResult.backupPath,
+            prUrl: skillResult.prUrl,
+            prNumber: skillResult.prNumber,
+            prBranch: skillResult.prBranch,
           },
         })
 
-        response.json(written)
+        response.json(opened)
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/check-pr-status
+   *
+   * Ei automaattista pollausta - tarkistaa GitHubilta PR:n tilan vain
+   * kun ihminen sitä nimenomaan pyytää.
+   */
+  router.put(
+    "/python-drafts/:id/check-pr-status",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (!draft.prNumber) {
+          return response.status(409).json({
+            error: "Luonnoksella ei ole avointa Pull Requestia.",
+          })
+        }
+
+        const { state } = await checkPullRequestStatus(draft.prNumber)
+
+        const nextStatus =
+          state === "MERGED"
+            ? "pr_merged"
+            : state === "CLOSED"
+              ? "pr_closed"
+              : draft.status
+
+        const updated = await prisma.pythonCodeDraft.update({
+          where: { id: draftId },
+          data: { status: nextStatus },
+        })
+
+        response.json(updated)
       } catch (error) {
         console.error(error)
 

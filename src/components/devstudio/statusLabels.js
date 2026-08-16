@@ -26,6 +26,14 @@ export const DRAFT_STATUS_LABELS = {
 
   revert_failed: "Peruutus epäonnistui",
 
+  pr_open: "Pull Request avattu",
+
+  pr_failed: "Pull Requestin luonti epäonnistui",
+
+  pr_merged: "Yhdistetty (merged)",
+
+  pr_closed: "Suljettu ilman yhdistämistä",
+
 }
 
 /*
@@ -41,6 +49,7 @@ export const NON_TERMINAL_SET_STATUSES = new Set([
   "draft",
   "approved",
   "partial_write_failed",
+  "pr_failed",
 ])
 
 export const SET_STATUS_LABELS = {
@@ -57,6 +66,14 @@ export const SET_STATUS_LABELS = {
 
   partial_write_failed: "Osa epäonnistui",
 
+  pr_open: "Pull Request avattu",
+
+  pr_failed: "Pull Requestin luonti epäonnistui",
+
+  pr_merged: "Yhdistetty (merged)",
+
+  pr_closed: "Suljettu ilman yhdistämistä",
+
 }
 
 export const FILE_STATUS_LABELS = {
@@ -70,6 +87,8 @@ export const FILE_STATUS_LABELS = {
   generate_failed: "Generointi epäonnistui",
 
   written: "Kirjoitettu",
+
+  pr_written: "Kirjoitettu (PR:ssä)",
 
   write_failed: "Kirjoitus epäonnistui",
 

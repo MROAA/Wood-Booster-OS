@@ -146,6 +146,29 @@ function RevertButton({ onRevert, busy }) {
 
 }
 
+function PrLinkBadge({ prUrl, prNumber }) {
+
+  if (!prUrl) {
+
+    return null
+
+  }
+
+  return (
+
+    <a
+      href={prUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="text-xs text-[var(--wood-accent)] underline"
+    >
+      PR #{prNumber} ↗
+    </a>
+
+  )
+
+}
+
 function SingleDraftDetail({ draft, onRevert, busy }) {
 
   return (
@@ -157,8 +180,10 @@ function SingleDraftDetail({ draft, onRevert, busy }) {
         <div className="text-xs text-[var(--wood-muted)]">{draft.filePath}</div>
 
         {
-          draft.status === "written" && (
+          draft.status === "written" ? (
             <RevertButton onRevert={onRevert} busy={busy} />
+          ) : draft.status.startsWith("pr_") && (
+            <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
           )
         }
 
@@ -193,6 +218,12 @@ function SetDetail({ set, onRevertFile, busyFileId }) {
   return (
 
     <div className="space-y-3">
+
+      {
+        set.status.startsWith("pr_") && (
+          <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
+        )
+      }
 
       {
         blockedFiles.length > 0 && (

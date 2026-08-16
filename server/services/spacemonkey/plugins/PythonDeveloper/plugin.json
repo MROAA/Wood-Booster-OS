@@ -19,10 +19,12 @@
     "debug-python",
     "check-python-references",
     "generate-python-test",
-    "run-python-test"
+    "run-python-test",
+    "write-python-pull-request"
   ],
   "tools": [
-    "file"
+    "file",
+    "git"
   ],
   "workflows": [
     "write-python-workflow",
@@ -32,13 +34,15 @@
     "debug-python-workflow",
     "check-python-references-workflow",
     "generate-python-test-workflow",
-    "run-python-test-workflow"
+    "run-python-test-workflow",
+    "write-python-pull-request-workflow"
   ],
   "permissions": [
     "python.write",
     "python.read",
     "filesystem.write",
-    "filesystem.read"
+    "filesystem.read",
+    "git.pull-request"
   ],
   "entry": "index.js"
 }
