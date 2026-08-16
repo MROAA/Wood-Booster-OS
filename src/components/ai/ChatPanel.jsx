@@ -705,7 +705,7 @@ function ChatPanel() {
         "
         style={{
           backgroundImage:
-            "linear-gradient(rgba(20,18,16,0.88), rgba(20,18,16,0.88)), url('/branding/panel-texture.jpg')",
+            "linear-gradient(rgba(20,18,16,0.45), rgba(20,18,16,0.45)), url('/branding/panel-texture.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}

@@ -143,17 +143,21 @@ h1,
 
    Marc: "fontti on nyt vaikea lukea tee siitä selkeämpi" - background-
    blend-mode: soft-light tuotti arvaamattoman kontrastin (vaalensi
-   joitain kohtia liikaa). Korvattu kiinteällä, lähes läpinäkymättömällä
-   tummalla peittovärillä kuvan päällä (molemmat samassa background-image-
-   ominaisuudessa, ei kosketa background-coloria) - kuva näkyy vain
-   hienovaraisena kuviona, teksti pysyy aina luettavana taustan väristä
-   riippumatta. */
+   joitain kohtia liikaa). Korvattu kiinteällä tummalla peittovärillä
+   kuvan päällä (molemmat samassa background-image-ominaisuudessa, ei
+   kosketa background-coloria).
+
+   Ensimmäinen versio käytti 0.88-peittoa, joka teki kuvasta käytännössä
+   näkymättömän ("taustakuva ei toimi") - kuva itsessään on jo tumma,
+   joten näin vahva peitto hukkasi sen kokonaan. 0.45 näyttää kuvion
+   selvästi mutta pitää tekstin silti luettavana, koska kuvan omat sävyt
+   ovat jo tummia/hillittyjä. */
 [class*="bg-[var(--wood-card)]"],
 [class*="bg-[var(--wood-panel)]"],
 .card,
 .panel {
   background-image:
-    linear-gradient(rgba(20, 18, 16, 0.88), rgba(20, 18, 16, 0.88)),
+    linear-gradient(rgba(20, 18, 16, 0.45), rgba(20, 18, 16, 0.45)),
     url('/branding/panel-texture.jpg');
   background-size: cover;
   background-position: center;
