@@ -61,5 +61,6 @@ export async function generatePythonDraft({
   return {
     title: parsed.title || "Python-skripti",
     code: parsed.code,
+    model,
   }
 }

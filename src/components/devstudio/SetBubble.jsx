@@ -6,6 +6,8 @@ import { computeDiffDelta } from "./diffDelta"
 
 import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "./statusLabels"
 
+import ModelBadge from "./ModelBadge"
+
 import { parseUnresolvedReferences } from "./parseUnresolvedReferences"
 
 /*
@@ -327,20 +329,26 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
 
         <div className="font-medium">Suunnitelma</div>
 
-        <span
-          className="
-            shrink-0
-            rounded-full
-            border
-            border-[var(--wood-border)]
-            px-2.5
-            py-0.5
-            text-xs
-            text-[var(--wood-muted)]
-          "
-        >
-          {SET_STATUS_LABELS[status] || status}
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+
+          <ModelBadge model={set.model} />
+
+          <span
+            className="
+              shrink-0
+              rounded-full
+              border
+              border-[var(--wood-border)]
+              px-2.5
+              py-0.5
+              text-xs
+              text-[var(--wood-muted)]
+            "
+          >
+            {SET_STATUS_LABELS[status] || status}
+          </span>
+
+        </div>
 
       </div>
 

@@ -15,6 +15,7 @@ import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolv
 import SavedPromptsRow from "../components/devstudio/SavedPromptsRow"
 import PlaybookPicker from "../components/devstudio/PlaybookPicker"
 import FilePicker from "../components/devstudio/FilePicker"
+import ModelBadge from "../components/devstudio/ModelBadge"
 import ModelPicker from "../components/devstudio/ModelPicker"
 
 import { useElapsedSeconds } from "../components/devstudio/useElapsedSeconds"
@@ -30,6 +31,8 @@ function DevStudio() {
   const [prompt, setPrompt] = useState("")
   const [filePath, setFilePath] = useState("")
   const [generateModel, setGenerateModel] = useState(undefined)
+  const [compareGenerate, setCompareGenerate] = useState(false)
+  const [compareGenerateModel, setCompareGenerateModel] = useState(undefined)
   const [generating, setGenerating] = useState(false)
 
   const generatingElapsedSeconds = useElapsedSeconds(generating)
@@ -48,6 +51,8 @@ function DevStudio() {
 
   const [refactorFilePath, setRefactorFilePath] = useState("")
   const [refactorModel, setRefactorModel] = useState(undefined)
+  const [compareRefactor, setCompareRefactor] = useState(false)
+  const [compareRefactorModel, setCompareRefactorModel] = useState(undefined)
   const [refactoring, setRefactoring] = useState(false)
   const [refactorExplanation, setRefactorExplanation] = useState("")
   const [refactorError, setRefactorError] = useState("")
@@ -55,6 +60,8 @@ function DevStudio() {
   const [debugFilePath, setDebugFilePath] = useState("")
   const [debugErrorMessage, setDebugErrorMessage] = useState("")
   const [debugModel, setDebugModel] = useState(undefined)
+  const [compareDebug, setCompareDebug] = useState(false)
+  const [compareDebugModel, setCompareDebugModel] = useState(undefined)
   const [debugging, setDebugging] = useState(false)
   const [debugDiagnosis, setDebugDiagnosis] = useState("")
   const [debugError, setDebugError] = useState("")
@@ -101,22 +108,35 @@ function DevStudio() {
     setGenerating(true)
     setErrorMessage("")
 
-    try {
-      const draft = await apiPost("/python-drafts", {
-        useAI: true,
-        prompt,
-        filePath,
-        model: generateModel,
-      })
+    // Peräkkäin, ei rinnakkain - ks. perustelu MultiFileChatPanel.jsx:n
+    // sendMessage()-funktiosta (paikallinen Ollama jonottaisi
+    // samanaikaiset generoinnit joka tapauksessa).
+    const modelsToRun = compareGenerate ? [generateModel, compareGenerateModel] : [generateModel]
+    const compareGroupId = compareGenerate ? Date.now() : null
+    let anySucceeded = false
 
-      setDrafts(current => [draft, ...current])
+    for (const modelToUse of modelsToRun) {
+      try {
+        const draft = await apiPost("/python-drafts", {
+          useAI: true,
+          prompt,
+          filePath,
+          model: modelToUse,
+        })
+
+        setDrafts(current => [{ ...draft, compareGroupId }, ...current])
+        anySucceeded = true
+      } catch (generateError) {
+        setErrorMessage(generateError.message)
+      }
+    }
+
+    if (anySucceeded) {
       setPrompt("")
       setFilePath("")
-    } catch (generateError) {
-      setErrorMessage(generateError.message)
-    } finally {
-      setGenerating(false)
     }
+
+    setGenerating(false)
   }
 
   async function explainCode() {
@@ -175,22 +195,27 @@ function DevStudio() {
     setRefactorError("")
     setRefactorExplanation("")
 
-    try {
-      const draft = await apiPost("/python-drafts/refactor", {
-        filePath: refactorFilePath,
-        model: refactorModel,
-      })
+    const modelsToRun = compareRefactor ? [refactorModel, compareRefactorModel] : [refactorModel]
+    const compareGroupId = compareRefactor ? Date.now() : null
 
-      setDrafts(current => [draft, ...current])
-      setRefactorExplanation(
-        draft.explanation ||
-          "Uusi luonnos lisätty alle - ei muutosselitystä.",
-      )
-    } catch (refactorErr) {
-      setRefactorError(refactorErr.message)
-    } finally {
-      setRefactoring(false)
+    for (const modelToUse of modelsToRun) {
+      try {
+        const draft = await apiPost("/python-drafts/refactor", {
+          filePath: refactorFilePath,
+          model: modelToUse,
+        })
+
+        setDrafts(current => [{ ...draft, compareGroupId }, ...current])
+        setRefactorExplanation(
+          draft.explanation ||
+            "Uusi luonnos lisätty alle - ei muutosselitystä.",
+        )
+      } catch (refactorErr) {
+        setRefactorError(refactorErr.message)
+      }
     }
+
+    setRefactoring(false)
   }
 
   async function debugCode() {
@@ -203,23 +228,28 @@ function DevStudio() {
     setDebugError("")
     setDebugDiagnosis("")
 
-    try {
-      const draft = await apiPost("/python-drafts/debug", {
-        filePath: debugFilePath,
-        errorMessage: debugErrorMessage,
-        model: debugModel,
-      })
+    const modelsToRun = compareDebug ? [debugModel, compareDebugModel] : [debugModel]
+    const compareGroupId = compareDebug ? Date.now() : null
 
-      setDrafts(current => [draft, ...current])
-      setDebugDiagnosis(
-        draft.diagnosis ||
-          "Uusi luonnos lisätty alle - ei diagnoosia.",
-      )
-    } catch (debugErr) {
-      setDebugError(debugErr.message)
-    } finally {
-      setDebugging(false)
+    for (const modelToUse of modelsToRun) {
+      try {
+        const draft = await apiPost("/python-drafts/debug", {
+          filePath: debugFilePath,
+          errorMessage: debugErrorMessage,
+          model: modelToUse,
+        })
+
+        setDrafts(current => [{ ...draft, compareGroupId }, ...current])
+        setDebugDiagnosis(
+          draft.diagnosis ||
+            "Uusi luonnos lisätty alle - ei diagnoosia.",
+        )
+      } catch (debugErr) {
+        setDebugError(debugErr.message)
+      }
     }
+
+    setDebugging(false)
   }
 
   function updateDraftInList(updated) {
@@ -630,7 +660,15 @@ function DevStudio() {
             />
           </label>
 
-          <ModelPicker value={generateModel} onChange={setGenerateModel} />
+          <div className="flex flex-wrap items-center gap-2">
+            <ModelPicker value={generateModel} onChange={setGenerateModel} />
+            <CompareToggle
+              compareEnabled={compareGenerate}
+              onToggleCompare={setCompareGenerate}
+              compareModel={compareGenerateModel}
+              onCompareModelChange={setCompareGenerateModel}
+            />
+          </div>
 
           <button
             type="button"
@@ -813,7 +851,15 @@ function DevStudio() {
             extensions={[".py"]}
           />
 
-          <ModelPicker value={refactorModel} onChange={setRefactorModel} />
+          <div className="flex flex-wrap items-center gap-2">
+            <ModelPicker value={refactorModel} onChange={setRefactorModel} />
+            <CompareToggle
+              compareEnabled={compareRefactor}
+              onToggleCompare={setCompareRefactor}
+              compareModel={compareRefactorModel}
+              onCompareModelChange={setCompareRefactorModel}
+            />
+          </div>
 
           <button
             type="button"
@@ -899,7 +945,15 @@ function DevStudio() {
             placeholder="Liitä virheilmoitus tai kuvaile ongelma (valinnainen)"
           />
 
-          <ModelPicker value={debugModel} onChange={setDebugModel} />
+          <div className="flex flex-wrap items-center gap-2">
+            <ModelPicker value={debugModel} onChange={setDebugModel} />
+            <CompareToggle
+              compareEnabled={compareDebug}
+              onToggleCompare={setCompareDebug}
+              compareModel={compareDebugModel}
+              onCompareModelChange={setCompareDebugModel}
+            />
+          </div>
 
           <button
             type="button"
@@ -954,23 +1008,55 @@ function DevStudio() {
           </p>
         )}
 
-        {drafts.map(draft => (
-          <DraftCard
-            key={draft.id}
-            draft={draft}
-            busy={busyDraftId === draft.id}
-            onCodeChange={code => updateCode(draft, code)}
-            onSave={() => saveDraft(draft)}
-            onApprove={() => approveDraft(draft)}
-            onWrite={() => writeDraft(draft)}
-            onRevert={() => revertDraft(draft)}
-            onRevise={feedback => reviseDraft(draft, feedback)}
-            onReject={() => rejectDraft(draft)}
-            onCheckPrStatus={() => checkPrStatus(draft)}
-            onRevertPr={() => revertPr(draft)}
-            onCheckRevertPrStatus={() => checkRevertPrStatus(draft)}
-          />
-        ))}
+        {
+          (() => {
+
+            const seenCompareGroups = new Set()
+
+            return drafts.map(draft => {
+
+              const showCompareLabel =
+                draft.compareGroupId && !seenCompareGroups.has(draft.compareGroupId)
+
+              if (draft.compareGroupId) {
+                seenCompareGroups.add(draft.compareGroupId)
+              }
+
+              return (
+
+                <div key={draft.id}>
+
+                  {
+                    showCompareLabel && (
+                      <div className="mb-1.5 text-xs text-[var(--wood-muted)]">
+                        🔀 Vertailu: {draft.prompt}
+                      </div>
+                    )
+                  }
+
+                  <DraftCard
+                    draft={draft}
+                    busy={busyDraftId === draft.id}
+                    onCodeChange={code => updateCode(draft, code)}
+                    onSave={() => saveDraft(draft)}
+                    onApprove={() => approveDraft(draft)}
+                    onWrite={() => writeDraft(draft)}
+                    onRevert={() => revertDraft(draft)}
+                    onRevise={feedback => reviseDraft(draft, feedback)}
+                    onReject={() => rejectDraft(draft)}
+                    onCheckPrStatus={() => checkPrStatus(draft)}
+                    onRevertPr={() => revertPr(draft)}
+                    onCheckRevertPrStatus={() => checkRevertPrStatus(draft)}
+                  />
+
+                </div>
+
+              )
+
+            })
+
+          })()
+        }
       </section>
 
       </>
@@ -979,6 +1065,40 @@ function DevStudio() {
   )
 }
 
+
+function CompareToggle({ compareEnabled, onToggleCompare, compareModel, onCompareModelChange }) {
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => onToggleCompare(enabled => !enabled)}
+        className={`
+          rounded-full
+          border
+          px-2.5
+          py-1
+          text-xs
+          transition-colors
+          ${
+            compareEnabled
+              ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+              : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+          }
+        `}
+      >
+        🔀 Vertaile kahta mallia
+      </button>
+
+      {
+        compareEnabled && (
+          <ModelPicker value={compareModel} onChange={onCompareModelChange} />
+        )
+      }
+    </>
+  )
+
+}
 
 function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus }) {
   const [reviseFeedback, setReviseFeedback] = useState("")
@@ -1026,7 +1146,10 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
           </p>
         </div>
 
-        <StatusBadge status={draft.status} />
+        <div className="flex shrink-0 items-center gap-1.5">
+          <ModelBadge model={draft.model} />
+          <StatusBadge status={draft.status} />
+        </div>
       </div>
 
       {testDisplay && (

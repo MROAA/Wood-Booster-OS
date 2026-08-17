@@ -131,5 +131,6 @@ export async function generateChangePlan({
   return {
     files: parsed.files,
     explanation: parsed.explanation,
+    model,
   }
 }

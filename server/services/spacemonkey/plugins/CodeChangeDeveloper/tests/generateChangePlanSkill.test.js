@@ -132,3 +132,20 @@ test("passes model through as undefined when none was chosen", async () => {
     assert.equal(receivedModel, undefined)
 
 })
+
+
+
+test("returns the resolved model from the generator, so callers can persist which model actually produced this plan", async () => {
+
+    const result = await generateChangePlanSkill.execute({
+        prompt: "lisää uusi sivu",
+        generateChangePlan: async () => ({
+            files: [],
+            explanation: "",
+            model: "qwen2.5-coder:7b",
+        }),
+    })
+
+    assert.equal(result.model, "qwen2.5-coder:7b")
+
+})

@@ -108,7 +108,7 @@ const debugPythonCodeSkill = {
 
         }
 
-        const { title, diagnosis, code } = await debugPythonCode({
+        const { title, diagnosis, code, model: resolvedModel } = await debugPythonCode({
             code: readResult.content,
             errorMessage,
             model,
@@ -120,6 +120,7 @@ const debugPythonCodeSkill = {
             title,
             diagnosis,
             code,
+            model: resolvedModel,
         }
 
     },

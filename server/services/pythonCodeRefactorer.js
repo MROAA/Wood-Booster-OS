@@ -130,5 +130,6 @@ export async function refactorPythonCode({
     title: parsed.title || "Refaktoroitu koodi",
     explanation: parsed.explanation,
     code: parsed.code,
+    model,
   }
 }
