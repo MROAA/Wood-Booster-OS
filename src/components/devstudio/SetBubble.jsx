@@ -199,7 +199,7 @@ function FileReviewCard({ file, onRevise, busy, collapsible }) {
               )
             }
 
-            <DiffView diff={file.diff} />
+            <DiffView diff={file.diff} filePath={file.filePath} />
 
             {
               testDisplay && (

@@ -14,6 +14,13 @@
 
   --wood-accent: #b97b3f;
 
+  --wood-code-keyword: #e0995f;
+  --wood-code-string: #8fae6b;
+  --wood-code-comment: #6b6053;
+  --wood-code-function: #d9b36c;
+  --wood-code-number: #7ea9a3;
+  --wood-code-punctuation: #8a7d6c;
+
   /* Fibonacci-pohjainen väliscale - kalpee, hillitty "hengitystila" korteille/paneeleille. */
   --space-1: 8px;
   --space-2: 13px;
@@ -58,6 +65,47 @@
 
   --wood-accent: #8a5a2b;
 
+  --wood-code-keyword: #a85d2b;
+  --wood-code-string: #4f7a3a;
+  --wood-code-comment: #9c8f7a;
+  --wood-code-function: #8a6a2f;
+  --wood-code-number: #3f7a72;
+  --wood-code-punctuation: #766b58;
+
+}
+
+
+.wood-code .token.keyword,
+.wood-code .token.tag,
+.wood-code .token.selector,
+.wood-code .token.important {
+  color: var(--wood-code-keyword);
+}
+
+.wood-code .token.string,
+.wood-code .token.attr-value {
+  color: var(--wood-code-string);
+}
+
+.wood-code .token.comment {
+  color: var(--wood-code-comment);
+  font-style: italic;
+}
+
+.wood-code .token.function,
+.wood-code .token.class-name {
+  color: var(--wood-code-function);
+}
+
+.wood-code .token.number,
+.wood-code .token.boolean {
+  color: var(--wood-code-number);
+}
+
+.wood-code .token.punctuation,
+.wood-code .token.operator,
+.wood-code .token.attr-name {
+  color: var(--wood-code-punctuation);
 }
 
 
