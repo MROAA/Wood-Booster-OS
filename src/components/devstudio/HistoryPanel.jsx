@@ -299,7 +299,7 @@ function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus,
         )
       }
 
-      <DiffView diff={draft.diff} />
+      <DiffView diff={draft.diff} filePath={draft.filePath} />
 
       <TestStatusBlock
         testStatus={draft.testStatus}
@@ -463,7 +463,7 @@ function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus,
 
             </div>
 
-            <DiffView diff={file.diff} />
+            <DiffView diff={file.diff} filePath={file.filePath} />
 
             <TestStatusBlock
               testStatus={file.testStatus}
