@@ -37,6 +37,8 @@ import { resolveWorktreeDir } from "./worktreeSandbox.js"
 
 import { buildBranchName, buildCommitMessage, buildPrBody } from "./pullRequestMessages.js"
 
+import { triggerGitGuardianBackup } from "../../../../devStudio/gitGuardianBackup.js"
+
 function sha256(text) {
 
     return crypto
@@ -134,6 +136,8 @@ const writeCodeChangePullRequestSkill = {
         }
 
         try {
+
+            triggerGitGuardianBackup()
 
             for (const file of validated) {
 

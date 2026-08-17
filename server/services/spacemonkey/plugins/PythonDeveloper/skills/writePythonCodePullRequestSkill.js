@@ -36,6 +36,8 @@ import { resolveWorktreeDir } from "../../CodeChangeDeveloper/skills/worktreeSan
 
 import { buildBranchName, buildCommitMessage, buildPrBody } from "../../CodeChangeDeveloper/skills/pullRequestMessages.js"
 
+import { triggerGitGuardianBackup } from "../../../../devStudio/gitGuardianBackup.js"
+
 function sha256(text) {
 
     return crypto
@@ -186,6 +188,8 @@ const writePythonCodePullRequestSkill = {
                 }
 
             }
+
+            triggerGitGuardianBackup()
 
             const writeResult = await toolBus.execute("file", {
                 action: "write",
