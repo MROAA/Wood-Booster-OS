@@ -74,6 +74,7 @@ const debugPythonCodeSkill = {
         const {
             filePath,
             errorMessage,
+            model,
             toolBus,
             debugPythonCode,
         } = context || {}
@@ -110,6 +111,7 @@ const debugPythonCodeSkill = {
         const { title, diagnosis, code } = await debugPythonCode({
             code: readResult.content,
             errorMessage,
+            model,
         })
 
         return {

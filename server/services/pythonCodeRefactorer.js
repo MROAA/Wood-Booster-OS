@@ -1,8 +1,6 @@
 import { isValidPythonSyntax } from "./pythonSyntaxValidator.js"
 
-const OLLAMA_URL =
-  process.env.OLLAMA_URL ||
-  "http://localhost:11434"
+import { chatWithOllama } from "./ollamaClient.js"
 
 /*
  * Käyttää samaa koodiin erikoistunutta mallia kuin
@@ -14,7 +12,7 @@ const OLLAMA_URL =
 const DEFAULT_MODEL =
   process.env.PYTHON_OLLAMA_MODEL ||
   process.env.OLLAMA_MODEL ||
-  "qwen2.5:7b"
+  "qwen2.5-coder:7b"
 
 function buildSystemPrompt() {
   return (
@@ -89,41 +87,6 @@ function looksLikeValidCode(code) {
   return true
 }
 
-async function askOllama({ model, code }) {
-  const response = await fetch(`${OLLAMA_URL}/api/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      stream: false,
-      messages: [
-        {
-          role: "system",
-          content: buildSystemPrompt(),
-        },
-        {
-          role: "user",
-          content: code,
-        },
-      ],
-      options: {
-        temperature: 0.2,
-        num_ctx: 4096,
-      },
-    }),
-  })
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.error || "Ollama error")
-  }
-
-  return String(data.message?.content || "").trim()
-}
-
 const MAX_ATTEMPTS = 2
 
 /*
@@ -140,9 +103,10 @@ export async function refactorPythonCode({
   let parsed = null
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-    const rawText = await askOllama({
+    const rawText = await chatWithOllama({
       model,
-      code,
+      systemPrompt: buildSystemPrompt(),
+      userMessage: code,
     })
 
     parsed = parseRefactoredText(rawText)

@@ -27,7 +27,7 @@ const generateCodeChangeSkill = {
 
     async execute(context) {
 
-        const { prompt, filePath, toolBus, generateCodeChange } =
+        const { prompt, filePath, model, toolBus, generateCodeChange } =
             context || {}
 
         if (!prompt) {
@@ -104,6 +104,7 @@ const generateCodeChangeSkill = {
             prompt,
             currentCode: originalCode,
             filePath: check.relativePath,
+            model,
         })
 
         return {

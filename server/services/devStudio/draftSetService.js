@@ -31,7 +31,16 @@ export function withSetDiffs(set) {
   }
 }
 
-export async function createDraftSetFromPrompt(prisma, prompt) {
+/*
+ * "model" on valinnainen kolmas parametri - lisätty jälkikäteen jaetun
+ * Spacemonkey-chatin /koodi-tilan (agentChat.js) rikkomatta, joka
+ * kutsuu tätä yhä kahdella argumentilla eikä koskaan valitse mallia
+ * itse. Tallennetaan CodeChangeDraftSet-riville, jotta myöhemmät
+ * vaiheet (approve-plan, files/:fileId/revise) voivat käyttää samaa
+ * mallia jonka Marc valitsi suunnitelmaa pyytäessään, sen sijaan että
+ * malli pitäisi lähettää uudelleen joka vaiheessa.
+ */
+export async function createDraftSetFromPrompt(prisma, prompt, model) {
   const workflowEngine = getSpacemonkeyWorkflowEngine()
 
   if (!workflowEngine) {
@@ -43,7 +52,7 @@ export async function createDraftSetFromPrompt(prisma, prompt) {
 
   const workflowResult = await workflowEngine.execute(
     "generate-change-plan-workflow",
-    { prompt, generateChangePlan },
+    { prompt, model, generateChangePlan },
   )
 
   const skillResult = workflowResult.results?.[0]
@@ -59,6 +68,7 @@ export async function createDraftSetFromPrompt(prisma, prompt) {
   const set = await prisma.codeChangeDraftSet.create({
     data: {
       prompt,
+      model,
       status: "plan_ready",
       planExplanation: skillResult.explanation,
       files: {

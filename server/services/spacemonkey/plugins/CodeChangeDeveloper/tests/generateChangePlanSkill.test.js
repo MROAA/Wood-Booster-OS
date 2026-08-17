@@ -95,3 +95,40 @@ test("flags a path-traversal attempt in the plan as blocked", async () => {
     assert.equal(result.files[0].blockedCode, "path_traversal_blocked")
 
 })
+
+
+
+test("forwards an explicit model choice into the generator", async () => {
+
+    let receivedModel = "not called"
+
+    await generateChangePlanSkill.execute({
+        prompt: "lisää uusi sivu",
+        model: "qwen2.5-coder:7b",
+        generateChangePlan: async ({ model }) => {
+            receivedModel = model
+            return { files: [], explanation: "" }
+        },
+    })
+
+    assert.equal(receivedModel, "qwen2.5-coder:7b")
+
+})
+
+
+
+test("passes model through as undefined when none was chosen", async () => {
+
+    let receivedModel = "not called"
+
+    await generateChangePlanSkill.execute({
+        prompt: "lisää uusi sivu",
+        generateChangePlan: async ({ model }) => {
+            receivedModel = model
+            return { files: [], explanation: "" }
+        },
+    })
+
+    assert.equal(receivedModel, undefined)
+
+})

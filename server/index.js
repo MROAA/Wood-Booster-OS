@@ -390,6 +390,7 @@ import createDevCodeChangeRouter from "./routes/devCodeChangeStudio.js"
 import createDevMultiFileChangeRouter from "./routes/devMultiFileChangeStudio.js"
 import createSavedPromptsRouter from "./routes/savedPrompts.js"
 import createProjectFilesRouter from "./routes/projectFiles.js"
+import createOllamaModelsRouter from "./routes/ollamaModels.js"
 import createAgentChatRouter from "./routes/agentChat.js"
 import createProjectsRouter from "./routes/projects.js"
 import createProjectMaterialsRouter from "./routes/projectMaterials.js"
@@ -1315,6 +1316,13 @@ app.use(
 app.use(
   "/api",
   createProjectFilesRouter()
+)
+
+
+
+app.use(
+  "/api",
+  createOllamaModelsRouter()
 )
 
 

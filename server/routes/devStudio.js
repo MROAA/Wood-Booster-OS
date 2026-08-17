@@ -104,7 +104,7 @@ export default function createDevStudioRouter(prisma) {
     "/python-drafts",
     async (request, response) => {
       try {
-        const { useAI, prompt, title, code, filePath } =
+        const { useAI, prompt, title, code, filePath, model } =
           request.body || {}
 
         let draftTitle = title
@@ -119,6 +119,7 @@ export default function createDevStudioRouter(prisma) {
 
           const generated = await generatePythonDraft({
             prompt,
+            model,
           })
 
           draftTitle = generated.title
@@ -204,7 +205,7 @@ export default function createDevStudioRouter(prisma) {
     "/python-drafts/refactor",
     async (request, response) => {
       try {
-        const { filePath } = request.body || {}
+        const { filePath, model } = request.body || {}
 
         if (!filePath) {
           return response.status(400).json({
@@ -226,6 +227,7 @@ export default function createDevStudioRouter(prisma) {
           "refactor-python-workflow",
           {
             filePath,
+            model,
             toolBus,
             refactorPythonCode,
           },
@@ -308,7 +310,7 @@ export default function createDevStudioRouter(prisma) {
     "/python-drafts/debug",
     async (request, response) => {
       try {
-        const { filePath, errorMessage } = request.body || {}
+        const { filePath, errorMessage, model } = request.body || {}
 
         if (!filePath) {
           return response.status(400).json({
@@ -331,6 +333,7 @@ export default function createDevStudioRouter(prisma) {
           {
             filePath,
             errorMessage,
+            model,
             toolBus,
             debugPythonCode,
           },

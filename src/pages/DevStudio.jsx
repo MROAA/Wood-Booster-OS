@@ -15,6 +15,7 @@ import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolv
 import SavedPromptsRow from "../components/devstudio/SavedPromptsRow"
 import PlaybookPicker from "../components/devstudio/PlaybookPicker"
 import FilePicker from "../components/devstudio/FilePicker"
+import ModelPicker from "../components/devstudio/ModelPicker"
 
 import { useElapsedSeconds } from "../components/devstudio/useElapsedSeconds"
 
@@ -28,6 +29,7 @@ function DevStudio() {
 
   const [prompt, setPrompt] = useState("")
   const [filePath, setFilePath] = useState("")
+  const [generateModel, setGenerateModel] = useState(undefined)
   const [generating, setGenerating] = useState(false)
 
   const generatingElapsedSeconds = useElapsedSeconds(generating)
@@ -45,12 +47,14 @@ function DevStudio() {
   const [reviewError, setReviewError] = useState("")
 
   const [refactorFilePath, setRefactorFilePath] = useState("")
+  const [refactorModel, setRefactorModel] = useState(undefined)
   const [refactoring, setRefactoring] = useState(false)
   const [refactorExplanation, setRefactorExplanation] = useState("")
   const [refactorError, setRefactorError] = useState("")
 
   const [debugFilePath, setDebugFilePath] = useState("")
   const [debugErrorMessage, setDebugErrorMessage] = useState("")
+  const [debugModel, setDebugModel] = useState(undefined)
   const [debugging, setDebugging] = useState(false)
   const [debugDiagnosis, setDebugDiagnosis] = useState("")
   const [debugError, setDebugError] = useState("")
@@ -102,6 +106,7 @@ function DevStudio() {
         useAI: true,
         prompt,
         filePath,
+        model: generateModel,
       })
 
       setDrafts(current => [draft, ...current])
@@ -173,6 +178,7 @@ function DevStudio() {
     try {
       const draft = await apiPost("/python-drafts/refactor", {
         filePath: refactorFilePath,
+        model: refactorModel,
       })
 
       setDrafts(current => [draft, ...current])
@@ -201,6 +207,7 @@ function DevStudio() {
       const draft = await apiPost("/python-drafts/debug", {
         filePath: debugFilePath,
         errorMessage: debugErrorMessage,
+        model: debugModel,
       })
 
       setDrafts(current => [draft, ...current])
@@ -623,6 +630,8 @@ function DevStudio() {
             />
           </label>
 
+          <ModelPicker value={generateModel} onChange={setGenerateModel} />
+
           <button
             type="button"
             className="
@@ -804,6 +813,8 @@ function DevStudio() {
             extensions={[".py"]}
           />
 
+          <ModelPicker value={refactorModel} onChange={setRefactorModel} />
+
           <button
             type="button"
             className="
@@ -887,6 +898,8 @@ function DevStudio() {
             onChange={event => setDebugErrorMessage(event.target.value)}
             placeholder="Liitä virheilmoitus tai kuvaile ongelma (valinnainen)"
           />
+
+          <ModelPicker value={debugModel} onChange={setDebugModel} />
 
           <button
             type="button"
