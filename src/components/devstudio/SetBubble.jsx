@@ -4,7 +4,7 @@ import DiffView from "./DiffView"
 
 import { computeDiffDelta } from "./diffDelta"
 
-import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY } from "./statusLabels"
+import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "./statusLabels"
 
 import { parseUnresolvedReferences } from "./parseUnresolvedReferences"
 
@@ -591,6 +591,14 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                       >
                         PR #{set.prNumber} ↗
                       </a>
+                    )
+                  }
+
+                  {
+                    set.checkStatus && CHECK_STATUS_LABELS[set.checkStatus] && (
+                      <span className={`text-xs ${CHECK_STATUS_LABELS[set.checkStatus].className}`}>
+                        {CHECK_STATUS_LABELS[set.checkStatus].icon} {CHECK_STATUS_LABELS[set.checkStatus].label}
+                      </span>
                     )
                   }
 

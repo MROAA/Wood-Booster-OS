@@ -636,7 +636,7 @@ export default function createDevCodeChangeRouter(prisma) {
           })
         }
 
-        const { state } = await checkPullRequestStatus(draft.prNumber)
+        const { state, checkStatus } = await checkPullRequestStatus(draft.prNumber)
 
         const nextStatus =
           state === "MERGED"
@@ -647,7 +647,11 @@ export default function createDevCodeChangeRouter(prisma) {
 
         const updated = await prisma.codeChangeDraft.update({
           where: { id: draftId },
-          data: { status: nextStatus },
+          data: {
+            status: nextStatus,
+            checkStatus,
+            checkStatusCheckedAt: new Date(),
+          },
         })
 
         response.json(withDiff(updated))
