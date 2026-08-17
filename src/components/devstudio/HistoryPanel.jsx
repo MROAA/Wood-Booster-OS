@@ -190,7 +190,7 @@ function CheckStatusBadge({ checkStatus }) {
 
 }
 
-function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus, busy }) {
+function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus, onCheckPrStatus, busy }) {
 
   return (
 
@@ -220,6 +220,31 @@ function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus,
               <>
                 <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
                 <CheckStatusBadge checkStatus={draft.checkStatus} />
+
+                {
+                  draft.status === "pr_open" && (
+                    <button
+                      disabled={busy}
+                      onClick={onCheckPrStatus}
+                      className="
+                        rounded-full
+                        border
+                        border-[var(--wood-border)]
+                        px-3
+                        py-1
+                        text-xs
+                        text-[var(--wood-muted)]
+                        transition-opacity
+                        disabled:opacity-30
+                        disabled:cursor-not-allowed
+                        hover:border-[var(--wood-accent)]
+                        hover:text-[var(--wood-text)]
+                      "
+                    >
+                      Tarkista PR:n tila
+                    </button>
+                  )
+                }
               </>
 
             )
@@ -288,7 +313,7 @@ function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus,
 
 }
 
-function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus, busyFileId, busySet }) {
+function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus, onCheckPrStatus, busyFileId, busySet }) {
 
   const visibleFiles = set.files.filter(file => !file.blocked)
 
@@ -306,6 +331,31 @@ function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus,
             <>
               <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
               <CheckStatusBadge checkStatus={set.checkStatus} />
+
+              {
+                set.status === "pr_open" && (
+                  <button
+                    disabled={busySet}
+                    onClick={onCheckPrStatus}
+                    className="
+                      rounded-full
+                      border
+                      border-[var(--wood-border)]
+                      px-3
+                      py-1
+                      text-xs
+                      text-[var(--wood-muted)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-[var(--wood-accent)]
+                      hover:text-[var(--wood-text)]
+                    "
+                  >
+                    Tarkista PR:n tila
+                  </button>
+                )
+              }
             </>
 
           )
@@ -446,6 +496,8 @@ function HistoryEntryRow({
   onCheckRevertDraftPrStatus,
   onRevertSetPr,
   onCheckRevertSetPrStatus,
+  onCheckDraftPrStatus,
+  onCheckSetPrStatus,
   busyDraftId,
   busyFileId,
   busySetId,
@@ -526,6 +578,7 @@ function HistoryEntryRow({
                     onRevertFile={fileId => onRevertFile(entry.raw.id, fileId)}
                     onRevertSetPr={() => onRevertSetPr(entry.raw.id)}
                     onCheckRevertSetPrStatus={() => onCheckRevertSetPrStatus(entry.raw.id)}
+                    onCheckPrStatus={() => onCheckSetPrStatus(entry.raw.id)}
                     busyFileId={busyFileId}
                     busySet={busySetId === entry.raw.id}
                   />
@@ -536,6 +589,7 @@ function HistoryEntryRow({
                     onRevert={() => onRevertDraft(entry.raw.id)}
                     onRevertPr={() => onRevertDraftPr(entry.raw.id)}
                     onCheckRevertPrStatus={() => onCheckRevertDraftPrStatus(entry.raw.id)}
+                    onCheckPrStatus={() => onCheckDraftPrStatus(entry.raw.id)}
                     busy={busyDraftId === entry.raw.id}
                   />
                 )
@@ -600,6 +654,10 @@ function HistoryPanel() {
 
   const [busySetId, setBusySetId] = useState(null)
 
+  const [bulkChecking, setBulkChecking] = useState(false)
+
+  const [bulkProgress, setBulkProgress] = useState(null)
+
   const [searchText, setSearchText] = useState("")
 
   const [statusFilter, setStatusFilter] = useState("")
@@ -607,6 +665,8 @@ function HistoryPanel() {
   const availableStatuses =
     [...new Set(entries.flatMap(entryStatuses))]
       .sort()
+
+  const openEntries = entries.filter(entry => entry.status === "pr_open")
 
   const filteredEntries =
     entries.filter(entry => {
@@ -815,6 +875,92 @@ function HistoryPanel() {
 
   }
 
+  async function checkDraftPrStatus(draftId) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/check-pr-status`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkSetPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-pr-status`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function checkAllOpenPrs() {
+
+    const targets = entries.filter(entry => entry.status === "pr_open")
+
+    if (targets.length === 0) {
+
+      return
+
+    }
+
+    setBulkChecking(true)
+
+    setErrorMessage("")
+
+    for (let index = 0; index < targets.length; index += 1) {
+
+      setBulkProgress({ current: index + 1, total: targets.length })
+
+      const entry = targets[index]
+
+      if (entry.kind === "set") {
+
+        await checkSetPrStatus(entry.raw.id)
+
+      } else {
+
+        await checkDraftPrStatus(entry.raw.id)
+
+      }
+
+    }
+
+    setBulkProgress(null)
+
+    setBulkChecking(false)
+
+  }
+
   async function revertFile(setId, fileId) {
 
     if (!window.confirm("Peruuta tämä tiedosto ja palauta aiempi tila?")) {
@@ -978,6 +1124,36 @@ function HistoryPanel() {
               }
             </select>
 
+            {
+              openEntries.length > 0 && (
+                <button
+                  disabled={bulkChecking}
+                  onClick={checkAllOpenPrs}
+                  className="
+                    h-9
+                    shrink-0
+                    rounded-full
+                    border
+                    border-[var(--wood-border)]
+                    px-3
+                    text-xs
+                    text-[var(--wood-muted)]
+                    transition-opacity
+                    disabled:opacity-30
+                    disabled:cursor-not-allowed
+                    hover:border-[var(--wood-accent)]
+                    hover:text-[var(--wood-text)]
+                  "
+                >
+                  {
+                    bulkChecking
+                      ? `Tarkistetaan ${bulkProgress?.current ?? 0}/${bulkProgress?.total ?? openEntries.length}...`
+                      : `Tarkista kaikki avoimet PR:t (${openEntries.length})`
+                  }
+                </button>
+              )
+            }
+
           </div>
 
         )
@@ -1032,6 +1208,8 @@ function HistoryPanel() {
               onCheckRevertDraftPrStatus={checkRevertDraftPrStatus}
               onRevertSetPr={revertSetPr}
               onCheckRevertSetPrStatus={checkRevertSetPrStatus}
+              onCheckDraftPrStatus={checkDraftPrStatus}
+              onCheckSetPrStatus={checkSetPrStatus}
               busyDraftId={busyDraftId}
               busyFileId={busyFileId}
               busySetId={busySetId}
