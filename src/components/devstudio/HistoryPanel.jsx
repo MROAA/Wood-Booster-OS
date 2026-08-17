@@ -498,6 +498,10 @@ function HistoryEntryRow({
   onCheckRevertSetPrStatus,
   onCheckDraftPrStatus,
   onCheckSetPrStatus,
+  onRevertPythonDraft,
+  onRevertPythonDraftPr,
+  onCheckRevertPythonDraftPrStatus,
+  onCheckPythonDraftPrStatus,
   busyDraftId,
   busyFileId,
   busySetId,
@@ -534,7 +538,7 @@ function HistoryEntryRow({
         <div className="min-w-0 flex-1">
 
           <div className="text-sm text-[var(--wood-text)] truncate">
-            {entry.kind === "set" ? "📦 " : "📄 "}
+            {entry.kind === "set" ? "📦 " : entry.kind === "python-single" ? "🐍 " : "📄 "}
             {entry.headline}
           </div>
 
@@ -583,16 +587,27 @@ function HistoryEntryRow({
                     busySet={busySetId === entry.raw.id}
                   />
                 )
-                : (
-                  <SingleDraftDetail
-                    draft={entry.raw}
-                    onRevert={() => onRevertDraft(entry.raw.id)}
-                    onRevertPr={() => onRevertDraftPr(entry.raw.id)}
-                    onCheckRevertPrStatus={() => onCheckRevertDraftPrStatus(entry.raw.id)}
-                    onCheckPrStatus={() => onCheckDraftPrStatus(entry.raw.id)}
-                    busy={busyDraftId === entry.raw.id}
-                  />
-                )
+                : entry.kind === "python-single"
+                  ? (
+                    <SingleDraftDetail
+                      draft={entry.raw}
+                      onRevert={() => onRevertPythonDraft(entry.raw.id)}
+                      onRevertPr={() => onRevertPythonDraftPr(entry.raw.id)}
+                      onCheckRevertPrStatus={() => onCheckRevertPythonDraftPrStatus(entry.raw.id)}
+                      onCheckPrStatus={() => onCheckPythonDraftPrStatus(entry.raw.id)}
+                      busy={busyDraftId === entry.raw.id}
+                    />
+                  )
+                  : (
+                    <SingleDraftDetail
+                      draft={entry.raw}
+                      onRevert={() => onRevertDraft(entry.raw.id)}
+                      onRevertPr={() => onRevertDraftPr(entry.raw.id)}
+                      onCheckRevertPrStatus={() => onCheckRevertDraftPrStatus(entry.raw.id)}
+                      onCheckPrStatus={() => onCheckDraftPrStatus(entry.raw.id)}
+                      busy={busyDraftId === entry.raw.id}
+                    />
+                  )
             }
 
           </div>
@@ -923,6 +938,138 @@ function HistoryPanel() {
 
   }
 
+  async function revertPythonDraft(draftId) {
+
+    if (!window.confirm("Peruuta tämä muutos ja palauta aiempi tila?")) {
+
+      return
+
+    }
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/revert`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/python-drafts/${draftId}`)
+
+        updateEntryRaw(`python-draft-${draftId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function revertPythonDraftPr(draftId) {
+
+    if (!window.confirm("Peruuta tämä yhdistetty Pull Request avaamalla uusi, peruuttava PR?")) {
+
+      return
+
+    }
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/revert-pr`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/python-drafts/${draftId}`)
+
+        updateEntryRaw(`python-draft-${draftId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkRevertPythonDraftPrStatus(draftId) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/check-revert-pr-status`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkPythonDraftPrStatus(draftId) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/check-pr-status`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
   async function checkAllOpenPrs() {
 
     const targets = entries.filter(entry => entry.status === "pr_open")
@@ -946,6 +1093,10 @@ function HistoryPanel() {
       if (entry.kind === "set") {
 
         await checkSetPrStatus(entry.raw.id)
+
+      } else if (entry.kind === "python-single") {
+
+        await checkPythonDraftPrStatus(entry.raw.id)
 
       } else {
 
@@ -1013,9 +1164,10 @@ function HistoryPanel() {
 
       try {
 
-        const [drafts, sets] = await Promise.all([
+        const [drafts, sets, pythonDrafts] = await Promise.all([
           apiGet("/dev-drafts"),
           apiGet("/dev-draft-sets"),
+          apiGet("/python-drafts"),
         ])
 
         const normalized = [
@@ -1036,6 +1188,15 @@ function HistoryPanel() {
             status: set.status,
             headline: set.planExplanation || set.prompt,
             raw: set,
+          })),
+
+          ...pythonDrafts.map(draft => ({
+            key: `python-draft-${draft.id}`,
+            kind: "python-single",
+            createdAt: draft.createdAt,
+            status: draft.status,
+            headline: draft.title || draft.prompt,
+            raw: draft,
           })),
 
         ].sort(
@@ -1210,6 +1371,10 @@ function HistoryPanel() {
               onCheckRevertSetPrStatus={checkRevertSetPrStatus}
               onCheckDraftPrStatus={checkDraftPrStatus}
               onCheckSetPrStatus={checkSetPrStatus}
+              onRevertPythonDraft={revertPythonDraft}
+              onRevertPythonDraftPr={revertPythonDraftPr}
+              onCheckRevertPythonDraftPrStatus={checkRevertPythonDraftPrStatus}
+              onCheckPythonDraftPrStatus={checkPythonDraftPrStatus}
               busyDraftId={busyDraftId}
               busyFileId={busyFileId}
               busySetId={busySetId}

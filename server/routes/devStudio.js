@@ -2,6 +2,8 @@ import express from "express"
 
 import path from "node:path"
 
+import { diffLines } from "diff"
+
 import { generatePythonDraft } from "../services/pythonCodeGenerator.js"
 
 import { explainPythonCode } from "../services/pythonCodeExplainer.js"
@@ -92,6 +94,22 @@ async function checkPythonReferences({ workflowEngine, toolBus, proposedCode }) 
 
 export default function createDevStudioRouter(prisma) {
   const router = express.Router()
+
+  /*
+   * Sama malli kuin devCodeChangeStudio.js:n withDiff() - PythonCodeDraft
+   * käyttää vain kenttänimeä "code" eikä "proposedCode". Sovelletaan vain
+   * niihin reitteihin joita Historia-välilehti oikeasti lukee (lista,
+   * yksittäishaku, revert, revert-pr, check-pr-status,
+   * check-revert-pr-status) - ei create/refactor/debug/revise/approve/
+   * write/reject-reitteihin, jotka syöttävät vain DevStudio.jsx:n
+   * DraftCardia eivätkä koskaan piirrä DiffView'ta.
+   */
+  function withPythonDraftDiff(draft) {
+    return {
+      ...draft,
+      diff: diffLines(draft.originalCode || "", draft.code || ""),
+    }
+  }
 
   /*
    * POST /api/python-drafts
@@ -420,7 +438,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(drafts)
+        response.json(drafts.map(withPythonDraftDiff))
       } catch (error) {
         console.error(error)
 
@@ -452,7 +470,7 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
-        response.json(draft)
+        response.json(withPythonDraftDiff(draft))
       } catch (error) {
         console.error(error)
 
@@ -878,7 +896,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(updated)
+        response.json(withPythonDraftDiff(updated))
       } catch (error) {
         console.error(error)
 
@@ -973,7 +991,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(opened)
+        response.json(withPythonDraftDiff(opened))
       } catch (error) {
         console.error(error)
 
@@ -1026,7 +1044,7 @@ export default function createDevStudioRouter(prisma) {
           data: { status: nextStatus },
         })
 
-        response.json(updated)
+        response.json(withPythonDraftDiff(updated))
       } catch (error) {
         console.error(error)
 
@@ -1126,7 +1144,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(reverted)
+        response.json(withPythonDraftDiff(reverted))
       } catch (error) {
         console.error(error)
 
