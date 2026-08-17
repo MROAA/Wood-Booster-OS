@@ -739,6 +739,75 @@ export default function createDevStudioRouter(prisma) {
   )
 
   /*
+   * PUT /api/python-drafts/:id/run
+   *
+   * "Aja ja näytä tulostus" - ajaa luonnoksen OMAN koodin turvallisesti
+   * hiekkalaatikossa (run-python-draft-workflow) ja palauttaa
+   * stdout/stderr-tulosteen. Kertaluontoinen, uudelleenajettava
+   * esikatselu ihmisen omasta pyynnöstä - ei tallenneta luonnokselle
+   * mihinkään (ei vaikuta testCode/testStatus/testOutput-kenttiin,
+   * jotka ovat automaattisen luonti-/muokkausajan verifioinnin tulos).
+   */
+  router.put(
+    "/python-drafts/:id/run",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "run-python-draft-workflow",
+          {
+            draftCode: draft.code,
+            toolBus,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+          })
+        }
+
+        response.json({
+          output: skillResult.output,
+          status: skillResult.status,
+        })
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
    * PUT /api/python-drafts/:id/write
    *
    * Ei enää kirjoita suoraan levylle - luo tuoreen git-haaran,

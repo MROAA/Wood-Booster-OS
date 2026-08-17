@@ -51,6 +51,10 @@ import runPythonTestSkill from "./skills/runPythonTestSkill.js"
 
 import runPythonTestWorkflow from "./workflows/runPythonTestWorkflow.js"
 
+import runPythonDraftSkill from "./skills/runPythonDraftSkill.js"
+
+import runPythonDraftWorkflow from "./workflows/runPythonDraftWorkflow.js"
+
 import writePythonCodePullRequestSkill from "./skills/writePythonCodePullRequestSkill.js"
 
 import writePythonCodePullRequestWorkflow from "./workflows/writePythonCodePullRequestWorkflow.js"
@@ -128,6 +132,10 @@ function registerPythonDeveloperPlugin({
     )
 
     skillEngine.register(
+        runPythonDraftSkill,
+    )
+
+    skillEngine.register(
         writePythonCodePullRequestSkill,
     )
 
@@ -165,6 +173,10 @@ function registerPythonDeveloperPlugin({
 
     workflowEngine.register(
         runPythonTestWorkflow,
+    )
+
+    workflowEngine.register(
+        runPythonDraftWorkflow,
     )
 
     workflowEngine.register(
