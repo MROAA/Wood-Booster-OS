@@ -97,12 +97,12 @@ export default function createDevStudioRouter(prisma) {
 
   /*
    * Sama malli kuin devCodeChangeStudio.js:n withDiff() - PythonCodeDraft
-   * käyttää vain kenttänimeä "code" eikä "proposedCode". Sovelletaan vain
-   * niihin reitteihin joita Historia-välilehti oikeasti lukee (lista,
-   * yksittäishaku, revert, revert-pr, check-pr-status,
-   * check-revert-pr-status) - ei create/refactor/debug/revise/approve/
-   * write/reject-reitteihin, jotka syöttävät vain DevStudio.jsx:n
-   * DraftCardia eivätkä koskaan piirrä DiffView'ta.
+   * käyttää vain kenttänimeä "code" eikä "proposedCode". Sovelletaan
+   * KAIKKIIN reitteihin jotka palauttavat PythonCodeDraft-rivin - myös
+   * DevStudio.jsx:n DraftCardia syöttäviin (create/refactor/debug/
+   * revise/approve/write/reject/manual-edit), koska DraftCard piirtää
+   * nykyään DiffView'ta suoraan eläväsä tarkistusnäkymässä, ei enää
+   * vain Historia-välilehdellä.
    */
   function withPythonDraftDiff(draft) {
     return {
@@ -202,7 +202,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.status(201).json(draft)
+        response.status(201).json(withPythonDraftDiff(draft))
       } catch (error) {
         console.error(error)
 
@@ -305,7 +305,7 @@ export default function createDevStudioRouter(prisma) {
         })
 
         response.status(201).json({
-          ...draft,
+          ...withPythonDraftDiff(draft),
           explanation: skillResult.explanation,
         })
       } catch (error) {
@@ -412,7 +412,7 @@ export default function createDevStudioRouter(prisma) {
         })
 
         response.status(201).json({
-          ...draft,
+          ...withPythonDraftDiff(draft),
           diagnosis: skillResult.diagnosis,
         })
       } catch (error) {
@@ -589,7 +589,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(revised)
+        response.json(withPythonDraftDiff(revised))
       } catch (error) {
         console.error(error)
 
@@ -638,7 +638,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(rejected)
+        response.json(withPythonDraftDiff(rejected))
       } catch (error) {
         console.error(error)
 
@@ -683,7 +683,7 @@ export default function createDevStudioRouter(prisma) {
           data: updateData,
         })
 
-        response.json(draft)
+        response.json(withPythonDraftDiff(draft))
       } catch (error) {
         if (error.code === "P2025") {
           return response.status(404).json({
@@ -721,7 +721,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(draft)
+        response.json(withPythonDraftDiff(draft))
       } catch (error) {
         if (error.code === "P2025") {
           return response.status(404).json({
@@ -839,7 +839,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(opened)
+        response.json(withPythonDraftDiff(opened))
       } catch (error) {
         console.error(error)
 
