@@ -203,6 +203,8 @@ model PythonCodeDraft {
 
   writtenAt DateTime?
 
+  archived Boolean @default(false)
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -263,6 +265,8 @@ model CodeChangeDraft {
 
   writtenAt DateTime?
 
+  archived Boolean @default(false)
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -304,6 +308,8 @@ model CodeChangeDraftSet {
   checkStatusCheckedAt DateTime?
 
   writtenAt DateTime?
+
+  archived Boolean @default(false)
 
   createdAt DateTime @default(now())
 

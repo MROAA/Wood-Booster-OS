@@ -482,6 +482,76 @@ export default function createDevCodeChangeRouter(prisma) {
   )
 
   /*
+   * PUT /api/dev-drafts/:id/archive
+   * PUT /api/dev-drafts/:id/unarchive
+   *
+   * Palautuva - ei pysyvä poisto. Toimii mistä tahansa tilasta.
+   */
+  router.put(
+    "/dev-drafts/:id/archive",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            archived: true,
+          },
+        })
+
+        response.json(withDiff(draft))
+      } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  router.put(
+    "/dev-drafts/:id/unarchive",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            archived: false,
+          },
+        })
+
+        response.json(withDiff(draft))
+      } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
    * PUT /api/dev-drafts/:id/write
    *
    * Ei enää kirjoita suoraan levylle - luo tuoreen git-haaran,
