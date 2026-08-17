@@ -140,6 +140,8 @@ test("runaway test: killed at the timeout, reports timeout, still cleans up", as
         timeoutMsOverride: 3000,
     })
 
+    console.log("DIAGNOSTIC runaway testOutput:", JSON.stringify(result.testOutput))
+
     assert.equal(result.success, true)
 
     assert.equal(result.testStatus, "timeout")
