@@ -130,7 +130,14 @@ test("runaway test: killed at the timeout, reports timeout, still cleans up", as
         runId,
         testFilePath,
         skipped: false,
-        timeoutMsOverride: 500,
+        // 500ms riitti paikallisesti mutta osoittautui liian
+        // niukaksi marginaaliksi hitaammalla/kuormitetummalla CI-
+        // ajurilla (node --test:n oma käynnistys + sisäkkäisen
+        // testiprosessin haarautuminen ehti viedä lähes koko ajan,
+        // jolloin execFile:n killed-lippu ei asettunut luotettavasti
+        // ennen 500ms:n umpeutumista) - havaittu ensimmäisessä
+        // oikeassa GitHub Actions -ajossa.
+        timeoutMsOverride: 3000,
     })
 
     assert.equal(result.success, true)

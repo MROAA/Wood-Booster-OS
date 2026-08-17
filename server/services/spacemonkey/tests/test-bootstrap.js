@@ -5,7 +5,18 @@
  * Bootstrap Test
  */
 
+import path from "node:path"
+
+import { fileURLToPath } from "node:url"
+
 import SpacemonkeyBootstrap from "../bootstrap/spacemonkeyBootstrap.js"
+
+// tests/ -> spacemonkey -> services -> server -> repo root. Ei
+// kiinteää /home/marc-polkua - ks. perustelu
+// test-code-dependency-analyzer.js:ssä.
+const currentDirectory = path.dirname(fileURLToPath(import.meta.url))
+
+const PROJECT_ROOT = path.resolve(currentDirectory, "../../../..")
 
 
 const logger = console
@@ -99,7 +110,7 @@ const taskResult =
             "javascript",
 
         projectPath:
-            "/home/marc/Wood-Booster-AI/Wood-Booster-OS",
+            PROJECT_ROOT,
 
         search:
             ".js",
