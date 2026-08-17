@@ -1236,8 +1236,31 @@ function RetryWithModelRow({ onRetryWithModel, busy }) {
 
 }
 
+const RUN_STATUS_DISPLAY = {
+  passed: { icon: "✓", label: "Ajo onnistui", className: "text-emerald-400" },
+  failed: { icon: "✗", label: "Ajo epäonnistui", className: "text-red-400" },
+  timeout: { icon: "⏱", label: "Ajo aikakatkaistiin", className: "text-amber-400" },
+}
+
 function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel }) {
   const [reviseFeedback, setReviseFeedback] = useState("")
+
+  const [running, setRunning] = useState(false)
+
+  const [runResult, setRunResult] = useState(null)
+
+  async function runDraft() {
+    setRunning(true)
+
+    try {
+      const result = await apiPut(`/python-drafts/${draft.id}/run`, {})
+      setRunResult(result)
+    } catch (error) {
+      setRunResult({ status: "failed", output: error.message })
+    } finally {
+      setRunning(false)
+    }
+  }
 
   const isFinished = [
     "written",
@@ -1337,6 +1360,26 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
+        {(draft.status === "draft" || draft.status === "approved") && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              px-3
+              py-1.5
+              text-sm
+              text-[var(--wood-text)]
+              disabled:opacity-50
+            "
+            disabled={busy || running}
+            onClick={runDraft}
+          >
+            {running ? "Ajetaan…" : "▶ Aja ja näytä tulostus"}
+          </button>
+        )}
+
         {draft.status === "draft" && (
           <button
             type="button"
@@ -1458,6 +1501,32 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
           </button>
         )}
       </div>
+
+      {runResult && (
+        <div className="mt-3">
+          <div className={`text-xs ${RUN_STATUS_DISPLAY[runResult.status]?.className || "text-[var(--wood-muted)]"}`}>
+            {RUN_STATUS_DISPLAY[runResult.status]?.icon || "?"} {RUN_STATUS_DISPLAY[runResult.status]?.label || "Ajo epäonnistui"}
+          </div>
+          {runResult.output && (
+            <pre className="
+              wood-scroll
+              mt-1
+              max-h-40
+              overflow-auto
+              rounded-lg
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-2
+              text-xs
+              text-[var(--wood-text)]
+              whitespace-pre-wrap
+            ">
+              {runResult.output}
+            </pre>
+          )}
+        </div>
+      )}
 
       <RetryWithModelRow onRetryWithModel={onRetryWithModel} busy={busy} />
 

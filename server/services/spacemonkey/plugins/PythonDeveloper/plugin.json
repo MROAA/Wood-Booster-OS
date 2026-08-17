@@ -20,6 +20,7 @@
     "check-python-references",
     "generate-python-test",
     "run-python-test",
+    "run-python-draft",
     "write-python-pull-request"
   ],
   "tools": [
@@ -35,6 +36,7 @@
     "check-python-references-workflow",
     "generate-python-test-workflow",
     "run-python-test-workflow",
+    "run-python-draft-workflow",
     "write-python-pull-request-workflow"
   ],
   "permissions": [
