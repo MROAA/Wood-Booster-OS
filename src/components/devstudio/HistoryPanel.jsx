@@ -9,6 +9,7 @@ import {
   SET_STATUS_LABELS,
   FILE_STATUS_LABELS,
   TEST_STATUS_DISPLAY,
+  CHECK_STATUS_LABELS,
 } from "./statusLabels"
 
 /*
@@ -169,6 +170,26 @@ function PrLinkBadge({ prUrl, prNumber, label = "PR" }) {
 
 }
 
+function CheckStatusBadge({ checkStatus }) {
+
+  const display = CHECK_STATUS_LABELS[checkStatus]
+
+  if (!display) {
+
+    return null
+
+  }
+
+  return (
+
+    <span className={`text-xs ${display.className}`}>
+      {display.icon} {display.label}
+    </span>
+
+  )
+
+}
+
 function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus, busy }) {
 
   return (
@@ -195,7 +216,12 @@ function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus,
 
           {
             draft.status.startsWith("pr_") && !draft.status.startsWith("pr_revert_") && (
-              <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
+
+              <>
+                <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
+                <CheckStatusBadge checkStatus={draft.checkStatus} />
+              </>
+
             )
           }
 
@@ -276,7 +302,12 @@ function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus,
 
         {
           set.status.startsWith("pr_") && !set.status.startsWith("pr_revert_") && (
-            <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
+
+            <>
+              <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
+              <CheckStatusBadge checkStatus={set.checkStatus} />
+            </>
+
           )
         }
 

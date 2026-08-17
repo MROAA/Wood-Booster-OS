@@ -1,0 +1,29 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ development ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kloonaa repositorio
+        uses: actions/checkout@v4
+
+      - name: Asenna Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Asenna riippuvuudet
+        working-directory: server
+        run: npm ci
+
+      - name: Aja testit
+        working-directory: server
+        env:
+          DATABASE_URL: "file:./dev.db"
+        run: npm test

@@ -4,6 +4,8 @@ import { promisify } from "node:util"
 
 import { PROJECT_ROOT } from "../spacemonkey/plugins/CodeChangeDeveloper/skills/projectSandbox.js"
 
+import { deriveCheckStatusSummary } from "./deriveCheckStatusSummary.js"
+
 const execFileAsync = promisify(execFile)
 
 /*
@@ -19,12 +21,16 @@ export async function checkPullRequestStatus(prNumber) {
 
     const { stdout } = await execFileAsync(
         "gh",
-        ["pr", "view", String(prNumber), "--json", "state,url"],
+        ["pr", "view", String(prNumber), "--json", "state,url,statusCheckRollup"],
         { cwd: PROJECT_ROOT, timeout: 15000, maxBuffer: 1_000_000, env: process.env },
     )
 
-    const { state, url } = JSON.parse(stdout)
+    const { state, url, statusCheckRollup } = JSON.parse(stdout)
 
-    return { state, url }
+    return {
+        state,
+        url,
+        checkStatus: deriveCheckStatusSummary(statusCheckRollup),
+    }
 
 }

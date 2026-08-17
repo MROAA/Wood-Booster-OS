@@ -163,7 +163,7 @@ const GitTool = {
 
                     const { stdout } = await execFileAsync(
                         "gh",
-                        ["pr", "view", String(prNumber), "--json", "state,url,mergeCommit"],
+                        ["pr", "view", String(prNumber), "--json", "state,url,mergeCommit,statusCheckRollup"],
                         { cwd: repoRoot, timeout: NETWORK_TIMEOUT_MS, maxBuffer: MAX_BUFFER_BYTES, env: process.env },
                     )
 
@@ -174,6 +174,7 @@ const GitTool = {
                         state: parsed.state,
                         url: parsed.url,
                         mergeCommitSha: parsed.mergeCommit?.oid || null,
+                        statusCheckRollup: parsed.statusCheckRollup || [],
                     }
 
                 }

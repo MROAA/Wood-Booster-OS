@@ -8,7 +8,7 @@ import MultiFileChatPanel from "../components/devstudio/MultiFileChatPanel"
 
 import HistoryPanel from "../components/devstudio/HistoryPanel"
 
-import { DRAFT_STATUS_LABELS, TEST_STATUS_DISPLAY } from "../components/devstudio/statusLabels"
+import { DRAFT_STATUS_LABELS, TEST_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "../components/devstudio/statusLabels"
 
 import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolvedReferences"
 
@@ -1204,6 +1204,12 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
             >
               PR #{draft.prNumber} ↗
             </a>
+          )}
+
+          {draft.checkStatus && CHECK_STATUS_LABELS[draft.checkStatus] && (
+            <span className={`text-xs ${CHECK_STATUS_LABELS[draft.checkStatus].className}`}>
+              {CHECK_STATUS_LABELS[draft.checkStatus].icon} {CHECK_STATUS_LABELS[draft.checkStatus].label}
+            </span>
           )}
 
           {draft.status === "pr_open" && (

@@ -133,3 +133,22 @@ export const TEST_STATUS_DISPLAY = {
   vacuous: { icon: "?", label: "Testi ei todista mitään", className: "text-amber-400" },
 
 }
+
+/*
+ * PR:n GitHub Actions -tarkistusten tila (ks. checkPullRequestStatus/
+ * deriveCheckStatusSummary.js). "none" on täysin normaali tulos, ei
+ * virhe - näytetään silti neutraalilla värillä eikä piiloteta
+ * kokonaan, jotta ero "ei vielä tarkistettu" ja "tarkistettu, ei
+ * tarkistuksia" -tilojen välillä ei häviä.
+ */
+export const CHECK_STATUS_LABELS = {
+
+  passing: { icon: "✓", label: "Tarkistukset läpäisty", className: "text-emerald-400" },
+
+  failing: { icon: "✗", label: "Tarkistukset epäonnistuivat", className: "text-red-400" },
+
+  pending: { icon: "⏳", label: "Tarkistukset käynnissä", className: "text-amber-400" },
+
+  none: { icon: "—", label: "Ei tarkistuksia", className: "text-[var(--wood-muted)]" },
+
+}

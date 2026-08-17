@@ -501,7 +501,7 @@ export default function createDevMultiFileChangeRouter(prisma) {
         })
       }
 
-      const { state } = await checkPullRequestStatus(set.prNumber)
+      const { state, checkStatus } = await checkPullRequestStatus(set.prNumber)
 
       const nextStatus =
         state === "MERGED"
@@ -512,7 +512,11 @@ export default function createDevMultiFileChangeRouter(prisma) {
 
       const updatedSet = await prisma.codeChangeDraftSet.update({
         where: { id: setId },
-        data: { status: nextStatus },
+        data: {
+          status: nextStatus,
+          checkStatus,
+          checkStatusCheckedAt: new Date(),
+        },
         include: { files: { orderBy: { id: "asc" } } },
       })
 

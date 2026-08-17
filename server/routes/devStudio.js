@@ -853,7 +853,7 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
-        const { state } = await checkPullRequestStatus(draft.prNumber)
+        const { state, checkStatus } = await checkPullRequestStatus(draft.prNumber)
 
         const nextStatus =
           state === "MERGED"
@@ -864,7 +864,11 @@ export default function createDevStudioRouter(prisma) {
 
         const updated = await prisma.pythonCodeDraft.update({
           where: { id: draftId },
-          data: { status: nextStatus },
+          data: {
+            status: nextStatus,
+            checkStatus,
+            checkStatusCheckedAt: new Date(),
+          },
         })
 
         response.json(updated)
