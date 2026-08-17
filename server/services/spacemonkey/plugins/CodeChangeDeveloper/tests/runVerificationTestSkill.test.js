@@ -120,27 +120,31 @@ test("runaway test: killed at the timeout, reports timeout, still cleans up", as
 
     const runId = crypto.randomUUID()
 
+    // Pelkkä "new Promise(() => {})" (ei mitään pitämässä
+    // tapahtumasilmukkaa käynnissä) EI riitä tuottamaan todellista
+    // jumiutumista luotettavasti kaikilla Node-versioilla - Node
+    // 20:n testiajuri tunnistaa tällaisen "roikkuvan" promisen
+    // nopeasti (~50ms, virhe "Promise resolution is still pending
+    // but the event loop has already resolved") ja peruu testin itse
+    // ennen kuin execFile:n oma timeout ehtisi koskaan laueta, jolloin
+    // skilli näkee normaalin epäonnistumisen eikä killed-tilaa -
+    // havaittu ensimmäisissä oikeissa GitHub Actions -ajoissa (Node
+    // 20.20.2), ei toistunut paikallisesti (Node 26). Oikea, aidosti
+    // pitkäkestoinen ajastin pitää tapahtumasilmukan kiireisenä niin
+    // ettei Node voi päätellä sen olevan koskaan ratkeamaton, joten
+    // execFile:n oma timeout ehtii aina laueta ensin.
     const testFilePath = await writeFixtureTest(
         runId,
         "import test from \"node:test\"\n" +
-        "test(\"never resolves\", () => new Promise(() => {}))\n",
+        "test(\"never resolves\", () => new Promise(resolve => setTimeout(resolve, 60000)))\n",
     )
 
     const result = await runVerificationTestSkill.execute({
         runId,
         testFilePath,
         skipped: false,
-        // 500ms riitti paikallisesti mutta osoittautui liian
-        // niukaksi marginaaliksi hitaammalla/kuormitetummalla CI-
-        // ajurilla (node --test:n oma käynnistys + sisäkkäisen
-        // testiprosessin haarautuminen ehti viedä lähes koko ajan,
-        // jolloin execFile:n killed-lippu ei asettunut luotettavasti
-        // ennen 500ms:n umpeutumista) - havaittu ensimmäisessä
-        // oikeassa GitHub Actions -ajossa.
         timeoutMsOverride: 3000,
     })
-
-    console.log("DIAGNOSTIC runaway testOutput:", JSON.stringify(result.testOutput))
 
     assert.equal(result.success, true)
 
