@@ -123,6 +123,7 @@ export default function createDevCodeChangeRouter(prisma) {
             proposedCode: skillResult.proposedCode,
             originalHash,
             status: "draft",
+            model: skillResult.model,
             testCode: verification.testCode,
             testStatus: verification.testStatus,
             testOutput: verification.testOutput,
@@ -324,6 +325,7 @@ export default function createDevCodeChangeRouter(prisma) {
           {
             prompt: augmentedPrompt,
             filePath: existing.filePath,
+            model: existing.model,
             toolBus,
             generateCodeChange,
           },
@@ -363,6 +365,7 @@ export default function createDevCodeChangeRouter(prisma) {
             originalCode: skillResult.originalCode,
             proposedCode: skillResult.proposedCode,
             originalHash,
+            model: skillResult.model,
             testCode: verification.testCode,
             testStatus: verification.testStatus,
             testOutput: verification.testOutput,

@@ -147,6 +147,7 @@ export async function debugPythonCode({
         title: lastParsed.title || "Virheen korjausehdotus",
         diagnosis: lastParsed.diagnosis,
         code: lastParsed.code,
+        model,
       }
     }
   }

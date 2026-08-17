@@ -68,7 +68,7 @@ export async function createDraftSetFromPrompt(prisma, prompt, model) {
   const set = await prisma.codeChangeDraftSet.create({
     data: {
       prompt,
-      model,
+      model: skillResult.model,
       status: "plan_ready",
       planExplanation: skillResult.explanation,
       files: {

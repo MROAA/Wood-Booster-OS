@@ -23,6 +23,10 @@ function MultiFileChatPanel() {
 
   const [model, setModel] = useState(undefined)
 
+  const [compareMode, setCompareMode] = useState(false)
+
+  const [compareModel, setCompareModel] = useState(undefined)
+
   const [isThinking, setIsThinking] = useState(false)
 
   const elapsedSeconds = useElapsedSeconds(isThinking)
@@ -127,31 +131,48 @@ function MultiFileChatPanel() {
 
     setErrorMessage("")
 
-    try {
-
-      const set = await apiPost("/dev-draft-sets", { prompt: userPrompt, model })
+    if (compareMode) {
 
       setTurns(previous => [
         ...previous,
-        { role: "assistant", kind: "set", set },
+        { role: "assistant", kind: "text", content: `Vertailu: ${userPrompt}` },
       ])
-
-    } catch (error) {
-
-      setTurns(previous => [
-        ...previous,
-        {
-          role: "assistant",
-          kind: "text",
-          content: `Suunnitelman luonti epäonnistui: ${error.message}`,
-        },
-      ])
-
-    } finally {
-
-      setIsThinking(false)
 
     }
+
+    const modelsToRun = compareMode ? [model, compareModel] : [model]
+
+    // Peräkkäin, ei rinnakkain - paikallinen Ollama-instanssi jonottaa
+    // samanaikaiset generoinnit joka tapauksessa, joten rinnakkaisuus
+    // ei nopeuttaisi mitään ja vaatisi oman, toisen "ajattelee"-tilan
+    // käyttöliittymään ilman hyötyä.
+    for (const modelToUse of modelsToRun) {
+
+      try {
+
+        const set = await apiPost("/dev-draft-sets", { prompt: userPrompt, model: modelToUse })
+
+        setTurns(previous => [
+          ...previous,
+          { role: "assistant", kind: "set", set },
+        ])
+
+      } catch (error) {
+
+        setTurns(previous => [
+          ...previous,
+          {
+            role: "assistant",
+            kind: "text",
+            content: `Suunnitelman luonti epäonnistui: ${error.message}`,
+          },
+        ])
+
+      }
+
+    }
+
+    setIsThinking(false)
 
   }
 
@@ -556,7 +577,37 @@ function MultiFileChatPanel() {
 
         <FileAttachButton prompt={prompt} onAttach={setPrompt} />
 
-        <ModelPicker value={model} onChange={setModel} />
+        <div className="flex flex-wrap items-center gap-2">
+
+          <ModelPicker value={model} onChange={setModel} />
+
+          <button
+            type="button"
+            onClick={() => setCompareMode(enabled => !enabled)}
+            className={`
+              rounded-full
+              border
+              px-2.5
+              py-1
+              text-xs
+              transition-colors
+              ${
+                compareMode
+                  ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            🔀 Vertaile kahta mallia
+          </button>
+
+          {
+            compareMode && (
+              <ModelPicker value={compareModel} onChange={setCompareModel} />
+            )
+          }
+
+        </div>
 
         <div className="flex gap-3">
 

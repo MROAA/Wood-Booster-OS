@@ -46,7 +46,7 @@ const generateChangePlanSkill = {
 
         }
 
-        const { files, explanation } = await generateChangePlan({ prompt, model })
+        const { files, explanation, model: resolvedModel } = await generateChangePlan({ prompt, model })
 
         const checkedFiles = files.map(file => {
 
@@ -76,6 +76,7 @@ const generateChangePlanSkill = {
             success: true,
             explanation,
             files: checkedFiles,
+            model: resolvedModel,
         }
 
     },

@@ -183,3 +183,33 @@ test("passes model through as undefined when none was chosen, letting the genera
     assert.equal(receivedModel, undefined)
 
 })
+
+
+
+test("returns the resolved model from the generator, so callers can persist which model actually produced this draft", async () => {
+
+    const toolBus = {
+        execute: async (id, input) => {
+            if (input.action === "exists") {
+                return { success: true, exists: false }
+            }
+
+            throw new Error("should not read a file that does not exist")
+        },
+    }
+
+    const result = await generateCodeChangeSkill.execute({
+        prompt: "luo uusi tiedosto",
+        filePath: "docs/new-file.md",
+        toolBus,
+        generateCodeChange: async () => ({
+            title: "Uusi tiedosto",
+            explanation: "...",
+            code: "# Uusi",
+            model: "qwen2.5-coder:7b",
+        }),
+    })
+
+    assert.equal(result.model, "qwen2.5-coder:7b")
+
+})

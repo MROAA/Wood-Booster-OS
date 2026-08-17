@@ -100,6 +100,7 @@ const generateCodeChangeSkill = {
             title,
             explanation,
             code: proposedCode,
+            model: resolvedModel,
         } = await generateCodeChange({
             prompt,
             currentCode: originalCode,
@@ -114,6 +115,7 @@ const generateCodeChangeSkill = {
             explanation,
             originalCode,
             proposedCode,
+            model: resolvedModel,
         }
 
     },

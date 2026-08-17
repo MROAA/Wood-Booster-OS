@@ -171,5 +171,6 @@ export async function generateCodeChange({
     title: parsed.title || "Koodimuutos",
     explanation: parsed.explanation,
     code: parsed.code,
+    model,
   }
 }

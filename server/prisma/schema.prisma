@@ -161,6 +161,8 @@ model PythonCodeDraft {
 
   code String
 
+  model String?
+
   originalCode String?
 
   originalHash String?
@@ -224,6 +226,8 @@ model CodeChangeDraft {
   originalCode String?
 
   proposedCode String
+
+  model String?
 
   originalHash String?
 

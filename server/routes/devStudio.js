@@ -109,6 +109,7 @@ export default function createDevStudioRouter(prisma) {
 
         let draftTitle = title
         let draftCode = code
+        let draftModel = null
 
         if (useAI) {
           if (!prompt) {
@@ -124,6 +125,7 @@ export default function createDevStudioRouter(prisma) {
 
           draftTitle = generated.title
           draftCode = generated.code
+          draftModel = generated.model
         }
 
         if (!draftCode || !filePath) {
@@ -170,6 +172,7 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath,
             status: "draft",
+            model: draftModel,
             unresolvedReferences:
               unresolvedReferences.length > 0
                 ? JSON.stringify(unresolvedReferences)
@@ -271,6 +274,7 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath: path.basename(filePath),
             status: "draft",
+            model: skillResult.model,
             unresolvedReferences:
               unresolvedReferences.length > 0
                 ? JSON.stringify(unresolvedReferences)
@@ -377,6 +381,7 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath: path.basename(filePath),
             status: "draft",
+            model: skillResult.model,
             unresolvedReferences:
               unresolvedReferences.length > 0
                 ? JSON.stringify(unresolvedReferences)
@@ -513,6 +518,7 @@ export default function createDevStudioRouter(prisma) {
 
         const generated = await generatePythonDraft({
           prompt: augmentedPrompt,
+          model: existing.model,
         })
 
         const toolBus = getSpacemonkeyToolBus()
@@ -552,6 +558,7 @@ export default function createDevStudioRouter(prisma) {
             title: generated.title,
             code: generated.code,
             originalCode,
+            model: generated.model,
             unresolvedReferences:
               unresolvedReferences.length > 0
                 ? JSON.stringify(unresolvedReferences)

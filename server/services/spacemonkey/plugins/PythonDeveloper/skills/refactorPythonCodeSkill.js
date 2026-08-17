@@ -102,7 +102,7 @@ const refactorPythonCodeSkill = {
 
         }
 
-        const { title, explanation, code } = await refactorPythonCode({
+        const { title, explanation, code, model: resolvedModel } = await refactorPythonCode({
             code: readResult.content,
             model,
         })
@@ -113,6 +113,7 @@ const refactorPythonCodeSkill = {
             title,
             explanation,
             code,
+            model: resolvedModel,
         }
 
     },
