@@ -397,6 +397,67 @@ function DevStudio() {
     }
   }
 
+  /*
+   * Kokeilee samaa luonnosta toisella mallilla jälkikäteen. Kolme eri
+   * reittiä loivat alunperin PythonCodeDraftin (generoi/refaktoroi/
+   * debuggaa), eikä lähdetoiminto ole oma kenttänsä - päätellään se
+   * luonnoksen omasta prompt-etuliitteestä, täsmälleen samalla tavalla
+   * kuin nuo kolme reittiä sen itse rakentavat (ks. devStudio.js).
+   *
+   * "compareGroupId" on olemassa oleva, vain selaimen puolella elävä
+   * (ei tallenneta kantaan) merkintä viime kierroksen "vertaile kahta
+   * mallia" -toiminnosta - tässä sitä käytetään uudelleen, mutta koska
+   * lähdeluonnos on jo jossain kohtaa listaa (ei aina listan alussa),
+   * uusi luonnos pitää pujottaa sen VIEREEN, ei listan kärkeen, jotta
+   * "🔀 Vertailu"-otsikko (joka näyttää vain kunkin ryhmän ensimmäisen
+   * listajärjestyksen mukaisen jäsenen kohdalla) osuu oikeaan pariin.
+   */
+  async function retryDraftWithModel(sourceDraft, model) {
+    setBusyDraftId(sourceDraft.id)
+    setErrorMessage("")
+
+    const groupId = sourceDraft.compareGroupId || Date.now()
+
+    try {
+      let newDraft
+
+      if (sourceDraft.prompt.startsWith("Refaktoroi: ")) {
+        newDraft = await apiPost("/python-drafts/refactor", {
+          filePath: sourceDraft.filePath,
+          model,
+        })
+      } else if (sourceDraft.prompt.startsWith("Debug: ")) {
+        newDraft = await apiPost("/python-drafts/debug", {
+          filePath: sourceDraft.filePath,
+          model,
+        })
+      } else {
+        newDraft = await apiPost("/python-drafts", {
+          useAI: true,
+          prompt: sourceDraft.prompt,
+          filePath: sourceDraft.filePath,
+          model,
+        })
+      }
+
+      setDrafts(current => {
+        const tagged = current.map(existing =>
+          existing.id === sourceDraft.id ? { ...existing, compareGroupId: groupId } : existing,
+        )
+
+        const sourceIndex = tagged.findIndex(existing => existing.id === sourceDraft.id)
+
+        const taggedNewDraft = { ...newDraft, compareGroupId: groupId }
+
+        return [...tagged.slice(0, sourceIndex), taggedNewDraft, ...tagged.slice(sourceIndex)]
+      })
+    } catch (error) {
+      setErrorMessage(error.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
   async function revertDraft(draft) {
     if (!window.confirm("Peruuta tämä muutos ja palauta aiempi tila?")) {
       return
@@ -1047,6 +1108,7 @@ function DevStudio() {
                     onCheckPrStatus={() => checkPrStatus(draft)}
                     onRevertPr={() => revertPr(draft)}
                     onCheckRevertPrStatus={() => checkRevertPrStatus(draft)}
+                    onRetryWithModel={model => retryDraftWithModel(draft, model)}
                   />
 
                 </div>
@@ -1100,7 +1162,79 @@ function CompareToggle({ compareEnabled, onToggleCompare, compareModel, onCompar
 
 }
 
-function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus }) {
+function RetryWithModelRow({ onRetryWithModel, busy }) {
+
+  const [retryModel, setRetryModel] = useState(undefined)
+
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+
+      <button
+        type="button"
+        onClick={() => setIsOpen(open => !open)}
+        className={`
+          rounded-full
+          border
+          px-2.5
+          py-1
+          text-xs
+          transition-colors
+          ${
+            isOpen
+              ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+              : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+          }
+        `}
+      >
+        🔁 Kokeile toisella mallilla
+      </button>
+
+      {
+        isOpen && (
+
+          <>
+            <ModelPicker value={retryModel} onChange={setRetryModel} />
+
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                onRetryWithModel(retryModel)
+                setIsOpen(false)
+                setRetryModel(undefined)
+              }}
+              className="
+                rounded-full
+                border
+                border-[var(--wood-accent)]
+                px-2.5
+                py-1
+                text-xs
+                text-[var(--wood-text)]
+                transition-opacity
+                disabled:opacity-30
+                disabled:cursor-not-allowed
+                hover:bg-[var(--wood-accent)]
+                hover:text-[var(--wood-bg)]
+              "
+            >
+              Kokeile
+            </button>
+          </>
+
+        )
+      }
+
+    </div>
+
+  )
+
+}
+
+function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel }) {
   const [reviseFeedback, setReviseFeedback] = useState("")
 
   const isFinished = [
@@ -1315,6 +1449,8 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
           </button>
         )}
       </div>
+
+      <RetryWithModelRow onRetryWithModel={onRetryWithModel} busy={busy} />
 
       {draft.status.startsWith("pr_") && !draft.status.startsWith("pr_revert_") && (
         <div className="mt-3 flex items-center gap-2">

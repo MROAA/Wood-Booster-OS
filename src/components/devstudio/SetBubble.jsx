@@ -8,6 +8,8 @@ import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY, CHECK_STATU
 
 import ModelBadge from "./ModelBadge"
 
+import ModelPicker from "./ModelPicker"
+
 import { parseUnresolvedReferences } from "./parseUnresolvedReferences"
 
 /*
@@ -290,13 +292,98 @@ function FileReviewCard({ file, onRevise, busy, collapsible }) {
 
 }
 
+/*
+ * Antaa kokeilla samaa pyyntöä toisella mallilla jälkikäteen -
+ * täydentää viime kierroksen "vertaile kahta mallia" -tilaa, joka
+ * vaatii mallien valinnan etukäteen ennen lähetystä. Tämä ei tarvitse
+ * uutta backend-reittiä: kutsuu samaa POST /dev-draft-sets -reittiä
+ * jota mallien vertailukin jo käyttää, uudella mallilla.
+ */
+function RetryWithModelRow({ onRetryWithModel, busy }) {
+
+  const [retryModel, setRetryModel] = useState(undefined)
+
+  const [isOpen, setIsOpen] = useState(false)
+
+  if (!onRetryWithModel) {
+
+    return null
+
+  }
+
+  return (
+
+    <div className="flex flex-wrap items-center gap-2 pt-1">
+
+      <button
+        type="button"
+        onClick={() => setIsOpen(open => !open)}
+        className={`
+          rounded-full
+          border
+          px-2.5
+          py-1
+          text-xs
+          transition-colors
+          ${
+            isOpen
+              ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+              : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+          }
+        `}
+      >
+        🔁 Kokeile toisella mallilla
+      </button>
+
+      {
+        isOpen && (
+
+          <>
+            <ModelPicker value={retryModel} onChange={setRetryModel} />
+
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                onRetryWithModel(retryModel)
+                setIsOpen(false)
+                setRetryModel(undefined)
+              }}
+              className="
+                rounded-full
+                border
+                border-[var(--wood-accent)]
+                px-2.5
+                py-1
+                text-xs
+                text-[var(--wood-text)]
+                transition-opacity
+                disabled:opacity-30
+                disabled:cursor-not-allowed
+                hover:bg-[var(--wood-accent)]
+                hover:text-[var(--wood-bg)]
+              "
+            >
+              Kokeile
+            </button>
+          </>
+
+        )
+      }
+
+    </div>
+
+  )
+
+}
+
 function isPreviewableFile(file) {
 
   return !file.blocked && Boolean(file.proposedCode) && file.filePath.startsWith("src/")
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, busy }) {
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, busy }) {
 
   const status = set.status
 
@@ -423,6 +510,8 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
               </button>
 
             </div>
+
+            <RetryWithModelRow onRetryWithModel={onRetryWithModel} busy={busy} />
 
             {
               visibleFiles.length === 0 && (
@@ -583,6 +672,8 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
               }
 
             </div>
+
+            <RetryWithModelRow onRetryWithModel={onRetryWithModel} busy={busy} />
 
             {
               status.startsWith("pr_") && !status.startsWith("pr_revert_") && (

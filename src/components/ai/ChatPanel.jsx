@@ -477,6 +477,57 @@ function ChatPanel() {
 
 
 
+  /*
+   * Kokeilee samaa pyyntöä toisella mallilla jälkikäteen - sama
+   * "Vertailu"-jako-luonti kuin MultiFileChatPanel.jsx:n
+   * retryWithModel()-funktiolla, kutsuu suoraan POST /dev-draft-setsiä
+   * (ei postChatMessage-reittiä, koska tämä ei ole uusi chat-viesti).
+   */
+  async function retryWithModel(setId, promptText, model) {
+
+    setBusySetId(setId)
+
+    setMessages(
+      previous => [
+        ...previous,
+        { role: "assistant", kind: "text", content: `Vertailu: ${promptText}` },
+      ],
+    )
+
+    try {
+
+      const set = await apiPost("/dev-draft-sets", { prompt: promptText, model })
+
+      setMessages(
+        previous => [
+          ...previous,
+          { role: "assistant", kind: "set", mode: "koodi", set },
+        ],
+      )
+
+    } catch (error) {
+
+      setMessages(
+        previous => [
+          ...previous,
+          {
+            role: "assistant",
+            kind: "text",
+            content: `Suunnitelman luonti epäonnistui: ${error.message}`,
+          },
+        ],
+      )
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
   useEffect(() => {
 
     async function restoreHistoryAndPendingSets() {
@@ -994,6 +1045,7 @@ function ChatPanel() {
                         onCheckPrStatus={() => checkPrStatus(item.set.id)}
                         onRevertPr={() => revertSetPr(item.set.id)}
                         onCheckRevertPrStatus={() => checkRevertSetPrStatus(item.set.id)}
+                        onRetryWithModel={model => retryWithModel(item.set.id, item.set.prompt, model)}
                       />
 
                     </div>

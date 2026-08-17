@@ -176,6 +176,52 @@ function MultiFileChatPanel() {
 
   }
 
+  /*
+   * Kokeilee samaa pyyntöä toisella mallilla jälkikäteen, olemassa
+   * olevasta suunnitelmakuplasta - sama "Vertailu"-jako-luonti kuin
+   * sendMessage()'n vertailutilassa, mutta vain yksi uusi kutsu
+   * kerrallaan koska alkuperäinen pyyntö on jo olemassa eikä sitä
+   * tarvitse lähettää uudelleen kahdesti.
+   */
+  async function retryWithModel(setId, promptText, model) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    setTurns(previous => [
+      ...previous,
+      { role: "assistant", kind: "text", content: `Vertailu: ${promptText}` },
+    ])
+
+    try {
+
+      const set = await apiPost("/dev-draft-sets", { prompt: promptText, model })
+
+      setTurns(previous => [
+        ...previous,
+        { role: "assistant", kind: "set", set },
+      ])
+
+    } catch (error) {
+
+      setTurns(previous => [
+        ...previous,
+        {
+          role: "assistant",
+          kind: "text",
+          content: `Suunnitelman luonti epäonnistui: ${error.message}`,
+        },
+      ])
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
   async function approvePlan(setId) {
 
     setBusySetId(setId)
@@ -505,6 +551,7 @@ function MultiFileChatPanel() {
                         onCheckPrStatus={() => checkPrStatus(turn.set.id)}
                         onRevertPr={() => revertSetPr(turn.set.id)}
                         onCheckRevertPrStatus={() => checkRevertSetPrStatus(turn.set.id)}
+                        onRetryWithModel={model => retryWithModel(turn.set.id, turn.set.prompt, model)}
                       />
 
                     </div>
