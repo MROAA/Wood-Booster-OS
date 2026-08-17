@@ -1065,7 +1065,7 @@ function DevStudio() {
           <p className="text-sm text-[var(--wood-muted)]">Ladataan...</p>
         )}
 
-        {!loading && drafts.length === 0 && (
+        {!loading && drafts.filter(draft => !draft.archived).length === 0 && (
           <p className="text-sm text-[var(--wood-muted)]">
             Ei vielä luonnoksia.
           </p>
@@ -1076,7 +1076,7 @@ function DevStudio() {
 
             const seenCompareGroups = new Set()
 
-            return drafts.map(draft => {
+            return drafts.filter(draft => !draft.archived).map(draft => {
 
               const showCompareLabel =
                 draft.compareGroupId && !seenCompareGroups.has(draft.compareGroupId)

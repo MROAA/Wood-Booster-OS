@@ -190,7 +190,7 @@ function CheckStatusBadge({ checkStatus }) {
 
 }
 
-function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus, onCheckPrStatus, busy }) {
+function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus, onCheckPrStatus, onArchive, onUnarchive, busy }) {
 
   return (
 
@@ -201,6 +201,27 @@ function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus,
         <div className="text-xs text-[var(--wood-muted)]">{draft.filePath}</div>
 
         <div className="flex items-center gap-2">
+
+          <button
+            disabled={busy}
+            onClick={draft.archived ? onUnarchive : onArchive}
+            className="
+              rounded-full
+              border
+              border-[var(--wood-border)]
+              px-3
+              py-1
+              text-xs
+              text-[var(--wood-muted)]
+              transition-opacity
+              disabled:opacity-30
+              disabled:cursor-not-allowed
+              hover:border-[var(--wood-accent)]
+              hover:text-[var(--wood-text)]
+            "
+          >
+            {draft.archived ? "Palauta arkistosta" : "Arkistoi"}
+          </button>
 
           {
             draft.status === "written" && (
@@ -313,7 +334,7 @@ function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus,
 
 }
 
-function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus, onCheckPrStatus, busyFileId, busySet }) {
+function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus, onCheckPrStatus, onArchive, onUnarchive, busyFileId, busySet }) {
 
   const visibleFiles = set.files.filter(file => !file.blocked)
 
@@ -324,6 +345,27 @@ function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus,
     <div className="space-y-3">
 
       <div className="flex items-center gap-2">
+
+        <button
+          disabled={busySet}
+          onClick={set.archived ? onUnarchive : onArchive}
+          className="
+            rounded-full
+            border
+            border-[var(--wood-border)]
+            px-3
+            py-1
+            text-xs
+            text-[var(--wood-muted)]
+            transition-opacity
+            disabled:opacity-30
+            disabled:cursor-not-allowed
+            hover:border-[var(--wood-accent)]
+            hover:text-[var(--wood-text)]
+          "
+        >
+          {set.archived ? "Palauta arkistosta" : "Arkistoi"}
+        </button>
 
         {
           set.status.startsWith("pr_") && !set.status.startsWith("pr_revert_") && (
@@ -502,6 +544,12 @@ function HistoryEntryRow({
   onRevertPythonDraftPr,
   onCheckRevertPythonDraftPrStatus,
   onCheckPythonDraftPrStatus,
+  onArchiveDraft,
+  onUnarchiveDraft,
+  onArchiveSet,
+  onUnarchiveSet,
+  onArchivePythonDraft,
+  onUnarchivePythonDraft,
   busyDraftId,
   busyFileId,
   busySetId,
@@ -583,6 +631,8 @@ function HistoryEntryRow({
                     onRevertSetPr={() => onRevertSetPr(entry.raw.id)}
                     onCheckRevertSetPrStatus={() => onCheckRevertSetPrStatus(entry.raw.id)}
                     onCheckPrStatus={() => onCheckSetPrStatus(entry.raw.id)}
+                    onArchive={() => onArchiveSet(entry.raw.id)}
+                    onUnarchive={() => onUnarchiveSet(entry.raw.id)}
                     busyFileId={busyFileId}
                     busySet={busySetId === entry.raw.id}
                   />
@@ -595,6 +645,8 @@ function HistoryEntryRow({
                       onRevertPr={() => onRevertPythonDraftPr(entry.raw.id)}
                       onCheckRevertPrStatus={() => onCheckRevertPythonDraftPrStatus(entry.raw.id)}
                       onCheckPrStatus={() => onCheckPythonDraftPrStatus(entry.raw.id)}
+                      onArchive={() => onArchivePythonDraft(entry.raw.id)}
+                      onUnarchive={() => onUnarchivePythonDraft(entry.raw.id)}
                       busy={busyDraftId === entry.raw.id}
                     />
                   )
@@ -605,6 +657,8 @@ function HistoryEntryRow({
                       onRevertPr={() => onRevertDraftPr(entry.raw.id)}
                       onCheckRevertPrStatus={() => onCheckRevertDraftPrStatus(entry.raw.id)}
                       onCheckPrStatus={() => onCheckDraftPrStatus(entry.raw.id)}
+                      onArchive={() => onArchiveDraft(entry.raw.id)}
+                      onUnarchive={() => onUnarchiveDraft(entry.raw.id)}
                       busy={busyDraftId === entry.raw.id}
                     />
                   )
@@ -677,11 +731,20 @@ function HistoryPanel() {
 
   const [statusFilter, setStatusFilter] = useState("")
 
+  const [showArchived, setShowArchived] = useState(false)
+
+  const [bulkArchiving, setBulkArchiving] = useState(false)
+
+  const [bulkArchiveProgress, setBulkArchiveProgress] = useState(null)
+
   const availableStatuses =
     [...new Set(entries.flatMap(entryStatuses))]
       .sort()
 
   const openEntries = entries.filter(entry => entry.status === "pr_open")
+
+  const rejectedUnarchivedEntries =
+    entries.filter(entry => entry.status === "rejected" && !entry.raw.archived)
 
   const filteredEntries =
     entries.filter(entry => {
@@ -694,7 +757,10 @@ function HistoryPanel() {
         !statusFilter ||
         entryStatuses(entry).includes(statusFilter)
 
-      return matchesSearch && matchesStatus
+      const matchesArchived =
+        showArchived || !entry.raw.archived
+
+      return matchesSearch && matchesStatus && matchesArchived
 
     })
 
@@ -1112,6 +1178,182 @@ function HistoryPanel() {
 
   }
 
+  async function archiveDraft(draftId) {
+
+    setBusyDraftId(draftId)
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/archive`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function unarchiveDraft(draftId) {
+
+    setBusyDraftId(draftId)
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/unarchive`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function archiveSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/archive`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function unarchiveSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/unarchive`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function archivePythonDraft(draftId) {
+
+    setBusyDraftId(draftId)
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/archive`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function unarchivePythonDraft(draftId) {
+
+    setBusyDraftId(draftId)
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/unarchive`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function archiveEntry(entry) {
+
+    if (entry.kind === "set") {
+
+      await archiveSet(entry.raw.id)
+
+    } else if (entry.kind === "python-single") {
+
+      await archivePythonDraft(entry.raw.id)
+
+    } else {
+
+      await archiveDraft(entry.raw.id)
+
+    }
+
+  }
+
+  async function archiveAllRejected() {
+
+    if (rejectedUnarchivedEntries.length === 0) {
+
+      return
+
+    }
+
+    setBulkArchiving(true)
+
+    setErrorMessage("")
+
+    for (let index = 0; index < rejectedUnarchivedEntries.length; index += 1) {
+
+      setBulkArchiveProgress({ current: index + 1, total: rejectedUnarchivedEntries.length })
+
+      await archiveEntry(rejectedUnarchivedEntries[index])
+
+    }
+
+    setBulkArchiveProgress(null)
+
+    setBulkArchiving(false)
+
+  }
+
   async function revertFile(setId, fileId) {
 
     if (!window.confirm("Peruuta tämä tiedosto ja palauta aiempi tila?")) {
@@ -1315,6 +1557,56 @@ function HistoryPanel() {
               )
             }
 
+            {
+              rejectedUnarchivedEntries.length > 0 && (
+                <button
+                  disabled={bulkArchiving}
+                  onClick={archiveAllRejected}
+                  className="
+                    h-9
+                    shrink-0
+                    rounded-full
+                    border
+                    border-[var(--wood-border)]
+                    px-3
+                    text-xs
+                    text-[var(--wood-muted)]
+                    transition-opacity
+                    disabled:opacity-30
+                    disabled:cursor-not-allowed
+                    hover:border-[var(--wood-accent)]
+                    hover:text-[var(--wood-text)]
+                  "
+                >
+                  {
+                    bulkArchiving
+                      ? `Arkistoidaan ${bulkArchiveProgress?.current ?? 0}/${bulkArchiveProgress?.total ?? rejectedUnarchivedEntries.length}...`
+                      : `Arkistoi kaikki hylätyt (${rejectedUnarchivedEntries.length})`
+                  }
+                </button>
+              )
+            }
+
+            <button
+              onClick={() => setShowArchived(previous => !previous)}
+              className={`
+                h-9
+                shrink-0
+                rounded-full
+                border
+                px-3
+                text-xs
+                transition-colors
+                ${
+                  showArchived
+                    ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+                    : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+                }
+              `}
+            >
+              👁 Näytä arkistoidut
+            </button>
+
           </div>
 
         )
@@ -1375,6 +1667,12 @@ function HistoryPanel() {
               onRevertPythonDraftPr={revertPythonDraftPr}
               onCheckRevertPythonDraftPrStatus={checkRevertPythonDraftPrStatus}
               onCheckPythonDraftPrStatus={checkPythonDraftPrStatus}
+              onArchiveDraft={archiveDraft}
+              onUnarchiveDraft={unarchiveDraft}
+              onArchiveSet={archiveSet}
+              onUnarchiveSet={unarchiveSet}
+              onArchivePythonDraft={archivePythonDraft}
+              onUnarchivePythonDraft={unarchivePythonDraft}
               busyDraftId={busyDraftId}
               busyFileId={busyFileId}
               busySetId={busySetId}

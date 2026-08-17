@@ -650,6 +650,79 @@ export default function createDevStudioRouter(prisma) {
   )
 
   /*
+   * PUT /api/python-drafts/:id/archive
+   * PUT /api/python-drafts/:id/unarchive
+   *
+   * Palautuva - ei pysyvä poisto. Toimii mistä tahansa tilasta (myös
+   * "written"/"pr_merged"/"rejected"): tarkoitus on siivota Historiaa
+   * riippumatta lopputilasta, ei estää tiettyjä tiloja kuten reject
+   * tekee.
+   */
+  router.put(
+    "/python-drafts/:id/archive",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const archived = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            archived: true,
+          },
+        })
+
+        response.json(withPythonDraftDiff(archived))
+      } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  router.put(
+    "/python-drafts/:id/unarchive",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const unarchived = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            archived: false,
+          },
+        })
+
+        response.json(withPythonDraftDiff(unarchived))
+      } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
    * PUT /api/python-drafts/:id
    *
    * Käsin tehdyt muokkaukset otsikkoon/koodiin/tiedostopolkuun.

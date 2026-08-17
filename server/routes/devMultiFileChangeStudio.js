@@ -361,6 +361,56 @@ export default function createDevMultiFileChangeRouter(prisma) {
   })
 
   /*
+   * PUT /api/dev-draft-sets/:id/archive
+   * PUT /api/dev-draft-sets/:id/unarchive
+   *
+   * Palautuva - ei pysyvä poisto. Toimii mistä tahansa tilasta.
+   */
+  router.put("/dev-draft-sets/:id/archive", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const set = await prisma.codeChangeDraftSet.update({
+        where: { id: setId },
+        data: { archived: true },
+        include: { files: { orderBy: { id: "asc" } } },
+      })
+
+      response.json(withFiles(set))
+    } catch (error) {
+      if (error.code === "P2025") {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  router.put("/dev-draft-sets/:id/unarchive", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const set = await prisma.codeChangeDraftSet.update({
+        where: { id: setId },
+        data: { archived: false },
+        include: { files: { orderBy: { id: "asc" } } },
+      })
+
+      response.json(withFiles(set))
+    } catch (error) {
+      if (error.code === "P2025") {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
    * PUT /api/dev-draft-sets/:id/write
    *
    * Ei enää kirjoita suoraan levylle - luo tuoreen git-haaran,
