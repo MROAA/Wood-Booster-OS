@@ -19,14 +19,12 @@
  * se mitä Marc hyväksyi, eikä koskaan patch-sovelluksen tulos.
  */
 
-const OLLAMA_URL =
-  process.env.OLLAMA_URL ||
-  "http://localhost:11434"
+import { chatWithOllama } from "./ollamaClient.js"
 
 const DEFAULT_MODEL =
   process.env.CODE_OLLAMA_MODEL ||
   process.env.OLLAMA_MODEL ||
-  "qwen2.5:7b"
+  "qwen2.5-coder:7b"
 
 /*
  * ES module -vaatimus koskee vain .js/.ts-tiedostoja - .jsx/.tsx
@@ -119,50 +117,6 @@ function looksLikeValidCode(code) {
   return true
 }
 
-async function askOllama({ model, systemPrompt, userMessage }) {
-  const response = await fetch(`${OLLAMA_URL}/api/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      stream: false,
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: userMessage,
-        },
-      ],
-      options: {
-        temperature: 0.2,
-        // Vastauksen pitää sisältää KOKO tiedosto uudelleen, ei vain
-        // muutos - pyyntö (koko nykyinen sisältö) + vastaus (koko
-        // uusi sisältö) voi siis olla lähes kaksinkertainen tiedoston
-        // koko. 4096 (pythonCodeRefactorer.js:n arvo, joka riittää
-        // tyypilliselle .py-skriptille) katkaisi vastauksen kesken
-        // isommilla tiedostoilla kuten README.md - havaittu
-        // manuaalisessa hyväksymistestissä ennen kuin mitään
-        // kirjoitettiin levylle (ks. write-koodin
-        // ristiriitatarkistus + tämä).
-        num_ctx: 16384,
-      },
-    }),
-  })
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.error || "Ollama error")
-  }
-
-  return String(data.message?.content || "").trim()
-}
-
 const MAX_ATTEMPTS = 2
 
 /*
@@ -187,10 +141,16 @@ export async function generateCodeChange({
   let parsed = null
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-    const rawText = await askOllama({
+    const rawText = await chatWithOllama({
       model,
       systemPrompt: buildSystemPrompt(filePath),
       userMessage,
+      // Vastauksen pitää sisältää KOKO tiedosto uudelleen, ei vain
+      // muutos - pyyntö (koko nykyinen sisältö) + vastaus (koko uusi
+      // sisältö) voi siis olla lähes kaksinkertainen tiedoston koko.
+      // Oletus 4096 katkaisi vastauksen kesken isommilla tiedostoilla
+      // kuten README.md - havaittu manuaalisessa hyväksymistestissä.
+      numCtx: 16384,
     })
 
     parsed = parseCodeChangeText(rawText)

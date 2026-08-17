@@ -89,7 +89,7 @@ export default function createDevMultiFileChangeRouter(prisma) {
    */
   router.post("/dev-draft-sets", async (request, response) => {
     try {
-      const { prompt } = request.body || {}
+      const { prompt, model } = request.body || {}
 
       if (!prompt) {
         return response.status(400).json({
@@ -97,7 +97,7 @@ export default function createDevMultiFileChangeRouter(prisma) {
         })
       }
 
-      const result = await createDraftSetFromPrompt(prisma, prompt)
+      const result = await createDraftSetFromPrompt(prisma, prompt, model)
 
       if (result.error) {
         return response.status(result.status).json({
@@ -200,6 +200,7 @@ export default function createDevMultiFileChangeRouter(prisma) {
           {
             prompt: combinedPrompt,
             filePath: file.filePath,
+            model: set.model,
             toolBus,
             generateCodeChange,
           },
@@ -812,6 +813,7 @@ export default function createDevMultiFileChangeRouter(prisma) {
         {
           prompt: augmentedPrompt,
           filePath: file.filePath,
+          model: set.model,
           toolBus,
           generateCodeChange,
         },

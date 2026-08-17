@@ -34,7 +34,7 @@ const generateChangePlanSkill = {
 
     async execute(context) {
 
-        const { prompt, generateChangePlan } = context || {}
+        const { prompt, model, generateChangePlan } = context || {}
 
         if (!prompt) {
 
@@ -46,7 +46,7 @@ const generateChangePlanSkill = {
 
         }
 
-        const { files, explanation } = await generateChangePlan({ prompt })
+        const { files, explanation } = await generateChangePlan({ prompt, model })
 
         const checkedFiles = files.map(file => {
 

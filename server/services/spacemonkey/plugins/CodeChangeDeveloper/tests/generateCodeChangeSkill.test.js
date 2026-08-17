@@ -122,3 +122,64 @@ test("existing file: reads current content and returns it alongside the proposal
     assert.equal(result.proposedCode, "# Old README\nUusi lause.")
 
 })
+
+
+
+test("forwards an explicit model choice into the generator", async () => {
+
+    const toolBus = {
+        execute: async (id, input) => {
+            if (input.action === "exists") {
+                return { success: true, exists: false }
+            }
+
+            throw new Error("should not read a file that does not exist")
+        },
+    }
+
+    let receivedModel = "not called"
+
+    await generateCodeChangeSkill.execute({
+        prompt: "luo uusi tiedosto",
+        filePath: "docs/new-file.md",
+        model: "qwen2.5-coder:7b",
+        toolBus,
+        generateCodeChange: async ({ model }) => {
+            receivedModel = model
+            return { title: "Uusi tiedosto", explanation: "...", code: "# Uusi" }
+        },
+    })
+
+    assert.equal(receivedModel, "qwen2.5-coder:7b")
+
+})
+
+
+
+test("passes model through as undefined when none was chosen, letting the generator's own default apply", async () => {
+
+    const toolBus = {
+        execute: async (id, input) => {
+            if (input.action === "exists") {
+                return { success: true, exists: false }
+            }
+
+            throw new Error("should not read a file that does not exist")
+        },
+    }
+
+    let receivedModel = "not called"
+
+    await generateCodeChangeSkill.execute({
+        prompt: "luo uusi tiedosto",
+        filePath: "docs/new-file.md",
+        toolBus,
+        generateCodeChange: async ({ model }) => {
+            receivedModel = model
+            return { title: "Uusi tiedosto", explanation: "...", code: "# Uusi" }
+        },
+    })
+
+    assert.equal(receivedModel, undefined)
+
+})

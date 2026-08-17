@@ -9,6 +9,7 @@ import SetBubble from "./SetBubble"
 import SavedPromptsRow from "./SavedPromptsRow"
 import PlaybookPicker from "./PlaybookPicker"
 import FileAttachButton from "./FileAttachButton"
+import ModelPicker from "./ModelPicker"
 
 import { NON_TERMINAL_SET_STATUSES } from "./statusLabels"
 
@@ -19,6 +20,8 @@ import { useApprovePlanProgress } from "./useApprovePlanProgress"
 function MultiFileChatPanel() {
 
   const [prompt, setPrompt] = useState("")
+
+  const [model, setModel] = useState(undefined)
 
   const [isThinking, setIsThinking] = useState(false)
 
@@ -126,7 +129,7 @@ function MultiFileChatPanel() {
 
     try {
 
-      const set = await apiPost("/dev-draft-sets", { prompt: userPrompt })
+      const set = await apiPost("/dev-draft-sets", { prompt: userPrompt, model })
 
       setTurns(previous => [
         ...previous,
@@ -552,6 +555,8 @@ function MultiFileChatPanel() {
         <PlaybookPicker lane="koodi" onUsePlaybook={setPrompt} />
 
         <FileAttachButton prompt={prompt} onAttach={setPrompt} />
+
+        <ModelPicker value={model} onChange={setModel} />
 
         <div className="flex gap-3">
 

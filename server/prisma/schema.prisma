@@ -265,6 +265,8 @@ model CodeChangeDraftSet {
 
   prompt String
 
+  model String?
+
   status String @default("planning")
 
   planExplanation String?

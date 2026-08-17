@@ -59,7 +59,7 @@ export default function createDevCodeChangeRouter(prisma) {
     "/dev-drafts",
     async (request, response) => {
       try {
-        const { prompt, filePath } = request.body || {}
+        const { prompt, filePath, model } = request.body || {}
 
         if (!prompt || !filePath) {
           return response.status(400).json({
@@ -82,6 +82,7 @@ export default function createDevCodeChangeRouter(prisma) {
           {
             prompt,
             filePath,
+            model,
             toolBus,
             generateCodeChange,
           },
