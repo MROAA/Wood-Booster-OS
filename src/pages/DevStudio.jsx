@@ -18,6 +18,8 @@ import FilePicker from "../components/devstudio/FilePicker"
 import ModelBadge from "../components/devstudio/ModelBadge"
 import ModelPicker from "../components/devstudio/ModelPicker"
 
+import DiffView from "../components/devstudio/DiffView"
+
 import { useElapsedSeconds } from "../components/devstudio/useElapsedSeconds"
 
 
@@ -1306,47 +1308,54 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
         </div>
       )}
 
-      <textarea
-        className="
-          mt-4
-          w-full
-          rounded-xl
-          border
-          border-[var(--wood-border)]
-          bg-[var(--wood-bg)]
-          p-3
-          font-mono
-          text-xs
-          text-[var(--wood-text)]
-        "
-        rows={10}
-        value={draft.code}
-        onChange={event => onCodeChange(event.target.value)}
-        disabled={isFinished}
-      />
+      <div className="mt-4">
+        <DiffView diff={draft.diff} filePath={draft.filePath} />
+      </div>
+
+      {draft.status === "draft" && (
+        <textarea
+          className="
+            mt-3
+            w-full
+            rounded-xl
+            border
+            border-[var(--wood-border)]
+            bg-[var(--wood-bg)]
+            p-3
+            font-mono
+            text-xs
+            text-[var(--wood-text)]
+          "
+          rows={10}
+          value={draft.code}
+          onChange={event => onCodeChange(event.target.value)}
+        />
+      )}
 
       {(draft.status === "write_failed" || draft.status === "pr_failed" || draft.status === "pr_revert_failed") && draft.writeError && (
         <p className="mt-2 text-xs text-red-400">{draft.writeError}</p>
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="
-            rounded-xl
-            border
-            border-[var(--wood-border)]
-            px-3
-            py-1.5
-            text-sm
-            text-[var(--wood-text)]
-            disabled:opacity-50
-          "
-          disabled={busy || isFinished}
-          onClick={onSave}
-        >
-          Tallenna muokkaukset
-        </button>
+        {draft.status === "draft" && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              px-3
+              py-1.5
+              text-sm
+              text-[var(--wood-text)]
+              disabled:opacity-50
+            "
+            disabled={busy}
+            onClick={onSave}
+          >
+            Tallenna muokkaukset
+          </button>
+        )}
 
         <button
           type="button"
