@@ -12,10 +12,16 @@ const router = express.Router()
 const currentFile = fileURLToPath(import.meta.url)
 const currentDirectory = path.dirname(currentFile)
 
-const uploadsRoot = path.resolve(
-  currentDirectory,
-  "../uploads/projects",
-)
+const uploadsRoot = process.env.WOOD_BOOSTER_DATA_DIR
+  ? path.join(
+      process.env.WOOD_BOOSTER_DATA_DIR,
+      "uploads",
+      "projects",
+    )
+  : path.resolve(
+      currentDirectory,
+      "../uploads/projects",
+    )
 
 fs.mkdirSync(uploadsRoot, {
   recursive: true,

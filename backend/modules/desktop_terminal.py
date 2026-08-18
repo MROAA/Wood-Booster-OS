@@ -46,7 +46,11 @@ router = APIRouter()
 
 PROJECT_ROOT = VAULT_ROOT
 
-ALLOWED_ORIGIN = re.compile(r"^https?://(localhost|127\.0\.0\.1):\d+$")
+# Sama tauri://-alkuperä-huomautus kuin backend/main.py:ssä - asennetun
+# sovelluksen webview ei koskaan lähetä pelkkää localhost:porttia.
+ALLOWED_ORIGIN = re.compile(
+    r"^(tauri://localhost|https?://(localhost|127\.0\.0\.1|tauri\.localhost)(:\d+)?)$"
+)
 
 
 def is_allowed_origin(websocket: WebSocket) -> bool:

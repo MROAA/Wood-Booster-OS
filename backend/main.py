@@ -24,9 +24,15 @@ app = FastAPI(
 # allow_origins=["*"] olisi päästänyt MINKÄ TAHANSA verkkosivun tekemään
 # pyyntöjä tähän API:in - vaarallista nyt kun täällä on oikeita komentoja
 # ajava pääte-endpoint (backend/modules/desktop_terminal.py).
+#
+# Asennetun Tauri-sovelluksen webview EI lataa sisältöään mistään
+# localhost:portti-osoitteesta - WebKitGTK:lla (Linux) origin-otsikko on
+# "http://tauri.localhost" (ei porttia). Tämä ei koskaan näkynyt
+# kehitystilassa (aina oikea localhost:portti), joten koko paketoitu
+# sovellus olisi hylännyt joka ikisen omansa API-kutsun tähän asti.
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1):\d+$",
+    allow_origin_regex=r"^(tauri://localhost|https?://(localhost|127\.0\.0\.1|tauri\.localhost)(:\d+)?)$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

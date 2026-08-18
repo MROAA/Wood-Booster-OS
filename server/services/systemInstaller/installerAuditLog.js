@@ -45,6 +45,13 @@ __filename
 
 
 const dataRoot =
+process.env.WOOD_BOOSTER_DATA_DIR
+?
+path.join(
+process.env.WOOD_BOOSTER_DATA_DIR,
+"installer"
+)
+:
 path.resolve(
 __dirname,
 "../../data"

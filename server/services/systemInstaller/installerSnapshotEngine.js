@@ -59,6 +59,18 @@ function getProjectRoot(){
 function getSnapshotRoot(){
 
 
+    if(
+        process.env.WOOD_BOOSTER_DATA_DIR
+    ){
+
+        return path.join(
+            process.env.WOOD_BOOSTER_DATA_DIR,
+            "snapshots"
+        )
+
+    }
+
+
     return path.join(
         getProjectRoot(),
         "snapshots"

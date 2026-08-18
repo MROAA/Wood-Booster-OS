@@ -519,10 +519,20 @@ const app =
 // allow_origin_regex:issä (backend/main.py).
 const LOCALHOST_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/
 
+// Asennetun Tauri-sovelluksen ikkuna EI lataa sisältöään mistään
+// localhost:portti-osoitteesta - webview lataa sen sisäisen
+// tauri://-protokollan kautta, joka WebKitGTK:lla (Linux) näkyy origin-
+// otsikkona muodossa "http://tauri.localhost" (ei porttia lainkaan).
+// Tämä jäi huomaamatta, koska LOCALHOST_ORIGIN kehitettiin ja testattiin
+// vain `npm run dev` -tilassa (aina oikea localhost:portti) - vasta
+// paketoidussa sovelluksessa jokainen frontendin API-kutsu hylättiin
+// CORS:n takia, mukaan lukien Asetukset-sivun perustiedot.
+const TAURI_ORIGIN = /^(tauri:\/\/localhost|https?:\/\/tauri\.localhost)$/
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || LOCALHOST_ORIGIN.test(origin)) {
+      if (!origin || LOCALHOST_ORIGIN.test(origin) || TAURI_ORIGIN.test(origin)) {
         callback(null, true)
       } else {
         callback(new Error("Not allowed by CORS"))
