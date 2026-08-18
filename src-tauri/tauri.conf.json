@@ -1,11 +1,11 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
 
-  "productName": "Wood-Booster OS",
+  "productName": "Wood-Booster HQ",
 
   "version": "0.1.0",
 
-  "identifier": "wood-booster-os",
+  "identifier": "wood-booster-hq",
 
   "build": {
     "frontendDist": "../dist",
@@ -17,7 +17,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Wood-Booster OS",
+        "title": "Wood-Booster HQ",
         "width": 1440,
         "height": 900,
         "resizable": true,
@@ -46,8 +46,7 @@
     ],
 
     "resources": [
-      "resources/server",
-      "resources/services"
+      "resources/server"
     ],
 
     "externalBin": [

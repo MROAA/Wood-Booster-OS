@@ -80,11 +80,14 @@ pub fn run() {
       log::info!("index.js exists: {}", server_dir.join("index.js").exists());
 
       if !db_path.exists() {
-        // The app identifier changed from com.woodbooster.os to
-        // wood-booster-os during development, which moves where this
-        // resolves to. Anyone who already used the app under the old
-        // identifier gets their database carried over here instead of
-        // silently starting over from the empty seed.
+        // Historical: the app identifier changed once before, from
+        // com.woodbooster.os to wood-booster-os, and this block carried
+        // that specific migration. It does NOT cover the later
+        // wood-booster-os -> wood-booster-hq rename - that transition
+        // had no data worth preserving, so no second migration branch
+        // was added. This code is otherwise harmless to leave in place:
+        // old_db_path just never exists anymore, and things fall
+        // through to the seed-db copy below, which is correct anyway.
         let old_db_path = app_data_dir
           .parent()
           .map(|parent| parent.join("com.woodbooster.os").join("dev.db"))

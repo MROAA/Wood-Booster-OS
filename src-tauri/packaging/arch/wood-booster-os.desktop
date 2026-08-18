@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Wood-Booster OS
-Comment=Wood-Booster OS desktop application
-Exec=/usr/bin/wood-booster-os
-Icon=wood-booster-os
-Terminal=false
-Categories=Utility;Development;
-StartupWMClass=wood-booster-os

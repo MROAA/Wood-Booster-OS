@@ -17,19 +17,20 @@ echo "   source of a real bug: the Arch package silently reused stale,"
 echo "   manually-copied server/node_modules/binaries instead of the"
 echo "   just-built ones)"
 
-cp "$PROJECT_ROOT/src-tauri/target/release/app" "$ARCH_DIR/wood-booster-os"
+cp "$PROJECT_ROOT/src-tauri/target/release/app" "$ARCH_DIR/wood-booster-hq"
 
 TARGET_TRIPLE="$(rustc --print host-tuple)"
 cp "$PROJECT_ROOT/src-tauri/binaries/wood-booster-server-$TARGET_TRIPLE" \
     "$ARCH_DIR/wood-booster-server"
 
-rm -rf "$ARCH_DIR/server" "$ARCH_DIR/services"
+rm -rf "$ARCH_DIR/server"
 cp -r "$PROJECT_ROOT/src-tauri/resources/server" "$ARCH_DIR/server"
-cp -r "$PROJECT_ROOT/src-tauri/resources/services" "$ARCH_DIR/services"
 
-# The .desktop file's Icon=wood-booster-os only resolves if an icon by
+# The .desktop file's Icon=wood-booster-hq only resolves if an icon by
 # that name actually gets installed - PKGBUILD's package() never did
-# this, so the app showed up with no logo anywhere.
+# this, so the app showed up with no logo anywhere. The icon filename
+# and the .desktop Icon= key must always be renamed together, or this
+# exact bug (blank app-menu icon) comes back.
 cp "$PROJECT_ROOT/src-tauri/icons/32x32.png" "$ARCH_DIR/icon-32.png"
 cp "$PROJECT_ROOT/src-tauri/icons/128x128.png" "$ARCH_DIR/icon-128.png"
 cp "$PROJECT_ROOT/src-tauri/icons/128x128@2x.png" "$ARCH_DIR/icon-256.png"
