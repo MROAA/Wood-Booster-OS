@@ -2,7 +2,7 @@ pkg/
 src/
 *.pkg.tar.zst
 
-wood-booster-os
+wood-booster-hq
 wood-booster-server
 icon-32.png
 icon-128.png
@@ -10,4 +10,3 @@ icon-256.png
 icon-512.png
 
 server/
-services/

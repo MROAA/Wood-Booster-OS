@@ -1,7 +1,7 @@
-pkgname=wood-booster-os
+pkgname=wood-booster-hq
 pkgver=0.1.0
 pkgrel=4
-pkgdesc="Wood-Booster OS desktop application"
+pkgdesc="Wood-Booster HQ desktop application"
 arch=('x86_64')
 url="https://github.com/MROAA/Wood-Booster-OS"
 license=('custom')
@@ -15,12 +15,12 @@ depends=(
 
 options=('!strip')
 
-install=wood-booster-os.install
+install=wood-booster-hq.install
 
 source=(
-  "wood-booster-os"
+  "wood-booster-hq"
   "wood-booster-server"
-  "wood-booster-os.desktop"
+  "wood-booster-hq.desktop"
   "icon-32.png"
   "icon-128.png"
   "icon-256.png"
@@ -40,41 +40,37 @@ sha256sums=(
 package() {
 
   install -Dm755 \
-    "$srcdir/wood-booster-os" \
-    "$pkgdir/usr/bin/wood-booster-os"
+    "$srcdir/wood-booster-hq" \
+    "$pkgdir/usr/bin/wood-booster-hq"
 
   install -Dm755 \
     "$srcdir/wood-booster-server" \
     "$pkgdir/usr/bin/wood-booster-server"
 
   install -Dm644 \
-    "$srcdir/wood-booster-os.desktop" \
-    "$pkgdir/usr/share/applications/wood-booster-os.desktop"
+    "$srcdir/wood-booster-hq.desktop" \
+    "$pkgdir/usr/share/applications/wood-booster-hq.desktop"
 
   install -Dm644 \
     "$srcdir/icon-32.png" \
-    "$pkgdir/usr/share/icons/hicolor/32x32/apps/wood-booster-os.png"
+    "$pkgdir/usr/share/icons/hicolor/32x32/apps/wood-booster-hq.png"
 
   install -Dm644 \
     "$srcdir/icon-128.png" \
-    "$pkgdir/usr/share/icons/hicolor/128x128/apps/wood-booster-os.png"
+    "$pkgdir/usr/share/icons/hicolor/128x128/apps/wood-booster-hq.png"
 
   install -Dm644 \
     "$srcdir/icon-256.png" \
-    "$pkgdir/usr/share/icons/hicolor/256x256/apps/wood-booster-os.png"
+    "$pkgdir/usr/share/icons/hicolor/256x256/apps/wood-booster-hq.png"
 
   install -Dm644 \
     "$srcdir/icon-512.png" \
-    "$pkgdir/usr/share/icons/hicolor/512x512/apps/wood-booster-os.png"
+    "$pkgdir/usr/share/icons/hicolor/512x512/apps/wood-booster-hq.png"
 
   mkdir -p \
-    "$pkgdir/usr/lib/Wood-Booster OS/resources"
+    "$pkgdir/usr/lib/Wood-Booster HQ/resources"
 
   cp -r \
     "$startdir/server" \
-    "$pkgdir/usr/lib/Wood-Booster OS/resources/server"
-
-  cp -r \
-    "$startdir/services" \
-    "$pkgdir/usr/lib/Wood-Booster OS/resources/services"
+    "$pkgdir/usr/lib/Wood-Booster HQ/resources/server"
 }
