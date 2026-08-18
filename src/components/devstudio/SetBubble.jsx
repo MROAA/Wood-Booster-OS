@@ -99,7 +99,7 @@ function shouldExpandByDefault(file) {
 
 }
 
-function FileReviewCard({ file, onRevise, onRun, busy, collapsible }) {
+function FileReviewCard({ file, onRevise, onRun, onEditFile, busy, collapsible }) {
 
   const testDisplay = TEST_STATUS_DISPLAY[file.testStatus]
 
@@ -110,6 +110,10 @@ function FileReviewCard({ file, onRevise, onRun, busy, collapsible }) {
   const [feedback, setFeedback] = useState("")
 
   const [isOpen, setIsOpen] = useState(!collapsible || shouldExpandByDefault(file))
+
+  const [editing, setEditing] = useState(false)
+
+  const [editedCode, setEditedCode] = useState(file.proposedCode || "")
 
   const delta = collapsible ? computeDiffDelta(file.diff) : null
 
@@ -124,6 +128,30 @@ function FileReviewCard({ file, onRevise, onRun, busy, collapsible }) {
     onRevise(feedback.trim())
 
     setFeedback("")
+
+  }
+
+  function startEditing() {
+
+    setEditedCode(file.proposedCode || "")
+
+    setEditing(true)
+
+  }
+
+  function cancelEditing() {
+
+    setEditedCode(file.proposedCode || "")
+
+    setEditing(false)
+
+  }
+
+  function saveEditing() {
+
+    onEditFile(editedCode)
+
+    setEditing(false)
 
   }
 
@@ -201,7 +229,76 @@ function FileReviewCard({ file, onRevise, onRun, busy, collapsible }) {
               )
             }
 
-            <DiffView diff={file.diff} filePath={file.filePath} />
+            {
+              file.status === "generated" && (
+                <button
+                  disabled={busy}
+                  onClick={editing ? cancelEditing : startEditing}
+                  className="
+                    rounded-full
+                    border
+                    border-[var(--wood-border)]
+                    px-3
+                    py-1
+                    text-xs
+                    text-[var(--wood-muted)]
+                    transition-opacity
+                    disabled:opacity-30
+                    disabled:cursor-not-allowed
+                    hover:border-[var(--wood-accent)]
+                    hover:text-[var(--wood-text)]
+                  "
+                >
+                  {editing ? "Peruuta muokkaus" : "✎ Muokkaa koodia"}
+                </button>
+              )
+            }
+
+            {
+              editing ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={editedCode}
+                    onChange={event => setEditedCode(event.target.value)}
+                    disabled={busy}
+                    rows={10}
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      border-[var(--wood-border)]
+                      bg-[var(--wood-bg)]
+                      p-3
+                      font-mono
+                      text-xs
+                      text-[var(--wood-text)]
+                    "
+                  />
+                  <button
+                    disabled={busy || !editedCode.trim()}
+                    onClick={saveEditing}
+                    className="
+                      rounded-full
+                      border
+                      border-[var(--wood-border)]
+                      px-3
+                      py-1
+                      text-xs
+                      font-medium
+                      text-[var(--wood-text)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-[var(--wood-accent)]
+                    "
+                  >
+                    Tallenna muokkaukset
+                  </button>
+                </div>
+              ) : (
+                <DiffView diff={file.diff} filePath={file.filePath} />
+              )
+            }
 
             {
               testDisplay && (
@@ -294,47 +391,53 @@ function FileReviewCard({ file, onRevise, onRun, busy, collapsible }) {
 
                   </div>
 
-                  <textarea
-                    value={feedback}
-                    onChange={event => setFeedback(event.target.value)}
-                    disabled={busy}
-                    rows={2}
-                    placeholder="Pyydä muutosta tähän tiedostoon, esim. 'käytä eri muuttujan nimeä'"
-                    className="
-                      w-full
-                      rounded-lg
-                      border
-                      border-[var(--wood-border)]
-                      bg-[var(--wood-panel)]
-                      p-2
-                      text-xs
-                      text-[var(--wood-text)]
-                      placeholder:text-[var(--wood-muted)]
-                      outline-none
-                      focus:border-[var(--wood-accent)]
-                    "
-                  />
+                  {
+                    !editing && (
+                      <>
+                        <textarea
+                          value={feedback}
+                          onChange={event => setFeedback(event.target.value)}
+                          disabled={busy}
+                          rows={2}
+                          placeholder="Pyydä muutosta tähän tiedostoon, esim. 'käytä eri muuttujan nimeä'"
+                          className="
+                            w-full
+                            rounded-lg
+                            border
+                            border-[var(--wood-border)]
+                            bg-[var(--wood-panel)]
+                            p-2
+                            text-xs
+                            text-[var(--wood-text)]
+                            placeholder:text-[var(--wood-muted)]
+                            outline-none
+                            focus:border-[var(--wood-accent)]
+                          "
+                        />
 
-                  <button
-                    disabled={busy || !feedback.trim()}
-                    onClick={submitRevise}
-                    className="
-                      rounded-full
-                      border
-                      border-[var(--wood-border)]
-                      px-3
-                      py-1
-                      text-xs
-                      font-medium
-                      text-[var(--wood-text)]
-                      transition-opacity
-                      disabled:opacity-30
-                      disabled:cursor-not-allowed
-                      hover:border-[var(--wood-accent)]
-                    "
-                  >
-                    Pyydä muutosta
-                  </button>
+                        <button
+                          disabled={busy || !feedback.trim()}
+                          onClick={submitRevise}
+                          className="
+                            rounded-full
+                            border
+                            border-[var(--wood-border)]
+                            px-3
+                            py-1
+                            text-xs
+                            font-medium
+                            text-[var(--wood-text)]
+                            transition-opacity
+                            disabled:opacity-30
+                            disabled:cursor-not-allowed
+                            hover:border-[var(--wood-accent)]
+                          "
+                        >
+                          Pyydä muutosta
+                        </button>
+                      </>
+                    )
+                  }
 
                 </div>
 
@@ -443,7 +546,7 @@ function isPreviewableFile(file) {
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onRunFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive, busy }) {
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onRunFile, onEditFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive, busy }) {
 
   const status = set.status
 
@@ -626,6 +729,7 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                   busy={busy}
                   onRevise={feedback => onReviseFile(file.id, feedback)}
                   onRun={() => onRunFile(file.id)}
+                  onEditFile={proposedCode => onEditFile(file.id, proposedCode)}
                   collapsible={visibleFiles.length > 1}
                 />
               ))
