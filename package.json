@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/stable-build-check.js",
-    "build:desktop": "vite build && npm --prefix server run build:sidecar",
+    "build:desktop": "vite build && npm --prefix server run build:sidecar && node backend/scripts/prepare-sidecar.js",
     "lint": "oxlint",
     "preview": "vite preview",
     "tauri": "tauri",

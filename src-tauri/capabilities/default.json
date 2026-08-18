@@ -13,6 +13,10 @@
         {
           "name": "binaries/wood-booster-server",
           "sidecar": true
+        },
+        {
+          "name": "binaries/wood-booster-python",
+          "sidecar": true
         }
       ]
     }

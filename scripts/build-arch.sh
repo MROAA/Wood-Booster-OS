@@ -22,9 +22,12 @@ cp "$PROJECT_ROOT/src-tauri/target/release/app" "$ARCH_DIR/wood-booster-hq"
 TARGET_TRIPLE="$(rustc --print host-tuple)"
 cp "$PROJECT_ROOT/src-tauri/binaries/wood-booster-server-$TARGET_TRIPLE" \
     "$ARCH_DIR/wood-booster-server"
+cp "$PROJECT_ROOT/src-tauri/binaries/wood-booster-python-$TARGET_TRIPLE" \
+    "$ARCH_DIR/wood-booster-python"
 
-rm -rf "$ARCH_DIR/server"
+rm -rf "$ARCH_DIR/server" "$ARCH_DIR/pybackend"
 cp -r "$PROJECT_ROOT/src-tauri/resources/server" "$ARCH_DIR/server"
+cp -r "$PROJECT_ROOT/src-tauri/resources/pybackend" "$ARCH_DIR/pybackend"
 
 # The .desktop file's Icon=wood-booster-hq only resolves if an icon by
 # that name actually gets installed - PKGBUILD's package() never did

@@ -46,11 +46,13 @@
     ],
 
     "resources": [
-      "resources/server"
+      "resources/server",
+      "resources/pybackend"
     ],
 
     "externalBin": [
-      "binaries/wood-booster-server"
+      "binaries/wood-booster-server",
+      "binaries/wood-booster-python"
     ],
 
     "android": {

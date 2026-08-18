@@ -12,6 +12,7 @@ from backend.modules.spacemonkey_chat import router as spacemonkey_chat_router
 from backend.modules.desktop_files import router as desktop_files_router
 from backend.modules.desktop_terminal import router as desktop_terminal_router
 from backend.modules.virtual_storage import router as virtual_storage_router
+from backend.modules.settings import router as settings_router
 
 app = FastAPI(
     title="Wood Booster HQ - Python Core Engine",
@@ -42,6 +43,7 @@ app.include_router(altrako_router, prefix="/api/altrako", tags=["Altrako"])
 app.include_router(desktop_files_router, prefix="/api/desktop", tags=["Boosterverse Desktop"])
 app.include_router(desktop_terminal_router, prefix="/api/desktop", tags=["Boosterverse Desktop"])
 app.include_router(virtual_storage_router, prefix="/api/workspace", tags=["Project Workspace"])
+app.include_router(settings_router, prefix="/api/settings", tags=["Settings"])
 app.add_middleware(ParanoiaShieldMiddleware)
 
 
@@ -54,6 +56,30 @@ async def _start_git_guardian_autonomous():
 def read_root():
     return {"status": "online", "system": "Wood Booster HQ Python Core Engine"}
 
+
+@app.get("/api/health")
+def health_check():
+    """Sama konventio kuin Node-sidecarilla (server/index.js) - Tauri
+    (src-tauri/src/lib.rs) kysyy tätä molemmilta sidecareilta ennen kuin
+    lataa webview'n sisällön uudelleen."""
+    return {"status": "online", "system": "Wood Booster HQ Python Core Engine"}
+
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run("backend.main:app", host="127.0.0.1", port=8002, reload=True)
+
+    port = int(os.environ.get("PORT", "8002"))
+
+    # reload=True spawns a separate watcher subprocess (uvicorn + watchfiles) -
+    # useful during local Python development (this is how start-hq.sh runs
+    # it too), but the packaged Tauri sidecar (src-tauri/src/lib.rs) only
+    # tracks and kills THIS process, not a child it doesn't know about. A
+    # reloader child left running after the tracked parent is killed is
+    # exactly the orphan-process bug class already fixed once for the Node
+    # sidecar (a bare panic! orphaning it) - reload has no purpose in an
+    # installed app anyway, so it's off whenever Tauri set PYTHONHOME
+    # (only the bundled sidecar does that; a real Python install never has
+    # a reason to).
+    reload_enabled = "PYTHONHOME" not in os.environ
+
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=port, reload=reload_enabled)

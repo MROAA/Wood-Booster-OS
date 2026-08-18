@@ -3,15 +3,15 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 
+from backend.modules.paths import VAULT_ROOT
+
 router = APIRouter()
 
 # Boosterverse Desktop - tiedostonhallinta. VAIN luku, VAIN Wood-Booster-AI
 # -projektikansion sisällä (Marcin oma rajaus). Ei koskaan kirjoita, siirrä
 # tai poista mitään - se on tarkoituksella myöhempi, oma, vahvistusta
 # vaativa ominaisuus.
-ROOT_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "..")
-)
+ROOT_DIR = VAULT_ROOT
 
 MAX_READ_BYTES = 200_000
 

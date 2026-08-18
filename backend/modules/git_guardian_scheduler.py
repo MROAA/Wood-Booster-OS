@@ -8,12 +8,11 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from backend.modules.git_guardian import create_backup
+from backend.modules.paths import PY_DATA_DIR
 
 router = APIRouter()
 
-SETTINGS_FILE = os.path.join(
-    os.path.dirname(__file__), "..", "data", "git_guardian_settings.json"
-)
+SETTINGS_FILE = os.path.join(PY_DATA_DIR, "git_guardian_settings.json")
 
 DEFAULT_INTERVAL_MINUTES = 15
 MIN_INTERVAL_MINUTES = 1
