@@ -35,6 +35,10 @@ import runVerificationTestSkill from "./skills/runVerificationTestSkill.js"
 
 import runVerificationTestWorkflow from "./workflows/runVerificationTestWorkflow.js"
 
+import runCodeChangeDraftSkill from "./skills/runCodeChangeDraftSkill.js"
+
+import runCodeChangeDraftWorkflow from "./workflows/runCodeChangeDraftWorkflow.js"
+
 import generateChangePlanSkill from "./skills/generateChangePlanSkill.js"
 
 import generateChangePlanWorkflow from "./workflows/generateChangePlanWorkflow.js"
@@ -108,6 +112,10 @@ function registerCodeChangeDeveloperPlugin({
     )
 
     skillEngine.register(
+        runCodeChangeDraftSkill,
+    )
+
+    skillEngine.register(
         generateChangePlanSkill,
     )
 
@@ -141,6 +149,10 @@ function registerCodeChangeDeveloperPlugin({
 
     workflowEngine.register(
         runVerificationTestWorkflow,
+    )
+
+    workflowEngine.register(
+        runCodeChangeDraftWorkflow,
     )
 
     workflowEngine.register(

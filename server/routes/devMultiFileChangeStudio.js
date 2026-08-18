@@ -936,6 +936,95 @@ export default function createDevMultiFileChangeRouter(prisma) {
   })
 
   /*
+   * PUT /api/dev-draft-sets/:id/files/:fileId/run
+   *
+   * "Aja ja näytä tulostus" - JS-monitiedostopuolen vastine
+   * /python-drafts/:id/run:lle. Kirjoittaa kohdetiedoston JA kaikki
+   * paketin muut tiedostot hiekkalaatikkoon (jotta saman paketin
+   * sisäiset suhteelliset tuonnit ratkeavat) ja ajaa VAIN
+   * kohdetiedoston suoraan node:lla - tarkoitettu yksinkertaisille,
+   * ei-selainkoodia sisältäville tiedostoille (esim. apufunktiot).
+   * React-komponenttitiedostolle ajo epäonnistuu odotetusti (ei
+   * JSX-muunnosta, ei selain-API:a) - käytä niille Esikatselua
+   * (/preview). Tallennetaan tulos tiedoston omiin
+   * runStatus/runOutput-kenttiin.
+   */
+  router.put("/dev-draft-sets/:id/files/:fileId/run", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const fileId = Number(request.params.fileId)
+
+      const set = await fetchSetWithFiles(setId)
+
+      if (!set) {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      const file = set.files.find(candidate => candidate.id === fileId)
+
+      if (!file) {
+        return response.status(404).json({ error: "Tiedostoa ei löytynyt paketista" })
+      }
+
+      if (file.status !== "generated") {
+        return response.status(409).json({
+          error: `Tiedosto ei odota tarkistusta (status: ${file.status}).`,
+        })
+      }
+
+      const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+      if (!workflowEngine) {
+        return response.status(503).json({
+          error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+        })
+      }
+
+      const toolBus = getSpacemonkeyToolBus()
+
+      const siblingFiles = set.files
+        .filter(candidate => candidate.id !== fileId)
+        .map(candidate => ({ filePath: candidate.filePath, code: candidate.proposedCode }))
+
+      const workflowResult = await workflowEngine.execute(
+        "run-code-change-draft-workflow",
+        {
+          targetFilePath: file.filePath,
+          targetCode: file.proposedCode,
+          siblingFiles,
+          toolBus,
+        },
+      )
+
+      const skillResult = workflowResult.results?.[0]
+
+      if (!skillResult?.success) {
+        return response.status(422).json({
+          error: skillResult?.error,
+          code: skillResult?.code,
+        })
+      }
+
+      await prisma.codeChangeFileDraft.update({
+        where: { id: fileId },
+        data: {
+          runStatus: skillResult.status,
+          runOutput: skillResult.output,
+        },
+      })
+
+      const updatedSet = await fetchSetWithFiles(setId)
+
+      response.json(withFiles(updatedSet))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
    * POST /api/dev-draft-sets/:id/preview
    *
    * Käynnistää live-esikatselun (Phase 7, osa C) - näyttää paketin

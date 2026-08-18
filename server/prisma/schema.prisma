@@ -365,6 +365,10 @@ model CodeChangeFileDraft {
 
   unresolvedReferences String?
 
+  runStatus String?
+
+  runOutput String?
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt

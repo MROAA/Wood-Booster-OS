@@ -565,6 +565,11 @@ function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus,
               testOutput={file.testOutput}
             />
 
+            <RunStatusBlock
+              runStatus={file.runStatus}
+              runOutput={file.runOutput}
+            />
+
             <UnresolvedReferencesBlock
               unresolvedReferences={file.unresolvedReferences}
             />
