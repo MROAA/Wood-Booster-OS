@@ -8,7 +8,7 @@ import MultiFileChatPanel from "../components/devstudio/MultiFileChatPanel"
 
 import HistoryPanel from "../components/devstudio/HistoryPanel"
 
-import { DRAFT_STATUS_LABELS, TEST_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "../components/devstudio/statusLabels"
+import { DRAFT_STATUS_LABELS, TEST_STATUS_DISPLAY, RUN_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "../components/devstudio/statusLabels"
 
 import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolvedReferences"
 
@@ -367,6 +367,29 @@ function DevStudio() {
       updateDraftInList(updated)
     } catch (writeError) {
       setErrorMessage(writeError.message)
+
+      try {
+        const refreshed = await apiGet("/python-drafts")
+
+        setDrafts(Array.isArray(refreshed) ? refreshed : [])
+      } catch {
+        // ignore refresh failure, error message already shown
+      }
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function runDraft(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/run`, {})
+
+      updateDraftInList(updated)
+    } catch (runError) {
+      setErrorMessage(runError.message)
 
       try {
         const refreshed = await apiGet("/python-drafts")
@@ -1143,6 +1166,7 @@ function DevStudio() {
                     onRetryWithModel={model => retryDraftWithModel(draft, model)}
                     onArchive={() => archiveDraft(draft)}
                     onUnarchive={() => unarchiveDraft(draft)}
+                    onRun={() => runDraft(draft)}
                   />
 
                 </div>
@@ -1268,31 +1292,8 @@ function RetryWithModelRow({ onRetryWithModel, busy }) {
 
 }
 
-const RUN_STATUS_DISPLAY = {
-  passed: { icon: "✓", label: "Ajo onnistui", className: "text-emerald-400" },
-  failed: { icon: "✗", label: "Ajo epäonnistui", className: "text-red-400" },
-  timeout: { icon: "⏱", label: "Ajo aikakatkaistiin", className: "text-amber-400" },
-}
-
-function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive }) {
+function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive, onRun }) {
   const [reviseFeedback, setReviseFeedback] = useState("")
-
-  const [running, setRunning] = useState(false)
-
-  const [runResult, setRunResult] = useState(null)
-
-  async function runDraft() {
-    setRunning(true)
-
-    try {
-      const result = await apiPut(`/python-drafts/${draft.id}/run`, {})
-      setRunResult(result)
-    } catch (error) {
-      setRunResult({ status: "failed", output: error.message })
-    } finally {
-      setRunning(false)
-    }
-  }
 
   const isFinished = [
     "written",
@@ -1405,10 +1406,10 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
               text-[var(--wood-text)]
               disabled:opacity-50
             "
-            disabled={busy || running}
-            onClick={runDraft}
+            disabled={busy}
+            onClick={onRun}
           >
-            {running ? "Ajetaan…" : "▶ Aja ja näytä tulostus"}
+            ▶ Aja ja näytä tulostus
           </button>
         )}
 
@@ -1556,12 +1557,12 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
         </button>
       </div>
 
-      {runResult && (
+      {draft.runStatus && (
         <div className="mt-3">
-          <div className={`text-xs ${RUN_STATUS_DISPLAY[runResult.status]?.className || "text-[var(--wood-muted)]"}`}>
-            {RUN_STATUS_DISPLAY[runResult.status]?.icon || "?"} {RUN_STATUS_DISPLAY[runResult.status]?.label || "Ajo epäonnistui"}
+          <div className={`text-xs ${RUN_STATUS_DISPLAY[draft.runStatus]?.className || "text-[var(--wood-muted)]"}`}>
+            {RUN_STATUS_DISPLAY[draft.runStatus]?.icon || "?"} {RUN_STATUS_DISPLAY[draft.runStatus]?.label || "Ajo epäonnistui"}
           </div>
-          {runResult.output && (
+          {draft.runOutput && (
             <pre className="
               wood-scroll
               mt-1
@@ -1576,7 +1577,7 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
               text-[var(--wood-text)]
               whitespace-pre-wrap
             ">
-              {runResult.output}
+              {draft.runOutput}
             </pre>
           )}
         </div>

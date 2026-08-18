@@ -185,6 +185,10 @@ model PythonCodeDraft {
 
   testSkippedReason String?
 
+  runStatus String?
+
+  runOutput String?
+
   prUrl String?
 
   prNumber Int?
