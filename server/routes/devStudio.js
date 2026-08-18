@@ -816,10 +816,13 @@ export default function createDevStudioRouter(prisma) {
    *
    * "Aja ja näytä tulostus" - ajaa luonnoksen OMAN koodin turvallisesti
    * hiekkalaatikossa (run-python-draft-workflow) ja palauttaa
-   * stdout/stderr-tulosteen. Kertaluontoinen, uudelleenajettava
-   * esikatselu ihmisen omasta pyynnöstä - ei tallenneta luonnokselle
-   * mihinkään (ei vaikuta testCode/testStatus/testOutput-kenttiin,
-   * jotka ovat automaattisen luonti-/muokkausajan verifioinnin tulos).
+   * stdout/stderr-tulosteen. Uudelleenajettava esikatselu ihmisen
+   * omasta pyynnöstä - tallennetaan luonnokselle omiin
+   * runStatus/runOutput-kenttiin (näytetään sekä elävässä
+   * DraftCardissa että Historiassa), mutta EI vaikuta
+   * testCode/testStatus/testOutput-kenttiin, jotka ovat automaattisen
+   * luonti-/muokkausajan verifioinnin tulos - eri asia kuin tämä
+   * käsin käynnistetty ajo.
    */
   router.put(
     "/python-drafts/:id/run",
@@ -860,16 +863,33 @@ export default function createDevStudioRouter(prisma) {
         const skillResult = workflowResult.results?.[0]
 
         if (!skillResult?.success) {
+          await prisma.pythonCodeDraft.update({
+            where: {
+              id: draftId,
+            },
+            data: {
+              runStatus: "failed",
+              runOutput: skillResult?.error || null,
+            },
+          })
+
           return response.status(422).json({
             error: skillResult?.error,
             code: skillResult?.code,
           })
         }
 
-        response.json({
-          output: skillResult.output,
-          status: skillResult.status,
+        const updated = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            runStatus: skillResult.status,
+            runOutput: skillResult.output,
+          },
         })
+
+        response.json(withPythonDraftDiff(updated))
       } catch (error) {
         console.error(error)
 

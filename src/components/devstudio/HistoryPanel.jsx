@@ -9,6 +9,7 @@ import {
   SET_STATUS_LABELS,
   FILE_STATUS_LABELS,
   TEST_STATUS_DISPLAY,
+  RUN_STATUS_DISPLAY,
   CHECK_STATUS_LABELS,
 } from "./statusLabels"
 
@@ -65,6 +66,52 @@ function TestStatusBlock({ testStatus, testSkippedReason, testOutput }) {
             "
           >
             {testOutput}
+          </pre>
+        )
+      }
+
+    </div>
+
+  )
+
+}
+
+function RunStatusBlock({ runStatus, runOutput }) {
+
+  const display = RUN_STATUS_DISPLAY[runStatus]
+
+  if (!display) {
+
+    return null
+
+  }
+
+  return (
+
+    <div className={`text-xs ${display.className}`}>
+
+      {display.icon} {display.label}
+
+      {
+        runOutput && (
+          <pre
+            className="
+              wood-scroll
+              mt-1
+              max-h-40
+              overflow-auto
+              rounded-lg
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-2
+              text-[11px]
+              leading-relaxed
+              whitespace-pre-wrap
+              text-[var(--wood-muted)]
+            "
+          >
+            {runOutput}
           </pre>
         )
       }
@@ -326,6 +373,11 @@ function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus,
         testStatus={draft.testStatus}
         testSkippedReason={draft.testSkippedReason}
         testOutput={draft.testOutput}
+      />
+
+      <RunStatusBlock
+        runStatus={draft.runStatus}
+        runOutput={draft.runOutput}
       />
 
     </div>

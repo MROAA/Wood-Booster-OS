@@ -134,6 +134,16 @@ export const TEST_STATUS_DISPLAY = {
 
 }
 
+export const RUN_STATUS_DISPLAY = {
+
+  passed: { icon: "✓", label: "Ajo onnistui", className: "text-emerald-400" },
+
+  failed: { icon: "✗", label: "Ajo epäonnistui", className: "text-red-400" },
+
+  timeout: { icon: "⏱", label: "Ajo aikakatkaistiin", className: "text-amber-400" },
+
+}
+
 /*
  * PR:n GitHub Actions -tarkistusten tila (ks. checkPullRequestStatus/
  * deriveCheckStatusSummary.js). "none" on täysin normaali tulos, ei
