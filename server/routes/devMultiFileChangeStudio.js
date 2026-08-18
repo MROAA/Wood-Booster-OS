@@ -936,6 +936,64 @@ export default function createDevMultiFileChangeRouter(prisma) {
   })
 
   /*
+   * PUT /api/dev-draft-sets/:id/files/:fileId
+   *
+   * Käsin tehty muokkaus tiedoston koodiin - JS-monitiedostopuolen
+   * vastine /python-drafts/:id:lle. Ei AI-kutsua, ei
+   * originalCode/testStatus/unresolvedReferences-uudelleenlaskentaa
+   * (samoin kuin Python-puolen käsinmuokkaus, ne jäävät ajantasaisiksi
+   * vasta seuraavassa AI-muutospyynnössä). Sama tila-vaatimus kuin
+   * /revise:llä - muokkaus on mahdollista vain kun tiedosto odottaa
+   * tarkistusta.
+   */
+  router.put("/dev-draft-sets/:id/files/:fileId", async (request, response) => {
+    try {
+      const setId = Number(request.params.id)
+
+      const fileId = Number(request.params.fileId)
+
+      const set = await fetchSetWithFiles(setId)
+
+      if (!set) {
+        return response.status(404).json({ error: "Pakettia ei löytynyt" })
+      }
+
+      const file = set.files.find(candidate => candidate.id === fileId)
+
+      if (!file) {
+        return response.status(404).json({ error: "Tiedostoa ei löytynyt paketista" })
+      }
+
+      if (file.status !== "generated") {
+        return response.status(409).json({
+          error: `Tiedosto ei odota tarkistusta (status: ${file.status}).`,
+        })
+      }
+
+      const { proposedCode } = request.body || {}
+
+      if (!proposedCode || !String(proposedCode).trim()) {
+        return response.status(400).json({ error: "Koodi (proposedCode) vaaditaan" })
+      }
+
+      await prisma.codeChangeFileDraft.update({
+        where: { id: fileId },
+        data: {
+          proposedCode: String(proposedCode),
+        },
+      })
+
+      const updatedSet = await fetchSetWithFiles(setId)
+
+      response.json(withFiles(updatedSet))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
    * PUT /api/dev-draft-sets/:id/files/:fileId/run
    *
    * "Aja ja näytä tulostus" - JS-monitiedostopuolen vastine

@@ -389,6 +389,30 @@ function ChatPanel() {
 
 
 
+  async function editFile(setId, fileId, proposedCode) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/files/${fileId}`, { proposedCode })
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Tiedoston muokkauksen tallennus epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
   async function startPreviewForSet(setId) {
 
     setPreviewBusySetId(setId)
@@ -1111,6 +1135,7 @@ function ChatPanel() {
                         onWrite={() => writeSet(item.set.id)}
                         onReviseFile={(fileId, feedback) => reviseFile(item.set.id, fileId, feedback)}
                         onRunFile={fileId => runFile(item.set.id, fileId)}
+                        onEditFile={(fileId, proposedCode) => editFile(item.set.id, fileId, proposedCode)}
                         onPreview={() => startPreviewForSet(item.set.id)}
                         onStopPreview={() => stopPreviewForSet(item.set.id)}
                         previewing={previewingSetId === item.set.id}
