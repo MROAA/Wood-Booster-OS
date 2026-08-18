@@ -4,7 +4,7 @@ import DiffView from "./DiffView"
 
 import { computeDiffDelta } from "./diffDelta"
 
-import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "./statusLabels"
+import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY, RUN_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "./statusLabels"
 
 import ModelBadge from "./ModelBadge"
 
@@ -99,9 +99,11 @@ function shouldExpandByDefault(file) {
 
 }
 
-function FileReviewCard({ file, onRevise, busy, collapsible }) {
+function FileReviewCard({ file, onRevise, onRun, busy, collapsible }) {
 
   const testDisplay = TEST_STATUS_DISPLAY[file.testStatus]
+
+  const runDisplay = RUN_STATUS_DISPLAY[file.runStatus]
 
   const unresolvedReferences = parseUnresolvedReferences(file.unresolvedReferences)
 
@@ -233,6 +235,64 @@ function FileReviewCard({ file, onRevise, busy, collapsible }) {
               file.status === "generated" && (
 
                 <div className="space-y-2 pt-1">
+
+                  <div className="space-y-1">
+
+                    <button
+                      disabled={busy}
+                      onClick={onRun}
+                      className="
+                        rounded-full
+                        border
+                        border-[var(--wood-border)]
+                        px-3
+                        py-1
+                        text-xs
+                        font-medium
+                        text-[var(--wood-text)]
+                        transition-opacity
+                        disabled:opacity-30
+                        disabled:cursor-not-allowed
+                        hover:border-[var(--wood-accent)]
+                      "
+                    >
+                      ▶ Aja
+                    </button>
+
+                    <p className="text-[10px] text-[var(--wood-muted)]">
+                      Vain yksinkertaisille, ei-selainkoodia sisältäville tiedostoille (esim. apufunktiot) - React-komponenttitiedostot epäonnistuvat odotetusti, käytä niille Esikatselua.
+                    </p>
+
+                    {
+                      runDisplay && (
+                        <div className={`text-xs ${runDisplay.className}`}>
+                          {runDisplay.icon} {runDisplay.label}
+                        </div>
+                      )
+                    }
+
+                    {
+                      file.runOutput && (
+                        <pre className="
+                          wood-scroll
+                          max-h-40
+                          overflow-auto
+                          rounded-lg
+                          border
+                          border-[var(--wood-border)]
+                          bg-[var(--wood-panel)]
+                          p-2
+                          text-[11px]
+                          leading-relaxed
+                          whitespace-pre-wrap
+                          text-[var(--wood-muted)]
+                        ">
+                          {file.runOutput}
+                        </pre>
+                      )
+                    }
+
+                  </div>
 
                   <textarea
                     value={feedback}
@@ -383,7 +443,7 @@ function isPreviewableFile(file) {
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive, busy }) {
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onRunFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive, busy }) {
 
   const status = set.status
 
@@ -565,6 +625,7 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                   file={file}
                   busy={busy}
                   onRevise={feedback => onReviseFile(file.id, feedback)}
+                  onRun={() => onRunFile(file.id)}
                   collapsible={visibleFiles.length > 1}
                 />
               ))
