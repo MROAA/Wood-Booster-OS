@@ -298,6 +298,54 @@ function MultiFileChatPanel() {
 
   }
 
+  async function archiveSet(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/archive`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function unarchiveSet(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/unarchive`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
   async function reviseFile(setId, fileId, feedback) {
 
     setBusySetId(setId)
@@ -552,6 +600,8 @@ function MultiFileChatPanel() {
                         onRevertPr={() => revertSetPr(turn.set.id)}
                         onCheckRevertPrStatus={() => checkRevertSetPrStatus(turn.set.id)}
                         onRetryWithModel={model => retryWithModel(turn.set.id, turn.set.prompt, model)}
+                        onArchive={() => archiveSet(turn.set.id)}
+                        onUnarchive={() => unarchiveSet(turn.set.id)}
                       />
 
                     </div>
