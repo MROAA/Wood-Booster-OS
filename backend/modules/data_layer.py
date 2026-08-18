@@ -4,9 +4,15 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
+from backend.modules.paths import PY_DATA_DIR
+
 router = APIRouter()
 
-DATA_FILE = "backend/data_store.json"
+# Oli aiemmin CWD-suhteellinen ("backend/data_store.json") - toimi vain
+# sattumalta, koska palvelin on aina käynnistetty repositoryn juuresta.
+# __file__-suhteellinen kaikkien muidenkin moduulien tapaan (ks.
+# backend/modules/paths.py) - toimii riippumatta mistä prosessi käynnistyy.
+DATA_FILE = os.path.join(PY_DATA_DIR, "data_store.json")
 
 class MemoryEntry(BaseModel):
     title: str

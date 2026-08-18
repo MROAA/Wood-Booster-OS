@@ -4,16 +4,14 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
 
-router = APIRouter()
+from backend.modules.paths import SOURCE_ROOT, PY_DATA_DIR
 
-PROJECT_ROOT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..")
-)
+router = APIRouter()
 
 # Sama periaate kuin git_guardian.py:ssä: käytetään oikeaa, olemassa olevaa
 # Spacemonkey-ydintä (src/spacemonkey/) sen sijaan että rakennettaisiin
 # rinnakkainen, valeteksti Python Core -toteutus tähän moduuliin.
-_SRC_PATH = os.path.join(PROJECT_ROOT, "src")
+_SRC_PATH = os.path.join(SOURCE_ROOT, "src")
 if _SRC_PATH not in sys.path:
     sys.path.insert(0, _SRC_PATH)
 
@@ -21,11 +19,13 @@ from spacemonkey.spc_facade import SpacemonkeyFacade
 
 # Yksi pysyvä Facade-instanssi koko palvelimen elinkaaren ajaksi, jotta
 # tunnetila (limbic state) ja persoonallisuus kehittyvät oikeasti viestien
-# välillä sen sijaan että nollautuisivat joka pyynnöllä.
+# välillä sen sijaan että nollautuisivat joka pyynnöllä. versions/ ja
+# audit.log ovat ajonaikaista tilaa, ei lähdekoodia - PY_DATA_DIR:in alla
+# samaan tapaan kuin git_guardian_history.json, ei repositoryn juuressa.
 _facade = SpacemonkeyFacade(
     system_name="SpacemonkeyHQ",
-    storage_dir=os.path.join(PROJECT_ROOT, "versions"),
-    log_file=os.path.join(PROJECT_ROOT, "audit.log"),
+    storage_dir=os.path.join(PY_DATA_DIR, "versions"),
+    log_file=os.path.join(PY_DATA_DIR, "audit.log"),
 )
 
 

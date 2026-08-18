@@ -20,6 +20,7 @@ install=wood-booster-hq.install
 source=(
   "wood-booster-hq"
   "wood-booster-server"
+  "wood-booster-python"
   "wood-booster-hq.desktop"
   "icon-32.png"
   "icon-128.png"
@@ -28,6 +29,7 @@ source=(
 )
 
 sha256sums=(
+  'SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
@@ -46,6 +48,10 @@ package() {
   install -Dm755 \
     "$srcdir/wood-booster-server" \
     "$pkgdir/usr/bin/wood-booster-server"
+
+  install -Dm755 \
+    "$srcdir/wood-booster-python" \
+    "$pkgdir/usr/bin/wood-booster-python"
 
   install -Dm644 \
     "$srcdir/wood-booster-hq.desktop" \
@@ -73,4 +79,8 @@ package() {
   cp -r \
     "$startdir/server" \
     "$pkgdir/usr/lib/Wood-Booster HQ/resources/server"
+
+  cp -r \
+    "$startdir/pybackend" \
+    "$pkgdir/usr/lib/Wood-Booster HQ/resources/pybackend"
 }
