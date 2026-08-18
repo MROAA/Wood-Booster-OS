@@ -293,6 +293,54 @@ function ChatPanel() {
 
 
 
+  async function archiveSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/archive`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Paketin arkistointi epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
+  async function unarchiveSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/unarchive`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      console.error("Paketin arkistoinnin peruutus epäonnistui:", error)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+
+
   async function reviseFile(setId, fileId, feedback) {
 
     setBusySetId(setId)
@@ -1046,6 +1094,8 @@ function ChatPanel() {
                         onRevertPr={() => revertSetPr(item.set.id)}
                         onCheckRevertPrStatus={() => checkRevertSetPrStatus(item.set.id)}
                         onRetryWithModel={model => retryWithModel(item.set.id, item.set.prompt, model)}
+                        onArchive={() => archiveSet(item.set.id)}
+                        onUnarchive={() => unarchiveSet(item.set.id)}
                       />
 
                     </div>

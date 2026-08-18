@@ -327,6 +327,36 @@ function DevStudio() {
     }
   }
 
+  async function archiveDraft(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/archive`, {})
+
+      updateDraftInList(updated)
+    } catch (archiveError) {
+      setErrorMessage(archiveError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function unarchiveDraft(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/unarchive`, {})
+
+      updateDraftInList(updated)
+    } catch (unarchiveError) {
+      setErrorMessage(unarchiveError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
   async function writeDraft(draft) {
     setBusyDraftId(draft.id)
     setErrorMessage("")
@@ -1111,6 +1141,8 @@ function DevStudio() {
                     onRevertPr={() => revertPr(draft)}
                     onCheckRevertPrStatus={() => checkRevertPrStatus(draft)}
                     onRetryWithModel={model => retryDraftWithModel(draft, model)}
+                    onArchive={() => archiveDraft(draft)}
+                    onUnarchive={() => unarchiveDraft(draft)}
                   />
 
                 </div>
@@ -1242,7 +1274,7 @@ const RUN_STATUS_DISPLAY = {
   timeout: { icon: "⏱", label: "Ajo aikakatkaistiin", className: "text-amber-400" },
 }
 
-function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel }) {
+function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive }) {
   const [reviseFeedback, setReviseFeedback] = useState("")
 
   const [running, setRunning] = useState(false)
@@ -1500,6 +1532,28 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
             Hylkää
           </button>
         )}
+
+        <button
+          type="button"
+          disabled={busy}
+          onClick={draft.archived ? onUnarchive : onArchive}
+          className="
+            rounded-full
+            border
+            border-[var(--wood-border)]
+            px-3
+            py-1
+            text-xs
+            text-[var(--wood-muted)]
+            transition-opacity
+            disabled:opacity-30
+            disabled:cursor-not-allowed
+            hover:border-[var(--wood-accent)]
+            hover:text-[var(--wood-text)]
+          "
+        >
+          {draft.archived ? "Palauta arkistosta" : "Arkistoi"}
+        </button>
       </div>
 
       {runResult && (

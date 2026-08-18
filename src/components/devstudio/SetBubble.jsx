@@ -383,7 +383,7 @@ function isPreviewableFile(file) {
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, busy }) {
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive, busy }) {
 
   const status = set.status
 
@@ -434,6 +434,29 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
           >
             {SET_STATUS_LABELS[status] || status}
           </span>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={set.archived ? onUnarchive : onArchive}
+            className="
+              shrink-0
+              rounded-full
+              border
+              border-[var(--wood-border)]
+              px-2.5
+              py-0.5
+              text-xs
+              text-[var(--wood-muted)]
+              transition-opacity
+              disabled:opacity-30
+              disabled:cursor-not-allowed
+              hover:border-[var(--wood-accent)]
+              hover:text-[var(--wood-text)]
+            "
+          >
+            {set.archived ? "Palauta arkistosta" : "Arkistoi"}
+          </button>
 
         </div>
 
