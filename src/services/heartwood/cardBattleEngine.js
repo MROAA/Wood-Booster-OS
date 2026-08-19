@@ -6,12 +6,14 @@
 
 import { CARDS } from "../../data/heartwood/cards"
 import { ENEMIES } from "../../data/heartwood/enemies"
-import { applyEffects, drawCards, runTriggers, checkBattleEnd } from "./effects"
+import { resolveFormation } from "../../data/heartwood/formations"
+import { applyEffects, drawCards, runTriggers, checkBattleEnd, getUnit } from "./effects"
 
 const STARTING_ENERGY = 3
 const STARTING_HAND_SIZE = 5
 const HAND_SIZE_PER_TURN = 5
 const PLAYER_MAX_HP = 60
+const GRID = { rows: 3, cols: 3 }
 
 function shuffle(cards) {
   const result = [...cards]
@@ -26,10 +28,10 @@ function freshUnit(overrides) {
   return { block: 0, powers: {}, triggers: [], ...overrides }
 }
 
-// Picks the enemy's next move and returns the telegraphed intent shape
-// used by EnemyPanel. Committing the choice here (rather than at the
-// moment the move resolves) is what makes weightedRandom enemies still
-// honor "intent shown one turn ahead".
+// Picks a piece's next move and returns the telegraphed intent shape
+// used by the UI. Committing the choice here (rather than at the moment
+// the move resolves) is what makes weightedRandom enemies still honor
+// "intent shown one turn ahead".
 function computeIntent(def, moveIndex) {
   if (def.moveSelect === "sequence") {
     return def.movePattern[moveIndex % def.movePattern.length]
@@ -51,38 +53,50 @@ function intentToEffects(intent) {
     case "block":
       return [{ type: "block", amount: intent.amount }]
     case "debuff":
-      return [{ type: "applyBuff", target: intent.target, id: intent.id, amount: intent.amount }]
+      return [{ type: "applyBuff", target: "target", id: intent.id, amount: intent.amount }]
     default:
       return []
   }
 }
 
-export function startBattle(enemyId, deckDefIds) {
-  const enemyDef = ENEMIES[enemyId]
+export function startBattle(formationOrEnemyId, deckDefIds) {
+  const formation = resolveFormation(formationOrEnemyId)
 
-  const drawPile = shuffle(
-    deckDefIds.map((defId, i) => ({ instanceId: i, defId })),
-  )
+  const enemies = formation.pieces.map((piece, i) => {
+    const def = ENEMIES[piece.defId]
+    return freshUnit({
+      id: `e${i}`,
+      defId: piece.defId,
+      name: def.name,
+      hp: def.maxHp,
+      maxHp: def.maxHp,
+      pos: piece.pos,
+      moveIndex: 0,
+      intent: computeIntent(def, 0),
+    })
+  })
+
+  const drawPile = shuffle(deckDefIds.map((defId, i) => ({ instanceId: i, defId })))
 
   let state = {
     turn: 1,
     phase: "player",
+    grid: GRID,
     energy: { current: STARTING_ENERGY, max: STARTING_ENERGY },
-    player: freshUnit({ name: "Spacemonkey", hp: PLAYER_MAX_HP, maxHp: PLAYER_MAX_HP }),
-    enemy: freshUnit({
-      id: enemyDef.id,
-      name: enemyDef.name,
-      hp: enemyDef.maxHp,
-      maxHp: enemyDef.maxHp,
-      moveIndex: 0,
-      intent: computeIntent(enemyDef, 0),
+    player: freshUnit({
+      name: "Spacemonkey",
+      hp: PLAYER_MAX_HP,
+      maxHp: PLAYER_MAX_HP,
+      pos: formation.playerStart,
+      movedThisTurn: false,
     }),
+    enemies,
     drawPile,
     hand: [],
     discardPile: [],
     exhaustPile: [],
     usedOnce: [],
-    log: [`Turn 1 begins. ${enemyDef.name} blocks the way.`],
+    log: [`Turn 1 begins. ${formation.name || enemies[0].name} blocks the way.`],
     instanceIdCounter: deckDefIds.length,
   }
 
@@ -90,7 +104,10 @@ export function startBattle(enemyId, deckDefIds) {
   return state
 }
 
-export function playCard(state, instanceId) {
+// `targetId` is optional: if omitted, the first living enemy piece is
+// auto-targeted (preserves today's one-click play for single-enemy
+// fights; the grid UI will pass an explicit id once it exists).
+export function playCard(state, instanceId, targetId) {
   if (state.phase !== "player") return null
 
   const instance = state.hand.find((c) => c.instanceId === instanceId)
@@ -107,6 +124,8 @@ export function playCard(state, instanceId) {
 
   if (effectiveCost > state.energy.current) return null
 
+  const resolvedTargetId = targetId || state.enemies.find((e) => e.hp > 0)?.id
+
   let next = {
     ...state,
     hand: state.hand.filter((c) => c.instanceId !== instanceId),
@@ -114,7 +133,7 @@ export function playCard(state, instanceId) {
     log: [...state.log, `You play ${def.name}.`],
   }
 
-  next = applyEffects(next, def.effects, { source: "player" })
+  next = applyEffects(next, def.effects, { actorId: "player", targetId: resolvedTargetId })
 
   const pile = def.exhaust ? "exhaustPile" : "discardPile"
   next = { ...next, [pile]: [...next[pile], instance] }
@@ -126,19 +145,42 @@ export function playCard(state, instanceId) {
 }
 
 function startEnemyTurn(state) {
-  let next = { ...state, phase: "enemy", enemy: { ...state.enemy, block: 0 } }
-  next = runTriggers(next, "enemy", "turnStart")
-  if (next.phase !== "enemy") return next
-
-  next = applyEffects(next, intentToEffects(state.enemy.intent), { source: "enemy" })
-  if (next.phase !== "enemy") return next
-
-  const enemyDef = ENEMIES[next.enemy.id]
-  const nextMoveIndex = next.enemy.moveIndex + 1
-  next = {
-    ...next,
-    enemy: { ...next.enemy, moveIndex: nextMoveIndex, intent: computeIntent(enemyDef, nextMoveIndex) },
+  let next = {
+    ...state,
+    phase: "enemy",
+    enemies: state.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0 } : e)),
   }
+
+  for (const piece of state.enemies) {
+    if (next.phase !== "enemy") break
+
+    const current = getUnit(next, piece.id)
+    if (!current || current.hp <= 0) continue
+
+    next = runTriggers(next, piece.id, "turnStart")
+    if (next.phase !== "enemy") break
+
+    const acting = getUnit(next, piece.id)
+    if (!acting || acting.hp <= 0) continue
+
+    next = applyEffects(next, intentToEffects(acting.intent), { actorId: piece.id, targetId: "player" })
+    if (next.phase !== "enemy") break
+
+    const afterAction = getUnit(next, piece.id)
+    if (!afterAction || afterAction.hp <= 0) continue
+
+    const def = ENEMIES[afterAction.defId]
+    const nextMoveIndex = afterAction.moveIndex + 1
+    next = {
+      ...next,
+      enemies: next.enemies.map((e) =>
+        e.id === afterAction.id
+          ? { ...e, moveIndex: nextMoveIndex, intent: computeIntent(def, nextMoveIndex) }
+          : e,
+      ),
+    }
+  }
+
   return next
 }
 
@@ -147,7 +189,7 @@ function startPlayerTurn(state) {
     ...state,
     phase: "player",
     turn: state.turn + 1,
-    player: { ...state.player, block: 0 },
+    player: { ...state.player, block: 0, movedThisTurn: false },
     energy: { ...state.energy, current: state.energy.max },
     log: [...state.log, `Turn ${state.turn + 1} begins.`],
   }
@@ -178,4 +220,15 @@ export function endTurn(state) {
   if (next.phase !== "enemy") return next
 
   return startPlayerTurn(next)
+}
+
+// A free, once-per-turn repositioning action - not a card, not
+// energy-gated. Moves the player to an adjacent empty square.
+export function moveTo(state, pos) {
+  if (state.phase !== "player" || state.player.movedThisTurn) return null
+  return {
+    ...state,
+    player: { ...state.player, pos, movedThisTurn: true },
+    log: [...state.log, "You reposition."],
+  }
 }

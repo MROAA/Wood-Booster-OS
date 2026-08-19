@@ -4,18 +4,31 @@
 // require adding a new primitive unless it genuinely needs new game
 // behaviour, not just new numbers.
 //
-// ctx.source is "player" | "enemy" - who is causing the effect.
-// effect.target, when present, is an ABSOLUTE side ("player" | "enemy"),
-// not relative to the source. When omitted, it defaults to ctx.source
-// (i.e. "affects whoever is doing this"). Only "damage" ignores target
-// entirely - damage always travels from ctx.source to the opposite side,
-// since that's what "damage" means for both a played card and an enemy
-// attack intent.
+// Units are addressed by id: "player" or a specific enemy piece id
+// (state.enemies[].id). ctx = { actorId, targetId }: actorId is who is
+// causing the effect, targetId is the specific opposing unit this card
+// play or enemy move resolved against (always "player" for enemy
+// actions; the player-chosen/auto-picked enemy id for a card play).
+//
+// effect.target selects WHICH unit a non-damage effect applies to:
+// omitted/"self" -> ctx.actorId, "target" -> ctx.targetId. "damage"
+// ignores effect.target entirely - it always travels actorId -> targetId,
+// since that's what a card play or an enemy attack intent means.
 
 import { CARDS } from "../../data/heartwood/cards"
 
-function otherSide(side) {
-  return side === "player" ? "enemy" : "player"
+export function getUnit(state, id) {
+  if (id === "player") return state.player
+  return state.enemies.find((e) => e.id === id)
+}
+
+export function setUnit(state, id, unit) {
+  if (id === "player") return { ...state, player: unit }
+  return { ...state, enemies: state.enemies.map((e) => (e.id === id ? unit : e)) }
+}
+
+function resolveWho(ctx, targetField) {
+  return targetField === "target" ? ctx.targetId : ctx.actorId
 }
 
 function strengthOf(unit) {
@@ -26,18 +39,18 @@ function weakOf(unit) {
   return unit.powers.weak || 0
 }
 
-function nameOf(state, side) {
-  if (side === "player") return "You"
-  return state.enemy.name || "The enemy"
+function nameOf(state, id) {
+  if (id === "player") return "You"
+  return getUnit(state, id)?.name || "The enemy"
 }
 
-// Damage dealt by `source`, landing on the opposite side. Applies
-// Strength (flat bonus) and Weak (-25%, rounded down) from the source,
-// then subtracts the target's Block before touching HP.
-function dealDamage(state, source, baseAmount) {
-  const target = otherSide(source)
-  const attacker = state[source]
-  const defender = state[target]
+// Damage dealt by `actorId`, landing on `targetId`. Applies Strength
+// (flat bonus) and Weak (-25%, rounded down) from the attacker, then
+// subtracts the target's Block before touching HP.
+function dealDamage(state, actorId, targetId, baseAmount) {
+  const attacker = getUnit(state, actorId)
+  const defender = getUnit(state, targetId)
+  if (!attacker || !defender) return state
 
   let amount = baseAmount + strengthOf(attacker)
   if (weakOf(attacker) > 0) {
@@ -54,48 +67,54 @@ function dealDamage(state, source, baseAmount) {
     hp: Math.max(0, defender.hp - overflow),
   }
 
-  const nextState = { ...state, [target]: nextDefender }
-  nextState.log = [
-    ...state.log,
-    `${nameOf(state, source)} deal ${amount} damage${blocked > 0 ? ` (${blocked} blocked)` : ""}.`,
-  ]
+  let nextState = setUnit(state, targetId, nextDefender)
+  nextState = {
+    ...nextState,
+    log: [
+      ...state.log,
+      `${nameOf(state, actorId)} deal ${amount} damage to ${nameOf(state, targetId)}${blocked > 0 ? ` (${blocked} blocked)` : ""}.`,
+    ],
+  }
   return checkBattleEnd(nextState)
 }
 
 // HP loss that ignores Block entirely (self-inflicted costs, curse
-// on-draw effects). `who` is the absolute side losing HP.
+// on-draw effects).
 function loseHp(state, who, amount) {
-  const unit = state[who]
+  const unit = getUnit(state, who)
+  if (!unit) return state
   const nextUnit = { ...unit, hp: Math.max(0, unit.hp - amount) }
   return checkBattleEnd({
-    ...state,
-    [who]: nextUnit,
+    ...setUnit(state, who, nextUnit),
     log: [...state.log, `${nameOf(state, who)} lose ${amount} HP.`],
   })
 }
 
 function gainBlock(state, who, amount) {
-  const unit = state[who]
+  const unit = getUnit(state, who)
+  if (!unit) return state
   return {
-    ...state,
-    [who]: { ...unit, block: unit.block + amount },
+    ...setUnit(state, who, { ...unit, block: unit.block + amount }),
     log: [...state.log, `${nameOf(state, who)} gain ${amount} Block.`],
   }
 }
 
 function gainHeal(state, who, amount) {
-  const unit = state[who]
+  const unit = getUnit(state, who)
+  if (!unit) return state
   const healed = Math.min(unit.maxHp, unit.hp + amount) - unit.hp
   return {
-    ...state,
-    [who]: { ...unit, hp: unit.hp + healed },
+    ...setUnit(state, who, { ...unit, hp: unit.hp + healed }),
     log: [...state.log, `${nameOf(state, who)} heal ${healed}.`],
   }
 }
 
+// Win = every enemy piece dead. Dead pieces stay in `state.enemies`
+// (stable ids for React keys / shielding recomputation) rather than
+// being removed.
 export function checkBattleEnd(state) {
   if (state.phase !== "player" && state.phase !== "enemy") return state
-  if (state.enemy.hp <= 0) return { ...state, phase: "won" }
+  if (state.enemies.every((e) => e.hp <= 0)) return { ...state, phase: "won" }
   if (state.player.hp <= 0) return { ...state, phase: "lost" }
   return state
 }
@@ -134,7 +153,8 @@ export function drawCards(state, who, amount) {
     const def = CARDS[instance.defId]
     if (def?.onDraw?.length) {
       rest = { ...rest, drawPile, discardPile, hand, log }
-      rest = applyEffects(rest, def.onDraw, { source: "enemy" }) // curses act as an outside force on the player
+      // The curse itself is the "actor" harming the player who drew it.
+      rest = applyEffects(rest, def.onDraw, { actorId: "player", targetId: "player" })
       drawPile = rest.drawPile
       discardPile = rest.discardPile
       hand = rest.hand
@@ -155,17 +175,18 @@ function gainEnergy(state, amount) {
 }
 
 function applyBuff(state, who, id, amount) {
-  const unit = state[who]
+  const unit = getUnit(state, who)
+  if (!unit) return state
   return {
-    ...state,
-    [who]: { ...unit, powers: { ...unit.powers, [id]: (unit.powers[id] || 0) + amount } },
+    ...setUnit(state, who, { ...unit, powers: { ...unit.powers, [id]: (unit.powers[id] || 0) + amount } }),
     log: [...state.log, `${nameOf(state, who)} gain ${amount} ${id}.`],
   }
 }
 
 function addTrigger(state, who, trigger, effect) {
-  const unit = state[who]
-  return { ...state, [who]: { ...unit, triggers: [...(unit.triggers || []), { trigger, effect }] } }
+  const unit = getUnit(state, who)
+  if (!unit) return state
+  return setUnit(state, who, { ...unit, triggers: [...(unit.triggers || []), { trigger, effect }] })
 }
 
 function addCardToPile(state, pile, defId) {
@@ -175,6 +196,15 @@ function addCardToPile(state, pile, defId) {
     instanceIdCounter: state.instanceIdCounter + 1,
     [pile]: [...state[pile], instance],
     log: [...state.log, `${CARDS[defId]?.name || defId} is added to the discard pile.`],
+  }
+}
+
+function moveUnit(state, who, pos) {
+  const unit = getUnit(state, who)
+  if (!unit) return state
+  return {
+    ...setUnit(state, who, { ...unit, pos }),
+    log: [...state.log, `${nameOf(state, who)} move.`],
   }
 }
 
@@ -190,28 +220,29 @@ export function applyEffects(state, effects, ctx) {
 }
 
 function applyEffect(state, effect, ctx) {
-  const source = ctx.source
-  const target = effect.target || source
+  const who = resolveWho(ctx, effect.target)
 
   switch (effect.type) {
     case "damage":
-      return dealDamage(state, source, effect.amount)
+      return dealDamage(state, ctx.actorId, ctx.targetId, effect.amount)
     case "loseHp":
-      return loseHp(state, target, effect.amount)
+      return loseHp(state, who, effect.amount)
     case "block":
-      return gainBlock(state, target, effect.amount)
+      return gainBlock(state, who, effect.amount)
     case "heal":
-      return gainHeal(state, target, effect.amount)
+      return gainHeal(state, who, effect.amount)
     case "draw":
-      return drawCards(state, target, effect.amount)
+      return drawCards(state, who, effect.amount)
     case "gainEnergy":
       return gainEnergy(state, effect.amount)
     case "applyBuff":
-      return applyBuff(state, target, effect.id, effect.amount)
+      return applyBuff(state, who, effect.id, effect.amount)
     case "addTrigger":
-      return addTrigger(state, target, effect.trigger, effect.effect)
+      return addTrigger(state, who, effect.trigger, effect.effect)
     case "addCard":
       return addCardToPile(state, effect.pile, effect.defId)
+    case "move":
+      return moveUnit(state, who, effect.pos)
     case "discardHandThenDraw": {
       const discarded = state.hand
       const withDiscard = { ...state, hand: [], discardPile: [...state.discardPile, ...discarded] }
@@ -230,12 +261,13 @@ function applyEffect(state, effect, ctx) {
 // | "turnEnd"). Powers like The Emperor/Temperance/The Star register
 // these once when played; this just fires them each relevant turn.
 export function runTriggers(state, who, trigger) {
-  const unit = state[who]
+  const unit = getUnit(state, who)
+  if (!unit) return state
   const matching = (unit.triggers || []).filter((t) => t.trigger === trigger)
   let next = state
   for (const t of matching) {
     if (next.phase === "won" || next.phase === "lost") break
-    next = applyEffects(next, [t.effect], { source: who })
+    next = applyEffects(next, [t.effect], { actorId: who, targetId: who })
   }
   return next
 }

@@ -5,13 +5,18 @@ import Hand from "./Hand"
 import ResultOverlay from "./ResultOverlay"
 
 export default function BattleScreen({ state, onPlayCard, onEndTurn, onRetry, onChooseAnother }) {
-  const enemyDef = ENEMIES[state.enemy.id]
+  // Phase 1 bridge: render the first enemy piece through the existing
+  // single-enemy EnemyPanel until BattleGrid replaces this in Phase 2.
+  // Every formation currently defined (including the 1-piece backward-
+  // compat adapter for the 3 original solo fights) has enemies[0].
+  const firstEnemy = state.enemies[0]
+  const enemyDef = ENEMIES[firstEnemy.defId]
   const interactive = state.phase === "player"
 
   return (
     <div className="hw-battle" style={{ position: "relative" }}>
       <div className="hw-top-row">
-        <EnemyPanel enemy={state.enemy} art={enemyDef.art} />
+        <EnemyPanel enemy={firstEnemy} art={enemyDef.art} />
         <PlayerPanel player={state.player} energy={state.energy} />
       </div>
 
@@ -43,7 +48,7 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onRetry, on
 
       <ResultOverlay
         phase={state.phase}
-        enemyName={state.enemy.name}
+        enemyName={firstEnemy.name}
         onRetry={onRetry}
         onChooseAnother={onChooseAnother}
       />
