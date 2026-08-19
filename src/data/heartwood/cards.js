@@ -284,6 +284,21 @@ export const CARDS = {
     effects: [{ type: "damage", amount: 24 }],
   },
 
+  // Grid-tactics cards - not part of the 22 Arcana, chess-pattern
+  // targeting on the battle grid. See src/services/heartwood/targeting.js.
+  "knights-leap": {
+    id: "knights-leap",
+    name: "Knight's Leap",
+    type: "attack",
+    cost: 2,
+    art: "spark",
+    description: "Deal 12 damage to a piece an L-move away. Ignores shielding.",
+    flavor: "A real knight jumps what stands in the way.",
+    pattern: "knight",
+    patternSelect: "one",
+    effects: [{ type: "damage", amount: 12, pattern: "knight", patternSelect: "one" }],
+  },
+
   // Curse cards - unplayable, enter the deck via enemy effects, exist to
   // clog the hand/draw pile rather than do anything useful when played.
   sawdust: {

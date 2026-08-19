@@ -50,33 +50,45 @@ function Flame() {
   )
 }
 
+// Enemy portraits redrawn in a crude, thick-outline doodle style, from
+// Marc's own hand-drawn character sketches - dot eyes, simple curved
+// mouths, wobbly confident linework. A deliberately different register
+// from the clean geometric card glyphs above: these are creatures, not
+// symbols.
 function Husk() {
   return (
-    <path
-      d="M18 42 L18 14 C18 9 30 9 30 14 L30 42 M22 42 L22 20 C22 17 26 17 26 20 L26 42"
-      fill="none"
-      strokeWidth="2"
-    />
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 40 C10 26 14 10 24 8 C34 10 38 26 34 40" fill="none" />
+      <circle cx="19" cy="24" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="24" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 31 C21 34 27 34 30 31" fill="none" />
+      <path d="M10 41 L38 41" fill="none" />
+    </g>
   )
 }
 
 function Troll() {
   return (
-    <path
-      d="M24 8 A8 8 0 1 1 23.9 8 M14 40 L14 26 C14 20 34 20 34 26 L34 40 M14 30 L8 34 M34 30 L40 34"
-      fill="none"
-      strokeWidth="2"
-    />
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 26 C14 14 20 6 24 6 C28 6 34 14 32 26" fill="none" />
+      <path d="M12 40 L14 27 C14 22 34 22 34 27 L36 40" fill="none" />
+      <path d="M17 18 L22 15 M31 18 L26 15" fill="none" />
+      <circle cx="20" cy="23" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="23" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 30 L22 27 L26 30 L30 27" fill="none" />
+    </g>
   )
 }
 
 function Warden() {
   return (
-    <path
-      d="M24 6 L38 12 L38 24 C38 34 32 40 24 42 C16 40 10 34 10 24 L10 12 Z M24 16 L24 32 M17 24 L31 24"
-      fill="none"
-      strokeWidth="2"
-    />
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M24 6 L36 12 L34 30 C33 36 28 40 24 41 C20 40 15 36 14 30 L12 12 Z" fill="none" />
+      <path d="M18 17 L24 14 L30 18" fill="none" />
+      <circle cx="20" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 29 L28 29" fill="none" />
+    </g>
   )
 }
 

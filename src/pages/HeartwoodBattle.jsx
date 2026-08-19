@@ -1,43 +1,59 @@
 import { useState } from "react"
 import { CARDS, STARTER_DECK } from "../data/heartwood/cards"
 import { ENEMIES } from "../data/heartwood/enemies"
-import { startBattle, playCard, endTurn } from "../services/heartwood/cardBattleEngine"
+import { FORMATIONS } from "../data/heartwood/formations"
+import { startBattle, playCard, endTurn, moveTo } from "../services/heartwood/cardBattleEngine"
 import BattleScreen from "../components/heartwood/BattleScreen"
 import { CardGlyph } from "../components/heartwood/cardArt"
+import battleBg from "../assets/heartwood/battle-bg.jpg"
 import "../components/heartwood/heartwood.css"
+
+const rootStyle = { height: "100%", "--hw-bg-image": `url(${battleBg})` }
 
 const UNIQUE_DECK_CARDS = [...new Set(STARTER_DECK)].map((id) => CARDS[id])
 
+// Temporary dev-only deck for trying the new grid-tactics cards against
+// a real multi-piece formation, per the plan's own Phase 3 note: the
+// final curated deck for these cards is a game-design decision, not an
+// engineering one, and shouldn't block verifying the mechanic works.
+const GRID_TEST_DECK = [...STARTER_DECK, "knights-leap"]
+
 export default function HeartwoodBattle() {
-  const [enemyId, setEnemyId] = useState(null)
+  const [encounterId, setEncounterId] = useState(null)
   const [battle, setBattle] = useState(null)
 
   function beginBattle(id) {
-    setEnemyId(id)
-    setBattle(startBattle(id, STARTER_DECK))
+    const deck = FORMATIONS[id] ? GRID_TEST_DECK : STARTER_DECK
+    setEncounterId(id)
+    setBattle(startBattle(id, deck))
   }
 
-  function handlePlayCard(instanceId) {
-    setBattle((current) => playCard(current, instanceId) || current)
+  function handlePlayCard(instanceId, targetId) {
+    setBattle((current) => playCard(current, instanceId, targetId) || current)
   }
 
   function handleEndTurn() {
     setBattle((current) => endTurn(current) || current)
   }
 
+  function handleMove(pos) {
+    setBattle((current) => moveTo(current, pos) || current)
+  }
+
   function handleChooseAnother() {
-    setEnemyId(null)
+    setEncounterId(null)
     setBattle(null)
   }
 
   if (battle) {
     return (
-      <div className="hw-root" style={{ height: "100%" }}>
+      <div className="hw-root" style={rootStyle}>
         <BattleScreen
           state={battle}
           onPlayCard={handlePlayCard}
           onEndTurn={handleEndTurn}
-          onRetry={() => beginBattle(enemyId)}
+          onMove={handleMove}
+          onRetry={() => beginBattle(encounterId)}
           onChooseAnother={handleChooseAnother}
         />
       </div>
@@ -45,7 +61,7 @@ export default function HeartwoodBattle() {
   }
 
   return (
-    <div className="hw-root" style={{ height: "100%" }}>
+    <div className="hw-root" style={rootStyle}>
       <div className="hw-intro">
         <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood Trial</h1>
         <p className="hw-flavor">
@@ -64,6 +80,16 @@ export default function HeartwoodBattle() {
             <strong>{enemy.name}</strong>
             <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 6 }}>{enemy.description}</p>
             <p style={{ fontSize: 11, color: "var(--hw-muted)", marginTop: 6 }}>HP {enemy.maxHp}</p>
+          </button>
+        ))}
+        {Object.values(FORMATIONS).map((formation) => (
+          <button key={formation.id} className="hw-enemy-choice" onClick={() => beginBattle(formation.id)}>
+            <CardGlyph name="warden" className="hw-card-glyph" style={{ color: "var(--hw-hp)" }} />
+            <strong>{formation.name}</strong>
+            <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 6 }}>{formation.description}</p>
+            <p style={{ fontSize: 11, color: "var(--hw-muted)", marginTop: 6 }}>
+              {formation.pieces.length} pieces &middot; grid formation
+            </p>
           </button>
         ))}
       </div>

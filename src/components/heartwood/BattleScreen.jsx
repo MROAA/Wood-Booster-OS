@@ -1,23 +1,95 @@
-import { ENEMIES } from "../../data/heartwood/enemies"
-import EnemyPanel from "./EnemyPanel"
+import { useState } from "react"
+import { CARDS } from "../../data/heartwood/cards"
+import { legalSingleTargets, resolvePattern, piecesAtPositions, emptyAdjacentSquares } from "../../services/heartwood/targeting"
+import BattleGrid from "./BattleGrid"
 import PlayerPanel from "./PlayerPanel"
 import Hand from "./Hand"
 import ResultOverlay from "./ResultOverlay"
 
-export default function BattleScreen({ state, onPlayCard, onEndTurn, onRetry, onChooseAnother }) {
-  // Phase 1 bridge: render the first enemy piece through the existing
-  // single-enemy EnemyPanel until BattleGrid replaces this in Phase 2.
-  // Every formation currently defined (including the 1-piece backward-
-  // compat adapter for the 3 original solo fights) has enemies[0].
-  const firstEnemy = state.enemies[0]
-  const enemyDef = ENEMIES[firstEnemy.defId]
+// Legal target ids for a card: pattern cards (Knight's Leap etc.)
+// resolve from grid geometry at the player's current square, bypassing
+// shielding by construction; ordinary cards go through the normal
+// shielded/unshielded single-target rule.
+function candidateTargetIds(state, def) {
+  if (!def) return []
+  if (def.pattern) {
+    const squares = resolvePattern(state, def.pattern, state.player.pos)
+    return piecesAtPositions(state, squares)
+  }
+  return legalSingleTargets(state, def).map((e) => e.id)
+}
+
+export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onRetry, onChooseAnother }) {
+  const [pendingCard, setPendingCard] = useState(null) // instanceId awaiting a grid-square click
+  const [moveMode, setMoveMode] = useState(false)
   const interactive = state.phase === "player"
+
+  const pendingDef = pendingCard ? CARDS[state.hand.find((c) => c.instanceId === pendingCard)?.defId] : null
+  const highlightIds = pendingDef ? candidateTargetIds(state, pendingDef) : []
+  const highlightSquares = moveMode ? emptyAdjacentSquares(state, state.player.pos) : []
+
+  function handleCardClick(instanceId) {
+    const instance = state.hand.find((c) => c.instanceId === instanceId)
+    const def = instance && CARDS[instance.defId]
+    if (!def) return
+
+    setMoveMode(false)
+
+    const needsTarget = def.effects.some((e) => e.type === "damage")
+    if (!needsTarget) {
+      onPlayCard(instanceId)
+      return
+    }
+
+    const candidates = candidateTargetIds(state, def)
+    if (candidates.length === 0) return // Hand already disables this case
+    if (candidates.length === 1) {
+      onPlayCard(instanceId, candidates[0])
+      return
+    }
+    setPendingCard(instanceId)
+  }
+
+  function handleSelectTarget(enemyId) {
+    if (!pendingCard) return
+    onPlayCard(pendingCard, enemyId)
+    setPendingCard(null)
+  }
+
+  function handleMoveToggle() {
+    setPendingCard(null)
+    setMoveMode((on) => !on)
+  }
+
+  function handleMoveClick(pos) {
+    onMove(pos)
+    setMoveMode(false)
+  }
+
+  function candidateCountForHand(def) {
+    return candidateTargetIds(state, def).length
+  }
 
   return (
     <div className="hw-battle" style={{ position: "relative" }}>
       <div className="hw-top-row">
-        <EnemyPanel enemy={firstEnemy} art={enemyDef.art} />
-        <PlayerPanel player={state.player} energy={state.energy} />
+        <BattleGrid
+          state={state}
+          highlightIds={highlightIds}
+          highlightSquares={highlightSquares}
+          onSelectTarget={handleSelectTarget}
+          onMoveClick={handleMoveClick}
+        />
+        <div className="hw-side-rail">
+          <PlayerPanel player={state.player} energy={state.energy} />
+          <button
+            className="hw-move-btn"
+            disabled={!interactive || state.player.movedThisTurn}
+            onClick={handleMoveToggle}
+          >
+            {moveMode ? "Cancel Move" : "Move"}
+          </button>
+        </div>
       </div>
 
       <div className="hw-panel hw-mid-row">
@@ -33,8 +105,9 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onRetry, on
           hand={state.hand}
           energy={state.energy.current}
           playerBlock={state.player.block}
-          onPlayCard={onPlayCard}
-          interactive={interactive}
+          candidateCount={candidateCountForHand}
+          onCardClick={handleCardClick}
+          interactive={interactive && !moveMode}
         />
         <div className="hw-piles">
           <span>Draw {state.drawPile.length}</span>
@@ -48,7 +121,7 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onRetry, on
 
       <ResultOverlay
         phase={state.phase}
-        enemyName={firstEnemy.name}
+        enemyName={state.enemies[0].name}
         onRetry={onRetry}
         onChooseAnother={onChooseAnother}
       />

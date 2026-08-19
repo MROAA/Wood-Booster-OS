@@ -16,7 +16,13 @@
   --hw-curse: var(--hw-muted);
   --hw-hp: #b3503f;
 
-  background: var(--hw-bg);
+  background-color: var(--hw-bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--hw-bg) 88%, transparent), color-mix(in srgb, var(--hw-bg) 94%, transparent)),
+    var(--hw-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color: var(--hw-text);
   min-height: 100%;
   font-family: inherit;
@@ -265,7 +271,8 @@
   background: var(--hw-ember);
 }
 
-.hw-end-turn {
+.hw-end-turn,
+.hw-move-btn {
   background: var(--hw-ember);
   color: var(--hw-bg);
   border: none;
@@ -275,6 +282,16 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.hw-move-btn {
+  background: var(--hw-moss);
+}
+
+.hw-end-turn:disabled,
+.hw-move-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .hw-end-turn:disabled {
@@ -328,4 +345,105 @@
 .hw-flavor {
   font-style: italic;
   color: var(--hw-muted);
+}
+
+/* --- Grid combat (Phase 2) --- */
+
+.hw-side-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+}
+
+.hw-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  border-radius: 10px;
+  padding: var(--space-2, 13px);
+}
+
+.hw-grid-row {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.hw-grid-cell {
+  flex: 1;
+  min-height: 150px;
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--hw-bg) 60%, transparent);
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.hw-grid-cell[data-move-target="true"] {
+  border-color: var(--hw-moss);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--hw-moss);
+}
+
+.hw-player-token {
+  margin: auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px solid var(--hw-ember);
+  color: var(--hw-ember);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.hw-piece {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.hw-piece[data-highlighted="true"] {
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--hw-hp);
+  background: color-mix(in srgb, var(--hw-hp) 12%, transparent);
+}
+
+.hw-piece[data-dead="true"] {
+  opacity: 0.35;
+}
+
+.hw-piece-glyph {
+  width: 30px;
+  height: 30px;
+}
+
+.hw-piece-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.hw-piece-dead {
+  font-size: 10px;
+  color: var(--hw-muted);
+}
+
+.hw-shield-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 11px;
 }

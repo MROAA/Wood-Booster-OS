@@ -10,11 +10,16 @@ export const FORMATIONS = {
     id: "rune-wardens-escort",
     name: "Rune Warden's Escort",
     description: "Two Husks and a Troll hold the front rank, shielding the Warden behind them.",
+    // The Warden sits at (1,0), shielded by the Husk directly in front
+    // of it at (0,0) - same column, closer to the front. Deliberately
+    // NOT the board's center square (1,1): a knight's move can never
+    // reach the center of a 3x3 grid from anywhere on it, which would
+    // make Knight's Leap unable to ever bypass this piece's shield.
     pieces: [
       { defId: "rotwood-husk", pos: { row: 0, col: 0 } },
-      { defId: "rotwood-husk", pos: { row: 0, col: 1 } },
-      { defId: "moss-troll", pos: { row: 0, col: 2 } },
-      { defId: "rune-warden", pos: { row: 1, col: 1 } },
+      { defId: "moss-troll", pos: { row: 0, col: 1 } },
+      { defId: "rotwood-husk", pos: { row: 0, col: 2 } },
+      { defId: "rune-warden", pos: { row: 1, col: 0 } },
     ],
     playerStart: { row: 2, col: 1 },
   },

@@ -16,6 +16,7 @@
 // since that's what a card play or an enemy attack intent means.
 
 import { CARDS } from "../../data/heartwood/cards"
+import { resolvePattern, piecesAtPositions } from "./targeting"
 
 export function getUnit(state, id) {
   if (id === "player") return state.player
@@ -219,11 +220,38 @@ export function applyEffects(state, effects, ctx) {
   return next
 }
 
+// Fans a damage effect out across every position a pattern (rook/
+// bishop/knight) resolves to, from the actor's current square. This is
+// what lets Rook's Charge/Bishop's Slash hit several pieces at once and
+// lets Knight's Leap bypass shielding - patterns resolve targets from
+// geometry, never from legalSingleTargets, so the shield check never
+// runs for them.
+function resolvePatternTargetIds(state, effect, ctx) {
+  const actor = getUnit(state, ctx.actorId)
+  if (!actor) return []
+  const squares = resolvePattern(state, effect.pattern, actor.pos)
+  return piecesAtPositions(state, squares)
+}
+
+function applyPatternDamage(state, effect, ctx) {
+  const candidates = resolvePatternTargetIds(state, effect, ctx)
+  const targets =
+    effect.patternSelect === "one" ? candidates.filter((id) => id === ctx.targetId) : candidates
+
+  let next = state
+  for (const targetId of targets) {
+    next = dealDamage(next, ctx.actorId, targetId, effect.amount)
+    if (next.phase === "won" || next.phase === "lost") break
+  }
+  return next
+}
+
 function applyEffect(state, effect, ctx) {
   const who = resolveWho(ctx, effect.target)
 
   switch (effect.type) {
     case "damage":
+      if (effect.pattern) return applyPatternDamage(state, effect, ctx)
       return dealDamage(state, ctx.actorId, ctx.targetId, effect.amount)
     case "loseHp":
       return loseHp(state, who, effect.amount)
