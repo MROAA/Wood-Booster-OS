@@ -4,6 +4,10 @@ import crypto from "node:crypto"
 
 import { generateCodeChange } from "../services/codeChangeGenerator.js"
 
+import { explainCodeChange } from "../services/codeChangeExplainer.js"
+
+import { reviewCodeChange } from "../services/codeChangeReviewer.js"
+
 import {
   getSpacemonkeyToolBus,
   getSpacemonkeyWorkflowEngine,
@@ -144,6 +148,121 @@ export default function createDevMultiFileChangeRouter(prisma) {
       }
 
       response.json(withFiles(set))
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
+   * POST /api/code-explain
+   *
+   * JS-monitiedostopuolen vastine /python-explain:lle. Selittää
+   * olemassa olevan projektitiedoston sisällön luonnollisella
+   * kielellä. Vain luku - ei hyväksymiskiertoa, ei tallennusta,
+   * turvallinen suorittaa suoraan. Top-level reitti, ei
+   * /dev-draft-sets-etuliitteen alla, koska tämä ei koske mitään
+   * pakettia/luonnosta - sama sijoittelu kuin Python-vastineella.
+   */
+  router.post("/code-explain", async (request, response) => {
+    try {
+      const { filePath } = request.body || {}
+
+      if (!filePath) {
+        return response.status(400).json({
+          error: "Tiedostopolku (filePath) vaaditaan",
+        })
+      }
+
+      const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+      if (!workflowEngine) {
+        return response.status(503).json({
+          error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+        })
+      }
+
+      const toolBus = getSpacemonkeyToolBus()
+
+      const workflowResult = await workflowEngine.execute(
+        "explain-code-change-workflow",
+        {
+          filePath,
+          toolBus,
+          explainCodeChange,
+        },
+      )
+
+      const skillResult = workflowResult.results?.[0]
+
+      if (!skillResult?.success) {
+        return response.status(422).json({
+          error: skillResult?.error,
+          code: skillResult?.code,
+        })
+      }
+
+      response.json({
+        filePath: skillResult.filePath,
+        explanation: skillResult.explanation,
+      })
+    } catch (error) {
+      console.error(error)
+
+      response.status(500).json({ error: error.message })
+    }
+  })
+
+  /*
+   * POST /api/code-review
+   *
+   * JS-monitiedostopuolen vastine /python-review:lle. Antaa
+   * rakentavan katselmoinnin olemassa olevalle projektitiedostolle.
+   * Vain luku - ei hyväksymiskiertoa, ei tallennusta.
+   */
+  router.post("/code-review", async (request, response) => {
+    try {
+      const { filePath } = request.body || {}
+
+      if (!filePath) {
+        return response.status(400).json({
+          error: "Tiedostopolku (filePath) vaaditaan",
+        })
+      }
+
+      const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+      if (!workflowEngine) {
+        return response.status(503).json({
+          error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+        })
+      }
+
+      const toolBus = getSpacemonkeyToolBus()
+
+      const workflowResult = await workflowEngine.execute(
+        "review-code-change-workflow",
+        {
+          filePath,
+          toolBus,
+          reviewCodeChange,
+        },
+      )
+
+      const skillResult = workflowResult.results?.[0]
+
+      if (!skillResult?.success) {
+        return response.status(422).json({
+          error: skillResult?.error,
+          code: skillResult?.code,
+        })
+      }
+
+      response.json({
+        filePath: skillResult.filePath,
+        review: skillResult.review,
+      })
     } catch (error) {
       console.error(error)
 
