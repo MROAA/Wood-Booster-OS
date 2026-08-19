@@ -2,7 +2,7 @@ import { CARDS } from "../../data/heartwood/cards"
 import { cardNeedsTarget } from "../../services/heartwood/targeting"
 import Card from "./Card"
 
-export default function Hand({ hand, energy, playerBlock, candidateCount, onCardClick, interactive }) {
+export default function Hand({ hand, energy, playerBlock, candidateCount, onCardClick, interactive, pendingInstanceId }) {
   return (
     <div className="hw-hand">
       {hand.map((instance) => {
@@ -18,6 +18,7 @@ export default function Hand({ hand, energy, playerBlock, candidateCount, onCard
             key={instance.instanceId}
             def={def}
             playable={playable}
+            selected={instance.instanceId === pendingInstanceId}
             onPlay={() => onCardClick(instance.instanceId)}
           />
         )

@@ -150,6 +150,13 @@ export default function BattleScreen({
             )}
           </div>
         </div>
+      ) : pendingCard ? (
+        <div className="hw-hint hw-hint--pending">
+          <span>{hintText(state, moveMode, pendingCard)}</span>
+          <button className="hw-hint-cancel" onClick={() => setPendingCard(null)}>
+            Cancel
+          </button>
+        </div>
       ) : (
         <div className="hw-hint">{hintText(state, moveMode, pendingCard)}</div>
       )}
@@ -195,6 +202,7 @@ export default function BattleScreen({
           candidateCount={candidateCountForHand}
           onCardClick={handleCardClick}
           interactive={interactive && !moveMode}
+          pendingInstanceId={pendingCard}
         />
         <div className="hw-piles">
           <span>Draw {state.drawPile.length}</span>

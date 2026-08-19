@@ -61,12 +61,13 @@ function mechanicTags(def) {
   return tags
 }
 
-export default function Card({ def, playable, onPlay }) {
+export default function Card({ def, playable, selected, onPlay }) {
   const tags = mechanicTags(def)
   return (
     <motion.div
       className={`hw-card hw-card--${def.type}`}
       data-disabled={!playable}
+      data-selected={!!selected}
       onClick={playable ? onPlay : undefined}
       whileHover={playable ? { y: -8 } : undefined}
       whileTap={playable ? { scale: 0.97 } : undefined}

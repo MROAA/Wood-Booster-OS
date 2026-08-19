@@ -586,6 +586,35 @@
   z-index: 60;
 }
 
+.hw-hint--pending {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  background: color-mix(in srgb, var(--hw-hp) 22%, var(--hw-panel));
+  border-color: var(--hw-hp);
+}
+
+.hw-hint-cancel {
+  background: transparent;
+  border: 1px solid var(--hw-border);
+  color: var(--hw-text);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* The card currently awaiting a target click - distinct from hover,
+   which is transient; this stays until you pick a target or cancel. */
+.hw-card[data-selected="true"] {
+  border-color: var(--hw-hp);
+  box-shadow: 0 0 0 2px var(--hw-hp), 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
 .hw-hint--tutorial {
   display: flex;
   align-items: center;
