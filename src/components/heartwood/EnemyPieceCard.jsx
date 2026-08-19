@@ -1,4 +1,4 @@
-import { CardGlyph } from "./cardArt"
+import { CardGlyph, formatPowerLabel } from "./cardArt"
 
 // Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point
 // is to be able to tell what's about to happen without reading.
@@ -6,7 +6,8 @@ function intentDisplay(intent) {
   if (!intent) return null
   if (intent.type === "attack") return { icon: "sword", amount: intent.amount, className: "hw-intent--attack" }
   if (intent.type === "block") return { icon: "shield", amount: intent.amount, className: "hw-intent--block" }
-  if (intent.type === "debuff") return { icon: null, text: `${intent.id} +${intent.amount}`, className: "hw-intent--debuff" }
+  if (intent.type === "debuff")
+    return { icon: null, text: `${formatPowerLabel(intent.id)} +${intent.amount}`, className: "hw-intent--debuff" }
   return null
 }
 
@@ -58,7 +59,7 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
           {powerEntries.length > 0 && (
             <div className="hw-powers">
               {powerEntries.map(([id, amount]) => (
-                <span key={id} className="hw-badge">{id} {amount}</span>
+                <span key={id} className="hw-badge">{formatPowerLabel(id)} {amount}</span>
               ))}
             </div>
           )}

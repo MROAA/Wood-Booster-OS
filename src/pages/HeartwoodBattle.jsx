@@ -7,6 +7,7 @@ import { startBattle, playCard, endTurn, moveTo } from "../services/heartwood/ca
 import BattleScreen from "../components/heartwood/BattleScreen"
 import { CardGlyph } from "../components/heartwood/cardArt"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
+import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import "../components/heartwood/heartwood.css"
 
 const rootStyle = { height: "100%", "--hw-bg-image": `url(${battleBg})` }
@@ -72,6 +73,9 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root" style={rootStyle}>
         <div className="hw-intro">
+          <div className="hw-crew-banner">
+            <img src={crewBanner} alt="Tommy, Aatos, Spacemonkey, and Fenrir" />
+          </div>
           <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood Trial</h1>
           <p className="hw-flavor">
             Deep inside the Boosterverse, Spacemonkey waits at the heart of the Heartwood. Choose who

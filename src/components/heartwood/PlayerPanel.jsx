@@ -1,5 +1,5 @@
 import { CHARACTERS } from "../../data/heartwood/characters"
-import { CardGlyph } from "./cardArt"
+import { CardGlyph, formatPowerLabel } from "./cardArt"
 
 export default function PlayerPanel({ player, energy }) {
   const hpPct = Math.max(0, Math.round((player.hp / player.maxHp) * 100))
@@ -31,7 +31,7 @@ export default function PlayerPanel({ player, energy }) {
       {powerEntries.length > 0 && (
         <div className="hw-powers">
           {powerEntries.map(([id, amount]) => (
-            <span key={id} className="hw-badge">{id} {amount}</span>
+            <span key={id} className="hw-badge">{formatPowerLabel(id)} {amount}</span>
           ))}
         </div>
       )}

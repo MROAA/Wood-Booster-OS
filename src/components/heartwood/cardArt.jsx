@@ -195,6 +195,13 @@ const GLYPHS = {
   wolf: WolfGlyph,
 }
 
+// "woundedFury" -> "Wounded Fury" - power/status ids are camelCase
+// internally, but should read as words wherever shown to the player.
+export function formatPowerLabel(id) {
+  const spaced = id.replace(/([a-z])([A-Z])/g, "$1 $2")
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
+}
+
 export function CardGlyph({ name, className }) {
   const Glyph = GLYPHS[name] || Rune
   return (
