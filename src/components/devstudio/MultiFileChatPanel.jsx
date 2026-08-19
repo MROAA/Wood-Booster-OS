@@ -9,6 +9,8 @@ import SetBubble from "./SetBubble"
 import SavedPromptsRow from "./SavedPromptsRow"
 import PlaybookPicker from "./PlaybookPicker"
 import FileAttachButton from "./FileAttachButton"
+import CodeReadOnlyActionButton from "./CodeReadOnlyActionButton"
+import PromptPrefillButton from "./PromptPrefillButton"
 import ModelPicker from "./ModelPicker"
 
 import { NON_TERMINAL_SET_STATUSES } from "./statusLabels"
@@ -723,6 +725,40 @@ function MultiFileChatPanel() {
         <PlaybookPicker lane="koodi" onUsePlaybook={setPrompt} />
 
         <FileAttachButton prompt={prompt} onAttach={setPrompt} />
+
+        <div className="flex flex-wrap items-center gap-2">
+
+          <CodeReadOnlyActionButton
+            icon="💬"
+            label="Selitä tiedosto"
+            busyLabel="Selitetään…"
+            apiPath="/code-explain"
+            resultField="explanation"
+          />
+
+          <CodeReadOnlyActionButton
+            icon="🔍"
+            label="Katselmoi tiedosto"
+            busyLabel="Katselmoidaan…"
+            apiPath="/code-review"
+            resultField="review"
+          />
+
+          <PromptPrefillButton
+            icon="🔧"
+            label="Refaktoroi tiedosto"
+            buildPrompt={path => `Refaktoroi tiedosto: ${path}`}
+            onSetPrompt={setPrompt}
+          />
+
+          <PromptPrefillButton
+            icon="🐛"
+            label="Debugaa tiedosto"
+            buildPrompt={path => `Debugaa tiedosto: ${path}`}
+            onSetPrompt={setPrompt}
+          />
+
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
 

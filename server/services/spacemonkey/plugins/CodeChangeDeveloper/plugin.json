@@ -18,6 +18,8 @@
     "generate-verification-test",
     "run-verification-test",
     "run-code-change-draft",
+    "explain-code-change",
+    "review-code-change",
     "generate-change-plan",
     "write-code-change-pull-request"
   ],
@@ -31,6 +33,8 @@
     "generate-verification-test-workflow",
     "run-verification-test-workflow",
     "run-code-change-draft-workflow",
+    "explain-code-change-workflow",
+    "review-code-change-workflow",
     "generate-change-plan-workflow",
     "write-code-change-pull-request-workflow"
   ],

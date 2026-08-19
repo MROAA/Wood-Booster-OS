@@ -39,6 +39,14 @@ import runCodeChangeDraftSkill from "./skills/runCodeChangeDraftSkill.js"
 
 import runCodeChangeDraftWorkflow from "./workflows/runCodeChangeDraftWorkflow.js"
 
+import explainCodeChangeSkill from "./skills/explainCodeChangeSkill.js"
+
+import explainCodeChangeWorkflow from "./workflows/explainCodeChangeWorkflow.js"
+
+import reviewCodeChangeSkill from "./skills/reviewCodeChangeSkill.js"
+
+import reviewCodeChangeWorkflow from "./workflows/reviewCodeChangeWorkflow.js"
+
 import generateChangePlanSkill from "./skills/generateChangePlanSkill.js"
 
 import generateChangePlanWorkflow from "./workflows/generateChangePlanWorkflow.js"
@@ -116,6 +124,14 @@ function registerCodeChangeDeveloperPlugin({
     )
 
     skillEngine.register(
+        explainCodeChangeSkill,
+    )
+
+    skillEngine.register(
+        reviewCodeChangeSkill,
+    )
+
+    skillEngine.register(
         generateChangePlanSkill,
     )
 
@@ -153,6 +169,14 @@ function registerCodeChangeDeveloperPlugin({
 
     workflowEngine.register(
         runCodeChangeDraftWorkflow,
+    )
+
+    workflowEngine.register(
+        explainCodeChangeWorkflow,
+    )
+
+    workflowEngine.register(
+        reviewCodeChangeWorkflow,
     )
 
     workflowEngine.register(
