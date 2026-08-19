@@ -40,6 +40,13 @@ function weakOf(unit) {
   return unit.powers.weak || 0
 }
 
+// Fenrir's "Wounded Fury": a conditional bonus, not a flat buff, so it
+// can't be expressed as a plain applyBuff stack the way Strength is -
+// it depends on the attacker's current HP at the moment of the hit.
+function woundedFuryBonus(unit) {
+  return unit.powers.woundedFury && unit.hp < unit.maxHp * 0.5 ? 3 : 0
+}
+
 function nameOf(state, id) {
   if (id === "player") return "You"
   return getUnit(state, id)?.name || "The enemy"
@@ -53,7 +60,7 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   const defender = getUnit(state, targetId)
   if (!attacker || !defender) return state
 
-  let amount = baseAmount + strengthOf(attacker)
+  let amount = baseAmount + strengthOf(attacker) + woundedFuryBonus(attacker)
   if (weakOf(attacker) > 0) {
     amount = Math.floor(amount * 0.75)
   }

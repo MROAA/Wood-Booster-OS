@@ -2,6 +2,7 @@ import { useState } from "react"
 import { CARDS, STARTER_DECK } from "../data/heartwood/cards"
 import { ENEMIES } from "../data/heartwood/enemies"
 import { FORMATIONS } from "../data/heartwood/formations"
+import { CHARACTERS } from "../data/heartwood/characters"
 import { startBattle, playCard, endTurn, moveTo } from "../services/heartwood/cardBattleEngine"
 import BattleScreen from "../components/heartwood/BattleScreen"
 import { CardGlyph } from "../components/heartwood/cardArt"
@@ -19,13 +20,14 @@ const UNIQUE_DECK_CARDS = [...new Set(STARTER_DECK)].map((id) => CARDS[id])
 const GRID_TEST_DECK = [...STARTER_DECK, "knights-leap", "rooks-charge", "bishops-slash", "zugzwang", "castling"]
 
 export default function HeartwoodBattle() {
+  const [characterId, setCharacterId] = useState(null)
   const [encounterId, setEncounterId] = useState(null)
   const [battle, setBattle] = useState(null)
 
   function beginBattle(id) {
     const deck = FORMATIONS[id] ? GRID_TEST_DECK : STARTER_DECK
     setEncounterId(id)
-    setBattle(startBattle(id, deck))
+    setBattle(startBattle(characterId, id, deck))
   }
 
   function handlePlayCard(instanceId, targetId) {
@@ -45,6 +47,12 @@ export default function HeartwoodBattle() {
     setBattle(null)
   }
 
+  function handleChangeCharacter() {
+    setCharacterId(null)
+    setEncounterId(null)
+    setBattle(null)
+  }
+
   if (battle) {
     return (
       <div className="hw-root" style={rootStyle}>
@@ -60,14 +68,42 @@ export default function HeartwoodBattle() {
     )
   }
 
+  if (!characterId) {
+    return (
+      <div className="hw-root" style={rootStyle}>
+        <div className="hw-intro">
+          <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood Trial</h1>
+          <p className="hw-flavor">
+            Deep inside the Boosterverse, Spacemonkey waits at the heart of the Heartwood. Choose who
+            goes in after him.
+          </p>
+        </div>
+        <div className="hw-select-grid">
+          {Object.values(CHARACTERS).map((character) => (
+            <button key={character.id} className="hw-enemy-choice" onClick={() => setCharacterId(character.id)}>
+              <CardGlyph name={character.art} className="hw-card-glyph" style={{ color: "var(--hw-ember)" }} />
+              <strong>{character.name}</strong>
+              <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 6 }}>{character.tagline}</p>
+              <p style={{ fontSize: 11, color: "var(--hw-muted)", marginTop: 6 }}>{character.description}</p>
+              <p style={{ fontSize: 11, color: "var(--hw-muted)", marginTop: 6 }}>HP {character.maxHp}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="hw-root" style={rootStyle}>
       <div className="hw-intro">
         <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood Trial</h1>
         <p className="hw-flavor">
-          Deep inside the Boosterverse, past the last mapped rune, Spacemonkey enters the moss-dark
-          Heartwood to see what still moves there. Choose what waits for you.
+          {CHARACTERS[characterId].name} enters the moss-dark Heartwood to see what still moves there.
+          Choose what waits ahead.
         </p>
+        <button className="hw-move-btn" style={{ marginTop: 10 }} onClick={handleChangeCharacter}>
+          Change Character
+        </button>
         <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 10 }}>
           Starting deck ({UNIQUE_DECK_CARDS.length} cards, {STARTER_DECK.length} in the pile):
         </p>

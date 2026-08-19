@@ -7,12 +7,12 @@
 import { CARDS } from "../../data/heartwood/cards"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveFormation } from "../../data/heartwood/formations"
+import { CHARACTERS } from "../../data/heartwood/characters"
 import { applyEffects, drawCards, runTriggers, checkBattleEnd, getUnit, setUnit } from "./effects"
 
 const STARTING_ENERGY = 3
 const STARTING_HAND_SIZE = 5
 const HAND_SIZE_PER_TURN = 5
-const PLAYER_MAX_HP = 60
 const GRID = { rows: 3, cols: 3 }
 
 function shuffle(cards) {
@@ -59,7 +59,8 @@ function intentToEffects(intent) {
   }
 }
 
-export function startBattle(formationOrEnemyId, deckDefIds) {
+export function startBattle(characterId, formationOrEnemyId, deckDefIds) {
+  const character = CHARACTERS[characterId]
   const formation = resolveFormation(formationOrEnemyId)
 
   const enemies = formation.pieces.map((piece, i) => {
@@ -84,9 +85,10 @@ export function startBattle(formationOrEnemyId, deckDefIds) {
     grid: GRID,
     energy: { current: STARTING_ENERGY, max: STARTING_ENERGY },
     player: freshUnit({
-      name: "Spacemonkey",
-      hp: PLAYER_MAX_HP,
-      maxHp: PLAYER_MAX_HP,
+      name: character.name,
+      characterId: character.id,
+      hp: character.maxHp,
+      maxHp: character.maxHp,
       pos: formation.playerStart,
       movedThisTurn: false,
     }),
@@ -101,6 +103,7 @@ export function startBattle(formationOrEnemyId, deckDefIds) {
   }
 
   state = drawCards(state, "player", STARTING_HAND_SIZE)
+  state = applyEffects(state, character.startEffects, { actorId: "player", targetId: "player" })
   return state
 }
 

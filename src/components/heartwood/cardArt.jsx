@@ -137,6 +137,45 @@ function DrawIcon() {
   )
 }
 
+// Playable-character portraits, same crude thick-outline doodle
+// register as the enemy glyphs above.
+function CatGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 20 L10 8 L20 14 M34 20 L38 8 L28 14" fill="none" />
+      <path d="M13 22 C11 30 14 40 24 40 C34 40 37 30 35 22 C33 15 15 15 13 22 Z" fill="none" />
+      <circle cx="19" cy="24" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="24" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 30 C22 32 26 32 28 30" fill="none" />
+      <path d="M12 28 L6 27 M12 31 L6 33 M36 28 L42 27 M36 31 L42 33" fill="none" />
+    </g>
+  )
+}
+
+function ReindeerGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 14 L8 4 M14 14 L18 6 M34 14 L40 4 M34 14 L30 6" fill="none" />
+      <path d="M15 20 C13 30 16 40 24 40 C32 40 35 30 33 20 C31 14 17 14 15 20 Z" fill="none" />
+      <circle cx="20" cy="23" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="23" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M21 31 L27 31" fill="none" />
+    </g>
+  )
+}
+
+function WolfGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 16 L9 6 L17 12 M35 16 L39 6 L31 12" fill="none" />
+      <path d="M14 20 C12 28 14 36 20 38 L24 34 L28 38 C34 36 36 28 34 20 C30 14 18 14 14 20 Z" fill="none" />
+      <circle cx="19" cy="23" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="23" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M21 28 L24 31 L27 28" fill="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -151,6 +190,9 @@ const GLYPHS = {
   shield: ShieldIcon,
   heart: HeartIcon,
   drawIcon: DrawIcon,
+  cat: CatGlyph,
+  reindeer: ReindeerGlyph,
+  wolf: WolfGlyph,
 }
 
 export function CardGlyph({ name, className }) {
