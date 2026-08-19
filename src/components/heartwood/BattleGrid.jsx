@@ -1,6 +1,8 @@
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { CHARACTERS } from "../../data/heartwood/characters"
 import { isShielded } from "../../services/heartwood/targeting"
 import EnemyPieceCard from "./EnemyPieceCard"
+import { CardGlyph } from "./cardArt"
 
 function enemyAt(state, row, col) {
   return state.enemies.find((e) => e.pos.row === row && e.pos.col === col)
@@ -13,6 +15,7 @@ function enemyAt(state, row, col) {
 // that are legal targets for the card/pattern currently being played)
 // or `highlightSquares` (empty squares the player can move into).
 export default function BattleGrid({ state, highlightIds = [], highlightSquares = [], onSelectTarget, onMoveClick }) {
+  const character = CHARACTERS[state.player.characterId]
   const rows = []
   for (let row = 0; row < state.grid.rows; row++) {
     const cells = []
@@ -33,7 +36,12 @@ export default function BattleGrid({ state, highlightIds = [], highlightSquares 
           />
         )
       } else if (isPlayerHere) {
-        content = <div className="hw-player-token">You</div>
+        content = (
+          <div className="hw-player-token">
+            <CardGlyph name={character?.art || "cat"} className="hw-player-token-glyph" />
+            <span>{character?.name || "You"}</span>
+          </div>
+        )
       }
 
       cells.push(
@@ -41,6 +49,7 @@ export default function BattleGrid({ state, highlightIds = [], highlightSquares 
           key={`${row}-${col}`}
           className="hw-grid-cell"
           data-move-target={isMoveTarget}
+          data-empty={!content && !isMoveTarget}
           onClick={isMoveTarget ? () => onMoveClick({ row, col }) : undefined}
         >
           {content}

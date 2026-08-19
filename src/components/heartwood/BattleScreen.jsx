@@ -91,6 +91,9 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
 
   return (
     <div className="hw-battle" style={{ position: "relative" }}>
+      <div className="hw-hint">{hintText(state, moveMode, pendingCard)}</div>
+
+      <div className="hw-section-label">Battlefield</div>
       <div className="hw-top-row">
         <BattleGrid
           state={state}
@@ -111,16 +114,16 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
         </div>
       </div>
 
-      <div className="hw-hint">{hintText(state, moveMode, pendingCard)}</div>
-
-      <div className="hw-panel hw-mid-row">
+      <details className="hw-log-details">
+        <summary>Battle log</summary>
         <div className="hw-log">
           {state.log.slice(-8).map((line, i) => (
             <p key={i}>{line}</p>
           ))}
         </div>
-      </div>
+      </details>
 
+      <div className="hw-section-label">Your hand</div>
       <div className="hw-bottom-row">
         <Hand
           hand={state.hand}

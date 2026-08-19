@@ -136,10 +136,36 @@
   font-size: 12px;
   color: var(--hw-muted);
   line-height: 1.6;
+  margin-top: 8px;
 }
 
 .hw-log p:last-child {
   color: var(--hw-text);
+}
+
+.hw-section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--hw-muted);
+  font-weight: 700;
+}
+
+.hw-log-details {
+  font-size: 12px;
+  color: var(--hw-muted);
+}
+
+.hw-log-details summary {
+  cursor: pointer;
+  color: var(--hw-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hw-log-details summary::marker {
+  color: var(--hw-ember);
 }
 
 .hw-bottom-row {
@@ -403,6 +429,15 @@
   display: flex;
   align-items: stretch;
   justify-content: stretch;
+  transition: opacity 150ms ease, border-color 150ms ease;
+}
+
+/* Empty squares fade back so the eye lands on what's actually there -
+   an enemy, your own token, or a square you can act on right now. */
+.hw-grid-cell[data-empty="true"] {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--hw-border) 50%, transparent);
+  opacity: 0.35;
 }
 
 .hw-grid-cell[data-move-target="true"] {
@@ -418,18 +453,35 @@
 
 .hw-player-token {
   margin: auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  border: 2px solid var(--hw-ember);
-  color: var(--hw-ember);
+  width: 74px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 2px solid var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 14%, transparent);
+  color: var(--hw-ember);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: "Cormorant Garamond", serif;
+  animation: hw-token-glow 2.2s ease-in-out infinite;
 }
 
+@keyframes hw-token-glow {
+  0%, 100% { box-shadow: 0 0 0 rgba(185, 123, 63, 0); }
+  50% { box-shadow: 0 0 14px color-mix(in srgb, var(--hw-ember) 55%, transparent); }
+}
+
+.hw-player-token-glyph {
+  width: 34px;
+  height: 34px;
+}
+
+/* Enemies get a red-tinted card and player gets a warm gold-tinted
+   token (see .hw-player-token) - a color split that says "threat" vs
+   "you" before any text is read. */
 .hw-piece {
   width: 100%;
   display: flex;
@@ -439,6 +491,8 @@
   padding: 6px;
   border-radius: 8px;
   position: relative;
+  border: 2px solid color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-hp) 10%, var(--hw-card));
 }
 
 .hw-piece[data-highlighted="true"] {
