@@ -50,4 +50,30 @@ export const ENEMIES = {
       { type: "debuff", id: "weak", amount: 2, target: "player", weight: 1 },
     ],
   },
+  "bark-brute": {
+    id: "bark-brute",
+    name: "Bark Brute",
+    maxHp: 48,
+    art: "barkBrute",
+    description: "A knotted fist of root and stone. It only knows one move, and it is heavy.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 15 },
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 10 },
+    ],
+  },
+  "mist-growler": {
+    id: "mist-growler",
+    name: "Mist Growler",
+    maxHp: 36,
+    art: "mistGrowler",
+    description: "Fog with teeth. It snaps before you see it coming.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 9, weight: 2 },
+      { type: "debuff", id: "weak", amount: 2, target: "player", weight: 1 },
+      { type: "attack", amount: 6, weight: 1 },
+    ],
+  },
 }

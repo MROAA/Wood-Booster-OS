@@ -183,6 +183,40 @@ function WolfGlyph() {
   )
 }
 
+// Two more enemy portraits, same crude thick-outline register, this
+// time redrawn from Marc's newest round of sketches (his own doodles
+// of a fisted brute and an angry cloud-maw creature).
+function BarkBrute() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 14 L6 6 M38 14 L42 6" fill="none" />
+      <path
+        d="M13 24 C11 14 17 6 24 6 C31 6 37 14 35 24 L33 34 C31 40 26 43 24 43 C22 43 17 40 15 34 Z"
+        fill="none"
+      />
+      <path d="M15 18 L21 21 M33 18 L27 21" fill="none" />
+      <circle cx="19" cy="24" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="24" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M17 31 L21 31 M23 31 L27 31 M29 31 L33 31" fill="none" />
+      <path d="M35 26 L44 22 L46 14 L42 12 L40 18 L36 20" fill="none" />
+    </g>
+  )
+}
+
+function MistGrowler() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M8 20 C4 14 10 8 16 10 C18 4 28 4 30 10 C36 8 42 14 38 20 C42 24 40 32 32 32 C30 38 18 38 16 32 C8 32 4 26 8 20 Z"
+        fill="none"
+      />
+      <path d="M14 18 L20 20 M34 18 L28 20" fill="none" />
+      <path d="M18 22 L18 26 M28 22 L28 26" fill="none" />
+      <path d="M13 28 L17 25 L21 28 L25 25 L29 28 L33 25 L36 28" fill="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -193,6 +227,8 @@ const GLYPHS = {
   husk: Husk,
   troll: Troll,
   warden: Warden,
+  barkBrute: BarkBrute,
+  mistGrowler: MistGrowler,
   sword: SwordIcon,
   shield: ShieldIcon,
   heart: HeartIcon,
