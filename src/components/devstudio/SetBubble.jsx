@@ -99,7 +99,7 @@ function shouldExpandByDefault(file) {
 
 }
 
-function FileReviewCard({ file, onRevise, onRun, onEditFile, busy, collapsible }) {
+function FileReviewCard({ file, onRevise, onRun, onEditFile, onEditingChange, busy, collapsible }) {
 
   const testDisplay = TEST_STATUS_DISPLAY[file.testStatus]
 
@@ -137,6 +137,8 @@ function FileReviewCard({ file, onRevise, onRun, onEditFile, busy, collapsible }
 
     setEditing(true)
 
+    onEditingChange(file.id, true)
+
   }
 
   function cancelEditing() {
@@ -145,6 +147,8 @@ function FileReviewCard({ file, onRevise, onRun, onEditFile, busy, collapsible }
 
     setEditing(false)
 
+    onEditingChange(file.id, false)
+
   }
 
   function saveEditing() {
@@ -152,6 +156,8 @@ function FileReviewCard({ file, onRevise, onRun, onEditFile, busy, collapsible }
     onEditFile(editedCode)
 
     setEditing(false)
+
+    onEditingChange(file.id, false)
 
   }
 
@@ -335,30 +341,36 @@ function FileReviewCard({ file, onRevise, onRun, onEditFile, busy, collapsible }
 
                   <div className="space-y-1">
 
-                    <button
-                      disabled={busy}
-                      onClick={onRun}
-                      className="
-                        rounded-full
-                        border
-                        border-[var(--wood-border)]
-                        px-3
-                        py-1
-                        text-xs
-                        font-medium
-                        text-[var(--wood-text)]
-                        transition-opacity
-                        disabled:opacity-30
-                        disabled:cursor-not-allowed
-                        hover:border-[var(--wood-accent)]
-                      "
-                    >
-                      ▶ Aja
-                    </button>
+                    {
+                      !editing && (
+                        <>
+                          <button
+                            disabled={busy}
+                            onClick={onRun}
+                            className="
+                              rounded-full
+                              border
+                              border-[var(--wood-border)]
+                              px-3
+                              py-1
+                              text-xs
+                              font-medium
+                              text-[var(--wood-text)]
+                              transition-opacity
+                              disabled:opacity-30
+                              disabled:cursor-not-allowed
+                              hover:border-[var(--wood-accent)]
+                            "
+                          >
+                            ▶ Aja
+                          </button>
 
-                    <p className="text-[10px] text-[var(--wood-muted)]">
-                      Vain yksinkertaisille, ei-selainkoodia sisältäville tiedostoille (esim. apufunktiot) - React-komponenttitiedostot epäonnistuvat odotetusti, käytä niille Esikatselua.
-                    </p>
+                          <p className="text-[10px] text-[var(--wood-muted)]">
+                            Vain yksinkertaisille, ei-selainkoodia sisältäville tiedostoille (esim. apufunktiot) - React-komponenttitiedostot epäonnistuvat odotetusti, käytä niille Esikatselua.
+                          </p>
+                        </>
+                      )
+                    }
 
                     {
                       runDisplay && (
@@ -559,6 +571,30 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
   const [expanded, setExpanded] = useState(false)
 
   const showCompact = set.archived && !expanded
+
+  const [editingFileIds, setEditingFileIds] = useState(new Set())
+
+  function handleEditingChange(fileId, isEditing) {
+
+    setEditingFileIds(current => {
+
+      const next = new Set(current)
+
+      if (isEditing) {
+
+        next.add(fileId)
+
+      } else {
+
+        next.delete(fileId)
+
+      }
+
+      return next
+
+    })
+
+  }
 
   return (
 
@@ -796,6 +832,7 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                   onRevise={feedback => onReviseFile(file.id, feedback)}
                   onRun={() => onRunFile(file.id)}
                   onEditFile={proposedCode => onEditFile(file.id, proposedCode)}
+                  onEditingChange={handleEditingChange}
                   collapsible={visibleFiles.length > 1}
                 />
               ))
@@ -806,12 +843,14 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
               {
                 onPreview && (
                   <button
-                    disabled={busy || previewBusy || (!previewing && !hasPreviewableFile)}
+                    disabled={busy || previewBusy || (!previewing && (!hasPreviewableFile || editingFileIds.size > 0))}
                     onClick={previewing ? onStopPreview : onPreview}
                     title={
-                      hasPreviewableFile
-                        ? undefined
-                        : "Paketissa ei ole yhtään esikatseltavaa (src/**) tiedostoa."
+                      !hasPreviewableFile
+                        ? "Paketissa ei ole yhtään esikatseltavaa (src/**) tiedostoa."
+                        : !previewing && editingFileIds.size > 0
+                          ? "Tallenna tai peruuta kesken oleva muokkaus ensin."
+                          : undefined
                     }
                     className="
                       rounded-full

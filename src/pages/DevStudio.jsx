@@ -82,7 +82,7 @@ function DevStudio() {
           return
         }
 
-        setDrafts(Array.isArray(draftsData) ? draftsData : [])
+        setDrafts(Array.isArray(draftsData) ? draftsData.map(withSavedCode) : [])
       } catch (loadError) {
         if (!cancelled) {
           setErrorMessage(loadError.message)
@@ -126,7 +126,7 @@ function DevStudio() {
           model: modelToUse,
         })
 
-        setDrafts(current => [{ ...draft, compareGroupId }, ...current])
+        setDrafts(current => [{ ...withSavedCode(draft), compareGroupId }, ...current])
         anySucceeded = true
       } catch (generateError) {
         setErrorMessage(generateError.message)
@@ -207,7 +207,7 @@ function DevStudio() {
           model: modelToUse,
         })
 
-        setDrafts(current => [{ ...draft, compareGroupId }, ...current])
+        setDrafts(current => [{ ...withSavedCode(draft), compareGroupId }, ...current])
         setRefactorExplanation(
           draft.explanation ||
             "Uusi luonnos lisätty alle - ei muutosselitystä.",
@@ -241,7 +241,7 @@ function DevStudio() {
           model: modelToUse,
         })
 
-        setDrafts(current => [{ ...draft, compareGroupId }, ...current])
+        setDrafts(current => [{ ...withSavedCode(draft), compareGroupId }, ...current])
         setDebugDiagnosis(
           draft.diagnosis ||
             "Uusi luonnos lisätty alle - ei diagnoosia.",
@@ -254,14 +254,22 @@ function DevStudio() {
     setDebugging(false)
   }
 
-  function updateDraftInList(updated) {
+  function withSavedCode(draft) {
+    return { ...draft, savedCode: draft.code }
+  }
+
+  function updateDraftInList(updated, { fromServer = true } = {}) {
     setDrafts(current =>
-      current.map(draft => (draft.id === updated.id ? updated : draft)),
+      current.map(draft =>
+        draft.id === updated.id
+          ? { ...updated, savedCode: fromServer ? updated.code : draft.savedCode }
+          : draft,
+      ),
     )
   }
 
   async function updateCode(draft, code) {
-    updateDraftInList({ ...draft, code })
+    updateDraftInList({ ...draft, code }, { fromServer: false })
   }
 
   async function saveDraft(draft) {
@@ -371,7 +379,7 @@ function DevStudio() {
       try {
         const refreshed = await apiGet("/python-drafts")
 
-        setDrafts(Array.isArray(refreshed) ? refreshed : [])
+        setDrafts(Array.isArray(refreshed) ? refreshed.map(withSavedCode) : [])
       } catch {
         // ignore refresh failure, error message already shown
       }
@@ -394,7 +402,7 @@ function DevStudio() {
       try {
         const refreshed = await apiGet("/python-drafts")
 
-        setDrafts(Array.isArray(refreshed) ? refreshed : [])
+        setDrafts(Array.isArray(refreshed) ? refreshed.map(withSavedCode) : [])
       } catch {
         // ignore refresh failure, error message already shown
       }
@@ -502,7 +510,7 @@ function DevStudio() {
 
         const sourceIndex = tagged.findIndex(existing => existing.id === sourceDraft.id)
 
-        const taggedNewDraft = { ...newDraft, compareGroupId: groupId }
+        const taggedNewDraft = { ...withSavedCode(newDraft), compareGroupId: groupId }
 
         return [...tagged.slice(0, sourceIndex), taggedNewDraft, ...tagged.slice(sourceIndex)]
       })
@@ -531,7 +539,7 @@ function DevStudio() {
       try {
         const refreshed = await apiGet("/python-drafts")
 
-        setDrafts(Array.isArray(refreshed) ? refreshed : [])
+        setDrafts(Array.isArray(refreshed) ? refreshed.map(withSavedCode) : [])
       } catch {
         // ignore refresh failure, error message already shown
       }
@@ -1310,6 +1318,10 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
 
   const testDisplay = TEST_STATUS_DISPLAY[draft.testStatus]
 
+  const savedCode = draft.savedCode ?? draft.code
+
+  const isDirty = draft.code !== savedCode
+
   function submitRevise() {
     if (!reviseFeedback.trim()) {
       return
@@ -1406,7 +1418,7 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
               text-[var(--wood-text)]
               disabled:opacity-50
             "
-            disabled={busy}
+            disabled={busy || isDirty}
             onClick={onRun}
           >
             ▶ Aja ja näytä tulostus
@@ -1445,11 +1457,17 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
             text-[var(--wood-text)]
             disabled:opacity-50
           "
-          disabled={busy || draft.status !== "draft"}
+          disabled={busy || isDirty || draft.status !== "draft"}
           onClick={onApprove}
         >
           Hyväksy
         </button>
+
+        {isDirty && (
+          <p className="mt-2 w-full text-xs text-amber-400">
+            Tallenna muokkaukset ensin — muuten "Aja"/"Hyväksy" käyttäisi viimeksi tallennettua koodia.
+          </p>
+        )}
 
         <button
           type="button"
