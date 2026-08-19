@@ -532,6 +532,7 @@
   position: relative;
   border: 2px solid color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
   background: color-mix(in srgb, var(--hw-hp) 10%, var(--hw-card));
+  transition: opacity 400ms ease, transform 400ms ease;
 }
 
 .hw-piece[data-highlighted="true"] {
@@ -547,6 +548,23 @@
 
 .hw-piece[data-dead="true"] {
   opacity: 0.35;
+  transform: scale(0.92);
+}
+
+/* Struck-this-instant pulse, toggled directly via classList by
+   FloatingNumbers.jsx rather than React state - fire-and-forget, no
+   other UI needs to know a hit just landed. */
+.hw-hit-flash {
+  animation: hw-hit-shake 400ms ease;
+}
+
+@keyframes hw-hit-shake {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-hp) 80%, transparent); transform: translateX(0); }
+  20% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--hw-hp) 80%, transparent); transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+  100% { box-shadow: 0 0 0 0 transparent; transform: translateX(0); }
 }
 
 .hw-piece-glyph {

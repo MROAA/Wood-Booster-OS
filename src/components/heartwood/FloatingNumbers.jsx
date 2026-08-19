@@ -1,6 +1,21 @@
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 
+// A brief flash+shake directly on the struck unit's own DOM element,
+// alongside the floating number - a class toggle rather than React
+// state, since it's a fire-and-forget visual pulse with no state
+// anything else needs to know about.
+function flashHit(unitId) {
+  const el = document.querySelector(`[data-unit-id="${unitId}"]`)
+  if (!el) return
+  el.classList.remove("hw-hit-flash")
+  // Force reflow so re-adding the class restarts the animation even if
+  // the unit was hit again before the previous flash finished.
+  void el.offsetWidth
+  el.classList.add("hw-hit-flash")
+  setTimeout(() => el.classList.remove("hw-hit-flash"), 400)
+}
+
 // Watches HP/Block on the player and every enemy piece between state
 // updates and spawns a brief floating number near the real DOM element
 // for whatever changed, so damage/heal/block reads as something
@@ -36,6 +51,7 @@ export default function FloatingNumbers({ state }) {
           kind: hpDelta > 0 ? "heal" : "damage",
           offset: 0,
         })
+        if (hpDelta < 0) flashHit(unitId)
       }
       if (blockDelta > 0) {
         spawned.push({
