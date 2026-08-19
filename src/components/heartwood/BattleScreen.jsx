@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { CARDS } from "../../data/heartwood/cards"
+import { TUTORIAL_STEPS, TUTORIAL_SEEN_KEY } from "../../data/heartwood/tutorial"
 import {
   legalSingleTargets,
   resolvePattern,
@@ -11,6 +12,7 @@ import BattleGrid from "./BattleGrid"
 import PlayerPanel from "./PlayerPanel"
 import Hand from "./Hand"
 import ResultOverlay from "./ResultOverlay"
+import TutorialSpotlight from "./TutorialSpotlight"
 
 // Legal target ids for a card: pattern cards (Knight's Leap etc.)
 // resolve from grid geometry at the player's current square, bypassing
@@ -32,14 +34,49 @@ function hintText(state, moveMode, pendingCard) {
   return "Click a card below to play it. Click Move to reposition, or End Turn when you're done."
 }
 
-export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onRetry, onChooseAnother }) {
+export default function BattleScreen({
+  state,
+  onPlayCard,
+  onEndTurn,
+  onMove,
+  onRetry,
+  onChooseAnother,
+  startTutorial,
+  onTutorialDone,
+}) {
   const [pendingCard, setPendingCard] = useState(null) // instanceId awaiting a grid-square click
   const [moveMode, setMoveMode] = useState(false)
+  const [tutorialStep, setTutorialStep] = useState(startTutorial ? 0 : null) // null = tutorial not active
   const interactive = state.phase === "player"
+  const currentTutorialStep = tutorialStep === null ? null : TUTORIAL_STEPS[tutorialStep]
 
   const pendingDef = pendingCard ? CARDS[state.hand.find((c) => c.instanceId === pendingCard)?.defId] : null
   const highlightIds = pendingDef ? candidateTargetIds(state, pendingDef) : []
   const highlightSquares = moveMode ? emptyAdjacentSquares(state, state.player.pos) : []
+
+  function finishTutorial() {
+    localStorage.setItem(TUTORIAL_SEEN_KEY, "true")
+    setTutorialStep(null)
+    onTutorialDone?.()
+  }
+
+  function advanceTutorialManual() {
+    if (tutorialStep === null) return
+    const next = tutorialStep + 1
+    if (next >= TUTORIAL_STEPS.length) finishTutorial()
+    else setTutorialStep(next)
+  }
+
+  // Called after a real card play / real end-turn actually happens -
+  // only advances the tutorial if the step currently in progress is
+  // waiting for exactly that action. Steps that just point something
+  // out ("manual") are untouched here; they advance via the Next
+  // button instead.
+  function notifyTutorial(action) {
+    if (tutorialStep === null) return
+    if (TUTORIAL_STEPS[tutorialStep].advanceOn !== action) return
+    advanceTutorialManual()
+  }
 
   function handleCardClick(instanceId) {
     const instance = state.hand.find((c) => c.instanceId === instanceId)
@@ -50,6 +87,7 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
 
     if (!cardNeedsTarget(def)) {
       onPlayCard(instanceId)
+      notifyTutorial("cardPlayed")
       return
     }
 
@@ -64,6 +102,7 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
     const autoFire = def.pattern && def.patternSelect !== "one"
     if (autoFire || candidates.length === 1) {
       onPlayCard(instanceId, candidates[0])
+      notifyTutorial("cardPlayed")
       return
     }
     setPendingCard(instanceId)
@@ -72,6 +111,7 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
   function handleSelectTarget(enemyId) {
     if (!pendingCard) return
     onPlayCard(pendingCard, enemyId)
+    notifyTutorial("cardPlayed")
     setPendingCard(null)
   }
 
@@ -85,13 +125,36 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
     setMoveMode(false)
   }
 
+  function handleEndTurn() {
+    onEndTurn()
+    notifyTutorial("endTurn")
+  }
+
   function candidateCountForHand(def) {
     return candidateTargetIds(state, def).length
   }
 
   return (
     <div className="hw-battle" style={{ position: "relative" }}>
-      <div className="hw-hint">{hintText(state, moveMode, pendingCard)}</div>
+      {currentTutorialStep ? (
+        <div className="hw-hint hw-hint--tutorial">
+          <span>{currentTutorialStep.text}</span>
+          <div className="hw-tutorial-actions">
+            <button className="hw-tutorial-skip" onClick={finishTutorial}>
+              Skip tutorial
+            </button>
+            {currentTutorialStep.advanceOn === "manual" && (
+              <button className="hw-tutorial-next" onClick={advanceTutorialManual}>
+                {currentTutorialStep.final ? "Got it" : "Next"}
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="hw-hint">{hintText(state, moveMode, pendingCard)}</div>
+      )}
+
+      <TutorialSpotlight selector={currentTutorialStep?.target} />
 
       <div className="hw-section-label">Battlefield</div>
       <div className="hw-top-row">
@@ -138,7 +201,7 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
           <span>Discard {state.discardPile.length}</span>
           <span>Exhaust {state.exhaustPile.length}</span>
         </div>
-        <button className="hw-end-turn" disabled={!interactive} onClick={onEndTurn}>
+        <button className="hw-end-turn" disabled={!interactive} onClick={handleEndTurn}>
           End Turn
         </button>
       </div>

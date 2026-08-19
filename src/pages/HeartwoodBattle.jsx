@@ -3,6 +3,7 @@ import { CARDS, STARTER_DECK } from "../data/heartwood/cards"
 import { ENEMIES } from "../data/heartwood/enemies"
 import { FORMATIONS } from "../data/heartwood/formations"
 import { CHARACTERS } from "../data/heartwood/characters"
+import { TUTORIAL_SEEN_KEY } from "../data/heartwood/tutorial"
 import { startBattle, playCard, endTurn, moveTo } from "../services/heartwood/cardBattleEngine"
 import BattleScreen from "../components/heartwood/BattleScreen"
 import { CardGlyph } from "../components/heartwood/cardArt"
@@ -24,6 +25,12 @@ export default function HeartwoodBattle() {
   const [characterId, setCharacterId] = useState(null)
   const [encounterId, setEncounterId] = useState(null)
   const [battle, setBattle] = useState(null)
+  // Auto-runs the tutorial the very first time anyone reaches a battle
+  // on this device; "How to Play" on the encounter screen can force it
+  // again any time regardless of that flag.
+  const [wantsTutorial, setWantsTutorial] = useState(
+    () => typeof localStorage !== "undefined" && !localStorage.getItem(TUTORIAL_SEEN_KEY),
+  )
 
   function beginBattle(id) {
     const deck = FORMATIONS[id] ? GRID_TEST_DECK : STARTER_DECK
@@ -64,6 +71,8 @@ export default function HeartwoodBattle() {
           onMove={handleMove}
           onRetry={() => beginBattle(encounterId)}
           onChooseAnother={handleChooseAnother}
+          startTutorial={wantsTutorial}
+          onTutorialDone={() => setWantsTutorial(false)}
         />
       </div>
     )
@@ -105,9 +114,14 @@ export default function HeartwoodBattle() {
           {CHARACTERS[characterId].name} enters the moss-dark Heartwood to see what still moves there.
           Choose what waits ahead.
         </p>
-        <button className="hw-move-btn" style={{ marginTop: 10 }} onClick={handleChangeCharacter}>
-          Change Character
-        </button>
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <button className="hw-move-btn" onClick={handleChangeCharacter}>
+            Change Character
+          </button>
+          <button className="hw-move-btn" onClick={() => setWantsTutorial(true)}>
+            How to Play
+          </button>
+        </div>
         <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 10 }}>
           Starting deck ({UNIQUE_DECK_CARDS.length} cards, {STARTER_DECK.length} in the pile):
         </p>
