@@ -556,6 +556,10 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
 
   const hasPreviewableFile = set.files.some(isPreviewableFile)
 
+  const [expanded, setExpanded] = useState(false)
+
+  const showCompact = set.archived && !expanded
+
   return (
 
     <div
@@ -574,6 +578,68 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
         text-[var(--wood-text)]
       "
     >
+
+      {
+        showCompact ? (
+
+          <div className="flex items-center justify-between gap-2">
+
+            <div className="min-w-0 truncate text-[var(--wood-muted)]">
+              📦 Arkistoitu — {set.planExplanation || set.prompt}
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1.5">
+
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="
+                  shrink-0
+                  rounded-full
+                  border
+                  border-[var(--wood-border)]
+                  px-2.5
+                  py-0.5
+                  text-xs
+                  text-[var(--wood-muted)]
+                  transition-opacity
+                  hover:border-[var(--wood-accent)]
+                  hover:text-[var(--wood-text)]
+                "
+              >
+                Näytä
+              </button>
+
+              <button
+                type="button"
+                disabled={busy}
+                onClick={onUnarchive}
+                className="
+                  shrink-0
+                  rounded-full
+                  border
+                  border-[var(--wood-border)]
+                  px-2.5
+                  py-0.5
+                  text-xs
+                  text-[var(--wood-muted)]
+                  transition-opacity
+                  disabled:opacity-30
+                  disabled:cursor-not-allowed
+                  hover:border-[var(--wood-accent)]
+                  hover:text-[var(--wood-text)]
+                "
+              >
+                Palauta arkistosta
+              </button>
+
+            </div>
+
+          </div>
+
+        ) : (
+
+          <>
 
       <div className="flex items-center justify-between gap-2">
 
@@ -981,6 +1047,11 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
             }
 
           </div>
+
+        )
+      }
+
+          </>
 
         )
       }
