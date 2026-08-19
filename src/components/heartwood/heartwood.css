@@ -387,7 +387,12 @@
 .hw-grid-cell[data-move-target="true"] {
   border-color: var(--hw-moss);
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px var(--hw-moss);
+  animation: hw-pulse-moss 1.1s ease-in-out infinite;
+}
+
+@keyframes hw-pulse-moss {
+  0%, 100% { box-shadow: inset 0 0 0 1px var(--hw-moss); }
+  50% { box-shadow: inset 0 0 0 3px var(--hw-moss); }
 }
 
 .hw-player-token {
@@ -417,8 +422,13 @@
 
 .hw-piece[data-highlighted="true"] {
   cursor: pointer;
-  box-shadow: inset 0 0 0 2px var(--hw-hp);
   background: color-mix(in srgb, var(--hw-hp) 12%, transparent);
+  animation: hw-pulse-hp 1.1s ease-in-out infinite;
+}
+
+@keyframes hw-pulse-hp {
+  0%, 100% { box-shadow: inset 0 0 0 2px var(--hw-hp); }
+  50% { box-shadow: inset 0 0 0 4px var(--hw-hp); }
 }
 
 .hw-piece[data-dead="true"] {
@@ -446,4 +456,51 @@
   top: 2px;
   right: 2px;
   font-size: 11px;
+}
+
+/* --- Icon-first readability (Phase 2.5) --- */
+
+.hw-hint {
+  font-size: 13px;
+  text-align: center;
+  color: var(--hw-text);
+  background: color-mix(in srgb, var(--hw-ember) 16%, var(--hw-panel));
+  border: 1px solid var(--hw-ember);
+  border-radius: 8px;
+  padding: 8px 14px;
+}
+
+.hw-effect-icons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hw-effect-icon {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hw-effect-icon-glyph {
+  width: 16px;
+  height: 16px;
+  color: var(--hw-ember);
+}
+
+.hw-intent-glyph {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 2px;
+}
+
+.hw-intent--attack .hw-intent-glyph {
+  color: var(--hw-ember);
+}
+
+.hw-intent--block .hw-intent-glyph {
+  color: var(--hw-rune);
 }

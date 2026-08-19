@@ -1,11 +1,13 @@
 import { CardGlyph } from "./cardArt"
 
-function intentLabel(intent) {
-  if (!intent) return { text: "...", className: "" }
-  if (intent.type === "attack") return { text: `Attack ${intent.amount}`, className: "hw-intent--attack" }
-  if (intent.type === "block") return { text: `Guard ${intent.amount}`, className: "hw-intent--block" }
-  if (intent.type === "debuff") return { text: `${intent.id} +${intent.amount}`, className: "hw-intent--debuff" }
-  return { text: "...", className: "" }
+// Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point
+// is to be able to tell what's about to happen without reading.
+function intentDisplay(intent) {
+  if (!intent) return null
+  if (intent.type === "attack") return { icon: "sword", amount: intent.amount, className: "hw-intent--attack" }
+  if (intent.type === "block") return { icon: "shield", amount: intent.amount, className: "hw-intent--block" }
+  if (intent.type === "debuff") return { icon: null, text: `${intent.id} +${intent.amount}`, className: "hw-intent--debuff" }
+  return null
 }
 
 // One enemy piece as it renders inside a BattleGrid square. Reuses the
@@ -14,7 +16,7 @@ function intentLabel(intent) {
 // currently protected from ordinary single-target cards.
 export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onClick }) {
   const dead = enemy.hp <= 0
-  const intent = intentLabel(enemy.intent)
+  const intent = intentDisplay(enemy.intent)
   const hpPct = Math.max(0, Math.round((enemy.hp / enemy.maxHp) * 100))
   const powerEntries = Object.entries(enemy.powers || {}).filter(([, v]) => v)
 
@@ -40,7 +42,18 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
             </div>
             <span className="hw-hp-label">{enemy.hp}/{enemy.maxHp}</span>
           </div>
-          <div className={`hw-intent ${intent.className}`}>{intent.text}</div>
+          {intent && (
+            <div className={`hw-intent ${intent.className}`}>
+              {intent.icon ? (
+                <>
+                  <CardGlyph name={intent.icon} className="hw-intent-glyph" />
+                  {intent.amount}
+                </>
+              ) : (
+                intent.text
+              )}
+            </div>
+          )}
           {enemy.block > 0 && <span className="hw-badge hw-badge--block">Block {enemy.block}</span>}
           {powerEntries.length > 0 && (
             <div className="hw-powers">

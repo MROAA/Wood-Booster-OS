@@ -19,6 +19,13 @@ function candidateTargetIds(state, def) {
   return legalSingleTargets(state, def).map((e) => e.id)
 }
 
+function hintText(state, moveMode, pendingCard) {
+  if (state.phase !== "player") return "The enemy is acting..."
+  if (pendingCard) return "Click a glowing enemy to target it with that card."
+  if (moveMode) return "Click a glowing square to move there. You can move once per turn."
+  return "Click a card below to play it. Click Move to reposition, or End Turn when you're done."
+}
+
 export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onRetry, onChooseAnother }) {
   const [pendingCard, setPendingCard] = useState(null) // instanceId awaiting a grid-square click
   const [moveMode, setMoveMode] = useState(false)
@@ -91,6 +98,8 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
           </button>
         </div>
       </div>
+
+      <div className="hw-hint">{hintText(state, moveMode, pendingCard)}</div>
 
       <div className="hw-panel hw-mid-row">
         <div className="hw-log">

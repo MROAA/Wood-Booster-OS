@@ -92,6 +92,51 @@ function Warden() {
   )
 }
 
+// Small, bold, instantly-readable action icons - used as icon+number
+// pairs (not sentences) so the game reads visually at a glance: what a
+// card does, what an enemy is about to do.
+// Bold and simple on purpose: at the small sizes this renders at (an
+// intent badge, an in-card effect row) fine linework disappears, so
+// this reads as one solid upward blade rather than a literal sword.
+function SwordIcon() {
+  return (
+    <path
+      d="M24 4 L32 24 L27 24 L27 44 L21 44 L21 24 L16 24 Z"
+      fill="currentColor"
+      stroke="none"
+    />
+  )
+}
+
+function ShieldIcon() {
+  return (
+    <path
+      d="M24 5 L38 11 L36 27 C35 35 30 41 24 43 C18 41 13 35 12 27 L10 11 Z"
+      fill="currentColor"
+      stroke="none"
+    />
+  )
+}
+
+function HeartIcon() {
+  return (
+    <path
+      d="M24 42 C10 32 6 22 12 15 C17 9 24 12 24 19 C24 12 31 9 36 15 C42 22 38 32 24 42 Z"
+      fill="currentColor"
+      stroke="none"
+    />
+  )
+}
+
+function DrawIcon() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <rect x="10" y="8" width="20" height="28" rx="3" />
+      <rect x="18" y="14" width="20" height="28" rx="3" fill="var(--hw-card, #211d19)" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -102,6 +147,10 @@ const GLYPHS = {
   husk: Husk,
   troll: Troll,
   warden: Warden,
+  sword: SwordIcon,
+  shield: ShieldIcon,
+  heart: HeartIcon,
+  drawIcon: DrawIcon,
 }
 
 export function CardGlyph({ name, className }) {
