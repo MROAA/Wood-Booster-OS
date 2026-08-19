@@ -388,7 +388,7 @@
 .hw-overlay {
   position: absolute;
   inset: 0;
-  background: color-mix(in srgb, var(--hw-bg) 88%, transparent);
+  z-index: 70;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -396,11 +396,28 @@
   gap: 14px;
   text-align: center;
   padding: 24px;
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--hw-moss) 16%, transparent), transparent 60%),
+    color-mix(in srgb, var(--hw-bg) 90%, transparent);
+}
+
+.hw-overlay[data-outcome="lost"] {
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--hw-hp) 20%, transparent), transparent 60%),
+    color-mix(in srgb, var(--hw-bg) 92%, transparent);
+}
+
+.hw-overlay-glyph {
+  width: 84px;
+  height: 84px;
+  filter: drop-shadow(0 0 18px currentColor);
 }
 
 .hw-overlay-title {
-  font-size: 28px;
+  font-size: 34px;
   font-weight: 700;
+  font-family: "Cormorant Garamond", serif;
+  letter-spacing: 0.04em;
 }
 
 .hw-select-grid {
