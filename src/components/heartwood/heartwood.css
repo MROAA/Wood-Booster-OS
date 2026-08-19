@@ -184,10 +184,9 @@
 
 .hw-piles {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--hw-muted);
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
 }
 
 .hw-card {

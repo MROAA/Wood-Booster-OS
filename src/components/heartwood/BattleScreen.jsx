@@ -14,6 +14,7 @@ import Hand from "./Hand"
 import ResultOverlay from "./ResultOverlay"
 import TutorialSpotlight from "./TutorialSpotlight"
 import FloatingNumbers from "./FloatingNumbers"
+import { CardGlyph } from "./cardArt"
 
 // Legal target ids for a card: pattern cards (Knight's Leap etc.)
 // resolve from grid geometry at the player's current square, bypassing
@@ -207,9 +208,14 @@ export default function BattleScreen({
           pendingInstanceId={pendingCard}
         />
         <div className="hw-piles">
-          <span>Draw {state.drawPile.length}</span>
-          <span>Discard {state.discardPile.length}</span>
-          <span>Exhaust {state.exhaustPile.length}</span>
+          <span className="hw-badge" title="Draw pile">
+            <CardGlyph name="drawIcon" className="hw-intent-glyph" />
+            {state.drawPile.length}
+          </span>
+          <span className="hw-badge" title="Discard pile">Discard {state.discardPile.length}</span>
+          {state.exhaustPile.length > 0 && (
+            <span className="hw-badge" title="Exhaust pile">Exhaust {state.exhaustPile.length}</span>
+          )}
         </div>
         <button className="hw-end-turn" disabled={!interactive} onClick={handleEndTurn}>
           End Turn
