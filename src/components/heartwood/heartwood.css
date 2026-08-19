@@ -18,7 +18,7 @@
 
   background-color: var(--hw-bg);
   background-image:
-    linear-gradient(color-mix(in srgb, var(--hw-bg) 88%, transparent), color-mix(in srgb, var(--hw-bg) 94%, transparent)),
+    linear-gradient(color-mix(in srgb, var(--hw-bg) 55%, transparent), color-mix(in srgb, var(--hw-bg) 78%, transparent)),
     var(--hw-bg-image, none);
   background-size: cover;
   background-position: center;
