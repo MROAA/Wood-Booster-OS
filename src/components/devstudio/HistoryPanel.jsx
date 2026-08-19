@@ -380,6 +380,10 @@ function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus,
         runOutput={draft.runOutput}
       />
 
+      <UnresolvedReferencesBlock
+        unresolvedReferences={draft.unresolvedReferences}
+      />
+
     </div>
 
   )
