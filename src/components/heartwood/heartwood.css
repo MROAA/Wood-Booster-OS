@@ -481,19 +481,32 @@
   min-height: 150px;
   border: 1px solid var(--hw-border);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--hw-bg) 60%, transparent);
   display: flex;
   align-items: stretch;
   justify-content: stretch;
   transition: opacity 150ms ease, border-color 150ms ease;
 }
 
+/* A faint two-tone checkerboard so the board reads as a tactical grid
+   at a glance, not an empty dark panel with two cards floating in it -
+   the chess-pattern cards need the player to see squares/ranks/files
+   as real structure, not just wherever a piece happens to be. */
+.hw-grid-cell[data-tile="a"] {
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+}
+
+.hw-grid-cell[data-tile="b"] {
+  background: color-mix(in srgb, var(--hw-bg) 55%, transparent);
+}
+
 /* Empty squares fade back so the eye lands on what's actually there -
-   an enemy, your own token, or a square you can act on right now. */
+   an enemy, your own token, or a square you can act on right now -
+   but keep enough opacity that the checkerboard tint underneath still
+   reads as a board. */
 .hw-grid-cell[data-empty="true"] {
   border-style: dashed;
   border-color: color-mix(in srgb, var(--hw-border) 50%, transparent);
-  opacity: 0.35;
+  opacity: 0.55;
 }
 
 .hw-grid-cell[data-move-target="true"] {

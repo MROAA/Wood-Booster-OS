@@ -48,6 +48,7 @@ export default function BattleGrid({ state, highlightIds = [], highlightSquares 
         <div
           key={`${row}-${col}`}
           className="hw-grid-cell"
+          data-tile={(row + col) % 2 === 0 ? "a" : "b"}
           data-move-target={isMoveTarget}
           data-empty={!content && !isMoveTarget}
           onClick={isMoveTarget ? () => onMoveClick({ row, col }) : undefined}
