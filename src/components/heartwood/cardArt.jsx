@@ -60,11 +60,11 @@ function Flame() {
 function Husk() {
   return (
     <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 40 C10 26 14 10 24 8 C34 10 38 26 34 40" fill="none" />
-      <circle cx="19" cy="24" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="29" cy="24" r="1.6" fill="currentColor" stroke="none" />
-      <path d="M18 31 C21 34 27 34 30 31" fill="none" />
-      <path d="M10 41 L38 41" fill="none" />
+      <path d="M14 38 C10 24 14 8 24 6 C34 8 38 24 34 38" fill="none" />
+      <circle cx="19" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 29 C21 32 27 32 30 29" fill="none" />
+      <path d="M14 38 L10 44 M34 38 L38 44 M22 40 L20 46 M26 40 L28 46" fill="none" />
     </g>
   )
 }
@@ -72,12 +72,13 @@ function Husk() {
 function Troll() {
   return (
     <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 26 C14 14 20 6 24 6 C28 6 34 14 32 26" fill="none" />
-      <path d="M12 40 L14 27 C14 22 34 22 34 27 L36 40" fill="none" />
-      <path d="M17 18 L22 15 M31 18 L26 15" fill="none" />
-      <circle cx="20" cy="23" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="28" cy="23" r="1.6" fill="currentColor" stroke="none" />
-      <path d="M18 30 L22 27 L26 30 L30 27" fill="none" />
+      <path d="M16 24 C14 12 20 4 24 4 C28 4 34 12 32 24" fill="none" />
+      <path d="M11 44 L13 25 C13 20 35 20 35 25 L37 44" fill="none" />
+      <path d="M17 16 L22 13 M31 16 L26 13" fill="none" />
+      <circle cx="20" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 28 L22 25 L26 28 L30 25" fill="none" />
+      <path d="M13 30 L6 36 M35 30 L42 36" fill="none" />
     </g>
   )
 }
@@ -85,11 +86,12 @@ function Troll() {
 function Warden() {
   return (
     <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M24 6 L36 12 L34 30 C33 36 28 40 24 41 C20 40 15 36 14 30 L12 12 Z" fill="none" />
-      <path d="M18 17 L24 14 L30 18" fill="none" />
-      <circle cx="20" cy="21" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="28" cy="22" r="1.6" fill="currentColor" stroke="none" />
-      <path d="M20 29 L28 29" fill="none" />
+      <path d="M24 4 L36 10 L34 28 C33 36 28 41 24 43 C20 41 15 36 14 28 L12 10 Z" fill="none" />
+      <path d="M18 15 L24 12 L30 16" fill="none" />
+      <circle cx="20" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 27 L28 27" fill="none" />
+      <path d="M24 31 L24 40" fill="none" />
     </g>
   )
 }
@@ -144,12 +146,13 @@ function DrawIcon() {
 function CatGlyph() {
   return (
     <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 20 L10 8 L20 14 M34 20 L38 8 L28 14" fill="none" />
-      <path d="M13 22 C11 30 14 40 24 40 C34 40 37 30 35 22 C33 15 15 15 13 22 Z" fill="none" />
-      <circle cx="19" cy="24" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="29" cy="24" r="1.6" fill="currentColor" stroke="none" />
-      <path d="M20 30 C22 32 26 32 28 30" fill="none" />
-      <path d="M12 28 L6 27 M12 31 L6 33 M36 28 L42 27 M36 31 L42 33" fill="none" />
+      <path d="M14 16 L10 6 L19 11 M34 16 L38 6 L29 11" fill="none" />
+      <path d="M14 18 C12 24 14 29 18 30 C22 31 26 31 30 30 C34 29 36 24 34 18 C32 13 16 13 14 18 Z" fill="none" />
+      <circle cx="19" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 25 C22 27 26 27 28 25" fill="none" />
+      <path d="M17 32 C15 36 15 40 18 44 M31 32 C33 36 33 40 30 44" fill="none" />
+      <path d="M34 30 C40 30 42 34 38 38" fill="none" />
     </g>
   )
 }
@@ -157,11 +160,12 @@ function CatGlyph() {
 function ReindeerGlyph() {
   return (
     <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 14 L8 4 M14 14 L18 6 M34 14 L40 4 M34 14 L30 6" fill="none" />
-      <path d="M15 20 C13 30 16 40 24 40 C32 40 35 30 33 20 C31 14 17 14 15 20 Z" fill="none" />
-      <circle cx="20" cy="23" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="28" cy="23" r="1.6" fill="currentColor" stroke="none" />
-      <path d="M21 31 L27 31" fill="none" />
+      <path d="M14 10 L8 2 M14 10 L18 3 M34 10 L40 2 M34 10 L30 3" fill="none" />
+      <path d="M15 16 C13 22 15 27 19 28 C23 29 25 29 29 28 C33 27 35 22 33 16 C31 12 17 12 15 16 Z" fill="none" />
+      <circle cx="20" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M21 24 L27 24" fill="none" />
+      <path d="M17 30 L16 44 M31 30 L32 44" fill="none" />
     </g>
   )
 }
@@ -169,11 +173,12 @@ function ReindeerGlyph() {
 function WolfGlyph() {
   return (
     <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M13 16 L9 6 L17 12 M35 16 L39 6 L31 12" fill="none" />
-      <path d="M14 20 C12 28 14 36 20 38 L24 34 L28 38 C34 36 36 28 34 20 C30 14 18 14 14 20 Z" fill="none" />
-      <circle cx="19" cy="23" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="29" cy="23" r="1.6" fill="currentColor" stroke="none" />
-      <path d="M21 28 L24 31 L27 28" fill="none" />
+      <path d="M13 12 L9 3 L17 8 M35 12 L39 3 L31 8" fill="none" />
+      <path d="M14 16 C12 22 14 27 18 28 L24 25 L30 28 C34 27 36 22 34 16 C31 11 17 11 14 16 Z" fill="none" />
+      <circle cx="19" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M21 23 L24 26 L27 23" fill="none" />
+      <path d="M18 30 C14 34 14 40 18 44 M30 30 C34 34 34 40 30 44" fill="none" />
     </g>
   )
 }
