@@ -13,6 +13,7 @@ import PlayerPanel from "./PlayerPanel"
 import Hand from "./Hand"
 import ResultOverlay from "./ResultOverlay"
 import TutorialSpotlight from "./TutorialSpotlight"
+import FloatingNumbers from "./FloatingNumbers"
 
 // Legal target ids for a card: pattern cards (Knight's Leap etc.)
 // resolve from grid geometry at the player's current square, bypassing
@@ -162,6 +163,7 @@ export default function BattleScreen({
       )}
 
       <TutorialSpotlight selector={currentTutorialStep?.target} />
+      <FloatingNumbers state={state} />
 
       <div className="hw-section-label">Battlefield</div>
       <div className="hw-top-row">

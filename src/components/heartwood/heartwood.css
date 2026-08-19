@@ -668,6 +668,30 @@
   50% { border-color: #ffd9a0; }
 }
 
+/* Floating damage/heal/block numbers - the moment something happens,
+   not just the bar quietly changing. */
+.hw-floating-number {
+  pointer-events: none;
+  z-index: 55;
+  font-size: 20px;
+  font-weight: 800;
+  font-family: "Cormorant Garamond", serif;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.hw-floating-number--damage {
+  color: var(--hw-hp);
+}
+
+.hw-floating-number--heal {
+  color: var(--hw-moss);
+}
+
+.hw-floating-number--block {
+  color: var(--hw-rune);
+}
+
 /* Promoted to the card's main visual - see the plan's card-redesign
    note: icon+number is the primary thing a card says, replacing what
    used to be a flavor glyph plus a full sentence underneath. */

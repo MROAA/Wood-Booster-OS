@@ -26,6 +26,7 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
       className="hw-piece"
       data-dead={dead}
       data-highlighted={highlighted}
+      data-unit-id={enemy.id}
       onClick={!dead && onClick ? onClick : undefined}
     >
       {shielded && !dead && (

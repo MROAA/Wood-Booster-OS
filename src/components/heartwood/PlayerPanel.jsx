@@ -7,7 +7,7 @@ export default function PlayerPanel({ player, energy }) {
   const character = CHARACTERS[player.characterId]
 
   return (
-    <div className="hw-panel" style={{ minWidth: 220 }}>
+    <div className="hw-panel" style={{ minWidth: 220 }} data-unit-id="player">
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         {character && <CardGlyph name={character.art} className="hw-piece-glyph" style={{ color: "var(--hw-ember)" }} />}
         <div style={{ flex: 1, display: "flex", justifyContent: "space-between" }}>
