@@ -75,6 +75,7 @@ export default function Card({ def, playable, onPlay }) {
       <div className="hw-card-head">
         <span className="hw-card-cost">{def.cost}</span>
       </div>
+      <CardGlyph name={def.art} className="hw-card-art" />
       <div className="hw-card-name">{def.name}</div>
       <EffectIcons effects={def.effects} />
       {tags.length > 0 && (

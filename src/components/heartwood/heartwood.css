@@ -281,6 +281,33 @@
   color: var(--hw-curse);
 }
 
+/* Real per-Arcana Tarot art, kept modest so the icon+number row below
+   stays the primary "what does this do" read - the art says what the
+   card IS, the icons say what it DOES. */
+.hw-card-art {
+  width: 34px;
+  height: 34px;
+  align-self: center;
+  opacity: 0.85;
+}
+
+.hw-card--attack .hw-card-art {
+  color: var(--hw-ember);
+}
+
+.hw-card--skill .hw-card-art {
+  color: var(--hw-moss);
+}
+
+.hw-card--power .hw-card-art {
+  color: var(--hw-rune);
+}
+
+.hw-card--curse .hw-card-art,
+.hw-card--special .hw-card-art {
+  color: var(--hw-curse);
+}
+
 .hw-card-name {
   font-size: 12px;
   font-weight: 600;

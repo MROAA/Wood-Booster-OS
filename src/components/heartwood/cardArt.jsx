@@ -3,6 +3,8 @@
 // one of these by key (see the `art` field in data/heartwood/*.js),
 // tinted via `currentColor` so CSS controls the accent per card type.
 
+import * as Tarot from "./tarotArt"
+
 function Leaf() {
   return (
     <path d="M24 8 C34 12 38 22 34 32 C30 40 20 42 12 38 C16 30 14 18 24 8 Z M24 8 L18 34" fill="none" strokeWidth="2" />
@@ -193,6 +195,30 @@ const GLYPHS = {
   cat: CatGlyph,
   reindeer: ReindeerGlyph,
   wolf: WolfGlyph,
+
+  "the-fool": Tarot.TheFool,
+  "the-magician": Tarot.TheMagician,
+  "the-high-priestess": Tarot.TheHighPriestess,
+  "the-empress": Tarot.TheEmpress,
+  "the-emperor": Tarot.TheEmperor,
+  "the-hierophant": Tarot.TheHierophant,
+  "the-lovers": Tarot.TheLovers,
+  "the-chariot": Tarot.TheChariot,
+  strength: Tarot.Strength,
+  "the-hermit": Tarot.TheHermit,
+  "wheel-of-fortune": Tarot.WheelOfFortune,
+  justice: Tarot.Justice,
+  "the-hanged-man": Tarot.TheHangedMan,
+  death: Tarot.Death,
+  temperance: Tarot.Temperance,
+  "the-devil": Tarot.TheDevil,
+  "the-tower": Tarot.TheTower,
+  "the-star": Tarot.TheStar,
+  "the-moon": Tarot.TheMoon,
+  "the-sun": Tarot.TheSun,
+  judgement: Tarot.Judgement,
+  "the-world": Tarot.TheWorld,
+  entropy: Tarot.Entropy,
 }
 
 // "woundedFury" -> "Wounded Fury" - power/status ids are camelCase
