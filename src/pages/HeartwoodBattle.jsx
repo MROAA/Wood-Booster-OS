@@ -16,7 +16,7 @@ const UNIQUE_DECK_CARDS = [...new Set(STARTER_DECK)].map((id) => CARDS[id])
 // a real multi-piece formation, per the plan's own Phase 3 note: the
 // final curated deck for these cards is a game-design decision, not an
 // engineering one, and shouldn't block verifying the mechanic works.
-const GRID_TEST_DECK = [...STARTER_DECK, "knights-leap"]
+const GRID_TEST_DECK = [...STARTER_DECK, "knights-leap", "rooks-charge", "bishops-slash", "zugzwang", "castling"]
 
 export default function HeartwoodBattle() {
   const [encounterId, setEncounterId] = useState(null)

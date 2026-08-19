@@ -7,7 +7,7 @@
 import { CARDS } from "../../data/heartwood/cards"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveFormation } from "../../data/heartwood/formations"
-import { applyEffects, drawCards, runTriggers, checkBattleEnd, getUnit } from "./effects"
+import { applyEffects, drawCards, runTriggers, checkBattleEnd, getUnit, setUnit } from "./effects"
 
 const STARTING_ENERGY = 3
 const STARTING_HAND_SIZE = 5
@@ -160,10 +160,24 @@ function startEnemyTurn(state) {
     next = runTriggers(next, piece.id, "turnStart")
     if (next.phase !== "enemy") break
 
-    const acting = getUnit(next, piece.id)
+    let acting = getUnit(next, piece.id)
     if (!acting || acting.hp <= 0) continue
 
-    next = applyEffects(next, intentToEffects(acting.intent), { actorId: piece.id, targetId: "player" })
+    // Zugzwang: a Guard intent is suppressed once, then the debuff is
+    // spent. Consumed here rather than as a new effect primitive - it's
+    // a one-off interaction between an existing power and intent
+    // resolution, not a general-purpose behavior.
+    let effectiveIntent = acting.intent
+    if ((acting.powers.zugzwang || 0) > 0 && acting.intent.type === "block") {
+      effectiveIntent = { type: "block", amount: 0 }
+      next = setUnit(next, piece.id, {
+        ...acting,
+        powers: { ...acting.powers, zugzwang: acting.powers.zugzwang - 1 },
+      })
+      acting = getUnit(next, piece.id)
+    }
+
+    next = applyEffects(next, intentToEffects(effectiveIntent), { actorId: piece.id, targetId: "player" })
     if (next.phase !== "enemy") break
 
     const afterAction = getUnit(next, piece.id)

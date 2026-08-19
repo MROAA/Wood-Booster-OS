@@ -1,6 +1,12 @@
 import { useState } from "react"
 import { CARDS } from "../../data/heartwood/cards"
-import { legalSingleTargets, resolvePattern, piecesAtPositions, emptyAdjacentSquares } from "../../services/heartwood/targeting"
+import {
+  legalSingleTargets,
+  resolvePattern,
+  piecesAtPositions,
+  emptyAdjacentSquares,
+  cardNeedsTarget,
+} from "../../services/heartwood/targeting"
 import BattleGrid from "./BattleGrid"
 import PlayerPanel from "./PlayerPanel"
 import Hand from "./Hand"
@@ -42,15 +48,21 @@ export default function BattleScreen({ state, onPlayCard, onEndTurn, onMove, onR
 
     setMoveMode(false)
 
-    const needsTarget = def.effects.some((e) => e.type === "damage")
-    if (!needsTarget) {
+    if (!cardNeedsTarget(def)) {
       onPlayCard(instanceId)
       return
     }
 
     const candidates = candidateTargetIds(state, def)
     if (candidates.length === 0) return // Hand already disables this case
-    if (candidates.length === 1) {
+
+    // "Hit everyone the pattern reaches" cards (Rook's Charge, Bishop's
+    // Slash) need no per-target choice - the engine fans the effect out
+    // across every resolved square itself. Only patternSelect:"one"
+    // (Knight's Leap) or an ordinary single-target card with more than
+    // one legal candidate needs the player to pick a specific piece.
+    const autoFire = def.pattern && def.patternSelect !== "one"
+    if (autoFire || candidates.length === 1) {
       onPlayCard(instanceId, candidates[0])
       return
     }

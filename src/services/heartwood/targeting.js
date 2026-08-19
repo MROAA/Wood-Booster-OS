@@ -89,6 +89,12 @@ export function piecesAtPositions(state, positions) {
   return positions.map((pos) => livingEnemyAt(state, pos)).filter(Boolean).map((e) => e.id)
 }
 
+// A card needs a resolved enemy target if any of its effects damages
+// something, or explicitly reads "target" (e.g. Zugzwang's debuff).
+export function cardNeedsTarget(def) {
+  return def.effects.some((e) => e.type === "damage" || e.target === "target")
+}
+
 export function emptyAdjacentSquares(state, origin) {
   const squares = []
   for (let dr = -1; dr <= 1; dr++) {
