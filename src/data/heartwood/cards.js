@@ -393,9 +393,16 @@ export const CARDS = {
 }
 
 // Curated MVP starter deck - a subset of the Arcana above, not all 22.
-// Each card in the deck is a distinct Arcana - no duplicates, matching
+// Each Arcana card in the deck is distinct - no duplicates, matching
 // the Tarot conceit (there is only one Fool). The rest of the Arcana
 // exist as ready-to-use data for the post-MVP expansion.
+//
+// Rook's Charge and Bishop's Slash are included deliberately, not just
+// left in the grid-tactics test deck: without a pattern card in the
+// real deck, the free Move action has no payoff in a solo fight (one
+// enemy, no reason to reposition). With them, moving one square off
+// the start square lines up a row/diagonal strike even against a lone
+// enemy - verified directly against the grid math, not just assumed.
 export const STARTER_DECK = [
   "the-fool",
   "strength",
@@ -409,4 +416,6 @@ export const STARTER_DECK = [
   "the-emperor",
   "judgement",
   "wheel-of-fortune",
+  "rooks-charge",
+  "bishops-slash",
 ]

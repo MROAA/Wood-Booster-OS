@@ -16,11 +16,13 @@ const rootStyle = { height: "100%", "--hw-bg-image": `url(${battleBg})` }
 
 const UNIQUE_DECK_CARDS = [...new Set(STARTER_DECK)].map((id) => CARDS[id])
 
-// Temporary dev-only deck for trying the new grid-tactics cards against
-// a real multi-piece formation, per the plan's own Phase 3 note: the
-// final curated deck for these cards is a game-design decision, not an
-// engineering one, and shouldn't block verifying the mechanic works.
-const GRID_TEST_DECK = [...STARTER_DECK, "knights-leap", "rooks-charge", "bishops-slash", "zugzwang", "castling"]
+// Temporary dev-only deck for trying the remaining grid-tactics cards
+// (Rook's Charge/Bishop's Slash already joined the real STARTER_DECK)
+// against a real multi-piece formation, per the plan's own Phase 3
+// note: the final curated deck for these cards is a game-design
+// decision, not an engineering one, and shouldn't block verifying the
+// mechanic works.
+const GRID_TEST_DECK = [...STARTER_DECK, "knights-leap", "zugzwang", "castling"]
 
 export default function HeartwoodBattle() {
   const [characterId, setCharacterId] = useState(null)
