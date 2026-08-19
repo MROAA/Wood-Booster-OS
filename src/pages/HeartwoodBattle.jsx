@@ -6,6 +6,7 @@ import { CHARACTERS } from "../data/heartwood/characters"
 import { TUTORIAL_SEEN_KEY } from "../data/heartwood/tutorial"
 import { startBattle, playCard, endTurn, moveTo } from "../services/heartwood/cardBattleEngine"
 import BattleScreen from "../components/heartwood/BattleScreen"
+import Card from "../components/heartwood/Card"
 import { CardGlyph } from "../components/heartwood/cardArt"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
@@ -148,17 +149,9 @@ export default function HeartwoodBattle() {
         ))}
       </div>
 
-      <div className="hw-select-grid">
+      <div className="hw-select-grid hw-deck-preview">
         {UNIQUE_DECK_CARDS.map((def) => (
-          <div key={def.id} className={`hw-card hw-card--${def.type}`} style={{ width: "auto" }}>
-            <div className="hw-card-head">
-              <span className="hw-card-cost">{def.cost}</span>
-              <span className="hw-badge">{def.type}</span>
-            </div>
-            <CardGlyph name={def.art} className="hw-card-glyph" />
-            <div className="hw-card-name">{def.name}</div>
-            <div className="hw-card-desc">{def.description}</div>
-          </div>
+          <Card key={def.id} def={def} playable={false} />
         ))}
       </div>
     </div>

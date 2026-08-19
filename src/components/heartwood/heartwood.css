@@ -211,6 +211,18 @@
   cursor: not-allowed;
 }
 
+/* The deck-preview grid on the select screen reuses the same Card
+   component purely for browsing, not play - it isn't "disabled", it's
+   just not clickable, so it shouldn't look dimmed/unavailable. */
+.hw-deck-preview .hw-card[data-disabled="true"] {
+  opacity: 1;
+  cursor: default;
+}
+
+.hw-deck-preview .hw-card {
+  width: auto;
+}
+
 .hw-card--attack {
   border-color: color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
 }
@@ -600,24 +612,54 @@
   50% { border-color: #ffd9a0; }
 }
 
+/* Promoted to the card's main visual - see the plan's card-redesign
+   note: icon+number is the primary thing a card says, replacing what
+   used to be a flavor glyph plus a full sentence underneath. */
 .hw-effect-icons {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 10px;
+  padding: 6px 0;
 }
 
 .hw-effect-icon {
   display: flex;
   align-items: center;
-  gap: 3px;
-  font-size: 13px;
+  gap: 4px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 .hw-effect-icon-glyph {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   color: var(--hw-ember);
+}
+
+.hw-effect-icon[data-negative="true"] {
+  color: var(--hw-hp);
+}
+
+.hw-effect-icon[data-negative="true"] .hw-effect-icon-glyph {
+  color: var(--hw-hp);
+}
+
+.hw-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.hw-card-tag {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hw-muted);
+  border: 1px solid var(--hw-border);
+  border-radius: 999px;
+  padding: 1px 7px;
 }
 
 .hw-intent-glyph {
