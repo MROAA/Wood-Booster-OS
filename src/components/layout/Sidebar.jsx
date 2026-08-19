@@ -96,6 +96,13 @@ const groups = [
 
 
       {
+        label: "Heartwood Trial",
+        path: "/heartwood",
+        icon: "🜏"
+      },
+
+
+      {
         label: "Settings",
         path: "/settings",
         icon: "⚙"

@@ -1,0 +1,331 @@
+/* Heartwood Trial - reuses the live --wood-* tokens from src/index.css
+   rather than inventing a new palette. No neon, four muted card-type
+   accents plus one new HP red in the same desaturated family. */
+
+.hw-root {
+  --hw-bg: var(--wood-bg);
+  --hw-panel: var(--wood-panel);
+  --hw-card: var(--wood-card);
+  --hw-border: var(--wood-border);
+  --hw-text: var(--wood-text);
+  --hw-muted: var(--wood-muted);
+
+  --hw-ember: var(--wood-accent);
+  --hw-moss: var(--wood-code-string);
+  --hw-rune: var(--wood-code-number);
+  --hw-curse: var(--hw-muted);
+  --hw-hp: #b3503f;
+
+  background: var(--hw-bg);
+  color: var(--hw-text);
+  min-height: 100%;
+  font-family: inherit;
+}
+
+.hw-battle {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-3, 21px);
+  gap: var(--space-2, 13px);
+}
+
+.hw-top-row {
+  display: flex;
+  gap: var(--space-3, 21px);
+  align-items: stretch;
+}
+
+.hw-panel {
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  border-radius: 10px;
+  padding: var(--space-2, 13px);
+}
+
+.hw-hp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.hw-hp-bar-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--hw-card);
+  border: 1px solid var(--hw-border);
+  overflow: hidden;
+}
+
+.hw-hp-bar-fill {
+  height: 100%;
+  background: var(--hw-hp);
+  transition: width 200ms ease;
+}
+
+.hw-hp-label {
+  font-size: 11px;
+  color: var(--hw-muted);
+  min-width: 52px;
+  text-align: right;
+}
+
+.hw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  color: var(--hw-muted);
+}
+
+.hw-badge--block {
+  color: var(--hw-rune);
+  border-color: var(--hw-rune);
+}
+
+.hw-intent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-card);
+  margin-top: 8px;
+}
+
+.hw-intent--attack {
+  color: var(--hw-ember);
+  border-color: var(--hw-ember);
+}
+
+.hw-intent--block {
+  color: var(--hw-rune);
+  border-color: var(--hw-rune);
+}
+
+.hw-intent--debuff {
+  color: var(--hw-curse);
+}
+
+.hw-powers {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.hw-mid-row {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.hw-log {
+  font-size: 12px;
+  color: var(--hw-muted);
+  line-height: 1.6;
+}
+
+.hw-log p:last-child {
+  color: var(--hw-text);
+}
+
+.hw-bottom-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3, 21px);
+}
+
+.hw-hand {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 8px 4px;
+}
+
+.hw-piles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+
+.hw-card {
+  width: 130px;
+  min-width: 130px;
+  border-radius: 12px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-card);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hw-card[data-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hw-card--attack {
+  border-color: color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
+}
+
+.hw-card--skill {
+  border-color: color-mix(in srgb, var(--hw-moss) 55%, var(--hw-border));
+}
+
+.hw-card--power {
+  border-color: color-mix(in srgb, var(--hw-rune) 55%, var(--hw-border));
+}
+
+.hw-card--curse,
+.hw-card--special {
+  border-color: color-mix(in srgb, var(--hw-curse) 55%, var(--hw-border));
+}
+
+.hw-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hw-card-cost {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--hw-bg);
+  border: 1px solid var(--hw-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.hw-card-glyph {
+  width: 40px;
+  height: 40px;
+  align-self: center;
+}
+
+.hw-card--attack .hw-card-glyph {
+  color: var(--hw-ember);
+}
+
+.hw-card--skill .hw-card-glyph {
+  color: var(--hw-moss);
+}
+
+.hw-card--power .hw-card-glyph {
+  color: var(--hw-rune);
+}
+
+.hw-card--curse .hw-card-glyph,
+.hw-card--special .hw-card-glyph {
+  color: var(--hw-curse);
+}
+
+.hw-card-name {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.hw-card-desc {
+  font-size: 10.5px;
+  color: var(--hw-muted);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.hw-energy-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.hw-energy-pip {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-ember);
+}
+
+.hw-energy-pip[data-filled="true"] {
+  background: var(--hw-ember);
+}
+
+.hw-end-turn {
+  background: var(--hw-ember);
+  color: var(--hw-bg);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hw-end-turn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hw-overlay {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--hw-bg) 88%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+}
+
+.hw-overlay-title {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.hw-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3, 21px);
+  padding: var(--space-3, 21px);
+}
+
+.hw-enemy-choice {
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  border-radius: 12px;
+  padding: var(--space-2, 13px);
+  cursor: pointer;
+  text-align: left;
+}
+
+.hw-enemy-choice:hover {
+  border-color: var(--hw-ember);
+}
+
+.hw-intro {
+  padding: var(--space-3, 21px);
+  max-width: 720px;
+}
+
+.hw-flavor {
+  font-style: italic;
+  color: var(--hw-muted);
+}

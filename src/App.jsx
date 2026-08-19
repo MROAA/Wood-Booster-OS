@@ -32,6 +32,7 @@ import SystemCenter from "./pages/SystemCenter"
 import Tools from "./pages/Tools"
 import DevStudio from "./pages/DevStudio"
 import SpiderSolitaire from "./pages/SpiderSolitaire"
+import HeartwoodBattle from "./pages/HeartwoodBattle"
 import KnowledgeUpload from "./pages/KnowledgeUpload"
 import SpacemonkeyChat from "./pages/SpacemonkeyChat"
 import BoosterverseDesktop from "./pages/BoosterverseDesktop"
@@ -241,6 +242,12 @@ function App() {
           path="/spider-solitaire"
           element={
             <SpiderSolitaire />
+          }
+        />
+        <Route
+          path="/heartwood"
+          element={
+            <HeartwoodBattle />
           }
         />
         <Route
