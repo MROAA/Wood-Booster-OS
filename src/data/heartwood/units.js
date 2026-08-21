@@ -48,6 +48,8 @@ import temperanceImg from "../../assets/heartwood/units/temperance.webp"
 import knightsLeapImg from "../../assets/heartwood/units/knights-leap.webp"
 import rooksChargeImg from "../../assets/heartwood/units/rooks-charge.webp"
 import theMagicianImg from "../../assets/heartwood/units/the-magician.jpeg"
+import stoneheartImg from "../../assets/heartwood/units/stoneheart.jpg"
+import forgehowlImg from "../../assets/heartwood/units/forgehowl.jpg"
 import strengthImg from "../../assets/heartwood/units/strength.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
@@ -228,6 +230,27 @@ const BASE_UNITS = {
     // only an enemy move (Moss Troll, Rune Warden, Mist Growler,
     // Spacemonkey all already use it against the player).
     image: stormwingImg,
+  }),
+  stoneheart: unit("stoneheart", "Stoneheart", "stoneheart", 3, "tank", [
+    { type: "block", amount: 10 },
+    { type: "attack", amount: 7 },
+  ], {
+    // The roster's tankiest turnStart passive yet - 6 Block every
+    // round vs. The Emperor's 5 (uncommon) or Grovekeeper's heal-based
+    // approach (tank via sustain, not prevention) - justified by rare
+    // tier's higher recruit cost.
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 6 } }],
+    image: stoneheartImg,
+  }),
+  forgehowl: unit("forgehowl", "Forgehowl", "forgehowl", 3, "dps", [
+    { type: "attack", amount: 20 },
+    { type: "block", amount: 8 },
+  ], {
+    // A simple heavy hitter, no passive - same "not every rare needs a
+    // gimmick" shape as The World/The Tower. The roster's single
+    // highest per-hit attack number after The World's 20 (tied) - a
+    // slow, hard-swinging identity rather than a sustained one.
+    image: forgehowlImg,
   }),
 }
 
