@@ -12,7 +12,7 @@
 // real "whose turn" distinction to track once nothing needs player
 // input.
 
-import { UNITS } from "../../data/heartwood/units"
+import { UNITS, unitDefWithUpgrade } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
@@ -117,13 +117,16 @@ function randomLiving(state, units) {
   return pool[Math.floor(Math.random() * pool.length)].id
 }
 
-// `deployedUnitDefIds` is up to 4 unit ids from units.js, placed at
-// SLOT_POSITIONS. `characterId` selects the Commander whose
-// squadPassive (see characters.js) applies to every deployed unit -
-// this is the whole reason a Commander is chosen at all; previously it
-// was cosmetic only. `relicIds` (see relics.js) apply the same way,
-// stacking with the Commander's own squadPassive rather than replacing it.
-export function startAutoBattle(characterId, deployedUnitDefIds, enemyFormationOrId, relicIds = []) {
+// `deployedUnits` is up to 4 entries, either a bare unit id from
+// units.js or `{ defId, upgradeLevel }` (runEngine.js's
+// startFormationBattle sends the latter; the bare-id form still works
+// for anything - tests included - that doesn't care about upgrades).
+// `characterId` selects the Commander whose squadPassive (see
+// characters.js) applies to every deployed unit - this is the whole
+// reason a Commander is chosen at all; previously it was cosmetic
+// only. `relicIds` (see relics.js) apply the same way, stacking with
+// the Commander's own squadPassive rather than replacing it.
+export function startAutoBattle(characterId, deployedUnits, enemyFormationOrId, relicIds = []) {
   const formation = resolveFormation(enemyFormationOrId)
 
   const enemies = formation.pieces.map((piece, i) => {
@@ -140,11 +143,22 @@ export function startAutoBattle(characterId, deployedUnitDefIds, enemyFormationO
     })
   })
 
-  const playerUnits = deployedUnitDefIds.map((defId, i) => {
-    const def = UNITS[defId]
+  // Applying UPGRADE_MAX_LEVEL stacks (units.js's unitDefWithUpgrade)
+  // here, once, means every downstream read of this unit's stats -
+  // HP, movePattern damage, and (in the loop just below) its passive -
+  // is already the boosted version, with no separate "is this unit
+  // upgraded" branch anywhere else in the engine.
+  const effectiveDefs = {}
+  const playerUnits = deployedUnits.map((entry, i) => {
+    const defId = typeof entry === "string" ? entry : entry.defId
+    const upgradeLevel = typeof entry === "string" ? 0 : entry.upgradeLevel || 0
+    const def = unitDefWithUpgrade(UNITS[defId], upgradeLevel)
+    const id = `p${i}`
+    effectiveDefs[id] = def
     return freshUnit({
-      id: `p${i}`,
+      id,
       defId,
+      upgradeLevel,
       name: def.name,
       hp: def.maxHp,
       maxHp: def.maxHp,
@@ -168,7 +182,7 @@ export function startAutoBattle(characterId, deployedUnitDefIds, enemyFormationO
   // addTrigger effect) applies once, the same mechanism a character's
   // startEffects already used for a one-time battle-start bonus.
   for (const u of playerUnits) {
-    const def = UNITS[u.defId]
+    const def = effectiveDefs[u.id]
     if (def.passive?.length) {
       state = applyEffects(state, def.passive, { actorId: u.id, targetId: u.id })
     }
@@ -199,7 +213,7 @@ export function startAutoBattle(characterId, deployedUnitDefIds, enemyFormationO
   return state
 }
 
-function actSide(state, actingUnits, actingDefs, targetPool, side) {
+function actSide(state, actingUnits, getDef, targetPool, side) {
   let next = state
   for (const unit of actingUnits) {
     if (next.phase !== "player") break
@@ -226,7 +240,7 @@ function actSide(state, actingUnits, actingDefs, targetPool, side) {
       continue
     }
 
-    const def = actingDefs[acting.defId]
+    const def = getDef(acting)
     const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
     const targetId = side === "player" ? frontmost(next, targetPool(next)) : randomLiving(next, targetPool(next))
 
@@ -279,11 +293,17 @@ export function resolveRound(state) {
   next = tickPoison(next, next.enemies)
   if (next.phase !== "player") return next
 
-  next = actSide(next, next.playerUnits, UNITS, (s) => s.enemies, "player")
+  // Re-deriving each player unit's effective def from its own stored
+  // upgradeLevel every round (rather than reading a shared registry by
+  // defId) is what makes Upgrade actually persist round to round -
+  // two copies of the same base unit at different upgrade levels stay
+  // distinct, and next-round intent recomputation (further down in
+  // actSide) sees the boosted movePattern amounts, not the base ones.
+  next = actSide(next, next.playerUnits, (u) => unitDefWithUpgrade(UNITS[u.defId], u.upgradeLevel || 0), (s) => s.enemies, "player")
   if (next.phase !== "player") return next
 
   next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0 } : e)) }
-  next = actSide(next, next.enemies, ENEMIES, (s) => s.playerUnits, "enemy")
+  next = actSide(next, next.enemies, (u) => ENEMIES[u.defId], (s) => s.playerUnits, "enemy")
   if (next.phase !== "player") return next
 
   const round = next.round + 1

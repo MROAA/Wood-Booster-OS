@@ -12,7 +12,7 @@
 // still points at the right unit (or clears itself) no matter how the
 // bench array reshuffles underneath it.
 
-import { UNITS, STARTER_UNITS, TIER2_SUFFIX } from "../../data/heartwood/units"
+import { UNITS, STARTER_UNITS, TIER2_SUFFIX, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS, relicPool } from "../../data/heartwood/relics"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
@@ -122,7 +122,10 @@ function tryFuseOnce(bench, deployed, nextKey) {
   for (const [defId, entries] of Object.entries(groups)) {
     if (entries.length < 3) continue
     const consumed = new Set(entries.slice(0, 3).map((e) => e.key))
-    const nextBench = [...bench.filter((e) => !consumed.has(e.key)), { key: nextKey, defId: `${defId}${TIER2_SUFFIX}` }]
+    const nextBench = [
+      ...bench.filter((e) => !consumed.has(e.key)),
+      { key: nextKey, defId: `${defId}${TIER2_SUFFIX}`, upgradeLevel: 0 },
+    ]
     const nextDeployed = deployed.map((k) => (consumed.has(k) ? null : k))
     return { bench: nextBench, deployed: nextDeployed, nextKey: nextKey + 1, changed: true }
   }
@@ -138,7 +141,7 @@ function fuseAll(bench, deployed, nextKey) {
 }
 
 export function startRun(characterId) {
-  const bench = STARTER_UNITS.map((defId, i) => ({ key: i, defId }))
+  const bench = STARTER_UNITS.map((defId, i) => ({ key: i, defId, upgradeLevel: 0 }))
   return {
     characterId,
     bench,
@@ -160,7 +163,7 @@ export function recruitUnit(runState, unitDefId) {
   const def = UNITS[unitDefId]
   if (!def || runState.essence < def.recruitCost || !runState.shopOffers.includes(unitDefId)) return runState
 
-  const withNew = [...runState.bench, { key: runState.benchKeyCounter, defId: unitDefId }]
+  const withNew = [...runState.bench, { key: runState.benchKeyCounter, defId: unitDefId, upgradeLevel: 0 }]
   const fused = fuseAll(withNew, runState.deployed, runState.benchKeyCounter + 1)
 
   return {
@@ -170,6 +173,25 @@ export function recruitUnit(runState, unitDefId) {
     deployed: fused.deployed,
     benchKeyCounter: fused.nextKey,
     shopOffers: runState.shopOffers.filter((id) => id !== unitDefId),
+  }
+}
+
+// A second Essence sink alongside recruiting/relics - Marc: "i need to
+// make a build out of relics/upgrades and stuff then the game
+// proceeds". Spends Essence to permanently strengthen one owned unit
+// (up to UPGRADE_MAX_LEVEL stacks, cost rising per level), independent
+// of and stacking with Fusion - see units.js's unitDefWithUpgrade for
+// how the bonus is actually applied at battle start.
+export function upgradeUnit(runState, benchKey) {
+  const entry = runState.bench.find((e) => e.key === benchKey)
+  if (!entry) return runState
+  const level = entry.upgradeLevel || 0
+  const cost = upgradeCost(level)
+  if (cost === null || runState.essence < cost) return runState
+  return {
+    ...runState,
+    essence: runState.essence - cost,
+    bench: runState.bench.map((e) => (e.key === benchKey ? { ...e, upgradeLevel: level + 1 } : e)),
   }
 }
 
@@ -202,11 +224,12 @@ export function clearSlot(runState, slotIndex) {
 
 export function startFormationBattle(runState) {
   const node = currentNode(runState)
-  const deployedIds = runState.deployed
+  const deployed = runState.deployed
     .filter((key) => key !== null)
-    .map((key) => runState.bench.find((e) => e.key === key)?.defId)
+    .map((key) => runState.bench.find((e) => e.key === key))
     .filter(Boolean)
-  const battle = startAutoBattle(runState.characterId, deployedIds, node.enemyId || node.formationId, runState.relics)
+    .map((entry) => ({ defId: entry.defId, upgradeLevel: entry.upgradeLevel || 0 }))
+  const battle = startAutoBattle(runState.characterId, deployed, node.enemyId || node.formationId, runState.relics)
   return { ...runState, phase: "battle", battle }
 }
 

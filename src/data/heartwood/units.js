@@ -238,8 +238,16 @@ const BASE_UNITS = {
     // The roster's tankiest turnStart passive yet - 6 Block every
     // round vs. The Emperor's 5 (uncommon) or Grovekeeper's heal-based
     // approach (tank via sustain, not prevention) - justified by rare
-    // tier's higher recruit cost.
-    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 6 } }],
+    // tier's higher recruit cost. Also the roster's first unit to carry
+    // Taunt (applied once at battle start, not a repeating trigger,
+    // since it should hold for the whole fight): the wall that
+    // actually draws the enemy's fire onto itself instead of just
+    // surviving it, giving the rest of the squad a real reason to
+    // stand behind Stoneheart rather than just next to it.
+    passive: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 6 } },
+      { type: "applyBuff", id: "taunt", amount: 1 },
+    ],
     image: stoneheartImg,
   }),
   forgehowl: unit("forgehowl", "Forgehowl", "forgehowl", 3, "dps", [
@@ -286,6 +294,35 @@ function makeTier2(base) {
 const TIER2_UNITS = Object.fromEntries(
   Object.values(BASE_UNITS).map((base) => [`${base.id}${TIER2_SUFFIX}`, makeTier2(base)]),
 )
+
+// Upgrade: a second, independent way to spend Essence on the bench
+// besides recruiting/rerolling and (via runEngine.js's relic nodes)
+// relics - Marc: "i need to make a build out of relics/upgrades and
+// stuff then the game proceeds". Unlike Fusion (needs 3 copies, one
+// step, +50%), Upgrade is a per-unit Essence sink you choose to spend
+// on any single owned unit, up to 2 stackable levels, and stacks with
+// Fusion rather than replacing it (applied on top of whatever def -
+// base or already-fused - the unit currently is).
+export const UPGRADE_COST = 3
+export const UPGRADE_MAX_LEVEL = 2
+const UPGRADE_FACTOR_PER_LEVEL = 0.15
+
+export function upgradeCost(level) {
+  return level >= UPGRADE_MAX_LEVEL ? null : UPGRADE_COST * (level + 1)
+}
+
+export function unitDefWithUpgrade(def, level) {
+  if (!level) return def
+  const factor = 1 + level * UPGRADE_FACTOR_PER_LEVEL
+  return {
+    ...def,
+    maxHp: Math.round(def.maxHp * factor),
+    movePattern: def.movePattern.map((m) => scaleEffect(m, factor)),
+    passive: def.passive
+      ? def.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, factor) } : scaleEffect(p, factor)))
+      : null,
+  }
+}
 
 export const UNITS = { ...BASE_UNITS, ...TIER2_UNITS }
 
