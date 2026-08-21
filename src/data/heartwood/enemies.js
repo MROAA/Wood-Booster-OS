@@ -97,6 +97,30 @@ export const ENEMIES = {
     ],
   },
 
+  "bloomrot-stalker": {
+    id: "bloomrot-stalker",
+    name: "Bloomrot Stalker",
+    maxHp: 40,
+    art: "bloomrotStalker",
+    description: "It doesn't hit hard. It doesn't need to - not anymore.",
+    // A 7th mook, first to use Poison - the new tickPoison mechanic in
+    // effects.js/autoBattleEngine.js. Its own hits are the weakest of
+    // any mook (6, below even Drowned Siren's 7), but every other
+    // strike stacks Poison instead - a unit that ignores it stays
+    // healthy round to round, but every point of Poison left standing
+    // is guaranteed future damage no Block or dodge can stop. Reuses
+    // the existing "debuff" intent → applyBuff pipeline verbatim (same
+    // one Weak already uses) - id: "poison" instead of id: "weak" is
+    // the entire difference, tickPoison is what makes the stat do
+    // something new.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already

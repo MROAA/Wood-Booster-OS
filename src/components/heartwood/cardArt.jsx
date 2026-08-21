@@ -250,6 +250,24 @@ function DrownedSiren() {
   )
 }
 
+// 7th mook glyph - a hunched, drooping silhouette (spore-drips instead
+// of legs) distinct from the other 6 mooks' upright/serpentine shapes,
+// matching its "rot spreads quietly" identity.
+function BloomrotStalker() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M18 10 C12 12 10 20 14 24 C10 26 10 32 16 34 L20 30 C22 34 26 34 28 30 L32 34 C38 32 38 26 34 24 C38 20 36 12 30 10 C26 6 22 6 18 10 Z"
+        fill="none"
+      />
+      <circle cx="20" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M19 25 L29 25" fill="none" />
+      <path d="M16 34 L14 42 M24 34 L23 44 M32 34 L34 42" fill="none" />
+    </g>
+  )
+}
+
 // The run's final boss - same crude doodle register as the mooks above,
 // but with small horn-hints alongside the round monkey ears, a nod to
 // the "pikku-paholainen" alter-ego lore rather than a redesign.
@@ -361,6 +379,7 @@ const GLYPHS = {
   barkBrute: BarkBrute,
   mistGrowler: MistGrowler,
   drownedSiren: DrownedSiren,
+  bloomrotStalker: BloomrotStalker,
   spacemonkeyBoss: SpacemonkeyBoss,
   sword: SwordIcon,
   shield: ShieldIcon,

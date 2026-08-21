@@ -10,12 +10,21 @@
 // Commander's `squadPassive` already use (see autoBattleEngine.js).
 // `essenceBonus` is handled separately by runEngine.js's win payout,
 // since it isn't a battle effect at all.
+//
+// `cost`: relics were free (pick one or skip) until Marc asked for
+// them to cost Essence like everything else in the shop - now a real
+// opportunity-cost decision (recruit more units this round, or bank
+// for a relic) instead of a pure freebie. Priced at 3, the same as a
+// rare unit, since a permanent run-wide effect is worth at least as
+// much as the strongest single recruit.
+const RELIC_COST = 3
 
 export const RELICS = {
   "ember-core": {
     id: "ember-core",
     name: "Ember Core",
     icon: "flame",
+    cost: RELIC_COST,
     description: "Every unit strikes a little harder, all fight, every fight.",
     effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
   },
@@ -23,6 +32,7 @@ export const RELICS = {
     id: "mosswarden-charm",
     name: "Mosswarden's Charm",
     icon: "leaf",
+    cost: RELIC_COST,
     description: "Every unit mends a little at the start of each round.",
     // Two real bugs caught via testing before shipping, not guessed
     // at: first pass was a one-time battle-start heal, useless since
@@ -42,6 +52,7 @@ export const RELICS = {
     id: "bramble-ward",
     name: "Bramble Ward",
     icon: "root",
+    cost: RELIC_COST,
     description: "Whatever strikes your squad gets struck back.",
     // The relic that introduces onHit/retaliation (effects.js's
     // dealDamage) to the game - a mechanic that didn't exist before
@@ -50,10 +61,31 @@ export const RELICS = {
     // as the hit actually landed (not fully blocked).
     effects: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 3 } }],
   },
+  "sundering-mark": {
+    id: "sundering-mark",
+    name: "Sundering Mark",
+    icon: "rune",
+    cost: RELIC_COST,
+    description: "Whatever your squad strikes takes deeper wounds after.",
+    // Bramble Ward's mirror: introduces onDealDamage (effects.js's
+    // dealDamage) and Vulnerable (+25% damage taken, the defensive
+    // opposite of Weak) together. Every deployed unit's own hits mark
+    // their target Vulnerable - stacks, so a focused target keeps
+    // taking worse hits the longer it's attacked, same escalating
+    // shape Poison gives the enemy side of the roster.
+    effects: [
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 },
+      },
+    ],
+  },
   "essence-well": {
     id: "essence-well",
     name: "Essence Well",
     icon: "spark",
+    cost: RELIC_COST,
     description: "Every victory is a little more rewarding.",
     effects: [],
     essenceBonus: 1,

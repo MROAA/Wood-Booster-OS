@@ -4,21 +4,42 @@ import { CardGlyph } from "./cardArt"
 // The relic-pick beat: same "3 choices or skip" shape as the old
 // RewardScreen.jsx, but relics aren't units - no HP/attack numbers, so
 // this is its own small card layout instead of reusing UnitCard.jsx.
+// Same cost-badge/data-disabled pattern UnitCard.jsx already uses, now
+// that relics cost Essence instead of being free.
 export default function RelicChoice({ runState, onChoose }) {
   const options = (runState.relicOffers || []).map((id) => RELICS[id]).filter(Boolean)
 
   return (
     <div className="hw-intro">
-      <h1 style={{ fontSize: 22, marginBottom: 6 }}>A relic waits in the roots</h1>
-      <p className="hw-flavor">Choose one to carry for the rest of this run, or leave it behind.</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <h1 style={{ fontSize: 22, margin: 0 }}>A relic waits in the roots</h1>
+        <span className="hw-badge hw-essence-badge" title="Essence">
+          <CardGlyph name="spark" className="hw-intent-glyph" />
+          {runState.essence}
+        </span>
+      </div>
+      <p className="hw-flavor" style={{ marginTop: 14 }}>
+        Choose one to carry for the rest of this run, or leave it behind.
+      </p>
       <div className="hw-select-grid hw-deck-preview">
-        {options.map((relic) => (
-          <div key={relic.id} className="hw-card hw-card--power" onClick={() => onChoose(relic.id)}>
-            <CardGlyph name={relic.icon} className="hw-card-glyph" />
-            <div className="hw-card-name">{relic.name}</div>
-            <div className="hw-card-desc">{relic.description}</div>
-          </div>
-        ))}
+        {options.map((relic) => {
+          const disabled = runState.essence < relic.cost
+          return (
+            <div
+              key={relic.id}
+              className="hw-card hw-card--power"
+              data-disabled={disabled}
+              onClick={!disabled ? () => onChoose(relic.id) : undefined}
+            >
+              <div className="hw-card-head">
+                <span className="hw-card-cost">{relic.cost}</span>
+              </div>
+              <CardGlyph name={relic.icon} className="hw-card-glyph" />
+              <div className="hw-card-name">{relic.name}</div>
+              <div className="hw-card-desc">{relic.description}</div>
+            </div>
+          )
+        })}
       </div>
       <button className="hw-move-btn" onClick={() => onChoose(null)} style={{ marginTop: 12 }}>
         Skip

@@ -53,6 +53,13 @@ function weakOf(unit) {
   return unit.powers.weak || 0
 }
 
+// Vulnerable: the defensive mirror of Weak - +25% damage TAKEN instead
+// of -25% damage dealt. First status that modifies the defender's side
+// of dealDamage rather than the attacker's.
+function vulnerableOf(unit) {
+  return unit.powers.vulnerable || 0
+}
+
 // Fenrir's "Wounded Fury": a conditional bonus, not a flat buff, so it
 // can't be expressed as a plain applyBuff stack the way Strength is -
 // it depends on the attacker's current HP at the moment of the hit.
@@ -79,7 +86,8 @@ function recordStat(state, id, field, amount) {
 
 // Damage dealt by `actorId`, landing on `targetId`. Applies Strength
 // (flat bonus) and Weak (-25%, rounded down) from the attacker, then
-// subtracts the target's Block before touching HP.
+// Vulnerable (+25%, rounded down) from the defender, then subtracts
+// the target's Block before touching HP.
 function dealDamage(state, actorId, targetId, baseAmount) {
   const attacker = getUnit(state, actorId)
   const defender = getUnit(state, targetId)
@@ -88,6 +96,9 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   let amount = baseAmount + strengthOf(attacker) + woundedFuryBonus(attacker)
   if (weakOf(attacker) > 0) {
     amount = Math.floor(amount * 0.75)
+  }
+  if (vulnerableOf(defender) > 0) {
+    amount = Math.floor(amount * 1.25)
   }
   amount = Math.max(0, amount)
 
@@ -110,14 +121,16 @@ function dealDamage(state, actorId, targetId, baseAmount) {
     ],
   }
 
-  // onHit (new mechanic, first used by the Bramble Ward relic):
-  // whoever just took real damage (not fully blocked) strikes back at
-  // whoever hit them, via the same addTrigger/runTriggers machinery
-  // turnStart/turnEnd already use - just with the actor/target roles
-  // reversed instead of self-targeting. Fully-blocked hits don't
-  // provoke retaliation; there was nothing to strike back for.
+  // onHit (first used by Bramble Ward): whoever just took real damage
+  // strikes back at whoever hit them. onDealDamage (first used by
+  // Sundering Mark) is its mirror on the other side of the same hit -
+  // the attacker gets a hook too, keeping the original actor/target
+  // roles instead of reversing them. Both only fire on a hit that
+  // actually landed (not fully blocked) - nothing happened worth
+  // reacting to otherwise.
   if (overflow > 0) {
     nextState = runTriggers(nextState, targetId, "onHit", { actorId: targetId, targetId: actorId })
+    nextState = runTriggers(nextState, actorId, "onDealDamage", { actorId, targetId })
   }
 
   return checkBattleEnd(nextState)
@@ -133,6 +146,33 @@ function loseHp(state, who, amount) {
     ...setUnit(state, who, nextUnit),
     log: [...state.log, `${nameOf(state, who)} lose ${amount} HP.`],
   })
+}
+
+// Poison: a real damage-over-time status, first new status effect
+// beyond Strength/Weak/WoundedFury. Unlike those (which just modify a
+// number inside dealDamage), Poison needs its own resolution step -
+// there's no "when this unit acts" moment to hang a trigger off for
+// every possible poisoned unit, so autoBattleEngine.js calls this once
+// per side per round, same automatic-and-universal shape the Block
+// reset already uses (not an addTrigger - it needs no per-unit
+// opt-in). Ignores Block like any other DOT/self-inflicted loss, then
+// decays by 1 - the poison fades over a few rounds instead of ticking
+// forever, so it rewards being applied and then racing the clock
+// rather than becoming a set-and-forget win condition on its own.
+export function tickPoison(state, units) {
+  let next = state
+  for (const unit of units) {
+    if (next.phase !== "player" && next.phase !== "enemy") break
+    const current = getUnit(next, unit.id)
+    if (!current || current.hp <= 0) continue
+    const stacks = current.powers.poison || 0
+    if (stacks <= 0) continue
+    next = loseHp(next, unit.id, stacks)
+    const afterUnit = getUnit(next, unit.id)
+    if (!afterUnit) continue
+    next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, poison: stacks - 1 } })
+  }
+  return next
 }
 
 function gainBlock(state, who, amount) {
