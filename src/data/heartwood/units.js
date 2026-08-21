@@ -41,6 +41,11 @@ import theChariotImg from "../../assets/heartwood/units/the-chariot.webp"
 import judgementImg from "../../assets/heartwood/units/judgement.webp"
 import theHighPriestessImg from "../../assets/heartwood/units/the-high-priestess.webp"
 import wheelOfFortuneImg from "../../assets/heartwood/units/wheel-of-fortune.webp"
+import bishopsSlashImg from "../../assets/heartwood/units/bishops-slash.webp"
+import temperanceImg from "../../assets/heartwood/units/temperance.webp"
+import knightsLeapImg from "../../assets/heartwood/units/knights-leap.webp"
+import rooksChargeImg from "../../assets/heartwood/units/rooks-charge.webp"
+import theMagicianImg from "../../assets/heartwood/units/the-magician.jpeg"
 import strengthImg from "../../assets/heartwood/units/strength.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
@@ -93,7 +98,7 @@ const BASE_UNITS = {
   "the-magician": unit("the-magician", "The Magician", "the-magician", 1, "hybrid", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 3 },
-  ]),
+  ], { image: theMagicianImg }),
   "the-high-priestess": unit("the-high-priestess", "The High Priestess", "the-high-priestess", 1, "support", [
     { type: "heal", amount: 4 },
     { type: "attack", amount: 5 },
@@ -147,6 +152,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 5 },
   ], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "block", amount: 3 } }],
+    image: temperanceImg,
   }),
   "the-devil": unit("the-devil", "The Devil", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], { image: theDevilImg }),
   "the-tower": unit("the-tower", "The Tower", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
@@ -172,12 +178,15 @@ const BASE_UNITS = {
 
   "knights-leap": unit("knights-leap", "Knight's Leap", "spark", 2, "dps", [{ type: "attack", amount: 12 }], {
     attackPattern: "knight",
+    image: knightsLeapImg,
   }),
   "rooks-charge": unit("rooks-charge", "Rook's Charge", "spark", 2, "dps", [{ type: "attack", amount: 6 }], {
     attackPattern: "rook",
+    image: rooksChargeImg,
   }),
   "bishops-slash": unit("bishops-slash", "Bishop's Slash", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     attackPattern: "bishop",
+    image: bishopsSlashImg,
   }),
 
   // First two non-Tarot, non-chess-pattern units - same "new
