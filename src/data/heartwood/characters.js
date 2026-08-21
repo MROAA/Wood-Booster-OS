@@ -1,3 +1,5 @@
+import { scaleEffect } from "./units"
+
 // Heartwood Trial - playable characters, now "Commanders" in the
 // autobattler. Spacemonkey is the final boss (see enemies.js), and
 // Tommy/Aatos/Fenrir are the player's options.
@@ -84,4 +86,25 @@ export const CHARACTERS = {
     // guessed at.
     squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
   },
+}
+
+// Rank-Up: a third Essence sink alongside recruiting/relics/Unit
+// Upgrade, but spent on the Commander instead of a bench unit - same
+// stacking-level shape and cost curve as Unit Upgrade (units.js) for a
+// consistent "spend Essence to permanently strengthen X" pattern
+// across the whole run, reusing the same scaleEffect helper so a
+// squadPassive scales exactly the way a unit's own passive does.
+export const COMMANDER_RANK_MAX = 2
+const COMMANDER_RANK_COST = 3
+
+export function commanderRankCost(rank) {
+  return rank >= COMMANDER_RANK_MAX ? null : COMMANDER_RANK_COST * (rank + 1)
+}
+
+export function commanderPassiveWithRank(character, rank) {
+  if (!rank || !character?.squadPassive?.length) return character?.squadPassive || []
+  const factor = 1 + rank * 0.25
+  return character.squadPassive.map((effect) =>
+    effect.type === "addTrigger" ? { ...effect, effect: scaleEffect(effect.effect, factor) } : scaleEffect(effect, factor),
+  )
 }

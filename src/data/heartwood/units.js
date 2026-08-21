@@ -271,7 +271,7 @@ const BASE_UNITS = {
 // UI badge.
 export const TIER2_SUFFIX = "+"
 
-function scaleEffect(effect, factor) {
+export function scaleEffect(effect, factor) {
   return effect.amount != null ? { ...effect, amount: Math.round(effect.amount * factor) } : effect
 }
 
