@@ -39,6 +39,8 @@ import theHangedManImg from "../../assets/heartwood/units/the-hanged-man.jpg"
 import theHierophantImg from "../../assets/heartwood/units/the-hierophant.jpg"
 import theChariotImg from "../../assets/heartwood/units/the-chariot.webp"
 import judgementImg from "../../assets/heartwood/units/judgement.webp"
+import theHighPriestessImg from "../../assets/heartwood/units/the-high-priestess.webp"
+import wheelOfFortuneImg from "../../assets/heartwood/units/wheel-of-fortune.webp"
 import strengthImg from "../../assets/heartwood/units/strength.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
@@ -95,7 +97,7 @@ const BASE_UNITS = {
   "the-high-priestess": unit("the-high-priestess", "The High Priestess", "the-high-priestess", 1, "support", [
     { type: "heal", amount: 4 },
     { type: "attack", amount: 5 },
-  ]),
+  ], { image: theHighPriestessImg }),
   "the-empress": unit("the-empress", "The Empress", "the-empress", 2, "support", [
     { type: "heal", amount: 5 },
     { type: "block", amount: 4 },
@@ -131,7 +133,7 @@ const BASE_UNITS = {
   "wheel-of-fortune": unit("wheel-of-fortune", "Wheel of Fortune", "wheel-of-fortune", 1, "hybrid", [
     { type: "attack", amount: 10, weight: 1 },
     { type: "block", amount: 10, weight: 1 },
-  ], { moveSelect: "weightedRandom" }),
+  ], { moveSelect: "weightedRandom", image: wheelOfFortuneImg }),
   justice: unit("justice", "Justice", "justice", 1, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 6 },
