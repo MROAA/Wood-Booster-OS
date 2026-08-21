@@ -211,6 +211,18 @@ export function startAutoBattle(characterId, deployedUnits, enemyFormationOrId, 
         state = applyEffects(state, relic.effects, { actorId: u.id, targetId: u.id })
       }
     }
+    // Bulwark Standard: not a uniform per-unit effect like every other
+    // relic, so it's handled here instead of via `effects` - Taunt
+    // goes to whichever deployed unit currently has the highest maxHp
+    // (ties broken by deploy order), same one-time battle-start timing
+    // as Stoneheart's own passive grant.
+    if (relic?.tauntHighestHp && playerUnits.length) {
+      const tankiest = playerUnits.reduce((best, u) => (u.maxHp > best.maxHp ? u : best), playerUnits[0])
+      state = applyEffects(state, [{ type: "applyBuff", id: "taunt", amount: 1 }], {
+        actorId: tankiest.id,
+        targetId: tankiest.id,
+      })
+    }
   }
 
   return state
