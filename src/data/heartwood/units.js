@@ -27,6 +27,11 @@ import justiceImg from "../../assets/heartwood/units/justice.jpg"
 import deathImg from "../../assets/heartwood/units/death.jpg"
 import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
 import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
+import theLoversImg from "../../assets/heartwood/units/the-lovers.jpg"
+import theEmperorImg from "../../assets/heartwood/units/the-emperor.jpg"
+import theSunImg from "../../assets/heartwood/units/the-sun.jpg"
+import theTowerImg from "../../assets/heartwood/units/the-tower.jpg"
+import strengthImg from "../../assets/heartwood/units/strength.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -93,16 +98,20 @@ const BASE_UNITS = {
     { type: "attack", amount: 5 },
   ], {
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
+    image: theEmperorImg,
   }),
   "the-hierophant": unit("the-hierophant", "The Hierophant", "the-hierophant", 1, "dps", [
     { type: "attack", amount: 4 },
   ], {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
   }),
-  "the-lovers": unit("the-lovers", "The Lovers", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }]),
+  "the-lovers": unit("the-lovers", "The Lovers", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
+    image: theLoversImg,
+  }),
   "the-chariot": unit("the-chariot", "The Chariot", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }]),
   strength: unit("strength", "Strength", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
+    image: strengthImg,
   }),
   "the-hermit": unit("the-hermit", "The Hermit", "the-hermit", 1, "support", [
     { type: "block", amount: 6 },
@@ -127,7 +136,9 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "block", amount: 3 } }],
   }),
   "the-devil": unit("the-devil", "The Devil", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], { image: theDevilImg }),
-  "the-tower": unit("the-tower", "The Tower", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }]),
+  "the-tower": unit("the-tower", "The Tower", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
+    image: theTowerImg,
+  }),
   "the-star": unit("the-star", "The Star", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "heal", amount: 3 } }],
   }),
@@ -135,7 +146,9 @@ const BASE_UNITS = {
     { type: "block", amount: 4 },
     { type: "attack", amount: 5 },
   ]),
-  "the-sun": unit("the-sun", "The Sun", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }]),
+  "the-sun": unit("the-sun", "The Sun", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
+    image: theSunImg,
+  }),
   judgement: unit("judgement", "Judgement", "judgement", 1, "dps", [{ type: "attack", amount: 7 }]),
   "the-world": unit("the-world", "The World", "the-world", 3, "dps", [{ type: "attack", amount: 20 }]),
 
