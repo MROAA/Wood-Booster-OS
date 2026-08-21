@@ -1,0 +1,37 @@
+/* Theme variables extracted from Wood-Booster HQ's src/index.css - the
+   same dark palette heartwood.css was designed against, pulled out
+   here so the game no longer depends on the business app's global
+   stylesheet. */
+:root {
+  --wood-bg: #141210;
+  --wood-panel: #1b1815;
+  --wood-card: #211d19;
+  --wood-border: #3a3128;
+  --wood-text: #e8dfd2;
+  --wood-muted: #978b7b;
+  --wood-accent: #b97b3f;
+  --wood-code-string: #8fae6b;
+  --wood-code-number: #7ea9a3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: var(--wood-bg);
+  color: var(--wood-text);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+h1 {
+  font-family: "Cormorant Garamond", serif;
+}
