@@ -109,6 +109,17 @@ function dealDamage(state, actorId, targetId, baseAmount) {
       `${nameOf(state, actorId)} deal ${amount} damage to ${nameOf(state, targetId)}${blocked > 0 ? ` (${blocked} blocked)` : ""}.`,
     ],
   }
+
+  // onHit (new mechanic, first used by the Bramble Ward relic):
+  // whoever just took real damage (not fully blocked) strikes back at
+  // whoever hit them, via the same addTrigger/runTriggers machinery
+  // turnStart/turnEnd already use - just with the actor/target roles
+  // reversed instead of self-targeting. Fully-blocked hits don't
+  // provoke retaliation; there was nothing to strike back for.
+  if (overflow > 0) {
+    nextState = runTriggers(nextState, targetId, "onHit", { actorId: targetId, targetId: actorId })
+  }
+
   return checkBattleEnd(nextState)
 }
 
@@ -324,14 +335,18 @@ function applyEffect(state, effect, ctx) {
 // Runs every registered trigger for `who` matching `trigger` ("turnStart"
 // | "turnEnd"). Powers like The Emperor/Temperance/The Star register
 // these once when played; this just fires them each relevant turn.
-export function runTriggers(state, who, trigger) {
+// `ctxOverride` lets a caller supply a different actor/target than the
+// usual "who acts on themself" shape turnStart/turnEnd triggers use -
+// needed for onHit (see dealDamage below), where the unit that got hit
+// is the one retaliating, and the original attacker is the target.
+export function runTriggers(state, who, trigger, ctxOverride) {
   const unit = getUnit(state, who)
   if (!unit) return state
   const matching = (unit.triggers || []).filter((t) => t.trigger === trigger)
   let next = state
   for (const t of matching) {
     if (next.phase === "won" || next.phase === "lost") break
-    next = applyEffects(next, [t.effect], { actorId: who, targetId: who })
+    next = applyEffects(next, [t.effect], ctxOverride || { actorId: who, targetId: who })
   }
   return next
 }

@@ -1,0 +1,65 @@
+// Heartwood Trial - Relics: permanent, run-wide choices picked mid-run
+// (see runEngine.js's "relic" node type), the first mechanic in the
+// game that isn't "another unit" or "another enemy arrangement" - a
+// real structural choice that reshapes the whole rest of a run, same
+// role relics/artifacts play in Slay the Spire or Guildrun (the two
+// games Marc named as inspiration for this pivot in the first place).
+//
+// `effects` apply once, to every deployed unit, at battle start - same
+// applyEffects/self-targeting mechanism a unit's own `passive` and a
+// Commander's `squadPassive` already use (see autoBattleEngine.js).
+// `essenceBonus` is handled separately by runEngine.js's win payout,
+// since it isn't a battle effect at all.
+
+export const RELICS = {
+  "ember-core": {
+    id: "ember-core",
+    name: "Ember Core",
+    icon: "flame",
+    description: "Every unit strikes a little harder, all fight, every fight.",
+    effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
+  },
+  "mosswarden-charm": {
+    id: "mosswarden-charm",
+    name: "Mosswarden's Charm",
+    icon: "leaf",
+    description: "Every unit mends a little at the start of each round.",
+    // Two real bugs caught via testing before shipping, not guessed
+    // at: first pass was a one-time battle-start heal, useless since
+    // units always start every fight at full HP already (confirmed via
+    // an engine-level check showing "heal 0" in the log). Second pass
+    // swapped to a one-time battle-start Block grant - also useless,
+    // since resolveRound() resets ALL player Block to 0 at the top of
+    // every round, including round 1, before the enemy ever attacks
+    // (confirmed via a second engine-level check: the granted Block
+    // never blocked anything). A turnStart addTrigger is the only
+    // shape that survives that reset - same mechanism Aatos's and
+    // Repo's Commander passives already rely on, which is exactly why
+    // both of those already worked and this needed the same fix.
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
+  },
+  "bramble-ward": {
+    id: "bramble-ward",
+    name: "Bramble Ward",
+    icon: "root",
+    description: "Whatever strikes your squad gets struck back.",
+    // The relic that introduces onHit/retaliation (effects.js's
+    // dealDamage) to the game - a mechanic that didn't exist before
+    // this relic system. Every deployed unit gets an onHit trigger
+    // that deals flat damage back to whoever just hit them, as long
+    // as the hit actually landed (not fully blocked).
+    effects: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 3 } }],
+  },
+  "essence-well": {
+    id: "essence-well",
+    name: "Essence Well",
+    icon: "spark",
+    description: "Every victory is a little more rewarding.",
+    effects: [],
+    essenceBonus: 1,
+  },
+}
+
+export function relicPool() {
+  return Object.values(RELICS)
+}

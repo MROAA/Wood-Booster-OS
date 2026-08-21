@@ -16,6 +16,7 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
+import { RELICS } from "../../data/heartwood/relics"
 import { applyEffects, runTriggers, getUnit } from "./effects"
 import { isShielded } from "./targeting"
 
@@ -112,8 +113,9 @@ function randomLiving(state, units) {
 // SLOT_POSITIONS. `characterId` selects the Commander whose
 // squadPassive (see characters.js) applies to every deployed unit -
 // this is the whole reason a Commander is chosen at all; previously it
-// was cosmetic only.
-export function startAutoBattle(characterId, deployedUnitDefIds, enemyFormationOrId) {
+// was cosmetic only. `relicIds` (see relics.js) apply the same way,
+// stacking with the Commander's own squadPassive rather than replacing it.
+export function startAutoBattle(characterId, deployedUnitDefIds, enemyFormationOrId, relicIds = []) {
   const formation = resolveFormation(enemyFormationOrId)
 
   const enemies = formation.pieces.map((piece, i) => {
@@ -171,6 +173,18 @@ export function startAutoBattle(characterId, deployedUnitDefIds, enemyFormationO
   if (character?.squadPassive?.length) {
     for (const u of playerUnits) {
       state = applyEffects(state, character.squadPassive, { actorId: u.id, targetId: u.id })
+    }
+  }
+
+  // Relics (relics.js) stack on top of the Commander's squadPassive,
+  // same self-targeting mechanism - a run can carry multiple relics at
+  // once, each applying to every deployed unit.
+  for (const relicId of relicIds) {
+    const relic = RELICS[relicId]
+    if (relic?.effects?.length) {
+      for (const u of playerUnits) {
+        state = applyEffects(state, relic.effects, { actorId: u.id, targetId: u.id })
+      }
     }
   }
 

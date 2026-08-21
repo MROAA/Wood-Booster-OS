@@ -1,4 +1,5 @@
 import { UNITS } from "../../data/heartwood/units"
+import { RELICS } from "../../data/heartwood/relics"
 import UnitCard from "./UnitCard"
 import { CardGlyph } from "./cardArt"
 
@@ -17,6 +18,17 @@ export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, 
           {runState.essence}
         </span>
       </div>
+
+      {runState.relics.length > 0 && (
+        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+          {runState.relics.map((id) => (
+            <span key={id} className="hw-badge" title={RELICS[id]?.description}>
+              <CardGlyph name={RELICS[id]?.icon} className="hw-intent-glyph" />
+              {RELICS[id]?.name}
+            </span>
+          ))}
+        </div>
+      )}
 
       {showIntro && (
         <div className="hw-hint hw-hint--tutorial" style={{ marginTop: 14 }}>
