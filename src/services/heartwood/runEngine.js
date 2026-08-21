@@ -15,19 +15,26 @@
 import { UNITS, STARTER_UNITS, TIER2_SUFFIX } from "../../data/heartwood/units"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
-// enemies.js defines 5 mooks, but only 2 were ever wired into a run -
-// Moss Troll and Mist Growler existed fully balanced and never got
-// used. Extending the path to use all 5 (escalating roughly by HP/
-// erratic-ness) gives a longer, more varied run for zero new content.
+// enemies.js's 5 mooks are now used both solo and recombined into
+// formations.js's 3 multi-piece encounters - "Mist Growler Pack" (two
+// equal threats, no shielding - a real swarm) and "Bark Brute's Stand"
+// (a shielding puzzle, same rule as Rune Warden's Escort) sit between
+// the existing solo fights so a run escalates from solo -> swarm ->
+// solo -> shield puzzle -> full escort -> boss, using zero new units
+// or art, just new arrangements of what already exists.
 const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "rotwood-husk" },
   { type: "shop" },
   { type: "battle", enemyId: "mist-growler" },
   { type: "shop" },
+  { type: "battle", formationId: "mist-growler-pack" },
+  { type: "shop" },
   { type: "battle", enemyId: "bark-brute" },
   { type: "shop" },
   { type: "battle", enemyId: "moss-troll" },
+  { type: "shop" },
+  { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
   { type: "battle", formationId: "rune-wardens-escort" },
   { type: "shop" },
