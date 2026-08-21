@@ -12,6 +12,7 @@ import {
   autoResolve,
   resolveBattleOutcome,
   chooseRelic,
+  essenceForWin,
 } from "../services/heartwood/runEngine"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
@@ -185,10 +186,13 @@ export default function HeartwoodBattle() {
   }
 
   // phase === "battle"
+  const currentPathNode = runState.path[runState.nodeIndex]
+  const essenceOnWin = currentPathNode?.type === "boss" ? null : essenceForWin(runState, currentPathNode)
   return (
     <div className="hw-root" style={rootStyle}>
       <AutoBattleView
         state={runState.battle}
+        essenceOnWin={essenceOnWin}
         onNextRound={handleNextRound}
         onAutoResolve={handleAutoResolve}
         onContinue={handleBattleContinue}

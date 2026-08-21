@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 
-export default function ResultOverlay({ phase, enemyName, stats, onContinue }) {
+export default function ResultOverlay({ phase, enemyName, stats, essenceOnWin, onContinue }) {
   if (phase !== "won" && phase !== "lost") return null
 
   const won = phase === "won"
@@ -34,6 +34,12 @@ export default function ResultOverlay({ phase, enemyName, stats, onContinue }) {
             ? `${enemyName} falls still. The runes dim, and the forest holds its breath.`
             : `The dark closes in. ${enemyName} was stronger than the trial allowed for.`}
         </p>
+        {won && essenceOnWin != null && (
+          <div className="hw-badge hw-essence-badge" title="Essence earned">
+            <CardGlyph name="spark" className="hw-intent-glyph" />
+            +{essenceOnWin} Essence
+          </div>
+        )}
         {showStats && (
           <div className="hw-battle-stats">
             <div className="hw-battle-stats-row">
