@@ -319,6 +319,35 @@ function Stormwing() {
   )
 }
 
+// 4th and 5th recruitable-unit glyphs - Stoneheart (chunky angular
+// boulder silhouette, distinct from every prior unit's organic/animal
+// shapes) and Forgehowl (a horned demon head, jagged brow spikes).
+function Stoneheart() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M14 14 L22 8 L30 12 L36 20 L34 28 L38 34 L28 40 L18 38 L10 30 L12 20 Z"
+        fill="none"
+      />
+      <circle cx="19" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 28 L28 29" fill="none" />
+    </g>
+  )
+}
+
+function Forgehowl() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 16 L6 6 L14 12 M36 16 L42 6 L34 12" fill="none" />
+      <path d="M15 20 C12 26 14 32 19 34 L24 30 L29 34 C34 32 36 26 33 20 C30 14 18 14 15 20 Z" fill="none" />
+      <circle cx="19" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 28 L21 26 L24 28 L27 26 L30 28" fill="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -344,6 +373,8 @@ const GLYPHS = {
   emberStag: EmberStag,
   grovekeeper: Grovekeeper,
   stormwing: Stormwing,
+  stoneheart: Stoneheart,
+  forgehowl: Forgehowl,
 
   "the-fool": Tarot.TheFool,
   "the-magician": Tarot.TheMagician,
