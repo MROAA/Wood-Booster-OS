@@ -256,11 +256,29 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
     }
 
     const def = getDef(acting)
-    const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
-    const targetId = side === "player" ? frontmost(next, targetPool(next)) : randomLiving(next, targetPool(next))
 
-    if (targetId) {
-      next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })
+    // AoE: the one intent type that never goes through frontmost/
+    // randomLiving at all - it hits every living unit in the pool
+    // directly, so Taunt (which only redirects a single-target pick)
+    // and shielding (which only filters that same pick) can't do
+    // anything against it. Spacemonkey's signature move, deliberately:
+    // the boss fight is where "stack the whole squad behind one
+    // taunting tank" should stop being a free win.
+    if (acting.intent.type === "aoe") {
+      for (const target of targetPool(next)) {
+        if (next.phase !== "player") break
+        if (target.hp <= 0) continue
+        next = applyEffects(next, [{ type: "damage", amount: acting.intent.amount }], {
+          actorId: unit.id,
+          targetId: target.id,
+        })
+      }
+    } else {
+      const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
+      const targetId = side === "player" ? frontmost(next, targetPool(next)) : randomLiving(next, targetPool(next))
+      if (targetId) {
+        next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })
+      }
     }
     if (next.phase !== "player") break
 

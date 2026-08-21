@@ -162,6 +162,15 @@ export const ENEMIES = {
       { type: "attack", amount: 18, weight: 2 },
       { type: "debuff", id: "weak", amount: 3, target: "player", weight: 1 },
       { type: "block", amount: 14, weight: 1 },
+      // AoE (autoBattleEngine.js): hits every living player unit
+      // directly, bypassing frontmost/randomLiving entirely - Taunt
+      // (Stoneheart, Bulwark Standard) and shielding both work by
+      // steering or filtering a single-target pick, so neither does
+      // anything here. Only Spacemonkey has this move: the boss fight
+      // is the one place "hide the squad behind one tank" should stop
+      // being a guaranteed answer. Priced below the single-target hit
+      // (9 vs 18) since it can land on up to 4 units at once.
+      { type: "aoe", amount: 9, weight: 1 },
     ],
   },
 }

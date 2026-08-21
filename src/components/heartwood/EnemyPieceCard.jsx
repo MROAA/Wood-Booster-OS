@@ -7,6 +7,8 @@ function intentDisplay(intent) {
   if (intent.type === "attack") return { icon: "sword", amount: intent.amount, className: "hw-intent--attack" }
   if (intent.type === "block") return { icon: "shield", amount: intent.amount, className: "hw-intent--block" }
   if (intent.type === "heal") return { icon: "heart", amount: intent.amount, className: "hw-intent--heal" }
+  if (intent.type === "aoe")
+    return { icon: null, text: `Strikes the whole squad for ${intent.amount}`, className: "hw-intent--attack" }
   if (intent.type === "debuff")
     return { icon: null, text: `${formatPowerLabel(intent.id)} +${intent.amount}`, className: "hw-intent--debuff" }
   return null
