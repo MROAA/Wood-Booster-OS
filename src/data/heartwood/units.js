@@ -23,6 +23,10 @@
 // swapped for real/licensed art before release.
 import emberStagImg from "../../assets/heartwood/units/ember-stag.jpg"
 import grovekeeperImg from "../../assets/heartwood/units/grovekeeper.jpg"
+import justiceImg from "../../assets/heartwood/units/justice.jpg"
+import deathImg from "../../assets/heartwood/units/death.jpg"
+import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
+import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -83,7 +87,7 @@ const BASE_UNITS = {
     { type: "heal", amount: 5 },
     { type: "block", amount: 4 },
     { type: "attack", amount: 6 },
-  ]),
+  ], { image: theEmpressImg }),
   "the-emperor": unit("the-emperor", "The Emperor", "the-emperor", 2, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
@@ -111,18 +115,18 @@ const BASE_UNITS = {
   justice: unit("justice", "Justice", "justice", 1, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 6 },
-  ]),
+  ], { image: justiceImg }),
   "the-hanged-man": unit("the-hanged-man", "The Hanged Man", "the-hanged-man", 0, "dps", [
     { type: "attack", amount: 6 },
   ]),
-  death: unit("death", "Death", "death", 1, "dps", [{ type: "attack", amount: 7 }]),
+  death: unit("death", "Death", "death", 1, "dps", [{ type: "attack", amount: 7 }], { image: deathImg }),
   temperance: unit("temperance", "Temperance", "temperance", 1, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
   ], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "block", amount: 3 } }],
   }),
-  "the-devil": unit("the-devil", "The Devil", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }]),
+  "the-devil": unit("the-devil", "The Devil", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], { image: theDevilImg }),
   "the-tower": unit("the-tower", "The Tower", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }]),
   "the-star": unit("the-star", "The Star", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "heal", amount: 3 } }],
