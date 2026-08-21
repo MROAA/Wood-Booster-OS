@@ -16,14 +16,14 @@ import { UNITS, STARTER_UNITS, TIER2_SUFFIX } from "../../data/heartwood/units"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // enemies.js's 6 mooks are used both solo and recombined into
-// formations.js's 5 multi-piece encounters - "Mist Growler Pack" (two
-// equal threats, no shielding - a real swarm), "Bark Brute's Stand",
+// formations.js's 6 multi-piece encounters - "Mist Growler Pack" and
+// "The Undertow" (no shielding - real swarms), "Bark Brute's Stand",
 // "Twin Watch" and "Siren's Bodyguard" (shielding puzzles - now that
 // shielding actually does something, see the frontmost()/
 // randomLiving() fix in autoBattleEngine.js) sit between the existing
 // solo fights so a run escalates from solo -> solo -> swarm -> solo ->
-// solo -> single shield puzzle -> Siren shield puzzle -> double shield
-// puzzle -> full escort -> boss.
+// solo -> single shield puzzle -> Siren shield puzzle -> second swarm
+// -> double shield puzzle -> full escort -> boss.
 const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "rotwood-husk" },
@@ -41,6 +41,8 @@ const RUN_PATH = [
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
   { type: "battle", formationId: "sirens-bodyguard" },
+  { type: "shop" },
+  { type: "battle", formationId: "the-undertow" },
   { type: "shop" },
   { type: "battle", formationId: "twin-watch" },
   { type: "shop" },
