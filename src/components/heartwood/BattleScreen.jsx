@@ -41,8 +41,7 @@ export default function BattleScreen({
   onPlayCard,
   onEndTurn,
   onMove,
-  onRetry,
-  onChooseAnother,
+  onContinue,
   startTutorial,
   onTutorialDone,
 }) {
@@ -222,12 +221,7 @@ export default function BattleScreen({
         </button>
       </div>
 
-      <ResultOverlay
-        phase={state.phase}
-        enemyName={state.enemies[0].name}
-        onRetry={onRetry}
-        onChooseAnother={onChooseAnother}
-      />
+      <ResultOverlay phase={state.phase} enemyName={state.enemies[0].name} onContinue={onContinue} />
     </div>
   )
 }

@@ -7,7 +7,7 @@
 // card, per Marc's own request: "tee ne tarottien mukaan" (make them
 // according to the tarot cards).
 
-const STROKE = { strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" }
+const STROKE = { strokeWidth: 2.5, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" }
 
 export function TheFool() {
   return (

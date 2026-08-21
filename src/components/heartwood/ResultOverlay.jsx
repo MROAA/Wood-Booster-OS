@@ -1,10 +1,11 @@
 import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 
-export default function ResultOverlay({ phase, enemyName, onRetry, onChooseAnother }) {
+export default function ResultOverlay({ phase, enemyName, stats, onContinue }) {
   if (phase !== "won" && phase !== "lost") return null
 
   const won = phase === "won"
+  const showStats = stats && (stats.totalDamage > 0 || stats.totalHealing > 0)
 
   return (
     <motion.div
@@ -33,15 +34,26 @@ export default function ResultOverlay({ phase, enemyName, onRetry, onChooseAnoth
             ? `${enemyName} falls still. The runes dim, and the forest holds its breath.`
             : `The dark closes in. ${enemyName} was stronger than the trial allowed for.`}
         </p>
+        {showStats && (
+          <div className="hw-battle-stats">
+            <div className="hw-battle-stats-row">
+              <span>Damage dealt</span>
+              <span>{stats.totalDamage}</span>
+            </div>
+            <div className="hw-battle-stats-row">
+              <span>Healing done</span>
+              <span>{stats.totalHealing}</span>
+            </div>
+            {stats.topUnit && stats.topUnit.damageDealt + stats.topUnit.healingDone > 0 && (
+              <div className="hw-battle-stats-row">
+                <span>Top unit</span>
+                <span>{stats.topUnit.name}</span>
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ display: "flex", gap: 12 }}>
-          <button className="hw-end-turn" onClick={onRetry}>Fight Again</button>
-          <button
-            className="hw-end-turn"
-            style={{ background: "var(--hw-panel)", color: "var(--hw-text)", border: "1px solid var(--hw-border)" }}
-            onClick={onChooseAnother}
-          >
-            Choose Another Enemy
-          </button>
+          <button className="hw-end-turn" onClick={onContinue}>Continue</button>
         </div>
       </motion.div>
     </motion.div>

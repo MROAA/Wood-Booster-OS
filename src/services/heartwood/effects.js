@@ -18,12 +18,25 @@
 import { CARDS } from "../../data/heartwood/cards"
 import { resolvePattern, piecesAtPositions } from "./targeting"
 
+// Units are addressed by id across whichever side owns them. The
+// autobattler puts the player's whole squad in `state.playerUnits[]`
+// (same shape as `state.enemies[]`, ids like "p0"); the older
+// single-hero engine still addresses the player via the literal string
+// "player" - both are supported here so effects.js stays one shared
+// vocabulary for either engine.
 export function getUnit(state, id) {
+  if (state.playerUnits) {
+    const found = state.playerUnits.find((u) => u.id === id)
+    if (found) return found
+  }
   if (id === "player") return state.player
   return state.enemies.find((e) => e.id === id)
 }
 
 export function setUnit(state, id, unit) {
+  if (state.playerUnits && state.playerUnits.some((u) => u.id === id)) {
+    return { ...state, playerUnits: state.playerUnits.map((u) => (u.id === id ? unit : u)) }
+  }
   if (id === "player") return { ...state, player: unit }
   return { ...state, enemies: state.enemies.map((e) => (e.id === id ? unit : e)) }
 }
@@ -52,6 +65,18 @@ function nameOf(state, id) {
   return getUnit(state, id)?.name || "The enemy"
 }
 
+// Per-unit damage/healing totals for the autobattler's post-battle
+// summary (see battleStats.js). Keyed by unit id, tracked alongside
+// state rather than derived from the log after the fact - the log is
+// prose for the player, not a data source. Absent (old turn-based
+// engine) or missing entries default to zero, so this is a no-op
+// wherever nothing reads `state.stats`.
+function recordStat(state, id, field, amount) {
+  if (!amount) return state
+  const prev = state.stats?.[id] || { damageDealt: 0, healingDone: 0 }
+  return { ...state, stats: { ...state.stats, [id]: { ...prev, [field]: prev[field] + amount } } }
+}
+
 // Damage dealt by `actorId`, landing on `targetId`. Applies Strength
 // (flat bonus) and Weak (-25%, rounded down) from the attacker, then
 // subtracts the target's Block before touching HP.
@@ -76,6 +101,7 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   }
 
   let nextState = setUnit(state, targetId, nextDefender)
+  nextState = recordStat(nextState, actorId, "damageDealt", overflow)
   nextState = {
     ...nextState,
     log: [
@@ -111,8 +137,10 @@ function gainHeal(state, who, amount) {
   const unit = getUnit(state, who)
   if (!unit) return state
   const healed = Math.min(unit.maxHp, unit.hp + amount) - unit.hp
+  let nextState = setUnit(state, who, { ...unit, hp: unit.hp + healed })
+  nextState = recordStat(nextState, who, "healingDone", healed)
   return {
-    ...setUnit(state, who, { ...unit, hp: unit.hp + healed }),
+    ...nextState,
     log: [...state.log, `${nameOf(state, who)} heal ${healed}.`],
   }
 }
@@ -123,7 +151,8 @@ function gainHeal(state, who, amount) {
 export function checkBattleEnd(state) {
   if (state.phase !== "player" && state.phase !== "enemy") return state
   if (state.enemies.every((e) => e.hp <= 0)) return { ...state, phase: "won" }
-  if (state.player.hp <= 0) return { ...state, phase: "lost" }
+  const playerDefeated = state.playerUnits ? state.playerUnits.every((u) => u.hp <= 0) : state.player.hp <= 0
+  if (playerDefeated) return { ...state, phase: "lost" }
   return state
 }
 

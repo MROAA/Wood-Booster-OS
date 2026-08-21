@@ -6,6 +6,7 @@ function intentDisplay(intent) {
   if (!intent) return null
   if (intent.type === "attack") return { icon: "sword", amount: intent.amount, className: "hw-intent--attack" }
   if (intent.type === "block") return { icon: "shield", amount: intent.amount, className: "hw-intent--block" }
+  if (intent.type === "heal") return { icon: "heart", amount: intent.amount, className: "hw-intent--heal" }
   if (intent.type === "debuff")
     return { icon: null, text: `${formatPowerLabel(intent.id)} +${intent.amount}`, className: "hw-intent--debuff" }
   return null
@@ -15,7 +16,7 @@ function intentDisplay(intent) {
 // same visual language EnemyPanel used to own (glyph/HP/intent/power
 // badges) at grid-cell scale, plus a shield badge when the piece is
 // currently protected from ordinary single-target cards.
-export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onClick }) {
+export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onClick, side = "enemy" }) {
   const dead = enemy.hp <= 0
   const intent = intentDisplay(enemy.intent)
   const hpPct = Math.max(0, Math.round((enemy.hp / enemy.maxHp) * 100))
@@ -24,6 +25,7 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
   return (
     <div
       className="hw-piece"
+      data-side={side}
       data-dead={dead}
       data-highlighted={highlighted}
       data-unit-id={enemy.id}
@@ -34,7 +36,7 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
           🛡
         </span>
       )}
-      <CardGlyph name={art} className="hw-piece-glyph" style={{ color: "var(--hw-hp)" }} />
+      <CardGlyph name={art} className="hw-piece-glyph" />
       <div className="hw-piece-name">{enemy.name}</div>
       {!dead && (
         <>

@@ -217,6 +217,27 @@ function MistGrowler() {
   )
 }
 
+// The run's final boss - same crude doodle register as the mooks above,
+// but with small horn-hints alongside the round monkey ears, a nod to
+// the "pikku-paholainen" alter-ego lore rather than a redesign.
+function SpacemonkeyBoss() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="14" r="6" fill="none" />
+      <circle cx="36" cy="14" r="6" fill="none" />
+      <path d="M18 8 L20 4 M30 8 L28 4" fill="none" />
+      <path
+        d="M14 20 C12 12 16 5 24 5 C32 5 36 12 34 20 C36 26 34 34 24 38 C14 34 12 26 14 20 Z"
+        fill="none"
+      />
+      <circle cx="18" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="30" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M15 27 C19 32 29 32 33 27" fill="none" />
+      <path d="M17 30 L19 27 M21 31 L21 28 M27 31 L27 28 M31 30 L29 27" fill="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -229,6 +250,7 @@ const GLYPHS = {
   warden: Warden,
   barkBrute: BarkBrute,
   mistGrowler: MistGrowler,
+  spacemonkeyBoss: SpacemonkeyBoss,
   sword: SwordIcon,
   shield: ShieldIcon,
   heart: HeartIcon,

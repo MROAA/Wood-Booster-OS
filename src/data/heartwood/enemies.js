@@ -76,4 +76,25 @@ export const ENEMIES = {
       { type: "attack", amount: 6, weight: 1 },
     ],
   },
+
+  // The run's final boss - not a mook, so it gets a bit more presence:
+  // a real intro line and a spoken line on defeat (read by RunEndOverlay,
+  // see runEngine.js). His "pikku-paholainen" alter-ego lore already
+  // implies he was never purely benevolent - this doesn't retcon
+  // anything, just plays it straight.
+  spacemonkey: {
+    id: "spacemonkey",
+    name: "Spacemonkey",
+    maxHp: 90,
+    art: "spacemonkeyBoss",
+    isBoss: true,
+    description: "The little devil behind the curtain. He was never only on your side.",
+    victoryLine: "\"...Well played.\" The grin doesn't quite reach his eyes.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 18, weight: 2 },
+      { type: "debuff", id: "weak", amount: 3, target: "player", weight: 1 },
+      { type: "block", amount: 14, weight: 1 },
+    ],
+  },
 }

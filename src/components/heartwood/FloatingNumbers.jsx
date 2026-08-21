@@ -30,8 +30,15 @@ export default function FloatingNumbers({ state }) {
   const counterRef = useRef(0)
 
   useEffect(() => {
+    // The autobattler puts the whole player squad in `state.playerUnits[]`
+    // (same shape as `state.enemies[]`); the older single-hero engine
+    // still has a singular `state.player`. Diff whichever shape is
+    // present so this component works for either engine unchanged.
     const snapshot = {
-      player: { hp: state.player.hp, block: state.player.block },
+      player: state.playerUnits ? null : { hp: state.player.hp, block: state.player.block },
+      playerUnits: state.playerUnits
+        ? state.playerUnits.map((u) => ({ id: u.id, hp: u.hp, block: u.block }))
+        : [],
       enemies: state.enemies.map((e) => ({ id: e.id, hp: e.hp, block: e.block })),
     }
     const prev = prevRef.current
@@ -64,7 +71,10 @@ export default function FloatingNumbers({ state }) {
       }
     }
 
-    diff("player", prev.player, snapshot.player)
+    if (snapshot.player) diff("player", prev.player, snapshot.player)
+    for (const u of snapshot.playerUnits) {
+      diff(u.id, prev.playerUnits.find((x) => x.id === u.id), u)
+    }
     for (const e of snapshot.enemies) {
       diff(e.id, prev.enemies.find((x) => x.id === e.id), e)
     }

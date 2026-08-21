@@ -94,6 +94,21 @@
   border-color: var(--hw-rune);
 }
 
+.hw-essence-badge {
+  color: var(--hw-ember);
+  border-color: var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 12%, var(--hw-panel));
+  font-size: 15px;
+  font-weight: 700;
+  padding: 6px 14px;
+}
+
+.hw-essence-badge .hw-intent-glyph {
+  width: 16px;
+  height: 16px;
+  color: var(--hw-ember);
+}
+
 .hw-intent {
   display: inline-flex;
   align-items: center;
@@ -114,6 +129,11 @@
 .hw-intent--block {
   color: var(--hw-rune);
   border-color: var(--hw-rune);
+}
+
+.hw-intent--heal {
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
 }
 
 .hw-intent--debuff {
@@ -257,6 +277,24 @@
   font-size: 12px;
 }
 
+/* Portrait-style glyphs (Tarot art, enemy/character doodles) get a
+   medallion backdrop - a radial glow plus a ring in the glyph's own
+   accent color - so they read as a small illustration sitting in a
+   frame, not a bare icon floating on flat background. currentColor
+   resolves to whatever accent color each usage already sets inline
+   (ember/moss/rune/hp), so this adapts automatically everywhere. */
+.hw-card-glyph,
+.hw-card-art,
+.hw-piece-glyph,
+.hw-player-token-glyph {
+  border-radius: 50%;
+  background-image: radial-gradient(circle, color-mix(in srgb, currentColor 26%, transparent) 0%, transparent 72%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent);
+  box-sizing: content-box;
+  padding: 5px;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
+}
+
 .hw-card-glyph {
   width: 40px;
   height: 40px;
@@ -284,10 +322,9 @@
    stays the primary "what does this do" read - the art says what the
    card IS, the icons say what it DOES. */
 .hw-card-art {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   align-self: center;
-  opacity: 0.85;
 }
 
 .hw-card--attack .hw-card-art {
@@ -444,9 +481,55 @@
   max-width: 720px;
 }
 
+/* The run track - a row of node glyphs so the run reads as a real,
+   visible journey with an end, not an open-ended "pick any fight."
+   Past nodes fade, the current node stays at full opacity. */
+.hw-run-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.hw-run-node {
+  opacity: 0.35;
+  transition: opacity 150ms ease;
+}
+
+.hw-run-node[data-current="true"] {
+  opacity: 1;
+}
+
+.hw-run-node[data-done="true"] {
+  opacity: 0.65;
+}
+
 .hw-flavor {
   font-style: italic;
   color: var(--hw-muted);
+}
+
+.hw-battle-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 220px;
+  padding: 10px 14px;
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  background: var(--hw-card);
+}
+
+.hw-battle-stats-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--hw-muted);
+}
+
+.hw-battle-stats-row span:last-child {
+  color: var(--hw-text, inherit);
+  font-weight: 600;
 }
 
 /* --- Grid combat (Phase 2) --- */
@@ -543,8 +626,8 @@
 }
 
 .hw-player-token-glyph {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
 }
 
 /* Enemies get a red-tinted card and player gets a warm gold-tinted
@@ -559,9 +642,24 @@
   padding: 6px;
   border-radius: 8px;
   position: relative;
+  transition: opacity 400ms ease, transform 400ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+/* Side determines color, not just the enemy side by default - a piece
+   card is reused for the player's own squad in the autobattler (both
+   in FormationScreen's battlefield preview and in AutoBattleView), and
+   "your unit reads red/dangerous" would undo the whole point of the
+   earlier gold-vs-red "ally vs threat reads by color alone" fix. */
+.hw-piece[data-side="enemy"] {
+  color: var(--hw-hp);
   border: 2px solid color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
   background: color-mix(in srgb, var(--hw-hp) 10%, var(--hw-card));
-  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.hw-piece[data-side="player"] {
+  color: var(--hw-ember);
+  border: 2px solid color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-ember) 10%, var(--hw-card));
 }
 
 .hw-piece[data-highlighted="true"] {
@@ -597,8 +695,8 @@
 }
 
 .hw-piece-glyph {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
 }
 
 .hw-piece-name {
