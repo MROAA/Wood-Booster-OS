@@ -11,10 +11,12 @@ import {
   advanceRound,
   autoResolve,
   resolveBattleOutcome,
+  chooseRelic,
 } from "../services/heartwood/runEngine"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
+import RelicChoice from "../components/heartwood/RelicChoice"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import { CardGlyph } from "../components/heartwood/cardArt"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
@@ -87,6 +89,10 @@ export default function HeartwoodBattle() {
     setRunState((current) => resolveBattleOutcome(current))
   }
 
+  function handleChooseRelic(relicId) {
+    setRunState((current) => chooseRelic(current, relicId))
+  }
+
   function handleNewRun() {
     setRunState(null)
     setCharacterId(null)
@@ -150,6 +156,15 @@ export default function HeartwoodBattle() {
           showIntro={showIntro}
           onDismissIntro={dismissIntro}
         />
+      </div>
+    )
+  }
+
+  if (runState.phase === "relic") {
+    return (
+      <div className="hw-root" style={rootStyle}>
+        {changeCharacterBar}
+        <RelicChoice runState={runState} onChoose={handleChooseRelic} />
       </div>
     )
   }

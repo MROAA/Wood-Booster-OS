@@ -13,6 +13,7 @@
 // bench array reshuffles underneath it.
 
 import { UNITS, STARTER_UNITS, TIER2_SUFFIX } from "../../data/heartwood/units"
+import { RELICS, relicPool } from "../../data/heartwood/relics"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // enemies.js's 6 mooks are used both solo and recombined into
@@ -23,7 +24,11 @@ import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEn
 // randomLiving() fix in autoBattleEngine.js) sit between the existing
 // solo fights so a run escalates from solo -> solo -> swarm -> solo ->
 // solo -> single shield puzzle -> Siren shield puzzle -> second swarm
-// -> double shield puzzle -> full escort -> boss.
+// -> double shield puzzle -> full escort -> boss. Three "relic" nodes
+// (relics.js) are spaced through the run - a real structural choice
+// mechanic, not just more units/enemies, added after Marc said the
+// game still felt "boring and simple" despite several content rounds:
+// volume alone wasn't the gap, a genuine new layer was.
 const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "rotwood-husk" },
@@ -33,6 +38,7 @@ const RUN_PATH = [
   { type: "battle", enemyId: "mist-growler" },
   { type: "shop" },
   { type: "battle", formationId: "mist-growler-pack" },
+  { type: "relic" },
   { type: "shop" },
   { type: "battle", enemyId: "bark-brute" },
   { type: "shop" },
@@ -41,12 +47,14 @@ const RUN_PATH = [
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
   { type: "battle", formationId: "sirens-bodyguard" },
+  { type: "relic" },
   { type: "shop" },
   { type: "battle", formationId: "the-undertow" },
   { type: "shop" },
   { type: "battle", formationId: "twin-watch" },
   { type: "shop" },
   { type: "battle", formationId: "rune-wardens-escort" },
+  { type: "relic" },
   { type: "shop" },
   { type: "boss", enemyId: "spacemonkey" },
 ]
@@ -62,7 +70,22 @@ function currentNode(runState) {
 }
 
 function phaseForNode(node) {
-  return node?.type === "shop" ? "shop" : "formation"
+  if (node?.type === "shop") return "shop"
+  if (node?.type === "relic") return "relic"
+  return "formation"
+}
+
+// 3 choices, never a relic already owned (relics don't stack with
+// themselves, just with each other) - same shuffle-and-slice shape
+// rollShop already uses.
+function rollRelics(ownedRelicIds) {
+  const pool = relicPool().filter((r) => !ownedRelicIds.includes(r.id))
+  const shuffled = [...pool]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled.slice(0, 3).map((r) => r.id)
 }
 
 // Only base-tier units are ever purchasable - a Tier 2 unit has
@@ -123,6 +146,8 @@ export function startRun(characterId) {
     shopOffers: rollShop(),
     rerollCost: REROLL_BASE_COST,
     battle: null,
+    relics: [],
+    relicOffers: null,
   }
 }
 
@@ -176,8 +201,26 @@ export function startFormationBattle(runState) {
     .filter((key) => key !== null)
     .map((key) => runState.bench.find((e) => e.key === key)?.defId)
     .filter(Boolean)
-  const battle = startAutoBattle(runState.characterId, deployedIds, node.enemyId || node.formationId)
+  const battle = startAutoBattle(runState.characterId, deployedIds, node.enemyId || node.formationId, runState.relics)
   return { ...runState, phase: "battle", battle }
+}
+
+// Leaving a "relic" node: `relicId` is null for Skip. Relics don't
+// stack with themselves, so rollRelics already excludes anything
+// already owned - no need to guard against picking a duplicate here.
+export function chooseRelic(runState, relicId) {
+  const relics = relicId ? [...runState.relics, relicId] : runState.relics
+  const nodeIndex = runState.nodeIndex + 1
+  const nextNode = runState.path[nodeIndex]
+  return {
+    ...runState,
+    relics,
+    nodeIndex,
+    phase: phaseForNode(nextNode),
+    shopOffers: nextNode?.type === "shop" ? rollShop() : runState.shopOffers,
+    rerollCost: REROLL_BASE_COST,
+    relicOffers: null,
+  }
 }
 
 export function advanceRound(runState) {
@@ -202,12 +245,14 @@ export function resolveBattleOutcome(runState) {
 
     const nodeIndex = runState.nodeIndex + 1
     const nextNode = runState.path[nodeIndex]
+    const essenceBonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.essenceBonus || 0), 0)
     return {
       ...runState,
-      essence: runState.essence + WIN_ESSENCE,
+      essence: runState.essence + WIN_ESSENCE + essenceBonus,
       nodeIndex,
       phase: phaseForNode(nextNode),
       shopOffers: nextNode?.type === "shop" ? rollShop() : runState.shopOffers,
+      relicOffers: nextNode?.type === "relic" ? rollRelics(runState.relics) : runState.relicOffers,
       rerollCost: REROLL_BASE_COST,
       battle: null,
     }
