@@ -38,6 +38,7 @@ import theWorldImg from "../../assets/heartwood/units/the-world.jpg"
 import theStarImg from "../../assets/heartwood/units/the-star.jpg"
 import theHangedManImg from "../../assets/heartwood/units/the-hanged-man.jpg"
 import theHierophantImg from "../../assets/heartwood/units/the-hierophant.jpg"
+import theFoolImg from "../../assets/heartwood/units/the-fool.webp"
 import theChariotImg from "../../assets/heartwood/units/the-chariot.webp"
 import judgementImg from "../../assets/heartwood/units/judgement.webp"
 import theHighPriestessImg from "../../assets/heartwood/units/the-high-priestess.webp"
@@ -95,7 +96,7 @@ const BASE_UNITS = {
   "the-fool": unit("the-fool", "The Fool", "the-fool", 0, "support", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 4 },
-  ]),
+  ], { image: theFoolImg }),
   "the-magician": unit("the-magician", "The Magician", "the-magician", 1, "hybrid", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 3 },
