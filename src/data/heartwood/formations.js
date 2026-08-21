@@ -37,6 +37,26 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "twin-watch": {
+    id: "twin-watch",
+    name: "Twin Watch",
+    description: "Two Husks, two Trolls behind them. The center stands empty - go around, or through.",
+    // Two independent shielding columns (col 0 and col 2), nothing at
+    // col 1 - now that shielding actually does something (see the
+    // frontmost()/randomLiving() fix), this is a genuine puzzle rather
+    // than the same trick twice: a Bishop's Slash unit placed to reach
+    // both diagonals, or a Rook's Charge sharing a row with a Troll,
+    // can snipe a shielded backline piece directly without breaking
+    // through its Husk first - single-target units have to grind both
+    // fronts down instead.
+    pieces: [
+      { defId: "rotwood-husk", pos: { row: 0, col: 0 } },
+      { defId: "moss-troll", pos: { row: 1, col: 0 } },
+      { defId: "rotwood-husk", pos: { row: 0, col: 2 } },
+      { defId: "moss-troll", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "rune-wardens-escort": {
     id: "rune-wardens-escort",
     name: "Rune Warden's Escort",
