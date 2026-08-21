@@ -31,6 +31,9 @@ import theLoversImg from "../../assets/heartwood/units/the-lovers.jpg"
 import theEmperorImg from "../../assets/heartwood/units/the-emperor.jpg"
 import theSunImg from "../../assets/heartwood/units/the-sun.jpg"
 import theTowerImg from "../../assets/heartwood/units/the-tower.jpg"
+import theHermitImg from "../../assets/heartwood/units/the-hermit.webp"
+import theMoonImg from "../../assets/heartwood/units/the-moon.jpg"
+import theWorldImg from "../../assets/heartwood/units/the-world.jpg"
 import strengthImg from "../../assets/heartwood/units/strength.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
@@ -116,7 +119,7 @@ const BASE_UNITS = {
   "the-hermit": unit("the-hermit", "The Hermit", "the-hermit", 1, "support", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 6 },
-  ]),
+  ], { image: theHermitImg }),
   "wheel-of-fortune": unit("wheel-of-fortune", "Wheel of Fortune", "wheel-of-fortune", 1, "hybrid", [
     { type: "attack", amount: 10, weight: 1 },
     { type: "block", amount: 10, weight: 1 },
@@ -145,12 +148,14 @@ const BASE_UNITS = {
   "the-moon": unit("the-moon", "The Moon", "the-moon", 1, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 5 },
-  ]),
+  ], { image: theMoonImg }),
   "the-sun": unit("the-sun", "The Sun", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
     image: theSunImg,
   }),
   judgement: unit("judgement", "Judgement", "judgement", 1, "dps", [{ type: "attack", amount: 7 }]),
-  "the-world": unit("the-world", "The World", "the-world", 3, "dps", [{ type: "attack", amount: 20 }]),
+  "the-world": unit("the-world", "The World", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
+    image: theWorldImg,
+  }),
 
   "knights-leap": unit("knights-leap", "Knight's Leap", "spark", 2, "dps", [{ type: "attack", amount: 12 }], {
     attackPattern: "knight",
