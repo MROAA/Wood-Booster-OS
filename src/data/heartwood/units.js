@@ -300,11 +300,13 @@ const TIER2_UNITS = Object.fromEntries(
 // relics - Marc: "i need to make a build out of relics/upgrades and
 // stuff then the game proceeds". Unlike Fusion (needs 3 copies, one
 // step, +50%), Upgrade is a per-unit Essence sink you choose to spend
-// on any single owned unit, up to 2 stackable levels, and stacks with
-// Fusion rather than replacing it (applied on top of whatever def -
-// base or already-fused - the unit currently is).
+// on any single owned unit, and stacks with Fusion rather than
+// replacing it (applied on top of whatever def - base or already-fused
+// - the unit currently is). Raised from 2 to 3 max levels after Marc
+// asked for "more upgrades content" - the cost curve (COST*(level+1))
+// already generalizes to a 3rd level (9 Essence) with no other change.
 export const UPGRADE_COST = 3
-export const UPGRADE_MAX_LEVEL = 2
+export const UPGRADE_MAX_LEVEL = 3
 const UPGRADE_FACTOR_PER_LEVEL = 0.15
 
 export function upgradeCost(level) {

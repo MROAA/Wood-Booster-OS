@@ -97,6 +97,24 @@ export const RELICS = {
     effects: [],
     essenceBonus: 1,
   },
+  "bulwark-standard": {
+    id: "bulwark-standard",
+    name: "Bulwark Standard",
+    icon: "shield",
+    cost: RELIC_COST,
+    description: "Whoever stands sturdiest in your formation draws every eye.",
+    // Taunt (autoBattleEngine.js) was engine-only until Stoneheart's
+    // passive granted it directly - this is the second source, and the
+    // first that isn't tied to one specific unit: rather than the
+    // uniform "every deployed unit" loop every other relic's `effects`
+    // use, this is handled as its own special case in
+    // startAutoBattle (same precedent as essenceBonus above, which
+    // also isn't a plain battle effect) - Taunt goes to whichever
+    // deployed unit has the highest maxHp, so any tank you happen to
+    // field becomes the squad's designated target, not just Stoneheart.
+    effects: [],
+    tauntHighestHp: true,
+  },
 }
 
 export function relicPool() {
