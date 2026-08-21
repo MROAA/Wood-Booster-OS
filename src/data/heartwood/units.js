@@ -34,6 +34,9 @@ import theTowerImg from "../../assets/heartwood/units/the-tower.jpg"
 import theHermitImg from "../../assets/heartwood/units/the-hermit.webp"
 import theMoonImg from "../../assets/heartwood/units/the-moon.jpg"
 import theWorldImg from "../../assets/heartwood/units/the-world.jpg"
+import theStarImg from "../../assets/heartwood/units/the-star.jpg"
+import theHangedManImg from "../../assets/heartwood/units/the-hanged-man.jpg"
+import theHierophantImg from "../../assets/heartwood/units/the-hierophant.jpg"
 import strengthImg from "../../assets/heartwood/units/strength.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
@@ -107,6 +110,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 4 },
   ], {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
+    image: theHierophantImg,
   }),
   "the-lovers": unit("the-lovers", "The Lovers", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
     image: theLoversImg,
@@ -130,7 +134,7 @@ const BASE_UNITS = {
   ], { image: justiceImg }),
   "the-hanged-man": unit("the-hanged-man", "The Hanged Man", "the-hanged-man", 0, "dps", [
     { type: "attack", amount: 6 },
-  ]),
+  ], { image: theHangedManImg }),
   death: unit("death", "Death", "death", 1, "dps", [{ type: "attack", amount: 7 }], { image: deathImg }),
   temperance: unit("temperance", "Temperance", "temperance", 1, "tank", [
     { type: "block", amount: 3 },
@@ -144,6 +148,7 @@ const BASE_UNITS = {
   }),
   "the-star": unit("the-star", "The Star", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "heal", amount: 3 } }],
+    image: theStarImg,
   }),
   "the-moon": unit("the-moon", "The Moon", "the-moon", 1, "support", [
     { type: "block", amount: 4 },
