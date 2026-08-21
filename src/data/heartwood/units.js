@@ -37,6 +37,8 @@ import theWorldImg from "../../assets/heartwood/units/the-world.jpg"
 import theStarImg from "../../assets/heartwood/units/the-star.jpg"
 import theHangedManImg from "../../assets/heartwood/units/the-hanged-man.jpg"
 import theHierophantImg from "../../assets/heartwood/units/the-hierophant.jpg"
+import theChariotImg from "../../assets/heartwood/units/the-chariot.webp"
+import judgementImg from "../../assets/heartwood/units/judgement.webp"
 import strengthImg from "../../assets/heartwood/units/strength.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
@@ -115,7 +117,9 @@ const BASE_UNITS = {
   "the-lovers": unit("the-lovers", "The Lovers", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
     image: theLoversImg,
   }),
-  "the-chariot": unit("the-chariot", "The Chariot", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }]),
+  "the-chariot": unit("the-chariot", "The Chariot", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
+    image: theChariotImg,
+  }),
   strength: unit("strength", "Strength", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
     image: strengthImg,
@@ -157,7 +161,9 @@ const BASE_UNITS = {
   "the-sun": unit("the-sun", "The Sun", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
     image: theSunImg,
   }),
-  judgement: unit("judgement", "Judgement", "judgement", 1, "dps", [{ type: "attack", amount: 7 }]),
+  judgement: unit("judgement", "Judgement", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
+    image: judgementImg,
+  }),
   "the-world": unit("the-world", "The World", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
     image: theWorldImg,
   }),
