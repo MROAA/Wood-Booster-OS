@@ -17,7 +17,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
-import { applyEffects, runTriggers, getUnit } from "./effects"
+import { applyEffects, runTriggers, getUnit, tickPoison } from "./effects"
 import { isShielded } from "./targeting"
 
 const GRID = { rows: 3, cols: 3 }
@@ -247,6 +247,14 @@ export function resolveRound(state) {
     log: [...state.log, `Round ${state.round}.`],
     playerUnits: state.playerUnits.map((u) => (u.hp > 0 ? { ...u, block: 0 } : u)),
   }
+
+  // Poison ticks for both sides at the top of the round, before anyone
+  // acts - whoever was poisoned last round pays for it now, same
+  // "resolve automatically, no opt-in" shape the Block reset uses.
+  next = tickPoison(next, next.playerUnits)
+  if (next.phase !== "player") return next
+  next = tickPoison(next, next.enemies)
+  if (next.phase !== "player") return next
 
   next = actSide(next, next.playerUnits, UNITS, (s) => s.enemies, "player")
   if (next.phase !== "player") return next

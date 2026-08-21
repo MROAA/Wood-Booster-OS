@@ -16,19 +16,19 @@ import { UNITS, STARTER_UNITS, TIER2_SUFFIX } from "../../data/heartwood/units"
 import { RELICS, relicPool } from "../../data/heartwood/relics"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
-// enemies.js's 6 mooks are used both solo and recombined into
+// enemies.js's 7 mooks are used both solo and recombined into
 // formations.js's 6 multi-piece encounters - "Mist Growler Pack" and
 // "The Undertow" (no shielding - real swarms), "Bark Brute's Stand",
 // "Twin Watch" and "Siren's Bodyguard" (shielding puzzles - now that
 // shielding actually does something, see the frontmost()/
 // randomLiving() fix in autoBattleEngine.js) sit between the existing
 // solo fights so a run escalates from solo -> solo -> swarm -> solo ->
-// solo -> single shield puzzle -> Siren shield puzzle -> second swarm
-// -> double shield puzzle -> full escort -> boss. Three "relic" nodes
-// (relics.js) are spaced through the run - a real structural choice
-// mechanic, not just more units/enemies, added after Marc said the
-// game still felt "boring and simple" despite several content rounds:
-// volume alone wasn't the gap, a genuine new layer was.
+// solo -> poison solo -> single shield puzzle -> Siren shield puzzle ->
+// second swarm -> double shield puzzle -> full escort -> boss. Three
+// "relic" nodes (relics.js) are spaced through the run - a real
+// structural choice mechanic, not just more units/enemies, added after
+// Marc said the game still felt "boring and simple" despite several
+// content rounds: volume alone wasn't the gap, a genuine new layer was.
 const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "rotwood-husk" },
@@ -43,6 +43,8 @@ const RUN_PATH = [
   { type: "battle", enemyId: "bark-brute" },
   { type: "shop" },
   { type: "battle", enemyId: "moss-troll" },
+  { type: "shop" },
+  { type: "battle", enemyId: "bloomrot-stalker" },
   { type: "shop" },
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
@@ -208,12 +210,24 @@ export function startFormationBattle(runState) {
 // Leaving a "relic" node: `relicId` is null for Skip. Relics don't
 // stack with themselves, so rollRelics already excludes anything
 // already owned - no need to guard against picking a duplicate here.
+// `relicId: null` is always Skip, free. A real pick costs Essence
+// (relics.js's RELIC_COST) - if the player can't afford it, treat the
+// click as a no-op rather than silently letting them take it anyway
+// (same "just don't respond" guard recruitUnit already uses for an
+// unaffordable unit).
 export function chooseRelic(runState, relicId) {
+  if (relicId) {
+    const relic = RELICS[relicId]
+    if (!relic || runState.essence < relic.cost) return runState
+  }
+
+  const essence = relicId ? runState.essence - RELICS[relicId].cost : runState.essence
   const relics = relicId ? [...runState.relics, relicId] : runState.relics
   const nodeIndex = runState.nodeIndex + 1
   const nextNode = runState.path[nodeIndex]
   return {
     ...runState,
+    essence,
     relics,
     nodeIndex,
     phase: phaseForNode(nextNode),
