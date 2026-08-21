@@ -273,6 +273,19 @@ function Grovekeeper() {
   )
 }
 
+// A third recruitable-unit glyph - a storm-bird, distinct silhouette
+// from Ember Stag's antlers/Grovekeeper's tree-canopy so all three
+// forest-creature units still read apart from each other at a glance.
+function Stormwing() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M24 6 L24 44 M24 20 C10 12 4 16 2 24 C10 24 18 24 24 20 M24 20 C38 12 44 16 46 24 C38 24 30 24 24 20" fill="none" />
+      <circle cx="24" cy="12" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M22 8 L24 4 L26 8" fill="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -295,6 +308,7 @@ const GLYPHS = {
   wolf: WolfGlyph,
   emberStag: EmberStag,
   grovekeeper: Grovekeeper,
+  stormwing: Stormwing,
 
   "the-fool": Tarot.TheFool,
   "the-magician": Tarot.TheMagician,

@@ -23,6 +23,7 @@
 // swapped for real/licensed art before release.
 import emberStagImg from "../../assets/heartwood/units/ember-stag.jpg"
 import grovekeeperImg from "../../assets/heartwood/units/grovekeeper.jpg"
+import stormwingImg from "../../assets/heartwood/units/stormwing.jpg"
 import justiceImg from "../../assets/heartwood/units/justice.jpg"
 import deathImg from "../../assets/heartwood/units/death.jpg"
 import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
@@ -214,6 +215,18 @@ const BASE_UNITS = {
     // first unit with its own unconditional turnStart self-heal
     // (previously only Aatos's Commander passive did that, squad-wide).
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
+  }),
+  stormwing: unit("stormwing", "Stormwing", "stormwing", 3, "dps", [
+    { type: "attack", amount: 9 },
+    { type: "debuff", id: "weak", amount: 2, target: "target" },
+    { type: "attack", amount: 9 },
+  ], {
+    // A third rare-tier forest creature, storm/lightning themed rather
+    // than fire (Ember Stag) or growth (Grovekeeper) - the roster's
+    // first player-side unit with a repeating Weak debuff, previously
+    // only an enemy move (Moss Troll, Rune Warden, Mist Growler,
+    // Spacemonkey all already use it against the player).
+    image: stormwingImg,
   }),
 }
 
