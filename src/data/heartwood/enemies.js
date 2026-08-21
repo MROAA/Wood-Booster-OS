@@ -77,6 +77,26 @@ export const ENEMIES = {
     ],
   },
 
+  "drowned-siren": {
+    id: "drowned-siren",
+    name: "Drowned Siren",
+    maxHp: 38,
+    art: "drownedSiren",
+    description: "Her song promises rest. Take it, and your strikes go soft.",
+    // A 6th mook - deliberately leans harder into Weak than any
+    // existing enemy (3 instead of the usual 2, matching only
+    // Spacemonkey's own boss-tier debuff), on a predictable sequence
+    // rather than weightedRandom - the threat is telegraphed but still
+    // painful if ignored, a different flavor of pressure from Bark
+    // Brute's raw damage or Mist Growler's unpredictability.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 7 },
+      { type: "debuff", id: "weak", amount: 3, target: "player" },
+      { type: "attack", amount: 7 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already

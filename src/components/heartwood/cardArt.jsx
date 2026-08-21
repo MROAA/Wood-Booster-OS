@@ -217,6 +217,22 @@ function MistGrowler() {
   )
 }
 
+// 6th mook, same crude doodle register - a humanoid head/torso instead
+// of the others' monster-body silhouettes (distinct at a glance), with
+// wavy trailing hair strands and a finned tail instead of legs.
+function DrownedSiren() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 10 C10 16 12 26 20 34 M34 10 C38 16 36 26 28 34" fill="none" />
+      <path d="M16 16 C14 22 16 28 20 30 C24 32 28 32 32 30 C36 28 38 22 36 16 C33 10 19 10 16 16 Z" fill="none" />
+      <circle cx="21" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M21 26 L27 26" fill="none" />
+      <path d="M24 34 L18 40 L24 38 L30 44 L24 40 Z" fill="none" />
+    </g>
+  )
+}
+
 // The run's final boss - same crude doodle register as the mooks above,
 // but with small horn-hints alongside the round monkey ears, a nod to
 // the "pikku-paholainen" alter-ego lore rather than a redesign.
@@ -298,6 +314,7 @@ const GLYPHS = {
   warden: Warden,
   barkBrute: BarkBrute,
   mistGrowler: MistGrowler,
+  drownedSiren: DrownedSiren,
   spacemonkeyBoss: SpacemonkeyBoss,
   sword: SwordIcon,
   shield: ShieldIcon,

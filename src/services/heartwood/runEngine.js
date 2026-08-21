@@ -15,19 +15,20 @@
 import { UNITS, STARTER_UNITS, TIER2_SUFFIX } from "../../data/heartwood/units"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
-// enemies.js's 5 mooks are now used both solo and recombined into
-// formations.js's 4 multi-piece encounters - "Mist Growler Pack" (two
-// equal threats, no shielding - a real swarm), "Bark Brute's Stand"
-// and "Twin Watch" (shielding puzzles - now that shielding actually
-// does something, see the frontmost()/randomLiving() fix in
-// autoBattleEngine.js) sit between the existing solo fights so a run
-// escalates from solo -> swarm -> solo -> solo -> single shield puzzle
-// -> double shield puzzle -> full escort -> boss, using zero new
-// units/art for the formations themselves, just new arrangements of
-// what already exists.
+// enemies.js's 6 mooks (Drowned Siren joins as of this update) are
+// used both solo and recombined into formations.js's 4 multi-piece
+// encounters - "Mist Growler Pack" (two equal threats, no shielding -
+// a real swarm), "Bark Brute's Stand" and "Twin Watch" (shielding
+// puzzles - now that shielding actually does something, see the
+// frontmost()/randomLiving() fix in autoBattleEngine.js) sit between
+// the existing solo fights so a run escalates from solo -> solo ->
+// swarm -> solo -> solo -> single shield puzzle -> double shield
+// puzzle -> full escort -> boss.
 const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "rotwood-husk" },
+  { type: "shop" },
+  { type: "battle", enemyId: "drowned-siren" },
   { type: "shop" },
   { type: "battle", enemyId: "mist-growler" },
   { type: "shop" },
