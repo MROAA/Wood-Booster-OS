@@ -133,6 +133,31 @@ const BASE_UNITS = {
   "bishops-slash": unit("bishops-slash", "Bishop's Slash", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     attackPattern: "bishop",
   }),
+
+  // First two non-Tarot, non-chess-pattern units - same "new
+  // arrangement of an existing idea" spirit as the enemy formations,
+  // applied to the recruit pool instead: forest creatures alongside
+  // the Arcana, matching the enemy roster's own crude-doodle register
+  // rather than the Tarot line-art style.
+  "ember-stag": unit("ember-stag", "Ember Stag", "emberStag", 3, "dps", [
+    { type: "attack", amount: 11 },
+    { type: "attack", amount: 11 },
+    { type: "block", amount: 6 },
+  ], {
+    // Grows stronger the longer it survives a fight - distinct from
+    // Fenrir's woundedFury (HP-conditional): this ramps unconditionally
+    // every round, "burning brighter" rather than "hurts more when hurt".
+    passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "applyBuff", id: "strength", amount: 1 } }],
+  }),
+  grovekeeper: unit("grovekeeper", "Grovekeeper", "grovekeeper", 2, "tank", [
+    { type: "block", amount: 8 },
+    { type: "attack", amount: 6 },
+  ], {
+    // The Emperor already does turnStart block - this is the roster's
+    // first unit with its own unconditional turnStart self-heal
+    // (previously only Aatos's Commander passive did that, squad-wide).
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
