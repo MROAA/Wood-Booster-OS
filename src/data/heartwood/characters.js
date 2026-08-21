@@ -22,7 +22,15 @@ export const CHARACTERS = {
     tagline: "Agile and quick - always looking for the fast opening.",
     description: "Cat's Reflexes: every unit in the squad strikes a little harder.",
     startEffects: [{ type: "draw", amount: 1 }],
-    squadPassive: [{ type: "applyBuff", id: "strength", amount: 1 }],
+    // +1 Strength left Tommy strictly weaker than Fenrir on paper once
+    // Fenrir got a second effect layered on top of the same +1 baseline
+    // (see Fenrir's note below) - confirmed as a real gap, not just
+    // theoretical, via a 12-run stress test through the longer run path
+    // (Mist Growler Pack + Bark Brute's Stand added): Tommy won 2/12
+    // vs. Aatos/Fenrir's ~50% each. Doubled to +2 so Tommy keeps its
+    // simple, unconditional identity (no extra condition like Wounded
+    // Fury, just a bigger flat number) while closing the gap.
+    squadPassive: [{ type: "applyBuff", id: "strength", amount: 2 }],
   },
   aatos: {
     id: "aatos",
