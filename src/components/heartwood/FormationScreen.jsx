@@ -55,7 +55,20 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         if (entry) {
           const def = UNITS[entry.defId]
           const previewUnit = { id: `slot-${slotIndex}`, name: def.name, hp: def.maxHp, maxHp: def.maxHp, block: 0, intent: null, powers: {} }
-          content = <EnemyPieceCard enemy={previewUnit} art={def.art} side="player" onClick={() => handleBenchClick(entry.key)} />
+          // Same column-1 forward/back pair as autoBattleEngine.js's
+          // real isShielded check, computed by hand here since there's
+          // no battle state yet to ask - slot 1 (row 2, col 1) is
+          // shielded exactly when slot 3 (row 1, col 1) is filled.
+          const shielded = slotIndex === 1 && runState.deployed[3] !== null
+          content = (
+            <EnemyPieceCard
+              enemy={previewUnit}
+              art={def.art}
+              side="player"
+              shielded={shielded}
+              onClick={() => handleBenchClick(entry.key)}
+            />
+          )
         }
       }
 
@@ -89,6 +102,9 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       <div className="hw-grid" style={{ marginBottom: 16 }}>
         {rows}
       </div>
+      <p className="hw-flavor" style={{ marginTop: -10, marginBottom: 10 }}>
+        The front-center slot shields whoever you place directly behind it.
+      </p>
 
       <p style={{ fontSize: 12, color: "var(--hw-muted)" }}>
         Bench ({deployedCount} / {runState.deployed.length} deployed) - click to place, click again to pull back.
