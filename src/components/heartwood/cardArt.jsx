@@ -183,6 +183,23 @@ function WolfGlyph() {
   )
 }
 
+// A 4th playable-character portrait, same crude thick-outline doodle
+// register as Cat/Reindeer/Wolf above - sharp triangular ears and a
+// narrow pointed snout keep it distinct from Wolf's broader head at a
+// glance.
+function FoxGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 14 L6 4 L16 10 M36 14 L42 4 L32 10" fill="none" />
+      <path d="M15 17 C12 23 14 29 19 31 L24 27 L29 31 C34 29 36 23 33 17 C30 12 18 12 15 17 Z" fill="none" />
+      <circle cx="19" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M22 24 L24 27 L26 24 Z" fill="currentColor" stroke="none" />
+      <path d="M17 33 C13 37 13 42 18 44 M31 33 C35 37 35 42 30 44" fill="none" />
+    </g>
+  )
+}
+
 // Two more enemy portraits, same crude thick-outline register, this
 // time redrawn from Marc's newest round of sketches (his own doodles
 // of a fisted brute and an angry cloud-maw creature).
@@ -323,6 +340,7 @@ const GLYPHS = {
   cat: CatGlyph,
   reindeer: ReindeerGlyph,
   wolf: WolfGlyph,
+  fox: FoxGlyph,
   emberStag: EmberStag,
   grovekeeper: Grovekeeper,
   stormwing: Stormwing,

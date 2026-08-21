@@ -65,4 +65,23 @@ export const CHARACTERS = {
       { type: "applyBuff", id: "woundedFury", amount: 1 },
     ],
   },
+  repo: {
+    id: "repo",
+    name: "Repo",
+    art: "fox",
+    maxHp: 62,
+    tagline: "Careful and cunning - never takes a hit it didn't plan for.",
+    description: "Fox's Guard: every unit gains Block at the start of each round.",
+    startEffects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+    // The 4th Commander, a defensive archetype none of the other 3
+    // cover directly: Tommy is flat unconditional offense, Aatos is
+    // unconditional recovery (heal), Fenrir is offense that gets better
+    // the worse things go - Repo is unconditional prevention instead of
+    // recovery. Same turnStart-trigger machinery as Aatos, same amount
+    // (2) as a conservative starting point since full damage prevention
+    // could plausibly outperform an equal-sized heal point-for-point;
+    // stress-tested against the other 3 below before shipping, not
+    // guessed at.
+    squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+  },
 }
