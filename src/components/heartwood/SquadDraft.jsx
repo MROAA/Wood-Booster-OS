@@ -1,4 +1,4 @@
-import { UNITS } from "../../data/heartwood/units"
+import { UNITS, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import UnitCard from "./UnitCard"
 import { CardGlyph } from "./cardArt"
@@ -6,7 +6,7 @@ import { CardGlyph } from "./cardArt"
 // The shop node: recruit whoever you can afford, reroll the rest,
 // leave when ready. No forced pick-one - unlike the old card-reward
 // screen, a shop lets you walk away empty-handed or buy several.
-export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, showIntro, onDismissIntro }) {
+export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, onUpgrade, showIntro, onDismissIntro }) {
   const offers = runState.shopOffers.map((id) => UNITS[id])
 
   return (
@@ -71,10 +71,38 @@ export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, 
       <div className="hw-section-label" style={{ marginTop: 20 }}>
         Your bench ({runState.bench.length})
       </div>
+      <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
+        Spend Essence to permanently strengthen a unit - stacks with fusion, up to {UPGRADE_MAX_LEVEL} times each.
+      </p>
       <div className="hw-select-grid hw-deck-preview">
-        {runState.bench.map((entry) => (
-          <UnitCard key={entry.key} def={UNITS[entry.defId]} disabled />
-        ))}
+        {runState.bench.map((entry) => {
+          const level = entry.upgradeLevel || 0
+          const cost = upgradeCost(level)
+          const maxed = cost === null
+          return (
+            <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <UnitCard def={UNITS[entry.defId]} disabled />
+              {level > 0 && (
+                <div style={{ fontSize: 11, textAlign: "center", color: "var(--hw-ember)" }}>Upgrade Lv {level}</div>
+              )}
+              {maxed ? (
+                <div className="hw-badge" style={{ justifyContent: "center", fontSize: 11 }}>
+                  Upgrade MAX
+                </div>
+              ) : (
+                <button
+                  className="hw-move-btn"
+                  style={{ fontSize: 11, padding: "4px 6px" }}
+                  disabled={runState.essence < cost}
+                  onClick={() => onUpgrade(entry.key)}
+                  title={`Permanently strengthen ${UNITS[entry.defId]?.name} (level ${level} -> ${level + 1})`}
+                >
+                  Upgrade ({cost} Essence)
+                </button>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )

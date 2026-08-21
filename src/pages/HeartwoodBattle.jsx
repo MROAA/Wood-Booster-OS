@@ -3,6 +3,7 @@ import { CHARACTERS } from "../data/heartwood/characters"
 import {
   startRun,
   recruitUnit,
+  upgradeUnit,
   rerollShop,
   leaveShop,
   assignToSlot,
@@ -55,6 +56,10 @@ export default function HeartwoodBattle() {
 
   function handleRecruit(unitDefId) {
     setRunState((current) => recruitUnit(current, unitDefId))
+  }
+
+  function handleUpgrade(benchKey) {
+    setRunState((current) => upgradeUnit(current, benchKey))
   }
 
   function handleReroll() {
@@ -149,6 +154,7 @@ export default function HeartwoodBattle() {
         <SquadDraft
           runState={runState}
           onRecruit={handleRecruit}
+          onUpgrade={handleUpgrade}
           onReroll={handleReroll}
           onContinue={handleLeaveShop}
           showIntro={showIntro}
