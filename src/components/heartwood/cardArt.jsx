@@ -238,6 +238,41 @@ function SpacemonkeyBoss() {
   )
 }
 
+// Two new recruitable-unit portraits, same crude thick-outline
+// register as the enemy/character glyphs above - original designs
+// (not traced from anything), only loosely inspired by mood/theme from
+// Marc's own doodles (a horned quadruped sketch) and a folder of
+// downloaded fantasy-art reference he pointed at for atmosphere - none
+// of those reference images are reproduced here, since the game is
+// meant for public release and that art isn't Marc's to use directly.
+function EmberStag() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 14 L10 2 L15 12 M18 12 L15 0 M32 14 L38 2 L33 12 M30 12 L33 0" fill="none" />
+      <path d="M15 18 C13 24 15 29 19 30 C23 31 27 31 31 30 C35 29 37 24 35 18 C33 13 17 13 15 18 Z" fill="none" />
+      <circle cx="19" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 25 L28 25" fill="none" />
+      <path d="M17 32 L14 44 M31 32 L34 44" fill="none" />
+    </g>
+  )
+}
+
+function Grovekeeper() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M24 4 C34 8 38 18 34 26 C38 30 36 38 28 40 C30 34 26 30 24 30 C22 30 18 34 20 40 C12 38 10 30 14 26 C10 18 14 8 24 4 Z"
+        fill="none"
+      />
+      <circle cx="19" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 26 C21 29 27 29 30 26" fill="none" />
+      <path d="M14 26 L8 30 M34 26 L40 30" fill="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -258,6 +293,8 @@ const GLYPHS = {
   cat: CatGlyph,
   reindeer: ReindeerGlyph,
   wolf: WolfGlyph,
+  emberStag: EmberStag,
+  grovekeeper: Grovekeeper,
 
   "the-fool": Tarot.TheFool,
   "the-magician": Tarot.TheMagician,
