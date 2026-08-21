@@ -8,7 +8,6 @@ import {
   assignToSlot,
   clearSlot,
   startFormationBattle,
-  advanceRound,
   autoResolve,
   resolveBattleOutcome,
   chooseRelic,
@@ -74,16 +73,14 @@ export default function HeartwoodBattle() {
     setRunState((current) => clearSlot(current, slotIndex))
   }
 
+  // Marc: "battle should be automated" - no click needed once the fight
+  // starts. autoResolve() already existed for the manual "Auto-Resolve"
+  // button; chaining it straight onto startFormationBattle means the
+  // whole fight is decided the instant Start Battle is pressed, same
+  // synchronous resolution Auto-Resolve already did, just without
+  // waiting for a second click first.
   function handleStartBattle() {
-    setRunState((current) => startFormationBattle(current))
-  }
-
-  function handleNextRound() {
-    setRunState((current) => advanceRound(current))
-  }
-
-  function handleAutoResolve() {
-    setRunState((current) => autoResolve(current))
+    setRunState((current) => autoResolve(startFormationBattle(current)))
   }
 
   function handleBattleContinue() {
@@ -193,8 +190,6 @@ export default function HeartwoodBattle() {
       <AutoBattleView
         state={runState.battle}
         essenceOnWin={essenceOnWin}
-        onNextRound={handleNextRound}
-        onAutoResolve={handleAutoResolve}
         onContinue={handleBattleContinue}
       />
     </div>
