@@ -75,6 +75,23 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "the-undertow": {
+    id: "the-undertow",
+    name: "The Undertow",
+    description: "Fog on one side, her song on the other. Neither shields the other - both act every round.",
+    // A second swarm formation (same "no shielding, both act" spirit as
+    // Mist Growler Pack) but a different threat texture: Growler is
+    // weightedRandom raw damage, Siren is a guaranteed sequence-based
+    // Weak proc every other beat - Weak's -25% penalty doesn't scale
+    // with stack count (see effects.js's weakOf/dealDamage), but left
+    // alive she keeps re-triggering it, so ignoring her for even a
+    // couple rounds means every attack lands softer the whole fight.
+    pieces: [
+      { defId: "mist-growler", pos: { row: 0, col: 0 } },
+      { defId: "drowned-siren", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "rune-wardens-escort": {
     id: "rune-wardens-escort",
     name: "Rune Warden's Escort",
