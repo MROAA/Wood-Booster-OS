@@ -17,7 +17,7 @@ function cellsByPos(units) {
 // both sides (it already renders exactly what a unit needs: art, HP
 // bar, intent, block/power badges) and FloatingNumbers.jsx for the same
 // hit-flash/damage-pop feedback the turn-based game already had.
-export default function AutoBattleView({ state, onNextRound, onAutoResolve, onContinue }) {
+export default function AutoBattleView({ state, essenceOnWin, onNextRound, onAutoResolve, onContinue }) {
   const playerMap = cellsByPos(state.playerUnits)
   const enemyMap = cellsByPos(state.enemies)
   const interactive = state.phase === "player"
@@ -90,6 +90,7 @@ export default function AutoBattleView({ state, onNextRound, onAutoResolve, onCo
         phase={state.phase}
         enemyName={state.enemies[0]?.name || "The enemy"}
         stats={state.phase === "won" || state.phase === "lost" ? summarizeBattle(state) : null}
+        essenceOnWin={essenceOnWin}
         onContinue={onContinue}
       />
     </div>

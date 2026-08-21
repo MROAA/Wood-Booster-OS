@@ -46,6 +46,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "bloomrot-stalker" },
   { type: "shop" },
+  { type: "battle", enemyId: "rootbind-thicket" },
+  { type: "shop" },
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
   { type: "battle", formationId: "sirens-bodyguard" },
@@ -63,6 +65,7 @@ const RUN_PATH = [
 
 const START_ESSENCE = 3
 const WIN_ESSENCE = 4
+const FORMATION_BONUS_ESSENCE = 2
 const SHOP_SIZE = 4
 const REROLL_BASE_COST = 1
 const DEPLOY_SLOTS = 4
@@ -247,6 +250,18 @@ export function autoResolve(runState) {
 
 // Permadeath: any loss ends the run. A regular win banks Essence and
 // moves to the next node; the boss's win ends the run in victory.
+// A formation fight (multiple pieces, often a shielding puzzle) is a
+// harder win than a solo mook - Marc asked for the game to feel more
+// rewarding, and a flat payout regardless of difficulty never
+// reflected that. Exported so the UI can show "you'll earn N Essence"
+// on the victory screen itself (see ResultOverlay.jsx), not just apply
+// it silently - the same number resolveBattleOutcome actually pays out.
+export function essenceForWin(runState, node) {
+  const essenceBonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.essenceBonus || 0), 0)
+  const difficultyBonus = node?.formationId ? FORMATION_BONUS_ESSENCE : 0
+  return WIN_ESSENCE + difficultyBonus + essenceBonus
+}
+
 export function resolveBattleOutcome(runState) {
   const battle = runState.battle
   if (!battle) return runState
@@ -259,10 +274,9 @@ export function resolveBattleOutcome(runState) {
 
     const nodeIndex = runState.nodeIndex + 1
     const nextNode = runState.path[nodeIndex]
-    const essenceBonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.essenceBonus || 0), 0)
     return {
       ...runState,
-      essence: runState.essence + WIN_ESSENCE + essenceBonus,
+      essence: runState.essence + essenceForWin(runState, node),
       nodeIndex,
       phase: phaseForNode(nextNode),
       shopOffers: nextNode?.type === "shop" ? rollShop() : runState.shopOffers,

@@ -17,7 +17,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
-import { applyEffects, runTriggers, getUnit, tickPoison } from "./effects"
+import { applyEffects, runTriggers, getUnit, setUnit, tickPoison } from "./effects"
 import { isShielded } from "./targeting"
 
 const GRID = { rows: 3, cols: 3 }
@@ -202,6 +202,21 @@ function actSide(state, actingUnits, actingDefs, targetPool, side) {
     if (next.phase !== "player") break
     let acting = getUnit(next, unit.id)
     if (!acting || acting.hp <= 0) continue
+
+    // Stun: a genuinely different kind of mechanic from every status
+    // so far (Strength/Weak/Vulnerable/WoundedFury/Poison all just
+    // change a number) - it skips the unit's action outright. Their
+    // turnStart trigger (if any - a heal, a block grant) still fired
+    // above, and their queued intent is deliberately left untouched
+    // here (moveIndex/nextIntent only advance past the block below) so
+    // the same telegraphed move is still waiting once they're free
+    // again, instead of being silently replaced. One stack = skip
+    // exactly one action.
+    if ((acting.powers.stun || 0) > 0) {
+      next = setUnit(next, unit.id, { ...acting, powers: { ...acting.powers, stun: acting.powers.stun - 1 } })
+      next = { ...next, log: [...next.log, `${acting.name} is stunned and skips this turn.`] }
+      continue
+    }
 
     const def = actingDefs[acting.defId]
     const attackPattern = side === "player" ? def.attackPattern || "single" : "single"

@@ -121,6 +121,29 @@ export const ENEMIES = {
     ],
   },
 
+  "rootbind-thicket": {
+    id: "rootbind-thicket",
+    name: "Rootbind Thicket",
+    maxHp: 44,
+    art: "rootbindThicket",
+    description: "Its roots don't reach far. When they catch you, though, you don't move.",
+    // 8th mook, first to use Stun - a genuinely different kind of
+    // mechanic from every status so far (Weak/Vulnerable/Poison all
+    // just change a number; Stun skips the target's action outright,
+    // see actSide() in autoBattleEngine.js). Kept its own damage low
+    // (4, the lowest of any mook) since losing a whole action is a
+    // strong effect on its own - this isn't meant to also hit hard.
+    // The real strategic question it asks: focus this down first to
+    // stop the lockdown, or tank through it and hope the stunned unit
+    // wasn't your key piece that round.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "debuff", id: "stun", amount: 1, target: "player" },
+      { type: "attack", amount: 4 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already

@@ -268,6 +268,25 @@ function BloomrotStalker() {
   )
 }
 
+// 8th mook glyph - low and wide with reaching root-tendrils instead of
+// limbs, distinct from every other mook's upright/hunched silhouette,
+// matching a creature that catches rather than chases.
+function RootbindThicket() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 22 C10 26 8 32 12 36 M34 22 C38 26 40 32 36 36" fill="none" />
+      <path
+        d="M16 20 C14 26 16 31 21 33 C24 34 27 34 30 33 C35 31 37 26 35 20 C32 15 19 15 16 20 Z"
+        fill="none"
+      />
+      <circle cx="21" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 27 L28 27" fill="none" />
+      <path d="M18 33 L10 40 M24 33 L22 44 M30 33 L38 40" fill="none" />
+    </g>
+  )
+}
+
 // The run's final boss - same crude doodle register as the mooks above,
 // but with small horn-hints alongside the round monkey ears, a nod to
 // the "pikku-paholainen" alter-ego lore rather than a redesign.
@@ -380,6 +399,7 @@ const GLYPHS = {
   mistGrowler: MistGrowler,
   drownedSiren: DrownedSiren,
   bloomrotStalker: BloomrotStalker,
+  rootbindThicket: RootbindThicket,
   spacemonkeyBoss: SpacemonkeyBoss,
   sword: SwordIcon,
   shield: ShieldIcon,
