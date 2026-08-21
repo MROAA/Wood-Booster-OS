@@ -13,7 +13,8 @@
 // bench array reshuffles underneath it.
 
 import { UNITS, STARTER_UNITS, TIER2_SUFFIX, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
-import { RELICS, relicPool } from "../../data/heartwood/relics"
+import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
+import { commanderRankCost } from "../../data/heartwood/characters"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // enemies.js's 7 mooks are used both solo and recombined into
@@ -156,6 +157,7 @@ export function startRun(characterId) {
     battle: null,
     relics: [],
     relicOffers: null,
+    commanderRank: 0,
   }
 }
 
@@ -195,6 +197,16 @@ export function upgradeUnit(runState, benchKey) {
   }
 }
 
+// A third Essence sink, spent on the Commander instead of a bench unit
+// - same shape as upgradeUnit above (rising cost, capped levels), see
+// characters.js's commanderRankCost/commanderPassiveWithRank.
+export function rankUpCommander(runState) {
+  const rank = runState.commanderRank || 0
+  const cost = commanderRankCost(rank)
+  if (cost === null || runState.essence < cost) return runState
+  return { ...runState, essence: runState.essence - cost, commanderRank: rank + 1 }
+}
+
 export function rerollShop(runState) {
   if (runState.essence < runState.rerollCost) return runState
   return {
@@ -229,8 +241,26 @@ export function startFormationBattle(runState) {
     .map((key) => runState.bench.find((e) => e.key === key))
     .filter(Boolean)
     .map((entry) => ({ defId: entry.defId, upgradeLevel: entry.upgradeLevel || 0 }))
-  const battle = startAutoBattle(runState.characterId, deployed, node.enemyId || node.formationId, runState.relics)
+  const battle = startAutoBattle(
+    runState.characterId,
+    deployed,
+    node.enemyId || node.formationId,
+    runState.relics,
+    runState.commanderRank || 0,
+  )
   return { ...runState, phase: "battle", battle }
+}
+
+// A relic node only ever offers 3 choices, rolled once - this lets the
+// player pay to see a fresh 3 instead, the same "spend Essence for
+// another option" shape rerollShop already gives the unit shop.
+export function rerollRelicOffers(runState) {
+  if (runState.essence < RELIC_REROLL_COST) return runState
+  return {
+    ...runState,
+    essence: runState.essence - RELIC_REROLL_COST,
+    relicOffers: rollRelics(runState.relics),
+  }
 }
 
 // Leaving a "relic" node: `relicId` is null for Skip. Relics don't

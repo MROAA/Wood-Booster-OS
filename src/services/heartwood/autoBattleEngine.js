@@ -14,7 +14,7 @@
 
 import { UNITS, unitDefWithUpgrade } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
-import { CHARACTERS } from "../../data/heartwood/characters"
+import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison } from "./effects"
@@ -126,7 +126,7 @@ function randomLiving(state, units) {
 // reason a Commander is chosen at all; previously it was cosmetic
 // only. `relicIds` (see relics.js) apply the same way, stacking with
 // the Commander's own squadPassive rather than replacing it.
-export function startAutoBattle(characterId, deployedUnits, enemyFormationOrId, relicIds = []) {
+export function startAutoBattle(characterId, deployedUnits, enemyFormationOrId, relicIds = [], commanderRank = 0) {
   const formation = resolveFormation(enemyFormationOrId)
 
   const enemies = formation.pieces.map((piece, i) => {
@@ -190,11 +190,14 @@ export function startAutoBattle(characterId, deployedUnits, enemyFormationOrId, 
 
   // The Commander's own signature effect applies to every unit in the
   // squad, not just one hero - this is what makes choosing Tommy vs.
-  // Aatos vs. Fenrir actually matter in the autobattler.
+  // Aatos vs. Fenrir actually matter in the autobattler. Scaled by
+  // commanderRank (characters.js's Rank-Up, a run-long Essence sink
+  // mirroring units.js's per-unit Upgrade) before it's applied.
   const character = CHARACTERS[characterId]
-  if (character?.squadPassive?.length) {
+  const squadPassive = commanderPassiveWithRank(character, commanderRank)
+  if (squadPassive.length) {
     for (const u of playerUnits) {
-      state = applyEffects(state, character.squadPassive, { actorId: u.id, targetId: u.id })
+      state = applyEffects(state, squadPassive, { actorId: u.id, targetId: u.id })
     }
   }
 

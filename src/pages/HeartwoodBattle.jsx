@@ -4,7 +4,9 @@ import {
   startRun,
   recruitUnit,
   upgradeUnit,
+  rankUpCommander,
   rerollShop,
+  rerollRelicOffers,
   leaveShop,
   assignToSlot,
   clearSlot,
@@ -62,8 +64,16 @@ export default function HeartwoodBattle() {
     setRunState((current) => upgradeUnit(current, benchKey))
   }
 
+  function handleRankUp() {
+    setRunState((current) => rankUpCommander(current))
+  }
+
   function handleReroll() {
     setRunState((current) => rerollShop(current))
+  }
+
+  function handleRerollRelics() {
+    setRunState((current) => rerollRelicOffers(current))
   }
 
   function handleLeaveShop() {
@@ -155,6 +165,7 @@ export default function HeartwoodBattle() {
           runState={runState}
           onRecruit={handleRecruit}
           onUpgrade={handleUpgrade}
+          onRankUp={handleRankUp}
           onReroll={handleReroll}
           onContinue={handleLeaveShop}
           showIntro={showIntro}
@@ -168,7 +179,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root" style={rootStyle}>
         {changeCharacterBar}
-        <RelicChoice runState={runState} onChoose={handleChooseRelic} />
+        <RelicChoice runState={runState} onChoose={handleChooseRelic} onReroll={handleRerollRelics} />
       </div>
     )
   }

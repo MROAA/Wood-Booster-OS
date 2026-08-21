@@ -19,6 +19,13 @@
 // much as the strongest single recruit.
 const RELIC_COST = 3
 
+// A relic node only shows up 3 times a run (vs. a shop's unlimited
+// visits), so unlike the shop's rising reroll cost, a flat price is
+// enough of a rate limit on its own - a second way to spend Essence,
+// per Marc's "more mechanics and ways to spend currency" ask, without
+// needing its own escalation curve.
+export const RELIC_REROLL_COST = 2
+
 export const RELICS = {
   "ember-core": {
     id: "ember-core",

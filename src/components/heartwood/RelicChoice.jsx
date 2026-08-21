@@ -1,4 +1,4 @@
-import { RELICS } from "../../data/heartwood/relics"
+import { RELICS, RELIC_REROLL_COST } from "../../data/heartwood/relics"
 import { CardGlyph } from "./cardArt"
 
 // The relic-pick beat: same "3 choices or skip" shape as the old
@@ -6,7 +6,7 @@ import { CardGlyph } from "./cardArt"
 // this is its own small card layout instead of reusing UnitCard.jsx.
 // Same cost-badge/data-disabled pattern UnitCard.jsx already uses, now
 // that relics cost Essence instead of being free.
-export default function RelicChoice({ runState, onChoose }) {
+export default function RelicChoice({ runState, onChoose, onReroll }) {
   const options = (runState.relicOffers || []).map((id) => RELICS[id]).filter(Boolean)
 
   return (
@@ -41,9 +41,14 @@ export default function RelicChoice({ runState, onChoose }) {
           )
         })}
       </div>
-      <button className="hw-move-btn" onClick={() => onChoose(null)} style={{ marginTop: 12 }}>
-        Skip
-      </button>
+      <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+        <button className="hw-move-btn" onClick={() => onChoose(null)}>
+          Skip
+        </button>
+        <button className="hw-move-btn" disabled={runState.essence < RELIC_REROLL_COST} onClick={onReroll}>
+          Reroll ({RELIC_REROLL_COST} Essence)
+        </button>
+      </div>
     </div>
   )
 }

@@ -1,13 +1,17 @@
 import { UNITS, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
+import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
 import UnitCard from "./UnitCard"
 import { CardGlyph } from "./cardArt"
 
 // The shop node: recruit whoever you can afford, reroll the rest,
 // leave when ready. No forced pick-one - unlike the old card-reward
 // screen, a shop lets you walk away empty-handed or buy several.
-export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, onUpgrade, showIntro, onDismissIntro }) {
+export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, onUpgrade, onRankUp, showIntro, onDismissIntro }) {
   const offers = runState.shopOffers.map((id) => UNITS[id])
+  const commander = CHARACTERS[runState.characterId]
+  const commanderRank = runState.commanderRank || 0
+  const rankCost = commanderRankCost(commanderRank)
 
   return (
     <div className="hw-intro">
@@ -17,6 +21,26 @@ export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, 
           <CardGlyph name="spark" className="hw-intent-glyph" />
           {runState.essence}
         </span>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+        <span className="hw-badge" title={commander?.description}>
+          <CardGlyph name={commander?.art} className="hw-intent-glyph" />
+          {commander?.name} · Rank {commanderRank}
+        </span>
+        {rankCost === null ? (
+          <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
+        ) : (
+          <button
+            className="hw-move-btn"
+            style={{ fontSize: 11, padding: "4px 8px" }}
+            disabled={runState.essence < rankCost}
+            onClick={onRankUp}
+            title={`Permanently strengthen ${commander?.name}'s squad passive (rank ${commanderRank} -> ${commanderRank + 1})`}
+          >
+            Rank Up ({rankCost} Essence)
+          </button>
+        )}
       </div>
 
       {runState.relics.length > 0 && (
