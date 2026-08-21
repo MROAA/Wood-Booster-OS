@@ -12,15 +12,17 @@ function cellsByPos(units) {
   return map
 }
 
-// Replaces BattleScreen.jsx for combat: no hand, no targeting clicks -
-// the grid just resolves round by round. Reuses EnemyPieceCard.jsx for
-// both sides (it already renders exactly what a unit needs: art, HP
-// bar, intent, block/power badges) and FloatingNumbers.jsx for the same
-// hit-flash/damage-pop feedback the turn-based game already had.
-export default function AutoBattleView({ state, essenceOnWin, onNextRound, onAutoResolve, onContinue }) {
+// Replaces BattleScreen.jsx for combat: no hand, no targeting clicks,
+// and (per Marc: "battle should be automated") no Auto-Resolve click
+// either - HeartwoodBattle.jsx's handleStartBattle resolves the whole
+// fight synchronously before this ever mounts, so `state` arrives
+// already decided. Reuses EnemyPieceCard.jsx for both sides (it
+// already renders exactly what a unit needs: art, HP bar, intent,
+// block/power badges) and FloatingNumbers.jsx for the same hit-flash/
+// damage-pop feedback the turn-based game already had.
+export default function AutoBattleView({ state, essenceOnWin, onContinue }) {
   const playerMap = cellsByPos(state.playerUnits)
   const enemyMap = cellsByPos(state.enemies)
-  const interactive = state.phase === "player"
 
   const rows = []
   for (let row = 0; row < state.grid.rows; row++) {
@@ -59,9 +61,7 @@ export default function AutoBattleView({ state, essenceOnWin, onNextRound, onAut
 
   return (
     <div className="hw-battle" style={{ position: "relative" }}>
-      <div className="hw-hint">
-        {interactive ? `Round ${state.round}. The squads clash automatically.` : "The fight is decided."}
-      </div>
+      <div className="hw-hint">The fight is decided.</div>
 
       <FloatingNumbers state={state} />
 
@@ -76,15 +76,6 @@ export default function AutoBattleView({ state, essenceOnWin, onNextRound, onAut
           ))}
         </div>
       </details>
-
-      <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-        <button className="hw-move-btn" disabled={!interactive} onClick={onNextRound}>
-          Next Round
-        </button>
-        <button className="hw-end-turn" disabled={!interactive} onClick={onAutoResolve}>
-          Auto-Resolve
-        </button>
-      </div>
 
       <ResultOverlay
         phase={state.phase}

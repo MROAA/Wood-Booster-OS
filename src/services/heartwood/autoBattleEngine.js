@@ -102,10 +102,18 @@ function frontmost(state, units) {
 // shield," and now a real defensive choice: a unit placed in the
 // forward slot (row 1, col 1) shields whatever's placed directly
 // behind it (row 2, col 1) from this roll entirely.
+// Taunt: a different tool from shielding for the same "protect the
+// squad" goal - shielding protects one specific back slot regardless
+// of who's standing there, Taunt protects everyone else regardless of
+// position by forcing the roll onto whichever unit carries it. Checked
+// before the shielded-filtered random pool, since a taunting unit
+// should draw fire even if it also happens to be sitting in a
+// technically-shielded square.
 function randomLiving(state, units) {
   const living = units.filter((u) => u.hp > 0)
   if (!living.length) return null
-  const pool = unshieldedOrAll(state, living)
+  const taunters = living.filter((u) => (u.powers.taunt || 0) > 0)
+  const pool = taunters.length ? taunters : unshieldedOrAll(state, living)
   return pool[Math.floor(Math.random() * pool.length)].id
 }
 
