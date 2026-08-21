@@ -17,6 +17,13 @@
 // across the shape from the unit's own square, same geometry
 // targeting.js already provides.
 
+// Placeholder portrait images for the two forest-creature units - see
+// units.js's `image` field and UnitCard.jsx. Marc confirmed these are
+// temporary reference art, not for anything distributed publicly until
+// swapped for real/licensed art before release.
+import emberStagImg from "../../assets/heartwood/units/ember-stag.jpg"
+import grovekeeperImg from "../../assets/heartwood/units/grovekeeper.jpg"
+
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
 // Warden's Escort formation (176 total HP) - see the plan/memory note
@@ -44,6 +51,10 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     moveSelect: opts.moveSelect || "sequence",
     movePattern,
     passive: opts.passive || null,
+    // Optional portrait image (see UnitCard.jsx) - falls back to the
+    // `art` SVG glyph when absent. Placeholder-quality reference art
+    // for now, not final; see cardArt.jsx's note on where it came from.
+    image: opts.image || null,
   }
 }
 
@@ -148,11 +159,13 @@ const BASE_UNITS = {
     // Fenrir's woundedFury (HP-conditional): this ramps unconditionally
     // every round, "burning brighter" rather than "hurts more when hurt".
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "applyBuff", id: "strength", amount: 1 } }],
+    image: emberStagImg,
   }),
   grovekeeper: unit("grovekeeper", "Grovekeeper", "grovekeeper", 2, "tank", [
     { type: "block", amount: 8 },
     { type: "attack", amount: 6 },
   ], {
+    image: grovekeeperImg,
     // The Emperor already does turnStart block - this is the roster's
     // first unit with its own unconditional turnStart self-heal
     // (previously only Aatos's Commander passive did that, squad-wide).
