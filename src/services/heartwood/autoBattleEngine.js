@@ -17,6 +17,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { applyEffects, runTriggers, getUnit } from "./effects"
+import { isShielded } from "./targeting"
 
 const GRID = { rows: 3, cols: 3 }
 const MAX_ROUNDS = 30
@@ -72,23 +73,39 @@ function intentToEffects(intent, attackPattern) {
   }
 }
 
-// The enemy "front rank" fiction already established by the shielding
-// rule (lower row = closer to the front) becomes the actual single-
-// target choice here: a squad's attack always lands on the frontmost
-// living opposing piece.
-function frontmost(units) {
-  const living = units.filter((u) => u.hp > 0)
-  if (!living.length) return null
-  return [...living].sort((a, b) => a.pos.row - b.pos.row || a.pos.col - b.pos.col)[0].id
+// Both target-pickers now actually respect isShielded (targeting.js) -
+// previously neither did, which meant the "shielded" badge shown in
+// the UI was cosmetic for every unit except the 3 pattern-attackers
+// that deliberately bypass it. Falling back to the full living pool
+// only if every candidate is somehow shielded (shouldn't happen given
+// SLOT_POSITIONS/formation layouts, but keeps a target resolvable
+// rather than stalling the fight if it ever did).
+function unshieldedOrAll(state, living) {
+  const unshielded = living.filter((u) => !isShielded(state, u.id))
+  return unshielded.length ? unshielded : living
 }
 
-// Player units all share one row (no front/back tiering among them),
-// so enemies focus-fire a random living squad member instead of a
-// deterministic column - the more interesting version of "no shield."
-function randomLiving(units) {
+// The enemy "front rank" fiction already established by the shielding
+// rule (lower row = closer to the front) becomes the actual single-
+// target choice here: a squad's attack lands on the frontmost living,
+// unshielded opposing piece.
+function frontmost(state, units) {
   const living = units.filter((u) => u.hp > 0)
   if (!living.length) return null
-  return living[Math.floor(Math.random() * living.length)].id
+  const pool = unshieldedOrAll(state, living)
+  return [...pool].sort((a, b) => a.pos.row - b.pos.row || a.pos.col - b.pos.col)[0].id
+}
+
+// Enemies focus-fire a random living, unshielded squad member instead
+// of a deterministic column - the more interesting version of "no
+// shield," and now a real defensive choice: a unit placed in the
+// forward slot (row 1, col 1) shields whatever's placed directly
+// behind it (row 2, col 1) from this roll entirely.
+function randomLiving(state, units) {
+  const living = units.filter((u) => u.hp > 0)
+  if (!living.length) return null
+  const pool = unshieldedOrAll(state, living)
+  return pool[Math.floor(Math.random() * pool.length)].id
 }
 
 // `deployedUnitDefIds` is up to 4 unit ids from units.js, placed at
@@ -174,7 +191,7 @@ function actSide(state, actingUnits, actingDefs, targetPool, side) {
 
     const def = actingDefs[acting.defId]
     const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
-    const targetId = side === "player" ? frontmost(targetPool(next)) : randomLiving(targetPool(next))
+    const targetId = side === "player" ? frontmost(next, targetPool(next)) : randomLiving(next, targetPool(next))
 
     if (targetId) {
       next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })
@@ -224,7 +241,32 @@ export function resolveRound(state) {
   next = actSide(next, next.enemies, ENEMIES, (s) => s.playerUnits, "enemy")
   if (next.phase !== "player") return next
 
-  return { ...next, round: next.round + 1 }
+  const round = next.round + 1
+
+  // The round cap used to live only in autoResolveBattle's loop below,
+  // which meant a heavy block/heal squad could soft-lock the fight
+  // forever if the player stepped through "Next Round" by hand instead
+  // of clicking Auto-Resolve - found via a real stress-test stall (a
+  // defense-heavy squad against Rune Warden's Escort still had 3 units
+  // alive at round 31, phase stuck on "player" indefinitely) that got
+  // materially more likely once shielding started protecting units for
+  // longer. Living here in resolveRound instead means every path hits
+  // the same safety net. Ties (and the player's own benefit of the
+  // doubt) go to the player - forcing "lost" on an exhausted stalemate
+  // where the player was actually ahead would be a worse failure mode
+  // than the rare case of an undeserved win.
+  if (round > MAX_ROUNDS) {
+    const playerHp = next.playerUnits.reduce((sum, u) => sum + u.hp, 0)
+    const enemyHp = next.enemies.reduce((sum, e) => sum + e.hp, 0)
+    return {
+      ...next,
+      round,
+      phase: playerHp >= enemyHp ? "won" : "lost",
+      log: [...next.log, "The fight drags on too long - exhaustion decides it."],
+    }
+  }
+
+  return { ...next, round }
 }
 
 // Fast-forwards a whole fight to its conclusion - the "Auto-Resolve"

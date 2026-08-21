@@ -35,7 +35,14 @@ export default function AutoBattleView({ state, onNextRound, onAutoResolve, onCo
           <EnemyPieceCard enemy={enemy} art={ENEMIES[enemy.defId].art} shielded={isShielded(state, enemy.id)} />
         )
       } else if (playerUnit) {
-        content = <EnemyPieceCard enemy={playerUnit} art={UNITS[playerUnit.defId].art} side="player" />
+        content = (
+          <EnemyPieceCard
+            enemy={playerUnit}
+            art={UNITS[playerUnit.defId].art}
+            side="player"
+            shielded={isShielded(state, playerUnit.id)}
+          />
+        )
       }
       cells.push(
         <div key={key} className="hw-grid-cell" data-tile={(row + col) % 2 === 0 ? "a" : "b"} data-empty={!content}>
