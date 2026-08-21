@@ -57,6 +57,24 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "sirens-bodyguard": {
+    id: "sirens-bodyguard",
+    name: "Siren's Bodyguard",
+    description: "The Brute plants itself in front of her. Break through, or she'll weaken you first.",
+    // First formation to use Drowned Siren - Bark Brute shields her the
+    // same way it shields Rune Warden in Bark Brute's Stand, but the
+    // payoff for breaking through (or sniping her with a pattern unit)
+    // is different: she doesn't hit as hard as the Warden, but her
+    // signature 3-stack Weak compounds badly if the fight drags on
+    // while the Brute is still soaking hits. Column 0, not the center
+    // (1,1) square - same reason as every other shielding formation:
+    // no knight move on a 3x3 grid can ever land on (1,1).
+    pieces: [
+      { defId: "bark-brute", pos: { row: 0, col: 0 } },
+      { defId: "drowned-siren", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "rune-wardens-escort": {
     id: "rune-wardens-escort",
     name: "Rune Warden's Escort",
