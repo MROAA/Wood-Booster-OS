@@ -6,6 +6,7 @@ import {
   upgradeUnit,
   rankUpCommander,
   upgradeRelic,
+  reforgeUnit,
   rerollShop,
   rerollRelicOffers,
   leaveShop,
@@ -71,6 +72,10 @@ export default function HeartwoodBattle() {
 
   function handleUpgradeRelic(relicId) {
     setRunState((current) => upgradeRelic(current, relicId))
+  }
+
+  function handleReforge(benchKey) {
+    setRunState((current) => reforgeUnit(current, benchKey))
   }
 
   function handleReroll() {
@@ -177,6 +182,7 @@ export default function HeartwoodBattle() {
           onUpgrade={handleUpgrade}
           onRankUp={handleRankUp}
           onUpgradeRelic={handleUpgradeRelic}
+          onReforge={handleReforge}
           onReroll={handleReroll}
           onContinue={handleLeaveShop}
           showIntro={showIntro}

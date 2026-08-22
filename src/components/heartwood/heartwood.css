@@ -747,6 +747,22 @@
   100% { box-shadow: 0 0 0 0 transparent; transform: translateX(0); }
 }
 
+/* One-shot "this card just became a different unit" pulse for Reforge
+   (runEngine.js) - same fire-and-forget, non-looping shape as
+   hw-hit-flash, just a distinct rune-colored glow/scale instead of a
+   shake, since a reforge isn't damage. Toggled via React state in
+   SquadDraft.jsx rather than a class swap on a real hit, since there's
+   no per-instant DOM event to hook here the way FloatingNumbers has. */
+.hw-card--reforged {
+  animation: hw-reforge-pulse 500ms ease;
+}
+
+@keyframes hw-reforge-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-rune) 70%, transparent); transform: scale(1); }
+  40% { box-shadow: 0 0 16px 4px color-mix(in srgb, var(--hw-rune) 70%, transparent); transform: scale(1.04); }
+  100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
+}
+
 .hw-piece-glyph {
   width: 32px;
   height: 32px;

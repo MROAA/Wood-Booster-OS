@@ -84,6 +84,10 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // see autoBattleEngine.js's own special-case handling, same
     // precedent as Bulwark Standard's tauntHighestHp. { id, amount }.
     rallyAdjacent: opts.rallyAdjacent || null,
+    // Chain: a flat bonus hit on a different living enemy, fired only
+    // when this unit's own single-target attack was the killing blow -
+    // see autoBattleEngine.js's actSide for the full guard conditions.
+    chainDamage: opts.chainDamage || null,
     // Optional portrait image (see UnitCard.jsx) - falls back to the
     // `art` SVG glyph when absent. Placeholder-quality reference art
     // for now, not final; see cardArt.jsx's note on where it came from.
@@ -318,6 +322,19 @@ const BASE_UNITS = {
     // to play but hard to master".
     passive: [{ type: "applyBuff", id: "revive", amount: 1 }],
   }),
+  grimtusk: unit("grimtusk", "Grimtusk", "flame", 3, "dps", [
+    { type: "attack", amount: 9 },
+    { type: "attack", amount: 9 },
+  ], {
+    // Chain (autoBattleEngine.js's actSide) - a second, distinct way to
+    // reward finishing blows alongside Execute (Culling Strike/
+    // Duskclaw), but a bonus hit on a DIFFERENT enemy instead of extra
+    // damage on the same one: Execute rewards focusing one target down,
+    // Chain rewards it too but then spreads the payoff across the
+    // field - real build tension between the two rather than one
+    // strictly out-classing the other.
+    chainDamage: 6,
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
@@ -347,6 +364,7 @@ function makeTier2(base) {
       ? base.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, 1.4) } : scaleEffect(p, 1.4)))
       : null,
     rallyAdjacent: base.rallyAdjacent ? scaleEffect(base.rallyAdjacent, 1.4) : null,
+    chainDamage: base.chainDamage ? Math.round(base.chainDamage * 1.4) : null,
   }
 }
 
@@ -383,6 +401,7 @@ export function unitDefWithUpgrade(def, level) {
       ? def.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, factor) } : scaleEffect(p, factor)))
       : null,
     rallyAdjacent: def.rallyAdjacent ? scaleEffect(def.rallyAdjacent, factor) : null,
+    chainDamage: def.chainDamage ? Math.round(def.chainDamage * factor) : null,
   }
 }
 

@@ -198,6 +198,33 @@ export function upgradeUnit(runState, benchKey) {
   }
 }
 
+export const REFORGE_COST = 2
+
+// A fifth Essence sink (after recruit/reroll, Unit Upgrade, Commander
+// Rank-Up, Relic Upgrade/Reroll): swaps one bench unit for a different
+// random unit of the same tier, flat cost - "I don't want this one
+// after all, but I've already committed the recruit cost" without a
+// full reroll of the whole shop. Deliberately resets upgradeLevel to 0
+// - it's a genuinely different unit afterward, not the same one
+// wearing a new name, so carrying prior Essence investment over would
+// be an odd fit. Fused (Tier 2) units can't be reforged - swapping
+// away three units' worth of recruiting/fusing effort for a random
+// base unit would be a strict downgrade trap, not a real choice.
+export function reforgeUnit(runState, benchKey) {
+  const entry = runState.bench.find((e) => e.key === benchKey)
+  if (!entry || runState.essence < REFORGE_COST) return runState
+  const currentDef = UNITS[entry.defId]
+  if (!currentDef || currentDef.displayTier === 2) return runState
+  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && u.tier === currentDef.tier && u.id !== entry.defId)
+  if (!pool.length) return runState
+  const newDef = pool[Math.floor(Math.random() * pool.length)]
+  return {
+    ...runState,
+    essence: runState.essence - REFORGE_COST,
+    bench: runState.bench.map((e) => (e.key === benchKey ? { ...e, defId: newDef.id, upgradeLevel: 0 } : e)),
+  }
+}
+
 // A third Essence sink, spent on the Commander instead of a bench unit
 // - same shape as upgradeUnit above (rising cost, capped levels), see
 // characters.js's commanderRankCost/commanderPassiveWithRank.
