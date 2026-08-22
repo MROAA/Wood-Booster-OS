@@ -180,6 +180,26 @@ export const RELICS = {
       },
     ],
   },
+  "frostbrand": {
+    id: "frostbrand",
+    name: "Frostbrand",
+    icon: "moonGlyph",
+    cost: RELIC_COST,
+    description: "Whatever your squad strikes hits softer after, in return.",
+    // Weak's first onDealDamage-trigger source - a third relic through
+    // the same door Sundering Mark (Vulnerable) and Venomous Edge
+    // (Poison) already opened, just weakening the enemy's OWN future
+    // damage output instead of marking it to take more or poisoning
+    // it. A defensive-leaning pick: every landed hit makes whatever
+    // you hit swing softer later, not just take more punishment.
+    effects: [
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 },
+      },
+    ],
+  },
 }
 
 export function relicPool() {
