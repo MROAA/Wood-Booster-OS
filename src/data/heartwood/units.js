@@ -648,6 +648,21 @@ const BASE_UNITS = {
     // at battle start, not itself.
     rallyAdjacent: { id: "strength", amount: 1 },
   }),
+  willowfang: unit("willowfang", "Willowfang", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
+    // Haste (autoBattleEngine.js's actSide), same mechanism Swiftclaw
+    // already established - two smaller hits a round instead of one
+    // big one.
+    haste: true,
+  }),
+  cragmoss: unit("cragmoss", "Cragmoss", "leaf", 3, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 5 },
+  ], {
+    // rallyHeal (autoBattleEngine.js's resolveRound), same mechanism
+    // Sapkeeper already established - a second, tankier unit built
+    // around mending adjacent allies every round instead of just once.
+    rallyHeal: 2,
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
