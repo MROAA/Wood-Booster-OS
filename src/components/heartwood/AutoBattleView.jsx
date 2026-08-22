@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { isShielded } from "../../services/heartwood/targeting"
@@ -6,6 +7,12 @@ import EnemyPieceCard from "./EnemyPieceCard"
 import ResultOverlay from "./ResultOverlay"
 import FloatingNumbers from "./FloatingNumbers"
 
+// Real time between rounds during auto-playback - fast enough that a
+// typical 5-10 round fight resolves in a few seconds, slow enough that
+// FloatingNumbers/hit-flash are actually visible as separate events
+// rather than a blur.
+const ROUND_DELAY_MS = 550
+
 function cellsByPos(units) {
   const map = {}
   for (const u of units) map[`${u.pos.row}-${u.pos.col}`] = u
@@ -13,16 +20,31 @@ function cellsByPos(units) {
 }
 
 // Replaces BattleScreen.jsx for combat: no hand, no targeting clicks,
-// and (per Marc: "battle should be automated") no Auto-Resolve click
-// either - HeartwoodBattle.jsx's handleStartBattle resolves the whole
-// fight synchronously before this ever mounts, so `state` arrives
-// already decided. Reuses EnemyPieceCard.jsx for both sides (it
-// already renders exactly what a unit needs: art, HP bar, intent,
-// block/power badges) and FloatingNumbers.jsx for the same hit-flash/
-// damage-pop feedback the turn-based game already had.
-export default function AutoBattleView({ state, essenceOnWin, onContinue }) {
+// and (per Marc: "battle should be automated" / "skip the click
+// entirely") no Auto-Resolve click either - the fight plays itself out
+// automatically via the timer below. It does NOT resolve in one jump
+// any more, though: an earlier version had HeartwoodBattle.jsx compute
+// the whole fight synchronously before this component ever mounted, so
+// `state` always arrived already at its final won/lost result - which
+// meant FloatingNumbers (built to diff HP/Block between successive
+// renders) never had a "before" state to compare against and silently
+// showed nothing, no hit-flash, no damage numbers, just an instant cut
+// to the result overlay. Marc: "peli tarvitsee lisää animaatioita ja
+// selkeyttä" (the game needs more animations and clarity) - the fix
+// keeps the "no clicks needed" promise intact while giving the
+// animation system rounds to actually animate: onAdvanceRound fires on
+// a timer for as long as state.phase === "player", same as a player
+// repeatedly clicking the old "Next Round" button, just automatic.
+export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, onContinue }) {
+  useEffect(() => {
+    if (state.phase !== "player") return
+    const timer = setTimeout(onAdvanceRound, ROUND_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [state, onAdvanceRound])
+
   const playerMap = cellsByPos(state.playerUnits)
   const enemyMap = cellsByPos(state.enemies)
+  const interactive = state.phase === "player"
 
   const rows = []
   for (let row = 0; row < state.grid.rows; row++) {
@@ -61,7 +83,7 @@ export default function AutoBattleView({ state, essenceOnWin, onContinue }) {
 
   return (
     <div className="hw-battle" style={{ position: "relative" }}>
-      <div className="hw-hint">The fight is decided.</div>
+      <div className="hw-hint">{interactive ? `Round ${state.round}. The squads clash automatically.` : "The fight is decided."}</div>
 
       <FloatingNumbers state={state} />
 
