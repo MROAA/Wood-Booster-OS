@@ -12,7 +12,7 @@ import {
   assignToSlot,
   clearSlot,
   startFormationBattle,
-  autoResolve,
+  advanceRound,
   resolveBattleOutcome,
   chooseRelic,
   essenceForWin,
@@ -94,13 +94,18 @@ export default function HeartwoodBattle() {
   }
 
   // Marc: "battle should be automated" - no click needed once the fight
-  // starts. autoResolve() already existed for the manual "Auto-Resolve"
-  // button; chaining it straight onto startFormationBattle means the
-  // whole fight is decided the instant Start Battle is pressed, same
-  // synchronous resolution Auto-Resolve already did, just without
-  // waiting for a second click first.
+  // starts. The fight still resolves itself with zero player input, but
+  // (per the later "peli tarvitsee lisää animaatioita" ask) it now
+  // plays out round by round on a timer inside AutoBattleView instead
+  // of jumping straight to the end in one synchronous call - see that
+  // component's own comment for why an instant jump silently broke the
+  // whole floating-number/hit-flash animation system.
   function handleStartBattle() {
-    setRunState((current) => autoResolve(startFormationBattle(current)))
+    setRunState((current) => startFormationBattle(current))
+  }
+
+  function handleAdvanceRound() {
+    setRunState((current) => advanceRound(current))
   }
 
   function handleBattleContinue() {
@@ -213,6 +218,7 @@ export default function HeartwoodBattle() {
       <AutoBattleView
         state={runState.battle}
         essenceOnWin={essenceOnWin}
+        onAdvanceRound={handleAdvanceRound}
         onContinue={handleBattleContinue}
       />
     </div>

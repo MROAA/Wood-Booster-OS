@@ -239,10 +239,21 @@
   padding: 8px 10px 0;
 }
 
+/* Marc: "kuvat ei toimi oikein korteissa, ne ei keskity oikein" (the
+   images don't work right on the cards, they're not centering
+   correctly) - the source portraits are wide landscape compositions
+   with the subject's head/face in the upper portion of the frame, but
+   a plain center crop (the object-position default) was cutting heads
+   off entirely on several cards (Death's hooded face, for one) since
+   the card's short/wide crop window only ever showed the vertical
+   middle of a much taller effective composition. Biasing the crop
+   toward the top keeps the subject in frame on every portrait tested
+   without needing per-image overrides. */
 .hw-card-portrait {
   width: 100%;
   height: 130px;
   object-fit: cover;
+  object-position: 50% 20%;
   display: block;
 }
 
