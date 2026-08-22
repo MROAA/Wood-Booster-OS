@@ -144,6 +144,30 @@ export const ENEMIES = {
     ],
   },
 
+  "witherfang": {
+    id: "witherfang",
+    name: "Witherfang",
+    maxHp: 42,
+    art: "rootbindThicket",
+    description: "It doesn't want your strength. It just doesn't want you to have it either.",
+    // 9th mook, first to use Sunder (effects.js) - the enemy side's own
+    // answer to how many buffs a squad can now be carrying (Ward,
+    // Revive, Taunt, Execute, Strength all live on player units by
+    // this point in the roster). Strips one stack of whichever the
+    // target actually has, prioritizing the defensive tools
+    // (Ward/Revive/Taunt) before Strength - real counterplay in the
+    // same spirit as Spacemonkey's AoE countering Taunt-stacking, just
+    // available outside the boss fight too. Kept its own damage low
+    // (5, matching Bloomrot/Rootbind's precedent) since the gimmick
+    // carries the fight's real weight, not the hit itself.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "sunder", target: "player" },
+      { type: "attack", amount: 5 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already
