@@ -65,6 +65,20 @@ export const ITEMS = {
     // Bramble Ward (relics.js), single-target.
     effects: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 2 } }],
   },
+  "duelists-edge": {
+    id: "duelists-edge",
+    name: "Duelist's Edge",
+    icon: "sword",
+    cost: 3,
+    description: "This unit finishes a badly wounded enemy faster.",
+    // Culling Strike (relics.js), single-target - the first ITEM-level
+    // source of Execute, alongside the relic (squad-wide) and Duskclaw/
+    // Trueshot (baked into one specific unit's own kit). Lets a player
+    // choose WHICH recruited unit becomes their finisher instead of
+    // being stuck with whatever unit happens to have Execute built in -
+    // a real placement/build decision, not just another flat stat.
+    effects: [{ type: "applyBuff", id: "execute", amount: 3 }],
+  },
 }
 
 export function itemPool() {

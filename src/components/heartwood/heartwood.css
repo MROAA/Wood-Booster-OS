@@ -61,6 +61,13 @@
   height: 100%;
   padding: var(--space-3, 21px);
   gap: var(--space-2, 13px);
+  /* Marc: "haluan että ui:sta keskitetyn että se toimii fronttina"
+     (I want the UI centered so it works as a front/facade) - the
+     battlefield used to sprawl the full viewport width edge to edge;
+     bounded and centered instead, same framing as .hw-intro. */
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .hw-top-row {
@@ -538,9 +545,20 @@
 
 .hw-select-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-3, 21px);
-  padding: var(--space-3, 21px);
+  /* Marc: "tällä hetkellä se tuntuu kuin se olisi pitkä lista... kaiken
+     tiedon pitää olla heti silmälle saatavissa" (right now it feels
+     like a long list... everything needs to be visible at a glance) -
+     .hw-card itself is a fixed 150px wide (never stretches), but the
+     old minmax(220px, 1fr) gave every column at least 220px AND let
+     auto-fit stretch it further, leaving 70px+ of dead space around
+     every card and fitting far fewer per row than the viewport could
+     actually hold. auto-fill with a track matching the card's own
+     width packs them tightly instead of stretching empty gaps.
+     Smaller gap too, for the same "more visible at once" reason. */
+  grid-template-columns: repeat(auto-fill, 150px);
+  justify-content: center;
+  gap: var(--space-2, 13px);
+  padding: var(--space-3, 21px) 0;
 }
 
 .hw-enemy-choice {
@@ -558,7 +576,8 @@
 
 .hw-intro {
   padding: var(--space-3, 21px);
-  max-width: 720px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 /* The run track - a row of node glyphs so the run reads as a real,
@@ -635,7 +654,15 @@
 .hw-grid-row {
   display: flex;
   gap: 6px;
-  flex: 1;
+  /* Was flex:1, splitting the grid's total height into 3 EQUAL rows
+     regardless of content - a piece with several status badges needs
+     more than an equal 1/3 share, and since nothing clips overflow,
+     it visually bled into the row above/below instead of the row
+     growing to fit it (a real, confusing-looking bug, not a one-off -
+     seen twice now via fresh screenshots). Sizing to natural content
+     height instead means a "busy" row can be taller than an empty one
+     without anything overlapping. */
+  flex: 0 0 auto;
 }
 
 .hw-grid-cell {

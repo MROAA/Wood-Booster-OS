@@ -276,15 +276,26 @@ export function buyItem(runState, itemDefId) {
   }
 }
 
-// Equips an owned item onto one of a bench unit's ITEM_SLOTS. Free -
-// the Essence cost was already paid on purchase. If the target slot
-// already holds a different item, that one is bumped back to the bag
-// first (a slot can only ever hold one item), same "drop something new
-// in, the old one comes out" swap FormationScreen.jsx's deploy slots
-// already do.
+// Relics (relics.js) can grant every unit extra slots (Artificer's
+// Ledger, itemSlotBonus) on top of the flat ITEM_SLOTS base - read
+// here rather than inlined at both call sites (equipItem's range
+// check, SquadDraft.jsx's slot-pip rendering) so the two can never
+// drift out of sync with each other.
+export function effectiveItemSlots(runState) {
+  const bonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.itemSlotBonus || 0), 0)
+  return ITEM_SLOTS + bonus
+}
+
+// Equips an owned item onto one of a bench unit's item slots (see
+// effectiveItemSlots above - may be more than the base ITEM_SLOTS with
+// Artificer's Ledger owned). Free - the Essence cost was already paid
+// on purchase. If the target slot already holds a different item, that
+// one is bumped back to the bag first (a slot can only ever hold one
+// item), same "drop something new in, the old one comes out" swap
+// FormationScreen.jsx's deploy slots already do.
 export function equipItem(runState, itemKey, benchKey, slotIndex) {
   const item = runState.items.find((it) => it.key === itemKey)
-  if (!item || slotIndex < 0 || slotIndex >= ITEM_SLOTS || !runState.bench.some((e) => e.key === benchKey)) return runState
+  if (!item || slotIndex < 0 || slotIndex >= effectiveItemSlots(runState) || !runState.bench.some((e) => e.key === benchKey)) return runState
   return {
     ...runState,
     items: runState.items.map((it) => {
