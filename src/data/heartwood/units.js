@@ -371,6 +371,29 @@ const BASE_UNITS = {
     // build) rather than raw total damage).
     haste: true,
   }),
+  emberwisp: unit("emberwisp", "Emberwisp", "spark", 3, "dps", [{ type: "aoe", amount: 5 }], {
+    // The roster's first player-side AoE (autoBattleEngine.js's aoe
+    // branch, previously only Spacemonkey's signature move) - a real
+    // mage identity: every round, it blasts every living enemy at
+    // once instead of picking a target. No new engine code needed,
+    // the aoe branch already works for either side. Priced at rare
+    // and kept modest (5/target, well below Spacemonkey's own 9) since
+    // multi-target-every-round is a strong baseline on its own - it
+    // also can't combo with Chain or Haste (both scoped to
+    // attackPattern "single" attacks only), a natural ceiling that
+    // came for free rather than needing its own guard.
+  }),
+  runeveil: unit("runeveil", "Runeveil", "rune", 2, "dps", [
+    { type: "attack", amount: 4 },
+    { type: "debuff", id: "vulnerable", amount: 1, target: "target" },
+    { type: "attack", amount: 4 },
+  ], {
+    // A second mage, a curse-caster rather than a blaster - the
+    // roster's first unit-level source of Vulnerable (previously only
+    // Sundering Mark's onDealDamage trigger granted it). Same
+    // debuff-movePattern shape Stormwing (Weak) and Rootfang (Poison)
+    // already established, just a third status through the same door.
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
