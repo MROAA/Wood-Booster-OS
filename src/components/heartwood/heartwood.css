@@ -49,9 +49,19 @@
   padding: var(--space-2, 13px);
 }
 
+/* A real bug, not just low contrast: .hw-piece uses align-items:
+   center (so its children can stay centered rather than each taking
+   the full card width - the name/glyph want that), which meant this
+   row - and the flex:1 bar track inside it - had no width to grow
+   into and collapsed to a couple of pixels, HP number visible but the
+   bar itself essentially invisible on every unit and enemy card in
+   the game. align-self: stretch opts this one row back into taking
+   the card's full width without changing how anything else in .hw-piece
+   lays out. */
 .hw-hp-row {
   display: flex;
   align-items: center;
+  align-self: stretch;
   gap: 10px;
   margin-top: 6px;
 }
