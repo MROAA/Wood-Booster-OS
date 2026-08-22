@@ -779,5 +779,3 @@ export function unitDefWithUpgrade(def, level) {
 }
 
 export const UNITS = { ...BASE_UNITS, ...TIER2_UNITS }
-
-export const STARTER_UNITS = ["the-lovers", "justice", "the-hierophant"]

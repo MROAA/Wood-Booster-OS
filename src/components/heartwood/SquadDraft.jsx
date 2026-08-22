@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { UNITS, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
+import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS, itemPool } from "../../data/heartwood/items"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
@@ -16,7 +16,6 @@ export default function SquadDraft({
   onRecruit,
   onReroll,
   onContinue,
-  onUpgrade,
   onRankUp,
   onUpgradeRelic,
   onReforge,
@@ -129,6 +128,31 @@ export default function SquadDraft({
         >
           Retrain...
         </button>
+        {/* The Commander is a real 5th deployed unit now (Marc: "se
+            commander on pelattava hahmo pelissä... jota voi
+            synergisoida buildilla ja itemeillä" - the Commander is a
+            playable character you can synergize with the build and
+            items) - same item-slot pips and click-to-equip flow every
+            bench unit already has, just keyed to the "commander"
+            sentinel instead of a real bench key. */}
+        <div className="hw-item-slots" title="Commander's item slots - click a bag item above, then click a slot to equip it">
+          {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
+            const equipped = runState.items.find((it) => it.equippedTo === "commander" && it.slotIndex === slotIndex)
+            const itemDef = equipped ? ITEMS[equipped.defId] : null
+            return (
+              <span
+                key={slotIndex}
+                className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
+                  justEquippedSlot === `commander-${slotIndex}` ? " hw-card--reforged" : ""
+                }`}
+                title={itemDef ? `${itemDef.name} - click to unequip` : "Empty slot"}
+                onClick={() => handleSlotClick("commander", slotIndex, equipped ? equipped.key : null)}
+              >
+                {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : null}
+              </span>
+            )
+          })}
+        </div>
       </div>
 
       {showRetrain && (
@@ -283,22 +307,24 @@ export default function SquadDraft({
 
           <div className="hw-section-label">Your bench ({runState.bench.length})</div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
-            Spend Essence to permanently strengthen a unit - stacks with fusion, up to {UPGRADE_MAX_LEVEL} times each.
+            Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop.
           </p>
           <div className="hw-select-grid hw-deck-preview">
             {runState.bench.map((entry) => {
-          const level = entry.upgradeLevel || 0
-          const cost = upgradeCost(level)
-          const maxed = cost === null
           const def = UNITS[entry.defId]
           const canReforge = def?.displayTier !== 2
           // Fusion progress: 3 owned copies of the same base unit merge
-          // into a Tier 2 copy automatically (runEngine.js's fuseAll) -
-          // that's always worked, but with no on-bench signal toward
-          // "2/3 owned" it read as invisible/undiscoverable. Only shown
-          // for base-tier units (a Tier 2 unit has no further fusion
-          // target) and only once you own 2+, so a single common unit
-          // you happen to own alone doesn't clutter every bench card.
+          // into a Tier 2 copy automatically (runEngine.js's fuseAll).
+          // Shown from the first copy owned now that Fusion is the
+          // ONLY way a unit gets stronger (Marc: "Upgrade-nappi on
+          // turha... haluan RNG elementin... unitti pitää löytää ja
+          // sitten se päivittyy kun niitä on kolme" - the Upgrade
+          // button is pointless, I want an RNG element - the unit
+          // needs to be found and then it upgrades once there are
+          // three - removed the direct-purchase Upgrade sink entirely
+          // in favor of this being the one, more prominent progression
+          // path) - only for base-tier units, a Tier 2 unit has no
+          // further fusion target.
           const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
           const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
           return (
@@ -328,7 +354,7 @@ export default function SquadDraft({
                   )
                 })}
               </div>
-              {copiesOwned >= 2 && (
+              {def?.displayTier !== 2 && (
                 <div
                   className="hw-badge"
                   style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
@@ -336,24 +362,6 @@ export default function SquadDraft({
                 >
                   Fusion {copiesOwned}/3
                 </div>
-              )}
-              {level > 0 && (
-                <div style={{ fontSize: 11, textAlign: "center", color: "var(--hw-ember)" }}>Upgrade Lv {level}</div>
-              )}
-              {maxed ? (
-                <div className="hw-badge" style={{ justifyContent: "center", fontSize: 11 }}>
-                  Upgrade MAX
-                </div>
-              ) : (
-                <button
-                  className="hw-move-btn"
-                  style={{ fontSize: 11, padding: "4px 6px" }}
-                  disabled={runState.essence < cost}
-                  onClick={() => onUpgrade(entry.key)}
-                  title={`Permanently strengthen ${def?.name} (level ${level} -> ${level + 1})`}
-                >
-                  Upgrade ({cost} Essence)
-                </button>
               )}
               {canReforge && (
                 <button

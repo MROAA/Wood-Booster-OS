@@ -4,7 +4,6 @@ import { CHARACTERS } from "../data/heartwood/characters"
 import {
   startRun,
   recruitUnit,
-  upgradeUnit,
   rankUpCommander,
   upgradeRelic,
   reforgeUnit,
@@ -74,10 +73,6 @@ export default function HeartwoodBattle() {
 
   function handleRecruit(unitDefId) {
     setRunState((current) => recruitUnit(current, unitDefId))
-  }
-
-  function handleUpgrade(benchKey) {
-    setRunState((current) => upgradeUnit(current, benchKey))
   }
 
   function handleRankUp() {
@@ -212,7 +207,6 @@ export default function HeartwoodBattle() {
         <SquadDraft
           runState={runState}
           onRecruit={handleRecruit}
-          onUpgrade={handleUpgrade}
           onRankUp={handleRankUp}
           onUpgradeRelic={handleUpgradeRelic}
           onReforge={handleReforge}

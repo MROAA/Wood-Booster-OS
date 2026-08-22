@@ -108,10 +108,15 @@ export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, on
           <EnemyPieceCard enemy={enemy} art={ENEMIES[enemy.defId].art} shielded={isShielded(state, enemy.id)} />
         )
       } else if (playerUnit) {
+        // The Commander's own defId is deliberately null (it isn't a
+        // UNITS entry) - its art comes from characters.js instead, so
+        // it's carried directly on the unit object itself rather than
+        // looked up by defId here.
+        const art = playerUnit.id === "commander" ? playerUnit.art : UNITS[playerUnit.defId].art
         content = (
           <EnemyPieceCard
             enemy={playerUnit}
-            art={UNITS[playerUnit.defId].art}
+            art={art}
             side="player"
             shielded={isShielded(state, playerUnit.id)}
             summoned={playerUnit.summoned}
