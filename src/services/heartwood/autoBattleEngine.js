@@ -339,6 +339,25 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
             })
           }
         }
+
+        // Haste (units.js's haste): the unit acts a second time in the
+        // same round instead of once - a structurally different kind
+        // of "more damage" from Strength/Execute/Chain (all of which
+        // make ONE hit bigger or add a bonus one), this makes the
+        // whole action repeat. Picks a fresh target via frontmost()
+        // rather than reusing targetId, so a Haste unit that just
+        // killed its target doesn't waste the second swing on a
+        // corpse. Deliberately doesn't itself trigger Chain again -
+        // one follow-up mechanic calling another gets hard to reason
+        // about fast, and Haste's own value already comes from a
+        // second full action, not from stacking with every other
+        // finishing-blow mechanic too.
+        if (side === "player" && attackPattern === "single" && def.haste && acting.intent.type === "attack" && next.phase === "player") {
+          const secondTargetId = frontmost(next, targetPool(next))
+          if (secondTargetId) {
+            next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId: secondTargetId })
+          }
+        }
       }
     }
     if (next.phase !== "player") break

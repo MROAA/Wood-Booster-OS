@@ -41,6 +41,7 @@ export default function UnitCard({ def, selected, disabled, onClick }) {
         {def.tier[0].toUpperCase() + def.tier.slice(1)}
         {def.displayTier === 2 ? " Tier 2" : ""} &middot; HP {def.maxHp}
         {def.attackPattern !== "single" ? ` · ${def.attackPattern}` : ""}
+        {def.haste ? " · haste" : ""}
       </div>
     </div>
   )
