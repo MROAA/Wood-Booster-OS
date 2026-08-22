@@ -79,6 +79,11 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     moveSelect: opts.moveSelect || "sequence",
     movePattern,
     passive: opts.passive || null,
+    // Rally: a battle-start buff that goes to adjacent ALLIES instead
+    // of the unit itself (every other passive/relic self-targets) -
+    // see autoBattleEngine.js's own special-case handling, same
+    // precedent as Bulwark Standard's tauntHighestHp. { id, amount }.
+    rallyAdjacent: opts.rallyAdjacent || null,
     // Optional portrait image (see UnitCard.jsx) - falls back to the
     // `art` SVG glyph when absent. Placeholder-quality reference art
     // for now, not final; see cardArt.jsx's note on where it came from.
@@ -273,6 +278,32 @@ const BASE_UNITS = {
     // units started with.
     passive: [{ type: "applyBuff", id: "execute", amount: 4 }],
   }),
+  ashenhorn: unit("ashenhorn", "Ashenhorn", "leaf", 2, "support", [
+    { type: "block", amount: 4 },
+    { type: "attack", amount: 5 },
+  ], {
+    // Rally: the roster's first positional mechanic (autoBattleEngine.js
+    // special-cases rallyAdjacent, same precedent as Bulwark Standard's
+    // tauntHighestHp) - grants Strength to every OTHER deployed unit
+    // Chebyshev-adjacent to Ashenhorn at battle start, not to itself.
+    // The 4 deploy slots aren't all mutually adjacent (the two back
+    // corners, SLOT_POSITIONS[0]/[2], are the only non-adjacent pair),
+    // so where you place Ashenhorn genuinely changes how many allies it
+    // reaches - a real placement decision, not just "recruit it and
+    // forget it", matching Marc's "easy to play but hard to master".
+    rallyAdjacent: { id: "strength", amount: 2 },
+  }),
+  rootfang: unit("rootfang", "Rootfang", "root", 3, "dps", [
+    { type: "attack", amount: 7 },
+    { type: "debuff", id: "poison", amount: 3, target: "target" },
+    { type: "attack", amount: 7 },
+  ], {
+    // Poison (effects.js's tickPoison) has only ever been an enemy
+    // weapon (Bloomrot Stalker, Spacemonkey) until now - same
+    // debuff-movePattern shape Stormwing already uses for Weak, just a
+    // different status id, so no new engine code needed to give the
+    // player its own source of the mechanic.
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
@@ -301,6 +332,7 @@ function makeTier2(base) {
     passive: base.passive
       ? base.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, 1.4) } : scaleEffect(p, 1.4)))
       : null,
+    rallyAdjacent: base.rallyAdjacent ? scaleEffect(base.rallyAdjacent, 1.4) : null,
   }
 }
 
@@ -336,6 +368,7 @@ export function unitDefWithUpgrade(def, level) {
     passive: def.passive
       ? def.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, factor) } : scaleEffect(p, factor)))
       : null,
+    rallyAdjacent: def.rallyAdjacent ? scaleEffect(def.rallyAdjacent, factor) : null,
   }
 }
 
