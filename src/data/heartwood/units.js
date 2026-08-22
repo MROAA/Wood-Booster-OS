@@ -678,6 +678,12 @@ const BASE_UNITS = {
     { type: "attack", amount: 5 },
     { type: "attack", amount: 3 },
   ]),
+  rimefang: unit("rimefang", "Rimefang", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
+    // Chain (autoBattleEngine.js's actSide), same mechanism Grimtusk/
+    // Foxfire already established - a bonus hit on a different living
+    // enemy when this unit's own attack lands the killing blow.
+    chainDamage: 4,
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
