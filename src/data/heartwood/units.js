@@ -104,6 +104,10 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // bonus like Execute/Chain, so the per-hit number has to give
     // something back rather than just stacking on top.
     haste: !!opts.haste,
+    // Spore Spread: when this unit's own debuff step applies Poison,
+    // the same stack also seeds onto a different living enemy - see
+    // autoBattleEngine.js's actSide.
+    sporeSpread: !!opts.sporeSpread,
     // Optional portrait image (see UnitCard.jsx) - falls back to the
     // `art` SVG glyph when absent. Placeholder-quality reference art
     // for now, not final; see cardArt.jsx's note on where it came from.
@@ -561,6 +565,22 @@ const BASE_UNITS = {
     // ing positional effect in the roster, versus Rally's one-time
     // battle-start grants.
     rallyHeal: 2,
+  }),
+  mycelist: unit("mycelist", "Mycelist", "leaf", 3, "support", [
+    { type: "attack", amount: 4 },
+    { type: "debuff", id: "poison", amount: 2, target: "target" },
+    { type: "attack", amount: 4 },
+  ], {
+    // The last of Marc's 12 base classes - Mycelist ("sieniverkosto
+    // levittää efektejä" - a fungal network spreads effects). Spore
+    // Spread (sporeSpread) is a genuinely new mechanic, not a reuse -
+    // whenever Mycelist's own debuff step poisons its target, the
+    // infection also seeds onto a second living enemy in the same
+    // action, so one cast can start rotting two targets rather than
+    // one. Rootfang/Venomous Edge/Hexmother all still only poison
+    // whoever they directly hit - Mycelist is the roster's first
+    // Poison source that spreads on its own.
+    sporeSpread: true,
   }),
 }
 
