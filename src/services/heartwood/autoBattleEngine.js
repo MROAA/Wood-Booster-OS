@@ -69,6 +69,8 @@ function intentToEffects(intent, attackPattern) {
       return [{ type: "heal", amount: intent.amount }]
     case "debuff":
       return [{ type: "applyBuff", target: "target", id: intent.id, amount: intent.amount }]
+    case "sunder":
+      return [{ type: "sunder", target: "target" }]
     default:
       return []
   }

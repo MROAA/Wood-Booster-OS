@@ -316,6 +316,30 @@ function applyBuff(state, who, id, amount) {
   }
 }
 
+// Sunder: the enemy side's answer to the growing pile of player-side
+// buffs (Ward, Revive, Taunt, Execute, Strength) - strips one stack of
+// whichever the target currently has, checked in this priority order
+// so a squad leaning on defensive tools (Ward/Revive/Taunt) gets hit
+// where it actually hurts before a purely offensive Strength stack.
+// Real counterplay in the same spirit as Spacemonkey's AoE countering
+// Taunt-stacking, just a per-hit tool any enemy can carry instead of
+// a boss-only signature move.
+const SUNDERABLE_IDS = ["ward", "revive", "taunt", "execute", "strength"]
+
+function sunder(state, who) {
+  const unit = getUnit(state, who)
+  if (!unit) return state
+  const id = SUNDERABLE_IDS.find((k) => (unit.powers[k] || 0) > 0)
+  if (!id) {
+    return { ...state, log: [...state.log, `${nameOf(state, who)} has nothing to sunder.`] }
+  }
+  const label = id.charAt(0).toUpperCase() + id.slice(1)
+  return {
+    ...setUnit(state, who, { ...unit, powers: { ...unit.powers, [id]: unit.powers[id] - 1 } }),
+    log: [...state.log, `${nameOf(state, who)} loses a stack of ${label}.`],
+  }
+}
+
 function addTrigger(state, who, trigger, effect) {
   const unit = getUnit(state, who)
   if (!unit) return state
@@ -397,6 +421,8 @@ function applyEffect(state, effect, ctx) {
       return gainEnergy(state, effect.amount)
     case "applyBuff":
       return applyBuff(state, who, effect.id, effect.amount)
+    case "sunder":
+      return sunder(state, who)
     case "addTrigger":
       return addTrigger(state, who, effect.trigger, effect.effect)
     case "addCard":

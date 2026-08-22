@@ -32,6 +32,8 @@ function intentDisplay(intent) {
     return { icon: null, text: `Strikes the whole squad for ${intent.amount}`, className: "hw-intent--attack" }
   if (intent.type === "debuff")
     return { icon: null, text: `${formatPowerLabel(intent.id)} +${intent.amount}`, className: "hw-intent--debuff" }
+  if (intent.type === "sunder")
+    return { icon: null, text: "Strips a positive status", className: "hw-intent--debuff" }
   return null
 }
 

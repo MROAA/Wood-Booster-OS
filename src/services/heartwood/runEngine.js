@@ -49,6 +49,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "rootbind-thicket" },
   { type: "shop" },
+  { type: "battle", enemyId: "witherfang" },
+  { type: "shop" },
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
   { type: "battle", formationId: "sirens-bodyguard" },
