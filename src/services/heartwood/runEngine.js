@@ -14,7 +14,7 @@
 
 import { UNITS, STARTER_UNITS, TIER2_SUFFIX, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
-import { commanderRankCost } from "../../data/heartwood/characters"
+import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // enemies.js's 7 mooks are used both solo and recombined into
@@ -233,6 +233,28 @@ export function rankUpCommander(runState) {
   const cost = commanderRankCost(rank)
   if (cost === null || runState.essence < cost) return runState
   return { ...runState, essence: runState.essence - cost, commanderRank: rank + 1 }
+}
+
+export const RETRAIN_COST = 4
+
+// A sixth Essence sink, but a genuinely different kind from the other
+// five (all of which strengthen something you already have): Retrain
+// lets a player pivot the whole run's identity mid-draft, switching to
+// a different Commander if the bench they've drawn doesn't fit the one
+// they started with. commanderRank resets to 0 - it was Essence spent
+// scaling up the OLD Commander's specific squadPassive, which has no
+// meaning against a different one, same "no carried investment"
+// precedent Reforge already established for a bench unit's
+// upgradeLevel.
+export function retrainCommander(runState, newCharacterId) {
+  if (newCharacterId === runState.characterId || !CHARACTERS[newCharacterId]) return runState
+  if (runState.essence < RETRAIN_COST) return runState
+  return {
+    ...runState,
+    essence: runState.essence - RETRAIN_COST,
+    characterId: newCharacterId,
+    commanderRank: 0,
+  }
 }
 
 // A fourth Essence sink: spend on an owned relic instead of a bench

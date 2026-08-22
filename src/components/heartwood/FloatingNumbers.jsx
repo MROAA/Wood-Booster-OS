@@ -35,11 +35,11 @@ export default function FloatingNumbers({ state }) {
     // still has a singular `state.player`. Diff whichever shape is
     // present so this component works for either engine unchanged.
     const snapshot = {
-      player: state.playerUnits ? null : { hp: state.player.hp, block: state.player.block },
+      player: state.playerUnits ? null : { hp: state.player.hp, block: state.player.block, ward: 0 },
       playerUnits: state.playerUnits
-        ? state.playerUnits.map((u) => ({ id: u.id, hp: u.hp, block: u.block }))
+        ? state.playerUnits.map((u) => ({ id: u.id, hp: u.hp, block: u.block, ward: u.powers?.ward || 0 }))
         : [],
-      enemies: state.enemies.map((e) => ({ id: e.id, hp: e.hp, block: e.block })),
+      enemies: state.enemies.map((e) => ({ id: e.id, hp: e.hp, block: e.block, ward: e.powers?.ward || 0 })),
     }
     const prev = prevRef.current
     prevRef.current = snapshot
@@ -67,6 +67,21 @@ export default function FloatingNumbers({ state }) {
           text: `+${blockDelta}`,
           kind: "block",
           offset: hpDelta !== 0 ? 1 : 0,
+        })
+      }
+      // Ward (effects.js's dealDamage) fully negates a hit before it
+      // ever touches HP or Block, so it's invisible to every diff
+      // above by construction - the one status this component needs
+      // its own explicit check for, or a warded hit would land with
+      // zero player-visible feedback at all.
+      const wardDelta = (after.ward || 0) - (before.ward || 0)
+      if (wardDelta < 0) {
+        spawned.push({
+          id: counterRef.current++,
+          unitId,
+          text: "Warded!",
+          kind: "ward",
+          offset: hpDelta !== 0 || blockDelta > 0 ? 1 : 0,
         })
       }
     }

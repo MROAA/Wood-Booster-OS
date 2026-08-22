@@ -906,6 +906,12 @@
   color: var(--hw-rune);
 }
 
+.hw-floating-number--ward {
+  color: var(--hw-rune);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 /* Promoted to the card's main visual - see the plan's card-redesign
    note: icon+number is the primary thing a card says, replacing what
    used to be a flavor glyph plus a full sentence underneath. */

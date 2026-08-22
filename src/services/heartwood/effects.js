@@ -109,6 +109,22 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   const defender = getUnit(state, targetId)
   if (!attacker || !defender) return state
 
+  // Ward: a stack that fully negates the next hit - a different tool
+  // from Block, which absorbs up to its own pool and lets overflow
+  // through. A Ward stack cancels the ENTIRE hit regardless of size,
+  // then is consumed, checked before any of the damage math below so
+  // Execute/Vulnerable never get a chance to matter against a warded
+  // hit either. No onHit/onDealDamage triggers fire, matching the
+  // existing rule that they only fire on a hit that actually landed.
+  const wards = defender.powers.ward || 0
+  if (wards > 0) {
+    const nextDefender = { ...defender, powers: { ...defender.powers, ward: wards - 1 } }
+    return {
+      ...setUnit(state, targetId, nextDefender),
+      log: [...state.log, `${nameOf(state, targetId)}'s Ward absorbs the hit completely.`],
+    }
+  }
+
   let amount = baseAmount + strengthOf(attacker) + woundedFuryBonus(attacker)
   if (weakOf(attacker) > 0) {
     amount = Math.floor(amount * 0.75)
