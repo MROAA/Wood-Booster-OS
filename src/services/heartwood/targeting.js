@@ -73,10 +73,25 @@ export function legalSingleTargets(state, card) {
   })
 }
 
+// A real bug caught via testing (Vampiric Bloom's engine verification,
+// 2026-08-21), not part of this session's original design: this only
+// ever swept the origin's row, never its column, despite the name. A
+// rook-pattern unit deployed at any of the 3 back-row slots - which is
+// most of the time, since only 1 of 4 deploy slots is forward - shares
+// a row with nothing but its own allies, since enemies only ever
+// occupy rows 0-1. piecesAtPositions only matches living ENEMIES, so
+// the pattern was silently finding zero targets on every attack unless
+// deployed at the single forward slot AND an enemy happened to also be
+// in row 1 - Rook's Charge was effectively non-functional most fights,
+// with no player-visible symptom beyond "the squad does less damage
+// than it should," easy to miss in an auto-resolving battle.
 export function rookLine(origin, grid) {
   const squares = []
   for (let col = 0; col < grid.cols; col++) {
     if (col !== origin.col) squares.push({ row: origin.row, col })
+  }
+  for (let row = 0; row < grid.rows; row++) {
+    if (row !== origin.row) squares.push({ row, col: origin.col })
   }
   return squares
 }
