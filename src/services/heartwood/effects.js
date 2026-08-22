@@ -81,6 +81,19 @@ function executeBonus(attacker, defender) {
   return defender.hp <= defender.maxHp * 0.3 ? stacks : 0
 }
 
+// Shatter: Execute's mirror, checked against the target's current
+// Block instead of its HP - a flat, stack-scaled bonus that only
+// applies while the target is still holding any Block, rewarding a
+// build that punishes a defensive unit for turtling up instead of
+// just grinding through its Block at the normal rate. Same "fixed,
+// readable number, not a dice roll" shape every conditional bonus in
+// the roster already follows.
+function shatterBonus(attacker, defender) {
+  const stacks = attacker.powers.shatter || 0
+  if (!stacks) return 0
+  return defender.block > 0 ? stacks : 0
+}
+
 function nameOf(state, id) {
   if (id === "player") return "You"
   return getUnit(state, id)?.name || "The enemy"
@@ -151,7 +164,7 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   if (vulnerableOf(defender) > 0) {
     amount = Math.floor(amount * 1.25)
   }
-  amount += executeBonus(attacker, defender)
+  amount += executeBonus(attacker, defender) + shatterBonus(attacker, defender)
   amount = Math.max(0, amount)
 
   const blocked = Math.min(defender.block, amount)
@@ -344,7 +357,7 @@ function applyBuff(state, who, id, amount) {
 // Real counterplay in the same spirit as Spacemonkey's AoE countering
 // Taunt-stacking, just a per-hit tool any enemy can carry instead of
 // a boss-only signature move.
-const SUNDERABLE_IDS = ["ward", "revive", "taunt", "execute", "strength"]
+const SUNDERABLE_IDS = ["ward", "revive", "taunt", "execute", "shatter", "strength"]
 
 function sunder(state, who) {
   const unit = getUnit(state, who)
