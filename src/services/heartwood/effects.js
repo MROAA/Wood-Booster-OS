@@ -122,10 +122,21 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   const blocked = Math.min(defender.block, amount)
   const overflow = amount - blocked
 
+  // Revive: a stack consumed exactly once, the moment a hit would
+  // otherwise drop the unit to 0 - it has to be caught right here,
+  // before the ordinary Math.max(0, ...) clamp, since that clamp is
+  // what "dead" means everywhere else in the engine (checkBattleEnd,
+  // every hp <= 0 filter). A unit already at 0 doesn't get a second
+  // revive off a follow-up hit - defender.hp > 0 guards that.
+  const rawHp = defender.hp - overflow
+  const revives = defender.powers.revive || 0
+  const revived = rawHp <= 0 && defender.hp > 0 && revives > 0
+
   const nextDefender = {
     ...defender,
     block: defender.block - blocked,
-    hp: Math.max(0, defender.hp - overflow),
+    hp: revived ? 1 : Math.max(0, rawHp),
+    powers: revived ? { ...defender.powers, revive: revives - 1 } : defender.powers,
   }
 
   let nextState = setUnit(state, targetId, nextDefender)
@@ -135,6 +146,7 @@ function dealDamage(state, actorId, targetId, baseAmount) {
     log: [
       ...state.log,
       `${nameOf(state, actorId)} deal ${amount} damage to ${nameOf(state, targetId)}${blocked > 0 ? ` (${blocked} blocked)` : ""}.`,
+      ...(revived ? [`${nameOf(state, targetId)} clings to life at 1 HP!`] : []),
     ],
   }
 

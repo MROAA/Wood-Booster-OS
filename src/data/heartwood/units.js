@@ -304,6 +304,20 @@ const BASE_UNITS = {
     // different status id, so no new engine code needed to give the
     // player its own source of the mechanic.
   }),
+  wraithbriar: unit("wraithbriar", "Wraithbriar", "root", 3, "tank", [
+    { type: "block", amount: 8 },
+    { type: "attack", amount: 6 },
+  ], {
+    // Revive (effects.js's dealDamage) - a genuinely new state, not
+    // another numeric stack on an existing formula: the first hit that
+    // would otherwise drop Wraithbriar to 0 instead leaves it at 1 HP
+    // and consumes the stack, once per fight. A real tension for
+    // whatever's attacking it - burst past 1 extra life in one hit, or
+    // the "kill" doesn't actually land - while staying fully
+    // deterministic (no revive chance, no coin flip) per Marc's "easy
+    // to play but hard to master".
+    passive: [{ type: "applyBuff", id: "revive", amount: 1 }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
