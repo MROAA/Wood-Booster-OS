@@ -389,6 +389,28 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
   return next
 }
 
+// rallyHeal (units.js, e.g. Sapkeeper): mends adjacent allies every
+// round instead of once at battle start (a one-time grant would be a
+// no-op - units are always at full HP when a fight starts). Re-derives
+// each unit's effective def from its own upgradeLevel every round,
+// same reason resolveRound's own actSide calls do, so an Upgraded
+// Sapkeeper's aura scales like everything else.
+function applyRallyHealTick(state) {
+  let next = state
+  for (const u of next.playerUnits) {
+    if (u.hp <= 0) continue
+    const def = unitDefWithUpgrade(UNITS[u.defId], u.upgradeLevel || 0)
+    if (!def.rallyHeal) continue
+    for (const other of next.playerUnits) {
+      if (other.id === u.id || other.hp <= 0) continue
+      if (kingAdjacent(u.pos, other.pos)) {
+        next = applyEffects(next, [{ type: "heal", amount: def.rallyHeal }], { actorId: other.id, targetId: other.id })
+      }
+    }
+  }
+  return next
+}
+
 // Resolves exactly one round: the whole player squad acts (in deployed
 // order), then the whole enemy squad acts (in formation order) - same
 // two-phase shape the turn-based engine already used, just with a
@@ -406,6 +428,9 @@ export function resolveRound(state) {
   next = tickPoison(next, next.playerUnits)
   if (next.phase !== "player") return next
   next = tickPoison(next, next.enemies)
+  if (next.phase !== "player") return next
+
+  next = applyRallyHealTick(next)
   if (next.phase !== "player") return next
 
   // Re-deriving each player unit's effective def from its own stored

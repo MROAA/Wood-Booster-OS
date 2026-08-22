@@ -84,6 +84,14 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // see autoBattleEngine.js's own special-case handling, same
     // precedent as Bulwark Standard's tauntHighestHp. { id, amount }.
     rallyAdjacent: opts.rallyAdjacent || null,
+    // rallyHeal: same Chebyshev-adjacency check as rallyAdjacent, but
+    // mends adjacent allies' HP every round instead of granting a
+    // power stack once at battle start - see autoBattleEngine.js's
+    // resolveRound, which ticks it alongside Poison every round
+    // (a one-time battle-start heal would be a no-op, since units
+    // always start a fight at full HP - the exact bug Mosswarden's
+    // Charm hit twice before landing on a repeating trigger instead).
+    rallyHeal: opts.rallyHeal || null,
     // Chain: a flat bonus hit on a different living enemy, fired only
     // when this unit's own single-target attack was the killing blow -
     // see autoBattleEngine.js's actSide for the full guard conditions.
@@ -520,6 +528,40 @@ const BASE_UNITS = {
     // "vanishing" from up to 2 hits' worth of danger instead of one.
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
   }),
+  ironbark: unit("ironbark", "Ironbark", "shield", 2, "tank", [
+    { type: "block", amount: 7 },
+    { type: "attack", amount: 4 },
+  ], {
+    // The first Tank ("kestää vahinkoa ja suojelee muita" - endures
+    // damage and protects others) - Taunt at battle start, same
+    // mechanism Stoneheart's passive already proved, on its own
+    // uncommon-tier unit rather than only existing at rare (Stoneheart)
+    // - a cheaper, earlier entry point into the same "draw the fire"
+    // role.
+    passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+  }),
+  briarblade: unit("briarblade", "Briarblade", "root", 3, "dps", [{ type: "attack", amount: 10 }], {
+    // The first Assassin ("iskee heikkoihin kohteisiin" - strikes weak
+    // targets) - Chain's second unit-level source (after Grimtusk),
+    // with a heavier single hit (10, vs Grimtusk's 9+9 split across two
+    // moves) to read as one devastating strike rather than a sustained
+    // beatdown - kill the frontmost, the blade is already moving on to
+    // whoever's left standing.
+    chainDamage: 5,
+  }),
+  sapkeeper: unit("sapkeeper", "Sapkeeper", "leaf", 2, "support", [
+    { type: "block", amount: 4 },
+    { type: "attack", amount: 3 },
+  ], {
+    // The first Healer/Support ("parantaa ja jakaa resursseja" - heals
+    // and shares resources) - rallyHeal (autoBattleEngine.js's
+    // resolveRound), mending Chebyshev-adjacent allies every round
+    // instead of a battle-start grant (which would be a no-op - see
+    // the field's own comment in the unit() helper). The first repeat-
+    // ing positional effect in the roster, versus Rally's one-time
+    // battle-start grants.
+    rallyHeal: 2,
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
@@ -549,6 +591,7 @@ function makeTier2(base) {
       ? base.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, 1.4) } : scaleEffect(p, 1.4)))
       : null,
     rallyAdjacent: base.rallyAdjacent ? scaleEffect(base.rallyAdjacent, 1.4) : null,
+    rallyHeal: base.rallyHeal ? Math.round(base.rallyHeal * 1.4) : null,
     chainDamage: base.chainDamage ? Math.round(base.chainDamage * 1.4) : null,
   }
 }
@@ -586,6 +629,7 @@ export function unitDefWithUpgrade(def, level) {
       ? def.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, factor) } : scaleEffect(p, factor)))
       : null,
     rallyAdjacent: def.rallyAdjacent ? scaleEffect(def.rallyAdjacent, factor) : null,
+    rallyHeal: def.rallyHeal ? Math.round(def.rallyHeal * factor) : null,
     chainDamage: def.chainDamage ? Math.round(def.chainDamage * factor) : null,
   }
 }
