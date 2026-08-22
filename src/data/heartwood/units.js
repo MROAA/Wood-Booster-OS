@@ -419,6 +419,17 @@ const BASE_UNITS = {
     // hardcoded to Strength.
     rallyAdjacent: { id: "ward", amount: 1 },
   }),
+  wraithcaller: unit("wraithcaller", "Wraithcaller", "moonGlyph", 3, "hybrid", [{ type: "attack", amount: 6 }], {
+    // A fifth mage, a life-drain caster - Lifesteal's first UNIT-level
+    // source (previously only Vampiric Bloom, a relic). Every other
+    // mechanic that shipped with both a relic and a unit source
+    // (Taunt/Stoneheart+Bulwark Standard, Execute/Duskclaw+Culling
+    // Strike, Ward/Thornguard+Aegis Ward) already had this pairing -
+    // Lifesteal was the one gap left. Same onDealDamage+heal shape
+    // Vampiric Bloom already proved, just as a self-targeting passive
+    // instead of a relic effect.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
