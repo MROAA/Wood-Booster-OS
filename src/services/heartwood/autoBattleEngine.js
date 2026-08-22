@@ -342,6 +342,34 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
           }
         }
 
+        // Spore Spread (units.js's sporeSpread): when this unit's own
+        // debuff step applies Poison, the same stack count also seeds
+        // onto a different living enemy - "sieniverkosto levittää
+        // efektejä" (a fungal network spreads effects), the Mycelist
+        // class's identity. Picks the lowest-HP other living enemy,
+        // same deterministic convention Chain already uses, rather
+        // than anything random.
+        if (
+          side === "player" &&
+          def.sporeSpread &&
+          acting.intent.type === "debuff" &&
+          acting.intent.id === "poison" &&
+          next.phase === "player"
+        ) {
+          const others = targetPool(next).filter((e) => e.hp > 0 && e.id !== targetId)
+          if (others.length) {
+            const spreadTarget = others.reduce((low, e) => (e.hp < low.hp ? e : low), others[0])
+            // target: "target" is required - applyBuff defaults an
+            // omitted target to ctx.actorId (self), which would poison
+            // Mycelist itself instead of the intended spread target
+            // (caught via testing before shipping, not guessed at).
+            next = applyEffects(next, [{ type: "applyBuff", id: "poison", target: "target", amount: acting.intent.amount }], {
+              actorId: unit.id,
+              targetId: spreadTarget.id,
+            })
+          }
+        }
+
         // Haste (units.js's haste): the unit acts a second time in the
         // same round instead of once - a structurally different kind
         // of "more damage" from Strength/Execute/Chain (all of which
