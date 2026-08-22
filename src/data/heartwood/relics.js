@@ -236,6 +236,20 @@ export const RELICS = {
     // relic already established.
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
   },
+  "bark-ward": {
+    id: "bark-ward",
+    name: "Bark Ward",
+    icon: "shield",
+    cost: RELIC_COST,
+    description: "Every unit grows a little bark at the start of each round.",
+    // Block's first repeating relic source - every existing Block
+    // source so far was either a unit's own movePattern step (reset
+    // every round like any other Block) or a one-time passive
+    // (The Emperor). Same turnStart addTrigger shape Mosswarden's
+    // Charm/Purifying Bloom already use, just granting Block instead
+    // of heal/cleanse.
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
+  },
 }
 
 export function relicPool() {

@@ -206,6 +206,28 @@ export const ENEMIES = {
     ],
   },
 
+  "emberwrack": {
+    id: "emberwrack",
+    name: "Emberwrack",
+    maxHp: 44,
+    art: "flame",
+    description: "It doesn't pick a target. It doesn't have to.",
+    // 12th mook, first non-boss AoE source - Spacemonkey's own AoE
+    // (autoBattleEngine.js) has always bypassed Taunt/shielding
+    // entirely, but only ever showed up in the final fight, so "stack
+    // the whole squad behind one taunting tank" stayed a safe answer
+    // for every solo mook along the way. This is the same real threat
+    // showing up earlier - priced the same way Spacemonkey's own AoE
+    // is (roughly half a single-target hit, since it can land on the
+    // whole squad at once).
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 10 },
+      { type: "aoe", amount: 5 },
+      { type: "block", amount: 8 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already
