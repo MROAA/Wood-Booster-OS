@@ -674,6 +674,10 @@ const BASE_UNITS = {
     { type: "attack", amount: 4 },
   ]),
   sparrowthorn: unit("sparrowthorn", "Sparrowthorn", "spark", 1, "dps", [{ type: "attack", amount: 6 }]),
+  duskwren: unit("duskwren", "Duskwren", "spark", 1, "dps", [
+    { type: "attack", amount: 5 },
+    { type: "attack", amount: 3 },
+  ]),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

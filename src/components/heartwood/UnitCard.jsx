@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
@@ -12,13 +13,20 @@ const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "s
 export default function UnitCard({ def, selected, disabled, onClick }) {
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   return (
-    <div
+    <motion.div
       className={`hw-card hw-card--${ROLE_ACCENT[def.role] || "skill"}`}
       data-disabled={!!disabled}
       data-selected={!!selected}
       data-portrait={!!def.image}
       onClick={!disabled ? onClick : undefined}
       title={def.name}
+      // A new shop offer or a freshly recruited bench card used to pop
+      // in instantly - same one-time entrance EnemyPieceCard.jsx
+      // already uses (fires once per stable key, so an existing card
+      // re-rendering after some OTHER state change never replays it).
+      initial={{ opacity: 0, scale: 0.85, y: -8 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="hw-card-head">
         <span className="hw-card-cost">{def.recruitCost ?? "★"}</span>
@@ -43,6 +51,6 @@ export default function UnitCard({ def, selected, disabled, onClick }) {
         {def.attackPattern !== "single" ? ` · ${def.attackPattern}` : ""}
         {def.haste ? " · haste" : ""}
       </div>
-    </div>
+    </motion.div>
   )
 }

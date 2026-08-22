@@ -56,6 +56,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "bramblehide" },
   { type: "shop" },
+  { type: "battle", enemyId: "emberwrack" },
+  { type: "shop" },
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
   { type: "battle", formationId: "sirens-bodyguard" },

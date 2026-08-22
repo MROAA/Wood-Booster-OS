@@ -108,6 +108,17 @@ export const ITEMS = {
     // squad-wide via the relic or baked into Willowmend's own kit.
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
   },
+  "stonebound-charm": {
+    id: "stonebound-charm",
+    name: "Stonebound Charm",
+    icon: "shield",
+    cost: 2,
+    description: "This unit grows a little bark at the start of each round.",
+    // Bark Ward (relics.js), single-target - lets a player put the
+    // repeating Block on specifically the unit standing in the front
+    // slot, instead of only squad-wide.
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
+  },
 }
 
 export function itemPool() {
