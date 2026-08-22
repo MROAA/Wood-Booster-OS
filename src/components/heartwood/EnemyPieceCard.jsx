@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { CardGlyph, formatPowerLabel } from "./cardArt"
 
 // Every status badge used to be plain text ("Poison 3", "Taunt 1") -
@@ -48,13 +49,24 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
   const powerEntries = Object.entries(enemy.powers || {}).filter(([, v]) => v)
 
   return (
-    <div
+    // Marc: "peli on liian yksinkertaisen näköinen se tarvii lisää
+    // animaatioita ja visuaalisuutta" (the game looks too simple, it
+    // needs more animations) - every piece used to pop onto the grid
+    // instantly with zero motion the moment a battle started. initial/
+    // animate only replay on mount (React key/position staying stable
+    // across a fight means this fires exactly once per piece, not on
+    // every HP-changing re-render), so this is a real entrance, not a
+    // per-hit flicker layered on top of the existing hit-flash.
+    <motion.div
       className="hw-piece"
       data-side={side}
       data-dead={dead}
       data-highlighted={highlighted}
       data-unit-id={enemy.id}
       onClick={!dead && onClick ? onClick : undefined}
+      initial={{ opacity: 0, scale: 0.6, y: -12 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
     >
       {shielded && !dead && (
         <span className="hw-badge hw-shield-badge" title="Shielded - ordinary attacks can't reach this piece">
@@ -100,6 +112,6 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
         </>
       )}
       {dead && <div className="hw-piece-dead">Defeated</div>}
-    </div>
+    </motion.div>
   )
 }
