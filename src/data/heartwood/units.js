@@ -695,6 +695,17 @@ const BASE_UNITS = {
   stoneknoll: unit("stoneknoll", "Stoneknoll", "shield", 2, "dps", [{ type: "attack", amount: 6 }], {
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
   }),
+  quarrywarden: unit("quarrywarden", "Quarrywarden", "shield", 2, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], {
+    // Rally (autoBattleEngine.js's startAutoBattle), same mechanism
+    // Ashenhorn/Glimmerward/Wispkeeper/Bloomcaller already established
+    // - a fourth id through that same door, granting Shatter to
+    // adjacent allies at battle start instead of Strength/Ward/Revive/
+    // Execute.
+    rallyAdjacent: { id: "shatter", amount: 2 },
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

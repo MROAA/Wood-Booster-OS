@@ -145,6 +145,17 @@ export const ITEMS = {
     // Feral Charm.
     effects: [{ type: "applyBuff", id: "taunt", amount: 1 }],
   },
+  "cracking-fist": {
+    id: "cracking-fist",
+    name: "Cracking Fist",
+    icon: "sword",
+    cost: 3,
+    description: "This unit strikes deeper against a target that's still braced.",
+    // Quarrybreak (relics.js), single-target - lets a player put
+    // Shatter specifically on their heaviest hitter instead of only
+    // squad-wide.
+    effects: [{ type: "applyBuff", id: "shatter", amount: 3 }],
+  },
 }
 
 export function itemPool() {

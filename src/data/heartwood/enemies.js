@@ -272,6 +272,24 @@ export const ENEMIES = {
     ],
   },
 
+  "stormroot": {
+    id: "stormroot",
+    name: "Stormroot",
+    maxHp: 38,
+    art: "root",
+    description: "It never settles into a rhythm you can plan around.",
+    // 15th mook - weightedRandom (Rune Warden/Mist Growler's own
+    // unpredictability), leaning on Weak instead of a signature gimmick
+    // of its own. A plain reinforcement for the run's variety, same
+    // reuse-only spirit as the player roster's own recent additions.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 8, weight: 2 },
+      { type: "debuff", id: "weak", amount: 2, target: "player", weight: 1 },
+      { type: "block", amount: 8, weight: 1 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already
