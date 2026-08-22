@@ -449,6 +449,44 @@ const BASE_UNITS = {
     // code - both debuffs already exist and the debuff-movePattern
     // shape already supports back-to-back entries.
   }),
+  wispkeeper: unit("wispkeeper", "Wispkeeper", "heart", 3, "support", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 4 },
+  ], {
+    // The first Cleric - reuses Rally (rallyAdjacent, first built for
+    // Ashenhorn's Strength aura, already reused for Glimmerward's Ward
+    // aura) a third time, granting Revive instead: adjacent allies get
+    // a second life at battle start, never Wispkeeper itself
+    // (rallyAdjacent explicitly skips self in every use so far) - a
+    // support that protects its neighbors, not its own hide. Zero new
+    // engine code.
+    rallyAdjacent: { id: "revive", amount: 1 },
+  }),
+  trueshot: unit("trueshot", "Trueshot", "spark", 3, "dps", [{ type: "attack", amount: 6 }], {
+    // The first Hunter - a precision tracker rather than a blaster:
+    // knight's-leap targeting (bypasses shielding, same as Knight's
+    // Leap) finds Execute's bonus damage against a wounded target
+    // wherever it's hiding on the field, instead of only whoever's
+    // frontmost. Combines two already-proven mechanisms (attackPattern
+    // + Execute) in one identity rather than adding a new one.
+    attackPattern: "knight",
+    passive: [{ type: "applyBuff", id: "execute", amount: 3 }],
+  }),
+  motley: unit("motley", "Motley", "moonGlyph", 2, "hybrid", [
+    { type: "attack", amount: 5 },
+    { type: "block", amount: 4 },
+    { type: "debuff", id: "weak", amount: 1, target: "target" },
+  ], {
+    // The first Jester, and the roster's first PLAYER unit with
+    // moveSelect: "weightedRandom" instead of "sequence" (previously
+    // only enemies/the boss rolled their next move rather than cycling
+    // it deterministically) - genuinely unpredictable WHICH of its 3
+    // moves comes up next, while each individual move still resolves
+    // through the same deterministic math as everything else (no dice
+    // roll on damage, just on move order) - chaos in sequencing, not
+    // in outcome, matching Marc's "easy to play but hard to master".
+    moveSelect: "weightedRandom",
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
