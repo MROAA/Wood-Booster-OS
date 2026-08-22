@@ -72,6 +72,12 @@ function intentToEffects(intent, attackPattern) {
       return [{ type: "applyBuff", target: "target", id: intent.id, amount: intent.amount }]
     case "sunder":
       return [{ type: "sunder", target: "target" }]
+    case "cleanse":
+      // Deliberately no `target: "target"` - cleanse acts on the unit's
+      // OWN negative statuses, and resolveWho already defaults an
+      // omitted target to ctx.actorId (self). Sunder needs "target"
+      // (the enemy); cleanse needs the opposite, so it stays omitted.
+      return [{ type: "cleanse" }]
     default:
       return []
   }

@@ -360,6 +360,28 @@ function sunder(state, who) {
   }
 }
 
+// Cleanse: Sunder's mirror, strips this unit's OWN first negative
+// status instead of an enemy's positive one - the roster's first
+// self-cleaning tool against Poison/Weak/Vulnerable/Stun, all of which
+// previously just had to be outlasted. Same "first match in priority
+// order, log a distinct no-op line if nothing to strip" shape as
+// Sunder, reusing the exact pattern rather than inventing a new one.
+const CLEANSABLE_IDS = ["stun", "poison", "weak", "vulnerable"]
+
+function cleanse(state, who) {
+  const unit = getUnit(state, who)
+  if (!unit) return state
+  const id = CLEANSABLE_IDS.find((k) => (unit.powers[k] || 0) > 0)
+  if (!id) {
+    return { ...state, log: [...state.log, `${nameOf(state, who)} has nothing to cleanse.`] }
+  }
+  const label = id.charAt(0).toUpperCase() + id.slice(1)
+  return {
+    ...setUnit(state, who, { ...unit, powers: { ...unit.powers, [id]: unit.powers[id] - 1 } }),
+    log: [...state.log, `${nameOf(state, who)} cleanses a stack of ${label}.`],
+  }
+}
+
 function addTrigger(state, who, trigger, effect) {
   const unit = getUnit(state, who)
   if (!unit) return state
@@ -443,6 +465,8 @@ function applyEffect(state, effect, ctx) {
       return applyBuff(state, who, effect.id, effect.amount)
     case "sunder":
       return sunder(state, who)
+    case "cleanse":
+      return cleanse(state, who)
     case "addTrigger":
       return addTrigger(state, who, effect.trigger, effect.effect)
     case "addCard":

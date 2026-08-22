@@ -35,6 +35,8 @@ function intentDisplay(intent) {
     return { icon: null, text: `${formatPowerLabel(intent.id)} +${intent.amount}`, className: "hw-intent--debuff" }
   if (intent.type === "sunder")
     return { icon: null, text: "Strips a positive status", className: "hw-intent--debuff" }
+  if (intent.type === "cleanse")
+    return { icon: null, text: "Cleanses a negative status", className: "hw-intent--heal" }
   return null
 }
 

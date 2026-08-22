@@ -663,6 +663,17 @@ const BASE_UNITS = {
     // around mending adjacent allies every round instead of just once.
     rallyHeal: 2,
   }),
+  // Cleanse (effects.js) - Sunder's mirror, the roster's first tool
+  // against its OWN negative statuses (Poison/Weak/Vulnerable/Stun)
+  // instead of an enemy's positive ones. Willowmend cleanses itself
+  // every cycle before healing and attacking - a real answer to a
+  // long Poison/Weak fight instead of just outlasting it.
+  willowmend: unit("willowmend", "Willowmend", "leaf", 2, "support", [
+    { type: "cleanse" },
+    { type: "heal", amount: 4 },
+    { type: "attack", amount: 4 },
+  ]),
+  sparrowthorn: unit("sparrowthorn", "Sparrowthorn", "spark", 1, "dps", [{ type: "attack", amount: 6 }]),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
