@@ -18,6 +18,9 @@ import {
   resolveBattleOutcome,
   chooseRelic,
   essenceForWin,
+  buyItem,
+  equipItem,
+  unequipItem,
 } from "../services/heartwood/runEngine"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
@@ -87,6 +90,18 @@ export default function HeartwoodBattle() {
     setRunState((current) => rerollShop(current))
   }
 
+  function handleBuyItem(itemDefId) {
+    setRunState((current) => buyItem(current, itemDefId))
+  }
+
+  function handleEquipItem(itemKey, benchKey, slotIndex) {
+    setRunState((current) => equipItem(current, itemKey, benchKey, slotIndex))
+  }
+
+  function handleUnequipItem(itemKey) {
+    setRunState((current) => unequipItem(current, itemKey))
+  }
+
   function handleRerollRelics() {
     setRunState((current) => rerollRelicOffers(current))
   }
@@ -138,7 +153,7 @@ export default function HeartwoodBattle() {
           <div className="hw-crew-banner">
             <img src={crewBanner} alt="Tommy, Aatos, Spacemonkey, and Fenrir" />
           </div>
-          <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood Trial</h1>
+          <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood</h1>
           <p className="hw-flavor">
             Deep inside the Boosterverse, Spacemonkey waits at the heart of the Heartwood. Choose who
             leads the squad in after him.
@@ -189,6 +204,9 @@ export default function HeartwoodBattle() {
           onUpgradeRelic={handleUpgradeRelic}
           onReforge={handleReforge}
           onRetrain={handleRetrain}
+          onBuyItem={handleBuyItem}
+          onEquipItem={handleEquipItem}
+          onUnequipItem={handleUnequipItem}
           onReroll={handleReroll}
           onContinue={handleLeaveShop}
           showIntro={showIntro}

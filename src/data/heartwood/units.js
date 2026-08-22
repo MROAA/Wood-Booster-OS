@@ -625,6 +625,29 @@ const BASE_UNITS = {
   ], {
     summon: { defId: "spirit-wolf" },
   }),
+  // Plain roster reinforcements - all 12 base classes are covered
+  // already, so these just add more bodies at common/uncommon tier
+  // rather than a new archetype, reusing Chain/Rally exactly as
+  // Grimtusk/Ashenhorn already established rather than inventing
+  // anything new.
+  foxfire: unit("foxfire", "Foxfire", "fox", 1, "dps", [
+    { type: "attack", amount: 4 },
+    { type: "attack", amount: 4 },
+  ], {
+    // Chain (autoBattleEngine.js's actSide), scaled down from
+    // Grimtusk's rare-tier 6 to a common-tier 3 - same finishing-blow
+    // payoff, proportionally smaller at a cheaper recruit cost.
+    chainDamage: 3,
+  }),
+  loamguard: unit("loamguard", "Loamguard", "root", 2, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], {
+    // Rally (autoBattleEngine.js's startAutoBattle), same mechanism
+    // Ashenhorn already established - grants adjacent allies Strength
+    // at battle start, not itself.
+    rallyAdjacent: { id: "strength", amount: 1 },
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

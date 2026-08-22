@@ -782,6 +782,34 @@
   100% { box-shadow: 0 0 0 0 transparent; transform: scale(1) rotate(0deg); }
 }
 
+/* Item slots (items.js, ITEM_SLOTS): 3 small pips under each bench
+   card - empty (dashed) vs filled (item icon). Reuses .hw-card--reforged's
+   existing pulse keyframe for the brief "something just landed here"
+   flash on equip, rather than a new animation. */
+.hw-item-slots {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.hw-item-slot {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px dashed var(--hw-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.hw-item-slot--filled {
+  border-style: solid;
+  border-color: var(--hw-ember);
+  opacity: 1;
+}
+
 .hw-piece-glyph {
   width: 32px;
   height: 32px;

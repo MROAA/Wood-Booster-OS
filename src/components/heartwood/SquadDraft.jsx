@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { UNITS, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
+import { ITEMS, ITEM_SLOTS, itemPool } from "../../data/heartwood/items"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
 import { REFORGE_COST, RETRAIN_COST } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
+import ItemCard from "./ItemCard"
 import { CardGlyph } from "./cardArt"
 
 // The shop node: recruit whoever you can afford, reroll the rest,
@@ -19,6 +21,9 @@ export default function SquadDraft({
   onUpgradeRelic,
   onReforge,
   onRetrain,
+  onBuyItem,
+  onEquipItem,
+  onUnequipItem,
   showIntro,
   onDismissIntro,
 }) {
@@ -29,6 +34,13 @@ export default function SquadDraft({
   const [justReforgedKey, setJustReforgedKey] = useState(null)
   const [justFusedKey, setJustFusedKey] = useState(null)
   const [showRetrain, setShowRetrain] = useState(false)
+  // Equip flow: click a bag item to select it, then click a slot pip on
+  // any bench unit to equip it there (or click a filled pip directly,
+  // with nothing selected, to unequip) - the same "click source, click
+  // target" gesture FormationScreen.jsx already teaches for placing a
+  // unit on the battlefield.
+  const [selectedItemKey, setSelectedItemKey] = useState(null)
+  const [justEquippedSlot, setJustEquippedSlot] = useState(null)
   const otherCommanders = Object.values(CHARACTERS).filter((c) => c.id !== runState.characterId)
   const prevBenchKeysRef = useRef(new Set(runState.bench.map((e) => e.key)))
 
@@ -56,6 +68,24 @@ export default function SquadDraft({
     onReforge(benchKey)
     setJustReforgedKey(benchKey)
     setTimeout(() => setJustReforgedKey((cur) => (cur === benchKey ? null : cur)), 500)
+  }
+
+  function handleBagItemClick(itemKey) {
+    setSelectedItemKey((cur) => (cur === itemKey ? null : itemKey))
+  }
+
+  function handleSlotClick(benchKey, slotIndex, occupiedByKey) {
+    // selectedItemKey can legitimately be 0 (an item's own key counter
+    // starts at 0, same as a bench key's own counter) - a truthy check
+    // would silently treat "item 0 selected" as "nothing selected."
+    if (selectedItemKey !== null) {
+      onEquipItem(selectedItemKey, benchKey, slotIndex)
+      setSelectedItemKey(null)
+      setJustEquippedSlot(`${benchKey}-${slotIndex}`)
+      setTimeout(() => setJustEquippedSlot((cur) => (cur === `${benchKey}-${slotIndex}` ? null : cur)), 500)
+    } else if (occupiedByKey != null) {
+      onUnequipItem(occupiedByKey)
+    }
   }
 
   return (
@@ -198,6 +228,51 @@ export default function SquadDraft({
       </div>
 
       <div className="hw-section-label" style={{ marginTop: 20 }}>
+        Items
+      </div>
+      <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
+        Gear for a specific unit - buy, then click a bag item and a slot below to equip it. Free to move around
+        afterward.
+      </p>
+      <div className="hw-select-grid hw-deck-preview">
+        {itemPool().map((def) => (
+          <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
+        ))}
+      </div>
+
+      {runState.items.length > 0 && (
+        <>
+          <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 10, marginBottom: 4 }}>
+            Your items ({runState.items.filter((it) => it.equippedTo === null).length} unequipped)
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {runState.items
+              .filter((it) => it.equippedTo === null)
+              .map((it) => {
+                const def = ITEMS[it.defId]
+                return (
+                  <span
+                    key={it.key}
+                    className="hw-badge"
+                    style={{
+                      cursor: "pointer",
+                      gap: 6,
+                      color: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
+                      borderColor: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
+                    }}
+                    title={def?.description}
+                    onClick={() => handleBagItemClick(it.key)}
+                  >
+                    <CardGlyph name={def?.icon} className="hw-intent-glyph" />
+                    {def?.name}
+                  </span>
+                )
+              })}
+          </div>
+        </>
+      )}
+
+      <div className="hw-section-label" style={{ marginTop: 20 }}>
         Your bench ({runState.bench.length})
       </div>
       <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
@@ -218,6 +293,7 @@ export default function SquadDraft({
           // target) and only once you own 2+, so a single common unit
           // you happen to own alone doesn't clutter every bench card.
           const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
+          const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
           return (
             <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <div
@@ -226,6 +302,24 @@ export default function SquadDraft({
                 }
               >
                 <UnitCard def={def} disabled />
+              </div>
+              <div className="hw-item-slots" title="Item slots - click a bag item above, then click a slot to equip it">
+                {Array.from({ length: ITEM_SLOTS }, (_, slotIndex) => {
+                  const equipped = equippedItems.find((it) => it.slotIndex === slotIndex)
+                  const itemDef = equipped ? ITEMS[equipped.defId] : null
+                  return (
+                    <span
+                      key={slotIndex}
+                      className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
+                        justEquippedSlot === `${entry.key}-${slotIndex}` ? " hw-card--reforged" : ""
+                      }`}
+                      title={itemDef ? `${itemDef.name} - click to unequip` : "Empty slot"}
+                      onClick={() => handleSlotClick(entry.key, slotIndex, equipped ? equipped.key : null)}
+                    >
+                      {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : null}
+                    </span>
+                  )
+                })}
               </div>
               {copiesOwned >= 2 && (
                 <div

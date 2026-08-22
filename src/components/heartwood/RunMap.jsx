@@ -27,7 +27,7 @@ export default function RunMap({ runState, onContinue }) {
 
   return (
     <div className="hw-intro">
-      <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood Trial</h1>
+      <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood</h1>
       <p className="hw-flavor">
         {character.name} presses deeper into the Heartwood. {runState.runHp} / {runState.runMaxHp} HP.
       </p>
