@@ -24,6 +24,20 @@ export const CHARACTERS = {
     tagline: "Agile and quick - always looking for the fast opening.",
     description: "Cat's Reflexes: every unit in the squad strikes a little harder.",
     startEffects: [{ type: "draw", amount: 1 }],
+    // Marc: "haluan että squadissa on päähahmo, se commander on
+    // pelattava hahmo pelissä... jota voi synergisoida buildilla ja
+    // itemeillä... jokaisella commanderilla on oma uniikki skill
+    // settinsä" (I want the squad to have a main character, the
+    // Commander should be a playable character in the game, one that
+    // can synergize with the build and items, and each Commander has
+    // its own unique skill set) - the Commander now deploys as a real
+    // 5th unit (autoBattleEngine.js's COMMANDER_POSITION), reusing the
+    // exact movePattern/attackPattern/haste/passive vocabulary every
+    // recruited unit already uses, equippable with items the same way.
+    // Tommy's own kit is Haste - a second, faster hit every round,
+    // matching "always looking for the fast opening" directly.
+    movePattern: [{ type: "attack", amount: 6 }],
+    haste: true,
     // +1 Strength left Tommy strictly weaker than Fenrir on paper once
     // Fenrir got a second effect layered on top of the same +1 baseline
     // (see Fenrir's note below) - confirmed as a real gap, not just
@@ -44,6 +58,14 @@ export const CHARACTERS = {
     startEffects: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } },
     ],
+    // Block, then heal, then attack - the tankiest Commander (66 HP,
+    // highest of the 4), matching "built to outlast a fight" as a real
+    // fighting unit, not just a passive.
+    movePattern: [
+      { type: "block", amount: 5 },
+      { type: "heal", amount: 4 },
+      { type: "attack", amount: 4 },
+    ],
     squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } }],
   },
   fenrir: {
@@ -54,6 +76,13 @@ export const CHARACTERS = {
     tagline: "Dangerous when hurt - the fight gets worse for you the longer it goes.",
     description: "Wounded Fury: every unit hits harder, and harder still below 50% HP.",
     startEffects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+    // A single hard hit, no gimmick of its own - Fenrir's own
+    // squadPassive already grants every deployed unit Wounded Fury
+    // (himself included, once he's a real deployed unit), so his kit
+    // doesn't need to duplicate it. Lowest HP of the 4 (56) on purpose:
+    // the glass-cannon shape that makes his own "worse the longer it
+    // goes" identity bite on himself too, not just his squad.
+    movePattern: [{ type: "attack", amount: 8 }],
     // Wounded Fury alone is a conditional bonus (only pays off once a
     // unit is already hurt), so in a long multi-round autobattle it
     // barely contributed compared to Aatos's unconditional every-round
@@ -75,6 +104,15 @@ export const CHARACTERS = {
     tagline: "Careful and cunning - never takes a hit it didn't plan for.",
     description: "Fox's Guard: every unit gains Block at the start of each round.",
     startEffects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+    // Block then strike, carrying its own Shatter (effects.js) - "never
+    // takes a hit it didn't plan for" reads as exploiting an opening
+    // rather than raw force, the same identity Shatter already gives
+    // Stoneknoll/Cragfang/Quarrywarden.
+    movePattern: [
+      { type: "block", amount: 4 },
+      { type: "attack", amount: 5 },
+    ],
+    passive: [{ type: "applyBuff", id: "shatter", amount: 2 }],
     // The 4th Commander, a defensive archetype none of the other 3
     // cover directly: Tommy is flat unconditional offense, Aatos is
     // unconditional recovery (heal), Fenrir is offense that gets better

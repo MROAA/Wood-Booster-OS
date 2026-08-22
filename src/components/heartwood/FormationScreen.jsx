@@ -1,5 +1,6 @@
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
@@ -13,6 +14,12 @@ const SLOT_POSITIONS = [
   { row: 2, col: 2 },
   { row: 1, col: 1 },
 ]
+
+// The Commander's own fixed slot - autoBattleEngine.js's own
+// COMMANDER_POSITION, duplicated here for the same reason
+// SLOT_POSITIONS already is (no shared export between the engine and
+// this preview).
+const COMMANDER_POSITION = { row: 1, col: 0 }
 
 function slotIndexAt(row, col) {
   return SLOT_POSITIONS.findIndex((p) => p.row === row && p.col === col)
@@ -45,10 +52,18 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       const slotIndex = slotIndexAt(row, col)
       let content = null
 
+      const isCommanderSlot = row === COMMANDER_POSITION.row && col === COMMANDER_POSITION.col
+
       if (enemyPiece) {
         const def = ENEMIES[enemyPiece.defId]
         const previewEnemy = { id: `preview-${row}-${col}`, name: def.name, hp: def.maxHp, maxHp: def.maxHp, block: 0, intent: null, powers: {} }
         content = <EnemyPieceCard enemy={previewEnemy} art={def.art} />
+      } else if (isCommanderSlot) {
+        // The Commander always deploys here - not something the player
+        // assigns/reorders, so it's shown but never clickable.
+        const commander = CHARACTERS[runState.characterId]
+        const previewCommander = { id: "commander-preview", name: commander?.name, hp: commander?.maxHp, maxHp: commander?.maxHp, block: 0, intent: null, powers: {} }
+        content = <EnemyPieceCard enemy={previewCommander} art={commander?.art} side="player" />
       } else if (slotIndex !== -1) {
         const benchKey = runState.deployed[slotIndex]
         const entry = benchKey !== null ? runState.bench.find((e) => e.key === benchKey) : null
@@ -121,7 +136,12 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         ))}
       </div>
 
-      <button className="hw-end-turn" disabled={deployedCount === 0} onClick={onStartBattle} style={{ marginTop: 16 }}>
+      {/* No longer gated on deployedCount > 0 - the Commander is
+          always a 5th deployed unit now (Marc: "peli alkaa siitä että
+          commander on yksin" - the game starts with the Commander
+          alone), so a squad of zero recruited units is a real, valid
+          state, not an empty one. */}
+      <button className="hw-end-turn" onClick={onStartBattle} style={{ marginTop: 16 }}>
         Start Battle
       </button>
     </div>

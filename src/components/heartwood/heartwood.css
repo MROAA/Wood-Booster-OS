@@ -556,7 +556,14 @@
    different but analogous distinction (spend vs already-owned). */
 .hw-market-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* Marc: "haluan että your squadin alas ja kauppaan kuuluvat ylös...
+     market ja items ovat ylhäällä your squad alhaalla" (I want Your
+     Squad at the bottom and Market/Items things at the top - Market
+     and Items up top, Your Squad below) - was a side-by-side 2-column
+     layout, now a single stacked column instead. Market comes first
+     in the markup already, so this alone puts it on top with Your
+     Squad below, no reordering needed elsewhere. */
+  grid-template-columns: 1fr;
   gap: 24px;
   margin-top: 18px;
   align-items: start;
@@ -590,12 +597,6 @@
 
 .hw-panel--squad .hw-panel-title {
   color: var(--hw-moss);
-}
-
-@media (max-width: 860px) {
-  .hw-market-columns {
-    grid-template-columns: 1fr;
-  }
 }
 
 .hw-select-grid {

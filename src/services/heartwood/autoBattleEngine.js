@@ -34,6 +34,16 @@ const SLOT_POSITIONS = [
   { row: 1, col: 1 },
 ]
 
+// The Commander's own fixed 5th slot (autoBattleEngine.js's
+// startAutoBattle) - separate from the 4 recruited-unit slots above,
+// always the same square, not something the player assigns/reorders.
+// The other empty forward corner (row 1, col 0/2 are the only cells
+// SLOT_POSITIONS doesn't already use) - isShielded (targeting.js) is
+// already column-generic, so this correctly shields whatever recruit
+// ends up at (row 2, col 0) the same way (row 1, col 1) already
+// shields (row 2, col 1), with zero changes needed there.
+const COMMANDER_POSITION = { row: 1, col: 0 }
+
 function freshUnit(overrides) {
   return { block: 0, powers: {}, triggers: [], ...overrides }
 }
@@ -142,8 +152,10 @@ export function startAutoBattle(
   relicIds = [],
   commanderRank = 0,
   relicLevels = {},
+  commanderItemIds = [],
 ) {
   const formation = resolveFormation(enemyFormationOrId)
+  const character = CHARACTERS[characterId]
 
   const enemies = formation.pieces.map((piece, i) => {
     const def = ENEMIES[piece.defId]
@@ -165,7 +177,7 @@ export function startAutoBattle(
   // is already the boosted version, with no separate "is this unit
   // upgraded" branch anywhere else in the engine.
   const effectiveDefs = {}
-  const playerUnits = deployedUnits.map((entry, i) => {
+  const recruitedUnits = deployedUnits.map((entry, i) => {
     const defId = typeof entry === "string" ? entry : entry.defId
     const upgradeLevel = typeof entry === "string" ? 0 : entry.upgradeLevel || 0
     const itemIds = typeof entry === "string" ? [] : entry.itemIds || []
@@ -186,6 +198,29 @@ export function startAutoBattle(
     })
   })
 
+  // The Commander deploys as a real 5th unit, always at its own fixed
+  // slot - not recruited, not something the player assigns, but a
+  // full participant in the same passive/item/turn loops every
+  // recruited unit goes through (see the per-unit loop just below).
+  // `defId: null` deliberately never resolves against UNITS - it has
+  // its own def (`character`) instead, same fields (movePattern/
+  // attackPattern/haste/passive) as any unit.js entry.
+  effectiveDefs.commander = character
+  const commanderUnit = freshUnit({
+    id: "commander",
+    defId: null,
+    itemIds: commanderItemIds,
+    name: character.name,
+    art: character.art,
+    hp: character.maxHp,
+    maxHp: character.maxHp,
+    pos: COMMANDER_POSITION,
+    moveIndex: 0,
+    intent: computeIntent(character, 0),
+  })
+
+  const playerUnits = [...recruitedUnits, commanderUnit]
+
   let state = {
     round: 1,
     phase: "player",
@@ -194,6 +229,11 @@ export function startAutoBattle(
     enemies,
     stats: {},
     roundEvents: [],
+    // Cached so every later per-round def lookup (resolveRound's own
+    // actSide call, applyRallyHealTick) can resolve the Commander's
+    // own def without a UNITS[defId] lookup - the Commander's
+    // `defId` is deliberately null since it isn't in UNITS at all.
+    commanderDef: character,
     log: [`The fight begins. ${formation.name || enemies[0]?.name || "The enemy"} stands ready.`],
   }
 
@@ -291,7 +331,6 @@ export function startAutoBattle(
   // Aatos vs. Fenrir actually matter in the autobattler. Scaled by
   // commanderRank (characters.js's Rank-Up, a run-long Essence sink
   // mirroring units.js's per-unit Upgrade) before it's applied.
-  const character = CHARACTERS[characterId]
   const squadPassive = commanderPassiveWithRank(character, commanderRank)
   if (squadPassive.length) {
     for (const u of state.playerUnits) {
@@ -500,7 +539,7 @@ function applyRallyHealTick(state) {
   let next = state
   for (const u of next.playerUnits) {
     if (u.hp <= 0) continue
-    const def = unitDefWithUpgrade(UNITS[u.defId], u.upgradeLevel || 0)
+    const def = u.id === "commander" ? next.commanderDef : unitDefWithUpgrade(UNITS[u.defId], u.upgradeLevel || 0)
     if (!def.rallyHeal) continue
     for (const other of next.playerUnits) {
       if (other.id === u.id || other.hp <= 0) continue
@@ -545,7 +584,13 @@ export function resolveRound(state) {
   // two copies of the same base unit at different upgrade levels stay
   // distinct, and next-round intent recomputation (further down in
   // actSide) sees the boosted movePattern amounts, not the base ones.
-  next = actSide(next, next.playerUnits, (u) => unitDefWithUpgrade(UNITS[u.defId], u.upgradeLevel || 0), (s) => s.enemies, "player")
+  next = actSide(
+    next,
+    next.playerUnits,
+    (u) => (u.id === "commander" ? next.commanderDef : unitDefWithUpgrade(UNITS[u.defId], u.upgradeLevel || 0)),
+    (s) => s.enemies,
+    "player",
+  )
   if (next.phase !== "player") return next
 
   next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0 } : e)) }

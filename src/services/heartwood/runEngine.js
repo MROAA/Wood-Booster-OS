@@ -12,7 +12,7 @@
 // still points at the right unit (or clears itself) no matter how the
 // bench array reshuffles underneath it.
 
-import { UNITS, STARTER_UNITS, TIER2_SUFFIX, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
+import { UNITS, TIER2_SUFFIX, upgradeCost } from "../../data/heartwood/units"
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
 import { ITEMS, ITEM_SLOTS } from "../../data/heartwood/items"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
@@ -178,13 +178,19 @@ function fuseAll(bench, deployed, items, nextKey) {
   return state
 }
 
+// Marc: "peli alkaa siitä että commander on yksin, ja siitä
+// rakennetaan ostamalla hahmoja ja itemeitä" (the game starts with the
+// Commander alone, and you build from there by buying units and
+// items) - the bench starts empty now that the Commander is a real
+// 5th deployed unit (autoBattleEngine.js's COMMANDER_POSITION) capable
+// of fighting solo. STARTER_UNITS is no longer used to pre-seed a
+// squad, only as the shop's own recruit pool.
 export function startRun(characterId) {
-  const bench = STARTER_UNITS.map((defId, i) => ({ key: i, defId, upgradeLevel: 0 }))
   return {
     characterId,
-    bench,
-    benchKeyCounter: bench.length,
-    deployed: Array.from({ length: DEPLOY_SLOTS }, (_, i) => (i < bench.length ? bench[i].key : null)),
+    bench: [],
+    benchKeyCounter: 0,
+    deployed: Array.from({ length: DEPLOY_SLOTS }, () => null),
     essence: START_ESSENCE,
     path: RUN_PATH,
     nodeIndex: 0,
@@ -219,25 +225,6 @@ export function recruitUnit(runState, unitDefId) {
     items: fused.items,
     benchKeyCounter: fused.nextKey,
     shopOffers: runState.shopOffers.filter((id) => id !== unitDefId),
-  }
-}
-
-// A second Essence sink alongside recruiting/relics - Marc: "i need to
-// make a build out of relics/upgrades and stuff then the game
-// proceeds". Spends Essence to permanently strengthen one owned unit
-// (up to UPGRADE_MAX_LEVEL stacks, cost rising per level), independent
-// of and stacking with Fusion - see units.js's unitDefWithUpgrade for
-// how the bonus is actually applied at battle start.
-export function upgradeUnit(runState, benchKey) {
-  const entry = runState.bench.find((e) => e.key === benchKey)
-  if (!entry) return runState
-  const level = entry.upgradeLevel || 0
-  const cost = upgradeCost(level)
-  if (cost === null || runState.essence < cost) return runState
-  return {
-    ...runState,
-    essence: runState.essence - cost,
-    bench: runState.bench.map((e) => (e.key === benchKey ? { ...e, upgradeLevel: level + 1 } : e)),
   }
 }
 
@@ -309,7 +296,11 @@ export function effectiveItemSlots(runState) {
 // FormationScreen.jsx's deploy slots already do.
 export function equipItem(runState, itemKey, benchKey, slotIndex) {
   const item = runState.items.find((it) => it.key === itemKey)
-  if (!item || slotIndex < 0 || slotIndex >= effectiveItemSlots(runState) || !runState.bench.some((e) => e.key === benchKey)) return runState
+  // "commander" is a fixed sentinel key, not a real bench entry - the
+  // Commander is always part of the squad, never recruited, so it has
+  // no bench row to look up.
+  const validTarget = benchKey === "commander" || runState.bench.some((e) => e.key === benchKey)
+  if (!item || slotIndex < 0 || slotIndex >= effectiveItemSlots(runState) || !validTarget) return runState
   return {
     ...runState,
     items: runState.items.map((it) => {
@@ -329,8 +320,8 @@ export function unequipItem(runState, itemKey) {
   }
 }
 
-// A third Essence sink, spent on the Commander instead of a bench unit
-// - same shape as upgradeUnit above (rising cost, capped levels), see
+// An Essence sink spent on the Commander instead of a bench unit -
+// same rising-cost, capped-levels shape upgradeRelic below uses, see
 // characters.js's commanderRankCost/commanderPassiveWithRank.
 export function rankUpCommander(runState) {
   const rank = runState.commanderRank || 0
@@ -361,13 +352,12 @@ export function retrainCommander(runState, newCharacterId) {
   }
 }
 
-// A fourth Essence sink: spend on an owned relic instead of a bench
-// unit or the Commander - same cost curve as Unit Upgrade (units.js's
-// upgradeCost/UPGRADE_MAX_LEVEL, reused directly rather than a near-
-// identical duplicate), scaling that relic's effect via
-// autoBattleEngine.js's per-relic-level factor. Only affects a relic
-// you already own - relics.js's rollRelics already prevents owning a
-// duplicate, so relicId here always maps to at most one entry.
+// An Essence sink: spend on an owned relic - a rising-cost, capped-
+// levels curve (units.js's upgradeCost/UPGRADE_MAX_LEVEL), scaling
+// that relic's effect via autoBattleEngine.js's per-relic-level
+// factor. Only affects a relic you already own - relics.js's
+// rollRelics already prevents owning a duplicate, so relicId here
+// always maps to at most one entry.
 export function upgradeRelic(runState, relicId) {
   if (!runState.relics.includes(relicId)) return runState
   const level = runState.relicLevels[relicId] || 0
@@ -418,6 +408,7 @@ export function startFormationBattle(runState) {
       upgradeLevel: entry.upgradeLevel || 0,
       itemIds: runState.items.filter((it) => it.equippedTo === entry.key).map((it) => it.defId),
     }))
+  const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
   const battle = startAutoBattle(
     runState.characterId,
     deployed,
@@ -425,6 +416,7 @@ export function startFormationBattle(runState) {
     runState.relics,
     runState.commanderRank || 0,
     runState.relicLevels || {},
+    commanderItemIds,
   )
   return { ...runState, phase: "battle", battle }
 }
