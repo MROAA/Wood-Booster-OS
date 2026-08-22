@@ -487,6 +487,39 @@ const BASE_UNITS = {
     // in outcome, matching Marc's "easy to play but hard to master".
     moveSelect: "weightedRandom",
   }),
+  thornwarden: unit("thornwarden", "Thornwarden", "root", 2, "dps", [{ type: "attack", amount: 6 }], {
+    // The first Bruiser ("saa voimaa vahingoittumisesta" - gains power
+    // from being damaged) - WoundedFury's first UNIT-level source
+    // (previously only Fenrir's Commander squadPassive granted it).
+    // Unconditional out the gate like every WoundedFury carrier, but
+    // only actually pays off once Thornwarden is already hurt (below
+    // 50% HP) - a real risk/reward tank-adjacent DPS identity, not
+    // just a flat number.
+    passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+  }),
+  bloomcaller: unit("bloomcaller", "Bloomcaller", "leaf", 3, "support", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], {
+    // The first Buffer ("kasvattaa liittolaisten voimaa" - grows
+    // allies' power) - reuses Rally a fourth time, but grants Execute
+    // to adjacent allies instead of Strength (Ashenhorn) or Ward
+    // (Glimmerward)/Revive (Wispkeeper) - a fresh combination of two
+    // already-proven mechanisms rather than a new one. Whoever stands
+    // next to Bloomcaller finishes wounded enemies faster.
+    rallyAdjacent: { id: "execute", amount: 2 },
+  }),
+  mosswalker: unit("mosswalker", "Mosswalker", "moonGlyph", 2, "support", [{ type: "attack", amount: 4 }], {
+    // The first Evasion class ("väistelee ja katoaa taistelusta" -
+    // dodges and vanishes from battle) - deliberately NOT a dodge-
+    // chance/miss-chance roll (Marc's own "easy to play but hard to
+    // master" - a coin flip isn't a build decision). Ward already
+    // means exactly "this hit doesn't land" in fully deterministic
+    // terms, so Mosswalker grants itself 2 stacks at battle start -
+    // the third unit-level Ward source (after Thornguard/Glimmerward),
+    // "vanishing" from up to 2 hits' worth of danger instead of one.
+    passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
