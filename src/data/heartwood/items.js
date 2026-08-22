@@ -96,6 +96,18 @@ export const ITEMS = {
       },
     ],
   },
+  "cleansing-draught": {
+    id: "cleansing-draught",
+    name: "Cleansing Draught",
+    icon: "leaf",
+    cost: 2,
+    description: "This unit shakes off a lingering ailment at the start of each round.",
+    // Purifying Bloom (relics.js), single-target - lets a player put
+    // Cleanse specifically on whichever unit is most likely to eat a
+    // debuff (a frontline tank, say) instead of only getting it
+    // squad-wide via the relic or baked into Willowmend's own kit.
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
+  },
 }
 
 export function itemPool() {
