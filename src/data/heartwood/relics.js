@@ -263,6 +263,19 @@ export const RELICS = {
     // the unit's own current HP each hit, no new engine work needed.
     effects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
   },
+  "quarrybreak": {
+    id: "quarrybreak",
+    name: "Quarrybreak",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Every unit strikes deeper against a target that's still braced.",
+    // Shatter's (effects.js's shatterBonus) first squad-wide source -
+    // Stoneknoll carries it as a unit passive already, this is the
+    // relic version every mechanic in the roster eventually gets.
+    // Plain applyBuff - the power is just a flag checked against the
+    // target's current Block each hit, no new engine work needed.
+    effects: [{ type: "applyBuff", id: "shatter", amount: 3 }],
+  },
 }
 
 export function relicPool() {
