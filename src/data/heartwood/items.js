@@ -79,6 +79,23 @@ export const ITEMS = {
     // a real placement/build decision, not just another flat stat.
     effects: [{ type: "applyBuff", id: "execute", amount: 3 }],
   },
+  "chilling-grip": {
+    id: "chilling-grip",
+    name: "Chilling Grip",
+    icon: "moonGlyph",
+    cost: 2,
+    description: "Whatever this unit strikes hits softer after, in return.",
+    // Frostbrand (relics.js), single-target - Weak's first item-level
+    // source, closing the same "every mechanic gets both a relic and a
+    // more targeted source" pattern Execute/Poison/Ward already have.
+    effects: [
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 },
+      },
+    ],
+  },
 }
 
 export function itemPool() {

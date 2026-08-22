@@ -194,97 +194,99 @@ export default function SquadDraft({
         </div>
       )}
 
-      <p className="hw-flavor" style={{ marginTop: 14 }}>
-        Recruit who you can afford, or move on.
-      </p>
-
-      <div className="hw-section-label">For sale</div>
-      <div className="hw-select-grid hw-deck-preview">
-        {offers.map((def) => {
-          const owned = runState.bench.filter((e) => e.defId === def.id).length
-          return (
-            <div key={def.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <UnitCard def={def} disabled={runState.essence < def.recruitCost} onClick={() => onRecruit(def.id)} />
-              {owned >= 2 && (
-                <div
-                  className="hw-badge"
-                  style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
-                  title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
-                >
-                  Fuses now! ({owned}/3 owned)
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
-        <button
-          className="hw-move-btn"
-          disabled={runState.essence < runState.rerollCost || offers.length === 0}
-          onClick={onReroll}
-        >
-          Reroll ({runState.rerollCost} Essence)
-        </button>
-        <button className="hw-end-turn" onClick={onContinue}>
-          Continue
-        </button>
-      </div>
-
-      <div className="hw-section-label" style={{ marginTop: 20 }}>
-        Items
-      </div>
-      <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
-        Gear for a specific unit - buy, then click a bag item and a slot below to equip it. Free to move around
-        afterward.
-      </p>
-      <div className="hw-select-grid hw-deck-preview">
-        {itemPool().map((def) => (
-          <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
-        ))}
-      </div>
-
-      {runState.items.length > 0 && (
-        <>
-          <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 10, marginBottom: 4 }}>
-            Your items ({runState.items.filter((it) => it.equippedTo === null).length} unequipped)
+      <div className="hw-market-columns">
+        <div className="hw-panel hw-panel--market">
+          <div className="hw-panel-title">Market - spend Essence here</div>
+          <p className="hw-flavor" style={{ marginTop: 4 }}>
+            Recruit who you can afford, or move on.
           </p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {runState.items
-              .filter((it) => it.equippedTo === null)
-              .map((it) => {
-                const def = ITEMS[it.defId]
-                return (
-                  <span
-                    key={it.key}
-                    className="hw-badge"
-                    style={{
-                      cursor: "pointer",
-                      gap: 6,
-                      color: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
-                      borderColor: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
-                    }}
-                    title={def?.description}
-                    onClick={() => handleBagItemClick(it.key)}
-                  >
-                    <CardGlyph name={def?.icon} className="hw-intent-glyph" />
-                    {def?.name}
-                  </span>
-                )
-              })}
-          </div>
-        </>
-      )}
 
-      <div className="hw-section-label" style={{ marginTop: 20 }}>
-        Your bench ({runState.bench.length})
-      </div>
-      <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
-        Spend Essence to permanently strengthen a unit - stacks with fusion, up to {UPGRADE_MAX_LEVEL} times each.
-      </p>
-      <div className="hw-select-grid hw-deck-preview">
-        {runState.bench.map((entry) => {
+          <div className="hw-section-label">For sale</div>
+          <div className="hw-select-grid hw-deck-preview">
+            {offers.map((def) => {
+              const owned = runState.bench.filter((e) => e.defId === def.id).length
+              return (
+                <div key={def.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <UnitCard def={def} disabled={runState.essence < def.recruitCost} onClick={() => onRecruit(def.id)} />
+                  {owned >= 2 && (
+                    <div
+                      className="hw-badge"
+                      style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
+                      title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
+                    >
+                      Fuses now! ({owned}/3 owned)
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          <div style={{ marginTop: 6 }}>
+            <button
+              className="hw-move-btn"
+              disabled={runState.essence < runState.rerollCost || offers.length === 0}
+              onClick={onReroll}
+            >
+              Reroll ({runState.rerollCost} Essence)
+            </button>
+          </div>
+
+          <div className="hw-section-label" style={{ marginTop: 20 }}>
+            Items
+          </div>
+          <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
+            Gear for a specific unit - buy, then equip it from the bag on the right.
+          </p>
+          <div className="hw-select-grid hw-deck-preview">
+            {itemPool().map((def) => (
+              <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
+            ))}
+          </div>
+        </div>
+
+        <div className="hw-panel hw-panel--squad">
+          <div className="hw-panel-title">Your Squad - already owned</div>
+
+          {runState.items.length > 0 && (
+            <>
+              <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 4, marginBottom: 4 }}>
+                Your items ({runState.items.filter((it) => it.equippedTo === null).length} unequipped) - click one,
+                then click a slot below to equip it.
+              </p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                {runState.items
+                  .filter((it) => it.equippedTo === null)
+                  .map((it) => {
+                    const def = ITEMS[it.defId]
+                    return (
+                      <span
+                        key={it.key}
+                        className="hw-badge"
+                        style={{
+                          cursor: "pointer",
+                          gap: 6,
+                          color: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
+                          borderColor: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
+                        }}
+                        title={def?.description}
+                        onClick={() => handleBagItemClick(it.key)}
+                      >
+                        <CardGlyph name={def?.icon} className="hw-intent-glyph" />
+                        {def?.name}
+                      </span>
+                    )
+                  })}
+              </div>
+            </>
+          )}
+
+          <div className="hw-section-label">Your bench ({runState.bench.length})</div>
+          <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
+            Spend Essence to permanently strengthen a unit - stacks with fusion, up to {UPGRADE_MAX_LEVEL} times each.
+          </p>
+          <div className="hw-select-grid hw-deck-preview">
+            {runState.bench.map((entry) => {
           const level = entry.upgradeLevel || 0
           const cost = upgradeCost(level)
           const maxed = cost === null
@@ -367,6 +369,13 @@ export default function SquadDraft({
             </div>
           )
         })}
+          </div>
+        </div>
+      </div>
+      <div style={{ marginTop: 20 }}>
+        <button className="hw-end-turn" onClick={onContinue}>
+          Continue
+        </button>
       </div>
     </div>
   )

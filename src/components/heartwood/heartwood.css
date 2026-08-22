@@ -543,6 +543,61 @@
   letter-spacing: 0.04em;
 }
 
+/* Marc: "on epäselvää mitä minulla on jo ja mitä voin ostaa ne pitää
+   erittää UI:hin" (it's unclear what I already have vs what I can buy
+   - they need to be separated in the UI). Previously every section
+   (For Sale, Items catalog, Your Items, Your Bench) used identical
+   card styling in one continuous scroll, differing only by a small
+   text label - easy to miss which side of "buy vs own" a given card
+   was on. Two distinct bordered/tinted panels instead: ember-tinted
+   "what you can buy" on the left, moss-tinted "what you already have"
+   on the right - the same color language .hw-piece already uses for
+   ally (ember) vs the existing moss accent, reused here for a
+   different but analogous distinction (spend vs already-owned). */
+.hw-market-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 18px;
+  align-items: start;
+}
+
+.hw-panel {
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--hw-border);
+}
+
+.hw-panel--market {
+  background: color-mix(in srgb, var(--hw-ember) 6%, var(--hw-panel));
+  border-color: color-mix(in srgb, var(--hw-ember) 35%, var(--hw-border));
+}
+
+.hw-panel--squad {
+  background: color-mix(in srgb, var(--hw-moss) 6%, var(--hw-panel));
+  border-color: color-mix(in srgb, var(--hw-moss) 35%, var(--hw-border));
+}
+
+.hw-panel-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.hw-panel--market .hw-panel-title {
+  color: var(--hw-ember);
+}
+
+.hw-panel--squad .hw-panel-title {
+  color: var(--hw-moss);
+}
+
+@media (max-width: 860px) {
+  .hw-market-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 .hw-select-grid {
   display: grid;
   /* Marc: "tällä hetkellä se tuntuu kuin se olisi pitkä lista... kaiken
@@ -576,7 +631,12 @@
 
 .hw-intro {
   padding: var(--space-3, 21px);
-  max-width: 900px;
+  /* Marc: "kaiken pitää mahtua 1920x1080 näytölle" (everything needs
+     to fit a 1920x1080 screen) - widened from 900px so the Market/
+     Squad two-column split (below) has real room to breathe on an
+     actual desktop display instead of cramming into a narrow center
+     column with most of the screen unused either side. */
+  max-width: 1500px;
   margin: 0 auto;
 }
 
