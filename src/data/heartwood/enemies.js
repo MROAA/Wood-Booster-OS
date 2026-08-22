@@ -168,6 +168,44 @@ export const ENEMIES = {
     ],
   },
 
+  "thornspite": {
+    id: "thornspite",
+    name: "Thornspite",
+    maxHp: 40,
+    art: "root",
+    description: "Every thorn it plants makes the next blow land harder.",
+    // 10th mook, first enemy source of Vulnerable (+25% damage taken) -
+    // the one core debuff (Weak/Poison/Stun/Sunder all already have an
+    // enemy source) that had never appeared on this side of the board.
+    // Genuinely dangerous stacked with a hard-hitting ally mook, so it
+    // rewards focusing it down early rather than ignoring it the way a
+    // low-damage debuffer sometimes can be.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player" },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "bramblehide": {
+    id: "bramblehide",
+    name: "Bramblehide",
+    maxHp: 50,
+    art: "troll",
+    description: "Wounds close almost as fast as they open. Almost.",
+    // 11th mook, first enemy to heal itself - every other mook's block
+    // step just delays damage, this one actively undoes it. A real
+    // race: out-damage the regen or the fight drags on past what its
+    // own middling attack (7) would suggest.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 6 },
+      { type: "heal", amount: 5 },
+      { type: "attack", amount: 7 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already

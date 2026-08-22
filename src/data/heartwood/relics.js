@@ -219,6 +219,23 @@ export const RELICS = {
     effects: [],
     itemSlotBonus: 1,
   },
+  "purifying-bloom": {
+    id: "purifying-bloom",
+    name: "Purifying Bloom",
+    icon: "leaf",
+    cost: RELIC_COST,
+    description: "Every unit shakes off a lingering ailment at the start of each round.",
+    // Cleanse's (effects.js) first squad-wide source - Willowmend
+    // carries it as a unit passive already, this is the relic version
+    // every other mechanic in the roster eventually got (Ward, Poison,
+    // Execute, Weak all have both a relic and a unit/item source by
+    // now). A one-time battle-start grant would be a no-op (units
+    // start every fight with nothing to cleanse) - same lesson
+    // Mosswarden's Charm already taught this session - so this is a
+    // turnStart addTrigger instead, same repeating mechanism that
+    // relic already established.
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
+  },
 }
 
 export function relicPool() {
