@@ -109,6 +109,26 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "embers-bulwark": {
+    id: "embers-bulwark",
+    name: "Ember's Bulwark",
+    description: "Bramblehide plants itself in front. Behind it, Emberwrack waits for a clean shot at your whole line.",
+    // First formation to use any of the 3 most recent mooks
+    // (Thornspite/Bramblehide/Emberwrack) - Bramblehide shields
+    // Emberwrack the same way Bark Brute shields Rune Warden/Drowned
+    // Siren elsewhere, but the payoff for stalling is worse here:
+    // every round spent grinding through Bramblehide's own self-heal
+    // is another round Emberwrack's AoE (which ignores shielding and
+    // Taunt entirely once it's live) gets to keep swinging at the
+    // whole squad. Column 0, not the center (1,1) square - same
+    // knight's-move-can-never-land-there reason every shielding
+    // formation already follows.
+    pieces: [
+      { defId: "bramblehide", pos: { row: 0, col: 0 } },
+      { defId: "emberwrack", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {

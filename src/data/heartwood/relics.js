@@ -250,6 +250,19 @@ export const RELICS = {
     // of heal/cleanse.
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
   },
+  "berserkers-oath": {
+    id: "berserkers-oath",
+    name: "Berserker's Oath",
+    icon: "flame",
+    cost: RELIC_COST,
+    description: "Every unit fights harder once it's badly hurt.",
+    // Wounded Fury (effects.js's woundedFuryBonus) - previously only
+    // reachable via Fenrir's own squadPassive or baked into
+    // Thornwarden's kit, never as a run-wide pick any Commander could
+    // take. Plain applyBuff - the power is just a flag checked against
+    // the unit's own current HP each hit, no new engine work needed.
+    effects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+  },
 }
 
 export function relicPool() {

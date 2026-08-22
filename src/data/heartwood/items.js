@@ -119,6 +119,17 @@ export const ITEMS = {
     // slot, instead of only squad-wide.
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
   },
+  "feral-charm": {
+    id: "feral-charm",
+    name: "Feral Charm",
+    icon: "flame",
+    cost: 2,
+    description: "This unit fights harder once it's badly hurt.",
+    // Berserker's Oath (relics.js), single-target - lets a player put
+    // Wounded Fury specifically on a tanky frontline unit likely to
+    // spend real time below half HP, instead of only squad-wide.
+    effects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+  },
 }
 
 export function itemPool() {
