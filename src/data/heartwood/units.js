@@ -88,6 +88,14 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // when this unit's own single-target attack was the killing blow -
     // see autoBattleEngine.js's actSide for the full guard conditions.
     chainDamage: opts.chainDamage || null,
+    // Haste: acts a second time in the same round instead of once -
+    // see autoBattleEngine.js's actSide. Deliberately paired with a
+    // LOWER per-hit amount than a same-tier non-Haste attacker (Marc:
+    // "changes cannot be overpowered") - a flat doubling of every
+    // round's actions is stronger pound-for-pound than a conditional
+    // bonus like Execute/Chain, so the per-hit number has to give
+    // something back rather than just stacking on top.
+    haste: !!opts.haste,
     // Optional portrait image (see UnitCard.jsx) - falls back to the
     // `art` SVG glyph when absent. Placeholder-quality reference art
     // for now, not final; see cardArt.jsx's note on where it came from.
@@ -352,6 +360,16 @@ const BASE_UNITS = {
     // effective invulnerability rather than the fixed, readable
     // resource every other status stays.
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
+  }),
+  swiftclaw: unit("swiftclaw", "Swiftclaw", "spark", 2, "dps", [{ type: "attack", amount: 4 }], {
+    // Haste - a genuinely different shape of DPS from every other
+    // attacker: two small hits a round instead of one big one, at
+    // uncommon tier (4 dmg/hit = 8 total, in line with other uncommon
+    // attackers, not above them - the value of Haste is in variety
+    // (more hits landing means more onDealDamage/onHit triggers firing
+    // per round with a Vampiric Bloom/Sundering Mark/Bramble Ward
+    // build) rather than raw total damage).
+    haste: true,
   }),
 }
 

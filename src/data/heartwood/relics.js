@@ -160,6 +160,26 @@ export const RELICS = {
     // powers.ward wherever it came from.
     effects: [{ type: "applyBuff", id: "ward", amount: 1 }],
   },
+  "venomous-edge": {
+    id: "venomous-edge",
+    name: "Venomous Edge",
+    icon: "leaf",
+    cost: RELIC_COST,
+    description: "Whatever your squad strikes carries poison after.",
+    // Poison's second player-accessible source, alongside Rootfang's
+    // own movePattern debuff - same onDealDamage shape Sundering Mark
+    // already uses for Vulnerable, just applying Poison instead. Real
+    // synergy with Haste (Swiftclaw): twice the hits per round means
+    // twice the onDealDamage triggers, so this relic stacks Poison
+    // noticeably faster on a Haste-built squad than a normal one.
+    effects: [
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "poison", target: "target", amount: 2 },
+      },
+    ],
+  },
 }
 
 export function relicPool() {
