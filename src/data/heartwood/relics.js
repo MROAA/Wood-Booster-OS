@@ -115,6 +115,24 @@ export const RELICS = {
     effects: [],
     tauntHighestHp: true,
   },
+  "vampiric-bloom": {
+    id: "vampiric-bloom",
+    name: "Vampiric Bloom",
+    icon: "leaf",
+    cost: RELIC_COST,
+    description: "Every strike your squad lands mends the one who struck it.",
+    // Lifesteal - a genuinely new mechanic (not another number on an
+    // existing stat), reusing onDealDamage (Sundering Mark's hook)
+    // instead of adding new engine machinery: a flat self-heal per hit
+    // landed, same "deterministic, not a %, not a dice roll" shape
+    // every other trigger effect in the game already uses (Marc: "easy
+    // to play but hard to master" - a fixed, readable number rewards
+    // deliberate squad-building, not luck). Especially strong on a
+    // pattern-attacker (Rook's Charge/Bishop's Slash/Knight's Leap),
+    // since applyPatternDamage fires dealDamage - and therefore this
+    // trigger - once per target hit, not once per turn.
+    effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } }],
+  },
 }
 
 export function relicPool() {
