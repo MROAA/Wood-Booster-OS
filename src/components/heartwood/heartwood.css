@@ -805,6 +805,18 @@
   font-size: 11px;
 }
 
+.hw-summon-badge {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
+}
+
 /* --- Icon-first readability (Phase 2.5) --- */
 
 .hw-hint {

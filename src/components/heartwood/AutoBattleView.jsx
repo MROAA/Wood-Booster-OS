@@ -65,6 +65,7 @@ export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, on
             art={UNITS[playerUnit.defId].art}
             side="player"
             shielded={isShielded(state, playerUnit.id)}
+            summoned={playerUnit.summoned}
           />
         )
       }
