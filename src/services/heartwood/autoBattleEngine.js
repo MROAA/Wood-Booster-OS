@@ -213,6 +213,46 @@ export function startAutoBattle(
     }
   }
 
+  // Summon (units.js's summon field, e.g. Beastcaller): a real extra
+  // entry in state.playerUnits, not a stat buff, spawned into whichever
+  // deploy slot the summoner itself didn't take. Runs after the passive/
+  // Rally loop above but before the Commander/relic loops below, and
+  // those loops read from state.playerUnits (the live roster) rather
+  // than the captured `playerUnits` const specifically so a freshly
+  // summoned creature still gets the Commander's squadPassive and any
+  // equipped relics, the same way every recruited unit does - it's a
+  // full squad member from the moment it exists, not a lesser bonus.
+  // Deliberately a one-shot at battle start (no cap-tracking needed):
+  // there's only ever one deploy slot to fill, so it can only happen
+  // once regardless of movePattern/moveIndex.
+  for (const u of playerUnits) {
+    const def = effectiveDefs[u.id]
+    if (!def.summon) continue
+    const occupied = new Set(state.playerUnits.map((p) => `${p.pos.row}-${p.pos.col}`))
+    const freeSlot = SLOT_POSITIONS.find((slot) => !occupied.has(`${slot.row}-${slot.col}`))
+    if (!freeSlot) {
+      state = { ...state, log: [...state.log, `${u.name} has no room left to summon a companion.`] }
+      continue
+    }
+    const summonDef = UNITS[def.summon.defId]
+    const summoned = freshUnit({
+      id: `p-summon-${u.id}`,
+      defId: def.summon.defId,
+      name: summonDef.name,
+      hp: summonDef.maxHp,
+      maxHp: summonDef.maxHp,
+      pos: freeSlot,
+      moveIndex: 0,
+      intent: computeIntent(summonDef, 0),
+      summoned: true,
+    })
+    state = {
+      ...state,
+      playerUnits: [...state.playerUnits, summoned],
+      log: [...state.log, `${u.name} calls a ${summonDef.name} to the battlefield!`],
+    }
+  }
+
   // The Commander's own signature effect applies to every unit in the
   // squad, not just one hero - this is what makes choosing Tommy vs.
   // Aatos vs. Fenrir actually matter in the autobattler. Scaled by
@@ -221,7 +261,7 @@ export function startAutoBattle(
   const character = CHARACTERS[characterId]
   const squadPassive = commanderPassiveWithRank(character, commanderRank)
   if (squadPassive.length) {
-    for (const u of playerUnits) {
+    for (const u of state.playerUnits) {
       state = applyEffects(state, squadPassive, { actorId: u.id, targetId: u.id })
     }
   }
@@ -242,7 +282,7 @@ export function startAutoBattle(
         ? relic.effects.map((e) => (e.type === "addTrigger" ? { ...e, effect: scaleEffect(e.effect, factor) } : scaleEffect(e, factor)))
         : relic?.effects
     if (scaledEffects?.length) {
-      for (const u of playerUnits) {
+      for (const u of state.playerUnits) {
         state = applyEffects(state, scaledEffects, { actorId: u.id, targetId: u.id })
       }
     }
@@ -251,8 +291,8 @@ export function startAutoBattle(
     // goes to whichever deployed unit currently has the highest maxHp
     // (ties broken by deploy order), same one-time battle-start timing
     // as Stoneheart's own passive grant.
-    if (relic?.tauntHighestHp && playerUnits.length) {
-      const tankiest = playerUnits.reduce((best, u) => (u.maxHp > best.maxHp ? u : best), playerUnits[0])
+    if (relic?.tauntHighestHp && state.playerUnits.length) {
+      const tankiest = state.playerUnits.reduce((best, u) => (u.maxHp > best.maxHp ? u : best), state.playerUnits[0])
       state = applyEffects(state, [{ type: "applyBuff", id: "taunt", amount: 1 }], {
         actorId: tankiest.id,
         targetId: tankiest.id,

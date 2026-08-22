@@ -98,9 +98,11 @@ function rollRelics(ownedRelicIds) {
 
 // Only base-tier units are ever purchasable - a Tier 2 unit has
 // recruitCost: null (it's only reachable by fusing three base copies),
-// so it must never appear as a shop offer.
+// so it must never appear as a shop offer. summonOnly units (e.g.
+// Spirit Wolf) are excluded the same way - they're only gained via a
+// Summoner's own battle-start passive, never bought directly.
 function rollShop() {
-  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom)
+  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly)
   const shuffled = [...pool]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -217,7 +219,7 @@ export function reforgeUnit(runState, benchKey) {
   if (!entry || runState.essence < REFORGE_COST) return runState
   const currentDef = UNITS[entry.defId]
   if (!currentDef || currentDef.displayTier === 2) return runState
-  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && u.tier === currentDef.tier && u.id !== entry.defId)
+  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && u.tier === currentDef.tier && u.id !== entry.defId)
   if (!pool.length) return runState
   const newDef = pool[Math.floor(Math.random() * pool.length)]
   return {

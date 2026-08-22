@@ -74,7 +74,6 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     tier,
     role,
     recruitCost: TIER_COST[tier],
-    maxHp: TIER_HP[tier],
     attackPattern: opts.attackPattern || "single",
     moveSelect: opts.moveSelect || "sequence",
     movePattern,
@@ -108,6 +107,24 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // the same stack also seeds onto a different living enemy - see
     // autoBattleEngine.js's actSide.
     sporeSpread: !!opts.sporeSpread,
+    // Summon: grants the squad a bonus creature at battle start (not a
+    // stat buff - a real extra entry in state.playerUnits), spawned
+    // into whichever deploy slot the summoner itself didn't take - see
+    // autoBattleEngine.js's startAutoBattle. { defId } names a
+    // summonOnly unit def. Deliberately a one-shot at battle start,
+    // not tied to movePattern - the summoned creature then acts every
+    // round on its own like any other unit.
+    summon: opts.summon || null,
+    // summonOnly: excluded from the shop/reforge pool (this file's
+    // rollShop-adjacent filters in runEngine.js) - a summoned creature
+    // isn't directly recruitable, only gained via a Summoner's own
+    // battle-start passive.
+    summonOnly: !!opts.summonOnly,
+    // maxHpOverride: lets a def sidestep the tier HP table entirely -
+    // used only by summonOnly creatures, whose HP is deliberately
+    // modest (a free bonus body, not a second full recruit) rather than
+    // whatever HP its nominal cost tier would imply.
+    maxHp: opts.maxHpOverride || TIER_HP[tier],
     // Optional portrait image (see UnitCard.jsx) - falls back to the
     // `art` SVG glyph when absent. Placeholder-quality reference art
     // for now, not final; see cardArt.jsx's note on where it came from.
@@ -581,6 +598,32 @@ const BASE_UNITS = {
     // whoever they directly hit - Mycelist is the roster's first
     // Poison source that spreads on its own.
     sporeSpread: true,
+  }),
+  // Not shop-recruitable (summonOnly excludes it from rollShop/
+  // reforgeUnit's pools) - exists only to be spawned by Beastcaller's
+  // summon field. Deliberately modest (half a common-tier unit's HP,
+  // one plain attack) since it's a free bonus body on top of whatever
+  // Beastcaller itself already costs - see the summon field's own
+  // comment in the unit() helper for why this can't be full-strength.
+  "spirit-wolf": unit("spirit-wolf", "Spirit Wolf", "wolf", 0, "dps", [
+    { type: "attack", amount: 3 },
+  ], {
+    maxHpOverride: 16,
+    summonOnly: true,
+  }),
+  // Beastcaller ("kutsuu avukseen metsän henkiolentoja" - calls forest
+  // spirit-creatures to its aid) - the last of the 12 base classes,
+  // and the one that needed genuinely new architecture rather than
+  // reuse: `summon` (units.js opts) adds a real second unit to
+  // state.playerUnits at battle start instead of a stat buff, see
+  // autoBattleEngine.js's startAutoBattle. Kept to plain attacks itself
+  // (no Chain/Haste/etc layered on) since the summoned Spirit Wolf is
+  // already a second body's worth of value on top of one recruit.
+  beastcaller: unit("beastcaller", "Beastcaller", "leaf", 3, "support", [
+    { type: "attack", amount: 5 },
+    { type: "attack", amount: 5 },
+  ], {
+    summon: { defId: "spirit-wolf" },
   }),
 }
 

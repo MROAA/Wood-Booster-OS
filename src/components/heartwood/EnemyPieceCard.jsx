@@ -42,7 +42,7 @@ function intentDisplay(intent) {
 // same visual language EnemyPanel used to own (glyph/HP/intent/power
 // badges) at grid-cell scale, plus a shield badge when the piece is
 // currently protected from ordinary single-target cards.
-export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onClick, side = "enemy" }) {
+export default function EnemyPieceCard({ enemy, art, shielded, summoned, highlighted, onClick, side = "enemy" }) {
   const dead = enemy.hp <= 0
   const intent = intentDisplay(enemy.intent)
   const hpPct = Math.max(0, Math.round((enemy.hp / enemy.maxHp) * 100))
@@ -71,6 +71,11 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
       {shielded && !dead && (
         <span className="hw-badge hw-shield-badge" title="Shielded - ordinary attacks can't reach this piece">
           🛡
+        </span>
+      )}
+      {summoned && !dead && (
+        <span className="hw-badge hw-summon-badge" title="Summoned - a bonus companion, not a recruited unit">
+          <CardGlyph name="wolf" className="hw-intent-glyph" /> Summoned
         </span>
       )}
       <CardGlyph name={art} className="hw-piece-glyph" />
