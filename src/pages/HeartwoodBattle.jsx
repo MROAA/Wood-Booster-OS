@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import { CHARACTERS } from "../data/heartwood/characters"
 import {
   startRun,
@@ -45,6 +46,15 @@ export default function HeartwoodBattle() {
   const [runState, setRunState] = useState(null)
   const [showIntro, setShowIntro] = useState(
     () => typeof localStorage !== "undefined" && !localStorage.getItem(AUTOBATTLER_INTRO_SEEN_KEY),
+  )
+
+  // Renders outside OSLayout now (App.jsx) - no Sidebar to fall back on
+  // to get back to the rest of Wood-Booster HQ, so every screen needs
+  // its own way out.
+  const exitLink = (
+    <Link to="/" className="hw-exit-link">
+      ← Wood-Booster HQ
+    </Link>
   )
 
   function dismissIntro() {
@@ -149,6 +159,7 @@ export default function HeartwoodBattle() {
   if (!characterId || !runState) {
     return (
       <div className="hw-root" style={rootStyle}>
+        {exitLink}
         <div className="hw-intro">
           <div className="hw-crew-banner">
             <img src={crewBanner} alt="Tommy, Aatos, Spacemonkey, and Fenrir" />
@@ -176,6 +187,7 @@ export default function HeartwoodBattle() {
   if (runState.phase === "victory" || runState.phase === "defeat") {
     return (
       <div className="hw-root" style={{ ...rootStyle, position: "relative", minHeight: "100%" }}>
+        {exitLink}
         <RunEndOverlay phase={runState.phase} onNewRun={handleNewRun} />
       </div>
     )
@@ -183,6 +195,7 @@ export default function HeartwoodBattle() {
 
   const changeCharacterBar = (
     <div style={{ display: "flex", gap: 8, padding: "21px 21px 0" }}>
+      {exitLink}
       <button className="hw-move-btn" onClick={handleChangeCharacter}>
         Change Commander
       </button>
@@ -245,6 +258,7 @@ export default function HeartwoodBattle() {
   const essenceOnWin = currentPathNode?.type === "boss" ? null : essenceForWin(runState, currentPathNode)
   return (
     <div className="hw-root" style={rootStyle}>
+      {exitLink}
       <AutoBattleView
         state={runState.battle}
         essenceOnWin={essenceOnWin}

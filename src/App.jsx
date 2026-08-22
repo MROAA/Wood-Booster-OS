@@ -245,18 +245,26 @@ function App() {
           }
         />
         <Route
-          path="/heartwood"
-          element={
-            <HeartwoodBattle />
-          }
-        />
-        <Route
           path="/desktop"
           element={
             <BoosterverseDesktopRoute />
           }
         />
       </Route>
+      {/* Outside OSLayout entirely, not just full-bleed within it (see
+          OSLayout's isFullBleed for /desktop, which still keeps the
+          sidebar/topbar) - Marc: "UI:n pitää olla heartstonen kaltainen
+          graafinen pääte jota kautta pelata peliä" (the UI needs to be
+          a Hearthstone-like graphical terminal you play the game
+          through), not a page embedded inside the business app's own
+          dashboard chrome. HeartwoodBattle.jsx carries its own exit
+          link back to "/" on every screen since the Sidebar is gone. */}
+      <Route
+        path="/heartwood"
+        element={
+          <HeartwoodBattle />
+        }
+      />
     </Routes>
   )
 }
