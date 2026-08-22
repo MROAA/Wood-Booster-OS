@@ -1,6 +1,8 @@
+import { useState } from "react"
 import { UNITS, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
+import { REFORGE_COST } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import { CardGlyph } from "./cardArt"
 
@@ -15,6 +17,7 @@ export default function SquadDraft({
   onUpgrade,
   onRankUp,
   onUpgradeRelic,
+  onReforge,
   showIntro,
   onDismissIntro,
 }) {
@@ -22,6 +25,13 @@ export default function SquadDraft({
   const commander = CHARACTERS[runState.characterId]
   const commanderRank = runState.commanderRank || 0
   const rankCost = commanderRankCost(commanderRank)
+  const [justReforgedKey, setJustReforgedKey] = useState(null)
+
+  function handleReforge(benchKey) {
+    onReforge(benchKey)
+    setJustReforgedKey(benchKey)
+    setTimeout(() => setJustReforgedKey((cur) => (cur === benchKey ? null : cur)), 500)
+  }
 
   return (
     <div className="hw-intro">
@@ -131,9 +141,13 @@ export default function SquadDraft({
           const level = entry.upgradeLevel || 0
           const cost = upgradeCost(level)
           const maxed = cost === null
+          const def = UNITS[entry.defId]
+          const canReforge = def?.displayTier !== 2
           return (
             <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <UnitCard def={UNITS[entry.defId]} disabled />
+              <div className={justReforgedKey === entry.key ? "hw-card--reforged" : undefined}>
+                <UnitCard def={def} disabled />
+              </div>
               {level > 0 && (
                 <div style={{ fontSize: 11, textAlign: "center", color: "var(--hw-ember)" }}>Upgrade Lv {level}</div>
               )}
@@ -147,9 +161,20 @@ export default function SquadDraft({
                   style={{ fontSize: 11, padding: "4px 6px" }}
                   disabled={runState.essence < cost}
                   onClick={() => onUpgrade(entry.key)}
-                  title={`Permanently strengthen ${UNITS[entry.defId]?.name} (level ${level} -> ${level + 1})`}
+                  title={`Permanently strengthen ${def?.name} (level ${level} -> ${level + 1})`}
                 >
                   Upgrade ({cost} Essence)
+                </button>
+              )}
+              {canReforge && (
+                <button
+                  className="hw-move-btn"
+                  style={{ fontSize: 11, padding: "4px 6px" }}
+                  disabled={runState.essence < REFORGE_COST}
+                  onClick={() => handleReforge(entry.key)}
+                  title={`Swap ${def?.name} for a different random unit of the same tier`}
+                >
+                  Reforge ({REFORGE_COST} Essence)
                 </button>
               )}
             </div>

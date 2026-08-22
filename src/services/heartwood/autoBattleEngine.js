@@ -310,7 +310,35 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
       const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
       const targetId = side === "player" ? frontmost(next, targetPool(next)) : randomLiving(next, targetPool(next))
       if (targetId) {
+        const targetWasAlive = (getUnit(next, targetId)?.hp || 0) > 0
         next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })
+
+        // Chain (units.js's chainDamage): if a single-target attack was
+        // the killing blow, immediately strike a different living
+        // enemy too - a second, distinct way to reward finishing blows
+        // alongside Execute, but as a bonus hit on someone else instead
+        // of extra damage on the same target. Scoped to attackPattern
+        // "single" only - a pattern-attacker's applyPatternDamage can
+        // kill several targets in one action, where "who died" is
+        // already ambiguous enough without layering a chain on top.
+        if (
+          side === "player" &&
+          attackPattern === "single" &&
+          def.chainDamage &&
+          acting.intent.type === "attack" &&
+          targetWasAlive &&
+          next.phase === "player" &&
+          (getUnit(next, targetId)?.hp || 0) <= 0
+        ) {
+          const survivors = targetPool(next).filter((e) => e.hp > 0)
+          if (survivors.length) {
+            const chainTarget = survivors.reduce((low, e) => (e.hp < low.hp ? e : low), survivors[0])
+            next = applyEffects(next, [{ type: "damage", amount: def.chainDamage }], {
+              actorId: unit.id,
+              targetId: chainTarget.id,
+            })
+          }
+        }
       }
     }
     if (next.phase !== "player") break

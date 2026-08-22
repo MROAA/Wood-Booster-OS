@@ -1,5 +1,25 @@
 import { CardGlyph, formatPowerLabel } from "./cardArt"
 
+// Every status badge used to be plain text ("Poison 3", "Taunt 1") -
+// no icon, no color, all identical .hw-badge styling regardless of
+// whether it helps or hurts the unit wearing it. Reuses the same
+// generic glyphs the rest of the game already draws from rather than
+// commissioning new art per status, and the color tokens every other
+// UI element (intent display, ResultOverlay) already uses, so a buff
+// reads green/warm and a debuff reads as the same "curse" red the
+// enemy-debuff intent already uses - one glance, not a read.
+const STATUS_DISPLAY = {
+  strength: { icon: "sword", color: "var(--hw-ember)" },
+  weak: { icon: "root", color: "var(--hw-curse)" },
+  vulnerable: { icon: "rune", color: "var(--hw-curse)" },
+  woundedFury: { icon: "flame", color: "var(--hw-ember)" },
+  poison: { icon: "leaf", color: "var(--hw-curse)" },
+  stun: { icon: "spark", color: "var(--hw-curse)" },
+  taunt: { icon: "shield", color: "var(--hw-rune)" },
+  execute: { icon: "sword", color: "var(--hw-hp)" },
+  revive: { icon: "heart", color: "var(--hw-moss)" },
+}
+
 // Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point
 // is to be able to tell what's about to happen without reading.
 function intentDisplay(intent) {
@@ -63,9 +83,15 @@ export default function EnemyPieceCard({ enemy, art, shielded, highlighted, onCl
           {enemy.block > 0 && <span className="hw-badge hw-badge--block">Block {enemy.block}</span>}
           {powerEntries.length > 0 && (
             <div className="hw-powers">
-              {powerEntries.map(([id, amount]) => (
-                <span key={id} className="hw-badge">{formatPowerLabel(id)} {amount}</span>
-              ))}
+              {powerEntries.map(([id, amount]) => {
+                const display = STATUS_DISPLAY[id]
+                return (
+                  <span key={id} className="hw-badge" style={display ? { color: display.color, borderColor: display.color } : undefined}>
+                    {display && <CardGlyph name={display.icon} className="hw-intent-glyph" />}
+                    {formatPowerLabel(id)} {amount}
+                  </span>
+                )
+              })}
             </div>
           )}
         </>
