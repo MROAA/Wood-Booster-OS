@@ -67,6 +67,20 @@ function woundedFuryBonus(unit) {
   return unit.powers.woundedFury && unit.hp < unit.maxHp * 0.5 ? 3 : 0
 }
 
+// Execute: woundedFuryBonus's mirror on the defender's side - a flat,
+// stack-scaled bonus (like Strength, not a %) that only applies once
+// the TARGET is already below 30% max HP, rewarding a squad built to
+// finish a wounded enemy over one that spreads damage thin. Kept flat
+// and threshold-based rather than a crit-chance/dodge-chance roll on
+// purpose - Marc: "easy to play but hard to master" - a fixed, readable
+// number is something a player can plan a build around; a dice roll
+// isn't.
+function executeBonus(attacker, defender) {
+  const stacks = attacker.powers.execute || 0
+  if (!stacks) return 0
+  return defender.hp <= defender.maxHp * 0.3 ? stacks : 0
+}
+
 function nameOf(state, id) {
   if (id === "player") return "You"
   return getUnit(state, id)?.name || "The enemy"
@@ -86,8 +100,10 @@ function recordStat(state, id, field, amount) {
 
 // Damage dealt by `actorId`, landing on `targetId`. Applies Strength
 // (flat bonus) and Weak (-25%, rounded down) from the attacker, then
-// Vulnerable (+25%, rounded down) from the defender, then subtracts
-// the target's Block before touching HP.
+// Vulnerable (+25%, rounded down) from the defender, then Execute
+// (flat bonus, only below 30% target HP) after the percentage
+// modifiers so it isn't itself scaled by them, then subtracts the
+// target's Block before touching HP.
 function dealDamage(state, actorId, targetId, baseAmount) {
   const attacker = getUnit(state, actorId)
   const defender = getUnit(state, targetId)
@@ -100,6 +116,7 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   if (vulnerableOf(defender) > 0) {
     amount = Math.floor(amount * 1.25)
   }
+  amount += executeBonus(attacker, defender)
   amount = Math.max(0, amount)
 
   const blocked = Math.min(defender.block, amount)

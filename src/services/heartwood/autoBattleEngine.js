@@ -12,7 +12,7 @@
 // real "whose turn" distinction to track once nothing needs player
 // input.
 
-import { UNITS, unitDefWithUpgrade } from "../../data/heartwood/units"
+import { UNITS, unitDefWithUpgrade, scaleEffect } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
@@ -126,7 +126,14 @@ function randomLiving(state, units) {
 // reason a Commander is chosen at all; previously it was cosmetic
 // only. `relicIds` (see relics.js) apply the same way, stacking with
 // the Commander's own squadPassive rather than replacing it.
-export function startAutoBattle(characterId, deployedUnits, enemyFormationOrId, relicIds = [], commanderRank = 0) {
+export function startAutoBattle(
+  characterId,
+  deployedUnits,
+  enemyFormationOrId,
+  relicIds = [],
+  commanderRank = 0,
+  relicLevels = {},
+) {
   const formation = resolveFormation(enemyFormationOrId)
 
   const enemies = formation.pieces.map((piece, i) => {
@@ -203,12 +210,22 @@ export function startAutoBattle(characterId, deployedUnits, enemyFormationOrId, 
 
   // Relics (relics.js) stack on top of the Commander's squadPassive,
   // same self-targeting mechanism - a run can carry multiple relics at
-  // once, each applying to every deployed unit.
+  // once, each applying to every deployed unit. Scaled by relicLevels
+  // (runEngine.js's Relic Upgrade, an Essence sink mirroring Unit
+  // Upgrade/Commander Rank-Up) the same way commanderPassiveWithRank
+  // scales a squadPassive, just inlined here since relics have no
+  // single owning def object the way a Commander does.
   for (const relicId of relicIds) {
     const relic = RELICS[relicId]
-    if (relic?.effects?.length) {
+    const level = relicLevels[relicId] || 0
+    const factor = 1 + level * 0.25
+    const scaledEffects =
+      level && relic?.effects?.length
+        ? relic.effects.map((e) => (e.type === "addTrigger" ? { ...e, effect: scaleEffect(e.effect, factor) } : scaleEffect(e, factor)))
+        : relic?.effects
+    if (scaledEffects?.length) {
       for (const u of playerUnits) {
-        state = applyEffects(state, relic.effects, { actorId: u.id, targetId: u.id })
+        state = applyEffects(state, scaledEffects, { actorId: u.id, targetId: u.id })
       }
     }
     // Bulwark Standard: not a uniform per-unit effect like every other
