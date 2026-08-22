@@ -133,6 +133,21 @@ export const RELICS = {
     // trigger - once per target hit, not once per turn.
     effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } }],
   },
+  "culling-strike": {
+    id: "culling-strike",
+    name: "Culling Strike",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Your squad finishes a badly wounded enemy faster.",
+    // Execute (effects.js's dealDamage) - a flat bonus that only
+    // applies once the target is already at or below 30% max HP,
+    // rewarding a squad built to finish off a wounded target instead
+    // of spreading damage across several. Applies via the same
+    // uniform per-unit `effects` loop every other non-special relic
+    // uses (Ember Core's Strength grant, e.g.) - a plain applyBuff,
+    // nothing new needed in startAutoBattle for this one.
+    effects: [{ type: "applyBuff", id: "execute", amount: 3 }],
+  },
 }
 
 export function relicPool() {

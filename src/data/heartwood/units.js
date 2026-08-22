@@ -260,6 +260,19 @@ const BASE_UNITS = {
     // slow, hard-swinging identity rather than a sustained one.
     image: forgehowlImg,
   }),
+  duskclaw: unit("duskclaw", "Duskclaw", "flame", 3, "dps", [
+    { type: "attack", amount: 8 },
+  ], {
+    // The roster's first unit built around Execute (effects.js's
+    // dealDamage) instead of a Strength/Weak/heal-family passive - a
+    // second, unit-level way to reach the mechanic alongside the
+    // Culling Strike relic (relics.js), for a squad that wants Execute
+    // without spending a relic slot on it. No dedicated portrait yet -
+    // reuses the "flame" glyph rather than inventing new art this
+    // round, same placeholder-first approach earlier forest-creature
+    // units started with.
+    passive: [{ type: "applyBuff", id: "execute", amount: 4 }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

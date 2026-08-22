@@ -7,7 +7,17 @@ import { CardGlyph } from "./cardArt"
 // The shop node: recruit whoever you can afford, reroll the rest,
 // leave when ready. No forced pick-one - unlike the old card-reward
 // screen, a shop lets you walk away empty-handed or buy several.
-export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, onUpgrade, onRankUp, showIntro, onDismissIntro }) {
+export default function SquadDraft({
+  runState,
+  onRecruit,
+  onReroll,
+  onContinue,
+  onUpgrade,
+  onRankUp,
+  onUpgradeRelic,
+  showIntro,
+  onDismissIntro,
+}) {
   const offers = runState.shopOffers.map((id) => UNITS[id])
   const commander = CHARACTERS[runState.characterId]
   const commanderRank = runState.commanderRank || 0
@@ -45,12 +55,30 @@ export default function SquadDraft({ runState, onRecruit, onReroll, onContinue, 
 
       {runState.relics.length > 0 && (
         <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-          {runState.relics.map((id) => (
-            <span key={id} className="hw-badge" title={RELICS[id]?.description}>
-              <CardGlyph name={RELICS[id]?.icon} className="hw-intent-glyph" />
-              {RELICS[id]?.name}
-            </span>
-          ))}
+          {runState.relics.map((id) => {
+            const level = (runState.relicLevels || {})[id] || 0
+            const cost = upgradeCost(level)
+            return (
+              <span key={id} className="hw-badge" title={RELICS[id]?.description} style={{ gap: 6 }}>
+                <CardGlyph name={RELICS[id]?.icon} className="hw-intent-glyph" />
+                {RELICS[id]?.name}
+                {level > 0 && ` +${level}`}
+                {cost === null ? (
+                  <span style={{ fontSize: 10, opacity: 0.8 }}>MAX</span>
+                ) : (
+                  <button
+                    className="hw-move-btn"
+                    style={{ fontSize: 10, padding: "2px 6px" }}
+                    disabled={runState.essence < cost}
+                    onClick={() => onUpgradeRelic(id)}
+                    title={`Permanently strengthen ${RELICS[id]?.name} (level ${level} -> ${level + 1})`}
+                  >
+                    Upgrade ({cost})
+                  </button>
+                )}
+              </span>
+            )
+          })}
         </div>
       )}
 

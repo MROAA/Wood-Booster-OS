@@ -157,6 +157,7 @@ export function startRun(characterId) {
     battle: null,
     relics: [],
     relicOffers: null,
+    relicLevels: {},
     commanderRank: 0,
   }
 }
@@ -207,6 +208,25 @@ export function rankUpCommander(runState) {
   return { ...runState, essence: runState.essence - cost, commanderRank: rank + 1 }
 }
 
+// A fourth Essence sink: spend on an owned relic instead of a bench
+// unit or the Commander - same cost curve as Unit Upgrade (units.js's
+// upgradeCost/UPGRADE_MAX_LEVEL, reused directly rather than a near-
+// identical duplicate), scaling that relic's effect via
+// autoBattleEngine.js's per-relic-level factor. Only affects a relic
+// you already own - relics.js's rollRelics already prevents owning a
+// duplicate, so relicId here always maps to at most one entry.
+export function upgradeRelic(runState, relicId) {
+  if (!runState.relics.includes(relicId)) return runState
+  const level = runState.relicLevels[relicId] || 0
+  const cost = upgradeCost(level)
+  if (cost === null || runState.essence < cost) return runState
+  return {
+    ...runState,
+    essence: runState.essence - cost,
+    relicLevels: { ...runState.relicLevels, [relicId]: level + 1 },
+  }
+}
+
 export function rerollShop(runState) {
   if (runState.essence < runState.rerollCost) return runState
   return {
@@ -247,6 +267,7 @@ export function startFormationBattle(runState) {
     node.enemyId || node.formationId,
     runState.relics,
     runState.commanderRank || 0,
+    runState.relicLevels || {},
   )
   return { ...runState, phase: "battle", battle }
 }
