@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { UNITS, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
@@ -27,8 +27,30 @@ export default function SquadDraft({
   const commanderRank = runState.commanderRank || 0
   const rankCost = commanderRankCost(commanderRank)
   const [justReforgedKey, setJustReforgedKey] = useState(null)
+  const [justFusedKey, setJustFusedKey] = useState(null)
   const [showRetrain, setShowRetrain] = useState(false)
   const otherCommanders = Object.values(CHARACTERS).filter((c) => c.id !== runState.characterId)
+  const prevBenchKeysRef = useRef(new Set(runState.bench.map((e) => e.key)))
+
+  // Fusion (runEngine.js's fuseAll) has always run silently the moment
+  // a 3rd copy is recruited - no player-visible moment at all, just
+  // three bench cards replaced by one on the next render. Marc:
+  // "mergeeminen pitää animoida ja se pitää tehdä visuaalisesti
+  // hienoksi" (the merging needs to be animated and made visually
+  // nice) - detected the same way FloatingNumbers detects any other
+  // event, by diffing before/after, since recruitUnit's fire-and-
+  // forget setRunState call doesn't hand back "did a fusion just
+  // happen" directly.
+  useEffect(() => {
+    const prevKeys = prevBenchKeysRef.current
+    const fusedEntry = runState.bench.find((e) => !prevKeys.has(e.key) && UNITS[e.defId]?.fusedFrom)
+    prevBenchKeysRef.current = new Set(runState.bench.map((e) => e.key))
+    if (fusedEntry) {
+      setJustFusedKey(fusedEntry.key)
+      const timer = setTimeout(() => setJustFusedKey((cur) => (cur === fusedEntry.key ? null : cur)), 900)
+      return () => clearTimeout(timer)
+    }
+  }, [runState.bench])
 
   function handleReforge(benchKey) {
     onReforge(benchKey)
@@ -143,9 +165,23 @@ export default function SquadDraft({
 
       <div className="hw-section-label">For sale</div>
       <div className="hw-select-grid hw-deck-preview">
-        {offers.map((def) => (
-          <UnitCard key={def.id} def={def} disabled={runState.essence < def.recruitCost} onClick={() => onRecruit(def.id)} />
-        ))}
+        {offers.map((def) => {
+          const owned = runState.bench.filter((e) => e.defId === def.id).length
+          return (
+            <div key={def.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <UnitCard def={def} disabled={runState.essence < def.recruitCost} onClick={() => onRecruit(def.id)} />
+              {owned >= 2 && (
+                <div
+                  className="hw-badge"
+                  style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
+                  title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
+                >
+                  Fuses now! ({owned}/3 owned)
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
@@ -174,11 +210,32 @@ export default function SquadDraft({
           const maxed = cost === null
           const def = UNITS[entry.defId]
           const canReforge = def?.displayTier !== 2
+          // Fusion progress: 3 owned copies of the same base unit merge
+          // into a Tier 2 copy automatically (runEngine.js's fuseAll) -
+          // that's always worked, but with no on-bench signal toward
+          // "2/3 owned" it read as invisible/undiscoverable. Only shown
+          // for base-tier units (a Tier 2 unit has no further fusion
+          // target) and only once you own 2+, so a single common unit
+          // you happen to own alone doesn't clutter every bench card.
+          const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
           return (
             <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <div className={justReforgedKey === entry.key ? "hw-card--reforged" : undefined}>
+              <div
+                className={
+                  justFusedKey === entry.key ? "hw-card--fused" : justReforgedKey === entry.key ? "hw-card--reforged" : undefined
+                }
+              >
                 <UnitCard def={def} disabled />
               </div>
+              {copiesOwned >= 2 && (
+                <div
+                  className="hw-badge"
+                  style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
+                  title="3 owned copies of the same unit fuse automatically into a stronger Tier 2 version"
+                >
+                  Fusion {copiesOwned}/3
+                </div>
+              )}
               {level > 0 && (
                 <div style={{ fontSize: 11, textAlign: "center", color: "var(--hw-ember)" }}>Upgrade Lv {level}</div>
               )}
