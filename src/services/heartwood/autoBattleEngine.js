@@ -17,6 +17,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
+import { ITEMS } from "../../data/heartwood/items"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison } from "./effects"
 import { isShielded, kingAdjacent } from "./targeting"
 
@@ -161,6 +162,7 @@ export function startAutoBattle(
   const playerUnits = deployedUnits.map((entry, i) => {
     const defId = typeof entry === "string" ? entry : entry.defId
     const upgradeLevel = typeof entry === "string" ? 0 : entry.upgradeLevel || 0
+    const itemIds = typeof entry === "string" ? [] : entry.itemIds || []
     const def = unitDefWithUpgrade(UNITS[defId], upgradeLevel)
     const id = `p${i}`
     effectiveDefs[id] = def
@@ -168,6 +170,7 @@ export function startAutoBattle(
       id,
       defId,
       upgradeLevel,
+      itemIds,
       name: def.name,
       hp: def.maxHp,
       maxHp: def.maxHp,
@@ -184,6 +187,7 @@ export function startAutoBattle(
     playerUnits,
     enemies,
     stats: {},
+    roundEvents: [],
     log: [`The fight begins. ${formation.name || enemies[0]?.name || "The enemy"} stands ready.`],
   }
 
@@ -209,6 +213,17 @@ export function startAutoBattle(
             targetId: other.id,
           })
         }
+      }
+    }
+    // Items (items.js, runEngine.js's buyItem/equipItem): gear equipped
+    // to THIS specific bench unit only, applied the same self-targeting
+    // way a unit's own passive is above - an item is deliberately just
+    // a smaller, single-target echo of an existing relic, not a new
+    // engine mechanic.
+    for (const itemId of u.itemIds) {
+      const item = ITEMS[itemId]
+      if (item?.effects?.length) {
+        state = applyEffects(state, item.effects, { actorId: u.id, targetId: u.id })
       }
     }
   }
@@ -487,6 +502,11 @@ export function resolveRound(state) {
   let next = {
     ...state,
     log: [...state.log, `Round ${state.round}.`],
+    // Reset each round, same as the log's own "Round N." marker -
+    // effects.js's dealDamage appends to this as attacks resolve;
+    // AutoBattleView.jsx reads it after the round lands to stage the
+    // attacker-lunge animation for exactly this round's hits.
+    roundEvents: [],
     playerUnits: state.playerUnits.map((u) => (u.hp > 0 ? { ...u, block: 0 } : u)),
   }
 

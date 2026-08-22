@@ -14,6 +14,7 @@
 
 import { UNITS, STARTER_UNITS, TIER2_SUFFIX, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
+import { ITEMS, ITEM_SLOTS } from "../../data/heartwood/items"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
@@ -66,8 +67,19 @@ const RUN_PATH = [
   { type: "boss", enemyId: "spacemonkey" },
 ]
 
-const START_ESSENCE = 3
-const WIN_ESSENCE = 4
+// Marc: "essenceä on liian vähän siinä pitää olla ekonomia" (there's
+// too little Essence, there needs to be a real economy) - raised
+// right after Items became an 8th thing to spend on (recruit/reroll,
+// Upgrade, Commander Rank-Up, Relic Upgrade/Reroll, Reforge, Retrain,
+// now Items), on top of an income rate that hadn't moved since the
+// original shop/formation/auto-resolve pivot. Bumped both the starting
+// stake and the per-win payout by 50% so a run has real room to spend
+// across units, items, and relics without every purchase feeling like
+// the last affordable one - same "just give more, don't rebalance
+// every individual cost" lever already used once before for HP (see
+// TIER_HP's own note in units.js) when the game felt too tight.
+const START_ESSENCE = 5
+const WIN_ESSENCE = 6
 const FORMATION_BONUS_ESSENCE = 2
 const SHOP_SIZE = 4
 const REROLL_BASE_COST = 1
@@ -118,7 +130,13 @@ function rollShop() {
 // Any deploy slot pointing at a consumed copy is cleared, not silently
 // reassigned - fusing takes a unit off the field, the player re-places
 // the upgraded version deliberately.
-function tryFuseOnce(bench, deployed, nextKey) {
+// `items` (runEngine.js's item bag - see equipItem/unequipItem) is
+// threaded through fusion the same way `deployed` already is: any
+// item equipped to a consumed bench key returns to the bag (unequipped,
+// not destroyed) instead of being left pointing at a key that no
+// longer exists on the bench - same "investment doesn't carry over"
+// rule Reforge already applies to upgradeLevel.
+function tryFuseOnce(bench, deployed, items, nextKey) {
   const groups = {}
   for (const entry of bench) {
     if (UNITS[entry.defId].displayTier === 2) continue
@@ -132,15 +150,16 @@ function tryFuseOnce(bench, deployed, nextKey) {
       { key: nextKey, defId: `${defId}${TIER2_SUFFIX}`, upgradeLevel: 0 },
     ]
     const nextDeployed = deployed.map((k) => (consumed.has(k) ? null : k))
-    return { bench: nextBench, deployed: nextDeployed, nextKey: nextKey + 1, changed: true }
+    const nextItems = items.map((it) => (consumed.has(it.equippedTo) ? { ...it, equippedTo: null, slotIndex: null } : it))
+    return { bench: nextBench, deployed: nextDeployed, items: nextItems, nextKey: nextKey + 1, changed: true }
   }
-  return { bench, deployed, nextKey, changed: false }
+  return { bench, deployed, items, nextKey, changed: false }
 }
 
-function fuseAll(bench, deployed, nextKey) {
-  let state = { bench, deployed, nextKey, changed: true }
+function fuseAll(bench, deployed, items, nextKey) {
+  let state = { bench, deployed, items, nextKey, changed: true }
   while (state.changed) {
-    state = tryFuseOnce(state.bench, state.deployed, state.nextKey)
+    state = tryFuseOnce(state.bench, state.deployed, state.items, state.nextKey)
   }
   return state
 }
@@ -163,6 +182,11 @@ export function startRun(characterId) {
     relicOffers: null,
     relicLevels: {},
     commanderRank: 0,
+    // Items (items.js): a shared owned bag, separate from the bench -
+    // `equippedTo`/`slotIndex` point at a bench key + slot index (see
+    // equipItem/unequipItem below) or sit null while unequipped.
+    items: [],
+    itemKeyCounter: 0,
   }
 }
 
@@ -171,13 +195,14 @@ export function recruitUnit(runState, unitDefId) {
   if (!def || runState.essence < def.recruitCost || !runState.shopOffers.includes(unitDefId)) return runState
 
   const withNew = [...runState.bench, { key: runState.benchKeyCounter, defId: unitDefId, upgradeLevel: 0 }]
-  const fused = fuseAll(withNew, runState.deployed, runState.benchKeyCounter + 1)
+  const fused = fuseAll(withNew, runState.deployed, runState.items, runState.benchKeyCounter + 1)
 
   return {
     ...runState,
     essence: runState.essence - def.recruitCost,
     bench: fused.bench,
     deployed: fused.deployed,
+    items: fused.items,
     benchKeyCounter: fused.nextKey,
     shopOffers: runState.shopOffers.filter((id) => id !== unitDefId),
   }
@@ -226,6 +251,56 @@ export function reforgeUnit(runState, benchKey) {
     ...runState,
     essence: runState.essence - REFORGE_COST,
     bench: runState.bench.map((e) => (e.key === benchKey ? { ...e, defId: newDef.id, upgradeLevel: 0 } : e)),
+    // Same "a genuinely different unit afterward" rule as the
+    // upgradeLevel reset above - any equipped items return to the bag
+    // rather than staying attached to a unit that's no longer the one
+    // the player geared up.
+    items: runState.items.map((it) => (it.equippedTo === benchKey ? { ...it, equippedTo: null, slotIndex: null } : it)),
+  }
+}
+
+// A seventh Essence sink, and the first that isn't "strengthen
+// something you already committed to" - buying an item just adds it
+// to the owned bag (items.js's ITEMS), unequipped. Equipping/moving/
+// unequipping afterward is free (see equipItem/unequipItem below),
+// same "pay once, rearrange freely" shape a deployed unit's formation
+// slot already has via assignToSlot/clearSlot.
+export function buyItem(runState, itemDefId) {
+  const def = ITEMS[itemDefId]
+  if (!def || runState.essence < def.cost) return runState
+  return {
+    ...runState,
+    essence: runState.essence - def.cost,
+    items: [...runState.items, { key: runState.itemKeyCounter, defId: itemDefId, equippedTo: null, slotIndex: null }],
+    itemKeyCounter: runState.itemKeyCounter + 1,
+  }
+}
+
+// Equips an owned item onto one of a bench unit's ITEM_SLOTS. Free -
+// the Essence cost was already paid on purchase. If the target slot
+// already holds a different item, that one is bumped back to the bag
+// first (a slot can only ever hold one item), same "drop something new
+// in, the old one comes out" swap FormationScreen.jsx's deploy slots
+// already do.
+export function equipItem(runState, itemKey, benchKey, slotIndex) {
+  const item = runState.items.find((it) => it.key === itemKey)
+  if (!item || slotIndex < 0 || slotIndex >= ITEM_SLOTS || !runState.bench.some((e) => e.key === benchKey)) return runState
+  return {
+    ...runState,
+    items: runState.items.map((it) => {
+      if (it.key === itemKey) return { ...it, equippedTo: benchKey, slotIndex }
+      if (it.equippedTo === benchKey && it.slotIndex === slotIndex) return { ...it, equippedTo: null, slotIndex: null }
+      return it
+    }),
+  }
+}
+
+// Returns an equipped item to the bag. Free, same reasoning as
+// equipItem above.
+export function unequipItem(runState, itemKey) {
+  return {
+    ...runState,
+    items: runState.items.map((it) => (it.key === itemKey ? { ...it, equippedTo: null, slotIndex: null } : it)),
   }
 }
 
@@ -313,7 +388,11 @@ export function startFormationBattle(runState) {
     .filter((key) => key !== null)
     .map((key) => runState.bench.find((e) => e.key === key))
     .filter(Boolean)
-    .map((entry) => ({ defId: entry.defId, upgradeLevel: entry.upgradeLevel || 0 }))
+    .map((entry) => ({
+      defId: entry.defId,
+      upgradeLevel: entry.upgradeLevel || 0,
+      itemIds: runState.items.filter((it) => it.equippedTo === entry.key).map((it) => it.defId),
+    }))
   const battle = startAutoBattle(
     runState.characterId,
     deployed,

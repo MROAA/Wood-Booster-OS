@@ -98,6 +98,21 @@ function recordStat(state, id, field, amount) {
   return { ...state, stats: { ...state.stats, [id]: { ...prev, [field]: prev[field] + amount } } }
 }
 
+// roundEvents: a lightweight per-round record of "who attacked whom"
+// (reset each round by autoBattleEngine.js's resolveRound, same as the
+// log's own "Round N." reset), used only by AutoBattleView.jsx to
+// stage an attacker-lunge animation - Marc: "autobattle animoidaan
+// samaan tapaan kuin heartstonen battlegroundsissa" (the autobattle
+// should animate the same way Hearthstone Battlegrounds does, where
+// the attacking piece visibly moves toward its target). Structural
+// (actorId/targetId), not parsed from the log's free text, since two
+// owned copies of the same unit share a name and would make text-
+// matching ambiguous - exactly the kind of unit that Fusion actively
+// encourages owning.
+function recordAttackEvent(state, actorId, targetId) {
+  return { ...state, roundEvents: [...(state.roundEvents || []), { actorId, targetId }] }
+}
+
 // Damage dealt by `actorId`, landing on `targetId`. Applies Strength
 // (flat bonus) and Weak (-25%, rounded down) from the attacker, then
 // Vulnerable (+25%, rounded down) from the defender, then Execute
@@ -119,10 +134,14 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   const wards = defender.powers.ward || 0
   if (wards > 0) {
     const nextDefender = { ...defender, powers: { ...defender.powers, ward: wards - 1 } }
-    return {
-      ...setUnit(state, targetId, nextDefender),
-      log: [...state.log, `${nameOf(state, targetId)}'s Ward absorbs the hit completely.`],
-    }
+    return recordAttackEvent(
+      {
+        ...setUnit(state, targetId, nextDefender),
+        log: [...state.log, `${nameOf(state, targetId)}'s Ward absorbs the hit completely.`],
+      },
+      actorId,
+      targetId,
+    )
   }
 
   let amount = baseAmount + strengthOf(attacker) + woundedFuryBonus(attacker)
@@ -157,6 +176,7 @@ function dealDamage(state, actorId, targetId, baseAmount) {
 
   let nextState = setUnit(state, targetId, nextDefender)
   nextState = recordStat(nextState, actorId, "damageDealt", overflow)
+  nextState = recordAttackEvent(nextState, actorId, targetId)
   nextState = {
     ...nextState,
     log: [

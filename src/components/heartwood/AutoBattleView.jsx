@@ -13,10 +13,48 @@ import FloatingNumbers from "./FloatingNumbers"
 // rather than a blur.
 const ROUND_DELAY_MS = 550
 
+// How long a stagger step waits before the next queued lunge starts -
+// several hits can land in the same round (a whole squad's worth), so
+// this staggers them into a readable little sequence rather than every
+// piece jolting at once.
+const LUNGE_STAGGER_MS = 160
+
 function cellsByPos(units) {
   const map = {}
   for (const u of units) map[`${u.pos.row}-${u.pos.col}`] = u
   return map
+}
+
+// Marc: "autobattle animoidaan samaan tapaan kuin heartstonen
+// battlegroundsissa" (the autobattle should animate the way Hearthstone
+// Battlegrounds does) - HSBB's whole visual identity is the attacking
+// piece physically lunging toward its target, not just the victim
+// flashing (FloatingNumbers' existing hit-flash only ever animates the
+// defender - the attacker used to stay completely still). A direct DOM
+// transform, same imperative fire-and-forget pattern FloatingNumbers'
+// own flashHit already uses, rather than React state - nothing else in
+// the app needs to know a lunge happened.
+function lungeAttack(actorId, targetId) {
+  const actorEl = document.querySelector(`[data-unit-id="${actorId}"]`)
+  const targetEl = document.querySelector(`[data-unit-id="${targetId}"]`)
+  if (!actorEl || !targetEl) return
+  const a = actorEl.getBoundingClientRect()
+  const t = targetEl.getBoundingClientRect()
+  const dx = t.left + t.width / 2 - (a.left + a.width / 2)
+  const dy = t.top + t.height / 2 - (a.top + a.height / 2)
+  const dist = Math.hypot(dx, dy) || 1
+  // Travel partway, not all the way - a lunge toward the target, not a
+  // teleport onto it. Capped so a long diagonal (opposite grid corners)
+  // doesn't send a piece flying off its own square.
+  const travel = Math.min(dist * 0.35, 46)
+  const ux = (dx / dist) * travel
+  const uy = (dy / dist) * travel
+  actorEl.style.transition = "transform 160ms ease-out"
+  actorEl.style.transform = `translate(${ux}px, ${uy}px)`
+  setTimeout(() => {
+    actorEl.style.transition = "transform 220ms ease-in"
+    actorEl.style.transform = ""
+  }, 160)
 }
 
 // Replaces BattleScreen.jsx for combat: no hand, no targeting clicks,
@@ -41,6 +79,17 @@ export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, on
     const timer = setTimeout(onAdvanceRound, ROUND_DELAY_MS)
     return () => clearTimeout(timer)
   }, [state, onAdvanceRound])
+
+  // Stages this round's attacks (effects.js's dealDamage recording each
+  // one into state.roundEvents, reset per round by resolveRound) into a
+  // short staggered lunge sequence - fires once per round transition,
+  // same [state] dependency FloatingNumbers already uses for its own
+  // diff-on-change detection.
+  useEffect(() => {
+    const events = state.roundEvents || []
+    const timers = events.map((ev, i) => setTimeout(() => lungeAttack(ev.actorId, ev.targetId), i * LUNGE_STAGGER_MS))
+    return () => timers.forEach(clearTimeout)
+  }, [state])
 
   const playerMap = cellsByPos(state.playerUnits)
   const enemyMap = cellsByPos(state.enemies)

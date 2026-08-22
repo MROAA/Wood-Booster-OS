@@ -96,7 +96,7 @@ const groups = [
 
 
       {
-        label: "Heartwood Trial",
+        label: "Heartwood",
         path: "/heartwood",
         icon: "🜏"
       },
