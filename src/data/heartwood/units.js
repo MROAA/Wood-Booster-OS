@@ -394,6 +394,31 @@ const BASE_UNITS = {
     // debuff-movePattern shape Stormwing (Weak) and Rootfang (Poison)
     // already established, just a third status through the same door.
   }),
+  frostbind: unit("frostbind", "Frostbind", "moonGlyph", 3, "support", [
+    { type: "attack", amount: 3 },
+    { type: "debuff", id: "stun", amount: 1, target: "target" },
+    { type: "attack", amount: 3 },
+  ], {
+    // A third mage, and the roster's first PLAYER-side source of Stun
+    // (previously only Rootbind Thicket, an enemy, could skip a
+    // unit's whole action). Own damage kept deliberately low (3, below
+    // even Rootbind Thicket's 4) for the same reason Rootbind Thicket
+    // itself stays low - losing an entire action is a strong effect
+    // on its own, this isn't meant to also hit hard.
+  }),
+  glimmerward: unit("glimmerward", "Glimmerward", "shield", 2, "support", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 3 },
+  ], {
+    // A fourth mage, a protective-aura caster - reuses Rally
+    // (rallyAdjacent, first built for Ashenhorn's Strength aura)
+    // verbatim, just granting Ward instead: whichever OTHER deployed
+    // units are Chebyshev-adjacent to Glimmerward get a Ward stack at
+    // battle start too, not just Glimmerward itself. Zero new engine
+    // code - rallyAdjacent was already generic on the buff id, not
+    // hardcoded to Strength.
+    rallyAdjacent: { id: "ward", amount: 1 },
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
