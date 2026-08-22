@@ -430,6 +430,25 @@ const BASE_UNITS = {
     // instead of a relic effect.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } }],
   }),
+  hexmother: unit("hexmother", "Hexmother", "root", 3, "support", [
+    { type: "attack", amount: 5 },
+    { type: "debuff", id: "poison", amount: 2, target: "target" },
+    { type: "debuff", id: "weak", amount: 1, target: "target" },
+  ], {
+    // The roster's first Witch Doctor - Marc named 5 desired classes
+    // (Paladin, Rogue, Warrior, Witch Doctor, Mage); Mage now has 5
+    // units, the others already fit loosely by mechanic (Stoneheart/
+    // Thornguard's Taunt+Ward+Block reads Paladin, Swiftclaw/Grimtusk/
+    // Duskclaw's Haste+Chain+Execute reads Rogue), but nothing yet
+    // wore Witch Doctor's curse-stacking identity specifically.
+    // Hexmother layers TWO debuffs into its own 3-step cycle instead
+    // of the one-attack-one-debuff shape every other debuff unit
+    // (Stormwing/Rootfang/Runeveil/Frostbind) uses - poisons, then
+    // weakens the same target on consecutive actions, so a focused
+    // enemy ends up rotting AND hitting softer at once. No new engine
+    // code - both debuffs already exist and the debuff-movePattern
+    // shape already supports back-to-back entries.
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
