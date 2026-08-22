@@ -200,6 +200,25 @@ export const RELICS = {
       },
     ],
   },
+  "artificers-ledger": {
+    id: "artificers-ledger",
+    name: "Artificer's Ledger",
+    icon: "rune",
+    cost: RELIC_COST,
+    description: "Every unit carries one more piece of gear.",
+    // Deliberately deferred out of the round that shipped Items
+    // (items.js) - this needed ITEM_SLOTS to stop being a flat
+    // constant and become relic-conditional everywhere it's read
+    // (runEngine.js's equipItem slot-range check, SquadDraft.jsx's
+    // slot-pip rendering), a real scope increase over "just another
+    // relic." Not a uniform per-unit `effects` push like every other
+    // relic here - handled as its own special case (same precedent as
+    // Bulwark Standard's tauntHighestHp/Essence Well's essenceBonus,
+    // neither of which are plain battle effects either), read via
+    // runEngine.js's effectiveItemSlots(runState).
+    effects: [],
+    itemSlotBonus: 1,
+  },
 }
 
 export function relicPool() {

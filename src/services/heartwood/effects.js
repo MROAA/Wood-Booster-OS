@@ -464,7 +464,7 @@ function applyEffect(state, effect, ctx) {
 }
 
 // Runs every registered trigger for `who` matching `trigger` ("turnStart"
-// | "turnEnd"). Powers like The Emperor/Temperance/The Star register
+// | "turnEnd"). Powers like Stonecrown/Stillbark/Glowmoss register
 // these once when played; this just fires them each relevant turn.
 // `ctxOverride` lets a caller supply a different actor/target than the
 // usual "who acts on themself" shape turnStart/turnEnd triggers use -

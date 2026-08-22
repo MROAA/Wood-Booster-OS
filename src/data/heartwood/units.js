@@ -141,88 +141,88 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
 // Support/tank units still lean defensive (attack shows up every other
 // beat, not every beat), they just aren't useless anymore.
 const BASE_UNITS = {
-  "the-fool": unit("the-fool", "The Fool", "the-fool", 0, "support", [
+  "the-fool": unit("the-fool", "Mosskit", "the-fool", 0, "support", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 4 },
   ], { image: theFoolImg }),
-  "the-magician": unit("the-magician", "The Magician", "the-magician", 1, "hybrid", [
+  "the-magician": unit("the-magician", "Duskweaver", "the-magician", 1, "hybrid", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 3 },
   ], { image: theMagicianImg }),
-  "the-high-priestess": unit("the-high-priestess", "The High Priestess", "the-high-priestess", 1, "support", [
+  "the-high-priestess": unit("the-high-priestess", "Silverbloom", "the-high-priestess", 1, "support", [
     { type: "heal", amount: 4 },
     { type: "attack", amount: 5 },
   ], { image: theHighPriestessImg }),
-  "the-empress": unit("the-empress", "The Empress", "the-empress", 2, "support", [
+  "the-empress": unit("the-empress", "Thistlequeen", "the-empress", 2, "support", [
     { type: "heal", amount: 5 },
     { type: "block", amount: 4 },
     { type: "attack", amount: 6 },
   ], { image: theEmpressImg }),
-  "the-emperor": unit("the-emperor", "The Emperor", "the-emperor", 2, "tank", [
+  "the-emperor": unit("the-emperor", "Stonecrown", "the-emperor", 2, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
   ], {
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
     image: theEmperorImg,
   }),
-  "the-hierophant": unit("the-hierophant", "The Hierophant", "the-hierophant", 1, "dps", [
+  "the-hierophant": unit("the-hierophant", "Goldenbough", "the-hierophant", 1, "dps", [
     { type: "attack", amount: 4 },
   ], {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
     image: theHierophantImg,
   }),
-  "the-lovers": unit("the-lovers", "The Lovers", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
+  "the-lovers": unit("the-lovers", "Twinbriar", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
     image: theLoversImg,
   }),
-  "the-chariot": unit("the-chariot", "The Chariot", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
+  "the-chariot": unit("the-chariot", "Thornram", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
     image: theChariotImg,
   }),
-  strength: unit("strength", "Strength", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
+  strength: unit("strength", "Ironclaw", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
     image: strengthImg,
   }),
-  "the-hermit": unit("the-hermit", "The Hermit", "the-hermit", 1, "support", [
+  "the-hermit": unit("the-hermit", "Hollowreed", "the-hermit", 1, "support", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 6 },
   ], { image: theHermitImg }),
-  "wheel-of-fortune": unit("wheel-of-fortune", "Wheel of Fortune", "wheel-of-fortune", 1, "hybrid", [
+  "wheel-of-fortune": unit("wheel-of-fortune", "Windshift", "wheel-of-fortune", 1, "hybrid", [
     { type: "attack", amount: 10, weight: 1 },
     { type: "block", amount: 10, weight: 1 },
   ], { moveSelect: "weightedRandom", image: wheelOfFortuneImg }),
-  justice: unit("justice", "Justice", "justice", 1, "tank", [
+  justice: unit("justice", "Oakwarden", "justice", 1, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 6 },
   ], { image: justiceImg }),
-  "the-hanged-man": unit("the-hanged-man", "The Hanged Man", "the-hanged-man", 0, "dps", [
+  "the-hanged-man": unit("the-hanged-man", "Snarevine", "the-hanged-man", 0, "dps", [
     { type: "attack", amount: 6 },
   ], { image: theHangedManImg }),
-  death: unit("death", "Death", "death", 1, "dps", [{ type: "attack", amount: 7 }], { image: deathImg }),
-  temperance: unit("temperance", "Temperance", "temperance", 1, "tank", [
+  death: unit("death", "Bonewither", "death", 1, "dps", [{ type: "attack", amount: 7 }], { image: deathImg }),
+  temperance: unit("temperance", "Stillbark", "temperance", 1, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
   ], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "block", amount: 3 } }],
     image: temperanceImg,
   }),
-  "the-devil": unit("the-devil", "The Devil", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], { image: theDevilImg }),
-  "the-tower": unit("the-tower", "The Tower", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
+  "the-devil": unit("the-devil", "Hollowmaw", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], { image: theDevilImg }),
+  "the-tower": unit("the-tower", "Bramblespire", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
     image: theTowerImg,
   }),
-  "the-star": unit("the-star", "The Star", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
+  "the-star": unit("the-star", "Glowmoss", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "heal", amount: 3 } }],
     image: theStarImg,
   }),
-  "the-moon": unit("the-moon", "The Moon", "the-moon", 1, "support", [
+  "the-moon": unit("the-moon", "Nightbloom", "the-moon", 1, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 5 },
   ], { image: theMoonImg }),
-  "the-sun": unit("the-sun", "The Sun", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
+  "the-sun": unit("the-sun", "Sunthorn", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
     image: theSunImg,
   }),
-  judgement: unit("judgement", "Judgement", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
+  judgement: unit("judgement", "Stoneknell", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
     image: judgementImg,
   }),
-  "the-world": unit("the-world", "The World", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
+  "the-world": unit("the-world", "Rootcrown", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
     image: theWorldImg,
   }),
 

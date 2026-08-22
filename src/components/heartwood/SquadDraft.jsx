@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import { UNITS, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
-import { ITEMS, ITEM_SLOTS, itemPool } from "../../data/heartwood/items"
+import { ITEMS, itemPool } from "../../data/heartwood/items"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
-import { REFORGE_COST, RETRAIN_COST } from "../../services/heartwood/runEngine"
+import { REFORGE_COST, RETRAIN_COST, effectiveItemSlots } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
 import { CardGlyph } from "./cardArt"
@@ -31,6 +31,11 @@ export default function SquadDraft({
   const commander = CHARACTERS[runState.characterId]
   const commanderRank = runState.commanderRank || 0
   const rankCost = commanderRankCost(commanderRank)
+  // Artificer's Ledger (relics.js) grants every unit a bonus slot on
+  // top of the base ITEM_SLOTS - same effectiveItemSlots helper
+  // equipItem's own range check uses, so the pips shown here can never
+  // drift out of sync with what's actually equippable.
+  const maxItemSlots = effectiveItemSlots(runState)
   const [justReforgedKey, setJustReforgedKey] = useState(null)
   const [justFusedKey, setJustFusedKey] = useState(null)
   const [showRetrain, setShowRetrain] = useState(false)
@@ -304,7 +309,7 @@ export default function SquadDraft({
                 <UnitCard def={def} disabled />
               </div>
               <div className="hw-item-slots" title="Item slots - click a bag item above, then click a slot to equip it">
-                {Array.from({ length: ITEM_SLOTS }, (_, slotIndex) => {
+                {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
                   const equipped = equippedItems.find((it) => it.slotIndex === slotIndex)
                   const itemDef = equipped ? ITEMS[equipped.defId] : null
                   return (
