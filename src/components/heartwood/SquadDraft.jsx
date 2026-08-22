@@ -2,7 +2,7 @@ import { useState } from "react"
 import { UNITS, UPGRADE_MAX_LEVEL, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
-import { REFORGE_COST } from "../../services/heartwood/runEngine"
+import { REFORGE_COST, RETRAIN_COST } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import { CardGlyph } from "./cardArt"
 
@@ -18,6 +18,7 @@ export default function SquadDraft({
   onRankUp,
   onUpgradeRelic,
   onReforge,
+  onRetrain,
   showIntro,
   onDismissIntro,
 }) {
@@ -26,6 +27,8 @@ export default function SquadDraft({
   const commanderRank = runState.commanderRank || 0
   const rankCost = commanderRankCost(commanderRank)
   const [justReforgedKey, setJustReforgedKey] = useState(null)
+  const [showRetrain, setShowRetrain] = useState(false)
+  const otherCommanders = Object.values(CHARACTERS).filter((c) => c.id !== runState.characterId)
 
   function handleReforge(benchKey) {
     onReforge(benchKey)
@@ -61,7 +64,35 @@ export default function SquadDraft({
             Rank Up ({rankCost} Essence)
           </button>
         )}
+        <button
+          className="hw-move-btn"
+          style={{ fontSize: 11, padding: "4px 8px" }}
+          onClick={() => setShowRetrain((cur) => !cur)}
+          title="Switch to a different Commander for the rest of this run"
+        >
+          Retrain...
+        </button>
       </div>
+
+      {showRetrain && (
+        <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+          {otherCommanders.map((c) => (
+            <button
+              key={c.id}
+              className="hw-move-btn"
+              style={{ fontSize: 11, padding: "4px 8px" }}
+              disabled={runState.essence < RETRAIN_COST}
+              onClick={() => {
+                onRetrain(c.id)
+                setShowRetrain(false)
+              }}
+              title={c.description}
+            >
+              <CardGlyph name={c.art} className="hw-intent-glyph" /> {c.name} ({RETRAIN_COST} Essence)
+            </button>
+          ))}
+        </div>
+      )}
 
       {runState.relics.length > 0 && (
         <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>

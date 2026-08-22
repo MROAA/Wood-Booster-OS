@@ -335,6 +335,24 @@ const BASE_UNITS = {
     // strictly out-classing the other.
     chainDamage: 6,
   }),
+  thornguard: unit("thornguard", "Thornguard", "shield", 2, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 5 },
+  ], {
+    // Ward (effects.js's dealDamage) - a third defensive tool
+    // alongside Block (a depleting damage pool) and Revive (only
+    // matters once, at the very edge of death): a Ward stack cancels
+    // one entire incoming hit outright, whatever its size, then is
+    // gone. Granted once at battle start, same convention as every
+    // other passive that isn't a repeating trigger - deliberately NOT
+    // a turnStart regrant, since powers (unlike Block) don't reset
+    // each round, and an unbounded once-per-round Ward stack would let
+    // a Thornguard that goes several rounds unattacked (an AoE round,
+    // a formation with more targets than attackers) snowball into
+    // effective invulnerability rather than the fixed, readable
+    // resource every other status stays.
+    passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

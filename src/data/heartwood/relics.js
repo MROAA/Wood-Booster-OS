@@ -148,6 +148,18 @@ export const RELICS = {
     // nothing new needed in startAutoBattle for this one.
     effects: [{ type: "applyBuff", id: "execute", amount: 3 }],
   },
+  "aegis-ward": {
+    id: "aegis-ward",
+    name: "Aegis Ward",
+    icon: "shield",
+    cost: RELIC_COST,
+    description: "Every unit shrugs off the first real hit it takes, once.",
+    // Ward's second source, alongside Thornguard's own passive - same
+    // uniform per-unit effects loop as Ember Core/Culling Strike,
+    // nothing special-cased needed since Ward only reads
+    // powers.ward wherever it came from.
+    effects: [{ type: "applyBuff", id: "ward", amount: 1 }],
+  },
 }
 
 export function relicPool() {
