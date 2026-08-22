@@ -20,6 +20,7 @@ const STATUS_DISPLAY = {
   execute: { icon: "sword", color: "var(--hw-hp)" },
   revive: { icon: "heart", color: "var(--hw-moss)" },
   ward: { icon: "shield", color: "var(--hw-rune)" },
+  shatter: { icon: "sword", color: "var(--hw-rune)" },
 }
 
 // Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point

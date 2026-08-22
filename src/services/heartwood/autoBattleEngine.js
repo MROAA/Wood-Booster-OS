@@ -197,6 +197,18 @@ export function startAutoBattle(
     log: [`The fight begins. ${formation.name || enemies[0]?.name || "The enemy"} stands ready.`],
   }
 
+  // Enemies can carry a battle-start passive too, the same one-time
+  // self-targeting grant player units already get via def.passive just
+  // below - previously only player units could have one, so no enemy
+  // could ever come pre-armed with something like Shatter the way
+  // Ironbark/Stoneheart already come pre-armed with Taunt.
+  for (const e of enemies) {
+    const def = ENEMIES[e.defId]
+    if (def.passive?.length) {
+      state = applyEffects(state, def.passive, { actorId: e.id, targetId: e.id })
+    }
+  }
+
   // Each deployed unit's own passive (ported from its old power-card
   // addTrigger effect) applies once, the same mechanism a character's
   // startEffects already used for a one-time battle-start bonus.

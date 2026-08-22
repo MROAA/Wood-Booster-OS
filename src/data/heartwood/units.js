@@ -687,6 +687,14 @@ const BASE_UNITS = {
   hollowquill: unit("hollowquill", "Hollowquill", "rune", 2, "dps", [
     { type: "attack", amount: 8 },
   ]),
+  // Shatter (effects.js) - a genuinely new mechanic, Execute's mirror:
+  // bonus damage against a target currently holding Block instead of
+  // one below an HP threshold. Stoneknoll is the first unit built
+  // around it, rewarding a squad that keeps pressing a defensive
+  // enemy instead of waiting out its Block.
+  stoneknoll: unit("stoneknoll", "Stoneknoll", "shield", 2, "dps", [{ type: "attack", amount: 6 }], {
+    passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

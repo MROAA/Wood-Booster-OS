@@ -250,6 +250,28 @@ export const ENEMIES = {
     ],
   },
 
+  "cragfang": {
+    id: "cragfang",
+    name: "Cragfang",
+    maxHp: 44,
+    art: "root",
+    description: "It doesn't care that you're braced. It just hits harder because of it.",
+    // 14th mook, and the first with a battle-start passive at all
+    // (autoBattleEngine.js's startAutoBattle - enemies could never
+    // carry one before this round). Comes pre-armed with Shatter
+    // (effects.js), the roster's newest mechanic - punishes a squad
+    // leaning on Block (Ironbark/Oakwarden/Loamguard/Cragmoss and
+    // friends) the same way Duskgnaw punishes a squad that ignores its
+    // stacking debuffs: the defensive answer that works everywhere
+    // else stops being free here.
+    passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "block", amount: 6 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already
