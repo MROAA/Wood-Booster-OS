@@ -18,7 +18,7 @@ import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/chara
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison } from "./effects"
-import { isShielded } from "./targeting"
+import { isShielded, kingAdjacent } from "./targeting"
 
 const GRID = { rows: 3, cols: 3 }
 const MAX_ROUNDS = 30
@@ -192,6 +192,22 @@ export function startAutoBattle(
     const def = effectiveDefs[u.id]
     if (def.passive?.length) {
       state = applyEffects(state, def.passive, { actorId: u.id, targetId: u.id })
+    }
+    // Rally (units.js's rallyAdjacent, e.g. Ashenhorn): the roster's
+    // first positional passive - targets OTHER deployed units whose
+    // grid position is Chebyshev-adjacent to this one, not itself, so
+    // it's resolved here against playerUnits' actual pos values rather
+    // than through the uniform self-targeting loop above.
+    if (def.rallyAdjacent) {
+      for (const other of playerUnits) {
+        if (other.id === u.id) continue
+        if (kingAdjacent(u.pos, other.pos)) {
+          state = applyEffects(state, [{ type: "applyBuff", id: def.rallyAdjacent.id, amount: def.rallyAdjacent.amount }], {
+            actorId: other.id,
+            targetId: other.id,
+          })
+        }
+      }
     }
   }
 
