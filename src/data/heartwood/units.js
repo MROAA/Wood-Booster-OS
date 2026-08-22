@@ -684,6 +684,9 @@ const BASE_UNITS = {
     // enemy when this unit's own attack lands the killing blow.
     chainDamage: 4,
   }),
+  hollowquill: unit("hollowquill", "Hollowquill", "rune", 2, "dps", [
+    { type: "attack", amount: 8 },
+  ]),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

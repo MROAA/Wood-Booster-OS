@@ -228,6 +228,28 @@ export const ENEMIES = {
     ],
   },
 
+  "duskgnaw": {
+    id: "duskgnaw",
+    name: "Duskgnaw",
+    maxHp: 42,
+    art: "root",
+    description: "First it saps your strength. Then it makes every hit after count double.",
+    // 13th mook, first to stack BOTH major debuffs on the same target -
+    // every prior debuffer picked one (Weak or Vulnerable, never both).
+    // Weak lowers what the target deals, Vulnerable raises what it
+    // takes - together they compound in both directions on whoever
+    // Duskgnaw keeps hitting, same "ignore it and the whole fight gets
+    // worse" pressure Drowned Siren's repeating Weak already teaches,
+    // just doubled.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player" },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already

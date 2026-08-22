@@ -130,6 +130,21 @@ export const ITEMS = {
     // spend real time below half HP, instead of only squad-wide.
     effects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
   },
+  "wardens-sigil": {
+    id: "wardens-sigil",
+    name: "Warden's Sigil",
+    icon: "shield",
+    cost: 3,
+    description: "This unit draws every eye.",
+    // Taunt's first item-level source - Bulwark Standard (relics.js)
+    // already grants it to whichever deployed unit happens to have the
+    // highest maxHp, and Ironbark/Stoneheart carry it baked into their
+    // own kit, but neither lets a player deliberately choose which
+    // specific recruited unit becomes the squad's designated target.
+    // Same "give the player the choice" motivation as Duelist's Edge/
+    // Feral Charm.
+    effects: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+  },
 }
 
 export function itemPool() {
