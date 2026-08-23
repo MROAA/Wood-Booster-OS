@@ -132,30 +132,49 @@ export function tribesOf(defId, def) {
 // actually shopped for, not the fixed 5th slot everyone always has):
 // 2-of-a-tribe is an easy early target, 4-of-a-tribe (the whole bench)
 // is the realistic ceiling, not 6+ like TFT.
+// `label` on each tier (Marc's own long-running "playable by eye" rule,
+// applied here too) - the tracker used to show "Warden 2 ✓" with a
+// tooltip that only gave flavor text ("Stone and bark protectors"),
+// never what the bonus actually DOES. Every other mechanic in this
+// game (relics, items, Commander powers) states its real effect in
+// plain language; tribe synergies were the one place that had quietly
+// stayed flavor-only since the very first round that shipped them.
 export const SYNERGY_TIERS = {
   warden: [
-    { count: 2, effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }] },
-    { count: 4, effects: [{ type: "applyBuff", id: "ward", amount: 1 }] },
+    {
+      count: 2,
+      label: "Whole squad: +2 Block each round",
+      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+    },
+    { count: 4, label: "Whole squad: +1 Ward", effects: [{ type: "applyBuff", id: "ward", amount: 1 }] },
   ],
   fang: [
-    { count: 2, effects: [{ type: "applyBuff", id: "execute", amount: 1 }] },
-    { count: 4, effects: [{ type: "applyBuff", id: "execute", amount: 2 }] },
+    { count: 2, label: "Whole squad: +1 Execute", effects: [{ type: "applyBuff", id: "execute", amount: 1 }] },
+    { count: 4, label: "Whole squad: +2 Execute", effects: [{ type: "applyBuff", id: "execute", amount: 2 }] },
   ],
   root: [
-    { count: 2, effects: [{ type: "applyBuff", id: "weak", amount: 1 }] },
-    { count: 4, effects: [{ type: "applyBuff", id: "vulnerable", amount: 1 }] },
+    { count: 2, label: "Whole squad: +1 Weak", effects: [{ type: "applyBuff", id: "weak", amount: 1 }] },
+    { count: 4, label: "Whole squad: +1 Vulnerable", effects: [{ type: "applyBuff", id: "vulnerable", amount: 1 }] },
   ],
   grove: [
-    { count: 2, effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } }] },
-    { count: 4, effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } }] },
+    {
+      count: 2,
+      label: "Whole squad: +1 heal each round",
+      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } }],
+    },
+    {
+      count: 4,
+      label: "Whole squad: +2 heal each round",
+      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } }],
+    },
   ],
   spirit: [
-    { count: 2, effects: [{ type: "applyBuff", id: "ward", amount: 1 }] },
-    { count: 4, effects: [{ type: "applyBuff", id: "revive", amount: 1 }] },
+    { count: 2, label: "Whole squad: +1 Ward", effects: [{ type: "applyBuff", id: "ward", amount: 1 }] },
+    { count: 4, label: "Whole squad: +1 Revive", effects: [{ type: "applyBuff", id: "revive", amount: 1 }] },
   ],
   thorn: [
-    { count: 2, effects: [{ type: "applyBuff", id: "strength", amount: 1 }] },
-    { count: 4, effects: [{ type: "applyBuff", id: "strength", amount: 2 }] },
+    { count: 2, label: "Whole squad: +1 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 1 }] },
+    { count: 4, label: "Whole squad: +2 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 2 }] },
   ],
 }
 
@@ -187,4 +206,31 @@ export function nextSynergyThreshold(tribeId, count) {
   if (!tiers) return null
   const next = tiers.find((t) => count < t.count)
   return next ? next.count : null
+}
+
+// Plain-language "what does this actually do" for a tooltip - the
+// CURRENTLY active tier's label if one is met, otherwise the NEXT
+// tier's (so hovering an unmet tribe still tells you what you're
+// building toward, not just that you aren't there yet). Kept out of
+// the badge's own visible text (Marc: "UI needs to be clear and
+// minimalistic while also giving enough info" - the badge itself stays
+// a compact "Warden 2 ✓", this is the on-hover detail for whoever wants
+// it, not something forced onto everyone's screen at once).
+export function synergyTierLabel(tribeId, count) {
+  const tiers = SYNERGY_TIERS[tribeId]
+  if (!tiers) return null
+  const active = [...tiers].reverse().find((t) => count >= t.count)
+  if (active) return active.label
+  const next = tiers.find((t) => count < t.count)
+  return next ? `At ${next.count}: ${next.label}` : null
+}
+
+// Static (no live count needed) reference text for a tribe's full tier
+// ladder - used on a single unit's own tribe icon (UnitCard.jsx),
+// where there's no squad-composition context yet to say "you're at 2,"
+// just "here's what this tribe is worth building toward."
+export function synergyTiersSummary(tribeId) {
+  const tiers = SYNERGY_TIERS[tribeId]
+  if (!tiers) return null
+  return tiers.map((t) => `${t.count}: ${t.label}`).join(". ")
 }

@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
-import { TRIBES, tribesOf, resolveSynergies, nextSynergyThreshold } from "../../data/heartwood/synergies"
+import { TRIBES, tribesOf, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
 import { isShielded } from "../../services/heartwood/targeting"
 import { summarizeBattle } from "../../services/heartwood/autoBattleEngine"
 import EnemyPieceCard from "./EnemyPieceCard"
@@ -180,12 +180,13 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, onAdvanc
             const tribe = TRIBES[tribeId]
             const active = activeSynergies.find((s) => s.tribeId === tribeId)
             const next = nextSynergyThreshold(tribeId, count)
+            const tierLabel = synergyTierLabel(tribeId, count)
             return (
               <span
                 key={tribeId}
                 className={`hw-badge${active ? " hw-badge--active" : ""}`}
                 style={!active ? { color: tribe?.color, borderColor: tribe?.color } : undefined}
-                title={tribe?.description}
+                title={tierLabel ? `${tribe?.description} ${tierLabel}` : tribe?.description}
               >
                 <CardGlyph name={tribe?.icon} className="hw-intent-glyph" />
                 {tribe?.name} {count}
