@@ -757,6 +757,10 @@ const BASE_UNITS = {
     { type: "sunder" },
     { type: "attack", amount: 5 },
   ]),
+  mosshollow: unit("mosshollow", "Mosshollow", "shield", 1, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 3 },
+  ]),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
