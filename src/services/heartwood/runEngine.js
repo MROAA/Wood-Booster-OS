@@ -369,14 +369,42 @@ export function recruitUnit(runState, unitDefId) {
   const def = UNITS[unitDefId]
   if (!def || runState.essence < def.recruitCost || !runState.shopOffers.includes(unitDefId)) return runState
 
-  const withNew = [...runState.bench, { key: runState.benchKeyCounter, defId: unitDefId, upgradeLevel: 0 }]
+  const newKey = runState.benchKeyCounter
+  const withNew = [...runState.bench, { key: newKey, defId: unitDefId, upgradeLevel: 0 }]
   const fused = fuseAll(withNew, runState.deployed, runState.items, runState.benchKeyCounter + 1)
+
+  // Auto-deploy: a bought unit used to sit inert on the bench until a
+  // SEPARATE click placed it into one of the 4 battlefield slots on
+  // FormationScreen - a real "I bought units and they did nothing in
+  // the fight" trap (Marc, live), since only DEPLOYED units actually
+  // join a battle. Fills every open slot from the bench automatically,
+  // same convention Battlegrounds-style autobattlers use when board
+  // space is scarce - the player can still bench a unit again with the
+  // usual click if they'd rather deploy something else instead.
+  // Deliberately a general "sweep any undeployed bench entry into any
+  // open slot" rather than just placing the one unit just bought:
+  // fuseAll above (tryFuseOnce) clears the deploy slot of any consumed
+  // unit when 3 copies fuse into a Tier 2, so a fusion can silently
+  // UN-deploy 2 already-fighting units and leave the result sitting on
+  // the bench - the exact same "owned but not fighting" trap, just
+  // reached a different way. One sweep after fusion settles fixes both
+  // cases at once instead of tracking the new unit's key through fusion.
+  let deployed = fused.deployed
+  const deployedKeys = new Set(deployed.filter((k) => k !== null))
+  for (const entry of fused.bench) {
+    if (deployedKeys.has(entry.key)) continue
+    const emptySlot = deployed.indexOf(null)
+    if (emptySlot === -1) break
+    deployed = [...deployed]
+    deployed[emptySlot] = entry.key
+    deployedKeys.add(entry.key)
+  }
 
   return {
     ...runState,
     essence: runState.essence - def.recruitCost,
     bench: fused.bench,
-    deployed: fused.deployed,
+    deployed,
     items: fused.items,
     benchKeyCounter: fused.nextKey,
     shopOffers: runState.shopOffers.filter((id) => id !== unitDefId),
