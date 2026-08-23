@@ -784,6 +784,19 @@ const BASE_UNITS = {
     { type: "sunder" },
     { type: "attack", amount: 8 },
   ]),
+  // A common-tier Poison-debuff unit - Rootfang/Hexmother/Mycelist
+  // (all 3-cost) were the only ones, so Fungal Spore Sac/Mycotic Bloom
+  // (PR #278) had no cheap unit to pair with early in a run.
+  witherkit: unit("witherkit", "Witherkit", "root", 1, "dps", [
+    { type: "attack", amount: 4 },
+    { type: "debuff", id: "poison", amount: 2, target: "target" },
+  ]),
+  stormveil: unit("stormveil", "Stormveil", "moonGlyph", 2, "dps", [{ type: "attack", amount: 6 }], {
+    // Chain (autoBattleEngine.js's actSide), same mechanism Rimefang/
+    // Grimtusk/Foxfire already established - a plain uncommon-tier
+    // source, cost point variety alongside Briarkit's common-tier one.
+    chainDamage: 3,
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
