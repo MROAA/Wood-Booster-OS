@@ -19,7 +19,13 @@ export const ITEMS = {
     name: "Twig Charm",
     icon: "shield",
     cost: 1,
-    description: "This unit grows a little bark at the start of each round.",
+    // A near-verbatim duplicate of Stonebound Charm's own description
+    // ("grows a little bark") went unnoticed until a text-match pass -
+    // same words, different power level (2 Block here vs. 3 at 2 cost)
+    // reading identical in the shop was a real "can't tell these apart
+    // without checking the cost number" gap. "A sprig" reads smaller
+    // than "bark," matching the actual difference in effect.
+    description: "This unit grows a sprig of bark at the start of each round.",
     // Polish pass: every item shipped at 2-3 cost, so the rarity
     // system's own "common" band (ITEM_TIER_BY_COST's own 1 -> common
     // entry, below) had zero actual items in it - the tier spread

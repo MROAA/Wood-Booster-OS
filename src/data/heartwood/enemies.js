@@ -517,7 +517,12 @@ export const ENEMIES = {
     name: "Mossveil",
     maxHp: 46,
     art: "leaf",
-    description: "It doesn't do anything you haven't already seen. It just doesn't stop doing it.",
+    // Polish pass: this line was a verbatim duplicate of Wraithgale's
+    // own flavor text (line ~440) - both "plain reinforcement, no
+    // gimmick" mooks share that framing in their code comments, but
+    // that shouldn't have meant sharing the exact same player-facing
+    // sentence too.
+    description: "It never hurries. It never has to.",
     // 27th mook - a plain sequence reinforcement (Hollowfen/Wraithgale's
     // own "run variety, no signature gimmick" spirit) rather than
     // another mechanic-carrier.
