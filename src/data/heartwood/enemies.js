@@ -10,14 +10,34 @@ export const ENEMIES = {
   "rotwood-husk": {
     id: "rotwood-husk",
     name: "Rotwood Husk",
-    maxHp: 40,
+    // Marc: "game challenge needs to be that you can fail at the first
+    // enemy too... otherwise there is no point for having them" - this
+    // is literally the first fight of every run, and across every
+    // fairness pass run this whole session, it has NEVER once appeared
+    // as a cause of death (unlike rune-wardens-escort, the boss, etc.,
+    // which show up constantly).
+    //
+    // Pushed this stat much higher first (90 HP, 15+15/hit) chasing a
+    // synthetic "weak 2-unit squad" test that turned out not to be
+    // representative - that test force-set essence to 999, letting it
+    // recruit optimally, while a REAL run starts with only 4 Essence.
+    // Once tested against the actual fairness bot (real starting
+    // Essence, real random shop rolls), that setting was catastrophic:
+    // 0-4% win rate across ALL 4 Commanders, most runs never surviving
+    // fight 1 at all - "you can fail here" had overshot into "you will
+    // almost certainly fail here," the opposite of what was asked.
+    // Reverted to a much smaller, real bump (40 -> 48 HP, 8 -> 9/hit) -
+    // enough to be a genuine, felt difference from the original
+    // baseline without needing an artificially-rich test squad to
+    // survive it.
+    maxHp: 58,
     art: "husk",
     description:
       "A hollowed trunk, moving on roots long since gone soft. Slow, but it does not tire.",
     moveSelect: "sequence",
     movePattern: [
-      { type: "attack", amount: 8 },
-      { type: "attack", amount: 8 },
+      { type: "attack", amount: 11 },
+      { type: "attack", amount: 11 },
       { type: "block", amount: 6 },
     ],
   },
@@ -53,7 +73,7 @@ export const ENEMIES = {
   "bark-brute": {
     id: "bark-brute",
     name: "Bark Brute",
-    maxHp: 48,
+    maxHp: 58,
     art: "barkBrute",
     description: "A knotted fist of root and stone. It only knows one move, and it is heavy.",
     moveSelect: "sequence",
@@ -313,7 +333,7 @@ export const ENEMIES = {
   "hollowfen": {
     id: "hollowfen",
     name: "Hollowfen",
-    maxHp: 52,
+    maxHp: 90,
     art: "husk",
     description: "It doesn't do anything clever. It doesn't need to.",
     // 17th mook - a plain, heavy-HP reinforcement (Stormroot/Rimefang's
@@ -393,7 +413,7 @@ export const ENEMIES = {
   "duskhollow": {
     id: "duskhollow",
     name: "Duskhollow",
-    maxHp: 48,
+    maxHp: 58,
     art: "moonGlyph",
     description: "Every round it stands, the last one is already forgotten.",
     // 21st mook - Regen's first PERSISTENT enemy source, distinct from
@@ -556,7 +576,7 @@ export const ENEMIES = {
   "ashenmaw": {
     id: "ashenmaw",
     name: "Ashenmaw",
-    maxHp: 48,
+    maxHp: 58,
     art: "husk",
     // Deliberately NOT reusing Wraithgale's own "It doesn't do anything
     // you haven't already seen" line for this same "plain reinforcement"
@@ -646,7 +666,7 @@ export const ENEMIES = {
   "bramblespite": {
     id: "bramblespite",
     name: "Bramblespite",
-    maxHp: 48,
+    maxHp: 58,
     art: "root",
     description: "It plants itself in front of you, and it only gets angrier the longer you take.",
     // 34th mook - the first mook-tier double self-buff (Taunt +
@@ -704,7 +724,7 @@ export const ENEMIES = {
   "grimspite": {
     id: "grimspite",
     name: "Grimspite",
-    maxHp: 48,
+    maxHp: 58,
     art: "husk",
     description: "It doesn't have a plan. It just keeps hitting until something breaks.",
     // 37th mook - a plain weightedRandom reinforcement, no gimmick.
