@@ -511,16 +511,25 @@ export const ENEMIES = {
     ],
   },
 
-  // A mid-run step up from a plain mook, without touching Spacemonkey's
-  // own AoE move (deliberately kept unique to the true final boss - see
-  // its own note below) or the run-ending `type: "boss"` RUN_PATH node
-  // (reserved for Spacemonkey alone - runEngine.js's resolveBattleOutcome
-  // treats that literal node type as "the run is won"). Deepwarden is
-  // still just a `type: "battle"` node like any mook, placed right after
-  // the run's first relic pickup as a real power-spike checkpoint - its
-  // weight comes entirely from stats and kit (70 HP, self Strength+Ward,
-  // a Vulnerable-inflicting pattern attacker), not from any special UI
-  // treatment.
+  // Minibosses: a step up from a plain mook, without touching
+  // Spacemonkey's own AoE move (deliberately kept unique to the true
+  // final boss - see its own note below) or the run-ending
+  // `type: "boss"` RUN_PATH node (reserved for Spacemonkey alone -
+  // runEngine.js's resolveBattleOutcome treats that literal node type
+  // as "the run is won"). Marc: "minibosses too" - RUN_PATH now has a
+  // real `type: "miniboss"` node (runEngine.js) distinct from both
+  // `battle` and `boss`: same "the run continues" behavior as `battle`,
+  // but its own label in SquadDraft's "Next:" preview and its own
+  // flavor line in FormationScreen, instead of either an anonymous mook
+  // fight or a mislabeled "final fight." Their weight also comes from
+  // stats/kit, same as before - Deepwarden's own HP/passive numbers are
+  // unchanged by this promotion. Placement now genuinely matters, not
+  // just for pacing: `runEngine.js`'s difficultyFactorForNode (PR #258)
+  // scales every fight past 60% run-progress by up to +35% HP/damage,
+  // so a miniboss placed late stacks its own elevated stats on TOP of
+  // that ramp for a real late-run spike, while one placed early (like
+  // Deepwarden, ~23% through) stays under the threshold and reads as a
+  // pure early-game skill check instead.
   "deepwarden": {
     id: "deepwarden",
     name: "Deepwarden",
@@ -536,6 +545,30 @@ export const ENEMIES = {
       { type: "attack", amount: 10, weight: 2 },
       { type: "debuff", id: "vulnerable", amount: 1, target: "player", weight: 1 },
       { type: "block", amount: 10, weight: 1 },
+    ],
+  },
+
+  "thornmaw": {
+    id: "thornmaw",
+    name: "Thornmaw",
+    maxHp: 72,
+    art: "root",
+    description: "It doesn't ask you to beat it. It asks you to prove you deserve to move past it.",
+    // The run's SECOND miniboss, placed late (see the note above) so
+    // it stacks with the difficulty ramp - self Regen (persistent, same
+    // turnStart-trigger mechanism Duskhollow already established, not a
+    // one-shot decaying passive) paired with self Taunt (Bonewarden's
+    // own mechanism), so the squad can't just ignore it OR just grind
+    // through its Block-less HP pool - it has to be the priority target
+    // for several rounds straight while it keeps healing itself back.
+    passive: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 3 } },
+      { type: "applyBuff", id: "taunt", amount: 1 },
+    ],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "attack", amount: 6 },
     ],
   },
 

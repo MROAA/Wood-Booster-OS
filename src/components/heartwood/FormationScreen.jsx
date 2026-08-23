@@ -35,6 +35,7 @@ function slotIndexAt(row, col) {
 // placement now happens on an actual board, not a generic card list.
 export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle }) {
   const isBoss = node.type === "boss"
+  const isMiniboss = node.type === "miniboss"
   const formation = resolveFormation(node.formationId || node.enemyId)
   const deployedCount = runState.deployed.filter((k) => k !== null).length
   // Tribe synergies (synergies.js) - counted from DEPLOYED units only,
@@ -124,7 +125,11 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
     <div className="hw-intro">
       <h1 style={{ fontSize: 22, marginBottom: 6 }}>Take the field</h1>
       <p className="hw-flavor">
-        {isBoss ? "The final fight." : formation.description || ENEMIES[node.enemyId]?.description}
+        {isBoss
+          ? "The final fight."
+          : isMiniboss
+            ? `A greater foe. ${formation.description || ENEMIES[node.enemyId]?.description || ""}`
+            : formation.description || ENEMIES[node.enemyId]?.description}
       </p>
 
       {primedPower && (
