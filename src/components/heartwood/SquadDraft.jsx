@@ -183,7 +183,16 @@ export default function SquadDraft({
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingRight: 130 }}>
         <h1 style={{ fontSize: 22, margin: 0 }}>The Heartwood Market</h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {/* key={difficultyTier.name}: without it this is the same DOM
+              node across every render, so crossing into a new tier
+              mid-run (the color/text just updating) never replayed
+              hw-section-fade-in's mount animation - the exact "state
+              changed but nothing moved" gap Marc's "everything needs to
+              be animated" rule targets. Keying by name forces a real
+              remount the moment the tier itself changes, not on every
+              re-render for an unrelated reason. */}
           <span
+            key={difficultyTier.name}
             className="hw-badge hw-section-fade-in"
             style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
             title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"

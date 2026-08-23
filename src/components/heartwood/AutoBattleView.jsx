@@ -179,8 +179,14 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
             here too so the run's progress stays visible for the one
             screen (the actual fight) that had been missing it. */}
         {difficultyTier && (
+          // Missing hw-section-fade-in until now - the one difficulty-
+          // tier badge of the 3 in the game that never even had the
+          // basic mount animation the other two got when they shipped.
+          // Also keyed by name for consistency with those two, though
+          // it can't change mid-battle the way it can mid-shop.
           <span
-            className="hw-badge"
+            key={difficultyTier.name}
+            className="hw-badge hw-section-fade-in"
             style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
             title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
           >

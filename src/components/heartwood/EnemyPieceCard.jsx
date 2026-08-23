@@ -122,13 +122,34 @@ export default function EnemyPieceCard({ enemy, art, shielded, summoned, highlig
               )}
             </div>
           )}
-          {enemy.block > 0 && <span className="hw-badge hw-badge--block">Block {enemy.block}</span>}
+          {/* hw-badge-pop: this element genuinely mounts fresh every
+              time block goes from 0 to positive (a plain conditional,
+              no key to preserve identity through the 0 state) - so the
+              animation correctly replays on every real gain, not just
+              once, which is exactly right for Block since it resets to
+              0 and gets regranted most rounds. */}
+          {enemy.block > 0 && <span className="hw-badge hw-badge--block hw-badge-pop">Block {enemy.block}</span>}
           {powerEntries.length > 0 && (
             <div className="hw-powers">
               {powerEntries.map(([id, amount]) => {
                 const display = STATUS_DISPLAY[id]
+                // hw-badge-pop: every OTHER conditional badge in the game
+                // already pops in the moment it starts existing (tribe
+                // match, active synergy, Freeze...) - a status a unit
+                // gains mid-battle (Poison, Stun, a fresh Strength stack)
+                // was the one place still popping in silently. React
+                // mounts a genuinely new node the first time this exact
+                // id appears in `powers` (keyed by id), so the animation
+                // fires once on that real gain and stays settled on every
+                // later re-render that just updates the stack count, the
+                // same "no JS diffing needed" mechanism .hw-badge--active
+                // already relies on.
                 return (
-                  <span key={id} className="hw-badge" style={display ? { color: display.color, borderColor: display.color } : undefined}>
+                  <span
+                    key={id}
+                    className="hw-badge hw-badge-pop"
+                    style={display ? { color: display.color, borderColor: display.color } : undefined}
+                  >
                     {display && <CardGlyph name={display.icon} className="hw-intent-glyph" />}
                     {formatPowerLabel(id)} {amount}
                   </span>
