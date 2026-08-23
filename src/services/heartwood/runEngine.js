@@ -772,7 +772,7 @@ export const DIFFICULTY_TIERS = [
     lore: "The trees here still let the light through. Whatever watches from the Heartwood's own heart hasn't noticed you yet - or hasn't decided you're worth noticing. Either way, the ground is easy underfoot. It won't stay that way.",
   },
   {
-    threshold: 0.4,
+    threshold: 0.3,
     name: "The Deepening Woods",
     color: "var(--hw-rune)",
     tagline: "The paths stop agreeing with each other.",
@@ -825,10 +825,27 @@ export function difficultyTierForNode(nodeIndex, pathLength) {
 // start, +55% -> +65% cap) - still earlier/harder than before, but a
 // measured step rather than the same over-aggressive mistake repeated
 // at a new pair of numbers.
+// Strengthened again (0.4 start/+65% cap -> 0.3 start/+90% cap) after
+// autoBattleEngine.js's scaleEnemyHpToSquadDps got loosened (Marc:
+// "the game doesnt feel challenging enough it feels like my decisions
+// have no impact" - that function used to target a FIXED fight
+// length regardless of squad strength, quietly erasing the payoff for
+// building well; loosened so it only backstops truly extreme builds
+// now). This base ramp is the PRIMARY difficulty driver again as a
+// result, same as it was before the DPS-adaptive layer existed, so it
+// needs to carry real weight on its own rather than leaning on the
+// other mechanism to make up the difference. Re-verified against the
+// documented "a global ramp increase widens the Tommy-gap, it doesn't
+// close it" risk from the last time this exact lever moved - this
+// time the damage-scaling fix (PR #303) means enemies hit harder as
+// the ramp climbs too, not just tankier, which changes how sustain-
+// vs-offense Commanders each experience a steeper ramp; verified via
+// the fairness pass at this exact setting before shipping, not
+// assumed safe by analogy to the old HP-only version.
 function difficultyFactorForNode(nodeIndex, pathLength) {
   const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
-  if (progress <= 0.4) return 1
-  return 1 + ((progress - 0.4) / 0.6) * 0.65
+  if (progress <= 0.3) return 1
+  return 1 + ((progress - 0.3) / 0.7) * 0.9
 }
 
 // Shared by startFormationBattle and previewBattleEnemies below - both

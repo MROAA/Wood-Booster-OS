@@ -574,14 +574,25 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
   // scaling to protect one whose whole identity is "not built to
   // survive a long fight" in the first place.
   //
-  // Target rounds also raised (2-3.5 -> 3-6) - the shorter range meant
-  // even an uncapped scale rarely asked for much more than the
-  // baseline already had once a squad's real DPS was only modestly
-  // above average; a longer target gives a strong squad's own power
-  // something real to overcome instead of just a bigger number that
-  // still dies in 2 rounds either way.
+  // Marc, live, right after the damage-scaling fix landed: "the game
+  // doesnt feel challenging enough it feels like my decisions have no
+  // impact." A real structural problem, not just a magnitude one -
+  // targeting a FIXED round count (3-6, same for every squad) means a
+  // squad that built well and a squad that barely tried both take the
+  // same number of rounds to win, because the enemy's own toughness
+  // was scaled to match whichever one showed up. That's the opposite
+  // of "decisions matter" - a genuinely stronger build should clear a
+  // fight FASTER and more comfortably than a weak one, not get an
+  // automatically tankier opponent that erases the advantage. Cut the
+  // target-round floor from 3-6 down to 1.5-2.5, so this mechanism
+  // only ever intervenes against a build strong enough to threaten an
+  // near-instant, 1-round kill (still a real backstop against
+  // trivializing the game entirely) - a normal or even strong build
+  // that clears a fight in 2-3 rounds now just... does, and feels like
+  // it, instead of getting quietly rubber-banded back to a fixed
+  // target every time.
   const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / 0.65))
-  const targetRounds = 3 + progress * 3
+  const targetRounds = 1.5 + progress * 1
   const targetTotalHp = squadDps * targetRounds
 
   const currentTotalHp = state.enemies.reduce((sum, e) => sum + e.maxHp, 0)
