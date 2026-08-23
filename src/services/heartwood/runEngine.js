@@ -129,6 +129,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", formationId: "the-hollow-court" },
   { type: "shop" },
+  { type: "battle", formationId: "the-withering-pact" },
+  { type: "shop" },
   { type: "boss", enemyId: "spacemonkey" },
 ]
 

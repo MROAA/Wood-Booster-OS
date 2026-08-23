@@ -211,6 +211,24 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "the-withering-pact": {
+    id: "the-withering-pact",
+    name: "The Withering Pact",
+    description: "Two rots that don't compete for the same wound. Together they cover all of it.",
+    // A genuine swarm (Mist Growler Pack's own no-shielding shape),
+    // pairing Hollowspite (Poison + Weak) and Duskwither (Poison +
+    // Vulnerable) - both stack Poison independently (compounding the
+    // DOT fast), while Weak and Vulnerable together hit the SAME
+    // damage-math formula from both directions at once (attacker's own
+    // output cut, defender's own damage taken raised) - the two mooks'
+    // debuff kits don't overlap, they cover the full spread between
+    // them.
+    pieces: [
+      { defId: "hollowspite", pos: { row: 0, col: 0 } },
+      { defId: "duskwither", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {
