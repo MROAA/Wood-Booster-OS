@@ -129,6 +129,26 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "quillfangs-warren": {
+    id: "quillfangs-warren",
+    name: "Quillfang's Warren",
+    description: "Hollowfen plants itself in front, daring you through before Quillfang's poison piles up.",
+    // Same shielding shape as Bark Brute's Stand/Rune Warden's Escort -
+    // Hollowfen strictly in front (row 0 < row 1), same column, so it
+    // has to fall (or a pattern attack reach past it) before Quillfang
+    // becomes a legal single-target. Reuses this session's own newest
+    // pair (PR #246) rather than inventing a new enemy just for the
+    // pairing - a real reason to grind through the wall fast, since
+    // every round spent on Hollowfen's high HP is another stack of
+    // Quillfang's Poison building up for free behind it. Column 0, not
+    // the center (1,1) square - same knight's-move reason every
+    // shielding formation already follows.
+    pieces: [
+      { defId: "hollowfen", pos: { row: 0, col: 0 } },
+      { defId: "quillfang", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {

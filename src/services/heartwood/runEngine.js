@@ -85,6 +85,8 @@ const RUN_PATH = [
   { type: "battle", formationId: "rune-wardens-escort" },
   { type: "relic" },
   { type: "shop" },
+  { type: "battle", formationId: "quillfangs-warren" },
+  { type: "shop" },
   { type: "boss", enemyId: "spacemonkey" },
 ]
 

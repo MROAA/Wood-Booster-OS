@@ -731,6 +731,22 @@ const BASE_UNITS = {
     { type: "heal", amount: 3 },
     { type: "attack", amount: 3 },
   ]),
+  briarkit: unit("briarkit", "Briarkit", "root", 1, "dps", [{ type: "attack", amount: 5 }], {
+    // Chain (autoBattleEngine.js's actSide) - a cheap, common-tier
+    // source of the mechanic, previously only on 2-cost+ units
+    // (Rimefang/Grimtusk/Foxfire).
+    chainDamage: 3,
+  }),
+  hollowspire: unit("hollowspire", "Hollowspire", "leaf", 3, "support", [
+    { type: "heal", amount: 5 },
+    { type: "attack", amount: 5 },
+  ], {
+    // rallyHeal (autoBattleEngine.js's resolveRound) - the roster's
+    // first RARE-tier mender (Willowmend/Sapkeeper/Cragmoss are all
+    // common/uncommon), so a squad leaning support has a real high-roll
+    // target in the late shop, not just early picks.
+    rallyHeal: 3,
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
