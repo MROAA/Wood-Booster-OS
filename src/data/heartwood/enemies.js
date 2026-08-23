@@ -650,6 +650,24 @@ export const ENEMIES = {
     isBoss: true,
     description: "The little devil behind the curtain. He was never only on your side.",
     victoryLine: "\"...Well played.\" The grin doesn't quite reach his eyes.",
+    // Marc: "work on bosses too" - the run's final fight has always
+    // been "the same kit, bigger numbers." Revive+WoundedFury together
+    // give it something no mook or miniboss has: a real second phase.
+    // The first killing blow only drops him to 1 HP (Revive - same
+    // mechanism a player's own Revive-carrying units already use,
+    // never before given to an enemy - deliberately reserved for the
+    // one fight in the game meant to feel different from every other),
+    // and WoundedFury means whatever he does next hits harder, not
+    // softer, once he's clinging to life. Spacemonkey carries no Ward
+    // (SUNDERABLE_IDS' own first-priority check), so Revive is the
+    // first stack a Sunder effect actually finds on him - a player
+    // squad carrying Sunder (Thornwisp/Ashcaller/Sundermaw Fang/
+    // Rootbreak Sigil) has a real, existing answer: strip the extra
+    // life before it matters, instead of it being unconditional.
+    passive: [
+      { type: "applyBuff", id: "revive", amount: 1 },
+      { type: "applyBuff", id: "woundedFury", amount: 1 },
+    ],
     moveSelect: "weightedRandom",
     movePattern: [
       { type: "attack", amount: 21, weight: 2 },
