@@ -40,6 +40,28 @@ export const ITEMS = {
     // discovered via testing this specific item).
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
   },
+  "mossdrop-vial": {
+    id: "mossdrop-vial",
+    name: "Mossdrop Vial",
+    icon: "leaf",
+    cost: 1,
+    description: "This unit mends a trickle at the start of each round.",
+    // Common tier still had only ONE item (Twig Charm) - real variety
+    // gap for a Market Level 1 shop, which can only ever offer this
+    // tier. Same "cheaper, smaller version of an existing 2-cost item"
+    // pattern Twig Charm itself established, applied to Sapmend Vial
+    // (2 cost, heal 2/round) this time instead of another Block item -
+    // covers the OTHER defensive archetype (sustain, not mitigation)
+    // rather than just duplicating Twig Charm's own niche. Strength-
+    // based items don't downscale the same way (a flat +1 buff has no
+    // smaller non-zero value to shrink to without either being a
+    // no-op or exactly duplicating Ember Charm at a lower price - a
+    // real "why would you ever buy the 2-cost one" trap), so this
+    // round covers heal instead of offense; a common-tier offense item
+    // is still an open gap, worth a dedicated look rather than forcing
+    // an awkward fit here.
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } }],
+  },
   "ember-charm": {
     id: "ember-charm",
     name: "Ember Charm",
