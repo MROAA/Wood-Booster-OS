@@ -280,6 +280,7 @@ export default function HeartwoodBattle() {
       <AutoBattleView
         state={runState.battle}
         essenceOnWin={essenceOnWin}
+        nodeType={currentPathNode?.type}
         onAdvanceRound={handleAdvanceRound}
         onContinue={handleBattleContinue}
       />
