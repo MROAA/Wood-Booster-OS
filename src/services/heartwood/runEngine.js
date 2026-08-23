@@ -73,6 +73,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "quillfang" },
   { type: "shop" },
+  { type: "battle", enemyId: "ironmaw" },
+  { type: "shop" },
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
   { type: "battle", formationId: "sirens-bodyguard" },

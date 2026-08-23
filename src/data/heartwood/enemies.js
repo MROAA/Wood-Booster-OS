@@ -347,6 +347,30 @@ export const ENEMIES = {
     ],
   },
 
+  "ironmaw": {
+    id: "ironmaw",
+    name: "Ironmaw",
+    maxHp: 46,
+    art: "husk",
+    description: "It doesn't flinch. It just hits back harder every time.",
+    // 19th mook, and the first to carry a battle-start SELF-buff other
+    // than Shatter (Cragfang) or Regen (Duskmoth) - Strength, via the
+    // same generic `applyBuff` passive every player unit already uses.
+    // Every enemy debuff (Weak/Poison/Vulnerable/Sunder) already has a
+    // source; every PLAYER buff mechanic (Ward/Revive/Taunt/Execute/
+    // Shatter/Strength) has only ever existed on the player's own side
+    // - so `effects.js`'s SUNDERABLE_IDS list has always had nothing to
+    // actually strip on the enemy side of the board. Ironmaw is the
+    // first real target for a player-side Sunder tool (Thornwisp,
+    // units.js).
+    passive: [{ type: "applyBuff", id: "strength", amount: 3 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 5 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already

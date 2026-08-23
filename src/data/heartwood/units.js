@@ -747,6 +747,16 @@ const BASE_UNITS = {
     // target in the late shop, not just early picks.
     rallyHeal: 3,
   }),
+  // Sunder (effects.js) - the roster's first PLAYER-side source. Every
+  // enemy debuff already has a player-side mirror (Cleanse answers
+  // Poison/Weak/Vulnerable/Stun), but Sunder itself had only ever run
+  // enemy -> player (Witherfang). Thornwisp turns it around: a
+  // movePattern move, same shape Willowmend's own "cleanse" move
+  // already established, just targeting the enemy instead of the self.
+  thornwisp: unit("thornwisp", "Thornwisp", "root", 2, "dps", [
+    { type: "sunder" },
+    { type: "attack", amount: 5 },
+  ]),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
