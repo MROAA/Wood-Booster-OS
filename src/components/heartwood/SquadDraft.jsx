@@ -366,6 +366,7 @@ export default function SquadDraft({
                     disabled={runState.essence < def.recruitCost}
                     onClick={() => onRecruit(def.id)}
                     tribeMatch={tribeMatch}
+                    frozen={!!runState.frozen}
                   />
                   {owned >= 2 && (
                     <div

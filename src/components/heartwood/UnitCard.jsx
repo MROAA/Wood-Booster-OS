@@ -27,7 +27,13 @@ const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "s
 // computes it from runEngine.js's benchTribeCounts), rendered as a
 // moss-tinted ring, same "moss = a good thing" color language the
 // synergy-met badge already uses.
-export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch }) {
+//
+// `frozen` (optional): true for every shop offer while runState.frozen
+// is set (SquadDraft.jsx) - Hearthstone Battlegrounds' own "frost over
+// the whole tavern" convention when you Freeze, missing until now
+// (only the Freeze button itself changed color, the actual cards being
+// locked in showed nothing).
+export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen }) {
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   const effectiveRole = role || def.role
   // Tribes (synergies.js): purely a recruit-shop/bench-planning cue, up
@@ -56,6 +62,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       // just in that first instant.
       data-fused={def.displayTier === 2}
       data-tribe-match={!!tribeMatch}
+      data-frozen={!!frozen}
       onClick={!disabled ? onClick : undefined}
       title={def.name}
       // A new shop offer or a freshly recruited bench card used to pop
@@ -66,6 +73,11 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
+      {frozen && (
+        <span className="hw-frost-badge" title="Frozen - stays in the shop until your next visit">
+          <CardGlyph name="moonGlyph" className="hw-effect-icon-glyph" />
+        </span>
+      )}
       <div className="hw-card-head">
         <span className="hw-card-cost">{def.recruitCost ?? "★"}</span>
         {/* Hearthstone-style glanceable corner stat: HP as a big,
