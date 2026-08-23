@@ -646,6 +646,27 @@ export function clearSlot(runState, slotIndex) {
 // get harder, this specifically targets "difficulty hasn't kept pace
 // with what a real build accumulates by the second half," capping at
 // +50% HP/damage on the very last fight (the boss).
+// Marc: "make it challenging but fair." A fairness stress test
+// (per-fight death tracking, not just win/loss) found deaths
+// clustering on 2 specific formation fights (Rune Warden's Escort,
+// Twin Watch) rather than spreading across the late run - tried
+// dampening the ramp specifically for formations (multi-piece fights
+// already carry more total enemy HP/damage than a solo fight at the
+// same run position, so the same percentage bonus lands as a bigger
+// absolute increase there). That overcorrected hard: this engine's
+// combat is fully deterministic (no dice on damage, only shop-offer
+// RNG varies a run), so difficulty here behaves as a threshold, not a
+// smooth probability curve - even a 25% dampening flipped EVERY
+// realistic-bot run from sometimes-lethal to zero deaths anywhere,
+// across all 4 Commanders. Reverted the dampening entirely - formations
+// being the hardest fights is the intended shape (they're deliberately
+// the "did you actually build well" test before the final relic/boss
+// stretch, not a bug), and the un-dampened ramp already produces real,
+// non-zero challenge (58-67% win rate for a bot that ignores every
+// system this session built, 80-100% per-Commander for a realistic
+// bot) without being a coin flip. See the Commander win-rate spread
+// itself (characters.js) as the more clearly UNFAIR remaining gap,
+// not this.
 function difficultyFactorForNode(nodeIndex, pathLength) {
   const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
   if (progress <= 0.6) return 1

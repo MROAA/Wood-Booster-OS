@@ -130,8 +130,23 @@ export const CHARACTERS = {
       id: "blood-oath",
       name: "Blood Oath",
       cost: 3,
-      description: "Next battle only: the whole squad hits harder the more hurt they are.",
-      effects: [{ type: "applyBuff", id: "woundedFury", amount: 2 }],
+      description: "Next battle only: the whole squad hits harder, and harder still once hurt.",
+      // Marc: "make it challenging but fair" - a fairness stress test
+      // (this session's difficulty ramp + tribes/relics/Market Level
+      // all layered on top of each other) resurfaced the same
+      // WoundedFury-is-conditional gap this exact matchup already hit
+      // once before (see squadPassive's own note above): a purely
+      // conditional bonus underperforms Tommy's guaranteed flat one in
+      // a long autobattle, especially now that the late-run difficulty
+      // ramp adds more incoming damage a wounded squad has to survive
+      // before Wounded Fury even starts paying off. Added the same
+      // flat Strength component Opening Strike/Rally Cry/Brace all
+      // already lead with, so Blood Oath has a guaranteed floor too,
+      // not just an upside that depends on getting hurt first.
+      effects: [
+        { type: "applyBuff", id: "strength", amount: 1 },
+        { type: "applyBuff", id: "woundedFury", amount: 2 },
+      ],
     },
   },
   repo: {
