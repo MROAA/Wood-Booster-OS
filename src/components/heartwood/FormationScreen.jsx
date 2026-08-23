@@ -163,7 +163,12 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
               <CardGlyph name="spark" className="hw-intent-glyph" />+{essenceOnWin}
             </span>
           )}
+          {/* key={difficultyTier.name} - see SquadDraft.jsx's identical
+              badge for why: forces a real remount (and so a real replay
+              of hw-section-fade-in) the moment the tier itself changes,
+              not just whenever this screen happens to re-render. */}
           <span
+            key={difficultyTier.name}
             className="hw-badge hw-section-fade-in"
             style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
             title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
