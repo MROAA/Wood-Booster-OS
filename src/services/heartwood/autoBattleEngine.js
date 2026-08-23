@@ -588,11 +588,64 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
   if (targetTotalHp <= currentTotalHp) return state
 
   const scale = targetTotalHp / currentTotalHp
+
+  // Marc, live, right after this shipped: "now the enemy doesnt deal
+  // any dmg" / "it feels like there is no game if there is no
+  // possibility to lose" / "the enemies need to scale with the
+  // player." A real design gap, not a phantom - this function only
+  // ever scaled enemy HP. A strong squad's kills WERE taking longer
+  // (the actual, intended effect), but the enemy's own THREAT never
+  // grew to match - a bigger sponge that still hits for the same flat
+  // number gets relatively LESS dangerous the longer a fight runs, not
+  // more, since the squad gets that many more rounds of its own
+  // heal/block/kill output for free. "Scale with the player" has to
+  // cut both ways: tougher AND more dangerous, or the game trends
+  // toward unlosable exactly as reported.
+  //
+  // Scales each enemy's own movePattern/passive attack damage by the
+  // same measured signal already driving the HP boost - reusing
+  // `scale` directly rather than a second independent formula, so a
+  // squad strong enough to demand more enemy HP faces a
+  // proportionally more dangerous enemy too, not two separately-tuned
+  // numbers that can drift apart. Dampened by sqrt (Marc: "there can
+  // be multiple enemies during a combat" - a 3-piece formation where
+  // EVERY piece also hits proportionally harder compounds fast just
+  // from having more attackers already; sqrt keeps a single-target
+  // fight's threat rising close to linearly with scale while keeping a
+  // multi-piece formation from also multiplying that same boost by 3
+  // simultaneous attackers on top of it).
+  const damageScale = scale ** 0.2
+  const enemyDefs = { ...state.enemyDefs }
+  for (const [defId, def] of Object.entries(enemyDefs)) {
+    enemyDefs[defId] = {
+      ...def,
+      movePattern: def.movePattern.map((m) => scaleEffect(m, damageScale)),
+      // Same addTrigger-unwrapping shape the ramp's own enemyDefs
+      // construction already uses (this file, startAutoBattle) -
+      // an addTrigger wrapper has no `amount` of its own, only its
+      // inner `effect` does, so scaling the wrapper directly would
+      // silently no-op a repeating enemy passive like a turnStart
+      // self-heal/self-block.
+      passive: def.passive
+        ? def.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, damageScale) } : scaleEffect(p, damageScale)))
+        : def.passive,
+    }
+  }
+
   return {
     ...state,
+    enemyDefs,
+    // Each enemy's `intent` (the attack/block/debuff preview the UI
+    // already shows before it acts) was computed at construction time,
+    // BEFORE this function ever ran - still pointing at the OLD,
+    // unscaled movePattern entry. Left alone, round 1's intent badge
+    // would promise the pre-scaling number while the actual hit (which
+    // reads enemyDefs fresh every round) lands for the new, larger
+    // one - a real "the UI lied to me" gap, not just a rounding
+    // difference.
     enemies: state.enemies.map((e) => {
       const hp = Math.round(e.maxHp * scale)
-      return { ...e, hp, maxHp: hp }
+      return { ...e, hp, maxHp: hp, intent: computeIntent(enemyDefs[e.defId], e.moveIndex) }
     }),
   }
 }
