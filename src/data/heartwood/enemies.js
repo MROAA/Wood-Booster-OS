@@ -551,16 +551,22 @@ export const ENEMIES = {
   "deepwarden": {
     id: "deepwarden",
     name: "Deepwarden",
-    maxHp: 70,
+    // Marc: "enemies and bosses need to be more challenging" - bumped
+    // both minibosses roughly +20% on top of the difficulty ramp
+    // (runEngine.js's difficultyFactorForNode) that already scales
+    // anything past 60% run-progress. Deepwarden sits UNDER that
+    // threshold (~14% progress - see its own note below), so this bump
+    // is its entire difficulty increase, not compounding with anything.
+    maxHp: 84,
     art: "warden",
     description: "Something the Heartwood posted here on purpose, long before you arrived.",
     passive: [
-      { type: "applyBuff", id: "strength", amount: 2 },
+      { type: "applyBuff", id: "strength", amount: 3 },
       { type: "applyBuff", id: "ward", amount: 2 },
     ],
     moveSelect: "weightedRandom",
     movePattern: [
-      { type: "attack", amount: 10, weight: 2 },
+      { type: "attack", amount: 12, weight: 2 },
       { type: "debuff", id: "vulnerable", amount: 1, target: "player", weight: 1 },
       { type: "block", amount: 10, weight: 1 },
     ],
@@ -569,7 +575,11 @@ export const ENEMIES = {
   "thornmaw": {
     id: "thornmaw",
     name: "Thornmaw",
-    maxHp: 72,
+    // Bumped a smaller amount than Deepwarden (~8%, not ~20%) - Thornmaw
+    // already sits PAST the difficulty ramp's 60% threshold and gets
+    // its own +35% on top at battle time, so a smaller base increase
+    // here avoids double-stacking into something disproportionate.
+    maxHp: 78,
     art: "root",
     description: "It doesn't ask you to beat it. It asks you to prove you deserve to move past it.",
     // The run's SECOND miniboss, placed late (see the note above) so
@@ -580,13 +590,13 @@ export const ENEMIES = {
     // through its Block-less HP pool - it has to be the priority target
     // for several rounds straight while it keeps healing itself back.
     passive: [
-      { type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 3 } },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 4 } },
       { type: "applyBuff", id: "taunt", amount: 1 },
     ],
     moveSelect: "sequence",
     movePattern: [
-      { type: "attack", amount: 8 },
-      { type: "attack", amount: 6 },
+      { type: "attack", amount: 9 },
+      { type: "attack", amount: 7 },
     ],
   },
 
@@ -598,16 +608,23 @@ export const ENEMIES = {
   spacemonkey: {
     id: "spacemonkey",
     name: "Spacemonkey",
-    maxHp: 90,
+    // Marc: "enemies and bosses need to be more challenging" - bumped
+    // roughly +20%. Already sits at the very end of RUN_PATH
+    // (progress = 1.0), so the difficulty ramp's own +35% multiplier
+    // (runEngine.js's difficultyFactorForNode) already applies on top
+    // of this at battle time - a real final-boss spike, not a token
+    // increase, by design: this IS the one fight meant to ask the most
+    // of a run's whole build.
+    maxHp: 108,
     art: "spacemonkeyBoss",
     isBoss: true,
     description: "The little devil behind the curtain. He was never only on your side.",
     victoryLine: "\"...Well played.\" The grin doesn't quite reach his eyes.",
     moveSelect: "weightedRandom",
     movePattern: [
-      { type: "attack", amount: 18, weight: 2 },
+      { type: "attack", amount: 21, weight: 2 },
       { type: "debuff", id: "weak", amount: 3, target: "player", weight: 1 },
-      { type: "block", amount: 14, weight: 1 },
+      { type: "block", amount: 16, weight: 1 },
       // AoE (autoBattleEngine.js): hits every living player unit
       // directly, bypassing frontmost/randomLiving entirely - Taunt
       // (Stoneheart, Bulwark Standard) and shielding both work by
@@ -615,8 +632,8 @@ export const ENEMIES = {
       // anything here. Only Spacemonkey has this move: the boss fight
       // is the one place "hide the squad behind one tank" should stop
       // being a guaranteed answer. Priced below the single-target hit
-      // (9 vs 18) since it can land on up to 4 units at once.
-      { type: "aoe", amount: 9, weight: 1 },
+      // (11 vs 21) since it can land on up to 4 units at once.
+      { type: "aoe", amount: 11, weight: 1 },
     ],
   },
 }

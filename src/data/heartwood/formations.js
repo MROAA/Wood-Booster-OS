@@ -170,6 +170,28 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "the-hollow-court": {
+    id: "the-hollow-court",
+    name: "The Hollow Court",
+    description: "Three of the deepest Heartwood's own guardians, standing together for the first time.",
+    // Marc: "enemies and bosses need to be more challenging" - a real
+    // late-run gauntlet, not another shielding puzzle: no piece hides
+    // behind another (a plain 3-across row, no knight's-move blind
+    // spots to avoid), so there's no positional trick to lean on. The
+    // difficulty comes entirely from 3 self-buffed threats resolving
+    // AT ONCE - Ironmaw's Strength, Stonewake's Ward, Needlefen's Stun
+    // - reusing 3 already-shipped mooks rather than designing new ones,
+    // same "recombine, don't reinvent" discipline every formation here
+    // already follows. Placed right before the run's final relic pickup
+    // and the boss itself, past the difficulty ramp's 60% threshold, so
+    // it stacks with that too.
+    pieces: [
+      { defId: "ironmaw", pos: { row: 0, col: 0 } },
+      { defId: "stonewake", pos: { row: 0, col: 1 } },
+      { defId: "needlefen", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {
