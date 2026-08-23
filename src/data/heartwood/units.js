@@ -761,6 +761,29 @@ const BASE_UNITS = {
     { type: "block", amount: 5 },
     { type: "attack", amount: 3 },
   ]),
+  // Marc: "enemies and bosses need to be more challenging" - the enemy
+  // side got noticeably tougher (Deepwarden/Thornmaw/Spacemonkey bumps,
+  // The Hollow Court) without a matching answer on the player side.
+  // Hollowveil is the roster's first RARE-tier self-Ward source (Ember
+  // Charm-style items/relics already grant it to any unit, but no unit
+  // carries it as a built-in passive at this tier) - a real defensive
+  // pick against the newly-elevated burst.
+  hollowveil: unit("hollowveil", "Hollowveil", "shield", 3, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 5 },
+  ], {
+    passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
+  }),
+  // Sunder's second unit source, and its first at rare tier - Thornwisp
+  // (2-cost/uncommon) already turns the mechanic around onto the
+  // enemy side, but the new self-buffed minibosses/gauntlet (Ironmaw,
+  // Stonewake, Deepwarden) all lean on Strength/Ward stacks a single
+  // uncommon-tier Sunder can only chip at slowly. Ashcaller hits
+  // harder AND stays on the same "sunder then attack" rhythm.
+  ashcaller: unit("ashcaller", "Ashcaller", "root", 3, "dps", [
+    { type: "sunder" },
+    { type: "attack", amount: 8 },
+  ]),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
