@@ -130,6 +130,8 @@ export const UNIT_TRIBES = {
   ashcaller: ["root"],
   witherkit: ["root"],
   stormveil: ["fang"],
+  palefen: ["spirit"],
+  mistveil: ["spirit"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
