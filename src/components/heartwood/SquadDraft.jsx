@@ -88,6 +88,24 @@ export default function SquadDraft({
   const [justEquippedSlot, setJustEquippedSlot] = useState(null)
   const otherCommanders = Object.values(CHARACTERS).filter((c) => c.id !== runState.characterId)
   const prevBenchKeysRef = useRef(new Set(runState.bench.map((e) => e.key)))
+  // Essence badge flash - every purchase/sale in this shop changes the
+  // number, but it used to just silently re-render as a new digit, the
+  // one "state that visibly changes constantly" spot this whole
+  // animation pass (Marc: "everything needs to be animated") had
+  // missed. Diffs against the previous render the same way the fusion-
+  // detection effect above already does, rather than a CSS class that
+  // can't react to a same-element value change on its own.
+  const prevEssenceRef = useRef(runState.essence)
+  const [essenceFlash, setEssenceFlash] = useState(null)
+  useEffect(() => {
+    const prev = prevEssenceRef.current
+    if (runState.essence !== prev) {
+      setEssenceFlash(runState.essence > prev ? "gain" : "spend")
+      prevEssenceRef.current = runState.essence
+      const timer = setTimeout(() => setEssenceFlash(null), 500)
+      return () => clearTimeout(timer)
+    }
+  }, [runState.essence])
 
   // Fusion (runEngine.js's fuseAll) has always run silently the moment
   // a 3rd copy is recruited - no player-visible moment at all, just
@@ -147,7 +165,7 @@ export default function SquadDraft({
               Next: {nextLabel}
             </span>
           )}
-          <span className="hw-badge hw-essence-badge" title="Essence">
+          <span className="hw-badge hw-essence-badge" data-flash={essenceFlash || undefined} title="Essence">
             <CardGlyph name="spark" className="hw-intent-glyph" />
             {runState.essence}
           </span>
