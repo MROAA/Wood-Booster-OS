@@ -500,14 +500,32 @@ export const ENEMIES = {
     // redirecting the SQUAD's outgoing single-target attacks onto
     // itself the same way (see actSide's own Taunt-priority targeting).
     // A real reason to reach for an AoE/pattern attacker instead of
-    // just grinding the frontmost target down - especially dangerous
-    // paired into a future formation where it can shield a real threat
-    // the same way Bark Brute/Bramblehide already do with Block/heal.
+    // just grinding the frontmost target down - now paired into
+    // Bonewarden's Watch (formations.js), shielding Gravequill's
+    // Execute by mechanic instead of by position, the way Bark Brute/
+    // Bramblehide already do with Block/heal.
     passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
     moveSelect: "sequence",
     movePattern: [
       { type: "block", amount: 6 },
       { type: "attack", amount: 6 },
+    ],
+  },
+
+  "mossveil": {
+    id: "mossveil",
+    name: "Mossveil",
+    maxHp: 46,
+    art: "leaf",
+    description: "It doesn't do anything you haven't already seen. It just doesn't stop doing it.",
+    // 27th mook - a plain sequence reinforcement (Hollowfen/Wraithgale's
+    // own "run variety, no signature gimmick" spirit) rather than
+    // another mechanic-carrier.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "attack", amount: 6 },
+      { type: "block", amount: 8 },
     ],
   },
 
