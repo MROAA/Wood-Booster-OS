@@ -834,6 +834,33 @@ const BASE_UNITS = {
     // established at the same cost tier.
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
   }),
+  // Hybrid is the roster's thinnest role by far (5 units against
+  // 15-43 for every other role) and only ever touched 4 of the 6
+  // tribes (Thorn x2, Spirit, Root, Grove) - Warden and Fang had zero
+  // hybrid representation. Closing both gaps at once, each anchored
+  // to its own tribe's existing identity (Warden's Bastion: Block;
+  // Fang's Mark: Execute) rather than a generic attack+block filler.
+  stoneknit: unit("stoneknit", "Stoneknit", "shield", 2, "hybrid", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], {
+    // Warden's first Regen source - a different defensive identity
+    // from Stoneheart's pure block-and-hold: mends steadily instead
+    // of just soaking hits, so it keeps contributing even through a
+    // fight that outlasts its own Block pool.
+    passive: [{ type: "applyBuff", id: "regen", amount: 3 }],
+  }),
+  snareclaw: unit("snareclaw", "Snareclaw", "sword", 2, "hybrid", [
+    { type: "attack", amount: 5 },
+    { type: "block", amount: 4 },
+  ], {
+    // Fang's first hybrid, and its first Execute source outside
+    // Duskclaw/Trueshot (both pure dps) - braces behind Block, then
+    // its own attack lands harder against an already-wounded target,
+    // same Execute math those two already established just at a
+    // hybrid's lower per-hit baseline.
+    passive: [{ type: "applyBuff", id: "execute", amount: 2 }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
