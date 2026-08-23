@@ -319,6 +319,31 @@ export const ITEMS = {
     // self-buffed minibosses (Ironmaw, Stonewake, Deepwarden).
     effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
   },
+  "frostbite-fang": {
+    id: "frostbite-fang",
+    name: "Frostbite Fang",
+    icon: "moonGlyph",
+    cost: 3,
+    description: "Whatever this unit strikes seizes up, unable to act next round.",
+    // Stun's first ITEM source (autoBattleEngine.js decrements a
+    // unit's stun stack by 1 and skips its whole turn whenever it's
+    // acting) - Frostbind (units.js) was still the roster's ONLY
+    // player-side source, a specific unit's own kit rather than
+    // something any recruited unit could carry, same gap Sunder had
+    // before Sundermaw Fang. Rare tier, same as that item - skipping
+    // an enemy's entire turn is a strong effect even applied once
+    // (Frostbind's own comment already says so, and keeps its base
+    // damage low as the tradeoff for it); on a DIFFERENT unit's every
+    // hit it's stronger still, same "item version can out-proc the
+    // dedicated unit's own kit" tradeoff Sundermaw Fang already
+    // established for Sunder. Deliberately no squad-wide relic
+    // version yet: unlike Sunder (which only strips one buff stack),
+    // every hit in the squad chaining Stun onto the same focused
+    // target could permanently lock an enemy out of acting for an
+    // entire fight - a real balance risk worth a dedicated look
+    // before shipping, not something to guess at in a routine round.
+    effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "stun", target: "target", amount: 1 } }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
