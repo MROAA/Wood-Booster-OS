@@ -134,6 +134,8 @@ export const UNIT_TRIBES = {
   mistveil: ["spirit"],
   wraithguard: ["spirit"],
   nightveil: ["spirit"],
+  stoneknit: ["warden"],
+  snareclaw: ["fang"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
