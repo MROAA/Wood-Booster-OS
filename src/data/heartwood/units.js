@@ -706,6 +706,22 @@ const BASE_UNITS = {
     // Execute.
     rallyAdjacent: { id: "shatter", amount: 2 },
   }),
+  // Regen (effects.js's tickRegen) - a genuinely new mechanic this
+  // round: a decaying heal-over-time stack, Poison's mirror on the
+  // support side. Fernwake is the first unit built around it, spreading
+  // it to its neighbors at battle start instead of only healing itself
+  // every cycle the way Willowmend/Cragmoss already do.
+  fernwake: unit("fernwake", "Fernwake", "leaf", 2, "support", [
+    { type: "heal", amount: 3 },
+    { type: "attack", amount: 3 },
+  ], {
+    rallyAdjacent: { id: "regen", amount: 2 },
+  }),
+  duskbramble: unit("duskbramble", "Duskbramble", "root", 1, "dps", [{ type: "attack", amount: 6 }]),
+  hollowmere: unit("hollowmere", "Hollowmere", "shield", 2, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 4 },
+  ]),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

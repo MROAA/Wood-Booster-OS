@@ -100,6 +100,17 @@ export const UNIT_TRIBES = {
   hollowquill: ["thorn"],
   stoneknoll: ["fang"],
   quarrywarden: ["grove"],
+  // Added by a concurrent session's Regen round (units.js) - tagged
+  // here to keep the tribe roster complete rather than letting these
+  // 3 silently fall through tribesOf's `|| []` fallback (no icon, no
+  // synergy/tribe-anchor-relic eligibility at all) just because they
+  // landed in a different file this session didn't author. Same rule
+  // set as every unit above: rallyAdjacent -> Grove (aura mechanic,
+  // regardless of which buff id it grants), no distinguishing status
+  // -> role-based default (tank -> Warden, dps -> Thorn).
+  fernwake: ["grove"],
+  duskbramble: ["thorn"],
+  hollowmere: ["warden"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

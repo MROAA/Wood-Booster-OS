@@ -290,6 +290,26 @@ export const ENEMIES = {
     ],
   },
 
+  "duskmoth": {
+    id: "duskmoth",
+    name: "Duskmoth",
+    maxHp: 40,
+    art: "moonGlyph",
+    description: "It shrugs off the opening rounds like they never happened.",
+    // 16th mook, and the first to carry Regen (effects.js's tickRegen)
+    // instead of Bramblehide's repeating heal step - front-loaded and
+    // decaying rather than forever, so the fight against it is really
+    // about the OPENING rounds: burst past what its Regen can undo
+    // before it fades, or the middling attack (6) alone won't matter
+    // either way.
+    passive: [{ type: "applyBuff", id: "regen", amount: 4 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "block", amount: 5 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already

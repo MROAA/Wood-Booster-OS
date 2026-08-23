@@ -19,7 +19,7 @@ import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
 import { tribesOf, SYNERGY_TIERS } from "../../data/heartwood/synergies"
-import { applyEffects, runTriggers, getUnit, setUnit, tickPoison } from "./effects"
+import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen } from "./effects"
 import { isShielded, kingAdjacent } from "./targeting"
 
 const GRID = { rows: 3, cols: 3 }
@@ -355,8 +355,18 @@ export function startAutoBattle(
       level && relic?.effects?.length
         ? relic.effects.map((e) => (e.type === "addTrigger" ? { ...e, effect: scaleEffect(e.effect, factor) } : scaleEffect(e, factor)))
         : relic?.effects
+    // Tribe-anchor relics (relics.js's tribeAnchor, e.g. Thorn's
+    // Wrath): reach only units of that one tribe instead of the whole
+    // squad, same "narrower but stronger" precedent tribeAnchor's own
+    // comment in relics.js sets. tribesOf naturally excludes the
+    // Commander (its def has no fusedFrom/matching UNIT_TRIBES entry)
+    // and resolves a summoned creature's tribe via UNITS[u.defId] since
+    // effectiveDefs only ever covers recruited units + the Commander.
+    const targets = relic?.tribeAnchor
+      ? state.playerUnits.filter((u) => tribesOf(u.defId, effectiveDefs[u.id] || UNITS[u.defId]).includes(relic.tribeAnchor))
+      : state.playerUnits
     if (scaledEffects?.length) {
-      for (const u of state.playerUnits) {
+      for (const u of targets) {
         state = applyEffects(state, scaledEffects, { actorId: u.id, targetId: u.id })
       }
     }
@@ -609,6 +619,13 @@ export function resolveRound(state) {
   next = tickPoison(next, next.playerUnits)
   if (next.phase !== "player") return next
   next = tickPoison(next, next.enemies)
+  if (next.phase !== "player") return next
+
+  // Regen (effects.js) - Poison's mirror, same "resolve automatically,
+  // decay by 1" shape, healing instead of damaging.
+  next = tickRegen(next, next.playerUnits)
+  if (next.phase !== "player") return next
+  next = tickRegen(next, next.enemies)
   if (next.phase !== "player") return next
 
   next = applyRallyHealTick(next)

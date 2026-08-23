@@ -276,6 +276,89 @@ export const RELICS = {
     // target's current Block each hit, no new engine work needed.
     effects: [{ type: "applyBuff", id: "shatter", amount: 3 }],
   },
+
+  // Tribe-anchor relics (synergies.js) - Marc: "i like the idea of
+  // having tribes in the game" - every relic above applies uniformly
+  // to the whole squad; these 6 instead target only units of ONE
+  // specific tribe (`tribeAnchor`, read by autoBattleEngine.js's relic
+  // loop the same way `essenceBonus`/`tauntHighestHp`/`itemSlotBonus`
+  // are already special-cased there), a real Battlegrounds/TFT-style
+  // reward for actually committing to a tribe rather than a flat
+  // squad-wide bonus everyone gets regardless of composition. Priced
+  // and rarity-tagged identically to every other relic, but each
+  // grants a noticeably BIGGER per-unit effect than the squad-wide
+  // equivalent (e.g. Thorn's Wrath's +3 Strength vs. Ember Core's +1)
+  // since it only ever reaches a fraction of the squad - narrower
+  // should feel stronger, not just different.
+  "wardens-bastion": {
+    id: "wardens-bastion",
+    name: "Warden's Bastion",
+    icon: "shield",
+    cost: RELIC_COST,
+    description: "Every Warden in your squad grows a lot of bark at the start of each round.",
+    tribeAnchor: "warden",
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
+  },
+  "fangs-mark": {
+    id: "fangs-mark",
+    name: "Fang's Mark",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Every Fang in your squad finishes a badly wounded enemy much faster.",
+    tribeAnchor: "fang",
+    effects: [{ type: "applyBuff", id: "execute", amount: 4 }],
+  },
+  "rootbound-curse": {
+    id: "rootbound-curse",
+    name: "Rootbound Curse",
+    icon: "root",
+    cost: RELIC_COST,
+    description: "Whatever a Root in your squad strikes carries a heavy poison after.",
+    tribeAnchor: "root",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 3 } },
+    ],
+  },
+  "groves-blessing": {
+    id: "groves-blessing",
+    name: "Grove's Blessing",
+    icon: "leaf",
+    cost: RELIC_COST,
+    description: "Every Grove in your squad mends generously at the start of each round.",
+    tribeAnchor: "grove",
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 4 } }],
+  },
+  "spirits-veil": {
+    id: "spirits-veil",
+    name: "Spirit's Veil",
+    icon: "moonGlyph",
+    cost: RELIC_COST,
+    description: "Every Spirit in your squad shrugs off two real hits before either lands.",
+    tribeAnchor: "spirit",
+    effects: [{ type: "applyBuff", id: "ward", amount: 2 }],
+  },
+  "thorns-wrath": {
+    id: "thorns-wrath",
+    name: "Thorn's Wrath",
+    icon: "flame",
+    cost: RELIC_COST,
+    description: "Every Thorn in your squad strikes considerably harder, all fight.",
+    tribeAnchor: "thorn",
+    effects: [{ type: "applyBuff", id: "strength", amount: 3 }],
+  },
+  "heartsbloom-seed": {
+    id: "heartsbloom-seed",
+    name: "Heartsbloom Seed",
+    icon: "heart",
+    cost: RELIC_COST,
+    description: "Every unit knits itself back together over the fight's first few rounds.",
+    // Regen (effects.js's tickRegen) - a decaying heal-over-time stack,
+    // Poison's mirror, granted squad-wide at battle start via the same
+    // applyBuff every other stat relic already uses. Front-loaded and
+    // bounded (fades after a few rounds, same as Poison) rather than a
+    // forever-sustain - Mosswarden's Charm already owns that space.
+    effects: [{ type: "applyBuff", id: "regen", amount: 3 }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
