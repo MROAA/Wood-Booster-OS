@@ -797,6 +797,20 @@ const BASE_UNITS = {
     // source, cost point variety alongside Briarkit's common-tier one.
     chainDamage: 3,
   }),
+  // Spirit tribe density (synergies.js) - flagged as notably smaller
+  // than every other tribe (5 base units vs. 10-28), confirmed as a
+  // genuinely smaller design space rather than a mistagging bug (the
+  // peer session cross-referenced every Ward/Revive/summon carrier
+  // against its tag - all correct). Adding real new members instead of
+  // force-tagging existing ones. Palefen is a cheaper Mosswalker
+  // (self-Ward-as-evasion, common instead of uncommon tier); Mistveil
+  // is a cheaper Wraithcaller (Lifesteal, uncommon instead of rare).
+  palefen: unit("palefen", "Palefen", "moonGlyph", 1, "dps", [{ type: "attack", amount: 4 }], {
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+  }),
+  mistveil: unit("mistveil", "Mistveil", "moonGlyph", 2, "support", [{ type: "attack", amount: 5 }], {
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 1 } }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
