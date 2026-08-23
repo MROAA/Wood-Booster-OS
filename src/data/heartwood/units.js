@@ -811,6 +811,29 @@ const BASE_UNITS = {
   mistveil: unit("mistveil", "Mistveil", "moonGlyph", 2, "support", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 1 } }],
   }),
+  // Closing 2 real gaps left in Spirit's own roster, not just density:
+  // the tribe still had zero Taunt and zero Shatter sources, despite
+  // both mechanics being common elsewhere - every other tribe has at
+  // least one aggro-drawing tank. Wraithguard fills that role slot
+  // (Spirit's roles were tank/hybrid/support x3/dps before this -
+  // heavily support-skewed with only Wraithbriar holding the line).
+  wraithguard: unit("wraithguard", "Wraithguard", "moonGlyph", 3, "tank", [
+    { type: "block", amount: 8 },
+    { type: "attack", amount: 6 },
+  ], {
+    // Taunt via passive `applyBuff`, same battle-start-once shape
+    // Stoneheart already established (holds for the whole fight,
+    // not a repeating trigger) - a spectral guardian standing between
+    // the rest of the squad and whatever's attacking it.
+    passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+  }),
+  nightveil: unit("nightveil", "Nightveil", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
+    // Shatter's first Spirit-tribe source (Stoneknoll/Quarrywarden
+    // were Warden-tribe) - punishes an enemy still braced behind
+    // Block instead of waiting it out, the same identity Stoneknoll
+    // established at the same cost tier.
+    passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
