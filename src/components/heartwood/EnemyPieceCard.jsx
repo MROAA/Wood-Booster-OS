@@ -27,6 +27,12 @@ const STATUS_DISPLAY = {
   // this newest status too rather than letting it fall back to
   // unstyled plain text.
   regen: { icon: "heart", color: "var(--hw-moss)" },
+  // Chain (Cascading Claw/Cascading Wound, items.js/relics.js) - the
+  // newest mechanic to gain an item/relic-granted `applyBuff` stack
+  // (previously chainDamage lived only as a raw def field baked into
+  // Rimefang/Grimtusk/Foxfire's own kit, never a real power a badge
+  // could show). Same offensive-buff color as Strength/Wounded Fury.
+  chainDamage: { icon: "sword", color: "var(--hw-ember)" },
 }
 
 // Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point
