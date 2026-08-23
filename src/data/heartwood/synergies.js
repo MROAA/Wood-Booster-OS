@@ -116,6 +116,18 @@ export const UNIT_TRIBES = {
   briarkit: ["fang"],
   hollowspire: ["grove"],
   thornwisp: ["root"],
+  // Same gap, same fix, a second time - 3 more units (2 balance-round
+  // additions, 1 rare-tier round) landed in units.js without a matching
+  // entry here. Same rule set: mosshollow has no distinguishing status
+  // (just block+attack) -> role-based default, tank -> Warden.
+  // Hollowveil's own passive IS Ward, Warden's defining mechanic, so no
+  // tiebreaker needed. Ashcaller carries Sunder, same mechanic
+  // Thornwisp above is already tagged Root for - consistency with that
+  // precedent over Fang's own "quick striker" flavor, since Sunder is
+  // the same curse/debuff-stripping tool either way.
+  mosshollow: ["warden"],
+  hollowveil: ["warden"],
+  ashcaller: ["root"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
