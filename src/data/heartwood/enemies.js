@@ -573,6 +573,41 @@ export const ENEMIES = {
     ],
   },
 
+  "duskwither": {
+    id: "duskwither",
+    name: "Duskwither",
+    maxHp: 42,
+    art: "root",
+    description: "Every strike leaves something behind that keeps working after it's gone.",
+    // 30th mook - Poison + Vulnerable, the third distinct double-debuff
+    // combo on this side of the roster (Duskgnaw: Weak + Vulnerable,
+    // Hollowspite: Poison + Weak, this: Poison + Vulnerable) - every
+    // pairing of the 3 core debuffs now has its own mook. The ongoing
+    // Poison damage lands harder each tick while Vulnerable is up,
+    // compounding rather than just stacking two separate annoyances.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "poison", amount: 2, target: "target" },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "target" },
+    ],
+  },
+
+  "hollowfang": {
+    id: "hollowfang",
+    name: "Hollowfang",
+    maxHp: 44,
+    art: "husk",
+    description: "It only remembers the last thing that hurt it.",
+    // 31st mook - a plain sequence reinforcement, no gimmick.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 7 },
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 6 },
+    ],
+  },
+
   // Minibosses: a step up from a plain mook, without touching
   // Spacemonkey's own AoE move (deliberately kept unique to the true
   // final boss - see its own note below) or the run-ending

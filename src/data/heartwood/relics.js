@@ -428,6 +428,22 @@ export const RELICS = {
       },
     ],
   },
+  "quarry-vanguard": {
+    id: "quarry-vanguard",
+    name: "Quarry Vanguard",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Every unit hits harder, and hardest of all against a target still braced.",
+    // Strength + Shatter together, squad-wide - the same dual-mechanic
+    // pairing Quarrystrike Gauntlet (items.js) just established, spread
+    // across the whole squad instead of one chosen unit. Both stack
+    // numerically with any existing Strength/Shatter sources (Ember
+    // Core, Quarrybreak) rather than being redundant with them.
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "applyBuff", id: "shatter", amount: 1 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
