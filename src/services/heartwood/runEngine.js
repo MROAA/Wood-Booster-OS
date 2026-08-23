@@ -775,9 +775,12 @@ function difficultyFactorForNode(nodeIndex, pathLength) {
   return 1 + ((progress - 0.4) / 0.6) * 0.65
 }
 
-export function startFormationBattle(runState) {
-  const node = currentNode(runState)
-  const deployed = runState.deployed
+// Shared by startFormationBattle and previewBattleEnemies below - both
+// need the exact same "bench entry -> startAutoBattle's deployedUnits
+// shape" translation, and duplicating it risks the two silently
+// drifting apart over time.
+function deployedUnitsFor(runState) {
+  return runState.deployed
     .filter((key) => key !== null)
     .map((key) => runState.bench.find((e) => e.key === key))
     .filter(Boolean)
@@ -786,10 +789,14 @@ export function startFormationBattle(runState) {
       upgradeLevel: entry.upgradeLevel || 0,
       itemIds: runState.items.filter((it) => it.equippedTo === entry.key).map((it) => it.defId),
     }))
+}
+
+export function startFormationBattle(runState) {
+  const node = currentNode(runState)
   const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
   const battle = startAutoBattle(
     runState.characterId,
-    deployed,
+    deployedUnitsFor(runState),
     node.enemyId || node.formationId,
     runState.relics,
     runState.commanderRank || 0,
@@ -805,6 +812,39 @@ export function startFormationBattle(runState) {
     difficultyFactorForNode(runState.nodeIndex, runState.path.length),
   )
   return { ...runState, phase: "battle", battle, pendingActiveEffects: [] }
+}
+
+// FormationScreen.jsx's pre-battle enemy preview used to always show
+// ENEMIES[defId]'s raw, unscaled maxHp - the difficulty ramp and (now)
+// scaleEnemyHpToSquadDps (autoBattleEngine.js) have only ever applied
+// once startAutoBattle actually runs, so the preview could promise one
+// HP number and the real fight show a very different one the moment it
+// started, especially now that a strong squad's own DPS can push
+// enemy HP well past the ramp's own number - reads as a bug ("the
+// enemy just got way tankier") rather than the intended "your build
+// is being taken seriously." Rather than re-implement the squad-DPS
+// estimate a second time in the UI layer (a real drift risk as either
+// copy evolves), this runs the EXACT SAME startAutoBattle a real
+// battle would, with the exact same arguments startFormationBattle
+// above uses, and hands back just the resulting enemies - a real dry
+// run, not an approximation, discarded immediately after. Pure/
+// side-effect-free like every other read in this file, safe to call
+// on every render.
+export function previewBattleEnemies(runState) {
+  const node = currentNode(runState)
+  const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
+  const battle = startAutoBattle(
+    runState.characterId,
+    deployedUnitsFor(runState),
+    node.enemyId || node.formationId,
+    runState.relics,
+    runState.commanderRank || 0,
+    runState.relicLevels || {},
+    commanderItemIds,
+    runState.pendingActiveEffects || [],
+    difficultyFactorForNode(runState.nodeIndex, runState.path.length),
+  )
+  return battle.enemies
 }
 
 // A relic node only ever offers 3 choices, rolled once - this lets the

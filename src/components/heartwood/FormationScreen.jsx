@@ -4,7 +4,7 @@ import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { TRIBES, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
-import { deployedTribeCounts, difficultyTierForNode, essenceForWin } from "../../services/heartwood/runEngine"
+import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
 import { CardGlyph } from "./cardArt"
@@ -62,6 +62,19 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // identical `isBoss ? null : ...` branch), so there's nothing to
   // preview there either.
   const essenceOnWin = isBoss ? null : essenceForWin(runState, node)
+  // The enemy preview below used to always show ENEMIES[defId]'s raw,
+  // unscaled maxHp - both the difficulty ramp and (now) the DPS-
+  // adaptive scaling (autoBattleEngine.js's scaleEnemyHpToSquadDps)
+  // only ever applied once the real fight started, so this screen
+  // could promise one HP number and the actual battle show a very
+  // different (often much higher) one the instant it began - reads as
+  // a bug, not the intended "the game is taking your build seriously."
+  // A real dry-run of the same battle-setup startFormationBattle
+  // itself uses (runEngine.js's previewBattleEnemies), keyed by
+  // position so it lines up with formation.pieces below regardless of
+  // formation shape.
+  const scaledEnemiesByPos = {}
+  for (const e of previewBattleEnemies(runState)) scaledEnemiesByPos[`${e.pos.row}-${e.pos.col}`] = e
 
   function handleBenchClick(benchKey) {
     const slotIndex = runState.deployed.indexOf(benchKey)
@@ -85,7 +98,9 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
 
       if (enemyPiece) {
         const def = ENEMIES[enemyPiece.defId]
-        const previewEnemy = { id: `preview-${row}-${col}`, name: def.name, hp: def.maxHp, maxHp: def.maxHp, block: 0, intent: null, powers: {} }
+        const scaled = scaledEnemiesByPos[`${row}-${col}`]
+        const hp = scaled?.maxHp ?? def.maxHp
+        const previewEnemy = { id: `preview-${row}-${col}`, name: def.name, hp, maxHp: hp, block: 0, intent: null, powers: {} }
         content = <EnemyPieceCard enemy={previewEnemy} art={def.art} />
       } else if (isCommanderSlot) {
         // The Commander always deploys here - not something the player
