@@ -520,10 +520,20 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
         // "single" only - a pattern-attacker's applyPatternDamage can
         // kill several targets in one action, where "who died" is
         // already ambiguous enough without layering a chain on top.
+        // `acting.powers.chainDamage` (an item/relic-granted stack, via
+        // the exact same generic `applyBuff` mechanism every other
+        // itemizable mechanic uses) is checked ALONGSIDE the unit's own
+        // baked-in `def.chainDamage` rather than instead of it - a unit
+        // that already has Chain built in can still get MORE from an
+        // item, the two add together instead of one overriding the
+        // other. Previously chainDamage was the one mechanic on the
+        // roster with no item/relic path at all, since it lived purely
+        // on the def rather than in the generic effects/powers system.
+        const chainAmount = (def.chainDamage || 0) + (acting.powers.chainDamage || 0)
         if (
           side === "player" &&
           attackPattern === "single" &&
-          def.chainDamage &&
+          chainAmount > 0 &&
           acting.intent.type === "attack" &&
           targetWasAlive &&
           next.phase === "player" &&
@@ -532,7 +542,7 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
           const survivors = targetPool(next).filter((e) => e.hp > 0)
           if (survivors.length) {
             const chainTarget = survivors.reduce((low, e) => (e.hp < low.hp ? e : low), survivors[0])
-            next = applyEffects(next, [{ type: "damage", amount: def.chainDamage }], {
+            next = applyEffects(next, [{ type: "damage", amount: chainAmount }], {
               actorId: unit.id,
               targetId: chainTarget.id,
             })

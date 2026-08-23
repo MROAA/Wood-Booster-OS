@@ -374,6 +374,21 @@ export const RELICS = {
     // leaning on, not just Thornwisp/Ashcaller's own dedicated turns.
     effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
   },
+  "cascading-wound": {
+    id: "cascading-wound",
+    name: "Cascading Wound",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Whatever your squad finishes off, it strikes again at someone else.",
+    // Chain's first RELIC source - Cascading Claw (items.js) puts it
+    // on one chosen unit; this puts it on the whole squad, same
+    // squad-wide upgrade every mechanic's relic version already is to
+    // its item counterpart. Safe as a relic (unlike Stun's own
+    // deliberately-withheld relic version) because Chain only ever
+    // fires on an actual killing blow, not every hit - it can't chain-
+    // lock a single enemy the way a squad-wide Stun proc could.
+    effects: [{ type: "applyBuff", id: "chainDamage", amount: 4 }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

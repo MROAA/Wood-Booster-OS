@@ -344,6 +344,26 @@ export const ITEMS = {
     // before shipping, not something to guess at in a routine round.
     effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "stun", target: "target", amount: 1 } }],
   },
+  "cascading-claw": {
+    id: "cascading-claw",
+    name: "Cascading Claw",
+    icon: "sword",
+    cost: 3,
+    description: "Whatever this unit finishes off, it strikes again at someone else.",
+    // Chain's first ITEM source (autoBattleEngine.js's actSide) -
+    // previously the only mechanic on the roster with no item/relic
+    // path at all, since `chainDamage` lived purely as a raw def field
+    // (Rimefang/Grimtusk/Foxfire's own baked-in kit), not part of the
+    // generic effects/powers vocabulary every other mechanic already
+    // goes through. `applyBuff id: "chainDamage"` now ADDS to a unit's
+    // own built-in chain instead of replacing it - a unit that already
+    // has Chain gets even more from equipping this, same "stacks
+    // rather than overrides" precedent Ember Charm/Strength already
+    // follows. Self-limiting the same way Chain always has been (only
+    // fires on an actual killing blow), so unlike Stun, safe to give a
+    // squad-wide relic version too (see Cascading Wound, relics.js).
+    effects: [{ type: "applyBuff", id: "chainDamage", amount: 4 }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
