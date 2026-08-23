@@ -3,6 +3,9 @@ import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS, itemPool, effectiveRole } from "../../data/heartwood/items"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
+import { ENEMIES } from "../../data/heartwood/enemies"
+import { resolveFormation } from "../../data/heartwood/formations"
+import { tribesOf } from "../../data/heartwood/synergies"
 import {
   REFORGE_COST,
   RETRAIN_COST,
@@ -10,6 +13,7 @@ import {
   MARKET_LEVEL_MAX,
   MARKET_LEVEL_UNLOCKS,
   marketLevelCost,
+  benchTribeCounts,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -46,6 +50,27 @@ export default function SquadDraft({
   const activePower = commander?.activePower
   const activePowerUsed = !!runState.activePowerUsedThisShop
   const primed = (runState.pendingActiveEffects || []).length > 0
+  // "Up next" preview - RUN_PATH (runEngine.js) is fixed and fully
+  // known ahead of time, so the fight right after this shop visit is
+  // always resolvable from runState.path/nodeIndex alone. A real
+  // pre-battle planning cue (recruit differently knowing a swarm vs. a
+  // single shielding puzzle is coming) that cost nothing new to derive
+  // - same resolveFormation lookup FormationScreen.jsx already uses
+  // for the CURRENT fight, one node further ahead.
+  const nextNode = runState.path[runState.nodeIndex + 1]
+  const nextFormation = nextNode ? resolveFormation(nextNode.formationId || nextNode.enemyId) : null
+  const nextLabel = nextNode?.type === "boss" ? "Boss" : nextFormation?.name || ENEMIES[nextFormation?.pieces?.[0]?.defId]?.name
+  // Tribe-match highlight (Battlegrounds/TFT "this fits your board") -
+  // computed from the whole bench, not just deployed units, since at
+  // shop time the player may not have finished placing this visit's
+  // squad yet.
+  const ownedTribes = benchTribeCounts(runState)
+  // Hero Bending on the Commander: it has no baseline `role` (see
+  // characters.js) to contrast against the way a recruited unit does,
+  // so this is just "does ANY equipped Commander item carry
+  // bendsRoleTo" rather than a from/to comparison.
+  const commanderItemDefIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
+  const commanderBentRole = effectiveRole(null, commanderItemDefIds)
   // Artificer's Ledger (relics.js) grants every unit a bonus slot on
   // top of the base ITEM_SLOTS - same effectiveItemSlots helper
   // equipItem's own range check uses, so the pips shown here can never
@@ -116,10 +141,17 @@ export default function SquadDraft({
     <div className="hw-intro">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <h1 style={{ fontSize: 22, margin: 0 }}>The Heartwood Market</h1>
-        <span className="hw-badge hw-essence-badge" title="Essence">
-          <CardGlyph name="spark" className="hw-intent-glyph" />
-          {runState.essence}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {nextLabel && (
+            <span className="hw-badge" title="What you'll face right after this shop visit">
+              Next: {nextLabel}
+            </span>
+          )}
+          <span className="hw-badge hw-essence-badge" title="Essence">
+            <CardGlyph name="spark" className="hw-intent-glyph" />
+            {runState.essence}
+          </span>
+        </div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
@@ -150,6 +182,17 @@ export default function SquadDraft({
           <CardGlyph name={commander?.art} className="hw-intent-glyph" />
           {commander?.name} · Rank {commanderRank}
         </span>
+        {/* Hero Bending on the Commander (items.js's bendsRoleTo) -
+            the Commander has no UnitCard here (just this text badge),
+            so the "Bent" cue that a bench unit gets on its card face
+            needs its own equivalent rather than silently having no
+            visible marker at all when a Bending item lands on the
+            Commander specifically. */}
+        {commanderBentRole && (
+          <span className="hw-badge hw-badge--bent" title={`Bent to ${commanderBentRole}`}>
+            Bent: {commanderBentRole}
+          </span>
+        )}
         {rankCost === null ? (
           <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
         ) : (
@@ -297,9 +340,15 @@ export default function SquadDraft({
           <div className="hw-select-grid hw-deck-preview">
             {offers.map((def) => {
               const owned = runState.bench.filter((e) => e.defId === def.id).length
+              const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
               return (
                 <div key={def.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <UnitCard def={def} disabled={runState.essence < def.recruitCost} onClick={() => onRecruit(def.id)} />
+                  <UnitCard
+                    def={def}
+                    disabled={runState.essence < def.recruitCost}
+                    onClick={() => onRecruit(def.id)}
+                    tribeMatch={tribeMatch}
+                  />
                   {owned >= 2 && (
                     <div
                       className="hw-badge"

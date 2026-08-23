@@ -20,7 +20,14 @@ const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "s
 // marker so the change reads as a build decision, not a silent stat
 // bump - same "every mechanic needs a visible component" rule every
 // other status/keyword in this game already follows.
-export default function UnitCard({ def, selected, disabled, onClick, role, bent }) {
+//
+// `tribeMatch` (optional): true when this card's own tribe(s) overlap
+// with tribes the player already has elsewhere on their bench - a
+// Battlegrounds/TFT "this fits your board" scouting cue (SquadDraft.jsx
+// computes it from runEngine.js's benchTribeCounts), rendered as a
+// moss-tinted ring, same "moss = a good thing" color language the
+// synergy-met badge already uses.
+export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch }) {
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   const effectiveRole = role || def.role
   // Tribes (synergies.js): purely a recruit-shop/bench-planning cue, up
@@ -40,6 +47,15 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent 
       // its base tier, matching displayTier's own "always the top
       // rarity" framing elsewhere in the UI.
       data-tier={def.displayTier === 2 ? "rare" : def.tier}
+      // Golden/upgraded look (Hearthstone Battlegrounds' own "Golden"
+      // convention for a tripled minion) - distinct from and layered on
+      // top of the plain rare glow above, a PERSISTENT marker (not just
+      // the one-shot hw-card--fused burst animation SquadDraft.jsx
+      // already plays the moment a fusion completes) so a Tier 2 unit
+      // still reads as special every time you see it afterward, not
+      // just in that first instant.
+      data-fused={def.displayTier === 2}
+      data-tribe-match={!!tribeMatch}
       onClick={!disabled ? onClick : undefined}
       title={def.name}
       // A new shop offer or a freshly recruited bench card used to pop
