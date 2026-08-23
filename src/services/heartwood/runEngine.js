@@ -129,16 +129,24 @@ function phaseForNode(node) {
 }
 
 // 3 choices, never a relic already owned (relics don't stack with
-// themselves, just with each other) - same shuffle-and-slice shape
-// rollShop already uses.
-function rollRelics(ownedRelicIds) {
+// themselves, just with each other). `tribeCounts` (runEngine.js's own
+// benchTribeCounts, passed in by every call site below) drives the
+// same guarantee rollItemShop already gives Bending items: one slot is
+// reserved for a tribe-anchor relic (relics.js) - preferring one that
+// actually matches a tribe already on the bench, so "here's a relic
+// that fits your build" is a real promise, not a coincidence, falling
+// back to any tribe-anchor relic if the player hasn't committed to a
+// tribe yet, and to nothing special if every tribe-anchor relic is
+// already owned.
+function rollRelics(ownedRelicIds, tribeCounts = {}) {
   const pool = relicPool().filter((r) => !ownedRelicIds.includes(r.id))
-  const shuffled = [...pool]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled.slice(0, 3).map((r) => r.id)
+  const matchingAnchor = pool.filter((r) => r.tribeAnchor && (tribeCounts[r.tribeAnchor] || 0) > 0)
+  const anyAnchor = pool.filter((r) => r.tribeAnchor)
+  const guaranteedPool = matchingAnchor.length ? matchingAnchor : anyAnchor
+  const guaranteed = shuffled(guaranteedPool).slice(0, Math.min(1, guaranteedPool.length))
+  const guaranteedIds = new Set(guaranteed.map((r) => r.id))
+  const rest = shuffled(pool.filter((r) => !guaranteedIds.has(r.id))).slice(0, 3 - guaranteed.length)
+  return shuffled([...guaranteed, ...rest]).map((r) => r.id)
 }
 
 // Market Level (Battlegrounds/Guildrun-style "tavern tier"): pay
@@ -640,7 +648,7 @@ export function rerollRelicOffers(runState) {
   return {
     ...runState,
     essence: runState.essence - RELIC_REROLL_COST,
-    relicOffers: rollRelics(runState.relics),
+    relicOffers: rollRelics(runState.relics, benchTribeCounts(runState)),
   }
 }
 
@@ -727,7 +735,7 @@ export function resolveBattleOutcome(runState) {
       shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1)) : runState.shopOffers,
       itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
       frozen: enteringShop ? false : runState.frozen,
-      relicOffers: nextNode?.type === "relic" ? rollRelics(runState.relics) : runState.relicOffers,
+      relicOffers: nextNode?.type === "relic" ? rollRelics(runState.relics, benchTribeCounts(runState)) : runState.relicOffers,
       rerollCost: REROLL_BASE_COST,
       activePowerUsedThisShop: false,
       battle: null,
