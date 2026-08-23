@@ -89,19 +89,39 @@ export const CHARACTERS = {
     // cratering hardest of the 4. Bumped 2 -> 3 (matching the
     // description text above) to give the sustain identity a real
     // floor against the new late-run damage, not a full rebalance.
-    squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
+    //
+    // A fresh fairness pass (100 simulated runs across all 4 Commanders,
+    // after several rounds of new units/items/relics had landed) found
+    // Aatos at 56% while Tommy sat at 100% - a 44-point gap, and a real
+    // structural reason for it: Fenrir's own Blood Oath comment below
+    // already claims "the same flat Strength component Opening Strike/
+    // Rally Cry/Brace all already lead with," but Rally Cry never
+    // actually got one - Aatos was the only Commander whose full kit
+    // (passive AND active) carried zero offense-scaling component,
+    // exactly the gap that comment assumed had already been closed.
+    // Added the same flat Strength+1 Fenrir's own squadPassive already
+    // has, keeping heal as the primary identity (still the biggest
+    // single number of any Commander effect) rather than a full rework.
+    squadPassive: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
+      { type: "applyBuff", id: "strength", amount: 1 },
+    ],
     // Rally Cry: an extra turnStart heal for the next battle only, on
     // top of Aatos's always-on one - NOT a flat one-time heal (units
     // always start a fight at full HP, the exact bug this same trigger
     // shape already fixed once for Mosswarden's Charm/Purifying Bloom -
     // see relics.js/items.js), same addTrigger pattern applied up front
-    // instead of rediscovering the mistake.
+    // instead of rediscovering the mistake. Strength+1 added alongside
+    // it for the same reason as squadPassive above.
     activePower: {
       id: "rally-cry",
       name: "Rally Cry",
       cost: 3,
-      description: "Next battle only: the whole squad mends a little more each round.",
-      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
+      description: "Next battle only: the whole squad mends a little more each round, and strikes a little harder too.",
+      effects: [
+        { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
+        { type: "applyBuff", id: "strength", amount: 1 },
+      ],
     },
   },
   fenrir: {

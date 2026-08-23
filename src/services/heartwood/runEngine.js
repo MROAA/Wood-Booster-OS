@@ -733,7 +733,7 @@ export function clearSlot(runState, slotIndex) {
 // number it doesn't track.
 export const DIFFICULTY_TIERS = [
   { threshold: 0, name: "The Outer Grove", color: "var(--hw-moss)" },
-  { threshold: 0.45, name: "The Deepening Woods", color: "var(--hw-rune)" },
+  { threshold: 0.4, name: "The Deepening Woods", color: "var(--hw-rune)" },
   { threshold: 0.65, name: "The Wounded Heartwood", color: "var(--hw-ember)" },
   { threshold: 0.85, name: "The Reckoning", color: "var(--hw-curse)" },
 ]
@@ -743,10 +743,36 @@ export function difficultyTierForNode(nodeIndex, pathLength) {
   return [...DIFFICULTY_TIERS].reverse().find((t) => progress >= t.threshold) || DIFFICULTY_TIERS[0]
 }
 
+// Marc, live, right after the auto-deploy fix (recruitUnit above) shipped:
+// "balancing is off now the units destroy enemies so fast." Makes sense -
+// every difficulty number in this file was always stress-tested with a
+// bot that auto-deployed correctly, so a properly-deployed 5-unit squad
+// was the assumption behind every "fair" win-rate this whole session.
+// Marc himself never actually got to experience that assumption until
+// the auto-deploy fix just now - his real felt-difficulty up to this
+// point was closer to a near-solo-Commander run, much harder than
+// intended, which is exactly why "make it more challenging" repeatedly
+// worked earlier despite a bot already reporting 76-96% win rates for a
+// full squad. Now that he's finally seeing the real, correctly-deployed
+// game, the SAME numbers read as too easy.
+//
+// First attempt (0.3 start / +75% cap) was a real overcorrection,
+// caught by the same fairness pass before shipping: Tommy stayed at
+// 88% (his flat Strength buff scales with damage dealt, so it barely
+// notices a harder ramp) while Aatos/Fenrir/Repo's sustain-leaning
+// kits collapsed to 48-56% and deaths clustered hard on one specific
+// early fight (rune-wardens-escort, 19 of ~100 deaths) - the same
+// "flat heal/block loses relative value as enemy damage scales" shape
+// documented earlier in this file, just retriggered at a steeper
+// setting. A GLOBAL ramp increase widens the Tommy-vs-everyone-else
+// gap, it doesn't close it. Backed off to a smaller step (0.45 -> 0.4
+// start, +55% -> +65% cap) - still earlier/harder than before, but a
+// measured step rather than the same over-aggressive mistake repeated
+// at a new pair of numbers.
 function difficultyFactorForNode(nodeIndex, pathLength) {
   const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
-  if (progress <= 0.45) return 1
-  return 1 + ((progress - 0.45) / 0.55) * 0.55
+  if (progress <= 0.4) return 1
+  return 1 + ((progress - 0.4) / 0.6) * 0.65
 }
 
 export function startFormationBattle(runState) {
