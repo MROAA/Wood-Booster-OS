@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
-import { ITEMS, itemPool, effectiveRole } from "../../data/heartwood/items"
+import { ITEMS, effectiveRole } from "../../data/heartwood/items"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveFormation } from "../../data/heartwood/formations"
@@ -42,6 +42,10 @@ export default function SquadDraft({
   onDismissIntro,
 }) {
   const offers = runState.shopOffers.map((id) => UNITS[id])
+  // Item shop rotation (runEngine.js's rollItemShop/itemOffers) -
+  // fresh selection every visit, guaranteed to include a Bending item
+  // when one exists, instead of always showing the whole catalog.
+  const itemOffers = (runState.itemOffers || []).map((id) => ITEMS[id]).filter(Boolean)
   const commander = CHARACTERS[runState.characterId]
   const commanderRank = runState.commanderRank || 0
   const rankCost = commanderRankCost(commanderRank)
@@ -404,10 +408,11 @@ export default function SquadDraft({
             Items
           </div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
-            Gear for a specific unit - buy, then equip it from the bag on the right.
+            Gear for a specific unit - buy, then equip it from the bag on the right. Rotates fresh every visit -
+            always includes at least one Bending item.
           </p>
           <div className="hw-select-grid hw-deck-preview">
-            {itemPool().map((def) => (
+            {itemOffers.map((def) => (
               <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
             ))}
           </div>
