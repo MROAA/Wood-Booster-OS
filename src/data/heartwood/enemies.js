@@ -310,6 +310,43 @@ export const ENEMIES = {
     ],
   },
 
+  "hollowfen": {
+    id: "hollowfen",
+    name: "Hollowfen",
+    maxHp: 52,
+    art: "husk",
+    description: "It doesn't do anything clever. It doesn't need to.",
+    // 17th mook - a plain, heavy-HP reinforcement (Stormroot/Rimefang's
+    // own "run variety, no signature gimmick" spirit) rather than
+    // another mechanic-carrier - the roster's late-game mooks have
+    // leaned heavily gimmick-first these last several rounds, so a
+    // straightforward high-HP block-and-swing wall earns its slot on
+    // raw stats alone.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 7 },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  "quillfang": {
+    id: "quillfang",
+    name: "Quillfang",
+    maxHp: 36,
+    art: "root",
+    description: "Every quill it sheds keeps working long after it's pulled loose.",
+    // 18th mook - Poison's second enemy source (Bloomrot Stalker's own
+    // pattern, different numbers/name) - the same "run variety within
+    // an already-proven mechanic" reuse discipline Thornspite/Duskgnaw
+    // already established for Vulnerable/Weak.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+      { type: "attack", amount: 5 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already

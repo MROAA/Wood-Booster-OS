@@ -722,6 +722,15 @@ const BASE_UNITS = {
     { type: "block", amount: 6 },
     { type: "attack", amount: 4 },
   ]),
+  thistlemaw: unit("thistlemaw", "Thistlemaw", "spark", 1, "dps", [
+    { type: "attack", amount: 4 },
+    { type: "attack", amount: 4 },
+  ]),
+  brackenveil: unit("brackenveil", "Brackenveil", "leaf", 2, "hybrid", [
+    { type: "block", amount: 4 },
+    { type: "heal", amount: 3 },
+    { type: "attack", amount: 3 },
+  ]),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an
