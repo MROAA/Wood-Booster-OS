@@ -25,6 +25,7 @@ import {
   levelUpMarket,
   toggleFreeze,
   activateCommanderPower,
+  difficultyTierForNode,
 } from "../services/heartwood/runEngine"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
@@ -281,6 +282,7 @@ export default function HeartwoodBattle() {
         state={runState.battle}
         essenceOnWin={essenceOnWin}
         nodeType={currentPathNode?.type}
+        difficultyTier={difficultyTierForNode(runState.nodeIndex, runState.path.length)}
         onAdvanceRound={handleAdvanceRound}
         onContinue={handleBattleContinue}
       />

@@ -75,7 +75,7 @@ function lungeAttack(actorId, targetId) {
 // animation system rounds to actually animate: onAdvanceRound fires on
 // a timer for as long as state.phase === "player", same as a player
 // repeatedly clicking the old "Next Round" button, just automatic.
-export default function AutoBattleView({ state, essenceOnWin, nodeType, onAdvanceRound, onContinue }) {
+export default function AutoBattleView({ state, essenceOnWin, nodeType, difficultyTier, onAdvanceRound, onContinue }) {
   useEffect(() => {
     if (state.phase !== "player") return
     const timer = setTimeout(onAdvanceRound, ROUND_DELAY_MS)
@@ -172,7 +172,23 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, onAdvanc
         </div>
       )}
 
-      <div className="hw-hint">{interactive ? `Round ${state.round}. The squads clash automatically.` : "The fight is decided."}</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div className="hw-hint">{interactive ? `Round ${state.round}. The squads clash automatically.` : "The fight is decided."}</div>
+        {/* Same difficulty-tier readout as SquadDraft.jsx/FormationScreen.jsx
+            (Marc: "the game has to have progressive feel to it") - shown
+            here too so the run's progress stays visible for the one
+            screen (the actual fight) that had been missing it. */}
+        {difficultyTier && (
+          <span
+            className="hw-badge"
+            style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
+            title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
+          >
+            <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+            {difficultyTier.name}
+          </span>
+        )}
+      </div>
 
       {Object.keys(tribeCounts).length > 0 && (
         <div className="hw-section-fade-in" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
