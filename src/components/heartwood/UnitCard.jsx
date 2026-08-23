@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
-import { TRIBES, tribesOf } from "../../data/heartwood/synergies"
+import { TRIBES, tribesOf, synergyTiersSummary } from "../../data/heartwood/synergies"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "skill" }
@@ -105,7 +105,12 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       {tribeIds.length > 0 && (
         <div className="hw-tribe-icons">
           {tribeIds.map((t) => (
-            <span key={t} className="hw-tribe-icon" style={{ color: TRIBES[t]?.color }} title={TRIBES[t]?.name}>
+            <span
+              key={t}
+              className="hw-tribe-icon"
+              style={{ color: TRIBES[t]?.color }}
+              title={`${TRIBES[t]?.name} - ${synergyTiersSummary(t)}`}
+            >
               <CardGlyph name={TRIBES[t]?.icon} className="hw-effect-icon-glyph" />
             </span>
           ))}

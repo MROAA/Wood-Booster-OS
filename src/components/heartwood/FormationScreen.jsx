@@ -2,7 +2,7 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
-import { TRIBES, resolveSynergies, nextSynergyThreshold } from "../../data/heartwood/synergies"
+import { TRIBES, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
 import { deployedTribeCounts } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
@@ -149,12 +149,17 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
               // still a higher tier to reach, active or not (2/2 active
               // still has a 4-count tier worth knowing about).
               const next = nextSynergyThreshold(tribeId, count)
+              // The badge text itself stays a compact "Warden 2 ✓" -
+              // Marc: "UI needs to be clear and minimalistic while also
+              // giving enough info" - the real numeric effect only
+              // shows on hover, not forced onto the always-visible row.
+              const tierLabel = synergyTierLabel(tribeId, count)
               return (
                 <span
                   key={tribeId}
                   className={`hw-badge${active ? " hw-badge--active" : ""}`}
                   style={!active ? { color: tribe?.color, borderColor: tribe?.color } : undefined}
-                  title={tribe?.description}
+                  title={tierLabel ? `${tribe?.description} ${tierLabel}` : tribe?.description}
                 >
                   <CardGlyph name={tribe?.icon} className="hw-intent-glyph" />
                   {tribe?.name} {count}
