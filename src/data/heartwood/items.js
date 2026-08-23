@@ -419,6 +419,23 @@ export const ITEMS = {
     // the mechanic being capped at one item per squad.
     effects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
   },
+  "quarrystrike-gauntlet": {
+    id: "quarrystrike-gauntlet",
+    name: "Quarrystrike Gauntlet",
+    icon: "sword",
+    cost: 3,
+    description: "This unit hits harder, and hardest of all against a target still braced.",
+    // Strength + Shatter together on one item - both stack numerically
+    // (unlike Wounded Fury/Taunt's flat, non-stacking shape), so this
+    // is a real combined power spike on whichever unit wears it, not
+    // just two separate small bonuses. Same dual-mechanic idea Wyrmgall
+    // (a miniboss, Execute + Shatter) already proved works as a real
+    // build identity, brought down to item scale.
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "applyBuff", id: "shatter", amount: 2 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
