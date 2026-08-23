@@ -211,6 +211,27 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "the-cursed-thicket": {
+    id: "the-cursed-thicket",
+    name: "The Cursed Thicket",
+    description: "One of them wants your attention. The other doesn't need it.",
+    // The same MECHANIC-protection identity Bonewarden's Watch already
+    // established (Bramblespite's own self-Taunt forces every single-
+    // target attack onto it regardless of position, same as
+    // Bonewarden's), but with a genuinely different second phase:
+    // Gravequill only threatened a badly wounded player unit once
+    // exposed - Hollowcurse instead spends the WHOLE fight, safely
+    // untouched, stripping the squad's own buffs and stacking Poison.
+    // Bramblespite also gets more dangerous the longer it's fought
+    // (Wounded Fury), so racing it down fast still costs more than it
+    // looks like - the squad can't stall out Hollowcurse's curse by
+    // taking it slow.
+    pieces: [
+      { defId: "bramblespite", pos: { row: 1, col: 0 } },
+      { defId: "hollowcurse", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "the-withering-pact": {
     id: "the-withering-pact",
     name: "The Withering Pact",
