@@ -26,10 +26,37 @@ export const ENEMIES = {
     // 0-4% win rate across ALL 4 Commanders, most runs never surviving
     // fight 1 at all - "you can fail here" had overshot into "you will
     // almost certainly fail here," the opposite of what was asked.
-    // Reverted to a much smaller, real bump (40 -> 48 HP, 8 -> 9/hit) -
-    // enough to be a genuine, felt difference from the original
-    // baseline without needing an artificially-rich test squad to
-    // survive it.
+    // Backed off to 58 HP/11+11 - real risk for a zero-recruit solo
+    // Commander, but Marc's own follow-up ("I haven't actually died in
+    // several attempts," testing "just the first few fights") revealed
+    // that wasn't the real problem: a REALISTICALLY-recruited squad (4
+    // deployed, real Essence) was never even the concern - direct logs
+    // showed every one of the first 3 fights ending in ROUND 2 with the
+    // Commander barely scratched (83-100% HP), regardless of the HP/
+    // damage-per-hit bumped so far.
+    //
+    // Tried pushing HP alone (100, 140) - fights lasted longer but
+    // Commander HP% barely dropped (sustain-leaning Commanders get
+    // MORE heal/block ticks from a longer fight too, offsetting the
+    // extra exposure). Tried HP+damage together (100 HP, 14+14) and
+    // found real per-unit danger at last - a recruited unit actually
+    // DIED in one test run, others dropped to 13-25% HP - but checking
+    // the FULL run (not just fight 1 in isolation) revealed why that's
+    // dangerous in a way fight-1-only testing completely missed: losing
+    // a unit that early permanently weakens the squad for the ENTIRE
+    // rest of a ~43-fight run (permadeath applies to recruited units,
+    // not just the whole run), and that compounds catastrophically -
+    // overall win rate collapsed to 0-4%, with 81% of deaths landing at
+    // a much LATER fight (twin-watch), not even at Husk itself. A
+    // seemingly-reasonable "fight 1 gets genuinely risky" change turned
+    // out to quietly gut the whole run's foundation. Reverted to the
+    // last run-wide-verified-safe value (58 HP/11+11) - real, felt
+    // risk for someone who skips the shop, safe for anyone who
+    // recruits normally, without the early-permadeath snowball.
+    // "Fail at the first enemy too" for a normally-recruiting player
+    // needs a mechanism that doesn't risk crippling 42 more fights on
+    // one bad early roll - a real remaining gap, flagged rather than
+    // guessed at further this round.
     maxHp: 58,
     art: "husk",
     description:
