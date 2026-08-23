@@ -43,6 +43,8 @@ const RUN_PATH = [
   { type: "battle", formationId: "mist-growler-pack" },
   { type: "relic" },
   { type: "shop" },
+  { type: "battle", enemyId: "deepwarden" },
+  { type: "shop" },
   { type: "battle", enemyId: "bark-brute" },
   { type: "shop" },
   { type: "battle", enemyId: "moss-troll" },
@@ -82,6 +84,12 @@ const RUN_PATH = [
   { type: "battle", enemyId: "needlefen" },
   { type: "shop" },
   { type: "battle", enemyId: "wraithgale" },
+  { type: "shop" },
+  { type: "battle", enemyId: "stonewake" },
+  { type: "shop" },
+  { type: "battle", enemyId: "gravequill" },
+  { type: "shop" },
+  { type: "battle", enemyId: "bonewarden" },
   { type: "shop" },
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
@@ -178,15 +186,24 @@ export function marketLevelCost(level) {
 // Summoner's own battle-start passive, never bought directly. Filtered
 // further by marketLevel (above) - at level 1 only common-tier units
 // can appear at all, same as every run has always started.
-function rollShop(marketLevel) {
+// `tribeCounts` (benchTribeCounts, passed by every call site below):
+// completes the same "guaranteed, not just likely" pattern rollItemShop
+// (Bending items) and rollRelics (tribe-anchor relics) already give -
+// if the player has committed to a tribe, one slot is reserved for a
+// unit of that tribe. Deliberately no "any tribe" fallback the way the
+// other two have (an item/relic guarantee needs a fallback since most
+// items/relics AREN'T tribe-tagged; nearly every unit already has a
+// tribe, so guaranteeing "any tribe-tagged unit" with no investment
+// yet would be meaningless - the shop just stays fully random until
+// the player actually has a tribe to reinforce.
+function rollShop(marketLevel, tribeCounts = {}) {
   const allowedTiers = MARKET_LEVEL_UNLOCKS[marketLevel] || MARKET_LEVEL_UNLOCKS[1]
   const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && allowedTiers.includes(u.tier))
-  const shuffled = [...pool]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled.slice(0, SHOP_SIZE).map((u) => u.id)
+  const matching = pool.filter((u) => tribesOf(u.id, u).some((t) => (tribeCounts[t] || 0) > 0))
+  const guaranteed = shuffled(matching).slice(0, Math.min(1, matching.length))
+  const guaranteedIds = new Set(guaranteed.map((u) => u.id))
+  const rest = shuffled(pool.filter((u) => !guaranteedIds.has(u.id))).slice(0, SHOP_SIZE - guaranteed.length)
+  return shuffled([...guaranteed, ...rest]).map((u) => u.id)
 }
 
 function shuffled(array) {
@@ -582,7 +599,7 @@ export function rerollShop(runState) {
   return {
     ...runState,
     essence: runState.essence - runState.rerollCost,
-    shopOffers: rollShop(runState.marketLevel || 1),
+    shopOffers: rollShop(runState.marketLevel || 1, benchTribeCounts(runState)),
     rerollCost: runState.rerollCost + 1,
     // A paid Reroll always overrides Freeze (see startRun's own note on
     // `frozen`) - an explicit purchase supersedes it, and there's
@@ -680,7 +697,7 @@ export function chooseRelic(runState, relicId) {
     // Freeze (startRun's own note): kept as-is when entering a shop
     // instead of re-rolling, then consumed (cleared) regardless -
     // one-shot, not persistent.
-    shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1)) : runState.shopOffers,
+    shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1, benchTribeCounts(runState))) : runState.shopOffers,
     itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
     frozen: enteringShop ? false : runState.frozen,
     rerollCost: REROLL_BASE_COST,
@@ -732,7 +749,7 @@ export function resolveBattleOutcome(runState) {
       essence: runState.essence + essenceForWin(runState, node),
       nodeIndex,
       phase: phaseForNode(nextNode),
-      shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1)) : runState.shopOffers,
+      shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1, benchTribeCounts(runState))) : runState.shopOffers,
       itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
       frozen: enteringShop ? false : runState.frozen,
       relicOffers: nextNode?.type === "relic" ? rollRelics(runState.relics, benchTribeCounts(runState)) : runState.relicOffers,
