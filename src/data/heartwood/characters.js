@@ -190,7 +190,7 @@ export const CHARACTERS = {
     art: "fox",
     maxHp: 62,
     tagline: "Careful and cunning - never takes a hit it didn't plan for.",
-    description: "Fox's Guard: every unit gains Block at the start of each round.",
+    description: "Fox's Guard: every unit gains Block and strikes a little harder each round.",
     startEffects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
     // Block then strike, carrying its own Shatter (effects.js) - "never
     // takes a hit it didn't plan for" reads as exploiting an opening
@@ -214,7 +214,20 @@ export const CHARACTERS = {
     // the same problem for a flat Block amount: it's worth relatively
     // less as enemy damage per hit scales up, unlike Tommy's Strength
     // buff which doesn't lose value the same way.
-    squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
+    // Same gap Aatos had (see that Commander's own squadPassive note) -
+    // Repo's squad-wide effect was pure Block, zero direct offense-
+    // scaling, even though `passive`/activePower both carry Shatter -
+    // that's PERSONAL-only/one-fight-only, never applied to the whole
+    // squad every round the way Tommy's flat Strength is. Given
+    // Shatter's own damage bonus is conditional (only triggers against
+    // an already-blocked/warded target, same shape WoundedFury already
+    // proved underperforms alone twice), added flat Strength+1 instead
+    // of Shatter - a guaranteed floor, keeping Shatter as the
+    // flavor/identity layer already present elsewhere in the kit.
+    squadPassive: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } },
+      { type: "applyBuff", id: "strength", amount: 1 },
+    ],
     // Brace: an extra one-time Ward stack for the next battle only -
     // "never takes a hit it didn't plan for," a single fully-prevented
     // hit on top of the always-on repeating Block. Repo was still the
