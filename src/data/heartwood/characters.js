@@ -68,7 +68,13 @@ export const CHARACTERS = {
     art: "reindeer",
     maxHp: 66,
     tagline: "Steady and patient - built to outlast a fight.",
-    description: "Steady Hooves: every unit heals 3 at the start of each round.",
+    // The Strength+1 half of this description was missing until now -
+    // the Rally Cry activePower description below got updated to
+    // mention it when squadPassive gained Strength (the Aatos fairness
+    // fix), but this MAIN description (character-select screen,
+    // HeartwoodBattle.jsx) got missed, leaving it stale and quietly
+    // wrong about what the Commander's own kit actually does.
+    description: "Steady Hooves: every unit heals 3 and strikes a little harder each round.",
     startEffects: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
     ],
