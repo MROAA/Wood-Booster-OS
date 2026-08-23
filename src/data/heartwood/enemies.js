@@ -746,6 +746,15 @@ export const ENEMIES = {
     maxHp: 84,
     art: "warden",
     description: "Something the Heartwood posted here on purpose, long before you arrived.",
+    // Marc: "make a progressive story" - a miniboss/boss-specific
+    // introLine, shown by FormationScreen.jsx in place of the generic
+    // "A greater foe." prefix every miniboss fight used until now, the
+    // same "give this specific encounter its own voice" step the
+    // story system's own Act banners already took for the run as a
+    // whole. Deliberately distinct from `description` (the shop-preview/
+    // card-hover text) - this is the line spoken specifically at the
+    // moment the fight is about to begin.
+    introLine: "It has been standing here since before you knew the Heartwood existed. It isn't moving.",
     passive: [
       { type: "applyBuff", id: "strength", amount: 3 },
       { type: "applyBuff", id: "ward", amount: 2 },
@@ -768,6 +777,7 @@ export const ENEMIES = {
     maxHp: 78,
     art: "root",
     description: "It doesn't ask you to beat it. It asks you to prove you deserve to move past it.",
+    introLine: "It doesn't raise its guard. It doesn't need to - it's already healed from worse than you.",
     // The run's SECOND miniboss, placed late (see the note above) so
     // it stacks with the difficulty ramp - self Regen (persistent, same
     // turnStart-trigger mechanism Duskhollow already established, not a
@@ -792,6 +802,7 @@ export const ENEMIES = {
     maxHp: 80,
     art: "root",
     description: "It doesn't care how you fight. It's already found the shape of your mistake.",
+    introLine: "It isn't watching your squad. It's watching for the mistake your squad hasn't made yet.",
     // Marc: "work on bosses too" - the run's THIRD miniboss, and the
     // first to combine two finishing-blow mechanics instead of a
     // defensive/sustain pair (Deepwarden's Strength+Ward, Thornmaw's
@@ -835,6 +846,10 @@ export const ENEMIES = {
     art: "spacemonkeyBoss",
     isBoss: true,
     description: "The little devil behind the curtain. He was never only on your side.",
+    // Bookends the fight: introLine on the way in (FormationScreen.jsx,
+    // replacing the flat "The final fight." every other boss screen
+    // used to say), victoryLine on the way out (RunEndOverlay.jsx).
+    introLine: "\"You made it further than I expected.\" He doesn't sound worried. He sounds curious.",
     victoryLine: "\"...Well played.\" The grin doesn't quite reach his eyes.",
     // Marc: "work on bosses too" - the run's final fight has always
     // been "the same kit, bigger numbers." Revive+WoundedFury together

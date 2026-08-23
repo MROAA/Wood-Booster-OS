@@ -224,9 +224,9 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
 
       <p className="hw-flavor">
         {isBoss
-          ? "The final fight."
+          ? ENEMIES[node.enemyId]?.introLine || "The final fight."
           : isMiniboss
-            ? `A greater foe. ${formation.description || ENEMIES[node.enemyId]?.description || ""}`
+            ? ENEMIES[node.enemyId]?.introLine || `A greater foe. ${formation.description || ENEMIES[node.enemyId]?.description || ""}`
             : formation.description || ENEMIES[node.enemyId]?.description}
       </p>
 
