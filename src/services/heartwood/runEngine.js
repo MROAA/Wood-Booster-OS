@@ -444,6 +444,22 @@ export function deployedTribeCounts(runState) {
   return counts
 }
 
+// Same idea as deployedTribeCounts above, but scoped to the whole
+// BENCH (every owned unit, deployed or not) - used by the shop to
+// highlight an offer that would deepen a tribe the player has already
+// invested in, before they've necessarily finished deploying this
+// visit. A real Battlegrounds/TFT convention ("this fits your board")
+// this codebase didn't have a scouting-info source for yet.
+export function benchTribeCounts(runState) {
+  const counts = {}
+  for (const entry of runState.bench) {
+    const def = UNITS[entry.defId]
+    if (!def) continue
+    for (const t of tribesOf(entry.defId, def)) counts[t] = (counts[t] || 0) + 1
+  }
+  return counts
+}
+
 // An Essence sink spent on the Commander instead of a bench unit -
 // same rising-cost, capped-levels shape upgradeRelic below uses, see
 // characters.js's commanderRankCost/commanderPassiveWithRank.

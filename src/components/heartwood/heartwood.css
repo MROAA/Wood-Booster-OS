@@ -304,6 +304,43 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 10px 1px color-mix(in srgb, var(--hw-ember) 55%, transparent);
 }
 
+/* Golden/upgraded look (UnitCard.jsx's data-fused, a Tier 2 Fusion
+   result - Hearthstone Battlegrounds' own "Golden" convention for a
+   tripled minion). A Tier 2 unit is already data-tier="rare" (same
+   ember glow above), so this can't reuse ember to read as a distinct,
+   richer tier on top of "just rare" - a second, slowly breathing rune
+   ring layered on the same box-shadow stack instead, persistent (not
+   the one-shot hw-card--fused burst animation that plays only in the
+   instant a fusion completes). */
+.hw-card[data-fused="true"] {
+  animation: hw-golden-shimmer 3.2s ease-in-out infinite;
+}
+
+@keyframes hw-golden-shimmer {
+  0%, 100% {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 0 10px 1px color-mix(in srgb, var(--hw-ember) 55%, transparent),
+      0 0 6px 1px color-mix(in srgb, var(--hw-rune) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 0 10px 1px color-mix(in srgb, var(--hw-ember) 55%, transparent),
+      0 0 16px 4px color-mix(in srgb, var(--hw-rune) 65%, transparent);
+  }
+}
+
+/* Tribe-match highlight (UnitCard.jsx's data-tribe-match,
+   SquadDraft.jsx's benchTribeCounts) - a shop offer that shares a
+   tribe with something already on the bench, the Battlegrounds/TFT
+   "this fits your board" scouting cue. An outline rather than another
+   box-shadow layer so it never fights with the rarity glow above -
+   moss = "a good thing", same color language the synergy-met badge
+   already uses. */
+.hw-card[data-tribe-match="true"] {
+  outline: 2px solid color-mix(in srgb, var(--hw-moss) 70%, transparent);
+  outline-offset: 2px;
+}
+
 /* A unit with real portrait art (def.image) gets a full-bleed image up
    top instead of the small glyph medallion - bigger, more atmospheric,
    same info layout underneath. Bleeds to the card's own edges via

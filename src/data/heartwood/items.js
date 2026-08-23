@@ -159,18 +159,30 @@ export const ITEMS = {
 
   // Bending items (Guildrun's "hero bending" - Marc: "saman idean
   // haluan heartwoodiin kuin Guildrunissa", confirmed as the one
-  // mechanic he explicitly wanted pulled in by name): unlike every item
-  // above, which only adds a stat/status, a Bending item also carries
-  // `bendsRoleTo` - equipping one visibly overwrites the unit's
-  // displayed role (UnitCard.jsx's card-accent color/role label) to
-  // match, on top of granting a role-appropriate effect package. A
-  // tank that picks up Wardstitch Cloak visibly becomes support-
-  // colored on its own card, not just a stronger tank - "the build
-  // reshapes who this unit IS," not just what it can survive. Rare
-  // tier (3 Essence) across the board - a role change is a bigger
-  // build swing than any stat item above. Deliberately only 4 for now
-  // (one per role a unit can bend toward), not one per unit - a first
-  // pass per the plan's own scope note, not an exhaustive system yet.
+  // mechanic he explicitly wanted pulled in by name, then again after
+  // seeing the first 4 land: "tykkään hero bending ajatuksesta mennään
+  // sillä... se on hyvä ja helposti toteutettava muotti" - "I like the
+  // hero bending idea, let's go with it, it's a good and easy mold to
+  // build"): unlike every item above, which only adds a stat/status, a
+  // Bending item also carries `bendsRoleTo` - equipping one visibly
+  // overwrites the unit's displayed role (UnitCard.jsx's card-accent
+  // color/role label) to match, on top of granting a role-appropriate
+  // effect package. A tank that picks up Wardstitch Cloak visibly
+  // becomes support-colored on its own card, not just a stronger tank
+  // - "the build reshapes who this unit IS," not just what it can
+  // survive. Rare tier (3 Essence) across the board - a role change is
+  // a bigger build swing than any stat item above.
+  //
+  // 6 total now (2 per the most contested roles, support/dps) - real
+  // Guildrun-style "hero bending" means more than one PATH to the same
+  // broad role, not just one fixed recipe: Wardstitch Cloak bends
+  // toward a heal-support (Grove-flavored), Hexroot Vial bends toward
+  // a curse-support instead (Root-flavored) - same destination role,
+  // different identity. Same split for dps: Bloodroot Fang is a
+  // burst-finisher (Strength+Execute), Wraithfang Charm is a
+  // sustain-drainer instead (Vulnerable+Lifesteal, Spirit-flavored).
+  // Tank/hybrid stay at one each for now - still a first pass, not an
+  // exhaustive system.
   "wardstitch-cloak": {
     id: "wardstitch-cloak",
     name: "Wardstitch Cloak",
@@ -214,6 +226,34 @@ export const ITEMS = {
     effects: [
       { type: "applyBuff", id: "ward", amount: 1 },
       { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } },
+    ],
+  },
+  "hexroot-vial": {
+    id: "hexroot-vial",
+    name: "Hexroot Vial",
+    icon: "root",
+    cost: 3,
+    description: "This unit turns to rot and ruin instead of raw defense - every strike lingers.",
+    bendsRoleTo: "support",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } },
+    ],
+  },
+  "wraithfang-charm": {
+    id: "wraithfang-charm",
+    name: "Wraithfang Charm",
+    icon: "moonGlyph",
+    cost: 3,
+    description: "This unit turns bloodthirsty instead of blunt - every strike weakens its target and mends the wound.",
+    bendsRoleTo: "dps",
+    effects: [
+      // target: "target" is required on the Vulnerable half - applyBuff
+      // defaults an omitted target to ctx.actorId (self), which would
+      // weaken the wearer instead of whoever it just struck (the same
+      // guard Chilling Grip/Mycelist's sporeSpread already needed).
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } },
     ],
   },
 }
