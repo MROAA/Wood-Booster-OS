@@ -155,12 +155,46 @@ export function startAutoBattle(
   relicLevels = {},
   commanderItemIds = [],
   pendingEffects = [],
+  difficultyFactor = 1,
 ) {
   const formation = resolveFormation(enemyFormationOrId)
   const character = CHARACTERS[characterId]
 
+  // Difficulty scaling (runEngine.js's startFormationBattle, ramping
+  // with how far into the run this fight is) - Marc: "pelin pitää olla
+  // vaikea mutta ei mahdoton... pelaajan pitää tehdä toimiva build
+  // voittaakseen" (the game needs to be hard but not impossible - the
+  // player needs to build a working build to win), confirmed after a
+  // stress test showed a bot that ignores every system this session
+  // built (Market Level, tribes, relics, Commander Active) won exactly
+  // as often as one that uses all of them - the base recruited squad
+  // alone already cleared the whole run, so nothing built this session
+  // had real pressure behind it. Cached once per enemy defId here
+  // (same "compute once, read every round" precedent state.commanderDef
+  // already set for the Commander) rather than left to ENEMIES[defId]'s
+  // raw stats, since resolveRound's own enemy actSide call re-resolves
+  // a def fresh every round - the scaled movePattern amounts need to
+  // exist somewhere it'll actually find them, not just at spawn.
+  const enemyDefs = {}
+  for (const defId of new Set(formation.pieces.map((p) => p.defId))) {
+    const base = ENEMIES[defId]
+    enemyDefs[defId] =
+      difficultyFactor === 1
+        ? base
+        : {
+            ...base,
+            maxHp: Math.round(base.maxHp * difficultyFactor),
+            movePattern: base.movePattern.map((m) => scaleEffect(m, difficultyFactor)),
+            passive: base.passive
+              ? base.passive.map((p) =>
+                  p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, difficultyFactor) } : scaleEffect(p, difficultyFactor),
+                )
+              : base.passive,
+          }
+  }
+
   const enemies = formation.pieces.map((piece, i) => {
-    const def = ENEMIES[piece.defId]
+    const def = enemyDefs[piece.defId]
     return freshUnit({
       id: `e${i}`,
       defId: piece.defId,
@@ -236,6 +270,11 @@ export function startAutoBattle(
     // own def without a UNITS[defId] lookup - the Commander's
     // `defId` is deliberately null since it isn't in UNITS at all.
     commanderDef: character,
+    // Cached the same way - the DIFFICULTY-SCALED enemy defs built
+    // above, so resolveRound's own enemy actSide call reads the scaled
+    // movePattern amounts every round instead of ENEMIES[defId]'s raw,
+    // unscaled stats.
+    enemyDefs,
     log: [`The fight begins. ${formation.name || enemies[0]?.name || "The enemy"} stands ready.`],
   }
 
@@ -245,7 +284,7 @@ export function startAutoBattle(
   // could ever come pre-armed with something like Shatter the way
   // Ironbark/Stoneheart already come pre-armed with Taunt.
   for (const e of enemies) {
-    const def = ENEMIES[e.defId]
+    const def = enemyDefs[e.defId]
     if (def.passive?.length) {
       state = applyEffects(state, def.passive, { actorId: e.id, targetId: e.id })
     }
@@ -647,7 +686,7 @@ export function resolveRound(state) {
   if (next.phase !== "player") return next
 
   next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0 } : e)) }
-  next = actSide(next, next.enemies, (u) => ENEMIES[u.defId], (s) => s.playerUnits, "enemy")
+  next = actSide(next, next.enemies, (u) => next.enemyDefs?.[u.defId] || ENEMIES[u.defId], (s) => s.playerUnits, "enemy")
   if (next.phase !== "player") return next
 
   const round = next.round + 1

@@ -626,6 +626,26 @@ export function clearSlot(runState, slotIndex) {
   return { ...runState, deployed }
 }
 
+// Difficulty scaling (autoBattleEngine.js's difficultyFactor param) -
+// Marc: "pelin pitää olla vaikea mutta ei mahdoton... pelaajan pitää
+// tehdä toimiva build voittaakseen" (the game needs to be hard but not
+// impossible - the player needs to build a working build to win),
+// confirmed after a stress test showed a bot that ignores every system
+// this session built (Market Level, tribes, relics, Commander Active)
+// won exactly as often as one that uses all of them - the base
+// recruited squad alone already cleared the whole run, so none of it
+// had real pressure behind it. Ramps ONLY in the run's back half
+// (progress > 0.5) - the opening was already separately tuned earlier
+// this session's history (see units.js's TIER_HP note) and shouldn't
+// get harder, this specifically targets "difficulty hasn't kept pace
+// with what a real build accumulates by the second half," capping at
+// +50% HP/damage on the very last fight (the boss).
+function difficultyFactorForNode(nodeIndex, pathLength) {
+  const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
+  if (progress <= 0.6) return 1
+  return 1 + (progress - 0.6) * 0.875
+}
+
 export function startFormationBattle(runState) {
   const node = currentNode(runState)
   const deployed = runState.deployed
@@ -653,6 +673,7 @@ export function startFormationBattle(runState) {
     // queued effect from a shop visit is always guaranteed to reach
     // this call with nothing able to strand it in between.
     runState.pendingActiveEffects || [],
+    difficultyFactorForNode(runState.nodeIndex, runState.path.length),
   )
   return { ...runState, phase: "battle", battle, pendingActiveEffects: [] }
 }
