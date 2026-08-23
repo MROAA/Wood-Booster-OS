@@ -21,6 +21,12 @@ const STATUS_DISPLAY = {
   revive: { icon: "heart", color: "var(--hw-moss)" },
   ward: { icon: "shield", color: "var(--hw-rune)" },
   shatter: { icon: "sword", color: "var(--hw-rune)" },
+  // Regen (effects.js's tickRegen, Fernwake) - Poison's mirror on the
+  // support side, same heart-icon/moss-color language Revive already
+  // uses for "a good status," keeping the icon-first rule intact for
+  // this newest status too rather than letting it fall back to
+  // unstyled plain text.
+  regen: { icon: "heart", color: "var(--hw-moss)" },
 }
 
 // Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point

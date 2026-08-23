@@ -291,6 +291,17 @@ export const ITEMS = {
       { type: "applyBuff", id: "shatter", amount: 2 },
     ],
   },
+  "mendleaf-charm": {
+    id: "mendleaf-charm",
+    name: "Mendleaf Charm",
+    icon: "heart",
+    cost: 2,
+    description: "This unit knits itself back together over the fight's first few rounds.",
+    // Heartsbloom Seed (relics.js), single-target - lets a player put
+    // Regen (effects.js's tickRegen) specifically on the unit most
+    // likely to eat repeated hits, instead of only squad-wide.
+    effects: [{ type: "applyBuff", id: "regen", amount: 3 }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

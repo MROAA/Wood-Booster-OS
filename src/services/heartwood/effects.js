@@ -253,6 +253,30 @@ export function tickPoison(state, units) {
   return next
 }
 
+// Regen: Poison's mirror on the support side of the roster - a real
+// heal-over-time status, distinct from a flat repeating `heal` trigger
+// (Mosswarden's Charm/Sapmend Vial) the same way Poison is distinct
+// from a flat repeating `damage` trigger - it decays by 1 each round
+// instead of running forever, so it rewards a burst of stacks applied
+// up front (a Rally, a relic, an item) rather than becoming a
+// set-and-forget sustain. Same automatic, no-opt-in resolution shape
+// as tickPoison - called once per side per round from resolveRound.
+export function tickRegen(state, units) {
+  let next = state
+  for (const unit of units) {
+    if (next.phase !== "player" && next.phase !== "enemy") break
+    const current = getUnit(next, unit.id)
+    if (!current || current.hp <= 0) continue
+    const stacks = current.powers.regen || 0
+    if (stacks <= 0) continue
+    next = gainHeal(next, unit.id, stacks)
+    const afterUnit = getUnit(next, unit.id)
+    if (!afterUnit) continue
+    next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, regen: stacks - 1 } })
+  }
+  return next
+}
+
 function gainBlock(state, who, amount) {
   const unit = getUnit(state, who)
   if (!unit) return state
