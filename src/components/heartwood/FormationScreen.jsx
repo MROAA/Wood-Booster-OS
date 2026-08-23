@@ -134,7 +134,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       )}
 
       {Object.keys(tribeCounts).length > 0 && (
-        <>
+        <div className="hw-section-fade-in">
           <div className="hw-section-label">Synergies</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
             {Object.entries(tribeCounts).map(([tribeId, count]) => {
@@ -154,7 +154,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
               )
             })}
           </div>
-        </>
+        </div>
       )}
 
       <div className="hw-section-label">Battlefield</div>

@@ -143,7 +143,7 @@ export default function SquadDraft({
         <h1 style={{ fontSize: 22, margin: 0 }}>The Heartwood Market</h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {nextLabel && (
-            <span className="hw-badge" title="What you'll face right after this shop visit">
+            <span className="hw-badge hw-section-fade-in" title="What you'll face right after this shop visit">
               Next: {nextLabel}
             </span>
           )}
@@ -154,7 +154,7 @@ export default function SquadDraft({
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+      <div className="hw-section-fade-in" style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
         {/* Market Level (Battlegrounds/Guildrun-style tavern tier) -
             raises the shop's rarity ceiling (runEngine.js's
             rollShop/MARKET_LEVEL_UNLOCKS). Shown next to Essence since

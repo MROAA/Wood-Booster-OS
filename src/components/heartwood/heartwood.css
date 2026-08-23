@@ -142,17 +142,54 @@
    a synergy tribe that's met its threshold (FormationScreen.jsx), a
    Commander Active Power primed for the next battle. Moss = "a good
    thing", same color language the rarity glow's own comment already
-   established. */
+   established. `hw-badge-pop` (below) plays automatically the moment
+   this class/attribute starts matching an element - React keeps the
+   same DOM node across a state flip (badges are keyed, buttons don't
+   remount), so a CSS `animation` on the modifier itself fires exactly
+   on the on-transition, no JS timer/diffing needed - Marc: "everything
+   needs to be animated", and a state that silently changed color with
+   no motion at all was the gap here. */
 .hw-badge--active {
   color: var(--hw-moss);
   border-color: var(--hw-moss);
   background: color-mix(in srgb, var(--hw-moss) 14%, var(--hw-panel));
+  animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .hw-move-btn[data-active="true"] {
   color: var(--hw-moss);
   border-color: var(--hw-moss);
   background: color-mix(in srgb, var(--hw-moss) 16%, var(--hw-panel));
+  animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes hw-badge-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* A shop offer/bench card that starts matching a highlight condition
+   (tribe-match, freshly Bent) gets the same pop treatment, layered on
+   top of whatever persistent glow/outline it already carries. */
+.hw-card[data-tribe-match="true"] {
+  outline: 2px solid color-mix(in srgb, var(--hw-moss) 70%, transparent);
+  outline-offset: 2px;
+  animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* A section that only exists conditionally (Synergies tracker, the
+   "Up next" badge, item-slot pips filling for the first time) fades
+   and rises into place on mount instead of appearing instantly -
+   cheaper than wrapping every one of these in framer-motion, and
+   consistent with the pop-in every other conditional badge now has. */
+.hw-section-fade-in {
+  animation: hw-section-fade-in 400ms ease-out both;
+}
+
+@keyframes hw-section-fade-in {
+  0% { opacity: 0; transform: translateY(-6px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .hw-essence-badge {
@@ -335,11 +372,8 @@
    "this fits your board" scouting cue. An outline rather than another
    box-shadow layer so it never fights with the rarity glow above -
    moss = "a good thing", same color language the synergy-met badge
-   already uses. */
-.hw-card[data-tribe-match="true"] {
-  outline: 2px solid color-mix(in srgb, var(--hw-moss) 70%, transparent);
-  outline-offset: 2px;
-}
+   already uses. Full rule (incl. the pop-in animation) lives earlier
+   in this file, right after hw-badge-pop is defined. */
 
 /* A unit with real portrait art (def.image) gets a full-bleed image up
    top instead of the small glyph medallion - bigger, more atmospheric,
@@ -473,7 +507,10 @@
 
 /* Hero Bending marker (UnitCard.jsx's `bent` prop) - a small inline
    badge next to the unit's name so an item-driven role change reads as
-   a build decision at a glance, not a silent stat bump. */
+   a build decision at a glance, not a silent stat bump. Pops in the
+   moment it mounts (equipping/unequipping a Bending item is exactly
+   the kind of "something just changed" moment that should never be
+   silent per Marc's own "everything needs to be animated"). */
 .hw-badge--bent {
   display: inline-flex;
   margin-left: 5px;
@@ -483,6 +520,7 @@
   color: var(--hw-ember);
   border-color: var(--hw-ember);
   background: color-mix(in srgb, var(--hw-ember) 14%, var(--hw-panel));
+  animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Portrait-style glyphs (Tarot art, enemy/character doodles) get a
