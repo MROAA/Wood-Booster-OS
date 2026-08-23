@@ -264,6 +264,12 @@ export function startRun(characterId) {
     phase: "shop",
     marketLevel: 1,
     shopOffers: rollShop(1),
+    // Item shop rotation (rollItemShop above) - regenerates alongside
+    // shopOffers at every new shop visit (chooseRelic/
+    // resolveBattleOutcome below), but deliberately NOT on a paid unit
+    // Reroll (rerollShop) - that button pays to reroll the UNIT
+    // offers specifically, not a free item refresh riding along with it.
+    itemOffers: rollItemShop(),
     // Freeze: keeps the current shopOffers into the next shop visit
     // instead of letting it re-roll automatically - a one-shot flag,
     // consumed (see chooseRelic/resolveBattleOutcome below) the next
@@ -661,6 +667,7 @@ export function chooseRelic(runState, relicId) {
     // instead of re-rolling, then consumed (cleared) regardless -
     // one-shot, not persistent.
     shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1)) : runState.shopOffers,
+    itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
     frozen: enteringShop ? false : runState.frozen,
     rerollCost: REROLL_BASE_COST,
     // Commander Active Power (activateCommanderPower above): a new shop
@@ -712,6 +719,7 @@ export function resolveBattleOutcome(runState) {
       nodeIndex,
       phase: phaseForNode(nextNode),
       shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1)) : runState.shopOffers,
+      itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
       frozen: enteringShop ? false : runState.frozen,
       relicOffers: nextNode?.type === "relic" ? rollRelics(runState.relics) : runState.relicOffers,
       rerollCost: REROLL_BASE_COST,

@@ -18,7 +18,18 @@ export default function ItemCard({ def, selected, disabled, onClick }) {
         <span className="hw-card-cost">{def.cost}</span>
       </div>
       <CardGlyph name={def.icon} className="hw-card-art" />
-      <div className="hw-card-name">{def.name}</div>
+      <div className="hw-card-name">
+        {def.name}
+        {/* Hero Bending (items.js's bendsRoleTo) - runEngine.js's item
+            shop rotation now guarantees one of these shows up every
+            visit, so it needs to actually stand out from a stat item
+            at a glance, not just in the description text below. */}
+        {def.bendsRoleTo && (
+          <span className="hw-badge hw-badge--bent" title={`Bends the wearer toward ${def.bendsRoleTo}`}>
+            Bends
+          </span>
+        )}
+      </div>
       <div className="hw-card-desc">{def.description}</div>
     </div>
   )
