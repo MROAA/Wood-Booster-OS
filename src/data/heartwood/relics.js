@@ -389,6 +389,21 @@ export const RELICS = {
     // lock a single enemy the way a squad-wide Stun proc could.
     effects: [{ type: "applyBuff", id: "chainDamage", amount: 4 }],
   },
+  "mycotic-bloom": {
+    id: "mycotic-bloom",
+    name: "Mycotic Bloom",
+    icon: "leaf",
+    cost: RELIC_COST,
+    description: "Whatever your squad poisons, it poisons someone standing nearby too.",
+    // Spore Spread's first RELIC source - Fungal Spore Sac (items.js)
+    // puts it on one chosen unit; this puts it on the whole squad.
+    // Deliberately narrow in practice (only matters for a unit that
+    // already applies Poison - Rootfang/Hexmother/Mycelist), same
+    // "genuinely situational, not a trap pick" spirit tribe-anchor
+    // relics already have - a squad built around 2+ poison-appliers
+    // gets real value, one without any gets none.
+    effects: [{ type: "applyBuff", id: "sporeSpread", amount: 1 }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
