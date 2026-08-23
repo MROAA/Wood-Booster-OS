@@ -68,9 +68,9 @@ export const CHARACTERS = {
     art: "reindeer",
     maxHp: 66,
     tagline: "Steady and patient - built to outlast a fight.",
-    description: "Steady Hooves: every unit heals 2 at the start of each round.",
+    description: "Steady Hooves: every unit heals 3 at the start of each round.",
     startEffects: [
-      { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
     ],
     // Block, then heal, then attack - the tankiest Commander (66 HP,
     // highest of the 4), matching "built to outlast a fight" as a real
@@ -80,7 +80,16 @@ export const CHARACTERS = {
       { type: "heal", amount: 4 },
       { type: "attack", amount: 4 },
     ],
-    squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } }],
+    // Marc: "the game needs to be way more challenging" - the difficulty
+    // ramp this pushed to (runEngine.js's difficultyFactorForNode)
+    // exposed a real structural issue for sustain identities specifically:
+    // a FLAT heal/block amount loses relative value as enemy damage
+    // scales up, in a way a burst/offense identity (Tommy's Strength
+    // buff) doesn't - a stress test at the new curve showed Aatos
+    // cratering hardest of the 4. Bumped 2 -> 3 (matching the
+    // description text above) to give the sustain identity a real
+    // floor against the new late-run damage, not a full rebalance.
+    squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
     // Rally Cry: an extra turnStart heal for the next battle only, on
     // top of Aatos's always-on one - NOT a flat one-time heal (units
     // always start a fight at full HP, the exact bug this same trigger
@@ -171,11 +180,15 @@ export const CHARACTERS = {
     // unconditional recovery (heal), Fenrir is offense that gets better
     // the worse things go - Repo is unconditional prevention instead of
     // recovery. Same turnStart-trigger machinery as Aatos, same amount
-    // (2) as a conservative starting point since full damage prevention
-    // could plausibly outperform an equal-sized heal point-for-point;
-    // stress-tested against the other 3 below before shipping, not
-    // guessed at.
-    squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+    // (originally 2) as a conservative starting point since full damage
+    // prevention could plausibly outperform an equal-sized heal
+    // point-for-point; stress-tested against the other 3 below before
+    // shipping, not guessed at. Bumped to 3 alongside Aatos's own heal
+    // (same note, same reason) once the higher difficulty ramp exposed
+    // the same problem for a flat Block amount: it's worth relatively
+    // less as enemy damage per hit scales up, unlike Tommy's Strength
+    // buff which doesn't lose value the same way.
+    squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
     // Brace: an extra one-time Ward stack for the next battle only -
     // "never takes a hit it didn't plan for," a single fully-prevented
     // hit on top of the always-on repeating Block.

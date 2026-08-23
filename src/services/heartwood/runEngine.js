@@ -93,6 +93,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "bonewarden" },
   { type: "shop" },
+  { type: "battle", enemyId: "mossveil" },
+  { type: "shop" },
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
   { type: "battle", formationId: "sirens-bodyguard" },
@@ -106,6 +108,8 @@ const RUN_PATH = [
   { type: "relic" },
   { type: "shop" },
   { type: "battle", formationId: "quillfangs-warren" },
+  { type: "shop" },
+  { type: "battle", formationId: "bonewardens-watch" },
   { type: "shop" },
   { type: "boss", enemyId: "spacemonkey" },
 ]
@@ -121,8 +125,24 @@ const RUN_PATH = [
 // the last affordable one - same "just give more, don't rebalance
 // every individual cost" lever already used once before for HP (see
 // TIER_HP's own note in units.js) when the game felt too tight.
-const START_ESSENCE = 5
-const WIN_ESSENCE = 6
+// Marc: "the game needs to feel like there is an opportunity cost to
+// money spend" - with a now much-longer run (~39 fights) and a flat
+// per-win income, Essence piled up fast enough by the run's second
+// half that a player could just buy everything offered rather than
+// choosing between it (confirmed by this session's own stress-test
+// bots: a fully-engaged "greedy" bot routinely had bench sizes in the
+// 40s-50s by the boss - buying nearly every shop offer it ever saw,
+// not making trade-offs). Cut from 5/6 to 4/4 - a smaller number
+// change than it looks, since it compounds across every one of ~39
+// wins in a full run, not just the opening. This DOES partially
+// reverse the earlier +50% bump the comment just above describes -
+// that bump was a reaction
+// to a much shorter run with far fewer sinks; today's run is roughly
+// 3x longer with several new sinks (Market Level, Commander Active,
+// tribe-anchor relics) layered on since, so the same flat income no
+// longer produces the same felt scarcity.
+const START_ESSENCE = 4
+const WIN_ESSENCE = 4
 const FORMATION_BONUS_ESSENCE = 2
 // Minibosses (Deepwarden, Thornmaw) are a harder win than even a
 // formation fight - a bigger payout than FORMATION_BONUS_ESSENCE, same
@@ -669,8 +689,8 @@ export function clearSlot(runState, slotIndex) {
 // not this.
 function difficultyFactorForNode(nodeIndex, pathLength) {
   const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
-  if (progress <= 0.6) return 1
-  return 1 + (progress - 0.6) * 0.875
+  if (progress <= 0.45) return 1
+  return 1 + ((progress - 0.45) / 0.55) * 0.55
 }
 
 export function startFormationBattle(runState) {
