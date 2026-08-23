@@ -115,6 +115,7 @@ export const UNIT_TRIBES = {
   brackenveil: ["grove"],
   briarkit: ["fang"],
   hollowspire: ["grove"],
+  thornwisp: ["root"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
