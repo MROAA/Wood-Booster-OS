@@ -643,6 +643,44 @@ export const ENEMIES = {
     ],
   },
 
+  "bramblespite": {
+    id: "bramblespite",
+    name: "Bramblespite",
+    maxHp: 48,
+    art: "root",
+    description: "It plants itself in front of you, and it only gets angrier the longer you take.",
+    // 34th mook - the first mook-tier double self-buff (Taunt +
+    // Wounded Fury), not just a miniboss combo (Thornmaw's own Regen +
+    // Taunt, Wyrmgall's Execute + Shatter). A real bruiser: it draws
+    // every single-target attack (Bonewarden's own mechanism) AND hits
+    // harder once wounded (Gravemaw's own), so the squad can't just
+    // ignore it OR safely grind it down slowly - every round spent
+    // whittling it costs more as it gets closer to that threshold.
+    passive: [
+      { type: "applyBuff", id: "taunt", amount: 1 },
+      { type: "applyBuff", id: "woundedFury", amount: 1 },
+    ],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 5 },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "thornfen": {
+    id: "thornfen",
+    name: "Thornfen",
+    maxHp: 46,
+    art: "root",
+    description: "It has one trick. It's very good at it.",
+    // 35th mook - a plain sequence reinforcement, no gimmick.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
   // Minibosses: a step up from a plain mook, without touching
   // Spacemonkey's own AoE move (deliberately kept unique to the true
   // final boss - see its own note below) or the run-ending

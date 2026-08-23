@@ -470,6 +470,25 @@ export const ITEMS = {
       { type: "applyBuff", id: "regen", amount: 3 },
     ],
   },
+  "bramblehide-standard": {
+    id: "bramblehide-standard",
+    name: "Bramblehide Standard",
+    icon: "shield",
+    cost: 3,
+    description: "This unit draws every eye, and fights harder the deeper its own wounds go.",
+    // Taunt + Wounded Fury together - the same bruiser identity this
+    // round's own new mook, Bramblespite, established: a tank that
+    // both draws every single-target attack AND hits back harder once
+    // wounded, letting a player deliberately build ONE unit into that
+    // role instead of it only existing on the enemy side. Neither
+    // mechanic stacks numerically beyond "present" (same flat shape
+    // Wardens Sigil/Feral Charm already have alone), but the pairing
+    // is still real value - one item slot doing what used to take two.
+    effects: [
+      { type: "applyBuff", id: "taunt", amount: 1 },
+      { type: "applyBuff", id: "woundedFury", amount: 1 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
