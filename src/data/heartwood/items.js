@@ -405,6 +405,20 @@ export const ITEMS = {
     // unit instead of it staying locked to one specific class.
     effects: [{ type: "applyBuff", id: "sporeSpread", amount: 1 }],
   },
+  "bloodfen-ring": {
+    id: "bloodfen-ring",
+    name: "Bloodfen Ring",
+    icon: "flame",
+    cost: 2,
+    description: "This unit fights harder the deeper its own wounds go.",
+    // Wounded Fury's 2nd unit-level source (alongside Feral Charm) -
+    // same "give the player the choice" motivation Sundermaw Fang/
+    // Cascading Claw already established for their own mechanics: a
+    // player who already has Feral Charm on one unit can put this on a
+    // SECOND unit likely to spend real time below half HP, instead of
+    // the mechanic being capped at one item per squad.
+    effects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

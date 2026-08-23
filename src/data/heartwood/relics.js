@@ -404,6 +404,30 @@ export const RELICS = {
     // gets real value, one without any gets none.
     effects: [{ type: "applyBuff", id: "sporeSpread", amount: 1 }],
   },
+  "witherspite-crown": {
+    id: "witherspite-crown",
+    name: "Witherspite Crown",
+    icon: "root",
+    cost: RELIC_COST,
+    description: "Whatever your squad strikes carries both rot and weariness after.",
+    // A fresh double-debuff combo (Poison + Weak) squad-wide - the same
+    // pairing this round's own new mook, Hollowspite, uses, given to
+    // the player instead. No existing relic combined these two on the
+    // same hit before - Venomous Edge/Rootbound Curse only ever grant
+    // Poison alone, Frostbrand only Weak alone.
+    effects: [
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 },
+      },
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 },
+      },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

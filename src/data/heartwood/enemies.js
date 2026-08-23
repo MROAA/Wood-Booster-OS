@@ -534,6 +534,45 @@ export const ENEMIES = {
     ],
   },
 
+  "hollowspite": {
+    id: "hollowspite",
+    name: "Hollowspite",
+    maxHp: 40,
+    art: "root",
+    description: "It doesn't finish what it starts. It just makes sure the wound never closes.",
+    // 28th mook - a fresh double-debuff combo (Poison + Weak), distinct
+    // from Duskgnaw's own Weak + Vulnerable pair - the squad takes
+    // ongoing damage AND hits softer at the same time, so racing the
+    // fight to a fast close (before the DOT stacks up) trades off
+    // against the squad's own reduced damage output doing exactly that.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "poison", amount: 2, target: "target" },
+      { type: "debuff", id: "weak", amount: 1, target: "target" },
+    ],
+  },
+
+  "ashenmaw": {
+    id: "ashenmaw",
+    name: "Ashenmaw",
+    maxHp: 48,
+    art: "husk",
+    // Deliberately NOT reusing Wraithgale's own "It doesn't do anything
+    // you haven't already seen" line for this same "plain reinforcement"
+    // flavor - that exact near-miss (Mossveil copy-pasting the same
+    // sentence) was caught and fixed as its own polish round already.
+    description: "It has nothing clever to try. It doesn't need one.",
+    // 29th mook - a plain weightedRandom reinforcement (Hollowfen/
+    // Wraithgale/Mossveil's own "run variety, no signature gimmick"
+    // spirit) rather than another mechanic-carrier.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 8, weight: 2 },
+      { type: "block", amount: 7, weight: 1 },
+    ],
+  },
+
   // Minibosses: a step up from a plain mook, without touching
   // Spacemonkey's own AoE move (deliberately kept unique to the true
   // final boss - see its own note below) or the run-ending
