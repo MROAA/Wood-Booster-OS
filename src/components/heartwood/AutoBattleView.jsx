@@ -1,11 +1,13 @@
 import { useEffect } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { TRIBES, tribesOf, resolveSynergies } from "../../data/heartwood/synergies"
 import { isShielded } from "../../services/heartwood/targeting"
 import { summarizeBattle } from "../../services/heartwood/autoBattleEngine"
 import EnemyPieceCard from "./EnemyPieceCard"
 import ResultOverlay from "./ResultOverlay"
 import FloatingNumbers from "./FloatingNumbers"
+import { CardGlyph } from "./cardArt"
 
 // Real time between rounds during auto-playback - fast enough that a
 // typical 5-10 round fight resolves in a few seconds, slow enough that
@@ -95,6 +97,21 @@ export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, on
   const enemyMap = cellsByPos(state.enemies)
   const interactive = state.phase === "player"
 
+  // Tribe synergies, shown live during the fight too - not just on the
+  // pre-battle FormationScreen. Same scope autoBattleEngine.js's own
+  // tribe-counting loop uses (recruited units only - excludes the
+  // Commander and any battle-start summon, neither of which was
+  // something the player shopped for), so this can never show
+  // something the fight isn't actually granting. Marc: "i like the
+  // idea of having tribes in the game" - worth making it feel present
+  // throughout the fight, not just a planning-screen footnote.
+  const tribeCounts = {}
+  for (const u of state.playerUnits) {
+    if (u.id === "commander" || u.summoned) continue
+    for (const t of tribesOf(u.defId, UNITS[u.defId])) tribeCounts[t] = (tribeCounts[t] || 0) + 1
+  }
+  const activeSynergies = resolveSynergies(tribeCounts)
+
   const rows = []
   for (let row = 0; row < state.grid.rows; row++) {
     const cells = []
@@ -139,6 +156,27 @@ export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, on
   return (
     <div className="hw-battle" style={{ position: "relative" }}>
       <div className="hw-hint">{interactive ? `Round ${state.round}. The squads clash automatically.` : "The fight is decided."}</div>
+
+      {Object.keys(tribeCounts).length > 0 && (
+        <div className="hw-section-fade-in" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+          {Object.entries(tribeCounts).map(([tribeId, count]) => {
+            const tribe = TRIBES[tribeId]
+            const active = activeSynergies.find((s) => s.tribeId === tribeId)
+            return (
+              <span
+                key={tribeId}
+                className={`hw-badge${active ? " hw-badge--active" : ""}`}
+                style={!active ? { color: tribe?.color, borderColor: tribe?.color } : undefined}
+                title={tribe?.description}
+              >
+                <CardGlyph name={tribe?.icon} className="hw-intent-glyph" />
+                {tribe?.name} {count}
+                {active ? " ✓" : ""}
+              </span>
+            )
+          })}
+        </div>
+      )}
 
       <FloatingNumbers state={state} />
 

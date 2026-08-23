@@ -256,6 +256,41 @@ export const ITEMS = {
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } },
     ],
   },
+  // Closing out the last 2 roles (tank, hybrid) to the same 2-paths-
+  // per-role shape support/dps already got - Marc: "i like the idea of
+  // having tribes in the game and hero bending", confirmed enough to
+  // keep deepening this specific system rather than spreading thin.
+  "thornhide-ward": {
+    id: "thornhide-ward",
+    name: "Thornhide Ward",
+    icon: "leaf",
+    cost: 3,
+    description: "This unit turns evasive instead of unyielding - hits simply don't land, rather than being weathered.",
+    bendsRoleTo: "tank",
+    // A second, distinct path to "tank" from Mossbound Chain's Block+
+    // Taunt aggro-tank: Ward cancels a hit outright rather than
+    // absorbing it, and carries no Taunt - this tank survives by not
+    // being hit as hard rather than by drawing every hit onto itself,
+    // same real design fork Thornguard (Ward, no Taunt) vs. Stoneheart
+    // (Block+Taunt) already establishes at the unit level.
+    effects: [{ type: "applyBuff", id: "ward", amount: 2 }],
+  },
+  "emberroot-talisman": {
+    id: "emberroot-talisman",
+    name: "Emberroot Talisman",
+    icon: "flame",
+    cost: 3,
+    description: "This unit turns opportunistic - braces for a hit, then strikes twice as hard once it lands.",
+    bendsRoleTo: "hybrid",
+    // A second, distinct path to "hybrid" from Wanderer's Ledger's
+    // passive Ward+heal (survive-anything generalist): an aggressive-
+    // defensive hybrid instead - Block to actually get hit, Shatter to
+    // punish whoever's still braced when it swings back.
+    effects: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      { type: "applyBuff", id: "shatter", amount: 2 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
