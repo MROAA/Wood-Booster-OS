@@ -302,6 +302,23 @@ export const ITEMS = {
     // likely to eat repeated hits, instead of only squad-wide.
     effects: [{ type: "applyBuff", id: "regen", amount: 3 }],
   },
+  "sundermaw-fang": {
+    id: "sundermaw-fang",
+    name: "Sundermaw Fang",
+    icon: "root",
+    cost: 3,
+    description: "Whatever this unit strikes loses its own strongest edge.",
+    // Sunder's first ITEM source (effects.js's sunder - strips a
+    // target's strongest SUNDERABLE_IDS buff). Thornwisp/Ashcaller
+    // (units.js) are still the only unit-level sources; this lets a
+    // player put the mechanic on a DIFFERENT recruited unit's own
+    // attacks instead, same "give the player the choice" motivation
+    // Duelist's Edge/Warden's Sigil already established for Execute/
+    // Taunt. Rare tier - stripping a stack every hit, not just once
+    // per fight, is a strong, repeatable answer to the newly-elevated
+    // self-buffed minibosses (Ironmaw, Stonewake, Deepwarden).
+    effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

@@ -359,6 +359,21 @@ export const RELICS = {
     // forever-sustain - Mosswarden's Charm already owns that space.
     effects: [{ type: "applyBuff", id: "regen", amount: 3 }],
   },
+  "rootbreak-sigil": {
+    id: "rootbreak-sigil",
+    name: "Rootbreak Sigil",
+    icon: "root",
+    cost: RELIC_COST,
+    description: "Whatever your squad strikes loses its own strongest edge.",
+    // Sunder's first RELIC source - Sundermaw Fang (items.js) puts it
+    // on one chosen unit's attacks; this puts it on EVERY deployed
+    // unit's, the same squad-wide upgrade Bramble Ward already is to
+    // Thorned Bracer. A real, repeatable answer to the difficulty
+    // round's self-buffed threats (Ironmaw, Stonewake, Deepwarden) -
+    // every hit from every unit chips away at whatever they're
+    // leaning on, not just Thornwisp/Ashcaller's own dedicated turns.
+    effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
