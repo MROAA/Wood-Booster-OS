@@ -43,7 +43,7 @@ const RUN_PATH = [
   { type: "battle", formationId: "mist-growler-pack" },
   { type: "relic" },
   { type: "shop" },
-  { type: "battle", enemyId: "deepwarden" },
+  { type: "miniboss", enemyId: "deepwarden" },
   { type: "shop" },
   { type: "battle", enemyId: "bark-brute" },
   { type: "shop" },
@@ -78,6 +78,8 @@ const RUN_PATH = [
   { type: "battle", enemyId: "ironmaw" },
   { type: "shop" },
   { type: "battle", enemyId: "gravemaw" },
+  { type: "shop" },
+  { type: "miniboss", enemyId: "thornmaw" },
   { type: "shop" },
   { type: "battle", enemyId: "duskhollow" },
   { type: "shop" },
@@ -122,6 +124,10 @@ const RUN_PATH = [
 const START_ESSENCE = 5
 const WIN_ESSENCE = 6
 const FORMATION_BONUS_ESSENCE = 2
+// Minibosses (Deepwarden, Thornmaw) are a harder win than even a
+// formation fight - a bigger payout than FORMATION_BONUS_ESSENCE, same
+// "reward matches difficulty" reasoning essenceForWin's own note gives.
+const MINIBOSS_BONUS_ESSENCE = 3
 const SHOP_SIZE = 4
 const REROLL_BASE_COST = 1
 const DEPLOY_SLOTS = 4
@@ -748,7 +754,7 @@ export function autoResolve(runState) {
 // it silently - the same number resolveBattleOutcome actually pays out.
 export function essenceForWin(runState, node) {
   const essenceBonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.essenceBonus || 0), 0)
-  const difficultyBonus = node?.formationId ? FORMATION_BONUS_ESSENCE : 0
+  const difficultyBonus = node?.type === "miniboss" ? MINIBOSS_BONUS_ESSENCE : node?.formationId ? FORMATION_BONUS_ESSENCE : 0
   return WIN_ESSENCE + difficultyBonus + essenceBonus
 }
 

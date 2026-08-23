@@ -63,7 +63,12 @@ export default function SquadDraft({
   // for the CURRENT fight, one node further ahead.
   const nextNode = runState.path[runState.nodeIndex + 1]
   const nextFormation = nextNode ? resolveFormation(nextNode.formationId || nextNode.enemyId) : null
-  const nextLabel = nextNode?.type === "boss" ? "Boss" : nextFormation?.name || ENEMIES[nextFormation?.pieces?.[0]?.defId]?.name
+  const nextLabel =
+    nextNode?.type === "boss"
+      ? "Boss"
+      : nextNode?.type === "miniboss"
+        ? `Miniboss: ${ENEMIES[nextNode.enemyId]?.name || ""}`
+        : nextFormation?.name || ENEMIES[nextFormation?.pieces?.[0]?.defId]?.name
   // Tribe-match highlight (Battlegrounds/TFT "this fits your board") -
   // computed from the whole bench, not just deployed units, since at
   // shop time the player may not have finished placing this visit's
