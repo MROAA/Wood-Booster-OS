@@ -473,6 +473,20 @@ export const RELICS = {
       { type: "applyBuff", id: "regen", amount: 2 },
     ],
   },
+  "ashclaw-standard": {
+    id: "ashclaw-standard",
+    name: "Ashclaw Standard",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Every unit strikes a little harder, and whatever it strikes loses its own strongest edge.",
+    // Strength + Sunder together, squad-wide - the same aggressive
+    // anti-buff pairing Ashclaw Fang (items.js) just established,
+    // spread across the whole squad instead of one chosen unit.
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

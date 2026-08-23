@@ -546,14 +546,48 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
   // (never approached 1.5x, so unaffected) and the with-items pass
   // (which needed the higher ceiling) both re-run clean before this
   // shipped.
+  // Marc, live, twice in a row after the 2x cap shipped: "the game is
+  // still the same" / "enemies needs to be much stronger and scale
+  // with the player." A direct measurement (not a guess) of a real
+  // item-buying run showed why: squad DPS already exceeds a 2x-scaled
+  // baseline by fight ONE, meaning the cap had been binding for every
+  // single fight of the run, start to finish - raising it from 1.5 to
+  // 2 was too small a move to ever be felt. Marc also explicitly said
+  // "its important that the run can also fail" - a hard cap that
+  // protects every build equally, no matter how far past baseline its
+  // real DPS sits, is fundamentally in tension with that: it's a
+  // ceiling on how hard the game can ever get, regardless of how
+  // strong the player becomes.
+  //
+  // Removed the cap. The earlier reasoning for having one (an
+  // uncapped first attempt at a MUCH bigger 4-9 round target crashed
+  // every Commander to 0-20%) doesn't actually apply here - that
+  // collapse came from the target-round range being too aggressive
+  // everywhere, not from the absence of a cap specifically once the
+  // range itself is reasonable. Re-verified directly: uncapped at
+  // THIS range only ever hurt Fenrir's own no-items win rate (36%),
+  // and that's Fenrir's own established identity biting - lowest HP
+  // of the 4, "the fight gets worse for you the longer it goes" - a
+  // longer fight costing Fenrir more than the others isn't a scaling
+  // bug, it's the character working as designed. Left as a known,
+  // accepted tension rather than nerfing every OTHER Commander's
+  // scaling to protect one whose whole identity is "not built to
+  // survive a long fight" in the first place.
+  //
+  // Target rounds also raised (2-3.5 -> 3-6) - the shorter range meant
+  // even an uncapped scale rarely asked for much more than the
+  // baseline already had once a squad's real DPS was only modestly
+  // above average; a longer target gives a strong squad's own power
+  // something real to overcome instead of just a bigger number that
+  // still dies in 2 rounds either way.
   const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / 0.65))
-  const targetRounds = 2 + progress * 1.5
+  const targetRounds = 3 + progress * 3
   const targetTotalHp = squadDps * targetRounds
 
   const currentTotalHp = state.enemies.reduce((sum, e) => sum + e.maxHp, 0)
   if (targetTotalHp <= currentTotalHp) return state
 
-  const scale = Math.min(2, targetTotalHp / currentTotalHp)
+  const scale = targetTotalHp / currentTotalHp
   return {
     ...state,
     enemies: state.enemies.map((e) => {

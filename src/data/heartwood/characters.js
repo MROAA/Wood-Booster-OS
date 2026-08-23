@@ -22,7 +22,7 @@ export const CHARACTERS = {
     art: "cat",
     maxHp: 60,
     tagline: "Agile and quick - always looking for the fast opening.",
-    description: "Cat's Reflexes: every unit in the squad strikes a little harder.",
+    description: "Cat's Reflexes: every unit in the squad strikes a little harder and lands on its feet.",
     startEffects: [{ type: "draw", amount: 1 }],
     // Marc: "haluan että squadissa on päähahmo, se commander on
     // pelattava hahmo pelissä... jota voi synergisoida buildilla ja
@@ -46,7 +46,24 @@ export const CHARACTERS = {
     // vs. Aatos/Fenrir's ~50% each. Doubled to +2 so Tommy keeps its
     // simple, unconditional identity (no extra condition like Wounded
     // Fury, just a bigger flat number) while closing the gap.
-    squadPassive: [{ type: "applyBuff", id: "strength", amount: 2 }],
+    //
+    // The DPS-adaptive enemy HP rework (Marc: "enemies needs to be much
+    // stronger and scale with the player") lengthened fights across the
+    // board (target 3-6 rounds now, was 2-3.5, and no longer capped) -
+    // a fresh fairness pass at the new scaling found Tommy specifically
+    // collapsed to 44%, the ONE Commander of the 4 with literally zero
+    // sustain (no heal, no block, no ward - just Strength). A longer
+    // fight means more rounds of incoming damage to survive regardless
+    // of how fast the squad kills, and Tommy had nothing to answer
+    // that with. Added a small turnStart Block, matching "lands on its
+    // feet" - kept deliberately smaller than Repo's own dedicated
+    // Block identity (this is a floor against the new fight length,
+    // not a second archetype layered onto Tommy's actual "fast
+    // opening" one).
+    squadPassive: [
+      { type: "applyBuff", id: "strength", amount: 2 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+    ],
     // Active Power (Battlegrounds/Guildrun-style "hero power," on top
     // of the always-on squadPassive above): spent once per shop visit
     // (runEngine.js's activateCommanderPower), queued and applied to the
@@ -153,8 +170,17 @@ export const CHARACTERS = {
     // Fenrir has a comparable always-on baseline, same as Tommy's,
     // while keeping the "even worse once you're hurt" identity as the
     // extra layer on top rather than the only effect.
+    // Bumped Strength 1 -> 2 (matching Tommy's own baseline) after the
+    // DPS-adaptive scaling rework lengthened fights across the board -
+    // Fenrir's whole identity is "the fight gets worse the longer it
+    // goes," so a longer fight structurally hurts him more than the
+    // other 3, and his lowest-HP-of-the-4 glass-cannon design means
+    // sustain (Tommy/Repo's own fix) would fight his actual concept
+    // rather than serve it. Answering with more raw kill speed instead
+    // - the fight ending sooner is Fenrir's own real counter to "it's
+    // gone on too long," not surviving longer.
     squadPassive: [
-      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "applyBuff", id: "strength", amount: 2 },
       { type: "applyBuff", id: "woundedFury", amount: 1 },
     ],
     // Blood Oath: a bigger, one-fight-only dose of Fenrir's own signature
