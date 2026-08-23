@@ -390,6 +390,65 @@ export const ENEMIES = {
     movePattern: [{ type: "attack", amount: 6 }],
   },
 
+  "duskhollow": {
+    id: "duskhollow",
+    name: "Duskhollow",
+    maxHp: 48,
+    art: "moonGlyph",
+    description: "Every round it stands, the last one is already forgotten.",
+    // 21st mook - Regen's first PERSISTENT enemy source, distinct from
+    // Duskmoth's one-shot decaying passive (a fixed stack that fades
+    // over a few rounds). A turnStart trigger re-grants Regen every
+    // round it acts instead of only once at battle start - same
+    // mechanism Mosswarden's Charm/Bramblehide's own repeating heal
+    // already use, just feeding Regen's decaying stack instead of a
+    // flat heal, so it never actually runs out on its own. The real
+    // answer isn't outlasting it (Bramblehide's own weakness) or
+    // racing the first few rounds (Duskmoth's) - it's simply
+    // out-damaging what a full stack heals back every single round.
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 4 } }],
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 5 }],
+  },
+
+  "needlefen": {
+    id: "needlefen",
+    name: "Needlefen",
+    maxHp: 40,
+    art: "root",
+    description: "It doesn't need to hit hard. It just needs one moment where you can't answer.",
+    // 22nd mook - Stun's second enemy source (Rootbind Thicket's own
+    // pattern, different numbers/name) - the same "run variety within
+    // an already-proven mechanic" reuse discipline every other core
+    // debuff has already gotten (Poison x2, Weak x1 + double-debuff,
+    // Vulnerable x1). Kept damage low (3/3), same reasoning Rootbind
+    // Thicket's own note gives - losing a whole action is strong on
+    // its own.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 3 },
+      { type: "debuff", id: "stun", amount: 1, target: "player" },
+      { type: "attack", amount: 3 },
+    ],
+  },
+
+  "wraithgale": {
+    id: "wraithgale",
+    name: "Wraithgale",
+    maxHp: 44,
+    art: "moonGlyph",
+    description: "It doesn't do anything you haven't already seen. It just doesn't stop doing it.",
+    // 23rd mook - a plain weightedRandom reinforcement (Rune Warden/
+    // Stormroot's own "run variety, no signature gimmick" spirit)
+    // rather than another mechanic-carrier.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 7, weight: 2 },
+      { type: "block", amount: 6, weight: 1 },
+      { type: "attack", amount: 4, weight: 1 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already
