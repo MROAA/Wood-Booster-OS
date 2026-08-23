@@ -111,6 +111,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", formationId: "bonewardens-watch" },
   { type: "shop" },
+  { type: "battle", formationId: "the-hollow-court" },
+  { type: "shop" },
   { type: "boss", enemyId: "spacemonkey" },
 ]
 
