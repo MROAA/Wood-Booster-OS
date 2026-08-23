@@ -111,6 +111,8 @@ export const UNIT_TRIBES = {
   fernwake: ["grove"],
   duskbramble: ["thorn"],
   hollowmere: ["warden"],
+  thistlemaw: ["thorn"],
+  brackenveil: ["grove"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
