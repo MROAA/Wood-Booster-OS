@@ -149,6 +149,27 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "bonewardens-watch": {
+    id: "bonewardens-watch",
+    name: "Bonewarden's Watch",
+    description: "It doesn't hide anything behind a wall. It just won't let go of your attention.",
+    // A genuinely different kind of protection from every prior
+    // formation here: Bark Brute's Stand/Quillfang's Warren shield by
+    // POSITION (row 0 in front of row 1) - break the front piece and
+    // the back one is exposed. Bonewarden protects by MECHANIC instead
+    // - its own self-Taunt (autoBattleEngine.js's randomLiving) forces
+    // every single-target player attack onto it regardless of where
+    // either piece stands, so Gravequill sits in the SAME row, fully
+    // "exposed" by position, and still can't be touched while
+    // Bonewarden lives. Only once Bonewarden falls does Gravequill's
+    // own Execute (punishes a badly wounded player unit) become a real
+    // threat - the fight has two distinct phases instead of one.
+    pieces: [
+      { defId: "bonewarden", pos: { row: 1, col: 0 } },
+      { defId: "gravequill", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {
