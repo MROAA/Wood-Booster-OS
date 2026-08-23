@@ -457,7 +457,92 @@ export function startAutoBattle(
     }
   }
 
+  state = scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor)
+
   return state
+}
+
+// A unit's average damage PER ROUND, not per attack move - a
+// [block, heal, attack] "sequence" pattern only actually swings 1 turn
+// in 3, and a "weightedRandom" one only as often as its own weight
+// share, so averaging over the whole pattern (not just the attack
+// entries) is what "damage per round" actually means.
+function averageAttackAmount(def) {
+  if (!def?.movePattern?.length) return 0
+  if (def.moveSelect === "weightedRandom") {
+    const totalWeight = def.movePattern.reduce((sum, m) => sum + (m.weight || 1), 0)
+    const weightedDamage = def.movePattern.reduce((sum, m) => sum + (m.type === "attack" ? m.amount * (m.weight || 1) : 0), 0)
+    return totalWeight ? weightedDamage / totalWeight : 0
+  }
+  const totalDamage = def.movePattern.reduce((sum, m) => sum + (m.type === "attack" ? m.amount : 0), 0)
+  return totalDamage / def.movePattern.length
+}
+
+// Marc, live, right after auto-deploy (recruitUnit, runEngine.js)
+// shipped and made every player's squad actually fully-deployed for
+// the first time: "balancing is off now the units destroy enemies so
+// fast" - then, after a first pass at just raising the ramp (which
+// hurt sustain-Commanders disproportionately, see the comment on
+// difficultyFactorForNode above), the real ask: "this needs to be
+// incremental to the progress the player is making and match the
+// level of dps they put out." The run-progress ramp above answers the
+// first half; this answers the second - enemy HP now also reacts to
+// how hard THIS SPECIFIC squad actually hits, not just a flat
+// per-fight number tuned against an average build. A strong, well-
+// itemized squad faces tankier enemies; a weak one still gets exactly
+// the progress-based baseline it always did (this only ever RAISES
+// HP above that baseline, never lowers it - a weak build isn't
+// punished further, only a strong one is asked to work for its win).
+//
+// Estimates total squad DPS-per-round from the FULLY buffed
+// state.playerUnits (every passive/item/relic/tribe/Commander/active-
+// power effect above has already applied by this point in the
+// function, so u.powers.strength is the real number this fight will
+// actually swing with, not a base-stat guess). Sets a target fight
+// LENGTH in rounds - shorter early, longer late, matching "the game
+// has to have progressive feel to it" the same way the HP ramp
+// already does - then raises the formation's total HP pool to that
+// target if the squad's real DPS would otherwise clear it faster,
+// redistributing across pieces in their existing relative proportion
+// (a shielded tank keeps its relatively higher share of HP either way).
+function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
+  if (!state.enemies.length) return state
+
+  let squadDps = 0
+  for (const u of state.playerUnits) {
+    const def = u.id === "commander" ? state.commanderDef : effectiveDefs[u.id]
+    if (!def) continue
+    const perHit = averageAttackAmount(def) + (u.powers.strength || 0)
+    squadDps += perHit * (def.haste ? 2 : 1)
+  }
+  if (squadDps <= 0) return state
+
+  // First attempt (4-9 target rounds, no cap) was a severe
+  // overcorrection, caught the same way the ramp overcorrection was:
+  // a fresh fairness pass before shipping, not assumed safe because it
+  // "made sense" on paper. Win rates across all 4 Commanders collapsed
+  // to 0-20% - this HP boost compounds with enemy DAMAGE also already
+  // scaling via difficultyFactor (more rounds means more enemy attacks
+  // land too), so the combined effect was much harsher than either
+  // lever alone. Cut the target-round range roughly in half (2 early,
+  // 3.5 late) and added a hard 1.5x cap on the boost itself - a strong
+  // squad still faces a meaningfully tankier enemy than the flat
+  // progress-based baseline, just not an unbounded one.
+  const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / 0.65))
+  const targetRounds = 2 + progress * 1.5
+  const targetTotalHp = squadDps * targetRounds
+
+  const currentTotalHp = state.enemies.reduce((sum, e) => sum + e.maxHp, 0)
+  if (targetTotalHp <= currentTotalHp) return state
+
+  const scale = Math.min(1.5, targetTotalHp / currentTotalHp)
+  return {
+    ...state,
+    enemies: state.enemies.map((e) => {
+      const hp = Math.round(e.maxHp * scale)
+      return { ...e, hp, maxHp: hp }
+    }),
+  }
 }
 
 function actSide(state, actingUnits, getDef, targetPool, side) {
