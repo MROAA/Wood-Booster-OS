@@ -681,6 +681,40 @@ export const ENEMIES = {
     ],
   },
 
+  "hollowcurse": {
+    id: "hollowcurse",
+    name: "Hollowcurse",
+    maxHp: 44,
+    art: "rootbindThicket",
+    description: "It doesn't just take what you've built. It leaves something rotting in its place.",
+    // 36th mook - Sunder's 2nd enemy source (Witherfang's own pattern),
+    // now combined with Poison in the same sequence instead of running
+    // alone - a genuine "curse" identity: it strips whatever buff a
+    // player unit is carrying AND leaves an ongoing DOT behind, so the
+    // squad loses ground on two fronts from the same fight instead of
+    // just one.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "sunder", target: "player" },
+      { type: "debuff", id: "poison", amount: 2, target: "target" },
+    ],
+  },
+
+  "grimspite": {
+    id: "grimspite",
+    name: "Grimspite",
+    maxHp: 48,
+    art: "husk",
+    description: "It doesn't have a plan. It just keeps hitting until something breaks.",
+    // 37th mook - a plain weightedRandom reinforcement, no gimmick.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 9, weight: 2 },
+      { type: "block", amount: 7, weight: 1 },
+    ],
+  },
+
   // Minibosses: a step up from a plain mook, without touching
   // Spacemonkey's own AoE move (deliberately kept unique to the true
   // final boss - see its own note below) or the run-ending

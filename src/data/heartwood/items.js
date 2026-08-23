@@ -489,6 +489,22 @@ export const ITEMS = {
       { type: "applyBuff", id: "woundedFury", amount: 1 },
     ],
   },
+  "ashclaw-fang": {
+    id: "ashclaw-fang",
+    name: "Ashclaw Fang",
+    icon: "sword",
+    cost: 3,
+    description: "This unit strikes a little harder, and whatever it strikes loses its own strongest edge.",
+    // Strength + Sunder together - an aggressive anti-buff identity:
+    // every hit both deals more damage AND strips whatever the target
+    // is leaning on (Ward/Revive/Taunt/Execute/Shatter/Strength, same
+    // priority order Sundermaw Fang already established), instead of
+    // needing two separate items to get both effects onto one unit.
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
