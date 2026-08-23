@@ -454,6 +454,22 @@ export const ITEMS = {
       { type: "applyBuff", id: "ward", amount: 1 },
     ],
   },
+  "bulwarks-mercy": {
+    id: "bulwarks-mercy",
+    name: "Bulwark's Mercy",
+    icon: "heart",
+    cost: 3,
+    description: "This unit shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
+    // Regen + Ward together - a pure survivability identity for a
+    // frontline unit: Ward cancels the first real hit outright, Regen
+    // undoes whatever gets through after. Distinct from Bark Plating's
+    // own single Ward (this adds sustain on top) and Mendleaf Charm's
+    // own single Regen (this adds a full hit-cancel on top).
+    effects: [
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "applyBuff", id: "regen", amount: 3 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

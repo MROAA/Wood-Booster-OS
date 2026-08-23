@@ -459,6 +459,20 @@ export const RELICS = {
       { type: "applyBuff", id: "ward", amount: 1 },
     ],
   },
+  "sanctuary-vow": {
+    id: "sanctuary-vow",
+    name: "Sanctuary Vow",
+    icon: "heart",
+    cost: RELIC_COST,
+    description: "Every unit shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
+    // Regen + Ward together, squad-wide - the same pure survivability
+    // pairing Bulwark's Mercy (items.js) just established, spread
+    // across the whole squad instead of one chosen unit.
+    effects: [
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "applyBuff", id: "regen", amount: 2 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
