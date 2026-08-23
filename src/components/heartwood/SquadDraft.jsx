@@ -14,6 +14,7 @@ import {
   MARKET_LEVEL_UNLOCKS,
   marketLevelCost,
   benchTribeCounts,
+  difficultyTierForNode,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -69,6 +70,14 @@ export default function SquadDraft({
       : nextNode?.type === "miniboss"
         ? `Miniboss: ${ENEMIES[nextNode.enemyId]?.name || ""}`
         : nextFormation?.name || ENEMIES[nextFormation?.pieces?.[0]?.defId]?.name
+  // Progressive-difficulty indicator (Marc: "the game has to have
+  // progressive feel to it so it becomes more difficult") -
+  // difficultyFactorForNode below has scaled enemy stats since the
+  // earlier balance pass, but purely as a backend multiplier with
+  // nothing on screen to say so. Same tier breakpoints as that ramp's
+  // own progress curve, so this badge is an honest readout, not
+  // decoration bolted onto a number it doesn't track.
+  const difficultyTier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
   // Tribe-match highlight (Battlegrounds/TFT "this fits your board") -
   // computed from the whole bench, not just deployed units, since at
   // shop time the player may not have finished placing this visit's
@@ -166,9 +175,22 @@ export default function SquadDraft({
 
   return (
     <div className="hw-intro">
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+      {/* paddingRight/flexWrap keep this row's right-aligned badges clear
+          of the fixed .hw-exit-link corner button (HeartwoodBattle.jsx) -
+          it's position:fixed outside document flow, so nothing here
+          pushes it aside on its own; adding the difficulty badge below
+          made this row wide enough to collide with it for the first time. */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingRight: 130 }}>
         <h1 style={{ fontSize: 22, margin: 0 }}>The Heartwood Market</h1>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span
+            className="hw-badge hw-section-fade-in"
+            style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
+            title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
+          >
+            <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+            {difficultyTier.name}
+          </span>
           {nextLabel && (
             <span className="hw-badge hw-section-fade-in" title="What you'll face right after this shop visit">
               Next: {nextLabel}
