@@ -14,7 +14,7 @@
 
 import { UNITS, TIER2_SUFFIX, upgradeCost } from "../../data/heartwood/units"
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
-import { ITEMS, ITEM_SLOTS } from "../../data/heartwood/items"
+import { ITEMS, ITEM_SLOTS, itemPool } from "../../data/heartwood/items"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
 import { tribesOf } from "../../data/heartwood/synergies"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
@@ -74,6 +74,8 @@ const RUN_PATH = [
   { type: "battle", enemyId: "quillfang" },
   { type: "shop" },
   { type: "battle", enemyId: "ironmaw" },
+  { type: "shop" },
+  { type: "battle", enemyId: "gravemaw" },
   { type: "shop" },
   { type: "battle", formationId: "bark-brutes-stand" },
   { type: "shop" },
@@ -171,6 +173,35 @@ function rollShop(marketLevel) {
     ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
   return shuffled.slice(0, SHOP_SIZE).map((u) => u.id)
+}
+
+function shuffled(array) {
+  const copy = [...array]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+
+// Item shop rotation (Marc: "gameplay from Guildrun" - Hero Bending is
+// this game's own version of Guildrun's headline "hero bending" idea,
+// but every item - Bending or not - sat in one flat, always-fully-
+// visible catalog, so a Bending item never felt like something you
+// discovered mid-run, just one more line in a big static list).
+// ITEM_SHOP_SIZE offers, re-rolled fresh every shop visit the same way
+// unit offers already are, with one slot GUARANTEED to be a Bending
+// item whenever one exists - "you will see a real build-defining
+// choice this visit," not just "maybe, if the dice cooperate."
+const ITEM_SHOP_SIZE = 6
+
+function rollItemShop() {
+  const all = itemPool()
+  const bending = all.filter((i) => i.bendsRoleTo)
+  const guaranteed = shuffled(bending).slice(0, Math.min(1, bending.length))
+  const guaranteedIds = new Set(guaranteed.map((i) => i.id))
+  const rest = shuffled(all.filter((i) => !guaranteedIds.has(i.id))).slice(0, ITEM_SHOP_SIZE - guaranteed.length)
+  return shuffled([...guaranteed, ...rest]).map((i) => i.id)
 }
 
 // Three owned copies of the same base unit combine into one Tier 2

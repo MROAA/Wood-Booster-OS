@@ -371,6 +371,25 @@ export const ENEMIES = {
     ],
   },
 
+  "gravemaw": {
+    id: "gravemaw",
+    name: "Gravemaw",
+    maxHp: 42,
+    art: "husk",
+    description: "It's slow to anger. Once it's hurt, it isn't slow anymore.",
+    // 20th mook, and the first enemy source of Wounded Fury
+    // (effects.js's woundedFuryBonus - +3 damage once below 50% HP) -
+    // Feral Charm/Berserker's Oath already give a player unit this
+    // exact same threat, but no mook had ever turned it around before.
+    // Not in SUNDERABLE_IDS (unlike Ironmaw's Strength), so Thornwisp
+    // can't strip it away - the only real answer is finishing it before
+    // it crosses the threshold, or simply outracing the bonus with
+    // enough raw damage that the extra 3 never matters.
+    passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 6 }],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already
