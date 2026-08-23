@@ -436,6 +436,24 @@ export const ITEMS = {
       { type: "applyBuff", id: "shatter", amount: 2 },
     ],
   },
+  "reckless-vow": {
+    id: "reckless-vow",
+    name: "Reckless Vow",
+    icon: "sword",
+    cost: 3,
+    description: "This unit finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
+    // Execute + Ward together - a "glass cannon insurance" identity:
+    // Ward's own stack count is a real hit-absorption counter, not a
+    // flat boolean (2 stacks shrugs off 2 hits, not just "protected
+    // once"), so it stacks meaningfully the same way Execute's own
+    // finishing-blow bonus does. Lets an aggressive Execute-focused
+    // unit survive long enough to actually land the kill instead of
+    // dying to the one hit that would have stopped it first.
+    effects: [
+      { type: "applyBuff", id: "execute", amount: 3 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
