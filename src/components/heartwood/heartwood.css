@@ -207,6 +207,33 @@
   color: var(--hw-ember);
 }
 
+/* Essence badge flash (SquadDraft.jsx/RelicChoice.jsx's essenceFlash
+   state) - the number itself changes on almost every click in this
+   game (recruit, reroll, level up, sell...) and used to just silently
+   re-render as a new digit. Moss = gained, curse-red = spent, same
+   color language every other "good/bad" state in this file already
+   uses - a brief scale pop, not a color that lingers, so it reads as
+   an event rather than permanently recoloring the badge. */
+.hw-essence-badge[data-flash="gain"] {
+  animation: hw-essence-flash-gain 500ms ease-out;
+}
+
+.hw-essence-badge[data-flash="spend"] {
+  animation: hw-essence-flash-spend 500ms ease-out;
+}
+
+@keyframes hw-essence-flash-gain {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.18); box-shadow: 0 0 14px 2px color-mix(in srgb, var(--hw-moss) 70%, transparent); border-color: var(--hw-moss); color: var(--hw-moss); }
+  100% { transform: scale(1); }
+}
+
+@keyframes hw-essence-flash-spend {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.9); box-shadow: 0 0 14px 2px color-mix(in srgb, var(--hw-curse) 70%, transparent); border-color: var(--hw-curse); color: var(--hw-curse); }
+  100% { transform: scale(1); }
+}
+
 .hw-intent {
   display: inline-flex;
   align-items: center;
