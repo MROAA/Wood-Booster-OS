@@ -191,13 +191,24 @@ export const CHARACTERS = {
     squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
     // Brace: an extra one-time Ward stack for the next battle only -
     // "never takes a hit it didn't plan for," a single fully-prevented
-    // hit on top of the always-on repeating Block.
+    // hit on top of the always-on repeating Block. Repo was still the
+    // weakest Commander (64% at n=25, vs. 88-96% for the other 3) even
+    // after the squadPassive bump above - Brace alone (a single-hit
+    // Ward, nothing else) was thinner than every other Commander's now
+    // 2-effect active power (Tommy/Fenrir both pair a flat buff with
+    // their signature status). Added Shatter+2, matching Repo's own
+    // "exploit the opening" identity (his passive already carries
+    // Shatter) instead of copying another Commander's flavor - Brace
+    // now both prevents a hit AND rewards punishing a braced enemy.
     activePower: {
       id: "brace",
       name: "Brace",
       cost: 3,
-      description: "Next battle only: the whole squad shrugs off one extra hit outright.",
-      effects: [{ type: "applyBuff", id: "ward", amount: 1 }],
+      description: "Next battle only: the whole squad shrugs off one extra hit, and strikes deeper against a braced target.",
+      effects: [
+        { type: "applyBuff", id: "ward", amount: 1 },
+        { type: "applyBuff", id: "shatter", amount: 2 },
+      ],
     },
   },
 }
