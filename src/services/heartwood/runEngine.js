@@ -843,10 +843,57 @@ export function difficultyTierForNode(nodeIndex, pathLength) {
 // vs-offense Commanders each experience a steeper ramp; verified via
 // the fairness pass at this exact setting before shipping, not
 // assumed safe by analogy to the old HP-only version.
+// Marc, live, right after the "decisions matter" rebalance:
+// "http://localhost:5173/heartwood is still the same the game is too
+// easy." A direct check against that exact server found why - the
+// very FIRST fight of every run (Rotwood Husk) came back completely
+// unscaled (40 HP, same as the original pre-difficulty-work baseline),
+// because this ramp still didn't start until 30% progress. With the
+// run now ~43 fights long, that's roughly the first 13 fights with
+// ZERO difference from the very beginning of this whole session's
+// difficulty work - exactly the fights a player actually experiences
+// first and judges "did anything change" by, especially on a fresh
+// run. The DPS-adaptive layer (autoBattleEngine.js) didn't
+// meaningfully cover for it either at this stage - its own loosened
+// 1.5-round floor rarely triggers against an early, still-small
+// squad. Removed the flat "no scaling" zone entirely - the ramp now
+// starts from node 0, so even the very first fight gets a real,
+// felt increase, growing smoothly across the whole run instead of
+// snapping on partway through.
 function difficultyFactorForNode(nodeIndex, pathLength) {
   const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
-  if (progress <= 0.3) return 1
-  return 1 + ((progress - 0.3) / 0.7) * 0.9
+  // Removing the flat zone (above) technically made the ramp "start"
+  // at node 0, but with a run this long (~86 nodes, ~43 fights) a
+  // PLAIN linear ramp gives fight 1 a progress of roughly 1/85 - too
+  // small a fraction of even a 90% cap to survive Math.round against a
+  // real HP number (40 * 1.011 still rounds right back down to 40). A
+  // pure sqrt(progress) curve fixed fight 1 (a real, felt ~10% bump
+  // immediately) but front-loaded WAY too much of the total budget
+  // into the early-mid game - a fresh fairness pass crashed 3 of 4
+  // Commanders to 12-44%, including the items-heavy scenario, because
+  // sustain/build-up-based kits (Repo especially) need real time to
+  // establish their advantage and a front-loaded curve doesn't give
+  // them any. A 50/50 blend of sqrt and plain linear was STILL too
+  // front-loaded (Repo 28% no-items). Settled on a lighter 25% sqrt /
+  // 75% linear blend - still gives fight 1 a real, felt bump (not the
+  // literal zero a pure linear ramp gives), just a smaller one, while
+  // spending most of the difficulty budget the way the original linear
+  // curve did: gradually, across the whole run, not concentrated
+  // before the run's own systems (Market Level, relics, item
+  // stacking) have had a chance to pay off.
+  // Even the lighter blend above (25% sqrt) still ran too hot overall
+  // at the +90% cap this whole arc had climbed to (0.4start/+65% ->
+  // 0.3start/+90% -> this) - 2 repeat fairness passes both showed the
+  // SAME shape, not just noise: Tommy consistently 84-96% while the
+  // other 3 sat at 24-44%, his flat Strength scaling with literally
+  // everything the ramp throws at it in a way the others' more
+  // conditional/sustain kits don't. Pulled the cap back down to +65%
+  // (the last value that produced a genuinely even spread, from the
+  // "decisions matter" round) while KEEPING the sqrt front-loading -
+  // the two problems (fight 1 being flat, and the overall ceiling
+  // being too high) turned out to be independent and needed separate
+  // fixes, not one bigger number doing both jobs at once.
+  return 1 + (0.75 * progress + 0.25 * Math.sqrt(progress)) * 0.65
 }
 
 // Shared by startFormationBattle and previewBattleEnemies below - both
