@@ -171,3 +171,15 @@ export function resolveSynergies(tribeCounts) {
   }
   return active
 }
+
+// The lowest threshold NOT yet met for a tribe, or null once every
+// tier is already active - lets the shop/formation tracker say "Fang
+// 1 (2 for a bonus)" instead of just "Fang 1", the same "how far am I
+// from the next payoff" info Battlegrounds/TFT trackers always show,
+// not just whether a bonus is currently on.
+export function nextSynergyThreshold(tribeId, count) {
+  const tiers = SYNERGY_TIERS[tribeId]
+  if (!tiers) return null
+  const next = tiers.find((t) => count < t.count)
+  return next ? next.count : null
+}

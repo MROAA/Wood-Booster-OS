@@ -178,6 +178,39 @@
   animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Frost overlay (UnitCard.jsx's `frozen` prop, SquadDraft.jsx's Freeze
+   toggle) - Hearthstone Battlegrounds' own "the whole tavern ices over"
+   convention, missing until now (only the Freeze button itself changed
+   color, not the actual offers being locked in). A ::before wash rather
+   than another box-shadow layer, sized to the card itself (not
+   overflow-clipped, since .hw-card deliberately isn't) so it never
+   fights with the rarity/golden glow. */
+.hw-card[data-frozen="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--hw-rune) 22%, transparent), transparent 60%);
+  border: 1px solid color-mix(in srgb, var(--hw-rune) 55%, transparent);
+  pointer-events: none;
+}
+
+.hw-frost-badge {
+  /* Bottom-right, not top-right - the card head row already fills that
+     corner with the cost pip/HP badge (UnitCard.jsx's hw-card-head). */
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  z-index: 1;
+  color: var(--hw-rune);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+.hw-frost-badge .hw-effect-icon-glyph {
+  width: 15px;
+  height: 15px;
+}
+
 /* A section that only exists conditionally (Synergies tracker, the
    "Up next" badge, item-slot pips filling for the first time) fades
    and rises into place on mount instead of appearing instantly -
@@ -348,6 +381,10 @@
   cursor: pointer;
   transition: box-shadow 150ms ease, border-color 150ms ease;
   user-select: none;
+  /* Deliberately NOT overflow:hidden - the existing rare-tier glow and
+     golden-fusion shimmer above both rely on their box-shadow spreading
+     outside the card's own box, which overflow:hidden would clip. */
+  position: relative;
 }
 
 /* Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
-import { TRIBES, tribesOf, resolveSynergies } from "../../data/heartwood/synergies"
+import { TRIBES, tribesOf, resolveSynergies, nextSynergyThreshold } from "../../data/heartwood/synergies"
 import { isShielded } from "../../services/heartwood/targeting"
 import { summarizeBattle } from "../../services/heartwood/autoBattleEngine"
 import EnemyPieceCard from "./EnemyPieceCard"
@@ -162,6 +162,7 @@ export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, on
           {Object.entries(tribeCounts).map(([tribeId, count]) => {
             const tribe = TRIBES[tribeId]
             const active = activeSynergies.find((s) => s.tribeId === tribeId)
+            const next = nextSynergyThreshold(tribeId, count)
             return (
               <span
                 key={tribeId}
@@ -172,6 +173,7 @@ export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, on
                 <CardGlyph name={tribe?.icon} className="hw-intent-glyph" />
                 {tribe?.name} {count}
                 {active ? " ✓" : ""}
+                {next ? ` (${next} for more)` : ""}
               </span>
             )
           })}

@@ -2,7 +2,7 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
-import { TRIBES, resolveSynergies } from "../../data/heartwood/synergies"
+import { TRIBES, resolveSynergies, nextSynergyThreshold } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
 import { deployedTribeCounts } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
@@ -140,6 +140,10 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
             {Object.entries(tribeCounts).map(([tribeId, count]) => {
               const tribe = TRIBES[tribeId]
               const active = activeSynergies.find((s) => s.tribeId === tribeId)
+              // "how far from the next payoff" - shown whenever there's
+              // still a higher tier to reach, active or not (2/2 active
+              // still has a 4-count tier worth knowing about).
+              const next = nextSynergyThreshold(tribeId, count)
               return (
                 <span
                   key={tribeId}
@@ -150,6 +154,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
                   <CardGlyph name={tribe?.icon} className="hw-intent-glyph" />
                   {tribe?.name} {count}
                   {active ? " ✓" : ""}
+                  {next ? ` (${next} for more)` : ""}
                 </span>
               )
             })}
