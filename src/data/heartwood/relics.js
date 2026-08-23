@@ -278,6 +278,16 @@ export const RELICS = {
   },
 }
 
+// Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
+// liittyville" - make a rarity system for the game and related
+// things) - every relic is priced the same (RELIC_COST) and is
+// already meant to feel like a run-defining pick, so they're all
+// "rare" uniformly, same status items.js's own tier derivation gives
+// its most expensive tier.
+for (const relic of Object.values(RELICS)) {
+  relic.tier = "rare"
+}
+
 export function relicPool() {
   return Object.values(RELICS)
 }

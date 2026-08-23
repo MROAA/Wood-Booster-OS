@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from "react"
 import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
-import { ITEMS, itemPool } from "../../data/heartwood/items"
+import { ITEMS, itemPool, effectiveRole } from "../../data/heartwood/items"
 import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/heartwood/characters"
-import { REFORGE_COST, RETRAIN_COST, effectiveItemSlots } from "../../services/heartwood/runEngine"
+import {
+  REFORGE_COST,
+  RETRAIN_COST,
+  effectiveItemSlots,
+  MARKET_LEVEL_MAX,
+  MARKET_LEVEL_UNLOCKS,
+  marketLevelCost,
+} from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
 import { CardGlyph } from "./cardArt"
@@ -19,10 +26,14 @@ export default function SquadDraft({
   onRankUp,
   onUpgradeRelic,
   onReforge,
+  onSell,
   onRetrain,
   onBuyItem,
   onEquipItem,
   onUnequipItem,
+  onLevelUpMarket,
+  onToggleFreeze,
+  onUseCommanderActive,
   showIntro,
   onDismissIntro,
 }) {
@@ -30,6 +41,11 @@ export default function SquadDraft({
   const commander = CHARACTERS[runState.characterId]
   const commanderRank = runState.commanderRank || 0
   const rankCost = commanderRankCost(commanderRank)
+  const marketLevel = runState.marketLevel || 1
+  const marketCost = marketLevelCost(marketLevel)
+  const activePower = commander?.activePower
+  const activePowerUsed = !!runState.activePowerUsedThisShop
+  const primed = (runState.pendingActiveEffects || []).length > 0
   // Artificer's Ledger (relics.js) grants every unit a bonus slot on
   // top of the base ITEM_SLOTS - same effectiveItemSlots helper
   // equipItem's own range check uses, so the pips shown here can never
@@ -74,6 +90,10 @@ export default function SquadDraft({
     setTimeout(() => setJustReforgedKey((cur) => (cur === benchKey ? null : cur)), 500)
   }
 
+  function handleSell(benchKey) {
+    onSell(benchKey)
+  }
+
   function handleBagItemClick(itemKey) {
     setSelectedItemKey((cur) => (cur === itemKey ? null : itemKey))
   }
@@ -103,6 +123,29 @@ export default function SquadDraft({
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+        {/* Market Level (Battlegrounds/Guildrun-style tavern tier) -
+            raises the shop's rarity ceiling (runEngine.js's
+            rollShop/MARKET_LEVEL_UNLOCKS). Shown next to Essence since
+            it's the run's other core economy dial. */}
+        <span
+          className="hw-badge"
+          title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier units in the shop`}
+        >
+          Market Lv {marketLevel}/{MARKET_LEVEL_MAX}
+        </span>
+        {marketCost === null ? (
+          <span className="hw-badge" style={{ fontSize: 11 }}>Market MAX</span>
+        ) : (
+          <button
+            className="hw-move-btn"
+            style={{ fontSize: 11, padding: "4px 8px" }}
+            disabled={runState.essence < marketCost}
+            onClick={onLevelUpMarket}
+            title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier units in future shop rolls`}
+          >
+            Level Up ({marketCost} Essence)
+          </button>
+        )}
         <span className="hw-badge" title={commander?.description}>
           <CardGlyph name={commander?.art} className="hw-intent-glyph" />
           {commander?.name} · Rank {commanderRank}
@@ -119,6 +162,31 @@ export default function SquadDraft({
           >
             Rank Up ({rankCost} Essence)
           </button>
+        )}
+        {/* Commander Active Power (characters.js's activePower) - a
+            "hero power" on top of the Commander's always-on
+            squadPassive, once per shop visit, queued for the very next
+            battle only (runEngine.js's activateCommanderPower). The
+            "primed" badge is the required visible cue that something
+            is queued before the effect itself fires in battle. */}
+        {activePower && (
+          <>
+            <button
+              className="hw-move-btn"
+              data-active={primed}
+              style={{ fontSize: 11, padding: "4px 8px" }}
+              disabled={activePowerUsed || runState.essence < activePower.cost}
+              onClick={onUseCommanderActive}
+              title={activePower.description}
+            >
+              {activePower.name} ({activePower.cost} Essence)
+            </button>
+            {primed && (
+              <span className="hw-badge hw-badge--active" title={activePower.description}>
+                {activePower.name} primed - next battle
+              </span>
+            )}
+          </>
         )}
         <button
           className="hw-move-btn"
@@ -246,13 +314,21 @@ export default function SquadDraft({
             })}
           </div>
 
-          <div style={{ marginTop: 6 }}>
+          <div style={{ marginTop: 6, display: "flex", gap: 8 }}>
             <button
               className="hw-move-btn"
               disabled={runState.essence < runState.rerollCost || offers.length === 0}
               onClick={onReroll}
             >
               Reroll ({runState.rerollCost} Essence)
+            </button>
+            {/* Freeze (runEngine.js's toggleFreeze) - keeps this offer
+                set into the next shop visit instead of it re-rolling
+                automatically. A one-shot flag (consumed on the next
+                regen), so `data-active` just reflects whether it's
+                currently armed. */}
+            <button className="hw-move-btn" data-active={!!runState.frozen} onClick={onToggleFreeze} title="Keep these offers when you next visit the shop">
+              {runState.frozen ? "Frozen ✓" : "Freeze"}
             </button>
           </div>
 
@@ -327,6 +403,13 @@ export default function SquadDraft({
           // further fusion target.
           const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
           const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
+          const sellRefund = def?.recruitCost != null ? Math.ceil(def.recruitCost / 2) : 2
+          // Hero Bending (items.js's bendsRoleTo/effectiveRole,
+          // Guildrun's "hero bending" - Marc: "saman idean haluan
+          // heartwoodiin kuin Guildrunissa") - a Bending item equipped
+          // here visibly overwrites this card's role-accent/label, not
+          // just its stats.
+          const bentRole = def ? effectiveRole(def.role, equippedItems.map((it) => it.defId)) : def?.role
           return (
             <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <div
@@ -334,7 +417,7 @@ export default function SquadDraft({
                   justFusedKey === entry.key ? "hw-card--fused" : justReforgedKey === entry.key ? "hw-card--reforged" : undefined
                 }
               >
-                <UnitCard def={def} disabled />
+                <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} />
               </div>
               <div className="hw-item-slots" title="Item slots - click a bag item above, then click a slot to equip it">
                 {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
@@ -374,6 +457,14 @@ export default function SquadDraft({
                   Reforge ({REFORGE_COST} Essence)
                 </button>
               )}
+              <button
+                className="hw-move-btn"
+                style={{ fontSize: 11, padding: "4px 6px" }}
+                onClick={() => handleSell(entry.key)}
+                title={`Sell ${def?.name} back for ${sellRefund} Essence`}
+              >
+                Sell (+{sellRefund} Essence)
+              </button>
             </div>
           )
         })}

@@ -2,8 +2,12 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
+import { TRIBES, resolveSynergies } from "../../data/heartwood/synergies"
+import { effectiveRole } from "../../data/heartwood/items"
+import { deployedTribeCounts } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
+import { CardGlyph } from "./cardArt"
 
 // Same 4 positions autoBattleEngine.js deploys units to - kept in sync
 // by hand since the engine doesn't export it, but both only ever
@@ -33,6 +37,16 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   const isBoss = node.type === "boss"
   const formation = resolveFormation(node.formationId || node.enemyId)
   const deployedCount = runState.deployed.filter((k) => k !== null).length
+  // Tribe synergies (synergies.js) - counted from DEPLOYED units only,
+  // same scope autoBattleEngine.js's own tribe loop uses for the real
+  // effect, so this tracker can never show something the battle won't
+  // actually grant. This screen (pre-battle planning) is where the
+  // "easy to play, hard to master" depth is supposed to live, per the
+  // game's own design rule - a squad-composition decision belongs here.
+  const tribeCounts = deployedTribeCounts(runState)
+  const activeSynergies = resolveSynergies(tribeCounts)
+  const commander = CHARACTERS[runState.characterId]
+  const primedPower = (runState.pendingActiveEffects || []).length > 0 ? commander?.activePower : null
 
   function handleBenchClick(benchKey) {
     const slotIndex = runState.deployed.indexOf(benchKey)
@@ -113,6 +127,36 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         {isBoss ? "The final fight." : formation.description || ENEMIES[node.enemyId]?.description}
       </p>
 
+      {primedPower && (
+        <div className="hw-badge hw-badge--active" style={{ marginBottom: 10 }} title={primedPower.description}>
+          {primedPower.name} primed - applies at the start of this battle
+        </div>
+      )}
+
+      {Object.keys(tribeCounts).length > 0 && (
+        <>
+          <div className="hw-section-label">Synergies</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+            {Object.entries(tribeCounts).map(([tribeId, count]) => {
+              const tribe = TRIBES[tribeId]
+              const active = activeSynergies.find((s) => s.tribeId === tribeId)
+              return (
+                <span
+                  key={tribeId}
+                  className={`hw-badge${active ? " hw-badge--active" : ""}`}
+                  style={!active ? { color: tribe?.color, borderColor: tribe?.color } : undefined}
+                  title={tribe?.description}
+                >
+                  <CardGlyph name={tribe?.icon} className="hw-intent-glyph" />
+                  {tribe?.name} {count}
+                  {active ? " ✓" : ""}
+                </span>
+              )
+            })}
+          </div>
+        </>
+      )}
+
       <div className="hw-section-label">Battlefield</div>
       <div className="hw-grid" style={{ marginBottom: 16 }}>
         {rows}
@@ -126,14 +170,21 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         Three of the same unit fuse automatically.
       </p>
       <div className="hw-select-grid hw-deck-preview">
-        {runState.bench.map((entry) => (
-          <UnitCard
-            key={entry.key}
-            def={UNITS[entry.defId]}
-            selected={runState.deployed.includes(entry.key)}
-            onClick={() => handleBenchClick(entry.key)}
-          />
-        ))}
+        {runState.bench.map((entry) => {
+          const def = UNITS[entry.defId]
+          const equippedItemIds = runState.items.filter((it) => it.equippedTo === entry.key).map((it) => it.defId)
+          const bentRole = def ? effectiveRole(def.role, equippedItemIds) : def?.role
+          return (
+            <UnitCard
+              key={entry.key}
+              def={def}
+              selected={runState.deployed.includes(entry.key)}
+              onClick={() => handleBenchClick(entry.key)}
+              role={bentRole}
+              bent={bentRole !== def?.role}
+            />
+          )
+        })}
       </div>
 
       {/* No longer gated on deployedCount > 0 - the Commander is

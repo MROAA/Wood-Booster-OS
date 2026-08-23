@@ -16,6 +16,7 @@ import { UNITS, TIER2_SUFFIX, upgradeCost } from "../../data/heartwood/units"
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
 import { ITEMS, ITEM_SLOTS } from "../../data/heartwood/items"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
+import { tribesOf } from "../../data/heartwood/synergies"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // enemies.js's 7 mooks are used both solo and recombined into
@@ -122,13 +123,38 @@ function rollRelics(ownedRelicIds) {
   return shuffled.slice(0, 3).map((r) => r.id)
 }
 
+// Market Level (Battlegrounds/Guildrun-style "tavern tier"): pay
+// Essence to raise the shop's rarity ceiling. Reuses the existing 3-band
+// common/uncommon/rare tier (units.js's tierFromCost) rather than
+// inventing new rarity bands - a 4th/5th band would mean rebalancing
+// every unit's HP/cost/Fusion math, a much bigger job than this feature
+// needs. That caps Market Level at 3 steps, not Battlegrounds' 6 - a
+// deliberate, smaller-scope version of the same idea. Named
+// "marketLevel", never "tier" - "tier" already means 3 different things
+// in this codebase (a unit's rarity band, Fusion's displayTier, and the
+// old per-unit Upgrade's level), and a 4th meaning would only confuse.
+export const MARKET_LEVEL_MAX = 3
+const MARKET_LEVEL_BASE_COST = 4
+export const MARKET_LEVEL_UNLOCKS = {
+  1: ["common"],
+  2: ["common", "uncommon"],
+  3: ["common", "uncommon", "rare"],
+}
+
+export function marketLevelCost(level) {
+  return level >= MARKET_LEVEL_MAX ? null : MARKET_LEVEL_BASE_COST * level
+}
+
 // Only base-tier units are ever purchasable - a Tier 2 unit has
 // recruitCost: null (it's only reachable by fusing three base copies),
 // so it must never appear as a shop offer. summonOnly units (e.g.
 // Spirit Wolf) are excluded the same way - they're only gained via a
-// Summoner's own battle-start passive, never bought directly.
-function rollShop() {
-  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly)
+// Summoner's own battle-start passive, never bought directly. Filtered
+// further by marketLevel (above) - at level 1 only common-tier units
+// can appear at all, same as every run has always started.
+function rollShop(marketLevel) {
+  const allowedTiers = MARKET_LEVEL_UNLOCKS[marketLevel] || MARKET_LEVEL_UNLOCKS[1]
+  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && allowedTiers.includes(u.tier))
   const shuffled = [...pool]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -195,13 +221,32 @@ export function startRun(characterId) {
     path: RUN_PATH,
     nodeIndex: 0,
     phase: "shop",
-    shopOffers: rollShop(),
+    marketLevel: 1,
+    shopOffers: rollShop(1),
+    // Freeze: keeps the current shopOffers into the next shop visit
+    // instead of letting it re-roll automatically - a one-shot flag,
+    // consumed (see chooseRelic/resolveBattleOutcome below) the next
+    // time shopOffers would otherwise regenerate, not a persistent
+    // toggle. A paid Reroll always ignores/clears it - an explicit
+    // purchase supersedes a freeze, and freezing offers you're about to
+    // discard yourself would be meaningless.
+    frozen: false,
     rerollCost: REROLL_BASE_COST,
     battle: null,
     relics: [],
     relicOffers: null,
     relicLevels: {},
     commanderRank: 0,
+    // Commander Active Power (characters.js's activePower): once per
+    // shop visit (activePowerUsedThisShop resets alongside rerollCost -
+    // see chooseRelic/resolveBattleOutcome, the same "a new shop visit
+    // has begun" boundary), queues its effects (pendingActiveEffects)
+    // to apply at the START of the very next battle only, then they're
+    // discarded (see startFormationBattle below) - deferred by one
+    // phase transition instead of applied immediately, same effect
+    // shape squadPassive/relics already use once they land.
+    activePowerUsedThisShop: false,
+    pendingActiveEffects: [],
     // Items (items.js): a shared owned bag, separate from the bench -
     // `equippedTo`/`slotIndex` point at a bench key + slot index (see
     // equipItem/unequipItem below) or sit null while unequipped.
@@ -256,6 +301,33 @@ export function reforgeUnit(runState, benchKey) {
     // upgradeLevel reset above - any equipped items return to the bag
     // rather than staying attached to a unit that's no longer the one
     // the player geared up.
+    items: runState.items.map((it) => (it.equippedTo === benchKey ? { ...it, equippedTo: null, slotIndex: null } : it)),
+  }
+}
+
+// Marc: "rahan tienaamista myös pitää saada... ja muuta rahaan
+// liittyvään" (there needs to be more ways to earn money... and other
+// money-related things) - Selling is the first way to turn a bench
+// unit BACK into Essence instead of only ever spending it. Half the
+// original recruit cost, rounded up (so it's never a free 1-for-1
+// undo of a bad recruit, but never worthless either) - a fused Tier 2
+// unit has no recruitCost of its own (it's never directly purchasable),
+// so it gets a flat refund matching what 3 rare-tier recruits would
+// roughly be worth relative to the sell-half-back rule. Clears the
+// unit from its deploy slot if it was deployed, and returns any
+// equipped items to the bag rather than destroying them - same
+// "investment doesn't carry over, but isn't wasted either" rule
+// Reforge/Fusion already apply to items.
+export function sellUnit(runState, benchKey) {
+  const entry = runState.bench.find((e) => e.key === benchKey)
+  if (!entry) return runState
+  const def = UNITS[entry.defId]
+  const refund = def?.recruitCost != null ? Math.ceil(def.recruitCost / 2) : 2
+  return {
+    ...runState,
+    essence: runState.essence + refund,
+    bench: runState.bench.filter((e) => e.key !== benchKey),
+    deployed: runState.deployed.map((k) => (k === benchKey ? null : k)),
     items: runState.items.map((it) => (it.equippedTo === benchKey ? { ...it, equippedTo: null, slotIndex: null } : it)),
   }
 }
@@ -320,6 +392,58 @@ export function unequipItem(runState, itemKey) {
   }
 }
 
+// Raises marketLevel (see rollShop above) - affects the pool the NEXT
+// shop roll draws from (a fresh visit, or a paid Reroll), not the
+// currently-shown offers - same "pay now, benefit compounds later"
+// shape Rank-Up/Relic Upgrade already have, rather than an instant
+// reroll that would conflate two separate paid actions.
+export function levelUpMarket(runState) {
+  const level = runState.marketLevel || 1
+  const cost = marketLevelCost(level)
+  if (cost === null || runState.essence < cost) return runState
+  return { ...runState, essence: runState.essence - cost, marketLevel: level + 1 }
+}
+
+export function toggleFreeze(runState) {
+  return { ...runState, frozen: !runState.frozen }
+}
+
+// Commander Active Power (characters.js's activePower) - an Essence
+// sink, once per shop visit, that queues its effects for the very next
+// battle only (see startFormationBattle below) rather than applying
+// immediately - a "hero power" on top of the Commander's always-on
+// squadPassive.
+export function activateCommanderPower(runState) {
+  const character = CHARACTERS[runState.characterId]
+  const power = character?.activePower
+  if (!power || runState.activePowerUsedThisShop || runState.essence < power.cost) return runState
+  return {
+    ...runState,
+    essence: runState.essence - power.cost,
+    activePowerUsedThisShop: true,
+    pendingActiveEffects: power.effects,
+  }
+}
+
+// Tribe counts (synergies.js) for the UI's synergy tracker (see
+// FormationScreen.jsx) - counted from DEPLOYED bench units only (not
+// every owned unit, not the Commander, which has no tribe of its own)
+// so it reflects what's actually about to fight, the same scope
+// autoBattleEngine.js's own tribe-synergy loop uses for the real
+// in-battle effect - kept here as a small shared helper so the two can
+// never drift apart on what "counts."
+export function deployedTribeCounts(runState) {
+  const counts = {}
+  for (const key of runState.deployed) {
+    if (key === null) continue
+    const entry = runState.bench.find((e) => e.key === key)
+    const def = entry && UNITS[entry.defId]
+    if (!def) continue
+    for (const t of tribesOf(entry.defId, def)) counts[t] = (counts[t] || 0) + 1
+  }
+  return counts
+}
+
 // An Essence sink spent on the Commander instead of a bench unit -
 // same rising-cost, capped-levels shape upgradeRelic below uses, see
 // characters.js's commanderRankCost/commanderPassiveWithRank.
@@ -349,6 +473,12 @@ export function retrainCommander(runState, newCharacterId) {
     essence: runState.essence - RETRAIN_COST,
     characterId: newCharacterId,
     commanderRank: 0,
+    // A queued Active Power effect (see activateCommanderPower above)
+    // belonged to the OLD Commander's kit - switching mid-visit
+    // invalidates it, same "no carried investment" precedent
+    // commanderRank's own reset just above already established.
+    pendingActiveEffects: [],
+    activePowerUsedThisShop: false,
   }
 }
 
@@ -375,8 +505,13 @@ export function rerollShop(runState) {
   return {
     ...runState,
     essence: runState.essence - runState.rerollCost,
-    shopOffers: rollShop(),
+    shopOffers: rollShop(runState.marketLevel || 1),
     rerollCost: runState.rerollCost + 1,
+    // A paid Reroll always overrides Freeze (see startRun's own note on
+    // `frozen`) - an explicit purchase supersedes it, and there's
+    // nothing left to "keep" once the player has deliberately replaced
+    // the offers themselves.
+    frozen: false,
   }
 }
 
@@ -417,8 +552,15 @@ export function startFormationBattle(runState) {
     runState.commanderRank || 0,
     runState.relicLevels || {},
     commanderItemIds,
+    // Commander Active Power (activateCommanderPower above): consumed here,
+    // exactly once, by the very next battle that starts - RUN_PATH
+    // never places a "relic" node directly after a "shop" node (every
+    // relic node sits between a battle and the following shop), so a
+    // queued effect from a shop visit is always guaranteed to reach
+    // this call with nothing able to strand it in between.
+    runState.pendingActiveEffects || [],
   )
-  return { ...runState, phase: "battle", battle }
+  return { ...runState, phase: "battle", battle, pendingActiveEffects: [] }
 }
 
 // A relic node only ever offers 3 choices, rolled once - this lets the
@@ -451,14 +593,23 @@ export function chooseRelic(runState, relicId) {
   const relics = relicId ? [...runState.relics, relicId] : runState.relics
   const nodeIndex = runState.nodeIndex + 1
   const nextNode = runState.path[nodeIndex]
+  const enteringShop = nextNode?.type === "shop"
   return {
     ...runState,
     essence,
     relics,
     nodeIndex,
     phase: phaseForNode(nextNode),
-    shopOffers: nextNode?.type === "shop" ? rollShop() : runState.shopOffers,
+    // Freeze (startRun's own note): kept as-is when entering a shop
+    // instead of re-rolling, then consumed (cleared) regardless -
+    // one-shot, not persistent.
+    shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1)) : runState.shopOffers,
+    frozen: enteringShop ? false : runState.frozen,
     rerollCost: REROLL_BASE_COST,
+    // Commander Active Power (activateCommanderPower above): a new shop
+    // visit means a fresh use, same boundary rerollCost's own reset
+    // just above already marks.
+    activePowerUsedThisShop: false,
     relicOffers: null,
   }
 }
@@ -497,14 +648,17 @@ export function resolveBattleOutcome(runState) {
 
     const nodeIndex = runState.nodeIndex + 1
     const nextNode = runState.path[nodeIndex]
+    const enteringShop = nextNode?.type === "shop"
     return {
       ...runState,
       essence: runState.essence + essenceForWin(runState, node),
       nodeIndex,
       phase: phaseForNode(nextNode),
-      shopOffers: nextNode?.type === "shop" ? rollShop() : runState.shopOffers,
+      shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1)) : runState.shopOffers,
+      frozen: enteringShop ? false : runState.frozen,
       relicOffers: nextNode?.type === "relic" ? rollRelics(runState.relics) : runState.relicOffers,
       rerollCost: REROLL_BASE_COST,
+      activePowerUsedThisShop: false,
       battle: null,
     }
   }
