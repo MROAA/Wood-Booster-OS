@@ -62,6 +62,24 @@ export const ITEMS = {
     // an awkward fit here.
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } }],
   },
+  "hunters-mark": {
+    id: "hunters-mark",
+    name: "Hunter's Mark",
+    icon: "sword",
+    cost: 1,
+    description: "This unit finishes a wounded enemy a little faster.",
+    // Common tier's first OFFENSE item, closing the gap Mossdrop Vial's
+    // own comment flagged - flat Strength buffs (Ember Charm, +1)
+    // genuinely can't downscale below their own minimum without either
+    // being a no-op or an exact, cheaper duplicate, but Execute is
+    // conditional (effects.js's woundedFury mirror - only matters once
+    // the TARGET is already below 30% HP) and stack-scaled like
+    // Strength IS, not flat-or-nothing - a smaller Execute+1 here is a
+    // real, honest downscale of Duelist's Edge's own Execute+3 (3 cost),
+    // same relationship Twig Charm/Mossdrop Vial already have to their
+    // own 2-cost counterparts, not a duplicate at a cheaper price.
+    effects: [{ type: "applyBuff", id: "execute", amount: 1 }],
+  },
   "ember-charm": {
     id: "ember-charm",
     name: "Ember Charm",
