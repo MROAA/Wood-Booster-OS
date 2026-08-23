@@ -33,6 +33,13 @@ const STATUS_DISPLAY = {
   // Rimefang/Grimtusk/Foxfire's own kit, never a real power a badge
   // could show). Same offensive-buff color as Strength/Wounded Fury.
   chainDamage: { icon: "sword", color: "var(--hw-ember)" },
+  // Spore Spread (Fungal Spore Sac/Mycotic Bloom, items.js/relics.js) -
+  // a boolean flag (the mechanic only ever cares whether it's present,
+  // not its stack count) that makes this unit's own Poison applications
+  // seed onto a second enemy too. Same leaf/curse language Poison
+  // itself already uses - it reads as "this unit's poison is special,"
+  // not a separate unrelated status, which is exactly what it is.
+  sporeSpread: { icon: "leaf", color: "var(--hw-curse)" },
 }
 
 // Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point
