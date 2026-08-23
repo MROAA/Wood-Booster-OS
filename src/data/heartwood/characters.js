@@ -151,16 +151,24 @@ export const CHARACTERS = {
     id: "fenrir",
     name: "Fenrir",
     art: "wolf",
-    maxHp: 56,
+    // Bumped 56 -> 60 (still lowest of the 4, matching Tommy - Aatos's
+    // 66 and Repo's 62 stay clearly above) after the new enemy-scaling
+    // system's own fairness pass kept landing Fenrir well below the
+    // other 3 (32% at n=25) even after the earlier Strength bump this
+    // same round. Not a reversal of the glass-cannon identity - just a
+    // less extreme version of it, giving his own "worse the longer it
+    // goes" a real window to pay off before the fight kills him first,
+    // rather than making the identity itself less true.
+    maxHp: 60,
     tagline: "Dangerous when hurt - the fight gets worse for you the longer it goes.",
     description: "Wounded Fury: every unit hits harder, and harder still below 50% HP.",
     startEffects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
     // A single hard hit, no gimmick of its own - Fenrir's own
     // squadPassive already grants every deployed unit Wounded Fury
     // (himself included, once he's a real deployed unit), so his kit
-    // doesn't need to duplicate it. Lowest HP of the 4 (56) on purpose:
-    // the glass-cannon shape that makes his own "worse the longer it
-    // goes" identity bite on himself too, not just his squad.
+    // doesn't need to duplicate it. Still the lowest HP of the 4 on
+    // purpose: the glass-cannon shape that makes his own "worse the
+    // longer it goes" identity bite on himself too, not just his squad.
     movePattern: [{ type: "attack", amount: 8 }],
     // Wounded Fury alone is a conditional bonus (only pays off once a
     // unit is already hurt), so in a long multi-round autobattle it
