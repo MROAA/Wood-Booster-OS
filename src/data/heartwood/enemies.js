@@ -449,6 +449,96 @@ export const ENEMIES = {
     ],
   },
 
+  "stonewake": {
+    id: "stonewake",
+    name: "Stonewake",
+    maxHp: 44,
+    art: "husk",
+    description: "The first blow never lands the way you meant it to.",
+    // 24th mook - Ward's first enemy source. Every SUNDERABLE_IDS buff
+    // (ward, revive, taunt, execute, shatter, strength) has only ever
+    // existed on the player's side until Ironmaw's Strength - this
+    // closes a 2nd one. A real answer to a squad leaning on one big
+    // finishing hit: the first swing just doesn't count.
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 7 },
+      { type: "block", amount: 6 },
+    ],
+  },
+
+  "gravequill": {
+    id: "gravequill",
+    name: "Gravequill",
+    maxHp: 40,
+    art: "root",
+    description: "It doesn't chase the strong ones. It waits for someone to fall.",
+    // 25th mook - Execute's first enemy source (effects.js's
+    // executeBonus - +stacks damage once the TARGET drops below 30%
+    // max HP). Every other finishing-blow mechanic (Chain, Wounded
+    // Fury) already exists on both sides; Execute had only ever
+    // rewarded the PLAYER for finishing a weak enemy. A real reason to
+    // pull a badly wounded unit out of the front line instead of just
+    // healing it in place - Gravequill turns "nearly dead" into
+    // "in immediate danger" the moment it's your unit crossing that
+    // line instead of the enemy's.
+    passive: [{ type: "applyBuff", id: "execute", amount: 4 }],
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 5 }],
+  },
+
+  "bonewarden": {
+    id: "bonewarden",
+    name: "Bonewarden",
+    maxHp: 50,
+    art: "warden",
+    description: "It plants itself between you and everything else it stands with.",
+    // 26th mook - Taunt's first enemy source. Bulwark Standard/Ironbark/
+    // Stoneheart already give the PLAYER a way to steer incoming
+    // attacks onto one chosen tank; Bonewarden turns that around,
+    // redirecting the SQUAD's outgoing single-target attacks onto
+    // itself the same way (see actSide's own Taunt-priority targeting).
+    // A real reason to reach for an AoE/pattern attacker instead of
+    // just grinding the frontmost target down - especially dangerous
+    // paired into a future formation where it can shield a real threat
+    // the same way Bark Brute/Bramblehide already do with Block/heal.
+    passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 6 },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  // A mid-run step up from a plain mook, without touching Spacemonkey's
+  // own AoE move (deliberately kept unique to the true final boss - see
+  // its own note below) or the run-ending `type: "boss"` RUN_PATH node
+  // (reserved for Spacemonkey alone - runEngine.js's resolveBattleOutcome
+  // treats that literal node type as "the run is won"). Deepwarden is
+  // still just a `type: "battle"` node like any mook, placed right after
+  // the run's first relic pickup as a real power-spike checkpoint - its
+  // weight comes entirely from stats and kit (70 HP, self Strength+Ward,
+  // a Vulnerable-inflicting pattern attacker), not from any special UI
+  // treatment.
+  "deepwarden": {
+    id: "deepwarden",
+    name: "Deepwarden",
+    maxHp: 70,
+    art: "warden",
+    description: "Something the Heartwood posted here on purpose, long before you arrived.",
+    passive: [
+      { type: "applyBuff", id: "strength", amount: 2 },
+      { type: "applyBuff", id: "ward", amount: 2 },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 2 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player", weight: 1 },
+      { type: "block", amount: 10, weight: 1 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already
