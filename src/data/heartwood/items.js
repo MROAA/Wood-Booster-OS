@@ -364,6 +364,21 @@ export const ITEMS = {
     // squad-wide relic version too (see Cascading Wound, relics.js).
     effects: [{ type: "applyBuff", id: "chainDamage", amount: 4 }],
   },
+  "fungal-spore-sac": {
+    id: "fungal-spore-sac",
+    name: "Fungal Spore Sac",
+    icon: "leaf",
+    cost: 2,
+    description: "Whatever this unit poisons, it poisons someone standing nearby too.",
+    // Spore Spread's first ITEM source (autoBattleEngine.js's actSide -
+    // `acting.powers.sporeSpread`, checked as a boolean flag the same
+    // "any positive stack counts" shape Taunt/Ward already use). Only
+    // matters for a unit whose own movePattern already applies Poison
+    // (Rootfang, Hexmother, Mycelist itself) - lets a player extend
+    // Mycelist's own signature trick onto a DIFFERENT poison-carrying
+    // unit instead of it staying locked to one specific class.
+    effects: [{ type: "applyBuff", id: "sporeSpread", amount: 1 }],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

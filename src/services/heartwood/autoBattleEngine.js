@@ -555,10 +555,16 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
         // efektejä" (a fungal network spreads effects), the Mycelist
         // class's identity. Picks the lowest-HP other living enemy,
         // same deterministic convention Chain already uses, rather
-        // than anything random.
+        // than anything random. `acting.powers.sporeSpread` (an item/
+        // relic-granted flag, same `applyBuff`-as-boolean shape Taunt/
+        // Ward already use) is checked alongside `def.sporeSpread` -
+        // only matters for a unit whose own movePattern already applies
+        // Poison (a handful of units share that debuff move), but for
+        // those it's a real choice: spread it even without drafting
+        // Mycelist specifically.
         if (
           side === "player" &&
-          def.sporeSpread &&
+          (def.sporeSpread || acting.powers.sporeSpread) &&
           acting.intent.type === "debuff" &&
           acting.intent.id === "poison" &&
           next.phase === "player"
