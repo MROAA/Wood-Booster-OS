@@ -53,6 +53,31 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // progress is visible, and the fight about to start is exactly what
   // that ramp is scaling.
   const difficultyTier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
+  // Act intro (Marc: "make a progressive story") - shown exactly once,
+  // the first FormationScreen visit reached after the run crosses into
+  // a new difficulty tier. Comparing against nodeIndex-1 directly isn't
+  // enough - the tier boundary can (and often does) land on a shop or
+  // relic node, which this screen never renders for, so the crossing
+  // would be silently absorbed before the next real fight ever shows
+  // up here (caught via a real UI walkthrough, not assumed - the
+  // "Deepening Woods" crossing in the actual RUN_PATH lands on a shop
+  // node, index 43, with the next FormationScreen visit not until index
+  // 44). Instead, walk backward to the PREVIOUS node this screen itself
+  // would have rendered for (same "formation" phase runEngine.js's own
+  // phaseForNode resolves to - anything that isn't shop/relic) and
+  // compare tiers against that one. Stateless by design - derived
+  // purely from run position, so it survives a reload without a
+  // separate "have I seen this" flag the way HeartwoodBattle.jsx's own
+  // tutorial banner needs one.
+  let previousFormationTier = null
+  for (let i = runState.nodeIndex - 1; i >= 0; i--) {
+    const prevNode = runState.path[i]
+    if (prevNode?.type !== "shop" && prevNode?.type !== "relic") {
+      previousFormationTier = difficultyTierForNode(i, runState.path.length).name
+      break
+    }
+  }
+  const isNewAct = previousFormationTier != null && previousFormationTier !== difficultyTier.name
   // Essence-on-win preview - the reward for this exact fight (relic
   // bonuses, miniboss/formation bonuses, all already folded in by
   // essenceForWin) used to only ever appear AFTER the fight
@@ -178,6 +203,25 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           </span>
         </div>
       </div>
+      {isNewAct && (
+        <div
+          className="hw-section-fade-in"
+          style={{
+            border: `1px solid ${difficultyTier.color}`,
+            borderRadius: 8,
+            padding: "14px 16px",
+            marginBottom: 14,
+            background: `color-mix(in srgb, ${difficultyTier.color} 10%, var(--hw-panel))`,
+          }}
+        >
+          <div style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: difficultyTier.color, marginBottom: 4 }}>
+            {difficultyTier.name}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--hw-muted)", marginBottom: 6 }}>{difficultyTier.tagline}</div>
+          <div style={{ fontSize: 13, lineHeight: 1.5 }}>{difficultyTier.lore}</div>
+        </div>
+      )}
+
       <p className="hw-flavor">
         {isBoss
           ? "The final fight."

@@ -753,11 +753,45 @@ export function clearSlot(runState, slotIndex) {
 // ramp's own progress > 0.45 start, so the label is an honest read of
 // what's actually happening, not decoration layered on top of a
 // number it doesn't track.
+// Marc: "make a progressive story" - each tier already had a real name
+// and a color for the difficulty badge above; `tagline`/`lore` extend
+// the SAME 4 entries rather than a parallel story structure, so the
+// difficulty readout and the narrative one can never drift apart (one
+// says "The Reckoning," the other can't say something different for
+// the same stretch of the run). `tagline` is the short line shown next
+// to the difficulty badge itself (SquadDraft.jsx); `lore` is the
+// longer paragraph shown once, the first time a run actually crosses
+// into that tier (FormationScreen.jsx's own Act-intro banner) - not
+// shown again on every fight within the same tier, just the crossing.
 export const DIFFICULTY_TIERS = [
-  { threshold: 0, name: "The Outer Grove", color: "var(--hw-moss)" },
-  { threshold: 0.4, name: "The Deepening Woods", color: "var(--hw-rune)" },
-  { threshold: 0.65, name: "The Wounded Heartwood", color: "var(--hw-ember)" },
-  { threshold: 0.85, name: "The Reckoning", color: "var(--hw-curse)" },
+  {
+    threshold: 0,
+    name: "The Outer Grove",
+    color: "var(--hw-moss)",
+    tagline: "Where the paths still remember being walked.",
+    lore: "The trees here still let the light through. Whatever watches from the Heartwood's own heart hasn't noticed you yet - or hasn't decided you're worth noticing. Either way, the ground is easy underfoot. It won't stay that way.",
+  },
+  {
+    threshold: 0.4,
+    name: "The Deepening Woods",
+    color: "var(--hw-rune)",
+    tagline: "The paths stop agreeing with each other.",
+    lore: "The canopy closes overhead. What lives here doesn't scatter when you approach - it turns to look. Somewhere past this point, the Heartwood stopped being a place you were walking through and started being a place walking back.",
+  },
+  {
+    threshold: 0.65,
+    name: "The Wounded Heartwood",
+    color: "var(--hw-ember)",
+    tagline: "Something here has been hurt for a very long time.",
+    lore: "The moss burns amber instead of green. Every root you cross has already been fought over, by something that didn't win cleanly. Whatever's waiting deeper in remembers every one of those fights - and it's still standing.",
+  },
+  {
+    threshold: 0.85,
+    name: "The Reckoning",
+    color: "var(--hw-curse)",
+    tagline: "It knows you're coming now.",
+    lore: "There's no pretending anymore that this is still a walk through the woods. Spacemonkey is close, and everything left standing between you and him already knows exactly why you're here.",
+  },
 ]
 
 export function difficultyTierForNode(nodeIndex, pathLength) {
