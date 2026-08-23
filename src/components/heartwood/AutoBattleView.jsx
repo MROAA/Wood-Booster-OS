@@ -75,7 +75,7 @@ function lungeAttack(actorId, targetId) {
 // animation system rounds to actually animate: onAdvanceRound fires on
 // a timer for as long as state.phase === "player", same as a player
 // repeatedly clicking the old "Next Round" button, just automatic.
-export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, onContinue }) {
+export default function AutoBattleView({ state, essenceOnWin, nodeType, onAdvanceRound, onContinue }) {
   useEffect(() => {
     if (state.phase !== "player") return
     const timer = setTimeout(onAdvanceRound, ROUND_DELAY_MS)
@@ -154,7 +154,24 @@ export default function AutoBattleView({ state, essenceOnWin, onAdvanceRound, on
   }
 
   return (
-    <div className="hw-battle" style={{ position: "relative" }}>
+    <div className="hw-battle" data-elevated={nodeType === "miniboss" || nodeType === "boss"} style={{ position: "relative" }}>
+      {/* A miniboss/boss fight got zero distinct treatment once the
+          actual battle started - FormationScreen.jsx's own flavor text
+          was the only cue, gone the moment the fight began. A
+          Hearthstone-style elevated banner (own accent, own icon)
+          keeps that "this one's different" feeling present for the
+          whole fight, not just the moment before it. */}
+      {nodeType === "miniboss" && (
+        <div className="hw-elevated-banner hw-section-fade-in">
+          <CardGlyph name="flame" className="hw-intent-glyph" /> Miniboss
+        </div>
+      )}
+      {nodeType === "boss" && (
+        <div className="hw-elevated-banner hw-elevated-banner--boss hw-section-fade-in">
+          <CardGlyph name="spacemonkeyBoss" className="hw-intent-glyph" /> The Final Fight
+        </div>
+      )}
+
       <div className="hw-hint">{interactive ? `Round ${state.round}. The squads clash automatically.` : "The fight is decided."}</div>
 
       {Object.keys(tribeCounts).length > 0 && (

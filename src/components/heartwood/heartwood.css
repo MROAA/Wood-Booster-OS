@@ -70,6 +70,41 @@
   width: 100%;
 }
 
+/* Elevated fight (AutoBattleView.jsx's nodeType prop) - a miniboss or
+   the final boss used to feel identical to any other fight once the
+   battle itself started (FormationScreen.jsx's own flavor text was
+   the only cue, and it's gone by the time you're actually fighting).
+   A subtle full-screen accent keeps "this one's different" present
+   for the whole fight. */
+.hw-battle[data-elevated="true"] {
+  box-shadow: inset 0 0 80px 10px color-mix(in srgb, var(--hw-ember) 12%, transparent);
+}
+
+.hw-elevated-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: center;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hw-ember);
+  border: 1px solid var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 16%, var(--hw-panel));
+  box-shadow: 0 0 16px 2px color-mix(in srgb, var(--hw-ember) 40%, transparent);
+}
+
+.hw-elevated-banner--boss {
+  color: var(--hw-curse);
+  border-color: var(--hw-curse);
+  background: color-mix(in srgb, var(--hw-curse) 16%, var(--hw-panel));
+  box-shadow: 0 0 16px 2px color-mix(in srgb, var(--hw-curse) 40%, transparent);
+}
+
 .hw-top-row {
   display: flex;
   gap: var(--space-3, 21px);
