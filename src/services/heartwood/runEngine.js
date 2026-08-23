@@ -111,6 +111,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", formationId: "bonewardens-watch" },
   { type: "shop" },
+  { type: "miniboss", enemyId: "wyrmgall" },
+  { type: "shop" },
   { type: "battle", formationId: "the-hollow-court" },
   { type: "shop" },
   { type: "boss", enemyId: "spacemonkey" },
@@ -146,7 +148,7 @@ const RUN_PATH = [
 const START_ESSENCE = 4
 const WIN_ESSENCE = 4
 const FORMATION_BONUS_ESSENCE = 2
-// Minibosses (Deepwarden, Thornmaw) are a harder win than even a
+// Minibosses (Deepwarden, Thornmaw, Wyrmgall) are a harder win than even a
 // formation fight - a bigger payout than FORMATION_BONUS_ESSENCE, same
 // "reward matches difficulty" reasoning essenceForWin's own note gives.
 const MINIBOSS_BONUS_ESSENCE = 3
@@ -689,6 +691,28 @@ export function clearSlot(runState, slotIndex) {
 // bot) without being a coin flip. See the Commander win-rate spread
 // itself (characters.js) as the more clearly UNFAIR remaining gap,
 // not this.
+// A player-facing name for how far into the difficulty ramp this point
+// in the run is - Marc: "the game has to have progressive feel to it
+// so it becomes more difficult." The ramp itself (difficultyFactorForNode
+// below) was a pure backend multiplier with zero visible component,
+// breaking the same "every mechanic needs something the player can
+// actually see" rule this session has enforced everywhere else (Bent
+// badges, tribe icons, frost overlays...). Same breakpoints as the
+// ramp's own progress > 0.45 start, so the label is an honest read of
+// what's actually happening, not decoration layered on top of a
+// number it doesn't track.
+export const DIFFICULTY_TIERS = [
+  { threshold: 0, name: "The Outer Grove", color: "var(--hw-moss)" },
+  { threshold: 0.45, name: "The Deepening Woods", color: "var(--hw-rune)" },
+  { threshold: 0.65, name: "The Wounded Heartwood", color: "var(--hw-ember)" },
+  { threshold: 0.85, name: "The Reckoning", color: "var(--hw-curse)" },
+]
+
+export function difficultyTierForNode(nodeIndex, pathLength) {
+  const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
+  return [...DIFFICULTY_TIERS].reverse().find((t) => progress >= t.threshold) || DIFFICULTY_TIERS[0]
+}
+
 function difficultyFactorForNode(nodeIndex, pathLength) {
   const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
   if (progress <= 0.45) return 1

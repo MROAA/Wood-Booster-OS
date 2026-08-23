@@ -4,7 +4,7 @@ import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { TRIBES, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
-import { deployedTribeCounts } from "../../services/heartwood/runEngine"
+import { deployedTribeCounts, difficultyTierForNode } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
 import { CardGlyph } from "./cardArt"
@@ -48,6 +48,11 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   const activeSynergies = resolveSynergies(tribeCounts)
   const commander = CHARACTERS[runState.characterId]
   const primedPower = (runState.pendingActiveEffects || []).length > 0 ? commander?.activePower : null
+  // Same progressive-difficulty readout as SquadDraft.jsx's shop
+  // header - this pre-battle screen is the other place a run's
+  // progress is visible, and the fight about to start is exactly what
+  // that ramp is scaling.
+  const difficultyTier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
 
   function handleBenchClick(benchKey) {
     const slotIndex = runState.deployed.indexOf(benchKey)
@@ -123,7 +128,20 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
 
   return (
     <div className="hw-intro">
-      <h1 style={{ fontSize: 22, marginBottom: 6 }}>Take the field</h1>
+      {/* paddingRight keeps the difficulty badge clear of the fixed
+          .hw-exit-link corner button - see SquadDraft.jsx's header row
+          for the same fix and why it's needed. */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6, flexWrap: "wrap", paddingRight: 130 }}>
+        <h1 style={{ fontSize: 22, margin: 0 }}>Take the field</h1>
+        <span
+          className="hw-badge hw-section-fade-in"
+          style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
+          title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
+        >
+          <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+          {difficultyTier.name}
+        </span>
+      </div>
       <p className="hw-flavor">
         {isBoss
           ? "The final fight."
