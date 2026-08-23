@@ -600,6 +600,36 @@ export const ENEMIES = {
     ],
   },
 
+  "wyrmgall": {
+    id: "wyrmgall",
+    name: "Wyrmgall",
+    maxHp: 80,
+    art: "root",
+    description: "It doesn't care how you fight. It's already found the shape of your mistake.",
+    // Marc: "work on bosses too" - the run's THIRD miniboss, and the
+    // first to combine two finishing-blow mechanics instead of a
+    // defensive/sustain pair (Deepwarden's Strength+Ward, Thornmaw's
+    // Regen+Taunt): self Execute (punishes a badly wounded PLAYER
+    // unit, same as Gravequill) AND self Shatter (punishes a
+    // Block-holding one, same as Stoneknoll/Cragfang) together - a
+    // squad that plays purely defensive (stacking Block) gets punished
+    // by Shatter, one that plays purely aggressive (racing wounded
+    // units down instead of pulling them back) gets punished by
+    // Execute. Neither a tank-and-spank squad nor a glass-cannon one is
+    // automatically safe against it. Placed last of the 3 minibosses,
+    // deep in the difficulty ramp's top tier, right before The Hollow
+    // Court and the boss - the toughest non-final fight in the run.
+    passive: [
+      { type: "applyBuff", id: "execute", amount: 4 },
+      { type: "applyBuff", id: "shatter", amount: 3 },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 2 },
+      { type: "block", amount: 9, weight: 1 },
+    ],
+  },
+
   // The run's final boss - not a mook, so it gets a bit more presence:
   // a real intro line and a spoken line on defeat (read by RunEndOverlay,
   // see runEngine.js). His "pikku-paholainen" alter-ego lore already
