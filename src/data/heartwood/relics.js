@@ -444,6 +444,21 @@ export const RELICS = {
       { type: "applyBuff", id: "shatter", amount: 1 },
     ],
   },
+  "reckless-oath": {
+    id: "reckless-oath",
+    name: "Reckless Oath",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Every unit finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
+    // Execute + Ward together, squad-wide - the same "glass cannon
+    // insurance" pairing Reckless Vow (items.js) just established,
+    // spread across the whole squad. Both stack numerically with any
+    // existing Execute/Ward sources rather than being redundant.
+    effects: [
+      { type: "applyBuff", id: "execute", amount: 2 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

@@ -608,6 +608,41 @@ export const ENEMIES = {
     ],
   },
 
+  "rootward": {
+    id: "rootward",
+    name: "Rootward",
+    maxHp: 46,
+    art: "root",
+    description: "Whatever you leave in it, it pulls back out again.",
+    // 32nd mook, and the first enemy source of Cleanse (effects.js) -
+    // Willowmend's own signature move (strips this unit's OWN
+    // Poison/Weak/Vulnerable/Stun), turned around onto the enemy side
+    // for the first time. A genuine counter to a debuff-heavy squad:
+    // whatever gets applied here doesn't stick around long enough to
+    // matter, so the fight rewards raw damage over stacking status
+    // effects against this specific mook.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "cleanse" },
+      { type: "block", amount: 6 },
+    ],
+  },
+
+  "briarmaw": {
+    id: "briarmaw",
+    name: "Briarmaw",
+    maxHp: 50,
+    art: "root",
+    description: "It's in no rush. It's already won fights against faster things.",
+    // 33rd mook - a plain weightedRandom reinforcement, no gimmick.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 9, weight: 2 },
+      { type: "block", amount: 8, weight: 1 },
+    ],
+  },
+
   // Minibosses: a step up from a plain mook, without touching
   // Spacemonkey's own AoE move (deliberately kept unique to the true
   // final boss - see its own note below) or the run-ending
