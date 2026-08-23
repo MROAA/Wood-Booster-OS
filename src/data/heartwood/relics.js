@@ -487,6 +487,31 @@ export const RELICS = {
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } },
     ],
   },
+  "cripplebite-standard": {
+    id: "cripplebite-standard",
+    name: "Cripplebite Standard",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Whatever your squad strikes hits softer after, and takes worse hits in return.",
+    // Weak + Vulnerable together, squad-wide - the same last-unpaired
+    // combo Cripplebite Fang (items.js) just established, spread
+    // across every deployed unit's own hits instead of one chosen
+    // unit's. Same "hits both sides of the damage formula" identity:
+    // whatever the squad focuses down deals less and takes more, a
+    // pure target-neutralizing pick rather than a race-the-clock DOT.
+    effects: [
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 },
+      },
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 },
+      },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

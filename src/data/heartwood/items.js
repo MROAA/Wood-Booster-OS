@@ -545,6 +545,36 @@ export const ITEMS = {
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } },
     ],
   },
+  "cripplebite-fang": {
+    id: "cripplebite-fang",
+    name: "Cripplebite Fang",
+    icon: "sword",
+    cost: 3,
+    description: "Whatever this unit strikes hits softer after, and takes worse hits in return.",
+    // Weak + Vulnerable together - the last unpaired combo of the 3
+    // core debuffs at the item/relic level. Enemy mooks already cover
+    // all 3 pairings (Duskgnaw: Weak+Vulnerable, Hollowspite: Poison+
+    // Weak, Duskwither: Poison+Vulnerable), and Witherspite Crown
+    // (relics.js) already paired Poison+Weak for the player, but no
+    // item or relic had combined Weak+Vulnerable until now. Unlike the
+    // Poison pairings, this one hits both sides of dealDamage's own
+    // formula at once (effects.js: Weak shrinks the target's own
+    // future damage 0.75x, Vulnerable inflates damage IT takes 1.25x)
+    // rather than compounding a flat DOT - a pure "make this specific
+    // threat stop mattering" pick instead of a damage-race one.
+    effects: [
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 },
+      },
+      {
+        type: "addTrigger",
+        trigger: "onDealDamage",
+        effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 },
+      },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
