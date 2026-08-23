@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { RELICS, RELIC_REROLL_COST } from "../../data/heartwood/relics"
 import { TRIBES } from "../../data/heartwood/synergies"
+import { benchTribeCounts } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 
 // The relic-pick beat: same "3 choices or skip" shape as the old
@@ -10,6 +11,12 @@ import { CardGlyph } from "./cardArt"
 // that relics cost Essence instead of being free.
 export default function RelicChoice({ runState, onChoose, onReroll }) {
   const options = (runState.relicOffers || []).map((id) => RELICS[id]).filter(Boolean)
+  // Tribe-match highlight (same benchTribeCounts/hw-card[data-tribe-
+  // match] treatment SquadDraft.jsx's shop offers already use) - a
+  // tribe-anchor relic that matches a tribe you've already invested in
+  // gets the same moss ring, so "does this actually fit my build" reads
+  // here too, not just when recruiting units.
+  const ownedTribes = benchTribeCounts(runState)
   // Essence flash - same diff-and-clear pattern SquadDraft.jsx's own
   // essence badge already uses, so spending on a Reroll here feels as
   // alive as spending in the shop does.
@@ -41,11 +48,13 @@ export default function RelicChoice({ runState, onChoose, onReroll }) {
         {options.map((relic) => {
           const disabled = runState.essence < relic.cost
           const anchor = relic.tribeAnchor ? TRIBES[relic.tribeAnchor] : null
+          const tribeMatch = !!anchor && (ownedTribes[relic.tribeAnchor] || 0) > 0
           return (
             <div
               key={relic.id}
               className="hw-card hw-card--power"
               data-disabled={disabled}
+              data-tribe-match={tribeMatch}
               onClick={!disabled ? () => onChoose(relic.id) : undefined}
             >
               <div className="hw-card-head">
