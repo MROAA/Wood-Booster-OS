@@ -192,6 +192,25 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "the-wearing-down": {
+    id: "the-wearing-down",
+    name: "The Wearing Down",
+    description: "One heals faster than you can hurt it. The other makes sure you can't hurt it fast.",
+    // A genuine swarm (Mist Growler Pack's own no-shielding shape),
+    // reusing 2 already-shipped mooks that had never been paired -
+    // Duskhollow's persistent Regen (re-granted every round, not a
+    // decaying one-shot) and Needlefen's Stun. Neither piece alone is
+    // that dangerous; together, every stunned round is a round
+    // Duskhollow's sustain keeps compounding for free - the fight
+    // rewards splitting damage to kill Needlefen FIRST (stop losing
+    // actions) even though Duskhollow is the tankier, more "obvious"
+    // target.
+    pieces: [
+      { defId: "duskhollow", pos: { row: 0, col: 0 } },
+      { defId: "needlefen", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {

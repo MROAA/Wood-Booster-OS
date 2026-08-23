@@ -85,6 +85,8 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "needlefen" },
   { type: "shop" },
+  { type: "battle", formationId: "the-wearing-down" },
+  { type: "shop" },
   { type: "battle", enemyId: "wraithgale" },
   { type: "shop" },
   { type: "battle", enemyId: "stonewake" },
