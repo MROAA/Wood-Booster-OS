@@ -4,7 +4,7 @@ import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { TRIBES, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
-import { deployedTribeCounts, difficultyTierForNode } from "../../services/heartwood/runEngine"
+import { deployedTribeCounts, difficultyTierForNode, essenceForWin } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
 import { CardGlyph } from "./cardArt"
@@ -53,6 +53,15 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // progress is visible, and the fight about to start is exactly what
   // that ramp is scaling.
   const difficultyTier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
+  // Essence-on-win preview - the reward for this exact fight (relic
+  // bonuses, miniboss/formation bonuses, all already folded in by
+  // essenceForWin) used to only ever appear AFTER the fight
+  // (ResultOverlay.jsx), so a player committed their formation with no
+  // idea what was actually at stake. Boss fights end the run in
+  // victory instead of paying Essence (see HeartwoodBattle.jsx's own
+  // identical `isBoss ? null : ...` branch), so there's nothing to
+  // preview there either.
+  const essenceOnWin = isBoss ? null : essenceForWin(runState, node)
 
   function handleBenchClick(benchKey) {
     const slotIndex = runState.deployed.indexOf(benchKey)
@@ -133,14 +142,21 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           for the same fix and why it's needed. */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6, flexWrap: "wrap", paddingRight: 130 }}>
         <h1 style={{ fontSize: 22, margin: 0 }}>Take the field</h1>
-        <span
-          className="hw-badge hw-section-fade-in"
-          style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
-          title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
-        >
-          <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
-          {difficultyTier.name}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {essenceOnWin != null && (
+            <span className="hw-badge hw-section-fade-in" title="Essence earned if you win this fight">
+              <CardGlyph name="spark" className="hw-intent-glyph" />+{essenceOnWin}
+            </span>
+          )}
+          <span
+            className="hw-badge hw-section-fade-in"
+            style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
+            title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
+          >
+            <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+            {difficultyTier.name}
+          </span>
+        </div>
       </div>
       <p className="hw-flavor">
         {isBoss
