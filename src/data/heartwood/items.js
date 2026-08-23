@@ -14,6 +14,26 @@
 export const ITEM_SLOTS = 3
 
 export const ITEMS = {
+  "twig-charm": {
+    id: "twig-charm",
+    name: "Twig Charm",
+    icon: "shield",
+    cost: 1,
+    description: "This unit grows a little bark at the start of each round.",
+    // Polish pass: every item shipped at 2-3 cost, so the rarity
+    // system's own "common" band (ITEM_TIER_BY_COST's own 1 -> common
+    // entry, below) had zero actual items in it - the tier spread
+    // existed in code but was never populated. A cheaper Stonebound
+    // Charm (2 -> 1 cost, 3 -> 2 Block) rather than a one-time
+    // battle-start grant - resolveRound resets ALL player Block to 0
+    // at the top of every round, including round 1, so a flat
+    // `{type: "block"}` effect applied at battle start would be a
+    // complete no-op before any enemy even attacks (the exact bug
+    // Mosswarden's Charm's own comment already documents catching -
+    // caught here before shipping by re-reading that comment, not
+    // discovered via testing this specific item).
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+  },
   "ember-charm": {
     id: "ember-charm",
     name: "Ember Charm",
