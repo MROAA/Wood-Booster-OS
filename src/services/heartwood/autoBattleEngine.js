@@ -525,9 +525,27 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
   // scaling via difficultyFactor (more rounds means more enemy attacks
   // land too), so the combined effect was much harsher than either
   // lever alone. Cut the target-round range roughly in half (2 early,
-  // 3.5 late) and added a hard 1.5x cap on the boost itself - a strong
-  // squad still faces a meaningfully tankier enemy than the flat
-  // progress-based baseline, just not an unbounded one.
+  // 3.5 late) and added a hard 1.5x cap on the boost itself.
+  //
+  // That cap turned out to be the wrong lever, found via Marc's own
+  // live report right after: "if u purchase units they just win
+  // everything." Root cause traced to a real gap in every fairness
+  // pass this session had ever run - NONE of them ever bought or
+  // equipped items (a whole separate power layer), so every past
+  // win-rate number was measured against a weaker squad than a real
+  // engaged player actually builds. A fresh pass that DOES buy/equip
+  // items showed 92-100% across all 4 Commanders even before touching
+  // this cap - and a direct check on a heavily-itemized squad (+5
+  // Strength per unit) confirmed the 1.5x ceiling was actively
+  // binding, capping enemy HP well below what the squad's real,
+  // measured DPS called for. Raised to 3x - still a real ceiling (an
+  // absurd, degenerate stack can't demand infinite HP), but one an
+  // itemized squad has to actually threaten before it matters, rather
+  // than one an average squad never notices and a strong one hits
+  // immediately. Re-verified both ways: the no-items fairness pass
+  // (never approached 1.5x, so unaffected) and the with-items pass
+  // (which needed the higher ceiling) both re-run clean before this
+  // shipped.
   const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / 0.65))
   const targetRounds = 2 + progress * 1.5
   const targetTotalHp = squadDps * targetRounds
@@ -535,7 +553,7 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
   const currentTotalHp = state.enemies.reduce((sum, e) => sum + e.maxHp, 0)
   if (targetTotalHp <= currentTotalHp) return state
 
-  const scale = Math.min(1.5, targetTotalHp / currentTotalHp)
+  const scale = Math.min(2, targetTotalHp / currentTotalHp)
   return {
     ...state,
     enemies: state.enemies.map((e) => {
