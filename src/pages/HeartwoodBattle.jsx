@@ -204,7 +204,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root" style={{ ...rootStyle, position: "relative", minHeight: "100%" }}>
         {exitLink}
-        <RunEndOverlay phase={runState.phase} onNewRun={handleNewRun} />
+        <RunEndOverlay phase={runState.phase} nodeIndex={runState.nodeIndex} path={runState.path} onNewRun={handleNewRun} />
       </div>
     )
   }
