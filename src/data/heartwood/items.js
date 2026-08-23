@@ -156,8 +156,96 @@ export const ITEMS = {
     // squad-wide.
     effects: [{ type: "applyBuff", id: "shatter", amount: 3 }],
   },
+
+  // Bending items (Guildrun's "hero bending" - Marc: "saman idean
+  // haluan heartwoodiin kuin Guildrunissa", confirmed as the one
+  // mechanic he explicitly wanted pulled in by name): unlike every item
+  // above, which only adds a stat/status, a Bending item also carries
+  // `bendsRoleTo` - equipping one visibly overwrites the unit's
+  // displayed role (UnitCard.jsx's card-accent color/role label) to
+  // match, on top of granting a role-appropriate effect package. A
+  // tank that picks up Wardstitch Cloak visibly becomes support-
+  // colored on its own card, not just a stronger tank - "the build
+  // reshapes who this unit IS," not just what it can survive. Rare
+  // tier (3 Essence) across the board - a role change is a bigger
+  // build swing than any stat item above. Deliberately only 4 for now
+  // (one per role a unit can bend toward), not one per unit - a first
+  // pass per the plan's own scope note, not an exhaustive system yet.
+  "wardstitch-cloak": {
+    id: "wardstitch-cloak",
+    name: "Wardstitch Cloak",
+    icon: "leaf",
+    cost: 3,
+    description: "This unit turns to mending the squad instead of holding the line.",
+    bendsRoleTo: "support",
+    effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
+  },
+  "bloodroot-fang": {
+    id: "bloodroot-fang",
+    name: "Bloodroot Fang",
+    icon: "flame",
+    cost: 3,
+    description: "This unit turns aggressive, hunting for the finishing blow.",
+    bendsRoleTo: "dps",
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 2 },
+      { type: "applyBuff", id: "execute", amount: 2 },
+    ],
+  },
+  "mossbound-chain": {
+    id: "mossbound-chain",
+    name: "Mossbound Chain",
+    icon: "shield",
+    cost: 3,
+    description: "This unit turns to holding the line, drawing every eye.",
+    bendsRoleTo: "tank",
+    effects: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } },
+      { type: "applyBuff", id: "taunt", amount: 1 },
+    ],
+  },
+  "wanderers-ledger": {
+    id: "wanderers-ledger",
+    name: "Wanderer's Ledger",
+    icon: "moonGlyph",
+    cost: 3,
+    description: "This unit turns versatile, ready for whatever the fight needs.",
+    bendsRoleTo: "hybrid",
+    effects: [
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } },
+    ],
+  },
+}
+
+// Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
+// liittyville" - make a rarity system for the game and related
+// things) - derived from cost the same way units.js's tierFromCost
+// already works, applied once here instead of repeating a `tier:`
+// field by hand on every entry above.
+const ITEM_TIER_BY_COST = { 1: "common", 2: "uncommon", 3: "rare" }
+for (const item of Object.values(ITEMS)) {
+  item.tier = ITEM_TIER_BY_COST[item.cost] || "rare"
 }
 
 export function itemPool() {
   return Object.values(ITEMS)
+}
+
+// Hero Bending display helper (see the "Bending items" block above):
+// the LAST equipped item that carries `bendsRoleTo` wins if more than
+// one somehow does (a unit only has ITEM_SLOTS/effectiveItemSlots
+// slots, so this is rare, but deterministic beats arbitrary). Purely a
+// display concern - combat itself never reads a unit's `role` at all
+// (see UnitCard.jsx's ROLE_ACCENT, its only consumer), so bending a
+// unit's role doesn't need any autoBattleEngine.js change: the actual
+// power comes from the item's own `effects`, applied exactly like any
+// other item already is.
+export function effectiveRole(baseRole, itemDefIds = []) {
+  let role = baseRole
+  for (const itemId of itemDefIds) {
+    const bend = ITEMS[itemId]?.bendsRoleTo
+    if (bend) role = bend
+  }
+  return role
 }

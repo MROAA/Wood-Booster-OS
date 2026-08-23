@@ -10,6 +10,7 @@ export default function ItemCard({ def, selected, disabled, onClick }) {
       className="hw-card hw-card--skill hw-item-card"
       data-disabled={!!disabled}
       data-selected={!!selected}
+      data-tier={def.tier}
       onClick={!disabled ? onClick : undefined}
       title={def.description}
     >

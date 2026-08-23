@@ -7,6 +7,7 @@ import {
   rankUpCommander,
   upgradeRelic,
   reforgeUnit,
+  sellUnit,
   retrainCommander,
   rerollShop,
   rerollRelicOffers,
@@ -21,6 +22,9 @@ import {
   buyItem,
   equipItem,
   unequipItem,
+  levelUpMarket,
+  toggleFreeze,
+  activateCommanderPower,
 } from "../services/heartwood/runEngine"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
@@ -87,6 +91,10 @@ export default function HeartwoodBattle() {
     setRunState((current) => reforgeUnit(current, benchKey))
   }
 
+  function handleSell(benchKey) {
+    setRunState((current) => sellUnit(current, benchKey))
+  }
+
   function handleRetrain(newCharacterId) {
     setRunState((current) => retrainCommander(current, newCharacterId))
   }
@@ -105,6 +113,18 @@ export default function HeartwoodBattle() {
 
   function handleUnequipItem(itemKey) {
     setRunState((current) => unequipItem(current, itemKey))
+  }
+
+  function handleLevelUpMarket() {
+    setRunState((current) => levelUpMarket(current))
+  }
+
+  function handleToggleFreeze() {
+    setRunState((current) => toggleFreeze(current))
+  }
+
+  function handleUseCommanderActive() {
+    setRunState((current) => activateCommanderPower(current))
   }
 
   function handleRerollRelics() {
@@ -210,10 +230,14 @@ export default function HeartwoodBattle() {
           onRankUp={handleRankUp}
           onUpgradeRelic={handleUpgradeRelic}
           onReforge={handleReforge}
+          onSell={handleSell}
           onRetrain={handleRetrain}
           onBuyItem={handleBuyItem}
           onEquipItem={handleEquipItem}
           onUnequipItem={handleUnequipItem}
+          onLevelUpMarket={handleLevelUpMarket}
+          onToggleFreeze={handleToggleFreeze}
+          onUseCommanderActive={handleUseCommanderActive}
           onReroll={handleReroll}
           onContinue={handleLeaveShop}
           showIntro={showIntro}

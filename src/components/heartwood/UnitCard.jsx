@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
+import { TRIBES, tribesOf } from "../../data/heartwood/synergies"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "skill" }
@@ -10,14 +11,35 @@ const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "s
 // `def.image`, when present, renders as a full portrait instead of the
 // small SVG glyph medallion - bigger, more atmospheric card, same info
 // underneath. Falls back to the glyph for every unit without one yet.
-export default function UnitCard({ def, selected, disabled, onClick }) {
+//
+// `role` (optional): overrides def.role for the card-accent color/
+// label only - Hero Bending (items.js's bendsRoleTo/effectiveRole)
+// passes the unit's CURRENT effective role here so an equipped Bending
+// item visibly changes the card, not just its stats. `bent` (optional):
+// true when `role` differs from def.role, rendering a small "Bent"
+// marker so the change reads as a build decision, not a silent stat
+// bump - same "every mechanic needs a visible component" rule every
+// other status/keyword in this game already follows.
+export default function UnitCard({ def, selected, disabled, onClick, role, bent }) {
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
+  const effectiveRole = role || def.role
+  // Tribes (synergies.js): purely a recruit-shop/bench-planning cue, up
+  // to 2 icons - a unit's own dominant mechanical identity, same
+  // sword/shield/leaf/root/moonGlyph/flame vocabulary already used
+  // everywhere else, zero new art.
+  const tribeIds = def.role ? tribesOf(def.id, def) : []
   return (
     <motion.div
-      className={`hw-card hw-card--${ROLE_ACCENT[def.role] || "skill"}`}
+      className={`hw-card hw-card--${ROLE_ACCENT[effectiveRole] || "skill"}`}
       data-disabled={!!disabled}
       data-selected={!!selected}
       data-portrait={!!def.image}
+      // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
+      // liittyville" - make a rarity system for the game and related
+      // things) - a Tier 2 fusion result reads as "rare" regardless of
+      // its base tier, matching displayTier's own "always the top
+      // rarity" framing elsewhere in the UI.
+      data-tier={def.displayTier === 2 ? "rare" : def.tier}
       onClick={!disabled ? onClick : undefined}
       title={def.name}
       // A new shop offer or a freshly recruited bench card used to pop
@@ -30,13 +52,37 @@ export default function UnitCard({ def, selected, disabled, onClick }) {
     >
       <div className="hw-card-head">
         <span className="hw-card-cost">{def.recruitCost ?? "★"}</span>
+        {/* Hearthstone-style glanceable corner stat: HP as a big,
+            readable number instead of only appearing in the small text
+            line below - "playable by eye," per Marc's own ask, not
+            something you have to read a sentence to find. */}
+        <span className="hw-card-hp" title="HP">
+          <CardGlyph name="heart" className="hw-effect-icon-glyph" />
+          {def.maxHp}
+        </span>
       </div>
       {def.image ? (
         <img src={def.image} alt="" className="hw-card-portrait" />
       ) : (
         <CardGlyph name={def.art} className="hw-card-art" />
       )}
-      <div className="hw-card-name">{def.name}</div>
+      <div className="hw-card-name">
+        {def.name}
+        {bent && (
+          <span className="hw-badge hw-badge--bent" title={`Bent to ${effectiveRole}`}>
+            Bent
+          </span>
+        )}
+      </div>
+      {tribeIds.length > 0 && (
+        <div className="hw-tribe-icons">
+          {tribeIds.map((t) => (
+            <span key={t} className="hw-tribe-icon" style={{ color: TRIBES[t]?.color }} title={TRIBES[t]?.name}>
+              <CardGlyph name={TRIBES[t]?.icon} className="hw-effect-icon-glyph" />
+            </span>
+          ))}
+        </div>
+      )}
       <div className="hw-effect-icons">
         {moves.map((m, i) => (
           <span key={i} className="hw-effect-icon">
@@ -47,7 +93,7 @@ export default function UnitCard({ def, selected, disabled, onClick }) {
       </div>
       <div className="hw-card-desc">
         {def.tier[0].toUpperCase() + def.tier.slice(1)}
-        {def.displayTier === 2 ? " Tier 2" : ""} &middot; HP {def.maxHp}
+        {def.displayTier === 2 ? " Tier 2" : ""}
         {def.attackPattern !== "single" ? ` · ${def.attackPattern}` : ""}
         {def.haste ? " · haste" : ""}
       </div>

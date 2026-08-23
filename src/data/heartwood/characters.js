@@ -47,6 +47,20 @@ export const CHARACTERS = {
     // simple, unconditional identity (no extra condition like Wounded
     // Fury, just a bigger flat number) while closing the gap.
     squadPassive: [{ type: "applyBuff", id: "strength", amount: 2 }],
+    // Active Power (Battlegrounds/Guildrun-style "hero power," on top
+    // of the always-on squadPassive above): spent once per shop visit
+    // (runEngine.js's activateCommanderPower), queued and applied to the
+    // whole squad at the START of the very next battle only, same
+    // effect shape squadPassive already uses. Tommy's is a bigger,
+    // one-fight-only version of his own always-on Strength buff -
+    // "opening strike," matching "always looking for the fast opening."
+    activePower: {
+      id: "opening-strike",
+      name: "Opening Strike",
+      cost: 3,
+      description: "Next battle only: the whole squad strikes noticeably harder.",
+      effects: [{ type: "applyBuff", id: "strength", amount: 2 }],
+    },
   },
   aatos: {
     id: "aatos",
@@ -67,6 +81,19 @@ export const CHARACTERS = {
       { type: "attack", amount: 4 },
     ],
     squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } }],
+    // Rally Cry: an extra turnStart heal for the next battle only, on
+    // top of Aatos's always-on one - NOT a flat one-time heal (units
+    // always start a fight at full HP, the exact bug this same trigger
+    // shape already fixed once for Mosswarden's Charm/Purifying Bloom -
+    // see relics.js/items.js), same addTrigger pattern applied up front
+    // instead of rediscovering the mistake.
+    activePower: {
+      id: "rally-cry",
+      name: "Rally Cry",
+      cost: 3,
+      description: "Next battle only: the whole squad mends a little more each round.",
+      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
+    },
   },
   fenrir: {
     id: "fenrir",
@@ -95,6 +122,17 @@ export const CHARACTERS = {
       { type: "applyBuff", id: "strength", amount: 1 },
       { type: "applyBuff", id: "woundedFury", amount: 1 },
     ],
+    // Blood Oath: a bigger, one-fight-only dose of Fenrir's own signature
+    // status - "the fight gets worse for you the longer it goes",
+    // deliberately spent on a single decisive battle rather than diluted
+    // across the whole run.
+    activePower: {
+      id: "blood-oath",
+      name: "Blood Oath",
+      cost: 3,
+      description: "Next battle only: the whole squad hits harder the more hurt they are.",
+      effects: [{ type: "applyBuff", id: "woundedFury", amount: 2 }],
+    },
   },
   repo: {
     id: "repo",
@@ -123,6 +161,16 @@ export const CHARACTERS = {
     // stress-tested against the other 3 below before shipping, not
     // guessed at.
     squadPassive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+    // Brace: an extra one-time Ward stack for the next battle only -
+    // "never takes a hit it didn't plan for," a single fully-prevented
+    // hit on top of the always-on repeating Block.
+    activePower: {
+      id: "brace",
+      name: "Brace",
+      cost: 3,
+      description: "Next battle only: the whole squad shrugs off one extra hit outright.",
+      effects: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    },
   },
 }
 

@@ -18,6 +18,7 @@ import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/chara
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
+import { tribesOf, SYNERGY_TIERS } from "../../data/heartwood/synergies"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison } from "./effects"
 import { isShielded, kingAdjacent } from "./targeting"
 
@@ -153,6 +154,7 @@ export function startAutoBattle(
   commanderRank = 0,
   relicLevels = {},
   commanderItemIds = [],
+  pendingEffects = [],
 ) {
   const formation = resolveFormation(enemyFormationOrId)
   const character = CHARACTERS[characterId]
@@ -369,6 +371,40 @@ export function startAutoBattle(
         actorId: tankiest.id,
         targetId: tankiest.id,
       })
+    }
+  }
+
+  // Tribe synergies (synergies.js's UNIT_TRIBES/SYNERGY_TIERS) - counted
+  // from the RECRUITED squad only (recruitedUnits, captured before the
+  // Commander/summons were added to playerUnits): the Commander has no
+  // tribe of its own, and a summoned creature wasn't something the
+  // player shopped for, so neither should count toward "what tribe did
+  // you build." Applied to state.playerUnits (the live roster, same as
+  // every loop above) so a freshly summoned creature still benefits
+  // from an active synergy, matching the precedent every other
+  // squad-wide source (Commander squadPassive, relics) already set.
+  const tribeCounts = {}
+  for (const u of recruitedUnits) {
+    for (const t of tribesOf(u.defId, effectiveDefs[u.id])) tribeCounts[t] = (tribeCounts[t] || 0) + 1
+  }
+  for (const [tribeId, count] of Object.entries(tribeCounts)) {
+    const tiers = SYNERGY_TIERS[tribeId] || []
+    const activeTier = [...tiers].reverse().find((t) => count >= t.count)
+    if (activeTier?.effects?.length) {
+      for (const u of state.playerUnits) {
+        state = applyEffects(state, activeTier.effects, { actorId: u.id, targetId: u.id })
+      }
+    }
+  }
+
+  // Commander Active Power (characters.js's activePower, runEngine.js's
+  // activateCommanderPower/startFormationBattle): queued during the shop
+  // phase, applied here - the start of the very next battle - then
+  // discarded. Same self-targeting squad-wide loop every other source
+  // above already uses.
+  if (pendingEffects.length) {
+    for (const u of state.playerUnits) {
+      state = applyEffects(state, pendingEffects, { actorId: u.id, targetId: u.id })
     }
   }
 

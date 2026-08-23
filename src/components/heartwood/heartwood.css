@@ -138,6 +138,23 @@
   border-color: var(--hw-rune);
 }
 
+/* Generic "this is on/met" state - Freeze toggled on (SquadDraft.jsx),
+   a synergy tribe that's met its threshold (FormationScreen.jsx), a
+   Commander Active Power primed for the next battle. Moss = "a good
+   thing", same color language the rarity glow's own comment already
+   established. */
+.hw-badge--active {
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
+  background: color-mix(in srgb, var(--hw-moss) 14%, var(--hw-panel));
+}
+
+.hw-move-btn[data-active="true"] {
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
+  background: color-mix(in srgb, var(--hw-moss) 16%, var(--hw-panel));
+}
+
 .hw-essence-badge {
   color: var(--hw-ember);
   border-color: var(--hw-ember);
@@ -269,6 +286,24 @@
   user-select: none;
 }
 
+/* Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
+   liittyville" - a rarity system for the game and related things) - a
+   glow layered on TOP of the card's existing depth shadow, since the
+   border color itself is already spoken for by role (.hw-card--attack/
+   skill/power - dps/support/tank). Common gets no glow at all, so
+   uncommon/rare read as a genuine step up rather than every card
+   looking equally "special." Same color language already established
+   elsewhere (moss = a good thing, ember = the standout/highlighted
+   thing - Fusion badges, the essence badge, etc. already use ember for
+   "this is the notable one"). */
+.hw-card[data-tier="uncommon"] {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 0 1px color-mix(in srgb, var(--hw-moss) 55%, transparent);
+}
+
+.hw-card[data-tier="rare"] {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 10px 1px color-mix(in srgb, var(--hw-ember) 55%, transparent);
+}
+
 /* A unit with real portrait art (def.image) gets a full-bleed image up
    top instead of the small glyph medallion - bigger, more atmospheric,
    same info layout underneath. Bleeds to the card's own edges via
@@ -362,6 +397,55 @@
   align-items: center;
   justify-content: center;
   font-size: 12px;
+}
+
+/* Hearthstone-style glanceable HP corner (UnitCard.jsx) - opposite the
+   cost pip, same "big number in a fixed corner, no reading required"
+   convention. Reuses --hw-hp (already the game's one dedicated
+   "this is health" color, see the HP bar fill) rather than inventing a
+   new accent. */
+.hw-card-hp {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hw-hp);
+}
+
+.hw-card-hp .hw-effect-icon-glyph {
+  width: 13px;
+  height: 13px;
+  color: var(--hw-hp);
+}
+
+/* Tribe icons (synergies.js) - a small row under the unit's name, same
+   icon-glyph vocabulary as everything else, no new art. Purely a
+   recruit-planning cue: "what tribe does this unit belong to."*/
+.hw-tribe-icons {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.hw-tribe-icon .hw-effect-icon-glyph {
+  width: 12px;
+  height: 12px;
+}
+
+/* Hero Bending marker (UnitCard.jsx's `bent` prop) - a small inline
+   badge next to the unit's name so an item-driven role change reads as
+   a build decision at a glance, not a silent stat bump. */
+.hw-badge--bent {
+  display: inline-flex;
+  margin-left: 5px;
+  padding: 1px 6px;
+  font-size: 9px;
+  vertical-align: middle;
+  color: var(--hw-ember);
+  border-color: var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 14%, var(--hw-panel));
 }
 
 /* Portrait-style glyphs (Tarot art, enemy/character doodles) get a
