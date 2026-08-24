@@ -6,6 +6,32 @@
 // to their own data.
 
 export const FORMATIONS = {
+  "rotwood-husk-pair": {
+    id: "rotwood-husk-pair",
+    name: "Rotwood Husk Pair",
+    description: "A Husk and a younger Sapling, side by side. Alone, neither is much - together, they don't let up.",
+    // Fight 1 of every run. Solo Husk stat pushes couldn't create real
+    // risk for a realistically-recruited squad without also being able
+    // to kill a unit outright and snowball into a run-wide collapse via
+    // permadeath (see enemies.js's note on "rotwood-husk"). A first
+    // attempt at this formation paired two full-strength Husks - also
+    // catastrophic (46/100 runs died at fight 1), because both pieces
+    // start at moveIndex 0 with no stagger support in the engine, so
+    // identical patterns land in perfect sync every round. Pairing the
+    // Husk with a deliberately lighter, OFFSET-pattern Sapling
+    // (rotwood-sapling: block first where the Husk attacks first) avoids
+    // both failure modes: real extra pressure (more total HP to grind
+    // through, a second attacker most rounds) without a round-1 double-
+    // attack spike. Verify against the full-run fairness bot before
+    // touching either piece's stats again - fight-1-only testing missed
+    // the earlier collapse entirely, and the first "double it" attempt
+    // missed this one too.
+    pieces: [
+      { defId: "rotwood-husk", pos: { row: 0, col: 0 } },
+      { defId: "rotwood-sapling", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "mist-growler-pack": {
     id: "mist-growler-pack",
     name: "Mist Growler Pack",

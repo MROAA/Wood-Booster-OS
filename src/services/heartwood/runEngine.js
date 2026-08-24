@@ -34,7 +34,7 @@ import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEn
 // content rounds: volume alone wasn't the gap, a genuine new layer was.
 const RUN_PATH = [
   { type: "shop" },
-  { type: "battle", enemyId: "rotwood-husk" },
+  { type: "battle", formationId: "rotwood-husk-pair" },
   { type: "shop" },
   { type: "battle", enemyId: "drowned-siren" },
   { type: "shop" },

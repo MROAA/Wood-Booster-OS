@@ -11,52 +11,20 @@ export const ENEMIES = {
     id: "rotwood-husk",
     name: "Rotwood Husk",
     // Marc: "game challenge needs to be that you can fail at the first
-    // enemy too... otherwise there is no point for having them" - this
-    // is literally the first fight of every run, and across every
-    // fairness pass run this whole session, it has NEVER once appeared
-    // as a cause of death (unlike rune-wardens-escort, the boss, etc.,
-    // which show up constantly).
-    //
-    // Pushed this stat much higher first (90 HP, 15+15/hit) chasing a
-    // synthetic "weak 2-unit squad" test that turned out not to be
-    // representative - that test force-set essence to 999, letting it
-    // recruit optimally, while a REAL run starts with only 4 Essence.
-    // Once tested against the actual fairness bot (real starting
-    // Essence, real random shop rolls), that setting was catastrophic:
-    // 0-4% win rate across ALL 4 Commanders, most runs never surviving
-    // fight 1 at all - "you can fail here" had overshot into "you will
-    // almost certainly fail here," the opposite of what was asked.
-    // Backed off to 58 HP/11+11 - real risk for a zero-recruit solo
-    // Commander, but Marc's own follow-up ("I haven't actually died in
-    // several attempts," testing "just the first few fights") revealed
-    // that wasn't the real problem: a REALISTICALLY-recruited squad (4
-    // deployed, real Essence) was never even the concern - direct logs
-    // showed every one of the first 3 fights ending in ROUND 2 with the
-    // Commander barely scratched (83-100% HP), regardless of the HP/
-    // damage-per-hit bumped so far.
-    //
-    // Tried pushing HP alone (100, 140) - fights lasted longer but
-    // Commander HP% barely dropped (sustain-leaning Commanders get
-    // MORE heal/block ticks from a longer fight too, offsetting the
-    // extra exposure). Tried HP+damage together (100 HP, 14+14) and
-    // found real per-unit danger at last - a recruited unit actually
-    // DIED in one test run, others dropped to 13-25% HP - but checking
-    // the FULL run (not just fight 1 in isolation) revealed why that's
-    // dangerous in a way fight-1-only testing completely missed: losing
-    // a unit that early permanently weakens the squad for the ENTIRE
-    // rest of a ~43-fight run (permadeath applies to recruited units,
-    // not just the whole run), and that compounds catastrophically -
-    // overall win rate collapsed to 0-4%, with 81% of deaths landing at
-    // a much LATER fight (twin-watch), not even at Husk itself. A
-    // seemingly-reasonable "fight 1 gets genuinely risky" change turned
-    // out to quietly gut the whole run's foundation. Reverted to the
-    // last run-wide-verified-safe value (58 HP/11+11) - real, felt
-    // risk for someone who skips the shop, safe for anyone who
-    // recruits normally, without the early-permadeath snowball.
-    // "Fail at the first enemy too" for a normally-recruiting player
-    // needs a mechanism that doesn't risk crippling 42 more fights on
-    // one bad early roll - a real remaining gap, flagged rather than
-    // guessed at further this round.
+    // enemy too." Stat pushes on this solo def (up to 100 HP/14+14) were
+    // tried and reverted repeatedly - a realistically-recruited squad's
+    // action economy (4-5 actors vs. 1) meant no single-target solo
+    // attacker could be made to matter without either doing nothing (fight
+    // ends round 2, Commander barely scratched) or, once strong enough to
+    // threaten a unit, snowballing into a run-wide collapse the moment
+    // that unit's permadeath compounds across the remaining ~42 fights
+    // (verified via the full-run fairness bot, not fight-1-in-isolation -
+    // see PR #309's now-superseded history for the full account). Kept at
+    // the last run-wide-verified-safe solo value. The real fix was a
+    // different lever entirely: see "rotwood-husk-pair" in formations.js -
+    // fight 1 now deploys two of these side by side, doubling both total
+    // HP and actions/round without raising any single hit past this
+    // already-safe number.
     maxHp: 58,
     art: "husk",
     description:
@@ -66,6 +34,29 @@ export const ENEMIES = {
       { type: "attack", amount: 11 },
       { type: "attack", amount: 11 },
       { type: "block", amount: 6 },
+    ],
+  },
+  "rotwood-sapling": {
+    id: "rotwood-sapling",
+    name: "Rotwood Sapling",
+    // The second piece in "rotwood-husk-pair" (formations.js). A first
+    // attempt paired two full-strength Husks - catastrophic (46/100 runs
+    // died at fight 1) because every enemy piece starts at moveIndex 0
+    // with no stagger support in the engine, so both Husks attacked in
+    // perfect sync every round: 22 combined damage landing round 1 AND
+    // round 2 before either husk's block turn came up, and doubled total
+    // HP (116) gave that spike time to repeat. This is deliberately a
+    // much lighter second piece instead of a clone - real extra pressure
+    // (more HP to grind through, a second attacker some rounds) without
+    // doubling the round-1 burst.
+    maxHp: 26,
+    art: "husk",
+    description: "A younger husk, still rooted nearby. Weaker alone, but it doesn't fight alone.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 4 },
+      { type: "attack", amount: 7 },
+      { type: "attack", amount: 7 },
     ],
   },
   "moss-troll": {
