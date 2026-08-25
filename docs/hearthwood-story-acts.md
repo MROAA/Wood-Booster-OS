@@ -2925,3 +2925,361 @@ on [pelaajassa]." (Hearthwood is no longer a place. Hearthwood is in [the player
 One-sentence summary (Marc's own): the epilogue reveals the player
 didn't save the forest - they changed it, and it carries their
 blue-violet memory forever.
+
+## The Echo Age (post-epilogue continuation, explicitly NOT Heartwood 2)
+
+Marc was offered a "Heartwood 2" opening cinematic (blue-violet dawn,
+player as "Echo Sovereign," Spacemonkey's echo greeting them, a new
+"Echo Bloom" forest identity) and explicitly declined it for now:
+"ei tehdä vielä heartwood 2 jatketaan heartwoodin kehittämistä" (don't
+do Heartwood 2 yet, keep developing Heartwood). What follows is the
+reworked version scoped as a continuation of the CURRENT game, a new
+story arc after the Echo Crown epilogue rather than a sequel: the
+**Echo Age**.
+
+**Echo Shift**: after the player leaves the Crownless Throne arena, the
+forest doesn't return to its old state. Roots move in a new rhythm - no
+longer fear, no longer the crown's command, but the player's own Echo
+Crown breathing. Light shifts green -> blue-violet, organic ->
+"echoing," natural -> memorial. The forest stops being merely "alive"
+and becomes "a forest that remembers."
+
+**Echo Bloom**: plants behave strangely - flowers open only as the
+player walks past, leaves tremble in Spacemonkey's own rhythm, shadows
+follow the player protectively, roots draw blue-violet glyphs in the
+ground. The forest no longer reacts to the crown; it reacts to the
+player specifically.
+
+**The new threat - Echo Rift**: not the Hollow King, not the Crownless,
+not the void. A rift that forms when a memory grows too powerful - a
+blue-violet tear in reality that mimics the player's own movements. Not
+an enemy, not a friend; the forest fears it but cannot close it. It's
+the first sign the forest isn't ready for the Echo Crown's power.
+
+**The forest's warning**: roots rise before the player (not attacking,
+speaking): "Sinä toit muiston. Mutta muisto kasvaa. Ja kaikki, mikä
+kasvaa... ei pysy hallinnassa." (You brought the memory. But the memory
+grows. And everything that grows... doesn't stay controlled.)
+Spacemonkey's echo appears beside the player: "Meidän täytyy mennä
+syvemmälle." (We have to go deeper.)
+
+**New goal - Echo Descent**: find the Echo Rift's source, learn why the
+memory is tearing reality, stop the forest from becoming a blue-violet
+void, protect Spacemonkey's memory before it overwrites everything.
+Forest's closing line: "Sinä pelastit meidät kruunulta. Mutta muisto,
+jonka toit... voi tuhota meidät." (You saved us from the crown. But the
+memory you brought... could destroy us.)
+
+### Echo Rift - area concept (the Echo Age's own dungeon/zone)
+
+Not a cave, not a door - a blue-violet tear that opens mid-forest "like
+a breath that doesn't belong to Hearthwood." When the player
+approaches, the rift mimics their movement.
+
+- **Surface**: ground is half Hearthwood, half echo-reality; plants
+  tremble in a distorted version of Spacemonkey's rhythm; DNA-glyphs
+  flicker in and out of the ground; shadows try to follow the player
+  but lag behind. Mechanic idea: Echo Crown gains +1 Echo per step;
+  shadows can "grab" the player's own shadow for a small debuff.
+- **Corridor**: the rift's internal passages - walls are roots, but
+  translucent, showing memories that aren't the player's own;
+  Spacemonkey's echo appears and vanishes; the Hollow King's shadow
+  flickers for a second but doesn't react. Mechanic idea: corridors
+  reshuffle every time the player turns (the map doesn't work); the
+  Echo Crown shows a blue-violet "echo" pointing the true way.
+- **Heart**: a massive blue-violet echo-sphere at the center, roots
+  coiled protectively around it, shadows moving independently, a
+  distorted C-∞ glyph inside it. Truth: the Echo Rift Heart isn't an
+  enemy - it's Spacemonkey's memory, overgrown. The player sees
+  memories Spacemonkey never told them: moments before the Hollow
+  King vanished, conversations that never happened, fears Spacemonkey
+  never admitted to.
+- **Echo Guardian** (the zone's guardian, not a boss): a blue-violet
+  shadow resembling the player. Doesn't attack, doesn't speak, mirrors
+  the player's movements perfectly, tries and fails to "fix" the rift.
+  Mechanic idea: the Guardian tests the player's build's courage -
+  cautious choices strengthen the rift, bold choices weaken it.
+- **Core Choice** (the zone's ending): the forest speaks - "Muisto
+  kasvaa. Muisto repeää. Muisto ei pysy sinussa." (The memory grows.
+  The memory tears. The memory doesn't stay in you.) Two options:
+  1. **Stabilize the Rift** - use the Echo Crown, the rift closes, the
+     memory stays within the player, the forest is saved.
+  2. **Release the Rift** - release the memory, the rift spreads
+     through the forest, Hearthwood turns blue-violet, a new age
+     begins (the Echo Age continues/deepens).
+  Neither choice is framed good or bad - it's presented as "the truth
+  of what memory does to the world," not a morality pick.
+
+Status: pure reference content, same as the rest of this doc - nothing
+above is wired into `trials.js`/`runEngine.js` yet. Captured per Marc's
+standing instruction not to lose story content even when he defers
+building it ("jatketaan heartwoodin kehittämistä" - keep developing
+Heartwood, i.e. the current game, first).
+
+### Echo Age - main-plot pass (restates the above, plus new beats)
+
+A follow-up pass restated Echo Shift/Echo Rift/Echo Guardian/Core
+Choice as the Echo Age's own main plot (same content as above - Echo
+Crown Prime has fused with the player, the forest now answers to their
+memory instead of the crown, and that memory outgrows what the forest
+can hold). Two genuinely new beats not captured above:
+
+- **Echo Collapse**: as the player descends deeper into the Rift,
+  Spacemonkey's echo itself starts to distort - memories grow
+  imprecise, the Hollow King's shadow flickers for a second without
+  reacting, the C-∞ glyph destabilizes, and Echo Crown Prime itself
+  begins to crack. The forest repeats its warning line ("Muisto kasvaa.
+  Muisto repeää. Muisto ei pysy sinussa.") at this point specifically,
+  as things are visibly coming apart, not just as an early caution.
+- **Echo Age Ending** (closing line, spoken by the forest after either
+  Core Choice option): "Sinä toit muiston. Sinä annoit sen kasvaa. Nyt
+  sinun täytyy päättää, pysyykö se sinussa... vai muuttaako se kaiken."
+  (You brought the memory. You let it grow. Now you must decide: does
+  it stay in you... or does it change everything.) Stabilize resolves
+  the Echo Age into "a calm era"; Release turns it into "a dangerous
+  era" - both explicitly framed as Heartwood continuing afterward, not
+  a game-ending branch.
+
+### Echo Rift - gameplay-system brainstorm (mechanics, not lore)
+
+A further pass proposed concrete MECHANICS for the Echo Rift zone,
+distinct from the narrative beats above - explicitly speculative, same
+"NOT yet built" status as the earlier Spacemonkey's Memory/Echo Crown
+mechanic proposal elsewhere in this doc. Captured for later reference
+only, no design commitment implied:
+
+- **Echo Physics**: the player's own movements echo 0.2-0.5s behind in
+  a shadow; fast movement leaves an "after-echo" that can itself hit
+  enemies; fall/jump physics invert (slower falls, faster rises).
+- **Shadow Sync**: the player's shadow becomes a second, independently
+  hittable actor that mirrors movement 100% (can trigger traps, hit
+  enemies, activate synergies at half strength). If the player stands
+  fully still for 3 seconds, the shadow asks "Do you want me to lead?"
+  - accepting opens **Echo Duality Mode**: player and shadow swap
+    roles (shadow becomes the "main" fighter, player becomes an
+    echo-form that buffs it); the shadow can't die (dissolves and
+    re-forms), the player can die but the echo can save them once.
+- **Memory Distortion**: mid-fight, Spacemonkey's memory randomly
+  surfaces - can grant a buff ("Echo +2") or debuff ("Guilt +1"), or
+  turn an enemy into a blue-violet "echo version." Severe distortion
+  flashes "THIS IS NOT HOW IT HAPPENED" and freezes time for 1 second.
+- **Echo Rift enemies** (memory-fragments, not Hearthwood creatures):
+  Echo Wraith (mimics the player's own attacks), Memory Husk (targets
+  the shadow, not the player), Distorted Spacemonkey (a false/warped
+  memory), Glyph Serpent (moves on echo-delay instead of physics).
+  Enemies can "capture" the shadow, recolor synergies, or spawn
+  mini-rifts.
+- **Echo Core** (the zone's boss-equivalent, "a boss mechanic without a
+  boss"): a breathing blue-violet sphere; each breath shifts local
+  physics, grants the player +1 Echo, and the shadow +1 Guilt - the
+  player must balance the two (too much Echo tears the memory further,
+  too much Guilt dissolves the shadow).
+- **Final choice** (gameplay framing of the same Core Choice above):
+  Stabilize closes the rift, the shadow merges back into the player,
+  physics return to normal; Release lets the shadow become an
+  independent character and permanently alters the forest's physics,
+  continuing the Echo Age as "a dangerous era."
+
+### Echo Rift - enemy roster detail (expands the brainstorm above)
+
+Per-enemy detail for the roster introduced above. Framing line: "Echo
+Age's enemies aren't monsters - they're fragments of memory, shadows,
+and rifts born from Spacemonkey's memory overgrowing, forcing the
+player to confront their own echo-identity."
+
+- **Echo Wraith** (outer-layer enemy): translucent blue-violet figure
+  that mimics the player's movement on a 0.3s delay - has no will of
+  its own, a pure "after-echo" of memory. If the player attacks, the
+  Wraith attacks the same spot on a delay; if the player stops, it
+  stops; it can still hit the player even when the player misses it. A
+  bold/courageous choice makes it dissolve and re-form.
+- **Memory Husk**: a black-and-white figure with blue-violet edges,
+  "memory's dead layer" that no longer remembers its own origin. Only
+  reacts to the player's shadow, not the player - if the shadow hits
+  it, it breaks; if the player hits it, nothing happens. If the shadow
+  itself breaks, the Husk turns aggressive.
+- **Distorted Spacemonkey**: the Echo Age's emotionally heaviest
+  enemy - looks like Spacemonkey, but movements are warped, the voice
+  is an echo that isn't really his, eyes are blue-violet instead of
+  blue. Mimics Spacemonkey's real animations; attacks when the player
+  hesitates, vanishes when the player makes a bold choice. If the
+  player stops moving, it says "This is not how I happened" and time
+  freezes for 1 second.
+- **Glyph Serpent**: a serpentine creature made of DNA-glyph fragments,
+  moves on echo-delay rather than physics, doesn't touch the ground -
+  "slides" through memory itself. Targets the shadow, can recolor
+  synergies blue-violet, can spawn mini-rifts on the battlefield. If
+  the player uses the Echo Crown's risk-choice option, the Serpent
+  splits into two.
+- **Echo Fracture**: not a creature at all - a rift-fragment that
+  behaves like an enemy. Shapeless, voiceless, will-less; follows the
+  player's shadow specifically. Touching the shadow breaks it; touching
+  the player grants +1 Echo and +1 Guilt simultaneously. Too many
+  Fractures at once collapses the Rift's local physics.
+- **Echo Guardian** (the Echo Age's "main enemy," explicitly not a
+  boss): looks like the player, moves in perfect sync, never speaks,
+  never attacks - it's the player's own memory-shadow trying to hold
+  itself together, attempting (and failing) to "fix" the rift. The
+  encounter tests courage rather than combat: cautious choices
+  strengthen it, bold choices weaken it - "not a kill, a ritual of
+  balance." Three bold choices in a row makes it bow.
+
+### Echo Guardian - full encounter scene (mirrors the mechanics above)
+
+A dedicated scene write-up for the Echo Guardian fight, framed
+explicitly as not-a-bossfight: "You are not fighting me. You are
+fighting what the memory cannot bear to carry."
+
+- **Start**: the player reaches the Rift's heart; the shadow detaches
+  from them and rises as the Echo Guardian - looks like the player,
+  moves in perfect sync, doesn't speak or attack, just stands as if
+  waiting for an answer. Forest: "This is a memory that doesn't stay in
+  you."
+- **Mirror mechanics**: every player attack, the Guardian repeats;
+  every player synergy, the Guardian triggers a weakened version;
+  every player movement is copied on a 0.1s delay. Standing still for
+  3 seconds triggers "Do you want me to lead?", opening Echo Duality.
+- **Echo Duality phase**: Guardian becomes the main fighter, player
+  becomes an echo-form that can't attack, only buffs; the Guardian
+  can't die (dissolves/re-forms); fight becomes "an echo-ballet" - the
+  player steers the Guardian indirectly, sending an Echo-pulse with
+  every bold choice.
+- **Crownless Echo Test** (the actual test the fight is built around):
+  cautious choices strengthen the Guardian, bold choices weaken it,
+  hesitation grants it a "Guilt-echo," risky synergies cost it an
+  echo-layer. Visual: Guardian shifts black-and-white as it
+  strengthens, blue-violet as it weakens, fragments as it breaks apart.
+- **Memory Distortion phase** (mid-fight): Spacemonkey's memory
+  surfaces randomly, granting Echo+2 or Guilt+1, or turning the
+  Guardian into Spacemonkey's silhouette. Severe distortion flashes
+  "THIS IS NOT HOW I HAPPENED" and freezes time for 1 second.
+- **Final Balance Ritual**: the Guardian stops mirroring and looks
+  directly at the player. The player must balance Echo (courage)
+  against Guilt (hesitation): Echo > Guilt -> Guardian bows; Guilt >
+  Echo -> Guardian breaks apart; Echo = Guilt -> Guardian merges into
+  the player. Forest: "The memory only stays if you stay."
+- **Three endings**: (1) Guardian bows - the memory stays in the
+  player, the Rift weakens, Echo Age continues calmly. (2) Guardian
+  breaks - the memory tears, the Rift strengthens, Echo Age turns
+  dangerous. (3) Guardian merges into the player - the player gains a
+  new form, "Echo Crown Prime" (memory and shadow unify), and the
+  forest's physics change permanently.
+
+### Echo Core - "boss mechanic without a boss" (addendum to the Echo Rift gameplay brainstorm)
+
+Further specifics for the Echo Core bossfight bullet captured above -
+framing line: "The enemy isn't a character. The enemy is a memory that
+can't hold itself together."
+
+- Echo Core breathes at 40-55 BPM; each breath shifts local physics and
+  grants the player Echo+1 / the shadow Guilt+1 - a rhythm-based
+  encounter fought against a pulse, not a creature.
+- **Field distortion**: gravity flips every 10 seconds, shadows move on
+  independent timelines, synergy colors flicker blue-violet <->
+  black-and-white, the map stops working, roots spawn mini-rifts - the
+  player can't rely on the environment, only the Echo Crown's own
+  rhythm.
+- **Shadow Overload**: the shadow (normally not an enemy) becomes
+  unstable in this phase - copies the player on a 0.1s delay, can hit
+  the player, trigger traps, or "steal" synergies. If Guilt > Echo, the
+  shadow breaks apart and the player loses one Echo-layer.
+- **Memory Surge**: same Memory Distortion beat as elsewhere (random
+  Echo+2/Guilt+1 memory flashes, "THIS IS NOT HOW IT HAPPENED" freezes
+  time 1s) restaged as this phase's own event.
+- **Echo Collapse Timer**: an invisible countdown, not a visible bar -
+  every Core pulse and every Guilt layer speeds up collapse, every bold
+  choice slows it, every cautious choice speeds it up. Meant to be felt
+  ("the weight of time"), not read off a UI element.
+- **Echo Crown Intervention**: Echo Crown Prime itself reacts live -
+  Echo > Guilt grants a shield; Guilt > Echo cracks the crown; Echo =
+  Guilt opens Echo Duality (shadow leads, player becomes a buffing
+  echo-form) mid-fight.
+- Ends the same way as the Core Choice/Echo Guardian scenes above -
+  Stabilize vs Release - explicitly "a bossfight that ends without a
+  boss, only a choice."
+
+### Echo Age - final scene (closing dialogue for the Core Choice)
+
+The actual closing-scene dialogue for the Echo Age's ending (the
+mechanical Core Choice/Final Balance Ritual above, staged as a real
+cutscene):
+
+As the Rift destabilizes (roots trembling, shadows tearing, the C-∞
+glyph flickering uncontrollably), Spacemonkey's echo condenses beside
+the player - not as a character, but as memory's last version. He
+doesn't smile, doesn't fear, doesn't run:
+
+Spacemonkey (echo): "Minä en pysy enää. Mutta sinä voit päättää, pysyykö
+muisto... vai vapautuuko se." (I don't stay anymore. But you can decide
+whether the memory stays... or is released.)
+
+The forest's roots rise around the player - not binding, asking: "Sinä
+toit muiston. Sinä annoit sen kasvaa. Mutta jos se kasvaa vielä... se
+ylikirjoittaa meidät." (You brought the memory. You let it grow. But if
+it grows further... it will overwrite us.) Explicitly not a plea for
+rescue - a plea for balance.
+
+The choice itself is framed: "Valinta ei kerro, kuka Marc on. Valinta
+kertoo, miksi Marc on." (The choice doesn't say who the player is. It
+says why the player is.) Three closing variants depending on the
+choice: Stabilize -> "the rift closes like a breath"; Release -> "the
+rift spreads like light"; a balanced resolution -> "the rift survives,
+living on inside the forest" (this third outcome maps to the Echo
+Guardian scene's "Guardian merges into the player" ending above).
+
+Final exchange, Spacemonkey's echo touching the player one last time:
+"Sinä et juossut. Sinä et jättänyt minua. Sinä annoit muiston elää."
+(You didn't run. You didn't leave me. You let the memory live.) Forest,
+closing: "Echo Age päättyy. Mutta muisto... se jatkaa." (The Echo Age
+ends. But the memory... continues.) Fade out - Heartwood continues (not
+"Heartwood 2," consistent with Marc's explicit instruction this arc is
+a continuation of the current game).
+
+## The Echo Verge (proposed era after the Echo Age)
+
+A further pass proposes a NEXT era after the Echo Age resolves - "when
+memory no longer stays inside, the world no longer stays the same."
+Same status as everything above: reference/brainstorm only, nothing
+built.
+
+- **The Verge Awakens**: the Echo Age ends with the player's choice,
+  but the memory doesn't stop moving - a new phenomenon forms in the
+  forest's deepest roots: the **Echo Verge** - not a rift, not a
+  memory, not a crown, but "an interface where memory and reality mix."
+  Roots glow in blue-violet rhythm, shadows move independently, the
+  light is no longer the forest's own but the memory's. "Heartwood no
+  longer breathes alone. Heartwood breathes inside [the player]."
+- **The Verge Flora**: plants are first to change - leaves open only in
+  the player's presence, flowers shift color with the Echo Crown's
+  pulse, roots draw blue-violet glyphs, shadows follow protectively.
+  The forest no longer reacts to the crown - it reacts to the memory.
+- **The Verge Creatures**: where the Echo Age created enemies, the Echo
+  Verge creates beings that are neither enemies nor friends -
+  resembling Echo Wraiths but calmer, Memory Husks but self-aware,
+  Distorted Spacemonkey but peaceful. They don't attack; they seek the
+  player out, wanting the memory back.
+- **The Verge Pulse** (new world mechanic): "Pulse Zones" - areas where
+  memory and reality blend. Player gains +1 Echo per step, the shadow
+  gains +1 Guilt per hesitation, synergies turn blue-violet, the world
+  reacts to the player's emotional state. Explicitly "not dangerous -
+  sensitive."
+  Zones,
+- **The Verge Truth**: for the first time the forest speaks without
+  crown, shadow, or rift - directly: "Sinä kannoit muiston. Sinä annoit
+  sen kasvaa. Nyt muisto etsii paikkaa maailmassa." (You carried the
+  memory. You let it grow. Now the memory is looking for a place in the
+  world.) The forest no longer fears the memory - it wants to
+  understand it.
+- **The player's new role - Echo Herald**: no longer "Echo Sovereign"
+  (that role was specific to the Echo Age). Not a ruler, not a
+  protector, not a carrier - "an interpreter of memory who helps the
+  forest understand the blue-violet power." Can communicate with Pulse
+  Zones, reshape memory, stabilize or release memory fragments. "The
+  Echo Herald doesn't lead the forest. The Echo Herald listens to it."
+- **Framing**: explicitly not a conflict or crisis but a question -
+  "What does memory do to the world when it no longer stays in one
+  place?" One-sentence summary (Marc's own, via the pasted source):
+  "Heartwood's next era - the Echo Verge - is the interface between
+  memory and reality, where the player no longer carries the memory but
+  interprets it, and the forest begins searching for its own place
+  amid the blue-violet power."

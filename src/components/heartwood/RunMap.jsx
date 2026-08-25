@@ -52,11 +52,24 @@ export default function RunMap({ runState }) {
   }, [runState.nodeIndex])
 
   const tier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
+  const currentNode = runState.path[runState.nodeIndex]
 
   return (
     <div className="hw-run-map" style={{ borderColor: tier.color }}>
-      <div className="hw-run-map-tier" style={{ color: tier.color }}>
-        {tier.name}
+      <div className="hw-run-map-header">
+        <span className="hw-run-map-tier" style={{ color: tier.color }}>
+          {tier.name}
+        </span>
+        {/* Marc, direct: "on epäselvää että missä kohti olen menossa
+            mapissa" (it's unclear where I am on the map) - the current
+            node's own glow/scale wasn't enough on its own to answer
+            "where am I" at a glance, especially this early in a ~86-
+            node run where "here" sits right at the strip's edge with
+            nothing around it yet. A plain step count answers it
+            immediately without needing to spot the right icon. */}
+        <span className="hw-run-map-progress">
+          Step {runState.nodeIndex + 1} of {runState.path.length} · {nodeLabel(currentNode)}
+        </span>
       </div>
       <div className="hw-run-track" ref={trackRef}>
         <div className="hw-run-line" />
@@ -82,6 +95,7 @@ export default function RunMap({ runState }) {
               data-minor={isMinor}
               title={nodeLabel(n)}
             >
+              {isCurrent && <div className="hw-run-node-marker" style={{ color: tier.color }} />}
               <CardGlyph name={nodeGlyph(n)} className="hw-piece-glyph" style={{ color: nodeColor(n) }} />
             </div>
           )
