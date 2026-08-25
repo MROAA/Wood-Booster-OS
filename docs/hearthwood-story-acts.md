@@ -1783,3 +1783,47 @@ evolve into a being, the player shapes the forest's future.
 **One-sentence summary**: Hearthwood's evolution isn't a biological
 chain - it's a path through the forest's emotion, memory, and the void,
 ending in a crown the player chooses.
+
+---
+
+## Hearthwood "DNA" System (Marc's written compendium)
+
+*"Metsä ei kirjoita geenejä. Metsä kirjoittaa tarkoituksia."* (The forest
+doesn't write genes. It writes purposes.)
+
+A symbolic three-layer "genetic code" for every being in the story,
+written as flavor/lore depth rather than a literal game mechanic:
+
+- **Saplight layer (S)** - the "biological" side: energy, color,
+  elemental leaning, growth rate.
+- **Root layer (R)** - the "ecological" side: memory, stability, root
+  connection, how well a being listens to the heart.
+- **Echo layer (E)** - the "metaphysical" side: emotion, purpose,
+  destiny, connection to the crown.
+
+Every being has an S-R-E sequence, e.g.: Sap Spirit S2-R1-E1, Rootling
+S1-R3-E1, Heartwood Echo S1-R1-E4, Wood Elemental S3-R2-E2, Ember
+Elemental S4-R1-E2, Stone Elemental S1-R4-E1, Tide Elemental S2-R2-E3,
+Hollow Herald S0-R1-E5, Hollow King S0-R3-E7. **The Crownless is
+S∞-R∞-E∞** - the crown doesn't follow the rules.
+
+**Mutation** happens three ways: energy mutation (S layer changes -> new
+elemental leaning), memory mutation (R layer changes -> new ecological
+role), purpose mutation (E layer changes -> new destiny - the rarest,
+leading to guardians, Warden-tier, the Hollow King, or the Crownless).
+
+**Player build affects the forest's "DNA"**: Wood build speeds up
+creature growth (S layer); Ember build makes creatures more aggressive (S
+layer intensity); Tide build stabilizes S-R-E balance; Stone build
+strengthens memory (R layer) so creatures remember the player's choices;
+Cosmic build causes glitch-mutations (disrupts S layer); Hollow build
+reveals truths (changes E layer).
+
+**The crown's code**: The Crownless doesn't follow S-R-E. Its code is
+**C-∞**, meaning the crown's energy, the heart's fear, the void's truth,
+and the player's choice, all at once. The Crownless can overwrite any
+being's DNA.
+
+**One-sentence summary**: Hearthwood's "DNA" system isn't biology - it's
+the forest's energy, memory, and purpose, determining each being's
+destiny and the crown's birth.
