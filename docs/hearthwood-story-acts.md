@@ -377,3 +377,81 @@ specifically, not a generic Commander name. Worth deciding, when this gets
 implemented, whether that stays literal (hardcoded "Marc") or becomes a
 templated player-name slot - flag for that decision, don't silently choose
 either way.
+
+---
+
+## ACT V — THE CROWNLESS
+*Kun kuningas katoaa, kuka kantaa kruunun?*
+(When the king disappears, who wears the crown?)
+
+### Theme: "Tyhjyyden jälkeinen maailma" (The world after the void)
+Act V isn't a fight against the Hollow King anymore - he's gone, the void
+is sealed. But the forest's heart isn't what it was: broken, quiet,
+afraid. This act covers what happens once the King disappears, what the
+forest does without its guardian, what Spacemonkey's sacrifice means, what
+the player leaves behind, and who carries the crown next. Shorter than the
+other Acts, but emotionally the heaviest.
+
+### Key characters
+- **Spacemonkey (in memory)** - not physically present; appears in
+  visions, memories, echoes; his sacrifice reshapes the forest.
+- **Heartwood Itself** - the forest speaks directly to the player now, no
+  longer whispers but clear sentences; wounded but alive.
+- **The Crownless (Act V Boss / Final Choice)** - not an enemy, not a
+  creature. It's a choice. The player decides the forest's future.
+
+### Map structure
+Not a traditional map - three paths leading to different endings:
+1. **The Rooted Path** - restore the forest to its former shape.
+2. **The Ember Path** - give the forest a new, aggressive identity.
+3. **The Hollow Path** - accept the void as part of the forest.
+
+Each path contains: 2 event nodes, 1 elite node, 1 final node (The Crownless).
+
+### "Enemies" (Act V has none real - only echoes)
+- Echoes of the King - memories of the Hollow King; deal no damage; test
+  the player's build identity.
+- Echoes of the Forest - the forest's memories; test the player's choices
+  from earlier Acts.
+- Echoes of Spacemonkey - his last thoughts; test the player's morality.
+
+### Story beats
+1. **"The Crownless Throne"** - the forest's heart shows an empty throne.
+   It asks: "Who leads us now?"
+2. **"Spacemonkey's Echo"** - the player sees Spacemonkey's final memory.
+   He doesn't ask forgiveness - he asks the player to continue.
+3. **"The Forest's Choice"** - the forest offers the player three options.
+   The choice determines the ending.
+4. **"The Crownless"** - the player meets the choice as a physical being.
+   It doesn't speak - it only waits.
+
+### The three endings
+- **Ending 1 - The Rooted King**: restore the forest to its former shape.
+  New guardian: Heartwood Warden. Spacemonkey's memory smiles.
+- **Ending 2 - The Ember Sovereign**: give the forest a new identity -
+  aggressive, strong, fiery. New guardian: Ashlord Reborn. Spacemonkey's
+  memory warns, but accepts.
+- **Ending 3 - The Hollow Crown**: accept the void as part of the forest.
+  Forest and void merge. New guardian: The Crownless - the player
+  themself. Spacemonkey's memory whispers: *"Sinä teit sen, mitä minä en
+  uskaltanut."* (You did what I didn't dare to.)
+
+### Boss — The Crownless
+Doesn't fight. It mirrors the player's build: aggressive builds get their
+defense tested, defensive builds get their aggression tested, cosmic
+builds get their synergies tested, void builds get their morality tested.
+The fight is symbolic - winning isn't the point, the choice is.
+
+### Act V closing story beat
+Once the choice is made, the forest speaks:
+> "Juuret muistavat. Sydän muistaa. Tyhjyys muistaa. Sinä muistat."
+> (The roots remember. The heart remembers. The void remembers. You remember.)
+
+Camera rises above the forest. The chosen ending colors the world: Rooted
+King -> green light, Ember Sovereign -> red light, Hollow Crown -> violet
+light. Fade to black.
+
+### Unfilled content (Marc's own list)
+The Crownless Throne dialogue, Spacemonkey's final memory, the three
+paths' event texts, the three endings' cinematic texts, the Crownless
+encounter itself, the forest's final monologue.
