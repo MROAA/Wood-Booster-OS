@@ -228,6 +228,13 @@ const MINIBOSS_BONUS_ESSENCE = 3
 const SHOP_SIZE = 4
 const REROLL_BASE_COST = 1
 export const DEPLOY_SLOTS = 4
+// Death Memory (Marc's PRD: a lost hero should leave something behind
+// instead of just vanishing) - deliberately tiny relative to
+// START_ESSENCE/WIN_ESSENCE above (4 each): a one-time nudge honoring
+// the PREVIOUS run's fallen hero, not a real economy lever, so it
+// can't collide with the balance tuning already happening elsewhere in
+// this file. See buildDeathMemory/startRun below.
+const MEMORY_ESSENCE_BONUS = 1
 
 function currentNode(runState) {
   return runState.path[runState.nodeIndex]
@@ -466,13 +473,22 @@ function fuseAll(bench, deployed, items, nextKey) {
 // 5th deployed unit (autoBattleEngine.js's COMMANDER_POSITION) capable
 // of fighting solo. STARTER_UNITS is no longer used to pre-seed a
 // squad, only as the shop's own recruit pool.
-export function startRun(characterId) {
+// `carriedMemory` (Death Memory - see buildDeathMemory below): the
+// previous run's saved memory, if any, loaded by the page from
+// runSaveState.js's loadLastRun() and passed in here once when a new
+// run begins. Grants a small one-time Essence nudge (MEMORY_ESSENCE_BONUS)
+// and is stashed on the new runState purely for display (the intro
+// screen's "in memory of..." line) - it does not persist past this one
+// grant; the page clears the saved memory the moment it's honored, so
+// a fallen hero is remembered once, not forever.
+export function startRun(characterId, carriedMemory = null) {
   return {
     characterId,
     bench: [],
     benchKeyCounter: 0,
     deployed: Array.from({ length: DEPLOY_SLOTS }, () => null),
-    essence: START_ESSENCE,
+    essence: START_ESSENCE + (carriedMemory ? MEMORY_ESSENCE_BONUS : 0),
+    honoredMemory: carriedMemory || null,
     // Branching path (see advanceToNextNode's own comment above): path
     // now starts with just the fixed first node (always a shop -
     // RUN_PATH[0]) and grows one real entry at a time as the run is
@@ -1040,7 +1056,23 @@ function difficultyFactorForNode(nodeIndex, pathLength) {
   // the two problems (fight 1 being flat, and the overall ceiling
   // being too high) turned out to be independent and needed separate
   // fixes, not one bigger number doing both jobs at once.
-  return 1 + (0.75 * progress + 0.25 * Math.sqrt(progress)) * 0.65
+  //
+  // Marc, live: "peli tuntuu vieläkin liian helpolta se voi olla
+  // tuplasti vaikeampi" (still feels too easy, could be twice as
+  // hard). Doubled the cap (0.65 -> 1.3), matching his own framing
+  // literally - the blend shape above stays untouched, only the
+  // overall budget the ramp spends grows. See
+  // scaleEnemyHpToSquadDps (autoBattleEngine.js) for the matching
+  // `/0.65` -> `/1.3` fix this same change requires - that function
+  // normalizes THIS factor back to a 0-1 progress using the same cap
+  // constant, so the two must move together or the DPS-adaptive layer
+  // silently maxes out partway through a run instead of at the real
+  // end. Verified via a 100-run fairness pass before/after, per this
+  // file's own established discipline for this exact lever - see the
+  // Hearthwood master memory log for the actual before/after numbers
+  // and whether this specific value (1.3) survived unchanged or got
+  // dialed back.
+  return 1 + (0.75 * progress + 0.25 * Math.sqrt(progress)) * 0.75
 }
 
 // Shared by startFormationBattle and previewBattleEnemies below - both
@@ -1205,11 +1237,55 @@ export function essenceForWin(runState, node) {
   return WIN_ESSENCE + difficultyBonus + essenceBonus
 }
 
+// Death Memory (Marc's PRD: a lost hero should leave something behind
+// instead of just vanishing) - built once, at the exact moment
+// described in the "Permadeath" comment above: a LOST FIGHT, which is
+// the only kind of hero loss that's actually permanent in this engine.
+// An individual unit hitting 0 HP mid-fight (autoBattleEngine.js's own
+// `hp <= 0` checks) is NOT what this hooks - that unit simply stops
+// acting for the rest of THAT fight and returns at full HP next battle
+// (see units.js's unit() comment: "units always start a fight at full
+// HP"); nothing is permanently removed from the bench on a mid-fight
+// KO, so there is nothing there worth memorializing. A run-ending
+// defeat is the one moment this roster actually, permanently ends.
+//
+// Picks whichever deployed unit best represents what was lost: prefer
+// a squad member with a named Class identity (units.js's className,
+// Guild Identity v1 above) since that's the thing worth naming in the
+// memory, falling back to the Commander (always present, the one
+// constant identity across the whole run) when the fallen squad had
+// none. Highest recruitCost among class-bearing candidates reads as
+// "most invested-in" - a reasonable stand-in for "most mourned"
+// without inventing new per-unit death tracking this small a pass
+// shouldn't need.
+function buildDeathMemory(runState) {
+  const commander = CHARACTERS[runState.characterId]
+  const deployedDefs = runState.deployed
+    .map((key) => (key === null ? null : runState.bench.find((e) => e.key === key)))
+    .filter(Boolean)
+    .map((entry) => UNITS[entry.defId])
+    .filter(Boolean)
+  const classed = deployedDefs.filter((d) => d.className)
+  const pool = classed.length ? classed : deployedDefs
+  const pick = pool.length ? pool.reduce((best, d) => ((d.recruitCost || 0) > (best.recruitCost || 0) ? d : best)) : null
+
+  return {
+    heroName: pick?.name || commander?.name || "The squad",
+    heroClass: pick?.className || null,
+    commanderName: commander?.name || null,
+    ts: Date.now(),
+  }
+}
+
 export function resolveBattleOutcome(runState) {
   const battle = runState.battle
   if (!battle) return runState
 
-  if (battle.phase === "lost") return { ...runState, phase: "defeat" }
+  // deathMemory: attached here (not written to localStorage - this
+  // module is pure, see the file-header comment) so the page can both
+  // show it immediately on RunEndOverlay.jsx and persist it via
+  // runSaveState.js's saveLastRun for the NEXT run to honor.
+  if (battle.phase === "lost") return { ...runState, phase: "defeat", deathMemory: buildDeathMemory(runState) }
 
   if (battle.phase === "won") {
     const node = currentNode(runState)

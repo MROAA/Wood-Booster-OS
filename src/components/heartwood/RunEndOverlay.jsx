@@ -14,7 +14,7 @@ function isFightNode(node) {
   return node?.type === "battle" || node?.type === "miniboss" || node?.type === "boss"
 }
 
-export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun }) {
+export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathMemory }) {
   if (phase !== "victory" && phase !== "defeat") return null
   const won = phase === "victory"
   // How far the run actually got - this screen used to show nothing
@@ -67,7 +67,20 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun }) {
         <p className="hw-flavor">
           {won
             ? bossTrial?.victoryLine || ENEMIES.spacemonkey.victoryLine
-            : "The Hearthwood keeps no memory of you. Another trial can always begin fresh."}
+            : // Death Memory (Marc's PRD): this line used to flatly deny
+              // any memory ever existed - now a real one is built the
+              // moment the run ends (runEngine.js's buildDeathMemory,
+              // resolveBattleOutcome) and shown here first, before it's
+              // even saved for the next run to honor (HeartwoodBattle.jsx).
+              // Skips the class clause when the unit's own name and its
+              // Class happen to be the same word (e.g. Ironbark, whose
+              // id doubles as its Class name) - "Ironbark, the Ironbark"
+              // reads as a copy bug, not a memorial.
+              deathMemory
+              ? `${deathMemory.heroName}${
+                  deathMemory.heroClass && deathMemory.heroClass !== deathMemory.heroName ? `, the ${deathMemory.heroClass}` : ""
+                } falls silent. The Hearthwood remembers - this trial's ending will carry forward.`
+              : "The Hearthwood keeps no memory of you. Another trial can always begin fresh."}
         </p>
         {totalFights > 0 && (
           <span className="hw-badge" title="Fights cleared before the run ended">

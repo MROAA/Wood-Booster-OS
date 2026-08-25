@@ -32,7 +32,7 @@ import {
   chooseFloorEncounter,
   RUN_PATH,
 } from "../services/heartwood/runEngine"
-import { loadRunSave, saveRunSave, clearRunSave } from "../services/heartwood/runSaveState"
+import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
@@ -68,6 +68,18 @@ export default function HeartwoodBattle() {
   const [showIntro, setShowIntro] = useState(
     () => typeof localStorage !== "undefined" && !localStorage.getItem(AUTOBATTLER_INTRO_SEEN_KEY),
   )
+  // Death Memory (Marc's PRD, runEngine.js's buildDeathMemory): the
+  // PREVIOUS run's fallen hero, if any - real state, not a one-time
+  // useMemo, because it has to pick up a memory saved LATER in the
+  // same page session (a run that ends in defeat writes one via
+  // saveLastRun - see the useEffect below - well after this component
+  // already mounted). Re-read explicitly whenever the player actually
+  // lands back on the character-select screen (handleNewRun/
+  // handleChangeCharacter), not on every render. Consumed (cleared)
+  // only once a new run actually begins (see beginRun), not on read,
+  // so it survives a page reload that lands back on character select
+  // without a run yet started.
+  const [pendingMemory, setPendingMemory] = useState(() => loadLastRun())
 
   // Every one of this component's ~20 handlers funnels through
   // setRunState, so one effect covers all of them rather than a save
@@ -77,6 +89,11 @@ export default function HeartwoodBattle() {
   useEffect(() => {
     if (!runState) return
     saveRunSave(serializeRun(runState))
+    // Death Memory: written once, the moment a run actually ends in
+    // defeat (runState.deathMemory is only ever set by
+    // resolveBattleOutcome's "lost" branch) - the next run's
+    // character-select screen reads it back via loadLastRun() above.
+    if (runState.phase === "defeat" && runState.deathMemory) saveLastRun(runState.deathMemory)
   }, [runState])
 
   // Renders outside OSLayout now (App.jsx) - no Sidebar to fall back on
@@ -95,7 +112,10 @@ export default function HeartwoodBattle() {
 
   function beginRun(id) {
     setCharacterId(id)
-    setRunState(startRun(id))
+    setRunState(startRun(id, pendingMemory))
+    // Honored once, then cleared - a fallen hero is remembered for
+    // exactly the next run, not forever (see startRun's own comment).
+    if (pendingMemory) clearLastRun()
   }
 
   // Now that a run persists across reloads, abandoning one here is a
@@ -107,6 +127,7 @@ export default function HeartwoodBattle() {
     clearRunSave()
     setRunState(null)
     setCharacterId(null)
+    setPendingMemory(loadLastRun())
   }
 
   function handleRecruit(unitDefId) {
@@ -208,13 +229,17 @@ export default function HeartwoodBattle() {
     clearRunSave()
     setRunState(null)
     setCharacterId(null)
+    // Death Memory: the run that just ended may have just saved one
+    // (see the saveLastRun call in the useEffect above) - re-read here
+    // so the character-select screen we're about to show reflects it.
+    setPendingMemory(loadLastRun())
   }
 
   if (!characterId || !runState) {
     return (
       <div className="hw-root" style={rootStyle}>
         {exitLink}
-        <div className="hw-intro">
+        <div className="hw-intro hw-intro--centered">
           <div className="hw-crew-banner">
             <img src={crewBanner} alt="Tommy, Aatos, Spacemonkey, and Fenrir" />
           </div>
@@ -223,6 +248,19 @@ export default function HeartwoodBattle() {
             Deep inside the Boosterverse, Spacemonkey waits at the heart of the Hearthwood. Choose who
             leads the squad in after him.
           </p>
+          {/* Death Memory (Marc's PRD): the previous run's fallen hero
+              is remembered once, into this next run only - see
+              runEngine.js's buildDeathMemory/startRun and the
+              RunEndOverlay below where the memory is first shown. */}
+          {pendingMemory && (
+            <span className="hw-badge" title="A small Essence boon, carried forward once in their memory">
+              In memory of {pendingMemory.heroName}
+              {pendingMemory.heroClass && pendingMemory.heroClass !== pendingMemory.heroName
+                ? `, the ${pendingMemory.heroClass}`
+                : ""}{" "}
+              - your squad begins with +1 Essence.
+            </span>
+          )}
         </div>
         <div className="hw-select-grid">
           {Object.values(CHARACTERS).map((character) => (
@@ -242,7 +280,13 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root" style={{ ...rootStyle, position: "relative", minHeight: "100%" }}>
         {exitLink}
-        <RunEndOverlay phase={runState.phase} nodeIndex={runState.nodeIndex} path={runState.path} onNewRun={handleNewRun} />
+        <RunEndOverlay
+          phase={runState.phase}
+          nodeIndex={runState.nodeIndex}
+          path={runState.path}
+          onNewRun={handleNewRun}
+          deathMemory={runState.deathMemory}
+        />
       </div>
     )
   }
