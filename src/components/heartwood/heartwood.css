@@ -948,11 +948,23 @@
   background: color-mix(in srgb, var(--hw-panel) 85%, transparent);
 }
 
+.hw-run-map-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
 .hw-run-map-tier {
   font-size: 11px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 6px;
+}
+
+.hw-run-map-progress {
+  font-size: 12px;
+  color: var(--hw-muted);
 }
 
 .hw-run-track {
@@ -962,6 +974,7 @@
   margin: 0;
   overflow-x: auto;
   scrollbar-width: thin;
+  padding-top: 10px;
   padding-bottom: 4px;
   position: relative;
 }
@@ -998,6 +1011,25 @@
   opacity: 1;
   transform: scale(1.35);
   filter: drop-shadow(0 0 4px currentColor);
+}
+
+/* "You are here" - a plain glow on the icon itself turned out too
+   subtle to spot in a strip of 80+ small icons (Marc, direct: "it's
+   unclear where I am on the map"). A literal downward-pointing marker
+   sitting above the current node, plus the step-count text in the
+   header, are both meant to make "where am I" answerable without
+   having to visually scan the whole strip for the one node that
+   glows slightly more than its neighbors. */
+.hw-run-node-marker {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid currentColor;
 }
 
 .hw-run-node[data-done="true"] {
