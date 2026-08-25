@@ -29,8 +29,18 @@
      app shell's own <main> for height (min-height:100%) and scrolling
      (overflow-auto). No padding added here - every screen already
      pads its own content (.hw-intro/.hw-battle/.hw-select-grid all
-     carry their own 21px), so this only needs to size/scroll itself. */
-  min-height: 100vh;
+     carry their own 21px), so this only needs to size/scroll itself.
+     `min-height: 100vh` was a real bug, not just cosmetic: the app's
+     global `html, body, #root { height: 100%; overflow: hidden }`
+     (index.css) clips anything taller than the viewport with NO way
+     to scroll to it, since a min-height element can never register
+     its own overflow against an ancestor that's already clipped it.
+     Marc, direct: cards/buttons genuinely unreachable once the bench
+     grew past what fit in 1080px (Sell/Reforge/Fusion on later bench
+     entries). A fixed `height: 100%` instead makes .hw-root a real,
+     bounded scroll container within its already-constrained parent,
+     so overflow-y: auto actually gets a chance to do anything. */
+  height: 100%;
   width: 100%;
   overflow-y: auto;
   box-sizing: border-box;
@@ -68,6 +78,11 @@
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
+  /* See .hw-grid's own comment - now that the grid sizes to its own
+     content instead of force-filling the height, centering THIS
+     column vertically is what makes the compact board read as one
+     deliberate object in the middle of the screen. */
+  justify-content: center;
 }
 
 /* Elevated fight (AutoBattleView.jsx's nodeType prop) - a miniboss or
@@ -1096,8 +1111,20 @@
   min-width: 220px;
 }
 
+/* Marc, direct: "tämä nykyinen on sekava ja sieluton" (this current
+   one is messy and soulless) - the real cause wasn't a broken border
+   (it does wrap the full box, verified via a bottom-of-panel crop),
+   it's that `flex: 1` force-stretched this panel to fill the ENTIRE
+   remaining viewport height even though a 3-row grid only ever needs
+   roughly half of it, leaving a large, textureless, purposeless dark
+   rectangle below the actual pieces - reading as unfinished, not as
+   an intentional Hearthstone-style bounded table. Sized to its own
+   content instead (flex: 0 0 auto); .hw-battle below now centers
+   that now-compact block vertically, so the board reads as one
+   self-contained object in the middle of the screen rather than
+   pinned to the top with dead space trailing beneath it. */
 .hw-grid {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
