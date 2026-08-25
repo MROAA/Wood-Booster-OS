@@ -80,6 +80,22 @@ export default function HeartwoodBattle() {
   // so it survives a page reload that lands back on character select
   // without a run yet started.
   const [pendingMemory, setPendingMemory] = useState(() => loadLastRun())
+  // Marc: "haluan että the outer grove on erillinen map funktionsa ja
+  // näkyy shopping phasen jälkeen" (I want 'The Outer Grove' to be its
+  // own separate map screen, shown after the shopping phase) -
+  // followed by "sitä ei tarvita shopping phasessa näyttää" (it
+  // doesn't need to show during the shop phase). RunMap used to render
+  // as a persistent strip at the top of shop/choice/relic/formation
+  // alike; now it's pulled OUT of the shop screen specifically and
+  // shown as its own dedicated interstitial step right after leaving
+  // shop, before whatever phase comes next (choice/relic/formation -
+  // engine.advanceToNextNode only produces a "choice" phase sometimes,
+  // when the next node is a contested battle slot, so anchoring this
+  // to that phase instead of a plain local flag would have made the
+  // map screen appear inconsistently). Purely a presentation-layer
+  // insert - runEngine.js's phase machine is untouched, the actual
+  // leaveShop() call is just deferred one click.
+  const [showMapAfterShop, setShowMapAfterShop] = useState(false)
 
   // Every one of this component's ~20 handlers funnels through
   // setRunState, so one effect covers all of them rather than a save
@@ -291,25 +307,61 @@ export default function HeartwoodBattle() {
     )
   }
 
+  const topButtons = (
+    <div style={{ display: "flex", gap: 8, padding: "21px 21px 0" }}>
+      {exitLink}
+      <button className="hw-move-btn" onClick={handleChangeCharacter}>
+        Change Commander
+      </button>
+      <button className="hw-move-btn" onClick={() => setShowIntro(true)}>
+        How to Play
+      </button>
+    </div>
+  )
+
   const changeCharacterBar = (
     <>
-      <div style={{ display: "flex", gap: 8, padding: "21px 21px 0" }}>
-        {exitLink}
-        <button className="hw-move-btn" onClick={handleChangeCharacter}>
-          Change Commander
-        </button>
-        <button className="hw-move-btn" onClick={() => setShowIntro(true)}>
-          How to Play
-        </button>
-      </div>
+      {topButtons}
       <RunMap runState={runState} />
     </>
   )
 
+  // The dedicated map interstitial (see showMapAfterShop's own comment
+  // above) - shown once, right after leaving shop, before whatever
+  // phase actually comes next. MUST be checked BEFORE the "shop"
+  // branch below: arming showMapAfterShop deliberately does NOT change
+  // runState.phase yet (still "shop" - handleLeaveShop is deferred
+  // until this screen's own Continue is clicked), so if the shop
+  // check ran first it would always win and this branch would never
+  // be reached. Real bug caught via a live click-through, not assumed
+  // safe from reading the JSX order - a first attempt had these two
+  // checks the other way around and silently never showed the map at
+  // all (both clicks landed back on the shop screen, `runState.phase`
+  // never moved).
+  if (showMapAfterShop) {
+    return (
+      <div className="hw-root" style={rootStyle} data-screen="map-after-shop">
+        {topButtons}
+        <RunMap runState={runState} />
+        <div style={{ padding: "0 21px" }}>
+          <button
+            className="hw-end-turn"
+            onClick={() => {
+              handleLeaveShop()
+              setShowMapAfterShop(false)
+            }}
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (runState.phase === "shop") {
     return (
       <div className="hw-root" style={rootStyle}>
-        {changeCharacterBar}
+        {topButtons}
         <SquadDraft
           runState={runState}
           onRecruit={handleRecruit}
@@ -325,7 +377,7 @@ export default function HeartwoodBattle() {
           onToggleFreeze={handleToggleFreeze}
           onUseCommanderActive={handleUseCommanderActive}
           onReroll={handleReroll}
-          onContinue={handleLeaveShop}
+          onContinue={() => setShowMapAfterShop(true)}
           showIntro={showIntro}
           onDismissIntro={dismissIntro}
         />
