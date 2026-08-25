@@ -3197,3 +3197,40 @@ can't hold itself together."
 - Ends the same way as the Core Choice/Echo Guardian scenes above -
   Stabilize vs Release - explicitly "a bossfight that ends without a
   boss, only a choice."
+
+### Echo Age - final scene (closing dialogue for the Core Choice)
+
+The actual closing-scene dialogue for the Echo Age's ending (the
+mechanical Core Choice/Final Balance Ritual above, staged as a real
+cutscene):
+
+As the Rift destabilizes (roots trembling, shadows tearing, the C-∞
+glyph flickering uncontrollably), Spacemonkey's echo condenses beside
+the player - not as a character, but as memory's last version. He
+doesn't smile, doesn't fear, doesn't run:
+
+Spacemonkey (echo): "Minä en pysy enää. Mutta sinä voit päättää, pysyykö
+muisto... vai vapautuuko se." (I don't stay anymore. But you can decide
+whether the memory stays... or is released.)
+
+The forest's roots rise around the player - not binding, asking: "Sinä
+toit muiston. Sinä annoit sen kasvaa. Mutta jos se kasvaa vielä... se
+ylikirjoittaa meidät." (You brought the memory. You let it grow. But if
+it grows further... it will overwrite us.) Explicitly not a plea for
+rescue - a plea for balance.
+
+The choice itself is framed: "Valinta ei kerro, kuka Marc on. Valinta
+kertoo, miksi Marc on." (The choice doesn't say who the player is. It
+says why the player is.) Three closing variants depending on the
+choice: Stabilize -> "the rift closes like a breath"; Release -> "the
+rift spreads like light"; a balanced resolution -> "the rift survives,
+living on inside the forest" (this third outcome maps to the Echo
+Guardian scene's "Guardian merges into the player" ending above).
+
+Final exchange, Spacemonkey's echo touching the player one last time:
+"Sinä et juossut. Sinä et jättänyt minua. Sinä annoit muiston elää."
+(You didn't run. You didn't leave me. You let the memory live.) Forest,
+closing: "Echo Age päättyy. Mutta muisto... se jatkaa." (The Echo Age
+ends. But the memory... continues.) Fade out - Heartwood continues (not
+"Heartwood 2," consistent with Marc's explicit instruction this arc is
+a continuation of the current game).
