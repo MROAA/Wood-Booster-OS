@@ -175,6 +175,26 @@ const RUN_PATH = [
 // longer produces the same felt scarcity.
 const START_ESSENCE = 4
 const WIN_ESSENCE = 4
+// Marc: "now it doesn't feel like anything purchasing the units or
+// items" - the Essence RATE has already been tuned back and forth
+// this session (bumped +50%, then cut 5/6->4/4 for "opportunity
+// cost"), but a fresh stress-test run (heartwood-stress-test.mjs)
+// showed the real, untouched root cause: with no bench limit at all,
+// a fully-engaged bot ends a run with 36-47 owned units - every
+// purchase was accumulating bench filler, never actually competing
+// against anything already owned. TFT/Guildrun-standard autobattlers
+// (Marc's own named reference) all cap the bench for exactly this
+// reason - scarcity of SLOTS, not just of Essence, is what makes each
+// individual recruit a real decision. Marc's own explicit number:
+// "bench size 12 is too big, i want parties of 5 as max" - only 1
+// slot beyond the 4 deployable ones, a genuinely tight economy where
+// building toward a fusion means deliberately pulling a unit OUT of
+// the active party to make room, a real trade-off rather than free
+// hoarding space on the side. Buying a 3rd copy of an already-2-owned
+// unit is exempt (recruitUnit below) since that purchase immediately
+// fuses and nets the bench SMALLER, not bigger - it should never be
+// blocked by the same cap it's about to shrink under.
+export const BENCH_CAP = 5
 const FORMATION_BONUS_ESSENCE = 2
 // Minibosses (Deepwarden, Thornmaw, Wyrmgall) are a harder win than even a
 // formation fight - a bigger payout than FORMATION_BONUS_ESSENCE, same
@@ -394,6 +414,14 @@ export function startRun(characterId) {
 export function recruitUnit(runState, unitDefId) {
   const def = UNITS[unitDefId]
   if (!def || runState.essence < def.recruitCost || !runState.shopOffers.includes(unitDefId)) return runState
+
+  // BENCH_CAP (above): buying a 3rd copy of an already-2-owned unit
+  // fuses immediately and shrinks the bench by 2, so it's exempt -
+  // the cap exists to stop pure hoarding, not to block the one
+  // purchase that actively relieves it.
+  const alreadyOwned = runState.bench.filter((e) => e.defId === unitDefId).length
+  const willFuse = alreadyOwned >= 2
+  if (!willFuse && runState.bench.length >= BENCH_CAP) return runState
 
   const newKey = runState.benchKeyCounter
   const withNew = [...runState.bench, { key: newKey, defId: unitDefId, upgradeLevel: 0 }]
