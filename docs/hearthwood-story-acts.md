@@ -1860,6 +1860,31 @@ Cosmic +1/0/+3 (disrupts DNA, more Echo-mutations); Hollow 0/0/+∞
 
 ---
 
+## Hearthwood Card Frame UI (Marc's written design)
+
+*"Kortti ei ole esine. Kortti on rituaali."* (A card isn't an object. A
+card is a ritual.) Same note as the Battlefield UI section above: this
+describes a hand-of-cards frame (cost as a candle, DNA glyphs, spell/
+curse card types) that doesn't match the actual game - `UnitCard.jsx`
+already has its own real, working frame (cost/HP corner stats, tribe
+icons, move-pattern icons). Captured as pure aesthetic-language
+reference: wood-carved frame, root-bar stat display, per-element sigil,
+build-reactive hover/glow - not a literal spec to implement as-is.
+
+Frame structure: cost as a "ritual candle" (top-left), carved name (top
+edge), art bleeding past the frame (center), a "root bar" for
+attack/HP/effects (bottom edge), an elemental sigil (bottom-left), a
+DNA glyph showing S-R-E (bottom-right). Card types (Unit/Spell/Curse/
+Hollow) each get distinct frame treatment; hover lifts the card off its
+roots and dims the background; reaching Act V shifts every card's DNA
+glyph to C-∞ and its carving to violet.
+
+**One-sentence summary**: Hearthwood's card frame isn't a UI element -
+it's a ritual artifact, reacting to the build, the DNA system, and the
+forest's emotions.
+
+---
+
 ## Hearthwood Battlefield UI (Marc's written design)
 
 *"Taistelukenttä ei ole areena. Se on rituaali."* (The battlefield isn't
