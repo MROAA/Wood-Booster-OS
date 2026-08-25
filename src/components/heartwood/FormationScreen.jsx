@@ -6,7 +6,7 @@ import { resolveFormation } from "../../data/heartwood/formations"
 import { resolveTrial } from "../../data/heartwood/trials"
 import { TRIBES, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
-import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies } from "../../services/heartwood/runEngine"
+import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies, RUN_PATH } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
 import { CardGlyph } from "./cardArt"
@@ -79,7 +79,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // header - this pre-battle screen is the other place a run's
   // progress is visible, and the fight about to start is exactly what
   // that ramp is scaling.
-  const difficultyTier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
+  const difficultyTier = difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)
   // Act intro (Marc: "make a progressive story") - shown exactly once,
   // the first FormationScreen visit reached after the run crosses into
   // a new difficulty tier. Comparing against nodeIndex-1 directly isn't
@@ -100,7 +100,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   for (let i = runState.nodeIndex - 1; i >= 0; i--) {
     const prevNode = runState.path[i]
     if (prevNode?.type !== "shop" && prevNode?.type !== "relic") {
-      previousFormationTier = difficultyTierForNode(i, runState.path.length).name
+      previousFormationTier = difficultyTierForNode(i, RUN_PATH.length).name
       break
     }
   }

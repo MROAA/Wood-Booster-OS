@@ -33,7 +33,13 @@ import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEn
 // structural choice mechanic, not just more units/enemies, added after
 // Marc said the game still felt "boring and simple" despite several
 // content rounds: volume alone wasn't the gap, a genuine new layer was.
-const RUN_PATH = [
+// Exported now that it doubles as the run's fixed SHAPE reference
+// (RunEndOverlay.jsx's own totalFights count needs the whole run's
+// fight-type count, not just how far a given run got - see
+// advanceToNextNode's comment above for why the type/position
+// sequence here stays authoritative even though a battle SLOT's exact
+// enemyId content is now decided at play-time, not fixed here).
+export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", formationId: "rotwood-husk-pair" },
   { type: "shop" },
@@ -240,6 +246,86 @@ function phaseForNode(node) {
   return "formation"
 }
 
+// Branching path (Marc, direct, twice: "haluan tarinankerronnan kuin
+// slay the spiressä. pelaaja etenee tietä pitkin missä on eri
+// tapahtumia ja vihollisia ja minibosseja" - I want storytelling like
+// Slay the Spire, the player advances along a path with different
+// events/enemies/minibosses to choose between - and later "peli on
+// vielä todella tylsä pelata" - the game is still really boring to
+// play). RUN_PATH's own SHAPE (which position is shop/relic/battle/
+// miniboss/boss, and every miniboss/boss Trial's fixed identity/
+// position) stays completely untouched - deliberately, since that
+// shape carries a lot of separately fairness-tested difficulty pacing
+// (see DIFFICULTY_TIERS/difficultyFactorForNode's own extensive
+// history below) and every Trial's story beat is tied to an exact
+// position in the run. Only "battle" SLOTS become real choices: at
+// `startRun`, every battle-type RUN_PATH entry is pulled out into
+// `battlePool`, in original order. Reaching a battle-type position now
+// offers the front 2 pool entries as a real pick between two different
+// upcoming fights - whichever ISN'T picked returns to the front of the
+// pool and is offered again at the very next battle-type position,
+// instead of being lost. That guarantees every battle RUN_PATH already
+// defines still gets fought exactly once somewhere in the run (no
+// content lost, no fight count changed, no shop/essence cadence
+// changed) - only the ORDER becomes a real player decision, which is
+// what actually makes it "a path with different enemies to choose
+// between" rather than a re-skinned linear corridor.
+//
+// `path` keeps meaning exactly what it always meant (`path[nodeIndex]`
+// is the current/most-recently-resolved node, growing by one entry per
+// position advanced) - it's just no longer reattachable from the
+// static RUN_PATH on load, since which battle landed at which position
+// is now a real per-run, choice-driven outcome. See serializeRun's own
+// updated note below.
+function battleSlotsOf(runPath) {
+  return runPath.filter((n) => n.type === "battle")
+}
+
+// Shared by leaveShop/chooseRelic/resolveBattleOutcome below - all 3
+// used to just do `nodeIndex + 1; path[nodeIndex]` inline, identically.
+// Non-battle positions (shop/relic/miniboss/boss) resolve immediately,
+// unchanged from before. A battle position with 2+ pool entries left
+// stops short of resolving - sets `phase: "choice"` and stashes the 2
+// options in `floorChoices`, WITHOUT advancing nodeIndex/path yet, so
+// `path.length === nodeIndex + 1` still holds the instant a choice is
+// pending (nothing has been "entered" yet - the player is still
+// standing at the previous node, deciding). chooseFloorEncounter below
+// is the only thing that actually resolves a pending choice.
+function advanceToNextNode(runState) {
+  const nextIndex = runState.nodeIndex + 1
+  const template = RUN_PATH[nextIndex]
+  if (template?.type !== "battle") {
+    return { nodeIndex: nextIndex, path: [...runState.path, template], battlePool: runState.battlePool, floorChoices: null, phase: phaseForNode(template) }
+  }
+  const pool = runState.battlePool
+  if (pool.length <= 1) {
+    const chosen = pool[0] ?? template
+    return { nodeIndex: nextIndex, path: [...runState.path, chosen], battlePool: [], floorChoices: null, phase: phaseForNode(chosen) }
+  }
+  const [a, b, ...rest] = pool
+  return { nodeIndex: runState.nodeIndex, path: runState.path, battlePool: rest, floorChoices: [a, b], phase: "choice" }
+}
+
+// Resolves a pending "choice" phase (see advanceToNextNode above) - the
+// chosen option joins `path` for real; the other one returns to the
+// FRONT of `battlePool` so it's offered again at the next battle
+// position rather than lost, keeping every RUN_PATH battle guaranteed
+// to happen exactly once somewhere in the run.
+export function chooseFloorEncounter(runState, choiceIndex) {
+  if (runState.phase !== "choice" || !runState.floorChoices) return runState
+  const chosen = runState.floorChoices[choiceIndex]
+  if (!chosen) return runState
+  const other = runState.floorChoices[1 - choiceIndex]
+  return {
+    ...runState,
+    nodeIndex: runState.nodeIndex + 1,
+    path: [...runState.path, chosen],
+    battlePool: other ? [other, ...runState.battlePool] : runState.battlePool,
+    floorChoices: null,
+    phase: "formation",
+  }
+}
+
 // 3 choices, never a relic already owned (relics don't stack with
 // themselves, just with each other). `tribeCounts` (runEngine.js's own
 // benchTribeCounts, passed in by every call site below) drives the
@@ -403,7 +489,16 @@ export function startRun(characterId, carriedMemory = null) {
     deployed: Array.from({ length: DEPLOY_SLOTS }, () => null),
     essence: START_ESSENCE + (carriedMemory ? MEMORY_ESSENCE_BONUS : 0),
     honoredMemory: carriedMemory || null,
-    path: RUN_PATH,
+    // Branching path (see advanceToNextNode's own comment above): path
+    // now starts with just the fixed first node (always a shop -
+    // RUN_PATH[0]) and grows one real entry at a time as the run is
+    // actually played, rather than being the whole static RUN_PATH
+    // up front. battlePool holds every battle-type RUN_PATH entry,
+    // ready to be offered as choices as the run reaches each battle
+    // position.
+    path: [RUN_PATH[0]],
+    battlePool: battleSlotsOf(RUN_PATH),
+    floorChoices: null,
     nodeIndex: 0,
     phase: "shop",
     marketLevel: 1,
@@ -762,8 +857,7 @@ export function rerollShop(runState) {
 }
 
 export function leaveShop(runState) {
-  const nodeIndex = runState.nodeIndex + 1
-  return { ...runState, nodeIndex, phase: phaseForNode(runState.path[nodeIndex]) }
+  return { ...runState, ...advanceToNextNode(runState) }
 }
 
 export function assignToSlot(runState, slotIndex, benchKey) {
@@ -1095,15 +1189,17 @@ export function chooseRelic(runState, relicId) {
 
   const essence = relicId ? runState.essence - RELICS[relicId].cost : runState.essence
   const relics = relicId ? [...runState.relics, relicId] : runState.relics
-  const nodeIndex = runState.nodeIndex + 1
-  const nextNode = runState.path[nodeIndex]
+  const advanced = advanceToNextNode(runState)
+  // A pending "choice" (see advanceToNextNode above) is never a shop -
+  // it's always a battle position mid-decision - so the shop-entry
+  // side effects below always correctly no-op for it.
+  const nextNode = advanced.phase === "choice" ? null : advanced.path[advanced.path.length - 1]
   const enteringShop = nextNode?.type === "shop"
   return {
     ...runState,
+    ...advanced,
     essence,
     relics,
-    nodeIndex,
-    phase: phaseForNode(nextNode),
     // Freeze (startRun's own note): kept as-is when entering a shop
     // instead of re-rolling, then consumed (cleared) regardless -
     // one-shot, not persistent.
@@ -1195,14 +1291,16 @@ export function resolveBattleOutcome(runState) {
     const node = currentNode(runState)
     if (node.type === "boss") return { ...runState, phase: "victory" }
 
-    const nodeIndex = runState.nodeIndex + 1
-    const nextNode = runState.path[nodeIndex]
+    const advanced = advanceToNextNode(runState)
+    // A pending "choice" (see advanceToNextNode above) is never a shop
+    // or relic node - it's always a battle position mid-decision - so
+    // the shop/relic-entry side effects below always correctly no-op.
+    const nextNode = advanced.phase === "choice" ? null : advanced.path[advanced.path.length - 1]
     const enteringShop = nextNode?.type === "shop"
     return {
       ...runState,
+      ...advanced,
       essence: runState.essence + essenceForWin(runState, node),
-      nodeIndex,
-      phase: phaseForNode(nextNode),
       shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1, benchTribeCounts(runState))) : runState.shopOffers,
       itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
       frozen: enteringShop ? false : runState.frozen,
@@ -1222,13 +1320,15 @@ export function resolveBattleOutcome(runState) {
 // it already owns startRun's shape and is the one place that knows what
 // a valid runState looks like.
 //
-// `path` is deliberately dropped before saving and rebuilt on load
-// (currently just re-attaching the same RUN_PATH constant every run
-// produces already) rather than serialized - RUN_PATH is the same ~90-
-// entry array for every run today, so storing it on every save would
-// be pure waste. This is also the seam a future Trial-selection system
-// can hook into (rebuild `path` from a small saved selection instead of
-// the raw array) without changing the save shape's meaning.
+// `path` USED to be droppable and rebuilt on load by just re-attaching
+// the static RUN_PATH constant, since every run produced the exact
+// same one. That's no longer true (see advanceToNextNode's own comment
+// above) - which battle landed at which position is now a real,
+// choice-driven, per-run outcome, so `path` (and the still-pending
+// `battlePool`/`floorChoices`) must be saved for real. Bumped
+// RUN_SAVE_VERSION so an old (pre-branching) save fails the version
+// check cleanly and falls through to character select instead of being
+// misread as a graph-shaped one - not a sign persistence itself broke.
 //
 // Saving mid-battle (battle is NOT stripped) is deliberate, not an
 // oversight: skipping battle saves would let a reload re-roll a losing
@@ -1238,15 +1338,14 @@ export function resolveBattleOutcome(runState) {
 // produces (autoBattleEngine.js) is plain data throughout - grid,
 // commanderDef, enemyDefs are all plain objects/arrays, never functions
 // or class instances - so a JSON round-trip is lossless.
-export const RUN_SAVE_VERSION = 1
+export const RUN_SAVE_VERSION = 2
 
 export function serializeRun(runState) {
   if (!runState) return null
-  const { path: _path, ...rest } = runState
-  return { version: RUN_SAVE_VERSION, savedAt: Date.now(), run: rest }
+  return { version: RUN_SAVE_VERSION, savedAt: Date.now(), run: runState }
 }
 
-const VALID_PHASES = new Set(["shop", "relic", "formation", "battle", "victory", "defeat"])
+const VALID_PHASES = new Set(["shop", "relic", "formation", "battle", "choice", "victory", "defeat"])
 
 // Any failure here - wrong version, corrupted JSON, a shape that
 // doesn't match what this build of the game expects - returns null and
@@ -1259,5 +1358,7 @@ export function deserializeRun(saved) {
   if (!CHARACTERS[run.characterId]) return null
   if (!VALID_PHASES.has(run.phase)) return null
   if (typeof run.nodeIndex !== "number" || run.nodeIndex < 0 || run.nodeIndex >= RUN_PATH.length) return null
-  return { ...run, path: RUN_PATH }
+  if (!Array.isArray(run.path) || run.path.length !== run.nodeIndex + 1) return null
+  if (!Array.isArray(run.battlePool)) return null
+  return run
 }

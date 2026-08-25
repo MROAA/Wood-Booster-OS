@@ -17,6 +17,7 @@ import {
   difficultyTierForNode,
   RESERVE_CAP,
   DEPLOY_SLOTS,
+  RUN_PATH,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -57,21 +58,28 @@ export default function SquadDraft({
   const activePower = commander?.activePower
   const activePowerUsed = !!runState.activePowerUsedThisShop
   const primed = (runState.pendingActiveEffects || []).length > 0
-  // "Up next" preview - RUN_PATH (runEngine.js) is fixed and fully
-  // known ahead of time, so the fight right after this shop visit is
-  // always resolvable from runState.path/nodeIndex alone. A real
-  // pre-battle planning cue (recruit differently knowing a swarm vs. a
-  // single shielding puzzle is coming) that cost nothing new to derive
-  // - same resolveFormation lookup FormationScreen.jsx already uses
-  // for the CURRENT fight, one node further ahead.
-  const nextNode = runState.path[runState.nodeIndex + 1]
-  const nextFormation = nextNode ? resolveFormation(nextNode.formationId || nextNode.enemyId) : null
+  // "Up next" preview - RUN_PATH's own SHAPE (which position is shop/
+  // relic/battle/miniboss/boss) is still fixed and known ahead of time,
+  // but since the branching-path work (runEngine.js's advanceToNextNode)
+  // a "battle" position's actual enemy is no longer decided until the
+  // player picks it at a choice screen - runState.path itself only
+  // holds nodes already visited, so path[nodeIndex + 1] doesn't exist
+  // yet. Anchors (miniboss/boss/relic) stay fully previewable exactly
+  // as before (their content was never a choice); a "battle" position
+  // shows a generic cue instead of a specific enemy name.
+  const nextTemplate = RUN_PATH[runState.nodeIndex + 1]
+  const nextFormation =
+    nextTemplate && nextTemplate.type !== "battle" ? resolveFormation(nextTemplate.formationId || nextTemplate.enemyId) : null
   const nextLabel =
-    nextNode?.type === "boss"
+    nextTemplate?.type === "boss"
       ? "Boss"
-      : nextNode?.type === "miniboss"
-        ? `Miniboss: ${ENEMIES[nextNode.enemyId]?.name || ""}`
-        : nextFormation?.name || ENEMIES[nextFormation?.pieces?.[0]?.defId]?.name
+      : nextTemplate?.type === "miniboss"
+        ? `Miniboss: ${ENEMIES[nextTemplate.enemyId]?.name || ""}`
+        : nextTemplate?.type === "relic"
+          ? "Relic"
+          : nextTemplate?.type === "battle"
+            ? "A fight - you'll choose which"
+            : nextFormation?.name || ENEMIES[nextFormation?.pieces?.[0]?.defId]?.name
   // Progressive-difficulty indicator (Marc: "the game has to have
   // progressive feel to it so it becomes more difficult") -
   // difficultyFactorForNode below has scaled enemy stats since the
@@ -79,7 +87,7 @@ export default function SquadDraft({
   // nothing on screen to say so. Same tier breakpoints as that ramp's
   // own progress curve, so this badge is an honest readout, not
   // decoration bolted onto a number it doesn't track.
-  const difficultyTier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
+  const difficultyTier = difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)
   // Tribe-match highlight (Battlegrounds/TFT "this fits your board") -
   // computed from the whole bench, not just deployed units, since at
   // shop time the player may not have finished placing this visit's

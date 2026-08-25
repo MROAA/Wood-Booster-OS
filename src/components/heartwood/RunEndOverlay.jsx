@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveTrial } from "../../data/heartwood/trials"
+import { RUN_PATH } from "../../services/heartwood/runEngine"
 
 // Distinct from the per-fight ResultOverlay.jsx (which still plays out
 // after each individual battle) - this is the run's actual ending,
@@ -23,7 +24,15 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathM
   // that ended the run - not a win, so only nodes strictly BEFORE it
   // count as cleared; on a win, every fight in the path was cleared by
   // definition, nodeIndex included.
-  const totalFights = (path || []).filter(isFightNode).length
+  //
+  // totalFights reads from RUN_PATH (the run's fixed SHAPE), not
+  // `path` (what was actually visited) - since the branching-path work
+  // (runEngine.js's advanceToNextNode), `path` only ever holds nodes
+  // reached SO FAR, not the whole run, so it can no longer answer "how
+  // many fights does a full run have." RUN_PATH's own type/position
+  // sequence is unaffected by which specific enemy ends up filling a
+  // given battle slot, so its fight-type count is still exactly right.
+  const totalFights = RUN_PATH.filter(isFightNode).length
   const clearedThrough = won ? nodeIndex + 1 : nodeIndex
   const fightsCleared = (path || []).slice(0, clearedThrough).filter(isFightNode).length
   // The final boss's own Trial (trials.js), if one wraps it - a win
