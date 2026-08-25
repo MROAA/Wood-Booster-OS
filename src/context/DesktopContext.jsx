@@ -24,6 +24,7 @@ import DevStudio from "../pages/DevStudio.jsx"
 import ProjectWorkspace from "../pages/ProjectWorkspace.jsx"
 import SpiderSolitaire from "../pages/SpiderSolitaire.jsx"
 import HeartwoodBattle from "../pages/HeartwoodBattle.jsx"
+import HeartwoodAssistant from "../pages/HeartwoodAssistant.jsx"
 import AIGenerator from "../pages/AIGenerator.jsx"
 import Altrako from "../pages/Altrako.jsx"
 import GitGuardianCard from "../components/systemPulse/GitGuardianCard.jsx"
@@ -55,6 +56,7 @@ export const APPS = {
   projectworkspace: { title: "Projektityötila", icon: "🗂", component: ProjectWorkspace, defaultWidth: 920, defaultHeight: 600 },
   spidersolitaire: { title: "Spider-pasianssi", icon: "♤", component: SpiderSolitaire, defaultWidth: 900, defaultHeight: 650 },
   heartwood: { title: "Hearthwood", icon: "🜏", component: HeartwoodBattle, defaultWidth: 900, defaultHeight: 650 },
+  heartwoodassistant: { title: "Heartwood Assistant", icon: "🧭", component: HeartwoodAssistant, defaultWidth: 980, defaultHeight: 700 },
   aigenerator: { title: "AI Generator", icon: "✦", component: AIGenerator, defaultWidth: 620, defaultHeight: 640 },
   altrako: { title: "Altrako", icon: "🍌", component: Altrako, defaultWidth: 640, defaultHeight: 600 },
   devverificationviewer: { title: "Tarkistustulos", icon: "🧪", component: VerificationResultViewer, defaultWidth: 700, defaultHeight: 600 },
