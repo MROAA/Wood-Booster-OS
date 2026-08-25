@@ -59,10 +59,18 @@ export default function RunMap({ runState }) {
         {tier.name}
       </div>
       <div className="hw-run-track" ref={trackRef}>
+        <div className="hw-run-line" />
         {runState.path.map((n, i) => {
           const isCurrent = i === runState.nodeIndex
           const isDone = i < runState.nodeIndex
           const isMajor = n.type === "miniboss" || n.type === "boss"
+          // Shop/relic stops are routine, not story beats - visually
+          // quieter than a battle so the eye lands on the fights (the
+          // actual points of interest) instead of the market icon that
+          // repeats every other node. Same "quiet vs loud" instinct the
+          // status-badge work applied to combat, applied here to the
+          // path itself.
+          const isMinor = n.type === "shop" || n.type === "relic"
           return (
             <div
               key={i}
@@ -71,6 +79,7 @@ export default function RunMap({ runState }) {
               data-current={isCurrent}
               data-done={isDone}
               data-major={isMajor}
+              data-minor={isMinor}
               title={nodeLabel(n)}
             >
               <CardGlyph name={nodeGlyph(n)} className="hw-piece-glyph" style={{ color: nodeColor(n) }} />
