@@ -15,6 +15,7 @@ import {
   marketLevelCost,
   benchTribeCounts,
   difficultyTierForNode,
+  BENCH_CAP,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -398,23 +399,34 @@ export default function SquadDraft({
           <div className="hw-select-grid hw-deck-preview">
             {offers.map((def) => {
               const owned = runState.bench.filter((e) => e.defId === def.id).length
+              const willFuse = owned >= 2
+              const benchFull = !willFuse && runState.bench.length >= BENCH_CAP
               const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
               return (
                 <div key={def.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <UnitCard
                     def={def}
-                    disabled={runState.essence < def.recruitCost}
+                    disabled={runState.essence < def.recruitCost || benchFull}
                     onClick={() => onRecruit(def.id)}
                     tribeMatch={tribeMatch}
                     frozen={!!runState.frozen}
                   />
-                  {owned >= 2 && (
+                  {willFuse && (
                     <div
                       className="hw-badge"
                       style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
                       title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
                     >
                       Fuses now! ({owned}/3 owned)
+                    </div>
+                  )}
+                  {benchFull && (
+                    <div
+                      className="hw-badge"
+                      style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+                      title={`Bench is full (${BENCH_CAP}/${BENCH_CAP}) - sell or fuse to make room`}
+                    >
+                      Bench full
                     </div>
                   )}
                 </div>
@@ -490,7 +502,9 @@ export default function SquadDraft({
             </>
           )}
 
-          <div className="hw-section-label">Your bench ({runState.bench.length})</div>
+          <div className="hw-section-label">
+            Your bench ({runState.bench.length}/{BENCH_CAP})
+          </div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
             Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop.
           </p>
