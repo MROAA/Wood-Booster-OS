@@ -1087,7 +1087,15 @@
    card is reused for the player's own squad in the autobattler (both
    in FormationScreen's battlefield preview and in AutoBattleView), and
    "your unit reads red/dangerous" would undo the whole point of the
-   earlier gold-vs-red "ally vs threat reads by color alone" fix. */
+   earlier gold-vs-red "ally vs threat reads by color alone" fix.
+   That earlier fix picked --hw-ember (#b97b3f) for player vs --hw-hp
+   (#b3503f) for enemy - both warm reddish-browns close enough in hue
+   and lightness that a real screenshot audit showed them reading as
+   the same rust-brown card at a glance, defeating the whole point.
+   --hw-moss (green) is used instead - already the established "this
+   is good/yours" color everywhere else in the game (tribe-match ring,
+   synergy-met badge, move-target pulse), so player-vs-enemy now reads
+   as a real green-vs-red split, not two shades of the same color. */
 .hw-piece[data-side="enemy"] {
   color: var(--hw-hp);
   border: 2px solid color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
@@ -1095,9 +1103,9 @@
 }
 
 .hw-piece[data-side="player"] {
-  color: var(--hw-ember);
-  border: 2px solid color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
-  background: color-mix(in srgb, var(--hw-ember) 10%, var(--hw-card));
+  color: var(--hw-moss);
+  border: 2px solid color-mix(in srgb, var(--hw-moss) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-moss) 10%, var(--hw-card));
 }
 
 .hw-piece[data-highlighted="true"] {
