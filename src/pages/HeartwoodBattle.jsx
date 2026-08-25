@@ -389,7 +389,11 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root" style={rootStyle}>
         {changeCharacterBar}
-        <FloorChoice runState={runState} onChoose={handleChooseFloorEncounter} />
+        <FloorChoice
+          runState={runState}
+          onChoose={handleChooseFloorEncounter}
+          difficultyTier={difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)}
+        />
       </div>
     )
   }
