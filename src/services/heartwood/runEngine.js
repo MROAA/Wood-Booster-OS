@@ -136,7 +136,7 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", formationId: "bonewardens-watch" },
   { type: "shop" },
-  { type: "miniboss", enemyId: "wyrmgall" },
+  { type: "miniboss", enemyId: "wyrmgall", trialId: "veilbound" },
   { type: "shop" },
   { type: "battle", formationId: "the-hollow-court" },
   { type: "shop" },
@@ -144,7 +144,7 @@ const RUN_PATH = [
   { type: "battle", formationId: "the-unbroken-root" },
   { type: "battle", formationId: "the-withering-pact" },
   { type: "shop" },
-  { type: "boss", enemyId: "spacemonkey" },
+  { type: "boss", enemyId: "spacemonkey", trialId: "hollow-king" },
 ]
 
 // Marc: "essenceä on liian vähän siinä pitää olla ekonomia" (there's

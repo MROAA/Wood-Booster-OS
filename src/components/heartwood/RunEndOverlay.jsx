@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { resolveTrial } from "../../data/heartwood/trials"
 
 // Distinct from the per-fight ResultOverlay.jsx (which still plays out
 // after each individual battle) - this is the run's actual ending,
@@ -25,6 +26,12 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun }) {
   const totalFights = (path || []).filter(isFightNode).length
   const clearedThrough = won ? nodeIndex + 1 : nodeIndex
   const fightsCleared = (path || []).slice(0, clearedThrough).filter(isFightNode).length
+  // The final boss's own Trial (trials.js), if one wraps it - a win
+  // here shows its written victoryLine instead of the raw enemy's own,
+  // same "story identity overrides presentation, never touches combat"
+  // pattern every other Trial already uses.
+  const bossNode = (path || []).find((n) => n.type === "boss")
+  const bossTrial = resolveTrial(bossNode?.trialId)
 
   return (
     <motion.div
@@ -50,7 +57,7 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun }) {
         </div>
         <p className="hw-flavor">
           {won
-            ? ENEMIES.spacemonkey.victoryLine
+            ? bossTrial?.victoryLine || ENEMIES.spacemonkey.victoryLine
             : "The Hearthwood keeps no memory of you. Another trial can always begin fresh."}
         </p>
         {totalFights > 0 && (
