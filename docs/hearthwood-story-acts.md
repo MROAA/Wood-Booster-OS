@@ -1731,3 +1731,55 @@ candles extinguish, the forest whispers: *"Palaa pian."* (Come back soon.)
 **One-sentence summary**: Hearthwood's main menu isn't a UI - it's the
 forest's ritual chamber, reacting to the build, the story, and the
 player's choices.
+
+---
+
+## Hearthwood Evolution Chain (Marc's written compendium)
+
+*"Olennot eivät kehity voimasta. Ne kehityvät tarkoituksesta."*
+(Creatures don't evolve from power. They evolve from purpose.)
+
+A single lineage connecting every named being in the story, base energy
+to final player choice:
+
+| Tier | Beings | Evolution |
+|---|---|---|
+| 1 | Sap Spirits / Rootlings / Heartwood Echoes | Base creatures |
+| 2 | Wood / Ember / Tide / Stone Elementals | Elementals |
+| 3 | Grovekeeper / Ashlord / Flowwarden / Earthshaper | The four great guardians |
+| 4 | Heartwood Warden | The forest's voice |
+| 5 | Hollow King | A child of the void |
+| 6 | The Crownless | A crown without a bearer |
+| 7 | The player | The forest's future |
+
+**How it connects.** All beings are born from three base energies:
+Saplight (the forest's blood), Root Memory, Echo Essence - producing the
+three base creatures (Sap Spirits, Rootlings, Heartwood Echoes). These
+evolve into elementals: Sap Spirits -> Wood Elementals (growth -> shape ->
+guardian), Rootlings -> Stone Elementals (memory -> stability ->
+protector), Heartwood Echoes -> Tide Elementals (reflection -> flow ->
+balancer). Ember Elementals are the one exception - they don't evolve
+from another creature, they're born directly from the need for change.
+
+At a certain "awareness threshold," elementals can become one of the four
+great guardians: Wood -> Grovekeeper, Ember -> Ashlord, Tide ->
+Flowwarden, Stone -> Earthshaper. When the forest chooses one of these
+four, they become the **Heartwood Warden** - the forest's physical
+guardian, the heart's interpreter, the elementals' leader. Not a king -
+the forest's voice.
+
+If a Warden ever accepts the void when it touches them (the heart fears,
+the crown is born, the Veil opens) - a single, unique path that can only
+happen once - **Warden -> Hollow King**. When the Hollow King later
+vanishes into the void, the crown is left without a bearer; since it
+cannot stay empty, it shapes itself into a being: **Hollow King -> The
+Crownless**. The Crownless isn't a king - it's the crown itself.
+
+In Act V, The Crownless tests the player (build identity, morality,
+choices, synergies, courage). If the player passes: **The Crownless ->
+Rooted King / Ember Sovereign / Hollow Crown** - the player doesn't
+evolve into a being, the player shapes the forest's future.
+
+**One-sentence summary**: Hearthwood's evolution isn't a biological
+chain - it's a path through the forest's emotion, memory, and the void,
+ending in a crown the player chooses.
