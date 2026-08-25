@@ -1329,3 +1329,242 @@ The light begins to break apart.
 > Spacemonkey: "Kiitos... että et jättänyt minua yksin." (Thank you... for not leaving me alone.)
 
 The memory collapses into light. The roots absorb it. Fade out.
+
+---
+
+## The Crownless — origin story (Marc's written version)
+
+*"Kruunu ei synny kuninkaasta. Kruunu synnyttää kuninkaan."* (The crown
+isn't born from a king. The crown gives birth to a king.)
+
+**1. Before the Hollow King — the forest had no crown.** Before the
+First, before the Hollow King, before the void, the Heartwood was
+boundless: no king, no throne, no hierarchy - infinite, balanced,
+self-sufficient, undivided. It needed no leader, no guardian. But it
+needed a heart. The heart was the forest's real power - not a crown.
+
+**2. The heart's first fear — the crown is born.** When the void touched
+the forest for the first time, the heart was frightened. The void wasn't
+evil, wasn't a threat - it was just a stranger. But the heart didn't
+understand that. The heart did what all living things do in a moment of
+fear: it built a shelter. That shelter became the crown. The crown wasn't
+an object. It was: a memory, a power, a role, a responsibility, a fear, a
+hope. The crown waited for a bearer.
+
+**3. The first bearer — the Hollow King.** The First found the crown -
+not because he wanted power, but because the heart needed him. The crown
+shaped itself around him - not physically, not visibly, but the roots
+bent to his will, the elementals listened to him, the forest spoke to him
+more clearly than to anyone else. He became the Hollow King - not
+because he wanted to be a king, but because the crown chose him.
+
+**4. The crown's tragedy — it cannot be empty.** When the Hollow King
+vanished into the void, the crown was left without a bearer. The crown
+cannot be empty. It cannot disappear. It cannot die. The crown is the
+heart's fear and hope at once. Without a bearer, the crown: cracks,
+searches, changes the forest, weakens the heart, calls the void back. The
+forest didn't fear the Hollow King. The forest feared the empty crown.
+
+**5. The Crownless is born — a crown without a king.** When the Hollow
+King vanished, the crown couldn't find a new bearer. It couldn't choose:
+the Warden (too bound to the roots), the elementals (too bound to their
+own roles), Spacemonkey (too afraid, too guilty), the forest itself (too
+fragile). The crown remained crownless. And from the crownless crown, a
+being was born: **The Crownless.** The Crownless is not a king, not a
+guardian, not a creature, not a memory, not the void, not the forest. The
+Crownless is the crown itself.
+
+**6. The Crownless's purpose — to test, not to rule.** The Crownless
+doesn't fight. Doesn't lead. Doesn't protect. Its task is: to mirror the
+player, to test the build's identity, to test morality, to test choices,
+to test the forest's future. The Crownless doesn't ask "Can you win?" It
+asks: "Who are you?"
+
+**7. Why does the Crownless choose Marc?** Because Marc: heard the
+forest's whisper in Act I, saw the heart's crack in Act II, faced the
+void in Act III, understood the Hollow King in Act IV, carries the
+forest's trust in Act V. Marc isn't a king. Marc isn't a guardian. Marc
+is a choice. And the crown chooses him.
+
+**One-sentence summary**: The Crownless isn't a creature - it's the crown
+itself, born from the forest's fear, waiting for a bearer who doesn't
+fear the truth.
+
+---
+
+## Hearthwood Lore Book (Marc's written compendium)
+
+*"Metsä ei ole paikka. Metsä on muisto."* (The forest isn't a place. The
+forest is a memory.)
+
+A full worldbuilding compendium Marc wrote covering the whole cosmology.
+Most of it restates what's already captured above in more detail (the
+Hollow King's origin, the Crownless's origin, Spacemonkey's arc, the
+three endings) - only the genuinely new foundational material is
+transcribed here; see the matching sections above for the fuller
+versions of the rest.
+
+**I. The forest's birth.** The Heartwood wasn't born from a seed. It was
+born from a memory - the first thought that wanted to grow. The forest
+was boundless, eternal, balanced, without a leader, without fear. The
+heart was its core. The roots were its language. Light was its will.
+
+**The first beings**, created before the elementals, before guardians,
+before the void:
+- **Sap Spirits** - the forest's voice
+- **Rootlings** - the shape of the roots
+- **Heartwood Echoes** - reflections of the heart
+
+These beings weren't alive in the ordinary sense - they were thoughts
+that took form.
+
+**II. The Age of Elementals.** As the forest grew, it split into four
+wills: Wood (growth, peace, continuity), Ember (power, change,
+aggression), Tide (balance, flow, cycles), Stone (stability, protection,
+memory). The elementals weren't enemies - they were the forest's own
+emotions, given a body. When the heart weakened, the elementals began to
+argue: Wood wanted a return to peace, Ember wanted to burn the corruption
+away, Tide wanted balance, Stone wanted permanence. The conflict wasn't a
+war - it was the heart's own crack, reflected in the elements.
+
+**III. The void's origin.** The Veil isn't a gate. It's the border where
+reality ends and something else begins. The void isn't dark, evil, or a
+threat. It is: silence, shape without content, thought without sound,
+loneliness. (What happened when the void first touched the forest, and
+how fear created the crown, is covered in full in "The Crownless — origin
+story" above.)
+
+**IX. Hearthwood's core line**: Hearthwood isn't the story of a king who
+fell - it's the story of a crown that waited for a bearer who doesn't
+fear the truth.
+
+---
+
+## Hearthwood Bestiary (Marc's written compendium)
+
+*"Olennot eivät synny metsään. Metsä muistaa ne."* (Creatures aren't born
+into the forest. The forest remembers them.)
+
+Core line: **the creatures of Hearthwood aren't enemies - they're the
+forest's emotions, memories, and fears, given form.**
+
+Each entry: nature / role / specialty / danger level. Several entries
+have a "write more" note from Marc (his own flagged gap, not mine) -
+marked below.
+
+**I. Forest creatures**
+1. **Sap Spirits** - small green points of light, the forest's voice.
+   Gentle, warning. Role: the forest's messengers. Speak only to those
+   who matter. Danger: minimal. *(Marc flagged: wants more Sap Spirit lore.)*
+2. **Rootlings** - small beings born from roots. Curious,
+   childishly wise. Role: guardians of the roots. Can "taste" corruption.
+   Danger: low. *(Marc flagged: wants a Rootling encounter scene.)*
+3. **Heartwood Echoes** - memories of the heart given form. Calm, sad.
+   Role: the heart's messages. Show the future without words. No combat.
+   *(Marc flagged: wants this lore expanded.)*
+
+**II. Elementals**
+4. **Wood Elementals** - creatures of growth and peace. Gentle but
+   determined. Role: the forest's caretakers. Can grow roots mid-battle.
+   Danger: medium.
+5. **Ember Elementals** - creatures of fire and change. Impulsive,
+   powerful. Role: burn away corruption. Can shift into flame. Danger: high.
+6. **Tide Elementals** - creatures of balance and flow. Calm, analytical.
+   Role: guardians of the cycles. Can slow or speed up time. Danger: medium.
+7. **Stone Elementals** - creatures of memory and stability. Slow, wise.
+   Role: carriers of the forest's history. Can remember the player's
+   choices. Danger: low-medium.
+
+**III. Cosmic creatures**
+8. **Veilbound** - a being born from the border of reality. Neutral,
+   inquisitive. Role: guardian of the Veil. Constantly shifting shape.
+   Danger: high. *(Marc flagged: wants the Veilbound's warning expanded.)*
+9. **Rift Guardians** - guardians of tears in time and space. Cold,
+   logical. Role: test the build's balance. Attacks based on time loops.
+   Danger: high.
+10. **Echo Market Spirits** - void merchants. Tempting, dangerous. Role:
+    offer power at the cost of corruption. Their "deals" change the
+    player's build. Danger: psychological.
+
+**IV. Void creatures**
+11. **Hollow Heralds** - messengers of the void. Sad, truthful. Role:
+    reveal the player's fears. Deal no damage - only reveal. Danger: low.
+12. **Hollow Echoes** - memories of the Hollow King. Fragile, echoing.
+    Role: show the king's past. Change based on the player's choices. No combat.
+13. **The Hollow King** - a child of the void, the forest's former
+    guardian. Lonely, powerful, sad. Role: the core of Act IV's tragedy.
+    Mirrors the player's build weaknesses. Danger: very high. *(Marc
+    flagged: wants the Hollow King's pre-battle dialogue written - see
+    "Act IV — full dialogue" above, already captured.)*
+
+**V. Crown creatures**
+14. **Heartwood Warden** - the forest's physical guardian. Serious,
+    just. Role: Act II's boss. Sees the "heart" of the player's build.
+    Danger: high.
+15. **The Crownless** - a crown without a bearer. Neutral, mirroring.
+    Role: Act V's final test. Shapeshifts into the player's build.
+    Danger: depends on the player. *(Already captured in full above -
+    "The Crownless — battle dialogue".)*
+
+**VI. Small forest creatures**
+16. **Mosslings** - small creatures born from moss. Curious. Role: the
+    forest's "pollinators." Can heal small wounds. Danger: minimal.
+17. **Barkbeasts** - animal-like creatures born from bark. Defensive.
+    Role: guard the paths. Change with their environment. Danger: medium.
+18. **Glowmoths** - light-carrying insects. Calm. Role: light the paths.
+    React to corruption. No combat.
+
+---
+
+## Hearthwood World Map (Marc's written compendium)
+
+*"Metsä ei ole paikka. Metsä on matka."* (The forest isn't a place. The
+forest is a journey.)
+
+Structure: **Roots -> Heartwood -> Veil -> Hollow -> Crownless.** Each
+zone reveals one truth, tests one part of the build, deepens the Hollow
+King's tragedy, and prepares the player for the final choice.
+
+**I. Roots — the forest's edge (Act I zone).** The Heartwood's outer
+edge. Safest, but most corrupted. Roots are broken, the ground breathes
+unevenly. Areas: Broken Grove (the first source of corruption), Sapling
+Clearing (home of the forest's young spirits), Rootbound Ritual Site
+(remnants of the root ritual), Whispering Path (where the forest first
+speaks to the player). Enemies: Rootlings (corrupted), Thornbeasts, Sap
+Echoes. *(Marc flagged: wants the Roots zone's story expanded.)*
+
+**II. Heartwood — the forest's heart (Act II zone).** The forest's true
+core. The heart beats unstably, light is golden but cracked. Areas:
+Heartwood Core (the heart's physical location), Elemental Courts
+(Wood/Ember/Tide/Stone realms), Golden Veins (root channels carrying the
+heart's energy), Warden's Watch (the Heartwood Warden's domain). Enemies:
+Elemental Lords, Heartwood Guardians, Corrupted Wood Spirits. *(Marc
+flagged: wants a Heartwood Core scene written.)*
+
+**III. The Veil — reality's edge (Act III zone).** The border between
+reality and the void. Time and space are unstable, light distorts, the
+ground isn't ground. Areas: Rift Corridor (a corridor of tears),
+Echo Market (the void merchants' marketplace), Veilbound Sanctum (the
+Veilbound's home area), Fractured Horizon (where reality tears). Enemies:
+Rift Guardians, Echo Spirits, Veilbound (boss). *(Marc flagged: wants the
+Veil's map expanded.)*
+
+**IV. The Hollow — the void's kingdom (Act IV zone).** The void's
+innermost layer. No colors, no shape, no sound - only memories trying to
+exist. Areas: The Last Root (the final piece of root), Hollow Plains (the
+void's plain), King's Echo Chamber (where the Hollow King's memory
+lives), The Silent Crown (the crown's first shape). Enemies: Hollow
+Heralds, Hollow Echoes, Hollow King (boss). *(Marc flagged: wants a
+Hollow Plains scene written.)*
+
+**V. The Crownless — the hall of choice (Act V zone).** The forest's
+true throne room. No king. No crown. Only a choice. Areas: Crownless
+Throne (crown without a bearer), Three Paths (Wood/Ember/Hollow),
+Heartwood Sky (reflection of the forest's future), The Crownless (the
+crown's own being). Enemies: Echoes of the King, The Crownless (a test,
+not a fight). *(Marc flagged: wants an expanded version of the Crownless
+Throne scene - already captured in full above.)*
+
+**One-sentence map summary**: Hearthwood's map isn't a route through a
+forest - it's a journey to the forest's heart, into the void, and finally
+to a crown that waits for its bearer.
