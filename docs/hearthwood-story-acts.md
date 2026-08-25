@@ -2304,3 +2304,21 @@ Crownless dissolves into light, the crown left floating. Fade to black.
 
 One-sentence summary: an identity ritual where the crown mirrors the
 player's build and forces them to face themselves.
+
+### Crownless True Form — attack list (Marc's written design, condensed)
+
+*"Minä en hyökkää sinuun. Minä hyökkään siihen, kuka sinä olet."* (I
+don't attack you. I attack who you are.) 8 named moves, each targeting a
+different part of the player's build/DNA rather than plain HP:
+
+1. **Identity Echo** - copies the player's basic attack in void tones, adds Void Burn (1-3 dmg/turn).
+2. **Crown Pulse** - AoE, strips 1 Saplight (S) layer from every player unit; S=0 turns a unit into a weaker Voidling.
+3. **Mirror of Roots** - copies the player's strongest unit's Root (R) layer, stealing 1 R from it; R=0 strips that unit's ability.
+4. **Void Resonance** - drains 1-3 resource candles, the Crownless gains Void Armor (absorb 10), the player's next card becomes a corrupted Hollow Card.
+5. **Echo Collapse** - strips 1 Echo (E) layer from the player's build; E=0 removes all synergies for a turn.
+6. **C-∞ Rewrite** (ultimate) - overwrites one player unit's DNA to S∞/R∞/E∞ but HP=1, turning it into a Crownless Minion; the unit is lost permanently, doesn't return after the fight.
+7. **True Form Ascension** (phase change at 20% HP) - the field turns black-and-white, the crown splits into three, the Crownless copies the player's entire build and strips all buffs, gains a new attack: Identity Break.
+8. **Identity Break** (final attack) - both the player's and the Crownless's HP drop to 1, entering "Sudden Truth" mode - the next hit decides everything.
+
+One-sentence summary: not boss mechanics - an identity ritual where the
+crown overwrites the player's DNA and forces them to face themselves.
