@@ -196,7 +196,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
             key={difficultyTier.name}
             className="hw-badge hw-section-fade-in"
             style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
-            title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
+            title="How far into the run you are - the Hearthwood grows more dangerous the deeper you go"
           >
             <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
             {difficultyTier.name}

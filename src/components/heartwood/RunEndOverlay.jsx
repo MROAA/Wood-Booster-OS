@@ -46,12 +46,12 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun }) {
           style={{ color: won ? "var(--hw-moss)" : "var(--hw-hp)" }}
         />
         <div className="hw-overlay-title" style={{ color: won ? "var(--hw-moss)" : "var(--hw-hp)" }}>
-          {won ? "The Heartwood Falls Silent" : "The Trial Ends Here"}
+          {won ? "The Hearthwood Falls Silent" : "The Trial Ends Here"}
         </div>
         <p className="hw-flavor">
           {won
             ? ENEMIES.spacemonkey.victoryLine
-            : "The Heartwood keeps no memory of you. Another trial can always begin fresh."}
+            : "The Hearthwood keeps no memory of you. Another trial can always begin fresh."}
         </p>
         {totalFights > 0 && (
           <span className="hw-badge" title="Fights cleared before the run ended">

@@ -210,9 +210,9 @@ export default function HeartwoodBattle() {
           <div className="hw-crew-banner">
             <img src={crewBanner} alt="Tommy, Aatos, Spacemonkey, and Fenrir" />
           </div>
-          <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood</h1>
+          <h1 style={{ fontSize: 22, marginBottom: 6 }}>Hearthwood</h1>
           <p className="hw-flavor">
-            Deep inside the Boosterverse, Spacemonkey waits at the heart of the Heartwood. Choose who
+            Deep inside the Boosterverse, Spacemonkey waits at the heart of the Hearthwood. Choose who
             leads the squad in after him.
           </p>
         </div>

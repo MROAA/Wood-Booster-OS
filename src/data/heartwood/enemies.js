@@ -824,7 +824,7 @@ export const ENEMIES = {
     // is its entire difficulty increase, not compounding with anything.
     maxHp: 84,
     art: "warden",
-    description: "Something the Heartwood posted here on purpose, long before you arrived.",
+    description: "Something the Hearthwood posted here on purpose, long before you arrived.",
     // Marc: "make a progressive story" - a miniboss/boss-specific
     // introLine, shown by FormationScreen.jsx in place of the generic
     // "A greater foe." prefix every miniboss fight used until now, the
@@ -833,7 +833,7 @@ export const ENEMIES = {
     // whole. Deliberately distinct from `description` (the shop-preview/
     // card-hover text) - this is the line spoken specifically at the
     // moment the fight is about to begin.
-    introLine: "It has been standing here since before you knew the Heartwood existed. It isn't moving.",
+    introLine: "It has been standing here since before you knew the Hearthwood existed. It isn't moving.",
     passive: [
       { type: "applyBuff", id: "strength", amount: 3 },
       { type: "applyBuff", id: "ward", amount: 2 },
