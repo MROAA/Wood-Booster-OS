@@ -102,6 +102,15 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           </span>
         )}
       </div>
+      {/* Guild Identity v1 (Marc's PRD): a named Class identity, shown
+          only for the units that have earned one so far (def.className -
+          see units.js) - additive, every other unit's card renders
+          exactly as before. */}
+      {def.className && (
+        <div className="hw-card-class" title={`${def.className} - a named Class identity`}>
+          {def.className}
+        </div>
+      )}
       {tribeIds.length > 0 && (
         <div className="hw-tribe-icons">
           {tribeIds.map((t) => (

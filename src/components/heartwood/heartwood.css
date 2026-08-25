@@ -746,6 +746,21 @@
   letter-spacing: 0.02em;
 }
 
+/* Guild Identity v1 (UnitCard.jsx's `def.className`) - a small italic
+   line under the unit's name naming its Class identity, moss-colored
+   like the tribe-match ring/synergy badges already use for "this is a
+   good, notable thing about this card" - distinct from the tribe icons
+   below it (className is a fiction label, tribes are a mechanical
+   synergy cue). */
+.hw-card-class {
+  font-size: 9.5px;
+  font-style: italic;
+  text-align: center;
+  color: var(--hw-moss);
+  letter-spacing: 0.03em;
+  margin-top: -2px;
+}
+
 .hw-crew-banner {
   width: 100%;
   max-width: 720px;

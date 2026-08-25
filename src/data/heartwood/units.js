@@ -129,6 +129,18 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // `art` SVG glyph when absent. Placeholder-quality reference art
     // for now, not final; see cardArt.jsx's note on where it came from.
     image: opts.image || null,
+    // Guild Identity v1 (Marc's PRD): a named Class identity layered on
+    // top of the existing role/tribe system, not a replacement for
+    // either - `role` still drives the card's accent color and combat
+    // math, `className` is purely a display label naming what that
+    // role+kit combination actually IS in the fiction (e.g. a `tank`
+    // with a battle-start Taunt is an "Ironbark", not just "a tank").
+    // Optional and additive, same precedent as `image` above - every
+    // unit without one keeps rendering exactly as before. Deliberately
+    // NOT auto-derived from role (only 5 units earn one this pass, the
+    // ones whose existing kit already matches a class from Marc's PRD
+    // without forcing it - see UnitCard.jsx for the render).
+    className: opts.className || null,
   }
 }
 
@@ -167,6 +179,11 @@ const BASE_UNITS = {
     // own strength, not raw force.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } }],
     image: theMagicianImg,
+    // Guild Identity v1: Dreamweaver (Illusions/Control) - the existing
+    // "weaver of illusions/curses" flavor above already IS Marc's
+    // Dreamweaver class, word for word. No kit change, just naming
+    // what was already there.
+    className: "Dreamweaver",
   }),
   "the-high-priestess": unit("the-high-priestess", "Silverbloom", "the-high-priestess", 1, "support", [
     { type: "heal", amount: 4 },
@@ -622,6 +639,11 @@ const BASE_UNITS = {
     // - a cheaper, earlier entry point into the same "draw the fire"
     // role.
     passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+    // Guild Identity v1: Ironbark (Defense/Tank) - the unit's own id/
+    // name already are "Ironbark", and its kit (highest block in the
+    // uncommon tier + battle-start Taunt) is exactly Marc's
+    // Defense/Tank class. Naming what was already built, not a stretch.
+    className: "Ironbark",
   }),
   briarblade: unit("briarblade", "Briarblade", "root", 3, "dps", [{ type: "attack", amount: 10 }], {
     // The first Assassin ("iskee heikkoihin kohteisiin" - strikes weak
@@ -631,6 +653,11 @@ const BASE_UNITS = {
     // beatdown - kill the frontmost, the blade is already moving on to
     // whoever's left standing.
     chainDamage: 5,
+    // Guild Identity v1: Briarblade (Assassin/Critical) - same id/name
+    // match as Ironbark above; a single massive hit plus a finishing-
+    // blow Chain bonus is this roster's closest existing analogue to
+    // "assassin/critical" (no true crit-chance mechanic exists yet).
+    className: "Briarblade",
   }),
   sapkeeper: unit("sapkeeper", "Sapkeeper", "leaf", 2, "support", [
     { type: "block", amount: 4 },
@@ -644,6 +671,10 @@ const BASE_UNITS = {
     // ing positional effect in the roster, versus Rally's one-time
     // battle-start grants.
     rallyHeal: 2,
+    // Guild Identity v1: Sapkeeper (Healing/Support) - id/name match
+    // again; rallyHeal every round to adjacent allies is a direct hit
+    // on Marc's Healing/Support class description.
+    className: "Sapkeeper",
   }),
   mycelist: unit("mycelist", "Mycelist", "leaf", 3, "support", [
     { type: "attack", amount: 4 },
@@ -686,6 +717,10 @@ const BASE_UNITS = {
     { type: "attack", amount: 5 },
   ], {
     summon: { defId: "spirit-wolf" },
+    // Guild Identity v1: Beastcaller (Pets/Nature) - id/name match; the
+    // ability that calls a Spirit Wolf into the fight is literally
+    // Marc's Pets/Nature class already, no reinterpretation needed.
+    className: "Beastcaller",
   }),
   // Plain roster reinforcements - all 12 base classes are covered
   // already, so these just add more bodies at common/uncommon tier
