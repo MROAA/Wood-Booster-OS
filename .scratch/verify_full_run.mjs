@@ -68,6 +68,21 @@ async function choiceStepIfPresent() {
   return false
 }
 
+// The "Outer Grove" map interstitial (HeartwoodBattle.jsx's
+// showMapAfterShop) - a dedicated, no-purchase step shown once right
+// after leaving shop, before whatever phase comes next. Marked with
+// its own data-screen attribute specifically so tooling like this
+// doesn't have to guess from shared text/class markup.
+async function mapStepIfPresent() {
+  const mapScreen = page.locator('[data-screen="map-after-shop"]').first()
+  if (await mapScreen.isVisible({ timeout: 1500 }).catch(() => false)) {
+    await page.click("button.hw-end-turn:has-text(\"Continue\")").catch(() => {})
+    await page.waitForTimeout(200)
+    return true
+  }
+  return false
+}
+
 // Relic, shop, and choice screens share the .hw-deck-preview/.hw-card
 // markup, and any of them can appear zero or more times before the
 // real formation screen depending on RUN_PATH - loop through whichever
@@ -79,6 +94,8 @@ async function clearToFormation() {
       .isVisible({ timeout: 1000 })
       .catch(() => false)
     if (onFormation) return true
+    const wasMap = await mapStepIfPresent()
+    if (wasMap) continue
     const wasChoice = await choiceStepIfPresent()
     if (wasChoice) continue
     const wasRelic = await relicStepIfPresent()
