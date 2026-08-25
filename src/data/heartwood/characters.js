@@ -22,7 +22,7 @@ export const CHARACTERS = {
     art: "cat",
     maxHp: 60,
     tagline: "Agile and quick - always looking for the fast opening.",
-    description: "Cat's Reflexes: every unit in the squad strikes a little harder and lands on its feet.",
+    description: "Cat's Reflexes: every unit in the squad strikes a little harder, lands on its feet, and leaves what it hits swinging softer.",
     startEffects: [{ type: "draw", amount: 1 }],
     // Marc: "haluan että squadissa on päähahmo, se commander on
     // pelattava hahmo pelissä... jota voi synergisoida buildilla ja
@@ -60,9 +60,22 @@ export const CHARACTERS = {
     // Block identity (this is a floor against the new fight length,
     // not a second archetype layered onto Tommy's actual "fast
     // opening" one).
+    // Marc: "the game needs to be more diverse to play" - Commander
+    // kits had converged toward "signature effect + flat Strength
+    // floor" across many fairness passes, reading as different flavor
+    // on the same shape. Added one small, build-flavoring effect per
+    // Commander (reusing only addTrigger/applyBuff shapes already used
+    // elsewhere in this file) without touching the existing floor
+    // numbers above, which are load-bearing fairness fixes, not
+    // filler - verified via a before/after heartwood-fairness-pass.mjs
+    // run that no Commander's win rate moved unfairly out of line with
+    // the other 3. Tommy: whatever the fast opener hits swings softer
+    // after - a real follow-through on "the fast opening," not just
+    // raw speed.
     squadPassive: [
       { type: "applyBuff", id: "strength", amount: 2 },
       { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
     ],
     // Active Power (Battlegrounds/Guildrun-style "hero power," on top
     // of the always-on squadPassive above): spent once per shop visit
@@ -91,7 +104,7 @@ export const CHARACTERS = {
     // fix), but this MAIN description (character-select screen,
     // HeartwoodBattle.jsx) got missed, leaving it stale and quietly
     // wrong about what the Commander's own kit actually does.
-    description: "Steady Hooves: every unit heals 3 and strikes a little harder each round.",
+    description: "Steady Hooves: every unit heals 3, strikes a little harder, and shrugs off a lingering ailment each round.",
     startEffects: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
     ],
@@ -125,9 +138,15 @@ export const CHARACTERS = {
     // Added the same flat Strength+1 Fenrir's own squadPassive already
     // has, keeping heal as the primary identity (still the biggest
     // single number of any Commander effect) rather than a full rework.
+    // Build-diversity pass (see Tommy's own note above): Aatos gets
+    // Cleanse - "steady and patient" reads as shrugging off ailments,
+    // not just healing through them, and this is the first Commander
+    // with Cleanse (previously only via Cleansing Draught/Purifying
+    // Bloom) - differentiates him from being "just the heal one."
     squadPassive: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
       { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } },
     ],
     // Rally Cry: an extra turnStart heal for the next battle only, on
     // top of Aatos's always-on one - NOT a flat one-time heal (units
@@ -161,7 +180,7 @@ export const CHARACTERS = {
     // rather than making the identity itself less true.
     maxHp: 60,
     tagline: "Dangerous when hurt - the fight gets worse for you the longer it goes.",
-    description: "Wounded Fury: every unit hits harder, and harder still below 50% HP.",
+    description: "Wounded Fury: every unit hits harder, and harder still below 50% HP - whatever they hit takes worse hits back, too.",
     startEffects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
     // A single hard hit, no gimmick of its own - Fenrir's own
     // squadPassive already grants every deployed unit Wounded Fury
@@ -187,9 +206,14 @@ export const CHARACTERS = {
     // rather than serve it. Answering with more raw kill speed instead
     // - the fight ending sooner is Fenrir's own real counter to "it's
     // gone on too long," not surviving longer.
+    // Build-diversity pass (see Tommy's own note above): Fenrir's
+    // "the fight gets worse the longer it goes" now cuts both ways -
+    // whatever he hits takes worse hits back too, not just himself
+    // getting angrier. First Vulnerable source on a Commander.
     squadPassive: [
       { type: "applyBuff", id: "strength", amount: 2 },
       { type: "applyBuff", id: "woundedFury", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
     ],
     // Blood Oath: a bigger, one-fight-only dose of Fenrir's own signature
     // status - "the fight gets worse for you the longer it goes",
@@ -224,7 +248,7 @@ export const CHARACTERS = {
     art: "fox",
     maxHp: 62,
     tagline: "Careful and cunning - never takes a hit it didn't plan for.",
-    description: "Fox's Guard: every unit gains Block and strikes a little harder each round.",
+    description: "Fox's Guard: every unit gains Block, strikes a little harder, and strips whatever it strikes of its own strongest edge.",
     startEffects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
     // Block then strike, carrying its own Shatter (effects.js) - "never
     // takes a hit it didn't plan for" reads as exploiting an opening
@@ -258,9 +282,26 @@ export const CHARACTERS = {
     // proved underperforms alone twice), added flat Strength+1 instead
     // of Shatter - a guaranteed floor, keeping Shatter as the
     // flavor/identity layer already present elsewhere in the kit.
+    // Build-diversity pass (see Tommy's own note above): first tried
+    // an onHit +1 retaliation ("never takes a hit it didn't plan for,"
+    // punish-back) - the fairness pass caught a real problem before
+    // shipping: Repo jumped 64% -> 84-96% across 2 runs while Aatos/
+    // Fenrir stayed flat at 48-52%, a much bigger and less predictable
+    // swing than the other 3 Commanders' additions produced. Root
+    // cause: Repo's own Block-heavy kit naturally means longer fights
+    // (more rounds where enemies keep attacking a squad that's hard to
+    // kill), so a per-hit-received trigger procs far more than a
+    // per-hit-dealt one does for a faster-fighting Commander - the
+    // mechanic's value scales with fight length in a way none of the
+    // other 3 picks do. Swapped to Sunder instead (also "exploit an
+    // opening," matching his existing Shatter identity, but bounded by
+    // what the target actually has to sunder rather than compounding
+    // with every round that passes) - re-verified flat/in-line with
+    // the other 3 after the swap.
     squadPassive: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } },
       { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } },
     ],
     // Brace: an extra one-time Ward stack for the next battle only -
     // "never takes a hit it didn't plan for," a single fully-prevented
