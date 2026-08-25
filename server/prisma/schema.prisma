@@ -1077,3 +1077,53 @@ model SavedPrompt {
   createdAt DateTime @default(now())
 
 }
+
+
+
+model HeartwoodTask {
+
+  id Int @id @default(autoincrement())
+
+  title String
+
+  description String?
+
+  category String @default("mechanic")
+
+  phase String @default("Phase 0 - Concept")
+
+  status String @default("backlog")
+
+  priority String @default("medium")
+
+  complexity String @default("M")
+
+  dependencies String?
+
+  acceptanceCriteria String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model HeartwoodDecision {
+
+  id Int @id @default(autoincrement())
+
+  title String
+
+  decision String
+
+  reason String?
+
+  status String @default("accepted")
+
+  affectedAreas String?
+
+  createdAt DateTime @default(now())
+
+}

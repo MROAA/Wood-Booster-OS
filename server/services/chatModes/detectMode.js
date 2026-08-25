@@ -10,12 +10,13 @@
  * koodimuutossuunnitelmiin ilman erillistä välilehteä.
  */
 
-const MODE_PATTERN = /^\/(spacemonkey|altrako|council|koodi)\b\s*/i
+const MODE_PATTERN = /^\/(spacemonkey|altrako|council|koodi|heartwood)\b\s*/i
 
 const DEFAULT_TEXT_BY_MODE = {
   spacemonkey: "Tilannekatsaus.",
   council: "Tilannekatsaus.",
   altrako: "tila",
+  heartwood: "Mitä teen seuraavaksi?",
 }
 
 export function detectMode(message) {
