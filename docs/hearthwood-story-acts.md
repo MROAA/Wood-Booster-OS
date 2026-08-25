@@ -2432,3 +2432,95 @@ paikka. Heartwood on valinta." Fade to black.
 One-sentence summary (Marc's own): the Crownless True Form's ending is
 an identity ritual where the crown dissolves into light and merges with
 the player's build - making Marc the Heartwood's new truth.
+
+### Crownless True Form — sound design (Marc's written design, condensed)
+
+*"Minä en puhu. Minä resonoin."* (I don't speak. I resonate.) Core tone:
+a low violet hum (40-55 Hz), sound coming from the crown itself, not a
+mouth, with per-build tonal variants (organic wood-bass for Wood, spark-
+crackle for Ember, wave-hum for Tide, low stone rumble for Stone,
+pixelated digital echo for Cosmic, black-and-white silence for Hollow).
+Each of the 8 attacks (see the attack-list section above) gets a
+matching sound signature; the phase change reverses the build's own
+theme; at 1 HP both sides, all sound drops to silence except one word,
+resonated rather than spoken: "Totuus" (Truth). The closing question
+plays all four sound layers (forest choir, void hum, build theme, crown
+resonance) merged into a single note held 3 seconds before fade-out.
+
+One-sentence summary: an identity ritual using sound to mirror the
+player's build, memory, and truth.
+
+### Crownless Throne — UI plan (Marc's written design, condensed)
+
+*"UI ei näytä taistelua. UI näyttää totuuden."* (The UI doesn't show the
+fight. It shows the truth.) Four persistent HUD layers: **Crown HUD**
+(top-center, unframed, floating - crown shape shifts each turn, a crack
+percentage tracks progress to True Form Ascension, a C-∞ glyph brightens
+with synergy use). **Identity Meter** (left edge, vertical) - live S/R/E
+bars, colored per build, turning black-and-white in Hollow state and
+glitching in Cosmic state. **Reality Fracture Bar** (right edge,
+vertical) - Veil tear count, reality-stability %, a cosmic-echo index;
+trembles under Veilbound Prime/Cosmic effects, inverts under Hollow King
+Ascendant. **Sudden Truth Overlay** (full-screen, endgame only) - black-
+and-white filter, frozen animations, a violet crown-echo, all numbers
+rendered as violet "echo" text, both HP values shown as 1/1. Cards get a
+violet shadow (Hollow cards go black-and-white, Cosmic cards glitch);
+the Crownless HP bar itself cracks visually with damage and disappears
+entirely at HP=1, leaving only the C-∞ glyph.
+
+One-sentence summary: a ritual UI showing the player's identity, the
+crown's state, and reality's fractures - every element mirrors the
+build's truth.
+
+### Crownless True Form — full presentation suite (Marc's written design, consolidated)
+
+Six more written passes, all elaborating the same already-established
+Crownless aesthetic language (violet C-∞ core, 40-55 Hz/BPM breathing
+pulse, per-build color/particle variants, Hollow = black-and-white,
+Cosmic = glitch/pixelation, phase change slows everything 50% and turns
+the field negative, Sudden Truth freezes on 1 HP down to a single
+surviving detail) applied to six specific channels - condensed here
+rather than repeated in full, since the underlying language is already
+captured above (Boss Animations, Boss Sound Design, Crownless
+battle/attack/dialogue sections, Crownless Throne UI plan):
+
+- **Animations** (Idle "Identity Breathing", Walk Cycle "The Mirror
+  Approaches", Attack "Echo of the Player", Special "Identity Collapse"
+  in 3 stages, phase change, Ultimate "Identity Break", "Sudden Truth"
+  final freeze where only the C-∞ glyph still moves).
+- **HUD effects** (Crown Pulse Overlay reacting to the crown's breathing,
+  "Identity Echo Flash" on a synergy play, Reality Fracture Distortion on
+  Cosmic/glitch triggers, Void Silence Filter at 70% audio cut for Hollow
+  effects, HP-bar "Shatter" cracking at 75/50/20%, an "IDENTITEETTI
+  EPÄSTABIILI" (IDENTITY UNSTABLE) warning text on Identity Collapse, and
+  dialogue rendered as glowing ritual glyphs in the air rather than a text box).
+- **VFX** ("C-∞ Aura", "Identity Echo Burst", "Reality Fracture VFX",
+  "Void Bloom", the 3-stage "Echo Collapse VFX", "C-∞ Rewrite VFX",
+  "True Form Ascension VFX", "Identity Break VFX", "Sudden Truth Freeze").
+- **Music** (per-beat themes: "C-∞ Resonance" main theme at 40-55 BPM,
+  "The Crown Descends" entrance at 30 BPM, "Echo of the Player" battle
+  theme at 70-90 BPM with per-build percussion, "Identity Collapse" at
+  0 BPM/reversed theme, "True Form Ascension" at 20 BPM/reversed choir,
+  "Identity Break" final stinger, total silence but for the C-∞ glyph's
+  resonance at "Sudden Truth," and "The Forest Remembers" closing theme
+  at 60 BPM as the crown becomes light).
+- **Colors** ("C-∞ Spectrum" palette: violet core, black-and-white for
+  Hollow-truth, glitch colors for Cosmic-instability, full per-build
+  palette for the other 4; "Crownlight Resonance" - the crown's own
+  light breathes rather than glows; "Mirrorform Palette" - the
+  Crownless's body mirrors the build's color in void tones).
+- **Particle effects** ("C-∞ Dust" ambient, "Identity Echo Sparks"
+  on-hit, "Reality Fracture Shards", "Void Ash", the 3-stage "Echo
+  Collapse Particles", "C-∞ Rewrite Stream", "True Form Ascension
+  Burst", "Identity Break Shatter", "Sudden Truth Dust").
+
+One-sentence summaries (Marc's own): light doesn't tell the story, it
+reveals it; music doesn't tell the story, it reveals it; every particle
+is a memory searching for a bearer - together, a ritual language where
+every flash, crack, and silence reveals the player's true identity.
+
+A 7th pass, "Environment Effects" ("Ympäristö ei ole näyttämö. Ympäristö
+on kruunun muisti" - the environment isn't a stage, it's the crown's
+memory), applies this exact same language to ambient atmosphere,
+per-build "Identity Weather," a zero-gravity Void Pressure state for
+Hollow, and Root/Echo-layer ambient pulses - same condensation note as above.
