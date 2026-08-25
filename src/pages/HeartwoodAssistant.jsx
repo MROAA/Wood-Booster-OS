@@ -110,8 +110,8 @@ function ChatTab() {
     {
       role: "assistant",
       content:
-        "Hei! Olen Heartwood Project Assistant. Kerro mitä haluaisit " +
-        "Heartwoodiin, tai kysy mitä teen seuraavaksi - selitän kaiken " +
+        "Hei! Olen Hearthwood Project Assistant. Kerro mitä haluaisit " +
+        "Hearthwoodiin, tai kysy mitä teen seuraavaksi - selitän kaiken " +
         "ilman että sinun tarvitsee tuntea pelikehitystä ennalta.",
     },
   ])
@@ -509,6 +509,11 @@ function DecisionsTab({ decisions, onRefresh }) {
     onRefresh()
   }
 
+  async function handleDelete(id) {
+    await apiSend(`/heartwood/decisions/${id}`, "DELETE")
+    onRefresh()
+  }
+
   return (
     <div className="grid gap-5 lg:grid-cols-[320px,1fr]">
       <DecisionForm onCreate={handleCreate} />
@@ -516,8 +521,17 @@ function DecisionsTab({ decisions, onRefresh }) {
       <div className="space-y-3">
         {decisions.map((decision) => (
           <div key={decision.id} className="panel p-4 space-y-1">
-            <div className="text-xs text-[var(--wood-accent)]">
-              DEC-{String(decision.id).padStart(3, "0")} · {decision.status}
+            <div className="flex items-start justify-between gap-2">
+              <div className="text-xs text-[var(--wood-accent)]">
+                DEC-{String(decision.id).padStart(3, "0")} · {decision.status}
+              </div>
+              <button
+                className="text-xs text-[var(--wood-muted)] hover:text-red-400"
+                onClick={() => handleDelete(decision.id)}
+                title="Poista"
+              >
+                ✕
+              </button>
             </div>
             <div className="font-medium text-[var(--wood-text)]">
               {decision.title}
@@ -591,9 +605,9 @@ function HeartwoodAssistant() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="page-title">🧭 Heartwood Project Assistant</h1>
+        <h1 className="page-title">🧭 Hearthwood Project Assistant</h1>
         <p className="page-description">
-          AI-projektipäällikkösi Heartwood-pelille. Kysy, ehdota ideoita ja
+          AI-projektipäällikkösi Hearthwood-pelille. Kysy, ehdota ideoita ja
           seuraa mitä on tehty ja mitä on vielä edessä.
         </p>
       </header>

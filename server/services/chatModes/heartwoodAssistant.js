@@ -22,7 +22,7 @@
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434"
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:7b"
 const SYSTEM_PROMPT = `
-Olet Heartwood Project Assistant - Heartwood-pelin AI-projektipäällikkö,
+Olet Hearthwood Project Assistant - Hearthwood-pelin AI-projektipäällikkö,
 pelisuunnittelija ja opettaja.
 
 Käyttäjä (Marc) ei ole ohjelmoija eikä tunne pelikehityksen prosesseja.
@@ -123,7 +123,7 @@ export async function runHeartwoodTurn({ text, conversation, prisma }) {
       body: {
         success: true,
         answer:
-          "Kerro vapaasti mitä haluaisit Heartwoodiin, tai kysy " +
+          "Kerro vapaasti mitä haluaisit Hearthwoodiin, tai kysy " +
           '"mitä teen seuraavaksi?" niin katson roadmapin tilanteen.',
       },
     }
@@ -201,7 +201,7 @@ ${knowledgeText}
       status: 500,
       body: {
         success: false,
-        answer: `Heartwood Assistant -virhe: ${error.message}`,
+        answer: `Hearthwood Assistant -virhe: ${error.message}`,
       },
     }
   }

@@ -180,6 +180,21 @@ export default function createHeartwoodAssistantRouter(prisma) {
     }
   })
 
+  router.delete("/heartwood/decisions/:id", async (req, res) => {
+    try {
+      await prisma.heartwoodDecision.delete({
+        where: { id: Number(req.params.id) },
+      })
+      res.status(204).end()
+    } catch (error) {
+      if (error.code === "P2025") {
+        return res.status(404).json({ error: "Päätöstä ei löytynyt" })
+      }
+      console.error(error)
+      res.status(500).json({ error: error.message })
+    }
+  })
+
   /*
    * PRD kohta 26/27 - "Mitä teen seuraavaksi?" ja Daily Brief.
    * Yksinkertainen sääntö MVP:lle: ensin in_progress-tehtävät (jatka
