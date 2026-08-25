@@ -9,13 +9,28 @@ import { CardGlyph, formatPowerLabel } from "./cardArt"
 // UI element (intent display, ResultOverlay) already uses, so a buff
 // reads green/warm and a debuff reads as the same "curse" red the
 // enemy-debuff intent already uses - one glance, not a read.
+//
+// `loud` (Marc, live, shown a real screenshot of a mid-run fight: 5
+// units, each already carrying 2-3 badges before the fight even
+// started, all in the identical small pill style - "the challenge is
+// providing enough information without overwhelming the player").
+// Every badge used to fight for the same amount of visual attention
+// regardless of whether it's a steady-state kit trait (Strength/Ward/
+// Taunt from a squadPassive or relic, present the whole fight) or
+// something actively hurting the unit right now (Poison/Weak/
+// Vulnerable/Stun, always enemy-inflicted). No engine change needed to
+// tell these apart - every debuff already used --hw-curse red, so
+// `loud: true` just makes that existing color category ALSO read
+// louder (a glow), while everything else (buffs/utility, already
+// warm/cool tones) renders calmer/quieter by default - eye drawn to
+// what's actively threatening you, not every badge equally.
 const STATUS_DISPLAY = {
   strength: { icon: "sword", color: "var(--hw-ember)" },
-  weak: { icon: "root", color: "var(--hw-curse)" },
-  vulnerable: { icon: "rune", color: "var(--hw-curse)" },
+  weak: { icon: "root", color: "var(--hw-curse)", loud: true },
+  vulnerable: { icon: "rune", color: "var(--hw-curse)", loud: true },
   woundedFury: { icon: "flame", color: "var(--hw-ember)" },
-  poison: { icon: "leaf", color: "var(--hw-curse)" },
-  stun: { icon: "spark", color: "var(--hw-curse)" },
+  poison: { icon: "leaf", color: "var(--hw-curse)", loud: true },
+  stun: { icon: "spark", color: "var(--hw-curse)", loud: true },
   taunt: { icon: "shield", color: "var(--hw-rune)" },
   execute: { icon: "sword", color: "var(--hw-hp)" },
   revive: { icon: "heart", color: "var(--hw-moss)" },
@@ -39,7 +54,7 @@ const STATUS_DISPLAY = {
   // seed onto a second enemy too. Same leaf/curse language Poison
   // itself already uses - it reads as "this unit's poison is special,"
   // not a separate unrelated status, which is exactly what it is.
-  sporeSpread: { icon: "leaf", color: "var(--hw-curse)" },
+  sporeSpread: { icon: "leaf", color: "var(--hw-curse)", loud: true },
 }
 
 // Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point
@@ -148,6 +163,7 @@ export default function EnemyPieceCard({ enemy, art, shielded, summoned, highlig
                   <span
                     key={id}
                     className="hw-badge hw-badge-pop"
+                    data-loud={!!display?.loud}
                     style={display ? { color: display.color, borderColor: display.color } : undefined}
                   >
                     {display && <CardGlyph name={display.icon} className="hw-intent-glyph" />}
