@@ -1301,6 +1301,18 @@
   height: 32px;
 }
 
+/* Real portrait art on the board where a unit has any (Marc's
+   Hearthstone reference: art-forward circular minion portraits, not
+   a plain line icon) - falls back to .hw-piece-glyph above for the
+   majority of units that don't have commissioned art yet. */
+.hw-piece-portrait {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--hw-border);
+}
+
 .hw-piece-name {
   font-size: 10.5px;
   font-weight: 600;

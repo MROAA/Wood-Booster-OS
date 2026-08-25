@@ -123,18 +123,33 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
       let content = null
       if (enemy) {
         content = (
-          <EnemyPieceCard enemy={enemy} art={ENEMIES[enemy.defId].art} shielded={isShielded(state, enemy.id)} />
+          <EnemyPieceCard
+            enemy={enemy}
+            art={ENEMIES[enemy.defId].art}
+            image={ENEMIES[enemy.defId].image}
+            shielded={isShielded(state, enemy.id)}
+          />
         )
       } else if (playerUnit) {
         // The Commander's own defId is deliberately null (it isn't a
         // UNITS entry) - its art comes from characters.js instead, so
         // it's carried directly on the unit object itself rather than
         // looked up by defId here.
-        const art = playerUnit.id === "commander" ? playerUnit.art : UNITS[playerUnit.defId].art
+        const isCommander = playerUnit.id === "commander"
+        const art = isCommander ? playerUnit.art : UNITS[playerUnit.defId].art
+        // Marc's Hearthstone reference: real portrait art on the board,
+        // not just a small line glyph - reuses each unit's own `image`
+        // (already used on shop/bench cards) wherever one exists, same
+        // "match the information on the table" ask. Most units still
+        // have no commissioned art yet, so this only lights up for the
+        // ~30 that do - a real improvement, not a false promise every
+        // piece now has a portrait.
+        const image = isCommander ? undefined : UNITS[playerUnit.defId].image
         content = (
           <EnemyPieceCard
             enemy={playerUnit}
             art={art}
+            image={image}
             side="player"
             shielded={isShielded(state, playerUnit.id)}
             summoned={playerUnit.summoned}
