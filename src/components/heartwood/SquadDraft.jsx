@@ -15,7 +15,8 @@ import {
   marketLevelCost,
   benchTribeCounts,
   difficultyTierForNode,
-  BENCH_CAP,
+  RESERVE_CAP,
+  DEPLOY_SLOTS,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -84,6 +85,13 @@ export default function SquadDraft({
   // shop time the player may not have finished placing this visit's
   // squad yet.
   const ownedTribes = benchTribeCounts(runState)
+  // Reserve vs Bench (Marc, direct: "bench on jotka taistelevat
+  // commanderin kanssa ja reservissä on ei taistelevia hahmoja" - the
+  // fighting squad is "bench," everything else owned is "reserve").
+  // `deployed` already IS that fighting squad; reserveCount is simply
+  // everything owned minus whatever's currently deployed.
+  const deployedCount = runState.deployed.filter((k) => k !== null).length
+  const reserveCount = runState.bench.length - deployedCount
   // Hero Bending on the Commander: it has no baseline `role` (see
   // characters.js) to contrast against the way a recruited unit does,
   // so this is just "does ANY equipped Commander item carry
@@ -400,13 +408,13 @@ export default function SquadDraft({
             {offers.map((def) => {
               const owned = runState.bench.filter((e) => e.defId === def.id).length
               const willFuse = owned >= 2
-              const benchFull = !willFuse && runState.bench.length >= BENCH_CAP
+              const reserveFull = !willFuse && runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP
               const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
               return (
                 <div key={def.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <UnitCard
                     def={def}
-                    disabled={runState.essence < def.recruitCost || benchFull}
+                    disabled={runState.essence < def.recruitCost || reserveFull}
                     onClick={() => onRecruit(def.id)}
                     tribeMatch={tribeMatch}
                     frozen={!!runState.frozen}
@@ -420,13 +428,13 @@ export default function SquadDraft({
                       Fuses now! ({owned}/3 owned)
                     </div>
                   )}
-                  {benchFull && (
+                  {reserveFull && (
                     <div
                       className="hw-badge"
                       style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
-                      title={`Bench is full (${BENCH_CAP}/${BENCH_CAP}) - sell or fuse to make room`}
+                      title={`Reserve is full (${RESERVE_CAP}/${RESERVE_CAP}) - sell or fuse to make room`}
                     >
-                      Bench full
+                      Reserve full
                     </div>
                   )}
                 </div>
@@ -503,10 +511,11 @@ export default function SquadDraft({
           )}
 
           <div className="hw-section-label">
-            Your bench ({runState.bench.length}/{BENCH_CAP})
+            Your Squad - {deployedCount} on the Bench (fighting), {reserveCount}/{RESERVE_CAP} in Reserve
           </div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
-            Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop.
+            Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop. Units not
+            on the Bench sit in Reserve until you place them on the battlefield.
           </p>
           <div className="hw-select-grid hw-deck-preview">
             {runState.bench.map((entry) => {
@@ -542,6 +551,15 @@ export default function SquadDraft({
               >
                 <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} />
               </div>
+              {runState.deployed.includes(entry.key) && (
+                <div
+                  className="hw-badge hw-badge--active"
+                  style={{ justifyContent: "center", fontSize: 11 }}
+                  title="Currently fighting, deployed to the battlefield - not sitting in Reserve"
+                >
+                  On the Bench (fighting)
+                </div>
+              )}
               <div className="hw-item-slots" title="Item slots - click a bag item above, then click a slot to equip it">
                 {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
                   const equipped = equippedItems.find((it) => it.slotIndex === slotIndex)
