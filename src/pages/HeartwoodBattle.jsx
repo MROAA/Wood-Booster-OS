@@ -29,12 +29,15 @@ import {
   difficultyTierForNode,
   serializeRun,
   deserializeRun,
+  chooseFloorEncounter,
+  RUN_PATH,
 } from "../services/heartwood/runEngine"
 import { loadRunSave, saveRunSave, clearRunSave } from "../services/heartwood/runSaveState"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
 import RelicChoice from "../components/heartwood/RelicChoice"
+import FloorChoice from "../components/heartwood/FloorChoice"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import RunMap from "../components/heartwood/RunMap"
 import { CardGlyph } from "../components/heartwood/cardArt"
@@ -197,6 +200,10 @@ export default function HeartwoodBattle() {
     setRunState((current) => chooseRelic(current, relicId))
   }
 
+  function handleChooseFloorEncounter(choiceIndex) {
+    setRunState((current) => chooseFloorEncounter(current, choiceIndex))
+  }
+
   function handleNewRun() {
     clearRunSave()
     setRunState(null)
@@ -282,6 +289,15 @@ export default function HeartwoodBattle() {
     )
   }
 
+  if (runState.phase === "choice") {
+    return (
+      <div className="hw-root" style={rootStyle}>
+        {changeCharacterBar}
+        <FloorChoice runState={runState} onChoose={handleChooseFloorEncounter} />
+      </div>
+    )
+  }
+
   if (runState.phase === "relic") {
     return (
       <div className="hw-root" style={rootStyle}>
@@ -320,7 +336,7 @@ export default function HeartwoodBattle() {
         state={runState.battle}
         essenceOnWin={essenceOnWin}
         nodeType={currentPathNode?.type}
-        difficultyTier={difficultyTierForNode(runState.nodeIndex, runState.path.length)}
+        difficultyTier={difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)}
         victoryLine={trial?.victoryLine}
         onAdvanceRound={handleAdvanceRound}
         onContinue={handleBattleContinue}

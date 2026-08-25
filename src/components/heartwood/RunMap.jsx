@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
-import { difficultyTierForNode } from "../../services/heartwood/runEngine"
+import { difficultyTierForNode, RUN_PATH } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 
 // A compact, persistent strip of every node in the run (runEngine.js's
@@ -51,7 +51,11 @@ export default function RunMap({ runState }) {
     currentRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
   }, [runState.nodeIndex])
 
-  const tier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
+  // RUN_PATH.length, not runState.path.length: since the branching-path
+  // work, `path` only holds nodes actually visited so far (it grows as
+  // the run is played), not the whole run - RUN_PATH's own fixed shape
+  // is still the right denominator for "how far into the WHOLE run".
+  const tier = difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)
   const currentNode = runState.path[runState.nodeIndex]
 
   return (
@@ -68,7 +72,7 @@ export default function RunMap({ runState }) {
             nothing around it yet. A plain step count answers it
             immediately without needing to spot the right icon. */}
         <span className="hw-run-map-progress">
-          Step {runState.nodeIndex + 1} of {runState.path.length} · {nodeLabel(currentNode)}
+          Step {runState.nodeIndex + 1} of {RUN_PATH.length} · {nodeLabel(currentNode)}
         </span>
       </div>
       <div className="hw-run-track" ref={trackRef}>
