@@ -1883,6 +1883,83 @@ glyph to C-∞ and its carving to violet.
 it's a ritual artifact, reacting to the build, the DNA system, and the
 forest's emotions.
 
+### Card animation language (Marc's written design, condensed)
+
+Same card-hand aesthetic-reference caveat as above. Named animation
+beats: Root Rise (drawing a card), Forest Breath (hover - frame expands,
+DNA glyphs light up, per-build particle accents), Ritual Slam (playing a
+card - roots burst outward, a wood-thud sound), Spellflow (per-element
+cast VFX: Wood leaves/roots, Ember sparks, Tide ripples with reversed-
+gravity droplets, Stone cracks/dust, Cosmic glitch, Hollow black
+smoke/violet echo), Root Lunge (unit attack - roots push the unit
+forward, per-build impact color), Fade to Roots (unit death - roots
+snap, the card crumbles into leaves/stone/smoke/shadow by build), Growth
+Pulse (buff - roots grow, frame glows) / Decay Pulse (debuff - roots
+blacken, frame cracks). Hollow King/Crownless cards get unique treatment
+(colors drain, the card "looks back," a Crownless card physically
+reshapes to match the player's build).
+
+One-sentence summary: the animations aren't visual effects - they're
+rituals narrating the forest's emotion, the build's power, and the
+void's truth.
+
+### Battle animation language (Marc's written design, condensed)
+
+Largely the same vocabulary as the card animations above, applied to
+units on the battlefield: Root Emergence (unit enters), Forest Breath
+(idle), Ritual Strike (attack), Return to Roots (death), Spellflow
+(per-element casts, same as above), Growth/Decay Pulse (buff/debuff).
+Boss-specific: Heartwood Warden (roots rise, heart-light pulse, elementals
+react); Veilbound (glitch wave, reality tears, shadows move wrong);
+Hollow King (colors drain, black smoke, attacks are "waves of the void");
+The Crownless (shapeshifts to the player's build, DNA glyphs read C-∞,
+a crown appears and vanishes). The board itself is alive - roots move,
+branches bend, candles glow, the whole environment reacts to spells and
+drains of color in Hollow-mode fights.
+
+One-sentence summary: not effects - rituals narrating the forest's
+emotion, the build's power, and the crown's truth.
+
+### Named boss animations (Marc's written design, condensed)
+
+Per-boss entrance/idle/attack/special/death beats: **Heartwood Warden**
+("Guardian of the Pulse") - roots form a ring and he steps out of them,
+heart-light pulses, attacks are a green-gold pulse "like a heartbeat,"
+special summons the 4 elementals around him, death: roots snap, the
+heart-light goes out, he crumbles into leaves and light. **Veilbound**
+("Fracture of Reality") - glitches into being through violet tears,
+shadows move the wrong way, attacks teleport behind the target as a
+repeating time-loop, special tears the whole board, death: dissolves
+into pixels as the tears seal. **Hollow King** ("Sovereign of the Void")
+- all color drains, he rises from the void itself, attacks are a shadow-
+wave that drains color, special turns the whole board negative, death:
+crumbles to shadow, a violet echo lingers. **The Crownless** ("The Test
+of Identity") - a crown becomes a being shaped by the player's build,
+its attack mirrors the player's own attack animation in void tones,
+special splits the crown into three (Wood/Ember/Hollow), death: the
+crown cracks and dissolves into light, leaving only an echo that asks
+"Kuka sinä olet?" (Who are you?)
+
+One-sentence summary: boss animations aren't attacks - they're rituals
+revealing the forest's, the void's, and the crown's true nature.
+
+### Boss sound design (Marc's written design, condensed)
+
+Per-boss audio character: **Heartwood Warden** - warm/organic, wood
+knocks and root vibrations, a heartbeat rhythm (60-70 BPM), 4 elemental
+chords on entrance, no words, only resonance. **Veilbound** - glitch
+echo, unstable stereo panning, pitch-shifted time distortion, digital
+whispers, bit-crush on death. **Hollow King** - black-and-white silence,
+violet echo (40 Hz resonance), reverse-reverb, a distant sad choir,
+sound itself "loses color." **The Crownless** - "C-∞ Resonance," a
+metallic pure entrance tone that shifts into the player's own build
+theme, its attack mirrors the player's build sound in void tones, death
+leaves one echo asking "Kuka sinä olet?" (Who are you?) pitched to the
+player's own build.
+
+One-sentence summary: not music - a ritual language revealing the
+forest's, the void's, and the crown's true nature.
+
 ---
 
 ## Hearthwood Battlefield UI (Marc's written design)

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { CHARACTERS } from "../data/heartwood/characters"
+import { resolveTrial } from "../data/heartwood/trials"
 import {
   startRun,
   recruitUnit,
@@ -308,6 +309,10 @@ export default function HeartwoodBattle() {
   // phase === "battle"
   const currentPathNode = runState.path[runState.nodeIndex]
   const essenceOnWin = currentPathNode?.type === "boss" ? null : essenceForWin(runState, currentPathNode)
+  // A Trial (trials.js) wrapping this node gets its own written victory
+  // line on the per-fight result overlay - see trials.js's own comment
+  // for why this reuses the enemy's existing combat, just its story voice.
+  const trial = resolveTrial(currentPathNode?.trialId)
   return (
     <div className="hw-root" style={rootStyle}>
       {exitLink}
@@ -316,6 +321,7 @@ export default function HeartwoodBattle() {
         essenceOnWin={essenceOnWin}
         nodeType={currentPathNode?.type}
         difficultyTier={difficultyTierForNode(runState.nodeIndex, runState.path.length)}
+        victoryLine={trial?.victoryLine}
         onAdvanceRound={handleAdvanceRound}
         onContinue={handleBattleContinue}
       />

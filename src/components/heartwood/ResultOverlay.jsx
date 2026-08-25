@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 
-export default function ResultOverlay({ phase, enemyName, stats, essenceOnWin, onContinue }) {
+export default function ResultOverlay({ phase, enemyName, stats, essenceOnWin, victoryLine, onContinue }) {
   if (phase !== "won" && phase !== "lost") return null
 
   const won = phase === "won"
@@ -31,7 +31,7 @@ export default function ResultOverlay({ phase, enemyName, stats, essenceOnWin, o
         </div>
         <p className="hw-flavor">
           {won
-            ? `${enemyName} falls still. The runes dim, and the forest holds its breath.`
+            ? victoryLine || `${enemyName} falls still. The runes dim, and the forest holds its breath.`
             : `The dark closes in. ${enemyName} was stronger than the trial allowed for.`}
         </p>
         {won && essenceOnWin != null && (
