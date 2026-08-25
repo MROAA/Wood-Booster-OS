@@ -27,6 +27,22 @@ export const TRIALS = {
     victoryLine:
       '"...Sinä et ole korruptio." The roots fall away. Light kindles in his chest. "Kuuntele. Korruptio ei tule juurista. Se tulee syvemmältä." He is not defeated - he is purified.',
   },
+  // Second Trial - Heartwood Warden (Act II's boss) wraps "thornmaw":
+  // its own self-Regen+self-Taunt kit (won't go down, forces you to
+  // commit) is a real mechanical fit for a guardian who "decides whether
+  // you're a protector or a destroyer" and won't be rushed past.
+  "heartwood-warden": {
+    id: "heartwood-warden",
+    enemyId: "thornmaw",
+    title: "Heartwood Warden",
+    rank: 2,
+    act: "The Deepening Woods",
+    beat: "The heart's physical guardian - not corrupted, but he doesn't trust you yet.",
+    introLine:
+      '"Sinä olet kulkenut liian pitkälle, vieras." He raises a hand; roots rise with it. "Kaikki, jotka koskevat sydäntä, ovat joko suojelijoita... tai tuhoajia. Minä päätän, kumpi sinä olet."',
+    victoryLine:
+      '"...Sinä et ole tuhoaja." He looks at you directly. "Sydän piiloutuu... koska se pelkää Hollow Kingiä. Ja sinä... sinä olet avain." He turns toward the deeper woods. "Meidän täytyy mennä Veiliin."',
+  },
 }
 
 export function resolveTrial(id) {

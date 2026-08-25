@@ -80,7 +80,7 @@ const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "gravemaw" },
   { type: "shop" },
-  { type: "miniboss", enemyId: "thornmaw" },
+  { type: "miniboss", enemyId: "thornmaw", trialId: "heartwood-warden" },
   { type: "shop" },
   { type: "battle", enemyId: "duskhollow" },
   { type: "shop" },

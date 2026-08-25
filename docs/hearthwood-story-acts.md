@@ -2524,3 +2524,404 @@ on kruunun muisti" - the environment isn't a stage, it's the crown's
 memory), applies this exact same language to ambient atmosphere,
 per-build "Identity Weather," a zero-gravity Void Pressure state for
 Hollow, and Root/Echo-layer ambient pulses - same condensation note as above.
+
+---
+
+## Hollow King & Spacemonkey — the friendship, before the crown (Marc's written scene)
+
+*"Ystävyys ei pelasta kuningasta. Mutta se muuttaa kruunun."* (Friendship
+doesn't save a king. But it changes the crown.)
+
+Before any of it - no void, no crown, no corruption - just two figures at
+the forest's heart: the Hollow King, still just the Warden, uncrowned;
+Spacemonkey, younger, lighter, without guilt. They sit on a root, legs
+dangling, exactly as Spacemonkey does in Act I. "Sinä kuuntelet liikaa
+metsää." / "Ja sinä liian vähän." (You listen to the forest too much. /
+And you too little.) They laugh - no fear, no fate yet.
+
+The forest trembles faintly - not strongly, like someone breathing too
+close. The Warden asks if Spacemonkey felt it; he brushes it off as wind.
+Inside the roots, a violet echo flickers for the first time: C-∞ is born.
+
+The Warden, worried, says the forest needs someone to carry its memory.
+Spacemonkey: "Ei se voi olla sinä." (It can't be you.) The Warden: "Se ei
+voi olla sinä." (It can't be you either.) Spacemonkey, voice cracking: "Minä...
+en ole hyvä kantamaan mitään." (I'm not good at carrying anything.) The
+Warden smiles: "Sinä kannat enemmän kuin luulet." (You carry more than
+you think.)
+
+A black-and-white light rises from the ground - not threatening, only
+curious. Spacemonkey backs away, warns him not to go near it. The Warden:
+"Se ei ole paha. Se on vain yksin." (It isn't evil. It's just alone.) He
+touches it. The crown ignites above him. Spacemonkey screams.
+
+The light tears open, roots tremble, the forest cries out. The Warden's
+eyes turn black-and-white; the crown descends onto his head. "Spacemonkey...
+juokse." (Spacemonkey... run.) "En jätä sinua!" (I won't leave you!)
+"Juokse!" (Run!) Spacemonkey runs - his greatest mistake, and his
+salvation.
+
+Later, alone and breathing hard, the newly-crowned Hollow King appears
+behind him - not hostile, only sad. "Sinä teit oikein." (You did the
+right thing.) "Minä jätin sinut." (I left you.) "Minä valitsin kruunun.
+Sinä valitsit minut." (I chose the crown. You chose me.) Spacemonkey
+cries; the Hollow King touches his shoulder: "Kun aika tulee... älä
+pelkää kruunua." (When the time comes... don't fear the crown.) The
+light draws the Hollow King back into the void. Spacemonkey is left alone.
+
+One-sentence summary (Marc's own): the Hollow King and Spacemonkey were
+friends before the crown - and their last moment together created the
+whole tragedy of Hearthwood.
+
+---
+
+## Hollow King & The Crownless — metaphysical dialogue (Marc's written scene)
+
+*"Kaksi kruunua eivät koskaan kohtaa... ellei metsä pakota niitä."* (Two
+crowns never meet - unless the forest forces them to.)
+
+A place with no roots, no forest, no void - only white space, a C-∞
+glyph floating like breath. The Hollow King stands before it; the
+Crownless appears behind him, not as a shape but as the crown's own
+shadow. "Sinä tulit takaisin." / "Minä en koskaan lähtenyt." (You came
+back. / I never left.)
+
+The Crownless circles him like a mirror looking for a crack: "Sinä
+särkyit, kun kosketit tyhjyyttä." (You broke when you touched the void.)
+The Hollow King: "Tyhjyys ei särkenyt minua. Se näytti minulle totuuden."
+(The void didn't break me. It showed me the truth.) "Totuus ei ole
+lahja." (Truth isn't a gift.) "Mutta se oli minun kohtaloni." (But it was
+my fate.)
+
+The Crownless presses: the forest didn't ask for him, the crown didn't
+choose him - he chose them. The Hollow King, looking through the void as
+if seeing Spacemonkey running away: "Minä valitsin heidät, koska he
+eivät olisi selvinneet ilman minua." (I chose them, because they
+wouldn't have survived without me.) "Ja sinä et selvinnyt heidän
+kanssaan." (And you didn't survive with them.)
+
+He insists he didn't fall - he gave himself. The Crownless, crown
+flashing white-violet: "Sinä et antanut itseäsi. Sinä piilotit itsesi."
+(You didn't give yourself. You hid yourself.) "Jos olisin jäänyt...
+metsä olisi kuollut." (If I had stayed... the forest would have died.)
+"Ja nyt metsä kuolee ilman sinua." (And now the forest is dying without you.)
+
+The Crownless reveals the crown's real nature: "Kruunu ei ole valta.
+Kruunu ei ole suojelija. Kruunu on pelko." (The crown isn't power. The
+crown isn't a guardian. The crown is fear.) "Sinä kannoit metsän pelon.
+Mutta et koskaan kantanut omaasi." (You carried the forest's fear. But
+never your own.)
+
+The Hollow King asks why the Crownless exists at all. Its voice isn't a
+voice - it's an echo at the player's own build-pitch: "Minä synnyin, kun
+sinä katosit. Minä olen kruunu ilman kuningasta. Minä olen pelko ilman
+muotoa. Minä olen totuus ilman kantajaa." (I was born when you
+vanished. I am a crown without a king. I am fear without shape. I am
+truth without a bearer.) The Hollow King: "Sinä et ole totuus. Sinä olet
+sen varjo." (You aren't the truth. You are its shadow.)
+
+Final exchange - the Crownless: "Sinä pelastit metsän. Mutta et
+pelastanut itseäsi." (You saved the forest. But you didn't save
+yourself.) The Hollow King: "Minä en ollut se, joka tarvitsi
+pelastusta." (I wasn't the one who needed saving.) The Crownless: "Marc
+tarvitsee." (Marc needs it.) The Hollow King's eyes light black-and-white:
+"Pidä hänestä huolta." (Take care of him.) The Crownless: "Minä en pidä.
+Minä paljastan." (I don't take care. I reveal.) "Silloin hän selviää."
+(Then he'll make it.)
+
+One-sentence summary (Marc's own): the Hollow King and the Crownless
+aren't enemies - they're two sides of the same crown: fear and truth,
+guardian and mirror.
+
+---
+
+## Spacemonkey — the guilt scene, Act III (Marc's written scene)
+
+*"Minä juoksin. Ja metsä ei koskaan antanut minulle anteeksi."* (I ran.
+And the forest never forgave me.)
+
+The Root Memory Labyrinth. Spacemonkey stands motionless before a root
+pulsing with the Hollow King's memory. A root-echo whispers "Juokse..."
+(Run...). He closes his eyes and kneels; the roots surround him without
+touching. "Minä... minä jätin hänet." (I... I left him.) "Minä juoksin.
+Minä juoksin, kun hän tarvitsi minua. Minä juoksin, koska pelkäsin
+kruunua." (I ran. I ran when he needed me. I ran because I feared the crown.)
+
+A short flashback: the Warden's hand touches the void, the crown
+ignites, Spacemonkey screams, roots tear, light pulls the Warden away.
+Spacemonkey, shaking: "Minä näin sen. Minä näin hänen katoavan. Ja
+minä... minä en tehnyt mitään." (I saw it. I saw him vanish. And I...
+I did nothing.)
+
+He presses his head against a root: "Metsä ei koskaan sanonut sitä
+ääneen. Mutta minä tiedän. Minä olen syy. Minä olen se, joka ei
+pysäyttänyt häntä. Minä olen se, joka ei pitänyt häntä täällä." (The
+forest never said it aloud. But I know. I am the reason. I am the one
+who didn't stop him. I am the one who didn't keep him here.)
+
+Looking directly at the player: "Minä en ollut tarpeeksi vahva. En
+silloin. En nyt." / "Marc... Sinä näet minut vahvana. Mutta minä olen
+vain joku, joka juoksi karkuun." (I wasn't strong enough. Not then. Not
+now. Marc... you see me as strong. But I'm just someone who ran away.)
+
+The roots glow violet, and within them the Hollow King's shadow -
+not angry, only sad: "Sinä teit oikein." (You did the right thing.)
+Spacemonkey freezes: "Ei... ei, minä—" The Hollow King's echo: "Sinä
+valitsit minut. Minä valitsin kruunun." (You chose me. I chose the
+crown.) Spacemonkey begins to cry. He rises: "Minä juoksin silloin.
+Mutta en enää." (I ran then. But not anymore.) Looking toward the
+Crownless Throne: "Jos kruunu haluaa totuuden... se saa sen minulta."
+(If the crown wants the truth... it gets it from me.)
+
+One-sentence summary (Marc's own): Spacemonkey's guilt scene reveals his
+real fear was never the crown - it was that he wasn't strong enough to
+save his friend.
+
+---
+
+## Spacemonkey — the final scene (Marc's written scene, distinct from the Act IV closing cinematic)
+
+*"Jos näet tämän... minä en ole enää siellä."* (If you're seeing this... I'm not there anymore.)
+
+Spacemonkey walks toward the Crownless Throne - no running, no fear, no
+hesitation, like someone who has finally accepted what he can't change.
+The forest quiets around him; roots part; light dims. He stops: "Marc...
+Minä tiedän, että sinä näet tämän." (Marc... I know you're seeing this.)
+
+Looking directly into the camera: "Sinä luulet, että minä olen rohkea.
+Että minä olen se, joka auttaa sinua. Että minä olen se, joka tietää,
+mitä tehdä." He shakes his head: "Mutta minä olen vain joku, joka juoksi
+karkuun." (You think I'm brave. That I'm the one helping you. That I'm
+the one who knows what to do. But I'm just someone who ran away.)
+
+Sitting on a root, as in Act I's opening: "Hollow King... Hän ei ollut
+hirviö. Hän ei ollut korruptio. Hän ei ollut kruunu." A sad smile: "Hän
+oli ystäväni." (The Hollow King... he wasn't a monster, the corruption,
+or the crown. He was my friend.) The roots ignite faintly violet.
+
+Eyes closed: "Minä jätin hänet. Minä juoksin. Minä pelkäsin kruunua.
+Minä pelkäsin totuutta." A deep breath: "Ja metsä ei koskaan antanut
+minulle anteeksi." (I left him. I ran. I feared the crown. I feared the
+truth. And the forest never forgave me.)
+
+Standing: "Mutta nyt... nyt minä en juokse." Looking toward the
+Crownless Throne: "Marc... Sinä menet sinne yksin. Mutta sinä et ole
+yksin." (But now... now I don't run. Marc... you go there alone. But you
+aren't alone.) He touches a root; it glows violet - the same color as
+the Crownless's C-∞ echo.
+
+Final words, smiling peacefully rather than sadly: "Jos näet tämän...
+minä en ole enää siellä." He turns away; light tears around him; he
+becomes a memory absorbed into the root. The root closes. The forest breathes.
+
+One-sentence summary (Marc's own): Spacemonkey's final scene is a
+ritual where he stops being a character and becomes a memory - for
+Marc, for the forest, and for the crown.
+
+---
+
+## Spacemonkey's Memory — a proposed gameplay mechanic (Marc's written design)
+
+*"Muisto ei anna voimaa. Muisto antaa totuuden."* (The memory doesn't
+grant power. It grants truth.) **Note: this is a genuinely new mechanic
+proposal, not yet built** - unlike the Trials (which reuse existing
+combat), this describes new stacking resources, choice-tracking, and a
+final binary choice with build-wide consequences. Flagging that
+distinction explicitly since it changes scope if picked up.
+
+When Spacemonkey is absorbed into the root at Act V's start, the player
+gains a permanent "Memory Layer" (violet + Spacemonkey-blue, shown under
+the DNA bar, cannot be lost, buffed, or removed) that activates on
+entering the Crownless Throne. It grants no stats directly - instead it
+tracks the player's choices: every build-synergy play grants 1 Echo
+stack (+5% synergy multiplier, Crownless comments "Sinä opit häneltä" -
+You learn from him); every overly-cautious/safe choice grants 1 Guilt
+stack instead (+5% to the Crownless's own C-∞ resonance, "Sinä pelkäät
+edelleen" - You still fear).
+
+**"Don't Run" (passive)**: playing a risky card/synergy path triggers
+the memory, grants +1 Echo, and slows the Crownless's next attack 20% -
+mechanically, the player can no longer "run" the way Spacemonkey once did.
+
+**"Shared Fear" (reactive)**: dropping below 20% HP auto-activates the
+memory, grants a one-hit-absorbing "Spacemonkey Shield," and the
+Crownless pauses for a second, saying "Sinä et ole yksin" (You are not alone).
+
+**Final form ("Echo of Goodbye")**: at 1 HP, Echo and Guilt merge, a
+Spacemonkey silhouette appears briefly, and the player is offered a
+binary choice - **Accept the Memory** (it merges into the build) or
+**Release the Memory** (it's freed into the forest) - affecting which
+ending resolves.
+
+One-sentence summary (Marc's own): Spacemonkey's memory is a gameplay
+mechanic that grants no power - it reveals the player's courage, fear,
+and truth before the Crownless.
+
+### Accepting the Memory — extended ending scene (Marc's written design)
+
+*"Jos sinä kannat minut... minä kannan sinut."* (If you carry me... I
+carry you.) If the player chooses Accept: the screen flashes blue-
+violet, a permanent "Memory: Spacemonkey (Active)" layer appears under
+the DNA bar. The Crownless pauses mid-fight: "Sinä kannat häntä. Miksi?"
+(You carry him. Why?) The memory changes build behavior rather than
+stats: all synergies gain +1 Echo, risky choices grant +2 Echo, cautious
+choices no longer generate Guilt, and the Crownless's own C-∞ resonance
+weakens 10%.
+
+New passive, **"Echo Step"**: a bold/high-risk synergy choice leaves a
+blue-violet afterimage on the player's animation, slows the Crownless's
+next attack 30%, and grants a Spacemonkey Shield (absorbs 1 hit). Below
+20% HP, the memory auto-activates, grants +3 Echo, and the Crownless
+pauses, saying "Sinä et kanna häntä yksin" (You don't carry him alone).
+
+At 1 HP: the memory rises to the top of the screen as a blue-violet
+silhouette; the Crownless asks "Sinä tuot hänet tänne. Miksi?" (You
+bring him here. Why?) - the player doesn't answer; the memory does, as
+an echo: "Koska minä en juokse enää" (Because I don't run anymore). On
+the final blow, a blue-violet echo spreads across the whole screen, the
+Crownless's shadow tears, and it whispers: "Sinä et ole kruunu. Sinä
+olet muisto." (You are not the crown. You are the memory.)
+
+One-sentence summary (Marc's own): accepting Spacemonkey's memory turns
+the player's build into a blue-violet Echo form that weakens the
+Crownless, rewards bold choices, and gives the story's most powerful ending.
+
+### "Echo Crown" — the same mechanic, formalized as a named build-form (Marc's written design)
+
+Same mechanic as the two sections directly above (Echo/Guilt stacks,
+Don't Run, Shared Burden, the final-HP transformation), restated as a
+named, fully-specified build archetype: an "Echo Layer" that reskins
+every tribe's own synergies into an "Echo" variant (Echo Growth/Flame/
+Wave/Break/Glitch/Silence, one per Wood/Ember/Tide/Stone/Cosmic/Hollow),
+each granting Echo stacks and slowing the Crownless. Core loop: "Echo
+Pulse" triggers on any bold/risky choice (+1 Echo, a shield, slows the
+boss 30%, blue-violet flash). Ultimate: "Echo Crown Ascension" at 1 HP -
+the whole build turns blue-violet, +5 Echo, and the final blow gets an
+"Echo Finish" visual. Marc's own line: "Echo Crown ei korvaa buildia. Se
+ylikirjoittaa sen rohkeudella." (Echo Crown doesn't replace the build.
+It overwrites it with courage.)
+
+One-sentence summary (Marc's own): Echo Crown is a build-form where
+Spacemonkey's memory overwrites the player's DNA with courage, echoes,
+and blue-violet truth - making the player the crown's only real
+counterforce.
+
+**Presentation passes for Echo Crown** (animations, HUD, VFX - 3 more
+written sections, condensed): same blue-violet "Echo" visual/audio
+language as the Crownless's own presentation suite above, applied to the
+player's side instead - an idle "Echo Breathing," a footstep-trailing
+"Echo Step" walk cycle, an "Echo Strike" attack with a shadow that lags
+0.2s behind, the "Don't Run" special (player freezes, blue-violet
+spreads foot-to-head), an "Echo Crown Ascension" phase transformation at
+1 HP, and a screen-filling "Echo Finish" on the last hit. Same
+condensation rationale as the earlier presentation-suite note - the
+pattern is already established, only the specific named beats differ.
+
+### Marc's naming clarification
+
+Marc noted explicitly on the latest dialogue drafts: **"Marc" in this
+dialogue means the player generically, not a hardcoded literal name** -
+confirms the open question flagged earlier (in "Spacemonkey — extended
+final memory") about whether "Marc" should stay literal or become a
+templated player-name slot. Answered: templated. Implementation should
+resolve to whatever identifies the player generically (Commander name,
+or a generic "you"), not hardcode the string "Marc."
+
+---
+
+## The Crownless & the player — final dialogue (Marc's written scene, name genericized)
+
+*"Kruunu ei kysy, kuka sinä olet. Kruunu kysyy, miksi sinä olet."* (The
+crown doesn't ask who you are. It asks why you are.)
+
+With the Echo Crown active, the Crownless pauses: "Sinä toit muiston
+tänne. Sinä toit hänet tänne. ... Miksi?" (You brought the memory here.
+You brought him here. ... Why?) The player doesn't answer aloud - the
+Echo Crown answers for them, as Spacemonkey's echo: "Koska hän ei juokse
+enää" (Because he doesn't run anymore). The Crownless: "Rohkeus ei ole
+voima. Rohkeus on muisto." (Courage isn't power. Courage is memory.)
+
+It asks who the player really carries - the forest, the crown, or
+themself. The player's answer, as an echo: "Minä kannan sen, mitä hän ei
+pystynyt kantamaan." (I carry what he couldn't carry.) "Pelon?" (Fear?)
+"Totuuden." (Truth.) The Crownless's shadow tears briefly.
+
+It declares the player isn't its enemy, isn't the crown's bearer, isn't
+the Hollow King - "Sinä olet muisto, joka ei kuole" (You are a memory
+that doesn't die). Final question before the last blow: "Miksi sinä
+tulit tänne?" (Why did you come here?) - answered again by Spacemonkey's
+echo: "Koska hän ei juokse enää." The Crownless closes its eyes: "Silloin...
+näytä minulle." (Then... show me.) Echo Finish triggers; the fight ends.
+
+One-sentence summary (Marc's own): the crown doesn't seek power - it
+seeks truth, and the Echo Crown makes the player into a memory that can
+break it.
+
+---
+
+## The 4th ending — Echo Sovereign (Marc's written scene, name genericized)
+
+*"Loppu ei kerro kuka sinä olit. Loppu kertoo miksi sinä olit."* (The end
+doesn't tell you who you were. It tells you why you were.) **A new,
+4th ending** - distinct from Rooted King/Ember Sovereign/Hollow Crown -
+unlocked specifically by accepting Spacemonkey's memory (Echo Crown) and
+carrying it to the Crownless fight's end.
+
+The fight over, the Crownless silent, blue-violet lingering in the air
+"like Spacemonkey's last breath." The forest speaks without a crown for
+the first time: "Sinä toit muiston tänne." (You brought the memory here.)
+
+The Crownless's own crown rises, no longer trembling, no longer seeking
+a bearer: "Sinä et rikkonut minua. Sinä paljastit minut." (You didn't
+break me. You revealed me.) It tears into blue-violet light - Spacemonkey's
+color. The roots open to show the Hollow King's shadow, Spacemonkey's
+memory, the player's own build colors, and the Echo Crown together: "Sinä
+kannoit sen, mitä kukaan muu ei pystynyt." (You carried what no one else could.)
+
+Spacemonkey's silhouette appears one last time, as memory not body: "Minä
+en juossut enää. Ja sinä... sinä et jättänyt minua." (I didn't run
+anymore. And you... you didn't leave me.) The crown's shards gather
+around the player - not re-forming into a crown, but into "Echo Crown
+Prime," a breathing blue-violet form. The forest: "Sinä et ole kuningas.
+Sinä et ole kruunu. Sinä olet muisto, joka ei kuole." (You are not a
+king. You are not the crown. You are a memory that doesn't die.) The
+player receives a new title: **Echo Sovereign** - "the forest's bearer,
+not its ruler."
+
+Closing ritual: roots rise around the player without binding them,
+Spacemonkey's echo touches the Echo Crown one last time: "Vie minut
+sinne, minne minä en koskaan päässyt." (Take me where I never got to
+go.) The Crownless's last shadow fades. Final line: "Heartwood ei muista
+kuninkaita. Heartwood muistaa ne, jotka eivät juosseet." (Hearthwood
+doesn't remember kings. Hearthwood remembers those who didn't run.)
+Fade out.
+
+One-sentence summary (Marc's own): the player earns the Echo Sovereign
+identity - not carrying the crown, but carrying the memory that saved
+the forest.
+
+### Echo Sovereign epilogue (Marc's written scene, name genericized)
+
+*"Metsä ei muista kuninkaita. Metsä muistaa ne, jotka eivät juosseet."*
+(The forest doesn't remember kings. It remembers those who didn't run.)
+
+The forest wakes, roots moving again "like the forest's first breath in
+centuries" - but the light returning is neither green nor gold, it's
+blue-violet, Spacemonkey's memory-color. Plants themselves change
+("Echo Flora"): leaves get a blue-violet edge, flowers only open as the
+player passes. The Hollow King doesn't return, but his shadow lingers in
+the deepest roots - gentle, non-threatening, "a memory of what the
+player saved," not corruption or fear. Spacemonkey doesn't return as a
+body either, but a blue-violet echo follows the player through the
+forest - "no longer a character. He is the forest's way of breathing"
+for the player. The player doesn't rule the forest or carry the crown;
+walking through it, the crown's shards rise and form "Echo Crown Prime"
+rather than a literal crown. Final forest line: "Sinä toit muiston
+tänne. Sinä kannoit sen. Sinä annoit sen elää." (You brought the memory
+here. You carried it. You let it live.) As the player leaves the forest,
+the blue-violet echo follows: "Heartwood ei ole enää paikka. Heartwood
+on [pelaajassa]." (Hearthwood is no longer a place. Hearthwood is in [the player].)
+
+One-sentence summary (Marc's own): the epilogue reveals the player
+didn't save the forest - they changed it, and it carries their
+blue-violet memory forever.
