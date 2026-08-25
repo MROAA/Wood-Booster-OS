@@ -9,18 +9,19 @@ import ResultOverlay from "./ResultOverlay"
 import FloatingNumbers from "./FloatingNumbers"
 import { CardGlyph } from "./cardArt"
 
-// Real time between rounds during auto-playback. Marc: "taistelu on
-// liian nopea sitä voi hidastaa puolella" (the battle is too fast, it
-// can be slowed by half) - doubled from the original 550ms so a fight
-// actually reads as a sequence of events instead of a blur.
-const ROUND_DELAY_MS = 1100
+// Real time between rounds during auto-playback. Marc asked twice:
+// "taistelu on liian nopea sitä voi hidastaa puolella" (too fast, can
+// be halved), then later "taistelun nopeuden voi vielä puolittaa"
+// (can still be halved again) - doubled again from 1100ms, for a
+// cumulative 4x slower than the original 550ms baseline.
+const ROUND_DELAY_MS = 2200
 
 // How long a stagger step waits before the next queued lunge starts -
 // several hits can land in the same round (a whole squad's worth), so
 // this staggers them into a readable little sequence rather than every
 // piece jolting at once. Doubled alongside ROUND_DELAY_MS so multi-hit
 // rounds stay proportionally paced at the new, slower speed.
-const LUNGE_STAGGER_MS = 320
+const LUNGE_STAGGER_MS = 640
 
 function cellsByPos(units) {
   const map = {}

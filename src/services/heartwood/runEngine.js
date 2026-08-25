@@ -195,7 +195,25 @@ const WIN_ESSENCE = 4
 // unit is exempt (recruitUnit below) since that purchase immediately
 // fuses and nets the bench SMALLER, not bigger - it should never be
 // blocked by the same cap it's about to shrink under.
-export const BENCH_CAP = 5
+//
+// Marc, direct, after being asked to clarify his own "reservi ja bench
+// on 2 erillistä asiaa minulle" (bench and reserve are 2 separate
+// things to me): "bench" is the 4 units fighting alongside the
+// Commander (this file's `deployed`); "reservi"/reserve is the
+// non-fighting units held for later (recruited but not deployed) -
+// specifically so duplicate copies can be collected toward Fusion
+// without competing with the deployed squad's own slots. The old
+// BENCH_CAP=5 total (4 deployed + only 1 free slot) left almost no
+// room to actually hoard a duplicate while still fielding a full
+// squad. Confirmed via AskUserQuestion: 6 reserve slots (not 10, not
+// unlimited) - enough to collect 2 units' worth of fusion fodder at
+// once without returning to the old "36-47 owned units" hoarding
+// problem this cap was originally introduced to fix (see this
+// constant's own history above). Total ownable units is now
+// DEPLOY_SLOTS + RESERVE_CAP, not RESERVE_CAP alone - deployed units
+// were always "owned" too, this just stops counting them against the
+// reserve's own room.
+export const RESERVE_CAP = 6
 const FORMATION_BONUS_ESSENCE = 2
 // Minibosses (Deepwarden, Thornmaw, Wyrmgall) are a harder win than even a
 // formation fight - a bigger payout than FORMATION_BONUS_ESSENCE, same
@@ -203,7 +221,7 @@ const FORMATION_BONUS_ESSENCE = 2
 const MINIBOSS_BONUS_ESSENCE = 3
 const SHOP_SIZE = 4
 const REROLL_BASE_COST = 1
-const DEPLOY_SLOTS = 4
+export const DEPLOY_SLOTS = 4
 
 function currentNode(runState) {
   return runState.path[runState.nodeIndex]
@@ -416,13 +434,16 @@ export function recruitUnit(runState, unitDefId) {
   const def = UNITS[unitDefId]
   if (!def || runState.essence < def.recruitCost || !runState.shopOffers.includes(unitDefId)) return runState
 
-  // BENCH_CAP (above): buying a 3rd copy of an already-2-owned unit
+  // RESERVE_CAP (above): buying a 3rd copy of an already-2-owned unit
   // fuses immediately and shrinks the bench by 2, so it's exempt -
   // the cap exists to stop pure hoarding, not to block the one
-  // purchase that actively relieves it.
+  // purchase that actively relieves it. Total room is DEPLOY_SLOTS (the
+  // fighting "bench," in Marc's own terms) plus RESERVE_CAP (the
+  // non-fighting reserve) - a full deployed squad still leaves the
+  // full reserve free, rather than the deployed squad eating into it.
   const alreadyOwned = runState.bench.filter((e) => e.defId === unitDefId).length
   const willFuse = alreadyOwned >= 2
-  if (!willFuse && runState.bench.length >= BENCH_CAP) return runState
+  if (!willFuse && runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP) return runState
 
   const newKey = runState.benchKeyCounter
   const withNew = [...runState.bench, { key: newKey, defId: unitDefId, upgradeLevel: 0 }]

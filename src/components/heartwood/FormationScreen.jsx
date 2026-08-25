@@ -285,8 +285,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       </p>
 
       <p style={{ fontSize: 12, color: "var(--hw-muted)" }}>
-        Bench ({deployedCount} / {runState.deployed.length} deployed) - click to place, click again to pull back.
-        Three of the same unit fuse automatically.
+        Bench ({deployedCount} / {runState.deployed.length} fighting) + Reserve ({runState.bench.length - deployedCount}) -
+        click to place, click again to pull back. Three of the same unit fuse automatically.
       </p>
       <div className="hw-select-grid hw-deck-preview">
         {runState.bench.map((entry) => {
