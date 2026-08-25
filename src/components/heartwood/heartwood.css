@@ -915,10 +915,26 @@
      old minmax(220px, 1fr) gave every column at least 220px AND let
      auto-fit stretch it further, leaving 70px+ of dead space around
      every card and fitting far fewer per row than the viewport could
-     actually hold. auto-fill with a track matching the card's own
-     width packs them tightly instead of stretching empty gaps.
-     Smaller gap too, for the same "more visible at once" reason. */
-  grid-template-columns: repeat(auto-fill, 150px);
+     actually hold. A track matching the card's own width packs them
+     tightly instead of stretching empty gaps. Smaller gap too, for the
+     same "more visible at once" reason.
+     Real bug caught via a live 1920x1080 measurement (Marc: "sen
+     pitää mahtua ruudulle 1920x1080 ja olla kiireettömämmän näköinen"
+     - needs to fit 1920x1080 and look less rushed/cluttered):
+     `auto-fill` (unlike `auto-fit`) keeps its unused implicit tracks
+     at full width even when there are only 4-6 cards, so the grid's
+     own content box already spans the FULL container width edge to
+     edge - `justify-content: center` then has nothing left to center,
+     since there's no leftover space outside the (mostly-empty) track
+     set. Every screen using this class (commander select, all 3
+     market sections, relic/reward previews, formation bench) measured
+     as flush-left with a huge dead gap on the right on a real
+     1920-wide viewport, not the centered/balanced layout the code
+     already asked for. `auto-fit` collapses those empty tracks to 0
+     width instead, so centering finally has real room to work with -
+     zero other behavior changes (same card width, same gap, same track
+     count once actually populated). */
+  grid-template-columns: repeat(auto-fit, 150px);
   justify-content: center;
   gap: var(--space-2, 13px);
   padding: var(--space-3, 21px) 0;
@@ -946,6 +962,28 @@
      column with most of the screen unused either side. */
   max-width: 1500px;
   margin: 0 auto;
+}
+
+/* Commander-select only (HeartwoodBattle.jsx's own intro block, the
+   ONE screen that uses .hw-crew-banner) - NOT applied to the base
+   .hw-intro rule above, since that's shared with the Market screen's
+   left-aligned prose headings ("The Hearthwood Market" etc.), which
+   would read wrong centered. The .hw-select-grid row right below this
+   block (a full-width sibling, its own justify-content: center) was
+   already centering itself once the auto-fit fix above landed, but
+   the crew banner/title/flavor text above it still sat flush-left
+   inside .hw-intro's own 1500px box - a mismatched, lopsided
+   composition on a real 1920px screen (Marc: "asiat pitää asetella
+   mukavasti silmälle" - things need to be arranged comfortably for
+   the eye). Centers the banner (already max-width: 720px) and the
+   text under it to match. */
+.hw-intro--centered {
+  text-align: center;
+}
+
+.hw-intro--centered .hw-crew-banner {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* The run track - a row of node glyphs so the run reads as a real,

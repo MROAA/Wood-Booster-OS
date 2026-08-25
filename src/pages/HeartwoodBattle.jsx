@@ -207,7 +207,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root" style={rootStyle}>
         {exitLink}
-        <div className="hw-intro">
+        <div className="hw-intro hw-intro--centered">
           <div className="hw-crew-banner">
             <img src={crewBanner} alt="Tommy, Aatos, Spacemonkey, and Fenrir" />
           </div>
