@@ -43,6 +43,47 @@ export const TRIALS = {
     victoryLine:
       '"...Sinä et ole tuhoaja." He looks at you directly. "Sydän piiloutuu... koska se pelkää Hollow Kingiä. Ja sinä... sinä olet avain." He turns toward the deeper woods. "Meidän täytyy mennä Veiliin."',
   },
+  // Third Trial - Veilbound (Act III's boss) wraps "wyrmgall": its own
+  // self-Execute+self-Shatter kit already punishes BOTH pure-aggression
+  // (Execute finishes a wounded player unit) and pure-defense (Shatter
+  // punishes Block-stacking) - a genuine mechanical fit for a being that
+  // "doesn't test power, it tests truth" and can't be cheesed one way or
+  // the other.
+  veilbound: {
+    id: "veilbound",
+    enemyId: "wyrmgall",
+    title: "Veilbound",
+    rank: 3,
+    act: "The Wounded Heartwood",
+    beat: "A being born from the border of reality - not evil, only the Veil's will given shape.",
+    introLine:
+      '"Sinä olet kulkenut liian pitkälle." Its shape will not hold still. "Vihollinen... ystävä... nämä sanat eivät merkitse mitään täällä. Veil ei testaa voimaa. Se testaa... totuutta."',
+    victoryLine:
+      '"...Sinä et ole tyhjyyden lapsi." Its shape stabilizes for the first time. "Sydän piiloutuu... koska Hollow King etsii sitä. Tyhjyys ei ole paha. Se on... yksin." It closes its eyes. "...Meidän täytyy mennä The Hollow."',
+  },
+  // Fourth Trial - the final boss. Marc, asked directly (his own story
+  // treats Hollow King as the real final threat, with Spacemonkey
+  // exiting into the void before this fight rather than being the one
+  // faced here): confirmed swapping the final boss's identity to Hollow
+  // King, wrapping the existing "spacemonkey" boss fight (same unique
+  // Revive/AoE kit, already the one fight in the game meant to feel
+  // different from every other - see enemies.js's own comment on it).
+  // Spacemonkey himself stays in the story as the guide/ally who exits
+  // earlier, exactly as written - just no longer who you fight here.
+  // "Marc" genericized to "you" per Marc's own clarification that the
+  // dialogue's "Marc" means the player generically, not a literal name.
+  "hollow-king": {
+    id: "hollow-king",
+    enemyId: "spacemonkey",
+    title: "The Hollow King",
+    rank: 4,
+    act: "The Reckoning",
+    beat: "The void's own child, once the forest's first guardian. Not a tyrant - a guardian who failed.",
+    introLine:
+      '"...Miksi tulit?" No face, no crown, no shape - only an absent shape where one should be. "Metsä ei tarvitse pelastusta. Se tarvitsee... totuuden. Näytä minulle, miksi sydän luottaa sinuun."',
+    victoryLine:
+      '"...Sinä... Sinä et ole tyhjyyden lapsi." The void around him trembles, as if it were crying. "Sydän... piiloutui minulta. Mutta se... luottaa sinuun." He does not fall. He simply ceases to be.',
+  },
 }
 
 export function resolveTrial(id) {
