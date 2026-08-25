@@ -258,6 +258,32 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  "the-unbroken-root": {
+    id: "the-unbroken-root",
+    name: "The Unbroken Root",
+    description: "One of them cannot be worn down. The other doesn't need to be touched at all.",
+    // Marc: "the game needs to be difficult without cheap tactics -
+    // real tactics, real player decisions, testing intelligence and
+    // build, but still fun to play." The tactical answer, not a
+    // numbers one: Ironroot's Taunt forces every single-target attack
+    // onto it (same mechanic-shielding as Bonewarden's Watch/The
+    // Cursed Thicket - both pieces share a row, no positional cover),
+    // while its own Cleanse strips whatever debuff the squad just
+    // landed - a build leaning on Poison/Weak/Vulnerable/Stun gets
+    // NOTHING here, only raw single-target damage matters. Thornfen
+    // sits fully exposed and untouchable behind it, swinging freely
+    // (8/6 per round) the whole time it takes to grind Ironroot down -
+    // every round spent solving "how do I actually hurt this thing"
+    // is a round Thornfen gets for free. The real decision this fight
+    // tests: does the squad's build have enough RAW single-target
+    // damage to end this quickly, or does it lean on exactly the kind
+    // of debuff stacking Ironroot was built to shrug off.
+    pieces: [
+      { defId: "ironroot", pos: { row: 1, col: 0 } },
+      { defId: "thornfen", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "the-withering-pact": {
     id: "the-withering-pact",
     name: "The Withering Pact",
