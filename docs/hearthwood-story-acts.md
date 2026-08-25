@@ -1682,3 +1682,52 @@ a stone texture, Cosmic -> glitch effects, Hollow -> the map loses color.
 
 **One-sentence summary**: Hearthwood's UI map doesn't show a route - it
 shows the forest's emotions, the heart's state, and the player's choice.
+
+---
+
+## Hearthwood Main Menu UI (Marc's written design)
+
+*"Kun avaat pelin, metsä avaa itsensä."* (When you open the game, the
+forest opens itself.)
+
+**Visual frame — "Living Menu".** The main menu isn't a static screen -
+it's a ritual chamber where the forest, the heart, and the void are all
+visible at once. A Heartwood ritual table in the background, roots
+moving slowly, candles glowing in the build's color, the heart's pulse
+visible in the light's rhythm, echoes of the void visible at the
+screen's edges (only after Act III).
+
+**Menu buttons — "Roots of Choice".** Not panels - wooden boards that
+roots grow into: Play, Decks, Collection, Journal, Settings, Quit. Hover
+makes roots tremble; click makes the wood "strike" the table softly;
+build color makes the buttons glow in different tones.
+
+**Dynamic background — reflects story progress.** Act I/Roots: green
+background, broken roots, the forest whispers quietly. Act II/Heartwood:
+golden background, the heart pulses strongly, elemental voices audible.
+Act III/Veil: violet background, tears flicker, Echo-whispers. Act
+IV/Hollow: black-and-white background, the void ripples, the Hollow
+King's echo is heard. Act V/Crownless: background shifts by build, the
+crown is visible in the background, the forest speaks clearly.
+
+**Layout.** Top: player name, build identity, heart pulse (small
+animation). Middle: large wood buttons over the ritual table. Bottom:
+optional paths, the lore book, daily challenges.
+
+**Build reactions in the menu**: Wood -> green glow, roots grow onto the
+buttons. Ember -> red flame, buttons smoke lightly. Tide -> blue wave,
+buttons "breathe." Stone -> gray texture, buttons rumble slightly.
+Cosmic -> glitch effects, buttons distort. Hollow -> colors disappear,
+buttons change shape.
+
+**Crownless-state menu (after Act V)**: the crown appears in the
+background, buttons glow violet, the forest speaks clearly, an echo of
+the throne is heard.
+
+**Menu animations**: Opening - a candle ignites center-screen, roots grow
+around it, the menu "rises" from the table. Closing - roots withdraw,
+candles extinguish, the forest whispers: *"Palaa pian."* (Come back soon.)
+
+**One-sentence summary**: Hearthwood's main menu isn't a UI - it's the
+forest's ritual chamber, reacting to the build, the story, and the
+player's choices.
