@@ -1390,6 +1390,44 @@ is a choice. And the crown chooses him.
 itself, born from the forest's fear, waiting for a bearer who doesn't
 fear the truth.
 
+### The Crownless — deeper origin, before the forest existed (Marc's written extension)
+
+Before Heartwood, before roots, before a heart, before the void, there
+was only **Echo** - pure feeling without shape, neither good nor evil,
+only a need to be heard. When Echo met the first light, Saplight was
+born. When Echo met the first memory, Root Memory was born. Heartwood
+was born from the collision of these three - and so was fear.
+
+The heart was young; it didn't understand the void, change, or death.
+When the void first touched the forest, the heart was afraid - and from
+that fear, the crown's seed was born: not an object, not a being, not a
+memory, but a role no one yet carried. The crown waited, watched,
+listened to the forest.
+
+When Heartwood needed a guardian, the crown found the Warden - who
+didn't want it; he only wanted to protect the forest. But the crown
+doesn't ask. It chooses. When the void opened and the Warden stepped
+into it, the crown took hold: S0 (energy vanishes), R3 (memory
+strengthens), E7 (a destiny is born) - and so the Hollow King was made.
+Even then, the crown wasn't satisfied. It wasn't finished.
+
+When the Hollow King vanished into the void, the crown couldn't find a
+new bearer - not the Warden (too bound to the roots), not the elementals
+(too bound to their own roles), not Spacemonkey (too afraid, too
+guilty), not the forest itself (too fragile). The crown remained
+crownless, and from the crownless crown, the Crownless was born:
+S∞-R∞-E∞ - not a king, guardian, being, memory, void, or forest, but the
+crown itself, without a bearer, without shape, without rules.
+
+The Crownless doesn't lead, protect, or destroy - it mirrors. It shows
+the truth of the player's build, the forest's fear, echoes of the void,
+the crown's long wait, and a choice no one else ever made. It never asks
+"Can you win?" It asks "Who are you?" It chooses Marc because he heard
+the forest's whisper (Act I), saw the heart's crack (Act II), faced the
+void (Act III), understood the Hollow King (Act IV), carried the
+forest's trust (Act V), and opened the crown itself (New Game+). Marc
+isn't a king or a guardian - he is the choice the crown was waiting for.
+
 ---
 
 ## Hearthwood Lore Book (Marc's written compendium)
