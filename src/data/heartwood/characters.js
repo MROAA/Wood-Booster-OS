@@ -273,13 +273,27 @@ export const CHARACTERS = {
     // "exploit the opening" identity (his passive already carries
     // Shatter) instead of copying another Commander's flavor - Brace
     // now both prevents a hit AND rewards punishing a braced enemy.
+    // Still last of the 4 after that fix (a fresh fairness pass: 44%
+    // no-items / 24% with-items, both clearly lowest) - Repo's
+    // guaranteed per-battle Strength (squadPassive + activePower) was
+    // only +1, vs. Tommy +4/Fenrir +3/Aatos +2, the same
+    // guaranteed-floor gap already closed once for Aatos and once for
+    // Fenrir (see their own activePower comments). Shatter's bonus is
+    // conditional (only fires vs. an already-blocked/warded target,
+    // the same shape WoundedFury already proved underperforms alone
+    // twice) so it doesn't substitute for a flat floor. Added
+    // Strength+1 on top - keeps the Shatter identity, brings Repo to
+    // +2 total, matching Aatos, still deliberately below Fenrir/Tommy
+    // (one targeted step, not a leap to parity - re-verify before
+    // stacking any further bump).
     activePower: {
       id: "brace",
       name: "Brace",
       cost: 3,
-      description: "Next battle only: the whole squad shrugs off one extra hit, and strikes deeper against a braced target.",
+      description: "Next battle only: the whole squad shrugs off one extra hit, strikes a little harder, and strikes deeper against a braced target.",
       effects: [
         { type: "applyBuff", id: "ward", amount: 1 },
+        { type: "applyBuff", id: "strength", amount: 1 },
         { type: "applyBuff", id: "shatter", amount: 2 },
       ],
     },
