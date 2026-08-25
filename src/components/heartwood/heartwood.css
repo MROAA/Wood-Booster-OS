@@ -913,25 +913,60 @@
 
 /* The run track - a row of node glyphs so the run reads as a real,
    visible journey with an end, not an open-ended "pick any fight."
-   Past nodes fade, the current node stays at full opacity. */
+   Past nodes fade, the current node stays at full opacity. Wrapped in
+   .hw-run-map, a persistent strip mounted once at the page level
+   (HeartwoodBattle.jsx) so it's visible across shop/relic/formation
+   instead of being rebuilt per screen - Marc: "player goes through a
+   field... so the game feels progressive." */
+.hw-run-map {
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 14px 21px 0;
+  background: color-mix(in srgb, var(--hw-panel) 85%, transparent);
+}
+
+.hw-run-map-tier {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
 .hw-run-track {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 14px 0;
+  margin: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
 }
 
 .hw-run-node {
   opacity: 0.35;
-  transition: opacity 150ms ease;
+  transition: opacity 150ms ease, transform 150ms ease;
+  flex-shrink: 0;
+}
+
+.hw-run-node .hw-piece-glyph {
+  width: 18px;
+  height: 18px;
 }
 
 .hw-run-node[data-current="true"] {
   opacity: 1;
+  transform: scale(1.35);
+  filter: drop-shadow(0 0 4px currentColor);
 }
 
 .hw-run-node[data-done="true"] {
   opacity: 0.65;
+}
+
+.hw-run-node[data-major="true"] .hw-piece-glyph {
+  width: 24px;
+  height: 24px;
 }
 
 .hw-flavor {

@@ -1,79 +1,82 @@
-import { CARDS } from "../../data/heartwood/cards"
-import { CHARACTERS } from "../../data/heartwood/characters"
+import { useEffect, useRef } from "react"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
-import Card from "./Card"
+import { difficultyTierForNode } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 
-// A short, fixed track (see runEngine.js's RUN_PATH) rendered as a row
-// of icons so the run reads as a real journey with a visible end, not
-// just "pick any fight" forever - past nodes fade, the current node
-// glows via the same medallion treatment every other glyph already
-// uses.
+// A compact, persistent strip of every node in the run (runEngine.js's
+// RUN_PATH), so the run reads as a real journey the player is moving
+// through rather than a sequence of disconnected screens - Marc:
+// "player goes through a field or something in perception of moving...
+// so the game feels progressive." Rendered once at the top level
+// (HeartwoodBattle.jsx), shared across the shop/relic/formation
+// phases rather than duplicated into each screen.
+//
+// Replaces the previous RunMap.jsx, which was fully orphaned (zero
+// importers) and built against a stale CARDS/deck data model that
+// predates the current shop/relic/battle RUN_PATH shape - this is a
+// rewrite against the real current state, not a revival of the old
+// code.
 function nodeGlyph(node) {
-  if (node.type === "rest") return "heart"
-  if (node.formationId) return "warden"
-  return ENEMIES[node.enemyId]?.art
+  if (node.type === "shop") return "spark"
+  if (node.type === "relic") return "rune"
+  if (node.type === "boss") return "spacemonkeyBoss"
+  if (node.formationId) return FORMATIONS[node.formationId] ? "warden" : "warden"
+  return ENEMIES[node.enemyId]?.art || "warden"
 }
 
-export default function RunMap({ runState, onContinue }) {
-  const character = CHARACTERS[runState.characterId]
-  const node = runState.path[runState.nodeIndex]
-  const isRest = node.type === "rest"
-  const isBoss = node.type === "boss"
-  const enemy = !isRest ? ENEMIES[node.enemyId] : null
-  const formation = node.formationId ? FORMATIONS[node.formationId] : null
-  const deckCards = [...new Set(runState.deck)].map((id) => CARDS[id])
+function nodeColor(node) {
+  if (node.type === "boss") return "var(--hw-hp)"
+  if (node.type === "miniboss") return "var(--hw-curse)"
+  if (node.type === "shop" || node.type === "relic") return "var(--hw-moss)"
+  return "var(--hw-ember)"
+}
+
+function nodeLabel(node) {
+  if (node.type === "shop") return "Market"
+  if (node.type === "relic") return "Relic"
+  if (node.type === "boss") return "Spacemonkey"
+  if (node.formationId) return FORMATIONS[node.formationId]?.name || "Battle"
+  return ENEMIES[node.enemyId]?.name || "Battle"
+}
+
+export default function RunMap({ runState }) {
+  const trackRef = useRef(null)
+  const currentRef = useRef(null)
+
+  // Auto-scroll so the current node stays in view as the run advances -
+  // the whole point of "moving through a field" breaks if the player
+  // has to manually scroll to see where they are.
+  useEffect(() => {
+    currentRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
+  }, [runState.nodeIndex])
+
+  const tier = difficultyTierForNode(runState.nodeIndex, runState.path.length)
 
   return (
-    <div className="hw-intro">
-      <h1 style={{ fontSize: 22, marginBottom: 6 }}>Heartwood</h1>
-      <p className="hw-flavor">
-        {character.name} presses deeper into the Heartwood. {runState.runHp} / {runState.runMaxHp} HP.
-      </p>
-
-      <div className="hw-run-track">
-        {runState.path.map((n, i) => (
-          <div key={i} className="hw-run-node" data-current={i === runState.nodeIndex} data-done={i < runState.nodeIndex}>
-            <CardGlyph
-              name={nodeGlyph(n)}
-              className="hw-piece-glyph"
-              style={{ color: n.type === "boss" ? "var(--hw-hp)" : n.type === "rest" ? "var(--hw-moss)" : "var(--hw-ember)" }}
-            />
-          </div>
-        ))}
+    <div className="hw-run-map" style={{ borderColor: tier.color }}>
+      <div className="hw-run-map-tier" style={{ color: tier.color }}>
+        {tier.name}
       </div>
-
-      <div className="hw-select-grid">
-        <div className="hw-enemy-choice" style={{ cursor: "default" }}>
-          <CardGlyph
-            name={nodeGlyph(node)}
-            className="hw-card-glyph"
-            style={{ color: isBoss ? "var(--hw-hp)" : isRest ? "var(--hw-moss)" : "var(--hw-ember)" }}
-          />
-          <strong>{isRest ? "A quiet clearing" : formation ? formation.name : enemy.name}</strong>
-          <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 6 }}>
-            {isRest ? "Rest here, or press on while you still can." : formation ? formation.description : enemy.description}
-          </p>
-          {!isRest && (
-            <p style={{ fontSize: 11, color: "var(--hw-muted)", marginTop: 6 }}>
-              {formation
-                ? `${formation.pieces.length} pieces · grid formation`
-                : `HP ${enemy.maxHp}`}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <button className="hw-end-turn" onClick={onContinue} style={{ marginTop: 6, marginBottom: 20 }}>
-        Continue
-      </button>
-
-      <p style={{ fontSize: 12, color: "var(--hw-muted)" }}>Your deck ({deckCards.length} cards):</p>
-      <div className="hw-select-grid hw-deck-preview">
-        {deckCards.map((def) => (
-          <Card key={def.id} def={def} playable={false} />
-        ))}
+      <div className="hw-run-track" ref={trackRef}>
+        {runState.path.map((n, i) => {
+          const isCurrent = i === runState.nodeIndex
+          const isDone = i < runState.nodeIndex
+          const isMajor = n.type === "miniboss" || n.type === "boss"
+          return (
+            <div
+              key={i}
+              ref={isCurrent ? currentRef : null}
+              className="hw-run-node"
+              data-current={isCurrent}
+              data-done={isDone}
+              data-major={isMajor}
+              title={nodeLabel(n)}
+            >
+              <CardGlyph name={nodeGlyph(n)} className="hw-piece-glyph" style={{ color: nodeColor(n) }} />
+            </div>
+          )
+        })}
       </div>
     </div>
   )
