@@ -963,12 +963,30 @@
   overflow-x: auto;
   scrollbar-width: thin;
   padding-bottom: 4px;
+  position: relative;
+}
+
+/* A literal path running behind the nodes - Marc: "player goes
+   through a field... so the game feels progressive." Without this the
+   strip was just a row of separate icons with no visual sense of a
+   road connecting them. */
+.hw-run-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--hw-border);
+  z-index: 0;
 }
 
 .hw-run-node {
   opacity: 0.35;
   transition: opacity 150ms ease, transform 150ms ease;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  background: var(--hw-panel);
 }
 
 .hw-run-node .hw-piece-glyph {
@@ -989,6 +1007,24 @@
 .hw-run-node[data-major="true"] .hw-piece-glyph {
   width: 24px;
   height: 24px;
+}
+
+/* Quiet vs loud, applied to the path itself: shop/relic stops repeat
+   every other node and would otherwise dominate the strip - shrunk
+   and muted so battles (the actual points of interest) read as the
+   real story beats. */
+.hw-run-node[data-minor="true"] {
+  opacity: 0.2;
+}
+
+.hw-run-node[data-minor="true"] .hw-piece-glyph {
+  width: 11px;
+  height: 11px;
+}
+
+.hw-run-node[data-minor="true"][data-current="true"],
+.hw-run-node[data-minor="true"][data-done="true"] {
+  opacity: 0.5;
 }
 
 .hw-flavor {
