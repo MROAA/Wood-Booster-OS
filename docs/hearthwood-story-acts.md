@@ -2406,3 +2406,29 @@ sinun buildisi. Mutta täydellisenä" (I am your build - but perfected).
 
 One-sentence summary: the Crownless's dialogue isn't speech - it's an
 identity ritual revealing the player's true form.
+
+### Crownless True Form — cinematic ending (Marc's written version, condensed)
+
+*"Totuus ei ole palkinto. Totuus on hinta."* (Truth isn't a reward. Truth
+is a price.) Largely the same beats as "The Ending Resolution" and
+"Crownless True Form — battle scene" already captured above, restated as
+one continuous cinematic: the crown settles into True Form ("Marc...
+minä olen sinä, ilman valheita"), everything freezes and drains of
+color, the crown descends to eye level: "Sinä et tullut voittamaan. Sinä
+tulit nähdyksi" (You didn't come to win. You came to be seen). It opens
+the void briefly, per-build imagery breaking (roots tear, flames die,
+waves stop, stone cracks, reality shivers, shadow ignites), then: "Minä
+en ole kuningas. Minä olen kruunu. Ja kruunu ei valitse voimaa. Kruunu
+valitsee totuuden" (I am not a king. I am the crown. And the crown
+doesn't choose power. It chooses truth). Final question at eye level:
+"Kuka sinä olet, kun kukaan ei katso?" - the three paths appear, the
+crown waits. On choosing: "Sinä et ole kruunuttoman kruunun kantaja.
+Sinä olet kruunu itse" (You aren't the bearer of a crownless crown. You
+ARE the crown) - it dissolves into light, absorbed into the player's
+build. Closing: the Heartwood Sigil forms from roots and branches, a
+forest choir sings at the player's build-pitch, text: "Heartwood ei ole
+paikka. Heartwood on valinta." Fade to black.
+
+One-sentence summary (Marc's own): the Crownless True Form's ending is
+an identity ritual where the crown dissolves into light and merges with
+the player's build - making Marc the Heartwood's new truth.
