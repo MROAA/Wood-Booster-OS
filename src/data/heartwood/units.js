@@ -141,18 +141,44 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
 // Support/tank units still lean defensive (attack shows up every other
 // beat, not every beat), they just aren't useless anymore.
 const BASE_UNITS = {
+  // Marc: "I open the game and see the market, I buy units without
+  // feeling anything... they need to have more status effects and
+  // things that make them unique and fun to play." An audit found 17
+  // of the 26 common-tier units - the ones seen constantly, every
+  // shop visit - had zero identity beyond flat attack/block numbers.
+  // Giving each a real, distinct hook below, reusing the game's own
+  // proven mechanic vocabulary (nothing invented from scratch) rather
+  // than a from-scratch new system - the same discipline every combo
+  // item/relic/enemy this session has followed.
   "the-fool": unit("the-fool", "Mosskit", "the-fool", 0, "support", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 4 },
-  ], { image: theFoolImg }),
+  ], {
+    // Regen - a free-tier unit's first taste of sustain, fitting
+    // "moss" (things that regrow).
+    passive: [{ type: "applyBuff", id: "regen", amount: 2 }],
+    image: theFoolImg,
+  }),
   "the-magician": unit("the-magician", "Duskweaver", "the-magician", 1, "hybrid", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 3 },
-  ], { image: theMagicianImg }),
+  ], {
+    // Weak on hit - a weaver of illusions/curses draining a target's
+    // own strength, not raw force.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } }],
+    image: theMagicianImg,
+  }),
   "the-high-priestess": unit("the-high-priestess", "Silverbloom", "the-high-priestess", 1, "support", [
     { type: "heal", amount: 4 },
     { type: "attack", amount: 5 },
-  ], { image: theHighPriestessImg }),
+  ], {
+    // Self-Cleanse every round - "purification" reads directly off
+    // the name, and gives Grove tribe its first Cleanse carrier
+    // (previously only Rootward on the enemy side, Willowmend
+    // uncommon on the player side).
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
+    image: theHighPriestessImg,
+  }),
   "the-empress": unit("the-empress", "Thistlequeen", "the-empress", 2, "support", [
     { type: "heal", amount: 5 },
     { type: "block", amount: 4 },
@@ -172,6 +198,9 @@ const BASE_UNITS = {
     image: theHierophantImg,
   }),
   "the-lovers": unit("the-lovers", "Twinbriar", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
+    // Chain - "twin" as a bonus strike on a second target, the
+    // cheapest possible read of the name.
+    chainDamage: 3,
     image: theLoversImg,
   }),
   "the-chariot": unit("the-chariot", "Thornram", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
@@ -184,7 +213,11 @@ const BASE_UNITS = {
   "the-hermit": unit("the-hermit", "Hollowreed", "the-hermit", 1, "support", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 6 },
-  ], { image: theHermitImg }),
+  ], {
+    // Self-Ward - "hermit" bends and retreats rather than breaking.
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    image: theHermitImg,
+  }),
   "wheel-of-fortune": unit("wheel-of-fortune", "Windshift", "wheel-of-fortune", 1, "hybrid", [
     { type: "attack", amount: 10, weight: 1 },
     { type: "block", amount: 10, weight: 1 },
@@ -192,11 +225,24 @@ const BASE_UNITS = {
   justice: unit("justice", "Oakwarden", "justice", 1, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 6 },
+    // Sunder - "justice" stripping away an ill-gotten edge, added as
+    // a 3rd move rather than an on-hit trigger (Warden's own first
+    // common-tier Sunder source).
+    { type: "sunder" },
   ], { image: justiceImg }),
   "the-hanged-man": unit("the-hanged-man", "Snarevine", "the-hanged-man", 0, "dps", [
     { type: "attack", amount: 6 },
-  ], { image: theHangedManImg }),
-  death: unit("death", "Bonewither", "death", 1, "dps", [{ type: "attack", amount: 7 }], { image: deathImg }),
+  ], {
+    // Vulnerable on hit - "snare" reads directly as marking a target
+    // for what comes after.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } }],
+    image: theHangedManImg,
+  }),
+  death: unit("death", "Bonewither", "death", 1, "dps", [{ type: "attack", amount: 7 }], {
+    // Poison on hit - "wither" is decay given a mechanic.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } }],
+    image: deathImg,
+  }),
   temperance: unit("temperance", "Stillbark", "temperance", 1, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
@@ -204,7 +250,14 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "block", amount: 3 } }],
     image: temperanceImg,
   }),
-  "the-devil": unit("the-devil", "Hollowmaw", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], { image: theDevilImg }),
+  "the-devil": unit("the-devil", "Hollowmaw", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], {
+    // Already the roster's biggest single hit at its cost - kept that
+    // glass-cannon identity intact and added only a small Execute,
+    // the roster's first COMMON-tier source (previously rare-only:
+    // Duskclaw/Trueshot) - "the devil claims what's already dying."
+    passive: [{ type: "applyBuff", id: "execute", amount: 2 }],
+    image: theDevilImg,
+  }),
   "the-tower": unit("the-tower", "Bramblespire", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
     image: theTowerImg,
   }),
@@ -215,11 +268,20 @@ const BASE_UNITS = {
   "the-moon": unit("the-moon", "Nightbloom", "the-moon", 1, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 5 },
-  ], { image: theMoonImg }),
+  ], {
+    // rallyHeal - moonlight mending nearby allies each round, a
+    // common-tier taste of the mechanic (previously uncommon+:
+    // Willowmend/Cragmoss).
+    rallyHeal: 2,
+    image: theMoonImg,
+  }),
   "the-sun": unit("the-sun", "Sunthorn", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
     image: theSunImg,
   }),
   judgement: unit("judgement", "Stoneknell", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
+    // Shatter - "judgement" as a reckoning against whatever's still
+    // hiding behind its own guard.
+    passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
     image: judgementImg,
   }),
   "the-world": unit("the-world", "Rootcrown", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
@@ -673,11 +735,19 @@ const BASE_UNITS = {
     { type: "heal", amount: 4 },
     { type: "attack", amount: 4 },
   ]),
-  sparrowthorn: unit("sparrowthorn", "Sparrowthorn", "spark", 1, "dps", [{ type: "attack", amount: 6 }]),
+  sparrowthorn: unit("sparrowthorn", "Sparrowthorn", "spark", 1, "dps", [{ type: "attack", amount: 6 }], {
+    // Wounded Fury - a scrappy fighter that gets meaner once it's
+    // cornered, fitting "sparrow" over a heavier bruiser identity.
+    passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+  }),
   duskwren: unit("duskwren", "Duskwren", "spark", 1, "dps", [
     { type: "attack", amount: 5 },
     { type: "attack", amount: 3 },
-  ]),
+  ], {
+    // Self-Strength - synergizes directly with its own existing
+    // 2-hit pattern rather than needing a new move type.
+    passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
+  }),
   rimefang: unit("rimefang", "Rimefang", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
     // Chain (autoBattleEngine.js's actSide), same mechanism Grimtusk/
     // Foxfire already established - a bonus hit on a different living
@@ -717,15 +787,27 @@ const BASE_UNITS = {
   ], {
     rallyAdjacent: { id: "regen", amount: 2 },
   }),
-  duskbramble: unit("duskbramble", "Duskbramble", "root", 1, "dps", [{ type: "attack", amount: 6 }]),
+  duskbramble: unit("duskbramble", "Duskbramble", "root", 1, "dps", [{ type: "attack", amount: 6 }], {
+    // Sunder on hit - a dps-side echo of Oakwarden's identity at a
+    // different cost/role context, strips a target's own buff.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
+  }),
   hollowmere: unit("hollowmere", "Hollowmere", "shield", 2, "tank", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 4 },
-  ]),
+  ], {
+    // Self-Ward - a 2nd "Hollow-" unit sharing Hollowreed's defensive
+    // motif, at tank role/uncommon cost instead of support/common.
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+  }),
   thistlemaw: unit("thistlemaw", "Thistlemaw", "spark", 1, "dps", [
     { type: "attack", amount: 4 },
     { type: "attack", amount: 4 },
-  ]),
+  ], {
+    // Chain - a 2-hit unit where either swing can trigger the bonus,
+    // "thistle catches on everything nearby."
+    chainDamage: 3,
+  }),
   brackenveil: unit("brackenveil", "Brackenveil", "leaf", 2, "hybrid", [
     { type: "block", amount: 4 },
     { type: "heal", amount: 3 },
@@ -760,7 +842,11 @@ const BASE_UNITS = {
   mosshollow: unit("mosshollow", "Mosshollow", "shield", 1, "tank", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 3 },
-  ]),
+  ], {
+    // Self-Regen - "moss that regrows," the tank-role echo of
+    // Mosskit's sustain identity at a different role/context.
+    passive: [{ type: "applyBuff", id: "regen", amount: 2 }],
+  }),
   // Marc: "enemies and bosses need to be more challenging" - the enemy
   // side got noticeably tougher (Deepwarden/Thornmaw/Spacemonkey bumps,
   // The Hollow Court) without a matching answer on the player side.
