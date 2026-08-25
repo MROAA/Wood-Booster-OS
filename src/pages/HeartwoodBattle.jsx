@@ -32,6 +32,7 @@ import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
 import RelicChoice from "../components/heartwood/RelicChoice"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
+import RunMap from "../components/heartwood/RunMap"
 import { CardGlyph } from "../components/heartwood/cardArt"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
@@ -210,15 +211,18 @@ export default function HeartwoodBattle() {
   }
 
   const changeCharacterBar = (
-    <div style={{ display: "flex", gap: 8, padding: "21px 21px 0" }}>
-      {exitLink}
-      <button className="hw-move-btn" onClick={handleChangeCharacter}>
-        Change Commander
-      </button>
-      <button className="hw-move-btn" onClick={() => setShowIntro(true)}>
-        How to Play
-      </button>
-    </div>
+    <>
+      <div style={{ display: "flex", gap: 8, padding: "21px 21px 0" }}>
+        {exitLink}
+        <button className="hw-move-btn" onClick={handleChangeCharacter}>
+          Change Commander
+        </button>
+        <button className="hw-move-btn" onClick={() => setShowIntro(true)}>
+          How to Play
+        </button>
+      </div>
+      <RunMap runState={runState} />
+    </>
   )
 
   if (runState.phase === "shop") {
