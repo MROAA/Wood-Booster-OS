@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { CHARACTERS } from "../data/heartwood/characters"
 import {
@@ -26,7 +26,10 @@ import {
   toggleFreeze,
   activateCommanderPower,
   difficultyTierForNode,
+  serializeRun,
+  deserializeRun,
 } from "../services/heartwood/runEngine"
+import { loadRunSave, saveRunSave, clearRunSave } from "../services/heartwood/runSaveState"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
@@ -47,11 +50,30 @@ const AUTOBATTLER_INTRO_SEEN_KEY = "heartwood-autobattler-intro-seen"
 // ever played by hand - the player's only actions are recruiting,
 // placing units on the grid, and choosing when to leave the shop.
 export default function HeartwoodBattle() {
-  const [characterId, setCharacterId] = useState(null)
-  const [runState, setRunState] = useState(null)
+  // Restore a saved run on mount (Marc, direct: refreshing the page
+  // loses all progress, "that needs to change"). useMemo(() => ..., [])
+  // rather than an effect - an effect-based restore would show a
+  // flash of the character-select screen before the saved run lands,
+  // plus a redundant first write once it does. deserializeRun
+  // (runEngine.js) already returns null for anything corrupt/stale/
+  // out-of-range, so a bad save just falls through to character select
+  // rather than crashing.
+  const restored = useMemo(() => deserializeRun(loadRunSave()), [])
+  const [characterId, setCharacterId] = useState(restored?.characterId ?? null)
+  const [runState, setRunState] = useState(restored)
   const [showIntro, setShowIntro] = useState(
     () => typeof localStorage !== "undefined" && !localStorage.getItem(AUTOBATTLER_INTRO_SEEN_KEY),
   )
+
+  // Every one of this component's ~20 handlers funnels through
+  // setRunState, so one effect covers all of them rather than a save
+  // call in each handler. Saving mid-battle is deliberate (see
+  // serializeRun's own comment, runEngine.js) - a reload during a
+  // losing fight resumes it instead of re-rolling it.
+  useEffect(() => {
+    if (!runState) return
+    saveRunSave(serializeRun(runState))
+  }, [runState])
 
   // Renders outside OSLayout now (App.jsx) - no Sidebar to fall back on
   // to get back to the rest of Wood-Booster HQ, so every screen needs
@@ -72,7 +94,13 @@ export default function HeartwoodBattle() {
     setRunState(startRun(id))
   }
 
+  // Now that a run persists across reloads, abandoning one here is a
+  // real, permanent loss (not just a discard of in-memory state) -
+  // CLAUDE.md: "never execute destructive actions automatically", same
+  // reasoning as any other unrecoverable action in this codebase.
   function handleChangeCharacter() {
+    if (runState && !window.confirm("Abandon your current run and choose a different Commander?")) return
+    clearRunSave()
     setRunState(null)
     setCharacterId(null)
   }
@@ -169,6 +197,7 @@ export default function HeartwoodBattle() {
   }
 
   function handleNewRun() {
+    clearRunSave()
     setRunState(null)
     setCharacterId(null)
   }

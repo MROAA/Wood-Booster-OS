@@ -1103,3 +1103,49 @@ export function resolveBattleOutcome(runState) {
 
   return runState
 }
+
+// Persistence (Marc, direct: reloading the page loses all run progress,
+// "that needs to change"). Storage MECHANICS (localStorage get/set,
+// try/catch) live in runSaveState.js; this module owns the SHAPE, since
+// it already owns startRun's shape and is the one place that knows what
+// a valid runState looks like.
+//
+// `path` is deliberately dropped before saving and rebuilt on load
+// (currently just re-attaching the same RUN_PATH constant every run
+// produces already) rather than serialized - RUN_PATH is the same ~90-
+// entry array for every run today, so storing it on every save would
+// be pure waste. This is also the seam a future Trial-selection system
+// can hook into (rebuild `path` from a small saved selection instead of
+// the raw array) without changing the save shape's meaning.
+//
+// Saving mid-battle (battle is NOT stripped) is deliberate, not an
+// oversight: skipping battle saves would let a reload re-roll a losing
+// fight before it resolves - a real hole in a permadeath game. A reload
+// mid-fight resumes the exact same fight; a reload right after death
+// still shows the death. Confirmed the battle state startAutoBattle
+// produces (autoBattleEngine.js) is plain data throughout - grid,
+// commanderDef, enemyDefs are all plain objects/arrays, never functions
+// or class instances - so a JSON round-trip is lossless.
+export const RUN_SAVE_VERSION = 1
+
+export function serializeRun(runState) {
+  if (!runState) return null
+  const { path: _path, ...rest } = runState
+  return { version: RUN_SAVE_VERSION, savedAt: Date.now(), run: rest }
+}
+
+const VALID_PHASES = new Set(["shop", "relic", "formation", "battle", "victory", "defeat"])
+
+// Any failure here - wrong version, corrupted JSON, a shape that
+// doesn't match what this build of the game expects - returns null and
+// falls through to character select. Never throws, never crashes the
+// app on a stale or hand-edited save.
+export function deserializeRun(saved) {
+  if (!saved || saved.version !== RUN_SAVE_VERSION) return null
+  const run = saved.run
+  if (!run || typeof run !== "object") return null
+  if (!CHARACTERS[run.characterId]) return null
+  if (!VALID_PHASES.has(run.phase)) return null
+  if (typeof run.nodeIndex !== "number" || run.nodeIndex < 0 || run.nodeIndex >= RUN_PATH.length) return null
+  return { ...run, path: RUN_PATH }
+}
