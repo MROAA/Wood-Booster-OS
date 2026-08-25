@@ -2322,3 +2322,87 @@ different part of the player's build/DNA rather than plain HP:
 
 One-sentence summary: not boss mechanics - an identity ritual where the
 crown overwrites the player's DNA and forces them to face themselves.
+
+### Crownless Throne — map design (Marc's written design, condensed)
+
+*"Kruunu ei odota sinua. Kruunu odottaa totuutta."* (The crown doesn't
+wait for you. It waits for the truth.)
+
+Three concentric rings, each mapping to an S-R-E DNA layer, around the
+central throne arena: **Outer Ring - Saplight Circle** (S layer) - glowing
+root channels, candles that extinguish by build, per-element light;
+build-reactive routes (Ember opens burn-paths, Tide opens water-channels,
+Hollow extinguishes every light); events: Saplight Trials, Elemental
+Echoes. **Middle Ring - Root Memory Labyrinth** (R layer) - a maze that
+reshapes by the player's past choices, roots moving like nerve networks,
+Warden-memory shadows, a following Hollow King echo; events: Memory
+Fracture, Warden's Echo. **Inner Ring - Echo Fate Chamber** (E layer) -
+black-and-white chamber, a build-reactive violet echo, shadows moving on
+different timelines; enemies determined by the build's E layer; events:
+Fate Collapse, Echo Convergence.
+
+**Crownless Throne (center arena)**: a floating, cracking crown; roots
+reflect the build's colors; void ripples at the edges. Special
+mechanics: C-∞ DNA field (any creature can mutate mid-fight), Identity
+Mirror (the Crownless copies the build 100%), Sudden Truth (below 20%
+HP, the map turns black-and-white and every animation freezes).
+
+**Hidden secrets**: Broken Crown Fragment (Root Memory Labyrinth, grants
+a new Hollow card), Echo Crown Seed (Echo Fate Chamber, grants a new
+Cosmic spell), Crownless Glyph (Saplight Circle, grants a new NG+ build passive).
+
+One-sentence summary: the map where the player's build, the forest's
+memory, and the crown's identity merge - every step a ritual.
+
+### Crownless — full dialogue package (Marc's written version, condensed)
+
+*"Minä en puhu sinulle. Minä puhun sinusta."* (I don't speak to you. I
+speak about you.)
+
+**Entrance**: "Marc... metsä muistaa sinut." / "Sinä tulit takaisin. Et
+voittamaan. Vaan nähdyksi." / "Minä olen kruunu. Ja kruunu ei unohda."
+(Marc, the forest remembers you. You came back - not to win, to be
+seen. I am the crown, and the crown doesn't forget.)
+
+**Pre-fight**: "Minä olen sinä... ilman valheita." / "Buildisi ei ole
+voima. Buildisi on tunnustus." / "Kuka sinä olet, Marc?" (I am you,
+without lies. Your build isn't power - it's a confession. Who are you,
+Marc?)
+
+**Battle start**: "Rituaali alkaa." / "Minä peilaan sinua. Älä katso
+pois." / "Jokainen kortti on valinta. Jokainen valinta on sinä." (The
+ritual begins. I mirror you - don't look away. Every card is a choice.
+Every choice is you.)
+
+**Per-attack lines**: Identity Echo - "Minä opin sinulta" (I learn from
+you). Crown Pulse - "Energia ei ole sinun. Se on metsän" (The energy
+isn't yours. It's the forest's). Mirror of Roots - "Muistosi ovat
+raskaita. Minä kannan ne" (Your memories are heavy. I carry them). Void
+Resonance - "Tyhjyys ei pelkää sinua" (The void isn't afraid of you).
+Echo Collapse - "Tunteesi ovat säröillä. Minä näen sen" (Your feelings
+are cracked. I see it). C-∞ Rewrite - "Sinä et tarvitse tätä muotoa"
+(You don't need this shape).
+
+**Phase change**: "Minä olen kruunu. Minä olen sinä. Minä olen totuus." /
+"Buildisi hajoaa. Identiteettisi paljastuu." / "Marc... älä pelkää
+itseäsi." (I am the crown. I am you. I am the truth. Your build falls
+apart. Your identity is revealed. Marc, don't fear yourself.)
+
+**Late-fight**: "Kaikki värit ovat valheita." / "Tyhjyys ei ota. Tyhjyys
+näyttää." / "Minä en ole vihollinen. Minä olen vastaus." (All colors are
+lies. The void doesn't take - it shows. I'm not the enemy. I'm the answer.)
+
+**Final line**: "Marc... kuka sinä olet, kun kukaan ei katso?" / "Valitse.
+Metsä odottaa." / "Minä olen kruunu. Mutta sinä... sinä olet kuningas."
+(Marc, who are you when no one is watching? Choose - the forest waits. I
+am the crown. But you... you are the king.)
+
+**NG+ form-specific lines**: to Overmind Warden - "Hän muistaa liikaa.
+Sinä opetat hänelle lisää" (He remembers too much. You teach him more).
+To Veilbound Prime - "Todellisuus ei pidä sinusta. Minä pidän" (Reality
+doesn't like you. I do). To Hollow King Ascendant - "Tyhjyys laulaa
+nimeäsi" (The void sings your name). To Crownless True Form - "Minä olen
+sinun buildisi. Mutta täydellisenä" (I am your build - but perfected).
+
+One-sentence summary: the Crownless's dialogue isn't speech - it's an
+identity ritual revealing the player's true form.
