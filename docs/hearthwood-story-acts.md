@@ -3234,3 +3234,52 @@ closing: "Echo Age päättyy. Mutta muisto... se jatkaa." (The Echo Age
 ends. But the memory... continues.) Fade out - Heartwood continues (not
 "Heartwood 2," consistent with Marc's explicit instruction this arc is
 a continuation of the current game).
+
+## The Echo Verge (proposed era after the Echo Age)
+
+A further pass proposes a NEXT era after the Echo Age resolves - "when
+memory no longer stays inside, the world no longer stays the same."
+Same status as everything above: reference/brainstorm only, nothing
+built.
+
+- **The Verge Awakens**: the Echo Age ends with the player's choice,
+  but the memory doesn't stop moving - a new phenomenon forms in the
+  forest's deepest roots: the **Echo Verge** - not a rift, not a
+  memory, not a crown, but "an interface where memory and reality mix."
+  Roots glow in blue-violet rhythm, shadows move independently, the
+  light is no longer the forest's own but the memory's. "Heartwood no
+  longer breathes alone. Heartwood breathes inside [the player]."
+- **The Verge Flora**: plants are first to change - leaves open only in
+  the player's presence, flowers shift color with the Echo Crown's
+  pulse, roots draw blue-violet glyphs, shadows follow protectively.
+  The forest no longer reacts to the crown - it reacts to the memory.
+- **The Verge Creatures**: where the Echo Age created enemies, the Echo
+  Verge creates beings that are neither enemies nor friends -
+  resembling Echo Wraiths but calmer, Memory Husks but self-aware,
+  Distorted Spacemonkey but peaceful. They don't attack; they seek the
+  player out, wanting the memory back.
+- **The Verge Pulse** (new world mechanic): "Pulse Zones" - areas where
+  memory and reality blend. Player gains +1 Echo per step, the shadow
+  gains +1 Guilt per hesitation, synergies turn blue-violet, the world
+  reacts to the player's emotional state. Explicitly "not dangerous -
+  sensitive."
+  Zones,
+- **The Verge Truth**: for the first time the forest speaks without
+  crown, shadow, or rift - directly: "Sinä kannoit muiston. Sinä annoit
+  sen kasvaa. Nyt muisto etsii paikkaa maailmassa." (You carried the
+  memory. You let it grow. Now the memory is looking for a place in the
+  world.) The forest no longer fears the memory - it wants to
+  understand it.
+- **The player's new role - Echo Herald**: no longer "Echo Sovereign"
+  (that role was specific to the Echo Age). Not a ruler, not a
+  protector, not a carrier - "an interpreter of memory who helps the
+  forest understand the blue-violet power." Can communicate with Pulse
+  Zones, reshape memory, stabilize or release memory fragments. "The
+  Echo Herald doesn't lead the forest. The Echo Herald listens to it."
+- **Framing**: explicitly not a conflict or crisis but a question -
+  "What does memory do to the world when it no longer stays in one
+  place?" One-sentence summary (Marc's own, via the pasted source):
+  "Heartwood's next era - the Echo Verge - is the interface between
+  memory and reality, where the player no longer carries the memory but
+  interprets it, and the forest begins searching for its own place
+  amid the blue-violet power."
