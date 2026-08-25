@@ -1828,6 +1828,41 @@ being's DNA.
 the forest's energy, memory, and purpose, determining each being's
 destiny and the crown's birth.
 
+### Mutation Book (Marc's written extension, condensed)
+
+*"Metsä ei muutu vahingossa. Metsä muuttaa tarkoituksella."* (The forest
+doesn't change by accident. The forest changes with purpose.)
+
+Mutations happen when an S-R-E layer overloads, breaks, distorts, is
+exposed to a void echo, or reacts to the player's build. Each layer has
+its own mutation tiers (S+/S++/S*/S0 for Saplight; R+/R++/R*/R∞ for Root;
+E+/E++/E*/E∞ for Echo), each mapping to a named mutation class:
+
+| Class | Layer | Example |
+|---|---|---|
+| Natural Mutation | S+/R+ | Elder Rootling |
+| Elemental Mutation | S++ | Ember Spark |
+| Memory Mutation | R++ | Memory Golem |
+| Overgrowth Mutation | S*** | Overgrown Titan |
+| Overmind Mutation | R*** | Overmind Warden |
+| Fate Mutation | E*** | Hollow King |
+| Crown Mutation | S∞/R∞/E∞ | The Crownless |
+
+**Full mutation chains**: Rootling -> Elder Rootling -> Stone Elemental ->
+Earthshaper. Sap Spirit -> Ember Spark -> Ember Elemental -> Ashlord.
+Heartwood Echo -> Tide Elemental -> Flowwarden. Warden -> Hollow King ->
+The Crownless.
+
+**Void mutations** (S=0, R=3+, E=5+): Voidling (S0-R1-E3), Hollow Herald
+(S0-R1-E5), Hollow Echo (S0-R2-E6), Hollow King (S0-R3-E7).
+
+**The crown doesn't mutate layers - it overwrites them.** The
+Crownless's DNA is S∞/R∞/E∞: it can copy any being, mirror the player's
+build, reshape the battlefield, and create new mutations.
+
+One-sentence summary: the Mutation Book shows how energy, memory, and
+purpose break and reshape - and how the crown can override all of it.
+
 ### Full genetic profile tables (S-R-E, Marc's written version)
 
 *"Olennon voima ei synny lihasta. Se syntyy koodista."* (A being's power
