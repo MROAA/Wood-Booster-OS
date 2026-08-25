@@ -1827,3 +1827,68 @@ being's DNA.
 **One-sentence summary**: Hearthwood's "DNA" system isn't biology - it's
 the forest's energy, memory, and purpose, determining each being's
 destiny and the crown's birth.
+
+---
+
+## Hearthwood Battlefield UI (Marc's written design)
+
+*"Taistelukenttä ei ole areena. Se on rituaali."* (The battlefield isn't
+an arena. It's a ritual.)
+
+**Note: this describes a hand-of-cards/mana-crystal battle UI (a "Fan of
+Fate" card hand, "Ritual Candles" as a mana resource, deck/graveyard
+piles) that doesn't match Hearthwood's actual mechanics** - the game is
+an auto-battler with no hand, no mana, no deck (see `CLAUDE.md`'s own
+"no card is ever played by hand" note and the game's real `RUN_PATH`/
+shop/formation/auto-battle loop). Captured in full as design-language
+reference (materials, motifs, animation vocabulary) rather than a literal
+UI spec - the actual battle screen is `AutoBattleView.jsx`'s grid of
+`EnemyPieceCard`s, not a card-hand layout.
+
+**Overall layout — "Ritual Board".** A wooden ritual table whose roots,
+candles, and heart-light react to the player's build. Top lane: enemy
+row. Bottom lane: player row. Center lane: effects/animations/spells.
+Left panel: hero + HP + status. Right panel: deck + graveyard. Bottom
+edge: card hand + resources.
+
+**Player row — "Rootline".** Units stand on roots that tremble from
+buffs, blacken from debuffs, ignite from spells, and break at death.
+
+**Enemy row — "Crownline".** Enemy units stand in the tree's "crown" - on
+branches curving along the top of the field, shifting to match the
+enemy's element; the Hollow King/Crownless get their own animation.
+
+**Hero panel — "Heart Sigil".** A carved wood panel with the Heart Sigil
+at its center: HP (big, clear), build symbol, active ability (a ritual
+button), status icons. HP loss cracks the wood; HP gain grows roots;
+Hollow status drains the colors.
+
+**Deck & graveyard — "Roots & Remains".** Deck: a wooden box with a root-
+lock, glowing symbol, carved card count. Graveyard: a bone pile / dark
+pit, cards shown as shadows; a Hollow build turns the grave into a void,
+an Ember build burns the cards' edges.
+
+**Card hand — "Fan of Fate".** Hearthstone-style fanned cards with
+Hearthwood's own aesthetic: wood frame, root ornamentation, art bleeding
+past the frame, cost shown as a ritual candle, hover lifts the card and
+dims the background.
+
+**Resources — "Ritual Candles"** instead of crystals: 0-10 candles, lit =
+active, spent = extinguished; Ember build makes the flames roar, Tide
+makes them ripple, Hollow drains their color.
+
+**Effects/animations — "Spellflow".** Per-element spell VFX (Wood:
+leaves/roots/green light; Ember: flame/sparks/red glow; Tide: water
+ripple/blue wave; Stone: rock fracture/gray dust; Cosmic: glitch;
+Hollow: black smoke/violet echo). Attacks: a unit lunges forward, roots
+tremble, branches bend; the Hollow King's attack is a "wave of the void."
+
+**Boss UI — "Crownless Mode".** Facing the Hollow King or the Crownless:
+colors drain, roots stop moving, candles extinguish, the card hand turns
+violet, a crown silhouette appears in the background. Boss HP is labeled
+"Heart Cracks," boss abilities are "Echoes of the Void," and boss
+animations mirror the player's own build.
+
+**One-sentence summary**: Hearthwood's battlefield UI isn't a game
+board - it's a ritual altar, reacting to the build, the story, and the
+forest's emotions.
