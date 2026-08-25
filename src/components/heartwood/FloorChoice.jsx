@@ -15,15 +15,37 @@ function optionArt(node) {
   return ENEMIES[firstDefId]?.art || "warden"
 }
 
-export default function FloorChoice({ runState, onChoose }) {
+export default function FloorChoice({ runState, onChoose, difficultyTier }) {
   const options = runState.floorChoices || []
 
   return (
     <div className="hw-intro">
       <h1 style={{ fontSize: 22, margin: 0 }}>Two paths through the Hearthwood</h1>
+      {/* Same act-banner pattern FormationScreen/SquadDraft already use
+          for difficultyTier - no new CSS, keeps this choice screen tied
+          to the same ongoing story arc instead of feeling like a bare
+          mechanical picker (Marc, direct: wanted the branching choice
+          itself to carry story weight, not just enemy/formation stats). */}
+      {difficultyTier && (
+        <div
+          className="hw-section-fade-in"
+          style={{
+            border: `1px solid ${difficultyTier.color}`,
+            borderRadius: 8,
+            padding: "12px 16px",
+            marginTop: 14,
+            background: `color-mix(in srgb, ${difficultyTier.color} 10%, var(--hw-panel))`,
+          }}
+        >
+          <div style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: difficultyTier.color, marginBottom: 4 }}>
+            {difficultyTier.name}
+          </div>
+          <div style={{ fontSize: 13, lineHeight: 1.5 }}>{difficultyTier.lore}</div>
+        </div>
+      )}
       <p className="hw-flavor" style={{ marginTop: 14 }}>
-        Choose which fight to walk into next - whichever you don't pick isn't lost, it'll come back around later in
-        the run.
+        Two ways forward through {difficultyTier?.name || "the Hearthwood"}. Whichever you leave behind isn't lost -
+        it'll come back around later in the run.
       </p>
       <div className="hw-select-grid hw-deck-preview">
         {options.map((node, i) => {
