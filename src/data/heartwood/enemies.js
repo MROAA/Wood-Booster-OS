@@ -753,6 +753,47 @@ export const ENEMIES = {
     ],
   },
 
+  "ironroot": {
+    id: "ironroot",
+    name: "Ironroot",
+    maxHp: 54,
+    art: "root",
+    description: "Whatever you leave in it, it pulls back out again - and it never lets you past.",
+    // 38th mook - Taunt + Cleanse together, never paired before
+    // (Bramblespite: Taunt+WoundedFury, Rootward: Cleanse alone).
+    // Marc: "the game needs to be difficult without cheap tactics -
+    // no HP sponges, no gimmicky enemies, real tactics and real
+    // player decisions." This is the tactical answer, not a numbers
+    // answer: Cleanse (one of its own two moves, see below) strips whatever
+    // Poison/Weak/Vulnerable/Stun the squad just applied, so a
+    // debuff-heavy build gets NOTHING from attacking it - only raw
+    // damage matters here. Taunt (battle-start passive, same
+    // once-and-holds shape Stoneheart/Bramblespite already use) means
+    // that raw damage has to come from single-target attacks aimed
+    // AT it - the squad can't just ignore it and go around. Solo,
+    // this is a wall with no partner to protect - see
+    // "the-unbroken-root" (formations.js) for the formation where its
+    // Taunt actually has something to shield.
+    passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+    // A 3-move [block, attack, cleanse] cycle was tried first and
+    // verified broken: a realistically-strong squad kills 54 HP in 2
+    // rounds, so Cleanse (move index 2) never fires at all - the
+    // entire point of the enemy silently never triggers in a fast
+    // fight, the exact kind of thing the full-run fairness bot (not
+    // fight-1-in-isolation testing) exists to catch. Cut to a 2-move
+    // [attack, cleanse] cycle instead - Cleanse now fires on round 2
+    // guaranteed, in any fight that lasts at least that long, not
+    // "eventually, if the fight drags." Dropped Block entirely rather
+    // than compressing all 3 moves into 2 rounds; Bramblespite already
+    // owns the "self-Block bruiser" identity, Ironroot's is purely
+    // Taunt+Cleanse.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 7 },
+      { type: "cleanse" },
+    ],
+  },
+
   // Minibosses: a step up from a plain mook, without touching
   // Spacemonkey's own AoE move (deliberately kept unique to the true
   // final boss - see its own note below) or the run-ending
