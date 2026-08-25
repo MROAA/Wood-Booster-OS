@@ -1571,15 +1571,26 @@
 }
 
 /* Floating damage/heal/block numbers - the moment something happens,
-   not just the bar quietly changing. */
+   not just the bar quietly changing.
+   Marc, live gameplay feedback (verified working correctly first via
+   a MutationObserver + screenshots before touching anything - this
+   mechanism was never broken, just too subtle to read mid-fight):
+   "liian pieniä/huomaamattomia" (too small/unnoticeable). Bumped size
+   20px -> 32px (14px for the smaller Ward callout, still nearly
+   tripled from 13px) and added a real outline (-webkit-text-stroke)
+   on top of the existing drop-shadow, so the number stays legible
+   over ANY battlefield art behind it, not just the darker spots the
+   old subtle shadow alone happened to work on. */
 .hw-floating-number {
   pointer-events: none;
   z-index: 55;
-  font-size: 20px;
+  font-size: 32px;
   font-weight: 800;
   font-family: "Cormorant Garamond", serif;
   transform: translate(-50%, -50%);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 16px rgba(0, 0, 0, 0.6);
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.85);
+  paint-order: stroke fill;
 }
 
 .hw-floating-number--damage {
@@ -1596,7 +1607,7 @@
 
 .hw-floating-number--ward {
   color: var(--hw-rune);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 

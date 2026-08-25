@@ -121,13 +121,22 @@ function FloatingNumber({ popup, onDone }) {
 
   if (!rect) return null
 
+  // Marc: the numbers themselves were "liian pieniä/huomaamattomia"
+  // (too small/unnoticeable) - alongside the size/contrast bump in
+  // heartwood.css, gave the pop itself more presence too: a bigger
+  // starting scale overshoot (0.8 -> 1.3 -> 1, the same "pop" curve
+  // .hw-badge-pop already uses elsewhere in this game rather than a
+  // new easing invented just for this), a longer hang time (0.9s ->
+  // 1.2s) and more travel (-36px -> -52px) so there's more time and
+  // more motion to actually catch mid-fight, not just a bigger static
+  // number in the same brief window as before.
   return (
     <motion.div
       className={`hw-floating-number hw-floating-number--${popup.kind}`}
       style={{ position: "fixed", top: rect.top, left: rect.left }}
-      initial={{ opacity: 0, y: 6, scale: 0.8 }}
-      animate={{ opacity: [0, 1, 1, 0], y: -36, scale: 1 }}
-      transition={{ duration: 0.9, ease: "easeOut" }}
+      initial={{ opacity: 0, y: 6, scale: 0.6 }}
+      animate={{ opacity: [0, 1, 1, 0], y: -52, scale: [0.6, 1.3, 1, 1] }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
       onAnimationComplete={onDone}
     >
       {popup.text}
