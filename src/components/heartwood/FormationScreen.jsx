@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
@@ -34,6 +35,16 @@ function slotIndexAt(row, col) {
 // resolves on, with the real upcoming enemy formation ghosted in at its
 // real positions and empty/filled deploy slots where the squad goes -
 // placement now happens on an actual board, not a generic card list.
+// How long the player has to arrange their squad before the fight
+// starts on its own. Marc, direct: "start battle nappia ei tarvi, se
+// voi alkaa automaattisesti" (no Start Battle button needed, it can
+// start automatically) - same "no click needed" philosophy the battle
+// itself already follows (AutoBattleView.jsx's own comment), extended
+// one screen earlier. Long enough for a real look at the upcoming
+// formation and a rearrange or two; short enough that it doesn't feel
+// like the screen is just sitting there waiting for no reason.
+const AUTO_START_DELAY_MS = 5000
+
 export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle }) {
   const isBoss = node.type === "boss"
   const isMiniboss = node.type === "miniboss"
@@ -42,6 +53,17 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // encounter - real story identity (title, its own intro/victory lines)
   // without touching the underlying enemy's already-tuned combat stats.
   const trial = resolveTrial(node.trialId)
+  // Auto-start (see AUTO_START_DELAY_MS above). Keyed on the node
+  // itself, not deployedCount/runState - re-arranging the squad
+  // shouldn't reset the clock (the same fixed-delay shape
+  // AutoBattleView.jsx's own round-advance timer already uses), and a
+  // new node (the NEXT fight's formation screen) needs its own fresh
+  // timer rather than inheriting whatever time was left on this one.
+  useEffect(() => {
+    const timer = setTimeout(onStartBattle, AUTO_START_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [node, onStartBattle])
+
   const deployedCount = runState.deployed.filter((k) => k !== null).length
   // Tribe synergies (synergies.js) - counted from DEPLOYED units only,
   // same scope autoBattleEngine.js's own tribe loop uses for the real
@@ -310,7 +332,15 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           always a 5th deployed unit now (Marc: "peli alkaa siitä että
           commander on yksin" - the game starts with the Commander
           alone), so a squad of zero recruited units is a real, valid
-          state, not an empty one. */}
+          state, not an empty one.
+
+          Text kept as "Start Battle" (not renamed to something like
+          "Skip Wait") deliberately - it's the exact string dozens of
+          existing .scratch/*.mjs verification scripts locate this
+          screen/button by; the fight now starts on its own regardless
+          (AUTO_START_DELAY_MS above) so a player never NEEDS to click
+          it, same "no click required" outcome Marc asked for, just
+          without a disruptive rename for zero functional benefit. */}
       <button className="hw-end-turn" onClick={onStartBattle} style={{ marginTop: 16 }}>
         Start Battle
       </button>
