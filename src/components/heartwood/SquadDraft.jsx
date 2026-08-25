@@ -182,7 +182,7 @@ export default function SquadDraft({
           pushes it aside on its own; adding the difficulty badge below
           made this row wide enough to collide with it for the first time. */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingRight: 130 }}>
-        <h1 style={{ fontSize: 22, margin: 0 }}>The Heartwood Market</h1>
+        <h1 style={{ fontSize: 22, margin: 0 }}>The Hearthwood Market</h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* key={difficultyTier.name}: without it this is the same DOM
               node across every render, so crossing into a new tier
@@ -196,7 +196,7 @@ export default function SquadDraft({
             key={difficultyTier.name}
             className="hw-badge hw-section-fade-in"
             style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
-            title="How far into the run you are - the Heartwood grows more dangerous the deeper you go"
+            title="How far into the run you are - the Hearthwood grows more dangerous the deeper you go"
           >
             <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
             {difficultyTier.name}

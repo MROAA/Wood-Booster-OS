@@ -168,6 +168,28 @@
   color: var(--hw-muted);
 }
 
+/* Quiet vs loud (Marc, shown a real screenshot of a mid-run fight: 5
+   units already carrying 2-3 identically-styled badges each before
+   the fight even started - "the challenge is providing enough
+   information without overwhelming the player"). A status badge on
+   EnemyPieceCard.jsx now marks itself `data-loud` when it's one of
+   the always-red --hw-curse debuffs (Poison/Weak/Vulnerable/Stun/
+   Spore Spread) - something actively hurting the unit right now, not
+   part of its own steady-state kit. Loud gets a genuine glow using
+   its own already-set color (no extra token needed) so the eye is
+   pulled toward what's currently a threat; everything else (Strength/
+   Ward/Taunt/Execute/Regen/etc., steady the whole fight) recedes
+   slightly instead of fighting for the same attention. */
+.hw-badge[data-loud="true"] {
+  box-shadow: 0 0 7px 1px currentColor;
+  border-width: 1.5px;
+  font-weight: 600;
+}
+
+.hw-powers .hw-badge:not([data-loud="true"]) {
+  opacity: 0.78;
+}
+
 .hw-badge--block {
   color: var(--hw-rune);
   border-color: var(--hw-rune);

@@ -199,7 +199,7 @@ export const FORMATIONS = {
   "the-hollow-court": {
     id: "the-hollow-court",
     name: "The Hollow Court",
-    description: "Three of the deepest Heartwood's own guardians, standing together for the first time.",
+    description: "Three of the deepest Hearthwood's own guardians, standing together for the first time.",
     // Marc: "enemies and bosses need to be more challenging" - a real
     // late-run gauntlet, not another shielding puzzle: no piece hides
     // behind another (a plain 3-across row, no knight's-move blind
