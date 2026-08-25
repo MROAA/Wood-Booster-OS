@@ -876,6 +876,19 @@
    on the right - the same color language .hw-piece already uses for
    ally (ember) vs the existing moss accent, reused here for a
    different but analogous distinction (spend vs already-owned). */
+/* Market/Your Squad tabs (Marc, after a real 1920x1080 measurement
+   showed a stocked shop + a real bench overflowing the viewport by
+   400-600px: "kaiken pitää mahtua näytölle ilman scrollausta" -
+   everything needs to fit without scrolling). Only one of
+   .hw-panel--market/.hw-panel--squad (below) is visible at a time now,
+   toggled here - reuses the same .hw-move-btn[data-active] styling
+   Freeze already established, so this needed zero new button CSS. */
+.hw-tab-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
 .hw-market-columns {
   display: grid;
   /* Marc: "haluan että your squadin alas ja kauppaan kuuluvat ylös...
@@ -974,8 +987,14 @@
      to fit a 1920x1080 screen) - widened from 900px so the Market/
      Squad two-column split (below) has real room to breathe on an
      actual desktop display instead of cramming into a narrow center
-     column with most of the screen unused either side. */
-  max-width: 1500px;
+     column with most of the screen unused either side.
+     Widened again 1500->1800 (Marc sent an annotated screenshot of
+     this exact screen circling the Shop/Items/Squad panels: "these
+     don't use the available width - big empty margins either side,
+     content stays a narrow center column"). .hw-select-grid's own
+     auto-fit tracks respond to this automatically (more width = more
+     150px columns per row) - no grid/JS change needed anywhere else. */
+  max-width: 1800px;
   margin: 0 auto;
 }
 

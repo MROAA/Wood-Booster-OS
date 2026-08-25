@@ -113,6 +113,16 @@ export default function SquadDraft({
   // unit on the battlefield.
   const [selectedItemKey, setSelectedItemKey] = useState(null)
   const [justEquippedSlot, setJustEquippedSlot] = useState(null)
+  // Market/Squad tabs (Marc, after a real 1920x1080 measurement showed
+  // ~400-600px of vertical overflow with a stocked shop and a real
+  // bench both visible: "kaiken pitää mahtua näytölle ilman
+  // scrollausta" - everything needs to fit without scrolling. Asked
+  // him to pick between tabs, shrinking every card, or scoping the
+  // scroll to just one panel - he picked tabs). Market and Your Squad
+  // used to render stacked in one always-visible column; now only one
+  // shows at a time, selected here. Defaults to "market" since that's
+  // the panel with actual purchase decisions to make on arrival.
+  const [activeTab, setActiveTab] = useState("market")
   const otherCommanders = Object.values(CHARACTERS).filter((c) => c.id !== runState.characterId)
   const prevBenchKeysRef = useRef(new Set(runState.bench.map((e) => e.key)))
   // Essence badge flash - every purchase/sale in this shop changes the
@@ -396,8 +406,25 @@ export default function SquadDraft({
         </div>
       )}
 
+      <div className="hw-tab-row">
+        <button
+          className="hw-move-btn"
+          data-active={activeTab === "market"}
+          onClick={() => setActiveTab("market")}
+        >
+          Market
+        </button>
+        <button
+          className="hw-move-btn"
+          data-active={activeTab === "squad"}
+          onClick={() => setActiveTab("squad")}
+        >
+          Your Squad ({runState.bench.length})
+        </button>
+      </div>
+
       <div className="hw-market-columns">
-        <div className="hw-panel hw-panel--market">
+        <div className="hw-panel hw-panel--market" hidden={activeTab !== "market"}>
           <div className="hw-panel-title">Market - spend Essence here</div>
           <p className="hw-flavor" style={{ marginTop: 4 }}>
             Recruit who you can afford, or move on.
@@ -474,7 +501,7 @@ export default function SquadDraft({
           </div>
         </div>
 
-        <div className="hw-panel hw-panel--squad">
+        <div className="hw-panel hw-panel--squad" hidden={activeTab !== "squad"}>
           <div className="hw-panel-title">Your Squad - already owned</div>
 
           {runState.items.length > 0 && (
@@ -587,25 +614,36 @@ export default function SquadDraft({
                   Fusion {copiesOwned}/3
                 </div>
               )}
-              {canReforge && (
+              {/* Marc: "kaiken pitää mahtua näytölle ilman scrollausta"
+                  (everything needs to fit on screen without scrolling) -
+                  Reforge and Sell used to stack as 2 separate full-width
+                  buttons, the single biggest per-card height cost on the
+                  bench (a 5-unit bench could run 600px+ tall). Side by
+                  side instead, same click targets/labels, half the
+                  vertical footprint - shorter text ("Reforge"/"Sell"
+                  alone, cost moved to the tooltip) so 2 buttons still
+                  fit a 150px card without wrapping. */}
+              <div style={{ display: "flex", gap: 4 }}>
+                {canReforge && (
+                  <button
+                    className="hw-move-btn"
+                    style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
+                    disabled={runState.essence < REFORGE_COST}
+                    onClick={() => handleReforge(entry.key)}
+                    title={`Swap ${def?.name} for a different random unit of the same tier (${REFORGE_COST} Essence)`}
+                  >
+                    Reforge
+                  </button>
+                )}
                 <button
                   className="hw-move-btn"
-                  style={{ fontSize: 11, padding: "4px 6px" }}
-                  disabled={runState.essence < REFORGE_COST}
-                  onClick={() => handleReforge(entry.key)}
-                  title={`Swap ${def?.name} for a different random unit of the same tier`}
+                  style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
+                  onClick={() => handleSell(entry.key)}
+                  title={`Sell ${def?.name} back for ${sellRefund} Essence`}
                 >
-                  Reforge ({REFORGE_COST} Essence)
+                  Sell (+{sellRefund})
                 </button>
-              )}
-              <button
-                className="hw-move-btn"
-                style={{ fontSize: 11, padding: "4px 6px" }}
-                onClick={() => handleSell(entry.key)}
-                title={`Sell ${def?.name} back for ${sellRefund} Essence`}
-              >
-                Sell (+{sellRefund} Essence)
-              </button>
+              </div>
             </div>
           )
         })}
