@@ -575,6 +575,59 @@ export const ITEMS = {
       },
     ],
   },
+
+  // Build-diversity round (Marc: "the game needs to be more diverse to
+  // play") - 4 new items, each mirrored by a squad-wide relic below.
+  // Two close asymmetric gaps (a combo that existed as an item but
+  // never a relic, or vice versa); two are genuinely new pairings that
+  // had never been combined before.
+  "witherspite-fang": {
+    id: "witherspite-fang",
+    name: "Witherspite Fang",
+    icon: "leaf",
+    cost: 3,
+    description: "Whatever this unit strikes carries both rot and weariness after.",
+    // Poison + Weak - Witherspite Crown (relics.js) already grants this
+    // squad-wide; this was the missing item-level version, letting a
+    // player put it on one chosen unit instead of only run-wide.
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+    ],
+  },
+  "thornfen-fang": {
+    id: "thornfen-fang",
+    name: "Thornfen Fang",
+    icon: "flame",
+    cost: 3,
+    description: "This unit strikes a little harder, and mends off every hit it lands.",
+    // Strength + Lifesteal (heal-on-onDealDamage) - a new aggressive-
+    // sustain hybrid. Lifesteal previously only existed as Vampiric
+    // Bloom (relics.js), alone, never paired with anything - this gives
+    // a player a real "hit hard and heal off it" build-around identity,
+    // strongest on a unit that already attacks often (Haste, or a
+    // multi-target pattern attacker).
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } },
+    ],
+  },
+  "huntclaw-fang": {
+    id: "huntclaw-fang",
+    name: "Huntclaw Fang",
+    icon: "sword",
+    cost: 3,
+    description: "This unit finishes a badly wounded enemy faster, and strikes again at someone else when it does.",
+    // Execute + Chain together - both exist solo (Duelist's Edge/
+    // Culling Strike for Execute; Cascading Claw/Cascading Wound for
+    // Chain) but had never been paired. A real "finisher squad"
+    // identity: Execute makes the kill easier to land, Chain turns
+    // that same kill into a second free hit.
+    effects: [
+      { type: "applyBuff", id: "execute", amount: 2 },
+      { type: "applyBuff", id: "chainDamage", amount: 3 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

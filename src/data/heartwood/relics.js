@@ -512,6 +512,54 @@ export const RELICS = {
       },
     ],
   },
+
+  // Build-diversity round (Marc: "the game needs to be more diverse to
+  // play") - squad-wide mirrors for the same 4 new items.js entries,
+  // same pattern every prior dual-mechanic combo already follows
+  // (Quarrystrike Gauntlet <-> Quarry Vanguard, Ashclaw Fang <->
+  // Ashclaw Standard, etc).
+  "bramblehide-banner": {
+    id: "bramblehide-banner",
+    name: "Bramblehide Banner",
+    icon: "shield",
+    cost: RELIC_COST,
+    description: "Every unit draws every eye, and fights harder the deeper its own wounds go.",
+    // Taunt + Wounded Fury, squad-wide - the missing relic mirror for
+    // items.js's existing bramblehide-standard item (an asymmetric gap:
+    // every other dual-mechanic item already had a relic counterpart).
+    effects: [
+      { type: "applyBuff", id: "taunt", amount: 1 },
+      { type: "applyBuff", id: "woundedFury", amount: 1 },
+    ],
+  },
+  "thornfen-standard": {
+    id: "thornfen-standard",
+    name: "Thornfen Standard",
+    icon: "flame",
+    cost: RELIC_COST,
+    description: "Every unit strikes a little harder, and mends off every hit it lands.",
+    // Strength + Lifesteal, squad-wide - the relic mirror for items.js's
+    // new thornfen-fang. Both stack numerically with any existing
+    // Strength/Lifesteal sources (Ember Core, Vampiric Bloom) rather
+    // than being redundant with them.
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 1 } },
+    ],
+  },
+  "huntclaw-standard": {
+    id: "huntclaw-standard",
+    name: "Huntclaw Standard",
+    icon: "sword",
+    cost: RELIC_COST,
+    description: "Every unit finishes a badly wounded enemy faster, and strikes again at someone else when it does.",
+    // Execute + Chain, squad-wide - the relic mirror for items.js's new
+    // huntclaw-fang.
+    effects: [
+      { type: "applyBuff", id: "execute", amount: 2 },
+      { type: "applyBuff", id: "chainDamage", amount: 3 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
