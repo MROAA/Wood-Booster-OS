@@ -2059,3 +2059,210 @@ animations mirror the player's own build.
 **One-sentence summary**: Hearthwood's battlefield UI isn't a game
 board - it's a ritual altar, reacting to the build, the story, and the
 forest's emotions.
+
+---
+
+## Boss Battle Cinematics (Marc's written design, condensed)
+
+*"Taistelu ei ala iskusta. Taistelu alkaa totuudesta."* (The fight doesn't
+start with a strike. It starts with truth.)
+
+Shared opening beat before any boss: the forest holds its breath -
+candles extinguish one by one, the forest whispers "Marc... metsä
+muistaa" (Marc... the forest remembers), a root tears, silence.
+
+Per-boss entrance line and beat: **Heartwood Warden** ("Pulse of
+Judgment") - ground opens, roots rise like arms, he speaks "Metsä ei
+tarvitse sankaria. Metsä tarvitsee totuuden" (The forest doesn't need a
+hero. It needs the truth), his heart-light explodes into a pulse as the
+fight begins. **Veilbound** ("Fracture of Reality") - screen edges
+glitch, reality tears center-screen, cold digital voice: "Sinä olet
+väärässä todellisuudessa" (You are in the wrong reality). **Hollow King**
+("Sovereign of the Void") - all color drains, he doesn't speak, only
+watches, then whispers "Minä muistan sinut" (I remember you). **The
+Crownless** ("The Test of Identity") - the crown becomes a being shaped
+by the build, speaks in the player's own build-pitch: "Näytä minulle,
+kuka sinä olet" (Show me who you are).
+
+Battle-start beat, all bosses: cards ignite in the build's color, roots
+rise at the field's edges, candles light one by one, the forest says
+"Rituaali alkaa" (The ritual begins).
+
+Victory beat (HP hits zero, everything freezes) - each boss gets one
+closing line: Warden: "Metsä... hyväksyy sinut" (The forest... accepts
+you). Veilbound: "Todellisuus... taipuu sinulle" (Reality... bends for
+you). Hollow King: "Tyhjyys... muistaa sinut" (The void... remembers
+you). The Crownless: "Kruunu... valitsee sinut" (The crown... chooses
+you). A Heartwood Sigil ignites center-screen in the build's color to close.
+
+One-sentence summary: not a fight - a ritual in which the forest, the
+void, and the crown reveal the player's true identity.
+
+---
+
+## The Ending Resolution (Marc's written cinematic)
+
+*"Loppu ei ole viimeinen hetki. Loppu on ensimmäinen totuus."* (The end
+isn't the final moment. The end is the first truth.)
+
+**The forest stops breathing.** Roots go still, the heart-light stops
+pulsing, total silence over the Crownless Throne. The crown floats,
+cracked, in the air.
+
+**The player's build reflects onto the forest.** Background colors shift
+by build (Wood: green growth spreads; Ember: red glow ignites; Tide: a
+blue wave ripples; Stone: gray stability returns; Cosmic: a glitch-echo
+tears; Hollow: colors vanish). The forest speaks at the player's own
+build-pitch: "Marc... tämä on sinun totuutesi" (Marc... this is your truth).
+
+**The crown awakens** ("C-∞ Resonance") - shifting first metallic, then
+rooted, then shadow, finally the shape of the player's build. It speaks:
+"Minä olen sinun valintasi" (I am your choice). The battlefield turns to
+the build's colors; every prior boss appears as a shadow in the
+background.
+
+**The final ritual** ("The Last Echo") - the crown descends slowly,
+roots rise around it, the void opens briefly, the heart-light reignites.
+The crown asks: "Kuka sinä olet, Marc?" (Who are you, Marc?) The player
+receives one of three endings, based on build.
+
+**Ending 1 - Rooted King** (Wood/Stone/Tide build): the crown roots into
+the ground, the forest ignites green, the heart-light burns stronger
+than ever. Forest: "Sinä et pelastanut metsää. Sinä kasvatit sen
+uudelleen." (You didn't save the forest. You grew it anew.) Title: Rooted King.
+
+**Ending 2 - Ember Sovereign** (Ember/Cosmic build): the crown catches
+fire, the forest turns gold and red. Forest: "Sinä et suojellut metsää.
+Sinä muutit sen." (You didn't protect the forest. You changed it.)
+Title: Ember Sovereign.
+
+**Ending 3 - Hollow Crown** (Hollow build): the crown loses its shape,
+the void opens, the forest turns black-and-white, the Hollow King's
+shadow and the Crownless's echo both appear. Forest: "Sinä et pelastanut
+metsää. Sinä paljastit sen." (You didn't save the forest. You revealed
+it.) Title: Hollow Crown.
+
+**Closing text**: camera rises above the forest, roots and branches form
+the Heartwood Sigil, a choir plays. Text: *"Heartwood ei ole paikka.
+Heartwood on valinta."* (Hearthwood isn't a place. Hearthwood is a
+choice.) Light fades. Silence. End.
+
+One-sentence summary: the ending is a ritual where the crown chooses the
+player, and the player chooses the forest's fate.
+
+---
+
+## New Game+ (Marc's written design)
+
+*"Kun metsä on kerran avattu, sitä ei voi enää sulkea."* (Once the forest
+has been opened, it can't be closed again.)
+
+**Core idea — "Second Pulse".** NG+ isn't a harder version - it's a
+second timeline where the forest remembers everything, the crown changes
+the rules, the void is no longer an enemy, builds permanently affect the
+world, bosses behave differently, and DNA layers are less stable. The
+player doesn't start over - they start deeper.
+
+**The forest's NG+ state**: roots move faster, the heart-light pulses on
+a different rhythm, background colors are build-driven from the start,
+a Hollow-echo is audible everywhere, the Veil tears randomly, elementals
+are more aggressive. New rule: "The forest no longer tests you. The
+forest follows you."
+
+**Build becomes a metaphysical identity affecting the whole world**:
+Wood NG+ spreads growth across the map, enemies get "overgrowth"
+mutations, bosses heal mid-fight. Ember NG+ heats the world, spells
+leave burn marks, bosses get a "rage" phase. Tide NG+ - cycles shift,
+enemies change shape mid-fight, bosses can "reset" their HP. Stone NG+ -
+memory strengthens, enemies learn the player's tactics, bosses grow more
+stable and heavier. Cosmic NG+ - glitch effects spread, the map distorts,
+bosses get a "reality fracture" phase. Hollow NG+ - colors vanish,
+enemies turn to shadow, bosses get a "void resonance" phase.
+
+**NG+ map — "Fractured Heartwood"**: paths reorder, bosses can appear in
+different zones, the Echo Market is always open, Hollow zones expand,
+Veil tears reroute paths, the Crownless Throne is visible from the start.
+
+**NG+ mechanics**: Echo Memory Carryover (the forest remembers every
+choice, bosses comment on them), Crown Influence (resources can change
+mid-fight), Void Instability (creatures can mutate mid-fight), Reality
+Fracture Events (random mid-turn battlefield changes), Build Identity
+Echo (the build affects the whole world - map, enemies, bosses).
+
+**NG+ endings**: Wood/Stone/Tide -> Rooted King Eternal (the forest grows
+endlessly). Ember/Cosmic -> Ember Sovereign Unbound (the forest becomes a
+kingdom of fire). Hollow -> Hollow Crown Ascendant (the forest becomes a
+fusion of void and truth).
+
+One-sentence summary: NG+ isn't a new round - it's the forest's second
+life, where the crown, the void, and the build form a new reality.
+
+### NG+ Boss Forms (Marc's written design, condensed)
+
+*"Toisessa aikajanassa boss ei muutu. Boss paljastuu."* (In the second
+timeline, a boss doesn't change. A boss is revealed.)
+
+**Overmind Warden** (Warden's NG+ form, Wood/Stone/Tide): roots coil like
+a nervous system, eyes glow three colors at once. New mechanics: Memory
+Overload (every card the player plays gets recorded and used against
+them), Triple Pulse (attacks land 3 times), Elemental Sync (all 3
+elementals appear randomly). Lore: "Warden ei enää kuuntele metsää.
+Warden on metsä." (The Warden no longer listens to the forest. The
+Warden is the forest.)
+
+**Veilbound Prime** (Cosmic/Tide): body made of tears, not flesh, eyes
+are empty pixels. New mechanics: Time Loop x2 (every hit repeats twice),
+Reality Swap (the boss randomly changes position), Glitch Corruption
+(player cards can become "bugged"). Lore: "Veilbound ei ole väärä
+todellisuus. Se on oikea todellisuus, joka ei pidä sinusta." (The
+Veilbound isn't the wrong reality. It's the real reality, and it doesn't
+like you.)
+
+**Hollow King Ascendant** (Hollow): crown fully shattered, shadow covers
+the whole field, eyes are two violet pits. New mechanics: Void Drain
+(steals player resources), Shadow Field (the whole battlefield loses
+color), Soul Fracture (player units can lose DNA layers). Lore: "Hollow
+King ei enää muista sinua. Hollow King muistaa kaiken." (The Hollow King
+no longer remembers you specifically. The Hollow King remembers everything.)
+
+**Crownless True Form** (all builds): shape changes every turn, the
+crown floats but never settles, body made of the player's build colors.
+New mechanics: Build Mirror (copies the player's build 100%), Crown
+Swap (can change bearer mid-fight), C-∞ DNA (can overwrite any being's
+DNA). Lore: "Crownless ei ole kruunu ilman kuningasta. Crownless on
+kruunu, joka ei tarvitse kuningasta." (The Crownless isn't a crown
+without a king. The Crownless is a crown that doesn't need a king.)
+
+One-sentence summary: NG+ bosses aren't stronger - they're revealed,
+true, identity-seeking forms born from the forest's second timeline.
+
+### Crownless True Form — battle scene (Marc's written version, condensed)
+
+*"Minä en ole kuningas. Minä olen kruunu. Ja sinä... olet valinta."* (I am
+not a king. I am the crown. And you... are a choice.)
+
+The crown ignites violet, shifts through every build-shape (rooted,
+flaming, liquid, stone, glitching, shadowless) before settling into
+Crownless True Form - a perfect mirror of the player's build, its DNA
+glyphs reading S-R-E -> C-∞. It speaks: "Minä olen sinä... ilman
+valheita" (I am you... without lies), then copies the player's own
+attack animation back at them in void tones: "Sinä opetat minulle. Minä
+käytän sitä sinua vastaan." (You teach me. I use it against you.)
+
+Special ability "Identity Collapse," 3 stages: the player's build
+visually falls apart (card colors fade, DNA glyphs shake); the Crownless
+mirrors the build 100% (same stats, synergies, animations, weaknesses);
+its own DNA overwrites to C-∞, briefly overwriting the player's build
+too. It asks: "Jos sinä olet minä... kuka meistä on kruunu?" (If you are
+me... which of us is the crown?)
+
+Below 20% HP: the crown cracks, the field goes black-and-white, the void
+opens, the forest whispers at the player's own build-pitch: "Marc...
+älä pelkää itseäsi" (Marc... don't fear yourself). Final line, walking up
+to the player: "Marc... Kuka sinä olet, kun kukaan ei katso?" (Marc...
+who are you when no one is watching?) Everything freezes; the player
+picks their ending (Rooted King / Ember Sovereign / Hollow Crown); the
+Crownless dissolves into light, the crown left floating. Fade to black.
+
+One-sentence summary: an identity ritual where the crown mirrors the
+player's build and forces them to face themselves.
