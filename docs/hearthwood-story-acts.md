@@ -1568,3 +1568,66 @@ Throne scene - already captured in full above.)*
 **One-sentence map summary**: Hearthwood's map isn't a route through a
 forest - it's a journey to the forest's heart, into the void, and finally
 to a crown that waits for its bearer.
+
+---
+
+## Hearthwood Ecology (Marc's written compendium)
+
+*"Metsä ei ole ekosysteemi. Metsä on organismi."* (The forest isn't an
+ecosystem. The forest is an organism.)
+
+**Core structure**: the Heartwood is one living organism, made of: the
+Heart (Heartwood Core), the Root Network, Saplight (light-blood), Echo
+Strata (memory layers), and the elemental emotions (Wood/Ember/Tide/Stone).
+Every creature, small or large, is a cell of this one organism.
+
+**The Root Network** isn't just physical - it's the nervous system,
+communication network, energy channel, and memory storage all at once. It
+carries Saplight energy (the forest's blood), Echo-memories (the heart's
+messages), and corruption signals (Veil disturbances). Roots react to the
+player's build because the build's energy changes how the roots vibrate.
+
+**Saplight** is the Heartwood's blood - not liquid, but light flowing
+through the roots. Three forms: Green Saplight (growth, peace), Amber
+Saplight (power, change), Violet Saplight (void, truth). Saplight
+determines: how creatures are born, elemental power, the heart's health,
+and the strength of the player's buffs.
+
+**Echo Strata** are the forest's memory - not written down, stored in
+layers between the roots. They record the past, predict the future,
+react to the player's choices, and create Heartwood Echo creatures.
+This is why the forest "remembers" Marc's choices.
+
+**Elemental ecology** - four kingdoms of emotion, each with an ecological
+role: Wood = healers, Ember = purifiers, Tide = regulators, Stone =
+archivists. They keep the forest balanced - when the heart weakens, they
+fall into conflict.
+
+**Void ecology** - the Hollow isn't dead. It's a silent ecosystem where
+creatures are memories, not bodies (Hollow Echoes, Hollow Heralds, the
+Hollow King, The Crownless). The void doesn't destroy the forest - it
+imitates it, because it wants to understand life.
+
+**Veil ecology** - the Veil is the Heartwood's "climate." It affects
+everything but isn't part of the forest. Works like weather: tears =
+storms, the Echo Market = the ecosystem's "marketplace," the Veilbound =
+the climate's balancer.
+
+**How creatures are born** - three methods: Saplight birth (light
+condenses into a creature - Glowmoths, Sap Spirits), Root-shaping (roots
+reshape into a creature - Rootlings, Barkbeasts), Echo manifestation (a
+memory takes form - Heartwood Echoes, Hollow Echoes).
+
+**The ecological cycle**: Growth -> Change -> Balance -> Memory -> Growth.
+When the cycle breaks: corruption spreads, the heart weakens, elementals
+fight, the Veil tears, the void calls, the crown awakens. Marc acts as
+the cycle's repairer.
+
+**The crown's ecology** - the crown isn't an object. It's an ecological
+role that emerges when the heart fears, the void touches, the guardian
+disappears, and the forest needs a decision. The Crownless is: the
+crown's shape, the ecosystem's balancer, the player's mirror, the final test.
+
+**One-sentence ecology summary**: Hearthwood's ecology isn't a natural
+cycle - it's the balance of emotion, memory, light, and void, all living
+together in one organism.
