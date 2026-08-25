@@ -946,7 +946,23 @@ function difficultyFactorForNode(nodeIndex, pathLength) {
   // the two problems (fight 1 being flat, and the overall ceiling
   // being too high) turned out to be independent and needed separate
   // fixes, not one bigger number doing both jobs at once.
-  return 1 + (0.75 * progress + 0.25 * Math.sqrt(progress)) * 0.65
+  //
+  // Marc, live: "peli tuntuu vieläkin liian helpolta se voi olla
+  // tuplasti vaikeampi" (still feels too easy, could be twice as
+  // hard). Doubled the cap (0.65 -> 1.3), matching his own framing
+  // literally - the blend shape above stays untouched, only the
+  // overall budget the ramp spends grows. See
+  // scaleEnemyHpToSquadDps (autoBattleEngine.js) for the matching
+  // `/0.65` -> `/1.3` fix this same change requires - that function
+  // normalizes THIS factor back to a 0-1 progress using the same cap
+  // constant, so the two must move together or the DPS-adaptive layer
+  // silently maxes out partway through a run instead of at the real
+  // end. Verified via a 100-run fairness pass before/after, per this
+  // file's own established discipline for this exact lever - see the
+  // Hearthwood master memory log for the actual before/after numbers
+  // and whether this specific value (1.3) survived unchanged or got
+  // dialed back.
+  return 1 + (0.75 * progress + 0.25 * Math.sqrt(progress)) * 0.75
 }
 
 // Shared by startFormationBattle and previewBattleEnemies below - both

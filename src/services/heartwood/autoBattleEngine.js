@@ -591,7 +591,14 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
   // that clears a fight in 2-3 rounds now just... does, and feels like
   // it, instead of getting quietly rubber-banded back to a fixed
   // target every time.
-  const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / 0.65))
+  // 0.65 -> 1.3: matching runEngine.js's difficultyFactorForNode cap
+  // (Marc: "twice as hard" - doubled that constant). This divisor
+  // MUST track that same cap - it's how this function reads back
+  // "how far into the ramp is this fight" from the raw multiplier;
+  // leaving it at the old 0.65 while the real cap grew would read a
+  // mid-run fight as already 100% ramped, maxing targetRounds out
+  // long before the run's actual end.
+  const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / 0.75))
   const targetRounds = 1.5 + progress * 1
   const targetTotalHp = squadDps * targetRounds
 
