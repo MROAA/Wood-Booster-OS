@@ -17,6 +17,7 @@ import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relic
 import { ITEMS, ITEM_SLOTS, itemPool } from "../../data/heartwood/items"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
 import { tribesOf } from "../../data/heartwood/synergies"
+import { resolveTrial } from "../../data/heartwood/trials"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // enemies.js's 7 mooks are used both solo and recombined into
@@ -43,7 +44,7 @@ const RUN_PATH = [
   { type: "battle", formationId: "mist-growler-pack" },
   { type: "relic" },
   { type: "shop" },
-  { type: "miniboss", enemyId: "deepwarden" },
+  { type: "miniboss", enemyId: "deepwarden", trialId: "rootkeeper" },
   { type: "shop" },
   { type: "battle", enemyId: "bark-brute" },
   { type: "shop" },
@@ -963,7 +964,21 @@ export function startFormationBattle(runState) {
     runState.pendingActiveEffects || [],
     difficultyFactorForNode(runState.nodeIndex, runState.path.length),
   )
-  return { ...runState, phase: "battle", battle, pendingActiveEffects: [] }
+  return { ...runState, phase: "battle", battle: applyTrialName(battle, node), pendingActiveEffects: [] }
+}
+
+// A Trial (trials.js) wraps an existing enemy's combat with a real story
+// identity - this is the one place that identity reaches the actual
+// fight: renaming the matching piece(s) so the battlefield says
+// "Rootkeeper," not "Deepwarden," while every stat/move/passive on the
+// piece stays exactly what the wrapped enemy def already has.
+function applyTrialName(battle, node) {
+  const trial = resolveTrial(node.trialId)
+  if (!trial) return battle
+  return {
+    ...battle,
+    enemies: battle.enemies.map((e) => (e.defId === trial.enemyId ? { ...e, name: trial.title } : e)),
+  }
 }
 
 // FormationScreen.jsx's pre-battle enemy preview used to always show
@@ -996,7 +1011,7 @@ export function previewBattleEnemies(runState) {
     runState.pendingActiveEffects || [],
     difficultyFactorForNode(runState.nodeIndex, runState.path.length),
   )
-  return battle.enemies
+  return applyTrialName(battle, node).enemies
 }
 
 // A relic node only ever offers 3 choices, rolled once - this lets the

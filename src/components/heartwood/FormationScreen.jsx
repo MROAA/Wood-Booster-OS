@@ -2,6 +2,7 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
+import { resolveTrial } from "../../data/heartwood/trials"
 import { TRIBES, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
 import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies } from "../../services/heartwood/runEngine"
@@ -37,6 +38,10 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   const isBoss = node.type === "boss"
   const isMiniboss = node.type === "miniboss"
   const formation = resolveFormation(node.formationId || node.enemyId)
+  // A Trial (trials.js) is a named narrative wrapper around this exact
+  // encounter - real story identity (title, its own intro/victory lines)
+  // without touching the underlying enemy's already-tuned combat stats.
+  const trial = resolveTrial(node.trialId)
   const deployedCount = runState.deployed.filter((k) => k !== null).length
   // Tribe synergies (synergies.js) - counted from DEPLOYED units only,
   // same scope autoBattleEngine.js's own tribe loop uses for the real
@@ -223,11 +228,12 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       )}
 
       <p className="hw-flavor">
-        {isBoss
-          ? ENEMIES[node.enemyId]?.introLine || "The final fight."
-          : isMiniboss
-            ? ENEMIES[node.enemyId]?.introLine || `A greater foe. ${formation.description || ENEMIES[node.enemyId]?.description || ""}`
-            : formation.description || ENEMIES[node.enemyId]?.description}
+        {trial?.introLine ||
+          (isBoss
+            ? ENEMIES[node.enemyId]?.introLine || "The final fight."
+            : isMiniboss
+              ? ENEMIES[node.enemyId]?.introLine || `A greater foe. ${formation.description || ENEMIES[node.enemyId]?.description || ""}`
+              : formation.description || ENEMIES[node.enemyId]?.description)}
       </p>
 
       {primedPower && (
