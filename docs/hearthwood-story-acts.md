@@ -1631,3 +1631,54 @@ crown's shape, the ecosystem's balancer, the player's mirror, the final test.
 **One-sentence ecology summary**: Hearthwood's ecology isn't a natural
 cycle - it's the balance of emotion, memory, light, and void, all living
 together in one organism.
+
+---
+
+## Hearthwood UI Map (Marc's written design)
+
+*"Kartta ei näytä polkua. Kartta näyttää totuuden."* (The map doesn't show
+a path. The map shows the truth.)
+
+**Directly relevant to the peer session's `RunMap.jsx` work** - this is
+concrete visual/interaction design for the run map, not just narrative
+content. Flagging to them separately.
+
+**Overall layout — "Living Map".** The map isn't static - it lives,
+breathes, and changes with the player's choices. Left to right: Roots ->
+Heartwood -> Veil -> Hollow -> Crownless. Top to bottom: side paths,
+event nodes, boss routes. Center: the main story line. Edges: optional
+areas and lore locations.
+
+**Per-zone visual theme, UI elements, and interactions:**
+
+- **Roots**: green, broken, rooty - drawn as if carved into bark. Nodes:
+  Broken Grove, Sapling Clearing, Rootbound Ritual Site (event),
+  Whispering Path (story). Interactions: hover makes roots tremble, click
+  plays a whisper, corruption darkens the map.
+- **Heartwood**: golden, pulsing, alive - carved from heartwood itself.
+  Nodes: Heartwood Core (boss), Elemental Courts (4 nodes), Golden Veins
+  (path), Warden's Watch (event). Interactions: hover pulses like a
+  heartbeat, click plays the elementals' voice, corruption makes the
+  pulse unstable.
+- **Veil**: violet, distorted, wavering - drawn like a tear in reality.
+  Nodes: Rift Corridor (path), Echo Market (event), Veilbound Sanctum
+  (boss), Fractured Horizon (story). Interactions: hover "glitches" the
+  map, click plays an Echo-whisper, corruption tears the map briefly.
+- **Hollow**: black, white, violet - drawn like a memory, not a place.
+  Nodes: The Last Root (story), Hollow Plains, King's Echo Chamber
+  (event), The Silent Crown (boss path). Interactions: hover silences the
+  map, click plays the Hollow King's echo, corruption drains the map's colors.
+- **Crownless**: a crown without a king - drawn like a choice, not a
+  zone. Nodes: Crownless Throne (final node), Three Paths
+  (Wood/Ember/Hollow), Heartwood Sky (ending preview), The Crownless
+  (final test). Interactions: hover shifts the crown's shape, click
+  reflects the player's build, corruption cracks the crown.
+
+**Map reflects the run**: Act progress, boss locations, event nodes, the
+build's effect on the map, corruption levels, the heart's pulse, the
+void's presence. **The map itself changes by build tribe**: Wood ->
+green growth, Ember -> red glow, Tide -> a wave-like animation, Stone ->
+a stone texture, Cosmic -> glitch effects, Hollow -> the map loses color.
+
+**One-sentence summary**: Hearthwood's UI map doesn't show a route - it
+shows the forest's emotions, the heart's state, and the player's choice.
