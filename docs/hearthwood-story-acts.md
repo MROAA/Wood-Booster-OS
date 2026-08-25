@@ -3123,3 +3123,77 @@ player to confront their own echo-identity."
   encounter tests courage rather than combat: cautious choices
   strengthen it, bold choices weaken it - "not a kill, a ritual of
   balance." Three bold choices in a row makes it bow.
+
+### Echo Guardian - full encounter scene (mirrors the mechanics above)
+
+A dedicated scene write-up for the Echo Guardian fight, framed
+explicitly as not-a-bossfight: "You are not fighting me. You are
+fighting what the memory cannot bear to carry."
+
+- **Start**: the player reaches the Rift's heart; the shadow detaches
+  from them and rises as the Echo Guardian - looks like the player,
+  moves in perfect sync, doesn't speak or attack, just stands as if
+  waiting for an answer. Forest: "This is a memory that doesn't stay in
+  you."
+- **Mirror mechanics**: every player attack, the Guardian repeats;
+  every player synergy, the Guardian triggers a weakened version;
+  every player movement is copied on a 0.1s delay. Standing still for
+  3 seconds triggers "Do you want me to lead?", opening Echo Duality.
+- **Echo Duality phase**: Guardian becomes the main fighter, player
+  becomes an echo-form that can't attack, only buffs; the Guardian
+  can't die (dissolves/re-forms); fight becomes "an echo-ballet" - the
+  player steers the Guardian indirectly, sending an Echo-pulse with
+  every bold choice.
+- **Crownless Echo Test** (the actual test the fight is built around):
+  cautious choices strengthen the Guardian, bold choices weaken it,
+  hesitation grants it a "Guilt-echo," risky synergies cost it an
+  echo-layer. Visual: Guardian shifts black-and-white as it
+  strengthens, blue-violet as it weakens, fragments as it breaks apart.
+- **Memory Distortion phase** (mid-fight): Spacemonkey's memory
+  surfaces randomly, granting Echo+2 or Guilt+1, or turning the
+  Guardian into Spacemonkey's silhouette. Severe distortion flashes
+  "THIS IS NOT HOW I HAPPENED" and freezes time for 1 second.
+- **Final Balance Ritual**: the Guardian stops mirroring and looks
+  directly at the player. The player must balance Echo (courage)
+  against Guilt (hesitation): Echo > Guilt -> Guardian bows; Guilt >
+  Echo -> Guardian breaks apart; Echo = Guilt -> Guardian merges into
+  the player. Forest: "The memory only stays if you stay."
+- **Three endings**: (1) Guardian bows - the memory stays in the
+  player, the Rift weakens, Echo Age continues calmly. (2) Guardian
+  breaks - the memory tears, the Rift strengthens, Echo Age turns
+  dangerous. (3) Guardian merges into the player - the player gains a
+  new form, "Echo Crown Prime" (memory and shadow unify), and the
+  forest's physics change permanently.
+
+### Echo Core - "boss mechanic without a boss" (addendum to the Echo Rift gameplay brainstorm)
+
+Further specifics for the Echo Core bossfight bullet captured above -
+framing line: "The enemy isn't a character. The enemy is a memory that
+can't hold itself together."
+
+- Echo Core breathes at 40-55 BPM; each breath shifts local physics and
+  grants the player Echo+1 / the shadow Guilt+1 - a rhythm-based
+  encounter fought against a pulse, not a creature.
+- **Field distortion**: gravity flips every 10 seconds, shadows move on
+  independent timelines, synergy colors flicker blue-violet <->
+  black-and-white, the map stops working, roots spawn mini-rifts - the
+  player can't rely on the environment, only the Echo Crown's own
+  rhythm.
+- **Shadow Overload**: the shadow (normally not an enemy) becomes
+  unstable in this phase - copies the player on a 0.1s delay, can hit
+  the player, trigger traps, or "steal" synergies. If Guilt > Echo, the
+  shadow breaks apart and the player loses one Echo-layer.
+- **Memory Surge**: same Memory Distortion beat as elsewhere (random
+  Echo+2/Guilt+1 memory flashes, "THIS IS NOT HOW IT HAPPENED" freezes
+  time 1s) restaged as this phase's own event.
+- **Echo Collapse Timer**: an invisible countdown, not a visible bar -
+  every Core pulse and every Guilt layer speeds up collapse, every bold
+  choice slows it, every cautious choice speeds it up. Meant to be felt
+  ("the weight of time"), not read off a UI element.
+- **Echo Crown Intervention**: Echo Crown Prime itself reacts live -
+  Echo > Guilt grants a shield; Guilt > Echo cracks the crown; Echo =
+  Guilt opens Echo Duality (shadow leads, player becomes a buffing
+  echo-form) mid-fight.
+- Ends the same way as the Core Choice/Echo Guardian scenes above -
+  Stabilize vs Release - explicitly "a bossfight that ends without a
+  boss, only a choice."
