@@ -1828,6 +1828,36 @@ being's DNA.
 the forest's energy, memory, and purpose, determining each being's
 destiny and the crown's birth.
 
+### Full genetic profile tables (S-R-E, Marc's written version)
+
+*"Olennon voima ei synny lihasta. Se syntyy koodista."* (A being's power
+doesn't come from flesh. It comes from code.)
+
+| Being | S | R | E |
+|---|---|---|---|
+| Sap Spirit | 2 | 1 | 1 |
+| Rootling | 1 | 3 | 1 |
+| Heartwood Echo | 1 | 1 | 4 |
+| Wood Elemental | 3 | 2 | 2 |
+| Ember Elemental | 4 | 1 | 2 |
+| Tide Elemental | 2 | 2 | 3 |
+| Stone Elemental | 1 | 4 | 1 |
+| Grovekeeper | 3 | 3 | 3 |
+| Ashlord | 5 | 2 | 3 |
+| Flowwarden | 3 | 3 | 4 |
+| Earthshaper | 2 | 5 | 2 |
+| Heartwood Warden | 4 | 4 | 4 |
+| Hollow Herald | 0 | 1 | 5 |
+| Hollow Echo | 0 | 2 | 6 |
+| Hollow King | 0 | 3 | 7 |
+| The Crownless | ∞ | ∞ | ∞ |
+
+**Build's effect on the S-R-E system** (per-build S/R/E delta): Wood
++2/+1/+1 (growth, root connection); Ember +3/0/+1 (energy, change);
+Tide +1/+1/+2 (balances the layers); Stone 0/+3/0 (memory, stability);
+Cosmic +1/0/+3 (disrupts DNA, more Echo-mutations); Hollow 0/0/+∞
+(turns the E layer into destiny itself).
+
 ---
 
 ## Hearthwood Battlefield UI (Marc's written design)
