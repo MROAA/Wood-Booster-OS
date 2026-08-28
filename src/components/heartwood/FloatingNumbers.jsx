@@ -16,18 +16,54 @@ function flashHit(unitId) {
   setTimeout(() => el.classList.remove("hw-hit-flash"), 400)
 }
 
-// Watches HP/Block on the player and every enemy piece between state
-// updates and spawns a brief floating number near the real DOM element
-// for whatever changed, so damage/heal/block reads as something
-// happening in the moment, not just a number silently changing on a
-// bar. One popup per state transition per unit (the engine resolves a
-// whole card play or a whole enemy turn in one step, so several hits
-// landing in the same transition show as one combined number, not one
-// per hit - a deliberate tradeoff, not a bug).
+// Must match AutoBattleView.jsx's own LUNGE_STAGGER_MS - not imported,
+// since neither file otherwise depends on the other, but a damage
+// popup firing at the same stagger as its matching lunge is what makes
+// each number read as "that hit, landing" rather than an unrelated
+// number appearing somewhere on screen at an arbitrary moment.
+const EVENT_STAGGER_MS = 640
+
+// Watches HP/Block/Ward on the player and every enemy piece between
+// state updates and spawns a brief floating number near the real DOM
+// element for whatever changed, so damage/heal/block reads as
+// something happening in the moment, not just a number silently
+// changing on a bar.
+//
+// Damage/Ward specifically come from `state.roundEvents` (effects.js's
+// recordAttackEvent) instead of the before/after diff below - Marc:
+// "jokaiselle hahmolle pitää luoda oma damage numero... haluan silleen
+// että jokaisen hahmon damage näytetään erikseen" (each character
+// needs its own damage number, shown separately). The diff below only
+// ever sees one before/after pair per unit per round, so 2+ attackers
+// landing on the same target in the same round used to collapse into
+// one combined number - roundEvents has one entry per individual
+// dealDamage call instead, letting each hit spawn (and stagger) its
+// own popup. Heal/Block stay diff-based below: those are still
+// effectively single-source-per-unit-per-round in practice (a unit's
+// own turnStart move, a status tick), and diffing a snapshot pair is
+// the simplest correct thing when there's no "which of several actors
+// did this" question to answer.
 export default function FloatingNumbers({ state }) {
   const [popups, setPopups] = useState([])
   const prevRef = useRef(null)
   const counterRef = useRef(0)
+
+  useEffect(() => {
+    const events = state.roundEvents || []
+    if (!events.length) return
+    const timers = events.map((ev, i) =>
+      setTimeout(() => {
+        if (ev.kind === "ward") {
+          flashHit(ev.targetId)
+          setPopups((cur) => [...cur, { id: counterRef.current++, unitId: ev.targetId, text: "Warded!", kind: "ward", offset: 0 }])
+        } else if (ev.kind === "damage" && ev.amount) {
+          flashHit(ev.targetId)
+          setPopups((cur) => [...cur, { id: counterRef.current++, unitId: ev.targetId, text: `-${ev.amount}`, kind: "damage", offset: 0 }])
+        }
+      }, i * EVENT_STAGGER_MS),
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [state])
 
   useEffect(() => {
     // The autobattler puts the whole player squad in `state.playerUnits[]`
@@ -35,22 +71,32 @@ export default function FloatingNumbers({ state }) {
     // still has a singular `state.player`. Diff whichever shape is
     // present so this component works for either engine unchanged.
     const snapshot = {
-      player: state.playerUnits ? null : { hp: state.player.hp, block: state.player.block, ward: 0 },
-      playerUnits: state.playerUnits
-        ? state.playerUnits.map((u) => ({ id: u.id, hp: u.hp, block: u.block, ward: u.powers?.ward || 0 }))
-        : [],
-      enemies: state.enemies.map((e) => ({ id: e.id, hp: e.hp, block: e.block, ward: e.powers?.ward || 0 })),
+      player: state.playerUnits ? null : { hp: state.player.hp, block: state.player.block },
+      playerUnits: state.playerUnits ? state.playerUnits.map((u) => ({ id: u.id, hp: u.hp, block: u.block })) : [],
+      enemies: state.enemies.map((e) => ({ id: e.id, hp: e.hp, block: e.block })),
     }
     const prev = prevRef.current
     prevRef.current = snapshot
     if (!prev) return // nothing to diff against on the very first render
+
+    // Damage is handled by the roundEvents-based effect above; a unit
+    // that has its own damage event this round is skipped here to
+    // avoid a duplicate, redundant "combined total" popup on top of
+    // its real per-hit ones. HP loss that DIDN'T go through
+    // dealDamage (Poison/other status ticks - effects.js's tickPoison
+    // calls loseHp directly, no actor involved) never gets a
+    // roundEvents entry, so it still needs this diff-based fallback to
+    // show anything at all.
+    const damagedByEvent = new Set(
+      (state.roundEvents || []).filter((e) => e.kind === "damage" && e.amount).map((e) => e.targetId),
+    )
 
     const spawned = []
     function diff(unitId, before, after) {
       if (!before) return
       const hpDelta = after.hp - before.hp
       const blockDelta = after.block - before.block
-      if (hpDelta !== 0) {
+      if (hpDelta > 0 || (hpDelta < 0 && !damagedByEvent.has(unitId))) {
         spawned.push({
           id: counterRef.current++,
           unitId,
@@ -67,21 +113,6 @@ export default function FloatingNumbers({ state }) {
           text: `+${blockDelta}`,
           kind: "block",
           offset: hpDelta !== 0 ? 1 : 0,
-        })
-      }
-      // Ward (effects.js's dealDamage) fully negates a hit before it
-      // ever touches HP or Block, so it's invisible to every diff
-      // above by construction - the one status this component needs
-      // its own explicit check for, or a warded hit would land with
-      // zero player-visible feedback at all.
-      const wardDelta = (after.ward || 0) - (before.ward || 0)
-      if (wardDelta < 0) {
-        spawned.push({
-          id: counterRef.current++,
-          unitId,
-          text: "Warded!",
-          kind: "ward",
-          offset: hpDelta !== 0 || blockDelta > 0 ? 1 : 0,
         })
       }
     }

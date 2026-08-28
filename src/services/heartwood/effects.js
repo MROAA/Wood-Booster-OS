@@ -113,17 +113,27 @@ function recordStat(state, id, field, amount) {
 
 // roundEvents: a lightweight per-round record of "who attacked whom"
 // (reset each round by autoBattleEngine.js's resolveRound, same as the
-// log's own "Round N." reset), used only by AutoBattleView.jsx to
-// stage an attacker-lunge animation - Marc: "autobattle animoidaan
-// samaan tapaan kuin heartstonen battlegroundsissa" (the autobattle
-// should animate the same way Hearthstone Battlegrounds does, where
-// the attacking piece visibly moves toward its target). Structural
+// log's own "Round N." reset), used by AutoBattleView.jsx to stage an
+// attacker-lunge animation - Marc: "autobattle animoidaan samaan
+// tapaan kuin heartstonen battlegroundsissa" (the autobattle should
+// animate the same way Hearthstone Battlegrounds does, where the
+// attacking piece visibly moves toward its target). Structural
 // (actorId/targetId), not parsed from the log's free text, since two
 // owned copies of the same unit share a name and would make text-
 // matching ambiguous - exactly the kind of unit that Fusion actively
 // encourages owning.
-function recordAttackEvent(state, actorId, targetId) {
-  return { ...state, roundEvents: [...(state.roundEvents || []), { actorId, targetId }] }
+//
+// `extra` (kind/amount) added later, same call sites - Marc: "haluan
+// silleen että jokaisen hahmon damage näytetään erikseen" (want each
+// character's damage shown separately). Previously FloatingNumbers.jsx
+// only ever diffed HP before/after a whole round, so 2+ attackers
+// landing on the same target in one round collapsed into a single
+// combined number. This is the one choke point every dealDamage call
+// already passes through, so it's also the cheapest place to record
+// enough per-hit detail (kind, the actual HP-affecting amount) for
+// FloatingNumbers to spawn one popup per hit instead of one per round.
+function recordAttackEvent(state, actorId, targetId, extra = {}) {
+  return { ...state, roundEvents: [...(state.roundEvents || []), { actorId, targetId, ...extra }] }
 }
 
 // Damage dealt by `actorId`, landing on `targetId`. Applies Strength
@@ -154,6 +164,7 @@ function dealDamage(state, actorId, targetId, baseAmount) {
       },
       actorId,
       targetId,
+      { kind: "ward" },
     )
   }
 
@@ -189,7 +200,13 @@ function dealDamage(state, actorId, targetId, baseAmount) {
 
   let nextState = setUnit(state, targetId, nextDefender)
   nextState = recordStat(nextState, actorId, "damageDealt", overflow)
-  nextState = recordAttackEvent(nextState, actorId, targetId)
+  // amount: the actual HP-affecting overflow, same number the old
+  // diff-based popup showed - a fully-blocked hit (overflow 0) still
+  // records an event (so a peer session skimming roundEvents can see
+  // the swing happened), but FloatingNumbers.jsx skips spawning a
+  // popup for it, same as the diff-based approach never showed one
+  // for a hit that changed nothing.
+  nextState = recordAttackEvent(nextState, actorId, targetId, { kind: "damage", amount: overflow })
   nextState = {
     ...nextState,
     log: [
