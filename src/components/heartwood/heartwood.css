@@ -1067,15 +1067,32 @@
   color: var(--hw-muted);
 }
 
+/* Sizing/spacing rhythm below is deliberately built on the Fibonacci
+   sequence (8, 13, 21, 34, 55...) rather than arbitrary pixel values -
+   Marc: "suuri osa visuaalisuutta on geometria ja kultainen leikkaus."
+   Consecutive Fibonacci numbers ARE the golden ratio in integer form
+   (55/34 = 1.618, 34/21 = 1.619, 21/13 = 1.615 - all ~= phi), so using
+   them directly for the three node tiers below (minor/normal/major)
+   gets a real golden-ratio progression for free instead of hand-tuning
+   a ratio by eye. */
 .hw-run-track {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
   overflow-x: auto;
   scrollbar-width: thin;
-  padding-top: 10px;
-  padding-bottom: 4px;
+  /* Asymmetric on purpose, both Fibonacci: the current node scales up
+     (see [data-current="true"] below) and the "you are here" marker
+     sits above it, so the top side needs real headroom. `overflow-x:
+     auto` makes overflow-y compute to `auto` too (a CSS default this
+     project already got bitten by once - see hw-run-node-marker's own
+     comment), and an absolutely-positioned marker doesn't extend this
+     element's own auto-height, so too little padding-top clips it
+     silently instead of erroring. 34px covers the tallest case (a
+     scaled, major-tier current node) with margin to spare. */
+  padding-top: 34px;
+  padding-bottom: 21px;
   position: relative;
 }
 
@@ -1089,7 +1106,7 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: var(--hw-border);
+  background: linear-gradient(90deg, transparent, var(--hw-border) 8%, var(--hw-border) 92%, transparent);
   z-index: 0;
 }
 
@@ -1099,12 +1116,120 @@
   flex-shrink: 0;
   position: relative;
   z-index: 1;
-  background: var(--hw-panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  /* Marc: "kaikki pitää animoida" - each node plays this once, the
+     moment it actually mounts. Path array grows by exactly one entry
+     per step (advanceToNextNode), so in practice this fires once per
+     node the FIRST time it appears on the strip (the run "revealing
+     itself" as the player walks it), not a replay on every re-render -
+     React keeps the same DOM node for everything already in `path`. */
+  animation: hw-run-node-appear 420ms ease-out;
+}
+
+@keyframes hw-run-node-appear {
+  0% { opacity: 0; transform: translateY(5px) scale(0.6); }
+  65% { opacity: 1; transform: translateY(-1px) scale(1.08); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Forest-path silhouettes, not circles (Marc's PRD §23: the map should
+   read as trunks/paths/campfires/shrines, not a node-graph diagram).
+   One shared shape layer sized/positioned to fill its node box; each
+   node type gets its own clip-path below. Colored via --hw-node-accent
+   (RunMap.jsx's existing nodeColor(), now actually reaching the glyph
+   too - see cardArt.jsx's CardGlyph fix) so the shape and its icon
+   always agree on color without hardcoding either here. */
+.hw-run-node-shape {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 22%, var(--hw-panel));
+  border: 1px solid color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 55%, transparent);
+  /* Default: a hexagonal waymarker (relic's rune-stone shape doubles
+     as the fallback for any future node type this file doesn't know
+     about yet). */
+  clip-path: polygon(50% 4%, 90% 28%, 90% 72%, 50% 96%, 10% 72%, 10% 28%);
+}
+
+/* Battle/miniboss - a small campfire silhouette (Marc: "a small flame
+   for a fight"). Slightly flickers, campfire-style. */
+.hw-run-node[data-type="battle"] .hw-run-node-shape,
+.hw-run-node[data-type="miniboss"] .hw-run-node-shape {
+  /* A single-bulge teardrop, not the double-waisted outline this
+     started as: that version was a self-intersecting polygon (two
+     in/out reversals per side cross their own edges under the
+     default nonzero fill-rule), which clipped the shape down to
+     almost nothing - invisible in a screenshot, not just "a bit off".
+     Caught by actually looking at a rendered screenshot, not just
+     reading the coordinates. */
+  clip-path: polygon(50% 0%, 72% 26%, 84% 52%, 70% 80%, 50% 100%, 30% 80%, 16% 52%, 28% 26%);
+  animation: hw-run-ember-flicker 2.6s ease-in-out infinite;
+}
+
+@keyframes hw-run-ember-flicker {
+  0%, 100% { filter: brightness(1); }
+  45% { filter: brightness(1.14); }
+  72% { filter: brightness(0.94); }
+}
+
+/* Shop - a chest outline (Marc: "a chest outline for treasure"): a
+   rounded case with a lid seam instead of a clip-path polygon, since a
+   small rectangle reads more like a chest with real corners than a
+   sharp-cut one would. */
+.hw-run-node[data-type="shop"] .hw-run-node-shape {
+  clip-path: none;
+  border-radius: 3px 3px 1px 1px;
+  background:
+    linear-gradient(color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 55%, transparent) 0 1px, transparent 1px) 0 38% / 100% 100% no-repeat,
+    color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 22%, var(--hw-panel));
+}
+
+/* Relic - a standing rune stone (elongated hexagon, taller than the
+   default waymarker hexagon above). */
+.hw-run-node[data-type="relic"] .hw-run-node-shape {
+  clip-path: polygon(50% 0%, 100% 18%, 100% 82%, 50% 100%, 0% 82%, 0% 18%);
+}
+
+/* Boss - a shrine gate (Marc's PRD §23 vocabulary: shrines for the
+   run's special beats). A slow ambient glow instead of the campfire
+   flicker above - the Spacemonkey fight is the climax, not routine. */
+.hw-run-node[data-type="boss"] .hw-run-node-shape {
+  clip-path: polygon(18% 100%, 18% 38%, 50% 2%, 82% 38%, 82% 100%);
+  animation: hw-run-boss-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes hw-run-boss-glow {
+  0%, 100% { box-shadow: 0 0 4px 1px color-mix(in srgb, var(--hw-node-accent) 45%, transparent); }
+  50% { box-shadow: 0 0 13px 3px color-mix(in srgb, var(--hw-node-accent) 70%, transparent); }
 }
 
 .hw-run-node .hw-piece-glyph {
-  width: 18px;
-  height: 18px;
+  position: relative;
+  z-index: 1;
+  width: 21px;
+  height: 21px;
+  color: var(--hw-node-accent);
+  /* .hw-piece-glyph's shared rule (above in this file) gives every
+     other glyph in the game a round "medallion" backdrop - here that
+     fights the whole point of this pass: at 21-34px, the medallion's
+     own circle (glyph + its 5px padding) is close enough to
+     .hw-run-node-shape's box that it visually swallows the polygon
+     silhouette underneath it, so every node type reads as the same
+     circle again regardless of clip-path. Verified by screenshot, not
+     assumed - the boss node (much bigger, major tier) broke free of
+     its medallion and read as a real gate shape while normal-tier
+     nodes still looked like plain circles. Stripped here so
+     .hw-run-node-shape is the only frame a path node gets - it
+     already does that job (Marc: "selkeys ennen koristeellisuutta" -
+     clarity before decoration; two competing frames read as neither). */
+  padding: 0;
+  background-image: none;
+  box-shadow: none;
+  filter: none;
 }
 
 .hw-run-node[data-current="true"] {
@@ -1119,44 +1244,81 @@
    sitting above the current node, plus the step-count text in the
    header, are both meant to make "where am I" answerable without
    having to visually scan the whole strip for the one node that
-   glows slightly more than its neighbors. */
+   glows slightly more than its neighbors. Gently pulses (Marc: "kaikki
+   pitää animoida") so it also catches the eye on a mostly-static
+   screen, not just on the frame it first appears.
+   NOTE for future edits: this sits inside .hw-run-node, which scales
+   up 1.35x when data-current - both this marker's own -9px offset AND
+   its border sizes scale along with it. .hw-run-track's padding-top
+   above has to stay tall enough to fit that scaled-up reach for the
+   largest (major-tier) node, or it gets silently clipped by
+   overflow-y (see that rule's comment) - this exact thing broke once
+   before and should be checked with a real screenshot after any
+   change to node sizing, marker offset, or the current-node scale. */
 .hw-run-node-marker {
   position: absolute;
   top: -9px;
   left: 50%;
-  transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 6px solid currentColor;
+  animation: hw-run-marker-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hw-run-marker-pulse {
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) translateY(0); }
+  50% { opacity: 1; transform: translateX(-50%) translateY(2px); }
 }
 
 .hw-run-node[data-done="true"] {
   opacity: 0.65;
 }
 
+/* Miniboss/boss - the run's story beats, sized up on the same
+   Fibonacci rhythm as the minor tier below (55/34 = 1.618 = phi). */
+.hw-run-node[data-major="true"] {
+  width: 55px;
+  height: 55px;
+  margin-inline: 5px;
+}
+
 .hw-run-node[data-major="true"] .hw-piece-glyph {
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
 }
 
 /* Quiet vs loud, applied to the path itself: shop/relic stops repeat
    every other node and would otherwise dominate the strip - shrunk
    and muted so battles (the actual points of interest) read as the
-   real story beats. */
+   real story beats. Sized on the same Fibonacci rhythm (21/13 = 1.615
+   = phi) as the rest of the strip. */
 .hw-run-node[data-minor="true"] {
   opacity: 0.2;
+  width: 21px;
+  height: 21px;
+  margin-inline: -3px;
 }
 
 .hw-run-node[data-minor="true"] .hw-piece-glyph {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
 }
 
 .hw-run-node[data-minor="true"][data-current="true"],
 .hw-run-node[data-minor="true"][data-done="true"] {
   opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-run-node,
+  .hw-run-node-marker,
+  .hw-run-node[data-type="battle"] .hw-run-node-shape,
+  .hw-run-node[data-type="miniboss"] .hw-run-node-shape,
+  .hw-run-node[data-type="boss"] .hw-run-node-shape {
+    animation: none;
+  }
 }
 
 .hw-flavor {

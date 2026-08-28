@@ -97,9 +97,20 @@ export default function RunMap({ runState }) {
               data-done={isDone}
               data-major={isMajor}
               data-minor={isMinor}
+              data-type={n.type}
+              style={{ "--hw-node-accent": nodeColor(n) }}
               title={nodeLabel(n)}
             >
               {isCurrent && <div className="hw-run-node-marker" style={{ color: tier.color }} />}
+              {/* Forest-path silhouette behind the glyph - a campfire for a
+                  fight, a chest for the market, a rune stone for a relic
+                  stop, a gate for the Spacemonkey - so the path reads as
+                  trail waymarkers, not a row of generic circles (Marc,
+                  PRD §23: "elävä metsäpolku, ei node-graafi"). Pure CSS
+                  clip-path shapes on data-type, sized by the same
+                  Fibonacci/golden-ratio rhythm as .hw-piece-glyph below -
+                  no new art asset needed. */}
+              <div className="hw-run-node-shape" aria-hidden="true" />
               <CardGlyph name={nodeGlyph(n)} className="hw-piece-glyph" style={{ color: nodeColor(n) }} />
             </div>
           )
