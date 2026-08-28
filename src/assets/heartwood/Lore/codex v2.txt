@@ -1,0 +1,128 @@
+============================================================
+                     HEARTHWOOD — RUNES LORE
+============================================================
+
+INTRODUCTION
+------------
+Runes are the oldest language in Hearthwood. They were not
+invented by tribes or carved by mortals. They emerged when the
+Fourfold Wilds first collided — symbols formed from pure
+primal force.
+
+Each rune carries memory, power, and intent. To carve a rune
+is to speak directly to the world.
+
+============================================================
+SAPLIGHT RUNES — BREATH OF THE FOREST
+============================================================
+
+SAPLIGHT GLYPH
+--------------
+Origin: Formed when the first pulse of life spread through the
+roots of Hearthwood.
+Meaning: Growth, renewal, healing.
+Power: Restores vitality, strengthens allies, awakens roots.
+Lore: Saplight Glyphs glow softly when placed near living wood.
+Druids claim they “breathe” in rhythm with the forest.
+
+ROOTWEAVE RUNE
+--------------
+Origin: Woven into the first living roots.
+Meaning: Connection, unity, living bonds.
+Power: Binds allies together, entangles foes.
+Lore: Rootweave Runes are used in rituals of protection. They
+tighten when danger approaches.
+
+GROVE-MARK TABLET
+-----------------
+Origin: A rune carved by the forest itself.
+Meaning: Territory, sanctuary.
+Power: Creates zones of protection and rapid growth.
+Lore: Grove-Marks are placed at sacred sites to mark the
+forest’s domain.
+
+============================================================
+HOLLOW RUNES — ECHO OF WHAT WAS LOST
+============================================================
+
+SHADECOIL RUNE
+--------------
+Origin: Formed from the first shadow that ever fell.
+Meaning: Echo-binding, spectral tether.
+Power: Binds spirits, amplifies echoes, weakens light.
+Lore: Shadecoil Runes hum quietly. Hollow ritualists say they
+contain “the memory of absence.”
+
+HOLLOW-SCRIPT SIGIL
+-------------------
+Origin: Written by the Hollow Marsh itself during the first
+eclipse.
+Meaning: Void, silence, forgetting.
+Power: Creates zones of silence, erases magical traces.
+Lore: Hollow-Script Sigils are feared by Saplight druids, who
+claim they “teach the forest to forget.”
+
+ECHO-MARK TABLET
+----------------
+Origin: A tablet carved from shadow-infused stone.
+Meaning: Memory, resonance.
+Power: Amplifies spectral forces, reveals hidden echoes.
+Lore: Echo-Marks glow when spirits pass nearby.
+
+============================================================
+EMBER RUNES — ASH THAT REMAKES THE WORLD
+============================================================
+
+EMBERFLARE RUNE
+---------------
+Origin: Born from the first ritual flame.
+Meaning: Fire, ignition, transformation.
+Power: Ignites flame, enhances Ember magic, burns corruption.
+Lore: Emberflare Runes heat the air around them. They pulse
+when Ember Spirits draw near.
+
+BLIGHT-SCRIPT SIGIL
+-------------------
+Origin: Formed when Ember and Toxic forces collided.
+Meaning: Corruption, decay, mutation.
+Power: Spreads blight, weakens healing, mutates flora.
+Lore: Blight-Script Sigils are forbidden in Saplight territory.
+
+ASH-SCRIPT GLYPH
+----------------
+Origin: Etched into stone during ancient firestorms.
+Meaning: Ash, memory of flame.
+Power: Creates ash clouds, shields allies with ember dust.
+Lore: Ash-Script Glyphs ignite when spoken aloud.
+
+============================================================
+STONE RUNES — MEMORY OF THE WORLD
+============================================================
+
+EARTHBIND GLYPH
+---------------
+Origin: Carved into the first monolith.
+Meaning: Stability, grounding, permanence.
+Power: Stabilizes terrain, strengthens defenses, halts movement.
+Lore: Earthbind Glyphs resonate with Stone Titans.
+
+STONE-FRACT RUNE
+----------------
+Origin: Formed when the Relic Spine cracked during the Great
+Fracture.
+Meaning: Endurance, fracture, ancient memory.
+Power: Creates shockwaves, reinforces stone, reveals hidden
+runes.
+Lore: Stone-Fract Runes are used to awaken dormant relics.
+
+RUNEBREAK TABLET
+----------------
+Origin: A shattered tablet from the Age of Roots.
+Meaning: Disruption, raw primal force.
+Power: Breaks magical bindings, destabilizes runic fields.
+Lore: Stone elders forbid its use, claiming it “remembers too
+much.”
+
+============================================================
+END OF FILE
+============================================================
