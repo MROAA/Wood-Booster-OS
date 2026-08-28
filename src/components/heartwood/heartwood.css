@@ -1914,3 +1914,130 @@
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 20px 4px color-mix(in srgb, var(--hw-ember) 60%, transparent);
   }
 }
+
+/* ============================================================
+   Micro-interactions pass (feat/hearthwood-microinteractions)
+
+   Marc: buttons must not read as generic web buttons, every hover
+   needs movement, every press needs tactile compression, and screen
+   changes need a soft transition instead of a hard cut - and the
+   sizing/timing should follow deliberate geometry (golden ratio
+   ~1.618) via the SAME Fibonacci sequence the spacing scale already
+   uses (index.css --space-1..6: 8/13/21/34/55/89px), not arbitrary
+   numbers. Continuing that exact sequence into a duration scale
+   keeps every step's ratio to its neighbor at ~1.618:
+   55 -> 89 -> 144 -> 233 -> 377 -> 610 (ms).
+
+   Purely additive: everything above this comment in the file is
+   untouched. New custom properties + new rules only, applied to the
+   two classes used as the primary/secondary action button on nearly
+   every screen (.hw-end-turn / .hw-move-btn - shop, formation,
+   relics, rest, rewards, run-end, map) plus a few small isolated
+   controls. Deliberately NOT touching .hw-card and its variants
+   (unit-card-physicality pass owns that) or BattleGrid/
+   AutoBattleView's own combat-arena elements (battle-arena pass owns
+   that) - kept out of both to minimize collision in this shared
+   stylesheet. */
+
+.hw-root {
+  --hw-dur-instant: 55ms;
+  --hw-dur-fast: 89ms;
+  --hw-dur-base: 144ms;
+  --hw-dur-slow: 233ms;
+  --hw-dur-screen: 377ms;
+  --hw-dur-reveal: 610ms;
+  --hw-ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* --space-1 (8px) scaled by the inverse golden ratio (0.618) - the
+     hover lift distance used throughout this section. */
+  --hw-lift: 5px;
+}
+
+.hw-end-turn,
+.hw-move-btn {
+  transition:
+    transform var(--hw-dur-fast) var(--hw-ease-out),
+    box-shadow var(--hw-dur-fast) var(--hw-ease-out),
+    filter var(--hw-dur-fast) var(--hw-ease-out);
+}
+
+.hw-end-turn:hover:not(:disabled),
+.hw-move-btn:hover:not(:disabled) {
+  transform: translateY(calc(var(--hw-lift) * -1));
+  box-shadow: 0 var(--space-1, 8px) var(--space-2, 13px) rgba(0, 0, 0, 0.35);
+  filter: brightness(1.08);
+}
+
+.hw-end-turn:active:not(:disabled),
+.hw-move-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: var(--hw-dur-instant);
+  filter: brightness(0.94);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.hw-end-turn:focus-visible,
+.hw-move-btn:focus-visible {
+  outline: 2px solid var(--hw-ember);
+  outline-offset: 2px;
+}
+
+/* Small isolated dismiss/skip/next controls (tutorial spotlight, the
+   targeting-hint bar) - same language, lighter touch since these are
+   secondary actions, not primary CTAs. */
+.hw-hint-cancel,
+.hw-tutorial-skip,
+.hw-tutorial-next {
+  transition:
+    transform var(--hw-dur-fast) var(--hw-ease-out),
+    filter var(--hw-dur-fast) var(--hw-ease-out);
+}
+
+.hw-hint-cancel:hover,
+.hw-tutorial-skip:hover,
+.hw-tutorial-next:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.hw-hint-cancel:active,
+.hw-tutorial-skip:active,
+.hw-tutorial-next:active {
+  transform: translateY(1px) scale(0.96);
+  transition-duration: var(--hw-dur-instant);
+}
+
+/* Screen-to-screen transitions. HeartwoodBattle.jsx keys its root
+   .hw-root element by a computed screen identity so React actually
+   remounts the node on a phase change - without a key, React reuses
+   the same DOM node across phases (same element type at the same
+   position every return) and this animation would never re-trigger,
+   since a CSS mount animation only plays once per real DOM mount.
+   Fade + a small upward settle, timed off the same Fibonacci
+   duration scale as everything else in this section. */
+@keyframes hw-screen-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1, 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hw-screen-fade {
+  animation: hw-screen-enter var(--hw-dur-screen) var(--hw-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-screen-fade {
+    animation: none;
+  }
+  .hw-end-turn,
+  .hw-move-btn,
+  .hw-hint-cancel,
+  .hw-tutorial-skip,
+  .hw-tutorial-next {
+    transition: none;
+  }
+}
