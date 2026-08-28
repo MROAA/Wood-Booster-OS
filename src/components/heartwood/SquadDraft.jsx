@@ -121,6 +121,8 @@ export default function SquadDraft({
   // unit on the battlefield.
   const [selectedItemKey, setSelectedItemKey] = useState(null)
   const [justEquippedSlot, setJustEquippedSlot] = useState(null)
+  const selectedItem = selectedItemKey !== null ? runState.items.find((it) => it.key === selectedItemKey) : null
+  const selectedItemDef = selectedItem ? ITEMS[selectedItem.defId] : null
   // Market/Squad tabs (Marc, after a real 1920x1080 measurement showed
   // ~400-600px of vertical overflow with a stocked shop and a real
   // bench both visible: "kaiken pitää mahtua näytölle ilman
@@ -171,6 +173,40 @@ export default function SquadDraft({
       return () => clearTimeout(timer)
     }
   }, [runState.bench])
+
+  // Buying an item (onBuyItem, "For sale" -> Items) used to leave the
+  // player stranded on the Market tab with zero visible way to equip
+  // what they just bought - the bag list and every item-slot pip (bar
+  // the Commander's, which sit outside the tabs) only exist on the
+  // "Your Squad" tab, and the "equip it from the bag on the right"
+  // hint text above the Items grid is stale copy from before this
+  // screen had tabs at all (there is no "right" anymore, just two
+  // panels that swap). Marc bought an item, watched Essence drop, and
+  // had no way to tell the equip step even existed - not a broken
+  // equipItem call, a genuinely undiscoverable one.
+  //
+  // Fix is auto-SELECT, not auto-switch: forcibly jumping to the Squad
+  // tab the instant an item is bought was the first attempt, but it
+  // yanks the player away from the Market tab mid-shopping (buying an
+  // item, then still meaning to recruit another unit right after) - a
+  // new annoyance in place of the old one. Auto-selecting the item and
+  // showing the pending-equip banner below (which lives outside the
+  // tab-gated panels, so it's visible on either tab) gets the same
+  // "what do I do now" answer on screen without moving the player's
+  // tab out from under them; the banner's own "Go to Your Squad"
+  // button (only shown while still on Market) is the explicit next
+  // click when they're ready for it. Detected the same diff-before/
+  // after way the fusion effect above already does: a fresh item key
+  // that wasn't in the bag last render means buyItem just ran.
+  const prevItemKeysRef = useRef(new Set(runState.items.map((it) => it.key)))
+  useEffect(() => {
+    const prevKeys = prevItemKeysRef.current
+    const boughtItem = runState.items.find((it) => !prevKeys.has(it.key))
+    prevItemKeysRef.current = new Set(runState.items.map((it) => it.key))
+    if (boughtItem) {
+      setSelectedItemKey(boughtItem.key)
+    }
+  }, [runState.items])
 
   function handleReforge(benchKey) {
     onReforge(benchKey)
@@ -431,6 +467,35 @@ export default function SquadDraft({
         </button>
       </div>
 
+      {/* Equip prompt: the required visible cue that something is
+          selected and waiting for a target, same job the "primed" badge
+          above does for the Commander's Active Power. Placed outside
+          the tab-gated panels below (hw-market-columns) so it's on
+          screen on EITHER tab - the instant buying an item auto-selects
+          it (see the item-detection effect above), whichever tab the
+          player was shopping on, and stays visible if they instead
+          select a bag item by hand while already on the Squad tab. */}
+      {selectedItemDef && (
+        <div className="hw-hint hw-hint--pending" style={{ marginTop: 10 }}>
+          <span>
+            <CardGlyph name={selectedItemDef.icon} className="hw-intent-glyph" /> {selectedItemDef.name} selected -{" "}
+            {activeTab === "squad"
+              ? "click an empty item slot on a unit below (or the Commander's slots above) to equip it."
+              : "the Commander's slots above are ready now, or switch tabs to equip it onto a recruited unit."}
+          </span>
+          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            {activeTab !== "squad" && (
+              <button className="hw-hint-cancel" onClick={() => setActiveTab("squad")}>
+                Go to Your Squad
+              </button>
+            )}
+            <button className="hw-hint-cancel" onClick={() => setSelectedItemKey(null)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="hw-market-columns">
         <div className="hw-panel hw-panel--market" hidden={activeTab !== "market"}>
           <div className="hw-panel-title">Market - spend Essence here</div>
@@ -499,8 +564,8 @@ export default function SquadDraft({
             Items
           </div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
-            Gear for a specific unit - buy, then equip it from the bag on the right. Rotates fresh every visit -
-            always includes at least one Bending item.
+            Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander above
+            or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.
           </p>
           <div className="hw-select-grid hw-deck-preview">
             {itemOffers.map((def) => (
