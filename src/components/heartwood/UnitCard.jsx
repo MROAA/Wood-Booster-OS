@@ -33,7 +33,14 @@ const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "s
 // the whole tavern" convention when you Freeze, missing until now
 // (only the Freeze button itself changed color, the actual cards being
 // locked in showed nothing).
-export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen }) {
+//
+// `dualClass` (optional): the active DUAL_CLASSES entry (dualClasses.js,
+// roadmap task 19) when this unit is currently deployed alongside its
+// named combo partner - SquadDraft.jsx computes it per bench entry.
+// Overrides def.className the same way `role` overrides def.role above:
+// additive layering, every card without an active combo renders exactly
+// as Guild Identity v1 already had it.
+export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass }) {
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   const effectiveRole = role || def.role
   // Tribes (synergies.js): purely a recruit-shop/bench-planning cue, up
@@ -106,10 +113,16 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           only for the units that have earned one so far (def.className -
           see units.js) - additive, every other unit's card renders
           exactly as before. */}
-      {def.className && (
-        <div className="hw-card-class" title={`${def.className} - a named Class identity`}>
-          {def.className}
+      {dualClass ? (
+        <div className="hw-card-class hw-card-class--dual" title={dualClass.description}>
+          {dualClass.name}
         </div>
+      ) : (
+        def.className && (
+          <div className="hw-card-class" title={`${def.className} - a named Class identity`}>
+            {def.className}
+          </div>
+        )
       )}
       {tribeIds.length > 0 && (
         <div className="hw-tribe-icons">

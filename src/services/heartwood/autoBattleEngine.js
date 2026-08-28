@@ -19,6 +19,7 @@ import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
 import { tribesOf, SYNERGY_TIERS } from "../../data/heartwood/synergies"
+import { findDualClassFor, applyDualClassGrant } from "../../data/heartwood/dualClasses"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen } from "./effects"
 import { isShielded, kingAdjacent } from "./targeting"
 
@@ -47,6 +48,20 @@ const COMMANDER_POSITION = { row: 1, col: 0 }
 
 function freshUnit(overrides) {
   return { block: 0, powers: {}, triggers: [], ...overrides }
+}
+
+// Dual-Class (dualClasses.js, roadmap task 19): the shared resolution
+// step every per-round def re-derive already needs, layered right after
+// Upgrade in the exact same "compute the effective def fresh" spots
+// Upgrade's own unitDefWithUpgrade already runs (startAutoBattle's
+// initial effectiveDefs build, applyRallyHealTick, resolveRound's own
+// actSide call) - a single shared helper so all 3 spots can never drift
+// out of sync with each other, same discipline effectiveItemSlots
+// (runEngine.js) already documents for its own callers.
+function effectiveUnitDef(defId, upgradeLevel, deployedDefIds) {
+  const base = unitDefWithUpgrade(UNITS[defId], upgradeLevel)
+  const dualClass = findDualClassFor(defId, deployedDefIds, UNITS)
+  return dualClass ? applyDualClassGrant(base, defId, dualClass, UNITS) : base
 }
 
 // Identical decision logic to the turn-based engine's computeIntent -
@@ -212,12 +227,19 @@ export function startAutoBattle(
   // HP, movePattern damage, and (in the loop just below) its passive -
   // is already the boosted version, with no separate "is this unit
   // upgraded" branch anywhere else in the engine.
+  // Dual-Class (dualClasses.js): every deployed unit's OWN defId, read
+  // once here so findDualClassFor has the full deployed roster to check
+  // each unit's partner against - computed before the per-unit map
+  // below since a unit needs to see every OTHER deployed defId, not
+  // just its own.
+  const deployedDefIds = deployedUnits.map((entry) => (typeof entry === "string" ? entry : entry.defId))
+
   const effectiveDefs = {}
   const recruitedUnits = deployedUnits.map((entry, i) => {
     const defId = typeof entry === "string" ? entry : entry.defId
     const upgradeLevel = typeof entry === "string" ? 0 : entry.upgradeLevel || 0
     const itemIds = typeof entry === "string" ? [] : entry.itemIds || []
-    const def = unitDefWithUpgrade(UNITS[defId], upgradeLevel)
+    const def = effectiveUnitDef(defId, upgradeLevel, deployedDefIds)
     const id = `p${i}`
     effectiveDefs[id] = def
     return freshUnit({
@@ -270,6 +292,13 @@ export function startAutoBattle(
     // own def without a UNITS[defId] lookup - the Commander's
     // `defId` is deliberately null since it isn't in UNITS at all.
     commanderDef: character,
+    // Cached the same way (Dual-Class, dualClasses.js) - resolveRound's
+    // own per-round def re-derive and applyRallyHealTick both need the
+    // full deployed roster to check each unit's partner against, not
+    // just their own defId, so it's computed once here rather than
+    // re-derived from playerUnits every round (which would also have to
+    // filter out the Commander and any mid-battle Summon each time).
+    deployedDefIds,
     // Cached the same way - the DIFFICULTY-SCALED enemy defs built
     // above, so resolveRound's own enemy actSide call reads the scaled
     // movePattern amounts every round instead of ENEMIES[defId]'s raw,
@@ -848,7 +877,7 @@ function applyRallyHealTick(state) {
   let next = state
   for (const u of next.playerUnits) {
     if (u.hp <= 0) continue
-    const def = u.id === "commander" ? next.commanderDef : unitDefWithUpgrade(UNITS[u.defId], u.upgradeLevel || 0)
+    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgradeLevel || 0, next.deployedDefIds || [])
     if (!def.rallyHeal) continue
     for (const other of next.playerUnits) {
       if (other.id === u.id || other.hp <= 0) continue
@@ -903,7 +932,7 @@ export function resolveRound(state) {
   next = actSide(
     next,
     next.playerUnits,
-    (u) => (u.id === "commander" ? next.commanderDef : unitDefWithUpgrade(UNITS[u.defId], u.upgradeLevel || 0)),
+    (u) => (u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgradeLevel || 0, next.deployedDefIds || [])),
     (s) => s.enemies,
     "player",
   )
