@@ -761,6 +761,19 @@
   margin-top: -2px;
 }
 
+/* Dual-Class (UnitCard.jsx's `dualClass` prop, dualClasses.js) - a
+   combo identity (e.g. "Deathguard") reads as a step up from a single
+   Class label, same ember/gold accent the rest of this file already
+   uses for "notable, earned" things (data-fused's golden card glow,
+   the synergy-met badge) rather than the plain moss of a single
+   className - not bold/larger (Marc: "UI needs to stay minimalistic"),
+   just a distinct color so a glance at the bench tells you a combo is
+   actually live. */
+.hw-card-class--dual {
+  color: var(--hw-ember);
+  font-weight: 600;
+}
+
 .hw-crew-banner {
   width: 100%;
   max-width: 720px;

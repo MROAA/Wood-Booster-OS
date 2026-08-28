@@ -6,6 +6,7 @@ import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/he
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { tribesOf } from "../../data/heartwood/synergies"
+import { findDualClassFor } from "../../data/heartwood/dualClasses"
 import {
   REFORGE_COST,
   RETRAIN_COST,
@@ -100,6 +101,17 @@ export default function SquadDraft({
   // everything owned minus whatever's currently deployed.
   const deployedCount = runState.deployed.filter((k) => k !== null).length
   const reserveCount = runState.bench.length - deployedCount
+  // Dual-Class (dualClasses.js, roadmap task 19): every currently
+  // DEPLOYED unit's defId, same "deployed only" scope the tribe tracker
+  // above already uses (ownedTribes is bench-wide on purpose, this is
+  // deliberately narrower) - a combo only actually fires in battle once
+  // both partners are placed on the grid together, so the bench card
+  // should show the same thing the fight will actually do, not "you
+  // happen to own both somewhere."
+  const deployedDefIds = runState.deployed
+    .filter((k) => k !== null)
+    .map((key) => runState.bench.find((e) => e.key === key)?.defId)
+    .filter(Boolean)
   // Hero Bending on the Commander: it has no baseline `role` (see
   // characters.js) to contrast against the way a recruited unit does,
   // so this is just "does ANY equipped Commander item carry
@@ -642,6 +654,16 @@ export default function SquadDraft({
           // here visibly overwrites this card's role-accent/label, not
           // just its stats.
           const bentRole = def ? effectiveRole(def.role, equippedItems.map((it) => it.defId)) : def?.role
+          // Dual-Class (dualClasses.js): only checked against OTHER
+          // deployed defIds (this unit's own entry contributes nothing
+          // to its own combo - a combo always needs a genuinely
+          // different partner unit), only meaningful while this entry
+          // itself is actually deployed (a benched, undeployed unit
+          // isn't in the fight the combo would apply to).
+          const dualClass =
+            def && runState.deployed.includes(entry.key)
+              ? findDualClassFor(entry.defId, deployedDefIds, UNITS)
+              : null
           return (
             <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <div
@@ -649,7 +671,7 @@ export default function SquadDraft({
                   justFusedKey === entry.key ? "hw-card--fused" : justReforgedKey === entry.key ? "hw-card--reforged" : undefined
                 }
               >
-                <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} />
+                <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} />
               </div>
               {runState.deployed.includes(entry.key) && (
                 <div
