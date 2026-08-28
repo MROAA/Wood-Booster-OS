@@ -1013,6 +1013,25 @@
   }
 }
 
+/* Story-weight pass (Marc: "sen pitaa olla visuaalisesti silla
+   tasolla etta se voi kertoa tarinan" - this should read as earning
+   the Death Memory text's weight, not a neutral stat screen; victory
+   should feel like a celebration, defeat like a loss - reflecting
+   what just happened narratively, not just numerically). One
+   triumphant flare on the glyph itself as it arrives, on top of the
+   panel's own ambient shimmer above. */
+.hw-runend-overlay[data-outcome="won"] .hw-runend-glyph {
+  animation: hw-runend-flare-won 900ms ease-out;
+  animation-delay: 210ms;
+  animation-fill-mode: backwards;
+}
+
+@keyframes hw-runend-flare-won {
+  0% { filter: drop-shadow(0 0 var(--hw-fib-4) currentColor) brightness(1); }
+  40% { filter: drop-shadow(0 0 var(--hw-fib-8) currentColor) brightness(1.7); }
+  100% { filter: drop-shadow(0 0 var(--hw-fib-4) currentColor) brightness(1); }
+}
+
 /* Defeat: cooler/dimmer within the existing HP red - lower saturation
    and a slower, heavier pulse instead of the victory shimmer. */
 .hw-runend-overlay[data-outcome="lost"] {
@@ -1025,7 +1044,14 @@
 .hw-runend-overlay[data-outcome="lost"] .hw-runend-panel {
   border-color: color-mix(in srgb, var(--hw-hp) 28%, var(--hw-border));
   box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.55);
-  animation: hw-runend-glow-lost 5.5s ease-in-out infinite;
+  /* Not a symmetric pulse (that reads as ongoing/alive, wrong for an
+     ending) - one settle from a brighter "still smoldering from the
+     fight" glow down to a resting dim, then a faint, slow ember-
+     flicker (still animated per "kaikki pitaa animoida," but weak and
+     heavy rather than energetic like victory's shimmer). */
+  animation:
+    hw-runend-settle-lost 2.1s ease-out forwards,
+    hw-runend-ember-flicker-lost 4.5s ease-in-out 2.1s infinite;
 }
 
 .hw-runend-overlay[data-outcome="lost"] .hw-runend-emblem {
@@ -1036,15 +1062,41 @@
   --hw-runend-divider-color: color-mix(in srgb, var(--hw-hp) 40%, transparent);
 }
 
-@keyframes hw-runend-glow-lost {
+@keyframes hw-runend-settle-lost {
+  0% {
+    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.5), 0 0 var(--hw-fib-6) -4px color-mix(in srgb, var(--hw-hp) 55%, transparent);
+    border-color: color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
+  }
+  100% {
+    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.6), 0 0 0 0 transparent;
+    border-color: color-mix(in srgb, var(--hw-hp) 22%, var(--hw-border));
+  }
+}
+
+@keyframes hw-runend-ember-flicker-lost {
   0%, 100% {
-    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.55);
-    border-color: color-mix(in srgb, var(--hw-hp) 28%, var(--hw-border));
+    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.6);
+    border-color: color-mix(in srgb, var(--hw-hp) 22%, var(--hw-border));
   }
   50% {
-    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.62);
+    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.63);
     border-color: color-mix(in srgb, var(--hw-hp) 16%, var(--hw-border));
   }
+}
+
+/* The flavor text says the hero "falls silent" - the glyph echoes
+   that literally: it arrives already dimming, from a brighter
+   afterglow of the fight just lost down to a faint, settled ember,
+   instead of holding one static glow throughout. */
+.hw-runend-overlay[data-outcome="lost"] .hw-runend-glyph {
+  animation: hw-runend-fall-silent 2.8s ease-out;
+  animation-delay: 210ms;
+  animation-fill-mode: backwards;
+}
+
+@keyframes hw-runend-fall-silent {
+  0% { filter: drop-shadow(0 0 var(--hw-fib-6) currentColor) brightness(1.3); }
+  100% { filter: drop-shadow(0 0 var(--hw-fib-2) currentColor) brightness(0.7); }
 }
 
 @media (max-width: 480px) {
