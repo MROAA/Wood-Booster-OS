@@ -1,0 +1,71 @@
+============================================================
+                     HEARTHWOOD — TRIBES LORE
+============================================================
+
+INTRODUCTION
+------------
+The tribes of Hearthwood are not simple factions. They are
+manifestations of the primal forces that shaped the world:
+Saplight, Hollow, Ember, and Stone. Each tribe carries a
+philosophy, a culture, and a destiny tied to its origin.
+
+Their alliances and conflicts define the balance of Hearthwood.
+
+============================================================
+SAPLIGHT TRIBE — THE BREATH OF THE FOREST
+============================================================
+
+ORIGIN
+------
+Saplight emerged from the first pulse of life that spread
+through Hearthwood’s roots. When the forest breathed for the
+first time, Saplight was born.
+
+PHILOSOPHY
+----------
+“Life must grow, even through stone.”
+
+Saplight believes growth is sacred. They heal the forest,
+restore ruins, and protect the living memory of Hearthwood.
+
+MAGIC
+-----
+Saplight magic is warm, green, and relentless. It heals,
+strengthens, and binds allies together. Their druids channel
+light through roots and moss.
+
+COMMON UNITS
+------------
+Mosswarden — silent guardian of the deep roots
+Saproot Channeler — druid who guides living energy
+Thornback Sentinel — warrior clad in natural armor
+Groveheart Titan — colossal being of bark and sap
+
+ITEMS & RELICS
+--------------
+Mossdrop Vial — healing essence of moss
+Saplight Knot — protective druidic charm
+Groveheart Relic — symbol of ancient growth
+
+RUNES
+-----
+Saplight Glyph — rune of renewal
+Rootweave Rune — rune of living connection
+
+RELATIONS
+---------
+Friendly with Stone Tribe
+Wary of Ember Tribe
+Distrusts Hollow Tribe
+
+============================================================
+HOLLOW TRIBE — THE ECHO OF WHAT WAS LOST
+============================================================
+
+ORIGIN
+------
+Hollow formed from the first absence — the moment something
+vanished from Hearthwood and left behind a cold echo.
+
+PHILOSOPHY
+----------
