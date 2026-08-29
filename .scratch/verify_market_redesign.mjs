@@ -21,6 +21,13 @@ const tutorialNext = page.locator("button.hw-tutorial-next")
 if (await tutorialNext.isVisible({ timeout: 2000 }).catch(() => false)) {
   await tutorialNext.click().catch(() => {})
 }
+// New since this branch was last verified: a one-time Guild Hall
+// arrival screen now sits between CommanderSelect and the shop
+// (merged from development).
+const guildHallCta = page.locator(".hw-guildhall-cta")
+if (await guildHallCta.isVisible({ timeout: 3000 }).catch(() => false)) {
+  await guildHallCta.click()
+}
 await page.waitForSelector(".hw-market-columns", { timeout: 15000 })
 
 // --- Tab switching ---
