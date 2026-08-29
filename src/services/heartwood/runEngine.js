@@ -417,7 +417,13 @@ function shuffled(array) {
 // unit offers already are, with one slot GUARANTEED to be a Bending
 // item whenever one exists - "you will see a real build-defining
 // choice this visit," not just "maybe, if the dice cooperate."
-const ITEM_SHOP_SIZE = 6
+//
+// Was 6 - Marc, direct, looking at the shop: "siinä on liikaa
+// kortteja sitä pitää vähentää" / "visuaalista meteliä pitää
+// vähentää" (too many cards, too much visual noise). Matched to
+// SHOP_SIZE (the unit row, below) so both rows read as the same
+// weight of decision rather than the item row visually dominating.
+const ITEM_SHOP_SIZE = 4
 
 function rollItemShop() {
   const all = itemPool()

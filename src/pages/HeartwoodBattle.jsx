@@ -134,6 +134,30 @@ export default function HeartwoodBattle() {
     </Link>
   )
 
+  // Change Commander / How to Play used to render as two full-size
+  // .hw-move-btn pills at the top-LEFT of every shop-adjacent screen,
+  // right above the actual cards - Marc, marking up a screenshot
+  // directly: crossed both out, circled the whole header area as one
+  // undifferentiated clump ("iso möykky"), and said to move them
+  // rather than delete the feature ("poista raksitut ja siirrä
+  // nappeja"). Relocated to the same fixed top-RIGHT corner as the
+  // exit link, in its exact subdued style - these are both rare
+  // "step out of the moment" utility actions, not part of the
+  // shop's actual decision-making, so they read as one small utility
+  // cluster instead of competing with the cards for top-left
+  // attention.
+  const utilityBar = (
+    <div className="hw-utility-bar">
+      <button className="hw-exit-link hw-utility-btn" onClick={() => setShowIntro(true)}>
+        How to Play
+      </button>
+      <button className="hw-exit-link hw-utility-btn" onClick={handleChangeCharacter}>
+        Change Commander
+      </button>
+      {exitLink}
+    </div>
+  )
+
   function dismissIntro() {
     localStorage.setItem(AUTOBATTLER_INTRO_SEEN_KEY, "true")
     setShowIntro(false)
@@ -322,21 +346,9 @@ export default function HeartwoodBattle() {
     )
   }
 
-  const topButtons = (
-    <div style={{ display: "flex", gap: 8, padding: "21px 21px 0" }}>
-      {exitLink}
-      <button className="hw-move-btn" onClick={handleChangeCharacter}>
-        Change Commander
-      </button>
-      <button className="hw-move-btn" onClick={() => setShowIntro(true)}>
-        How to Play
-      </button>
-    </div>
-  )
-
   const changeCharacterBar = (
     <>
-      {topButtons}
+      {utilityBar}
       <RunMap runState={runState} />
     </>
   )
@@ -356,7 +368,7 @@ export default function HeartwoodBattle() {
   if (showMapAfterShop) {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} data-screen="map-after-shop" key="map-after-shop">
-        {topButtons}
+        {utilityBar}
         <RunMap runState={runState} />
         <div style={{ padding: "0 21px" }}>
           <button
@@ -376,7 +388,7 @@ export default function HeartwoodBattle() {
   if (runState.phase === "shop") {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="shop">
-        {topButtons}
+        {utilityBar}
         <SquadDraft
           runState={runState}
           onRecruit={handleRecruit}
