@@ -71,6 +71,31 @@ import rootfangImg from "../../assets/heartwood/units/rootfang.jpg"
 import wraithguardImg from "../../assets/heartwood/units/wraithguard.jpg"
 import cragmossImg from "../../assets/heartwood/units/cragmoss.jpg"
 import hexmotherImg from "../../assets/heartwood/units/hexmother.jpg"
+// Round 3 (this session) - Marc's kuvia/ folder had grown past 438
+// files since round 2, enough new material to close most of the
+// remaining gap. Same placeholder-first convention: reference art, not
+// final. A few images arrived with a small AI-tool logo baked into one
+// corner (Craiyon's orange crayon icon) or a stock-site credit line -
+// those go through the same "-channel A -fx" alpha-punch round 1/2
+// already established (see the PR body) rather than a visible crop,
+// since cropping a JPEG can't remove a corner without reshaping the
+// whole portrait. 3 units (Trueshot, Sparrowthorn, Beastcaller) got no
+// image this round - nothing in the pool plausibly reads as "ranged
+// archer", "songbird", or "beast-summoner", and Marc's own bar is a
+// reasonable placeholder, not a forced mismatch.
+import wraithbriarImg from "../../assets/heartwood/units/wraithbriar.jpg"
+import grimtuskImg from "../../assets/heartwood/units/grimtusk.jpg"
+import thornguardImg from "../../assets/heartwood/units/thornguard.jpg"
+import hollowveilImg from "../../assets/heartwood/units/hollowveil.jpg"
+import quarrywardenImg from "../../assets/heartwood/units/quarrywarden.jpg"
+import hollowmereImg from "../../assets/heartwood/units/hollowmere.jpg"
+import stoneknitImg from "../../assets/heartwood/units/stoneknit.jpg"
+import stoneknollImg from "../../assets/heartwood/units/stoneknoll.jpg"
+import fernwakeImg from "../../assets/heartwood/units/fernwake.jpg"
+import brackenveilImg from "../../assets/heartwood/units/brackenveil.jpg"
+import hollowspireImg from "../../assets/heartwood/units/hollowspire.jpg"
+import mycelistImg from "../../assets/heartwood/units/mycelist.jpg"
+import mosswalkerImg from "../../assets/heartwood/units/mosswalker.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -481,6 +506,7 @@ const BASE_UNITS = {
     // deterministic (no revive chance, no coin flip) per Marc's "easy
     // to play but hard to master".
     passive: [{ type: "applyBuff", id: "revive", amount: 1 }],
+    image: wraithbriarImg,
   }),
   grimtusk: unit("grimtusk", "Grimtusk", "flame", 3, "dps", [
     { type: "attack", amount: 9 },
@@ -494,10 +520,9 @@ const BASE_UNITS = {
     // field - real build tension between the two rather than one
     // strictly out-classing the other.
     chainDamage: 6,
-    // No dark/gothic-mood match found in Marc's folder this round
-    // (Darkest Dungeon over Hearthstone brightness is the standing
-    // preference for character art) - stays on the flame glyph rather
-    // than force a mismatched-tone placeholder in.
+    // Round 3: a lava-demon image finally read close enough to "tusked
+    // brute" to retire round 2's skip note above.
+    image: grimtuskImg,
   }),
   thornguard: unit("thornguard", "Thornguard", "shield", 2, "tank", [
     { type: "block", amount: 6 },
@@ -516,6 +541,7 @@ const BASE_UNITS = {
     // effective invulnerability rather than the fixed, readable
     // resource every other status stays.
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
+    image: thornguardImg,
   }),
   swiftclaw: unit("swiftclaw", "Swiftclaw", "spark", 2, "dps", [{ type: "attack", amount: 4 }], {
     // Haste - a genuinely different shape of DPS from every other
@@ -678,6 +704,7 @@ const BASE_UNITS = {
     // the third unit-level Ward source (after Thornguard/Glimmerward),
     // "vanishing" from up to 2 hits' worth of danger instead of one.
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
+    image: mosswalkerImg,
   }),
   ironbark: unit("ironbark", "Ironbark", "shield", 2, "tank", [
     { type: "block", amount: 7 },
@@ -743,6 +770,7 @@ const BASE_UNITS = {
     // whoever they directly hit - Mycelist is the roster's first
     // Poison source that spreads on its own.
     sporeSpread: true,
+    image: mycelistImg,
   }),
   // Not shop-recruitable (summonOnly excludes it from rollShop/
   // reforgeUnit's pools) - exists only to be spawned by Beastcaller's
@@ -854,6 +882,7 @@ const BASE_UNITS = {
   // enemy instead of waiting out its Block.
   stoneknoll: unit("stoneknoll", "Stoneknoll", "shield", 2, "dps", [{ type: "attack", amount: 6 }], {
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
+    image: stoneknollImg,
   }),
   quarrywarden: unit("quarrywarden", "Quarrywarden", "shield", 2, "tank", [
     { type: "block", amount: 5 },
@@ -865,6 +894,7 @@ const BASE_UNITS = {
     // adjacent allies at battle start instead of Strength/Ward/Revive/
     // Execute.
     rallyAdjacent: { id: "shatter", amount: 2 },
+    image: quarrywardenImg,
   }),
   // Regen (effects.js's tickRegen) - a genuinely new mechanic this
   // round: a decaying heal-over-time stack, Poison's mirror on the
@@ -876,6 +906,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 3 },
   ], {
     rallyAdjacent: { id: "regen", amount: 2 },
+    image: fernwakeImg,
   }),
   duskbramble: unit("duskbramble", "Duskbramble", "root", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Sunder on hit - a dps-side echo of Oakwarden's identity at a
@@ -890,6 +921,7 @@ const BASE_UNITS = {
     // Self-Ward - a 2nd "Hollow-" unit sharing Hollowreed's defensive
     // motif, at tank role/uncommon cost instead of support/common.
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    image: hollowmereImg,
   }),
   thistlemaw: unit("thistlemaw", "Thistlemaw", "spark", 1, "dps", [
     { type: "attack", amount: 4 },
@@ -903,7 +935,7 @@ const BASE_UNITS = {
     { type: "block", amount: 4 },
     { type: "heal", amount: 3 },
     { type: "attack", amount: 3 },
-  ]),
+  ], { image: brackenveilImg }),
   briarkit: unit("briarkit", "Briarkit", "root", 1, "dps", [{ type: "attack", amount: 5 }], {
     // Chain (autoBattleEngine.js's actSide) - a cheap, common-tier
     // source of the mechanic, previously only on 2-cost+ units
@@ -920,6 +952,7 @@ const BASE_UNITS = {
     // common/uncommon), so a squad leaning support has a real high-roll
     // target in the late shop, not just early picks.
     rallyHeal: 3,
+    image: hollowspireImg,
   }),
   // Sunder (effects.js) - the roster's first PLAYER-side source. Every
   // enemy debuff already has a player-side mirror (Cleanse answers
@@ -952,6 +985,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 5 },
   ], {
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
+    image: hollowveilImg,
   }),
   // Sunder's second unit source, and its first at rare tier - Thornwisp
   // (2-cost/uncommon) already turns the mechanic around onto the
@@ -1033,6 +1067,7 @@ const BASE_UNITS = {
     // of just soaking hits, so it keeps contributing even through a
     // fight that outlasts its own Block pool.
     passive: [{ type: "applyBuff", id: "regen", amount: 3 }],
+    image: stoneknitImg,
   }),
   snareclaw: unit("snareclaw", "Snareclaw", "sword", 2, "hybrid", [
     { type: "attack", amount: 5 },
