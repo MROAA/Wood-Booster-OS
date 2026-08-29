@@ -51,6 +51,26 @@ import theMagicianImg from "../../assets/heartwood/units/the-magician.jpeg"
 import stoneheartImg from "../../assets/heartwood/units/stoneheart.jpg"
 import forgehowlImg from "../../assets/heartwood/units/forgehowl.jpg"
 import strengthImg from "../../assets/heartwood/units/strength.jpg"
+// Round 2 of Marc's curated placeholder art (his own scraped-image
+// folder, see the task log) - covering the previously-unimaged half of
+// the roster. Same placeholder-first convention as the block above:
+// reference art, not final, to be swapped before any public release.
+import spiritWolfImg from "../../assets/heartwood/units/spirit-wolf.jpg"
+import foxfireImg from "../../assets/heartwood/units/foxfire.jpg"
+import duskbrambleImg from "../../assets/heartwood/units/duskbramble.jpg"
+import witherkitImg from "../../assets/heartwood/units/witherkit.jpg"
+import briarkitImg from "../../assets/heartwood/units/briarkit.jpg"
+import palefenImg from "../../assets/heartwood/units/palefen.jpg"
+import mosshollowImg from "../../assets/heartwood/units/mosshollow.jpg"
+import ashenhornImg from "../../assets/heartwood/units/ashenhorn.jpg"
+import ironbarkImg from "../../assets/heartwood/units/ironbark.jpg"
+import nightveilImg from "../../assets/heartwood/units/nightveil.jpg"
+import frostbindImg from "../../assets/heartwood/units/frostbind.jpg"
+import wraithcallerImg from "../../assets/heartwood/units/wraithcaller.jpg"
+import rootfangImg from "../../assets/heartwood/units/rootfang.jpg"
+import wraithguardImg from "../../assets/heartwood/units/wraithguard.jpg"
+import cragmossImg from "../../assets/heartwood/units/cragmoss.jpg"
+import hexmotherImg from "../../assets/heartwood/units/hexmother.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -412,6 +432,7 @@ const BASE_UNITS = {
     // reaches - a real placement decision, not just "recruit it and
     // forget it", matching Marc's "easy to play but hard to master".
     rallyAdjacent: { id: "strength", amount: 2 },
+    image: ashenhornImg,
   }),
   rootfang: unit("rootfang", "Rootfang", "root", 3, "dps", [
     { type: "attack", amount: 7 },
@@ -423,6 +444,7 @@ const BASE_UNITS = {
     // debuff-movePattern shape Stormwing already uses for Weak, just a
     // different status id, so no new engine code needed to give the
     // player its own source of the mechanic.
+    image: rootfangImg,
   }),
   wraithbriar: unit("wraithbriar", "Wraithbriar", "root", 3, "tank", [
     { type: "block", amount: 8 },
@@ -450,6 +472,10 @@ const BASE_UNITS = {
     // field - real build tension between the two rather than one
     // strictly out-classing the other.
     chainDamage: 6,
+    // No dark/gothic-mood match found in Marc's folder this round
+    // (Darkest Dungeon over Hearthstone brightness is the standing
+    // preference for character art) - stays on the flame glyph rather
+    // than force a mismatched-tone placeholder in.
   }),
   thornguard: unit("thornguard", "Thornguard", "shield", 2, "tank", [
     { type: "block", amount: 6 },
@@ -513,6 +539,7 @@ const BASE_UNITS = {
     // even Rootbind Thicket's 4) for the same reason Rootbind Thicket
     // itself stays low - losing an entire action is a strong effect
     // on its own, this isn't meant to also hit hard.
+    image: frostbindImg,
   }),
   glimmerward: unit("glimmerward", "Glimmerward", "shield", 2, "support", [
     { type: "block", amount: 5 },
@@ -537,6 +564,7 @@ const BASE_UNITS = {
     // Vampiric Bloom already proved, just as a self-targeting passive
     // instead of a relic effect.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } }],
+    image: wraithcallerImg,
   }),
   hexmother: unit("hexmother", "Hexmother", "root", 3, "support", [
     { type: "attack", amount: 5 },
@@ -556,6 +584,7 @@ const BASE_UNITS = {
     // enemy ends up rotting AND hitting softer at once. No new engine
     // code - both debuffs already exist and the debuff-movePattern
     // shape already supports back-to-back entries.
+    image: hexmotherImg,
   }),
   wispkeeper: unit("wispkeeper", "Wispkeeper", "heart", 3, "support", [
     { type: "block", amount: 6 },
@@ -644,6 +673,7 @@ const BASE_UNITS = {
     // uncommon tier + battle-start Taunt) is exactly Marc's
     // Defense/Tank class. Naming what was already built, not a stretch.
     className: "Ironbark",
+    image: ironbarkImg,
   }),
   briarblade: unit("briarblade", "Briarblade", "root", 3, "dps", [{ type: "attack", amount: 10 }], {
     // The first Assassin ("iskee heikkoihin kohteisiin" - strikes weak
@@ -703,6 +733,7 @@ const BASE_UNITS = {
   ], {
     maxHpOverride: 16,
     summonOnly: true,
+    image: spiritWolfImg,
   }),
   // Beastcaller ("kutsuu avukseen metsän henkiolentoja" - calls forest
   // spirit-creatures to its aid) - the last of the 12 base classes,
@@ -735,6 +766,7 @@ const BASE_UNITS = {
     // Grimtusk's rare-tier 6 to a common-tier 3 - same finishing-blow
     // payoff, proportionally smaller at a cheaper recruit cost.
     chainDamage: 3,
+    image: foxfireImg,
   }),
   loamguard: unit("loamguard", "Loamguard", "root", 2, "tank", [
     { type: "block", amount: 5 },
@@ -759,6 +791,7 @@ const BASE_UNITS = {
     // Sapkeeper already established - a second, tankier unit built
     // around mending adjacent allies every round instead of just once.
     rallyHeal: 2,
+    image: cragmossImg,
   }),
   // Cleanse (effects.js) - Sunder's mirror, the roster's first tool
   // against its OWN negative statuses (Poison/Weak/Vulnerable/Stun)
@@ -826,6 +859,7 @@ const BASE_UNITS = {
     // Sunder on hit - a dps-side echo of Oakwarden's identity at a
     // different cost/role context, strips a target's own buff.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
+    image: duskbrambleImg,
   }),
   hollowmere: unit("hollowmere", "Hollowmere", "shield", 2, "tank", [
     { type: "block", amount: 6 },
@@ -853,6 +887,7 @@ const BASE_UNITS = {
     // source of the mechanic, previously only on 2-cost+ units
     // (Rimefang/Grimtusk/Foxfire).
     chainDamage: 3,
+    image: briarkitImg,
   }),
   hollowspire: unit("hollowspire", "Hollowspire", "leaf", 3, "support", [
     { type: "heal", amount: 5 },
@@ -881,6 +916,7 @@ const BASE_UNITS = {
     // Self-Regen - "moss that regrows," the tank-role echo of
     // Mosskit's sustain identity at a different role/context.
     passive: [{ type: "applyBuff", id: "regen", amount: 2 }],
+    image: mosshollowImg,
   }),
   // Marc: "enemies and bosses need to be more challenging" - the enemy
   // side got noticeably tougher (Deepwarden/Thornmaw/Spacemonkey bumps,
@@ -911,7 +947,9 @@ const BASE_UNITS = {
   witherkit: unit("witherkit", "Witherkit", "root", 1, "dps", [
     { type: "attack", amount: 4 },
     { type: "debuff", id: "poison", amount: 2, target: "target" },
-  ]),
+  ], {
+    image: witherkitImg,
+  }),
   stormveil: unit("stormveil", "Stormveil", "moonGlyph", 2, "dps", [{ type: "attack", amount: 6 }], {
     // Chain (autoBattleEngine.js's actSide), same mechanism Rimefang/
     // Grimtusk/Foxfire already established - a plain uncommon-tier
@@ -928,6 +966,7 @@ const BASE_UNITS = {
   // is a cheaper Wraithcaller (Lifesteal, uncommon instead of rare).
   palefen: unit("palefen", "Palefen", "moonGlyph", 1, "dps", [{ type: "attack", amount: 4 }], {
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    image: palefenImg,
   }),
   mistveil: unit("mistveil", "Mistveil", "moonGlyph", 2, "support", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 1 } }],
@@ -947,6 +986,7 @@ const BASE_UNITS = {
     // not a repeating trigger) - a spectral guardian standing between
     // the rest of the squad and whatever's attacking it.
     passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+    image: wraithguardImg,
   }),
   nightveil: unit("nightveil", "Nightveil", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
     // Shatter's first Spirit-tribe source (Stoneknoll/Quarrywarden
@@ -954,6 +994,7 @@ const BASE_UNITS = {
     // Block instead of waiting it out, the same identity Stoneknoll
     // established at the same cost tier.
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
+    image: nightveilImg,
   }),
   // Hybrid is the roster's thinnest role by far (5 units against
   // 15-43 for every other role) and only ever touched 4 of the 6
