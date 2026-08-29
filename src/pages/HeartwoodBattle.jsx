@@ -33,6 +33,7 @@ import {
   RUN_PATH,
 } from "../services/heartwood/runEngine"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
+import CommanderSelect from "../components/heartwood/CommanderSelect"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
@@ -40,7 +41,6 @@ import RelicChoice from "../components/heartwood/RelicChoice"
 import FloorChoice from "../components/heartwood/FloorChoice"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import RunMap from "../components/heartwood/RunMap"
-import { CardGlyph } from "../components/heartwood/cardArt"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import "../components/heartwood/heartwood.css"
@@ -255,39 +255,13 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root" style={rootStyle}>
         {exitLink}
-        <div className="hw-intro hw-intro--centered">
-          <div className="hw-crew-banner">
-            <img src={crewBanner} alt="Tommy, Aatos, Spacemonkey, and Fenrir" />
-          </div>
-          <h1 style={{ fontSize: 22, marginBottom: 6 }}>Hearthwood</h1>
-          <p className="hw-flavor">
-            Deep inside the Boosterverse, Spacemonkey waits at the heart of the Hearthwood. Choose who
-            leads the squad in after him.
-          </p>
-          {/* Death Memory (Marc's PRD): the previous run's fallen hero
-              is remembered once, into this next run only - see
-              runEngine.js's buildDeathMemory/startRun and the
-              RunEndOverlay below where the memory is first shown. */}
-          {pendingMemory && (
-            <span className="hw-badge" title="A small Essence boon, carried forward once in their memory">
-              In memory of {pendingMemory.heroName}
-              {pendingMemory.heroClass && pendingMemory.heroClass !== pendingMemory.heroName
-                ? `, the ${pendingMemory.heroClass}`
-                : ""}{" "}
-              - your squad begins with +1 Essence.
-            </span>
-          )}
-        </div>
-        <div className="hw-select-grid">
-          {Object.values(CHARACTERS).map((character) => (
-            <button key={character.id} className="hw-enemy-choice" onClick={() => beginRun(character.id)}>
-              <CardGlyph name={character.art} className="hw-card-glyph" style={{ color: "var(--hw-ember)" }} />
-              <strong>{character.name}</strong>
-              <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 6 }}>{character.tagline}</p>
-              <p style={{ fontSize: 11, color: "var(--hw-muted)", marginTop: 6 }}>{character.description}</p>
-            </button>
-          ))}
-        </div>
+        <CommanderSelect
+          characters={Object.values(CHARACTERS)}
+          pendingMemory={pendingMemory}
+          bannerSrc={crewBanner}
+          bannerAlt="Tommy, Aatos, Spacemonkey, and Fenrir"
+          onConfirm={beginRun}
+        />
       </div>
     )
   }

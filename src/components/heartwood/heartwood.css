@@ -16,6 +16,28 @@
   --hw-curse: var(--hw-muted);
   --hw-hp: #b3503f;
 
+  /* Golden ratio + Fibonacci scale (Marc: "suuri osa visuaalisuutta on
+     geometria ja kultainen leikkaus" - deliberate geometry, not
+     eyeballed pixels). --hw-phi is the ratio itself; --hw-fib-* is the
+     Fibonacci sequence used for spacing/size staggering. The two are
+     not separate systems - consecutive Fibonacci terms already
+     converge on phi (55/34 = 1.618, 89/55 = 1.618), so building
+     spacing from this scale IS applying the golden ratio. Currently
+     consumed by RunEndOverlay.jsx's .hw-runend-* rules below; anyone
+     is free to reuse it elsewhere instead of introducing new numbers. */
+  --hw-phi: 1.618;
+  --hw-fib-1: 5px;
+  --hw-fib-2: 8px;
+  --hw-fib-3: 13px;
+  --hw-fib-4: 21px;
+  --hw-fib-5: 34px;
+  --hw-fib-6: 55px;
+  --hw-fib-7: 89px;
+  --hw-fib-8: 144px;
+  --hw-fib-9: 233px;
+  --hw-fib-10: 377px;
+  --hw-fib-11: 610px;
+
   background-color: var(--hw-bg);
   background-image:
     linear-gradient(color-mix(in srgb, var(--hw-bg) 55%, transparent), color-mix(in srgb, var(--hw-bg) 78%, transparent)),
@@ -277,6 +299,11 @@
   background: linear-gradient(160deg, color-mix(in srgb, var(--hw-rune) 22%, transparent), transparent 60%);
   border: 1px solid color-mix(in srgb, var(--hw-rune) 55%, transparent);
   pointer-events: none;
+  /* Used to pop in instantly with the wash at full strength on the very
+     first frame - reuses the same fade-in keyframe every other
+     conditional overlay in this file already uses (Marc: "kaikki pitää
+     animoida"), instead of a bespoke one just for this. */
+  animation: hw-section-fade-in 300ms ease-out both;
 }
 
 .hw-frost-badge {
@@ -463,12 +490,38 @@
   flex-direction: column;
   gap: 6px;
   cursor: pointer;
-  transition: box-shadow 150ms ease, border-color 150ms ease;
+  transition: box-shadow 130ms ease, border-color 130ms ease, transform 130ms ease, filter 130ms ease, opacity 200ms ease;
   user-select: none;
   /* Deliberately NOT overflow:hidden - the existing rare-tier glow and
      golden-fusion shimmer above both rely on their box-shadow spreading
      outside the card's own box, which overflow:hidden would clip. */
   position: relative;
+}
+
+/* Physical-card hover (Marc's PRD sect. 9/18-20/31: cards should feel
+   like objects, not flat web UI - "sen pitää viettää minut
+   visuaalisuudellaan"). The lift/scale/tilt itself is driven from
+   UnitCard.jsx via framer-motion's whileHover + mouse-tracked
+   rotateX/rotateY motion values, NOT a CSS `transform` rule here - this
+   card already carries a framer-motion `animate` (the mount pop-in
+   above), which means framer-motion is already writing this element's
+   inline `transform` on every render; a plain `:hover { transform: … }`
+   CSS rule would just always lose to that inline style and silently do
+   nothing (verified before writing this, not assumed - the exact kind
+   of invisible bug Marc's "ei saa tehdä virheitä" line warns about).
+   `box-shadow` and `border-color`/`filter`, on the other hand, are
+   untouched by framer-motion, so the "deepening" half of hover lives
+   safely here in plain CSS. `filter: drop-shadow` rather than editing
+   `box-shadow` directly - every rarity tier below already defines its
+   own `box-shadow` stack (common/uncommon/rare/fused all differ), and
+   a drop-shadow composites as an independent extra layer on top of
+   whichever one is active instead of needing a hover variant per tier.
+   Distances (8px/13px) reuse this repo's own Fibonacci spacing tokens
+   (src/styles/designTokens.css --space-1/--space-2, ~1.618 golden-ratio
+   progression) rather than arbitrary px, per Marc's geometry note. */
+.hw-card:hover:not([data-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  filter: drop-shadow(0 var(--space-1, 8px) var(--space-2, 13px) rgba(0, 0, 0, 0.4));
 }
 
 /* Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
@@ -485,8 +538,59 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 0 1px color-mix(in srgb, var(--hw-moss) 55%, transparent);
 }
 
+/* Rarity needs to read as more than "which color is the glow" (Marc's
+   PRD sect. 18-20: rarity visible "muunakin kuin värinä" - as
+   something other than just color). Rare gets a genuine two-part
+   treatment layered onto the existing soft ember glow: a crisp, 0-blur
+   ring (a real border-like edge, not a haze) PLUS the sparkle below -
+   so a rare card is still visually distinct from an uncommon one even
+   to someone who can't tell ember from moss. Uncommon deliberately
+   keeps its plain soft-glow-only look from above; the harder edge is
+   reserved for rare+ so it still reads as a step up, same "common gets
+   nothing at all" restraint that already made uncommon/rare feel
+   earned rather than universal. */
 .hw-card[data-tier="rare"] {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 10px 1px color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 0 10px 1px color-mix(in srgb, var(--hw-ember) 55%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--hw-ember) 65%, transparent);
+}
+
+/* Sparkle accent, rare+ only ("used sparingly", the same restraint the
+   PRD's own damage-number Critical styling already established for
+   this game - not every card should shimmer, or none of them would
+   read as special). Three points positioned by the golden angle
+   (~137.5°, the same angle phyllotaxis uses to space leaves/seeds
+   around a stem - a deliberate nod to this game's forest setting) at a
+   radius of 38.2% of the card (the golden-ratio conjugate, 1 - 1/φ)
+   from center, rather than eyeballed coordinates:
+     θ0 = -90°                  -> (50%, 12%)
+     θ1 = θ0 + 137.5°  = 47.5°  -> (76%, 78%)
+     θ2 = θ1 + 137.5°  = 185°   -> (12%, 47%)
+   A separate ::after from the golden-fusion shimmer's own box-shadow
+   animation above (data-fused) - both can be active at once on a fused
+   rare-tier unit without fighting over the same layer. */
+.hw-card[data-tier="rare"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 2px at 50% 12%, color-mix(in srgb, var(--hw-ember) 90%, white 15%), transparent 65%),
+    radial-gradient(circle 1.5px at 76% 78%, color-mix(in srgb, var(--hw-ember) 85%, white 15%), transparent 65%),
+    radial-gradient(circle 1.5px at 12% 47%, color-mix(in srgb, var(--hw-ember) 85%, white 15%), transparent 65%);
+  opacity: 0;
+  animation: hw-rare-sparkle 3.4s ease-in-out infinite;
+}
+
+@keyframes hw-rare-sparkle {
+  0%, 100% { opacity: 0; }
+  15% { opacity: 0.9; }
+  22% { opacity: 0.15; }
+  48% { opacity: 0.8; }
+  55% { opacity: 0.1; }
+  78% { opacity: 0.85; }
+  85% { opacity: 0.15; }
 }
 
 /* Golden/upgraded look (UnitCard.jsx's data-fused, a Tier 2 Fusion
@@ -567,6 +671,12 @@
 }
 
 .hw-card[data-disabled="true"] {
+  /* Was an instant opacity jump - now eases via the `opacity` entry
+     added to .hw-card's own transition list above, so affordability
+     flipping (Essence spent/gained mid-shop) reads as a state change
+     instead of a flicker. Marc: "kaikki pitää animoida" (everything
+     must be animated) - no card state in this component should be a
+     hard cut. */
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -878,6 +988,234 @@
   letter-spacing: 0.04em;
 }
 
+/* Run-end (victory/defeat) visual pass - RunEndOverlay.jsx only.
+   Deliberately its own class family (.hw-runend-*) rather than
+   reworking .hw-overlay-glyph/.hw-overlay-title/.hw-overlay above:
+   those are shared with ResultOverlay.jsx (the per-fight popup, a
+   much more frequent and compact moment) and growing them to fit a
+   ceremonial run-end panel would have blown that up too. The full-
+   screen backdrop (.hw-overlay) is still reused as-is for the
+   fade/centering; everything visually distinct lives under
+   .hw-runend-overlay/.hw-runend-panel instead. */
+
+.hw-runend-panel {
+  /* A real golden rectangle at rest (610 x 377 = --hw-fib-11 x
+     --hw-fib-10, and 610/377 = 1.618) - shrinks on small screens via
+     min(), but the ratio it's built from stays the deliberate one. */
+  width: min(92vw, var(--hw-fib-11));
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--hw-fib-3);
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-panel) 88%, transparent);
+  box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+/* Emblem (top) : content (bottom) zones split 1 : phi by flex-grow -
+   the golden ratio applied directly to the layout's own proportions,
+   and responsive since it's a ratio of flex-grow, not fixed heights. */
+.hw-runend-emblem {
+  flex: 1;
+  padding: var(--hw-fib-5) var(--hw-fib-6) var(--hw-fib-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--hw-fib-3);
+}
+
+.hw-runend-content {
+  flex: var(--hw-phi);
+  padding: var(--hw-fib-4) var(--hw-fib-6) var(--hw-fib-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--hw-fib-4);
+}
+
+.hw-runend-divider {
+  height: 1px;
+  margin: 0 var(--hw-fib-6);
+  background: linear-gradient(90deg, transparent, var(--hw-runend-divider-color, var(--hw-border)), transparent);
+}
+
+.hw-runend-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--hw-fib-2);
+}
+
+/* Glyph : title size ratio is 89 : 34 = phi^2 (2.618) - two Fibonacci
+   terms two apart, the same convergent relationship as --hw-phi
+   itself, so the emblem's own proportions echo the panel's. */
+.hw-runend-glyph {
+  width: var(--hw-fib-7);
+  height: var(--hw-fib-7);
+  filter: drop-shadow(0 0 var(--hw-fib-4) currentColor);
+}
+
+.hw-runend-title {
+  font-size: var(--hw-fib-5);
+  font-weight: 700;
+  font-family: "Cormorant Garamond", serif;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+
+.hw-runend-badge {
+  font-size: 13px;
+  padding: var(--hw-fib-1) var(--hw-fib-3);
+}
+
+/* Ceremonial New Run button - bigger than the shared .hw-end-turn base
+   it still reuses (scoped under .hw-runend-panel so the actual in-
+   combat End Turn button elsewhere is untouched). */
+.hw-runend-panel .hw-runend-cta {
+  margin-top: var(--hw-fib-2);
+  padding: var(--hw-fib-3) var(--hw-fib-6);
+  font-size: 14px;
+}
+
+/* Victory: warmer/brighter within the existing moss accent - no new
+   colors, just more saturation/glow than the resting UI uses. */
+.hw-runend-overlay[data-outcome="won"] {
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--hw-moss) 24%, transparent), transparent 62%),
+    color-mix(in srgb, var(--hw-bg) 86%, transparent);
+}
+
+.hw-runend-overlay[data-outcome="won"] .hw-runend-panel {
+  border-color: color-mix(in srgb, var(--hw-moss) 45%, var(--hw-border));
+  box-shadow:
+    0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.45),
+    0 0 var(--hw-fib-5) -8px color-mix(in srgb, var(--hw-moss) 55%, transparent);
+  animation: hw-runend-glow-won 3.4s ease-in-out infinite;
+}
+
+.hw-runend-overlay[data-outcome="won"] .hw-runend-emblem {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hw-moss) 14%, transparent), transparent);
+}
+
+.hw-runend-overlay[data-outcome="won"] .hw-runend-divider {
+  --hw-runend-divider-color: color-mix(in srgb, var(--hw-moss) 60%, transparent);
+}
+
+@keyframes hw-runend-glow-won {
+  0%, 100% {
+    box-shadow:
+      0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.45),
+      0 0 var(--hw-fib-5) -8px color-mix(in srgb, var(--hw-moss) 45%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.45),
+      0 0 var(--hw-fib-6) -6px color-mix(in srgb, var(--hw-moss) 70%, transparent);
+  }
+}
+
+/* Story-weight pass (Marc: "sen pitaa olla visuaalisesti silla
+   tasolla etta se voi kertoa tarinan" - this should read as earning
+   the Death Memory text's weight, not a neutral stat screen; victory
+   should feel like a celebration, defeat like a loss - reflecting
+   what just happened narratively, not just numerically). One
+   triumphant flare on the glyph itself as it arrives, on top of the
+   panel's own ambient shimmer above. */
+.hw-runend-overlay[data-outcome="won"] .hw-runend-glyph {
+  animation: hw-runend-flare-won 900ms ease-out;
+  animation-delay: 210ms;
+  animation-fill-mode: backwards;
+}
+
+@keyframes hw-runend-flare-won {
+  0% { filter: drop-shadow(0 0 var(--hw-fib-4) currentColor) brightness(1); }
+  40% { filter: drop-shadow(0 0 var(--hw-fib-8) currentColor) brightness(1.7); }
+  100% { filter: drop-shadow(0 0 var(--hw-fib-4) currentColor) brightness(1); }
+}
+
+/* Defeat: cooler/dimmer within the existing HP red - lower saturation
+   and a slower, heavier pulse instead of the victory shimmer. */
+.hw-runend-overlay[data-outcome="lost"] {
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--hw-hp) 16%, transparent), transparent 65%),
+    color-mix(in srgb, var(--hw-bg) 94%, transparent);
+  filter: saturate(0.82);
+}
+
+.hw-runend-overlay[data-outcome="lost"] .hw-runend-panel {
+  border-color: color-mix(in srgb, var(--hw-hp) 28%, var(--hw-border));
+  box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.55);
+  /* Not a symmetric pulse (that reads as ongoing/alive, wrong for an
+     ending) - one settle from a brighter "still smoldering from the
+     fight" glow down to a resting dim, then a faint, slow ember-
+     flicker (still animated per "kaikki pitaa animoida," but weak and
+     heavy rather than energetic like victory's shimmer). */
+  animation:
+    hw-runend-settle-lost 2.1s ease-out forwards,
+    hw-runend-ember-flicker-lost 4.5s ease-in-out 2.1s infinite;
+}
+
+.hw-runend-overlay[data-outcome="lost"] .hw-runend-emblem {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hw-hp) 10%, transparent), transparent);
+}
+
+.hw-runend-overlay[data-outcome="lost"] .hw-runend-divider {
+  --hw-runend-divider-color: color-mix(in srgb, var(--hw-hp) 40%, transparent);
+}
+
+@keyframes hw-runend-settle-lost {
+  0% {
+    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.5), 0 0 var(--hw-fib-6) -4px color-mix(in srgb, var(--hw-hp) 55%, transparent);
+    border-color: color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
+  }
+  100% {
+    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.6), 0 0 0 0 transparent;
+    border-color: color-mix(in srgb, var(--hw-hp) 22%, var(--hw-border));
+  }
+}
+
+@keyframes hw-runend-ember-flicker-lost {
+  0%, 100% {
+    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.6);
+    border-color: color-mix(in srgb, var(--hw-hp) 22%, var(--hw-border));
+  }
+  50% {
+    box-shadow: 0 var(--hw-fib-4) var(--hw-fib-6) rgba(0, 0, 0, 0.63);
+    border-color: color-mix(in srgb, var(--hw-hp) 16%, var(--hw-border));
+  }
+}
+
+/* The flavor text says the hero "falls silent" - the glyph echoes
+   that literally: it arrives already dimming, from a brighter
+   afterglow of the fight just lost down to a faint, settled ember,
+   instead of holding one static glow throughout. */
+.hw-runend-overlay[data-outcome="lost"] .hw-runend-glyph {
+  animation: hw-runend-fall-silent 2.8s ease-out;
+  animation-delay: 210ms;
+  animation-fill-mode: backwards;
+}
+
+@keyframes hw-runend-fall-silent {
+  0% { filter: drop-shadow(0 0 var(--hw-fib-6) currentColor) brightness(1.3); }
+  100% { filter: drop-shadow(0 0 var(--hw-fib-2) currentColor) brightness(0.7); }
+}
+
+@media (max-width: 480px) {
+  .hw-runend-emblem {
+    padding: var(--hw-fib-4) var(--hw-fib-5) var(--hw-fib-3);
+  }
+  .hw-runend-content {
+    padding: var(--hw-fib-3) var(--hw-fib-4) var(--hw-fib-5);
+  }
+  .hw-runend-glyph {
+    width: var(--hw-fib-6);
+    height: var(--hw-fib-6);
+  }
+  .hw-runend-title {
+    font-size: var(--hw-fib-4);
+  }
+}
+
 /* Marc: "on epäselvää mitä minulla on jo ja mitä voin ostaa ne pitää
    erittää UI:hin" (it's unclear what I already have vs what I can buy
    - they need to be separated in the UI). Previously every section
@@ -1067,15 +1405,32 @@
   color: var(--hw-muted);
 }
 
+/* Sizing/spacing rhythm below is deliberately built on the Fibonacci
+   sequence (8, 13, 21, 34, 55...) rather than arbitrary pixel values -
+   Marc: "suuri osa visuaalisuutta on geometria ja kultainen leikkaus."
+   Consecutive Fibonacci numbers ARE the golden ratio in integer form
+   (55/34 = 1.618, 34/21 = 1.619, 21/13 = 1.615 - all ~= phi), so using
+   them directly for the three node tiers below (minor/normal/major)
+   gets a real golden-ratio progression for free instead of hand-tuning
+   a ratio by eye. */
 .hw-run-track {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
   overflow-x: auto;
   scrollbar-width: thin;
-  padding-top: 10px;
-  padding-bottom: 4px;
+  /* Asymmetric on purpose, both Fibonacci: the current node scales up
+     (see [data-current="true"] below) and the "you are here" marker
+     sits above it, so the top side needs real headroom. `overflow-x:
+     auto` makes overflow-y compute to `auto` too (a CSS default this
+     project already got bitten by once - see hw-run-node-marker's own
+     comment), and an absolutely-positioned marker doesn't extend this
+     element's own auto-height, so too little padding-top clips it
+     silently instead of erroring. 34px covers the tallest case (a
+     scaled, major-tier current node) with margin to spare. */
+  padding-top: 34px;
+  padding-bottom: 21px;
   position: relative;
 }
 
@@ -1089,7 +1444,7 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: var(--hw-border);
+  background: linear-gradient(90deg, transparent, var(--hw-border) 8%, var(--hw-border) 92%, transparent);
   z-index: 0;
 }
 
@@ -1099,12 +1454,120 @@
   flex-shrink: 0;
   position: relative;
   z-index: 1;
-  background: var(--hw-panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  /* Marc: "kaikki pitää animoida" - each node plays this once, the
+     moment it actually mounts. Path array grows by exactly one entry
+     per step (advanceToNextNode), so in practice this fires once per
+     node the FIRST time it appears on the strip (the run "revealing
+     itself" as the player walks it), not a replay on every re-render -
+     React keeps the same DOM node for everything already in `path`. */
+  animation: hw-run-node-appear 420ms ease-out;
+}
+
+@keyframes hw-run-node-appear {
+  0% { opacity: 0; transform: translateY(5px) scale(0.6); }
+  65% { opacity: 1; transform: translateY(-1px) scale(1.08); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Forest-path silhouettes, not circles (Marc's PRD §23: the map should
+   read as trunks/paths/campfires/shrines, not a node-graph diagram).
+   One shared shape layer sized/positioned to fill its node box; each
+   node type gets its own clip-path below. Colored via --hw-node-accent
+   (RunMap.jsx's existing nodeColor(), now actually reaching the glyph
+   too - see cardArt.jsx's CardGlyph fix) so the shape and its icon
+   always agree on color without hardcoding either here. */
+.hw-run-node-shape {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 22%, var(--hw-panel));
+  border: 1px solid color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 55%, transparent);
+  /* Default: a hexagonal waymarker (relic's rune-stone shape doubles
+     as the fallback for any future node type this file doesn't know
+     about yet). */
+  clip-path: polygon(50% 4%, 90% 28%, 90% 72%, 50% 96%, 10% 72%, 10% 28%);
+}
+
+/* Battle/miniboss - a small campfire silhouette (Marc: "a small flame
+   for a fight"). Slightly flickers, campfire-style. */
+.hw-run-node[data-type="battle"] .hw-run-node-shape,
+.hw-run-node[data-type="miniboss"] .hw-run-node-shape {
+  /* A single-bulge teardrop, not the double-waisted outline this
+     started as: that version was a self-intersecting polygon (two
+     in/out reversals per side cross their own edges under the
+     default nonzero fill-rule), which clipped the shape down to
+     almost nothing - invisible in a screenshot, not just "a bit off".
+     Caught by actually looking at a rendered screenshot, not just
+     reading the coordinates. */
+  clip-path: polygon(50% 0%, 72% 26%, 84% 52%, 70% 80%, 50% 100%, 30% 80%, 16% 52%, 28% 26%);
+  animation: hw-run-ember-flicker 2.6s ease-in-out infinite;
+}
+
+@keyframes hw-run-ember-flicker {
+  0%, 100% { filter: brightness(1); }
+  45% { filter: brightness(1.14); }
+  72% { filter: brightness(0.94); }
+}
+
+/* Shop - a chest outline (Marc: "a chest outline for treasure"): a
+   rounded case with a lid seam instead of a clip-path polygon, since a
+   small rectangle reads more like a chest with real corners than a
+   sharp-cut one would. */
+.hw-run-node[data-type="shop"] .hw-run-node-shape {
+  clip-path: none;
+  border-radius: 3px 3px 1px 1px;
+  background:
+    linear-gradient(color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 55%, transparent) 0 1px, transparent 1px) 0 38% / 100% 100% no-repeat,
+    color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 22%, var(--hw-panel));
+}
+
+/* Relic - a standing rune stone (elongated hexagon, taller than the
+   default waymarker hexagon above). */
+.hw-run-node[data-type="relic"] .hw-run-node-shape {
+  clip-path: polygon(50% 0%, 100% 18%, 100% 82%, 50% 100%, 0% 82%, 0% 18%);
+}
+
+/* Boss - a shrine gate (Marc's PRD §23 vocabulary: shrines for the
+   run's special beats). A slow ambient glow instead of the campfire
+   flicker above - the Spacemonkey fight is the climax, not routine. */
+.hw-run-node[data-type="boss"] .hw-run-node-shape {
+  clip-path: polygon(18% 100%, 18% 38%, 50% 2%, 82% 38%, 82% 100%);
+  animation: hw-run-boss-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes hw-run-boss-glow {
+  0%, 100% { box-shadow: 0 0 4px 1px color-mix(in srgb, var(--hw-node-accent) 45%, transparent); }
+  50% { box-shadow: 0 0 13px 3px color-mix(in srgb, var(--hw-node-accent) 70%, transparent); }
 }
 
 .hw-run-node .hw-piece-glyph {
-  width: 18px;
-  height: 18px;
+  position: relative;
+  z-index: 1;
+  width: 21px;
+  height: 21px;
+  color: var(--hw-node-accent);
+  /* .hw-piece-glyph's shared rule (above in this file) gives every
+     other glyph in the game a round "medallion" backdrop - here that
+     fights the whole point of this pass: at 21-34px, the medallion's
+     own circle (glyph + its 5px padding) is close enough to
+     .hw-run-node-shape's box that it visually swallows the polygon
+     silhouette underneath it, so every node type reads as the same
+     circle again regardless of clip-path. Verified by screenshot, not
+     assumed - the boss node (much bigger, major tier) broke free of
+     its medallion and read as a real gate shape while normal-tier
+     nodes still looked like plain circles. Stripped here so
+     .hw-run-node-shape is the only frame a path node gets - it
+     already does that job (Marc: "selkeys ennen koristeellisuutta" -
+     clarity before decoration; two competing frames read as neither). */
+  padding: 0;
+  background-image: none;
+  box-shadow: none;
+  filter: none;
 }
 
 .hw-run-node[data-current="true"] {
@@ -1119,44 +1582,81 @@
    sitting above the current node, plus the step-count text in the
    header, are both meant to make "where am I" answerable without
    having to visually scan the whole strip for the one node that
-   glows slightly more than its neighbors. */
+   glows slightly more than its neighbors. Gently pulses (Marc: "kaikki
+   pitää animoida") so it also catches the eye on a mostly-static
+   screen, not just on the frame it first appears.
+   NOTE for future edits: this sits inside .hw-run-node, which scales
+   up 1.35x when data-current - both this marker's own -9px offset AND
+   its border sizes scale along with it. .hw-run-track's padding-top
+   above has to stay tall enough to fit that scaled-up reach for the
+   largest (major-tier) node, or it gets silently clipped by
+   overflow-y (see that rule's comment) - this exact thing broke once
+   before and should be checked with a real screenshot after any
+   change to node sizing, marker offset, or the current-node scale. */
 .hw-run-node-marker {
   position: absolute;
   top: -9px;
   left: 50%;
-  transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 6px solid currentColor;
+  animation: hw-run-marker-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hw-run-marker-pulse {
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) translateY(0); }
+  50% { opacity: 1; transform: translateX(-50%) translateY(2px); }
 }
 
 .hw-run-node[data-done="true"] {
   opacity: 0.65;
 }
 
+/* Miniboss/boss - the run's story beats, sized up on the same
+   Fibonacci rhythm as the minor tier below (55/34 = 1.618 = phi). */
+.hw-run-node[data-major="true"] {
+  width: 55px;
+  height: 55px;
+  margin-inline: 5px;
+}
+
 .hw-run-node[data-major="true"] .hw-piece-glyph {
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
 }
 
 /* Quiet vs loud, applied to the path itself: shop/relic stops repeat
    every other node and would otherwise dominate the strip - shrunk
    and muted so battles (the actual points of interest) read as the
-   real story beats. */
+   real story beats. Sized on the same Fibonacci rhythm (21/13 = 1.615
+   = phi) as the rest of the strip. */
 .hw-run-node[data-minor="true"] {
   opacity: 0.2;
+  width: 21px;
+  height: 21px;
+  margin-inline: -3px;
 }
 
 .hw-run-node[data-minor="true"] .hw-piece-glyph {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
 }
 
 .hw-run-node[data-minor="true"][data-current="true"],
 .hw-run-node[data-minor="true"][data-done="true"] {
   opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-run-node,
+  .hw-run-node-marker,
+  .hw-run-node[data-type="battle"] .hw-run-node-shape,
+  .hw-run-node[data-type="miniboss"] .hw-run-node-shape,
+  .hw-run-node[data-type="boss"] .hw-run-node-shape {
+    animation: none;
+  }
 }
 
 .hw-flavor {
@@ -1497,6 +1997,47 @@
   100% { box-shadow: 0 0 0 0 transparent; transform: scale(1) rotate(0deg); }
 }
 
+/* Purchase confirmation (SquadDraft.jsx's handleRecruit) - Marc's PRD
+   sect. 9/18-20/31: "selkeä visuaalinen kuittaus osto/equip-
+   toiminnoille" (clear visual confirmation for purchase/equip). A
+   third, distinct wrapper class alongside -reforged (rune, gear
+   change) and -fused (ember, the rare celebratory merge) - moss here
+   specifically, this game's established "a good thing happened" color
+   (same badge the Essence-gain flash and the synergy-met/tribe-match
+   ring already use), so a purchase's confirmation is legible as
+   positive at a glance even before reading anything. Wraps a plain
+   `<div>` around UnitCard, not `.hw-card` itself, exactly like
+   -reforged/-fused above - a separate DOM node the animation can own
+   outright, so it never has to fight the child card's own framer-
+   motion-controlled transform (see UnitCard.jsx's hover comment for
+   why that matters) or the rare-tier sparkle's own ::after layer. The
+   ring expands to 13px (--space-2, this repo's existing Fibonacci
+   scale) rather than an arbitrary radius. */
+.hw-card--purchased {
+  animation: hw-purchase-pulse 550ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+@keyframes hw-purchase-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.hw-card--purchased::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  pointer-events: none;
+  animation: hw-purchase-ring 550ms ease-out;
+}
+
+@keyframes hw-purchase-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-moss) 75%, transparent); opacity: 1; }
+  100% { box-shadow: 0 0 0 var(--space-2, 13px) color-mix(in srgb, var(--hw-moss) 0%, transparent); opacity: 0; }
+}
+
 /* Item slots (items.js, ITEM_SLOTS): 3 small pips under each bench
    card - empty (dashed) vs filled (item icon). Reuses .hw-card--reforged's
    existing pulse keyframe for the brief "something just landed here"
@@ -1772,4 +2313,351 @@
 
 .hw-intent--block .hw-intent-glyph {
   color: var(--hw-rune);
+}
+
+/* ============================================================
+   Animation/UI polish pass (Marc, 2026-08-28): "peli on vielä niin
+   alkeellinen että en tykkää siitä vielä... peliin tarvitaan lisää ja
+   enemmän animaatioita jotta se on mukava silmille" - looked at every
+   main screen live (commander select, market, formation, floor
+   choice, the map-after-shop interstitial, battle, victory/defeat)
+   with a critical animator eye. Two concrete dead spots, both fixed
+   here as pure CSS (no JSX/logic touched, so combat/shop/equip logic
+   - actively being worked on elsewhere right now - can't be affected):
+
+   1. Every clickable surface (.hw-card, .hw-end-turn, .hw-move-btn)
+      was 100% static until the instant you clicked it - .hw-card
+      even already HAD a transition wired up (box-shadow/border-color
+      above) with no :hover rule ever triggering it. The eye expects
+      *some* response to a pointer landing on something clickable and
+      got nothing - the single biggest "is this even interactive"
+      dead-frame in the whole game.
+   2. Screen-to-screen changes (commander select -> shop -> floor
+      choice -> map interstitial -> formation -> battle) were hard
+      cuts with zero read-time - .hw-section-fade-in existed already
+      but was only ever used for small conditional badges, never for
+      the screen itself.
+
+   Rescued from an interrupted session and finished 2026-08-28: durations,
+   lift distances and shadow offset/blur pairs below were retuned onto the
+   Fibonacci sequence (1,2,3,5,8,13,21,34,55...px and the same sequence
+   x10 in ms) per Marc's standing instruction to use Fibonacci/golden-ratio
+   proportions deliberately rather than arbitrary round numbers - e.g. a
+   card lift is 5px with an 8px/21px shadow, not 4px with 10px/18px.
+
+   The orphaned draft also had a third change: slow-drifting ambient
+   "dust mote" gradients painted behind every screen. Dropped here per
+   Marc's same-day instruction on this exact rescue - "UI:n pitaa olla
+   yksinkertainen mutta kertoa paljon samaan aikaan" (the UI must be
+   simple but say a lot at the same time), cut decorative effects that
+   don't add to readability. #1 and #2 both communicate real state
+   (this is clickable; the screen changed) - pure background atmosphere
+   with no informational value doesn't, so it stays cut rather than
+   rescued.
+   ============================================================ */
+
+/* --- 1. Hover/press feedback on every clickable surface --- */
+
+.hw-card:not([data-disabled="true"]):not([data-selected="true"]):hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--hw-ember) 65%, var(--hw-border));
+  box-shadow: 0 8px 21px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hw-card:not([data-disabled="true"]):active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.hw-end-turn,
+.hw-move-btn {
+  transition: transform 130ms ease, filter 130ms ease, box-shadow 130ms ease;
+}
+
+.hw-end-turn:not(:disabled):hover,
+.hw-move-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 5px 13px rgba(0, 0, 0, 0.35);
+}
+
+.hw-end-turn:not(:disabled):active,
+.hw-move-btn:not(:disabled):active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+/* .hw-enemy-choice already brightened its border on hover - it just
+   never actually moved, so the change was easy to miss at a glance. */
+.hw-enemy-choice {
+  transition: transform 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
+}
+
+.hw-enemy-choice:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 21px rgba(0, 0, 0, 0.4);
+}
+
+.hw-enemy-choice:active {
+  transform: translateY(-2px);
+}
+
+/* --- 2. Screen-mount fade, applied to the shared wrapper classes
+   every pre-battle screen already renders (.hw-intro: commander
+   select, market, floor choice, relic choice, reward, rest,
+   formation; .hw-battle: the live fight; .hw-run-map: the
+   map-after-shop interstitial). Each of these is a fresh DOM node
+   whenever React swaps the screen, so the animation replays on every
+   transition automatically - no per-screen JSX wiring needed.
+   Opacity only, deliberately no translateY/scale: a live automated
+   full-run test caught a real intermittent failure clicking "Start
+   Battle" the instant FormationScreen mounts - a transform here
+   changes the button's bounding box while it animates, which both
+   Playwright's own actionability check AND a genuinely fast real
+   click can read as "still moving, not a stable target" for the
+   animation's short duration. Opacity never moves the box, so the
+   button is clickable at its final position from frame one - same
+   soft-mount feel, zero chance of eating an early click. */
+.hw-intro,
+.hw-battle,
+.hw-run-map {
+  animation: hw-screen-fade-in 210ms ease-out both;
+}
+
+@keyframes hw-screen-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-intro,
+  .hw-battle,
+  .hw-run-map {
+    animation: none;
+  }
+}
+
+/* --- Commander Select (first-launch screen) ---
+   Roadmap: "Komentajavalinta/aloitusnayton visuaalinen viimeistely
+   (kultainen leikkaus)" - this is the literal first thing a player
+   sees on opening Hearthwood, and Marc asked specifically for golden-
+   ratio/Fibonacci proportions applied deliberately, not decoratively,
+   here. Dedicated classes rather than reusing .hw-select-grid/
+   .hw-enemy-choice (those stay shared by the Market/relic/formation
+   screens per their own comment above) so this screen's proportions
+   can be tuned on their own without touching anything else.
+
+   The numbers below are not arbitrary:
+   - .hw-commander-select's max-width (1597px) and its header's
+     max-width (987px) are themselves consecutive Fibonacci numbers -
+     987 x 1.618 = 1597, the golden ratio applied to the page's own
+     two-tier layout (header column vs. full card row width).
+   - .hw-commander-card is 233 x 377 - also two consecutive Fibonacci
+     numbers, and 233 x 1.618 = 377, so the card's own silhouette IS a
+     golden rectangle, not just golden-adjacent spacing around it.
+   - .hw-commander-portrait is 89px (Fibonacci) and the title sits at
+     34px, both continuing the same 13/21/34/55/89 ladder the rest of
+     the app already uses (--space-1..6, index.css).
+   All internal spacing reuses that existing --space-* scale rather
+   than inventing new values. */
+
+.hw-commander-select {
+  max-width: 1597px;
+  margin: 0 auto;
+  padding: var(--space-3, 21px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4, 34px);
+}
+
+.hw-commander-select-header {
+  max-width: 987px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hw-commander-select-header .hw-crew-banner {
+  margin-bottom: var(--space-3, 21px);
+}
+
+.hw-commander-select-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 0 var(--space-1, 8px);
+  color: var(--hw-text);
+}
+
+.hw-commander-select-header .hw-flavor {
+  max-width: 610px;
+  margin: 0 0 var(--space-2, 13px);
+}
+
+.hw-commander-select-header .hw-badge {
+  margin: 0 auto;
+}
+
+.hw-commander-grid {
+  /* Real bug caught in a live screenshot, not just theoretical: this
+     grid is a flex child of .hw-commander-select, which centers its
+     children cross-axis (align-items: center). Without an explicit
+     width, a flex item sizes to fit-content by default - and a grid
+     measured under fit-content negotiates its auto-fit track count
+     against its OWN content width, not the parent's available width,
+     so it collapsed to exactly one 233px column with every Commander
+     stacked vertically instead of a row. width: 100% (bounded by
+     .hw-commander-select's own max-width above) gives auto-fit the
+     real available width to size columns against. */
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 233px);
+  /* auto-fit (not auto-fill) - see .hw-select-grid's own comment above
+     for why: auto-fill keeps unused implicit tracks at full width even
+     with only 4 cards, which starves justify-content: center of any
+     real space to work with. */
+  justify-content: center;
+  gap: var(--space-3, 21px);
+}
+
+.hw-commander-card {
+  width: 233px;
+  /* min-height, not a strict aspect-ratio box - 233x377 (golden
+     rectangle, see the block comment above) is the intended
+     silhouette, but a min-height lets the card grow instead of
+     clipping if a future Commander's description text runs longer
+     than today's four ever do. Content today (portrait + name +
+     tagline + description + CTA) comfortably fits inside 377px. */
+  min-height: 377px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(160deg, var(--hw-panel), var(--hw-card));
+  border: 1px solid var(--hw-border);
+  border-radius: 13px;
+  padding: var(--space-3, 21px) var(--space-2, 13px);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+
+/* Tactile hover - same "physical" quality bar as the rest of this
+   visual pass (UnitCard.jsx etc.): a small lift plus an ember glow,
+   not just a border color swap. */
+.hw-commander-card:hover:not(:disabled) {
+  transform: translateY(-5px) scale(1.02);
+  border-color: var(--hw-ember);
+  box-shadow: 0 13px 34px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, var(--hw-ember) 55%, transparent);
+}
+
+.hw-commander-card:active:not(:disabled) {
+  transform: translateY(-2px) scale(0.99);
+}
+
+.hw-commander-card:disabled {
+  cursor: default;
+}
+
+/* A second Commander's card while one is already confirming - fades
+   back so the choice being made reads as the one thing happening,
+   without the row reflowing (opacity only, no display/visibility
+   change - the grid stays stable). */
+.hw-commander-card[data-dimmed="true"] {
+  opacity: 0.35;
+  transform: none;
+}
+
+.hw-commander-portrait {
+  width: 89px;
+  height: 89px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-2, 13px);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--hw-ember) 22%, transparent) 0%, transparent 72%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+  color: var(--hw-ember);
+  transition: box-shadow 200ms ease;
+}
+
+.hw-commander-card:hover:not(:disabled) .hw-commander-portrait {
+  box-shadow: inset 0 0 0 1.5px var(--hw-ember), 0 0 16px 2px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+}
+
+.hw-commander-glyph {
+  width: 55px;
+  height: 55px;
+}
+
+.hw-commander-name {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.hw-commander-tagline {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--hw-muted);
+  margin: var(--space-1, 8px) 0 0;
+}
+
+.hw-commander-desc {
+  font-size: 11px;
+  color: var(--hw-muted);
+  line-height: 1.35;
+  margin: var(--space-1, 8px) 0 0;
+}
+
+.hw-commander-cta {
+  margin-top: auto;
+  padding-top: var(--space-2, 13px);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--hw-muted);
+  opacity: 0;
+  transition: opacity 200ms ease, color 200ms ease;
+}
+
+.hw-commander-card:hover:not(:disabled) .hw-commander-cta,
+.hw-commander-card[data-confirming="true"] .hw-commander-cta {
+  opacity: 1;
+}
+
+.hw-commander-card[data-confirming="true"] .hw-commander-cta {
+  color: var(--hw-ember);
+}
+
+/* The confirmation moment (CommanderSelect.jsx's confirmingId, held
+   for CONFIRM_DELAY_MS = 550ms before the run actually starts) - the
+   literal start of every single play session deserves a real "let's
+   go" beat rather than an instant cut to the shop screen. Duration
+   matches the component's own timeout exactly so the burst finishes
+   right as the run begins, no jump-cut. */
+.hw-commander-card[data-confirming="true"] {
+  animation: hw-commander-confirm 550ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  border-color: var(--hw-ember);
+  cursor: default;
+}
+
+@keyframes hw-commander-confirm {
+  0% {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 13px 34px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  }
+  45% {
+    transform: translateY(-8px) scale(1.06);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 26px 6px color-mix(in srgb, var(--hw-ember) 75%, transparent);
+  }
+  100% {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 20px 4px color-mix(in srgb, var(--hw-ember) 60%, transparent);
+  }
 }

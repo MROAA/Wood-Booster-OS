@@ -1,9 +1,20 @@
-import { motion } from "framer-motion"
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 import { TRIBES, tribesOf, synergyTiersSummary } from "../../data/heartwood/synergies"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "skill" }
+
+// Physical-card hover (Marc's PRD sect. 9/18-20/31, "sen pitää viettää
+// minut visuaalisuudellaan" - it needs to captivate with its visuals; a
+// card should feel like an object, not flat web UI). Kept deliberately
+// restrained (a few degrees, not a full holographic-trading-card tilt)
+// per this repo's own "hillitty minimalistinen" anchor - a small lift
+// and a subtle cursor-following tilt read as "physical" without
+// tipping into gimmicky VFX.
+const HOVER_LIFT_PX = 8 // --space-1 (designTokens.css) - reused, not a new arbitrary value
+const HOVER_SCALE = 1.035
+const MAX_TILT_DEG = 6
 
 // The same icon+number-then-a-line reading pattern proven readable for
 // cards this session, reused for units - a unit's movePattern already
@@ -48,12 +59,60 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   // sword/shield/leaf/root/moonGlyph/flame vocabulary already used
   // everywhere else, zero new art.
   const tribeIds = def.role ? tribesOf(def.id, def) : []
+
+  // Cursor-tracked tilt: raw pointer position (0-1 across the card)
+  // drives rotateX/rotateY through a spring so it settles smoothly
+  // instead of snapping frame-to-frame with the mouse. This has to go
+  // through framer-motion's own motion values (not a hand-written
+  // `style.transform` string) because this element already has an
+  // `animate` prop below controlling its mount transform - framer-
+  // motion owns this element's `transform` entirely once that's true,
+  // and it composes multiple motion-value sources (this + whileHover)
+  // into one final transform on its own. Starts centered (0.5, 0.5) so
+  // there's zero tilt until the pointer actually moves.
+  const pointerX = useMotionValue(0.5)
+  const pointerY = useMotionValue(0.5)
+  const rotateX = useSpring(useTransform(pointerY, [0, 1], [MAX_TILT_DEG, -MAX_TILT_DEG]), { stiffness: 300, damping: 22 })
+  const rotateY = useSpring(useTransform(pointerX, [0, 1], [-MAX_TILT_DEG, MAX_TILT_DEG]), { stiffness: 300, damping: 22 })
+
+  function handlePointerMove(e) {
+    if (disabled) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    if (!rect.width || !rect.height) return
+    pointerX.set((e.clientX - rect.left) / rect.width)
+    pointerY.set((e.clientY - rect.top) / rect.height)
+  }
+  function handlePointerLeave() {
+    pointerX.set(0.5)
+    pointerY.set(0.5)
+  }
+
   return (
     <motion.div
       className={`hw-card hw-card--${ROLE_ACCENT[effectiveRole] || "skill"}`}
       data-disabled={!!disabled}
       data-selected={!!selected}
       data-portrait={!!def.image}
+      onMouseMove={handlePointerMove}
+      onMouseLeave={handlePointerLeave}
+      // rotateX/rotateY: the cursor-tracked tilt above. transformPerspective
+      // gives the tilt actual depth instead of a flat skew - a plain
+      // px value here (not a token) since it's a 3D camera distance, not
+      // a spacing/size measurement the Fibonacci scale applies to.
+      style={{ rotateX, rotateY, transformPerspective: 800 }}
+      // Lift + scale on hover (box-shadow deepening itself lives in
+      // heartwood.css, untouched by framer-motion). Disabled entirely
+      // while the card is disabled/unaffordable so an un-clickable card
+      // never invites a hover interaction it can't honor. The `transition`
+      // lives INSIDE each gesture target, not as a top-level prop on this
+      // element - a second top-level `transition` prop would just
+      // silently overwrite the entrance one below (duplicate JSX
+      // attributes resolve to the last one), which would have broken the
+      // mount pop-in's own easeOut/duration. Per-target transitions are
+      // framer-motion's supported way to give hover its own snappier
+      // spring without touching that one.
+      whileHover={disabled ? undefined : { scale: HOVER_SCALE, y: -HOVER_LIFT_PX, transition: { type: "spring", stiffness: 350, damping: 22 } }}
+      whileTap={disabled ? undefined : { scale: HOVER_SCALE * 0.99, transition: { type: "spring", stiffness: 400, damping: 25 } }}
       // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
       // liittyville" - make a rarity system for the game and related
       // things) - a Tier 2 fusion result reads as "rare" regardless of
