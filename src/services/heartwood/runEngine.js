@@ -233,8 +233,11 @@ export const DEPLOY_SLOTS = 4
 // START_ESSENCE/WIN_ESSENCE above (4 each): a one-time nudge honoring
 // the PREVIOUS run's fallen hero, not a real economy lever, so it
 // can't collide with the balance tuning already happening elsewhere in
-// this file. See buildDeathMemory/startRun below.
-const MEMORY_ESSENCE_BONUS = 1
+// this file. See buildDeathMemory/startRun below. Exported so
+// RunEndOverlay.jsx can display the real figure (the legacy-boon
+// reveal on the defeat screen) without a second hardcoded copy
+// silently drifting out of sync with the one actually applied here.
+export const MEMORY_ESSENCE_BONUS = 1
 
 function currentNode(runState) {
   return runState.path[runState.nodeIndex]
