@@ -19,6 +19,7 @@ import {
   RESERVE_CAP,
   DEPLOY_SLOTS,
   RUN_PATH,
+  sellRefundFor,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -589,6 +590,12 @@ export default function SquadDraft({
           Your Squad keeps its own row below, same onClick/data-active
           wiring as before, just no longer sharing a flex row with
           Market. */}
+      {/* Market + Your Squad merged back into ONE row (was two stacked
+          rows - a real fit regression at Marc's actual 1860x960 browser
+          budget, ~110px combined for what's fundamentally one tab
+          toggle pair). The plaque button is sized to match the pill
+          button's own height instead of floating above it as a
+          separate hero element. */}
       <div className="hw-tab-row hw-tab-row--market-art">
         <button
           className="hw-market-tab-btn"
@@ -621,8 +628,6 @@ export default function SquadDraft({
             Market
           </span>
         </button>
-      </div>
-      <div className="hw-tab-row hw-tab-row--squad">
         <button
           className="hw-move-btn"
           data-active={activeTab === "squad"}
@@ -808,7 +813,12 @@ export default function SquadDraft({
           // further fusion target.
           const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
           const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
-          const sellRefund = def?.recruitCost != null ? Math.ceil(def.recruitCost / 2) : 2
+          // Essence rescale: this used to duplicate sellUnit's own
+          // formula inline (a real drift risk the moment either copy's
+          // rate/fallback changed without the other noticing) - now a
+          // shared import from runEngine.js, see sellRefundFor's own
+          // comment there for the actual rate/fallback values.
+          const sellRefund = sellRefundFor(def)
           // Hero Bending (items.js's bendsRoleTo/effectiveRole,
           // Guildrun's "hero bending" - Marc: "saman idean haluan
           // heartwoodiin kuin Guildrunissa") - a Bending item equipped

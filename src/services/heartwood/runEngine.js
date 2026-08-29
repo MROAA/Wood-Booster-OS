@@ -180,8 +180,24 @@ export const RUN_PATH = [
 // 3x longer with several new sinks (Market Level, Commander Active,
 // tribe-anchor relics) layered on since, so the same flat income no
 // longer produces the same felt scarcity.
-const START_ESSENCE = 4
-const WIN_ESSENCE = 4
+// Essence rescale (Marc, direct: "haluan että marketin nouseminen
+// maksaa 250 essenceä ja ekonomian pitää vastata sitä" - I want
+// leveling the Market to cost 250 Essence and the economy needs to
+// match that; "se vaikuttaa myös unitteihin jne" - it affects units
+// too; "tee pelin ekonomia vastaamaan nappien hintaa" - make the
+// game's economy match the buttons' prices). Marc's own Copilot
+// concept-art plaques show a "Purchase 250" button and a "Quick Sale
+// 150" button. Anchored the whole rescale on marketLevelCost(1) below
+// (MARKET_LEVEL_BASE_COST(4) * level(1) = 4 pre-rescale), landing the
+// scale factor at exactly 250/4 = 62.5x - applied uniformly to EVERY
+// essence constant in the game (see units.js's TIER_COST comment for
+// the full family table). START_ESSENCE and WIN_ESSENCE were both
+// already 4 pre-rescale (same value as MARKET_LEVEL_BASE_COST), so all
+// three land on the same clean 250 post-rescale - a run now starts
+// with, and earns per win, exactly one Market Level-Up's worth of
+// Essence, same relative weight as before.
+const START_ESSENCE = 250
+const WIN_ESSENCE = 250
 // Marc: "now it doesn't feel like anything purchasing the units or
 // items" - the Essence RATE has already been tuned back and forth
 // this session (bumped +50%, then cut 5/6->4/4 for "opportunity
@@ -220,13 +236,25 @@ const WIN_ESSENCE = 4
 // were always "owned" too, this just stops counting them against the
 // reserve's own room.
 export const RESERVE_CAP = 6
-const FORMATION_BONUS_ESSENCE = 2
+// Essence rescale (see START_ESSENCE's own comment above): was 2, now
+// 125 (units.js's TIER_COST "2-family" - same value as an uncommon
+// unit's recruit cost).
+const FORMATION_BONUS_ESSENCE = 125
 // Minibosses (Deepwarden, Thornmaw, Wyrmgall) are a harder win than even a
 // formation fight - a bigger payout than FORMATION_BONUS_ESSENCE, same
 // "reward matches difficulty" reasoning essenceForWin's own note gives.
-const MINIBOSS_BONUS_ESSENCE = 3
+// Essence rescale: was 3, now 190 (units.js's TIER_COST "3-family").
+const MINIBOSS_BONUS_ESSENCE = 190
 const SHOP_SIZE = 4
-const REROLL_BASE_COST = 1
+// Essence rescale: was 1, now 65 (units.js's TIER_COST "1-family" -
+// same value as a common unit's recruit cost). REROLL_INCREMENT (used
+// by rerollShop below) was an inline `+ 1` matching this same base
+// value - pulled into its own named constant, still equal to
+// REROLL_BASE_COST, so a reroll's rising cost keeps stepping by
+// exactly one "common unit's worth" of Essence each time within a
+// shop visit, same relative shape as before.
+const REROLL_BASE_COST = 65
+const REROLL_INCREMENT = 65
 export const DEPLOY_SLOTS = 4
 // Death Memory (Marc's PRD: a lost hero should leave something behind
 // instead of just vanishing) - deliberately tiny relative to
@@ -237,7 +265,12 @@ export const DEPLOY_SLOTS = 4
 // RunEndOverlay.jsx can display the real figure (the legacy-boon
 // reveal on the defeat screen) without a second hardcoded copy
 // silently drifting out of sync with the one actually applied here.
-export const MEMORY_ESSENCE_BONUS = 1
+// Essence rescale (see START_ESSENCE's own comment above): was 1, now
+// 65 (units.js's TIER_COST "1-family") - stays deliberately tiny
+// relative to START_ESSENCE/WIN_ESSENCE (250 each) post-rescale too,
+// same "a nudge, not a real economy lever" relationship as before
+// (1 vs. 4, now 65 vs. 250).
+export const MEMORY_ESSENCE_BONUS = 65
 
 function currentNode(runState) {
   return runState.path[runState.nodeIndex]
@@ -361,7 +394,13 @@ function rollRelics(ownedRelicIds, tribeCounts = {}) {
 // in this codebase (a unit's rarity band, Fusion's displayTier, and the
 // old per-unit Upgrade's level), and a 4th meaning would only confuse.
 export const MARKET_LEVEL_MAX = 3
-const MARKET_LEVEL_BASE_COST = 4
+// Essence rescale anchor (Marc, direct: "haluan että marketin
+// nouseminen maksaa 250 essenceä" - I want leveling the Market to cost
+// 250 Essence): marketLevelCost(1) below is BASE_COST * level, so this
+// constant alone fixes the whole rescale's 250/4 = 62.5x scale factor
+// - every other essence constant in the game was scaled by this SAME
+// factor (see units.js's TIER_COST comment for the full table).
+const MARKET_LEVEL_BASE_COST = 250
 export const MARKET_LEVEL_UNLOCKS = {
   1: ["common"],
   2: ["common", "uncommon"],
@@ -607,7 +646,9 @@ export function recruitUnit(runState, unitDefId) {
   }
 }
 
-export const REFORGE_COST = 2
+// Essence rescale (see START_ESSENCE's own comment above): was 2, now
+// 125 (units.js's TIER_COST "2-family").
+export const REFORGE_COST = 125
 
 // A fifth Essence sink (after recruit/reroll, Unit Upgrade, Commander
 // Rank-Up, Relic Upgrade/Reroll): swaps one bench unit for a different
@@ -639,15 +680,41 @@ export function reforgeUnit(runState, benchKey) {
   }
 }
 
+// Essence rescale (see START_ESSENCE's own comment above): the old
+// flat 50%-back rate produced sell values nowhere near Marc's own
+// "Quick Sale 150" reference plaque once recruit costs themselves grew
+// to 65/125/190 (half of even the priciest rare recruit is only 95) -
+// bumped the rate to 80%, a deliberate, documented design call (this
+// pass is meant to be numbers-only, but the sell formula's own SHAPE
+// was explicitly called out as fair game if the flat 50% couldn't hit
+// the reference on its own): selling a rare-tier unit (190) now refunds
+// 152, landing right on the "~150" target; a common (65) refunds 52,
+// an uncommon (125) refunds 100 - still a real "you lose something by
+// selling" tax (20%), just a lighter one now that every number in the
+// shop is bigger and losing half of a 190-cost recruit felt like a
+// harsher tax than losing half of the old 3-cost one ever did.
+const SELL_REFUND_RATE = 0.8
+// A fused Tier 2 unit has no recruitCost of its own (it's never
+// directly purchasable) - flat fallback, bumped from 2 to a clean 150
+// so THIS is the sale a player is most likely to see land squarely on
+// Marc's own reference number: a Tier 2 unit represents 3 real recruits
+// plus a fusion, the closest thing in this economy to a "quality asset"
+// worth a satisfying lump-sum Quick Sale.
+const TIER2_SELL_FALLBACK = 150
+
+// Shared by sellUnit below and SquadDraft.jsx's own sell-refund preview
+// (the bench card's "sell for N" label) - both used to compute this
+// formula independently, a real drift risk the moment either one's
+// rate/fallback changed without the other noticing. One function now,
+// imported by both.
+export function sellRefundFor(def) {
+  return def?.recruitCost != null ? Math.ceil(def.recruitCost * SELL_REFUND_RATE) : TIER2_SELL_FALLBACK
+}
+
 // Marc: "rahan tienaamista myös pitää saada... ja muuta rahaan
 // liittyvään" (there needs to be more ways to earn money... and other
 // money-related things) - Selling is the first way to turn a bench
-// unit BACK into Essence instead of only ever spending it. Half the
-// original recruit cost, rounded up (so it's never a free 1-for-1
-// undo of a bad recruit, but never worthless either) - a fused Tier 2
-// unit has no recruitCost of its own (it's never directly purchasable),
-// so it gets a flat refund matching what 3 rare-tier recruits would
-// roughly be worth relative to the sell-half-back rule. Clears the
+// unit BACK into Essence instead of only ever spending it. Clears the
 // unit from its deploy slot if it was deployed, and returns any
 // equipped items to the bag rather than destroying them - same
 // "investment doesn't carry over, but isn't wasted either" rule
@@ -656,7 +723,7 @@ export function sellUnit(runState, benchKey) {
   const entry = runState.bench.find((e) => e.key === benchKey)
   if (!entry) return runState
   const def = UNITS[entry.defId]
-  const refund = def?.recruitCost != null ? Math.ceil(def.recruitCost / 2) : 2
+  const refund = sellRefundFor(def)
   return {
     ...runState,
     essence: runState.essence + refund,
@@ -804,7 +871,10 @@ export function rankUpCommander(runState) {
   return { ...runState, essence: runState.essence - cost, commanderRank: rank + 1 }
 }
 
-export const RETRAIN_COST = 4
+// Essence rescale (see START_ESSENCE's own comment above): was 4, now
+// 250 (units.js's TIER_COST "4-family" - same value as
+// MARKET_LEVEL_BASE_COST/START_ESSENCE/WIN_ESSENCE).
+export const RETRAIN_COST = 250
 
 // A sixth Essence sink, but a genuinely different kind from the other
 // five (all of which strengthen something you already have): Retrain
@@ -856,7 +926,10 @@ export function rerollShop(runState) {
     ...runState,
     essence: runState.essence - runState.rerollCost,
     shopOffers: rollShop(runState.marketLevel || 1, benchTribeCounts(runState)),
-    rerollCost: runState.rerollCost + 1,
+    // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (65,
+    // same "1-family" value REROLL_BASE_COST itself scaled to) - see
+    // REROLL_BASE_COST's own comment above.
+    rerollCost: runState.rerollCost + REROLL_INCREMENT,
     // A paid Reroll always overrides Freeze (see startRun's own note on
     // `frozen`) - an explicit purchase supersedes it, and there's
     // nothing left to "keep" once the player has deliberately replaced
