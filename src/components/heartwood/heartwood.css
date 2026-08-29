@@ -1397,6 +1397,70 @@
   margin-top: 18px;
 }
 
+/* Market tab button reskin (Marc's "hearthwood market.png" plaque,
+   PR round3 art batch - "keskitä se sivulle yläosioon", center it at
+   the top of the page section). A second, separate .hw-tab-row rather
+   than adding the plaque next to Your Squad in the original single
+   row - Marc was explicit this one should NOT sit left-aligned beside
+   the pill the way the old plain-text tab did. Margins are negative/
+   tight on purpose: the plaque's own painted vine border already
+   carries a lot of empty-looking padding, so treating it like a
+   normal 18px-margin block would visibly double that gap and eat
+   into this screen's zero-scroll budget for no visual gain. */
+.hw-tab-row--market-art {
+  justify-content: center;
+  margin-top: 6px;
+  margin-bottom: -10px;
+}
+
+.hw-tab-row--squad {
+  justify-content: center;
+  margin-top: 0;
+}
+
+.hw-market-tab-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  line-height: 0;
+  position: relative;
+  filter: brightness(0.7) saturate(0.8);
+  transition: filter 150ms ease, transform 150ms ease;
+}
+
+.hw-market-tab-btn img {
+  display: block;
+  /* Sized down hard from the plaque's native ~360px art board - this
+     is a tab TOGGLE, not the screen's hero image, and the 1920x1080
+     zero-scroll budget (verified via .hw-root's scrollHeight ===
+     clientHeight, see docs referenced in this PR) has no slack left
+     for anything taller. Re-measured after landing on this size. */
+  width: 80px;
+  height: auto;
+  pointer-events: none;
+}
+
+.hw-market-tab-btn:hover {
+  filter: brightness(0.85) saturate(0.95);
+  transform: translateY(-1px);
+}
+
+.hw-market-tab-btn:focus-visible {
+  outline: 2px solid var(--hw-moss);
+  outline-offset: 2px;
+}
+
+/* Active state: the plaque's own painted gold "HEARTHWOOD MARKET"
+   text already reads as inviting/lit, so full brightness plus a soft
+   moss glow (this game's established "currently selected/available"
+   color, same one Freeze's data-active state and the tribe-match ring
+   use) is enough - no separate pill/border needed on top of the art. */
+.hw-market-tab-btn[data-active="true"] {
+  filter: brightness(1) saturate(1.05) drop-shadow(0 0 10px color-mix(in srgb, var(--hw-moss) 60%, transparent));
+}
+
 .hw-market-columns {
   display: grid;
   /* Marc: "haluan että your squadin alas ja kauppaan kuuluvat ylös...
@@ -1476,6 +1540,31 @@
 .hw-panel--market .hw-move-btn,
 .hw-panel--squad .hw-move-btn {
   border-radius: 999px;
+}
+
+/* Sell button reskin (Marc's "sell.png" plaque, PR round3 art batch -
+   the red/fire-themed "SELL" plaque with a baked "Quick Sale 150"
+   sub-panel). Kept at this button's EXISTING footprint on purpose
+   (see SquadDraft.jsx's own comment right above this button) - the
+   bench grid's height budget has already see-sawed into overflow
+   from image additions more than once today, so this reuses
+   background-size: cover rather than growing to the plaque's native
+   aspect ratio. border-radius overridden back from the 999px pill
+   above since the plaque art already has its own carved-oval edge -
+   a pill mask would just clip its corners. */
+.hw-sell-btn {
+  background-image: linear-gradient(to bottom, rgba(12, 4, 2, 0.35), rgba(12, 4, 2, 0.55)), url("../../assets/heartwood/buttons/sell-plaque.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px !important;
+  border-color: color-mix(in srgb, var(--hw-hp, #c0392b) 55%, var(--hw-border));
+  color: #ffe9d6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.hw-sell-btn:not(:disabled):hover {
+  filter: brightness(1.15);
 }
 
 .hw-panel-title {
