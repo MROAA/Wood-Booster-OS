@@ -1005,6 +1005,17 @@
   color: var(--hw-rune);
 }
 
+/* Item icon art (ItemCard.jsx's def.image branch) reuses this exact
+   class so it inherits the same medallion frame/backdrop every glyph
+   already has - object-fit keeps a non-square source photo from
+   stretching to fill the fixed 26x26 box (UnitCard.jsx's own portrait
+   already needed the same fix, via its separate hw-card-portrait
+   class). Harmless no-op on the SVG glyph usage since that never
+   overflows its own box to begin with. */
+img.hw-card-art {
+  object-fit: cover;
+}
+
 .hw-card--curse .hw-card-art,
 .hw-card--special .hw-card-art {
   color: var(--hw-curse);
