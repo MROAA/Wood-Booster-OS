@@ -490,7 +490,7 @@
   flex-direction: column;
   gap: 6px;
   cursor: pointer;
-  transition: box-shadow 150ms ease, border-color 150ms ease, filter 150ms ease, opacity 200ms ease;
+  transition: box-shadow 130ms ease, border-color 130ms ease, transform 130ms ease, filter 130ms ease, opacity 200ms ease;
   user-select: none;
   /* Deliberately NOT overflow:hidden - the existing rare-tier glow and
      golden-fusion shimmer above both rely on their box-shadow spreading
@@ -2228,6 +2228,127 @@
 
 .hw-intent--block .hw-intent-glyph {
   color: var(--hw-rune);
+}
+
+/* ============================================================
+   Animation/UI polish pass (Marc, 2026-08-28): "peli on vielä niin
+   alkeellinen että en tykkää siitä vielä... peliin tarvitaan lisää ja
+   enemmän animaatioita jotta se on mukava silmille" - looked at every
+   main screen live (commander select, market, formation, floor
+   choice, the map-after-shop interstitial, battle, victory/defeat)
+   with a critical animator eye. Two concrete dead spots, both fixed
+   here as pure CSS (no JSX/logic touched, so combat/shop/equip logic
+   - actively being worked on elsewhere right now - can't be affected):
+
+   1. Every clickable surface (.hw-card, .hw-end-turn, .hw-move-btn)
+      was 100% static until the instant you clicked it - .hw-card
+      even already HAD a transition wired up (box-shadow/border-color
+      above) with no :hover rule ever triggering it. The eye expects
+      *some* response to a pointer landing on something clickable and
+      got nothing - the single biggest "is this even interactive"
+      dead-frame in the whole game.
+   2. Screen-to-screen changes (commander select -> shop -> floor
+      choice -> map interstitial -> formation -> battle) were hard
+      cuts with zero read-time - .hw-section-fade-in existed already
+      but was only ever used for small conditional badges, never for
+      the screen itself.
+
+   Rescued from an interrupted session and finished 2026-08-28: durations,
+   lift distances and shadow offset/blur pairs below were retuned onto the
+   Fibonacci sequence (1,2,3,5,8,13,21,34,55...px and the same sequence
+   x10 in ms) per Marc's standing instruction to use Fibonacci/golden-ratio
+   proportions deliberately rather than arbitrary round numbers - e.g. a
+   card lift is 5px with an 8px/21px shadow, not 4px with 10px/18px.
+
+   The orphaned draft also had a third change: slow-drifting ambient
+   "dust mote" gradients painted behind every screen. Dropped here per
+   Marc's same-day instruction on this exact rescue - "UI:n pitaa olla
+   yksinkertainen mutta kertoa paljon samaan aikaan" (the UI must be
+   simple but say a lot at the same time), cut decorative effects that
+   don't add to readability. #1 and #2 both communicate real state
+   (this is clickable; the screen changed) - pure background atmosphere
+   with no informational value doesn't, so it stays cut rather than
+   rescued.
+   ============================================================ */
+
+/* --- 1. Hover/press feedback on every clickable surface --- */
+
+.hw-card:not([data-disabled="true"]):not([data-selected="true"]):hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--hw-ember) 65%, var(--hw-border));
+  box-shadow: 0 8px 21px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hw-card:not([data-disabled="true"]):active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.hw-end-turn,
+.hw-move-btn {
+  transition: transform 130ms ease, filter 130ms ease, box-shadow 130ms ease;
+}
+
+.hw-end-turn:not(:disabled):hover,
+.hw-move-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 5px 13px rgba(0, 0, 0, 0.35);
+}
+
+.hw-end-turn:not(:disabled):active,
+.hw-move-btn:not(:disabled):active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+/* .hw-enemy-choice already brightened its border on hover - it just
+   never actually moved, so the change was easy to miss at a glance. */
+.hw-enemy-choice {
+  transition: transform 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
+}
+
+.hw-enemy-choice:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 21px rgba(0, 0, 0, 0.4);
+}
+
+.hw-enemy-choice:active {
+  transform: translateY(-2px);
+}
+
+/* --- 2. Screen-mount fade, applied to the shared wrapper classes
+   every pre-battle screen already renders (.hw-intro: commander
+   select, market, floor choice, relic choice, reward, rest,
+   formation; .hw-battle: the live fight; .hw-run-map: the
+   map-after-shop interstitial). Each of these is a fresh DOM node
+   whenever React swaps the screen, so the animation replays on every
+   transition automatically - no per-screen JSX wiring needed.
+   Opacity only, deliberately no translateY/scale: a live automated
+   full-run test caught a real intermittent failure clicking "Start
+   Battle" the instant FormationScreen mounts - a transform here
+   changes the button's bounding box while it animates, which both
+   Playwright's own actionability check AND a genuinely fast real
+   click can read as "still moving, not a stable target" for the
+   animation's short duration. Opacity never moves the box, so the
+   button is clickable at its final position from frame one - same
+   soft-mount feel, zero chance of eating an early click. */
+.hw-intro,
+.hw-battle,
+.hw-run-map {
+  animation: hw-screen-fade-in 210ms ease-out both;
+}
+
+@keyframes hw-screen-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-intro,
+  .hw-battle,
+  .hw-run-map {
+    animation: none;
+  }
 }
 
 /* --- Commander Select (first-launch screen) ---
