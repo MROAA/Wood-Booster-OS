@@ -96,6 +96,41 @@ import brackenveilImg from "../../assets/heartwood/units/brackenveil.jpg"
 import hollowspireImg from "../../assets/heartwood/units/hollowspire.jpg"
 import mycelistImg from "../../assets/heartwood/units/mycelist.jpg"
 import mosswalkerImg from "../../assets/heartwood/units/mosswalker.jpg"
+import bloomcallerImg from "../../assets/heartwood/units/bloomcaller.jpg"
+import willowmendImg from "../../assets/heartwood/units/willowmend.jpg"
+import willowfangImg from "../../assets/heartwood/units/willowfang.jpg"
+import loamguardImg from "../../assets/heartwood/units/loamguard.jpg"
+// Marc specifically saved 2 real songbird photos (blackbird, great
+// tit) after this pass first went out with no bird art at all -
+// arrived in kuvia/ mid-task, so Duskwren/Sparrowthorn both get
+// swapped from a placeholder onto an actual on-theme photo.
+import duskwrenImg from "../../assets/heartwood/units/duskwren.jpg"
+import sparrowthornImg from "../../assets/heartwood/units/sparrowthorn.jpg"
+import swiftclawImg from "../../assets/heartwood/units/swiftclaw.jpg"
+import thistlemawImg from "../../assets/heartwood/units/thistlemaw.jpg"
+import briarbladeImg from "../../assets/heartwood/units/briarblade.jpg"
+import snareclawImg from "../../assets/heartwood/units/snareclaw.jpg"
+// These 5 arrived with a small AI-tool logo (Craiyon's orange crayon
+// icon) or a stock-site credit line baked into one corner - punched
+// transparent via the same "-channel A -fx" technique round 1/2
+// established (see PR body), so PNG instead of JPG to actually carry
+// the alpha instead of flattening it back to a visible box.
+import sapkeeperImg from "../../assets/heartwood/units/sapkeeper.png"
+import glimmerwardImg from "../../assets/heartwood/units/glimmerward.png"
+import thornwardenImg from "../../assets/heartwood/units/thornwarden.png"
+import duskclawImg from "../../assets/heartwood/units/duskclaw.png"
+import runeveilImg from "../../assets/heartwood/units/runeveil.png"
+// Marc, direct: "kaikella pitää olla kuva" (everything needs an
+// image), even if only a loose placeholder - these had no
+// thematically-close match anywhere in the pool at first (no archer,
+// no beast-summoner art exists in kuvia/), so they get the nearest
+// available substitute instead of staying on the bare glyph. Also:
+// Marc separately said watermarks don't matter on placeholder art
+// ("ne on alkuun vain placeholdereita") - these (and everything from
+// here on) skip the alpha-punch crop step other imports above went
+// through, plain resize only.
+import trueshotImg from "../../assets/heartwood/units/trueshot.jpg"
+import beastcallerImg from "../../assets/heartwood/units/beastcaller.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -459,11 +494,9 @@ const BASE_UNITS = {
     // dealDamage) instead of a Strength/Weak/heal-family passive - a
     // second, unit-level way to reach the mechanic alongside the
     // Culling Strike relic (relics.js), for a squad that wants Execute
-    // without spending a relic slot on it. No dedicated portrait yet -
-    // reuses the "flame" glyph rather than inventing new art this
-    // round, same placeholder-first approach earlier forest-creature
-    // units started with.
+    // without spending a relic slot on it.
     passive: [{ type: "applyBuff", id: "execute", amount: 4 }],
+    image: duskclawImg,
   }),
   ashenhorn: unit("ashenhorn", "Ashenhorn", "leaf", 2, "support", [
     { type: "block", amount: 4 },
@@ -552,6 +585,7 @@ const BASE_UNITS = {
     // per round with a Vampiric Bloom/Sundering Mark/Bramble Ward
     // build) rather than raw total damage).
     haste: true,
+    image: swiftclawImg,
   }),
   emberwisp: unit("emberwisp", "Emberwisp", "spark", 3, "dps", [{ type: "aoe", amount: 5 }], {
     // The roster's first player-side AoE (autoBattleEngine.js's aoe
@@ -575,6 +609,7 @@ const BASE_UNITS = {
     // Sundering Mark's onDealDamage trigger granted it). Same
     // debuff-movePattern shape Stormwing (Weak) and Rootfang (Poison)
     // already established, just a third status through the same door.
+    image: runeveilImg,
   }),
   frostbind: unit("frostbind", "Frostbind", "moonGlyph", 3, "support", [
     { type: "attack", amount: 3 },
@@ -601,6 +636,7 @@ const BASE_UNITS = {
     // code - rallyAdjacent was already generic on the buff id, not
     // hardcoded to Strength.
     rallyAdjacent: { id: "ward", amount: 1 },
+    image: glimmerwardImg,
   }),
   wraithcaller: unit("wraithcaller", "Wraithcaller", "moonGlyph", 3, "hybrid", [{ type: "attack", amount: 6 }], {
     // A fifth mage, a life-drain caster - Lifesteal's first UNIT-level
@@ -656,6 +692,13 @@ const BASE_UNITS = {
     // + Execute) in one identity rather than adding a new one.
     attackPattern: "knight",
     passive: [{ type: "applyBuff", id: "execute", amount: 3 }],
+    // No dedicated archer/ranged-hunter art turned up in the pool even
+    // after an exhaustive pass - Marc's "even a loose placeholder"
+    // bar (kaikella pitää olla kuva) still calls for something over
+    // the bare glyph, so this borrows a battle-mage casting a bolt of
+    // arcane light: not literally "true shot," but a precision ranged
+    // strike is the closest visual read available.
+    image: trueshotImg,
   }),
   motley: unit("motley", "Motley", "moonGlyph", 2, "hybrid", [
     { type: "attack", amount: 5 },
@@ -681,6 +724,7 @@ const BASE_UNITS = {
     // 50% HP) - a real risk/reward tank-adjacent DPS identity, not
     // just a flat number.
     passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+    image: thornwardenImg,
   }),
   bloomcaller: unit("bloomcaller", "Bloomcaller", "leaf", 3, "support", [
     { type: "block", amount: 5 },
@@ -693,6 +737,7 @@ const BASE_UNITS = {
     // already-proven mechanisms rather than a new one. Whoever stands
     // next to Bloomcaller finishes wounded enemies faster.
     rallyAdjacent: { id: "execute", amount: 2 },
+    image: bloomcallerImg,
   }),
   mosswalker: unit("mosswalker", "Mosswalker", "moonGlyph", 2, "support", [{ type: "attack", amount: 4 }], {
     // The first Evasion class ("väistelee ja katoaa taistelusta" -
@@ -737,6 +782,7 @@ const BASE_UNITS = {
     // blow Chain bonus is this roster's closest existing analogue to
     // "assassin/critical" (no true crit-chance mechanic exists yet).
     className: "Briarblade",
+    image: briarbladeImg,
   }),
   sapkeeper: unit("sapkeeper", "Sapkeeper", "leaf", 2, "support", [
     { type: "block", amount: 4 },
@@ -754,6 +800,7 @@ const BASE_UNITS = {
     // again; rallyHeal every round to adjacent allies is a direct hit
     // on Marc's Healing/Support class description.
     className: "Sapkeeper",
+    image: sapkeeperImg,
   }),
   mycelist: unit("mycelist", "Mycelist", "leaf", 3, "support", [
     { type: "attack", amount: 4 },
@@ -802,6 +849,11 @@ const BASE_UNITS = {
     // ability that calls a Spirit Wolf into the fight is literally
     // Marc's Pets/Nature class already, no reinterpretation needed.
     className: "Beastcaller",
+    // No literal "summons an animal" art in the pool - closest
+    // available read is a figure confronting/calling forth a beast
+    // version of themselves, a loose placeholder per Marc's "even a
+    // placeholder, but everything needs an image" bar.
+    image: beastcallerImg,
   }),
   // Plain roster reinforcements - all 12 base classes are covered
   // already, so these just add more bodies at common/uncommon tier
@@ -826,12 +878,14 @@ const BASE_UNITS = {
     // Ashenhorn already established - grants adjacent allies Strength
     // at battle start, not itself.
     rallyAdjacent: { id: "strength", amount: 1 },
+    image: loamguardImg,
   }),
   willowfang: unit("willowfang", "Willowfang", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     // Haste (autoBattleEngine.js's actSide), same mechanism Swiftclaw
     // already established - two smaller hits a round instead of one
     // big one.
     haste: true,
+    image: willowfangImg,
   }),
   cragmoss: unit("cragmoss", "Cragmoss", "leaf", 3, "tank", [
     { type: "block", amount: 6 },
@@ -852,11 +906,14 @@ const BASE_UNITS = {
     { type: "cleanse" },
     { type: "heal", amount: 4 },
     { type: "attack", amount: 4 },
-  ]),
+  ], { image: willowmendImg }),
   sparrowthorn: unit("sparrowthorn", "Sparrowthorn", "spark", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Wounded Fury - a scrappy fighter that gets meaner once it's
     // cornered, fitting "sparrow" over a heavier bruiser identity.
     passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+    // A real great-tit photo Marc saved specifically for this unit -
+    // swapped in over the initial dragon-golem placeholder.
+    image: sparrowthornImg,
   }),
   duskwren: unit("duskwren", "Duskwren", "spark", 1, "dps", [
     { type: "attack", amount: 5 },
@@ -865,16 +922,18 @@ const BASE_UNITS = {
     // Self-Strength - synergizes directly with its own existing
     // 2-hit pattern rather than needing a new move type.
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
+    image: duskwrenImg,
   }),
   rimefang: unit("rimefang", "Rimefang", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
     // Chain (autoBattleEngine.js's actSide), same mechanism Grimtusk/
     // Foxfire already established - a bonus hit on a different living
     // enemy when this unit's own attack lands the killing blow.
     chainDamage: 4,
+    image: rimefangImg,
   }),
   hollowquill: unit("hollowquill", "Hollowquill", "rune", 2, "dps", [
     { type: "attack", amount: 8 },
-  ]),
+  ], { image: hollowquillImg }),
   // Shatter (effects.js) - a genuinely new mechanic, Execute's mirror:
   // bonus damage against a target currently holding Block instead of
   // one below an HP threshold. Stoneknoll is the first unit built
@@ -930,6 +989,7 @@ const BASE_UNITS = {
     // Chain - a 2-hit unit where either swing can trigger the bonus,
     // "thistle catches on everything nearby."
     chainDamage: 3,
+    image: thistlemawImg,
   }),
   brackenveil: unit("brackenveil", "Brackenveil", "leaf", 2, "hybrid", [
     { type: "block", amount: 4 },
@@ -1079,6 +1139,7 @@ const BASE_UNITS = {
     // same Execute math those two already established just at a
     // hybrid's lower per-hit baseline.
     passive: [{ type: "applyBuff", id: "execute", amount: 2 }],
+    image: snareclawImg,
   }),
 }
 
