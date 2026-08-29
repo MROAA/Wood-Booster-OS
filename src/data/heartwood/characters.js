@@ -87,7 +87,10 @@ export const CHARACTERS = {
     activePower: {
       id: "opening-strike",
       name: "Opening Strike",
-      cost: 3,
+      // Essence rescale: was 3, now 190 (units.js's TIER_COST comment) -
+      // matches RELIC_COST/COMMANDER_RANK_COST/UPGRADE_COST, all four
+      // already identically priced at 3 pre-rescale.
+      cost: 190,
       description: "Next battle only: the whole squad strikes noticeably harder.",
       effects: [{ type: "applyBuff", id: "strength", amount: 2 }],
     },
@@ -158,7 +161,10 @@ export const CHARACTERS = {
     activePower: {
       id: "rally-cry",
       name: "Rally Cry",
-      cost: 3,
+      // Essence rescale: was 3, now 190 (units.js's TIER_COST comment) -
+      // matches RELIC_COST/COMMANDER_RANK_COST/UPGRADE_COST, all four
+      // already identically priced at 3 pre-rescale.
+      cost: 190,
       description: "Next battle only: the whole squad mends a little more each round, and strikes a little harder too.",
       effects: [
         { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
@@ -222,7 +228,10 @@ export const CHARACTERS = {
     activePower: {
       id: "blood-oath",
       name: "Blood Oath",
-      cost: 3,
+      // Essence rescale: was 3, now 190 (units.js's TIER_COST comment) -
+      // matches RELIC_COST/COMMANDER_RANK_COST/UPGRADE_COST, all four
+      // already identically priced at 3 pre-rescale.
+      cost: 190,
       description: "Next battle only: the whole squad hits harder, and harder still once hurt.",
       // Marc: "make it challenging but fair" - a fairness stress test
       // (this session's difficulty ramp + tribes/relics/Market Level
@@ -330,7 +339,10 @@ export const CHARACTERS = {
     activePower: {
       id: "brace",
       name: "Brace",
-      cost: 3,
+      // Essence rescale: was 3, now 190 (units.js's TIER_COST comment) -
+      // matches RELIC_COST/COMMANDER_RANK_COST/UPGRADE_COST, all four
+      // already identically priced at 3 pre-rescale.
+      cost: 190,
       description: "Next battle only: the whole squad shrugs off one extra hit, strikes a little harder, and strikes deeper against a braced target.",
       effects: [
         { type: "applyBuff", id: "ward", amount: 1 },
@@ -348,7 +360,12 @@ export const CHARACTERS = {
 // across the whole run, reusing the same scaleEffect helper so a
 // squadPassive scales exactly the way a unit's own passive does.
 export const COMMANDER_RANK_MAX = 2
-const COMMANDER_RANK_COST = 3
+// Essence rescale (units.js's TIER_COST comment has the full
+// explanation - Marc's "market level up = 250 Essence" ask, scaled
+// 62.5x from every old constant): was 3, now 190, matching
+// RELIC_COST/UPGRADE_COST/every activePower.cost below - all four were
+// already identically priced at 3 pre-rescale.
+const COMMANDER_RANK_COST = 190
 
 export function commanderRankCost(rank) {
   return rank >= COMMANDER_RANK_MAX ? null : COMMANDER_RANK_COST * (rank + 1)

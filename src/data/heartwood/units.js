@@ -77,7 +77,29 @@ import hexmotherImg from "../../assets/heartwood/units/hexmother.jpg"
 // Warden's Escort formation (176 total HP) - see the plan/memory note
 // on this. Paired with a 4th deploy slot in runEngine.js.
 const TIER_HP = { common: 32, uncommon: 42, rare: 54 }
-const TIER_COST = { common: 1, uncommon: 2, rare: 3 }
+// Essence rescale (Marc, direct: "haluan että marketin nouseminen
+// maksaa 250 essenceä ja ekonomian pitää vastata sitä" - I want
+// leveling the Market to cost 250 Essence and the economy needs to
+// match that; "se vaikuttaa myös unitteihin jne" - it affects units
+// too). Marc's own Copilot concept-art plaques show a "Purchase 250"
+// button and a "Quick Sale 150" button - anchored the whole rescale on
+// marketLevelCost(1) (runEngine.js), whose old value was
+// MARKET_LEVEL_BASE_COST(4) * level(1) = 4, landing the scale factor
+// at exactly 250/4 = 62.5x. That SAME 62.5x factor is applied to every
+// essence constant in the game (runEngine.js/relics.js/items.js/
+// characters.js all cite this same comment) - every one of them
+// happened to already be a small integer in {1, 2, 3, 4} pre-rescale,
+// which turns into a clean, uniform family post-rescale:
+//   1 * 62.5 = 62.5 -> rounds to  65
+//   2 * 62.5 = 125.0 -> exactly  125
+//   3 * 62.5 = 187.5 -> rounds to 190
+//   4 * 62.5 = 250.0 -> exactly  250
+// Unit prices were never per-entity literals (every unit() call below
+// only ever fed its cost hint through tierFromCost to pick a tier -
+// the real recruit price always came from this one shared table), so
+// rescaling the whole 85+-unit roster is this one table edit, not a
+// per-line change.
+const TIER_COST = { common: 65, uncommon: 125, rare: 190 }
 
 function tierFromCost(cost) {
   if (cost >= 3) return "rare"
@@ -1071,7 +1093,16 @@ const TIER2_UNITS = Object.fromEntries(
 // - the unit currently is). Raised from 2 to 3 max levels after Marc
 // asked for "more upgrades content" - the cost curve (COST*(level+1))
 // already generalizes to a 3rd level (9 Essence) with no other change.
-export const UPGRADE_COST = 3
+// Essence rescale (see TIER_COST's own comment above): was 3, part of
+// the "3-family" that also included RELIC_COST/COMMANDER_RANK_COST/
+// every Commander's activePower.cost - all four were already
+// identically priced at 3 Essence pre-rescale, so rounding all four to
+// the same 190 keeps that existing invariant intact rather than
+// letting independent rounding drift them apart. This is now spent
+// exclusively on Relic Upgrade (runEngine.js's upgradeRelic) - the
+// direct per-unit Upgrade purchase this curve originally described was
+// removed in favor of Fusion (see SquadDraft.jsx's own note on that).
+export const UPGRADE_COST = 190
 export const UPGRADE_MAX_LEVEL = 3
 const UPGRADE_FACTOR_PER_LEVEL = 0.15
 
