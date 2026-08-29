@@ -97,6 +97,30 @@
   border-color: var(--hw-ember);
 }
 
+/* Utility cluster (How to Play / Change Commander / exit) - see
+   HeartwoodBattle.jsx's utilityBar comment. The bar itself owns the
+   fixed top-right position; its children reuse .hw-exit-link's exact
+   look (font/color/border/padding) but as normal flex items, not each
+   independently fixed to the same top-right point (which would stack
+   all three on top of each other instead of laying out in a row). */
+.hw-utility-bar {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+
+.hw-utility-bar .hw-exit-link {
+  position: static;
+}
+
+.hw-utility-btn {
+  font-family: inherit;
+  cursor: pointer;
+}
+
 .hw-battle {
   display: flex;
   flex-direction: column;
@@ -961,6 +985,57 @@
 .hw-end-turn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Ghost variant, scoped to SquadDraft's commander/economy strip only
+   (Market Lv, Level Up, Rank Up, Active Power, Retrain - 4-6 controls
+   that used to render as full solid .hw-move-btn pills side by side).
+   Marc, direct: "visuaalista meteliä pitää vähentää" (too much visual
+   noise) - a whole row of identically bright, solid-fill buttons all
+   competing at once, right above the actual shop cards, was exactly
+   that. Border-only until hover/focus keeps every action reachable
+   and legible but lets the cards below stay the visual focus; still
+   the same .hw-move-btn base (padding/radius/transition/disabled
+   state untouched) so this is purely a color/fill override, not a
+   parallel button system. */
+.hw-strip-btn.hw-move-btn {
+  background: transparent;
+  color: var(--hw-text);
+  border: 1px solid var(--hw-border);
+  /* Marc, direct: "niitä voi myös isontaa ja niitä pitää hienontaa"
+     (they can be made bigger, and need refining) - was a cramped
+     11px/4px-8px inline style repeated on every button in this strip.
+     One shared size here instead, and the essence cost is a small
+     glyph+number chip (.hw-cost-inline below) rather than the word
+     "Essence" spelled out on every single button in the row. */
+  font-size: 13px;
+  padding: 7px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.hw-cost-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0.85;
+}
+
+.hw-cost-inline .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+
+.hw-strip-btn.hw-move-btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--hw-moss) 18%, transparent);
+  border-color: var(--hw-moss);
+}
+
+.hw-strip-btn.hw-move-btn[data-active="true"] {
+  background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
 }
 
 .hw-overlay {

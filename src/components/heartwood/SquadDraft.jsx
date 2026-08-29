@@ -293,11 +293,14 @@ export default function SquadDraft({
   return (
     <div className="hw-intro hw-market-stage">
       {/* paddingRight/flexWrap keep this row's right-aligned badges clear
-          of the fixed .hw-exit-link corner button (HeartwoodBattle.jsx) -
-          it's position:fixed outside document flow, so nothing here
-          pushes it aside on its own; adding the difficulty badge below
-          made this row wide enough to collide with it for the first time. */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingRight: 130 }}>
+          of the fixed top-right utility cluster (HeartwoodBattle.jsx's
+          utilityBar - exit link + How to Play + Change Commander) - it's
+          position:fixed outside document flow, so nothing here pushes it
+          aside on its own. 130px was sized for the exit link alone;
+          utilityBar growing to 3 buttons wide (still Marc's own ask - see
+          that component's comment - just wider than one link) needed the
+          same clearance recalculated, not a cosmetic tweak. */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingRight: 420 }}>
         <h1 style={{ fontSize: 22, margin: 0 }}>The Hearthwood Market</h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* key={difficultyTier.name}: without it this is the same DOM
@@ -353,13 +356,16 @@ export default function SquadDraft({
           <span className="hw-badge" style={{ fontSize: 11 }}>Market MAX</span>
         ) : (
           <button
-            className="hw-move-btn"
-            style={{ fontSize: 11, padding: "4px 8px" }}
+            className="hw-move-btn hw-strip-btn"
             disabled={runState.essence < marketCost}
             onClick={onLevelUpMarket}
             title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier units in future shop rolls`}
           >
-            Level Up ({marketCost} Essence)
+            Level Up
+            <span className="hw-cost-inline">
+              <CardGlyph name="spark" className="hw-intent-glyph" />
+              {marketCost}
+            </span>
           </button>
         )}
         <span className="hw-badge" title={commander?.description}>
@@ -381,13 +387,16 @@ export default function SquadDraft({
           <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
         ) : (
           <button
-            className="hw-move-btn"
-            style={{ fontSize: 11, padding: "4px 8px" }}
+            className="hw-move-btn hw-strip-btn"
             disabled={runState.essence < rankCost}
             onClick={onRankUp}
             title={`Permanently strengthen ${commander?.name}'s squad passive (rank ${commanderRank} -> ${commanderRank + 1})`}
           >
-            Rank Up ({rankCost} Essence)
+            Rank Up
+            <span className="hw-cost-inline">
+              <CardGlyph name="spark" className="hw-intent-glyph" />
+              {rankCost}
+            </span>
           </button>
         )}
         {/* Commander Active Power (characters.js's activePower) - a
@@ -399,14 +408,17 @@ export default function SquadDraft({
         {activePower && (
           <>
             <button
-              className="hw-move-btn"
+              className="hw-move-btn hw-strip-btn"
               data-active={primed}
-              style={{ fontSize: 11, padding: "4px 8px" }}
               disabled={activePowerUsed || runState.essence < activePower.cost}
               onClick={onUseCommanderActive}
               title={activePower.description}
             >
-              {activePower.name} ({activePower.cost} Essence)
+              {activePower.name}
+              <span className="hw-cost-inline">
+                <CardGlyph name="spark" className="hw-intent-glyph" />
+                {activePower.cost}
+              </span>
             </button>
             {primed && (
               <span className="hw-badge hw-badge--active" title={activePower.description}>
@@ -416,8 +428,8 @@ export default function SquadDraft({
           </>
         )}
         <button
-          className="hw-move-btn"
-          style={{ fontSize: 11, padding: "4px 8px" }}
+          className="hw-move-btn hw-strip-btn"
+          data-active={showRetrain}
           onClick={() => setShowRetrain((cur) => !cur)}
           title="Switch to a different Commander for the rest of this run"
         >
