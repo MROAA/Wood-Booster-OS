@@ -125,6 +125,15 @@ export default function SquadDraft({
   const maxItemSlots = effectiveItemSlots(runState)
   const [justReforgedKey, setJustReforgedKey] = useState(null)
   const [justFusedKey, setJustFusedKey] = useState(null)
+  // Purchase confirmation (Marc's PRD sect. 9/18-20/31: "selkeä
+  // visuaalinen kuittaus osto/equip-toiminnoille" - a clear visual
+  // confirmation for purchase/equip actions), moss-colored (this game's
+  // "a good thing happened" color) and applied to the new bench entry
+  // itself, same mechanism/effect as justFusedKey right below - a plain
+  // recruit and a fusion are both just "a new bench key that wasn't
+  // there last render," so they share one diffing effect. See that
+  // effect for why this targets the bench and not the shop offer card.
+  const [justPurchasedKey, setJustPurchasedKey] = useState(null)
   const [showRetrain, setShowRetrain] = useState(false)
   // Equip flow: click a bag item to select it, then click a slot pip on
   // any bench unit to equip it there (or click a filled pip directly,
@@ -177,11 +186,31 @@ export default function SquadDraft({
   // happen" directly.
   useEffect(() => {
     const prevKeys = prevBenchKeysRef.current
-    const fusedEntry = runState.bench.find((e) => !prevKeys.has(e.key) && UNITS[e.defId]?.fusedFrom)
+    const newEntries = runState.bench.filter((e) => !prevKeys.has(e.key))
     prevBenchKeysRef.current = new Set(runState.bench.map((e) => e.key))
+    const fusedEntry = newEntries.find((e) => UNITS[e.defId]?.fusedFrom)
     if (fusedEntry) {
       setJustFusedKey(fusedEntry.key)
       const timer = setTimeout(() => setJustFusedKey((cur) => (cur === fusedEntry.key ? null : cur)), 900)
+      return () => clearTimeout(timer)
+    }
+    // Purchase confirmation (Marc's PRD sect. 9/18-20/31: "selkeä
+    // visuaalinen kuittaus osto/equip-toiminnoille"). A first attempt
+    // flashed the shop OFFER card itself the instant its onClick fired,
+    // the same handler-sets-a-flag trick Reforge below uses - but
+    // recruitUnit (runEngine.js) filters the bought def straight out of
+    // shopOffers as part of the same state update, so that card's own
+    // DOM node is gone before or in the same frame as the flag ever
+    // painting. Confirmed with a real Playwright run (not assumed):
+    // Essence genuinely dropped, but `.hw-card--purchased` never
+    // appeared. The correct target is the same place Fusion's own
+    // confirmation already looks - the BENCH, diffed the identical way
+    // - since a plain recruit is just "a new bench entry that isn't a
+    // fusion result," not a separate kind of event.
+    const recruitedEntry = newEntries[0]
+    if (recruitedEntry) {
+      setJustPurchasedKey(recruitedEntry.key)
+      const timer = setTimeout(() => setJustPurchasedKey((cur) => (cur === recruitedEntry.key ? null : cur)), 550)
       return () => clearTimeout(timer)
     }
   }, [runState.bench])
@@ -243,6 +272,19 @@ export default function SquadDraft({
       setSelectedItemKey(null)
       setJustEquippedSlot(`${benchKey}-${slotIndex}`)
       setTimeout(() => setJustEquippedSlot((cur) => (cur === `${benchKey}-${slotIndex}` ? null : cur)), 500)
+      // Equipping used to only flash the tiny slot pip itself - easy to
+      // miss, and didn't read as "this unit just got stronger" the way
+      // Reforge's full-card pulse does. Reuses that same rune-colored
+      // pulse on the unit's own card (only for a real bench unit, not
+      // the "commander" sentinel key, which has no UnitCard to flash)
+      // rather than inventing a third card-pulse animation just for
+      // this - Reforge and Equip are both "this unit's gear/stats just
+      // changed", so sharing the visual language keeps the vocabulary
+      // small on purpose (Marc's own "hillitty minimalistinen" anchor).
+      if (benchKey !== "commander") {
+        setJustReforgedKey(benchKey)
+        setTimeout(() => setJustReforgedKey((cur) => (cur === benchKey ? null : cur)), 500)
+      }
     } else if (occupiedByKey != null) {
       onUnequipItem(occupiedByKey)
     }
@@ -668,7 +710,13 @@ export default function SquadDraft({
             <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <div
                 className={
-                  justFusedKey === entry.key ? "hw-card--fused" : justReforgedKey === entry.key ? "hw-card--reforged" : undefined
+                  justFusedKey === entry.key
+                    ? "hw-card--fused"
+                    : justReforgedKey === entry.key
+                      ? "hw-card--reforged"
+                      : justPurchasedKey === entry.key
+                        ? "hw-card--purchased"
+                        : undefined
                 }
               >
                 <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} />

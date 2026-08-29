@@ -447,10 +447,18 @@ export function formatPowerLabel(id) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1)
 }
 
-export function CardGlyph({ name, className }) {
+export function CardGlyph({ name, className, style }) {
   const Glyph = GLYPHS[name] || Rune
+  // `style` (a couple of callers pass `{ color: ... }` to tint via
+  // currentColor - see the module comment above) was silently dropped
+  // here: this component never read it, so every call site relying on
+  // a per-instance accent color (PlayerPanel.jsx, HeartwoodBattle.jsx,
+  // and RunMap.jsx's own per-node-type nodeColor()) was quietly
+  // rendering in whatever color CSS happened to cascade instead of the
+  // one it asked for. Forwarding it is a pure bugfix - no existing
+  // caller that omits `style` is affected.
   return (
-    <svg viewBox="0 0 48 48" className={className} stroke="currentColor" fill="none">
+    <svg viewBox="0 0 48 48" className={className} style={style} stroke="currentColor" fill="none">
       <Glyph />
     </svg>
   )
