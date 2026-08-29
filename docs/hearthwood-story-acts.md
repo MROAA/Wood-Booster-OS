@@ -3283,3 +3283,304 @@ built.
   memory and reality, where the player no longer carries the memory but
   interprets it, and the forest begins searching for its own place
   amid the blue-violet power."
+
+---
+
+## Cosmic Horror Layer — deepened for Sanity/Stress (added 2026-08-29)
+
+*Everything below is new material appended by a narrative-design pass. It
+does not alter, replace, or contradict anything above — Marc's ACT
+I-V dialogue, the Hollow King's origin, the Crownless, the Echo Age, all
+of it stands exactly as written. This section pulls threads that were
+already in that material (the Veil's voice, Saplight, Echo Strata, the
+idea that the void "isn't evil, it's alone") and pulls them a little
+tighter, in the direction Marc asked for on 2026-08-29: Cthulhu-style
+cosmic horror, Darkest Dungeon-style oppressive tone, and an in-fiction
+reason for the incoming per-unit Sanity/Stress mechanic (task 51,
+decision 19). Where a note below suggests a code or content hook, it is
+flagged as a follow-up, not done in this pass — this document stays
+documentation-only.*
+
+### Why this needed almost no invention
+
+Re-reading the acts above with "cosmic horror" in mind, the pieces were
+mostly already there:
+
+- The Veil doesn't attack the forest — it *speaks*, and only the First
+  could hear it clearly. Understanding it is what destroyed him. That
+  is, beat for beat, the Mythos structure: not a monster you fight, a
+  truth you can't survive knowing.
+- The Hollow King, the Veilbound, the Crownless are all explicitly
+  written as **not evil** — "hän ei ollut paha, hän oli yksin" recurs
+  across three separate acts. Cosmic horror in the Lovecraft-not-just-
+  tentacles sense is precisely this: vast, incomprehensible, and
+  indifferent rather than malicious. Marc's draft already refused the
+  cheap "ancient evil" reading. This layer keeps that refusal — nothing
+  below reframes the Hollow King, the Veilbound, or the Crownless as
+  villains. They stay tragic.
+- Act III is literally titled "Rajan repeämä" (the border's tear) and
+  Act IV "Tyhjyyden valtakunta" (the void's kingdom). The titles were
+  already cosmic-horror titles. This layer is mostly turning up the
+  atmosphere the titles already promised, especially in Acts I-II where
+  the prose is still gentle "forest fantasy" and hasn't caught up yet.
+
+### In-fiction reason for Sanity/Stress
+
+The mechanic (decision 19: per-unit meter, drains from witnessing
+horror in combat and from ally deaths, drains from certain events/
+choices, hits zero → a long-lasting "Afflicted" status rather than
+death) needs a reason units are vulnerable to it *at all* — and the
+doc already supplies one:
+
+**Saplight is what a unit is made of, and Saplight remembers.** The
+Ecology section above establishes Saplight as the Heartwood's blood —
+not liquid, light — and Echo Strata as the forest's memory, layered
+between the roots, recording everything. A deployed unit isn't an
+inert token; it's a body of Saplight, wired into that same memory
+network the roots use. That's *why* a unit can be shaken by something
+it only witnessed: what it sees doesn't stay in its own head, it goes
+into the shared root-memory the same way every other Echo does — and
+some of what it's being asked to carry (a Veilborn's true shape, an
+ally's death, a Hollow whisper) is memory the network was never built
+to hold. Sanity loss is Saplight strain, not a fear stat bolted on
+from outside the world.
+
+That gives three clean in-fiction sources, matching the three
+mechanical triggers already decided:
+
+1. **Witnessing horrors in combat** (Cthulhu-flavored enemies/bosses).
+   A Riftling or a Hollow Herald doesn't just deal damage — its shape
+   is wrong in a way Saplight isn't built to encode. Looking directly
+   at something the Veil made costs the same kind of toll the First
+   paid for looking too long at the Veil itself, just at a survivable,
+   per-fight scale instead of a life-ending one.
+2. **Ally death.** Death severs a unit from the Root Network mid-
+   thought — the Echo Strata records the break, and every nearby
+   Saplight-body feels the tear happen inside the same memory web it's
+   plugged into. This is *literally* what an Echo is, per the Ecology
+   section ("a memory takes form") — except here the memory formed
+   badly, mid-scream, and everyone connected to the network feels it
+   happen.
+3. **Events and route choices.** The Echo Market (Act III) and the
+   Hollow Bargain (Act IV) are already written as psychologically
+   costly by design — "osan sinusta, osan buildistasi, osan metsän
+   luottamuksesta" (part of you, part of your build, part of the
+   forest's trust). Sanity is the resource those choices were already
+   narratively spending; the mechanic just makes it visible and
+   trackable per unit instead of an abstract narrative cost.
+
+**Why zero means Afflicted, not death** (already decided mechanically —
+here is the in-fiction "why"): a unit that runs out of Saplight-slack
+doesn't disconnect from the network, it gets *stuck* listening to it.
+Afflicted isn't absence, it's overexposure — the unit is still hearing
+the root-memory, just too much of it, too clearly, all the time. That's
+why it manifests as a bad ability (refusing orders, flinching, lashing
+out) rather than incapacitation: the unit is still there, just no
+longer only listening to the commander. This mirrors the Hollow King's
+own arc almost exactly (a listener who heard too clearly and couldn't
+stop) at squad scale instead of story scale — the mechanic is the
+story's central tragedy, replayed in miniature, every run.
+
+### Atmosphere pass, act by act
+
+Marc's own prose already carries real dread by Act III-IV. The gap is
+Acts I-II, which read as fairly settled "sick but knowable forest"
+fantasy right up until the Cosmic Leak. A few *texture* notes — not
+new events, not new dialogue, just the sensory register the existing
+beats could be staged in if/when this becomes level art, ambient audio,
+or expanded flavor text:
+
+- **Act I — Roots.** Keep it grounded — this act should stay the "least
+  wrong" of the five, that contrast is doing work. But the existing
+  line "juuret tuntevat sinut" (the roots know you) plays very
+  differently once the reader knows, from later in the doc, that being
+  *known* by the network is the same channel Sanity drains through.
+  Worth leaning into, if this gets expanded later: the roots noticing
+  the player by name in Act I isn't just a warm welcome, it's the first
+  contact with the same memory-web that will later be reading the
+  player's units' minds under duress. Nothing to change in the existing
+  dialogue — just a possible unstated implication to keep consistent
+  going forward.
+- **Act II — Heartwood.** The Cosmic Leak event is already the
+  hinge point Marc wrote it to be. Suggested texture only: the elemental
+  factions' argument (Wood/Ember/Tide/Stone) could carry one shared,
+  wordless tic once the Leak appears — all four break eye contact with
+  the tear at the same moment, before anyone reacts verbally. A crowd of
+  otherwise-loud characters going silent together reads as far more
+  unsettling than any line of new dialogue would, and costs nothing to
+  add later.
+- **Act III — The Veil.** Already the strongest cosmic-horror writing
+  in the doc — "sen ääni ei ole ääni, se on ajatus joka työntyy suoraan
+  mieleen" (its voice isn't a voice, it's a thought that pushes directly
+  into the mind) is a genuinely good Mythos line as-is. The one gap: the
+  Echo Market's temptation ("ota meidät... tai me otamme sinut") is
+  currently the only place the doc shows the Veil's hunger from the
+  Echoes' own point of view rather than Spacemonkey's warning about it.
+  If this event ever gets more lines, the Echoes talking *past* the
+  player to each other — not offering, just noticing — would sit closer
+  to "indifferent cosmic thing" than "tempting devil."
+- **Act IV — The Hollow.** Also already strong. One addition this layer
+  does suggest concretely: the Hollow King's silence. He's written as
+  "no face, no crown, no shape" who "doesn't speak — only whispers" —
+  that's the doc's own bestiary line. Recommend that whenever this is
+  staged for real, his whispered lines are the only audio in the fight
+  that doesn't loop or echo the way everything else in the Hollow does
+  — a single, dry, close voice in a space that otherwise reverberates
+  endlessly. The wrongness of *not* echoing, in a place defined by
+  echo, is a cheap, purely-technical way to make him read as the one
+  true thing in a kingdom of memory.
+- **Act V — The Crownless.** Deliberately calmer per the existing
+  text ("emotionally the heaviest, not the loudest") — no changes
+  suggested here, the quiet is doing the job on purpose.
+
+### The six tribes, read as postures toward the Veil
+
+`src/data/heartwood/synergies.js` already names six tribes with clean
+mechanical identities (Warden/Fang/Root/Grove/Spirit/Thorn). None of
+this needs to change in code — this is a purely optional mythic reading
+players will never be quizzed on, offered because it happens to line up
+almost exactly with the mechanics that already exist:
+
+- **Warden** (stone/bark protectors — Taunt, Ward, Block). Read as the
+  Root Network's oldest defense: bodies built to stand at the border
+  and simply not move, the way Rootkeeper himself did before his fall.
+  Wardens don't resist the Veil by refusing to hear it — they resist by
+  being too stubborn to act on what they hear. Fitting, if this is ever
+  reflected in flavor text: give Wardens a *higher* Sanity threshold
+  before Affliction sets in, not because they feel less, but because
+  they're built to keep standing regardless.
+- **Fang** (quick strikers — Haste, Chain, Execute, Shatter). Read as
+  the opposite answer to the same problem: don't stand and absorb it,
+  end the fight before the horror has time to register. A Fang unit's
+  whole design language (fast, final, no lingering) reads as a
+  survival strategy against Sanity drain as much as a combat one —
+  they're not brave, they're impatient, on purpose.
+- **Root** (curse-casters — Poison, Weak, Vulnerable, Stun). These are
+  the units already speaking a borrowed language — per the Hollow King's
+  origin story, the void "gave" power, and here is where that gift
+  shows up mechanically: curses are Veil-adjacent knowledge turned into
+  a weapon, the same "borrowed, not the forest's own" symbols Spacemonkey
+  found on the broken roots in Act I ("nämä symbolit... ne ovat
+  lainattuja"). If flavor text ever ties Root units to a Sanity cost of
+  their *own* for casting curses, that would track directly with this.
+- **Grove** (menders/buffers — heal, Cleanse). The one tribe explicitly
+  built to undo what the others suffer. Cleanse already exists as a
+  status-removal mechanic; the natural in-fiction reading is that Grove
+  units are the ones who can also ease Affliction specifically —
+  Saplight-menders soothing an overloaded Saplight-body back toward
+  quiet. A clean, low-risk future hook: if Sanity-cleansing ever needs
+  a gameplay answer, Grove is already thematically who should carry it.
+- **Spirit** (ephemeral/otherworldly — self-Ward-as-evasion, Revive,
+  summon). Already the tribe closest to the cosmic side of this world
+  by design — not quite present the way a Thorn or Warden is present.
+  Read as beings partway into Echo-state already (kin to the Heartwood
+  Echoes and Hollow Echoes described in the Bestiary), which is exactly
+  why they evade rather than block, and why they can be summoned or
+  revived rather than simply surviving — they were never fully "there"
+  to lose. The natural reading: Spirit units take little or no Sanity
+  damage from witnessing horror, because they already partly belong to
+  the same place the horror comes from.
+- **Thorn** (raw brutes — no distinguishing mechanic, deliberately the
+  largest tribe in the roster). Ordinary. Not touched by the Veil, not
+  descended from Echoes, not old enough to be Rootkeeper-stubborn — just
+  the forest's rank and file, thrown at something none of them signed
+  up to understand. Precisely because they're mechanically the plainest
+  tribe, they're the most human-scaled lens for horror: Thorn units are
+  who the "evil spirits" line in the brief is actually about (see next
+  section) — the ones for whom the Veil really does just look like a
+  monster, because they don't have Root's borrowed vocabulary or
+  Spirit's half-belonging to make sense of it.
+
+### Resolving "evil spirits" without flattening the Veil
+
+The brief's own phrase was *pahat henget* — evil spirits. Worth being
+explicit about how that sits next to a Veil that this whole document
+insists, three separate acts running, is *not* evil, only alone: **both
+are true, at different distances.** Every faction in this doc that gets
+close enough to actually talk to the Veil — the First, Spacemonkey,
+the Veilbound itself — ends up saying some version of "it isn't evil."
+But nothing in the doc has a rank-and-file Thorn unit's point of view
+mid-fight, three feet from a Riftling, Sanity draining. From there, at
+full sprint, mid-combat, with no time for the Veilbound's slow revised
+understanding — it reads as a monster. It *should* read as a monster,
+in the moment. That tension isn't a contradiction to resolve, it's the
+actual shape of Darkest Dungeon's tone: the squad-level truth is horror,
+the story-level truth is tragedy, and the run only tells you the second
+one once you've survived enough of the first. "Evil spirits" is what
+the game feels like at 2 AM losing units; the Hollow King's origin
+story is what the game means once you've beaten it. Recommend keeping
+both registers on purpose rather than picking one — combat barks,
+enemy flavor text, and Sanity-loss flavor text can stay squarely in
+"something is very wrong and it is looking at you," while the Act
+bosses' dialogue (already written, untouched by this pass) keeps
+delivering the sadder truth on defeat, exactly as Marc wrote it.
+
+### Branching-path texture (Slay the Spire-style node hooks)
+
+The FloorChoice branching-route system (PR #333/#336) already ties
+node choice to the Act/Story-tier system. This section is *not* new
+mechanics — just short per-node-type flavor text this layer is
+proposing as a future content pass, written so a future session can
+drop it straight into FloorChoice's existing node copy without
+re-deriving tone from scratch. Examples, keyed to node types already
+named in the Acts above, weighted toward III-IV where the horror is
+sharpest:
+
+- **Battle node, Act III (Veilborn common enemy)**: *"Roots don't grow
+  here anymore. Something else does."*
+- **Elite node, Act III (Rift Guardian)**: *"It isn't guarding a door.
+  There is no door. It's guarding a shape that used to be one."*
+- **Event node, Act III (near the Echo Market, not the scripted story
+  beat itself — an ambient minor node)**: *"Small lights, out past the
+  path. They're not calling you by name yet. Give them time."*
+- **Battle node, Act IV (Hollowborn Husk)**: *"It walks like something
+  that remembers walking, not like something that needs to."*
+- **Elite node, Act IV (Hollow Herald)**: *"It isn't going to hurt you.
+  It's going to tell you the truth. Pick which one you'd rather have
+  happen."*
+- **Shop node, Act IV (Hollow Merchant)**: *"Everything here has a
+  price. None of the prices are Essence."*
+- **Memory Shrine, any Act**: *"The roots hold still for you here. Just
+  long enough to remember you were the one who chose."* — a generic
+  line deliberately reusable across acts, since Memory Shrines are
+  meta-progression and shouldn't carry act-specific dread.
+
+These are drafts, not final copy — flagged as a genuine, low-risk
+follow-up task for a future content pass (touching only node-flavor
+strings inside the existing FloorChoice data, not its logic) rather
+than something done in this documentation-only pass.
+
+### Guildrun hook — named companions, for Hero Relationships v1
+
+The backlog already carries "Hero Relationships v1" as a separate item.
+This layer plants hooks without implementing anything:
+
+- Spacemonkey is already, functionally, the game's one deep
+  relationship — his arc across five Acts *is* a relationship story.
+  Hero Relationships v1 doesn't need to invent that pattern, it needs
+  to let players form small versions of it with recruited units. A
+  cheap narrative hook for whoever builds that: let a unit that
+  witnesses a *bonded* ally's death (once bonds exist) take a **larger**
+  Sanity hit than an unbonded one would from the same death — Echo
+  Strata theory above already supports this in-fiction (a stronger bond
+  presumably means a stronger shared channel), and it gives the
+  relationship mechanic real narrative teeth the moment it exists,
+  without needing new lore to justify it.
+- A second, smaller hook: Grove units (established above as the
+  Sanity-cleansing tribe) would be a natural first "healer bond" pairing
+  for whoever prototypes Hero Relationships — a Grove unit bonded to a
+  Thorn unit (the two ends of this doc's Sanity spectrum) is the
+  cleanest possible first relationship to build and test with.
+
+Neither hook requires code in this pass — flagged for whoever picks up
+Hero Relationships v1 next.
+
+### Explicitly not done in this pass
+
+Per the task brief: no `.jsx`/`.js` files touched, no wiring into
+`FloorChoice`, `trials.js`, `runEngine.js`, or the in-progress Sanity
+status-effect code. Everything above is documentation, meant to give
+whoever builds those systems next a coherent "why" to build against —
+consistent with how every other section of this document has been
+used so far (reference content, wired in incrementally, on Marc's own
+schedule).
