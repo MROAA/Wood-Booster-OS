@@ -114,6 +114,19 @@ import thornwispImg from "../../assets/heartwood/units/thornwisp.jpg"
 import ashcallerImg from "../../assets/heartwood/units/ashcaller.jpg"
 import stormveilImg from "../../assets/heartwood/units/stormveil.jpg"
 import mistveilImg from "../../assets/heartwood/units/mistveil.jpg"
+// Marc's follow-up scope: "käytä kaikki kuvat...luot unitteja/
+// itemeitä kuville" (use all the images, create units/items for them)
+// - 6 brand-new units built around striking leftover art that didn't
+// match any existing unimaged def, rather than letting good portraits
+// go unused. Same unit() helper, same mechanic vocabulary (nothing
+// invented) - each one's kit/tier/tribe picked to fit its own image's
+// theme, same as every curated pick above.
+import chimeraImg from "../../assets/heartwood/units/chimera.jpg"
+import sunscaleImg from "../../assets/heartwood/units/sunscale.jpg"
+import abyssongImg from "../../assets/heartwood/units/abyssong.jpg"
+import huldraImg from "../../assets/heartwood/units/huldra.jpg"
+import rootwingImg from "../../assets/heartwood/units/rootwing.jpg"
+import marshlightImg from "../../assets/heartwood/units/marshlight.jpg"
 import swiftclawImg from "../../assets/heartwood/units/swiftclaw.jpg"
 import thistlemawImg from "../../assets/heartwood/units/thistlemaw.jpg"
 import briarbladeImg from "../../assets/heartwood/units/briarblade.jpg"
@@ -1153,6 +1166,62 @@ const BASE_UNITS = {
     // hybrid's lower per-hit baseline.
     passive: [{ type: "applyBuff", id: "execute", amount: 2 }],
     image: snareclawImg,
+  }),
+  // 6 brand-new units (not a base-class rename or a fusion) added for
+  // striking leftover art in Marc's kuvia/ pool that didn't match any
+  // existing unimaged def - see the import block's comment above.
+  // Each reuses the roster's own established mechanic vocabulary
+  // (Chain/Ward/Taunt/Weak/Poison), just applied to a fresh id/name/
+  // tribe fitting its own portrait, same as every curated unit above.
+  chimera: unit("chimera", "Chimera", "sword", 3, "dps", [{ type: "attack", amount: 9 }], {
+    // Three heads, one extra bite - Chain's flavor already IS "a bonus
+    // hit when this kill lands," so a second/third head finishing off
+    // whoever's left standing needs no new mechanic.
+    chainDamage: 6,
+    image: chimeraImg,
+  }),
+  sunscale: unit("sunscale", "Sunscale", "shield", 2, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 4 },
+  ], {
+    // A regal, armored guardian - repeating Block every round, the
+    // same turnStart-trigger shape The Emperor already established.
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
+    image: sunscaleImg,
+  }),
+  abyssong: unit("abyssong", "Abyssong", "moonGlyph", 2, "support", [
+    { type: "heal", amount: 3 },
+    { type: "attack", amount: 4 },
+  ], {
+    // A siren's song saps its target's own strength on every hit -
+    // Weak-on-hit, the same onDealDamage shape Duskweaver established.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } }],
+    image: abyssongImg,
+  }),
+  huldra: unit("huldra", "Huldra", "root", 2, "dps", [
+    { type: "attack", amount: 5 },
+    { type: "debuff", id: "poison", amount: 2, target: "target" },
+  ], {
+    image: huldraImg,
+  }),
+  rootwing: unit("rootwing", "Rootwing", "shield", 3, "tank", [
+    { type: "block", amount: 7 },
+    { type: "attack", amount: 5 },
+  ], {
+    // A world-tree guardian planting itself between the squad and
+    // whatever's attacking - Taunt at battle start, same mechanism
+    // Stoneheart/Ironbark already established.
+    passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+    image: rootwingImg,
+  }),
+  marshlight: unit("marshlight", "Marshlight", "heart", 2, "support", [
+    { type: "block", amount: 4 },
+    { type: "heal", amount: 3 },
+  ], {
+    // A will-o'-the-wisp - self-Ward-as-evasion, Spirit tribe's own
+    // established identity (Mosswalker/Palefen already carry it).
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    image: marshlightImg,
   }),
 }
 
