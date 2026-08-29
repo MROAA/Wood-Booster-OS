@@ -207,7 +207,15 @@ export const RUN_PATH = [
 // AND still recruit something, or skip leveling and recruit ~6-7
 // common units instead. WIN_ESSENCE is untouched - this is about
 // opening flexibility, not the ongoing per-battle income rate.
-const START_ESSENCE = 450
+//
+// 450 turned out too generous once actually played - Marc, right
+// after: "alkuessenceä on nyt liikaa vähennetään sitä puolella" (there's
+// too much starting Essence now, cut it in half), then refined to an
+// explicit number: "tai vähennetään alkuessence 200" (or reduce
+// starting essence to 200). Using his explicit number over the
+// half-of-450 math (225) - still comfortably above one common recruit
+// (65) with change left, but no longer stretches to a free Level-Up.
+const START_ESSENCE = 200
 const WIN_ESSENCE = 250
 // Marc: "now it doesn't feel like anything purchasing the units or
 // items" - the Essence RATE has already been tuned back and forth
