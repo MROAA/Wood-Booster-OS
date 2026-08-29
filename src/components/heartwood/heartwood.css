@@ -299,6 +299,11 @@
   background: linear-gradient(160deg, color-mix(in srgb, var(--hw-rune) 22%, transparent), transparent 60%);
   border: 1px solid color-mix(in srgb, var(--hw-rune) 55%, transparent);
   pointer-events: none;
+  /* Used to pop in instantly with the wash at full strength on the very
+     first frame - reuses the same fade-in keyframe every other
+     conditional overlay in this file already uses (Marc: "kaikki pitää
+     animoida"), instead of a bespoke one just for this. */
+  animation: hw-section-fade-in 300ms ease-out both;
 }
 
 .hw-frost-badge {
@@ -485,12 +490,38 @@
   flex-direction: column;
   gap: 6px;
   cursor: pointer;
-  transition: box-shadow 150ms ease, border-color 150ms ease;
+  transition: box-shadow 150ms ease, border-color 150ms ease, filter 150ms ease, opacity 200ms ease;
   user-select: none;
   /* Deliberately NOT overflow:hidden - the existing rare-tier glow and
      golden-fusion shimmer above both rely on their box-shadow spreading
      outside the card's own box, which overflow:hidden would clip. */
   position: relative;
+}
+
+/* Physical-card hover (Marc's PRD sect. 9/18-20/31: cards should feel
+   like objects, not flat web UI - "sen pitää viettää minut
+   visuaalisuudellaan"). The lift/scale/tilt itself is driven from
+   UnitCard.jsx via framer-motion's whileHover + mouse-tracked
+   rotateX/rotateY motion values, NOT a CSS `transform` rule here - this
+   card already carries a framer-motion `animate` (the mount pop-in
+   above), which means framer-motion is already writing this element's
+   inline `transform` on every render; a plain `:hover { transform: … }`
+   CSS rule would just always lose to that inline style and silently do
+   nothing (verified before writing this, not assumed - the exact kind
+   of invisible bug Marc's "ei saa tehdä virheitä" line warns about).
+   `box-shadow` and `border-color`/`filter`, on the other hand, are
+   untouched by framer-motion, so the "deepening" half of hover lives
+   safely here in plain CSS. `filter: drop-shadow` rather than editing
+   `box-shadow` directly - every rarity tier below already defines its
+   own `box-shadow` stack (common/uncommon/rare/fused all differ), and
+   a drop-shadow composites as an independent extra layer on top of
+   whichever one is active instead of needing a hover variant per tier.
+   Distances (8px/13px) reuse this repo's own Fibonacci spacing tokens
+   (src/styles/designTokens.css --space-1/--space-2, ~1.618 golden-ratio
+   progression) rather than arbitrary px, per Marc's geometry note. */
+.hw-card:hover:not([data-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  filter: drop-shadow(0 var(--space-1, 8px) var(--space-2, 13px) rgba(0, 0, 0, 0.4));
 }
 
 /* Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
@@ -507,8 +538,59 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 0 1px color-mix(in srgb, var(--hw-moss) 55%, transparent);
 }
 
+/* Rarity needs to read as more than "which color is the glow" (Marc's
+   PRD sect. 18-20: rarity visible "muunakin kuin värinä" - as
+   something other than just color). Rare gets a genuine two-part
+   treatment layered onto the existing soft ember glow: a crisp, 0-blur
+   ring (a real border-like edge, not a haze) PLUS the sparkle below -
+   so a rare card is still visually distinct from an uncommon one even
+   to someone who can't tell ember from moss. Uncommon deliberately
+   keeps its plain soft-glow-only look from above; the harder edge is
+   reserved for rare+ so it still reads as a step up, same "common gets
+   nothing at all" restraint that already made uncommon/rare feel
+   earned rather than universal. */
 .hw-card[data-tier="rare"] {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 10px 1px color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 0 10px 1px color-mix(in srgb, var(--hw-ember) 55%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--hw-ember) 65%, transparent);
+}
+
+/* Sparkle accent, rare+ only ("used sparingly", the same restraint the
+   PRD's own damage-number Critical styling already established for
+   this game - not every card should shimmer, or none of them would
+   read as special). Three points positioned by the golden angle
+   (~137.5°, the same angle phyllotaxis uses to space leaves/seeds
+   around a stem - a deliberate nod to this game's forest setting) at a
+   radius of 38.2% of the card (the golden-ratio conjugate, 1 - 1/φ)
+   from center, rather than eyeballed coordinates:
+     θ0 = -90°                  -> (50%, 12%)
+     θ1 = θ0 + 137.5°  = 47.5°  -> (76%, 78%)
+     θ2 = θ1 + 137.5°  = 185°   -> (12%, 47%)
+   A separate ::after from the golden-fusion shimmer's own box-shadow
+   animation above (data-fused) - both can be active at once on a fused
+   rare-tier unit without fighting over the same layer. */
+.hw-card[data-tier="rare"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 2px at 50% 12%, color-mix(in srgb, var(--hw-ember) 90%, white 15%), transparent 65%),
+    radial-gradient(circle 1.5px at 76% 78%, color-mix(in srgb, var(--hw-ember) 85%, white 15%), transparent 65%),
+    radial-gradient(circle 1.5px at 12% 47%, color-mix(in srgb, var(--hw-ember) 85%, white 15%), transparent 65%);
+  opacity: 0;
+  animation: hw-rare-sparkle 3.4s ease-in-out infinite;
+}
+
+@keyframes hw-rare-sparkle {
+  0%, 100% { opacity: 0; }
+  15% { opacity: 0.9; }
+  22% { opacity: 0.15; }
+  48% { opacity: 0.8; }
+  55% { opacity: 0.1; }
+  78% { opacity: 0.85; }
+  85% { opacity: 0.15; }
 }
 
 /* Golden/upgraded look (UnitCard.jsx's data-fused, a Tier 2 Fusion
@@ -589,6 +671,12 @@
 }
 
 .hw-card[data-disabled="true"] {
+  /* Was an instant opacity jump - now eases via the `opacity` entry
+     added to .hw-card's own transition list above, so affordability
+     flipping (Essence spent/gained mid-shop) reads as a state change
+     instead of a flicker. Marc: "kaikki pitää animoida" (everything
+     must be animated) - no card state in this component should be a
+     hard cut. */
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -1660,6 +1748,47 @@
   35% { box-shadow: 0 0 28px 8px color-mix(in srgb, var(--hw-ember) 85%, transparent); transform: scale(1.12) rotate(-2deg); }
   60% { transform: scale(1.05) rotate(2deg); }
   100% { box-shadow: 0 0 0 0 transparent; transform: scale(1) rotate(0deg); }
+}
+
+/* Purchase confirmation (SquadDraft.jsx's handleRecruit) - Marc's PRD
+   sect. 9/18-20/31: "selkeä visuaalinen kuittaus osto/equip-
+   toiminnoille" (clear visual confirmation for purchase/equip). A
+   third, distinct wrapper class alongside -reforged (rune, gear
+   change) and -fused (ember, the rare celebratory merge) - moss here
+   specifically, this game's established "a good thing happened" color
+   (same badge the Essence-gain flash and the synergy-met/tribe-match
+   ring already use), so a purchase's confirmation is legible as
+   positive at a glance even before reading anything. Wraps a plain
+   `<div>` around UnitCard, not `.hw-card` itself, exactly like
+   -reforged/-fused above - a separate DOM node the animation can own
+   outright, so it never has to fight the child card's own framer-
+   motion-controlled transform (see UnitCard.jsx's hover comment for
+   why that matters) or the rare-tier sparkle's own ::after layer. The
+   ring expands to 13px (--space-2, this repo's existing Fibonacci
+   scale) rather than an arbitrary radius. */
+.hw-card--purchased {
+  animation: hw-purchase-pulse 550ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+@keyframes hw-purchase-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.hw-card--purchased::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  pointer-events: none;
+  animation: hw-purchase-ring 550ms ease-out;
+}
+
+@keyframes hw-purchase-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-moss) 75%, transparent); opacity: 1; }
+  100% { box-shadow: 0 0 0 var(--space-2, 13px) color-mix(in srgb, var(--hw-moss) 0%, transparent); opacity: 0; }
 }
 
 /* Item slots (items.js, ITEM_SLOTS): 3 small pips under each bench
