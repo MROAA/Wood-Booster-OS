@@ -39,8 +39,18 @@
   --hw-fib-11: 610px;
 
   background-color: var(--hw-bg);
+  /* Marc, live while looking at the shop screen: "nykyinen taustakuva
+     on tylsä ja yksinkertainen" / "ei näy vielä taustakuvana". The
+     image itself (battle-bg.jpg - a rune-lit World Tree root system)
+     is not boring at all; this 55%->78% dark overlay was crushing an
+     already-dark photo into near-flat black before it ever reached
+     the screen. Lightened to 20%->38% so the runes/moss/god-rays
+     actually read, kept as a top-to-bottom gradient (not flat) so
+     header text near the top - which sits directly on this background
+     with no card behind it - still keeps enough contrast to stay
+     legible. */
   background-image:
-    linear-gradient(color-mix(in srgb, var(--hw-bg) 55%, transparent), color-mix(in srgb, var(--hw-bg) 78%, transparent)),
+    linear-gradient(color-mix(in srgb, var(--hw-bg) 20%, transparent), color-mix(in srgb, var(--hw-bg) 38%, transparent)),
     var(--hw-bg-image, none);
   background-size: cover;
   background-position: center;
