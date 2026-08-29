@@ -1261,14 +1261,64 @@
   border: 1px solid var(--hw-border);
 }
 
+/* Structural redesign (roadmap "Kauppanaytto kokonaan uusiksi") -
+   problem 1 (tausta/lava-tunnelma) and problem 4 (koko paneeli/
+   laatikko-tuntuma) landed together here, since they're the same
+   fix seen from two angles: a flat tinted rectangle becomes a
+   warm-lit "stall" with real depth. The spotlight pools from above
+   at 38.2% down - the same golden-ratio focal point .hw-arena
+   (Phase 2 combat stage, above) already established for "this is a
+   lit stage, not a flat panel," reused here rather than inventing a
+   second convention. A soft glow band low in the panel grounds the
+   offer cards on a surface instead of a grid cell. The corner
+   radius is deliberately asymmetric ("carved wood" rather than a
+   stamped rectangle) and mirrored between the two panels so Market
+   and Your Squad read as a matched pair, not two random shapes. A
+   layered ambient+contact shadow (vs. the old flat 1px border) is
+   what actually sells "resting object," not a cut-out box.
+   Marc's later clarification, same session: the visual target is
+   "darkest dungeon seka hearthstone" - Hearthstone's inviting stage
+   PLUS Darkest Dungeon's dark, high-contrast, hand-painted/gothic
+   mood, not warmth alone. So the spotlight above is deliberately
+   paired with an edge-darkening radial-gradient ring around it (the
+   first layer below) - light pooling out of real shadow, the same
+   single-source-in-an-oppressive-space contrast Darkest Dungeon's
+   own lighting uses, rather than an evenly warm-lit box. Shadows
+   were also deepened (0.5/0.3 alpha -> 0.62/0.4) for the same
+   reason - a flatter, higher-contrast "painted" edge instead of a
+   soft ambient lift. */
 .hw-panel--market {
-  background: color-mix(in srgb, var(--hw-ember) 6%, var(--hw-panel));
+  background:
+    radial-gradient(ellipse 100% 90% at 50% 50%, transparent 45%, color-mix(in srgb, black 38%, transparent) 100%),
+    radial-gradient(ellipse 75% 50% at 50% 38.2%, color-mix(in srgb, var(--hw-ember) 12%, transparent), transparent 68%),
+    linear-gradient(to bottom, transparent 55%, color-mix(in srgb, var(--hw-ember) 7%, transparent) 100%),
+    color-mix(in srgb, var(--hw-ember) 5%, var(--hw-panel));
   border-color: color-mix(in srgb, var(--hw-ember) 35%, var(--hw-border));
+  border-radius: 34px 13px 34px 13px / 21px 34px 21px 34px;
+  box-shadow: 0 21px 34px -13px rgba(0, 0, 0, 0.62), 0 3px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .hw-panel--squad {
-  background: color-mix(in srgb, var(--hw-moss) 6%, var(--hw-panel));
+  background:
+    radial-gradient(ellipse 100% 90% at 50% 50%, transparent 45%, color-mix(in srgb, black 38%, transparent) 100%),
+    radial-gradient(ellipse 75% 50% at 50% 38.2%, color-mix(in srgb, var(--hw-moss) 10%, transparent), transparent 68%),
+    linear-gradient(to bottom, transparent 55%, color-mix(in srgb, var(--hw-moss) 6%, transparent) 100%),
+    color-mix(in srgb, var(--hw-moss) 5%, var(--hw-panel));
   border-color: color-mix(in srgb, var(--hw-moss) 35%, var(--hw-border));
+  border-radius: 13px 34px 13px 34px / 34px 21px 34px 21px;
+  box-shadow: 0 21px 34px -13px rgba(0, 0, 0, 0.62), 0 3px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Buttons that actually live inside these two panels (Reroll/Freeze
+   in Market, Reforge/Sell on each bench card in Your Squad) get a
+   softer, pill-shaped treatment scoped to just this screen - the
+   shared .hw-move-btn rule itself (used by Continue, Retrain, Rank
+   Up etc. on this screen's own header AND on every other Hearthwood
+   screen) is deliberately left untouched, so nothing outside these
+   two panels changes shape. */
+.hw-panel--market .hw-move-btn,
+.hw-panel--squad .hw-move-btn {
+  border-radius: 999px;
 }
 
 .hw-panel-title {
@@ -1317,6 +1367,204 @@
   justify-content: center;
   gap: var(--space-2, 13px);
   padding: var(--space-3, 21px) 0;
+}
+
+/* ============================================================
+   Market screen structural redesign (roadmap "Kauppanaytto
+   kokonaan uusiksi (Hearthstone-tason rakenne)") - Marc sent two
+   screenshots of this screen taken at different points that looked
+   IDENTICAL to him: prior hover/rarity/transition polish never
+   touched the actual STRUCTURE. He named 4 concrete problems:
+   1) background is a photo behind boxes, no stage feel
+   2) offer cards are a uniform small row, not a featured moment
+   3) Essence is a bare number in a tiny badge, not valuable-feeling
+      (extended later, same session: EVERY resource should get a
+      real physical/symbolic form, not just a number counter)
+   4) every panel/button is a plain rectangle, nothing organic
+   Addressed below by reusing this file's own established golden-
+   ratio/Fibonacci vocabulary (--hw-phi/--hw-fib-* tokens above,
+   .hw-arena's 38.2%/61.8% vignette split, .hw-commander-card's
+   233px Fibonacci card width) rather than inventing a fourth,
+   different style - per Marc's explicit ask to imitate
+   Hearthstone's STRUCTURE while keeping Hearthwood's own dark
+   mossy-forest identity, not its colors/art. CSS + markup only:
+   no new art assets, zero changes to SquadDraft.jsx's props,
+   state, handlers, or any data/logic file - presentation layer
+   only, every existing interaction (buy/reroll/freeze/equip/tab)
+   keeps calling exactly the same functions it already did. */
+
+/* Problem 1, screen-wide half: a vignette across the whole
+   scrollable screen so it reads as a bounded place rather than an
+   open photo. Deliberately shaped differently from .hw-arena's own
+   vignette (that one frames a fixed-size board; this wraps a much
+   taller, scrolling screen with a header/tabs/panels stack, so a
+   strong spotlight ellipse anchored to a fixed % of ITS height
+   would drift off wherever the goods actually render) - a top/edge
+   darkening here instead of a centered spotlight. Marc's later
+   clarification: the target mood is "darkest dungeon seka
+   hearthstone" - both, in balance, not warmth alone - so this
+   darkens more than a purely inviting vignette would (20% -> 34%
+   black), the oppressive dark-forest half of that pairing; the
+   warm half (the actual stage light) lives on .hw-panel--market/
+   --squad themselves, below, positioned against the panel that
+   actually holds the goods rather than guessed at a fixed % down a
+   variable-height screen. */
+.hw-market-stage {
+  position: relative;
+  background: radial-gradient(ellipse 140% 90% at 50% 15%, transparent 48%, color-mix(in srgb, black 34%, transparent) 100%);
+}
+
+/* Problem 2: the "For sale" units grid only (SquadDraft.jsx adds
+   this class alongside .hw-select-grid/.hw-deck-preview on that one
+   grid - the Items grid and the Your Squad/bench grid keep their
+   existing size, this is deliberately the one featured moment on
+   the screen, not a blanket size change). 233px is not an arbitrary
+   "bigger" number - it's --hw-fib-9, the same Fibonacci width
+   .hw-commander-card already uses for this game's other "this is
+   the important choice on screen" moment, so the two dramatic-card
+   screens in this game now share one deliberate scale instead of
+   each inventing its own. Every internal measurement below scales
+   with it (portrait/glyph/type), not just the outer box. */
+.hw-market-featured-grid {
+  grid-template-columns: repeat(auto-fit, var(--hw-fib-9, 233px));
+  gap: var(--space-4, 34px);
+  padding-top: var(--space-4, 34px);
+  padding-bottom: var(--space-2, 13px);
+}
+
+.hw-market-featured-grid .hw-card {
+  width: var(--hw-fib-9, 233px);
+  min-width: var(--hw-fib-9, 233px);
+  padding: var(--space-3, 21px) var(--space-2, 13px);
+  gap: var(--space-2, 13px);
+}
+
+.hw-market-featured-grid .hw-card-portrait {
+  height: 200px;
+}
+
+.hw-market-featured-grid .hw-card-art {
+  width: 55px;
+  height: 55px;
+}
+
+.hw-market-featured-grid .hw-card-name {
+  font-size: 16px;
+}
+
+.hw-market-featured-grid .hw-card-class {
+  font-size: 11px;
+}
+
+.hw-market-featured-grid .hw-card-desc {
+  font-size: 12px;
+}
+
+.hw-market-featured-grid .hw-card-cost {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+}
+
+.hw-market-featured-grid .hw-card-hp {
+  font-size: 14px;
+}
+
+.hw-market-featured-grid .hw-card-hp .hw-effect-icon-glyph {
+  width: 15px;
+  height: 15px;
+}
+
+/* Problem 4, one more piece: a quiet organic separator between "For
+   sale" and "Items" instead of relying purely on margin - a thin
+   gradient rule fading at both ends, not a hard ruled line, so the
+   two sections still feel like one continuous stall rather than two
+   stacked boxes. */
+.hw-market-divider {
+  height: 1px;
+  margin: var(--space-4, 34px) 0 var(--space-2, 13px);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--hw-ember) 45%, transparent) 50%, transparent);
+}
+
+/* Problem 3 (valuutta/resurssien esitys), extended by Marc to cover
+   Resource UI generally: a resource gets a real physical/symbolic
+   form - "hehkuva orbi/kide" (a glowing orb/crystal), not "+0 in a
+   circle." Replaces the old .hw-essence-badge markup in
+   SquadDraft.jsx with a heavier, purse-like pill holding a distinct
+   glowing medallion, sized/positioned in normal document flow
+   (never position:fixed) - a fixed element in this screen's
+   top-right corner is exactly the .hw-exit-link collision class of
+   bug the paddingRight:130 hack two rows up in SquadDraft.jsx
+   already had to work around once; this only needed a heavier
+   visual treatment; it did not need to leave the flow. Reuses the
+   existing gain/spend flash keyframes (hw-essence-flash-gain/spend,
+   defined above for the old badge) completely unchanged - only the
+   container's shape/weight changed, the event-driven flash logic
+   (SquadDraft.jsx's essenceFlash state/effect) is untouched. */
+.hw-essence-display {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 13px);
+  padding: var(--space-1, 8px) var(--space-3, 21px) var(--space-1, 8px) var(--space-1, 8px);
+  border-radius: 999px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--hw-ember) 20%, var(--hw-panel)), var(--hw-panel));
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hw-essence-display[data-flash="gain"] {
+  animation: hw-essence-flash-gain 500ms ease-out;
+}
+
+.hw-essence-display[data-flash="spend"] {
+  animation: hw-essence-flash-spend 500ms ease-out;
+}
+
+/* The orb itself - a small molten-amber "gem" medallion with an
+   engraved-looking dark glyph, rather than this file's usual
+   currentColor-on-dark icon convention, so it reads as a crafted
+   object being held rather than a flat status icon. Its idle glow
+   breathe is the one new ambient animation this redesign adds -
+   deliberately the only thing gently alive on this whole screen, so
+   the eye is drawn to the one resource that's actually precious,
+   the same "quiet vs loud" attention hierarchy this file already
+   applies to combat status badges (see that block's own comment,
+   above). --space-4 (34px, Fibonacci) keeps it proportioned to the
+   rest of this file's spacing scale rather than an arbitrary size. */
+.hw-essence-orb {
+  width: var(--space-4, 34px);
+  height: var(--space-4, 34px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--hw-ember) 55%, white 25%), color-mix(in srgb, var(--hw-ember) 75%, black 15%) 75%);
+  animation: hw-essence-orb-glow 3.2s ease-in-out infinite;
+}
+
+.hw-essence-orb-glyph {
+  width: 17px;
+  height: 17px;
+  color: color-mix(in srgb, var(--hw-bg) 85%, black);
+  padding: 0;
+}
+
+@keyframes hw-essence-orb-glow {
+  0%, 100% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-ember) 80%, white 15%), 0 0 8px 1px color-mix(in srgb, var(--hw-ember) 50%, transparent);
+  }
+  50% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-ember) 95%, white 25%), 0 0 15px 4px color-mix(in srgb, var(--hw-ember) 70%, transparent);
+  }
+}
+
+.hw-essence-value {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--hw-ember);
+  letter-spacing: 0.02em;
 }
 
 .hw-enemy-choice {
