@@ -23,6 +23,8 @@ import {
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
 import { CardGlyph } from "./cardArt"
+import marketBanner from "../../assets/heartwood/battle-bg.jpg"
+import hearthwoodLogo from "../../assets/heartwood/hearthwood-logo.png"
 
 // The shop node: recruit whoever you can afford, reroll the rest,
 // leave when ready. No forced pick-one - unlike the old card-reward
@@ -341,64 +343,84 @@ export default function SquadDraft({
         </div>
       </div>
 
-      <div className="hw-section-fade-in" style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+      <div className="hw-section-fade-in" style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flexWrap: "wrap" }}>
         {/* Market Level (Battlegrounds/Guildrun-style tavern tier) -
             raises the shop's rarity ceiling (runEngine.js's
-            rollShop/MARKET_LEVEL_UNLOCKS). Shown next to Essence since
-            it's the run's other core economy dial. */}
-        <span
-          className="hw-badge"
-          title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier units in the shop`}
-        >
-          Market Lv {marketLevel}/{MARKET_LEVEL_MAX}
-        </span>
-        {marketCost === null ? (
-          <span className="hw-badge" style={{ fontSize: 11 }}>Market MAX</span>
-        ) : (
-          <button
-            className="hw-move-btn hw-strip-btn"
-            disabled={runState.essence < marketCost}
-            onClick={onLevelUpMarket}
-            title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier units in future shop rolls`}
-          >
-            Level Up
-            <span className="hw-cost-inline">
-              <CardGlyph name="spark" className="hw-intent-glyph" />
-              {marketCost}
-            </span>
-          </button>
-        )}
-        <span className="hw-badge" title={commander?.description}>
-          <CardGlyph name={commander?.art} className="hw-intent-glyph" />
-          {commander?.name} · Rank {commanderRank}
-        </span>
-        {/* Hero Bending on the Commander (items.js's bendsRoleTo) -
-            the Commander has no UnitCard here (just this text badge),
-            so the "Bent" cue that a bench unit gets on its card face
-            needs its own equivalent rather than silently having no
-            visible marker at all when a Bending item lands on the
-            Commander specifically. */}
-        {commanderBentRole && (
-          <span className="hw-badge hw-badge--bent" title={`Bent to ${commanderBentRole}`}>
-            Bent: {commanderBentRole}
+            rollShop/MARKET_LEVEL_UNLOCKS). Marc, direct: "market lvl
+            on keskeinen osa pelin kehitystä ja siksi saa tärkeän
+            asemapaikan" (Market Level is central to the run's
+            progression and deserves an important position) - was one
+            .hw-badge indistinguishable from every other badge in the
+            row. Now its own bordered widget with real tier pips
+            (●●○, not just "1/3" as text) and the Level Up action
+            fused into the SAME box, so "this pip row and this button
+            are one system" is visible at a glance instead of reading
+            as two separate, coincidentally-adjacent controls.
+            Separately: Marc also flagged Level Up vs. Rank Up (below)
+            as confusable ("en tiedä mikä ero on... kun niitä on
+            kaksi") - giving Market Level its own distinct container,
+            away from the Commander cluster, is the fix: one is
+            clearly "the shop", the other is clearly "your commander". */}
+        <div className="hw-market-level-widget" title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier units in the shop`}>
+          <span className="hw-market-level-label">Market</span>
+          <span className="hw-market-level-pips">
+            {Array.from({ length: MARKET_LEVEL_MAX }, (_, i) => (
+              <span key={i} className="hw-market-level-pip" data-filled={i < marketLevel} />
+            ))}
           </span>
-        )}
-        {rankCost === null ? (
-          <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
-        ) : (
-          <button
-            className="hw-move-btn hw-strip-btn"
-            disabled={runState.essence < rankCost}
-            onClick={onRankUp}
-            title={`Permanently strengthen ${commander?.name}'s squad passive (rank ${commanderRank} -> ${commanderRank + 1})`}
-          >
-            Rank Up
-            <span className="hw-cost-inline">
-              <CardGlyph name="spark" className="hw-intent-glyph" />
-              {rankCost}
+          {marketCost === null ? (
+            <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
+          ) : (
+            <button
+              className="hw-move-btn hw-strip-btn"
+              disabled={runState.essence < marketCost}
+              onClick={onLevelUpMarket}
+              title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier units in future shop rolls`}
+            >
+              Level Up
+              <span className="hw-cost-inline">
+                <CardGlyph name="spark" className="hw-intent-glyph" />
+                {marketCost}
+              </span>
+            </button>
+          )}
+        </div>
+        {/* Commander cluster - deliberately separated from the Market
+            widget above (own container + a visual divider) so Rank Up
+            reads as "about your commander", never "the other Level
+            Up button". */}
+        <div className="hw-commander-cluster">
+          <span className="hw-badge" title={commander?.description}>
+            <CardGlyph name={commander?.art} className="hw-intent-glyph" />
+            {commander?.name} · Rank {commanderRank}
+          </span>
+          {/* Hero Bending on the Commander (items.js's bendsRoleTo) -
+              the Commander has no UnitCard here (just this text badge),
+              so the "Bent" cue that a bench unit gets on its card face
+              needs its own equivalent rather than silently having no
+              visible marker at all when a Bending item lands on the
+              Commander specifically. */}
+          {commanderBentRole && (
+            <span className="hw-badge hw-badge--bent" title={`Bent to ${commanderBentRole}`}>
+              Bent: {commanderBentRole}
             </span>
-          </button>
-        )}
+          )}
+          {rankCost === null ? (
+            <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
+          ) : (
+            <button
+              className="hw-move-btn hw-strip-btn"
+              disabled={runState.essence < rankCost}
+              onClick={onRankUp}
+              title={`Permanently strengthen ${commander?.name}'s squad passive (rank ${commanderRank} -> ${commanderRank + 1})`}
+            >
+              Rank Up
+              <span className="hw-cost-inline">
+                <CardGlyph name="spark" className="hw-intent-glyph" />
+                {rankCost}
+              </span>
+            </button>
+          )}
         {/* Commander Active Power (characters.js's activePower) - a
             "hero power" on top of the Commander's always-on
             squadPassive, once per shop visit, queued for the very next
@@ -459,7 +481,24 @@ export default function SquadDraft({
               </span>
             )
           })}
+          </div>
         </div>
+      </div>
+
+      {/* Bounded banner (see .hw-market-stage's own comment for the
+          "why" - replaces the ambient page background that used to
+          bleed through this exact gap). Reuses the same rune-lit
+          World Tree art as the battle screen's own background - one
+          consistent "what Hearthwood looks like" image across
+          screens, just framed here instead of full-bleed. */}
+      <div className="hw-market-banner">
+        <img src={marketBanner} alt="" />
+        {/* Marc: "haluan logon näkyville johonkin" (I want the logo
+            visible somewhere) - this banner is the one bounded,
+            branded moment on the whole screen, so it does double
+            duty rather than adding a second element purely for the
+            logo. */}
+        <img src={hearthwoodLogo} alt="Hearthwood" className="hw-market-banner-logo" />
       </div>
 
       {showRetrain && (
@@ -512,7 +551,7 @@ export default function SquadDraft({
       )}
 
       {showIntro && (
-        <div className="hw-hint hw-hint--tutorial" style={{ marginTop: 14 }}>
+        <div className="hw-hint hw-hint--tutorial" style={{ marginTop: 6 }}>
           <span>
             Recruit units, place up to 4 on the grid, then watch them fight automatically. Win to earn Essence and
             press on - lose, and the run ends.
@@ -646,11 +685,11 @@ export default function SquadDraft({
           <div className="hw-section-label">
             Items
           </div>
-          <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
+          <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4, marginBottom: 0 }}>
             Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander above
             or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.
           </p>
-          <div className="hw-select-grid hw-deck-preview">
+          <div className="hw-select-grid hw-deck-preview hw-market-items-grid">
             {itemOffers.map((def) => (
               <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
             ))}

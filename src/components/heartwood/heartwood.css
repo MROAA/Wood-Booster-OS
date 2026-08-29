@@ -239,6 +239,63 @@
   color: var(--hw-muted);
 }
 
+/* Market Level widget (SquadDraft.jsx's own comment has the full
+   reasoning) - Marc: this dial is central to the run's progression
+   and needed a position that says so, not one badge among many.
+   Ember-accent border (this game's "important dial" color everywhere
+   else - essence orb, rarity glows) instead of the muted default
+   badge border, and the pip row makes "1/3" a real progress bar at a
+   glance instead of two digits you have to read. */
+.hw-market-level-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-ember) 8%, var(--hw-panel));
+}
+
+.hw-market-level-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hw-muted);
+  font-weight: 600;
+}
+
+.hw-market-level-pips {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.hw-market-level-pip {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--hw-ember);
+  background: transparent;
+}
+
+.hw-market-level-pip[data-filled="true"] {
+  background: var(--hw-ember);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--hw-ember) 65%, transparent);
+}
+
+/* Commander cluster - a plain grouping container (no border of its
+   own; the Market widget's border above is what needs to visually
+   compete for attention here, not this one) with a left divider so
+   the eye reads a real seam between "the shop's dial" and "your
+   commander's actions" instead of one continuous row of controls. */
+.hw-commander-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-left: 14px;
+  border-left: 1px solid var(--hw-border);
+}
+
 /* Quiet vs loud (Marc, shown a real screenshot of a mid-run fight: 5
    units already carrying 2-3 identically-styled badges each before
    the fight even started - "the challenge is providing enough
@@ -942,6 +999,21 @@
   line-height: 1.3;
 }
 
+/* Item cards specifically (not unit/reward cards elsewhere using this
+   same base class) - description length varies per random shop roll,
+   so an unclamped card's height was never a fixed, predictable
+   contribution to this screen's hard "no scroll" fit budget - a
+   wordier roll could silently reintroduce the exact overflow bug this
+   whole pass exists to fix. Clamped to 3 lines with a title tooltip
+   (ItemCard.jsx already sets one) as the fallback for the rare
+   description that actually gets cut. */
+.hw-item-card .hw-card-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .hw-energy-row {
   display: flex;
   gap: 6px;
@@ -1336,7 +1408,7 @@
      Squad below, no reordering needed elsewhere. */
   grid-template-columns: 1fr;
   gap: 24px;
-  margin-top: 18px;
+  margin-top: 8px;
   align-items: start;
 }
 
@@ -1496,7 +1568,56 @@
    variable-height screen. */
 .hw-market-stage {
   position: relative;
-  background: radial-gradient(ellipse 140% 90% at 50% 15%, transparent 48%, color-mix(in srgb, black 34%, transparent) 100%);
+  padding-top: var(--space-2, 13px);
+  padding-bottom: var(--space-2, 13px);
+  /* Was a translucent vignette letting .hw-root's own ambient
+     background image bleed through around/above the panel - Marc,
+     marking up a screenshot directly: circled that exposed sliver of
+     background and asked for it OFF this screen entirely, replaced
+     by one bounded picture (.hw-market-banner below) instead of an
+     ambient full-bleed backdrop ("tuo eri paikkaan ja rajatulle
+     alueelle taustakuva jonka annoin"). Fully opaque now - no stop
+     in this gradient exposes what's behind .hw-root any more, on
+     THIS screen only (every other screen's own background is
+     untouched). */
+  background: radial-gradient(ellipse 140% 90% at 50% 15%, color-mix(in srgb, black 8%, var(--hw-bg)) 0%, color-mix(in srgb, black 38%, var(--hw-bg)) 100%);
+}
+
+.hw-market-banner {
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 6px 0 4px;
+  border: 1px solid var(--hw-border);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+
+.hw-market-banner img:first-child {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+.hw-market-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--hw-bg) 65%, transparent) 0%, transparent 35%, transparent 65%, color-mix(in srgb, var(--hw-bg) 65%, transparent) 100%);
+}
+
+.hw-market-banner-logo {
+  position: absolute;
+  top: 50%;
+  right: 21px;
+  transform: translateY(-50%);
+  height: 38px;
+  width: auto;
+  opacity: 0.92;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
 }
 
 /* Problem 2: the "For sale" units grid only (SquadDraft.jsx adds
@@ -1537,7 +1658,22 @@
    was originally 200px and pushed the panel 204px past the
    viewport). */
 .hw-market-featured-grid .hw-card-portrait {
-  height: 108px;
+  height: 64px;
+}
+
+/* Unit names are random per shop roll and this card is narrower than
+   .hw-commander-select's own 233px-wide card that first used this font
+   size - an occasional long name (e.g. "Wraithcaller") wraps to 2
+   lines and silently adds ~20px to this row's height on some rolls
+   but not others. Clamped for the same reason the item descriptions
+   are (.hw-item-card .hw-card-desc above) - a fixed, predictable
+   contribution to the fit budget regardless of which units the RNG
+   offers this visit. */
+.hw-market-featured-grid .hw-card-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .hw-market-featured-grid .hw-card-art {
@@ -1547,6 +1683,17 @@
 
 .hw-market-featured-grid .hw-card-name {
   font-size: 16px;
+}
+
+/* Items row specifically - the base .hw-select-grid's 21px top+bottom
+   padding is shared across 6+ different screens (commander select,
+   relics, rewards, formation bench...), too broad to touch for one
+   screen's fit budget. This row sits last on the Market screen with
+   nothing visually needing breathing room below it, so it can run
+   tighter than the shared default. */
+.hw-market-items-grid {
+  padding-top: var(--space-1, 8px);
+  padding-bottom: 0;
 }
 
 .hw-market-featured-grid .hw-card-class {
@@ -1579,7 +1726,7 @@
    stacked boxes. */
 .hw-market-divider {
   height: 1px;
-  margin: var(--space-4, 34px) 0 var(--space-2, 13px);
+  margin: var(--space-2, 13px) 0 var(--space-2, 13px);
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--hw-ember) 45%, transparent) 50%, transparent);
 }
 
