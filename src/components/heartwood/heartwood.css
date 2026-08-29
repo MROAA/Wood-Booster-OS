@@ -2672,6 +2672,145 @@
   }
 }
 
+/* -------------------------------------------------------------------
+   Guild Hall (GuildHallScreen.jsx) - one-time arrival screen for the
+   run, shown right after a Commander is confirmed and before the
+   first shop visit (PRD v2.0 Phase 4, sections 5-6/39-41).
+
+   Deliberately reuses .hw-commander-select's own layout rhythm
+   (max-width, header, the --space-N and --hw-fib-N scales) rather than
+   inventing a parallel system - this screen is meant to feel like the
+   very next beat after CommanderSelect, not a fourth visual language.
+   The tribe legend reuses .hw-badge exactly as FormationScreen.jsx's
+   live synergy tracker does, just populated from the static tribe
+   catalog instead of a live count - same component, honestly
+   different data source.
+
+   Marc's own art direction, given directly: "peli on sekotelma
+   darkest dungeon seka hearthstone... darkest dungeon on myos
+   visuaalinen tyylisuunta" (a mix of Darkest Dungeon and Hearthstone,
+   Darkest Dungeon specifically as a visual direction too) - a first
+   draft of this screen leaned purely warm/cozy, which undersells that
+   half of the brief. The vignette below (a radial darkening at the
+   content edges, negative z-index so it sits behind every real
+   element without needing its own stacking context per child) pulls
+   the same forest-at-night mood the rest of Hearthwood already
+   carries (.hw-root's own dark overlay + battleBg) a step further at
+   the exact edges of this screen's content, so the hall reads as a
+   single lit space in a larger darkness rather than a flat, evenly-lit
+   menu - without touching the warmth of the banner/portrait/CTA
+   themselves, which stay this screen's one deliberately inviting
+   note. */
+
+.hw-guildhall {
+  position: relative;
+  max-width: 987px;
+  margin: 0 auto;
+  padding: var(--space-3, 21px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4, 34px);
+}
+
+.hw-guildhall::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--space-4, 34px) * -1) calc(var(--space-3, 21px) * -1);
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 28%, transparent 0%, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.hw-guildhall-header {
+  max-width: 610px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hw-guildhall-header .hw-crew-banner {
+  margin-bottom: var(--space-3, 21px);
+}
+
+.hw-guildhall-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 0 var(--space-1, 8px);
+  color: var(--hw-text);
+}
+
+.hw-guildhall-commander-strip {
+  width: 100%;
+  max-width: 610px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 21px);
+  /* Darker/heavier than a plain .hw-panel->hw-card gradient (deeper
+     black mixed in, stronger drop shadow) - a "candlelit table in a
+     dark hall" read rather than a bright menu card, per the Darkest
+     Dungeon steer above. */
+  background: linear-gradient(160deg, var(--hw-panel), color-mix(in srgb, var(--hw-card) 82%, black));
+  border: 1px solid var(--hw-border);
+  border-radius: 13px;
+  padding: var(--space-2, 13px) var(--space-3, 21px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Smaller than the 89px commander-select portrait (--hw-fib-6, 55px) -
+   this is a passing presence strip, not the moment of choosing, so it
+   deliberately reads as a step down in emphasis from that screen. */
+.hw-guildhall-commander-portrait {
+  width: var(--hw-fib-6, 55px);
+  height: var(--hw-fib-6, 55px);
+  flex-shrink: 0;
+}
+
+.hw-guildhall-commander-portrait .hw-commander-glyph {
+  width: 34px;
+  height: 34px;
+}
+
+.hw-guildhall-memory-badge {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.hw-guildhall-section {
+  width: 100%;
+  max-width: 610px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hw-guildhall-tribe-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2, 13px);
+}
+
+.hw-guildhall-tribe-badge {
+  font-size: 12px;
+  padding: 4px 11px;
+  background: color-mix(in srgb, var(--hw-panel) 85%, transparent);
+}
+
+/* The single, unambiguous way forward - reuses .hw-end-turn's base
+   (same clickable-surface treatment every primary action in this game
+   already gets) but bigger, matching the "ceremonial" CTA precedent
+   .hw-runend-newrun already set for a run's other bookend. */
+.hw-guildhall-cta {
+  font-size: 15px;
+  padding: var(--space-2, 13px) var(--space-5, 34px);
+}
+
 /* ============================================================
    Micro-interactions pass (feat/hearthwood-microinteractions)
 
