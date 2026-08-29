@@ -25,6 +25,23 @@ import ItemCard from "./ItemCard"
 import { CardGlyph } from "./cardArt"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
 import hearthwoodLogo from "../../assets/heartwood/hearthwood-logo.png"
+// Marc's own Copilot-made plaque buttons (kuvia/ drop, "luon microsoft
+// copilotilla napit" / "lisään ne samaan kansioon ja käytät niitä
+// uissa" - I'm making the buttons with Copilot, I'll add them to the
+// same folder and you use them in the UIs). Each source PNG had a
+// "Made with AI" pill baked into its top-right corner that had to be
+// alpha-punched out first (plain -fill/-draw did NOT work here - it
+// paints over the pixels but leaves alpha untouched, so the badge
+// still showed - needed a real -channel A -fx rewrite, verified with
+// a pixel sample afterwards). Marc confirmed by name which button
+// "hearthwood market.png" replaces (see the Market tab button below);
+// "sell.png" is this file's own best-fit read of his instruction to
+// find sell.png's real home ("lue nykyinen UI ja löydä paras oikea
+// vastine"). "buy.png"/"confirm.png"/"trade.png" are still sitting
+// uncropped in the kuvia/ drop folder - see this PR's description for
+// why none of them had an honest existing-action match.
+import marketTabPlaque from "../../assets/heartwood/buttons/market-tab.png"
+import sellPlaque from "../../assets/heartwood/buttons/sell-plaque.png"
 
 // The shop node: recruit whoever you can afford, reroll the rest,
 // leave when ready. No forced pick-one - unlike the old card-reward
@@ -564,14 +581,48 @@ export default function SquadDraft({
         </div>
       )}
 
-      <div className="hw-tab-row">
+      {/* Marc, asked directly which button "hearthwood market.png"
+          should replace, confirmed: this tab toggle - and asked for it
+          centered above the panel ("keskitä se sivulle yläosioon"),
+          not left-aligned next to Your Squad the way the plain pill
+          used to sit. Split into its own centered row for that reason;
+          Your Squad keeps its own row below, same onClick/data-active
+          wiring as before, just no longer sharing a flex row with
+          Market. */}
+      <div className="hw-tab-row hw-tab-row--market-art">
         <button
-          className="hw-move-btn"
+          className="hw-market-tab-btn"
           data-active={activeTab === "market"}
           onClick={() => setActiveTab("market")}
+          aria-label="Market"
+          title="Market"
         >
-          Market
+          <img src={marketTabPlaque} alt="" />
+          {/* Visually-hidden text node, not just an aria-label - keeps
+              this button findable by visible text the same way every
+              other tab/action button in this game is (including by
+              existing Playwright specs like .scratch/verify_market_
+              redesign.mjs's `hasText: "Market"` locator), even though
+              the plaque art itself already reads "HEARTHWOOD MARKET"
+              to a sighted player. */}
+          <span
+            style={{
+              position: "absolute",
+              width: 1,
+              height: 1,
+              padding: 0,
+              margin: -1,
+              overflow: "hidden",
+              clip: "rect(0,0,0,0)",
+              whiteSpace: "nowrap",
+              border: 0,
+            }}
+          >
+            Market
+          </span>
         </button>
+      </div>
+      <div className="hw-tab-row hw-tab-row--squad">
         <button
           className="hw-move-btn"
           data-active={activeTab === "squad"}
@@ -847,11 +898,22 @@ export default function SquadDraft({
                   </button>
                 )}
                 <button
-                  className="hw-move-btn"
+                  className="hw-move-btn hw-sell-btn"
                   style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
                   onClick={() => handleSell(entry.key)}
                   title={`Sell ${def?.name} back for ${sellRefund} Essence`}
                 >
+                  {/* sell.png (Marc's Copilot plaque, "Made with AI"
+                      corner cropped out - see the import comment up
+                      top) as a background texture only, at the exact
+                      same footprint the plain pill used - this card
+                      grid's height budget has no slack (see the fit
+                      comment right above), so this couldn't grow the
+                      button to plaque-native proportions. The baked-in
+                      "Quick Sale 150" sub-text is illegible at this
+                      size, same tradeoff Marc already accepted for the
+                      Market tab's "Purchase 250" - real dynamic
+                      sellRefund stays the actual on-screen text. */}
                   Sell (+{sellRefund})
                 </button>
               </div>
