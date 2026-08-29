@@ -1427,20 +1427,32 @@
    with it (portrait/glyph/type), not just the outer box. */
 .hw-market-featured-grid {
   grid-template-columns: repeat(auto-fit, var(--hw-fib-9, 233px));
-  gap: var(--space-4, 34px);
-  padding-top: var(--space-4, 34px);
+  gap: var(--space-3, 21px);
+  padding-top: var(--space-2, 13px);
   padding-bottom: var(--space-2, 13px);
 }
 
 .hw-market-featured-grid .hw-card {
   width: var(--hw-fib-9, 233px);
   min-width: var(--hw-fib-9, 233px);
-  padding: var(--space-3, 21px) var(--space-2, 13px);
-  gap: var(--space-2, 13px);
+  padding: var(--space-2, 13px);
+  gap: var(--space-1, 8px);
 }
 
+/* Height deliberately more conservative than the width scale-up
+   (140px, vs. 130px on a 150px card - width carries the "featured"
+   read here) - this screen's own hard-won "kaiken pitaa mahtua
+   naytolle ilman scrollausta" (everything must fit without
+   scrolling, .hw-select-grid's own comment above) constraint is a
+   previously-fixed bug, not a preference, and the Market panel has
+   an Items row below this one competing for the same fixed height.
+   Confirmed by measuring .hw-root's actual scrollHeight vs
+   clientHeight after this change (not just eyeballing a screenshot,
+   which caught a real regression here on the first pass - portrait
+   was originally 200px and pushed the panel 204px past the
+   viewport). */
 .hw-market-featured-grid .hw-card-portrait {
-  height: 200px;
+  height: 108px;
 }
 
 .hw-market-featured-grid .hw-card-art {
