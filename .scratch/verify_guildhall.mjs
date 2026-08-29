@@ -113,8 +113,19 @@ try {
   await page.screenshot({ path: "/tmp/guildhall-04-after-reload.png" })
 
   log("8. Change Commander -> back to CommanderSelect -> confirm again -> Guild Hall re-arms")
-  page.once("dialog", (d) => d.accept())
-  await page.click("button:has-text('Change Commander')")
+  // The battle loop above is genuinely random - it may have already
+  // ended the run (victory/defeat) rather than looping back to the
+  // shop. Either path should reach CommanderSelect; just take
+  // whichever control is actually on screen instead of assuming the
+  // run is still alive.
+  const newRunVisible = await page.locator("button:has-text('New Run')").count()
+  if (newRunVisible > 0) {
+    console.log("(Run already ended - random battle outcome - using New Run instead of Change Commander)")
+    await page.click("button:has-text('New Run')")
+  } else {
+    page.once("dialog", (d) => d.accept())
+    await page.click("button:has-text('Change Commander')")
+  }
   await page.waitForSelector(".hw-commander-card", { timeout: 5000 })
   await page.click(".hw-commander-card >> nth=1")
   await page.waitForSelector(".hw-guildhall", { timeout: 5000 })
