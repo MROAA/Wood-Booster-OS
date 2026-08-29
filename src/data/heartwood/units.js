@@ -106,6 +106,14 @@ import loamguardImg from "../../assets/heartwood/units/loamguard.jpg"
 // swapped from a placeholder onto an actual on-theme photo.
 import duskwrenImg from "../../assets/heartwood/units/duskwren.jpg"
 import sparrowthornImg from "../../assets/heartwood/units/sparrowthorn.jpg"
+// Last 7 of the 85-unit roster - closes out this round's image pass.
+import emberwispImg from "../../assets/heartwood/units/emberwisp.jpg"
+import wispkeeperImg from "../../assets/heartwood/units/wispkeeper.jpg"
+import motleyImg from "../../assets/heartwood/units/motley.jpg"
+import thornwispImg from "../../assets/heartwood/units/thornwisp.jpg"
+import ashcallerImg from "../../assets/heartwood/units/ashcaller.jpg"
+import stormveilImg from "../../assets/heartwood/units/stormveil.jpg"
+import mistveilImg from "../../assets/heartwood/units/mistveil.jpg"
 import swiftclawImg from "../../assets/heartwood/units/swiftclaw.jpg"
 import thistlemawImg from "../../assets/heartwood/units/thistlemaw.jpg"
 import briarbladeImg from "../../assets/heartwood/units/briarblade.jpg"
@@ -598,6 +606,7 @@ const BASE_UNITS = {
     // also can't combo with Chain or Haste (both scoped to
     // attackPattern "single" attacks only), a natural ceiling that
     // came for free rather than needing its own guard.
+    image: emberwispImg,
   }),
   runeveil: unit("runeveil", "Runeveil", "rune", 2, "dps", [
     { type: "attack", amount: 4 },
@@ -682,6 +691,7 @@ const BASE_UNITS = {
     // support that protects its neighbors, not its own hide. Zero new
     // engine code.
     rallyAdjacent: { id: "revive", amount: 1 },
+    image: wispkeeperImg,
   }),
   trueshot: unit("trueshot", "Trueshot", "spark", 3, "dps", [{ type: "attack", amount: 6 }], {
     // The first Hunter - a precision tracker rather than a blaster:
@@ -714,6 +724,7 @@ const BASE_UNITS = {
     // roll on damage, just on move order) - chaos in sequencing, not
     // in outcome, matching Marc's "easy to play but hard to master".
     moveSelect: "weightedRandom",
+    image: motleyImg,
   }),
   thornwarden: unit("thornwarden", "Thornwarden", "root", 2, "dps", [{ type: "attack", amount: 6 }], {
     // The first Bruiser ("saa voimaa vahingoittumisesta" - gains power
@@ -1023,7 +1034,7 @@ const BASE_UNITS = {
   thornwisp: unit("thornwisp", "Thornwisp", "root", 2, "dps", [
     { type: "sunder" },
     { type: "attack", amount: 5 },
-  ]),
+  ], { image: thornwispImg }),
   mosshollow: unit("mosshollow", "Mosshollow", "shield", 1, "tank", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 3 },
@@ -1056,7 +1067,7 @@ const BASE_UNITS = {
   ashcaller: unit("ashcaller", "Ashcaller", "root", 3, "dps", [
     { type: "sunder" },
     { type: "attack", amount: 8 },
-  ]),
+  ], { image: ashcallerImg }),
   // A common-tier Poison-debuff unit - Rootfang/Hexmother/Mycelist
   // (all 3-cost) were the only ones, so Fungal Spore Sac/Mycotic Bloom
   // (PR #278) had no cheap unit to pair with early in a run.
@@ -1071,6 +1082,7 @@ const BASE_UNITS = {
     // Grimtusk/Foxfire already established - a plain uncommon-tier
     // source, cost point variety alongside Briarkit's common-tier one.
     chainDamage: 3,
+    image: stormveilImg,
   }),
   // Spirit tribe density (synergies.js) - flagged as notably smaller
   // than every other tribe (5 base units vs. 10-28), confirmed as a
@@ -1086,6 +1098,7 @@ const BASE_UNITS = {
   }),
   mistveil: unit("mistveil", "Mistveil", "moonGlyph", 2, "support", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 1 } }],
+    image: mistveilImg,
   }),
   // Closing 2 real gaps left in Spirit's own roster, not just density:
   // the tribe still had zero Taunt and zero Shatter sources, despite
