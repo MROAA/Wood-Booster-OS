@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { TRIBES, tribesOf, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
@@ -7,6 +7,7 @@ import { summarizeBattle } from "../../services/heartwood/autoBattleEngine"
 import EnemyPieceCard from "./EnemyPieceCard"
 import ResultOverlay from "./ResultOverlay"
 import FloatingNumbers from "./FloatingNumbers"
+import SynergyBanner from "./SynergyBanner"
 import { CardGlyph } from "./cardArt"
 
 // Real time between rounds during auto-playback. Marc asked twice:
@@ -114,6 +115,46 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
   }
   const activeSynergies = resolveSynergies(tribeCounts)
 
+  // The synergy "WOW" moment (roadmap task "Taistelukentan lava-tuntuma
+  // + synergia-WOW-hetki") - Marc's PRD names this as one of the most
+  // important WOW beats in the game, and asks for it to feel like
+  // "something significant just happened," not a static badge. A
+  // recruited squad's tribe composition (and therefore tribeCounts/
+  // activeSynergies above) can't change mid-fight - no recruiting
+  // happens during combat - so "newly active" only ever really means
+  // "this battle just started with a real bonus live." Comparing
+  // against the PREVIOUS render's active tribe ids (not a mount-only
+  // effect) still gets that exactly right without needing any special
+  // "is this the first render" plumbing, and correctly stays silent on
+  // every later round of the same fight since nothing changes after
+  // the first comparison. Tied to the same `state` this file's other
+  // transient-visual effects (the lunge stagger above) already key off
+  // of - a real battle-state event drives this, never a decorative timer.
+  const [surges, setSurges] = useState([])
+  const prevActiveIdsRef = useRef(null)
+  const surgeSeqRef = useRef(0)
+
+  useEffect(() => {
+    const currentIds = new Set(activeSynergies.map((s) => s.tribeId))
+    const prevIds = prevActiveIdsRef.current
+    const newlyActive = prevIds === null ? activeSynergies : activeSynergies.filter((s) => !prevIds.has(s.tribeId))
+    if (newlyActive.length) {
+      setSurges((cur) => [...cur, ...newlyActive.map((s) => ({ ...s, seq: surgeSeqRef.current++ }))])
+    }
+    prevActiveIdsRef.current = currentIds
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
+
+  function removeSurge(seq) {
+    setSurges((cur) => cur.filter((s) => s.seq !== seq))
+  }
+
+  // Live only for as long as its own banner is still on screen (same
+  // array, same lifetime) - the affected units' glow ring (below, on
+  // each player hw-piece) tracks the WOW moment exactly, not some
+  // separately-timed effect that could drift out of sync with it.
+  const surgingTribeIds = new Set(surges.map((s) => s.tribeId))
+
   const rows = []
   for (let row = 0; row < state.grid.rows; row++) {
     const cells = []
@@ -146,6 +187,17 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
         // ~30 that do - a real improvement, not a false promise every
         // piece now has a portrait.
         const image = isCommander ? undefined : UNITS[playerUnit.defId].image
+        // Synergy WOW glow (see the surges/surgingTribeIds comment
+        // above): only a recruited, deployed unit can BE the reason a
+        // tribe synergy is active, same exclusion autoBattleEngine.js's
+        // own tribe-counting loop already applies - the Commander and
+        // any battle-start summon never contributed to earning this
+        // bonus, so neither ever gets the glow, even while it's live.
+        let synergyColor
+        if (!isCommander && !playerUnit.summoned && surgingTribeIds.size) {
+          const matchedTribe = tribesOf(playerUnit.defId, UNITS[playerUnit.defId]).find((t) => surgingTribeIds.has(t))
+          if (matchedTribe) synergyColor = TRIBES[matchedTribe]?.color
+        }
         content = (
           <EnemyPieceCard
             enemy={playerUnit}
@@ -154,6 +206,8 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
             side="player"
             shielded={isShielded(state, playerUnit.id)}
             summoned={playerUnit.summoned}
+            synergySurge={!!synergyColor}
+            synergyColor={synergyColor}
           />
         )
       }
@@ -237,10 +291,23 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
         </div>
       )}
 
-      <FloatingNumbers state={state} />
-
       <div className="hw-section-label">Battlefield</div>
-      <div className="hw-grid">{rows}</div>
+      {/* The arena "stage" (roadmap task "Taistelukentan lava-tuntuma +
+          synergia-WOW-hetki") - a vignette/ambient-light frame around
+          the existing .hw-grid board itself, giving the battlefield a
+          clear visual focal point (Marc's PRD section 6/11-13) instead
+          of a plain rectangle. Pure CSS (heartwood.css), no new art.
+          Also hosts the synergy WOW banner(s), absolutely positioned
+          over the stage rather than pushing the grid around - the
+          board's own layout/size (and therefore combat readability)
+          never shifts because a synergy fired. */}
+      <div className="hw-arena">
+        <div className="hw-grid">{rows}</div>
+        <FloatingNumbers state={state} />
+        {surges.map((s, i) => (
+          <SynergyBanner key={s.seq} surge={s} index={i} onDone={() => removeSurge(s.seq)} />
+        ))}
+      </div>
 
       <details className="hw-log-details">
         <summary>Battle log</summary>

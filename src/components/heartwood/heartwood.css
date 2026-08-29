@@ -1189,6 +1189,91 @@
 
 /* --- Grid combat (Phase 2) --- */
 
+/* Combat arena "stage" framing (roadmap task "Taistelukentan
+   lava-tuntuma + synergia-WOW-hetki") - Marc's PRD section 6/11-13
+   asks for the battlefield to have a clear visual focal point, not a
+   plain rectangle. Wraps the existing .hw-grid panel (untouched below)
+   in an ambient vignette frame - ellipse-shaped light pooling over the
+   board, corners darkening toward the edges like real stage lighting.
+   CSS only (gradients/box-shadow), no new art assets.
+   Marc's follow-up note on this same task: "kultainen leikkaus jne,
+   geometriaa" (golden ratio, deliberate geometry) - the vignette's
+   light concentrates at 38.2% down from the top (1 - 1/PHI, PHI =
+   1.618), the classic golden-ratio focal point, rather than dead
+   center, and its ellipse radii use the golden 61.8%/38.2% split
+   instead of round arbitrary numbers. Padding/blur/spread all reuse
+   this file's existing Fibonacci --space-* scale (index.css:
+   8/13/21/34/55/89) - no new arbitrary pixel values introduced here. */
+.hw-arena {
+  position: relative;
+  border-radius: var(--space-3, 21px);
+  padding: var(--space-3, 21px);
+  background:
+    radial-gradient(ellipse 61.8% 45% at 50% 38.2%, color-mix(in srgb, var(--hw-ember) 8%, transparent), transparent 70%),
+    radial-gradient(ellipse 100% 90% at 50% 38.2%, transparent 38.2%, color-mix(in srgb, black 42%, transparent) 100%),
+    var(--hw-bg);
+  box-shadow: inset 0 0 var(--space-4, 34px) var(--space-1, 8px) color-mix(in srgb, black 35%, transparent);
+  /* Marc: "kaikki pitaa animoida" (everything must be animated) - the
+     stage itself stays gently alive even between hits instead of
+     reading as a static backdrop, same way the board's checkerboard,
+     pieces and numbers already are. Amplitude kept small (a subtle
+     glow breathe, ~8s cycle) so it never competes with real combat
+     signals - ambient, not distracting, matching the "readable, not
+     overwhelming" rule this game already holds itself to. */
+  animation: hw-arena-breathe 8s ease-in-out infinite;
+}
+
+@keyframes hw-arena-breathe {
+  0%, 100% { box-shadow: inset 0 0 var(--space-4, 34px) var(--space-1, 8px) color-mix(in srgb, black 35%, transparent); }
+  50% { box-shadow: inset 0 0 var(--space-5, 55px) var(--space-2, 13px) color-mix(in srgb, black 28%, transparent); }
+}
+
+/* The synergy "WOW" banner (SynergyBanner.jsx) - shared layout/type
+   here, per-tribe color applied inline (border/text/glow) the same way
+   the difficulty-tier badge above already does for its own accent.
+   Absolutely positioned over the arena rather than in normal flow, so
+   a synergy firing never shifts or resizes the board underneath it. */
+.hw-synergy-banner {
+  position: absolute;
+  top: var(--space-2, 13px);
+  left: 50%;
+  z-index: 5;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 8px);
+  padding: var(--space-1, 8px) var(--space-3, 21px);
+  border-radius: 999px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border: 1px solid var(--hw-moss);
+  background: color-mix(in srgb, var(--hw-panel) 88%, transparent);
+}
+
+/* The affected units' own glow ring, live for exactly as long as their
+   matching SynergyBanner is on screen (AutoBattleView.jsx's
+   surgingTribeIds) - "something significant just happened" reads on
+   the actual pieces that earned it, not just in a banner above the
+   board. --hw-piece-glow is set inline per-piece to that tribe's own
+   color (EnemyPieceCard.jsx), falling back to moss (this game's
+   established "good/yours" color) if it's ever unset. */
+.hw-piece[data-synergy-surge="true"] {
+  animation: hw-synergy-surge 1.618s ease-in-out 2;
+}
+
+@keyframes hw-synergy-surge {
+  0%, 100% { box-shadow: inset 0 0 0 2px currentColor; filter: brightness(1); }
+  50% {
+    box-shadow:
+      inset 0 0 0 5px var(--hw-piece-glow, var(--hw-moss)),
+      0 0 21px 4px var(--hw-piece-glow, var(--hw-moss));
+    filter: brightness(1.15);
+  }
+}
+
 .hw-side-rail {
   display: flex;
   flex-direction: column;
