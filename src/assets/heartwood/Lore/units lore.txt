@@ -1,0 +1,153 @@
+============================================================
+                     HEARTHWOOD — UNITS LORE
+============================================================
+
+INTRODUCTION
+------------
+Units in Hearthwood are not simple warriors or creatures.
+They are manifestations of the primal forces that shaped the
+world: Saplight, Hollow, Ember, and Stone. Each unit carries
+a story, a purpose, and a connection to its tribe.
+
+============================================================
+SAPLIGHT UNITS — BREATH OF THE FOREST
+============================================================
+
+MOSSWARDEN
+----------
+Origin: Born from the oldest mossbeds beneath the Green Veins.
+Role: Silent guardian of the deep roots.
+Abilities: Regeneration, root-binding, protective aura.
+Lore: Mosswardens awaken only when the forest is threatened.
+Their bodies are woven from living moss and ancient bark.
+
+SAPROOT CHANNELER
+-----------------
+Origin: Druids who learned to speak with the roots.
+Role: Healers and conduits of Saplight energy.
+Abilities: Healing pulses, growth manipulation.
+Lore: Channelers guide the forest’s breath, restoring allies
+and binding enemies with living roots.
+
+THORNBACK SENTINEL
+------------------
+Origin: Warriors grown from thorned bramble.
+Role: Frontline defenders.
+Abilities: Piercing strikes, thorn armor.
+Lore: Sentinels are created, not born. Saplight druids weave
+them from bramble and bark during sacred rites.
+
+GROVEHEART TITAN
+----------------
+Origin: Manifestation of the forest’s collective will.
+Role: Colossal protector.
+Abilities: Tremor stomp, root eruption, healing aura.
+Lore: Titans slumber for centuries. When they rise, entire
+groves move with them.
+
+============================================================
+HOLLOW UNITS — ECHO OF WHAT WAS LOST
+============================================================
+
+HOLLOW STALKER
+--------------
+Origin: Formed from the first shadow that ever fell.
+Role: Silent hunter of the marsh.
+Abilities: Stealth, echo-strike, fear aura.
+Lore: Stalkers leave no footprints. They are absence given form.
+
+WRAITHCALLER
+------------
+Origin: Ritualists who bind spectral echoes.
+Role: Summoners of spirits.
+Abilities: Echo summon, spectral lash.
+Lore: Wraithcallers hear voices no one else can. They command
+spirits of forgotten beings.
+
+SHADEBOUND REVENANT
+-------------------
+Origin: Souls that refused to fade.
+Role: Undying frontline fighters.
+Abilities: Shadow regeneration, echo shield.
+Lore: Revenants are bound by Hollow sigils. They fight until
+their memories finally dissolve.
+
+ECHO-SPIRIT
+-----------
+Origin: Remnants of ancient souls.
+Role: Support and disruption.
+Abilities: Echo pulse, spectral drift.
+Lore: Echo-Spirits drift through the Hollow Marsh, whispering
+memories of the dead.
+
+============================================================
+EMBER UNITS — ASH THAT REMAKES THE WORLD
+============================================================
+
+CINDERBLOOM SHAMAN
+------------------
+Origin: Fire ritualists who mastered ember flora.
+Role: Hybrid healer/damage caster.
+Abilities: Flame bloom, ash mend.
+Lore: Shamans wield flowers that burn eternally. Their magic
+hurts and heals in the same breath.
+
+ASHBORN RAIDER
+--------------
+Origin: Warriors forged in ritual flame.
+Role: Aggressive frontline fighters.
+Abilities: Burning strike, ash cloak.
+Lore: Raiders are marked with ember sigils that glow in battle.
+
+BLIGHTROOT CULTIST
+------------------
+Origin: Toxic alchemists corrupted by Ember’s twin force.
+Role: Debuff and corruption specialist.
+Abilities: Blight spores, toxic lash.
+Lore: Cultists believe corruption is the purest form of change.
+
+EMBER-SPIRIT
+------------
+Origin: Elementals born from living flame.
+Role: High-speed attacker.
+Abilities: Flame dash, ember burst.
+Lore: Ember-Spirits flicker between worlds, leaving trails of
+burning ash.
+
+============================================================
+STONE UNITS — MEMORY OF THE WORLD
+============================================================
+
+RUNBOUND GOLEM
+--------------
+Origin: Construct carved from monolith fragments.
+Role: Heavy frontline tank.
+Abilities: Rune shield, stone slam.
+Lore: Golems carry runes older than language. They obey only
+the Stone Tribe.
+
+EARTHSHARD GUARDIAN
+-------------------
+Origin: Born from the Relic Spine’s deepest caverns.
+Role: Protector of monoliths.
+Abilities: Earthbind aura, shard strike.
+Lore: Guardians stand unmoving for decades, watching over
+ancient relics.
+
+GRAVELIGHT WATCHER
+------------------
+Origin: Sentinels carved from relic stone.
+Role: Ranged support.
+Abilities: Light pulse, stone mark.
+Lore: Watchers emit a pale glow that reveals hidden threats.
+
+BOULDER-HEART TITAN
+-------------------
+Origin: Manifestation of Stone’s eternal memory.
+Role: Colossal tank.
+Abilities: Mountain crash, rune quake.
+Lore: Titans move slowly, but each step reshapes the land.
+
+============================================================
+END OF FILE
+============================================================

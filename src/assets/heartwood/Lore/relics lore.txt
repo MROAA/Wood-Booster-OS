@@ -1,0 +1,142 @@
+============================================================
+                     HEARTHWOOD — RELICS LORE
+============================================================
+
+INTRODUCTION
+------------
+Relics are the oldest artifacts in Hearthwood. They were not
+crafted by mortals, nor shaped by tribes. They are remnants of
+the primal forces themselves — fragments of Saplight, Hollow,
+Ember, and Stone that solidified into physical form during the
+Age of Roots.
+
+Relics do not merely grant power. They remember.
+
+============================================================
+SAPLIGHT RELICS — BREATH OF THE FOREST
+============================================================
+
+GROVEHEART RELIC
+----------------
+Origin: Formed when the first forest took breath.
+Power: Massive healing, root awakening, forest-wide renewal.
+Lore: The Groveheart pulses like a living heart. When placed
+in soil, entire groves rise in minutes. Saplight elders claim
+it contains the memory of the first tree.
+
+BRAMBLEHIDE STANDARD
+--------------------
+Origin: Woven from thorned vines during the first tribal war.
+Power: Rallying aura, thorn armor, growth surge.
+Lore: The Standard is carried only by Saplight champions. Its
+presence causes bramble to grow around allies.
+
+MOSS-ETCHED IDOL
+----------------
+Origin: A statue carved by the forest itself.
+Power: Regeneration field, moss shield.
+Lore: The Idol grows moss even in deserts. It is said to weep
+when the forest is wounded.
+
+ROOTBOUND TOTEM
+----------------
+Origin: A totem grown from living roots.
+Power: Root eruption, entangling field.
+Lore: Rootbound Totems are planted at sacred sites. They bind
+intruders with living roots.
+
+============================================================
+HOLLOW RELICS — ECHO OF WHAT WAS LOST
+============================================================
+
+SHADE-ETCHED RELIC
+------------------
+Origin: Carved by shadows during the first eclipse.
+Power: Echo strike, spectral veil, fear pulse.
+Lore: The Relic whispers constantly. Hollow ritualists claim
+it speaks in the voices of forgotten souls.
+
+WRAITH-BOUND EFFIGY
+-------------------
+Origin: A statue inhabited by a trapped spirit.
+Power: Wraith summon, spectral shield.
+Lore: The Effigy’s eyes glow when danger approaches. Some say
+it moves when unobserved.
+
+HOLLOW-SIGIL SHARD
+------------------
+Origin: A fragment of the first Hollow monolith.
+Power: Shadow burst, echo duplication.
+Lore: The Shard is cold even in flame. It amplifies Hollow
+magic beyond safe limits.
+
+ECHO-BONE TOTEM
+---------------
+Origin: A totem carved from the bones of ancient beasts.
+Power: Spirit call, echo resonance.
+Lore: Echo-Bone Totems vibrate when spirits pass nearby.
+
+============================================================
+EMBER RELICS — ASH THAT REMAKES THE WORLD
+============================================================
+
+BLIGHT-ETCHED IDOL
+------------------
+Origin: Formed when Ember and Toxic forces collided.
+Power: Corruption wave, toxic burst, flame rot.
+Lore: The Idol spreads corruption wherever it is placed. Saplight
+druids consider it the forest’s greatest wound.
+
+EMBER-HEART SIGIL
+-----------------
+Origin: A burning sigil forged in ritual flame.
+Power: Flame surge, ash shield.
+Lore: The Sigil never cools. It glows brighter when Ember magic
+is nearby.
+
+CINDER-ROOT TOTEM
+-----------------
+Origin: A totem grown from fire-touched roots.
+Power: Flame eruption, burning aura.
+Lore: Cinder-Root Totems are used in Ember initiation rites.
+
+ASH-RUNE TABLET
+---------------
+Origin: A stone tablet scorched by ancient firestorms.
+Power: Rune ignition, ash burst.
+Lore: The Tablet’s runes ignite when read aloud.
+
+============================================================
+STONE RELICS — MEMORY OF THE WORLD
+============================================================
+
+RUNBOUND MONOLITH
+-----------------
+Origin: One of the first monoliths raised by Stone.
+Power: Rune amplification, stability field, earth pulse.
+Lore: The Monolith contains runes older than language. Stone
+elders claim it remembers the world’s creation.
+
+EARTHSHARD RELIQUARY
+--------------------
+Origin: A container carved from relic stone.
+Power: Memory storage, rune enhancement.
+Lore: Some Reliquaries contain memories of events no tribe
+wishes to recall.
+
+GRAVELIGHT SIGIL
+----------------
+Origin: A glowing stone carved from the Relic Spine.
+Power: Light pulse, hidden threat detection.
+Lore: Gravelight Sigils reveal illusions and Hollow echoes.
+
+BOULDER-HEART IDOL
+------------------
+Origin: A statue carved from the heart of a mountain.
+Power: Tremor field, stone armor.
+Lore: Boulder-Heart Idols hum softly, resonating with Stone
+Titans.
+
+============================================================
+END OF FILE
+============================================================
