@@ -291,7 +291,7 @@ export default function SquadDraft({
   }
 
   return (
-    <div className="hw-intro">
+    <div className="hw-intro hw-market-stage">
       {/* paddingRight/flexWrap keep this row's right-aligned badges clear
           of the fixed .hw-exit-link corner button (HeartwoodBattle.jsx) -
           it's position:fixed outside document flow, so nothing here
@@ -322,9 +322,18 @@ export default function SquadDraft({
               Next: {nextLabel}
             </span>
           )}
-          <span className="hw-badge hw-essence-badge" data-flash={essenceFlash || undefined} title="Essence">
-            <CardGlyph name="spark" className="hw-intent-glyph" />
-            {runState.essence}
+          {/* Resource UI (PRD's Resource UI principle, Marc: "hehkuva
+              orbi/kide" - a glowing orb/crystal, not a bare number in
+              a circle). Same runState.essence value and essenceFlash
+              gain/spend trigger as the old .hw-essence-badge, just a
+              heavier, medallion-based visual container around them -
+              see heartwood.css's .hw-essence-display block for the
+              full reasoning. */}
+          <span className="hw-essence-display" data-flash={essenceFlash || undefined} title="Essence">
+            <span className="hw-essence-orb">
+              <CardGlyph name="spark" className="hw-essence-orb-glyph" />
+            </span>
+            <span className="hw-essence-value">{runState.essence}</span>
           </span>
         </div>
       </div>
@@ -558,7 +567,14 @@ export default function SquadDraft({
           </p>
 
           <div className="hw-section-label">For sale</div>
-          <div className="hw-select-grid hw-deck-preview">
+          {/* hw-market-featured-grid: the one deliberately-featured
+              moment on this screen (problem 2, "korttien asettelu/
+              koko") - bigger, golden-ratio-sized cards (--hw-fib-9,
+              same 233px this game's other "important choice" screen,
+              CommanderSelect.jsx, already uses). Scoped to just this
+              grid - the Items grid and the Your Squad/bench grid
+              below keep their existing card size on purpose. */}
+          <div className="hw-select-grid hw-deck-preview hw-market-featured-grid">
             {offers.map((def) => {
               const owned = runState.bench.filter((e) => e.defId === def.id).length
               const willFuse = owned >= 2
@@ -614,7 +630,8 @@ export default function SquadDraft({
             </button>
           </div>
 
-          <div className="hw-section-label" style={{ marginTop: 20 }}>
+          <div className="hw-market-divider" />
+          <div className="hw-section-label">
             Items
           </div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
