@@ -79,7 +79,18 @@ function intentDisplay(intent) {
 // same visual language EnemyPanel used to own (glyph/HP/intent/power
 // badges) at grid-cell scale, plus a shield badge when the piece is
 // currently protected from ordinary single-target cards.
-export default function EnemyPieceCard({ enemy, art, image, shielded, summoned, highlighted, onClick, side = "enemy" }) {
+export default function EnemyPieceCard({
+  enemy,
+  art,
+  image,
+  shielded,
+  summoned,
+  highlighted,
+  synergySurge,
+  synergyColor,
+  onClick,
+  side = "enemy",
+}) {
   const dead = enemy.hp <= 0
   const intent = intentDisplay(enemy.intent)
   const hpPct = Math.max(0, Math.round((enemy.hp / enemy.maxHp) * 100))
@@ -99,7 +110,9 @@ export default function EnemyPieceCard({ enemy, art, image, shielded, summoned, 
       data-side={side}
       data-dead={dead}
       data-highlighted={highlighted}
+      data-synergy-surge={!!synergySurge && !dead}
       data-unit-id={enemy.id}
+      style={synergyColor ? { "--hw-piece-glow": synergyColor } : undefined}
       onClick={!dead && onClick ? onClick : undefined}
       initial={{ opacity: 0, scale: 0.6, y: -12 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
