@@ -2638,9 +2638,30 @@
 }
 
 .hw-end-turn:focus-visible,
-.hw-move-btn:focus-visible {
+.hw-move-btn:focus-visible,
+.hw-enemy-choice:focus-visible {
   outline: 2px solid var(--hw-ember);
   outline-offset: 2px;
+}
+
+/* Commander select cards already had a border-color hover; this adds
+   the same lift/press language as the buttons above so the very
+   first screen a player sees already reads as tactile. */
+.hw-enemy-choice {
+  transition:
+    transform var(--hw-dur-fast) var(--hw-ease-out),
+    border-color var(--hw-dur-fast) var(--hw-ease-out),
+    box-shadow var(--hw-dur-fast) var(--hw-ease-out);
+}
+
+.hw-enemy-choice:hover {
+  transform: translateY(calc(var(--hw-lift) * -1));
+  box-shadow: 0 var(--space-2, 13px) var(--space-3, 21px) rgba(0, 0, 0, 0.4);
+}
+
+.hw-enemy-choice:active {
+  transform: translateY(1px) scale(0.98);
+  transition-duration: var(--hw-dur-instant);
 }
 
 /* Small isolated dismiss/skip/next controls (tutorial spotlight, the
@@ -2697,6 +2718,7 @@
   }
   .hw-end-turn,
   .hw-move-btn,
+  .hw-enemy-choice,
   .hw-hint-cancel,
   .hw-tutorial-skip,
   .hw-tutorial-next {
