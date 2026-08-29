@@ -270,7 +270,7 @@ export default function HeartwoodBattle() {
 
   if (!characterId || !runState) {
     return (
-      <div className="hw-root" style={rootStyle}>
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="select">
         {exitLink}
         <CommanderSelect
           characters={Object.values(CHARACTERS)}
@@ -305,7 +305,11 @@ export default function HeartwoodBattle() {
 
   if (runState.phase === "victory" || runState.phase === "defeat") {
     return (
-      <div className="hw-root" style={{ ...rootStyle, position: "relative", minHeight: "100%" }}>
+      <div
+        className="hw-root hw-screen-fade"
+        style={{ ...rootStyle, position: "relative", minHeight: "100%" }}
+        key="end"
+      >
         {exitLink}
         <RunEndOverlay
           phase={runState.phase}
@@ -351,7 +355,7 @@ export default function HeartwoodBattle() {
   // never moved).
   if (showMapAfterShop) {
     return (
-      <div className="hw-root" style={rootStyle} data-screen="map-after-shop">
+      <div className="hw-root hw-screen-fade" style={rootStyle} data-screen="map-after-shop" key="map-after-shop">
         {topButtons}
         <RunMap runState={runState} />
         <div style={{ padding: "0 21px" }}>
@@ -371,7 +375,7 @@ export default function HeartwoodBattle() {
 
   if (runState.phase === "shop") {
     return (
-      <div className="hw-root" style={rootStyle}>
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="shop">
         {topButtons}
         <SquadDraft
           runState={runState}
@@ -398,7 +402,7 @@ export default function HeartwoodBattle() {
 
   if (runState.phase === "choice") {
     return (
-      <div className="hw-root" style={rootStyle}>
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="choice">
         {changeCharacterBar}
         <FloorChoice
           runState={runState}
@@ -411,7 +415,7 @@ export default function HeartwoodBattle() {
 
   if (runState.phase === "relic") {
     return (
-      <div className="hw-root" style={rootStyle}>
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="relic">
         {changeCharacterBar}
         <RelicChoice runState={runState} onChoose={handleChooseRelic} onReroll={handleRerollRelics} />
       </div>
@@ -420,7 +424,7 @@ export default function HeartwoodBattle() {
 
   if (runState.phase === "formation") {
     return (
-      <div className="hw-root" style={rootStyle}>
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="formation">
         {changeCharacterBar}
         <FormationScreen
           runState={runState}
@@ -441,7 +445,7 @@ export default function HeartwoodBattle() {
   // for why this reuses the enemy's existing combat, just its story voice.
   const trial = resolveTrial(currentPathNode?.trialId)
   return (
-    <div className="hw-root" style={rootStyle}>
+    <div className="hw-root hw-screen-fade" style={rootStyle} key="battle">
       {exitLink}
       <AutoBattleView
         state={runState.battle}
