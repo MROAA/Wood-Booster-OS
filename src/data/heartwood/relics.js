@@ -17,14 +17,20 @@
 // for a relic) instead of a pure freebie. Priced at 3, the same as a
 // rare unit, since a permanent run-wide effect is worth at least as
 // much as the strongest single recruit.
-const RELIC_COST = 3
+// Essence rescale (units.js's TIER_COST carries the full explanation -
+// Marc's "market level up = 250 Essence" ask, scaled 62.5x from every
+// old constant): was 3, now 190 - the same rounded value as
+// TIER_COST.rare, keeping "priced the same as a rare unit" literally
+// true post-rescale instead of just true in spirit.
+const RELIC_COST = 190
 
 // A relic node only shows up 3 times a run (vs. a shop's unlimited
 // visits), so unlike the shop's rising reroll cost, a flat price is
 // enough of a rate limit on its own - a second way to spend Essence,
 // per Marc's "more mechanics and ways to spend currency" ask, without
 // needing its own escalation curve.
-export const RELIC_REROLL_COST = 2
+// Essence rescale: was 2, now 125 (units.js's TIER_COST comment).
+export const RELIC_REROLL_COST = 125
 
 export const RELICS = {
   "ember-core": {
@@ -95,7 +101,12 @@ export const RELICS = {
     cost: RELIC_COST,
     description: "Every victory is a little more rewarding.",
     effects: [],
-    essenceBonus: 1,
+    // Essence rescale (units.js's TIER_COST comment has the full
+    // explanation): was 1, now 65 (the "1-family") - this is a real
+    // per-win Essence payout (runEngine.js's essenceForWin reduces
+    // every owned relic's essenceBonus into the win total), not a
+    // battle effect, so it scales the same as WIN_ESSENCE itself.
+    essenceBonus: 65,
   },
   "bulwark-standard": {
     id: "bulwark-standard",

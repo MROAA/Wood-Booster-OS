@@ -807,16 +807,28 @@
   align-items: center;
 }
 
+/* Essence rescale (Marc: "tee pelin ekonomia vastaamaan nappien
+   hintaa" - make the game's economy match the buttons' prices) - every
+   cost this badge displays went from a single digit (1-4) to 2-3
+   digits (65/125/190/250), which a fixed-width circle (the old
+   width:22px/height:22px/border-radius:999px) clips or squashes the
+   moment the text is wider than the circle is tall. Switched to
+   min-width + horizontal padding with a large-but-FINITE border-radius
+   (half the height, not 999px) - still reads as a rounded pill for a
+   1-2 digit number, but grows to fit "250" without clipping instead of
+   forcing it into a circle it doesn't fit. */
 .hw-card-cost {
-  width: 22px;
+  min-width: 22px;
   height: 22px;
-  border-radius: 999px;
+  padding: 0 5px;
+  border-radius: 11px;
   background: var(--hw-bg);
   border: 1px solid var(--hw-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
+  box-sizing: border-box;
 }
 
 /* Hearthstone-style glanceable HP corner (UnitCard.jsx) - opposite the
@@ -1427,14 +1439,14 @@
    carries a lot of empty-looking padding, so treating it like a
    normal 18px-margin block would visibly double that gap and eat
    into this screen's zero-scroll budget for no visual gain. */
+/* Was two stacked rows (plaque alone, Your Squad alone) - a real fit
+   regression at Marc's actual 1860x960 browser budget (see PR #356),
+   ~110px combined for what's fundamentally one tab toggle pair. Merged
+   back into one row (SquadDraft.jsx), plaque sized to match the pill
+   button's own height instead of floating above it as a hero image. */
 .hw-tab-row--market-art {
   justify-content: center;
-  margin-top: 6px;
-  margin-bottom: -10px;
-}
-
-.hw-tab-row--squad {
-  justify-content: center;
+  align-items: center;
   margin-top: 0;
 }
 
@@ -1448,17 +1460,20 @@
   position: relative;
   filter: brightness(0.7) saturate(0.8);
   transition: filter 150ms ease, transform 150ms ease;
+  height: 38px;
+  display: flex;
+  align-items: center;
 }
 
 .hw-market-tab-btn img {
   display: block;
-  /* Sized down hard from the plaque's native ~360px art board - this
-     is a tab TOGGLE, not the screen's hero image, and the 1920x1080
-     zero-scroll budget (verified via .hw-root's scrollHeight ===
-     clientHeight, see docs referenced in this PR) has no slack left
-     for anything taller. Re-measured after landing on this size. */
-  width: 80px;
-  height: auto;
+  /* Height-constrained (not width-constrained) so it matches the
+     row's own 38px height exactly regardless of the plaque art's
+     native ~2:3 portrait aspect ratio - width alone (the original
+     80px) measured 86px of overflow at the real 1860x960 budget,
+     independent of any other change. */
+  height: 38px;
+  width: auto;
   pointer-events: none;
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { CardGlyph } from "./cardArt"
+import { MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
 
 // Commander-select / first-launch screen (roadmap: "Komentajavalinta/
 // aloitusnayton visuaalinen viimeistely"). This is the literal first
@@ -73,7 +74,7 @@ export default function CommanderSelect({ characters, pendingMemory, bannerSrc, 
             {pendingMemory.heroClass && pendingMemory.heroClass !== pendingMemory.heroName
               ? `, the ${pendingMemory.heroClass}`
               : ""}{" "}
-            - your squad begins with +1 Essence.
+            - your squad begins with +{MEMORY_ESSENCE_BONUS} Essence.
           </span>
         )}
       </div>
