@@ -1,3 +1,44 @@
+// Item icon art (this round's own pass through Marc's kuvia-folder art
+// reference, same "curate from what's already saved" approach the
+// unit portraits used across their own several rounds) - only items
+// with a plausible icon-style match get one; the rest keep def.icon's
+// existing SVG glyph (ItemCard.jsx's def.image-vs-glyph branch). These
+// render tiny (26x26px, .hw-item-card .hw-card-art) so a busy scene
+// photo wouldn't read - every source here is cropped tight around a
+// single object (a vial, a charm, a blade) rather than a whole scene.
+import bloodrootFangImg from "../../assets/heartwood/items/bloodroot-fang.jpg"
+import bramblehideStandardImg from "../../assets/heartwood/items/bramblehide-standard.jpg"
+import bulwarksMercyImg from "../../assets/heartwood/items/bulwarks-mercy.jpg"
+import cleansingDraughtImg from "../../assets/heartwood/items/cleansing-draught.jpg"
+import hexrootVialImg from "../../assets/heartwood/items/hexroot-vial.jpg"
+import mossboundChainImg from "../../assets/heartwood/items/mossbound-chain.jpg"
+import mossdropVialImg from "../../assets/heartwood/items/mossdrop-vial.jpg"
+import wraithfangCharmImg from "../../assets/heartwood/items/wraithfang-charm.jpg"
+import barkPlatingImg from "../../assets/heartwood/items/bark-plating.jpg"
+import emberrootTalismanImg from "../../assets/heartwood/items/emberroot-talisman.jpg"
+import chillingGripImg from "../../assets/heartwood/items/chilling-grip.jpg"
+import wanderersLedgerImg from "../../assets/heartwood/items/wanderers-ledger.jpg"
+import sapmendVialImg from "../../assets/heartwood/items/sapmend-vial.jpg"
+import wardstitchCloakImg from "../../assets/heartwood/items/wardstitch-cloak.jpg"
+import mendleafCharmImg from "../../assets/heartwood/items/mendleaf-charm.jpg"
+import duelistsEdgeImg from "../../assets/heartwood/items/duelists-edge.jpg"
+import fungalSporeSacImg from "../../assets/heartwood/items/fungal-spore-sac.jpg"
+import wardensSigilImg from "../../assets/heartwood/items/wardens-sigil.jpg"
+import crackingFistImg from "../../assets/heartwood/items/cracking-fist.jpg"
+import recklessVowImg from "../../assets/heartwood/items/reckless-vow.jpg"
+// New items below (Marc: "kayta kuvia kansiosta vapaasti ja jos
+// mahdollista niin luot unitteja/itemeita kuville" - use the folder's
+// images freely and, where possible, create items FOR the images) -
+// these 6 didn't match any existing item, but were clean enough
+// leftover icon-style objects (a crystal, a crown, a lantern, a
+// talisman) to build a brand-new item around instead of going unused.
+import crimsonShardImg from "../../assets/heartwood/items/crimson-shard.jpg"
+import thornbackCrownImg from "../../assets/heartwood/items/thornback-crown.jpg"
+import gloamingShardImg from "../../assets/heartwood/items/gloaming-shard.jpg"
+import runeboundCofferImg from "../../assets/heartwood/items/runebound-coffer.jpg"
+import wayfarersTalismanImg from "../../assets/heartwood/items/wayfarers-talisman.jpg"
+import glowmossLanternImg from "../../assets/heartwood/items/glowmoss-lantern.jpg"
+
 // Heartwood - Items: per-UNIT gear, distinct from Relics (relics.js,
 // squad-wide) and Upgrade (units.js, a flat level-based stat scale
 // with no player choice in what it does). Each bench unit gets
@@ -51,6 +92,7 @@ export const ITEMS = {
     id: "mossdrop-vial",
     name: "Mossdrop Vial",
     icon: "leaf",
+    image: mossdropVialImg,
     cost: 65,
     description: "This unit mends a trickle at the start of each round.",
     // Common tier still had only ONE item (Twig Charm) - real variety
@@ -100,6 +142,7 @@ export const ITEMS = {
     id: "bark-plating",
     name: "Bark Plating",
     icon: "shield",
+    image: barkPlatingImg,
     cost: 125,
     description: "This unit shrugs off the first real hit it takes, once.",
     // Aegis Ward (relics.js), single-target.
@@ -109,6 +152,7 @@ export const ITEMS = {
     id: "sapmend-vial",
     name: "Sapmend Vial",
     icon: "leaf",
+    image: sapmendVialImg,
     cost: 125,
     description: "This unit mends a little at the start of each round.",
     // Mosswarden's Charm (relics.js), single-target.
@@ -142,6 +186,7 @@ export const ITEMS = {
     id: "duelists-edge",
     name: "Duelist's Edge",
     icon: "sword",
+    image: duelistsEdgeImg,
     cost: 190,
     description: "This unit finishes a badly wounded enemy faster.",
     // Culling Strike (relics.js), single-target - the first ITEM-level
@@ -156,6 +201,7 @@ export const ITEMS = {
     id: "chilling-grip",
     name: "Chilling Grip",
     icon: "moonGlyph",
+    image: chillingGripImg,
     cost: 125,
     description: "Whatever this unit strikes hits softer after, in return.",
     // Frostbrand (relics.js), single-target - Weak's first item-level
@@ -173,6 +219,7 @@ export const ITEMS = {
     id: "cleansing-draught",
     name: "Cleansing Draught",
     icon: "leaf",
+    image: cleansingDraughtImg,
     cost: 125,
     description: "This unit shakes off a lingering ailment at the start of each round.",
     // Purifying Bloom (relics.js), single-target - lets a player put
@@ -207,6 +254,7 @@ export const ITEMS = {
     id: "wardens-sigil",
     name: "Warden's Sigil",
     icon: "shield",
+    image: wardensSigilImg,
     cost: 190,
     description: "This unit draws every eye.",
     // Taunt's first item-level source - Bulwark Standard (relics.js)
@@ -222,6 +270,7 @@ export const ITEMS = {
     id: "cracking-fist",
     name: "Cracking Fist",
     icon: "sword",
+    image: crackingFistImg,
     cost: 190,
     description: "This unit strikes deeper against a target that's still braced.",
     // Quarrybreak (relics.js), single-target - lets a player put
@@ -260,6 +309,7 @@ export const ITEMS = {
     id: "wardstitch-cloak",
     name: "Wardstitch Cloak",
     icon: "leaf",
+    image: wardstitchCloakImg,
     cost: 190,
     description: "This unit turns to mending the squad instead of holding the line.",
     bendsRoleTo: "support",
@@ -269,6 +319,7 @@ export const ITEMS = {
     id: "bloodroot-fang",
     name: "Bloodroot Fang",
     icon: "flame",
+    image: bloodrootFangImg,
     cost: 190,
     description: "This unit turns aggressive, hunting for the finishing blow.",
     bendsRoleTo: "dps",
@@ -281,6 +332,7 @@ export const ITEMS = {
     id: "mossbound-chain",
     name: "Mossbound Chain",
     icon: "shield",
+    image: mossboundChainImg,
     cost: 190,
     description: "This unit turns to holding the line, drawing every eye.",
     bendsRoleTo: "tank",
@@ -293,6 +345,7 @@ export const ITEMS = {
     id: "wanderers-ledger",
     name: "Wanderer's Ledger",
     icon: "moonGlyph",
+    image: wanderersLedgerImg,
     cost: 190,
     description: "This unit turns versatile, ready for whatever the fight needs.",
     bendsRoleTo: "hybrid",
@@ -305,6 +358,7 @@ export const ITEMS = {
     id: "hexroot-vial",
     name: "Hexroot Vial",
     icon: "root",
+    image: hexrootVialImg,
     cost: 190,
     description: "This unit turns to rot and ruin instead of raw defense - every strike lingers.",
     bendsRoleTo: "support",
@@ -317,6 +371,7 @@ export const ITEMS = {
     id: "wraithfang-charm",
     name: "Wraithfang Charm",
     icon: "moonGlyph",
+    image: wraithfangCharmImg,
     cost: 190,
     description: "This unit turns bloodthirsty instead of blunt - every strike weakens its target and mends the wound.",
     bendsRoleTo: "dps",
@@ -352,6 +407,7 @@ export const ITEMS = {
     id: "emberroot-talisman",
     name: "Emberroot Talisman",
     icon: "flame",
+    image: emberrootTalismanImg,
     cost: 190,
     description: "This unit turns opportunistic - braces for a hit, then strikes twice as hard once it lands.",
     bendsRoleTo: "hybrid",
@@ -368,6 +424,7 @@ export const ITEMS = {
     id: "mendleaf-charm",
     name: "Mendleaf Charm",
     icon: "heart",
+    image: mendleafCharmImg,
     cost: 125,
     description: "This unit knits itself back together over the fight's first few rounds.",
     // Heartsbloom Seed (relics.js), single-target - lets a player put
@@ -441,6 +498,7 @@ export const ITEMS = {
     id: "fungal-spore-sac",
     name: "Fungal Spore Sac",
     icon: "leaf",
+    image: fungalSporeSacImg,
     cost: 125,
     description: "Whatever this unit poisons, it poisons someone standing nearby too.",
     // Spore Spread's first ITEM source (autoBattleEngine.js's actSide -
@@ -487,6 +545,7 @@ export const ITEMS = {
     id: "reckless-vow",
     name: "Reckless Vow",
     icon: "sword",
+    image: recklessVowImg,
     cost: 190,
     description: "This unit finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
     // Execute + Ward together - a "glass cannon insurance" identity:
@@ -505,6 +564,7 @@ export const ITEMS = {
     id: "bulwarks-mercy",
     name: "Bulwark's Mercy",
     icon: "heart",
+    image: bulwarksMercyImg,
     cost: 190,
     description: "This unit shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
     // Regen + Ward together - a pure survivability identity for a
@@ -521,6 +581,7 @@ export const ITEMS = {
     id: "bramblehide-standard",
     name: "Bramblehide Standard",
     icon: "shield",
+    image: bramblehideStandardImg,
     cost: 190,
     description: "This unit draws every eye, and fights harder the deeper its own wounds go.",
     // Taunt + Wounded Fury together - the same bruiser identity this
@@ -633,6 +694,109 @@ export const ITEMS = {
     effects: [
       { type: "applyBuff", id: "execute", amount: 2 },
       { type: "applyBuff", id: "chainDamage", amount: 3 },
+    ],
+  },
+
+  // Kuvia-folder art pass, round 2 (Marc: "kayta kuvia kansiosta
+  // vapaasti ja jos mahdollista niin luot unitteja/itemeita kuville" -
+  // use the images freely, and where possible make items FOR the
+  // images): 6 brand-new items built around leftover icon-style photos
+  // that didn't match any existing entry above, rather than leaving
+  // good art unused. Every effect here reuses an EXISTING mechanic
+  // already proven elsewhere in this file (no new engine work), priced
+  // on the same cost/tier ladder every item above already follows -
+  // Crimson Shard is common, Thornback Crown a cheaper uncommon Taunt,
+  // the rest rare 2-effect combos.
+  "crimson-shard": {
+    id: "crimson-shard",
+    name: "Crimson Shard",
+    icon: "leaf",
+    image: crimsonShardImg,
+    cost: 65,
+    // Common tier's first standalone Poison item - every existing
+    // Poison source (Venomed Fang, Witherspite Fang) sits at rare, so
+    // this is the cheap entry point into the mechanic, same role Twig
+    // Charm/Mossdrop Vial/Hunter's Mark already play for Block/Heal/
+    // Execute at this tier.
+    description: "Whatever this unit strikes carries a faint rot after.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+    ],
+  },
+  "thornback-crown": {
+    id: "thornback-crown",
+    name: "Thornback Crown",
+    icon: "shield",
+    image: thornbackCrownImg,
+    cost: 125,
+    // A cheaper Taunt than Warden's Sigil's own 190 - same "give the
+    // player an earlier price point into a mechanic" downscale Twig
+    // Charm/Mossdrop Vial already established for Block/Heal.
+    description: "This unit wears its thorns proudly, drawing every eye.",
+    effects: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+  },
+  "gloaming-shard": {
+    id: "gloaming-shard",
+    name: "Gloaming Shard",
+    icon: "moonGlyph",
+    image: gloamingShardImg,
+    cost: 190,
+    // Poison + Vulnerable together - genuinely the last unpaired combo
+    // of the 3 core debuffs at the item/relic level (Cripplebite Fang's
+    // own comment already closed Weak+Vulnerable and noted Witherspite
+    // Fang/Crown already cover Poison+Weak; nothing before this
+    // combined Poison+Vulnerable for the player).
+    description: "Whatever this unit strikes rots from within, and takes cruelly worse hits after.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
+    ],
+  },
+  "runebound-coffer": {
+    id: "runebound-coffer",
+    name: "Runebound Coffer",
+    icon: "shield",
+    image: runeboundCofferImg,
+    cost: 190,
+    // Ward + Shatter - a new pairing: every existing Shatter combo
+    // (Quarrystrike Gauntlet, Emberroot Talisman) pairs it with
+    // Strength or repeating Block, never with Ward's own "cancel the
+    // first real hit outright" shape.
+    description: "This unit shrugs off the first real hit it takes, and strikes deeper against a target still braced.",
+    effects: [
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "applyBuff", id: "shatter", amount: 2 },
+    ],
+  },
+  "wayfarers-talisman": {
+    id: "wayfarers-talisman",
+    name: "Wayfarer's Talisman",
+    icon: "shield",
+    image: wayfarersTalismanImg,
+    cost: 190,
+    // Taunt + Ward - the "pure tank" combo: Mossbound Chain already
+    // pairs Taunt with repeating Block instead, and Wanderer's Ledger
+    // already pairs Ward with heal - this is the first item to combine
+    // Taunt with Ward's own hit-cancel instead.
+    description: "This unit draws every eye, and shrugs off the first real hit while it holds the line.",
+    effects: [
+      { type: "applyBuff", id: "taunt", amount: 1 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+    ],
+  },
+  "glowmoss-lantern": {
+    id: "glowmoss-lantern",
+    name: "Glowmoss Lantern",
+    icon: "heart",
+    image: glowmossLanternImg,
+    cost: 190,
+    // Regen + Cleanse - a pure sustain identity: Mendleaf Charm's own
+    // Regen and Cleansing Draught's own Cleanse had never been
+    // combined onto one item before.
+    description: "This unit knits itself back together, and shakes off whatever ails it, every round.",
+    effects: [
+      { type: "applyBuff", id: "regen", amount: 2 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } },
     ],
   },
 }

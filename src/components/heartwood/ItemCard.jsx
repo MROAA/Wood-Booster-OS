@@ -17,7 +17,15 @@ export default function ItemCard({ def, selected, disabled, onClick }) {
       <div className="hw-card-head">
         <span className="hw-card-cost">{def.cost}</span>
       </div>
-      <CardGlyph name={def.icon} className="hw-card-art" />
+      {/* Real icon art (this round's own kuvia-folder pass, mirroring
+          UnitCard.jsx's def.image-vs-glyph branch) - falls back to the
+          SVG glyph for every item the art pass didn't find a plausible
+          match for, exactly like a unit without a portrait yet. */}
+      {def.image ? (
+        <img src={def.image} alt="" className="hw-card-art" />
+      ) : (
+        <CardGlyph name={def.icon} className="hw-card-art" />
+      )}
       <div className="hw-card-name">
         {def.name}
         {/* Hero Bending (items.js's bendsRoleTo) - runEngine.js's item
