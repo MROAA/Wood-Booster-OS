@@ -34,6 +34,7 @@ import {
 } from "../services/heartwood/runEngine"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import CommanderSelect from "../components/heartwood/CommanderSelect"
+import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
@@ -97,6 +98,18 @@ export default function HeartwoodBattle() {
   // leaveShop() call is just deferred one click.
   const [showMapAfterShop, setShowMapAfterShop] = useState(false)
 
+  // Guild Hall (PRD v2.0 Phase 4): a one-time arrival screen for THIS
+  // run, shown right after a Commander is confirmed and before the
+  // first shop render. Same shape as showMapAfterShop above - a purely
+  // presentational gate, armed by beginRun below and cleared by the
+  // screen's own CTA, never touching runEngine.js's actual phase
+  // machine (runState.phase is already "shop" the whole time this is
+  // true; this state only decides what HeartwoodBattle renders on top
+  // of it). Starts false (not derived from restored/runState) so a
+  // page reload mid-run - or resuming a saved run - lands straight
+  // back on its real phase instead of replaying the arrival beat.
+  const [showGuildHall, setShowGuildHall] = useState(false)
+
   // Every one of this component's ~20 handlers funnels through
   // setRunState, so one effect covers all of them rather than a save
   // call in each handler. Saving mid-battle is deliberate (see
@@ -129,6 +142,10 @@ export default function HeartwoodBattle() {
   function beginRun(id) {
     setCharacterId(id)
     setRunState(startRun(id, pendingMemory))
+    // Arrival beat, once per run - see showGuildHall's own comment
+    // above. The shop phase is already set on runState at this point;
+    // this only delays HeartwoodBattle from rendering it.
+    setShowGuildHall(true)
     // Honored once, then cleared - a fallen hero is remembered for
     // exactly the next run, not forever (see startRun's own comment).
     if (pendingMemory) clearLastRun()
@@ -261,6 +278,26 @@ export default function HeartwoodBattle() {
           bannerSrc={crewBanner}
           bannerAlt="Tommy, Aatos, Spacemonkey, and Fenrir"
           onConfirm={beginRun}
+        />
+      </div>
+    )
+  }
+
+  // Guild Hall (see showGuildHall's own comment above) - checked here,
+  // right after the CommanderSelect branch and before every other
+  // phase branch, so it can only ever appear in the exact window
+  // between a fresh commander confirm and this run's first shop
+  // render, never mid-run and never on a reload.
+  if (showGuildHall) {
+    return (
+      <div className="hw-root" style={rootStyle}>
+        {exitLink}
+        <GuildHallScreen
+          character={CHARACTERS[characterId]}
+          pendingMemory={runState.honoredMemory}
+          bannerSrc={crewBanner}
+          bannerAlt="Tommy, Aatos, Spacemonkey, and Fenrir"
+          onEnterMarket={() => setShowGuildHall(false)}
         />
       </div>
     )
