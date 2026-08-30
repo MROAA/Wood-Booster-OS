@@ -60,7 +60,15 @@ export default function RelicChoice({ runState, onChoose, onReroll }) {
               <div className="hw-card-head">
                 <span className="hw-card-cost">{relic.cost}</span>
               </div>
-              <CardGlyph name={relic.icon} className="hw-card-glyph" />
+              {/* Real icon art (relics.js's own kuvia-folder pass,
+                  mirroring ItemCard.jsx's def.image-vs-glyph branch) -
+                  falls back to the SVG glyph for the rare relic the art
+                  pass genuinely couldn't match. */}
+              {relic.image ? (
+                <img src={relic.image} alt="" className="hw-card-glyph" />
+              ) : (
+                <CardGlyph name={relic.icon} className="hw-card-glyph" />
+              )}
               <div className="hw-card-name">{relic.name}</div>
               {/* Tribe-anchor relics (relics.js) only ever reach one
                   tribe - a small icon makes that scope readable at a

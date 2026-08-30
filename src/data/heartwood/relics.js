@@ -22,6 +22,51 @@
 // old constant): was 3, now 190 - the same rounded value as
 // TIER_COST.rare, keeping "priced the same as a rare unit" literally
 // true post-rescale instead of just true in spirit.
+// Relic icon art (same kuvia-folder pass that already covered units and
+// items - Marc, raising the bar mid-pass: "jokainen item ja unit ja
+// relic etc niillä pitää olla kuva... vaikka vain placeholderi mut
+// kaikella pitää olla kuva" - every relic gets a real image here, no
+// exceptions, even if it's just the closest reasonable placeholder
+// rather than a perfect thematic match. Same def.image-vs-glyph
+// fallback ItemCard.jsx/UnitCard.jsx already established, wired into
+// RelicChoice.jsx's pick screen and SquadDraft.jsx's owned-relics
+// badge - relics render in both places, so both needed the branch.
+import emberCoreImg from "../../assets/heartwood/relics/ember-core.jpg"
+import mosswardenCharmImg from "../../assets/heartwood/relics/mosswarden-charm.jpg"
+import brambleWardImg from "../../assets/heartwood/relics/bramble-ward.jpg"
+import sunderingMarkImg from "../../assets/heartwood/relics/sundering-mark.jpg"
+import essenceWellImg from "../../assets/heartwood/relics/essence-well.jpg"
+import bulwarkStandardImg from "../../assets/heartwood/relics/bulwark-standard.jpg"
+import vampiricBloomImg from "../../assets/heartwood/relics/vampiric-bloom.jpg"
+import cullingStrikeImg from "../../assets/heartwood/relics/culling-strike.jpg"
+import aegisWardImg from "../../assets/heartwood/relics/aegis-ward.jpg"
+import venomousEdgeImg from "../../assets/heartwood/relics/venomous-edge.jpg"
+import frostbrandImg from "../../assets/heartwood/relics/frostbrand.jpg"
+import artificersLedgerImg from "../../assets/heartwood/relics/artificers-ledger.jpg"
+import purifyingBloomImg from "../../assets/heartwood/relics/purifying-bloom.jpg"
+import barkWardImg from "../../assets/heartwood/relics/bark-ward.jpg"
+import berserkersOathImg from "../../assets/heartwood/relics/berserkers-oath.jpg"
+import quarrybreakImg from "../../assets/heartwood/relics/quarrybreak.jpg"
+import wardensBastionImg from "../../assets/heartwood/relics/wardens-bastion.jpg"
+import fangsMarkImg from "../../assets/heartwood/relics/fangs-mark.jpg"
+import rootboundCurseImg from "../../assets/heartwood/relics/rootbound-curse.jpg"
+import grovesBlessingImg from "../../assets/heartwood/relics/groves-blessing.jpg"
+import spiritsVeilImg from "../../assets/heartwood/relics/spirits-veil.jpg"
+import thornsWrathImg from "../../assets/heartwood/relics/thorns-wrath.jpg"
+import heartsbloomSeedImg from "../../assets/heartwood/relics/heartsbloom-seed.jpg"
+import rootbreakSigilImg from "../../assets/heartwood/relics/rootbreak-sigil.jpg"
+import cascadingWoundImg from "../../assets/heartwood/relics/cascading-wound.jpg"
+import mycoticBloomImg from "../../assets/heartwood/relics/mycotic-bloom.jpg"
+import witherspiteCrownImg from "../../assets/heartwood/relics/witherspite-crown.jpg"
+import quarryVanguardImg from "../../assets/heartwood/relics/quarry-vanguard.jpg"
+import recklessOathImg from "../../assets/heartwood/relics/reckless-oath.jpg"
+import sanctuaryVowImg from "../../assets/heartwood/relics/sanctuary-vow.jpg"
+import ashclawStandardImg from "../../assets/heartwood/relics/ashclaw-standard.jpg"
+import cripplebiteStandardImg from "../../assets/heartwood/relics/cripplebite-standard.jpg"
+import bramblehideBannerImg from "../../assets/heartwood/relics/bramblehide-banner.jpg"
+import thornfenStandardImg from "../../assets/heartwood/relics/thornfen-standard.jpg"
+import huntclawStandardImg from "../../assets/heartwood/relics/huntclaw-standard.jpg"
+
 const RELIC_COST = 190
 
 // A relic node only shows up 3 times a run (vs. a shop's unlimited
@@ -35,6 +80,7 @@ export const RELIC_REROLL_COST = 125
 export const RELICS = {
   "ember-core": {
     id: "ember-core",
+    image: emberCoreImg,
     name: "Ember Core",
     icon: "flame",
     cost: RELIC_COST,
@@ -43,6 +89,7 @@ export const RELICS = {
   },
   "mosswarden-charm": {
     id: "mosswarden-charm",
+    image: mosswardenCharmImg,
     name: "Mosswarden's Charm",
     icon: "leaf",
     cost: RELIC_COST,
@@ -63,6 +110,7 @@ export const RELICS = {
   },
   "bramble-ward": {
     id: "bramble-ward",
+    image: brambleWardImg,
     name: "Bramble Ward",
     icon: "root",
     cost: RELIC_COST,
@@ -76,6 +124,7 @@ export const RELICS = {
   },
   "sundering-mark": {
     id: "sundering-mark",
+    image: sunderingMarkImg,
     name: "Sundering Mark",
     icon: "rune",
     cost: RELIC_COST,
@@ -96,6 +145,7 @@ export const RELICS = {
   },
   "essence-well": {
     id: "essence-well",
+    image: essenceWellImg,
     name: "Essence Well",
     icon: "spark",
     cost: RELIC_COST,
@@ -110,6 +160,7 @@ export const RELICS = {
   },
   "bulwark-standard": {
     id: "bulwark-standard",
+    image: bulwarkStandardImg,
     name: "Bulwark Standard",
     icon: "shield",
     cost: RELIC_COST,
@@ -128,6 +179,7 @@ export const RELICS = {
   },
   "vampiric-bloom": {
     id: "vampiric-bloom",
+    image: vampiricBloomImg,
     name: "Vampiric Bloom",
     icon: "leaf",
     cost: RELIC_COST,
@@ -146,6 +198,7 @@ export const RELICS = {
   },
   "culling-strike": {
     id: "culling-strike",
+    image: cullingStrikeImg,
     name: "Culling Strike",
     icon: "sword",
     cost: RELIC_COST,
@@ -161,6 +214,7 @@ export const RELICS = {
   },
   "aegis-ward": {
     id: "aegis-ward",
+    image: aegisWardImg,
     name: "Aegis Ward",
     icon: "shield",
     cost: RELIC_COST,
@@ -173,6 +227,7 @@ export const RELICS = {
   },
   "venomous-edge": {
     id: "venomous-edge",
+    image: venomousEdgeImg,
     name: "Venomous Edge",
     icon: "leaf",
     cost: RELIC_COST,
@@ -193,6 +248,7 @@ export const RELICS = {
   },
   "frostbrand": {
     id: "frostbrand",
+    image: frostbrandImg,
     name: "Frostbrand",
     icon: "moonGlyph",
     cost: RELIC_COST,
@@ -213,6 +269,7 @@ export const RELICS = {
   },
   "artificers-ledger": {
     id: "artificers-ledger",
+    image: artificersLedgerImg,
     name: "Artificer's Ledger",
     icon: "rune",
     cost: RELIC_COST,
@@ -232,6 +289,7 @@ export const RELICS = {
   },
   "purifying-bloom": {
     id: "purifying-bloom",
+    image: purifyingBloomImg,
     name: "Purifying Bloom",
     icon: "leaf",
     cost: RELIC_COST,
@@ -249,6 +307,7 @@ export const RELICS = {
   },
   "bark-ward": {
     id: "bark-ward",
+    image: barkWardImg,
     name: "Bark Ward",
     icon: "shield",
     cost: RELIC_COST,
@@ -263,6 +322,7 @@ export const RELICS = {
   },
   "berserkers-oath": {
     id: "berserkers-oath",
+    image: berserkersOathImg,
     name: "Berserker's Oath",
     icon: "flame",
     cost: RELIC_COST,
@@ -276,6 +336,7 @@ export const RELICS = {
   },
   "quarrybreak": {
     id: "quarrybreak",
+    image: quarrybreakImg,
     name: "Quarrybreak",
     icon: "sword",
     cost: RELIC_COST,
@@ -303,6 +364,7 @@ export const RELICS = {
   // should feel stronger, not just different.
   "wardens-bastion": {
     id: "wardens-bastion",
+    image: wardensBastionImg,
     name: "Warden's Bastion",
     icon: "shield",
     cost: RELIC_COST,
@@ -312,6 +374,7 @@ export const RELICS = {
   },
   "fangs-mark": {
     id: "fangs-mark",
+    image: fangsMarkImg,
     name: "Fang's Mark",
     icon: "sword",
     cost: RELIC_COST,
@@ -321,6 +384,7 @@ export const RELICS = {
   },
   "rootbound-curse": {
     id: "rootbound-curse",
+    image: rootboundCurseImg,
     name: "Rootbound Curse",
     icon: "root",
     cost: RELIC_COST,
@@ -332,6 +396,7 @@ export const RELICS = {
   },
   "groves-blessing": {
     id: "groves-blessing",
+    image: grovesBlessingImg,
     name: "Grove's Blessing",
     icon: "leaf",
     cost: RELIC_COST,
@@ -341,6 +406,7 @@ export const RELICS = {
   },
   "spirits-veil": {
     id: "spirits-veil",
+    image: spiritsVeilImg,
     name: "Spirit's Veil",
     icon: "moonGlyph",
     cost: RELIC_COST,
@@ -350,6 +416,7 @@ export const RELICS = {
   },
   "thorns-wrath": {
     id: "thorns-wrath",
+    image: thornsWrathImg,
     name: "Thorn's Wrath",
     icon: "flame",
     cost: RELIC_COST,
@@ -359,6 +426,7 @@ export const RELICS = {
   },
   "heartsbloom-seed": {
     id: "heartsbloom-seed",
+    image: heartsbloomSeedImg,
     name: "Heartsbloom Seed",
     icon: "heart",
     cost: RELIC_COST,
@@ -372,6 +440,7 @@ export const RELICS = {
   },
   "rootbreak-sigil": {
     id: "rootbreak-sigil",
+    image: rootbreakSigilImg,
     name: "Rootbreak Sigil",
     icon: "root",
     cost: RELIC_COST,
@@ -387,6 +456,7 @@ export const RELICS = {
   },
   "cascading-wound": {
     id: "cascading-wound",
+    image: cascadingWoundImg,
     name: "Cascading Wound",
     icon: "sword",
     cost: RELIC_COST,
@@ -402,6 +472,7 @@ export const RELICS = {
   },
   "mycotic-bloom": {
     id: "mycotic-bloom",
+    image: mycoticBloomImg,
     name: "Mycotic Bloom",
     icon: "leaf",
     cost: RELIC_COST,
@@ -417,6 +488,7 @@ export const RELICS = {
   },
   "witherspite-crown": {
     id: "witherspite-crown",
+    image: witherspiteCrownImg,
     name: "Witherspite Crown",
     icon: "root",
     cost: RELIC_COST,
@@ -441,6 +513,7 @@ export const RELICS = {
   },
   "quarry-vanguard": {
     id: "quarry-vanguard",
+    image: quarryVanguardImg,
     name: "Quarry Vanguard",
     icon: "sword",
     cost: RELIC_COST,
@@ -457,6 +530,7 @@ export const RELICS = {
   },
   "reckless-oath": {
     id: "reckless-oath",
+    image: recklessOathImg,
     name: "Reckless Oath",
     icon: "sword",
     cost: RELIC_COST,
@@ -472,6 +546,7 @@ export const RELICS = {
   },
   "sanctuary-vow": {
     id: "sanctuary-vow",
+    image: sanctuaryVowImg,
     name: "Sanctuary Vow",
     icon: "heart",
     cost: RELIC_COST,
@@ -486,6 +561,7 @@ export const RELICS = {
   },
   "ashclaw-standard": {
     id: "ashclaw-standard",
+    image: ashclawStandardImg,
     name: "Ashclaw Standard",
     icon: "sword",
     cost: RELIC_COST,
@@ -500,6 +576,7 @@ export const RELICS = {
   },
   "cripplebite-standard": {
     id: "cripplebite-standard",
+    image: cripplebiteStandardImg,
     name: "Cripplebite Standard",
     icon: "sword",
     cost: RELIC_COST,
@@ -531,6 +608,7 @@ export const RELICS = {
   // Ashclaw Standard, etc).
   "bramblehide-banner": {
     id: "bramblehide-banner",
+    image: bramblehideBannerImg,
     name: "Bramblehide Banner",
     icon: "shield",
     cost: RELIC_COST,
@@ -545,6 +623,7 @@ export const RELICS = {
   },
   "thornfen-standard": {
     id: "thornfen-standard",
+    image: thornfenStandardImg,
     name: "Thornfen Standard",
     icon: "flame",
     cost: RELIC_COST,
@@ -560,6 +639,7 @@ export const RELICS = {
   },
   "huntclaw-standard": {
     id: "huntclaw-standard",
+    image: huntclawStandardImg,
     name: "Huntclaw Standard",
     icon: "sword",
     cost: RELIC_COST,
