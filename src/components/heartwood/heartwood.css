@@ -1726,7 +1726,9 @@ img.hw-card-art {
   position: relative;
   filter: brightness(0.7) saturate(0.8);
   transition: filter 150ms ease, transform 150ms ease;
-  height: 84px;
+  /* Reverted 84px -> 64px alongside the #374 recruit-card revert (Marc:
+     the #374 chrome grew too far). Still a clear, legible plaque. */
+  height: 64px;
   display: flex;
   align-items: center;
 }
@@ -1739,7 +1741,7 @@ img.hw-card-art {
      width (the wide market strip renders noticeably wider than the
      more compact Your Squad plaque, which is correct - they're
      different art, not a matched pixel-for-pixel pair). */
-  height: 84px;
+  height: 64px;
   width: auto;
   pointer-events: none;
 }
@@ -2272,21 +2274,26 @@ img.hw-card-art {
    was chosen precisely so growth never silently triggers a second
    row). 400px lands comfortably under that ceiling with real margin
    for a bad-luck long roll. */
+/* Card-frame correction (Marc, live, calling the #374 400px card
+   "tökerö" - clumsy: a thin wide letterbox portrait floating over
+   sparse text). The OUTER frame goes back to its pre-#374 320px; the
+   real fix is the PORTRAIT below, not the frame. "se pitää keskittää
+   korttiin mukavasti sekä antaa niille enemman pinta-alaa" - centre
+   the image nicely in the card and give it more surface area. Item
+   cards are explicitly left at their #374 260px (Marc: those are a
+   good size). */
 .hw-market-featured-grid {
-  grid-template-columns: repeat(auto-fit, 400px);
+  grid-template-columns: repeat(auto-fit, 320px);
   gap: var(--space-2, 13px);
-  /* Recovery/fit pass: 4px -> 2px each side, one of the small
-     chrome-side trims that keep the Market tab under the real
-     1536x864 no-scroll budget (see .hw-market-tab-btn's fit comment). */
   padding-top: 2px;
   padding-bottom: 2px;
 }
 
 .hw-market-featured-grid .hw-card {
-  width: 400px;
-  min-width: 400px;
+  width: 320px;
+  min-width: 320px;
   padding: 8px;
-  gap: 3px;
+  gap: 4px;
 }
 
 /* Portrait height: the part of "twice as big" that isn't free - every
@@ -2322,14 +2329,21 @@ img.hw-card-art {
    for as much of a literal 2x as the budget actually had once the
    Continue/plaque doublings (the harder "pitää" asks) were funded
    first. */
+/* THE fix Marc asked for (live, calling the old card "tökerö"): the
+   portrait is the dominant element of the recruit card now, not a thin
+   74px letterbox strip. 188px on a 320px-wide full-bleed frame is a
+   ~1.7:1 landscape window - a real card portrait. Its own top corners
+   round to the card frame (the card isn't overflow:hidden, so a square
+   image top otherwise pokes past the 12px frame radius and reads as
+   "floating"). Focal point stays biased high (object-position 50% 18%,
+   a touch higher than the shared 20%) so the taller window still keeps
+   every tested subject's head in frame. Stats/tribe/name/cost below are
+   untouched and stay legible - the art just carries more weight now. */
 .hw-market-featured-grid .hw-card-portrait {
-  /* Recovery/fit pass: 80 -> 74. The real visible growth on the
-     featured card this pass is its WIDTH (320 -> 400px) and the
-     denser layout that buys; this portrait height was already sitting
-     at/below the shared base and only ever a budget-payback dial, so
-     it takes the trim needed to keep the Market tab off the scrollbar
-     at 1536x864 (see .hw-market-tab-btn's fit comment). */
-  height: 74px;
+  height: 138px;
+  object-position: 50% 18%;
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
 }
 
 /* Your Squad/bench cards (Marc's task also names this tab, not just
@@ -2375,14 +2389,14 @@ img.hw-card-art {
 }
 
 .hw-market-featured-grid .hw-card-art {
-  /* Scaled up alongside the portrait above (units without real art
-     yet fall back to this glyph medallion) - same growth factor. */
-  width: 74px;
-  height: 74px;
+  /* Fallback glyph medallion (units without real portrait art yet).
+     Pre-#374 size restored alongside the frame revert. */
+  width: 70px;
+  height: 70px;
 }
 
 .hw-market-featured-grid .hw-card-name {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 /* Items row specifically - the base .hw-select-grid's 21px top+bottom
@@ -2416,26 +2430,26 @@ img.hw-card-art {
 }
 
 .hw-market-featured-grid .hw-card-class {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .hw-market-featured-grid .hw-card-desc {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .hw-market-featured-grid .hw-card-cost {
-  width: 30px;
-  height: 30px;
-  font-size: 15px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
 }
 
 .hw-market-featured-grid .hw-card-hp {
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .hw-market-featured-grid .hw-card-hp .hw-effect-icon-glyph {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 /* Effect icons (sword/shield/heart + amount) and tribe pill both grow
@@ -2457,6 +2471,368 @@ img.hw-card-art {
 .hw-market-featured-grid .hw-tribe-badge {
   font-size: 10.5px;
   padding: 2px 8px;
+}
+
+/* ============================================================
+   3-ZONE SHOP LAYOUT
+   Marc's own annotated sketch: the shop + squad sat clustered in
+   the centre with wide empty dark margins left and right - "UI ei
+   vielä hyödynnä kaikkea tilaa" (the UI doesn't use all the space).
+   A full-width grid, SHOP PHASE ONLY (scoped to
+   .hw-shop-3zone-stage, SquadDraft's root when HeartwoodBattle
+   renders it for phase === "shop"):
+     LEFT rail  - owned relics + owned item bag
+     CENTRE     - the existing Market / Your Squad tabbed panel
+     RIGHT rail - <RunMap/>, so the run map is visible during the
+                  shop too, not only between phases
+   The header / commander strip / banner ABOVE this grid stay
+   full-width. Battle / formation / relic-choice / map-interstitial
+   screens never get .hw-shop-3zone-stage, so they are untouched.
+   ============================================================ */
+
+/* Rails: a fixed 240px each (Marc's parent brief: "rails ~240-300px").
+   At the 1536x864 target that leaves the centre ~950px - the three
+   recruit cards ride their repeat(3, minmax(0,320px)) track and settle
+   ~310px each with no wrap, so the 3-zone layout costs the recruit row
+   almost nothing. Narrower viewports let the centre track shrink
+   (minmax(0,1fr)) and the cards shrink with it (below) rather than
+   forcing the page wide. */
+.hw-shop-3zone {
+  display: grid;
+  grid-template-columns: var(--hw-shop-rail-w, 240px) minmax(0, 1fr) var(--hw-shop-rail-w, 240px);
+  gap: 14px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+/* The centre column is its own bounded scroll container, same principle
+   as the rails: the PAGE (.hw-root) never scrolls at 1536x864 (Marc's
+   hard rule), but the pathological Your Squad bench (4 fighting + 6
+   reserve = 10 cards) is genuinely taller than any viewport once the
+   full-width header is also on screen - so in that one case the centre
+   scrolls internally rather than pushing the page. A normal Market /
+   Your Squad visit is well under this cap and shows no scrollbar. The
+   ~206px reserve covers the full-width header stack (title row +
+   commander strip + banner) plus the stage's own padding, with margin
+   for a badge-wrap. */
+.hw-shop-center {
+  min-width: 0;
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* Tighter stage padding in the 3-zone layout (the base .hw-intro 21px
+   all round is more than a full-width shop needs) - buys the vertical
+   room back for a bigger recruit portrait without the page scrolling. */
+.hw-shop-3zone-stage.hw-intro {
+  padding: 12px 16px;
+}
+
+/* Market-screen backdrop (Marc supplied taustakuvamarket.png this
+   round). Bounded to the shop stage - NOT .hw-root's ambient full-bleed
+   bg, which Marc previously circled and asked OFF this screen. Layered
+   UNDER a heavy near-opaque dark scrim so it reads as a faint vine-frame
+   vignette around the edges, never texture the eye has to fight: the
+   image sits at ~12% effective, the centre where cards/text render
+   stays flat dark. object-fit-style cover, watermark already cropped
+   out of the asset. Overrides only .hw-market-stage's background-image
+   (its radial gradient) - keeps everything else that rule set. */
+.hw-shop-3zone-stage.hw-market-stage {
+  background-image:
+    linear-gradient(rgba(9, 6, 4, 0.9), rgba(9, 6, 4, 0.9)),
+    url("../../assets/heartwood/ui-bg-market.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Each rail is its OWN scroll container: if its content is taller
+   than the viewport, the rail scrolls internally - the page
+   (.hw-root) never does (Marc's standing hard rule, verified at
+   1536x864). The max-height number is deliberately generous /
+   not load-bearing: .hw-root itself also cannot scroll past its
+   clipped parent, so this is belt-and-braces, not the primary
+   guard.
+   align-self:start (not stretch): a rail is only as tall as its
+   own content, never a big empty panel padded down to the centre
+   column's height (Marc's rule: minimalist, no dead whitespace).
+   The left rail with a handful of relics/items and the right rail
+   with an early-run RunMap both sit compact at the top; a
+   late-run left rail that outgrows the viewport hits max-height
+   and scrolls inside itself. */
+.hw-shop-rail {
+  min-width: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  border: 1px solid var(--hw-border);
+  border-radius: 12px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--hw-panel) 60%, transparent);
+}
+
+.hw-shop-rail--right {
+  padding: 8px 8px 4px;
+}
+
+/* RunMap inside the right rail - strip its page-level side margin and
+   its own frame (the rail already provides one); its track keeps its
+   own horizontal scroll and can never force the rail wider. */
+.hw-shop-rail--right .hw-run-map {
+  margin: 0;
+  border: none;
+  padding: 0;
+  background: none;
+  min-width: 0;
+}
+
+.hw-shop-rail--right .hw-run-track {
+  padding-top: 28px;
+  padding-bottom: 14px;
+}
+
+/* ----- rail content: compact, dense, calm side panels ----- */
+.hw-rail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hw-rail-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--hw-border);
+  margin-bottom: 0;
+}
+
+.hw-rail-count {
+  font-size: 11px;
+  color: var(--hw-muted);
+  border: 1px solid var(--hw-border);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+.hw-rail-empty {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 2px 0;
+}
+
+.hw-rail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hw-rail-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--hw-card) 55%, transparent);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.hw-rail-chip > .hw-intent-glyph {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.hw-rail-chip-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hw-rail-chip-max {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--hw-muted);
+  flex-shrink: 0;
+}
+
+.hw-rail-upgrade.hw-move-btn {
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.hw-rail-upgrade .hw-intent-glyph {
+  width: 11px;
+  height: 11px;
+}
+
+.hw-rail-chip--selectable {
+  cursor: pointer;
+}
+
+.hw-rail-chip--selectable:hover {
+  border-color: color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+}
+
+.hw-rail-chip--selected {
+  border-color: var(--hw-ember);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+}
+
+.hw-rail-chip-tag {
+  flex-shrink: 0;
+  font-size: 9px;
+  padding: 1px 5px;
+}
+
+.hw-rail-chip-eq {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  color: var(--hw-muted);
+  max-width: 78px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hw-rail-chip-eq--free {
+  color: color-mix(in srgb, var(--hw-moss) 80%, var(--hw-muted));
+}
+
+/* ----- centre column ----- */
+/* Recruit cards: their own reverted 320px is the CEILING; they share
+   the centre row equally and shrink below 320 only if the viewport
+   is narrower than Marc's. repeat(3,...) so a 3-offer row never wraps
+   to 2+1 in the narrower centre (which would cost real vertical
+   budget). */
+.hw-shop-3zone .hw-market-featured-grid {
+  grid-template-columns: repeat(3, minmax(0, 320px));
+  justify-content: center;
+  gap: 10px;
+}
+
+.hw-shop-3zone .hw-market-featured-grid .hw-card {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Item cards keep their 260px visual size as the ceiling (Marc: the
+   #374 item size is good) - this only stops the row dropping to 2
+   across in the narrower centre. */
+.hw-shop-3zone .hw-market-items-grid {
+  grid-template-columns: repeat(3, minmax(0, 260px));
+  justify-content: center;
+}
+
+.hw-shop-3zone .hw-market-items-grid .hw-card {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Your Squad tab: stack fighting / reserve instead of the side-by-
+   side auto|1px|1fr split - a 4-card fighting group wants ~640px the
+   narrower centre can't spare next to reserve. Each group's grid
+   wraps across the full centre width; the maxed bench (4 fighting +
+   6 reserve) lands in two card rows. Bench portraits step down here
+   so those two rows clear the 864px no-scroll budget. */
+.hw-shop-3zone .hw-squad-split {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hw-shop-3zone .hw-squad-split-divider {
+  display: none;
+}
+
+/* Bench cards run compact in the 3-zone squad tab - the "manage my
+   squad" view doesn't need the big showcase portrait the recruit card
+   does, and the pathological full bench (4 fighting + 6 reserve = 10
+   cards, two wrapped rows) has to clear the no-page-scroll budget. */
+.hw-shop-3zone .hw-panel--squad .hw-card-portrait {
+  height: 84px;
+}
+
+.hw-shop-3zone .hw-panel--squad .hw-card-art {
+  width: 42px;
+  height: 42px;
+}
+
+.hw-shop-3zone .hw-panel--squad .hw-squad-group-grid {
+  padding: 2px 0;
+  gap: 8px;
+  /* don't stretch every card to the tallest in the row - one card
+     with an extra class/Bent line otherwise pads all its neighbours
+     with dead frame space and grows the wrapped bench rows. */
+  align-items: flex-start;
+}
+
+/* The plaque tab buttons already read "HEARTHWOOD MARKET" / "YOUR
+   SQUAD" right above these panels - the text panel-title underneath is
+   redundant here and its height is budget the recruit portrait needs. */
+.hw-shop-3zone .hw-panel-title {
+  display: none;
+}
+
+/* Reserve cards (dimmed, "not fighting") run smaller than the fighting
+   line in the 3-zone squad tab - the full pathological bench is
+   6 reserve on one wrapped row and this keeps that row shallow. */
+.hw-shop-3zone .hw-squad-reserve-cards .hw-card-portrait {
+  height: 62px;
+}
+
+.hw-shop-3zone .hw-squad-reserve-cards .hw-card-art {
+  width: 36px;
+  height: 36px;
+}
+
+/* First-visit tutorial hint: compact in the 3-zone centre so the very
+   first Market render also clears the no-scroll budget (it's gone for
+   good after "Got it"). */
+.hw-shop-3zone .hw-hint--tutorial {
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+/* Graceful collapse below Marc's target width: single column, rails
+   become full-width blocks (still fully functional - the owned
+   relics/items live ONLY in the left rail now, so it must never just
+   disappear), page may scroll as the documented last resort. */
+@media (max-width: 1240px) {
+  .hw-shop-3zone {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hw-shop-rail {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .hw-shop-rail--left {
+    order: 1;
+  }
+
+  .hw-shop-center {
+    order: 2;
+  }
+
+  .hw-shop-rail--right {
+    order: 3;
+  }
 }
 
 /* Problem 4, one more piece: a quiet organic separator between "For
