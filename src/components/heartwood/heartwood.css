@@ -916,13 +916,32 @@
 .hw-tribe-icons {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 4px;
   margin-top: 2px;
 }
 
-.hw-tribe-icon .hw-effect-icon-glyph {
-  width: 12px;
-  height: 12px;
+/* Labeled tribe pill (see UnitCard.jsx's own comment for the "why") -
+   tribe-colored border/text on a translucent tint of that same color,
+   the exact "quiet badge, loud border" language every other tier/
+   status marker on this card already uses, just keyed to the tribe's
+   own color instead of a fixed one. */
+.hw-tribe-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  white-space: nowrap;
+}
+
+.hw-tribe-badge .hw-effect-icon-glyph {
+  width: 10px;
+  height: 10px;
 }
 
 /* Hero Bending marker (UnitCard.jsx's `bent` prop) - a small inline
