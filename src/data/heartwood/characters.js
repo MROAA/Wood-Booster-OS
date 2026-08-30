@@ -15,10 +15,46 @@ import { scaleEffect } from "./units"
 // small universal damage buff for his "always looking for the fast
 // opening" identity. `startEffects` is kept as-is, unused, in case the
 // turn-based engine is ever revived.
+//
+// `tier` (Marc: "tee itemeille, reliceille, ja hahmoille oma tier
+// systeemi joka vaihtelee niiden harvinaisuudesta" - make a tier
+// system for items, relics, AND characters that varies by their
+// rarity): a Commander isn't purchased with Essence like a relic or a
+// recruited unit - all 4 are free, chosen once at the very start of a
+// run - so `tier` here isn't a cost band at all, it's an honest power/
+// distinctiveness classification instead, same common/uncommon/rare
+// vocabulary as everywhere else in this game rather than a fourth
+// naming scheme invented just for this file. Reused for
+// CommanderSelect.jsx's card glow only, same `.hw-card[data-tier]`
+// rare/uncommon treatment a rare relic or a rare unit already gets -
+// no separate visual system.
+//
+// The split isn't a guess: this file's own extensive fairness-pass
+// history above (grep this file's git log for "fairness"/"win rate")
+// shows Tommy repeatedly landing well ahead of the other 3 whenever a
+// fresh 100-run pass was actually taken, most recently the build-
+// diversity pass (commit 3881315) - Tommy sat at 87% -> 91% while
+// Aatos/Fenrir/Repo were the ones at 43/36/53% -> 60/63/65% needing
+// the buff in the first place, still clearly behind Tommy's number
+// even after improving. That's a real, repeatedly-measured gap, not a
+// one-off - Marc's own "if a genuine power gap exists, be honest about
+// it" standard means Tommy earns `rare` here, not artificial parity
+// with the other 3. Aatos/Fenrir/Repo land within a tight band of each
+// other (60/63/65%, well inside this project's own "noisy under n=100"
+// tolerance - see heartwood-fairness-pass.mjs's own sample-size notes)
+// - genuinely balanced with each other, just not with Tommy - so all
+// 3 share `uncommon`. None of the 4 is `common`: every Commander here
+// carries a real, distinct kit (squadPassive + activePower), unlike a
+// bare common-tier recruit unit - `common` would misrepresent all 4 as
+// throwaway picks, which none of them are.
 export const CHARACTERS = {
   tommy: {
     id: "tommy",
     name: "Tommy",
+    // See this file's own top-of-file comment for the fairness-pass
+    // evidence (91% most recently, well clear of the other 3) - the
+    // one Commander with a real, repeated power gap over the rest.
+    tier: "rare",
     art: "cat",
     maxHp: 60,
     tagline: "Agile and quick - always looking for the fast opening.",
@@ -98,6 +134,9 @@ export const CHARACTERS = {
   aatos: {
     id: "aatos",
     name: "Aatos",
+    // See this file's own top-of-file comment - balanced with Fenrir/
+    // Repo (all 3 in the 60-65% band), clearly behind Tommy.
+    tier: "uncommon",
     art: "reindeer",
     maxHp: 66,
     tagline: "Steady and patient - built to outlast a fight.",
@@ -175,6 +214,9 @@ export const CHARACTERS = {
   fenrir: {
     id: "fenrir",
     name: "Fenrir",
+    // See this file's own top-of-file comment - balanced with Aatos/
+    // Repo (all 3 in the 60-65% band), clearly behind Tommy.
+    tier: "uncommon",
     art: "wolf",
     // Bumped 56 -> 60 (still lowest of the 4, matching Tommy - Aatos's
     // 66 and Repo's 62 stay clearly above) after the new enemy-scaling
@@ -254,6 +296,13 @@ export const CHARACTERS = {
   repo: {
     id: "repo",
     name: "Repo",
+    // See this file's own top-of-file comment - balanced with Aatos/
+    // Fenrir (all 3 in the 60-65% band), clearly behind Tommy. Repo's
+    // own activePower comment above documents a longer, harder-fought
+    // road to even reaching this band (last of the 4 across several
+    // passes) - "uncommon" here reflects where the numbers landed most
+    // recently, not that the earlier gap never happened.
+    tier: "uncommon",
     art: "fox",
     maxHp: 62,
     tagline: "Careful and cunning - never takes a hit it didn't plan for.",
