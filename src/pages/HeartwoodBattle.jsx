@@ -407,6 +407,7 @@ export default function HeartwoodBattle() {
           onContinue={() => setShowMapAfterShop(true)}
           showIntro={showIntro}
           onDismissIntro={dismissIntro}
+          mapSlot={<RunMap runState={runState} />}
         />
       </div>
     )
