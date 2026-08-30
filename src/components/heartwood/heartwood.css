@@ -1836,6 +1836,93 @@ img.hw-card-art {
   color: var(--hw-moss);
 }
 
+/* Your Squad tab - fighting vs reserve separation (Marc: "unit/reservi
+   on epaselva your squad valilehdessa... ne pitaa eritta paremmin").
+   Two side-by-side groups with a quiet vertical rule between them and
+   the reserve grid gently dimmed - muted, no loud color or heavy
+   border, per this game's "hillitty minimalistinen" anchor. Side by
+   side (not stacked) keeps the tab to a single card row so the
+   screen's zero-scroll budget holds.
+   A 3-column grid: fighting group sized to its own cards (auto), a thin
+   rule (1px), then the reserve group taking the rest (1fr). Grid, not
+   flex, so the fighting column keeps its natural card width instead of
+   being squeezed to a single stacked column when reserve is wide. */
+.hw-squad-split {
+  display: grid;
+  grid-template-columns: auto 1px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.hw-squad-group {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hw-squad-group-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--hw-border);
+  margin-bottom: 2px;
+}
+
+.hw-squad-group--reserve .hw-squad-group-label {
+  color: color-mix(in srgb, var(--hw-muted) 80%, transparent);
+}
+
+.hw-squad-group-count {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--hw-muted);
+  border: 1px solid var(--hw-border);
+  border-radius: 999px;
+  padding: 0 7px;
+}
+
+/* Thin gradient rule fading at both ends, same quiet treatment as
+   .hw-market-divider just rotated vertical - not a hard ruled line. */
+.hw-squad-split-divider {
+  align-self: stretch;
+  width: 1px;
+  min-height: 120px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--hw-moss) 40%, transparent) 50%, transparent);
+}
+
+/* Plain flex-wrap, NOT the parent .hw-select-grid's auto-fit grid: an
+   auto-fit track set collapses to a single column when its container
+   is intrinsically sized (which the fighting group's `auto` outer
+   track is), stacking the cards vertically and blowing the height
+   budget. Flex-wrap reports a real multi-card max-content so the outer
+   `auto` track sizes to the row. Tighter vertical padding than the
+   21px base too - two card grids share this one tab now. */
+/* Prefixed with .hw-panel--squad to out-specify the .hw-select-grid
+   rule that sits later in this file. */
+.hw-panel--squad .hw-squad-group-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 13px;
+  padding: 6px 0;
+}
+
+/* The reserve cards read as "owned but not in the fight" via a gentle
+   dim - subtle enough that the Reforge/Sell buttons on them stay
+   legible. */
+.hw-squad-reserve-cards {
+  opacity: 0.62;
+}
+
+.hw-squad-group-empty {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 6px 0;
+  max-width: 15rem;
+}
+
 .hw-select-grid {
   display: grid;
   /* Marc: "tällä hetkellä se tuntuu kuin se olisi pitkä lista... kaiken

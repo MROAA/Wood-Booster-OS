@@ -22,6 +22,13 @@ import { tribesOf, SYNERGY_TIERS } from "../../data/heartwood/synergies"
 import { findDualClassFor, applyDualClassGrant } from "../../data/heartwood/dualClasses"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen } from "./effects"
 import { isShielded, kingAdjacent } from "./targeting"
+// RAMP_CAP: the difficulty ramp's total budget, defined in runEngine.js
+// alongside difficultyFactorForNode. Imported (not re-declared) so this
+// file's ramp-progress normalizer below can never drift from the curve
+// that produced the factor. runEngine.js already imports from this
+// file, so this is a deliberate, safe circular reference - RAMP_CAP is
+// only read inside a function, long after both modules finish loading.
+import { RAMP_CAP } from "./runEngine"
 
 const GRID = { rows: 3, cols: 3 }
 const MAX_ROUNDS = 30
@@ -620,14 +627,14 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
   // that clears a fight in 2-3 rounds now just... does, and feels like
   // it, instead of getting quietly rubber-banded back to a fixed
   // target every time.
-  // 0.65 -> 1.3: matching runEngine.js's difficultyFactorForNode cap
-  // (Marc: "twice as hard" - doubled that constant). This divisor
-  // MUST track that same cap - it's how this function reads back
-  // "how far into the ramp is this fight" from the raw multiplier;
-  // leaving it at the old 0.65 while the real cap grew would read a
-  // mid-run fight as already 100% ramped, maxing targetRounds out
-  // long before the run's actual end.
-  const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / 0.75))
+  // This divisor MUST equal runEngine.js's difficultyFactorForNode
+  // cap - it's how this function reads back "how far into the ramp is
+  // this fight" from the raw multiplier; a stale copy here would read
+  // a mid-run fight as already 100% ramped, maxing targetRounds out
+  // long before the run's actual end. Was a hand-synced literal
+  // (0.65 -> 1.3 -> 0.75); now imported as RAMP_CAP so the two
+  // physically cannot drift.
+  const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / RAMP_CAP))
   const targetRounds = 1.5 + progress * 1
   const targetTotalHp = squadDps * targetRounds
 
