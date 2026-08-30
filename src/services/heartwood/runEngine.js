@@ -18,6 +18,8 @@ import { ITEMS, ITEM_SLOTS, itemPool } from "../../data/heartwood/items"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
 import { tribesOf } from "../../data/heartwood/synergies"
 import { resolveTrial } from "../../data/heartwood/trials"
+import { ENEMIES, actEnemyForNode } from "../../data/heartwood/enemies"
+import { FORMATIONS } from "../../data/heartwood/formations"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // RAMP_CAP - the difficulty ramp's TOTAL enemy-scaling budget: enemies
@@ -1227,6 +1229,118 @@ export function difficultyTierForNode(nodeIndex, pathLength) {
   return [...DIFFICULTY_TIERS].reverse().find((t) => progress >= t.threshold) || DIFFICULTY_TIERS[0]
 }
 
+// The 1-based Act number (1..7) for a run position - the index of
+// difficultyTierForNode's own result within DIFFICULTY_TIERS, so the
+// story Act and the difficulty band can never disagree. Callers pass
+// RUN_PATH.length as the denominator (same as every difficultyTierForNode
+// call site in the UI: RunMap / SquadDraft / FormationScreen), NOT the
+// dynamic runState.path.length.
+export function actIndexForNode(nodeIndex, pathLength) {
+  const tier = difficultyTierForNode(nodeIndex, pathLength)
+  const i = DIFFICULTY_TIERS.indexOf(tier)
+  return i < 0 ? 1 : i + 1
+}
+
+// "Later Acts are tougher" (feat/hearthwood-act-enemy-sets): a small
+// per-Act stat FLOOR multiplier, applied to enemy HP / move damage /
+// passive amounts at battle start ON TOP OF difficultyFactorForNode's
+// run-progress ramp - it does NOT touch that function's math (see the
+// long note on it below), it multiplies its already-computed result at
+// the two call sites (startFormationBattle / previewBattleEnemies).
+// Deliberately gentle - this pass establishes the SHAPE (a flat-then-
+// rising floor across the post-climax Acts); the Act V-VII SAMPLE
+// ENEMIES (enemies.js) carry the "meaningfully tougher" weight via
+// higher base stats + an extra status mechanic each, and a later
+// balance pass tunes both. Acts I-IV are 1.0 (the original game, already
+// tuned by difficultyFactorForNode); only the three post-Reckoning Acts
+// get a floor, climbing +1% per Act to +3% by Act VII. Tuned against
+// .scratch/heartwood-fairness-pass.mjs at n=100 (RUNS=100, 4 Commanders
+// = 400 runs): pre-change baseline totalled 87/90/94/94 wins across four
+// re-runs; this setting totalled 81/82/88/89. The ~6-win gap in the
+// means is inside the harness's own zero-change run-to-run noise (the
+// baseline itself swings 87<->94). Per-Commander it stays on the known
+// baseline shape (Tommy ~46, Aatos ~9, Fenrir ~20, Repo ~13). If a
+// future pass makes it bite, dial these DOWN toward 1.0 - the shape
+// matters here, not the size of the step.
+export const ACT_STAT_FLOOR = { 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.01, 6: 1.02, 7: 1.03 }
+
+// The battle a node actually fights, Act-corrected. A plain solo
+// `battle` node names a fixed enemyId, but the branching path (see
+// advanceToNextNode / chooseFloorEncounter above) can carry that fight
+// into a LATER or EARLIER battle position than the one RUN_PATH placed
+// it at, i.e. into a different Act than its enemyId belongs to. When
+// that happens this swaps in an Act-appropriate enemy (enemies.js's
+// deterministic actEnemyForNode, seeded by nodeIndex so a reload / a
+// fairness re-run resolves the same fight). Formations (no enemyId) and
+// miniboss/boss nodes (enemyId bound to a Trial identity) are returned
+// exactly as authored - never swapped.
+function resolveEncounterId(node, nodeIndex, act, warn = false) {
+  if (node.type !== "battle" || !node.enemyId) return node.enemyId || node.formationId
+  const belongs = ENEMIES[node.enemyId]?.act
+  if (belongs === act) return node.enemyId
+  const swapped = actEnemyForNode(act, nodeIndex, null)
+  if (!swapped || swapped === node.enemyId) return node.enemyId
+  if (warn && typeof console !== "undefined") {
+    console.warn(
+      `[heartwood] Act-mismatch swap at node ${nodeIndex}: position is Act ${act}, ` +
+        `but "${node.enemyId}" belongs to Act ${belongs ?? "?"} - fighting "${swapped}" instead.`,
+    )
+  }
+  return swapped
+}
+
+// Shared by startFormationBattle and previewBattleEnemies so the
+// pre-battle preview and the real fight can never disagree on which
+// enemy or how scaled (there's a whole comment on previewBattleEnemies
+// below about that exact drift risk).
+function encounterAndFactorFor(runState, warn = false) {
+  const node = currentNode(runState)
+  const act = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
+  return {
+    encounterId: resolveEncounterId(node, runState.nodeIndex, act, warn),
+    difficultyFactor:
+      difficultyFactorForNode(runState.nodeIndex, runState.path.length) * (ACT_STAT_FLOOR[act] || 1),
+  }
+}
+
+// Dev-only: on module load, list every RUN_PATH node whose enemy content
+// does not line up with the Act its position falls in - so any future
+// RUN_PATH edit or new enemy that breaks Act alignment is visible to
+// Marc without anyone having to re-audit by hand. As of this pass the
+// static RUN_PATH is fully Act-aligned (every fixed enemyId, and every
+// formation piece, belongs to the Act its node sits in) so this logs
+// nothing today - it is a regression guard, not a live to-do list. The
+// dynamic branching path can still displace a fixed fight into another
+// Act at runtime; that case is caught and swapped (with its own warn)
+// in startFormationBattle via resolveEncounterId below. Guarded hard so
+// it never runs in a production build or a bare-Node import.
+if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV) {
+  try {
+    const rows = []
+    RUN_PATH.forEach((n, i) => {
+      if (n.type === "shop" || n.type === "relic") return
+      const act = actIndexForNode(i, RUN_PATH.length)
+      if (n.enemyId) {
+        const ea = ENEMIES[n.enemyId]?.act
+        if (ea !== act)
+          rows.push(
+            `  node ${i} [${n.type}] "${n.enemyId}" is Act ${ea ?? "?"}, position is Act ${act}` +
+              (n.trialId ? ` (Trial "${n.trialId}")` : ""),
+          )
+      } else if (n.formationId) {
+        const pieces = FORMATIONS[n.formationId]?.pieces || []
+        const later = [...new Set(pieces.map((p) => p.defId).filter((id) => (ENEMIES[id]?.act ?? 0) > act))]
+        if (later.length)
+          rows.push(`  node ${i} [formation "${n.formationId}"] has later-Act pieces ${later.join(", ")}, position is Act ${act}`)
+      }
+    })
+    if (rows.length)
+      console.warn(`[heartwood] RUN_PATH does not yet fully respect Act enemy sets (${rows.length} node(s)):\n` + rows.join("\n"))
+  } catch {
+    /* never break module load over a dev diagnostic */
+  }
+}
+
 // Marc, live, right after the auto-deploy fix (recruitUnit above) shipped:
 // "balancing is off now the units destroy enemies so fast." Makes sense -
 // every difficulty number in this file was always stress-tested with a
@@ -1363,10 +1477,14 @@ function deployedUnitsFor(runState) {
 export function startFormationBattle(runState) {
   const node = currentNode(runState)
   const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
+  // Act-corrected encounter + per-Act stat floor (see encounterAndFactorFor
+  // / ACT_STAT_FLOOR above). warn:true so a branching-path Act mismatch
+  // shows once, in dev, when the fight actually starts.
+  const { encounterId, difficultyFactor } = encounterAndFactorFor(runState, true)
   const battle = startAutoBattle(
     runState.characterId,
     deployedUnitsFor(runState),
-    node.enemyId || node.formationId,
+    encounterId,
     runState.relics,
     runState.commanderRank || 0,
     runState.relicLevels || {},
@@ -1378,7 +1496,7 @@ export function startFormationBattle(runState) {
     // queued effect from a shop visit is always guaranteed to reach
     // this call with nothing able to strand it in between.
     runState.pendingActiveEffects || [],
-    difficultyFactorForNode(runState.nodeIndex, runState.path.length),
+    difficultyFactor,
   )
   return { ...runState, phase: "battle", battle: applyTrialName(battle, node), pendingActiveEffects: [] }
 }
@@ -1416,16 +1534,20 @@ function applyTrialName(battle, node) {
 export function previewBattleEnemies(runState) {
   const node = currentNode(runState)
   const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
+  // Same Act-corrected encounter + per-Act stat floor the real fight
+  // uses (encounterAndFactorFor above) - warn:false so this render-time
+  // dry run stays silent.
+  const { encounterId, difficultyFactor } = encounterAndFactorFor(runState, false)
   const battle = startAutoBattle(
     runState.characterId,
     deployedUnitsFor(runState),
-    node.enemyId || node.formationId,
+    encounterId,
     runState.relics,
     runState.commanderRank || 0,
     runState.relicLevels || {},
     commanderItemIds,
     runState.pendingActiveEffects || [],
-    difficultyFactorForNode(runState.nodeIndex, runState.path.length),
+    difficultyFactor,
   )
   return applyTrialName(battle, node).enemies
 }

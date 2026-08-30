@@ -9,6 +9,7 @@
 export const ENEMIES = {
   "rotwood-husk": {
     id: "rotwood-husk",
+    act: 1,
     name: "Rotwood Husk",
     // Marc: "game challenge needs to be that you can fail at the first
     // enemy too." Stat pushes on this solo def (up to 100 HP/14+14) were
@@ -38,6 +39,7 @@ export const ENEMIES = {
   },
   "rotwood-sapling": {
     id: "rotwood-sapling",
+    act: 1,
     name: "Rotwood Sapling",
     // The second piece in "rotwood-husk-pair" (formations.js). A first
     // attempt paired two full-strength Husks - catastrophic (46/100 runs
@@ -61,6 +63,7 @@ export const ENEMIES = {
   },
   "moss-troll": {
     id: "moss-troll",
+    act: 1,
     name: "Moss Troll",
     maxHp: 46,
     art: "troll",
@@ -76,6 +79,7 @@ export const ENEMIES = {
   },
   "rune-warden": {
     id: "rune-warden",
+    act: 2,
     name: "Rune Warden",
     maxHp: 50,
     art: "warden",
@@ -90,6 +94,7 @@ export const ENEMIES = {
   },
   "bark-brute": {
     id: "bark-brute",
+    act: 1,
     name: "Bark Brute",
     maxHp: 58,
     art: "barkBrute",
@@ -103,6 +108,7 @@ export const ENEMIES = {
   },
   "mist-growler": {
     id: "mist-growler",
+    act: 1,
     name: "Mist Growler",
     maxHp: 36,
     art: "mistGrowler",
@@ -117,6 +123,7 @@ export const ENEMIES = {
 
   "drowned-siren": {
     id: "drowned-siren",
+    act: 1,
     name: "Drowned Siren",
     maxHp: 38,
     art: "drownedSiren",
@@ -137,6 +144,7 @@ export const ENEMIES = {
 
   "bloomrot-stalker": {
     id: "bloomrot-stalker",
+    act: 2,
     name: "Bloomrot Stalker",
     maxHp: 40,
     art: "bloomrotStalker",
@@ -161,6 +169,7 @@ export const ENEMIES = {
 
   "rootbind-thicket": {
     id: "rootbind-thicket",
+    act: 2,
     name: "Rootbind Thicket",
     maxHp: 44,
     art: "rootbindThicket",
@@ -184,6 +193,7 @@ export const ENEMIES = {
 
   "witherfang": {
     id: "witherfang",
+    act: 2,
     name: "Witherfang",
     maxHp: 42,
     art: "rootbindThicket",
@@ -208,6 +218,7 @@ export const ENEMIES = {
 
   "thornspite": {
     id: "thornspite",
+    act: 2,
     name: "Thornspite",
     maxHp: 40,
     art: "root",
@@ -228,6 +239,7 @@ export const ENEMIES = {
 
   "bramblehide": {
     id: "bramblehide",
+    act: 2,
     name: "Bramblehide",
     maxHp: 50,
     art: "troll",
@@ -246,6 +258,7 @@ export const ENEMIES = {
 
   "emberwrack": {
     id: "emberwrack",
+    act: 2,
     name: "Emberwrack",
     maxHp: 44,
     art: "flame",
@@ -268,6 +281,7 @@ export const ENEMIES = {
 
   "duskgnaw": {
     id: "duskgnaw",
+    act: 2,
     name: "Duskgnaw",
     maxHp: 42,
     art: "root",
@@ -290,6 +304,7 @@ export const ENEMIES = {
 
   "cragfang": {
     id: "cragfang",
+    act: 2,
     name: "Cragfang",
     maxHp: 44,
     art: "root",
@@ -312,6 +327,7 @@ export const ENEMIES = {
 
   "stormroot": {
     id: "stormroot",
+    act: 2,
     name: "Stormroot",
     maxHp: 38,
     art: "root",
@@ -330,6 +346,7 @@ export const ENEMIES = {
 
   "duskmoth": {
     id: "duskmoth",
+    act: 2,
     name: "Duskmoth",
     maxHp: 40,
     art: "moonGlyph",
@@ -350,6 +367,7 @@ export const ENEMIES = {
 
   "hollowfen": {
     id: "hollowfen",
+    act: 2,
     name: "Hollowfen",
     maxHp: 90,
     art: "husk",
@@ -369,6 +387,7 @@ export const ENEMIES = {
 
   "quillfang": {
     id: "quillfang",
+    act: 2,
     name: "Quillfang",
     maxHp: 36,
     art: "root",
@@ -387,6 +406,7 @@ export const ENEMIES = {
 
   "ironmaw": {
     id: "ironmaw",
+    act: 2,
     name: "Ironmaw",
     maxHp: 46,
     art: "husk",
@@ -411,6 +431,7 @@ export const ENEMIES = {
 
   "gravemaw": {
     id: "gravemaw",
+    act: 2,
     name: "Gravemaw",
     maxHp: 42,
     art: "husk",
@@ -430,6 +451,11 @@ export const ENEMIES = {
 
   "duskhollow": {
     id: "duskhollow",
+    // Act II/III seam creature - "dusk" reads mid-run, "hollow" reads
+    // late, and no mechanic locks it either way. Assigned to Act II to
+    // match its RUN_PATH position (node 48, the last node of the Act II
+    // band), so the encounter resolver never has to swap it out.
+    act: 2,
     name: "Duskhollow",
     maxHp: 58,
     art: "moonGlyph",
@@ -451,6 +477,7 @@ export const ENEMIES = {
 
   "needlefen": {
     id: "needlefen",
+    act: 3,
     name: "Needlefen",
     maxHp: 40,
     art: "root",
@@ -472,6 +499,7 @@ export const ENEMIES = {
 
   "wraithgale": {
     id: "wraithgale",
+    act: 3,
     name: "Wraithgale",
     maxHp: 44,
     art: "moonGlyph",
@@ -489,6 +517,7 @@ export const ENEMIES = {
 
   "stonewake": {
     id: "stonewake",
+    act: 3,
     name: "Stonewake",
     maxHp: 44,
     art: "husk",
@@ -508,6 +537,7 @@ export const ENEMIES = {
 
   "gravequill": {
     id: "gravequill",
+    act: 3,
     name: "Gravequill",
     maxHp: 40,
     art: "root",
@@ -528,6 +558,7 @@ export const ENEMIES = {
 
   "bonewarden": {
     id: "bonewarden",
+    act: 3,
     name: "Bonewarden",
     maxHp: 50,
     art: "warden",
@@ -552,6 +583,7 @@ export const ENEMIES = {
 
   "mossveil": {
     id: "mossveil",
+    act: 3,
     name: "Mossveil",
     maxHp: 46,
     art: "leaf",
@@ -574,6 +606,7 @@ export const ENEMIES = {
 
   "hollowspite": {
     id: "hollowspite",
+    act: 3,
     name: "Hollowspite",
     maxHp: 40,
     art: "root",
@@ -593,6 +626,7 @@ export const ENEMIES = {
 
   "ashenmaw": {
     id: "ashenmaw",
+    act: 4,
     name: "Ashenmaw",
     maxHp: 58,
     art: "husk",
@@ -613,6 +647,7 @@ export const ENEMIES = {
 
   "duskwither": {
     id: "duskwither",
+    act: 4,
     name: "Duskwither",
     maxHp: 42,
     art: "root",
@@ -633,6 +668,7 @@ export const ENEMIES = {
 
   "hollowfang": {
     id: "hollowfang",
+    act: 4,
     name: "Hollowfang",
     maxHp: 44,
     art: "husk",
@@ -648,6 +684,7 @@ export const ENEMIES = {
 
   "rootward": {
     id: "rootward",
+    act: 4,
     name: "Rootward",
     maxHp: 46,
     art: "root",
@@ -669,6 +706,7 @@ export const ENEMIES = {
 
   "briarmaw": {
     id: "briarmaw",
+    act: 4,
     name: "Briarmaw",
     maxHp: 50,
     art: "root",
@@ -683,6 +721,7 @@ export const ENEMIES = {
 
   "bramblespite": {
     id: "bramblespite",
+    act: 4,
     name: "Bramblespite",
     maxHp: 58,
     art: "root",
@@ -707,6 +746,7 @@ export const ENEMIES = {
 
   "thornfen": {
     id: "thornfen",
+    act: 4,
     name: "Thornfen",
     maxHp: 46,
     art: "root",
@@ -721,6 +761,7 @@ export const ENEMIES = {
 
   "hollowcurse": {
     id: "hollowcurse",
+    act: 4,
     name: "Hollowcurse",
     maxHp: 44,
     art: "rootbindThicket",
@@ -741,6 +782,11 @@ export const ENEMIES = {
 
   "grimspite": {
     id: "grimspite",
+    // Act IV/V seam creature - a plain no-gimmick reinforcement with no
+    // act-locking theme. Assigned to Act IV to match its RUN_PATH
+    // position (node 82, the last node of the Act IV band), so the
+    // encounter resolver never has to swap it out.
+    act: 4,
     name: "Grimspite",
     maxHp: 58,
     art: "husk",
@@ -755,6 +801,7 @@ export const ENEMIES = {
 
   "ironroot": {
     id: "ironroot",
+    act: 5,
     name: "Ironroot",
     maxHp: 54,
     art: "root",
@@ -794,6 +841,270 @@ export const ENEMIES = {
     ],
   },
 
+  // ===================================================================
+  // ACT SAMPLE ENEMIES (structure pass - feat/hearthwood-act-enemy-sets)
+  // -------------------------------------------------------------------
+  // 2 placeholder enemies per Act (I-VII), so every Act has its own
+  // distinct set even where RUN_PATH's current late-game formations
+  // just recombine earlier mooks. Full rosters come in a later content
+  // pass - these establish the SHAPE: theme fits the Act, and the
+  // Act V-VII samples carry a deliberately higher stat floor AND an
+  // extra status mechanic (Strength/Weak/Poison/Ward/Vulnerable, all
+  // already in effects.js) on top of runEngine.js's difficultyFactor
+  // ramp and its new per-Act ACT_STAT_FLOOR multiplier. Art reuses an
+  // existing cardArt.jsx glyph name (no raster images here - CardGlyph
+  // falls back to Rune for an unknown name, so no broken-image risk).
+  // Not wired into RUN_PATH (deliberately - that stays untouched); they
+  // are reachable today only via runEngine.js's act-fallback swap, and
+  // are here for Marc to slot into RUN_PATH during the content pass.
+
+  // placeholder - sample enemy for Act 1, stats/art provisional
+  "rotbore-grub": {
+    id: "rotbore-grub",
+    act: 1,
+    name: "Rotbore Grub",
+    maxHp: 30,
+    art: "husk",
+    description: "It chews through deadwood without ever looking up. You are just more deadwood.",
+    introLine: "It does not notice you arrive. It will notice when you are in the way.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "attack", amount: 8 },
+      { type: "block", amount: 5 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 1, stats/art provisional
+  "mossback-lurker": {
+    id: "mossback-lurker",
+    act: 1,
+    name: "Mossback Lurker",
+    maxHp: 48,
+    art: "troll",
+    description: "Green to the eye until it moves. By then it has your arm.",
+    introLine: "The bank of moss ahead breathes once, and stands up.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "block", amount: 7 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 2, stats/art provisional
+  "runewisp-acolyte": {
+    id: "runewisp-acolyte",
+    act: 2,
+    name: "Runewisp Acolyte",
+    maxHp: 44,
+    art: "warden",
+    description: "It tends the deep-rune lamps. It has forgotten why, only that trespassers must not.",
+    introLine: "It lifts a hand toward the carved stones, and the light answers it.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 2 },
+      { type: "block", amount: 9, weight: 1 },
+      { type: "debuff", id: "weak", amount: 2, target: "player", weight: 1 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 2, stats/art provisional
+  "emberthorn-shade": {
+    id: "emberthorn-shade",
+    act: 2,
+    name: "Emberthorn Shade",
+    maxHp: 46,
+    art: "flame",
+    description: "Half briar, half slow fire. The heat came up through the roots with everything else.",
+    introLine: "The thornwall ahead is smoking, and part of it steps forward.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "attack", amount: 7 },
+      { type: "block", amount: 8 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 3, stats/art provisional
+  "veilgnaw": {
+    id: "veilgnaw",
+    act: 3,
+    name: "Veilgnaw",
+    maxHp: 50,
+    art: "moonGlyph",
+    description: "It bites at the thin places in the air, and something of you goes soft where it lands.",
+    introLine: "It is not quite where you are looking. It never is.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 3, stats/art provisional
+  "thinreach-wraith": {
+    id: "thinreach-wraith",
+    act: 3,
+    name: "Thinreach Wraith",
+    maxHp: 48,
+    art: "moonGlyph",
+    description: "Reached through the Veil so far that most of it is still on the other side.",
+    introLine: "An arm comes through the air that has no shoulder behind it yet.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 2 },
+      { type: "block", amount: 8, weight: 1 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 4, stats/art provisional
+  "hollowmarrow-sentinel": {
+    id: "hollowmarrow-sentinel",
+    act: 4,
+    name: "Hollowmarrow Sentinel",
+    maxHp: 56,
+    art: "husk",
+    description: "Posted here to guard nothing, by no one, forever. It has not noticed either fact.",
+    introLine: "It has stood the same watch so long the Hollow grew up around its feet.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 7 },
+      { type: "attack", amount: 10 },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 4, stats/art provisional
+  "witherbound-effigy": {
+    id: "witherbound-effigy",
+    act: 4,
+    name: "Witherbound Effigy",
+    maxHp: 52,
+    art: "warden",
+    description: "Bound wood in a shape that used to mean something. Standing near it, your guard feels thin.",
+    introLine: "The bundled figure turns its faceless head to follow you.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player" },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 5, stats/art provisional.
+  // Act V+ floor: higher base stats than the mid-Act samples.
+  "crownless-revenant": {
+    id: "crownless-revenant",
+    act: 5,
+    name: "Crownless Revenant",
+    maxHp: 60,
+    art: "root",
+    description: "It fought at the Reckoning and did not stop when the fighting did. No one told it it could.",
+    introLine: "It still holds the line of a battle that ended without it.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 12, weight: 2 },
+      { type: "block", amount: 10, weight: 1 },
+      { type: "attack", amount: 8, weight: 1 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 5, stats/art provisional.
+  // Extra mechanic: battle-start Strength (self-buff, same applyBuff
+  // passive Ironmaw uses) plus repeating Weak.
+  "ashen-regent": {
+    id: "ashen-regent",
+    act: 5,
+    name: "Ashen Regent",
+    maxHp: 54,
+    art: "husk",
+    description: "It picked up the warm crown when the King ceased to be, and it will not put it down.",
+    introLine: "\"The seat is filled,\" it says, to no one. \"You may go.\"",
+    passive: [{ type: "applyBuff", id: "strength", amount: 3 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 9 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 6, stats/art provisional.
+  // Extra mechanic: Poison (same debuff pipeline Bloomrot Stalker uses).
+  "echo-stalker": {
+    id: "echo-stalker",
+    act: 6,
+    name: "Echo Stalker",
+    maxHp: 58,
+    art: "moonGlyph",
+    description: "It walks your walk, a half-step behind, and whatever it leaves in you keeps walking too.",
+    introLine: "It steps when you step. It has been stepping when you step for a while now.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "attack", amount: 9 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 6, stats/art provisional.
+  // Act VI floor: heavier HP and hit than Act V's samples.
+  "riftmnemon": {
+    id: "riftmnemon",
+    act: 6,
+    name: "Riftmnemon",
+    maxHp: 64,
+    // Reuses the "husk" enemy glyph - a heavy hollow shell of a thing.
+    art: "husk",
+    description: "A memory that grew heavy enough to stand on its own, at the lip of the tear it opened.",
+    introLine: "It is a moment you half-remember, wearing a body now, and it is angry.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 13, weight: 2 },
+      { type: "block", amount: 11, weight: 1 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 7, stats/art provisional.
+  // Extra mechanic: battle-start Ward (self-buff, same applyBuff passive
+  // Stonewake uses) plus repeating Vulnerable.
+  "verge-warden": {
+    id: "verge-warden",
+    act: 7,
+    name: "Verge Warden",
+    maxHp: 62,
+    art: "warden",
+    description: "It stands where memory and the world stopped being two things. It will not let you past unanswered.",
+    introLine: "\"Not a fight,\" it says. \"An answer. Give me one.\" Its guard does not lower.",
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 11 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player" },
+      { type: "attack", amount: 11 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 7, stats/art provisional.
+  // Act VII floor: the heaviest sample HP in the set, plus Poison.
+  "mnemosyne-colossus": {
+    id: "mnemosyne-colossus",
+    act: 7,
+    name: "Mnemosyne Colossus",
+    maxHp: 68,
+    art: "troll",
+    description: "Everything the forest could not bear to forget, packed into one shape and told to hold still.",
+    introLine: "It is the size of a small hill of remembering, and it has just looked down.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 12 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "block", amount: 10 },
+    ],
+  },
+
   // Minibosses: a step up from a plain mook, without touching
   // Spacemonkey's own AoE move (deliberately kept unique to the true
   // final boss - see its own note below) or the run-ending
@@ -815,6 +1126,7 @@ export const ENEMIES = {
   // pure early-game skill check instead.
   "deepwarden": {
     id: "deepwarden",
+    act: 1,
     name: "Deepwarden",
     // Marc: "enemies and bosses need to be more challenging" - bumped
     // both minibosses roughly +20% on top of the difficulty ramp
@@ -848,6 +1160,7 @@ export const ENEMIES = {
 
   "thornmaw": {
     id: "thornmaw",
+    act: 2,
     name: "Thornmaw",
     // Bumped a smaller amount than Deepwarden (~8%, not ~20%) - Thornmaw
     // already sits PAST the difficulty ramp's 60% threshold and gets
@@ -877,6 +1190,7 @@ export const ENEMIES = {
 
   "wyrmgall": {
     id: "wyrmgall",
+    act: 6,
     name: "Wyrmgall",
     maxHp: 80,
     art: "root",
@@ -913,6 +1227,7 @@ export const ENEMIES = {
   // anything, just plays it straight.
   spacemonkey: {
     id: "spacemonkey",
+    act: 7,
     name: "Spacemonkey",
     // Marc: "enemies and bosses need to be more challenging" - bumped
     // roughly +20%. Already sits at the very end of RUN_PATH
@@ -964,4 +1279,71 @@ export const ENEMIES = {
       { type: "aoe", amount: 11, weight: 1 },
     ],
   },
+}
+
+// ===================================================================
+// Act -> enemy-set mapping (feat/hearthwood-act-enemy-sets)
+// -------------------------------------------------------------------
+// Every ENEMIES entry now carries `act: 1..7`, matching runEngine.js's
+// 7 story Acts (DIFFICULTY_TIERS / difficultyTierForNode). Assignment
+// was made by (a) the enemy's existing name/theme and (b) exactly where
+// it already sits in RUN_PATH today - every fixed-id battle node in
+// RUN_PATH now belongs to the Act its position falls in, so the
+// encounter resolver in runEngine.js never has to swap a fixed fight on
+// a straight (non-branching) run. Node bands: Act I = nodes 0-15,
+// II = 16-48, III = 49-65, IV = 66-82, V = 83-96, VI = 97-104,
+// VII = 105-110 (RUN_PATH.length 111).
+//   Act I   The Outer Grove      - rotwood-husk / rotwood-sapling /
+//        moss-troll / bark-brute / mist-growler / drowned-siren
+//   Act II  The Deepening Woods  - rune-warden / bloomrot-stalker /
+//        rootbind-thicket / witherfang / thornspite / bramblehide /
+//        emberwrack / duskgnaw / cragfang / stormroot / duskmoth /
+//        hollowfen / quillfang / ironmaw / gravemaw / duskhollow
+//   Act III The Wounded Hearthwood - needlefen / wraithgale / stonewake /
+//        gravequill / bonewarden / mossveil / hollowspite
+//   Act IV  The Reckoning        - ashenmaw / duskwither / hollowfang /
+//        rootward / briarmaw / bramblespite / thornfen / hollowcurse / grimspite
+//   Act V   The Crownless        - ironroot (+ 2 samples; only 1 non-sample
+//        solo enemy today - a known thin spot for the content pass)
+//   Act VI  The Echo Rift        - samples only (RUN_PATH here is all
+//        formations + the wyrmgall miniboss / "veilbound" Trial)
+//   Act VII The Echo Verge       - samples only (RUN_PATH here is the
+//        final formations + the spacemonkey boss / "hollow-king" Trial)
+// Minibosses (deepwarden A1 / thornmaw A2 / wyrmgall A6) and the boss
+// (spacemonkey A7) carry an `act` for completeness but are EXCLUDED from
+// ACT_ENEMIES / the rollable-and-fallback pool below - they only ever
+// appear on their own fixed miniboss/boss RUN_PATH nodes, wrapped by a
+// Trial.
+export const ACT_COUNT = 7
+
+export const NON_BATTLE_ENEMY_IDS = new Set(["deepwarden", "thornmaw", "wyrmgall", "spacemonkey"])
+
+// { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible
+// enemies per Act. Every Act 1..7 is guaranteed >= 1 entry (Acts VI/VII
+// are currently filled entirely by the placeholder samples above).
+export const ACT_ENEMIES = (() => {
+  const map = {}
+  for (let a = 1; a <= ACT_COUNT; a++) map[a] = []
+  for (const e of Object.values(ENEMIES)) {
+    if (!e.act || NON_BATTLE_ENEMY_IDS.has(e.id)) continue
+    if (!map[e.act]) map[e.act] = []
+    map[e.act].push(e.id)
+  }
+  return map
+})()
+
+export function enemiesForAct(act) {
+  return ACT_ENEMIES[act] || []
+}
+
+// Deterministic act-appropriate solo enemy for a run position. Used by
+// runEngine.js's encounter resolver when the branching path displaces a
+// fixed-id battle node into a different Act than its enemyId belongs to.
+// Seeded by nodeIndex so a save/reload or a fairness re-run resolves the
+// exact same fight. Falls back to `preferredId` if the Act has no set.
+export function actEnemyForNode(act, nodeIndex, preferredId) {
+  const pool = enemiesForAct(act)
+  if (!pool.length) return preferredId
+  if (preferredId && pool.includes(preferredId)) return preferredId
+  return pool[((nodeIndex % pool.length) + pool.length) % pool.length]
 }
