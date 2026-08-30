@@ -3,10 +3,10 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
-import { resolveTrial } from "../../data/heartwood/trials"
 import { TRIBES, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
 import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies, RUN_PATH } from "../../services/heartwood/runEngine"
+import { nodeNarrative } from "../../services/heartwood/runNarrative"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
 import { CardGlyph } from "./cardArt"
@@ -52,7 +52,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // A Trial (trials.js) is a named narrative wrapper around this exact
   // encounter - real story identity (title, its own intro/victory lines)
   // without touching the underlying enemy's already-tuned combat stats.
-  const trial = resolveTrial(node.trialId)
+  // Resolved (along with the tier and this stop's beat/intro) via
+  // nodeNarrative below - see `narrative`.
   // Auto-start (see AUTO_START_DELAY_MS above). Keyed on the node
   // itself, not deployedCount/runState - re-arranging the squad
   // shouldn't reset the clock (the same fixed-delay shape
@@ -78,8 +79,12 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // Same progressive-difficulty readout as SquadDraft.jsx's shop
   // header - this pre-battle screen is the other place a run's
   // progress is visible, and the fight about to start is exactly what
-  // that ramp is scaling.
-  const difficultyTier = difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)
+  // that ramp is scaling. Resolved through nodeNarrative (runNarrative.js)
+  // now rather than a local ternary chain: one pure call yields the
+  // tier plus this stop's title/beat/intro, so the flavor line below
+  // and the difficulty badge can never disagree about which Act this is.
+  const narrative = nodeNarrative(node, runState.nodeIndex, RUN_PATH.length)
+  const difficultyTier = narrative.tier
   // Act intro (Marc: "make a progressive story") - shown exactly once,
   // the first FormationScreen visit reached after the run crosses into
   // a new difficulty tier. Comparing against nodeIndex-1 directly isn't
@@ -250,12 +255,15 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       )}
 
       <p className="hw-flavor">
-        {trial?.introLine ||
-          (isBoss
-            ? ENEMIES[node.enemyId]?.introLine || "The final fight."
-            : isMiniboss
-              ? ENEMIES[node.enemyId]?.introLine || `A greater foe. ${formation.description || ENEMIES[node.enemyId]?.description || ""}`
-              : formation.description || ENEMIES[node.enemyId]?.description)}
+        {/* nodeNarrative resolves the same trial.introLine -> enemy
+            introLine -> formation/enemy description chain this used to
+            spell out inline; the isBoss/isMiniboss strings stay as the
+            last-resort fallback for a battle node with nothing authored
+            (every current Trial supplies an introLine, so this is
+            byte-identical for today's RUN_PATH). */}
+        {narrative.intro ||
+          narrative.beat ||
+          (isBoss ? "The final fight." : isMiniboss ? "A greater foe." : null)}
       </p>
 
       {primedPower && (
