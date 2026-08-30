@@ -86,6 +86,14 @@ export default function SquadDraft({
   onUseCommanderActive,
   showIntro,
   onDismissIntro,
+  // 3-zone shop layout (Marc's sketch: "UI ei vielä hyödynnä kaikkea
+  // tilaa" - the shop clustered in the centre with big empty margins
+  // left/right). `mapSlot` is HeartwoodBattle's <RunMap/> rendered into
+  // the RIGHT rail so the run map stays visible during the shop, not
+  // just between phases. The LEFT rail (owned relics + item bag) is
+  // built here in renderOwnedRail() since every piece of data it needs
+  // is already in scope.
+  mapSlot,
 }) {
   const offers = runState.shopOffers.map((id) => UNITS[id])
   // Item shop rotation (runEngine.js's rollItemShop/itemOffers) -
@@ -431,8 +439,122 @@ export default function SquadDraft({
     }
   }
 
+  // LEFT rail of the 3-zone shop layout: everything the player already
+  // OWNS - relics + the item bag - pulled out of the old inline strip
+  // that sat between the header and the tabs (Marc's sketch labels this
+  // column "Items / Relics"). Compact chips rather than full RelicChoice
+  // / ItemCard renders on purpose: Marc wants the rails "clear but
+  // surfaces a lot of info at once ... small info-dense pieces", and a
+  // single narrow column of full cards would push most of the list
+  // below the fold. Relic Upgrade still works from here (same
+  // onUpgradeRelic the inline strip called); an unequipped bag item is
+  // click-to-select, feeding the same selectedItemKey / equip-prompt
+  // flow the Your Squad tab's own bag list already drives.
+  function renderOwnedRail() {
+    const relics = runState.relics || []
+    const items = runState.items || []
+    return (
+      <>
+        <div className="hw-rail-section">
+          <div className="hw-section-label hw-rail-label">
+            Relics <span className="hw-rail-count">{relics.length}</span>
+          </div>
+          {relics.length === 0 ? (
+            <p className="hw-rail-empty">No relics yet.</p>
+          ) : (
+            <div className="hw-rail-list">
+              {relics.map((id) => {
+                const def = RELICS[id]
+                const level = (runState.relicLevels || {})[id] || 0
+                const cost = upgradeCost(level)
+                return (
+                  <div key={id} className="hw-rail-chip" title={def?.description}>
+                    {def?.image ? (
+                      <img src={def.image} alt="" className="hw-intent-glyph" />
+                    ) : (
+                      <CardGlyph name={def?.icon} className="hw-intent-glyph" />
+                    )}
+                    <span className="hw-rail-chip-name">
+                      {def?.name}
+                      {level > 0 ? ` +${level}` : ""}
+                    </span>
+                    {cost === null ? (
+                      <span className="hw-rail-chip-max">MAX</span>
+                    ) : (
+                      <button
+                        className="hw-move-btn hw-rail-upgrade"
+                        disabled={runState.essence < cost}
+                        onClick={() => onUpgradeRelic(id)}
+                        title={`Permanently strengthen ${def?.name} (level ${level} -> ${level + 1}) - ${cost} Essence`}
+                      >
+                        <CardGlyph name="spark" className="hw-intent-glyph" />
+                        {cost}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="hw-rail-section">
+          <div className="hw-section-label hw-rail-label">
+            Items <span className="hw-rail-count">{items.length}</span>
+          </div>
+          {items.length === 0 ? (
+            <p className="hw-rail-empty">No items yet.</p>
+          ) : (
+            <div className="hw-rail-list">
+              {items.map((it) => {
+                const def = ITEMS[it.defId]
+                const equippedName =
+                  it.equippedTo === "commander"
+                    ? commander?.name || "Commander"
+                    : it.equippedTo != null
+                      ? UNITS[runState.bench.find((e) => e.key === it.equippedTo)?.defId]?.name || "Equipped"
+                      : null
+                const selectable = it.equippedTo == null
+                const isSelected = selectedItemKey === it.key
+                return (
+                  <div
+                    key={it.key}
+                    className={`hw-rail-chip hw-rail-chip--item${selectable ? " hw-rail-chip--selectable" : ""}${
+                      isSelected ? " hw-rail-chip--selected" : ""
+                    }`}
+                    title={def?.description}
+                    onClick={selectable ? () => handleBagItemClick(it.key) : undefined}
+                  >
+                    {def?.image ? (
+                      <img src={def.image} alt="" className="hw-intent-glyph" />
+                    ) : (
+                      <CardGlyph name={def?.icon} className="hw-intent-glyph" />
+                    )}
+                    <span className="hw-rail-chip-name">{def?.name}</span>
+                    {def?.bendsRoleTo && (
+                      <span className="hw-badge hw-badge--bent hw-rail-chip-tag" title={`Bends the wearer toward ${def.bendsRoleTo}`}>
+                        Bends
+                      </span>
+                    )}
+                    {equippedName ? (
+                      <span className="hw-rail-chip-eq" title={`Equipped to ${equippedName}`}>
+                        {equippedName}
+                      </span>
+                    ) : (
+                      <span className="hw-rail-chip-eq hw-rail-chip-eq--free">Unequipped</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </>
+    )
+  }
+
   return (
-    <div className="hw-intro hw-market-stage">
+    <div className="hw-intro hw-market-stage hw-shop-3zone-stage">
       {/* paddingRight/flexWrap keep this row's right-aligned badges clear
           of the fixed top-right utility cluster (HeartwoodBattle.jsx's
           utilityBar - exit link + How to Play + Change Commander) - it's
@@ -669,44 +791,21 @@ export default function SquadDraft({
         </div>
       )}
 
-      {runState.relics.length > 0 && (
-        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-          {runState.relics.map((id) => {
-            const level = (runState.relicLevels || {})[id] || 0
-            const cost = upgradeCost(level)
-            return (
-              <span key={id} className="hw-badge" title={RELICS[id]?.description} style={{ gap: 6 }}>
-                {/* Owned-relics badge - same def.image-vs-glyph branch as
-                    RelicChoice.jsx's pick screen above, just at the tiny
-                    inline-badge size every other hw-intent-glyph usage
-                    here already shares. */}
-                {RELICS[id]?.image ? (
-                  <img src={RELICS[id].image} alt="" className="hw-intent-glyph" />
-                ) : (
-                  <CardGlyph name={RELICS[id]?.icon} className="hw-intent-glyph" />
-                )}
-                {RELICS[id]?.name}
-                {level > 0 && ` +${level}`}
-                {cost === null ? (
-                  <span style={{ fontSize: 10, opacity: 0.8 }}>MAX</span>
-                ) : (
-                  <button
-                    className="hw-move-btn"
-                    style={{ fontSize: 10, padding: "2px 6px" }}
-                    disabled={runState.essence < cost}
-                    onClick={() => onUpgradeRelic(id)}
-                    title={`Permanently strengthen ${RELICS[id]?.name} (level ${level} -> ${level + 1})`}
-                  >
-                    Upgrade ({cost})
-                  </button>
-                )}
-              </span>
-            )
-          })}
-        </div>
-      )}
+      {/* ===== 3-ZONE SHOP LAYOUT =====
+          Marc's sketch: a full-width layout with the owned Items/Relics
+          in a LEFT rail, the Market / Your Squad panel in the CENTRE,
+          and the run Map in a RIGHT rail (visible during the shop, not
+          only between phases). The header/commander strip/banner above
+          stay full-width; only the shopping content below is split into
+          the three columns. Rails scroll internally - the PAGE never
+          scrolls at Marc's 1536x864 (his standing hard rule). */}
+      <div className="hw-shop-3zone">
+        <aside className="hw-shop-rail hw-shop-rail--left" aria-label="Owned relics and items">
+          {renderOwnedRail()}
+        </aside>
 
-      {showIntro && (
+        <div className="hw-shop-center">
+          {showIntro && (
         <div className="hw-hint hw-hint--tutorial" style={{ marginTop: 3 }}>
           <span>
             Recruit units, place up to 4 on the grid, then watch them fight automatically. Win to earn Essence and
@@ -926,13 +1025,9 @@ export default function SquadDraft({
           </div>
 
           <div className="hw-market-divider" />
-          <div className="hw-section-label">
+          <div className="hw-section-label" title="Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.">
             Items
           </div>
-          <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4, marginBottom: 0 }}>
-            Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander above
-            or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.
-          </p>
           <div className="hw-select-grid hw-deck-preview hw-market-items-grid">
             {itemOffers.map((def) => (
               <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
@@ -1046,10 +1141,16 @@ export default function SquadDraft({
           justify-content:center here is the actual fix; the "2x
           bigger" half lives in .hw-shop-confirm-btn's own padding/
           font-size (heartwood.css). */}
-      <div style={{ marginTop: 6, display: "flex", justifyContent: "center" }}>
-        <button className="hw-end-turn hw-shop-confirm-btn" onClick={onContinue}>
-          Continue
-        </button>
+          <div style={{ marginTop: 6, display: "flex", justifyContent: "center" }}>
+            <button className="hw-end-turn hw-shop-confirm-btn" onClick={onContinue}>
+              Continue
+            </button>
+          </div>
+        </div>
+
+        <aside className="hw-shop-rail hw-shop-rail--right" aria-label="Run map">
+          {mapSlot}
+        </aside>
       </div>
     </div>
   )
