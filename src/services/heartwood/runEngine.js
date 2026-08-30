@@ -209,8 +209,13 @@ export const RUN_PATH = [
 // didn't match what either of us expected. Set directly to his
 // explicit number this time, no arithmetic: "aseta alku essence
 // määräksi 350" (set the starting Essence to 350).
-const START_ESSENCE = 350
-const WIN_ESSENCE = 250
+// Round-economy pass (Marc, round numbers): recruit costs dropped to
+// 50/100/150 while these stayed 350/250, which an n=100 fairness pass
+// showed made the run ~17 points easier on average (test bot: ~20% ->
+// ~37% win rate). Marc's call: cut income to compensate - start
+// 350 -> 300, per-win 250 -> 200. Both stay in the 50-family.
+const START_ESSENCE = 300
+const WIN_ESSENCE = 200
 // Marc: "now it doesn't feel like anything purchasing the units or
 // items" - the Essence RATE has already been tuned back and forth
 // this session (bumped +50%, then cut 5/6->4/4 for "opportunity
@@ -252,12 +257,18 @@ export const RESERVE_CAP = 6
 // Essence rescale (see START_ESSENCE's own comment above): was 2, now
 // 125 (units.js's TIER_COST "2-family" - same value as an uncommon
 // unit's recruit cost).
-const FORMATION_BONUS_ESSENCE = 125
+// Rounded to the 50/100/150/200 family (Marc, round numbers) - not in
+// Marc's explicit table (an Essence reward, not a price); rounded
+// 125->100 to match how his table rounds 125 elsewhere.
+const FORMATION_BONUS_ESSENCE = 100
 // Minibosses (Deepwarden, Thornmaw, Wyrmgall) are a harder win than even a
 // formation fight - a bigger payout than FORMATION_BONUS_ESSENCE, same
 // "reward matches difficulty" reasoning essenceForWin's own note gives.
 // Essence rescale: was 3, now 190 (units.js's TIER_COST "3-family").
-const MINIBOSS_BONUS_ESSENCE = 190
+// Rounded to the 50/100/150/200 family (Marc, round numbers) - not in
+// Marc's explicit table (an Essence reward, not a price); rounded
+// 190->150 to match how his table rounds 190 elsewhere.
+const MINIBOSS_BONUS_ESSENCE = 150
 const SHOP_SIZE = 4
 // Essence rescale: was 1, now 65 (units.js's TIER_COST "1-family" -
 // same value as a common unit's recruit cost). REROLL_INCREMENT (used
@@ -266,8 +277,9 @@ const SHOP_SIZE = 4
 // REROLL_BASE_COST, so a reroll's rising cost keeps stepping by
 // exactly one "common unit's worth" of Essence each time within a
 // shop visit, same relative shape as before.
-const REROLL_BASE_COST = 65
-const REROLL_INCREMENT = 65
+// Rounded to the 50/100/150/200 family (Marc, round numbers).
+const REROLL_BASE_COST = 50
+const REROLL_INCREMENT = 50
 export const DEPLOY_SLOTS = 4
 // Death Memory (Marc's PRD: a lost hero should leave something behind
 // instead of just vanishing) - deliberately tiny relative to
@@ -283,7 +295,8 @@ export const DEPLOY_SLOTS = 4
 // relative to START_ESSENCE/WIN_ESSENCE (250 each) post-rescale too,
 // same "a nudge, not a real economy lever" relationship as before
 // (1 vs. 4, now 65 vs. 250).
-export const MEMORY_ESSENCE_BONUS = 65
+// Rounded to the 50/100/150/200 family (Marc, round numbers).
+export const MEMORY_ESSENCE_BONUS = 50
 
 function currentNode(runState) {
   return runState.path[runState.nodeIndex]
@@ -661,7 +674,8 @@ export function recruitUnit(runState, unitDefId) {
 
 // Essence rescale (see START_ESSENCE's own comment above): was 2, now
 // 125 (units.js's TIER_COST "2-family").
-export const REFORGE_COST = 125
+// Rounded to the 50/100/150/200 family (Marc, round numbers).
+export const REFORGE_COST = 100
 
 // A fifth Essence sink (after recruit/reroll, Unit Upgrade, Commander
 // Rank-Up, Relic Upgrade/Reroll): swaps one bench unit for a different
@@ -939,8 +953,8 @@ export function rerollShop(runState) {
     ...runState,
     essence: runState.essence - runState.rerollCost,
     shopOffers: rollShop(runState.marketLevel || 1, benchTribeCounts(runState)),
-    // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (65,
-    // same "1-family" value REROLL_BASE_COST itself scaled to) - see
+    // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (50,
+    // same value REROLL_BASE_COST itself carries) - see
     // REROLL_BASE_COST's own comment above.
     rerollCost: runState.rerollCost + REROLL_INCREMENT,
     // A paid Reroll always overrides Freeze (see startRun's own note on
