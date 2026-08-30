@@ -804,27 +804,16 @@ export function reforgeUnit(runState, benchKey) {
   }
 }
 
-// Essence rescale (see START_ESSENCE's own comment above): the old
-// flat 50%-back rate produced sell values nowhere near Marc's own
-// "Quick Sale 150" reference plaque once recruit costs themselves grew
-// to 65/125/190 (half of even the priciest rare recruit is only 95) -
-// bumped the rate to 80%, a deliberate, documented design call (this
-// pass is meant to be numbers-only, but the sell formula's own SHAPE
-// was explicitly called out as fair game if the flat 50% couldn't hit
-// the reference on its own): selling a rare-tier unit (190) now refunds
-// 152, landing right on the "~150" target; a common (65) refunds 52,
-// an uncommon (125) refunds 100 - still a real "you lose something by
-// selling" tax (20%), just a lighter one now that every number in the
-// shop is bigger and losing half of a 190-cost recruit felt like a
-// harsher tax than losing half of the old 3-cost one ever did.
-const SELL_REFUND_RATE = 0.8
-// A fused Tier 2 unit has no recruitCost of its own (it's never
-// directly purchasable) - flat fallback, bumped from 2 to a clean 150
-// so THIS is the sale a player is most likely to see land squarely on
-// Marc's own reference number: a Tier 2 unit represents 3 real recruits
-// plus a fusion, the closest thing in this economy to a "quality asset"
-// worth a satisfying lump-sum Quick Sale.
-const TIER2_SELL_FALLBACK = 150
+// Marc: "unit maksaa 50 ja myy 40 ei mitaan jarkea" - an 80% refund
+// on the 50/100/150 recruit costs made buy-then-sell nearly free, no
+// real cost to churning the shop. Cut to 33%: buy a common (50) and
+// sell it back for 17, an uncommon (100) for 33, a rare (150) for 50.
+// Recruiting is now a committing decision. (Recruit costs unchanged.)
+const SELL_REFUND_RATE = 0.33
+// A fused Tier 2 unit has no recruitCost of its own (never directly
+// purchasable). Scaled with the 33% refund rate: a Tier 2 is 3 common
+// recruits (150) fused, ~33% of that is 50.
+const TIER2_SELL_FALLBACK = 50
 
 // Shared by sellUnit below and SquadDraft.jsx's own sell-refund preview
 // (the bench card's "sell for N" label) - both used to compute this
