@@ -188,8 +188,15 @@ const TIER_HP = { common: 32, uncommon: 42, rare: 54 }
 // the real recruit price always came from this one shared table), so
 // rescaling the whole 85+-unit roster is this one table edit, not a
 // per-line change.
-const TIER_COST = { common: 65, uncommon: 125, rare: 190 }
+// Rounded to the 50/100/150/200 family (Marc, round numbers).
+const TIER_COST = { common: 50, uncommon: 100, rare: 150 }
 
+// NOTE: `cost` here is the small integer RARITY HINT passed by each
+// unit() call below (0/1/2/3), NOT an Essence value - it only ever
+// selects a tier name, which then indexes TIER_COST for the real
+// price. The 50/100/150 rounding above changes TIER_COST's values
+// only; these hint thresholds stay as-is so every unit keeps the exact
+// tier it had before.
 function tierFromCost(cost) {
   if (cost >= 3) return "rare"
   if (cost === 2) return "uncommon"
@@ -1288,7 +1295,8 @@ const TIER2_UNITS = Object.fromEntries(
 // exclusively on Relic Upgrade (runEngine.js's upgradeRelic) - the
 // direct per-unit Upgrade purchase this curve originally described was
 // removed in favor of Fusion (see SquadDraft.jsx's own note on that).
-export const UPGRADE_COST = 190
+// Rounded to the 50/100/150/200 family (Marc, round numbers).
+export const UPGRADE_COST = 150
 export const UPGRADE_MAX_LEVEL = 3
 const UPGRADE_FACTOR_PER_LEVEL = 0.15
 
