@@ -22,6 +22,14 @@
 // old constant): was 3, now 190 - the same rounded value as
 // TIER_COST.rare, keeping "priced the same as a rare unit" literally
 // true post-rescale instead of just true in spirit.
+// Rarity pass (Marc: "tee itemeille, reliceille, ja hahmoille oma
+// tier systeemi joka vaihtelee niiden harvinaisuudesta" - make a tier
+// system for items, relics, and characters that varies by their
+// rarity, then "harvinaiset on parempia" - rare ones are better): the
+// flat 190-for-everyone price above stops being the whole story below
+// - it's now RARE's price specifically, one of three (see
+// RELIC_TIER_COST near the bottom of this file, right where `tier`
+// itself is actually assigned per relic).
 // Relic icon art (same kuvia-folder pass that already covered units and
 // items - Marc, raising the bar mid-pass: "jokainen item ja unit ja
 // relic etc niillä pitää olla kuva... vaikka vain placeholderi mut
@@ -67,8 +75,6 @@ import bramblehideBannerImg from "../../assets/heartwood/relics/bramblehide-bann
 import thornfenStandardImg from "../../assets/heartwood/relics/thornfen-standard.jpg"
 import huntclawStandardImg from "../../assets/heartwood/relics/huntclaw-standard.jpg"
 
-const RELIC_COST = 190
-
 // A relic node only shows up 3 times a run (vs. a shop's unlimited
 // visits), so unlike the shop's rising reroll cost, a flat price is
 // enough of a rate limit on its own - a second way to spend Essence,
@@ -83,7 +89,6 @@ export const RELICS = {
     image: emberCoreImg,
     name: "Ember Core",
     icon: "flame",
-    cost: RELIC_COST,
     description: "Every unit strikes a little harder, all fight, every fight.",
     effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
   },
@@ -92,7 +97,6 @@ export const RELICS = {
     image: mosswardenCharmImg,
     name: "Mosswarden's Charm",
     icon: "leaf",
-    cost: RELIC_COST,
     description: "Every unit mends a little at the start of each round.",
     // Two real bugs caught via testing before shipping, not guessed
     // at: first pass was a one-time battle-start heal, useless since
@@ -113,7 +117,6 @@ export const RELICS = {
     image: brambleWardImg,
     name: "Bramble Ward",
     icon: "root",
-    cost: RELIC_COST,
     description: "Whatever strikes your squad gets struck back.",
     // The relic that introduces onHit/retaliation (effects.js's
     // dealDamage) to the game - a mechanic that didn't exist before
@@ -127,7 +130,6 @@ export const RELICS = {
     image: sunderingMarkImg,
     name: "Sundering Mark",
     icon: "rune",
-    cost: RELIC_COST,
     description: "Whatever your squad strikes takes deeper wounds after.",
     // Bramble Ward's mirror: introduces onDealDamage (effects.js's
     // dealDamage) and Vulnerable (+25% damage taken, the defensive
@@ -148,7 +150,6 @@ export const RELICS = {
     image: essenceWellImg,
     name: "Essence Well",
     icon: "spark",
-    cost: RELIC_COST,
     description: "Every victory is a little more rewarding.",
     effects: [],
     // Essence rescale (units.js's TIER_COST comment has the full
@@ -163,7 +164,6 @@ export const RELICS = {
     image: bulwarkStandardImg,
     name: "Bulwark Standard",
     icon: "shield",
-    cost: RELIC_COST,
     description: "Whoever stands sturdiest in your formation draws every eye.",
     // Taunt (autoBattleEngine.js) was engine-only until Stoneheart's
     // passive granted it directly - this is the second source, and the
@@ -182,7 +182,6 @@ export const RELICS = {
     image: vampiricBloomImg,
     name: "Vampiric Bloom",
     icon: "leaf",
-    cost: RELIC_COST,
     description: "Every strike your squad lands mends the one who struck it.",
     // Lifesteal - a genuinely new mechanic (not another number on an
     // existing stat), reusing onDealDamage (Sundering Mark's hook)
@@ -201,7 +200,6 @@ export const RELICS = {
     image: cullingStrikeImg,
     name: "Culling Strike",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Your squad finishes a badly wounded enemy faster.",
     // Execute (effects.js's dealDamage) - a flat bonus that only
     // applies once the target is already at or below 30% max HP,
@@ -217,7 +215,6 @@ export const RELICS = {
     image: aegisWardImg,
     name: "Aegis Ward",
     icon: "shield",
-    cost: RELIC_COST,
     description: "Every unit shrugs off the first real hit it takes, once.",
     // Ward's second source, alongside Thornguard's own passive - same
     // uniform per-unit effects loop as Ember Core/Culling Strike,
@@ -230,7 +227,6 @@ export const RELICS = {
     image: venomousEdgeImg,
     name: "Venomous Edge",
     icon: "leaf",
-    cost: RELIC_COST,
     description: "Whatever your squad strikes carries poison after.",
     // Poison's second player-accessible source, alongside Rootfang's
     // own movePattern debuff - same onDealDamage shape Sundering Mark
@@ -251,7 +247,6 @@ export const RELICS = {
     image: frostbrandImg,
     name: "Frostbrand",
     icon: "moonGlyph",
-    cost: RELIC_COST,
     description: "Whatever your squad strikes hits softer after, in return.",
     // Weak's first onDealDamage-trigger source - a third relic through
     // the same door Sundering Mark (Vulnerable) and Venomous Edge
@@ -272,7 +267,6 @@ export const RELICS = {
     image: artificersLedgerImg,
     name: "Artificer's Ledger",
     icon: "rune",
-    cost: RELIC_COST,
     description: "Every unit carries one more piece of gear.",
     // Deliberately deferred out of the round that shipped Items
     // (items.js) - this needed ITEM_SLOTS to stop being a flat
@@ -292,7 +286,6 @@ export const RELICS = {
     image: purifyingBloomImg,
     name: "Purifying Bloom",
     icon: "leaf",
-    cost: RELIC_COST,
     description: "Every unit shakes off a lingering ailment at the start of each round.",
     // Cleanse's (effects.js) first squad-wide source - Willowmend
     // carries it as a unit passive already, this is the relic version
@@ -310,7 +303,6 @@ export const RELICS = {
     image: barkWardImg,
     name: "Bark Ward",
     icon: "shield",
-    cost: RELIC_COST,
     description: "Every unit grows a little bark at the start of each round.",
     // Block's first repeating relic source - every existing Block
     // source so far was either a unit's own movePattern step (reset
@@ -325,7 +317,6 @@ export const RELICS = {
     image: berserkersOathImg,
     name: "Berserker's Oath",
     icon: "flame",
-    cost: RELIC_COST,
     description: "Every unit fights harder once it's badly hurt.",
     // Wounded Fury (effects.js's woundedFuryBonus) - previously only
     // reachable via Fenrir's own squadPassive or baked into
@@ -339,7 +330,6 @@ export const RELICS = {
     image: quarrybreakImg,
     name: "Quarrybreak",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Every unit strikes deeper against a target that's still braced.",
     // Shatter's (effects.js's shatterBonus) first squad-wide source -
     // Stoneknoll carries it as a unit passive already, this is the
@@ -367,7 +357,6 @@ export const RELICS = {
     image: wardensBastionImg,
     name: "Warden's Bastion",
     icon: "shield",
-    cost: RELIC_COST,
     description: "Every Warden in your squad grows a lot of bark at the start of each round.",
     tribeAnchor: "warden",
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
@@ -377,7 +366,6 @@ export const RELICS = {
     image: fangsMarkImg,
     name: "Fang's Mark",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Every Fang in your squad finishes a badly wounded enemy much faster.",
     tribeAnchor: "fang",
     effects: [{ type: "applyBuff", id: "execute", amount: 4 }],
@@ -387,7 +375,6 @@ export const RELICS = {
     image: rootboundCurseImg,
     name: "Rootbound Curse",
     icon: "root",
-    cost: RELIC_COST,
     description: "Whatever a Root in your squad strikes carries a heavy poison after.",
     tribeAnchor: "root",
     effects: [
@@ -399,7 +386,6 @@ export const RELICS = {
     image: grovesBlessingImg,
     name: "Grove's Blessing",
     icon: "leaf",
-    cost: RELIC_COST,
     description: "Every Grove in your squad mends generously at the start of each round.",
     tribeAnchor: "grove",
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 4 } }],
@@ -409,7 +395,6 @@ export const RELICS = {
     image: spiritsVeilImg,
     name: "Spirit's Veil",
     icon: "moonGlyph",
-    cost: RELIC_COST,
     description: "Every Spirit in your squad shrugs off two real hits before either lands.",
     tribeAnchor: "spirit",
     effects: [{ type: "applyBuff", id: "ward", amount: 2 }],
@@ -419,7 +404,6 @@ export const RELICS = {
     image: thornsWrathImg,
     name: "Thorn's Wrath",
     icon: "flame",
-    cost: RELIC_COST,
     description: "Every Thorn in your squad strikes considerably harder, all fight.",
     tribeAnchor: "thorn",
     effects: [{ type: "applyBuff", id: "strength", amount: 3 }],
@@ -429,7 +413,6 @@ export const RELICS = {
     image: heartsbloomSeedImg,
     name: "Heartsbloom Seed",
     icon: "heart",
-    cost: RELIC_COST,
     description: "Every unit knits itself back together over the fight's first few rounds.",
     // Regen (effects.js's tickRegen) - a decaying heal-over-time stack,
     // Poison's mirror, granted squad-wide at battle start via the same
@@ -443,7 +426,6 @@ export const RELICS = {
     image: rootbreakSigilImg,
     name: "Rootbreak Sigil",
     icon: "root",
-    cost: RELIC_COST,
     description: "Whatever your squad strikes loses its own strongest edge.",
     // Sunder's first RELIC source - Sundermaw Fang (items.js) puts it
     // on one chosen unit's attacks; this puts it on EVERY deployed
@@ -459,7 +441,6 @@ export const RELICS = {
     image: cascadingWoundImg,
     name: "Cascading Wound",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Whatever your squad finishes off, it strikes again at someone else.",
     // Chain's first RELIC source - Cascading Claw (items.js) puts it
     // on one chosen unit; this puts it on the whole squad, same
@@ -475,7 +456,6 @@ export const RELICS = {
     image: mycoticBloomImg,
     name: "Mycotic Bloom",
     icon: "leaf",
-    cost: RELIC_COST,
     description: "Whatever your squad poisons, it poisons someone standing nearby too.",
     // Spore Spread's first RELIC source - Fungal Spore Sac (items.js)
     // puts it on one chosen unit; this puts it on the whole squad.
@@ -491,7 +471,6 @@ export const RELICS = {
     image: witherspiteCrownImg,
     name: "Witherspite Crown",
     icon: "root",
-    cost: RELIC_COST,
     description: "Whatever your squad strikes carries both rot and weariness after.",
     // A fresh double-debuff combo (Poison + Weak) squad-wide - the same
     // pairing this round's own new mook, Hollowspite, uses, given to
@@ -516,7 +495,6 @@ export const RELICS = {
     image: quarryVanguardImg,
     name: "Quarry Vanguard",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Every unit hits harder, and hardest of all against a target still braced.",
     // Strength + Shatter together, squad-wide - the same dual-mechanic
     // pairing Quarrystrike Gauntlet (items.js) just established, spread
@@ -533,7 +511,6 @@ export const RELICS = {
     image: recklessOathImg,
     name: "Reckless Oath",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Every unit finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
     // Execute + Ward together, squad-wide - the same "glass cannon
     // insurance" pairing Reckless Vow (items.js) just established,
@@ -549,7 +526,6 @@ export const RELICS = {
     image: sanctuaryVowImg,
     name: "Sanctuary Vow",
     icon: "heart",
-    cost: RELIC_COST,
     description: "Every unit shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
     // Regen + Ward together, squad-wide - the same pure survivability
     // pairing Bulwark's Mercy (items.js) just established, spread
@@ -564,7 +540,6 @@ export const RELICS = {
     image: ashclawStandardImg,
     name: "Ashclaw Standard",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Every unit strikes a little harder, and whatever it strikes loses its own strongest edge.",
     // Strength + Sunder together, squad-wide - the same aggressive
     // anti-buff pairing Ashclaw Fang (items.js) just established,
@@ -579,7 +554,6 @@ export const RELICS = {
     image: cripplebiteStandardImg,
     name: "Cripplebite Standard",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Whatever your squad strikes hits softer after, and takes worse hits in return.",
     // Weak + Vulnerable together, squad-wide - the same last-unpaired
     // combo Cripplebite Fang (items.js) just established, spread
@@ -611,7 +585,6 @@ export const RELICS = {
     image: bramblehideBannerImg,
     name: "Bramblehide Banner",
     icon: "shield",
-    cost: RELIC_COST,
     description: "Every unit draws every eye, and fights harder the deeper its own wounds go.",
     // Taunt + Wounded Fury, squad-wide - the missing relic mirror for
     // items.js's existing bramblehide-standard item (an asymmetric gap:
@@ -626,7 +599,6 @@ export const RELICS = {
     image: thornfenStandardImg,
     name: "Thornfen Standard",
     icon: "flame",
-    cost: RELIC_COST,
     description: "Every unit strikes a little harder, and mends off every hit it lands.",
     // Strength + Lifesteal, squad-wide - the relic mirror for items.js's
     // new thornfen-fang. Both stack numerically with any existing
@@ -642,7 +614,6 @@ export const RELICS = {
     image: huntclawStandardImg,
     name: "Huntclaw Standard",
     icon: "sword",
-    cost: RELIC_COST,
     description: "Every unit finishes a badly wounded enemy faster, and strikes again at someone else when it does.",
     // Execute + Chain, squad-wide - the relic mirror for items.js's new
     // huntclaw-fang.
@@ -655,12 +626,80 @@ export const RELICS = {
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
 // liittyville" - make a rarity system for the game and related
-// things) - every relic is priced the same (RELIC_COST) and is
-// already meant to feel like a run-defining pick, so they're all
-// "rare" uniformly, same status items.js's own tier derivation gives
-// its most expensive tier.
-for (const relic of Object.values(RELICS)) {
-  relic.tier = "rare"
+// things), then, once relics/items/Commanders all had the concept:
+// "harvinaiset on parempia" (rare ones are better) - every relic was
+// forced to "rare" right here regardless of its own actual power, a
+// real bug flagged earlier (RELIC_COST was flat 190 for all of them
+// too, so "rare" carried no weight at all: literally every relic was
+// priced and labeled identically, "rare" meaning nothing). Reclassified
+// below by actual mechanical strength, reusing the exact common/
+// uncommon/rare vocabulary and 65/125/190 cost family units.js's own
+// tierFromCost/TIER_COST already established for the unit roster
+// (see that file's own 62.5x-rescale comment for where those three
+// numbers come from) - RELIC_COST(190) was the one anchor point this
+// pass was told to keep, so it stays exactly as-is, just demoted from
+// "the only price" to "rare's price."
+//
+// The dividing line isn't "does it have a cool effect" (every relic
+// here does) - it's whether that effect is GUARANTEED every fight or
+// only PAYS OFF once some condition is met, the same distinction this
+// very roster's own characters.js sibling already draws in plain
+// language for Wounded Fury/Shatter/Chain ("a purely conditional bonus
+// underperforms a guaranteed flat one," proven twice over there across
+// real fairness passes, not asserted):
+//
+//   COMMON - the effect only fires reactively (an onHit/onDealDamage
+//   trigger needs a hit landed or taken first) or only pays off past a
+//   threshold: Execute's 30% HP floor, Wounded Fury's 50% HP floor,
+//   Shatter's "target already blocked/warded" gate, Chain's
+//   killing-blow-only gate, Spore Spread's "only matters if something
+//   else in the squad is already applying Poison." Real value, but
+//   conditional, same shape as those Commander mechanics.
+//
+//   UNCOMMON - one mechanic, unconditionally active every fight: a
+//   flat applyBuff grant at battle start, or a turnStart trigger that
+//   fires every single round no matter what happens in the fight -
+//   every single-mechanic relic that doesn't carry one of the COMMON
+//   gates above. Tribe-anchor relics land here too: unconditional for
+//   whichever units qualify, the tribe-commitment itself is the
+//   "cost" being paid, not a per-hit RNG gate on top.
+//
+//   RARE - two mechanics stacked into one relic (a genuine 2-for-1
+//   over any single-mechanic pick above, even when both halves are
+//   individually conditional - e.g. Witherspite Crown's Poison+Weak
+//   both need a landed hit, but landing ONE hit now buys both), or a
+//   pure compounding-value utility relic with zero downside and no
+//   gate at all (Essence Well's per-win Essence, Artificer's Ledger's
+//   extra item slot on every unit) - both scale with the whole rest of
+//   the run, not just one fight.
+const RELIC_TIER_COST = { common: 65, uncommon: 125, rare: 190 }
+
+// Conditional/reactive single-mechanic relics (see COMMON's definition
+// above) - the roster's weakest-per-pick tier, priced to match.
+const COMMON_RELICS = [
+  "bramble-ward", "sundering-mark", "vampiric-bloom", "culling-strike",
+  "venomous-edge", "frostbrand", "purifying-bloom", "berserkers-oath",
+  "quarrybreak", "fangs-mark", "rootbound-curse", "rootbreak-sigil",
+  "cascading-wound", "mycotic-bloom",
+]
+// Unconditional single-mechanic relics, including every tribe-anchor
+// (see UNCOMMON's definition above) - the middle tier.
+const UNCOMMON_RELICS = [
+  "ember-core", "mosswarden-charm", "bulwark-standard", "aegis-ward",
+  "bark-ward", "wardens-bastion", "groves-blessing", "spirits-veil",
+  "thorns-wrath", "heartsbloom-seed",
+]
+// Everything NOT listed above (every dual-mechanic combo from
+// quarry-vanguard down, plus essence-well/artificers-ledger/
+// witherspite-crown) is RARE by default, rather than a third explicit
+// list - a new relic added later without being sorted into one of the
+// two lists above still gets a real tier assigned instead of silently
+// falling through untagged, and RARE is the correct place for anything
+// this pass didn't already have a specific conditional/single-mechanic
+// reason to demote.
+for (const [id, relic] of Object.entries(RELICS)) {
+  relic.tier = COMMON_RELICS.includes(id) ? "common" : UNCOMMON_RELICS.includes(id) ? "uncommon" : "rare"
+  relic.cost = RELIC_TIER_COST[relic.tier]
 }
 
 export function relicPool() {
