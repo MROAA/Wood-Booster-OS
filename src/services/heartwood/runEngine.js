@@ -55,9 +55,21 @@ export const RAMP_CAP = 0.75
 // advanceToNextNode's comment above for why the type/position
 // sequence here stays authoritative even though a battle SLOT's exact
 // enemyId content is now decided at play-time, not fixed here).
+// `beat` (optional, per node): one short pre-battle line, shown on the
+// FormationScreen in place of the encounter's generic description and
+// intended for the run map / hover cards too (via nodeNarrative in
+// runNarrative.js). Only a handful of nodes carry one so far - the rest
+// fall back cleanly to the enemy/formation description. Marc authors the
+// remaining beats (and the per-Act story text) in the content pass; see
+// docs/hearthwood-story-acts.md. The three below are samples proving the
+// pipeline renders end to end (early / mid / late in the run).
 export const RUN_PATH = [
   { type: "shop" },
-  { type: "battle", formationId: "rotwood-husk-pair" },
+  {
+    type: "battle",
+    formationId: "rotwood-husk-pair",
+    beat: "The rot got here first. A husk and the sick sapling beside it, still standing guard over ground the forest already gave up on.",
+  },
   { type: "shop" },
   { type: "battle", enemyId: "drowned-siren" },
   { type: "shop" },
@@ -68,7 +80,11 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "miniboss", enemyId: "deepwarden", trialId: "rootkeeper" },
   { type: "shop" },
-  { type: "battle", enemyId: "bark-brute" },
+  {
+    type: "battle",
+    enemyId: "bark-brute",
+    beat: "Bark grown thick as a door, and about as interested in talking. It has stood in this gap so long the path bends around it.",
+  },
   { type: "shop" },
   { type: "battle", enemyId: "moss-troll" },
   { type: "shop" },
@@ -160,7 +176,11 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "miniboss", enemyId: "wyrmgall", trialId: "veilbound" },
   { type: "shop" },
-  { type: "battle", formationId: "the-hollow-court" },
+  {
+    type: "battle",
+    formationId: "the-hollow-court",
+    beat: "This deep, the things that stop you aren't guarding anything. They just don't remember how to do anything else.",
+  },
   { type: "shop" },
   { type: "battle", formationId: "the-cursed-thicket" },
   { type: "battle", formationId: "the-unbroken-root" },
@@ -326,7 +346,22 @@ const FORMATION_BONUS_ESSENCE = 100
 // Marc's explicit table (an Essence reward, not a price); rounded
 // 190->150 to match how his table rounds 190 elsewhere.
 const MINIBOSS_BONUS_ESSENCE = 150
-const SHOP_SIZE = 4
+// Market-scale-up pass (Marc, verbatim burst: "heartwood market ja your
+// squad pitää olla ainakin tuplasti isommat" / "kortit on pieniä
+// infopalasia jotka kertoo paljon silmäyksellä" - the Market/Squad
+// cards must be at least 2x bigger, and each is a small info-dense
+// piece that says a lot at a glance). That collides head-on with the
+// still-standing "kaiken pitää mahtua nätisti" zero-scroll budget, and
+// this repo's card-frames pass already resolved that exact tension the
+// same way: fewer offers, not smaller elements. Was 4 (matched to
+// ITEM_SHOP_SIZE below) - dropped to 3 so the featured grid has real
+// width/height to grow the portrait and switch to a wider, denser card
+// layout without wrapping to a second row (which would cost far more
+// vertical budget than one fewer offer does). Also lines up with
+// Marc's own repeated "too many cards / visual noise" complaints (see
+// ITEM_SHOP_SIZE's history below) - a real economy touch, not just a
+// CSS trick: one fewer roll to look at per visit.
+const SHOP_SIZE = 3
 // Essence rescale: was 1, now 65 (units.js's TIER_COST "1-family" -
 // same value as a common unit's recruit cost). REROLL_INCREMENT (used
 // by rerollShop below) was an inline `+ 1` matching this same base
@@ -543,9 +578,12 @@ function shuffled(array) {
 // Was 6 - Marc, direct, looking at the shop: "siinä on liikaa
 // kortteja sitä pitää vähentää" / "visuaalista meteliä pitää
 // vähentää" (too many cards, too much visual noise). Matched to
-// SHOP_SIZE (the unit row, below) so both rows read as the same
+// SHOP_SIZE (the unit row, above) so both rows read as the same
 // weight of decision rather than the item row visually dominating.
-const ITEM_SHOP_SIZE = 4
+// Market-scale-up pass: dropped again, 4 -> 3, the same "fewer,
+// bigger" trade SHOP_SIZE's own comment above explains - stays matched
+// to SHOP_SIZE for the same reason.
+const ITEM_SHOP_SIZE = 3
 
 function rollItemShop() {
   const all = itemPool()
@@ -1085,7 +1123,7 @@ export function clearSlot(runState, slotIndex) {
 // number it doesn't track.
 // Marc: "make a progressive story" - each tier already had a real name
 // and a color for the difficulty badge above; `tagline`/`lore` extend
-// the SAME 4 entries rather than a parallel story structure, so the
+// the SAME entries rather than a parallel story structure, so the
 // difficulty readout and the narrative one can never drift apart (one
 // says "The Reckoning," the other can't say something different for
 // the same stretch of the run). `tagline` is the short line shown next
@@ -1093,34 +1131,94 @@ export function clearSlot(runState, slotIndex) {
 // longer paragraph shown once, the first time a run actually crosses
 // into that tier (FormationScreen.jsx's own Act-intro banner) - not
 // shown again on every fight within the same tier, just the crossing.
+//
+// STRUCTURE: expanded 4 -> 7 tiers (feat/hearthwood-7-act-structure) so
+// each of Marc's 7 story Acts owns a stretch of the run. Names/taglines/
+// lore are drawn from docs/hearthwood-story-acts.md:
+//   I ROOTS / II HEARTWOOD / III THE VEIL / IV THE HOLLOW / V THE CROWNLESS
+// are Marc's own fully-written Acts. Acts VI (THE ECHO RIFT) and VII
+// (THE ECHO VERGE) are only sketched in that doc as post-epilogue "Echo
+// Age" / "Echo Verge" eras - their lore here is a minimal placeholder
+// derived from those sketches, flagged TODO(marc) for the content pass.
+//
+// Thresholds are re-spread across run progress 0..1 (nodeIndex /
+// (RUN_PATH.length - 1)) - the 7 land at 0 / 0.14 / 0.44 / 0.6 / 0.75 /
+// 0.88 / 0.95. They are tuned so the run's three miniboss nodes and its
+// final boss land in sensible Acts: RUN_PATH's miniboss at progress
+// ~0.09 (Rootkeeper) sits at the end of Act I; the miniboss at ~0.42
+// (Heartwood Warden) at the end of Act II; the last band is a short
+// final-boss approach.
+//
+// These are STORY/lore bands only - difficultyFactorForNode's enemy-
+// scaling math below is deliberately untouched by this pass, so the act
+// boundaries and the ramp's own breakpoints are currently independent.
+// A later enemy-tuning pass that wants "each act is a step up in
+// pressure on the build" should align the ramp's steps to these seven
+// thresholds (Marc's intent), not the other way around.
+//
+// KNOWN MISMATCH for Marc's content pass: RUN_PATH currently ends on
+// the Hollow King (the Act IV boss in the story) as its single final
+// node at progress 1.0, so that fight lands in the Act VII band here.
+// The 3rd miniboss (Veilbound, an Act III being) also currently sits
+// near the run's very end (~0.93), inside the Act VI band. Resolving
+// this needs either a RUN_PATH rework (real Act V-VII encounters) or a
+// deliberate decision to let the late Acts be pure difficulty/lore
+// bands with no dedicated boss node - a call for Marc, not this
+// structural pass. `trials.js`'s per-Trial `act` label is descriptive
+// text only (nothing reads it), left as-is on purpose.
 export const DIFFICULTY_TIERS = [
   {
     threshold: 0,
-    name: "The Outer Grove",
+    name: "Act I - Roots",
     color: "var(--hw-moss)",
-    tagline: "Where the paths still remember being walked.",
-    lore: "The trees here still let the light through. Whatever watches from the Hearthwood's own heart hasn't noticed you yet - or hasn't decided you're worth noticing. Either way, the ground is easy underfoot. It won't stay that way.",
+    tagline: "The roots have started to whisper. They know your name.",
+    lore: "The trees here still let the light through. But the roots no longer belong only to the forest - something is spreading up through them from below, and the creatures that live off them have turned mean. Whatever is wrong, it did not start in the roots.",
   },
   {
-    threshold: 0.3,
-    name: "The Deepening Woods",
+    threshold: 0.14,
+    name: "Act II - Heartwood",
     color: "var(--hw-rune)",
-    tagline: "The paths stop agreeing with each other.",
-    lore: "The canopy closes overhead. What lives here doesn't scatter when you approach - it turns to look. Somewhere past this point, the Hearthwood stopped being a place you were walking through and started being a place walking back.",
+    tagline: "The heart is still beating. It beats like something afraid.",
+    lore: "Deeper in, the light turns gold and will not hold steady. The forest's own elementals have stopped agreeing with each other, and half of them will not meet your eye. The heart is down here somewhere, and it is hiding - not from the sickness. From you.",
   },
   {
-    threshold: 0.65,
-    name: "The Wounded Hearthwood",
+    threshold: 0.44,
+    name: "Act III - The Veil",
     color: "var(--hw-ember)",
-    tagline: "Something here has been hurt for a very long time.",
-    lore: "The moss burns amber instead of green. Every root you cross has already been fought over, by something that didn't win cleanly. Whatever's waiting deeper in remembers every one of those fights - and it's still standing.",
+    tagline: "Reality has worn thin here. Something looks back through it.",
+    lore: "The air trembles like static and the forest shows through it wrong - folded, too far away, seen from an angle that should not exist. This was never rot climbing up from the roots. What crosses your path from here has stopped testing your squad and started testing what holds it together.",
   },
   {
-    threshold: 0.85,
-    name: "The Reckoning",
+    threshold: 0.6,
+    name: "Act IV - The Hollow",
+    color: "var(--hw-hp)",
+    tagline: "The forest cannot reach you here. Nothing can.",
+    lore: "The ground is not ground anymore, only the memory of it. Every root that tied this place to the living forest has already snapped. What waits at the centre was a guardian once, and it never wanted any of this - and it will turn whatever you have built this far against you all the same.",
+  },
+  {
+    threshold: 0.75,
+    name: "Act V - The Crownless",
     color: "var(--hw-curse)",
-    tagline: "It knows you're coming now.",
-    lore: "There's no pretending anymore that this is still a walk through the woods. Spacemonkey is close, and everything left standing between you and him already knows exactly why you're here.",
+    tagline: "The king is gone. The crown is still warm.",
+    lore: "It is quiet the way a room is quiet just after something has left it. The fighting is over and the forest's heart is beating again - slow, careful, not sure it is allowed to. Someone has to decide what it grows back into, and there is no one else left to ask.",
+  },
+  {
+    // TODO(marc): Act VI lore - placeholder derived from the "Echo Age"
+    // sketch in docs/hearthwood-story-acts.md, not a written Act yet.
+    threshold: 0.88,
+    name: "Act VI - The Echo Rift",
+    color: "var(--hw-rune)",
+    tagline: "The forest is remembering you now. Remembering you too hard.",
+    lore: "The light has gone blue-violet and the roots move to a rhythm that is not fear and is not the crown's command - it is you, breathing. Somewhere ahead a memory has grown heavy enough to tear a hole in the world, and it copies every step you take.",
+  },
+  {
+    // TODO(marc): Act VII lore - placeholder derived from the "Echo
+    // Verge" sketch in docs/hearthwood-story-acts.md, not a written Act.
+    threshold: 0.95,
+    name: "Act VII - The Echo Verge",
+    color: "var(--hw-text)",
+    tagline: "Memory and the world have stopped being separate things.",
+    lore: "This deep there is no line left between what happened and what is here. The forest has stopped asking to be saved and started asking to be understood. Whatever stands at the end of this is waiting for an answer, not a fight - and it may not get one.",
   },
 ]
 
