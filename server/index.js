@@ -390,6 +390,7 @@ import createDevCodeChangeRouter from "./routes/devCodeChangeStudio.js"
 import createDevMultiFileChangeRouter from "./routes/devMultiFileChangeStudio.js"
 import createSavedPromptsRouter from "./routes/savedPrompts.js"
 import createHeartwoodAssistantRouter from "./routes/heartwoodAssistant.js"
+import createHearthwoodPatchbayRouter from "./routes/hearthwoodPatchbay.js"
 import createProjectFilesRouter from "./routes/projectFiles.js"
 import createOllamaModelsRouter from "./routes/ollamaModels.js"
 import createAgentChatRouter from "./routes/agentChat.js"
@@ -1317,6 +1318,15 @@ app.use(
 app.use(
   "/api",
   createHeartwoodAssistantRouter(
+    prisma
+  )
+)
+
+
+
+app.use(
+  "/api",
+  createHearthwoodPatchbayRouter(
     prisma
   )
 )
