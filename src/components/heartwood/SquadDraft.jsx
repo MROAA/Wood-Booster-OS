@@ -441,7 +441,16 @@ export default function SquadDraft({
           utilityBar growing to 3 buttons wide (still Marc's own ask - see
           that component's comment - just wider than one link) needed the
           same clearance recalculated, not a cosmetic tweak. */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingRight: 420 }}>
+      {/* hw-market-top-row: added this pass purely as a CSS scoping
+          hook (Marc sent a heavily-annotated screenshot circling
+          almost the entire screen, including this whole row, captioned
+          "tee muokkaukset UIhin tän mukaisesti" - make the UI edits
+          according to this - i.e. "bigger" applies here too, not just
+          the plaques/Continue/cards named explicitly earlier) - lets
+          heartwood.css grow just THIS row's badges/essence display
+          without touching the shared .hw-badge class every other
+          screen's badges also use. */}
+      <div className="hw-market-top-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingRight: 420 }}>
         <h1 style={{ fontSize: 22, margin: 0 }}>The Hearthwood Market</h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* key={difficultyTier.name}: without it this is the same DOM
@@ -482,7 +491,7 @@ export default function SquadDraft({
         </div>
       </div>
 
-      <div className="hw-section-fade-in" style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 6, flexWrap: "wrap" }}>
+      <div className="hw-section-fade-in" style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 3, flexWrap: "wrap" }}>
         {/* Market Level (Battlegrounds/Guildrun-style tavern tier) -
             raises the shop's rarity ceiling (runEngine.js's
             rollShop/MARKET_LEVEL_UNLOCKS). Marc, direct: "market lvl
@@ -823,10 +832,17 @@ export default function SquadDraft({
 
       <div className="hw-market-columns">
         <div className="hw-panel hw-panel--market" hidden={activeTab !== "market"}>
+          {/* The old "Recruit who you can afford, or move on." flavor
+              line below the title was pure decorative prose - it told
+              the player nothing the panel title ("Market - spend
+              Essence here") and the "For sale" label right under it
+              didn't already say. Cut to make room for the actual
+              info-density growth this pass is about (Marc: "UI
+              minimalistiseksi mutta informaaliseksi" - minimalist but
+              informational - every pixel should go to real
+              information, not decoration): bigger portraits/icons on
+              the cards below, not a caption above them. */}
           <div className="hw-panel-title">Market - spend Essence here</div>
-          <p className="hw-flavor" style={{ marginTop: 4 }}>
-            Recruit who you can afford, or move on.
-          </p>
 
           <div className="hw-section-label">For sale</div>
           {/* hw-market-featured-grid: the one deliberately-featured
@@ -843,7 +859,24 @@ export default function SquadDraft({
               const reserveFull = !willFuse && runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP
               const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
               return (
-                <div key={def.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                // Real bug caught during this pass's own 1860x960
+                // iteration (not eyeballed - a live Playwright re-roll
+                // loop reproduced it): "Fuses now!"/"Reserve full" used
+                // to be a normal flow sibling below the card, adding
+                // ~19px to just THAT one wrapper - but CSS Grid
+                // stretches every row item to the row's tallest (this
+                // grid never overrides align-items), so the instant
+                // ANY one of the 3 offers rolled with this badge, the
+                // WHOLE row grew by the same amount, even the 2 cards
+                // with no badge at all - a purely conditional, random-
+                // per-visit height contribution the fit budget had no
+                // way to account for. Now an absolute overlay (position
+                // relative lives here on the wrapper, same pattern
+                // UnitCard's own .hw-frost-badge already uses) pinned
+                // to the bottom of the card instead of pushing it -
+                // zero layout-height cost regardless of which offers
+                // roll it.
+                <div key={def.id} style={{ position: "relative" }}>
                   <UnitCard
                     def={def}
                     disabled={runState.essence < def.recruitCost || reserveFull}
@@ -853,8 +886,8 @@ export default function SquadDraft({
                   />
                   {willFuse && (
                     <div
-                      className="hw-badge"
-                      style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
+                      className="hw-badge hw-card-overlay-badge"
+                      style={{ color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
                       title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
                     >
                       Fuses now! ({owned}/3 owned)
@@ -862,8 +895,8 @@ export default function SquadDraft({
                   )}
                   {reserveFull && (
                     <div
-                      className="hw-badge"
-                      style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+                      className="hw-badge hw-card-overlay-badge"
+                      style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
                       title={`Reserve is full (${RESERVE_CAP}/${RESERVE_CAP}) - sell or fuse to make room`}
                     >
                       Reserve full
@@ -874,7 +907,7 @@ export default function SquadDraft({
             })}
           </div>
 
-          <div style={{ marginTop: 6, display: "flex", gap: 8 }}>
+          <div style={{ marginTop: 3, display: "flex", gap: 8 }}>
             <button
               className="hw-move-btn"
               disabled={runState.essence < runState.rerollCost || offers.length === 0}
@@ -1004,8 +1037,16 @@ export default function SquadDraft({
           modifier class (hw-shop-confirm-btn), not the shared
           .hw-end-turn class every OTHER screen's Continue/End Turn
           button also uses - Battle/ResultOverlay/GuildHallScreen/
-          FormationScreen keep their plain look untouched. */}
-      <div style={{ marginTop: 10 }}>
+          FormationScreen keep their plain look untouched.
+          Round 2 (market-scale-up pass): Marc - "continue
+          keskitetään... ja tuplasti isompi" (center it, also 2x
+          bigger). Checked first: this wrapper had no text-align or
+          justify-content at all, so the button was actually sitting
+          left-aligned, not "already centered" - display:flex +
+          justify-content:center here is the actual fix; the "2x
+          bigger" half lives in .hw-shop-confirm-btn's own padding/
+          font-size (heartwood.css). */}
+      <div style={{ marginTop: 6, display: "flex", justifyContent: "center" }}>
         <button className="hw-end-turn hw-shop-confirm-btn" onClick={onContinue}>
           Continue
         </button>

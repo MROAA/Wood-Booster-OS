@@ -346,7 +346,22 @@ const FORMATION_BONUS_ESSENCE = 100
 // Marc's explicit table (an Essence reward, not a price); rounded
 // 190->150 to match how his table rounds 190 elsewhere.
 const MINIBOSS_BONUS_ESSENCE = 150
-const SHOP_SIZE = 4
+// Market-scale-up pass (Marc, verbatim burst: "heartwood market ja your
+// squad pitää olla ainakin tuplasti isommat" / "kortit on pieniä
+// infopalasia jotka kertoo paljon silmäyksellä" - the Market/Squad
+// cards must be at least 2x bigger, and each is a small info-dense
+// piece that says a lot at a glance). That collides head-on with the
+// still-standing "kaiken pitää mahtua nätisti" zero-scroll budget, and
+// this repo's card-frames pass already resolved that exact tension the
+// same way: fewer offers, not smaller elements. Was 4 (matched to
+// ITEM_SHOP_SIZE below) - dropped to 3 so the featured grid has real
+// width/height to grow the portrait and switch to a wider, denser card
+// layout without wrapping to a second row (which would cost far more
+// vertical budget than one fewer offer does). Also lines up with
+// Marc's own repeated "too many cards / visual noise" complaints (see
+// ITEM_SHOP_SIZE's history below) - a real economy touch, not just a
+// CSS trick: one fewer roll to look at per visit.
+const SHOP_SIZE = 3
 // Essence rescale: was 1, now 65 (units.js's TIER_COST "1-family" -
 // same value as a common unit's recruit cost). REROLL_INCREMENT (used
 // by rerollShop below) was an inline `+ 1` matching this same base
@@ -563,9 +578,12 @@ function shuffled(array) {
 // Was 6 - Marc, direct, looking at the shop: "siinä on liikaa
 // kortteja sitä pitää vähentää" / "visuaalista meteliä pitää
 // vähentää" (too many cards, too much visual noise). Matched to
-// SHOP_SIZE (the unit row, below) so both rows read as the same
+// SHOP_SIZE (the unit row, above) so both rows read as the same
 // weight of decision rather than the item row visually dominating.
-const ITEM_SHOP_SIZE = 4
+// Market-scale-up pass: dropped again, 4 -> 3, the same "fewer,
+// bigger" trade SHOP_SIZE's own comment above explains - stays matched
+// to SHOP_SIZE for the same reason.
+const ITEM_SHOP_SIZE = 3
 
 function rollItemShop() {
   const all = itemPool()
