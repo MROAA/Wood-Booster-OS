@@ -114,6 +114,14 @@ import thornwispImg from "../../assets/heartwood/units/thornwisp.jpg"
 import ashcallerImg from "../../assets/heartwood/units/ashcaller.jpg"
 import stormveilImg from "../../assets/heartwood/units/stormveil.jpg"
 import mistveilImg from "../../assets/heartwood/units/mistveil.jpg"
+// These 2 got wired into their unit() calls early (alongside batch 2's
+// loamguard/willowfang edits) but the import lines were missed at the
+// time - caught by a runtime Playwright check (a bare "XImg is not
+// defined" ReferenceError that `npm run build`'s static bundling
+// alone never surfaces, since an undefined free identifier is still
+// syntactically valid JS).
+import rimefangImg from "../../assets/heartwood/units/rimefang.jpg"
+import hollowquillImg from "../../assets/heartwood/units/hollowquill.jpg"
 // Marc's follow-up scope: "käytä kaikki kuvat...luot unitteja/
 // itemeitä kuville" (use all the images, create units/items for them)
 // - 6 brand-new units built around striking leftover art that didn't
