@@ -185,14 +185,29 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       )}
       {tribeIds.length > 0 && (
         <div className="hw-tribe-icons">
+          {/* Marc, direct: "heimo pitää näkyä selkeästi kortista"
+              (the tribe needs to show clearly on the card), then
+              "animoidaan heimo nappi... visualisoi se" (animate the
+              tribe badge, visualize it) - was a bare 12px icon with
+              no visible text, tribe name only reachable via hover
+              tooltip. Every unit now has a real tribe (confirmed
+              85/85 earlier today), so this was the one piece of that
+              work that never actually became visible on the card
+              itself. Now a real labeled, tribe-colored pill (name +
+              icon, not icon alone) using this file's own established
+              hw-badge-pop mount animation - the same one-shot pop
+              every other status/keyword badge in this game already
+              gets, so a tribe reads as "a real thing this unit has,"
+              not a decoration. */}
           {tribeIds.map((t) => (
             <span
               key={t}
-              className="hw-tribe-icon"
-              style={{ color: TRIBES[t]?.color }}
+              className="hw-tribe-badge hw-badge-pop"
+              style={{ color: TRIBES[t]?.color, borderColor: TRIBES[t]?.color }}
               title={`${TRIBES[t]?.name} - ${synergyTiersSummary(t)}`}
             >
               <CardGlyph name={TRIBES[t]?.icon} className="hw-effect-icon-glyph" />
+              {TRIBES[t]?.name}
             </span>
           ))}
         </div>
