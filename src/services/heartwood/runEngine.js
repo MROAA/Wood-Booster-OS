@@ -209,8 +209,13 @@ export const RUN_PATH = [
 // didn't match what either of us expected. Set directly to his
 // explicit number this time, no arithmetic: "aseta alku essence
 // määräksi 350" (set the starting Essence to 350).
-const START_ESSENCE = 350
-const WIN_ESSENCE = 250
+// Round-economy pass (Marc, round numbers): recruit costs dropped to
+// 50/100/150 while these stayed 350/250, which an n=100 fairness pass
+// showed made the run ~17 points easier on average (test bot: ~20% ->
+// ~37% win rate). Marc's call: cut income to compensate - start
+// 350 -> 300, per-win 250 -> 200. Both stay in the 50-family.
+const START_ESSENCE = 300
+const WIN_ESSENCE = 200
 // Marc: "now it doesn't feel like anything purchasing the units or
 // items" - the Essence RATE has already been tuned back and forth
 // this session (bumped +50%, then cut 5/6->4/4 for "opportunity

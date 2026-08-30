@@ -1,19 +1,25 @@
 import { chromium } from "playwright"
 
+const PORT = Number(process.env.PORT || 5310)
+const RUNS = Number(process.env.RUNS || 25)
+
 const browser = await chromium.launch({ args: ["--no-sandbox"] })
 const page = await (await browser.newContext()).newPage()
 const pageErrors = []
 page.on("pageerror", (e) => pageErrors.push(e.message))
 
-await page.goto("http://localhost:5310/heartwood", { waitUntil: "domcontentloaded" })
-await page.waitForSelector("text=Heartwood", { timeout: 15000 })
+await page.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+// Game was renamed Heartwood -> Hearthwood; wait on the commander-select
+// markup instead of a title string so a future rename can't re-break this.
+await page.waitForSelector(".hw-commander-card", { timeout: 15000 })
 await page.waitForTimeout(300)
 
-const results = await page.evaluate(async () => {
+const results = await page.evaluate(async (RUNS) => {
   const t = Date.now()
   const engine = await import("/src/services/heartwood/runEngine.js?t=" + t)
   const unitsMod = await import("/src/data/heartwood/units.js?t=" + t)
   const { UNITS } = unitsMod
+  const { RELICS } = await import("/src/data/heartwood/relics.js?t=" + t)
 
   // "Realistic" bot: a middle-ground between minimal and greedy - the
   // kind of play a real but not maximally-optimizing player does.
@@ -62,8 +68,19 @@ const results = await page.evaluate(async () => {
         run = engine.resolveBattleOutcome(run)
       } else if (run.phase === "relic") {
         const offers = run.relicOffers || []
-        const affordable = offers.find((id) => run.essence >= 3)
+        // Take the priciest relic actually affordable (a "realistic" bot
+        // spends a windfall), else skip. Uses the relic's real cost -
+        // relics are no longer a flat price since the round-economy pass.
+        const affordable = offers
+          .filter((id) => run.essence >= (RELICS[id]?.cost ?? Infinity))
+          .sort((a, b) => (RELICS[b]?.cost ?? 0) - (RELICS[a]?.cost ?? 0))[0]
         run = engine.chooseRelic(run, affordable || null)
+      } else if (run.phase === "choice") {
+        // Floor-encounter fork (advanceToNextNode's `phase: "choice"`).
+        // A real player picks somewhat arbitrarily; random 0/1 averages
+        // out across the sample. Without this handler every run stalls
+        // here at the first map fork and never terminates.
+        run = engine.chooseFloorEncounter(run, Math.random() < 0.5 ? 0 : 1)
       } else break
     }
     return { characterId, outcome: run.phase, nodeIndex: run.nodeIndex, pathLength: run.path.length, diedAt }
@@ -72,7 +89,7 @@ const results = await page.evaluate(async () => {
   const characters = ["tommy", "aatos", "fenrir", "repo"]
   const runs = []
   for (const characterId of characters) {
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < RUNS; i++) {
       try {
         runs.push(simulateRun(characterId))
       } catch (err) {
@@ -81,7 +98,7 @@ const results = await page.evaluate(async () => {
     }
   }
   return runs
-})
+}, RUNS)
 
 const byChar = {}
 const deathsByFight = {}
@@ -95,7 +112,7 @@ for (const r of results) {
   }
 }
 
-console.log("=== per-commander win rate (25 runs each, 'realistic' bot) ===")
+console.log(`=== per-commander win rate (${RUNS} runs each, 'realistic' bot) ===`)
 for (const [char, s] of Object.entries(byChar)) {
   console.log(`${char}: ${s.wins}/${s.total} (${Math.round((s.wins / s.total) * 100)}%)`)
 }
