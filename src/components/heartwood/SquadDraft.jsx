@@ -142,6 +142,12 @@ export default function SquadDraft({
   // everything owned minus whatever's currently deployed.
   const deployedCount = runState.deployed.filter((k) => k !== null).length
   const reserveCount = runState.bench.length - deployedCount
+  // Your Squad tab: the bench array holds every owned unit, deployed and
+  // reserve interleaved. Split it here so the tab can show two clearly
+  // separated groups instead of one flat grid (Marc: "unit/reservi on
+  // epaselva your squad valilehdessa... ne pitaa eritta paremmin").
+  const deployedEntries = runState.bench.filter((e) => runState.deployed.includes(e.key))
+  const reserveEntries = runState.bench.filter((e) => !runState.deployed.includes(e.key))
   // Dual-Class (dualClasses.js, roadmap task 19): every currently
   // DEPLOYED unit's defId, same "deployed only" scope the tribe tracker
   // above already uses (ownedTribes is bench-wide on purpose, this is
@@ -294,6 +300,100 @@ export default function SquadDraft({
     onReforge(benchKey)
     setJustReforgedKey(benchKey)
     setTimeout(() => setJustReforgedKey((cur) => (cur === benchKey ? null : cur)), 500)
+  }
+
+  // One owned-unit card, shared by both Your Squad groups (fighting /
+  // reserve) below. Pulled out of an inline .map so the deployed and
+  // reserve lists render identical cards - the only difference between
+  // the two groups is which section they sit in and the quiet dim on
+  // the reserve grid, nothing about the card itself.
+  function renderBenchCard(entry) {
+    const def = UNITS[entry.defId]
+    const canReforge = def?.displayTier !== 2
+    // Fusion progress: 3 owned copies of the same base unit merge
+    // into a Tier 2 copy automatically (runEngine.js's fuseAll).
+    const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
+    const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
+    const sellRefund = sellRefundFor(def)
+    // Hero Bending (items.js's bendsRoleTo/effectiveRole) - a Bending
+    // item equipped here visibly overwrites this card's role-accent/
+    // label, not just its stats.
+    const bentRole = def ? effectiveRole(def.role, equippedItems.map((it) => it.defId)) : def?.role
+    // Dual-Class (dualClasses.js): only meaningful while this entry is
+    // actually deployed (a benched, undeployed unit isn't in the fight
+    // the combo would apply to).
+    const dualClass =
+      def && runState.deployed.includes(entry.key)
+        ? findDualClassFor(entry.defId, deployedDefIds, UNITS)
+        : null
+    return (
+      <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div
+          className={
+            justFusedKey === entry.key
+              ? "hw-card--fused"
+              : justReforgedKey === entry.key
+                ? "hw-card--reforged"
+                : justPurchasedKey === entry.key
+                  ? "hw-card--purchased"
+                  : undefined
+          }
+        >
+          <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} />
+        </div>
+        <div className="hw-item-slots" title="Item slots - click a bag item above, then click a slot to equip it">
+          {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
+            const equipped = equippedItems.find((it) => it.slotIndex === slotIndex)
+            const itemDef = equipped ? ITEMS[equipped.defId] : null
+            return (
+              <span
+                key={slotIndex}
+                className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
+                  justEquippedSlot === `${entry.key}-${slotIndex}` ? " hw-card--reforged" : ""
+                }`}
+                title={itemDef ? `${itemDef.name} - click to unequip` : "Empty slot"}
+                onClick={() => handleSlotClick(entry.key, slotIndex, equipped ? equipped.key : null)}
+              >
+                {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : null}
+              </span>
+            )
+          })}
+        </div>
+        {def?.displayTier !== 2 && (
+          <div
+            className="hw-badge"
+            style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
+            title="3 owned copies of the same unit fuse automatically into a stronger Tier 2 version"
+          >
+            Fusion {copiesOwned}/3
+          </div>
+        )}
+        {/* Reforge + Sell side by side - half the vertical footprint of
+            two stacked full-width buttons (this screen's zero-scroll
+            budget), same click targets/labels. */}
+        <div style={{ display: "flex", gap: 4 }}>
+          {canReforge && (
+            <button
+              className="hw-move-btn"
+              style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
+              disabled={runState.essence < REFORGE_COST}
+              onClick={() => handleReforge(entry.key)}
+              title={`Swap ${def?.name} for a different random unit of the same tier (${REFORGE_COST} Essence)`}
+            >
+              Reforge
+            </button>
+          )}
+          <button
+            className="hw-move-btn hw-sell-btn"
+            style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
+            onClick={() => handleSell(entry.key)}
+            title={`Sell ${def?.name} back for ${sellRefund} Essence`}
+          >
+            Sell (+{sellRefund})
+          </button>
+        </div>
+      </div>
+    )
   }
 
   function handleSell(benchKey) {
@@ -843,148 +943,55 @@ export default function SquadDraft({
             </>
           )}
 
+          {/* Your Squad split into two clearly separated groups: the
+              units actually fighting (keys in runState.deployed) vs the
+              ones sitting in Reserve. Before this they rendered in ONE
+              flat grid in raw bench order, deployed and reserve
+              interleaved, told apart only by a small per-card "On the
+              Bench (fighting)" badge - Marc: "unit/reservi on epaselva
+              your squad valilehdessa... ne pitaa eritta paremmin" (the
+              deployed/reserve distinction is unclear on the Your Squad
+              tab, they need separating better). Now: two labelled
+              groups with a quiet vertical divider, the reserve grid
+              gently dimmed, a count on each heading. Side by side, not
+              stacked - this screen's strict zero-scroll budget can't
+              afford a second full card row. */}
           <div className="hw-section-label">
-            Your Squad - {deployedCount} on the Bench (fighting), {reserveCount}/{RESERVE_CAP} in Reserve
+            Your Squad - {deployedCount}/{DEPLOY_SLOTS} fighting, {reserveCount}/{RESERVE_CAP} in reserve
           </div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
-            Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop. Units not
-            on the Bench sit in Reserve until you place them on the battlefield.
+            Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop.
           </p>
-          <div className="hw-select-grid hw-deck-preview">
-            {runState.bench.map((entry) => {
-          const def = UNITS[entry.defId]
-          const canReforge = def?.displayTier !== 2
-          // Fusion progress: 3 owned copies of the same base unit merge
-          // into a Tier 2 copy automatically (runEngine.js's fuseAll).
-          // Shown from the first copy owned now that Fusion is the
-          // ONLY way a unit gets stronger (Marc: "Upgrade-nappi on
-          // turha... haluan RNG elementin... unitti pitää löytää ja
-          // sitten se päivittyy kun niitä on kolme" - the Upgrade
-          // button is pointless, I want an RNG element - the unit
-          // needs to be found and then it upgrades once there are
-          // three - removed the direct-purchase Upgrade sink entirely
-          // in favor of this being the one, more prominent progression
-          // path) - only for base-tier units, a Tier 2 unit has no
-          // further fusion target.
-          const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
-          const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
-          // Essence rescale: this used to duplicate sellUnit's own
-          // formula inline (a real drift risk the moment either copy's
-          // rate/fallback changed without the other noticing) - now a
-          // shared import from runEngine.js, see sellRefundFor's own
-          // comment there for the actual rate/fallback values.
-          const sellRefund = sellRefundFor(def)
-          // Hero Bending (items.js's bendsRoleTo/effectiveRole,
-          // Guildrun's "hero bending" - Marc: "saman idean haluan
-          // heartwoodiin kuin Guildrunissa") - a Bending item equipped
-          // here visibly overwrites this card's role-accent/label, not
-          // just its stats.
-          const bentRole = def ? effectiveRole(def.role, equippedItems.map((it) => it.defId)) : def?.role
-          // Dual-Class (dualClasses.js): only checked against OTHER
-          // deployed defIds (this unit's own entry contributes nothing
-          // to its own combo - a combo always needs a genuinely
-          // different partner unit), only meaningful while this entry
-          // itself is actually deployed (a benched, undeployed unit
-          // isn't in the fight the combo would apply to).
-          const dualClass =
-            def && runState.deployed.includes(entry.key)
-              ? findDualClassFor(entry.defId, deployedDefIds, UNITS)
-              : null
-          return (
-            <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <div
-                className={
-                  justFusedKey === entry.key
-                    ? "hw-card--fused"
-                    : justReforgedKey === entry.key
-                      ? "hw-card--reforged"
-                      : justPurchasedKey === entry.key
-                        ? "hw-card--purchased"
-                        : undefined
-                }
-              >
-                <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} />
+          <div className="hw-squad-split">
+            <section className="hw-squad-group">
+              <div className="hw-section-label hw-squad-group-label">
+                On the bench &middot; fighting
+                <span className="hw-squad-group-count">{deployedCount}/{DEPLOY_SLOTS}</span>
               </div>
-              {runState.deployed.includes(entry.key) && (
-                <div
-                  className="hw-badge hw-badge--active"
-                  style={{ justifyContent: "center", fontSize: 11 }}
-                  title="Currently fighting, deployed to the battlefield - not sitting in Reserve"
-                >
-                  On the Bench (fighting)
+              {deployedEntries.length === 0 ? (
+                <p className="hw-squad-group-empty">No units placed yet - deploy them on the battlefield screen.</p>
+              ) : (
+                <div className="hw-select-grid hw-deck-preview hw-squad-group-grid">
+                  {deployedEntries.map(renderBenchCard)}
                 </div>
               )}
-              <div className="hw-item-slots" title="Item slots - click a bag item above, then click a slot to equip it">
-                {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
-                  const equipped = equippedItems.find((it) => it.slotIndex === slotIndex)
-                  const itemDef = equipped ? ITEMS[equipped.defId] : null
-                  return (
-                    <span
-                      key={slotIndex}
-                      className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
-                        justEquippedSlot === `${entry.key}-${slotIndex}` ? " hw-card--reforged" : ""
-                      }`}
-                      title={itemDef ? `${itemDef.name} - click to unequip` : "Empty slot"}
-                      onClick={() => handleSlotClick(entry.key, slotIndex, equipped ? equipped.key : null)}
-                    >
-                      {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : null}
-                    </span>
-                  )
-                })}
+            </section>
+
+            <div className="hw-squad-split-divider" aria-hidden="true" />
+
+            <section className="hw-squad-group hw-squad-group--reserve">
+              <div className="hw-section-label hw-squad-group-label">
+                In reserve &middot; not fighting
+                <span className="hw-squad-group-count">{reserveCount}/{RESERVE_CAP}</span>
               </div>
-              {def?.displayTier !== 2 && (
-                <div
-                  className="hw-badge"
-                  style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
-                  title="3 owned copies of the same unit fuse automatically into a stronger Tier 2 version"
-                >
-                  Fusion {copiesOwned}/3
+              {reserveEntries.length === 0 ? (
+                <p className="hw-squad-group-empty">Reserve is empty.</p>
+              ) : (
+                <div className="hw-select-grid hw-deck-preview hw-squad-group-grid hw-squad-reserve-cards">
+                  {reserveEntries.map(renderBenchCard)}
                 </div>
               )}
-              {/* Marc: "kaiken pitää mahtua näytölle ilman scrollausta"
-                  (everything needs to fit on screen without scrolling) -
-                  Reforge and Sell used to stack as 2 separate full-width
-                  buttons, the single biggest per-card height cost on the
-                  bench (a 5-unit bench could run 600px+ tall). Side by
-                  side instead, same click targets/labels, half the
-                  vertical footprint - shorter text ("Reforge"/"Sell"
-                  alone, cost moved to the tooltip) so 2 buttons still
-                  fit a 150px card without wrapping. */}
-              <div style={{ display: "flex", gap: 4 }}>
-                {canReforge && (
-                  <button
-                    className="hw-move-btn"
-                    style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
-                    disabled={runState.essence < REFORGE_COST}
-                    onClick={() => handleReforge(entry.key)}
-                    title={`Swap ${def?.name} for a different random unit of the same tier (${REFORGE_COST} Essence)`}
-                  >
-                    Reforge
-                  </button>
-                )}
-                <button
-                  className="hw-move-btn hw-sell-btn"
-                  style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
-                  onClick={() => handleSell(entry.key)}
-                  title={`Sell ${def?.name} back for ${sellRefund} Essence`}
-                >
-                  {/* sell.png (Marc's Copilot plaque, "Made with AI"
-                      corner cropped out - see the import comment up
-                      top) as a background texture only, at the exact
-                      same footprint the plain pill used - this card
-                      grid's height budget has no slack (see the fit
-                      comment right above), so this couldn't grow the
-                      button to plaque-native proportions. The baked-in
-                      "Quick Sale 150" sub-text is illegible at this
-                      size, same tradeoff Marc already accepted for the
-                      Market tab's "Purchase 250" - real dynamic
-                      sellRefund stays the actual on-screen text. */}
-                  Sell (+{sellRefund})
-                </button>
-              </div>
-            </div>
-          )
-        })}
+            </section>
           </div>
         </div>
       </div>
