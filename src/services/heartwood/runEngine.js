@@ -1169,35 +1169,35 @@ export function clearSlot(runState, slotIndex) {
 export const DIFFICULTY_TIERS = [
   {
     threshold: 0,
-    name: "Act I - Roots",
+    name: "Act I · The Outer Grove",
     color: "var(--hw-moss)",
     tagline: "The roots have started to whisper. They know your name.",
     lore: "The trees here still let the light through. But the roots no longer belong only to the forest - something is spreading up through them from below, and the creatures that live off them have turned mean. Whatever is wrong, it did not start in the roots.",
   },
   {
     threshold: 0.14,
-    name: "Act II - Heartwood",
+    name: "Act II · The Deepening Woods",
     color: "var(--hw-rune)",
     tagline: "The heart is still beating. It beats like something afraid.",
     lore: "Deeper in, the light turns gold and will not hold steady. The forest's own elementals have stopped agreeing with each other, and half of them will not meet your eye. The heart is down here somewhere, and it is hiding - not from the sickness. From you.",
   },
   {
     threshold: 0.44,
-    name: "Act III - The Veil",
+    name: "Act III · The Wounded Hearthwood",
     color: "var(--hw-ember)",
     tagline: "Reality has worn thin here. Something looks back through it.",
     lore: "The air trembles like static and the forest shows through it wrong - folded, too far away, seen from an angle that should not exist. This was never rot climbing up from the roots. What crosses your path from here has stopped testing your squad and started testing what holds it together.",
   },
   {
     threshold: 0.6,
-    name: "Act IV - The Hollow",
+    name: "Act IV · The Reckoning",
     color: "var(--hw-hp)",
     tagline: "The forest cannot reach you here. Nothing can.",
     lore: "The ground is not ground anymore, only the memory of it. Every root that tied this place to the living forest has already snapped. What waits at the centre was a guardian once, and it never wanted any of this - and it will turn whatever you have built this far against you all the same.",
   },
   {
     threshold: 0.75,
-    name: "Act V - The Crownless",
+    name: "Act V · The Crownless",
     color: "var(--hw-curse)",
     tagline: "The king is gone. The crown is still warm.",
     lore: "It is quiet the way a room is quiet just after something has left it. The fighting is over and the forest's heart is beating again - slow, careful, not sure it is allowed to. Someone has to decide what it grows back into, and there is no one else left to ask.",
@@ -1206,7 +1206,7 @@ export const DIFFICULTY_TIERS = [
     // TODO(marc): Act VI lore - placeholder derived from the "Echo Age"
     // sketch in docs/hearthwood-story-acts.md, not a written Act yet.
     threshold: 0.88,
-    name: "Act VI - The Echo Rift",
+    name: "Act VI · The Echo Rift",
     color: "var(--hw-rune)",
     tagline: "The forest is remembering you now. Remembering you too hard.",
     lore: "The light has gone blue-violet and the roots move to a rhythm that is not fear and is not the crown's command - it is you, breathing. Somewhere ahead a memory has grown heavy enough to tear a hole in the world, and it copies every step you take.",
@@ -1215,7 +1215,7 @@ export const DIFFICULTY_TIERS = [
     // TODO(marc): Act VII lore - placeholder derived from the "Echo
     // Verge" sketch in docs/hearthwood-story-acts.md, not a written Act.
     threshold: 0.95,
-    name: "Act VII - The Echo Verge",
+    name: "Act VII · The Echo Verge",
     color: "var(--hw-text)",
     tagline: "Memory and the world have stopped being separate things.",
     lore: "This deep there is no line left between what happened and what is here. The forest has stopped asking to be saved and started asking to be understood. Whatever stands at the end of this is waiting for an answer, not a fight - and it may not get one.",
