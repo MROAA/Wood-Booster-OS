@@ -55,6 +55,14 @@ export default function RelicChoice({ runState, onChoose, onReroll }) {
               className="hw-card hw-card--power"
               data-disabled={disabled}
               data-tribe-match={tribeMatch}
+              // Rarity glow (relics.js's own tier reclassification pass,
+              // Marc: "harvinaiset on parempia" - rare ones are better) -
+              // this is the exact same .hw-card[data-tier] selector
+              // UnitCard.jsx already renders under, so a rare relic now
+              // gets the identical ember glow/sparkle a rare UNIT already
+              // has, no parallel visual system invented for it. Common
+              // stays glow-free by the same CSS rule's own restraint.
+              data-tier={relic.tier}
               onClick={!disabled ? () => onChoose(relic.id) : undefined}
             >
               <div className="hw-card-head">
@@ -81,7 +89,14 @@ export default function RelicChoice({ runState, onChoose, onReroll }) {
                   </span>
                 </div>
               )}
-              <div className="hw-card-desc">{relic.description}</div>
+              {/* Tier word, same "Rare"/"Uncommon"/"Common" prefix
+                  UnitCard.jsx's own hw-card-desc already leads with -
+                  the glow above is the at-a-glance signal, this is the
+                  same information in text for anyone who can't (or
+                  doesn't want to) rely on color alone. */}
+              <div className="hw-card-desc">
+                {relic.tier[0].toUpperCase() + relic.tier.slice(1)} · {relic.description}
+              </div>
             </div>
           )
         })}
