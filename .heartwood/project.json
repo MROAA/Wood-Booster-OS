@@ -1,0 +1,9 @@
+{
+  "name": "Heartwood",
+  "version": "0.1.0",
+  "project_type": "game",
+  "engine": "web",
+  "patch_tool": "heartwood_patch",
+  "description": "Heartwood autobattler",
+  "root": "."
+}

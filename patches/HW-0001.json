@@ -1,0 +1,13 @@
+{
+  "id": "HW-0001",
+  "name": "Heartwood Development Marker",
+  "description": "Creates a marker confirming that the Heartwood Patch Tool is connected to this project.",
+  "risk": "LOW",
+  "changes": [
+    {
+      "file": "HEARTWOOD_DEV.txt",
+      "action": "create",
+      "content": "HEARTWOOD DEV STUDIO\n\nPatchbay is operational.\n"
+    }
+  ]
+}
