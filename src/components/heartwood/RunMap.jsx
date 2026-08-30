@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
-import { difficultyTierForNode, RUN_PATH } from "../../services/heartwood/runEngine"
+import { difficultyTierForNode, DIFFICULTY_TIERS, RUN_PATH } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 
 // A compact, persistent strip of every node in the run (runEngine.js's
@@ -40,9 +40,90 @@ function nodeLabel(node) {
   return ENEMIES[node.enemyId]?.name || "Battle"
 }
 
-export default function RunMap({ runState }) {
+// Compact vertical variant for the 3-zone Market's right rail (~240px
+// wide, tall). The default horizontal strip above renders only
+// runState.path (VISITED nodes), which at the first shop is a single
+// node in a 240px box that reads as empty. This variant instead lays
+// out the WHOLE planned run - RUN_PATH's ~111 fixed entries grouped
+// into DIFFICULTY_TIERS's 7 Acts - as stacked, labelled Act segments
+// with a wrapped row of type-coded pips per Act, the current position
+// (runState.nodeIndex) marked. Purely a display branch: no new data
+// model, RUN_PATH/nodeIndex are read exactly as the engine already
+// exposes them.
+function RunRail({ runState }) {
+  const nodeIndex = runState.nodeIndex
+  const total = RUN_PATH.length
+  const currentTier = difficultyTierForNode(nodeIndex, total)
+  const currentRef = useRef(null)
+
+  useEffect(() => {
+    currentRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }, [nodeIndex])
+
+  // Contiguous index ranges per Act - difficultyTierForNode's thresholds
+  // are monotonic in progress, so every Act owns one unbroken stretch.
+  const acts = DIFFICULTY_TIERS.map((tier) => {
+    const indices = []
+    for (let i = 0; i < total; i++) {
+      if (difficultyTierForNode(i, total) === tier) indices.push(i)
+    }
+    return { tier, indices }
+  }).filter((a) => a.indices.length)
+
+  return (
+    <div className="hw-run-rail">
+      <div className="hw-run-rail-head">
+        <span className="hw-run-rail-title">Run Map</span>
+        <span className="hw-run-rail-step">
+          {nodeIndex + 1}<span className="hw-run-rail-step-sep">/</span>{total}
+        </span>
+      </div>
+      {acts.map(({ tier, indices }) => {
+        const isCurrentAct = tier === currentTier
+        const [actNo, ...rest] = tier.name.split(" · ")
+        return (
+          <div
+            key={tier.name}
+            className="hw-run-rail-act"
+            data-current={isCurrentAct || undefined}
+          >
+            <div className="hw-run-rail-act-label" style={{ color: tier.color }}>
+              <span className="hw-run-rail-act-no">{actNo}</span>
+              {rest.length > 0 && <span className="hw-run-rail-act-place">{rest.join(" · ")}</span>}
+            </div>
+            <div className="hw-run-rail-pips">
+              {indices.map((i) => {
+                const node = RUN_PATH[i]
+                const state = i === nodeIndex ? "current" : i < nodeIndex ? "done" : "todo"
+                const major = node.type === "miniboss" || node.type === "boss"
+                return (
+                  <span
+                    key={i}
+                    ref={i === nodeIndex ? currentRef : null}
+                    className="hw-run-rail-pip"
+                    data-type={node.type}
+                    data-state={state}
+                    data-major={major || undefined}
+                    style={{ "--hw-node-accent": nodeColor(node) }}
+                    title={`${nodeLabel(node)}${state === "current" ? " — you are here" : ""}`}
+                  >
+                    {major && <CardGlyph name={nodeGlyph(node)} className="hw-run-rail-pip-glyph" />}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+export default function RunMap({ runState, mode }) {
   const trackRef = useRef(null)
   const currentRef = useRef(null)
+
+  if (mode === "rail") return <RunRail runState={runState} />
 
   // Auto-scroll so the current node stays in view as the run advances -
   // the whole point of "moving through a field" breaks if the player

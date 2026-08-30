@@ -670,8 +670,18 @@
   min-width: 150px;
   border-radius: 12px;
   border: 1px solid var(--hw-border);
+  /* Wood-grain texture layer (Marc: "tallensin taustakuvat napeille ja
+     korteille käytä sitä" - I saved background images for the buttons
+     and cards, use it). Sits ABOVE the opaque card-frame.jpg (a layer
+     under it would be fully hidden) but under a near-opaque dark scrim,
+     so only ~4-5% of the grain reads through the card tint on top - a
+     faint physical-object texture, deliberately far too weak to compete
+     with a unit portrait or the stat text (Marc's standing rule:
+     minimalist, err subtle). */
   background:
     linear-gradient(160deg, color-mix(in srgb, var(--hw-card) 60%, transparent) 0%, color-mix(in srgb, var(--hw-card) 78%, transparent) 100%),
+    linear-gradient(rgba(10, 8, 5, 0.86), rgba(10, 8, 5, 0.86)),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat,
     url("../../assets/heartwood/cards/card-frame.jpg") center / cover no-repeat,
     var(--hw-card);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -863,6 +873,17 @@
   object-fit: cover;
   object-position: 50% 20%;
   display: block;
+  /* The portrait bleeds to the card's own edges (data-portrait="true"
+     zeroes the card's top/side padding) but .hw-card is NOT
+     overflow:hidden (its rare-glow/fusion-shimmer box-shadows spread
+     outside the box). Without this, the image's square top corners poke
+     past the frame's 12px radius and read as "floating" (Marc, live).
+     11px = frame radius 12px minus the 1px border. Applied on the
+     shared base so every portrait card gets it - the Market featured
+     grid, the Your Squad bench, the reserve row, and every other
+     screen - not just the one grid #378 patched. */
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
 }
 
 .hw-card[data-portrait="true"] .hw-card-name,
@@ -1295,6 +1316,24 @@ img.hw-card-art {
   white-space: nowrap;
 }
 
+/* Wood-grain texture behind the primary CTA (Marc: "tallensin
+   taustakuvat napeille ja korteille käytä sitä"). Scoped to .hw-end-turn
+   only (Continue, New Run, Guild Hall CTA) - NOT the shared .hw-move-btn,
+   whose flat fill the battle screens depend on. An ~84%-opaque wash of
+   the button's own ember over the grain keeps the hue and the dark
+   label's contrast while letting a faint physical texture read through.
+   Restrained on purpose - a previous pass found a heavier version
+   muddied the art; Marc has since asked for it to be used anyway, kept
+   subtle. */
+.hw-end-turn {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--hw-ember) 84%, transparent), color-mix(in srgb, var(--hw-ember) 84%, transparent)),
+    url("../../assets/heartwood/ui-bg-panel.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .hw-move-btn {
   background: var(--hw-moss);
 }
@@ -1322,7 +1361,15 @@ img.hw-card-art {
    state untouched) so this is purely a color/fill override, not a
    parallel button system. */
 .hw-strip-btn.hw-move-btn {
-  background: transparent;
+  /* Wood-grain plaque texture (Marc: "tallensin taustakuvat napeille ja
+     korteille käytä sitä") - these ghost buttons (Level Up / Rank Up /
+     Retrain / Active Power) were see-through onto the market backdrop.
+     Under a near-opaque dark scrim the light label stays fully crisp and
+     the buttons now read as small carved-wood plaques - subtle, calm,
+     no colour noise. */
+  background:
+    linear-gradient(rgba(9, 7, 4, 0.82), rgba(13, 10, 6, 0.88)),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat;
   color: var(--hw-text);
   border: 1px solid var(--hw-border);
   /* Marc, direct: "niitä voi myös isontaa ja niitä pitää hienontaa"
@@ -1355,12 +1402,16 @@ img.hw-card-art {
 }
 
 .hw-strip-btn.hw-move-btn:not(:disabled):hover {
-  background: color-mix(in srgb, var(--hw-moss) 18%, transparent);
+  background:
+    linear-gradient(color-mix(in srgb, var(--hw-moss) 20%, rgba(11, 9, 5, 0.82)), color-mix(in srgb, var(--hw-moss) 20%, rgba(11, 9, 5, 0.82))),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat;
   border-color: var(--hw-moss);
 }
 
 .hw-strip-btn.hw-move-btn[data-active="true"] {
-  background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
+  background:
+    linear-gradient(color-mix(in srgb, var(--hw-moss) 26%, rgba(11, 9, 5, 0.8)), color-mix(in srgb, var(--hw-moss) 26%, rgba(11, 9, 5, 0.8))),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat;
   color: var(--hw-moss);
   border-color: var(--hw-moss);
 }
@@ -2292,8 +2343,27 @@ img.hw-card-art {
 .hw-market-featured-grid .hw-card {
   width: 320px;
   min-width: 320px;
-  padding: 8px;
-  gap: 4px;
+  /* Tightened bottom padding + inter-row gap (Marc, live: the recruit
+     card still had dead space under the "Common" tier line down to the
+     card bottom - "small info-dense pieces", no dead whitespace). The
+     card packs its own content with near-zero slack, so the loose look
+     was built-in padding, not distributable space - trimming it here
+     pulls the tier line down near the frame edge and makes the card
+     read as full. Card gets ~14px SHORTER, never taller, so the
+     1536x864 no-scroll budget only gains room. */
+  padding: 8px 8px 5px;
+  gap: 3px;
+}
+
+/* Same "no dead whitespace" trim, in the two spots that carried the
+   most air on the recruit card: the single-stat effect row and the
+   tier-line block below it. */
+.hw-market-featured-grid .hw-effect-icons {
+  padding: 2px 0;
+}
+
+.hw-market-featured-grid .hw-card-desc {
+  padding-bottom: 2px;
 }
 
 /* Portrait height: the part of "twice as big" that isn't free - every
@@ -2340,7 +2410,19 @@ img.hw-card-art {
    every tested subject's head in frame. Stats/tribe/name/cost below are
    untouched and stay legible - the art just carries more weight now. */
 .hw-market-featured-grid .hw-card-portrait {
-  height: 138px;
+  /* Grow into the dead space below the stat block. .hw-select-grid is a
+     CSS grid with the default align-items:stretch, so every recruit
+     card is stretched to the tallest card in the row (RNG unit names /
+     tribe counts / a Class line make one card taller on some rolls),
+     leaving the shorter cards with empty frame under the "Common" tier
+     line (Marc: "small info-dense pieces", no dead whitespace). flex:1
+     lets each card's own portrait absorb its own slack - object-fit:
+     cover just reveals more of the art, more atmospheric, not
+     stretched. The row's height is still set by the tallest card, so
+     this adds zero page height (the 1536x864 no-scroll budget is
+     unaffected). 138px stays the floor. */
+  min-height: 138px;
+  flex: 1 1 138px;
   object-position: 50% 18%;
   border-top-left-radius: 11px;
   border-top-right-radius: 11px;
@@ -2573,7 +2655,11 @@ img.hw-card-art {
   border: 1px solid var(--hw-border);
   border-radius: 12px;
   padding: 10px;
-  background: color-mix(in srgb, var(--hw-panel) 60%, transparent);
+  /* Was 60% - too see-through, the relic/item text underneath fought
+     the market backdrop showing through (Marc: "reliceissä olevaa
+     tekstiä pitää parantaa se on vaikea lukea"). A near-solid panel
+     ground so the rail's small text always sits on flat dark. */
+  background: color-mix(in srgb, var(--hw-panel) 92%, transparent);
 }
 
 .hw-shop-rail--right {
@@ -2596,6 +2682,147 @@ img.hw-card-art {
   padding-bottom: 14px;
 }
 
+/* ----- RunMap: compact vertical rail variant (RunMap.jsx mode="rail")
+   Fills the 3-zone Market's right rail with the WHOLE planned run - the
+   7 Acts as stacked labelled segments, each a wrapped row of type-coded
+   pips, the current position ringed. The default horizontal strip only
+   renders visited nodes and read as a near-empty box at the first shop
+   (Marc, live). Kept calm: small pips, shops quiet, one accent ring for
+   "you are here", no per-pip entrance animation. ----- */
+.hw-run-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.hw-run-rail-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--hw-border);
+}
+
+.hw-run-rail-title {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+}
+
+.hw-run-rail-step {
+  font-size: 12px;
+  color: var(--hw-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.hw-run-rail-step-sep {
+  color: var(--hw-muted);
+  margin: 0 1px;
+}
+
+.hw-run-rail-act {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+}
+
+.hw-run-rail-act[data-current="true"] {
+  border-color: var(--hw-border);
+  background: color-mix(in srgb, var(--hw-panel) 60%, transparent);
+}
+
+.hw-run-rail-act-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.hw-run-rail-act-no {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hw-run-rail-act-place {
+  font-size: 9.5px;
+  color: var(--hw-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hw-run-rail-pips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.hw-run-rail-pip {
+  --pip: 10px;
+  box-sizing: border-box;
+  width: var(--pip);
+  height: var(--pip);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 30%, var(--hw-panel));
+  border: 1px solid color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 55%, transparent);
+}
+
+/* Shops repeat every other node - kept small and quiet so the eye lands
+   on the fights (same "loud vs quiet" instinct the horizontal strip's
+   isMinor handling uses). */
+.hw-run-rail-pip[data-type="shop"] {
+  --pip: 5px;
+  background: color-mix(in srgb, var(--hw-muted) 45%, transparent);
+  border-color: transparent;
+}
+
+.hw-run-rail-pip[data-type="relic"] {
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+
+.hw-run-rail-pip[data-major="true"] {
+  --pip: 18px;
+  border-radius: 5px;
+}
+
+.hw-run-rail-pip-glyph {
+  width: 12px;
+  height: 12px;
+  color: var(--hw-node-accent, var(--hw-text));
+}
+
+.hw-run-rail-pip[data-state="done"] {
+  opacity: 0.32;
+}
+
+.hw-run-rail-pip[data-state="current"] {
+  box-shadow:
+    0 0 0 2px var(--hw-panel),
+    0 0 0 3px var(--hw-node-accent, var(--hw-text)),
+    0 0 8px 1px color-mix(in srgb, var(--hw-node-accent, var(--hw-text)) 70%, transparent);
+  animation: hw-run-rail-pip-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hw-run-rail-pip-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
+
 /* ----- rail content: compact, dense, calm side panels ----- */
 .hw-rail-section {
   display: flex;
@@ -2614,7 +2841,7 @@ img.hw-card-art {
 
 .hw-rail-count {
   font-size: 11px;
-  color: var(--hw-muted);
+  color: var(--hw-text);
   border: 1px solid var(--hw-border);
   border-radius: 999px;
   padding: 0 6px;
@@ -2626,12 +2853,18 @@ img.hw-card-art {
   margin: 2px 0;
 }
 
+
 .hw-rail-list {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
+/* Relic/item rail chips (Marc: "reliceissä olevaa tekstiä pitää
+   parantaa se on vaikea lukea" - the relic text is hard to read). The
+   rail carries the smallest text on the shop screen; bumped size a
+   step, gave it a near-solid chip ground and a crispening shadow, and
+   full-strength text colour - still a calm side panel, just legible. */
 .hw-rail-chip {
   display: flex;
   align-items: center;
@@ -2639,9 +2872,11 @@ img.hw-card-art {
   padding: 5px 7px;
   border: 1px solid var(--hw-border);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--hw-card) 55%, transparent);
-  font-size: 12px;
-  line-height: 1.25;
+  background: color-mix(in srgb, var(--hw-card) 90%, transparent);
+  color: var(--hw-text);
+  font-size: 12.5px;
+  line-height: 1.3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .hw-rail-chip > .hw-intent-glyph {
@@ -2653,6 +2888,7 @@ img.hw-card-art {
 .hw-rail-chip-name {
   flex: 1;
   min-width: 0;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2661,23 +2897,45 @@ img.hw-card-art {
 .hw-rail-chip-max {
   font-size: 10px;
   letter-spacing: 0.04em;
-  color: var(--hw-muted);
+  color: color-mix(in srgb, var(--hw-text) 70%, var(--hw-muted));
   flex-shrink: 0;
 }
 
 .hw-rail-upgrade.hw-move-btn {
-  padding: 2px 6px;
-  font-size: 10px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   gap: 3px;
   flex-shrink: 0;
+  text-shadow: none;
 }
 
 .hw-rail-upgrade .hw-intent-glyph {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
+}
+
+/* Item chips carry an icon + name + up to two small tags ("Bends",
+   equipped-status) - on a ~210px rail the name was ellipsing to
+   "Wraithf..." (Marc: hard to read). Let the row wrap so the name
+   keeps its own full line and the status tag drops beneath it,
+   right-aligned - readable, still compact. Relic chips (name + cost
+   button only) stay single-line. */
+.hw-rail-chip--item {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
+.hw-rail-chip--item .hw-rail-chip-name {
+  flex: 1 0 auto;
+  overflow: visible;
+}
+
+.hw-rail-chip--item .hw-rail-chip-eq {
+  margin-left: auto;
 }
 
 .hw-rail-chip--selectable {
@@ -2701,16 +2959,16 @@ img.hw-card-art {
 
 .hw-rail-chip-eq {
   flex-shrink: 0;
-  font-size: 9.5px;
-  color: var(--hw-muted);
-  max-width: 78px;
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--hw-text) 78%, var(--hw-muted));
+  max-width: 82px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .hw-rail-chip-eq--free {
-  color: color-mix(in srgb, var(--hw-moss) 80%, var(--hw-muted));
+  color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
 }
 
 /* ----- centre column ----- */
@@ -2779,6 +3037,23 @@ img.hw-card-art {
      with an extra class/Bent line otherwise pads all its neighbours
      with dead frame space and grows the wrapped bench rows. */
   align-items: flex-start;
+}
+
+/* Same dead-whitespace trim as the recruit card above, on the bench
+   card's loosest rows - the tier line sat well clear of the frame edge
+   (Marc: "no dead whitespace"). Height-only reduction, so the maxed
+   bench (4 fighting + 6 reserve) keeps clearing the no-scroll budget. */
+.hw-shop-3zone .hw-panel--squad .hw-card {
+  padding-bottom: 4px;
+  gap: 4px;
+}
+
+.hw-shop-3zone .hw-panel--squad .hw-effect-icons {
+  padding: 2px 0;
+}
+
+.hw-shop-3zone .hw-panel--squad .hw-card-desc {
+  padding-bottom: 2px;
 }
 
 /* The plaque tab buttons already read "HEARTHWOOD MARKET" / "YOUR
