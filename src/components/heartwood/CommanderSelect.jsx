@@ -86,9 +86,22 @@ export default function CommanderSelect({ characters, pendingMemory, bannerSrc, 
             className="hw-commander-card"
             data-confirming={confirmingId === character.id}
             data-dimmed={confirmingId !== null && confirmingId !== character.id}
+            // Rarity glow (characters.js's own tier classification -
+            // Marc: "harvinaiset on parempia," rare ones are better) -
+            // same data-tier attribute + the same rare/uncommon glow
+            // language UnitCard.jsx and a rare relic already read from
+            // (see heartwood.css's own .hw-commander-card[data-tier]
+            // rules, mirroring .hw-card[data-tier] rather than
+            // inventing a second glow system just for this screen).
+            data-tier={character.tier}
             disabled={confirmingId !== null}
             onClick={() => handlePick(character.id)}
           >
+            {character.tier === "rare" && (
+              <span className="hw-badge hw-commander-tier-badge" title="Rare Commander - a real, measured power edge over the other 3">
+                Rare
+              </span>
+            )}
             <span className="hw-commander-portrait">
               <CardGlyph name={character.art} className="hw-commander-glyph" />
             </span>
