@@ -38,11 +38,32 @@ import hearthwoodLogo from "../../assets/heartwood/hearthwood-logo.png"
 // "hearthwood market.png" replaces (see the Market tab button below);
 // "sell.png" is this file's own best-fit read of his instruction to
 // find sell.png's real home ("lue nykyinen UI ja löydä paras oikea
-// vastine"). "buy.png"/"confirm.png"/"trade.png" are still sitting
-// uncropped in the kuvia/ drop folder - see this PR's description for
-// why none of them had an honest existing-action match.
+// vastine").
+//
+// Second art-batch pass: Marc, pointing at "yoursquad.png" directly -
+// "tämä korvaa your squad napin" (this replaces the Your Squad button)
+// - see below. "confirm.png" found a real home too: the "Continue"
+// button that leaves the shop and locks in this visit (SquadDraft's
+// own bottom CTA) is the closest thing this screen has to a
+// leaving-shop confirmation moment, so it gets confirm.png the same
+// background-plaque treatment sell.png already established, scoped to
+// just this one button via its own modifier class (not the shared
+// .hw-end-turn class every other screen's Continue/End Turn button
+// also uses). "buy.png"/"trade.png" are STILL sitting uncropped in the
+// kuvia/ drop folder, re-checked fresh against the current game (Guild
+// Hall, rescaled economy) and still with no honest home: recruiting is
+// still a single whole-card click with no discrete "Buy" button
+// anywhere (UnitCard.jsx/ItemCard.jsx - only a small `.hw-card-cost`
+// price pip, too small to host a whole plaque without either hiding
+// the number or looking absurd), and a repo-wide grep for
+// trade/exchange/swap turns up nothing - this game has no trading
+// concept at all, just recruit/sell. Forcing either in would be
+// exactly the "bad fit" this task's own instructions warned against -
+// see this PR's description for the full re-investigation.
 import marketTabPlaque from "../../assets/heartwood/buttons/market-tab.png"
 import sellPlaque from "../../assets/heartwood/buttons/sell-plaque.png"
+import yourSquadPlaque from "../../assets/heartwood/buttons/your-squad-plaque.png"
+import shopConfirmPlaque from "../../assets/heartwood/buttons/shop-confirm-plaque.png"
 
 // The shop node: recruit whoever you can afford, reroll the rest,
 // leave when ready. No forced pick-one - unlike the old card-reward
@@ -361,7 +382,7 @@ export default function SquadDraft({
         </div>
       </div>
 
-      <div className="hw-section-fade-in" style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flexWrap: "wrap" }}>
+      <div className="hw-section-fade-in" style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 6, flexWrap: "wrap" }}>
         {/* Market Level (Battlegrounds/Guildrun-style tavern tier) -
             raises the shop's rarity ceiling (runEngine.js's
             rollShop/MARKET_LEVEL_UNLOCKS). Marc, direct: "market lvl
@@ -577,7 +598,7 @@ export default function SquadDraft({
       )}
 
       {showIntro && (
-        <div className="hw-hint hw-hint--tutorial" style={{ marginTop: 6 }}>
+        <div className="hw-hint hw-hint--tutorial" style={{ marginTop: 3 }}>
           <span>
             Recruit units, place up to 4 on the grid, then watch them fight automatically. Win to earn Essence and
             press on - lose, and the run ends.
@@ -604,6 +625,34 @@ export default function SquadDraft({
           toggle pair). The plaque button is sized to match the pill
           button's own height instead of floating above it as a
           separate hero element. */}
+      {/* Round 2: Marc, live, annotating a screenshot of exactly this
+          row - "noita nappeja isommaksi" (make those buttons bigger).
+          The 38px-tall version above made the Market plaque read as a
+          tiny, oddly-cropped icon (height-constraining a ~2:3 PORTRAIT
+          plaque to 38px leaves it ~25px wide - not "small", just too
+          narrow to read as anything). Fixed two ways at once: the
+          plaque art itself got re-cropped down to a wide 3:1 strip
+          (market-tab.png now IS just the "HEARTHWOOD MARKET" text
+          banner + candles, coin-bag/Purchase-250 dropped - see this
+          asset's own processing notes in the PR description) so it has
+          a sane shape to grow into, and both buttons grew from 38px to
+          64px tall - deliberately not the plaque's full native size
+          (still a tab toggle, not a hero image), but a real, legible
+          jump instead of a token few px. Your Squad became an image
+          button too (yourSquadPlaque, same treatment as Market) rather
+          than staying a plain text pill next to a much showier
+          neighbor - matched pair, not "one plaque + one leftover
+          pill". The bench count can't just be baked into the art (it
+          changes every recruit/sell), so it rides along as a small
+          moss badge on the corner instead of inline text - same
+          "count needs to survive as a real number, not disappear into
+          decoration" rule the Sell button's dynamic (+refund) already
+          followed. Growing this row by ~25px meant finding ~25px back
+          elsewhere on this screen to hold the 1860x960 zero-scroll
+          budget - see heartwood.css's own comments (market-stage
+          padding, the divider's margin, the banner, the featured
+          portrait height, Continue's top margin) for where it came
+          from; re-measured with Playwright after, not assumed. */}
       <div className="hw-tab-row hw-tab-row--market-art">
         <button
           className="hw-market-tab-btn"
@@ -620,28 +669,26 @@ export default function SquadDraft({
               redesign.mjs's `hasText: "Market"` locator), even though
               the plaque art itself already reads "HEARTHWOOD MARKET"
               to a sighted player. */}
-          <span
-            style={{
-              position: "absolute",
-              width: 1,
-              height: 1,
-              padding: 0,
-              margin: -1,
-              overflow: "hidden",
-              clip: "rect(0,0,0,0)",
-              whiteSpace: "nowrap",
-              border: 0,
-            }}
-          >
-            Market
-          </span>
+          <span className="hw-sr-only">Market</span>
         </button>
         <button
-          className="hw-move-btn"
+          className="hw-squad-tab-btn"
           data-active={activeTab === "squad"}
           onClick={() => setActiveTab("squad")}
+          aria-label={`Your Squad (${runState.bench.length})`}
+          title="Your Squad"
         >
-          Your Squad ({runState.bench.length})
+          <img src={yourSquadPlaque} alt="" />
+          {/* The bench count baked into the OLD plain-text pill
+              ("Your Squad (N)") can't live inside the plaque art - N
+              changes every recruit/sell/reserve swap - so it survives
+              as its own small corner badge instead, same "a mechanic
+              needs a visible, legible number, not just decoration"
+              rule this game applies everywhere else. */}
+          <span className="hw-squad-count-badge" title={`${runState.bench.length} on the bench`}>
+            {runState.bench.length}
+          </span>
+          <span className="hw-sr-only">Your Squad ({runState.bench.length})</span>
         </button>
       </div>
 
@@ -941,8 +988,18 @@ export default function SquadDraft({
           </div>
         </div>
       </div>
-      <div style={{ marginTop: 20 }}>
-        <button className="hw-end-turn" onClick={onContinue}>
+      {/* confirm.png (Marc's Copilot plaque, re-investigated this
+          round - see this PR's description for buy.png/trade.png's
+          own "still no honest home" writeups): this Continue button is
+          the closest thing this screen has to a leaving-shop
+          confirmation moment - the player is done recruiting/selling
+          and locking that in before the next fight. Scoped to its own
+          modifier class (hw-shop-confirm-btn), not the shared
+          .hw-end-turn class every OTHER screen's Continue/End Turn
+          button also uses - Battle/ResultOverlay/GuildHallScreen/
+          FormationScreen keep their plain look untouched. */}
+      <div style={{ marginTop: 10 }}>
+        <button className="hw-end-turn hw-shop-confirm-btn" onClick={onContinue}>
           Continue
         </button>
       </div>

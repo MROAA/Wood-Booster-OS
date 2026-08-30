@@ -569,12 +569,49 @@
   gap: 6px;
 }
 
+/* Card frame art (Marc, direct: "korttikehys.jpg on kuva joka tulee
+   korttien taustakuvaksi, tähän sitten laitetaan kuvat" - this is the
+   image that becomes the cards' background, the images then go on top
+   of it; "käytä korttikehys korttien kehyksenä johon kuvat upotetaan
+   kansiosta" - use it as the frame the images from the folder get
+   embedded into). Applied to the shared .hw-card base itself, not a
+   new wrapper - every screen that already uses this component (shop,
+   formation, bench, relic/reward previews) gets it for free, and every
+   child element (portrait, badges, text) keeps rendering exactly where
+   it already did, ON TOP of this new background layer instead of the
+   old flat gradient. Deliberately conservative per this PR's own risk
+   note: a background-image layer UNDER the existing content, not a
+   restructure of the card - the tint gradient stays mostly opaque so
+   every existing text/badge keeps its original contrast even though
+   there's now a photographic frame texture underneath instead of a
+   flat color. var(--hw-card) stays as a solid fallback layer under the
+   image (covers any edge the `cover` crop doesn't reach, and is what
+   renders before the image itself loads).
+   IMPORTANT asset substitution: the literal korttikehys.jpg file in
+   Marc's kuvia/ drop is an unlicensed Adobe Stock PREVIEW image - a
+   tiled "Adobe Stock #536689762" watermark is baked across the entire
+   frame, not just a corner badge crop could remove (verified by eye at
+   actual in-card render size - still legible through every tint
+   opacity tried, up to a genuinely ugly amount of darkening). Shipping
+   that watermark into every card in the game was a real, confirmed
+   defect, not a hypothetical one - so this uses a derived variant of
+   the OTHER, clean file instead (korttikehys webp/card-frame-tier2.webp
+   - already used untouched for the Tier 2 frame below): grayscale'd
+   and recolored to a warm bronze/copper ("common tier" companion to
+   that file's own cool blue/gold "premium" look) rather than the
+   watermarked jpg. See this PR's description - Marc still needs an
+   actual replacement source for korttikehys.jpg if a visually
+   different base-tier frame (not a recolor of the same art) matters
+   later; this unblocks the feature honestly in the meantime. */
 .hw-card {
   width: 150px;
   min-width: 150px;
   border-radius: 12px;
   border: 1px solid var(--hw-border);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--hw-card) 100%, white 4%), var(--hw-card));
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--hw-card) 60%, transparent) 0%, color-mix(in srgb, var(--hw-card) 78%, transparent) 100%),
+    url("../../assets/heartwood/cards/card-frame.jpg") center / cover no-repeat,
+    var(--hw-card);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   padding: 10px;
   display: flex;
@@ -694,6 +731,22 @@
    instant a fusion completes). */
 .hw-card[data-fused="true"] {
   animation: hw-golden-shimmer 3.2s ease-in-out infinite;
+  /* Second frame tier (Marc: "korttikehys webp on toisen tason
+     korttikehys" - korttikehys webp is the tier-2/second-level card
+     frame). Layered on top of the SAME rule that already gives a
+     fused Tier 2 unit its persistent golden-shimmer glow, so "fancier
+     frame" and "fancier glow" read as one upgraded look together
+     rather than two competing systems - complements the existing
+     golden/rune language instead of clashing with it, per this PR's
+     own conservative-change mandate. Slightly less tint than the base
+     frame (55-72% vs 65-82%) so this one's own dark ornate-metal
+     border actually shows up as a visible step up, not just a
+     recolor - a Tier 2 card should look like a genuinely different,
+     more premium object at a glance. */
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--hw-card) 55%, transparent) 0%, color-mix(in srgb, var(--hw-card) 72%, transparent) 100%),
+    url("../../assets/heartwood/cards/card-frame-tier2.webp") center / cover no-repeat,
+    var(--hw-card);
 }
 
 @keyframes hw-golden-shimmer {
@@ -843,6 +896,12 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--hw-hp);
+  /* Legibility insurance for the new card-frame background (see
+     .hw-card's own comment) - this is the one corner-badge stat with
+     no opaque chip behind it (unlike .hw-card-cost's solid pill), so
+     it needs its own shadow to stay readable over whatever part of
+     the frame's ornate, non-uniform texture lands behind it. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .hw-card-hp .hw-effect-icon-glyph {
@@ -977,6 +1036,11 @@ img.hw-card-art {
   text-align: center;
   font-family: "Cormorant Garamond", serif;
   letter-spacing: 0.02em;
+  /* Legibility insurance, same reasoning as .hw-card-hp above - the
+     card-frame background is a photographic texture now, not a flat
+     color, so bare text needs its own shadow rather than relying on
+     the old uniform backdrop for contrast. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 /* Guild Identity v1 (UnitCard.jsx's `def.className`) - a small italic
@@ -992,6 +1056,7 @@ img.hw-card-art {
   color: var(--hw-moss);
   letter-spacing: 0.03em;
   margin-top: -2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 /* Dual-Class (UnitCard.jsx's `dualClass` prop, dualClasses.js) - a
@@ -1029,6 +1094,7 @@ img.hw-card-art {
   color: var(--hw-muted);
   text-align: center;
   line-height: 1.3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 /* Item cards specifically (not unit/reward cards elsewhere using this
@@ -1057,13 +1123,23 @@ img.hw-card-art {
    specifically for item cards - measured against .hw-root's own
    scrollHeight/clientHeight at 1860x960 this time, not 1920x1080. */
 .hw-item-card {
-  padding: 8px;
-  gap: 4px;
+  /* padding trimmed 8px->6px, gap 4px->3px to partly self-offset the
+     bigger icon below against this screen's 1860x960 budget - net
+     cost of growing the icon ends up smaller than the icon growth
+     itself instead of stacking fully on top of it. */
+  padding: 6px;
+  gap: 3px;
 }
 
+/* Round 3 (Marc: "kortit on liian pieniä kuvat niissä saa olla
+   tuplasti isompi" - the cards are too small, the images can be twice
+   as big) - grown from 26px to 40px (~2.4x area). The item grid got
+   210px-wide cards above specifically so this bigger icon has room
+   to sit as a real icon next to the name/description, not a cramped
+   glyph. */
 .hw-item-card .hw-card-art {
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
 }
 
 .hw-energy-row {
@@ -1468,9 +1544,27 @@ img.hw-card-art {
   justify-content: center;
   align-items: center;
   margin-top: 0;
+  /* Round 2 growth (Marc, live: "noita nappeja isommaksi" - make those
+     buttons bigger) needs a little breathing room of its own now that
+     both buttons are real plaques side by side, not a plaque + a
+     slim text pill - bumped from the implicit 8px .hw-tab-row gap. */
+  gap: 14px;
 }
 
-.hw-market-tab-btn {
+/* Shared sizing for both plaque buttons in this row (Market below,
+   Your Squad further down) - kept as one rule so the "meaningfully
+   bigger" ask lands identically on both rather than needing two
+   numbers to stay in sync by hand. 64px, not the plaques' native
+   size: still a tab TOGGLE, not this screen's hero image, but a real
+   jump up from the 38px-tall version that read as a tiny, oddly
+   cropped icon (that was actually a SHAPE problem more than a size
+   one - height-constraining a ~2:3 portrait plaque to any height
+   leaves a narrow sliver; market-tab.png itself got re-cropped to a
+   wide 3:1 strip - just the candles + "HEARTHWOOD MARKET" text banner,
+   coin-bag/Purchase-250 dropped - specifically so growing it actually
+   helps legibility instead of just enlarging the same narrow crop). */
+.hw-market-tab-btn,
+.hw-squad-tab-btn {
   background: none;
   border: none;
   padding: 0;
@@ -1480,40 +1574,90 @@ img.hw-card-art {
   position: relative;
   filter: brightness(0.7) saturate(0.8);
   transition: filter 150ms ease, transform 150ms ease;
-  height: 38px;
+  height: 64px;
   display: flex;
   align-items: center;
 }
 
-.hw-market-tab-btn img {
+.hw-market-tab-btn img,
+.hw-squad-tab-btn img {
   display: block;
-  /* Height-constrained (not width-constrained) so it matches the
-     row's own 38px height exactly regardless of the plaque art's
-     native ~2:3 portrait aspect ratio - width alone (the original
-     80px) measured 86px of overflow at the real 1860x960 budget,
-     independent of any other change. */
-  height: 38px;
+  /* Height-constrained (not width-constrained), same reasoning as
+     before - each plaque's own native aspect ratio decides its final
+     width (the wide market strip renders noticeably wider than the
+     more compact Your Squad plaque, which is correct - they're
+     different art, not a matched pixel-for-pixel pair). */
+  height: 64px;
   width: auto;
   pointer-events: none;
 }
 
-.hw-market-tab-btn:hover {
+.hw-market-tab-btn:hover,
+.hw-squad-tab-btn:hover {
   filter: brightness(0.85) saturate(0.95);
   transform: translateY(-1px);
 }
 
-.hw-market-tab-btn:focus-visible {
+.hw-market-tab-btn:focus-visible,
+.hw-squad-tab-btn:focus-visible {
   outline: 2px solid var(--hw-moss);
   outline-offset: 2px;
 }
 
-/* Active state: the plaque's own painted gold "HEARTHWOOD MARKET"
-   text already reads as inviting/lit, so full brightness plus a soft
-   moss glow (this game's established "currently selected/available"
-   color, same one Freeze's data-active state and the tribe-match ring
-   use) is enough - no separate pill/border needed on top of the art. */
-.hw-market-tab-btn[data-active="true"] {
+/* Active state: each plaque's own painted text already reads as
+   inviting/lit, so full brightness plus a soft moss glow (this game's
+   established "currently selected/available" color, same one
+   Freeze's data-active state and the tribe-match ring use) is enough
+   - no separate pill/border needed on top of the art. */
+.hw-market-tab-btn[data-active="true"],
+.hw-squad-tab-btn[data-active="true"] {
   filter: brightness(1) saturate(1.05) drop-shadow(0 0 10px color-mix(in srgb, var(--hw-moss) 60%, transparent));
+}
+
+/* Bench count badge (Your Squad plaque) - the "(N)" that used to live
+   inline in the old plain-text pill can't be baked into the art (it
+   changes every recruit/sell), so it rides as a small corner badge
+   instead. Positioned top-right, same corner language UnitCard.jsx's
+   own cost/HP head row already uses for "the glanceable number that
+   matters" - moss (not ember) since this is neutral bench info, not a
+   cost/warning. */
+.hw-squad-count-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--hw-moss);
+  color: var(--hw-bg);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  border: 1px solid color-mix(in srgb, var(--hw-moss) 55%, black);
+  pointer-events: none;
+}
+
+/* Visually-hidden text node (Market/Your Squad plaque buttons) - keeps
+   each button findable by its real visible text the same way every
+   other tab/action button in this game is (including existing
+   Playwright locators using hasText), even though the plaque art
+   itself already reads its label to a sighted player. Standard
+   clip-rect hide, not display:none, so it stays in the accessibility
+   tree and in textContent. */
+.hw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .hw-market-columns {
@@ -1574,6 +1718,17 @@ img.hw-card-art {
   box-shadow: 0 21px 34px -13px rgba(0, 0, 0, 0.62), 0 3px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
+/* Padding reclaimed here (16px -> 10px), scoped to just these two
+   panels via the two-class selector below rather than touching the
+   shared/global .hw-panel rule (used well beyond this screen) - part
+   of paying back the vertical budget the bigger tab-row plaques and
+   bigger shop-card portraits/icons above both cost (see this file's
+   other "Round 2/3" comments for the rest of where it came from). */
+.hw-panel--market,
+.hw-panel--squad {
+  padding: 10px;
+}
+
 .hw-panel--squad {
   background:
     radial-gradient(ellipse 100% 90% at 50% 50%, transparent 45%, color-mix(in srgb, black 38%, transparent) 100%),
@@ -1619,6 +1774,32 @@ img.hw-card-art {
 }
 
 .hw-sell-btn:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+
+/* Confirm button reskin (Marc's "confirm.png" plaque, second art-batch
+   pass - the gold/ember "CONFIRM" plaque with a baked "Quick Sale 150"
+   sub-panel, same shape/treatment as .hw-sell-btn above). This is the
+   shop's own "Continue" button (SquadDraft.jsx) - the closest thing
+   this screen has to a leaving-shop confirmation moment, not a literal
+   sale, but confirm.png's own baked sub-text is illegible at this
+   button's real on-screen size regardless (same tradeoff already
+   accepted for sell.png/market-tab.png's own baked prices), so the
+   mismatch never actually reads to a player. Scoped to its own class
+   rather than the shared .hw-end-turn every other screen's Continue/
+   End Turn button also uses. */
+.hw-shop-confirm-btn {
+  background-image: linear-gradient(to bottom, rgba(20, 12, 2, 0.3), rgba(20, 12, 2, 0.5)), url("../../assets/heartwood/buttons/shop-confirm-plaque.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px;
+  border-color: color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
+  color: #fff3d6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.hw-shop-confirm-btn:not(:disabled):hover {
   filter: brightness(1.15);
 }
 
@@ -1712,8 +1893,11 @@ img.hw-card-art {
    variable-height screen. */
 .hw-market-stage {
   position: relative;
-  padding-top: var(--space-1, 8px);
-  padding-bottom: var(--space-1, 8px);
+  /* 8px -> 4px each side, part of paying back this screen's bigger
+     tab-row/card-portrait/icon budget (see this file's other
+     "Round 2/3" comments). */
+  padding-top: 4px;
+  padding-bottom: 4px;
   /* Was a translucent vignette letting .hw-root's own ambient
      background image bleed through around/above the panel - Marc,
      marking up a screenshot directly: circled that exposed sliver of
@@ -1729,10 +1913,14 @@ img.hw-card-art {
 
 .hw-market-banner {
   width: 100%;
-  height: 32px;
+  /* 32px -> 24px, margin 4px -> 2px each side - another piece of this
+     screen's Round 2/3 budget payback (bigger tab-row plaques, bigger
+     shop-card portraits/icons above). Still a real, visible banner,
+     just a thinner decorative strip than before. */
+  height: 24px;
   border-radius: 10px;
   overflow: hidden;
-  margin: 4px 0 4px;
+  margin: 2px 0 2px;
   border: 1px solid var(--hw-border);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
   position: relative;
@@ -1758,7 +1946,9 @@ img.hw-card-art {
   top: 50%;
   right: 21px;
   transform: translateY(-50%);
-  height: 26px;
+  /* Matches .hw-market-banner's own 24px height above - was 26px,
+     which would now overflow the shrunk banner. */
+  height: 18px;
   width: auto;
   opacity: 0.92;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
@@ -1775,34 +1965,46 @@ img.hw-card-art {
    screens in this game now share one deliberate scale instead of
    each inventing its own. Every internal measurement below scales
    with it (portrait/glyph/type), not just the outer box. */
+/* Round 3: Marc, live - "kortit on liian pieniä kuvat niissä saa olla
+   tuplasti isompi" (the cards are too small, the images in them can be
+   twice as big). This grid had ~790px of genuinely unused width at
+   1860x960 (4 cards at 233px + gaps only fills ~970px of a ~1760px-wide
+   panel) - so the width half of "twice as big" is free, no fit-budget
+   cost at all. Grown from 233px (--hw-fib-9, shared with
+   CommanderSelect.jsx) to a literal 320px scoped to just this grid -
+   still comfortably 4-per-row at this container width (4*320 + 3*13
+   gap = 1319px), so this doesn't reduce card count or wrap to a
+   second row, both of which WOULD have cost real vertical budget. */
 .hw-market-featured-grid {
-  grid-template-columns: repeat(auto-fit, var(--hw-fib-9, 233px));
+  grid-template-columns: repeat(auto-fit, 320px);
   gap: var(--space-2, 13px);
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
 .hw-market-featured-grid .hw-card {
-  width: var(--hw-fib-9, 233px);
-  min-width: var(--hw-fib-9, 233px);
+  width: 320px;
+  min-width: 320px;
   padding: 8px;
   gap: 3px;
 }
 
-/* Height deliberately more conservative than the width scale-up
-   (140px, vs. 130px on a 150px card - width carries the "featured"
-   read here) - this screen's own hard-won "kaiken pitaa mahtua
-   naytolle ilman scrollausta" (everything must fit without
-   scrolling, .hw-select-grid's own comment above) constraint is a
-   previously-fixed bug, not a preference, and the Market panel has
-   an Items row below this one competing for the same fixed height.
-   Confirmed by measuring .hw-root's actual scrollHeight vs
-   clientHeight after this change (not just eyeballing a screenshot,
-   which caught a real regression here on the first pass - portrait
-   was originally 200px and pushed the panel 204px past the
-   viewport). */
+/* Portrait height: the part of "twice as big" that isn't free - every
+   extra px here is a direct, unavoidable hit to the 1860x960 zero-
+   scroll budget (unlike the width above). Grown from 52px to 84px
+   (+32px, combined with the width growth above this is a ~2.3x area
+   increase - genuinely "twice as big", not just technically bigger
+   while still cramped) rather than all the way back to this card's
+   pre-trim history (108px) - the extra height had to be reclaimed
+   elsewhere on this exact screen (see .hw-panel/.hw-market-stage/
+   .hw-market-banner/.hw-market-divider's own comments for where it
+   came from), and going further would have meant cutting card count
+   or gutting some other section's legibility for it. Re-measured
+   against .hw-root's own scrollHeight/clientHeight after, not
+   eyeballed - same discipline this screen's whole trim history
+   already established. */
 .hw-market-featured-grid .hw-card-portrait {
-  height: 52px;
+  height: 84px;
 }
 
 /* Unit names are random per shop roll and this card is narrower than
@@ -1821,8 +2023,10 @@ img.hw-card-art {
 }
 
 .hw-market-featured-grid .hw-card-art {
-  width: 55px;
-  height: 55px;
+  /* Scaled up alongside the portrait above (units without real art
+     yet fall back to this glyph medallion) - same ~1.6x factor. */
+  width: 70px;
+  height: 70px;
 }
 
 .hw-market-featured-grid .hw-card-name {
@@ -1838,6 +2042,18 @@ img.hw-card-art {
 .hw-market-items-grid {
   padding-top: var(--space-1, 8px);
   padding-bottom: 0;
+  /* Same free-width logic as the featured unit grid above - the item
+     row inherited the shared .hw-select-grid 150px card width, using
+     well under half the panel's real width for 4 cards. Widened to
+     210px (still free, zero fit-budget cost) so the bigger icon below
+     has room to actually read as an icon instead of a cramped glyph
+     squeezed against the name/description text next to it. */
+  grid-template-columns: repeat(auto-fit, 210px);
+}
+
+.hw-market-items-grid .hw-card {
+  width: 210px;
+  min-width: 210px;
 }
 
 .hw-market-featured-grid .hw-card-class {
@@ -1870,7 +2086,9 @@ img.hw-card-art {
    stacked boxes. */
 .hw-market-divider {
   height: 1px;
-  margin: var(--space-1, 8px) 0 var(--space-1, 8px);
+  /* 8px -> 3px each side, part of this screen's Round 2/3 budget
+     payback. */
+  margin: 3px 0 3px;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--hw-ember) 45%, transparent) 50%, transparent);
 }
 
