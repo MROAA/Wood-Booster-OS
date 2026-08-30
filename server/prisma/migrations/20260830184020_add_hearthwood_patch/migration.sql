@@ -1,5 +1,7 @@
+-- HeartwoodTask/HeartwoodDecision were schema-only (no prior migration); IF NOT EXISTS so this deploys cleanly on DBs that already have them via db push.
+
 -- CreateTable
-CREATE TABLE "HeartwoodTask" (
+CREATE TABLE IF NOT EXISTS "HeartwoodTask" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title" TEXT NOT NULL,
     "description" TEXT,
@@ -15,7 +17,7 @@ CREATE TABLE "HeartwoodTask" (
 );
 
 -- CreateTable
-CREATE TABLE "HeartwoodDecision" (
+CREATE TABLE IF NOT EXISTS "HeartwoodDecision" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title" TEXT NOT NULL,
     "decision" TEXT NOT NULL,
