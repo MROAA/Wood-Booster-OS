@@ -20,6 +20,22 @@ import { tribesOf } from "../../data/heartwood/synergies"
 import { resolveTrial } from "../../data/heartwood/trials"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
+// RAMP_CAP - the difficulty ramp's TOTAL enemy-scaling budget: enemies
+// end a run scaled to roughly 1 + RAMP_CAP of their base stats (+75%
+// today). This one constant is the game's single "how hard is it"
+// knob - there is deliberately no difficulty menu. It is consumed in
+// THREE places that MUST move together:
+//   1. difficultyFactorForNode() below - the trailing `* RAMP_CAP`
+//      that turns a 0..1 run-progress into the actual enemy multiplier.
+//   2. autoBattleEngine.js's scaleEnemyHpToSquadDps() - which divides
+//      `(difficultyFactor - 1)` by this same number to read back "how
+//      far into the ramp is this fight" for its DPS-adaptive layer.
+//      It imports RAMP_CAP from here; hard-coding a second copy there
+//      would silently max that layer out early the moment this moves.
+//   3. START_ESSENCE (below) is now a formula of it too - see there.
+// Raising this is the intended way to make the whole game harder.
+export const RAMP_CAP = 0.75
+
 // enemies.js's 7 mooks are used both solo and recombined into
 // formations.js's 6 multi-piece encounters - "Mist Growler Pack" and
 // "The Undertow" (no shielding - real swarms), "Bark Brute's Stand",
@@ -214,7 +230,48 @@ export const RUN_PATH = [
 // showed made the run ~17 points easier on average (test bot: ~20% ->
 // ~37% win rate). Marc's call: cut income to compensate - start
 // 350 -> 300, per-win 250 -> 200. Both stay in the 50-family.
-const START_ESSENCE = 300
+//
+// Start-Essence-from-ramp pass (Marc, direct: the game has NO
+// difficulty menu and none is wanted - it's meant to be inherently
+// hard - but "if I later make it harder, the opening shouldn't need
+// re-tuning by hand"). START_ESSENCE is no longer a hand-set number:
+// it's a formula of RAMP_CAP (the ramp's total enemy-scaling budget,
+// see difficultyFactorForNode below - currently +75% by run's end).
+//
+// Shape: START_ESSENCE = roundTo50(OPENING_BASE * RAMP_CAP).
+// Rationale - the enemy's growth budget across a whole run IS
+// RAMP_CAP; the starting war-chest is the player's one-time
+// counterweight to that budget, so it scales in direct proportion.
+// Double the enemy's growth budget (a "twice as hard" knob) and the
+// opening head-start doubles with it - the opening self-adjusts
+// instead of needing a hand-set number every time difficulty moves.
+// OPENING_BASE is the single calibration constant: its value is fixed
+// so that at today's RAMP_CAP = 0.75 the formula lands EXACTLY on 300
+// (400 * 0.75 = 300, no rounding needed) - i.e. this is
+// behaviour-neutral until RAMP_CAP is actually changed.
+//   RAMP_CAP 0.75 -> 400 * 0.75 = 300
+//   RAMP_CAP 0.90 -> 400 * 0.90 = 360 -> roundTo50 -> 350
+// NOTE (fairness harness, n=100, .scratch/heartwood-fairness-pass.mjs):
+// the test-bot's opening is bimodal, not "narrow" - it loses fight 1
+// (rotwood-husk-pair) ~40-50% of runs at ANY START_ESSENCE from 300
+// up, then coasts fights 2-3 (~85% squad HP) if it survives. Raising
+// START_ESSENCE past ~500 flips the whole opening to a walkover with
+// no middle "narrow win with attrition" band. So this formula makes
+// the opening lever TRACK difficulty automatically (proven: +90% cap
+// -> 350 measurably eases fight 1 for 3 of 4 commanders), but the
+// "won but narrowly" feel itself is gated by the fight 1-3 ENEMY
+// tuning, not by the economy - that's a separate lever.
+const OPENING_BASE = 400
+const roundTo50 = (n) => Math.round(n / 50) * 50
+const START_ESSENCE = roundTo50(OPENING_BASE * RAMP_CAP)
+// WIN_ESSENCE stays FLAT (deliberately NOT coupled to RAMP_CAP): it's
+// per-fight income that compounds across ~43 fights, so coupling it
+// would swing the whole-run difficulty curve hard - exactly what the
+// round-economy pass just calibrated and what this pass must leave
+// intact. START_ESSENCE is a one-time opening lever with a negligible
+// whole-run footprint; that's why it's the one that carries the
+// coupling. If the whole-run curve ever needs to track RAMP_CAP too,
+// that's a separate calibration lever, not this one.
 const WIN_ESSENCE = 200
 // Marc: "now it doesn't feel like anything purchasing the units or
 // items" - the Essence RATE has already been tuned back and forth
@@ -1181,7 +1238,12 @@ function difficultyFactorForNode(nodeIndex, pathLength) {
   // Hearthwood master memory log for the actual before/after numbers
   // and whether this specific value (1.3) survived unchanged or got
   // dialed back.
-  return 1 + (0.75 * progress + 0.25 * Math.sqrt(progress)) * 0.75
+  // Trailing factor is the ramp's total budget - extracted to the
+  // RAMP_CAP constant (top of file) so autoBattleEngine.js's
+  // normalizer reads back the exact same number. The 0.75 / 0.25
+  // inside the parens is the separate linear/sqrt blend weight and is
+  // NOT the cap - leave it alone.
+  return 1 + (0.75 * progress + 0.25 * Math.sqrt(progress)) * RAMP_CAP
 }
 
 // Shared by startFormationBattle and previewBattleEnemies below - both
