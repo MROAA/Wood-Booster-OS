@@ -196,7 +196,20 @@ export const RUN_PATH = [
 // three land on the same clean 250 post-rescale - a run now starts
 // with, and earns per win, exactly one Market Level-Up's worth of
 // Essence, same relative weight as before.
-const START_ESSENCE = 250
+//
+// START_ESSENCE was tuned twice after that (450, then 200 - see PR
+// #360/#362) and then SILENTLY REVERTED back to 250 by a mistake of
+// my own in PR #363: rescuing that PR's stale-branch ancestry via a
+// raw `git diff origin/development origin/<branch> -- src/` scoped
+// too broadly (should have been scoped to just the item-art files),
+// so the diff picked up this unrelated line reverting to whatever
+// value the item-art branch's own stale base happened to have, and
+// applying it silently undid #362 with no conflict to flag it. Caught
+// only when Marc asked for a third explicit number and the file
+// didn't match what either of us expected. Set directly to his
+// explicit number this time, no arithmetic: "aseta alku essence
+// määräksi 350" (set the starting Essence to 350).
+const START_ESSENCE = 350
 const WIN_ESSENCE = 250
 // Marc: "now it doesn't feel like anything purchasing the units or
 // items" - the Essence RATE has already been tuned back and forth
