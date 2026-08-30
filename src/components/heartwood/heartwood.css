@@ -967,6 +967,15 @@
   align-self: center;
 }
 
+/* Relic icon art (RelicChoice.jsx's def.image branch) reuses this exact
+   class, same object-fit fix img.hw-card-art already needed for item
+   art - keeps a non-square source photo from stretching to fill the
+   fixed 40x40 medallion. Size-neutral: relic cards were already 40x40
+   glyphs, this is the same box now holding a photo instead of an SVG. */
+img.hw-card-glyph {
+  object-fit: cover;
+}
+
 .hw-card--attack .hw-card-glyph {
   color: var(--hw-ember);
 }
@@ -3150,6 +3159,15 @@ img.hw-card-art {
   height: 14px;
   vertical-align: -2px;
   margin-right: 2px;
+}
+
+/* SquadDraft.jsx's owned-relics badge is the one spot that ever puts a
+   real <img> under this shared class (every other usage passes an SVG
+   CardGlyph) - object-fit keeps a non-square source photo from
+   stretching inside the tiny 14x14 box. */
+img.hw-intent-glyph {
+  object-fit: cover;
+  border-radius: 3px;
 }
 
 .hw-intent--attack .hw-intent-glyph {

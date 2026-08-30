@@ -136,6 +136,26 @@ export const UNIT_TRIBES = {
   nightveil: ["spirit"],
   stoneknit: ["warden"],
   snareclaw: ["fang"],
+  // 6 brand-new units (units.js, same session) built around leftover
+  // art rather than an existing def - tagged the same way every unit
+  // above is: by its own dominant mechanic first, role as a tiebreaker.
+  // Chimera has no distinguishing status, just a Chain finisher and a
+  // ferocious multi-headed silhouette -> Fang (quick, finishing
+  // strikers) over a generic Thorn default. Sunscale's kit (repeating
+  // Block) is Warden's defining shape. Abyssong's Weak-on-hit siren
+  // song is a curse, but its support role and healing lean Grove-
+  // adjacent in flavor - tagged Spirit instead for the literal
+  // "ephemeral, otherworldly" read on a ghostly sea-spirit. Huldra is
+  // a forest witch who curses/poisons -> Root. Rootwing is a Yggdrasil
+  // guardian with a battle-start Taunt -> Warden, same as every other
+  // Taunt-carrying protector. Marshlight is a self-Ward, ephemeral
+  // wisp -> Spirit, same identity Mosswalker/Palefen already carry.
+  chimera: ["fang"],
+  sunscale: ["warden"],
+  abyssong: ["spirit"],
+  huldra: ["root"],
+  rootwing: ["warden"],
+  marshlight: ["spirit"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

@@ -567,7 +567,15 @@ export default function SquadDraft({
             const cost = upgradeCost(level)
             return (
               <span key={id} className="hw-badge" title={RELICS[id]?.description} style={{ gap: 6 }}>
-                <CardGlyph name={RELICS[id]?.icon} className="hw-intent-glyph" />
+                {/* Owned-relics badge - same def.image-vs-glyph branch as
+                    RelicChoice.jsx's pick screen above, just at the tiny
+                    inline-badge size every other hw-intent-glyph usage
+                    here already shares. */}
+                {RELICS[id]?.image ? (
+                  <img src={RELICS[id].image} alt="" className="hw-intent-glyph" />
+                ) : (
+                  <CardGlyph name={RELICS[id]?.icon} className="hw-intent-glyph" />
+                )}
                 {RELICS[id]?.name}
                 {level > 0 && ` +${level}`}
                 {cost === null ? (
