@@ -36,6 +36,7 @@ import {
     revert as revertPatch,
     stopPreviewFor,
 } from "../services/hearthwoodPatchbay/applyPatch.js"
+import { runDoctor } from "../services/hearthwoodPatchbay/doctor.js"
 
 export default function createHearthwoodPatchbayRouter(prisma) {
 
@@ -212,6 +213,26 @@ export default function createHearthwoodPatchbayRouter(prisma) {
             }
 
             const result = await revertPatch({ prisma, id })
+
+            res.json(result)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    /* -------------------------------------------------------------- *
+     * doctor (must be registered before the "${BASE}/:id" GET below,
+     * or Express would match "doctor" as an :id and 400 on it)
+     * -------------------------------------------------------------- */
+
+    router.get(`${BASE}/doctor`, async (req, res) => {
+
+        try {
+
+            const result = await runDoctor()
 
             res.json(result)
 

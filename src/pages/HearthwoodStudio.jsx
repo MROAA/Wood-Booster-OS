@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { apiGet } from "../api/client"
 
 import CloneEntityForm from "../components/hearthwood-studio/CloneEntityForm"
+import DoctorPanel from "../components/hearthwood-studio/DoctorPanel"
 import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
 import EntityChangeLog from "../components/hearthwood-studio/EntityChangeLog"
 import EntityFieldEditor from "../components/hearthwood-studio/EntityFieldEditor"
@@ -171,15 +172,19 @@ function HearthwoodStudio() {
         </section>
       </div>
 
-      <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-        <div className="border-b border-[var(--wood-border)] px-5 py-3 text-sm font-semibold text-[var(--wood-text)]">
-          Historia
-        </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+        <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+          <div className="border-b border-[var(--wood-border)] px-5 py-3 text-sm font-semibold text-[var(--wood-text)]">
+            Historia
+          </div>
 
-        <div className="h-[420px]">
-          <PatchHistoryList reloadKey={historyKey} onReverted={handleReverted} />
-        </div>
-      </section>
+          <div className="h-[420px]">
+            <PatchHistoryList reloadKey={historyKey} onReverted={handleReverted} />
+          </div>
+        </section>
+
+        <DoctorPanel />
+      </div>
     </div>
   )
 }
