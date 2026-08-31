@@ -9,10 +9,23 @@ import { useState } from "react"
  * muutoksen - HMR ei aina riitä (R1: kesken oleva taistelu ei näe
  * muutosta ennen seuraavaa taistelua).
  */
+function heartwoodPathFor(previewUrl) {
+  // computePreviewTarget() (previewServer.js) infers a route from the
+  // changed files' import graph - it only resolves page/component
+  // files, so a Hearthwood *data* file (enemies.js etc.) falls back to
+  // the preview server's root ("/") rather than /heartwood. Every
+  // Patchbay preview is Hearthwood by definition, so force the path.
+  try {
+    return new URL("/heartwood", previewUrl).toString()
+  } catch {
+    return previewUrl
+  }
+}
+
 function LivePreviewPane({ previewUrl, reloadKey }) {
   const [manualReloadKey, setManualReloadKey] = useState(0)
 
-  const src = previewUrl || "/heartwood"
+  const src = previewUrl ? heartwoodPathFor(previewUrl) : "/heartwood"
 
   return (
     <div className="flex h-full min-h-0 flex-col">

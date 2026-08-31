@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { apiGet } from "../api/client"
 
+import CloneEntityForm from "../components/hearthwood-studio/CloneEntityForm"
 import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
 import EntityChangeLog from "../components/hearthwood-studio/EntityChangeLog"
 import EntityFieldEditor from "../components/hearthwood-studio/EntityFieldEditor"
@@ -130,6 +131,14 @@ function HearthwoodStudio() {
                 <div className="text-sm font-semibold text-[var(--wood-text)]">
                   {entityDetail.name || entityDetail.id}
                 </div>
+
+                <CloneEntityForm
+                  type={entityType}
+                  entityId={entityId}
+                  entityDetail={entityDetail}
+                  onApplied={handleApplied}
+                  onPreviewUrlChange={setPreviewUrl}
+                />
 
                 <EntityFieldEditor
                   type={entityType}
