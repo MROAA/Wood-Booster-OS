@@ -232,6 +232,63 @@ function findMapProperty(mapNode, ast, key, depth = 0) {
 }
 
 /**
+ * Finds an ArrayExpression element by the same rule
+ * hearthwood-read-entities.mjs's walkArray() assigns ids with: the
+ * element's own string "id" property if it has one, else the array
+ * index (as a string). Only meaningful at the top level (path segment
+ * 0) - a plain-array export's entities, not a nested array field.
+ */
+function findArrayElementByIdOrIndex(arrayNode, segment) {
+
+    const wanted = String(segment)
+
+    for (const [index, element] of arrayNode.elements.entries()) {
+
+        if (!element) {
+
+            continue
+
+        }
+
+        if (element.type === "ObjectExpression") {
+
+            const idProp = element.properties.find(
+                p => p.type === "Property" && keyName(p.key, p.computed) === "id",
+            )
+
+            if (
+                idProp
+                && idProp.value.type === "Literal"
+                && typeof idProp.value.value === "string"
+                && idProp.value.value === wanted
+            ) {
+
+                return element
+
+            }
+        }
+
+        if (String(index) === wanted) {
+
+            // Only reachable when nothing had a matching string "id" -
+            // matches the reader's own fallback order.
+            const hasAnyId = element.type === "ObjectExpression" && element.properties.some(
+                p => p.type === "Property" && keyName(p.key, p.computed) === "id",
+            )
+
+            if (!hasAnyId) {
+
+                return element
+
+            }
+        }
+    }
+
+    return null
+
+}
+
+/**
  * Walk `pathSegments` from `rootObject` (the root map's ObjectExpression)
  * to the value node it addresses. The first segment names an entity key
  * in the root map (resolved through spreads via findMapProperty); each
@@ -265,6 +322,28 @@ function resolvePath(rootObject, pathSegments, ast) {
             }
 
             current = prop.value
+
+            continue
+
+        }
+
+        if (i === 0 && current.type === "ArrayExpression") {
+
+            // A plain-array export (dualClasses.js/tutorial.js). The
+            // reader (hearthwood-read-entities.mjs's walkArray) uses each
+            // element's own string "id" field as the entity id when one
+            // exists, falling back to the array index only when it
+            // doesn't (tutorial.js) - mirror that exact rule here so a
+            // path segment resolves to the same element the browser saw.
+            const element = findArrayElementByIdOrIndex(current, segment)
+
+            if (!element) {
+
+                return { error: `no array element matches "${segment}"` }
+
+            }
+
+            current = element
 
             continue
 
@@ -496,7 +575,13 @@ function applyJsEdits({ source, exportName, edits }) {
 
     const rootInit = findExportInit(ast, exportName)
 
-    if (!rootInit || rootInit.type !== "ObjectExpression") {
+    // Most maps are ObjectExpression; dualClasses.js/tutorial.js export a
+    // plain ArrayExpression instead (paths.js's own ENTITY_TYPES notes
+    // this) - resolvePath()/the addKey insertion-point logic both already
+    // handle either root shape structurally, so only truly unsupported
+    // roots (a factory call at the TOP level, a computed expression, ...)
+    // are rejected here.
+    if (!rootInit || (rootInit.type !== "ObjectExpression" && rootInit.type !== "ArrayExpression")) {
 
         return {
             ok: false,
@@ -505,7 +590,7 @@ function applyJsEdits({ source, exportName, edits }) {
             rejected: edits.map(edit => ({
                 path: edit.path || null,
                 reason:
-                    `export const ${exportName} is not an object literal map`,
+                    `export const ${exportName} is not an object or array literal`,
             })),
         }
     }
@@ -537,7 +622,7 @@ function applyJsEdits({ source, exportName, edits }) {
 
                 const before = source.slice(0, insertAt).replace(/\s+$/, "")
 
-                const needsComma = !before.endsWith("{") && !before.endsWith(",")
+                const needsComma = !before.endsWith("{") && !before.endsWith("[") && !before.endsWith(",")
 
                 const text = `${needsComma ? "," : ""}\n${block},\n`
 

@@ -111,3 +111,78 @@ test("applyEdit rejects a non-scalar target, exit stays zero", () => {
     assert.equal(result.rejected.length, 1)
     assert.match(result.rejected[0].reason, /scalar/)
 })
+
+test("applyEdit writes a positional argument on a unit() factory call", () => {
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/units.js",
+        exportName: "UNITS",
+        edits: [
+            { path: ["the-fool", "cost"], op: "set", value: 2 },
+        ],
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(result.applied.length, 1)
+    assert.equal(result.applied[0].oldText, "0")
+    assert.equal(result.applied[0].newText, "2")
+
+    assert.ok(parseAst(result.proposedCode), "proposed code still parses")
+})
+
+test("applyEdit rejects an Identifier field on a unit() factory call (image)", () => {
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/units.js",
+        exportName: "UNITS",
+        edits: [
+            { path: ["the-fool", "image"], op: "set", value: "nope" },
+        ],
+    })
+
+    assert.equal(result.ok, false)
+    assert.equal(result.rejected.length, 1)
+    assert.match(result.rejected[0].reason, /Identifier/)
+})
+
+test("applyEdit writes into a string-id array export (dualClasses.js)", () => {
+
+    const before = readEntities({ type: "dualClasses" })
+    const entity = before.entities.find(e => typeof e.id === "string" && e.fields.name)
+
+    assert.ok(entity, "at least one dualClass entity with a name field")
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/dualClasses.js",
+        exportName: "DUAL_CLASSES",
+        edits: [
+            { path: [entity.id, "name"], op: "set", value: "Test Name" },
+        ],
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(result.applied.length, 1)
+    assert.ok(parseAst(result.proposedCode), "proposed code still parses")
+})
+
+test("applyEdit writes into an index-id array export (tutorial.js)", () => {
+
+    const before = readEntities({ type: "tutorial" })
+    const entity = before.entities[0]
+
+    const field = Object.keys(entity.fields).find(key => entity.fields[key].kind === "string")
+
+    assert.ok(field, "first tutorial step has a string field")
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/tutorial.js",
+        exportName: "TUTORIAL_STEPS",
+        edits: [
+            { path: [entity.id, field], op: "set", value: "TEST_VALUE" },
+        ],
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(result.applied.length, 1)
+    assert.ok(parseAst(result.proposedCode), "proposed code still parses")
+})
