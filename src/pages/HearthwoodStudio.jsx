@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { apiGet } from "../api/client"
 
 import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
+import EntityChangeLog from "../components/hearthwood-studio/EntityChangeLog"
 import NlChangeBox from "../components/hearthwood-studio/NlChangeBox"
 import LivePreviewPane from "../components/hearthwood-studio/LivePreviewPane"
 import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
@@ -144,6 +145,12 @@ function HearthwoodStudio() {
                   }
                 </div>
               </div>
+            )
+          }
+
+          {
+            entityId && !entityLoading && (
+              <EntityChangeLog entityId={entityId} reloadKey={reloadKey} />
             )
           }
 
