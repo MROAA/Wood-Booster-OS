@@ -4,6 +4,7 @@ import { apiGet } from "../api/client"
 
 import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
 import EntityChangeLog from "../components/hearthwood-studio/EntityChangeLog"
+import EntityFieldEditor from "../components/hearthwood-studio/EntityFieldEditor"
 import NlChangeBox from "../components/hearthwood-studio/NlChangeBox"
 import LivePreviewPane from "../components/hearthwood-studio/LivePreviewPane"
 import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
@@ -81,10 +82,6 @@ function HearthwoodStudio() {
     setReloadKey(previous => previous + 1)
   }
 
-  const scalarFields = entityDetail
-    ? Object.entries(entityDetail.fields || {}).filter(([, field]) => field.kind !== "object")
-    : []
-
   return (
     <div className="space-y-6">
       <header>
@@ -129,21 +126,18 @@ function HearthwoodStudio() {
 
           {
             entityId && entityDetail && (
-              <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3">
-                <div className="mb-2 text-sm font-semibold text-[var(--wood-text)]">
+              <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 space-y-3">
+                <div className="text-sm font-semibold text-[var(--wood-text)]">
                   {entityDetail.name || entityDetail.id}
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--wood-muted)]">
-                  {
-                    scalarFields.map(([key, field]) => (
-                      <div key={key} className="flex justify-between gap-2">
-                        <span>{key}</span>
-                        <span className="font-mono text-[var(--wood-text)] truncate">{String(field.value)}</span>
-                      </div>
-                    ))
-                  }
-                </div>
+                <EntityFieldEditor
+                  type={entityType}
+                  entityId={entityId}
+                  entityDetail={entityDetail}
+                  onApplied={handleApplied}
+                  onPreviewUrlChange={setPreviewUrl}
+                />
               </div>
             )
           }
