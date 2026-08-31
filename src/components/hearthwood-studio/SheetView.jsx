@@ -97,8 +97,11 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
     const ordered = []
 
     for (const entity of entities) {
-      for (const key of Object.keys(entity.fields || {})) {
-        if (key !== "id" && !seen.has(key)) {
+      for (const [key, field] of Object.entries(entity.fields || {})) {
+        // Complex fields (movePattern, effects, ...) are raw JS blocks -
+        // unwieldy in a grid cell; EntityFieldEditor's single-entity view
+        // is where those get edited (its own <textarea> per field).
+        if (key !== "id" && field.kind !== "complex" && !seen.has(key)) {
           seen.add(key)
           ordered.push(key)
         }

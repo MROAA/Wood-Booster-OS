@@ -694,6 +694,110 @@ function applyJsEdits({ source, exportName, edits }) {
 
             }
 
+            if (edit.op === "setRaw") {
+
+                // Wholesale-replace ANY node's exact source text - the
+                // generic escape hatch for the complex fields "set" can
+                // never touch (movePattern, effects, passives, a whole
+                // per-tribe synergy tier array, ...). path.length===1
+                // targets the entire entity's value (synergies.js: each
+                // tribe's value IS the array, no wrapper object to
+                // descend into); longer paths resolve exactly like "set"
+                // (through object fields / factory-call args-or-opts /
+                // array indices) but accept any node shape, not just
+                // scalars. Safety: the substitution is trial-run through
+                // parseAst against the ORIGINAL source before being
+                // accepted - malformed replacement text is rejected
+                // outright, never silently written.
+                if (editPath.length < 1) {
+
+                    rejected.push({ path: editPath, reason: "empty path" })
+                    continue
+
+                }
+
+                const newText = String(edit.value ?? "")
+
+                if (!newText.trim()) {
+
+                    rejected.push({ path: editPath, reason: "setRaw needs non-empty replacement text" })
+                    continue
+
+                }
+
+                let rawTarget
+
+                if (editPath.length === 1) {
+
+                    if (rootInit.type === "ObjectExpression") {
+
+                        const prop = findMapProperty(rootInit, ast, String(editPath[0]))
+
+                        if (!prop) {
+
+                            rejected.push({ path: editPath, reason: `key "${editPath[0]}" not found` })
+                            continue
+
+                        }
+
+                        rawTarget = prop.value
+
+                    } else {
+
+                        const element = findArrayElementByIdOrIndex(rootInit, editPath[0])
+
+                        if (!element) {
+
+                            rejected.push({ path: editPath, reason: `no array element matches "${editPath[0]}"` })
+                            continue
+
+                        }
+
+                        rawTarget = element
+
+                    }
+
+                } else {
+
+                    const resolvedRaw = resolvePath(rootInit, editPath, ast)
+
+                    if (resolvedRaw.error) {
+
+                        rejected.push({ path: editPath, reason: resolvedRaw.error })
+                        continue
+
+                    }
+
+                    rawTarget = resolvedRaw.node
+
+                }
+
+                const trialSource = source.slice(0, rawTarget.start) + newText + source.slice(rawTarget.end)
+
+                try {
+
+                    parseAst(trialSource)
+
+                } catch (parseError) {
+
+                    rejected.push({
+                        path: editPath,
+                        reason: `korvaava teksti ei ole kelvollista JavaScriptia: ${parseError.message}`,
+                    })
+                    continue
+
+                }
+
+                const rawOldText = source.slice(rawTarget.start, rawTarget.end)
+
+                magic.overwrite(rawTarget.start, rawTarget.end, newText)
+
+                applied.push({ path: editPath, oldText: rawOldText, newText })
+
+                continue
+
+            }
+
             if (edit.op !== "set") {
 
                 rejected.push({ path: editPath, reason: `unsupported op "${edit.op}"` })

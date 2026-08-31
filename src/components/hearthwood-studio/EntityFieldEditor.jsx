@@ -4,14 +4,18 @@ import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 
 /*
- * "Muokkaa tehokkaammin" (Marc) - suora kenttäkohtainen muokkaus NL-
- * lauseen kirjoittamisen sijaan. Valtaosa-käyttäjän polku on silti
- * NlChangeBox (Ollama-validoitu); tämä on nopea reitti toistuviin
- * numero-/tekstisäätöihin samalle entiteetille. `id` on aina
- * lukukohteinen - sen muuttaminen olisi uudelleennimeäminen, ei
- * kenttäeditointia. Complex-kentät (movePattern yms.) eivät näy tässä
- * (complexKeys, ei fields) - ne jäävät NL-boxin tai koko tiedoston
- * muokkauksen varaan.
+ * "Muokkaa tehokkaammin" / "haluan pystyä päivittämään Hearthwoodia
+ * todella kattavasti" (Marc) - suora kenttäkohtainen muokkaus NL-
+ * lauseen kirjoittamisen sijaan, nyt myös monimutkaisille kentille
+ * (movePattern, effects, passives, ...) raakana JS:nä muokattuna -
+ * kind:"complex" -kentät (hearthwood-read-entities.mjs) tulevat
+ * `entityDetail.fields`:iin täsmälleen samasta paikasta kuin
+ * skalaarit, vain isomman <textarea>:n kautta ja op:"setRaw":lla
+ * op:"set":in sijaan. Palvelin (hearthwood-apply-edit.mjs) validoi
+ * korvaavan tekstin uudelleenparsimalla koko tiedoston ennen kuin
+ * mikään kirjoitetaan - virheellinen JS hylätään, ei koskaan
+ * kirjoiteta. `id` on aina lukukohteinen - sen muuttaminen olisi
+ * uudelleennimeäminen, ei kenttäeditointia.
  */
 function coerceValue(kind, raw) {
   if (kind === "number") {
@@ -41,14 +45,17 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
     apply,
   } = usePatchPreview({ onApplied, onPreviewUrlChange })
 
-  const scalarFields = entityDetail
-    ? Object.entries(entityDetail.fields || {}).filter(([key, field]) => key !== "id" && field.kind !== "object")
+  const allFields = entityDetail
+    ? Object.entries(entityDetail.fields || {}).filter(([key]) => key !== "id")
     : []
+
+  const scalarFields = allFields.filter(([, field]) => field.kind !== "complex")
+  const complexFields = allFields.filter(([, field]) => field.kind === "complex")
 
   useEffect(() => {
     const initial = {}
 
-    for (const [key, field] of scalarFields) {
+    for (const [key, field] of allFields) {
       initial[key] = String(field.value)
     }
 
@@ -62,8 +69,7 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
     return values[key] !== undefined && values[key] !== String(field.value)
   }
 
-  const changedKeys = scalarFields
-    .map(([key, field]) => [key, field])
+  const changedKeys = allFields
     .filter(([key, field]) => fieldChanged(key, field))
     .map(([key]) => key)
 
@@ -75,11 +81,9 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
     const edits = changedKeys.map(key => {
       const field = entityDetail.fields[key]
 
-      return {
-        path: [entityId, key],
-        op: "set",
-        value: coerceValue(field.kind, values[key]),
-      }
+      return field.kind === "complex"
+        ? { path: [entityId, key], op: "setRaw", value: values[key] }
+        : { path: [entityId, key], op: "set", value: coerceValue(field.kind, values[key]) }
     })
 
     await preview({ type, entityId, edits })
@@ -145,6 +149,44 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
           })
         }
       </div>
+
+      {
+        complexFields.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-[10px] uppercase tracking-wide text-[var(--wood-muted)]">
+              Monimutkaiset kentät (raakana JS:nä)
+            </div>
+
+            {
+              complexFields.map(([key, field]) => {
+                const changed = fieldChanged(key, field)
+
+                return (
+                  <label key={key} className="block space-y-1">
+                    <div className="flex items-center gap-1 text-[10px] text-[var(--wood-muted)]">
+                      {key}
+                      {changed && <span className="text-[var(--wood-accent)]">●</span>}
+                    </div>
+
+                    <textarea
+                      value={values[key] ?? ""}
+                      onChange={event => setValues(previous => ({ ...previous, [key]: event.target.value }))}
+                      rows={Math.min(10, Math.max(3, (values[key] || "").split("\n").length))}
+                      spellCheck={false}
+                      className={`
+                        wood-scroll w-full resize-y rounded-lg border bg-[var(--wood-bg)] p-2
+                        font-mono text-[11px] leading-relaxed text-[var(--wood-text)] outline-none
+                        focus:border-[var(--wood-accent)]
+                        ${changed ? "border-[var(--wood-accent)]" : "border-[var(--wood-border)]"}
+                      `}
+                    />
+                  </label>
+                )
+              })
+            }
+          </div>
+        )
+      }
 
       <div className="flex justify-end">
         <button

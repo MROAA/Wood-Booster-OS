@@ -159,6 +159,24 @@ test("a setImportedImage op (image swap) is MEDIUM", () => {
 
 })
 
+test("a setRaw op (complex field replaced wholesale) is MEDIUM", () => {
+
+    const result = classifyRisk({
+        targetFiles: ["src/data/heartwood/enemies.js"],
+        editSpec: {
+            ops: [{
+                path: ["rotwood-husk", "movePattern"],
+                op: "setRaw",
+                value: "[{ type: \"attack\", amount: 12 }]",
+            }],
+        },
+    })
+
+    assert.equal(result.tier, "MEDIUM")
+    assert.equal(result.requiresConfirm, true)
+
+})
+
 test("whole-file edit of a Hearthwood component is bumped MEDIUM -> HIGH", () => {
 
     const result = classifyRisk({

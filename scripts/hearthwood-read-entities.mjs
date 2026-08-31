@@ -338,7 +338,19 @@ function collectObjectFields(objNode, fields, complexKeys, identifierKeys) {
 
         } else {
 
+            // Not scalar-editable via "set", but still splice-safe via
+            // the generic "setRaw" op (hearthwood-apply-edit.mjs) - a
+            // range here lets readEntities() fill in the exact source
+            // text below, so the frontend can show/edit it as raw JS
+            // without a bespoke UI per mechanic shape (movePattern,
+            // effects, passives, ...).
             complexKeys.push(fk)
+
+            fields[fk] = {
+                value: null,
+                kind: "complex",
+                range: [field.value.start, field.value.end],
+            }
 
         }
     }
@@ -421,6 +433,12 @@ function entityFromProperty(prop) {
                 } else {
 
                     complexKeys.push(argName)
+
+                    fields[argName] = {
+                        value: null,
+                        kind: "complex",
+                        range: [argNode.start, argNode.end],
+                    }
 
                 }
             })
@@ -596,6 +614,12 @@ function walkArray(arrayNode) {
 
                     complexKeys.push(fk)
 
+                    fields[fk] = {
+                        value: null,
+                        kind: "complex",
+                        range: [field.value.start, field.value.end],
+                    }
+
                 }
             }
 
@@ -610,6 +634,7 @@ function walkArray(arrayNode) {
             name,
             fields,
             complexKeys,
+            identifierKeys: [],
             sourceRange: [element.start, element.end],
         })
     })
@@ -658,6 +683,24 @@ export function readEntities(input) {
             `export ${target.exportName} is a ${initNode.type}, `
             + "not an object/array literal - cannot walk it",
         )
+    }
+
+    // Fill in each `kind: "complex"` field's exact source text now that
+    // `source` is in scope - kept as a post-pass rather than threading
+    // `source` through every walk function, since only the final text is
+    // needed (not during AST traversal itself). This is what
+    // EntityFieldEditor.jsx shows/edits raw and what a "setRaw" op
+    // ultimately replaces.
+    for (const entity of entities) {
+
+        for (const field of Object.values(entity.fields)) {
+
+            if (field.kind === "complex" && Array.isArray(field.range)) {
+
+                field.value = source.slice(field.range[0], field.range[1])
+
+            }
+        }
     }
 
     return {

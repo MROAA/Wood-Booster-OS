@@ -205,6 +205,13 @@ export function classifyRisk({ targetFiles = [], editSpec = {} } = {}) {
 
             }
 
+            if (op && op.op === "setRaw") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("korvaa monimutkaisen kentän raakana (rakenteellinen muutos)")
+
+            }
+
             if (path.some(isNumericSegment)) {
 
                 tier = maxTier(tier, "MEDIUM")
