@@ -12,6 +12,7 @@ import ImageUploadField from "../components/hearthwood-studio/ImageUploadField"
 import NlChangeBox from "../components/hearthwood-studio/NlChangeBox"
 import LivePreviewPane from "../components/hearthwood-studio/LivePreviewPane"
 import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
+import SheetView from "../components/hearthwood-studio/SheetView"
 
 /*
  * Hearthwood Studio - oma Dev Studio pelille, ei pilleri geneerisellä
@@ -22,6 +23,7 @@ import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
  * (heartwood-patchbay-vast-giraffe.md), ei tässä.
  */
 function HearthwoodStudio() {
+  const [viewMode, setViewMode] = useState("single")
   const [entityType, setEntityType] = useState("enemies")
   const [entityId, setEntityId] = useState(null)
   const [entityDetail, setEntityDetail] = useState(null)
@@ -101,9 +103,41 @@ function HearthwoodStudio() {
           Selaa pelin sisältöä, kerro suomeksi mitä haluat muuttaa, tarkista ehdotus ja diffi,
           ja sovella vasta hyväksynnän jälkeen. Jokainen muutos on yhden napin päässä peruutettavista.
         </p>
+
+        <div className="mt-4 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setViewMode("single")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "single"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Yksittäin
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode("sheet")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "sheet"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            Taulukko
+          </button>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr_360px]">
+      <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
             type={entityType}
@@ -113,78 +147,90 @@ function HearthwoodStudio() {
           />
         </section>
 
-        <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-y-auto wood-scroll p-5 space-y-4">
-          {
-            !entityId && (
-              <div className="text-sm text-[var(--wood-muted)]">
-                Valitse entiteetti vasemmalta aloittaaksesi.
-              </div>
+        {
+          viewMode === "sheet"
+            ? (
+              <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+                <SheetView type={entityType} onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+              </section>
             )
-          }
+            : (
+              <>
+                <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-y-auto wood-scroll p-5 space-y-4">
+                  {
+                    !entityId && (
+                      <div className="text-sm text-[var(--wood-muted)]">
+                        Valitse entiteetti vasemmalta aloittaaksesi.
+                      </div>
+                    )
+                  }
 
-          {
-            entityId && entityLoading && (
-              <div className="text-sm text-[var(--wood-muted)]">Ladataan...</div>
+                  {
+                    entityId && entityLoading && (
+                      <div className="text-sm text-[var(--wood-muted)]">Ladataan...</div>
+                    )
+                  }
+
+                  {
+                    entityId && entityDetail && (
+                      <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 space-y-3">
+                        <div className="text-sm font-semibold text-[var(--wood-text)]">
+                          {entityDetail.name || entityDetail.id}
+                        </div>
+
+                        <CloneEntityForm
+                          type={entityType}
+                          entityId={entityId}
+                          entityDetail={entityDetail}
+                          onApplied={handleApplied}
+                          onPreviewUrlChange={setPreviewUrl}
+                        />
+
+                        <EntityFieldEditor
+                          type={entityType}
+                          entityId={entityId}
+                          entityDetail={entityDetail}
+                          onApplied={handleApplied}
+                          onPreviewUrlChange={setPreviewUrl}
+                        />
+
+                        {
+                          (entityDetail.identifierKeys || []).map(fieldName => (
+                            <ImageUploadField
+                              key={fieldName}
+                              type={entityType}
+                              entityId={entityId}
+                              fieldName={fieldName}
+                              onApplied={handleApplied}
+                              onPreviewUrlChange={setPreviewUrl}
+                            />
+                          ))
+                        }
+                      </div>
+                    )
+                  }
+
+                  {
+                    entityId && !entityLoading && (
+                      <EntityChangeLog entityId={entityId} reloadKey={reloadKey} />
+                    )
+                  }
+
+                  <NlChangeBox
+                    type={entityType}
+                    entityId={entityId}
+                    entityLabel={entityDetail?.name}
+                    onApplied={handleApplied}
+                    onPreviewUrlChange={setPreviewUrl}
+                  />
+                </section>
+
+                <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+                  <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
+                </section>
+              </>
             )
-          }
-
-          {
-            entityId && entityDetail && (
-              <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 space-y-3">
-                <div className="text-sm font-semibold text-[var(--wood-text)]">
-                  {entityDetail.name || entityDetail.id}
-                </div>
-
-                <CloneEntityForm
-                  type={entityType}
-                  entityId={entityId}
-                  entityDetail={entityDetail}
-                  onApplied={handleApplied}
-                  onPreviewUrlChange={setPreviewUrl}
-                />
-
-                <EntityFieldEditor
-                  type={entityType}
-                  entityId={entityId}
-                  entityDetail={entityDetail}
-                  onApplied={handleApplied}
-                  onPreviewUrlChange={setPreviewUrl}
-                />
-
-                {
-                  (entityDetail.identifierKeys || []).map(fieldName => (
-                    <ImageUploadField
-                      key={fieldName}
-                      type={entityType}
-                      entityId={entityId}
-                      fieldName={fieldName}
-                      onApplied={handleApplied}
-                      onPreviewUrlChange={setPreviewUrl}
-                    />
-                  ))
-                }
-              </div>
-            )
-          }
-
-          {
-            entityId && !entityLoading && (
-              <EntityChangeLog entityId={entityId} reloadKey={reloadKey} />
-            )
-          }
-
-          <NlChangeBox
-            type={entityType}
-            entityId={entityId}
-            entityLabel={entityDetail?.name}
-            onApplied={handleApplied}
-            onPreviewUrlChange={setPreviewUrl}
-          />
-        </section>
-
-        <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-          <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
-        </section>
+        }
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
