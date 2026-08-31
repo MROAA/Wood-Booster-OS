@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { apiGet } from "../api/client"
 
+import BalancePanel from "../components/hearthwood-studio/BalancePanel"
 import CloneEntityForm from "../components/hearthwood-studio/CloneEntityForm"
 import DoctorPanel from "../components/hearthwood-studio/DoctorPanel"
 import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
@@ -172,7 +173,7 @@ function HearthwoodStudio() {
         </section>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
         <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <div className="border-b border-[var(--wood-border)] px-5 py-3 text-sm font-semibold text-[var(--wood-text)]">
             Historia
@@ -183,7 +184,10 @@ function HearthwoodStudio() {
           </div>
         </section>
 
-        <DoctorPanel />
+        <div className="space-y-4">
+          <DoctorPanel />
+          <BalancePanel />
+        </div>
       </div>
     </div>
   )

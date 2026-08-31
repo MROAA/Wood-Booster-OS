@@ -37,6 +37,7 @@ import {
     stopPreviewFor,
 } from "../services/hearthwoodPatchbay/applyPatch.js"
 import { runDoctor } from "../services/hearthwoodPatchbay/doctor.js"
+import { startBalanceRun, getBalanceJob } from "../services/hearthwoodPatchbay/balanceRunner.js"
 
 export default function createHearthwoodPatchbayRouter(prisma) {
 
@@ -235,6 +236,40 @@ export default function createHearthwoodPatchbayRouter(prisma) {
             const result = await runDoctor()
 
             res.json(result)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    /* -------------------------------------------------------------- *
+     * balance test (on-demand fairness run, independent of any patch)
+     * -------------------------------------------------------------- */
+
+    router.post(`${BASE}/balance-test`, async (req, res) => {
+
+        try {
+
+            const { runs } = req.body || {}
+
+            const result = await startBalanceRun({ runs })
+
+            res.status(202).json(result)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    router.get(`${BASE}/balance-test`, async (req, res) => {
+
+        try {
+
+            res.json(getBalanceJob() || { status: "idle" })
 
         } catch (error) {
 
