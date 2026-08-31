@@ -384,6 +384,95 @@ function resolvePath(rootObject, pathSegments, ast) {
     return { node: current }
 }
 
+/** Byte offset right after the last top-level `import ...` statement. */
+function findLastImportEnd(ast) {
+
+    let end = 0
+
+    for (const node of ast.body) {
+
+        if (node.type === "ImportDeclaration") {
+
+            end = node.end
+
+        }
+    }
+
+    return end
+
+}
+
+/** Is `name` already bound by a top-level import's local specifier? */
+function importIdentifierExists(ast, name) {
+
+    for (const node of ast.body) {
+
+        if (node.type !== "ImportDeclaration") {
+
+            continue
+
+        }
+
+        for (const spec of node.specifiers) {
+
+            if (spec.local && spec.local.name === name) {
+
+                return true
+
+            }
+        }
+    }
+
+    return false
+
+}
+
+/**
+ * entityId -> camelCase + "Img", matching this file's own existing
+ * import-naming convention exactly (`ember-stag` -> `emberStagImg`,
+ * `the-fool` -> `theFoolImg`) so a swapped-in image reads like it was
+ * always there.
+ */
+function toImportIdentifierBase(entityId) {
+
+    const parts = String(entityId).split(/[^a-zA-Z0-9]+/).filter(Boolean)
+
+    const camel = parts
+        .map((part, index) => index === 0
+            ? part.toLowerCase()
+            : part[0].toUpperCase() + part.slice(1).toLowerCase())
+        .join("")
+
+    return `${camel}Img`
+
+}
+
+/** A free (not already imported) identifier name for entityId's image. */
+function uniqueImportIdentifier(ast, entityId, reservedInThisRun) {
+
+    const base = toImportIdentifierBase(entityId)
+
+    if (!importIdentifierExists(ast, base) && !reservedInThisRun.has(base)) {
+
+        return base
+
+    }
+
+    let suffix = 2
+
+    while (
+        importIdentifierExists(ast, `${base}${suffix}`)
+        || reservedInThisRun.has(`${base}${suffix}`)
+    ) {
+
+        suffix += 1
+
+    }
+
+    return `${base}${suffix}`
+
+}
+
 function applyJsEdits({ source, exportName, edits }) {
 
     const ast = parseAst(source)
@@ -423,6 +512,8 @@ function applyJsEdits({ source, exportName, edits }) {
 
     const magic = new MagicString(source)
 
+    const reservedIdentifiers = new Set()
+
     for (const edit of edits) {
 
         const editPath = Array.isArray(edit.path) ? edit.path : []
@@ -453,6 +544,66 @@ function applyJsEdits({ source, exportName, edits }) {
                 magic.appendLeft(insertAt, text)
 
                 applied.push({ path: editPath, oldText: "", newText: text })
+
+                continue
+
+            }
+
+            if (edit.op === "setImportedImage") {
+
+                // path === [entityId, fieldName]; fieldName's current
+                // value must already be an Identifier (an existing
+                // `image: xImg`-style import reference) - this only
+                // swaps which import it points to, it never adds the
+                // field to an entity that doesn't have it yet.
+                if (editPath.length !== 2) {
+
+                    rejected.push({ path: editPath, reason: "setImportedImage needs [entityId, fieldName]" })
+                    continue
+
+                }
+
+                const importPath = String(edit.importPath || "")
+
+                if (!importPath) {
+
+                    rejected.push({ path: editPath, reason: "importPath is required" })
+                    continue
+
+                }
+
+                const resolvedImage = resolvePath(rootInit, editPath, ast)
+
+                if (resolvedImage.error) {
+
+                    rejected.push({ path: editPath, reason: resolvedImage.error })
+                    continue
+
+                }
+
+                const imageTarget = resolvedImage.node
+
+                if (imageTarget.type !== "Identifier") {
+
+                    rejected.push({
+                        path: editPath,
+                        reason: `target is a ${imageTarget.type}, expected an existing image identifier reference`,
+                    })
+                    continue
+
+                }
+
+                const identifierName = uniqueImportIdentifier(ast, editPath[0], reservedIdentifiers)
+
+                reservedIdentifiers.add(identifierName)
+
+                const importLine = `\nimport ${identifierName} from "${importPath}"`
+
+                magic.appendLeft(findLastImportEnd(ast), importLine)
+
+                magic.overwrite(imageTarget.start, imageTarget.end, identifierName)
+
+                applied.push({ path: editPath, oldText: imageTarget.name, newText: identifierName })
 
                 continue
 

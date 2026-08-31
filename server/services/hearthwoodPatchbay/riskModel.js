@@ -198,6 +198,13 @@ export function classifyRisk({ targetFiles = [], editSpec = {} } = {}) {
 
             }
 
+            if (op && op.op === "setImportedImage") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("vaihtaa kuvan (uusi import-lause tiedoston alkuun)")
+
+            }
+
             if (path.some(isNumericSegment)) {
 
                 tier = maxTier(tier, "MEDIUM")

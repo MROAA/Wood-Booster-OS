@@ -23,6 +23,7 @@
  */
 
 import express from "express"
+import multer from "multer"
 
 import { ENTITY_TYPES } from "../services/hearthwoodPatchbay/paths.js"
 import { createAuditStore } from "../services/hearthwoodPatchbay/auditStore.js"
@@ -38,6 +39,12 @@ import {
 } from "../services/hearthwoodPatchbay/applyPatch.js"
 import { runDoctor } from "../services/hearthwoodPatchbay/doctor.js"
 import { startBalanceRun, getBalanceJob } from "../services/hearthwoodPatchbay/balanceRunner.js"
+import { saveUploadedImage } from "../services/hearthwoodPatchbay/imageUpload.js"
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 },
+})
 
 export default function createHearthwoodPatchbayRouter(prisma) {
 
@@ -143,6 +150,39 @@ export default function createHearthwoodPatchbayRouter(prisma) {
             }
 
             res.json(entity)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    /* -------------------------------------------------------------- *
+     * image upload (saves the asset only - wiring it into an entity is
+     * a normal preview/apply "setImportedImage" edit, see below)
+     * -------------------------------------------------------------- */
+
+    router.post(`${BASE}/upload-image`, upload.single("file"), async (req, res) => {
+
+        try {
+
+            if (!req.file) {
+
+                return res.status(400).json({ error: "tiedosto puuttuu (kentän nimi: file)" })
+
+            }
+
+            const { type, entityId } = req.body || {}
+
+            const result = saveUploadedImage({
+                type,
+                entityId,
+                originalName: req.file.originalname,
+                buffer: req.file.buffer,
+            })
+
+            res.status(201).json(result)
 
         } catch (error) {
 

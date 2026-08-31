@@ -8,6 +8,7 @@ import DoctorPanel from "../components/hearthwood-studio/DoctorPanel"
 import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
 import EntityChangeLog from "../components/hearthwood-studio/EntityChangeLog"
 import EntityFieldEditor from "../components/hearthwood-studio/EntityFieldEditor"
+import ImageUploadField from "../components/hearthwood-studio/ImageUploadField"
 import NlChangeBox from "../components/hearthwood-studio/NlChangeBox"
 import LivePreviewPane from "../components/hearthwood-studio/LivePreviewPane"
 import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
@@ -149,6 +150,19 @@ function HearthwoodStudio() {
                   onApplied={handleApplied}
                   onPreviewUrlChange={setPreviewUrl}
                 />
+
+                {
+                  (entityDetail.identifierKeys || []).map(fieldName => (
+                    <ImageUploadField
+                      key={fieldName}
+                      type={entityType}
+                      entityId={entityId}
+                      fieldName={fieldName}
+                      onApplied={handleApplied}
+                      onPreviewUrlChange={setPreviewUrl}
+                    />
+                  ))
+                }
               </div>
             )
           }
