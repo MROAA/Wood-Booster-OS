@@ -43,7 +43,7 @@ import { parseAst } from "vite"
 import MagicString from "magic-string"
 import postcss from "postcss"
 
-import { PROJECT_ROOT } from "../server/services/hearthwoodPatchbay/paths.js"
+import { PROJECT_ROOT, FACTORY_SIGNATURES } from "../server/services/hearthwoodPatchbay/paths.js"
 import { declValueRange } from "./hearthwood-read-styles.mjs"
 
 /* ------------------------------------------------------------------ *
@@ -151,13 +151,94 @@ function findExportInit(ast, exportName) {
     return null
 }
 
+/** Find a top-level `const <name> = <init>` (exported or not). */
+function findLocalInit(ast, name) {
+
+    for (const node of ast.body) {
+
+        const varDecl = node.type === "VariableDeclaration"
+            ? node
+            : (node.type === "ExportNamedDeclaration"
+                && node.declaration
+                && node.declaration.type === "VariableDeclaration"
+                ? node.declaration
+                : null)
+
+        if (!varDecl) {
+
+            continue
+
+        }
+
+        for (const decl of varDecl.declarations) {
+
+            if (
+                decl.id
+                && decl.id.type === "Identifier"
+                && decl.id.name === name
+            ) {
+
+                return decl.init
+
+            }
+        }
+    }
+
+    return null
+}
+
 /**
- * Walk `pathSegments` from `rootObject` (an ObjectExpression) to the
- * value node it addresses. The first segment names a Property key in the
- * root map; each following segment is either an object key or a numeric
- * array index. Returns { node } or { error }.
+ * Finds the Property node for `key` in a map ObjectExpression, resolving
+ * through `{ ...IDENTIFIER }` spreads against other top-level object
+ * literals in the file (units.js: `UNITS = {...BASE_UNITS,
+ * ...TIER2_UNITS}`) - mirrors hearthwood-read-entities.mjs's walkMap()
+ * `absorb()`, which the reader already needs for the exact same reason.
+ * Without this, every write against a spread-composed map would 404 on
+ * its very first path segment even though the reader can see the key.
  */
-function resolvePath(rootObject, pathSegments) {
+function findMapProperty(mapNode, ast, key, depth = 0) {
+
+    if (!mapNode || mapNode.type !== "ObjectExpression" || depth > 4) {
+
+        return null
+
+    }
+
+    for (const prop of mapNode.properties) {
+
+        if (prop.type === "Property" && keyName(prop.key, prop.computed) === key) {
+
+            return prop
+
+        }
+
+        if (
+            (prop.type === "SpreadElement" || prop.type === "ExperimentalSpreadProperty")
+            && prop.argument
+            && prop.argument.type === "Identifier"
+        ) {
+
+            const found = findMapProperty(findLocalInit(ast, prop.argument.name), ast, key, depth + 1)
+
+            if (found) {
+
+                return found
+
+            }
+        }
+    }
+
+    return null
+}
+
+/**
+ * Walk `pathSegments` from `rootObject` (the root map's ObjectExpression)
+ * to the value node it addresses. The first segment names an entity key
+ * in the root map (resolved through spreads via findMapProperty); each
+ * following segment is an object key, a numeric array index, or a
+ * factory-call argument/option name. Returns { node } or { error }.
+ */
+function resolvePath(rootObject, pathSegments, ast) {
 
     let current = rootObject
 
@@ -168,6 +249,24 @@ function resolvePath(rootObject, pathSegments) {
         if (!current) {
 
             return { error: `path stopped at a missing node before "${segment}"` }
+
+        }
+
+        if (i === 0 && current.type === "ObjectExpression") {
+
+            const key = String(segment)
+
+            const prop = findMapProperty(current, ast, key)
+
+            if (!prop) {
+
+                return { error: `key "${key}" not found` }
+
+            }
+
+            current = prop.value
+
+            continue
 
         }
 
@@ -208,6 +307,70 @@ function resolvePath(rootObject, pathSegments) {
             }
 
             current = current.elements[index]
+
+            continue
+
+        }
+
+        if (current.type === "CallExpression") {
+
+            // units.js style: unit(id, name, art, cost, role, movePattern,
+            // opts). `segment` names either a positional argument
+            // (FACTORY_SIGNATURES) or a key inside the trailing opts
+            // object - same two-tier lookup hearthwood-read-entities.mjs
+            // uses to report these fields in the first place.
+            const calleeName = current.callee && current.callee.type === "Identifier"
+                ? current.callee.name
+                : null
+
+            const signature = calleeName ? FACTORY_SIGNATURES[calleeName] : null
+
+            if (!signature) {
+
+                return {
+                    error: `factory call "${calleeName || "?"}" has no known signature`,
+                }
+            }
+
+            const positionalIndex = signature.positional.indexOf(String(segment))
+
+            if (positionalIndex !== -1) {
+
+                const argNode = current.arguments[positionalIndex]
+
+                if (!argNode) {
+
+                    return { error: `argument for "${segment}" is missing` }
+
+                }
+
+                current = argNode
+
+                continue
+
+            }
+
+            const optsNode = current.arguments[signature.optsArgIndex]
+
+            if (!optsNode || optsNode.type !== "ObjectExpression") {
+
+                return { error: `"${segment}" not found - no options object on this call` }
+
+            }
+
+            const key = String(segment)
+
+            const prop = optsNode.properties.find(
+                p => p.type === "Property" && keyName(p.key, p.computed) === key,
+            )
+
+            if (!prop) {
+
+                return { error: `key "${key}" not found in factory options` }
+
+            }
+
+            current = prop.value
 
             continue
 
@@ -309,7 +472,7 @@ function applyJsEdits({ source, exportName, edits }) {
 
             }
 
-            const resolved = resolvePath(rootInit, editPath)
+            const resolved = resolvePath(rootInit, editPath, ast)
 
             if (resolved.error) {
 
