@@ -186,3 +186,99 @@ test("applyEdit writes into an index-id array export (tutorial.js)", () => {
     assert.equal(result.applied.length, 1)
     assert.ok(parseAst(result.proposedCode), "proposed code still parses")
 })
+
+test("applyEdit addField inserts a new property, rejects an existing key", () => {
+
+    const added = applyEdit({
+        filePath: "src/data/heartwood/enemies.js",
+        exportName: "ENEMIES",
+        edits: [
+            { path: ["rotwood-husk"], op: "addField", key: "testField", block: "testField: 42" },
+        ],
+    })
+
+    assert.equal(added.ok, true)
+    assert.equal(added.applied.length, 1)
+    assert.ok(parseAst(added.proposedCode), "proposed code still parses")
+
+    const duplicate = applyEdit({
+        filePath: "src/data/heartwood/enemies.js",
+        exportName: "ENEMIES",
+        edits: [
+            { path: ["rotwood-husk"], op: "addField", key: "maxHp", block: "maxHp: 999" },
+        ],
+    })
+
+    assert.equal(duplicate.ok, false)
+    assert.match(duplicate.rejected[0].reason, /already exists/)
+})
+
+test("applyEdit addField writes into a unit() factory call's options object", () => {
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/units.js",
+        exportName: "UNITS",
+        edits: [
+            { path: ["the-fool"], op: "addField", key: "testFlag", block: "testFlag: true" },
+        ],
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(result.applied.length, 1)
+    assert.ok(parseAst(result.proposedCode), "proposed code still parses")
+})
+
+test("applyEdit removeField deletes exactly one property, no dangling comma", () => {
+
+    const before = readEntities({ type: "enemies" })
+    const husk = before.entities.find(e => e.id === "rotwood-husk")
+
+    assert.ok(husk.fields.art, "rotwood-husk has an art field before removal")
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/enemies.js",
+        exportName: "ENEMIES",
+        edits: [
+            { path: ["rotwood-husk", "art"], op: "removeField" },
+        ],
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(result.applied.length, 1)
+    assert.ok(parseAst(result.proposedCode), "proposed code still parses")
+
+    // rotwood-sapling also has `art: "husk"` - a whole-file substring
+    // check would pass by coincidence even if removal targeted the
+    // wrong node, so re-read the PROPOSED code's rotwood-husk entity
+    // specifically (readEntities takes a source override for exactly
+    // this kind of check).
+    const after = readEntities({ file: "enemies.js", exportName: "ENEMIES", source: result.proposedCode })
+    const huskAfter = after.entities.find(e => e.id === "rotwood-husk")
+
+    assert.ok(huskAfter, "rotwood-husk still present after removing one field")
+    assert.equal(huskAfter.fields.art, undefined, "art field specifically is gone")
+    assert.ok(huskAfter.fields.maxHp, "sibling fields untouched")
+})
+
+test("applyEdit removeKey deletes a whole entity, from a plain map and a spread-composed one", () => {
+
+    const fromEnemies = applyEdit({
+        filePath: "src/data/heartwood/enemies.js",
+        exportName: "ENEMIES",
+        edits: [{ path: ["rotwood-sapling"], op: "removeKey" }],
+    })
+
+    assert.equal(fromEnemies.ok, true)
+    assert.ok(parseAst(fromEnemies.proposedCode), "enemies.js still parses")
+    assert.ok(!fromEnemies.proposedCode.includes("\"rotwood-sapling\":"))
+
+    const fromUnits = applyEdit({
+        filePath: "src/data/heartwood/units.js",
+        exportName: "UNITS",
+        edits: [{ path: ["the-fool"], op: "removeKey" }],
+    })
+
+    assert.equal(fromUnits.ok, true)
+    assert.ok(parseAst(fromUnits.proposedCode), "units.js still parses")
+    assert.ok(!fromUnits.proposedCode.includes("\"the-fool\":"))
+})

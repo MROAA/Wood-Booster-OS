@@ -652,9 +652,13 @@ export function readEntities(input) {
 
     const relPath = `${HEARTHWOOD_DATA_DIR}/${target.file}`
 
-    const absPath = path.join(PROJECT_ROOT, relPath)
-
-    const source = fs.readFileSync(absPath, "utf8")
+    // `input.source`, when given, is read INSTEAD of the file on disk -
+    // lets a caller (currently just the test suite) sanity-check a
+    // proposed edit's result by walking it exactly like the real file,
+    // without writing anything.
+    const source = typeof input.source === "string"
+        ? input.source
+        : fs.readFileSync(path.join(PROJECT_ROOT, relPath), "utf8")
 
     const ast = parseAst(source)
 

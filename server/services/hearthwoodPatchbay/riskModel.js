@@ -198,6 +198,27 @@ export function classifyRisk({ targetFiles = [], editSpec = {} } = {}) {
 
             }
 
+            if (op && op.op === "addField") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("lisää uuden kentän olemassa olevaan entiteettiin")
+
+            }
+
+            if (op && op.op === "removeField") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("poistaa kentän - tarkista ettei mikään muu viittaa siihen")
+
+            }
+
+            if (op && op.op === "removeKey") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("poistaa koko entiteetin - tarkista ettei mikään muu viittaa siihen")
+
+            }
+
             if (op && op.op === "setImportedImage") {
 
                 tier = maxTier(tier, "MEDIUM")

@@ -196,7 +196,7 @@ function findLocalInit(ast, name) {
  * Without this, every write against a spread-composed map would 404 on
  * its very first path segment even though the reader can see the key.
  */
-function findMapProperty(mapNode, ast, key, depth = 0) {
+function findMapPropertyWithContainer(mapNode, ast, key, depth = 0) {
 
     if (!mapNode || mapNode.type !== "ObjectExpression" || depth > 4) {
 
@@ -204,11 +204,13 @@ function findMapProperty(mapNode, ast, key, depth = 0) {
 
     }
 
-    for (const prop of mapNode.properties) {
+    for (let index = 0; index < mapNode.properties.length; index += 1) {
+
+        const prop = mapNode.properties[index]
 
         if (prop.type === "Property" && keyName(prop.key, prop.computed) === key) {
 
-            return prop
+            return { container: mapNode, index, prop }
 
         }
 
@@ -218,7 +220,7 @@ function findMapProperty(mapNode, ast, key, depth = 0) {
             && prop.argument.type === "Identifier"
         ) {
 
-            const found = findMapProperty(findLocalInit(ast, prop.argument.name), ast, key, depth + 1)
+            const found = findMapPropertyWithContainer(findLocalInit(ast, prop.argument.name), ast, key, depth + 1)
 
             if (found) {
 
@@ -229,6 +231,43 @@ function findMapProperty(mapNode, ast, key, depth = 0) {
     }
 
     return null
+}
+
+/** Thin wrapper over findMapPropertyWithContainer() for callers that only need the Property node itself. */
+function findMapProperty(mapNode, ast, key) {
+
+    const found = findMapPropertyWithContainer(mapNode, ast, key)
+
+    return found ? found.prop : null
+
+}
+
+/**
+ * The byte range to delete in order to remove `properties[index]` from a
+ * properties/elements list, taking exactly one adjacent comma with it
+ * (the trailing one if a later sibling exists, else the leading one) so
+ * the result never has a dangling/missing comma. Shared by removeField
+ * (an object's own properties) and removeKey (a map's entity entries) -
+ * same shape, same comma bookkeeping either way.
+ */
+function removalRange(properties, index) {
+
+    const target = properties[index]
+
+    if (index < properties.length - 1) {
+
+        return [target.start, properties[index + 1].start]
+
+    }
+
+    if (index > 0) {
+
+        return [properties[index - 1].end, target.end]
+
+    }
+
+    return [target.start, target.end]
+
 }
 
 /**
@@ -629,6 +668,326 @@ function applyJsEdits({ source, exportName, edits }) {
                 magic.appendLeft(insertAt, text)
 
                 applied.push({ path: editPath, oldText: "", newText: text })
+
+                continue
+
+            }
+
+            if (edit.op === "addField") {
+
+                // path === [entityId]; key+block describe a brand-new
+                // property to insert - into the entity's own object, or
+                // (unit()-style factory calls) its trailing options
+                // object. Rejects if the key already exists ("set" is
+                // the right op for an existing field).
+                if (editPath.length !== 1) {
+
+                    rejected.push({ path: editPath, reason: "addField needs [entityId]" })
+                    continue
+
+                }
+
+                const fieldKey = String(edit.key || "")
+
+                if (!fieldKey) {
+
+                    rejected.push({ path: editPath, reason: "addField needs a non-empty key" })
+                    continue
+
+                }
+
+                const fieldBlock = String(edit.block || "").replace(/\s+$/, "")
+
+                if (!fieldBlock) {
+
+                    rejected.push({ path: editPath, reason: "addField needs a non-empty block" })
+                    continue
+
+                }
+
+                let addFieldContainer
+
+                if (rootInit.type === "ObjectExpression") {
+
+                    const targetProp = findMapProperty(rootInit, ast, String(editPath[0]))
+
+                    if (!targetProp) {
+
+                        rejected.push({ path: editPath, reason: `key "${editPath[0]}" not found` })
+                        continue
+
+                    }
+
+                    if (targetProp.value.type === "ObjectExpression") {
+
+                        addFieldContainer = targetProp.value
+
+                    } else if (targetProp.value.type === "CallExpression") {
+
+                        const calleeName = targetProp.value.callee && targetProp.value.callee.type === "Identifier"
+                            ? targetProp.value.callee.name
+                            : null
+
+                        const signature = calleeName ? FACTORY_SIGNATURES[calleeName] : null
+
+                        if (!signature) {
+
+                            rejected.push({ path: editPath, reason: `factory call "${calleeName || "?"}" has no known signature` })
+                            continue
+
+                        }
+
+                        const optsNode = targetProp.value.arguments[signature.optsArgIndex]
+
+                        if (!optsNode || optsNode.type !== "ObjectExpression") {
+
+                            rejected.push({ path: editPath, reason: "no options object on this factory call" })
+                            continue
+
+                        }
+
+                        addFieldContainer = optsNode
+
+                    } else {
+
+                        rejected.push({ path: editPath, reason: `cannot add a field to a ${targetProp.value.type}` })
+                        continue
+
+                    }
+
+                } else {
+
+                    const element = findArrayElementByIdOrIndex(rootInit, editPath[0])
+
+                    if (!element || element.type !== "ObjectExpression") {
+
+                        rejected.push({ path: editPath, reason: "target entity is not an object literal" })
+                        continue
+
+                    }
+
+                    addFieldContainer = element
+
+                }
+
+                const existingProp = addFieldContainer.properties.find(
+                    p => p.type === "Property" && keyName(p.key, p.computed) === fieldKey,
+                )
+
+                if (existingProp) {
+
+                    rejected.push({ path: editPath, reason: `key "${fieldKey}" already exists - use "set" instead` })
+                    continue
+
+                }
+
+                const fieldInsertAt = addFieldContainer.end - 1
+
+                const fieldBefore = source.slice(0, fieldInsertAt).replace(/\s+$/, "")
+
+                const fieldNeedsComma = !fieldBefore.endsWith("{") && !fieldBefore.endsWith(",")
+
+                const fieldText = `${fieldNeedsComma ? "," : ""}\n${fieldBlock},\n`
+
+                magic.appendLeft(fieldInsertAt, fieldText)
+
+                applied.push({ path: [...editPath, fieldKey], oldText: "", newText: fieldText })
+
+                continue
+
+            }
+
+            if (edit.op === "removeField") {
+
+                // path === [entityId, fieldName]. Same container
+                // resolution as addField, then deletes exactly one
+                // adjacent comma along with the property (removalRange)
+                // so the result is never left with a dangling/missing one.
+                if (editPath.length !== 2) {
+
+                    rejected.push({ path: editPath, reason: "removeField needs [entityId, fieldName]" })
+                    continue
+
+                }
+
+                const [rfEntityId, rfFieldKey] = editPath
+
+                let removeFieldContainer
+
+                if (rootInit.type === "ObjectExpression") {
+
+                    const targetProp = findMapProperty(rootInit, ast, String(rfEntityId))
+
+                    if (!targetProp) {
+
+                        rejected.push({ path: editPath, reason: `key "${rfEntityId}" not found` })
+                        continue
+
+                    }
+
+                    if (targetProp.value.type === "ObjectExpression") {
+
+                        removeFieldContainer = targetProp.value
+
+                    } else if (targetProp.value.type === "CallExpression") {
+
+                        const calleeName = targetProp.value.callee && targetProp.value.callee.type === "Identifier"
+                            ? targetProp.value.callee.name
+                            : null
+
+                        const signature = calleeName ? FACTORY_SIGNATURES[calleeName] : null
+
+                        if (!signature) {
+
+                            rejected.push({ path: editPath, reason: `factory call "${calleeName || "?"}" has no known signature` })
+                            continue
+
+                        }
+
+                        if (signature.positional.includes(String(rfFieldKey))) {
+
+                            rejected.push({
+                                path: editPath,
+                                reason: `"${rfFieldKey}" is a required positional argument - cannot remove it`,
+                            })
+                            continue
+
+                        }
+
+                        const optsNode = targetProp.value.arguments[signature.optsArgIndex]
+
+                        if (!optsNode || optsNode.type !== "ObjectExpression") {
+
+                            rejected.push({ path: editPath, reason: "no options object on this factory call" })
+                            continue
+
+                        }
+
+                        removeFieldContainer = optsNode
+
+                    } else {
+
+                        rejected.push({ path: editPath, reason: `cannot remove a field from a ${targetProp.value.type}` })
+                        continue
+
+                    }
+
+                } else {
+
+                    const element = findArrayElementByIdOrIndex(rootInit, rfEntityId)
+
+                    if (!element || element.type !== "ObjectExpression") {
+
+                        rejected.push({ path: editPath, reason: "target entity is not an object literal" })
+                        continue
+
+                    }
+
+                    removeFieldContainer = element
+
+                }
+
+                const fieldIndex = removeFieldContainer.properties.findIndex(
+                    p => p.type === "Property" && keyName(p.key, p.computed) === String(rfFieldKey),
+                )
+
+                if (fieldIndex === -1) {
+
+                    rejected.push({ path: editPath, reason: `key "${rfFieldKey}" not found` })
+                    continue
+
+                }
+
+                const [fieldRemoveStart, fieldRemoveEnd] = removalRange(removeFieldContainer.properties, fieldIndex)
+
+                const removedFieldText = source.slice(fieldRemoveStart, fieldRemoveEnd)
+
+                magic.remove(fieldRemoveStart, fieldRemoveEnd)
+
+                applied.push({ path: editPath, oldText: removedFieldText, newText: "" })
+
+                continue
+
+            }
+
+            if (edit.op === "removeKey") {
+
+                // path === [entityId]; removes the WHOLE entity from the
+                // root map/array (through spreads for an object root, by
+                // string id or index for an array root).
+                if (editPath.length !== 1) {
+
+                    rejected.push({ path: editPath, reason: "removeKey needs [entityId]" })
+                    continue
+
+                }
+
+                if (rootInit.type === "ObjectExpression") {
+
+                    const found = findMapPropertyWithContainer(rootInit, ast, String(editPath[0]))
+
+                    if (!found) {
+
+                        rejected.push({ path: editPath, reason: `key "${editPath[0]}" not found` })
+                        continue
+
+                    }
+
+                    const [keyRemoveStart, keyRemoveEnd] = removalRange(found.container.properties, found.index)
+
+                    const removedKeyText = source.slice(keyRemoveStart, keyRemoveEnd)
+
+                    magic.remove(keyRemoveStart, keyRemoveEnd)
+
+                    applied.push({ path: editPath, oldText: removedKeyText, newText: "" })
+
+                    continue
+
+                }
+
+                const wantedId = String(editPath[0])
+
+                let elementIndex = -1
+
+                for (let i = 0; i < rootInit.elements.length; i += 1) {
+
+                    const el = rootInit.elements[i]
+
+                    if (el && el.type === "ObjectExpression") {
+
+                        const idProp = el.properties.find(
+                            p => p.type === "Property" && keyName(p.key, p.computed) === "id",
+                        )
+
+                        if (idProp && idProp.value.type === "Literal" && idProp.value.value === wantedId) {
+
+                            elementIndex = i
+                            break
+
+                        }
+                    }
+                }
+
+                if (elementIndex === -1 && /^\d+$/.test(wantedId)) {
+
+                    elementIndex = Number(wantedId)
+
+                }
+
+                if (elementIndex === -1 || !rootInit.elements[elementIndex]) {
+
+                    rejected.push({ path: editPath, reason: `no array element matches "${wantedId}"` })
+                    continue
+
+                }
+
+                const [elRemoveStart, elRemoveEnd] = removalRange(rootInit.elements, elementIndex)
+
+                const removedElText = source.slice(elRemoveStart, elRemoveEnd)
+
+                magic.remove(elRemoveStart, elRemoveEnd)
+
+                applied.push({ path: editPath, oldText: removedElText, newText: "" })
 
                 continue
 

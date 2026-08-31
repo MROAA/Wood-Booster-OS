@@ -219,3 +219,27 @@ test("reasons is always a non-empty array of strings", () => {
     assert.ok(low.reasons.every(reason => typeof reason === "string"))
 
 })
+
+test("addField/removeField/removeKey ops are all MEDIUM", () => {
+
+    const addField = classifyRisk({
+        targetFiles: ["src/data/heartwood/enemies.js"],
+        editSpec: { ops: [{ path: ["rotwood-husk"], op: "addField", key: "cold", value: -2 }] },
+    })
+
+    const removeField = classifyRisk({
+        targetFiles: ["src/data/heartwood/enemies.js"],
+        editSpec: { ops: [{ path: ["rotwood-husk", "art"], op: "removeField" }] },
+    })
+
+    const removeKey = classifyRisk({
+        targetFiles: ["src/data/heartwood/enemies.js"],
+        editSpec: { ops: [{ path: ["rotwood-husk"], op: "removeKey" }] },
+    })
+
+    assert.equal(addField.tier, "MEDIUM")
+    assert.equal(removeField.tier, "MEDIUM")
+    assert.equal(removeKey.tier, "MEDIUM")
+    assert.ok([addField, removeField, removeKey].every(r => r.requiresConfirm))
+
+})
