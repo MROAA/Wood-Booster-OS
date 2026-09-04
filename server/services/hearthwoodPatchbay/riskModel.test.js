@@ -141,6 +141,42 @@ test("an addKey op (new entity) is MEDIUM", () => {
 
 })
 
+test("a setImportedImage op (image swap) is MEDIUM", () => {
+
+    const result = classifyRisk({
+        targetFiles: ["src/data/heartwood/units.js"],
+        editSpec: {
+            ops: [{
+                path: ["the-fool", "image"],
+                op: "setImportedImage",
+                importPath: "../../assets/heartwood/units/the-fool-2.jpg",
+            }],
+        },
+    })
+
+    assert.equal(result.tier, "MEDIUM")
+    assert.equal(result.requiresConfirm, true)
+
+})
+
+test("a setRaw op (complex field replaced wholesale) is MEDIUM", () => {
+
+    const result = classifyRisk({
+        targetFiles: ["src/data/heartwood/enemies.js"],
+        editSpec: {
+            ops: [{
+                path: ["rotwood-husk", "movePattern"],
+                op: "setRaw",
+                value: "[{ type: \"attack\", amount: 12 }]",
+            }],
+        },
+    })
+
+    assert.equal(result.tier, "MEDIUM")
+    assert.equal(result.requiresConfirm, true)
+
+})
+
 test("whole-file edit of a Hearthwood component is bumped MEDIUM -> HIGH", () => {
 
     const result = classifyRisk({
@@ -181,5 +217,29 @@ test("reasons is always a non-empty array of strings", () => {
     assert.ok(Array.isArray(low.reasons))
     assert.ok(low.reasons.length > 0)
     assert.ok(low.reasons.every(reason => typeof reason === "string"))
+
+})
+
+test("addField/removeField/removeKey ops are all MEDIUM", () => {
+
+    const addField = classifyRisk({
+        targetFiles: ["src/data/heartwood/enemies.js"],
+        editSpec: { ops: [{ path: ["rotwood-husk"], op: "addField", key: "cold", value: -2 }] },
+    })
+
+    const removeField = classifyRisk({
+        targetFiles: ["src/data/heartwood/enemies.js"],
+        editSpec: { ops: [{ path: ["rotwood-husk", "art"], op: "removeField" }] },
+    })
+
+    const removeKey = classifyRisk({
+        targetFiles: ["src/data/heartwood/enemies.js"],
+        editSpec: { ops: [{ path: ["rotwood-husk"], op: "removeKey" }] },
+    })
+
+    assert.equal(addField.tier, "MEDIUM")
+    assert.equal(removeField.tier, "MEDIUM")
+    assert.equal(removeKey.tier, "MEDIUM")
+    assert.ok([addField, removeField, removeKey].every(r => r.requiresConfirm))
 
 })

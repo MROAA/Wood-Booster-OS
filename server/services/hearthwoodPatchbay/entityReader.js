@@ -214,6 +214,7 @@ export async function getEntity(type, id) {
         exportName: list.exportName,
         fields: entity.fields,
         complexKeys: entity.complexKeys,
+        identifierKeys: entity.identifierKeys,
         sourceRange: entity.sourceRange,
         source,
     }

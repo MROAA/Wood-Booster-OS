@@ -43,7 +43,7 @@ import { parseAst } from "vite"
 import MagicString from "magic-string"
 import postcss from "postcss"
 
-import { PROJECT_ROOT } from "../server/services/hearthwoodPatchbay/paths.js"
+import { PROJECT_ROOT, FACTORY_SIGNATURES } from "../server/services/hearthwoodPatchbay/paths.js"
 import { declValueRange } from "./hearthwood-read-styles.mjs"
 
 /* ------------------------------------------------------------------ *
@@ -151,13 +151,190 @@ function findExportInit(ast, exportName) {
     return null
 }
 
+/** Find a top-level `const <name> = <init>` (exported or not). */
+function findLocalInit(ast, name) {
+
+    for (const node of ast.body) {
+
+        const varDecl = node.type === "VariableDeclaration"
+            ? node
+            : (node.type === "ExportNamedDeclaration"
+                && node.declaration
+                && node.declaration.type === "VariableDeclaration"
+                ? node.declaration
+                : null)
+
+        if (!varDecl) {
+
+            continue
+
+        }
+
+        for (const decl of varDecl.declarations) {
+
+            if (
+                decl.id
+                && decl.id.type === "Identifier"
+                && decl.id.name === name
+            ) {
+
+                return decl.init
+
+            }
+        }
+    }
+
+    return null
+}
+
 /**
- * Walk `pathSegments` from `rootObject` (an ObjectExpression) to the
- * value node it addresses. The first segment names a Property key in the
- * root map; each following segment is either an object key or a numeric
- * array index. Returns { node } or { error }.
+ * Finds the Property node for `key` in a map ObjectExpression, resolving
+ * through `{ ...IDENTIFIER }` spreads against other top-level object
+ * literals in the file (units.js: `UNITS = {...BASE_UNITS,
+ * ...TIER2_UNITS}`) - mirrors hearthwood-read-entities.mjs's walkMap()
+ * `absorb()`, which the reader already needs for the exact same reason.
+ * Without this, every write against a spread-composed map would 404 on
+ * its very first path segment even though the reader can see the key.
  */
-function resolvePath(rootObject, pathSegments) {
+function findMapPropertyWithContainer(mapNode, ast, key, depth = 0) {
+
+    if (!mapNode || mapNode.type !== "ObjectExpression" || depth > 4) {
+
+        return null
+
+    }
+
+    for (let index = 0; index < mapNode.properties.length; index += 1) {
+
+        const prop = mapNode.properties[index]
+
+        if (prop.type === "Property" && keyName(prop.key, prop.computed) === key) {
+
+            return { container: mapNode, index, prop }
+
+        }
+
+        if (
+            (prop.type === "SpreadElement" || prop.type === "ExperimentalSpreadProperty")
+            && prop.argument
+            && prop.argument.type === "Identifier"
+        ) {
+
+            const found = findMapPropertyWithContainer(findLocalInit(ast, prop.argument.name), ast, key, depth + 1)
+
+            if (found) {
+
+                return found
+
+            }
+        }
+    }
+
+    return null
+}
+
+/** Thin wrapper over findMapPropertyWithContainer() for callers that only need the Property node itself. */
+function findMapProperty(mapNode, ast, key) {
+
+    const found = findMapPropertyWithContainer(mapNode, ast, key)
+
+    return found ? found.prop : null
+
+}
+
+/**
+ * The byte range to delete in order to remove `properties[index]` from a
+ * properties/elements list, taking exactly one adjacent comma with it
+ * (the trailing one if a later sibling exists, else the leading one) so
+ * the result never has a dangling/missing comma. Shared by removeField
+ * (an object's own properties) and removeKey (a map's entity entries) -
+ * same shape, same comma bookkeeping either way.
+ */
+function removalRange(properties, index) {
+
+    const target = properties[index]
+
+    if (index < properties.length - 1) {
+
+        return [target.start, properties[index + 1].start]
+
+    }
+
+    if (index > 0) {
+
+        return [properties[index - 1].end, target.end]
+
+    }
+
+    return [target.start, target.end]
+
+}
+
+/**
+ * Finds an ArrayExpression element by the same rule
+ * hearthwood-read-entities.mjs's walkArray() assigns ids with: the
+ * element's own string "id" property if it has one, else the array
+ * index (as a string). Only meaningful at the top level (path segment
+ * 0) - a plain-array export's entities, not a nested array field.
+ */
+function findArrayElementByIdOrIndex(arrayNode, segment) {
+
+    const wanted = String(segment)
+
+    for (const [index, element] of arrayNode.elements.entries()) {
+
+        if (!element) {
+
+            continue
+
+        }
+
+        if (element.type === "ObjectExpression") {
+
+            const idProp = element.properties.find(
+                p => p.type === "Property" && keyName(p.key, p.computed) === "id",
+            )
+
+            if (
+                idProp
+                && idProp.value.type === "Literal"
+                && typeof idProp.value.value === "string"
+                && idProp.value.value === wanted
+            ) {
+
+                return element
+
+            }
+        }
+
+        if (String(index) === wanted) {
+
+            // Only reachable when nothing had a matching string "id" -
+            // matches the reader's own fallback order.
+            const hasAnyId = element.type === "ObjectExpression" && element.properties.some(
+                p => p.type === "Property" && keyName(p.key, p.computed) === "id",
+            )
+
+            if (!hasAnyId) {
+
+                return element
+
+            }
+        }
+    }
+
+    return null
+
+}
+
+/**
+ * Walk `pathSegments` from `rootObject` (the root map's ObjectExpression)
+ * to the value node it addresses. The first segment names an entity key
+ * in the root map (resolved through spreads via findMapProperty); each
+ * following segment is an object key, a numeric array index, or a
+ * factory-call argument/option name. Returns { node } or { error }.
+ */
+function resolvePath(rootObject, pathSegments, ast) {
 
     let current = rootObject
 
@@ -168,6 +345,46 @@ function resolvePath(rootObject, pathSegments) {
         if (!current) {
 
             return { error: `path stopped at a missing node before "${segment}"` }
+
+        }
+
+        if (i === 0 && current.type === "ObjectExpression") {
+
+            const key = String(segment)
+
+            const prop = findMapProperty(current, ast, key)
+
+            if (!prop) {
+
+                return { error: `key "${key}" not found` }
+
+            }
+
+            current = prop.value
+
+            continue
+
+        }
+
+        if (i === 0 && current.type === "ArrayExpression") {
+
+            // A plain-array export (dualClasses.js/tutorial.js). The
+            // reader (hearthwood-read-entities.mjs's walkArray) uses each
+            // element's own string "id" field as the entity id when one
+            // exists, falling back to the array index only when it
+            // doesn't (tutorial.js) - mirror that exact rule here so a
+            // path segment resolves to the same element the browser saw.
+            const element = findArrayElementByIdOrIndex(current, segment)
+
+            if (!element) {
+
+                return { error: `no array element matches "${segment}"` }
+
+            }
+
+            current = element
+
+            continue
 
         }
 
@@ -213,12 +430,165 @@ function resolvePath(rootObject, pathSegments) {
 
         }
 
+        if (current.type === "CallExpression") {
+
+            // units.js style: unit(id, name, art, cost, role, movePattern,
+            // opts). `segment` names either a positional argument
+            // (FACTORY_SIGNATURES) or a key inside the trailing opts
+            // object - same two-tier lookup hearthwood-read-entities.mjs
+            // uses to report these fields in the first place.
+            const calleeName = current.callee && current.callee.type === "Identifier"
+                ? current.callee.name
+                : null
+
+            const signature = calleeName ? FACTORY_SIGNATURES[calleeName] : null
+
+            if (!signature) {
+
+                return {
+                    error: `factory call "${calleeName || "?"}" has no known signature`,
+                }
+            }
+
+            const positionalIndex = signature.positional.indexOf(String(segment))
+
+            if (positionalIndex !== -1) {
+
+                const argNode = current.arguments[positionalIndex]
+
+                if (!argNode) {
+
+                    return { error: `argument for "${segment}" is missing` }
+
+                }
+
+                current = argNode
+
+                continue
+
+            }
+
+            const optsNode = current.arguments[signature.optsArgIndex]
+
+            if (!optsNode || optsNode.type !== "ObjectExpression") {
+
+                return { error: `"${segment}" not found - no options object on this call` }
+
+            }
+
+            const key = String(segment)
+
+            const prop = optsNode.properties.find(
+                p => p.type === "Property" && keyName(p.key, p.computed) === key,
+            )
+
+            if (!prop) {
+
+                return { error: `key "${key}" not found in factory options` }
+
+            }
+
+            current = prop.value
+
+            continue
+
+        }
+
         return {
             error: `cannot descend into a ${current.type} with "${segment}"`,
         }
     }
 
     return { node: current }
+}
+
+/** Byte offset right after the last top-level `import ...` statement. */
+function findLastImportEnd(ast) {
+
+    let end = 0
+
+    for (const node of ast.body) {
+
+        if (node.type === "ImportDeclaration") {
+
+            end = node.end
+
+        }
+    }
+
+    return end
+
+}
+
+/** Is `name` already bound by a top-level import's local specifier? */
+function importIdentifierExists(ast, name) {
+
+    for (const node of ast.body) {
+
+        if (node.type !== "ImportDeclaration") {
+
+            continue
+
+        }
+
+        for (const spec of node.specifiers) {
+
+            if (spec.local && spec.local.name === name) {
+
+                return true
+
+            }
+        }
+    }
+
+    return false
+
+}
+
+/**
+ * entityId -> camelCase + "Img", matching this file's own existing
+ * import-naming convention exactly (`ember-stag` -> `emberStagImg`,
+ * `the-fool` -> `theFoolImg`) so a swapped-in image reads like it was
+ * always there.
+ */
+function toImportIdentifierBase(entityId) {
+
+    const parts = String(entityId).split(/[^a-zA-Z0-9]+/).filter(Boolean)
+
+    const camel = parts
+        .map((part, index) => index === 0
+            ? part.toLowerCase()
+            : part[0].toUpperCase() + part.slice(1).toLowerCase())
+        .join("")
+
+    return `${camel}Img`
+
+}
+
+/** A free (not already imported) identifier name for entityId's image. */
+function uniqueImportIdentifier(ast, entityId, reservedInThisRun) {
+
+    const base = toImportIdentifierBase(entityId)
+
+    if (!importIdentifierExists(ast, base) && !reservedInThisRun.has(base)) {
+
+        return base
+
+    }
+
+    let suffix = 2
+
+    while (
+        importIdentifierExists(ast, `${base}${suffix}`)
+        || reservedInThisRun.has(`${base}${suffix}`)
+    ) {
+
+        suffix += 1
+
+    }
+
+    return `${base}${suffix}`
+
 }
 
 function applyJsEdits({ source, exportName, edits }) {
@@ -244,7 +614,13 @@ function applyJsEdits({ source, exportName, edits }) {
 
     const rootInit = findExportInit(ast, exportName)
 
-    if (!rootInit || rootInit.type !== "ObjectExpression") {
+    // Most maps are ObjectExpression; dualClasses.js/tutorial.js export a
+    // plain ArrayExpression instead (paths.js's own ENTITY_TYPES notes
+    // this) - resolvePath()/the addKey insertion-point logic both already
+    // handle either root shape structurally, so only truly unsupported
+    // roots (a factory call at the TOP level, a computed expression, ...)
+    // are rejected here.
+    if (!rootInit || (rootInit.type !== "ObjectExpression" && rootInit.type !== "ArrayExpression")) {
 
         return {
             ok: false,
@@ -253,12 +629,14 @@ function applyJsEdits({ source, exportName, edits }) {
             rejected: edits.map(edit => ({
                 path: edit.path || null,
                 reason:
-                    `export const ${exportName} is not an object literal map`,
+                    `export const ${exportName} is not an object or array literal`,
             })),
         }
     }
 
     const magic = new MagicString(source)
+
+    const reservedIdentifiers = new Set()
 
     for (const edit of edits) {
 
@@ -283,13 +661,497 @@ function applyJsEdits({ source, exportName, edits }) {
 
                 const before = source.slice(0, insertAt).replace(/\s+$/, "")
 
-                const needsComma = !before.endsWith("{") && !before.endsWith(",")
+                const needsComma = !before.endsWith("{") && !before.endsWith("[") && !before.endsWith(",")
 
                 const text = `${needsComma ? "," : ""}\n${block},\n`
 
                 magic.appendLeft(insertAt, text)
 
                 applied.push({ path: editPath, oldText: "", newText: text })
+
+                continue
+
+            }
+
+            if (edit.op === "addField") {
+
+                // path === [entityId]; key+block describe a brand-new
+                // property to insert - into the entity's own object, or
+                // (unit()-style factory calls) its trailing options
+                // object. Rejects if the key already exists ("set" is
+                // the right op for an existing field).
+                if (editPath.length !== 1) {
+
+                    rejected.push({ path: editPath, reason: "addField needs [entityId]" })
+                    continue
+
+                }
+
+                const fieldKey = String(edit.key || "")
+
+                if (!fieldKey) {
+
+                    rejected.push({ path: editPath, reason: "addField needs a non-empty key" })
+                    continue
+
+                }
+
+                const fieldBlock = String(edit.block || "").replace(/\s+$/, "")
+
+                if (!fieldBlock) {
+
+                    rejected.push({ path: editPath, reason: "addField needs a non-empty block" })
+                    continue
+
+                }
+
+                let addFieldContainer
+
+                if (rootInit.type === "ObjectExpression") {
+
+                    const targetProp = findMapProperty(rootInit, ast, String(editPath[0]))
+
+                    if (!targetProp) {
+
+                        rejected.push({ path: editPath, reason: `key "${editPath[0]}" not found` })
+                        continue
+
+                    }
+
+                    if (targetProp.value.type === "ObjectExpression") {
+
+                        addFieldContainer = targetProp.value
+
+                    } else if (targetProp.value.type === "CallExpression") {
+
+                        const calleeName = targetProp.value.callee && targetProp.value.callee.type === "Identifier"
+                            ? targetProp.value.callee.name
+                            : null
+
+                        const signature = calleeName ? FACTORY_SIGNATURES[calleeName] : null
+
+                        if (!signature) {
+
+                            rejected.push({ path: editPath, reason: `factory call "${calleeName || "?"}" has no known signature` })
+                            continue
+
+                        }
+
+                        const optsNode = targetProp.value.arguments[signature.optsArgIndex]
+
+                        if (!optsNode || optsNode.type !== "ObjectExpression") {
+
+                            rejected.push({ path: editPath, reason: "no options object on this factory call" })
+                            continue
+
+                        }
+
+                        addFieldContainer = optsNode
+
+                    } else {
+
+                        rejected.push({ path: editPath, reason: `cannot add a field to a ${targetProp.value.type}` })
+                        continue
+
+                    }
+
+                } else {
+
+                    const element = findArrayElementByIdOrIndex(rootInit, editPath[0])
+
+                    if (!element || element.type !== "ObjectExpression") {
+
+                        rejected.push({ path: editPath, reason: "target entity is not an object literal" })
+                        continue
+
+                    }
+
+                    addFieldContainer = element
+
+                }
+
+                const existingProp = addFieldContainer.properties.find(
+                    p => p.type === "Property" && keyName(p.key, p.computed) === fieldKey,
+                )
+
+                if (existingProp) {
+
+                    rejected.push({ path: editPath, reason: `key "${fieldKey}" already exists - use "set" instead` })
+                    continue
+
+                }
+
+                const fieldInsertAt = addFieldContainer.end - 1
+
+                const fieldBefore = source.slice(0, fieldInsertAt).replace(/\s+$/, "")
+
+                const fieldNeedsComma = !fieldBefore.endsWith("{") && !fieldBefore.endsWith(",")
+
+                const fieldText = `${fieldNeedsComma ? "," : ""}\n${fieldBlock},\n`
+
+                magic.appendLeft(fieldInsertAt, fieldText)
+
+                applied.push({ path: [...editPath, fieldKey], oldText: "", newText: fieldText })
+
+                continue
+
+            }
+
+            if (edit.op === "removeField") {
+
+                // path === [entityId, fieldName]. Same container
+                // resolution as addField, then deletes exactly one
+                // adjacent comma along with the property (removalRange)
+                // so the result is never left with a dangling/missing one.
+                if (editPath.length !== 2) {
+
+                    rejected.push({ path: editPath, reason: "removeField needs [entityId, fieldName]" })
+                    continue
+
+                }
+
+                const [rfEntityId, rfFieldKey] = editPath
+
+                let removeFieldContainer
+
+                if (rootInit.type === "ObjectExpression") {
+
+                    const targetProp = findMapProperty(rootInit, ast, String(rfEntityId))
+
+                    if (!targetProp) {
+
+                        rejected.push({ path: editPath, reason: `key "${rfEntityId}" not found` })
+                        continue
+
+                    }
+
+                    if (targetProp.value.type === "ObjectExpression") {
+
+                        removeFieldContainer = targetProp.value
+
+                    } else if (targetProp.value.type === "CallExpression") {
+
+                        const calleeName = targetProp.value.callee && targetProp.value.callee.type === "Identifier"
+                            ? targetProp.value.callee.name
+                            : null
+
+                        const signature = calleeName ? FACTORY_SIGNATURES[calleeName] : null
+
+                        if (!signature) {
+
+                            rejected.push({ path: editPath, reason: `factory call "${calleeName || "?"}" has no known signature` })
+                            continue
+
+                        }
+
+                        if (signature.positional.includes(String(rfFieldKey))) {
+
+                            rejected.push({
+                                path: editPath,
+                                reason: `"${rfFieldKey}" is a required positional argument - cannot remove it`,
+                            })
+                            continue
+
+                        }
+
+                        const optsNode = targetProp.value.arguments[signature.optsArgIndex]
+
+                        if (!optsNode || optsNode.type !== "ObjectExpression") {
+
+                            rejected.push({ path: editPath, reason: "no options object on this factory call" })
+                            continue
+
+                        }
+
+                        removeFieldContainer = optsNode
+
+                    } else {
+
+                        rejected.push({ path: editPath, reason: `cannot remove a field from a ${targetProp.value.type}` })
+                        continue
+
+                    }
+
+                } else {
+
+                    const element = findArrayElementByIdOrIndex(rootInit, rfEntityId)
+
+                    if (!element || element.type !== "ObjectExpression") {
+
+                        rejected.push({ path: editPath, reason: "target entity is not an object literal" })
+                        continue
+
+                    }
+
+                    removeFieldContainer = element
+
+                }
+
+                const fieldIndex = removeFieldContainer.properties.findIndex(
+                    p => p.type === "Property" && keyName(p.key, p.computed) === String(rfFieldKey),
+                )
+
+                if (fieldIndex === -1) {
+
+                    rejected.push({ path: editPath, reason: `key "${rfFieldKey}" not found` })
+                    continue
+
+                }
+
+                const [fieldRemoveStart, fieldRemoveEnd] = removalRange(removeFieldContainer.properties, fieldIndex)
+
+                const removedFieldText = source.slice(fieldRemoveStart, fieldRemoveEnd)
+
+                magic.remove(fieldRemoveStart, fieldRemoveEnd)
+
+                applied.push({ path: editPath, oldText: removedFieldText, newText: "" })
+
+                continue
+
+            }
+
+            if (edit.op === "removeKey") {
+
+                // path === [entityId]; removes the WHOLE entity from the
+                // root map/array (through spreads for an object root, by
+                // string id or index for an array root).
+                if (editPath.length !== 1) {
+
+                    rejected.push({ path: editPath, reason: "removeKey needs [entityId]" })
+                    continue
+
+                }
+
+                if (rootInit.type === "ObjectExpression") {
+
+                    const found = findMapPropertyWithContainer(rootInit, ast, String(editPath[0]))
+
+                    if (!found) {
+
+                        rejected.push({ path: editPath, reason: `key "${editPath[0]}" not found` })
+                        continue
+
+                    }
+
+                    const [keyRemoveStart, keyRemoveEnd] = removalRange(found.container.properties, found.index)
+
+                    const removedKeyText = source.slice(keyRemoveStart, keyRemoveEnd)
+
+                    magic.remove(keyRemoveStart, keyRemoveEnd)
+
+                    applied.push({ path: editPath, oldText: removedKeyText, newText: "" })
+
+                    continue
+
+                }
+
+                const wantedId = String(editPath[0])
+
+                let elementIndex = -1
+
+                for (let i = 0; i < rootInit.elements.length; i += 1) {
+
+                    const el = rootInit.elements[i]
+
+                    if (el && el.type === "ObjectExpression") {
+
+                        const idProp = el.properties.find(
+                            p => p.type === "Property" && keyName(p.key, p.computed) === "id",
+                        )
+
+                        if (idProp && idProp.value.type === "Literal" && idProp.value.value === wantedId) {
+
+                            elementIndex = i
+                            break
+
+                        }
+                    }
+                }
+
+                if (elementIndex === -1 && /^\d+$/.test(wantedId)) {
+
+                    elementIndex = Number(wantedId)
+
+                }
+
+                if (elementIndex === -1 || !rootInit.elements[elementIndex]) {
+
+                    rejected.push({ path: editPath, reason: `no array element matches "${wantedId}"` })
+                    continue
+
+                }
+
+                const [elRemoveStart, elRemoveEnd] = removalRange(rootInit.elements, elementIndex)
+
+                const removedElText = source.slice(elRemoveStart, elRemoveEnd)
+
+                magic.remove(elRemoveStart, elRemoveEnd)
+
+                applied.push({ path: editPath, oldText: removedElText, newText: "" })
+
+                continue
+
+            }
+
+            if (edit.op === "setImportedImage") {
+
+                // path === [entityId, fieldName]; fieldName's current
+                // value must already be an Identifier (an existing
+                // `image: xImg`-style import reference) - this only
+                // swaps which import it points to, it never adds the
+                // field to an entity that doesn't have it yet.
+                if (editPath.length !== 2) {
+
+                    rejected.push({ path: editPath, reason: "setImportedImage needs [entityId, fieldName]" })
+                    continue
+
+                }
+
+                const importPath = String(edit.importPath || "")
+
+                if (!importPath) {
+
+                    rejected.push({ path: editPath, reason: "importPath is required" })
+                    continue
+
+                }
+
+                const resolvedImage = resolvePath(rootInit, editPath, ast)
+
+                if (resolvedImage.error) {
+
+                    rejected.push({ path: editPath, reason: resolvedImage.error })
+                    continue
+
+                }
+
+                const imageTarget = resolvedImage.node
+
+                if (imageTarget.type !== "Identifier") {
+
+                    rejected.push({
+                        path: editPath,
+                        reason: `target is a ${imageTarget.type}, expected an existing image identifier reference`,
+                    })
+                    continue
+
+                }
+
+                const identifierName = uniqueImportIdentifier(ast, editPath[0], reservedIdentifiers)
+
+                reservedIdentifiers.add(identifierName)
+
+                const importLine = `\nimport ${identifierName} from "${importPath}"`
+
+                magic.appendLeft(findLastImportEnd(ast), importLine)
+
+                magic.overwrite(imageTarget.start, imageTarget.end, identifierName)
+
+                applied.push({ path: editPath, oldText: imageTarget.name, newText: identifierName })
+
+                continue
+
+            }
+
+            if (edit.op === "setRaw") {
+
+                // Wholesale-replace ANY node's exact source text - the
+                // generic escape hatch for the complex fields "set" can
+                // never touch (movePattern, effects, passives, a whole
+                // per-tribe synergy tier array, ...). path.length===1
+                // targets the entire entity's value (synergies.js: each
+                // tribe's value IS the array, no wrapper object to
+                // descend into); longer paths resolve exactly like "set"
+                // (through object fields / factory-call args-or-opts /
+                // array indices) but accept any node shape, not just
+                // scalars. Safety: the substitution is trial-run through
+                // parseAst against the ORIGINAL source before being
+                // accepted - malformed replacement text is rejected
+                // outright, never silently written.
+                if (editPath.length < 1) {
+
+                    rejected.push({ path: editPath, reason: "empty path" })
+                    continue
+
+                }
+
+                const newText = String(edit.value ?? "")
+
+                if (!newText.trim()) {
+
+                    rejected.push({ path: editPath, reason: "setRaw needs non-empty replacement text" })
+                    continue
+
+                }
+
+                let rawTarget
+
+                if (editPath.length === 1) {
+
+                    if (rootInit.type === "ObjectExpression") {
+
+                        const prop = findMapProperty(rootInit, ast, String(editPath[0]))
+
+                        if (!prop) {
+
+                            rejected.push({ path: editPath, reason: `key "${editPath[0]}" not found` })
+                            continue
+
+                        }
+
+                        rawTarget = prop.value
+
+                    } else {
+
+                        const element = findArrayElementByIdOrIndex(rootInit, editPath[0])
+
+                        if (!element) {
+
+                            rejected.push({ path: editPath, reason: `no array element matches "${editPath[0]}"` })
+                            continue
+
+                        }
+
+                        rawTarget = element
+
+                    }
+
+                } else {
+
+                    const resolvedRaw = resolvePath(rootInit, editPath, ast)
+
+                    if (resolvedRaw.error) {
+
+                        rejected.push({ path: editPath, reason: resolvedRaw.error })
+                        continue
+
+                    }
+
+                    rawTarget = resolvedRaw.node
+
+                }
+
+                const trialSource = source.slice(0, rawTarget.start) + newText + source.slice(rawTarget.end)
+
+                try {
+
+                    parseAst(trialSource)
+
+                } catch (parseError) {
+
+                    rejected.push({
+                        path: editPath,
+                        reason: `korvaava teksti ei ole kelvollista JavaScriptia: ${parseError.message}`,
+                    })
+                    continue
+
+                }
+
+                const rawOldText = source.slice(rawTarget.start, rawTarget.end)
+
+                magic.overwrite(rawTarget.start, rawTarget.end, newText)
+
+                applied.push({ path: editPath, oldText: rawOldText, newText })
 
                 continue
 
@@ -309,7 +1171,7 @@ function applyJsEdits({ source, exportName, edits }) {
 
             }
 
-            const resolved = resolvePath(rootInit, editPath)
+            const resolved = resolvePath(rootInit, editPath, ast)
 
             if (resolved.error) {
 
