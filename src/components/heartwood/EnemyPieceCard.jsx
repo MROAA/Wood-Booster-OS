@@ -42,6 +42,12 @@ const STATUS_DISPLAY = {
   // this newest status too rather than letting it fall back to
   // unstyled plain text.
   regen: { icon: "heart", color: "var(--hw-moss)" },
+  // Elemental-tribe statuses (effects.js): Bulwark = permanent armour
+  // (Stone), Evade = dodges a hit (Gale, one/round), Dampen = flat cut
+  // on the wielder's own outgoing damage (Tide, a debuff -> loud).
+  bulwark: { icon: "stone", color: "var(--hw-stone)" },
+  evade: { icon: "gale", color: "var(--hw-gale)" },
+  dampen: { icon: "tide", color: "var(--hw-tide)", loud: true },
   // Chain (Cascading Claw/Cascading Wound, items.js/relics.js) - the
   // newest mechanic to gain an item/relic-granted `applyBuff` stack
   // (previously chainDamage lived only as a raw def field baked into

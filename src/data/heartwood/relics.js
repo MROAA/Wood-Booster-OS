@@ -410,6 +410,52 @@ export const RELICS = {
     tribeAnchor: "thorn",
     effects: [{ type: "applyBuff", id: "strength", amount: 3 }],
   },
+  // Elemental tribe anchors (synergies.js's elemental tribes). Same
+  // "narrower reach, bigger per-unit effect" doctrine as the 6
+  // mechanical anchors above. Placeholder art for now - the closest
+  // existing relic image - see each `image:` line; TODO real art.
+  "tides-embrace": {
+    id: "tides-embrace",
+    image: frostbrandImg, // TODO: own art
+    name: "Tide's Embrace",
+    icon: "tide",
+    description: "Every Tide in your squad knits itself back together each round, and its hits leave the enemy striking weakly.",
+    tribeAnchor: "tide",
+    effects: [
+      { type: "applyBuff", id: "regen", amount: 3 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+    ],
+  },
+  "galeforce-banner": {
+    id: "galeforce-banner",
+    image: huntclawStandardImg, // TODO: own art
+    name: "Galeforce Banner",
+    icon: "gale",
+    description: "Every Gale in your squad slips aside from the first two hits that would land on it.",
+    tribeAnchor: "gale",
+    effects: [{ type: "applyBuff", id: "evade", amount: 2 }],
+  },
+  "bastion-of-stone": {
+    id: "bastion-of-stone",
+    image: bulwarkStandardImg, // TODO: own art
+    name: "Bastion of Stone",
+    icon: "stone",
+    description: "Every Stone in your squad carries heavy permanent armour that turns aside part of every hit, all fight.",
+    tribeAnchor: "stone",
+    effects: [{ type: "applyBuff", id: "bulwark", amount: 3 }],
+  },
+  "shroud-of-shadow": {
+    id: "shroud-of-shadow",
+    image: witherspiteCrownImg, // TODO: own art
+    name: "Shroud of Shadow",
+    icon: "shadow",
+    description: "Every Shadow in your squad finishes a wounded enemy far faster, and its hits carry a heavy poison.",
+    tribeAnchor: "shadow",
+    effects: [
+      { type: "applyBuff", id: "execute", amount: 4 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 2 } },
+    ],
+  },
   "heartsbloom-seed": {
     id: "heartsbloom-seed",
     image: heartsbloomSeedImg,
@@ -690,6 +736,9 @@ const UNCOMMON_RELICS = [
   "ember-core", "mosswarden-charm", "bulwark-standard", "aegis-ward",
   "bark-ward", "wardens-bastion", "groves-blessing", "spirits-veil",
   "thorns-wrath", "heartsbloom-seed",
+  // Elemental tribe anchors - priced with the other anchors (150), even
+  // the two-mechanic ones: they only ever reach a fraction of the squad.
+  "tides-embrace", "galeforce-banner", "bastion-of-stone", "shroud-of-shadow",
 ]
 // Everything NOT listed above (every dual-mechanic combo from
 // quarry-vanguard down, plus essence-well/artificers-ledger/

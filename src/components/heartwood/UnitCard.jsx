@@ -51,14 +51,26 @@ const MAX_TILT_DEG = 6
 // Overrides def.className the same way `role` overrides def.role above:
 // additive layering, every card without an active combo renders exactly
 // as Guild Identity v1 already had it.
-export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass }) {
+export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass, activeTribeIds }) {
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   const effectiveRole = role || def.role
-  // Tribes (synergies.js): purely a recruit-shop/bench-planning cue, up
-  // to 2 icons - a unit's own dominant mechanical identity, same
-  // sword/shield/leaf/root/moonGlyph/flame vocabulary already used
-  // everywhere else, zero new art.
+  // Tribes (synergies.js) - now a first-class part of the card, not a
+  // footnote (Marc: "heimo tarvitsee näkyvämmän paikan kortissa koska
+  // se on keskeinen osa pelimekaniikkaa"). A unit carries 1 mechanical
+  // tribe and optionally 1 elemental one; both drive synergies, combos
+  // and formation bonuses, so both show as a labelled colour band right
+  // under the cost/HP row, and the card's top edge is tinted the tribe
+  // colour (a two-stop gradient when there are two) so it reads from
+  // across the board without reading the text.
   const tribeIds = def.role ? tribesOf(def.id, def) : []
+  const activeSet = activeTribeIds ? new Set(activeTribeIds) : null
+  const tribeColors = tribeIds.map((t) => TRIBES[t]?.color).filter(Boolean)
+  const edgeAccent =
+    tribeColors.length === 0
+      ? undefined
+      : tribeColors.length === 1
+        ? tribeColors[0]
+        : `linear-gradient(90deg, ${tribeColors[0]} 0 50%, ${tribeColors[1]} 50% 100%)`
 
   // Cursor-tracked tilt: raw pointer position (0-1 across the card)
   // drives rotateX/rotateY through a spring so it settles smoothly
@@ -144,6 +156,10 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           <CardGlyph name="moonGlyph" className="hw-effect-icon-glyph" />
         </span>
       )}
+      {/* Tribe-colour top edge - one solid stripe, or a two-stop
+          gradient for a unit with both a mechanical and an elemental
+          tribe. Glanceable from across the board without reading text. */}
+      {edgeAccent && <div className="hw-card-tribe-edge" style={{ background: edgeAccent }} />}
       <div className="hw-card-head">
         <span className="hw-card-cost">{def.recruitCost ?? "★"}</span>
         {/* Hearthstone-style glanceable corner stat: HP as a big,
@@ -155,6 +171,29 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           {def.maxHp}
         </span>
       </div>
+      {/* Tribe band - promoted to a first-class element directly under
+          the cost/HP row (Marc: "heimo tarvitsee näkyvämmän paikan
+          kortissa koska se on keskeinen osa pelimekaniikkaa"). Labelled,
+          tribe-coloured; a badge whose synergy is currently active
+          (activeTribeIds, passed by FormationScreen) pulses. */}
+      {tribeIds.length > 0 && (
+        <div className="hw-tribe-band">
+          {tribeIds.map((t) => {
+            const isActive = activeSet?.has(t)
+            return (
+              <span
+                key={t}
+                className={`hw-tribe-badge hw-badge-pop${isActive ? " hw-tribe-badge--active" : ""}`}
+                style={{ color: TRIBES[t]?.color, borderColor: TRIBES[t]?.color }}
+                title={`${TRIBES[t]?.name}${isActive ? " (synergy active)" : ""} - ${synergyTiersSummary(t)}`}
+              >
+                <CardGlyph name={TRIBES[t]?.icon} className="hw-effect-icon-glyph" />
+                {TRIBES[t]?.name}
+              </span>
+            )
+          })}
+        </div>
+      )}
       {def.image ? (
         <img src={def.image} alt="" className="hw-card-portrait" />
       ) : (
@@ -182,35 +221,6 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
             {def.className}
           </div>
         )
-      )}
-      {tribeIds.length > 0 && (
-        <div className="hw-tribe-icons">
-          {/* Marc, direct: "heimo pitää näkyä selkeästi kortista"
-              (the tribe needs to show clearly on the card), then
-              "animoidaan heimo nappi... visualisoi se" (animate the
-              tribe badge, visualize it) - was a bare 12px icon with
-              no visible text, tribe name only reachable via hover
-              tooltip. Every unit now has a real tribe (confirmed
-              85/85 earlier today), so this was the one piece of that
-              work that never actually became visible on the card
-              itself. Now a real labeled, tribe-colored pill (name +
-              icon, not icon alone) using this file's own established
-              hw-badge-pop mount animation - the same one-shot pop
-              every other status/keyword badge in this game already
-              gets, so a tribe reads as "a real thing this unit has,"
-              not a decoration. */}
-          {tribeIds.map((t) => (
-            <span
-              key={t}
-              className="hw-tribe-badge hw-badge-pop"
-              style={{ color: TRIBES[t]?.color, borderColor: TRIBES[t]?.color }}
-              title={`${TRIBES[t]?.name} - ${synergyTiersSummary(t)}`}
-            >
-              <CardGlyph name={TRIBES[t]?.icon} className="hw-effect-icon-glyph" />
-              {TRIBES[t]?.name}
-            </span>
-          ))}
-        </div>
       )}
       <div className="hw-effect-icons">
         {moves.map((m, i) => (

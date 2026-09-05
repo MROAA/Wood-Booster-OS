@@ -94,6 +94,37 @@ function shatterBonus(attacker, defender) {
   return defender.block > 0 ? stacks : 0
 }
 
+// Bulwark (Stone tribe): persistent flat armour. Unlike Block - which
+// resolveRound zeroes at the top of every round - a Bulwark stack lives
+// in `powers` and is NEVER spent or decremented, so it soaks a fixed
+// amount off every hit for the whole battle. Real Block is spent first
+// (see dealDamage), Bulwark only absorbs what's left. Deliberately not
+// in SUNDERABLE_IDS for v1 - Stone is meant to feel immovable. Flat and
+// readable, same "plan a build around a fixed number" shape as Strength.
+function bulwarkOf(unit) {
+  return unit.powers.bulwark || 0
+}
+
+// Dampen (Tide tribe): a flat reduction on the ATTACKER's outgoing
+// damage - the mirror of Strength, and distinct from Weak (which is a
+// -25% multiplier). Doesn't decay on its own (Tide = relentless), but
+// it IS in CLEANSABLE_IDS so a squad has an answer to it. Subtracted
+// after Execute/Shatter, before the Block step.
+function dampenOf(unit) {
+  return unit.powers.dampen || 0
+}
+
+// Evade (Gale tribe): dodges an incoming hit outright, at most one per
+// round. Each dodge spends one stack, so `evade N` is exactly N total
+// dodges a player can count on - not a dodge CHANCE (no roll, same
+// "fixed number, not a dice roll" rule Execute/Shatter follow). The
+// per-round cap is enforced by `unit.evadedThisRound`, which
+// autoBattleEngine.js's resolveRound clears for every living unit on
+// both sides alongside the Block reset.
+function evadeOf(unit) {
+  return unit.powers.evade || 0
+}
+
 function nameOf(state, id) {
   if (id === "player") return "You"
   return getUnit(state, id)?.name || "The enemy"
@@ -147,6 +178,28 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   const defender = getUnit(state, targetId)
   if (!attacker || !defender) return state
 
+  // Evade (Gale): the first hit a unit would take each round simply
+  // misses - checked before Ward so a dodge is spent before a Ward
+  // stack would be. Spends one Evade stack and sets evadedThisRound
+  // (resolveRound clears it), so a second hit the same round lands
+  // normally. No triggers fire on a missed hit, same as a Ward.
+  if (evadeOf(defender) > 0 && !defender.evadedThisRound) {
+    const nextDefender = {
+      ...defender,
+      evadedThisRound: true,
+      powers: { ...defender.powers, evade: evadeOf(defender) - 1 },
+    }
+    return recordAttackEvent(
+      {
+        ...setUnit(state, targetId, nextDefender),
+        log: [...state.log, `${nameOf(state, targetId)} slips aside - the hit misses.`],
+      },
+      actorId,
+      targetId,
+      { kind: "evade" },
+    )
+  }
+
   // Ward: a stack that fully negates the next hit - a different tool
   // from Block, which absorbs up to its own pool and lets overflow
   // through. A Ward stack cancels the ENTIRE hit regardless of size,
@@ -176,9 +229,16 @@ function dealDamage(state, actorId, targetId, baseAmount) {
     amount = Math.floor(amount * 1.25)
   }
   amount += executeBonus(attacker, defender) + shatterBonus(attacker, defender)
-  amount = Math.max(0, amount)
+  // Dampen (Tide): flat reduction from the attacker's side, after every
+  // bonus so it bites into the final number, before Block.
+  amount = Math.max(0, amount - dampenOf(attacker))
 
-  const blocked = Math.min(defender.block, amount)
+  // Bulwark (Stone): persistent armour. Real Block is spent first, then
+  // Bulwark absorbs whatever is left - but Bulwark is never decremented,
+  // so it keeps soaking the same amount every hit, all battle.
+  const armour = bulwarkOf(defender)
+  const blocked = Math.min(defender.block + armour, amount)
+  const blockSpent = Math.min(defender.block, blocked)
   const overflow = amount - blocked
 
   // Revive: a stack consumed exactly once, the moment a hit would
@@ -191,9 +251,12 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   const revives = defender.powers.revive || 0
   const revived = rawHp <= 0 && defender.hp > 0 && revives > 0
 
+  // Only real Block is spent; Bulwark (armourUsed) soaked the rest and
+  // stays at full strength for the next hit.
+  const armourUsed = blocked - blockSpent
   const nextDefender = {
     ...defender,
-    block: defender.block - blocked,
+    block: defender.block - blockSpent,
     hp: revived ? 1 : Math.max(0, rawHp),
     powers: revived ? { ...defender.powers, revive: revives - 1 } : defender.powers,
   }
@@ -211,7 +274,11 @@ function dealDamage(state, actorId, targetId, baseAmount) {
     ...nextState,
     log: [
       ...state.log,
-      `${nameOf(state, actorId)} deal ${amount} damage to ${nameOf(state, targetId)}${blocked > 0 ? ` (${blocked} blocked)` : ""}.`,
+      `${nameOf(state, actorId)} deal ${amount} damage to ${nameOf(state, targetId)}${
+        blocked > 0
+          ? ` (${blockSpent} blocked${armourUsed > 0 ? `, ${armourUsed} turned by Bulwark` : ""})`
+          : ""
+      }.`,
       ...(revived ? [`${nameOf(state, targetId)} clings to life at 1 HP!`] : []),
     ],
   }
@@ -420,7 +487,7 @@ function sunder(state, who) {
 // previously just had to be outlasted. Same "first match in priority
 // order, log a distinct no-op line if nothing to strip" shape as
 // Sunder, reusing the exact pattern rather than inventing a new one.
-const CLEANSABLE_IDS = ["stun", "poison", "weak", "vulnerable"]
+const CLEANSABLE_IDS = ["stun", "poison", "weak", "vulnerable", "dampen"]
 
 function cleanse(state, who) {
   const unit = getUnit(state, who)

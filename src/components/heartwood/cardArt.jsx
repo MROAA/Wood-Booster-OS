@@ -385,6 +385,43 @@ function Forgehowl() {
   )
 }
 
+// Elemental tribe glyphs (Tide / Gale / Stone / Shadow) - same crude
+// thick-outline register as Leaf/Spark/Root/Rune/Flame, one simple
+// geometric mark each so a tribe badge reads at 12px. Original shapes.
+function TideGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M6 16 C12 10 18 22 24 16 C30 10 36 22 42 16" />
+      <path d="M6 26 C12 20 18 32 24 26 C30 20 36 32 42 26" />
+      <path d="M6 36 C12 30 18 42 24 36 C30 30 36 42 42 36" />
+    </g>
+  )
+}
+function GaleGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M8 18 C22 10 34 14 34 22 C34 28 26 28 26 22" />
+      <path d="M6 32 C24 26 38 30 38 38 C38 44 28 44 28 38" />
+    </g>
+  )
+}
+function StoneGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinejoin="round" fill="none">
+      <path d="M24 5 L40 15 L40 33 L24 43 L8 33 L8 15 Z" />
+      <path d="M24 5 L24 23 M24 23 L40 15 M24 23 L8 33" />
+    </g>
+  )
+}
+function ShadowGlyph() {
+  return (
+    <g strokeWidth="3" fill="none">
+      <circle cx="22" cy="24" r="16" />
+      <path d="M30 12 A16 16 0 0 1 30 36 A13 13 0 0 0 30 12 Z" fill="currentColor" stroke="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -392,6 +429,10 @@ const GLYPHS = {
   root: Root,
   rune: Rune,
   flame: Flame,
+  tide: TideGlyph,
+  gale: GaleGlyph,
+  stone: StoneGlyph,
+  shadow: ShadowGlyph,
   husk: Husk,
   troll: Troll,
   warden: Warden,
