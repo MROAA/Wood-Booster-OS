@@ -1,7 +1,25 @@
 import { useEffect, useRef, useState } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
-import { TRIBES, tribesOf, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
+import {
+  TRIBES,
+  tribesOf,
+  resolveSynergies,
+  nextSynergyThreshold,
+  synergyTierLabel,
+  resolveComboSynergies,
+  resolvePositionSynergies,
+} from "../../data/heartwood/synergies"
+
+// Player deploy slots, same order/positions as autoBattleEngine.js's
+// SLOT_POSITIONS - duplicated (no shared export) so a live unit's pos
+// can be mapped back to its slot index for positional synergies.
+const SLOT_POSITIONS = [
+  { row: 2, col: 0 },
+  { row: 2, col: 1 },
+  { row: 2, col: 2 },
+  { row: 1, col: 1 },
+]
 import { isShielded } from "../../services/heartwood/targeting"
 import { summarizeBattle } from "../../services/heartwood/autoBattleEngine"
 import EnemyPieceCard from "./EnemyPieceCard"
@@ -114,6 +132,20 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
     for (const t of tribesOf(u.defId, UNITS[u.defId])) tribeCounts[t] = (tribeCounts[t] || 0) + 1
   }
   const activeSynergies = resolveSynergies(tribeCounts)
+  // Cross-tribe combos + formation/positional synergies - same data as
+  // FormationScreen's preview, so the battle shows exactly what the
+  // planning screen promised. slotTribes maps a live unit's pos back to
+  // its deploy-slot index.
+  const activeCombos = resolveComboSynergies(tribeCounts)
+  const slotTribes = {}
+  for (const u of state.playerUnits) {
+    if (u.id === "commander" || u.summoned) continue
+    const i = SLOT_POSITIONS.findIndex((p) => p.row === u.pos?.row && p.col === u.pos?.col)
+    if (i !== -1) slotTribes[i] = tribesOf(u.defId, UNITS[u.defId])
+  }
+  const activePositions = [
+    ...new Map(resolvePositionSynergies(slotTribes).map((h) => [h.synergy.id, h.synergy])).values(),
+  ]
 
   // The synergy "WOW" moment (roadmap task "Taistelukentan lava-tuntuma
   // + synergia-WOW-hetki") - Marc's PRD names this as one of the most
@@ -131,17 +163,27 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
   // transient-visual effects (the lunge stagger above) already key off
   // of - a real battle-state event drives this, never a decorative timer.
   const [surges, setSurges] = useState([])
-  const prevActiveIdsRef = useRef(null)
+  const prevActiveKeysRef = useRef(null)
   const surgeSeqRef = useRef(0)
 
+  // One combined list of everything currently live - tribe tiers,
+  // cross-tribe combos and formation synergies - each with a stable
+  // `key` so the diff below fires a WOW banner once per thing, whatever
+  // kind it is.
+  const activeList = [
+    ...activeSynergies.map((s) => ({ kind: "tribe", key: `tribe:${s.tribeId}`, tribeId: s.tribeId, activeTier: s.activeTier })),
+    ...activeCombos.map((c) => ({ kind: "combo", key: `combo:${c.id}`, combo: c })),
+    ...activePositions.map((ps) => ({ kind: "position", key: `pos:${ps.id}`, synergy: ps })),
+  ]
+
   useEffect(() => {
-    const currentIds = new Set(activeSynergies.map((s) => s.tribeId))
-    const prevIds = prevActiveIdsRef.current
-    const newlyActive = prevIds === null ? activeSynergies : activeSynergies.filter((s) => !prevIds.has(s.tribeId))
+    const currentKeys = new Set(activeList.map((s) => s.key))
+    const prevKeys = prevActiveKeysRef.current
+    const newlyActive = prevKeys === null ? activeList : activeList.filter((s) => !prevKeys.has(s.key))
     if (newlyActive.length) {
       setSurges((cur) => [...cur, ...newlyActive.map((s) => ({ ...s, seq: surgeSeqRef.current++ }))])
     }
-    prevActiveIdsRef.current = currentIds
+    prevActiveKeysRef.current = currentKeys
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state])
 
@@ -149,11 +191,14 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
     setSurges((cur) => cur.filter((s) => s.seq !== seq))
   }
 
-  // Live only for as long as its own banner is still on screen (same
-  // array, same lifetime) - the affected units' glow ring (below, on
-  // each player hw-piece) tracks the WOW moment exactly, not some
-  // separately-timed effect that could drift out of sync with it.
-  const surgingTribeIds = new Set(surges.map((s) => s.tribeId))
+  // Live only for as long as its own banner is still on screen. Every
+  // tribe involved in a surging tribe tier OR a surging combo lights
+  // its units' glow ring.
+  const surgingTribeIds = new Set()
+  for (const s of surges) {
+    if (s.kind === "tribe") surgingTribeIds.add(s.tribeId)
+    if (s.kind === "combo") for (const t of Object.keys(s.combo.tribes)) surgingTribeIds.add(t)
+  }
 
   const rows = []
   for (let row = 0; row < state.grid.rows; row++) {

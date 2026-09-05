@@ -18,7 +18,7 @@ import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/chara
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
-import { tribesOf, SYNERGY_TIERS } from "../../data/heartwood/synergies"
+import { tribesOf, SYNERGY_TIERS, resolveComboSynergies, resolvePositionSynergies } from "../../data/heartwood/synergies"
 import { findDualClassFor, applyDualClassGrant } from "../../data/heartwood/dualClasses"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen, tickBurn, tickAscendant } from "./effects"
 import { isShielded, kingAdjacent } from "./targeting"
@@ -479,6 +479,32 @@ export function startAutoBattle(
       for (const u of state.playerUnits) {
         state = applyEffects(state, activeTier.effects, { actorId: u.id, targetId: u.id })
       }
+    }
+  }
+
+  // Cross-tribe combos (synergies.js's COMBO_SYNERGIES) - counted from
+  // the same recruited-squad tribeCounts, applied squad-wide exactly
+  // like a tribe tier.
+  for (const combo of resolveComboSynergies(tribeCounts)) {
+    for (const u of state.playerUnits) {
+      state = applyEffects(state, combo.effects, { actorId: u.id, targetId: u.id })
+    }
+  }
+
+  // Formation / positional synergies (synergies.js's POSITION_SYNERGIES).
+  // recruitedUnits[i] sits in SLOT_POSITIONS[i] and has id `p${i}`, so
+  // slot index -> tribe tags and slot index -> unit id are both direct.
+  const slotTribes = {}
+  recruitedUnits.forEach((u, i) => {
+    slotTribes[i] = tribesOf(u.defId, effectiveDefs[u.id])
+  })
+  for (const hit of resolvePositionSynergies(slotTribes)) {
+    const targets =
+      hit.scope === "squad"
+        ? state.playerUnits
+        : hit.slots.map((i) => state.playerUnits.find((u) => u.id === `p${i}`)).filter(Boolean)
+    for (const u of targets) {
+      state = applyEffects(state, hit.effects, { actorId: u.id, targetId: u.id })
     }
   }
 
