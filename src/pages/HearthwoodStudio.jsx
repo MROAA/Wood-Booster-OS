@@ -4,6 +4,7 @@ import { apiGet } from "../api/client"
 
 import BalancePanel from "../components/hearthwood-studio/BalancePanel"
 import CloneEntityForm from "../components/hearthwood-studio/CloneEntityForm"
+import DeleteEntityButton from "../components/hearthwood-studio/DeleteEntityButton"
 import DoctorPanel from "../components/hearthwood-studio/DoctorPanel"
 import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
 import EntityChangeLog from "../components/hearthwood-studio/EntityChangeLog"
@@ -174,8 +175,18 @@ function HearthwoodStudio() {
                   {
                     entityId && entityDetail && (
                       <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 space-y-3">
-                        <div className="text-sm font-semibold text-[var(--wood-text)]">
-                          {entityDetail.name || entityDetail.id}
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm font-semibold text-[var(--wood-text)]">
+                            {entityDetail.name || entityDetail.id}
+                          </div>
+
+                          <DeleteEntityButton
+                            type={entityType}
+                            entityId={entityId}
+                            entityLabel={entityDetail.name}
+                            onApplied={handleApplied}
+                            onPreviewUrlChange={setPreviewUrl}
+                          />
                         </div>
 
                         <CloneEntityForm

@@ -32,6 +32,8 @@ function coerceValue(kind, raw) {
 
 function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewUrlChange }) {
   const [values, setValues] = useState({})
+  const [newFieldKey, setNewFieldKey] = useState("")
+  const [newFieldBlock, setNewFieldBlock] = useState("")
 
   const {
     result,
@@ -89,6 +91,23 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
     await preview({ type, entityId, edits })
   }
 
+  async function handleRemoveField(key) {
+    await preview({ type, entityId, edits: [{ path: [entityId, key], op: "removeField" }] })
+  }
+
+  async function handleAddField() {
+    const key = newFieldKey.trim()
+    const block = newFieldBlock.trim()
+
+    if (!key || !block || !entityId) {
+      return
+    }
+
+    await preview({ type, entityId, edits: [{ path: [entityId], op: "addField", key, block }] })
+    setNewFieldKey("")
+    setNewFieldBlock("")
+  }
+
   if (!entityDetail) {
     return null
   }
@@ -124,9 +143,20 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
 
             return (
               <label key={key} className="space-y-1">
-                <div className="flex items-center gap-1 text-[10px] text-[var(--wood-muted)]">
-                  {key}
-                  {changed && <span className="text-[var(--wood-accent)]">●</span>}
+                <div className="flex items-center justify-between gap-1 text-[10px] text-[var(--wood-muted)]">
+                  <span>
+                    {key}
+                    {changed && <span className="ml-1 text-[var(--wood-accent)]">●</span>}
+                  </span>
+
+                  <button
+                    type="button"
+                    title={`Poista kenttä "${key}"`}
+                    onClick={() => handleRemoveField(key)}
+                    className="text-[var(--wood-muted)] hover:text-red-400"
+                  >
+                    🗑
+                  </button>
                 </div>
 
                 {
@@ -163,9 +193,20 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
 
                 return (
                   <label key={key} className="block space-y-1">
-                    <div className="flex items-center gap-1 text-[10px] text-[var(--wood-muted)]">
-                      {key}
-                      {changed && <span className="text-[var(--wood-accent)]">●</span>}
+                    <div className="flex items-center justify-between gap-1 text-[10px] text-[var(--wood-muted)]">
+                      <span>
+                        {key}
+                        {changed && <span className="ml-1 text-[var(--wood-accent)]">●</span>}
+                      </span>
+
+                      <button
+                        type="button"
+                        title={`Poista kenttä "${key}"`}
+                        onClick={() => handleRemoveField(key)}
+                        className="text-[var(--wood-muted)] hover:text-red-400"
+                      >
+                        🗑
+                      </button>
                     </div>
 
                     <textarea
@@ -187,6 +228,38 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
           </div>
         )
       }
+
+      <div className="space-y-1.5 rounded-lg border border-dashed border-[var(--wood-border)] p-2">
+        <div className="text-[10px] uppercase tracking-wide text-[var(--wood-muted)]">+ Lisää uusi kenttä</div>
+
+        <div className="grid grid-cols-[100px_1fr_auto] gap-1.5">
+          <input
+            value={newFieldKey}
+            onChange={event => setNewFieldKey(event.target.value)}
+            placeholder="avain"
+            className="h-8 rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] px-2 text-xs text-[var(--wood-text)] outline-none focus:border-[var(--wood-accent)]"
+          />
+
+          <input
+            value={newFieldBlock}
+            onChange={event => setNewFieldBlock(event.target.value)}
+            placeholder="esim. haste: true  tai  cold: -2"
+            className="h-8 rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] px-2 font-mono text-xs text-[var(--wood-text)] outline-none focus:border-[var(--wood-accent)]"
+          />
+
+          <button
+            type="button"
+            disabled={!newFieldKey.trim() || !newFieldBlock.trim() || previewing}
+            onClick={handleAddField}
+            className="
+              rounded-lg border border-[var(--wood-border)] px-3 text-xs text-[var(--wood-muted)]
+              transition-opacity disabled:opacity-30 hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]
+            "
+          >
+            Lisää
+          </button>
+        </div>
+      </div>
 
       <div className="flex justify-end">
         <button

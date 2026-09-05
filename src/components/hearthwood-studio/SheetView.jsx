@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 
-import { apiGet } from "../../api/client"
+import { apiGet, apiUpload } from "../../api/client"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
@@ -37,6 +37,8 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
   const [query, setQuery] = useState("")
   const [edits, setEdits] = useState({})
   const [reloadKey, setReloadKey] = useState(0)
+  const [uploadingCell, setUploadingCell] = useState(null)
+  const [uploadError, setUploadError] = useState("")
 
   const {
     result,
@@ -109,6 +111,25 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
     }
 
     ordered.sort((a, b) => (a === "name" ? -1 : b === "name" ? 1 : 0))
+
+    return ordered
+  }, [entities])
+
+  // "tuoda kuvia pelin asioille" (Marc) - one column per image-reference
+  // field any entity of this type has (identifierKeys, entityReader.js),
+  // rendered as an upload button rather than a text input.
+  const imageColumns = useMemo(() => {
+    const seen = new Set()
+    const ordered = []
+
+    for (const entity of entities) {
+      for (const key of entity.identifierKeys || []) {
+        if (!seen.has(key)) {
+          seen.add(key)
+          ordered.push(key)
+        }
+      }
+    }
 
     return ordered
   }, [entities])
@@ -192,6 +213,36 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
     await preview({ type, edits: ops })
   }
 
+  async function handleImageUpload(entity, field, file) {
+    if (!file) {
+      return
+    }
+
+    const cellKey = `${entity.id}:${field}`
+
+    setUploadingCell(cellKey)
+    setUploadError("")
+
+    try {
+      const formData = new FormData()
+      formData.append("type", type)
+      formData.append("entityId", entity.id)
+      formData.append("file", file)
+
+      const uploaded = await apiUpload("/hearthwood-patchbay/upload-image", formData)
+
+      await preview({
+        type,
+        entityId: entity.id,
+        edits: [{ path: [entity.id, field], op: "setImportedImage", importPath: uploaded.importPath }],
+      })
+    } catch (error) {
+      setUploadError(error.message)
+    } finally {
+      setUploadingCell(null)
+    }
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--wood-border)] p-4">
@@ -225,6 +276,7 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
       </div>
 
       {previewError && <div className="px-4 pt-2 text-xs text-red-300">{previewError}</div>}
+      {uploadError && <div className="px-4 pt-2 text-xs text-red-300">{uploadError}</div>}
 
       {
         result && (
@@ -262,6 +314,14 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
                       </th>
                     ))
                   }
+
+                  {
+                    imageColumns.map(field => (
+                      <th key={field} className="min-w-[110px] border-b border-[var(--wood-border)] px-3 py-2 text-left font-semibold text-[var(--wood-muted)] whitespace-nowrap">
+                        🖼 {field}
+                      </th>
+                    ))
+                  }
                 </tr>
               </thead>
 
@@ -293,6 +353,39 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
                                         ${dirty ? "border-[var(--wood-accent)] bg-[var(--wood-bg)]" : "border-transparent"}
                                       `}
                                     />
+                                  )
+                                  : <span className="block px-1.5 text-[var(--wood-muted)]">—</span>
+                              }
+                            </td>
+                          )
+                        })
+                      }
+
+                      {
+                        imageColumns.map(field => {
+                          const hasField = (entity.identifierKeys || []).includes(field)
+                          const cellKey = `${entity.id}:${field}`
+                          const isUploading = uploadingCell === cellKey
+
+                          return (
+                            <td key={field} className="border-b border-[var(--wood-border)] p-1">
+                              {
+                                hasField
+                                  ? (
+                                    <label className="inline-flex cursor-pointer items-center gap-1 rounded border border-[var(--wood-border)] px-2 py-1 text-[11px] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]">
+                                      {isUploading ? "Ladataan..." : "Vaihda"}
+                                      <input
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp,image/gif"
+                                        disabled={isUploading}
+                                        onChange={event => {
+                                          const file = event.target.files?.[0]
+                                          event.target.value = ""
+                                          handleImageUpload(entity, field, file)
+                                        }}
+                                        className="hidden"
+                                      />
+                                    </label>
                                   )
                                   : <span className="block px-1.5 text-[var(--wood-muted)]">—</span>
                               }

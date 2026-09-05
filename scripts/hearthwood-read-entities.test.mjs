@@ -282,3 +282,76 @@ test("applyEdit removeKey deletes a whole entity, from a plain map and a spread-
     assert.ok(parseAst(fromUnits.proposedCode), "units.js still parses")
     assert.ok(!fromUnits.proposedCode.includes("\"the-fool\":"))
 })
+
+test("addField rejects a bare-identifier block referencing nothing real (the { Husk } bug)", () => {
+
+    // Regression test: `{ Husk }` is valid ES6 shorthand-property syntax
+    // (a property named "Husk" whose value is the identifier "Husk") -
+    // it parses fine and passes oxlint/vite build, then throws
+    // ReferenceError the instant the game actually reads that entity.
+    // This exact block corrupted enemies.js in production once already.
+    const result = applyEdit({
+        filePath: "src/data/heartwood/enemies.js",
+        exportName: "ENEMIES",
+        edits: [
+            { path: ["rotwood-husk"], op: "addField", key: "bogus", block: "Husk" },
+        ],
+    })
+
+    assert.equal(result.ok, false)
+    assert.equal(result.applied.length, 0)
+    assert.match(result.rejected[0].reason, /tuntematon muuttuja "Husk"/)
+})
+
+test("addField/addKey accept a block referencing a real top-of-file import", () => {
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/units.js",
+        exportName: "UNITS",
+        edits: [
+            {
+                path: ["ember-stag-clone-test"],
+                op: "addKey",
+                key: "ember-stag-clone-test",
+                block: "\"ember-stag-clone-test\": unit(\"ember-stag-clone-test\", \"Clone\", \"emberStag\", 3, \"dps\", [{ type: \"attack\", amount: 11 }], { image: emberStagImg })",
+            },
+        ],
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(result.applied.length, 1)
+    assert.ok(parseAst(result.proposedCode), "proposed code still parses")
+})
+
+test("addKey rejects a block referencing an image identifier that doesn't exist", () => {
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/units.js",
+        exportName: "UNITS",
+        edits: [
+            {
+                path: ["bad-clone-test"],
+                op: "addKey",
+                key: "bad-clone-test",
+                block: "\"bad-clone-test\": unit(\"bad-clone-test\", \"Bad\", \"x\", 1, \"dps\", [], { image: totallyMadeUpImg })",
+            },
+        ],
+    })
+
+    assert.equal(result.ok, false)
+    assert.match(result.rejected[0].reason, /tuntematon muuttuja "totallyMadeUpImg"/)
+})
+
+test("addField accepts a block that only uses known globals (undefined/NaN/Infinity)", () => {
+
+    const result = applyEdit({
+        filePath: "src/data/heartwood/enemies.js",
+        exportName: "ENEMIES",
+        edits: [
+            { path: ["rotwood-husk"], op: "addField", key: "scratchField", block: "scratchField: undefined" },
+        ],
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(result.applied.length, 1)
+})
