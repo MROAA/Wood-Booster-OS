@@ -16,6 +16,15 @@
   --hw-curse: var(--hw-muted);
   --hw-hp: #b3503f;
 
+  /* Elemental tribe accents (parallel second tribe axis). Muted, same
+     desaturated family as the four card accents above. --hw-gale is a
+     deliberate cyan so a Gale badge never reads as --hw-moss green or
+     the moss "this fits your board" ring. */
+  --hw-tide: #4a86a8;
+  --hw-gale: #79c6cf;
+  --hw-stone: #9a8c7a;
+  --hw-shadow: #6f6090;
+
   /* Golden ratio + Fibonacci scale (Marc: "suuri osa visuaalisuutta on
      geometria ja kultainen leikkaus" - deliberate geometry, not
      eyeballed pixels). --hw-phi is the ratio itself; --hw-fib-* is the
@@ -996,6 +1005,35 @@
 /* Tribe icons (synergies.js) - a small row under the unit's name, same
    icon-glyph vocabulary as everything else, no new art. Purely a
    recruit-planning cue: "what tribe does this unit belong to."*/
+/* Tribe band - promoted to a first-class row directly under the card's
+   cost/HP head (Marc: "heimo tarvitsee näkyvämmän paikan kortissa").
+   Sits above the portrait, centred, with a hairline divider so it reads
+   as its own zone, not a caption. */
+.hw-tribe-band {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 3px 0 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--hw-border);
+}
+
+/* Tribe-colour top edge of the card - a solid stripe for one tribe, or
+   an inline two-stop gradient (set in UnitCard.jsx) for a unit that has
+   both a mechanical and an elemental tribe. */
+.hw-card-tribe-edge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--hw-fib-2, 8px) var(--hw-fib-2, 8px) 0 0;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* kept as an alias for any older markup still using the class name */
 .hw-tribe-icons {
   display: flex;
   justify-content: center;
@@ -1025,6 +1063,31 @@
 .hw-tribe-badge .hw-effect-icon-glyph {
   width: 10px;
   height: 10px;
+}
+
+/* A tribe whose synergy is currently live (activeTribeIds from
+   FormationScreen) - filled instead of outlined, and a slow breathing
+   pulse so the card visibly reacts when a synergy turns on. */
+.hw-tribe-badge--active {
+  background: color-mix(in srgb, currentColor 32%, transparent);
+  box-shadow: 0 0 8px 1px color-mix(in srgb, currentColor 45%, transparent);
+  animation: hw-tribe-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes hw-tribe-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px 1px color-mix(in srgb, currentColor 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 12px 3px color-mix(in srgb, currentColor 60%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-tribe-badge--active {
+    animation: none;
+  }
 }
 
 /* Hero Bending marker (UnitCard.jsx's `bent` prop) - a small inline

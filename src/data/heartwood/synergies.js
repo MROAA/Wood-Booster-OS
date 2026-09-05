@@ -44,6 +44,14 @@ export const TRIBES = {
   grove: { id: "grove", name: "Grove", icon: "leaf", color: "var(--hw-moss)", description: "Menders and buffers." },
   spirit: { id: "spirit", name: "Spirit", icon: "moonGlyph", color: "var(--hw-rune)", description: "Ephemeral, otherworldly creatures." },
   thorn: { id: "thorn", name: "Thorn", icon: "flame", color: "var(--hw-ember)", description: "Raw, unadorned brutes." },
+  // Elemental tribes - the parallel second axis (story bible's 7-colour
+  // aura language). Tide/Gale/Stone/Shadow ship first; Wood/Ember/Cosmic
+  // follow. Deliberately tuned weaker than the mechanical tribes above:
+  // a unit's elemental tag is a bonus lane, not its main identity.
+  tide: { id: "tide", name: "Tide", icon: "tide", color: "var(--hw-tide)", description: "Elemental - relentless water: sustain and erosion." },
+  gale: { id: "gale", name: "Gale", icon: "gale", color: "var(--hw-gale)", description: "Elemental - wind and speed: strikes that slip past." },
+  stone: { id: "stone", name: "Stone", icon: "stone", color: "var(--hw-stone)", description: "Elemental - unmoving armour." },
+  shadow: { id: "shadow", name: "Shadow", icon: "shadow", color: "var(--hw-shadow)", description: "Elemental - rot, doom and the finishing dark." },
 }
 
 export const UNIT_TRIBES = {
@@ -57,7 +65,7 @@ export const UNIT_TRIBES = {
   // gate before it's rolled out wider. Each pick is defended inline.
   // Thistlequeen: heal 5 + block 4 - a mender who also holds a wall.
   "the-empress": ["grove", "warden"],
-  "the-emperor": ["warden"],
+  "the-emperor": ["warden", "stone"],
   "the-hierophant": ["thorn"],
   // Twinbriar: attack 6 + chainDamage 3 - a raw attacker (Thorn) whose
   // hits also finish a second target (Chain, Fang's signature).
@@ -68,7 +76,7 @@ export const UNIT_TRIBES = {
   "wheel-of-fortune": ["thorn"],
   justice: ["warden"],
   "the-hanged-man": ["thorn"],
-  death: ["thorn"],
+  death: ["thorn", "shadow"],
   temperance: ["warden"],
   "the-devil": ["thorn"],
   "the-tower": ["thorn"],
@@ -82,10 +90,10 @@ export const UNIT_TRIBES = {
   "bishops-slash": ["thorn"],
   "ember-stag": ["thorn"],
   grovekeeper: ["warden"],
-  stormwing: ["root"],
-  stoneheart: ["warden"],
+  stormwing: ["root", "gale"],
+  stoneheart: ["warden", "stone"],
   forgehowl: ["thorn"],
-  duskclaw: ["fang"],
+  duskclaw: ["fang", "shadow"],
   ashenhorn: ["grove"],
   rootfang: ["root"],
   // Wraithbriar: Revive passive (Spirit) on a full tank stat line and
@@ -93,15 +101,15 @@ export const UNIT_TRIBES = {
   wraithbriar: ["spirit", "warden"],
   grimtusk: ["fang"],
   thornguard: ["warden"],
-  swiftclaw: ["fang"],
+  swiftclaw: ["fang", "gale"],
   emberwisp: ["thorn"],
   runeveil: ["root"],
   frostbind: ["root"],
   glimmerward: ["grove"],
-  wraithcaller: ["spirit"],
+  wraithcaller: ["spirit", "shadow"],
   hexmother: ["root"],
   wispkeeper: ["grove"],
-  trueshot: ["fang"],
+  trueshot: ["fang", "gale"],
   motley: ["root"],
   thornwarden: ["thorn"],
   bloomcaller: ["grove"],
@@ -117,12 +125,12 @@ export const UNIT_TRIBES = {
   foxfire: ["fang"],
   loamguard: ["grove"],
   willowfang: ["fang"],
-  cragmoss: ["grove"],
+  cragmoss: ["grove", "stone"],
   willowmend: ["grove"],
-  sparrowthorn: ["thorn"],
-  duskwren: ["thorn"],
-  rimefang: ["fang"],
-  hollowquill: ["thorn"],
+  sparrowthorn: ["thorn", "gale"],
+  duskwren: ["thorn", "gale"],
+  rimefang: ["fang", "tide"],
+  hollowquill: ["thorn", "shadow"],
   // Stoneknoll: Shatter passive (Fang) on a plain attack-6 dps line
   // with no other gimmick (Thorn).
   stoneknoll: ["fang", "thorn"],
@@ -139,7 +147,7 @@ export const UNIT_TRIBES = {
   // -> role-based default (tank -> Warden, dps -> Thorn).
   fernwake: ["grove"],
   duskbramble: ["thorn"],
-  hollowmere: ["warden"],
+  hollowmere: ["warden", "tide"],
   thistlemaw: ["thorn"],
   brackenveil: ["grove"],
   briarkit: ["fang"],
@@ -154,16 +162,16 @@ export const UNIT_TRIBES = {
   // Thornwisp above is already tagged Root for - consistency with that
   // precedent over Fang's own "quick striker" flavor, since Sunder is
   // the same curse/debuff-stripping tool either way.
-  mosshollow: ["warden"],
+  mosshollow: ["warden", "stone"],
   hollowveil: ["warden"],
   ashcaller: ["root"],
   witherkit: ["root"],
-  stormveil: ["fang"],
-  palefen: ["spirit"],
-  mistveil: ["spirit"],
-  wraithguard: ["spirit"],
-  nightveil: ["spirit"],
-  stoneknit: ["warden"],
+  stormveil: ["fang", "gale"],
+  palefen: ["spirit", "tide"],
+  mistveil: ["spirit", "tide"],
+  wraithguard: ["spirit", "shadow"],
+  nightveil: ["spirit", "shadow"],
+  stoneknit: ["warden", "stone"],
   snareclaw: ["fang"],
   // 6 brand-new units (units.js, same session) built around leftover
   // art rather than an existing def - tagged the same way every unit
@@ -181,10 +189,10 @@ export const UNIT_TRIBES = {
   // wisp -> Spirit, same identity Mosswalker/Palefen already carry.
   chimera: ["fang"],
   sunscale: ["warden"],
-  abyssong: ["spirit"],
+  abyssong: ["spirit", "tide"],
   huldra: ["root"],
   rootwing: ["warden"],
-  marshlight: ["spirit"],
+  marshlight: ["spirit", "tide"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
@@ -320,6 +328,73 @@ export const SYNERGY_TIERS = {
     { count: 2, label: "Whole squad: +1 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 1 }] },
     { count: 3, label: "Whole squad: +2 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 2 }] },
     { count: 4, label: "Whole squad: +3 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 3 }] },
+  ],
+
+  // --- Elemental tribes (parallel second axis) --------------------------
+  // Deliberately lighter than the mechanical ladders above: an elemental
+  // tag is a bonus lane on top of a unit's main identity, and with 13
+  // tribes total most elemental synergies only ever reach count 2-3.
+  tide: [
+    { count: 2, label: "Whole squad: +1 Regen", effects: [{ type: "applyBuff", id: "regen", amount: 1 }] },
+    { count: 3, label: "Whole squad: +2 Regen", effects: [{ type: "applyBuff", id: "regen", amount: 2 }] },
+    {
+      count: 4,
+      label: "Whole squad: +2 Regen, hits Dampen 1",
+      effects: [
+        { type: "applyBuff", id: "regen", amount: 2 },
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+      ],
+    },
+  ],
+  gale: [
+    { count: 2, label: "Whole squad: Evade 1 (dodges 1 hit)", effects: [{ type: "applyBuff", id: "evade", amount: 1 }] },
+    {
+      count: 3,
+      label: "Whole squad: Evade 1 and +1 Strength",
+      effects: [
+        { type: "applyBuff", id: "evade", amount: 1 },
+        { type: "applyBuff", id: "strength", amount: 1 },
+      ],
+    },
+    {
+      count: 4,
+      label: "Whole squad: Evade 2 and +1 Strength",
+      effects: [
+        { type: "applyBuff", id: "evade", amount: 2 },
+        { type: "applyBuff", id: "strength", amount: 1 },
+      ],
+    },
+  ],
+  stone: [
+    { count: 2, label: "Whole squad: +1 Bulwark (permanent armour)", effects: [{ type: "applyBuff", id: "bulwark", amount: 1 }] },
+    { count: 3, label: "Whole squad: +2 Bulwark", effects: [{ type: "applyBuff", id: "bulwark", amount: 2 }] },
+    {
+      count: 4,
+      label: "Whole squad: +2 Bulwark and +2 Block each round",
+      effects: [
+        { type: "applyBuff", id: "bulwark", amount: 2 },
+        { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      ],
+    },
+  ],
+  shadow: [
+    { count: 2, label: "Whole squad: +1 Execute", effects: [{ type: "applyBuff", id: "execute", amount: 1 }] },
+    {
+      count: 3,
+      label: "Whole squad: +1 Execute, hits apply Poison 1",
+      effects: [
+        { type: "applyBuff", id: "execute", amount: 1 },
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      ],
+    },
+    {
+      count: 4,
+      label: "Whole squad: +2 Execute, hits apply Poison 1",
+      effects: [
+        { type: "applyBuff", id: "execute", amount: 2 },
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      ],
+    },
   ],
 }
 

@@ -323,14 +323,18 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           const def = UNITS[entry.defId]
           const equippedItemIds = runState.items.filter((it) => it.equippedTo === entry.key).map((it) => it.defId)
           const bentRole = def ? effectiveRole(def.role, equippedItemIds) : def?.role
+          const isDeployed = runState.deployed.includes(entry.key)
           return (
             <UnitCard
               key={entry.key}
               def={def}
-              selected={runState.deployed.includes(entry.key)}
+              selected={isDeployed}
               onClick={() => handleBenchClick(entry.key)}
               role={bentRole}
               bent={bentRole !== def?.role}
+              // Light a tribe badge only on a unit that's actually
+              // deployed - an active synergy is about the fighting five.
+              activeTribeIds={isDeployed ? activeSynergies.map((s) => s.tribeId) : undefined}
             />
           )
         })}

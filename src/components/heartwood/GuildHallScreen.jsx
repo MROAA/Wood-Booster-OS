@@ -36,7 +36,8 @@ import { CardGlyph } from "./cardArt"
 // order in synergies.js, so this reference reads the same way every
 // single visit rather than reshuffling with object-key iteration order
 // quirks.
-const TRIBE_ORDER = ["warden", "fang", "root", "grove", "spirit", "thorn"]
+// 6 mechanical tribes, then the elemental tribes (parallel second axis).
+const TRIBE_ORDER = ["warden", "fang", "root", "grove", "spirit", "thorn", "tide", "gale", "stone", "shadow"]
 
 export default function GuildHallScreen({ character, pendingMemory, bannerSrc, bannerAlt, onEnterMarket }) {
   return (

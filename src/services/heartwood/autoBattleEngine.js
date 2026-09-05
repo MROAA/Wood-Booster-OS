@@ -909,7 +909,9 @@ export function resolveRound(state) {
     // AutoBattleView.jsx reads it after the round lands to stage the
     // attacker-lunge animation for exactly this round's hits.
     roundEvents: [],
-    playerUnits: state.playerUnits.map((u) => (u.hp > 0 ? { ...u, block: 0 } : u)),
+    // Block resets every round; evadedThisRound resets with it so a Gale
+    // unit's one-dodge-per-round (effects.js's Evade) refreshes.
+    playerUnits: state.playerUnits.map((u) => (u.hp > 0 ? { ...u, block: 0, evadedThisRound: false } : u)),
   }
 
   // Poison ticks for both sides at the top of the round, before anyone
@@ -945,7 +947,7 @@ export function resolveRound(state) {
   )
   if (next.phase !== "player") return next
 
-  next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0 } : e)) }
+  next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0, evadedThisRound: false } : e)) }
   next = actSide(next, next.enemies, (u) => next.enemyDefs?.[u.defId] || ENEMIES[u.defId], (s) => s.playerUnits, "enemy")
   if (next.phase !== "player") return next
 
