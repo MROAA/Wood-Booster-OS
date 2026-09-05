@@ -30,6 +30,7 @@ import { createAuditStore } from "../services/hearthwoodPatchbay/auditStore.js"
 import {
     listEntities,
     getEntity,
+    listStyleRules,
 } from "../services/hearthwoodPatchbay/entityReader.js"
 import {
     preview as previewPatch,
@@ -150,6 +151,27 @@ export default function createHearthwoodPatchbayRouter(prisma) {
             }
 
             res.json(entity)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    /* -------------------------------------------------------------- *
+     * styles ("hieroa UI" - Marc tweaks colour/size values directly)
+     * -------------------------------------------------------------- */
+
+    router.get(`${BASE}/styles`, async (req, res) => {
+
+        try {
+
+            const { file } = req.query
+
+            const result = await listStyleRules(file || undefined)
+
+            res.json(result)
 
         } catch (error) {
 
