@@ -12,18 +12,31 @@
 // Taxonomy is new, not borrowed from Hearthstone's Beast/Undead/Mech -
 // it groups the roster's own already-established mechanical identities
 // (see units.js's own comments citing Marc's 12 base classes) into 6
-// forest/tarot-flavored tribes:
+// forest/tarot-flavored MECHANICAL tribes:
 //   Warden - stone/bark protectors (Taunt, Ward, heavy turnStart Block)
 //   Fang   - quick strikers (Haste, Chain, Execute, Shatter)
 //   Root   - curse-casters (Poison/Weak/Vulnerable/Stun appliers)
 //   Grove  - menders & buffers (heal, rallyHeal, rallyAdjacent auras, Cleanse)
 //   Spirit - ephemeral/otherworldly (self-Ward-as-evasion, Revive, summon)
 //   Thorn  - raw brutes (no distinguishing status mechanic, just damage)
-// Every one of the 66 recruitable base units got exactly one tag, by
-// its own dominant mechanic first, its role only as a last-resort
-// tiebreaker for the many "plain attacker, no gimmick" units (which
-// default to Thorn - that tribe is deliberately the roster's largest,
-// same way "no gimmick" is the most common unit shape overall).
+// Most units carry exactly one mechanical tag, by their dominant
+// mechanic first, role only as a last-resort tiebreaker for the many
+// "plain attacker, no gimmick" units (default Thorn - deliberately the
+// roster's largest tribe).
+//
+// A unit MAY carry a second tag (Marc, 2026-09-05: "heimoja ja
+// synergioita on liian vähän"). Two axes exist:
+//   1. a second MECHANICAL tag, for the handful of units whose kit
+//      genuinely spans two identities (a curse-caster who also summons,
+//      a tank who also finishes kills). Piloted on ~6 units first,
+//      behind the fairness gate, since a 2-tag unit counts toward BOTH
+//      tribes at once and inflates how often a synergy is live.
+//   2. an ELEMENTAL tag (Wood/Ember/Tide/Gale/Stone/Shadow/Cosmic - a
+//      later round), a parallel second axis over the 6 mechanical
+//      tribes, from the story bible's 7-colour aura language.
+// The whole system was already array-first (UNIT_TRIBES values are
+// arrays, tribesOf returns them as-is, every consumer iterates), so a
+// second tag is a data change only - no engine/UI plumbing change.
 export const TRIBES = {
   warden: { id: "warden", name: "Warden", icon: "shield", color: "var(--hw-rune)", description: "Stone and bark protectors." },
   fang: { id: "fang", name: "Fang", icon: "sword", color: "var(--hw-ember)", description: "Quick, finishing strikers." },
@@ -37,10 +50,18 @@ export const UNIT_TRIBES = {
   "the-fool": ["thorn"],
   "the-magician": ["thorn"],
   "the-high-priestess": ["grove"],
-  "the-empress": ["grove"],
+  // Multi-tag pilot (2026-09-05): 6 units whose kit genuinely spans two
+  // mechanical tribes get a second tag. Kept small on purpose - a
+  // 2-tag unit counts toward BOTH tribes, so this is the change most
+  // likely to inflate synergy uptime and needs to clear the fairness
+  // gate before it's rolled out wider. Each pick is defended inline.
+  // Thistlequeen: heal 5 + block 4 - a mender who also holds a wall.
+  "the-empress": ["grove", "warden"],
   "the-emperor": ["warden"],
   "the-hierophant": ["thorn"],
-  "the-lovers": ["thorn"],
+  // Twinbriar: attack 6 + chainDamage 3 - a raw attacker (Thorn) whose
+  // hits also finish a second target (Chain, Fang's signature).
+  "the-lovers": ["thorn", "fang"],
   "the-chariot": ["thorn"],
   strength: ["thorn"],
   "the-hermit": ["thorn"],
@@ -67,7 +88,9 @@ export const UNIT_TRIBES = {
   duskclaw: ["fang"],
   ashenhorn: ["grove"],
   rootfang: ["root"],
-  wraithbriar: ["spirit"],
+  // Wraithbriar: Revive passive (Spirit) on a full tank stat line and
+  // block-first pattern - an otherworldly thing that also soaks hits.
+  wraithbriar: ["spirit", "warden"],
   grimtusk: ["fang"],
   thornguard: ["warden"],
   swiftclaw: ["fang"],
@@ -85,7 +108,9 @@ export const UNIT_TRIBES = {
   mosswalker: ["spirit"],
   ironbark: ["warden"],
   briarblade: ["fang"],
-  sapkeeper: ["grove"],
+  // Sapkeeper: rallyHeal aura (Grove) + block 4 lead - mends the line
+  // and stands in it.
+  sapkeeper: ["grove", "warden"],
   mycelist: ["root"],
   "spirit-wolf": ["spirit"],
   beastcaller: ["spirit"],
@@ -98,8 +123,12 @@ export const UNIT_TRIBES = {
   duskwren: ["thorn"],
   rimefang: ["fang"],
   hollowquill: ["thorn"],
-  stoneknoll: ["fang"],
-  quarrywarden: ["grove"],
+  // Stoneknoll: Shatter passive (Fang) on a plain attack-6 dps line
+  // with no other gimmick (Thorn).
+  stoneknoll: ["fang", "thorn"],
+  // Quarrywarden: rallyAdjacent Shatter aura (Grove's aura mechanic) on
+  // a block-5 tank body (Warden).
+  quarrywarden: ["grove", "warden"],
   // Added by a concurrent session's Regen round (units.js) - tagged
   // here to keep the tribe roster complete rather than letting these
   // 3 silently fall through tribesOf's `|| []` fallback (no icon, no
@@ -166,12 +195,16 @@ export function tribesOf(defId, def) {
   return UNIT_TRIBES[baseId] || []
 }
 
-// 2 thresholds per tribe, tuned to the 4 recruited deploy slots (the
-// Commander doesn't count - see autoBattleEngine.js's tribe-counting
-// loop - it has no tribe of its own and measures what the player
-// actually shopped for, not the fixed 5th slot everyone always has):
-// 2-of-a-tribe is an easy early target, 4-of-a-tribe (the whole bench)
-// is the realistic ceiling, not 6+ like TFT.
+// 3 thresholds per tribe (count 2 / 3 / 4), tuned to the 4 recruited
+// deploy slots (the Commander doesn't count - see autoBattleEngine.js's
+// tribe-counting loop - it has no tribe of its own and measures what the
+// player actually shopped for, not the fixed 5th slot everyone always
+// has): 2-of-a-tribe is an easy early target, 3-of rewards a partial
+// commitment, 4-of (the whole bench) is the ceiling, not 6+ like TFT.
+// resolveSynergies returns only the HIGHEST met tier (not cumulative),
+// so every tier's `effects` is self-contained - a higher tier restates
+// the lower one's payoff plus more, never strictly less, so growing a
+// tribe is always an upgrade.
 // `label` on each tier (Marc's own long-running "playable by eye" rule,
 // applied here too) - the tracker used to show "Warden 2 ✓" with a
 // tooltip that only gave flavor text ("Stone and bark protectors"),
@@ -186,15 +219,70 @@ export const SYNERGY_TIERS = {
       label: "Whole squad: +2 Block each round",
       effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
     },
-    { count: 4, label: "Whole squad: +1 Ward", effects: [{ type: "applyBuff", id: "ward", amount: 1 }] },
+    {
+      count: 3,
+      label: "Whole squad: +3 Block each round",
+      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
+    },
+    {
+      count: 4,
+      label: "Whole squad: +3 Block each round and +1 Ward",
+      effects: [
+        { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } },
+        { type: "applyBuff", id: "ward", amount: 1 },
+      ],
+    },
   ],
   fang: [
     { count: 2, label: "Whole squad: +1 Execute", effects: [{ type: "applyBuff", id: "execute", amount: 1 }] },
-    { count: 4, label: "Whole squad: +2 Execute", effects: [{ type: "applyBuff", id: "execute", amount: 2 }] },
+    {
+      count: 3,
+      label: "Whole squad: +1 Execute and +1 Strength",
+      effects: [
+        { type: "applyBuff", id: "execute", amount: 1 },
+        { type: "applyBuff", id: "strength", amount: 1 },
+      ],
+    },
+    {
+      count: 4,
+      label: "Whole squad: +2 Execute and +1 Strength",
+      effects: [
+        { type: "applyBuff", id: "execute", amount: 2 },
+        { type: "applyBuff", id: "strength", amount: 1 },
+      ],
+    },
   ],
+  // Root fix (Marc, 2026-09-05): every tier used to `applyBuff` Weak /
+  // Vulnerable onto the player's OWN squad (self-target), a straight
+  // downside on your own units. Now the squad's own hits apply the
+  // curse to whoever they strike - an onDealDamage trigger with
+  // target:"target", the exact shape the-magician's passive and the
+  // Dream Healer dual-class already use.
   root: [
-    { count: 2, label: "Whole squad: +1 Weak", effects: [{ type: "applyBuff", id: "weak", amount: 1 }] },
-    { count: 4, label: "Whole squad: +1 Vulnerable", effects: [{ type: "applyBuff", id: "vulnerable", amount: 1 }] },
+    {
+      count: 2,
+      label: "Whole squad: hits apply Weak 1",
+      effects: [
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+      ],
+    },
+    {
+      count: 3,
+      label: "Whole squad: hits apply Weak 1 and Vulnerable 1",
+      effects: [
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
+      ],
+    },
+    {
+      count: 4,
+      label: "Whole squad: hits apply Weak 1, Vulnerable 1 and Poison 1",
+      effects: [
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      ],
+    },
   ],
   grove: [
     {
@@ -203,18 +291,35 @@ export const SYNERGY_TIERS = {
       effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } }],
     },
     {
-      count: 4,
+      count: 3,
       label: "Whole squad: +2 heal each round",
       effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } }],
+    },
+    {
+      count: 4,
+      label: "Whole squad: +2 heal each round and +2 Regen",
+      effects: [
+        { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } },
+        { type: "applyBuff", id: "regen", amount: 2 },
+      ],
     },
   ],
   spirit: [
     { count: 2, label: "Whole squad: +1 Ward", effects: [{ type: "applyBuff", id: "ward", amount: 1 }] },
-    { count: 4, label: "Whole squad: +1 Revive", effects: [{ type: "applyBuff", id: "revive", amount: 1 }] },
+    { count: 3, label: "Whole squad: +2 Ward", effects: [{ type: "applyBuff", id: "ward", amount: 2 }] },
+    {
+      count: 4,
+      label: "Whole squad: +2 Ward and +1 Revive",
+      effects: [
+        { type: "applyBuff", id: "ward", amount: 2 },
+        { type: "applyBuff", id: "revive", amount: 1 },
+      ],
+    },
   ],
   thorn: [
     { count: 2, label: "Whole squad: +1 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 1 }] },
-    { count: 4, label: "Whole squad: +2 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 2 }] },
+    { count: 3, label: "Whole squad: +2 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 2 }] },
+    { count: 4, label: "Whole squad: +3 Strength", effects: [{ type: "applyBuff", id: "strength", amount: 3 }] },
   ],
 }
 
