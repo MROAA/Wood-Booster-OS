@@ -3,7 +3,17 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
-import { TRIBES, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
+import {
+  TRIBES,
+  tribesOf,
+  resolveSynergies,
+  nextSynergyThreshold,
+  synergyTierLabel,
+  COMBO_SYNERGIES,
+  resolveComboSynergies,
+  resolvePositionSynergies,
+  activePositionSlots,
+} from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
 import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies, RUN_PATH } from "../../services/heartwood/runEngine"
 import { nodeNarrative } from "../../services/heartwood/runNarrative"
@@ -74,6 +84,20 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // game's own design rule - a squad-composition decision belongs here.
   const tribeCounts = deployedTribeCounts(runState)
   const activeSynergies = resolveSynergies(tribeCounts)
+  // Cross-tribe combos + formation/positional synergies (synergies.js).
+  // slotTribes: slot index -> that deployed unit's tribe tags, the same
+  // shape the engine builds from recruitedUnits so the preview and the
+  // real battle never disagree.
+  const slotTribes = {}
+  runState.deployed.forEach((benchKey, i) => {
+    if (benchKey === null) return
+    const entry = runState.bench.find((e) => e.key === benchKey)
+    const def = entry && UNITS[entry.defId]
+    if (def) slotTribes[i] = tribesOf(def.id, def)
+  })
+  const activeCombos = resolveComboSynergies(tribeCounts)
+  const positionHits = resolvePositionSynergies(slotTribes)
+  const formationBonusSlots = new Set(activePositionSlots(slotTribes))
   const commander = CHARACTERS[runState.characterId]
   const primedPower = (runState.pendingActiveEffects || []).length > 0 ? commander?.activePower : null
   // Same progressive-difficulty readout as SquadDraft.jsx's shop
@@ -195,6 +219,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           data-tile={(row + col) % 2 === 0 ? "a" : "b"}
           data-empty={!content}
           data-move-target={slotIndex !== -1 && !content}
+          data-formation-bonus={slotIndex !== -1 && !!content && formationBonusSlots.has(slotIndex)}
         >
           {content}
         </div>,
@@ -303,6 +328,45 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
               )
             })}
           </div>
+
+          {/* Cross-tribe combos - a payoff for splitting the squad
+              across two tribes. Active ones filled; the rest shown
+              greyed with what's still missing, the same "here's what
+              you're building toward" cue the tribe row uses. */}
+          <div className="hw-section-label">Combos</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+            {COMBO_SYNERGIES.map((combo) => {
+              const on = activeCombos.some((c) => c.id === combo.id)
+              const need = Object.entries(combo.tribes)
+                .filter(([t, n]) => (tribeCounts[t] || 0) < n)
+                .map(([t, n]) => `${TRIBES[t]?.name} ${n}`)
+                .join(" + ")
+              return (
+                <span
+                  key={combo.id}
+                  className={`hw-badge${on ? " hw-badge--active" : ""}`}
+                  style={!on ? { opacity: 0.5 } : undefined}
+                  title={combo.label}
+                >
+                  {combo.label.split(":")[0]}
+                  {on ? " ✓" : need ? ` (need ${need})` : ""}
+                </span>
+              )
+            })}
+          </div>
+
+          {positionHits.length > 0 && (
+            <>
+              <div className="hw-section-label">Formation bonuses</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                {[...new Map(positionHits.map((h) => [h.synergy.id, h.synergy])).values()].map((ps) => (
+                  <span key={ps.id} className="hw-badge hw-badge--active" title={ps.label}>
+                    {ps.label.split(":")[0]} ✓
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -311,7 +375,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         {rows}
       </div>
       <p className="hw-flavor" style={{ marginTop: -10, marginBottom: 10 }}>
-        The front-center slot shields whoever you place directly behind it.
+        The front-center slot shields whoever you place directly behind it. A glowing tile
+        means that placement is feeding a formation bonus.
       </p>
 
       <p style={{ fontSize: 12, color: "var(--hw-muted)" }}>

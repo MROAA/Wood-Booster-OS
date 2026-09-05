@@ -523,3 +523,200 @@ export function synergyTiersSummary(tribeId) {
   if (!tiers) return null
   return tiers.map((t) => `${t.count}: ${t.label}`).join(". ")
 }
+
+// --- Cross-tribe combo synergies -------------------------------------
+// A payoff neither tribe grants alone, for a squad that splits its four
+// slots across two identities instead of committing to one. Threshold
+// is always 2+2 (the most a 4-slot squad can do while touching two
+// tribes), so a combo is a real either/or against a single tribe's
+// count-4 tier, not a free extra. `effects` use the same vocabulary as
+// SYNERGY_TIERS and are applied squad-wide at battle start.
+export const COMBO_SYNERGIES = [
+  {
+    id: "bloodhunt",
+    tribes: { fang: 2, root: 2 },
+    label: "Fang + Root: +1 Execute, hits apply Poison 1",
+    effects: [
+      { type: "applyBuff", id: "execute", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+    ],
+  },
+  {
+    id: "stormsurge",
+    tribes: { tide: 2, gale: 2 },
+    label: "Tide + Gale: +2 Block each round, Evade 1",
+    effects: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      { type: "applyBuff", id: "evade", amount: 1 },
+    ],
+  },
+  {
+    id: "landslide",
+    tribes: { stone: 2, thorn: 2 },
+    label: "Stone + Thorn: +1 Strength, +1 Bulwark",
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "applyBuff", id: "bulwark", amount: 1 },
+    ],
+  },
+  {
+    id: "eclipse",
+    tribes: { shadow: 2, spirit: 2 },
+    label: "Shadow + Spirit: +1 Ward, +1 Execute",
+    effects: [
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "applyBuff", id: "execute", amount: 1 },
+    ],
+  },
+  {
+    id: "grovewall",
+    tribes: { warden: 2, grove: 2 },
+    label: "Warden + Grove: +2 Block and +1 heal each round",
+    effects: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } },
+    ],
+  },
+  {
+    id: "wildfire",
+    tribes: { ember: 2, wood: 2 },
+    label: "Ember + Wood: hits apply Burn 2, +1 Regen",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
+      { type: "applyBuff", id: "regen", amount: 1 },
+    ],
+  },
+  {
+    id: "supernova",
+    tribes: { cosmic: 2, ember: 2 },
+    label: "Cosmic + Ember: +1 Strength each round (Ascendant), hits apply Burn 2",
+    effects: [
+      { type: "applyBuff", id: "ascendant", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
+    ],
+  },
+  {
+    id: "sandstorm",
+    tribes: { stone: 2, gale: 2 },
+    label: "Stone + Gale: +1 Bulwark, Evade 1",
+    effects: [
+      { type: "applyBuff", id: "bulwark", amount: 1 },
+      { type: "applyBuff", id: "evade", amount: 1 },
+    ],
+  },
+]
+
+// Given { tribeId: count } (deployedTribeCounts / the engine's own
+// recruited-squad count), the combos whose every threshold is met.
+export function resolveComboSynergies(tribeCounts) {
+  return COMBO_SYNERGIES.filter((c) =>
+    Object.entries(c.tribes).every(([t, n]) => (tribeCounts[t] || 0) >= n),
+  )
+}
+
+// --- Formation / positional synergies -------------------------------
+// Grid placement as a real build lever. Slot indices map 1:1 to
+// autoBattleEngine.js's SLOT_POSITIONS: 0/1/2 are the back row
+// (row 2, cols 0/1/2), 3 is the forward-centre (row 1, col 1) that
+// shields slot 1. The Commander (row 1, col 0) is never a slot here.
+// Declarative `when` only - no functions in data, so this stays
+// serialisable/reviewable, same reasoning as the tribe lookup table.
+//   when.slotAnyTribe : { slot, anyOf }  - that slot is filled and its
+//                                          tribes intersect anyOf
+//   when.allFilled    : [slots]          - every listed slot is filled
+//   when.allTribe     : { slots, anyOf } - every listed slot is filled
+//                                          AND each intersects anyOf
+// Effects: `selfEffects` -> the `slot` in slotAnyTribe; `slotsEffects`
+// -> every slot in `slots`; `squadEffects` -> the whole squad.
+export const POSITION_SYNERGIES = [
+  {
+    id: "phalanx",
+    when: { slotAnyTribe: { slot: 3, anyOf: ["warden", "stone"] } },
+    label: "Forward slot holds a Warden or Stone: it gains +3 Block/round, the squad +1",
+    selfEffects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
+    squadEffects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 1 } }],
+  },
+  {
+    id: "column-wall",
+    when: { allTribe: { slots: [1, 3], anyOf: ["warden", "stone"] } },
+    slots: [1, 3],
+    label: "Warden/Stone stacked in the shielding column (slots 1 and 3): both gain +2 Block/round",
+    slotsEffects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+  },
+  {
+    id: "skirmish-line",
+    when: { allTribe: { slots: [0, 1, 2], anyOf: ["fang", "gale"] } },
+    slots: [0, 1, 2],
+    label: "Whole back row is Fang or Gale: back row gains +1 Execute and Evade 1",
+    slotsEffects: [
+      { type: "applyBuff", id: "execute", amount: 1 },
+      { type: "applyBuff", id: "evade", amount: 1 },
+    ],
+  },
+  {
+    id: "vanguard",
+    when: { allTribe: { slots: [0, 3], anyOf: ["fang", "thorn"] } },
+    slots: [0, 3],
+    label: "Fang/Thorn in both slots flanking the Commander (0 and 3): those two gain +1 Strength",
+    slotsEffects: [{ type: "applyBuff", id: "strength", amount: 1 }],
+  },
+  {
+    id: "backline-coven",
+    when: { allTribe: { slots: [0, 1, 2], anyOf: ["root", "shadow"] } },
+    slots: [0, 1, 2],
+    label: "Whole back row is Root or Shadow: back row hits apply Poison 1",
+    slotsEffects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+    ],
+  },
+]
+
+function slotFilled(slotTribes, i) {
+  return Array.isArray(slotTribes[i]) && slotTribes[i].length > 0
+}
+function slotIntersects(slotTribes, i, anyOf) {
+  return slotFilled(slotTribes, i) && slotTribes[i].some((t) => anyOf.includes(t))
+}
+
+// `slotTribes`: { [slotIndex 0..3]: string[] } built from whichever
+// side has the roster (the engine from recruitedUnits, FormationScreen
+// from runState.deployed) - one shared evaluator so the two never
+// drift. Returns [{ synergy, scope, slots, effects }] where scope is
+// "self" | "slots" | "squad".
+export function resolvePositionSynergies(slotTribes) {
+  const hits = []
+  for (const ps of POSITION_SYNERGIES) {
+    const w = ps.when
+    let met = false
+    let triggerSlot = null
+    if (w.slotAnyTribe) {
+      met = slotIntersects(slotTribes, w.slotAnyTribe.slot, w.slotAnyTribe.anyOf)
+      triggerSlot = w.slotAnyTribe.slot
+    } else if (w.allFilled) {
+      met = w.allFilled.every((i) => slotFilled(slotTribes, i))
+    } else if (w.allTribe) {
+      met = w.allTribe.slots.every((i) => slotIntersects(slotTribes, i, w.allTribe.anyOf))
+    }
+    if (!met) continue
+    if (ps.selfEffects && triggerSlot != null) hits.push({ synergy: ps, scope: "self", slots: [triggerSlot], effects: ps.selfEffects })
+    if (ps.slotsEffects) hits.push({ synergy: ps, scope: "slots", slots: ps.slots || [], effects: ps.slotsEffects })
+    if (ps.squadEffects) hits.push({ synergy: ps, scope: "squad", slots: [], effects: ps.squadEffects })
+  }
+  return hits
+}
+
+// The set of slot indices that participate in at least one active
+// position synergy - FormationScreen uses this to ring those grid
+// cells, so the board itself shows the bonus.
+export function activePositionSlots(slotTribes) {
+  const set = new Set()
+  for (const hit of resolvePositionSynergies(slotTribes)) {
+    if (hit.scope === "squad") continue
+    for (const s of hit.slots) set.add(s)
+    // also light the trigger slot's own participants for a slots-scope
+    // rule whose `when` named specific slots
+    if (hit.synergy.when.allTribe) for (const s of hit.synergy.when.allTribe.slots) set.add(s)
+    if (hit.synergy.when.allFilled) for (const s of hit.synergy.when.allFilled) set.add(s)
+  }
+  return [...set]
+}

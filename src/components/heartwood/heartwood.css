@@ -3828,6 +3828,17 @@ img.hw-card-art {
   50% { box-shadow: inset 0 0 0 3px var(--hw-moss); }
 }
 
+/* A grid cell whose placement is feeding an active formation/positional
+   synergy (FormationScreen's data-formation-bonus) - a steady rune-gold
+   ring, the same "this is doing something" language the in-battle piece
+   glow uses, so the board itself reads as the bonus tracker. */
+.hw-grid-cell[data-formation-bonus="true"] {
+  border-color: var(--hw-rune);
+  box-shadow:
+    inset 0 0 0 2px var(--hw-rune),
+    0 0 14px 2px color-mix(in srgb, var(--hw-rune) 45%, transparent);
+}
+
 .hw-player-token {
   margin: auto;
   width: 74px;
