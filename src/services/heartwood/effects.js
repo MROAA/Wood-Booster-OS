@@ -361,6 +361,52 @@ export function tickRegen(state, units) {
   return next
 }
 
+// Burn (Ember tribe): Poison's louder cousin. Where Poison decays by a
+// flat 1 each round (a long, steady drip), Burn HALVES each round after
+// it ticks - a big opening flare that dies fast: Burn 8 -> 8, 4, 2, 1,
+// 0. Distinct to read (a fire that flares and gutters, not a poison
+// that lingers) and self-terminating with no extra counter field.
+// Ignores Block, same as Poison.
+export function tickBurn(state, units) {
+  let next = state
+  for (const unit of units) {
+    if (next.phase !== "player" && next.phase !== "enemy") break
+    const current = getUnit(next, unit.id)
+    if (!current || current.hp <= 0) continue
+    const stacks = current.powers.burn || 0
+    if (stacks <= 0) continue
+    next = loseHp(next, unit.id, stacks)
+    const afterUnit = getUnit(next, unit.id)
+    if (!afterUnit) continue
+    next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, burn: Math.floor(stacks / 2) } })
+  }
+  return next
+}
+
+// Ascendant (Cosmic tribe): a scaling win condition, no RNG. At the top
+// of every round, each unit holding Ascendant permanently gains that
+// many Strength - Ascendant 2 on the squad is +2 Strength every round,
+// snowballing a long fight. The Ascendant stack itself doesn't change,
+// so the growth is linear and fully predictable (a player can count the
+// rounds), the "plan a build around a fixed number" rule Execute and
+// Strength already follow.
+export function tickAscendant(state, units) {
+  let next = state
+  for (const unit of units) {
+    if (next.phase !== "player" && next.phase !== "enemy") break
+    const current = getUnit(next, unit.id)
+    if (!current || current.hp <= 0) continue
+    const asc = current.powers.ascendant || 0
+    if (asc <= 0) continue
+    next = setUnit(next, unit.id, {
+      ...current,
+      powers: { ...current.powers, strength: (current.powers.strength || 0) + asc },
+    })
+    next = { ...next, log: [...next.log, `${nameOf(next, unit.id)} ascends - +${asc} Strength.`] }
+  }
+  return next
+}
+
 function gainBlock(state, who, amount) {
   const unit = getUnit(state, who)
   if (!unit) return state

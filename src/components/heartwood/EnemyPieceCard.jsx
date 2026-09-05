@@ -48,6 +48,10 @@ const STATUS_DISPLAY = {
   bulwark: { icon: "stone", color: "var(--hw-stone)" },
   evade: { icon: "gale", color: "var(--hw-gale)" },
   dampen: { icon: "tide", color: "var(--hw-tide)", loud: true },
+  // Burn (Ember) - a DOT, loud like Poison. Ascendant (Cosmic) - a
+  // growing buff, the good-status heart/moss language.
+  burn: { icon: "ember", color: "var(--hw-tribe-ember)", loud: true },
+  ascendant: { icon: "cosmic", color: "var(--hw-cosmic)" },
   // Chain (Cascading Claw/Cascading Wound, items.js/relics.js) - the
   // newest mechanic to gain an item/relic-granted `applyBuff` stack
   // (previously chainDamage lived only as a raw def field baked into

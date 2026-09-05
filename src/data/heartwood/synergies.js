@@ -52,6 +52,9 @@ export const TRIBES = {
   gale: { id: "gale", name: "Gale", icon: "gale", color: "var(--hw-gale)", description: "Elemental - wind and speed: strikes that slip past." },
   stone: { id: "stone", name: "Stone", icon: "stone", color: "var(--hw-stone)", description: "Elemental - unmoving armour." },
   shadow: { id: "shadow", name: "Shadow", icon: "shadow", color: "var(--hw-shadow)", description: "Elemental - rot, doom and the finishing dark." },
+  wood: { id: "wood", name: "Wood", icon: "wood", color: "var(--hw-wood)", description: "Elemental - growth and sap: sustain that keeps coming." },
+  ember: { id: "ember", name: "Ember", icon: "ember", color: "var(--hw-tribe-ember)", description: "Elemental - fire: a flare of burning damage." },
+  cosmic: { id: "cosmic", name: "Cosmic", icon: "cosmic", color: "var(--hw-cosmic)", description: "Elemental - the growing, endless power of the stars." },
 }
 
 export const UNIT_TRIBES = {
@@ -73,28 +76,28 @@ export const UNIT_TRIBES = {
   "the-chariot": ["thorn"],
   strength: ["thorn"],
   "the-hermit": ["thorn"],
-  "wheel-of-fortune": ["thorn"],
+  "wheel-of-fortune": ["thorn", "cosmic"],
   justice: ["warden"],
   "the-hanged-man": ["thorn"],
   death: ["thorn", "shadow"],
   temperance: ["warden"],
   "the-devil": ["thorn"],
   "the-tower": ["thorn"],
-  "the-star": ["grove"],
-  "the-moon": ["thorn"],
-  "the-sun": ["thorn"],
-  judgement: ["thorn"],
-  "the-world": ["thorn"],
+  "the-star": ["grove", "cosmic"],
+  "the-moon": ["grove", "cosmic"], // was ["thorn"] - kit is pure rallyHeal support, a mistag
+  "the-sun": ["thorn", "cosmic"],
+  judgement: ["thorn", "cosmic"],
+  "the-world": ["thorn", "cosmic"],
   "knights-leap": ["thorn"],
   "rooks-charge": ["thorn"],
   "bishops-slash": ["thorn"],
-  "ember-stag": ["thorn"],
+  "ember-stag": ["thorn", "ember"],
   grovekeeper: ["warden"],
   stormwing: ["root", "gale"],
   stoneheart: ["warden", "stone"],
-  forgehowl: ["thorn"],
+  forgehowl: ["thorn", "ember"],
   duskclaw: ["fang", "shadow"],
-  ashenhorn: ["grove"],
+  ashenhorn: ["grove", "wood"],
   rootfang: ["root"],
   // Wraithbriar: Revive passive (Spirit) on a full tank stat line and
   // block-first pattern - an otherworldly thing that also soaks hits.
@@ -102,7 +105,7 @@ export const UNIT_TRIBES = {
   grimtusk: ["fang"],
   thornguard: ["warden"],
   swiftclaw: ["fang", "gale"],
-  emberwisp: ["thorn"],
+  emberwisp: ["thorn", "ember"],
   runeveil: ["root"],
   frostbind: ["root"],
   glimmerward: ["grove"],
@@ -122,8 +125,8 @@ export const UNIT_TRIBES = {
   mycelist: ["root"],
   "spirit-wolf": ["spirit"],
   beastcaller: ["spirit"],
-  foxfire: ["fang"],
-  loamguard: ["grove"],
+  foxfire: ["fang", "ember"],
+  loamguard: ["grove", "wood"],
   willowfang: ["fang"],
   cragmoss: ["grove", "stone"],
   willowmend: ["grove"],
@@ -145,13 +148,13 @@ export const UNIT_TRIBES = {
   // set as every unit above: rallyAdjacent -> Grove (aura mechanic,
   // regardless of which buff id it grants), no distinguishing status
   // -> role-based default (tank -> Warden, dps -> Thorn).
-  fernwake: ["grove"],
-  duskbramble: ["thorn"],
+  fernwake: ["grove", "wood"],
+  duskbramble: ["thorn", "ember"],
   hollowmere: ["warden", "tide"],
   thistlemaw: ["thorn"],
-  brackenveil: ["grove"],
+  brackenveil: ["grove", "wood"],
   briarkit: ["fang"],
-  hollowspire: ["grove"],
+  hollowspire: ["grove", "wood"],
   thornwisp: ["root"],
   // Same gap, same fix, a second time - 3 more units (2 balance-round
   // additions, 1 rare-tier round) landed in units.js without a matching
@@ -393,6 +396,72 @@ export const SYNERGY_TIERS = {
       effects: [
         { type: "applyBuff", id: "execute", amount: 2 },
         { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      ],
+    },
+  ],
+  // Wood: bramble/bark that bites back - retaliation (the onHit hook
+  // Bramble Ward introduced), the one elemental identity not already
+  // covered by Tide's Regen or Grove's heals.
+  wood: [
+    {
+      count: 2,
+      label: "Whole squad: strikes back for 2 when hit",
+      effects: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 2 } }],
+    },
+    {
+      count: 3,
+      label: "Whole squad: strikes back for 3 when hit",
+      effects: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 3 } }],
+    },
+    {
+      count: 4,
+      label: "Whole squad: strikes back for 3 when hit, and +2 Block each round",
+      effects: [
+        { type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 3 } },
+        { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      ],
+    },
+  ],
+  // Ember: a burst of Burn on the squad's hits (effects.js's tickBurn -
+  // halves each round, a flare not a drip).
+  ember: [
+    {
+      count: 2,
+      label: "Whole squad: hits apply Burn 2",
+      effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } }],
+    },
+    {
+      count: 3,
+      label: "Whole squad: hits apply Burn 3",
+      effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 3 } }],
+    },
+    {
+      count: 4,
+      label: "Whole squad: hits apply Burn 3, and +1 Strength",
+      effects: [
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 3 } },
+        { type: "applyBuff", id: "strength", amount: 1 },
+      ],
+    },
+  ],
+  // Cosmic: Ascendant (effects.js's tickAscendant) - +Strength every
+  // round, a scaling win condition for a long fight.
+  cosmic: [
+    { count: 2, label: "Whole squad: +1 Strength each round (Ascendant)", effects: [{ type: "applyBuff", id: "ascendant", amount: 1 }] },
+    {
+      count: 3,
+      label: "Whole squad: +1 Strength each round and +1 Ward",
+      effects: [
+        { type: "applyBuff", id: "ascendant", amount: 1 },
+        { type: "applyBuff", id: "ward", amount: 1 },
+      ],
+    },
+    {
+      count: 4,
+      label: "Whole squad: +2 Strength each round and +1 Ward",
+      effects: [
+        { type: "applyBuff", id: "ascendant", amount: 2 },
+        { type: "applyBuff", id: "ward", amount: 1 },
       ],
     },
   ],
