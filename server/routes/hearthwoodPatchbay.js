@@ -23,6 +23,7 @@
  */
 
 import express from "express"
+import multer from "multer"
 
 import { ENTITY_TYPES } from "../services/hearthwoodPatchbay/paths.js"
 import { createAuditStore } from "../services/hearthwoodPatchbay/auditStore.js"
@@ -36,6 +37,14 @@ import {
     revert as revertPatch,
     stopPreviewFor,
 } from "../services/hearthwoodPatchbay/applyPatch.js"
+import { runDoctor } from "../services/hearthwoodPatchbay/doctor.js"
+import { startBalanceRun, getBalanceJob } from "../services/hearthwoodPatchbay/balanceRunner.js"
+import { saveUploadedImage } from "../services/hearthwoodPatchbay/imageUpload.js"
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 },
+})
 
 export default function createHearthwoodPatchbayRouter(prisma) {
 
@@ -150,6 +159,39 @@ export default function createHearthwoodPatchbayRouter(prisma) {
     })
 
     /* -------------------------------------------------------------- *
+     * image upload (saves the asset only - wiring it into an entity is
+     * a normal preview/apply "setImportedImage" edit, see below)
+     * -------------------------------------------------------------- */
+
+    router.post(`${BASE}/upload-image`, upload.single("file"), async (req, res) => {
+
+        try {
+
+            if (!req.file) {
+
+                return res.status(400).json({ error: "tiedosto puuttuu (kentän nimi: file)" })
+
+            }
+
+            const { type, entityId } = req.body || {}
+
+            const result = saveUploadedImage({
+                type,
+                entityId,
+                originalName: req.file.originalname,
+                buffer: req.file.buffer,
+            })
+
+            res.status(201).json(result)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    /* -------------------------------------------------------------- *
      * preview / apply / revert
      * -------------------------------------------------------------- */
 
@@ -214,6 +256,60 @@ export default function createHearthwoodPatchbayRouter(prisma) {
             const result = await revertPatch({ prisma, id })
 
             res.json(result)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    /* -------------------------------------------------------------- *
+     * doctor (must be registered before the "${BASE}/:id" GET below,
+     * or Express would match "doctor" as an :id and 400 on it)
+     * -------------------------------------------------------------- */
+
+    router.get(`${BASE}/doctor`, async (req, res) => {
+
+        try {
+
+            const result = await runDoctor()
+
+            res.json(result)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    /* -------------------------------------------------------------- *
+     * balance test (on-demand fairness run, independent of any patch)
+     * -------------------------------------------------------------- */
+
+    router.post(`${BASE}/balance-test`, async (req, res) => {
+
+        try {
+
+            const { runs } = req.body || {}
+
+            const result = await startBalanceRun({ runs })
+
+            res.status(202).json(result)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    router.get(`${BASE}/balance-test`, async (req, res) => {
+
+        try {
+
+            res.json(getBalanceJob() || { status: "idle" })
 
         } catch (error) {
 

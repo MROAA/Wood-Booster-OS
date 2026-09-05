@@ -31,6 +31,7 @@ import ExecutionCenterV2 from "./pages/ExecutionCenterV2"
 import SystemCenter from "./pages/SystemCenter"
 import Tools from "./pages/Tools"
 import DevStudio from "./pages/DevStudio"
+import HearthwoodStudio from "./pages/HearthwoodStudio"
 import SpiderSolitaire from "./pages/SpiderSolitaire"
 import HeartwoodBattle from "./pages/HeartwoodBattle"
 import HeartwoodAssistant from "./pages/HeartwoodAssistant"
@@ -237,6 +238,12 @@ function App() {
           path="/dev-studio"
           element={
             <DevStudio />
+          }
+        />
+        <Route
+          path="/hearthwood-studio"
+          element={
+            <HearthwoodStudio />
           }
         />
         <Route

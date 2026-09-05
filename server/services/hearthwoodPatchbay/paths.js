@@ -161,3 +161,22 @@ export const ARRAY_FIELD_NAMES = [
     "traits",
     "tags",
 ]
+
+/**
+ * Known factory-call signatures used instead of a plain object literal
+ * for a map entry - units.js: `unit(id, name, art, cost, role,
+ * movePattern, opts = {})`, defined at units.js's own `function unit(...)`.
+ * `positional` names the first N call arguments; `optsArgIndex` is the
+ * trailing options-object argument's index, if present.
+ *
+ * Single source of truth for both scripts/hearthwood-read-entities.mjs
+ * (extracts fields FROM a call) and scripts/hearthwood-apply-edit.mjs
+ * (splices a value INTO a call's argument or its opts object) - they
+ * must never independently drift on what "field X of a unit" means.
+ */
+export const FACTORY_SIGNATURES = {
+    unit: {
+        positional: ["id", "name", "art", "cost", "role", "movePattern"],
+        optsArgIndex: 6,
+    },
+}

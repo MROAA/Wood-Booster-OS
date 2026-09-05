@@ -46,6 +46,7 @@ import {
     PROJECT_ROOT,
     HEARTHWOOD_DATA_DIR,
     ENTITY_TYPES,
+    FACTORY_SIGNATURES,
 } from "../server/services/hearthwoodPatchbay/paths.js"
 
 /* ------------------------------------------------------------------ *
@@ -282,10 +283,85 @@ function findLocalInit(ast, name) {
     return null
 }
 
+/** A bare `image: emberStagImg` reference to a top-of-file import. */
+function isIdentifierRef(node) {
+
+    return !!node && node.type === "Identifier"
+
+}
+
+/**
+ * Walks an ObjectExpression's own properties into `fields`/`complexKeys`/
+ * `identifierKeys` (mutated in place) - shared between a plain entity
+ * object literal and a factory call's trailing options object, so the
+ * two don't drift into slightly different field-classification rules.
+ */
+function collectObjectFields(objNode, fields, complexKeys, identifierKeys) {
+
+    for (const field of objNode.properties) {
+
+        if (field.type !== "Property") {
+
+            complexKeys.push("<spread>")
+            continue
+
+        }
+
+        const fk = keyName(field.key, field.computed)
+
+        if (fk == null) {
+
+            continue
+
+        }
+
+        const scalar = scalarValue(field.value)
+
+        if (scalar) {
+
+            fields[fk] = {
+                value: scalar.value,
+                kind: scalar.kind,
+                range: [field.value.start, field.value.end],
+            }
+
+        } else if (isIdentifierRef(field.value)) {
+
+            // A reference to a top-of-file `import xImg from "..."` -
+            // not splice-safe as a scalar "set" (editApplier.js), but
+            // worth naming distinctly from other complex keys so the
+            // frontend can offer an image-upload control specifically
+            // for these (see balanceRunner.js's sibling, the image
+            // upload endpoint).
+            complexKeys.push(fk)
+            identifierKeys.push(fk)
+
+        } else {
+
+            // Not scalar-editable via "set", but still splice-safe via
+            // the generic "setRaw" op (hearthwood-apply-edit.mjs) - a
+            // range here lets readEntities() fill in the exact source
+            // text below, so the frontend can show/edit it as raw JS
+            // without a bespoke UI per mechanic shape (movePattern,
+            // effects, passives, ...).
+            complexKeys.push(fk)
+
+            fields[fk] = {
+                value: null,
+                kind: "complex",
+                range: [field.value.start, field.value.end],
+            }
+
+        }
+    }
+}
+
 /**
  * Turn a single map Property (key -> value) into an entity record.
- * `value` may be an object literal (the normal case), a factory call
- * (units.js `unit(...)`), or something else we can only name.
+ * `value` may be an object literal (the normal case), a recognized
+ * factory call (units.js `unit(...)` - FACTORY_SIGNATURES), an
+ * unrecognized factory call (best-effort id/name only), or something
+ * else we can only name.
  */
 function entityFromProperty(prop) {
 
@@ -303,66 +379,101 @@ function entityFromProperty(prop) {
 
     const complexKeys = []
 
+    const identifierKeys = []
+
     let name = null
 
     if (value && value.type === "ObjectExpression") {
 
-        for (const field of value.properties) {
+        collectObjectFields(value, fields, complexKeys, identifierKeys)
 
-            if (field.type !== "Property") {
+        if (fields.name && fields.name.kind === "string") {
 
-                complexKeys.push("<spread>")
-                continue
+            name = fields.name.value
 
-            }
-
-            const fk = keyName(field.key, field.computed)
-
-            if (fk == null) {
-
-                continue
-
-            }
-
-            const scalar = scalarValue(field.value)
-
-            if (scalar) {
-
-                fields[fk] = {
-                    value: scalar.value,
-                    kind: scalar.kind,
-                    range: [field.value.start, field.value.end],
-                }
-
-                if (fk === "name" && scalar.kind === "string") {
-
-                    name = scalar.value
-
-                }
-
-            } else {
-
-                complexKeys.push(fk)
-
-            }
         }
 
     } else if (value && value.type === "CallExpression") {
 
-        // units.js style: unit("the-fool", "Mosskit", ...) - best-effort
-        // id/name from leading string-literal args; the entity is not
-        // field-editable through the deterministic splicer.
-        const strArgs = (value.arguments || [])
-            .filter(a => a.type === "Literal" && typeof a.value === "string")
-            .map(a => a.value)
+        const calleeName = value.callee && value.callee.type === "Identifier"
+            ? value.callee.name
+            : null
 
-        if (strArgs.length >= 2) {
+        const signature = calleeName ? FACTORY_SIGNATURES[calleeName] : null
 
-            name = strArgs[1]
+        if (signature) {
+
+            const args = value.arguments || []
+
+            signature.positional.forEach((argName, index) => {
+
+                const argNode = args[index]
+
+                if (!argNode) {
+
+                    return
+
+                }
+
+                const scalar = scalarValue(argNode)
+
+                if (scalar) {
+
+                    fields[argName] = {
+                        value: scalar.value,
+                        kind: scalar.kind,
+                        range: [argNode.start, argNode.end],
+                    }
+
+                } else if (isIdentifierRef(argNode)) {
+
+                    complexKeys.push(argName)
+                    identifierKeys.push(argName)
+
+                } else {
+
+                    complexKeys.push(argName)
+
+                    fields[argName] = {
+                        value: null,
+                        kind: "complex",
+                        range: [argNode.start, argNode.end],
+                    }
+
+                }
+            })
+
+            const optsNode = args[signature.optsArgIndex]
+
+            if (optsNode && optsNode.type === "ObjectExpression") {
+
+                collectObjectFields(optsNode, fields, complexKeys, identifierKeys)
+
+            }
+
+            if (fields.name && fields.name.kind === "string") {
+
+                name = fields.name.value
+
+            }
+
+        } else {
+
+            // Unrecognized factory - best-effort id/name from leading
+            // string-literal args; not field-editable.
+            const strArgs = (value.arguments || [])
+                .filter(a => a.type === "Literal" && typeof a.value === "string")
+                .map(a => a.value)
+
+            if (strArgs.length >= 2) {
+
+                name = strArgs[1]
+
+            }
+
+            complexKeys.push("<factory-call>")
 
         }
-
-        complexKeys.push("<factory-call>")
 
     } else if (value) {
 
@@ -375,6 +486,7 @@ function entityFromProperty(prop) {
         name,
         fields,
         complexKeys,
+        identifierKeys,
         sourceRange: [prop.start, prop.end],
     }
 }
@@ -502,6 +614,12 @@ function walkArray(arrayNode) {
 
                     complexKeys.push(fk)
 
+                    fields[fk] = {
+                        value: null,
+                        kind: "complex",
+                        range: [field.value.start, field.value.end],
+                    }
+
                 }
             }
 
@@ -516,6 +634,7 @@ function walkArray(arrayNode) {
             name,
             fields,
             complexKeys,
+            identifierKeys: [],
             sourceRange: [element.start, element.end],
         })
     })
@@ -533,9 +652,13 @@ export function readEntities(input) {
 
     const relPath = `${HEARTHWOOD_DATA_DIR}/${target.file}`
 
-    const absPath = path.join(PROJECT_ROOT, relPath)
-
-    const source = fs.readFileSync(absPath, "utf8")
+    // `input.source`, when given, is read INSTEAD of the file on disk -
+    // lets a caller (currently just the test suite) sanity-check a
+    // proposed edit's result by walking it exactly like the real file,
+    // without writing anything.
+    const source = typeof input.source === "string"
+        ? input.source
+        : fs.readFileSync(path.join(PROJECT_ROOT, relPath), "utf8")
 
     const ast = parseAst(source)
 
@@ -564,6 +687,24 @@ export function readEntities(input) {
             `export ${target.exportName} is a ${initNode.type}, `
             + "not an object/array literal - cannot walk it",
         )
+    }
+
+    // Fill in each `kind: "complex"` field's exact source text now that
+    // `source` is in scope - kept as a post-pass rather than threading
+    // `source` through every walk function, since only the final text is
+    // needed (not during AST traversal itself). This is what
+    // EntityFieldEditor.jsx shows/edits raw and what a "setRaw" op
+    // ultimately replaces.
+    for (const entity of entities) {
+
+        for (const field of Object.values(entity.fields)) {
+
+            if (field.kind === "complex" && Array.isArray(field.range)) {
+
+                field.value = source.slice(field.range[0], field.range[1])
+
+            }
+        }
     }
 
     return {

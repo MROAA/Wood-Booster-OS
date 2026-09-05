@@ -198,6 +198,41 @@ export function classifyRisk({ targetFiles = [], editSpec = {} } = {}) {
 
             }
 
+            if (op && op.op === "addField") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("lisää uuden kentän olemassa olevaan entiteettiin")
+
+            }
+
+            if (op && op.op === "removeField") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("poistaa kentän - tarkista ettei mikään muu viittaa siihen")
+
+            }
+
+            if (op && op.op === "removeKey") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("poistaa koko entiteetin - tarkista ettei mikään muu viittaa siihen")
+
+            }
+
+            if (op && op.op === "setImportedImage") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("vaihtaa kuvan (uusi import-lause tiedoston alkuun)")
+
+            }
+
+            if (op && op.op === "setRaw") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("korvaa monimutkaisen kentän raakana (rakenteellinen muutos)")
+
+            }
+
             if (path.some(isNumericSegment)) {
 
                 tier = maxTier(tier, "MEDIUM")
