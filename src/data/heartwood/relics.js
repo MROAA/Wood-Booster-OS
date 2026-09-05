@@ -456,6 +456,38 @@ export const RELICS = {
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 2 } },
     ],
   },
+  "heartwood-bloom": {
+    id: "heartwood-bloom",
+    image: barkWardImg, // TODO: own art
+    name: "Heartwood Bloom",
+    icon: "wood",
+    description: "Every Wood in your squad grows a shell of bark each round and lashes back hard at whatever strikes it.",
+    tribeAnchor: "wood",
+    effects: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      { type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 4 } },
+    ],
+  },
+  "emberbrand": {
+    id: "emberbrand",
+    image: emberCoreImg, // TODO: own art
+    name: "Emberbrand",
+    icon: "ember",
+    description: "Whatever an Ember in your squad strikes is left badly burning.",
+    tribeAnchor: "ember",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 4 } },
+    ],
+  },
+  "starlit-crown": {
+    id: "starlit-crown",
+    image: essenceWellImg, // TODO: own art
+    name: "Starlit Crown",
+    icon: "cosmic",
+    description: "Every Cosmic in your squad grows stronger with every passing round.",
+    tribeAnchor: "cosmic",
+    effects: [{ type: "applyBuff", id: "ascendant", amount: 2 }],
+  },
   "heartsbloom-seed": {
     id: "heartsbloom-seed",
     image: heartsbloomSeedImg,
@@ -739,6 +771,7 @@ const UNCOMMON_RELICS = [
   // Elemental tribe anchors - priced with the other anchors (150), even
   // the two-mechanic ones: they only ever reach a fraction of the squad.
   "tides-embrace", "galeforce-banner", "bastion-of-stone", "shroud-of-shadow",
+  "heartwood-bloom", "emberbrand", "starlit-crown",
 ]
 // Everything NOT listed above (every dual-mechanic combo from
 // quarry-vanguard down, plus essence-well/artificers-ledger/

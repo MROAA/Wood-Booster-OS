@@ -24,6 +24,11 @@
   --hw-gale: #79c6cf;
   --hw-stone: #9a8c7a;
   --hw-shadow: #6f6090;
+  --hw-wood: #6f9b4e;
+  /* distinct from --hw-ember (var(--wood-accent), used everywhere) - the
+     Ember TRIBE needs its own hue that won't collide with the accent. */
+  --hw-tribe-ember: #d06a3a;
+  --hw-cosmic: #9b7fc7;
 
   /* Golden ratio + Fibonacci scale (Marc: "suuri osa visuaalisuutta on
      geometria ja kultainen leikkaus" - deliberate geometry, not

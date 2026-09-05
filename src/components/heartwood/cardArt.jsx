@@ -421,6 +421,32 @@ function ShadowGlyph() {
     </g>
   )
 }
+function WoodGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M24 44 L24 16" />
+      <path d="M24 24 C18 18 12 20 10 14 C18 12 22 16 24 22" />
+      <path d="M24 20 C30 14 36 16 38 10 C30 8 26 12 24 18" />
+      <path d="M24 30 C20 26 15 27 13 22" />
+    </g>
+  )
+}
+function EmberGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinejoin="round">
+      <path d="M24 4 C30 14 34 18 30 28 C28 34 20 36 16 30 C12 24 16 20 18 24 C16 14 20 8 24 4 Z" fill="currentColor" stroke="none" />
+      <path d="M24 20 C27 25 26 31 22 34" fill="none" stroke="var(--hw-bg, #000)" />
+    </g>
+  )
+}
+function CosmicGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M24 6 L27 19 L40 22 L27 25 L24 40 L21 25 L8 22 L21 19 Z" />
+      <circle cx="24" cy="22" r="20" opacity="0.5" />
+    </g>
+  )
+}
 
 const GLYPHS = {
   leaf: Leaf,
@@ -433,6 +459,9 @@ const GLYPHS = {
   gale: GaleGlyph,
   stone: StoneGlyph,
   shadow: ShadowGlyph,
+  wood: WoodGlyph,
+  ember: EmberGlyph,
+  cosmic: CosmicGlyph,
   husk: Husk,
   troll: Troll,
   warden: Warden,

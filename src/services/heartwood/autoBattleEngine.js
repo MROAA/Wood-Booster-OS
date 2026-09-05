@@ -20,7 +20,7 @@ import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
 import { tribesOf, SYNERGY_TIERS } from "../../data/heartwood/synergies"
 import { findDualClassFor, applyDualClassGrant } from "../../data/heartwood/dualClasses"
-import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen } from "./effects"
+import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen, tickBurn, tickAscendant } from "./effects"
 import { isShielded, kingAdjacent } from "./targeting"
 // RAMP_CAP: the difficulty ramp's total budget, defined in runEngine.js
 // alongside difficultyFactorForNode. Imported (not re-declared) so this
@@ -922,11 +922,26 @@ export function resolveRound(state) {
   next = tickPoison(next, next.enemies)
   if (next.phase !== "player") return next
 
+  // Burn (effects.js) - Poison's louder cousin, halves each round
+  // instead of decaying by 1. Same top-of-round, both-sides shape.
+  next = tickBurn(next, next.playerUnits)
+  if (next.phase !== "player") return next
+  next = tickBurn(next, next.enemies)
+  if (next.phase !== "player") return next
+
   // Regen (effects.js) - Poison's mirror, same "resolve automatically,
   // decay by 1" shape, healing instead of damaging.
   next = tickRegen(next, next.playerUnits)
   if (next.phase !== "player") return next
   next = tickRegen(next, next.enemies)
+  if (next.phase !== "player") return next
+
+  // Ascendant (effects.js) - Cosmic's scaling buff: every holder gains
+  // its stack in permanent Strength each round. Applied after the DOT/
+  // HOT ticks so a unit that dies to Burn this round doesn't ascend.
+  next = tickAscendant(next, next.playerUnits)
+  if (next.phase !== "player") return next
+  next = tickAscendant(next, next.enemies)
   if (next.phase !== "player") return next
 
   next = applyRallyHealTick(next)

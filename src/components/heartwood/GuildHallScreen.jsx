@@ -37,7 +37,10 @@ import { CardGlyph } from "./cardArt"
 // single visit rather than reshuffling with object-key iteration order
 // quirks.
 // 6 mechanical tribes, then the elemental tribes (parallel second axis).
-const TRIBE_ORDER = ["warden", "fang", "root", "grove", "spirit", "thorn", "tide", "gale", "stone", "shadow"]
+const TRIBE_ORDER = [
+  "warden", "fang", "root", "grove", "spirit", "thorn",
+  "tide", "gale", "stone", "shadow", "wood", "ember", "cosmic",
+]
 
 export default function GuildHallScreen({ character, pendingMemory, bannerSrc, bannerAlt, onEnterMarket }) {
   return (
