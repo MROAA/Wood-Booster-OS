@@ -1007,6 +1007,40 @@
   color: var(--hw-hp);
 }
 
+/* Boss phase banner (autoBattleEngine.js's checkBossPhases) - a
+   one-shot dramatic line across the battlefield the round a boss
+   crosses an HP threshold. Absolutely positioned over the stage like
+   the synergy WOW banner, so the board never shifts. */
+.hw-boss-phase-banner {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.3px;
+  color: var(--hw-hp);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--hw-hp) 70%, transparent), 0 2px 6px rgba(0, 0, 0, 0.8);
+  padding: 10px 22px;
+  border-top: 1px solid color-mix(in srgb, var(--hw-hp) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--hw-hp) 60%, transparent);
+  background: linear-gradient(color-mix(in srgb, var(--hw-hp) 12%, transparent), transparent);
+  pointer-events: none;
+  animation: hw-boss-phase 2.4s ease-out forwards;
+}
+@keyframes hw-boss-phase {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -55%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-boss-phase-banner { animation: none; opacity: 1; }
+}
+
 /* Arena hazard banner (arenas.js) - shown on FormationScreen before a
    fight that has one. Left border keyed to who it helps: rune (both),
    moss (your squad), hp-red (the enemy). */

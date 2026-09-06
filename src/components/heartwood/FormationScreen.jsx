@@ -300,6 +300,13 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </div>
       )}
 
+      {formation.synergy && (formation.pieces?.length || 0) >= 2 && (
+        <div className="hw-badge" style={{ marginBottom: 10, color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+          title="This formation fights as a unit - every enemy piece shares a bonus">
+          Enemy formation: {formation.synergy.label}
+        </div>
+      )}
+
       {arena && (
         <div
           className="hw-arena-banner hw-section-fade-in"

@@ -1150,6 +1150,19 @@ export const ENEMIES = {
       { type: "applyBuff", id: "strength", amount: 3 },
       { type: "applyBuff", id: "ward", amount: 2 },
     ],
+    // Phase mechanic (autoBattleEngine.js's checkBossPhases) - Marc:
+    // "isommat pomomekaniikat". Once it's taken enough of a beating,
+    // the sentinel stops holding back and roots itself in place.
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "It plants its feet. The ground answers.",
+        effects: [
+          { type: "applyBuff", id: "bulwark", amount: 2 },
+          { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 4 } },
+        ],
+      },
+    ],
     moveSelect: "weightedRandom",
     movePattern: [
       { type: "attack", amount: 12, weight: 2 },
@@ -1180,6 +1193,18 @@ export const ENEMIES = {
     passive: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 4 } },
       { type: "applyBuff", id: "taunt", amount: 1 },
+    ],
+    // Phase mechanic - it heals harder and hits back once the fight
+    // turns against it, so a slow grind gets slower the closer you get.
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "The wounds close faster than you can open them.",
+        effects: [
+          { type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 3 } },
+          { type: "applyBuff", id: "strength", amount: 1 },
+        ],
+      },
     ],
     moveSelect: "sequence",
     movePattern: [
@@ -1212,6 +1237,18 @@ export const ENEMIES = {
     passive: [
       { type: "applyBuff", id: "execute", amount: 4 },
       { type: "applyBuff", id: "shatter", amount: 3 },
+    ],
+    // Phase mechanic - below half it stops circling and commits to the
+    // kill, so a squad that lets a wounded unit linger pays for it.
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "It has found the shape of your mistake.",
+        effects: [
+          { type: "applyBuff", id: "execute", amount: 3 },
+          { type: "applyBuff", id: "strength", amount: 2 },
+        ],
+      },
     ],
     moveSelect: "weightedRandom",
     movePattern: [
@@ -1262,6 +1299,29 @@ export const ENEMIES = {
     passive: [
       { type: "applyBuff", id: "revive", amount: 1 },
       { type: "applyBuff", id: "woundedFury", amount: 1 },
+    ],
+    // Phase mechanic (autoBattleEngine.js's checkBossPhases) - the final
+    // fight gets two real turns of the screw on top of the Revive
+    // second-wind it already had. At 60% the grin drops and he stops
+    // playing; at 30% the Veil in him shows through.
+    phases: [
+      {
+        atHpPct: 0.6,
+        announce: "\"You've come a long way to lose.\"",
+        effects: [
+          { type: "applyBuff", id: "strength", amount: 2 },
+          { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+        ],
+      },
+      {
+        atHpPct: 0.3,
+        announce: "The hollow where its crown should be starts to sing.",
+        effects: [
+          { type: "applyBuff", id: "strength", amount: 3 },
+          { type: "applyBuff", id: "execute", amount: 2 },
+          { type: "applyBuff", id: "ward", amount: 2 },
+        ],
+      },
     ],
     moveSelect: "weightedRandom",
     movePattern: [
