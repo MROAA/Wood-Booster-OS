@@ -803,6 +803,93 @@ export const ITEMS = {
       { type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } },
     ],
   },
+
+  // --- Elemental-status items (the depth round) ----------------------
+  // A single-target entry point for each new status, so a squad that
+  // isn't built around an elemental tribe can still splash one in.
+  // Same "smaller echo of a relic" shape every item above already has.
+  "stoneskin-band": {
+    id: "stoneskin-band",
+    name: "Stoneskin Band",
+    icon: "stone",
+    cost: 100,
+    description: "This unit carries a sliver of permanent armour that turns aside part of every hit.",
+    effects: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+  },
+  "windstep-charm": {
+    id: "windstep-charm",
+    name: "Windstep Charm",
+    icon: "gale",
+    cost: 100,
+    description: "This unit slips aside from the first hit that would land on it.",
+    effects: [{ type: "applyBuff", id: "evade", amount: 1 }],
+  },
+  "tidewrack-vial": {
+    id: "tidewrack-vial",
+    name: "Tidewrack Vial",
+    icon: "tide",
+    cost: 100,
+    description: "Whatever this unit strikes hits back a little softer afterward.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+    ],
+  },
+  "emberbrand-oil": {
+    id: "emberbrand-oil",
+    name: "Emberbrand Oil",
+    icon: "ember",
+    cost: 100,
+    description: "Whatever this unit strikes is left burning.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
+    ],
+  },
+  "starlit-shard": {
+    id: "starlit-shard",
+    name: "Starlit Shard",
+    icon: "cosmic",
+    cost: 150,
+    description: "This unit grows a little stronger with every passing round.",
+    effects: [{ type: "applyBuff", id: "ascendant", amount: 1 }],
+  },
+  "glacier-fang": {
+    id: "glacier-fang",
+    name: "Glacier Fang",
+    icon: "stone",
+    cost: 200,
+    // Bulwark + Shatter - armour that also punishes an enemy for
+    // turtling behind Block.
+    description: "This unit shrugs part of every hit aside, and cuts deeper into anything hiding behind Block.",
+    effects: [
+      { type: "applyBuff", id: "bulwark", amount: 1 },
+      { type: "applyBuff", id: "shatter", amount: 2 },
+    ],
+  },
+  "cyclone-edge": {
+    id: "cyclone-edge",
+    name: "Cyclone Edge",
+    icon: "gale",
+    cost: 200,
+    // Evade + Strength - the Gale identity in one item: dodge a hit,
+    // and hit back harder.
+    description: "This unit slips the first blow and answers with a heavier one.",
+    effects: [
+      { type: "applyBuff", id: "evade", amount: 1 },
+      { type: "applyBuff", id: "strength", amount: 1 },
+    ],
+  },
+  "pyre-edge": {
+    id: "pyre-edge",
+    name: "Pyre Edge",
+    icon: "ember",
+    cost: 200,
+    // Burn-on-hit + Execute - a finisher that leaves a fire behind.
+    description: "Whatever this unit strikes burns, and burns worse the closer it is to falling.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
+      { type: "applyBuff", id: "execute", amount: 1 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
