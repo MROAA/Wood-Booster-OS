@@ -20,6 +20,7 @@ import { CardGlyph } from "./cardArt"
 function nodeGlyph(node) {
   if (node.type === "shop") return "spark"
   if (node.type === "relic") return "rune"
+  if (node.type === "event") return "moonGlyph"
   if (node.type === "boss") return "spacemonkeyBoss"
   if (node.formationId) return FORMATIONS[node.formationId] ? "warden" : "warden"
   return ENEMIES[node.enemyId]?.art || "warden"
@@ -28,6 +29,7 @@ function nodeGlyph(node) {
 function nodeColor(node) {
   if (node.type === "boss") return "var(--hw-hp)"
   if (node.type === "miniboss") return "var(--hw-curse)"
+  if (node.type === "event") return "var(--hw-rune)"
   if (node.type === "shop" || node.type === "relic") return "var(--hw-moss)"
   return "var(--hw-ember)"
 }
@@ -35,6 +37,7 @@ function nodeColor(node) {
 function nodeLabel(node) {
   if (node.type === "shop") return "Market"
   if (node.type === "relic") return "Relic"
+  if (node.type === "event") return "Event"
   if (node.type === "boss") return "Spacemonkey"
   if (node.formationId) return FORMATIONS[node.formationId]?.name || "Battle"
   return ENEMIES[node.enemyId]?.name || "Battle"
