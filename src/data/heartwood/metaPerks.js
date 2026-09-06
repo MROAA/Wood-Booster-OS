@@ -71,6 +71,46 @@ export const META_PERKS = [
     description: "Start every run with a common item already in your bag.",
     apply: (rs) => ({ ...rs, metaStartItem: "random-common" }),
   },
+  {
+    id: "first-blood",
+    name: "First Blood",
+    cost: 40,
+    description: "Your squad enters the first battle of every run with +2 Strength.",
+    apply: (rs) => ({
+      ...rs,
+      pendingActiveEffects: [...(rs.pendingActiveEffects || []), { type: "applyBuff", id: "strength", amount: 2 }],
+    }),
+  },
+  {
+    id: "forager",
+    name: "Forager",
+    cost: 50,
+    description: "Start every run with a common unit already on your bench.",
+    apply: (rs) => ({ ...rs, metaStartUnit: "random-common" }),
+  },
+  {
+    id: "deep-reserves",
+    name: "Deep Reserves",
+    cost: 45,
+    description: "+1 more reserve slot (stacks with Wide Bench).",
+    apply: (rs) => ({ ...rs, benchCapBonus: (rs.benchCapBonus || 0) + 1 }),
+  },
+  {
+    id: "heirloom",
+    name: "Heirloom",
+    cost: 75,
+    description: "Start every run already carrying the Ember Core relic - the whole squad strikes harder, all fight.",
+    apply: (rs) => (rs.relics.includes("ember-core") ? rs : { ...rs, relics: [...rs.relics, "ember-core"] }),
+  },
+  {
+    id: "seed-vault",
+    name: "Seed Vault",
+    cost: 65,
+    description: "+2 Acorns from every finished run, won or lost.",
+    // Read by acornsForRun below (it takes the perk list) - no runState
+    // field, so it doesn't need to survive into a save.
+    apply: (rs) => rs,
+  },
 ]
 
 export function metaPerkById(id) {
@@ -94,7 +134,9 @@ export function applyMetaPerks(runState, chosenPerkIds = []) {
 // got. A quick fight-1 loss is worth almost nothing; a deep loss is
 // worth real progress; a win is worth a lot. Tuned so buying a first
 // perk takes ~2-4 honest runs and the full board takes many.
-export function acornsForRun(runState, won) {
+// `chosenPerkIds` lets the Seed Vault perk add a flat bonus.
+export function acornsForRun(runState, won, chosenPerkIds = []) {
   const depth = Math.max(0, Math.floor((runState?.nodeIndex || 0) / 4))
-  return depth + (won ? 20 : 0)
+  const seedVault = chosenPerkIds.includes("seed-vault") ? 2 : 0
+  return depth + (won ? 20 : 0) + seedVault
 }

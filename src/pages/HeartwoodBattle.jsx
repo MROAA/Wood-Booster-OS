@@ -170,7 +170,7 @@ export default function HeartwoodBattle() {
     if ((runState.phase === "victory" || runState.phase === "defeat") && awardedRunRef.current !== runState) {
       awardedRunRef.current = runState
       const won = runState.phase === "victory"
-      const earned = acornsForRun(runState, won)
+      const earned = acornsForRun(runState, won, meta.chosenPerks || [])
       setLastAcornsEarned(earned)
       setMeta((m) => {
         const next = {
@@ -186,6 +186,11 @@ export default function HeartwoodBattle() {
         return next
       })
     }
+    // meta.chosenPerks is only ever changed on the commander-select
+    // screen (no Grove access mid-run), so it's stable for a run's
+    // whole lifetime - reading it here without it in the dep array is
+    // deliberate, not a stale-closure bug.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runState])
 
   // Renders outside OSLayout now (App.jsx) - no Sidebar to fall back on
