@@ -4265,21 +4265,56 @@ img.hw-card-art {
 }
 
 .hw-item-slot {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 4px;
-  border: 1px dashed var(--hw-border);
+  border: 1px dashed color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.85;
+  transition: border-color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+
+.hw-item-slot:hover {
+  opacity: 1;
+  border-color: var(--hw-ember);
+  transform: translateY(-1px);
+}
+
+/* Centred "+" in an empty slot so it reads as a droppable target, not
+   an inert 24px square (Marc: the slot was "in an inconspicuous place"). */
+.hw-item-slot-plus {
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--hw-ember) 70%, var(--hw-text-dim, #8a8f98));
+  pointer-events: none;
 }
 
 .hw-item-slot--filled {
   border-style: solid;
   border-color: var(--hw-ember);
   opacity: 1;
+}
+
+/* When a bag item is selected / just bought, the open slots visibly
+   invite the click that equips it. */
+.hw-item-slots[data-pending="true"] .hw-item-slot:not(.hw-item-slot--filled) {
+  border-color: var(--hw-ember);
+  border-style: solid;
+  opacity: 1;
+  animation: hw-item-slot-beckon 1.1s ease-in-out infinite;
+}
+
+.hw-item-slots[data-pending="true"] .hw-item-slot:not(.hw-item-slot--filled) .hw-item-slot-plus {
+  color: var(--hw-ember);
+}
+
+@keyframes hw-item-slot-beckon {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-ember) 55%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--hw-ember) 0%, transparent); }
 }
 
 .hw-piece-glyph {

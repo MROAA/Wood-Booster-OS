@@ -349,7 +349,11 @@ export default function SquadDraft({
         >
           <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} />
         </div>
-        <div className="hw-item-slots" title="Item slots - click a bag item above, then click a slot to equip it">
+        <div
+          className="hw-item-slots"
+          data-pending={!!selectedItemDef}
+          title="Item slots - click a bag item above, then click a slot to equip it"
+        >
           {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
             const equipped = equippedItems.find((it) => it.slotIndex === slotIndex)
             const itemDef = equipped ? ITEMS[equipped.defId] : null
@@ -359,10 +363,10 @@ export default function SquadDraft({
                 className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
                   justEquippedSlot === `${entry.key}-${slotIndex}` ? " hw-card--reforged" : ""
                 }`}
-                title={itemDef ? `${itemDef.name} - click to unequip` : "Empty slot"}
+                title={itemDef ? `${itemDef.name} - click to unequip` : selectedItemDef ? `Equip ${selectedItemDef.name} here` : "Empty item slot"}
                 onClick={() => handleSlotClick(entry.key, slotIndex, equipped ? equipped.key : null)}
               >
-                {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : null}
+                {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : <span className="hw-item-slot-plus">+</span>}
               </span>
             )
           })}
@@ -734,7 +738,11 @@ export default function SquadDraft({
             items) - same item-slot pips and click-to-equip flow every
             bench unit already has, just keyed to the "commander"
             sentinel instead of a real bench key. */}
-        <div className="hw-item-slots" title="Commander's item slots - click a bag item above, then click a slot to equip it">
+        <div
+          className="hw-item-slots"
+          data-pending={!!selectedItemDef}
+          title="Commander's item slots - click a bag item above, then click a slot to equip it"
+        >
           {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
             const equipped = runState.items.find((it) => it.equippedTo === "commander" && it.slotIndex === slotIndex)
             const itemDef = equipped ? ITEMS[equipped.defId] : null
@@ -744,10 +752,10 @@ export default function SquadDraft({
                 className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
                   justEquippedSlot === `commander-${slotIndex}` ? " hw-card--reforged" : ""
                 }`}
-                title={itemDef ? `${itemDef.name} - click to unequip` : "Empty slot"}
+                title={itemDef ? `${itemDef.name} - click to unequip` : selectedItemDef ? `Equip ${selectedItemDef.name} here` : "Empty item slot"}
                 onClick={() => handleSlotClick("commander", slotIndex, equipped ? equipped.key : null)}
               >
-                {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : null}
+                {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : <span className="hw-item-slot-plus">+</span>}
               </span>
             )
           })}
