@@ -4,6 +4,7 @@ import { FORMATIONS } from "../../data/heartwood/formations"
 import { difficultyTierForNode, DIFFICULTY_TIERS, RUN_PATH } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 import RunModifierStrip from "./RunModifierStrip"
+import StoryJournal from "./StoryJournal"
 
 // The world's posture, set by Act Crossroads (crossroads.js). "restless"
 // is the neutral default and shows nothing - only a chosen state does.
@@ -132,6 +133,7 @@ function RunRail({ runState }) {
           </div>
         )
       })}
+      <StoryJournal runState={runState} />
     </div>
   )
 }
@@ -140,14 +142,17 @@ export default function RunMap({ runState, mode }) {
   const trackRef = useRef(null)
   const currentRef = useRef(null)
 
-  if (mode === "rail") return <RunRail runState={runState} />
-
   // Auto-scroll so the current node stays in view as the run advances -
   // the whole point of "moving through a field" breaks if the player
-  // has to manually scroll to see where they are.
+  // has to manually scroll to see where they are. Declared before the
+  // `mode === "rail"` early return so the Hook order is stable (rail
+  // mode renders <RunRail/>, which owns its own scroll effect); the ref
+  // simply isn't attached to anything in that mode, so this is a no-op.
   useEffect(() => {
     currentRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
   }, [runState.nodeIndex])
+
+  if (mode === "rail") return <RunRail runState={runState} />
 
   // RUN_PATH.length, not runState.path.length: since the branching-path
   // work, `path` only holds nodes actually visited so far (it grows as
@@ -216,6 +221,7 @@ export default function RunMap({ runState, mode }) {
           )
         })}
       </div>
+      <StoryJournal runState={runState} />
     </div>
   )
 }
