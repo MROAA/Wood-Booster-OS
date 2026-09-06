@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { CHARACTERS } from "../data/heartwood/characters"
 import { resolveTrial } from "../data/heartwood/trials"
@@ -35,6 +35,9 @@ import {
   RUN_PATH,
 } from "../services/heartwood/runEngine"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
+import { loadMeta, saveMeta } from "../services/heartwood/metaState"
+import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
+import GroveScreen from "../components/heartwood/GroveScreen"
 import CommanderSelect from "../components/heartwood/CommanderSelect"
 import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
@@ -113,6 +116,24 @@ export default function HeartwoodBattle() {
   // back on its real phase instead of replaying the arrival beat.
   const [showGuildHall, setShowGuildHall] = useState(false)
 
+  // Between-run meta progression (metaState.js / metaPerks.js). Loaded
+  // once; the Grove screen (from commander select) spends Acorns, and a
+  // finished run awards Acorns exactly once via the effect below.
+  const [meta, setMeta] = useState(() => loadMeta())
+  const [showGrove, setShowGrove] = useState(false)
+  const [lastAcornsEarned, setLastAcornsEarned] = useState(null)
+  const awardedRunRef = useRef(null)
+
+  function handleBuyPerk(perkId) {
+    setMeta((m) => {
+      const perk = META_PERKS.find((p) => p.id === perkId)
+      if (!perk || m.acorns < perk.cost || (m.chosenPerks || []).includes(perkId)) return m
+      const next = { ...m, acorns: m.acorns - perk.cost, chosenPerks: [...(m.chosenPerks || []), perkId] }
+      saveMeta(next)
+      return next
+    })
+  }
+
   // Every one of this component's ~20 handlers funnels through
   // setRunState, so one effect covers all of them rather than a save
   // call in each handler. Saving mid-battle is deliberate (see
@@ -126,6 +147,31 @@ export default function HeartwoodBattle() {
     // resolveBattleOutcome's "lost" branch) - the next run's
     // character-select screen reads it back via loadLastRun() above.
     if (runState.phase === "defeat" && runState.deathMemory) saveLastRun(runState.deathMemory)
+
+    // Award Acorns for a finished run - once per run. Keyed by the run's
+    // own honoredMemory.ts / a stable per-run stamp isn't available, so
+    // guard on a ref holding the runState object identity of the ended
+    // run (setRunState always makes a new object, and the end state is
+    // terminal - no more transitions - so this fires exactly once).
+    if ((runState.phase === "victory" || runState.phase === "defeat") && awardedRunRef.current !== runState) {
+      awardedRunRef.current = runState
+      const won = runState.phase === "victory"
+      const earned = acornsForRun(runState, won)
+      setLastAcornsEarned(earned)
+      setMeta((m) => {
+        const next = {
+          ...m,
+          acorns: m.acorns + earned,
+          stats: {
+            runs: (m.stats?.runs || 0) + 1,
+            wins: (m.stats?.wins || 0) + (won ? 1 : 0),
+            bestNodeIndex: Math.max(m.stats?.bestNodeIndex || 0, runState.nodeIndex || 0),
+          },
+        }
+        saveMeta(next)
+        return next
+      })
+    }
   }, [runState])
 
   // Renders outside OSLayout now (App.jsx) - no Sidebar to fall back on
@@ -168,7 +214,8 @@ export default function HeartwoodBattle() {
 
   function beginRun(id) {
     setCharacterId(id)
-    setRunState(startRun(id, pendingMemory))
+    setRunState(startRun(id, pendingMemory, meta))
+    setLastAcornsEarned(null)
     // Arrival beat, once per run - see showGuildHall's own comment
     // above. The shop phase is already set on runState at this point;
     // this only delays HeartwoodBattle from rendering it.
@@ -300,6 +347,14 @@ export default function HeartwoodBattle() {
   }
 
   if (!characterId || !runState) {
+    if (showGrove) {
+      return (
+        <div className="hw-root hw-screen-fade" style={rootStyle} key="grove">
+          {exitLink}
+          <GroveScreen meta={meta} onBuy={handleBuyPerk} onBack={() => setShowGrove(false)} />
+        </div>
+      )
+    }
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="select">
         {exitLink}
@@ -310,6 +365,9 @@ export default function HeartwoodBattle() {
           bannerAlt="Tommy, Aatos, Spacemonkey, and Fenrir"
           onConfirm={beginRun}
         />
+        <button className="hw-grove-open-btn" onClick={() => setShowGrove(true)}>
+          &#127807; The Grove{meta.acorns > 0 ? ` — ${meta.acorns} Acorns` : ""}
+        </button>
       </div>
     )
   }
@@ -348,6 +406,8 @@ export default function HeartwoodBattle() {
           path={runState.path}
           onNewRun={handleNewRun}
           deathMemory={runState.deathMemory}
+          acornsEarned={lastAcornsEarned}
+          totalAcorns={meta.acorns}
         />
       </div>
     )

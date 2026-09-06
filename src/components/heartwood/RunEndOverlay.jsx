@@ -43,7 +43,7 @@ const silhouetteReveal = {
   animate: { opacity: 1, scale: 1, filter: "blur(0px) grayscale(0) brightness(1)" },
 }
 
-export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathMemory }) {
+export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathMemory, acornsEarned, totalAcorns }) {
   if (phase !== "victory" && phase !== "defeat") return null
   const won = phase === "victory"
   // How far the run actually got - this screen used to show nothing
@@ -164,6 +164,21 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathM
               >
                 <CardGlyph name="spark" className="hw-intent-glyph" />
                 +{MEMORY_ESSENCE_BONUS} Essence next run
+              </motion.span>
+            )}
+            {/* Acorns earned this run (metaState.js) - the between-run
+                progression payout, shown win OR lose. Spend them at the
+                Grove on the commander-select screen. */}
+            {acornsEarned != null && (
+              <motion.span
+                className="hw-badge hw-runend-badge"
+                style={{ color: "var(--hw-moss)", borderColor: "var(--hw-moss)" }}
+                title="Plant these at the Grove for permanent head starts"
+                initial={silhouetteReveal.initial}
+                animate={silhouetteReveal.animate}
+                transition={{ duration: 0.65, delay: REVEAL_DELAY.stats + 0.26, ease: "easeOut" }}
+              >
+                &#127807; +{acornsEarned} Acorns{typeof totalAcorns === "number" ? ` (${totalAcorns} total)` : ""}
               </motion.span>
             )}
           </div>

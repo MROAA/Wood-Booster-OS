@@ -955,7 +955,8 @@ export default function SquadDraft({
             {offers.map((def) => {
               const owned = runState.bench.filter((e) => e.defId === def.id).length
               const willFuse = owned >= 2
-              const reserveFull = !willFuse && runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP
+              const reserveCap = RESERVE_CAP + (runState.benchCapBonus || 0)
+              const reserveFull = !willFuse && runState.bench.length >= DEPLOY_SLOTS + reserveCap
               const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
               return (
                 // Real bug caught during this pass's own 1860x960
@@ -996,7 +997,7 @@ export default function SquadDraft({
                     <div
                       className="hw-badge hw-card-overlay-badge"
                       style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
-                      title={`Reserve is full (${RESERVE_CAP}/${RESERVE_CAP}) - sell or fuse to make room`}
+                      title={`Reserve is full (${reserveCap}/${reserveCap}) - sell or fuse to make room`}
                     >
                       Reserve full
                     </div>
@@ -1085,7 +1086,7 @@ export default function SquadDraft({
               stacked - this screen's strict zero-scroll budget can't
               afford a second full card row. */}
           <div className="hw-section-label">
-            Your Squad - {deployedCount}/{DEPLOY_SLOTS} fighting, {reserveCount}/{RESERVE_CAP} in reserve
+            Your Squad - {deployedCount}/{DEPLOY_SLOTS} fighting, {reserveCount}/{RESERVE_CAP + (runState.benchCapBonus || 0)} in reserve
           </div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
             Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop.
@@ -1110,7 +1111,7 @@ export default function SquadDraft({
             <section className="hw-squad-group hw-squad-group--reserve">
               <div className="hw-section-label hw-squad-group-label">
                 In reserve &middot; not fighting
-                <span className="hw-squad-group-count">{reserveCount}/{RESERVE_CAP}</span>
+                <span className="hw-squad-group-count">{reserveCount}/{RESERVE_CAP + (runState.benchCapBonus || 0)}</span>
               </div>
               {reserveEntries.length === 0 ? (
                 <p className="hw-squad-group-empty">Reserve is empty.</p>
