@@ -37,6 +37,7 @@ import {
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
 import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
+import { MAX_DEPTH } from "../data/heartwood/depths"
 import GroveScreen from "../components/heartwood/GroveScreen"
 import CommanderSelect from "../components/heartwood/CommanderSelect"
 import GuildHallScreen from "../components/heartwood/GuildHallScreen"
@@ -134,6 +135,16 @@ export default function HeartwoodBattle() {
     })
   }
 
+  function handleSelectDepth(level) {
+    setMeta((m) => {
+      const clamped = Math.max(0, Math.min(m.depth || 0, level))
+      if (clamped === (m.selectedDepth || 0)) return m
+      const next = { ...m, selectedDepth: clamped }
+      saveMeta(next)
+      return next
+    })
+  }
+
   function handleUnlockCommander(id) {
     setMeta((m) => {
       const c = CHARACTERS[id]
@@ -170,12 +181,17 @@ export default function HeartwoodBattle() {
     if ((runState.phase === "victory" || runState.phase === "defeat") && awardedRunRef.current !== runState) {
       awardedRunRef.current = runState
       const won = runState.phase === "victory"
-      const earned = acornsForRun(runState, won, meta.chosenPerks || [])
+      const ranDepth = runState.selectedDepth || 0
+      const earned = acornsForRun(runState, won, meta.chosenPerks || [], ranDepth)
       setLastAcornsEarned(earned)
       setMeta((m) => {
+        // Beating a run at the deepest Depth you've unlocked unlocks the
+        // next one (Ascension-style).
+        const unlockedNext = won && ranDepth === (m.depth || 0) && (m.depth || 0) < MAX_DEPTH
         const next = {
           ...m,
           acorns: m.acorns + earned,
+          depth: unlockedNext ? (m.depth || 0) + 1 : m.depth || 0,
           stats: {
             runs: (m.stats?.runs || 0) + 1,
             wins: (m.stats?.wins || 0) + (won ? 1 : 0),
@@ -375,7 +391,7 @@ export default function HeartwoodBattle() {
       return (
         <div className="hw-root hw-screen-fade" style={rootStyle} key="grove">
           {exitLink}
-          <GroveScreen meta={meta} onBuy={handleBuyPerk} onBack={() => setShowGrove(false)} />
+          <GroveScreen meta={meta} onBuy={handleBuyPerk} onSelectDepth={handleSelectDepth} onBack={() => setShowGrove(false)} />
         </div>
       )
     }
@@ -391,6 +407,7 @@ export default function HeartwoodBattle() {
           unlockedIds={meta.unlockedCommanders || []}
           acorns={meta.acorns}
           onUnlock={handleUnlockCommander}
+          depthLevel={Math.max(0, Math.min(meta.depth || 0, meta.selectedDepth || 0))}
         />
         <button className="hw-grove-open-btn" onClick={() => setShowGrove(true)}>
           &#127807; The Grove{meta.acorns > 0 ? ` — ${meta.acorns} Acorns` : ""}
@@ -435,6 +452,7 @@ export default function HeartwoodBattle() {
           deathMemory={runState.deathMemory}
           acornsEarned={lastAcornsEarned}
           totalAcorns={meta.acorns}
+          depthLevel={runState.selectedDepth || 0}
         />
       </div>
     )

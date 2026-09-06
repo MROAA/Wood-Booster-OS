@@ -36,6 +36,7 @@ export default function CommanderSelect({
   unlockedIds = [],
   acorns = 0,
   onUnlock,
+  depthLevel = 0,
 }) {
   const [confirmingId, setConfirmingId] = useState(null)
   const unlocked = new Set(unlockedIds)
@@ -85,6 +86,15 @@ export default function CommanderSelect({
               ? `, the ${pendingMemory.heroClass}`
               : ""}{" "}
             - your squad begins with +{MEMORY_ESSENCE_BONUS} Essence.
+          </span>
+        )}
+        {depthLevel > 0 && (
+          <span
+            className="hw-badge"
+            style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+            title="Change this at the Grove"
+          >
+            Running at Depth {depthLevel}
           </span>
         )}
       </div>

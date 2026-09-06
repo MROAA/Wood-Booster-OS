@@ -43,7 +43,7 @@ const silhouetteReveal = {
   animate: { opacity: 1, scale: 1, filter: "blur(0px) grayscale(0) brightness(1)" },
 }
 
-export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathMemory, acornsEarned, totalAcorns }) {
+export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathMemory, acornsEarned, totalAcorns, depthLevel = 0 }) {
   if (phase !== "victory" && phase !== "defeat") return null
   const won = phase === "victory"
   // How far the run actually got - this screen used to show nothing
@@ -179,6 +179,19 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathM
                 transition={{ duration: 0.65, delay: REVEAL_DELAY.stats + 0.26, ease: "easeOut" }}
               >
                 &#127807; +{acornsEarned} Acorns{typeof totalAcorns === "number" ? ` (${totalAcorns} total)` : ""}
+              </motion.span>
+            )}
+            {depthLevel > 0 && (
+              <motion.span
+                className="hw-badge hw-runend-badge"
+                style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+                title="The challenge Depth this run was played at"
+                initial={silhouetteReveal.initial}
+                animate={silhouetteReveal.animate}
+                transition={{ duration: 0.65, delay: REVEAL_DELAY.stats + 0.39, ease: "easeOut" }}
+              >
+                Depth {depthLevel}
+                {won ? " cleared" : ""}
               </motion.span>
             )}
           </div>
