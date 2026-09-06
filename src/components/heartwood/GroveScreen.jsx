@@ -14,6 +14,11 @@ export default function GroveScreen({ meta, onBuy, onBack }) {
   const [justBought, setJustBought] = useState(null)
   const owned = new Set(meta.chosenPerks || [])
 
+  // Buyable-and-affordable first, then buyable-but-too-dear, then
+  // already planted - so the next thing you can actually do is at the top.
+  const rank = (p) => (owned.has(p.id) ? 2 : meta.acorns >= p.cost ? 0 : 1)
+  const perks = [...META_PERKS].sort((a, b) => rank(a) - rank(b) || a.cost - b.cost)
+
   return (
     <div className="hw-intro hw-grove">
       <button className="hw-exit-link hw-utility-btn" style={{ position: "absolute", top: 16, left: 16 }} onClick={onBack}>
@@ -32,12 +37,12 @@ export default function GroveScreen({ meta, onBuy, onBack }) {
       <div className="hw-grove-balance">
         <span className="hw-grove-acorn">&#127807;</span> {meta.acorns} Acorns
         <span className="hw-grove-stats">
-          {meta.stats?.runs || 0} runs &middot; {meta.stats?.wins || 0} wins
+          {owned.size} / {META_PERKS.length} planted &middot; {meta.stats?.runs || 0} runs &middot; {meta.stats?.wins || 0} wins
         </span>
       </div>
 
       <div className="hw-grove-perks">
-        {META_PERKS.map((perk) => {
+        {perks.map((perk) => {
           const isOwned = owned.has(perk.id)
           const canAfford = meta.acorns >= perk.cost
           return (

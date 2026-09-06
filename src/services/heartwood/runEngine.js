@@ -740,6 +740,31 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
       : rest
   }
 
+  // Forager (metaPerks.js) - same signal shape: start with a common
+  // unit already on the bench (auto-deploys via the same fuseAll +
+  // sweep recruitUnit uses).
+  if (rs.metaStartUnit === "random-common") {
+    const pool = Object.values(UNITS)
+      .filter((u) => u.tier === "common" && !u.fusedFrom && !u.summonOnly)
+      .map((u) => u.id)
+    const id = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null
+    const { metaStartUnit, ...rest } = rs
+    void metaStartUnit
+    if (id) {
+      const newKey = rest.benchKeyCounter
+      const fused = fuseAll([{ key: newKey, defId: id, upgradeLevel: 0 }], rest.deployed, rest.items, newKey + 1)
+      let deployed = fused.deployed
+      const emptySlot = deployed.indexOf(null)
+      if (emptySlot !== -1 && fused.bench[0]) {
+        deployed = [...deployed]
+        deployed[emptySlot] = fused.bench[0].key
+      }
+      rs = { ...rest, bench: fused.bench, deployed, items: fused.items, benchKeyCounter: fused.nextKey }
+    } else {
+      rs = rest
+    }
+  }
+
   return rs
 }
 

@@ -1029,6 +1029,11 @@
 }
 .hw-grove {
   position: relative;
+  /* A quiet scrim so the perk grid stays legible over the forest hero
+     image behind the commander-select root. */
+  background: color-mix(in srgb, var(--hw-bg) 82%, transparent);
+  border-radius: 12px;
+  padding: 24px 28px 32px;
 }
 .hw-grove-balance {
   display: flex;
