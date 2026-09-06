@@ -3666,8 +3666,147 @@ img.hw-card-art {
   box-shadow: 0 0 5px 1px color-mix(in srgb, var(--hw-hp) 55%, transparent);
 }
 
+/* Act Allegiance (crossroads.js) - a chosen side, not luck. Rune-gold
+   so it reads apart from the moss/red of event boons & banes. */
+.hw-runmod[data-kind="allegiance"] {
+  border-color: color-mix(in srgb, var(--hw-rune) 60%, var(--hw-border));
+  color: color-mix(in srgb, var(--hw-rune) 82%, var(--hw-text, #e8e2d4));
+}
+
+.hw-runmod[data-kind="allegiance"] .hw-runmod-dot {
+  background: var(--hw-rune);
+  box-shadow: 0 0 5px 1px color-mix(in srgb, var(--hw-rune) 55%, transparent);
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
 .hw-runmod-name {
   white-space: nowrap;
+}
+
+/* --- Act Transition interstitial (ActTransitionScreen.jsx) ---------- */
+.hw-act-transition {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 40px 24px;
+  background: var(--hw-bg, #0c0c0e);
+}
+
+.hw-act-transition-banner {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hw-act-transition-inner {
+  position: relative;
+  max-width: 640px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hw-act-transition-turn {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+}
+
+.hw-act-transition-close {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--hw-muted);
+  font-style: italic;
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hw-border);
+}
+
+.hw-act-transition-close-name {
+  color: var(--hw-text, #e8e2d4);
+  font-style: normal;
+}
+
+.hw-act-transition-title {
+  font-size: 26px;
+  margin: 4px 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.hw-act-transition-lore {
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.hw-act-transition-choice {
+  margin-top: 8px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--hw-act-accent, var(--hw-rune)) 35%, var(--hw-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--hw-panel) 55%, transparent);
+}
+
+.hw-act-transition-kicker {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.hw-act-transition-body {
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 0 0 16px;
+}
+
+.hw-act-transition-options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.hw-act-transition-option {
+  text-align: left;
+  padding: 12px 15px;
+  line-height: 1.4;
+}
+
+.hw-act-transition-result {
+  font-size: 13.5px;
+  line-height: 1.65;
+  font-style: italic;
+  border-left: 2px solid var(--hw-rune);
+  padding-left: 14px;
+  margin: 0 0 14px;
+}
+
+.hw-act-transition-world {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+  margin-bottom: 16px;
+}
+
+.hw-act-transition-world strong {
+  color: var(--hw-text, #e8e2d4);
+}
+
+.hw-act-transition-world[data-forest="purified"] strong {
+  color: var(--hw-moss);
+}
+
+.hw-act-transition-world[data-forest="corrupted"] strong {
+  color: var(--hw-hp);
 }
 
 /* Sizing/spacing rhythm below is deliberately built on the Fibonacci
