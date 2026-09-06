@@ -104,6 +104,13 @@ const results = await page.evaluate(async (RUNS) => {
         // out across the sample. Without this handler every run stalls
         // here at the first map fork and never terminates.
         run = engine.chooseFloorEncounter(run, Math.random() < 0.5 ? 0 : 1)
+      } else if (run.phase === "event") {
+        // Map event (events.js). A realistic bot reads none of the text
+        // and just picks one at random - averages out across the sample.
+        // Without this handler every run stalls at the first event node.
+        const ev = engine.eventForNode(run)
+        const n = ev?.choices?.length || 1
+        run = engine.resolveEventChoice(run, Math.floor(Math.random() * n))
       } else break
     }
     return {

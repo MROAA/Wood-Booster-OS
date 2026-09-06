@@ -30,6 +30,8 @@ import {
   serializeRun,
   deserializeRun,
   chooseFloorEncounter,
+  eventForNode,
+  resolveEventChoice,
   RUN_PATH,
 } from "../services/heartwood/runEngine"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
@@ -40,6 +42,7 @@ import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
 import RelicChoice from "../components/heartwood/RelicChoice"
 import FloorChoice from "../components/heartwood/FloorChoice"
+import EventScreen from "../components/heartwood/EventScreen"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import RunMap from "../components/heartwood/RunMap"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
@@ -282,6 +285,10 @@ export default function HeartwoodBattle() {
     setRunState((current) => chooseFloorEncounter(current, choiceIndex))
   }
 
+  function handleResolveEvent(choiceIndex) {
+    setRunState((current) => resolveEventChoice(current, choiceIndex))
+  }
+
   function handleNewRun() {
     clearRunSave()
     setRunState(null)
@@ -431,6 +438,15 @@ export default function HeartwoodBattle() {
       <div className="hw-root hw-screen-fade" style={rootStyle} key="relic">
         {changeCharacterBar}
         <RelicChoice runState={runState} onChoose={handleChooseRelic} onReroll={handleRerollRelics} />
+      </div>
+    )
+  }
+
+  if (runState.phase === "event") {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="event">
+        {changeCharacterBar}
+        <EventScreen event={eventForNode(runState)} onResolve={handleResolveEvent} />
       </div>
     )
   }

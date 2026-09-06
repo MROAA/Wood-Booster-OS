@@ -20,6 +20,7 @@ import { tribesOf } from "../../data/heartwood/synergies"
 import { resolveTrial } from "../../data/heartwood/trials"
 import { ENEMIES, actEnemyForNode } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
+import { pickEvent } from "../../data/heartwood/events"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // RAMP_CAP - the difficulty ramp's TOTAL enemy-scaling budget: enemies
@@ -81,7 +82,7 @@ export const RUN_PATH = [
   { type: "relic" },
   { type: "shop" },
   { type: "miniboss", enemyId: "deepwarden", trialId: "rootkeeper" },
-  { type: "shop" },
+  { type: "event" },
   {
     type: "battle",
     enemyId: "bark-brute",
@@ -95,7 +96,7 @@ export const RUN_PATH = [
   { type: "battle", enemyId: "rootbind-thicket" },
   { type: "shop" },
   { type: "battle", enemyId: "witherfang" },
-  { type: "shop" },
+  { type: "event" },
   { type: "battle", enemyId: "thornspite" },
   { type: "shop" },
   { type: "battle", enemyId: "bramblehide" },
@@ -109,7 +110,7 @@ export const RUN_PATH = [
   { type: "battle", enemyId: "cragfang" },
   { type: "shop" },
   { type: "battle", enemyId: "stormroot" },
-  { type: "shop" },
+  { type: "event" },
   { type: "battle", enemyId: "duskmoth" },
   { type: "shop" },
   { type: "battle", enemyId: "hollowfen" },
@@ -123,7 +124,7 @@ export const RUN_PATH = [
   { type: "miniboss", enemyId: "thornmaw", trialId: "heartwood-warden" },
   { type: "shop" },
   { type: "battle", enemyId: "duskhollow" },
-  { type: "shop" },
+  { type: "event" },
   { type: "battle", enemyId: "needlefen" },
   { type: "shop" },
   { type: "battle", formationId: "the-wearing-down" },
@@ -137,7 +138,7 @@ export const RUN_PATH = [
   { type: "battle", enemyId: "bonewarden" },
   { type: "shop" },
   { type: "battle", enemyId: "mossveil" },
-  { type: "shop" },
+  { type: "event" },
   { type: "battle", enemyId: "hollowspite" },
   { type: "shop" },
   { type: "battle", enemyId: "ashenmaw" },
@@ -151,7 +152,7 @@ export const RUN_PATH = [
   { type: "battle", enemyId: "briarmaw" },
   { type: "shop" },
   { type: "battle", enemyId: "bramblespite" },
-  { type: "shop" },
+  { type: "event" },
   { type: "battle", enemyId: "thornfen" },
   { type: "shop" },
   { type: "battle", enemyId: "hollowcurse" },
@@ -164,7 +165,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", formationId: "sirens-bodyguard" },
   { type: "relic" },
-  { type: "shop" },
+  { type: "event" },
   { type: "battle", formationId: "the-undertow" },
   { type: "shop" },
   { type: "battle", formationId: "twin-watch" },
@@ -173,7 +174,7 @@ export const RUN_PATH = [
   { type: "relic" },
   { type: "shop" },
   { type: "battle", formationId: "quillfangs-warren" },
-  { type: "shop" },
+  { type: "event" },
   { type: "battle", formationId: "bonewardens-watch" },
   { type: "shop" },
   { type: "miniboss", enemyId: "wyrmgall", trialId: "veilbound" },
@@ -183,11 +184,11 @@ export const RUN_PATH = [
     formationId: "the-hollow-court",
     beat: "This deep, the things that stop you aren't guarding anything. They just don't remember how to do anything else.",
   },
-  { type: "shop" },
+  { type: "event" },
   { type: "battle", formationId: "the-cursed-thicket" },
   { type: "battle", formationId: "the-unbroken-root" },
   { type: "battle", formationId: "the-withering-pact" },
-  { type: "shop" },
+  { type: "event" },
   { type: "boss", enemyId: "spacemonkey", trialId: "hollow-king" },
 ]
 
@@ -399,6 +400,7 @@ function currentNode(runState) {
 function phaseForNode(node) {
   if (node?.type === "shop") return "shop"
   if (node?.type === "relic") return "relic"
+  if (node?.type === "event") return "event"
   return "formation"
 }
 
@@ -704,6 +706,11 @@ export function startRun(characterId, carriedMemory = null) {
     // shape squadPassive/relics already use once they land.
     activePowerUsedThisShop: false,
     pendingActiveEffects: [],
+    // Map events (events.js): storyFlags accumulate across the run and
+    // let later events branch on earlier choices; seenEvents keeps an
+    // event from repeating within one run.
+    storyFlags: {},
+    seenEvents: [],
     // Items (items.js): a shared owned bag, separate from the bench -
     // `equippedTo`/`slotIndex` point at a bench key + slot index (see
     // equipItem/unequipItem below) or sit null while unequipped.
@@ -1053,6 +1060,84 @@ export function rerollShop(runState) {
 
 export function leaveShop(runState) {
   return { ...runState, ...advanceToNextNode(runState) }
+}
+
+// --- Map events (events.js) ---------------------------------------------
+// The event shown at the current event-node position. Deterministic in
+// nodeIndex + Act + which events have already been seen, so the same
+// run always shows the same event at the same place (the save/restore
+// invariant depends on it).
+export function eventForNode(runState) {
+  const act = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
+  return pickEvent(runState.nodeIndex, act, runState.seenEvents || [])
+}
+
+function randomFromList(list) {
+  return list.length ? list[Math.floor(Math.random() * list.length)] : null
+}
+
+// Applies ONE consequence object from a chosen event option. Kept
+// deliberately small - each key maps to an existing run mechanic, no
+// new state shape beyond storyFlags (declared in startRun).
+function applyEventEffect(runState, eff) {
+  if (typeof eff.essence === "number") {
+    return { ...runState, essence: Math.max(0, runState.essence + eff.essence) }
+  }
+  if (eff.relic) {
+    const owned = new Set(runState.relics)
+    const id = eff.relic === "random" ? randomFromList(relicPool().map((r) => r.id).filter((rid) => !owned.has(rid))) : eff.relic
+    if (!id || owned.has(id)) return runState
+    return { ...runState, relics: [...runState.relics, id] }
+  }
+  if (eff.item) {
+    const id = eff.item === "random" ? randomFromList(itemPool().map((i) => i.id)) : eff.item
+    if (!id || !ITEMS[id]) return runState
+    return {
+      ...runState,
+      items: [...runState.items, { key: runState.itemKeyCounter, defId: id, equippedTo: null, slotIndex: null }],
+      itemKeyCounter: runState.itemKeyCounter + 1,
+    }
+  }
+  if (eff.unit) {
+    if (runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP) return runState
+    let id = eff.unit
+    if (eff.unit === "random-common") {
+      id = randomFromList(
+        Object.values(UNITS)
+          .filter((u) => u.tier === "common" && !u.fusedFrom && !u.summonOnly)
+          .map((u) => u.id),
+      )
+    }
+    if (!id || !UNITS[id]) return runState
+    const newKey = runState.benchKeyCounter + 1
+    const withNew = [...runState.bench, { key: newKey, defId: id, upgradeLevel: 0 }]
+    const fused = fuseAll(withNew, runState.deployed, runState.items, newKey)
+    return { ...runState, bench: fused.bench, deployed: fused.deployed, items: fused.items, benchKeyCounter: newKey }
+  }
+  if (Array.isArray(eff.squadNextBattle)) {
+    // Same one-battle channel the Commander's active power uses - applied
+    // at the start of the next battle by startFormationBattle, then
+    // discarded. A blessing or a curse, depending on the effects.
+    return { ...runState, pendingActiveEffects: [...(runState.pendingActiveEffects || []), ...eff.squadNextBattle] }
+  }
+  if (eff.flag) {
+    return { ...runState, storyFlags: { ...runState.storyFlags, [eff.flag]: true } }
+  }
+  return runState
+}
+
+// Resolves a pending "event" phase: applies the chosen option's
+// consequences, records the event as seen, and advances the run the
+// same way leaving a shop does.
+export function resolveEventChoice(runState, choiceIndex) {
+  if (runState.phase !== "event") return runState
+  const event = eventForNode(runState)
+  const choice = event?.choices?.[choiceIndex]
+  if (!choice) return runState
+  let next = runState
+  for (const eff of choice.effects || []) next = applyEventEffect(next, eff)
+  next = { ...next, seenEvents: [...(next.seenEvents || []), event.id] }
+  return { ...next, ...advanceToNextNode(next) }
 }
 
 export function assignToSlot(runState, slotIndex, benchKey) {
@@ -1718,14 +1803,16 @@ export function resolveBattleOutcome(runState) {
 // produces (autoBattleEngine.js) is plain data throughout - grid,
 // commanderDef, enemyDefs are all plain objects/arrays, never functions
 // or class instances - so a JSON round-trip is lossless.
-export const RUN_SAVE_VERSION = 2
+// Bumped 2 -> 3: RUN_PATH gained "event" nodes and runState gained
+// storyFlags/seenEvents, so a pre-event save can't be read by this build.
+export const RUN_SAVE_VERSION = 3
 
 export function serializeRun(runState) {
   if (!runState) return null
   return { version: RUN_SAVE_VERSION, savedAt: Date.now(), run: runState }
 }
 
-const VALID_PHASES = new Set(["shop", "relic", "formation", "battle", "choice", "victory", "defeat"])
+const VALID_PHASES = new Set(["shop", "relic", "event", "formation", "battle", "choice", "victory", "defeat"])
 
 // Any failure here - wrong version, corrupted JSON, a shape that
 // doesn't match what this build of the game expects - returns null and
