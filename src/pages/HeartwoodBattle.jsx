@@ -35,10 +35,16 @@ import {
   chooseFloorEncounter,
   eventForNode,
   resolveEventChoice,
+  startActFive,
+  startCrownlessBattle,
+  endCrownlessBattle,
+  chooseForestPath,
+  markEchoEpilogueSeen,
   DIFFICULTY_TIERS,
   RUN_PATH,
 } from "../services/heartwood/runEngine"
 import { crossroadsForAct } from "../data/heartwood/crossroads"
+import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
 import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
@@ -56,7 +62,8 @@ import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import RunMap from "../components/heartwood/RunMap"
 import ActTransitionScreen from "../components/heartwood/ActTransitionScreen"
 import StoryCinematic from "../components/heartwood/StoryCinematic"
-import { CINEMATICS, cinematicById, endingIdForRun } from "../data/heartwood/cinematics"
+import ForestChoiceScreen from "../components/heartwood/ForestChoiceScreen"
+import { CINEMATICS, cinematicById, suggestedEndingId } from "../data/heartwood/cinematics"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import "../components/heartwood/heartwood.css"
@@ -100,6 +107,7 @@ export default function HeartwoodBattle() {
   // clears it and RunEndOverlay takes over. Defeat gets no cinematic.
   const [endingCinematic, setEndingCinematic] = useState(null)
   const endingShownRef = useRef(null)
+  const endingRearmRef = useRef(null)
   // Death Memory (Marc's PRD, runEngine.js's buildDeathMemory): the
   // PREVIOUS run's fallen hero, if any - real state, not a one-time
   // useMemo, because it has to pick up a memory saved LATER in the
@@ -206,13 +214,30 @@ export default function HeartwoodBattle() {
     // character-select screen reads it back via loadLastRun() above.
     if (runState.phase === "defeat" && runState.deathMemory) saveLastRun(runState.deathMemory)
 
-    // Ending cinematic (cinematics.js): on a win, before RunEndOverlay,
-    // play the ending the run's Act allegiances earned. Ref-guarded to
-    // the ended run's object identity so it arms once; a reload landing
-    // back on victory re-arms once and the player can Skip.
-    if (runState.phase === "victory" && endingShownRef.current !== runState) {
+    // Act V - The Crownless (runEngine startActFive). On a win, the run
+    // isn't over: begin the finale sequence (throne -> Crownless fight ->
+    // Forest's Choice -> ending -> Echo epilogue -> RunEndOverlay). The
+    // `!runState.actFive` guard means a reload mid-Act-V resumes from the
+    // saved step instead of restarting the sequence, even though the ref
+    // resets. `phase` stays "victory" throughout.
+    if (runState.phase === "victory" && !runState.actFive && endingShownRef.current !== runState) {
       endingShownRef.current = runState
-      setEndingCinematic(endingIdForRun(runState))
+      setRunState((rs) => startActFive(rs))
+    }
+
+    // Reload landing on a run whose Act V is already resolved (choice
+    // made): re-arm the chosen ending cinematic so the sequence still
+    // reaches RunEndOverlay via the ending (+ Echo epilogue if unseen),
+    // not straight past it. Ref-guarded so it's a one-time re-arm.
+    if (
+      runState.phase === "victory" &&
+      runState.actFive === "done" &&
+      runState.chosenEnding &&
+      !endingCinematic &&
+      endingRearmRef.current !== runState
+    ) {
+      endingRearmRef.current = runState
+      setEndingCinematic(runState.chosenEnding)
     }
 
     // Award Acorns for a finished run - once per run. Keyed by the run's
@@ -436,6 +461,14 @@ export default function HeartwoodBattle() {
     setRunState((current) => resolveBattleOutcome(current))
   }
 
+  // Act V - The Crownless fight ends here instead of resolveBattleOutcome
+  // (which would advance a run node / re-end the run). Win or loss both
+  // go on to the Forest's Choice. handleAdvanceRound is reused as-is -
+  // it only touches runState.battle.
+  function handleCrownlessContinue() {
+    setRunState((current) => endCrownlessBattle(current))
+  }
+
   function handleChooseRelic(relicId) {
     setRunState((current) => chooseRelic(current, relicId))
   }
@@ -496,15 +529,63 @@ export default function HeartwoodBattle() {
     return <StoryCinematic cinematic={CINEMATICS.intro} onDone={dismissStoryIntro} />
   }
 
-  // Ending cinematic (cinematics.js) - on a win only, played before the
-  // RunEndOverlay branch below. onDone clears it and the run falls
-  // through to RunEndOverlay.
+  // --- Act V: The Crownless (runEngine startActFive) ------------------
+  // All four steps run while phase === "victory"; each reads runState so
+  // a reload resumes from the saved actFive step. They sit BEFORE the
+  // ending-cinematic and RunEndOverlay branches.
+  if (runState.phase === "victory" && runState.actFive === "throne") {
+    return (
+      <StoryCinematic
+        key="crownless-throne"
+        cinematic={CINEMATICS["crownless-throne"]}
+        onDone={() => setRunState((rs) => startCrownlessBattle(rs))}
+      />
+    )
+  }
+
+  if (runState.phase === "victory" && runState.actFive === "crownless" && runState.battle) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="crownless-battle" data-screen="crownless-battle">
+        <p className="hw-flavor hw-crownless-intro">&ldquo;{crownlessIntroLine(runState)}&rdquo;</p>
+        <AutoBattleView
+          state={runState.battle}
+          nodeType="boss"
+          victoryLine={resolveTrial("the-crownless")?.victoryLine}
+          onAdvanceRound={handleAdvanceRound}
+          onContinue={handleCrownlessContinue}
+        />
+      </div>
+    )
+  }
+
+  if (runState.phase === "victory" && runState.actFive === "choice") {
+    return (
+      <ForestChoiceScreen
+        suggested={suggestedEndingId(runState)}
+        onChoose={(endingId) => {
+          setRunState((rs) => chooseForestPath(rs, endingId))
+          setEndingCinematic(endingId)
+        }}
+      />
+    )
+  }
+
+  // Ending cinematic (cinematics.js) - the player's chosen ending (Act V)
+  // or, before Act V shipped, the tally. onDone chains the one-time Echo
+  // Age epilogue, then clears through to RunEndOverlay.
   if (runState.phase === "victory" && endingCinematic) {
     return (
       <StoryCinematic
         key={endingCinematic}
         cinematic={cinematicById(endingCinematic)}
-        onDone={() => setEndingCinematic(null)}
+        onDone={() => {
+          if (endingCinematic !== "echo-epilogue" && runState.chosenEnding && !runState.echoEpilogueSeen) {
+            setRunState((rs) => markEchoEpilogueSeen(rs))
+            setEndingCinematic("echo-epilogue")
+          } else {
+            setEndingCinematic(null)
+          }
+        }}
       />
     )
   }

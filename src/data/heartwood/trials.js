@@ -84,6 +84,24 @@ export const TRIALS = {
     victoryLine:
       '"...Sinä... Sinä et ole tyhjyyden lapsi." The void around him trembles, as if it were crying. "Sydän... piiloutui minulta. Mutta se... luottaa sinuun." He does not fall. He simply ceases to be.',
   },
+
+  // Act V - The Crownless. Not a RUN_PATH node: wraps the
+  // "the-crownless-mirror" formation (formations.js), spun up after the
+  // Hollow King falls (runEngine.startCrownlessBattle). It has no single
+  // `enemyId`, so applyTrialName (runEngine.js) is a safe no-op - the
+  // pieces keep their own names. Text from the bible's "The Crownless -
+  // battle dialogue", genericised.
+  "the-crownless": {
+    id: "the-crownless",
+    title: "The Crownless",
+    rank: 5,
+    act: "The Crownless",
+    beat: "Not a king. Not the void. The one who waits - and the shape of every choice you made to get here.",
+    introLine:
+      '"You came. But not to win. Not to kill. Not to save. You came... to be seen." Its shape will not hold still. "I take nothing from you. I only show you what you carry."',
+    victoryLine:
+      '"I am ready. The forest is ready. The void is ready." The Crownless folds back into the throne - it does not die, does not vanish, just returns to what it was. "You... are ready. Choose."',
+  },
 }
 
 export function resolveTrial(id) {
