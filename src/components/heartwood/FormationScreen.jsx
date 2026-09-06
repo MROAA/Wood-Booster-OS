@@ -241,7 +241,13 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           .hw-exit-link corner button - see SquadDraft.jsx's header row
           for the same fix and why it's needed. */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6, flexWrap: "wrap", paddingRight: 130 }}>
-        <h1 style={{ fontSize: 22, margin: 0 }}>Take the field</h1>
+        {/* A Trial (trials.js) is a named story fight - show its name as
+            the heading (Rootkeeper / The Hollow King), not the generic
+            "Take the field", so a miniboss/boss reads as the story beat
+            it is. Regular battles keep the plain heading. */}
+        <h1 style={{ fontSize: 22, margin: 0 }} data-trial={narrative.isTrial || undefined}>
+          {narrative.isTrial ? narrative.title : "Take the field"}
+        </h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {essenceOnWin != null && (
             <span className="hw-badge hw-section-fade-in" title="Essence earned if you win this fight">
@@ -293,6 +299,12 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           narrative.beat ||
           (isBoss ? "The final fight." : isMiniboss ? "A greater foe." : null)}
       </p>
+
+      {narrative.isTrial && narrative.trial?.beat && (
+        <p className="hw-flavor" style={{ fontStyle: "italic", color: "var(--hw-muted)", marginTop: -4 }}>
+          {narrative.trial.beat}
+        </p>
+      )}
 
       {primedPower && (
         <div className="hw-badge hw-badge--active" style={{ marginBottom: 10 }} title={primedPower.description}>

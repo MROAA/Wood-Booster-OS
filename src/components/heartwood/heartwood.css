@@ -3706,6 +3706,151 @@ img.hw-card-art {
   border-color: color-mix(in srgb, var(--hw-hp) 55%, var(--hw-border));
 }
 
+/* --- Story Journal (StoryJournal.jsx) ---------------------------- */
+.hw-journal {
+  margin: 10px 21px 0;
+}
+
+/* In the shop's narrow map rail it sits flush. */
+.hw-run-rail .hw-journal {
+  margin: 10px 0 0;
+}
+
+.hw-run-rail .hw-journal-inner {
+  max-height: 220px;
+}
+
+.hw-journal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--hw-border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  color: var(--hw-muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hw-journal-toggle:hover {
+  color: var(--hw-text, #e8e2d4);
+  border-color: var(--hw-muted);
+}
+
+.hw-journal-count {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-rune) 25%, transparent);
+  color: var(--hw-rune);
+}
+
+.hw-journal-caret {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.hw-journal-caret[data-open] {
+  transform: rotate(90deg);
+}
+
+.hw-journal-body {
+  overflow: hidden;
+}
+
+.hw-journal-inner {
+  padding: 12px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.hw-journal-section-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--hw-rune);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.hw-journal-forest p,
+.hw-journal-entry-body {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--hw-muted);
+  margin: 2px 0 0;
+}
+
+.hw-journal-forest[data-forest="purified"] p {
+  color: color-mix(in srgb, var(--hw-moss) 70%, var(--hw-muted));
+}
+
+.hw-journal-forest[data-forest="corrupted"] p {
+  color: color-mix(in srgb, var(--hw-hp) 70%, var(--hw-muted));
+}
+
+.hw-journal-entry {
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in srgb, var(--hw-border) 60%, transparent);
+}
+
+.hw-journal-entry:first-of-type {
+  border-top: none;
+}
+
+.hw-journal-entry-head {
+  font-size: 12.5px;
+  color: var(--hw-text, #e8e2d4);
+  line-height: 1.5;
+}
+
+.hw-journal-entry-head em {
+  color: var(--hw-rune);
+  font-style: normal;
+}
+
+.hw-journal-grant {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--hw-moss);
+  margin: 5px 0 0;
+}
+
+.hw-journal-milestones {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hw-journal-milestones li {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--hw-muted);
+}
+
+.hw-journal-empty {
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--hw-muted);
+  margin: 0;
+}
+
+/* A Trial fight's heading on the formation screen (FormationScreen.jsx) -
+   a named story boss reads in the story's accent, not as a plain label. */
+h1[data-trial] {
+  color: var(--hw-curse);
+  letter-spacing: 0.5px;
+}
+
 /* --- Act Transition interstitial (ActTransitionScreen.jsx) ---------- */
 .hw-act-transition {
   position: relative;

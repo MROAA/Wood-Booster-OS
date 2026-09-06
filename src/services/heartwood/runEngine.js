@@ -816,6 +816,9 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // event from repeating within one run.
     storyFlags: {},
     seenEvents: [],
+    // Story journal record of event choices (storyLog.js) - see
+    // resolveEventChoice. Defaulted on read; old saves lack it.
+    eventLog: [],
     // Run Modifiers (boons.js): NAMED permanent consequences of map-event
     // choices - an array of modifier ids. Unlike `pendingActiveEffects`
     // (consumed after one battle) these are re-applied at the start of
@@ -1328,7 +1331,17 @@ export function resolveEventChoice(runState, choiceIndex) {
   if (!choice) return runState
   let next = runState
   for (const eff of choice.effects || []) next = applyEventEffect(next, eff)
-  next = { ...next, seenEvents: [...(next.seenEvents || []), event.id] }
+  next = {
+    ...next,
+    seenEvents: [...(next.seenEvents || []), event.id],
+    // Story journal (storyLog.js): a readable record of what you chose,
+    // separate from `seenEvents` (which stays a bare id list for
+    // pickEvent's dedup). Defaulted on read; no save-version bump.
+    eventLog: [
+      ...(next.eventLog || []),
+      { id: event.id, title: event.title, choice: choice.label, result: choice.result, act: actIndexForNode(runState.nodeIndex, RUN_PATH.length) },
+    ],
+  }
   return { ...next, ...advanceToNextNode(next) }
 }
 
