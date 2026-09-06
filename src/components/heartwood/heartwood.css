@@ -3809,6 +3809,126 @@ img.hw-card-art {
   color: var(--hw-hp);
 }
 
+/* --- Story cinematic (StoryCinematic.jsx) -------------------------- */
+.hw-cinematic {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: var(--hw-cine-bg, #0a0a0b);
+  cursor: pointer;
+  overflow-y: auto;
+}
+
+.hw-cinematic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.hw-cinematic-skip {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 2;
+  background: none;
+  border: 1px solid var(--hw-border);
+  border-radius: 6px;
+  color: var(--hw-muted);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.hw-cinematic-skip:hover {
+  color: var(--hw-text, #e8e2d4);
+  border-color: var(--hw-muted);
+}
+
+.hw-cinematic-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.hw-cinematic-head {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.hw-cinematic-title {
+  font-size: 30px;
+  letter-spacing: 1px;
+  margin: 0 0 6px;
+}
+
+.hw-cinematic-subtitle {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--hw-muted);
+  margin: 0;
+}
+
+.hw-cinematic-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 120px;
+}
+
+.hw-cinematic-line {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hw-cinematic-speaker {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--hw-rune);
+}
+
+.hw-cinematic-speaker[data-tone="whisper"],
+.hw-cinematic-text[data-tone="whisper"] {
+  color: var(--hw-muted);
+  font-style: italic;
+}
+
+.hw-cinematic-text {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--hw-text, #e8e2d4);
+}
+
+.hw-cinematic-prompt {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.hw-cinematic-more {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+  animation: hw-cine-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hw-cine-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.8; }
+}
+
 /* Sizing/spacing rhythm below is deliberately built on the Fibonacci
    sequence (8, 13, 21, 34, 55...) rather than arbitrary pixel values -
    Marc: "suuri osa visuaalisuutta on geometria ja kultainen leikkaus."

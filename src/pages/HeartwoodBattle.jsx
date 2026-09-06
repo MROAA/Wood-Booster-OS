@@ -55,12 +55,18 @@ import EventScreen from "../components/heartwood/EventScreen"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import RunMap from "../components/heartwood/RunMap"
 import ActTransitionScreen from "../components/heartwood/ActTransitionScreen"
+import StoryCinematic from "../components/heartwood/StoryCinematic"
+import { CINEMATICS, cinematicById, endingIdForRun } from "../data/heartwood/cinematics"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import "../components/heartwood/heartwood.css"
 
 const rootStyle = { height: "100%", "--hw-bg-image": `url(${battleBg})` }
 const AUTOBATTLER_INTRO_SEEN_KEY = "heartwood-autobattler-intro-seen"
+// Story intro cinematic (cinematics.js) - shown once ever, before the
+// first shop, same once-and-skippable contract as the tutorial hint
+// above. Separate key so clearing one doesn't affect the other.
+const STORY_INTRO_SEEN_KEY = "heartwood-story-intro-seen"
 
 // Heartwood Trial as an autobattler: pick a Commander, then a fixed
 // loop of Shop -> Formation -> Auto-Battle repeats until the
@@ -82,6 +88,18 @@ export default function HeartwoodBattle() {
   const [showIntro, setShowIntro] = useState(
     () => typeof localStorage !== "undefined" && !localStorage.getItem(AUTOBATTLER_INTRO_SEEN_KEY),
   )
+  // Story intro cinematic gate. Presentation-only (like showGuildHall):
+  // renders on top of an already-"shop" runState, cleared by its own
+  // Continue/Skip. Only meaningful once a run exists; the localStorage
+  // key makes it once-ever.
+  const [showStoryIntro, setShowStoryIntro] = useState(
+    () => typeof localStorage !== "undefined" && !localStorage.getItem(STORY_INTRO_SEEN_KEY),
+  )
+  // Ending cinematic: set to an id ("ending-rooted" | "-ember" |
+  // "-hollow") once a run reaches victory; StoryCinematic plays it, then
+  // clears it and RunEndOverlay takes over. Defeat gets no cinematic.
+  const [endingCinematic, setEndingCinematic] = useState(null)
+  const endingShownRef = useRef(null)
   // Death Memory (Marc's PRD, runEngine.js's buildDeathMemory): the
   // PREVIOUS run's fallen hero, if any - real state, not a one-time
   // useMemo, because it has to pick up a memory saved LATER in the
@@ -188,6 +206,15 @@ export default function HeartwoodBattle() {
     // character-select screen reads it back via loadLastRun() above.
     if (runState.phase === "defeat" && runState.deathMemory) saveLastRun(runState.deathMemory)
 
+    // Ending cinematic (cinematics.js): on a win, before RunEndOverlay,
+    // play the ending the run's Act allegiances earned. Ref-guarded to
+    // the ended run's object identity so it arms once; a reload landing
+    // back on victory re-arms once and the player can Skip.
+    if (runState.phase === "victory" && endingShownRef.current !== runState) {
+      endingShownRef.current = runState
+      setEndingCinematic(endingIdForRun(runState))
+    }
+
     // Award Acorns for a finished run - once per run. Keyed by the run's
     // own honoredMemory.ts / a stable per-run stamp isn't available, so
     // guard on a ref holding the runState object identity of the ended
@@ -281,6 +308,15 @@ export default function HeartwoodBattle() {
   function dismissIntro() {
     localStorage.setItem(AUTOBATTLER_INTRO_SEEN_KEY, "true")
     setShowIntro(false)
+  }
+
+  function dismissStoryIntro() {
+    try {
+      localStorage.setItem(STORY_INTRO_SEEN_KEY, "true")
+    } catch {
+      // private-mode / storage-disabled: fine, it just replays next run
+    }
+    setShowStoryIntro(false)
   }
 
   function beginRun(id) {
@@ -449,6 +485,27 @@ export default function HeartwoodBattle() {
           &#127807; The Grove{meta.acorns > 0 ? ` — ${meta.acorns} Acorns` : ""}
         </button>
       </div>
+    )
+  }
+
+  // Story intro cinematic (cinematics.js) - once ever, before anything
+  // else, only at the very first shop of a run (nodeIndex 0). Sits
+  // ahead of the Guild Hall so the order reads: the forest wakes you ->
+  // meet your crew -> first market.
+  if (showStoryIntro && runState.phase === "shop" && runState.nodeIndex === 0) {
+    return <StoryCinematic cinematic={CINEMATICS.intro} onDone={dismissStoryIntro} />
+  }
+
+  // Ending cinematic (cinematics.js) - on a win only, played before the
+  // RunEndOverlay branch below. onDone clears it and the run falls
+  // through to RunEndOverlay.
+  if (runState.phase === "victory" && endingCinematic) {
+    return (
+      <StoryCinematic
+        key={endingCinematic}
+        cinematic={cinematicById(endingCinematic)}
+        onDone={() => setEndingCinematic(null)}
+      />
     )
   }
 
