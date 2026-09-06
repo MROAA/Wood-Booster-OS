@@ -1007,6 +1007,40 @@
   color: var(--hw-hp);
 }
 
+/* Arena hazard banner (arenas.js) - shown on FormationScreen before a
+   fight that has one. Left border keyed to who it helps: rune (both),
+   moss (your squad), hp-red (the enemy). */
+.hw-arena-banner {
+  border: 1px solid var(--hw-border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: color-mix(in srgb, var(--hw-panel) 90%, transparent);
+}
+.hw-arena-banner-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--hw-text);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.hw-arena-banner-scope {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--hw-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.hw-arena-banner-desc {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
 /* Tribe icons (synergies.js) - a small row under the unit's name, same
    icon-glyph vocabulary as everything else, no new art. Purely a
    recruit-planning cue: "what tribe does this unit belong to."*/

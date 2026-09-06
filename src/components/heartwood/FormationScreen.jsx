@@ -15,7 +15,7 @@ import {
   activePositionSlots,
 } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
-import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies, RUN_PATH } from "../../services/heartwood/runEngine"
+import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies, arenaForRun, RUN_PATH } from "../../services/heartwood/runEngine"
 import { nodeNarrative } from "../../services/heartwood/runNarrative"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
@@ -100,6 +100,9 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   const formationBonusSlots = new Set(activePositionSlots(slotTribes))
   const commander = CHARACTERS[runState.characterId]
   const primedPower = (runState.pendingActiveEffects || []).length > 0 ? commander?.activePower : null
+  // Arena hazard for this fight (arenas.js) - null most fights. Same
+  // arenaForNode the real battle uses, so the preview never lies.
+  const arena = arenaForRun(runState)
   // Same progressive-difficulty readout as SquadDraft.jsx's shop
   // header - this pre-battle screen is the other place a run's
   // progress is visible, and the fight about to start is exactly what
@@ -294,6 +297,23 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       {primedPower && (
         <div className="hw-badge hw-badge--active" style={{ marginBottom: 10 }} title={primedPower.description}>
           {primedPower.name} primed - applies at the start of this battle
+        </div>
+      )}
+
+      {arena && (
+        <div
+          className="hw-arena-banner hw-section-fade-in"
+          style={{
+            borderColor: arena.scope === "enemy" ? "var(--hw-hp)" : arena.scope === "player" ? "var(--hw-moss)" : "var(--hw-rune)",
+          }}
+        >
+          <div className="hw-arena-banner-name">
+            Arena — {arena.name}
+            <span className="hw-arena-banner-scope">
+              {arena.scope === "both" ? "affects everyone" : arena.scope === "player" ? "affects your squad" : "affects the enemy"}
+            </span>
+          </div>
+          <div className="hw-arena-banner-desc">{arena.description}</div>
         </div>
       )}
 

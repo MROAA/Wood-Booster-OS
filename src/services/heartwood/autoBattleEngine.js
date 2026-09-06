@@ -18,6 +18,7 @@ import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/chara
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
+import { ARENAS } from "../../data/heartwood/arenas"
 import { tribesOf, SYNERGY_TIERS, resolveComboSynergies, resolvePositionSynergies } from "../../data/heartwood/synergies"
 import { findDualClassFor, applyDualClassGrant } from "../../data/heartwood/dualClasses"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen, tickBurn, tickAscendant } from "./effects"
@@ -178,6 +179,7 @@ export function startAutoBattle(
   commanderItemIds = [],
   pendingEffects = [],
   difficultyFactor = 1,
+  arenaId = null,
 ) {
   const formation = resolveFormation(enemyFormationOrId)
   const character = CHARACTERS[characterId]
@@ -520,6 +522,22 @@ export function startAutoBattle(
   }
 
   state = scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor)
+
+  // Arena hazard (arenas.js) - a per-battle modifier on the whole
+  // field, applied AFTER the DPS-based enemy HP scaling so it lands as
+  // a raw overlay on an already-balanced fight, the way a Slay the
+  // Spire room modifier does. `scope` picks which side(s) it hits.
+  const arena = arenaId ? ARENAS.find((a) => a.id === arenaId) : null
+  if (arena?.effects?.length) {
+    state = { ...state, arenaId, arenaName: arena.name }
+    const hit = []
+    if (arena.scope === "player" || arena.scope === "both") hit.push(...state.playerUnits)
+    if (arena.scope === "enemy" || arena.scope === "both") hit.push(...state.enemies)
+    for (const u of hit) {
+      state = applyEffects(state, arena.effects, { actorId: u.id, targetId: u.id })
+    }
+    state = { ...state, log: [...state.log, `Arena: ${arena.name}. ${arena.description}`] }
+  }
 
   return state
 }

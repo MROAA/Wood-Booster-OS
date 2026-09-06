@@ -310,6 +310,16 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
             {difficultyTier.name}
           </span>
         )}
+        {state.arenaName && (
+          <span
+            className="hw-badge hw-section-fade-in"
+            style={{ color: "var(--hw-rune)", borderColor: "var(--hw-rune)" }}
+            title="An arena hazard is in effect for this fight"
+          >
+            <CardGlyph name="rune" className="hw-intent-glyph" />
+            Arena: {state.arenaName}
+          </span>
+        )}
       </div>
 
       {Object.keys(tribeCounts).length > 0 && (
