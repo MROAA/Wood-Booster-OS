@@ -5,6 +5,17 @@ import { difficultyTierForNode, DIFFICULTY_TIERS, RUN_PATH } from "../../service
 import { CardGlyph } from "./cardArt"
 import RunModifierStrip from "./RunModifierStrip"
 
+// The world's posture, set by Act Crossroads (crossroads.js). "restless"
+// is the neutral default and shows nothing - only a chosen state does.
+function ForestStateBadge({ state }) {
+  if (!state || state === "restless") return null
+  return (
+    <span className="hw-forest-state" data-forest={state} title={`The forest is ${state}`}>
+      {state}
+    </span>
+  )
+}
+
 // A compact, persistent strip of every node in the run (runEngine.js's
 // RUN_PATH), so the run reads as a real journey the player is moving
 // through rather than a sequence of disconnected screens - Marc:
@@ -81,6 +92,7 @@ function RunRail({ runState }) {
         <span className="hw-run-rail-step">
           {nodeIndex + 1}<span className="hw-run-rail-step-sep">/</span>{total}
         </span>
+        <ForestStateBadge state={runState.forestState} />
       </div>
       <RunModifierStrip modifiers={runState.runModifiers} compact />
       {acts.map(({ tier, indices }) => {
@@ -160,6 +172,7 @@ export default function RunMap({ runState, mode }) {
         <span className="hw-run-map-progress">
           Step {runState.nodeIndex + 1} of {RUN_PATH.length} · {nodeLabel(currentNode)}
         </span>
+        <ForestStateBadge state={runState.forestState} />
         <RunModifierStrip modifiers={runState.runModifiers} />
       </div>
       <div className="hw-run-track" ref={trackRef}>

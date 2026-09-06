@@ -3684,6 +3684,28 @@ img.hw-card-art {
   white-space: nowrap;
 }
 
+/* Forest state badge (RunMap.jsx) - the world's posture set by an Act
+   Crossroads. Only rendered when it's not the neutral "restless". */
+.hw-forest-state {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  align-self: center;
+}
+
+.hw-forest-state[data-forest="purified"] {
+  color: var(--hw-moss);
+  border-color: color-mix(in srgb, var(--hw-moss) 55%, var(--hw-border));
+}
+
+.hw-forest-state[data-forest="corrupted"] {
+  color: var(--hw-hp);
+  border-color: color-mix(in srgb, var(--hw-hp) 55%, var(--hw-border));
+}
+
 /* --- Act Transition interstitial (ActTransitionScreen.jsx) ---------- */
 .hw-act-transition {
   position: relative;

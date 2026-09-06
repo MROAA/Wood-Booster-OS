@@ -440,8 +440,99 @@ function phaseForNode(node) {
 // static RUN_PATH on load, since which battle landed at which position
 // is now a real per-run, choice-driven outcome. See serializeRun's own
 // updated note below.
-function battleSlotsOf(runPath) {
-  return runPath.filter((n) => n.type === "battle")
+// Small deterministic RNG (mulberry32) + shuffle - used for the per-run
+// route seed. Deterministic in `seed` so a save/reload or a fairness
+// re-run reproduces the exact same run.
+function mulberry32(seed) {
+  let a = seed >>> 0
+  return function () {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function seededShuffle(list, rng) {
+  const out = list.slice()
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
+// enemyId / formationId -> Act, from RUN_PATH's fixed shape. Content-keyed
+// (not object identity) so it still resolves for battle nodes that came
+// back through a JSON save/restore as fresh objects. Built lazily on
+// first use - actIndexForNode / DIFFICULTY_TIERS are declared further
+// down this module, so this can't run at module-eval time.
+let _battleNodeAct = null
+function actOfBattleNode(node) {
+  if (!_battleNodeAct) {
+    _battleNodeAct = new Map()
+    RUN_PATH.forEach((n, i) => {
+      if (n.type !== "battle") return
+      const key = n.enemyId || n.formationId
+      if (key && !_battleNodeAct.has(key)) _battleNodeAct.set(key, actIndexForNode(i, RUN_PATH.length))
+    })
+  }
+  return _battleNodeAct.get(node.enemyId || node.formationId) || 1
+}
+
+// Act-scoped reorder of a battle list. Two guardrails, both learned from
+// a fairness run that showed a naive full shuffle slid the difficulty
+// curve (it diluted the deliberately-hard opening wall, inflating win
+// rate ~15pp):
+//   1. Act I is NEVER reordered - it's short and its exact pacing (a
+//      hard formation first) is what makes the opening tight.
+//   2. In every later Act the FIRST authored battle is pinned as the
+//      Act's entry fight (its tuned "step up" moment); only the rest of
+//      that Act's battles shuffle among themselves.
+// Everything still stays WITHIN its Act, so difficultyFactorForNode /
+// ACT_STAT_FLOOR pacing is untouched, and formations (which
+// resolveEncounterId never Act-swaps) stay in-band.
+function actScopedReorder(battles, rng) {
+  const byAct = new Map()
+  for (const n of battles) {
+    const act = actOfBattleNode(n)
+    if (!byAct.has(act)) byAct.set(act, [])
+    byAct.get(act).push(n)
+  }
+  const out = []
+  for (const act of [...byAct.keys()].sort((x, y) => x - y)) {
+    const group = byAct.get(act)
+    if (act <= 1 || group.length <= 2) {
+      out.push(...group) // Act I, or too small to meaningfully shuffle
+    } else {
+      out.push(group[0], ...seededShuffle(group.slice(1), rng))
+    }
+  }
+  return out
+}
+
+// Route variety (Marc: "runit ovat samanlaisia"). The battle pool used
+// to be RUN_PATH's battle nodes in authored order, identical every run;
+// now it's reordered per-run via actScopedReorder. The player still
+// picks 1-of-2 at each battle position (advanceToNextNode) - the seed
+// just decides which pairs come up. `seed` omitted (old saves, some
+// tests) -> authored order, unchanged.
+function battleSlotsOf(runPath, seed) {
+  const battles = runPath.filter((n) => n.type === "battle")
+  if (seed == null) return battles
+  return actScopedReorder(battles, mulberry32(seed))
+}
+
+// Re-shuffle only the battles still ahead in the pool, Act-scoped, with
+// a seed mixed from the run seed and a label (a crossroads folds its
+// chosen forestState in here so an Act I choice visibly changes which
+// enemies Acts II+ present). Battles already fought are untouched.
+export function reshuffleBattlePool(pool, seed, label = "") {
+  if (seed == null || !Array.isArray(pool) || pool.length < 2) return pool
+  let mixed = seed >>> 0
+  for (let i = 0; i < label.length; i++) mixed = (Math.imul(mixed, 31) + label.charCodeAt(i)) >>> 0
+  return actScopedReorder(pool, mulberry32(mixed))
 }
 
 // Shared by leaveShop/chooseRelic/resolveBattleOutcome below - all 3
@@ -665,8 +756,12 @@ function fuseAll(bench, deployed, items, nextKey) {
 // always-on head start (extra starting Essence, a higher Market Level,
 // a wider bench, ...), never a mid-run effect.
 export function startRun(characterId, carriedMemory = null, meta = null) {
+  // Per-run route seed (route variety - see battleSlotsOf). A test/tool
+  // can pin it via meta.forcedSeed; otherwise it's random per run.
+  const seed = Number.isFinite(meta?.forcedSeed) ? meta.forcedSeed >>> 0 : (Math.random() * 0x7fffffff) >>> 0
   const base = {
     characterId,
+    seed,
     bench: [],
     benchKeyCounter: 0,
     deployed: Array.from({ length: DEPLOY_SLOTS }, () => null),
@@ -677,10 +772,10 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // RUN_PATH[0]) and grows one real entry at a time as the run is
     // actually played, rather than being the whole static RUN_PATH
     // up front. battlePool holds every battle-type RUN_PATH entry,
-    // ready to be offered as choices as the run reaches each battle
-    // position.
+    // Act-scoped-shuffled by the route seed, ready to be offered as
+    // choices as the run reaches each battle position.
     path: [RUN_PATH[0]],
-    battlePool: battleSlotsOf(RUN_PATH),
+    battlePool: battleSlotsOf(RUN_PATH, seed),
     floorChoices: null,
     nodeIndex: 0,
     phase: "shop",
@@ -1254,13 +1349,19 @@ export function resolveActCrossroads(runState, actIndex, choiceId) {
   const held = runState.runModifiers || []
   const runModifiers =
     choice.allegiance && !held.includes(choice.allegiance) ? [...held, choice.allegiance] : held
+  const forestState = choice.forestState || runState.forestState || "restless"
   return {
     ...runState,
     runModifiers,
     allegiances: { ...(runState.allegiances || {}), [actIndex]: choiceId },
-    forestState: choice.forestState || runState.forestState || "restless",
+    forestState,
     storyFlags: choice.flag ? { ...runState.storyFlags, [choice.flag]: true } : runState.storyFlags,
     lastSeenAct: seen,
+    // Route variety: the crossroads re-shuffles the battles still ahead
+    // (Act-scoped, so still in difficulty band) with the chosen
+    // forestState folded into the seed - your Act I choice visibly
+    // changes which enemies the later Acts put in front of you.
+    battlePool: reshuffleBattlePool(runState.battlePool, runState.seed, `act${actIndex}:${forestState}`),
   }
 }
 
