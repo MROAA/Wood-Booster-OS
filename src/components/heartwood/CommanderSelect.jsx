@@ -27,8 +27,18 @@ import { MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
 // onConfirm fires, no jump-cut.
 const CONFIRM_DELAY_MS = 550
 
-export default function CommanderSelect({ characters, pendingMemory, bannerSrc, bannerAlt, onConfirm }) {
+export default function CommanderSelect({
+  characters,
+  pendingMemory,
+  bannerSrc,
+  bannerAlt,
+  onConfirm,
+  unlockedIds = [],
+  acorns = 0,
+  onUnlock,
+}) {
   const [confirmingId, setConfirmingId] = useState(null)
+  const unlocked = new Set(unlockedIds)
 
   // Cleanup matters here more than most timers in this codebase: this
   // component can be replaced (HeartwoodBattle re-renders past it into
@@ -79,27 +89,44 @@ export default function CommanderSelect({ characters, pendingMemory, bannerSrc, 
         )}
       </div>
       <div className="hw-commander-grid">
-        {characters.map((character) => (
-          <button
-            key={character.id}
-            type="button"
-            className="hw-commander-card"
-            data-confirming={confirmingId === character.id}
-            data-dimmed={confirmingId !== null && confirmingId !== character.id}
-            disabled={confirmingId !== null}
-            onClick={() => handlePick(character.id)}
-          >
-            <span className="hw-commander-portrait">
-              <CardGlyph name={character.art} className="hw-commander-glyph" />
-            </span>
-            <strong className="hw-commander-name">{character.name}</strong>
-            <p className="hw-commander-tagline">{character.tagline}</p>
-            <p className="hw-commander-desc">{character.description}</p>
-            <span className="hw-commander-cta">
-              {confirmingId === character.id ? "Leading the squad..." : "Lead the squad"}
-            </span>
-          </button>
-        ))}
+        {characters.map((character) => {
+          const isLocked = character.locked && !unlocked.has(character.id)
+          const canAfford = acorns >= (character.unlockCost || 0)
+          return (
+            <button
+              key={character.id}
+              type="button"
+              className="hw-commander-card"
+              data-confirming={confirmingId === character.id}
+              data-dimmed={confirmingId !== null && confirmingId !== character.id}
+              data-locked={isLocked}
+              disabled={confirmingId !== null || (isLocked && !canAfford)}
+              onClick={() => {
+                if (isLocked) {
+                  if (canAfford && onUnlock) onUnlock(character.id)
+                  return
+                }
+                handlePick(character.id)
+              }}
+            >
+              <span className="hw-commander-portrait">
+                <CardGlyph name={character.art} className="hw-commander-glyph" />
+              </span>
+              <strong className="hw-commander-name">{character.name}</strong>
+              <p className="hw-commander-tagline">{character.tagline}</p>
+              <p className="hw-commander-desc">{character.description}</p>
+              <span className="hw-commander-cta">
+                {isLocked
+                  ? canAfford
+                    ? `Unlock — ${character.unlockCost} \u{1F33F}`
+                    : `Locked — ${character.unlockCost} Acorns`
+                  : confirmingId === character.id
+                    ? "Leading the squad..."
+                    : "Lead the squad"}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

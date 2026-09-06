@@ -134,6 +134,20 @@ export default function HeartwoodBattle() {
     })
   }
 
+  function handleUnlockCommander(id) {
+    setMeta((m) => {
+      const c = CHARACTERS[id]
+      if (!c?.locked || (m.unlockedCommanders || []).includes(id) || m.acorns < (c.unlockCost || 0)) return m
+      const next = {
+        ...m,
+        acorns: m.acorns - (c.unlockCost || 0),
+        unlockedCommanders: [...(m.unlockedCommanders || []), id],
+      }
+      saveMeta(next)
+      return next
+    })
+  }
+
   // Every one of this component's ~20 handlers funnels through
   // setRunState, so one effect covers all of them rather than a save
   // call in each handler. Saving mid-battle is deliberate (see
@@ -213,6 +227,11 @@ export default function HeartwoodBattle() {
   }
 
   function beginRun(id) {
+    // Defence-in-depth: CommanderSelect never fires onConfirm for a
+    // still-locked Commander (it routes the click to onUnlock instead),
+    // but never start a run with one regardless.
+    const c = CHARACTERS[id]
+    if (c?.locked && !(meta.unlockedCommanders || []).includes(id)) return
     setCharacterId(id)
     setRunState(startRun(id, pendingMemory, meta))
     setLastAcornsEarned(null)
@@ -364,6 +383,9 @@ export default function HeartwoodBattle() {
           bannerSrc={crewBanner}
           bannerAlt="Tommy, Aatos, Spacemonkey, and Fenrir"
           onConfirm={beginRun}
+          unlockedIds={meta.unlockedCommanders || []}
+          acorns={meta.acorns}
+          onUnlock={handleUnlockCommander}
         />
         <button className="hw-grove-open-btn" onClick={() => setShowGrove(true)}>
           &#127807; The Grove{meta.acorns > 0 ? ` — ${meta.acorns} Acorns` : ""}

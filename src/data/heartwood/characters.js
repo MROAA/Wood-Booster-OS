@@ -355,6 +355,97 @@ export const CHARACTERS = {
       ],
     },
   },
+
+  // --- Unlockable Commanders (metaPerks.js / GroveScreen.jsx) ----------
+  // `locked: true` + `unlockCost` (Acorns) - CommanderSelect renders
+  // these greyed with an Unlock button until the player buys them; the
+  // meta store's `unlockedCommanders` list is the source of truth.
+  // Each is a real new archetype (a curse leader, a wall leader), not a
+  // stat reskin - same squadPassive + activePower vocabulary the base 4
+  // use, so no engine change.
+  kaski: {
+    id: "kaski",
+    name: "Kaski",
+    art: "shadow",
+    locked: true,
+    unlockCost: 70,
+    maxHp: 58,
+    tagline: "Slash and burn - lets the rot do the work.",
+    description: "Blighttongue: every unit's hit leaves a wound that festers - a little poison, a little weakness - and the squad hits harder for it.",
+    startEffects: [{ type: "applyBuff", id: "strength", amount: 1 }],
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+    ],
+    // A curse/attrition leader - the first Commander built around
+    // hits-that-linger rather than raw numbers. Pairs with Root/Shadow
+    // tribes and any poison relic, exactly the "synergize with the
+    // build" intent the base kits' own comment describes.
+    squadPassive: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+    ],
+    activePower: {
+      id: "blightcall",
+      name: "Blightcall",
+      cost: 150,
+      description: "Next battle only: the whole squad's hits also mark the target Vulnerable, and start with +1 Execute.",
+      effects: [
+        { type: "applyBuff", id: "execute", amount: 1 },
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
+      ],
+    },
+  },
+  louhi: {
+    id: "louhi",
+    name: "Louhi",
+    art: "stone",
+    locked: true,
+    unlockCost: 90,
+    maxHp: 70,
+    tagline: "The mountain does not move for you.",
+    description: "Stoneheart: every unit carries permanent armour and grows a fresh shell of bark each round - nothing about this squad is in a hurry.",
+    startEffects: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+    ],
+    // A wall leader - the first Commander built entirely around
+    // mitigation (Bulwark + repeating Block), no offense floor of its
+    // own beyond a small Strength. Pairs with Warden/Stone tribes and
+    // the Bastion of Stone anchor relic.
+    passive: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+    movePattern: [
+      { type: "block", amount: 5 },
+      { type: "attack", amount: 4 },
+    ],
+    squadPassive: [
+      { type: "applyBuff", id: "bulwark", amount: 1 },
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+    ],
+    activePower: {
+      id: "stonewall",
+      name: "Stonewall",
+      cost: 150,
+      description: "Next battle only: the whole squad shrugs off two hits and adds +2 Block each round.",
+      effects: [
+        { type: "applyBuff", id: "ward", amount: 2 },
+        { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      ],
+    },
+  },
+}
+
+// Commanders the player has to earn (locked:true above). The base four
+// are always available; these are bought with Acorns at the Grove.
+export function unlockableCommanders() {
+  return Object.values(CHARACTERS).filter((c) => c.locked)
+}
+
+export function isCommanderUnlocked(id, unlockedIds = []) {
+  const c = CHARACTERS[id]
+  if (!c) return false
+  return !c.locked || unlockedIds.includes(id)
 }
 
 // Rank-Up: a third Essence sink alongside recruiting/relics/Unit

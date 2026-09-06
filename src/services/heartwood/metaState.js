@@ -19,6 +19,7 @@ function freshMeta() {
     version: META_VERSION,
     acorns: 0,
     chosenPerks: [],
+    unlockedCommanders: [],
     stats: { runs: 0, wins: 0, bestNodeIndex: 0 },
   }
 }
@@ -35,6 +36,7 @@ export function loadMeta() {
       ...freshMeta(),
       ...parsed,
       chosenPerks: Array.isArray(parsed.chosenPerks) ? parsed.chosenPerks : [],
+      unlockedCommanders: Array.isArray(parsed.unlockedCommanders) ? parsed.unlockedCommanders : [],
       stats: { ...freshMeta().stats, ...(parsed.stats || {}) },
     }
   } catch {

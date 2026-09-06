@@ -4732,6 +4732,20 @@ img.hw-intent-glyph {
   transform: none;
 }
 
+/* A Commander that has to be earned with Acorns (characters.js's
+   `locked`) - desaturated portrait, and its CTA carries the price. Not
+   fully hidden: the player should see the archetype they're working
+   toward. */
+.hw-commander-card[data-locked="true"] .hw-commander-portrait,
+.hw-commander-card[data-locked="true"] .hw-commander-desc {
+  filter: grayscale(1) brightness(0.7);
+  opacity: 0.8;
+}
+.hw-commander-card[data-locked="true"] .hw-commander-cta {
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
+}
+
 .hw-commander-portrait {
   width: 89px;
   height: 89px;
