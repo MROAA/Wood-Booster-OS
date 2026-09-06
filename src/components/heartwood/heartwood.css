@@ -1007,6 +1007,106 @@
   color: var(--hw-hp);
 }
 
+/* The Grove - between-run meta progression (GroveScreen.jsx). Muted,
+   quiet, one clear currency line and a grid of perk cards. */
+.hw-grove-open-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-moss);
+  background: color-mix(in srgb, var(--hw-moss) 12%, var(--hw-panel));
+  color: var(--hw-moss);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 130ms ease;
+}
+.hw-grove-open-btn:hover {
+  background: color-mix(in srgb, var(--hw-moss) 22%, var(--hw-panel));
+}
+.hw-grove {
+  position: relative;
+}
+.hw-grove-balance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--hw-text);
+  margin: 16px 0 6px;
+}
+.hw-grove-acorn {
+  font-size: 22px;
+}
+.hw-grove-stats {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--hw-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.hw-grove-perks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+  max-width: 760px;
+}
+.hw-grove-perk {
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-panel);
+  color: var(--hw-text);
+  cursor: pointer;
+  transition: border-color 130ms ease, transform 130ms ease;
+}
+.hw-grove-perk:not(:disabled):hover {
+  border-color: var(--hw-moss);
+  transform: translateY(-2px);
+}
+.hw-grove-perk:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.hw-grove-perk.is-owned {
+  opacity: 1;
+  border-color: var(--hw-moss);
+  background: color-mix(in srgb, var(--hw-moss) 10%, var(--hw-panel));
+}
+.hw-grove-perk.is-fresh {
+  animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.hw-grove-perk-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.hw-grove-perk-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.hw-grove-perk-cost {
+  font-size: 12px;
+  color: var(--hw-moss);
+  white-space: nowrap;
+}
+.hw-grove-perk.is-owned .hw-grove-perk-cost {
+  color: var(--hw-muted);
+}
+.hw-grove-perk-desc {
+  font-size: 12px;
+  color: var(--hw-muted);
+  line-height: 1.5;
+}
+
 /* Boss phase banner (autoBattleEngine.js's checkBossPhases) - a
    one-shot dramatic line across the battlefield the round a boss
    crosses an HP threshold. Absolutely positioned over the stage like

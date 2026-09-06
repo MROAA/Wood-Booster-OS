@@ -22,6 +22,7 @@ import { ENEMIES, actEnemyForNode } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
 import { pickEvent } from "../../data/heartwood/events"
 import { arenaForNode, arenaById } from "../../data/heartwood/arenas"
+import { applyMetaPerks } from "../../data/heartwood/metaPerks"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // RAMP_CAP - the difficulty ramp's TOTAL enemy-scaling budget: enemies
@@ -655,8 +656,13 @@ function fuseAll(bench, deployed, items, nextKey) {
 // screen's "in memory of..." line) - it does not persist past this one
 // grant; the page clears the saved memory the moment it's honored, so
 // a fallen hero is remembered once, not forever.
-export function startRun(characterId, carriedMemory = null) {
-  return {
+// `meta` (metaState.js's loadMeta result): between-run progression.
+// Its `chosenPerks` are applied once here, right after the base run is
+// built, by metaPerks.js's applyMetaPerks - each perk is a plain
+// always-on head start (extra starting Essence, a higher Market Level,
+// a wider bench, ...), never a mid-run effect.
+export function startRun(characterId, carriedMemory = null, meta = null) {
+  const base = {
     characterId,
     bench: [],
     benchKeyCounter: 0,
@@ -718,6 +724,23 @@ export function startRun(characterId, carriedMemory = null) {
     items: [],
     itemKeyCounter: 0,
   }
+
+  let rs = applyMetaPerks(base, meta?.chosenPerks || [])
+
+  // Traveler's Kit (metaPerks.js) leaves a `metaStartItem` signal for
+  // startRun to resolve into a real bag entry (a data file can't import
+  // ITEMS without a cycle). Consumed here, not kept on runState.
+  if (rs.metaStartItem === "random-common") {
+    const pool = itemPool().filter((i) => i.tier === "common").map((i) => i.id)
+    const id = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null
+    const { metaStartItem, ...rest } = rs
+    void metaStartItem
+    rs = id
+      ? { ...rest, items: [{ key: rest.itemKeyCounter, defId: id, equippedTo: null, slotIndex: null }], itemKeyCounter: rest.itemKeyCounter + 1 }
+      : rest
+  }
+
+  return rs
 }
 
 export function recruitUnit(runState, unitDefId) {
@@ -733,7 +756,7 @@ export function recruitUnit(runState, unitDefId) {
   // full reserve free, rather than the deployed squad eating into it.
   const alreadyOwned = runState.bench.filter((e) => e.defId === unitDefId).length
   const willFuse = alreadyOwned >= 2
-  if (!willFuse && runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP) return runState
+  if (!willFuse && runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP + (runState.benchCapBonus || 0)) return runState
 
   const newKey = runState.benchKeyCounter
   const withNew = [...runState.bench, { key: newKey, defId: unitDefId, upgradeLevel: 0 }]
@@ -878,7 +901,8 @@ export function buyItem(runState, itemDefId) {
 // drift out of sync with each other.
 export function effectiveItemSlots(runState) {
   const bonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.itemSlotBonus || 0), 0)
-  return ITEM_SLOTS + bonus
+  // Deep Pockets (metaPerks.js) - a permanent +1 on top of the relic bonus.
+  return ITEM_SLOTS + bonus + (runState.metaItemSlotBonus || 0)
 }
 
 // Equips an owned item onto one of a bench unit's item slots (see
@@ -1100,7 +1124,7 @@ function applyEventEffect(runState, eff) {
     }
   }
   if (eff.unit) {
-    if (runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP) return runState
+    if (runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP + (runState.benchCapBonus || 0)) return runState
     let id = eff.unit
     if (eff.unit === "random-common") {
       id = randomFromList(
@@ -1715,7 +1739,8 @@ export function autoResolve(runState) {
 export function essenceForWin(runState, node) {
   const essenceBonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.essenceBonus || 0), 0)
   const difficultyBonus = node?.type === "miniboss" ? MINIBOSS_BONUS_ESSENCE : node?.formationId ? FORMATION_BONUS_ESSENCE : 0
-  return WIN_ESSENCE + difficultyBonus + essenceBonus
+  // Essence Flow (metaPerks.js) - a flat per-win bonus from the meta board.
+  return WIN_ESSENCE + difficultyBonus + essenceBonus + (runState.metaWinBonus || 0)
 }
 
 // Death Memory (Marc's PRD: a lost hero should leave something behind
