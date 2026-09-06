@@ -23,6 +23,7 @@ import { FORMATIONS } from "../../data/heartwood/formations"
 import { pickEvent } from "../../data/heartwood/events"
 import { arenaForNode, arenaById } from "../../data/heartwood/arenas"
 import { applyMetaPerks } from "../../data/heartwood/metaPerks"
+import { depthModifiersFor } from "../../data/heartwood/depths"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // RAMP_CAP - the difficulty ramp's TOTAL enemy-scaling budget: enemies
@@ -727,6 +728,22 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
 
   let rs = applyMetaPerks(base, meta?.chosenPerks || [])
 
+  // Depths (depths.js) - the challenge ladder. `selectedDepth` is kept
+  // on the run so encounterAndFactorFor can scale enemies by it, and
+  // its Essence penalty / first-battle curse land here at start.
+  const selectedDepth = Math.max(0, meta?.selectedDepth || 0)
+  if (selectedDepth > 0) {
+    const mods = depthModifiersFor(selectedDepth)
+    rs = {
+      ...rs,
+      selectedDepth,
+      essence: Math.max(0, rs.essence + mods.essenceDelta),
+      pendingActiveEffects: [...(rs.pendingActiveEffects || []), ...mods.startCurse],
+    }
+  } else {
+    rs = { ...rs, selectedDepth: 0 }
+  }
+
   // Traveler's Kit (metaPerks.js) leaves a `metaStartItem` signal for
   // startRun to resolve into a real bag entry (a data file can't import
   // ITEMS without a cycle). Consumed here, not kept on runState.
@@ -1420,10 +1437,15 @@ function resolveEncounterId(node, nodeIndex, act, warn = false) {
 function encounterAndFactorFor(runState, warn = false) {
   const node = currentNode(runState)
   const act = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
+  // Depths (depths.js): the selected Depth's cumulative enemy multiplier
+  // rides on top of the run-progress ramp and the per-Act floor - one
+  // more factor on the number startAutoBattle already treats as "how
+  // much harder than baseline is this fight."
+  const depthMult = depthModifiersFor(runState.selectedDepth || 0).enemyMult
   return {
     encounterId: resolveEncounterId(node, runState.nodeIndex, act, warn),
     difficultyFactor:
-      difficultyFactorForNode(runState.nodeIndex, runState.path.length) * (ACT_STAT_FLOOR[act] || 1),
+      difficultyFactorForNode(runState.nodeIndex, runState.path.length) * (ACT_STAT_FLOOR[act] || 1) * depthMult,
   }
 }
 

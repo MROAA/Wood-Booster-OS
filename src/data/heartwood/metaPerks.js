@@ -1,3 +1,5 @@
+import { depthAcornMultiplier } from "./depths"
+
 // Hearthwood Trial - permanent perks bought with Acorns (metaState.js).
 // Each is a one-line, always-on head start on a NEW run - never a
 // mid-run effect, never RNG, the same "depth lives in the choices you
@@ -135,8 +137,9 @@ export function applyMetaPerks(runState, chosenPerkIds = []) {
 // worth real progress; a win is worth a lot. Tuned so buying a first
 // perk takes ~2-4 honest runs and the full board takes many.
 // `chosenPerkIds` lets the Seed Vault perk add a flat bonus.
-export function acornsForRun(runState, won, chosenPerkIds = []) {
-  const depth = Math.max(0, Math.floor((runState?.nodeIndex || 0) / 4))
+export function acornsForRun(runState, won, chosenPerkIds = [], depthLevel = 0) {
+  const reached = Math.max(0, Math.floor((runState?.nodeIndex || 0) / 4))
   const seedVault = chosenPerkIds.includes("seed-vault") ? 2 : 0
-  return depth + (won ? 20 : 0) + seedVault
+  const raw = reached + (won ? 20 : 0) + seedVault
+  return Math.round(raw * depthAcornMultiplier(depthLevel))
 }

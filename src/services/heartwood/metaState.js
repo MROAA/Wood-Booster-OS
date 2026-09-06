@@ -20,6 +20,11 @@ function freshMeta() {
     acorns: 0,
     chosenPerks: [],
     unlockedCommanders: [],
+    // Depths (depths.js): `depth` is the highest one unlocked (0 = only
+    // the base game), `selectedDepth` is what the next run will be
+    // played at (0..depth).
+    depth: 0,
+    selectedDepth: 0,
     stats: { runs: 0, wins: 0, bestNodeIndex: 0 },
   }
 }
@@ -32,11 +37,15 @@ export function loadMeta() {
     if (!raw) return freshMeta()
     const parsed = JSON.parse(raw)
     if (!parsed || parsed.version !== META_VERSION) return freshMeta()
+    const depth = Number.isInteger(parsed.depth) && parsed.depth >= 0 ? parsed.depth : 0
     return {
       ...freshMeta(),
       ...parsed,
       chosenPerks: Array.isArray(parsed.chosenPerks) ? parsed.chosenPerks : [],
       unlockedCommanders: Array.isArray(parsed.unlockedCommanders) ? parsed.unlockedCommanders : [],
+      depth,
+      // never let a stale/hand-edited selectedDepth exceed what's unlocked
+      selectedDepth: Math.max(0, Math.min(depth, parsed.selectedDepth | 0)),
       stats: { ...freshMeta().stats, ...(parsed.stats || {}) },
     }
   } catch {

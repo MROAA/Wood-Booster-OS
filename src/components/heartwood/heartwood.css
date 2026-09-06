@@ -1054,6 +1054,72 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+.hw-grove-section-label {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+  margin: 18px 0 8px;
+}
+.hw-grove-depths {
+  max-width: 760px;
+  border: 1px solid var(--hw-border);
+  border-left: 3px solid var(--hw-hp);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 14px;
+  background: color-mix(in srgb, var(--hw-panel) 92%, transparent);
+}
+.hw-grove-depths .hw-grove-section-label {
+  margin-top: 0;
+}
+.hw-grove-depth-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.hw-grove-depth-step {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-panel);
+  color: var(--hw-text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.hw-grove-depth-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.hw-grove-depth-value {
+  flex: 1;
+}
+.hw-grove-depth-payout {
+  color: var(--hw-moss);
+  font-weight: 400;
+  font-size: 12px;
+}
+.hw-grove-depth-mods {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--hw-muted);
+  line-height: 1.6;
+}
+.hw-grove-depth-mods strong {
+  color: var(--hw-text);
+}
+.hw-grove-depth-hint {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 10px 0 0;
+  font-style: italic;
+}
+
 .hw-grove-perks {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
