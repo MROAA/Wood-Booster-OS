@@ -327,6 +327,7 @@ const BASE_UNITS = {
     { type: "heal", amount: 4 },
     { type: "attack", amount: 5 },
   ], {
+    className: "Oracle",
     // Self-Cleanse every round - "purification" reads directly off
     // the name, and gives Grove tribe its first Cleanse carrier
     // (previously only Rootward on the enemy side, Willowmend
@@ -343,6 +344,7 @@ const BASE_UNITS = {
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
   ], {
+    className: "Crownguard",
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
     image: theEmperorImg,
   }),
@@ -487,6 +489,7 @@ const BASE_UNITS = {
     { type: "debuff", id: "weak", amount: 2, target: "target" },
     { type: "attack", amount: 9 },
   ], {
+    className: "Galewing",
     // A third rare-tier forest creature, storm/lightning themed rather
     // than fire (Ember Stag) or growth (Grovekeeper) - the roster's
     // first player-side unit with a repeating Weak debuff, previously
@@ -498,6 +501,7 @@ const BASE_UNITS = {
     { type: "block", amount: 10 },
     { type: "attack", amount: 7 },
   ], {
+    className: "Stonewarden",
     // The roster's tankiest turnStart passive yet - 6 Block every
     // round vs. The Emperor's 5 (uncommon) or Grovekeeper's heal-based
     // approach (tank via sustain, not prevention) - justified by rare
@@ -517,6 +521,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 20 },
     { type: "block", amount: 8 },
   ], {
+    className: "Berserker",
     // A simple heavy hitter, no passive - same "not every rare needs a
     // gimmick" shape as The World/The Tower. The roster's single
     // highest per-hit attack number after The World's 20 (tied) - a
@@ -526,6 +531,7 @@ const BASE_UNITS = {
   duskclaw: unit("duskclaw", "Duskclaw", "flame", 3, "dps", [
     { type: "attack", amount: 8 },
   ], {
+    className: "Nightblade",
     // The roster's first unit built around Execute (effects.js's
     // dealDamage) instead of a Strength/Weak/heal-family passive - a
     // second, unit-level way to reach the mechanic alongside the
@@ -555,6 +561,7 @@ const BASE_UNITS = {
     { type: "debuff", id: "poison", amount: 3, target: "target" },
     { type: "attack", amount: 7 },
   ], {
+    className: "Venomtongue",
     // Poison (effects.js's tickPoison) has only ever been an enemy
     // weapon (Bloomrot Stalker, Spacemonkey) until now - same
     // debuff-movePattern shape Stormwing already uses for Weak, just a
@@ -581,6 +588,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 9 },
     { type: "attack", amount: 9 },
   ], {
+    className: "Reaver",
     // Chain (autoBattleEngine.js's actSide) - a second, distinct way to
     // reward finishing blows alongside Execute (Culling Strike/
     // Duskclaw), but a bonus hit on a DIFFERENT enemy instead of extra
@@ -597,6 +605,7 @@ const BASE_UNITS = {
     { type: "block", amount: 6 },
     { type: "attack", amount: 5 },
   ], {
+    className: "Bulwark",
     // Ward (effects.js's dealDamage) - a third defensive tool
     // alongside Block (a depleting damage pool) and Revive (only
     // matters once, at the very edge of death): a Ward stack cancels
@@ -613,6 +622,7 @@ const BASE_UNITS = {
     image: thornguardImg,
   }),
   swiftclaw: unit("swiftclaw", "Swiftclaw", "spark", 2, "dps", [{ type: "attack", amount: 4 }], {
+    className: "Skirmisher",
     // Haste - a genuinely different shape of DPS from every other
     // attacker: two small hits a round instead of one big one, at
     // uncommon tier (4 dmg/hit = 8 total, in line with other uncommon
@@ -653,6 +663,7 @@ const BASE_UNITS = {
     { type: "debuff", id: "stun", amount: 1, target: "target" },
     { type: "attack", amount: 3 },
   ], {
+    className: "Frostbinder",
     // A third mage, and the roster's first PLAYER-side source of Stun
     // (previously only Rootbind Thicket, an enemy, could skip a
     // unit's whole action). Own damage kept deliberately low (3, below
@@ -676,6 +687,7 @@ const BASE_UNITS = {
     image: glimmerwardImg,
   }),
   wraithcaller: unit("wraithcaller", "Wraithcaller", "moonGlyph", 3, "hybrid", [{ type: "attack", amount: 6 }], {
+    className: "Soulbinder",
     // A fifth mage, a life-drain caster - Lifesteal's first UNIT-level
     // source (previously only Vampiric Bloom, a relic). Every other
     // mechanic that shipped with both a relic and a unit source
@@ -692,6 +704,7 @@ const BASE_UNITS = {
     { type: "debuff", id: "poison", amount: 2, target: "target" },
     { type: "debuff", id: "weak", amount: 1, target: "target" },
   ], {
+    className: "Hexweaver",
     // The roster's first Witch Doctor - Marc named 5 desired classes
     // (Paladin, Rogue, Warrior, Witch Doctor, Mage); Mage now has 5
     // units, the others already fit loosely by mechanic (Stoneheart/
@@ -722,6 +735,7 @@ const BASE_UNITS = {
     image: wispkeeperImg,
   }),
   trueshot: unit("trueshot", "Trueshot", "spark", 3, "dps", [{ type: "attack", amount: 6 }], {
+    className: "Marksman",
     // The first Hunter - a precision tracker rather than a blaster:
     // knight's-leap targeting (bypasses shielding, same as Knight's
     // Leap) finds Execute's bonus damage against a wounded target
@@ -755,6 +769,7 @@ const BASE_UNITS = {
     image: motleyImg,
   }),
   thornwarden: unit("thornwarden", "Thornwarden", "root", 2, "dps", [{ type: "attack", amount: 6 }], {
+    className: "Bruiser",
     // The first Bruiser ("saa voimaa vahingoittumisesta" - gains power
     // from being damaged) - WoundedFury's first UNIT-level source
     // (previously only Fenrir's Commander squadPassive granted it).
@@ -769,6 +784,7 @@ const BASE_UNITS = {
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], {
+    className: "Bloomcaller",
     // The first Buffer ("kasvattaa liittolaisten voimaa" - grows
     // allies' power) - reuses Rally a fourth time, but grants Execute
     // to adjacent allies instead of Strength (Ashenhorn) or Ward
@@ -846,6 +862,7 @@ const BASE_UNITS = {
     { type: "debuff", id: "poison", amount: 2, target: "target" },
     { type: "attack", amount: 4 },
   ], {
+    className: "Sporelord",
     // The last of Marc's 12 base classes - Mycelist ("sieniverkosto
     // levittää efektejä" - a fungal network spreads effects). Spore
     // Spread (sporeSpread) is a genuinely new mechanic, not a reuse -
@@ -964,6 +981,7 @@ const BASE_UNITS = {
     image: duskwrenImg,
   }),
   rimefang: unit("rimefang", "Rimefang", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
+    className: "Frostblade",
     // Chain (autoBattleEngine.js's actSide), same mechanism Grimtusk/
     // Foxfire already established - a bonus hit on a different living
     // enemy when this unit's own attack lands the killing blow.
@@ -1138,6 +1156,7 @@ const BASE_UNITS = {
     { type: "block", amount: 8 },
     { type: "attack", amount: 6 },
   ], {
+    className: "Graveguard",
     // Taunt via passive `applyBuff`, same battle-start-once shape
     // Stoneheart already established (holds for the whole fight,
     // not a repeating trigger) - a spectral guardian standing between
@@ -1146,6 +1165,7 @@ const BASE_UNITS = {
     image: wraithguardImg,
   }),
   nightveil: unit("nightveil", "Nightveil", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
+    className: "Umbramancer",
     // Shatter's first Spirit-tribe source (Stoneknoll/Quarrywarden
     // were Warden-tribe) - punishes an enemy still braced behind
     // Block instead of waiting it out, the same identity Stoneknoll
