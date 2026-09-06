@@ -1070,7 +1070,7 @@ export function leaveShop(runState) {
 // invariant depends on it).
 export function eventForNode(runState) {
   const act = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
-  return pickEvent(runState.nodeIndex, act, runState.seenEvents || [])
+  return pickEvent(runState.nodeIndex, act, runState.seenEvents || [], runState.storyFlags || {})
 }
 
 function randomFromList(list) {

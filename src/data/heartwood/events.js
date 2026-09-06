@@ -15,6 +15,12 @@
 // Events are picked deterministically per event-node position and not
 // repeated within a run (runState.seenEvents).
 //
+// `requiresFlag` / `forbidsFlag` (optional storyFlag names): a follow-up
+// event only becomes available once an earlier choice set the flag it
+// requires, or is hidden once a flag it forbids is set - this is how a
+// choice in one event pays off (or comes back to bite you) in a later
+// one. pickEvent is handed runState.storyFlags to enforce it.
+//
 // Consequence vocabulary (one object per entry in a choice's `effects`):
 //   { essence: N }            - add N Essence (may be negative; floored at 0)
 //   { relic: "random" }       - gain a random relic not already owned
@@ -350,18 +356,354 @@ export const EVENTS = [
       },
     ],
   },
+
+  // --- Act I ----------------------------------------------------------
+  {
+    id: "the-first-milestone",
+    act: 1,
+    title: "The First Milestone",
+    body: "A stone the height of a child stands beside the path, older than the trees around it. Names are cut into it - hundreds, in a dozen hands, going back further than the letters you know. Every one has a small mark scratched through it.",
+    choices: [
+      {
+        label: "Add your own name.",
+        result: "You cut it in below the last. It feels like a promise, or a dare. Either way, the road ahead feels a little more like yours to walk.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 1 }] }],
+      },
+      {
+        label: "Scratch through a name, the old custom.",
+        result: "You draw your blade across a name at random, the way the others did. Somewhere a debt is settled that was never yours. A weight you didn't know you carried lifts.",
+        effects: [{ essence: 35 }, { flag: "kept_the_custom" }],
+      },
+      {
+        label: "Leave the stone alone.",
+        result: "It isn't yours to write on yet.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-snare-line",
+    act: 1,
+    title: "The Snare Line",
+    body: "The path runs through a stretch where every third tree has a rope-and-branch snare rigged in it, all sprung, all empty, all old. Someone hunted here hard, once, and then stopped. One snare still holds a scrap of bright cloth.",
+    choices: [
+      {
+        label: "Re-set a snare, take the cloth.",
+        result: "The cloth is good wool, dyed with something that hasn't faded. You tie it to your pack. You'll be back this way, maybe, and a set snare feeds whoever finds it.",
+        effects: [{ item: "random" }],
+      },
+      {
+        label: "Cut every line down.",
+        result: "It takes an hour and it costs you daylight, but nothing living will strangle in the dark here now. Your squad works the tired stretch after in a grim, decent silence.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "weak", amount: 1 }] }, { essence: 25 }, { flag: "cleared_the_snares" }],
+      },
+    ],
+  },
+
+  // --- Act III ------------------------------------------------------
+  {
+    id: "the-veil-researcher",
+    act: 3,
+    title: "The Researcher",
+    body: "A man in the burned remains of a scholar's coat is sitting with his back to a tree, notebooks spread around him in the mud, most of the pages blank. \"I was on the expedition,\" he says, without looking up. \"We opened it. We thought we were opening a door. I can tell you what's on the other side, if you're sure you want to carry that.\"",
+    choices: [
+      {
+        label: "\"Tell me.\"",
+        result: "He talks for a long time. Most of it you can't hold onto - it slides off the mind like water off glass. But one shape stays: a figure that was a person once, and chose not to be. You walk on knowing more, and lighter for none of it.",
+        effects: [{ flag: "knows_the_veil" }, { relic: "random" }],
+      },
+      {
+        label: "\"Come with us. You shouldn't be alone out here.\"",
+        result: "He shakes his head, but he stands, and he picks up a broken branch, and he walks a little behind your squad from then on. He isn't much of a fighter. He's another set of eyes.",
+        effects: [{ unit: "random-common" }],
+      },
+      {
+        label: "Leave him to his notebooks.",
+        result: "\"Yes,\" he agrees. \"That's the sensible one.\" He's still writing when you lose sight of him.",
+        effects: [{ essence: 30 }],
+      },
+    ],
+  },
+  {
+    id: "the-name-spreads",
+    act: 3,
+    requiresFlag: "heard_the_name",
+    title: "The Name Spreads",
+    body: "You've been saying it in your head since Spacemonkey told you - Hollow King, Hollow King - and now the forest is saying it back. Not in words. In the way the corruption leans toward you at every turn now, like it's finally noticed you noticing it.",
+    choices: [
+      {
+        label: "Say it out loud, right here, and mean it.",
+        result: "\"Hollow King.\" The word lands flat and cold. For a heartbeat every corrupted thing in earshot goes rigid - and then comes for you, all at once, harder than before. But you've stopped flinching from it. That's worth something.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 2 }, { type: "applyBuff", id: "vulnerable", amount: 1 }] }, { flag: "named_it_aloud" }],
+      },
+      {
+        label: "Stop thinking the name. Push it down.",
+        result: "You spend the next mile counting your steps, naming trees, anything else. Slowly the forest loses interest again. Whatever the name is, it's a door that opens both ways.",
+        effects: [{ essence: 40 }],
+      },
+    ],
+  },
+  {
+    id: "the-sealed-tree-again",
+    act: 3,
+    requiresFlag: "sealed_hollow_tree",
+    title: "The Tree You Sealed",
+    body: "You know this oak. You patched its black wound with bark and clay a long way back, in another Act, and told yourself you'd done something. The patch has held. Around it, in a clean circle ten paces wide, the forest is green - actually green - for the first time since you came in.",
+    choices: [
+      {
+        label: "Rest a while in the green circle.",
+        result: "Your squad sits in real grass under real leaves and, for as long as it lasts, remembers what they're fighting to get back. They stand up steadier than they sat down.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "regen", amount: 3 }, { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 1 } }] }],
+      },
+      {
+        label: "Reinforce the seal while it holds.",
+        result: "You pack fresh clay over the old, thicker this time. The green circle widens by a pace as you work. It's slow. It's almost nothing. It's not nothing.",
+        effects: [{ essence: -20 }, { flag: "reinforced_the_seal" }, { relic: "random" }],
+      },
+    ],
+  },
+
+  // --- Act IV -------------------------------------------------------
+  {
+    id: "the-throne-road",
+    act: 4,
+    title: "The Throne Road",
+    body: "The path has become a road - flagstones under the leaf mould, straight where a game trail would wander, running arrow-true toward something ahead you can't see yet. It was built. By hands. For a king to ride down. The trees along it are all dead and none have fallen.",
+    choices: [
+      {
+        label: "Walk it at a march, like you belong.",
+        result: "Your squad falls into step without being told. Whatever's at the end of this road, you'll meet it standing tall and moving fast, not creeping up on it like prey.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 1 }, { type: "applyBuff", id: "evade", amount: 1 }] }],
+      },
+      {
+        label: "Leave the road. Push through the dead trees alongside it.",
+        result: "It's slower and it's ugly going and you arrive scratched and tired - but you arrive from an angle nothing built this road expecting. Sometimes that's the whole game.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "weak", amount: 1 }] }, { flag: "left_the_throne_road" }, { essence: 50 }],
+      },
+    ],
+  },
+  {
+    id: "the-chained-ally-speaks",
+    act: 4,
+    requiresFlag: "freed_the_chained",
+    title: "The One You Freed",
+    body: "The figure you cut out of the ivy a long way back has been quiet since it joined you. Tonight, on the Throne Road, it finally speaks. \"I knew him,\" it says. \"Before. When he still had a face he'd let you see. He isn't going to fight you like a monster. He's going to fight you like someone who's already grieved for you.\"",
+    choices: [
+      {
+        label: "\"Then how do I beat him?\"",
+        result: "\"You don't out-hate him. You can't - he's got a head start of a hundred years. You out-last him. You make it cost more than he's willing to pay.\" It's not much. It's a plan.",
+        effects: [{ flag: "knows_how_to_fight_him" }, { squadNextBattle: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }] }],
+      },
+      {
+        label: "\"Why are you telling me this now?\"",
+        result: "\"Because after tomorrow one of us won't be able to.\" It doesn't say which. It picks up its branch-blade and checks the edge, the way you'd check a tool you meant to use.",
+        effects: [{ flag: "the_ally_knows" }, { relic: "random" }],
+      },
+    ],
+  },
+
+  // --- Act V (The Crownless) -------------------------------------
+  {
+    id: "the-crownless-court",
+    act: 5,
+    title: "The Empty Court",
+    body: "A clearing that used to be a hall. Stone benches in rows, a raised dais, a chair. All of it grown through with the black rot, all of it arranged for an audience that left in a hurry and never came back. The chair on the dais is the only thing the rot won't touch.",
+    choices: [
+      {
+        label: "Sit in the chair.",
+        result: "It's cold in a way that has nothing to do with temperature. For as long as you sit there you can feel every corrupted thing in the whole forest, like nerves. You stand up before it feels normal. It was starting to.",
+        effects: [{ flag: "sat_the_throne" }, { squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 2 }, { type: "applyBuff", id: "vulnerable", amount: 1 }] }],
+      },
+      {
+        label: "Break the chair.",
+        result: "It takes your whole squad and most of an hour and it fights back the entire time, but it goes down in the end, splinters and cold air. The rot creeps in over the bare dais almost gratefully.",
+        effects: [{ flag: "broke_the_throne" }, { essence: 45 }, { relic: "random" }],
+      },
+      {
+        label: "Address the empty benches.",
+        result: "You tell the missing court what you've come to do. Nothing answers. But saying it in that place, out loud, to those empty seats, makes it real in a way it hadn't quite been.",
+        effects: [{ flag: "spoke_to_the_court" }],
+      },
+    ],
+  },
+  {
+    id: "the-grieving-guardian",
+    act: 5,
+    title: "The Grieving Guardian",
+    body: "A shape the size of a house sits in the path with its back to you, not moving, one of the old forest guardians gone to moss and stillness. It's holding something small and broken in both huge hands and it has clearly been holding it for a very long time.",
+    choices: [
+      {
+        label: "Approach slowly. Let it see you.",
+        result: "It turns its head, which takes a long time, and looks at you with two dim green lights. It doesn't attack. It just shifts, a few feet, to let you past - and goes back to its vigil. Something in your chest aches for the rest of the day.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "ward", amount: 1 }] }, { flag: "passed_the_guardian" }],
+      },
+      {
+        label: "Leave an offering in its reach and go.",
+        result: "You set a coin and a ration by its knee and move on quiet. You don't look back to see if it takes them. Some kindnesses are better not watched.",
+        effects: [{ essence: -30 }, { relic: "random" }],
+      },
+    ],
+  },
+
+  // --- Act VI (The Echo Rift) -----------------------------------
+  {
+    id: "the-echo-of-yourself",
+    act: 6,
+    title: "An Echo of Yourself",
+    body: "Coming around a bend you meet your own squad walking the other way - same faces, same gear, same tired set to the shoulders. The other you stops when you stop. Neither group reaches for a weapon. The air between you rings, very faintly, like a struck glass.",
+    choices: [
+      {
+        label: "Walk toward it.",
+        result: "You close the distance and it closes the distance and at the point where you should collide there's a cold ringing snap and then just forest, and you, carrying something the other you was carrying.",
+        effects: [{ relic: "random" }, { squadNextBattle: [{ type: "applyBuff", id: "vulnerable", amount: 1 }] }],
+      },
+      {
+        label: "Turn and take the other path.",
+        result: "You break eye contact and go the long way. Behind you the ringing note holds for a moment and then stops, like a hand laid flat on the glass.",
+        effects: [{ essence: 40 }, { flag: "avoided_the_echo" }],
+      },
+    ],
+  },
+  {
+    id: "the-unmade-road",
+    act: 6,
+    title: "The Unmade Road",
+    body: "The path ahead is coming apart. Not broken - unmade, the way a word stops meaning anything if you say it too many times. Flagstones fade mid-air. A tree flickers between three different trees. Your squad's footsteps land a half-beat before you take them.",
+    choices: [
+      {
+        label: "Fix your eyes on the far side and run.",
+        result: "You sprint through the flickering stretch with your squad in a tight knot, not looking down, not looking at the trees. You come out the other side intact and breathing hard, and don't talk about it.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "evade", amount: 1 }] }],
+      },
+      {
+        label: "Stand still and let it settle around you.",
+        result: "You wait. Slowly the road decides what it is. It costs you a long, strange hour where nothing quite holds - but on the far side of it you understand something about the shape of all this that you didn't before.",
+        effects: [{ flag: "waited_out_the_unmaking" }, { relic: "random" }, { essence: -25 }],
+      },
+    ],
+  },
+
+  // --- Act VII (The Echo Verge) --------------------------------
+  {
+    id: "the-last-clean-water",
+    act: 7,
+    title: "The Last Clean Water",
+    body: "A spring in a cup of bare rock, and it is the only thing this deep in that the rot has not reached - a hand's width of clear water, welling up slow, ringed by dead ground. It will not last. You can see the black creeping the last few inches toward its edge.",
+    choices: [
+      {
+        label: "Everyone drinks. Fill every skin.",
+        result: "Your whole squad kneels and drinks the last clean water in the Hearthwood, and stands up carrying it. Whatever comes next, they go into it with the taste of the real forest in their mouths.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "regen", amount: 3 }, { type: "applyBuff", id: "strength", amount: 1 }] }, { flag: "drank_the_last_water" }],
+      },
+      {
+        label: "Dam the dead ground. Buy the spring another day.",
+        result: "You pile stone and pack earth against the creeping black. It's a losing fight and you know it - but the spring is still clear when you leave, and it wasn't going to be. That's the whole job, really. That's the whole run.",
+        effects: [{ essence: -40 }, { flag: "saved_the_spring" }, { relic: "random" }],
+      },
+    ],
+  },
+  {
+    id: "the-quiet-before",
+    act: 7,
+    title: "The Quiet Before",
+    body: "The corruption stops. Not thins - stops, at a clean line across the path, like a tide mark. Beyond it the forest is grey and still and perfectly silent, and somewhere in that silence is the thing you came all this way to end. Your squad checks its gear without being told.",
+    choices: [
+      {
+        label: "Say something to your squad before you cross.",
+        result: "You don't remember afterward exactly what you said. Something about the road behind, and the people on the milestone, and what green looks like. They heard it. They cross the line standing tall.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 1 }, { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }] }, { flag: "said_the_words" }],
+      },
+      {
+        label: "Cross in silence. Everyone knows the job.",
+        result: "No speech. You step over the tide mark and your squad steps with you and the grey forest swallows the sound of it. Some things don't need saying out loud. You've all read the milestone.",
+        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "execute", amount: 1 }] }, { flag: "crossed_in_silence" }],
+      },
+    ],
+  },
+
+  // --- Anywhere ---------------------------------------------------
+  {
+    id: "the-fungus-shrine",
+    title: "The Fungus Shrine",
+    body: "A hollow log packed with pale luminous fungus, arranged - definitely arranged - into the rough shape of a figure with too many arms. Small offerings are tucked into the gaps: a tooth, a button, a folded leaf. The fungus pulses faintly, in time with nothing.",
+    choices: [
+      {
+        label: "Add an offering and ask for luck.",
+        result: "You tuck a coin into the fungus and say the old words your grandmother used. The light pulses once, harder, like a nod. You feel faintly ridiculous and slightly braver.",
+        effects: [{ essence: -20 }, { squadNextBattle: [{ type: "applyBuff", id: "evade", amount: 1 }] }],
+      },
+      {
+        label: "Harvest the fungus. It's worth good coin dried.",
+        result: "You strip the log clean. The offerings spill out into your palm - the tooth, the button, the leaf, and three coins some other traveller left. The figure-shape is gone. You try not to think about it.",
+        effects: [{ essence: 55 }, { flag: "robbed_the_shrine" }],
+      },
+      {
+        label: "Leave the little god alone.",
+        result: "Whatever it is, it was here first.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-two-wounded",
+    title: "Two Wounded Travellers",
+    body: "Two people, propped against opposite sides of the same tree, both hurt, both watching you and each other. \"He did this,\" says one. \"She's lying,\" says the other, tiredly, like they've been at it a while. \"We can't both walk. One of us is coming with you or neither of us sees morning.\"",
+    choices: [
+      {
+        label: "Help the one who spoke first.",
+        result: "You get an arm under them and they lean on you gratefully. The other watches you go without a word. You'll never know which of them was telling the truth. Neither will you know it mattered.",
+        effects: [{ unit: "random-common" }, { flag: "chose_the_first" }],
+      },
+      {
+        label: "Help the other one.",
+        result: "\"Figures,\" mutters the first, as you lift the second to their feet. The one you're carrying doesn't gloat, which is something. They're quiet and they can hold a blade. That's all you need out here.",
+        effects: [{ unit: "random-common" }, { flag: "chose_the_second" }],
+      },
+      {
+        label: "Splint them both, leave them both. It's the best you can do.",
+        result: "You bind both sets of wounds, leave both a ration, and walk on with neither. It isn't a good answer. Out here there mostly aren't any.",
+        effects: [{ essence: 30 }, { squadNextBattle: [{ type: "applyBuff", id: "regen", amount: 1 }] }],
+      },
+    ],
+  },
+  {
+    id: "the-cache",
+    title: "The Buried Cache",
+    body: "A patch of ground where nothing grows in a neat rectangle, and it doesn't take long to work out why: something's buried here, packed tight enough to poison the roots. A wooden marker at one end has a symbol burned into it you half recognise from a shop-keeper's ledger, a long way back.",
+    choices: [
+      {
+        label: "Dig it up.",
+        result: "A strongbox, waxed against the wet, heavier than one person should carry. Inside: coin, a wrapped bundle, and a note that just says FOR WHOEVER MAKES IT. You make it. It's yours.",
+        effects: [{ essence: 70 }, { item: "random" }],
+      },
+      {
+        label: "Dig it up, take only what you can carry easily.",
+        result: "You pocket the coin and the wrapped bundle and leave the rest, re-covering the box for the next one through. The note said whoever makes it. Might be more than one of you.",
+        effects: [{ essence: 40 }, { relic: "random" }],
+      },
+      {
+        label: "Leave it. Poisoned ground stays poisoned for a reason.",
+        result: "You walk around the dead rectangle and don't look back. Some caches are baited.",
+        effects: [],
+      },
+    ],
+  },
 ]
 
 // Deterministic pick for an event-node position: prefer an event whose
-// `act` matches the current Act and that hasn't been seen this run;
-// fall back to any unseen event; last resort, allow a repeat. Seeded by
-// the node position so the same run always shows the same event at the
-// same place (important for the save/restore invariant), but different
+// `act` matches the current Act, that hasn't been seen this run, and
+// whose flag gates are satisfied (requiresFlag set / forbidsFlag not
+// set); fall back to any-Act unseen; last resort, allow a repeat.
+// Seeded by the node position so the same run always shows the same
+// event at the same place (the save/restore invariant), but different
 // positions vary.
-export function pickEvent(nodeIndex, act, seenIds = []) {
+export function pickEvent(nodeIndex, act, seenIds = [], storyFlags = {}) {
   const seen = new Set(seenIds)
-  const unseen = EVENTS.filter((e) => !seen.has(e.id))
-  const pool = unseen.length ? unseen : EVENTS
+  const flagOk = (e) =>
+    (!e.requiresFlag || storyFlags[e.requiresFlag]) && (!e.forbidsFlag || !storyFlags[e.forbidsFlag])
+  const available = EVENTS.filter(flagOk)
+  const unseen = available.filter((e) => !seen.has(e.id))
+  const pool = unseen.length ? unseen : available.length ? available : EVENTS
   const actMatch = pool.filter((e) => e.act === act)
   const candidates = actMatch.length ? actMatch : pool.filter((e) => e.act == null)
   const final = candidates.length ? candidates : pool
