@@ -819,6 +819,16 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // Story journal record of event choices (storyLog.js) - see
     // resolveEventChoice. Defaulted on read; old saves lack it.
     eventLog: [],
+    // Act V - The Crownless (crownless.js). Runs as a sequence AFTER
+    // `phase` is already "victory": `actFive` steps
+    // null -> "throne" -> "crownless" -> "choice" -> "done"; `chosenEnding`
+    // is the ending the player picked on the Forest's Choice screen (it
+    // overrides the cinematics.suggestedEndingId tally); `echoEpilogueSeen`
+    // gates the one-time Echo Age teaser. All defaulted on read - no
+    // RUN_SAVE_VERSION bump; `phase` never leaves "victory" during Act V.
+    actFive: null,
+    chosenEnding: null,
+    echoEpilogueSeen: false,
     // Run Modifiers (boons.js): NAMED permanent consequences of map-event
     // choices - an array of modifier ids. Unlike `pendingActiveEffects`
     // (consumed after one battle) these are re-applied at the start of
@@ -1948,6 +1958,60 @@ export function chooseRelic(runState, relicId) {
 
 export function advanceRound(runState) {
   return { ...runState, battle: resolveRound(runState.battle) }
+}
+
+// --- Act V: The Crownless (crownless.js / trials.js "the-crownless") ---
+// The whole sequence runs while `phase` stays "victory" - it is a
+// post-run finale, not a run node. `actFive` drives which screen
+// HeartwoodBattle renders on top of the victory state; the functions
+// below only ever touch Act V fields (+ `battle` for the one fight),
+// never `phase` / `nodeIndex` / `path`, so nothing about the finished
+// run can be disturbed.
+
+// Armed by HeartwoodBattle's victory effect. Guarded so it can only
+// begin from a real victory and only once (the effect also checks
+// `!runState.actFive`).
+export function startActFive(runState) {
+  if (runState.phase !== "victory" || runState.actFive) return runState
+  return { ...runState, actFive: "throne" }
+}
+
+// The build-mirror fight. Same startAutoBattle a real battle uses, with
+// the run's actual deployed squad / relics / permanent Run Modifiers,
+// scaled to the run's final difficulty. `arenaId` null (no arena this
+// deep). `phase` stays "victory".
+export function startCrownlessBattle(runState) {
+  const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
+  const battle = startAutoBattle(
+    runState.characterId,
+    deployedUnitsFor(runState),
+    "the-crownless-mirror",
+    runState.relics,
+    runState.commanderRank || 0,
+    runState.relicLevels || {},
+    commanderItemIds,
+    expandRunModifierEffects(runState.runModifiers),
+    difficultyFactorForNode(RUN_PATH.length - 1, RUN_PATH.length),
+    null,
+  )
+  return { ...runState, actFive: "crownless", battle: applyTrialName(battle, { trialId: "the-crownless" }) }
+}
+
+// Ends the Crownless fight - win OR loss both move on to the Forest's
+// Choice ("defeat yourself, or accept yourself"). `crownlessWon` only
+// colours the epilogue framing.
+export function endCrownlessBattle(runState) {
+  return { ...runState, actFive: "choice", crownlessWon: runState.battle?.phase === "won", battle: null }
+}
+
+// The player's final call on the Forest's Choice screen - overrides the
+// cinematics.suggestedEndingId tally.
+export function chooseForestPath(runState, endingId) {
+  return { ...runState, actFive: "done", chosenEnding: endingId }
+}
+
+export function markEchoEpilogueSeen(runState) {
+  return { ...runState, echoEpilogueSeen: true }
 }
 
 export function autoResolve(runState) {

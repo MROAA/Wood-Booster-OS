@@ -4096,6 +4096,123 @@ h1[data-trial] {
   50% { opacity: 0.8; }
 }
 
+/* --- Act V: The Crownless -------------------------------------------- */
+/* The build-mirror fight's opening line, above AutoBattleView. */
+.hw-crownless-intro {
+  max-width: 620px;
+  margin: 18px auto 4px;
+  padding: 0 21px;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--hw-curse);
+  text-align: center;
+}
+
+/* The Forest's Choice screen (ForestChoiceScreen.jsx). */
+.hw-forest-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 40px 24px;
+  background: var(--hw-bg, #0a0a0c);
+}
+
+.hw-forest-choice-banner {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.hw-forest-choice-inner {
+  position: relative;
+  max-width: 680px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-forest-choice-kicker {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+}
+
+.hw-forest-choice-title {
+  font-size: 26px;
+  margin: 0;
+}
+
+.hw-forest-choice-lede {
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 0 0 10px;
+}
+
+.hw-forest-choice-paths {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-forest-choice-path {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--hw-path-accent, var(--hw-rune)) 30%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-panel) 55%, transparent);
+  color: var(--hw-text, #e8e2d4);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+
+.hw-forest-choice-path:hover {
+  border-color: var(--hw-path-accent, var(--hw-rune));
+  transform: translateY(-1px);
+}
+
+.hw-forest-choice-path[data-suggested] {
+  border-color: var(--hw-path-accent, var(--hw-rune));
+  background: color-mix(in srgb, var(--hw-path-accent, var(--hw-rune)) 12%, var(--hw-panel));
+}
+
+.hw-forest-choice-path-name {
+  font-size: 16px;
+  color: var(--hw-path-accent, var(--hw-rune));
+  letter-spacing: 0.5px;
+}
+
+.hw-forest-choice-path-tagline {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--hw-muted);
+}
+
+.hw-forest-choice-path-blurb {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--hw-muted);
+  margin-top: 4px;
+}
+
+.hw-forest-choice-lean {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--hw-path-accent, var(--hw-rune));
+}
+
 /* Sizing/spacing rhythm below is deliberately built on the Fibonacci
    sequence (8, 13, 21, 34, 55...) rather than arbitrary pixel values -
    Marc: "suuri osa visuaalisuutta on geometria ja kultainen leikkaus."

@@ -81,6 +81,61 @@ export const CINEMATICS = {
       { speaker: "Spacemonkey", tone: "whisper", line: "You did what I didn't dare to." },
     ],
   },
+
+  // Act V opening - the throne hall, after the Hollow King falls. From
+  // the bible's "The Crownless Throne - extended opening scene".
+  "crownless-throne": {
+    id: "crownless-throne",
+    title: "The Crownless Throne",
+    subtitle: "When the king disappears, the crown does not. It waits.",
+    fade: "black",
+    lines: [
+      { speaker: "The forest", tone: "clear", line: "You came." },
+      {
+        speaker: "The forest",
+        line: "I have been silent too long. I have whispered, warned, hidden. But now - now I have to speak.",
+      },
+      {
+        speaker: "The forest",
+        line: "The king is gone. The void is sealed. But the crown cannot stay empty.",
+      },
+      {
+        speaker: "Spacemonkey",
+        tone: "quiet",
+        line: "Hey. If you're seeing this, it means I'm not there anymore.",
+      },
+      {
+        speaker: "Spacemonkey",
+        tone: "quiet",
+        line: "I know this place scares you. It scared me. It scared the Hollow King. But someone needs you now.",
+      },
+      { speaker: "The Crownless", line: "You came. Before you choose, I have to see who you are." },
+    ],
+  },
+
+  // Plays once, right after the chosen ending cinematic. A teaser for
+  // the Echo Age (bible: "explicitly NOT Heartwood 2"), no new
+  // gameplay - it just tells you the story isn't quite finished.
+  "echo-epilogue": {
+    id: "echo-epilogue",
+    title: "The Echo Age",
+    subtitle: "The forest is safe. The forest remembers.",
+    fade: "violet",
+    lines: [
+      { speaker: "The forest", tone: "quiet", line: "The roots remember. The heart remembers. The void remembers. You remember." },
+      {
+        speaker: "The forest",
+        line: "But memory has weight. And this deep, something has been remembering you back - too hard, and for too long.",
+      },
+      {
+        speaker: "The forest",
+        tone: "whisper",
+        line: "Where the Veil wore thinnest, a hole is opening. It copies every step you take.",
+      },
+      { speaker: "Spacemonkey", tone: "whisper", line: "The forest stopped asking to be saved. Now it's asking to be understood." },
+      { speaker: "The forest", line: "Rest, for now. The Echo will still be there." },
+    ],
+  },
 }
 
 // Which allegiance leans which way for the ending tally. `rite-untouched`
@@ -120,6 +175,13 @@ export function endingIdForRun(runState) {
   }
   return `ending-${best}`
 }
+
+// Act V (The Crownless) makes the ending a deliberate player choice on
+// the Forest's Choice screen, not an automatic outcome - so the tally
+// above is now a *suggestion* the screen pre-highlights ("the forest
+// leans this way"), not the decider. Same maths, clearer name; the old
+// export name stays as an alias (HeartwoodBattle + PR3's verify use it).
+export const suggestedEndingId = endingIdForRun
 
 export function cinematicById(id) {
   return CINEMATICS[id] || null

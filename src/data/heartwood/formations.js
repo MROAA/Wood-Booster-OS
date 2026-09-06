@@ -307,6 +307,37 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // Act V - The Crownless (crownless.js / runEngine.startCrownlessBattle).
+  // Not a RUN_PATH node: spun up once, after the Hollow King falls, as
+  // the finale's "your build, turned to face you" fight. Placeholder
+  // first - a curated three-piece set that leaves no single build
+  // approach a free ride, rather than a true 1:1 squad clone (that needs
+  // engine support to use UNIT defs as enemy pieces - a later pass):
+  //   - Ironroot: Taunt + Cleanse -> a debuff-stacking build gets
+  //     nothing from it, only raw single-target damage lands.
+  //   - Hollowcurse: Sunder + Poison -> a buff-stacking build watches
+  //     its buffs stripped and a DOT left behind.
+  //   - Grimspite: a plain heavy bruiser -> a glass-cannon build has to
+  //     actually survive it.
+  // The player CANNOT truly lose this fight (win or loss both lead to
+  // the Forest's Choice - "defeat yourself, or accept yourself"), so a
+  // slightly punishing set is intentional.
+  "the-crownless-mirror": {
+    id: "the-crownless-mirror",
+    name: "The Crownless",
+    description: "It doesn't fight you. It shows you what you carry, and asks if you can beat it.",
+    pieces: [
+      { defId: "hollowcurse", pos: { row: 0, col: 0 } },
+      { defId: "grimspite", pos: { row: 1, col: 1 } },
+      { defId: "ironroot", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+    synergy: {
+      label: "The Crownless - your build, turned to face you",
+      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
+    },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {
