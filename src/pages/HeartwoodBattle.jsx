@@ -27,13 +27,18 @@ import {
   toggleFreeze,
   activateCommanderPower,
   difficultyTierForNode,
+  actIndexForNode,
+  resolveActCrossroads,
+  markActSeen,
   serializeRun,
   deserializeRun,
   chooseFloorEncounter,
   eventForNode,
   resolveEventChoice,
+  DIFFICULTY_TIERS,
   RUN_PATH,
 } from "../services/heartwood/runEngine"
+import { crossroadsForAct } from "../data/heartwood/crossroads"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
 import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
@@ -49,6 +54,7 @@ import FloorChoice from "../components/heartwood/FloorChoice"
 import EventScreen from "../components/heartwood/EventScreen"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import RunMap from "../components/heartwood/RunMap"
+import ActTransitionScreen from "../components/heartwood/ActTransitionScreen"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import "../components/heartwood/heartwood.css"
@@ -104,6 +110,15 @@ export default function HeartwoodBattle() {
   // insert - runEngine.js's phase machine is untouched, the actual
   // leaveShop() call is just deferred one click.
   const [showMapAfterShop, setShowMapAfterShop] = useState(false)
+
+  // Act Crossroads (crossroads.js): holds the Act number whose boundary
+  // interstitial is currently due, or null. Armed by the effect below
+  // when actIndexForNode passes runState.lastSeenAct and a crossroads
+  // exists for that Act; cleared by the screen's own choice. Same
+  // presentation-only shape as showMapAfterShop - runEngine's phase
+  // machine is untouched; resolveActCrossroads only edits runState
+  // fields (allegiances / forestState / runModifiers / lastSeenAct).
+  const [actCrossroads, setActCrossroads] = useState(null)
 
   // Guild Hall (PRD v2.0 Phase 4): a one-time arrival screen for THIS
   // run, shown right after a Commander is confirmed and before the
@@ -208,6 +223,27 @@ export default function HeartwoodBattle() {
     // deliberate, not a stale-closure bug.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runState])
+
+  // Act Crossroads gate (crossroads.js): whenever the run has moved into
+  // a later Act than the last one acknowledged, arm the boundary
+  // interstitial - or, for an Act with no crossroads (VI/VII), just
+  // record it as seen so this can't loop. Deferred while a battle is
+  // resolving or the run has ended: the next non-battle render picks it
+  // up. Presentation-only; resolveActCrossroads / markActSeen edit
+  // runState fields, never its phase.
+  useEffect(() => {
+    if (!runState) return
+    const act = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
+    if (act <= (runState.lastSeenAct || 1)) return
+    if (["battle", "victory", "defeat"].includes(runState.phase)) return
+    if (crossroadsForAct(act)) setActCrossroads(act)
+    else setRunState((rs) => markActSeen(rs, act))
+  }, [runState])
+
+  function handleActCrossroads(choiceId) {
+    setRunState((rs) => resolveActCrossroads(rs, actCrossroads, choiceId))
+    setActCrossroads(null)
+  }
 
   // Renders outside OSLayout now (App.jsx) - no Sidebar to fall back on
   // to get back to the rest of Wood-Booster HQ, so every screen needs
@@ -477,6 +513,21 @@ export default function HeartwoodBattle() {
   // checks the other way around and silently never showed the map at
   // all (both clicks landed back on the shop screen, `runState.phase`
   // never moved).
+  // Act Crossroads interstitial (see the gate effect above). Checked
+  // before every phase-driven branch below - the run's phase is still
+  // whatever it was; this only decides what renders on top.
+  if (actCrossroads) {
+    return (
+      <ActTransitionScreen
+        key={`act-transition-${actCrossroads}`}
+        crossroads={crossroadsForAct(actCrossroads)}
+        fromTier={DIFFICULTY_TIERS[actCrossroads - 2] || null}
+        intoTier={DIFFICULTY_TIERS[actCrossroads - 1] || null}
+        onChoose={handleActCrossroads}
+      />
+    )
+  }
+
   if (showMapAfterShop) {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} data-screen="map-after-shop" key="map-after-shop">

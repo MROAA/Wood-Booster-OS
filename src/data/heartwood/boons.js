@@ -142,7 +142,109 @@ export const RUN_BANES = [
   },
 ]
 
-const BY_ID = Object.fromEntries([...RUN_BOONS, ...RUN_BANES].map((m) => [m.id, m]))
+// Act Allegiances (crossroads.js): the same permanent-modifier channel
+// as boons/banes, but granted by the ONE mandatory choice at each Act
+// boundary rather than an optional map event. `kind: "allegiance"` so
+// the UI strip can mark them apart (a chosen side, not luck), and each
+// carries an `act` for the ending-selection tally in a later PR.
+export const ACT_ALLEGIANCES = [
+  // Act I -> II : The Rootbound Ritual
+  {
+    id: "rite-purified",
+    name: "Rite of Mending",
+    kind: "allegiance",
+    act: 1,
+    description: "You mended the broken root-ritual. The forest heals alongside your squad - Regen 1 in every battle.",
+    effects: [{ type: "applyBuff", id: "regen", amount: 1 }],
+  },
+  {
+    id: "rite-strengthened",
+    name: "Rite of Feeding",
+    kind: "allegiance",
+    act: 1,
+    description: "You fed the broken ritual instead of fixing it. Dangerous power - your squad hits +1 Strength every battle, and the forest stays Restless.",
+    effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
+  },
+  {
+    id: "rite-untouched",
+    name: "The Ritual Left Alone",
+    kind: "allegiance",
+    act: 1,
+    description: "You walked past the broken ritual. Silence is a choice too - the forest stays Restless, and the road pays a little better (+10% Essence per win).",
+    effects: [],
+    essenceWinPct: 0.1,
+  },
+  // Act II -> III : pick an elemental side
+  {
+    id: "side-ember",
+    name: "Sworn to Ember",
+    kind: "allegiance",
+    act: 2,
+    description: "You took the flame's side in the elementals' dispute. Your squad's strikes leave a burn behind.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
+    ],
+  },
+  {
+    id: "side-tide",
+    name: "Sworn to Tide",
+    kind: "allegiance",
+    act: 2,
+    description: "You took the water's side. Your squad slips the first blow of every round.",
+    effects: [{ type: "applyBuff", id: "evade", amount: 1 }],
+  },
+  {
+    id: "side-stone",
+    name: "Sworn to Stone",
+    kind: "allegiance",
+    act: 2,
+    description: "You took the stone's side. Your squad holds a sliver of armour between rounds, every battle.",
+    effects: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+  },
+  // Act III -> IV : the Echo power
+  {
+    id: "echo-taken",
+    name: "The Echo, Taken",
+    kind: "allegiance",
+    act: 3,
+    description: "You took the Veil's echo into your build. It hums louder - squad +1 Strength every battle, but it opens each battle Vulnerable.",
+    effects: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "applyBuff", id: "vulnerable", amount: 1 },
+    ],
+  },
+  {
+    id: "echo-refused",
+    name: "The Echo, Refused",
+    kind: "allegiance",
+    act: 3,
+    description: "You turned the echo down and kept your build clean. Your squad enters every battle warded once.",
+    effects: [{ type: "applyBuff", id: "ward", amount: 1 }],
+  },
+  // Act IV -> V : the Hollow power
+  {
+    id: "hollow-accepted",
+    name: "The Hollow Crown",
+    kind: "allegiance",
+    act: 4,
+    description: "You accepted the void's power for the last stretch. Your squad starts every battle Weak - but the spoils come far richer (+35% Essence per win).",
+    effects: [{ type: "applyBuff", id: "weak", amount: 1 }],
+    essenceWinPct: 0.35,
+  },
+  {
+    id: "hollow-resisted",
+    name: "Pure Heartwood",
+    kind: "allegiance",
+    act: 4,
+    description: "You resisted the void and held to the living forest. Your squad opens every battle braced and recovering.",
+    effects: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      { type: "applyBuff", id: "regen", amount: 1 },
+    ],
+  },
+]
+
+const BY_ID = Object.fromEntries([...RUN_BOONS, ...RUN_BANES, ...ACT_ALLEGIANCES].map((m) => [m.id, m]))
 
 export function runModifierById(id) {
   return BY_ID[id] || null

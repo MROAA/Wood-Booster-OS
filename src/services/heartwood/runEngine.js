@@ -22,6 +22,7 @@ import { ENEMIES, actEnemyForNode } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
 import { pickEvent } from "../../data/heartwood/events"
 import { runModifierById, expandRunModifierEffects, runModifierWinPct } from "../../data/heartwood/boons"
+import { crossroadsForAct } from "../../data/heartwood/crossroads"
 import { arenaForNode, arenaById } from "../../data/heartwood/arenas"
 import { applyMetaPerks } from "../../data/heartwood/metaPerks"
 import { depthModifiersFor } from "../../data/heartwood/depths"
@@ -727,6 +728,16 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // some also carry an Essence-per-win % (see essenceForWin). Old saves
     // predate this field; every read is `runState.runModifiers || []`.
     runModifiers: [],
+    // Act Crossroads (crossroads.js): the one mandatory run-shaping choice
+    // at each Act boundary. `allegiances` maps Act number -> chosen id (for
+    // the ending tally); `forestState` ("restless" | "purified" |
+    // "corrupted") is the world posture a crossroads sets, read by later
+    // content passes (event/enemy pools); `lastSeenAct` is how the UI
+    // knows a boundary is newly crossed and the interstitial is due. All
+    // defaulted on read - no save-version bump.
+    allegiances: {},
+    forestState: "restless",
+    lastSeenAct: 1,
     // Items (items.js): a shared owned bag, separate from the bench -
     // `equippedTo`/`slotIndex` point at a bench key + slot index (see
     // equipItem/unequipItem below) or sit null while unequipped.
@@ -1224,6 +1235,39 @@ export function resolveEventChoice(runState, choiceIndex) {
   for (const eff of choice.effects || []) next = applyEventEffect(next, eff)
   next = { ...next, seenEvents: [...(next.seenEvents || []), event.id] }
   return { ...next, ...advanceToNextNode(next) }
+}
+
+// Act Crossroads (crossroads.js): the mandatory choice at an Act
+// boundary. Unlike a map event this is NOT a run node - `nodeIndex` /
+// `path` / `phase` are untouched. It only records the pick
+// (`allegiances[actIndex]`), grants its permanent Act Allegiance into
+// the same `runModifiers` list boons/banes use, sets `forestState`,
+// raises the story flag, and bumps `lastSeenAct` so the interstitial
+// can't re-trigger. An unknown act or choice id is a safe no-op that
+// still bumps `lastSeenAct` (a boundary with no crossroads - Acts
+// VI/VII - is crossed silently the same way).
+export function resolveActCrossroads(runState, actIndex, choiceId) {
+  const seen = Math.max(runState.lastSeenAct || 1, actIndex)
+  const cr = crossroadsForAct(actIndex)
+  const choice = cr?.choices.find((c) => c.id === choiceId)
+  if (!choice) return { ...runState, lastSeenAct: seen }
+  const held = runState.runModifiers || []
+  const runModifiers =
+    choice.allegiance && !held.includes(choice.allegiance) ? [...held, choice.allegiance] : held
+  return {
+    ...runState,
+    runModifiers,
+    allegiances: { ...(runState.allegiances || {}), [actIndex]: choiceId },
+    forestState: choice.forestState || runState.forestState || "restless",
+    storyFlags: choice.flag ? { ...runState.storyFlags, [choice.flag]: true } : runState.storyFlags,
+    lastSeenAct: seen,
+  }
+}
+
+// Bump `lastSeenAct` without a choice - used when the UI crosses an Act
+// boundary that has no crossroads defined (Acts VI/VII).
+export function markActSeen(runState, actIndex) {
+  return { ...runState, lastSeenAct: Math.max(runState.lastSeenAct || 1, actIndex) }
 }
 
 export function assignToSlot(runState, slotIndex, benchKey) {
