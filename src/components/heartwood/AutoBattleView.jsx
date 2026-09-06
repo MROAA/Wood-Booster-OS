@@ -320,6 +320,16 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
             Arena: {state.arenaName}
           </span>
         )}
+        {state.enemySynergyLabel && (
+          <span
+            className="hw-badge hw-section-fade-in"
+            style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+            title="This enemy formation fights as a unit - every piece has a shared bonus"
+          >
+            <CardGlyph name="flame" className="hw-intent-glyph" />
+            {state.enemySynergyLabel}
+          </span>
+        )}
       </div>
 
       {Object.keys(tribeCounts).length > 0 && (
@@ -362,6 +372,11 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
         {surges.map((s, i) => (
           <SynergyBanner key={s.seq} surge={s} index={i} onDone={() => removeSurge(s.seq)} />
         ))}
+        {state.bossPhaseAnnounce && (
+          <div className="hw-boss-phase-banner" key={state.round + state.bossPhaseAnnounce}>
+            {state.bossPhaseAnnounce}
+          </div>
+        )}
       </div>
 
       <details className="hw-log-details">

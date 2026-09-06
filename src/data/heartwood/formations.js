@@ -34,6 +34,7 @@ export const FORMATIONS = {
   },
   "mist-growler-pack": {
     id: "mist-growler-pack",
+    synergy: { label: "The pack moves as one", effects: [{ type: "applyBuff", id: "strength", amount: 1 }] },
     name: "Mist Growler Pack",
     description: "Two Growlers, side by side in the same rank. Neither shields the other.",
     // Both in row 0, different columns - a genuine swarm, not a
@@ -65,6 +66,7 @@ export const FORMATIONS = {
   },
   "twin-watch": {
     id: "twin-watch",
+    synergy: { label: "The wall holds", effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }] },
     name: "Twin Watch",
     description: "Two Husks, two Trolls behind them. The center stands empty - go around, or through.",
     // Two independent shielding columns (col 0 and col 2), nothing at
@@ -103,6 +105,7 @@ export const FORMATIONS = {
   },
   "the-undertow": {
     id: "the-undertow",
+    synergy: { label: "Fog and song, together", effects: [{ type: "applyBuff", id: "evade", amount: 1 }] },
     name: "The Undertow",
     description: "Fog on one side, her song on the other. Neither shields the other - both act every round.",
     // A second swarm formation (same "no shielding, both act" spirit as
@@ -120,6 +123,7 @@ export const FORMATIONS = {
   },
   "rune-wardens-escort": {
     id: "rune-wardens-escort",
+    synergy: { label: "The escort closes ranks", effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }] },
     name: "Rune Warden's Escort",
     description: "Two Husks and a Troll hold the front rank, shielding the Warden behind them.",
     // The Warden sits at (1,0), shielded by the Husk directly in front
@@ -157,6 +161,7 @@ export const FORMATIONS = {
   },
   "quillfangs-warren": {
     id: "quillfangs-warren",
+    synergy: { label: "The warren's poison seeps", effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } }] },
     name: "Quillfang's Warren",
     description: "Hollowfen plants itself in front, daring you through before Quillfang's poison piles up.",
     // Same shielding shape as Bark Brute's Stand/Rune Warden's Escort -

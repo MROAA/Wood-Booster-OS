@@ -328,6 +328,18 @@ export function startAutoBattle(
     }
   }
 
+  // Enemy formation synergy (formations.js's optional `synergy`): a
+  // multi-piece formation that fights as a unit gets a squad-wide
+  // battle-start bonus to every living piece, the mirror of the
+  // player's own tribe synergies. Only fires with 2+ pieces (a
+  // synthesized 1-enemy formation never has one anyway).
+  if (formation.synergy?.effects?.length && enemies.length >= 2) {
+    state = { ...state, enemySynergyLabel: formation.synergy.label }
+    for (const e of state.enemies) {
+      state = applyEffects(state, formation.synergy.effects, { actorId: e.id, targetId: e.id })
+    }
+  }
+
   // Each deployed unit's own passive (ported from its old power-card
   // addTrigger effect) applies once, the same mechanism a character's
   // startEffects already used for a one-time battle-start bonus.
@@ -944,6 +956,39 @@ function applyRallyHealTick(state) {
 // order), then the whole enemy squad acts (in formation order) - same
 // two-phase shape the turn-based engine already used, just with a
 // squad on each side instead of one hero.
+// Boss / miniboss phase mechanics (enemies.js's optional `phases`).
+// When a boss first drops to or below a phase's `atHpPct` of its max
+// HP, that phase's `effects` apply to the boss once (a self-buff,
+// summon, whatever the effect vocabulary allows) and `announce` is
+// logged + surfaced for a one-shot UI banner. Tracked per-piece via
+// `phasesFired` so it never re-triggers. Checked once per round after
+// both sides have acted.
+function checkBossPhases(state) {
+  let next = state
+  let announce = null
+  for (const e of next.enemies) {
+    const def = next.enemyDefs?.[e.defId] || ENEMIES[e.defId]
+    if (!def?.phases?.length || e.hp <= 0) continue
+    const fired = new Set(e.phasesFired || [])
+    const hpPct = e.hp / e.maxHp
+    for (let i = 0; i < def.phases.length; i++) {
+      const phase = def.phases[i]
+      if (fired.has(i) || hpPct > phase.atHpPct) continue
+      fired.add(i)
+      const live = next.enemies.find((x) => x.id === e.id)
+      next = setUnit(next, e.id, { ...live, phasesFired: [...fired] })
+      if (phase.effects?.length) {
+        next = applyEffects(next, phase.effects, { actorId: e.id, targetId: e.id })
+      }
+      if (phase.announce) {
+        announce = phase.announce
+        next = { ...next, log: [...next.log, `${e.name}: ${phase.announce}`] }
+      }
+    }
+  }
+  return announce ? { ...next, bossPhaseAnnounce: announce } : { ...next, bossPhaseAnnounce: null }
+}
+
 export function resolveRound(state) {
   let next = {
     ...state,
@@ -1008,6 +1053,9 @@ export function resolveRound(state) {
 
   next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0, evadedThisRound: false } : e)) }
   next = actSide(next, next.enemies, (u) => next.enemyDefs?.[u.defId] || ENEMIES[u.defId], (s) => s.playerUnits, "enemy")
+  if (next.phase !== "player") return next
+
+  next = checkBossPhases(next)
   if (next.phase !== "player") return next
 
   const round = next.round + 1
