@@ -21,6 +21,7 @@ import { resolveTrial } from "../../data/heartwood/trials"
 import { ENEMIES, actEnemyForNode } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
 import { pickEvent } from "../../data/heartwood/events"
+import { arenaForNode, arenaById } from "../../data/heartwood/arenas"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // RAMP_CAP - the difficulty ramp's TOTAL enemy-scaling budget: enemies
@@ -1555,6 +1556,7 @@ export function startFormationBattle(runState) {
   // / ACT_STAT_FLOOR above). warn:true so a branching-path Act mismatch
   // shows once, in dev, when the fight actually starts.
   const { encounterId, difficultyFactor } = encounterAndFactorFor(runState, true)
+  const arenaId = arenaForNode(runState.nodeIndex, actIndexForNode(runState.nodeIndex, RUN_PATH.length))
   const battle = startAutoBattle(
     runState.characterId,
     deployedUnitsFor(runState),
@@ -1571,6 +1573,7 @@ export function startFormationBattle(runState) {
     // this call with nothing able to strand it in between.
     runState.pendingActiveEffects || [],
     difficultyFactor,
+    arenaId,
   )
   return { ...runState, phase: "battle", battle: applyTrialName(battle, node), pendingActiveEffects: [] }
 }
@@ -1605,6 +1608,17 @@ function applyTrialName(battle, node) {
 // run, not an approximation, discarded immediately after. Pure/
 // side-effect-free like every other read in this file, safe to call
 // on every render.
+// The arena hazard for the fight the run is currently standing in front
+// of, resolved id -> full arena object (arenas.js). Pure - safe for the
+// FormationScreen preview to call on every render, and it uses the
+// exact same arenaForNode(nodeIndex, act) the real fight does so the
+// preview and the battle can never disagree.
+export function arenaForRun(runState) {
+  if (!runState) return null
+  const id = arenaForNode(runState.nodeIndex, actIndexForNode(runState.nodeIndex, RUN_PATH.length))
+  return arenaById(id)
+}
+
 export function previewBattleEnemies(runState) {
   const node = currentNode(runState)
   const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
@@ -1612,6 +1626,7 @@ export function previewBattleEnemies(runState) {
   // uses (encounterAndFactorFor above) - warn:false so this render-time
   // dry run stays silent.
   const { encounterId, difficultyFactor } = encounterAndFactorFor(runState, false)
+  const arenaId = arenaForNode(runState.nodeIndex, actIndexForNode(runState.nodeIndex, RUN_PATH.length))
   const battle = startAutoBattle(
     runState.characterId,
     deployedUnitsFor(runState),
@@ -1622,6 +1637,7 @@ export function previewBattleEnemies(runState) {
     commanderItemIds,
     runState.pendingActiveEffects || [],
     difficultyFactor,
+    arenaId,
   )
   return applyTrialName(battle, node).enemies
 }
