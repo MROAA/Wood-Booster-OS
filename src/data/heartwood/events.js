@@ -33,6 +33,14 @@
 //                               Commander's active power already uses
 //   { flag: "name" }          - set runState.storyFlags[name] (used by
 //                               later events to branch - PR: story chains)
+//   { boon: "id" } / { bane: "id" } - gain a permanent Run Modifier
+//                               (boons.js): a NAMED consequence that
+//                               re-applies its effects at the start of
+//                               EVERY remaining battle (not one, like
+//                               squadNextBattle), some also carrying an
+//                               Essence-per-win %. `boon`/`bane` are the
+//                               same channel; the modifier def's `kind`
+//                               says which. Ignored if already held.
 // A choice with an empty `effects: []` is flavour only - a valid, often
 // correct, "walk on" option.
 
@@ -50,8 +58,8 @@ export const EVENTS = [
       },
       {
         label: "Leave an offering of your own.",
-        result: "You set a coin in the bowl and bow your head. Something in the woods goes quiet, then lets you pass. Your squad walks the next stretch a little lighter.",
-        effects: [{ essence: -25 }, { squadNextBattle: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }] }],
+        result: "You set a coin in the bowl and bow your head. Something in the woods goes quiet, then lets you pass. Your squad walks the road ahead a little lighter, and keeps walking that way.",
+        effects: [{ essence: -25 }, { boon: "veil-lucid" }],
       },
       {
         label: "Walk on.",
@@ -68,8 +76,8 @@ export const EVENTS = [
     choices: [
       {
         label: "Reach in and take it.",
-        result: "Your fingers close on a smooth cold thing and pull it free. The tree groans. Whatever it was, it's yours now - and so is the chill that came with it.",
-        effects: [{ relic: "random" }, { squadNextBattle: [{ type: "applyBuff", id: "weak", amount: 1 }] }],
+        result: "Your fingers close on a smooth cold thing and pull it free. The tree groans. Whatever it was, it's yours now - and so is the chill that came with it, and the sense of being watched from somewhere deep.",
+        effects: [{ relic: "random" }, { bane: "hollow-marked" }],
       },
       {
         label: "Seal the gap with bark and clay.",
@@ -96,8 +104,8 @@ export const EVENTS = [
       },
       {
         label: "Cut her loose, take nothing.",
-        result: "\"You're the first honest thing I've met out here in a week,\" she says, and tells you where a fighter is holed up who owes her a favour.",
-        effects: [{ unit: "random-common" }],
+        result: "\"You're the first honest thing I've met out here in a week,\" she says, and tells you where a fighter is holed up who owes her a favour - and puts the word out that you're worth dealing straight with.",
+        effects: [{ unit: "random-common" }, { boon: "forager-friend" }],
       },
       {
         label: "Leave her. The roots know their own.",
@@ -119,8 +127,8 @@ export const EVENTS = [
       },
       {
         label: "\"Then don't. Just tell me what to do.\"",
-        result: "\"Hit hard, hit first, don't let a fight go long.\" He tightens a strap on your pack. \"The longer you're out here, the more it learns you.\"",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 1 }] }],
+        result: "\"Hit hard, hit first, don't let a fight go long.\" He tightens a strap on your pack, and presses a pinch of something that smells of struck flint into your palm. \"The longer you're out here, the more it learns you.\"",
+        effects: [{ boon: "emberfed" }],
       },
     ],
   },
@@ -132,13 +140,13 @@ export const EVENTS = [
     choices: [
       {
         label: "Drink.",
-        result: "The water is colder than ice and tastes of iron and old rain. For a moment you see the forest the way it was - green all the way down. Then it's gone, and you feel steadier for having seen it.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "regen", amount: 3 }] }, { essence: -20 }],
+        result: "The water is colder than ice and tastes of iron and old rain. For a moment you see the forest the way it was - green all the way down. Then it's gone, and you feel steadier for having seen it - and stay that way.",
+        effects: [{ boon: "rootblessed" }, { essence: -20 }],
       },
       {
         label: "Look closer at the reflection.",
-        result: "You lean out over the water. The other face leans back. Its mouth moves - a word you can't hear - and then it's just you again, and you're holding something you didn't have before.",
-        effects: [{ relic: "random" }, { squadNextBattle: [{ type: "applyBuff", id: "vulnerable", amount: 1 }] }],
+        result: "You lean out over the water. The other face leans back. Its mouth moves - a word you can't hear - and then it's just you again, and you're holding something you didn't have before, and hearing a faint hum you can't stop hearing.",
+        effects: [{ relic: "random" }, { bane: "veil-touched" }],
       },
       {
         label: "Skirt the pool.",
@@ -181,8 +189,8 @@ export const EVENTS = [
       },
       {
         label: "Cut through it.",
-        result: "It takes a long, ugly while, and the root bleeds a sap that smells of rot, and every other growing thing nearby leans away from you afterward. But you're through, and you kept your coin.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "weak", amount: 1 }] }, { flag: "cut_the_toll_root" }],
+        result: "It takes a long, ugly while, and the root bleeds a sap that smells of rot, and every other growing thing nearby leans away from you afterward. You're through, and you kept your coin - but the forest keeps a ledger, and you're in it now.",
+        effects: [{ bane: "root-debt" }, { flag: "cut_the_toll_root" }],
       },
     ],
   },
@@ -257,8 +265,8 @@ export const EVENTS = [
       },
       {
         label: "Eat one.",
-        result: "It tastes of nothing at all. Your squad spends the next fight seeing the world half a beat early - useful, disorienting, gone by the fight after.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "evade", amount: 1 }] }],
+        result: "It tastes of nothing at all. From then on your squad sees the world half a beat early - useful, disorienting, and it doesn't wear off.",
+        effects: [{ boon: "windfavoured" }],
       },
       {
         label: "Step around it. Firmly.",
@@ -274,8 +282,8 @@ export const EVENTS = [
     choices: [
       {
         label: "Fill your waterskins.",
-        result: "The water is clean and very cold and settles something in your chest you hadn't noticed was unsettled.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "regen", amount: 2 }] }],
+        result: "The water is clean and very cold and settles something in your chest you hadn't noticed was unsettled. Your squad drinks it for days after - it heals, and it dulls, both at once.",
+        effects: [{ bane: "sap-heavy" }],
       },
       {
         label: "Dig at the base for the source.",
@@ -323,8 +331,8 @@ export const EVENTS = [
       },
       {
         label: "Take an hour to bury what you can.",
-        result: "Your squad works in silence. It costs you daylight and it costs you strength you'll want later, but the forest goes still around you in a way that feels, for once, like gratitude.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "vulnerable", amount: 1 }] }, { relic: "random" }],
+        result: "Your squad works in silence, and something in the ground settles as they do. The forest goes still around you in a way that feels, for once, like gratitude - and your squad carries a little of that steadiness from here on.",
+        effects: [{ boon: "stoneblood" }, { relic: "random" }],
       },
       {
         label: "Pass through without stopping.",
@@ -341,8 +349,8 @@ export const EVENTS = [
     choices: [
       {
         label: "Speak to them.",
-        result: "You say your name, and where you're going, and why. The trees don't move. But somewhere ahead of you on the path, for the rest of the day, things that might have gone badly simply don't.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "ward", amount: 1 }] }, { flag: "spoke_to_the_grove" }],
+        result: "You say your name, and where you're going, and why. The trees don't move. But from here on, somewhere ahead of you on the path, things that might have gone badly simply don't, quite.",
+        effects: [{ boon: "grove-warded" }, { flag: "spoke_to_the_grove" }],
       },
       {
         label: "Listen with them.",
@@ -366,8 +374,8 @@ export const EVENTS = [
     choices: [
       {
         label: "Add your own name.",
-        result: "You cut it in below the last. It feels like a promise, or a dare. Either way, the road ahead feels a little more like yours to walk.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 1 }] }],
+        result: "You cut it in below the last. It feels like a promise, or a dare. Either way, the road ahead is yours to walk now, and your squad walks it with you like they mean it.",
+        effects: [{ boon: "milestone-oath" }],
       },
       {
         label: "Scratch through a name, the old custom.",
@@ -433,8 +441,8 @@ export const EVENTS = [
     choices: [
       {
         label: "Say it out loud, right here, and mean it.",
-        result: "\"Hollow King.\" The word lands flat and cold. For a heartbeat every corrupted thing in earshot goes rigid - and then comes for you, all at once, harder than before. But you've stopped flinching from it. That's worth something.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 2 }, { type: "applyBuff", id: "vulnerable", amount: 1 }] }, { flag: "named_it_aloud" }],
+        result: "\"Hollow King.\" The word lands flat and cold. For a heartbeat every corrupted thing in earshot goes rigid - and then comes for you, all at once, harder than before. You've stopped flinching from it. But it's in your head now, and it doesn't leave.",
+        effects: [{ bane: "name-burden" }, { flag: "named_it_aloud" }],
       },
       {
         label: "Stop thinking the name. Push it down.",
@@ -534,8 +542,8 @@ export const EVENTS = [
     choices: [
       {
         label: "Approach slowly. Let it see you.",
-        result: "It turns its head, which takes a long time, and looks at you with two dim green lights. It doesn't attack. It just shifts, a few feet, to let you past - and goes back to its vigil. Something in your chest aches for the rest of the day.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "ward", amount: 1 }] }, { flag: "passed_the_guardian" }],
+        result: "It turns its head, which takes a long time, and looks at you with two dim green lights. It doesn't attack. It just shifts, a few feet, to let you past - and goes back to its vigil. Something of its grief comes away with you, and stays: your squad fights a little heavier now, and guards itself a little closer.",
+        effects: [{ bane: "grief-touched" }, { flag: "passed_the_guardian" }],
       },
       {
         label: "Leave an offering in its reach and go.",

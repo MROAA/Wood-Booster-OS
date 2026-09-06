@@ -21,6 +21,7 @@ import { resolveTrial } from "../../data/heartwood/trials"
 import { ENEMIES, actEnemyForNode } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
 import { pickEvent } from "../../data/heartwood/events"
+import { runModifierById, expandRunModifierEffects, runModifierWinPct } from "../../data/heartwood/boons"
 import { arenaForNode, arenaById } from "../../data/heartwood/arenas"
 import { applyMetaPerks } from "../../data/heartwood/metaPerks"
 import { depthModifiersFor } from "../../data/heartwood/depths"
@@ -719,6 +720,13 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // event from repeating within one run.
     storyFlags: {},
     seenEvents: [],
+    // Run Modifiers (boons.js): NAMED permanent consequences of map-event
+    // choices - an array of modifier ids. Unlike `pendingActiveEffects`
+    // (consumed after one battle) these are re-applied at the start of
+    // EVERY battle for the rest of the run (see startFormationBattle) and
+    // some also carry an Essence-per-win % (see essenceForWin). Old saves
+    // predate this field; every read is `runState.runModifiers || []`.
+    runModifiers: [],
     // Items (items.js): a shared owned bag, separate from the bench -
     // `equippedTo`/`slotIndex` point at a bench key + slot index (see
     // equipItem/unequipItem below) or sit null while unequipped.
@@ -1190,6 +1198,17 @@ function applyEventEffect(runState, eff) {
   if (eff.flag) {
     return { ...runState, storyFlags: { ...runState.storyFlags, [eff.flag]: true } }
   }
+  // Run Modifier (boons.js): a permanent boon/bane. `{ boon: "id" }` and
+  // `{ bane: "id" }` are the same channel - `kind` on the modifier def
+  // itself says which it is; the two keys just read naturally in the
+  // event data. Ignored if the id is unknown or already held (they
+  // don't stack with themselves).
+  if (eff.boon || eff.bane) {
+    const id = eff.boon || eff.bane
+    const held = runState.runModifiers || []
+    if (!runModifierById(id) || held.includes(id)) return runState
+    return { ...runState, runModifiers: [...held, id] }
+  }
   return runState
 }
 
@@ -1641,8 +1660,10 @@ export function startFormationBattle(runState) {
     // never places a "relic" node directly after a "shop" node (every
     // relic node sits between a battle and the following shop), so a
     // queued effect from a shop visit is always guaranteed to reach
-    // this call with nothing able to strand it in between.
-    runState.pendingActiveEffects || [],
+    // this call with nothing able to strand it in between. Run Modifiers
+    // (boons.js) ride the SAME channel but are permanent - re-expanded
+    // and appended here at the start of every battle, never consumed.
+    [...(runState.pendingActiveEffects || []), ...expandRunModifierEffects(runState.runModifiers)],
     difficultyFactor,
     arenaId,
   )
@@ -1787,7 +1808,12 @@ export function essenceForWin(runState, node) {
   const essenceBonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.essenceBonus || 0), 0)
   const difficultyBonus = node?.type === "miniboss" ? MINIBOSS_BONUS_ESSENCE : node?.formationId ? FORMATION_BONUS_ESSENCE : 0
   // Essence Flow (metaPerks.js) - a flat per-win bonus from the meta board.
-  return WIN_ESSENCE + difficultyBonus + essenceBonus + (runState.metaWinBonus || 0)
+  const flat = WIN_ESSENCE + difficultyBonus + essenceBonus + (runState.metaWinBonus || 0)
+  // Run Modifiers (boons.js): some boons/banes carry an Essence-per-win %
+  // (e.g. Hollow-Marked trades a Weak start for +30% spoils) - a real
+  // risk/reward lever, applied last on top of the flat total.
+  const modPct = runModifierWinPct(runState.runModifiers)
+  return modPct ? Math.round(flat * (1 + modPct)) : flat
 }
 
 // Death Memory (Marc's PRD: a lost hero should leave something behind

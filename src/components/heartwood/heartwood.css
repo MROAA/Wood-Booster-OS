@@ -3597,6 +3597,7 @@ img.hw-card-art {
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
 .hw-run-map-tier {
@@ -3608,6 +3609,65 @@ img.hw-card-art {
 .hw-run-map-progress {
   font-size: 12px;
   color: var(--hw-muted);
+}
+
+/* Run Modifiers strip (RunModifierStrip.jsx) - permanent boons/banes
+   from map-event choices, shown wherever the run map is: full row under
+   the map header, and a compact variant in the shop's map rail. */
+.hw-runmods {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.hw-runmods--compact {
+  margin: 6px 0 2px;
+}
+
+.hw-runmod {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.4;
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+  cursor: help;
+}
+
+.hw-runmod-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.hw-runmod[data-kind="boon"] {
+  border-color: color-mix(in srgb, var(--hw-moss) 55%, var(--hw-border));
+  color: color-mix(in srgb, var(--hw-moss) 75%, var(--hw-text, #e8e2d4));
+}
+
+.hw-runmod[data-kind="boon"] .hw-runmod-dot {
+  background: var(--hw-moss);
+  box-shadow: 0 0 5px 1px color-mix(in srgb, var(--hw-moss) 55%, transparent);
+}
+
+.hw-runmod[data-kind="bane"] {
+  border-color: color-mix(in srgb, var(--hw-hp) 60%, var(--hw-border));
+  color: color-mix(in srgb, var(--hw-hp) 82%, var(--hw-text, #e8e2d4));
+}
+
+.hw-runmod[data-kind="bane"] .hw-runmod-dot {
+  background: var(--hw-hp);
+  box-shadow: 0 0 5px 1px color-mix(in srgb, var(--hw-hp) 55%, transparent);
+}
+
+.hw-runmod-name {
+  white-space: nowrap;
 }
 
 /* Sizing/spacing rhythm below is deliberately built on the Fibonacci

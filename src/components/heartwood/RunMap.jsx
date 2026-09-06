@@ -3,6 +3,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
 import { difficultyTierForNode, DIFFICULTY_TIERS, RUN_PATH } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
+import RunModifierStrip from "./RunModifierStrip"
 
 // A compact, persistent strip of every node in the run (runEngine.js's
 // RUN_PATH), so the run reads as a real journey the player is moving
@@ -81,6 +82,7 @@ function RunRail({ runState }) {
           {nodeIndex + 1}<span className="hw-run-rail-step-sep">/</span>{total}
         </span>
       </div>
+      <RunModifierStrip modifiers={runState.runModifiers} compact />
       {acts.map(({ tier, indices }) => {
         const isCurrentAct = tier === currentTier
         const [actNo, ...rest] = tier.name.split(" · ")
@@ -158,6 +160,7 @@ export default function RunMap({ runState, mode }) {
         <span className="hw-run-map-progress">
           Step {runState.nodeIndex + 1} of {RUN_PATH.length} · {nodeLabel(currentNode)}
         </span>
+        <RunModifierStrip modifiers={runState.runModifiers} />
       </div>
       <div className="hw-run-track" ref={trackRef}>
         <div className="hw-run-line" />
