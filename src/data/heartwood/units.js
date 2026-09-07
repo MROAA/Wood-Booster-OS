@@ -279,6 +279,11 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // ones whose existing kit already matches a class from Marc's PRD
     // without forcing it - see UnitCard.jsx for the render).
     className: opts.className || null,
+    // evolvedFrom (evolutions.js): the base unit id this is an evolved
+    // form of. Excludes it from the shop / reforge / random-unit pools
+    // (runEngine.js filters, same as fusedFrom / summonOnly) - an
+    // evolved unit only ever arrives by evolving in place after a win.
+    evolvedFrom: opts.evolvedFrom || null,
   }
 }
 
@@ -1355,6 +1360,79 @@ const BASE_UNITS = {
       { type: "applyBuff", id: "ascendant", amount: 1 },
       { type: "applyBuff", id: "ward", amount: 1 },
     ],
+  }),
+
+  // --- Evolved forms (2026-09-07, "yksiköiden evoluutio") ----------
+  // A deployed unit in a squad that leans its tribe GROWS into one of
+  // these after 3-4 wins (evolutions.js / runEngine.applyEvolutions).
+  // `evolvedFrom` keeps them out of the shop / reforge / random-unit
+  // pools (same filter as `fusedFrom` / `summonOnly`); they only ever
+  // arrive by evolving. One tier up from the base + a kit step toward
+  // the element's "guardian" identity - kept slightly UNDER a Tier-2
+  // fusion (which costs 3 recruits; evolution is free). Glyph-fallback
+  // art (base's own glyph).
+  "wood-elemental": unit("wood-elemental", "Wood Elemental", "wood", 2, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 5 },
+  ], {
+    evolvedFrom: "sapthorn",
+    passive: [
+      { type: "applyBuff", id: "regen", amount: 2 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+    ],
+  }),
+  "ember-elemental": unit("ember-elemental", "Ember Elemental", "ember", 2, "dps", [{ type: "attack", amount: 7 }], {
+    evolvedFrom: "cinderpaw",
+    passive: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
+      { type: "applyBuff", id: "strength", amount: 1 },
+    ],
+  }),
+  "tide-elemental": unit("tide-elemental", "Tide Elemental", "tide", 2, "support", [
+    { type: "block", amount: 5 },
+    { type: "heal", amount: 3 },
+  ], {
+    evolvedFrom: "brinecaller",
+    rallyHeal: 2,
+    passive: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+    ],
+  }),
+  "stone-elemental": unit("stone-elemental", "Stone Elemental", "stone", 2, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 5 },
+  ], {
+    evolvedFrom: "cairnfist",
+    passive: [{ type: "applyBuff", id: "bulwark", amount: 2 }],
+  }),
+  "storm-elemental": unit("storm-elemental", "Storm Elemental", "gale", 2, "dps", [{ type: "attack", amount: 8 }], {
+    evolvedFrom: "galeblade",
+    passive: [
+      { type: "applyBuff", id: "evade", amount: 1 },
+      { type: "applyBuff", id: "strength", amount: 1 },
+    ],
+  }),
+  "void-herald": unit("void-herald", "Void Herald", "shadow", 3, "dps", [{ type: "attack", amount: 9 }], {
+    evolvedFrom: "shadefang",
+    passive: [
+      { type: "applyBuff", id: "execute", amount: 2 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+    ],
+  }),
+  "star-herald": unit("star-herald", "Star Herald", "cosmic", 3, "support", [
+    { type: "block", amount: 5 },
+    { type: "heal", amount: 3 },
+  ], {
+    evolvedFrom: "starcaller",
+    passive: [
+      { type: "applyBuff", id: "ascendant", amount: 1 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+    ],
+  }),
+  "goldenbough-ascendant": unit("goldenbough-ascendant", "Goldenbough Ascendant", "leaf", 2, "dps", [{ type: "attack", amount: 7 }], {
+    evolvedFrom: "the-hierophant",
+    chainDamage: 3,
+    passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
   }),
 }
 

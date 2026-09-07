@@ -213,6 +213,17 @@ export const UNIT_TRIBES = {
   windveil: ["gale"],
   shadefang: ["shadow", "fang"],
   starcaller: ["cosmic"],
+  // Evolved forms (evolutions.js / units.js). Each keeps its element
+  // and picks up a second mechanical tribe for the "elemental ->
+  // guardian" step (Wood Elemental protects like a Warden, etc.).
+  "wood-elemental": ["wood", "grove"],
+  "ember-elemental": ["ember", "thorn"],
+  "tide-elemental": ["tide", "spirit"],
+  "stone-elemental": ["stone", "warden"],
+  "storm-elemental": ["gale", "fang"],
+  "void-herald": ["shadow", "fang"],
+  "star-herald": ["cosmic", "spirit"],
+  "goldenbough-ascendant": ["thorn", "grove"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
