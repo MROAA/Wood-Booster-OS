@@ -20,6 +20,7 @@ import {
   resolveBattleOutcome,
   chooseRelic,
   essenceForWin,
+  bankInterest,
   buyItem,
   equipItem,
   unequipItem,
@@ -762,7 +763,12 @@ export default function HeartwoodBattle() {
 
   // phase === "battle"
   const currentPathNode = runState.path[runState.nodeIndex]
-  const essenceOnWin = currentPathNode?.type === "boss" ? null : essenceForWin(runState, currentPathNode)
+  // Includes bankInterest so the victory overlay's number is exactly
+  // what resolveBattleOutcome pays out (its doc-comment's promise).
+  const essenceOnWin =
+    currentPathNode?.type === "boss"
+      ? null
+      : essenceForWin(runState, currentPathNode) + bankInterest(runState.essence)
   // A Trial (trials.js) wrapping this node gets its own written victory
   // line on the per-fight result overlay - see trials.js's own comment
   // for why this reuses the enemy's existing combat, just its story voice.

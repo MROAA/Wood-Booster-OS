@@ -2079,6 +2079,23 @@ export function essenceForWin(runState, node) {
   return modPct ? Math.round(flat * (1 + modPct)) : flat
 }
 
+// Essence interest (Marc: "kehitetään kauppaan lisää syvyyttä" ->
+// "säästä vai käytä -jännite" -> "korko koko saldolle, TFT-tyyli").
+// The Essence you carry INTO a fight grows a little on a win, capped -
+// so every shop is now "spend this down, or let the pile compound".
+// Deterministic, pure, arithmetic on a balance; paid once in the
+// post-win resolve (resolveBattleOutcome), never mid-combat, never on a
+// boss win (the run ends there). No new runState field - the Essence
+// balance IS the bank, exactly like TFT gold.
+export const INTEREST_RATE = 0.1 // 10% (TFT standard)
+export const INTEREST_THRESHOLD = 150 // ~3 banked commons before it kicks in
+export const INTEREST_CAP = 150 // one rare's worth per win - bounds the snowball
+
+export function bankInterest(essence) {
+  if (!essence || essence < INTEREST_THRESHOLD) return 0
+  return Math.min(INTEREST_CAP, Math.floor(essence * INTEREST_RATE))
+}
+
 // Death Memory (Marc's PRD: a lost hero should leave something behind
 // instead of just vanishing) - built once, at the exact moment
 // described in the "Permadeath" comment above: a LOST FIGHT, which is
@@ -2156,7 +2173,10 @@ export function resolveBattleOutcome(runState) {
     return {
       ...rs,
       ...advanced,
-      essence: rs.essence + essenceForWin(rs, node),
+      // Interest (bankInterest) is on the balance carried INTO this
+      // fight - rs.essence here, before the win payout is added on top
+      // (TFT order: interest on held gold, then round income).
+      essence: rs.essence + essenceForWin(rs, node) + bankInterest(rs.essence),
       shopOffers: enteringShop ? (rs.frozen ? rs.shopOffers : rollShop(rs.marketLevel || 1, benchTribeCounts(rs))) : rs.shopOffers,
       itemOffers: enteringShop ? rollItemShop() : rs.itemOffers,
       frozen: enteringShop ? false : rs.frozen,

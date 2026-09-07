@@ -20,6 +20,8 @@ import {
   DEPLOY_SLOTS,
   RUN_PATH,
   sellRefundFor,
+  bankInterest,
+  INTEREST_THRESHOLD,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -615,6 +617,27 @@ export default function SquadDraft({
             </span>
             <span className="hw-essence-value">{runState.essence}</span>
           </span>
+          {/* Essence interest (runEngine.bankInterest): the Essence you
+              KEEP grows a little each victory, capped. Recomputed every
+              render, so the number visibly shrinks/grows the instant you
+              recruit / reroll / sell - the save-vs-spend tension made
+              literal. Below the threshold it shows a muted prompt so the
+              mechanic is discoverable rather than silent. */}
+          {bankInterest(runState.essence) > 0 ? (
+            <span
+              className="hw-essence-interest"
+              title="Interest - Essence you keep grows a little with every victory. Spend it down and this shrinks."
+            >
+              &#9650; +{bankInterest(runState.essence)}
+            </span>
+          ) : (
+            <span
+              className="hw-essence-interest hw-essence-interest--dormant"
+              title={`Interest - keep ${INTEREST_THRESHOLD}+ Essence and it grows a little with every victory.`}
+            >
+              save {INTEREST_THRESHOLD}+ to earn interest
+            </span>
+          )}
         </div>
       </div>
 

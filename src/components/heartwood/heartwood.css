@@ -3622,6 +3622,25 @@ img.hw-card-art {
   letter-spacing: 0.02em;
 }
 
+/* Essence interest badge (runEngine.bankInterest / SquadDraft.jsx) -
+   "what your saved Essence earns on your next win". Quiet, in the moss
+   accent so it reads as growth, not spend. --dormant is the muted
+   below-threshold prompt. */
+.hw-essence-interest {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hw-moss);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.hw-essence-interest--dormant {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--hw-muted);
+  opacity: 0.75;
+}
+
 .hw-enemy-choice {
   background: var(--hw-panel);
   border: 1px solid var(--hw-border);
