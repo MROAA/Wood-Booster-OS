@@ -448,6 +448,28 @@ function CosmicGlyph() {
   )
 }
 
+// The traveling merchant (merchant.js) - same crude thick-outline
+// register as the mook/character doodles above: a hooded figure behind
+// a low stall, a lantern strung up beside them. One glyph for all five
+// Act personas (name + accent color carry the identity); per-Act
+// portraits are a later art pass.
+function MerchantGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 8 C12 12 11 20 13 26 L27 26 C29 20 28 12 23 8 C21 6 19 6 17 8 Z" fill="none" />
+      <circle cx="17" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="23" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M13 26 C9 30 8 34 9 37 M27 26 C31 30 33 33 33 36" fill="none" />
+      <path d="M6 37 L42 37" fill="none" />
+      <path d="M9 37 L9 43 M39 37 L39 43" fill="none" />
+      <circle cx="30" cy="33" r="2.4" fill="none" />
+      <path d="M34 34 L39 34 L38 30 L35 30 Z" fill="none" />
+      <path d="M40 8 L40 14" fill="none" />
+      <path d="M37 17 L40 14 L43 17 L42 21 L38 21 Z" fill="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -465,6 +487,7 @@ const GLYPHS = {
   husk: Husk,
   troll: Troll,
   warden: Warden,
+  merchantGlyph: MerchantGlyph,
   barkBrute: BarkBrute,
   mistGrowler: MistGrowler,
   drownedSiren: DrownedSiren,

@@ -23,6 +23,7 @@ import {
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
+import MerchantGreeting from "./MerchantGreeting"
 import { CardGlyph } from "./cardArt"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
 import hearthwoodLogo from "../../assets/heartwood/hearthwood-logo.png"
@@ -813,6 +814,12 @@ export default function SquadDraft({
         </aside>
 
         <div className="hw-shop-center">
+          {/* The traveling merchant (merchant.js / MerchantGreeting) -
+              a named face + one hand-authored line that shifts with the
+              Act, the forest's state and the squad's dominant tribe, so
+              the market reads as a place in the story, not a silent
+              stall. First thing in the center column, above every hint. */}
+          <MerchantGreeting runState={runState} />
           {showIntro && (
         <div className="hw-hint hw-hint--tutorial" style={{ marginTop: 3 }}>
           <span>

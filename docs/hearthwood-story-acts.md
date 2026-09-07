@@ -3550,6 +3550,25 @@ follow-up task for a future content pass (touching only node-flavor
 strings inside the existing FloorChoice data, not its logic) rather
 than something done in this documentation-only pass.
 
+### Shop node dialogue — the traveling merchant (SHIPPED)
+
+`src/data/heartwood/merchant.js` + `MerchantGreeting.jsx`. Each Act's Shop
+node shows a named merchant (portrait + one line). The line is chosen
+deterministically by `nodeIndex` from a pool picked as: a non-`restless`
+`forestState` first (a deliberate Act-crossroads consequence), else the
+squad's dominant tribe (`dominantTribe`, the elemental identities), else a
+rotating generic line.
+
+- **Act I — The Forest Trader** (humble, earthy; roots & the first corruption)
+- **Act II — The Heartwood Artisan** (a craftsman; the heart's crack; elemental factions)
+- **Act III — The Veil Trader** (the border's tear; the stall itself keeps moving)
+- **Act IV — The Hollow Merchant** — canon line kept verbatim: *"Everything here has a price. None of the prices are Essence."*
+- **Act V — The Echo Market** (void merchant spirits; the world after; you choose the ending)
+
+Full line text lives in `merchant.js`. One placeholder doodle portrait
+(`merchantGlyph`) for all five, tinted per Act; per-Act portraits are a
+later art pass.
+
 ### Guildrun hook — named companions, for Hero Relationships v1
 
 The backlog already carries "Hero Relationships v1" as a separate item.
