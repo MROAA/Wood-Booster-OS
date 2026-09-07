@@ -38,6 +38,7 @@ export const MERCHANTS = {
       "Sit. Trade. The path's no shorter for standing on it.",
       "Everything on this cloth was carried out of the deep wood. Some of it wanted to stay.",
       "You look like a long road. I sell for long roads.",
+      "Coin left in the purse breeds, they say. Mine never does. Yours might.",
     ],
     byForest: {
       purified: ["Clean air today. The wood's grateful - and generous. Look twice at the cheap stock."],
@@ -71,6 +72,7 @@ export const MERCHANTS = {
       "Every piece here was made, not found. Made means it can be made better.",
       "The Warden lets me set up this close to the heart. Don't make me regret vouching for you.",
       "Handle the stock gently. Some of it's still setting.",
+      "A full purse is a tool like any other. Doesn't do much sitting in the drawer.",
     ],
     byForest: {
       purified: ["The crack's knitting. When the heart's calm my hands are steady - everything's a little finer today."],
@@ -95,6 +97,7 @@ export const MERCHANTS = {
       "Prices here shift when you look away. Decide fast.",
       "I've had this stall in four places today. The Veil moves it; I stand where it lands.",
       "Don't count your change. It won't help.",
+      "Hoard it if you like. Essence keeps better than most things out here - for now.",
     ],
     byForest: {
       purified: ["The Veil's holding its shape for once. Buy now - clarity doesn't keep."],
@@ -119,6 +122,7 @@ export const MERCHANTS = {
       "Everything here has a price. None of the prices are Essence.",
       "I don't remember opening this stall. I don't remember closing it. Browse.",
       "You can put it back. It won't be there when you look again, but you can put it back.",
+      "You've been saving. The Hollow noticed. It always notices the ones who save.",
     ],
     byForest: {
       purified: ["You've kept something alive down here. The stall's almost warm. Almost."],
@@ -143,6 +147,7 @@ export const MERCHANTS = {
       "We are what the market left behind. We still know how to make a deal.",
       "You don't pay us. You just remember us. It's enough.",
       "Last stall on the last road. Take your time.",
+      "Whatever you saved for - this is it. There's no later to keep it for.",
     ],
     byForest: {
       purified: ["It's healing. We can feel it from here. Take something that lasts."],
