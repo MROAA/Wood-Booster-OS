@@ -1986,9 +1986,12 @@ export function startActFive(runState) {
 // deep). `phase` stays "victory".
 export function startCrownlessBattle(runState) {
   const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
+  const squad = deployedUnitsFor(runState)
   const battle = startAutoBattle(
     runState.characterId,
-    deployedUnitsFor(runState),
+    squad,
+    // Fallback formation (formations.js) for the edge case of an empty
+    // deployed squad; normally the mirror below is what fights.
     "the-crownless-mirror",
     runState.relics,
     runState.commanderRank || 0,
@@ -1998,6 +2001,10 @@ export function startCrownlessBattle(runState) {
     difficultyFactorForNode(RUN_PATH.length - 1, RUN_PATH.length),
     null,
     runState.forestState || "restless",
+    // The Crownless IS your build: a real 1:1 clone of your deployed
+    // squad on the enemy side (autoBattleEngine builds it from UNIT
+    // defs). Empty -> falls back to the curated formation above.
+    squad,
   )
   return { ...runState, actFive: "crownless", battle: applyTrialName(battle, { trialId: "the-crownless" }) }
 }

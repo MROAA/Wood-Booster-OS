@@ -1,4 +1,5 @@
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { UNITS } from "../../data/heartwood/units"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { isShielded } from "../../services/heartwood/targeting"
 import EnemyPieceCard from "./EnemyPieceCard"
@@ -29,7 +30,7 @@ export default function BattleGrid({ state, highlightIds = [], highlightSquares 
         content = (
           <EnemyPieceCard
             enemy={enemy}
-            art={ENEMIES[enemy.defId].art}
+            art={(ENEMIES[enemy.defId] || UNITS[enemy.defId] || {}).art}
             shielded={isShielded(state, enemy.id)}
             highlighted={highlightIds.includes(enemy.id)}
             onClick={highlightIds.includes(enemy.id) ? () => onSelectTarget(enemy.id) : undefined}
