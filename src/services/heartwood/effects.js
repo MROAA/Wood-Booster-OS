@@ -139,7 +139,17 @@ function nameOf(state, id) {
 function recordStat(state, id, field, amount) {
   if (!amount) return state
   const prev = state.stats?.[id] || { damageDealt: 0, healingDone: 0 }
-  return { ...state, stats: { ...state.stats, [id]: { ...prev, [field]: prev[field] + amount } } }
+  return { ...state, stats: { ...state.stats, [id]: { ...prev, [field]: (prev[field] || 0) + amount } } }
+}
+
+// Like recordStat but keeps the running MAX - `biggestHit` for the
+// post-battle recap (ResultOverlay). Write-only: nothing in the sim
+// ever reads it back, same as recordStat.
+function recordMax(state, id, field, value) {
+  if (!value) return state
+  const prev = state.stats?.[id] || { damageDealt: 0, healingDone: 0 }
+  if ((prev[field] || 0) >= value) return state
+  return { ...state, stats: { ...state.stats, [id]: { ...prev, [field]: value } } }
 }
 
 // roundEvents: a lightweight per-round record of "who attacked whom"
@@ -263,6 +273,8 @@ function dealDamage(state, actorId, targetId, baseAmount) {
 
   let nextState = setUnit(state, targetId, nextDefender)
   nextState = recordStat(nextState, actorId, "damageDealt", overflow)
+  // biggestHit: the recap's "hardest single swing" line. Max, not sum.
+  nextState = recordMax(nextState, actorId, "biggestHit", overflow)
   // amount: the actual HP-affecting overflow, same number the old
   // diff-based popup showed - a fully-blocked hit (overflow 0) still
   // records an event (so a peer session skimming roundEvents can see
@@ -330,6 +342,10 @@ export function tickPoison(state, units) {
     const stacks = current.powers.poison || 0
     if (stacks <= 0) continue
     next = loseHp(next, unit.id, stacks)
+    // Readability: a self-targeted roundEvent so FloatingNumbers can
+    // pulse the poison pip + spawn a small tick number. Consumers that
+    // stage attacker lunges skip `kind:"tick"` (actor === target).
+    next = recordAttackEvent(next, unit.id, unit.id, { kind: "tick", statusId: "poison", amount: stacks })
     const afterUnit = getUnit(next, unit.id)
     if (!afterUnit) continue
     next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, poison: stacks - 1 } })
@@ -354,6 +370,7 @@ export function tickRegen(state, units) {
     const stacks = current.powers.regen || 0
     if (stacks <= 0) continue
     next = gainHeal(next, unit.id, stacks)
+    next = recordAttackEvent(next, unit.id, unit.id, { kind: "tick", statusId: "regen", amount: stacks })
     const afterUnit = getUnit(next, unit.id)
     if (!afterUnit) continue
     next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, regen: stacks - 1 } })
@@ -376,6 +393,7 @@ export function tickBurn(state, units) {
     const stacks = current.powers.burn || 0
     if (stacks <= 0) continue
     next = loseHp(next, unit.id, stacks)
+    next = recordAttackEvent(next, unit.id, unit.id, { kind: "tick", statusId: "burn", amount: stacks })
     const afterUnit = getUnit(next, unit.id)
     if (!afterUnit) continue
     next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, burn: Math.floor(stacks / 2) } })

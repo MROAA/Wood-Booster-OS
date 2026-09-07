@@ -4784,27 +4784,93 @@ h1[data-trial] {
   color: var(--hw-muted);
 }
 
-.hw-battle-stats {
+/* Post-battle recap (ResultOverlay / summarizeBattle) - the three
+   headline beats + each unit's own contribution bar. */
+.hw-recap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  width: 220px;
-  padding: 10px 14px;
+  gap: 10px;
+  width: 320px;
+  max-width: 82vw;
+  padding: 12px 16px;
   border: 1px solid var(--hw-border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--hw-card);
 }
 
-.hw-battle-stats-row {
+.hw-recap-highlights {
   display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--hw-muted);
+  flex-direction: column;
+  gap: 3px;
 }
 
-.hw-battle-stats-row span:last-child {
-  color: var(--hw-text, inherit);
+.hw-recap-highlight {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+}
+.hw-recap-highlight-label {
+  color: var(--hw-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+.hw-recap-highlight-value {
+  color: var(--hw-text);
+}
+.hw-recap-highlight-value strong {
+  color: var(--hw-ember);
+}
+
+.hw-recap-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--hw-border);
+  padding-top: 8px;
+}
+.hw-recap-bar-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.hw-recap-bar-name {
+  color: var(--hw-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hw-recap-bar-track {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-border) 60%, transparent);
+  overflow: hidden;
+}
+.hw-recap-bar-fill--dmg {
+  background: var(--hw-hp);
+}
+.hw-recap-bar-fill--heal {
+  background: var(--hw-moss);
+}
+.hw-recap-bar-num {
+  text-align: right;
+  color: var(--hw-text);
   font-weight: 600;
+}
+
+.hw-recap-totals {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--hw-muted);
+  border-top: 1px solid var(--hw-border);
+  padding-top: 6px;
 }
 
 /* --- Grid combat (Phase 2) --- */
@@ -5427,6 +5493,71 @@ h1[data-trial] {
   color: var(--hw-rune);
   font-size: 14px;
   font-weight: 700;
+}
+
+/* A big hit (FloatingNumbers BIG_HIT) - bigger, hotter, a glow so it
+   pops off the board. */
+.hw-floating-number--big {
+  font-size: 52px;
+  color: #ff5a3c;
+  -webkit-text-stroke: 2.5px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.95), 0 0 26px rgba(255, 90, 60, 0.7);
+}
+
+/* Status-tick popups (Poison/Burn/Regen resolving) - small, tinted to
+   the status, so they read as "the DOT bit" not a fresh attack. */
+.hw-floating-number--tick-poison,
+.hw-floating-number--tick-burn,
+.hw-floating-number--tick-regen {
+  font-size: 18px;
+  font-weight: 700;
+}
+.hw-floating-number--tick-poison {
+  color: var(--hw-curse, #9b7bd4);
+}
+.hw-floating-number--tick-burn {
+  color: #ff7a3c;
+}
+.hw-floating-number--tick-regen {
+  color: var(--hw-moss);
+}
+
+/* Board shake on a big hit (FloatingNumbers shakeStage). Tiny, single
+   axis, brief - impact, not motion sickness. */
+@keyframes hw-stage-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+.hw-stage-shake {
+  animation: hw-stage-shake 260ms ease-in-out;
+}
+
+/* Status pip pulse (FloatingNumbers pulseStatus) when its DOT/HOT ticks. */
+@keyframes hw-status-pulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); filter: brightness(1.6); }
+  100% { transform: scale(1); }
+}
+.hw-status-pulse {
+  animation: hw-status-pulse 500ms ease-out;
+}
+
+.hw-intent-tag {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-stage-shake,
+  .hw-status-pulse {
+    animation: none;
+  }
 }
 
 /* Promoted to the card's main visual - see the plan's card-redesign

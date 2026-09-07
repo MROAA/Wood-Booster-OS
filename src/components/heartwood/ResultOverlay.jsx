@@ -41,21 +41,67 @@ export default function ResultOverlay({ phase, enemyName, stats, essenceOnWin, v
           </div>
         )}
         {showStats && (
-          <div className="hw-battle-stats">
-            <div className="hw-battle-stats-row">
-              <span>Damage dealt</span>
-              <span>{stats.totalDamage}</span>
+          <div className="hw-recap">
+            <div className="hw-recap-highlights">
+              {stats.biggestHit && (
+                <div className="hw-recap-highlight">
+                  <span className="hw-recap-highlight-label">Biggest hit</span>
+                  <span className="hw-recap-highlight-value">
+                    {stats.biggestHit.name} <strong>{stats.biggestHit.amount}</strong>
+                  </span>
+                </div>
+              )}
+              {stats.topUnit && stats.topUnit.damageDealt + stats.topUnit.healingDone > 0 && (
+                <div className="hw-recap-highlight">
+                  <span className="hw-recap-highlight-label">MVP</span>
+                  <span className="hw-recap-highlight-value">{stats.topUnit.name}</span>
+                </div>
+              )}
+              {stats.closestMoment != null && (
+                <div className="hw-recap-highlight">
+                  <span className="hw-recap-highlight-label">Closest call</span>
+                  <span className="hw-recap-highlight-value">
+                    <strong>{stats.closestMoment}%</strong> squad HP
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="hw-battle-stats-row">
-              <span>Healing done</span>
-              <span>{stats.totalHealing}</span>
+
+            {/* Each unit's own contribution - Marc: "jokaisen hahmon
+                damage näytetään erikseen", now at fight's end too. */}
+            {(() => {
+              const rows = (stats.entries || []).filter((e) => e.damageDealt + e.healingDone > 0)
+              const max = rows.reduce((m, e) => Math.max(m, e.damageDealt + e.healingDone), 1)
+              return rows.length ? (
+                <div className="hw-recap-bars">
+                  {rows
+                    .sort((a, b) => b.damageDealt + b.healingDone - (a.damageDealt + a.healingDone))
+                    .map((e) => (
+                      <div className="hw-recap-bar-row" key={e.id}>
+                        <span className="hw-recap-bar-name">{e.name}</span>
+                        <span className="hw-recap-bar-track">
+                          <span
+                            className="hw-recap-bar-fill hw-recap-bar-fill--dmg"
+                            style={{ width: `${(e.damageDealt / max) * 100}%` }}
+                          />
+                          {e.healingDone > 0 && (
+                            <span
+                              className="hw-recap-bar-fill hw-recap-bar-fill--heal"
+                              style={{ width: `${(e.healingDone / max) * 100}%` }}
+                            />
+                          )}
+                        </span>
+                        <span className="hw-recap-bar-num">{e.damageDealt || e.healingDone}</span>
+                      </div>
+                    ))}
+                </div>
+              ) : null
+            })()}
+
+            <div className="hw-recap-totals">
+              <span>{stats.totalDamage} dmg</span>
+              {stats.totalHealing > 0 && <span>{stats.totalHealing} healed</span>}
             </div>
-            {stats.topUnit && stats.topUnit.damageDealt + stats.topUnit.healingDone > 0 && (
-              <div className="hw-battle-stats-row">
-                <span>Top unit</span>
-                <span>{stats.topUnit.name}</span>
-              </div>
-            )}
           </div>
         )}
         <div style={{ display: "flex", gap: 12 }}>

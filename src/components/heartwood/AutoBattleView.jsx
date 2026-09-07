@@ -110,7 +110,10 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
   // same [state] dependency FloatingNumbers already uses for its own
   // diff-on-change detection.
   useEffect(() => {
-    const events = state.roundEvents || []
+    // `tick` events (Poison/Burn/Regen, effects.js) are self-targeted -
+    // no attacker moved, so no lunge to stage. FloatingNumbers handles
+    // their popup + pip pulse.
+    const events = (state.roundEvents || []).filter((ev) => ev.kind !== "tick" && ev.actorId !== ev.targetId)
     const timers = events.map((ev, i) => setTimeout(() => lungeAttack(ev.actorId, ev.targetId), i * LUNGE_STAGGER_MS))
     return () => timers.forEach(clearTimeout)
   }, [state])

@@ -340,6 +340,10 @@ export function startAutoBattle(
     enemies,
     stats: {},
     roundEvents: [],
+    // Readability recap (summarizeBattle -> ResultOverlay): the lowest
+    // the living squad's HP% ever dipped this fight. Write-only - the
+    // sim never reads it back.
+    lowestSquadHpPct: 100,
     // Cached so every later per-round def lookup (resolveRound's own
     // actSide call, applyRallyHealTick) can resolve the Commander's
     // own def without a UNITS[defId] lookup - the Commander's
@@ -1072,7 +1076,27 @@ export function checkForestMood(state) {
   return { ...next, forestMood: mood, forestMoodFired: [...fired], forestMoodAnnounce: announce }
 }
 
+// Readability recap: fold the living squad's current HP% into the
+// running low-water mark. Applied at every resolveRound exit (there are
+// several early returns), so "closest call" catches a mid-round wipe
+// (0%) as readily as a scary round the squad survived. Pure read of
+// hp/maxHp; writes only `lowestSquadHpPct`, which nothing in the sim
+// reads back.
+function foldSquadLow(s) {
+  const units = s.playerUnits || (s.player ? [s.player] : [])
+  const maxHp = units.reduce((n, u) => n + (u.maxHp || 0), 0)
+  if (!maxHp) return s
+  const hp = units.reduce((n, u) => n + Math.max(0, u.hp || 0), 0)
+  const pct = (hp / maxHp) * 100
+  const low = Math.min(s.lowestSquadHpPct ?? 100, pct)
+  return low === (s.lowestSquadHpPct ?? 100) ? s : { ...s, lowestSquadHpPct: low }
+}
+
 export function resolveRound(state) {
+  return foldSquadLow(resolveRoundInner(state))
+}
+
+function resolveRoundInner(state) {
   let next = {
     ...state,
     log: [...state.log, `Round ${state.round}.`],
@@ -1192,7 +1216,13 @@ export function autoResolveBattle(state) {
 export function summarizeBattle(state) {
   const entries = state.playerUnits.map((u) => {
     const s = state.stats?.[u.id] || { damageDealt: 0, healingDone: 0 }
-    return { id: u.id, name: u.name, damageDealt: s.damageDealt, healingDone: s.healingDone }
+    return {
+      id: u.id,
+      name: u.name,
+      damageDealt: s.damageDealt || 0,
+      healingDone: s.healingDone || 0,
+      biggestHit: s.biggestHit || 0,
+    }
   })
   const totalDamage = entries.reduce((sum, e) => sum + e.damageDealt, 0)
   const totalHealing = entries.reduce((sum, e) => sum + e.healingDone, 0)
@@ -1200,5 +1230,10 @@ export function summarizeBattle(state) {
     (best, e) => (!best || e.damageDealt + e.healingDone > best.damageDealt + best.healingDone ? e : best),
     null,
   )
-  return { entries, totalDamage, totalHealing, topUnit }
+  // Readability recap (ResultOverlay): the hardest single swing anyone
+  // on the squad landed, and the closest the squad came to wiping.
+  const hardest = entries.reduce((best, e) => (e.biggestHit > (best?.biggestHit || 0) ? e : best), null)
+  const biggestHit = hardest && hardest.biggestHit > 0 ? { name: hardest.name, amount: hardest.biggestHit } : null
+  const closestMoment = Math.round(state.lowestSquadHpPct ?? 100)
+  return { entries, totalDamage, totalHealing, topUnit, biggestHit, closestMoment }
 }
