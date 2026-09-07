@@ -19,6 +19,7 @@ import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
 import { ARENAS } from "../../data/heartwood/arenas"
+import { moodRailFor } from "../../data/heartwood/moods"
 import { tribesOf, SYNERGY_TIERS, resolveComboSynergies, resolvePositionSynergies } from "../../data/heartwood/synergies"
 import { findDualClassFor, applyDualClassGrant } from "../../data/heartwood/dualClasses"
 import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen, tickBurn, tickAscendant } from "./effects"
@@ -180,6 +181,12 @@ export function startAutoBattle(
   pendingEffects = [],
   difficultyFactor = 1,
   arenaId = null,
+  // Forest Mood (moods.js): the world's posture (restless | purified |
+  // corrupted, set by the Act crossroads) becomes a live, escalating
+  // per-battle meter. Only the starting value / rail differ by state;
+  // the meter itself lives on the battle object and climbs each round
+  // in resolveRound's checkForestMood.
+  forestState = "restless",
 ) {
   const formation = resolveFormation(enemyFormationOrId)
   const character = CHARACTERS[characterId]
@@ -550,6 +557,13 @@ export function startAutoBattle(
     }
     state = { ...state, log: [...state.log, `Arena: ${arena.name}. ${arena.description}`] }
   }
+
+  // Forest Mood (moods.js) - seed the meter from the world's posture.
+  // No tier fires at battle start (every rail's `start` sits below its
+  // first tier's `at`); the meter only escalates in resolveRound's
+  // checkForestMood, one step per round.
+  const moodRail = moodRailFor(forestState)
+  state = { ...state, forestState, forestMood: moodRail.start, forestMoodFired: [], forestMoodAnnounce: null }
 
   return state
 }
@@ -989,6 +1003,38 @@ function checkBossPhases(state) {
   return announce ? { ...next, bossPhaseAnnounce: announce } : { ...next, bossPhaseAnnounce: null }
 }
 
+// Forest Mood (moods.js) - the deterministic sibling of checkBossPhases.
+// Called once per round after both sides act: the meter climbs a FIXED
+// `step` (never random), and any tier whose `at` it has now reached
+// fires once - its effects hit the field (arena-style, scope-picked),
+// its `announce` surfaces for a one-shot banner. `forestMoodFired`
+// tracks tier indices so a tier never re-triggers. Fully skipped for a
+// battle started without a forestState rail (older saves / direct
+// engine calls default it to "restless", so this only no-ops if the
+// meter fields were never seeded at all).
+export function checkForestMood(state) {
+  if (typeof state.forestMood !== "number") return { ...state, forestMoodAnnounce: null }
+  const rail = moodRailFor(state.forestState || "restless")
+  const mood = state.forestMood + rail.step
+  const fired = new Set(state.forestMoodFired || [])
+  let next = state
+  let announce = null
+  for (let i = 0; i < rail.tiers.length; i++) {
+    const tier = rail.tiers[i]
+    if (fired.has(i) || mood < tier.at) continue
+    fired.add(i)
+    announce = tier.announce
+    const hit = []
+    if (tier.scope !== "enemy") hit.push(...next.playerUnits.filter((u) => u.hp > 0))
+    if (tier.scope !== "player") hit.push(...next.enemies.filter((e) => e.hp > 0))
+    for (const u of hit) {
+      next = applyEffects(next, tier.effects, { actorId: u.id, targetId: u.id })
+    }
+    next = { ...next, log: [...next.log, `The forest ${tier.name.toLowerCase()}: ${tier.announce}.`] }
+  }
+  return { ...next, forestMood: mood, forestMoodFired: [...fired], forestMoodAnnounce: announce }
+}
+
 export function resolveRound(state) {
   let next = {
     ...state,
@@ -1056,6 +1102,9 @@ export function resolveRound(state) {
   if (next.phase !== "player") return next
 
   next = checkBossPhases(next)
+  if (next.phase !== "player") return next
+
+  next = checkForestMood(next)
   if (next.phase !== "player") return next
 
   const round = next.round + 1
