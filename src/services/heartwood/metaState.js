@@ -26,6 +26,10 @@ function freshMeta() {
     depth: 0,
     selectedDepth: 0,
     stats: { runs: 0, wins: 0, bestNodeIndex: 0 },
+    // The Almanac (almanac.js): lifetime "discovered" ids per category,
+    // unioned in when a run ends (HeartwoodBattle). Additive - a store
+    // without it just starts empty, no META_VERSION bump.
+    almanac: { units: [], enemies: [], relics: [], events: [] },
   }
 }
 
@@ -47,6 +51,12 @@ export function loadMeta() {
       // never let a stale/hand-edited selectedDepth exceed what's unlocked
       selectedDepth: Math.max(0, Math.min(depth, parsed.selectedDepth | 0)),
       stats: { ...freshMeta().stats, ...(parsed.stats || {}) },
+      almanac: {
+        units: Array.isArray(parsed.almanac?.units) ? parsed.almanac.units : [],
+        enemies: Array.isArray(parsed.almanac?.enemies) ? parsed.almanac.enemies : [],
+        relics: Array.isArray(parsed.almanac?.relics) ? parsed.almanac.relics : [],
+        events: Array.isArray(parsed.almanac?.events) ? parsed.almanac.events : [],
+      },
     }
   } catch {
     return freshMeta()

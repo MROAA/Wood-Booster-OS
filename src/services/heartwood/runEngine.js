@@ -846,6 +846,11 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // Buyback (sellUnit / reclaimBuyback): the last unit sold, reclaimable
     // next shop at its refund price. null until you sell something.
     buyback: null,
+    // The Almanac (almanac.js): ids this run has encountered - unioned
+    // into meta.almanac when the run ends (HeartwoodBattle). Additive +
+    // defaulted on read (noteSeen tolerates undefined), so an old save
+    // just starts recording from now - no RUN_SAVE_VERSION bump.
+    seen: { units: [], enemies: [], relics: [], events: [] },
     // Run Modifiers (boons.js): NAMED permanent consequences of map-event
     // choices - an array of modifier ids. Unlike `pendingActiveEffects`
     // (consumed after one battle) these are re-applied at the start of
@@ -940,6 +945,22 @@ export function effectiveRecruitCost(runState, def) {
   return Math.ceil(base * (1 - (runState.recruitDiscount || 0)))
 }
 
+// The Almanac (almanac.js): fold ids into runState.seen[category],
+// deduped. Pure, tolerates a missing `seen` (old save), combat never
+// reads it - it only rides along until the run ends.
+function noteSeen(seen, category, ...ids) {
+  const cur = (seen && seen[category]) || []
+  let next = cur
+  for (const id of ids) {
+    if (id && !next.includes(id)) {
+      if (next === cur) next = cur.slice()
+      next.push(id)
+    }
+  }
+  if (next === cur) return seen || { units: [], enemies: [], relics: [], events: [] }
+  return { ...(seen || { units: [], enemies: [], relics: [], events: [] }), [category]: next }
+}
+
 // Shared bench-insert used by recruitUnit AND reclaimBuyback: the
 // RESERVE_CAP check (with the "a 3rd copy fuses, so it's exempt"
 // carve-out), then fuseAll (3 copies -> one Tier 2), then the
@@ -968,7 +989,15 @@ function addUnitToBench(runState, defId, upgradeLevel = 0) {
   }
   return {
     ok: true,
-    runState: { ...runState, bench: fused.bench, deployed, items: fused.items, benchKeyCounter: fused.nextKey },
+    runState: {
+      ...runState,
+      bench: fused.bench,
+      deployed,
+      items: fused.items,
+      benchKeyCounter: fused.nextKey,
+      // Almanac: the recruited id + any "+" a fusion just formed.
+      seen: noteSeen(runState.seen, "units", ...fused.bench.map((e) => e.defId)),
+    },
   }
 }
 
@@ -1249,14 +1278,16 @@ function applyEvolutions(runState) {
   const tribeCounts = deployedTribeCounts(runState)
   const deployedKeys = new Set(runState.deployed.filter((k) => k !== null))
   const evolved = []
+  let seen = runState.seen
   const bench = runState.bench.map((e) => {
     if (!deployedKeys.has(e.key)) return e
     const to = evolutionReady(e, tribeCounts, runState.forestState || "restless")
     if (!to || !UNITS[to]) return e
     evolved.push({ from: UNITS[e.defId]?.name || e.defId, to: UNITS[to].name })
+    seen = noteSeen(seen, "units", to) // Almanac
     return { ...e, defId: to }
   })
-  return { runState: { ...runState, bench }, evolved }
+  return { runState: { ...runState, bench, seen }, evolved }
 }
 
 // Same idea as deployedTribeCounts above, but scoped to the whole
@@ -1447,6 +1478,10 @@ export function resolveEventChoice(runState, choiceIndex) {
   next = {
     ...next,
     seenEvents: [...(next.seenEvents || []), event.id],
+    // Almanac (almanac.js): lifetime "encountered" list, unioned into
+    // meta on run end. `seenEvents` above is this run's dedup list for
+    // pickEvent; this is the cross-run one.
+    seen: noteSeen(next.seen, "events", event.id),
     // Story journal (storyLog.js): a readable record of what you chose,
     // separate from `seenEvents` (which stays a bare id list for
     // pickEvent's dedup). Defaulted on read; no save-version bump.
@@ -1941,7 +1976,16 @@ export function startFormationBattle(runState) {
     // now drives a live per-battle meter.
     runState.forestState || "restless",
   )
-  return { ...runState, phase: "battle", battle: applyTrialName(battle, node), pendingActiveEffects: [] }
+  const named = applyTrialName(battle, node)
+  return {
+    ...runState,
+    phase: "battle",
+    battle: named,
+    pendingActiveEffects: [],
+    // Almanac: every piece the fight actually resolved (mooks, minibosses,
+    // bosses, formation pieces - startAutoBattle flattens them all).
+    seen: noteSeen(runState.seen, "enemies", ...named.enemies.map((e) => e.defId)),
+  }
 }
 
 // A Trial (trials.js) wraps an existing enemy's combat with a real story
@@ -2037,6 +2081,7 @@ export function chooseRelic(runState, relicId) {
 
   const essence = relicId ? runState.essence - RELICS[relicId].cost : runState.essence
   const relics = relicId ? [...runState.relics, relicId] : runState.relics
+  const seen = relicId ? noteSeen(runState.seen, "relics", relicId) : runState.seen // Almanac
   const advanced = advanceToNextNode(runState)
   // A pending "choice" (see advanceToNextNode above) is never a shop -
   // it's always a battle position mid-decision - so the shop-entry
@@ -2048,6 +2093,7 @@ export function chooseRelic(runState, relicId) {
     ...advanced,
     essence,
     relics,
+    seen,
     // Freeze (startRun's own note): kept as-is when entering a shop
     // instead of re-rolling, then consumed (cleared) regardless -
     // one-shot, not persistent.
