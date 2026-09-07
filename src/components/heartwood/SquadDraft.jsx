@@ -22,6 +22,9 @@ import {
   sellRefundFor,
   bankInterest,
   INTEREST_THRESHOLD,
+  SHOP_INVESTMENTS,
+  investmentOwned,
+  effectiveRecruitCost,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -87,6 +90,8 @@ export default function SquadDraft({
   onLevelUpMarket,
   onToggleFreeze,
   onUseCommanderActive,
+  onBuyInvestment,
+  onReclaimBuyback,
   showIntro,
   onDismissIntro,
   // 3-zone shop layout (Marc's sketch: "UI ei vielä hyödynnä kaikkea
@@ -460,8 +465,66 @@ export default function SquadDraft({
   function renderOwnedRail() {
     const relics = runState.relics || []
     const items = runState.items || []
+    const buyback = runState.buyback
     return (
       <>
+        {/* The Ledger (runEngine.SHOP_INVESTMENTS): one-time, run-wide
+            shop buys - a "standing decisions" home in the left rail,
+            distinct from the this-visit for-sale cards in the centre.
+            Same chip + inline-cost-button shape as the Relics list
+            below, with a "✓" owned state mirroring its "MAX". */}
+        <div className="hw-rail-section hw-rail-section--ledger">
+          <div className="hw-section-label hw-rail-label">The Ledger</div>
+          <div className="hw-rail-list">
+            {Object.entries(SHOP_INVESTMENTS).map(([id, inv]) => {
+              const owned = investmentOwned(runState, id)
+              return (
+                <div key={id} className="hw-rail-chip" title={inv.desc} data-owned={owned || undefined}>
+                  <CardGlyph name="rune" className="hw-intent-glyph" />
+                  <span className="hw-rail-chip-name">{inv.name}</span>
+                  {owned ? (
+                    <span className="hw-rail-chip-max">✓</span>
+                  ) : (
+                    <button
+                      className="hw-move-btn hw-rail-upgrade"
+                      disabled={runState.essence < inv.cost}
+                      onClick={() => onBuyInvestment(id)}
+                      title={`${inv.desc} - ${inv.cost} Essence, one time`}
+                    >
+                      <CardGlyph name="spark" className="hw-intent-glyph" />
+                      {inv.cost}
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Buyback (runEngine.sellUnit / reclaimBuyback): the last unit
+            sold, reclaimable at its refund price. Only shown once you've
+            sold something. */}
+        {buyback && (
+          <div className="hw-rail-section hw-rail-section--buyback">
+            <div className="hw-section-label hw-rail-label">Buyback</div>
+            <div className="hw-rail-list">
+              <div className="hw-rail-chip" title="Reclaim the last unit you sold, at the price it refunded. It comes back with no upgrades.">
+                <CardGlyph name={UNITS[buyback.defId]?.art} className="hw-intent-glyph" />
+                <span className="hw-rail-chip-name">{UNITS[buyback.defId]?.name || buyback.defId}</span>
+                <button
+                  className="hw-move-btn hw-rail-upgrade"
+                  disabled={runState.essence < buyback.price}
+                  onClick={() => onReclaimBuyback()}
+                  title={`Reclaim ${UNITS[buyback.defId]?.name || "this unit"} - ${buyback.price} Essence`}
+                >
+                  <CardGlyph name="spark" className="hw-intent-glyph" />
+                  {buyback.price}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="hw-rail-section">
           <div className="hw-section-label hw-rail-label">
             Relics <span className="hw-rail-count">{relics.length}</span>
@@ -1032,10 +1095,11 @@ export default function SquadDraft({
                 <div key={def.id} style={{ position: "relative" }}>
                   <UnitCard
                     def={def}
-                    disabled={runState.essence < def.recruitCost || reserveFull}
+                    disabled={runState.essence < effectiveRecruitCost(runState, def) || reserveFull}
                     onClick={() => onRecruit(def.id)}
                     tribeMatch={tribeMatch}
                     frozen={!!runState.frozen}
+                    costOverride={effectiveRecruitCost(runState, def)}
                   />
                   {willFuse && (
                     <div

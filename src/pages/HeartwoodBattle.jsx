@@ -11,6 +11,8 @@ import {
   sellUnit,
   retrainCommander,
   rerollShop,
+  buyInvestment,
+  reclaimBuyback,
   rerollRelicOffers,
   leaveShop,
   assignToSlot,
@@ -395,6 +397,14 @@ export default function HeartwoodBattle() {
     setRunState((current) => sellUnit(current, benchKey))
   }
 
+  function handleBuyInvestment(id) {
+    setRunState((current) => buyInvestment(current, id))
+  }
+
+  function handleReclaimBuyback() {
+    setRunState((current) => reclaimBuyback(current))
+  }
+
   function handleRetrain(newCharacterId) {
     setRunState((current) => retrainCommander(current, newCharacterId))
   }
@@ -706,6 +716,8 @@ export default function HeartwoodBattle() {
           onToggleFreeze={handleToggleFreeze}
           onUseCommanderActive={handleUseCommanderActive}
           onReroll={handleReroll}
+          onBuyInvestment={handleBuyInvestment}
+          onReclaimBuyback={handleReclaimBuyback}
           onContinue={() => setShowMapAfterShop(true)}
           showIntro={showIntro}
           onDismissIntro={dismissIntro}

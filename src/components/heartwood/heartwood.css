@@ -977,8 +977,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   font-size: 11px;
   box-sizing: border-box;
+}
+
+/* Regular's Discount (UnitCard costOverride): the pre-discount price,
+   struck through, ahead of the reduced one. */
+.hw-card-cost-base {
+  text-decoration: line-through;
+  opacity: 0.55;
+  font-size: 9px;
 }
 
 /* Hearthstone-style glanceable HP corner (UnitCard.jsx) - opposite the
@@ -3316,6 +3325,29 @@ img.hw-card-art {
   gap: 3px;
   flex-shrink: 0;
   text-shadow: none;
+}
+
+/* The Ledger (runEngine.SHOP_INVESTMENTS) - a standing-decisions
+   section at the top of the left rail. A faint moss tint + accent rule
+   marks it as "permanent" vs the relic/item lists below. An owned
+   investment chip dims and its "✓" goes moss. */
+.hw-rail-section--ledger {
+  border-left: 2px solid color-mix(in srgb, var(--hw-moss) 55%, transparent);
+  padding-left: 8px;
+}
+
+.hw-rail-section--buyback {
+  border-left: 2px solid color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  padding-left: 8px;
+}
+
+.hw-rail-chip[data-owned] {
+  opacity: 0.62;
+}
+
+.hw-rail-chip[data-owned] .hw-rail-chip-max {
+  color: var(--hw-moss);
+  font-weight: 700;
 }
 
 .hw-rail-upgrade .hw-intent-glyph {

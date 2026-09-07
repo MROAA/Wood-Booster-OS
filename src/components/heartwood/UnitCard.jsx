@@ -52,7 +52,12 @@ const MAX_TILT_DEG = 6
 // Overrides def.className the same way `role` overrides def.role above:
 // additive layering, every card without an active combo renders exactly
 // as Guild Identity v1 already had it.
-export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass, activeTribeIds, entry }) {
+export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass, activeTribeIds, entry, costOverride }) {
+  // costOverride (SquadDraft's for-sale cards, when Regular's Discount is
+  // owned - runEngine.effectiveRecruitCost): show the reduced price with
+  // the base struck through, so the shop never renders a price the buy
+  // gate won't honour.
+  const discounted = costOverride != null && def?.recruitCost != null && costOverride !== def.recruitCost
   // Unit Evolution (evolutions.js): a small "▲" on a card whose unit can
   // grow into a stronger form, with the condition in the tooltip. Lit
   // once the win count is within reach (or already met).
@@ -167,7 +172,10 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           tribe. Glanceable from across the board without reading text. */}
       {edgeAccent && <div className="hw-card-tribe-edge" style={{ background: edgeAccent }} />}
       <div className="hw-card-head">
-        <span className="hw-card-cost">{def.recruitCost ?? "★"}</span>
+        <span className="hw-card-cost">
+          {discounted && <span className="hw-card-cost-base">{def.recruitCost}</span>}
+          {costOverride != null ? costOverride : (def.recruitCost ?? "★")}
+        </span>
         {/* Hearthstone-style glanceable corner stat: HP as a big,
             readable number instead of only appearing in the small text
             line below - "playable by eye," per Marc's own ask, not

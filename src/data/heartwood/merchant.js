@@ -39,6 +39,7 @@ export const MERCHANTS = {
       "Everything on this cloth was carried out of the deep wood. Some of it wanted to stay.",
       "You look like a long road. I sell for long roads.",
       "Coin left in the purse breeds, they say. Mine never does. Yours might.",
+      "Anything you settle in the ledger stays settled. No re-reading it to you next town.",
     ],
     byForest: {
       purified: ["Clean air today. The wood's grateful - and generous. Look twice at the cheap stock."],
@@ -73,6 +74,7 @@ export const MERCHANTS = {
       "The Warden lets me set up this close to the heart. Don't make me regret vouching for you.",
       "Handle the stock gently. Some of it's still setting.",
       "A full purse is a tool like any other. Doesn't do much sitting in the drawer.",
+      "Set up a standing arrangement with me and every visit after runs smoother. Your choice.",
     ],
     byForest: {
       purified: ["The crack's knitting. When the heart's calm my hands are steady - everything's a little finer today."],
@@ -98,6 +100,7 @@ export const MERCHANTS = {
       "I've had this stall in four places today. The Veil moves it; I stand where it lands.",
       "Don't count your change. It won't help.",
       "Hoard it if you like. Essence keeps better than most things out here - for now.",
+      "The back-page arrangements hold even when the stall doesn't. Buy those first.",
     ],
     byForest: {
       purified: ["The Veil's holding its shape for once. Buy now - clarity doesn't keep."],
@@ -123,6 +126,7 @@ export const MERCHANTS = {
       "I don't remember opening this stall. I don't remember closing it. Browse.",
       "You can put it back. It won't be there when you look again, but you can put it back.",
       "You've been saving. The Hollow noticed. It always notices the ones who save.",
+      "Sign the ledger. The Hollow honours a debt longer than it honours a life.",
     ],
     byForest: {
       purified: ["You've kept something alive down here. The stall's almost warm. Almost."],
@@ -148,6 +152,7 @@ export const MERCHANTS = {
       "You don't pay us. You just remember us. It's enough.",
       "Last stall on the last road. Take your time.",
       "Whatever you saved for - this is it. There's no later to keep it for.",
+      "Every bargain you ever struck still stands here. That's all a ledger ever was.",
     ],
     byForest: {
       purified: ["It's healing. We can feel it from here. Take something that lasts."],
