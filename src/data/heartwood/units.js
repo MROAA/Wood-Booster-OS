@@ -1258,6 +1258,104 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
     image: marshlightImg,
   }),
+
+  // --- Elemental-tribe roster fill (2026-09-07, "lisää sisältöä") ----
+  // The 7 element tribes (synergies.js) sat at 5-6 units each - too thin
+  // to build around. 12 new units, ~2 per element, each carrying that
+  // element's own status (wood->regen, ember->burn, tide->dampen,
+  // stone->bulwark, gale->evade, shadow->execute/poison, cosmic->
+  // ascendant) so elemental builds have real bodies, not just synergy
+  // ladders and anchor relics. Numbers held inside the same-tier band
+  // of the existing roster (TIER_HP 32/42/54, common attacks ~4-6,
+  // uncommon ~5-7, no passive amount above 2). No portrait art -
+  // UnitCard falls back to the `art` glyph (placeholder-first).
+  barkwarden: unit("barkwarden", "Barkwarden", "wood", 2, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], {
+    // Wood = growth + endurance: a wall that also knits itself back.
+    passive: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      { type: "applyBuff", id: "regen", amount: 1 },
+    ],
+  }),
+  sapthorn: unit("sapthorn", "Sapthorn", "wood", 1, "dps", [{ type: "attack", amount: 5 }], {
+    // A bruiser the wood pulls back together between rounds.
+    passive: [{ type: "applyBuff", id: "regen", amount: 2 }],
+  }),
+  cinderpaw: unit("cinderpaw", "Cinderpaw", "ember", 1, "dps", [{ type: "attack", amount: 5 }], {
+    // Ember = burning damage: every hit leaves a burn.
+    passive: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
+    ],
+  }),
+  ashmaw: unit("ashmaw", "Ashmaw", "ember", 2, "dps", [{ type: "attack", amount: 4 }], {
+    // A fast ember striker - two small hits a round (same Haste shape /
+    // per-hit restraint as Swiftclaw), so its burn stacks add up quick.
+    haste: true,
+    passive: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
+    ],
+  }),
+  tidewarden: unit("tidewarden", "Tidewarden", "tide", 2, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 3 },
+  ], {
+    // Tide = erosion: whatever it strikes back hits softer for a while
+    // (Dampen - a flat attacker cut, CLEANSABLE).
+    passive: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+    ],
+  }),
+  brinecaller: unit("brinecaller", "Brinecaller", "tide", 1, "support", [
+    { type: "block", amount: 4 },
+    { type: "heal", amount: 2 },
+  ], {
+    // Mends the adjacent line every round (rallyHeal, Sapkeeper's shape).
+    rallyHeal: 1,
+  }),
+  stoneward: unit("stoneward", "Stoneward", "stone", 2, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], {
+    // Stone = unshakeable armour: Bulwark persists between rounds.
+    passive: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+  }),
+  cairnfist: unit("cairnfist", "Cairnfist", "stone", 1, "dps", [
+    { type: "attack", amount: 5 },
+    { type: "block", amount: 3 },
+  ], {
+    passive: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+  }),
+  galeblade: unit("galeblade", "Galeblade", "gale", 1, "dps", [{ type: "attack", amount: 6 }], {
+    // Gale = strikes that slip aside: dodges the first blow each round.
+    passive: [{ type: "applyBuff", id: "evade", amount: 1 }],
+  }),
+  windveil: unit("windveil", "Windveil", "gale", 2, "dps", [{ type: "attack", amount: 5 }], {
+    // A knight-pattern skirmisher (same geometry as Knight's Leap) that
+    // also slips the first hit each round.
+    attackPattern: "knight",
+    passive: [{ type: "applyBuff", id: "evade", amount: 1 }],
+  }),
+  shadefang: unit("shadefang", "Shadefang", "shadow", 2, "dps", [{ type: "attack", amount: 6 }], {
+    // Shadow = rot and a finishing dark: hits carry poison, and it
+    // finishes the wounded faster (Execute).
+    passive: [
+      { type: "applyBuff", id: "execute", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+    ],
+  }),
+  starcaller: unit("starcaller", "Starcaller", "cosmic", 2, "support", [
+    { type: "block", amount: 4 },
+    { type: "heal", amount: 2 },
+  ], {
+    // Cosmic = growing, unbounded power: Ascendant adds Strength every
+    // round for the whole fight, and it opens warded.
+    passive: [
+      { type: "applyBuff", id: "ascendant", amount: 1 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+    ],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

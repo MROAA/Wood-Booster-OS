@@ -702,6 +702,69 @@ export const RELICS = {
       { type: "applyBuff", id: "chainDamage", amount: 3 },
     ],
   },
+
+  // --- Elemental squad relics (2026-09-07, "lisää sisältöä") --------
+  // The 5 elemental statuses added in the mechanics-depth round
+  // (bulwark/evade/dampen/burn/ascendant) only ever reached the squad
+  // through a tribe synergy ladder or a tribe-ANCHOR relic. These 6
+  // give a build a squad-wide, non-tribe-gated way in - the same "flat
+  // for everyone" shape Ember Core / Aegis Ward / Bark Ward already
+  // have for the older statuses. Amounts are ~1/3 of the matching
+  // anchor (which only reaches part of the squad), same restraint the
+  // older squad relics already show. No `image` - RelicChoice.jsx
+  // falls back to the `icon` glyph (placeholder-first).
+  "emberveil-charm": {
+    id: "emberveil-charm",
+    name: "Emberveil Charm",
+    icon: "ember",
+    description: "Whatever any of your units strikes is left burning after.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
+    ],
+  },
+  "stoneblood-totem": {
+    id: "stoneblood-totem",
+    name: "Stoneblood Totem",
+    icon: "stone",
+    description: "Every unit carries a sliver of permanent armour that never wears off between rounds.",
+    effects: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+  },
+  "tideworn-band": {
+    id: "tideworn-band",
+    name: "Tideworn Band",
+    icon: "tide",
+    description: "Whatever your squad strikes hits back a little softer for a while.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+    ],
+  },
+  "windstep-standard": {
+    id: "windstep-standard",
+    name: "Windstep Standard",
+    icon: "gale",
+    description: "Every unit slips aside from the first blow aimed at it each round.",
+    effects: [{ type: "applyBuff", id: "evade", amount: 1 }],
+  },
+  "starlit-standard": {
+    id: "starlit-standard",
+    name: "Starlit Standard",
+    icon: "cosmic",
+    description: "Every unit grows stronger with every round the fight lasts, and opens it warded once.",
+    effects: [
+      { type: "applyBuff", id: "ascendant", amount: 1 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+    ],
+  },
+  "stormgrove-charm": {
+    id: "stormgrove-charm",
+    name: "Stormgrove Charm",
+    icon: "gale",
+    description: "Every unit slips the first blow each round, and knits itself back together as the fight goes on.",
+    effects: [
+      { type: "applyBuff", id: "evade", amount: 1 },
+      { type: "applyBuff", id: "regen", amount: 1 },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
@@ -761,6 +824,8 @@ const COMMON_RELICS = [
   "venomous-edge", "frostbrand", "purifying-bloom", "berserkers-oath",
   "quarrybreak", "fangs-mark", "rootbound-curse", "rootbreak-sigil",
   "cascading-wound", "mycotic-bloom",
+  // Elemental squad relics (single-mechanic, first-hit-only / small):
+  "tideworn-band", "windstep-standard",
 ]
 // Unconditional single-mechanic relics, including every tribe-anchor
 // (see UNCOMMON's definition above) - the middle tier.
@@ -772,6 +837,8 @@ const UNCOMMON_RELICS = [
   // the two-mechanic ones: they only ever reach a fraction of the squad.
   "tides-embrace", "galeforce-banner", "bastion-of-stone", "shroud-of-shadow",
   "heartwood-bloom", "emberbrand", "starlit-crown",
+  // Elemental squad relics (single-mechanic, unconditional):
+  "emberveil-charm", "stoneblood-totem",
 ]
 // Everything NOT listed above (every dual-mechanic combo from
 // quarry-vanguard down, plus essence-well/artificers-ledger/

@@ -196,6 +196,23 @@ export const UNIT_TRIBES = {
   huldra: ["root"],
   rootwing: ["warden"],
   marshlight: ["spirit", "tide"],
+  // Elemental-tribe roster fill (units.js, 2026-09-07) - each new unit's
+  // own kit IS its element's status, so the tag is unambiguous. Two get
+  // a second mechanical tag where the body clearly is one: Barkwarden is
+  // a block-repeating wall (Warden), Shadefang finishes the wounded
+  // (Fang). The rest are single-element.
+  barkwarden: ["wood", "warden"],
+  sapthorn: ["wood"],
+  cinderpaw: ["ember"],
+  ashmaw: ["ember"],
+  tidewarden: ["tide"],
+  brinecaller: ["tide"],
+  stoneward: ["stone"],
+  cairnfist: ["stone"],
+  galeblade: ["gale"],
+  windveil: ["gale"],
+  shadefang: ["shadow", "fang"],
+  starcaller: ["cosmic"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
