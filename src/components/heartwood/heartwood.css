@@ -2967,6 +2967,48 @@ img.hw-card-art {
   scrollbar-width: thin;
 }
 
+/* The traveling merchant greeting (MerchantGreeting.jsx / merchant.js) -
+   deliberately quiet: a small portrait, a name in the persona's accent
+   colour, one italic line. No panel fill, just a hairline accent rule
+   on the left so it reads as "someone is speaking" without competing
+   with the cards below. --hw-merchant-accent is set inline per Act. */
+.hw-merchant {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 6px 0 6px 10px;
+  border-left: 2px solid var(--hw-merchant-accent, var(--hw-border));
+}
+
+.hw-merchant-portrait {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.hw-merchant-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.hw-merchant-name {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--hw-merchant-accent, var(--hw-muted));
+}
+
+.hw-merchant-line {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--hw-text);
+  line-height: 1.35;
+}
+
 /* Tighter stage padding in the 3-zone layout (the base .hw-intro 21px
    all round is more than a full-width shop needs) - buys the vertical
    room back for a bigger recruit portrait without the page scrolling. */
