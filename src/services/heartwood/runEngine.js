@@ -647,13 +647,16 @@ export function marketLevelCost(level) {
 // tribe, so guaranteeing "any tribe-tagged unit" with no investment
 // yet would be meaningless - the shop just stays fully random until
 // the player actually has a tribe to reinforce.
-function rollShop(marketLevel, tribeCounts = {}) {
+// `slotBonus` (runState.shopSlotBonus, from the Wider Stall Ledger buy):
+// widens the roll to SHOP_SIZE + slotBonus offers. Every call site passes
+// it so the shop size never flickers between visits.
+function rollShop(marketLevel, tribeCounts = {}, slotBonus = 0) {
   const allowedTiers = MARKET_LEVEL_UNLOCKS[marketLevel] || MARKET_LEVEL_UNLOCKS[1]
   const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && allowedTiers.includes(u.tier))
   const matching = pool.filter((u) => tribesOf(u.id, u).some((t) => (tribeCounts[t] || 0) > 0))
   const guaranteed = shuffled(matching).slice(0, Math.min(1, matching.length))
   const guaranteedIds = new Set(guaranteed.map((u) => u.id))
-  const rest = shuffled(pool.filter((u) => !guaranteedIds.has(u.id))).slice(0, SHOP_SIZE - guaranteed.length)
+  const rest = shuffled(pool.filter((u) => !guaranteedIds.has(u.id))).slice(0, SHOP_SIZE + slotBonus - guaranteed.length)
   return shuffled([...guaranteed, ...rest]).map((u) => u.id)
 }
 
@@ -834,6 +837,15 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // evolved on the most recent won battle - shown as a one-shot hint
     // on the next shop screen, cleared on leaveShop. Defaulted on read.
     lastEvolved: [],
+    // The Ledger (SHOP_INVESTMENTS / buyInvestment): one-time run-wide
+    // shop buys. All additive + guarded on every read (|| 0 / ?), so an
+    // old save without them behaves as "none bought" - no version bump.
+    recruitDiscount: 0, // Regular's Discount -> 0.2
+    shopSlotBonus: 0, // Wider Stall -> 1 (extra shop offer)
+    ledgerWinBonus: 0, // Ledger Account -> 40 Essence/win
+    // Buyback (sellUnit / reclaimBuyback): the last unit sold, reclaimable
+    // next shop at its refund price. null until you sell something.
+    buyback: null,
     // Run Modifiers (boons.js): NAMED permanent consequences of map-event
     // choices - an array of modifier ids. Unlike `pendingActiveEffects`
     // (consumed after one battle) these are re-applied at the start of
@@ -917,41 +929,33 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
   return rs
 }
 
-export function recruitUnit(runState, unitDefId) {
-  const def = UNITS[unitDefId]
-  if (!def || runState.essence < def.recruitCost || !runState.shopOffers.includes(unitDefId)) return runState
+// Regular's Discount (SHOP_INVESTMENTS / buyInvestment): a one-time
+// Ledger buy that shaves every future recruit. `runState.recruitDiscount`
+// is 0 unless bought. This is the ONE place a unit's price is derived -
+// the affordability gate, the deduction, and the for-sale card label
+// all read it, so a discount can never make the UI lie or overspend.
+export function effectiveRecruitCost(runState, def) {
+  const base = def?.recruitCost
+  if (base == null) return base
+  return Math.ceil(base * (1 - (runState.recruitDiscount || 0)))
+}
 
-  // RESERVE_CAP (above): buying a 3rd copy of an already-2-owned unit
-  // fuses immediately and shrinks the bench by 2, so it's exempt -
-  // the cap exists to stop pure hoarding, not to block the one
-  // purchase that actively relieves it. Total room is DEPLOY_SLOTS (the
-  // fighting "bench," in Marc's own terms) plus RESERVE_CAP (the
-  // non-fighting reserve) - a full deployed squad still leaves the
-  // full reserve free, rather than the deployed squad eating into it.
-  const alreadyOwned = runState.bench.filter((e) => e.defId === unitDefId).length
+// Shared bench-insert used by recruitUnit AND reclaimBuyback: the
+// RESERVE_CAP check (with the "a 3rd copy fuses, so it's exempt"
+// carve-out), then fuseAll (3 copies -> one Tier 2), then the
+// auto-deploy sweep (fill open slots, and re-place any unit a fusion
+// just un-deployed - see the long note this comment replaced). Returns
+// { ok, runState }; ok:false when the bench + reserve is full and the
+// copy wouldn't fuse.
+function addUnitToBench(runState, defId, upgradeLevel = 0) {
+  const alreadyOwned = runState.bench.filter((e) => e.defId === defId).length
   const willFuse = alreadyOwned >= 2
-  if (!willFuse && runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP + (runState.benchCapBonus || 0)) return runState
-
+  if (!willFuse && runState.bench.length >= DEPLOY_SLOTS + RESERVE_CAP + (runState.benchCapBonus || 0)) {
+    return { ok: false, runState }
+  }
   const newKey = runState.benchKeyCounter
-  const withNew = [...runState.bench, { key: newKey, defId: unitDefId, upgradeLevel: 0 }]
+  const withNew = [...runState.bench, { key: newKey, defId, upgradeLevel }]
   const fused = fuseAll(withNew, runState.deployed, runState.items, runState.benchKeyCounter + 1)
-
-  // Auto-deploy: a bought unit used to sit inert on the bench until a
-  // SEPARATE click placed it into one of the 4 battlefield slots on
-  // FormationScreen - a real "I bought units and they did nothing in
-  // the fight" trap (Marc, live), since only DEPLOYED units actually
-  // join a battle. Fills every open slot from the bench automatically,
-  // same convention Battlegrounds-style autobattlers use when board
-  // space is scarce - the player can still bench a unit again with the
-  // usual click if they'd rather deploy something else instead.
-  // Deliberately a general "sweep any undeployed bench entry into any
-  // open slot" rather than just placing the one unit just bought:
-  // fuseAll above (tryFuseOnce) clears the deploy slot of any consumed
-  // unit when 3 copies fuse into a Tier 2, so a fusion can silently
-  // UN-deploy 2 already-fighting units and leave the result sitting on
-  // the bench - the exact same "owned but not fighting" trap, just
-  // reached a different way. One sweep after fusion settles fixes both
-  // cases at once instead of tracking the new unit's key through fusion.
   let deployed = fused.deployed
   const deployedKeys = new Set(deployed.filter((k) => k !== null))
   for (const entry of fused.bench) {
@@ -962,15 +966,22 @@ export function recruitUnit(runState, unitDefId) {
     deployed[emptySlot] = entry.key
     deployedKeys.add(entry.key)
   }
-
   return {
-    ...runState,
-    essence: runState.essence - def.recruitCost,
-    bench: fused.bench,
-    deployed,
-    items: fused.items,
-    benchKeyCounter: fused.nextKey,
-    shopOffers: runState.shopOffers.filter((id) => id !== unitDefId),
+    ok: true,
+    runState: { ...runState, bench: fused.bench, deployed, items: fused.items, benchKeyCounter: fused.nextKey },
+  }
+}
+
+export function recruitUnit(runState, unitDefId) {
+  const def = UNITS[unitDefId]
+  const cost = effectiveRecruitCost(runState, def)
+  if (!def || cost == null || runState.essence < cost || !runState.shopOffers.includes(unitDefId)) return runState
+  const { ok, runState: withUnit } = addUnitToBench(runState, unitDefId, 0)
+  if (!ok) return runState
+  return {
+    ...withUnit,
+    essence: withUnit.essence - cost,
+    shopOffers: withUnit.shopOffers.filter((id) => id !== unitDefId),
   }
 }
 
@@ -1048,7 +1059,70 @@ export function sellUnit(runState, benchKey) {
     bench: runState.bench.filter((e) => e.key !== benchKey),
     deployed: runState.deployed.map((k) => (k === benchKey ? null : k)),
     items: runState.items.map((it) => (it.equippedTo === benchKey ? { ...it, equippedTo: null, slotIndex: null } : it)),
+    // Buyback (reclaimBuyback / the Ledger rail): remember the LAST unit
+    // sold so the next shop can offer it back at the same price. Selling
+    // again overwrites it. Makes selling reversible-ish (undo a misclick /
+    // "sold too early") without being a storage locker - reclaim is
+    // Essence-neutral and the unit comes back at upgradeLevel 0.
+    buyback: { defId: entry.defId, price: refund },
   }
+}
+
+// Reclaim the last-sold unit (sellUnit's `buyback`) at the price it
+// refunded. upgradeLevel resets to 0 (its items already returned to the
+// bag on sale - "investment doesn't carry over", the reforge/fusion
+// rule). No-op with no buyback, not enough Essence, or a full bench.
+export function reclaimBuyback(runState) {
+  const bb = runState.buyback
+  if (!bb || !UNITS[bb.defId] || runState.essence < bb.price) return runState
+  const { ok, runState: withUnit } = addUnitToBench(runState, bb.defId, 0)
+  if (!ok) return runState
+  return { ...withUnit, essence: withUnit.essence - bb.price, buyback: null }
+}
+
+// The Ledger (SquadDraft.jsx's left rail): one-time, run-wide buys that
+// compete with units / Market Level / Rank for the same Essence - the
+// competition IS the depth, and last round's interest lever gives you
+// something big to save toward. Fairness: the sim bot's shop loop only
+// levels market, activates power and recruits - it never buys these, so
+// they're inert for it. Costs are tuned by reasoning: a focused player
+// takes ~1-2 per run, not all three early; ledger-account (+40/win)
+// needs ~11 wins to earn back its 450.
+export const SHOP_INVESTMENTS = {
+  "regulars-discount": {
+    name: "Regular's Discount",
+    cost: 300,
+    desc: "Every unit you recruit costs 20% less for the rest of the run.",
+  },
+  "wider-stall": {
+    name: "Wider Stall",
+    cost: 350,
+    desc: "The market shows one more unit every visit.",
+  },
+  "ledger-account": {
+    name: "Ledger Account",
+    cost: 450,
+    desc: "+40 Essence every battle win, permanently.",
+  },
+}
+
+export function investmentOwned(runState, id) {
+  if (id === "regulars-discount") return (runState.recruitDiscount || 0) > 0
+  if (id === "wider-stall") return (runState.shopSlotBonus || 0) > 0
+  if (id === "ledger-account") return (runState.ledgerWinBonus || 0) > 0
+  return false
+}
+
+export function buyInvestment(runState, id) {
+  const inv = SHOP_INVESTMENTS[id]
+  if (!inv || investmentOwned(runState, id) || runState.essence < inv.cost) return runState
+  const patch =
+    id === "regulars-discount"
+      ? { recruitDiscount: 0.2 }
+      : id === "wider-stall"
+        ? { shopSlotBonus: 1 }
+        : { ledgerWinBonus: 40 }
+  return { ...runState, essence: runState.essence - inv.cost, ...patch }
 }
 
 // A seventh Essence sink, and the first that isn't "strengthen
@@ -1265,7 +1339,7 @@ export function rerollShop(runState) {
   return {
     ...runState,
     essence: runState.essence - runState.rerollCost,
-    shopOffers: rollShop(runState.marketLevel || 1, benchTribeCounts(runState)),
+    shopOffers: rollShop(runState.marketLevel || 1, benchTribeCounts(runState), runState.shopSlotBonus || 0),
     // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (50,
     // same value REROLL_BASE_COST itself carries) - see
     // REROLL_BASE_COST's own comment above.
@@ -1977,7 +2051,11 @@ export function chooseRelic(runState, relicId) {
     // Freeze (startRun's own note): kept as-is when entering a shop
     // instead of re-rolling, then consumed (cleared) regardless -
     // one-shot, not persistent.
-    shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1, benchTribeCounts(runState))) : runState.shopOffers,
+    shopOffers: enteringShop
+      ? runState.frozen
+        ? runState.shopOffers
+        : rollShop(runState.marketLevel || 1, benchTribeCounts(runState), runState.shopSlotBonus || 0)
+      : runState.shopOffers,
     itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
     frozen: enteringShop ? false : runState.frozen,
     rerollCost: REROLL_BASE_COST,
@@ -2071,7 +2149,10 @@ export function essenceForWin(runState, node) {
   const essenceBonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.essenceBonus || 0), 0)
   const difficultyBonus = node?.type === "miniboss" ? MINIBOSS_BONUS_ESSENCE : node?.formationId ? FORMATION_BONUS_ESSENCE : 0
   // Essence Flow (metaPerks.js) - a flat per-win bonus from the meta board.
-  const flat = WIN_ESSENCE + difficultyBonus + essenceBonus + (runState.metaWinBonus || 0)
+  // ledgerWinBonus: the Ledger Account investment (buyInvestment) - a
+  // flat per-win bump, same shape as the meta board's Essence Flow perk.
+  const flat =
+    WIN_ESSENCE + difficultyBonus + essenceBonus + (runState.metaWinBonus || 0) + (runState.ledgerWinBonus || 0)
   // Run Modifiers (boons.js): some boons/banes carry an Essence-per-win %
   // (e.g. Hollow-Marked trades a Weak start for +30% spoils) - a real
   // risk/reward lever, applied last on top of the flat total.
@@ -2177,7 +2258,7 @@ export function resolveBattleOutcome(runState) {
       // fight - rs.essence here, before the win payout is added on top
       // (TFT order: interest on held gold, then round income).
       essence: rs.essence + essenceForWin(rs, node) + bankInterest(rs.essence),
-      shopOffers: enteringShop ? (rs.frozen ? rs.shopOffers : rollShop(rs.marketLevel || 1, benchTribeCounts(rs))) : rs.shopOffers,
+      shopOffers: enteringShop ? (rs.frozen ? rs.shopOffers : rollShop(rs.marketLevel || 1, benchTribeCounts(rs), rs.shopSlotBonus || 0)) : rs.shopOffers,
       itemOffers: enteringShop ? rollItemShop() : rs.itemOffers,
       frozen: enteringShop ? false : rs.frozen,
       relicOffers: nextNode?.type === "relic" ? rollRelics(rs.relics, benchTribeCounts(rs)) : rs.relicOffers,
