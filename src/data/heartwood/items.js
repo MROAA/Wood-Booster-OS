@@ -890,6 +890,80 @@ export const ITEMS = {
       { type: "applyBuff", id: "execute", amount: 1 },
     ],
   },
+
+  // --- Elemental combo items (2026-09-07, "lisää sisältöä") ---------
+  // The mechanics-depth round added single-mechanic elemental items at
+  // common (Stoneskin Band / Windstep Charm / Tidewrack Vial /
+  // Emberbrand Oil / Starlit Shard) and a few rares - but the uncommon
+  // (150) band had almost no elemental options. These 5 sit there as
+  // two-status combos, plus one common ward item. No `image` -
+  // ItemCard.jsx falls back to the `icon` glyph.
+  "emberflow-oil": {
+    id: "emberflow-oil",
+    name: "Emberflow Oil",
+    icon: "ember",
+    cost: 150,
+    description: "This unit's strikes leave a burn, and it knits itself back a little each round.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
+      { type: "applyBuff", id: "regen", amount: 1 },
+    ],
+  },
+  "tidestone-band": {
+    id: "tidestone-band",
+    name: "Tidestone Band",
+    icon: "stone",
+    cost: 150,
+    description: "This unit carries a sliver of permanent armour, and what it strikes hits back softer.",
+    effects: [
+      { type: "applyBuff", id: "bulwark", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+    ],
+  },
+  "galeheart-charm": {
+    id: "galeheart-charm",
+    name: "Galeheart Charm",
+    icon: "gale",
+    cost: 150,
+    description: "This unit slips the first blow each round, and mends a trickle as the fight goes on.",
+    effects: [
+      { type: "applyBuff", id: "evade", amount: 1 },
+      { type: "applyBuff", id: "regen", amount: 1 },
+    ],
+  },
+  "voidfang-edge": {
+    id: "voidfang-edge",
+    name: "Voidfang Edge",
+    icon: "shadow",
+    cost: 150,
+    description: "This unit's strikes poison, and it finishes a badly wounded enemy faster.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      { type: "applyBuff", id: "execute", amount: 1 },
+    ],
+  },
+  "starbound-shard": {
+    id: "starbound-shard",
+    name: "Starbound Shard",
+    icon: "cosmic",
+    cost: 200,
+    description: "This unit grows stronger with every round the fight lasts, and its strikes leave a burn.",
+    effects: [
+      { type: "applyBuff", id: "ascendant", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
+    ],
+  },
+  "wardknot-charm": {
+    id: "wardknot-charm",
+    name: "Wardknot Charm",
+    icon: "shield",
+    cost: 100,
+    description: "This unit shrugs off the first real hit, and grows a sprig of bark each round after.",
+    effects: [
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
