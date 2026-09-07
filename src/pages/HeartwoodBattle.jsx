@@ -53,6 +53,8 @@ import { loadMeta, saveMeta } from "../services/heartwood/metaState"
 import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
 import { MAX_DEPTH } from "../data/heartwood/depths"
 import GroveScreen from "../components/heartwood/GroveScreen"
+import AlmanacScreen from "../components/heartwood/AlmanacScreen"
+import { almanacCounts, recordAlmanac } from "../data/heartwood/almanac"
 import CommanderSelect from "../components/heartwood/CommanderSelect"
 import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
@@ -166,6 +168,7 @@ export default function HeartwoodBattle() {
   // finished run awards Acorns exactly once via the effect below.
   const [meta, setMeta] = useState(() => loadMeta())
   const [showGrove, setShowGrove] = useState(false)
+  const [showAlmanac, setShowAlmanac] = useState(false)
   const [lastAcornsEarned, setLastAcornsEarned] = useState(null)
   const awardedRunRef = useRef(null)
 
@@ -258,16 +261,21 @@ export default function HeartwoodBattle() {
         // Beating a run at the deepest Depth you've unlocked unlocks the
         // next one (Ascension-style).
         const unlockedNext = won && ranDepth === (m.depth || 0) && (m.depth || 0) < MAX_DEPTH
-        const next = {
-          ...m,
-          acorns: m.acorns + earned,
-          depth: unlockedNext ? (m.depth || 0) + 1 : m.depth || 0,
-          stats: {
-            runs: (m.stats?.runs || 0) + 1,
-            wins: (m.stats?.wins || 0) + (won ? 1 : 0),
-            bestNodeIndex: Math.max(m.stats?.bestNodeIndex || 0, runState.nodeIndex || 0),
+        const next = recordAlmanac(
+          {
+            ...m,
+            acorns: m.acorns + earned,
+            depth: unlockedNext ? (m.depth || 0) + 1 : m.depth || 0,
+            stats: {
+              runs: (m.stats?.runs || 0) + 1,
+              wins: (m.stats?.wins || 0) + (won ? 1 : 0),
+              bestNodeIndex: Math.max(m.stats?.bestNodeIndex || 0, runState.nodeIndex || 0),
+            },
           },
-        }
+          // The Almanac (almanac.js): everything this run met, win or
+          // loss - same once-per-run cadence as the Acorn award.
+          runState.seen,
+        )
         saveMeta(next)
         return next
       })
@@ -511,6 +519,15 @@ export default function HeartwoodBattle() {
         </div>
       )
     }
+    if (showAlmanac) {
+      return (
+        <div className="hw-root hw-screen-fade" style={rootStyle} key="almanac">
+          {exitLink}
+          <AlmanacScreen meta={meta} onBack={() => setShowAlmanac(false)} />
+        </div>
+      )
+    }
+    const almCounts = almanacCounts(meta)
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="select">
         {exitLink}
@@ -527,6 +544,9 @@ export default function HeartwoodBattle() {
         />
         <button className="hw-grove-open-btn" onClick={() => setShowGrove(true)}>
           &#127807; The Grove{meta.acorns > 0 ? ` — ${meta.acorns} Acorns` : ""}
+        </button>
+        <button className="hw-almanac-open-btn" onClick={() => setShowAlmanac(true)}>
+          &#128214; The Almanac — {almCounts.overall.seen}/{almCounts.overall.total}
         </button>
       </div>
     )
