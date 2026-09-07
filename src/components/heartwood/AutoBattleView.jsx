@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { moodBandName, nextMoodTier } from "../../data/heartwood/moods"
 import {
   TRIBES,
   tribesOf,
@@ -330,6 +331,31 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
             {state.enemySynergyLabel}
           </span>
         )}
+        {typeof state.forestMood === "number" && (() => {
+          const band = moodBandName(state.forestState, state.forestMood)
+          const bandColor = { Calm: "var(--hw-moss)", Stirring: "var(--hw-rune)", Roused: "var(--hw-ember)", Awake: "var(--hw-hp)" }[band]
+          const upcoming = nextMoodTier(state.forestState, state.forestMoodFired || [])
+          return (
+            <span
+              className="hw-badge hw-section-fade-in hw-forest-mood-badge"
+              style={{ color: bandColor, borderColor: bandColor }}
+              title={
+                upcoming
+                  ? `The forest is ${band}. Next it will ${upcoming.name === "Awake" ? "fully wake" : "stir"} — ${upcoming.announce}.`
+                  : `The forest is fully Awake.`
+              }
+            >
+              <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+              Forest: {band}
+              <span className="hw-forest-mood-track" aria-hidden="true">
+                <span
+                  className="hw-forest-mood-fill"
+                  style={{ width: `${Math.min(100, state.forestMood)}%`, background: bandColor }}
+                />
+              </span>
+            </span>
+          )
+        })()}
       </div>
 
       {Object.keys(tribeCounts).length > 0 && (
@@ -375,6 +401,14 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
         {state.bossPhaseAnnounce && (
           <div className="hw-boss-phase-banner" key={state.round + state.bossPhaseAnnounce}>
             {state.bossPhaseAnnounce}
+          </div>
+        )}
+        {state.forestMoodAnnounce && (
+          <div
+            className="hw-boss-phase-banner hw-forest-mood-banner"
+            key={`fm-${state.round}-${state.forestMoodAnnounce}`}
+          >
+            The forest stirs — {state.forestMoodAnnounce}
           </div>
         )}
       </div>

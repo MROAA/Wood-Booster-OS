@@ -1834,6 +1834,9 @@ export function startFormationBattle(runState) {
     [...(runState.pendingActiveEffects || []), ...expandRunModifierEffects(runState.runModifiers)],
     difficultyFactor,
     arenaId,
+    // Forest Mood (moods.js) - the world posture the Act crossroads set
+    // now drives a live per-battle meter.
+    runState.forestState || "restless",
   )
   return { ...runState, phase: "battle", battle: applyTrialName(battle, node), pendingActiveEffects: [] }
 }
@@ -1898,6 +1901,7 @@ export function previewBattleEnemies(runState) {
     runState.pendingActiveEffects || [],
     difficultyFactor,
     arenaId,
+    runState.forestState || "restless",
   )
   return applyTrialName(battle, node).enemies
 }
@@ -1993,6 +1997,7 @@ export function startCrownlessBattle(runState) {
     expandRunModifierEffects(runState.runModifiers),
     difficultyFactorForNode(RUN_PATH.length - 1, RUN_PATH.length),
     null,
+    runState.forestState || "restless",
   )
   return { ...runState, actFive: "crownless", battle: applyTrialName(battle, { trialId: "the-crownless" }) }
 }

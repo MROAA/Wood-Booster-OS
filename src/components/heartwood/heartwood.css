@@ -1212,6 +1212,40 @@
   .hw-boss-phase-banner { animation: none; opacity: 1; }
 }
 
+/* Forest Mood (moods.js / AutoBattleView.jsx) - the banner reuses the
+   boss-phase animation but sits lower and in the rune colour so two
+   announces in one round don't overlap. */
+.hw-forest-mood-banner {
+  top: 56%;
+  color: var(--hw-rune);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--hw-rune) 70%, transparent), 0 2px 6px rgba(0, 0, 0, 0.8);
+  border-color: color-mix(in srgb, var(--hw-rune) 60%, transparent);
+  background: linear-gradient(color-mix(in srgb, var(--hw-rune) 12%, transparent), transparent);
+  font-size: 15px;
+}
+
+/* The 0-100 mood meter inside the badge. */
+.hw-forest-mood-badge {
+  gap: 6px;
+}
+
+.hw-forest-mood-track {
+  display: inline-block;
+  width: 46px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.hw-forest-mood-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.35s ease;
+}
+
 /* Arena hazard banner (arenas.js) - shown on FormationScreen before a
    fight that has one. Left border keyed to who it helps: rune (both),
    moss (your squad), hp-red (the enemy). */
