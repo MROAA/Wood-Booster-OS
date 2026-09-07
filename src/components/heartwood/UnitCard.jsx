@@ -1,6 +1,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 import { TRIBES, tribesOf, synergyTiersSummary } from "../../data/heartwood/synergies"
+import { evolutionFor, evolutionHint } from "../../data/heartwood/evolutions"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "skill" }
@@ -51,7 +52,12 @@ const MAX_TILT_DEG = 6
 // Overrides def.className the same way `role` overrides def.role above:
 // additive layering, every card without an active combo renders exactly
 // as Guild Identity v1 already had it.
-export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass, activeTribeIds }) {
+export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass, activeTribeIds, entry }) {
+  // Unit Evolution (evolutions.js): a small "▲" on a card whose unit can
+  // grow into a stronger form, with the condition in the tooltip. Lit
+  // once the win count is within reach (or already met).
+  const evo = def && evolutionFor(def.id)
+  const evoClose = evo && (entry?.wins || 0) >= (evo.when.minWins || 0) - 1
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   const effectiveRole = role || def.role
   // Tribes (synergies.js) - now a first-class part of the card, not a
@@ -201,6 +207,14 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       )}
       <div className="hw-card-name">
         {def.name}
+        {evo && (
+          <span
+            className={`hw-evolve-mark${evoClose ? " hw-evolve-mark--close" : ""}`}
+            title={evolutionHint(def.id, entry)}
+          >
+            ▲
+          </span>
+        )}
         {bent && (
           <span className="hw-badge hw-badge--bent" title={`Bent to ${effectiveRole}`}>
             Bent

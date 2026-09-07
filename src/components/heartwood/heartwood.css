@@ -1386,6 +1386,28 @@
   animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Evolution marker (evolutions.js / UnitCard.jsx `evo`): a small
+   triangle next to the name of any unit that CAN evolve, `title` spells
+   out the deterministic condition. Dim by default (a possibility, not a
+   promise); --close lights it up once the unit is one win away so the
+   player knows to keep it deployed. Same "a mechanic needs a visible
+   cue" rule as the Bent badge right above. */
+.hw-evolve-mark {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 9px;
+  line-height: 1;
+  vertical-align: middle;
+  color: var(--hw-muted);
+  opacity: 0.7;
+}
+
+.hw-evolve-mark--close {
+  color: var(--hw-moss);
+  opacity: 1;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--hw-moss) 60%, transparent);
+}
+
 /* Portrait-style glyphs (Tarot art, enemy/character doodles) get a
    medallion backdrop - a radial glow plus a ring in the glyph's own
    accent color - so they read as a small illustration sitting in a
@@ -5023,6 +5045,19 @@ h1[data-trial] {
   text-align: left;
   background: color-mix(in srgb, var(--hw-hp) 22%, var(--hw-panel));
   border-color: var(--hw-hp);
+}
+
+/* One-shot "X grew into Y" line on the first shop after an evolving
+   win (SquadDraft.jsx, runState.lastEvolved). Moss-tinted to match the
+   lit --close marker the player was watching on the card. */
+.hw-hint--evolved {
+  background: color-mix(in srgb, var(--hw-moss) 20%, var(--hw-panel));
+  border-color: var(--hw-moss);
+  animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hw-hint--evolved .hw-evolve-mark {
+  font-size: 11px;
 }
 
 .hw-hint-cancel {

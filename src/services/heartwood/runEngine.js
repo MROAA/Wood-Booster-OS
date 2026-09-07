@@ -22,6 +22,7 @@ import { ENEMIES, actEnemyForNode } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
 import { pickEvent } from "../../data/heartwood/events"
 import { runModifierById, expandRunModifierEffects, runModifierWinPct } from "../../data/heartwood/boons"
+import { evolutionReady } from "../../data/heartwood/evolutions"
 import { crossroadsForAct } from "../../data/heartwood/crossroads"
 import { arenaForNode, arenaById } from "../../data/heartwood/arenas"
 import { applyMetaPerks } from "../../data/heartwood/metaPerks"
@@ -648,7 +649,7 @@ export function marketLevelCost(level) {
 // the player actually has a tribe to reinforce.
 function rollShop(marketLevel, tribeCounts = {}) {
   const allowedTiers = MARKET_LEVEL_UNLOCKS[marketLevel] || MARKET_LEVEL_UNLOCKS[1]
-  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && allowedTiers.includes(u.tier))
+  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && allowedTiers.includes(u.tier))
   const matching = pool.filter((u) => tribesOf(u.id, u).some((t) => (tribeCounts[t] || 0) > 0))
   const guaranteed = shuffled(matching).slice(0, Math.min(1, matching.length))
   const guaranteedIds = new Set(guaranteed.map((u) => u.id))
@@ -829,6 +830,10 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     actFive: null,
     chosenEnding: null,
     echoEpilogueSeen: false,
+    // Unit Evolution (evolutions.js): [{ from, to }] of any units that
+    // evolved on the most recent won battle - shown as a one-shot hint
+    // on the next shop screen, cleared on leaveShop. Defaulted on read.
+    lastEvolved: [],
     // Run Modifiers (boons.js): NAMED permanent consequences of map-event
     // choices - an array of modifier ids. Unlike `pendingActiveEffects`
     // (consumed after one battle) these are re-applied at the start of
@@ -889,7 +894,7 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
   // sweep recruitUnit uses).
   if (rs.metaStartUnit === "random-common") {
     const pool = Object.values(UNITS)
-      .filter((u) => u.tier === "common" && !u.fusedFrom && !u.summonOnly)
+      .filter((u) => u.tier === "common" && !u.fusedFrom && !u.summonOnly && !u.evolvedFrom)
       .map((u) => u.id)
     const id = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null
     const { metaStartUnit, ...rest } = rs
@@ -989,7 +994,7 @@ export function reforgeUnit(runState, benchKey) {
   if (!entry || runState.essence < REFORGE_COST) return runState
   const currentDef = UNITS[entry.defId]
   if (!currentDef || currentDef.displayTier === 2) return runState
-  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && u.tier === currentDef.tier && u.id !== entry.defId)
+  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && u.tier === currentDef.tier && u.id !== entry.defId)
   if (!pool.length) return runState
   const newDef = pool[Math.floor(Math.random() * pool.length)]
   return {
@@ -1159,6 +1164,27 @@ export function deployedTribeCounts(runState) {
   return counts
 }
 
+// Unit Evolution (evolutions.js). Called once after a won battle
+// (resolveBattleOutcome): every DEPLOYED bench entry whose evolution
+// condition is now met is swapped to its evolved defId IN PLACE - same
+// bench key, `upgradeLevel` and equipped items kept (evolution is
+// growth, not a new unit, unlike reforgeUnit). Deterministic: the only
+// inputs are `entry.wins`, the deployed tribe counts, and forestState.
+// Returns { runState, evolved: [{ from, to }] } for the UI hint.
+function applyEvolutions(runState) {
+  const tribeCounts = deployedTribeCounts(runState)
+  const deployedKeys = new Set(runState.deployed.filter((k) => k !== null))
+  const evolved = []
+  const bench = runState.bench.map((e) => {
+    if (!deployedKeys.has(e.key)) return e
+    const to = evolutionReady(e, tribeCounts, runState.forestState || "restless")
+    if (!to || !UNITS[to]) return e
+    evolved.push({ from: UNITS[e.defId]?.name || e.defId, to: UNITS[to].name })
+    return { ...e, defId: to }
+  })
+  return { runState: { ...runState, bench }, evolved }
+}
+
 // Same idea as deployedTribeCounts above, but scoped to the whole
 // BENCH (every owned unit, deployed or not) - used by the shop to
 // highlight an offer that would deepen a tribe the player has already
@@ -1253,7 +1279,10 @@ export function rerollShop(runState) {
 }
 
 export function leaveShop(runState) {
-  return { ...runState, ...advanceToNextNode(runState) }
+  // The one-shot "X evolved into Y" hint (evolutions.js) has been shown
+  // on this shop screen - clear it as the player moves on.
+  const cleared = runState.lastEvolved?.length ? { ...runState, lastEvolved: [] } : runState
+  return { ...cleared, ...advanceToNextNode(cleared) }
 }
 
 // --- Map events (events.js) ---------------------------------------------
@@ -1298,7 +1327,7 @@ function applyEventEffect(runState, eff) {
     if (eff.unit === "random-common") {
       id = randomFromList(
         Object.values(UNITS)
-          .filter((u) => u.tier === "common" && !u.fusedFrom && !u.summonOnly)
+          .filter((u) => u.tier === "common" && !u.fusedFrom && !u.summonOnly && !u.evolvedFrom)
           .map((u) => u.id),
       )
     }
@@ -2102,22 +2131,36 @@ export function resolveBattleOutcome(runState) {
 
   if (battle.phase === "won") {
     const node = currentNode(runState)
+    // The boss win ends the run before Evolution runs (nothing left to
+    // grow into) - deliberate.
     if (node.type === "boss") return { ...runState, phase: "victory" }
 
-    const advanced = advanceToNextNode(runState)
+    // Unit Evolution (evolutions.js): tally this win onto every deployed
+    // bench entry, then let any that now meet their condition grow in
+    // place. Everything after this reads the post-evolution `rs`.
+    const withWins = {
+      ...runState,
+      bench: runState.bench.map((e) =>
+        runState.deployed.includes(e.key) ? { ...e, wins: (e.wins || 0) + 1 } : e,
+      ),
+    }
+    const { runState: evoRs, evolved } = applyEvolutions(withWins)
+    const rs = evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs
+
+    const advanced = advanceToNextNode(rs)
     // A pending "choice" (see advanceToNextNode above) is never a shop
     // or relic node - it's always a battle position mid-decision - so
     // the shop/relic-entry side effects below always correctly no-op.
     const nextNode = advanced.phase === "choice" ? null : advanced.path[advanced.path.length - 1]
     const enteringShop = nextNode?.type === "shop"
     return {
-      ...runState,
+      ...rs,
       ...advanced,
-      essence: runState.essence + essenceForWin(runState, node),
-      shopOffers: enteringShop ? (runState.frozen ? runState.shopOffers : rollShop(runState.marketLevel || 1, benchTribeCounts(runState))) : runState.shopOffers,
-      itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
-      frozen: enteringShop ? false : runState.frozen,
-      relicOffers: nextNode?.type === "relic" ? rollRelics(runState.relics, benchTribeCounts(runState)) : runState.relicOffers,
+      essence: rs.essence + essenceForWin(rs, node),
+      shopOffers: enteringShop ? (rs.frozen ? rs.shopOffers : rollShop(rs.marketLevel || 1, benchTribeCounts(rs))) : rs.shopOffers,
+      itemOffers: enteringShop ? rollItemShop() : rs.itemOffers,
+      frozen: enteringShop ? false : rs.frozen,
+      relicOffers: nextNode?.type === "relic" ? rollRelics(rs.relics, benchTribeCounts(rs)) : rs.relicOffers,
       rerollCost: REROLL_BASE_COST,
       activePowerUsedThisShop: false,
       battle: null,

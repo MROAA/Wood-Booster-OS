@@ -347,7 +347,7 @@ export default function SquadDraft({
                   : undefined
           }
         >
-          <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} />
+          <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} entry={entry} />
         </div>
         <div
           className="hw-item-slots"
@@ -824,6 +824,21 @@ export default function SquadDraft({
               Got it
             </button>
           </div>
+        </div>
+      )}
+
+      {/* One-shot notice for units that evolved on the last win
+          (runEngine.applyEvolutions -> runState.lastEvolved, cleared on
+          leaveShop). Evolution has no overlay of its own - ResultOverlay
+          renders BEFORE resolveBattleOutcome runs - so the first shop
+          screen after the win is where the player is told. Same
+          .hw-hint language as the equip banner below. */}
+      {runState.lastEvolved?.length > 0 && (
+        <div className="hw-hint hw-hint--evolved" style={{ marginTop: 3 }}>
+          <span>
+            <span className="hw-evolve-mark hw-evolve-mark--close">&#9650;</span>{" "}
+            {runState.lastEvolved.map((e) => `${e.from} grew into a ${e.to}`).join(" · ")}.
+          </span>
         </div>
       )}
 
