@@ -16,6 +16,36 @@ function flashHit(unitId) {
   setTimeout(() => el.classList.remove("hw-hit-flash"), 400)
 }
 
+// A big hit shakes the whole board briefly - the "that one hurt" beat.
+// Same fire-and-forget class toggle as flashHit; the keyframe is tiny
+// (2-3px) and gated on prefers-reduced-motion in heartwood.css.
+function shakeStage() {
+  const el = document.querySelector(".hw-battle")
+  if (!el) return
+  el.classList.remove("hw-stage-shake")
+  void el.offsetWidth
+  el.classList.add("hw-stage-shake")
+  setTimeout(() => el.classList.remove("hw-stage-shake"), 260)
+}
+
+// Pulse the matching status pip on a unit when its DOT/HOT ticks
+// (effects.js's tick roundEvents), so "the poison bit" reads as an
+// event, not just the HP bar sliding.
+function pulseStatus(unitId, statusId) {
+  const el = document.querySelector(`[data-unit-id="${unitId}"] [data-status="${statusId}"]`)
+  if (!el) return
+  el.classList.remove("hw-status-pulse")
+  void el.offsetWidth
+  el.classList.add("hw-status-pulse")
+  setTimeout(() => el.classList.remove("hw-status-pulse"), 520)
+}
+
+// A hit at or above this lands as a "big" popup (bigger, hotter) and
+// shakes the board. Tuned against the game's damage curve - a typical
+// mook swing is 4-12, so 15+ reads as "that one landed hard" without
+// firing on every exchange.
+const BIG_HIT = 15
+
 // Must match AutoBattleView.jsx's own LUNGE_STAGGER_MS - not imported,
 // since neither file otherwise depends on the other, but a damage
 // popup firing at the same stagger as its matching lunge is what makes
@@ -56,9 +86,28 @@ export default function FloatingNumbers({ state }) {
         if (ev.kind === "ward") {
           flashHit(ev.targetId)
           setPopups((cur) => [...cur, { id: counterRef.current++, unitId: ev.targetId, text: "Warded!", kind: "ward", offset: 0 }])
+        } else if (ev.kind === "tick" && ev.amount) {
+          // Poison/Burn/Regen resolving on a unit (effects.js).
+          pulseStatus(ev.targetId, ev.statusId)
+          const heal = ev.statusId === "regen"
+          setPopups((cur) => [
+            ...cur,
+            {
+              id: counterRef.current++,
+              unitId: ev.targetId,
+              text: `${heal ? "+" : "-"}${ev.amount}`,
+              kind: `tick-${ev.statusId}`,
+              offset: 0,
+            },
+          ])
         } else if (ev.kind === "damage" && ev.amount) {
+          const big = ev.amount >= BIG_HIT
           flashHit(ev.targetId)
-          setPopups((cur) => [...cur, { id: counterRef.current++, unitId: ev.targetId, text: `-${ev.amount}`, kind: "damage", offset: 0 }])
+          if (big) shakeStage()
+          setPopups((cur) => [
+            ...cur,
+            { id: counterRef.current++, unitId: ev.targetId, text: `-${ev.amount}`, kind: "damage", big, offset: 0 },
+          ])
         }
       }, i * EVENT_STAGGER_MS),
     )
@@ -161,13 +210,16 @@ function FloatingNumber({ popup, onDone }) {
   // 1.2s) and more travel (-36px -> -52px) so there's more time and
   // more motion to actually catch mid-fight, not just a bigger static
   // number in the same brief window as before.
+  // A big hit gets more of everything - overshoot, travel, hang time -
+  // so it reads as "that one mattered", not just a bigger static number.
+  const big = popup.big
   return (
     <motion.div
-      className={`hw-floating-number hw-floating-number--${popup.kind}`}
+      className={`hw-floating-number hw-floating-number--${popup.kind}${big ? " hw-floating-number--big" : ""}`}
       style={{ position: "fixed", top: rect.top, left: rect.left }}
       initial={{ opacity: 0, y: 6, scale: 0.6 }}
-      animate={{ opacity: [0, 1, 1, 0], y: -52, scale: [0.6, 1.3, 1, 1] }}
-      transition={{ duration: 1.2, ease: "easeOut" }}
+      animate={{ opacity: [0, 1, 1, 0], y: big ? -70 : -52, scale: big ? [0.6, 1.7, 1.15, 1.15] : [0.6, 1.3, 1, 1] }}
+      transition={{ duration: big ? 1.45 : 1.2, ease: "easeOut" }}
       onAnimationComplete={onDone}
     >
       {popup.text}
