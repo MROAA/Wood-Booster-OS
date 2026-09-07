@@ -1059,6 +1059,102 @@
   background: color-mix(in srgb, var(--hw-rune) 22%, var(--hw-panel));
 }
 
+/* Settings gear - a small round button in the corner, out of the way of
+   the stacked Grove / Almanac pills. */
+.hw-settings-open-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-muted) 10%, var(--hw-panel));
+  color: var(--hw-muted);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 130ms ease, border-color 130ms ease;
+}
+.hw-settings-open-btn:hover {
+  color: var(--hw-text);
+  border-color: var(--hw-muted);
+}
+
+/* ---- Settings screen (SettingsScreen.jsx) --------------------- */
+.hw-settings {
+  position: relative;
+  background: color-mix(in srgb, var(--hw-bg) 82%, transparent);
+  border-radius: 12px;
+  padding: 24px 28px 28px;
+  width: min(520px, 92vw);
+}
+.hw-settings-group {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hw-border);
+}
+.hw-settings-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 34px;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  font-size: 13px;
+}
+.hw-settings-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--hw-moss);
+}
+.hw-settings-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--hw-moss);
+  justify-self: start;
+}
+.hw-settings-label {
+  color: var(--hw-text);
+}
+.hw-settings-val {
+  text-align: right;
+  color: var(--hw-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hw-settings-danger {
+  border-color: color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
+}
+.hw-settings-danger .hw-settings-label {
+  color: var(--hw-hp);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+.hw-settings-danger-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 6px 0;
+}
+.hw-settings-danger-row button[data-danger="true"] {
+  border-color: var(--hw-hp);
+  color: var(--hw-hp);
+}
+
+/* App-level Reduce Motion (soundManager.setReduceMotion) - the nuclear
+   option, alongside the prefers-reduced-motion @media blocks. Kills the
+   shakes / pops / long floater travel to near-instant. */
+.hw-reduce-motion *,
+.hw-reduce-motion *::before,
+.hw-reduce-motion *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
+}
+
 /* ---- The Almanac screen (AlmanacScreen.jsx) --------------------- */
 .hw-almanac-screen {
   position: relative;

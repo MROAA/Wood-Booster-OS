@@ -54,7 +54,10 @@ import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
 import { MAX_DEPTH } from "../data/heartwood/depths"
 import GroveScreen from "../components/heartwood/GroveScreen"
 import AlmanacScreen from "../components/heartwood/AlmanacScreen"
+import SettingsScreen from "../components/heartwood/SettingsScreen"
+import BattleSound from "../components/heartwood/BattleSound"
 import { almanacCounts, recordAlmanac } from "../data/heartwood/almanac"
+import { initAudioFromStorage, installClickSound, setMusicMode, play as playSfx } from "../services/heartwood/soundManager"
 import CommanderSelect from "../components/heartwood/CommanderSelect"
 import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
@@ -169,6 +172,7 @@ export default function HeartwoodBattle() {
   const [meta, setMeta] = useState(() => loadMeta())
   const [showGrove, setShowGrove] = useState(false)
   const [showAlmanac, setShowAlmanac] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [lastAcornsEarned, setLastAcornsEarned] = useState(null)
   const awardedRunRef = useRef(null)
 
@@ -205,6 +209,31 @@ export default function HeartwoodBattle() {
       return next
     })
   }
+
+  // Audio (soundManager.js): apply persisted volumes + the reduce-motion
+  // class on mount, and install the one delegated button-click sound
+  // (which is also the user gesture that unlocks the AudioContext).
+  // Everything is a silent no-op without Web Audio.
+  useEffect(() => {
+    initAudioFromStorage()
+    installClickSound()
+  }, [])
+
+  // Procedural music mode follows the screen the player is on. Derived
+  // here (not inside the effect) so the dep is a plain string.
+  const musicMode = (() => {
+    if (showGrove || showAlmanac || showSettings || !runState) return "menu"
+    if (runState.phase === "victory" || runState.phase === "defeat") return "end"
+    if (runState.phase === "shop") return "shop"
+    if (runState.phase === "battle" || runState.phase === "formation") {
+      const nodeType = runState.path?.[runState.nodeIndex]?.type
+      return nodeType === "boss" || nodeType === "miniboss" ? "boss" : "battle"
+    }
+    return "menu"
+  })()
+  useEffect(() => {
+    setMusicMode(musicMode)
+  }, [musicMode])
 
   // Every one of this component's ~20 handlers funnels through
   // setRunState, so one effect covers all of them rather than a save
@@ -386,6 +415,7 @@ export default function HeartwoodBattle() {
   }
 
   function handleRecruit(unitDefId) {
+    playSfx("buy")
     setRunState((current) => recruitUnit(current, unitDefId))
   }
 
@@ -418,10 +448,12 @@ export default function HeartwoodBattle() {
   }
 
   function handleReroll() {
+    playSfx("reroll")
     setRunState((current) => rerollShop(current))
   }
 
   function handleBuyItem(itemDefId) {
+    playSfx("buy")
     setRunState((current) => buyItem(current, itemDefId))
   }
 
@@ -527,6 +559,14 @@ export default function HeartwoodBattle() {
         </div>
       )
     }
+    if (showSettings) {
+      return (
+        <div className="hw-root hw-screen-fade" style={rootStyle} key="settings">
+          {exitLink}
+          <SettingsScreen onBack={() => setShowSettings(false)} />
+        </div>
+      )
+    }
     const almCounts = almanacCounts(meta)
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="select">
@@ -547,6 +587,9 @@ export default function HeartwoodBattle() {
         </button>
         <button className="hw-almanac-open-btn" onClick={() => setShowAlmanac(true)}>
           &#128214; The Almanac — {almCounts.overall.seen}/{almCounts.overall.total}
+        </button>
+        <button className="hw-settings-open-btn" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
+          &#9881;
         </button>
       </div>
     )
@@ -578,6 +621,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="crownless-battle" data-screen="crownless-battle">
         <p className="hw-flavor hw-crownless-intro">&ldquo;{crownlessIntroLine(runState)}&rdquo;</p>
+        <BattleSound state={runState.battle} />
         <AutoBattleView
           state={runState.battle}
           nodeType="boss"
@@ -808,6 +852,7 @@ export default function HeartwoodBattle() {
   return (
     <div className="hw-root hw-screen-fade" style={rootStyle} key="battle">
       {exitLink}
+      <BattleSound state={runState.battle} />
       <AutoBattleView
         state={runState.battle}
         essenceOnWin={essenceOnWin}
