@@ -338,6 +338,50 @@ export const FORMATIONS = {
       effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
     },
   },
+
+  // --- Bodyguard formations (2026-09-07, "lisää sisältöä") ----------
+  // Three mid/late-run solo battle nodes (RUN_PATH) become "the same
+  // enemy, now with a bodyguard": a lighter Act-appropriate mook
+  // SHIELDS the node's original enemy (same shielding rule / off-centre
+  // column as Bark Brute's Stand & Rune Warden's Escort - no knight
+  // move reaches (1,1), so a shielded piece there would be permanently
+  // immune to Knight's Leap). Effective incoming damage stays close to
+  // one attacker until the front falls, the lowest-risk way to add
+  // formation variety without sliding the difficulty curve (the lesson
+  // from the route-variety round: a formation is NOT a solo).
+  "emberwracks-guard": {
+    id: "emberwracks-guard",
+    name: "Emberwrack's Guard",
+    description: "A Duskgnaw plants itself in front, giving the Emberwrack a clean line at your whole squad.",
+    pieces: [
+      { defId: "duskgnaw", pos: { row: 0, col: 0 } },
+      { defId: "emberwrack", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+    synergy: { label: "Guard and gunner", effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }] },
+  },
+  "wraithgales-veil": {
+    id: "wraithgales-veil",
+    name: "Wraithgale's Veil",
+    description: "A Needlefen holds the front while the Wraithgale works behind it, out of reach.",
+    pieces: [
+      { defId: "needlefen", pos: { row: 0, col: 2 } },
+      { defId: "wraithgale", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+    synergy: { label: "Veiled and covered", effects: [{ type: "applyBuff", id: "evade", amount: 1 }] },
+  },
+  "hollowfangs-den": {
+    id: "hollowfangs-den",
+    name: "Hollowfang's Den",
+    description: "A Duskwither guards the mouth of the den; the Hollowfang waits in the dark past it.",
+    pieces: [
+      { defId: "duskwither", pos: { row: 0, col: 0 } },
+      { defId: "hollowfang", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+    synergy: { label: "The den holds", effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } }] },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {

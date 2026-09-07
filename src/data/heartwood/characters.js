@@ -434,6 +434,49 @@ export const CHARACTERS = {
       ],
     },
   },
+
+  // Third unlockable Commander (2026-09-07, "lisää sisältöä"). The
+  // Sapling Spirit from the intro / Act I events (cinematics.js,
+  // events.js) - the forest's own small voice, made playable. Kaski is
+  // curse/attrition, Louhi is a wall; Lehva is the sustain leader the
+  // roster didn't have: the whole squad recovers every round and opens
+  // each fight warded, a run built to OUTLAST rather than out-trade.
+  // Pairs with Grove/Spirit/Wood tribes and the new regen relics.
+  // Acorn-unlockable exactly like Kaski/Louhi - unlockableCommanders()
+  // / isCommanderUnlocked() below pick it up automatically, and
+  // CommanderSelect already renders locked cards.
+  lehva: {
+    id: "lehva",
+    name: "Lehva",
+    art: "grove",
+    locked: true,
+    unlockCost: 80,
+    maxHp: 62,
+    tagline: "The forest remembers how to mend.",
+    description:
+      "Saplingsong: the whole squad knits itself back a little every round and opens each battle warded - built to outlast a fight, not win the exchange.",
+    startEffects: [{ type: "applyBuff", id: "regen", amount: 1 }],
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    movePattern: [
+      { type: "heal", amount: 4 },
+      { type: "block", amount: 4 },
+    ],
+    squadPassive: [
+      { type: "applyBuff", id: "regen", amount: 1 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } },
+    ],
+    activePower: {
+      id: "grovecall",
+      name: "Grovecall",
+      cost: 150,
+      description: "Next battle only: the whole squad mends 2 more each round and shrugs off an extra hit.",
+      effects: [
+        { type: "applyBuff", id: "regen", amount: 2 },
+        { type: "applyBuff", id: "ward", amount: 1 },
+      ],
+    },
+  },
 }
 
 // Commanders the player has to earn (locked:true above). The base four
