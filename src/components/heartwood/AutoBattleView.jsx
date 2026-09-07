@@ -210,11 +210,15 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
       const playerUnit = playerMap[key]
       let content = null
       if (enemy) {
+        // The Crownless mirror (autoBattleEngine's `mirrorSquad`) puts
+        // enemy pieces whose defId is a UNIT id, not an ENEMIES id -
+        // fall back to UNITS so an Echo of your own unit shows its art.
+        const enemySrc = ENEMIES[enemy.defId] || UNITS[enemy.defId] || {}
         content = (
           <EnemyPieceCard
             enemy={enemy}
-            art={ENEMIES[enemy.defId].art}
-            image={ENEMIES[enemy.defId].image}
+            art={enemySrc.art}
+            image={enemySrc.image}
             shielded={isShielded(state, enemy.id)}
           />
         )

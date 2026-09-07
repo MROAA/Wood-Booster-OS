@@ -55,6 +55,16 @@ const SLOT_POSITIONS = [
 // shields (row 2, col 1), with zero changes needed there.
 const COMMANDER_POSITION = { row: 1, col: 0 }
 
+// The Crownless mirror (startAutoBattle's `mirrorSquad`) lays the player's
+// cloned squad across the enemy's own rows 0-1, off-centre columns (same
+// no-knight-move-reaches-(1,1) reasoning every shielding formation uses).
+const MIRROR_POSITIONS = [
+  { row: 0, col: 0 },
+  { row: 0, col: 2 },
+  { row: 1, col: 0 },
+  { row: 1, col: 2 },
+]
+
 function freshUnit(overrides) {
   return { block: 0, powers: {}, triggers: [], ...overrides }
 }
@@ -187,7 +197,18 @@ export function startAutoBattle(
   // the meter itself lives on the battle object and climbs each round
   // in resolveRound's checkForestMood.
   forestState = "restless",
+  // The Crownless (Act V - runEngine.startCrownlessBattle): a real 1:1
+  // mirror of the player's own deployed squad on the enemy side. When
+  // given (deployedUnits shape: [{ defId, upgradeLevel, itemIds }]), the
+  // enemy pieces are built from UNIT defs via the exact same
+  // effectiveUnitDef -> freshUnit path the player's own recruits use,
+  // instead of from `enemyFormationOrId`'s ENEMIES pieces. `enemyFormationOrId`
+  // stays as the fallback for an empty squad. v1 limitation: haste /
+  // chainDamage / rallyAdjacent / summon are player-side-only in actSide,
+  // so the mirror clones stats + movePattern + passives, not those.
+  mirrorSquad = null,
 ) {
+  const useMirror = Array.isArray(mirrorSquad) && mirrorSquad.length > 0
   const formation = resolveFormation(enemyFormationOrId)
   const character = CHARACTERS[characterId]
 
@@ -206,30 +227,46 @@ export function startAutoBattle(
   // raw stats, since resolveRound's own enemy actSide call re-resolves
   // a def fresh every round - the scaled movePattern amounts need to
   // exist somewhere it'll actually find them, not just at spawn.
+  // Enemy "pieces": from the mirror squad (UNIT defs) or the formation
+  // (ENEMIES defs). Same downstream shape either way.
+  const mirrorDefIds = useMirror ? mirrorSquad.map((e) => e.defId) : []
+  const enemyPieceSpecs = useMirror
+    ? mirrorSquad.map((entry, i) => ({
+        defId: entry.defId,
+        pos: MIRROR_POSITIONS[i] || { row: 0, col: i % 3 },
+        upgradeLevel: entry.upgradeLevel || 0,
+        itemIds: entry.itemIds || [],
+      }))
+    : formation.pieces.map((p) => ({ ...p, upgradeLevel: 0, itemIds: [] }))
+
+  const scaleDefFor = (base) =>
+    difficultyFactor === 1
+      ? base
+      : {
+          ...base,
+          maxHp: Math.round(base.maxHp * difficultyFactor),
+          movePattern: base.movePattern.map((m) => scaleEffect(m, difficultyFactor)),
+          passive: base.passive
+            ? base.passive.map((p) =>
+                p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, difficultyFactor) } : scaleEffect(p, difficultyFactor),
+              )
+            : base.passive,
+        }
+
   const enemyDefs = {}
-  for (const defId of new Set(formation.pieces.map((p) => p.defId))) {
-    const base = ENEMIES[defId]
-    enemyDefs[defId] =
-      difficultyFactor === 1
-        ? base
-        : {
-            ...base,
-            maxHp: Math.round(base.maxHp * difficultyFactor),
-            movePattern: base.movePattern.map((m) => scaleEffect(m, difficultyFactor)),
-            passive: base.passive
-              ? base.passive.map((p) =>
-                  p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, difficultyFactor) } : scaleEffect(p, difficultyFactor),
-                )
-              : base.passive,
-          }
+  for (const defId of new Set(enemyPieceSpecs.map((p) => p.defId))) {
+    const spec = enemyPieceSpecs.find((p) => p.defId === defId)
+    const base = useMirror ? effectiveUnitDef(defId, spec.upgradeLevel, mirrorDefIds) : ENEMIES[defId]
+    enemyDefs[defId] = scaleDefFor(base)
   }
 
-  const enemies = formation.pieces.map((piece, i) => {
+  const enemies = enemyPieceSpecs.map((piece, i) => {
     const def = enemyDefs[piece.defId]
     return freshUnit({
       id: `e${i}`,
       defId: piece.defId,
-      name: def.name,
+      itemIds: piece.itemIds,
+      name: useMirror ? `Echo of ${def.name}` : def.name,
       hp: def.maxHp,
       maxHp: def.maxHp,
       pos: piece.pos,
