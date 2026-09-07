@@ -9,6 +9,8 @@
 //   heartwood-autobattler-intro-seen  - "seen the how-to-play tutorial" flag (HeartwoodBattle.jsx, untouched by this module)
 //   heartwood-run-save-v1             - the in-progress run (this module)
 //   heartwood-last-run-v1             - lightweight cross-run memory, written once when a run ends (this module)
+//   heartwood-meta-v1                 - between-run progression: Acorns, perks, unlocks, Almanac (metaState.js)
+//   heartwood-settings-v1            - audio volumes + reduce-motion (soundManager.js)
 
 const RUN_SAVE_KEY = "heartwood-run-save-v1"
 const LAST_RUN_KEY = "heartwood-last-run-v1"
