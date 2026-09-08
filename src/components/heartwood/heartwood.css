@@ -6931,3 +6931,72 @@ img.hw-intent-glyph {
   white-space: nowrap;
   text-transform: lowercase;
 }
+
+/* ---- Build evaluation panel (feat/hearthwood-build-score) ----------
+   Seven 0-10 bars for the deployed squad + core unit + biggest gap.
+   Mirrors the post-battle .hw-recap-bar-* metrics. */
+.hw-buildscore {
+  margin-bottom: 14px;
+}
+.hw-buildscore-empty {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 4px 0 0;
+}
+.hw-buildscore-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-buildscore-row {
+  display: grid;
+  grid-template-columns: 116px 1fr 22px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.hw-buildscore-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--hw-muted);
+  white-space: nowrap;
+}
+.hw-buildscore-name .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-buildscore-track {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-border) 60%, transparent);
+  overflow: hidden;
+}
+.hw-buildscore-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms var(--hw-ease-out, ease);
+}
+.hw-buildscore-fill--survivability { background: var(--hw-stone); }
+.hw-buildscore-fill--damage { background: var(--hw-ember); }
+.hw-buildscore-fill--sustain { background: var(--hw-moss); }
+.hw-buildscore-fill--control { background: var(--hw-rune); }
+.hw-buildscore-fill--synergy { background: var(--hw-tide); }
+.hw-buildscore-fill--economy { background: var(--hw-cosmic); }
+.hw-buildscore-fill--scaling { background: var(--hw-gale); }
+.hw-buildscore-num {
+  text-align: right;
+  color: var(--hw-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hw-buildscore-core,
+.hw-buildscore-note {
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 6px 0 0;
+  color: var(--hw-muted);
+}
+.hw-buildscore-core strong { color: var(--hw-moss); }
+.hw-buildscore-note strong { color: var(--hw-ember); }

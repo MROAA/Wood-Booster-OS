@@ -74,6 +74,12 @@ export const COACH_TIPS = [
     anchor: ".hw-grid",
   },
   {
+    id: "build-score",
+    title: "Your build at a glance",
+    text: "Seven bars rate your deployed squad - Survivability, Damage, Sustain, Control, Synergy, Economy, Scaling - and 'Watch:' names its biggest gap. A good squad isn't the highest numbers, it's no glaring hole.",
+    anchor: ".hw-buildscore",
+  },
+  {
     id: "forest-mood",
     title: "The forest is watching",
     text: "This meter climbs as a fight drags on, then shifts the battlefield for both sides. Long fights are never truly neutral.",

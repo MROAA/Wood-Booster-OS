@@ -19,6 +19,7 @@ import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattl
 import { nodeNarrative } from "../../services/heartwood/runNarrative"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
+import BuildScore from "./BuildScore"
 import { CardGlyph } from "./cardArt"
 
 // Same 4 positions autoBattleEngine.js deploys units to - kept in sync
@@ -429,6 +430,11 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           )}
         </div>
       )}
+
+      {/* Build evaluation (buildScore.js) - what kind of squad is this?
+          Sits below the tribe/combo synergies since it reads them plus
+          the deployed units' roles. */}
+      <BuildScore runState={runState} />
 
       <div className="hw-section-label">Battlefield</div>
       <div className="hw-grid" style={{ marginBottom: 16 }}>
