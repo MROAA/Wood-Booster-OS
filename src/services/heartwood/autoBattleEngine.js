@@ -396,6 +396,17 @@ export function startAutoBattle(
     if (def.passive?.length) {
       state = applyEffects(state, def.passive, { actorId: u.id, targetId: u.id })
     }
+    // Growth (units.js's `growth`, e.g. World-Ash Elder): a thin alias
+    // for "gains Ascendant N at battle start" - effects.js's
+    // tickAscendant then adds that many Strength every round in
+    // resolveRoundInner. No new tick; this is just the authoring /
+    // card-display name for the scaling-carry archetype.
+    if (def.growth) {
+      state = applyEffects(state, [{ type: "applyBuff", id: "ascendant", amount: def.growth.amount }], {
+        actorId: u.id,
+        targetId: u.id,
+      })
+    }
     // Rally (units.js's rallyAdjacent, e.g. Ashenhorn): the roster's
     // first positional passive - targets OTHER deployed units whose
     // grid position is Chebyshev-adjacent to this one, not itself, so
@@ -567,6 +578,24 @@ export function startAutoBattle(
         : hit.slots.map((i) => state.playerUnits.find((u) => u.id === `p${i}`)).filter(Boolean)
     for (const u of targets) {
       state = applyEffects(state, hit.effects, { actorId: u.id, targetId: u.id })
+    }
+  }
+
+  // Conditional passives (units.js's `conditionalPassive`, e.g. The
+  // Thorn Throne / Deepwood Sovereign): a battle-start self-buff that
+  // only lands when the squad you built - or where you placed this unit -
+  // meets its `when`. Evaluated here, after tribeCounts are tallied and
+  // units are in their final SLOT_POSITIONS, so both squad-shaped and
+  // position-shaped conditions resolve against the real board. Read from
+  // recruitedUnits (id `p${i}`) so the Commander / summons never qualify.
+  // Player-side only, same v1 limitation as growth / aura / rallyAdjacent.
+  for (const ru of recruitedUnits) {
+    const cond = effectiveDefs[ru.id]?.conditionalPassive
+    if (!cond) continue
+    const live = state.playerUnits.find((u) => u.id === ru.id)
+    if (!live) continue
+    if (evalUnitCondition(cond.when, { pos: live.pos, tribeCounts, squadSize: recruitedUnits.length })) {
+      state = applyEffects(state, cond.effect, { actorId: ru.id, targetId: ru.id })
     }
   }
 
@@ -1007,6 +1036,40 @@ function applyRallyHealTick(state) {
   return next
 }
 
+// aura (units.js's `aura`, e.g. Bulwark of Ages / Emberbanner): every
+// round, `aura.effect` (a single applyEffects entry - block / heal /
+// applyBuff) lands on each living Chebyshev-adjacent ally. The per-round
+// mirror of rallyAdjacent's one-shot battle-start grant, and structured
+// exactly like applyRallyHealTick above (same per-round def re-derive so
+// an Upgraded aura scales, same kingAdjacent loop). Player-side only.
+function applyAuraTick(state) {
+  let next = state
+  for (const u of next.playerUnits) {
+    if (u.hp <= 0) continue
+    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgradeLevel || 0, next.deployedDefIds || [])
+    if (!def.aura?.effect) continue
+    for (const other of next.playerUnits) {
+      if (other.id === u.id || other.hp <= 0) continue
+      if (kingAdjacent(u.pos, other.pos)) {
+        next = applyEffects(next, [def.aura.effect], { actorId: other.id, targetId: other.id })
+      }
+    }
+  }
+  return next
+}
+
+// Predicate for units.js's `conditionalPassive.when` - one shape per
+// call (the authoring format is a single-key object). Deliberately tiny:
+// a richer condition language is a later PRD slice, not this round.
+function evalUnitCondition(when, ctx) {
+  if (!when) return false
+  if (when.tribeCount) return (ctx.tribeCounts[when.tribeCount.tribe] || 0) >= when.tribeCount.min
+  if (when.frontRow) return ctx.pos?.row === 1
+  if (when.backRow) return ctx.pos?.row === 2
+  if (when.squadSize) return ctx.squadSize >= when.squadSize.min
+  return false
+}
+
 // Resolves exactly one round: the whole player squad acts (in deployed
 // order), then the whole enemy squad acts (in formation order) - same
 // two-phase shape the turn-based engine already used, just with a
@@ -1141,6 +1204,9 @@ function resolveRoundInner(state) {
   if (next.phase !== "player") return next
 
   next = applyRallyHealTick(next)
+  if (next.phase !== "player") return next
+
+  next = applyAuraTick(next)
   if (next.phase !== "player") return next
 
   // Re-deriving each player unit's effective def from its own stored

@@ -165,7 +165,21 @@ import beastcallerImg from "../../assets/heartwood/units/beastcaller.jpg"
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
 // Warden's Escort formation (176 total HP) - see the plan/memory note
 // on this. Paired with a 4th deploy slot in runEngine.js.
-const TIER_HP = { common: 32, uncommon: 42, rare: 54 }
+// `legendary` (feat/hearthwood-legendary-units): the first band above
+// `rare`, added for the build-around anchor units. HP ~40% over rare
+// (54 -> 76) but their real weight is a conditional/aura/growth hook,
+// not the stat line - see the PRD north-star doc
+// (docs/hearthwood-strategic-upgrades-prd.md) and autoBattleEngine.js's
+// growth/aura/conditionalPassive handling. Deliberately NOT wired into
+// MARKET_LEVEL_UNLOCKS (runEngine.js) - a Legendary reaches the shop
+// only via rollShop's own bounded LEGENDARY_SHOP_CHANCE injection, so
+// Fusion / base-roll / reforge math all stay exactly as they were.
+// HP settled at 70 (down from a first pass at 76) after the fairness
+// RUNS=100 gate: 76 + the hooks pushed tommy/aatos +13/+18pp; 70 plus
+// the trimmed hook numbers below and a lower shop rate brought it back
+// inside +-8pp. Still a clear step over rare's 54, just not a free
+// bodyguard for a bot that recruits on price alone.
+const TIER_HP = { common: 32, uncommon: 42, rare: 54, legendary: 70 }
 // Essence rescale (Marc, direct: "haluan että marketin nouseminen
 // maksaa 250 essenceä ja ekonomian pitää vastata sitä" - I want
 // leveling the Market to cost 250 Essence and the economy needs to
@@ -188,17 +202,20 @@ const TIER_HP = { common: 32, uncommon: 42, rare: 54 }
 // the real recruit price always came from this one shared table), so
 // rescaling the whole 85+-unit roster is this one table edit, not a
 // per-line change.
-// Rounded to the 50/100/150/200 family (Marc, round numbers).
-const TIER_COST = { common: 50, uncommon: 100, rare: 150 }
+// Rounded to the 50/100/150/200 family (Marc, round numbers). Legendary
+// at 250 = one marketLevelCost(1) (runEngine.js) - a real multi-win
+// save, the "saving as strategy" the PRD wants that decision to be.
+const TIER_COST = { common: 50, uncommon: 100, rare: 150, legendary: 250 }
 
 // NOTE: `cost` here is the small integer RARITY HINT passed by each
-// unit() call below (0/1/2/3), NOT an Essence value - it only ever
+// unit() call below (0/1/2/3/4), NOT an Essence value - it only ever
 // selects a tier name, which then indexes TIER_COST for the real
 // price. The 50/100/150 rounding above changes TIER_COST's values
 // only; these hint thresholds stay as-is so every unit keeps the exact
-// tier it had before.
+// tier it had before. `4` was added for the `legendary` band.
 function tierFromCost(cost) {
-  if (cost >= 3) return "rare"
+  if (cost >= 4) return "legendary"
+  if (cost === 3) return "rare"
   if (cost === 2) return "uncommon"
   return "common"
 }
@@ -284,6 +301,34 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // (runEngine.js filters, same as fusedFrom / summonOnly) - an
     // evolved unit only ever arrives by evolving in place after a win.
     evolvedFrom: opts.evolvedFrom || null,
+    // --- Build-around hooks (feat/hearthwood-legendary-units) ---------
+    // Three new optional fields carrying the Legendary tier's identity.
+    // All three reuse the existing effect vocabulary (applyEffects) and
+    // are PLAYER-SIDE ONLY, the same v1 limitation rallyAdjacent's own
+    // comment records - enemies never carry them.
+    //
+    // growth: { amount } - at battle start the unit gains Ascendant
+    // `amount` (effects.js's tickAscendant then adds that many Strength
+    // every round). A thin authoring/display alias for "scales the
+    // longer the fight runs" - no new tick, tickAscendant already runs
+    // in resolveRoundInner. See autoBattleEngine.js's startAutoBattle.
+    growth: opts.growth || null,
+    // aura: { effect } - every round, `effect` (any single applyEffects
+    // entry: { type:"block"|"heal"|"applyBuff", ... }) is applied to
+    // each OTHER deployed unit whose grid pos is Chebyshev-adjacent to
+    // this one. The per-round mirror of rallyAdjacent's one-shot grant -
+    // see autoBattleEngine.js's applyAuraTick (built off applyRallyHealTick).
+    aura: opts.aura || null,
+    // conditionalPassive: { when, effect } - `effect` (an array of
+    // applyEffects entries) applies once at battle start, self-target,
+    // ONLY if `when` holds. `when` is one of:
+    //   { tribeCount: { tribe, min } }  - >= min of that tribe in the recruited squad
+    //   { frontRow: true }              - this unit deployed to slot 3 (row 1)
+    //   { backRow: true }               - this unit deployed to a back-row slot (row 2)
+    //   { squadSize: { min } }          - >= min recruited units deployed
+    // Evaluated by evalUnitCondition in autoBattleEngine.js, right after
+    // the squad's tribeCounts are tallied.
+    conditionalPassive: opts.conditionalPassive || null,
   }
 }
 
@@ -1433,6 +1478,115 @@ const BASE_UNITS = {
     evolvedFrom: "the-hierophant",
     chainDamage: 3,
     passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
+  }),
+
+  // --- Legendary tier (feat/hearthwood-legendary-units) --------------
+  // The first band above rare: build-around anchors, cost 250 / 76 HP.
+  // Each carries exactly ONE of the three new hooks (growth / aura /
+  // conditionalPassive) and a deliberately modest stat line - the pick
+  // is "which direction is my squad going," not "biggest numbers." All
+  // three hooks reuse the existing effect vocabulary; nothing invented.
+  // Placeholder glyph art (cardArt.jsx fallback), no new image assets.
+  "world-ash-elder": unit("world-ash-elder", "World-Ash Elder", "wood", 4, "support", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+    { type: "heal", amount: 3 },
+    { type: "attack", amount: 4 },
+  ], {
+    // Growth: +2 Strength every round (via Ascendant - effects.js's
+    // tickAscendant). Low opening attack on purpose; a stall/sustain
+    // squad that can survive to round 4-5 turns this into the run's
+    // biggest hitter. Wants Grove menders and Warden walls around it.
+    // (+3 was too strong for a bot's long fights - see TIER_HP note.)
+    growth: { amount: 2 },
+  }),
+  "the-thorn-throne": unit("the-thorn-throne", "The Thorn Throne", "flame", 4, "dps", [
+    { type: "attack", amount: 7 },
+    { type: "attack", amount: 5 },
+  ], {
+    // Conditional (mono-Thorn payoff): +5 Strength only when the
+    // recruited squad is 3+ Thorn. A raw finisher on its own (base
+    // Chain 2), a wrecking ball if you commit the whole board to Thorn.
+    chainDamage: 2,
+    conditionalPassive: {
+      when: { tribeCount: { tribe: "thorn", min: 3 } },
+      effect: [{ type: "applyBuff", id: "strength", amount: 5 }],
+    },
+  }),
+  "bulwark-of-ages": unit("bulwark-of-ages", "Bulwark of Ages", "stone", 4, "tank", [
+    { type: "block", amount: 7 },
+    { type: "attack", amount: 5 },
+    { type: "block", amount: 5 },
+  ], {
+    // Aura: every round, each Chebyshev-adjacent ally gains 2 Block -
+    // a moving wall that hardens whoever stands next to it. Rewards a
+    // clumped formation (deploy carries beside it, not spread out).
+    // (block 3 stacked too much attrition value for a generic squad.)
+    aura: { effect: { type: "block", amount: 2 } },
+  }),
+  "deepwood-sovereign": unit("deepwood-sovereign", "Deepwood Sovereign", "shadow", 4, "dps", [
+    { type: "attack", amount: 7 },
+    { type: "attack", amount: 6 },
+  ], {
+    // Conditional (position payoff): +4 Strength and Execute 3, but
+    // only when deployed to the forward slot (slot 3 / row 1). A
+    // lane-breaker you choose to send to the front, echoing the
+    // front/back-row weight the positional synergies already added.
+    conditionalPassive: {
+      when: { frontRow: true },
+      effect: [
+        { type: "applyBuff", id: "strength", amount: 4 },
+        { type: "applyBuff", id: "execute", amount: 3 },
+      ],
+    },
+  }),
+
+  // --- Rare additions: smaller tastes of the same three hooks --------
+  // So the tier below also gets the new toys (Marc: "eri harvinaisuuden
+  // tason kortteja"). Cost 150 / 54 HP, same as every other rare.
+  "saplingward": unit("saplingward", "Saplingward", "leaf", 3, "support", [
+    { type: "block", amount: 4 },
+    { type: "attack", amount: 4 },
+    { type: "heal", amount: 2 },
+  ], {
+    // Growth, rare-scale: +1 Strength/round. A slow build that pays off
+    // in a long fight without warping the squad the way the Elder does.
+    growth: { amount: 1 },
+  }),
+  "emberbanner": unit("emberbanner", "Emberbanner", "ember", 3, "hybrid", [
+    { type: "attack", amount: 5 },
+    { type: "block", amount: 3 },
+    { type: "attack", amount: 4 },
+  ], {
+    // Aura, rare-scale: adjacent allies gain +1 Strength every round -
+    // a rallying warcry that compounds over a fight instead of a
+    // one-shot battle-start buff (that's rallyAdjacent's job).
+    aura: { effect: { type: "applyBuff", id: "strength", amount: 1 } },
+  }),
+  "pack-elder": unit("pack-elder", "Pack Elder", "wolf", 3, "dps", [
+    { type: "attack", amount: 6 },
+    { type: "attack", amount: 5 },
+  ], {
+    // Conditional, rare-scale: Chain 2 when the squad has 2+ Fang -
+    // a light nudge toward doubling down on the tribe, not a hard
+    // build-around.
+    conditionalPassive: {
+      when: { tribeCount: { tribe: "fang", min: 2 } },
+      effect: [{ type: "applyBuff", id: "chainDamage", amount: 2 }],
+    },
+  }),
+  "stonemoot-sentinel": unit("stonemoot-sentinel", "Stonemoot Sentinel", "warden", 3, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 4 },
+    { type: "block", amount: 5 },
+  ], {
+    // Conditional, rare-scale: Bulwark 1 only in a full 4-unit
+    // formation - "fights harder when the whole line is held," a reason
+    // to run a complete board rather than a lean 2-3 squad.
+    conditionalPassive: {
+      when: { squadSize: { min: 4 } },
+      effect: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+    },
   }),
 }
 

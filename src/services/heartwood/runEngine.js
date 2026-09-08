@@ -653,6 +653,18 @@ export function marketLevelCost(level) {
 // `slotBonus` (runState.shopSlotBonus, from the Wider Stall Ledger buy):
 // widens the roll to SHOP_SIZE + slotBonus offers. Every call site passes
 // it so the shop size never flickers between visits.
+// Legendary tier shop rate (feat/hearthwood-legendary-units): a
+// Legendary never sits in rollShop's normal `pool` (MARKET_LEVEL_UNLOCKS
+// stops at rare, left untouched so Fusion / reforge / base-roll math
+// stay exactly as they were). Once the shop hits max market level, one
+// non-guaranteed slot has this chance of being swapped for a random
+// Legendary - a lucky high-roll on the 250-Essence build-around anchors,
+// capped at one per visit. Primary fairness lever for the tier: a first
+// pass at 0.22 (plus richer hook numbers) pushed tommy/aatos +13/+18pp
+// on the RUNS=100 gate - dropped to 0.12 and paired with the trimmed
+// hook values in units.js to land back inside +-8pp.
+const LEGENDARY_SHOP_CHANCE = 0.12
+
 function rollShop(marketLevel, tribeCounts = {}, slotBonus = 0) {
   const allowedTiers = MARKET_LEVEL_UNLOCKS[marketLevel] || MARKET_LEVEL_UNLOCKS[1]
   const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && allowedTiers.includes(u.tier))
@@ -660,6 +672,16 @@ function rollShop(marketLevel, tribeCounts = {}, slotBonus = 0) {
   const guaranteed = shuffled(matching).slice(0, Math.min(1, matching.length))
   const guaranteedIds = new Set(guaranteed.map((u) => u.id))
   const rest = shuffled(pool.filter((u) => !guaranteedIds.has(u.id))).slice(0, SHOP_SIZE + slotBonus - guaranteed.length)
+
+  if (marketLevel >= MARKET_LEVEL_MAX && rest.length && Math.random() < LEGENDARY_SHOP_CHANCE) {
+    const legendaries = Object.values(UNITS).filter(
+      (u) => u.tier === "legendary" && !u.fusedFrom && !u.summonOnly && !u.evolvedFrom,
+    )
+    if (legendaries.length) {
+      rest[rest.length - 1] = legendaries[Math.floor(Math.random() * legendaries.length)]
+    }
+  }
+
   return shuffled([...guaranteed, ...rest]).map((u) => u.id)
 }
 
@@ -1031,12 +1053,15 @@ export const REFORGE_COST = 100
 // wearing a new name, so carrying prior Essence investment over would
 // be an odd fit. Fused (Tier 2) units can't be reforged - swapping
 // away three units' worth of recruiting/fusing effort for a random
-// base unit would be a strict downgrade trap, not a real choice.
+// base unit would be a strict downgrade trap, not a real choice. Nor
+// can Legendaries (feat/hearthwood-legendary-units): a flat REFORGE_COST
+// reroll of a committed 250-Essence pick into another random Legendary
+// is a churn exploit, the same reason Tier 2 is blocked.
 export function reforgeUnit(runState, benchKey) {
   const entry = runState.bench.find((e) => e.key === benchKey)
   if (!entry || runState.essence < REFORGE_COST) return runState
   const currentDef = UNITS[entry.defId]
-  if (!currentDef || currentDef.displayTier === 2) return runState
+  if (!currentDef || currentDef.displayTier === 2 || currentDef.tier === "legendary") return runState
   const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && u.tier === currentDef.tier && u.id !== entry.defId)
   if (!pool.length) return runState
   const newDef = pool[Math.floor(Math.random() * pool.length)]
