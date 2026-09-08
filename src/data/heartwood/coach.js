@@ -74,6 +74,12 @@ export const COACH_TIPS = [
     anchor: ".hw-grid",
   },
   {
+    id: "battle-analysis",
+    title: "What decided the fight",
+    text: "After each battle this panel names what settled it - and, on a loss or a close call, a couple of things you could try. It's a nudge, not the only answer.",
+    anchor: ".hw-analysis",
+  },
+  {
     id: "build-score",
     title: "Your build at a glance",
     text: "Seven bars rate your deployed squad - Survivability, Damage, Sustain, Control, Synergy, Economy, Scaling - and 'Watch:' names its biggest gap. A good squad isn't the highest numbers, it's no glaring hole.",

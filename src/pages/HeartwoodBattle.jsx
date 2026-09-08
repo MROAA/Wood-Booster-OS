@@ -626,6 +626,7 @@ export default function HeartwoodBattle() {
       ids.push("formation-position")
     }
     if (phase === "battle" && battle) {
+      if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")
       if (isElite) ids.push("elite")
       if (deployedLegendary) ids.push("legendary")
       if (battle.arenaId) ids.push("arena")
@@ -725,6 +726,7 @@ export default function HeartwoodBattle() {
         <BattleSound state={runState.battle} />
         <AutoBattleView
           state={runState.battle}
+          runState={runState}
           nodeType="boss"
           actIndex={5}
           victoryLine={resolveTrial("the-crownless")?.victoryLine}
@@ -971,6 +973,7 @@ export default function HeartwoodBattle() {
       <BattleSound state={runState.battle} />
       <AutoBattleView
         state={runState.battle}
+        runState={runState}
         essenceOnWin={essenceOnWin}
         nodeType={currentPathNode?.type}
         difficultyTier={difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)}
