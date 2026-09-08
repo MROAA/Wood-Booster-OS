@@ -6792,3 +6792,98 @@ img.hw-intent-glyph {
     transition: none;
   }
 }
+
+/* ---- Unit upgrade branches (feat/hearthwood-upgrade-branches) ------
+   The per-unit Upgrade pick: a level-up is a choice of direction, not a
+   silent buff. UpgradeChoice.jsx overlay + the branch chips on a bench
+   UnitCard + the Upgrade button in the bench card's action stack. */
+.hw-upgrade-btn {
+  border-color: color-mix(in srgb, var(--hw-cosmic) 55%, var(--hw-border));
+  color: var(--hw-text);
+}
+.hw-upgrade-btn:not(:disabled):hover {
+  border-color: var(--hw-cosmic);
+}
+.hw-upgrade-btn-lv {
+  color: var(--hw-muted);
+}
+
+.hw-upgrade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--hw-bg) 72%, transparent);
+}
+.hw-upgrade-choice {
+  width: min(560px, 94vw);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.hw-upgrade-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hw-upgrade-branch {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--hw-border);
+  border-left-width: 3px;
+  border-radius: var(--hw-radius, 10px);
+  background: color-mix(in srgb, var(--hw-panel) 88%, transparent);
+  color: var(--hw-text);
+  cursor: pointer;
+  transition: background 120ms ease, transform 120ms ease;
+}
+.hw-upgrade-branch:not([data-disabled]):hover {
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+  transform: translateX(2px);
+}
+.hw-upgrade-branch[data-disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.hw-upgrade-branch-label {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg, 17px);
+  font-weight: 700;
+}
+.hw-upgrade-branch-tag {
+  font-family: inherit;
+  font-size: var(--hw-fs-xs, 11px);
+  font-weight: 400;
+  color: var(--hw-muted);
+}
+.hw-upgrade-branch-desc {
+  font-size: var(--hw-fs-sm, 12px);
+  line-height: 1.45;
+  color: var(--hw-muted);
+}
+
+.hw-upgrade-chip-row,
+.hw-card-upgrades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.hw-card-upgrades {
+  justify-content: center;
+  margin-top: 4px;
+}
+.hw-upgrade-chip,
+.hw-card-upgrade-chip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--hw-radius-pill, 999px);
+  white-space: nowrap;
+}
