@@ -9,7 +9,7 @@ import { CardGlyph } from "./cardArt"
 export default function BuildScore({ runState }) {
   // runState is a fresh object on every setRunState, so keying the memo
   // on it re-evaluates exactly when the squad could have changed.
-  const { deployedCount, scores, core, notes } = useMemo(() => evaluateBuild(runState), [runState])
+  const { deployedCount, scores, core, notes, positioning } = useMemo(() => evaluateBuild(runState), [runState])
 
   return (
     <div className="hw-buildscore hw-section-fade-in" aria-label="Build evaluation">
@@ -38,6 +38,15 @@ export default function BuildScore({ runState }) {
               )
             })}
           </div>
+          {positioning && (
+            <p
+              className="hw-buildscore-positioning"
+              data-off={positioning.matched < positioning.total || undefined}
+              title="A unit in its preferred slot (tanks forward, the rest back) starts the fight with a small edge."
+            >
+              Positioning: {positioning.matched}/{positioning.total} in place
+            </p>
+          )}
           {core && (
             <p className="hw-buildscore-core">
               <strong>Core:</strong> {core.name} — {core.why.toLowerCase()}

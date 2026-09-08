@@ -15,6 +15,7 @@ import {
   activePositionSlots,
 } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
+import { unitProfile, positionFitForSlot } from "../../data/heartwood/roles"
 import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies, arenaForRun, RUN_PATH } from "../../services/heartwood/runEngine"
 import { nodeNarrative } from "../../services/heartwood/runNarrative"
 import UnitCard from "./UnitCard"
@@ -189,6 +190,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       const enemyPiece = formation.pieces.find((p) => p.pos.row === row && p.pos.col === col)
       const slotIndex = slotIndexAt(row, col)
       let content = null
+      let positionFit = null
 
       const isCommanderSlot = row === COMMANDER_POSITION.row && col === COMMANDER_POSITION.col
 
@@ -209,6 +211,14 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         const entry = benchKey !== null ? runState.bench.find((e) => e.key === benchKey) : null
         if (entry) {
           const def = UNITS[entry.defId]
+          // Positioning as a role mechanic (roles.js) - does this slot
+          // suit the unit's preferred position? Drives the cell cue.
+          const equipIds = runState.items.filter((it) => it.equippedTo === entry.key).map((it) => it.defId)
+          const bentPos = effectiveRole(def.role, equipIds)
+          positionFit = positionFitForSlot(
+            unitProfile(def, bentPos && bentPos !== def.role ? bentPos : undefined).position,
+            slotIndex,
+          )
           const previewUnit = { id: `slot-${slotIndex}`, name: def.name, hp: def.maxHp, maxHp: def.maxHp, block: 0, intent: null, powers: {} }
           // Same column-1 forward/back pair as autoBattleEngine.js's
           // real isShielded check, computed by hand here since there's
@@ -235,6 +245,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           data-empty={!content}
           data-move-target={slotIndex !== -1 && !content}
           data-formation-bonus={slotIndex !== -1 && !!content && formationBonusSlots.has(slotIndex)}
+          data-position-fit={positionFit || undefined}
         >
           {content}
         </div>,
@@ -442,7 +453,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       </div>
       <p className="hw-flavor" style={{ marginTop: -10, marginBottom: 10 }}>
         The front-center slot shields whoever you place directly behind it. A glowing tile
-        means that placement is feeding a formation bonus.
+        means that placement is feeding a formation bonus. A unit in its preferred slot
+        (tanks forward, DPS / healers / support in the back row) starts the fight with a small edge.
       </p>
 
       <p style={{ fontSize: 12, color: "var(--hw-muted)" }}>

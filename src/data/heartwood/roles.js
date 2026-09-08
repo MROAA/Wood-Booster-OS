@@ -207,3 +207,34 @@ export function unitProfile(def, bentRole) {
   }
   return profile
 }
+
+// --- Positioning as a role mechanic (feat/hearthwood-positioning) ----
+// PRD "Unit Roles, Build System" 20-21. The autobattler board is 3 back
+// slots + 1 forward slot (autoBattleEngine.js's SLOT_POSITIONS: 0/1/2
+// = row 2, slot 3 = row 1). So "position" is binary here: slot 3 is the
+// front, slots 0-2 are the back. `front`-preferring units (tanks) want
+// slot 3; `center` and `back` both want a back slot.
+export function positionFitForSlot(unitPosition, slotIndex) {
+  const wantsFront = unitPosition === "front"
+  const slotIsFront = slotIndex === 3
+  return wantsFront === slotIsFront ? "in" : "out"
+}
+
+// The one-stack battle-start bonus an IN-position unit gets, by primary
+// role. Out-of-position units simply don't get it - no penalty (the
+// PRD's cost without a punishing feel). Applied self-target at battle
+// start, exactly like the Legendary conditionalPassive loop.
+//
+// v1: only the two roles the PRD leads with - Tank forward, Healer
+// protected in back - and both bonuses are DEFENSIVE. A first pass that
+// also buffed DPS / support / control / etc. ran tommy +15pp on the
+// RUNS=100 gate (a near-free squad-wide stack, since the bot fills
+// slots in recruit order so most units land in-position). Narrowing to
+// tank + healer, with no `strength`, brought it back inside +-8pp. The
+// positioning CUE (roles.js positionFitForSlot -> FormationScreen ring,
+// build-score readout) still covers every role - only the mechanical
+// buff is limited for now.
+export const POSITION_BONUS = {
+  tank: { id: "bulwark", amount: 1 }, // a wall belongs at the front
+  healer: { id: "regen", amount: 1 }, // a protected mender keeps ticking
+}
