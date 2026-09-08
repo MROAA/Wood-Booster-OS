@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 
-export default function ResultOverlay({ phase, enemyName, stats, essenceOnWin, victoryLine, onContinue }) {
+export default function ResultOverlay({ phase, enemyName, stats, analysis, essenceOnWin, victoryLine, onContinue }) {
   if (phase !== "won" && phase !== "lost") return null
 
   const won = phase === "won"
@@ -102,6 +102,35 @@ export default function ResultOverlay({ phase, enemyName, stats, essenceOnWin, v
               <span>{stats.totalDamage} dmg</span>
               {stats.totalHealing > 0 && <span>{stats.totalHealing} healed</span>}
             </div>
+          </div>
+        )}
+        {/* "Why you lost / why you won" (battleAnalysis.js): the layer
+            above the recap - what settled the fight, and, on a loss or a
+            near-thing, a couple of options to try. Never one prescribed
+            answer (PRD "Challenging, Fair & Strategically Deep" 10 / 35). */}
+        {analysis && (
+          <div className="hw-analysis" data-outcome={won ? "won" : "lost"}>
+            <p className="hw-analysis-headline">{analysis.headline}</p>
+            {analysis.factors.length > 0 && (
+              <div className="hw-analysis-block">
+                <span className="hw-analysis-label">Because</span>
+                <ul className="hw-analysis-list">
+                  {analysis.factors.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {analysis.suggestions.length > 0 && (
+              <div className="hw-analysis-block">
+                <span className="hw-analysis-label">What you could try</span>
+                <ul className="hw-analysis-list">
+                  {analysis.suggestions.map((s, i) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
         <div style={{ display: "flex", gap: 12 }}>

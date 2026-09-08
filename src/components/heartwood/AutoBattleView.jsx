@@ -23,6 +23,7 @@ const SLOT_POSITIONS = [
 ]
 import { isShielded } from "../../services/heartwood/targeting"
 import { summarizeBattle } from "../../services/heartwood/autoBattleEngine"
+import { analyzeOutcome } from "../../data/heartwood/battleAnalysis"
 import EnemyPieceCard from "./EnemyPieceCard"
 import ResultOverlay from "./ResultOverlay"
 import FloatingNumbers from "./FloatingNumbers"
@@ -97,7 +98,7 @@ function lungeAttack(actorId, targetId) {
 // animation system rounds to actually animate: onAdvanceRound fires on
 // a timer for as long as state.phase === "player", same as a player
 // repeatedly clicking the old "Next Round" button, just automatic.
-export default function AutoBattleView({ state, essenceOnWin, nodeType, difficultyTier, actIndex, victoryLine, onAdvanceRound, onContinue }) {
+export default function AutoBattleView({ state, runState, essenceOnWin, nodeType, difficultyTier, actIndex, victoryLine, onAdvanceRound, onContinue }) {
   useEffect(() => {
     if (state.phase !== "player") return
     const timer = setTimeout(onAdvanceRound, ROUND_DELAY_MS)
@@ -455,6 +456,7 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
         phase={state.phase}
         enemyName={state.enemies[0]?.name || "The enemy"}
         stats={state.phase === "won" || state.phase === "lost" ? summarizeBattle(state) : null}
+        analysis={state.phase === "won" || state.phase === "lost" ? analyzeOutcome(state, runState, { nodeType }) : null}
         essenceOnWin={essenceOnWin}
         victoryLine={victoryLine}
         onContinue={onContinue}

@@ -7037,3 +7037,57 @@ img.hw-intent-glyph {
 .hw-buildscore-positioning[data-off] {
   color: var(--hw-ember);
 }
+
+/* ---- "Why you lost / why you won" (battleAnalysis.js -> ResultOverlay) --
+   The layer above the numeric recap: one headline sentence, then, only
+   on a loss or a near-thing, a short "Because" list and a
+   non-prescriptive "What you could try" list. Sits inside the overlay
+   between the recap and Continue - deliberately quiet, no animation. */
+.hw-analysis {
+  width: 320px;
+  max-width: 82vw;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--hw-border);
+  border-left: 2px solid var(--hw-moss);
+  border-radius: var(--hw-radius);
+  background: var(--hw-card);
+  text-align: left;
+}
+.hw-analysis[data-outcome="lost"] {
+  border-left-color: var(--hw-hp);
+}
+.hw-analysis-headline {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hw-text);
+}
+.hw-analysis-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hw-analysis-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--hw-muted);
+}
+.hw-analysis-list {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hw-analysis-list li {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--hw-muted);
+}
+.hw-analysis-list li::marker {
+  color: var(--hw-border);
+}
