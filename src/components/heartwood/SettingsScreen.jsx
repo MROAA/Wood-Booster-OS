@@ -47,15 +47,13 @@ export default function SettingsScreen({ onBack }) {
   }
 
   return (
-    <div className="hw-intro hw-settings">
+    <div className="hw-intro hw-settings hw-screen-frame">
       <button className="hw-exit-link hw-utility-btn" style={{ position: "absolute", top: 16, left: 16 }} onClick={onBack}>
         ← Back
       </button>
 
-      <div style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: "var(--hw-moss)", marginBottom: 4 }}>
-        Settings
-      </div>
-      <h1 style={{ fontSize: 26, margin: "0 0 6px" }}>Sound &amp; comfort</h1>
+      <div className="hw-screen-eyebrow">Settings</div>
+      <h1 className="hw-screen-title">Sound &amp; comfort</h1>
 
       <div className="hw-settings-group">
         <label className="hw-settings-row">
@@ -89,7 +87,7 @@ export default function SettingsScreen({ onBack }) {
           />
           <span />
         </label>
-        <p className="hw-flavor" style={{ fontSize: 12, margin: "2px 0 0" }}>
+        <p className="hw-screen-sub" style={{ marginTop: 2 }}>
           Trims screen shake, pops and floating numbers to a minimum.
         </p>
       </div>

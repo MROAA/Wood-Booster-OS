@@ -52,6 +52,35 @@
   --hw-fib-10: 377px;
   --hw-fib-11: 610px;
 
+  /* Theme & polish pass (feat/hearthwood-theme-pass). Typography, radii,
+     a spacing alias, and one subtle "premium" surface cue - added, not
+     re-valued, so no existing rule shifts. Consumed by the .hw-screen-*
+     primitives below and adopted incrementally elsewhere. */
+  --hw-font-display: "Cormorant Garamond", "Georgia", serif;
+  --hw-fs-xs: 11px;
+  --hw-fs-sm: 12px;
+  --hw-fs-md: 13px;
+  --hw-fs-base: 14px;
+  --hw-fs-lg: 17px;
+  --hw-fs-xl: 22px;
+  --hw-fs-2xl: 26px;
+
+  --hw-radius-sm: 8px;
+  --hw-radius: 10px;
+  --hw-radius-lg: 12px;
+  --hw-radius-pill: 999px;
+
+  /* Fibonacci, named for spacing (matches src/index.css's --space-1..3). */
+  --hw-space-1: 8px;
+  --hw-space-2: 13px;
+  --hw-space-3: 21px;
+  --hw-space-4: 34px;
+  --hw-space-5: 55px;
+
+  --hw-surface-bg: color-mix(in srgb, var(--hw-bg) 82%, transparent);
+  --hw-surface-edge: inset 0 1px 0 color-mix(in srgb, var(--hw-text) 8%, transparent);
+  --hw-surface-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.55);
+
   background-color: var(--hw-bg);
   /* Marc, live while looking at the shop screen: "nykyinen taustakuva
      on tylsä ja yksinkertainen" / "ei näy vielä taustakuvana". The
@@ -90,6 +119,44 @@
   width: 100%;
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+/* --- Shared screen primitives (feat/hearthwood-theme-pass) -----------
+   The eyebrow label, the serif title and the muted sub-line were
+   copy-pasted inline across GroveScreen / AlmanacScreen / SettingsScreen
+   / FormationScreen; the frame was three near-identical classes. One
+   source now, one subtle "premium" surface edge on the frame. */
+.hw-screen-frame {
+  position: relative;
+  background: var(--hw-surface-bg);
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-lg);
+  padding: 24px 28px 28px;
+  box-shadow: var(--hw-surface-edge), var(--hw-surface-shadow);
+}
+
+.hw-screen-eyebrow {
+  font-size: var(--hw-fs-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hw-moss);
+  margin-bottom: 4px;
+}
+
+.hw-screen-title {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-2xl);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 0 0 6px;
+  color: var(--hw-text);
+}
+
+.hw-screen-sub {
+  font-size: var(--hw-fs-sm);
+  line-height: 1.5;
+  color: var(--hw-muted);
+  margin: 0;
 }
 
 .hw-exit-link {
@@ -172,7 +239,7 @@
   align-self: center;
   padding: 6px 18px;
   border-radius: 999px;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -1103,11 +1170,8 @@
 }
 
 /* ---- Settings screen (SettingsScreen.jsx) --------------------- */
+/* frame (bg / radius / padding / edge) comes from .hw-screen-frame */
 .hw-settings {
-  position: relative;
-  background: color-mix(in srgb, var(--hw-bg) 82%, transparent);
-  border-radius: 12px;
-  padding: 24px 28px 28px;
   width: min(520px, 92vw);
 }
 .hw-settings-group {
@@ -1177,11 +1241,8 @@
 }
 
 /* ---- The Almanac screen (AlmanacScreen.jsx) --------------------- */
+/* frame comes from .hw-screen-frame */
 .hw-almanac-screen {
-  position: relative;
-  background: color-mix(in srgb, var(--hw-bg) 82%, transparent);
-  border-radius: 12px;
-  padding: 24px 28px 28px;
   width: min(1180px, 94vw);
   max-height: calc(100vh - 48px);
   display: flex;
@@ -1240,7 +1301,7 @@
   align-items: center;
   gap: 4px;
   padding: 8px 4px 6px;
-  border-radius: 10px;
+  border-radius: var(--hw-radius);
   border: 1px solid var(--hw-border);
   background: var(--hw-panel);
   color: var(--hw-text);
@@ -1282,7 +1343,7 @@
 
 .hw-almanac-detail {
   border: 1px solid var(--hw-border);
-  border-radius: 12px;
+  border-radius: var(--hw-radius-lg);
   background: color-mix(in srgb, var(--hw-panel) 70%, var(--hw-bg));
   padding: 18px 16px;
   overflow-y: auto;
@@ -1316,13 +1377,11 @@
   color: var(--hw-muted);
   font-style: italic;
 }
+/* frame comes from .hw-screen-frame; the scrim it applies also keeps
+   the perk grid legible over the forest hero image behind
+   commander-select. Only the slightly taller bottom padding is local. */
 .hw-grove {
-  position: relative;
-  /* A quiet scrim so the perk grid stays legible over the forest hero
-     image behind the commander-select root. */
-  background: color-mix(in srgb, var(--hw-bg) 82%, transparent);
-  border-radius: 12px;
-  padding: 24px 28px 32px;
+  padding-bottom: 32px;
 }
 .hw-grove-balance {
   display: flex;
@@ -1788,7 +1847,7 @@ img.hw-card-art {
   font-size: 12px;
   font-weight: 600;
   text-align: center;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   letter-spacing: 0.02em;
   /* Legibility insurance, same reasoning as .hw-card-hp above - the
      card-frame background is a photographic texture now, not a flat
@@ -2099,7 +2158,7 @@ img.hw-card-art {
 .hw-overlay-title {
   font-size: 34px;
   font-weight: 700;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   letter-spacing: 0.04em;
 }
 
@@ -2173,7 +2232,7 @@ img.hw-card-art {
 .hw-runend-title {
   font-size: var(--hw-fib-5);
   font-weight: 700;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   letter-spacing: 0.04em;
   line-height: 1.15;
 }
@@ -3924,7 +3983,7 @@ img.hw-card-art {
 }
 
 .hw-essence-value {
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   /* Round 4 (market-scale-up pass): 21px -> 27px, alongside the orb's
      own growth right above - keeps the number legible at the bigger
      medallion's new scale instead of looking small inside it. */
@@ -4911,7 +4970,7 @@ h1[data-trial] {
   max-width: 82vw;
   padding: 12px 16px;
   border: 1px solid var(--hw-border);
-  border-radius: 10px;
+  border-radius: var(--hw-radius);
   background: var(--hw-card);
 }
 
@@ -5047,7 +5106,7 @@ h1[data-trial] {
   gap: var(--space-1, 8px);
   padding: var(--space-1, 8px) var(--space-3, 21px);
   border-radius: 999px;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -5190,7 +5249,7 @@ h1[data-trial] {
   color: var(--hw-ember);
   font-size: 11px;
   font-weight: 700;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   animation: hw-token-glow 2.2s ease-in-out infinite;
 }
 
@@ -5587,7 +5646,7 @@ h1[data-trial] {
   z-index: 55;
   font-size: 32px;
   font-weight: 800;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   transform: translate(-50%, -50%);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 16px rgba(0, 0, 0, 0.6);
   -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.85);
@@ -5927,7 +5986,7 @@ img.hw-intent-glyph {
 }
 
 .hw-commander-select-title {
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 34px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -6052,7 +6111,7 @@ img.hw-intent-glyph {
 }
 
 .hw-commander-name {
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 21px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -6183,7 +6242,7 @@ img.hw-intent-glyph {
 }
 
 .hw-guildhall-title {
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 34px;
   font-weight: 600;
   letter-spacing: 0.02em;

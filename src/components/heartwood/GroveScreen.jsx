@@ -24,15 +24,13 @@ export default function GroveScreen({ meta, onBuy, onSelectDepth, onBack }) {
   const perks = [...META_PERKS].sort((a, b) => rank(a) - rank(b) || a.cost - b.cost)
 
   return (
-    <div className="hw-intro hw-grove">
+    <div className="hw-intro hw-grove hw-screen-frame">
       <button className="hw-exit-link hw-utility-btn" style={{ position: "absolute", top: 16, left: 16 }} onClick={onBack}>
         ← Back
       </button>
 
-      <div style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: "var(--hw-moss)", marginBottom: 4 }}>
-        The Grove
-      </div>
-      <h1 style={{ fontSize: 26, margin: "0 0 6px" }}>Plant what you carried out</h1>
+      <div className="hw-screen-eyebrow">The Grove</div>
+      <h1 className="hw-screen-title">Plant what you carried out</h1>
       <p className="hw-flavor" style={{ maxWidth: 560 }}>
         Every run leaves you with Acorns - more the further you got, most of all for a win. Spend them here on
         permanent head starts. What you plant stays planted.
