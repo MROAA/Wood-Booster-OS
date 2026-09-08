@@ -190,6 +190,27 @@
   box-shadow: 0 0 16px 2px color-mix(in srgb, var(--hw-curse) 40%, transparent);
 }
 
+/* Elite (feat/hearthwood-elites) - between a mook and a Trial. Its own
+   hot hue so it never reads as "just a miniboss". */
+.hw-elevated-banner--elite {
+  color: var(--hw-hp);
+  border-color: var(--hw-hp);
+  background: color-mix(in srgb, var(--hw-hp) 16%, var(--hw-panel));
+  box-shadow: 0 0 16px 2px color-mix(in srgb, var(--hw-hp) 40%, transparent);
+}
+
+/* The elite gimmick tag on the formation screen. */
+.hw-elite-gimmick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -2px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--hw-hp);
+}
+
 .hw-top-row {
   display: flex;
   gap: var(--space-3, 21px);

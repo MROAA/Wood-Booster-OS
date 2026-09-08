@@ -3569,6 +3569,26 @@ Full line text lives in `merchant.js`. One placeholder doodle portrait
 (`merchantGlyph`) for all five, tinted per Act; per-Act portraits are a
 later art pass.
 
+### Elite encounters (SHIPPED)
+
+`src/data/heartwood/enemies.js` — four elite enemies, each promoted onto a
+fixed `type: "elite"` RUN_PATH node (a mid-tier spike between a mook and a
+Trial). Each has **one clear gimmick** (a `passive` trigger) plus an HP-
+threshold `phases` escalation, reusing `checkBossPhases` — no new engine code.
+
+- **The Gorging Maw** (Act II, node ~24, was Bramblehide) — Lifelink: heals on
+  every hit it lands; @50% heals harder + Strength. *Burst it down.*
+- **The Iron Sentinel** (Act II, node ~42, was Ironmaw) — Compounding Bulwark
+  each round; @60% also gains block each round. *Execute or open big — chipping loses.*
+- **The Bramble Lash** (Act III, node ~62, was Mossveil) — Thorns: strikes back
+  at whoever hits it; @50% harder + Weak on the attacker. *Fewer, bigger hits.*
+- **The Ashfall Herald** (Act IV, node ~82, was Grimspite) — squad-wide AoE that
+  grows +1 Strength every round; @40% growth doubles. *Race it — cleanse/heal or finish.*
+
+Reward `ELITE_BONUS_ESSENCE = 120` (between formation 100 and miniboss 150).
+Red elevated banner in-fight, a gimmick tag on the formation screen, a major
+pip on the run map. Auto-collected in the Almanac's enemies tab.
+
 ### Guildrun hook — named companions, for Hero Relationships v1
 
 The backlog already carries "Hero Relationships v1" as a separate item.
