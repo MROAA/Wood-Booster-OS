@@ -22,15 +22,13 @@ export default function AlmanacScreen({ meta, onBack }) {
   const selected = selectedId && seenSet.has(selectedId) ? almanacEntry(tab, selectedId) : null
 
   return (
-    <div className="hw-intro hw-almanac-screen">
+    <div className="hw-intro hw-almanac-screen hw-screen-frame">
       <button className="hw-exit-link hw-utility-btn" style={{ position: "absolute", top: 16, left: 16 }} onClick={onBack}>
         ← Back
       </button>
 
-      <div style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: "var(--hw-moss)", marginBottom: 4 }}>
-        The Almanac
-      </div>
-      <h1 style={{ fontSize: 26, margin: "0 0 4px" }}>What the wood has shown you</h1>
+      <div className="hw-screen-eyebrow">The Almanac</div>
+      <h1 className="hw-screen-title">What the wood has shown you</h1>
       <p className="hw-flavor" style={{ maxWidth: 560 }}>
         Every unit, foe, relic and waypoint you meet is written down here - and stays written, run after run.
         <strong> {counts.overall.seen} / {counts.overall.total}</strong> discovered.

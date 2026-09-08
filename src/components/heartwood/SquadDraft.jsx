@@ -643,7 +643,9 @@ export default function SquadDraft({
           without touching the shared .hw-badge class every other
           screen's badges also use. */}
       <div className="hw-market-top-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingRight: 420 }}>
-        <h1 style={{ fontSize: 22, margin: 0 }}>The Hearthwood Market</h1>
+        <h1 className="hw-screen-title" style={{ fontSize: "var(--hw-fs-xl)", marginBottom: 0 }}>
+          The Hearthwood Market
+        </h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* key={difficultyTier.name}: without it this is the same DOM
               node across every render, so crossing into a new tier

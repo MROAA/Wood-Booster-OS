@@ -256,7 +256,11 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
             the heading (Rootkeeper / The Hollow King), not the generic
             "Take the field", so a miniboss/boss reads as the story beat
             it is. Regular battles keep the plain heading. */}
-        <h1 style={{ fontSize: 22, margin: 0 }} data-trial={narrative.isTrial || isElite || undefined}>
+        <h1
+          className="hw-screen-title"
+          style={{ fontSize: "var(--hw-fs-xl)", marginBottom: 0 }}
+          data-trial={narrative.isTrial || isElite || undefined}
+        >
           {narrative.isTrial ? narrative.title : isElite ? narrative.title : "Take the field"}
         </h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -291,11 +295,11 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
             background: `color-mix(in srgb, ${difficultyTier.color} 10%, var(--hw-panel))`,
           }}
         >
-          <div style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: difficultyTier.color, marginBottom: 4 }}>
+          <div className="hw-screen-eyebrow" style={{ color: difficultyTier.color, marginBottom: 4 }}>
             {difficultyTier.name}
           </div>
-          <div style={{ fontSize: 13, color: "var(--hw-muted)", marginBottom: 6 }}>{difficultyTier.tagline}</div>
-          <div style={{ fontSize: 13, lineHeight: 1.5 }}>{difficultyTier.lore}</div>
+          <div className="hw-screen-sub" style={{ marginBottom: 6 }}>{difficultyTier.tagline}</div>
+          <div style={{ fontSize: "var(--hw-fs-md)", lineHeight: 1.5 }}>{difficultyTier.lore}</div>
         </div>
       )}
 
