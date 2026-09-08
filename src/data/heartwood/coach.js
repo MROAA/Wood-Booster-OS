@@ -74,6 +74,12 @@ export const COACH_TIPS = [
     anchor: ".hw-grid",
   },
   {
+    id: "threat",
+    title: "Who the enemy hits",
+    text: "Enemies work down your squad by threat - a tank, whoever's dealt the most damage, and anyone taunting draw fire first. The 🎯 marks this round's target. A tank in the forward slot soaks the opening hits so your carry survives.",
+    anchor: ".hw-piece[data-focus-target=\"true\"]",
+  },
+  {
     id: "battle-analysis",
     title: "What decided the fight",
     text: "After each battle this panel names what settled it - and, on a loss or a close call, a couple of things you could try. It's a nudge, not the only answer.",

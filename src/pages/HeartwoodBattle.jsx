@@ -627,6 +627,7 @@ export default function HeartwoodBattle() {
     }
     if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")
+      if (battle.phase === "player") ids.push("threat")
       if (isElite) ids.push("elite")
       if (deployedLegendary) ids.push("legendary")
       if (battle.arenaId) ids.push("arena")

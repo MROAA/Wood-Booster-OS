@@ -22,7 +22,7 @@ const SLOT_POSITIONS = [
   { row: 1, col: 1 },
 ]
 import { isShielded } from "../../services/heartwood/targeting"
-import { summarizeBattle } from "../../services/heartwood/autoBattleEngine"
+import { summarizeBattle, topThreatTargetId } from "../../services/heartwood/autoBattleEngine"
 import { analyzeOutcome } from "../../data/heartwood/battleAnalysis"
 import EnemyPieceCard from "./EnemyPieceCard"
 import ResultOverlay from "./ResultOverlay"
@@ -205,6 +205,11 @@ export default function AutoBattleView({ state, runState, essenceOnWin, nodeType
     if (s.kind === "combo") for (const t of Object.keys(s.combo.tribes)) surgingTribeIds.add(t)
   }
 
+  // Threat targeting (autoBattleEngine.js): the player unit the enemy
+  // will focus next. Only while the fight is live - once it's won/lost
+  // the 🎯 is noise.
+  const focusId = state.phase === "player" ? topThreatTargetId(state) : null
+
   const rows = []
   for (let row = 0; row < state.grid.rows; row++) {
     const cells = []
@@ -262,6 +267,7 @@ export default function AutoBattleView({ state, runState, essenceOnWin, nodeType
             summoned={playerUnit.summoned}
             synergySurge={!!synergyColor}
             synergyColor={synergyColor}
+            focusTarget={playerUnit.id === focusId}
           />
         )
       }

@@ -155,24 +155,82 @@ function frontmost(state, units) {
   return [...pool].sort((a, b) => a.pos.row - b.pos.row || a.pos.col - b.pos.col)[0].id
 }
 
-// Enemies focus-fire a random living, unshielded squad member instead
-// of a deterministic column - the more interesting version of "no
-// shield," and now a real defensive choice: a unit placed in the
-// forward slot (row 1, col 1) shields whatever's placed directly
-// behind it (row 2, col 1) from this roll entirely.
-// Taunt: a different tool from shielding for the same "protect the
-// squad" goal - shielding protects one specific back slot regardless
-// of who's standing there, Taunt protects everyone else regardless of
-// position by forcing the roll onto whichever unit carries it. Checked
-// before the shielded-filtered random pool, since a taunting unit
-// should draw fire even if it also happens to be sitting in a
-// technically-shielded square.
-function randomLiving(state, units) {
+// Threat targeting (PRD "Strategic Combat System V2" 6-7). Enemies used
+// to focus-fire a UNIFORMLY RANDOM unshielded squad member - the one
+// bit of in-combat RNG the design mandate says shouldn't exist, and it
+// meant a tank was no safer to stand next to than a glass cannon. Now
+// every player unit carries a deterministic Threat value and the enemy
+// hits the highest. Pure + recomputed each pick from live state -
+// nothing persisted, no save bump. Every weight is in this one table,
+// placeholder-first.
+const THREAT = {
+  // Only `tank` spikes - that's the mechanic's point. The rest sit in a
+  // tight 38-45 band so a tank-less squad's round-1 target is decided
+  // mostly by the pos tie-break (front-left first), i.e. close to the
+  // old "hit the front" feel, and the fight length holds. A first pass
+  // with a wide role spread + heavy dmg/heal weighting ran aatos ~-17 pp
+  // on the RUNS=100 gate (its sustain squads had the healer focused
+  // first every fight and folded); this band + the low weights below
+  // brought it back.
+  role: { tank: 100, healer: 45, support: 40, control: 42, debuffer: 42, dps: 40, assassin: 40, summoner: 40, economy: 38 },
+  commander: 42, // no UNITS def -> a flat middle base
+  dmgW: 0.12, // running damageDealt this fight (state.stats) - a carry that keeps hitting slowly climbs the order
+  healW: 0.15, // running healingDone - an out-healing mender climbs a little too (PRD 6), but not enough to be deleted first
+  taunt: 400, // per stack: a large ADDITIVE, not a hard override (PRD 7 - taunt is a priority modifier, leaves room for a future ignore-taunt assassin)
+  front: 8, // pos.row <= 1 (the one forward slot) draws a little extra - ties into positioning (PR #422)
+}
+
+export function unitThreat(state, unit) {
+  const def = unit.id === "commander" ? state.commanderDef : UNITS[unit.defId]
+  const base = unit.id === "commander" ? THREAT.commander : (def && THREAT.role[unitProfile(def).primary]) || 40
+  const s = state.stats?.[unit.id] || {}
+  return (
+    base +
+    Math.round((s.damageDealt || 0) * THREAT.dmgW) +
+    Math.round((s.healingDone || 0) * THREAT.healW) +
+    ((unit.powers?.taunt || 0) > 0 ? THREAT.taunt * unit.powers.taunt : 0) +
+    ((unit.pos?.row ?? 2) <= 1 ? THREAT.front : 0)
+  )
+}
+
+// The enemy's single-target pick. Taunt still bypasses shielding and
+// hard-forces the pool (a taunter draws fire from a technically-shielded
+// square too - the old random pool's rule). Otherwise: the enemy works
+// DOWN the squad in threat order - round 1 hits the highest-threat unit,
+// round 2 the next, wrapping; as units fall the pool shrinks and the
+// top survivors get hit every round. `nth` = this attacker's index in
+// the round's turn order (actSide passes 0, 1, 2 ...) so a multi-enemy
+// volley SPREADS across the squad instead of every enemy computing the
+// same round-number index and dog-piling one unit.
+//
+// Why not pure argmax? That tested ~13-16 pp below `development` on the
+// RUNS=100 gate (the bot's squads have no forward tank to soak a
+// deterministic focus, so its damage dealers got deleted and it
+// snowballed). And round-number-only (no `nth`) sank the sustain
+// Commander ~17 pp: a whole enemy volley landing on one unit per round
+// outpaced its per-round heals. Threat order + per-attacker offset
+// spreads damage the way the old uniform-random pick did (fight length
+// holds) while still making threat matter - highest-threat is hit
+// first - and stays fully deterministic, no RNG.
+function threatTarget(state, units, nth = 0) {
   const living = units.filter((u) => u.hp > 0)
   if (!living.length) return null
   const taunters = living.filter((u) => (u.powers.taunt || 0) > 0)
   const pool = taunters.length ? taunters : unshieldedOrAll(state, living)
-  return pool[Math.floor(Math.random() * pool.length)].id
+  const sorted = [...pool].sort(
+    (a, b) =>
+      unitThreat(state, b) - unitThreat(state, a) ||
+      a.pos.row - b.pos.row ||
+      a.pos.col - b.pos.col ||
+      (a.id < b.id ? -1 : 1),
+  )
+  return sorted[((state.round || 1) - 1 + nth) % sorted.length].id
+}
+
+// The unit the enemy's next attack lands on - for the board's targeting
+// cue (offset 0 = this round's first attacker).
+export function topThreatTargetId(state) {
+  return threatTarget(state, state.playerUnits || [])
 }
 
 // `deployedUnits` is up to 4 entries, either a bare unit id from
@@ -877,6 +935,10 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
 
 function actSide(state, actingUnits, getDef, targetPool, side) {
   let next = state
+  // How many enemy single-target attacks have resolved this round -
+  // offsets threatTarget so a multi-enemy volley spreads across the
+  // squad instead of every enemy hitting the same round-index unit.
+  let enemyAttackN = 0
   for (const unit of actingUnits) {
     if (next.phase !== "player") break
     const current = getUnit(next, unit.id)
@@ -905,7 +967,7 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
     const def = getDef(acting)
 
     // AoE: the one intent type that never goes through frontmost/
-    // randomLiving at all - it hits every living unit in the pool
+    // threatTarget at all - it hits every living unit in the pool
     // directly, so Taunt (which only redirects a single-target pick)
     // and shielding (which only filters that same pick) can't do
     // anything against it. Spacemonkey's signature move, deliberately:
@@ -922,7 +984,8 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
       }
     } else {
       const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
-      const targetId = side === "player" ? frontmost(next, targetPool(next)) : randomLiving(next, targetPool(next))
+      const targetId =
+        side === "player" ? frontmost(next, targetPool(next)) : threatTarget(next, targetPool(next), enemyAttackN++)
       if (targetId) {
         const targetWasAlive = (getUnit(next, targetId)?.hp || 0) > 0
         next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })
