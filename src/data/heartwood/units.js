@@ -160,6 +160,7 @@ import runeveilImg from "../../assets/heartwood/units/runeveil.png"
 // through, plain resize only.
 import trueshotImg from "../../assets/heartwood/units/trueshot.jpg"
 import beastcallerImg from "../../assets/heartwood/units/beastcaller.jpg"
+import { applyBranch } from "./upgrades"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1648,26 +1649,26 @@ const TIER2_UNITS = Object.fromEntries(
 // Rounded to the 50/100/150/200 family (Marc, round numbers).
 export const UPGRADE_COST = 150
 export const UPGRADE_MAX_LEVEL = 3
-const UPGRADE_FACTOR_PER_LEVEL = 0.15
 
 export function upgradeCost(level) {
   return level >= UPGRADE_MAX_LEVEL ? null : UPGRADE_COST * (level + 1)
 }
 
-export function unitDefWithUpgrade(def, level) {
-  if (!level) return def
-  const factor = 1 + level * UPGRADE_FACTOR_PER_LEVEL
-  return {
-    ...def,
-    maxHp: Math.round(def.maxHp * factor),
-    movePattern: def.movePattern.map((m) => scaleEffect(m, factor)),
-    passive: def.passive
-      ? def.passive.map((p) => (p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, factor) } : scaleEffect(p, factor)))
-      : null,
-    rallyAdjacent: def.rallyAdjacent ? scaleEffect(def.rallyAdjacent, factor) : null,
-    rallyHeal: def.rallyHeal ? Math.round(def.rallyHeal * factor) : null,
-    chainDamage: def.chainDamage ? Math.round(def.chainDamage * factor) : null,
+// Upgrade branches (feat/hearthwood-upgrade-branches): `upgrades` is the
+// entry's ordered array of chosen branch ids (upgrades.js's
+// UPGRADE_BRANCHES). Folded on top of the base/fused def at battle
+// start (effectiveUnitDef). Legacy: a bare NUMBER is treated as that
+// many `power` picks - covers the dormant `upgradeLevel` field this
+// used to read (no shipped save carries one > 0) and any external
+// caller that still passes a level.
+export function unitDefWithUpgrade(def, upgrades) {
+  if (typeof upgrades === "number") {
+    let d = def
+    for (let i = 0; i < upgrades; i++) d = applyBranch("power", d)
+    return d
   }
+  if (!Array.isArray(upgrades) || upgrades.length === 0) return def
+  return upgrades.reduce((d, id) => applyBranch(id, d), def)
 }
 
 export const UNITS = { ...BASE_UNITS, ...TIER2_UNITS }

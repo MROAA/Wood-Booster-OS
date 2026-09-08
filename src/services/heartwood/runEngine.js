@@ -13,6 +13,7 @@
 // bench array reshuffles underneath it.
 
 import { UNITS, TIER2_SUFFIX, upgradeCost } from "../../data/heartwood/units"
+import { branchAvailable, branchById, ECONOMY_WIN_BONUS } from "../../data/heartwood/upgrades"
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
 import { ITEMS, ITEM_SLOTS, itemPool } from "../../data/heartwood/items"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
@@ -1000,7 +1001,7 @@ function addUnitToBench(runState, defId, upgradeLevel = 0) {
     return { ok: false, runState }
   }
   const newKey = runState.benchKeyCounter
-  const withNew = [...runState.bench, { key: newKey, defId, upgradeLevel }]
+  const withNew = [...runState.bench, { key: newKey, defId, upgradeLevel, upgrades: [] }]
   const fused = fuseAll(withNew, runState.deployed, runState.items, runState.benchKeyCounter + 1)
   let deployed = fused.deployed
   const deployedKeys = new Set(deployed.filter((k) => k !== null))
@@ -1390,6 +1391,32 @@ export function upgradeRelic(runState, relicId) {
     ...runState,
     essence: runState.essence - cost,
     relicLevels: { ...runState.relicLevels, [relicId]: level + 1 },
+  }
+}
+
+// The first real per-unit Upgrade (feat/hearthwood-upgrade-branches):
+// spends the same rising cost curve as upgradeRelic, but each level
+// picks ONE branch (upgrades.js's UPGRADE_BRANCHES) recorded in
+// entry.upgrades. entry.upgradeLevel is kept synced to its length for
+// any code that still reads a level. Fused (Tier 2) units can't be
+// upgraded, same as reforge - they're already a committed endpoint.
+export function upgradeUnit(runState, benchKey, branchId) {
+  const entry = runState.bench.find((e) => e.key === benchKey)
+  if (!entry) return runState
+  const def = UNITS[entry.defId]
+  if (!def || def.displayTier === 2) return runState
+  const upgrades = entry.upgrades || []
+  const level = upgrades.length || entry.upgradeLevel || 0
+  const cost = upgradeCost(level)
+  if (cost === null || runState.essence < cost) return runState
+  if (!branchById(branchId) || !branchAvailable(branchId, upgrades, level)) return runState
+  const nextUpgrades = [...upgrades, branchId]
+  return {
+    ...runState,
+    essence: runState.essence - cost,
+    bench: runState.bench.map((e) =>
+      e.key === benchKey ? { ...e, upgrades: nextUpgrades, upgradeLevel: nextUpgrades.length } : e,
+    ),
   }
 }
 
@@ -1969,6 +1996,9 @@ function deployedUnitsFor(runState) {
     .map((entry) => ({
       defId: entry.defId,
       upgradeLevel: entry.upgradeLevel || 0,
+      // Upgrade branches (upgrades.js): the chosen-branch array the
+      // battle engine folds via unitDefWithUpgrade.
+      upgrades: entry.upgrades || [],
       itemIds: runState.items.filter((it) => it.equippedTo === entry.key).map((it) => it.defId),
     }))
 }
@@ -2232,8 +2262,21 @@ export function essenceForWin(runState, node) {
   // Essence Flow (metaPerks.js) - a flat per-win bonus from the meta board.
   // ledgerWinBonus: the Ledger Account investment (buyInvestment) - a
   // flat per-win bump, same shape as the meta board's Essence Flow perk.
+  // economyBranchBonus: the Economy upgrade branch (upgrades.js) - each
+  // deployed unit that took it adds ECONOMY_WIN_BONUS. Read here so the
+  // pre-battle "you'll earn N" preview shows it too.
+  const economyBranchBonus = (runState.deployed || [])
+    .filter((k) => k !== null)
+    .map((k) => runState.bench.find((e) => e.key === k))
+    .filter((e) => e && (e.upgrades || []).includes("economy"))
+    .reduce((sum) => sum + ECONOMY_WIN_BONUS, 0)
   const flat =
-    WIN_ESSENCE + difficultyBonus + essenceBonus + (runState.metaWinBonus || 0) + (runState.ledgerWinBonus || 0)
+    WIN_ESSENCE +
+    difficultyBonus +
+    essenceBonus +
+    (runState.metaWinBonus || 0) +
+    (runState.ledgerWinBonus || 0) +
+    economyBranchBonus
   // Run Modifiers (boons.js): some boons/banes carry an Essence-per-win %
   // (e.g. Hollow-Marked trades a Weak start for +30% spoils) - a real
   // risk/reward lever, applied last on top of the flat total.

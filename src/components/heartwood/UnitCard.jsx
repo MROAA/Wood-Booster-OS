@@ -2,6 +2,7 @@ import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 import { TRIBES, tribesOf, synergyTiersSummary } from "../../data/heartwood/synergies"
 import { evolutionFor, evolutionHint } from "../../data/heartwood/evolutions"
+import { UPGRADE_BRANCHES } from "../../data/heartwood/upgrades"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "skill" }
@@ -264,6 +265,21 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
         {def.aura ? " · aura" : ""}
         {def.conditionalPassive ? " · conditional" : ""}
       </div>
+      {/* Upgrade branches chosen for this bench unit (upgrades.js) - a
+          terse ▲ chip row so a unit's build identity reads off its
+          card, per the roles PRD's "upgrade visibility" section. */}
+      {entry?.upgrades?.length > 0 && (
+        <div className="hw-card-upgrades">
+          {entry.upgrades.map((id, i) => {
+            const b = UPGRADE_BRANCHES.find((x) => x.id === id)
+            return (
+              <span key={i} className="hw-card-upgrade-chip" style={{ color: b?.accent, borderColor: b?.accent }}>
+                ▲{b ? ` ${b.label}` : ""}
+              </span>
+            )
+          })}
+        </div>
+      )}
     </motion.div>
   )
 }

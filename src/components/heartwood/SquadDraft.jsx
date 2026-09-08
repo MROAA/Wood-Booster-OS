@@ -28,6 +28,7 @@ import {
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
+import UpgradeChoice from "./UpgradeChoice"
 import MerchantGreeting from "./MerchantGreeting"
 import { CardGlyph } from "./cardArt"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
@@ -83,6 +84,7 @@ export default function SquadDraft({
   onUpgradeRelic,
   onReforge,
   onSell,
+  onUpgradeUnit,
   onRetrain,
   onBuyItem,
   onEquipItem,
@@ -198,6 +200,9 @@ export default function SquadDraft({
   // effect for why this targets the bench and not the shop offer card.
   const [justPurchasedKey, setJustPurchasedKey] = useState(null)
   const [showRetrain, setShowRetrain] = useState(false)
+  // The per-unit Upgrade pick (UpgradeChoice overlay) - holds the bench
+  // key currently being upgraded, or null.
+  const [upgradingKey, setUpgradingKey] = useState(null)
   // Equip flow: click a bag item to select it, then click a slot pip on
   // any bench unit to equip it there (or click a filled pip directly,
   // with nothing selected, to unequip) - the same "click source, click
@@ -326,6 +331,12 @@ export default function SquadDraft({
   function renderBenchCard(entry) {
     const def = UNITS[entry.defId]
     const canReforge = def?.displayTier !== 2
+    // Upgrade (upgrades.js): branch picks recorded on entry.upgrades;
+    // level is its length, capped at UPGRADE_MAX_LEVEL. Fused units
+    // can't upgrade (same as reforge).
+    const upLevel = (entry.upgrades || []).length
+    const upCost = upgradeCost(upLevel)
+    const canUpgrade = def?.displayTier !== 2 && upCost !== null
     // Fusion progress: 3 owned copies of the same base unit merge
     // into a Tier 2 copy automatically (runEngine.js's fuseAll).
     const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
@@ -387,6 +398,21 @@ export default function SquadDraft({
           >
             Fusion {copiesOwned}/3
           </div>
+        )}
+        {/* Upgrade — the PRD's "level-up = a strategic choice". Its own
+            row above Reforge/Sell so the branch pick reads as the
+            unit's identity decision, not a churn action. */}
+        {def?.displayTier !== 2 && (
+          <button
+            className="hw-move-btn hw-upgrade-btn"
+            style={{ fontSize: 11, padding: "4px 6px", width: "100%" }}
+            disabled={!canUpgrade || runState.essence < (upCost ?? Infinity)}
+            onClick={() => setUpgradingKey(entry.key)}
+            title={canUpgrade ? `Pick an upgrade branch for ${def?.name} (${upCost} Essence)` : `${def?.name} is fully upgraded`}
+          >
+            {canUpgrade ? `Upgrade (+${upCost})` : "Maxed"}
+            {upLevel > 0 && <span className="hw-upgrade-btn-lv"> · Lv {upLevel}</span>}
+          </button>
         )}
         {/* Reforge + Sell side by side - half the vertical footprint of
             two stacked full-width buttons (this screen's zero-scroll
@@ -623,8 +649,21 @@ export default function SquadDraft({
     )
   }
 
+  const upgradingEntry = upgradingKey != null ? runState.bench.find((e) => e.key === upgradingKey) : null
+
   return (
     <div className="hw-intro hw-market-stage hw-shop-3zone-stage">
+      {upgradingEntry && (
+        <UpgradeChoice
+          unit={upgradingEntry}
+          essence={runState.essence}
+          onPick={(branchId) => {
+            onUpgradeUnit(upgradingEntry.key, branchId)
+            setUpgradingKey(null)
+          }}
+          onCancel={() => setUpgradingKey(null)}
+        />
+      )}
       {/* paddingRight/flexWrap keep this row's right-aligned badges clear
           of the fixed top-right utility cluster (HeartwoodBattle.jsx's
           utilityBar - exit link + How to Play + Change Commander) - it's

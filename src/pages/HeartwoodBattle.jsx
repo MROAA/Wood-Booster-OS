@@ -8,6 +8,7 @@ import {
   rankUpCommander,
   upgradeRelic,
   reforgeUnit,
+  upgradeUnit,
   sellUnit,
   retrainCommander,
   rerollShop,
@@ -447,6 +448,10 @@ export default function HeartwoodBattle() {
     setRunState((current) => reforgeUnit(current, benchKey))
   }
 
+  function handleUpgradeUnit(benchKey, branchId) {
+    setRunState((current) => upgradeUnit(current, benchKey, branchId))
+  }
+
   function handleSell(benchKey) {
     setRunState((current) => sellUnit(current, benchKey))
   }
@@ -609,6 +614,7 @@ export default function HeartwoodBattle() {
       if (shopLegendary || benchLegendary) ids.push("legendary")
       if ((runState.marketLevel || 1) > 1) ids.push("market-level")
       if (bankInterest(runState.essence) > 0) ids.push("interest")
+      if ((runState.bench || []).some((e) => UNITS[e.defId]?.displayTier !== 2 && runState.essence >= 150)) ids.push("upgrade")
       ids.push("ledger")
     }
     if (phase === "relic") ids.push("relic")
@@ -865,6 +871,7 @@ export default function HeartwoodBattle() {
           onRecruit={handleRecruit}
           onRankUp={handleRankUp}
           onUpgradeRelic={handleUpgradeRelic}
+          onUpgradeUnit={handleUpgradeUnit}
           onReforge={handleReforge}
           onSell={handleSell}
           onRetrain={handleRetrain}

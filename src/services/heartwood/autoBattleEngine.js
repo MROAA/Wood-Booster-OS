@@ -77,8 +77,11 @@ function freshUnit(overrides) {
 // actSide call) - a single shared helper so all 3 spots can never drift
 // out of sync with each other, same discipline effectiveItemSlots
 // (runEngine.js) already documents for its own callers.
-function effectiveUnitDef(defId, upgradeLevel, deployedDefIds) {
-  const base = unitDefWithUpgrade(UNITS[defId], upgradeLevel)
+// `upgrades` is the bench entry's chosen-branch array (upgrades.js /
+// units.js's unitDefWithUpgrade). A bare number is still accepted
+// (legacy `upgradeLevel` -> that many `power` picks).
+function effectiveUnitDef(defId, upgrades, deployedDefIds) {
+  const base = unitDefWithUpgrade(UNITS[defId], upgrades)
   const dualClass = findDualClassFor(defId, deployedDefIds, UNITS)
   return dualClass ? applyDualClassGrant(base, defId, dualClass, UNITS) : base
 }
@@ -234,10 +237,10 @@ export function startAutoBattle(
     ? mirrorSquad.map((entry, i) => ({
         defId: entry.defId,
         pos: MIRROR_POSITIONS[i] || { row: 0, col: i % 3 },
-        upgradeLevel: entry.upgradeLevel || 0,
+        upgrades: entry.upgrades || [],
         itemIds: entry.itemIds || [],
       }))
-    : formation.pieces.map((p) => ({ ...p, upgradeLevel: 0, itemIds: [] }))
+    : formation.pieces.map((p) => ({ ...p, upgrades: [], itemIds: [] }))
 
   const scaleDefFor = (base) =>
     difficultyFactor === 1
@@ -256,7 +259,7 @@ export function startAutoBattle(
   const enemyDefs = {}
   for (const defId of new Set(enemyPieceSpecs.map((p) => p.defId))) {
     const spec = enemyPieceSpecs.find((p) => p.defId === defId)
-    const base = useMirror ? effectiveUnitDef(defId, spec.upgradeLevel, mirrorDefIds) : ENEMIES[defId]
+    const base = useMirror ? effectiveUnitDef(defId, spec.upgrades, mirrorDefIds) : ENEMIES[defId]
     enemyDefs[defId] = scaleDefFor(base)
   }
 
@@ -290,15 +293,17 @@ export function startAutoBattle(
   const effectiveDefs = {}
   const recruitedUnits = deployedUnits.map((entry, i) => {
     const defId = typeof entry === "string" ? entry : entry.defId
-    const upgradeLevel = typeof entry === "string" ? 0 : entry.upgradeLevel || 0
+    // `upgrades` is the chosen-branch array; fall back to the legacy
+    // numeric `upgradeLevel` if that's all the caller passed.
+    const upgrades = typeof entry === "string" ? [] : entry.upgrades || entry.upgradeLevel || 0
     const itemIds = typeof entry === "string" ? [] : entry.itemIds || []
-    const def = effectiveUnitDef(defId, upgradeLevel, deployedDefIds)
+    const def = effectiveUnitDef(defId, upgrades, deployedDefIds)
     const id = `p${i}`
     effectiveDefs[id] = def
     return freshUnit({
       id,
       defId,
-      upgradeLevel,
+      upgrades,
       itemIds,
       name: def.name,
       hp: def.maxHp,
@@ -543,7 +548,10 @@ export function startAutoBattle(
   // squad-wide source (Commander squadPassive, relics) already set.
   const tribeCounts = {}
   for (const u of recruitedUnits) {
-    for (const t of tribesOf(u.defId, effectiveDefs[u.id])) tribeCounts[t] = (tribeCounts[t] || 0) + 1
+    // Synergy upgrade branch (upgrades.js): a unit with it counts as
+    // +1 toward each of its tribes (effectiveDefs[u.id].synergyBonus).
+    const weight = 1 + (effectiveDefs[u.id]?.synergyBonus || 0)
+    for (const t of tribesOf(u.defId, effectiveDefs[u.id])) tribeCounts[t] = (tribeCounts[t] || 0) + weight
   }
   for (const [tribeId, count] of Object.entries(tribeCounts)) {
     const tiers = SYNERGY_TIERS[tribeId] || []
@@ -1024,7 +1032,7 @@ function applyRallyHealTick(state) {
   let next = state
   for (const u of next.playerUnits) {
     if (u.hp <= 0) continue
-    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgradeLevel || 0, next.deployedDefIds || [])
+    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgrades || [], next.deployedDefIds || [])
     if (!def.rallyHeal) continue
     for (const other of next.playerUnits) {
       if (other.id === u.id || other.hp <= 0) continue
@@ -1046,7 +1054,7 @@ function applyAuraTick(state) {
   let next = state
   for (const u of next.playerUnits) {
     if (u.hp <= 0) continue
-    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgradeLevel || 0, next.deployedDefIds || [])
+    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgrades || [], next.deployedDefIds || [])
     if (!def.aura?.effect) continue
     for (const other of next.playerUnits) {
       if (other.id === u.id || other.hp <= 0) continue
@@ -1218,7 +1226,7 @@ function resolveRoundInner(state) {
   next = actSide(
     next,
     next.playerUnits,
-    (u) => (u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgradeLevel || 0, next.deployedDefIds || [])),
+    (u) => (u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgrades || [], next.deployedDefIds || [])),
     (s) => s.enemies,
     "player",
   )

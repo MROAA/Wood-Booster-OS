@@ -50,6 +50,12 @@ export const COACH_TIPS = [
     anchor: ".hw-rail-section--ledger",
   },
   {
+    id: "upgrade",
+    title: "Upgrading a unit",
+    text: "Each Upgrade level is a choice of direction - Power, Defense, Synergy, Utility or Economy. The same unit can grow into different roles in different runs.",
+    anchor: ".hw-upgrade-btn",
+  },
+  {
     id: "relic",
     title: "Relics",
     text: "A relic buffs your entire squad, every fight, for the rest of the run. Pick the one that fits where your build is going.",
