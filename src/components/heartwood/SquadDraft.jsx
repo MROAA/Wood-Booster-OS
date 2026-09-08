@@ -29,6 +29,7 @@ import {
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
 import UpgradeChoice from "./UpgradeChoice"
+import BuildScore from "./BuildScore"
 import MerchantGreeting from "./MerchantGreeting"
 import { CardGlyph } from "./cardArt"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
@@ -1196,6 +1197,10 @@ export default function SquadDraft({
 
         <div className="hw-panel hw-panel--squad" hidden={activeTab !== "squad"}>
           <div className="hw-panel-title">Your Squad - already owned</div>
+
+          {/* Build evaluation (buildScore.js) - visible while recruiting
+              so a shop is "improve the build or fix its weakness?" */}
+          <BuildScore runState={runState} />
 
           {runState.items.length > 0 && (
             <>

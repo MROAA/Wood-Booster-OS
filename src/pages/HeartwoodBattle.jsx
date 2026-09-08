@@ -622,6 +622,7 @@ export default function HeartwoodBattle() {
     if (phase === "formation") {
       if (isElite) ids.push("elite")
       if (benchLegendary) ids.push("legendary")
+      ids.push("build-score")
       ids.push("formation-position")
     }
     if (phase === "battle" && battle) {
