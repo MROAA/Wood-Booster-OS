@@ -97,7 +97,7 @@ function lungeAttack(actorId, targetId) {
 // animation system rounds to actually animate: onAdvanceRound fires on
 // a timer for as long as state.phase === "player", same as a player
 // repeatedly clicking the old "Next Round" button, just automatic.
-export default function AutoBattleView({ state, essenceOnWin, nodeType, difficultyTier, victoryLine, onAdvanceRound, onContinue }) {
+export default function AutoBattleView({ state, essenceOnWin, nodeType, difficultyTier, actIndex, victoryLine, onAdvanceRound, onContinue }) {
   useEffect(() => {
     if (state.phase !== "player") return
     const timer = setTimeout(onAdvanceRound, ROUND_DELAY_MS)
@@ -407,8 +407,21 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
           Also hosts the synergy WOW banner(s), absolutely positioned
           over the stage rather than pushing the grid around - the
           board's own layout/size (and therefore combat readability)
-          never shifts because a synergy fired. */}
-      <div className="hw-arena">
+          never shifts because a synergy fired.
+          Battlefield spectacle (feat/hearthwood-spectacle-onboarding):
+          data-act / data-forest / data-arena drive CSS-only ambient
+          layers (act-hued light pool, drifting motes tinted by the
+          forest's state, a faint per-hazard wash) - all deterministic
+          (keyed off data already on the battle state) and all
+          reduce-motion-gated. The .hw-stage-motes layer sits UNDER the
+          grid (z-index 0) so it never touches combat readability. */}
+      <div
+        className="hw-arena"
+        data-act={actIndex || undefined}
+        data-forest={state.forestState || undefined}
+        data-arena={state.arenaId || undefined}
+      >
+        <div className="hw-stage-motes" aria-hidden="true" />
         <div className="hw-grid">{rows}</div>
         <FloatingNumbers state={state} />
         {surges.map((s, i) => (

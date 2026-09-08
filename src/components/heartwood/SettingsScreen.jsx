@@ -2,6 +2,7 @@ import { useState } from "react"
 import { loadSettings, setVolumes, setMuted, setReduceMotion, play } from "../../services/heartwood/soundManager"
 import { clearRunSave, clearLastRun } from "../../services/heartwood/runSaveState"
 import { resetMeta } from "../../services/heartwood/metaState"
+import { coachEnabled, setCoachEnabled, resetCoachSeen } from "../../data/heartwood/coach"
 
 // Settings - the first "julkaisukuntoon" surface. Audio volumes (live-
 // wired to soundManager), a Reduce Motion toggle, and a confirm-gated
@@ -10,6 +11,8 @@ import { resetMeta } from "../../services/heartwood/metaState"
 export default function SettingsScreen({ onBack }) {
   const [s, setS] = useState(loadSettings)
   const [confirm, setConfirm] = useState(null) // "run" | "all" | null
+  const [tips, setTips] = useState(coachEnabled)
+  const [tipsReset, setTipsReset] = useState(false)
 
   const set = (patch) => {
     const next = { ...s, ...patch }
@@ -90,6 +93,34 @@ export default function SettingsScreen({ onBack }) {
         <p className="hw-screen-sub" style={{ marginTop: 2 }}>
           Trims screen shake, pops and floating numbers to a minimum.
         </p>
+      </div>
+
+      <div className="hw-settings-group">
+        <label className="hw-settings-row">
+          <span className="hw-settings-label">Show gameplay tips</span>
+          <input
+            type="checkbox"
+            checked={tips}
+            onChange={(e) => {
+              setTips(e.target.checked)
+              setCoachEnabled(e.target.checked)
+            }}
+          />
+          <span />
+        </label>
+        <div className="hw-settings-danger-row" style={{ color: "var(--hw-muted)" }}>
+          <span>Show the first-time tips again from scratch</span>
+          <button
+            className="hw-move-btn"
+            onClick={() => {
+              resetCoachSeen()
+              setTipsReset(true)
+            }}
+            disabled={tipsReset}
+          >
+            {tipsReset ? "Tips reset" : "Reset tips"}
+          </button>
+        </div>
       </div>
 
       <div className="hw-settings-group hw-settings-danger">
