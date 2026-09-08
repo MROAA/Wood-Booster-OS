@@ -71,6 +71,11 @@ import RunMap from "../components/heartwood/RunMap"
 import ActTransitionScreen from "../components/heartwood/ActTransitionScreen"
 import StoryCinematic from "../components/heartwood/StoryCinematic"
 import ForestChoiceScreen from "../components/heartwood/ForestChoiceScreen"
+import CoachTip from "../components/heartwood/CoachTip"
+import HelpOverlay from "../components/heartwood/HelpOverlay"
+import { nextCoachTip, markCoachSeen } from "../data/heartwood/coach"
+import { UNITS } from "../data/heartwood/units"
+import { UNIT_TRIBES } from "../data/heartwood/synergies"
 import { CINEMATICS, cinematicById, suggestedEndingId } from "../data/heartwood/cinematics"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
@@ -173,6 +178,14 @@ export default function HeartwoodBattle() {
   const [showGrove, setShowGrove] = useState(false)
   const [showAlmanac, setShowAlmanac] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  // The ? reference overlay (HelpOverlay) + the contextual coach
+  // (coach.js). `coachTick` forces a re-eval of nextCoachTip after a
+  // tip is dismissed (the seen-set lives in localStorage);
+  // coachDoneKeyRef holds the screen key a tip was last dismissed on so
+  // the rest of that screen's tips stay suppressed until the run moves.
+  const [showHelp, setShowHelp] = useState(false)
+  const [coachTick, setCoachTick] = useState(0)
+  const coachDoneKeyRef = useRef(null)
   const [lastAcornsEarned, setLastAcornsEarned] = useState(null)
   const awardedRunRef = useRef(null)
 
@@ -222,7 +235,7 @@ export default function HeartwoodBattle() {
   // Procedural music mode follows the screen the player is on. Derived
   // here (not inside the effect) so the dep is a plain string.
   const musicMode = (() => {
-    if (showGrove || showAlmanac || showSettings || !runState) return "menu"
+    if (showGrove || showAlmanac || showSettings || showHelp || !runState) return "menu"
     if (runState.phase === "victory" || runState.phase === "defeat") return "end"
     if (runState.phase === "shop") return "shop"
     if (runState.phase === "battle" || runState.phase === "formation") {
@@ -362,6 +375,9 @@ export default function HeartwoodBattle() {
     <div className="hw-utility-bar">
       <button className="hw-exit-link hw-utility-btn" onClick={() => setShowIntro(true)}>
         How to Play
+      </button>
+      <button className="hw-exit-link hw-utility-btn" onClick={() => setShowHelp(true)}>
+        Help
       </button>
       <button className="hw-exit-link hw-utility-btn" onClick={handleChangeCharacter}>
         Change Commander
@@ -542,6 +558,80 @@ export default function HeartwoodBattle() {
     setPendingMemory(loadLastRun())
   }
 
+  // At most one coach tip per screen (nodeIndex + phase) - dismissing
+  // one suppresses the rest until the run actually moves on, so a first
+  // shop shows one concept, not a cascade of four.
+  const coachKey = runState ? `${runState.nodeIndex}:${runState.phase}` : null
+
+  // The ? reference overlay (HelpOverlay) - checked before every other
+  // branch so it opens over any screen (character-select, shop, a
+  // fight) and returns you exactly where you were.
+  if (showHelp) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="help">
+        {exitLink}
+        <HelpOverlay onBack={() => setShowHelp(false)} />
+      </div>
+    )
+  }
+
+  // Contextual coach (coach.js): which mechanics are on screen right
+  // now, derived from runState alone - no engine call - most-specific
+  // first, then the first tip not yet dismissed. `coachTick` is read
+  // only to re-run this after a "Got it".
+  const activeCoachTip = (() => {
+    void coachTick
+    if (!runState || showGrove || showAlmanac || showSettings || showStoryIntro || showIntro) return null
+    if (coachDoneKeyRef.current === coachKey) return null
+    const phase = runState.phase
+    const node = runState.path?.[runState.nodeIndex]
+    const battle = runState.battle
+    const isElite = node?.type === "elite"
+    const benchLegendary = (runState.bench || []).some((b) => UNITS[b.defId]?.tier === "legendary")
+    const shopLegendary = (runState.shopOffers || []).some((id) => UNITS[id]?.tier === "legendary")
+    const deployedLegendary = (battle?.playerUnits || []).some((u) => UNITS[u.defId]?.tier === "legendary")
+    let squadHasTribePair = false
+    if (battle?.playerUnits) {
+      const counts = {}
+      for (const u of battle.playerUnits) {
+        for (const t of UNIT_TRIBES[u.defId] || []) {
+          counts[t] = (counts[t] || 0) + 1
+          if (counts[t] >= 2) squadHasTribePair = true
+        }
+      }
+    }
+    const ids = []
+    if (runState.lastEvolved?.length) ids.push("evolution")
+    if (phase === "shop") {
+      // `shop` first - the "how a run works at all" tip. The rest are
+      // more advanced and only surface on later visits, once it's seen.
+      ids.push("shop")
+      if (shopLegendary || benchLegendary) ids.push("legendary")
+      if ((runState.marketLevel || 1) > 1) ids.push("market-level")
+      if (bankInterest(runState.essence) > 0) ids.push("interest")
+      ids.push("ledger")
+    }
+    if (phase === "relic") ids.push("relic")
+    if (phase === "formation") {
+      if (isElite) ids.push("elite")
+      if (benchLegendary) ids.push("legendary")
+      ids.push("formation-position")
+    }
+    if (phase === "battle" && battle) {
+      if (isElite) ids.push("elite")
+      if (deployedLegendary) ids.push("legendary")
+      if (battle.arenaId) ids.push("arena")
+      if (typeof battle.forestMood === "number") ids.push("forest-mood")
+      if (squadHasTribePair || battle.enemySynergyLabel) ids.push("synergy")
+    }
+    return nextCoachTip(ids)
+  })()
+  const dismissCoach = () => {
+    if (activeCoachTip) markCoachSeen(activeCoachTip.id)
+    coachDoneKeyRef.current = coachKey
+    setCoachTick((n) => n + 1)
+  }
+
   if (!characterId || !runState) {
     if (showGrove) {
       return (
@@ -588,6 +678,9 @@ export default function HeartwoodBattle() {
         <button className="hw-almanac-open-btn" onClick={() => setShowAlmanac(true)}>
           &#128214; The Almanac — {almCounts.overall.seen}/{almCounts.overall.total}
         </button>
+        <button className="hw-help-open-btn" onClick={() => setShowHelp(true)} aria-label="Help" title="How Hearthwood works">
+          ?
+        </button>
         <button className="hw-settings-open-btn" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
           &#9881;
         </button>
@@ -625,6 +718,7 @@ export default function HeartwoodBattle() {
         <AutoBattleView
           state={runState.battle}
           nodeType="boss"
+          actIndex={5}
           victoryLine={resolveTrial("the-crownless")?.victoryLine}
           onAdvanceRound={handleAdvanceRound}
           onContinue={handleCrownlessContinue}
@@ -765,6 +859,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="shop">
         {utilityBar}
+        {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         <SquadDraft
           runState={runState}
           onRecruit={handleRecruit}
@@ -808,6 +903,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="relic">
         {changeCharacterBar}
+        {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         <RelicChoice runState={runState} onChoose={handleChooseRelic} onReroll={handleRerollRelics} />
       </div>
     )
@@ -826,6 +922,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="formation">
         {changeCharacterBar}
+        {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         <FormationScreen
           runState={runState}
           node={runState.path[runState.nodeIndex]}
@@ -849,15 +946,26 @@ export default function HeartwoodBattle() {
   // line on the per-fight result overlay - see trials.js's own comment
   // for why this reuses the enemy's existing combat, just its story voice.
   const trial = resolveTrial(currentPathNode?.trialId)
+  // actIndexForNode is 1-based (1..7, one per DIFFICULTY_TIERS entry) -
+  // used directly as the [data-act] value the spectacle CSS keys on.
+  const battleActIndex = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
   return (
-    <div className="hw-root hw-screen-fade" style={rootStyle} key="battle">
+    <div
+      className="hw-root hw-screen-fade"
+      style={rootStyle}
+      key="battle"
+      data-screen="battle"
+      data-act={battleActIndex}
+    >
       {exitLink}
+      {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
       <BattleSound state={runState.battle} />
       <AutoBattleView
         state={runState.battle}
         essenceOnWin={essenceOnWin}
         nodeType={currentPathNode?.type}
         difficultyTier={difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)}
+        actIndex={battleActIndex}
         victoryLine={trial?.victoryLine}
         onAdvanceRound={handleAdvanceRound}
         onContinue={handleBattleContinue}

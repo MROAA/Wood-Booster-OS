@@ -1207,6 +1207,130 @@
   border-color: var(--hw-muted);
 }
 
+/* The ? help button on character-select - a twin of the gear, one slot
+   to its left. In-run the same overlay is opened from a plain "Help"
+   button in the top-right utility bar (HeartwoodBattle.jsx). */
+.hw-help-open-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 62px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-muted) 10%, var(--hw-panel));
+  color: var(--hw-muted);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 130ms ease, border-color 130ms ease;
+}
+.hw-help-open-btn:hover {
+  color: var(--hw-text);
+  border-color: var(--hw-muted);
+}
+
+/* ---- Help overlay (HelpOverlay.jsx) --------------------------------- */
+/* frame comes from .hw-screen-frame */
+.hw-help-screen {
+  width: min(760px, 94vw);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.hw-help-body {
+  margin-top: 14px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.hw-help-section + .hw-help-section {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hw-border);
+}
+.hw-help-heading {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg);
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--hw-moss);
+}
+.hw-help-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hw-help-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+.hw-help-term {
+  color: var(--hw-text);
+  font-weight: 600;
+  font-size: var(--hw-fs-sm);
+}
+.hw-help-blurb {
+  margin: 0;
+  color: var(--hw-muted);
+  font-size: var(--hw-fs-sm);
+  line-height: 1.5;
+}
+@media (max-width: 560px) {
+  .hw-help-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* ---- Contextual coach tip (CoachTip.jsx / coach.js) ---------------- */
+/* Always bottom-centre and fixed - never clipped by a screen edge, and
+   consistent wherever it fires. The spotlight ring (reused
+   .hw-tutorial-spotlight) does the "point at the thing" job. */
+.hw-coach-tip {
+  position: fixed;
+  z-index: 62;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: 420px;
+  max-width: calc(100vw - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  background: color-mix(in srgb, var(--hw-ember) 22%, var(--hw-panel));
+  border: 2px solid var(--hw-ember);
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.6);
+  animation: hw-badge-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.hw-coach-tip-title {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg);
+  font-weight: 700;
+  color: var(--hw-text);
+}
+.hw-coach-tip-text {
+  font-size: var(--hw-fs-sm);
+  line-height: 1.5;
+  color: var(--hw-text);
+}
+.hw-coach-tip .hw-tutorial-actions {
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-coach-tip {
+    animation: none;
+  }
+}
+
 /* ---- Settings screen (SettingsScreen.jsx) --------------------- */
 /* frame (bg / radius / padding / edge) comes from .hw-screen-frame */
 .hw-settings {
@@ -5108,8 +5232,15 @@ h1[data-trial] {
   position: relative;
   border-radius: var(--space-3, 21px);
   padding: var(--space-3, 21px);
+  /* Battlefield spectacle (feat/hearthwood-spectacle-onboarding): the
+     stage's light pool is now hued per Act. --hw-stage-accent defaults
+     to the original ember and is overridden by [data-act="1".."7"]
+     below with the exact DIFFICULTY_TIERS (runEngine.js) hues, so the
+     vignette shape / opacity is untouched - only its colour shifts as
+     the run goes deeper. */
+  --hw-stage-accent: var(--hw-ember);
   background:
-    radial-gradient(ellipse 61.8% 45% at 50% 38.2%, color-mix(in srgb, var(--hw-ember) 8%, transparent), transparent 70%),
+    radial-gradient(ellipse 61.8% 45% at 50% 38.2%, color-mix(in srgb, var(--hw-stage-accent) 13%, transparent), transparent 70%),
     radial-gradient(ellipse 100% 90% at 50% 38.2%, transparent 38.2%, color-mix(in srgb, black 42%, transparent) 100%),
     var(--hw-bg);
   box-shadow: inset 0 0 var(--space-4, 34px) var(--space-1, 8px) color-mix(in srgb, black 35%, transparent);
@@ -5126,6 +5257,158 @@ h1[data-trial] {
 @keyframes hw-arena-breathe {
   0%, 100% { box-shadow: inset 0 0 var(--space-4, 34px) var(--space-1, 8px) color-mix(in srgb, black 35%, transparent); }
   50% { box-shadow: inset 0 0 var(--space-5, 55px) var(--space-2, 13px) color-mix(in srgb, black 28%, transparent); }
+}
+
+/* --- Battlefield spectacle (feat/hearthwood-spectacle-onboarding) ----
+   Act-hued stage light, forest-tinted drifting motes, per-hazard wash,
+   piece idle breathe. All deterministic (AutoBattleView passes
+   data-act / data-forest / data-arena off the battle state), all
+   reduce-motion-gated, none of it touches the .hw-grid board's size or
+   position - readability is untouched. */
+
+/* Act accent - the 7 DIFFICULTY_TIERS hues (runEngine.js). */
+.hw-arena[data-act="1"] { --hw-stage-accent: var(--hw-moss); }
+.hw-arena[data-act="2"] { --hw-stage-accent: var(--hw-rune); }
+.hw-arena[data-act="3"] { --hw-stage-accent: var(--hw-ember); }
+.hw-arena[data-act="4"] { --hw-stage-accent: var(--hw-hp); }
+.hw-arena[data-act="5"] { --hw-stage-accent: var(--hw-cosmic); }
+.hw-arena[data-act="6"] { --hw-stage-accent: var(--hw-tide); }
+.hw-arena[data-act="7"] { --hw-stage-accent: var(--hw-curse); }
+
+/* Drifting "motes" - two offset radial-gradient fields, under the grid
+   (z-index 0; .hw-grid establishes its own stacking above). Base tint
+   is the Act accent at a few percent. Kept deliberately faint so it
+   reads as depth, not decoration. */
+.hw-stage-motes {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.75;
+  background-image:
+    radial-gradient(circle 2px at 18% 32%, color-mix(in srgb, var(--hw-stage-accent) 40%, transparent), transparent 60%),
+    radial-gradient(circle 1.5px at 62% 18%, color-mix(in srgb, var(--hw-stage-accent) 34%, transparent), transparent 60%),
+    radial-gradient(circle 1.5px at 82% 64%, color-mix(in srgb, var(--hw-stage-accent) 30%, transparent), transparent 60%),
+    radial-gradient(circle 2px at 40% 78%, color-mix(in srgb, var(--hw-stage-accent) 30%, transparent), transparent 60%),
+    radial-gradient(circle 1px at 30% 54%, color-mix(in srgb, var(--hw-stage-accent) 26%, transparent), transparent 60%);
+  background-repeat: repeat;
+  background-size: 220px 200px, 280px 260px, 240px 240px, 200px 220px, 260px 200px;
+  animation: hw-stage-drift 22s linear infinite;
+}
+
+.hw-stage-motes::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle 1.5px at 12% 70%, color-mix(in srgb, var(--hw-stage-accent) 24%, transparent), transparent 60%),
+    radial-gradient(circle 1px at 74% 40%, color-mix(in srgb, var(--hw-stage-accent) 22%, transparent), transparent 60%),
+    radial-gradient(circle 1.5px at 52% 88%, color-mix(in srgb, var(--hw-stage-accent) 20%, transparent), transparent 60%);
+  background-repeat: repeat;
+  background-size: 300px 280px, 260px 300px, 320px 260px;
+  animation: hw-stage-drift 14s linear infinite reverse;
+}
+
+@keyframes hw-stage-drift {
+  0% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0; }
+  100% { background-position: 0 -200px, 0 -260px, 0 -240px, 0 -220px, 0 -200px; }
+}
+
+/* forestState (moods.js) - purified reads clean and sparse, corrupted
+   reads sick and low. Only tint + density shift; the drift is the same. */
+.hw-arena[data-forest="purified"] .hw-stage-motes {
+  opacity: 0.42;
+  filter: hue-rotate(-8deg) saturate(1.15) brightness(1.12);
+}
+.hw-arena[data-forest="corrupted"] .hw-stage-motes {
+  opacity: 0.7;
+}
+.hw-arena[data-forest="corrupted"] .hw-stage-motes::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  background: linear-gradient(to top, color-mix(in srgb, var(--hw-curse) 14%, transparent), transparent);
+  pointer-events: none;
+}
+
+/* Arena hazard wash (arenas.js ids) - one sub-8% full-stage radial per
+   hazard, under the grid, so a Blood Moon fight doesn't look like a
+   Sacred Grove one. ::after keeps it off the .hw-stage-motes layer. */
+.hw-arena[data-arena]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 80% 70% at 50% 40%, color-mix(in srgb, var(--hw-arena-wash, transparent) 100%, transparent), transparent 75%);
+}
+.hw-arena[data-arena="bloodmoon"] { --hw-arena-wash: color-mix(in srgb, var(--hw-hp) 7%, transparent); }
+.hw-arena[data-arena="frostfall"] { --hw-arena-wash: color-mix(in srgb, var(--hw-tide) 7%, transparent); }
+.hw-arena[data-arena="sacred-grove"] { --hw-arena-wash: color-mix(in srgb, var(--hw-moss) 8%, transparent); }
+.hw-arena[data-arena="choking-mist"] { --hw-arena-wash: color-mix(in srgb, var(--hw-muted) 9%, transparent); }
+.hw-arena[data-arena="ley-line"] { --hw-arena-wash: color-mix(in srgb, var(--hw-cosmic) 8%, transparent); }
+.hw-arena[data-arena="corrupted-soil"] { --hw-arena-wash: color-mix(in srgb, var(--hw-curse) 8%, transparent); }
+.hw-arena[data-arena="sinkhole-mire"] { --hw-arena-wash: color-mix(in srgb, var(--hw-wood) 8%, transparent); }
+.hw-arena[data-arena="overgrowth"] { --hw-arena-wash: color-mix(in srgb, var(--hw-moss) 6%, transparent); }
+
+/* Piece idle breathe - +-1px, slower than every real combat cue, and
+   built on `translate` so it composes with the box-shadow/filter
+   .hw-piece[data-synergy-surge] animation rather than replacing it.
+   Staggered per cell just below so the board doesn't pulse in unison. */
+.hw-piece {
+  animation: hw-piece-idle 6s ease-in-out infinite;
+}
+@keyframes hw-piece-idle {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -1px; }
+}
+.hw-grid-row:nth-child(1) .hw-grid-cell:nth-child(2) .hw-piece { animation-delay: -0.8s; }
+.hw-grid-row:nth-child(1) .hw-grid-cell:nth-child(3) .hw-piece { animation-delay: -1.7s; }
+.hw-grid-row:nth-child(2) .hw-grid-cell:nth-child(1) .hw-piece { animation-delay: -2.4s; }
+.hw-grid-row:nth-child(2) .hw-grid-cell:nth-child(2) .hw-piece { animation-delay: -3.3s; }
+.hw-grid-row:nth-child(2) .hw-grid-cell:nth-child(3) .hw-piece { animation-delay: -4.1s; }
+.hw-grid-row:nth-child(3) .hw-grid-cell:nth-child(1) .hw-piece { animation-delay: -1.2s; }
+.hw-grid-row:nth-child(3) .hw-grid-cell:nth-child(2) .hw-piece { animation-delay: -5.0s; }
+.hw-grid-row:nth-child(3) .hw-grid-cell:nth-child(3) .hw-piece { animation-delay: -2.9s; }
+
+/* Depth - the back row sits a hair further into the stage. filter only,
+   no transform, so nothing about the grid's geometry moves. */
+.hw-grid-row:first-child .hw-grid-cell { filter: brightness(0.94); }
+
+/* The whole battle screen picks up a faint Act-hued top vignette on top
+   of the shared --hw-bg-image - ONLY on data-screen="battle" so menus /
+   shop / formation stay on the neutral background. Same 7 hues; very
+   low opacity so it's a mood shift, not a recolour. */
+.hw-root[data-screen="battle"][data-act]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 120% 60% at 50% 0%, color-mix(in srgb, var(--hw-screen-act-accent, transparent) 100%, transparent), transparent 70%);
+}
+.hw-root[data-screen="battle"][data-act="1"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-moss) 10%, transparent); }
+.hw-root[data-screen="battle"][data-act="2"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-rune) 10%, transparent); }
+.hw-root[data-screen="battle"][data-act="3"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-ember) 10%, transparent); }
+.hw-root[data-screen="battle"][data-act="4"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-hp) 11%, transparent); }
+.hw-root[data-screen="battle"][data-act="5"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-cosmic) 12%, transparent); }
+.hw-root[data-screen="battle"][data-act="6"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-tide) 11%, transparent); }
+.hw-root[data-screen="battle"][data-act="7"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-curse) 12%, transparent); }
+/* keep the battle content above the fixed vignette */
+.hw-root[data-screen="battle"] > * { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-stage-motes,
+  .hw-stage-motes::after,
+  .hw-piece {
+    animation: none;
+  }
 }
 
 /* The synergy "WOW" banner (SynergyBanner.jsx) - shared layout/type
@@ -5202,6 +5485,12 @@ h1[data-trial] {
   border: 1px solid var(--hw-border);
   border-radius: 10px;
   padding: var(--space-2, 13px);
+  /* Sits above the .hw-stage-motes ambient layer (z-index 0) so the
+     board and pieces are never dimmed by it - spectacle is backdrop
+     only. Same reason FloatingNumbers/SynergyBanner are already
+     positioned over this. */
+  position: relative;
+  z-index: 1;
 }
 
 .hw-grid-row {
