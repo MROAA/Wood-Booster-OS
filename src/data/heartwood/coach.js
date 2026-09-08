@@ -70,7 +70,7 @@ export const COACH_TIPS = [
   {
     id: "formation-position",
     title: "Where you place matters",
-    text: "The forward slot leads the charge; the back row is safer. Some units only pay off from the front - or only in a full 4-unit line.",
+    text: "Tanks want the forward slot; DPS, healers and support want the back row - a unit in its preferred slot starts the fight with a small edge (a green ring; an amber dot means it's out of place). Some units also only pay off from the front, or only in a full 4-unit line.",
     anchor: ".hw-grid",
   },
   {

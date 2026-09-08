@@ -17,7 +17,8 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
-import { ITEMS } from "../../data/heartwood/items"
+import { ITEMS, effectiveRole } from "../../data/heartwood/items"
+import { unitProfile, positionFitForSlot, POSITION_BONUS } from "../../data/heartwood/roles"
 import { ARENAS } from "../../data/heartwood/arenas"
 import { moodRailFor } from "../../data/heartwood/moods"
 import { tribesOf, SYNERGY_TIERS, resolveComboSynergies, resolvePositionSynergies } from "../../data/heartwood/synergies"
@@ -606,6 +607,28 @@ export function startAutoBattle(
       state = applyEffects(state, cond.effect, { actorId: ru.id, targetId: ru.id })
     }
   }
+
+  // Positioning as a role mechanic (roles.js's positionFitForSlot /
+  // POSITION_BONUS - PRD "Unit Roles" 20-21). recruitedUnits[i] sits in
+  // SLOT_POSITIONS[i]; a unit deployed to its preferred position (tanks
+  // forward = slot 3, everyone else back = slots 0-2) gets a single
+  // battle-start stack of a role-appropriate buff. Out of position gets
+  // nothing - no penalty. Player-side only, same v1 limit as the loops
+  // above.
+  recruitedUnits.forEach((ru, i) => {
+    const base = UNITS[ru.defId]
+    if (!base) return
+    const bent = effectiveRole(base.role, ru.itemIds || [])
+    const profile = unitProfile(base, bent && bent !== base.role ? bent : undefined)
+    if (positionFitForSlot(profile.position, i) !== "in") return
+    const bonus = POSITION_BONUS[profile.primary]
+    if (!bonus) return
+    state = applyEffects(state, [{ type: "applyBuff", id: bonus.id, amount: bonus.amount }], {
+      actorId: ru.id,
+      targetId: ru.id,
+    })
+    state = { ...state, log: [...state.log, `${base.name} is in position.`] }
+  })
 
   // Commander Active Power (characters.js's activePower, runEngine.js's
   // activateCommanderPower/startFormationBattle): queued during the shop

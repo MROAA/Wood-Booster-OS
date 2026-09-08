@@ -10,7 +10,7 @@
 // Placeholder-first: the weight table below is one edit to tune.
 
 import { UNITS } from "./units"
-import { unitProfile } from "./roles"
+import { unitProfile, positionFitForSlot } from "./roles"
 import { effectiveRole } from "./items"
 import { tribesOf, resolveSynergies, resolveComboSynergies, resolvePositionSynergies } from "./synergies"
 
@@ -130,6 +130,11 @@ export function evaluateBuild(runState) {
     ? { name: coreInfo.def.name, why: coreInfo.profile?.strengths?.[0] || "carries this squad" }
     : null
 
+  // Positioning (roles.js): how many deployed units sit in their
+  // preferred slot (tanks forward = slot 3, everyone else back).
+  const matched = deployed.filter((i) => positionFitForSlot(i.profile?.position, i.slotIndex) === "in").length
+  const positioning = { matched, total: n }
+
   // Notes - the <=2 most severe gaps, in priority order.
   const hasTank = deployed.some((i) => has(i, "tank"))
   const hasHealer = deployed.some((i) => has(i, "healer"))
@@ -138,10 +143,11 @@ export function evaluateBuild(runState) {
   if (!hasTank && n >= 3) push("No real front line")
   if (scores.damage <= 2) push("Not enough damage to close a fight")
   if (!hasHealer && scores.sustain <= 2 && scores.damage >= 5) push("Nothing to keep the squad standing")
+  if (n - matched >= 2) push(`${n - matched} units out of position`)
   if (scores.synergy === 0 && n >= 3) push("Your units don't share a tribe")
   if (scores.scaling <= 1 && n === 4) push("Nothing that grows in a long fight")
   if (scores.control === 0 && n === 4) push("No answer to a dangerous enemy")
   if (!notes.length) push("A rounded squad - no glaring gap")
 
-  return { deployedCount: n, scores, core, notes }
+  return { deployedCount: n, scores, core, notes, positioning }
 }

@@ -7000,3 +7000,40 @@ img.hw-intent-glyph {
 }
 .hw-buildscore-core strong { color: var(--hw-moss); }
 .hw-buildscore-note strong { color: var(--hw-ember); }
+
+/* ---- Positioning as a role mechanic (feat/hearthwood-positioning) --
+   A placed unit's slot vs its preferred position (roles.js). "in" -
+   a quiet moss inset ring (composes with the rune formation-bonus
+   glow); "out" - a small ember corner dot, a nudge not an error. */
+.hw-grid-cell[data-position-fit="in"] {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hw-moss) 70%, transparent);
+}
+.hw-grid-cell[data-formation-bonus="true"][data-position-fit="in"] {
+  box-shadow:
+    inset 0 0 0 2px var(--hw-rune),
+    inset 0 0 0 4px color-mix(in srgb, var(--hw-moss) 55%, transparent),
+    0 0 14px 2px color-mix(in srgb, var(--hw-rune) 45%, transparent);
+}
+.hw-grid-cell[data-position-fit="out"] {
+  position: relative;
+}
+.hw-grid-cell[data-position-fit="out"]::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-ember) 80%, transparent);
+  pointer-events: none;
+}
+
+.hw-buildscore-positioning {
+  font-size: 11px;
+  margin: 6px 0 0;
+  color: var(--hw-muted);
+}
+.hw-buildscore-positioning[data-off] {
+  color: var(--hw-ember);
+}
