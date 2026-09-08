@@ -101,6 +101,7 @@ export default function EnemyPieceCard({
   highlighted,
   synergySurge,
   synergyColor,
+  focusTarget,
   onClick,
   side = "enemy",
 }) {
@@ -124,6 +125,7 @@ export default function EnemyPieceCard({
       data-dead={dead}
       data-highlighted={highlighted}
       data-synergy-surge={!!synergySurge && !dead}
+      data-focus-target={!!focusTarget && !dead}
       data-unit-id={enemy.id}
       style={synergyColor ? { "--hw-piece-glow": synergyColor } : undefined}
       onClick={!dead && onClick ? onClick : undefined}
@@ -134,6 +136,14 @@ export default function EnemyPieceCard({
       {shielded && !dead && (
         <span className="hw-badge hw-shield-badge" title="Shielded - ordinary attacks can't reach this piece">
           🛡
+        </span>
+      )}
+      {focusTarget && !dead && side === "player" && (
+        <span
+          className="hw-badge hw-focus-badge"
+          title="This round's target - the enemy works down your squad by threat (tanks, top damage dealt, taunt draw fire first)"
+        >
+          🎯
         </span>
       )}
       {summoned && !dead && (

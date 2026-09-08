@@ -7091,3 +7091,23 @@ img.hw-intent-glyph {
 .hw-analysis-list li::marker {
   color: var(--hw-border);
 }
+
+/* ---- Threat targeting cue (autoBattleEngine.js threatTarget -> AutoBattleView
+   -> EnemyPieceCard) - the player unit the enemy's next single-target
+   attack will land on. A static ember inset ring + a 🎯 badge, distinct
+   from the moss position ring (on .hw-grid-cell) and the animated rune
+   synergy surge. No animation - it's a steady "this one's in the
+   crosshairs" marker, not an event. */
+.hw-piece[data-focus-target="true"] {
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--hw-ember) 85%, transparent),
+    0 0 10px 1px color-mix(in srgb, var(--hw-ember) 35%, transparent);
+}
+.hw-focus-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 11px;
+  color: var(--hw-ember);
+  border-color: var(--hw-ember);
+}
