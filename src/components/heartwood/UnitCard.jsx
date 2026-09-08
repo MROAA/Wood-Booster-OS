@@ -257,6 +257,12 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
         {def.displayTier === 2 ? " Tier 2" : ""}
         {def.attackPattern !== "single" ? ` · ${def.attackPattern}` : ""}
         {def.haste ? " · haste" : ""}
+        {/* Build-around hooks (feat/hearthwood-legendary-units) - same
+            terse ` · tag` shape as haste/attackPattern above so a
+            Legendary reads its identity off the card at a glance. */}
+        {def.growth ? ` · growth +${def.growth.amount}` : ""}
+        {def.aura ? " · aura" : ""}
+        {def.conditionalPassive ? " · conditional" : ""}
       </div>
     </motion.div>
   )

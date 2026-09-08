@@ -224,6 +224,19 @@ export const UNIT_TRIBES = {
   "void-herald": ["shadow", "fang"],
   "star-herald": ["cosmic", "spirit"],
   "goldenbough-ascendant": ["thorn", "grove"],
+  // Legendary tier + rare additions (feat/hearthwood-legendary-units).
+  // Tribes chosen to match each unit's build-around: the Thorn Throne
+  // is mono-Thorn on purpose (its conditionalPassive rewards 3+ Thorn),
+  // Pack Elder is Fang (rewards 2+ Fang), the aura/growth units get the
+  // elemental tag their flavour implies plus one mechanical tribe.
+  "world-ash-elder": ["grove", "cosmic"],
+  "the-thorn-throne": ["thorn"],
+  "bulwark-of-ages": ["warden", "stone"],
+  "deepwood-sovereign": ["fang", "shadow"],
+  "saplingward": ["wood"],
+  "emberbanner": ["ember", "thorn"],
+  "pack-elder": ["fang"],
+  "stonemoot-sentinel": ["stone", "warden"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -
