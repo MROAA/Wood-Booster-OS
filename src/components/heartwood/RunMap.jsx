@@ -42,6 +42,7 @@ function nodeGlyph(node) {
 function nodeColor(node) {
   if (node.type === "boss") return "var(--hw-hp)"
   if (node.type === "miniboss") return "var(--hw-curse)"
+  if (node.type === "elite") return "var(--hw-hp)"
   if (node.type === "event") return "var(--hw-rune)"
   if (node.type === "shop" || node.type === "relic") return "var(--hw-moss)"
   return "var(--hw-ember)"
@@ -113,7 +114,7 @@ function RunRail({ runState }) {
               {indices.map((i) => {
                 const node = RUN_PATH[i]
                 const state = i === nodeIndex ? "current" : i < nodeIndex ? "done" : "todo"
-                const major = node.type === "miniboss" || node.type === "boss"
+                const major = node.type === "miniboss" || node.type === "boss" || node.type === "elite"
                 return (
                   <span
                     key={i}
@@ -185,7 +186,7 @@ export default function RunMap({ runState, mode }) {
         {runState.path.map((n, i) => {
           const isCurrent = i === runState.nodeIndex
           const isDone = i < runState.nodeIndex
-          const isMajor = n.type === "miniboss" || n.type === "boss"
+          const isMajor = n.type === "miniboss" || n.type === "boss" || n.type === "elite"
           // Shop/relic stops are routine, not story beats - visually
           // quieter than a battle so the eye lands on the fights (the
           // actual points of interest) instead of the market icon that

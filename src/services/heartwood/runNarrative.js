@@ -65,6 +65,7 @@ const KIND_BY_TYPE = {
   shop: "stop",
   relic: "stop",
   battle: "fight",
+  elite: "fight",
   miniboss: "fight",
   boss: "fight",
 }
@@ -73,6 +74,7 @@ const TYPE_LABELS = {
   shop: "Market",
   relic: "Relic",
   battle: "Battle",
+  elite: "Elite",
   miniboss: "Greater Foe",
   boss: "Final Stand",
 }
@@ -97,6 +99,7 @@ function nodeArt(node) {
 function nodeColor(node) {
   if (node.type === "boss") return "var(--hw-hp)"
   if (node.type === "miniboss") return "var(--hw-curse)"
+  if (node.type === "elite") return "var(--hw-ember)"
   if (node.type === "shop" || node.type === "relic") return "var(--hw-moss)"
   return "var(--hw-ember)"
 }

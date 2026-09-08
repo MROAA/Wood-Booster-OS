@@ -105,7 +105,7 @@ export const RUN_PATH = [
   { type: "event" },
   { type: "battle", enemyId: "thornspite" },
   { type: "shop" },
-  { type: "battle", enemyId: "bramblehide" },
+  { type: "elite", enemyId: "the-gorging-maw" }, // was: bramblehide
   { type: "shop" },
   { type: "battle", formationId: "emberwracks-guard" },
   { type: "shop" },
@@ -123,7 +123,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "quillfang" },
   { type: "shop" },
-  { type: "battle", enemyId: "ironmaw" },
+  { type: "elite", enemyId: "the-iron-sentinel" }, // was: ironmaw
   { type: "shop" },
   { type: "battle", enemyId: "gravemaw" },
   { type: "shop" },
@@ -143,7 +143,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "bonewarden" },
   { type: "shop" },
-  { type: "battle", enemyId: "mossveil" },
+  { type: "elite", enemyId: "the-bramble-lash" }, // was: mossveil
   { type: "event" },
   { type: "battle", enemyId: "hollowspite" },
   { type: "shop" },
@@ -163,7 +163,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "hollowcurse" },
   { type: "shop" },
-  { type: "battle", enemyId: "grimspite" },
+  { type: "elite", enemyId: "the-ashfall-herald" }, // was: grimspite
   { type: "shop" },
   { type: "battle", enemyId: "ironroot" },
   { type: "shop" },
@@ -355,6 +355,9 @@ const FORMATION_BONUS_ESSENCE = 100
 // Marc's explicit table (an Essence reward, not a price); rounded
 // 190->150 to match how his table rounds 190 elsewhere.
 const MINIBOSS_BONUS_ESSENCE = 150
+// Elites (feat/hearthwood-elites): a harder win than a formation, not
+// as hard as a Trial miniboss - the reward sits between the two.
+const ELITE_BONUS_ESSENCE = 120
 // Market-scale-up pass (Marc, verbatim burst: "heartwood market ja your
 // squad pitää olla ainakin tuplasti isommat" / "kortit on pieniä
 // infopalasia jotka kertoo paljon silmäyksellä" - the Market/Squad
@@ -2193,7 +2196,14 @@ export function autoResolve(runState) {
 // it silently - the same number resolveBattleOutcome actually pays out.
 export function essenceForWin(runState, node) {
   const essenceBonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.essenceBonus || 0), 0)
-  const difficultyBonus = node?.type === "miniboss" ? MINIBOSS_BONUS_ESSENCE : node?.formationId ? FORMATION_BONUS_ESSENCE : 0
+  const difficultyBonus =
+    node?.type === "miniboss"
+      ? MINIBOSS_BONUS_ESSENCE
+      : node?.type === "elite"
+        ? ELITE_BONUS_ESSENCE
+        : node?.formationId
+          ? FORMATION_BONUS_ESSENCE
+          : 0
   // Essence Flow (metaPerks.js) - a flat per-win bonus from the meta board.
   // ledgerWinBonus: the Ledger Account investment (buyInvestment) - a
   // flat per-win bump, same shape as the meta board's Essence Flow perk.

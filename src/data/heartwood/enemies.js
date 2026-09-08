@@ -1339,6 +1339,116 @@ export const ENEMIES = {
       { type: "aoe", amount: 11, weight: 1 },
     ],
   },
+
+  // ===== Elite encounters (feat/hearthwood-elites) =================
+  // Marc: "viholliset ja bossit". A mid-tier spike between a mook and a
+  // Trial - each promoted onto a fixed RUN_PATH node as `type: "elite"`
+  // (runEngine.js), each with ONE clear gimmick (a `passive` trigger)
+  // plus a `phases` escalation (autoBattleEngine.checkBossPhases, which
+  // fires for any enemy carrying `phases`, not just bosses). Pure data,
+  // deterministic, no new engine code. Base stats sit between a
+  // late-Act mook and that Act's miniboss.
+  "the-gorging-maw": {
+    id: "the-gorging-maw",
+    act: 2,
+    name: "The Gorging Maw",
+    maxHp: 72,
+    art: "husk",
+    description: "It doesn't fight to kill you. It fights to be fed.",
+    introLine: "Every wound it opens on you, it closes one of its own. Don't let this go long.",
+    // Lifelink - heals for a flat amount on every hit it lands.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 4 } }],
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "It feeds on the wounds it makes.",
+        effects: [
+          { type: "heal", amount: 7 },
+          { type: "applyBuff", id: "strength", amount: 2 },
+        ],
+      },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 3 },
+      { type: "block", amount: 8, weight: 1 },
+    ],
+  },
+  "the-iron-sentinel": {
+    id: "the-iron-sentinel",
+    act: 2,
+    name: "The Iron Sentinel",
+    maxHp: 84,
+    art: "warden",
+    description: "Chip at it all day. It only gets harder to chip.",
+    introLine: "Its armour thickens every round it stands. A slow grind loses this one - open big or execute.",
+    // Compounding Bulwark - permanent armour that stacks each turn.
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "bulwark", amount: 1 } }],
+    phases: [
+      {
+        atHpPct: 0.6,
+        announce: "It stops pretending to be mortal.",
+        effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
+      },
+    ],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 9 },
+      { type: "attack", amount: 13 },
+      { type: "attack", amount: 8 },
+    ],
+  },
+  "the-bramble-lash": {
+    id: "the-bramble-lash",
+    act: 3,
+    name: "The Bramble Lash",
+    maxHp: 80,
+    art: "rootbindThicket",
+    description: "Touch it and it takes a piece back.",
+    introLine: "It hits back at whoever hits it. Fewer, bigger strikes - and keep your fragile ones out of reach.",
+    // Thorns - retaliates against any unit that strikes it.
+    passive: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 5, target: "target" } }],
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "Every thorn on it turns outward.",
+        effects: [
+          { type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 3, target: "target" } },
+          { type: "addTrigger", trigger: "onHit", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+        ],
+      },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 11, weight: 2 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player", weight: 1 },
+    ],
+  },
+  "the-ashfall-herald": {
+    id: "the-ashfall-herald",
+    act: 4,
+    name: "The Ashfall Herald",
+    maxHp: 88,
+    art: "flame",
+    description: "It doesn't aim. It doesn't have to.",
+    introLine: "Its fire spreads to the whole squad and grows every round. Cleanse, heal through it - or end it fast.",
+    // Its own strikes escalate: +1 Strength at the top of every round,
+    // so both its single hits and its squad-wide AoE keep climbing.
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "strength", amount: 1 } }],
+    phases: [
+      {
+        atHpPct: 0.4,
+        announce: "The whole sky comes down.",
+        effects: [{ type: "applyBuff", id: "strength", amount: 2 }],
+      },
+    ],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "aoe", amount: 5 },
+      { type: "attack", amount: 11 },
+      { type: "aoe", amount: 5 },
+    ],
+  },
 }
 
 // ===================================================================
@@ -1376,7 +1486,20 @@ export const ENEMIES = {
 // Trial.
 export const ACT_COUNT = 7
 
-export const NON_BATTLE_ENEMY_IDS = new Set(["deepwarden", "thornmaw", "wyrmgall", "spacemonkey"])
+// Minibosses + boss + the elites (feat/hearthwood-elites): fixed
+// encounters, only ever on their own `type: "miniboss" | "boss" |
+// "elite"` RUN_PATH nodes - never pulled into the random solo-battle
+// swap pool (actEnemyForNode / ACT_ENEMIES).
+export const NON_BATTLE_ENEMY_IDS = new Set([
+  "deepwarden",
+  "thornmaw",
+  "wyrmgall",
+  "spacemonkey",
+  "the-gorging-maw",
+  "the-iron-sentinel",
+  "the-bramble-lash",
+  "the-ashfall-herald",
+])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible
 // enemies per Act. Every Act 1..7 is guaranteed >= 1 entry (Acts VI/VII

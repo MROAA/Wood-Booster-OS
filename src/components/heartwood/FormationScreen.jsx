@@ -55,9 +55,20 @@ function slotIndexAt(row, col) {
 // like the screen is just sitting there waiting for no reason.
 const AUTO_START_DELAY_MS = 5000
 
+// Elite gimmick one-liners (feat/hearthwood-elites) - the "how do I play
+// this one differently" cue, shown on the formation screen. The enemy's
+// own introLine carries the detail; this is the glanceable tag.
+const ELITE_GIMMICK = {
+  "the-gorging-maw": "Lifelink — it heals from every hit it lands.",
+  "the-iron-sentinel": "Compounding armour — it hardens every round it stands.",
+  "the-bramble-lash": "Thorns — it strikes back at whoever strikes it.",
+  "the-ashfall-herald": "Escalating flame — its squad-wide fire grows every round.",
+}
+
 export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle }) {
   const isBoss = node.type === "boss"
   const isMiniboss = node.type === "miniboss"
+  const isElite = node.type === "elite"
   const formation = resolveFormation(node.formationId || node.enemyId)
   // A Trial (trials.js) is a named narrative wrapper around this exact
   // encounter - real story identity (title, its own intro/victory lines)
@@ -245,8 +256,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
             the heading (Rootkeeper / The Hollow King), not the generic
             "Take the field", so a miniboss/boss reads as the story beat
             it is. Regular battles keep the plain heading. */}
-        <h1 style={{ fontSize: 22, margin: 0 }} data-trial={narrative.isTrial || undefined}>
-          {narrative.isTrial ? narrative.title : "Take the field"}
+        <h1 style={{ fontSize: 22, margin: 0 }} data-trial={narrative.isTrial || isElite || undefined}>
+          {narrative.isTrial ? narrative.title : isElite ? narrative.title : "Take the field"}
         </h1>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {essenceOnWin != null && (
@@ -297,8 +308,14 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
             byte-identical for today's RUN_PATH). */}
         {narrative.intro ||
           narrative.beat ||
-          (isBoss ? "The final fight." : isMiniboss ? "A greater foe." : null)}
+          (isBoss ? "The final fight." : isMiniboss ? "A greater foe." : isElite ? "An elite stands in the way." : null)}
       </p>
+
+      {isElite && ELITE_GIMMICK[node.enemyId] && (
+        <p className="hw-elite-gimmick hw-section-fade-in">
+          <CardGlyph name="sword" className="hw-intent-glyph" /> {ELITE_GIMMICK[node.enemyId]}
+        </p>
+      )}
 
       {narrative.isTrial && narrative.trial?.beat && (
         <p className="hw-flavor" style={{ fontStyle: "italic", color: "var(--hw-muted)", marginTop: -4 }}>

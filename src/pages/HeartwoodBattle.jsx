@@ -227,7 +227,7 @@ export default function HeartwoodBattle() {
     if (runState.phase === "shop") return "shop"
     if (runState.phase === "battle" || runState.phase === "formation") {
       const nodeType = runState.path?.[runState.nodeIndex]?.type
-      return nodeType === "boss" || nodeType === "miniboss" ? "boss" : "battle"
+      return nodeType === "boss" || nodeType === "miniboss" || nodeType === "elite" ? "boss" : "battle"
     }
     return "menu"
   })()

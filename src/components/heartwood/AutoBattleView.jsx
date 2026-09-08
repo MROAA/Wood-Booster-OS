@@ -278,13 +278,22 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
   }
 
   return (
-    <div className="hw-battle" data-elevated={nodeType === "miniboss" || nodeType === "boss"} style={{ position: "relative" }}>
+    <div
+      className="hw-battle"
+      data-elevated={nodeType === "miniboss" || nodeType === "boss" || nodeType === "elite"}
+      style={{ position: "relative" }}
+    >
       {/* A miniboss/boss fight got zero distinct treatment once the
           actual battle started - FormationScreen.jsx's own flavor text
           was the only cue, gone the moment the fight began. A
           Hearthstone-style elevated banner (own accent, own icon)
           keeps that "this one's different" feeling present for the
           whole fight, not just the moment before it. */}
+      {nodeType === "elite" && (
+        <div className="hw-elevated-banner hw-elevated-banner--elite hw-section-fade-in">
+          <CardGlyph name="sword" className="hw-intent-glyph" /> Elite
+        </div>
+      )}
       {nodeType === "miniboss" && (
         <div className="hw-elevated-banner hw-section-fade-in">
           <CardGlyph name="flame" className="hw-intent-glyph" /> Miniboss
