@@ -18,6 +18,7 @@ import { ENEMIES } from "./enemies"
 import { RELICS } from "./relics"
 import { EVENTS } from "./events"
 import { tribesOf, TRIBES } from "./synergies"
+import { ROLES, unitProfile } from "./roles"
 
 const FALLBACK_LORE = "Seen once, in passing. The wood keeps no other record of it - yet."
 
@@ -69,7 +70,12 @@ export const ALMANAC_CATEGORIES = [
 const EVENT_BY_ID = Object.fromEntries(EVENTS.map((e) => [e.id, e]))
 
 function unitSub(def) {
-  const role = def.role ? def.role[0].toUpperCase() + def.role.slice(1) : "Unit"
+  // Role & tag identity model (roles.js): "Tank / Support" instead of a
+  // bare legacy role string.
+  const p = def.role ? unitProfile(def) : null
+  const role = p
+    ? `${ROLES[p.primary].label}${p.secondary ? " / " + ROLES[p.secondary].label : ""}`
+    : "Unit"
   const tribes = tribesOf(def.id, def)
     .map((t) => TRIBES[t]?.name || t)
     .join(", ")

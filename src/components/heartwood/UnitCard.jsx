@@ -3,9 +3,13 @@ import { CardGlyph } from "./cardArt"
 import { TRIBES, tribesOf, synergyTiersSummary } from "../../data/heartwood/synergies"
 import { evolutionFor, evolutionHint } from "../../data/heartwood/evolutions"
 import { UPGRADE_BRANCHES } from "../../data/heartwood/upgrades"
+import { ROLES, unitProfile } from "../../data/heartwood/roles"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
+// Card-accent modifier by resolved primary role (roles.js's ROLES[x].card).
+// hybrid is legacy - the model resolves it to a real primary now.
 const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "skill" }
+const MAX_TAGS = 4
 
 // Physical-card hover (Marc's PRD sect. 9/18-20/31, "sen pitää viettää
 // minut visuaalisuudellaan" - it needs to captivate with its visuals; a
@@ -66,6 +70,13 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   const evoClose = evo && (entry?.wins || 0) >= (evo.when.minWins || 0) - 1
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   const effectiveRole = role || def.role
+  // Role & tag identity (roles.js): a "Tank · Support" line + up to
+  // MAX_TAGS chips + strength/weakness in the tooltip. `role` here is
+  // the Hero-Bent override (SquadDraft/FormationScreen pass it), so a
+  // bent unit's primary reads bent everywhere.
+  const profile = def.role ? unitProfile(def, role && role !== def.role ? role : undefined) : null
+  const primaryRole = profile ? ROLES[profile.primary] : null
+  const secondaryRole = profile?.secondary ? ROLES[profile.secondary] : null
   // Tribes (synergies.js) - now a first-class part of the card, not a
   // footnote (Marc: "heimo tarvitsee näkyvämmän paikan kortissa koska
   // se on keskeinen osa pelimekaniikkaa"). A unit carries 1 mechanical
@@ -113,7 +124,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
 
   return (
     <motion.div
-      className={`hw-card hw-card--${ROLE_ACCENT[effectiveRole] || "skill"}`}
+      className={`hw-card hw-card--${(primaryRole && primaryRole.card) || ROLE_ACCENT[effectiveRole] || "skill"}`}
       data-disabled={!!disabled}
       data-selected={!!selected}
       data-portrait={!!def.image}
@@ -244,6 +255,29 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
             {def.className}
           </div>
         )
+      )}
+      {/* Role & tag identity (roles.js) - the PRD's "upgrade visibility"
+          line: primary (· secondary) role, then a few tags, with the
+          one strength / one weakness in the tooltip. */}
+      {profile && primaryRole && (
+        <div
+          className="hw-card-role-line"
+          style={{ color: primaryRole.accent }}
+          title={`${primaryRole.label}${secondaryRole ? " / " + secondaryRole.label : ""} — ${profile.strengths[0]} · ${profile.weaknesses[0]}`}
+        >
+          <CardGlyph name={primaryRole.icon} className="hw-effect-icon-glyph" />
+          {primaryRole.label}
+          {secondaryRole && <span className="hw-card-role-secondary"> · {secondaryRole.label}</span>}
+        </div>
+      )}
+      {profile && profile.tags.length > 0 && (
+        <div className="hw-card-tags">
+          {profile.tags.slice(0, MAX_TAGS).map((t) => (
+            <span key={t} className="hw-tag-chip">
+              {t}
+            </span>
+          ))}
+        </div>
       )}
       <div className="hw-effect-icons">
         {moves.map((m, i) => (
