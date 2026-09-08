@@ -56,6 +56,12 @@ export const COACH_TIPS = [
     anchor: ".hw-upgrade-btn",
   },
   {
+    id: "roles",
+    title: "Roles & tags",
+    text: "Every unit shows its role (Tank / DPS / Healer / Support / Control / Debuffer…) and a few tags. A strong squad has a front line, a healer, and something that scales - not six of one thing.",
+    anchor: ".hw-card-role-line",
+  },
+  {
     id: "relic",
     title: "Relics",
     text: "A relic buffs your entire squad, every fight, for the rest of the run. Pick the one that fits where your build is going.",

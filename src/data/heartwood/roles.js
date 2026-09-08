@@ -1,0 +1,209 @@
+// Hearthwood Trial - unit role & tag identity model. PRD "Unit Roles,
+// Build System" sections 27-29 / 45: every unit resolves to a primary +
+// secondary role, a tag set, one strength, one weakness, and a
+// preferred position - the foundation the build-evaluation layer and
+// the Act II enemy AI will read from.
+//
+// It is DERIVED from the signals each def already carries (its legacy
+// `role` string, movePattern shape, passive ids, and the hook fields
+// summon / aura / growth / chainDamage / rallyHeal / rallyAdjacent /
+// conditionalPassive), with a small per-id override table for the
+// cases the derivation gets wrong or Marc wants worded. Pure function
+// of a def - no combat math reads it, nothing is written to runState.
+// Placeholder-first: the override table grows over later rounds.
+
+import { tribesOf } from "./synergies"
+
+export const ROLES = {
+  tank: { id: "tank", label: "Tank", icon: "shield", accent: "var(--hw-stone)", card: "power" },
+  dps: { id: "dps", label: "DPS", icon: "sword", accent: "var(--hw-ember)", card: "attack" },
+  healer: { id: "healer", label: "Healer", icon: "heart", accent: "var(--hw-moss)", card: "skill" },
+  support: { id: "support", label: "Support", icon: "spark", accent: "var(--hw-tide)", card: "skill" },
+  control: { id: "control", label: "Control", icon: "rune", accent: "var(--hw-rune)", card: "skill" },
+  debuffer: { id: "debuffer", label: "Debuffer", icon: "root", accent: "var(--hw-curse)", card: "curse" },
+  assassin: { id: "assassin", label: "Assassin", icon: "shadow", accent: "var(--hw-hp)", card: "attack" },
+  summoner: { id: "summoner", label: "Summoner", icon: "wolf", accent: "var(--hw-cosmic)", card: "skill" },
+  economy: { id: "economy", label: "Economy", icon: "cosmic", accent: "var(--hw-cosmic)", card: "skill" },
+}
+
+export const POSITIONS = { front: "front", center: "center", back: "back" }
+
+// One strength / one weakness / a preferred position per role (label-
+// length, the game's own rule). Overridable per unit below.
+const ROLE_META = {
+  tank: { position: "front", strengths: ["Holds the front line"], weaknesses: ["Little damage of its own"] },
+  dps: { position: "back", strengths: ["Steady damage every round"], weaknesses: ["Thin - needs a wall in front"] },
+  healer: { position: "back", strengths: ["Keeps the squad standing"], weaknesses: ["Almost no offence"] },
+  support: { position: "center", strengths: ["Makes the units around it better"], weaknesses: ["Does little alone"] },
+  control: { position: "center", strengths: ["Blunts the enemy's swings"], weaknesses: ["Weak in a raw trade"] },
+  debuffer: { position: "center", strengths: ["Softens a target for your DPS"], weaknesses: ["Slow to matter solo"] },
+  assassin: { position: "back", strengths: ["Finishes a wounded target"], weaknesses: ["Folds under focus fire"] },
+  summoner: { position: "back", strengths: ["Brings extra bodies to the field"], weaknesses: ["Fragile if the summon falls"] },
+  economy: { position: "back", strengths: ["Funds your run"], weaknesses: ["Carries little weight in the fight"] },
+}
+
+// Hand-authored overrides - the units the derivation mis-reads or that
+// deserve worded identity. Any field present replaces the derived one.
+export const ROLE_OVERRIDES = {
+  "world-ash-elder": {
+    primary: "dps", secondary: "support", position: "back",
+    tags: ["scaling", "grove", "cosmic"],
+    strengths: ["Unstoppable once a fight runs long"], weaknesses: ["Almost harmless in the opening rounds"],
+  },
+  "the-thorn-throne": {
+    primary: "dps", secondary: "assassin", position: "back",
+    tags: ["chain", "thorn", "mono-tribe"],
+    strengths: ["Wrecking ball in a full Thorn board"], weaknesses: ["Ordinary without the Thorn count"],
+  },
+  "bulwark-of-ages": {
+    primary: "tank", secondary: "support", position: "front",
+    tags: ["shield", "aura", "warden", "stone"],
+    strengths: ["Hardens whoever stands beside it"], weaknesses: ["Barely threatens anything"],
+  },
+  "deepwood-sovereign": {
+    primary: "assassin", secondary: "dps", position: "front",
+    tags: ["execute", "frontline", "fang", "shadow"],
+    strengths: ["Breaks a lane from the front slot"], weaknesses: ["Wasted anywhere but the front"],
+  },
+  saplingward: { primary: "support", secondary: "dps", tags: ["scaling", "wood"] },
+  emberbanner: { primary: "support", secondary: "dps", tags: ["aura", "ember", "thorn"] },
+  "pack-elder": { primary: "dps", secondary: "assassin", tags: ["chain", "fang"] },
+  "stonemoot-sentinel": { primary: "tank", position: "front", tags: ["shield", "stone", "warden"] },
+  "the-fool": { primary: "healer", secondary: "support", tags: ["regen", "thorn"] },
+  beastcaller: { primary: "summoner", position: "back", strengths: ["Opens the fight a body up"] },
+  sapkeeper: { primary: "support", secondary: "healer", tags: ["aura", "regen", "grove"] },
+  willowmend: { primary: "healer", secondary: "support", tags: ["regen", "grove"] },
+  stoneknoll: { primary: "debuffer", secondary: "dps", tags: ["shatter", "stone"] },
+  thornwisp: { primary: "debuffer", secondary: "dps", tags: ["poison", "root"] },
+  quarrywarden: { primary: "tank", secondary: "support", tags: ["shield", "aura", "grove", "warden"] },
+}
+
+function movesOf(def, type) {
+  return (def.movePattern || []).filter((m) => m.type === type)
+}
+
+// Every status id this unit puts ON AN ENEMY (movePattern debuff moves
+// + passive addTrigger applyBuff/sunder with target "target").
+function targetDebuffs(def) {
+  const ids = new Set()
+  for (const m of def.movePattern || []) {
+    if ((m.type === "debuff" || m.type === "applyBuff") && m.id) ids.add(m.id)
+  }
+  for (const p of def.passive || []) {
+    if (p.type === "addTrigger" && p.effect) {
+      if (p.effect.type === "sunder") ids.add("sunder")
+      if (p.effect.type === "applyBuff" && p.effect.target === "target" && p.effect.id) ids.add(p.effect.id)
+    }
+  }
+  return ids
+}
+
+// Every status id this unit grants ITSELF (or an ally).
+function friendlyBuffs(def) {
+  const ids = new Set()
+  for (const p of def.passive || []) {
+    if (p.type === "applyBuff" && p.id) ids.add(p.id)
+    if (p.type === "addTrigger" && p.effect?.type === "applyBuff" && p.effect.target !== "target" && p.effect.id) {
+      ids.add(p.effect.id)
+    }
+  }
+  if (def.rallyAdjacent?.id) ids.add(def.rallyAdjacent.id)
+  if (def.aura?.effect?.id) ids.add(def.aura.effect.id)
+  if (def.growth) ids.add("ascendant")
+  return ids
+}
+
+function hasHealTrigger(def) {
+  return (def.passive || []).some(
+    (p) => p.type === "addTrigger" && p.effect?.type === "heal" && ["onHit", "onDealDamage"].includes(p.trigger),
+  )
+}
+
+export function deriveProfile(def) {
+  const legacy = def.role || "dps"
+  const debuffs = targetDebuffs(def)
+  const buffs = friendlyBuffs(def)
+  const heals = movesOf(def, "heal").length > 0
+
+  let primary
+  if (def.summon) primary = "summoner"
+  else if (legacy === "tank") primary = "tank"
+  else if (heals && (legacy === "support" || def.rallyHeal)) primary = "healer"
+  else if ([...debuffs].some((id) => ["stun", "slow", "dampen", "taunt", "silence"].includes(id))) primary = "control"
+  else if ([...debuffs].some((id) => ["vulnerable", "sunder", "shatter", "weak"].includes(id))) primary = "debuffer"
+  // Assassin = a real finisher: Execute, or Chain strong enough to be
+  // the point of the unit (a chip-1/2 Chain stays a plain DPS).
+  else if (buffs.has("execute") || (def.chainDamage || 0) >= 3) primary = "assassin"
+  else if (legacy === "support") primary = "support"
+  else primary = "dps"
+
+  // Secondary - a lighter off-lean, or null.
+  let secondary = null
+  const blockTotal = movesOf(def, "block").reduce((s, m) => s + (m.amount || 0), 0)
+  const attackTotal = movesOf(def, "attack").reduce((s, m) => s + (m.amount || 0), 0)
+  if (legacy === "hybrid") {
+    if (blockTotal >= attackTotal && blockTotal > 0) secondary = "tank"
+    else if (heals) secondary = "healer"
+    else if (def.rallyHeal || def.rallyAdjacent || def.aura) secondary = "support"
+    else secondary = "support"
+  } else if (primary !== "support" && (def.rallyAdjacent || def.aura || def.rallyHeal)) {
+    secondary = "support"
+  } else if (primary === "tank" && attackTotal >= blockTotal && attackTotal > 0) {
+    secondary = "dps"
+  } else if (primary === "support" && attackTotal > 0 && movesOf(def, "attack").length >= 2) {
+    secondary = "dps"
+  }
+  if (secondary === primary) secondary = null
+
+  // Tags - mechanic tags first, then tribes; capped by the renderer.
+  const tags = []
+  const add = (t) => {
+    if (t && !tags.includes(t)) tags.push(t)
+  }
+  if (buffs.has("ward") || buffs.has("bulwark") || (movesOf(def, "block")[0]?.amount || 0) >= 5) add("shield")
+  if (debuffs.has("poison") || buffs.has("poison") || def.sporeSpread) add("poison")
+  if (debuffs.has("burn") || buffs.has("burn")) add("burn")
+  if (buffs.has("regen") || def.rallyHeal) add("regen")
+  if (def.attackPattern && def.attackPattern !== "single") add("aoe")
+  if (def.growth || def.aura || buffs.has("ascendant")) add("scaling")
+  if (def.summon) add("summon")
+  if (def.aura || def.rallyAdjacent || def.rallyHeal) add("aura")
+  if (buffs.has("execute")) add("execute")
+  if (def.chainDamage) add("chain")
+  if (hasHealTrigger(def)) add("lifelink")
+  if (def.haste) add("haste")
+  const meta = ROLE_META[primary]
+  if (meta.position === "front") add("frontline")
+  for (const t of tribesOf(def.id, def)) add(t)
+  if (!tags.length) add("forest")
+
+  return {
+    primary,
+    secondary,
+    tags,
+    strengths: [...meta.strengths],
+    weaknesses: [...meta.weaknesses],
+    position: meta.position,
+  }
+}
+
+// The public resolver: override table wins field-by-field; a Hero-Bent
+// role (items.js's effectiveRole) overrides the primary only.
+export function unitProfile(def, bentRole) {
+  if (!def) return null
+  const derived = deriveProfile(def)
+  const ov = ROLE_OVERRIDES[def.id] || {}
+  const profile = {
+    primary: ov.primary || derived.primary,
+    secondary: ov.secondary !== undefined ? ov.secondary : derived.secondary,
+    tags: ov.tags || derived.tags,
+    strengths: ov.strengths || derived.strengths,
+    weaknesses: ov.weaknesses || derived.weaknesses,
+    position: ov.position || derived.position,
+  }
+  if (bentRole && ROLES[bentRole] && bentRole !== profile.primary) {
+    profile.primary = bentRole
+    if (profile.secondary === bentRole) profile.secondary = null
+  }
+  return profile
+}

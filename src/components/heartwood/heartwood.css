@@ -6887,3 +6887,47 @@ img.hw-intent-glyph {
   border-radius: var(--hw-radius-pill, 999px);
   white-space: nowrap;
 }
+
+/* ---- Unit role & tag identity (feat/hearthwood-role-identity) ------
+   The PRD's "upgrade visibility" line on a unit card: primary
+   (· secondary) role with a coloured glyph, then a few tags. Strength
+   and weakness live in the line's tooltip, not on the card face -
+   this screen's zero-scroll budget. */
+.hw-card-role-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 1px;
+  min-height: 13px;
+}
+.hw-card-role-line .hw-effect-icon-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-card-role-secondary {
+  color: var(--hw-muted);
+  font-weight: 600;
+}
+.hw-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 3px;
+}
+.hw-tag-chip {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0 5px;
+  border: 1px solid color-mix(in srgb, var(--hw-muted) 45%, transparent);
+  border-radius: var(--hw-radius-pill, 999px);
+  color: var(--hw-muted);
+  white-space: nowrap;
+  text-transform: lowercase;
+}

@@ -611,6 +611,7 @@ export default function HeartwoodBattle() {
       // `shop` first - the "how a run works at all" tip. The rest are
       // more advanced and only surface on later visits, once it's seen.
       ids.push("shop")
+      ids.push("roles")
       if (shopLegendary || benchLegendary) ids.push("legendary")
       if ((runState.marketLevel || 1) > 1) ids.push("market-level")
       if (bankInterest(runState.essence) > 0) ids.push("interest")
