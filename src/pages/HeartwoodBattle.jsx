@@ -13,6 +13,8 @@ import {
   retrainCommander,
   rerollShop,
   buyInvestment,
+  scoutAhead,
+  scoutCost,
   reclaimBuyback,
   rerollRelicOffers,
   leaveShop,
@@ -466,6 +468,11 @@ export default function HeartwoodBattle() {
     setRunState((current) => buyInvestment(current, id))
   }
 
+  function handleScout() {
+    playSfx("buy")
+    setRunState((current) => scoutAhead(current))
+  }
+
   function handleReclaimBuyback() {
     setRunState((current) => reclaimBuyback(current))
   }
@@ -625,6 +632,8 @@ export default function HeartwoodBattle() {
       ids.push("ledger")
       if ((runState.bench || []).some((e) => UNITS[e.defId]?.economyRole)) ids.push("economy-crew")
       if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("playstyle")
+      if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("run-power")
+      if ((runState.essence || 0) >= scoutCost(runState)) ids.push("scout")
       ids.push("seed")
     }
     if (phase === "relic") ids.push("relic")
@@ -908,7 +917,7 @@ export default function HeartwoodBattle() {
           onContinue={() => setShowMapAfterShop(true)}
           showIntro={showIntro}
           onDismissIntro={dismissIntro}
-          mapSlot={<RunMap runState={runState} mode="rail" />}
+          mapSlot={<RunMap runState={runState} mode="rail" onScout={handleScout} />}
         />
       </div>
     )

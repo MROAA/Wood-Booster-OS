@@ -328,6 +328,12 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // only for v1 (a general targeting redirect is a bigger fairness
     // lever, deferred). Player-side only, like every hook above.
     guard: opts.guard || null,
+    // synergyScaled (feat/hearthwood-player-power): { id, amount } - at
+    // battle start the unit self-buffs `id` by `amount * <active tribe
+    // synergy count>`. Makes playerPower.js's BuildCoherence mechanical:
+    // ordinary in a 1-tribe squad, a real carry in a 2-3 synergy board.
+    // Player-side only; see autoBattleEngine.js's coherence-rewards block.
+    synergyScaled: opts.synergyScaled || null,
     // conditionalPassive: { when, effect } - `effect` (an array of
     // applyEffects entries) applies once at battle start, self-target,
     // ONLY if `when` holds. `when` is one of:
@@ -1675,6 +1681,25 @@ const BASE_UNITS = {
     // units around the Elder stop being the obvious soft target. Also a
     // small per-round mend from the heal step in its own pattern.
     aura: { effect: { type: "applyBuff", id: "bulwark", amount: 1 } },
+  }),
+
+  // --- Coherence content (feat/hearthwood-player-power) --------------
+  "keystone-warden": unit("keystone-warden", "Keystone Warden", "warden", 3, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 5 },
+  ], {
+    className: "Keystone",
+    // synergyScaled: +1 Strength per active tribe synergy at battle
+    // start. Ordinary in a scattered squad, a real carry in a board
+    // that's actually built around 2-3 tribes.
+    synergyScaled: { id: "strength", amount: 1 },
+  }),
+  "driftwood-vagrant": unit("driftwood-vagrant", "Driftwood Vagrant", "wood", 2, "dps", [
+    { type: "attack", amount: 6 },
+    { type: "attack", amount: 5 },
+  ], {
+    // A plain, tribe-flexible body for shop-pool breadth (2 tribes so it
+    // slots into more boards) - no hook.
   }),
 }
 

@@ -247,6 +247,9 @@ export const UNIT_TRIBES = {
   "oathshield": ["warden", "stone"],
   "lure-warden": ["warden", "thorn"],
   "evenwood-elder": ["grove", "wood"],
+  // Coherence content (feat/hearthwood-player-power).
+  "keystone-warden": ["warden", "stone"],
+  "driftwood-vagrant": ["wood", "tide"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

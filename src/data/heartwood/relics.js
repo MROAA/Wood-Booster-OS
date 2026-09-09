@@ -316,6 +316,24 @@ export const RELICS = {
     // relic already established.
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
   },
+  "rooted-standard": {
+    id: "rooted-standard",
+    image: barkWardImg,
+    name: "Rooted Standard",
+    icon: "leaf",
+    description: "The more your ranks belong together, the deeper they can dig in.",
+    // Coherence made mechanical (feat/hearthwood-player-power): at battle
+    // start every deployed unit gets `1 * <active tribe synergy count>`
+    // Block - a coherent 2-synergy board -> +2 Block/unit, a scattered
+    // board -> nothing. Its own special-case in autoBattleEngine.js
+    // (reads the tallied synergy count), like tauntHighestHp/guardLowestHp.
+    // Block resets each round, so it's non-compounding by construction.
+    // Tuned 2 -> 1: at 2 the outlast Commander (aatos) leaned +6pp on
+    // the RUNS=100 gate - a squad-wide defensive relic favouring the
+    // defensive Commander, consistent across 3 pairs.
+    effects: [],
+    synergyScaledBlock: 1,
+  },
   "bark-ward": {
     id: "bark-ward",
     image: barkWardImg,
@@ -847,7 +865,7 @@ const COMMON_RELICS = [
 // (see UNCOMMON's definition above) - the middle tier.
 const UNCOMMON_RELICS = [
   "ember-core", "mosswarden-charm", "bulwark-standard", "aegis-ward",
-  "bark-ward", "wardens-bastion", "groves-blessing", "spirits-veil",
+  "bark-ward", "rooted-standard", "wardens-bastion", "groves-blessing", "spirits-veil",
   "thorns-wrath", "heartsbloom-seed",
   // Elemental tribe anchors - priced with the other anchors (150), even
   // the two-mechanic ones: they only ever reach a fraction of the squad.

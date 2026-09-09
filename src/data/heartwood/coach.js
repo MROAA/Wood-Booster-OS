@@ -50,6 +50,18 @@ export const COACH_TIPS = [
     anchor: ".hw-playstyle-compact",
   },
   {
+    id: "run-power",
+    title: "Run Power",
+    text: "This reads how strong your run REALLY is - units, synergy, items, relics, formation, economy, and how well the pieces reinforce each other (coherence matters more than raw strength). The number in brackets is you vs the power the run expects at this point: above 1.0× you're ahead, below it you're behind. 'Thin:' names the cheapest thing to shore up.",
+    anchor: ".hw-power-compact",
+  },
+  {
+    id: "scout",
+    title: "Scout Ahead",
+    text: "Pay Essence to reveal the next fight's threat band on the Run Map AND how it stacks up against your build - before you commit units, relics and a formation to it. The cost climbs each Act.",
+    anchor: ".hw-scout-btn",
+  },
+  {
     id: "ledger",
     title: "The Ledger",
     text: "One-time, run-long upgrades to the market itself - cheaper recruits, an extra offer, more Essence per win. They pay back over the whole run.",

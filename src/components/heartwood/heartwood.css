@@ -7207,6 +7207,142 @@ img.hw-intent-glyph {
   height: 12px;
 }
 
+/* ---- Run Power (playerPower.js -> PlayerPower.jsx) ------------------
+   The DifficultyEngine's Player Power Score: seven component bars + a
+   band + a ratio vs expected power. Full panel on the run-end screen;
+   one accent line in the shop's Run-Map rail. Mirrors .hw-playstyle. */
+.hw-power {
+  margin: 12px 0 4px;
+  width: 320px;
+  max-width: 82vw;
+  text-align: left;
+}
+.hw-power-headline {
+  font-size: 13px;
+  margin: 0 0 6px;
+  color: var(--hw-text);
+}
+.hw-power-ratio {
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-power-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-power-row {
+  display: grid;
+  grid-template-columns: 104px 1fr 26px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.hw-power-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--hw-muted);
+  white-space: nowrap;
+}
+.hw-power-name .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-power-track {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-border) 60%, transparent);
+  overflow: hidden;
+}
+.hw-power-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms var(--hw-ease-out, ease);
+}
+.hw-power-num {
+  text-align: right;
+  color: var(--hw-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hw-power-note {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--hw-muted);
+  margin: 6px 0 0;
+}
+.hw-power-note--gap {
+  color: color-mix(in srgb, var(--hw-ember) 75%, var(--hw-text));
+}
+.hw-power-compact {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 4px 0 2px;
+}
+.hw-power-compact .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+
+/* ---- Scout Ahead (runEngine.scoutAhead -> RunMap RunRail) ---------- */
+.hw-scout {
+  margin: 6px 0 2px;
+}
+.hw-scout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+  color: var(--hw-moss);
+  cursor: pointer;
+}
+.hw-scout-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.hw-scout-btn .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-scout-report {
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--hw-muted);
+  margin: 4px 0 0;
+}
+.hw-scout-report[data-tone="good"] {
+  color: color-mix(in srgb, var(--hw-moss) 80%, var(--hw-text));
+}
+.hw-scout-report[data-tone="warn"] {
+  color: color-mix(in srgb, var(--hw-ember) 78%, var(--hw-text));
+}
+.hw-scout-report[data-tone="bad"] {
+  color: color-mix(in srgb, var(--hw-hp) 75%, var(--hw-text));
+}
+.hw-run-rail-pip-threat {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--hw-text);
+}
+.hw-run-rail-pip[data-scouted="true"] {
+  outline: 1px solid color-mix(in srgb, var(--hw-moss) 55%, transparent);
+  outline-offset: 1px;
+}
+
 /* ---- Counterplay matchup (counterplay.js -> FormationScreen) --------
    The threats the NEXT fight presents + whether your kit answers each.
    ✓ chip = covered (moss), ✗ chip = a gap (ember). One compact row. */
@@ -7472,6 +7608,22 @@ img.hw-intent-glyph {
   margin: 4px 0 0;
   font-size: 11px;
   color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
+}
+/* "For your build:" - the Player Power relative read (playerPower.js /
+   threatPreview.js relativeThreatLabel). Tinted by tone. */
+.hw-threat-relative {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-threat-relative[data-tone="good"] {
+  color: color-mix(in srgb, var(--hw-moss) 82%, var(--hw-text));
+}
+.hw-threat-relative[data-tone="warn"] {
+  color: color-mix(in srgb, var(--hw-ember) 78%, var(--hw-text));
+}
+.hw-threat-relative[data-tone="bad"] {
+  color: color-mix(in srgb, var(--hw-hp) 75%, var(--hw-text));
 }
 
 /* --- Swarm hint (formations.js the-brood / the-teeming, FormationScreen)
