@@ -98,6 +98,12 @@ export const COACH_TIPS = [
     anchor: ".hw-analysis",
   },
   {
+    id: "seed",
+    title: "This run's seed",
+    text: "Every run has a seed - its fingerprint. The same seed rebuilds the same route, shops, relics and events, so you can replay a run or hand someone a challenge. Copy it from the Run Map. (Battles still play out live.)",
+    anchor: ".hw-seed-rail",
+  },
+  {
     id: "counterplay",
     title: "Answering the next enemy",
     text: "\"Next fight\" lists what THIS enemy brings - armour, a swarm, healing, poison, control, a back-liner - and marks each ✓ if your squad has an answer or ✗ if it doesn't. A gap isn't a loss, but it's where the fight will be decided.",

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
 import { MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
+import { parseSeed } from "../../data/heartwood/seed"
 
 // Commander-select / first-launch screen (roadmap: "Komentajavalinta/
 // aloitusnayton visuaalinen viimeistely"). This is the literal first
@@ -41,6 +42,18 @@ export default function CommanderSelect({
   const [confirmingId, setConfirmingId] = useState(null)
   const unlocked = new Set(unlockedIds)
 
+  // Optional "seeded run" (seed.js / Seed System PRD sections 3-9): a
+  // collapsed line that opens one input. A valid seed is passed up to
+  // onConfirm as the run's forcedSeed; an unparseable one just shows a
+  // hint and is ignored (the field is never required). Captured into a
+  // ref at pick time so the confirm timer below reads a stable value.
+  const [seedOpen, setSeedOpen] = useState(false)
+  const [seedText, setSeedText] = useState("")
+  const pendingSeedRef = useRef(undefined)
+  const seedTrimmed = seedText.trim()
+  const parsedSeed = seedOpen && seedTrimmed ? parseSeed(seedTrimmed) : null
+  const seedInvalid = seedOpen && seedTrimmed.length > 0 && parsedSeed == null
+
   // Cleanup matters here more than most timers in this codebase: this
   // component can be replaced (HeartwoodBattle re-renders past it into
   // "formation"/"shop") the instant onConfirm actually starts the run,
@@ -50,7 +63,7 @@ export default function CommanderSelect({
   // the kind of thing Marc has asked, repeatedly, not to ship.
   useEffect(() => {
     if (!confirmingId) return
-    const timer = setTimeout(() => onConfirm(confirmingId), CONFIRM_DELAY_MS)
+    const timer = setTimeout(() => onConfirm(confirmingId, pendingSeedRef.current), CONFIRM_DELAY_MS)
     return () => clearTimeout(timer)
   }, [confirmingId, onConfirm])
 
@@ -61,6 +74,7 @@ export default function CommanderSelect({
     // double-start - a fast second click can never queue a second
     // beginRun() call or swap the Commander mid-animation.
     if (confirmingId) return
+    pendingSeedRef.current = parsedSeed == null ? undefined : parsedSeed
     setConfirmingId(id)
   }
 
@@ -137,6 +151,42 @@ export default function CommanderSelect({
             </button>
           )
         })}
+      </div>
+
+      <div className="hw-commander-seed">
+        {seedOpen ? (
+          <div className="hw-commander-seed-entry">
+            <label htmlFor="hw-seed-input" className="hw-commander-seed-label">
+              Seed
+            </label>
+            <input
+              id="hw-seed-input"
+              className="hw-commander-seed-input"
+              type="text"
+              inputMode="text"
+              autoComplete="off"
+              spellCheck={false}
+              maxLength={13}
+              placeholder="HW-XXXX-XXXX"
+              value={seedText}
+              disabled={confirmingId !== null}
+              data-invalid={seedInvalid}
+              onChange={(e) => setSeedText(e.target.value)}
+            />
+            <span className="hw-commander-seed-hint" data-invalid={seedInvalid}>
+              {seedInvalid ? "Not a valid seed" : parsedSeed != null ? "Same seed, same route & shops" : "Leave blank for a random run"}
+            </span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="hw-commander-seed-toggle"
+            disabled={confirmingId !== null}
+            onClick={() => setSeedOpen(true)}
+          >
+            &#8617; Enter a seed
+          </button>
+        )}
       </div>
     </div>
   )
