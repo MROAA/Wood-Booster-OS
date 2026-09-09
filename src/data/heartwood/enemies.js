@@ -465,6 +465,56 @@ export const ENEMIES = {
     ],
   },
 
+  // --- Swarmlings (Enemy Ecosystem PRD 6-7, feat/hearthwood-swarm) ---
+  // Tiny bodies for the Swarm formations (formations.js: the-brood /
+  // the-teeming). One alone is nothing; four together, each ramping
+  // +1 Strength/round via the formation synergy, snowball fast unless
+  // an AoE / chain / pattern attacker thins them. HP is the fairness
+  // lever. Patterns are OFFSET (block-lead vs attack-lead) - the
+  // rotwood-husk-pair note: four identical patterns at moveIndex 0
+  // sync-spike catastrophically. In NON_BATTLE_ENEMY_IDS so they only
+  // ever appear via the formations, never actEnemyForNode's solo pool.
+  "sporelet": {
+    id: "sporelet",
+    act: 2,
+    name: "Sporelet",
+    maxHp: 16,
+    art: "husk",
+    description: "One is a nuisance. The cloud of them is the problem.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 2 },
+      { type: "attack", amount: 3 },
+    ],
+  },
+  "mire-gnat": {
+    id: "mire-gnat",
+    act: 2,
+    name: "Mire Gnat",
+    maxHp: 14,
+    art: "mistGrowler",
+    description: "It bites once and is gone. Then the next one bites.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "block", amount: 1 },
+    ],
+  },
+  "thorn-tick": {
+    id: "thorn-tick",
+    act: 3,
+    name: "Thorn Tick",
+    maxHp: 18,
+    art: "root",
+    description: "Small, and it does not let go once it has hold.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 2 },
+      { type: "attack", amount: 3 },
+      { type: "attack", amount: 3 },
+    ],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1571,6 +1621,12 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "silence-weaver",
   "dawn-zealot",
   "plaguebearer",
+  // Swarmlings (feat/hearthwood-swarm): only ever appear inside the
+  // Swarm formations (formations.js the-brood / the-teeming), never as
+  // a solo actEnemyForNode pick - same pool-reshuffle reason as above.
+  "sporelet",
+  "mire-gnat",
+  "thorn-tick",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible

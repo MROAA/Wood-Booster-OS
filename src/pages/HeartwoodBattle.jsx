@@ -77,6 +77,7 @@ import HelpOverlay from "../components/heartwood/HelpOverlay"
 import { nextCoachTip, markCoachSeen } from "../data/heartwood/coach"
 import { UNITS } from "../data/heartwood/units"
 import { UNIT_TRIBES } from "../data/heartwood/synergies"
+import { resolveFormation } from "../data/heartwood/formations"
 import { CINEMATICS, cinematicById, suggestedEndingId } from "../data/heartwood/cinematics"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
@@ -635,6 +636,7 @@ export default function HeartwoodBattle() {
       ids.push("targeting")
       ids.push("threat-preview")
       ids.push("counterplay")
+      if ((resolveFormation(node.formationId || node.enemyId)?.pieces?.length || 0) >= 4) ids.push("swarm")
     }
     if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")

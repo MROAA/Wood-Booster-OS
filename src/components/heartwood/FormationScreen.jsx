@@ -358,6 +358,15 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </div>
       )}
 
+      {/* Swarm hint (formations.js the-brood / the-teeming): 4+ pieces =
+          the Swarm archetype (Enemy Ecosystem PRD 6-7). Says how to beat
+          it - the same "AoE / chain / splash" counter the PRD names. */}
+      {(formation.pieces?.length || 0) >= 4 && (
+        <p className="hw-swarm-hint">
+          A swarm — AoE, chain and pattern attackers clear these fast. Single-target wastes overkill while the rest pile up.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the
