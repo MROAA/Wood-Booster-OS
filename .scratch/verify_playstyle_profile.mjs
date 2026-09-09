@@ -7,7 +7,7 @@ import { mkdir } from "node:fs/promises"
 // choices. No runState write, no save bump -> the fairness pass is a
 // smoke check; these assertions are the gate.
 
-const PORT = process.env.PORT || 5354
+const PORT = process.env.PORT || 5356
 const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-playstyle/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
@@ -122,6 +122,69 @@ const R = await page.evaluate(async () => {
     out.saveOk = out.save.unchanged && out.save.deterministic && out.save.version === 3 && out.save.noKey
   }
 
+  // 4. styleLog history tally (PR #427)
+  {
+    const fresh = engine.startRun("tommy")
+    const initOk =
+      fresh.styleLog &&
+      fresh.styleLog.rerolls === 0 &&
+      fresh.styleLog.pivots === 0 &&
+      fresh.styleLog.grinds === 0 &&
+      fresh.styleLog.maxEssence === fresh.essence
+
+    // rerollShop bump (top up essence so the reroll is affordable)
+    const beforeReroll = { ...engine.startRun("tommy"), essence: 9999 }
+    const afterReroll = engine.rerollShop(beforeReroll)
+    const rerollOk = afterReroll.styleLog.rerolls === 1 && beforeReroll.styleLog.rerolls === 0
+
+    // sellUnit bump
+    const withBench = { ...engine.startRun("tommy"), bench: [{ key: 1, defId: "the-fool", upgrades: [], upgradeLevel: 0, wins: 0 }], deployed: [1, null, null, null] }
+    const afterSell = engine.sellUnit(withBench, 1)
+    const sellOk = afterSell.styleLog.pivots === 1
+
+    // reforgeUnit bump
+    const withBench2 = { ...engine.startRun("tommy"), essence: 9999, bench: [{ key: 1, defId: "the-fool", upgrades: [], upgradeLevel: 0, wins: 0 }], deployed: [1, null, null, null] }
+    const afterReforge = engine.reforgeUnit(withBench2, 1)
+    const reforgeOk = afterReforge.styleLog.pivots === 1
+
+    // effect on the profile: high rerolls+pivots -> more adaptation; grinds -> more defense; maxEssence -> more economy
+    const rsBase = mkRun(byPrimary("dps", 3), { nodeIndex: 4 }, [["power"], ["power"], ["power"]])
+    const adaptLow = evaluatePlaystyle({ ...rsBase, styleLog: {} }).scores.adaptation
+    const adaptHi = evaluatePlaystyle({ ...rsBase, styleLog: { rerolls: 7, pivots: 4 } }).scores.adaptation
+    const defLow = evaluatePlaystyle({ ...rsBase, styleLog: {} }).scores.defense
+    const defHi = evaluatePlaystyle({ ...rsBase, styleLog: { grinds: 5 } }).scores.defense
+    const econLow = evaluatePlaystyle({ ...rsBase, styleLog: {}, essence: 40 }).scores.economy
+    const econHi = evaluatePlaystyle({ ...rsBase, styleLog: { maxEssence: 900 }, essence: 40 }).scores.economy
+
+    // save round-trip (real JSON round-trip of the serializeRun envelope)
+    const populated = { ...engine.startRun("tommy"), styleLog: { rerolls: 3, pivots: 2, grinds: 4, maxEssence: 640 } }
+    const rt = engine.deserializeRun(JSON.parse(JSON.stringify(engine.serializeRun(populated))))
+    const rtOk = !!rt && JSON.stringify(rt.styleLog) === JSON.stringify(populated.styleLog)
+    // a v3 save whose runState lacks styleLog still deserializes + evaluatePlaystyle survives
+    let legacyOk = true
+    try {
+      const env = JSON.parse(JSON.stringify(engine.serializeRun(engine.startRun("tommy"))))
+      delete env.run.styleLog
+      const back = engine.deserializeRun(env)
+      legacyOk = !!back && !("styleLog" in back)
+      evaluatePlaystyle(back || {})
+    } catch {
+      legacyOk = false
+    }
+
+    out.style = { initOk, rerollOk, sellOk, reforgeOk, adaptLow, adaptHi, defLow, defHi, econLow, econHi, rtOk, legacyOk }
+    out.styleOk =
+      initOk &&
+      rerollOk &&
+      sellOk &&
+      reforgeOk &&
+      adaptHi > adaptLow &&
+      defHi > defLow &&
+      econHi > econLow &&
+      rtOk &&
+      legacyOk
+  }
+
   return out
 })
 
@@ -184,13 +247,14 @@ try {
       nodeIndex: 12,
       path: RUN_PATH.slice(0, 13),
       phase: "defeat",
+      styleLog: { rerolls: 3, pivots: 2, grinds: 4, maxEssence: 620 },
       deathMemory: { heroName: "Bulwark of Ages", heroClass: null, commanderName: "Tommy", ts: Date.now() },
     }
     localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(s)))
   })
   await page.reload()
-  await page.waitForSelector(".hw-playstyle-bars", { timeout: 8000 })
-  await page.waitForTimeout(2600) // RunEndOverlay staggers its reveals (playstyle ~1.9s in)
+  await page.waitForSelector(".hw-playstyle-history", { timeout: 9000 }) // seeded styleLog -> this line renders
+  await page.waitForTimeout(2400) // RunEndOverlay staggers its reveals
   await page.screenshot({ path: `${SHOT}/playstyle_runend.png` })
   console.log("compact line:", compactText?.trim())
   shotOk = true
@@ -202,7 +266,7 @@ await browser.close()
 console.log(JSON.stringify(R, null, 2))
 console.log("\nscreenshot:", shotOk ? "captured" : "skipped")
 console.log("page errors:", errs.length, errs.slice(0, 6))
-const checks = ["dominanceOk", "shapeOk", "saveOk"]
+const checks = ["dominanceOk", "shapeOk", "saveOk", "styleOk"]
 const failed = checks.filter((k) => !R[k])
 console.log("failed:", failed.length ? failed : "none")
 const realErrs = errs.filter((e) => !e.startsWith("screenshot:"))

@@ -11,6 +11,15 @@ export default function PlaystyleProfile({ runState, compact = false }) {
   const { scores, dominant, blurb } = useMemo(() => evaluatePlaystyle(runState), [runState])
   const domAxis = dominant && PLAYSTYLE_AXES.find((a) => a.id === dominant)
 
+  // Decision history (runEngine.js's styleLog) - the non-zero parts, for
+  // the full panel only.
+  const sl = runState?.styleLog || {}
+  const history = [
+    sl.rerolls ? `${sl.rerolls} reroll${sl.rerolls > 1 ? "s" : ""}` : null,
+    sl.pivots ? `${sl.pivots} swap${sl.pivots > 1 ? "s" : ""}` : null,
+    sl.grinds ? `${sl.grinds} long fight${sl.grinds > 1 ? "s" : ""}` : null,
+  ].filter(Boolean)
+
   if (compact) {
     if (!domAxis) return null
     return (
@@ -53,6 +62,7 @@ export default function PlaystyleProfile({ runState, compact = false }) {
           blurb
         )}
       </p>
+      {history.length > 0 && <p className="hw-playstyle-history">This run: {history.join(" · ")}</p>}
     </div>
   )
 }
