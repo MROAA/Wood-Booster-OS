@@ -77,6 +77,11 @@ export function evaluatePlaystyle(runState) {
   const tribeSpread = new Set(bench.flatMap((u) => u.tribes)).size
   const branchSpread = new Set(bench.flatMap((u) => u.upgrades)).size
   const primarySpread = new Set(bench.map((u) => u.profile?.primary).filter(Boolean)).size
+  // Decision history (runEngine.js's runState.styleLog - PR #427). What
+  // the profile can't see from a snapshot: rerolls + mid-run swaps ->
+  // adaptation, long grind wins -> defense, peak Essence -> economy.
+  const sl = runState.styleLog || {}
+  const styleN = (k) => sl[k] || 0
 
   const raw = {
     aggression:
@@ -89,7 +94,8 @@ export function evaluatePlaystyle(runState) {
       sum((u) => (is(u, "tank") ? 2 : is(u, "healer", "support") ? 1.5 : 0)) +
       sum((u) => (tag(u, "shield", "frontline", "regen", "aura") ? 1 : 0)) +
       branch("defense") * 2 +
-      branch("synergy") * 1.5,
+      branch("synergy") * 1.5 +
+      Math.min(6, styleN("grinds")) * 2,
     control:
       sum((u) => (is(u, "control", "debuffer") ? 2 : 0)) +
       sum((u) => (CONTROL_TAGS.some((t) => u.tags.has(t)) ? 1 : 0)) +
@@ -101,7 +107,7 @@ export function evaluatePlaystyle(runState) {
       branch("economy") * 3 +
       sum((u) => (is(u, "economy") ? 2 : 0)) +
       ((runState.marketLevel || 1) - 1) * 1.5 +
-      Math.max(0, essence / (nodeIndex + 1) - 60) / 40,
+      Math.max(0, (styleN("maxEssence") || essence) / (nodeIndex + 1) - 70) / 35,
     risk:
       mods.filter((m) => m.kind === "bane").length * 3 +
       hardNodes * 2 +
@@ -112,7 +118,9 @@ export function evaluatePlaystyle(runState) {
       (tribeSpread >= 3 ? tribeSpread - 1 : 0) +
       (branchSpread >= 3 ? branchSpread : 0) +
       (primarySpread >= 3 ? primarySpread : 0) +
-      Object.values(runState.seen || {}).reduce((s, arr) => s + (arr?.length || 0), 0) * 0.15,
+      Object.values(runState.seen || {}).reduce((s, arr) => s + (arr?.length || 0), 0) * 0.15 +
+      Math.min(8, styleN("rerolls")) * 1.1 +
+      Math.min(5, styleN("pivots")) * 2,
   }
 
   const scores = Object.fromEntries(PLAYSTYLE_AXES.map((a) => [a.id, clamp100((raw[a.id] / SCALE[a.id]) * 100)]))
@@ -123,7 +131,7 @@ export function evaluatePlaystyle(runState) {
   let blurb
   if (!dominant) blurb = "Your run hasn't taken shape yet."
   else if (secondary && scores[secondary] >= scores[dominant] - 12)
-    blurb = `A ${labelOf(secondary).toLowerCase()} ${labelOf(dominant).toLowerCase()} - ${BLURB[dominant]}.`
+    blurb = `Mostly ${labelOf(dominant)}, with strong ${labelOf(secondary)} - ${BLURB[dominant]}.`
   else blurb = `${labelOf(dominant)} - ${BLURB[dominant]}.`
 
   return { scores, dominant, secondary, blurb }

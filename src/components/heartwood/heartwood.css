@@ -7187,6 +7187,11 @@ img.hw-intent-glyph {
   color: var(--hw-muted);
   margin: 8px 0 0;
 }
+.hw-playstyle-history {
+  font-size: 10px;
+  color: color-mix(in srgb, var(--hw-muted) 80%, transparent);
+  margin: 3px 0 0;
+}
 .hw-playstyle-compact {
   display: flex;
   align-items: center;

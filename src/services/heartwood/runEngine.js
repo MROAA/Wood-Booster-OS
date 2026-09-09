@@ -872,6 +872,14 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // Buyback (sellUnit / reclaimBuyback): the last unit sold, reclaimable
     // next shop at its refund price. null until you sell something.
     buyback: null,
+    // Playstyle history (playstyle.js's evaluatePlaystyle - PR #426
+    // follow-up): a small cumulative tally of decisions the profile
+    // can't read from a state snapshot - rerolls, mid-run unit swaps
+    // (sell/reforge), long grind wins, and the run's peak Essence.
+    // Additive + read `|| 0` everywhere, so an old save without it just
+    // starts the tally from zero - no RUN_SAVE_VERSION bump. NOTHING in
+    // the combat path reads it; only the run-end / rail display does.
+    styleLog: { rerolls: 0, pivots: 0, grinds: 0, maxEssence: START_ESSENCE + (carriedMemory ? MEMORY_ESSENCE_BONUS : 0) },
     // The Almanac (almanac.js): ids this run has encountered - unioned
     // into meta.almanac when the run ends (HeartwoodBattle). Additive +
     // defaulted on read (noteSeen tolerates undefined), so an old save
@@ -1067,7 +1075,7 @@ export function reforgeUnit(runState, benchKey) {
   if (!pool.length) return runState
   const newDef = pool[Math.floor(Math.random() * pool.length)]
   return {
-    ...runState,
+    ...bumpStyle(runState, { pivots: styleN(runState, "pivots") + 1 }),
     essence: runState.essence - REFORGE_COST,
     bench: runState.bench.map((e) => (e.key === benchKey ? { ...e, defId: newDef.id, upgradeLevel: 0 } : e)),
     // Same "a genuinely different unit afterward" rule as the
@@ -1112,7 +1120,7 @@ export function sellUnit(runState, benchKey) {
   const def = UNITS[entry.defId]
   const refund = sellRefundFor(def)
   return {
-    ...runState,
+    ...bumpStyle(runState, { pivots: styleN(runState, "pivots") + 1 }),
     essence: runState.essence + refund,
     bench: runState.bench.filter((e) => e.key !== benchKey),
     deployed: runState.deployed.map((k) => (k === benchKey ? null : k)),
@@ -1420,10 +1428,17 @@ export function upgradeUnit(runState, benchKey, branchId) {
   }
 }
 
+// Playstyle history tally (see startRun's `styleLog`). Merges a partial
+// patch onto the current counters, tolerating a missing styleLog.
+function bumpStyle(runState, patch) {
+  return { ...runState, styleLog: { ...(runState.styleLog || {}), ...patch } }
+}
+const styleN = (runState, k) => runState.styleLog?.[k] || 0
+
 export function rerollShop(runState) {
   if (runState.essence < runState.rerollCost) return runState
   return {
-    ...runState,
+    ...bumpStyle(runState, { rerolls: styleN(runState, "rerolls") + 1 }),
     essence: runState.essence - runState.rerollCost,
     shopOffers: rollShop(runState.marketLevel || 1, benchTribeCounts(runState), runState.shopSlotBonus || 0),
     // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (50,
@@ -2375,13 +2390,23 @@ export function resolveBattleOutcome(runState) {
     // the shop/relic-entry side effects below always correctly no-op.
     const nextNode = advanced.phase === "choice" ? null : advanced.path[advanced.path.length - 1]
     const enteringShop = nextNode?.type === "shop"
+    // Interest (bankInterest) is on the balance carried INTO this
+    // fight - rs.essence here, before the win payout is added on top
+    // (TFT order: interest on held gold, then round income).
+    const wonEssence = rs.essence + essenceForWin(rs, node) + bankInterest(rs.essence)
+    // Playstyle history (styleLog): a grind = a win that ran 8+ rounds;
+    // maxEssence tracks the run's peak balance (a steadier "hoarder"
+    // signal than the instantaneous number).
+    const styleLog = {
+      ...(rs.styleLog || {}),
+      grinds: (rs.styleLog?.grinds || 0) + ((runState.battle?.round || 0) >= 8 ? 1 : 0),
+      maxEssence: Math.max(rs.styleLog?.maxEssence || 0, wonEssence),
+    }
     return {
       ...rs,
       ...advanced,
-      // Interest (bankInterest) is on the balance carried INTO this
-      // fight - rs.essence here, before the win payout is added on top
-      // (TFT order: interest on held gold, then round income).
-      essence: rs.essence + essenceForWin(rs, node) + bankInterest(rs.essence),
+      styleLog,
+      essence: wonEssence,
       shopOffers: enteringShop ? (rs.frozen ? rs.shopOffers : rollShop(rs.marketLevel || 1, benchTribeCounts(rs), rs.shopSlotBonus || 0)) : rs.shopOffers,
       itemOffers: enteringShop ? rollItemShop() : rs.itemOffers,
       frozen: enteringShop ? false : rs.frozen,
