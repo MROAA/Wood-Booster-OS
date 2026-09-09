@@ -515,6 +515,61 @@ export const ENEMIES = {
     ],
   },
 
+  // --- Fortress bodies (Enemy Ecosystem PRD 8, feat/hearthwood-fortress) ---
+  // The opposite of the swarmlings: few very tough bodies that STALL the
+  // fight - a wall that barely swings, a body that mends itself, a
+  // ward-carrier with real teeth. Counter is armour-break (Shatter /
+  // Sunder), anti-heal / burst, or steady sustained pressure. Each keeps
+  // a real `attack` so a stall fight is still a fight, not a 30-round
+  // cap. In NON_BATTLE_ENEMY_IDS - they only appear via the Fortress
+  // formations (formations.js: the-bulwark / the-bastion).
+  "oakshell-warden": {
+    id: "oakshell-warden",
+    act: 2,
+    name: "Oakshell Warden",
+    maxHp: 60,
+    art: "husk",
+    description: "It is not here to hurt you. It is here so that nothing behind it has to.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 12 },
+      { type: "attack", amount: 4 },
+      { type: "block", amount: 10 },
+    ],
+  },
+  "mossmender": {
+    id: "mossmender",
+    act: 3,
+    name: "Mossmender",
+    maxHp: 52,
+    art: "root",
+    // Self-heal step (Bramblehide's model): out-damage the mend or the
+    // fight drags. Anti-heal / a damage-over-time / burst are the answer.
+    description: "Every wound you open on it has closed by the time you swing again.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 6 },
+      { type: "heal", amount: 6 },
+      { type: "attack", amount: 4 },
+    ],
+  },
+  "grave-bastion": {
+    id: "grave-bastion",
+    act: 3,
+    name: "Grave Bastion",
+    maxHp: 56,
+    art: "warden",
+    // Ward (Stonewake's model): the first hit each round just doesn't
+    // count. A squad leaning on one big opening swing bounces off it.
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    description: "The first blow always lands somewhere it doesn't matter.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 10 },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1627,6 +1682,11 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "sporelet",
   "mire-gnat",
   "thorn-tick",
+  // Fortress bodies (feat/hearthwood-fortress): only via the-bulwark /
+  // the-bastion, never a solo actEnemyForNode pick.
+  "oakshell-warden",
+  "mossmender",
+  "grave-bastion",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible

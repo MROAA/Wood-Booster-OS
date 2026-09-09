@@ -637,6 +637,7 @@ export default function HeartwoodBattle() {
       ids.push("threat-preview")
       ids.push("counterplay")
       if ((resolveFormation(node.formationId || node.enemyId)?.pieces?.length || 0) >= 4) ids.push("swarm")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The wall holds firm") ids.push("fortress")
     }
     if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")

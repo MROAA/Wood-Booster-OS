@@ -122,6 +122,12 @@ export const COACH_TIPS = [
     anchor: ".hw-swarm-hint",
   },
   {
+    id: "fortress",
+    title: "Cracking a fortress",
+    text: "A few very tough bodies behind heavy Block, one of them mending itself. Racing the clock loses - its healer out-mends a slow chip. Bring an armour-breaker (Shatter / Sunder), a damage-over-time that ticks through Block, or just enough steady pressure to break the wall before it rebuilds.",
+    anchor: ".hw-fortress-hint",
+  },
+  {
     id: "counterplay",
     title: "Answering the next enemy",
     text: "\"Next fight\" lists what THIS enemy brings - armour, a swarm, healing, poison, control, a back-liner - and marks each ✓ if your squad has an answer or ✗ if it doesn't. A gap isn't a loss, but it's where the fight will be decided.",
