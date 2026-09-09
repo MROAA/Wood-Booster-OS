@@ -617,6 +617,7 @@ export default function HeartwoodBattle() {
       if (bankInterest(runState.essence) > 0) ids.push("interest")
       if ((runState.bench || []).some((e) => UNITS[e.defId]?.displayTier !== 2 && runState.essence >= 150)) ids.push("upgrade")
       ids.push("ledger")
+      if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("playstyle")
     }
     if (phase === "relic") ids.push("relic")
     if (phase === "formation") {
@@ -803,6 +804,7 @@ export default function HeartwoodBattle() {
           phase={runState.phase}
           nodeIndex={runState.nodeIndex}
           path={runState.path}
+          runState={runState}
           onNewRun={handleNewRun}
           deathMemory={runState.deathMemory}
           acornsEarned={lastAcornsEarned}

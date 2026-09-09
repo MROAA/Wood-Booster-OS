@@ -7129,3 +7129,75 @@ img.hw-intent-glyph {
   color: var(--hw-ember);
   border-color: var(--hw-ember);
 }
+
+/* ---- Strategic Playstyle profile (playstyle.js -> PlaystyleProfile) --
+   Six 0-100 axes for how the run's choices have added up. The full
+   panel (RunEndOverlay) mirrors .hw-buildscore's bar metrics; the
+   compact form is one accent-coloured line in the shop's Run-Map rail. */
+.hw-playstyle {
+  margin: 12px 0 4px;
+  width: 320px;
+  max-width: 82vw;
+  text-align: left;
+}
+.hw-playstyle-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-playstyle-row {
+  display: grid;
+  grid-template-columns: 104px 1fr 26px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.hw-playstyle-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--hw-muted);
+  white-space: nowrap;
+}
+.hw-playstyle-name .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-playstyle-track {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-border) 60%, transparent);
+  overflow: hidden;
+}
+.hw-playstyle-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms var(--hw-ease-out, ease);
+}
+.hw-playstyle-num {
+  text-align: right;
+  color: var(--hw-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hw-playstyle-leaning {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--hw-muted);
+  margin: 8px 0 0;
+}
+.hw-playstyle-compact {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 4px 0 2px;
+}
+.hw-playstyle-compact .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}

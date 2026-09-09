@@ -44,6 +44,12 @@ export const COACH_TIPS = [
     anchor: ".hw-essence-interest",
   },
   {
+    id: "playstyle",
+    title: "Your playstyle",
+    text: "The run rail shows the lean your choices are adding up to - Aggression, Defense, Control, Economy, Risk or Adaptation. It's a mirror, not a target; the full six-axis read is on the run-end screen.",
+    anchor: ".hw-playstyle-compact",
+  },
+  {
     id: "ledger",
     title: "The Ledger",
     text: "One-time, run-long upgrades to the market itself - cheaper recruits, an extra offer, more Essence per win. They pay back over the whole run.",
