@@ -330,6 +330,14 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // Evaluated by evalUnitCondition in autoBattleEngine.js, right after
     // the squad's tribeCounts are tallied.
     conditionalPassive: opts.conditionalPassive || null,
+    // economyRole (Economy System PRD 30-31, feat/hearthwood-economy-crew):
+    // "merchant" | "banker" | "forager" | "toll-warden". A RUN-LAYER
+    // marker only - the autobattler engine never reads it. economy.js's
+    // economyCrewEffects scans runState.deployed for it and applies a
+    // flat effect (cheaper recruits / earlier interest / bigger win
+    // payout / flat reroll) while the unit is deployed. Nothing
+    // persisted; no save-version bump.
+    economyRole: opts.economyRole || null,
   }
 }
 
@@ -1589,6 +1597,40 @@ const BASE_UNITS = {
       effect: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
     },
   }),
+
+  // --- Economy crew (Economy System PRD 30-31, feat/hearthwood-economy-crew) ---
+  // Four units whose payoff is the RUN'S ECONOMY, not the fight. Each
+  // carries one `economyRole` (economy.js's ECONOMY_ROLES) that runEngine
+  // reads off the DEPLOYED board - a cheaper recruit, an earlier interest
+  // tier, a bigger win payout, a reroll that stops climbing - and each
+  // has the SMALLEST combat numbers in its tier on purpose: deploying one
+  // is trading a real fighter for the economy edge (PRD 21). No new
+  // status, no engine hook - the autobattler never looks at economyRole.
+  // Combat numbers: the SMALLEST real fighter in the tier, not a
+  // passenger. A first fairness pass (feeble bodies + a greedy bot that
+  // fields whatever it recruits) cost the aggressive Commander ~-5.5pp
+  // because a dead slot in fights 1-3 lost the opening; bumped one step
+  // + a hair of team block on the two walls so a fielded economy unit
+  // still earns its slot. It stays a trade - just not a cliff.
+  "grove-merchant": unit("grove-merchant", "Grove Merchant", "merchantGlyph", 3, "economy", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+    { type: "block", amount: 4 },
+  ], { economyRole: "merchant", aura: { effect: { type: "block", amount: 1 } } }),
+  "acorn-banker": unit("acorn-banker", "Acorn Banker", "stone", 3, "economy", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 4 },
+    { type: "block", amount: 4 },
+  ], { economyRole: "banker" }),
+  "hollow-forager": unit("hollow-forager", "Hollow Forager", "leaf", 2, "economy", [
+    { type: "attack", amount: 5 },
+    { type: "block", amount: 3 },
+    { type: "attack", amount: 4 },
+  ], { economyRole: "forager" }),
+  "toll-warden": unit("toll-warden", "Toll-Warden", "warden", 2, "economy", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], { economyRole: "toll-warden", aura: { effect: { type: "block", amount: 1 } } }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

@@ -7372,3 +7372,34 @@ img.hw-intent-glyph {
 .hw-commander-seed-hint[data-invalid="true"] {
   color: var(--hw-ember);
 }
+
+/* --- Economy crew (economy.js / EconomyCrew.jsx) — which deployed
+   units are buying a run-layer economy edge right now. Economy System
+   PRD 30-31. Sits in the shop left rail next to The Ledger. --- */
+.hw-economy-crew .hw-rail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-economy-crew-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-economy-crew-row > .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+  color: color-mix(in srgb, var(--hw-cosmic) 75%, var(--hw-text));
+  flex: none;
+}
+.hw-economy-crew-name {
+  color: var(--hw-text);
+  white-space: nowrap;
+}
+.hw-economy-crew-effect {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--hw-cosmic) 70%, var(--hw-text));
+}

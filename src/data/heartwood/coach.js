@@ -56,6 +56,12 @@ export const COACH_TIPS = [
     anchor: ".hw-rail-section--ledger",
   },
   {
+    id: "economy-crew",
+    title: "Economy units",
+    text: "A Merchant, Banker, Forager or Toll-Warden pays off your run's economy - cheaper recruits, earlier interest, bigger win payouts - but ONLY while deployed, and each one is a weak body in the fight. Deploy one and you're trading a fighter for the money.",
+    anchor: ".hw-economy-crew",
+  },
+  {
     id: "upgrade",
     title: "Upgrading a unit",
     text: "Each Upgrade level is a choice of direction - Power, Defense, Synergy, Utility or Economy. The same unit can grow into different roles in different runs.",

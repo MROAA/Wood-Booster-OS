@@ -20,8 +20,8 @@ import {
   DEPLOY_SLOTS,
   RUN_PATH,
   sellRefundFor,
-  bankInterest,
-  INTEREST_THRESHOLD,
+  bankInterestFor,
+  economyCrewEffects,
   SHOP_INVESTMENTS,
   investmentOwned,
   effectiveRecruitCost,
@@ -30,6 +30,7 @@ import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
 import UpgradeChoice from "./UpgradeChoice"
 import BuildScore from "./BuildScore"
+import EconomyCrew from "./EconomyCrew"
 import MerchantGreeting from "./MerchantGreeting"
 import { CardGlyph } from "./cardArt"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
@@ -528,6 +529,11 @@ export default function SquadDraft({
           </div>
         </div>
 
+        {/* Economy crew (economy.js): which deployed units are buying you
+            a run-layer edge right now. Renders nothing until one is on
+            the board. */}
+        <EconomyCrew runState={runState} />
+
         {/* Buyback (runEngine.sellUnit / reclaimBuyback): the last unit
             sold, reclaimable at its refund price. Only shown once you've
             sold something. */}
@@ -728,19 +734,19 @@ export default function SquadDraft({
               recruit / reroll / sell - the save-vs-spend tension made
               literal. Below the threshold it shows a muted prompt so the
               mechanic is discoverable rather than silent. */}
-          {bankInterest(runState.essence) > 0 ? (
+          {bankInterestFor(runState) > 0 ? (
             <span
               className="hw-essence-interest"
               title="Interest - Essence you keep grows a little with every victory. Spend it down and this shrinks."
             >
-              &#9650; +{bankInterest(runState.essence)}
+              &#9650; +{bankInterestFor(runState)}
             </span>
           ) : (
             <span
               className="hw-essence-interest hw-essence-interest--dormant"
-              title={`Interest - keep ${INTEREST_THRESHOLD}+ Essence and it grows a little with every victory.`}
+              title={`Interest - keep ${economyCrewEffects(runState).interestThreshold}+ Essence and it grows a little with every victory.`}
             >
-              save {INTEREST_THRESHOLD}+ to earn interest
+              save {economyCrewEffects(runState).interestThreshold}+ to earn interest
             </span>
           )}
         </div>
