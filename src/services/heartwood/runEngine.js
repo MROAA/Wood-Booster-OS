@@ -28,6 +28,7 @@ import { crossroadsForAct } from "../../data/heartwood/crossroads"
 import { arenaForNode, arenaById } from "../../data/heartwood/arenas"
 import { applyMetaPerks } from "../../data/heartwood/metaPerks"
 import { depthModifiersFor } from "../../data/heartwood/depths"
+import { streamRng } from "../../data/heartwood/seed"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // RAMP_CAP - the difficulty ramp's TOTAL enemy-scaling budget: enemies
@@ -595,15 +596,19 @@ export function chooseFloorEncounter(runState, choiceIndex) {
 // back to any tribe-anchor relic if the player hasn't committed to a
 // tribe yet, and to nothing special if every tribe-anchor relic is
 // already owned.
-function rollRelics(ownedRelicIds, tribeCounts = {}) {
+// `rng` = the seed engine's `loot` stream. Call sites pass
+// `streamRng(seed, "loot", "<nodeIndex>:<relicRerolls>")` so the three
+// offers are reproducible and a paid reroll (rerollRelicOffers, which
+// bumps runState.relicRerolls) shows a genuinely different three.
+function rollRelics(ownedRelicIds, tribeCounts = {}, rng = Math.random) {
   const pool = relicPool().filter((r) => !ownedRelicIds.includes(r.id))
   const matchingAnchor = pool.filter((r) => r.tribeAnchor && (tribeCounts[r.tribeAnchor] || 0) > 0)
   const anyAnchor = pool.filter((r) => r.tribeAnchor)
   const guaranteedPool = matchingAnchor.length ? matchingAnchor : anyAnchor
-  const guaranteed = shuffled(guaranteedPool).slice(0, Math.min(1, guaranteedPool.length))
+  const guaranteed = shuffled(guaranteedPool, rng).slice(0, Math.min(1, guaranteedPool.length))
   const guaranteedIds = new Set(guaranteed.map((r) => r.id))
-  const rest = shuffled(pool.filter((r) => !guaranteedIds.has(r.id))).slice(0, 3 - guaranteed.length)
-  return shuffled([...guaranteed, ...rest]).map((r) => r.id)
+  const rest = shuffled(pool.filter((r) => !guaranteedIds.has(r.id)), rng).slice(0, 3 - guaranteed.length)
+  return shuffled([...guaranteed, ...rest], rng).map((r) => r.id)
 }
 
 // Market Level (Battlegrounds/Guildrun-style "tavern tier"): pay
@@ -666,30 +671,34 @@ export function marketLevelCost(level) {
 // hook values in units.js to land back inside +-8pp.
 const LEGENDARY_SHOP_CHANCE = 0.12
 
-function rollShop(marketLevel, tribeCounts = {}, slotBonus = 0) {
+// `rng` (default Math.random) is the seed engine's `shop` stream - see
+// seed.js. Every call site that has a runState passes
+// `streamRng(seed, "shop", "<nodeIndex>:<rerolls>")` so the offers are
+// reproducible from the seed; a bare call still rolls live.
+function rollShop(marketLevel, tribeCounts = {}, slotBonus = 0, rng = Math.random) {
   const allowedTiers = MARKET_LEVEL_UNLOCKS[marketLevel] || MARKET_LEVEL_UNLOCKS[1]
   const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && allowedTiers.includes(u.tier))
   const matching = pool.filter((u) => tribesOf(u.id, u).some((t) => (tribeCounts[t] || 0) > 0))
-  const guaranteed = shuffled(matching).slice(0, Math.min(1, matching.length))
+  const guaranteed = shuffled(matching, rng).slice(0, Math.min(1, matching.length))
   const guaranteedIds = new Set(guaranteed.map((u) => u.id))
-  const rest = shuffled(pool.filter((u) => !guaranteedIds.has(u.id))).slice(0, SHOP_SIZE + slotBonus - guaranteed.length)
+  const rest = shuffled(pool.filter((u) => !guaranteedIds.has(u.id)), rng).slice(0, SHOP_SIZE + slotBonus - guaranteed.length)
 
-  if (marketLevel >= MARKET_LEVEL_MAX && rest.length && Math.random() < LEGENDARY_SHOP_CHANCE) {
+  if (marketLevel >= MARKET_LEVEL_MAX && rest.length && rng() < LEGENDARY_SHOP_CHANCE) {
     const legendaries = Object.values(UNITS).filter(
       (u) => u.tier === "legendary" && !u.fusedFrom && !u.summonOnly && !u.evolvedFrom,
     )
     if (legendaries.length) {
-      rest[rest.length - 1] = legendaries[Math.floor(Math.random() * legendaries.length)]
+      rest[rest.length - 1] = legendaries[Math.floor(rng() * legendaries.length)]
     }
   }
 
-  return shuffled([...guaranteed, ...rest]).map((u) => u.id)
+  return shuffled([...guaranteed, ...rest], rng).map((u) => u.id)
 }
 
-function shuffled(array) {
+function shuffled(array, rng = Math.random) {
   const copy = [...array]
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
+    const j = Math.floor(rng() * (i + 1))
     ;[copy[i], copy[j]] = [copy[j], copy[i]]
   }
   return copy
@@ -715,13 +724,17 @@ function shuffled(array) {
 // to SHOP_SIZE for the same reason.
 const ITEM_SHOP_SIZE = 3
 
-function rollItemShop() {
+// `rng` = the seed engine's `item` stream. Call sites pass
+// `streamRng(seed, "item", "<nodeIndex>")` - the item shop regenerates
+// with the unit shop on a new visit, but deliberately NOT on a paid unit
+// reroll (see rerollShop), so nodeIndex alone is the right salt.
+function rollItemShop(rng = Math.random) {
   const all = itemPool()
   const bending = all.filter((i) => i.bendsRoleTo)
-  const guaranteed = shuffled(bending).slice(0, Math.min(1, bending.length))
+  const guaranteed = shuffled(bending, rng).slice(0, Math.min(1, bending.length))
   const guaranteedIds = new Set(guaranteed.map((i) => i.id))
-  const rest = shuffled(all.filter((i) => !guaranteedIds.has(i.id))).slice(0, ITEM_SHOP_SIZE - guaranteed.length)
-  return shuffled([...guaranteed, ...rest]).map((i) => i.id)
+  const rest = shuffled(all.filter((i) => !guaranteedIds.has(i.id)), rng).slice(0, ITEM_SHOP_SIZE - guaranteed.length)
+  return shuffled([...guaranteed, ...rest], rng).map((i) => i.id)
 }
 
 // Three owned copies of the same base unit combine into one Tier 2
@@ -786,8 +799,12 @@ function fuseAll(bench, deployed, items, nextKey) {
 // always-on head start (extra starting Essence, a higher Market Level,
 // a wider bench, ...), never a mid-run effect.
 export function startRun(characterId, carriedMemory = null, meta = null) {
-  // Per-run route seed (route variety - see battleSlotsOf). A test/tool
-  // can pin it via meta.forcedSeed; otherwise it's random per run.
+  // Per-run seed. A player types one in on commander-select (parsed via
+  // seed.js), a test/tool pins it via meta.forcedSeed, otherwise it's
+  // random per run. It drives the route (battleSlotsOf) AND every named
+  // RNG stream (seed.js's streamRng) - shop / item / loot / event rolls
+  // are all reproducible from it. `seed` already persists in the save,
+  // so nothing here needs a RUN_SAVE_VERSION bump.
   const seed = Number.isFinite(meta?.forcedSeed) ? meta.forcedSeed >>> 0 : (Math.random() * 0x7fffffff) >>> 0
   const base = {
     characterId,
@@ -810,13 +827,13 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     nodeIndex: 0,
     phase: "shop",
     marketLevel: 1,
-    shopOffers: rollShop(1),
+    shopOffers: rollShop(1, {}, 0, streamRng(seed, "shop", "0:0")),
     // Item shop rotation (rollItemShop above) - regenerates alongside
     // shopOffers at every new shop visit (chooseRelic/
     // resolveBattleOutcome below), but deliberately NOT on a paid unit
     // Reroll (rerollShop) - that button pays to reroll the UNIT
     // offers specifically, not a free item refresh riding along with it.
-    itemOffers: rollItemShop(),
+    itemOffers: rollItemShop(streamRng(seed, "item", "0")),
     // Freeze: keeps the current shopOffers into the next shop visit
     // instead of letting it re-roll automatically - a one-shot flag,
     // consumed (see chooseRelic/resolveBattleOutcome below) the next
@@ -830,6 +847,11 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     relics: [],
     relicOffers: null,
     relicLevels: {},
+    // Paid relic-offer rerolls so far (rerollRelicOffers). Salts the
+    // seed engine's `loot` stream so each fresh three genuinely differs
+    // from the last. Additive key, read `|| 0`, no RUN_SAVE_VERSION
+    // bump - an old v3 save just starts it at zero.
+    relicRerolls: 0,
     commanderRank: 0,
     // Commander Active Power (characters.js's activePower): once per
     // shop visit (activePowerUsedThisShop resets alongside rerollCost -
@@ -932,7 +954,7 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
   // ITEMS without a cycle). Consumed here, not kept on runState.
   if (rs.metaStartItem === "random-common") {
     const pool = itemPool().filter((i) => i.tier === "common").map((i) => i.id)
-    const id = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null
+    const id = pool.length ? pool[Math.floor(streamRng(seed, "loot", "metaStartItem")() * pool.length)] : null
     const { metaStartItem, ...rest } = rs
     void metaStartItem
     rs = id
@@ -947,7 +969,7 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     const pool = Object.values(UNITS)
       .filter((u) => u.tier === "common" && !u.fusedFrom && !u.summonOnly && !u.evolvedFrom)
       .map((u) => u.id)
-    const id = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null
+    const id = pool.length ? pool[Math.floor(streamRng(seed, "loot", "metaStartUnit")() * pool.length)] : null
     const { metaStartUnit, ...rest } = rs
     void metaStartUnit
     if (id) {
@@ -1073,7 +1095,11 @@ export function reforgeUnit(runState, benchKey) {
   if (!currentDef || currentDef.displayTier === 2 || currentDef.tier === "legendary") return runState
   const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && u.tier === currentDef.tier && u.id !== entry.defId)
   if (!pool.length) return runState
-  const newDef = pool[Math.floor(Math.random() * pool.length)]
+  // Seed engine's `shop` stream, salted by the bench key + how many
+  // pivots (reforges/sells) have happened so far - so each reforge of
+  // the same slot lands a genuinely different unit, reproducibly.
+  const rng = streamRng(runState.seed, "shop", `reforge:${benchKey}:${styleN(runState, "pivots")}`)
+  const newDef = pool[Math.floor(rng() * pool.length)]
   return {
     ...bumpStyle(runState, { pivots: styleN(runState, "pivots") + 1 }),
     essence: runState.essence - REFORGE_COST,
@@ -1440,7 +1466,12 @@ export function rerollShop(runState) {
   return {
     ...bumpStyle(runState, { rerolls: styleN(runState, "rerolls") + 1 }),
     essence: runState.essence - runState.rerollCost,
-    shopOffers: rollShop(runState.marketLevel || 1, benchTribeCounts(runState), runState.shopSlotBonus || 0),
+    shopOffers: rollShop(
+      runState.marketLevel || 1,
+      benchTribeCounts(runState),
+      runState.shopSlotBonus || 0,
+      streamRng(runState.seed, "shop", `${runState.nodeIndex}:${styleN(runState, "rerolls") + 1}`),
+    ),
     // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (50,
     // same value REROLL_BASE_COST itself carries) - see
     // REROLL_BASE_COST's own comment above.
@@ -1470,25 +1501,28 @@ export function eventForNode(runState) {
   return pickEvent(runState.nodeIndex, act, runState.seenEvents || [], runState.storyFlags || {})
 }
 
-function randomFromList(list) {
-  return list.length ? list[Math.floor(Math.random() * list.length)] : null
+function randomFromList(list, rng = Math.random) {
+  return list.length ? list[Math.floor(rng() * list.length)] : null
 }
 
 // Applies ONE consequence object from a chosen event option. Kept
 // deliberately small - each key maps to an existing run mechanic, no
 // new state shape beyond storyFlags (declared in startRun).
-function applyEventEffect(runState, eff) {
+// `effIndex` salts the seed engine's `event` stream so a "random relic"
+// consequence is reproducible from the seed and the run's position.
+function applyEventEffect(runState, eff, effIndex = 0) {
+  const rng = streamRng(runState.seed, "event", `${runState.nodeIndex}:${effIndex}`)
   if (typeof eff.essence === "number") {
     return { ...runState, essence: Math.max(0, runState.essence + eff.essence) }
   }
   if (eff.relic) {
     const owned = new Set(runState.relics)
-    const id = eff.relic === "random" ? randomFromList(relicPool().map((r) => r.id).filter((rid) => !owned.has(rid))) : eff.relic
+    const id = eff.relic === "random" ? randomFromList(relicPool().map((r) => r.id).filter((rid) => !owned.has(rid)), rng) : eff.relic
     if (!id || owned.has(id)) return runState
     return { ...runState, relics: [...runState.relics, id] }
   }
   if (eff.item) {
-    const id = eff.item === "random" ? randomFromList(itemPool().map((i) => i.id)) : eff.item
+    const id = eff.item === "random" ? randomFromList(itemPool().map((i) => i.id), rng) : eff.item
     if (!id || !ITEMS[id]) return runState
     return {
       ...runState,
@@ -1504,6 +1538,7 @@ function applyEventEffect(runState, eff) {
         Object.values(UNITS)
           .filter((u) => u.tier === "common" && !u.fusedFrom && !u.summonOnly && !u.evolvedFrom)
           .map((u) => u.id),
+        rng,
       )
     }
     if (!id || !UNITS[id]) return runState
@@ -1544,7 +1579,9 @@ export function resolveEventChoice(runState, choiceIndex) {
   const choice = event?.choices?.[choiceIndex]
   if (!choice) return runState
   let next = runState
-  for (const eff of choice.effects || []) next = applyEventEffect(next, eff)
+  ;(choice.effects || []).forEach((eff, i) => {
+    next = applyEventEffect(next, eff, i)
+  })
   next = {
     ...next,
     seenEvents: [...(next.seenEvents || []), event.id],
@@ -2131,10 +2168,16 @@ export function previewBattleEnemies(runState) {
 // another option" shape rerollShop already gives the unit shop.
 export function rerollRelicOffers(runState) {
   if (runState.essence < RELIC_REROLL_COST) return runState
+  const nextRerolls = (runState.relicRerolls || 0) + 1
   return {
     ...runState,
     essence: runState.essence - RELIC_REROLL_COST,
-    relicOffers: rollRelics(runState.relics, benchTribeCounts(runState)),
+    relicRerolls: nextRerolls,
+    relicOffers: rollRelics(
+      runState.relics,
+      benchTribeCounts(runState),
+      streamRng(runState.seed, "loot", `${runState.nodeIndex}:${nextRerolls}`),
+    ),
   }
 }
 
@@ -2173,9 +2216,14 @@ export function chooseRelic(runState, relicId) {
     shopOffers: enteringShop
       ? runState.frozen
         ? runState.shopOffers
-        : rollShop(runState.marketLevel || 1, benchTribeCounts(runState), runState.shopSlotBonus || 0)
+        : rollShop(
+            runState.marketLevel || 1,
+            benchTribeCounts(runState),
+            runState.shopSlotBonus || 0,
+            streamRng(runState.seed, "shop", `${advanced.nodeIndex}:${styleN(runState, "rerolls")}`),
+          )
       : runState.shopOffers,
-    itemOffers: enteringShop ? rollItemShop() : runState.itemOffers,
+    itemOffers: enteringShop ? rollItemShop(streamRng(runState.seed, "item", String(advanced.nodeIndex))) : runState.itemOffers,
     frozen: enteringShop ? false : runState.frozen,
     rerollCost: REROLL_BASE_COST,
     // Commander Active Power (activateCommanderPower above): a new shop
@@ -2407,10 +2455,22 @@ export function resolveBattleOutcome(runState) {
       ...advanced,
       styleLog,
       essence: wonEssence,
-      shopOffers: enteringShop ? (rs.frozen ? rs.shopOffers : rollShop(rs.marketLevel || 1, benchTribeCounts(rs), rs.shopSlotBonus || 0)) : rs.shopOffers,
-      itemOffers: enteringShop ? rollItemShop() : rs.itemOffers,
+      shopOffers: enteringShop
+        ? rs.frozen
+          ? rs.shopOffers
+          : rollShop(
+              rs.marketLevel || 1,
+              benchTribeCounts(rs),
+              rs.shopSlotBonus || 0,
+              streamRng(rs.seed, "shop", `${advanced.nodeIndex}:${styleN(rs, "rerolls")}`),
+            )
+        : rs.shopOffers,
+      itemOffers: enteringShop ? rollItemShop(streamRng(rs.seed, "item", String(advanced.nodeIndex))) : rs.itemOffers,
       frozen: enteringShop ? false : rs.frozen,
-      relicOffers: nextNode?.type === "relic" ? rollRelics(rs.relics, benchTribeCounts(rs)) : rs.relicOffers,
+      relicOffers:
+        nextNode?.type === "relic"
+          ? rollRelics(rs.relics, benchTribeCounts(rs), streamRng(rs.seed, "loot", `${advanced.nodeIndex}:${rs.relicRerolls || 0}`))
+          : rs.relicOffers,
       rerollCost: REROLL_BASE_COST,
       activePowerUsedThisShop: false,
       battle: null,

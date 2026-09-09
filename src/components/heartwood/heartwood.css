@@ -7244,3 +7244,131 @@ img.hw-intent-glyph {
   color: var(--hw-ember);
   margin: 5px 0 0;
 }
+
+/* --- Seed engine (seed.js / SeedChip.jsx) — the run's fingerprint,
+   shown + copyable on the shop Run Map rail and the run-end screen, and
+   typed back in on commander-select. Seed System PRD sections 3-9. --- */
+.hw-seed-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-pill, 999px);
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+  color: var(--hw-muted);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color var(--hw-dur-1, 0.15s) ease, color var(--hw-dur-1, 0.15s) ease;
+}
+.hw-seed-chip:hover {
+  border-color: color-mix(in srgb, var(--hw-cosmic) 55%, var(--hw-border));
+  color: var(--hw-text);
+}
+.hw-seed-chip-label {
+  text-transform: uppercase;
+  font-size: 9px;
+  color: var(--hw-muted);
+}
+.hw-seed-chip-value {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--hw-font-mono, ui-monospace, "SFMono-Regular", "Menlo", monospace);
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--hw-cosmic) 75%, var(--hw-text));
+}
+.hw-seed-chip-copy {
+  color: var(--hw-muted);
+  font-size: 10px;
+}
+
+/* Rail variant: full-width row under the step count. */
+.hw-seed-rail {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 6px;
+  border-radius: var(--hw-radius-sm, 8px);
+}
+
+/* Run-end variant: centred, a touch larger. */
+.hw-runend-seed {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+.hw-runend-seed .hw-seed-chip {
+  font-size: 11px;
+  padding: 4px 12px;
+}
+
+/* Commander-select: an optional collapsed line that opens one input. */
+.hw-commander-seed {
+  display: flex;
+  justify-content: center;
+  min-height: 34px;
+  margin-top: 13px;
+}
+.hw-commander-seed-toggle {
+  background: none;
+  border: none;
+  color: var(--hw-muted);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--hw-radius-sm, 8px);
+  transition: color var(--hw-dur-1, 0.15s) ease;
+}
+.hw-commander-seed-toggle:hover {
+  color: var(--hw-text);
+}
+.hw-commander-seed-toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.hw-commander-seed-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.hw-commander-seed-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--hw-muted);
+}
+.hw-commander-seed-input {
+  width: 150px;
+  padding: 5px 10px;
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-sm, 8px);
+  background: color-mix(in srgb, var(--hw-panel) 80%, transparent);
+  color: var(--hw-text);
+  font-family: var(--hw-font-mono, ui-monospace, "SFMono-Regular", "Menlo", monospace);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hw-commander-seed-input::placeholder {
+  color: var(--hw-muted);
+  letter-spacing: 0.06em;
+}
+.hw-commander-seed-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--hw-cosmic) 60%, var(--hw-border));
+}
+.hw-commander-seed-input[data-invalid="true"] {
+  border-color: color-mix(in srgb, var(--hw-hp) 60%, var(--hw-border));
+}
+.hw-commander-seed-hint {
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-commander-seed-hint[data-invalid="true"] {
+  color: var(--hw-ember);
+}

@@ -401,14 +401,19 @@ export default function HeartwoodBattle() {
     setShowStoryIntro(false)
   }
 
-  function beginRun(id) {
+  function beginRun(id, forcedSeed) {
     // Defence-in-depth: CommanderSelect never fires onConfirm for a
     // still-locked Commander (it routes the click to onUnlock instead),
     // but never start a run with one regardless.
     const c = CHARACTERS[id]
     if (c?.locked && !(meta.unlockedCommanders || []).includes(id)) return
     setCharacterId(id)
-    setRunState(startRun(id, pendingMemory, meta))
+    // `forcedSeed` (a number) comes from CommanderSelect's optional
+    // "Enter a seed" field - a seeded run. startRun only reads
+    // meta.forcedSeed + meta.chosenPerks, so the shallow copy keeps the
+    // perks intact.
+    const runMeta = Number.isFinite(forcedSeed) ? { ...meta, forcedSeed } : meta
+    setRunState(startRun(id, pendingMemory, runMeta))
     setLastAcornsEarned(null)
     // Arrival beat, once per run - see showGuildHall's own comment
     // above. The shop phase is already set on runState at this point;
@@ -618,6 +623,7 @@ export default function HeartwoodBattle() {
       if ((runState.bench || []).some((e) => UNITS[e.defId]?.displayTier !== 2 && runState.essence >= 150)) ids.push("upgrade")
       ids.push("ledger")
       if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("playstyle")
+      ids.push("seed")
     }
     if (phase === "relic") ids.push("relic")
     if (phase === "formation") {

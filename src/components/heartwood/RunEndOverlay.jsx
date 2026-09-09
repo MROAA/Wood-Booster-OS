@@ -4,6 +4,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveTrial } from "../../data/heartwood/trials"
 import { RUN_PATH, MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
 import PlaystyleProfile from "./PlaystyleProfile"
+import SeedChip from "./SeedChip"
 
 // Distinct from the per-fight ResultOverlay.jsx (which still plays out
 // after each individual battle) - this is the run's actual ending,
@@ -196,6 +197,20 @@ export default function RunEndOverlay({ phase, nodeIndex, path, runState, onNewR
               </motion.span>
             )}
           </div>
+
+          {/* The run's seed (seed.js) - copyable here so a good or a
+              brutal run can be replayed or handed on as a challenge.
+              Same seed -> same route, shops, relics and events. */}
+          {Number.isFinite(runState?.seed) && (
+            <motion.div
+              className="hw-runend-seed"
+              initial={silhouetteReveal.initial}
+              animate={silhouetteReveal.animate}
+              transition={{ duration: 0.6, delay: REVEAL_DELAY.stats + 0.45, ease: "easeOut" }}
+            >
+              <SeedChip seed={runState.seed} />
+            </motion.div>
+          )}
 
           {/* Strategic Playstyle profile (playstyle.js) - the whole
               run's choices on six axes, the "what kind of player were

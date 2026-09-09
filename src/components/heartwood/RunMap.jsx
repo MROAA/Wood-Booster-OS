@@ -6,6 +6,7 @@ import { CardGlyph } from "./cardArt"
 import RunModifierStrip from "./RunModifierStrip"
 import StoryJournal from "./StoryJournal"
 import PlaystyleProfile from "./PlaystyleProfile"
+import SeedChip from "./SeedChip"
 
 // The world's posture, set by Act Crossroads (crossroads.js). "restless"
 // is the neutral default and shows nothing - only a chosen state does.
@@ -97,6 +98,7 @@ function RunRail({ runState }) {
         </span>
         <ForestStateBadge state={runState.forestState} />
       </div>
+      <SeedChip seed={runState.seed} className="hw-seed-rail" />
       <RunModifierStrip modifiers={runState.runModifiers} compact />
       <PlaystyleProfile runState={runState} compact />
       {acts.map(({ tier, indices }) => {
