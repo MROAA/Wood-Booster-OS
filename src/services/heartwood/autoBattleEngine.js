@@ -1249,6 +1249,32 @@ function applyAuraTick(state) {
   return next
 }
 
+// spite (units.js's `spite`, feat/hearthwood-rot): a ONE-SHOT. The first
+// round the whole player squad's total poison stacks reach 3+, each
+// living spite unit gains min(6, amount * 3) Strength, once (a
+// `spiteWoke` power flag guards it). Non-compounding by construction -
+// the burst answer to The Rot. Player-side only, checked each round
+// after the DOT/HOT ticks so this round's poison counts.
+function applySpiteTick(state) {
+  let next = state
+  const totalPoison = next.playerUnits.reduce((s, u) => s + (u.hp > 0 ? u.powers.poison || 0 : 0), 0)
+  if (totalPoison < 3) return next
+  for (const u of next.playerUnits) {
+    if (u.hp <= 0 || u.powers.spiteWoke) continue
+    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgrades || [], next.deployedDefIds || [])
+    const amount = def.spite?.amount
+    if (!amount) continue
+    next = applyEffects(next, [{ type: "applyBuff", id: "strength", amount: Math.min(6, amount * 3) }], {
+      actorId: u.id,
+      targetId: u.id,
+    })
+    const live = getUnit(next, u.id)
+    if (live) next = setUnit(next, u.id, { ...live, powers: { ...live.powers, spiteWoke: 1 } })
+    next = { ...next, log: [...next.log, `${u.name} answers the rot.`] }
+  }
+  return next
+}
+
 // Predicate for units.js's `conditionalPassive.when` - one shape per
 // call (the authoring format is a single-key object). Deliberately tiny:
 // a richer condition language is a later PRD slice, not this round.
@@ -1363,6 +1389,12 @@ function resolveRoundInner(state) {
     // unit's one-dodge-per-round (effects.js's Evade) refreshes.
     playerUnits: state.playerUnits.map((u) => (u.hp > 0 ? { ...u, block: 0, evadedThisRound: false } : u)),
   }
+
+  // spite (units.js, feat/hearthwood-rot): checked at the very top of
+  // the round, BEFORE poison decays, so it reads the stacks the squad
+  // carried in. A one-shot Strength gain when the rot has bitten.
+  next = applySpiteTick(next)
+  if (next.phase !== "player") return next
 
   // Poison ticks for both sides at the top of the round, before anyone
   // acts - whoever was poisoned last round pays for it now, same

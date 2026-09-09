@@ -620,6 +620,56 @@ export const ENEMIES = {
     movePattern: [{ type: "attack", amount: 10 }],
   },
 
+  // --- The Rot (Enemy Ecosystem PRD, feat/hearthwood-rot) ---
+  // The fourth archetype: poison-stacking bodies that PUNISH A SLOW
+  // FIGHT. Modest HP - they don't tank, they outlast via the formation's
+  // steady self-mend (`the-blight` / `the-festering` synergy "The rot
+  // won't quit" = turnStart heal 1 per piece) + the poison drip. Counter:
+  // cleanse (stop the drip - poison IS cleansable, burn isn't), regen
+  // (out-heal it), or burst (kill them before the stacks + the mend
+  // outlast you). In NON_BATTLE_ENEMY_IDS - only via the Rot formations.
+  "rotgut-crawler": {
+    id: "rotgut-crawler",
+    act: 2,
+    name: "Rotgut Crawler",
+    maxHp: 32,
+    art: "bloomrotStalker",
+    description: "It leaves a trail you can smell for a day, and a wound you can smell for a week.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+    ],
+  },
+  "spore-lurcher": {
+    id: "spore-lurcher",
+    act: 2,
+    name: "Spore Lurcher",
+    maxHp: 30,
+    art: "rootbindThicket",
+    description: "Every step it takes coughs up another cloud, and every cloud is looking for a lung.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+      { type: "attack", amount: 3 },
+      { type: "debuff", id: "poison", amount: 1, target: "player" },
+    ],
+  },
+  "mire-sworn": {
+    id: "mire-sworn",
+    act: 3,
+    name: "Mire-Sworn",
+    maxHp: 38,
+    art: "husk",
+    description: "It gave itself to the mire a long time ago. Now it just carries the mire to you.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "block", amount: 3 },
+    ],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1742,6 +1792,11 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "fen-stalker",
   "pack-runner",
   "throat-taker",
+  // The Rot (feat/hearthwood-rot): only via the-blight / the-festering,
+  // never a solo actEnemyForNode pick - same pool-reshuffle reason.
+  "rotgut-crawler",
+  "spore-lurcher",
+  "mire-sworn",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible

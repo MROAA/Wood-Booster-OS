@@ -15,6 +15,8 @@ import {
   buyInvestment,
   scoutAhead,
   scoutCost,
+  buyAntidote,
+  antidoteCost,
   reclaimBuyback,
   rerollRelicOffers,
   leaveShop,
@@ -473,6 +475,11 @@ export default function HeartwoodBattle() {
     setRunState((current) => scoutAhead(current))
   }
 
+  function handleAntidote() {
+    playSfx("buy")
+    setRunState((current) => buyAntidote(current))
+  }
+
   function handleReclaimBuyback() {
     setRunState((current) => reclaimBuyback(current))
   }
@@ -634,6 +641,7 @@ export default function HeartwoodBattle() {
       if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("playstyle")
       if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("run-power")
       if ((runState.essence || 0) >= scoutCost(runState)) ids.push("scout")
+      if ((runState.essence || 0) >= antidoteCost(runState)) ids.push("antidote")
       ids.push("seed")
     }
     if (phase === "relic") ids.push("relic")
@@ -648,6 +656,7 @@ export default function HeartwoodBattle() {
       if ((resolveFormation(node.formationId || node.enemyId)?.pieces?.length || 0) >= 4) ids.push("swarm")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The wall holds firm") ids.push("fortress")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "They hunt the weak one") ids.push("hunters")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The rot won't quit") ids.push("rot")
     }
     if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")
@@ -912,6 +921,7 @@ export default function HeartwoodBattle() {
           onToggleFreeze={handleToggleFreeze}
           onUseCommanderActive={handleUseCommanderActive}
           onReroll={handleReroll}
+          onAntidote={handleAntidote}
           onBuyInvestment={handleBuyInvestment}
           onReclaimBuyback={handleReclaimBuyback}
           onContinue={() => setShowMapAfterShop(true)}

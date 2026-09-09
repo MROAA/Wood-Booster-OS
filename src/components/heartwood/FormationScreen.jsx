@@ -388,6 +388,16 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
 
+      {/* Rot hint (formations.js the-blight / the-festering): the "The
+          rot won't quit" synergy = the Rot archetype (Enemy Ecosystem
+          PRD). Poison stacks + a steady self-mend — cleanse, out-regen,
+          or burst; a slow grind loses. */}
+      {formation.synergy?.label === "The rot won't quit" && (
+        <p className="hw-rot-hint">
+          The rot — every hit stacks poison, and it mends itself faster than a slow chip. Cleanse to stop the drip, out-regen it, or burst it down before the stacks and the self-mend outlast you. A slow grind loses.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the

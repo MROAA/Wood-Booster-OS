@@ -334,6 +334,14 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // ordinary in a 1-tribe squad, a real carry in a 2-3 synergy board.
     // Player-side only; see autoBattleEngine.js's coherence-rewards block.
     synergyScaled: opts.synergyScaled || null,
+    // spite (feat/hearthwood-rot): { amount } - a ONE-SHOT: the first
+    // round the whole squad's poison stacks reach 3+, the unit gains
+    // min(6, amount * 3) Strength, once. "The rot bites, and Spitethorn
+    // wakes up." Non-compounding (fires once, flat) - the burst answer
+    // to The Rot: close the fight before the drip + the self-mend
+    // outlast you. Player-side only; see autoBattleEngine.js's
+    // applySpiteTick.
+    spite: opts.spite || null,
     // conditionalPassive: { when, effect } - `effect` (an array of
     // applyEffects entries) applies once at battle start, self-target,
     // ONLY if `when` holds. `when` is one of:
@@ -1700,6 +1708,38 @@ const BASE_UNITS = {
   ], {
     // A plain, tribe-flexible body for shop-pool breadth (2 tribes so it
     // slots into more boards) - no hook.
+  }),
+
+  // --- The Rot, player answers (feat/hearthwood-rot) ----------------
+  // Three ways to beat a poison pack (enemies.js the-blight / the-
+  // festering), each a DIFFERENT counter than "another cleanse relic".
+  "mirekeeper": unit("mirekeeper", "Mirekeeper", "leaf", 2, "support", [
+    { type: "heal", amount: 2 },
+    { type: "attack", amount: 2 },
+  ], {
+    // aura (#417): cleanses each Chebyshev-adjacent ally EVERY round -
+    // the existing cleanse is self-only turnStart, this is a per-round
+    // scrub of your neighbours' poison. Stand it beside your carry.
+    aura: { effect: { type: "cleanse" } },
+  }),
+  "bloomhide": unit("bloomhide", "Bloomhide", "grovekeeper", 3, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], {
+    className: "Bulwark",
+    // Regen 2 at battle start: a durable frontline that out-drips the
+    // rot on itself (poison decays 1/round, this heals 2/round while it
+    // lasts). Reuses regen, the poison HOT mirror.
+    passive: [{ type: "applyBuff", id: "regen", amount: 2 }],
+  }),
+  "spitethorn": unit("spitethorn", "Spitethorn", "flame", 3, "dps", [
+    { type: "attack", amount: 5 },
+  ], {
+    className: "Skirmisher",
+    // spite: a one-shot. The first round the squad's poison hits 3+,
+    // Spitethorn gains min(6, 2 * 3) = 6 Strength, once. Turns the
+    // Rot's own poison into your burst - the "close it fast" answer.
+    spite: { amount: 2 },
   }),
 }
 

@@ -250,6 +250,10 @@ export const UNIT_TRIBES = {
   // Coherence content (feat/hearthwood-player-power).
   "keystone-warden": ["warden", "stone"],
   "driftwood-vagrant": ["wood", "tide"],
+  // The Rot, player answers (feat/hearthwood-rot).
+  "mirekeeper": ["grove", "root"],
+  "bloomhide": ["grove", "wood"],
+  "spitethorn": ["thorn", "ember"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

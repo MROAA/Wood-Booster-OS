@@ -318,6 +318,42 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // --- The Rot (Enemy Ecosystem PRD, feat/hearthwood-rot) ---
+  // Poison-stacking bodies (enemies.js: rotgut-crawler / spore-lurcher /
+  // mire-sworn, + plaguebearer) that punish a slow fight. synergy "The
+  // rot won't quit" = a per-living-piece FLAT turnStart → heal 1 (each
+  // rot-thing knits itself back 1 HP/round - non-compounding, the
+  // mildest repeating effect, the twin-watch / #434 precedent; NOT a
+  // strength/regen RAMP, which is the #433 aatos trap). The poison
+  // threat is carried entirely by the pieces' own `debuff poison` steps.
+  // 3 pieces (stays under the Swarm's >= 4 gate - the #434 lesson).
+  // Counter: cleanse (stop the drip), regen (out-heal it), or burst
+  // (close it before the stacks + the mend outlast you).
+  "the-blight": {
+    id: "the-blight",
+    synergy: { label: "The rot won't quit", effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } }] },
+    name: "The Blight",
+    description: "Three of them, low to the ground, and the ground going soft and black behind them.",
+    pieces: [
+      { defId: "rotgut-crawler", pos: { row: 0, col: 0 } },
+      { defId: "spore-lurcher", pos: { row: 0, col: 1 } },
+      { defId: "rotgut-crawler", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-festering": {
+    id: "the-festering",
+    synergy: { label: "The rot won't quit", effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } }] },
+    name: "The Festering",
+    description: "The lurcher clouds the air. The Mire-Sworn holds the line. And the Plaguebearer, safe behind them, just breathes.",
+    pieces: [
+      { defId: "spore-lurcher", pos: { row: 0, col: 0 } },
+      { defId: "mire-sworn", pos: { row: 0, col: 2 } },
+      { defId: "plaguebearer", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",
