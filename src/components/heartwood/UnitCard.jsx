@@ -3,7 +3,7 @@ import { CardGlyph } from "./cardArt"
 import { TRIBES, tribesOf, synergyTiersSummary } from "../../data/heartwood/synergies"
 import { evolutionFor, evolutionHint } from "../../data/heartwood/evolutions"
 import { UPGRADE_BRANCHES } from "../../data/heartwood/upgrades"
-import { ROLES, unitProfile } from "../../data/heartwood/roles"
+import { ROLES, unitProfile, unitTargetProfile, TARGET_PROFILE_LABEL } from "../../data/heartwood/roles"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 // Card-accent modifier by resolved primary role (roles.js's ROLES[x].card).
@@ -75,6 +75,9 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   // the Hero-Bent override (SquadDraft/FormationScreen pass it), so a
   // bent unit's primary reads bent everywhere.
   const profile = def.role ? unitProfile(def, role && role !== def.role ? role : undefined) : null
+  // Per-DPS target profile (roles.js) - who this unit's own attack goes
+  // for. Only shown when it isn't the default "front rank".
+  const targetProfile = def.role ? unitTargetProfile(def, role && role !== def.role ? role : undefined) : "default"
   const primaryRole = profile ? ROLES[profile.primary] : null
   const secondaryRole = profile?.secondary ? ROLES[profile.secondary] : null
   // Tribes (synergies.js) - now a first-class part of the card, not a
@@ -268,6 +271,12 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           <CardGlyph name={primaryRole.icon} className="hw-effect-icon-glyph" />
           {primaryRole.label}
           {secondaryRole && <span className="hw-card-role-secondary"> · {secondaryRole.label}</span>}
+        </div>
+      )}
+      {targetProfile !== "default" && (
+        <div className="hw-card-target-line" title="Which enemy this unit's own attack goes for">
+          <CardGlyph name="rune" className="hw-effect-icon-glyph" />
+          Targets {TARGET_PROFILE_LABEL[targetProfile]}
         </div>
       )}
       {profile && profile.tags.length > 0 && (

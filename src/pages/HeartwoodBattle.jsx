@@ -624,6 +624,7 @@ export default function HeartwoodBattle() {
       if (benchLegendary) ids.push("legendary")
       ids.push("build-score")
       ids.push("formation-position")
+      ids.push("targeting")
     }
     if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")

@@ -208,6 +208,40 @@ export function unitProfile(def, bentRole) {
   return profile
 }
 
+// --- Per-DPS target profiles (feat/hearthwood-dps-target-profiles) ---
+// PRD "Strategic Combat System V2" 11-12. Which enemy a unit's own
+// single-target attack goes for. `default` = the front rank (the
+// pre-existing frontmost() behaviour - the vast majority of units). The
+// engine's playerTarget() reads this; the card shows it under the role.
+//
+// v1 ships ONE non-default profile:
+//  - executioner: the lowest-HP enemy (finish the wounded)
+// It CONCENTRATES the squad's damage, so it's the one profile that
+// landed inside the RUNS=100 gate. The others swung it hard across ~15
+// pairs of tuning: `assassin -> back line` splits an offense squad's
+// burst (tommy/fenrir up to -16 pp), and even a single common `breaker`
+// unit gave the outlast Commander +16 pp (cracking the enemy tank is
+// exactly what an attrition squad wants). Both are held for their own
+// round - `assassin` needs a real screen-bypass mechanic + a damage
+// trade-off. The table + playerTarget are the machinery; grow them one
+// signature unit at a time behind the gate.
+export const TARGET_PROFILES = ["default", "executioner"]
+
+export const TARGET_PROFILE_LABEL = {
+  executioner: "the lowest-HP enemy",
+}
+
+export const TARGET_PROFILE_OVERRIDES = {
+  "deepwood-sovereign": "executioner", // Legendary; its front-row payoff is applyBuff execute - the fairness bot almost never fields it
+  "the-thorn-throne": "default", // a full-board Thorn wrecker, pinned so it never drifts
+}
+
+export function unitTargetProfile(def, bentRole) {
+  if (!def) return "default"
+  void bentRole // accepted for the card; no bent case in the v1 table
+  return TARGET_PROFILE_OVERRIDES[def.id] || "default"
+}
+
 // --- Positioning as a role mechanic (feat/hearthwood-positioning) ----
 // PRD "Unit Roles, Build System" 20-21. The autobattler board is 3 back
 // slots + 1 forward slot (autoBattleEngine.js's SLOT_POSITIONS: 0/1/2
