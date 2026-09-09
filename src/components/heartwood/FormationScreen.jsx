@@ -367,6 +367,16 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
 
+      {/* Fortress hint (formations.js the-bulwark / the-bastion): the
+          "The wall holds firm" synergy = the Fortress archetype (Enemy
+          Ecosystem PRD 8). Names the counter — armour-break, a DoT, or
+          steady pressure; racing the clock loses to its healer. */}
+      {formation.synergy?.label === "The wall holds firm" && (
+        <p className="hw-fortress-hint">
+          A fortress — armour-breakers (Shatter / Sunder), a damage-over-time, or steady pressure grind it down. Racing the clock loses; its healer out-mends a slow poke.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the

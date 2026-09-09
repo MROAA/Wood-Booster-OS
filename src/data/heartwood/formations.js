@@ -237,6 +237,50 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // --- The Fortress (Enemy Ecosystem PRD 8, feat/hearthwood-fortress) ---
+  // The Swarm's opposite: THREE very tough bodies that STALL. Two walls
+  // in front (row 0) shield a self-mender behind them (row 1) - single-
+  // target has to grind a 60-HP warden down before the mender is a legal
+  // target; a pattern / reach / AoE attacker snipes past. Deliberately 3
+  // pieces, never 4: "4+ bodies" is the Swarm's identity (the-brood /
+  // the-teeming) and drives the swarm hint + swarm threat tag - a
+  // fortress must stay under it. `synergy` is a FLAT per-round +3 Block
+  // to every living piece (block RESETS each round, so `turnStart` is
+  // non-compounding by construction - the twin-watch / rune-wardens-
+  // escort precedent, not #433's strength ramp). Counter: armour-break
+  // (Shatter / Sunder), a damage-over-time, or steady sustained
+  // pressure. Cols 0/2 only, never the (1,1) centre.
+  "the-bulwark": {
+    id: "the-bulwark",
+    synergy: {
+      label: "The wall holds firm",
+      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
+    },
+    name: "The Bulwark",
+    description: "Two wardens shoulder to shoulder, and a mender behind them stitching every crack shut before you can widen it.",
+    pieces: [
+      { defId: "oakshell-warden", pos: { row: 0, col: 0 } },
+      { defId: "oakshell-warden", pos: { row: 0, col: 2 } },
+      { defId: "mossmender", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-bastion": {
+    id: "the-bastion",
+    synergy: {
+      label: "The wall holds firm",
+      effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } }],
+    },
+    name: "The Bastion",
+    description: "The Warden takes the blows. The Bastion returns them. And the Mender makes sure neither one stops.",
+    pieces: [
+      { defId: "oakshell-warden", pos: { row: 0, col: 0 } },
+      { defId: "grave-bastion", pos: { row: 0, col: 2 } },
+      { defId: "mossmender", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",
