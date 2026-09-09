@@ -21,6 +21,7 @@ import { nodeNarrative } from "../../services/heartwood/runNarrative"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
 import BuildScore from "./BuildScore"
+import ThreatPreview from "./ThreatPreview"
 import { evaluateMatchup, THREATS, THREAT_ANSWER } from "../../data/heartwood/counterplay"
 import { CardGlyph } from "./cardArt"
 
@@ -356,6 +357,12 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           Enemy formation: {formation.synergy.label}
         </div>
       )}
+
+      {/* Enemy threat preview (threatPreview.js) - "here is the problem":
+          a danger rating, the dominant threat, the mechanics to expect.
+          Sits directly above the counterplay checkrow ("do you have the
+          answer"). */}
+      <ThreatPreview runState={runState} node={node} previewEnemies={previewEnemies} />
 
       {/* Counterplay (counterplay.js) - the threats THIS enemy presents
           and whether your kit has an answer. A ✓ chip = covered, a ✗

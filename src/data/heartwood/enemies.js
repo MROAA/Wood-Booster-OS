@@ -404,6 +404,67 @@ export const ENEMIES = {
     ],
   },
 
+  // --- Specialist enemies (Enemy Ecosystem PRD 19, feat/hearthwood-threat-preview) ---
+  // Three "one strategic question" mooks that give the new pre-fight
+  // threat preview (threatPreview.js) real things to warn about. Every
+  // one is the same low-damage / gimmick-carries-it template Needlefen
+  // (stun) / Drowned Siren (weak 3) / Bloomrot Stalker (poison 3) /
+  // Duskmoth (regen) already ship at, tuned - no new status id.
+  "silence-weaver": {
+    id: "silence-weaver",
+    act: 2,
+    name: "Silence Weaver",
+    maxHp: 38,
+    art: "drownedSiren",
+    // Dampen's first enemy source - effects.js already ticks it
+    // (dampenOf reduces the AFFECTED unit's outgoing damage), it had
+    // just never been on the enemy side. Punishes an all-in damage
+    // squad the way Drowned Siren's Weak does, on a shorter fuse.
+    description: "It hums the shape out of every strike before you throw it.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "dampen", amount: 2, target: "player" },
+      { type: "attack", amount: 5 },
+    ],
+  },
+  "dawn-zealot": {
+    id: "dawn-zealot",
+    act: 3,
+    name: "Dawn Zealot",
+    maxHp: 48,
+    art: "root",
+    // A dedicated healer on the enemy side - a repeating heal STEP
+    // (Bramblehide's own pattern) rather than Duskmoth's front-loaded
+    // Regen, so the fight against it is "close it before the heals
+    // out-pace you": burst or a damage-over-time, exactly the answer
+    // the threat preview names for enemy sustain.
+    description: "It mends what you break faster than you can break it.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "heal", amount: 6 },
+      { type: "block", amount: 4 },
+    ],
+  },
+  "plaguebearer": {
+    id: "plaguebearer",
+    act: 3,
+    name: "Plaguebearer",
+    maxHp: 46,
+    art: "bloomrotStalker",
+    // Act III Poison carrier (Bloomrot Stalker / Quillfang are Act I-II)
+    // - heavier stack, and a small self-heal so ignoring it isn't free
+    // even before the Poison bites. Anti-heal builds want it dead fast.
+    description: "The rot it carries was never meant to leave the mire.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "heal", amount: 4 },
+    ],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1499,6 +1560,17 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "the-iron-sentinel",
   "the-bramble-lash",
   "the-ashfall-herald",
+  // Specialist enemies (feat/hearthwood-threat-preview): authored +
+  // Codex/Almanac-listed + threat-preview-classified, but kept OUT of
+  // actEnemyForNode's solo pool for now - dropping 3 ids into the
+  // ACT_ENEMIES cycle changes `pool.length`, which reshuffles which
+  // enemy EVERY displaced Act 2-3 battle node maps to (a ~+10pp tommy
+  // drift across 3 RUNS=100 pairs - a real mid-run difficulty
+  // reshuffle, not noise). Scheduling them into specific RUN_PATH nodes
+  // / formations with per-node balancing is its own slice.
+  "silence-weaver",
+  "dawn-zealot",
+  "plaguebearer",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible
