@@ -110,6 +110,12 @@ export const COACH_TIPS = [
     anchor: ".hw-seed-rail",
   },
   {
+    id: "threat-preview",
+    title: "Read the enemy first",
+    text: "The stars rate how dangerous this fight is; 'Primary' is the kind of problem it mainly is, and 'Expect' lists the mechanics it'll use. Plan for that before you place a single unit - the checkrow just below tells you if your squad answers it.",
+    anchor: ".hw-threat-preview",
+  },
+  {
     id: "counterplay",
     title: "Answering the next enemy",
     text: "\"Next fight\" lists what THIS enemy brings - armour, a swarm, healing, poison, control, a back-liner - and marks each ✓ if your squad has an answer or ✗ if it doesn't. A gap isn't a loss, but it's where the fight will be decided.",

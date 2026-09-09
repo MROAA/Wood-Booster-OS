@@ -7403,3 +7403,73 @@ img.hw-intent-glyph {
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--hw-cosmic) 70%, var(--hw-text));
 }
+
+/* --- Enemy threat preview (threatPreview.js / ThreatPreview.jsx) —
+   Enemy Ecosystem PRD 50-51. "Here is the problem": a danger rating +
+   dominant threat + mechanics, directly above the .hw-matchup checkrow
+   on the FormationScreen. --- */
+.hw-threat-preview {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--hw-border);
+  border-left: 3px solid color-mix(in srgb, var(--hw-moss) 60%, var(--hw-border));
+  border-radius: var(--hw-radius-sm, 8px);
+  background: color-mix(in srgb, var(--hw-panel) 55%, transparent);
+}
+.hw-threat-preview[data-rating="3"] { border-left-color: color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border)); }
+.hw-threat-preview[data-rating="4"] { border-left-color: color-mix(in srgb, var(--hw-ember) 70%, var(--hw-border)); }
+.hw-threat-preview[data-rating="5"] { border-left-color: var(--hw-hp); }
+.hw-threat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hw-threat-head .hw-section-label { margin: 0; }
+.hw-threat-stars {
+  letter-spacing: 1px;
+  font-size: 12px;
+}
+.hw-threat-star {
+  color: color-mix(in srgb, var(--hw-muted) 60%, transparent);
+}
+.hw-threat-star[data-on="true"] {
+  color: var(--hw-ember);
+}
+.hw-threat-preview[data-rating="5"] .hw-threat-star[data-on="true"] { color: var(--hw-hp); }
+.hw-threat-preview[data-rating="1"] .hw-threat-star[data-on="true"],
+.hw-threat-preview[data-rating="2"] .hw-threat-star[data-on="true"] { color: var(--hw-moss); }
+.hw-threat-rating-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hw-muted);
+}
+.hw-threat-lead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: var(--hw-text);
+}
+.hw-threat-lead-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.hw-threat-lead-part > .hw-intent-glyph { width: 12px; height: 12px; flex: none; }
+.hw-threat-lead-secondary { color: var(--hw-muted); }
+.hw-threat-mechanics {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-threat-expect {
+  color: color-mix(in srgb, var(--hw-text) 70%, var(--hw-muted));
+  font-weight: 600;
+}
+.hw-threat-note {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
+}

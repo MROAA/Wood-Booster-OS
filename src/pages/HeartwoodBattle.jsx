@@ -633,6 +633,7 @@ export default function HeartwoodBattle() {
       ids.push("build-score")
       ids.push("formation-position")
       ids.push("targeting")
+      ids.push("threat-preview")
       ids.push("counterplay")
     }
     if (phase === "battle" && battle) {

@@ -40,6 +40,10 @@ export const THREAT_OVERRIDES = {
   spacemonkey: ["armor", "control"],
   "the-gorging-maw": ["armor", "sustain"],
   "the-iron-sentinel": ["armor"],
+  // Specialist enemies (feat/hearthwood-threat-preview) - raw signals
+  // already catch these, pinned so the threat preview never mis-ranks.
+  "dawn-zealot": ["sustain"],
+  plaguebearer: ["poison", "sustain"],
 }
 
 const CONTROL_IDS = ["stun", "slow", "taunt", "weak", "silence", "dampen"]
