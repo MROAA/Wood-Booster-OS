@@ -49,7 +49,11 @@ const ctrlId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && CONT
 // A full swarm is a more pressing "what kind of problem is this" than a
 // stray back-row piece - it outranks backline (bumped when the-brood /
 // the-teeming made "backline" edge out "A swarm" by 0.1).
-const SEVERITY = { control: 1.4, hunters: 1.25, armor: 1.2, swarm: 1.15, sustain: 1.1, poison: 1.0, backline: 0.85 }
+// poison bumped 1.0 → 1.2 (feat/hearthwood-rot): so a full Rot pack (every
+// piece exhibits poison, frac 1.0 → 1.2 + 1.0 = 2.2) reads as the PRIMARY
+// threat, not "sustain" (the-festering's self-mend synergy would otherwise
+// edge it: 1.1 + ~0.33). Same shape as the #434 SEVERITY.swarm bump.
+const SEVERITY = { control: 1.4, hunters: 1.25, armor: 1.2, poison: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
 
 // PRD "Progressiivinen haasteen nousu ja skaalaus" 9 / 41-43: a read of
 // the fight RELATIVE to the player's build. `ratio` = playerPower.js's

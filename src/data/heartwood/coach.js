@@ -146,6 +146,18 @@ export const COACH_TIPS = [
     anchor: ".hw-hunters-hint",
   },
   {
+    id: "rot",
+    title: "Beating the rot",
+    text: "These enemies stack Poison every hit and slowly knit themselves back - a long grind is exactly what they want. Cleanse (a Mirekeeper scrubs the ally beside it every round) stops the drip. Heavy Regen out-heals it. Or just burst them down fast - Poison decays on its own once they're dead, and Spitethorn hits harder the moment the rot bites. Do NOT settle in for a slow fight.",
+    anchor: ".hw-rot-hint",
+  },
+  {
+    id: "antidote",
+    title: "Field Antidote",
+    text: "A one-fight consumable: your whole squad starts the next battle with Regen, enough to out-drip an opening poison spike. Buy it before a fight you know is a rot pack. The cost climbs each Act.",
+    anchor: ".hw-antidote-btn",
+  },
+  {
     id: "counterplay",
     title: "Answering the next enemy",
     text: "\"Next fight\" lists what THIS enemy brings - armour, a swarm, healing, poison, control, a back-liner - and marks each ✓ if your squad has an answer or ✗ if it doesn't. A gap isn't a loss, but it's where the fight will be decided.",

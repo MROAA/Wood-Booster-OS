@@ -107,6 +107,19 @@ export const ROLE_OVERRIDES = {
     primary: "dps", position: "back", tags: ["wood", "tide"],
     strengths: ["Fits almost any board"], weaknesses: ["Brings nothing but its swing"],
   },
+  // The Rot, player answers (feat/hearthwood-rot).
+  "mirekeeper": {
+    primary: "support", position: "center", tags: ["cleanse", "aura", "grove", "root"],
+    strengths: ["Scrubs poison off the ally beside it every single round"], weaknesses: ["Barely a threat on its own"],
+  },
+  "bloomhide": {
+    primary: "tank", position: "front", tags: ["regen", "shield", "grove", "wood"],
+    strengths: ["Out-heals the rot's drip on itself and holds the line"], weaknesses: ["Slow, and light on damage"],
+  },
+  "spitethorn": {
+    primary: "dps", position: "back", tags: ["scaling", "thorn", "ember"],
+    strengths: ["Wakes up hard once the rot has bitten - a burst finisher"], weaknesses: ["Ordinary in a fight with no poison flying"],
+  },
   "the-fool": { primary: "healer", secondary: "support", tags: ["regen", "thorn"] },
   beastcaller: { primary: "summoner", position: "back", strengths: ["Opens the fight a body up"] },
   sapkeeper: { primary: "support", secondary: "healer", tags: ["aura", "regen", "grove"] },

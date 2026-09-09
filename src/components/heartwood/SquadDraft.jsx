@@ -24,6 +24,8 @@ import {
   economyCrewEffects,
   SHOP_INVESTMENTS,
   investmentOwned,
+  antidoteCost,
+  antidoteQueued,
   effectiveRecruitCost,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
@@ -81,6 +83,7 @@ export default function SquadDraft({
   runState,
   onRecruit,
   onReroll,
+  onAntidote,
   onContinue,
   onRankUp,
   onUpgradeRelic,
@@ -1188,6 +1191,20 @@ export default function SquadDraft({
             <button className="hw-move-btn" data-active={!!runState.frozen} onClick={onToggleFreeze} title="Keep these offers when you next visit the shop">
               {runState.frozen ? "Frozen ✓" : "Freeze"}
             </button>
+            {/* Field Antidote (runEngine.js's buyAntidote, feat/hearthwood-rot):
+                a one-fight squad-wide Regen, the answer to a Rot pack's poison
+                drip. One queued at a time; cost climbs per Act. */}
+            {onAntidote && (
+              <button
+                className="hw-move-btn hw-antidote-btn"
+                data-active={antidoteQueued(runState) || undefined}
+                disabled={!antidoteQueued(runState) && runState.essence < antidoteCost(runState)}
+                onClick={onAntidote}
+                title="Your whole squad starts the next battle with Regen - out-drips an opening poison spike"
+              >
+                {antidoteQueued(runState) ? "Antidote ✓" : `Field Antidote (${antidoteCost(runState)})`}
+              </button>
+            )}
           </div>
 
           <div className="hw-market-divider" />

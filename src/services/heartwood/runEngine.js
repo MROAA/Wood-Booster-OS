@@ -112,7 +112,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", formationId: "the-pack" }, // feat/hearthwood-hunters (was: emberwracks-guard)
   { type: "shop" },
-  { type: "battle", formationId: "embers-bulwark" },
+  { type: "battle", formationId: "the-blight" }, // feat/hearthwood-rot (was: embers-bulwark)
   { type: "shop" },
   { type: "battle", enemyId: "duskgnaw" },
   { type: "shop" },
@@ -182,7 +182,7 @@ export const RUN_PATH = [
   { type: "battle", formationId: "rune-wardens-escort" },
   { type: "relic" },
   { type: "shop" },
-  { type: "battle", formationId: "quillfangs-warren" },
+  { type: "battle", formationId: "the-festering" }, // feat/hearthwood-rot (was: quillfangs-warren)
   { type: "event" },
   { type: "battle", formationId: "bonewardens-watch" },
   { type: "shop" },
@@ -2218,6 +2218,37 @@ export function scoutAhead(runState) {
   const cost = scoutCost(runState)
   if ((runState.essence || 0) < cost) return runState
   return { ...runState, essence: runState.essence - cost, scoutedThrough: next }
+}
+
+// Field Antidote (feat/hearthwood-rot - the answer to The Rot's poison
+// drip): a shop CONSUMABLE, not a permanent Ledger investment or a
+// unit/item. Pay Essence to queue a squad-wide `regen 2` for the NEXT
+// battle only, riding the existing pendingActiveEffects channel (the
+// Commander-Active-Power / event-`squadNextBattle` shape) - consumed +
+// cleared by startFormationBattle. One queued at a time; cost scales
+// flat per Act (the scoutCost shape). No new save key.
+export const ANTIDOTE_BASE_COST = 50
+const ANTIDOTE_EFFECT = { type: "applyBuff", id: "regen", amount: 2 }
+
+export function antidoteCost(runState) {
+  return ANTIDOTE_BASE_COST * actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)
+}
+
+export function antidoteQueued(runState) {
+  return (runState.pendingActiveEffects || []).some(
+    (e) => e.type === "applyBuff" && e.id === "regen" && e.amount === ANTIDOTE_EFFECT.amount,
+  )
+}
+
+export function buyAntidote(runState) {
+  if (antidoteQueued(runState)) return runState
+  const cost = antidoteCost(runState)
+  if ((runState.essence || 0) < cost) return runState
+  return {
+    ...runState,
+    essence: runState.essence - cost,
+    pendingActiveEffects: [...(runState.pendingActiveEffects || []), { ...ANTIDOTE_EFFECT }],
+  }
 }
 
 // A relic node only ever offers 3 choices, rolled once - this lets the

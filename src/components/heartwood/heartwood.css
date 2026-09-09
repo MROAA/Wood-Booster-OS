@@ -7314,6 +7314,12 @@ img.hw-intent-glyph {
   opacity: 0.4;
   cursor: default;
 }
+/* Field Antidote (feat/hearthwood-rot) - a shop consumable button in the
+   for-sale row, alongside Reroll / Freeze. */
+.hw-antidote-btn[data-active] {
+  border-color: color-mix(in srgb, var(--hw-moss) 60%, transparent);
+  color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
+}
 .hw-scout-btn .hw-intent-glyph {
   width: 12px;
   height: 12px;
@@ -7657,6 +7663,18 @@ img.hw-intent-glyph {
   margin: 0 0 10px;
   padding-left: 8px;
   border-left: 2px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Rot hint (formations.js the-blight / the-festering, FormationScreen)
+   — the Rot archetype's counterplay line (Enemy Ecosystem PRD), under
+   the "Enemy formation:" badge. Mirrors .hw-swarm-hint, curse tick. --- */
+.hw-rot-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-curse) 55%, transparent);
   font-size: 11px;
   line-height: 1.5;
   color: var(--hw-muted);
