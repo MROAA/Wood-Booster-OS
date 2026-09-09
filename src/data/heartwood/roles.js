@@ -120,6 +120,19 @@ export const ROLE_OVERRIDES = {
     primary: "dps", position: "back", tags: ["scaling", "thorn", "ember"],
     strengths: ["Wakes up hard once the rot has bitten - a burst finisher"], weaknesses: ["Ordinary in a fight with no poison flying"],
   },
+  // The Coven, player answers (feat/hearthwood-coven).
+  "hexbreaker": {
+    primary: "dps", position: "back", tags: ["aoe", "thorn", "gale"],
+    strengths: ["Its diagonal reaches the caster behind the shield wall"], weaknesses: ["A modest swing where there's nothing to reach past"],
+  },
+  "oracle-eye": {
+    primary: "assassin", secondary: "dps", position: "back", tags: ["execute", "fang", "shadow"],
+    strengths: ["Always swings at the lowest-HP enemy - deletes an exposed caster"], weaknesses: ["No say in what it hits; can feed a decoy"],
+  },
+  "witch-cutter": {
+    primary: "debuffer", secondary: "dps", position: "back", tags: ["sunder", "root", "fang"],
+    strengths: ["Strips the stacked enchant off the pack with every hit"], weaknesses: ["Light damage of its own"],
+  },
   "the-fool": { primary: "healer", secondary: "support", tags: ["regen", "thorn"] },
   beastcaller: { primary: "summoner", position: "back", strengths: ["Opens the fight a body up"] },
   sapkeeper: { primary: "support", secondary: "healer", tags: ["aura", "regen", "grove"] },
@@ -285,6 +298,7 @@ export const TARGET_PROFILE_LABEL = {
 export const TARGET_PROFILE_OVERRIDES = {
   "deepwood-sovereign": "executioner", // Legendary; its front-row payoff is applyBuff execute - the fairness bot almost never fields it
   "the-thorn-throne": "default", // a full-board Thorn wrecker, pinned so it never drifts
+  "oracle-eye": "executioner", // feat/hearthwood-coven: the anti-Coven sniper - always goes for the lowest-HP enemy (the Matron)
 }
 
 export function unitTargetProfile(def, bentRole) {

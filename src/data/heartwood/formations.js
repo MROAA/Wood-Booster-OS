@@ -354,6 +354,41 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // --- The Coven (Enemy Ecosystem PRD, feat/hearthwood-coven) ---
+  // A shield puzzle where the SHIELDED piece is the priority target: the
+  // coven-matron (enemies.js) sits at row 1 behind a front piece and
+  // buffs every other living enemy +1 Strength/round (its `covenAura`,
+  // ticked by autoBattleEngine.js's applyCovenTick). Reach past the
+  // shield and kill it first (a pattern attacker, an executioner, a
+  // Sunder) or the front pieces snowball. `synergy` is LABEL-ONLY
+  // (effects: []) - the identity is the matron's covenAura, not a squad
+  // synergy; the label drives the .hw-coven-hint / coach / badge hooks.
+  // 3 pieces (under the Swarm's >= 4 gate - the #434 lesson).
+  "the-conclave": {
+    id: "the-conclave",
+    synergy: { label: "The coven's blessing", effects: [] },
+    name: "The Conclave",
+    description: "Two of them stand ready, and behind them a third that only ever moves its lips.",
+    pieces: [
+      { defId: "bog-devotee", pos: { row: 0, col: 0 } },
+      { defId: "hex-acolyte", pos: { row: 0, col: 2 } },
+      { defId: "coven-matron", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-choir": {
+    id: "the-choir",
+    synergy: { label: "The coven's blessing", effects: [] },
+    name: "The Choir",
+    description: "The Acolyte takes the hits. The Devotee returns them. And under both, the Matron keeps the tune going.",
+    pieces: [
+      { defId: "hex-acolyte", pos: { row: 0, col: 0 } },
+      { defId: "bog-devotee", pos: { row: 0, col: 2 } },
+      { defId: "coven-matron", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",

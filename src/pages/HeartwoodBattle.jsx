@@ -657,6 +657,7 @@ export default function HeartwoodBattle() {
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The wall holds firm") ids.push("fortress")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "They hunt the weak one") ids.push("hunters")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The rot won't quit") ids.push("rot")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The coven's blessing") ids.push("coven")
     }
     if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")
