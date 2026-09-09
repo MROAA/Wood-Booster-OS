@@ -74,6 +74,12 @@ export const COACH_TIPS = [
     anchor: ".hw-grid",
   },
   {
+    id: "targeting",
+    title: "Where your units strike",
+    text: "Most units hit the enemy front line. A few pick their own target - an executioner goes for the lowest-HP enemy to finish it. A unit's card shows this under its role.",
+    anchor: ".hw-card-target-line",
+  },
+  {
     id: "threat",
     title: "Who the enemy hits",
     text: "Enemies work down your squad by threat - a tank, whoever's dealt the most damage, and anyone taunting draw fire first. The 🎯 marks this round's target. A tank in the forward slot soaks the opening hits so your carry survives.",

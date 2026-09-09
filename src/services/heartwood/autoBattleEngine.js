@@ -18,7 +18,7 @@ import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/chara
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS, effectiveRole } from "../../data/heartwood/items"
-import { unitProfile, positionFitForSlot, POSITION_BONUS } from "../../data/heartwood/roles"
+import { unitProfile, positionFitForSlot, POSITION_BONUS, unitTargetProfile } from "../../data/heartwood/roles"
 import { ARENAS } from "../../data/heartwood/arenas"
 import { moodRailFor } from "../../data/heartwood/moods"
 import { tribesOf, SYNERGY_TIERS, resolveComboSynergies, resolvePositionSynergies } from "../../data/heartwood/synergies"
@@ -147,12 +147,36 @@ function unshieldedOrAll(state, living) {
 // The enemy "front rank" fiction already established by the shielding
 // rule (lower row = closer to the front) becomes the actual single-
 // target choice here: a squad's attack lands on the frontmost living,
-// unshielded opposing piece.
+// unshielded opposing piece. Still used for Chain / Haste secondary hits.
 function frontmost(state, units) {
   const living = units.filter((u) => u.hp > 0)
   if (!living.length) return null
   const pool = unshieldedOrAll(state, living)
   return [...pool].sort((a, b) => a.pos.row - b.pos.row || a.pos.col - b.pos.col)[0].id
+}
+
+// EXACTLY frontmost()'s comparator - no id tiebreak. An `|| (a.id ...)`
+// term here quietly shifted a few fights (tommy/fenrir ~-6 pp on the
+// RUNS=100 gate) by re-ordering enemies that tie on row+col, so the
+// default path stays byte-for-byte the old behaviour.
+const byRowCol = (a, b) => a.pos.row - b.pos.row || a.pos.col - b.pos.col
+
+// Per-DPS target profiles (roles.js's unitTargetProfile - PRD "Strategic
+// Combat System V2" 11-12). The player-side counterpart to threatTarget:
+// a unit's own single-target attack goes for the enemy its profile
+// prefers, not just the front rank.
+//  - executioner: the lowest-HP enemy (finish a wounded target - it
+//    CONCENTRATES the squad's damage, which is why it's the one profile
+//    that landed inside the RUNS=100 gate; see roles.js for why
+//    `breaker` and `assassin` are held for a later round).
+//  - default: frontmost (byte-for-byte unchanged).
+// Deterministic; shielding respected, exactly like frontmost().
+export function playerTarget(state, def, enemies) {
+  const living = enemies.filter((e) => e.hp > 0)
+  if (!living.length) return null
+  const pool = unshieldedOrAll(state, living)
+  if (unitTargetProfile(def) === "executioner") return [...pool].sort((a, b) => a.hp - b.hp || byRowCol(a, b))[0].id
+  return [...pool].sort(byRowCol)[0].id
 }
 
 // Threat targeting (PRD "Strategic Combat System V2" 6-7). Enemies used
@@ -985,7 +1009,9 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
     } else {
       const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
       const targetId =
-        side === "player" ? frontmost(next, targetPool(next)) : threatTarget(next, targetPool(next), enemyAttackN++)
+        side === "player"
+          ? playerTarget(next, def, targetPool(next))
+          : threatTarget(next, targetPool(next), enemyAttackN++)
       if (targetId) {
         const targetWasAlive = (getUnit(next, targetId)?.hp || 0) > 0
         next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })

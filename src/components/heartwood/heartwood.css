@@ -6913,6 +6913,24 @@ img.hw-intent-glyph {
   color: var(--hw-muted);
   font-weight: 600;
 }
+/* Per-DPS target profile (roles.js unitTargetProfile) - one muted line
+   under the role line, only for the few units that don't just hit the
+   front rank. */
+.hw-card-target-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--hw-rune);
+  margin-top: 1px;
+}
+.hw-card-target-line .hw-effect-icon-glyph {
+  width: 11px;
+  height: 11px;
+}
 .hw-card-tags {
   display: flex;
   flex-wrap: wrap;
