@@ -7206,3 +7206,41 @@ img.hw-intent-glyph {
   width: 12px;
   height: 12px;
 }
+
+/* ---- Counterplay matchup (counterplay.js -> FormationScreen) --------
+   The threats the NEXT fight presents + whether your kit answers each.
+   ✓ chip = covered (moss), ✗ chip = a gap (ember). One compact row. */
+.hw-matchup {
+  margin: 10px 0;
+  text-align: left;
+}
+.hw-matchup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+}
+.hw-matchup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--hw-radius-pill, 999px);
+  border: 1px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  color: color-mix(in srgb, var(--hw-hp) 90%, var(--hw-text));
+}
+.hw-matchup-chip[data-covered="true"] {
+  border-color: color-mix(in srgb, var(--hw-moss) 60%, transparent);
+  color: color-mix(in srgb, var(--hw-moss) 90%, var(--hw-text));
+}
+.hw-matchup-chip .hw-intent-glyph {
+  width: 11px;
+  height: 11px;
+}
+.hw-matchup-note {
+  font-size: 11px;
+  color: var(--hw-ember);
+  margin: 5px 0 0;
+}
