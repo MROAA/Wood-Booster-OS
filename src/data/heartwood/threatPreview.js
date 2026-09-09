@@ -45,7 +45,10 @@ const dotId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && DOT_I
 const ctrlId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && CONTROL_IDS.includes(m.id))?.id
 
 // Base severity of each archetype when ranking primary/secondary.
-const SEVERITY = { control: 1.4, armor: 1.2, sustain: 1.1, poison: 1.0, backline: 0.9, swarm: 0.8 }
+// A full swarm is a more pressing "what kind of problem is this" than a
+// stray back-row piece - it outranks backline (bumped when the-brood /
+// the-teeming made "backline" edge out "A swarm" by 0.1).
+const SEVERITY = { control: 1.4, armor: 1.2, swarm: 1.15, sustain: 1.1, poison: 1.0, backline: 0.85 }
 
 export function evaluateThreat(previewEnemies, runState, node) {
   const living = (previewEnemies || []).filter((e) => (e.hp ?? 1) > 0)

@@ -180,6 +180,63 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // --- The Swarm (Enemy Ecosystem PRD 6-7, feat/hearthwood-swarm) ---
+  // The first enemy ARCHETYPE, built like a build: four tiny bodies,
+  // none shielded (every one a legal single-target from turn 1 - this
+  // is a swarm, not a wall puzzle), and a synergy that makes the swarm
+  // MORE dangerous the more of it is alive. `synergy.effects` is applied
+  // battle-start to every living piece (autoBattleEngine.js), so the
+  // `addTrigger turnStart` becomes a PER-PIECE per-round +1 Strength:
+  // four alive = +4 collective/round; thin it (fast, via an AoE / chain
+  // / pattern attacker) and the ramp drops. Single-target wastes
+  // overkill on 14-18 HP bodies while the rest pile up - the archetype's
+  // counterplay, using only existing effects (no enemy `summon` /
+  // `onDeath` exists). Pieces at cols 0/2 only, never the (1,1) centre.
+  "the-brood": {
+    id: "the-brood",
+    synergy: {
+      label: "Strength in numbers",
+      // Flat per-piece +1 Strength at battle start (mist-growler-pack's
+      // model), NOT a compounding turnStart ramp: a ramp outpaced the
+      // outlast Commander's per-round heals for a -6pp lean on the
+      // RUNS=100 gate, and "kill bodies fast" is already the archetype's
+      // pressure without it. Four bodies each +1 = a real opening
+      // threat that FADES as you thin the swarm.
+      effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
+    },
+    name: "The Brood",
+    description: "Not one thing to fight. A dozen small ones, and every one of them is still a mouth.",
+    pieces: [
+      { defId: "sporelet", pos: { row: 0, col: 0 } },
+      { defId: "mire-gnat", pos: { row: 0, col: 2 } },
+      { defId: "sporelet", pos: { row: 1, col: 0 } },
+      { defId: "mire-gnat", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-teeming": {
+    id: "the-teeming",
+    synergy: {
+      label: "Strength in numbers",
+      // Flat per-piece +1 Strength at battle start (mist-growler-pack's
+      // model), NOT a compounding turnStart ramp: a ramp outpaced the
+      // outlast Commander's per-round heals for a -6pp lean on the
+      // RUNS=100 gate, and "kill bodies fast" is already the archetype's
+      // pressure without it. Four bodies each +1 = a real opening
+      // threat that FADES as you thin the swarm.
+      effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
+    },
+    name: "The Teeming",
+    description: "The mire empties itself at you all at once. Clear the cloud fast or drown in it.",
+    pieces: [
+      { defId: "mire-gnat", pos: { row: 0, col: 0 } },
+      { defId: "thorn-tick", pos: { row: 0, col: 2 } },
+      { defId: "thorn-tick", pos: { row: 1, col: 0 } },
+      { defId: "sporelet", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",

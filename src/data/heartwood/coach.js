@@ -116,6 +116,12 @@ export const COACH_TIPS = [
     anchor: ".hw-threat-preview",
   },
   {
+    id: "swarm",
+    title: "Fighting a swarm",
+    text: "Four small bodies that hit hard together and don't shield each other. Single-target attacks waste damage on 15-HP bugs; an AoE, chain or pattern attacker clears two or three at once. Thin the swarm fast - don't duel it one bug at a time.",
+    anchor: ".hw-swarm-hint",
+  },
+  {
     id: "counterplay",
     title: "Answering the next enemy",
     text: "\"Next fight\" lists what THIS enemy brings - armour, a swarm, healing, poison, control, a back-liner - and marks each ✓ if your squad has an answer or ✗ if it doesn't. A gap isn't a loss, but it's where the fight will be decided.",

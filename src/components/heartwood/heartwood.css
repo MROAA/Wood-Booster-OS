@@ -7473,3 +7473,15 @@ img.hw-intent-glyph {
   font-size: 11px;
   color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
 }
+
+/* --- Swarm hint (formations.js the-brood / the-teeming, FormationScreen)
+   — the Swarm archetype's counterplay line (Enemy Ecosystem PRD 6-7),
+   under the "Enemy formation:" badge. --- */
+.hw-swarm-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
