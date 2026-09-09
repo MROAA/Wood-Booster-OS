@@ -3,6 +3,7 @@ import { CardGlyph } from "./cardArt"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveTrial } from "../../data/heartwood/trials"
 import { RUN_PATH, MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
+import PlaystyleProfile from "./PlaystyleProfile"
 
 // Distinct from the per-fight ResultOverlay.jsx (which still plays out
 // after each individual battle) - this is the run's actual ending,
@@ -43,7 +44,7 @@ const silhouetteReveal = {
   animate: { opacity: 1, scale: 1, filter: "blur(0px) grayscale(0) brightness(1)" },
 }
 
-export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathMemory, acornsEarned, totalAcorns, depthLevel = 0 }) {
+export default function RunEndOverlay({ phase, nodeIndex, path, runState, onNewRun, deathMemory, acornsEarned, totalAcorns, depthLevel = 0 }) {
   if (phase !== "victory" && phase !== "defeat") return null
   const won = phase === "victory"
   // How far the run actually got - this screen used to show nothing
@@ -195,6 +196,19 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathM
               </motion.span>
             )}
           </div>
+
+          {/* Strategic Playstyle profile (playstyle.js) - the whole
+              run's choices on six axes, the "what kind of player were
+              you" read-out. Pure display from runState. */}
+          {runState?.bench?.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: REVEAL_DELAY.stats + 0.5, ease: "easeOut" }}
+            >
+              <PlaystyleProfile runState={runState} />
+            </motion.div>
+          )}
 
           <motion.button
             className="hw-end-turn hw-runend-cta"

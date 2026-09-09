@@ -5,6 +5,7 @@ import { difficultyTierForNode, DIFFICULTY_TIERS, RUN_PATH } from "../../service
 import { CardGlyph } from "./cardArt"
 import RunModifierStrip from "./RunModifierStrip"
 import StoryJournal from "./StoryJournal"
+import PlaystyleProfile from "./PlaystyleProfile"
 
 // The world's posture, set by Act Crossroads (crossroads.js). "restless"
 // is the neutral default and shows nothing - only a chosen state does.
@@ -97,6 +98,7 @@ function RunRail({ runState }) {
         <ForestStateBadge state={runState.forestState} />
       </div>
       <RunModifierStrip modifiers={runState.runModifiers} compact />
+      <PlaystyleProfile runState={runState} compact />
       {acts.map(({ tier, indices }) => {
         const isCurrentAct = tier === currentTier
         const [actNo, ...rest] = tier.name.split(" · ")
