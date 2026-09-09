@@ -195,6 +195,23 @@ export const RELICS = {
     guardLowestHp: true,
     ledgerOnly: true,
   },
+  "marked-coin": {
+    id: "marked-coin",
+    image: sunderingMarkImg,
+    name: "The Marked Coin",
+    icon: "rune",
+    description: "A coin pressed into the frailest hand on the other side. It never buys anything - it only makes the bearer easier to break.",
+    // The Marked Coin (runEngine.js's SHOP_INVESTMENTS - a Ledger buy, NOT
+    // a relic-node pick, hence `ledgerOnly` and the relicPool() filter
+    // below). A sibling to Rearguard Standard's special-case slot in
+    // autoBattleEngine.js, but pointed at the enemy line: the LOWEST-maxHp
+    // living enemy starts every battle Vulnerable 2 - in a Coven fight
+    // that is the Matron behind the shield, the exact piece the archetype
+    // tells you to kill first.
+    effects: [],
+    markLowestEnemyHp: true,
+    ledgerOnly: true,
+  },
   "vampiric-bloom": {
     id: "vampiric-bloom",
     image: vampiricBloomImg,
@@ -889,7 +906,7 @@ for (const [id, relic] of Object.entries(RELICS)) {
 }
 
 export function relicPool() {
-  // `ledgerOnly` relics (rearguard-standard) are bought from the Ledger
-  // (runEngine.js's SHOP_INVESTMENTS), never offered at a relic node.
+  // `ledgerOnly` relics (rearguard-standard, marked-coin) are bought from
+  // the Ledger (runEngine.js's SHOP_INVESTMENTS), never offered at a relic node.
   return Object.values(RELICS).filter((r) => !r.ledgerOnly)
 }

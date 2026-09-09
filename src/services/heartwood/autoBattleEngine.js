@@ -659,6 +659,22 @@ export function startAutoBattle(
         targetId: frailest.id,
       })
     }
+    // The Marked Coin (runEngine.js's SHOP_INVESTMENTS - a Ledger buy
+    // that pushes "marked-coin" onto runState.relics, feat/hearthwood-
+    // coven): Vulnerable on the LOWEST-maxHp living enemy at battle start
+    // - the Coven Matron in a Coven fight, a "your burst lands harder on
+    // the key piece" everywhere else. The enemy-side mirror of
+    // guardLowestHp.
+    if (relic?.markLowestEnemyHp) {
+      const living = state.enemies.filter((e) => e.hp > 0)
+      if (living.length) {
+        const frail = living.reduce((worst, e) => (e.maxHp < worst.maxHp ? e : worst), living[0])
+        state = applyEffects(state, [{ type: "applyBuff", id: "vulnerable", amount: 2 }], {
+          actorId: frail.id,
+          targetId: frail.id,
+        })
+      }
+    }
   }
 
   // Tribe synergies (synergies.js's UNIT_TRIBES/SYNERGY_TIERS) - counted
@@ -1249,6 +1265,28 @@ function applyAuraTick(state) {
   return next
 }
 
+// covenAura (enemies.js's `covenAura`, feat/hearthwood-coven - The Coven
+// archetype): the ENEMY-side mirror of applyAuraTick, but NOT adjacency-
+// gated - a Coven Matron behind the front line buffs EVERY OTHER living
+// enemy each round. Kill the matron (reach past the shield: a pattern
+// attacker, an executioner, a Sunder) and the escalation stops; grind
+// the front and it snowballs. Runs before actSide (in resolveRoundInner),
+// so a round-1 matron kill only ever eats one buff cycle.
+function applyCovenTick(state) {
+  let next = state
+  for (const e of next.enemies) {
+    if (e.hp <= 0) continue
+    const def = next.enemyDefs?.[e.defId] || ENEMIES[e.defId]
+    const aura = def?.covenAura
+    if (!aura) continue
+    for (const other of next.enemies) {
+      if (other.id === e.id || other.hp <= 0) continue
+      next = applyEffects(next, [{ type: "applyBuff", id: aura.id, amount: aura.amount }], { actorId: other.id, targetId: other.id })
+    }
+  }
+  return next
+}
+
 // spite (units.js's `spite`, feat/hearthwood-rot): a ONE-SHOT. The first
 // round the whole player squad's total poison stacks reach 3+, each
 // living spite unit gains min(6, amount * 3) Strength, once (a
@@ -1430,6 +1468,9 @@ function resolveRoundInner(state) {
   if (next.phase !== "player") return next
 
   next = applyAuraTick(next)
+  if (next.phase !== "player") return next
+
+  next = applyCovenTick(next)
   if (next.phase !== "player") return next
 
   // Re-deriving each player unit's effective def from its own stored

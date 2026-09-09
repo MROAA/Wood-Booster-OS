@@ -30,6 +30,7 @@ export const THREATS = [
   { id: "control", label: "Control", icon: "spark", answer: "Ward / Bulwark / Evade" },
   { id: "backline", label: "A back-line threat", icon: "gale", answer: "reach (an assassin / pattern attacker)" },
   { id: "hunters", label: "Hunts your weak", icon: "fox", answer: "a taunt, a decoy, or a bodyguard" },
+  { id: "coven", label: "A buffing enabler", icon: "rune", answer: "focus the caster - reach, an executioner, or a Sunder" },
 ]
 
 export const THREAT_LABEL = Object.fromEntries(THREATS.map((t) => [t.id, t.label]))
@@ -66,6 +67,11 @@ function defThreats(def) {
   // Hunters (feat/hearthwood-hunters): the piece's targeting is flipped
   // to hit your softest unit - see autoBattleEngine.js's threatTarget.
   if (def.hunter) out.push("hunters")
+  // Coven (feat/hearthwood-coven): the Matron behind the shield buffs
+  // every other living enemy each round - see autoBattleEngine.js's
+  // applyCovenTick. Kill it first (reach / an executioner / a Sunder) or
+  // the pack snowballs.
+  if (def.covenAura) out.push("coven")
   return out
 }
 
@@ -132,6 +138,22 @@ export function buildAnswersFor(runState) {
     covered.add("control")
   if (anyUnit((u) => u.targetProfile === "executioner" || u.profile?.primary === "assassin" || (u.def.attackPattern && u.def.attackPattern !== "single")))
     covered.add("backline")
+  // Coven (feat/hearthwood-coven): reach past the shield and delete the
+  // caster - a pattern attacker or an executioner snipes it, a Sunder
+  // strips the stacked Strength off the pack. (Sunder is usually an
+  // onDealDamage trigger, not a plain debuff step, so check the derived
+  // tag too - `applies` only sees debuff steps / applyBuff passives.)
+  if (
+    anyUnit(
+      (u) =>
+        u.targetProfile === "executioner" ||
+        u.profile?.primary === "assassin" ||
+        (u.def.attackPattern && u.def.attackPattern !== "single") ||
+        u.tags.has("sunder") ||
+        u.applies("sunder"),
+    )
+  )
+    covered.add("coven")
   // Hunters (feat/hearthwood-hunters): a taunt / decoy pulls the pack, a
   // bodyguard (`guard`) steps in front, and the Bulwark Standard /
   // Rearguard relics both hand a defensive unit the enemy's attention.

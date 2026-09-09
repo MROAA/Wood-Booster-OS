@@ -1741,6 +1741,38 @@ const BASE_UNITS = {
     // Rot's own poison into your burst - the "close it fast" answer.
     spite: { amount: 2 },
   }),
+
+  // --- The Coven, player answers (feat/hearthwood-coven) ------------
+  // Three ways to reach past the shield and delete the Matron
+  // (enemies.js coven-matron, formations the-conclave / the-choir)
+  // before her per-round Strength buff snowballs the pack.
+  "hexbreaker": unit("hexbreaker", "Hexbreaker", "spark", 3, "dps", [
+    { type: "attack", amount: 5 },
+  ], {
+    className: "Reaver",
+    // Bishop's diagonal - applyPatternDamage fans out from the
+    // frontmost pick and can land on the shielded back-row Matron the
+    // same turn, no need to chew through the front line first.
+    attackPattern: "bishop",
+  }),
+  "oracle-eye": unit("oracle-eye", "Oracle Eye", "shadow", 3, "dps", [
+    { type: "attack", amount: 6 },
+  ], {
+    className: "Seer",
+    // TARGET_PROFILE_OVERRIDES (roles.js) pins this to "executioner":
+    // it always swings at the lowest-HP enemy, so it deletes an
+    // exposed Matron on sight and snipes her the moment her front
+    // thins.
+  }),
+  "witch-cutter": unit("witch-cutter", "Witch-Cutter", "root", 2, "dps", [
+    { type: "attack", amount: 4 },
+  ], {
+    className: "Cutter",
+    // Sunder on hit (duskbramble's exact shape) - strips the Matron's
+    // stacked Strength off the pack every time it connects, so even a
+    // grind doesn't let the enchant run away.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

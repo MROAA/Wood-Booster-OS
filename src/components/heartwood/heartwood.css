@@ -7679,3 +7679,15 @@ img.hw-intent-glyph {
   line-height: 1.5;
   color: var(--hw-muted);
 }
+
+/* --- Coven hint (formations.js the-conclave / the-choir, FormationScreen)
+   — the Coven archetype's counterplay line (Enemy Ecosystem PRD), under
+   the "Enemy formation:" badge. Mirrors .hw-swarm-hint, rune tick. --- */
+.hw-coven-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-rune) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}

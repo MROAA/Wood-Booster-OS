@@ -38,6 +38,7 @@ const MECH = [
   [(d) => arr(d.passive).some((p) => p.type === "applyBuff" && (p.id === "shatter" || p.id === "sunder")) || arr(d.movePattern).some((m) => m.type === "sunder"), () => "Strips your Block"],
   [(d) => arr(d.movePattern).some((m) => m.type === "heal") || arr(d.passive).some((p) => p.type === "applyBuff" && (p.id === "regen" || p.id === "revive")), () => "Heals itself"],
   [(d) => d.hunter, () => "Hunts your weakest"],
+  [(d) => d.covenAura, () => "Empowers the pack"],
   [(d) => d.attackPattern && d.attackPattern !== "single", () => "Hits every square"],
   [(d) => Array.isArray(d.phases) && d.phases.length > 0, () => "Shifts phase when hurt"],
   [(d) => d.moveSelect === "weightedRandom", () => "Unpredictable moves"],
@@ -53,7 +54,12 @@ const ctrlId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && CONT
 // piece exhibits poison, frac 1.0 → 1.2 + 1.0 = 2.2) reads as the PRIMARY
 // threat, not "sustain" (the-festering's self-mend synergy would otherwise
 // edge it: 1.1 + ~0.33). Same shape as the #434 SEVERITY.swarm bump.
-const SEVERITY = { control: 1.4, hunters: 1.25, armor: 1.2, poison: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
+// coven 1.3 (feat/hearthwood-coven): an escalating per-round buff enabler
+// is a pressing "what is this fight" - just below control. Treated as a
+// ROSTER-level threat in the ranking below (frac forced to 1 when any
+// piece has covenAura), so 1.3 + 1.0 = 2.3 clears backline's 0.85 + 1.0
+// and "A buffing enabler" reads as the primary, not "A back-line threat".
+const SEVERITY = { control: 1.4, coven: 1.3, hunters: 1.25, armor: 1.2, poison: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
 
 // PRD "Progressiivinen haasteen nousu ja skaalaus" 9 / 41-43: a read of
 // the fight RELATIVE to the player's build. `ratio` = playerPower.js's
@@ -98,10 +104,16 @@ export function evaluateThreat(previewEnemies, runState, node, playerPower = nul
   const ranked = THREATS.map((t) => t.id)
     .filter((id) => threatSet.has(id))
     .map((id) => {
-      const frac = living.filter((e) => {
+      let frac = living.filter((e) => {
         const d = ENEMIES[e.defId] || UNITS[e.defId]
         return exhibits(d, id, living.length)
       }).length / living.length
+      // A coven is a ROSTER-level identity, like a swarm: one caster
+      // makes the whole pack a coven, so it shouldn't be discounted for
+      // the two front bodies that only carry the buff. Otherwise the
+      // matron's 1-in-3 frac lets "A back-line threat" (every piece
+      // "exhibits" it) edge out "A buffing enabler".
+      if (id === "coven" && frac > 0) frac = 1
       return { id, score: (SEVERITY[id] || 1) + frac }
     })
     .sort((a, b) => b.score - a.score)
@@ -166,6 +178,8 @@ function exhibits(d, id, livingCount) {
       return steps.some((m) => m.type === "heal") || arr(d.passive).some((p) => p.type === "applyBuff" && ["regen", "revive"].includes(p.id))
     case "hunters":
       return !!d.hunter
+    case "coven":
+      return !!d.covenAura
     case "control":
       return steps.some((m) => m.type === "debuff" && CONTROL_IDS.includes(m.id))
     case "poison":

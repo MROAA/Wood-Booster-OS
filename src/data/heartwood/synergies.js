@@ -254,6 +254,10 @@ export const UNIT_TRIBES = {
   "mirekeeper": ["grove", "root"],
   "bloomhide": ["grove", "wood"],
   "spitethorn": ["thorn", "ember"],
+  // The Coven, player answers (feat/hearthwood-coven).
+  "hexbreaker": ["thorn", "gale"],
+  "oracle-eye": ["fang", "shadow"],
+  "witch-cutter": ["root", "fang"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

@@ -170,7 +170,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "ironroot" },
   { type: "shop" },
-  { type: "battle", formationId: "bark-brutes-stand" },
+  { type: "battle", formationId: "the-conclave" }, // feat/hearthwood-coven (was: bark-brutes-stand)
   { type: "shop" },
   { type: "battle", formationId: "the-bastion" },
   { type: "relic" },
@@ -184,7 +184,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", formationId: "the-festering" }, // feat/hearthwood-rot (was: quillfangs-warren)
   { type: "event" },
-  { type: "battle", formationId: "bonewardens-watch" },
+  { type: "battle", formationId: "the-choir" }, // feat/hearthwood-coven (was: bonewardens-watch)
   { type: "shop" },
   { type: "miniboss", enemyId: "wyrmgall", trialId: "veilbound" },
   { type: "shop" },
@@ -1218,6 +1218,15 @@ export const SHOP_INVESTMENTS = {
     cost: 400,
     desc: "Your frailest unit starts every battle with Bulwark - one hit shrugged off.",
   },
+  // The Marked Coin (feat/hearthwood-coven): the enemy-side mirror of
+  // The Rearguard - a run-wide relic ("marked-coin", relics.js
+  // `markLowestEnemyHp`) that puts Vulnerable on the frailest enemy
+  // (the Coven Matron, or whatever key piece is softest) every fight.
+  "marked-coin": {
+    name: "The Marked Coin",
+    cost: 400,
+    desc: "The frailest thing on the enemy line starts every battle Vulnerable - it takes the hits harder.",
+  },
 }
 
 export function investmentOwned(runState, id) {
@@ -1225,6 +1234,7 @@ export function investmentOwned(runState, id) {
   if (id === "wider-stall") return (runState.shopSlotBonus || 0) > 0
   if (id === "ledger-account") return (runState.ledgerWinBonus || 0) > 0
   if (id === "rearguard") return (runState.relics || []).includes("rearguard-standard")
+  if (id === "marked-coin") return (runState.relics || []).includes("marked-coin")
   return false
 }
 
@@ -1238,7 +1248,9 @@ export function buyInvestment(runState, id) {
         ? { shopSlotBonus: 1 }
         : id === "ledger-account"
           ? { ledgerWinBonus: 40 }
-          : { relics: [...(runState.relics || []), "rearguard-standard"] }
+          : id === "rearguard"
+            ? { relics: [...(runState.relics || []), "rearguard-standard"] }
+            : { relics: [...(runState.relics || []), "marked-coin"] }
   return { ...runState, essence: runState.essence - inv.cost, ...patch }
 }
 

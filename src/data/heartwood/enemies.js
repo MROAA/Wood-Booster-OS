@@ -670,6 +670,61 @@ export const ENEMIES = {
     ],
   },
 
+  // --- The Coven (Enemy Ecosystem PRD, feat/hearthwood-coven) ---
+  // The fifth archetype: a caster BEHIND the front line that makes the
+  // whole pack stronger every round (coven-matron's `covenAura` - see
+  // autoBattleEngine.js's applyCovenTick). Kill the matron first (reach
+  // past the shield: a pattern attacker, an executioner, or a Sunder to
+  // strip the enchant) or the fight snowballs; grinding the front just
+  // feeds it. In NON_BATTLE_ENEMY_IDS - only via the-conclave / the-choir.
+  "coven-matron": {
+    id: "coven-matron",
+    act: 3,
+    name: "Coven Matron",
+    maxHp: 28,
+    art: "moonGlyph",
+    // covenAura: each round, +1 Strength to EVERY OTHER living enemy
+    // (not itself, not adjacency-gated). Frail and barely fights - the
+    // whole threat is the buff, so the whole answer is killing it.
+    covenAura: { id: "strength", amount: 1 },
+    description: "It never lifts a hand. It just keeps whispering, and the whispering makes the others worse.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 3 },
+      { type: "block", amount: 2 },
+    ],
+  },
+  "hex-acolyte": {
+    id: "hex-acolyte",
+    act: 3,
+    name: "Hex Acolyte",
+    maxHp: 40,
+    art: "rootbindThicket",
+    // Ward (stonewake's model): the first hit each round is ignored, so
+    // grinding through the acolyte to reach the matron is SLOW - the
+    // fight wants you to go around it, not through it.
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    description: "It stands in front of the Matron with its eyes shut, listening, taking the hit it was told to take.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 3 },
+      { type: "attack", amount: 5 },
+    ],
+  },
+  "bog-devotee": {
+    id: "bog-devotee",
+    act: 3,
+    name: "Bog Devotee",
+    maxHp: 42,
+    art: "husk",
+    description: "Whatever it used to want, it wants what the Matron wants now.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "attack", amount: 4 },
+    ],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1797,6 +1852,11 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "rotgut-crawler",
   "spore-lurcher",
   "mire-sworn",
+  // The Coven (feat/hearthwood-coven): only via the-conclave / the-choir,
+  // never a solo actEnemyForNode pick - same pool-reshuffle reason.
+  "coven-matron",
+  "hex-acolyte",
+  "bog-devotee",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible

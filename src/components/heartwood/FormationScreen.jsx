@@ -398,6 +398,17 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
 
+      {/* Coven hint (formations.js the-conclave / the-choir): the "The
+          coven's blessing" synergy label = the Coven archetype (Enemy
+          Ecosystem PRD). A caster behind the shield line makes the whole
+          pack stronger every round — reach past it and kill it first, or
+          the fight snowballs. */}
+      {formation.synergy?.label === "The coven's blessing" && (
+        <p className="hw-coven-hint">
+          A coven — the caster behind the front line makes the whole pack stronger every round. Reach past the shield and kill it first (a pattern attacker or an executioner snipes it, a Sunder strips the buff), or the fight snowballs. Grinding the front line just feeds the enchant.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the

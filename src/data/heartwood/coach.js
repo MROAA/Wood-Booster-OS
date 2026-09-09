@@ -152,6 +152,12 @@ export const COACH_TIPS = [
     anchor: ".hw-rot-hint",
   },
   {
+    id: "coven",
+    title: "Breaking a coven",
+    text: "One frail caster sits behind the shield line and makes the whole pack stronger every single round - grind the front and you just feed the buff. Reach past the wall and kill the caster first: a pattern attacker (Hexbreaker's diagonal) lands on the back row directly, an executioner (Oracle Eye) always swings at the lowest-HP enemy, and a Sunder (Witch-Cutter) strips the stacked Strength off the pack with every hit. Once the caster is down the fight stops snowballing.",
+    anchor: ".hw-coven-hint",
+  },
+  {
     id: "antidote",
     title: "Field Antidote",
     text: "A one-fight consumable: your whole squad starts the next battle with Regen, enough to out-drip an opening poison spike. Buy it before a fight you know is a rot pack. The cost climbs each Act.",
