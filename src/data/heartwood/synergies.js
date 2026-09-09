@@ -237,6 +237,12 @@ export const UNIT_TRIBES = {
   "emberbanner": ["ember", "thorn"],
   "pack-elder": ["fang"],
   "stonemoot-sentinel": ["stone", "warden"],
+  // Economy crew (feat/hearthwood-economy-crew) - real tribe tags so
+  // they still count toward synergies while parked on the board.
+  "grove-merchant": ["grove", "warden"],
+  "acorn-banker": ["stone", "warden"],
+  "hollow-forager": ["wood", "fang"],
+  "toll-warden": ["stone", "thorn"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

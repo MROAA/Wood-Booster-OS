@@ -23,7 +23,7 @@ import {
   resolveBattleOutcome,
   chooseRelic,
   essenceForWin,
-  bankInterest,
+  bankInterestFor,
   buyItem,
   equipItem,
   unequipItem,
@@ -619,9 +619,10 @@ export default function HeartwoodBattle() {
       ids.push("roles")
       if (shopLegendary || benchLegendary) ids.push("legendary")
       if ((runState.marketLevel || 1) > 1) ids.push("market-level")
-      if (bankInterest(runState.essence) > 0) ids.push("interest")
+      if (bankInterestFor(runState) > 0) ids.push("interest")
       if ((runState.bench || []).some((e) => UNITS[e.defId]?.displayTier !== 2 && runState.essence >= 150)) ids.push("upgrade")
       ids.push("ledger")
+      if ((runState.bench || []).some((e) => UNITS[e.defId]?.economyRole)) ids.push("economy-crew")
       if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("playstyle")
       ids.push("seed")
     }
@@ -963,7 +964,7 @@ export default function HeartwoodBattle() {
   const essenceOnWin =
     currentPathNode?.type === "boss"
       ? null
-      : essenceForWin(runState, currentPathNode) + bankInterest(runState.essence)
+      : essenceForWin(runState, currentPathNode) + bankInterestFor(runState)
   // A Trial (trials.js) wrapping this node gets its own written victory
   // line on the per-fight result overlay - see trials.js's own comment
   // for why this reuses the enemy's existing combat, just its story voice.

@@ -69,6 +69,22 @@ export const ROLE_OVERRIDES = {
   emberbanner: { primary: "support", secondary: "dps", tags: ["aura", "ember", "thorn"] },
   "pack-elder": { primary: "dps", secondary: "assassin", tags: ["chain", "fang"] },
   "stonemoot-sentinel": { primary: "tank", position: "front", tags: ["shield", "stone", "warden"] },
+  "grove-merchant": {
+    primary: "economy", position: "back", tags: ["economy", "grove", "warden"],
+    strengths: ["Shaves the price off every recruit"], weaknesses: ["A near-passenger in the fight"],
+  },
+  "acorn-banker": {
+    primary: "economy", position: "back", tags: ["economy", "stone", "warden"],
+    strengths: ["Your Essence starts earning interest sooner"], weaknesses: ["Turtles; barely threatens anything"],
+  },
+  "hollow-forager": {
+    primary: "economy", position: "back", tags: ["economy", "wood", "fang"],
+    strengths: ["Every win pays out more Essence"], weaknesses: ["Light in a real fight"],
+  },
+  "toll-warden": {
+    primary: "economy", position: "back", tags: ["economy", "stone", "thorn"],
+    strengths: ["Keeps a paid reroll from getting expensive"], weaknesses: ["Not built to trade blows"],
+  },
   "the-fool": { primary: "healer", secondary: "support", tags: ["regen", "thorn"] },
   beastcaller: { primary: "summoner", position: "back", strengths: ["Opens the fight a body up"] },
   sapkeeper: { primary: "support", secondary: "healer", tags: ["aura", "regen", "grove"] },

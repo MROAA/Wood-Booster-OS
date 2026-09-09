@@ -29,6 +29,7 @@ import { arenaForNode, arenaById } from "../../data/heartwood/arenas"
 import { applyMetaPerks } from "../../data/heartwood/metaPerks"
 import { depthModifiersFor } from "../../data/heartwood/depths"
 import { streamRng } from "../../data/heartwood/seed"
+import { economyCrew, economyCrewEffects } from "../../data/heartwood/economy"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 
 // RAMP_CAP - the difficulty ramp's TOTAL enemy-scaling budget: enemies
@@ -998,7 +999,11 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
 export function effectiveRecruitCost(runState, def) {
   const base = def?.recruitCost
   if (base == null) return base
-  return Math.ceil(base * (1 - (runState.recruitDiscount || 0)))
+  // Regular's Discount (Ledger) + any deployed Grove Merchant
+  // (economy.js), combined and capped so a stacked discount can never
+  // run away.
+  const discount = Math.min(0.6, (runState.recruitDiscount || 0) + economyCrewEffects(runState).recruitPct)
+  return Math.ceil(base * (1 - discount))
 }
 
 // The Almanac (almanac.js): fold ids into runState.seen[category],
@@ -1474,8 +1479,11 @@ export function rerollShop(runState) {
     ),
     // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (50,
     // same value REROLL_BASE_COST itself carries) - see
-    // REROLL_BASE_COST's own comment above.
-    rerollCost: runState.rerollCost + REROLL_INCREMENT,
+    // REROLL_BASE_COST's own comment above. A deployed Toll-Warden
+    // (economy.js) holds the cost flat instead of letting it climb.
+    rerollCost: economyCrewEffects(runState).rerollFlat
+      ? runState.rerollCost
+      : runState.rerollCost + REROLL_INCREMENT,
     // A paid Reroll always overrides Freeze (see startRun's own note on
     // `frozen`) - an explicit purchase supersedes it, and there's
     // nothing left to "keep" once the player has deliberately replaced
@@ -2333,13 +2341,18 @@ export function essenceForWin(runState, node) {
     .map((k) => runState.bench.find((e) => e.key === k))
     .filter((e) => e && (e.upgrades || []).includes("economy"))
     .reduce((sum) => sum + ECONOMY_WIN_BONUS, 0)
+  // Economy crew (economy.js): a deployed Hollow Forager adds a flat
+  // per-non-boss-win payout. Same "read from the deployed board" shape
+  // as economyBranchBonus, and flows into the pre-battle preview too.
+  const economyCrewWinBonus = economyCrewEffects(runState).winBonus
   const flat =
     WIN_ESSENCE +
     difficultyBonus +
     essenceBonus +
     (runState.metaWinBonus || 0) +
     (runState.ledgerWinBonus || 0) +
-    economyBranchBonus
+    economyBranchBonus +
+    economyCrewWinBonus
   // Run Modifiers (boons.js): some boons/banes carry an Essence-per-win %
   // (e.g. Hollow-Marked trades a Weak start for +30% spoils) - a real
   // risk/reward lever, applied last on top of the flat total.
@@ -2359,10 +2372,23 @@ export const INTEREST_RATE = 0.1 // 10% (TFT standard)
 export const INTEREST_THRESHOLD = 150 // ~3 banked commons before it kicks in
 export const INTEREST_CAP = 150 // one rare's worth per win - bounds the snowball
 
-export function bankInterest(essence) {
-  if (!essence || essence < INTEREST_THRESHOLD) return 0
+export function bankInterest(essence, threshold = INTEREST_THRESHOLD) {
+  if (!essence || essence < threshold) return 0
   return Math.min(INTEREST_CAP, Math.floor(essence * INTEREST_RATE))
 }
+
+// bankInterest with a deployed Acorn Banker (economy.js) taken into
+// account - it lowers the threshold at which interest starts. Every
+// runState-having call site uses this so the badge, the coach trigger,
+// the pre-battle preview and the post-win payout all agree.
+export function bankInterestFor(runState) {
+  return bankInterest(runState.essence, economyCrewEffects(runState).interestThreshold)
+}
+
+// Re-exported so the UI has one import site for the economy-crew read
+// (mirrors how the shop components already pull bankInterest / the
+// Ledger helpers from this module).
+export { economyCrew, economyCrewEffects }
 
 // Death Memory (Marc's PRD: a lost hero should leave something behind
 // instead of just vanishing) - built once, at the exact moment
@@ -2441,7 +2467,7 @@ export function resolveBattleOutcome(runState) {
     // Interest (bankInterest) is on the balance carried INTO this
     // fight - rs.essence here, before the win payout is added on top
     // (TFT order: interest on held gold, then round income).
-    const wonEssence = rs.essence + essenceForWin(rs, node) + bankInterest(rs.essence)
+    const wonEssence = rs.essence + essenceForWin(rs, node) + bankInterestFor(rs)
     // Playstyle history (styleLog): a grind = a win that ran 8+ rounds;
     // maxEssence tracks the run's peak balance (a steadier "hoarder"
     // signal than the instantaneous number).
