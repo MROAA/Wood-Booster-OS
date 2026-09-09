@@ -128,6 +128,12 @@ export const COACH_TIPS = [
     anchor: ".hw-fortress-hint",
   },
   {
+    id: "hunters",
+    title: "Answering a hunting pack",
+    text: "This pack ignores your wall and every attack lands on your softest unit - your carry, your healer, your back line. A Taunt or a decoy makes them hit that unit instead. A bodyguard (Oathshield) beside your carry steps in front. Or field even HP across the squad so there's no obvious target. A front-line tank does NOT draw a hunting pack on its own.",
+    anchor: ".hw-hunters-hint",
+  },
+  {
     id: "counterplay",
     title: "Answering the next enemy",
     text: "\"Next fight\" lists what THIS enemy brings - armour, a swarm, healing, poison, control, a back-liner - and marks each ✓ if your squad has an answer or ✗ if it doesn't. A gap isn't a loss, but it's where the fight will be decided.",

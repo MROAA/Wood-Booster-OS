@@ -85,6 +85,19 @@ export const ROLE_OVERRIDES = {
     primary: "economy", position: "back", tags: ["economy", "stone", "thorn"],
     strengths: ["Keeps a paid reroll from getting expensive"], weaknesses: ["Not built to trade blows"],
   },
+  // The Hunters, player answers (feat/hearthwood-hunters).
+  "oathshield": {
+    primary: "tank", position: "front", tags: ["guard", "shield", "warden", "stone"],
+    strengths: ["Steps in front of the ally beside it when the pack hunts"], weaknesses: ["Only body-blocks a hunting pack, nothing else"],
+  },
+  "lure-warden": {
+    primary: "tank", position: "front", tags: ["taunt", "decoy", "warden", "thorn"],
+    strengths: ["Everything on the field wants to hit it instead of your carry"], weaknesses: ["Soaks fire it can't really trade back"],
+  },
+  "evenwood-elder": {
+    primary: "support", secondary: "healer", position: "center", tags: ["aura", "shield", "grove", "wood"],
+    strengths: ["Hardens the units beside it so none of them is the soft target"], weaknesses: ["Slow, and does little on its own"],
+  },
   "the-fool": { primary: "healer", secondary: "support", tags: ["regen", "thorn"] },
   beastcaller: { primary: "summoner", position: "back", strengths: ["Opens the fight a body up"] },
   sapkeeper: { primary: "support", secondary: "healer", tags: ["aura", "regen", "grove"] },

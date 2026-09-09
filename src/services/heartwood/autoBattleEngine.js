@@ -227,6 +227,21 @@ export function unitThreat(state, unit) {
 // volley SPREADS across the squad instead of every enemy computing the
 // same round-number index and dog-piling one unit.
 //
+// `mode` (feat/hearthwood-hunters - The Hunters archetype, Enemy
+// Ecosystem PRD): "threat" (default, above) hits the tank first;
+// "hunt" runs the SAME machinery with the sort REVERSED - lowest threat
+// first, tie-broken by lowest HP - so a hunting pack skips your wall and
+// piles onto the carry / healer / back line. Taunt override, shielding
+// filter, `nth` spread and the round-wrap are all identical between the
+// two modes, so the counters stay wired: a taunter still pulls the whole
+// pack, a shielded soft unit is still skipped while an unshielded one
+// exists. `guard` (units.js) - in hunt mode, if the picked target has a
+// living guard ally Chebyshev-adjacent, the guard steps in front and
+// takes the hit instead (never stalls - falls through to the pick if no
+// guard is adjacent). Hunt-mode-only for v1; general targeting redirect
+// is a bigger fairness lever, deferred (same "machinery ready" note as
+// roles.js's assassin/breaker target profiles).
+//
 // Why not pure argmax? That tested ~13-16 pp below `development` on the
 // RUNS=100 gate (the bot's squads have no forward tank to soak a
 // deterministic focus, so its damage dealers got deleted and it
@@ -236,25 +251,38 @@ export function unitThreat(state, unit) {
 // spreads damage the way the old uniform-random pick did (fight length
 // holds) while still making threat matter - highest-threat is hit
 // first - and stays fully deterministic, no RNG.
-function threatTarget(state, units, nth = 0) {
+function threatTarget(state, units, nth = 0, mode = "threat") {
   const living = units.filter((u) => u.hp > 0)
   if (!living.length) return null
   const taunters = living.filter((u) => (u.powers.taunt || 0) > 0)
   const pool = taunters.length ? taunters : unshieldedOrAll(state, living)
-  const sorted = [...pool].sort(
-    (a, b) =>
-      unitThreat(state, b) - unitThreat(state, a) ||
+  const hunt = mode === "hunt"
+  const sorted = [...pool].sort((a, b) => {
+    const byThreat = hunt ? unitThreat(state, a) - unitThreat(state, b) : unitThreat(state, b) - unitThreat(state, a)
+    return (
+      byThreat ||
+      (hunt ? (a.hp || 0) - (b.hp || 0) : 0) ||
       a.pos.row - b.pos.row ||
       a.pos.col - b.pos.col ||
-      (a.id < b.id ? -1 : 1),
-  )
-  return sorted[((state.round || 1) - 1 + nth) % sorted.length].id
+      (a.id < b.id ? -1 : 1)
+    )
+  })
+  const picked = sorted[((state.round || 1) - 1 + nth) % sorted.length]
+  if (hunt && !taunters.length) {
+    const guard = living.find(
+      (g) => g.id !== picked.id && UNITS[g.defId]?.guard && kingAdjacent(g.pos, picked.pos),
+    )
+    if (guard) return guard.id
+  }
+  return picked.id
 }
 
 // The unit the enemy's next attack lands on - for the board's targeting
-// cue (offset 0 = this round's first attacker).
+// cue (offset 0 = this round's first attacker). Uses hunt mode when the
+// active formation is a hunting pack (formations.js sets enemySynergyLabel).
 export function topThreatTargetId(state) {
-  return threatTarget(state, state.playerUnits || [])
+  const mode = state.enemySynergyLabel === "They hunt the weak one" ? "hunt" : "threat"
+  return threatTarget(state, state.playerUnits || [], 0, mode)
 }
 
 // `deployedUnits` is up to 4 entries, either a bare unit id from
@@ -616,6 +644,19 @@ export function startAutoBattle(
       state = applyEffects(state, [{ type: "applyBuff", id: "taunt", amount: 1 }], {
         actorId: tankiest.id,
         targetId: tankiest.id,
+      })
+    }
+    // The Rearguard (runEngine.js's SHOP_INVESTMENTS - a Ledger buy that
+    // pushes "rearguard-standard" onto runState.relics): the mirror of
+    // Bulwark Standard - Bulwark (one incoming hit shrugged off) goes to
+    // whichever deployed unit has the LOWEST maxHp, the exact unit a
+    // hunting pack (The Hunters) piles onto. Same special-case slot,
+    // same one-time battle-start timing.
+    if (relic?.guardLowestHp && state.playerUnits.length) {
+      const frailest = state.playerUnits.reduce((worst, u) => (u.maxHp < worst.maxHp ? u : worst), state.playerUnits[0])
+      state = applyEffects(state, [{ type: "applyBuff", id: "bulwark", amount: 1 }], {
+        actorId: frailest.id,
+        targetId: frailest.id,
       })
     }
   }
@@ -1011,7 +1052,7 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
       const targetId =
         side === "player"
           ? playerTarget(next, def, targetPool(next))
-          : threatTarget(next, targetPool(next), enemyAttackN++)
+          : threatTarget(next, targetPool(next), enemyAttackN++, def.hunter ? "hunt" : "threat")
       if (targetId) {
         const targetWasAlive = (getUnit(next, targetId)?.hp || 0) > 0
         next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })

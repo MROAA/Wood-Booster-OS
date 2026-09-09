@@ -7497,3 +7497,15 @@ img.hw-intent-glyph {
   line-height: 1.5;
   color: var(--hw-muted);
 }
+
+/* --- Hunters hint (formations.js the-pack / the-run-down, FormationScreen)
+   — the Hunters archetype's counterplay line (Enemy Ecosystem PRD),
+   under the "Enemy formation:" badge. Mirrors .hw-swarm-hint, hp tick. --- */
+.hw-hunters-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}

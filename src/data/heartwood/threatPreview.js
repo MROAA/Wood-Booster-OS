@@ -37,6 +37,7 @@ const MECH = [
   [(d) => arr(d.movePattern).some((m) => m.type === "debuff" && CONTROL_IDS.includes(m.id)), (d) => `Applies ${LABEL[ctrlId(d)] || "Weak"}`],
   [(d) => arr(d.passive).some((p) => p.type === "applyBuff" && (p.id === "shatter" || p.id === "sunder")) || arr(d.movePattern).some((m) => m.type === "sunder"), () => "Strips your Block"],
   [(d) => arr(d.movePattern).some((m) => m.type === "heal") || arr(d.passive).some((p) => p.type === "applyBuff" && (p.id === "regen" || p.id === "revive")), () => "Heals itself"],
+  [(d) => d.hunter, () => "Hunts your weakest"],
   [(d) => d.attackPattern && d.attackPattern !== "single", () => "Hits every square"],
   [(d) => Array.isArray(d.phases) && d.phases.length > 0, () => "Shifts phase when hurt"],
   [(d) => d.moveSelect === "weightedRandom", () => "Unpredictable moves"],
@@ -48,7 +49,7 @@ const ctrlId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && CONT
 // A full swarm is a more pressing "what kind of problem is this" than a
 // stray back-row piece - it outranks backline (bumped when the-brood /
 // the-teeming made "backline" edge out "A swarm" by 0.1).
-const SEVERITY = { control: 1.4, armor: 1.2, swarm: 1.15, sustain: 1.1, poison: 1.0, backline: 0.85 }
+const SEVERITY = { control: 1.4, hunters: 1.25, armor: 1.2, swarm: 1.15, sustain: 1.1, poison: 1.0, backline: 0.85 }
 
 export function evaluateThreat(previewEnemies, runState, node) {
   const living = (previewEnemies || []).filter((e) => (e.hp ?? 1) > 0)
@@ -138,6 +139,8 @@ function exhibits(d, id, livingCount) {
     }
     case "sustain":
       return steps.some((m) => m.type === "heal") || arr(d.passive).some((p) => p.type === "applyBuff" && ["regen", "revive"].includes(p.id))
+    case "hunters":
+      return !!d.hunter
     case "control":
       return steps.some((m) => m.type === "debuff" && CONTROL_IDS.includes(m.id))
     case "poison":

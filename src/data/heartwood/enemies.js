@@ -570,6 +570,56 @@ export const ENEMIES = {
     ],
   },
 
+  // --- Hunters (Enemy Ecosystem PRD, feat/hearthwood-hunters) ---
+  // The third archetype: a fast pack that IGNORES your front line and
+  // coordinates fire on your softest unit. `hunter: true` flips
+  // autoBattleEngine.js's threatTarget sort (lowest threat + lowest HP
+  // first) for this piece only. Counter: a taunt / decoy pulls the whole
+  // pack, a bodyguard (units.js `guard`) steps in front, or even HP
+  // across the squad leaves no juicy target. In NON_BATTLE_ENEMY_IDS -
+  // only via the-pack / the-run-down.
+  // HP tuned so the-pack / the-run-down total ~92 HP, matching the
+  // 86-HP shielded formations they replace on the RUN_PATH
+  // (emberwracks-guard / hollowfangs-den) - a first pass at 76-78 HP
+  // with no shielding was a difficulty DROP on those nodes (burst
+  // Commander +13pp on the RUNS=100 gate).
+  "fen-stalker": {
+    id: "fen-stalker",
+    act: 2,
+    name: "Fen Stalker",
+    maxHp: 32,
+    art: "wolf",
+    hunter: true,
+    description: "It never once looked at the one with the shield.",
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 7 }],
+  },
+  "pack-runner": {
+    id: "pack-runner",
+    act: 2,
+    name: "Pack Runner",
+    maxHp: 28,
+    art: "wolf",
+    hunter: true,
+    description: "Two quick cuts, both aimed past your guard at whoever was bleeding already.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "attack", amount: 5 },
+    ],
+  },
+  "throat-taker": {
+    id: "throat-taker",
+    act: 3,
+    name: "Throat-Taker",
+    maxHp: 36,
+    art: "fang",
+    hunter: true,
+    description: "It waits at the back of the pack for the pack to find the throat, then it takes it.",
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 10 }],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1687,6 +1737,11 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "oakshell-warden",
   "mossmender",
   "grave-bastion",
+  // Hunters (feat/hearthwood-hunters): only via the-pack / the-run-down,
+  // never a solo actEnemyForNode pick - same pool-reshuffle reason.
+  "fen-stalker",
+  "pack-runner",
+  "throat-taker",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible
