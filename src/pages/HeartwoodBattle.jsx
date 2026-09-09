@@ -626,6 +626,7 @@ export default function HeartwoodBattle() {
       ids.push("build-score")
       ids.push("formation-position")
       ids.push("targeting")
+      ids.push("counterplay")
     }
     if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")

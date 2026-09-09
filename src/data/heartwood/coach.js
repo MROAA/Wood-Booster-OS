@@ -98,6 +98,12 @@ export const COACH_TIPS = [
     anchor: ".hw-analysis",
   },
   {
+    id: "counterplay",
+    title: "Answering the next enemy",
+    text: "\"Next fight\" lists what THIS enemy brings - armour, a swarm, healing, poison, control, a back-liner - and marks each ✓ if your squad has an answer or ✗ if it doesn't. A gap isn't a loss, but it's where the fight will be decided.",
+    anchor: ".hw-matchup",
+  },
+  {
     id: "build-score",
     title: "Your build at a glance",
     text: "Seven bars rate your deployed squad - Survivability, Damage, Sustain, Control, Synergy, Economy, Scaling - and 'Watch:' names its biggest gap. A good squad isn't the highest numbers, it's no glaring hole.",

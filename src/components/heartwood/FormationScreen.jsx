@@ -21,6 +21,7 @@ import { nodeNarrative } from "../../services/heartwood/runNarrative"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
 import BuildScore from "./BuildScore"
+import { evaluateMatchup, THREATS, THREAT_ANSWER } from "../../data/heartwood/counterplay"
 import { CardGlyph } from "./cardArt"
 
 // Same 4 positions autoBattleEngine.js deploys units to - kept in sync
@@ -170,8 +171,12 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // itself uses (runEngine.js's previewBattleEnemies), keyed by
   // position so it lines up with formation.pieces below regardless of
   // formation shape.
+  const previewEnemies = previewBattleEnemies(runState)
   const scaledEnemiesByPos = {}
-  for (const e of previewBattleEnemies(runState)) scaledEnemiesByPos[`${e.pos.row}-${e.pos.col}`] = e
+  for (const e of previewEnemies) scaledEnemiesByPos[`${e.pos.row}-${e.pos.col}`] = e
+  // Counterplay (counterplay.js): which threats the next fight presents,
+  // and whether the deployed squad + relics + boons answer them.
+  const matchup = evaluateMatchup(previewEnemies, runState)
 
   function handleBenchClick(benchKey) {
     const slotIndex = runState.deployed.indexOf(benchKey)
@@ -349,6 +354,37 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         <div className="hw-badge" style={{ marginBottom: 10, color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
           title="This formation fights as a unit - every enemy piece shares a bonus">
           Enemy formation: {formation.synergy.label}
+        </div>
+      )}
+
+      {/* Counterplay (counterplay.js) - the threats THIS enemy presents
+          and whether your kit has an answer. A ✓ chip = covered, a ✗
+          chip = a gap. The answers are real existing interactions; this
+          just makes them legible before the fight. */}
+      {matchup.threats.length > 0 && (
+        <div className="hw-matchup hw-section-fade-in">
+          <div className="hw-section-label">Next fight</div>
+          <div className="hw-matchup-chips">
+            {THREATS.filter((t) => matchup.threats.includes(t.id)).map((t) => {
+              const covered = matchup.covered.includes(t.id)
+              return (
+                <span
+                  key={t.id}
+                  className="hw-matchup-chip"
+                  data-covered={covered}
+                  title={covered ? `Answered by ${THREAT_ANSWER[t.id]}` : `No answer — wants ${THREAT_ANSWER[t.id]}`}
+                >
+                  <CardGlyph name={t.icon} className="hw-intent-glyph" />
+                  {covered ? "✓" : "✗"} {t.label}
+                </span>
+              )
+            })}
+          </div>
+          {matchup.gaps.length > 0 && (
+            <p className="hw-matchup-note">
+              No answer to {matchup.gaps.map((g) => THREATS.find((t) => t.id === g).label.toLowerCase()).join(", ")}.
+            </p>
+          )}
         </div>
       )}
 
