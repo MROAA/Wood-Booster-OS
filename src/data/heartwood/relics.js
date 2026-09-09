@@ -179,6 +179,22 @@ export const RELICS = {
     effects: [],
     tauntHighestHp: true,
   },
+  "rearguard-standard": {
+    id: "rearguard-standard",
+    image: bulwarkStandardImg,
+    name: "Rearguard Standard",
+    icon: "shield",
+    description: "The one who stands least steady is watched closest of all.",
+    // The Rearguard (runEngine.js's SHOP_INVESTMENTS - a Ledger buy, NOT
+    // a relic-node pick, hence `ledgerOnly` and the relicPool() filter
+    // below). The mirror of Bulwark Standard: same special-case slot in
+    // autoBattleEngine.js, but Bulwark (one incoming hit shrugged off
+    // each round) goes to the LOWEST-maxHp deployed unit - the exact
+    // unit a hunting pack (The Hunters) piles onto.
+    effects: [],
+    guardLowestHp: true,
+    ledgerOnly: true,
+  },
   "vampiric-bloom": {
     id: "vampiric-bloom",
     image: vampiricBloomImg,
@@ -855,5 +871,7 @@ for (const [id, relic] of Object.entries(RELICS)) {
 }
 
 export function relicPool() {
-  return Object.values(RELICS)
+  // `ledgerOnly` relics (rearguard-standard) are bought from the Ledger
+  // (runEngine.js's SHOP_INVESTMENTS), never offered at a relic node.
+  return Object.values(RELICS).filter((r) => !r.ledgerOnly)
 }

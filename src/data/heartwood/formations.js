@@ -281,6 +281,43 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // --- The Hunters (Enemy Ecosystem PRD, feat/hearthwood-hunters) ---
+  // The Fortress's opposite: a fast pack that IGNORES your wall and piles
+  // onto your softest unit (each piece is `hunter: true` - enemies.js -
+  // which flips threatTarget's sort to lowest-threat / lowest-HP first).
+  // 3 pieces, all row 0, no shielding (hunters rush, they don't hide -
+  // also keeps `backline` off the threat read and stays under the Swarm's
+  // 4+ gates, the #434 lesson). synergy is a FLAT battle-start +1
+  // Strength (the Swarm's model - scales with body count, fades as you
+  // thin it; NOT a turnStart ramp - the #433 aatos trap). The identity
+  // is the `hunter` flag; the synergy is a small bite and the first
+  // fairness lever. Counter: a taunt / decoy, a bodyguard (units.js
+  // `guard`), or even HP across the squad.
+  "the-pack": {
+    id: "the-pack",
+    synergy: { label: "They hunt the weak one", effects: [{ type: "applyBuff", id: "strength", amount: 2 }] },
+    name: "The Pack",
+    description: "Three of them, low and fast, already circling the one of you that looks tired.",
+    pieces: [
+      { defId: "fen-stalker", pos: { row: 0, col: 0 } },
+      { defId: "pack-runner", pos: { row: 0, col: 1 } },
+      { defId: "fen-stalker", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-run-down": {
+    id: "the-run-down",
+    synergy: { label: "They hunt the weak one", effects: [{ type: "applyBuff", id: "strength", amount: 2 }] },
+    name: "The Run-Down",
+    description: "The runners open the wound. The one behind them decides who doesn't get back up.",
+    pieces: [
+      { defId: "pack-runner", pos: { row: 0, col: 0 } },
+      { defId: "throat-taker", pos: { row: 0, col: 1 } },
+      { defId: "pack-runner", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",

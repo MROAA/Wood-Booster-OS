@@ -243,6 +243,10 @@ export const UNIT_TRIBES = {
   "acorn-banker": ["stone", "warden"],
   "hollow-forager": ["wood", "fang"],
   "toll-warden": ["stone", "thorn"],
+  // The Hunters, player answers (feat/hearthwood-hunters).
+  "oathshield": ["warden", "stone"],
+  "lure-warden": ["warden", "thorn"],
+  "evenwood-elder": ["grove", "wood"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

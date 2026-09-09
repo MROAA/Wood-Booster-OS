@@ -29,6 +29,7 @@ export const THREATS = [
   { id: "poison", label: "Poison / burn", icon: "leaf", answer: "a cleanse or heavy regen" },
   { id: "control", label: "Control", icon: "spark", answer: "Ward / Bulwark / Evade" },
   { id: "backline", label: "A back-line threat", icon: "gale", answer: "reach (an assassin / pattern attacker)" },
+  { id: "hunters", label: "Hunts your weak", icon: "fox", answer: "a taunt, a decoy, or a bodyguard" },
 ]
 
 export const THREAT_LABEL = Object.fromEntries(THREATS.map((t) => [t.id, t.label]))
@@ -62,6 +63,9 @@ function defThreats(def) {
   if (steps.some((m) => m.type === "heal") || grants(def, "regen", "revive")) out.push("sustain")
   if (steps.some((m) => m.type === "debuff" && CONTROL_IDS.includes(m.id))) out.push("control")
   if (steps.some((m) => m.type === "debuff" && DOT_IDS.includes(m.id))) out.push("poison")
+  // Hunters (feat/hearthwood-hunters): the piece's targeting is flipped
+  // to hit your softest unit - see autoBattleEngine.js's threatTarget.
+  if (def.hunter) out.push("hunters")
   return out
 }
 
@@ -128,6 +132,14 @@ export function buildAnswersFor(runState) {
     covered.add("control")
   if (anyUnit((u) => u.targetProfile === "executioner" || u.profile?.primary === "assassin" || (u.def.attackPattern && u.def.attackPattern !== "single")))
     covered.add("backline")
+  // Hunters (feat/hearthwood-hunters): a taunt / decoy pulls the pack, a
+  // bodyguard (`guard`) steps in front, and the Bulwark Standard /
+  // Rearguard relics both hand a defensive unit the enemy's attention.
+  if (
+    anyUnit((u) => u.applies("taunt") || u.tags.has("taunt") || u.def.guard) ||
+    relics.some((r) => r?.tauntHighestHp || r?.guardLowestHp)
+  )
+    covered.add("hunters")
 
   return covered
 }

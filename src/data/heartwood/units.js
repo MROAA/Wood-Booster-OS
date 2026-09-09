@@ -320,6 +320,14 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // this one. The per-round mirror of rallyAdjacent's one-shot grant -
     // see autoBattleEngine.js's applyAuraTick (built off applyRallyHealTick).
     aura: opts.aura || null,
+    // guard (feat/hearthwood-hunters): a bodyguard. When a HUNTING pack
+    // (enemies.js `hunter`) would pick a soft target that has a living
+    // guard Chebyshev-adjacent, the guard steps in front and takes the
+    // hit instead - see autoBattleEngine.js's threatTarget. No damage
+    // math, no new status: purely a targeting redirect, and hunt-mode
+    // only for v1 (a general targeting redirect is a bigger fairness
+    // lever, deferred). Player-side only, like every hook above.
+    guard: opts.guard || null,
     // conditionalPassive: { when, effect } - `effect` (an array of
     // applyEffects entries) applies once at battle start, self-target,
     // ONLY if `when` holds. `when` is one of:
@@ -1631,6 +1639,43 @@ const BASE_UNITS = {
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], { economyRole: "toll-warden", aura: { effect: { type: "block", amount: 1 } } }),
+
+  // --- The Hunters, player answers (feat/hearthwood-hunters) ---------
+  // Three ways to blunt a hunting pack (enemies.js the-pack / the-run-
+  // down), each reusing an existing hook: a bodyguard, a decoy, and an
+  // even-out-the-HP aura.
+  "oathshield": unit("oathshield", "Oathshield", "shield", 3, "tank", [
+    { type: "block", amount: 6 },
+    { type: "attack", amount: 4 },
+  ], {
+    className: "Bulwark",
+    // guard (autoBattleEngine.js's threatTarget): in a hunt fight the
+    // pack hits Oathshield instead of the ally beside it. Inert against
+    // any non-hunting enemy - a targeted answer, not a general buff.
+    guard: {},
+    // A little team block on top so it earns its slot in the ~90% of
+    // fights with no hunters in them.
+    aura: { effect: { type: "block", amount: 1 } },
+  }),
+  "lure-warden": unit("lure-warden", "Lure-Warden", "warden", 2, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 3 },
+  ], {
+    className: "Decoy",
+    // Taunt 2 at battle start (Stoneheart / wardens-sigil precedent):
+    // the pack - and everything else - piles onto the Lure-Warden. Two
+    // stacks so it holds through a round it's stunned or skipped.
+    passive: [{ type: "applyBuff", id: "taunt", amount: 2 }],
+  }),
+  "evenwood-elder": unit("evenwood-elder", "Evenwood Elder", "grovekeeper", 3, "support", [
+    { type: "heal", amount: 3 },
+    { type: "attack", amount: 3 },
+  ], {
+    // aura (#417): every round each adjacent ally gets Bulwark 1, so the
+    // units around the Elder stop being the obvious soft target. Also a
+    // small per-round mend from the heal step in its own pattern.
+    aura: { effect: { type: "applyBuff", id: "bulwark", amount: 1 } },
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

@@ -377,6 +377,17 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
 
+      {/* Hunters hint (formations.js the-pack / the-run-down): the
+          "They hunt the weak one" synergy = the Hunters archetype (Enemy
+          Ecosystem PRD). The pack skips your front line and piles onto
+          your softest unit — a taunt / decoy pulls it off, a bodyguard
+          steps in front, even HP leaves no target. */}
+      {formation.synergy?.label === "They hunt the weak one" && (
+        <p className="hw-hunters-hint">
+          A hunting pack — it skips your front line and piles onto your softest unit. A taunt or a decoy pulls it off; a bodyguard beside your carry, or just even HP across the squad, blunts it.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the

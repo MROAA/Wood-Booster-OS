@@ -110,7 +110,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "elite", enemyId: "the-gorging-maw" }, // was: bramblehide
   { type: "shop" },
-  { type: "battle", formationId: "emberwracks-guard" },
+  { type: "battle", formationId: "the-pack" }, // feat/hearthwood-hunters (was: emberwracks-guard)
   { type: "shop" },
   { type: "battle", formationId: "embers-bulwark" },
   { type: "shop" },
@@ -154,7 +154,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "duskwither" },
   { type: "shop" },
-  { type: "battle", formationId: "hollowfangs-den" },
+  { type: "battle", formationId: "the-run-down" }, // feat/hearthwood-hunters (was: hollowfangs-den)
   { type: "shop" },
   { type: "battle", enemyId: "rootward" },
   { type: "shop" },
@@ -1201,12 +1201,24 @@ export const SHOP_INVESTMENTS = {
     cost: 450,
     desc: "+40 Essence every battle win, permanently.",
   },
+  // The Rearguard (feat/hearthwood-hunters): the first Ledger buy that
+  // isn't economy - a combat effect, delivered as a run-wide relic
+  // ("rearguard-standard", relics.js `guardLowestHp`) pushed onto
+  // runState.relics so it rides the existing relic path with zero new
+  // plumbing. The answer to The Hunters: your frailest unit starts every
+  // fight with Bulwark (one incoming hit shrugged off).
+  "rearguard": {
+    name: "The Rearguard",
+    cost: 400,
+    desc: "Your frailest unit starts every battle with Bulwark - one hit shrugged off.",
+  },
 }
 
 export function investmentOwned(runState, id) {
   if (id === "regulars-discount") return (runState.recruitDiscount || 0) > 0
   if (id === "wider-stall") return (runState.shopSlotBonus || 0) > 0
   if (id === "ledger-account") return (runState.ledgerWinBonus || 0) > 0
+  if (id === "rearguard") return (runState.relics || []).includes("rearguard-standard")
   return false
 }
 
@@ -1218,7 +1230,9 @@ export function buyInvestment(runState, id) {
       ? { recruitDiscount: 0.2 }
       : id === "wider-stall"
         ? { shopSlotBonus: 1 }
-        : { ledgerWinBonus: 40 }
+        : id === "ledger-account"
+          ? { ledgerWinBonus: 40 }
+          : { relics: [...(runState.relics || []), "rearguard-standard"] }
   return { ...runState, essence: runState.essence - inv.cost, ...patch }
 }
 
