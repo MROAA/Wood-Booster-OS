@@ -51,10 +51,27 @@ const ctrlId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && CONT
 // the-teeming made "backline" edge out "A swarm" by 0.1).
 const SEVERITY = { control: 1.4, hunters: 1.25, armor: 1.2, swarm: 1.15, sustain: 1.1, poison: 1.0, backline: 0.85 }
 
-export function evaluateThreat(previewEnemies, runState, node) {
+// PRD "Progressiivinen haasteen nousu ja skaalaus" 9 / 41-43: a read of
+// the fight RELATIVE to the player's build. `ratio` = playerPower.js's
+// evaluatePlayerPower(runState).ratio (total / expected); `ratingIndex`
+// = this fight's enemy-only rating, 0-4. A small 2-D lookup - a feel,
+// not a contract. Returns null-safe { label, tone } (tone: good |
+// even | warn | bad, for the tint).
+export function relativeThreatLabel(ratio, ratingIndex) {
+  if (!Number.isFinite(ratio) || ratio <= 0) return null
+  // net = how far ahead you are, minus how hard the fight is.
+  const net = (ratio - 1) * 2 - ratingIndex * 0.5
+  if (net >= 1.2) return { label: "A walk for this build", tone: "good" }
+  if (net >= 0.4) return { label: "Comfortable for this build", tone: "good" }
+  if (net > -0.5) return { label: "An even fight for this build", tone: "even" }
+  if (net > -1.4) return { label: "A real test for this build", tone: "warn" }
+  return { label: "You're behind here — shore up before this", tone: "bad" }
+}
+
+export function evaluateThreat(previewEnemies, runState, node, playerPower = null) {
   const living = (previewEnemies || []).filter((e) => (e.hp ?? 1) > 0)
   if (!living.length) {
-    return { rating: 1, ratingLabel: THREAT_RATINGS[0], primary: null, secondary: null, mechanics: [], note: "" }
+    return { rating: 1, ratingLabel: THREAT_RATINGS[0], primary: null, secondary: null, mechanics: [], note: "", relative: null }
   }
 
   // --- rating -------------------------------------------------------
@@ -121,7 +138,11 @@ export function evaluateThreat(previewEnemies, runState, node) {
     else note = `↳ Wants ${THREAT_ANSWER[primary.id]}`
   }
 
-  return { rating, ratingLabel: THREAT_RATINGS[rating - 1], primary, secondary, mechanics: mechanics.slice(0, 4), note }
+  // The rating above stays ENEMY-ONLY (this file's design note). The
+  // relative read is a SEPARATE field, null unless a playerPower is passed.
+  const relative = playerPower ? relativeThreatLabel(playerPower.ratio, rating - 1) : null
+
+  return { rating, ratingLabel: THREAT_RATINGS[rating - 1], primary, secondary, mechanics: mechanics.slice(0, 4), note, relative }
 }
 
 // Does def `d` exhibit archetype `id` (for the primary/secondary frac).

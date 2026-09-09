@@ -4,6 +4,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveTrial } from "../../data/heartwood/trials"
 import { RUN_PATH, MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
 import PlaystyleProfile from "./PlaystyleProfile"
+import PlayerPower from "./PlayerPower"
 import SeedChip from "./SeedChip"
 
 // Distinct from the per-fight ResultOverlay.jsx (which still plays out
@@ -222,6 +223,19 @@ export default function RunEndOverlay({ phase, nodeIndex, path, runState, onNewR
               transition={{ duration: 0.5, delay: REVEAL_DELAY.stats + 0.5, ease: "easeOut" }}
             >
               <PlaystyleProfile runState={runState} />
+            </motion.div>
+          )}
+
+          {/* Run Power (playerPower.js) - the DifficultyEngine's Player
+              Power Score: the run's real strength on seven components +
+              a band + a ratio vs expected power. Pure display. */}
+          {runState?.bench?.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: REVEAL_DELAY.stats + 0.6, ease: "easeOut" }}
+            >
+              <PlayerPower runState={runState} />
             </motion.div>
           )}
 

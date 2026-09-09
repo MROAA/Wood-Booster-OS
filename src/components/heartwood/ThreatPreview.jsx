@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 import { evaluateThreat } from "../../data/heartwood/threatPreview"
+import { evaluatePlayerPower } from "../../data/heartwood/playerPower"
 import { THREATS } from "../../data/heartwood/counterplay"
 import { CardGlyph } from "./cardArt"
 
@@ -11,9 +12,12 @@ import { CardGlyph } from "./cardArt"
 const ICON_FOR = Object.fromEntries(THREATS.map((t) => [t.id, t.icon]))
 
 export default function ThreatPreview({ runState, node, previewEnemies }) {
+  // Player Power Score (playerPower.js) - drives the "for your build"
+  // relative read under the enemy-only rating (PRD 9 / 41-43).
+  const playerPower = useMemo(() => evaluatePlayerPower(runState), [runState])
   const t = useMemo(
-    () => evaluateThreat(previewEnemies, runState, node),
-    [previewEnemies, runState, node],
+    () => evaluateThreat(previewEnemies, runState, node, playerPower),
+    [previewEnemies, runState, node, playerPower],
   )
   if (!previewEnemies || previewEnemies.length === 0) return null
 
@@ -53,6 +57,12 @@ export default function ThreatPreview({ runState, node, previewEnemies }) {
       )}
 
       {t.note && <p className="hw-threat-note">{t.note}</p>}
+
+      {t.relative && (
+        <p className="hw-threat-relative" data-tone={t.relative.tone}>
+          For your build: <strong>{t.relative.label}</strong>
+        </p>
+      )}
     </div>
   )
 }

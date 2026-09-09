@@ -1,12 +1,24 @@
 import { useEffect, useRef } from "react"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
-import { difficultyTierForNode, DIFFICULTY_TIERS, RUN_PATH } from "../../services/heartwood/runEngine"
+import {
+  difficultyTierForNode,
+  DIFFICULTY_TIERS,
+  RUN_PATH,
+  nextBattleNodeIndex,
+  scoutCost,
+} from "../../services/heartwood/runEngine"
+import { scoutReport } from "../../data/heartwood/playerPower"
 import { CardGlyph } from "./cardArt"
 import RunModifierStrip from "./RunModifierStrip"
 import StoryJournal from "./StoryJournal"
 import PlaystyleProfile from "./PlaystyleProfile"
+import PlayerPower from "./PlayerPower"
 import SeedChip from "./SeedChip"
+
+const FIGHT_TYPES = new Set(["battle", "elite", "miniboss", "boss"])
+// Threat-rating glyph for a scouted battle node (playerPower.scoutReport).
+const THREAT_MARK = ["○", "○", "◆", "★", "★"]
 
 // The world's posture, set by Act Crossroads (crossroads.js). "restless"
 // is the neutral default and shows nothing - only a chosen state does.
@@ -69,11 +81,21 @@ function nodeLabel(node) {
 // (runState.nodeIndex) marked. Purely a display branch: no new data
 // model, RUN_PATH/nodeIndex are read exactly as the engine already
 // exposes them.
-function RunRail({ runState }) {
+function RunRail({ runState, onScout }) {
   const nodeIndex = runState.nodeIndex
   const total = RUN_PATH.length
   const currentTier = difficultyTierForNode(nodeIndex, total)
   const currentRef = useRef(null)
+
+  // Scout Ahead (runEngine.scoutAhead / playerPower.scoutReport) - pay
+  // Essence to reveal the next fight's threat band + a "for your build"
+  // read, before you commit.
+  const scoutedThrough = runState.scoutedThrough || 0
+  const nextFight = nextBattleNodeIndex(runState)
+  const canScoutMore = nextFight != null && nextFight > scoutedThrough
+  const cost = scoutCost(runState)
+  const affordable = (runState.essence || 0) >= cost
+  const report = scoutedThrough > nodeIndex ? scoutReport(runState, scoutedThrough) : null
 
   useEffect(() => {
     currentRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
@@ -101,6 +123,31 @@ function RunRail({ runState }) {
       <SeedChip seed={runState.seed} className="hw-seed-rail" />
       <RunModifierStrip modifiers={runState.runModifiers} compact />
       <PlaystyleProfile runState={runState} compact />
+      <PlayerPower runState={runState} compact />
+      {onScout && (
+        <div className="hw-scout">
+          <button
+            type="button"
+            className="hw-scout-btn"
+            disabled={!canScoutMore || !affordable}
+            onClick={onScout}
+            title={
+              !canScoutMore
+                ? "The next fight is already scouted"
+                : `Scout the next fight - ${cost} Essence`
+            }
+          >
+            <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+            {canScoutMore ? `Scout · ${cost}` : "Scouted"}
+          </button>
+          {report && (
+            <p className="hw-scout-report" data-tone={report.relative?.tone || "even"}>
+              Next fight: <strong>{report.ratingLabel}</strong>
+              {report.relative ? ` — ${report.relative.label}` : ""}
+            </p>
+          )}
+        </div>
+      )}
       {acts.map(({ tier, indices }) => {
         const isCurrentAct = tier === currentTier
         const [actNo, ...rest] = tier.name.split(" · ")
@@ -119,6 +166,9 @@ function RunRail({ runState }) {
                 const node = RUN_PATH[i]
                 const state = i === nodeIndex ? "current" : i < nodeIndex ? "done" : "todo"
                 const major = node.type === "miniboss" || node.type === "boss" || node.type === "elite"
+                // Scouted-fight marker: only the one node at scoutedThrough,
+                // and only while it's still ahead of the player.
+                const scouted = i === scoutedThrough && i > nodeIndex && FIGHT_TYPES.has(node.type) ? report : null
                 return (
                   <span
                     key={i}
@@ -127,10 +177,19 @@ function RunRail({ runState }) {
                     data-type={node.type}
                     data-state={state}
                     data-major={major || undefined}
+                    data-scouted={scouted ? "true" : undefined}
                     style={{ "--hw-node-accent": nodeColor(node) }}
-                    title={`${nodeLabel(node)}${state === "current" ? " — you are here" : ""}`}
+                    title={
+                      scouted
+                        ? `${nodeLabel(node)} — scouted: ${scouted.ratingLabel}${scouted.relative ? ` · ${scouted.relative.label}` : ""}`
+                        : `${nodeLabel(node)}${state === "current" ? " — you are here" : ""}`
+                    }
                   >
-                    {major && <CardGlyph name={nodeGlyph(node)} className="hw-run-rail-pip-glyph" />}
+                    {scouted ? (
+                      <span className="hw-run-rail-pip-threat">{THREAT_MARK[scouted.rating - 1]}</span>
+                    ) : (
+                      major && <CardGlyph name={nodeGlyph(node)} className="hw-run-rail-pip-glyph" />
+                    )}
                   </span>
                 )
               })}
@@ -143,7 +202,7 @@ function RunRail({ runState }) {
   )
 }
 
-export default function RunMap({ runState, mode }) {
+export default function RunMap({ runState, mode, onScout }) {
   const trackRef = useRef(null)
   const currentRef = useRef(null)
 
@@ -157,7 +216,7 @@ export default function RunMap({ runState, mode }) {
     currentRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
   }, [runState.nodeIndex])
 
-  if (mode === "rail") return <RunRail runState={runState} />
+  if (mode === "rail") return <RunRail runState={runState} onScout={onScout} />
 
   // RUN_PATH.length, not runState.path.length: since the branching-path
   // work, `path` only holds nodes actually visited so far (it grows as

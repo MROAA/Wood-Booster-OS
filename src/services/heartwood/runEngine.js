@@ -903,6 +903,12 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // starts the tally from zero - no RUN_SAVE_VERSION bump. NOTHING in
     // the combat path reads it; only the run-end / rail display does.
     styleLog: { rerolls: 0, pivots: 0, grinds: 0, maxEssence: START_ESSENCE + (carriedMemory ? MEMORY_ESSENCE_BONUS : 0) },
+    // Scout Ahead (scoutAhead / scoutReport - DifficultyEngine Phase 1,
+    // PR #436): the highest RUN_PATH index the player has paid Essence to
+    // scout. RunMap shows a threat glyph + a "for your build" read for
+    // battle nodes at or before it. Additive + read `|| 0`; NOTHING in
+    // the combat path reads it - no RUN_SAVE_VERSION bump.
+    scoutedThrough: 0,
     // The Almanac (almanac.js): ids this run has encountered - unioned
     // into meta.almanac when the run ends (HeartwoodBattle). Additive +
     // defaulted on read (noteSeen tolerates undefined), so an old save
@@ -2001,7 +2007,7 @@ if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV
 // starts from node 0, so even the very first fight gets a real,
 // felt increase, growing smoothly across the whole run instead of
 // snapping on partway through.
-function difficultyFactorForNode(nodeIndex, pathLength) {
+export function difficultyFactorForNode(nodeIndex, pathLength) {
   const progress = pathLength > 1 ? nodeIndex / (pathLength - 1) : 0
   // Removing the flat zone (above) technically made the ramp "start"
   // at node 0, but with a run this long (~86 nodes, ~43 fights) a
@@ -2183,6 +2189,35 @@ export function previewBattleEnemies(runState) {
     runState.forestState || "restless",
   )
   return applyTrialName(battle, node).enemies
+}
+
+// Scout Ahead (DifficultyEngine Phase 1, PRD "Progressiivinen haasteen
+// nousu ja skaalaus" sections 42-43 - the long-queued "pay to scout").
+// Spend Essence to reveal the NEXT battle node's threat band + your
+// power read RELATIVE to that fight, on the Run Map, before you commit.
+// Pure info: nothing here touches combat. Cost scales flat per Act.
+export const SCOUT_BASE_COST = 60
+
+export function scoutCost(runState) {
+  return SCOUT_BASE_COST * actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)
+}
+
+// The RUN_PATH index of the next fight after the player's position, or
+// null if there is none left. "Fight" = battle / elite / miniboss / boss.
+export function nextBattleNodeIndex(runState) {
+  const FIGHT = new Set(["battle", "elite", "miniboss", "boss"])
+  for (let i = (runState.nodeIndex || 0) + 1; i < RUN_PATH.length; i++) {
+    if (FIGHT.has(RUN_PATH[i]?.type)) return i
+  }
+  return null
+}
+
+export function scoutAhead(runState) {
+  const next = nextBattleNodeIndex(runState)
+  if (next == null || next <= (runState.scoutedThrough || 0)) return runState
+  const cost = scoutCost(runState)
+  if ((runState.essence || 0) < cost) return runState
+  return { ...runState, essence: runState.essence - cost, scoutedThrough: next }
 }
 
 // A relic node only ever offers 3 choices, rolled once - this lets the

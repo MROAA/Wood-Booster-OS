@@ -731,6 +731,36 @@ export function startAutoBattle(
     }
   }
 
+  // Coherence rewards (playerPower.js's BuildCoherence made mechanical -
+  // DifficultyEngine Phase 1, PR #436). Both scale off how many tribe
+  // synergies the recruited squad actually has active this fight, so a
+  // lean coherent board is paid and a pile of disjoint strong bodies
+  // gets nothing. Player-side only, battle-start once, block resets each
+  // round (non-compounding, the #434-safe shape).
+  const activeSynergyCount = Object.entries(tribeCounts).filter(
+    ([tribeId, count]) => (SYNERGY_TIERS[tribeId] || []).some((t) => count >= t.count),
+  ).length
+  if (activeSynergyCount > 0) {
+    // Relic: Rooted Standard - every deployed unit gets `N * synergies` Block.
+    for (const relicId of relicIds) {
+      const n = RELICS[relicId]?.synergyScaledBlock
+      if (!n) continue
+      for (const u of state.playerUnits) {
+        state = applyEffects(state, [{ type: "block", amount: n * activeSynergyCount }], { actorId: u.id, targetId: u.id })
+      }
+    }
+    // Unit: `synergyScaled` (e.g. Keystone Warden) - self-buff `id` by
+    // `amount * synergies`.
+    for (const ru of recruitedUnits) {
+      const ss = effectiveDefs[ru.id]?.synergyScaled
+      if (!ss) continue
+      state = applyEffects(state, [{ type: "applyBuff", id: ss.id, amount: ss.amount * activeSynergyCount }], {
+        actorId: ru.id,
+        targetId: ru.id,
+      })
+    }
+  }
+
   // Positioning as a role mechanic (roles.js's positionFitForSlot /
   // POSITION_BONUS - PRD "Unit Roles" 20-21). recruitedUnits[i] sits in
   // SLOT_POSITIONS[i]; a unit deployed to its preferred position (tanks

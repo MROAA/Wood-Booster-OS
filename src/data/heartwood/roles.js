@@ -98,6 +98,15 @@ export const ROLE_OVERRIDES = {
     primary: "support", secondary: "healer", position: "center", tags: ["aura", "shield", "grove", "wood"],
     strengths: ["Hardens the units beside it so none of them is the soft target"], weaknesses: ["Slow, and does little on its own"],
   },
+  // Coherence content (feat/hearthwood-player-power).
+  "keystone-warden": {
+    primary: "tank", secondary: "dps", position: "front", tags: ["scaling", "shield", "warden", "stone"],
+    strengths: ["Gets stronger for every tribe synergy your board is actually running"], weaknesses: ["Just a plain tank in a scattered squad"],
+  },
+  "driftwood-vagrant": {
+    primary: "dps", position: "back", tags: ["wood", "tide"],
+    strengths: ["Fits almost any board"], weaknesses: ["Brings nothing but its swing"],
+  },
   "the-fool": { primary: "healer", secondary: "support", tags: ["regen", "thorn"] },
   beastcaller: { primary: "summoner", position: "back", strengths: ["Opens the fight a body up"] },
   sapkeeper: { primary: "support", secondary: "healer", tags: ["aura", "regen", "grove"] },
