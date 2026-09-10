@@ -32,6 +32,7 @@ import {
   antidoteCost,
   antidoteQueued,
   effectiveRecruitCost,
+  MARKET_EVENTS,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -130,6 +131,12 @@ export default function SquadDraft({
   const effTier = effectiveMarketTier(runState)
   const tierCost = marketTierCost(marketTier)
   const tierPreview = marketTierPreview(effTier)
+  // Market Events (runEngine.js's MARKET_EVENTS, feat/hearthwood-market-events):
+  // this shop stop is a special market (or null on a plain stop). Re-skins
+  // the shop + locks Reroll/Freeze for the Blackroot Market.
+  const marketEvent = runState.marketEvent || null
+  const marketEventDef = marketEvent ? MARKET_EVENTS[marketEvent] : null
+  const marketEventLocked = !!marketEventDef?.lockReroll
   const activePower = commander?.activePower
   const activePowerUsed = !!runState.activePowerUsedThisShop
   const primed = (runState.pendingActiveEffects || []).length > 0
@@ -1148,6 +1155,20 @@ export default function SquadDraft({
         </div>
       )}
 
+      {/* Market Event banner (feat/hearthwood-market-events): when this
+          shop stop rolled a special market, a re-skinned strip above the
+          columns naming it, its flavour, and its catch. `data-tone`
+          drives the accent (gold / moss / curse). Placed here (outside
+          the tab-gated panels) so it's on screen on either tab, same as
+          the equip prompt above. */}
+      {marketEventDef && (
+        <div className="hw-market-event-banner" data-tone={marketEventDef.tone}>
+          <div className="hw-market-event-name">{marketEventDef.name}</div>
+          <div className="hw-market-event-blurb">{marketEventDef.blurb}</div>
+          <div className="hw-market-event-effect">{marketEventDef.effect}</div>
+        </div>
+      )}
+
       <div className="hw-market-columns">
         <div className="hw-panel hw-panel--market" hidden={activeTab !== "market"}>
           {/* The old "Recruit who you can afford, or move on." flavor
@@ -1230,8 +1251,9 @@ export default function SquadDraft({
           <div style={{ marginTop: 3, display: "flex", gap: 8 }}>
             <button
               className="hw-move-btn"
-              disabled={runState.essence < runState.rerollCost || offers.length === 0}
+              disabled={runState.essence < runState.rerollCost || offers.length === 0 || marketEventLocked}
               onClick={onReroll}
+              title={marketEventLocked ? `${marketEventDef.name}: no Reroll this stop - take what's shown` : undefined}
             >
               Reroll ({runState.rerollCost} Essence)
             </button>
@@ -1240,8 +1262,14 @@ export default function SquadDraft({
                 automatically. A one-shot flag (consumed on the next
                 regen), so `data-active` just reflects whether it's
                 currently armed. */}
-            <button className="hw-move-btn" data-active={!!runState.frozen} onClick={onToggleFreeze} title="Keep these offers when you next visit the shop">
-              {runState.frozen ? "Frozen ✓" : "Freeze"}
+            <button
+              className="hw-move-btn"
+              data-active={!!runState.frozen && !marketEventLocked}
+              disabled={marketEventLocked}
+              onClick={onToggleFreeze}
+              title={marketEventLocked ? `${marketEventDef.name}: no Freeze this stop` : "Keep these offers when you next visit the shop"}
+            >
+              {runState.frozen && !marketEventLocked ? "Frozen ✓" : "Freeze"}
             </button>
             {/* Field Antidote (runEngine.js's buyAntidote, feat/hearthwood-rot):
                 a one-fight squad-wide Regen, the answer to a Rot pack's poison
