@@ -227,6 +227,21 @@ export const RELICS = {
     effects: [],
     ledgerOnly: true,
   },
+  "traders-compass": {
+    id: "traders-compass",
+    image: artificersLedgerImg,
+    name: "The Trader's Compass",
+    icon: "cosmic",
+    description: "A needle that never points north - only toward the next strange market. Follow it and the odd stalls find you twice as often.",
+    // Trader's Compass (runEngine.js's SHOP_INVESTMENTS - a Ledger buy, NOT
+    // a relic-node pick, hence `ledgerOnly` and the relicPool() filter).
+    // A SHOP-LAYER relic with no battle effect: runEngine's pickMarketEvent()
+    // reads runState.relics for "traders-compass" and doubles the
+    // special-market chance while it is owned. The autobattler relic loop
+    // sees `effects: []` and simply skips it.
+    effects: [],
+    ledgerOnly: true,
+  },
   "vampiric-bloom": {
     id: "vampiric-bloom",
     image: vampiricBloomImg,
@@ -921,7 +936,8 @@ for (const [id, relic] of Object.entries(RELICS)) {
 }
 
 export function relicPool() {
-  // `ledgerOnly` relics (rearguard-standard, marked-coin) are bought from
-  // the Ledger (runEngine.js's SHOP_INVESTMENTS), never offered at a relic node.
+  // `ledgerOnly` relics (rearguard-standard, marked-coin, market-charter,
+  // traders-compass) are bought from the Ledger (runEngine.js's
+  // SHOP_INVESTMENTS), never offered at a relic node.
   return Object.values(RELICS).filter((r) => !r.ledgerOnly)
 }

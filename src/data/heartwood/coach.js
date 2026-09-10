@@ -38,6 +38,12 @@ export const COACH_TIPS = [
     anchor: ".hw-market-tier-widget",
   },
   {
+    id: "market-event",
+    title: "A special market",
+    text: "Some shop stops are a special market - cheaper, richer, or with a catch. Read the banner: the Golden Market stocks the best units but charges for it; the Blackroot Market is half-price but you can't Reroll or Freeze; the Wandering Merchant is a quick cut-price stop.",
+    anchor: ".hw-market-event-banner",
+  },
+  {
     id: "synergy",
     title: "Tribe synergy",
     text: "Units share a tribe. Field enough of one and the whole squad gets that tribe's bonus - a ✓ on the badge means it's live.",

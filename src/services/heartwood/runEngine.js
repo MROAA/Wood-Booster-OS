@@ -884,6 +884,9 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // `|| 1` everywhere, carried verbatim by serialize/deserialize; an
     // old v3 save without it reads 1. No RUN_SAVE_VERSION bump.
     marketTier: 1,
+    // Market Events (feat/hearthwood-market-events) - the first shop is
+    // never a special market (MARKET_EVENT_MIN_NODE); explicit here.
+    marketEvent: null,
     shopOffers: rollShop(1, {}, 0, streamRng(seed, "shop", "0:0"), 1),
     // Item shop rotation (rollItemShop above) - regenerates alongside
     // shopOffers at every new shop visit (chooseRelic/
@@ -1065,7 +1068,10 @@ export function effectiveRecruitCost(runState, def) {
   // (economy.js), combined and capped so a stacked discount can never
   // run away.
   const discount = Math.min(0.6, (runState.recruitDiscount || 0) + economyCrewEffects(runState).recruitPct)
-  return Math.ceil(base * (1 - discount))
+  // Market Events (feat/hearthwood-market-events): a special market flatly
+  // scales every recruit price this stop (Golden Market ×1.35, Wandering
+  // Merchant ×0.75, Blackroot ×0.5). marketEventPriceMult(null) === 1.
+  return Math.ceil(base * (1 - discount) * marketEventPriceMult(runState.marketEvent))
 }
 
 // The Almanac (almanac.js): fold ids into runState.seen[category],
@@ -1292,6 +1298,15 @@ export const SHOP_INVESTMENTS = {
     cost: 350,
     desc: "The shop opens one Market Tier higher for the rest of the run.",
   },
+  // Trader's Compass (feat/hearthwood-market-events): the relic
+  // "traders-compass" doubles pickMarketEvent's chance for the rest of
+  // the run - special markets (Golden / Wandering Merchant / Blackroot)
+  // turn up twice as often. Shop-LAYER, no battle effect.
+  "traders-compass": {
+    name: "The Trader's Compass",
+    cost: 300,
+    desc: "Special markets - the Golden Market and its kin - turn up twice as often for the rest of the run.",
+  },
 }
 
 export function investmentOwned(runState, id) {
@@ -1301,6 +1316,7 @@ export function investmentOwned(runState, id) {
   if (id === "rearguard") return (runState.relics || []).includes("rearguard-standard")
   if (id === "marked-coin") return (runState.relics || []).includes("marked-coin")
   if (id === "market-charter") return (runState.relics || []).includes("market-charter")
+  if (id === "traders-compass") return (runState.relics || []).includes("traders-compass")
   return false
 }
 
@@ -1318,7 +1334,9 @@ export function buyInvestment(runState, id) {
             ? { relics: [...(runState.relics || []), "rearguard-standard"] }
             : id === "marked-coin"
               ? { relics: [...(runState.relics || []), "marked-coin"] }
-              : { relics: [...(runState.relics || []), "market-charter"] }
+              : id === "market-charter"
+                ? { relics: [...(runState.relics || []), "market-charter"] }
+                : { relics: [...(runState.relics || []), "traders-compass"] }
   return { ...runState, essence: runState.essence - inv.cost, ...patch }
 }
 
@@ -1408,7 +1426,90 @@ export function advanceMarketTier(runState) {
 }
 
 export function toggleFreeze(runState) {
+  if (marketEventLocksReroll(runState)) return runState
   return { ...runState, frozen: !runState.frozen }
+}
+
+// Market Events (feat/hearthwood-market-events, Market/Money-Sinks PRD
+// 43-44). Some shop stops are a SPECIAL market with its own risk/reward
+// - not the same three offers every time. Pure shop-layer: no combat
+// change. `runState.marketEvent` (additive key, `|| null`, no
+// RUN_SAVE_VERSION bump) is set at shop entry from a SEEDED pick and
+// re-derivable from seed + nodeIndex + whether the Trader's Compass is
+// owned, so a reload reproduces it.
+export const MARKET_EVENTS = {
+  merchant: {
+    name: "The Wandering Merchant",
+    blurb: "A cart, a tarp, everything cut-price - decide fast.",
+    effect: "Only 2 unit offers · recruits 25% off",
+    tone: "moss",
+    slotDelta: -1,
+    tierOverride: null,
+    priceMult: 0.75,
+    lockReroll: false,
+  },
+  blackroot: {
+    name: "The Blackroot Market",
+    blurb: "Cheap. All of it, cheap. That should worry you.",
+    effect: "Recruits half price · no Reroll or Freeze this stop",
+    tone: "curse",
+    slotDelta: 0,
+    tierOverride: null,
+    priceMult: 0.5,
+    lockReroll: true,
+  },
+  golden: {
+    name: "The Golden Market",
+    blurb: "Every stall is open - and priced like it.",
+    effect: "Stocks the top Market Tier · recruits cost 35% more",
+    tone: "gold",
+    slotDelta: 0,
+    tierOverride: MARKET_TIER_MAX,
+    priceMult: 1.35,
+    lockReroll: false,
+  },
+}
+const MARKET_EVENT_MIN_NODE = 12 // never on the opening stops
+const MARKET_EVENT_CHANCE = 0.18 // ~1 in 5.5 eligible shop stops
+
+export function hasTradersCompass(runState) {
+  return (runState?.relics || []).includes("traders-compass")
+}
+
+export function marketEventPriceMult(id) {
+  return MARKET_EVENTS[id]?.priceMult ?? 1
+}
+
+export function marketEventLocksReroll(runState) {
+  const ev = MARKET_EVENTS[runState?.marketEvent]
+  return !!ev?.lockReroll
+}
+
+// The `slotBonus` and `marketTier` args to feed rollShop while a market
+// event is in effect - the same computation for all 4 shop-roll sites
+// (the 3 entry points + rerollShop). `marketEvent` is passed explicitly
+// (not read off runState) because at a shop-entry point it's the
+// freshly-picked event, not the one still on runState.
+export function marketEventRollArgs(marketEvent, runState) {
+  const ev = MARKET_EVENTS[marketEvent]
+  return {
+    // Floor at 1 - SHOP_SIZE so a negative slotDelta (Wandering Merchant's
+    // -1) still leaves >= 1 offer. The Merchant cut yields 2 offers on a
+    // plain run; a Wider Stall (+1) cancels it back to 3.
+    slotBonus: Math.max(1 - SHOP_SIZE, (runState?.shopSlotBonus || 0) + (ev?.slotDelta || 0)),
+    tier: ev?.tierOverride ?? effectiveMarketTier(runState),
+  }
+}
+
+// Deterministic in (seed, nodeIndex, hasCompass) - all persisted, so a
+// save/reload reproduces the same event. Two draws off the `shop`
+// stream: one "does an event happen", one "which".
+export function pickMarketEvent(seed, nodeIndex, hasCompass = false) {
+  if (!Number.isFinite(nodeIndex) || nodeIndex < MARKET_EVENT_MIN_NODE) return null
+  const rng = streamRng(seed, "shop", `${nodeIndex}:mktevent`)
+  if (rng() >= MARKET_EVENT_CHANCE * (hasCompass ? 2 : 1)) return null
+  const r = rng()
+  return r < 0.45 ? "merchant" : r < 0.8 ? "blackroot" : "golden"
 }
 
 // Commander Active Power (characters.js's activePower) - an Essence
@@ -1580,15 +1681,16 @@ const styleN = (runState, k) => runState.styleLog?.[k] || 0
 
 export function rerollShop(runState) {
   if (runState.essence < runState.rerollCost) return runState
+  if (marketEventLocksReroll(runState)) return runState // Blackroot Market: take what's shown
   return {
     ...bumpStyle(runState, { rerolls: styleN(runState, "rerolls") + 1 }),
     essence: runState.essence - runState.rerollCost,
     shopOffers: rollShop(
       runState.marketLevel || 1,
       benchTribeCounts(runState),
-      runState.shopSlotBonus || 0,
+      marketEventRollArgs(runState.marketEvent, runState).slotBonus,
       streamRng(runState.seed, "shop", `${runState.nodeIndex}:${styleN(runState, "rerolls") + 1}`),
-      effectiveMarketTier(runState),
+      marketEventRollArgs(runState.marketEvent, runState).tier,
     ),
     // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (50,
     // same value REROLL_BASE_COST itself carries) - see
@@ -1609,7 +1711,10 @@ export function leaveShop(runState) {
   // The one-shot "X evolved into Y" hint (evolutions.js) has been shown
   // on this shop screen - clear it as the player moves on.
   const cleared = runState.lastEvolved?.length ? { ...runState, lastEvolved: [] } : runState
-  return { ...cleared, ...advanceToNextNode(cleared) }
+  // Market Events (feat/hearthwood-market-events): this shop stop is
+  // over - clear the special-market flag. It's re-derived from the seed
+  // at the NEXT shop entry.
+  return { ...cleared, marketEvent: null, ...advanceToNextNode(cleared) }
 }
 
 // --- Map events (events.js) ---------------------------------------------
@@ -2385,12 +2490,17 @@ export function chooseRelic(runState, relicId) {
   // side effects below always correctly no-op for it.
   const nextNode = advanced.phase === "choice" ? null : advanced.path[advanced.path.length - 1]
   const enteringShop = nextNode?.type === "shop"
+  // Market Events (feat/hearthwood-market-events): pick the special
+  // market (if any) for this shop, seeded from the node position.
+  const mktEvent = enteringShop ? pickMarketEvent(runState.seed, advanced.nodeIndex, hasTradersCompass(runState)) : null
+  const mktArgs = marketEventRollArgs(mktEvent, runState)
   return {
     ...runState,
     ...advanced,
     essence,
     relics,
     seen,
+    marketEvent: enteringShop ? mktEvent : null,
     // Freeze (startRun's own note): kept as-is when entering a shop
     // instead of re-rolling, then consumed (cleared) regardless -
     // one-shot, not persistent.
@@ -2400,9 +2510,9 @@ export function chooseRelic(runState, relicId) {
         : rollShop(
             runState.marketLevel || 1,
             benchTribeCounts(runState),
-            runState.shopSlotBonus || 0,
+            mktArgs.slotBonus,
             streamRng(runState.seed, "shop", `${advanced.nodeIndex}:${styleN(runState, "rerolls")}`),
-            effectiveMarketTier(runState),
+            mktArgs.tier,
           )
       : runState.shopOffers,
     itemOffers: enteringShop ? rollItemShop(streamRng(runState.seed, "item", String(advanced.nodeIndex))) : runState.itemOffers,
@@ -2638,6 +2748,10 @@ export function resolveBattleOutcome(runState) {
     // the shop/relic-entry side effects below always correctly no-op.
     const nextNode = advanced.phase === "choice" ? null : advanced.path[advanced.path.length - 1]
     const enteringShop = nextNode?.type === "shop"
+    // Market Events (feat/hearthwood-market-events): the seeded special
+    // market (if any) for the shop being entered after this win.
+    const mktEvent = enteringShop ? pickMarketEvent(rs.seed, advanced.nodeIndex, hasTradersCompass(rs)) : null
+    const mktArgs = marketEventRollArgs(mktEvent, rs)
     // Interest (bankInterest) is on the balance carried INTO this
     // fight - rs.essence here, before the win payout is added on top
     // (TFT order: interest on held gold, then round income).
@@ -2655,15 +2769,16 @@ export function resolveBattleOutcome(runState) {
       ...advanced,
       styleLog,
       essence: wonEssence,
+      marketEvent: enteringShop ? mktEvent : null,
       shopOffers: enteringShop
         ? rs.frozen
           ? rs.shopOffers
           : rollShop(
               rs.marketLevel || 1,
               benchTribeCounts(rs),
-              rs.shopSlotBonus || 0,
+              mktArgs.slotBonus,
               streamRng(rs.seed, "shop", `${advanced.nodeIndex}:${styleN(rs, "rerolls")}`),
-              effectiveMarketTier(rs),
+              mktArgs.tier,
             )
         : rs.shopOffers,
       itemOffers: enteringShop ? rollItemShop(streamRng(rs.seed, "item", String(advanced.nodeIndex))) : rs.itemOffers,

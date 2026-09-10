@@ -640,6 +640,7 @@ export default function HeartwoodBattle() {
       if (shopLegendary || benchLegendary) ids.push("legendary")
       if ((runState.marketLevel || 1) > 1) ids.push("market-level")
       ids.push("market-tier")
+      if (runState.marketEvent) ids.push("market-event")
       if (bankInterestFor(runState) > 0) ids.push("interest")
       if ((runState.bench || []).some((e) => UNITS[e.defId]?.displayTier !== 2 && runState.essence >= 150)) ids.push("upgrade")
       ids.push("ledger")
