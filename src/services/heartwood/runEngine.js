@@ -640,6 +640,46 @@ export function marketLevelCost(level) {
   return level >= MARKET_LEVEL_MAX ? null : MARKET_LEVEL_BASE_COST * level
 }
 
+// Market TIER (feat/hearthwood-market-tiers, Market/Money-Sinks PRD Phase 1).
+// A SECOND market axis, orthogonal to marketLevel above:
+//   marketLevel = the shop's RARITY ceiling (common -> uncommon -> rare).
+//   marketTier  = WHICH KINDS OF UNIT the shop can offer at all - a
+//                 tier-gated "specialist" sub-pool layered on top of the
+//                 rarity-band pool (see rollShop below). Advancing a Tier
+//                 costs Essence (the PRD's headline money sink) and unlocks
+//                 new OPTIONS, never flat stats (PRD 40 "NO FREE POWER
+//                 SPIKE"). A unit with no `tierGate` (i.e. the entire
+//                 roster that exists today) is unaffected -> the Tier-1
+//                 shop pool is byte-identical to before this feature.
+export const MARKET_TIER_MAX = 3
+const MARKET_TIER_BASE_COST = 300 // 300 then 600 - a real save-vs-spend, above marketLevelCost's 250/500
+export const MARKET_TIERS = {
+  1: { name: "Clearing", unlocks: ["The base roster"] },
+  2: { name: "Woodland Market", unlocks: ["A Guardian and a debuff-striker specialist"] },
+  3: { name: "Grove Market", unlocks: ["A synergy-scaled mender + a summoner", "Legendaries roll more often"] },
+}
+
+export function marketTierCost(tier) {
+  return tier >= MARKET_TIER_MAX ? null : MARKET_TIER_BASE_COST * tier
+}
+
+// The shop's "Next Tier unlocks: ..." line (PRD 49). Pure.
+export function marketTierPreview(tier) {
+  const t = tier || 1
+  const next = MARKET_TIERS[t + 1]
+  return next ? { name: next.name, unlocks: next.unlocks, cost: marketTierCost(t) } : null
+}
+
+// The tier the shop actually rolls at = the run's marketTier plus any
+// Market Charter (SHOP_INVESTMENTS below - a ledgerOnly relic that opens
+// the shop one Tier higher), capped at MARKET_TIER_MAX. Every rollShop
+// call site passes this, not the raw key, so the relic rides for free.
+export function effectiveMarketTier(runState) {
+  const base = runState?.marketTier || 1
+  const charter = (runState?.relics || []).includes("market-charter") ? 1 : 0
+  return Math.min(MARKET_TIER_MAX, base + charter)
+}
+
 // Only base-tier units are ever purchasable - a Tier 2 unit has
 // recruitCost: null (it's only reachable by fusing three base copies),
 // so it must never appear as a shop offer. summonOnly units (e.g.
@@ -676,15 +716,27 @@ const LEGENDARY_SHOP_CHANCE = 0.12
 // seed.js. Every call site that has a runState passes
 // `streamRng(seed, "shop", "<nodeIndex>:<rerolls>")` so the offers are
 // reproducible from the seed; a bare call still rolls live.
-function rollShop(marketLevel, tribeCounts = {}, slotBonus = 0, rng = Math.random) {
+function rollShop(marketLevel, tribeCounts = {}, slotBonus = 0, rng = Math.random, marketTier = 1) {
   const allowedTiers = MARKET_LEVEL_UNLOCKS[marketLevel] || MARKET_LEVEL_UNLOCKS[1]
-  const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && allowedTiers.includes(u.tier))
+  const recruitable = (u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom
+  // The rarity-band pool - the ENTIRE roster that exists today (nothing
+  // carries `tierGate` before feat/hearthwood-market-tiers, so `!u.tierGate`
+  // is a no-op filter at Tier 1 and the pool is byte-identical to before).
+  const bandPool = Object.values(UNITS).filter((u) => recruitable(u) && !u.tierGate && allowedTiers.includes(u.tier))
+  // The Tier-gated "specialist" sub-pool: bypasses the rarity band
+  // entirely (PRD 32 "Tier != Rarity"), purely gated by marketTier.
+  const specialistPool = Object.values(UNITS).filter((u) => recruitable(u) && u.tierGate && u.tierGate <= marketTier)
+  const pool = [...bandPool, ...specialistPool]
   const matching = pool.filter((u) => tribesOf(u.id, u).some((t) => (tribeCounts[t] || 0) > 0))
   const guaranteed = shuffled(matching, rng).slice(0, Math.min(1, matching.length))
   const guaranteedIds = new Set(guaranteed.map((u) => u.id))
   const rest = shuffled(pool.filter((u) => !guaranteedIds.has(u.id)), rng).slice(0, SHOP_SIZE + slotBonus - guaranteed.length)
 
-  if (marketLevel >= MARKET_LEVEL_MAX && rest.length && rng() < LEGENDARY_SHOP_CHANCE) {
+  // Grove Market (marketTier 3, PRD 9): "Legendaries roll more often" -
+  // a small bounded bump on the existing max-market-level Legendary swap,
+  // no new machinery.
+  const legendaryChance = marketTier >= MARKET_TIER_MAX ? 0.18 : LEGENDARY_SHOP_CHANCE
+  if (marketLevel >= MARKET_LEVEL_MAX && rest.length && rng() < legendaryChance) {
     const legendaries = Object.values(UNITS).filter(
       (u) => u.tier === "legendary" && !u.fusedFrom && !u.summonOnly && !u.evolvedFrom,
     )
@@ -828,7 +880,11 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     nodeIndex: 0,
     phase: "shop",
     marketLevel: 1,
-    shopOffers: rollShop(1, {}, 0, streamRng(seed, "shop", "0:0")),
+    // Market Tier (feat/hearthwood-market-tiers) - an additive key, read
+    // `|| 1` everywhere, carried verbatim by serialize/deserialize; an
+    // old v3 save without it reads 1. No RUN_SAVE_VERSION bump.
+    marketTier: 1,
+    shopOffers: rollShop(1, {}, 0, streamRng(seed, "shop", "0:0"), 1),
     // Item shop rotation (rollItemShop above) - regenerates alongside
     // shopOffers at every new shop visit (chooseRelic/
     // resolveBattleOutcome below), but deliberately NOT on a paid unit
@@ -1227,6 +1283,15 @@ export const SHOP_INVESTMENTS = {
     cost: 400,
     desc: "The frailest thing on the enemy line starts every battle Vulnerable - it takes the hits harder.",
   },
+  // Market Charter (feat/hearthwood-market-tiers): a shop-LAYER Ledger buy
+  // (no battle effect). The relic "market-charter" makes effectiveMarketTier
+  // read one Tier higher (capped at 3), so the shop offers the next
+  // specialist sub-pool without paying the Tier-advance cost.
+  "market-charter": {
+    name: "The Market Charter",
+    cost: 350,
+    desc: "The shop opens one Market Tier higher for the rest of the run.",
+  },
 }
 
 export function investmentOwned(runState, id) {
@@ -1235,6 +1300,7 @@ export function investmentOwned(runState, id) {
   if (id === "ledger-account") return (runState.ledgerWinBonus || 0) > 0
   if (id === "rearguard") return (runState.relics || []).includes("rearguard-standard")
   if (id === "marked-coin") return (runState.relics || []).includes("marked-coin")
+  if (id === "market-charter") return (runState.relics || []).includes("market-charter")
   return false
 }
 
@@ -1250,7 +1316,9 @@ export function buyInvestment(runState, id) {
           ? { ledgerWinBonus: 40 }
           : id === "rearguard"
             ? { relics: [...(runState.relics || []), "rearguard-standard"] }
-            : { relics: [...(runState.relics || []), "marked-coin"] }
+            : id === "marked-coin"
+              ? { relics: [...(runState.relics || []), "marked-coin"] }
+              : { relics: [...(runState.relics || []), "market-charter"] }
   return { ...runState, essence: runState.essence - inv.cost, ...patch }
 }
 
@@ -1325,6 +1393,18 @@ export function levelUpMarket(runState) {
   const cost = marketLevelCost(level)
   if (cost === null || runState.essence < cost) return runState
   return { ...runState, essence: runState.essence - cost, marketLevel: level + 1 }
+}
+
+// Raises marketTier (feat/hearthwood-market-tiers) - the exact mirror of
+// levelUpMarket above, on the other market axis. Unlocks the next
+// specialist sub-pool in future shop rolls (rollShop); the PRD's headline
+// money sink, competing with recruit / reroll / levelUpMarket / the
+// Ledger for the same Essence.
+export function advanceMarketTier(runState) {
+  const tier = runState.marketTier || 1
+  const cost = marketTierCost(tier)
+  if (cost === null || runState.essence < cost) return runState
+  return { ...runState, essence: runState.essence - cost, marketTier: tier + 1 }
 }
 
 export function toggleFreeze(runState) {
@@ -1508,6 +1588,7 @@ export function rerollShop(runState) {
       benchTribeCounts(runState),
       runState.shopSlotBonus || 0,
       streamRng(runState.seed, "shop", `${runState.nodeIndex}:${styleN(runState, "rerolls") + 1}`),
+      effectiveMarketTier(runState),
     ),
     // Essence rescale: was a bare `+ 1`, now REROLL_INCREMENT (50,
     // same value REROLL_BASE_COST itself carries) - see
@@ -2321,6 +2402,7 @@ export function chooseRelic(runState, relicId) {
             benchTribeCounts(runState),
             runState.shopSlotBonus || 0,
             streamRng(runState.seed, "shop", `${advanced.nodeIndex}:${styleN(runState, "rerolls")}`),
+            effectiveMarketTier(runState),
           )
       : runState.shopOffers,
     itemOffers: enteringShop ? rollItemShop(streamRng(runState.seed, "item", String(advanced.nodeIndex))) : runState.itemOffers,
@@ -2581,6 +2663,7 @@ export function resolveBattleOutcome(runState) {
               benchTribeCounts(rs),
               rs.shopSlotBonus || 0,
               streamRng(rs.seed, "shop", `${advanced.nodeIndex}:${styleN(rs, "rerolls")}`),
+              effectiveMarketTier(rs),
             )
         : rs.shopOffers,
       itemOffers: enteringShop ? rollItemShop(streamRng(rs.seed, "item", String(advanced.nodeIndex))) : rs.itemOffers,

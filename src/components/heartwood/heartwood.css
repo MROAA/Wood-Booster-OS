@@ -407,6 +407,57 @@
   box-shadow: 0 0 6px 1px color-mix(in srgb, var(--hw-ember) 65%, transparent);
 }
 
+/* Market TIER widget (feat/hearthwood-market-tiers) - a sibling of the
+   Market Level widget above. Same shape, a moss accent instead of ember
+   so the two read as "two sides of the same system" rather than one
+   control. */
+.hw-market-tier-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hw-moss) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-moss) 8%, var(--hw-panel));
+}
+.hw-market-tier-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hw-muted);
+  font-weight: 600;
+}
+.hw-market-tier-pips {
+  display: inline-flex;
+  gap: 5px;
+}
+.hw-market-tier-pip {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid var(--hw-moss);
+  background: transparent;
+}
+.hw-market-tier-pip[data-filled="true"] {
+  background: var(--hw-moss);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--hw-moss) 65%, transparent);
+}
+.hw-market-tier-pip[data-charter="true"] {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--hw-moss) 45%, transparent);
+}
+.hw-market-tier-name {
+  font-size: 12px;
+  color: var(--hw-text);
+  font-weight: 600;
+}
+.hw-market-tier-preview {
+  font-size: 11px;
+  color: var(--hw-muted);
+  font-style: italic;
+  flex-basis: 100%;
+}
+
 /* Commander cluster - a plain grouping container (no border of its
    own; the Market widget's border above is what needs to visually
    compete for attention here, not this one) with a left divider so

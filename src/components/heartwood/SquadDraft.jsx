@@ -14,6 +14,11 @@ import {
   MARKET_LEVEL_MAX,
   MARKET_LEVEL_UNLOCKS,
   marketLevelCost,
+  MARKET_TIER_MAX,
+  MARKET_TIERS,
+  marketTierCost,
+  marketTierPreview,
+  effectiveMarketTier,
   benchTribeCounts,
   difficultyTierForNode,
   RESERVE_CAP,
@@ -95,6 +100,7 @@ export default function SquadDraft({
   onEquipItem,
   onUnequipItem,
   onLevelUpMarket,
+  onAdvanceMarketTier,
   onToggleFreeze,
   onUseCommanderActive,
   onBuyInvestment,
@@ -120,6 +126,10 @@ export default function SquadDraft({
   const rankCost = commanderRankCost(commanderRank)
   const marketLevel = runState.marketLevel || 1
   const marketCost = marketLevelCost(marketLevel)
+  const marketTier = runState.marketTier || 1
+  const effTier = effectiveMarketTier(runState)
+  const tierCost = marketTierCost(marketTier)
+  const tierPreview = marketTierPreview(effTier)
   const activePower = commander?.activePower
   const activePowerUsed = !!runState.activePowerUsedThisShop
   const primed = (runState.pendingActiveEffects || []).length > 0
@@ -797,6 +807,48 @@ export default function SquadDraft({
             </button>
           )}
         </div>
+
+        {/* Market TIER (feat/hearthwood-market-tiers) - the SECOND market
+            axis, a sibling of the Level widget above. Level raises the
+            rarity ceiling; Tier unlocks new KINDS of unit (a specialist
+            sub-pool). Advancing a Tier is a pure Essence sink that buys
+            options, not stats. The one-line "Next: ..." preview (PRD 49)
+            makes the investment legible. */}
+        <div
+          className="hw-market-tier-widget"
+          title={`Market Tier ${effTier}: ${MARKET_TIERS[effTier]?.name}. ${
+            tierPreview ? `Next: ${tierPreview.name} (${tierPreview.cost}) - ${tierPreview.unlocks.join("; ")}` : "Max Tier."
+          }`}
+        >
+          <span className="hw-market-tier-label">Tier</span>
+          <span className="hw-market-tier-pips">
+            {Array.from({ length: MARKET_TIER_MAX }, (_, i) => (
+              <span key={i} className="hw-market-tier-pip" data-filled={i < effTier} data-charter={(i >= marketTier && i < effTier) || undefined} />
+            ))}
+          </span>
+          <span className="hw-market-tier-name">{MARKET_TIERS[effTier]?.name}</span>
+          {tierCost === null ? (
+            <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
+          ) : (
+            <button
+              className="hw-move-btn hw-strip-btn"
+              disabled={runState.essence < tierCost}
+              onClick={onAdvanceMarketTier}
+              title={`Advance to ${MARKET_TIERS[marketTier + 1]?.name} - unlocks ${MARKET_TIERS[marketTier + 1]?.unlocks.join("; ")}`}
+            >
+              Advance
+              <span className="hw-cost-inline">
+                <CardGlyph name="spark" className="hw-intent-glyph" />
+                {tierCost}
+              </span>
+            </button>
+          )}
+        </div>
+        {tierPreview && (
+          <span className="hw-market-tier-preview">
+            Next Tier: {tierPreview.name} — {tierPreview.unlocks[0]}
+          </span>
+        )}
         {/* Commander cluster - deliberately separated from the Market
             widget above (own container + a visual divider) so Rank Up
             reads as "about your commander", never "the other Level

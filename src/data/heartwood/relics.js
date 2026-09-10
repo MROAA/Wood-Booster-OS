@@ -212,6 +212,21 @@ export const RELICS = {
     markLowestEnemyHp: true,
     ledgerOnly: true,
   },
+  "market-charter": {
+    id: "market-charter",
+    image: artificersLedgerImg,
+    name: "The Market Charter",
+    icon: "spark",
+    description: "A writ of trade the deep markets honour. Wherever you stop, the good stalls are already open.",
+    // Market Charter (runEngine.js's SHOP_INVESTMENTS - a Ledger buy, NOT
+    // a relic-node pick, hence `ledgerOnly` and the relicPool() filter).
+    // A SHOP-LAYER relic with no battle effect at all: runEngine's
+    // effectiveMarketTier() reads one Market Tier higher while this is
+    // owned, so the shop offers the next specialist sub-pool. The
+    // autobattler relic loop sees `effects: []` and simply skips it.
+    effects: [],
+    ledgerOnly: true,
+  },
   "vampiric-bloom": {
     id: "vampiric-bloom",
     image: vampiricBloomImg,
