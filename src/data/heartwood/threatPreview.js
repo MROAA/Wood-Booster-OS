@@ -40,6 +40,7 @@ const MECH = [
   [(d) => d.hunter, () => "Hunts your weakest"],
   [(d) => d.covenAura, () => "Empowers the pack"],
   [(d) => d.broodSplit, () => "Splits when killed"],
+  [(d) => d.cultRitual, () => "Sacrifices its own for power"],
   [(d) => d.attackPattern && d.attackPattern !== "single", () => "Hits every square"],
   [(d) => Array.isArray(d.phases) && d.phases.length > 0, () => "Shifts phase when hurt"],
   [(d) => d.moveSelect === "weightedRandom", () => "Unpredictable moves"],
@@ -63,7 +64,10 @@ const ctrlId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && CONT
 // brood 1.2 (feat/hearthwood-brood): a self-multiplying fight is a real
 // "what is this" (~ armour / poison). Also roster-level (frac forced to
 // 1 when any piece has broodSplit) - one splitter makes it a brood.
-const SEVERITY = { control: 1.4, coven: 1.3, hunters: 1.25, armor: 1.2, poison: 1.2, brood: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
+// cult 1.3 (feat/hearthwood-cult): a leader that sacrifices its own to
+// escalate the rest - the same pressing "what is this fight" as a coven,
+// also roster-level (frac forced to 1 when any piece has cultRitual).
+const SEVERITY = { control: 1.4, coven: 1.3, cult: 1.3, hunters: 1.25, armor: 1.2, poison: 1.2, brood: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
 
 // PRD "Progressiivinen haasteen nousu ja skaalaus" 9 / 41-43: a read of
 // the fight RELATIVE to the player's build. `ratio` = playerPower.js's
@@ -117,7 +121,7 @@ export function evaluateThreat(previewEnemies, runState, node, playerPower = nul
       // brood, so neither should be discounted for the plain bodies
       // beside it. Otherwise a 1-in-3 frac lets "A back-line threat"
       // (every piece "exhibits" it) edge the real read out.
-      if ((id === "coven" || id === "brood") && frac > 0) frac = 1
+      if ((id === "coven" || id === "brood" || id === "cult") && frac > 0) frac = 1
       return { id, score: (SEVERITY[id] || 1) + frac }
     })
     .sort((a, b) => b.score - a.score)
@@ -186,6 +190,8 @@ function exhibits(d, id, livingCount) {
       return !!d.covenAura
     case "brood":
       return !!d.broodSplit
+    case "cult":
+      return !!d.cultRitual
     case "control":
       return steps.some((m) => m.type === "debuff" && CONTROL_IDS.includes(m.id))
     case "poison":

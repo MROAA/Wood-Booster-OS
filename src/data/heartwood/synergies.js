@@ -261,6 +261,10 @@ export const UNIT_TRIBES = {
   // The Brood, player answers (feat/hearthwood-brood).
   "bramble-sweep": ["thorn", "ember"],
   "culler": ["fang", "shadow"],
+  // The Cult, player answers (feat/hearthwood-cult).
+  "chantbreaker": ["gale", "spirit"],
+  "oathsworn": ["stone", "fang"],
+  "emberzeal": ["ember", "thorn"],
   // Market Tier specialist pool (feat/hearthwood-market-tiers).
   "grove-warden": ["grove", "warden"],
   "spark-diviner": ["root", "gale"],

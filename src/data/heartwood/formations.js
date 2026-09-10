@@ -421,6 +421,42 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // --- The Cult (Enemy Ecosystem PRD 11 / 39, feat/hearthwood-cult) ---
+  // A shielded-leader puzzle like the Coven, but the shield IS the ammo:
+  // the ritual-warden (enemies.js) sits at row 1 behind a Sworn Cultist
+  // and, every 2nd round, SACRIFICES a living cultFodder ally to fold
+  // its strength into the rest (its `cultRitual`, ticked by
+  // autoBattleEngine.js's applyCultTick). Race the rite, reach the
+  // Warden, or stun it to stall the chant - grinding the front hands it
+  // more to give. `synergy` is LABEL-ONLY (effects: []) - the identity
+  // is the Warden's cultRitual, not a squad synergy; the label drives
+  // the .hw-cult-hint / coach / badge hooks. 3 pieces (under the Swarm's
+  // >= 4 gate).
+  "the-communion": {
+    id: "the-communion",
+    synergy: { label: "The ritual feeds", effects: [] },
+    name: "The Communion",
+    description: "Two kneeling, one counting. In two breaths there will be one kneeling, and the other two will be worse.",
+    pieces: [
+      { defId: "sworn-cultist", pos: { row: 0, col: 0 } },
+      { defId: "sworn-cultist", pos: { row: 0, col: 2 } },
+      { defId: "ritual-warden", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-long-chant": {
+    id: "the-long-chant",
+    synergy: { label: "The ritual feeds", effects: [] },
+    name: "The Long Chant",
+    description: "One to give, one already past giving, and the Warden between them keeping the count.",
+    pieces: [
+      { defId: "sworn-cultist", pos: { row: 0, col: 0 } },
+      { defId: "ritual-adept", pos: { row: 0, col: 2 } },
+      { defId: "ritual-warden", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",
