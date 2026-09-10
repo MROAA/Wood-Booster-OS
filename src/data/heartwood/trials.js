@@ -23,9 +23,9 @@ export const TRIALS = {
     act: "The Outer Grove",
     beat: "The forest's oldest guardian, still standing watch - corruption has reached him too.",
     introLine:
-      '"Pysähdy. Sinä... vieras... Miksi kosket juuriani?" He does not move to strike yet - only to be heard.',
+      '"Stop. You... stranger... Why do you touch my roots?" He does not move to strike yet - only to be heard.',
     victoryLine:
-      '"...Sinä et ole korruptio." The roots fall away. Light kindles in his chest. "Kuuntele. Korruptio ei tule juurista. Se tulee syvemmältä." He is not defeated - he is purified.',
+      '"...You are not the corruption." The roots fall away. Light kindles in his chest. "Listen. The corruption does not come from the roots. It comes from deeper." He is not defeated - he is purified.',
   },
   // Second Trial - Heartwood Warden (Act II's boss) wraps "thornmaw":
   // its own self-Regen+self-Taunt kit (won't go down, forces you to
@@ -39,9 +39,9 @@ export const TRIALS = {
     act: "The Deepening Woods",
     beat: "The heart's physical guardian - not corrupted, but he doesn't trust you yet.",
     introLine:
-      '"Sinä olet kulkenut liian pitkälle, vieras." He raises a hand; roots rise with it. "Kaikki, jotka koskevat sydäntä, ovat joko suojelijoita... tai tuhoajia. Minä päätän, kumpi sinä olet."',
+      '"You have come too far, stranger." He raises a hand; roots rise with it. "All who touch the heart are either protectors... or destroyers. I decide which you are."',
     victoryLine:
-      '"...Sinä et ole tuhoaja." He looks at you directly. "Sydän piiloutuu... koska se pelkää Hollow Kingiä. Ja sinä... sinä olet avain." He turns toward the deeper woods. "Meidän täytyy mennä Veiliin."',
+      '"...You are not a destroyer." He looks at you directly. "The heart hides... because it fears the Hollow King. And you... you are the key." He turns toward the deeper woods. "We must go to the Veil."',
   },
   // Third Trial - Veilbound (Act III's boss) wraps "wyrmgall": its own
   // self-Execute+self-Shatter kit already punishes BOTH pure-aggression
@@ -57,9 +57,9 @@ export const TRIALS = {
     act: "The Wounded Heartwood",
     beat: "A being born from the border of reality - not evil, only the Veil's will given shape.",
     introLine:
-      '"Sinä olet kulkenut liian pitkälle." Its shape will not hold still. "Vihollinen... ystävä... nämä sanat eivät merkitse mitään täällä. Veil ei testaa voimaa. Se testaa... totuutta."',
+      '"You have come too far." Its shape will not hold still. "Enemy... friend... those words mean nothing here. The Veil does not test strength. It tests... truth."',
     victoryLine:
-      '"...Sinä et ole tyhjyyden lapsi." Its shape stabilizes for the first time. "Sydän piiloutuu... koska Hollow King etsii sitä. Tyhjyys ei ole paha. Se on... yksin." It closes its eyes. "...Meidän täytyy mennä The Hollow."',
+      '"...You are not a child of the void." Its shape stabilizes for the first time. "The heart hides... because the Hollow King seeks it. The void is not evil. It is... alone." It closes its eyes. "...We must go to The Hollow."',
   },
   // Fourth Trial - the final boss. Marc, asked directly (his own story
   // treats Hollow King as the real final threat, with Spacemonkey
@@ -80,9 +80,9 @@ export const TRIALS = {
     act: "The Reckoning",
     beat: "The void's own child, once the forest's first guardian. Not a tyrant - a guardian who failed.",
     introLine:
-      '"...Miksi tulit?" No face, no crown, no shape - only an absent shape where one should be. "Metsä ei tarvitse pelastusta. Se tarvitsee... totuuden. Näytä minulle, miksi sydän luottaa sinuun."',
+      '"...Why did you come?" No face, no crown, no shape - only an absent shape where one should be. "The forest does not need saving. It needs... the truth. Show me why the heart trusts you."',
     victoryLine:
-      '"...Sinä... Sinä et ole tyhjyyden lapsi." The void around him trembles, as if it were crying. "Sydän... piiloutui minulta. Mutta se... luottaa sinuun." He does not fall. He simply ceases to be.',
+      '"...You... You are not a child of the void." The void around him trembles, as if it were crying. "The heart... hid from me. But it... trusts you." He does not fall. He simply ceases to be.',
   },
 
   // Act V - The Crownless. Not a RUN_PATH node: wraps the

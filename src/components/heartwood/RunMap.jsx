@@ -103,20 +103,25 @@ function RunRail({ runState, onScout }) {
 
   // Contiguous index ranges per Act - difficultyTierForNode's thresholds
   // are monotonic in progress, so every Act owns one unbroken stretch.
+  // Marc: the rail showed all 7 Acts at once; he wants it "rajoittuvan
+  // actiin ja paljastuvan progressiivisesti" - only the CURRENT Act's
+  // stretch, the next revealing itself as the run crosses into it.
   const acts = DIFFICULTY_TIERS.map((tier) => {
     const indices = []
     for (let i = 0; i < total; i++) {
       if (difficultyTierForNode(i, total) === tier) indices.push(i)
     }
     return { tier, indices }
-  }).filter((a) => a.indices.length)
+  }).filter((a) => a.indices.length && a.tier === currentTier)
+  const actNumber = DIFFICULTY_TIERS.indexOf(currentTier) + 1
+  const actTotal = DIFFICULTY_TIERS.length
 
   return (
     <div className="hw-run-rail">
       <div className="hw-run-rail-head">
         <span className="hw-run-rail-title">Run Map</span>
-        <span className="hw-run-rail-step">
-          {nodeIndex + 1}<span className="hw-run-rail-step-sep">/</span>{total}
+        <span className="hw-run-rail-step" title={`Act ${actNumber} of ${actTotal} · step ${nodeIndex + 1} of ${total}`}>
+          Act {actNumber}<span className="hw-run-rail-step-sep">/</span>{actTotal}
         </span>
         <ForestStateBadge state={runState.forestState} />
       </div>
