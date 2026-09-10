@@ -42,6 +42,7 @@ const MECH = [
   [(d) => d.broodSplit, () => "Splits when killed"],
   [(d) => d.cultRitual, () => "Sacrifices its own for power"],
   [(d) => d.leech, () => "Steals your buffs"],
+  [(d) => d.charge, () => "Winding up a big hit"],
   [(d) => d.attackPattern && d.attackPattern !== "single", () => "Hits every square"],
   [(d) => Array.isArray(d.phases) && d.phases.length > 0, () => "Shifts phase when hurt"],
   [(d) => d.moveSelect === "weightedRandom", () => "Unpredictable moves"],
@@ -68,10 +69,15 @@ const ctrlId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && CONT
 // cult 1.3 (feat/hearthwood-cult): a leader that sacrifices its own to
 // escalate the rest - the same pressing "what is this fight" as a coven,
 // also roster-level (frac forced to 1 when any piece has cultRitual).
+// ancients 1.3 (feat/hearthwood-ancients): a telegraphed squad-wide wipe
+// on a visible countdown is a pressing "what is this fight" - tied with
+// coven / cult. Roster-level (frac forced to 1 when any piece has
+// `charge`): one colossus makes it an Ancients fight, the saplings
+// beside it are just the clock.
 // collectors 1.25 (feat/hearthwood-collectors): a fight that turns your
 // own stacked buffs against you - tied with hunters, roster-level (frac
 // forced to 1 when any piece has `leech`).
-const SEVERITY = { control: 1.4, coven: 1.3, cult: 1.3, hunters: 1.25, collectors: 1.25, armor: 1.2, poison: 1.2, brood: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
+const SEVERITY = { control: 1.4, coven: 1.3, cult: 1.3, ancients: 1.3, hunters: 1.25, collectors: 1.25, armor: 1.2, poison: 1.2, brood: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
 
 // PRD "Progressiivinen haasteen nousu ja skaalaus" 9 / 41-43: a read of
 // the fight RELATIVE to the player's build. `ratio` = playerPower.js's
@@ -125,7 +131,7 @@ export function evaluateThreat(previewEnemies, runState, node, playerPower = nul
       // brood, so neither should be discounted for the plain bodies
       // beside it. Otherwise a 1-in-3 frac lets "A back-line threat"
       // (every piece "exhibits" it) edge the real read out.
-      if ((id === "coven" || id === "brood" || id === "cult" || id === "collectors") && frac > 0) frac = 1
+      if ((id === "coven" || id === "brood" || id === "cult" || id === "collectors" || id === "ancients") && frac > 0) frac = 1
       return { id, score: (SEVERITY[id] || 1) + frac }
     })
     .sort((a, b) => b.score - a.score)
@@ -198,6 +204,8 @@ function exhibits(d, id, livingCount) {
       return !!d.cultRitual
     case "collectors":
       return !!d.leech
+    case "ancients":
+      return !!d.charge
     case "control":
       return steps.some((m) => m.type === "debuff" && CONTROL_IDS.includes(m.id))
     case "poison":

@@ -34,6 +34,7 @@ export const THREATS = [
   { id: "brood", label: "Splits when killed", icon: "wolf", answer: "AoE / chain, or Execute the small ones" },
   { id: "cult", label: "A ritual pack", icon: "flame", answer: "burst the pack, reach the leader, or stun it to stall the rite" },
   { id: "collectors", label: "Takes your buffs", icon: "spark", answer: "burst it fast, a Sunder to take it back, or flat bodies with nothing to steal" },
+  { id: "ancients", label: "A charging colossus", icon: "flame", answer: "burst it, stun it, stagger it in one heavy round, or brace the squad for the hit" },
 ]
 
 export const THREAT_LABEL = Object.fromEntries(THREATS.map((t) => [t.id, t.label]))
@@ -87,6 +88,11 @@ function defThreats(def) {
   // one of your buffs for itself - see effects.js's leech(). Burst it,
   // Sunder it back, or field flat bodies with nothing to take.
   if (def.leech) out.push("collectors")
+  // Ancients (feat/hearthwood-ancients): a slow colossus winding up ONE
+  // telegraphed squad-wide hit on a visible countdown - see
+  // autoBattleEngine.js's applyAncientCharge. Kill it, stun it (the count
+  // holds), stagger it (a heavy round resets the count), or brace for it.
+  if (def.charge) out.push("ancients")
   return out
 }
 
@@ -219,6 +225,24 @@ export function buildAnswersFor(runState) {
     anyUnit((u) => u.applies("sunder") || u.tags.has("sunder") || u.def.vengeful || u.tags.has("vengeful"))
   )
     covered.add("collectors")
+
+  // Ancients (feat/hearthwood-ancients): burst it before the count lands
+  // (damage score >= 6 - that also staggers it in a heavy round), stun it
+  // to hold the count, or brace the squad with Ward / Bulwark for the hit.
+  if (
+    (evaluateBuild(runState).scores?.damage || 0) >= 6 ||
+    anyUnit(
+      (u) =>
+        u.applies("stun") ||
+        u.tags.has("stun") ||
+        u.applies("ward", "bulwark") ||
+        u.tags.has("shield"),
+    ) ||
+    relicGrants("ward", "bulwark") ||
+    modGrants("ward", "bulwark") ||
+    relics.some((r) => r?.bracedSquad)
+  )
+    covered.add("ancients")
 
   return covered
 }

@@ -188,6 +188,12 @@ export const COACH_TIPS = [
     anchor: ".hw-collectors-hint",
   },
   {
+    id: "ancients",
+    title: "Racing an Ancient",
+    text: "The colossus is slow, but it's winding up one massive hit that lands on your whole squad - the ⚡ on it counts down the turns. Four answers: kill it before the count hits 0 (it has no shield, burst works from turn 1); stun it (Stormcaller's rook line reaches straight up to it) and the count holds; hit it hard in one round (Stormbreaker) to stagger it and knock the count back to full; or brace - Bulwark-Bearer's aura, a Ward relic, or The Weathered Standard so the squad shrugs the payoff. The saplings just run down your clock.",
+    anchor: ".hw-ancients-hint",
+  },
+  {
     id: "antidote",
     title: "Field Antidote",
     text: "A one-fight consumable: your whole squad starts the next battle with Regen, enough to out-drip an opening poison spike. Buy it before a fight you know is a rot pack. The cost climbs each Act.",

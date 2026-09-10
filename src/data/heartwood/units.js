@@ -1872,6 +1872,46 @@ const BASE_UNITS = {
     // thief down before it can accumulate off the rest of the squad.
   }),
 
+  // --- The Ancients, player answers (feat/hearthwood-ancients) ---------
+  // Three of the four ways to beat a charging colossus (enemies.js
+  // ancient-oak / elder-oak, formations the-ancient-grove / the-elder-
+  // hollow - the fourth, "burst it", is any strong squad): HOLD the
+  // countdown (a Stun on the Oak - applyAncientCharge keeps the count
+  // frozen that round), BRACE the squad for the payoff, or STAGGER the
+  // charge with one heavy round of damage.
+  "stormcaller": unit("stormcaller", "Stormcaller", "stormwing", 2, "dps", [
+    { type: "attack", amount: 4 },
+  ], {
+    className: "Caller",
+    // Rook line (bramble-sweep's shape) - from the back-centre slot
+    // applyPatternDamage fires straight up column 1 and lands on the
+    // front-centre Oak; the Stun trigger then holds that round's charge
+    // (applyAncientCharge's "falters" branch). `stun 1` decays each round,
+    // so it's a MAINTAINED interrupt - it has to keep landing to keep the
+    // colossus from winding up. (Bishop can't reach {0,1} from any slot.)
+    attackPattern: "rook",
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "stun", target: "target", amount: 1 } }],
+  }),
+  "bulwark-bearer": unit("bulwark-bearer", "Bulwark-Bearer", "warden", 2, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 3 },
+  ], {
+    className: "Bearer",
+    // Aura (units.js opt / autoBattleEngine.js applyAuraTick): every round
+    // each Chebyshev-adjacent ally gains Bulwark 1, so the squad walks
+    // into the charge payoff already braced - one of the Oak's hits is
+    // shrugged per unit. Reuses the same aura shape emberbanner uses.
+    aura: { effect: { type: "applyBuff", id: "bulwark", amount: 1 } },
+  }),
+  "stormbreaker": unit("stormbreaker", "Stormbreaker", "forgehowl", 3, "dps", [
+    { type: "attack", amount: 8 },
+  ], {
+    className: "Breaker",
+    // One flat heavy hit, no passive - on its own it can clear an Oak's
+    // charge.breakDamage in a single round (applyAncientCharge staggers
+    // the count back to full) and it bursts the colossus down fast.
+  }),
+
   // --- Market Tier specialist pool (feat/hearthwood-market-tiers) -------
   // Gated by runState.marketTier (tierGate), NOT by the rarity band. All
   // four are SIDEGRADES - a real role, modest numbers - because a Tier

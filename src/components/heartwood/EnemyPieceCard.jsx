@@ -151,6 +151,14 @@ export default function EnemyPieceCard({
           <CardGlyph name="wolf" className="hw-intent-glyph" /> Summoned
         </span>
       )}
+      {enemy.chargeCounter != null && !dead && (
+        <span
+          className="hw-badge hw-charge-badge"
+          title={`Winding up a massive hit - ${enemy.chargeCounter} ${enemy.chargeCounter === 1 ? "turn" : "turns"} until it lands. Kill it, stun it, stagger it, or brace.`}
+        >
+          ⚡{enemy.chargeCounter}
+        </span>
+      )}
       {image ? (
         <img src={image} alt="" className="hw-piece-portrait" />
       ) : (

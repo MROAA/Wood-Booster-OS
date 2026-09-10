@@ -452,6 +452,17 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
 
+      {/* Ancients hint (formations.js the-ancient-grove / the-elder-hollow):
+          the "Something is winding up" synergy label = the Ancients
+          archetype (Enemy Ecosystem PRD 18). A slow colossus winding up
+          one massive squad-wide hit on a visible countdown — answer it
+          before it lands. */}
+      {formation.synergy?.label === "Something is winding up" && (
+        <p className="hw-ancients-hint">
+          An Ancient — it's charging one massive hit on a visible countdown (the ⚡ on the colossus). Answer it before it lands: burst the colossus down, stun it to hold the count, hit it hard in one round to stagger it off its rhythm, or brace the whole squad with Block or Ward for the round it falls. The saplings are just there to run down your clock.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the

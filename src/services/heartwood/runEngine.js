@@ -146,7 +146,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "bonewarden" },
   { type: "shop" },
-  { type: "elite", enemyId: "the-bramble-lash" }, // was: mossveil
+  { type: "elite", formationId: "the-ancient-grove" }, // feat/hearthwood-ancients (was: the-bramble-lash / mossveil)
   { type: "event" },
   { type: "battle", enemyId: "hollowspite" },
   { type: "shop" },
@@ -166,7 +166,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "hollowcurse" },
   { type: "shop" },
-  { type: "elite", enemyId: "the-ashfall-herald" }, // was: grimspite
+  { type: "elite", formationId: "the-elder-hollow" }, // feat/hearthwood-ancients (was: the-ashfall-herald / grimspite)
   { type: "shop" },
   { type: "battle", enemyId: "ironroot" },
   { type: "shop" },
@@ -1312,6 +1312,16 @@ export const SHOP_INVESTMENTS = {
     cost: 400,
     desc: "The largest thing on the enemy line starts every battle stunned - one turn lost, one ritual charge missed.",
   },
+  // The Weathered Standard (feat/hearthwood-ancients): the relic
+  // "weathered-standard" (relics.js `bracedSquad`) gives every deployed
+  // unit Bulwark 1 at the start of every battle - one incoming hit
+  // shrugged off. Generically useful, and the "you came braced" answer to
+  // The Ancients' squad-wide charge payoff.
+  "weathered-standard": {
+    name: "The Weathered Standard",
+    cost: 400,
+    desc: "Every unit you field starts each battle with Bulwark - one incoming hit shrugged off.",
+  },
 }
 
 export function investmentOwned(runState, id) {
@@ -1323,6 +1333,7 @@ export function investmentOwned(runState, id) {
   if (id === "market-charter") return (runState.relics || []).includes("market-charter")
   if (id === "traders-compass") return (runState.relics || []).includes("traders-compass")
   if (id === "silenced-bell") return (runState.relics || []).includes("silenced-bell")
+  if (id === "weathered-standard") return (runState.relics || []).includes("weathered-standard")
   return false
 }
 
@@ -1344,7 +1355,9 @@ export function buyInvestment(runState, id) {
                 ? { relics: [...(runState.relics || []), "market-charter"] }
                 : id === "traders-compass"
                   ? { relics: [...(runState.relics || []), "traders-compass"] }
-                  : { relics: [...(runState.relics || []), "silenced-bell"] }
+                  : id === "silenced-bell"
+                    ? { relics: [...(runState.relics || []), "silenced-bell"] }
+                    : { relics: [...(runState.relics || []), "weathered-standard"] }
   return { ...runState, essence: runState.essence - inv.cost, ...patch }
 }
 

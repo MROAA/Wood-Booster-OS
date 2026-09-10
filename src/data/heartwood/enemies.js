@@ -875,6 +875,78 @@ export const ENEMIES = {
     ],
   },
 
+  // --- The Ancients (Enemy Ecosystem PRD 18, feat/hearthwood-ancients) ---
+  // The ninth archetype: a slow colossus winding up ONE telegraphed
+  // squad-wide hit on a visible countdown (its `charge` marker ->
+  // autoBattleEngine.js's applyAncientCharge). Every other archetype
+  // escalates continuously; this one is a single big payoff on a specific
+  // round, with four clean answers - kill it before the count hits 0
+  // (it's a legal target from turn 1, front-centre, no shield), stun it
+  // (the count HOLDS), stagger it (a round of damage >= breakDamage
+  // resets the count to full), or brace the squad with Block / Bulwark
+  // the round it lands. The saplings are just there to run down your
+  // clock. In NON_BATTLE_ENEMY_IDS - only via the-ancient-grove /
+  // the-elder-hollow.
+  "ancient-oak": {
+    id: "ancient-oak",
+    act: 4,
+    name: "Ancient Oak",
+    maxHp: 100,
+    art: "barkBrute",
+    // charge: winds up `label` over `turns` rounds; if it isn't killed /
+    // stunned / staggered first, `effect` hits every living player unit,
+    // then the count resets. breakDamage / turns / effect amount are the
+    // fairness levers.
+    charge: { turns: 3, breakDamage: 22, effect: [{ type: "damage", amount: 9 }], label: "Rootfall" },
+    description: "It has stood here longer than the path has. By the time it decides to move, it has already moved.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 6 },
+      { type: "attack", amount: 6 },
+    ],
+  },
+  "elder-oak": {
+    id: "elder-oak",
+    act: 6,
+    name: "Elder Oak",
+    maxHp: 120,
+    art: "troll",
+    charge: {
+      turns: 3,
+      breakDamage: 26,
+      effect: [
+        { type: "damage", amount: 11 },
+        { type: "applyBuff", id: "weak", target: "target", amount: 1 },
+      ],
+      label: "The Long Fall",
+    },
+    phases: [
+      {
+        atHpPct: 0.4,
+        announce: "The Elder Oak stops holding back.",
+        effects: [{ type: "applyBuff", id: "strength", amount: 3 }],
+      },
+    ],
+    description: "Older than the Ancient Oak, and slower, and there is a reason nothing has grown where it has stood.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 8 },
+      { type: "attack", amount: 7 },
+    ],
+  },
+  "sapling-attendant": {
+    id: "sapling-attendant",
+    act: 4,
+    name: "Sapling Attendant",
+    maxHp: 24,
+    art: "root",
+    // No `charge` - just a low-threat body that keeps you busy while the
+    // count runs down. Killing it is time you didn't spend on the Oak.
+    description: "It will not hurt you much. It only has to keep you here until the big one is ready.",
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 3 }],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -2017,6 +2089,11 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   // The Collectors (feat/hearthwood-collectors): only via the-tithe / the-hoard.
   "hoardling",
   "tithe-warden",
+  // The Ancients (feat/hearthwood-ancients): only via the-ancient-grove /
+  // the-elder-hollow.
+  "ancient-oak",
+  "elder-oak",
+  "sapling-attendant",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible
