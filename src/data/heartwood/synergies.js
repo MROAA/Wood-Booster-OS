@@ -261,6 +261,11 @@ export const UNIT_TRIBES = {
   // The Brood, player answers (feat/hearthwood-brood).
   "bramble-sweep": ["thorn", "ember"],
   "culler": ["fang", "shadow"],
+  // Market Tier specialist pool (feat/hearthwood-market-tiers).
+  "grove-warden": ["grove", "warden"],
+  "spark-diviner": ["root", "gale"],
+  "heartroot-elder": ["grove", "wood"],
+  "mycelian-host": ["spirit", "wood"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

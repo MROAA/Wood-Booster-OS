@@ -32,6 +32,7 @@ import {
   equipItem,
   unequipItem,
   levelUpMarket,
+  advanceMarketTier,
   toggleFreeze,
   activateCommanderPower,
   difficultyTierForNode,
@@ -510,6 +511,10 @@ export default function HeartwoodBattle() {
     setRunState((current) => levelUpMarket(current))
   }
 
+  function handleAdvanceMarketTier() {
+    setRunState((current) => advanceMarketTier(current))
+  }
+
   function handleToggleFreeze() {
     setRunState((current) => toggleFreeze(current))
   }
@@ -634,6 +639,7 @@ export default function HeartwoodBattle() {
       ids.push("roles")
       if (shopLegendary || benchLegendary) ids.push("legendary")
       if ((runState.marketLevel || 1) > 1) ids.push("market-level")
+      ids.push("market-tier")
       if (bankInterestFor(runState) > 0) ids.push("interest")
       if ((runState.bench || []).some((e) => UNITS[e.defId]?.displayTier !== 2 && runState.essence >= 150)) ids.push("upgrade")
       ids.push("ledger")
@@ -920,6 +926,7 @@ export default function HeartwoodBattle() {
           onEquipItem={handleEquipItem}
           onUnequipItem={handleUnequipItem}
           onLevelUpMarket={handleLevelUpMarket}
+          onAdvanceMarketTier={handleAdvanceMarketTier}
           onToggleFreeze={handleToggleFreeze}
           onUseCommanderActive={handleUseCommanderActive}
           onReroll={handleReroll}

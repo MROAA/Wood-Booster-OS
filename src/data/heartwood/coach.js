@@ -32,6 +32,12 @@ export const COACH_TIPS = [
     anchor: ".hw-market-level-widget",
   },
   {
+    id: "market-tier",
+    title: "Market tier",
+    text: "The other market axis. Level raises the RARITY ceiling; Tier unlocks new KINDS of unit - specialists, a synergy-scaled mender, a summoner. Advancing a Tier is an investment: it buys options, not stats. The 'Next Tier' line shows what it opens.",
+    anchor: ".hw-market-tier-widget",
+  },
+  {
     id: "synergy",
     title: "Tribe synergy",
     text: "Units share a tribe. Field enough of one and the whole squad gets that tribe's bonus - a ✓ on the badge means it's live.",

@@ -142,6 +142,23 @@ export const ROLE_OVERRIDES = {
     primary: "dps", secondary: "assassin", position: "back", tags: ["chain", "fang", "shadow"],
     strengths: ["A kill carries the same swing into the next body"], weaknesses: ["The bonus hit only fires on a killing blow"],
   },
+  // Market Tier specialist pool (feat/hearthwood-market-tiers) - sidegrades.
+  "grove-warden": {
+    primary: "tank", secondary: "support", position: "front", tags: ["aura", "regen", "grove", "warden"],
+    strengths: ["Trickles Regen to whoever holds the line beside it"], weaknesses: ["Light damage; the aura is small"],
+  },
+  "spark-diviner": {
+    primary: "dps", secondary: "debuffer", position: "back", tags: ["weak", "root", "gale"],
+    strengths: ["Leaves what it hits swinging softer"], weaknesses: ["Ordinary raw damage on its own"],
+  },
+  "heartroot-elder": {
+    primary: "support", secondary: "healer", position: "back", tags: ["scaling", "regen", "grove", "wood"],
+    strengths: ["Mends harder the more your board's synergies are live"], weaknesses: ["Nearly inert on a scattered squad"],
+  },
+  "mycelian-host": {
+    primary: "summoner", position: "back", tags: ["summon", "spirit", "wood"],
+    strengths: ["Opens the fight a body up"], weaknesses: ["Frail; contributes little itself once the wolf is out"],
+  },
   "the-fool": { primary: "healer", secondary: "support", tags: ["regen", "thorn"] },
   beastcaller: { primary: "summoner", position: "back", strengths: ["Opens the fight a body up"] },
   sapkeeper: { primary: "support", secondary: "healer", tags: ["aura", "regen", "grove"] },

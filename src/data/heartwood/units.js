@@ -360,6 +360,14 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // payout / flat reroll) while the unit is deployed. Nothing
     // persisted; no save-version bump.
     economyRole: opts.economyRole || null,
+    // tierGate (Market/Money-Sinks PRD Phase 1, feat/hearthwood-market-
+    // tiers): the minimum runState.marketTier at which this unit can
+    // appear in the shop. A RUN-LAYER marker only - the autobattler never
+    // reads it. rollShop (runEngine.js) puts every unit WITHOUT one in
+    // the ordinary rarity-band pool (so the whole roster that exists
+    // today is untouched) and every unit WITH one in a separate,
+    // rarity-band-exempt "specialist" sub-pool gated purely by Tier.
+    tierGate: opts.tierGate || null,
   }
 }
 
@@ -1798,6 +1806,56 @@ const BASE_UNITS = {
     // the same swing carries into the next, so the board thins as fast
     // as it multiplies instead of one body at a time.
     chainDamage: 4,
+  }),
+
+  // --- Market Tier specialist pool (feat/hearthwood-market-tiers) -------
+  // Gated by runState.marketTier (tierGate), NOT by the rarity band. All
+  // four are SIDEGRADES - a real role, modest numbers - because a Tier
+  // unlock buys OPTIONS not stats (PRD 40). Nothing here should out-
+  // perform an equivalent-cost base unit.
+  "grove-warden": unit("grove-warden", "Grove Warden", "grovekeeper", 2, "tank", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], {
+    className: "Guardian",
+    tierGate: 2,
+    // Woodland Market's "Tank → Guardian" specialist (PRD 6): a front-line
+    // that trickles a little Regen to whoever stands beside it every
+    // round. Reuses aura (#417) + applyAuraTick.
+    aura: { effect: { type: "applyBuff", id: "regen", amount: 1 } },
+  }),
+  "spark-diviner": unit("spark-diviner", "Spark Diviner", "spark", 2, "dps", [
+    { type: "attack", amount: 5 },
+  ], {
+    className: "Diviner",
+    tierGate: 2,
+    // "DPS → Assassin" flavour (PRD 6): a plain striker that leaves what
+    // it hits swinging softer. Weak on the target = less incoming damage,
+    // a support-ish DPS. Reuses the onDealDamage → applyBuff shape
+    // (duskbramble / witch-cutter).
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", amount: 1, target: "target" } }],
+  }),
+  "heartroot-elder": unit("heartroot-elder", "Heartroot Elder", "leaf", 3, "support", [
+    { type: "heal", amount: 3 },
+    { type: "attack", amount: 2 },
+  ], {
+    className: "Elder",
+    tierGate: 3,
+    // Grove Market's "status-focused / transformative" pick (PRD 7): a
+    // build-defining mender that only pays off on a COHERENT board -
+    // battle-start Regen to itself scaling with how many tribe synergies
+    // are actually live. Reuses synergyScaled (#436).
+    synergyScaled: { id: "regen", amount: 1 },
+  }),
+  "mycelian-host": unit("mycelian-host", "Mycelian Host", "husk", 3, "support", [
+    { type: "attack", amount: 3 },
+  ], {
+    className: "Host",
+    tierGate: 3,
+    // Grove Market's "build enabler" (PRD 9): opens the fight a body up.
+    // Reuses summon (Beastcaller's exact shape) - a one-shot battle-start
+    // Spirit Wolf into a free deploy slot.
+    summon: { defId: "spirit-wolf" },
   }),
 }
 
