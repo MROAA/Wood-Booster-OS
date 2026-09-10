@@ -78,17 +78,28 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // encounter - real story identity (title, its own intro/victory lines)
   // without touching the underlying enemy's already-tuned combat stats.
   // Resolved (along with the tier and this stop's beat/intro) via
-  // nodeNarrative below - see `narrative`.
+  // nodeNarrative - the same pure call the flavor line + difficulty
+  // badge read further down.
+  const narrative = nodeNarrative(node, runState.nodeIndex, RUN_PATH.length)
+  // Does this stop carry NEW story to read? A Trial's intro line, or a
+  // hand-authored node `beat` (NOT the description fallback nodeNarrative
+  // adds for every fight - that's always-there flavor, not a beat you
+  // pause for). Marc: the pre-battle story kept getting skipped by the
+  // auto-start before he could read it.
+  const hasStoryToRead = Boolean(narrative.isTrial || narrative.intro || node.beat)
   // Auto-start (see AUTO_START_DELAY_MS above). Keyed on the node
   // itself, not deployedCount/runState - re-arranging the squad
   // shouldn't reset the clock (the same fixed-delay shape
   // AutoBattleView.jsx's own round-advance timer already uses), and a
   // new node (the NEXT fight's formation screen) needs its own fresh
   // timer rather than inheriting whatever time was left on this one.
+  // A stop with story to read never arms the timer - it waits for the
+  // player to press Start Battle.
   useEffect(() => {
+    if (hasStoryToRead) return undefined
     const timer = setTimeout(onStartBattle, AUTO_START_DELAY_MS)
     return () => clearTimeout(timer)
-  }, [node, onStartBattle])
+  }, [node, onStartBattle, hasStoryToRead])
 
   const deployedCount = runState.deployed.filter((k) => k !== null).length
   // Tribe synergies (synergies.js) - counted from DEPLOYED units only,
@@ -121,11 +132,10 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // Same progressive-difficulty readout as SquadDraft.jsx's shop
   // header - this pre-battle screen is the other place a run's
   // progress is visible, and the fight about to start is exactly what
-  // that ramp is scaling. Resolved through nodeNarrative (runNarrative.js)
-  // now rather than a local ternary chain: one pure call yields the
-  // tier plus this stop's title/beat/intro, so the flavor line below
-  // and the difficulty badge can never disagree about which Act this is.
-  const narrative = nodeNarrative(node, runState.nodeIndex, RUN_PATH.length)
+  // that ramp is scaling. `narrative` (nodeNarrative, one pure call) is
+  // resolved once near the top - it yields the tier plus this stop's
+  // title/beat/intro, so the flavor line below and the difficulty badge
+  // can never disagree about which Act this is.
   const difficultyTier = narrative.tier
   // Act intro (Marc: "make a progressive story") - shown exactly once,
   // the first FormationScreen visit reached after the run crosses into
@@ -586,13 +596,19 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           Text kept as "Start Battle" (not renamed to something like
           "Skip Wait") deliberately - it's the exact string dozens of
           existing .scratch/*.mjs verification scripts locate this
-          screen/button by; the fight now starts on its own regardless
-          (AUTO_START_DELAY_MS above) so a player never NEEDS to click
-          it, same "no click required" outcome Marc asked for, just
-          without a disruptive rename for zero functional benefit. */}
+          screen/button by. On a routine fight the timer above starts
+          the fight on its own (a player never NEEDS to click); on a
+          stop with story to read (hasStoryToRead) the timer is held and
+          this button is the only way forward, so the narrative isn't
+          skipped before it's read (Marc). */}
       <button className="hw-end-turn" onClick={onStartBattle} style={{ marginTop: 16 }}>
         Start Battle
       </button>
+      {hasStoryToRead && (
+        <p style={{ marginTop: 8, fontSize: 12, color: "var(--hw-muted)", fontStyle: "italic" }}>
+          Take your time - the fight begins when you're ready.
+        </p>
+      )}
     </div>
   )
 }
