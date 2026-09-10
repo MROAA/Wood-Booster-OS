@@ -1808,6 +1808,45 @@ const BASE_UNITS = {
     chainDamage: 4,
   }),
 
+  // --- The Cult, player answers (feat/hearthwood-cult) --------------
+  // Three ways to beat a ritual leader (enemies.js ritual-warden,
+  // formations the-communion / the-long-chant): STALL the chant (a Stun
+  // on the Warden - applyCultTick freezes its charge that round), REACH
+  // it / clear the fodder, or OUT-SCALE the rite it's trying to win.
+  "chantbreaker": unit("chantbreaker", "Chantbreaker", "rune", 2, "dps", [
+    { type: "attack", amount: 4 },
+  ], {
+    className: "Silencer",
+    // Bishop diagonal (hexbreaker's shape) - applyPatternDamage fans out
+    // and can land on the row-1 Ritual Warden the same turn; the Stun
+    // trigger then freezes that round's ritual charge. `stun 1` decays
+    // each round, so it must keep landing - a MAINTAINED interrupt, not
+    // a permanent lock.
+    attackPattern: "bishop",
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "stun", target: "target", amount: 1 } }],
+  }),
+  "oathsworn": unit("oathsworn", "Oathsworn", "stone", 3, "dps", [
+    { type: "attack", amount: 4 },
+  ], {
+    className: "Breaker",
+    // Sunder on hit (witch-cutter's shape) - strips the ritual Strength
+    // back off whatever front piece it connects with each round, so when
+    // you can't reach the Warden you can still undo what it hands the
+    // pack.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
+  }),
+  "emberzeal": unit("emberzeal", "Emberzeal", "flame", 3, "dps", [
+    { type: "attack", amount: 3 },
+    { type: "block", amount: 2 },
+  ], {
+    className: "Zealot",
+    // Growth (units.js opt / autoBattleEngine.js battle-start) - +2
+    // Strength every round via Ascendant. The rite grants its survivors
+    // a slower buff; this climbs faster, so a long fight the Cult is
+    // built to win tips the other way instead.
+    growth: { amount: 2 },
+  }),
+
   // --- Market Tier specialist pool (feat/hearthwood-market-tiers) -------
   // Gated by runState.marketTier (tierGate), NOT by the rarity band. All
   // four are SIDEGRADES - a real role, modest numbers - because a Tier

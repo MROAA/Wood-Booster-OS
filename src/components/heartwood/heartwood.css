@@ -7802,3 +7802,16 @@ img.hw-intent-glyph {
   line-height: 1.5;
   color: var(--hw-muted);
 }
+
+/* --- Cult hint (formations.js the-communion / the-long-chant,
+   FormationScreen) — the Cult archetype's counterplay line (Enemy
+   Ecosystem PRD 11 / 39), under the "Enemy formation:" badge. Mirrors
+   .hw-coven-hint, a flame/ember tick. --- */
+.hw-cult-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-tribe-ember) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}

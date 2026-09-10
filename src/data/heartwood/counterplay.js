@@ -32,6 +32,7 @@ export const THREATS = [
   { id: "hunters", label: "Hunts your weak", icon: "fox", answer: "a taunt, a decoy, or a bodyguard" },
   { id: "coven", label: "A buffing enabler", icon: "rune", answer: "focus the caster - reach, an executioner, or a Sunder" },
   { id: "brood", label: "Splits when killed", icon: "wolf", answer: "AoE / chain, or Execute the small ones" },
+  { id: "cult", label: "A ritual pack", icon: "flame", answer: "burst the pack, reach the leader, or stun it to stall the rite" },
 ]
 
 export const THREAT_LABEL = Object.fromEntries(THREATS.map((t) => [t.id, t.label]))
@@ -77,6 +78,10 @@ function defThreats(def) {
   // (effects.js's broodSplit). A single-target grind doubles the body
   // count - AoE / chain clears the spawns, Execute drops the low-HP ones.
   if (def.broodSplit) out.push("brood")
+  // Cult (feat/hearthwood-cult): the Ritual Warden sacrifices its own
+  // fodder every few rounds to buff the rest - see autoBattleEngine.js's
+  // applyCultTick. Race the rite, reach the Warden, or stun it to stall.
+  if (def.cultRitual) out.push("cult")
   return out
 }
 
@@ -181,6 +186,25 @@ export function buildAnswersFor(runState) {
     relics.some((r) => r?.tauntHighestHp || r?.guardLowestHp)
   )
     covered.add("hunters")
+
+  // Cult (feat/hearthwood-cult): stall the rite (a Stun on the Warden, or
+  // the Silenced Bell relic), reach the Warden / clear the fodder (a
+  // pattern or chain attacker), out-scale it (`growth`), or just burst
+  // the pack before the rite lands (damage score >= 6).
+  if (
+    anyUnit(
+      (u) =>
+        u.applies("stun") ||
+        u.tags.has("stun") ||
+        (u.def.attackPattern && u.def.attackPattern !== "single") ||
+        u.def.chainDamage ||
+        u.def.growth ||
+        u.tags.has("scaling"),
+    ) ||
+    relics.some((r) => r?.stunHighestHp) ||
+    (evaluateBuild(runState).scores?.damage || 0) >= 6
+  )
+    covered.add("cult")
 
   return covered
 }

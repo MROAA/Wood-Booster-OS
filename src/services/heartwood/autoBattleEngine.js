@@ -689,6 +689,22 @@ export function startAutoBattle(
         })
       }
     }
+    // The Silenced Bell (runEngine.js's SHOP_INVESTMENTS - a Ledger buy
+    // that pushes "silenced-bell" onto runState.relics, feat/hearthwood-
+    // cult): Stun 1 on the HIGHEST-maxHp living enemy at battle start -
+    // the Ritual Warden in a Cult fight (so applyCultTick's first charge
+    // is stalled, delaying the rite a round), the tankiest body anywhere
+    // else (one turn lost). The mirror of markLowestEnemyHp.
+    if (relic?.stunHighestHp) {
+      const living = state.enemies.filter((e) => e.hp > 0)
+      if (living.length) {
+        const big = living.reduce((best, e) => (e.maxHp > best.maxHp ? e : best), living[0])
+        state = applyEffects(state, [{ type: "applyBuff", id: "stun", amount: 1 }], {
+          actorId: big.id,
+          targetId: big.id,
+        })
+      }
+    }
   }
 
   // Tribe synergies (synergies.js's UNIT_TRIBES/SYNERGY_TIERS) - counted
@@ -1301,6 +1317,81 @@ function applyCovenTick(state) {
   return next
 }
 
+// cultRitual (enemies.js's `cultRitual` on ritual-warden, feat/hearthwood-
+// cult - The Cult archetype): a Ritual Warden behind the front line
+// channels a rite. Every `every` rounds it CHANNELS COMPLETE, sacrifices
+// a living `cultFodder` ally (killed via loseHp -> the real death path,
+// #440's generic onDeath fires harmlessly), and folds their strength
+// into the rest - +buff Strength to every remaining living enemy, plus
+// a small self-`feed` heal. The inverse of The Brood: the enemy kills
+// its OWN to make fewer, scarier bodies. Bounded three ways: it only
+// fires while a fodder ally is alive (2 per formation -> 1-2 cycles,
+// then the fight DE-ESCALATES - nothing left to give); the fodder that
+// shields the Warden is the same thing it sacrifices (killing your way
+// in also starves the rite); and a Stun on the Warden stalls the charge
+// (`stun` is the only decaying control status, so it's a MAINTAINED
+// interrupt - Chantbreaker has to keep hitting the Warden). Runs
+// BETWEEN the player and enemy phases in resolveRoundInner: after the
+// player acts (so a stun / kill they just landed pre-empts this round's
+// charge - the enemy phase consumes `stun`, so it can't be read next
+// round) and before the enemies act. `ritualCharge` lives only on the
+// live battle piece - never serialised.
+function applyCultTick(state) {
+  let next = state
+  for (const e of next.enemies) {
+    if (e.hp <= 0) continue
+    const def = next.enemyDefs?.[e.defId] || ENEMIES[e.defId]
+    const ritual = def?.cultRitual
+    if (!ritual) continue
+    // A stunned chanter can't channel - the charge does not advance.
+    if ((e.powers?.stun || 0) > 0) {
+      next = { ...next, log: [...next.log, `${e.name}'s chant falters.`] }
+      continue
+    }
+    const charge = (e.ritualCharge || 0) + 1
+    if (charge < (ritual.every ?? 3)) {
+      const live = getUnit(next, e.id)
+      if (live) next = setUnit(next, e.id, { ...live, ritualCharge: charge })
+      continue
+    }
+    // The rite completes - find a living fodder ally to give it.
+    const fodder = next.enemies.find(
+      (o) => o.id !== e.id && o.hp > 0 && (next.enemyDefs?.[o.defId] || ENEMIES[o.defId])?.cultFodder,
+    )
+    const resetCharge = () => {
+      const live = getUnit(next, e.id)
+      if (live) next = setUnit(next, e.id, { ...live, ritualCharge: 0 })
+    }
+    if (!fodder) {
+      // The de-escalation: once the fodder is spent, the fight can't get worse.
+      next = { ...next, log: [...next.log, `${e.name}'s ritual sputters - nothing left to give.`] }
+      resetCharge()
+      continue
+    }
+    next = { ...next, log: [...next.log, `${e.name} gives ${fodder.name} to the ritual.`] }
+    next = applyEffects(next, [{ type: "loseHp", amount: fodder.hp + 999, target: "target" }], {
+      actorId: e.id,
+      targetId: fodder.id,
+    })
+    for (const other of next.enemies) {
+      if (other.hp <= 0) continue
+      next = applyEffects(next, [{ type: "applyBuff", id: ritual.buff.id, amount: ritual.buff.amount }], {
+        actorId: other.id,
+        targetId: other.id,
+      })
+    }
+    if (ritual.feed) {
+      const fed =
+        ritual.feed.id === "heal"
+          ? { type: "heal", amount: ritual.feed.amount }
+          : { type: "applyBuff", id: ritual.feed.id, amount: ritual.feed.amount }
+      next = applyEffects(next, [fed], { actorId: e.id, targetId: e.id })
+    }
+    resetCharge()
+  }
+  return next
+}
+
 // spite (units.js's `spite`, feat/hearthwood-rot): a ONE-SHOT. The first
 // round the whole player squad's total poison stacks reach 3+, each
 // living spite unit gains min(6, amount * 3) Strength, once (a
@@ -1500,6 +1591,15 @@ function resolveRoundInner(state) {
     (s) => s.enemies,
     "player",
   )
+  if (next.phase !== "player") return next
+
+  // The Cult ritual (applyCultTick) resolves BETWEEN the two phases: after
+  // the player has acted (so a stun / a kill the player just landed on
+  // the Warden pre-empts this round's charge - `stun` is consumed by the
+  // enemy phase below, so it has to be read here, not next round) and
+  // before the enemies act (so a completed rite's buffs land on the
+  // pieces before they swing).
+  next = applyCultTick(next)
   if (next.phase !== "player") return next
 
   next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0, evadedThisRound: false } : e)) }

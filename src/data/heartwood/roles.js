@@ -142,6 +142,19 @@ export const ROLE_OVERRIDES = {
     primary: "dps", secondary: "assassin", position: "back", tags: ["chain", "fang", "shadow"],
     strengths: ["A kill carries the same swing into the next body"], weaknesses: ["The bonus hit only fires on a killing blow"],
   },
+  // The Cult, player answers (feat/hearthwood-cult).
+  "chantbreaker": {
+    primary: "control", secondary: "dps", position: "back", tags: ["stun", "aoe", "gale", "spirit"],
+    strengths: ["Its diagonal reaches the Warden and stuns the round's ritual charge"], weaknesses: ["The Stun lapses fast - it has to keep landing"],
+  },
+  "oathsworn": {
+    primary: "debuffer", secondary: "dps", position: "back", tags: ["sunder", "stone", "fang"],
+    strengths: ["Undoes what the rite hands the pack, hit by hit"], weaknesses: ["Modest damage; can't reach the Warden itself"],
+  },
+  "emberzeal": {
+    primary: "dps", secondary: "tank", position: "front", tags: ["scaling", "ember", "thorn"],
+    strengths: ["Out-climbs the rite - a long fight tips its way"], weaknesses: ["Slow out of the gate; weak if the fight ends early"],
+  },
   // Market Tier specialist pool (feat/hearthwood-market-tiers) - sidegrades.
   "grove-warden": {
     primary: "tank", secondary: "support", position: "front", tags: ["aura", "regen", "grove", "warden"],

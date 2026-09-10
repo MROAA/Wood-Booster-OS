@@ -430,6 +430,17 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
 
+      {/* Cult hint (formations.js the-communion / the-long-chant): the
+          "The ritual feeds" synergy label = the Cult archetype (Enemy
+          Ecosystem PRD 11 / 39). The one behind the line kills its own
+          fodder every few rounds to buff the rest - race the rite,
+          reach the leader, or stun it to stall the chant. */}
+      {formation.synergy?.label === "The ritual feeds" && (
+        <p className="hw-cult-hint">
+          A cult — the one behind the line kills its own to fold their strength into the rest, every other round. Race the ritual: burst the pack or reach the leader before it lands, or stun the leader to stall the chant. Grinding the front just gives it more to sacrifice — and once its fodder is spent, the fight can't get worse.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the

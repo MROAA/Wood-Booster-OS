@@ -136,7 +136,7 @@ export const RUN_PATH = [
   { type: "event" },
   { type: "battle", enemyId: "needlefen" },
   { type: "shop" },
-  { type: "battle", formationId: "the-wearing-down" },
+  { type: "battle", formationId: "the-communion" }, // feat/hearthwood-cult (was: the-wearing-down)
   { type: "shop" },
   { type: "battle", formationId: "the-brood" },
   { type: "shop" },
@@ -194,7 +194,7 @@ export const RUN_PATH = [
     beat: "This deep, the things that stop you aren't guarding anything. They just don't remember how to do anything else.",
   },
   { type: "event" },
-  { type: "battle", formationId: "the-cursed-thicket" },
+  { type: "battle", formationId: "the-long-chant" }, // feat/hearthwood-cult (was: the-cursed-thicket)
   { type: "battle", formationId: "the-clutch" }, // feat/hearthwood-brood (was: the-unbroken-root)
   { type: "battle", formationId: "the-hatchery" }, // feat/hearthwood-brood (was: the-withering-pact)
   { type: "event" },
@@ -1307,6 +1307,15 @@ export const SHOP_INVESTMENTS = {
     cost: 300,
     desc: "Special markets - the Golden Market and its kin - turn up twice as often for the rest of the run.",
   },
+  // The Silenced Bell (feat/hearthwood-cult): the relic "silenced-bell"
+  // (relics.js `stunHighestHp`) stuns the largest enemy on the line at
+  // the start of every battle - the Ritual Warden in a Cult fight (so
+  // its first ritual charge is stalled), the tankiest body anywhere else.
+  "silenced-bell": {
+    name: "The Silenced Bell",
+    cost: 400,
+    desc: "The largest thing on the enemy line starts every battle stunned - one turn lost, one ritual charge missed.",
+  },
 }
 
 export function investmentOwned(runState, id) {
@@ -1317,6 +1326,7 @@ export function investmentOwned(runState, id) {
   if (id === "marked-coin") return (runState.relics || []).includes("marked-coin")
   if (id === "market-charter") return (runState.relics || []).includes("market-charter")
   if (id === "traders-compass") return (runState.relics || []).includes("traders-compass")
+  if (id === "silenced-bell") return (runState.relics || []).includes("silenced-bell")
   return false
 }
 
@@ -1336,7 +1346,9 @@ export function buyInvestment(runState, id) {
               ? { relics: [...(runState.relics || []), "marked-coin"] }
               : id === "market-charter"
                 ? { relics: [...(runState.relics || []), "market-charter"] }
-                : { relics: [...(runState.relics || []), "traders-compass"] }
+                : id === "traders-compass"
+                  ? { relics: [...(runState.relics || []), "traders-compass"] }
+                  : { relics: [...(runState.relics || []), "silenced-bell"] }
   return { ...runState, essence: runState.essence - inv.cost, ...patch }
 }
 

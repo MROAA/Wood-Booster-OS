@@ -176,6 +176,12 @@ export const COACH_TIPS = [
     anchor: ".hw-brood-hint",
   },
   {
+    id: "cult",
+    title: "Breaking a cult",
+    text: "The one behind the line doesn't fight much - every other round it kills one of its own and folds that strength into the rest (+Strength to every survivor, and it mends itself). Race it: burst the pack or reach the Warden before the rite lands. A pattern attacker (Chantbreaker's diagonal) reaches it and its Stun freezes that round's ritual charge; a Sunder (Oathsworn) strips the buff back off the pack; a growth unit (Emberzeal) out-climbs the rite outright. Once its fodder is spent the fight can only get easier.",
+    anchor: ".hw-cult-hint",
+  },
+  {
     id: "antidote",
     title: "Field Antidote",
     text: "A one-fight consumable: your whole squad starts the next battle with Regen, enough to out-drip an opening poison spike. Buy it before a fight you know is a rot pack. The cost climbs each Act.",

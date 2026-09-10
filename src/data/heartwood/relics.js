@@ -242,6 +242,24 @@ export const RELICS = {
     effects: [],
     ledgerOnly: true,
   },
+  "silenced-bell": {
+    id: "silenced-bell",
+    image: sunderingMarkImg,
+    name: "The Silenced Bell",
+    icon: "rune",
+    description: "A bell with its clapper bound in cloth. Wherever you fight, the biggest thing on the other side loses its first breath to the quiet.",
+    // The Silenced Bell (runEngine.js's SHOP_INVESTMENTS - a Ledger buy,
+    // NOT a relic-node pick, hence `ledgerOnly` and the relicPool()
+    // filter). A sibling to Rearguard Standard / The Marked Coin's
+    // special-case slot in autoBattleEngine.js, pointed at the enemy
+    // line's ANCHOR: the highest-maxHp living enemy starts every battle
+    // Stunned 1 - the Ritual Warden in a Cult fight (its first ritual
+    // charge is stalled by applyCultTick), the tankiest body anywhere
+    // else (one turn lost).
+    effects: [],
+    stunHighestHp: true,
+    ledgerOnly: true,
+  },
   "vampiric-bloom": {
     id: "vampiric-bloom",
     image: vampiricBloomImg,
@@ -937,7 +955,7 @@ for (const [id, relic] of Object.entries(RELICS)) {
 
 export function relicPool() {
   // `ledgerOnly` relics (rearguard-standard, marked-coin, market-charter,
-  // traders-compass) are bought from the Ledger (runEngine.js's
-  // SHOP_INVESTMENTS), never offered at a relic node.
+  // traders-compass, silenced-bell) are bought from the Ledger
+  // (runEngine.js's SHOP_INVESTMENTS), never offered at a relic node.
   return Object.values(RELICS).filter((r) => !r.ledgerOnly)
 }

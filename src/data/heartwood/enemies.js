@@ -777,6 +777,69 @@ export const ENEMIES = {
     ],
   },
 
+  // --- The Cult (Enemy Ecosystem PRD 11 / 39, feat/hearthwood-cult) ---
+  // The seventh archetype and the inverse of The Brood: a Ritual Warden
+  // behind the front line channels a rite (its `cultRitual`, ticked by
+  // autoBattleEngine.js's applyCultTick). Every 2nd round the rite
+  // completes: it SACRIFICES a living `cultFodder` ally and folds their
+  // strength into the rest (+2 Strength to every surviving enemy, +3
+  // self-heal). Race it (burst the pack before it lands), reach the
+  // Warden (a pattern attacker), or stun it to stall the chant - a
+  // single-target grind on the front just hands the rite more to give.
+  // Bounded: only fires while a fodder ally lives (2 per formation ->
+  // 1-2 cycles, then it DE-ESCALATES). In NON_BATTLE_ENEMY_IDS - only
+  // via the-communion / the-long-chant.
+  "ritual-warden": {
+    id: "ritual-warden",
+    act: 4,
+    name: "Ritual Warden",
+    maxHp: 52,
+    art: "moonGlyph",
+    // cultRitual: every 2nd round, kill a cultFodder ally, +buff Strength
+    // to every remaining living enemy, +feed self-heal. `every` / `buff`
+    // / HP are the fairness levers.
+    cultRitual: { every: 2, buff: { id: "strength", amount: 2 }, feed: { id: "heal", amount: 3 } },
+    description: "It doesn't fight so much as keep count. Every other breath, one of the others stops moving and the rest stand a little taller.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 3 },
+    ],
+  },
+  "sworn-cultist": {
+    id: "sworn-cultist",
+    act: 4,
+    name: "Sworn Cultist",
+    maxHp: 34,
+    art: "husk",
+    // cultFodder: the rite's food and the Warden's shield. Low HP, low
+    // threat - killing them yourself starves the ritual, but it means
+    // spreading damage instead of focusing the Warden.
+    cultFodder: true,
+    description: "It knelt for this a long time ago. It is only still standing so there is something to give.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 3 },
+      { type: "block", amount: 1 },
+    ],
+  },
+  "ritual-adept": {
+    id: "ritual-adept",
+    act: 6,
+    name: "Ritual Adept",
+    maxHp: 46,
+    art: "rootbindThicket",
+    // Neither cultRitual nor cultFodder - a real threat that OUTLASTS the
+    // rite and gets buffed by it, so the-long-chant is more than "leader
+    // + fodder": you race a fed adept, not just a lone Warden.
+    description: "Further along than the others. It has stopped needing the chant to keep going.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "attack", amount: 4 },
+    ],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1912,6 +1975,10 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   // The Brood (feat/hearthwood-brood): only via the-clutch / the-hatchery.
   "brood-mother",
   "brood-tender",
+  // The Cult (feat/hearthwood-cult): only via the-communion / the-long-chant.
+  "ritual-warden",
+  "sworn-cultist",
+  "ritual-adept",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible
