@@ -265,6 +265,9 @@ export const UNIT_TRIBES = {
   "chantbreaker": ["gale", "spirit"],
   "oathsworn": ["stone", "fang"],
   "emberzeal": ["ember", "thorn"],
+  // The Collectors, player answers (feat/hearthwood-collectors).
+  "wardknot": ["stone", "warden"],
+  "plainhewer": ["fang", "thorn"],
   // Market Tier specialist pool (feat/hearthwood-market-tiers).
   "grove-warden": ["grove", "warden"],
   "spark-diviner": ["root", "gale"],

@@ -155,6 +155,15 @@ export const ROLE_OVERRIDES = {
     primary: "dps", secondary: "tank", position: "front", tags: ["scaling", "ember", "thorn"],
     strengths: ["Out-climbs the rite - a long fight tips its way"], weaknesses: ["Slow out of the gate; weak if the fight ends early"],
   },
+  // The Collectors, player answers (feat/hearthwood-collectors).
+  "wardknot": {
+    primary: "tank", secondary: "dps", position: "front", tags: ["vengeful", "stone", "warden"],
+    strengths: ["Every buff a thief takes from it comes back doubled"], weaknesses: ["Modest damage; only pays off against a Collector"],
+  },
+  "plainhewer": {
+    primary: "dps", position: "back", tags: ["fang", "thorn"],
+    strengths: ["One flat heavy hit - nothing on it for a thief to take"], weaknesses: ["No scaling, no utility, no defence of its own"],
+  },
   // Market Tier specialist pool (feat/hearthwood-market-tiers) - sidegrades.
   "grove-warden": {
     primary: "tank", secondary: "support", position: "front", tags: ["aura", "regen", "grove", "warden"],

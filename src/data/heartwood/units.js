@@ -1847,6 +1847,31 @@ const BASE_UNITS = {
     growth: { amount: 2 },
   }),
 
+  // --- The Collectors, player answers (feat/hearthwood-collectors) ------
+  // Two ways to beat a buff-thief (enemies.js hoardling / tithe-warden,
+  // formations the-tithe / the-hoard): field a body it can't profit from,
+  // or one that makes the theft cost it.
+  "wardknot": unit("wardknot", "Wardknot", "stone", 2, "tank", [
+    { type: "block", amount: 4 },
+    { type: "attack", amount: 3 },
+  ], {
+    className: "Keeper",
+    // vengeful (effects.js's leech): a battle-start passive stashes
+    // `powers.vengeful` (a plain number, never ticked, not in any
+    // sunder/leech/cleanse list). Each time a Collector steals a stack
+    // from this unit, leech() gives it +3 Strength - net a GAIN, so
+    // taking from Wardknot loses the thief tempo.
+    passive: [{ type: "applyBuff", id: "vengeful", amount: 3 }],
+  }),
+  "plainhewer": unit("plainhewer", "Plainhewer", "fang", 3, "dps", [
+    { type: "attack", amount: 7 },
+  ], {
+    className: "Hewer",
+    // No passive, no buffs, no scaling - a flat body a Collector's leech()
+    // finds "nothing worth taking" on, and its raw single hit bursts the
+    // thief down before it can accumulate off the rest of the squad.
+  }),
+
   // --- Market Tier specialist pool (feat/hearthwood-market-tiers) -------
   // Gated by runState.marketTier (tierGate), NOT by the rarity band. All
   // four are SIDEGRADES - a real role, modest numbers - because a Tier

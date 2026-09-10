@@ -182,6 +182,12 @@ export const COACH_TIPS = [
     anchor: ".hw-cult-hint",
   },
   {
+    id: "collectors",
+    title: "Facing collectors",
+    text: "Every hit a Collector lands on a buffed unit takes a stack of that buff for itself - a stacked-up carry just feeds it. Three answers: burst them down before they accumulate (kill them fast, it's the whole point); a Sunder unit strips the stolen stacks straight back off them; or field a flat body with nothing to take - Plainhewer carries no buffs and hits hard, Wardknot turns every theft into a bigger Strength gain for itself.",
+    anchor: ".hw-collectors-hint",
+  },
+  {
     id: "antidote",
     title: "Field Antidote",
     text: "A one-fight consumable: your whole squad starts the next battle with Regen, enough to out-drip an opening poison spike. Buy it before a fight you know is a rot pack. The cost climbs each Act.",

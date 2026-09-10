@@ -162,7 +162,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "bramblespite" },
   { type: "event" },
-  { type: "battle", enemyId: "thornfen" },
+  { type: "battle", formationId: "the-tithe" }, // feat/hearthwood-collectors (was: thornfen)
   { type: "shop" },
   { type: "battle", enemyId: "hollowcurse" },
   { type: "shop" },
@@ -188,11 +188,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "miniboss", enemyId: "wyrmgall", trialId: "veilbound" },
   { type: "shop" },
-  {
-    type: "battle",
-    formationId: "the-hollow-court",
-    beat: "This deep, the things that stop you aren't guarding anything. They just don't remember how to do anything else.",
-  },
+  { type: "battle", formationId: "the-hoard" }, // feat/hearthwood-collectors (was: the-hollow-court, beat dropped)
   { type: "event" },
   { type: "battle", formationId: "the-long-chant" }, // feat/hearthwood-cult (was: the-cursed-thicket)
   { type: "battle", formationId: "the-clutch" }, // feat/hearthwood-brood (was: the-unbroken-root)
