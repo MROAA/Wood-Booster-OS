@@ -268,6 +268,10 @@ export const UNIT_TRIBES = {
   // The Collectors, player answers (feat/hearthwood-collectors).
   "wardknot": ["stone", "warden"],
   "plainhewer": ["fang", "thorn"],
+  // The Ancients, player answers (feat/hearthwood-ancients).
+  "stormcaller": ["gale", "spirit"],
+  "bulwark-bearer": ["stone", "warden"],
+  "stormbreaker": ["fang", "ember"],
   // Market Tier specialist pool (feat/hearthwood-market-tiers).
   "grove-warden": ["grove", "warden"],
   "spark-diviner": ["root", "gale"],

@@ -7229,6 +7229,18 @@ img.hw-intent-glyph {
   border-color: var(--hw-ember);
 }
 
+/* The Ancients (feat/hearthwood-ancients): a visible countdown on the
+   colossus winding up its charge - see EnemyPieceCard's chargeCounter. */
+.hw-charge-badge {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--hw-hp);
+  border-color: var(--hw-hp);
+}
+
 /* ---- Strategic Playstyle profile (playstyle.js -> PlaystyleProfile) --
    Six 0-100 axes for how the run's choices have added up. The full
    panel (RunEndOverlay) mirrors .hw-buildscore's bar metrics; the
@@ -7824,6 +7836,19 @@ img.hw-intent-glyph {
   margin: 0 0 10px;
   padding-left: 8px;
   border-left: 2px solid color-mix(in srgb, var(--hw-cosmic) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Ancients hint (formations.js the-ancient-grove / the-elder-hollow,
+   FormationScreen) — the Ancients archetype's counterplay line (Enemy
+   Ecosystem PRD 18), under the "Enemy formation:" badge. Mirrors
+   .hw-cult-hint, an HP-red tick. --- */
+.hw-ancients-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-hp) 60%, transparent);
   font-size: 11px;
   line-height: 1.5;
   color: var(--hw-muted);

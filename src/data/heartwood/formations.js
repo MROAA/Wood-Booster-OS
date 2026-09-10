@@ -490,6 +490,40 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+  // --- The Ancients (Enemy Ecosystem PRD 18, feat/hearthwood-ancients) ---
+  // A slow colossus winding up ONE telegraphed squad-wide hit on a visible
+  // countdown (its `charge` marker → autoBattleEngine.js's
+  // applyAncientCharge). The Oak sits front-centre with NO shield - it must
+  // be a legal target from turn 1 so burst is a real answer. The saplings
+  // just run down your clock. `synergy` is LABEL-ONLY (effects: []) - the
+  // identity is the Oak's `charge`, not a squad buff; the label drives the
+  // .hw-ancients-hint / coach / badge hooks. Both formations are 3 pieces.
+  // On elite RUN_PATH nodes (an Ancient IS an elite-tier fight): the nodes
+  // keep type: "elite", enemyId → formationId, so the swap is net-neutral.
+  "the-ancient-grove": {
+    id: "the-ancient-grove",
+    synergy: { label: "Something is winding up", effects: [] },
+    name: "The Ancient Grove",
+    description: "Two small things moving fast, and behind them one that has not moved yet, and is about to.",
+    pieces: [
+      { defId: "sapling-attendant", pos: { row: 0, col: 0 } },
+      { defId: "ancient-oak", pos: { row: 0, col: 1 } },
+      { defId: "sapling-attendant", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-elder-hollow": {
+    id: "the-elder-hollow",
+    synergy: { label: "Something is winding up", effects: [] },
+    name: "The Elder Hollow",
+    description: "The saplings keep you occupied. The Elder Oak keeps count, and it counts slowly, and it counts once.",
+    pieces: [
+      { defId: "sapling-attendant", pos: { row: 0, col: 0 } },
+      { defId: "elder-oak", pos: { row: 0, col: 1 } },
+      { defId: "sapling-attendant", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",

@@ -717,6 +717,20 @@ export function startAutoBattle(
         })
       }
     }
+    // The Weathered Standard (runEngine.js's SHOP_INVESTMENTS - a Ledger
+    // buy that pushes "weathered-standard" onto runState.relics, feat/
+    // hearthwood-ancients): every deployed unit starts each battle with
+    // Bulwark 1 - one incoming hit shrugged off. Generically useful, and
+    // the "you came braced" answer to The Ancients' squad-wide payoff.
+    if (relic?.bracedSquad) {
+      for (const u of state.playerUnits) {
+        if (u.hp <= 0) continue
+        state = applyEffects(state, [{ type: "applyBuff", id: "bulwark", amount: 1 }], {
+          actorId: u.id,
+          targetId: u.id,
+        })
+      }
+    }
   }
 
   // Tribe synergies (synergies.js's UNIT_TRIBES/SYNERGY_TIERS) - counted
@@ -1404,6 +1418,69 @@ function applyCultTick(state) {
   return next
 }
 
+// charge (enemies.js's `charge` on ancient-oak / elder-oak, feat/
+// hearthwood-ancients - The Ancients archetype): a slow colossus winding
+// up ONE telegraphed squad-wide hit on a visible countdown. Every prior
+// archetype escalates continuously; this one is a single big payoff
+// coming on a specific round, and there are FOUR clean answers -
+//   * kill it   - it's a legal target from turn 1 (front-centre, no
+//                 shield), so burst pre-empts the payoff;
+//   * stun it   - a stunned Ancient can't wind up, the count HOLDS;
+//   * stagger it - a round of damage >= charge.breakDamage knocks it off
+//                 rhythm and resets the count to full;
+//   * brace for it - squad-wide Block / Bulwark the round it lands.
+// The payoff is a FIXED one-shot ({ damage: N } - a number, not a
+// compounding ramp), so it's not the #433 escalation trap. Runs right
+// after applyCultTick (between the player and enemy phases) so a fast
+// answer the player just landed genuinely beats the count this round.
+// `chargeCounter` / `chargeHpMark` live only on the live battle piece -
+// never serialised. `chargeHpMark` is re-stamped to the current HP on
+// every branch, so it always measures "damage taken since last round".
+function applyAncientCharge(state) {
+  let next = state
+  for (const e of next.enemies) {
+    if (e.hp <= 0) continue
+    const def = next.enemyDefs?.[e.defId] || ENEMIES[e.defId]
+    const charge = def?.charge
+    if (!charge) continue
+    const counter = e.chargeCounter ?? charge.turns
+    const mark = e.chargeHpMark ?? e.maxHp
+    const stamp = (patch) => {
+      const live = getUnit(next, e.id)
+      if (live) next = setUnit(next, e.id, { ...live, chargeHpMark: live.hp, ...patch })
+    }
+    // Stagger: a heavy round of damage knocked it off its rhythm.
+    if (mark - e.hp >= charge.breakDamage) {
+      stamp({ chargeCounter: charge.turns })
+      next = { ...next, log: [...next.log, `${e.name} staggers - the ${charge.label} unravels.`] }
+      continue
+    }
+    // Hold: a stunned Ancient can't wind up - the count does not advance.
+    if ((e.powers?.stun || 0) > 0) {
+      stamp({})
+      next = { ...next, log: [...next.log, `${e.name}'s ${charge.label} falters.`] }
+      continue
+    }
+    // Tick.
+    const nextCounter = counter - 1
+    if (nextCounter > 0) {
+      stamp({ chargeCounter: nextCounter })
+      next = { ...next, log: [...next.log, `${e.name} draws breath - ${charge.label} in ${nextCounter}.`] }
+      continue
+    }
+    // Payoff: the winding-up hit lands on the whole squad (the AoE shape).
+    next = { ...next, log: [...next.log, `${e.name} unleashes ${charge.label}!`] }
+    const targetIds = next.playerUnits.filter((u) => u.hp > 0).map((u) => u.id)
+    for (const tid of targetIds) {
+      if (next.phase !== "player") break
+      next = applyEffects(next, charge.effect, { actorId: e.id, targetId: tid })
+    }
+    if (next.phase !== "player") return next
+    stamp({ chargeCounter: charge.turns })
+  }
+  return next
+}
+
 // spite (units.js's `spite`, feat/hearthwood-rot): a ONE-SHOT. The first
 // round the whole player squad's total poison stacks reach 3+, each
 // living spite unit gains min(6, amount * 3) Strength, once (a
@@ -1612,6 +1689,13 @@ function resolveRoundInner(state) {
   // before the enemies act (so a completed rite's buffs land on the
   // pieces before they swing).
   next = applyCultTick(next)
+  if (next.phase !== "player") return next
+
+  // The Ancients' charge (applyAncientCharge) resolves in the same slot as
+  // the Cult rite - between the two phases - so a kill / stun / stagger the
+  // player just landed pre-empts this round's payoff before the colossus
+  // gets to swing.
+  next = applyAncientCharge(next)
   if (next.phase !== "player") return next
 
   next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0, evadedThisRound: false } : e)) }

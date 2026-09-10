@@ -164,6 +164,19 @@ export const ROLE_OVERRIDES = {
     primary: "dps", position: "back", tags: ["fang", "thorn"],
     strengths: ["One flat heavy hit - nothing on it for a thief to take"], weaknesses: ["No scaling, no utility, no defence of its own"],
   },
+  // The Ancients, player answers (feat/hearthwood-ancients).
+  "stormcaller": {
+    primary: "control", secondary: "dps", position: "back", tags: ["stun", "aoe", "gale", "spirit"],
+    strengths: ["Its rook line reaches straight up to the Oak and holds its countdown with a Stun"], weaknesses: ["The Stun lapses fast - it has to keep landing"],
+  },
+  "bulwark-bearer": {
+    primary: "tank", secondary: "support", position: "front", tags: ["aura", "shield", "stone", "warden"],
+    strengths: ["Hands Bulwark to whoever stands beside it every round - the squad shrugs the payoff"], weaknesses: ["Light damage; the aura only reaches its neighbours"],
+  },
+  "stormbreaker": {
+    primary: "dps", position: "back", tags: ["fang", "ember"],
+    strengths: ["One heavy hit staggers the charge and bursts the colossus fast"], weaknesses: ["No defence, no utility, no scaling"],
+  },
   // Market Tier specialist pool (feat/hearthwood-market-tiers) - sidegrades.
   "grove-warden": {
     primary: "tank", secondary: "support", position: "front", tags: ["aura", "regen", "grove", "warden"],

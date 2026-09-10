@@ -260,6 +260,22 @@ export const RELICS = {
     stunHighestHp: true,
     ledgerOnly: true,
   },
+  "weathered-standard": {
+    id: "weathered-standard",
+    image: bulwarkStandardImg,
+    name: "The Weathered Standard",
+    icon: "shield",
+    description: "A banner that has taken the first hit of a hundred fights. Stand under it and the squad learns to expect the blow.",
+    // The Weathered Standard (runEngine.js's SHOP_INVESTMENTS - a Ledger
+    // buy, NOT a relic-node pick, hence `ledgerOnly` and the relicPool()
+    // filter). A sibling to Rearguard Standard's special-case slot in
+    // autoBattleEngine.js, but SQUAD-WIDE: every deployed unit starts each
+    // battle with Bulwark 1 (one incoming hit shrugged off). Generically
+    // useful, and the "you came braced" answer to The Ancients' charge.
+    effects: [],
+    bracedSquad: true,
+    ledgerOnly: true,
+  },
   "vampiric-bloom": {
     id: "vampiric-bloom",
     image: vampiricBloomImg,
