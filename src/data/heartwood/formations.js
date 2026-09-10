@@ -389,6 +389,38 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // --- The Brood (Enemy Ecosystem PRD, feat/hearthwood-brood) ---
+  // The identity is brood-mother's `broodSplit` (enemies.js), not a squad
+  // buff - `synergy` is LABEL-ONLY (effects: []), the #438 precedent, so
+  // the .hw-brood-hint / coach / badge hooks fire off
+  // resolveFormation(...).synergy.label. 3 pieces each (under the Swarm's
+  // >= 4 gate - the pre-fight read must be "Brood", not "A swarm"; the
+  // board BECOMES a swarm only once you start killing the mothers).
+  "the-clutch": {
+    id: "the-clutch",
+    synergy: { label: "The brood multiplies", effects: [] },
+    name: "The Clutch",
+    description: "Three of them, swollen and still. Break one open and see what spills out.",
+    pieces: [
+      { defId: "brood-mother", pos: { row: 0, col: 0 } },
+      { defId: "brood-mother", pos: { row: 0, col: 1 } },
+      { defId: "brood-mother", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-hatchery": {
+    id: "the-hatchery",
+    synergy: { label: "The brood multiplies", effects: [] },
+    name: "The Hatchery",
+    description: "Two that split, and behind them one that keeps the others whole. Choose which problem you make worse first.",
+    pieces: [
+      { defId: "brood-mother", pos: { row: 0, col: 0 } },
+      { defId: "brood-mother", pos: { row: 0, col: 2 } },
+      { defId: "brood-tender", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",

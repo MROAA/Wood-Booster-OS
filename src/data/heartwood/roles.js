@@ -133,6 +133,15 @@ export const ROLE_OVERRIDES = {
     primary: "debuffer", secondary: "dps", position: "back", tags: ["sunder", "root", "fang"],
     strengths: ["Strips the stacked enchant off the pack with every hit"], weaknesses: ["Light damage of its own"],
   },
+  // The Brood, player answers (feat/hearthwood-brood).
+  "bramble-sweep": {
+    primary: "dps", position: "back", tags: ["aoe", "thorn", "ember"],
+    strengths: ["One swing catches a splitter and the brood it spilled"], weaknesses: ["No single big hit to open a tough body"],
+  },
+  "culler": {
+    primary: "dps", secondary: "assassin", position: "back", tags: ["chain", "fang", "shadow"],
+    strengths: ["A kill carries the same swing into the next body"], weaknesses: ["The bonus hit only fires on a killing blow"],
+  },
   "the-fool": { primary: "healer", secondary: "support", tags: ["regen", "thorn"] },
   beastcaller: { primary: "summoner", position: "back", strengths: ["Opens the fight a body up"] },
   sapkeeper: { primary: "support", secondary: "healer", tags: ["aura", "regen", "grove"] },

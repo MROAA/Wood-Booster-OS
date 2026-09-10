@@ -725,6 +725,58 @@ export const ENEMIES = {
     ],
   },
 
+  // --- The Brood (Enemy Ecosystem PRD, feat/hearthwood-brood) ---
+  // The sixth archetype: an enemy that SPLITS into smaller copies of
+  // itself when it dies (brood-mother's `broodSplit`, read by
+  // autoBattleEngine.js's enemy passive loop -> an onDeath trigger ->
+  // effects.js's broodSplit()). A single-target grind just doubles the
+  // body count; the answer is AoE / chain (clear the spawns) or Execute
+  // (the ~15-HP hatchlings fold). The hatchlings are HP-reduced copies of
+  // brood-mother itself (defId unchanged, hp = maxHp * hpFactor), with a
+  // broodGen guard so they never re-split. In NON_BATTLE_ENEMY_IDS -
+  // only via the-clutch / the-hatchery.
+  "brood-mother": {
+    id: "brood-mother",
+    act: 2,
+    name: "Brood Mother",
+    maxHp: 34,
+    art: "husk",
+    // broodSplit: on death, tear into `count` copies at maxHp * hpFactor
+    // (~14 HP), each broodGen+1. maxGen 1 -> a hatchling dies clean, no
+    // cascade. Fairness-tuned (5 passes): spawns act the round they
+    // appear (no sit-out); the 2 swapped RUN_PATH nodes moved to Act 3
+    // aggression fights so a burst squad no longer loses its anti-burst
+    // matchups; HP 34 / [attack 5, block 2] so a LIVING mother's
+    // sustained pressure stays low (the block off-beat) - the doubled
+    // body count is the threat, not per-mother damage, which keeps the
+    // fragile Commander (fenrir) inside the gate.
+    broodSplit: { count: 2, hpFactor: 0.4, maxGen: 1 },
+    description: "Kill it and it doesn't stop - it just comes apart, and the pieces keep moving.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 2 },
+    ],
+  },
+  "brood-tender": {
+    id: "brood-tender",
+    act: 3,
+    name: "Brood Tender",
+    maxHp: 40,
+    art: "rootbindThicket",
+    // No broodSplit - a non-splitting body that mends the mothers, so the
+    // Act-3 fight is an order-of-operations puzzle (kill the tender first
+    // or it out-heals your chip; kill a mother and it splits). Its heal
+    // step reads as `sustain` on the #432 threat panel - a secondary tag.
+    description: "It moves between the others, pressing torn edges back together with its hands.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 4 },
+      { type: "attack", amount: 3 },
+      { type: "heal", amount: 4 },
+    ],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1857,6 +1909,9 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "coven-matron",
   "hex-acolyte",
   "bog-devotee",
+  // The Brood (feat/hearthwood-brood): only via the-clutch / the-hatchery.
+  "brood-mother",
+  "brood-tender",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible

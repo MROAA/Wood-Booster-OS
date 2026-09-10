@@ -307,6 +307,15 @@ function dealDamage(state, actorId, targetId, baseAmount) {
     nextState = runTriggers(nextState, actorId, "onDealDamage", { actorId, targetId })
   }
 
+  // onDeath (first used by The Brood's broodSplit, feat/hearthwood-brood):
+  // fires the instant a hit takes a unit from alive to dead - BEFORE the
+  // checkBattleEnd below, so a trigger that spawns fresh bodies (a
+  // death-splitter) is counted before the fight can be declared won.
+  // `revived` already caught a lethal hit at 1 HP above, so skip it.
+  if (nextDefender.hp <= 0 && defender.hp > 0 && !revived) {
+    nextState = runTriggers(nextState, targetId, "onDeath", { actorId: targetId, targetId })
+  }
+
   return checkBattleEnd(nextState)
 }
 
@@ -316,10 +325,17 @@ function loseHp(state, who, amount) {
   const unit = getUnit(state, who)
   if (!unit) return state
   const nextUnit = { ...unit, hp: Math.max(0, unit.hp - amount) }
-  return checkBattleEnd({
+  let next = {
     ...setUnit(state, who, nextUnit),
     log: [...state.log, `${nameOf(state, who)} lose ${amount} HP.`],
-  })
+  }
+  // onDeath (see dealDamage) - Poison/Burn tick through loseHp, so a
+  // death-splitter that dies to a DOT still bursts. Fired before
+  // checkBattleEnd for the same not-yet-won reason.
+  if (nextUnit.hp <= 0 && unit.hp > 0) {
+    next = runTriggers(next, who, "onDeath", { actorId: who, targetId: who })
+  }
+  return checkBattleEnd(next)
 }
 
 // Poison: a real damage-over-time status, first new status effect
@@ -629,6 +645,62 @@ function applyPatternDamage(state, effect, ctx) {
   return next
 }
 
+// The Brood (feat/hearthwood-brood): a dying enemy tears into `count`
+// smaller copies of itself. Registered as an onDeath trigger from the
+// def's `broodSplit` marker (autoBattleEngine.js's enemy passive loop),
+// so it fires inside dealDamage/loseHp BEFORE checkBattleEnd - the fresh
+// bodies keep the fight open. Bounded three ways: HP-reduced COPIES of
+// the parent (reads the already-difficulty-scaled state.enemyDefs entry,
+// no new def to author/scale); a broodGen/maxGen guard so a hatchling
+// never re-splits (belt: a mid-battle spawn never runs the battle-start
+// passive loop that would register its own onDeath trigger); and spawns
+// only land on FREE enemy cells (rows 0-1, 6 total), so the board floods
+// to ~6 living bodies then stops. The spawns act the same round they
+// appear (during the enemy phase, since the split lands in the player
+// phase) - "kill a mother fast and immediately eat two more" is the
+// archetype's whole point, and the fairness pass showed a sit-out draft
+// just made the fights a free difficulty DROP for a burst squad.
+function freeEnemyCells(state, origin, count) {
+  const held = new Set((state.enemies || []).filter((e) => e.hp > 0).map((e) => `${e.pos.row}-${e.pos.col}`))
+  const cells = []
+  for (let row = 0; row <= 1; row++) {
+    for (let col = 0; col <= 2; col++) {
+      if (!held.has(`${row}-${col}`)) cells.push({ row, col })
+    }
+  }
+  const dist = (c) => Math.max(Math.abs(c.row - origin.row), Math.abs(c.col - origin.col))
+  cells.sort((a, b) => dist(a) - dist(b) || a.row - b.row || a.col - b.col)
+  return cells.slice(0, Math.max(0, count))
+}
+
+function broodSplit(state, victimId, effect) {
+  const victim = getUnit(state, victimId)
+  if (!victim || victim.hp > 0) return state
+  if ((victim.broodGen || 0) >= (effect.maxGen ?? 1)) return state
+  const def = state.enemyDefs?.[victim.defId] || {}
+  const hp = Math.max(1, Math.round((def.maxHp || victim.maxHp) * (effect.hpFactor ?? 0.45)))
+  const cells = freeEnemyCells(state, victim.pos, effect.count ?? 2)
+  let next = state
+  cells.forEach((pos, i) => {
+    const spawn = {
+      block: 0,
+      powers: {},
+      triggers: [],
+      id: `${victimId}-b${i}`,
+      defId: victim.defId,
+      name: def.name || victim.name,
+      hp,
+      maxHp: hp,
+      pos,
+      moveIndex: 0,
+      intent: (def.movePattern || [{ type: "attack", amount: 1 }])[0],
+      broodGen: (victim.broodGen || 0) + 1,
+    }
+    next = { ...next, enemies: [...next.enemies, spawn], log: [...next.log, `${spawn.name} tears free of the husk.`] }
+  })
+  return next
+}
+
 function applyEffect(state, effect, ctx) {
   const who = resolveWho(ctx, effect.target)
 
@@ -652,6 +724,8 @@ function applyEffect(state, effect, ctx) {
       return sunder(state, who)
     case "cleanse":
       return cleanse(state, who)
+    case "broodSplit":
+      return broodSplit(state, who, effect)
     case "addTrigger":
       return addTrigger(state, who, effect.trigger, effect.effect)
     case "addCard":

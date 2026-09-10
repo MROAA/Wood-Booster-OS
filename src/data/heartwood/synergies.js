@@ -258,6 +258,9 @@ export const UNIT_TRIBES = {
   "hexbreaker": ["thorn", "gale"],
   "oracle-eye": ["fang", "shadow"],
   "witch-cutter": ["root", "fang"],
+  // The Brood, player answers (feat/hearthwood-brood).
+  "bramble-sweep": ["thorn", "ember"],
+  "culler": ["fang", "shadow"],
 }
 
 // A Tier 2 fusion (units.js's makeTier2) keeps its base unit's tribes -

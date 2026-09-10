@@ -419,6 +419,17 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
 
+      {/* Brood hint (formations.js the-clutch / the-hatchery): the "The
+          brood multiplies" synergy label = the Brood archetype (Enemy
+          Ecosystem PRD). Each of these splits into two smaller copies
+          when it dies - a single-target grind just doubles the body
+          count. */}
+      {formation.synergy?.label === "The brood multiplies" && (
+        <p className="hw-brood-hint">
+          A brood — each of these splits into two smaller copies when it dies. A single-target grind just doubles the body count; an AoE or pattern attacker catches a mother and the spawns around her in one swing, and a Chain attacker carries a kill straight into the next body. A slow squad has to chew through roughly double these bodies' HP.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the

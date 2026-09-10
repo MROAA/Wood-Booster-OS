@@ -195,8 +195,8 @@ export const RUN_PATH = [
   },
   { type: "event" },
   { type: "battle", formationId: "the-cursed-thicket" },
-  { type: "battle", formationId: "the-unbroken-root" },
-  { type: "battle", formationId: "the-withering-pact" },
+  { type: "battle", formationId: "the-clutch" }, // feat/hearthwood-brood (was: the-unbroken-root)
+  { type: "battle", formationId: "the-hatchery" }, // feat/hearthwood-brood (was: the-withering-pact)
   { type: "event" },
   { type: "boss", enemyId: "spacemonkey", trialId: "hollow-king" },
 ]

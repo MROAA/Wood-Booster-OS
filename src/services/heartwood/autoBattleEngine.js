@@ -490,6 +490,20 @@ export function startAutoBattle(
     if (def.passive?.length) {
       state = applyEffects(state, def.passive, { actorId: e.id, targetId: e.id })
     }
+    // The Brood (feat/hearthwood-brood): register the death-split trigger
+    // from the def's `broodSplit` marker so the numbers (count / hpFactor
+    // / maxGen) live in ONE place. effects.js's broodSplit() spawns
+    // HP-reduced copies onto free enemy cells when this piece dies. A
+    // mid-battle spawn never reaches this loop, so a hatchling never gets
+    // its own onDeath trigger - one of two guards against re-splitting
+    // (the other is broodGen >= maxGen).
+    if (def.broodSplit) {
+      state = applyEffects(
+        state,
+        [{ type: "addTrigger", trigger: "onDeath", effect: { type: "broodSplit", ...def.broodSplit } }],
+        { actorId: e.id, targetId: e.id },
+      )
+    }
   }
 
   // Enemy formation synergy (formations.js's optional `synergy`): a
