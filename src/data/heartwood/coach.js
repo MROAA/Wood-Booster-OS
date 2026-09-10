@@ -158,6 +158,12 @@ export const COACH_TIPS = [
     anchor: ".hw-coven-hint",
   },
   {
+    id: "brood",
+    title: "Facing a brood",
+    text: "Each of these tears into two smaller copies of itself when it dies - kill them one at a time and the body count only grows. Hit the pack with AoE or a pattern attacker (Bramble Sweep sweeps a whole row) so one swing catches a mother and the spawns around her. Or bring a Chain attacker (Culler) - a killing blow carries into the next body, so the board thins as fast as it multiplies. Raw single-target damage has to clear roughly double the mothers' HP, so a slow squad drowns.",
+    anchor: ".hw-brood-hint",
+  },
+  {
     id: "antidote",
     title: "Field Antidote",
     text: "A one-fight consumable: your whole squad starts the next battle with Regen, enough to out-drip an opening poison spike. Buy it before a fight you know is a rot pack. The cost climbs each Act.",

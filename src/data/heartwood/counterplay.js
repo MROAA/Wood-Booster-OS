@@ -31,6 +31,7 @@ export const THREATS = [
   { id: "backline", label: "A back-line threat", icon: "gale", answer: "reach (an assassin / pattern attacker)" },
   { id: "hunters", label: "Hunts your weak", icon: "fox", answer: "a taunt, a decoy, or a bodyguard" },
   { id: "coven", label: "A buffing enabler", icon: "rune", answer: "focus the caster - reach, an executioner, or a Sunder" },
+  { id: "brood", label: "Splits when killed", icon: "wolf", answer: "AoE / chain, or Execute the small ones" },
 ]
 
 export const THREAT_LABEL = Object.fromEntries(THREATS.map((t) => [t.id, t.label]))
@@ -72,6 +73,10 @@ function defThreats(def) {
   // applyCovenTick. Kill it first (reach / an executioner / a Sunder) or
   // the pack snowballs.
   if (def.covenAura) out.push("coven")
+  // Brood (feat/hearthwood-brood): dies into smaller copies of itself
+  // (effects.js's broodSplit). A single-target grind doubles the body
+  // count - AoE / chain clears the spawns, Execute drops the low-HP ones.
+  if (def.broodSplit) out.push("brood")
   return out
 }
 
@@ -154,6 +159,20 @@ export function buildAnswersFor(runState) {
     )
   )
     covered.add("coven")
+  // Brood (feat/hearthwood-brood): AoE / chain / a pattern attacker
+  // clears a mother AND its spawns in one swing; Execute drops the
+  // ~15-HP hatchlings on contact.
+  if (
+    anyUnit(
+      (u) =>
+        (u.def.attackPattern && u.def.attackPattern !== "single") ||
+        u.tags.has("aoe") ||
+        u.def.chainDamage ||
+        u.tags.has("execute") ||
+        u.applies("execute"),
+    )
+  )
+    covered.add("brood")
   // Hunters (feat/hearthwood-hunters): a taunt / decoy pulls the pack, a
   // bodyguard (`guard`) steps in front, and the Bulwark Standard /
   // Rearguard relics both hand a defensive unit the enemy's attention.

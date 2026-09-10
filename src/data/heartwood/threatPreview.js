@@ -39,6 +39,7 @@ const MECH = [
   [(d) => arr(d.movePattern).some((m) => m.type === "heal") || arr(d.passive).some((p) => p.type === "applyBuff" && (p.id === "regen" || p.id === "revive")), () => "Heals itself"],
   [(d) => d.hunter, () => "Hunts your weakest"],
   [(d) => d.covenAura, () => "Empowers the pack"],
+  [(d) => d.broodSplit, () => "Splits when killed"],
   [(d) => d.attackPattern && d.attackPattern !== "single", () => "Hits every square"],
   [(d) => Array.isArray(d.phases) && d.phases.length > 0, () => "Shifts phase when hurt"],
   [(d) => d.moveSelect === "weightedRandom", () => "Unpredictable moves"],
@@ -59,7 +60,10 @@ const ctrlId = (d) => arr(d.movePattern).find((m) => m.type === "debuff" && CONT
 // ROSTER-level threat in the ranking below (frac forced to 1 when any
 // piece has covenAura), so 1.3 + 1.0 = 2.3 clears backline's 0.85 + 1.0
 // and "A buffing enabler" reads as the primary, not "A back-line threat".
-const SEVERITY = { control: 1.4, coven: 1.3, hunters: 1.25, armor: 1.2, poison: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
+// brood 1.2 (feat/hearthwood-brood): a self-multiplying fight is a real
+// "what is this" (~ armour / poison). Also roster-level (frac forced to
+// 1 when any piece has broodSplit) - one splitter makes it a brood.
+const SEVERITY = { control: 1.4, coven: 1.3, hunters: 1.25, armor: 1.2, poison: 1.2, brood: 1.2, swarm: 1.15, sustain: 1.1, backline: 0.85 }
 
 // PRD "Progressiivinen haasteen nousu ja skaalaus" 9 / 41-43: a read of
 // the fight RELATIVE to the player's build. `ratio` = playerPower.js's
@@ -108,12 +112,12 @@ export function evaluateThreat(previewEnemies, runState, node, playerPower = nul
         const d = ENEMIES[e.defId] || UNITS[e.defId]
         return exhibits(d, id, living.length)
       }).length / living.length
-      // A coven is a ROSTER-level identity, like a swarm: one caster
-      // makes the whole pack a coven, so it shouldn't be discounted for
-      // the two front bodies that only carry the buff. Otherwise the
-      // matron's 1-in-3 frac lets "A back-line threat" (every piece
-      // "exhibits" it) edge out "A buffing enabler".
-      if (id === "coven" && frac > 0) frac = 1
+      // A coven / a brood is a ROSTER-level identity, like a swarm: one
+      // caster makes the whole pack a coven, one splitter makes it a
+      // brood, so neither should be discounted for the plain bodies
+      // beside it. Otherwise a 1-in-3 frac lets "A back-line threat"
+      // (every piece "exhibits" it) edge the real read out.
+      if ((id === "coven" || id === "brood") && frac > 0) frac = 1
       return { id, score: (SEVERITY[id] || 1) + frac }
     })
     .sort((a, b) => b.score - a.score)
@@ -180,6 +184,8 @@ function exhibits(d, id, livingCount) {
       return !!d.hunter
     case "coven":
       return !!d.covenAura
+    case "brood":
+      return !!d.broodSplit
     case "control":
       return steps.some((m) => m.type === "debuff" && CONTROL_IDS.includes(m.id))
     case "poison":

@@ -1773,6 +1773,32 @@ const BASE_UNITS = {
     // grind doesn't let the enchant run away.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
   }),
+
+  // --- The Brood, player answers (feat/hearthwood-brood) ------------
+  // Two ways to beat a death-splitter (enemies.js brood-mother, formations
+  // the-clutch / the-hatchery): AoE clears a mother AND its spawns in one
+  // swing; Execute drops the ~15-HP hatchlings the moment they appear.
+  "bramble-sweep": unit("bramble-sweep", "Bramble Sweep", "flame", 3, "dps", [
+    { type: "attack", amount: 5 },
+  ], {
+    className: "Sweeper",
+    // Rook line (rooks-charge's shape) - applyPatternDamage fans across
+    // the row + column, so one swing catches the mother and the
+    // hatchlings that spilled out around her, instead of chewing them
+    // one at a time while the count doubles.
+    attackPattern: "rook",
+  }),
+  "culler": unit("culler", "Culler", "judgement", 2, "dps", [
+    { type: "attack", amount: 5 },
+  ], {
+    className: "Culler",
+    // Chain (autoBattleEngine.js's actSide) - when its own attack is the
+    // killing blow, it lands a bonus hit on a different living enemy.
+    // Against a brood that's exactly the counter: kill one hatchling and
+    // the same swing carries into the next, so the board thins as fast
+    // as it multiplies instead of one body at a time.
+    chainDamage: 4,
+  }),
 }
 
 // Fusion (TFT/Guildrun-standard, one level only - bounded, not an

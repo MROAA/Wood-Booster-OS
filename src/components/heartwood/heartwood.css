@@ -7691,3 +7691,15 @@ img.hw-intent-glyph {
   line-height: 1.5;
   color: var(--hw-muted);
 }
+
+/* --- Brood hint (formations.js the-clutch / the-hatchery, FormationScreen)
+   — the Brood archetype's counterplay line (Enemy Ecosystem PRD), under
+   the "Enemy formation:" badge. Mirrors .hw-swarm-hint, hp tick. --- */
+.hw-brood-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
