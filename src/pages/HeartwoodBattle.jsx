@@ -667,6 +667,7 @@ export default function HeartwoodBattle() {
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The coven's blessing") ids.push("coven")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The brood multiplies") ids.push("brood")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The ritual feeds") ids.push("cult")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "They take what's yours") ids.push("collectors")
     }
     if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")

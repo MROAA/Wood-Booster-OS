@@ -33,6 +33,7 @@ export const THREATS = [
   { id: "coven", label: "A buffing enabler", icon: "rune", answer: "focus the caster - reach, an executioner, or a Sunder" },
   { id: "brood", label: "Splits when killed", icon: "wolf", answer: "AoE / chain, or Execute the small ones" },
   { id: "cult", label: "A ritual pack", icon: "flame", answer: "burst the pack, reach the leader, or stun it to stall the rite" },
+  { id: "collectors", label: "Takes your buffs", icon: "spark", answer: "burst it fast, a Sunder to take it back, or flat bodies with nothing to steal" },
 ]
 
 export const THREAT_LABEL = Object.fromEntries(THREATS.map((t) => [t.id, t.label]))
@@ -82,6 +83,10 @@ function defThreats(def) {
   // fodder every few rounds to buff the rest - see autoBattleEngine.js's
   // applyCultTick. Race the rite, reach the Warden, or stun it to stall.
   if (def.cultRitual) out.push("cult")
+  // Collectors (feat/hearthwood-collectors): every hit steals a stack of
+  // one of your buffs for itself - see effects.js's leech(). Burst it,
+  // Sunder it back, or field flat bodies with nothing to take.
+  if (def.leech) out.push("collectors")
   return out
 }
 
@@ -205,6 +210,15 @@ export function buildAnswersFor(runState) {
     (evaluateBuild(runState).scores?.damage || 0) >= 6
   )
     covered.add("cult")
+
+  // Collectors (feat/hearthwood-collectors): burst it before it
+  // accumulates (damage score >= 6), Sunder back what it stole, or field
+  // a unit built for the theft (`vengeful` - it answers each steal).
+  if (
+    (evaluateBuild(runState).scores?.damage || 0) >= 6 ||
+    anyUnit((u) => u.applies("sunder") || u.tags.has("sunder") || u.def.vengeful || u.tags.has("vengeful"))
+  )
+    covered.add("collectors")
 
   return covered
 }

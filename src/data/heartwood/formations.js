@@ -457,6 +457,39 @@ export const FORMATIONS = {
     ],
     playerStart: { row: 2, col: 1 },
   },
+
+  // --- The Collectors (Enemy Ecosystem PRD 13, feat/hearthwood-collectors) ---
+  // Thieves that steal your buffs mid-fight: every hit a Collector lands
+  // on a buffed player unit moves one stack of that buff to the Collector
+  // (its `leech` marker → an onDealDamage trigger → effects.js's leech()).
+  // No shielding - Collectors don't hide, they come for your stuff.
+  // `synergy` is LABEL-ONLY (effects: []) - the identity is the pieces'
+  // `leech`, not a squad buff; the label drives the .hw-collectors-hint /
+  // coach / badge hooks. 3 pieces (under the Swarm's >= 4 gate).
+  "the-tithe": {
+    id: "the-tithe",
+    synergy: { label: "They take what's yours", effects: [] },
+    name: "The Tithe",
+    description: "Two quick hands and one patient one. They will leave with more than they came with.",
+    pieces: [
+      { defId: "hoardling", pos: { row: 0, col: 0 } },
+      { defId: "tithe-warden", pos: { row: 0, col: 1 } },
+      { defId: "hoardling", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-hoard": {
+    id: "the-hoard",
+    synergy: { label: "They take what's yours", effects: [] },
+    name: "The Hoard",
+    description: "This deep, they don't rush. By now you have stacked up something worth the wait.",
+    pieces: [
+      { defId: "hoardling", pos: { row: 0, col: 0 } },
+      { defId: "tithe-warden", pos: { row: 0, col: 1 } },
+      { defId: "tithe-warden", pos: { row: 0, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
   "bonewardens-watch": {
     id: "bonewardens-watch",
     name: "Bonewarden's Watch",

@@ -840,6 +840,41 @@ export const ENEMIES = {
     ],
   },
 
+  // --- The Collectors (Enemy Ecosystem PRD 13, feat/hearthwood-collectors) ---
+  // The eighth archetype: thieves that STEAL your buffs mid-fight. Every
+  // hit a Collector lands on a buffed player unit moves one stack of that
+  // buff (Strength first, then Bulwark/Ward/Regen/Evade) to the Collector
+  // itself (its `leech` marker → an onDealDamage trigger → effects.js's
+  // leech()). A stacked-up carry just arms them. Burst them before they
+  // accumulate, bring a Sunder to take it back, or field flat bodies with
+  // nothing worth taking. In NON_BATTLE_ENEMY_IDS - only via the-tithe /
+  // the-hoard.
+  "hoardling": {
+    id: "hoardling",
+    act: 4,
+    name: "Hoardling",
+    maxHp: 32,
+    art: "shadow",
+    leech: true,
+    description: "It isn't here for the fight. It's here for whatever you've been carefully stacking up.",
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 4 }],
+  },
+  "tithe-warden": {
+    id: "tithe-warden",
+    act: 5,
+    name: "Tithe-Warden",
+    maxHp: 44,
+    art: "stone",
+    leech: true,
+    description: "It collects what is owed. It has decided, on your behalf, what is owed.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 3 },
+    ],
+  },
+
   "ironmaw": {
     id: "ironmaw",
     act: 2,
@@ -1979,6 +2014,9 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "ritual-warden",
   "sworn-cultist",
   "ritual-adept",
+  // The Collectors (feat/hearthwood-collectors): only via the-tithe / the-hoard.
+  "hoardling",
+  "tithe-warden",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible

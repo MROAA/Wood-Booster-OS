@@ -561,6 +561,42 @@ function sunder(state, who) {
   }
 }
 
+// Leech (feat/hearthwood-collectors - The Collectors archetype): Sunder
+// that TRANSFERS instead of destroying. When a Collector (thief) lands a
+// hit on a buffed player unit (victim), one stack of the first leechable
+// buff moves from victim -> thief - your carry's stacked Strength becomes
+// the thief's damage. Fired as an onDealDamage trigger registered from
+// the def's `leech` marker (autoBattleEngine.js's enemy passive loop).
+// 1 stack per hit, only on a hit that landed (onDealDamage fires on
+// overflow > 0), no-op with a log line if the victim has nothing.
+// Strength first (the theft is about GAINING power); defensive after.
+const LEECHABLE_IDS = ["strength", "bulwark", "ward", "regen", "evade"]
+
+function leech(state, thiefId, victimId) {
+  const victim = getUnit(state, victimId)
+  const thief = getUnit(state, thiefId)
+  if (!victim || !thief || victim.hp <= 0 || thief.hp <= 0) return state
+  const id = LEECHABLE_IDS.find((k) => (victim.powers[k] || 0) > 0)
+  if (!id) {
+    return { ...state, log: [...state.log, `${nameOf(state, thiefId)} finds nothing worth taking.`] }
+  }
+  const label = id.charAt(0).toUpperCase() + id.slice(1)
+  let next = setUnit(state, victimId, { ...victim, powers: { ...victim.powers, [id]: victim.powers[id] - 1 } })
+  const t = getUnit(next, thiefId)
+  next = setUnit(next, thiefId, { ...t, powers: { ...t.powers, [id]: (t.powers[id] || 0) + 1 } })
+  next = { ...next, log: [...next.log, `${nameOf(next, thiefId)} takes a stack of ${label} from ${nameOf(next, victimId)}.`] }
+  // vengeful (units.js's Wardknot): a battle-start passive stashes
+  // `powers.vengeful` (a plain number, never ticked, not in any
+  // sunder/leech/cleanse list). The victim answers each theft with that
+  // much Strength - net a gain, so a Collector loses by taking from it.
+  const v = getUnit(next, victimId)?.powers?.vengeful || 0
+  if (v > 0) {
+    next = applyBuff(next, victimId, "strength", v)
+    next = { ...next, log: [...next.log, `${nameOf(next, victimId)} bristles at the theft.`] }
+  }
+  return next
+}
+
 // Cleanse: Sunder's mirror, strips this unit's OWN first negative
 // status instead of an enemy's positive one - the roster's first
 // self-cleaning tool against Poison/Weak/Vulnerable/Stun, all of which
@@ -722,6 +758,8 @@ function applyEffect(state, effect, ctx) {
       return applyBuff(state, who, effect.id, effect.amount)
     case "sunder":
       return sunder(state, who)
+    case "leech":
+      return leech(state, ctx.actorId, ctx.targetId)
     case "cleanse":
       return cleanse(state, who)
     case "broodSplit":

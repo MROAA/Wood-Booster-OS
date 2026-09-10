@@ -7815,3 +7815,16 @@ img.hw-intent-glyph {
   line-height: 1.5;
   color: var(--hw-muted);
 }
+
+/* --- Collectors hint (formations.js the-tithe / the-hoard,
+   FormationScreen) — the Collectors archetype's counterplay line (Enemy
+   Ecosystem PRD 13), under the "Enemy formation:" badge. Mirrors
+   .hw-cult-hint, a cosmic tick. --- */
+.hw-collectors-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-cosmic) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}

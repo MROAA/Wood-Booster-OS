@@ -441,6 +441,17 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
 
+      {/* Collectors hint (formations.js the-tithe / the-hoard): the "They
+          take what's yours" synergy label = the Collectors archetype
+          (Enemy Ecosystem PRD 13). Every hit they land on a buffed unit
+          steals a stack of that buff for themselves — burst them, Sunder
+          it back, or field flat bodies with nothing to take. */}
+      {formation.synergy?.label === "They take what's yours" && (
+        <p className="hw-collectors-hint">
+          Collectors — every hit they land on a buffed unit takes a stack of that buff for themselves, so a stacked-up carry just arms them. Burst them down before they accumulate, bring a Sunder to strip it back, or field flat bodies with nothing worth taking.
+        </p>
+      )}
+
       {/* Enemy threat preview (threatPreview.js) - "here is the problem":
           a danger rating, the dominant threat, the mechanics to expect.
           Sits directly above the counterplay checkrow ("do you have the

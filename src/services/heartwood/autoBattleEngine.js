@@ -504,6 +504,18 @@ export function startAutoBattle(
         { actorId: e.id, targetId: e.id },
       )
     }
+    // The Collectors (feat/hearthwood-collectors): register the buff-theft
+    // trigger from the def's `leech` marker. effects.js's leech() moves one
+    // stack of the first leechable buff (Strength / Bulwark / Ward / Regen
+    // / Evade) from the player unit it hits to this Collector - 1 stack per
+    // landed hit, no-op if the victim has nothing. No numbers to carry.
+    if (def.leech) {
+      state = applyEffects(
+        state,
+        [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "leech" } }],
+        { actorId: e.id, targetId: e.id },
+      )
+    }
   }
 
   // Enemy formation synergy (formations.js's optional `synergy`): a
