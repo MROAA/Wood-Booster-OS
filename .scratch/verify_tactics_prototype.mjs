@@ -1,16 +1,16 @@
 import { chromium } from "playwright"
 import { mkdir } from "node:fs/promises"
 
-// Hearthwood Frontier - Phase 2 of the turn-based pivot
-// (feat/hearthwood-tactics-phase2): Action Points + one real ability per
-// unit, layered onto Phase 1's isolated grid-combat prototype. Still no
-// runEngine.js/autoBattleEngine.js/save-state touch. There is no headless
-// engine call to substitute for verification - this IS the interactive
-// surface, so the script drives the actual rendered UI exactly the way
-// Marc would click through it.
+// Hearthwood Frontier - Phase 2 remainder of the turn-based pivot
+// (feat/hearthwood-tactics-intents): enemy intent telegraphs, layered onto
+// Phase 1's isolated grid-combat prototype and Phase 2's AP/ability economy.
+// Still no runEngine.js/autoBattleEngine.js/save-state touch. There is no
+// headless engine call to substitute for verification - this IS the
+// interactive surface, so the script drives the actual rendered UI exactly
+// the way Marc would click through it.
 
-const PORT = process.env.PORT || 5383
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-phase2/.scratch/shots"
+const PORT = process.env.PORT || 5384
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intents/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -364,10 +364,152 @@ await page.waitForSelector(".hwt-board")
   if (!(burstDone && unleashOk && apAfterBurst === "○○")) out.errors.push("check13 Focused Shot did not fire correctly")
 }
 
+// ---------------------------------------------------------------
+// Enemy intent telegraphs (feat/hearthwood-tactics-intents)
+// ---------------------------------------------------------------
+
+// 14. Turn 1 - the starting 6-tile gap is wider than any enemy's range,
+//     so every living enemy telegraphs "move", nobody telegraphs "attack",
+//     and no player cell is threatened -------------------------------
+{
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
+  await page.waitForTimeout(200)
+  const moveBadges = await page.locator('.hwt-intent-badge[data-intent="move"]').count()
+  const attackBadges = await page.locator('.hwt-intent-badge[data-intent="attack"]').count()
+  const threatenedCells = await page.locator('.hwt-cell[data-threatened="true"]').count()
+  out.intentTurn1 = { moveBadges, attackBadges, threatenedCells }
+  if (!(moveBadges === 3 && attackBadges === 0 && threatenedCells === 0)) {
+    out.errors.push("check14 turn 1 intents were not all 'move' with no threats")
+  }
+}
+
+// 15. The telegraph flips to "attack" once an enemy is in range, and it's
+//     HONEST - ending the turn strikes exactly the unit it predicted -----
+{
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
+  let sawAttackBadge = false
+  let threatenedName = null
+  for (let i = 0; i < 10 && !sawAttackBadge; i++) {
+    await page.locator(".hwt-end-turn").click().catch(() => {})
+    await page.waitForTimeout(500)
+    const phase = await page.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase !== "player") break
+    const attackBadge = page.locator('.hwt-intent-badge[data-intent="attack"]')
+    if ((await attackBadge.count()) > 0) {
+      sawAttackBadge = true
+      threatenedName = await page
+        .locator('.hwt-cell[data-threatened="true"]')
+        .first()
+        .locator(".hwt-token-name")
+        .innerText()
+        .catch(() => null)
+    }
+  }
+  let honestOk = false
+  if (sawAttackBadge && threatenedName) {
+    await page.locator(".hwt-end-turn").click().catch(() => {})
+    await page.waitForTimeout(700)
+    const logText = await page.locator(".hwt-log").innerText()
+    const escaped = threatenedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    honestOk = new RegExp(`strikes ${escaped} for \\d+`).test(logText)
+  }
+  out.intentHonesty = { sawAttackBadge, threatenedName, honestOk }
+  if (!(sawAttackBadge && honestOk)) out.errors.push("check15 telegraphed attack did not match the real strike")
+}
+
+// 16. Moving the threatened ally out of an enemy's reach flips its
+//     telegraph from an attack back to a plain advance - a deterministic
+//     distance proof via the exact same pure fn the UI reads. (A live
+//     in-game retreat isn't a reliable test here: a slow unit fleeing an
+//     equally-mobile enemy can legitimately still get caught - that's
+//     correct chase behavior, not a bug - so this pins the underlying
+//     distance logic directly instead of depending on relative speeds.) --
+{
+  const page16 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page16.on("pageerror", (e) => errs.push(String(e)))
+  await page16.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page16.waitForSelector(".hwt-board")
+  const retreat = await page16.evaluate(async () => {
+    const { previewEnemyIntents } = await import("/src/services/heartwood/tacticsEngine.js")
+    const unitsAt = (playerCol) => [
+      {
+        id: "player-1", side: "player", defId: "the-fool", name: "Target", art: "sword", image: null,
+        pos: { row: 2, col: playerCol }, hp: 30, maxHp: 30, move: 3, range: 1, attack: 4, ap: 2, apMax: 2, block: 0, ability: null,
+      },
+      {
+        id: "enemy-1", side: "enemy", defId: "ironmaw", name: "Ironmaw", art: "sword", image: null,
+        pos: { row: 2, col: 0 }, hp: 20, maxHp: 20, move: 2, range: 1, attack: 5, ap: 2, apMax: 2, block: 0, ability: null,
+      },
+    ]
+    const grid = { rows: 5, cols: 7 }
+    // col 3: within the enemy's move(2)+range(1) reach this turn.
+    const near = previewEnemyIntents({ grid, phase: "player", turn: 1, log: [], units: unitsAt(3) })
+    // col 6: retreated well past that reach.
+    const far = previewEnemyIntents({ grid, phase: "player", turn: 1, log: [], units: unitsAt(6) })
+    return { near: near[0]?.intent, far: far[0]?.intent }
+  })
+  await page16.close()
+  const nearThreatens = retreat.near?.kind === "attack" || retreat.near?.kind === "move-attack"
+  const farClears = retreat.far?.kind === "move" || retreat.far?.kind === "hold"
+  out.intentRetreat = retreat
+  if (!(nearThreatens && farClears)) out.errors.push("check16 moving the threatened ally did not clear its telegraph")
+}
+
+// 17. Sequential accuracy - a later enemy's telegraph already accounts for
+//     an earlier enemy's (hypothetical) telegraphed kill, not just an
+//     independent read of the untouched board -----------------------
+{
+  // A fresh page/context (not the one reused for checks 1-16) - this check
+  // needs nothing from prior UI state, and isolates it from any
+  // accumulated browser state a long run of navigations might leave behind.
+  const page17 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page17.on("pageerror", (e) => errs.push(String(e)))
+  await page17.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page17.waitForSelector(".hwt-board")
+  const seq = await page17.evaluate(async () => {
+    const { previewEnemyIntents } = await import("/src/services/heartwood/tacticsEngine.js")
+    // A synthetic state: one fragile player unit already in range of TWO
+    // enemies. Enemy-1's hit (attack 5) kills the 3-HP target outright;
+    // a non-sequential preview would show enemy-2 also targeting it.
+    const state = {
+      grid: { rows: 5, cols: 7 },
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        {
+          id: "player-1", side: "player", defId: "bulwark-of-ages", name: "Fragile", art: "sword", image: null,
+          pos: { row: 2, col: 3 }, hp: 3, maxHp: 50, move: 2, range: 1, attack: 4, ap: 2, apMax: 2, block: 0, ability: null,
+        },
+        {
+          id: "enemy-1", side: "enemy", defId: "ironmaw", name: "Ironmaw", art: "sword", image: null,
+          pos: { row: 2, col: 2 }, hp: 20, maxHp: 20, move: 2, range: 1, attack: 5, ap: 2, apMax: 2, block: 0, ability: null,
+        },
+        {
+          id: "enemy-2", side: "enemy", defId: "hoardling", name: "Hoardling", art: "sword", image: null,
+          pos: { row: 2, col: 4 }, hp: 20, maxHp: 20, move: 3, range: 1, attack: 4, ap: 2, apMax: 2, block: 0, ability: null,
+        },
+      ],
+    }
+    return previewEnemyIntents(state)
+  })
+  await page17.close()
+  const first = seq.find((i) => i.enemyId === "enemy-1")?.intent
+  const second = seq.find((i) => i.enemyId === "enemy-2")?.intent
+  const firstKillsIt = first?.kind === "attack" && first.targetId === "player-1"
+  const secondSawTheDeath = !(second?.kind === "attack" && second.targetId === "player-1")
+  out.sequentialAccuracy = { first, second, firstKillsIt, secondSawTheDeath }
+  if (!(firstKillsIt && secondSawTheDeath)) {
+    out.errors.push("check17 the second enemy's telegraph did not account for the first enemy's telegraphed kill")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (Phase 2) PASS" : "\n❌ verify_tactics_prototype (Phase 2) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (intent telegraphs) PASS" : "\n❌ verify_tactics_prototype (intent telegraphs) FAIL")
 process.exit(pass ? 0 : 1)

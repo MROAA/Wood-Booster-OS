@@ -106,6 +106,17 @@
   cursor: pointer;
 }
 
+/* "This ally is about to be hit" - an ember-dashed inset ring, its own
+   color family (ember, not moss) so it never reads as a move/heal cue. */
+.hwt-cell[data-threatened="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 2px dashed var(--hw-ember);
+  border-radius: 5px;
+  pointer-events: none;
+}
+
 .hwt-token {
   position: absolute;
   inset: 3px;
@@ -164,6 +175,26 @@
   width: 8px;
   height: 8px;
   color: var(--hw-text);
+}
+
+/* The enemy intent telegraph - what this enemy plans to do this coming
+   enemy phase, visible during the player's own turn. */
+.hwt-intent-badge {
+  display: flex;
+  align-items: center;
+  font-size: 9px;
+  line-height: 1;
+}
+.hwt-intent-badge[data-intent="attack"] {
+  color: var(--hw-hp);
+}
+.hwt-intent-badge[data-intent="move"] {
+  color: var(--hw-muted);
+}
+.hwt-intent-icon {
+  width: 9px;
+  height: 9px;
+  color: var(--hw-hp);
 }
 
 .hwt-token-glyph {

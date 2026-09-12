@@ -18,12 +18,17 @@ import {
   castAbility,
   endPlayerTurn,
   withLowEnemyHp,
+  previewEnemyIntents,
 } from "../services/heartwood/tacticsEngine"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
 function apPips(unit) {
   return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
+}
+
+function getUnitName(battle, id) {
+  return battle.units.find((u) => u.id === id)?.name || "?"
 }
 
 // QA-only hook, never a real feature: `?debugLowHp=1` seeds every enemy at
@@ -62,6 +67,22 @@ export default function HeartwoodTactics() {
         : [],
     [battle, selected, abilityMode],
   )
+  // What every living enemy currently plans to do this coming enemy phase -
+  // recomputed fresh from the live board each render, so it's always exactly
+  // what will happen if the player ends the turn right now, never a stale
+  // guess. See tacticsEngine.js's previewEnemyIntents for the accuracy proof.
+  const intents = useMemo(
+    () => (battle.phase === "player" ? previewEnemyIntents(battle) : []),
+    [battle],
+  )
+  const intentByEnemyId = useMemo(() => new Map(intents.map((i) => [i.enemyId, i.intent])), [intents])
+  const threatenedIds = useMemo(() => {
+    const ids = new Set()
+    for (const { intent } of intents) {
+      if (intent.kind === "attack" || intent.kind === "move-attack") ids.add(intent.targetId)
+    }
+    return ids
+  }, [intents])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
@@ -135,6 +156,8 @@ export default function HeartwoodTactics() {
       const reach = selected && isReachable(row, col)
       const target = selected && targetHere(row, col)
       const healTarget = selected && healableHere(row, col)
+      const threatened = unit && unit.side === "player" && threatenedIds.has(unit.id)
+      const intent = unit && unit.side === "enemy" ? intentByEnemyId.get(unit.id) : null
       cells.push(
         <div
           key={`${row}-${col}`}
@@ -142,6 +165,7 @@ export default function HeartwoodTactics() {
           data-reachable={!!reach}
           data-targetable={!!target}
           data-healable={!!healTarget}
+          data-threatened={!!threatened}
           onClick={() => handleCellClick(row, col)}
         >
           {unit && (
@@ -163,6 +187,16 @@ export default function HeartwoodTactics() {
                   <span className="hwt-block-badge" title={`${unit.block} Block`}>
                     <CardGlyph name="shield" className="hwt-block-icon" />
                     {unit.block}
+                  </span>
+                )}
+                {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
+                  <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
+                    <CardGlyph name="sword" className="hwt-intent-icon" />
+                  </span>
+                )}
+                {intent && intent.kind === "move" && (
+                  <span className="hwt-intent-badge" data-intent="move" title="Advancing">
+                    ➤
                   </span>
                 )}
               </div>
