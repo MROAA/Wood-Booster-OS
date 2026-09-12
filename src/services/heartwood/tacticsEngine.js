@@ -96,7 +96,7 @@ export const ENEMY_FORMATIONS = {
     description: "The roster this Frontier opened with - a wall, a claw, and a hoard.",
     enemyDefIds: ["ironmaw", "sapling-attendant", "hoardling"],
     rows: [1, 2, 3],
-    swarmBonus: false,
+    battleStartBonus: 0,
     fortressBlock: 0,
   },
   swarm: {
@@ -105,7 +105,7 @@ export const ENEMY_FORMATIONS = {
     description: "Not one thing to fight. A dozen small ones, and every one of them is still a mouth.",
     enemyDefIds: ["sporelet", "mire-gnat", "sporelet", "mire-gnat"],
     rows: [0, 1, 2, 3],
-    swarmBonus: true,
+    battleStartBonus: 1,
     fortressBlock: 0,
   },
   fortress: {
@@ -114,8 +114,17 @@ export const ENEMY_FORMATIONS = {
     description: "Two wardens shoulder to shoulder, and a mender behind them stitching every crack shut before you can widen it.",
     enemyDefIds: ["oakshell-warden", "oakshell-warden", "mossmender"],
     rows: [1, 2, 3],
-    swarmBonus: false,
+    battleStartBonus: 0,
     fortressBlock: 3,
+  },
+  hunters: {
+    id: "hunters",
+    name: "The Pack",
+    description: "Three of them, low and fast, already circling the one of you that looks tired.",
+    enemyDefIds: ["fen-stalker", "pack-runner", "fen-stalker"],
+    rows: [1, 2, 3],
+    battleStartBonus: 2,
+    fortressBlock: 0,
   },
 }
 
@@ -186,16 +195,18 @@ export function createTacticsBattle(formationId = "default") {
       deriveTacticsUnit(defId, "enemy", { row: formation.rows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
-  // Swarm's real synergy: a FLAT, one-time +1 Strength to every piece at
-  // battle start - not multiplied by headcount, matching the shipped
-  // mechanic precisely (the aggregate effect scales with body count, the
-  // per-unit grant does not).
-  const withSwarmBonus = formation.swarmBonus
-    ? units.map((u) => (u.side === "enemy" ? { ...u, attack: u.attack + 1 } : u))
+  // A formation's real synergy bonus: a FLAT, one-time Strength grant to
+  // every enemy piece at battle start - not multiplied by headcount,
+  // matching each shipped mechanic precisely (the aggregate effect scales
+  // with body count, the per-unit grant does not). Swarm's is +1, Hunters'
+  // is +2 (same shape, a bigger number since the pack hits harder).
+  const bonus = formation.battleStartBonus || 0
+  const withBonus = bonus
+    ? units.map((u) => (u.side === "enemy" ? { ...u, attack: u.attack + bonus } : u))
     : units
   return {
     grid: GRID,
-    units: withSwarmBonus,
+    units: withBonus,
     phase: "player",
     turn: 1,
     log: [`${formation.name}. The Frontier opens. Your turn.`],
