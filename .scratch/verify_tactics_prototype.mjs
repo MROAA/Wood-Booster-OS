@@ -1,15 +1,16 @@
 import { chromium } from "playwright"
 import { mkdir } from "node:fs/promises"
 
-// Hearthwood Frontier - Phase 1 of the turn-based pivot
-// (feat/hearthwood-tactics-prototype). A fully isolated, playable grid-
-// combat prototype: no runEngine.js/autoBattleEngine.js/save-state touch.
-// There is no headless engine call to substitute for verification - this
-// IS the interactive surface, so the script drives the actual rendered UI
-// exactly the way Marc would click through it.
+// Hearthwood Frontier - Phase 2 of the turn-based pivot
+// (feat/hearthwood-tactics-phase2): Action Points + one real ability per
+// unit, layered onto Phase 1's isolated grid-combat prototype. Still no
+// runEngine.js/autoBattleEngine.js/save-state touch. There is no headless
+// engine call to substitute for verification - this IS the interactive
+// surface, so the script drives the actual rendered UI exactly the way
+// Marc would click through it.
 
-const PORT = process.env.PORT || 5382
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics/.scratch/shots"
+const PORT = process.env.PORT || 5383
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-phase2/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -19,6 +20,13 @@ page.on("pageerror", (e) => errs.push(String(e)))
 page.on("console", (m) => m.type() === "error" && errs.push(m.text()))
 
 const out = { errors: [] }
+
+// ---------------------------------------------------------------
+// Phase 1 regression suite (unmodified logic - only port/path changed).
+// The old moved/attacked booleans are gone, but every unit still gets
+// "one Move + one Attack" per turn for free at apMax 2, so this suite's
+// assumptions hold unchanged.
+// ---------------------------------------------------------------
 
 // 1. Board renders the real 3v3 roster --------------------------
 await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
@@ -60,11 +68,9 @@ await page.waitForSelector(".hwt-board")
 
 // 4. Attack a target in range drops HP + logs it -----------------
 {
-  // fresh page: pick Ironmaw and Hoardling, walk Bulwark of Ages next to one
   await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
   await page.waitForSelector(".hwt-board")
   const hpBefore = await page.locator(".hwt-token", { hasText: "Ironmaw" }).locator(".hwt-hp-fill").evaluate((el) => el.style.width)
-  // drive several turns of "select bulwark, move toward/attack, end turn" until a hit lands
   let attacked = false
   for (let i = 0; i < 6 && !attacked; i++) {
     const bulwark = page.locator(".hwt-token", { hasText: "Bulwark of Ages" })
@@ -180,10 +186,188 @@ await page.waitForSelector(".hwt-board")
   if (!(wonOk && resetOk)) out.errors.push("check7 debugLowHp win path / Play Again reset")
 }
 
+// ---------------------------------------------------------------
+// Phase 2 - Action Points + one real ability per unit
+// ---------------------------------------------------------------
+
+// 8. AP gates a 3rd action ----------------------------------------
+{
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
+  const bulwark = page.locator(".hwt-token", { hasText: "Bulwark of Ages" })
+  await bulwark.click()
+  await page.waitForTimeout(150)
+  const apStart = await bulwark.locator(".hwt-ap-pips").innerText()
+  await page.locator(".hwt-ability-btn").click() // Bulwark Aura, cost 1
+  await page.waitForTimeout(150)
+  const apAfterAbility = await bulwark.locator(".hwt-ap-pips").innerText()
+  const reach1 = page.locator('.hwt-cell[data-reachable="true"]')
+  await reach1.first().click() // Move, cost 1 -> ap now 0
+  await page.waitForTimeout(200)
+  const apAfterMove = await bulwark.locator(".hwt-ap-pips").innerText()
+  const reachableAtZeroAp = await page.locator('.hwt-cell[data-reachable="true"]').count()
+  const abilityDisabledAtZeroAp = await page.locator(".hwt-ability-btn").isDisabled()
+  const actedFlag = await bulwark.getAttribute("data-acted")
+  out.apGating = { apStart, apAfterAbility, apAfterMove, reachableAtZeroAp, abilityDisabledAtZeroAp, actedFlag }
+  if (!(apStart === "●●" && apAfterAbility === "●○" && apAfterMove === "○○" && reachableAtZeroAp === 0 && abilityDisabledAtZeroAp && actedFlag === "true")) {
+    out.errors.push("check8 AP did not gate the 3rd action")
+  }
+}
+
+// 9. Bulwark Aura grants Block to self + adjacent, not the distant unit --
+{
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
+  await page.locator(".hwt-token", { hasText: "Bulwark of Ages" }).click()
+  await page.waitForTimeout(150)
+  await page.locator(".hwt-ability-btn").click()
+  await page.waitForTimeout(200)
+  const bulwarkBlock = await page.locator(".hwt-token", { hasText: "Bulwark of Ages" }).locator(".hwt-block-badge").innerText().catch(() => "")
+  const mosskitBlock = await page.locator(".hwt-token", { hasText: "Mosskit" }).locator(".hwt-block-badge").innerText().catch(() => "")
+  const hexbreakerHasBlock = (await page.locator(".hwt-token", { hasText: "Hexbreaker" }).locator(".hwt-block-badge").count()) > 0
+  const logText = await page.locator(".hwt-log").innerText()
+  const raisedLine = /raises Bulwark Aura/.test(logText)
+  out.bulwarkAura = { bulwarkBlock, mosskitBlock, hexbreakerHasBlock, raisedLine }
+  if (!(bulwarkBlock.includes("2") && mosskitBlock.includes("2") && !hexbreakerHasBlock && raisedLine)) {
+    out.errors.push("check9 Bulwark Aura did not grant Block correctly (self + adjacent only)")
+  }
+}
+
+// 10. Block actually absorbs an incoming hit ----------------------
+{
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
+  let foundAbsorb = false
+  for (let i = 0; i < 12 && !foundAbsorb; i++) {
+    const bulwark = page.locator(".hwt-token", { hasText: "Bulwark of Ages" })
+    if ((await bulwark.count()) === 0) break
+    await bulwark.click({ force: true }).catch(() => {})
+    await page.waitForTimeout(100)
+    const abilityBtn = page.locator(".hwt-ability-btn")
+    if ((await abilityBtn.count()) > 0 && !(await abilityBtn.isDisabled())) {
+      await abilityBtn.click()
+      await page.waitForTimeout(100)
+    }
+    await page.locator(".hwt-end-turn").click().catch(() => {})
+    await page.waitForTimeout(500)
+    const logText = await page.locator(".hwt-log").innerText()
+    if (/\(absorbed \d+\)/.test(logText)) foundAbsorb = true
+    const phase = await page.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase === "lost" || phase === "won") break
+  }
+  out.blockAbsorb = { foundAbsorb }
+  if (!foundAbsorb) out.errors.push("check10 block absorption never observed")
+}
+
+// 11. Block resets exactly when play returns to that side's own turn ---
+{
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
+  const bulwark = page.locator(".hwt-token", { hasText: "Bulwark of Ages" })
+  await bulwark.click()
+  await page.waitForTimeout(150)
+  await page.locator(".hwt-ability-btn").click()
+  await page.waitForTimeout(150)
+  const blockAfterCast = await bulwark.locator(".hwt-block-badge").count()
+  // Turn 1's gap (6 tiles) is wider than any enemy's move+range, so no
+  // enemy can reach Bulwark this round - the block is untouched, and its
+  // disappearance next turn is purely the reset, not a consumed hit.
+  await page.locator(".hwt-end-turn").click()
+  await page.waitForTimeout(700)
+  const turnLabel = await page.locator(".hwt-turn-label").innerText()
+  const blockAfterReset = await page.locator(".hwt-token", { hasText: "Bulwark of Ages" }).locator(".hwt-block-badge").count()
+  out.blockReset = { blockAfterCast, turnLabel, blockAfterReset }
+  if (!(blockAfterCast === 1 && /Player Turn 2/.test(turnLabel) && blockAfterReset === 0)) {
+    out.errors.push("check11 block did not reset at the next player turn")
+  }
+}
+
+// 12. Regrowth heals a damaged unit, capped at max HP --------------
+{
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
+  let mosskitHpBefore = "100%"
+  for (let i = 0; i < 12; i++) {
+    await page.locator(".hwt-end-turn").click().catch(() => {})
+    await page.waitForTimeout(400)
+    const width = await page.locator(".hwt-token", { hasText: "Mosskit" }).locator(".hwt-hp-fill").evaluate((el) => el.style.width)
+    const phase = await page.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (width !== "100%") {
+      mosskitHpBefore = width
+      break
+    }
+    if (phase === "lost" || phase === "won") break
+  }
+  let mended = false
+  let hpAfter = mosskitHpBefore
+  if (mosskitHpBefore !== "100%") {
+    const mosskit = page.locator(".hwt-token", { hasText: "Mosskit" })
+    await mosskit.click({ force: true }).catch(() => {})
+    await page.waitForTimeout(150)
+    const abilityBtn = page.locator(".hwt-ability-btn")
+    if ((await abilityBtn.count()) > 0 && !(await abilityBtn.isDisabled())) {
+      await abilityBtn.click()
+      await page.waitForTimeout(150)
+      const selfCell = page.locator('.hwt-cell[data-healable="true"]').filter({ has: page.locator(".hwt-token", { hasText: "Mosskit" }) })
+      await selfCell.click()
+      await page.waitForTimeout(200)
+      const logText = await page.locator(".hwt-log").innerText()
+      mended = /mends Mosskit for \d+/.test(logText)
+      hpAfter = await mosskit.locator(".hwt-hp-fill").evaluate((el) => el.style.width)
+    }
+  }
+  out.regrowth = { mosskitHpBefore, mended, hpAfter }
+  if (!(mosskitHpBefore !== "100%" && mended)) out.errors.push("check12 Regrowth heal did not apply")
+}
+
+// 13. Focused Shot deals attack*multiplier and spends the whole turn ---
+{
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
+  let burstDone = false
+  let burstLine = ""
+  let apAfterBurst = null
+  for (let i = 0; i < 12 && !burstDone; i++) {
+    const hex = page.locator(".hwt-token", { hasText: "Hexbreaker" })
+    if ((await hex.count()) === 0) break
+    await hex.click({ force: true }).catch(() => {})
+    await page.waitForTimeout(100)
+    const apText = await hex.locator(".hwt-ap-pips").innerText().catch(() => "")
+    const targetable = page.locator('.hwt-cell[data-targetable="true"]')
+    const hasTarget = (await targetable.count()) > 0
+    if (apText === "●●" && hasTarget) {
+      const lb = await page.locator(".hwt-log p").count()
+      await page.locator(".hwt-ability-btn").click()
+      await page.waitForTimeout(100)
+      await page.locator('.hwt-cell[data-targetable="true"]').first().click()
+      await page.waitForTimeout(200)
+      const la = await page.locator(".hwt-log p").count()
+      burstDone = la > lb
+      burstLine = await page.locator(".hwt-log p").first().innerText().catch(() => "")
+      apAfterBurst = await hex.locator(".hwt-ap-pips").innerText().catch(() => "")
+      break
+    }
+    if (!hasTarget) {
+      const reach = page.locator('.hwt-cell[data-reachable="true"]')
+      if ((await reach.count()) > 0) {
+        await reach.first().click()
+        await page.waitForTimeout(150)
+      }
+    }
+    const phase = await page.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase !== "player") break
+    await page.locator(".hwt-end-turn").click().catch(() => {})
+    await page.waitForTimeout(500)
+  }
+  const unleashOk = /unleashes Focused Shot .* for \d+/.test(burstLine)
+  out.focusedShot = { burstDone, burstLine, apAfterBurst }
+  if (!(burstDone && unleashOk && apAfterBurst === "○○")) out.errors.push("check13 Focused Shot did not fire correctly")
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype PASS" : "\n❌ verify_tactics_prototype FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (Phase 2) PASS" : "\n❌ verify_tactics_prototype (Phase 2) FAIL")
 process.exit(pass ? 0 : 1)

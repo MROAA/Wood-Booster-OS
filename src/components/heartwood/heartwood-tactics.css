@@ -98,6 +98,14 @@
   pointer-events: none;
 }
 
+/* Regrowth's target picker - moss-tinted like the move highlight, but
+   dashed + a lower fill so the two never read as the same affordance. */
+.hwt-cell[data-healable="true"] {
+  background: color-mix(in srgb, var(--hw-moss) 14%, transparent);
+  border: 2px dashed var(--hw-moss);
+  cursor: pointer;
+}
+
 .hwt-token {
   position: absolute;
   inset: 3px;
@@ -128,6 +136,34 @@
 }
 .hwt-token[data-acted="true"] {
   opacity: 0.7;
+}
+
+.hwt-token-status {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  right: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.hwt-ap-pips {
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: var(--hw-ember);
+}
+.hwt-block-badge {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 7px;
+  color: var(--hw-text);
+}
+.hwt-block-icon {
+  width: 8px;
+  height: 8px;
+  color: var(--hw-text);
 }
 
 .hwt-token-glyph {
@@ -199,6 +235,36 @@
   background: var(--hw-border);
   color: var(--hw-muted);
   cursor: not-allowed;
+}
+
+.hwt-ability-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hwt-ability-btn {
+  align-self: flex-start;
+  background: var(--hw-rune);
+  color: var(--hw-bg);
+  border: none;
+  border-radius: var(--hw-radius-pill);
+  padding: 6px 16px;
+  font-size: var(--hw-fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.hwt-ability-btn:disabled {
+  background: var(--hw-border);
+  color: var(--hw-muted);
+  cursor: not-allowed;
+}
+.hwt-ability-btn[data-active="true"] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hw-rune) 55%, transparent);
+}
+.hwt-ability-hint {
+  font-size: var(--hw-fs-sm);
+  color: var(--hw-moss);
+  margin: 0;
 }
 
 .hwt-log {
