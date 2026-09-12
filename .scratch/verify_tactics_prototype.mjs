@@ -1,17 +1,18 @@
 import { chromium } from "playwright"
 import { mkdir } from "node:fs/promises"
 
-// Hearthwood Frontier - per-unit ability cooldowns
-// (feat/hearthwood-tactics-cooldowns), the last piece of Phase 2, layered
-// onto Phase 1's isolated grid-combat prototype, Phase 2's AP/ability
-// economy, and the enemy intent telegraphs round. Still no
-// runEngine.js/autoBattleEngine.js/save-state touch. There is no headless
-// engine call to substitute for verification - this IS the interactive
-// surface, so the script drives the actual rendered UI exactly the way
-// Marc would click through it.
+// Hearthwood Frontier - Phase 3 first slice (feat/hearthwood-tactics-
+// archetypes): two real enemy archetypes (The Swarm / "the-brood" and The
+// Fortress / "the-bulwark") ported with their real ids/HP/attack/synergy
+// numbers, selectable via a formation picker, layered onto Phase 1's
+// isolated grid-combat prototype and Phase 2's full AP/ability/telegraph/
+// cooldown economy. Still no runEngine.js/autoBattleEngine.js/save-state
+// touch. There is no headless engine call to substitute for verification -
+// this IS the interactive surface, so the script drives the actual
+// rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5385
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-cooldowns/.scratch/shots"
+const PORT = process.env.PORT || 5386
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-archetypes/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -650,10 +651,111 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// Phase 3 first slice: Swarm + Fortress archetypes
+// (feat/hearthwood-tactics-archetypes). Every new check below gets its
+// own fresh page from the start (the established anti-hang lesson from
+// the intent-telegraphs and cooldowns rounds).
+// ---------------------------------------------------------------
+
+// 22. The Swarm ("the-brood") - real composition, outnumbers the player
+//     4-to-3, and the flat +1 Strength bonus actually lands in combat ----
+{
+  const page22 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page22.on("pageerror", (e) => errs.push(String(e)))
+  await page22.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page22.waitForSelector(".hwt-board")
+  await page22.locator(".hwt-formation-btn", { hasText: "The Brood" }).click()
+  await page22.waitForTimeout(300)
+  const enemyNames = await page22.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page22.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  let logText = ""
+  let foundBonusHit = false
+  for (let i = 0; i < 15 && !foundBonusHit; i++) {
+    await page22.locator(".hwt-end-turn").click().catch(() => {})
+    await page22.waitForTimeout(400)
+    logText = await page22.locator(".hwt-log").innerText()
+    // Sporelet's real base attack 3 -> 4 with the swarm bonus; Mire Gnat's
+    // real base attack 4 -> 5. Either landing confirms the +1 grant.
+    foundBonusHit = /Sporelet strikes .* for 4\./.test(logText) || /Mire Gnat strikes .* for 5\./.test(logText)
+    const phase = await page22.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase === "lost" || phase === "won") break
+  }
+  await page22.close()
+  const enemyCountOk =
+    enemyNames.filter((n) => n === "Sporelet").length === 2 && enemyNames.filter((n) => n === "Mire Gnat").length === 2
+  out.swarmFormation = { enemyNames, playerNames, foundBonusHit, logSample: logText.split("\n").slice(0, 3) }
+  if (!(enemyCountOk && playerNames.length === 3 && foundBonusHit)) {
+    out.errors.push("check22 Swarm formation composition or its +1 attack bonus was wrong")
+  }
+}
+
+// 23. The Fortress ("the-bulwark") - real composition, still 3-to-3 -------
+{
+  const page23 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page23.on("pageerror", (e) => errs.push(String(e)))
+  await page23.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page23.waitForSelector(".hwt-board")
+  await page23.locator(".hwt-formation-btn", { hasText: "The Bulwark" }).click()
+  await page23.waitForTimeout(300)
+  const enemyNames = await page23.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page23.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  await page23.close()
+  const enemyCountOk =
+    enemyNames.filter((n) => n === "Oakshell Warden").length === 2 && enemyNames.filter((n) => n === "Mossmender").length === 1
+  out.fortressFormation = { enemyNames, playerNames }
+  if (!(enemyCountOk && playerNames.length === 3)) out.errors.push("check23 Fortress formation composition was wrong")
+}
+
+// 24. The Fortress's Block grant is exactly 3 for every enemy, every enemy
+//     phase - a deterministic engine-level proof (page.evaluate) rather
+//     than inferring it from a live multi-turn attack chase ------------
+{
+  const page24 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page24.on("pageerror", (e) => errs.push(String(e)))
+  await page24.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page24.waitForSelector(".hwt-board")
+  const blockGrant = await page24.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const afterEnemyPhaseStarts = endPlayerTurn(createTacticsBattle("fortress"))
+    return afterEnemyPhaseStarts.units.filter((u) => u.side === "enemy").map((u) => ({ name: u.name, block: u.block }))
+  })
+  await page24.close()
+  const allThree = blockGrant.length === 3 && blockGrant.every((u) => u.block === 3)
+  out.fortressBlockGrant = blockGrant
+  if (!allThree) out.errors.push("check24 the Fortress's Block grant was not exactly 3 for every enemy")
+}
+
+// 25. The picker restarts cleanly (fresh HP/turn/roster), both ways -------
+{
+  const page25 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page25.on("pageerror", (e) => errs.push(String(e)))
+  await page25.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page25.waitForSelector(".hwt-board")
+  await page25.locator(".hwt-end-turn").click().catch(() => {})
+  await page25.waitForTimeout(500)
+  await page25.locator(".hwt-formation-btn", { hasText: "The Brood" }).click()
+  await page25.waitForTimeout(300)
+  const turnAfterSwarm = await page25.locator(".hwt-turn-label").innerText()
+  const namesAfterSwarm = await page25.locator(".hwt-token-name").allInnerTexts()
+  const hpFullAfterSwarm = await page25
+    .locator(".hwt-token", { hasText: "Bulwark of Ages" })
+    .locator(".hwt-hp-fill")
+    .evaluate((el) => el.style.width)
+  await page25.locator(".hwt-formation-btn", { hasText: "The Frontier Test Squad" }).click()
+  await page25.waitForTimeout(300)
+  const namesBackToDefault = await page25.locator(".hwt-token-name").allInnerTexts()
+  await page25.close()
+  const swarmResetOk = /Player Turn 1/.test(turnAfterSwarm) && hpFullAfterSwarm === "100%" && namesAfterSwarm.includes("Sporelet")
+  const roundTripOk = ["Ironmaw", "Sapling Attendant", "Hoardling"].every((n) => namesBackToDefault.includes(n))
+  out.pickerRestart = { turnAfterSwarm, hpFullAfterSwarm, swarmResetOk, roundTripOk }
+  if (!(swarmResetOk && roundTripOk)) out.errors.push("check25 the formation picker did not reset to a fresh battle both ways")
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (ability cooldowns) PASS" : "\n❌ verify_tactics_prototype (ability cooldowns) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (Swarm + Fortress archetypes) PASS" : "\n❌ verify_tactics_prototype (Swarm + Fortress archetypes) FAIL")
 process.exit(pass ? 0 : 1)
