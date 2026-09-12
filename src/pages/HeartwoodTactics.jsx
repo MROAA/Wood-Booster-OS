@@ -127,7 +127,7 @@ export default function HeartwoodTactics() {
   function handleAbilityClick() {
     if (!selected || !selected.ability || battle.phase !== "player") return
     const ability = selected.ability
-    if (selected.ap < ability.cost) return
+    if (selected.ap < ability.cost || selected.cooldownRemaining > 0) return
     if (ability.kind === "aura-block") {
       setBattle(castAbility(battle, selected.id))
       setAbilityMode(null)
@@ -189,6 +189,11 @@ export default function HeartwoodTactics() {
                     {unit.block}
                   </span>
                 )}
+                {unit.cooldownRemaining > 0 && (
+                  <span className="hwt-cooldown-badge" title={`Ability recharging - ${unit.cooldownRemaining} turn(s)`}>
+                    ⏳{unit.cooldownRemaining}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />
@@ -246,10 +251,12 @@ export default function HeartwoodTactics() {
               <button
                 className="hwt-ability-btn"
                 data-active={!!abilityMode}
-                disabled={selected.ap < selected.ability.cost}
+                disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0}
                 onClick={handleAbilityClick}
               >
-                {selected.ability.name} · {selected.ability.cost} AP
+                {selected.cooldownRemaining > 0
+                  ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
+                  : `${selected.ability.name} · ${selected.ability.cost} AP`}
               </button>
               {abilityMode && (
                 <p className="hwt-ability-hint">

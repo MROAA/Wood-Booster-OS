@@ -176,6 +176,10 @@
   height: 8px;
   color: var(--hw-text);
 }
+.hwt-cooldown-badge {
+  font-size: 7px;
+  color: var(--hw-rune);
+}
 
 /* The enemy intent telegraph - what this enemy plans to do this coming
    enemy phase, visible during the player's own turn. */
