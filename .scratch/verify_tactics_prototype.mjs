@@ -1,18 +1,23 @@
 import { chromium } from "playwright"
 import { mkdir } from "node:fs/promises"
 
-// Hearthwood Frontier - Phase 3 first slice (feat/hearthwood-tactics-
-// archetypes): two real enemy archetypes (The Swarm / "the-brood" and The
-// Fortress / "the-bulwark") ported with their real ids/HP/attack/synergy
-// numbers, selectable via a formation picker, layered onto Phase 1's
-// isolated grid-combat prototype and Phase 2's full AP/ability/telegraph/
-// cooldown economy. Still no runEngine.js/autoBattleEngine.js/save-state
-// touch. There is no headless engine call to substitute for verification -
-// this IS the interactive surface, so the script drives the actual
-// rendered UI exactly the way Marc would click through it.
+// Hearthwood Frontier - Phase 3 continues (feat/hearthwood-tactics-hunters):
+// The Hunters archetype ("hunters" / "The Pack") - 2x Fen Stalker + 1x Pack
+// Runner, real HP/attack numbers, a flat +2 Strength battle-start synergy
+// (the ENEMY_FORMATIONS field is now battleStartBonus: number, generalized
+// from the Swarm round's swarmBonus: bool). Requires ZERO new AI code - the
+// engine's decideEnemyIntent already always targets the lowest-HP unit in
+// range, which IS the real archetype's "hunts the weak one" identity; this
+// round is purely data (3 real enemy defs + one formation entry). Layered
+// onto Phase 1's isolated grid-combat prototype, Phase 2's full AP/ability/
+// telegraph/cooldown economy, and Phase 3's Swarm + Fortress archetypes.
+// Still no runEngine.js/autoBattleEngine.js/save-state touch. There is no
+// headless engine call to substitute for verification - this IS the
+// interactive surface, so the script drives the actual rendered UI exactly
+// the way Marc would click through it.
 
-const PORT = process.env.PORT || 5386
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-archetypes/.scratch/shots"
+const PORT = process.env.PORT || 5387
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-hunters/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -752,10 +757,101 @@ await page.waitForSelector(".hwt-board")
   if (!(swarmResetOk && roundTripOk)) out.errors.push("check25 the formation picker did not reset to a fresh battle both ways")
 }
 
+// ---------------------------------------------------------------
+// The Hunters archetype (feat/hearthwood-tactics-hunters). Every new check
+// gets its own fresh page from the start (the established anti-hang
+// discipline).
+// ---------------------------------------------------------------
+
+// 26. The Pack ("hunters") - real composition: 2x Fen Stalker + 1x Pack
+//     Runner, 3 living player tokens -----------------------------------
+{
+  const page26 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page26.on("pageerror", (e) => errs.push(String(e)))
+  await page26.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page26.waitForSelector(".hwt-board")
+  await page26.locator(".hwt-formation-btn", { hasText: "The Pack" }).click()
+  await page26.waitForTimeout(300)
+  const enemyNames = await page26.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page26.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  await page26.close()
+  const enemyCountOk =
+    enemyNames.filter((n) => n === "Fen Stalker").length === 2 && enemyNames.filter((n) => n === "Pack Runner").length === 1
+  out.huntersFormation = { enemyNames, playerNames }
+  if (!(enemyCountOk && playerNames.length === 3)) out.errors.push("check26 Hunters formation composition was wrong")
+}
+
+// 27. The Pack's +2 bonus lands in combat - a passive End-Turn loop until
+//     the log shows a landed hit at real-base+2 --------------------------
+{
+  const page27 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page27.on("pageerror", (e) => errs.push(String(e)))
+  await page27.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page27.waitForSelector(".hwt-board")
+  await page27.locator(".hwt-formation-btn", { hasText: "The Pack" }).click()
+  await page27.waitForTimeout(300)
+  let logText = ""
+  let foundBonusHit = false
+  for (let i = 0; i < 15 && !foundBonusHit; i++) {
+    await page27.locator(".hwt-end-turn").click().catch(() => {})
+    await page27.waitForTimeout(400)
+    logText = await page27.locator(".hwt-log").innerText()
+    // Fen Stalker's real base attack 7 -> 9 with the +2 grant; Pack
+    // Runner's real base attack (derived average of 4/5 -> 5) -> 7.
+    foundBonusHit = /Fen Stalker strikes .* for 9\./.test(logText) || /Pack Runner strikes .* for 7\./.test(logText)
+    const phase = await page27.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase === "lost" || phase === "won") break
+  }
+  await page27.close()
+  out.huntersBonusHit = { foundBonusHit, logSample: logText.split("\n").slice(0, 3) }
+  if (!foundBonusHit) out.errors.push("check27 the Hunters' +2 battle-start bonus did not land in combat")
+}
+
+// 28. Already-weakest-first targeting still holds (no regression from the
+//     swarmBonus -> battleStartBonus rename) - a Hunters enemy in range of
+//     two player units at different HP telegraphs an attack on the LOWER
+//     one, exactly the same decideEnemyIntent every other formation
+//     already gets for free ----------------------------------------------
+{
+  const page28 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page28.on("pageerror", (e) => errs.push(String(e)))
+  await page28.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page28.waitForSelector(".hwt-board")
+  const weakest = await page28.evaluate(async () => {
+    const { previewEnemyIntents } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 7 },
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        {
+          id: "player-tanky", side: "player", defId: "bulwark-of-ages", name: "Tanky", art: "sword", image: null,
+          pos: { row: 2, col: 1 }, hp: 40, maxHp: 40, move: 2, range: 1, attack: 4, ap: 2, apMax: 2, block: 0, ability: null, cooldownRemaining: 0,
+        },
+        {
+          id: "player-weak", side: "player", defId: "the-fool", name: "Weak", art: "sword", image: null,
+          pos: { row: 2, col: 3 }, hp: 6, maxHp: 24, move: 3, range: 1, attack: 5, ap: 2, apMax: 2, block: 0, ability: null, cooldownRemaining: 0,
+        },
+        {
+          id: "enemy-1", side: "enemy", defId: "fen-stalker", name: "Fen Stalker", art: "wolf", image: null,
+          pos: { row: 2, col: 2 }, hp: 32, maxHp: 32, move: 2, range: 1, attack: 9, ap: 2, apMax: 2, block: 0, ability: null, cooldownRemaining: 0,
+        },
+      ],
+    }
+    const intents = previewEnemyIntents(state)
+    return intents.find((i) => i.enemyId === "enemy-1")?.intent
+  })
+  await page28.close()
+  const huntsWeakest = weakest?.kind === "attack" && weakest.targetId === "player-weak"
+  out.huntersWeakestTargeting = weakest
+  if (!huntsWeakest) out.errors.push("check28 a Hunters enemy did not telegraph an attack on the lowest-HP player unit")
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (Swarm + Fortress archetypes) PASS" : "\n❌ verify_tactics_prototype (Swarm + Fortress archetypes) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (The Hunters archetype) PASS" : "\n❌ verify_tactics_prototype (The Hunters archetype) FAIL")
 process.exit(pass ? 0 : 1)
