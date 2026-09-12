@@ -16,7 +16,7 @@
 //   grid: { rows, cols },
 //   units: [{ id, side: "player"|"enemy", defId, name, art, image,
 //              pos: {row, col}, hp, maxHp, move, range, attack,
-//              moved: bool, attacked: bool }],
+//              ap, apMax, block, ability: {id,name,cost,kind,...}|null }],
 //   phase: "player" | "enemy" | "won" | "lost",
 //   turn: number,
 //   log: string[],
@@ -24,9 +24,34 @@
 
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
-import { isOnBoard, samePos, reachableTiles as reachableTilesRaw } from "./targeting"
+import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 
 export const GRID = { rows: 5, cols: 7 }
+
+// Phase 2 ("jatketaan" -> "AP + one real ability per unit"). Every unit now
+// spends a shared Action Point budget instead of the old free "one move +
+// one attack" pair - apMax 2, the PRD's own example number. Move/Attack/
+// Ability each cost AP, so a unit does at most two of those per turn - the
+// first genuine "what do I spend this on" decision, which is the whole
+// point of the pivot.
+const AP_MAX = 2
+
+// The 3 player abilities, converted from each unit's REAL existing kit
+// (Marc: "kaytetaan olemassaolevia mekaniikkoja ja muutetaan tarvittavat
+// uuteen muottiin") rather than invented from nothing:
+//  - bulwark-of-ages already has `aura: { effect: { type:"block", amount:2 } }`
+//    (autoBattleEngine.js's applyAuraTick) -> Bulwark Aura grants Block to
+//    itself + adjacent allies.
+//  - the-fool already has `passive: [{ applyBuff regen 2 }]` -> Regrowth
+//    heals itself or an adjacent ally.
+//  - hexbreaker is a plain attacker whose real identity is reach ->
+//    Focused Shot is a costly (its whole turn), high-damage single hit.
+// Enemies get no ability this round (`ability: null`) - no scope creep.
+const ABILITIES = {
+  "bulwark-of-ages": { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2 },
+  "the-fool": { id: "regrowth", name: "Regrowth", cost: 1, kind: "heal", amount: 5 },
+  hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2 },
+}
 
 // The 3v3 roster (real names/art/HP; move/range/attack are DERIVED below
 // from the unit's actual movePattern/attackPattern, not invented). Player
@@ -80,8 +105,10 @@ function deriveTacticsUnit(defId, side, pos) {
     move: moveFromMaxHp(maxHp),
     range: rangeFromAttackPattern(def.attackPattern),
     attack: attackFromMovePattern(def.movePattern),
-    moved: false,
-    attacked: false,
+    ap: AP_MAX,
+    apMax: AP_MAX,
+    block: 0,
+    ability: side === "player" ? ABILITIES[defId] || null : null,
   }
 }
 
@@ -145,34 +172,97 @@ function checkTacticsBattleEnd(state) {
 
 export function moveUnit(state, unitId, targetPos) {
   const unit = getUnit(state, unitId)
-  if (!unit || unit.hp <= 0 || unit.moved) return state
+  if (!unit || unit.hp <= 0 || unit.ap < 1) return state
   if (state.phase !== unit.side) return state
   if (!isOnBoard(targetPos, state.grid)) return state
   const legal = reachableTilesFor(state, unitId)
   if (!legal.some((p) => samePos(p, targetPos))) return state
-  return setUnit(state, unitId, { pos: targetPos, moved: true })
+  return setUnit(state, unitId, { pos: targetPos, ap: unit.ap - 1 })
+}
+
+// Reuses the live game's own Block model (effects.js's dealDamage: absorb
+// then deplete) rather than inventing a new mitigation shape.
+function applyDamageWithBlock(state, targetId, amount) {
+  const target = getUnit(state, targetId)
+  const absorbed = Math.min(target.block, amount)
+  const remaining = amount - absorbed
+  const nextHp = Math.max(0, target.hp - remaining)
+  const next = setUnit(state, targetId, { block: target.block - absorbed, hp: nextHp })
+  return { next, absorbed, remaining, fell: nextHp <= 0 }
 }
 
 export function attackUnit(state, actorId, targetId) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
-  if (!actor || !target || actor.hp <= 0 || target.hp <= 0 || actor.attacked) return state
+  if (!actor || !target || actor.hp <= 0 || target.hp <= 0 || actor.ap < 1) return state
   if (state.phase !== actor.side || actor.side === target.side) return state
   if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
-  const nextHp = Math.max(0, target.hp - actor.attack)
-  let next = setUnit(state, actorId, { attacked: true })
-  next = setUnit(next, targetId, { hp: nextHp })
-  const fell = nextHp <= 0 ? " It falls." : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${actor.attack}.${fell}`] }
+  let next = setUnit(state, actorId, { ap: actor.ap - 1 })
+  const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, targetId, actor.attack)
+  next = hit
+  const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
+  const fellNote = fell ? " It falls." : ""
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}.${absorbedNote}${fellNote}`] }
   return checkTacticsBattleEnd(next)
+}
+
+// castAbility(state, actorId, targetId?) - the 3 kinds of ability an
+// acting player unit can spend AP on instead of a plain Move/Attack.
+export function castAbility(state, actorId, targetId) {
+  const actor = getUnit(state, actorId)
+  if (!actor || actor.hp <= 0 || !actor.ability) return state
+  if (state.phase !== actor.side) return state
+  const ability = actor.ability
+  if (actor.ap < ability.cost) return state
+
+  if (ability.kind === "aura-block") {
+    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost })
+    const recipients = state.units.filter(
+      (u) => u.hp > 0 && u.side === actor.side && (u.id === actorId || kingAdjacent(u.pos, actor.pos)),
+    )
+    for (const u of recipients) {
+      const live = getUnit(next, u.id)
+      next = setUnit(next, u.id, { block: live.block + ability.amount })
+    }
+    return { ...next, log: [...next.log, `${actor.name} raises ${ability.name}.`] }
+  }
+
+  if (ability.kind === "heal") {
+    const target = getUnit(state, targetId)
+    if (!target || target.hp <= 0 || target.side !== actor.side) return state
+    if (target.id !== actorId && !kingAdjacent(target.pos, actor.pos)) return state
+    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost })
+    const live = getUnit(next, target.id)
+    const healedHp = Math.min(live.maxHp, live.hp + ability.amount)
+    next = setUnit(next, target.id, { hp: healedHp })
+    return { ...next, log: [...next.log, `${actor.name} mends ${target.name} for ${healedHp - live.hp}.`] }
+  }
+
+  if (ability.kind === "burst") {
+    const target = getUnit(state, targetId)
+    if (!target || target.hp <= 0 || target.side === actor.side) return state
+    if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
+    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost })
+    const amount = actor.attack * ability.multiplier
+    const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, target.id, amount)
+    next = hit
+    const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
+    const fellNote = fell ? " It falls." : ""
+    next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}`] }
+    return checkTacticsBattleEnd(next)
+  }
+
+  return state
 }
 
 export function endPlayerTurn(state) {
   if (state.phase !== "player") return state
+  // Enemy AP resets here (symmetry/future-proofing - enemies still just
+  // move/attack every turn this round, so this is mostly inert today).
   const next = {
     ...state,
     phase: "enemy",
-    units: state.units.map((u) => (u.side === "enemy" ? { ...u, moved: false, attacked: false } : u)),
+    units: state.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax } : u)),
     log: [...state.log, "Enemy turn."],
   }
   return runEnemyTurn(next)
@@ -216,11 +306,16 @@ export function runEnemyTurn(state) {
     next = decideAndActEnemy(next, enemy.id)
   }
   if (next.phase !== "enemy") return next
+  // Player AP AND Block reset exactly here - Block granted during a player
+  // turn must survive through the FOLLOWING enemy turn (that's when it
+  // protects against incoming hits) and only fades once it's the player's
+  // turn again. Re-scopes the live game's "resets every round" rule from
+  // "every round" to "every time it's this side's turn again."
   return {
     ...next,
     phase: "player",
     turn: next.turn + 1,
-    units: next.units.map((u) => (u.side === "player" ? { ...u, moved: false, attacked: false } : u)),
+    units: next.units.map((u) => (u.side === "player" ? { ...u, ap: u.apMax, block: 0 } : u)),
     log: [...next.log, `Turn ${next.turn + 1}. Your turn.`],
   }
 }

@@ -8,17 +8,23 @@ import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import { CardGlyph } from "../components/heartwood/cardArt"
+import { kingAdjacent } from "../services/heartwood/targeting"
 import {
   createTacticsBattle,
   reachableTilesFor,
   attackableTargets,
   moveUnit,
   attackUnit,
+  castAbility,
   endPlayerTurn,
   withLowEnemyHp,
 } from "../services/heartwood/tacticsEngine"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
+
+function apPips(unit) {
+  return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
+}
 
 // QA-only hook, never a real feature: `?debugLowHp=1` seeds every enemy at
 // 1 HP so a verification pass (or a quick manual check) can reach a win in
@@ -32,23 +38,53 @@ function initialBattle() {
 export default function HeartwoodTactics() {
   const [battle, setBattle] = useState(initialBattle)
   const [selectedId, setSelectedId] = useState(null)
+  // null = no ability targeting in progress; "heal" / "burst" = the
+  // selected unit's ability is armed and waiting for a target click.
+  // "aura-block" needs no mode - it applies the instant the button is hit.
+  const [abilityMode, setAbilityMode] = useState(null)
 
   const selected = battle.units.find((u) => u.id === selectedId) || null
   const reachable = useMemo(
-    () => (selected && !selected.moved && battle.phase === "player" ? reachableTilesFor(battle, selected.id) : []),
-    [battle, selected],
+    () => (selected && selected.ap > 0 && !abilityMode && battle.phase === "player" ? reachableTilesFor(battle, selected.id) : []),
+    [battle, selected, abilityMode],
   )
   const targets = useMemo(
-    () => (selected && !selected.attacked && battle.phase === "player" ? attackableTargets(battle, selected.id) : []),
-    [battle, selected],
+    () => (selected && selected.ap > 0 && battle.phase === "player" && abilityMode !== "heal" ? attackableTargets(battle, selected.id) : []),
+    [battle, selected, abilityMode],
+  )
+  // Ability-only highlight: self + adjacent living allies, only while the
+  // Regrowth heal ability is armed. Distinct data-attr from the move
+  // highlight even though both lean on the same moss accent.
+  const healable = useMemo(
+    () =>
+      selected && abilityMode === "heal" && battle.phase === "player"
+        ? battle.units.filter((u) => u.hp > 0 && u.side === selected.side && (u.id === selected.id || kingAdjacent(u.pos, selected.pos)))
+        : [],
+    [battle, selected, abilityMode],
   )
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
   const targetHere = (row, col) => targets.find((t) => t.pos.row === row && t.pos.col === col)
+  const healableHere = (row, col) => healable.find((u) => u.pos.row === row && u.pos.col === col)
 
   function handleCellClick(row, col) {
     if (battle.phase !== "player") return
+
+    if (selected && abilityMode === "heal") {
+      const healTarget = healableHere(row, col)
+      if (healTarget) setBattle(castAbility(battle, selected.id, healTarget.id))
+      setAbilityMode(null)
+      return
+    }
+
+    if (selected && abilityMode === "burst") {
+      const target = targetHere(row, col)
+      if (target) setBattle(castAbility(battle, selected.id, target.id))
+      setAbilityMode(null)
+      return
+    }
+
     const target = targetHere(row, col)
     if (selected && target) {
       setBattle(attackUnit(battle, selected.id, target.id))
@@ -59,20 +95,36 @@ export default function HeartwoodTactics() {
       return
     }
     const occupant = cellUnit(row, col)
-    if (occupant && occupant.side === "player" && !(occupant.moved && occupant.attacked)) {
+    if (occupant && occupant.side === "player" && occupant.ap > 0) {
       setSelectedId(occupant.id)
     } else {
       setSelectedId(null)
     }
+    setAbilityMode(null)
+  }
+
+  function handleAbilityClick() {
+    if (!selected || !selected.ability || battle.phase !== "player") return
+    const ability = selected.ability
+    if (selected.ap < ability.cost) return
+    if (ability.kind === "aura-block") {
+      setBattle(castAbility(battle, selected.id))
+      setAbilityMode(null)
+      return
+    }
+    const kind = ability.kind === "heal" ? "heal" : "burst"
+    setAbilityMode((prev) => (prev === kind ? null : kind))
   }
 
   function handleEndTurn() {
     setSelectedId(null)
+    setAbilityMode(null)
     setBattle(endPlayerTurn(battle))
   }
 
   function handlePlayAgain() {
     setSelectedId(null)
+    setAbilityMode(null)
     setBattle(createTacticsBattle())
   }
 
@@ -82,12 +134,14 @@ export default function HeartwoodTactics() {
       const unit = cellUnit(row, col)
       const reach = selected && isReachable(row, col)
       const target = selected && targetHere(row, col)
+      const healTarget = selected && healableHere(row, col)
       cells.push(
         <div
           key={`${row}-${col}`}
           className="hwt-cell"
           data-reachable={!!reach}
           data-targetable={!!target}
+          data-healable={!!healTarget}
           onClick={() => handleCellClick(row, col)}
         >
           {unit && (
@@ -99,8 +153,19 @@ export default function HeartwoodTactics() {
               data-side={unit.side}
               data-selectable={unit.side === "player" && battle.phase === "player"}
               data-selected={unit.id === selectedId}
-              data-acted={unit.moved && unit.attacked}
+              data-acted={unit.ap <= 0}
             >
+              <div className="hwt-token-status">
+                <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
+                  {apPips(unit)}
+                </span>
+                {unit.block > 0 && (
+                  <span className="hwt-block-badge" title={`${unit.block} Block`}>
+                    <CardGlyph name="shield" className="hwt-block-icon" />
+                    {unit.block}
+                  </span>
+                )}
+              </div>
               <CardGlyph name={unit.art} className="hwt-token-glyph" />
               <span className="hwt-token-name">{unit.name}</span>
               <div className="hwt-hp-track">
@@ -142,6 +207,23 @@ export default function HeartwoodTactics() {
           <button className="hwt-end-turn" onClick={handleEndTurn} disabled={battle.phase !== "player"}>
             End Turn
           </button>
+          {selected && selected.side === "player" && selected.ability && battle.phase === "player" && (
+            <div className="hwt-ability-panel">
+              <button
+                className="hwt-ability-btn"
+                data-active={!!abilityMode}
+                disabled={selected.ap < selected.ability.cost}
+                onClick={handleAbilityClick}
+              >
+                {selected.ability.name} · {selected.ability.cost} AP
+              </button>
+              {abilityMode && (
+                <p className="hwt-ability-hint">
+                  {abilityMode === "heal" ? "Choose an ally to heal." : "Choose an enemy for Focused Shot."}
+                </p>
+              )}
+            </div>
+          )}
           <div className="hwt-log">
             {[...battle.log].reverse().map((line, i) => (
               <p key={i}>{line}</p>
