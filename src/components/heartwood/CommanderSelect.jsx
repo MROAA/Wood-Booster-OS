@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { Link } from "react-router-dom"
 import { CardGlyph } from "./cardArt"
 import { MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
 import { parseSeed } from "../../data/heartwood/seed"
@@ -187,6 +188,15 @@ export default function CommanderSelect({
             &#8617; Enter a seed
           </button>
         )}
+
+        {/* Hearthwood Frontier (feat/hearthwood-tactics-prototype): an
+            isolated, playable turn-based prototype - Phase 1 of the pivot
+            away from the auto-battler. Grouped with the seed toggle above
+            so it doesn't claim its own 34px flex gap as a top-level
+            section; not gated on anything, doesn't touch confirmingId. */}
+        <Link className="hw-tactics-link" to="/heartwood-tactics">
+          🧪 Tactical Prototype (WIP)
+        </Link>
       </div>
     </div>
   )

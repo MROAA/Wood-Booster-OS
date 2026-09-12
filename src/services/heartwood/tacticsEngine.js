@@ -1,0 +1,233 @@
+// Hearthwood Frontier (feat/hearthwood-tactics-prototype) - Phase 1 of the
+// turn-based pivot Marc chose over the shipping auto-battler ("uusi moottori
+// korvaa vanhan"). Fully isolated: no import from autoBattleEngine.js,
+// effects.js, or runEngine.js, no localStorage, no save state. The one thing
+// it shares with the live game is DATA - real UNITS/ENEMIES defs, read-only,
+// converted into a turn-based shape ("kaytetaan olemassaolevia mekaniikkoja
+// ja muutetaan tarvittavat uuteen muottiin" - use the existing mechanics,
+// convert what needs it into the new mold) rather than hand-authored
+// placeholder numbers.
+//
+// Same "state in, state out" discipline as autoBattleEngine.js: every
+// function takes a TacticsState and returns a new one via { ...state, ... },
+// nothing here mutates its argument.
+//
+// TacticsState = {
+//   grid: { rows, cols },
+//   units: [{ id, side: "player"|"enemy", defId, name, art, image,
+//              pos: {row, col}, hp, maxHp, move, range, attack,
+//              moved: bool, attacked: bool }],
+//   phase: "player" | "enemy" | "won" | "lost",
+//   turn: number,
+//   log: string[],
+// }
+
+import { UNITS } from "../../data/heartwood/units"
+import { ENEMIES } from "../../data/heartwood/enemies"
+import { isOnBoard, samePos, reachableTiles as reachableTilesRaw } from "./targeting"
+
+export const GRID = { rows: 5, cols: 7 }
+
+// The 3v3 roster (real names/art/HP; move/range/attack are DERIVED below
+// from the unit's actual movePattern/attackPattern, not invented). Player
+// starts at the right edge, enemies at the left, three open columns between
+// them so a turn's worth of movement actually changes the fight.
+const PLAYER_DEF_IDS = ["bulwark-of-ages", "the-fool", "hexbreaker"]
+const ENEMY_DEF_IDS = ["ironmaw", "sapling-attendant", "hoardling"]
+const START_ROWS = [1, 2, 3]
+
+// Reads the def's own already-authored movePattern for its attack amount
+// (averaged if it swings more than once) - the same numbers the auto-
+// battler already uses, not a fresh guess. A pure-support kit with no
+// attack step (rare) falls back to a token 3.
+function attackFromMovePattern(movePattern) {
+  const steps = (movePattern || []).filter((m) => m.type === "attack")
+  if (!steps.length) return 3
+  return Math.round(steps.reduce((sum, m) => sum + (m.amount || 0), 0) / steps.length)
+}
+
+// A pattern attacker (rook/bishop/knight - the auto-battler's existing
+// "hits past the front line" mechanic) converts into "has real reach" here;
+// everyone else is melee range 1. The exact number (3) is a placeholder
+// conversion rule for this prototype, not a final one - Phase 3 (wiring the
+// real roster in) is where this gets a considered pass.
+function rangeFromAttackPattern(attackPattern) {
+  return attackPattern && attackPattern !== "single" ? 3 : 1
+}
+
+// No `move` stat exists anywhere in the live data (there is no movement in
+// an auto-battle) - this is the one genuinely new number Phase 1 adds, and
+// it's still derived from an existing signal (how tanky the piece is)
+// rather than picked per-unit by hand: heavier bodies plant themselves,
+// lighter ones cover ground.
+function moveFromMaxHp(maxHp) {
+  return maxHp >= 40 ? 2 : 3
+}
+
+function deriveTacticsUnit(defId, side, pos) {
+  const def = side === "enemy" ? ENEMIES[defId] : UNITS[defId]
+  const maxHp = def.maxHp
+  return {
+    id: `${side}-${defId}`,
+    side,
+    defId,
+    name: def.name,
+    art: def.art,
+    image: def.image || null,
+    pos,
+    hp: maxHp,
+    maxHp,
+    move: moveFromMaxHp(maxHp),
+    range: rangeFromAttackPattern(def.attackPattern),
+    attack: attackFromMovePattern(def.movePattern),
+    moved: false,
+    attacked: false,
+  }
+}
+
+export function createTacticsBattle() {
+  const units = [
+    ...PLAYER_DEF_IDS.map((defId, i) => deriveTacticsUnit(defId, "player", { row: START_ROWS[i], col: GRID.cols - 1 })),
+    ...ENEMY_DEF_IDS.map((defId, i) => deriveTacticsUnit(defId, "enemy", { row: START_ROWS[i], col: 0 })),
+  ]
+  return {
+    grid: GRID,
+    units,
+    phase: "player",
+    turn: 1,
+    log: ["The Frontier opens. Your turn."],
+  }
+}
+
+function getUnit(state, id) {
+  return state.units.find((u) => u.id === id)
+}
+
+function setUnit(state, id, patch) {
+  return { ...state, units: state.units.map((u) => (u.id === id ? { ...u, ...patch } : u)) }
+}
+
+function livingUnits(state, side) {
+  return state.units.filter((u) => u.side === side && u.hp > 0)
+}
+
+function chebyshevDist(a, b) {
+  return Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col))
+}
+
+// Reachable tiles for a unit right now: the grid's own BFS, blocked by
+// every OTHER living piece on the board (either side - you can't walk
+// through anyone).
+export function reachableTilesFor(state, unitId) {
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.hp <= 0) return []
+  const occupied = state.units.filter((u) => u.id !== unitId && u.hp > 0).map((u) => u.pos)
+  return reachableTilesRaw(occupied, unit.pos, unit.move, state.grid)
+}
+
+// Enemies (or allies) within the unit's range of its CURRENT tile - a
+// prototype-simple range check (Chebyshev, same metric kingAdjacent uses
+// for its single-step case), not yet a real line-of-sight system.
+export function attackableTargets(state, unitId) {
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.hp <= 0) return []
+  return state.units.filter(
+    (u) => u.side !== unit.side && u.hp > 0 && chebyshevDist(unit.pos, u.pos) <= unit.range,
+  )
+}
+
+function checkTacticsBattleEnd(state) {
+  if (state.phase === "won" || state.phase === "lost") return state
+  if (livingUnits(state, "enemy").length === 0) return { ...state, phase: "won", log: [...state.log, "Every enemy has fallen. Victory."] }
+  if (livingUnits(state, "player").length === 0) return { ...state, phase: "lost", log: [...state.log, "The squad has fallen."] }
+  return state
+}
+
+export function moveUnit(state, unitId, targetPos) {
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.hp <= 0 || unit.moved) return state
+  if (state.phase !== unit.side) return state
+  if (!isOnBoard(targetPos, state.grid)) return state
+  const legal = reachableTilesFor(state, unitId)
+  if (!legal.some((p) => samePos(p, targetPos))) return state
+  return setUnit(state, unitId, { pos: targetPos, moved: true })
+}
+
+export function attackUnit(state, actorId, targetId) {
+  const actor = getUnit(state, actorId)
+  const target = getUnit(state, targetId)
+  if (!actor || !target || actor.hp <= 0 || target.hp <= 0 || actor.attacked) return state
+  if (state.phase !== actor.side || actor.side === target.side) return state
+  if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
+  const nextHp = Math.max(0, target.hp - actor.attack)
+  let next = setUnit(state, actorId, { attacked: true })
+  next = setUnit(next, targetId, { hp: nextHp })
+  const fell = nextHp <= 0 ? " It falls." : ""
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${actor.attack}.${fell}`] }
+  return checkTacticsBattleEnd(next)
+}
+
+export function endPlayerTurn(state) {
+  if (state.phase !== "player") return state
+  const next = {
+    ...state,
+    phase: "enemy",
+    units: state.units.map((u) => (u.side === "enemy" ? { ...u, moved: false, attacked: false } : u)),
+    log: [...state.log, "Enemy turn."],
+  }
+  return runEnemyTurn(next)
+}
+
+// A deliberately simple scripted AI (Phase 1's job is proving the PLAYER's
+// turn feels good, not shipping a clever opponent): if a living player unit
+// is already in range, attack the weakest one in range; otherwise step
+// toward the nearest living player unit and re-check range from the new
+// tile. One decision per enemy, in roster order.
+function decideAndActEnemy(state, enemyId) {
+  let next = state
+  const enemy = getUnit(next, enemyId)
+  if (!enemy || enemy.hp <= 0) return next
+
+  const inRange = attackableTargets(next, enemyId)
+  if (inRange.length) {
+    const weakest = inRange.reduce((w, u) => (u.hp < w.hp ? u : w), inRange[0])
+    return attackUnit(next, enemyId, weakest.id)
+  }
+
+  const targets = livingUnits(next, "player")
+  if (!targets.length) return next
+  const options = [enemy.pos, ...reachableTilesFor(next, enemyId)]
+  const nearestDistFrom = (pos) => Math.min(...targets.map((t) => chebyshevDist(pos, t.pos)))
+  const best = options.reduce((w, pos) => (nearestDistFrom(pos) < nearestDistFrom(w) ? pos : w), options[0])
+  if (!samePos(best, enemy.pos)) next = moveUnit(next, enemyId, best)
+
+  const afterMove = attackableTargets(next, enemyId)
+  if (afterMove.length) {
+    const weakest = afterMove.reduce((w, u) => (u.hp < w.hp ? u : w), afterMove[0])
+    next = attackUnit(next, enemyId, weakest.id)
+  }
+  return next
+}
+
+export function runEnemyTurn(state) {
+  let next = state
+  for (const enemy of state.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
+    if (next.phase !== "enemy") break
+    next = decideAndActEnemy(next, enemy.id)
+  }
+  if (next.phase !== "enemy") return next
+  return {
+    ...next,
+    phase: "player",
+    turn: next.turn + 1,
+    units: next.units.map((u) => (u.side === "player" ? { ...u, moved: false, attacked: false } : u)),
+    log: [...next.log, `Turn ${next.turn + 1}. Your turn.`],
+  }
+}
+
+// A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
+// feature, just lets a verification pass or a quick manual check reach a
+// win/loss without grinding real attack rounds first.
+export function withLowEnemyHp(state) {
+  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp } : u)) }
+}
