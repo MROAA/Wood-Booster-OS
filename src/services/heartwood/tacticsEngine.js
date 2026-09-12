@@ -273,30 +273,80 @@ export function endPlayerTurn(state) {
 // is already in range, attack the weakest one in range; otherwise step
 // toward the nearest living player unit and re-check range from the new
 // tile. One decision per enemy, in roster order.
-function decideAndActEnemy(state, enemyId) {
-  let next = state
-  const enemy = getUnit(next, enemyId)
-  if (!enemy || enemy.hp <= 0) return next
+//
+// Split into a pure decision (decideEnemyIntent) and a mutation that acts
+// on that decision (applyEnemyIntent) so BOTH the real enemy turn AND the
+// player-facing intent telegraph (previewEnemyIntents, below) run through
+// the exact same logic - there is no second "what will the enemy do" model
+// that could drift out of sync with what actually happens.
+function decideEnemyIntent(state, enemyId) {
+  const enemy = getUnit(state, enemyId)
+  if (!enemy || enemy.hp <= 0) return { kind: "hold" }
 
-  const inRange = attackableTargets(next, enemyId)
+  const inRange = attackableTargets(state, enemyId)
   if (inRange.length) {
     const weakest = inRange.reduce((w, u) => (u.hp < w.hp ? u : w), inRange[0])
-    return attackUnit(next, enemyId, weakest.id)
+    return { kind: "attack", targetId: weakest.id }
   }
 
-  const targets = livingUnits(next, "player")
-  if (!targets.length) return next
-  const options = [enemy.pos, ...reachableTilesFor(next, enemyId)]
+  const targets = livingUnits(state, "player")
+  if (!targets.length) return { kind: "hold" }
+  const options = [enemy.pos, ...reachableTilesFor(state, enemyId)]
   const nearestDistFrom = (pos) => Math.min(...targets.map((t) => chebyshevDist(pos, t.pos)))
   const best = options.reduce((w, pos) => (nearestDistFrom(pos) < nearestDistFrom(w) ? pos : w), options[0])
-  if (!samePos(best, enemy.pos)) next = moveUnit(next, enemyId, best)
+  if (samePos(best, enemy.pos)) return { kind: "hold" }
 
-  const afterMove = attackableTargets(next, enemyId)
+  // What WOULD be in range from `best`, without actually moving there -
+  // a hypothetical read, same Chebyshev check attackableTargets uses.
+  const afterMove = state.units.filter(
+    (u) => u.side !== enemy.side && u.hp > 0 && chebyshevDist(best, u.pos) <= enemy.range,
+  )
   if (afterMove.length) {
     const weakest = afterMove.reduce((w, u) => (u.hp < w.hp ? u : w), afterMove[0])
-    next = attackUnit(next, enemyId, weakest.id)
+    return { kind: "move-attack", to: best, targetId: weakest.id }
   }
-  return next
+  return { kind: "move", to: best }
+}
+
+function applyEnemyIntent(state, enemyId, intent) {
+  if (intent.kind === "attack") return attackUnit(state, enemyId, intent.targetId)
+  if (intent.kind === "move") return moveUnit(state, enemyId, intent.to)
+  if (intent.kind === "move-attack") {
+    const moved = moveUnit(state, enemyId, intent.to)
+    return attackUnit(moved, enemyId, intent.targetId)
+  }
+  return state
+}
+
+function decideAndActEnemy(state, enemyId) {
+  return applyEnemyIntent(state, enemyId, decideEnemyIntent(state, enemyId))
+}
+
+// The player-facing telegraph: what every living enemy currently intends,
+// computed by dry-running the exact same decide-then-apply pipeline
+// runEnemyTurn uses, on a scratch copy of the state - never the real one.
+// Each enemy's decision runs against the OUTCOME of every earlier enemy's
+// (also-hypothetical) action, so a later enemy's shown intent already
+// accounts for an earlier one's telegraphed kill or repositioning - this
+// is what makes the read trustworthy for a 2+-enemy turn, not just the
+// first actor. Called fresh every render during the player's phase; never
+// persisted, so it can never go stale.
+//
+// The scratch copy's phase is forced to "enemy" for the run (discarded
+// with the rest of scratch when this returns) - moveUnit/attackUnit both
+// gate on `state.phase === unit.side`, so a scratch left at "player" would
+// silently refuse every hypothetical enemy action, degrading this into
+// independent per-enemy reads instead of a real sequential preview.
+export function previewEnemyIntents(state) {
+  let scratch = { ...state, phase: "enemy" }
+  const intents = []
+  for (const enemy of state.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
+    if (scratch.phase !== "enemy") break
+    const intent = decideEnemyIntent(scratch, enemy.id)
+    intents.push({ enemyId: enemy.id, intent })
+    scratch = applyEnemyIntent(scratch, enemy.id, intent)
+  }
+  return intents
 }
 
 export function runEnemyTurn(state) {
