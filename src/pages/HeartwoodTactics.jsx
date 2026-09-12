@@ -19,6 +19,7 @@ import {
   endPlayerTurn,
   withLowEnemyHp,
   previewEnemyIntents,
+  ENEMY_FORMATIONS,
 } from "../services/heartwood/tacticsEngine"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
@@ -31,17 +32,18 @@ function getUnitName(battle, id) {
   return battle.units.find((u) => u.id === id)?.name || "?"
 }
 
-// QA-only hook, never a real feature: `?debugLowHp=1` seeds every enemy at
-// 1 HP so a verification pass (or a quick manual check) can reach a win in
-// a couple of clicks instead of grinding real attack rounds first.
-function initialBattle() {
-  const base = createTacticsBattle()
+// The debugLowHp QA-only hook, never a real feature: `?debugLowHp=1` seeds
+// every enemy at 1 HP so a verification pass (or a quick manual check) can
+// reach a win in a couple of clicks instead of grinding real attack rounds
+// first. Shared by the initial mount AND every formation-picker restart.
+function startBattle(formationId) {
+  const base = createTacticsBattle(formationId)
   const params = new URLSearchParams(window.location.search)
   return params.get("debugLowHp") === "1" ? withLowEnemyHp(base) : base
 }
 
 export default function HeartwoodTactics() {
-  const [battle, setBattle] = useState(initialBattle)
+  const [battle, setBattle] = useState(() => startBattle("default"))
   const [selectedId, setSelectedId] = useState(null)
   // null = no ability targeting in progress; "heal" / "burst" = the
   // selected unit's ability is armed and waiting for a target click.
@@ -143,10 +145,14 @@ export default function HeartwoodTactics() {
     setBattle(endPlayerTurn(battle))
   }
 
-  function handlePlayAgain() {
+  function restart(formationId) {
     setSelectedId(null)
     setAbilityMode(null)
-    setBattle(createTacticsBattle())
+    setBattle(startBattle(formationId))
+  }
+
+  function handlePlayAgain() {
+    restart(battle.formationId)
   }
 
   const cells = []
@@ -269,6 +275,23 @@ export default function HeartwoodTactics() {
             {[...battle.log].reverse().map((line, i) => (
               <p key={i}>{line}</p>
             ))}
+          </div>
+
+          <div className="hwt-formation-picker">
+            <p className="hwt-formation-label">Choose your opponent</p>
+            <div className="hwt-formation-buttons">
+              {Object.values(ENEMY_FORMATIONS).map((f) => (
+                <button
+                  key={f.id}
+                  className="hwt-formation-btn"
+                  data-active={battle.formationId === f.id}
+                  title={f.description}
+                  onClick={() => restart(f.id)}
+                >
+                  {f.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

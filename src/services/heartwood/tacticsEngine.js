@@ -21,6 +21,7 @@
 //   phase: "player" | "enemy" | "won" | "lost",
 //   turn: number,
 //   log: string[],
+//   formationId: "default" | "swarm" | "fortress",
 // }
 
 import { UNITS } from "../../data/heartwood/units"
@@ -61,13 +62,62 @@ const ABILITIES = {
   hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
 }
 
-// The 3v3 roster (real names/art/HP; move/range/attack are DERIVED below
+// The player roster (real names/art/HP; move/range/attack are DERIVED below
 // from the unit's actual movePattern/attackPattern, not invented). Player
-// starts at the right edge, enemies at the left, three open columns between
-// them so a turn's worth of movement actually changes the fight.
+// always starts at the right edge, rows 1/2/3, col 6 - unaffected by which
+// enemy formation is chosen below.
 const PLAYER_DEF_IDS = ["bulwark-of-ages", "the-fool", "hexbreaker"]
-const ENEMY_DEF_IDS = ["ironmaw", "sapling-attendant", "hoardling"]
 const START_ROWS = [1, 2, 3]
+
+// Phase 3's first slice ("jatketaan" -> "1-2 more enemy archetypes"): two
+// of the 9 shipped auto-battler archetypes, ported with their REAL ids/HP/
+// attack/synergy numbers (read directly from formations.js/enemies.js, not
+// guessed) rather than invented ones - the same "kaytetaan olemassaolevia
+// mekaniikkoja" discipline as every prior Frontier round.
+//  - swarm ("the-brood", formations.js) - 4 bodies, synergy "Strength in
+//    numbers" = a FLAT, ONE-TIME +1 Strength to every piece at battle
+//    start (explicitly not a per-round ramp in the shipped mechanic - a
+//    compounding version was found archetype-hostile and flattened).
+//    Outnumbers the player 4-to-3, the archetype's whole identity.
+//  - fortress ("the-bulwark", formations.js) - 3 very tough bodies,
+//    synergy "The wall holds firm" = a flat +3 Block every round (granted
+//    at the start of each enemy phase - see endPlayerTurn - so it's live
+//    to absorb the player's NEXT attacks; Block already resets to 0 for
+//    every other reason in this engine, so a flat overwrite each enemy
+//    phase already IS "resets then re-applies", matching the real
+//    mechanic with no extra reset step needed).
+// Known simplification: Mossmender's real kit also self-heals - enemy
+// abilities are still out of scope (Phase 2's call), so that part of the
+// archetype isn't reproduced yet. Its HP/Block carry over faithfully.
+export const ENEMY_FORMATIONS = {
+  default: {
+    id: "default",
+    name: "The Frontier Test Squad",
+    description: "The roster this Frontier opened with - a wall, a claw, and a hoard.",
+    enemyDefIds: ["ironmaw", "sapling-attendant", "hoardling"],
+    rows: [1, 2, 3],
+    swarmBonus: false,
+    fortressBlock: 0,
+  },
+  swarm: {
+    id: "swarm",
+    name: "The Brood",
+    description: "Not one thing to fight. A dozen small ones, and every one of them is still a mouth.",
+    enemyDefIds: ["sporelet", "mire-gnat", "sporelet", "mire-gnat"],
+    rows: [0, 1, 2, 3],
+    swarmBonus: true,
+    fortressBlock: 0,
+  },
+  fortress: {
+    id: "fortress",
+    name: "The Bulwark",
+    description: "Two wardens shoulder to shoulder, and a mender behind them stitching every crack shut before you can widen it.",
+    enemyDefIds: ["oakshell-warden", "oakshell-warden", "mossmender"],
+    rows: [1, 2, 3],
+    swarmBonus: false,
+    fortressBlock: 3,
+  },
+}
 
 // Reads the def's own already-authored movePattern for its attack amount
 // (averaged if it swings more than once) - the same numbers the auto-
@@ -97,11 +147,16 @@ function moveFromMaxHp(maxHp) {
   return maxHp >= 40 ? 2 : 3
 }
 
-function deriveTacticsUnit(defId, side, pos) {
+// `uid` is an explicit, caller-supplied unique id - required now that a
+// formation can repeat a defId (the Swarm fields 2 Sporelets, the
+// Fortress fields 2 Oakshell Wardens); deriving an id from `defId` alone
+// would collide two enemies onto the same id and corrupt every id-keyed
+// lookup (getUnit/setUnit, React key/layoutId).
+function deriveTacticsUnit(defId, side, pos, uid) {
   const def = side === "enemy" ? ENEMIES[defId] : UNITS[defId]
   const maxHp = def.maxHp
   return {
-    id: `${side}-${defId}`,
+    id: uid,
     side,
     defId,
     name: def.name,
@@ -121,17 +176,30 @@ function deriveTacticsUnit(defId, side, pos) {
   }
 }
 
-export function createTacticsBattle() {
+export function createTacticsBattle(formationId = "default") {
+  const formation = ENEMY_FORMATIONS[formationId] || ENEMY_FORMATIONS.default
   const units = [
-    ...PLAYER_DEF_IDS.map((defId, i) => deriveTacticsUnit(defId, "player", { row: START_ROWS[i], col: GRID.cols - 1 })),
-    ...ENEMY_DEF_IDS.map((defId, i) => deriveTacticsUnit(defId, "enemy", { row: START_ROWS[i], col: 0 })),
+    ...PLAYER_DEF_IDS.map((defId, i) =>
+      deriveTacticsUnit(defId, "player", { row: START_ROWS[i], col: GRID.cols - 1 }, `player-${defId}-${i}`),
+    ),
+    ...formation.enemyDefIds.map((defId, i) =>
+      deriveTacticsUnit(defId, "enemy", { row: formation.rows[i], col: 0 }, `enemy-${defId}-${i}`),
+    ),
   ]
+  // Swarm's real synergy: a FLAT, one-time +1 Strength to every piece at
+  // battle start - not multiplied by headcount, matching the shipped
+  // mechanic precisely (the aggregate effect scales with body count, the
+  // per-unit grant does not).
+  const withSwarmBonus = formation.swarmBonus
+    ? units.map((u) => (u.side === "enemy" ? { ...u, attack: u.attack + 1 } : u))
+    : units
   return {
     grid: GRID,
-    units,
+    units: withSwarmBonus,
     phase: "player",
     turn: 1,
-    log: ["The Frontier opens. Your turn."],
+    log: [`${formation.name}. The Frontier opens. Your turn.`],
+    formationId: formation.id,
   }
 }
 
@@ -268,10 +336,17 @@ export function endPlayerTurn(state) {
   if (state.phase !== "player") return state
   // Enemy AP resets here (symmetry/future-proofing - enemies still just
   // move/attack every turn this round, so this is mostly inert today).
+  // The Fortress's real synergy ("The wall holds firm" - a flat +3 Block
+  // every round) is granted here too: this is the start of the enemy's
+  // own round, so the Block is live to absorb the PLAYER's attacks on
+  // their NEXT turn. Nothing else ever grants enemy Block, so a flat
+  // overwrite to the formation's fixed amount already IS "resets then
+  // re-applies this round's grant" - the real mechanic, no separate reset.
+  const fortressBlock = ENEMY_FORMATIONS[state.formationId]?.fortressBlock || 0
   const next = {
     ...state,
     phase: "enemy",
-    units: state.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax } : u)),
+    units: state.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock } : u)),
     log: [...state.log, "Enemy turn."],
   }
   return runEnemyTurn(next)
