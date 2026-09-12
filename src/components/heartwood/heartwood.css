@@ -7560,6 +7560,9 @@ img.hw-intent-glyph {
 .hw-commander-seed {
   display: flex;
   justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
   min-height: 34px;
   margin-top: 13px;
 }
@@ -7581,6 +7584,26 @@ img.hw-intent-glyph {
 .hw-commander-seed-toggle:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+/* Hearthwood Frontier (feat/hearthwood-tactics-prototype) - a small,
+   clearly-marked link off the game's own front door to the isolated
+   turn-based prototype (/heartwood-tactics). Same quiet weight as the
+   seed toggle beside it, tinted --hw-hp so "WIP" reads as experimental,
+   not a real menu item. */
+.hw-tactics-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--hw-muted);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: var(--hw-radius-sm, 8px);
+  transition: color var(--hw-dur-1, 0.15s) ease;
+}
+.hw-tactics-link:hover {
+  color: var(--hw-hp);
 }
 .hw-commander-seed-entry {
   display: flex;

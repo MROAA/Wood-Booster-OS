@@ -1,0 +1,263 @@
+/* Hearthwood Frontier (feat/hearthwood-tactics-prototype) - Phase 1's own
+   stylesheet. heartwood.css is already 8000+ lines; this stays separate so
+   the live game's cascade is never at risk. Reads --hw-* tokens off the
+   shared .hw-root (same file, imported once already) for palette/font
+   consistency; every new class is namespaced .hwt-* so nothing collides
+   with .hw-grid/.hw-piece, which assume the fixed 3x3 SLOT_POSITIONS board. */
+
+.hwt-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 21px;
+  gap: 13px;
+}
+
+.hwt-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 920px;
+}
+
+.hwt-title {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-xl);
+  color: var(--hw-text);
+  margin: 0;
+}
+
+.hwt-title .hwt-wip {
+  font-size: var(--hw-fs-sm);
+  color: var(--hw-hp);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+.hwt-exit {
+  font-size: var(--hw-fs-sm);
+  color: var(--hw-muted);
+  text-decoration: none;
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-pill);
+  padding: 5px 14px;
+}
+.hwt-exit:hover {
+  color: var(--hw-text);
+  border-color: var(--hw-muted);
+}
+
+.hwt-layout {
+  display: flex;
+  gap: 21px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.hwt-board {
+  display: grid;
+  grid-template-columns: repeat(7, 76px);
+  grid-template-rows: repeat(5, 76px);
+  gap: 4px;
+  background: var(--hw-surface-bg);
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius);
+  padding: 8px;
+  box-shadow: var(--hw-surface-shadow);
+}
+
+.hwt-cell {
+  position: relative;
+  background: color-mix(in srgb, var(--hw-panel) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hw-border) 70%, transparent);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hwt-cell[data-reachable="true"] {
+  background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
+  border-color: var(--hw-moss);
+  cursor: pointer;
+}
+
+.hwt-cell[data-targetable="true"] {
+  cursor: pointer;
+}
+.hwt-cell[data-targetable="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 2px solid var(--hw-hp);
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+.hwt-token {
+  position: absolute;
+  inset: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-card);
+  cursor: default;
+  padding: 2px;
+}
+.hwt-token[data-selectable="true"] {
+  cursor: pointer;
+  border-color: var(--hw-rune);
+}
+.hwt-token[data-selected="true"] {
+  border-color: var(--hw-ember);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+}
+.hwt-token[data-side="enemy"] {
+  border-color: color-mix(in srgb, var(--hw-hp) 55%, var(--hw-border));
+}
+.hwt-token[data-dead="true"] {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+.hwt-token[data-acted="true"] {
+  opacity: 0.7;
+}
+
+.hwt-token-glyph {
+  width: 26px;
+  height: 26px;
+  color: var(--hw-text);
+}
+
+.hwt-token-name {
+  font-size: 8.5px;
+  color: var(--hw-muted);
+  line-height: 1.1;
+  text-align: center;
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hwt-hp-track {
+  width: 56px;
+  height: 4px;
+  background: color-mix(in srgb, var(--hw-border) 80%, transparent);
+  border-radius: 2px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+.hwt-hp-fill {
+  height: 100%;
+  background: var(--hw-moss);
+}
+.hwt-token[data-side="enemy"] .hwt-hp-fill {
+  background: var(--hw-hp);
+}
+
+.hwt-panel {
+  width: 260px;
+  background: var(--hw-surface-bg);
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius);
+  padding: 14px 16px;
+  box-shadow: var(--hw-surface-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hwt-turn-label {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg);
+  color: var(--hw-text);
+}
+.hwt-turn-label[data-phase="enemy"] {
+  color: var(--hw-hp);
+}
+
+.hwt-end-turn {
+  align-self: flex-start;
+  background: var(--hw-ember);
+  color: var(--hw-bg);
+  border: none;
+  border-radius: var(--hw-radius-pill);
+  padding: 7px 18px;
+  font-size: var(--hw-fs-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+.hwt-end-turn:disabled {
+  background: var(--hw-border);
+  color: var(--hw-muted);
+  cursor: not-allowed;
+}
+
+.hwt-log {
+  font-size: var(--hw-fs-sm);
+  color: var(--hw-muted);
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  border-top: 1px solid var(--hw-border);
+  padding-top: 8px;
+}
+.hwt-log p {
+  margin: 0;
+}
+.hwt-log p:first-child {
+  color: var(--hw-text);
+}
+
+.hwt-result {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--hw-bg) 82%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 20;
+}
+.hwt-result-title {
+  font-family: var(--hw-font-display);
+  font-size: 40px;
+}
+.hwt-result-title[data-outcome="won"] {
+  color: var(--hw-moss);
+}
+.hwt-result-title[data-outcome="lost"] {
+  color: var(--hw-hp);
+}
+.hwt-result-actions {
+  display: flex;
+  gap: 12px;
+}
+.hwt-result-actions button,
+.hwt-result-actions a {
+  font-size: var(--hw-fs-base);
+  padding: 8px 20px;
+  border-radius: var(--hw-radius-pill);
+  border: 1px solid var(--hw-border);
+  background: var(--hw-panel);
+  color: var(--hw-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hwt-token {
+    transition: none !important;
+  }
+}
