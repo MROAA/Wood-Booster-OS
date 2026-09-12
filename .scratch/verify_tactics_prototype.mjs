@@ -1,16 +1,17 @@
 import { chromium } from "playwright"
 import { mkdir } from "node:fs/promises"
 
-// Hearthwood Frontier - Phase 2 remainder of the turn-based pivot
-// (feat/hearthwood-tactics-intents): enemy intent telegraphs, layered onto
-// Phase 1's isolated grid-combat prototype and Phase 2's AP/ability economy.
-// Still no runEngine.js/autoBattleEngine.js/save-state touch. There is no
-// headless engine call to substitute for verification - this IS the
-// interactive surface, so the script drives the actual rendered UI exactly
-// the way Marc would click through it.
+// Hearthwood Frontier - per-unit ability cooldowns
+// (feat/hearthwood-tactics-cooldowns), the last piece of Phase 2, layered
+// onto Phase 1's isolated grid-combat prototype, Phase 2's AP/ability
+// economy, and the enemy intent telegraphs round. Still no
+// runEngine.js/autoBattleEngine.js/save-state touch. There is no headless
+// engine call to substitute for verification - this IS the interactive
+// surface, so the script drives the actual rendered UI exactly the way
+// Marc would click through it.
 
-const PORT = process.env.PORT || 5384
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intents/.scratch/shots"
+const PORT = process.env.PORT || 5385
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-cooldowns/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -506,10 +507,153 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// Per-unit ability cooldowns (feat/hearthwood-tactics-cooldowns)
+// ---------------------------------------------------------------
+
+// Each cooldown check below gets its own fresh page/context, matching
+// checks 16/17's established fix: a page.evaluate (or a long enough run of
+// interactions) placed after many prior page.goto calls on ONE reused page
+// object reliably hung the NEXT page.goto (a Playwright/Chromium quirk with
+// very long-lived pages, not anything in the app) - isolating each check
+// avoids it entirely rather than re-fighting the same flake per round.
+
+// 18. Casting sets the cooldown, disables the button, and blocks an
+//     immediate re-cast even with AP still available --------------------
+{
+  const page18 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page18.on("pageerror", (e) => errs.push(String(e)))
+  await page18.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page18.waitForSelector(".hwt-board")
+  const bulwark = page18.locator(".hwt-token", { hasText: "Bulwark of Ages" })
+  await bulwark.click()
+  await page18.waitForTimeout(150)
+  await page18.locator(".hwt-ability-btn").click()
+  await page18.waitForTimeout(200)
+  const labelAfterCast = await page18.locator(".hwt-ability-btn").innerText()
+  const disabledAfterCast = await page18.locator(".hwt-ability-btn").isDisabled()
+  const apAfterCast = await bulwark.locator(".hwt-ap-pips").innerText()
+  const blockAfterCast = await bulwark.locator(".hwt-block-badge").innerText().catch(() => "")
+  // Attempt a 2nd cast despite the disabled button - 1 AP remains, so only
+  // the cooldown gate should be stopping it.
+  const lb = await page18.locator(".hwt-log p").count()
+  await page18.locator(".hwt-ability-btn").click({ force: true }).catch(() => {})
+  await page18.waitForTimeout(200)
+  const la = await page18.locator(".hwt-log p").count()
+  const blockAfterRetry = await bulwark.locator(".hwt-block-badge").innerText().catch(() => "")
+  await page18.close()
+  out.cooldownGate = { labelAfterCast, disabledAfterCast, apAfterCast, blockAfterCast, blockAfterRetry, logGrew: la > lb }
+  if (!(labelAfterCast.includes("Recharging") && disabledAfterCast && apAfterCast === "●○" && blockAfterCast === "2" && blockAfterRetry === "2" && !(la > lb))) {
+    out.errors.push("check18 casting did not set the cooldown / a re-cast was not actually blocked")
+  }
+}
+
+// 19. The board badge shows the cooldown on the unit that cast, and only
+//     that unit --------------------------------------------------------
+{
+  const page19 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page19.on("pageerror", (e) => errs.push(String(e)))
+  await page19.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page19.waitForSelector(".hwt-board")
+  await page19.locator(".hwt-token", { hasText: "Bulwark of Ages" }).click()
+  await page19.waitForTimeout(150)
+  await page19.locator(".hwt-ability-btn").click()
+  await page19.waitForTimeout(200)
+  const bulwarkCooldown = await page19
+    .locator(".hwt-token", { hasText: "Bulwark of Ages" })
+    .locator(".hwt-cooldown-badge")
+    .innerText()
+    .catch(() => "")
+  const mosskitHasCooldown = (await page19.locator(".hwt-token", { hasText: "Mosskit" }).locator(".hwt-cooldown-badge").count()) > 0
+  await page19.close()
+  out.cooldownBadge = { bulwarkCooldown, mosskitHasCooldown }
+  if (!(bulwarkCooldown === "⏳2" && !mosskitHasCooldown)) out.errors.push("check19 the board cooldown badge was wrong")
+}
+
+// 20. It counts down once per the unit's own turn - "every other turn" for
+//     a cooldown of 2, not per round, not per enemy action --------------
+{
+  const page20 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page20.on("pageerror", (e) => errs.push(String(e)))
+  await page20.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page20.waitForSelector(".hwt-board")
+  await page20.locator(".hwt-token", { hasText: "Bulwark of Ages" }).click()
+  await page20.waitForTimeout(150)
+  await page20.locator(".hwt-ability-btn").click()
+  await page20.waitForTimeout(200)
+  await page20.locator(".hwt-end-turn").click().catch(() => {})
+  await page20.waitForTimeout(700)
+  await page20.locator(".hwt-token", { hasText: "Bulwark of Ages" }).click({ force: true }).catch(() => {})
+  await page20.waitForTimeout(150)
+  const labelTurn2 = await page20.locator(".hwt-ability-btn").innerText()
+  await page20.locator(".hwt-end-turn").click().catch(() => {})
+  await page20.waitForTimeout(700)
+  await page20.locator(".hwt-token", { hasText: "Bulwark of Ages" }).click({ force: true }).catch(() => {})
+  await page20.waitForTimeout(150)
+  const disabledTurn3 = await page20.locator(".hwt-ability-btn").isDisabled()
+  const lb = await page20.locator(".hwt-log p").count()
+  await page20.locator(".hwt-ability-btn").click().catch(() => {})
+  await page20.waitForTimeout(200)
+  const la = await page20.locator(".hwt-log p").count()
+  const blockTurn3 = await page20.locator(".hwt-token", { hasText: "Bulwark of Ages" }).locator(".hwt-block-badge").innerText().catch(() => "")
+  await page20.close()
+  out.cooldownCadence = { labelTurn2, disabledTurn3, recastLogGrew: la > lb, blockTurn3 }
+  if (!(labelTurn2.includes("Recharging (1)") && !disabledTurn3 && la > lb && blockTurn3 === "2")) {
+    out.errors.push("check20 the cooldown did not count down 'every other turn' as designed")
+  }
+}
+
+// 21. Two different abilities' cooldowns tick down independently, each at
+//     its own configured rate - a deterministic proof via the same pure
+//     runEnemyTurn the UI drives, isolated in its own page/context --------
+{
+  const page21 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page21.on("pageerror", (e) => errs.push(String(e)))
+  await page21.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page21.waitForSelector(".hwt-board")
+  const independence = await page21.evaluate(async () => {
+    const { runEnemyTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const grid = { rows: 5, cols: 7 }
+    const state = {
+      grid, phase: "enemy", turn: 1, log: [],
+      units: [
+        {
+          id: "player-1", side: "player", defId: "bulwark-of-ages", name: "A", art: "sword", image: null,
+          pos: { row: 2, col: 6 }, hp: 50, maxHp: 50, move: 2, range: 1, attack: 4, ap: 2, apMax: 2, block: 0,
+          ability: { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2, cooldown: 2 },
+          cooldownRemaining: 2,
+        },
+        {
+          id: "player-2", side: "player", defId: "hexbreaker", name: "B", art: "sword", image: null,
+          pos: { row: 3, col: 6 }, hp: 30, maxHp: 30, move: 3, range: 3, attack: 5, ap: 2, apMax: 2, block: 0,
+          ability: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
+          cooldownRemaining: 3,
+        },
+      ],
+    }
+    // No enemies in this synthetic state - runEnemyTurn's own loop is a
+    // no-op over an empty filter, falling straight through to the
+    // player-phase-return reset/decrement this check is pinning.
+    const after1 = runEnemyTurn(state)
+    const after2 = runEnemyTurn({ ...after1, phase: "enemy" })
+    return {
+      a1: after1.units.find((u) => u.id === "player-1").cooldownRemaining,
+      b1: after1.units.find((u) => u.id === "player-2").cooldownRemaining,
+      a2: after2.units.find((u) => u.id === "player-1").cooldownRemaining,
+      b2: after2.units.find((u) => u.id === "player-2").cooldownRemaining,
+    }
+  })
+  await page21.close()
+  out.cooldownIndependence = independence
+  if (!(independence.a1 === 1 && independence.b1 === 2 && independence.a2 === 0 && independence.b2 === 1)) {
+    out.errors.push("check21 two abilities' cooldowns did not tick down independently at their own rates")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (intent telegraphs) PASS" : "\n❌ verify_tactics_prototype (intent telegraphs) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (ability cooldowns) PASS" : "\n❌ verify_tactics_prototype (ability cooldowns) FAIL")
 process.exit(pass ? 0 : 1)

@@ -16,7 +16,8 @@
 //   grid: { rows, cols },
 //   units: [{ id, side: "player"|"enemy", defId, name, art, image,
 //              pos: {row, col}, hp, maxHp, move, range, attack,
-//              ap, apMax, block, ability: {id,name,cost,kind,...}|null }],
+//              ap, apMax, block, ability: {id,name,cost,kind,cooldown,...}|null,
+//              cooldownRemaining }],
 //   phase: "player" | "enemy" | "won" | "lost",
 //   turn: number,
 //   log: string[],
@@ -47,10 +48,17 @@ const AP_MAX = 2
 //  - hexbreaker is a plain attacker whose real identity is reach ->
 //    Focused Shot is a costly (its whole turn), high-damage single hit.
 // Enemies get no ability this round (`ability: null`) - no scope creep.
+//
+// `cooldown` (added this round) - how many of the unit's OWN turns must
+// pass after a cast before it's usable again. Ticks down once per player
+// turn (see runEnemyTurn's player-phase-return reset), so `cooldown: 2`
+// reads as "usable every OTHER turn" - cast on turn N, still cooling on
+// N+1, ready again on N+2. Focused Shot (the biggest single payoff) gets
+// the longest wait.
 const ABILITIES = {
-  "bulwark-of-ages": { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2 },
-  "the-fool": { id: "regrowth", name: "Regrowth", cost: 1, kind: "heal", amount: 5 },
-  hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2 },
+  "bulwark-of-ages": { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2, cooldown: 2 },
+  "the-fool": { id: "regrowth", name: "Regrowth", cost: 1, kind: "heal", amount: 5, cooldown: 2 },
+  hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
 }
 
 // The 3v3 roster (real names/art/HP; move/range/attack are DERIVED below
@@ -109,6 +117,7 @@ function deriveTacticsUnit(defId, side, pos) {
     apMax: AP_MAX,
     block: 0,
     ability: side === "player" ? ABILITIES[defId] || null : null,
+    cooldownRemaining: 0,
   }
 }
 
@@ -213,10 +222,10 @@ export function castAbility(state, actorId, targetId) {
   if (!actor || actor.hp <= 0 || !actor.ability) return state
   if (state.phase !== actor.side) return state
   const ability = actor.ability
-  if (actor.ap < ability.cost) return state
+  if (actor.ap < ability.cost || actor.cooldownRemaining > 0) return state
 
   if (ability.kind === "aura-block") {
-    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost })
+    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     const recipients = state.units.filter(
       (u) => u.hp > 0 && u.side === actor.side && (u.id === actorId || kingAdjacent(u.pos, actor.pos)),
     )
@@ -231,7 +240,7 @@ export function castAbility(state, actorId, targetId) {
     const target = getUnit(state, targetId)
     if (!target || target.hp <= 0 || target.side !== actor.side) return state
     if (target.id !== actorId && !kingAdjacent(target.pos, actor.pos)) return state
-    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost })
+    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     const live = getUnit(next, target.id)
     const healedHp = Math.min(live.maxHp, live.hp + ability.amount)
     next = setUnit(next, target.id, { hp: healedHp })
@@ -242,7 +251,7 @@ export function castAbility(state, actorId, targetId) {
     const target = getUnit(state, targetId)
     if (!target || target.hp <= 0 || target.side === actor.side) return state
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
-    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost })
+    let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     const amount = actor.attack * ability.multiplier
     const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, target.id, amount)
     next = hit
@@ -360,12 +369,17 @@ export function runEnemyTurn(state) {
   // turn must survive through the FOLLOWING enemy turn (that's when it
   // protects against incoming hits) and only fades once it's the player's
   // turn again. Re-scopes the live game's "resets every round" rule from
-  // "every round" to "every time it's this side's turn again."
+  // "every round" to "every time it's this side's turn again." Cooldowns
+  // count down at this SAME checkpoint - once per the player's own turn
+  // coming back around, so a cooldown of 2 plays out as "usable every
+  // other turn" (cast on turn N, still cooling on N+1, ready on N+2).
   return {
     ...next,
     phase: "player",
     turn: next.turn + 1,
-    units: next.units.map((u) => (u.side === "player" ? { ...u, ap: u.apMax, block: 0 } : u)),
+    units: next.units.map((u) =>
+      u.side === "player" ? { ...u, ap: u.apMax, block: 0, cooldownRemaining: Math.max(0, u.cooldownRemaining - 1) } : u,
+    ),
     log: [...next.log, `Turn ${next.turn + 1}. Your turn.`],
   }
 }
