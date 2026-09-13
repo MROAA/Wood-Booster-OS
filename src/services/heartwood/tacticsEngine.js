@@ -101,6 +101,7 @@ export const ENEMY_FORMATIONS = {
     rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
+    selfMend: 0,
   },
   swarm: {
     id: "swarm",
@@ -110,6 +111,7 @@ export const ENEMY_FORMATIONS = {
     rows: [1, 2, 3, 4],
     battleStartBonus: 1,
     fortressBlock: 0,
+    selfMend: 0,
   },
   fortress: {
     id: "fortress",
@@ -119,6 +121,7 @@ export const ENEMY_FORMATIONS = {
     rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 3,
+    selfMend: 0,
   },
   hunters: {
     id: "hunters",
@@ -128,6 +131,7 @@ export const ENEMY_FORMATIONS = {
     rows: [2, 3, 4],
     battleStartBonus: 2,
     fortressBlock: 0,
+    selfMend: 0,
   },
   ancients: {
     id: "ancients",
@@ -137,6 +141,7 @@ export const ENEMY_FORMATIONS = {
     rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
+    selfMend: 0,
   },
   coven: {
     id: "coven",
@@ -146,6 +151,7 @@ export const ENEMY_FORMATIONS = {
     rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
+    selfMend: 0,
   },
   cult: {
     id: "cult",
@@ -155,6 +161,7 @@ export const ENEMY_FORMATIONS = {
     rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
+    selfMend: 0,
   },
   brood: {
     id: "brood",
@@ -164,6 +171,17 @@ export const ENEMY_FORMATIONS = {
     rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
+    selfMend: 0,
+  },
+  rot: {
+    id: "rot",
+    name: "The Blight",
+    description: "Three of them, low to the ground, and the ground going soft and black behind them.",
+    enemyDefIds: ["rotgut-crawler", "spore-lurcher", "rotgut-crawler"],
+    rows: [2, 3, 4],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 1,
   },
 }
 
@@ -175,6 +193,18 @@ function attackFromMovePattern(movePattern) {
   const steps = (movePattern || []).filter((m) => m.type === "attack")
   if (!steps.length) return 3
   return Math.round(steps.reduce((sum, m) => sum + (m.amount || 0), 0) / steps.length)
+}
+
+// The Rot archetype's real numbers, summed from the def's own already-
+// authored `debuff poison` movePattern steps - the same "read the def's
+// own data" discipline attackFromMovePattern already uses for `attack`,
+// summed rather than averaged since poison stacks accumulate additively
+// in the real game too (effects.js's applyBuff is a plain `+=`, never a
+// set). 0 for every enemy that carries no such step - confirmed by
+// reading every currently-used enemy def directly, none of them do.
+function poisonFromMovePattern(movePattern) {
+  const steps = (movePattern || []).filter((m) => m.type === "debuff" && m.id === "poison")
+  return steps.reduce((sum, m) => sum + (m.amount || 0), 0)
 }
 
 // A pattern attacker (rook/bishop/knight - the auto-battler's existing
@@ -212,6 +242,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   const cultRitual = side === "enemy" ? def.cultRitual || null : null
   const cultFodder = side === "enemy" ? !!def.cultFodder : false
   const broodSplit = side === "enemy" ? def.broodSplit || null : null
+  const poisonOnHit = side === "enemy" ? poisonFromMovePattern(def.movePattern) : 0
   return {
     id: uid,
     side,
@@ -239,6 +270,8 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     ritualCharge: 0,
     broodSplit,
     broodGen: 0,
+    poison: 0,
+    poisonOnHit,
   }
 }
 
@@ -409,6 +442,16 @@ export function attackUnit(state, actorId, targetId) {
   const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
   const fellNote = fell ? " It falls." : ""
   next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}.${absorbedNote}${fellNote}`] }
+  // The Rot's real mechanic: a poison-carrying enemy applies its stack on
+  // EVERY landed hit, unconditional of how much Block absorbed that
+  // hit's damage - the real game's debuff step is its own move in the
+  // sequence, entirely independent of the accompanying attack step's
+  // Block interaction. Only while the target is still standing.
+  if (actor.side === "enemy" && actor.poisonOnHit > 0 && !fell) {
+    const poisoned = getUnit(next, targetId)
+    next = setUnit(next, targetId, { poison: (poisoned.poison || 0) + actor.poisonOnHit })
+    next = { ...next, log: [...next.log, `${target.name} is poisoned (+${actor.poisonOnHit}).`] }
+  }
   if (fell) next = trySpawnBrood(next, targetId)
   return checkTacticsBattleEnd(next)
 }
@@ -619,12 +662,35 @@ export function previewChargeThreat(state) {
   return { enemyIds, playerIds }
 }
 
+// The Rot's real formation synergy ("The rot won't quit" - a flat
+// `turnStart -> heal 1` to every living piece each round, confirmed by
+// reading formations.js directly): the exact same per-round formation-
+// identity-gated tick SHAPE applyCovenTick/applyCultTick/applyChargeTick
+// already use, just healing instead of buffing. Never touches hp
+// downward, so - like applyCovenTick - it can never end the battle and
+// needs no phase guard.
+function applyRotMendTick(state) {
+  const amount = ENEMY_FORMATIONS[state.formationId]?.selfMend || 0
+  if (!amount) return state
+  let next = state
+  for (const enemy of livingUnits(state, "enemy")) {
+    const live = getUnit(next, enemy.id)
+    if (!live || live.hp <= 0 || live.hp >= live.maxHp) continue
+    const healedHp = Math.min(live.maxHp, live.hp + amount)
+    next = setUnit(next, enemy.id, { hp: healedHp })
+    next = { ...next, log: [...next.log, `${live.name} knits itself back together for ${healedHp - live.hp}.`] }
+  }
+  return next
+}
+
 export function endPlayerTurn(state) {
   if (state.phase !== "player") return state
-  // applyCovenTick never touches hp, so it can't end the battle - no
-  // phase guard needed for it specifically, unlike the two ticks below.
+  // applyCovenTick and applyRotMendTick never touch hp downward, so
+  // neither can end the battle - no phase guard needed for either,
+  // unlike the two ticks below.
   const covened = applyCovenTick(state)
-  const cultTicked = applyCultTick(covened)
+  const mended = applyRotMendTick(covened)
+  const cultTicked = applyCultTick(mended)
   if (cultTicked.phase !== "player") return cultTicked
   const ticked = applyChargeTick(cultTicked)
   if (ticked.phase !== "player") return ticked
@@ -727,9 +793,52 @@ export function previewEnemyIntents(state) {
   return intents
 }
 
-export function runEnemyTurn(state) {
+// The Rot's real DoT mechanic (effects.js's own tickPoison, read
+// directly): poison deals damage equal to its current stack count
+// DIRECTLY to hp - bypassing Block entirely, never touching it, unlike
+// every other damage source in this engine - then decays by exactly 1.
+// Only the player side is ever poisoned by this archetype (the real
+// game's debuff steps all target "player"); a future archetype that
+// poisons enemies would extend this scan, not this one. `!(live.poison >
+// 0)` rather than `live.poison <= 0` - many of this file's existing
+// synthetic verify states hand-build a unit without a `poison` field at
+// all, and `undefined <= 0` is false (NaN comparison), which would have
+// silently corrupted hp to NaN below for every pre-Rot check. Only calls
+// checkTacticsBattleEnd when a stack actually ticked - not unconditionally
+// on every call - since an enemy-less synthetic state (several existing
+// verify checks build one to isolate a mechanic from combat entirely)
+// would otherwise see "0 living enemies" and falsely resolve as "won"
+// even though poison never did anything.
+function applyPoisonTick(state) {
   let next = state
-  for (const enemy of state.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
+  let anyTicked = false
+  for (const unit of livingUnits(state, "player")) {
+    const live = getUnit(next, unit.id)
+    if (!live || live.hp <= 0 || !(live.poison > 0)) continue
+    anyTicked = true
+    const stacks = live.poison
+    const nextHp = Math.max(0, live.hp - stacks)
+    const fellNote = nextHp <= 0 ? " It falls." : ""
+    next = setUnit(next, unit.id, { hp: nextHp, poison: stacks - 1 })
+    next = { ...next, log: [...next.log, `${live.name} takes ${stacks} poison damage.${fellNote}`] }
+  }
+  return anyTicked ? checkTacticsBattleEnd(next) : next
+}
+
+export function runEnemyTurn(state) {
+  // Poison ticks at the TOP of the enemy phase, before anyone acts -
+  // matching the real game's own tickPoison timing exactly ("the top of
+  // the round, before anyone acts"). This operates on whatever stacks
+  // survived untouched through the player's own turn; any FRESH poison
+  // an enemy applies during the action loop below won't tick until the
+  // NEXT enemy phase, a full cycle later - not immediately in this same
+  // call. Also deliberately before the Block reset further down: whatever
+  // Block a player unit still carries from earlier this turn is still
+  // present at this instant, and poison bypasses it entirely regardless
+  // (it deals its damage directly to hp, never reading Block at all).
+  let next = applyPoisonTick(state)
+  if (next.phase !== "enemy") return next
+  for (const enemy of next.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (next.phase !== "enemy") break
     next = decideAndActEnemy(next, enemy.id)
   }

@@ -237,6 +237,14 @@ export default function HeartwoodTactics() {
                     ☾{unit.cultRitual.every - unit.ritualCharge}
                   </span>
                 )}
+                {unit.poison > 0 && (
+                  <span
+                    className="hwt-poison-badge"
+                    title={`${unit.poison} Poison - ticks for that much damage (ignoring Block) at the top of your next turn, then decays by 1`}
+                  >
+                    ☠{unit.poison}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />

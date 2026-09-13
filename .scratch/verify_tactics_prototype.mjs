@@ -54,14 +54,35 @@ import { mkdir } from "node:fs/promises"
 // cascade - no separate "can't re-split" flag needed. No AoE/execute
 // mechanic exists on any player unit in this engine, so unlike the real
 // archetype's headline answer, the honest counter here is just that the
-// hatchlings are frail - a pre-existing limitation, not a new one. Still
-// no runEngine.js/autoBattleEngine.js/save-state touch. There is no
-// headless engine call to substitute for verification - this IS the
-// interactive surface, so the script drives the actual rendered UI
-// exactly the way Marc would click through it.
+// hatchlings are frail - a pre-existing limitation, not a new one. THE
+// ROT ARCHETYPE ("rot" / "The Blight") - 2x Rotgut Crawler + 1x Spore
+// Lurcher, real HP/attack/poison numbers ported from enemies.js directly.
+// A new player-side poison stack: `poisonFromMovePattern` sums a def's
+// real `debuff poison` movePattern steps into one flat `poisonOnHit`
+// number (the same "read the def's own data" discipline
+// attackFromMovePattern already uses for attack); attackUnit applies it
+// on every landed enemy hit, unconditional of Block. A new
+// applyPoisonTick (ported from effects.js's own tickPoison) deals damage
+// equal to the current stack DIRECTLY to hp - bypassing Block entirely,
+// the one defining trait that makes poison distinct from every other
+// damage source this engine has had so far - then decays the stack by
+// exactly 1; ticks at the "top of the next turn" checkpoint
+// (runEnemyTurn's existing AP/Block/cooldown reset point), the closest
+// analog to the real game's own "poison ticks before anyone acts" timing.
+// Also ported: the real formation's "The rot won't quit" self-mend
+// synergy (a flat turnStart -> heal 1 to every living enemy piece each
+// round) via a new applyRotMendTick, the same per-round tick SHAPE
+// applyCovenTick/applyCultTick/applyChargeTick already use. No cleanse
+// ability exists on any player unit in this engine - a named, pre-
+// existing limitation, not a new one; burst and the existing Regrowth
+// heal remain real working answers. Still no runEngine.js/
+// autoBattleEngine.js/save-state touch. There is no headless engine call
+// to substitute for verification - this IS the interactive surface, so
+// the script drives the actual rendered UI exactly the way Marc would
+// click through it.
 
-const PORT = process.env.PORT || 5392
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-brood/.scratch/shots"
+const PORT = process.env.PORT || 5393
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-rot/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1510,10 +1531,124 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// The Rot archetype (feat/hearthwood-tactics-rot). Every new check gets
+// its own fresh page from the start (the established anti-hang
+// discipline).
+// ---------------------------------------------------------------
+
+// 47. The Blight ("rot") - real composition: 2x Rotgut Crawler + 1x
+//     Spore Lurcher, 3 living player tokens ----------------------------
+{
+  const page47 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page47.on("pageerror", (e) => errs.push(String(e)))
+  await page47.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page47.waitForSelector(".hwt-board")
+  await page47.locator(".hwt-formation-btn", { hasText: "The Blight" }).click()
+  await page47.waitForTimeout(300)
+  const enemyNames = await page47.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page47.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  await page47.close()
+  const compositionOk =
+    enemyNames.filter((n) => n === "Rotgut Crawler").length === 2 && enemyNames.filter((n) => n === "Spore Lurcher").length === 1
+  out.rotFormation = { enemyNames, playerNames }
+  if (!(compositionOk && playerNames.length === 3)) {
+    out.errors.push("check47 The Blight formation composition was wrong")
+  }
+}
+
+// 48. Poison lands, is visible, and is narrated - a passive End-Turn loop
+//     until a player token shows the poison badge; the log narrates it
+//     landing with the right stack count -------------------------------
+{
+  const page48 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page48.on("pageerror", (e) => errs.push(String(e)))
+  await page48.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page48.waitForSelector(".hwt-board")
+  await page48.locator(".hwt-formation-btn", { hasText: "The Blight" }).click()
+  await page48.waitForTimeout(300)
+  let logText = ""
+  let poisonBadge = null
+  for (let i = 0; i < 15 && !poisonBadge; i++) {
+    await page48.locator(".hwt-end-turn").click().catch(() => {})
+    await page48.waitForTimeout(400)
+    poisonBadge = await page48.locator(".hwt-poison-badge").first().innerText().catch(() => null)
+    logText = await page48.locator(".hwt-log").innerText()
+    const phase = await page48.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase === "lost" || phase === "won") break
+  }
+  await page48.close()
+  const isPoisonedLogged = /is poisoned \(\+[23]\)\./.test(logText)
+  const badgeOk = poisonBadge === "☠2" || poisonBadge === "☠3"
+  out.rotPoisonLands = { poisonBadge, isPoisonedLogged, logSample: logText.split("\n").slice(-6) }
+  if (!(badgeOk && isPoisonedLogged)) out.errors.push("check48 poison did not land visibly with the right stack + log narration")
+}
+
+// 49. Poison deals damage equal to its FULL stack directly to hp,
+//     bypassing Block entirely (a Block value large enough to fully
+//     absorb a normal hit does NOT reduce the poison tick at all), then
+//     decays by exactly 1 - a deterministic page.evaluate proof --------
+{
+  const page49 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page49.on("pageerror", (e) => errs.push(String(e)))
+  await page49.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page49.waitForSelector(".hwt-board")
+  const result = await page49.evaluate(async () => {
+    const { createTacticsBattle, runEnemyTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("rot")
+    const playerId = base.units.find((u) => u.side === "player").id
+    // Enemies stay alive at their normal starting positions (col 0 vs.
+    // the player's col 9) - the same wide starting gap every other
+    // synthetic check in this suite relies on to guarantee no attack can
+    // land this single call, isolating the poison tick from any real
+    // combat. Zeroing every enemy instead would falsely trip
+    // checkTacticsBattleEnd's "0 living enemies -> won" the moment
+    // applyPoisonTick's own end-of-tick check runs.
+    const state = {
+      ...base,
+      phase: "enemy",
+      units: base.units.map((u) => (u.id === playerId ? { ...u, hp: 40, maxHp: 40, block: 5, poison: 3 } : u)),
+    }
+    const after = runEnemyTurn(state)
+    const poisonedUnit = after.units.find((u) => u.id === playerId)
+    return { hpAfter: poisonedUnit.hp, poisonAfter: poisonedUnit.poison, blockAfter: poisonedUnit.block, phase: after.phase }
+  })
+  await page49.close()
+  out.rotPoisonBypassesBlock = result
+  if (!(result.hpAfter === 37 && result.poisonAfter === 2 && result.phase === "player")) {
+    out.errors.push("check49 poison did not deal its full stack directly to hp, bypassing Block, or did not decay by exactly 1")
+  }
+}
+
+// 50. The Blight's self-mend synergy: every living enemy heals 1 HP each
+//     round (capped at maxHp), and it's narrated - a deterministic
+//     page.evaluate proof via endPlayerTurn ----------------------------
+{
+  const page50 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page50.on("pageerror", (e) => errs.push(String(e)))
+  await page50.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page50.waitForSelector(".hwt-board")
+  const result = await page50.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("rot")
+    const crawlerId = base.units.find((u) => u.defId === "rotgut-crawler").id
+    const damaged = { ...base, units: base.units.map((u) => (u.id === crawlerId ? { ...u, hp: u.maxHp - 5 } : u)) }
+    const hpBefore = damaged.units.find((u) => u.id === crawlerId).hp
+    const after = endPlayerTurn(damaged)
+    const healed = after.units.find((u) => u.id === crawlerId)
+    return { hpBefore, hpAfter: healed.hp, mendLogged: after.log.some((l) => l.includes("knits itself back together")) }
+  })
+  await page50.close()
+  out.rotSelfMend = result
+  if (!(result.hpAfter === result.hpBefore + 1 && result.mendLogged)) {
+    out.errors.push("check50 the Blight's self-mend synergy did not heal exactly 1 HP or was not narrated")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (The Brood archetype) PASS" : "\n❌ verify_tactics_prototype (The Brood archetype) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (The Rot archetype) PASS" : "\n❌ verify_tactics_prototype (The Rot archetype) FAIL")
 process.exit(pass ? 0 : 1)
