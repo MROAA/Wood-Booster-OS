@@ -2,34 +2,42 @@ import { chromium } from "playwright"
 import { mkdir } from "node:fs/promises"
 
 // Hearthwood Frontier - Phase 3 continues (feat/hearthwood-tactics-ancients,
-// then fix/hearthwood-tactics-charge-telegraph): The Ancients archetype
-// ("ancients" / "The Ancient Grove") - 2x Sapling Attendant + 1x Ancient
-// Oak, real HP/attack numbers, a telegraphed countdown to ONE big AoE hit
-// (applyChargeTick, ported line-for-line from autoBattleEngine.js's
-// applyAncientCharge - same log phrasing, same stagger/tick/payoff shape,
-// minus the stun-holds-the-count branch this engine has no status system
-// for yet). Also: GRID doubled from 5x7 to 7x10 (Marc: "taistelukenttä saa
-// olla isompi") - every formation's row spread re-centered on the taller
-// grid; no synthetic-state check below depends on the real GRID/row
-// constants (each builds its own literal grid), so this needed zero test
-// changes beyond this comment. FOLLOW-UP FIX (same session, Marc's
-// feedback: "vihollisen intend pitää näyttää area of effect. ancientin
-// hyökkäys ei näy ja sen rajat pitäisi näkyä"): the charge payoff had NO
-// visual telegraph at all beyond the plain countdown number - a new
-// previewChargeThreat(state) dry-runs applyChargeTick (the same
-// provably-accurate discipline as previewEnemyIntents) so the UI can mark
-// every player cell the payoff will hit (reusing the existing
+// fix/hearthwood-tactics-charge-telegraph, then feat/hearthwood-tactics-
+// coven): The Ancients archetype ("ancients" / "The Ancient Grove") - 2x
+// Sapling Attendant + 1x Ancient Oak, real HP/attack numbers, a telegraphed
+// countdown to ONE big AoE hit (applyChargeTick, ported line-for-line from
+// autoBattleEngine.js's applyAncientCharge - same log phrasing, same
+// stagger/tick/payoff shape, minus the stun-holds-the-count branch this
+// engine has no status system for yet). Also: GRID doubled from 5x7 to 7x10
+// (Marc: "taistelukenttä saa olla isompi") - every formation's row spread
+// re-centered on the taller grid; no synthetic-state check below depends on
+// the real GRID/row constants (each builds its own literal grid), so this
+// needed zero test changes beyond this comment. FOLLOW-UP FIX (same
+// session, Marc's feedback: "vihollisen intend pitää näyttää area of
+// effect. ancientin hyökkäys ei näy ja sen rajat pitäisi näkyä"): the
+// charge payoff had NO visual telegraph at all beyond the plain countdown
+// number - a new previewChargeThreat(state) dry-runs applyChargeTick (the
+// same provably-accurate discipline as previewEnemyIntents) so the UI can
+// mark every player cell the payoff will hit (reusing the existing
 // data-threatened ember ring) and flip the charging enemy's own badge to
-// "⚡!" the turn it's about to land. Layered onto Phase 1's isolated
-// grid-combat prototype, Phase 2's full AP/ability/telegraph/cooldown
-// economy, and Phase 3's Swarm + Fortress + Hunters archetypes. Still no
-// runEngine.js/autoBattleEngine.js/save-state touch. There is no headless
-// engine call to substitute for verification - this IS the interactive
-// surface, so the script drives the actual rendered UI exactly the way
-// Marc would click through it.
+// "⚡!" the turn it's about to land. THE COVEN ARCHETYPE ("coven" / "The
+// Conclave") - Bog Devotee + Hex Acolyte + Coven Matron, real HP/attack
+// numbers, a per-round applyCovenTick (ported from autoBattleEngine.js's
+// own applyCovenTick) that buffs every OTHER living enemy's attack by the
+// Matron's real covenAura amount each round - killing the Matron stops it
+// for free. A new baseAttack snapshot (taken once at battle start) lets
+// the UI show a growing "▲N" badge on any buffed unit, so the mechanic is
+// visible the same round it ships (not a repeat of the Ancients' telegraph
+// gap). Layered onto Phase 1's isolated grid-combat prototype, Phase 2's
+// full AP/ability/telegraph/cooldown economy, and Phase 3's Swarm +
+// Fortress + Hunters + Ancients archetypes. Still no runEngine.js/
+// autoBattleEngine.js/save-state touch. There is no headless engine call
+// to substitute for verification - this IS the interactive surface, so
+// the script drives the actual rendered UI exactly the way Marc would
+// click through it.
 
-const PORT = process.env.PORT || 5389
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-charge-fix/.scratch/shots"
+const PORT = process.env.PORT || 5390
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-coven/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1068,10 +1076,124 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// The Coven archetype (feat/hearthwood-tactics-coven). Every new check
+// gets its own fresh page from the start (the established anti-hang
+// discipline).
+// ---------------------------------------------------------------
+
+// 35. The Conclave ("coven") - real composition: Bog Devotee + Hex
+//     Acolyte + Coven Matron, 3 living player tokens ---------------------
+{
+  const page35 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page35.on("pageerror", (e) => errs.push(String(e)))
+  await page35.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page35.waitForSelector(".hwt-board")
+  await page35.locator(".hwt-formation-btn", { hasText: "The Conclave" }).click()
+  await page35.waitForTimeout(300)
+  const enemyNames = await page35.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page35.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  await page35.close()
+  const enemyCountOk = ["Bog Devotee", "Hex Acolyte", "Coven Matron"].every((n) => enemyNames.includes(n))
+  out.covenFormation = { enemyNames, playerNames }
+  if (!(enemyCountOk && enemyNames.length === 3 && playerNames.length === 3)) {
+    out.errors.push("check35 Conclave formation composition was wrong")
+  }
+}
+
+// 36. The buff lands every round, on everyone but itself - a passive
+//     End-Turn loop: the log narrates it, the buffed pieces show a
+//     growing "▲N" badge, the Matron itself shows none ------------------
+{
+  const page36 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page36.on("pageerror", (e) => errs.push(String(e)))
+  await page36.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page36.waitForSelector(".hwt-board")
+  await page36.locator(".hwt-formation-btn", { hasText: "The Conclave" }).click()
+  await page36.waitForTimeout(300)
+  for (let i = 0; i < 3; i++) {
+    await page36.locator(".hwt-end-turn").click().catch(() => {})
+    await page36.waitForTimeout(400)
+    const phase = await page36.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase === "lost" || phase === "won") break
+  }
+  const logText = await page36.locator(".hwt-log").innerText()
+  const empowersLogged = /empowers the pack\./.test(logText)
+  const devoteeBadge = await page36
+    .locator(".hwt-token", { hasText: "Bog Devotee" })
+    .locator(".hwt-strength-badge")
+    .innerText()
+    .catch(() => null)
+  const matronBadgeCount = await page36
+    .locator(".hwt-token", { hasText: "Coven Matron" })
+    .locator(".hwt-strength-badge")
+    .count()
+  await page36.close()
+  out.covenBuffVisible = { empowersLogged, devoteeBadge, matronBadgeCount }
+  if (!(empowersLogged && devoteeBadge && /^▲\d+$/.test(devoteeBadge) && matronBadgeCount === 0)) {
+    out.errors.push("check36 the coven's per-round buff was not narrated/visible, or the Matron wrongly buffed itself")
+  }
+}
+
+// 37. Exact per-round amount - a deterministic page.evaluate proof: one
+//     endPlayerTurn on a fresh Conclave battle raises every OTHER living
+//     enemy's attack by exactly the real covenAura.amount (1), and never
+//     the Matron's own ------------------------------------------------
+{
+  const page37 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page37.on("pageerror", (e) => errs.push(String(e)))
+  await page37.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page37.waitForSelector(".hwt-board")
+  const result = await page37.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const before = createTacticsBattle("coven")
+    const after = endPlayerTurn(before)
+    const byId = (state, defId) => state.units.find((u) => u.defId === defId)
+    return {
+      devoteeDelta: byId(after, "bog-devotee").attack - byId(before, "bog-devotee").attack,
+      acolyteDelta: byId(after, "hex-acolyte").attack - byId(before, "hex-acolyte").attack,
+      matronDelta: byId(after, "coven-matron").attack - byId(before, "coven-matron").attack,
+    }
+  })
+  await page37.close()
+  out.covenExactAmount = result
+  if (!(result.devoteeDelta === 1 && result.acolyteDelta === 1 && result.matronDelta === 0)) {
+    out.errors.push("check37 the coven's per-round buff amount was not exactly the real covenAura.amount, or hit the Matron itself")
+  }
+}
+
+// 38. Killing the Matron stops it - a deterministic page.evaluate proof:
+//     hand-zero its hp, call endPlayerTurn a few times, assert no other
+//     enemy's attack ever changes and no "empowers" log line appears ----
+{
+  const page38 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page38.on("pageerror", (e) => errs.push(String(e)))
+  await page38.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page38.waitForSelector(".hwt-board")
+  const result = await page38.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("coven")
+    const killed = { ...base, units: base.units.map((u) => (u.defId === "coven-matron" ? { ...u, hp: 0 } : u)) }
+    let state = killed
+    for (let i = 0; i < 3; i++) state = endPlayerTurn(state)
+    const byId = (s, defId) => s.units.find((u) => u.defId === defId)
+    return {
+      devoteeAttack: byId(state, "bog-devotee").attack,
+      baseDevoteeAttack: byId(base, "bog-devotee").attack,
+      logHasEmpowers: state.log.some((l) => l.includes("empowers the pack")),
+    }
+  })
+  await page38.close()
+  out.covenKillStopsIt = result
+  if (!(result.devoteeAttack === result.baseDevoteeAttack && !result.logHasEmpowers)) {
+    out.errors.push("check38 a dead Coven Matron still buffed the pack")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (AoE charge telegraph) PASS" : "\n❌ verify_tactics_prototype (AoE charge telegraph) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (The Coven archetype) PASS" : "\n❌ verify_tactics_prototype (The Coven archetype) FAIL")
 process.exit(pass ? 0 : 1)
