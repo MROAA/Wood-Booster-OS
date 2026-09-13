@@ -75,14 +75,32 @@ import { mkdir } from "node:fs/promises"
 // applyCovenTick/applyCultTick/applyChargeTick already use. No cleanse
 // ability exists on any player unit in this engine - a named, pre-
 // existing limitation, not a new one; burst and the existing Regrowth
-// heal remain real working answers. Still no runEngine.js/
+// heal remain real working answers. THE COLLECTORS ARCHETYPE ("collectors"
+// / "The Tithe") - 2x Hoardling + 1x Tithe-Warden, real HP/attack/leech
+// numbers ported from enemies.js/formations.js directly - the LAST of
+// the 9 real auto-battler archetypes. A new grantStrengthOnKill gives
+// every player unit +1 permanent attack on a killing blow (reusing the
+// already-computed `fell` flag Brood's spawn hook also reads) - the
+// "something worth stealing" this archetype needs, and the SAME
+// attack-above-baseAttack shape the Coven round's generic hwt-strength-
+// badge already renders for any unit, so zero UI changes were needed.
+// A new applyLeechOnHit (ported from effects.js's own leech()) steals
+// exactly 1 point of that earned bonus on a landed hit (remaining > 0,
+// mirroring the real onDealDamage's overflow > 0 gate) and hands it to
+// the thief, or logs "finds nothing worth taking" if there's none -
+// deliberately targets `attack`, never Block, since a hit that overflows
+// Block has already zeroed it within that same hit's own absorb-then-
+// deplete math, so Block would never have anything left to steal by the
+// time a leech check could run. No Sunder-equivalent answer exists in
+// this engine - a named, pre-existing limitation; bursting the Collectors
+// down fast remains the real working answer. Still no runEngine.js/
 // autoBattleEngine.js/save-state touch. There is no headless engine call
 // to substitute for verification - this IS the interactive surface, so
 // the script drives the actual rendered UI exactly the way Marc would
 // click through it.
 
-const PORT = process.env.PORT || 5393
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-rot/.scratch/shots"
+const PORT = process.env.PORT || 5394
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-collectors/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1645,10 +1663,155 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// The Collectors archetype (feat/hearthwood-tactics-collectors), the
+// LAST of the 9 real auto-battler archetypes. Every new check gets its
+// own fresh page from the start (the established anti-hang discipline).
+// ---------------------------------------------------------------
+
+// 51. The Tithe ("collectors") - real composition: 2x Hoardling + 1x
+//     Tithe-Warden, 3 living player tokens -----------------------------
+{
+  const page51 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page51.on("pageerror", (e) => errs.push(String(e)))
+  await page51.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page51.waitForSelector(".hwt-board")
+  await page51.locator(".hwt-formation-btn", { hasText: "The Tithe" }).click()
+  await page51.waitForTimeout(300)
+  const enemyNames = await page51.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page51.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  await page51.close()
+  const compositionOk =
+    enemyNames.filter((n) => n === "Hoardling").length === 2 && enemyNames.filter((n) => n === "Tithe-Warden").length === 1
+  out.collectorsFormation = { enemyNames, playerNames }
+  if (!(compositionOk && playerNames.length === 3)) {
+    out.errors.push("check51 The Tithe formation composition was wrong")
+  }
+}
+
+// 52. A player unit's attack grows by exactly 1 on a killing blow, and
+//     it's narrated - reuses the already-computed `fell` flag; the
+//     visible ▲{delta} badge itself is the Coven round's existing
+//     component (already covered by checks 36-38), unchanged here -----
+{
+  const page52 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page52.on("pageerror", (e) => errs.push(String(e)))
+  await page52.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page52.waitForSelector(".hwt-board")
+  const result = await page52.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("collectors")
+    const attackerId = base.units.find((u) => u.side === "player").id
+    const victimId = base.units.find((u) => u.side === "enemy").id
+    const state = {
+      ...base,
+      units: base.units.map((u) => {
+        if (u.id === attackerId) return { ...u, pos: { row: 2, col: 1 } }
+        if (u.id === victimId) return { ...u, hp: 1, pos: { row: 2, col: 0 } }
+        return u
+      }),
+    }
+    const attackBefore = state.units.find((u) => u.id === attackerId).attack
+    const after = attackUnit(state, attackerId, victimId)
+    const attacker = after.units.find((u) => u.id === attackerId)
+    return { attackBefore, attackAfter: attacker.attack, grewLogged: after.log.some((l) => l.includes("grows stronger")) }
+  })
+  await page52.close()
+  out.collectorsGrantOnKill = result
+  if (!(result.attackAfter === result.attackBefore + 1 && result.grewLogged)) {
+    out.errors.push("check52 a player kill did not grant +1 permanent attack, or was not narrated")
+  }
+}
+
+// 53. Leech steals exactly 1 point of an earned attack bonus on a landed
+//     hit, visible on both sides (victim shrinks, thief grows) ---------
+{
+  const page53 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page53.on("pageerror", (e) => errs.push(String(e)))
+  await page53.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page53.waitForSelector(".hwt-board")
+  const result = await page53.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("collectors")
+    const thiefId = base.units.find((u) => u.side === "enemy").id
+    const victimId = base.units.find((u) => u.side === "player").id
+    const state = {
+      ...base,
+      phase: "enemy",
+      units: base.units.map((u) => {
+        if (u.id === thiefId) return { ...u, pos: { row: 2, col: 1 } }
+        if (u.id === victimId) return { ...u, hp: 40, maxHp: 40, block: 0, attack: u.baseAttack + 2, pos: { row: 2, col: 0 } }
+        return u
+      }),
+    }
+    const thiefAttackBefore = state.units.find((u) => u.id === thiefId).attack
+    const after = attackUnit(state, thiefId, victimId)
+    const victim = after.units.find((u) => u.id === victimId)
+    const thief = after.units.find((u) => u.id === thiefId)
+    return {
+      victimAttackAfter: victim.attack,
+      victimBaseAttack: victim.baseAttack,
+      thiefAttackBefore,
+      thiefAttackAfter: thief.attack,
+      leechLogged: after.log.some((l) => l.includes("takes a stack of Strength from")),
+    }
+  })
+  await page53.close()
+  out.collectorsLeech = result
+  if (
+    !(
+      result.victimAttackAfter === result.victimBaseAttack + 1 &&
+      result.thiefAttackAfter === result.thiefAttackBefore + 1 &&
+      result.leechLogged
+    )
+  ) {
+    out.errors.push("check53 leech did not steal exactly 1 point of the earned attack bonus")
+  }
+}
+
+// 54. Nothing to steal, honestly logged - a player unit sitting exactly
+//     at baseAttack is a clean no-op (never dips below baseAttack) ----
+{
+  const page54 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page54.on("pageerror", (e) => errs.push(String(e)))
+  await page54.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page54.waitForSelector(".hwt-board")
+  const result = await page54.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("collectors")
+    const thiefId = base.units.find((u) => u.side === "enemy").id
+    const victimId = base.units.find((u) => u.side === "player").id
+    const state = {
+      ...base,
+      phase: "enemy",
+      units: base.units.map((u) => {
+        if (u.id === thiefId) return { ...u, pos: { row: 2, col: 1 } }
+        if (u.id === victimId) return { ...u, hp: 40, maxHp: 40, block: 0, pos: { row: 2, col: 0 } }
+        return u
+      }),
+    }
+    const victimAttackBefore = state.units.find((u) => u.id === victimId).attack
+    const thiefAttackBefore = state.units.find((u) => u.id === thiefId).attack
+    const after = attackUnit(state, thiefId, victimId)
+    const victim = after.units.find((u) => u.id === victimId)
+    const thief = after.units.find((u) => u.id === thiefId)
+    return {
+      victimAttackUnchanged: victim.attack === victimAttackBefore,
+      thiefAttackUnchanged: thief.attack === thiefAttackBefore,
+      nothingLogged: after.log.some((l) => l.includes("finds nothing worth taking")),
+    }
+  })
+  await page54.close()
+  out.collectorsNoSteal = result
+  if (!(result.victimAttackUnchanged && result.thiefAttackUnchanged && result.nothingLogged)) {
+    out.errors.push("check54 a leech attempt with nothing to steal was not a clean no-op, or was not honestly logged")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (The Rot archetype) PASS" : "\n❌ verify_tactics_prototype (The Rot archetype) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (The Collectors archetype) PASS" : "\n❌ verify_tactics_prototype (The Collectors archetype) FAIL")
 process.exit(pass ? 0 : 1)

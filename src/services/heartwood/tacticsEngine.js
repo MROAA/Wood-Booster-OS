@@ -183,6 +183,16 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 1,
   },
+  collectors: {
+    id: "collectors",
+    name: "The Tithe",
+    description: "Two quick hands and one patient one. They will leave with more than they came with.",
+    enemyDefIds: ["hoardling", "tithe-warden", "hoardling"],
+    rows: [2, 3, 4],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -243,6 +253,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   const cultFodder = side === "enemy" ? !!def.cultFodder : false
   const broodSplit = side === "enemy" ? def.broodSplit || null : null
   const poisonOnHit = side === "enemy" ? poisonFromMovePattern(def.movePattern) : 0
+  const leech = side === "enemy" ? !!def.leech : false
   return {
     id: uid,
     side,
@@ -272,6 +283,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     broodGen: 0,
     poison: 0,
     poisonOnHit,
+    leech,
   }
 }
 
@@ -430,6 +442,47 @@ function trySpawnBrood(state, victimId) {
   return next
 }
 
+// The Collectors' "something worth stealing" - a permanent +1 attack for
+// every player unit that lands a killing blow, reusing the SAME `fell`
+// flag Brood's spawn hook already reads. This is deliberately generic
+// (not gated on which formation is live): every fight in this prototype
+// now has a small earned "my squad hits harder as it clears the field"
+// arc, and it's the exact `attack`-above-`baseAttack` shape the Coven
+// round's `▲{delta}` badge already renders for ANY unit, player or
+// enemy, with zero UI changes needed here.
+function grantStrengthOnKill(state, actorId, fell) {
+  if (!fell) return state
+  const actor = getUnit(state, actorId)
+  const next = setUnit(state, actorId, { attack: actor.attack + 1 })
+  return { ...next, log: [...next.log, `${actor.name} grows stronger.`] }
+}
+
+// The Collectors' real mechanic (effects.js's own leech(), ported into
+// this engine's vocabulary): a landed hit (remaining > 0 - the real
+// game's onDealDamage fires only on `overflow > 0`, never on a fully
+// blocked swing) steals exactly 1 point of the target's EARNED attack
+// bonus (the same attack-above-baseAttack Strength the kill-grant above
+// creates) and hands it to the thief - never below the target's real
+// baseAttack, matching the real LEECHABLE_IDS check's "nothing worth
+// taking" floor exactly. Deliberately targets `attack`, not Block: a hit
+// that overflows Block has already driven the target's Block to 0
+// within that SAME hit's own absorb-then-deplete math, so there would
+// never be anything left to steal there - `attack` is untouched by that
+// math, the correct analog to the real game's Strength/Bulwark/Ward/
+// Regen/Evade stacks (all independent of the hit's own Block outcome).
+function applyLeechOnHit(state, thiefId, targetId, remaining) {
+  if (remaining <= 0) return state
+  const thief = getUnit(state, thiefId)
+  if (!thief.leech) return state
+  const target = getUnit(state, targetId)
+  if (!(target.attack > target.baseAttack)) {
+    return { ...state, log: [...state.log, `${thief.name} finds nothing worth taking.`] }
+  }
+  let next = setUnit(state, targetId, { attack: target.attack - 1 })
+  next = setUnit(next, thiefId, { attack: thief.attack + 1 })
+  return { ...next, log: [...next.log, `${thief.name} takes a stack of Strength from ${target.name}.`] }
+}
+
 export function attackUnit(state, actorId, targetId) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
@@ -452,6 +505,8 @@ export function attackUnit(state, actorId, targetId) {
     next = setUnit(next, targetId, { poison: (poisoned.poison || 0) + actor.poisonOnHit })
     next = { ...next, log: [...next.log, `${target.name} is poisoned (+${actor.poisonOnHit}).`] }
   }
+  if (actor.side === "player") next = grantStrengthOnKill(next, actorId, fell)
+  if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
   return checkTacticsBattleEnd(next)
 }
@@ -499,6 +554,7 @@ export function castAbility(state, actorId, targetId) {
     const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
     const fellNote = fell ? " It falls." : ""
     next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}`] }
+    next = grantStrengthOnKill(next, actorId, fell)
     if (fell) next = trySpawnBrood(next, target.id)
     return checkTacticsBattleEnd(next)
   }
