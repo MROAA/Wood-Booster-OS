@@ -224,6 +224,14 @@ export default function HeartwoodTactics() {
                     {chargeFiringIds.has(unit.id) ? "⚡!" : `⚡${unit.chargeCounter}`}
                   </span>
                 )}
+                {unit.attack > unit.baseAttack && (
+                  <span
+                    className="hwt-strength-badge"
+                    title={`+${unit.attack - unit.baseAttack} Strength from the coven`}
+                  >
+                    ▲{unit.attack - unit.baseAttack}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />

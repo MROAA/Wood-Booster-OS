@@ -138,6 +138,15 @@ export const ENEMY_FORMATIONS = {
     battleStartBonus: 0,
     fortressBlock: 0,
   },
+  coven: {
+    id: "coven",
+    name: "The Conclave",
+    description: "Two of them stand ready, and behind them a third that only ever moves its lips.",
+    enemyDefIds: ["bog-devotee", "hex-acolyte", "coven-matron"],
+    rows: [2, 3, 4],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -177,8 +186,10 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   const def = side === "enemy" ? ENEMIES[defId] : UNITS[defId]
   const maxHp = def.maxHp
   // The Ancients archetype's real def already carries `charge` - reused
-  // directly (see ENEMY_FORMATIONS's comment), never reinvented.
+  // directly (see ENEMY_FORMATIONS's comment), never reinvented. The
+  // Coven's real def carries `covenAura` the same way.
   const charge = side === "enemy" ? def.charge || null : null
+  const covenAura = side === "enemy" ? def.covenAura || null : null
   return {
     id: uid,
     side,
@@ -200,6 +211,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     charge,
     chargeCounter: charge ? charge.turns : 0,
     chargeHpMark: maxHp,
+    covenAura,
   }
 }
 
@@ -222,9 +234,14 @@ export function createTacticsBattle(formationId = "default") {
   const withBonus = bonus
     ? units.map((u) => (u.side === "enemy" ? { ...u, attack: u.attack + bonus } : u))
     : units
+  // A one-time snapshot of each unit's attack once battle-start bonuses
+  // are applied - the reference point the UI's coven-buff badge compares
+  // against (attack > baseAttack), so only a PER-ROUND buff like the
+  // Coven's ever shows as growing, not a formation's one-time grant.
+  const withBaseline = withBonus.map((u) => ({ ...u, baseAttack: u.attack }))
   return {
     grid: GRID,
-    units: withBonus,
+    units: withBaseline,
     phase: "player",
     turn: 1,
     log: [`${formation.name}. The Frontier opens. Your turn.`],
@@ -378,6 +395,31 @@ export function castAbility(state, actorId, targetId) {
 // bracing with Block/Bulwark Aura already mitigates the payoff for free,
 // since it routes through the same applyDamageWithBlock every other
 // attack in this engine already uses.
+// The Coven's real mechanic (autoBattleEngine.js's own applyCovenTick,
+// ported into this engine's vocabulary): a caster behind the front line
+// buffs EVERY OTHER living enemy each round - not itself, not adjacency-
+// gated. The real game's `applyBuff strength` becomes a flat `attack +=
+// amount` here, the same translation `battleStartBonus` already uses for
+// the Swarm/Hunters' one-time grants - this is just the per-round version
+// of the identical idea. Killing the caster stops it for free: it's
+// simply no longer in livingUnits the next time this runs. Narrated every
+// round it fires (the exact "don't ship an invisible mechanic" lesson
+// from the Ancients' charge-telegraph fix) - the growing attack itself is
+// also made visible via the baseAttack snapshot + the UI's badge.
+function applyCovenTick(state) {
+  let next = state
+  for (const caster of livingUnits(state, "enemy")) {
+    const aura = caster.covenAura
+    if (!aura) continue
+    for (const other of livingUnits(next, "enemy")) {
+      if (other.id === caster.id) continue
+      next = setUnit(next, other.id, { attack: other.attack + aura.amount })
+    }
+    next = { ...next, log: [...next.log, `${caster.name} empowers the pack.`] }
+  }
+  return next
+}
+
 function applyChargeTick(state) {
   let next = state
   for (const enemy of livingUnits(next, "enemy")) {
@@ -440,7 +482,10 @@ export function previewChargeThreat(state) {
 
 export function endPlayerTurn(state) {
   if (state.phase !== "player") return state
-  const ticked = applyChargeTick(state)
+  // applyCovenTick never touches hp, so it can't end the battle - no
+  // phase guard needed for it specifically, unlike the charge tick below.
+  const covened = applyCovenTick(state)
+  const ticked = applyChargeTick(covened)
   if (ticked.phase !== "player") return ticked
   // Enemy AP resets here (symmetry/future-proofing - enemies still just
   // move/attack every turn this round, so this is mostly inert today).
