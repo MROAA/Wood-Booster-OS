@@ -412,6 +412,32 @@ function applyChargeTick(state) {
   return next
 }
 
+// The player-facing charge telegraph: will the Ancients' payoff land if
+// the player ends their turn right now, and who does it hit. A REAL dry
+// run of applyChargeTick on a scratch copy (never the real state) - not a
+// second, parallel re-derivation of its stagger/tick/payoff conditions -
+// so this can never drift out of sync with what actually happens, the
+// exact same discipline previewEnemyIntents uses for the move/attack
+// telegraph. Compares player HP before/after to find who got hit (the
+// payoff is the only thing in applyChargeTick that ever touches player
+// HP), then reads back which charging enemy was one tick from firing.
+// Single-charger assumption: today only one enemy per formation ever
+// carries `charge`, so "a payoff happened" -> "the enemy at counter 1
+// fired it" is unambiguous; a future multi-charger formation would need
+// a per-enemy fired/staggered signal instead of this global one.
+export function previewChargeThreat(state) {
+  if (!state.units.some((u) => u.side === "enemy" && u.hp > 0 && u.charge)) return { enemyIds: [], playerIds: [] }
+  const beforeHp = new Map(state.units.filter((u) => u.side === "player").map((u) => [u.id, u.hp]))
+  const after = applyChargeTick(state)
+  const playerIds = after.units
+    .filter((u) => u.side === "player" && beforeHp.has(u.id) && u.hp < beforeHp.get(u.id))
+    .map((u) => u.id)
+  const enemyIds = playerIds.length
+    ? state.units.filter((u) => u.side === "enemy" && u.hp > 0 && u.charge && u.chargeCounter === 1).map((u) => u.id)
+    : []
+  return { enemyIds, playerIds }
+}
+
 export function endPlayerTurn(state) {
   if (state.phase !== "player") return state
   const ticked = applyChargeTick(state)

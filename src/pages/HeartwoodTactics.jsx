@@ -19,6 +19,7 @@ import {
   endPlayerTurn,
   withLowEnemyHp,
   previewEnemyIntents,
+  previewChargeThreat,
   ENEMY_FORMATIONS,
 } from "../services/heartwood/tacticsEngine"
 import "../components/heartwood/heartwood.css"
@@ -85,6 +86,16 @@ export default function HeartwoodTactics() {
     }
     return ids
   }, [intents])
+  // Same idea, for the Ancients' telegraphed AoE: whether ending the turn
+  // right now lands the payoff, and on whom. Distinct from the per-target
+  // intent above since a charge payoff hits every living player unit at
+  // once, not a single chosen target.
+  const chargeThreat = useMemo(
+    () => (battle.phase === "player" ? previewChargeThreat(battle) : { enemyIds: [], playerIds: [] }),
+    [battle],
+  )
+  const chargeThreatenedIds = useMemo(() => new Set(chargeThreat.playerIds), [chargeThreat])
+  const chargeFiringIds = useMemo(() => new Set(chargeThreat.enemyIds), [chargeThreat])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
@@ -162,7 +173,7 @@ export default function HeartwoodTactics() {
       const reach = selected && isReachable(row, col)
       const target = selected && targetHere(row, col)
       const healTarget = selected && healableHere(row, col)
-      const threatened = unit && unit.side === "player" && threatenedIds.has(unit.id)
+      const threatened = unit && unit.side === "player" && (threatenedIds.has(unit.id) || chargeThreatenedIds.has(unit.id))
       const intent = unit && unit.side === "enemy" ? intentByEnemyId.get(unit.id) : null
       cells.push(
         <div
@@ -203,9 +214,14 @@ export default function HeartwoodTactics() {
                 {unit.charge && (
                   <span
                     className="hwt-charge-badge"
-                    title={`Charging ${unit.charge.label} - ${unit.chargeCounter} turn(s) to the hit`}
+                    data-imminent={chargeFiringIds.has(unit.id)}
+                    title={
+                      chargeFiringIds.has(unit.id)
+                        ? `${unit.charge.label} lands on the whole squad this turn!`
+                        : `Charging ${unit.charge.label} - ${unit.chargeCounter} turn(s) to the hit`
+                    }
                   >
-                    ⚡{unit.chargeCounter}
+                    {chargeFiringIds.has(unit.id) ? "⚡!" : `⚡${unit.chargeCounter}`}
                   </span>
                 )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
