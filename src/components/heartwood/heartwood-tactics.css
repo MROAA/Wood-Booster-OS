@@ -180,6 +180,10 @@
   font-size: 7px;
   color: var(--hw-rune);
 }
+.hwt-charge-badge {
+  font-size: 7px;
+  color: var(--hw-ember);
+}
 
 /* The enemy intent telegraph - what this enemy plans to do this coming
    enemy phase, visible during the player's own turn. */

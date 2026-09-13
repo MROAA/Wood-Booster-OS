@@ -200,6 +200,14 @@ export default function HeartwoodTactics() {
                     ⏳{unit.cooldownRemaining}
                   </span>
                 )}
+                {unit.charge && (
+                  <span
+                    className="hwt-charge-badge"
+                    title={`Charging ${unit.charge.label} - ${unit.chargeCounter} turn(s) to the hit`}
+                  >
+                    ⚡{unit.chargeCounter}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />

@@ -28,7 +28,10 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 
-export const GRID = { rows: 5, cols: 7 }
+// Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
+// Doubled the tile count (35 -> 70) for real maneuvering room; every
+// formation's row spread below is re-centered on the taller grid.
+export const GRID = { rows: 7, cols: 10 }
 
 // Phase 2 ("jatketaan" -> "AP + one real ability per unit"). Every unit now
 // spends a shared Action Point budget instead of the old free "one move +
@@ -64,10 +67,10 @@ const ABILITIES = {
 
 // The player roster (real names/art/HP; move/range/attack are DERIVED below
 // from the unit's actual movePattern/attackPattern, not invented). Player
-// always starts at the right edge, rows 1/2/3, col 6 - unaffected by which
-// enemy formation is chosen below.
+// always starts at the right edge, rows 2/3/4, col GRID.cols-1 - unaffected
+// by which enemy formation is chosen below.
 const PLAYER_DEF_IDS = ["bulwark-of-ages", "the-fool", "hexbreaker"]
-const START_ROWS = [1, 2, 3]
+const START_ROWS = [2, 3, 4]
 
 // Phase 3's first slice ("jatketaan" -> "1-2 more enemy archetypes"): two
 // of the 9 shipped auto-battler archetypes, ported with their REAL ids/HP/
@@ -95,7 +98,7 @@ export const ENEMY_FORMATIONS = {
     name: "The Frontier Test Squad",
     description: "The roster this Frontier opened with - a wall, a claw, and a hoard.",
     enemyDefIds: ["ironmaw", "sapling-attendant", "hoardling"],
-    rows: [1, 2, 3],
+    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
   },
@@ -104,7 +107,7 @@ export const ENEMY_FORMATIONS = {
     name: "The Brood",
     description: "Not one thing to fight. A dozen small ones, and every one of them is still a mouth.",
     enemyDefIds: ["sporelet", "mire-gnat", "sporelet", "mire-gnat"],
-    rows: [0, 1, 2, 3],
+    rows: [1, 2, 3, 4],
     battleStartBonus: 1,
     fortressBlock: 0,
   },
@@ -113,7 +116,7 @@ export const ENEMY_FORMATIONS = {
     name: "The Bulwark",
     description: "Two wardens shoulder to shoulder, and a mender behind them stitching every crack shut before you can widen it.",
     enemyDefIds: ["oakshell-warden", "oakshell-warden", "mossmender"],
-    rows: [1, 2, 3],
+    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 3,
   },
@@ -122,8 +125,17 @@ export const ENEMY_FORMATIONS = {
     name: "The Pack",
     description: "Three of them, low and fast, already circling the one of you that looks tired.",
     enemyDefIds: ["fen-stalker", "pack-runner", "fen-stalker"],
-    rows: [1, 2, 3],
+    rows: [2, 3, 4],
     battleStartBonus: 2,
+    fortressBlock: 0,
+  },
+  ancients: {
+    id: "ancients",
+    name: "The Ancient Grove",
+    description: "Two small things moving fast, and behind them one that has not moved yet, and is about to.",
+    enemyDefIds: ["sapling-attendant", "ancient-oak", "sapling-attendant"],
+    rows: [2, 3, 4],
+    battleStartBonus: 0,
     fortressBlock: 0,
   },
 }
@@ -164,6 +176,9 @@ function moveFromMaxHp(maxHp) {
 function deriveTacticsUnit(defId, side, pos, uid) {
   const def = side === "enemy" ? ENEMIES[defId] : UNITS[defId]
   const maxHp = def.maxHp
+  // The Ancients archetype's real def already carries `charge` - reused
+  // directly (see ENEMY_FORMATIONS's comment), never reinvented.
+  const charge = side === "enemy" ? def.charge || null : null
   return {
     id: uid,
     side,
@@ -182,6 +197,9 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     block: 0,
     ability: side === "player" ? ABILITIES[defId] || null : null,
     cooldownRemaining: 0,
+    charge,
+    chargeCounter: charge ? charge.turns : 0,
+    chargeHpMark: maxHp,
   }
 }
 
@@ -343,8 +361,61 @@ export function castAbility(state, actorId, targetId) {
   return state
 }
 
+// The Ancients archetype's real mechanic (autoBattleEngine.js's own
+// applyAncientCharge, ported line-for-line into this engine's vocabulary -
+// same log phrasing, same stagger/tick/payoff shape): a slow enemy winds up
+// ONE telegraphed hit over `charge.turns` rounds. Runs at the exact point
+// the player's turn ends (so a kill or a heavy hit the player JUST landed
+// pre-empts this round's tick), mirroring the real timing (between the
+// player and enemy phases).
+//
+// Not ported: the real mechanic's `stun`-holds-the-count branch - this
+// engine has no stun/status system yet, a named deferral (see the round's
+// plan), not a silent drop. The other three real answers still work as
+// designed: killing the charging enemy simply removes it from
+// livingUnits, so the tick loop never reaches it; a heavy round of damage
+// (>= breakDamage since the last tick) staggers it back to full; and
+// bracing with Block/Bulwark Aura already mitigates the payoff for free,
+// since it routes through the same applyDamageWithBlock every other
+// attack in this engine already uses.
+function applyChargeTick(state) {
+  let next = state
+  for (const enemy of livingUnits(next, "enemy")) {
+    if (!enemy.charge) continue
+    const live = getUnit(next, enemy.id)
+    if (!live || live.hp <= 0) continue
+    const { charge } = live
+    if (live.chargeHpMark - live.hp >= charge.breakDamage) {
+      next = setUnit(next, enemy.id, { chargeCounter: charge.turns, chargeHpMark: live.hp })
+      next = { ...next, log: [...next.log, `${live.name} staggers - the ${charge.label} unravels.`] }
+      continue
+    }
+    const nextCounter = live.chargeCounter - 1
+    if (nextCounter > 0) {
+      next = setUnit(next, enemy.id, { chargeCounter: nextCounter, chargeHpMark: live.hp })
+      next = { ...next, log: [...next.log, `${live.name} draws breath - ${charge.label} in ${nextCounter}.`] }
+      continue
+    }
+    next = { ...next, log: [...next.log, `${live.name} unleashes ${charge.label}!`] }
+    const amount = charge.effect.find((e) => e.type === "damage")?.amount || 0
+    for (const p of livingUnits(next, "player")) {
+      const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, p.id, amount)
+      next = hit
+      const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
+      const fellNote = fell ? " It falls." : ""
+      next = { ...next, log: [...next.log, `${p.name} takes ${remaining}.${absorbedNote}${fellNote}`] }
+    }
+    next = checkTacticsBattleEnd(next)
+    if (next.phase !== "player") return next
+    next = setUnit(next, enemy.id, { chargeCounter: charge.turns, chargeHpMark: live.hp })
+  }
+  return next
+}
+
 export function endPlayerTurn(state) {
   if (state.phase !== "player") return state
+  const ticked = applyChargeTick(state)
+  if (ticked.phase !== "player") return ticked
   // Enemy AP resets here (symmetry/future-proofing - enemies still just
   // move/attack every turn this round, so this is mostly inert today).
   // The Fortress's real synergy ("The wall holds firm" - a flat +3 Block
@@ -355,10 +426,10 @@ export function endPlayerTurn(state) {
   // re-applies this round's grant" - the real mechanic, no separate reset.
   const fortressBlock = ENEMY_FORMATIONS[state.formationId]?.fortressBlock || 0
   const next = {
-    ...state,
+    ...ticked,
     phase: "enemy",
-    units: state.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock } : u)),
-    log: [...state.log, "Enemy turn."],
+    units: ticked.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock } : u)),
+    log: [...ticked.log, "Enemy turn."],
   }
   return runEnemyTurn(next)
 }

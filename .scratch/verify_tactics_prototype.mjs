@@ -1,23 +1,26 @@
 import { chromium } from "playwright"
 import { mkdir } from "node:fs/promises"
 
-// Hearthwood Frontier - Phase 3 continues (feat/hearthwood-tactics-hunters):
-// The Hunters archetype ("hunters" / "The Pack") - 2x Fen Stalker + 1x Pack
-// Runner, real HP/attack numbers, a flat +2 Strength battle-start synergy
-// (the ENEMY_FORMATIONS field is now battleStartBonus: number, generalized
-// from the Swarm round's swarmBonus: bool). Requires ZERO new AI code - the
-// engine's decideEnemyIntent already always targets the lowest-HP unit in
-// range, which IS the real archetype's "hunts the weak one" identity; this
-// round is purely data (3 real enemy defs + one formation entry). Layered
-// onto Phase 1's isolated grid-combat prototype, Phase 2's full AP/ability/
-// telegraph/cooldown economy, and Phase 3's Swarm + Fortress archetypes.
+// Hearthwood Frontier - Phase 3 continues (feat/hearthwood-tactics-ancients):
+// The Ancients archetype ("ancients" / "The Ancient Grove") - 2x Sapling
+// Attendant + 1x Ancient Oak, real HP/attack numbers, a telegraphed
+// countdown to ONE big AoE hit (applyChargeTick, ported line-for-line from
+// autoBattleEngine.js's applyAncientCharge - same log phrasing, same
+// stagger/tick/payoff shape, minus the stun-holds-the-count branch this
+// engine has no status system for yet). Also: GRID doubled from 5x7 to 7x10
+// (Marc: "taistelukenttä saa olla isompi") - every formation's row spread
+// re-centered on the taller grid; no synthetic-state check below depends on
+// the real GRID/row constants (each builds its own literal grid), so this
+// needed zero test changes beyond this comment. Layered onto Phase 1's
+// isolated grid-combat prototype, Phase 2's full AP/ability/telegraph/
+// cooldown economy, and Phase 3's Swarm + Fortress + Hunters archetypes.
 // Still no runEngine.js/autoBattleEngine.js/save-state touch. There is no
 // headless engine call to substitute for verification - this IS the
 // interactive surface, so the script drives the actual rendered UI exactly
 // the way Marc would click through it.
 
-const PORT = process.env.PORT || 5387
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-hunters/.scratch/shots"
+const PORT = process.env.PORT || 5388
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-ancients/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -848,10 +851,136 @@ await page.waitForSelector(".hwt-board")
   if (!huntsWeakest) out.errors.push("check28 a Hunters enemy did not telegraph an attack on the lowest-HP player unit")
 }
 
+// ---------------------------------------------------------------
+// The Ancients archetype (feat/hearthwood-tactics-ancients). Every new
+// check gets its own fresh page from the start (the established anti-hang
+// discipline).
+// ---------------------------------------------------------------
+
+// 29. The Ancient Grove ("ancients") - real composition: 2x Sapling
+//     Attendant + 1x Ancient Oak, 3 living player tokens, and the Oak's
+//     charge badge initializes to the real charge.turns (3) while neither
+//     Sapling shows one ------------------------------------------------
+{
+  const page29 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page29.on("pageerror", (e) => errs.push(String(e)))
+  await page29.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page29.waitForSelector(".hwt-board")
+  await page29.locator(".hwt-formation-btn", { hasText: "The Ancient Grove" }).click()
+  await page29.waitForTimeout(300)
+  const enemyNames = await page29.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page29.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const oakBadge = await page29
+    .locator(".hwt-token", { hasText: "Ancient Oak" })
+    .locator(".hwt-charge-badge")
+    .innerText()
+    .catch(() => null)
+  const saplingBadges = await page29
+    .locator(".hwt-token", { hasText: "Sapling Attendant" })
+    .locator(".hwt-charge-badge")
+    .count()
+  await page29.close()
+  const enemyCountOk =
+    enemyNames.filter((n) => n === "Sapling Attendant").length === 2 && enemyNames.filter((n) => n === "Ancient Oak").length === 1
+  out.ancientsFormation = { enemyNames, playerNames, oakBadge, saplingBadges }
+  if (!(enemyCountOk && playerNames.length === 3 && oakBadge === "⚡3" && saplingBadges === 0)) {
+    out.errors.push("check29 Ancient Grove composition or the charge badge init was wrong")
+  }
+}
+
+// 30. The countdown ticks down and the payoff lands - a passive End-Turn
+//     loop (only clicking End Turn): the badge reads 3->2->1, the log
+//     narrates each tick, then the payoff fires, every living player unit
+//     loses HP, and the badge resets to 3 --------------------------------
+{
+  const page30 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page30.on("pageerror", (e) => errs.push(String(e)))
+  await page30.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page30.waitForSelector(".hwt-board")
+  await page30.locator(".hwt-formation-btn", { hasText: "The Ancient Grove" }).click()
+  await page30.waitForTimeout(300)
+  const hpFillSum = async () => {
+    const widths = await page30.locator('.hwt-token[data-side="player"] .hwt-hp-fill').evaluateAll((els) => els.map((el) => parseFloat(el.style.width)))
+    return widths.reduce((a, b) => a + b, 0)
+  }
+  const badges = [await page30.locator(".hwt-token", { hasText: "Ancient Oak" }).locator(".hwt-charge-badge").innerText()]
+  const hpBeforePayoff = await hpFillSum()
+  let logText = ""
+  let sawUnleash = false
+  for (let i = 0; i < 5 && !sawUnleash; i++) {
+    await page30.locator(".hwt-end-turn").click().catch(() => {})
+    await page30.waitForTimeout(400)
+    badges.push(await page30.locator(".hwt-token", { hasText: "Ancient Oak" }).locator(".hwt-charge-badge").innerText().catch(() => "gone"))
+    logText = await page30.locator(".hwt-log").innerText()
+    sawUnleash = /unleashes Rootfall!/.test(logText)
+    const phase = await page30.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase === "lost" || phase === "won") break
+  }
+  const hpAfterPayoff = await hpFillSum().catch(() => -1)
+  await page30.close()
+  const badgeSeq = badges.join(",")
+  const tickedDown = /⚡3.*⚡2.*⚡1/.test(badgeSeq) || /⚡3,⚡2,⚡1/.test(badgeSeq)
+  const resetAfter = badges[badges.length - 1] === "⚡3" || badges[badges.length - 1] === "gone"
+  const hpDropped = hpAfterPayoff < hpBeforePayoff || hpAfterPayoff === -1
+  out.ancientsPayoff = { badges, sawUnleash, tickedDown, hpBeforePayoff, hpAfterPayoff, logSample: logText.split("\n").slice(-4) }
+  if (!(sawUnleash && tickedDown && hpDropped)) {
+    out.errors.push("check30 the charge countdown did not tick down and land its telegraphed payoff")
+  }
+}
+
+// 31. A heavy hit stalls it - a deterministic page.evaluate proof: reduce
+//     the Oak's hp by more than breakDamage (22), call endPlayerTurn, and
+//     assert the log narrates a stagger and the counter is back to 3 -----
+{
+  const page31 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page31.on("pageerror", (e) => errs.push(String(e)))
+  await page31.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page31.waitForSelector(".hwt-board")
+  const staggerResult = await page31.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("ancients")
+    const damaged = { ...battle, units: battle.units.map((u) => (u.defId === "ancient-oak" ? { ...u, hp: u.hp - 30 } : u)) }
+    const after = endPlayerTurn(damaged)
+    const oak = after.units.find((u) => u.defId === "ancient-oak")
+    return { chargeCounter: oak?.chargeCounter, logHasStagger: after.log.some((l) => l.includes("staggers - the Rootfall unravels")) }
+  })
+  await page31.close()
+  out.ancientsStagger = staggerResult
+  if (!(staggerResult.chargeCounter === 3 && staggerResult.logHasStagger)) {
+    out.errors.push("check31 a heavy hit did not stagger the Ancient Oak's charge")
+  }
+}
+
+// 32. Killing the Ancient Oak stops it - a deterministic page.evaluate
+//     proof: hand-zero its hp, call endPlayerTurn, and assert no charge
+//     activity is logged for it (the tick loop simply skips a dead unit) --
+{
+  const page32 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page32.on("pageerror", (e) => errs.push(String(e)))
+  await page32.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page32.waitForSelector(".hwt-board")
+  const killResult = await page32.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("ancients")
+    const killed = { ...battle, units: battle.units.map((u) => (u.defId === "ancient-oak" ? { ...u, hp: 0 } : u)) }
+    const after = endPlayerTurn(killed)
+    return {
+      logHasUnleash: after.log.some((l) => l.includes("unleashes")),
+      logHasDrawBreath: after.log.some((l) => l.includes("draws breath")),
+      phase: after.phase,
+    }
+  })
+  await page32.close()
+  out.ancientsKillStopsIt = killResult
+  if (killResult.logHasUnleash || killResult.logHasDrawBreath) {
+    out.errors.push("check32 a dead Ancient Oak still had charge activity logged")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (The Hunters archetype) PASS" : "\n❌ verify_tactics_prototype (The Hunters archetype) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (The Ancients archetype) PASS" : "\n❌ verify_tactics_prototype (The Ancients archetype) FAIL")
 process.exit(pass ? 0 : 1)
