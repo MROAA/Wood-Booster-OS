@@ -1,26 +1,35 @@
 import { chromium } from "playwright"
 import { mkdir } from "node:fs/promises"
 
-// Hearthwood Frontier - Phase 3 continues (feat/hearthwood-tactics-ancients):
-// The Ancients archetype ("ancients" / "The Ancient Grove") - 2x Sapling
-// Attendant + 1x Ancient Oak, real HP/attack numbers, a telegraphed
-// countdown to ONE big AoE hit (applyChargeTick, ported line-for-line from
-// autoBattleEngine.js's applyAncientCharge - same log phrasing, same
-// stagger/tick/payoff shape, minus the stun-holds-the-count branch this
-// engine has no status system for yet). Also: GRID doubled from 5x7 to 7x10
-// (Marc: "taistelukenttä saa olla isompi") - every formation's row spread
-// re-centered on the taller grid; no synthetic-state check below depends on
-// the real GRID/row constants (each builds its own literal grid), so this
-// needed zero test changes beyond this comment. Layered onto Phase 1's
-// isolated grid-combat prototype, Phase 2's full AP/ability/telegraph/
-// cooldown economy, and Phase 3's Swarm + Fortress + Hunters archetypes.
-// Still no runEngine.js/autoBattleEngine.js/save-state touch. There is no
-// headless engine call to substitute for verification - this IS the
-// interactive surface, so the script drives the actual rendered UI exactly
-// the way Marc would click through it.
+// Hearthwood Frontier - Phase 3 continues (feat/hearthwood-tactics-ancients,
+// then fix/hearthwood-tactics-charge-telegraph): The Ancients archetype
+// ("ancients" / "The Ancient Grove") - 2x Sapling Attendant + 1x Ancient
+// Oak, real HP/attack numbers, a telegraphed countdown to ONE big AoE hit
+// (applyChargeTick, ported line-for-line from autoBattleEngine.js's
+// applyAncientCharge - same log phrasing, same stagger/tick/payoff shape,
+// minus the stun-holds-the-count branch this engine has no status system
+// for yet). Also: GRID doubled from 5x7 to 7x10 (Marc: "taistelukenttä saa
+// olla isompi") - every formation's row spread re-centered on the taller
+// grid; no synthetic-state check below depends on the real GRID/row
+// constants (each builds its own literal grid), so this needed zero test
+// changes beyond this comment. FOLLOW-UP FIX (same session, Marc's
+// feedback: "vihollisen intend pitää näyttää area of effect. ancientin
+// hyökkäys ei näy ja sen rajat pitäisi näkyä"): the charge payoff had NO
+// visual telegraph at all beyond the plain countdown number - a new
+// previewChargeThreat(state) dry-runs applyChargeTick (the same
+// provably-accurate discipline as previewEnemyIntents) so the UI can mark
+// every player cell the payoff will hit (reusing the existing
+// data-threatened ember ring) and flip the charging enemy's own badge to
+// "⚡!" the turn it's about to land. Layered onto Phase 1's isolated
+// grid-combat prototype, Phase 2's full AP/ability/telegraph/cooldown
+// economy, and Phase 3's Swarm + Fortress + Hunters archetypes. Still no
+// runEngine.js/autoBattleEngine.js/save-state touch. There is no headless
+// engine call to substitute for verification - this IS the interactive
+// surface, so the script drives the actual rendered UI exactly the way
+// Marc would click through it.
 
-const PORT = process.env.PORT || 5388
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-ancients/.scratch/shots"
+const PORT = process.env.PORT || 5389
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-charge-fix/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -919,7 +928,10 @@ await page.waitForSelector(".hwt-board")
   const hpAfterPayoff = await hpFillSum().catch(() => -1)
   await page30.close()
   const badgeSeq = badges.join(",")
-  const tickedDown = /⚡3.*⚡2.*⚡1/.test(badgeSeq) || /⚡3,⚡2,⚡1/.test(badgeSeq)
+  // The badge shows "⚡!" instead of a literal "⚡1" the turn the payoff is
+  // about to land (the charge-telegraph fix, same session) - the sequence
+  // is 3 -> 2 -> "about to fire" -> reset, not literally down to "1".
+  const tickedDown = /⚡3.*⚡2.*⚡!/.test(badgeSeq)
   const resetAfter = badges[badges.length - 1] === "⚡3" || badges[badges.length - 1] === "gone"
   const hpDropped = hpAfterPayoff < hpBeforePayoff || hpAfterPayoff === -1
   out.ancientsPayoff = { badges, sawUnleash, tickedDown, hpBeforePayoff, hpAfterPayoff, logSample: logText.split("\n").slice(-4) }
@@ -977,10 +989,89 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// AoE charge telegraph fix (fix/hearthwood-tactics-charge-telegraph) -
+// Marc: "vihollisen intend pitää näyttää area of effect. ancientin
+// hyökkäys ei näy ja sen rajat pitäisi näkyä" (the enemy's intent should
+// show the area of effect; the Ancient's attack doesn't show and its
+// bounds should be visible). Every new check gets its own fresh page.
+// ---------------------------------------------------------------
+
+// 33. previewChargeThreat is accurate, deterministically, via 3 hand-built
+//     synthetic states (about to fire / not yet / staggers instead) -----
+{
+  const page33 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page33.on("pageerror", (e) => errs.push(String(e)))
+  await page33.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page33.waitForSelector(".hwt-board")
+  const threat = await page33.evaluate(async () => {
+    const { previewChargeThreat } = await import("/src/services/heartwood/tacticsEngine.js")
+    const charge = { turns: 3, breakDamage: 22, effect: [{ type: "damage", amount: 9 }], label: "Rootfall" }
+    // chargeHpMark is the Oak's HP as of the LAST tick (always 100 here -
+    // it was full then); `hp` is its CURRENT hp - lower than chargeHpMark
+    // means it's taken damage since, and >= breakDamage of that triggers a
+    // stagger instead of a payoff.
+    const oak = (chargeCounter, hp) => ({
+      id: "enemy-oak", side: "enemy", defId: "ancient-oak", name: "Ancient Oak", art: "barkBrute", image: null,
+      pos: { row: 3, col: 0 }, hp, maxHp: 100, move: 2, range: 1, attack: 6, ap: 2, apMax: 2, block: 0,
+      ability: null, cooldownRemaining: 0, charge, chargeCounter, chargeHpMark: 100,
+    })
+    const players = ["p1", "p2", "p3"].map((id, i) => ({
+      id, side: "player", defId: "bulwark-of-ages", name: id, art: "sword", image: null,
+      pos: { row: i + 2, col: 6 }, hp: 30, maxHp: 30, move: 2, range: 1, attack: 4, ap: 2, apMax: 2, block: 0,
+      ability: null, cooldownRemaining: 0,
+    }))
+    const grid = { rows: 7, cols: 10 }
+    const base = { grid, phase: "player", turn: 1, log: [] }
+    const aboutToFire = previewChargeThreat({ ...base, units: [oak(1, 100), ...players] })
+    const notYet = previewChargeThreat({ ...base, units: [oak(2, 100), ...players] })
+    const willStagger = previewChargeThreat({ ...base, units: [oak(1, 100 - 30), ...players] })
+    return { aboutToFire, notYet, willStagger }
+  })
+  await page33.close()
+  out.chargeThreatPreview = threat
+  const fireOk = threat.aboutToFire.enemyIds.includes("enemy-oak") && threat.aboutToFire.playerIds.length === 3
+  const notYetOk = threat.notYet.enemyIds.length === 0 && threat.notYet.playerIds.length === 0
+  const staggerOk = threat.willStagger.enemyIds.length === 0 && threat.willStagger.playerIds.length === 0
+  if (!(fireOk && notYetOk && staggerOk)) {
+    out.errors.push("check33 previewChargeThreat did not correctly distinguish about-to-fire / not-yet / staggering")
+  }
+}
+
+// 34. The board shows it: after 2 End Turns (chargeCounter 3->2->1), the
+//     Oak's badge flips to "⚡!" and EVERY living player cell shows the
+//     same data-threatened ring the regular attack telegraph uses ------
+{
+  const page34 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page34.on("pageerror", (e) => errs.push(String(e)))
+  await page34.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page34.waitForSelector(".hwt-board")
+  await page34.locator(".hwt-formation-btn", { hasText: "The Ancient Grove" }).click()
+  await page34.waitForTimeout(300)
+  await page34.locator(".hwt-end-turn").click().catch(() => {})
+  await page34.waitForTimeout(400)
+  await page34.locator(".hwt-end-turn").click().catch(() => {})
+  await page34.waitForTimeout(400)
+  const oakBadge = await page34.locator(".hwt-token", { hasText: "Ancient Oak" }).locator(".hwt-charge-badge").innerText()
+  const oakImminent = await page34
+    .locator(".hwt-token", { hasText: "Ancient Oak" })
+    .locator(".hwt-charge-badge")
+    .getAttribute("data-imminent")
+  const threatenedPlayerCells = await page34
+    .locator('.hwt-cell[data-threatened="true"]')
+    .locator('.hwt-token[data-side="player"]')
+    .count()
+  await page34.close()
+  out.chargeTelegraphUi = { oakBadge, oakImminent, threatenedPlayerCells }
+  if (!(oakBadge === "⚡!" && oakImminent === "true" && threatenedPlayerCells === 3)) {
+    out.errors.push("check34 the board did not telegraph the imminent AoE (badge + threatened cells)")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (The Ancients archetype) PASS" : "\n❌ verify_tactics_prototype (The Ancients archetype) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (AoE charge telegraph) PASS" : "\n❌ verify_tactics_prototype (AoE charge telegraph) FAIL")
 process.exit(pass ? 0 : 1)
