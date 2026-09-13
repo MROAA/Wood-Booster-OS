@@ -20,7 +20,9 @@ import {
   withLowEnemyHp,
   previewEnemyIntents,
   previewChargeThreat,
+  previewPlayerRoster,
   ENEMY_FORMATIONS,
+  PLAYER_ROSTER_IDS,
 } from "../services/heartwood/tacticsEngine"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
@@ -37,11 +39,15 @@ function getUnitName(battle, id) {
 // every enemy at 1 HP so a verification pass (or a quick manual check) can
 // reach a win in a couple of clicks instead of grinding real attack rounds
 // first. Shared by the initial mount AND every formation-picker restart.
-function startBattle(formationId) {
-  const base = createTacticsBattle(formationId)
+function startBattle(formationId, squadDefIds) {
+  const base = createTacticsBattle(formationId, squadDefIds)
   const params = new URLSearchParams(window.location.search)
   return params.get("debugLowHp") === "1" ? withLowEnemyHp(base) : base
 }
+
+// Static stat lines for the squad-picker's per-slot preview, computed once
+// per module load (previewPlayerRoster is pure and never changes).
+const ROSTER_PREVIEW = previewPlayerRoster()
 
 export default function HeartwoodTactics() {
   const [battle, setBattle] = useState(() => startBattle("default"))
@@ -156,14 +162,29 @@ export default function HeartwoodTactics() {
     setBattle(endPlayerTurn(battle))
   }
 
-  function restart(formationId) {
+  // The squad currently deployed, read straight off the live battle state
+  // rather than a module constant - so a formation-only restart (below)
+  // preserves whatever squad is actually in play instead of silently
+  // resetting to the default 3.
+  function currentSquadDefIds() {
+    return battle.units.filter((u) => u.side === "player").map((u) => u.defId)
+  }
+
+  function restart(formationId, squadDefIds = currentSquadDefIds()) {
     setSelectedId(null)
     setAbilityMode(null)
-    setBattle(startBattle(formationId))
+    setBattle(startBattle(formationId, squadDefIds))
   }
 
   function handlePlayAgain() {
     restart(battle.formationId)
+  }
+
+  // Swap one squad slot's unit and restart the fight with the new lineup,
+  // keeping the other 2 slots and the current enemy formation untouched.
+  function handleSquadSlotChange(slotIndex, defId) {
+    const nextSquad = currentSquadDefIds().map((id, i) => (i === slotIndex ? defId : id))
+    restart(battle.formationId, nextSquad)
   }
 
   const cells = []
@@ -320,6 +341,41 @@ export default function HeartwoodTactics() {
             {[...battle.log].reverse().map((line, i) => (
               <p key={i}>{line}</p>
             ))}
+          </div>
+
+          <div className="hwt-squad-picker">
+            <p className="hwt-squad-picker-label">Choose your squad</p>
+            <div className="hwt-squad-picker-slots">
+              {currentSquadDefIds().map((defId, slotIndex) => {
+                const preview = ROSTER_PREVIEW.find((u) => u.defId === defId)
+                const otherSlots = currentSquadDefIds().filter((_, i) => i !== slotIndex)
+                const options = PLAYER_ROSTER_IDS.filter((id) => id === defId || !otherSlots.includes(id))
+                return (
+                  <div className="hwt-squad-slot" key={slotIndex}>
+                    <select
+                      className="hwt-squad-select"
+                      value={defId}
+                      onChange={(e) => handleSquadSlotChange(slotIndex, e.target.value)}
+                    >
+                      {options.map((id) => {
+                        const opt = ROSTER_PREVIEW.find((u) => u.defId === id)
+                        return (
+                          <option key={id} value={id}>
+                            {opt.name}
+                          </option>
+                        )
+                      })}
+                    </select>
+                    {preview && (
+                      <p className="hwt-squad-slot-stats">
+                        HP {preview.maxHp} · Atk {preview.attack} · Range {preview.range}
+                        {preview.ability ? ` · ${preview.ability.name}` : ""}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           <div className="hwt-formation-picker">

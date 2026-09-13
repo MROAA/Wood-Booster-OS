@@ -340,6 +340,46 @@
   color: var(--hw-text);
 }
 
+.hwt-squad-picker {
+  border-top: 1px solid var(--hw-border);
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hwt-squad-picker-label {
+  font-size: var(--hw-fs-sm);
+  color: var(--hw-muted);
+  margin: 0;
+}
+.hwt-squad-picker-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hwt-squad-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hwt-squad-select {
+  font-size: var(--hw-fs-sm);
+  padding: 5px 8px;
+  border-radius: var(--hw-radius);
+  border: 1px solid var(--hw-border);
+  background: var(--hw-panel);
+  color: var(--hw-text);
+  cursor: pointer;
+}
+.hwt-squad-select:hover {
+  border-color: var(--hw-muted);
+}
+.hwt-squad-slot-stats {
+  font-size: var(--hw-fs-xs);
+  color: var(--hw-muted);
+  margin: 0;
+}
+
 .hwt-formation-picker {
   border-top: 1px solid var(--hw-border);
   padding-top: 8px;
