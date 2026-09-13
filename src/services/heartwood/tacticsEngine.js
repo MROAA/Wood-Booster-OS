@@ -59,10 +59,38 @@ const AP_MAX = 2
 // reads as "usable every OTHER turn" - cast on turn N, still cooling on
 // N+1, ready again on N+2. Focused Shot (the biggest single payoff) gets
 // the longest wait.
+// Roster-expansion round ("jatketaan" -> expand the player roster, a
+// sidebar squad picker mirroring "Choose your opponent"): 3 more units,
+// each chosen because its real kit maps cleanly onto one of the 3 EXISTING
+// ability kinds above - no new engine capability needed this round, same
+// "convert what needs it into the new mold" discipline as every archetype
+// round:
+//  - oathshield's real `aura: { effect: { type:"block", amount:1 } }` ->
+//    Shieldwall, a lighter Bulwark Aura (amount 1 instead of 2) - a second
+//    tank option. Its real `guard` passive isn't ported (no threat-
+//    redirect/targeting system exists here) - a named simplification.
+//  - willowmend's real movePattern [cleanse, heal 4, attack 4] -> Mending
+//    Waters, a second Regrowth-shaped heal at the real amount (4 instead
+//    of Regrowth's 5) - a second healer option. The real `cleanse` step
+//    isn't ported (no debuff-strip mechanic exists anywhere in this
+//    engine yet - the same gap Rot's missing cleanse-answer already
+//    named).
+//  - bramble-sweep's real `attackPattern: "rook"` -> Ripple Strike, a
+//    second Focused-Shot-shaped burst (identical cost/multiplier/
+//    cooldown) - a straight-line-reach attacker alongside Hexbreaker's
+//    diagonal one, a second real DPS flavor.
+// All 3 ability NAMES (Shieldwall/Mending Waters/Ripple Strike) are
+// invented, consistent with Phase 2's own precedent (Bulwark Aura/
+// Regrowth/Focused Shot are ALSO invented - the real auto-battler has no
+// player-triggered "abilities" at all). The units' real names/art/HP/
+// attack numbers are all reused as-is from units.js, never invented.
 const ABILITIES = {
   "bulwark-of-ages": { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2, cooldown: 2 },
   "the-fool": { id: "regrowth", name: "Regrowth", cost: 1, kind: "heal", amount: 5, cooldown: 2 },
   hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
+  oathshield: { id: "shieldwall", name: "Shieldwall", cost: 1, kind: "aura-block", amount: 1, cooldown: 2 },
+  willowmend: { id: "mending-waters", name: "Mending Waters", cost: 1, kind: "heal", amount: 4, cooldown: 2 },
+  "bramble-sweep": { id: "ripple-strike", name: "Ripple Strike", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
 }
 
 // The player roster (real names/art/HP; move/range/attack are DERIVED below
@@ -70,6 +98,9 @@ const ABILITIES = {
 // always starts at the right edge, rows 2/3/4, col GRID.cols-1 - unaffected
 // by which enemy formation is chosen below.
 const PLAYER_DEF_IDS = ["bulwark-of-ages", "the-fool", "hexbreaker"]
+// The full 6-unit pool the sidebar squad picker offers. PLAYER_DEF_IDS (the
+// default starting 3) is unchanged - only the picker's option list grows.
+export const PLAYER_ROSTER_IDS = [...PLAYER_DEF_IDS, "oathshield", "willowmend", "bramble-sweep"]
 const START_ROWS = [2, 3, 4]
 
 // Phase 3's first slice ("jatketaan" -> "1-2 more enemy archetypes"): two
@@ -287,10 +318,14 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   }
 }
 
-export function createTacticsBattle(formationId = "default") {
+// `squadDefIds` is a new optional 2nd param (defaults to PLAYER_DEF_IDS,
+// today's exact starting 3) - every existing single-arg call site behaves
+// byte-identically; only a caller that passes a real squad array (the
+// sidebar picker) gets a different lineup.
+export function createTacticsBattle(formationId = "default", squadDefIds = PLAYER_DEF_IDS) {
   const formation = ENEMY_FORMATIONS[formationId] || ENEMY_FORMATIONS.default
   const units = [
-    ...PLAYER_DEF_IDS.map((defId, i) =>
+    ...squadDefIds.map((defId, i) =>
       deriveTacticsUnit(defId, "player", { row: START_ROWS[i], col: GRID.cols - 1 }, `player-${defId}-${i}`),
     ),
     ...formation.enemyDefIds.map((defId, i) =>
@@ -319,6 +354,14 @@ export function createTacticsBattle(formationId = "default") {
     log: [`${formation.name}. The Frontier opens. Your turn.`],
     formationId: formation.id,
   }
+}
+
+// A static stat preview of the whole 6-unit roster, for the squad picker's
+// per-slot stat line - zero new derivation logic, reuses deriveTacticsUnit
+// directly (the exact same function a real squad unit goes through), just
+// with a throwaway pos/id since these are never placed on a real board.
+export function previewPlayerRoster() {
+  return PLAYER_ROSTER_IDS.map((defId, i) => deriveTacticsUnit(defId, "player", { row: 0, col: 0 }, `preview-${defId}-${i}`))
 }
 
 function getUnit(state, id) {

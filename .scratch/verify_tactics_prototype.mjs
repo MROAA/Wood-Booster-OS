@@ -94,13 +94,27 @@ import { mkdir } from "node:fs/promises"
 // time a leech check could run. No Sunder-equivalent answer exists in
 // this engine - a named, pre-existing limitation; bursting the Collectors
 // down fast remains the real working answer. Still no runEngine.js/
-// autoBattleEngine.js/save-state touch. There is no headless engine call
-// to substitute for verification - this IS the interactive surface, so
-// the script drives the actual rendered UI exactly the way Marc would
-// click through it.
+// autoBattleEngine.js/save-state touch. THE ROSTER-EXPANSION ROUND (all
+// 9 archetypes now shipped; Marc picked expanding the player roster, then
+// - after a real trade-off was surfaced and asked back to him - a SIDEBAR
+// squad picker mirroring the existing "Choose your opponent" list, not a
+// dedicated pre-battle screen that would have gated every page load and
+// broken all 54 prior checks' "loads straight into a fight" assumption).
+// 3 new units - Oathshield/Willowmend/Bramble Sweep - each converted onto
+// one of the 3 EXISTING ability kinds (aura-block/heal/burst): Shieldwall
+// (a lighter Bulwark Aura, amount 1), Mending Waters (a second Regrowth,
+// amount 4), Ripple Strike (a second Focused Shot, identical numbers). A
+// new PLAYER_ROSTER_IDS export (the 6-unit pool) and createTacticsBattle's
+// new optional squadDefIds param (defaulting to PLAYER_DEF_IDS, today's
+// exact starting 3 - so every one of the 54 prior checks needed zero
+// changes beyond this comment) are the only engine surface added. Still
+// no runEngine.js/autoBattleEngine.js/save-state touch. There is no
+// headless engine call to substitute for verification - this IS the
+// interactive surface, so the script drives the actual rendered UI
+// exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5394
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-collectors/.scratch/shots"
+const PORT = process.env.PORT || 5395
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-roster/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1808,10 +1822,186 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// The roster-expansion round (feat/hearthwood-tactics-roster) - a sidebar
+// squad picker + 3 new units (Oathshield/Willowmend/Bramble Sweep). Every
+// new check gets its own fresh page from the start (the established
+// anti-hang discipline).
+// ---------------------------------------------------------------
+
+// 55. The squad picker renders correctly on a fresh load: 3 selects, the
+//     real default squad, and all 3 new roster ids offered somewhere ----
+{
+  const page55 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page55.on("pageerror", (e) => errs.push(String(e)))
+  await page55.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page55.waitForSelector(".hwt-board")
+  const selectCount = await page55.locator(".hwt-squad-select").count()
+  const values = await page55.locator(".hwt-squad-select").evaluateAll((els) => els.map((e) => e.value))
+  const allOptionValues = await page55.locator(".hwt-squad-select").evaluateAll((els) =>
+    els.flatMap((e) => Array.from(e.options).map((o) => o.value)),
+  )
+  await page55.close()
+  out.squadPickerInit = { selectCount, values, allOptionValues }
+  const defaultOk = selectCount === 3 && JSON.stringify(values) === JSON.stringify(["bulwark-of-ages", "the-fool", "hexbreaker"])
+  const rosterOffered = ["oathshield", "willowmend", "bramble-sweep"].every((id) => allOptionValues.includes(id))
+  if (!(defaultOk && rosterOffered)) {
+    out.errors.push("check55 the squad picker did not render 3 selects with the real default squad + all 6 roster ids")
+  }
+}
+
+// 56. Swapping a slot restarts the fight with the new unit, preserving
+//     the other 2 slots and the enemy formation ------------------------
+{
+  const page56 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page56.on("pageerror", (e) => errs.push(String(e)))
+  await page56.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page56.waitForSelector(".hwt-board")
+  await page56.locator(".hwt-formation-btn", { hasText: "The Bulwark" }).click()
+  await page56.waitForTimeout(200)
+  await page56.locator(".hwt-squad-select").nth(0).selectOption("oathshield")
+  await page56.waitForTimeout(200)
+  const playerNames = await page56.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page56.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const turnLabel = await page56.locator(".hwt-turn-label").innerText()
+  await page56.close()
+  out.squadSwapRestart = { playerNames, enemyNames, turnLabel }
+  const squadOk = playerNames.includes("Oathshield") && playerNames.includes("Mosskit") && playerNames.includes("Hexbreaker") && !playerNames.includes("Bulwark of Ages")
+  const formationOk = enemyNames.filter((n) => n === "Oakshell Warden").length === 2 && enemyNames.includes("Mossmender")
+  if (!(squadOk && formationOk && turnLabel.includes("Turn 1"))) {
+    out.errors.push("check56 swapping a squad slot did not restart with the new unit while preserving the rest + formation")
+  }
+}
+
+// 57. No duplicate unit across slots - once a unit is picked in one slot,
+//     the other slots' option lists stop offering it -------------------
+{
+  const page57 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page57.on("pageerror", (e) => errs.push(String(e)))
+  await page57.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page57.waitForSelector(".hwt-board")
+  await page57.locator(".hwt-squad-select").nth(0).selectOption("oathshield")
+  await page57.waitForTimeout(200)
+  const otherOptions = await page57.locator(".hwt-squad-select").evaluateAll((els) =>
+    els.slice(1).map((e) => Array.from(e.options).map((o) => o.value)),
+  )
+  await page57.close()
+  out.squadNoDuplicate = otherOptions
+  const noOathshieldElsewhere = otherOptions.every((opts) => !opts.includes("oathshield"))
+  const stillOffersRest = otherOptions.every((opts) => opts.includes("willowmend") && opts.includes("bramble-sweep"))
+  if (!(noOathshieldElsewhere && stillOffersRest)) {
+    out.errors.push("check57 a unit picked in one slot was still offered (or the rest of the roster wrongly excluded) in the other slots")
+  }
+}
+
+// 58. Shieldwall (Oathshield's aura-block) grants +1 Block to itself + its
+//     one Chebyshev-adjacent ally, not the non-adjacent third unit ------
+{
+  const page58 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page58.on("pageerror", (e) => errs.push(String(e)))
+  await page58.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page58.waitForSelector(".hwt-board")
+  const result = await page58.evaluate(async () => {
+    const { createTacticsBattle, castAbility } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("default", ["oathshield", "the-fool", "hexbreaker"])
+    const oathshield = base.units.find((u) => u.defId === "oathshield")
+    const theFool = base.units.find((u) => u.defId === "the-fool")
+    const hexbreaker = base.units.find((u) => u.defId === "hexbreaker")
+    const after = castAbility(base, oathshield.id)
+    return {
+      abilityName: oathshield.ability?.name,
+      oathshieldBlock: after.units.find((u) => u.id === oathshield.id).block,
+      theFoolBlock: after.units.find((u) => u.id === theFool.id).block,
+      hexbreakerBlock: after.units.find((u) => u.id === hexbreaker.id).block,
+      logged: after.log.some((l) => l.includes("raises Shieldwall")),
+    }
+  })
+  await page58.close()
+  out.shieldwall = result
+  if (
+    !(
+      result.abilityName === "Shieldwall" &&
+      result.oathshieldBlock === 1 &&
+      result.theFoolBlock === 1 &&
+      result.hexbreakerBlock === 0 &&
+      result.logged
+    )
+  ) {
+    out.errors.push("check58 Shieldwall did not grant +1 Block to self + the one adjacent ally only")
+  }
+}
+
+// 59. Mending Waters (Willowmend's heal) heals a damaged ally by exactly 4,
+//     capped at maxHp ---------------------------------------------------
+{
+  const page59 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page59.on("pageerror", (e) => errs.push(String(e)))
+  await page59.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page59.waitForSelector(".hwt-board")
+  const result = await page59.evaluate(async () => {
+    const { createTacticsBattle, castAbility } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("default", ["bulwark-of-ages", "willowmend", "hexbreaker"])
+    const bulwark = base.units.find((u) => u.defId === "bulwark-of-ages")
+    const willowmend = base.units.find((u) => u.defId === "willowmend")
+    const damaged = { ...base, units: base.units.map((u) => (u.id === bulwark.id ? { ...u, hp: u.maxHp - 10 } : u)) }
+    const hpBefore = damaged.units.find((u) => u.id === bulwark.id).hp
+    const after = castAbility(damaged, willowmend.id, bulwark.id)
+    return {
+      abilityName: willowmend.ability?.name,
+      hpBefore,
+      hpAfter: after.units.find((u) => u.id === bulwark.id).hp,
+      logged: after.log.some((l) => l.includes("mends") && l.includes("for 4")),
+    }
+  })
+  await page59.close()
+  out.mendingWaters = result
+  if (!(result.abilityName === "Mending Waters" && result.hpAfter === result.hpBefore + 4 && result.logged)) {
+    out.errors.push("check59 Mending Waters did not heal exactly 4, or was not narrated")
+  }
+}
+
+// 60. Ripple Strike (Bramble Sweep's burst) deals exactly attack x 2 -
+//     the same math Focused Shot already uses --------------------------
+{
+  const page60 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page60.on("pageerror", (e) => errs.push(String(e)))
+  await page60.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page60.waitForSelector(".hwt-board")
+  const result = await page60.evaluate(async () => {
+    const { createTacticsBattle, castAbility } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("default", ["bulwark-of-ages", "the-fool", "bramble-sweep"])
+    const sweep = base.units.find((u) => u.defId === "bramble-sweep")
+    const enemy = base.units.find((u) => u.side === "enemy")
+    const state = {
+      ...base,
+      units: base.units.map((u) => {
+        if (u.id === sweep.id) return { ...u, pos: { row: 4, col: 9 } }
+        if (u.id === enemy.id) return { ...u, hp: 999, maxHp: 999, block: 0, pos: { row: 4, col: 6 } }
+        return u
+      }),
+    }
+    const attacker = state.units.find((u) => u.id === sweep.id)
+    const target = state.units.find((u) => u.id === enemy.id)
+    const hpBefore = target.hp
+    const after = castAbility(state, sweep.id, enemy.id)
+    return {
+      abilityName: attacker.ability?.name,
+      expectedDamage: attacker.attack * 2,
+      actualDamage: hpBefore - after.units.find((u) => u.id === enemy.id).hp,
+      logged: after.log.some((l) => l.includes("unleashes Ripple Strike")),
+    }
+  })
+  await page60.close()
+  out.rippleStrike = result
+  if (!(result.abilityName === "Ripple Strike" && result.actualDamage === result.expectedDamage && result.logged)) {
+    out.errors.push("check60 Ripple Strike did not deal exactly attack x2 damage, or was not narrated")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (The Collectors archetype) PASS" : "\n❌ verify_tactics_prototype (The Collectors archetype) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (roster expansion + squad picker) PASS" : "\n❌ verify_tactics_prototype (roster expansion + squad picker) FAIL")
 process.exit(pass ? 0 : 1)
