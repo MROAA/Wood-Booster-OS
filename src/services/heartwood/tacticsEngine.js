@@ -147,6 +147,15 @@ export const ENEMY_FORMATIONS = {
     battleStartBonus: 0,
     fortressBlock: 0,
   },
+  cult: {
+    id: "cult",
+    name: "The Communion",
+    description: "Two kneeling, one counting. In two breaths there will be one kneeling, and the other two will be worse.",
+    enemyDefIds: ["sworn-cultist", "sworn-cultist", "ritual-warden"],
+    rows: [2, 3, 4],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -187,9 +196,12 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   const maxHp = def.maxHp
   // The Ancients archetype's real def already carries `charge` - reused
   // directly (see ENEMY_FORMATIONS's comment), never reinvented. The
-  // Coven's real def carries `covenAura` the same way.
+  // Coven's real def carries `covenAura` the same way; the Cult's real
+  // def carries `cultRitual`/`cultFodder`.
   const charge = side === "enemy" ? def.charge || null : null
   const covenAura = side === "enemy" ? def.covenAura || null : null
+  const cultRitual = side === "enemy" ? def.cultRitual || null : null
+  const cultFodder = side === "enemy" ? !!def.cultFodder : false
   return {
     id: uid,
     side,
@@ -212,6 +224,9 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     chargeCounter: charge ? charge.turns : 0,
     chargeHpMark: maxHp,
     covenAura,
+    cultRitual,
+    cultFodder,
+    ritualCharge: 0,
   }
 }
 
@@ -420,6 +435,60 @@ function applyCovenTick(state) {
   return next
 }
 
+// The Cult's real mechanic (autoBattleEngine.js's own applyCultTick,
+// ported into this engine's vocabulary): a ritual leader periodically
+// sacrifices a living cultFodder ally, folding its strength into EVERY
+// remaining living enemy - the leader itself INCLUDED this time (unlike
+// the Coven's exclude-self model; confirmed by reading the real code's
+// buff loop directly, which has no self-exclusion check). Bounded three
+// ways, same as the real archetype: only fires while a fodder ally lives
+// (this formation has 2, so at most 2 cycles, then it de-escalates
+// permanently since nothing regenerates fodder), the fodder is a real
+// fighting body (killing it yourself starves the rite, trading focus for
+// spread damage), and killing the leader stops it outright.
+//
+// The real applyCultTick logs nothing on a non-completing tick - it
+// builds silently and only reveals itself when it fires. Every other
+// per-round mechanic in this engine (the Ancients' chargeCounter, the
+// Coven's covenAura) narrates EVERY tick and shows a badge - so this
+// round adds a small ☾-badge + a quiet log line on every tick too,
+// matching that established pattern instead of reproducing the real
+// game's silence (the same "don't ship an invisible mechanic" lesson
+// from the last two rounds).
+function applyCultTick(state) {
+  let next = state
+  for (const caster of livingUnits(state, "enemy")) {
+    const ritual = caster.cultRitual
+    if (!ritual) continue
+    const live = getUnit(next, caster.id)
+    if (!live || live.hp <= 0) continue
+    const charge = live.ritualCharge + 1
+    if (charge < ritual.every) {
+      next = setUnit(next, caster.id, { ritualCharge: charge })
+      next = { ...next, log: [...next.log, `${live.name}'s ritual gathers strength.`] }
+      continue
+    }
+    const fodder = livingUnits(next, "enemy").find((o) => o.id !== caster.id && o.cultFodder)
+    if (!fodder) {
+      next = setUnit(next, caster.id, { ritualCharge: 0 })
+      next = { ...next, log: [...next.log, `${live.name}'s ritual sputters - nothing left to give.`] }
+      continue
+    }
+    next = setUnit(next, fodder.id, { hp: 0 })
+    next = { ...next, log: [...next.log, `${live.name} gives ${fodder.name} to the ritual.`] }
+    next = checkTacticsBattleEnd(next)
+    for (const other of livingUnits(next, "enemy")) {
+      next = setUnit(next, other.id, { attack: other.attack + ritual.buff.amount })
+    }
+    if (ritual.feed) {
+      const fed = getUnit(next, caster.id)
+      if (fed && fed.hp > 0) next = setUnit(next, caster.id, { hp: Math.min(fed.maxHp, fed.hp + ritual.feed.amount) })
+    }
+    next = setUnit(next, caster.id, { ritualCharge: 0 })
+  }
+  return next
+}
+
 function applyChargeTick(state) {
   let next = state
   for (const enemy of livingUnits(next, "enemy")) {
@@ -483,9 +552,11 @@ export function previewChargeThreat(state) {
 export function endPlayerTurn(state) {
   if (state.phase !== "player") return state
   // applyCovenTick never touches hp, so it can't end the battle - no
-  // phase guard needed for it specifically, unlike the charge tick below.
+  // phase guard needed for it specifically, unlike the two ticks below.
   const covened = applyCovenTick(state)
-  const ticked = applyChargeTick(covened)
+  const cultTicked = applyCultTick(covened)
+  if (cultTicked.phase !== "player") return cultTicked
+  const ticked = applyChargeTick(cultTicked)
   if (ticked.phase !== "player") return ticked
   // Enemy AP resets here (symmetry/future-proofing - enemies still just
   // move/attack every turn this round, so this is mostly inert today).
