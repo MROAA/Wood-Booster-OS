@@ -30,14 +30,24 @@ import { mkdir } from "node:fs/promises"
 // visible the same round it ships (not a repeat of the Ancients' telegraph
 // gap). Layered onto Phase 1's isolated grid-combat prototype, Phase 2's
 // full AP/ability/telegraph/cooldown economy, and Phase 3's Swarm +
-// Fortress + Hunters + Ancients archetypes. Still no runEngine.js/
-// autoBattleEngine.js/save-state touch. There is no headless engine call
-// to substitute for verification - this IS the interactive surface, so
-// the script drives the actual rendered UI exactly the way Marc would
-// click through it.
+// Fortress + Hunters + Ancients archetypes. THE CULT ARCHETYPE ("cult" /
+// "The Communion") - 2x Sworn Cultist + 1x Ritual Warden, real HP/attack
+// numbers, a new applyCultTick (ported from autoBattleEngine.js's own
+// applyCultTick) that periodically sacrifices a living cultFodder ally to
+// buff EVERY remaining living enemy - the leader itself included this
+// time (unlike the Coven's exclude-self model). Bounded: only fires while
+// fodder lives (2 per formation -> at most 2 cycles, then permanent
+// de-escalation); killing the leader stops it. The real mechanic ticks
+// silently until it fires; this round adds a small ☾-badge + a quiet log
+// line on every tick too, matching the established "narrate every tick"
+// pattern from the Ancients/Coven rounds rather than reproducing the real
+// game's silence. Still no runEngine.js/autoBattleEngine.js/save-state
+// touch. There is no headless engine call to substitute for verification
+// - this IS the interactive surface, so the script drives the actual
+// rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5390
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-coven/.scratch/shots"
+const PORT = process.env.PORT || 5391
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-cult/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1190,10 +1200,146 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// The Cult archetype (feat/hearthwood-tactics-cult). Every new check gets
+// its own fresh page from the start (the established anti-hang
+// discipline).
+// ---------------------------------------------------------------
+
+// 39. The Communion ("cult") - real composition: 2x Sworn Cultist + 1x
+//     Ritual Warden, 3 living player tokens; the Warden's ritual badge
+//     initializes to "☾2" (every=2, ritualCharge=0), neither cultist
+//     shows one ------------------------------------------------------
+{
+  const page39 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page39.on("pageerror", (e) => errs.push(String(e)))
+  await page39.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page39.waitForSelector(".hwt-board")
+  await page39.locator(".hwt-formation-btn", { hasText: "The Communion" }).click()
+  await page39.waitForTimeout(300)
+  const enemyNames = await page39.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page39.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const wardenBadge = await page39
+    .locator(".hwt-token", { hasText: "Ritual Warden" })
+    .locator(".hwt-ritual-badge")
+    .innerText()
+    .catch(() => null)
+  const cultistBadgeCount = await page39
+    .locator(".hwt-token", { hasText: "Sworn Cultist" })
+    .locator(".hwt-ritual-badge")
+    .count()
+  await page39.close()
+  const enemyCountOk = enemyNames.filter((n) => n === "Sworn Cultist").length === 2 && enemyNames.includes("Ritual Warden")
+  out.cultFormation = { enemyNames, playerNames, wardenBadge, cultistBadgeCount }
+  if (!(enemyCountOk && playerNames.length === 3 && wardenBadge === "☾2" && cultistBadgeCount === 0)) {
+    out.errors.push("check39 Communion formation composition or the ritual badge init was wrong")
+  }
+}
+
+// 40. The rite completes on the exact real cadence (every 2 rounds), and
+//     it's visible: a passive End-Turn loop, exactly 2 turns - the log
+//     narrates the sacrifice, one cultist dies, BOTH the surviving
+//     cultist and the Warden show a growing "▲2" (the buff hits every
+//     living enemy, itself included - unlike the Coven), and the ritual
+//     badge resets to "☾2" ------------------------------------------
+{
+  const page40 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page40.on("pageerror", (e) => errs.push(String(e)))
+  await page40.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page40.waitForSelector(".hwt-board")
+  await page40.locator(".hwt-formation-btn", { hasText: "The Communion" }).click()
+  await page40.waitForTimeout(300)
+  await page40.locator(".hwt-end-turn").click().catch(() => {})
+  await page40.waitForTimeout(400)
+  await page40.locator(".hwt-end-turn").click().catch(() => {})
+  await page40.waitForTimeout(400)
+  const logText = await page40.locator(".hwt-log").innerText()
+  const gaveLogged = /gives Sworn Cultist to the ritual\./.test(logText)
+  const livingCultists = await page40.locator('.hwt-token[data-side="enemy"]', { hasText: "Sworn Cultist" }).count()
+  const wardenStrengthBadge = await page40
+    .locator(".hwt-token", { hasText: "Ritual Warden" })
+    .locator(".hwt-strength-badge")
+    .innerText()
+    .catch(() => null)
+  const cultistStrengthBadge = await page40
+    .locator(".hwt-token[data-side=\"enemy\"]", { hasText: "Sworn Cultist" })
+    .locator(".hwt-strength-badge")
+    .innerText()
+    .catch(() => null)
+  const wardenRitualBadge = await page40
+    .locator(".hwt-token", { hasText: "Ritual Warden" })
+    .locator(".hwt-ritual-badge")
+    .innerText()
+    .catch(() => null)
+  await page40.close()
+  out.cultRiteCompletes = { gaveLogged, livingCultists, wardenStrengthBadge, cultistStrengthBadge, wardenRitualBadge }
+  if (!(gaveLogged && livingCultists === 1 && wardenStrengthBadge === "▲2" && cultistStrengthBadge === "▲2" && wardenRitualBadge === "☾2")) {
+    out.errors.push("check40 the rite did not complete on the real cadence, or its buff/reset was not visible/correct")
+  }
+}
+
+// 41. De-escalation - a deterministic page.evaluate proof: drive
+//     endPlayerTurn 4 times (2 full cycles, both cultists sacrificed),
+//     then 2 more (a 3rd, fodder-less cycle attempt - `every: 2` means the
+//     3rd attempt completes at call 6, not call 5); that 6th call's log
+//     shows the ritual sputtering and the Warden's attack is unchanged
+//     from where it stood after call 4 ------------------------------
+{
+  const page41 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page41.on("pageerror", (e) => errs.push(String(e)))
+  await page41.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page41.waitForSelector(".hwt-board")
+  const result = await page41.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("cult")
+    for (let i = 0; i < 4; i++) state = endPlayerTurn(state)
+    const wardenAttackAfter4 = state.units.find((u) => u.defId === "ritual-warden").attack
+    for (let i = 0; i < 2; i++) state = endPlayerTurn(state)
+    return {
+      wardenAttackAfter4,
+      wardenAttackAfter6: state.units.find((u) => u.defId === "ritual-warden").attack,
+      sputterLogged: state.log.some((l) => l.includes("sputters - nothing left to give")),
+    }
+  })
+  await page41.close()
+  out.cultDeescalation = result
+  if (!(result.sputterLogged && result.wardenAttackAfter6 === result.wardenAttackAfter4)) {
+    out.errors.push("check41 the ritual did not de-escalate once its fodder was spent")
+  }
+}
+
+// 42. Killing the Ritual Warden stops it - a deterministic page.evaluate
+//     proof: hand-zero its hp, drive endPlayerTurn a few times, assert
+//     both cultists remain alive and no "gives"/"sputters" line appears -
+{
+  const page42 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page42.on("pageerror", (e) => errs.push(String(e)))
+  await page42.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page42.waitForSelector(".hwt-board")
+  const result = await page42.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("cult")
+    const killed = { ...base, units: base.units.map((u) => (u.defId === "ritual-warden" ? { ...u, hp: 0 } : u)) }
+    let state = killed
+    for (let i = 0; i < 3; i++) state = endPlayerTurn(state)
+    const cultistsAlive = state.units.filter((u) => u.defId === "sworn-cultist" && u.hp > 0).length
+    return {
+      cultistsAlive,
+      logHasGives: state.log.some((l) => l.includes("gives") && l.includes("ritual")),
+      logHasSputters: state.log.some((l) => l.includes("sputters")),
+    }
+  })
+  await page42.close()
+  out.cultKillStopsIt = result
+  if (!(result.cultistsAlive === 2 && !result.logHasGives && !result.logHasSputters)) {
+    out.errors.push("check42 a dead Ritual Warden still ran its ritual")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (The Coven archetype) PASS" : "\n❌ verify_tactics_prototype (The Coven archetype) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (The Cult archetype) PASS" : "\n❌ verify_tactics_prototype (The Cult archetype) FAIL")
 process.exit(pass ? 0 : 1)

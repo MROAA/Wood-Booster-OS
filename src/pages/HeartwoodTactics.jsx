@@ -225,11 +225,16 @@ export default function HeartwoodTactics() {
                   </span>
                 )}
                 {unit.attack > unit.baseAttack && (
-                  <span
-                    className="hwt-strength-badge"
-                    title={`+${unit.attack - unit.baseAttack} Strength from the coven`}
-                  >
+                  <span className="hwt-strength-badge" title={`+${unit.attack - unit.baseAttack} Strength`}>
                     ▲{unit.attack - unit.baseAttack}
+                  </span>
+                )}
+                {unit.cultRitual && (
+                  <span
+                    className="hwt-ritual-badge"
+                    title={`Ritual gathering - ${unit.cultRitual.every - unit.ritualCharge} turn(s) to the sacrifice`}
+                  >
+                    ☾{unit.cultRitual.every - unit.ritualCharge}
                   </span>
                 )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
