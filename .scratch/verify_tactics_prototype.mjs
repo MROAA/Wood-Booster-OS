@@ -41,13 +41,27 @@ import { mkdir } from "node:fs/promises"
 // silently until it fires; this round adds a small ☾-badge + a quiet log
 // line on every tick too, matching the established "narrate every tick"
 // pattern from the Ancients/Coven rounds rather than reproducing the real
-// game's silence. Still no runEngine.js/autoBattleEngine.js/save-state
-// touch. There is no headless engine call to substitute for verification
-// - this IS the interactive surface, so the script drives the actual
-// rendered UI exactly the way Marc would click through it.
+// game's silence. THE BROOD ARCHETYPE ("brood" / "The Clutch") - 3x Brood
+// Mother, real HP/attack numbers, a new trySpawnBrood hook wired into both
+// attackUnit and castAbility's burst branch: when a broodSplit-carrying
+// enemy falls, it tears into `count` HP-reduced copies of itself (via a
+// new freeCellsNear board-wide nearest-free-cell search, a generalization
+// of the real game's fixed 3-column zone to this engine's much bigger
+// 7x10 board) BEFORE checkTacticsBattleEnd runs - the critical ordering
+// that keeps a "kill the last living mother" moment from falsely
+// resolving as "won" before its hatchlings land. A hatchling's own
+// broodGen >= maxGen guard (inherited from the same defId) stops any
+// cascade - no separate "can't re-split" flag needed. No AoE/execute
+// mechanic exists on any player unit in this engine, so unlike the real
+// archetype's headline answer, the honest counter here is just that the
+// hatchlings are frail - a pre-existing limitation, not a new one. Still
+// no runEngine.js/autoBattleEngine.js/save-state touch. There is no
+// headless engine call to substitute for verification - this IS the
+// interactive surface, so the script drives the actual rendered UI
+// exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5391
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-cult/.scratch/shots"
+const PORT = process.env.PORT || 5392
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-brood/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1336,10 +1350,170 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// The Brood archetype (feat/hearthwood-tactics-brood). Every new check
+// gets its own fresh page from the start (the established anti-hang
+// discipline).
+// ---------------------------------------------------------------
+
+// 43. The Clutch ("brood") - real composition: 3x Brood Mother (distinct
+//     ids, same defId), 3 living player tokens -------------------------
+{
+  const page43 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page43.on("pageerror", (e) => errs.push(String(e)))
+  await page43.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page43.waitForSelector(".hwt-board")
+  await page43.locator(".hwt-formation-btn", { hasText: "The Clutch" }).click()
+  await page43.waitForTimeout(300)
+  const enemyNames = await page43.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const playerNames = await page43.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  await page43.close()
+  const mothersOk = enemyNames.length === 3 && enemyNames.every((n) => n === "Brood Mother")
+  out.broodFormation = { enemyNames, playerNames }
+  if (!(mothersOk && playerNames.length === 3)) {
+    out.errors.push("check43 The Clutch formation composition was wrong")
+  }
+}
+
+// 44. Killing the last living mother spawns 2 HP-reduced hatchlings
+//     BEFORE the battle can resolve as "won" - the critical ordering
+//     proof (trySpawnBrood must run before checkTacticsBattleEnd) -------
+{
+  const page44 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page44.on("pageerror", (e) => errs.push(String(e)))
+  await page44.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page44.waitForSelector(".hwt-board")
+  const result = await page44.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("brood")
+    const survivorId = base.units.find((u) => u.side === "enemy").id
+    const attackerId = base.units.find((u) => u.side === "player").id
+    // Zero every mother except one (the sole living enemy), park it at
+    // hp:1 adjacent to the attacker - the exact "kill the LAST living
+    // enemy" scenario that would falsely resolve as "won" if the spawn
+    // ran after checkTacticsBattleEnd instead of before it.
+    const state = {
+      ...base,
+      units: base.units.map((u) => {
+        if (u.id === attackerId) return { ...u, pos: { row: 2, col: 2 } }
+        if (u.side !== "enemy") return u
+        if (u.id === survivorId) return { ...u, hp: 1, pos: { row: 2, col: 1 } }
+        return { ...u, hp: 0 }
+      }),
+    }
+    const beforeLivingEnemies = state.units.filter((u) => u.side === "enemy" && u.hp > 0).length
+    const after = attackUnit(state, attackerId, survivorId)
+    const livingEnemies = after.units.filter((u) => u.side === "enemy" && u.hp > 0)
+    return {
+      beforeLivingEnemies,
+      phase: after.phase,
+      livingEnemyCount: livingEnemies.length,
+      hatchlingHps: livingEnemies.map((u) => u.hp),
+      broodGens: livingEnemies.map((u) => u.broodGen),
+      tearsCount: (after.log.join(" ").match(/tears free of the husk\./g) || []).length,
+    }
+  })
+  await page44.close()
+  out.broodKillSpawns = result
+  const hpOk = result.hatchlingHps.length === 2 && result.hatchlingHps.every((hp) => hp === 14)
+  const genOk = result.broodGens.every((g) => g === 1)
+  if (!(result.beforeLivingEnemies === 1 && result.phase === "player" && result.livingEnemyCount === 2 && hpOk && genOk && result.tearsCount === 2)) {
+    out.errors.push("check44 killing the last mother did not spawn 2 reduced hatchlings before the battle could resolve as won")
+  }
+}
+
+// 45. No cascade - a hatchling (broodGen: 1) that falls does NOT spawn
+//     again; the maxGen:1 guard holds -----------------------------------
+{
+  const page45 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page45.on("pageerror", (e) => errs.push(String(e)))
+  await page45.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page45.waitForSelector(".hwt-board")
+  const result = await page45.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("brood")
+    const motherId = base.units.find((u) => u.side === "enemy").id
+    const attackerId = base.units.find((u) => u.side === "player").id
+    const state = {
+      ...base,
+      units: base.units.map((u) => {
+        if (u.id === attackerId) return { ...u, pos: { row: 2, col: 2 } }
+        if (u.side !== "enemy") return u
+        // Hand-build "already a hatchling" in the mother's place.
+        if (u.id === motherId) return { ...u, hp: 1, maxHp: 14, broodGen: 1, pos: { row: 2, col: 1 } }
+        return { ...u, hp: 0 }
+      }),
+    }
+    const unitCountBefore = state.units.length
+    const after = attackUnit(state, attackerId, motherId)
+    return {
+      unitCountBefore,
+      unitCountAfter: after.units.length,
+      tearsCount: (after.log.join(" ").match(/tears free of the husk\./g) || []).length,
+      phase: after.phase,
+    }
+  })
+  await page45.close()
+  out.broodNoCascade = result
+  if (!(result.unitCountAfter === result.unitCountBefore && result.tearsCount === 0 && result.phase === "won")) {
+    out.errors.push("check45 a broodGen:1 hatchling re-split, breaking the maxGen guard")
+  }
+}
+
+// 46. The board-wide free-cell search works away from the real game's
+//     fixed 3-column zone (rows 0-1, cols 0-2) - a mother dying deep in
+//     the board spawns hatchlings on the nearest ACTUALLY-FREE cells to
+//     its own death tile, not confined to that corner -------------------
+{
+  const page46 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page46.on("pageerror", (e) => errs.push(String(e)))
+  await page46.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page46.waitForSelector(".hwt-board")
+  const result = await page46.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const motherPos = { row: 5, col: 7 }
+    const state = {
+      grid: { rows: 7, cols: 10 },
+      phase: "player",
+      turn: 1,
+      log: [],
+      formationId: "brood",
+      units: [
+        {
+          id: "attacker", side: "player", defId: "bulwark-of-ages", name: "Attacker", art: "sword", image: null,
+          pos: { row: 5, col: 6 }, hp: 40, maxHp: 40, move: 2, range: 1, attack: 10, ap: 2, apMax: 2, block: 0,
+          ability: null, cooldownRemaining: 0, charge: null, chargeCounter: 0, chargeHpMark: 40, covenAura: null,
+          cultRitual: null, cultFodder: false, ritualCharge: 0, broodSplit: null, broodGen: 0,
+        },
+        {
+          id: "mother", side: "enemy", defId: "brood-mother", name: "Brood Mother", art: "husk", image: null,
+          pos: motherPos, hp: 1, maxHp: 34, move: 2, range: 1, attack: 5, ap: 2, apMax: 2, block: 0,
+          ability: null, cooldownRemaining: 0, charge: null, chargeCounter: 0, chargeHpMark: 34, covenAura: null,
+          cultRitual: null, cultFodder: false, ritualCharge: 0,
+          broodSplit: { count: 2, hpFactor: 0.4, maxGen: 1 }, broodGen: 0,
+        },
+      ],
+    }
+    const after = attackUnit(state, "attacker", "mother")
+    const hatchlings = after.units.filter((u) => u.id !== "attacker" && u.id !== "mother" && u.hp > 0)
+    const overlapsAttacker = hatchlings.some((h) => h.pos.row === 5 && h.pos.col === 6)
+    const inFixedRealGameZone = hatchlings.every((h) => h.pos.row <= 1 && h.pos.col <= 2)
+    const maxDist = Math.max(
+      ...hatchlings.map((h) => Math.max(Math.abs(h.pos.row - motherPos.row), Math.abs(h.pos.col - motherPos.col))),
+    )
+    return { hatchlingCount: hatchlings.length, positions: hatchlings.map((h) => h.pos), overlapsAttacker, inFixedRealGameZone, maxDist }
+  })
+  await page46.close()
+  out.broodFreeCellSearch = result
+  if (!(result.hatchlingCount === 2 && !result.overlapsAttacker && !result.inFixedRealGameZone && result.maxDist <= 1)) {
+    out.errors.push("check46 the board-wide free-cell search did not land hatchlings on the nearest free cells to the death tile")
+  }
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (The Cult archetype) PASS" : "\n❌ verify_tactics_prototype (The Cult archetype) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (The Brood archetype) PASS" : "\n❌ verify_tactics_prototype (The Brood archetype) FAIL")
 process.exit(pass ? 0 : 1)

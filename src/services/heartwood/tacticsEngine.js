@@ -156,6 +156,15 @@ export const ENEMY_FORMATIONS = {
     battleStartBonus: 0,
     fortressBlock: 0,
   },
+  brood: {
+    id: "brood",
+    name: "The Clutch",
+    description: "Three of them, swollen and still. Break one open and see what spills out.",
+    enemyDefIds: ["brood-mother", "brood-mother", "brood-mother"],
+    rows: [2, 3, 4],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -202,6 +211,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   const covenAura = side === "enemy" ? def.covenAura || null : null
   const cultRitual = side === "enemy" ? def.cultRitual || null : null
   const cultFodder = side === "enemy" ? !!def.cultFodder : false
+  const broodSplit = side === "enemy" ? def.broodSplit || null : null
   return {
     id: uid,
     side,
@@ -227,6 +237,8 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     cultRitual,
     cultFodder,
     ritualCharge: 0,
+    broodSplit,
+    broodGen: 0,
   }
 }
 
@@ -329,6 +341,62 @@ function applyDamageWithBlock(state, targetId, amount) {
   return { next, absorbed, remaining, fell: nextHp <= 0 }
 }
 
+// The Brood's real mechanic (effects.js's broodSplit + freeEnemyCells,
+// ported into this engine's vocabulary): when a broodSplit-carrying enemy
+// dies, if its broodGen hasn't hit maxGen yet, it tears into `count`
+// HP-reduced copies of itself at the nearest free cells to where it died.
+// The real game's cell search is hard-coded to its fixed 3-column enemy
+// zone (rows 0-1, cols 0-2, "~6 cells"); this engine's board is much
+// bigger (7x10) and enemies aren't confined to a zone, so this generalizes
+// it to scan the WHOLE board for the nearest free cells - same
+// distance-sort logic, just not artificially bounded to a fixed region.
+function freeCellsNear(state, origin, count) {
+  const occupied = new Set(state.units.filter((u) => u.hp > 0).map((u) => `${u.pos.row},${u.pos.col}`))
+  const cells = []
+  for (let row = 0; row < state.grid.rows; row++) {
+    for (let col = 0; col < state.grid.cols; col++) {
+      if (!occupied.has(`${row},${col}`)) cells.push({ row, col })
+    }
+  }
+  cells.sort((a, b) => {
+    const da = chebyshevDist(origin, a)
+    const db = chebyshevDist(origin, b)
+    if (da !== db) return da - db
+    if (a.row !== b.row) return a.row - b.row
+    return a.col - b.col
+  })
+  return cells.slice(0, count)
+}
+
+// Reuses deriveTacticsUnit to build every hatchling - the exact same
+// derivation every normal enemy gets (move/range/attack all computed
+// fresh from the real def, not inherited from the parent's possibly-stale
+// values), with hp/maxHp overridden to the reduced value and broodGen
+// bumped. Because the hatchling is derived from the SAME defId, it still
+// carries the real broodSplit field - the broodGen >= maxGen guard on its
+// OWN future death is what actually stops the cascade (mirrors the real
+// game's maxGen check exactly, no separate "can't re-split" flag needed).
+function trySpawnBrood(state, victimId) {
+  const victim = getUnit(state, victimId)
+  if (!victim || victim.hp > 0 || !victim.broodSplit) return state
+  const { count, hpFactor, maxGen } = victim.broodSplit
+  if ((victim.broodGen || 0) >= maxGen) return state
+  const hp = Math.max(1, Math.round(victim.maxHp * hpFactor))
+  const cells = freeCellsNear(state, victim.pos, count)
+  let next = state
+  cells.forEach((pos, i) => {
+    const uid = `${victim.id}-b${i}-${next.units.length}`
+    const hatchling = {
+      ...deriveTacticsUnit(victim.defId, "enemy", pos, uid),
+      hp,
+      maxHp: hp,
+      broodGen: (victim.broodGen || 0) + 1,
+    }
+    next = { ...next, units: [...next.units, hatchling], log: [...next.log, `${hatchling.name} tears free of the husk.`] }
+  })
+  return next
+}
+
 export function attackUnit(state, actorId, targetId) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
@@ -341,6 +409,7 @@ export function attackUnit(state, actorId, targetId) {
   const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
   const fellNote = fell ? " It falls." : ""
   next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}.${absorbedNote}${fellNote}`] }
+  if (fell) next = trySpawnBrood(next, targetId)
   return checkTacticsBattleEnd(next)
 }
 
@@ -387,6 +456,7 @@ export function castAbility(state, actorId, targetId) {
     const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
     const fellNote = fell ? " It falls." : ""
     next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}`] }
+    if (fell) next = trySpawnBrood(next, target.id)
     return checkTacticsBattleEnd(next)
   }
 
