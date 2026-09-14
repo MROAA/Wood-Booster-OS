@@ -80,14 +80,16 @@ const ELITE_GIMMICK = {
 // archetype's `charge` (PR #454) - no gap at all. Deepwarden's real
 // identity (Strength + a repeating post-phase Block) is the one gap-
 // bearing case Marc explicitly chose to ship anyway (PR #464 - its Ward
-// passive is a named, accepted no-op). The Gorging Maw/The Iron
-// Sentinel/Thornmaw/Wyrmgall/the final boss each lean on a mechanic this
-// engine can't represent yet for THEIR OWN headline gimmick (an
-// onDealDamage lifelink, compounding armour, self-Regen+Taunt,
-// Execute+Shatter, Revive+WoundedFury+a squad-wide AoE) - wiring them in
-// today would make them play as a noticeably easier, generic body, so
-// they stay preview-only until ported properly.
-const TACTICS_READY_ENCOUNTER_IDS = new Set(["the-ancient-grove", "the-elder-hollow", "deepwarden"])
+// passive is a named, accepted no-op). The Gorging Maw's onDealDamage
+// lifelink and Wyrmgall's Execute+Shatter are now ALSO fully portable
+// (PR #466's modifiedAttackAmount/checkOnDealDamageTriggers) - no gap on
+// either. The Iron Sentinel/Thornmaw/the final boss still each lean on a
+// mechanic this engine can't represent yet for THEIR OWN headline
+// gimmick (compounding armour, self-Regen+Taunt, Revive+WoundedFury+a
+// squad-wide AoE) - wiring them in today would make them play as a
+// noticeably easier, generic body, so they stay preview-only until
+// ported properly.
+const TACTICS_READY_ENCOUNTER_IDS = new Set(["the-ancient-grove", "the-elder-hollow", "deepwarden", "the-gorging-maw", "wyrmgall"])
 
 export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle, onStartTacticsBattle }) {
   const isBoss = node.type === "boss"
