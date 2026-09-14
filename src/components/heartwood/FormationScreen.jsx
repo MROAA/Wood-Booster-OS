@@ -71,19 +71,40 @@ const ELITE_GIMMICK = {
   "the-ashfall-herald": "Escalating flame — its squad-wide fire grows every round.",
 }
 
+// Which elite/miniboss encounters are faithful enough to count as a REAL
+// fight today, not just a preview - a judgment call (does the fight
+// still feel like itself), not something computable from the data, so
+// it's spelled out explicitly with the reasoning attached rather than
+// derived. The Ancient Grove/The Elder Hollow's real identity (a
+// telegraphed countdown AoE) already works end to end via the Ancients
+// archetype's `charge` (PR #454) - no gap at all. Deepwarden's real
+// identity (Strength + a repeating post-phase Block) is the one gap-
+// bearing case Marc explicitly chose to ship anyway (PR #464 - its Ward
+// passive is a named, accepted no-op). The Gorging Maw/The Iron
+// Sentinel/Thornmaw/Wyrmgall/the final boss each lean on a mechanic this
+// engine can't represent yet for THEIR OWN headline gimmick (an
+// onDealDamage lifelink, compounding armour, self-Regen+Taunt,
+// Execute+Shatter, Revive+WoundedFury+a squad-wide AoE) - wiring them in
+// today would make them play as a noticeably easier, generic body, so
+// they stay preview-only until ported properly.
+const TACTICS_READY_ENCOUNTER_IDS = new Set(["the-ancient-grove", "the-elder-hollow", "deepwarden"])
+
 export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle, onStartTacticsBattle }) {
   const isBoss = node.type === "boss"
   const isMiniboss = node.type === "miniboss"
   const isElite = node.type === "elite"
   const formation = resolveFormation(node.formationId || node.enemyId)
-  // Phase 4 second slice ("fight one real battle for real"): only a
-  // normal (non-elite/boss) fight offers the REAL playable tactics option
-  // this round - elites/minibosses/bosses keep the existing read-only
-  // preview link only (their real difficulty tuning/boss phases are out
-  // of scope). null when the encounter/squad can't be resolved (e.g. a
-  // Commander-alone deploy - no recruited units for the tactics engine to
-  // represent), in which case neither tactics option is offered.
-  const tacticsMatchup = node.type === "battle" ? resolveRealMatchup(runState, node) : null
+  // Phase 4: a normal (type:"battle") fight, OR one of the specific
+  // elite/miniboss encounters named in TACTICS_READY_ENCOUNTER_IDS above,
+  // offers the REAL playable tactics option. Every other elite/miniboss/
+  // boss keeps the existing read-only preview link only, since most of
+  // their own real identity has no equivalent in this engine yet (see the
+  // allowlist's own comment). null when the encounter/squad can't be
+  // resolved (e.g. a Commander-alone deploy - no recruited units for the
+  // tactics engine to represent), in which case neither tactics option is
+  // offered.
+  const isTacticsReady = node.type === "battle" || TACTICS_READY_ENCOUNTER_IDS.has(node.formationId || node.enemyId)
+  const tacticsMatchup = isTacticsReady ? resolveRealMatchup(runState, node) : null
   // A Trial (trials.js) is a named narrative wrapper around this exact
   // encounter - real story identity (title, its own intro/victory lines)
   // without touching the underlying enemy's already-tuned combat stats.
