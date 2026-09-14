@@ -367,6 +367,31 @@
   background: color-mix(in srgb, var(--hw-cosmic) 24%, var(--hw-panel));
 }
 
+/* Phase 4 second slice ("fight one real battle for real"): the small
+   always-visible reminder inside the live-run tactics branch, and its
+   single Continue button (no Play Again - you can't replay a real
+   fight). An ember accent, matching the FormationScreen "Fight this as
+   Tactics" button's own "this one is for real" tone. */
+.hwt-real-fight-note {
+  font-size: var(--hw-fs-sm);
+  color: var(--hw-ember);
+  margin: 0;
+  border-top: 1px solid var(--hw-border);
+  padding-top: 8px;
+}
+.hwt-continue-btn {
+  font-size: var(--hw-fs-sm);
+  padding: 6px 16px;
+  border-radius: var(--hw-radius-pill);
+  border: 1px solid var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 16%, var(--hw-panel));
+  color: var(--hw-text);
+  cursor: pointer;
+}
+.hwt-continue-btn:hover {
+  background: color-mix(in srgb, var(--hw-ember) 28%, var(--hw-panel));
+}
+
 .hwt-squad-picker {
   border-top: 1px solid var(--hw-border);
   padding-top: 8px;

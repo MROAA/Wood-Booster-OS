@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5396
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-real-preview/.scratch/shots"
+const PORT = process.env.PORT || 5397
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-real-battle/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()

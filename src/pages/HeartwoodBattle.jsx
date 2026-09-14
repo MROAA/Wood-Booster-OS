@@ -86,7 +86,11 @@ import { resolveFormation } from "../data/heartwood/formations"
 import { CINEMATICS, cinematicById, suggestedEndingId } from "../data/heartwood/cinematics"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
+import TacticsBoard from "../components/heartwood/TacticsBoard"
+import { createRealMatchupBattle, withLowEnemyHp } from "../services/heartwood/tacticsEngine"
+import { resolveRealMatchup } from "../services/heartwood/tacticsRealMatchup"
 import "../components/heartwood/heartwood.css"
+import "../components/heartwood/heartwood-tactics.css"
 
 const rootStyle = { height: "100%", "--hw-bg-image": `url(${battleBg})` }
 const AUTOBATTLER_INTRO_SEEN_KEY = "heartwood-autobattler-intro-seen"
@@ -191,6 +195,14 @@ export default function HeartwoodBattle() {
   // coachDoneKeyRef holds the screen key a tip was last dismissed on so
   // the rest of that screen's tips stay suppressed until the run moves.
   const [showHelp, setShowHelp] = useState(false)
+  // Phase 4 second slice ("fight one real battle for real"): the
+  // in-progress tactics battle's own selection state - mirrors exactly
+  // how HeartwoodTactics.jsx (the standalone prototype) owns its own
+  // selectedId/abilityMode. This is UI-only interaction state, never
+  // saved with the run (unlike runState.battle itself, which IS saved -
+  // see handleStartTacticsBattle's comment).
+  const [tacticsSelectedId, setTacticsSelectedId] = useState(null)
+  const [tacticsAbilityMode, setTacticsAbilityMode] = useState(null)
   const [coachTick, setCoachTick] = useState(0)
   const coachDoneKeyRef = useRef(null)
   const [lastAcornsEarned, setLastAcornsEarned] = useState(null)
@@ -548,6 +560,52 @@ export default function HeartwoodBattle() {
   // whole floating-number/hit-flash animation system.
   function handleStartBattle() {
     setRunState((current) => startFormationBattle(current))
+  }
+
+  // Phase 4 second slice ("fight one real battle for real"): the real,
+  // playable-for-keeps alternative to handleStartBattle above, offered by
+  // FormationScreen only for a normal (non-elite/boss) fight with a
+  // resolvable matchup. Builds the tactics battle from the REAL deployed
+  // squad + REAL node enemy (resolveRealMatchup/createRealMatchupBattle -
+  // the same functions the read-only preview already proved safe), tags
+  // it `engine: "tactics"` so the render branch below picks TacticsBoard
+  // instead of AutoBattleView, and stores it in runState.battle - which
+  // means it round-trips through the exact same saveRunSave(serializeRun(
+  // runState)) effect the auto-battle state already does, so a reload
+  // mid-fight resumes it, same as today.
+  function handleStartTacticsBattle() {
+    setTacticsSelectedId(null)
+    setTacticsAbilityMode(null)
+    setRunState((current) => {
+      const node = current.path[current.nodeIndex]
+      const matchup = resolveRealMatchup(current, node)
+      if (!matchup) return current
+      let battle = createRealMatchupBattle(matchup.squadDefIds, matchup.enemyDefIds)
+      // The same QA-only ?debugLowHp=1 hook HeartwoodTactics.jsx's own
+      // maybeDebugLowHp already uses - never a real feature, just lets a
+      // verification pass reach a real win without grinding real attack
+      // rounds first.
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("debugLowHp") === "1") battle = withLowEnemyHp(battle)
+      return { ...current, phase: "battle", battle: { ...battle, engine: "tactics" } }
+    })
+  }
+
+  function handleTacticsBattleChange(newBattle) {
+    setRunState((current) => ({ ...current, battle: newBattle }))
+  }
+
+  // The ENTIRE bridge to the real win/loss economy: resolveBattleOutcome
+  // only ever reads battle.phase ("won"/"lost") and battle.round (a
+  // number, for the styleLog "did this run 8+ rounds" stat) - traced
+  // directly in runEngine.js before this was written, never off
+  // battle.units/enemies/stats. The tactics engine's own state already
+  // has .phase and .turn, so this one-line translation is the whole
+  // bridge - zero duplication of essence/Evolution/shop-roll logic.
+  function handleTacticsContinue() {
+    setRunState((current) =>
+      resolveBattleOutcome({ ...current, battle: { phase: current.battle.phase, round: current.battle.turn } }),
+    )
   }
 
   function handleAdvanceRound() {
@@ -989,6 +1047,7 @@ export default function HeartwoodBattle() {
           onAssign={handleAssign}
           onClear={handleClear}
           onStartBattle={handleStartBattle}
+          onStartTacticsBattle={handleStartTacticsBattle}
         />
       </div>
     )
@@ -1009,6 +1068,38 @@ export default function HeartwoodBattle() {
   // actIndexForNode is 1-based (1..7, one per DIFFICULTY_TIERS entry) -
   // used directly as the [data-act] value the spectacle CSS keys on.
   const battleActIndex = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
+
+  // Phase 4 second slice: a tactics-mode battle is tagged engine:"tactics"
+  // by handleStartTacticsBattle above - the sole discriminator. Every
+  // other node type/battle still falls through to the unchanged
+  // AutoBattleView branch below. Reuses the exact same exitLink/rootStyle/
+  // data-screen wrapper the auto-battle branch does, so music mode (its
+  // own nodeType-only "boss"/"battle" logic, unaffected by which engine is
+  // fighting) and the act-hued spectacle CSS both keep working unchanged.
+  if (runState.battle?.engine === "tactics") {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="battle-tactics" data-screen="battle" data-act={battleActIndex}>
+        {exitLink}
+        <BattleSound state={runState.battle} />
+        <TacticsBoard
+          battle={runState.battle}
+          onBattleChange={handleTacticsBattleChange}
+          selectedId={tacticsSelectedId}
+          onSelectedIdChange={setTacticsSelectedId}
+          abilityMode={tacticsAbilityMode}
+          onAbilityModeChange={setTacticsAbilityMode}
+          resultActions={
+            <button className="hwt-continue-btn" onClick={handleTacticsContinue}>
+              Continue
+            </button>
+          }
+        >
+          <p className="hwt-real-fight-note">Fighting this one for real — the result will count.</p>
+        </TacticsBoard>
+      </div>
+    )
+  }
+
   return (
     <div
       className="hw-root hw-screen-fade"

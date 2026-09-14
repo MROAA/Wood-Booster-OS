@@ -4,23 +4,20 @@
 // connection whatsoever to a real run. Its only job is to let Marc actually
 // click through a turn-based fight and feel whether it's more fun to PLAY
 // than the auto-battler is to watch.
+//
+// The board/panel/result rendering + click-dispatch logic itself lives in
+// TacticsBoard.jsx (Phase 4 second slice: "fight one real battle for
+// real") - extracted so the real-in-run battle branch in
+// HeartwoodBattle.jsx can share it instead of duplicating every archetype
+// badge. This page still owns ALL its own state/handlers exactly as
+// before the extraction - only the JSX moved.
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
-import { CardGlyph } from "../components/heartwood/cardArt"
-import { kingAdjacent } from "../services/heartwood/targeting"
+import TacticsBoard from "../components/heartwood/TacticsBoard"
 import {
   createTacticsBattle,
   createRealMatchupBattle,
-  reachableTilesFor,
-  attackableTargets,
-  moveUnit,
-  attackUnit,
-  castAbility,
-  endPlayerTurn,
   withLowEnemyHp,
-  previewEnemyIntents,
-  previewChargeThreat,
   previewPlayerRoster,
   ENEMY_FORMATIONS,
   PLAYER_ROSTER_IDS,
@@ -28,14 +25,6 @@ import {
 import { loadRealMatchup } from "../services/heartwood/tacticsRealMatchup"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
-
-function apPips(unit) {
-  return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
-}
-
-function getUnitName(battle, id) {
-  return battle.units.find((u) => u.id === id)?.name || "?"
-}
 
 // The debugLowHp QA-only hook, never a real feature: `?debugLowHp=1` seeds
 // every enemy at 1 HP so a verification pass (or a quick manual check) can
@@ -68,111 +57,6 @@ export default function HeartwoodTactics() {
   // or the encounter/squad can't be resolved - see tacticsRealMatchup.js.
   const realMatchup = useMemo(() => loadRealMatchup(), [])
   const [usingReal, setUsingReal] = useState(false)
-
-  const selected = battle.units.find((u) => u.id === selectedId) || null
-  const reachable = useMemo(
-    () => (selected && selected.ap > 0 && !abilityMode && battle.phase === "player" ? reachableTilesFor(battle, selected.id) : []),
-    [battle, selected, abilityMode],
-  )
-  const targets = useMemo(
-    () => (selected && selected.ap > 0 && battle.phase === "player" && abilityMode !== "heal" ? attackableTargets(battle, selected.id) : []),
-    [battle, selected, abilityMode],
-  )
-  // Ability-only highlight: self + adjacent living allies, only while the
-  // Regrowth heal ability is armed. Distinct data-attr from the move
-  // highlight even though both lean on the same moss accent.
-  const healable = useMemo(
-    () =>
-      selected && abilityMode === "heal" && battle.phase === "player"
-        ? battle.units.filter((u) => u.hp > 0 && u.side === selected.side && (u.id === selected.id || kingAdjacent(u.pos, selected.pos)))
-        : [],
-    [battle, selected, abilityMode],
-  )
-  // What every living enemy currently plans to do this coming enemy phase -
-  // recomputed fresh from the live board each render, so it's always exactly
-  // what will happen if the player ends the turn right now, never a stale
-  // guess. See tacticsEngine.js's previewEnemyIntents for the accuracy proof.
-  const intents = useMemo(
-    () => (battle.phase === "player" ? previewEnemyIntents(battle) : []),
-    [battle],
-  )
-  const intentByEnemyId = useMemo(() => new Map(intents.map((i) => [i.enemyId, i.intent])), [intents])
-  const threatenedIds = useMemo(() => {
-    const ids = new Set()
-    for (const { intent } of intents) {
-      if (intent.kind === "attack" || intent.kind === "move-attack") ids.add(intent.targetId)
-    }
-    return ids
-  }, [intents])
-  // Same idea, for the Ancients' telegraphed AoE: whether ending the turn
-  // right now lands the payoff, and on whom. Distinct from the per-target
-  // intent above since a charge payoff hits every living player unit at
-  // once, not a single chosen target.
-  const chargeThreat = useMemo(
-    () => (battle.phase === "player" ? previewChargeThreat(battle) : { enemyIds: [], playerIds: [] }),
-    [battle],
-  )
-  const chargeThreatenedIds = useMemo(() => new Set(chargeThreat.playerIds), [chargeThreat])
-  const chargeFiringIds = useMemo(() => new Set(chargeThreat.enemyIds), [chargeThreat])
-
-  const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
-  const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
-  const targetHere = (row, col) => targets.find((t) => t.pos.row === row && t.pos.col === col)
-  const healableHere = (row, col) => healable.find((u) => u.pos.row === row && u.pos.col === col)
-
-  function handleCellClick(row, col) {
-    if (battle.phase !== "player") return
-
-    if (selected && abilityMode === "heal") {
-      const healTarget = healableHere(row, col)
-      if (healTarget) setBattle(castAbility(battle, selected.id, healTarget.id))
-      setAbilityMode(null)
-      return
-    }
-
-    if (selected && abilityMode === "burst") {
-      const target = targetHere(row, col)
-      if (target) setBattle(castAbility(battle, selected.id, target.id))
-      setAbilityMode(null)
-      return
-    }
-
-    const target = targetHere(row, col)
-    if (selected && target) {
-      setBattle(attackUnit(battle, selected.id, target.id))
-      return
-    }
-    if (selected && isReachable(row, col)) {
-      setBattle(moveUnit(battle, selected.id, { row, col }))
-      return
-    }
-    const occupant = cellUnit(row, col)
-    if (occupant && occupant.side === "player" && occupant.ap > 0) {
-      setSelectedId(occupant.id)
-    } else {
-      setSelectedId(null)
-    }
-    setAbilityMode(null)
-  }
-
-  function handleAbilityClick() {
-    if (!selected || !selected.ability || battle.phase !== "player") return
-    const ability = selected.ability
-    if (selected.ap < ability.cost || selected.cooldownRemaining > 0) return
-    if (ability.kind === "aura-block") {
-      setBattle(castAbility(battle, selected.id))
-      setAbilityMode(null)
-      return
-    }
-    const kind = ability.kind === "heal" ? "heal" : "burst"
-    setAbilityMode((prev) => (prev === kind ? null : kind))
-  }
-
-  function handleEndTurn() {
-    setSelectedId(null)
-    setAbilityMode(null)
-    setBattle(endPlayerTurn(battle))
-  }
 
   // The squad currently deployed, read straight off the live battle state
   // rather than a module constant - so a formation-only restart (below)
@@ -225,108 +109,6 @@ export default function HeartwoodTactics() {
     setBattle(startBattle("default"))
   }
 
-  const cells = []
-  for (let row = 0; row < battle.grid.rows; row++) {
-    for (let col = 0; col < battle.grid.cols; col++) {
-      const unit = cellUnit(row, col)
-      const reach = selected && isReachable(row, col)
-      const target = selected && targetHere(row, col)
-      const healTarget = selected && healableHere(row, col)
-      const threatened = unit && unit.side === "player" && (threatenedIds.has(unit.id) || chargeThreatenedIds.has(unit.id))
-      const intent = unit && unit.side === "enemy" ? intentByEnemyId.get(unit.id) : null
-      cells.push(
-        <div
-          key={`${row}-${col}`}
-          className="hwt-cell"
-          data-reachable={!!reach}
-          data-targetable={!!target}
-          data-healable={!!healTarget}
-          data-threatened={!!threatened}
-          onClick={() => handleCellClick(row, col)}
-        >
-          {unit && (
-            <motion.div
-              layout
-              layoutId={unit.id}
-              transition={{ type: "spring", stiffness: 300, damping: 28 }}
-              className="hwt-token"
-              data-side={unit.side}
-              data-selectable={unit.side === "player" && battle.phase === "player"}
-              data-selected={unit.id === selectedId}
-              data-acted={unit.ap <= 0}
-            >
-              <div className="hwt-token-status">
-                <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
-                  {apPips(unit)}
-                </span>
-                {unit.block > 0 && (
-                  <span className="hwt-block-badge" title={`${unit.block} Block`}>
-                    <CardGlyph name="shield" className="hwt-block-icon" />
-                    {unit.block}
-                  </span>
-                )}
-                {unit.cooldownRemaining > 0 && (
-                  <span className="hwt-cooldown-badge" title={`Ability recharging - ${unit.cooldownRemaining} turn(s)`}>
-                    ⏳{unit.cooldownRemaining}
-                  </span>
-                )}
-                {unit.charge && (
-                  <span
-                    className="hwt-charge-badge"
-                    data-imminent={chargeFiringIds.has(unit.id)}
-                    title={
-                      chargeFiringIds.has(unit.id)
-                        ? `${unit.charge.label} lands on the whole squad this turn!`
-                        : `Charging ${unit.charge.label} - ${unit.chargeCounter} turn(s) to the hit`
-                    }
-                  >
-                    {chargeFiringIds.has(unit.id) ? "⚡!" : `⚡${unit.chargeCounter}`}
-                  </span>
-                )}
-                {unit.attack > unit.baseAttack && (
-                  <span className="hwt-strength-badge" title={`+${unit.attack - unit.baseAttack} Strength`}>
-                    ▲{unit.attack - unit.baseAttack}
-                  </span>
-                )}
-                {unit.cultRitual && (
-                  <span
-                    className="hwt-ritual-badge"
-                    title={`Ritual gathering - ${unit.cultRitual.every - unit.ritualCharge} turn(s) to the sacrifice`}
-                  >
-                    ☾{unit.cultRitual.every - unit.ritualCharge}
-                  </span>
-                )}
-                {unit.poison > 0 && (
-                  <span
-                    className="hwt-poison-badge"
-                    title={`${unit.poison} Poison - ticks for that much damage (ignoring Block) at the top of your next turn, then decays by 1`}
-                  >
-                    ☠{unit.poison}
-                  </span>
-                )}
-                {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
-                  <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
-                    <CardGlyph name="sword" className="hwt-intent-icon" />
-                  </span>
-                )}
-                {intent && intent.kind === "move" && (
-                  <span className="hwt-intent-badge" data-intent="move" title="Advancing">
-                    ➤
-                  </span>
-                )}
-              </div>
-              <CardGlyph name={unit.art} className="hwt-token-glyph" />
-              <span className="hwt-token-name">{unit.name}</span>
-              <div className="hwt-hp-track">
-                <div className="hwt-hp-fill" style={{ width: `${Math.max(0, Math.round((unit.hp / unit.maxHp) * 100))}%` }} />
-              </div>
-            </motion.div>
-          )}
-        </div>,
-      )
-    }
-  }
-
   return (
     <div className="hw-root hwt-page">
       <div className="hwt-header">
@@ -338,140 +120,98 @@ export default function HeartwoodTactics() {
         </Link>
       </div>
 
-      <div className="hwt-layout">
-        <div
-          className="hwt-board"
-          style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)` }}
-        >
-          {cells}
-        </div>
-
-        <div className="hwt-panel">
-          <div className="hwt-turn-label" data-phase={battle.phase}>
-            {battle.phase === "player" && `Player Turn ${battle.turn}`}
-            {battle.phase === "enemy" && "Enemy Turn"}
-            {battle.phase === "won" && "Victory"}
-            {battle.phase === "lost" && "Defeat"}
-          </div>
-          <button className="hwt-end-turn" onClick={handleEndTurn} disabled={battle.phase !== "player"}>
-            End Turn
-          </button>
-          {selected && selected.side === "player" && selected.ability && battle.phase === "player" && (
-            <div className="hwt-ability-panel">
-              <button
-                className="hwt-ability-btn"
-                data-active={!!abilityMode}
-                disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0}
-                onClick={handleAbilityClick}
-              >
-                {selected.cooldownRemaining > 0
-                  ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
-                  : `${selected.ability.name} · ${selected.ability.cost} AP`}
-              </button>
-              {abilityMode && (
-                <p className="hwt-ability-hint">
-                  {abilityMode === "heal" ? "Choose an ally to heal." : "Choose an enemy for Focused Shot."}
-                </p>
-              )}
-            </div>
-          )}
-          <div className="hwt-log">
-            {[...battle.log].reverse().map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-          </div>
-
-          {realMatchup && (
-            <div className="hwt-real-matchup">
-              {usingReal ? (
-                <>
-                  <p className="hwt-real-matchup-label">
-                    Previewing your real run's next fight — nothing here affects your real run.
-                  </p>
-                  <button className="hwt-real-matchup-btn" onClick={backToTestSquad}>
-                    Back to test squad
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className="hwt-real-matchup-label">A real fight from your run is available: {realMatchup.label}</p>
-                  <button className="hwt-real-matchup-btn" onClick={startRealMatchup}>
-                    Preview it
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-
-          {!usingReal && (
-            <div className="hwt-squad-picker">
-              <p className="hwt-squad-picker-label">Choose your squad</p>
-              <div className="hwt-squad-picker-slots">
-                {currentSquadDefIds().map((defId, slotIndex) => {
-                  const preview = ROSTER_PREVIEW.find((u) => u.defId === defId)
-                  const otherSlots = currentSquadDefIds().filter((_, i) => i !== slotIndex)
-                  const options = PLAYER_ROSTER_IDS.filter((id) => id === defId || !otherSlots.includes(id))
-                  return (
-                    <div className="hwt-squad-slot" key={slotIndex}>
-                      <select
-                        className="hwt-squad-select"
-                        value={defId}
-                        onChange={(e) => handleSquadSlotChange(slotIndex, e.target.value)}
-                      >
-                        {options.map((id) => {
-                          const opt = ROSTER_PREVIEW.find((u) => u.defId === id)
-                          return (
-                            <option key={id} value={id}>
-                              {opt.name}
-                            </option>
-                          )
-                        })}
-                      </select>
-                      {preview && (
-                        <p className="hwt-squad-slot-stats">
-                          HP {preview.maxHp} · Atk {preview.attack} · Range {preview.range}
-                          {preview.ability ? ` · ${preview.ability.name}` : ""}
-                        </p>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {!usingReal && (
-            <div className="hwt-formation-picker">
-              <p className="hwt-formation-label">Choose your opponent</p>
-              <div className="hwt-formation-buttons">
-                {Object.values(ENEMY_FORMATIONS).map((f) => (
-                  <button
-                    key={f.id}
-                    className="hwt-formation-btn"
-                    data-active={battle.formationId === f.id}
-                    title={f.description}
-                    onClick={() => restart(f.id)}
-                  >
-                    {f.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {(battle.phase === "won" || battle.phase === "lost") && (
-        <div className="hwt-result">
-          <div className="hwt-result-title" data-outcome={battle.phase}>
-            {battle.phase === "won" ? "Victory" : "Defeat"}
-          </div>
-          <div className="hwt-result-actions">
+      <TacticsBoard
+        battle={battle}
+        onBattleChange={setBattle}
+        selectedId={selectedId}
+        onSelectedIdChange={setSelectedId}
+        abilityMode={abilityMode}
+        onAbilityModeChange={setAbilityMode}
+        resultActions={
+          <>
             <button onClick={handlePlayAgain}>Play Again</button>
             <Link to="/heartwood">Back to Hearthwood</Link>
+          </>
+        }
+      >
+        {realMatchup && (
+          <div className="hwt-real-matchup">
+            {usingReal ? (
+              <>
+                <p className="hwt-real-matchup-label">
+                  Previewing your real run's next fight — nothing here affects your real run.
+                </p>
+                <button className="hwt-real-matchup-btn" onClick={backToTestSquad}>
+                  Back to test squad
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="hwt-real-matchup-label">A real fight from your run is available: {realMatchup.label}</p>
+                <button className="hwt-real-matchup-btn" onClick={startRealMatchup}>
+                  Preview it
+                </button>
+              </>
+            )}
           </div>
-        </div>
-      )}
+        )}
+
+        {!usingReal && (
+          <div className="hwt-squad-picker">
+            <p className="hwt-squad-picker-label">Choose your squad</p>
+            <div className="hwt-squad-picker-slots">
+              {currentSquadDefIds().map((defId, slotIndex) => {
+                const preview = ROSTER_PREVIEW.find((u) => u.defId === defId)
+                const otherSlots = currentSquadDefIds().filter((_, i) => i !== slotIndex)
+                const options = PLAYER_ROSTER_IDS.filter((id) => id === defId || !otherSlots.includes(id))
+                return (
+                  <div className="hwt-squad-slot" key={slotIndex}>
+                    <select
+                      className="hwt-squad-select"
+                      value={defId}
+                      onChange={(e) => handleSquadSlotChange(slotIndex, e.target.value)}
+                    >
+                      {options.map((id) => {
+                        const opt = ROSTER_PREVIEW.find((u) => u.defId === id)
+                        return (
+                          <option key={id} value={id}>
+                            {opt.name}
+                          </option>
+                        )
+                      })}
+                    </select>
+                    {preview && (
+                      <p className="hwt-squad-slot-stats">
+                        HP {preview.maxHp} · Atk {preview.attack} · Range {preview.range}
+                        {preview.ability ? ` · ${preview.ability.name}` : ""}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {!usingReal && (
+          <div className="hwt-formation-picker">
+            <p className="hwt-formation-label">Choose your opponent</p>
+            <div className="hwt-formation-buttons">
+              {Object.values(ENEMY_FORMATIONS).map((f) => (
+                <button
+                  key={f.id}
+                  className="hwt-formation-btn"
+                  data-active={battle.formationId === f.id}
+                  title={f.description}
+                  onClick={() => restart(f.id)}
+                >
+                  {f.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </TacticsBoard>
     </div>
   )
 }
