@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5399
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-elite-wire/.scratch/shots"
+const PORT = process.env.PORT || 5401
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-wire-2/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -75,14 +75,15 @@ function newPage() {
   return browser.newContext({ viewport: { width: 1300, height: 900 } }).then((ctx) => ctx.newPage())
 }
 
-// 1. UPDATED this round (its old premise - "every elite/miniboss/boss
-//    shows preview only" - is no longer true): a normal type:"battle"
-//    node AND each of the 3 newly-approved encounters (The Ancient Grove,
-//    The Elder Hollow, Deepwarden) show "Fight this as Tactics"; every
-//    still-excluded elite/miniboss/boss (spot-checked via The Gorging
-//    Maw, plus the boss) shows only the existing read-only preview link -
-//    proving the allowlist boundary is EXACTLY the 3 approved ids, not
-//    more, not fewer ------------------------------------------------------
+// 1. UPDATED this round (its own premise from PR #465 - "The Gorging Maw
+//    is still not-ready" - is no longer true after PR #466's Execute/
+//    Shatter + onDealDamage work): a normal type:"battle" node AND each
+//    of the 5 approved encounters (The Ancient Grove, The Elder Hollow,
+//    Deepwarden, The Gorging Maw, Wyrmgall) show "Fight this as Tactics";
+//    a still-excluded elite/miniboss/boss (spot-checked via The Iron
+//    Sentinel, plus the boss) shows only the existing read-only preview
+//    link - proving the allowlist boundary is EXACTLY the 5 approved
+//    ids, not more, not fewer ----------------------------------------
 {
   async function tacticsButtonState(nodeFilter) {
     const page = await newPage()
@@ -102,11 +103,13 @@ function newPage() {
   const elderHollow = await tacticsButtonState((n) => n.type === "elite" && n.formationId === "the-elder-hollow")
   const deepwarden = await tacticsButtonState((n) => n.type === "miniboss" && n.enemyId === "deepwarden")
   const gorgingMaw = await tacticsButtonState((n) => n.type === "elite" && n.enemyId === "the-gorging-maw")
+  const wyrmgall = await tacticsButtonState((n) => n.type === "miniboss" && n.enemyId === "wyrmgall")
+  const ironSentinel = await tacticsButtonState((n) => n.type === "elite" && n.enemyId === "the-iron-sentinel")
   const boss = await tacticsButtonState((n) => n.type === "boss")
 
-  out.buttonChoiceMatrix = { battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, boss }
-  const readyOk = [battleNode, ancientGrove, elderHollow, deepwarden].every((r) => r.fightBtnCount === 1 && r.previewLinkCount === 0)
-  const notReadyOk = [gorgingMaw, boss].every((r) => r.fightBtnCount === 0 && r.previewLinkCount === 1)
+  out.buttonChoiceMatrix = { battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel, boss }
+  const readyOk = [battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall].every((r) => r.fightBtnCount === 1 && r.previewLinkCount === 0)
+  const notReadyOk = [ironSentinel, boss].every((r) => r.fightBtnCount === 0 && r.previewLinkCount === 1)
   if (!(readyOk && notReadyOk)) {
     out.errors.push("check1 the Fight-vs-Preview allowlist boundary was wrong for at least one node type")
   }
@@ -484,6 +487,206 @@ function newPage() {
     )
   ) {
     out.errors.push("check9 Deepwarden's win path did not pay out the exact real essence formula, or did not advance/clear the battle correctly")
+  }
+}
+
+// ---------------------------------------------------------------
+// This round (feat/hearthwood-tactics-wire-2): widen the real "Fight
+// this as Tactics" button to The Gorging Maw + Wyrmgall, now that PR
+// #466 made both fully faithful in the isolated prototype. Every new
+// check gets its own fresh page.
+// ---------------------------------------------------------------
+
+// 10. The Gorging Maw's real entry - a lighter spot-check, since its own
+//     lifelink was already fully proven in PR #466's 83-check isolated-
+//     prototype suite; what's new here is only "does it reach the live
+//     economy bridge" -----------------------------------------------
+{
+  const page10 = await newPage()
+  page10.on("pageerror", (e) => errs.push(String(e)))
+  await page10.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page10, (n) => n.type === "elite" && n.enemyId === "the-gorging-maw", ["the-fool"])
+  await page10.reload({ waitUntil: "domcontentloaded" })
+  await page10.waitForTimeout(400)
+  await page10.locator(".hw-tactics-fight-btn").click()
+  await page10.waitForTimeout(400)
+  const engine = await page10.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
+  const playerNames = await page10.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page10.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  await page10.screenshot({ path: `${SHOT}/gorging_maw_live.png` })
+  await page10.close()
+  out.gorgingMawEntry = { engine, playerNames, enemyNames }
+  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "The Gorging Maw")) {
+    out.errors.push("check10 entering The Gorging Maw for real did not load the exact real solo composition")
+  }
+}
+
+// 11. The Gorging Maw's win pays the exact real economy math ------------
+{
+  const page11 = await newPage()
+  page11.on("pageerror", (e) => errs.push(String(e)))
+  await page11.goto(`http://localhost:${PORT}/heartwood?debugLowHp=1`, { waitUntil: "domcontentloaded" })
+  const seed11 = await page11.evaluate(async () => {
+    const { startRun, serializeRun, RUN_PATH, essenceForWin, bankInterestFor, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const idx = RUN_PATH.findIndex((n) => n.type === "elite" && n.enemyId === "the-gorging-maw")
+    const rs = {
+      ...startRun("tommy"),
+      nodeIndex: idx,
+      path: RUN_PATH.slice(0, idx + 1),
+      phase: "formation",
+      bench: [{ key: "b1", defId: "the-fool", upgradeLevel: 0, upgrades: [] }],
+      deployed: ["b1", null, null, null],
+      items: [],
+      lastSeenAct: actIndexForNode(idx, RUN_PATH.length),
+    }
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    const node = RUN_PATH[idx]
+    return { idx, expectedEssence: rs.essence + essenceForWin(rs, node) + bankInterestFor(rs) }
+  })
+  await page11.reload({ waitUntil: "domcontentloaded" })
+  await page11.waitForTimeout(400)
+  await page11.locator(".hw-tactics-fight-btn").click()
+  await page11.waitForTimeout(400)
+  let phase = "player"
+  let turns = 0
+  while (phase !== "won" && phase !== "lost" && turns < 20) {
+    await page11.locator('.hwt-token[data-side="player"]').first().click({ force: true }).catch(() => {})
+    await page11.waitForTimeout(120)
+    let targets = page11.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) === 0) {
+      const reach = page11.locator('.hwt-cell[data-reachable="true"]')
+      if ((await reach.count()) > 0) {
+        await reach.first().click()
+        await page11.waitForTimeout(120)
+      }
+    }
+    targets = page11.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) > 0) {
+      await targets.first().click()
+      await page11.waitForTimeout(150)
+    }
+    await page11.locator(".hwt-end-turn").click().catch(() => {})
+    await page11.waitForTimeout(400)
+    phase = await page11.locator(".hwt-turn-label").getAttribute("data-phase")
+    turns++
+  }
+  let afterContinue = null
+  if (phase === "won") {
+    await page11.locator(".hwt-continue-btn").click()
+    await page11.waitForTimeout(400)
+    afterContinue = await page11.evaluate(() => {
+      const saved = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+      return { phase: saved.run.phase, essence: saved.run.essence, battle: saved.run.battle, nodeIndex: saved.run.nodeIndex }
+    })
+  }
+  await page11.close()
+  out.gorgingMawWinPath = { phase, turns, seed11, afterContinue }
+  if (
+    !(
+      phase === "won" &&
+      afterContinue &&
+      afterContinue.essence === seed11.expectedEssence &&
+      afterContinue.battle === null &&
+      afterContinue.nodeIndex === seed11.idx + 1
+    )
+  ) {
+    out.errors.push("check11 The Gorging Maw's win path did not pay out the exact real essence formula, or did not advance/clear the battle correctly")
+  }
+}
+
+// 12. Wyrmgall's real entry - confirms its trialId ("veilbound") wrapper
+//     doesn't interfere, same as Deepwarden's own check already proved
+//     for "rootkeeper" -------------------------------------------------
+{
+  const page12 = await newPage()
+  page12.on("pageerror", (e) => errs.push(String(e)))
+  await page12.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page12, (n) => n.type === "miniboss" && n.enemyId === "wyrmgall", ["the-fool"])
+  await page12.reload({ waitUntil: "domcontentloaded" })
+  await page12.waitForTimeout(400)
+  await page12.locator(".hw-tactics-fight-btn").click()
+  await page12.waitForTimeout(400)
+  const engine = await page12.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
+  const playerNames = await page12.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page12.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  await page12.screenshot({ path: `${SHOT}/wyrmgall_live.png` })
+  await page12.close()
+  out.wyrmgallEntry = { engine, playerNames, enemyNames }
+  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "Wyrmgall")) {
+    out.errors.push("check12 entering Wyrmgall for real did not load the exact real solo composition")
+  }
+}
+
+// 13. Wyrmgall's win pays the exact real economy math --------------------
+{
+  const page13 = await newPage()
+  page13.on("pageerror", (e) => errs.push(String(e)))
+  await page13.goto(`http://localhost:${PORT}/heartwood?debugLowHp=1`, { waitUntil: "domcontentloaded" })
+  const seed13 = await page13.evaluate(async () => {
+    const { startRun, serializeRun, RUN_PATH, essenceForWin, bankInterestFor, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const idx = RUN_PATH.findIndex((n) => n.type === "miniboss" && n.enemyId === "wyrmgall")
+    const rs = {
+      ...startRun("tommy"),
+      nodeIndex: idx,
+      path: RUN_PATH.slice(0, idx + 1),
+      phase: "formation",
+      bench: [{ key: "b1", defId: "the-fool", upgradeLevel: 0, upgrades: [] }],
+      deployed: ["b1", null, null, null],
+      items: [],
+      lastSeenAct: actIndexForNode(idx, RUN_PATH.length),
+    }
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    const node = RUN_PATH[idx]
+    return { idx, expectedEssence: rs.essence + essenceForWin(rs, node) + bankInterestFor(rs) }
+  })
+  await page13.reload({ waitUntil: "domcontentloaded" })
+  await page13.waitForTimeout(400)
+  await page13.locator(".hw-tactics-fight-btn").click()
+  await page13.waitForTimeout(400)
+  let phase = "player"
+  let turns = 0
+  while (phase !== "won" && phase !== "lost" && turns < 20) {
+    await page13.locator('.hwt-token[data-side="player"]').first().click({ force: true }).catch(() => {})
+    await page13.waitForTimeout(120)
+    let targets = page13.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) === 0) {
+      const reach = page13.locator('.hwt-cell[data-reachable="true"]')
+      if ((await reach.count()) > 0) {
+        await reach.first().click()
+        await page13.waitForTimeout(120)
+      }
+    }
+    targets = page13.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) > 0) {
+      await targets.first().click()
+      await page13.waitForTimeout(150)
+    }
+    await page13.locator(".hwt-end-turn").click().catch(() => {})
+    await page13.waitForTimeout(400)
+    phase = await page13.locator(".hwt-turn-label").getAttribute("data-phase")
+    turns++
+  }
+  let afterContinue = null
+  if (phase === "won") {
+    await page13.locator(".hwt-continue-btn").click()
+    await page13.waitForTimeout(400)
+    afterContinue = await page13.evaluate(() => {
+      const saved = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+      return { phase: saved.run.phase, essence: saved.run.essence, battle: saved.run.battle, nodeIndex: saved.run.nodeIndex }
+    })
+  }
+  await page13.close()
+  out.wyrmgallWinPath = { phase, turns, seed13, afterContinue }
+  if (
+    !(
+      phase === "won" &&
+      afterContinue &&
+      afterContinue.essence === seed13.expectedEssence &&
+      afterContinue.battle === null &&
+      afterContinue.nodeIndex === seed13.idx + 1
+    )
+  ) {
+    out.errors.push("check13 Wyrmgall's win path did not pay out the exact real essence formula, or did not advance/clear the battle correctly")
   }
 }
 
