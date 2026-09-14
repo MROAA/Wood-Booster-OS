@@ -224,6 +224,22 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 0,
   },
+  // The first SOLO formation - one body, not a 2-4-piece pack. Deepwarden's
+  // real identity (a passive Strength buff + an HP-gated phase that adds a
+  // repeating turnStart Block trigger) is exactly what this round's new
+  // passive/phases/trigger reading in deriveTacticsUnit/checkEnemyPhase/
+  // applyEnemyTurnStartTriggers exists to demonstrate - description is the
+  // real enemies.js introLine, reused verbatim.
+  deepwarden: {
+    id: "deepwarden",
+    name: "Deepwarden",
+    description: "It has been standing here since before you knew the Hearthwood existed. It isn't moving.",
+    enemyDefIds: ["deepwarden"],
+    rows: [3],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -246,6 +262,53 @@ function attackFromMovePattern(movePattern) {
 function poisonFromMovePattern(movePattern) {
   const steps = (movePattern || []).filter((m) => m.type === "debuff" && m.id === "poison")
   return steps.reduce((sum, m) => sum + (m.amount || 0), 0)
+}
+
+// Boss/elite phases round: a generic reader for a real def's own
+// `passive` array (autoBattleEngine.js's battle-start passive loop,
+// read directly - not reinvented). This engine has never modeled the
+// status ids ward/bulwark/taunt/regen/shatter/execute/revive/
+// woundedFury, so an `applyBuff` entry with one of those ids is simply
+// not interpreted here (a named, stated deferral - not a silent bug,
+// same discipline as every archetype round's "not ported" list). Only
+// `strength` is portable, since it maps directly onto this engine's own
+// attack-as-Strength model (the exact translation battleStartBonus/
+// Coven/Ancients already use). `addTrigger` entries are collected as-is
+// for the unit's own `triggers` array, fired later (see
+// applyEnemyTurnStartTriggers below) - only `turnStart` is ever fired
+// this round; `onDealDamage`/`onHit` triggers are registered but inert,
+// since no currently-ported content needs them yet.
+function passiveStrengthFromDef(passive) {
+  return (passive || [])
+    .filter((p) => p.type === "applyBuff" && p.id === "strength")
+    .reduce((sum, p) => sum + (p.amount || 0), 0)
+}
+
+function triggersFromPassive(passive) {
+  return (passive || []).filter((p) => p.type === "addTrigger").map((p) => ({ trigger: p.trigger, effect: p.effect }))
+}
+
+// The shared interpreter for a portable effect - used by both a fired
+// phase's own `effects` array and a `turnStart` trigger's single
+// `effect`. Recognizes exactly 3 shapes: applyBuff strength (-> this
+// engine's own attack-as-Strength model), block (an immediate/repeating
+// grant, the same shape Fortress's fortressBlock already uses), and heal
+// (capped at maxHp). Anything else - an unrecognized applyBuff id, any
+// other effect type - is a deliberate no-op, matching the named-deferred
+// list above.
+function applyPortableEffect(state, unitId, effect) {
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.hp <= 0) return state
+  if (effect.type === "applyBuff" && effect.id === "strength") {
+    return setUnit(state, unitId, { attack: unit.attack + (effect.amount || 0) })
+  }
+  if (effect.type === "block") {
+    return setUnit(state, unitId, { block: unit.block + (effect.amount || 0) })
+  }
+  if (effect.type === "heal") {
+    return setUnit(state, unitId, { hp: Math.min(unit.maxHp, unit.hp + (effect.amount || 0)) })
+  }
+  return state
 }
 
 // A pattern attacker (rook/bishop/knight - the auto-battler's existing
@@ -285,6 +348,16 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   const broodSplit = side === "enemy" ? def.broodSplit || null : null
   const poisonOnHit = side === "enemy" ? poisonFromMovePattern(def.movePattern) : 0
   const leech = side === "enemy" ? !!def.leech : false
+  // Boss/elite phases round: the def's own real `passive`/`phases`
+  // arrays, read directly (enemy side only, matching every prior
+  // archetype field's own precedent). A unit's portable passive Strength
+  // (e.g. Ironmaw's/Deepwarden's real +3) is folded straight into its
+  // starting `attack` here - the exact same "battle-start, no growth
+  // badge" treatment createTacticsBattle's own battleStartBonus already
+  // gets, since this is a real innate trait, not an earned buff.
+  const passiveStrength = side === "enemy" ? passiveStrengthFromDef(def.passive) : 0
+  const triggers = side === "enemy" ? triggersFromPassive(def.passive) : []
+  const phases = side === "enemy" ? def.phases || [] : []
   return {
     id: uid,
     side,
@@ -297,7 +370,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     maxHp,
     move: moveFromMaxHp(maxHp),
     range: rangeFromAttackPattern(def.attackPattern),
-    attack: attackFromMovePattern(def.movePattern),
+    attack: attackFromMovePattern(def.movePattern) + passiveStrength,
     ap: AP_MAX,
     apMax: AP_MAX,
     block: 0,
@@ -315,6 +388,9 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     poison: 0,
     poisonOnHit,
     leech,
+    triggers,
+    phases,
+    phaseIndex: 0,
   }
 }
 
@@ -579,6 +655,30 @@ function applyLeechOnHit(state, thiefId, targetId, remaining) {
   return { ...next, log: [...next.log, `${thief.name} takes a stack of Strength from ${target.name}.`] }
 }
 
+// Boss/elite phases round: the real HP-gated escalation every elite/
+// miniboss/the boss uses (autoBattleEngine.js's checkBossPhases, read
+// directly - same shape, ported here). Checked right after a hit lands,
+// the same spot trySpawnBrood/grantStrengthOnKill/applyLeechOnHit already
+// hook in, before checkTacticsBattleEnd. `phaseIndex` only ever
+// increments, and only the NEXT unfired phase is ever checked, so a
+// phase can never fire twice or out of order. Phases only ever buff/heal
+// in every real def read for this round - never lethal - so no extra
+// checkTacticsBattleEnd call is needed here.
+function checkEnemyPhase(state, unitId) {
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.side !== "enemy" || unit.hp <= 0) return state
+  const phase = unit.phases?.[unit.phaseIndex]
+  if (!phase) return state
+  if (unit.hp / unit.maxHp > phase.atHpPct) return state
+  let next = { ...state, log: [...state.log, phase.announce] }
+  for (const effect of phase.effects || []) {
+    next = effect.type === "addTrigger"
+      ? setUnit(next, unitId, { triggers: [...getUnit(next, unitId).triggers, { trigger: effect.trigger, effect: effect.effect }] })
+      : applyPortableEffect(next, unitId, effect)
+  }
+  return setUnit(next, unitId, { phaseIndex: unit.phaseIndex + 1 })
+}
+
 export function attackUnit(state, actorId, targetId) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
@@ -603,6 +703,7 @@ export function attackUnit(state, actorId, targetId) {
   }
   if (actor.side === "player") next = grantStrengthOnKill(next, actorId, fell)
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
+  next = checkEnemyPhase(next, targetId)
   if (fell) next = trySpawnBrood(next, targetId)
   return checkTacticsBattleEnd(next)
 }
@@ -651,6 +752,7 @@ export function castAbility(state, actorId, targetId) {
     const fellNote = fell ? " It falls." : ""
     next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}`] }
     next = grantStrengthOnKill(next, actorId, fell)
+    next = checkEnemyPhase(next, target.id)
     if (fell) next = trySpawnBrood(next, target.id)
     return checkTacticsBattleEnd(next)
   }
@@ -835,6 +937,41 @@ function applyRotMendTick(state) {
   return next
 }
 
+// Boss/elite phases round: fires every living enemy's own `turnStart`
+// triggers (registered from its real `passive` array, or added mid-fight
+// by a fired phase - see checkEnemyPhase above) - the exact same per-
+// round-tick SHAPE applyCovenTick/applyCultTick/applyRotMendTick already
+// use, generalized from "one formation-level mechanic" to "whatever this
+// specific unit's own real def registered." Called AFTER the fortressBlock
+// reset below (not before), so a trigger's own Block grant lands on top
+// of a formation's flat amount rather than being overwritten by it -
+// the same "resets then re-applies" ordering the Fortress's own comment
+// already establishes, just for a per-unit source instead of a per-
+// formation one. Only `turnStart` is ever fired here - `onDealDamage`/
+// `onHit` triggers are collected (checkEnemyPhase's addTrigger branch,
+// the passive parse above) but stay inert this round, since no currently
+// -ported real content needs them yet (a named, stated deferral).
+function describePortableEffect(effect) {
+  if (effect.type === "applyBuff" && effect.id === "strength") return "grows stronger"
+  if (effect.type === "block") return "braces for the next blow"
+  if (effect.type === "heal") return "steadies itself"
+  return "stirs"
+}
+
+function applyEnemyTurnStartTriggers(state) {
+  let next = state
+  for (const enemy of livingUnits(state, "enemy")) {
+    for (const t of enemy.triggers || []) {
+      if (t.trigger !== "turnStart") continue
+      const live = getUnit(next, enemy.id)
+      if (!live || live.hp <= 0) continue
+      next = applyPortableEffect(next, enemy.id, t.effect)
+      next = { ...next, log: [...next.log, `${live.name} ${describePortableEffect(t.effect)}.`] }
+    }
+  }
+  return next
+}
+
 export function endPlayerTurn(state) {
   if (state.phase !== "player") return state
   // applyCovenTick and applyRotMendTick never touch hp downward, so
@@ -855,12 +992,17 @@ export function endPlayerTurn(state) {
   // overwrite to the formation's fixed amount already IS "resets then
   // re-applies this round's grant" - the real mechanic, no separate reset.
   const fortressBlock = ENEMY_FORMATIONS[state.formationId]?.fortressBlock || 0
-  const next = {
+  const resetForEnemyPhase = {
     ...ticked,
     phase: "enemy",
     units: ticked.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock } : u)),
     log: [...ticked.log, "Enemy turn."],
   }
+  // A unit's own turnStart trigger (Deepwarden's post-phase "the ground
+  // answers" Block, etc.) is applied AFTER the flat fortressBlock reset
+  // above, never before - that reset is a per-unit overwrite, not an
+  // add, so a trigger firing first would just be wiped by it.
+  const next = applyEnemyTurnStartTriggers(resetForEnemyPhase)
   return runEnemyTurn(next)
 }
 
