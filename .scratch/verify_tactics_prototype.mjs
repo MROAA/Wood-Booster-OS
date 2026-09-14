@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5400
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-damage-mods/.scratch/shots"
+const PORT = process.env.PORT || 5402
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bulwark/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2358,9 +2358,15 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   if (!ok) out.errors.push("check70 the triggered Block grant did not repeat correctly every enemy turn")
 }
 
-// 71. Named-deferred ids (ward/bulwark) are clean no-ops, not silent
-//     corruption - no such field appears anywhere on the unit, no throw,
-//     no NaN, and every OTHER real stat stays exactly as expected -------
+// 71. UPDATED this round: `bulwark` is no longer a named-deferred id -
+//     this round (Bulwark, demoed via The Iron Sentinel) made it a real,
+//     working portable effect, so Deepwarden's own real phase effect
+//     (`applyBuff bulwark 2`) now correctly applies too, a disclosed
+//     fidelity improvement matching the exact same "reconciliation, not
+//     silent drift" discipline PR #464's own Ironmaw-passive fix already
+//     established. `ward` remains the one still-deferred id here - this
+//     check now proves BOTH halves: ward stays a clean no-op, bulwark now
+//     reads its real granted amount, no throw, no NaN --------------------
 {
   const page71 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page71.on("pageerror", (e) => errs.push(String(e)))
@@ -2396,9 +2402,14 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page71.close()
   out.deepwardenDeferredIds = deferredResult
   const noNewFields = JSON.stringify(deferredResult.startKeys) === JSON.stringify(deferredResult.afterKeys)
-  const noStrayFields = deferredResult.ward === undefined && deferredResult.bulwark === undefined
-  if (!(noNewFields && noStrayFields && deferredResult.hpIsNumber && deferredResult.attackIsNumber)) {
-    out.errors.push("check71 a named-deferred passive/phase id was not a clean no-op")
+  // ward is still genuinely deferred (no such stat exists in this engine
+  // at all - stays undefined); bulwark is now a REAL field on every unit
+  // (present from creation at 0), so its real granted amount (2) is the
+  // correct value to expect here, not undefined.
+  const wardStillDeferred = deferredResult.ward === undefined
+  const bulwarkNowReal = deferredResult.bulwark === 2
+  if (!(noNewFields && wardStillDeferred && bulwarkNowReal && deferredResult.hpIsNumber && deferredResult.attackIsNumber)) {
+    out.errors.push("check71 ward should still be a clean no-op, and bulwark should now read its real granted amount")
   }
 }
 
@@ -2434,13 +2445,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-damage-mods", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bulwark", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-damage-mods", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bulwark", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -2818,6 +2829,206 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 //     output's own per-check fields above). -------------------------
 {
   out.regressionNote = "Checks 1-73 (unmodified) re-ran as part of this same file execution - see their own output fields above for the full 73-check regression proof."
+}
+
+// ---------------------------------------------------------------
+// Bulwark (persistent armor), demoed via The Iron Sentinel
+// (feat/hearthwood-tactics-bulwark). Every new check gets its own fresh
+// page.
+// ---------------------------------------------------------------
+
+// 84. The Iron Sentinel formation - real HP 84, real name, base attack
+//     11 (movePattern's own 2 attack steps, (13+8)/2 rounded - no
+//     strength passive this time), bulwark starts at 0 --------------
+{
+  const page84 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page84.on("pageerror", (e) => errs.push(String(e)))
+  await page84.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page84.waitForSelector(".hwt-board")
+  await page84.locator(".hwt-formation-btn", { hasText: "The Iron Sentinel" }).click()
+  await page84.waitForTimeout(300)
+  const enemyNames = await page84.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const engineFacts = await page84.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const sentinel = createTacticsBattle("the-iron-sentinel").units.find((u) => u.side === "enemy")
+    return { hp: sentinel.hp, maxHp: sentinel.maxHp, attack: sentinel.attack, bulwark: sentinel.bulwark }
+  })
+  await page84.close()
+  out.ironSentinelFormation = { enemyNames, engineFacts }
+  const ok = enemyNames.length === 1 && enemyNames[0] === "The Iron Sentinel" && engineFacts.hp === 84 && engineFacts.maxHp === 84 && engineFacts.attack === 11 && engineFacts.bulwark === 0
+  if (!ok) out.errors.push("check84 The Iron Sentinel's formation composition or real stats were wrong")
+}
+
+// 85. Bulwark grows by exactly 1 every enemy turn, forever - the same
+//     repeating-trigger proof shape Deepwarden's Block-trigger check
+//     already established, applied to a stat that never resets -------
+{
+  const page85 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page85.on("pageerror", (e) => errs.push(String(e)))
+  await page85.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page85.waitForSelector(".hwt-board")
+  const result = await page85.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("the-iron-sentinel")
+    const sentinel = state.units.find((u) => u.side === "enemy")
+    // Player hp boosted well out of reach of the Sentinel's own real
+    // attack across 3 full enemy turns, so this stays a pure proof of
+    // the Bulwark value - never an accidental battle-end.
+    state = { ...state, units: state.units.map((u) => (u.side === "player" ? { ...u, hp: 500, maxHp: 500 } : u)) }
+    const round1 = endPlayerTurn(state)
+    const bulwarkRound1 = round1.units.find((u) => u.id === sentinel.id).bulwark
+    const round2 = endPlayerTurn(round1)
+    const bulwarkRound2 = round2.units.find((u) => u.id === sentinel.id).bulwark
+    const round3 = endPlayerTurn(round2)
+    const bulwarkRound3 = round3.units.find((u) => u.id === sentinel.id).bulwark
+    return { bulwarkRound1, bulwarkRound2, bulwarkRound3 }
+  })
+  await page85.close()
+  out.ironSentinelBulwarkGrowth = result
+  if (!(result.bulwarkRound1 === 1 && result.bulwarkRound2 === 2 && result.bulwarkRound3 === 3)) {
+    out.errors.push("check85 Bulwark did not grow by exactly 1 every enemy turn")
+  }
+}
+
+// 86. Bulwark absorbs damage without ever being spent - two separate
+//     hits each land for exactly the same reduced amount, and bulwark
+//     itself never decreases (Block's own spent-and-reset behavior does
+//     NOT apply to it). Also confirms a bulwark-only hit's log line
+//     carries ONLY the Bulwark note, no "absorbed" text --------------
+{
+  const page86 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page86.on("pageerror", (e) => errs.push(String(e)))
+  await page86.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page86.waitForSelector(".hwt-board")
+  const result = await page86.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("the-iron-sentinel")
+    const sentinel = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === sentinel.id) return { ...u, hp: 84, bulwark: 3, block: 0 }
+        if (u.id === attacker.id) return { ...u, pos: { row: sentinel.pos.row, col: sentinel.pos.col + 1 }, attack: 10, ap: 1 }
+        return u
+      }),
+    }
+    state = attackUnit(state, attacker.id, sentinel.id)
+    const afterFirst = state.units.find((u) => u.id === sentinel.id)
+    const logHasBulwarkOnly = state.log.some((l) => l.includes("3 turned by Bulwark") && !l.includes("absorbed"))
+    state = { ...state, units: state.units.map((u) => (u.id === attacker.id ? { ...u, ap: 1 } : u)) }
+    state = attackUnit(state, attacker.id, sentinel.id)
+    const afterSecond = state.units.find((u) => u.id === sentinel.id)
+    return {
+      hpAfterFirst: afterFirst.hp,
+      bulwarkAfterFirst: afterFirst.bulwark,
+      logHasBulwarkOnly,
+      hpAfterSecond: afterSecond.hp,
+      bulwarkAfterSecond: afterSecond.bulwark,
+    }
+  })
+  await page86.close()
+  out.ironSentinelBulwarkPersists = result
+  const ok =
+    result.hpAfterFirst === 77 && // 84 - (10 - 3)
+    result.bulwarkAfterFirst === 3 &&
+    result.logHasBulwarkOnly &&
+    result.hpAfterSecond === 70 && // 77 - (10 - 3), same reduction again
+    result.bulwarkAfterSecond === 3
+  if (!ok) out.errors.push("check86 Bulwark either got spent like Block, or didn't reduce the hit correctly")
+}
+
+// 87. Block is spent before Bulwark, and only Block is ever reduced -
+//     a bulwark(3) + block(5) hit for 10 lands for exactly 2 (10-8);
+//     afterward block reads 0 (fully spent) and bulwark still reads 3.
+//     The log narrates the split ("absorbed 5" AND "3 turned by
+//     Bulwark") ---------------------------------------------------
+{
+  const page87 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page87.on("pageerror", (e) => errs.push(String(e)))
+  await page87.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page87.waitForSelector(".hwt-board")
+  const result = await page87.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("the-iron-sentinel")
+    const sentinel = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === sentinel.id) return { ...u, hp: 84, bulwark: 3, block: 5 }
+        if (u.id === attacker.id) return { ...u, pos: { row: sentinel.pos.row, col: sentinel.pos.col + 1 }, attack: 10, ap: 1 }
+        return u
+      }),
+    }
+    state = attackUnit(state, attacker.id, sentinel.id)
+    const after = state.units.find((u) => u.id === sentinel.id)
+    const logLine = state.log.find((l) => l.includes("strikes"))
+    return { hp: after.hp, block: after.block, bulwark: after.bulwark, logLine }
+  })
+  await page87.close()
+  out.ironSentinelBlockThenBulwark = result
+  const ok =
+    result.hp === 82 && // 84 - (10 - min(5+3,10)) = 84 - (10-8) = 82
+    result.block === 0 &&
+    result.bulwark === 3 &&
+    result.logLine?.includes("absorbed 5") &&
+    result.logLine?.includes("3 turned by Bulwark")
+  if (!ok) out.errors.push("check87 Block was not spent before Bulwark, or the log did not narrate the split correctly")
+}
+
+// 88. The Iron Sentinel's phase fires exactly at the 60% threshold - the
+//     same 3-sequential-hit proof shape Deepwarden/The Gorging Maw's own
+//     phase checks already established ------------------------------
+{
+  const page88 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page88.on("pageerror", (e) => errs.push(String(e)))
+  await page88.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page88.waitForSelector(".hwt-board")
+  const result = await page88.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("the-iron-sentinel")
+    const sentinel = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    const announce = "It stops pretending to be mortal."
+    const countAnnounce = (s) => s.log.filter((l) => l === announce).length
+    // hp 51/84 = 0.607, above the 0.6 threshold. attack:0 isolates the
+    // phase-threshold check from any hp change of its own.
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === sentinel.id) return { ...u, hp: 51 }
+        if (u.id === attacker.id) return { ...u, pos: { row: sentinel.pos.row, col: sentinel.pos.col + 1 }, attack: 0, ap: 1 }
+        return u
+      }),
+    }
+    state = attackUnit(state, attacker.id, sentinel.id)
+    const afterFirstPhaseIndex = state.units.find((u) => u.id === sentinel.id).phaseIndex
+    const afterFirstCount = countAnnounce(state)
+    // 50/84 = 0.595, at/under the 0.6 threshold - must fire exactly once.
+    state = { ...state, units: state.units.map((u) => (u.id === sentinel.id ? { ...u, hp: 50 } : u.id === attacker.id ? { ...u, ap: 1 } : u)) }
+    state = attackUnit(state, attacker.id, sentinel.id)
+    const afterSecondPhaseIndex = state.units.find((u) => u.id === sentinel.id).phaseIndex
+    const afterSecondCount = countAnnounce(state)
+    // The real phase effect is `addTrigger turnStart -> block 5` -
+    // confirm the exact trigger got registered, not just that a phase
+    // fired at all.
+    const registeredTrigger = state.units.find((u) => u.id === sentinel.id).triggers.find((t) => t.trigger === "turnStart" && t.effect.type === "block")
+    state = { ...state, units: state.units.map((u) => (u.id === attacker.id ? { ...u, ap: 1 } : u)) }
+    state = attackUnit(state, attacker.id, sentinel.id)
+    const afterThirdCount = countAnnounce(state)
+    return { afterFirstPhaseIndex, afterFirstCount, afterSecondPhaseIndex, afterSecondCount, afterThirdCount, registeredTriggerAmount: registeredTrigger?.effect.amount }
+  })
+  await page88.close()
+  out.ironSentinelPhaseThreshold = result
+  const ok =
+    result.afterFirstPhaseIndex === 0 &&
+    result.afterFirstCount === 0 &&
+    result.afterSecondPhaseIndex === 1 &&
+    result.afterSecondCount === 1 &&
+    result.afterThirdCount === 1 &&
+    result.registeredTriggerAmount === 5
+  if (!ok) out.errors.push("check88 The Iron Sentinel's phase fired early, failed to fire at threshold, repeated, or didn't register the real block(5) trigger")
 }
 
 console.log(JSON.stringify(out, null, 2))
