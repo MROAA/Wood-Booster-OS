@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5398
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-phases/.scratch/shots"
+const PORT = process.env.PORT || 5400
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-damage-mods/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2434,13 +2434,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-phases", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-damage-mods", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-phases", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-damage-mods", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -2448,6 +2448,376 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.staticChecks = { oxlintOk, nodeCheckOk }
   if (!oxlintOk) out.errors.push("check73 oxlint did not exit 0")
   if (!nodeCheckOk) out.errors.push("check73 node --check failed on tacticsEngine.js")
+}
+
+// ---------------------------------------------------------------
+// Execute/Shatter damage modifiers + onDealDamage triggers
+// (feat/hearthwood-tactics-damage-mods) - demoed via 2 new solo
+// formations, The Gorging Maw (onDealDamage lifelink) and Wyrmgall
+// (Execute+Shatter). Every new check gets its own fresh page.
+// ---------------------------------------------------------------
+
+// 74. The Gorging Maw formation - real HP 72, real name, base attack
+//     unchanged at its real movePattern-derived value (no strength
+//     passive this time, unlike Deepwarden/Ironmaw) --------------------
+{
+  const page74 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page74.on("pageerror", (e) => errs.push(String(e)))
+  await page74.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page74.waitForSelector(".hwt-board")
+  await page74.locator(".hwt-formation-btn", { hasText: "The Gorging Maw" }).click()
+  await page74.waitForTimeout(300)
+  const enemyNames = await page74.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const engineFacts = await page74.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const maw = createTacticsBattle("the-gorging-maw").units.find((u) => u.side === "enemy")
+    return { hp: maw.hp, maxHp: maw.maxHp, attack: maw.attack, execute: maw.execute, shatter: maw.shatter }
+  })
+  await page74.close()
+  out.gorgingMawFormation = { enemyNames, engineFacts }
+  const ok = enemyNames.length === 1 && enemyNames[0] === "The Gorging Maw" && engineFacts.hp === 72 && engineFacts.maxHp === 72 && engineFacts.attack === 10 && engineFacts.execute === 0 && engineFacts.shatter === 0
+  if (!ok) out.errors.push("check74 The Gorging Maw's formation composition or real stats were wrong")
+}
+
+// 75. onDealDamage fires only on a landed hit, not a fully-blocked one -
+//     a deterministic 2-state attackUnit proof -------------------------
+{
+  const page75 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page75.on("pageerror", (e) => errs.push(String(e)))
+  await page75.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page75.waitForSelector(".hwt-board")
+  const result = await page75.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("the-gorging-maw")
+    const maw = state.units.find((u) => u.side === "enemy")
+    const victim = state.units.find((u) => u.side === "player")
+    // The lifelink is MAW'S OWN onDealDamage trigger - it fires when THE
+    // MAW deals damage, healing itself, not when the Maw takes a hit. So
+    // the Maw must be the ACTOR here (phase:"enemy" lets an enemy act,
+    // the same synthetic-state trick previewChargeThreat's own checks
+    // already established).
+    state = {
+      ...state,
+      phase: "enemy",
+      units: state.units.map((u) => {
+        if (u.id === maw.id) return { ...u, hp: 50, pos: { row: victim.pos.row, col: victim.pos.col - 1 }, attack: 5, ap: 1 }
+        if (u.id === victim.id) return { ...u, block: 20 }
+        return u
+      }),
+    }
+    // Hit 1: the victim's Block (20) fully absorbs the Maw's 5-damage hit
+    // - remaining 0, the lifelink must NOT fire, Maw's own hp untouched.
+    state = attackUnit(state, maw.id, victim.id)
+    const afterBlockedHp = state.units.find((u) => u.id === maw.id).hp
+    const logHasHealAfterBlocked = state.log.some((l) => l.includes("steadies itself"))
+    // Hit 2: drop the victim's Block to 0, Maw's AP refreshed - this hit
+    // lands for real and must trigger the lifelink (+4 to the MAW's own hp).
+    state = { ...state, units: state.units.map((u) => (u.id === victim.id ? { ...u, block: 0 } : u.id === maw.id ? { ...u, ap: 1 } : u)) }
+    const hpBeforeLanded = state.units.find((u) => u.id === maw.id).hp
+    state = attackUnit(state, maw.id, victim.id)
+    const afterLandedHp = state.units.find((u) => u.id === maw.id).hp
+    const logHasHealAfterLanded = state.log.some((l) => l.includes("steadies itself"))
+    return { afterBlockedHp, logHasHealAfterBlocked, hpBeforeLanded, afterLandedHp, logHasHealAfterLanded }
+  })
+  await page75.close()
+  out.gorgingMawLifelinkGate = result
+  // The Maw is the ATTACKER throughout - it never takes a hit itself, so
+  // its own hp only ever moves from the lifelink's own +4 heal, never
+  // from damage. Blocked hit: no heal, hp stays 50. Landed hit: +4.
+  const ok =
+    result.afterBlockedHp === 50 &&
+    !result.logHasHealAfterBlocked &&
+    result.afterLandedHp === result.hpBeforeLanded + 4 &&
+    result.logHasHealAfterLanded
+  if (!ok) out.errors.push("check75 the onDealDamage lifelink fired on a blocked hit, or failed to fire on a landed one")
+}
+
+// 76. The Gorging Maw's phase fires exactly at the 50% threshold - the
+//     same 3-sequential-hit proof shape Deepwarden's own check already
+//     established -----------------------------------------------------
+{
+  const page76 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page76.on("pageerror", (e) => errs.push(String(e)))
+  await page76.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page76.waitForSelector(".hwt-board")
+  const result = await page76.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("the-gorging-maw")
+    const maw = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    const announce = "It feeds on the wounds it makes."
+    const countAnnounce = (s) => s.log.filter((l) => l === announce).length
+    // hp 40/72 = 0.556, above the 0.5 threshold. attack:0 so the hit
+    // deals no damage and doesn't itself move hp - isolates the phase
+    // check from the lifelink's own +4 heal muddying the threshold math.
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === maw.id) return { ...u, hp: 40 }
+        if (u.id === attacker.id) return { ...u, pos: { row: maw.pos.row, col: maw.pos.col + 1 }, attack: 0, ap: 1 }
+        return u
+      }),
+    }
+    state = attackUnit(state, attacker.id, maw.id)
+    const afterFirstPhaseIndex = state.units.find((u) => u.id === maw.id).phaseIndex
+    const afterFirstCount = countAnnounce(state)
+    // Drop below the threshold (36/72 = 0.5, exactly at it - phase.atHpPct
+    // is 0.5 and the check is hp/maxHp > atHpPct, so 0.5 itself fires).
+    state = { ...state, units: state.units.map((u) => (u.id === maw.id ? { ...u, hp: 36 } : u.id === attacker.id ? { ...u, ap: 1 } : u)) }
+    state = attackUnit(state, attacker.id, maw.id)
+    const afterSecond = state.units.find((u) => u.id === maw.id)
+    const afterSecondCount = countAnnounce(state)
+    state = { ...state, units: state.units.map((u) => (u.id === attacker.id ? { ...u, ap: 1 } : u)) }
+    state = attackUnit(state, attacker.id, maw.id)
+    const afterThirdCount = countAnnounce(state)
+    return { afterFirstPhaseIndex, afterFirstCount, afterSecondPhaseIndex: afterSecond.phaseIndex, afterSecondHp: afterSecond.hp, afterSecondCount, afterThirdCount }
+  })
+  await page76.close()
+  out.gorgingMawPhase = result
+  const ok =
+    result.afterFirstPhaseIndex === 0 &&
+    result.afterFirstCount === 0 &&
+    result.afterSecondPhaseIndex === 1 &&
+    result.afterSecondHp === 43 && // 36 + 7 (phase heal), capped well under maxHp
+    result.afterSecondCount === 1 &&
+    result.afterThirdCount === 1
+  if (!ok) out.errors.push("check76 The Gorging Maw's phase fired early, failed to fire at threshold, or repeated")
+}
+
+// 77. Wyrmgall formation - real HP 80, base attack unchanged (execute/
+//     shatter don't fold into attack the way strength does) -----------
+{
+  const page77 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page77.on("pageerror", (e) => errs.push(String(e)))
+  await page77.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page77.waitForSelector(".hwt-board")
+  await page77.locator(".hwt-formation-btn", { hasText: "Wyrmgall" }).click()
+  await page77.waitForTimeout(300)
+  const enemyNames = await page77.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const engineFacts = await page77.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const gall = createTacticsBattle("wyrmgall").units.find((u) => u.side === "enemy")
+    return { hp: gall.hp, maxHp: gall.maxHp, attack: gall.attack, execute: gall.execute, shatter: gall.shatter }
+  })
+  await page77.close()
+  out.wyrmgallFormation = { enemyNames, engineFacts }
+  const ok = enemyNames.length === 1 && enemyNames[0] === "Wyrmgall" && engineFacts.hp === 80 && engineFacts.maxHp === 80 && engineFacts.attack === 10 && engineFacts.execute === 4 && engineFacts.shatter === 3
+  if (!ok) out.errors.push("check77 Wyrmgall's formation composition or real stats were wrong")
+}
+
+// 78. Execute fires only at/under 30% defender HP - a deterministic
+//     2-state proof ----------------------------------------------------
+{
+  const page78 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page78.on("pageerror", (e) => errs.push(String(e)))
+  await page78.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page78.waitForSelector(".hwt-board")
+  const result = await page78.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("wyrmgall")
+    const gall = state.units.find((u) => u.side === "enemy")
+    const defender = state.units.find((u) => u.side === "player")
+    // Wyrmgall must be the ACTOR - Execute checks the DEFENDER it's
+    // hitting, so phase:"enemy" lets it act (the same synthetic-state
+    // trick previewChargeThreat's own checks already established).
+    state = {
+      ...state,
+      phase: "enemy",
+      units: state.units.map((u) => {
+        if (u.id === gall.id) return { ...u, pos: { row: defender.pos.row, col: defender.pos.col - 1 }, ap: 2 }
+        if (u.id === defender.id) return { ...u, hp: 40, maxHp: 100, block: 0 }
+        return u
+      }),
+    }
+    // Above 30% (40/100) - no Execute bonus, plain attack (10) lands.
+    state = attackUnit(state, gall.id, defender.id)
+    const afterAboveHp = state.units.find((u) => u.id === defender.id).hp
+    // At/under 30% (25/100) - Execute (4) adds to the plain attack (10).
+    state = { ...state, units: state.units.map((u) => (u.id === defender.id ? { ...u, hp: 25 } : u.id === gall.id ? { ...u, ap: 1 } : u)) }
+    const hpBeforeExecute = state.units.find((u) => u.id === defender.id).hp
+    state = attackUnit(state, gall.id, defender.id)
+    const afterExecuteHp = state.units.find((u) => u.id === defender.id).hp
+    return { afterAboveHp, hpBeforeExecute, afterExecuteHp }
+  })
+  await page78.close()
+  out.wyrmgallExecute = result
+  const ok = result.afterAboveHp === 30 && result.afterExecuteHp === result.hpBeforeExecute - 14
+  if (!ok) out.errors.push("check78 Execute fired above the 30% threshold, or didn't add its exact bonus at/under it")
+}
+
+// 79. Shatter fires only while the defender holds Block - a
+//     deterministic 2-state proof, verified via the resulting hp drop
+//     (not assumed from the formula alone) -----------------------------
+{
+  const page79 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page79.on("pageerror", (e) => errs.push(String(e)))
+  await page79.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page79.waitForSelector(".hwt-board")
+  const result = await page79.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("wyrmgall")
+    const gall = state.units.find((u) => u.side === "enemy")
+    const defender = state.units.find((u) => u.side === "player")
+    // Wyrmgall must be the ACTOR - Shatter checks the DEFENDER it's
+    // hitting, so phase:"enemy" lets it act.
+    state = {
+      ...state,
+      phase: "enemy",
+      units: state.units.map((u) => {
+        if (u.id === gall.id) return { ...u, pos: { row: defender.pos.row, col: defender.pos.col - 1 }, ap: 2 }
+        if (u.id === defender.id) return { ...u, hp: 100, maxHp: 100, block: 0 }
+        return u
+      }),
+    }
+    // No Block - no Shatter bonus, plain attack (10) lands.
+    state = attackUnit(state, gall.id, defender.id)
+    const afterNoBlockHp = state.units.find((u) => u.id === defender.id).hp
+    // Block (12) is BIGGER than the base attack (10) - deliberately, so
+    // the ordering actually matters: if Shatter (3) is correctly added
+    // BEFORE Block absorption, the total amount (13) exceeds Block (12)
+    // by exactly 1, so exactly 1 damage gets through. If it were wrongly
+    // tacked on AFTER Block absorption instead, the base 10 would be
+    // fully absorbed (0 overflow) and Shatter's 3 would land raw - a
+    // different, distinguishable number (3, not 1) - so this proves the
+    // real order, not just that a bonus was added somewhere.
+    state = { ...state, units: state.units.map((u) => (u.id === defender.id ? { ...u, block: 12 } : u.id === gall.id ? { ...u, ap: 1 } : u)) }
+    const hpBeforeShatter = state.units.find((u) => u.id === defender.id).hp
+    state = attackUnit(state, gall.id, defender.id)
+    const afterShatterHp = state.units.find((u) => u.id === defender.id).hp
+    return { afterNoBlockHp, hpBeforeShatter, afterShatterHp }
+  })
+  await page79.close()
+  out.wyrmgallShatter = result
+  const ok = result.afterNoBlockHp === 90 && result.afterShatterHp === result.hpBeforeShatter - 1
+  if (!ok) out.errors.push("check79 Shatter fired without Block present, or its bonus wasn't fed into the block-absorption math BEFORE Block, not after")
+}
+
+// 80. Wyrmgall's phase escalates Execute correctly - after the 50%
+//     threshold fires, execute is 7 (4 base + 3 phase) -----------------
+{
+  const page80 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page80.on("pageerror", (e) => errs.push(String(e)))
+  await page80.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page80.waitForSelector(".hwt-board")
+  const result = await page80.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("wyrmgall")
+    const gall = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === gall.id) return { ...u, hp: 40 }
+        if (u.id === attacker.id) return { ...u, pos: { row: gall.pos.row, col: gall.pos.col + 1 }, attack: 1, ap: 1 }
+        return u
+      }),
+    }
+    const beforeExecute = state.units.find((u) => u.id === gall.id).execute
+    state = attackUnit(state, attacker.id, gall.id)
+    const after = state.units.find((u) => u.id === gall.id)
+    return { beforeExecute, afterExecute: after.execute, afterPhaseIndex: after.phaseIndex }
+  })
+  await page80.close()
+  out.wyrmgallPhaseEscalation = result
+  if (!(result.beforeExecute === 4 && result.afterExecute === 7 && result.afterPhaseIndex === 1)) {
+    out.errors.push("check80 Wyrmgall's phase did not escalate Execute from 4 to 7")
+  }
+}
+
+// 81. WoundedFury and Weak, proven generically via hand-built synthetic
+//     units (no current formation carries either live) - confirms the
+//     real operator order: WoundedFury adds first, Weak then multiplies
+//     the WHOLE amount, not just the base ------------------------------
+{
+  const page81 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page81.on("pageerror", (e) => errs.push(String(e)))
+  await page81.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page81.waitForSelector(".hwt-board")
+  const result = await page81.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const attackerId = state.units.find((u) => u.side === "enemy").id
+    const defenderId = state.units.find((u) => u.side === "player").id
+    const base = () =>
+      state.units.map((u) =>
+        u.id === attackerId
+          ? { ...u, pos: state.units.find((x) => x.id === defenderId).pos, attack: 10, hp: 100, maxHp: 100, woundedFury: 0, weak: 0, execute: 0, shatter: 0, ap: 1 }
+          : u.id === defenderId
+            ? { ...u, hp: 200, maxHp: 200, block: 0 }
+            : u,
+      )
+    // Move the attacker adjacent (Chebyshev 1) to the defender. The
+    // attacker is the enemy-side unit, so phase:"enemy" lets it act.
+    const defPos = state.units.find((u) => u.id === defenderId).pos
+    const adjPos = { row: defPos.row, col: defPos.col + 1 }
+    state = { ...state, phase: "enemy", units: base().map((u) => (u.id === attackerId ? { ...u, pos: adjPos, hp: 40 } : u)) } // 40/100 - below 50%, so WoundedFury is active whenever it's set
+    // Case A: no woundedFury, no weak - plain 10 damage.
+    let s = { ...state, units: state.units.map((u) => (u.id === attackerId ? { ...u, woundedFury: 0, weak: 0 } : u)) }
+    s = attackUnit(s, attackerId, defenderId)
+    const plainHp = s.units.find((u) => u.id === defenderId).hp
+    // Case B: woundedFury active (attacker below 50% own hp) - +3 flat -> 13.
+    let s2 = { ...state, units: state.units.map((u) => (u.id === attackerId ? { ...u, woundedFury: 1, weak: 0, ap: 1 } : u.id === defenderId ? { ...u, hp: 200 } : u)) }
+    s2 = attackUnit(s2, attackerId, defenderId)
+    const woundedFuryHp = s2.units.find((u) => u.id === defenderId).hp
+    // Case C: woundedFury AND weak - (10+3)*0.75 floored = 9 (Weak
+    // multiplies the WoundedFury-inclusive amount, not just the base).
+    let s3 = { ...state, units: state.units.map((u) => (u.id === attackerId ? { ...u, woundedFury: 1, weak: 1, ap: 1 } : u.id === defenderId ? { ...u, hp: 200 } : u)) }
+    s3 = attackUnit(s3, attackerId, defenderId)
+    const bothHp = s3.units.find((u) => u.id === defenderId).hp
+    return { plainDamage: 200 - plainHp, woundedFuryDamage: 200 - woundedFuryHp, bothDamage: 200 - bothHp }
+  })
+  await page81.close()
+  out.woundedFuryAndWeak = result
+  const ok = result.plainDamage === 10 && result.woundedFuryDamage === 13 && result.bothDamage === 9
+  if (!ok) out.errors.push("check81 WoundedFury/Weak did not compute in the real order (WoundedFury add, then Weak multiply)")
+}
+
+// 82. checkOnDealDamageTriggers' target:"target" addressing, via a
+//     hand-built trigger matching the final boss's own real future
+//     shape - the unit HIT gains the effect, not the attacker itself ---
+{
+  const page82 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page82.on("pageerror", (e) => errs.push(String(e)))
+  await page82.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page82.waitForSelector(".hwt-board")
+  const result = await page82.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const attackerId = state.units.find((u) => u.side === "enemy").id
+    const defenderId = state.units.find((u) => u.side === "player").id
+    const defPos = state.units.find((u) => u.id === defenderId).pos
+    const adjPos = { row: defPos.row, col: defPos.col + 1 }
+    // Attach the final boss's own real future onDealDamage effect shape
+    // directly (not yet reachable via any real def this round). The
+    // attacker is the enemy-side unit, so phase:"enemy" lets it act.
+    state = {
+      ...state,
+      phase: "enemy",
+      units: state.units.map((u) =>
+        u.id === attackerId
+          ? { ...u, pos: adjPos, ap: 1, triggers: [{ trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } }] }
+          : u,
+      ),
+    }
+    state = attackUnit(state, attackerId, defenderId)
+    const attacker = state.units.find((u) => u.id === attackerId)
+    const defender = state.units.find((u) => u.id === defenderId)
+    return { attackerWeak: attacker.weak, defenderWeak: defender.weak, logHasNote: state.log.some((l) => l.includes("leaves the wound raw")) }
+  })
+  await page82.close()
+  out.onDealDamageTargetAddressing = result
+  if (!(result.attackerWeak === 0 && result.defenderWeak === 1 && result.logHasNote)) {
+    out.errors.push("check82 an onDealDamage effect with target:'target' did not land on the unit that was hit")
+  }
+}
+
+// 83. Re-run the full existing 73-check suite unmodified is implicit -
+//     this file's own checks 1-73 above are untouched; this check is
+//     purely a placeholder marker confirming the count. Real regression
+//     proof is "checks 1-73 still pass in this same run" (see the JSON
+//     output's own per-check fields above). -------------------------
+{
+  out.regressionNote = "Checks 1-73 (unmodified) re-ran as part of this same file execution - see their own output fields above for the full 73-check regression proof."
 }
 
 console.log(JSON.stringify(out, null, 2))
