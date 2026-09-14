@@ -25,6 +25,7 @@ import BuildScore from "./BuildScore"
 import ThreatPreview from "./ThreatPreview"
 import { evaluateMatchup, THREATS, THREAT_ANSWER } from "../../data/heartwood/counterplay"
 import { CardGlyph } from "./cardArt"
+import { resolveRealMatchup } from "../../services/heartwood/tacticsRealMatchup"
 
 // Same 4 positions autoBattleEngine.js deploys units to - kept in sync
 // by hand since the engine doesn't export it, but both only ever
@@ -70,11 +71,19 @@ const ELITE_GIMMICK = {
   "the-ashfall-herald": "Escalating flame — its squad-wide fire grows every round.",
 }
 
-export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle }) {
+export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle, onStartTacticsBattle }) {
   const isBoss = node.type === "boss"
   const isMiniboss = node.type === "miniboss"
   const isElite = node.type === "elite"
   const formation = resolveFormation(node.formationId || node.enemyId)
+  // Phase 4 second slice ("fight one real battle for real"): only a
+  // normal (non-elite/boss) fight offers the REAL playable tactics option
+  // this round - elites/minibosses/bosses keep the existing read-only
+  // preview link only (their real difficulty tuning/boss phases are out
+  // of scope). null when the encounter/squad can't be resolved (e.g. a
+  // Commander-alone deploy - no recruited units for the tactics engine to
+  // represent), in which case neither tactics option is offered.
+  const tacticsMatchup = node.type === "battle" ? resolveRealMatchup(runState, node) : null
   // A Trial (trials.js) is a named narrative wrapper around this exact
   // encounter - real story identity (title, its own intro/victory lines)
   // without touching the underlying enemy's already-tuned combat stats.
@@ -654,16 +663,24 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           Take your time - the fight begins when you're ready.
         </p>
       )}
-      {/* Hearthwood Frontier Phase 4 (feat/hearthwood-tactics-real-preview):
-          a passive, non-gating link to the isolated tactics prototype, the
-          same "not gated on anything" precedent as CommanderSelect.jsx's
-          own WIP link. target="_blank" deliberately - it never navigates
-          away from this screen (whose own auto-start timer keeps running
-          untouched), and the tactics page re-reads the real run's save
-          itself, so no props/state need to be threaded through here. */}
-      <Link className="hw-tactics-link" to="/heartwood-tactics" target="_blank" rel="noopener noreferrer" style={{ marginTop: 8 }}>
-        🧪 Preview this fight as Tactics
-      </Link>
+      {/* Hearthwood Frontier Phase 4 second slice ("fight one real battle
+          for real"): a normal fight with a resolvable matchup gets the
+          REAL playable option - win or lose, it counts, via the exact
+          same resolveBattleOutcome the auto-battle path already uses.
+          Every other case (elite/miniboss/boss, or nothing deployed) keeps
+          the original read-only preview link unchanged - target="_blank",
+          never navigates away from this screen's own auto-start timer,
+          needs zero props/state since the tactics page re-reads the real
+          save itself. */}
+      {tacticsMatchup ? (
+        <button className="hw-tactics-fight-btn" onClick={onStartTacticsBattle} style={{ marginTop: 8 }}>
+          ⚔ Fight this as Tactics
+        </button>
+      ) : (
+        <Link className="hw-tactics-link" to="/heartwood-tactics" target="_blank" rel="noopener noreferrer" style={{ marginTop: 8 }}>
+          🧪 Preview this fight as Tactics
+        </Link>
+      )}
     </div>
   )
 }

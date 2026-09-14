@@ -27,15 +27,17 @@ import { UNITS } from "../../data/heartwood/units"
 // choice/victory/defeat) has no "current enemy" worth previewing.
 const PREVIEWABLE_PHASES = new Set(["formation", "battle"])
 
-// Reads the real run's save and resolves it into { label, squadDefIds,
-// enemyDefIds } for the tactics engine's createRealMatchupBattle, or null
-// when there's nothing previewable (no save, wrong phase, an unresolvable
-// encounter, or an empty squad/enemy side). Never throws.
-export function loadRealMatchup() {
-  const runState = deserializeRun(loadRunSave())
-  if (!runState || !PREVIEWABLE_PHASES.has(runState.phase)) return null
-
-  const node = runState.path?.[runState.nodeIndex]
+// Resolves an already-in-memory runState + node into { label, squadDefIds,
+// enemyDefIds } for the tactics engine's createRealMatchupBattle/
+// createRealMatchupBattle, or null when there's nothing resolvable (no
+// encounter id, or an empty squad/enemy side). Pure - no localStorage
+// touch at all, so HeartwoodBattle.jsx can call this directly on the
+// LIVE runState it already has in React state, no round-trip needed.
+// Phase-gating (is the player even standing in front of a fight right
+// now) is the CALLER's job - loadRealMatchup below does it for the
+// localStorage-reading path; HeartwoodBattle.jsx already only calls this
+// from its own formation/battle-phase code paths.
+export function resolveRealMatchup(runState, node) {
   const encounterId = node?.formationId || node?.enemyId
   if (!encounterId) return null
 
@@ -55,4 +57,15 @@ export function loadRealMatchup() {
     squadDefIds,
     enemyDefIds,
   }
+}
+
+// Reads the real run's save (localStorage) and resolves it via
+// resolveRealMatchup above, or null when there's nothing previewable (no
+// save, wrong phase, an unresolvable encounter, or an empty squad/enemy
+// side). Never throws. Used by the standalone /heartwood-tactics page,
+// which has no runState of its own to read directly.
+export function loadRealMatchup() {
+  const runState = deserializeRun(loadRunSave())
+  if (!runState || !PREVIEWABLE_PHASES.has(runState.phase)) return null
+  return resolveRealMatchup(runState, runState.path?.[runState.nodeIndex])
 }
