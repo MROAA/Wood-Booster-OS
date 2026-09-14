@@ -108,13 +108,34 @@ import { mkdir } from "node:fs/promises"
 // new optional squadDefIds param (defaulting to PLAYER_DEF_IDS, today's
 // exact starting 3 - so every one of the 54 prior checks needed zero
 // changes beyond this comment) are the only engine surface added. Still
-// no runEngine.js/autoBattleEngine.js/save-state touch. There is no
-// headless engine call to substitute for verification - this IS the
-// interactive surface, so the script drives the actual rendered UI
-// exactly the way Marc would click through it.
+// no runEngine.js/autoBattleEngine.js/save-state touch. PHASE 4 FIRST
+// SLICE (feat/hearthwood-tactics-real-preview) - a safe, read-only "real
+// preview" bridge, Marc's scoped-down pick over a full live-battle-screen
+// replacement: the tactics page can now load using the REAL enemy at a
+// real run's current node (any real formation OR solo enemy, resolved via
+// formations.js's own resolveFormation - not just the 9 curated
+// ENEMY_FORMATIONS) and the REAL currently-deployed squad (1-4 units,
+// pulled from the real save), while remaining a side experiment - nothing
+// here ever writes back to the real run. New tacticsEngine.js export
+// createRealMatchupBattle(squadDefIds, enemyDefIds) builds a battle from
+// arbitrary real defIds via the SAME deriveTacticsUnit every other unit
+// already goes through; a new, separate src/services/heartwood/
+// tacticsRealMatchup.js is the ONLY file that reads the real save
+// (loadRunSave + deserializeRun, both already-pure, already-production-
+// used, non-mutating reads) - tacticsEngine.js itself stays exactly as
+// isolated as it's been since Phase 1. A new "Preview it" banner (only
+// shown when a real matchup is resolvable) swaps the whole battle to the
+// real squad/enemy and hides the squad/formation pickers; "Back to test
+// squad" is the one way out, restoring today's exact default state. One
+// small, passive, target="_blank" link on the LIVE FormationScreen.jsx
+// ("Preview this fight as Tactics") is the only touch to a live game
+// file this round - non-gating, same category as CommanderSelect.jsx's
+// existing WIP link. There is no headless engine call to substitute for
+// verification - this IS the interactive surface, so the script drives
+// the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5395
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-roster/.scratch/shots"
+const PORT = process.env.PORT || 5396
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-real-preview/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1998,10 +2019,216 @@ await page.waitForSelector(".hwt-board")
   }
 }
 
+// ---------------------------------------------------------------
+// Phase 4 first slice (feat/hearthwood-tactics-real-preview) - the "real
+// preview" bridge. Every new check gets its own fresh page from the
+// start (the established anti-hang discipline); each one seeds a real
+// run save into that page's own localStorage via a page.evaluate import
+// of the REAL startRun/serializeRun/RUN_PATH (never a hand-typed fixture)
+// so the seeded state is provably a valid real save, not an approximation.
+// ---------------------------------------------------------------
+
+// A minimal real runState, pointed at the given RUN_PATH node predicate,
+// with 1 or 2 real units deployed - shared by checks 62-67 so the seeding
+// logic itself isn't duplicated 6 times.
+async function seedRealSave(page, nodeFilter, benchDefIds) {
+  return page.evaluate(
+    async ({ nodeFilterSrc, benchDefIds }) => {
+      const { startRun, serializeRun, RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+      // eslint-disable-next-line no-new-func
+      const nodeFilter = new Function("n", `return (${nodeFilterSrc})(n)`)
+      const idx = RUN_PATH.findIndex(nodeFilter)
+      const bench = benchDefIds.map((defId, i) => ({ key: `b${i}`, defId, upgradeLevel: 0, upgrades: [] }))
+      const deployed = [...bench.map((e) => e.key), ...Array(4 - bench.length).fill(null)]
+      const rs = { ...startRun("tommy"), nodeIndex: idx, path: RUN_PATH.slice(0, idx + 1), phase: "formation", bench, deployed, items: [] }
+      localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+      const node = RUN_PATH[idx]
+      return { idx, formationId: node.formationId, enemyId: node.enemyId }
+    },
+    { nodeFilterSrc: nodeFilter.toString(), benchDefIds },
+  )
+}
+
+// 61. No real save -> no preview offered; default behavior is byte-
+//     identical to every prior round (fresh context has no localStorage) -
+{
+  const page61 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page61.on("pageerror", (e) => errs.push(String(e)))
+  await page61.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page61.waitForSelector(".hwt-board")
+  const bannerCount = await page61.locator(".hwt-real-matchup").count()
+  const playerNames = await page61.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  await page61.close()
+  out.noRealSave = { bannerCount, playerNames }
+  if (!(bannerCount === 0 && playerNames.includes("Bulwark of Ages"))) {
+    out.errors.push("check61 a fresh page with no real save offered a preview banner, or default squad changed")
+  }
+}
+
+// 62. A seeded real save (a real multi-piece formation node) -> the
+//     banner appears and names that real formation -----------------------
+{
+  const page62 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page62.on("pageerror", (e) => errs.push(String(e)))
+  await page62.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  const seeded = await seedRealSave(page62, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page62.reload({ waitUntil: "domcontentloaded" })
+  await page62.waitForSelector(".hwt-board")
+  const bannerText = await page62.locator(".hwt-real-matchup-label").innerText().catch(() => "")
+  await page62.close()
+  out.realMatchupBanner = { seeded, bannerText }
+  if (!bannerText.includes("Rotwood Husk Pair")) {
+    out.errors.push("check62 the real-matchup banner did not appear or did not name the seeded real formation")
+  }
+}
+
+// 63. Clicking "Preview it" loads the REAL squad + REAL enemy, and hides
+//     the squad/formation pickers ---------------------------------------
+{
+  const page63 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page63.on("pageerror", (e) => errs.push(String(e)))
+  await page63.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page63, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page63.reload({ waitUntil: "domcontentloaded" })
+  await page63.waitForSelector(".hwt-board")
+  await page63.locator(".hwt-real-matchup-btn", { hasText: "Preview it" }).click()
+  await page63.waitForTimeout(300)
+  const playerNames = await page63.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page63.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const squadPickerCount = await page63.locator(".hwt-squad-picker").count()
+  const formationPickerCount = await page63.locator(".hwt-formation-picker").count()
+  await page63.screenshot({ path: `${SHOT}/real_matchup_preview.png` })
+  await page63.close()
+  out.realMatchupPreview = { playerNames, enemyNames, squadPickerCount, formationPickerCount }
+  if (
+    !(
+      playerNames.length === 1 &&
+      playerNames[0] === "Mosskit" &&
+      enemyNames.includes("Rotwood Husk") &&
+      enemyNames.includes("Rotwood Sapling") &&
+      squadPickerCount === 0 &&
+      formationPickerCount === 0
+    )
+  ) {
+    out.errors.push("check63 Preview it did not load the exact real squad/enemy, or left the pickers visible")
+  }
+}
+
+// 64. "Back to test squad" restores today's exact default state ---------
+{
+  const page64 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page64.on("pageerror", (e) => errs.push(String(e)))
+  await page64.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page64, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page64.reload({ waitUntil: "domcontentloaded" })
+  await page64.waitForSelector(".hwt-board")
+  await page64.locator(".hwt-real-matchup-btn", { hasText: "Preview it" }).click()
+  await page64.waitForTimeout(200)
+  await page64.locator(".hwt-real-matchup-btn", { hasText: "Back to test squad" }).click()
+  await page64.waitForTimeout(200)
+  const playerNames = await page64.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page64.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const turnLabel = await page64.locator(".hwt-turn-label").innerText()
+  const squadPickerCount = await page64.locator(".hwt-squad-picker").count()
+  await page64.close()
+  out.backToTestSquad = { playerNames, enemyNames, turnLabel, squadPickerCount }
+  const defaultOk =
+    JSON.stringify(playerNames) === JSON.stringify(["Bulwark of Ages", "Mosskit", "Hexbreaker"]) &&
+    enemyNames.includes("Ironmaw") &&
+    turnLabel.includes("Turn 1") &&
+    squadPickerCount === 1
+  if (!defaultOk) out.errors.push("check64 Back to test squad did not restore the exact default state")
+}
+
+// 65. A solo real enemy (resolveFormation's bare-enemy-id fallback) also
+//     resolves correctly, with a 2-unit real squad -----------------------
+{
+  const page65 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page65.on("pageerror", (e) => errs.push(String(e)))
+  await page65.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page65, (n) => n.type === "battle" && n.enemyId, ["the-fool", "hexbreaker"])
+  await page65.reload({ waitUntil: "domcontentloaded" })
+  await page65.waitForSelector(".hwt-board")
+  const bannerText = await page65.locator(".hwt-real-matchup-label").innerText().catch(() => "")
+  await page65.locator(".hwt-real-matchup-btn", { hasText: "Preview it" }).click()
+  await page65.waitForTimeout(300)
+  const playerNames = await page65.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page65.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  await page65.close()
+  out.realMatchupSolo = { bannerText, playerNames, enemyNames }
+  if (!(bannerText.includes("Drowned Siren") && playerNames.length === 2 && enemyNames.length === 1 && enemyNames[0] === "Drowned Siren")) {
+    out.errors.push("check65 a solo real enemy (bare enemyId) did not resolve correctly")
+  }
+}
+
+// 66. Play Again while previewing a real matchup re-fights the SAME real
+//     squad/enemy, not the default -------------------------------------
+{
+  const page66 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page66.on("pageerror", (e) => errs.push(String(e)))
+  await page66.goto(`http://localhost:${PORT}/heartwood-tactics?debugLowHp=1`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page66, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page66.reload({ waitUntil: "domcontentloaded" })
+  await page66.waitForSelector(".hwt-board")
+  await page66.locator(".hwt-real-matchup-btn", { hasText: "Preview it" }).click()
+  await page66.waitForTimeout(200)
+  let phase = "player"
+  let turns = 0
+  while (phase !== "won" && phase !== "lost" && turns < 20) {
+    await page66.locator('.hwt-token[data-side="player"]').first().click({ force: true }).catch(() => {})
+    await page66.waitForTimeout(120)
+    let targets = page66.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) === 0) {
+      const reach = page66.locator('.hwt-cell[data-reachable="true"]')
+      if ((await reach.count()) > 0) {
+        await reach.first().click()
+        await page66.waitForTimeout(120)
+      }
+    }
+    targets = page66.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) > 0) {
+      await targets.first().click()
+      await page66.waitForTimeout(150)
+    }
+    await page66.locator(".hwt-end-turn").click().catch(() => {})
+    await page66.waitForTimeout(400)
+    phase = await page66.locator(".hwt-turn-label").getAttribute("data-phase")
+    turns++
+  }
+  let playAgainNames = []
+  if (phase === "won") {
+    await page66.locator(".hwt-result-actions button", { hasText: "Play Again" }).click()
+    await page66.waitForTimeout(300)
+    playAgainNames = await page66.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  }
+  await page66.close()
+  out.realMatchupPlayAgain = { phase, turns, playAgainNames }
+  if (!(phase === "won" && playAgainNames.length === 1 && playAgainNames[0] === "Mosskit")) {
+    out.errors.push("check66 Play Again in real-matchup mode did not re-fight the same real squad")
+  }
+}
+
+// 67. A corrupt/unparseable real save never throws - the preview is
+//     simply absent, matching deserializeRun's own null-on-failure
+//     contract ----------------------------------------------------------
+{
+  const page67 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page67.on("pageerror", (e) => errs.push(String(e)))
+  await page67.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page67.evaluate(() => localStorage.setItem("heartwood-run-save-v1", "{not valid json"))
+  await page67.reload({ waitUntil: "domcontentloaded" })
+  await page67.waitForSelector(".hwt-board")
+  const bannerCount = await page67.locator(".hwt-real-matchup").count()
+  const localErrs = errs.length
+  await page67.close()
+  out.corruptSave = { bannerCount, hadPageErrors: errs.length > localErrs - (errs.length - localErrs) }
+  if (bannerCount !== 0) out.errors.push("check67 a corrupt real save incorrectly offered a preview")
+}
+
 console.log(JSON.stringify(out, null, 2))
 console.log("\npageErrors:", errs.length, errs.slice(0, 8))
 await browser.close()
 
 const pass = out.errors.length === 0 && errs.length === 0
-console.log(pass ? "\n✅ verify_tactics_prototype (roster expansion + squad picker) PASS" : "\n❌ verify_tactics_prototype (roster expansion + squad picker) FAIL")
+console.log(pass ? "\n✅ verify_tactics_prototype (Phase 4: real-matchup preview) PASS" : "\n❌ verify_tactics_prototype (Phase 4: real-matchup preview) FAIL")
 process.exit(pass ? 0 : 1)
