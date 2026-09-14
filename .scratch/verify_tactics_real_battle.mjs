@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5401
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-wire-2/.scratch/shots"
+const PORT = process.env.PORT || 5403
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-wire-3/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -75,15 +75,15 @@ function newPage() {
   return browser.newContext({ viewport: { width: 1300, height: 900 } }).then((ctx) => ctx.newPage())
 }
 
-// 1. UPDATED this round (its own premise from PR #465 - "The Gorging Maw
-//    is still not-ready" - is no longer true after PR #466's Execute/
-//    Shatter + onDealDamage work): a normal type:"battle" node AND each
-//    of the 5 approved encounters (The Ancient Grove, The Elder Hollow,
-//    Deepwarden, The Gorging Maw, Wyrmgall) show "Fight this as Tactics";
-//    a still-excluded elite/miniboss/boss (spot-checked via The Iron
-//    Sentinel, plus the boss) shows only the existing read-only preview
-//    link - proving the allowlist boundary is EXACTLY the 5 approved
-//    ids, not more, not fewer ----------------------------------------
+// 1. UPDATED this round (its own premise from PR #468 - "The Iron
+//    Sentinel is still not-ready" - is no longer true after PR #469's
+//    Bulwark work): a normal type:"battle" node AND each of the 6
+//    approved encounters (The Ancient Grove, The Elder Hollow,
+//    Deepwarden, The Gorging Maw, Wyrmgall, The Iron Sentinel) show
+//    "Fight this as Tactics"; a still-excluded elite/miniboss/boss
+//    (spot-checked via Thornmaw, plus the boss) shows only the existing
+//    read-only preview link - proving the allowlist boundary is EXACTLY
+//    the 6 approved ids, not more, not fewer --------------------------
 {
   async function tacticsButtonState(nodeFilter) {
     const page = await newPage()
@@ -105,11 +105,12 @@ function newPage() {
   const gorgingMaw = await tacticsButtonState((n) => n.type === "elite" && n.enemyId === "the-gorging-maw")
   const wyrmgall = await tacticsButtonState((n) => n.type === "miniboss" && n.enemyId === "wyrmgall")
   const ironSentinel = await tacticsButtonState((n) => n.type === "elite" && n.enemyId === "the-iron-sentinel")
+  const thornmaw = await tacticsButtonState((n) => n.type === "miniboss" && n.enemyId === "thornmaw")
   const boss = await tacticsButtonState((n) => n.type === "boss")
 
-  out.buttonChoiceMatrix = { battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel, boss }
-  const readyOk = [battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall].every((r) => r.fightBtnCount === 1 && r.previewLinkCount === 0)
-  const notReadyOk = [ironSentinel, boss].every((r) => r.fightBtnCount === 0 && r.previewLinkCount === 1)
+  out.buttonChoiceMatrix = { battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel, thornmaw, boss }
+  const readyOk = [battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel].every((r) => r.fightBtnCount === 1 && r.previewLinkCount === 0)
+  const notReadyOk = [thornmaw, boss].every((r) => r.fightBtnCount === 0 && r.previewLinkCount === 1)
   if (!(readyOk && notReadyOk)) {
     out.errors.push("check1 the Fight-vs-Preview allowlist boundary was wrong for at least one node type")
   }
@@ -687,6 +688,110 @@ function newPage() {
     )
   ) {
     out.errors.push("check13 Wyrmgall's win path did not pay out the exact real essence formula, or did not advance/clear the battle correctly")
+  }
+}
+
+// ---------------------------------------------------------------
+// This round (feat/hearthwood-tactics-wire-3): widen the real "Fight
+// this as Tactics" button to The Iron Sentinel, now that PR #469 made
+// Bulwark fully faithful in the isolated prototype. Every new check gets
+// its own fresh page.
+// ---------------------------------------------------------------
+
+// 14. The Iron Sentinel's real entry - a lighter spot-check, since its
+//     own mechanics were already fully proven in PR #469's 90-check
+//     isolated-prototype suite; what's new here is only "does it reach
+//     the live economy bridge" -----------------------------------------
+{
+  const page14 = await newPage()
+  page14.on("pageerror", (e) => errs.push(String(e)))
+  await page14.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page14, (n) => n.type === "elite" && n.enemyId === "the-iron-sentinel", ["the-fool"])
+  await page14.reload({ waitUntil: "domcontentloaded" })
+  await page14.waitForTimeout(400)
+  await page14.locator(".hw-tactics-fight-btn").click()
+  await page14.waitForTimeout(400)
+  const engine = await page14.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
+  const playerNames = await page14.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page14.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  await page14.screenshot({ path: `${SHOT}/iron_sentinel_live.png` })
+  await page14.close()
+  out.ironSentinelEntry = { engine, playerNames, enemyNames }
+  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "The Iron Sentinel")) {
+    out.errors.push("check14 entering The Iron Sentinel for real did not load the exact real solo composition")
+  }
+}
+
+// 15. The Iron Sentinel's win pays the exact real economy math ----------
+{
+  const page15 = await newPage()
+  page15.on("pageerror", (e) => errs.push(String(e)))
+  await page15.goto(`http://localhost:${PORT}/heartwood?debugLowHp=1`, { waitUntil: "domcontentloaded" })
+  const seed15 = await page15.evaluate(async () => {
+    const { startRun, serializeRun, RUN_PATH, essenceForWin, bankInterestFor, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const idx = RUN_PATH.findIndex((n) => n.type === "elite" && n.enemyId === "the-iron-sentinel")
+    const rs = {
+      ...startRun("tommy"),
+      nodeIndex: idx,
+      path: RUN_PATH.slice(0, idx + 1),
+      phase: "formation",
+      bench: [{ key: "b1", defId: "the-fool", upgradeLevel: 0, upgrades: [] }],
+      deployed: ["b1", null, null, null],
+      items: [],
+      lastSeenAct: actIndexForNode(idx, RUN_PATH.length),
+    }
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    const node = RUN_PATH[idx]
+    return { idx, expectedEssence: rs.essence + essenceForWin(rs, node) + bankInterestFor(rs) }
+  })
+  await page15.reload({ waitUntil: "domcontentloaded" })
+  await page15.waitForTimeout(400)
+  await page15.locator(".hw-tactics-fight-btn").click()
+  await page15.waitForTimeout(400)
+  let phase = "player"
+  let turns = 0
+  while (phase !== "won" && phase !== "lost" && turns < 20) {
+    await page15.locator('.hwt-token[data-side="player"]').first().click({ force: true }).catch(() => {})
+    await page15.waitForTimeout(120)
+    let targets = page15.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) === 0) {
+      const reach = page15.locator('.hwt-cell[data-reachable="true"]')
+      if ((await reach.count()) > 0) {
+        await reach.first().click()
+        await page15.waitForTimeout(120)
+      }
+    }
+    targets = page15.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) > 0) {
+      await targets.first().click()
+      await page15.waitForTimeout(150)
+    }
+    await page15.locator(".hwt-end-turn").click().catch(() => {})
+    await page15.waitForTimeout(400)
+    phase = await page15.locator(".hwt-turn-label").getAttribute("data-phase")
+    turns++
+  }
+  let afterContinue = null
+  if (phase === "won") {
+    await page15.locator(".hwt-continue-btn").click()
+    await page15.waitForTimeout(400)
+    afterContinue = await page15.evaluate(() => {
+      const saved = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+      return { phase: saved.run.phase, essence: saved.run.essence, battle: saved.run.battle, nodeIndex: saved.run.nodeIndex }
+    })
+  }
+  await page15.close()
+  out.ironSentinelWinPath = { phase, turns, seed15, afterContinue }
+  if (
+    !(
+      phase === "won" &&
+      afterContinue &&
+      afterContinue.essence === seed15.expectedEssence &&
+      afterContinue.battle === null &&
+      afterContinue.nodeIndex === seed15.idx + 1
+    )
+  ) {
+    out.errors.push("check15 The Iron Sentinel's win path did not pay out the exact real essence formula, or did not advance/clear the battle correctly")
   }
 }
 
