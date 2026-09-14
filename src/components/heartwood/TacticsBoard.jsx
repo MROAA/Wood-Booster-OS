@@ -249,6 +249,11 @@ export default function TacticsBoard({
                     ▼{unit.weak}
                   </span>
                 )}
+                {unit.bulwark > 0 && (
+                  <span className="hwt-bulwark-badge" title={`Bulwark ${unit.bulwark} - permanent armour, absorbs that much off every hit and never runs out`}>
+                    ⛰{unit.bulwark}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />

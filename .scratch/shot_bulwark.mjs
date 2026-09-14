@@ -1,0 +1,11 @@
+import { chromium } from "playwright"
+const browser = await chromium.launch()
+const page = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+await page.goto("http://localhost:5402/heartwood-tactics", { waitUntil: "domcontentloaded" })
+await page.waitForSelector(".hwt-board")
+await page.locator(".hwt-formation-btn", { hasText: "The Iron Sentinel" }).click()
+await page.waitForTimeout(300)
+await page.locator(".hwt-end-turn").click()
+await page.waitForTimeout(500)
+await page.screenshot({ path: ".scratch/shots/iron_sentinel.png" })
+await browser.close()

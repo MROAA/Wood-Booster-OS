@@ -267,6 +267,21 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 0,
   },
+  // This round's demo for the new persistent Bulwark mechanic - The Iron
+  // Sentinel's entire real identity is its compounding armour, granted
+  // entirely via a turnStart trigger (not a base passive stat), so it
+  // also doubles as a proof that PR #464's trigger firing correctly
+  // reaches a brand-new portable effect id.
+  "the-iron-sentinel": {
+    id: "the-iron-sentinel",
+    name: "The Iron Sentinel",
+    description: "Its armour thickens every round it stands. A slow grind loses this one - open big or execute.",
+    enemyDefIds: ["the-iron-sentinel"],
+    rows: [3],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -342,7 +357,7 @@ function applyPortableEffect(state, unitId, effect) {
   if (effect.type === "applyBuff" && effect.id === "strength") {
     return setUnit(state, unitId, { attack: unit.attack + (effect.amount || 0) })
   }
-  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak"].includes(effect.id)) {
+  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak", "bulwark"].includes(effect.id)) {
     return setUnit(state, unitId, { [effect.id]: (unit[effect.id] || 0) + (effect.amount || 0) })
   }
   if (effect.type === "block") {
@@ -443,6 +458,13 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     shatter: passiveStats.shatter,
     woundedFury: passiveStats.woundedFury,
     weak: 0,
+    // Iron Sentinel's real Bulwark (effects.js's bulwarkOf): a PERSISTENT
+    // armour stat, never decremented anywhere - unlike strength/execute/
+    // shatter it never appears in a base passive either (Iron Sentinel's
+    // own passive is a turnStart TRIGGER that grants it, not a direct
+    // stat), so this always starts at a plain 0 and only ever grows via
+    // a fired effect.
+    bulwark: 0,
   }
 }
 
@@ -625,13 +647,31 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
 
 // Reuses the live game's own Block model (effects.js's dealDamage: absorb
 // then deplete) rather than inventing a new mitigation shape.
+// Iron Sentinel's real Bulwark (effects.js's own dealDamage): real Block
+// is spent FIRST, then Bulwark absorbs whatever's left - but Bulwark is
+// never decremented, so it keeps soaking the same amount off every hit,
+// all battle (the exact real order, not assumed - Block's own "spent
+// and reset every round" behavior never applies to it).
 function applyDamageWithBlock(state, targetId, amount) {
   const target = getUnit(state, targetId)
-  const absorbed = Math.min(target.block, amount)
-  const remaining = amount - absorbed
+  const armour = target.bulwark || 0
+  const totalAbsorb = Math.min(target.block + armour, amount)
+  const blockSpent = Math.min(target.block, totalAbsorb)
+  const armourUsed = totalAbsorb - blockSpent
+  const remaining = amount - totalAbsorb
   const nextHp = Math.max(0, target.hp - remaining)
-  const next = setUnit(state, targetId, { block: target.block - absorbed, hp: nextHp })
-  return { next, absorbed, remaining, fell: nextHp <= 0 }
+  const next = setUnit(state, targetId, { block: target.block - blockSpent, hp: nextHp })
+  return { next, absorbed: blockSpent, armourUsed, remaining, fell: nextHp <= 0 }
+}
+
+// Shared log-note builder for every applyDamageWithBlock call site - the
+// real game's own combined wording ("N blocked, M turned by Bulwark"),
+// adapted to this engine's "(absorbed N)" phrasing.
+function describeAbsorb(absorbed, armourUsed) {
+  const parts = []
+  if (absorbed > 0) parts.push(`absorbed ${absorbed}`)
+  if (armourUsed > 0) parts.push(`${armourUsed} turned by Bulwark`)
+  return parts.length ? ` (${parts.join(", ")})` : ""
 }
 
 // The Brood's real mechanic (effects.js's broodSplit + freeEnemyCells,
@@ -791,9 +831,9 @@ export function attackUnit(state, actorId, targetId) {
   if (state.phase !== actor.side || actor.side === target.side) return state
   if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   let next = setUnit(state, actorId, { ap: actor.ap - 1 })
-  const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, targetId, modifiedAttackAmount(actor, target, actor.attack))
+  const { next: hit, absorbed, armourUsed, remaining, fell } = applyDamageWithBlock(next, targetId, modifiedAttackAmount(actor, target, actor.attack))
   next = hit
-  const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
+  const absorbedNote = describeAbsorb(absorbed, armourUsed)
   const fellNote = fell ? " It falls." : ""
   next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}.${absorbedNote}${fellNote}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
@@ -852,9 +892,9 @@ export function castAbility(state, actorId, targetId) {
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     const amount = modifiedAttackAmount(actor, target, actor.attack * ability.multiplier)
-    const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, target.id, amount)
+    const { next: hit, absorbed, armourUsed, remaining, fell } = applyDamageWithBlock(next, target.id, amount)
     next = hit
-    const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
+    const absorbedNote = describeAbsorb(absorbed, armourUsed)
     const fellNote = fell ? " It falls." : ""
     next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}`] }
     next = grantStrengthOnKill(next, actorId, fell)
@@ -984,9 +1024,9 @@ function applyChargeTick(state) {
     next = { ...next, log: [...next.log, `${live.name} unleashes ${charge.label}!`] }
     const amount = charge.effect.find((e) => e.type === "damage")?.amount || 0
     for (const p of livingUnits(next, "player")) {
-      const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, p.id, amount)
+      const { next: hit, absorbed, armourUsed, remaining, fell } = applyDamageWithBlock(next, p.id, amount)
       next = hit
-      const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
+      const absorbedNote = describeAbsorb(absorbed, armourUsed)
       const fellNote = fell ? " It falls." : ""
       next = { ...next, log: [...next.log, `${p.name} takes ${remaining}.${absorbedNote}${fellNote}`] }
     }
@@ -1061,6 +1101,7 @@ function applyRotMendTick(state) {
 function describePortableEffect(effect) {
   if (effect.type === "applyBuff" && effect.id === "strength") return "grows stronger"
   if (effect.type === "applyBuff" && effect.id === "weak") return "leaves the wound raw"
+  if (effect.type === "applyBuff" && effect.id === "bulwark") return "hardens its armour"
   if (effect.type === "block") return "braces for the next blow"
   if (effect.type === "heal") return "steadies itself"
   return "stirs"
