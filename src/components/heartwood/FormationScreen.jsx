@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { Link } from "react-router-dom"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
@@ -653,6 +654,16 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           Take your time - the fight begins when you're ready.
         </p>
       )}
+      {/* Hearthwood Frontier Phase 4 (feat/hearthwood-tactics-real-preview):
+          a passive, non-gating link to the isolated tactics prototype, the
+          same "not gated on anything" precedent as CommanderSelect.jsx's
+          own WIP link. target="_blank" deliberately - it never navigates
+          away from this screen (whose own auto-start timer keeps running
+          untouched), and the tactics page re-reads the real run's save
+          itself, so no props/state need to be threaded through here. */}
+      <Link className="hw-tactics-link" to="/heartwood-tactics" target="_blank" rel="noopener noreferrer" style={{ marginTop: 8 }}>
+        🧪 Preview this fight as Tactics
+      </Link>
     </div>
   )
 }

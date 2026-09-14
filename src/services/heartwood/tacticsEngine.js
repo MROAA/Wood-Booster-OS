@@ -356,6 +356,59 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
   }
 }
 
+// Centers `count` consecutive rows in the grid - the same "one row per
+// piece" idea every ENEMY_FORMATIONS entry's hand-picked `rows` array
+// already encodes (START_ROWS is just this same math for count:3),
+// generalized to any count for the real-matchup bridge below, where the
+// real squad/enemy side can be 1-4 pieces instead of a curated formation's
+// fixed spread.
+function spreadRows(count, gridRows) {
+  const start = Math.max(0, Math.floor((gridRows - count) / 2))
+  return Array.from({ length: count }, (_, i) => start + i)
+}
+
+// Phase 4's first slice ("jatketaan" -> wire the tactics engine into the
+// real game; Marc picked the safe "real preview" scope over a full replace
+// of the live battle screen): builds a battle from arbitrary REAL defIds on
+// both sides - a real run's actual deployed squad (1-4 units, pulled from
+// its save by tacticsRealMatchup.js) vs. the actual enemy at the run's
+// current node (any real formation OR solo enemy, resolved by
+// formations.js's own resolveFormation - not just the 9 curated
+// ENEMY_FORMATIONS entries). Every unit still goes through the SAME
+// deriveTacticsUnit every other unit in this engine uses, so real
+// abilities (for the 6 units already converted) and every individual
+// enemy's own archetype mechanic (covenAura/cultRitual/charge/broodSplit/
+// leech/poison - all read straight off that unit's own real ENEMIES def)
+// resolve normally. Deliberately does NOT carry over the live game's
+// difficulty scaling, relics, items, or the Commander (no UNITS entry,
+// not modeled here at all), and formationId is null so a curated
+// formation's PACK-LEVEL synergy bonus (Swarm/Hunters' flat Strength,
+// Fortress's per-round Block, Rot's self-mend) never applies to an
+// arbitrary real matchup - the same "reuse real data, not the live
+// scaling" discipline every archetype round's curated formations already
+// follow, just without a formation-level bonus to translate.
+export function createRealMatchupBattle(squadDefIds, enemyDefIds) {
+  const playerRows = spreadRows(squadDefIds.length, GRID.rows)
+  const enemyRows = spreadRows(enemyDefIds.length, GRID.rows)
+  const units = [
+    ...squadDefIds.map((defId, i) =>
+      deriveTacticsUnit(defId, "player", { row: playerRows[i], col: GRID.cols - 1 }, `player-${defId}-${i}`),
+    ),
+    ...enemyDefIds.map((defId, i) =>
+      deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
+    ),
+  ]
+  const withBaseline = units.map((u) => ({ ...u, baseAttack: u.attack }))
+  return {
+    grid: GRID,
+    units: withBaseline,
+    phase: "player",
+    turn: 1,
+    log: ["A real matchup from your run. The Frontier opens. Your turn."],
+    formationId: null,
+  }
+}
+
 // A static stat preview of the whole 6-unit roster, for the squad picker's
 // per-slot stat line - zero new derivation logic, reuses deriveTacticsUnit
 // directly (the exact same function a real squad unit goes through), just

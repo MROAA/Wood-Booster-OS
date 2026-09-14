@@ -11,6 +11,7 @@ import { CardGlyph } from "../components/heartwood/cardArt"
 import { kingAdjacent } from "../services/heartwood/targeting"
 import {
   createTacticsBattle,
+  createRealMatchupBattle,
   reachableTilesFor,
   attackableTargets,
   moveUnit,
@@ -24,6 +25,7 @@ import {
   ENEMY_FORMATIONS,
   PLAYER_ROSTER_IDS,
 } from "../services/heartwood/tacticsEngine"
+import { loadRealMatchup } from "../services/heartwood/tacticsRealMatchup"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
@@ -38,11 +40,15 @@ function getUnitName(battle, id) {
 // The debugLowHp QA-only hook, never a real feature: `?debugLowHp=1` seeds
 // every enemy at 1 HP so a verification pass (or a quick manual check) can
 // reach a win in a couple of clicks instead of grinding real attack rounds
-// first. Shared by the initial mount AND every formation-picker restart.
-function startBattle(formationId, squadDefIds) {
-  const base = createTacticsBattle(formationId, squadDefIds)
+// first. Shared by the initial mount, every formation-picker restart, AND
+// the real-matchup preview below.
+function maybeDebugLowHp(base) {
   const params = new URLSearchParams(window.location.search)
   return params.get("debugLowHp") === "1" ? withLowEnemyHp(base) : base
+}
+
+function startBattle(formationId, squadDefIds) {
+  return maybeDebugLowHp(createTacticsBattle(formationId, squadDefIds))
 }
 
 // Static stat lines for the squad-picker's per-slot preview, computed once
@@ -56,6 +62,12 @@ export default function HeartwoodTactics() {
   // selected unit's ability is armed and waiting for a target click.
   // "aura-block" needs no mode - it applies the instant the button is hit.
   const [abilityMode, setAbilityMode] = useState(null)
+  // Phase 4's "real preview" bridge: a one-time read of the real run's
+  // save (a snapshot, not a live sync - this is a preview, not a mirror).
+  // null when there's no real run, the player isn't in front of a fight,
+  // or the encounter/squad can't be resolved - see tacticsRealMatchup.js.
+  const realMatchup = useMemo(() => loadRealMatchup(), [])
+  const [usingReal, setUsingReal] = useState(false)
 
   const selected = battle.units.find((u) => u.id === selectedId) || null
   const reachable = useMemo(
@@ -177,6 +189,10 @@ export default function HeartwoodTactics() {
   }
 
   function handlePlayAgain() {
+    if (usingReal) {
+      startRealMatchup()
+      return
+    }
     restart(battle.formationId)
   }
 
@@ -185,6 +201,28 @@ export default function HeartwoodTactics() {
   function handleSquadSlotChange(slotIndex, defId) {
     const nextSquad = currentSquadDefIds().map((id, i) => (i === slotIndex ? defId : id))
     restart(battle.formationId, nextSquad)
+  }
+
+  // Load the real run's actual squad + actual enemy - a snapshot preview,
+  // not a live connection. Never writes anything back to the real run;
+  // see tacticsRealMatchup.js for the full non-mutating guarantee.
+  function startRealMatchup() {
+    if (!realMatchup) return
+    setSelectedId(null)
+    setAbilityMode(null)
+    setUsingReal(true)
+    setBattle(maybeDebugLowHp(createRealMatchupBattle(realMatchup.squadDefIds, realMatchup.enemyDefIds)))
+  }
+
+  // The one way out of real-matchup mode - back to today's exact default
+  // state (calls startBattle("default") with no squad arg, so it resolves
+  // through createTacticsBattle's own PLAYER_DEF_IDS default, never
+  // whatever real squad happened to be on the board).
+  function backToTestSquad() {
+    setUsingReal(false)
+    setSelectedId(null)
+    setAbilityMode(null)
+    setBattle(startBattle("default"))
   }
 
   const cells = []
@@ -343,57 +381,83 @@ export default function HeartwoodTactics() {
             ))}
           </div>
 
-          <div className="hwt-squad-picker">
-            <p className="hwt-squad-picker-label">Choose your squad</p>
-            <div className="hwt-squad-picker-slots">
-              {currentSquadDefIds().map((defId, slotIndex) => {
-                const preview = ROSTER_PREVIEW.find((u) => u.defId === defId)
-                const otherSlots = currentSquadDefIds().filter((_, i) => i !== slotIndex)
-                const options = PLAYER_ROSTER_IDS.filter((id) => id === defId || !otherSlots.includes(id))
-                return (
-                  <div className="hwt-squad-slot" key={slotIndex}>
-                    <select
-                      className="hwt-squad-select"
-                      value={defId}
-                      onChange={(e) => handleSquadSlotChange(slotIndex, e.target.value)}
-                    >
-                      {options.map((id) => {
-                        const opt = ROSTER_PREVIEW.find((u) => u.defId === id)
-                        return (
-                          <option key={id} value={id}>
-                            {opt.name}
-                          </option>
-                        )
-                      })}
-                    </select>
-                    {preview && (
-                      <p className="hwt-squad-slot-stats">
-                        HP {preview.maxHp} · Atk {preview.attack} · Range {preview.range}
-                        {preview.ability ? ` · ${preview.ability.name}` : ""}
-                      </p>
-                    )}
-                  </div>
-                )
-              })}
+          {realMatchup && (
+            <div className="hwt-real-matchup">
+              {usingReal ? (
+                <>
+                  <p className="hwt-real-matchup-label">
+                    Previewing your real run's next fight — nothing here affects your real run.
+                  </p>
+                  <button className="hwt-real-matchup-btn" onClick={backToTestSquad}>
+                    Back to test squad
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="hwt-real-matchup-label">A real fight from your run is available: {realMatchup.label}</p>
+                  <button className="hwt-real-matchup-btn" onClick={startRealMatchup}>
+                    Preview it
+                  </button>
+                </>
+              )}
             </div>
-          </div>
+          )}
 
-          <div className="hwt-formation-picker">
-            <p className="hwt-formation-label">Choose your opponent</p>
-            <div className="hwt-formation-buttons">
-              {Object.values(ENEMY_FORMATIONS).map((f) => (
-                <button
-                  key={f.id}
-                  className="hwt-formation-btn"
-                  data-active={battle.formationId === f.id}
-                  title={f.description}
-                  onClick={() => restart(f.id)}
-                >
-                  {f.name}
-                </button>
-              ))}
+          {!usingReal && (
+            <div className="hwt-squad-picker">
+              <p className="hwt-squad-picker-label">Choose your squad</p>
+              <div className="hwt-squad-picker-slots">
+                {currentSquadDefIds().map((defId, slotIndex) => {
+                  const preview = ROSTER_PREVIEW.find((u) => u.defId === defId)
+                  const otherSlots = currentSquadDefIds().filter((_, i) => i !== slotIndex)
+                  const options = PLAYER_ROSTER_IDS.filter((id) => id === defId || !otherSlots.includes(id))
+                  return (
+                    <div className="hwt-squad-slot" key={slotIndex}>
+                      <select
+                        className="hwt-squad-select"
+                        value={defId}
+                        onChange={(e) => handleSquadSlotChange(slotIndex, e.target.value)}
+                      >
+                        {options.map((id) => {
+                          const opt = ROSTER_PREVIEW.find((u) => u.defId === id)
+                          return (
+                            <option key={id} value={id}>
+                              {opt.name}
+                            </option>
+                          )
+                        })}
+                      </select>
+                      {preview && (
+                        <p className="hwt-squad-slot-stats">
+                          HP {preview.maxHp} · Atk {preview.attack} · Range {preview.range}
+                          {preview.ability ? ` · ${preview.ability.name}` : ""}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
+
+          {!usingReal && (
+            <div className="hwt-formation-picker">
+              <p className="hwt-formation-label">Choose your opponent</p>
+              <div className="hwt-formation-buttons">
+                {Object.values(ENEMY_FORMATIONS).map((f) => (
+                  <button
+                    key={f.id}
+                    className="hwt-formation-btn"
+                    data-active={battle.formationId === f.id}
+                    title={f.description}
+                    onClick={() => restart(f.id)}
+                  >
+                    {f.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
