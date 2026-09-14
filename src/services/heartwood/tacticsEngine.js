@@ -240,6 +240,33 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 0,
   },
+  // This round's demo for the new onDealDamage trigger firing - The
+  // Gorging Maw's entire real identity is its lifelink (heals 4 on every
+  // landed hit), which needed that trigger type to exist at all.
+  "the-gorging-maw": {
+    id: "the-gorging-maw",
+    name: "The Gorging Maw",
+    description: "Every wound it opens on you, it closes one of its own. Don't let this go long.",
+    enemyDefIds: ["the-gorging-maw"],
+    rows: [3],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+  },
+  // This round's demo for the new modifiedAttackAmount damage-modifier
+  // pipeline - Wyrmgall's entire real identity is Execute+Shatter, both
+  // bonus-damage stacks, no strength folded in (an explicit contrast to
+  // Deepwarden/Ironmaw's strength-heavy passives).
+  wyrmgall: {
+    id: "wyrmgall",
+    name: "Wyrmgall",
+    description: "It isn't watching your squad. It's watching for the mistake your squad hasn't made yet.",
+    enemyDefIds: ["wyrmgall"],
+    rows: [3],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -278,29 +305,45 @@ function poisonFromMovePattern(movePattern) {
 // applyEnemyTurnStartTriggers below) - only `turnStart` is ever fired
 // this round; `onDealDamage`/`onHit` triggers are registered but inert,
 // since no currently-ported content needs them yet.
-function passiveStrengthFromDef(passive) {
-  return (passive || [])
-    .filter((p) => p.type === "applyBuff" && p.id === "strength")
-    .reduce((sum, p) => sum + (p.amount || 0), 0)
+// Generalized from passiveStrengthFromDef (PR #464, strength-only) to
+// also fold Wyrmgall's real execute/shatter and the final boss's real
+// woundedFury straight off each unit's own base passive - the exact same
+// "sum this id's own applyBuff entries at derive time" discipline,
+// applied to 3 more ids. `weak` is deliberately NOT summed here - it
+// never appears in any unit's own base passive, only ever arriving via a
+// fired effect (e.g. a future onDealDamage trigger targeting the OTHER
+// party in a hit), so it always starts at a plain 0.
+function passiveStatsFromDef(passive) {
+  const stats = { strength: 0, execute: 0, shatter: 0, woundedFury: 0 }
+  for (const p of passive || []) {
+    if (p.type === "applyBuff" && p.id in stats) stats[p.id] += p.amount || 0
+  }
+  return stats
 }
 
 function triggersFromPassive(passive) {
   return (passive || []).filter((p) => p.type === "addTrigger").map((p) => ({ trigger: p.trigger, effect: p.effect }))
 }
 
-// The shared interpreter for a portable effect - used by both a fired
-// phase's own `effects` array and a `turnStart` trigger's single
-// `effect`. Recognizes exactly 3 shapes: applyBuff strength (-> this
-// engine's own attack-as-Strength model), block (an immediate/repeating
-// grant, the same shape Fortress's fortressBlock already uses), and heal
-// (capped at maxHp). Anything else - an unrecognized applyBuff id, any
-// other effect type - is a deliberate no-op, matching the named-deferred
-// list above.
+// The shared interpreter for a portable effect - used by a fired phase's
+// own `effects` array, a `turnStart` trigger's single `effect`, and (this
+// round) an `onDealDamage` trigger's own effect. Recognizes: applyBuff
+// strength (-> this engine's own attack-as-Strength model, unchanged),
+// applyBuff execute/shatter/woundedFury/weak (a plain `unit[id] +=
+// amount` - Wyrmgall's real escalating Execute, the final boss's real
+// WoundedFury, and a future Weak-on-target debuff all read this way),
+// block (an immediate/repeating grant, the same shape Fortress's
+// fortressBlock already uses), and heal (capped at maxHp). Anything else
+// - an unrecognized applyBuff id, any other effect type - is a
+// deliberate no-op, matching the named-deferred list above.
 function applyPortableEffect(state, unitId, effect) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0) return state
   if (effect.type === "applyBuff" && effect.id === "strength") {
     return setUnit(state, unitId, { attack: unit.attack + (effect.amount || 0) })
+  }
+  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak"].includes(effect.id)) {
+    return setUnit(state, unitId, { [effect.id]: (unit[effect.id] || 0) + (effect.amount || 0) })
   }
   if (effect.type === "block") {
     return setUnit(state, unitId, { block: unit.block + (effect.amount || 0) })
@@ -355,7 +398,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   // starting `attack` here - the exact same "battle-start, no growth
   // badge" treatment createTacticsBattle's own battleStartBonus already
   // gets, since this is a real innate trait, not an earned buff.
-  const passiveStrength = side === "enemy" ? passiveStrengthFromDef(def.passive) : 0
+  const passiveStats = side === "enemy" ? passiveStatsFromDef(def.passive) : { strength: 0, execute: 0, shatter: 0, woundedFury: 0 }
   const triggers = side === "enemy" ? triggersFromPassive(def.passive) : []
   const phases = side === "enemy" ? def.phases || [] : []
   return {
@@ -370,7 +413,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     maxHp,
     move: moveFromMaxHp(maxHp),
     range: rangeFromAttackPattern(def.attackPattern),
-    attack: attackFromMovePattern(def.movePattern) + passiveStrength,
+    attack: attackFromMovePattern(def.movePattern) + passiveStats.strength,
     ap: AP_MAX,
     apMax: AP_MAX,
     block: 0,
@@ -391,6 +434,15 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     triggers,
     phases,
     phaseIndex: 0,
+    // Wyrmgall's real Execute/Shatter (bonus damage, see
+    // modifiedAttackAmount below) and the final boss's real WoundedFury -
+    // folded straight off the unit's own base passive, same discipline as
+    // strength. `weak` always starts at 0 - it never appears in a base
+    // passive, only ever arriving via a fired effect.
+    execute: passiveStats.execute,
+    shatter: passiveStats.shatter,
+    woundedFury: passiveStats.woundedFury,
+    weak: 0,
   }
 }
 
@@ -547,6 +599,30 @@ export function moveUnit(state, unitId, targetPos) {
   return setUnit(state, unitId, { pos: targetPos, ap: unit.ap - 1 })
 }
 
+// Wyrmgall's real Execute/Shatter + the final boss's real WoundedFury/
+// Weak - ported directly from effects.js's own dealDamage modifier
+// chain, in the SAME real order (confirmed by reading that function line
+// by line, not assumed): WoundedFury adds a flat +3 while the ATTACKER
+// itself is below half its own max HP; Weak then multiplies the whole
+// amount so far by 0.75 (floored) - BEFORE Execute/Shatter, so neither
+// bonus is itself reduced by Weak, exactly matching the real
+// `amount += executeBonus + shatterBonus` line landing after the real
+// game's own Weak multiply; Execute adds a flat, stack-scaled bonus only
+// once the DEFENDER is at/under 30% max HP; Shatter adds its own flat
+// bonus only while the defender still holds any Block. Real Strength is
+// NOT re-added here - this engine already bakes it straight into
+// `attacker.attack` at derive/phase time, unlike the real game's own
+// dealDamage, which adds it fresh on every hit from a separate `powers`
+// stack.
+function modifiedAttackAmount(attacker, defender, baseAmount) {
+  let amount = baseAmount
+  if (attacker.woundedFury > 0 && attacker.hp < attacker.maxHp * 0.5) amount += 3
+  if (attacker.weak > 0) amount = Math.floor(amount * 0.75)
+  if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
+  if (attacker.shatter > 0 && defender.block > 0) amount += attacker.shatter
+  return amount
+}
+
 // Reuses the live game's own Block model (effects.js's dealDamage: absorb
 // then deplete) rather than inventing a new mitigation shape.
 function applyDamageWithBlock(state, targetId, amount) {
@@ -679,6 +755,35 @@ function checkEnemyPhase(state, unitId) {
   return setUnit(next, unitId, { phaseIndex: unit.phaseIndex + 1 })
 }
 
+// The Gorging Maw's real lifelink (addTrigger onDealDamage -> heal 4) -
+// the onDealDamage trigger TYPE PR #464 registered but never fired (only
+// turnStart was wired that round). Fires an actor's own onDealDamage
+// triggers right where checkEnemyPhase/trySpawnBrood already hook in,
+// gated on `remaining > 0` - the exact real `overflow > 0` gate
+// effects.js's own dealDamage uses before it runs ANY onHit/onDealDamage
+// trigger (a fully-blocked swing never fires one), the same value
+// applyLeechOnHit already gates on here. A trigger's own effect can
+// target itself (the default) or, via `effect.target === "target"`, the
+// unit it just hit - the final boss's own real phase-1 effect already
+// carries this shape (a Weak debuff landing on whoever he damages, not
+// on himself) - resolved here, then handed to the same shared
+// applyPortableEffect every other portable effect already goes through.
+function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
+  const actor = getUnit(state, actorId)
+  if (!actor || actor.side !== "enemy" || remaining <= 0) return state
+  let next = state
+  for (const t of actor.triggers || []) {
+    if (t.trigger !== "onDealDamage") continue
+    const recipientId = t.effect.target === "target" ? targetId : actorId
+    const recipient = getUnit(next, recipientId)
+    if (!recipient || recipient.hp <= 0) continue
+    next = applyPortableEffect(next, recipientId, t.effect)
+    const onTargetNote = recipientId === targetId ? ` on ${recipient.name}` : ""
+    next = { ...next, log: [...next.log, `${actor.name} ${describePortableEffect(t.effect)}${onTargetNote}.`] }
+  }
+  return next
+}
+
 export function attackUnit(state, actorId, targetId) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
@@ -686,7 +791,7 @@ export function attackUnit(state, actorId, targetId) {
   if (state.phase !== actor.side || actor.side === target.side) return state
   if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   let next = setUnit(state, actorId, { ap: actor.ap - 1 })
-  const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, targetId, actor.attack)
+  const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, targetId, modifiedAttackAmount(actor, target, actor.attack))
   next = hit
   const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
   const fellNote = fell ? " It falls." : ""
@@ -704,6 +809,7 @@ export function attackUnit(state, actorId, targetId) {
   if (actor.side === "player") next = grantStrengthOnKill(next, actorId, fell)
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   next = checkEnemyPhase(next, targetId)
+  next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
   return checkTacticsBattleEnd(next)
 }
@@ -745,7 +851,7 @@ export function castAbility(state, actorId, targetId) {
     if (!target || target.hp <= 0 || target.side === actor.side) return state
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
-    const amount = actor.attack * ability.multiplier
+    const amount = modifiedAttackAmount(actor, target, actor.attack * ability.multiplier)
     const { next: hit, absorbed, remaining, fell } = applyDamageWithBlock(next, target.id, amount)
     next = hit
     const absorbedNote = absorbed > 0 ? ` (absorbed ${absorbed})` : ""
@@ -753,6 +859,7 @@ export function castAbility(state, actorId, targetId) {
     next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}`] }
     next = grantStrengthOnKill(next, actorId, fell)
     next = checkEnemyPhase(next, target.id)
+    next = checkOnDealDamageTriggers(next, actorId, target.id, remaining)
     if (fell) next = trySpawnBrood(next, target.id)
     return checkTacticsBattleEnd(next)
   }
@@ -953,6 +1060,7 @@ function applyRotMendTick(state) {
 // -ported real content needs them yet (a named, stated deferral).
 function describePortableEffect(effect) {
   if (effect.type === "applyBuff" && effect.id === "strength") return "grows stronger"
+  if (effect.type === "applyBuff" && effect.id === "weak") return "leaves the wound raw"
   if (effect.type === "block") return "braces for the next blow"
   if (effect.type === "heal") return "steadies itself"
   return "stirs"

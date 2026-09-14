@@ -229,6 +229,26 @@ export default function TacticsBoard({
                     ☠{unit.poison}
                   </span>
                 )}
+                {unit.execute > 0 && (
+                  <span className="hwt-execute-badge" title={`Execute ${unit.execute} - deals ${unit.execute} bonus damage to a target at or below 30% HP`}>
+                    †{unit.execute}
+                  </span>
+                )}
+                {unit.shatter > 0 && (
+                  <span className="hwt-shatter-badge" title={`Shatter ${unit.shatter} - deals ${unit.shatter} bonus damage to a target still holding Block`}>
+                    ✕{unit.shatter}
+                  </span>
+                )}
+                {unit.woundedFury > 0 && unit.hp < unit.maxHp * 0.5 && (
+                  <span className="hwt-woundedfury-badge" title="Wounded Fury - below half HP, this unit's attacks deal +3 damage">
+                    🔥
+                  </span>
+                )}
+                {unit.weak > 0 && (
+                  <span className="hwt-weak-badge" title={`Weak ${unit.weak} - this unit's own outgoing damage is cut by 25%`}>
+                    ▼{unit.weak}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />
