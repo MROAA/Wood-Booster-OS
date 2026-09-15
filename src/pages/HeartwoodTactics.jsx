@@ -61,9 +61,11 @@ export default function HeartwoodTactics() {
   // The squad currently deployed, read straight off the live battle state
   // rather than a module constant - so a formation-only restart (below)
   // preserves whatever squad is actually in play instead of silently
-  // resetting to the default 3.
+  // resetting to the default. Excludes the Commander (Commander round):
+  // it isn't recruited or swappable via the roster in the real game
+  // either - a fixed, separate slot, not a 5th interchangeable pick.
   function currentSquadDefIds() {
-    return battle.units.filter((u) => u.side === "player").map((u) => u.defId)
+    return battle.units.filter((u) => u.side === "player" && u.id !== "player-commander").map((u) => u.defId)
   }
 
   function restart(formationId, squadDefIds = currentSquadDefIds()) {
@@ -100,7 +102,8 @@ export default function HeartwoodTactics() {
 
   // The one way out of real-matchup mode - back to today's exact default
   // state (calls startBattle("default") with no squad arg, so it resolves
-  // through createTacticsBattle's own PLAYER_DEF_IDS default, never
+  // through createTacticsBattle's own PLAYER_DEF_IDS default - the 4
+  // recruited units plus the Commander, since the Commander round - never
   // whatever real squad happened to be on the board).
   function backToTestSquad() {
     setUsingReal(false)

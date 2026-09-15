@@ -26,6 +26,7 @@
 
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { CHARACTERS } from "../../data/heartwood/characters"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -131,13 +132,24 @@ const ABILITIES = {
 
 // The player roster (real names/art/HP; move/range/attack are DERIVED below
 // from the unit's actual movePattern/attackPattern, not invented). Player
-// always starts at the right edge, rows 2/3/4, col GRID.cols-1 - unaffected
-// by which enemy formation is chosen below.
-const PLAYER_DEF_IDS = ["bulwark-of-ages", "the-fool", "hexbreaker"]
-// The full 6-unit pool the sidebar squad picker offers. PLAYER_DEF_IDS (the
-// default starting 3) is unchanged - only the picker's option list grows.
-export const PLAYER_ROSTER_IDS = [...PLAYER_DEF_IDS, "oathshield", "willowmend", "bramble-sweep"]
-const START_ROWS = [2, 3, 4]
+// always starts at the right edge (col GRID.cols-1), rows centered by
+// spreadRows below - unaffected by which enemy formation is chosen.
+// Commander round (feat/hearthwood-tactics-squad6, corrected mid-round from
+// "6 units" to Marc's actual "5, 4+commander"): grown from 3 to 4 recruited
+// defaults - "oathshield" is real, existing roster content, not new.
+const PLAYER_DEF_IDS = ["bulwark-of-ages", "the-fool", "hexbreaker", "oathshield"]
+// The full 6-unit pool the sidebar squad picker offers - PLAYER_DEF_IDS
+// (now 4 recruited defaults) plus 2 more swappable alternatives from a
+// later roster-expansion round.
+export const PLAYER_ROSTER_IDS = [...PLAYER_DEF_IDS, "willowmend", "bramble-sweep"]
+
+// The Commander (real 5th unit in the auto-battler, characters.js/
+// autoBattleEngine.js's own COMMANDER_POSITION) - deployed ALONGSIDE the 4
+// recruited units, not replacing one of them, matching Marc's own
+// "4+commander" phrasing. Only basic combat stats participate this round
+// (Marc: "Just make the Commander participate") - Haste and Squad Passive
+// are named, deliberate deferrals for future rounds.
+const DEFAULT_COMMANDER_ID = "tommy"
 
 // Phase 3's first slice ("jatketaan" -> "1-2 more enemy archetypes"): two
 // of the 9 shipped auto-battler archetypes, ported with their REAL ids/HP/
@@ -515,8 +527,8 @@ function moveFromMaxHp(maxHp) {
 // Fortress fields 2 Oakshell Wardens); deriving an id from `defId` alone
 // would collide two enemies onto the same id and corrupt every id-keyed
 // lookup (getUnit/setUnit, React key/layoutId).
-function deriveTacticsUnit(defId, side, pos, uid) {
-  const def = side === "enemy" ? ENEMIES[defId] : UNITS[defId]
+function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
+  const def = overrideDef || (side === "enemy" ? ENEMIES[defId] : UNITS[defId])
   const maxHp = def.maxHp
   // The Ancients archetype's real def already carries `charge` - reused
   // directly (see ENEMY_FORMATIONS's comment), never reinvented. The
@@ -607,16 +619,35 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   }
 }
 
-// `squadDefIds` is a new optional 2nd param (defaults to PLAYER_DEF_IDS,
-// today's exact starting 3) - every existing single-arg call site behaves
-// byte-identically; only a caller that passes a real squad array (the
-// sidebar picker) gets a different lineup.
+// The Commander: a thin wrapper over deriveTacticsUnit, handing it the
+// Commander's own real CHARACTERS[characterId] object directly via
+// overrideDef instead of a UNITS/ENEMIES defId lookup. The synthetic
+// `commander-${characterId}` id namespaces it clearly - never collides with
+// a real defId (every real unit/enemy id is plain kebab-case, never
+// prefixed) - and naturally makes ABILITIES[defId] resolve to null (no
+// tactics-engine ability this round; Haste/Squad Passive/Active Power are
+// all named deferrals, not modeled here at all).
+function deriveCommanderUnit(characterId, pos, uid) {
+  return deriveTacticsUnit(`commander-${characterId}`, "player", pos, uid, CHARACTERS[characterId])
+}
+
+// `squadDefIds` is an optional 2nd param, defaulting to PLAYER_DEF_IDS (the
+// 4 RECRUITED units - the Commander below is always additionally appended,
+// never part of this array, since it isn't recruited/swappable via the
+// roster) - a caller that passes its own squad array (the sidebar picker)
+// still gets whatever recruited lineup it asks for, any size. Rows are
+// centered via spreadRows (the same helper createRealMatchupBattle already
+// uses for its own arbitrary-size real squads) rather than a hardcoded row
+// list, so this works for any squad size without per-size positioning
+// logic - `+1` reserves a row for the Commander.
 export function createTacticsBattle(formationId = "default", squadDefIds = PLAYER_DEF_IDS) {
   const formation = ENEMY_FORMATIONS[formationId] || ENEMY_FORMATIONS.default
+  const playerRows = spreadRows(squadDefIds.length + 1, GRID.rows)
   const units = [
     ...squadDefIds.map((defId, i) =>
-      deriveTacticsUnit(defId, "player", { row: START_ROWS[i], col: GRID.cols - 1 }, `player-${defId}-${i}`),
+      deriveTacticsUnit(defId, "player", { row: playerRows[i], col: GRID.cols - 1 }, `player-${defId}-${i}`),
     ),
+    deriveCommanderUnit(DEFAULT_COMMANDER_ID, { row: playerRows[squadDefIds.length], col: GRID.cols - 1 }, "player-commander"),
     ...formation.enemyDefIds.map((defId, i) =>
       deriveTacticsUnit(defId, "enemy", { row: formation.rows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
@@ -652,10 +683,10 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
 
 // Centers `count` consecutive rows in the grid - the same "one row per
 // piece" idea every ENEMY_FORMATIONS entry's hand-picked `rows` array
-// already encodes (START_ROWS is just this same math for count:3),
-// generalized to any count for the real-matchup bridge below, where the
-// real squad/enemy side can be 1-4 pieces instead of a curated formation's
-// fixed spread.
+// already encodes, generalized to any count. Originally built for the
+// real-matchup bridge below (a real squad/enemy side can be 1-4 pieces);
+// createTacticsBattle's own player-side positioning (squad-size round)
+// now reuses this too, in place of a hardcoded per-size row list.
 function spreadRows(count, gridRows) {
   const start = Math.max(0, Math.floor((gridRows - count) / 2))
   return Array.from({ length: count }, (_, i) => start + i)

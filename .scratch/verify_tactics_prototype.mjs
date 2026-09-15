@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5408
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terrain/.scratch/shots"
+const PORT = process.env.PORT || 5409
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squad6/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -808,7 +808,7 @@ await page.waitForSelector(".hwt-board")
   const enemyCountOk =
     enemyNames.filter((n) => n === "Sporelet").length === 2 && enemyNames.filter((n) => n === "Mire Gnat").length === 2
   out.swarmFormation = { enemyNames, playerNames, foundBonusHit, logSample: logText.split("\n").slice(0, 3) }
-  if (!(enemyCountOk && playerNames.length === 3 && foundBonusHit)) {
+  if (!(enemyCountOk && playerNames.length === 5 && foundBonusHit)) {
     out.errors.push("check22 Swarm formation composition or its +1 attack bonus was wrong")
   }
 }
@@ -827,7 +827,7 @@ await page.waitForSelector(".hwt-board")
   const enemyCountOk =
     enemyNames.filter((n) => n === "Oakshell Warden").length === 2 && enemyNames.filter((n) => n === "Mossmender").length === 1
   out.fortressFormation = { enemyNames, playerNames }
-  if (!(enemyCountOk && playerNames.length === 3)) out.errors.push("check23 Fortress formation composition was wrong")
+  if (!(enemyCountOk && playerNames.length === 5)) out.errors.push("check23 Fortress formation composition was wrong")
 }
 
 // 24. The Fortress's Block grant is exactly 3 for every enemy, every enemy
@@ -896,7 +896,7 @@ await page.waitForSelector(".hwt-board")
   const enemyCountOk =
     enemyNames.filter((n) => n === "Fen Stalker").length === 2 && enemyNames.filter((n) => n === "Pack Runner").length === 1
   out.huntersFormation = { enemyNames, playerNames }
-  if (!(enemyCountOk && playerNames.length === 3)) out.errors.push("check26 Hunters formation composition was wrong")
+  if (!(enemyCountOk && playerNames.length === 5)) out.errors.push("check26 Hunters formation composition was wrong")
 }
 
 // 27. The Pack's +2 bonus lands in combat - a passive End-Turn loop until
@@ -998,7 +998,7 @@ await page.waitForSelector(".hwt-board")
   const enemyCountOk =
     enemyNames.filter((n) => n === "Sapling Attendant").length === 2 && enemyNames.filter((n) => n === "Ancient Oak").length === 1
   out.ancientsFormation = { enemyNames, playerNames, oakBadge, saplingBadges }
-  if (!(enemyCountOk && playerNames.length === 3 && oakBadge === "⚡3" && saplingBadges === 0)) {
+  if (!(enemyCountOk && playerNames.length === 5 && oakBadge === "⚡3" && saplingBadges === 0)) {
     out.errors.push("check29 Ancient Grove composition or the charge badge init was wrong")
   }
 }
@@ -1169,7 +1169,7 @@ await page.waitForSelector(".hwt-board")
     .count()
   await page34.close()
   out.chargeTelegraphUi = { oakBadge, oakImminent, threatenedPlayerCells }
-  if (!(oakBadge === "⚡!" && oakImminent === "true" && threatenedPlayerCells === 3)) {
+  if (!(oakBadge === "⚡!" && oakImminent === "true" && threatenedPlayerCells === 5)) {
     out.errors.push("check34 the board did not telegraph the imminent AoE (badge + threatened cells)")
   }
 }
@@ -1194,7 +1194,7 @@ await page.waitForSelector(".hwt-board")
   await page35.close()
   const enemyCountOk = ["Bog Devotee", "Hex Acolyte", "Coven Matron"].every((n) => enemyNames.includes(n))
   out.covenFormation = { enemyNames, playerNames }
-  if (!(enemyCountOk && enemyNames.length === 3 && playerNames.length === 3)) {
+  if (!(enemyCountOk && enemyNames.length === 3 && playerNames.length === 5)) {
     out.errors.push("check35 Conclave formation composition was wrong")
   }
 }
@@ -1319,7 +1319,7 @@ await page.waitForSelector(".hwt-board")
   await page39.close()
   const enemyCountOk = enemyNames.filter((n) => n === "Sworn Cultist").length === 2 && enemyNames.includes("Ritual Warden")
   out.cultFormation = { enemyNames, playerNames, wardenBadge, cultistBadgeCount }
-  if (!(enemyCountOk && playerNames.length === 3 && wardenBadge === "☾2" && cultistBadgeCount === 0)) {
+  if (!(enemyCountOk && playerNames.length === 5 && wardenBadge === "☾2" && cultistBadgeCount === 0)) {
     out.errors.push("check39 Communion formation composition or the ritual badge init was wrong")
   }
 }
@@ -1444,7 +1444,7 @@ await page.waitForSelector(".hwt-board")
   await page43.close()
   const mothersOk = enemyNames.length === 3 && enemyNames.every((n) => n === "Brood Mother")
   out.broodFormation = { enemyNames, playerNames }
-  if (!(mothersOk && playerNames.length === 3)) {
+  if (!(mothersOk && playerNames.length === 5)) {
     out.errors.push("check43 The Clutch formation composition was wrong")
   }
 }
@@ -1605,7 +1605,7 @@ await page.waitForSelector(".hwt-board")
   const compositionOk =
     enemyNames.filter((n) => n === "Rotgut Crawler").length === 2 && enemyNames.filter((n) => n === "Spore Lurcher").length === 1
   out.rotFormation = { enemyNames, playerNames }
-  if (!(compositionOk && playerNames.length === 3)) {
+  if (!(compositionOk && playerNames.length === 5)) {
     out.errors.push("check47 The Blight formation composition was wrong")
   }
 }
@@ -1719,7 +1719,7 @@ await page.waitForSelector(".hwt-board")
   const compositionOk =
     enemyNames.filter((n) => n === "Hoardling").length === 2 && enemyNames.filter((n) => n === "Tithe-Warden").length === 1
   out.collectorsFormation = { enemyNames, playerNames }
-  if (!(compositionOk && playerNames.length === 3)) {
+  if (!(compositionOk && playerNames.length === 5)) {
     out.errors.push("check51 The Tithe formation composition was wrong")
   }
 }
@@ -1850,8 +1850,11 @@ await page.waitForSelector(".hwt-board")
 // anti-hang discipline).
 // ---------------------------------------------------------------
 
-// 55. The squad picker renders correctly on a fresh load: 3 selects, the
-//     real default squad, and all 3 new roster ids offered somewhere ----
+// 55. The squad picker renders correctly on a fresh load: 4 selects (the
+//     Commander round grew the default recruited squad 3->4), the real
+//     default squad, and all 3 later-roster-round ids offered somewhere
+//     (oathshield is now a default pick itself - still "offered" via its
+//     own slot's dropdown, which always includes its own current value) -
 {
   const page55 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page55.on("pageerror", (e) => errs.push(String(e)))
@@ -1864,15 +1867,18 @@ await page.waitForSelector(".hwt-board")
   )
   await page55.close()
   out.squadPickerInit = { selectCount, values, allOptionValues }
-  const defaultOk = selectCount === 3 && JSON.stringify(values) === JSON.stringify(["bulwark-of-ages", "the-fool", "hexbreaker"])
+  const defaultOk = selectCount === 4 && JSON.stringify(values) === JSON.stringify(["bulwark-of-ages", "the-fool", "hexbreaker", "oathshield"])
   const rosterOffered = ["oathshield", "willowmend", "bramble-sweep"].every((id) => allOptionValues.includes(id))
   if (!(defaultOk && rosterOffered)) {
-    out.errors.push("check55 the squad picker did not render 3 selects with the real default squad + all 6 roster ids")
+    out.errors.push("check55 the squad picker did not render 4 selects with the real default squad + all 6 roster ids")
   }
 }
 
 // 56. Swapping a slot restarts the fight with the new unit, preserving
-//     the other 2 slots and the enemy formation ------------------------
+//     the other slots and the enemy formation. Commander round: swaps in
+//     "willowmend" (genuinely unused) rather than "oathshield" - that id
+//     is now itself one of the 4 default recruited slots, so it's no
+//     longer offered as a swap target for a DIFFERENT slot ------------
 {
   const page56 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page56.on("pageerror", (e) => errs.push(String(e)))
@@ -1880,14 +1886,19 @@ await page.waitForSelector(".hwt-board")
   await page56.waitForSelector(".hwt-board")
   await page56.locator(".hwt-formation-btn", { hasText: "The Bulwark" }).click()
   await page56.waitForTimeout(200)
-  await page56.locator(".hwt-squad-select").nth(0).selectOption("oathshield")
+  await page56.locator(".hwt-squad-select").nth(0).selectOption("willowmend")
   await page56.waitForTimeout(200)
   const playerNames = await page56.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
   const enemyNames = await page56.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
   const turnLabel = await page56.locator(".hwt-turn-label").innerText()
   await page56.close()
   out.squadSwapRestart = { playerNames, enemyNames, turnLabel }
-  const squadOk = playerNames.includes("Oathshield") && playerNames.includes("Mosskit") && playerNames.includes("Hexbreaker") && !playerNames.includes("Bulwark of Ages")
+  const squadOk =
+    playerNames.includes("Willowmend") &&
+    playerNames.includes("Mosskit") &&
+    playerNames.includes("Hexbreaker") &&
+    playerNames.includes("Oathshield") &&
+    !playerNames.includes("Bulwark of Ages")
   const formationOk = enemyNames.filter((n) => n === "Oakshell Warden").length === 2 && enemyNames.includes("Mossmender")
   if (!(squadOk && formationOk && turnLabel.includes("Turn 1"))) {
     out.errors.push("check56 swapping a squad slot did not restart with the new unit while preserving the rest + formation")
@@ -1895,22 +1906,26 @@ await page.waitForSelector(".hwt-board")
 }
 
 // 57. No duplicate unit across slots - once a unit is picked in one slot,
-//     the other slots' option lists stop offering it -------------------
+//     the other slots' option lists stop offering it. Commander round:
+//     swaps in "willowmend" (genuinely unused before this pick) rather
+//     than "oathshield" - oathshield is now itself a default slot, so
+//     checking its exclusion "elsewhere" would incorrectly inspect its
+//     OWN slot's dropdown, which always offers its own current value ---
 {
   const page57 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page57.on("pageerror", (e) => errs.push(String(e)))
   await page57.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
   await page57.waitForSelector(".hwt-board")
-  await page57.locator(".hwt-squad-select").nth(0).selectOption("oathshield")
+  await page57.locator(".hwt-squad-select").nth(0).selectOption("willowmend")
   await page57.waitForTimeout(200)
   const otherOptions = await page57.locator(".hwt-squad-select").evaluateAll((els) =>
     els.slice(1).map((e) => Array.from(e.options).map((o) => o.value)),
   )
   await page57.close()
   out.squadNoDuplicate = otherOptions
-  const noOathshieldElsewhere = otherOptions.every((opts) => !opts.includes("oathshield"))
-  const stillOffersRest = otherOptions.every((opts) => opts.includes("willowmend") && opts.includes("bramble-sweep"))
-  if (!(noOathshieldElsewhere && stillOffersRest)) {
+  const noWillowmendElsewhere = otherOptions.every((opts) => !opts.includes("willowmend"))
+  const stillOffersRest = otherOptions.every((opts) => opts.includes("bramble-sweep"))
+  if (!(noWillowmendElsewhere && stillOffersRest)) {
     out.errors.push("check57 a unit picked in one slot was still offered (or the rest of the roster wrongly excluded) in the other slots")
   }
 }
@@ -2133,7 +2148,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page64.close()
   out.backToTestSquad = { playerNames, enemyNames, turnLabel, squadPickerCount }
   const defaultOk =
-    JSON.stringify(playerNames) === JSON.stringify(["Bulwark of Ages", "Mosskit", "Hexbreaker"]) &&
+    JSON.stringify(playerNames) === JSON.stringify(["Bulwark of Ages", "Mosskit", "Hexbreaker", "Oathshield", "Tommy"]) &&
     enemyNames.includes("Ironmaw") &&
     turnLabel.includes("Turn 1") &&
     squadPickerCount === 1
@@ -2254,7 +2269,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   })
   await page68.close()
   out.deepwardenFormation = { enemyNames, playerNames, engineFacts }
-  const compositionOk = enemyNames.length === 1 && enemyNames[0] === "Deepwarden" && playerNames.length === 3
+  const compositionOk = enemyNames.length === 1 && enemyNames[0] === "Deepwarden" && playerNames.length === 5
   // Real movePattern's lone attack step is 12; the real passive strength
   // grant is 3 - folded in BEFORE createTacticsBattle's own battle-start
   // snapshot, so this IS the unit's starting attack, not a bonus on top.
@@ -2445,13 +2460,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terrain", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squad6", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terrain", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squad6", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -3353,10 +3368,16 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 //     previewEnemyIntents, never the internal deterministicRoll) finds
 //     a real turn number where Spacemonkey's own weightedRandom choice
 //     lands on aoe, then drives that exact turn for real via
-//     runEnemyTurn: 3 player units at Chebyshev distance 1/5/8 (only
-//     the first within his real range:1) ALL take exactly 11 damage,
-//     including the 2 that a normal single-target attack could never
-//     reach --------------------------------------------------------
+//     runEnemyTurn: player units at Chebyshev distance 1/5/8 (only the
+//     first within his real range:1) ALL take exactly 11 damage,
+//     including the ones a normal single-target attack could never
+//     reach. FIXED this round (feat/hearthwood-tactics-squad6): the
+//     default squad grew from 3 to 6, and this check's own
+//     `distances[i]` was a raw array-index into a 3-entry array -
+//     units 4-6 would have read `undefined`, producing NaN positions.
+//     Clamped to the last named distance (8) for any unit beyond the
+//     first 3, so the original 3-unit case stays byte-identical and
+//     every extra unit still gets a valid, meaningfully-far position -
 {
   const page98 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page98.on("pageerror", (e) => errs.push(String(e)))
@@ -3382,7 +3403,8 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
       units: base.units.map((u, i) => {
         if (u.side === "enemy") return u
         const distances = [1, 5, 8]
-        return { ...u, pos: { row: boss.pos.row, col: boss.pos.col + distances[i] }, hp: 50, maxHp: 50 }
+        const d = distances[Math.min(i, distances.length - 1)]
+        return { ...u, pos: { row: boss.pos.row, col: boss.pos.col + d }, hp: 50, maxHp: 50 }
       }),
     }
     state = runEnemyTurn(state)
@@ -3390,6 +3412,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     return {
       found: true,
       aoeTurn,
+      playerCount: playerHps.length,
       playerHps,
       announceLine: state.log.some((l) => l.includes("unleashes a squad-wide strike!")),
       strikeLineCount: state.log.filter((l) => l.startsWith(`${boss.name} strikes `)).length,
@@ -3397,7 +3420,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   })
   await page98.close()
   out.spacemonkeyAoeHitsEveryone = result
-  const ok = result.found && result.playerHps.every((hp) => hp === 39) && result.announceLine && result.strikeLineCount === 3
+  const ok = result.found && result.playerHps.every((hp) => hp === 39) && result.announceLine && result.strikeLineCount === result.playerCount
   if (!ok) out.errors.push("check98 AoE did not hit every living player unit for the exact real amount, or didn't bypass range")
 }
 
@@ -3564,7 +3587,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   const threatenedCount = await page102.locator('.hwt-cell[data-threatened="true"]').count()
   await page102.close()
   out.spacemonkeyAoeUi = { aoeTurn, livePhase, badgeCount, threatenedCount }
-  const ok = aoeTurn !== null && livePhase === "player" && badgeCount === 1 && threatenedCount === 3
+  const ok = aoeTurn !== null && livePhase === "player" && badgeCount === 1 && threatenedCount === 5
   if (!ok) out.errors.push("check102 The board did not show the aoe intent badge or the correct number of threatened cells on a known aoe turn")
 }
 
@@ -3730,6 +3753,128 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.terrainUi = { rockCount, waterCount, poisonCount }
   const ok = rockCount === 4 && waterCount === 1 && poisonCount === 1
   if (!ok) out.errors.push("check107 The board did not render the expected number of each terrain-tagged cell")
+}
+
+// ---------------------------------------------------------------
+// Grow the player squad to 6 (feat/hearthwood-tactics-squad6). Every
+// new check gets its own fresh page.
+// ---------------------------------------------------------------
+
+// 108. The default squad is genuinely 5: 4 real recruited units + 1 real
+//      Commander (Tommy) - NOT the earlier (wrong, corrected mid-round)
+//      6-unit design. Marc's own correction: "squadin koko on 5,
+//      4+commander". Positions verified via spreadRows(5, 7) (rows
+//      1-5, col: GRID.cols-1); Tommy's stats confirmed genuinely sourced
+//      from CHARACTERS (real name/art/maxHp, attack derived from his own
+//      movePattern amount:6), not a hand-typed guess ------------------
+{
+  const page108 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page108.on("pageerror", (e) => errs.push(String(e)))
+  await page108.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page108.waitForSelector(".hwt-board")
+  const result = await page108.evaluate(async () => {
+    const { createTacticsBattle, GRID } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("default")
+    const players = battle.units.filter((u) => u.side === "player")
+    const commander = players.find((p) => p.id === "player-commander")
+    const recruited = players.filter((p) => p.id !== "player-commander")
+    return {
+      count: players.length,
+      recruitedNames: recruited.map((p) => p.name).sort(),
+      commander: commander && { name: commander.name, art: commander.art, maxHp: commander.maxHp, attack: commander.attack, ability: commander.ability },
+      rows: players.map((p) => p.pos.row).sort((a, b) => a - b),
+      cols: [...new Set(players.map((p) => p.pos.col))],
+      gridCols: GRID.cols,
+    }
+  })
+  await page108.close()
+  out.squadFiveComposition = result
+  const expectedRecruited = ["Bulwark of Ages", "Hexbreaker", "Mosskit", "Oathshield"].sort()
+  const ok =
+    result.count === 5 &&
+    JSON.stringify(result.recruitedNames) === JSON.stringify(expectedRecruited) &&
+    result.commander &&
+    result.commander.name === "Tommy" &&
+    result.commander.art === "cat" &&
+    result.commander.maxHp === 60 &&
+    result.commander.attack === 6 &&
+    result.commander.ability === null &&
+    JSON.stringify(result.rows) === JSON.stringify([1, 2, 3, 4, 5]) &&
+    result.cols.length === 1 &&
+    result.cols[0] === result.gridCols - 1
+  if (!ok) out.errors.push("check108 The default squad was not genuinely 5 (4 real recruited units + a real Tommy Commander) in 5 distinct, correctly-centered rows")
+}
+
+// 109. The Commander is a full, real participant - not a decoration: it
+//      can move, attack an enemy, and BE attacked by an enemy, exactly
+//      like any recruited unit, proven via deterministic attackUnit
+//      calls in both directions on the real default battle; `ability`
+//      stays null (no tactics-engine ability this round - Haste/Squad
+//      Passive are named, deliberate deferrals) -----------------------
+{
+  const page109 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page109.on("pageerror", (e) => errs.push(String(e)))
+  await page109.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page109.waitForSelector(".hwt-board")
+  const result = await page109.evaluate(async () => {
+    const { createTacticsBattle, attackUnit, reachableTilesFor } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const commander = state.units.find((u) => u.id === "player-commander")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    const canMove = reachableTilesFor(state, commander.id).length > 0
+    // Place the Commander adjacent to the enemy so it's within range 1.
+    state = {
+      ...state,
+      units: state.units.map((u) => (u.id === commander.id ? { ...u, pos: { row: enemy.pos.row, col: enemy.pos.col + 1 }, ap: 1 } : u)),
+    }
+    const enemyHpBefore = state.units.find((u) => u.id === enemy.id).hp
+    state = attackUnit(state, commander.id, enemy.id)
+    const enemyHpAfter = state.units.find((u) => u.id === enemy.id).hp
+    // The reverse direction: the enemy's turn, attacking the Commander back.
+    state = { ...state, phase: "enemy", units: state.units.map((u) => (u.id === enemy.id ? { ...u, ap: 1 } : u)) }
+    const commanderHpBefore = state.units.find((u) => u.id === commander.id).hp
+    state = attackUnit(state, enemy.id, commander.id)
+    const commanderHpAfter = state.units.find((u) => u.id === commander.id).hp
+    return { canMove, enemyHpBefore, enemyHpAfter, commanderHpBefore, commanderHpAfter, ability: commander.ability }
+  })
+  await page109.close()
+  out.commanderFullParticipant = result
+  const ok = result.canMove && result.enemyHpAfter < result.enemyHpBefore && result.commanderHpAfter < result.commanderHpBefore && result.ability === null
+  if (!ok) out.errors.push("check109 The Commander was not a full real participant (move/attack/be-attacked), or its ability wasn't correctly null")
+}
+
+// 110. The squad-picker UI still renders exactly 4 slots (the 4
+//      RECRUITED units only, not 5) - the Commander is correctly
+//      excluded from the picker's own list, matching the real game's
+//      own "the Commander isn't part of the roster picker" model -----
+{
+  const page110 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page110.on("pageerror", (e) => errs.push(String(e)))
+  await page110.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page110.waitForSelector(".hwt-board")
+  const slotCount = await page110.locator(".hwt-squad-select").count()
+  const tokenCount = await page110.locator('.hwt-token[data-side="player"]').count()
+  await page110.close()
+  out.squadPickerFourSlots = { slotCount, tokenCount }
+  const ok = slotCount === 4 && tokenCount === 5
+  if (!ok) out.errors.push("check110 The squad picker did not render exactly 4 recruited slots (Commander excluded) alongside 5 total deployed player tokens")
+}
+
+// 111. UI: the Commander's own token shows the new badge, visually
+//      distinguishing it from a recruited unit - the "don't ship an
+//      invisible mechanic" rule, even though it fights identically
+//      to a recruited unit this round --------------------------------
+{
+  const page111 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page111.on("pageerror", (e) => errs.push(String(e)))
+  await page111.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page111.waitForSelector(".hwt-board")
+  const badgeCount = await page111.locator(".hwt-commander-badge").count()
+  await page111.screenshot({ path: `${SHOT}/commander_badge.png` })
+  await page111.close()
+  out.commanderBadge = { badgeCount }
+  const ok = badgeCount === 1
+  if (!ok) out.errors.push("check111 The Commander's token did not show exactly one Commander badge")
 }
 
 console.log(JSON.stringify(out, null, 2))
