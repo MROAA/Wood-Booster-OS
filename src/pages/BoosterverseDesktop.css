@@ -517,6 +517,8 @@
 
 .win-taskbar-tray {
   position: absolute;
+  top: 0;
+  bottom: 0;
   right: 0.75rem;
   display: flex;
   align-items: center;
@@ -539,6 +541,22 @@
 
 .win-taskbar-date {
   color: #9aa4c0;
+}
+
+.win-exit-corner {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  color: #f2f4f8;
+  cursor: pointer;
+}
+
+.win-exit-corner:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* Tiedostonhallinta-sovelluksen sisältö ikkunan sisällä */
