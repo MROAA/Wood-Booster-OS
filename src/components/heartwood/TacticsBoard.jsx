@@ -201,6 +201,11 @@ export default function TacticsBoard({
                     ♛
                   </span>
                 )}
+                {unit.haste && (
+                  <span className="hwt-haste-badge" title="Haste - attacks a second time whenever it lands an attack">
+                    ⇉
+                  </span>
+                )}
                 <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
                   {apPips(unit)}
                 </span>

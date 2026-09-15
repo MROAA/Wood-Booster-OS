@@ -541,6 +541,14 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
   const broodSplit = side === "enemy" ? def.broodSplit || null : null
   const poisonOnHit = side === "enemy" ? poisonFromMovePattern(def.movePattern) : 0
   const leech = side === "enemy" ? !!def.leech : false
+  // Haste round: units.js's/characters.js's own real `haste` field - a
+  // portable trait exactly like leech/cultFodder above, just gated the
+  // other way (player-only, matching the real mechanic's own `side ===
+  // "player"` restriction in autoBattleEngine.js - no enemy in the game
+  // currently sets it). Read straight off `def`, not hand-coded per
+  // character - 3 real recruited units (swiftclaw/willowfang/ashmaw)
+  // already have it too, even though none are in the current roster.
+  const haste = side === "player" ? !!def.haste : false
   // Boss/elite phases round: the def's own real `passive`/`phases`
   // arrays, read directly (enemy side only, matching every prior
   // archetype field's own precedent). A unit's portable passive Strength
@@ -581,6 +589,7 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     poison: 0,
     poisonOnHit,
     leech,
+    haste,
     triggers,
     phases,
     phaseIndex: 0,
@@ -625,8 +634,10 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
 // `commander-${characterId}` id namespaces it clearly - never collides with
 // a real defId (every real unit/enemy id is plain kebab-case, never
 // prefixed) - and naturally makes ABILITIES[defId] resolve to null (no
-// tactics-engine ability this round; Haste/Squad Passive/Active Power are
-// all named deferrals, not modeled here at all).
+// tactics-engine ability this round. Haste round: `deriveTacticsUnit`'s
+// own `haste` field already reads straight off `def.haste`, so Tommy's
+// real Haste kit flows through automatically with no change needed
+// here - Squad Passive/Active Power remain the named deferrals).
 function deriveCommanderUnit(characterId, pos, uid) {
   return deriveTacticsUnit(`commander-${characterId}`, "player", pos, uid, CHARACTERS[characterId])
 }
@@ -1045,7 +1056,7 @@ function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
   return next
 }
 
-export function attackUnit(state, actorId, targetId) {
+export function attackUnit(state, actorId, targetId, opts = {}) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
   if (!actor || !target || actor.hp <= 0 || target.hp <= 0 || actor.ap < 1) return state
@@ -1072,7 +1083,36 @@ export function attackUnit(state, actorId, targetId) {
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
-  return checkTacticsBattleEnd(next)
+  next = checkTacticsBattleEnd(next)
+  // Haste (autoBattleEngine.js's own actSide): a structurally different
+  // kind of "more damage" than Strength/Execute - the WHOLE action
+  // repeats a second time this same turn, not a bigger single hit.
+  // Ported faithfully: gated to a single-target attacker (this engine's
+  // own range === 1 IS that distinction - rangeFromAttackPattern's only
+  // two outcomes), fires only from a genuine attack action (never
+  // castAbility/moveUnit - this IS that "acting.intent.type===attack"
+  // moment), costs no extra AP (refunded here, then spent again by the
+  // follow-up's own attackUnit call), and re-resolves targeting fresh
+  // via attackableTargets so a first hit that just killed its target
+  // doesn't waste the second swing on a corpse - keeping the same
+  // target if it's still alive and in range (the unit hasn't moved
+  // between its two swings), else falling back to whichever valid
+  // target remains. `opts.isHasteFollowUp` guards the follow-up hit
+  // from triggering a third, matching the real mechanic's own "doesn't
+  // itself trigger Chain again" restraint.
+  if (!opts.isHasteFollowUp && actor.side === "player" && actor.haste && actor.range === 1 && next.phase === "player") {
+    const reActor = getUnit(next, actorId)
+    if (reActor && reActor.hp > 0) {
+      const targets = attackableTargets(next, actorId)
+      if (targets.length) {
+        const followTargetId = targets.some((t) => t.id === targetId) ? targetId : targets[0].id
+        next = { ...next, log: [...next.log, `${actor.name}'s Haste fires - a second strike!`] }
+        const refunded = setUnit(next, actorId, { ap: reActor.ap + 1 })
+        next = attackUnit(refunded, actorId, followTargetId, { isHasteFollowUp: true })
+      }
+    }
+  }
+  return next
 }
 
 // castAbility(state, actorId, targetId?) - the 3 kinds of ability an
