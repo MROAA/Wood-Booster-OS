@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5402
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bulwark/.scratch/shots"
+const PORT = process.env.PORT || 5404
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-regen-taunt/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2445,13 +2445,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bulwark", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-regen-taunt", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bulwark", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-regen-taunt", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -3029,6 +3029,220 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.afterThirdCount === 1 &&
     result.registeredTriggerAmount === 5
   if (!ok) out.errors.push("check88 The Iron Sentinel's phase fired early, failed to fire at threshold, repeated, or didn't register the real block(5) trigger")
+}
+
+// ---------------------------------------------------------------
+// Regen + Taunt, demoed via Thornmaw (feat/hearthwood-tactics-regen-
+// taunt). Every new check gets its own fresh page.
+// ---------------------------------------------------------------
+
+// 89. Thornmaw formation - real HP 78, real name, base attack 8
+//     (movePattern's own 2 attack steps, (9+7)/2), taunt starts at 1
+//     (folded from the base passive at derive time), regen starts at 0
+//     (trigger-only, not yet fired) ------------------------------------
+{
+  const page89 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page89.on("pageerror", (e) => errs.push(String(e)))
+  await page89.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page89.waitForSelector(".hwt-board")
+  await page89.locator(".hwt-formation-btn", { hasText: "Thornmaw" }).click()
+  await page89.waitForTimeout(300)
+  const enemyNames = await page89.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const engineFacts = await page89.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const thornmaw = createTacticsBattle("thornmaw").units.find((u) => u.side === "enemy")
+    return { hp: thornmaw.hp, maxHp: thornmaw.maxHp, attack: thornmaw.attack, taunt: thornmaw.taunt, regen: thornmaw.regen }
+  })
+  await page89.close()
+  out.thornmawFormation = { enemyNames, engineFacts }
+  const ok = enemyNames.length === 1 && enemyNames[0] === "Thornmaw" && engineFacts.hp === 78 && engineFacts.maxHp === 78 && engineFacts.attack === 8 && engineFacts.taunt === 1 && engineFacts.regen === 0
+  if (!ok) out.errors.push("check89 Thornmaw's formation composition or real stats were wrong")
+}
+
+// 90. Regen's exact real order - the highest-value proof this round: a
+//     fresh grant does NOT heal on the same enemy turn it's granted; it
+//     only starts ticking (heal + decay) the FOLLOWING enemy turn. If
+//     the order were reversed (grant before tick), round 1 would ALREADY
+//     show a +4 heal - these two orderings diverge at round 1, so this
+//     is a real, distinguishing proof, not just "some healing happened" -
+{
+  const page90 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page90.on("pageerror", (e) => errs.push(String(e)))
+  await page90.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page90.waitForSelector(".hwt-board")
+  const result = await page90.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("thornmaw")
+    const thornmaw = state.units.find((u) => u.side === "enemy")
+    // Player hp boosted well out of reach of Thornmaw's own real attack
+    // across 2 full enemy turns, so this stays a pure proof of the
+    // regen value - never an accidental battle-end.
+    state = {
+      ...state,
+      units: state.units.map((u) => (u.side === "player" ? { ...u, hp: 500, maxHp: 500 } : u.id === thornmaw.id ? { ...u, hp: 50 } : u)),
+    }
+    const round1 = endPlayerTurn(state)
+    const t1 = round1.units.find((u) => u.id === thornmaw.id)
+    const round2 = endPlayerTurn(round1)
+    const t2 = round2.units.find((u) => u.id === thornmaw.id)
+    return { hpAfterRound1: t1.hp, regenAfterRound1: t1.regen, hpAfterRound2: t2.hp, regenAfterRound2: t2.regen }
+  })
+  await page90.close()
+  out.thornmawRegenOrder = result
+  const ok = result.hpAfterRound1 === 50 && result.regenAfterRound1 === 4 && result.hpAfterRound2 === 54 && result.regenAfterRound2 === 7
+  if (!ok) out.errors.push("check90 Regen ticked in the wrong order relative to its own grant (a fresh stack healed the same turn it was granted)")
+}
+
+// 91. Regen keeps escalating (net +3 healing capacity per turn: +4
+//     granted, -1 decayed) across 3 enemy turns, matching "the wounds
+//     close faster than you can open them" ----------------------------
+{
+  const page91 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page91.on("pageerror", (e) => errs.push(String(e)))
+  await page91.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page91.waitForSelector(".hwt-board")
+  const result = await page91.evaluate(async () => {
+    const { createTacticsBattle, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("thornmaw")
+    const thornmaw = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      units: state.units.map((u) => (u.side === "player" ? { ...u, hp: 500, maxHp: 500 } : u.id === thornmaw.id ? { ...u, hp: 20, maxHp: 200 } : u)),
+    }
+    const r1 = endPlayerTurn(state)
+    const r2 = endPlayerTurn(r1)
+    const r3 = endPlayerTurn(r2)
+    const hp = (s) => s.units.find((u) => u.id === thornmaw.id).hp
+    const regen = (s) => s.units.find((u) => u.id === thornmaw.id).regen
+    return { hp1: hp(r1), regen1: regen(r1), hp2: hp(r2), regen2: regen(r2), hp3: hp(r3), regen3: regen(r3) }
+  })
+  await page91.close()
+  out.thornmawRegenEscalates = result
+  const ok = result.regen1 === 4 && result.regen2 === 7 && result.regen3 === 10 && result.hp1 === 20 && result.hp2 === 24 && result.hp3 === 31
+  if (!ok) out.errors.push("check91 Regen did not escalate correctly (net +3 healing capacity per enemy turn)")
+}
+
+// 92. Taunt restricts targeting to only the taunter - a synthetic
+//     3-enemy state (the default formation, hand-flagging Ironmaw as
+//     the taunter): attackableTargets for a player unit in range of
+//     multiple enemies returns ONLY the taunter; a burst ability cast
+//     on a non-taunter is rejected (state unchanged) ------------------
+{
+  const page92 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page92.on("pageerror", (e) => errs.push(String(e)))
+  await page92.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page92.waitForSelector(".hwt-board")
+  const result = await page92.evaluate(async () => {
+    const { createTacticsBattle, attackableTargets, castAbility } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const taunter = state.units.find((u) => u.side === "enemy" && u.defId === "ironmaw")
+    const nonTaunter = state.units.find((u) => u.side === "enemy" && u.defId === "hoardling")
+    const hexbreaker = state.units.find((u) => u.side === "player" && u.defId === "hexbreaker")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === taunter.id) return { ...u, pos: { row: 3, col: 0 }, taunt: 1 }
+        if (u.id === nonTaunter.id) return { ...u, pos: { row: 3, col: 1 } }
+        if (u.id === hexbreaker.id) return { ...u, pos: { row: 3, col: 2 }, ap: 2 }
+        return u
+      }),
+    }
+    const targets = attackableTargets(state, hexbreaker.id).map((u) => u.defId)
+    const beforeAp = state.units.find((u) => u.id === hexbreaker.id).ap
+    const afterBurst = castAbility(state, hexbreaker.id, nonTaunter.id)
+    const afterAp = afterBurst.units.find((u) => u.id === hexbreaker.id).ap
+    const nonTaunterHpUnchanged = afterBurst.units.find((u) => u.id === nonTaunter.id).hp === nonTaunter.hp
+    return { targets, beforeAp, afterAp, nonTaunterHpUnchanged }
+  })
+  await page92.close()
+  out.thornmawTauntRestricts = result
+  const ok = result.targets.length === 1 && result.targets[0] === "ironmaw" && result.afterAp === result.beforeAp && result.nonTaunterHpUnchanged
+  if (!ok) out.errors.push("check92 Taunt did not restrict targeting to only the taunter for both Attack and burst-ability paths")
+}
+
+// 93. Taunt releases once the taunter dies - in the same setup,
+//     hand-zero the taunter's hp; attackableTargets now includes the
+//     other enemy again -------------------------------------------------
+{
+  const page93 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page93.on("pageerror", (e) => errs.push(String(e)))
+  await page93.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page93.waitForSelector(".hwt-board")
+  const result = await page93.evaluate(async () => {
+    const { createTacticsBattle, attackableTargets } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const taunter = state.units.find((u) => u.side === "enemy" && u.defId === "ironmaw")
+    const nonTaunter = state.units.find((u) => u.side === "enemy" && u.defId === "hoardling")
+    const hexbreaker = state.units.find((u) => u.side === "player" && u.defId === "hexbreaker")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === taunter.id) return { ...u, pos: { row: 3, col: 0 }, taunt: 1, hp: 0 }
+        if (u.id === nonTaunter.id) return { ...u, pos: { row: 3, col: 1 } }
+        if (u.id === hexbreaker.id) return { ...u, pos: { row: 3, col: 2 } }
+        return u
+      }),
+    }
+    const targets = attackableTargets(state, hexbreaker.id).map((u) => u.defId)
+    return { targets }
+  })
+  await page93.close()
+  out.thornmawTauntReleases = result
+  if (!(result.targets.includes("hoardling") && !result.targets.includes("ironmaw"))) {
+    out.errors.push("check93 Taunt did not release its targeting restriction once the taunter died")
+  }
+}
+
+// 94. Thornmaw's phase fires exactly at the 50% threshold, registering
+//     the real regen+3 turnStart trigger (ON TOP of the base regen+4
+//     one - both fire independently every turn from then on) and the
+//     real strength+1 direct effect --------------------------------
+{
+  const page94 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page94.on("pageerror", (e) => errs.push(String(e)))
+  await page94.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page94.waitForSelector(".hwt-board")
+  const result = await page94.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("thornmaw")
+    const thornmaw = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    const announce = "The wounds close faster than you can open them."
+    const countAnnounce = (s) => s.log.filter((l) => l === announce).length
+    const baseAttack = thornmaw.attack
+    // 40/78 = 0.513, above the 0.5 threshold. attack:0 isolates the
+    // phase-threshold check from any hp change of its own.
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === thornmaw.id) return { ...u, hp: 40 }
+        if (u.id === attacker.id) return { ...u, pos: { row: thornmaw.pos.row, col: thornmaw.pos.col + 1 }, attack: 0, ap: 1 }
+        return u
+      }),
+    }
+    state = attackUnit(state, attacker.id, thornmaw.id)
+    const afterFirstPhaseIndex = state.units.find((u) => u.id === thornmaw.id).phaseIndex
+    const afterFirstCount = countAnnounce(state)
+    // 39/78 = 0.5 exactly, at/under the threshold - must fire.
+    state = { ...state, units: state.units.map((u) => (u.id === thornmaw.id ? { ...u, hp: 39 } : u.id === attacker.id ? { ...u, ap: 1 } : u)) }
+    state = attackUnit(state, attacker.id, thornmaw.id)
+    const after = state.units.find((u) => u.id === thornmaw.id)
+    const afterSecondCount = countAnnounce(state)
+    const regenTriggers = after.triggers.filter((t) => t.trigger === "turnStart" && t.effect.type === "applyBuff" && t.effect.id === "regen").map((t) => t.effect.amount)
+    return { afterFirstPhaseIndex, afterFirstCount, phaseIndex: after.phaseIndex, afterSecondCount, attack: after.attack, baseAttack, regenTriggers }
+  })
+  await page94.close()
+  out.thornmawPhaseThreshold = result
+  const ok =
+    result.afterFirstPhaseIndex === 0 &&
+    result.afterFirstCount === 0 &&
+    result.phaseIndex === 1 &&
+    result.afterSecondCount === 1 &&
+    result.attack === result.baseAttack + 1 &&
+    result.regenTriggers.length === 2 &&
+    result.regenTriggers.includes(4) &&
+    result.regenTriggers.includes(3)
+  if (!ok) out.errors.push("check94 Thornmaw's phase fired early, failed to fire at threshold, or its real effects weren't all registered correctly")
 }
 
 console.log(JSON.stringify(out, null, 2))
