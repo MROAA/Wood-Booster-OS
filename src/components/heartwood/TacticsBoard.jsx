@@ -77,9 +77,17 @@ export default function TacticsBoard({
     const ids = new Set()
     for (const { intent } of intents) {
       if (intent.kind === "attack" || intent.kind === "move-attack") ids.add(intent.targetId)
+      // The final boss's real AoE - unlike a single-target attack, it
+      // hits every living player unit at once, so every one of them is
+      // threatened, not just one chosen target.
+      if (intent.kind === "aoe") {
+        for (const p of battle.units) {
+          if (p.side === "player" && p.hp > 0) ids.add(p.id)
+        }
+      }
     }
     return ids
-  }, [intents])
+  }, [intents, battle])
   // Same idea, for the Ancients' telegraphed AoE: whether ending the turn
   // right now lands the payoff, and on whom. Distinct from the per-target
   // intent above since a charge payoff hits every living player unit at
@@ -264,6 +272,11 @@ export default function TacticsBoard({
                     ⚑{unit.taunt}
                   </span>
                 )}
+                {unit.revive > 0 && (
+                  <span className="hwt-revive-badge" title={`Revive ${unit.revive} - the next hit that would drop this to 0 HP instead leaves it at 1, consuming one stack`}>
+                    ✚{unit.revive}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />
@@ -272,6 +285,11 @@ export default function TacticsBoard({
                 {intent && intent.kind === "move" && (
                   <span className="hwt-intent-badge" data-intent="move" title="Advancing">
                     ➤
+                  </span>
+                )}
+                {intent && intent.kind === "aoe" && (
+                  <span className="hwt-intent-badge" data-intent="aoe" title="Will strike every player unit at once">
+                    ✺
                   </span>
                 )}
               </div>

@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5404
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-regen-taunt/.scratch/shots"
+const PORT = process.env.PORT || 5406
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spacemonkey/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2445,13 +2445,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-regen-taunt", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spacemonkey", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-regen-taunt", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spacemonkey", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -3243,6 +3243,329 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.regenTriggers.includes(4) &&
     result.regenTriggers.includes(3)
   if (!ok) out.errors.push("check94 Thornmaw's phase fired early, failed to fire at threshold, or its real effects weren't all registered correctly")
+}
+
+// ---------------------------------------------------------------
+// Revive + AoE, demoed via Spacemonkey (the final boss, feat/hearthwood-
+// tactics-spacemonkey). Every new check gets its own fresh page. Every
+// check drives only the PUBLIC exports (createTacticsBattle/attackUnit/
+// runEnemyTurn/previewEnemyIntents/withLowEnemyHp) - decideEnemyIntent/
+// applyEnemyIntent/applyEnemyAoe/deterministicRoll are internal, exactly
+// like the established discipline for every prior mechanic's checks.
+// ---------------------------------------------------------------
+
+// 95. Spacemonkey formation - real HP 108, real name, base attack 21
+//     (movePattern's own single attack step), revive starts at 1 and
+//     woundedFury starts at 1 (both direct base-passive stats), aoeMove
+//     reads {amount:11, chance:0.2} (the real 1-of-5 weight share,
+//     computed from the real movePattern weights, not hand-picked) ----
+{
+  const page95 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page95.on("pageerror", (e) => errs.push(String(e)))
+  await page95.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page95.waitForSelector(".hwt-board")
+  await page95.locator(".hwt-formation-btn", { hasText: "Spacemonkey" }).click()
+  await page95.waitForTimeout(300)
+  const enemyNames = await page95.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const engineFacts = await page95.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const boss = createTacticsBattle("spacemonkey").units.find((u) => u.side === "enemy")
+    return { hp: boss.hp, maxHp: boss.maxHp, attack: boss.attack, revive: boss.revive, woundedFury: boss.woundedFury, aoeMove: boss.aoeMove }
+  })
+  await page95.close()
+  out.spacemonkeyFormation = { enemyNames, engineFacts }
+  const ok =
+    enemyNames.length === 1 &&
+    enemyNames[0] === "Spacemonkey" &&
+    engineFacts.hp === 108 &&
+    engineFacts.maxHp === 108 &&
+    engineFacts.attack === 21 &&
+    engineFacts.revive === 1 &&
+    engineFacts.woundedFury === 1 &&
+    engineFacts.aoeMove &&
+    engineFacts.aoeMove.amount === 11 &&
+    Math.abs(engineFacts.aoeMove.chance - 0.2) < 1e-9
+  if (!ok) out.errors.push("check95 Spacemonkey's formation composition or real stats were wrong")
+}
+
+// 96. Revive saves a unit from a lethal hit exactly once ---------------
+{
+  const page96 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page96.on("pageerror", (e) => errs.push(String(e)))
+  await page96.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page96.waitForSelector(".hwt-board")
+  const result = await page96.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("spacemonkey")
+    const boss = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === boss.id) return { ...u, hp: 5, block: 0, revive: 1 }
+        if (u.id === attacker.id) return { ...u, pos: { row: boss.pos.row, col: boss.pos.col + 1 }, attack: 20, ap: 1 }
+        return u
+      }),
+    }
+    state = attackUnit(state, attacker.id, boss.id)
+    const after = state.units.find((u) => u.id === boss.id)
+    return { hp: after.hp, revive: after.revive, phase: state.phase, hasReviveLine: state.log.some((l) => l.includes("clings to life at 1 HP!")) }
+  })
+  await page96.close()
+  out.spacemonkeyReviveSaves = result
+  const ok = result.hp === 1 && result.revive === 0 && result.phase === "player" && result.hasReviveLine
+  if (!ok) out.errors.push("check96 Revive did not save the boss from a lethal hit exactly as the real mechanic does")
+}
+
+// 97. Revive doesn't fire twice - the same boss, now at revive:0, takes
+//     another lethal hit and actually dies this time --------------------
+{
+  const page97 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page97.on("pageerror", (e) => errs.push(String(e)))
+  await page97.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page97.waitForSelector(".hwt-board")
+  const result = await page97.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("spacemonkey")
+    const boss = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === boss.id) return { ...u, hp: 1, block: 0, revive: 0 }
+        if (u.id === attacker.id) return { ...u, pos: { row: boss.pos.row, col: boss.pos.col + 1 }, attack: 20, ap: 1 }
+        return u
+      }),
+    }
+    state = attackUnit(state, attacker.id, boss.id)
+    const after = state.units.find((u) => u.id === boss.id)
+    const reviveLineCount = state.log.filter((l) => l.includes("clings to life at 1 HP!")).length
+    return { hp: after.hp, phase: state.phase, hasFallsLine: state.log.some((l) => l.includes("It falls.")), reviveLineCount }
+  })
+  await page97.close()
+  out.spacemonkeyReviveDoesntDoubleFire = result
+  const ok = result.hp === 0 && result.phase === "won" && result.hasFallsLine && result.reviveLineCount === 0
+  if (!ok) out.errors.push("check97 Revive incorrectly fired a second time, or the boss failed to actually die once its stack was spent")
+}
+
+// 98. AoE hits every living player unit through the full modifier
+//     pipeline, bypassing range entirely - a turn-scan (via the PUBLIC
+//     previewEnemyIntents, never the internal deterministicRoll) finds
+//     a real turn number where Spacemonkey's own weightedRandom choice
+//     lands on aoe, then drives that exact turn for real via
+//     runEnemyTurn: 3 player units at Chebyshev distance 1/5/8 (only
+//     the first within his real range:1) ALL take exactly 11 damage,
+//     including the 2 that a normal single-target attack could never
+//     reach --------------------------------------------------------
+{
+  const page98 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page98.on("pageerror", (e) => errs.push(String(e)))
+  await page98.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page98.waitForSelector(".hwt-board")
+  const result = await page98.evaluate(async () => {
+    const { createTacticsBattle, previewEnemyIntents, runEnemyTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("spacemonkey")
+    const boss = base.units.find((u) => u.side === "enemy")
+    let aoeTurn = null
+    for (let t = 1; t <= 60 && aoeTurn === null; t++) {
+      const scratch = { ...base, phase: "enemy", turn: t }
+      const intents = previewEnemyIntents(scratch)
+      const bossIntent = intents.find((i) => i.enemyId === boss.id)?.intent
+      if (bossIntent?.kind === "aoe") aoeTurn = t
+    }
+    if (aoeTurn === null) return { found: false }
+
+    let state = {
+      ...base,
+      phase: "enemy",
+      turn: aoeTurn,
+      units: base.units.map((u, i) => {
+        if (u.side === "enemy") return u
+        const distances = [1, 5, 8]
+        return { ...u, pos: { row: boss.pos.row, col: boss.pos.col + distances[i] }, hp: 50, maxHp: 50 }
+      }),
+    }
+    state = runEnemyTurn(state)
+    const playerHps = state.units.filter((u) => u.side === "player").map((u) => u.hp)
+    return {
+      found: true,
+      aoeTurn,
+      playerHps,
+      announceLine: state.log.some((l) => l.includes("unleashes a squad-wide strike!")),
+      strikeLineCount: state.log.filter((l) => l.startsWith(`${boss.name} strikes `)).length,
+    }
+  })
+  await page98.close()
+  out.spacemonkeyAoeHitsEveryone = result
+  const ok = result.found && result.playerHps.every((hp) => hp === 39) && result.announceLine && result.strikeLineCount === 3
+  if (!ok) out.errors.push("check98 AoE did not hit every living player unit for the exact real amount, or didn't bypass range")
+}
+
+// 99. The boss's 60%-phase Weak trigger fires per AoE target, not just
+//     per single-target attack - the FIRST real content to exercise
+//     the onDealDamage target:"target" trigger shape built inert in PR
+//     #466. The phase's own real effects (checkEnemyPhase, already
+//     proven generically since PR #464 and re-proven for 2 phases at
+//     once in check 100 below) are constructed directly here - this
+//     check's own job is specifically "does an AoE hit apply the
+//     trigger to every target it damages," not "does the phase fire" --
+{
+  const page99 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page99.on("pageerror", (e) => errs.push(String(e)))
+  await page99.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page99.waitForSelector(".hwt-board")
+  const result = await page99.evaluate(async () => {
+    const { createTacticsBattle, previewEnemyIntents, runEnemyTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("spacemonkey")
+    const boss = base.units.find((u) => u.side === "enemy")
+    // The exact real effect the 60% phase registers (enemies.js's own
+    // phases[0].effects[1]), applied directly - mirroring exactly what
+    // checkEnemyPhase itself would have set on a real landed hit.
+    const phased = {
+      ...base,
+      units: base.units.map((u) =>
+        u.id === boss.id ? { ...u, phaseIndex: 1, triggers: [...u.triggers, { trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } }] } : u,
+      ),
+    }
+    let aoeTurn = null
+    for (let t = 1; t <= 60 && aoeTurn === null; t++) {
+      const scratch = { ...phased, phase: "enemy", turn: t }
+      const intents = previewEnemyIntents(scratch)
+      const bossIntent = intents.find((i) => i.enemyId === boss.id)?.intent
+      if (bossIntent?.kind === "aoe") aoeTurn = t
+    }
+    if (aoeTurn === null) return { found: false }
+    let state = { ...phased, phase: "enemy", turn: aoeTurn }
+    state = runEnemyTurn(state)
+    const players = state.units.filter((u) => u.side === "player")
+    return { found: true, weakValues: players.map((p) => p.weak) }
+  })
+  await page99.close()
+  out.spacemonkeyPhaseWeakOnAoe = result
+  const ok = result.found && result.weakValues.every((w) => w > 0)
+  if (!ok) out.errors.push("check99 The boss's 60%-phase Weak trigger did not fire on every AoE target once his phase was active")
+}
+
+// 100. Both of the boss's phases fire in sequence (60% then 30%) -------
+{
+  const page100 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page100.on("pageerror", (e) => errs.push(String(e)))
+  await page100.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page100.waitForSelector(".hwt-board")
+  const result = await page100.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("spacemonkey")
+    const boss = state.units.find((u) => u.side === "enemy")
+    const attacker = state.units.find((u) => u.side === "player")
+    state = { ...state, units: state.units.map((u) => (u.id === attacker.id ? { ...u, attack: 0, ap: 1, pos: { row: boss.pos.row, col: boss.pos.col + 1 } } : u)) }
+    // 65/108 = 0.602, just above the 0.6 threshold - must NOT fire yet.
+    state = { ...state, units: state.units.map((u) => (u.id === boss.id ? { ...u, hp: 65 } : u)) }
+    state = attackUnit(state, attacker.id, boss.id)
+    const afterFirst = state.units.find((u) => u.id === boss.id)
+    // 64/108 = 0.593, at/under 0.6 - must fire now.
+    state = { ...state, units: state.units.map((u) => (u.id === boss.id ? { ...u, hp: 64 } : u.id === attacker.id ? { ...u, ap: 1 } : u)) }
+    state = attackUnit(state, attacker.id, boss.id)
+    const afterSecond = state.units.find((u) => u.id === boss.id)
+    // 32/108 = 0.296, under the 0.3 threshold - the second phase fires.
+    state = { ...state, units: state.units.map((u) => (u.id === boss.id ? { ...u, hp: 32 } : u.id === attacker.id ? { ...u, ap: 1 } : u)) }
+    state = attackUnit(state, attacker.id, boss.id)
+    const afterThird = state.units.find((u) => u.id === boss.id)
+    return {
+      phaseIndexAfterFirst: afterFirst.phaseIndex,
+      phaseIndexAfterSecond: afterSecond.phaseIndex,
+      phaseIndexAfterThird: afterThird.phaseIndex,
+      attackBaseline: afterFirst.attack,
+      attackAfterSecond: afterSecond.attack,
+      attackAfterThird: afterThird.attack,
+      executeAfterThird: afterThird.execute,
+      wardAfterThird: afterThird.ward,
+    }
+  })
+  await page100.close()
+  out.spacemonkeyBothPhases = result
+  const ok =
+    result.phaseIndexAfterFirst === 0 &&
+    result.phaseIndexAfterSecond === 1 &&
+    result.phaseIndexAfterThird === 2 &&
+    result.attackAfterSecond === result.attackBaseline + 2 &&
+    result.attackAfterThird === result.attackBaseline + 2 + 3 &&
+    result.executeAfterThird === 2 &&
+    result.wardAfterThird === undefined
+  if (!ok) out.errors.push("check100 Spacemonkey's 2 real phases did not both fire correctly in sequence")
+}
+
+// 101. The deterministic roll keeps the intent telegraph honest: across
+//      many turns, the preview says "aoe" if and only if the real
+//      resolution actually fires the aoe announce line that same turn -
+//      both directions checked, and both branches proven reachable ----
+{
+  const page101 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page101.on("pageerror", (e) => errs.push(String(e)))
+  await page101.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page101.waitForSelector(".hwt-board")
+  const result = await page101.evaluate(async () => {
+    const { createTacticsBattle, previewEnemyIntents, runEnemyTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("spacemonkey")
+    const boss = base.units.find((u) => u.side === "enemy")
+    let aoeTurns = 0
+    let nonAoeTurns = 0
+    const mismatches = []
+    for (let t = 1; t <= 40; t++) {
+      const scratch = { ...base, phase: "enemy", turn: t }
+      const previewedAoe = previewEnemyIntents(scratch).find((i) => i.enemyId === boss.id)?.intent?.kind === "aoe"
+      const executed = runEnemyTurn({ ...base, phase: "enemy", turn: t })
+      const resolvedAoe = executed.log.slice(base.log.length).some((l) => l.includes("unleashes a squad-wide strike!"))
+      if (previewedAoe) aoeTurns++
+      else nonAoeTurns++
+      if (previewedAoe !== resolvedAoe) mismatches.push({ t, previewedAoe, resolvedAoe })
+    }
+    return { aoeTurns, nonAoeTurns, mismatches }
+  })
+  await page101.close()
+  out.spacemonkeyTelegraphHonesty = result
+  const ok = result.aoeTurns > 0 && result.nonAoeTurns > 0 && result.mismatches.length === 0
+  if (!ok) out.errors.push("check101 The intent telegraph disagreed with the real resolution for at least one turn, or only one branch was ever reachable")
+}
+
+// 102. UI: on a turn already known to roll aoe, the board shows the aoe
+//      intent badge on the boss and the ember threatened ring on every
+//      living player cell -------------------------------------------
+{
+  const page102 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page102.on("pageerror", (e) => errs.push(String(e)))
+  await page102.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page102.waitForSelector(".hwt-board")
+  await page102.locator(".hwt-formation-btn", { hasText: "Spacemonkey" }).click()
+  await page102.waitForTimeout(300)
+  const aoeTurn = await page102.evaluate(async () => {
+    const { createTacticsBattle, previewEnemyIntents } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("spacemonkey")
+    const boss = base.units.find((u) => u.side === "enemy")
+    for (let t = 1; t <= 60; t++) {
+      const intents = previewEnemyIntents({ ...base, phase: "enemy", turn: t })
+      if (intents.find((i) => i.enemyId === boss.id)?.intent?.kind === "aoe") return t
+    }
+    return null
+  })
+  // Advance the live board's own turn counter to the found aoe turn by
+  // repeatedly ending the turn (each full player+enemy cycle advances
+  // `turn` by exactly 1) - the same board the UI itself renders from,
+  // not a synthetic bypass. Guarded by a live phase check each step
+  // (rather than assumed) since this is real, unmitigated combat - if
+  // the squad were ever actually lost before reaching the target turn,
+  // that's a real, honestly-reported failure, not masked as a pass.
+  let livePhase = "player"
+  for (let i = 1; i < (aoeTurn || 1) && livePhase === "player"; i++) {
+    await page102.locator(".hwt-end-turn").click()
+    await page102.waitForTimeout(150)
+    livePhase = await page102.locator(".hwt-turn-label").getAttribute("data-phase")
+  }
+  const badgeCount = await page102.locator('.hwt-intent-badge[data-intent="aoe"]').count()
+  const threatenedCount = await page102.locator('.hwt-cell[data-threatened="true"]').count()
+  await page102.close()
+  out.spacemonkeyAoeUi = { aoeTurn, livePhase, badgeCount, threatenedCount }
+  const ok = aoeTurn !== null && livePhase === "player" && badgeCount === 1 && threatenedCount === 3
+  if (!ok) out.errors.push("check102 The board did not show the aoe intent badge or the correct number of threatened cells on a known aoe turn")
 }
 
 console.log(JSON.stringify(out, null, 2))
