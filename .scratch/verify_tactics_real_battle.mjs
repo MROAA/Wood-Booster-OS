@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5403
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-wire-3/.scratch/shots"
+const PORT = process.env.PORT || 5405
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-wire-thornmaw/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -75,15 +75,14 @@ function newPage() {
   return browser.newContext({ viewport: { width: 1300, height: 900 } }).then((ctx) => ctx.newPage())
 }
 
-// 1. UPDATED this round (its own premise from PR #468 - "The Iron
-//    Sentinel is still not-ready" - is no longer true after PR #469's
-//    Bulwark work): a normal type:"battle" node AND each of the 6
-//    approved encounters (The Ancient Grove, The Elder Hollow,
-//    Deepwarden, The Gorging Maw, Wyrmgall, The Iron Sentinel) show
-//    "Fight this as Tactics"; a still-excluded elite/miniboss/boss
-//    (spot-checked via Thornmaw, plus the boss) shows only the existing
-//    read-only preview link - proving the allowlist boundary is EXACTLY
-//    the 6 approved ids, not more, not fewer --------------------------
+// 1. UPDATED this round (its own premise from PR #470 - "Thornmaw is
+//    still not-ready" - is no longer true after PR #471's Regen+Taunt
+//    work): a normal type:"battle" node AND each of the 7 approved
+//    encounters (The Ancient Grove, The Elder Hollow, Deepwarden, The
+//    Gorging Maw, Wyrmgall, The Iron Sentinel, Thornmaw) show "Fight
+//    this as Tactics"; the still-excluded final boss shows only the
+//    existing read-only preview link - proving the allowlist boundary
+//    is EXACTLY the 7 approved ids, not more, not fewer ---------------
 {
   async function tacticsButtonState(nodeFilter) {
     const page = await newPage()
@@ -109,8 +108,8 @@ function newPage() {
   const boss = await tacticsButtonState((n) => n.type === "boss")
 
   out.buttonChoiceMatrix = { battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel, thornmaw, boss }
-  const readyOk = [battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel].every((r) => r.fightBtnCount === 1 && r.previewLinkCount === 0)
-  const notReadyOk = [thornmaw, boss].every((r) => r.fightBtnCount === 0 && r.previewLinkCount === 1)
+  const readyOk = [battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel, thornmaw].every((r) => r.fightBtnCount === 1 && r.previewLinkCount === 0)
+  const notReadyOk = [boss].every((r) => r.fightBtnCount === 0 && r.previewLinkCount === 1)
   if (!(readyOk && notReadyOk)) {
     out.errors.push("check1 the Fight-vs-Preview allowlist boundary was wrong for at least one node type")
   }
@@ -792,6 +791,116 @@ function newPage() {
     )
   ) {
     out.errors.push("check15 The Iron Sentinel's win path did not pay out the exact real essence formula, or did not advance/clear the battle correctly")
+  }
+}
+
+// ---------------------------------------------------------------
+// This round (feat/hearthwood-tactics-wire-thornmaw): widen the real
+// "Fight this as Tactics" button to Thornmaw, now that PR #471 made
+// Regen+Taunt fully faithful in the isolated prototype. Every new check
+// gets its own fresh page.
+// ---------------------------------------------------------------
+
+// 16. Thornmaw's real entry - a lighter spot-check, since its own
+//     mechanics were already fully proven in PR #471's 94-check
+//     isolated-prototype suite; what's new here is only "does it reach
+//     the live economy bridge". Also confirms its trialId
+//     ("heartwood-warden") wrapper doesn't interfere, same as
+//     Deepwarden's own check already proved for "rootkeeper" -----------
+{
+  const page16 = await newPage()
+  page16.on("pageerror", (e) => errs.push(String(e)))
+  await page16.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page16, (n) => n.type === "miniboss" && n.enemyId === "thornmaw", ["the-fool"])
+  await page16.reload({ waitUntil: "domcontentloaded" })
+  await page16.waitForTimeout(400)
+  await page16.locator(".hw-tactics-fight-btn").click()
+  await page16.waitForTimeout(400)
+  const engine = await page16.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
+  const playerNames = await page16.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page16.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  await page16.screenshot({ path: `${SHOT}/thornmaw_live.png` })
+  await page16.close()
+  out.thornmawEntry = { engine, playerNames, enemyNames }
+  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "Thornmaw")) {
+    out.errors.push("check16 entering Thornmaw for real did not load the exact real solo composition")
+  }
+}
+
+// 17. Thornmaw's win pays the exact real economy math - ?debugLowHp=1
+//     forces its hp to 1 before the fight starts, so a single landed
+//     hit wins it before endPlayerTurn (and therefore its own
+//     applyRegenTick) ever runs once - Regen never gets a chance to
+//     complicate this deterministic win path ---------------------------
+{
+  const page17 = await newPage()
+  page17.on("pageerror", (e) => errs.push(String(e)))
+  await page17.goto(`http://localhost:${PORT}/heartwood?debugLowHp=1`, { waitUntil: "domcontentloaded" })
+  const seed17 = await page17.evaluate(async () => {
+    const { startRun, serializeRun, RUN_PATH, essenceForWin, bankInterestFor, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const idx = RUN_PATH.findIndex((n) => n.type === "miniboss" && n.enemyId === "thornmaw")
+    const rs = {
+      ...startRun("tommy"),
+      nodeIndex: idx,
+      path: RUN_PATH.slice(0, idx + 1),
+      phase: "formation",
+      bench: [{ key: "b1", defId: "the-fool", upgradeLevel: 0, upgrades: [] }],
+      deployed: ["b1", null, null, null],
+      items: [],
+      lastSeenAct: actIndexForNode(idx, RUN_PATH.length),
+    }
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    const node = RUN_PATH[idx]
+    return { idx, expectedEssence: rs.essence + essenceForWin(rs, node) + bankInterestFor(rs) }
+  })
+  await page17.reload({ waitUntil: "domcontentloaded" })
+  await page17.waitForTimeout(400)
+  await page17.locator(".hw-tactics-fight-btn").click()
+  await page17.waitForTimeout(400)
+  let phase = "player"
+  let turns = 0
+  while (phase !== "won" && phase !== "lost" && turns < 20) {
+    await page17.locator('.hwt-token[data-side="player"]').first().click({ force: true }).catch(() => {})
+    await page17.waitForTimeout(120)
+    let targets = page17.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) === 0) {
+      const reach = page17.locator('.hwt-cell[data-reachable="true"]')
+      if ((await reach.count()) > 0) {
+        await reach.first().click()
+        await page17.waitForTimeout(120)
+      }
+    }
+    targets = page17.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) > 0) {
+      await targets.first().click()
+      await page17.waitForTimeout(150)
+    }
+    await page17.locator(".hwt-end-turn").click().catch(() => {})
+    await page17.waitForTimeout(400)
+    phase = await page17.locator(".hwt-turn-label").getAttribute("data-phase")
+    turns++
+  }
+  let afterContinue = null
+  if (phase === "won") {
+    await page17.locator(".hwt-continue-btn").click()
+    await page17.waitForTimeout(400)
+    afterContinue = await page17.evaluate(() => {
+      const saved = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+      return { phase: saved.run.phase, essence: saved.run.essence, battle: saved.run.battle, nodeIndex: saved.run.nodeIndex }
+    })
+  }
+  await page17.close()
+  out.thornmawWinPath = { phase, turns, seed17, afterContinue }
+  if (
+    !(
+      phase === "won" &&
+      afterContinue &&
+      afterContinue.essence === seed17.expectedEssence &&
+      afterContinue.battle === null &&
+      afterContinue.nodeIndex === seed17.idx + 1
+    )
+  ) {
+    out.errors.push("check17 Thornmaw's win path did not pay out the exact real essence formula, or did not advance/clear the battle correctly")
   }
 }
 
