@@ -295,6 +295,20 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 0,
   },
+  // This round's demo for the new Revive + AoE mechanics - the run's
+  // final boss, the one fight in the game where "hide the squad behind
+  // one tank" and "trade hits until it dies" both stop being guaranteed
+  // answers.
+  spacemonkey: {
+    id: "spacemonkey",
+    name: "Spacemonkey",
+    description: "\"You made it further than I expected.\" He doesn't sound worried. He sounds curious.",
+    enemyDefIds: ["spacemonkey"],
+    rows: [3],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -342,11 +356,45 @@ function poisonFromMovePattern(movePattern) {
 // fired effect (e.g. a future onDealDamage trigger targeting the OTHER
 // party in a hit), so it always starts at a plain 0.
 function passiveStatsFromDef(passive) {
-  const stats = { strength: 0, execute: 0, shatter: 0, woundedFury: 0, taunt: 0 }
+  const stats = { strength: 0, execute: 0, shatter: 0, woundedFury: 0, taunt: 0, revive: 0 }
   for (const p of passive || []) {
     if (p.type === "applyBuff" && p.id in stats) stats[p.id] += p.amount || 0
   }
   return stats
+}
+
+// Spacemonkey's real AoE (autoBattleEngine.js's own moveSelect:
+// "weightedRandom"): for an enemy carrying an `aoe`-type movePattern
+// step, returns {amount, chance} - chance is the aoe step's own real
+// weight divided by the pattern's real total weight, computed from the
+// actual numbers (never hand-picked), so the frequency this engine
+// reproduces is exactly the real one. null for every other enemy
+// (nothing currently ported has an aoe step but Spacemonkey).
+function aoeMoveFromDef(def) {
+  if (def.moveSelect !== "weightedRandom" || !def.movePattern) return null
+  const aoeStep = def.movePattern.find((m) => m.type === "aoe")
+  if (!aoeStep) return null
+  const totalWeight = def.movePattern.reduce((sum, m) => sum + (m.weight || 1), 0)
+  return { amount: aoeStep.amount, chance: (aoeStep.weight || 1) / totalWeight }
+}
+
+// This engine has been 100% deterministic since Phase 1 (no Math.random
+// anywhere) - both for reproducibility and because the player-facing
+// enemy-intent telegraph (previewEnemyIntents, PR #450) depends on a
+// preview computed during the player's own turn always matching what
+// actually happens once they end it. The real game's own
+// moveSelect:"weightedRandom" is a true per-decision Math.random() coin
+// flip, which would break that guarantee outright. Deriving the roll
+// from the state's own `turn` number instead (a small stable hash, never
+// Math.random) keeps both properties: nothing changes `turn` between a
+// preview shown during the player's turn and the real resolution that
+// follows it, so both calls see the same input and make the same
+// decision - telegraph honesty by construction, not by luck.
+function deterministicRoll(turn, seedText) {
+  let h = Math.imul(turn, 2654435761) >>> 0
+  for (let i = 0; i < seedText.length; i++) h = Math.imul(h ^ seedText.charCodeAt(i), 2654435761) >>> 0
+  h = (h ^ (h >>> 15)) >>> 0
+  return (h % 10000) / 10000
 }
 
 function triggersFromPassive(passive) {
@@ -426,7 +474,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   // starting `attack` here - the exact same "battle-start, no growth
   // badge" treatment createTacticsBattle's own battleStartBonus already
   // gets, since this is a real innate trait, not an earned buff.
-  const passiveStats = side === "enemy" ? passiveStatsFromDef(def.passive) : { strength: 0, execute: 0, shatter: 0, woundedFury: 0, taunt: 0 }
+  const passiveStats = side === "enemy" ? passiveStatsFromDef(def.passive) : { strength: 0, execute: 0, shatter: 0, woundedFury: 0, taunt: 0, revive: 0 }
   const triggers = side === "enemy" ? triggersFromPassive(def.passive) : []
   const phases = side === "enemy" ? def.phases || [] : []
   return {
@@ -484,6 +532,16 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     // (like execute/shatter/woundedFury), so it folds in here.
     regen: 0,
     taunt: passiveStats.taunt,
+    // The final boss's real Revive (effects.js's own dealDamage): a
+    // direct base-passive stat, exactly like taunt - folds in here.
+    revive: passiveStats.revive,
+    // The final boss's real AoE (autoBattleEngine.js's own
+    // moveSelect:"weightedRandom") - a mechanic DEFINITION (like charge/
+    // covenAura/cultRitual above), not a runtime-mutated stat, so it
+    // needs no companion counter field the way charge needs
+    // chargeCounter/chargeHpMark: the roll is recomputed fresh from
+    // state.turn every decision, never stored on the unit itself.
+    aoeMove: side === "enemy" ? aoeMoveFromDef(def) : null,
   }
 }
 
@@ -693,9 +751,19 @@ function applyDamageWithBlock(state, targetId, amount) {
   const blockSpent = Math.min(target.block, totalAbsorb)
   const armourUsed = totalAbsorb - blockSpent
   const remaining = amount - totalAbsorb
-  const nextHp = Math.max(0, target.hp - remaining)
-  const next = setUnit(state, targetId, { block: target.block - blockSpent, hp: nextHp })
-  return { next, absorbed: blockSpent, armourUsed, remaining, fell: nextHp <= 0 }
+  const rawHp = target.hp - remaining
+  // The final boss's real Revive (effects.js's own dealDamage): a stack
+  // consumed exactly once, the instant a hit would otherwise drop the
+  // unit to 0 or below - caught HERE, before the ordinary clamp, since
+  // that clamp is what "dead" means everywhere else (checkTacticsBattleEnd,
+  // every hp<=0 filter, `fell` itself). `target.hp > 0` guards a unit
+  // already at 0 from reviving off a follow-up hit - the exact same
+  // ordering/guard the real function uses, read directly, not assumed.
+  const revives = target.revive || 0
+  const revived = rawHp <= 0 && target.hp > 0 && revives > 0
+  const nextHp = revived ? 1 : Math.max(0, rawHp)
+  const next = setUnit(state, targetId, { block: target.block - blockSpent, hp: nextHp, revive: revived ? revives - 1 : target.revive })
+  return { next, absorbed: blockSpent, armourUsed, remaining, fell: nextHp <= 0, revived }
 }
 
 // Shared log-note builder for every applyDamageWithBlock call site - the
@@ -706,6 +774,12 @@ function describeAbsorb(absorbed, armourUsed) {
   if (absorbed > 0) parts.push(`absorbed ${absorbed}`)
   if (armourUsed > 0) parts.push(`${armourUsed} turned by Bulwark`)
   return parts.length ? ` (${parts.join(", ")})` : ""
+}
+
+// Shared log-note builder for a Revive save - the real game's own exact
+// wording ("X clings to life at 1 HP!").
+function describeRevive(revived, targetName) {
+  return revived ? ` ${targetName} clings to life at 1 HP!` : ""
 }
 
 // The Brood's real mechanic (effects.js's broodSplit + freeEnemyCells,
@@ -865,11 +939,11 @@ export function attackUnit(state, actorId, targetId) {
   if (state.phase !== actor.side || actor.side === target.side) return state
   if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   let next = setUnit(state, actorId, { ap: actor.ap - 1 })
-  const { next: hit, absorbed, armourUsed, remaining, fell } = applyDamageWithBlock(next, targetId, modifiedAttackAmount(actor, target, actor.attack))
+  const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, modifiedAttackAmount(actor, target, actor.attack))
   next = hit
   const absorbedNote = describeAbsorb(absorbed, armourUsed)
   const fellNote = fell ? " It falls." : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}.${absorbedNote}${fellNote}`] }
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that
   // hit's damage - the real game's debuff step is its own move in the
@@ -931,11 +1005,11 @@ export function castAbility(state, actorId, targetId) {
     if (tauntersOnTargetSide.length && !(target.taunt > 0)) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     const amount = modifiedAttackAmount(actor, target, actor.attack * ability.multiplier)
-    const { next: hit, absorbed, armourUsed, remaining, fell } = applyDamageWithBlock(next, target.id, amount)
+    const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, amount)
     next = hit
     const absorbedNote = describeAbsorb(absorbed, armourUsed)
     const fellNote = fell ? " It falls." : ""
-    next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}`] }
+    next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
     next = grantStrengthOnKill(next, actorId, fell)
     next = checkEnemyPhase(next, target.id)
     next = checkOnDealDamageTriggers(next, actorId, target.id, remaining)
@@ -1063,11 +1137,11 @@ function applyChargeTick(state) {
     next = { ...next, log: [...next.log, `${live.name} unleashes ${charge.label}!`] }
     const amount = charge.effect.find((e) => e.type === "damage")?.amount || 0
     for (const p of livingUnits(next, "player")) {
-      const { next: hit, absorbed, armourUsed, remaining, fell } = applyDamageWithBlock(next, p.id, amount)
+      const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, p.id, amount)
       next = hit
       const absorbedNote = describeAbsorb(absorbed, armourUsed)
       const fellNote = fell ? " It falls." : ""
-      next = { ...next, log: [...next.log, `${p.name} takes ${remaining}.${absorbedNote}${fellNote}`] }
+      next = { ...next, log: [...next.log, `${p.name} takes ${remaining}.${absorbedNote}${fellNote}${describeRevive(revived, p.name)}`] }
     }
     next = checkTacticsBattleEnd(next)
     if (next.phase !== "player") return next
@@ -1218,6 +1292,15 @@ function decideEnemyIntent(state, enemyId) {
   const enemy = getUnit(state, enemyId)
   if (!enemy || enemy.hp <= 0) return { kind: "hold" }
 
+  // The final boss's real weightedRandom AoE - see deterministicRoll's
+  // own comment for why this reads state.turn instead of Math.random.
+  // Checked before the normal attack branch below, exactly like the
+  // real moveSelect:"weightedRandom" picks freely among ALL of an
+  // enemy's moves each turn, not only when nothing else is available.
+  if (enemy.aoeMove && deterministicRoll(state.turn, enemy.id) < enemy.aoeMove.chance) {
+    return { kind: "aoe", amount: enemy.aoeMove.amount }
+  }
+
   const inRange = attackableTargets(state, enemyId)
   if (inRange.length) {
     const weakest = inRange.reduce((w, u) => (u.hp < w.hp ? u : w), inRange[0])
@@ -1245,12 +1328,44 @@ function decideEnemyIntent(state, enemyId) {
 
 function applyEnemyIntent(state, enemyId, intent) {
   if (intent.kind === "attack") return attackUnit(state, enemyId, intent.targetId)
+  if (intent.kind === "aoe") return applyEnemyAoe(state, enemyId, intent.amount)
   if (intent.kind === "move") return moveUnit(state, enemyId, intent.to)
   if (intent.kind === "move-attack") {
     const moved = moveUnit(state, enemyId, intent.to)
     return attackUnit(moved, enemyId, intent.targetId)
   }
   return state
+}
+
+// The final boss's real AoE (autoBattleEngine.js's own actSide): hits
+// every living player unit directly through the SAME modifiedAttackAmount
+// + applyDamageWithBlock pipeline a normal attack uses (confirmed by
+// reading dealDamage directly - the real game's own aoe intent is just
+// {type:"damage", amount} applied once per target in its own targetPool,
+// the identical function every other hit already goes through) - so
+// Strength/WoundedFury/Weak/Execute/Shatter/Block/Bulwark/Revive ALL
+// apply exactly as they would on a single-target attack. The one real
+// difference: no attackableTargets/range check at all - it bypasses
+// target-picking entirely, the real reason "hide the squad behind one
+// tank" stops working here. Targets are snapshotted once before the
+// loop (matching applyChargeTick's own established loop shape), and
+// checkOnDealDamageTriggers fires per target so the boss's own 60%-phase
+// Weak-on-hit trigger correctly applies to every unit it actually
+// damages, not just a single chosen one.
+function applyEnemyAoe(state, actorId, amount) {
+  const actor = getUnit(state, actorId)
+  let next = { ...state, log: [...state.log, `${actor.name} unleashes a squad-wide strike!`] }
+  for (const target of livingUnits(next, "player")) {
+    const live = getUnit(next, target.id)
+    if (!live || live.hp <= 0) continue
+    const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, modifiedAttackAmount(actor, live, amount))
+    next = hit
+    const absorbedNote = describeAbsorb(absorbed, armourUsed)
+    const fellNote = fell ? " It falls." : ""
+    next = { ...next, log: [...next.log, `${actor.name} strikes ${live.name} for ${remaining}.${absorbedNote}${fellNote}${describeRevive(revived, live.name)}`] }
+    next = checkOnDealDamageTriggers(next, actorId, target.id, remaining)
+  }
+  return checkTacticsBattleEnd(next)
 }
 
 function decideAndActEnemy(state, enemyId) {
