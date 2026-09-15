@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5405
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-wire-thornmaw/.scratch/shots"
+const PORT = process.env.PORT || 5407
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-wire-spacemonkey/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -75,14 +75,14 @@ function newPage() {
   return browser.newContext({ viewport: { width: 1300, height: 900 } }).then((ctx) => ctx.newPage())
 }
 
-// 1. UPDATED this round (its own premise from PR #470 - "Thornmaw is
-//    still not-ready" - is no longer true after PR #471's Regen+Taunt
-//    work): a normal type:"battle" node AND each of the 7 approved
-//    encounters (The Ancient Grove, The Elder Hollow, Deepwarden, The
-//    Gorging Maw, Wyrmgall, The Iron Sentinel, Thornmaw) show "Fight
-//    this as Tactics"; the still-excluded final boss shows only the
-//    existing read-only preview link - proving the allowlist boundary
-//    is EXACTLY the 7 approved ids, not more, not fewer ---------------
+// 1. UPDATED this round (its own premise from PR #477 - "the final boss
+//    is still not-ready" - is no longer true after PR #478's Revive+AoE
+//    work): a normal type:"battle" node AND all 8 elite/miniboss/boss
+//    encounters in the entire game (confirmed by reading runEngine.js's
+//    own RUN_PATH directly - there are no others) now show "Fight this
+//    as Tactics". With every real encounter now ready, there is nothing
+//    left to spot-check on the "not-ready" side - dropped rather than
+//    left as a stale placeholder ---------------------------------------
 {
   async function tacticsButtonState(nodeFilter) {
     const page = await newPage()
@@ -108,9 +108,8 @@ function newPage() {
   const boss = await tacticsButtonState((n) => n.type === "boss")
 
   out.buttonChoiceMatrix = { battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel, thornmaw, boss }
-  const readyOk = [battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel, thornmaw].every((r) => r.fightBtnCount === 1 && r.previewLinkCount === 0)
-  const notReadyOk = [boss].every((r) => r.fightBtnCount === 0 && r.previewLinkCount === 1)
-  if (!(readyOk && notReadyOk)) {
+  const readyOk = [battleNode, ancientGrove, elderHollow, deepwarden, gorgingMaw, wyrmgall, ironSentinel, thornmaw, boss].every((r) => r.fightBtnCount === 1 && r.previewLinkCount === 0)
+  if (!readyOk) {
     out.errors.push("check1 the Fight-vs-Preview allowlist boundary was wrong for at least one node type")
   }
 }
@@ -901,6 +900,125 @@ function newPage() {
     )
   ) {
     out.errors.push("check17 Thornmaw's win path did not pay out the exact real essence formula, or did not advance/clear the battle correctly")
+  }
+}
+
+// ---------------------------------------------------------------
+// This round (feat/hearthwood-tactics-wire-spacemonkey): widen the real
+// "Fight this as Tactics" button to Spacemonkey (the final boss), now
+// that PR #478 made Revive+AoE fully faithful in the isolated
+// prototype. Every new check gets its own fresh page.
+// ---------------------------------------------------------------
+
+// 18. Spacemonkey's real entry - a lighter spot-check, since his own
+//     mechanics were already fully proven in PR #478's 102-check
+//     isolated-prototype suite. Also confirms his trialId
+//     ("hollow-king") wrapper doesn't interfere, same as every other
+//     wrapped encounter already proved ------------------------------
+{
+  const page18 = await newPage()
+  page18.on("pageerror", (e) => errs.push(String(e)))
+  await page18.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page18, (n) => n.type === "boss", ["the-fool"])
+  await page18.reload({ waitUntil: "domcontentloaded" })
+  await page18.waitForTimeout(400)
+  await page18.locator(".hw-tactics-fight-btn").click()
+  await page18.waitForTimeout(400)
+  const engine = await page18.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
+  const playerNames = await page18.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
+  const enemyNames = await page18.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  await page18.screenshot({ path: `${SHOT}/spacemonkey_live.png` })
+  await page18.close()
+  out.spacemonkeyEntry = { engine, playerNames, enemyNames }
+  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "Spacemonkey")) {
+    out.errors.push("check18 entering Spacemonkey for real did not load the exact real solo composition")
+  }
+}
+
+// 19. Spacemonkey's win ENDS THE RUN, not a normal battle - a
+//     genuinely different outcome shape than every prior encounter's
+//     own win-economy proof: reading resolveBattleOutcome directly
+//     (runEngine.js) shows its boss branch returns IMMEDIATELY with
+//     ONLY `phase` changed (`{ ...runState, phase: "victory" }`) - no
+//     essenceForWin/bankInterestFor, no bench Evolution, no
+//     advanceToNextNode, and (caught by this check's own first run,
+//     which failed on exactly this before the fix below) no `battle:
+//     null` either - that clear only happens in the NORMAL win branch
+//     further down (runEngine.js:2813), so `battle` stays exactly the
+//     {phase,round} object handleTacticsContinue's own translation
+//     built. So essence/nodeIndex must stay EXACTLY as they were before
+//     the fight, phase must become "victory", and battle must stay a
+//     {phase:"won"} object, NOT null - not the essence-formula shape
+//     checks 3/7/9/11/13/15/17 all used --------------------------
+{
+  const page19 = await newPage()
+  page19.on("pageerror", (e) => errs.push(String(e)))
+  await page19.goto(`http://localhost:${PORT}/heartwood?debugLowHp=1`, { waitUntil: "domcontentloaded" })
+  const seed19 = await page19.evaluate(async () => {
+    const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const idx = RUN_PATH.findIndex((n) => n.type === "boss")
+    const rs = {
+      ...startRun("tommy"),
+      nodeIndex: idx,
+      path: RUN_PATH.slice(0, idx + 1),
+      phase: "formation",
+      bench: [{ key: "b1", defId: "the-fool", upgradeLevel: 0, upgrades: [] }],
+      deployed: ["b1", null, null, null],
+      items: [],
+      lastSeenAct: actIndexForNode(idx, RUN_PATH.length),
+    }
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    return { idx, expectedEssence: rs.essence }
+  })
+  await page19.reload({ waitUntil: "domcontentloaded" })
+  await page19.waitForTimeout(400)
+  await page19.locator(".hw-tactics-fight-btn").click()
+  await page19.waitForTimeout(400)
+  let phase = "player"
+  let turns = 0
+  while (phase !== "won" && phase !== "lost" && turns < 20) {
+    await page19.locator('.hwt-token[data-side="player"]').first().click({ force: true }).catch(() => {})
+    await page19.waitForTimeout(120)
+    let targets = page19.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) === 0) {
+      const reach = page19.locator('.hwt-cell[data-reachable="true"]')
+      if ((await reach.count()) > 0) {
+        await reach.first().click()
+        await page19.waitForTimeout(120)
+      }
+    }
+    targets = page19.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) > 0) {
+      await targets.first().click()
+      await page19.waitForTimeout(150)
+    }
+    await page19.locator(".hwt-end-turn").click().catch(() => {})
+    await page19.waitForTimeout(400)
+    phase = await page19.locator(".hwt-turn-label").getAttribute("data-phase")
+    turns++
+  }
+  let afterContinue = null
+  if (phase === "won") {
+    await page19.locator(".hwt-continue-btn").click()
+    await page19.waitForTimeout(400)
+    afterContinue = await page19.evaluate(() => {
+      const saved = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+      return { phase: saved.run.phase, essence: saved.run.essence, battle: saved.run.battle, nodeIndex: saved.run.nodeIndex }
+    })
+  }
+  await page19.close()
+  out.spacemonkeyWinEndsRun = { phase, turns, seed19, afterContinue }
+  if (
+    !(
+      phase === "won" &&
+      afterContinue &&
+      afterContinue.phase === "victory" &&
+      afterContinue.essence === seed19.expectedEssence &&
+      afterContinue.battle?.phase === "won" &&
+      afterContinue.nodeIndex === seed19.idx
+    )
+  ) {
+    out.errors.push("check19 Spacemonkey's win did not end the run correctly (expected phase:\"victory\", unchanged essence/nodeIndex, battle left as {phase:\"won\"})")
   }
 }
 

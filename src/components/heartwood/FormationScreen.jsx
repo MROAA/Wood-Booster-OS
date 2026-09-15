@@ -84,14 +84,13 @@ const ELITE_GIMMICK = {
 // lifelink and Wyrmgall's Execute+Shatter are fully portable (PR #466's
 // modifiedAttackAmount/checkOnDealDamageTriggers), and The Iron
 // Sentinel's compounding armour is now ALSO fully portable (PR #469's
-// persistent Bulwark), and Thornmaw's own self-Regen+Taunt are now ALSO
-// fully portable (PR #471's applyRegenTick/livingTaunters) - no gap on
-// any of them. Only the final boss still leans on a mechanic this
-// engine can't represent yet for its own headline gimmick (Revive+
-// WoundedFury+a squad-wide AoE) - wiring it in today would make it play
-// as a noticeably easier, generic body, so it stays preview-only until
-// ported properly.
-const TACTICS_READY_ENCOUNTER_IDS = new Set(["the-ancient-grove", "the-elder-hollow", "deepwarden", "the-gorging-maw", "wyrmgall", "the-iron-sentinel", "thornmaw"])
+// persistent Bulwark), Thornmaw's own self-Regen+Taunt are now ALSO
+// fully portable (PR #471's applyRegenTick/livingTaunters), and the
+// final boss's own Revive+WoundedFury+squad-wide AoE are now ALSO fully
+// portable (PR #478's applyDamageWithBlock revive catch/applyEnemyAoe;
+// WoundedFury needed no work at all, already ported by PR #466) - no
+// gap on ANY elite/miniboss/boss encounter in the game anymore.
+const TACTICS_READY_ENCOUNTER_IDS = new Set(["the-ancient-grove", "the-elder-hollow", "deepwarden", "the-gorging-maw", "wyrmgall", "the-iron-sentinel", "thornmaw", "spacemonkey"])
 
 export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle, onStartTacticsBattle }) {
   const isBoss = node.type === "boss"
