@@ -41,6 +41,7 @@ import SpacemonkeyChat from "./pages/SpacemonkeyChat"
 import BoosterverseDesktop from "./pages/BoosterverseDesktop"
 import ProjectWorkspace from "./pages/ProjectWorkspace"
 import Altrako from "./pages/Altrako"
+import HQWidget from "./pages/HQWidget"
 
 function BoosterverseDesktopRoute() {
   const navigate = useNavigate()
@@ -287,6 +288,17 @@ function App() {
         path="/heartwood-tactics"
         element={
           <HeartwoodTactics />
+        }
+      />
+      {/* Standalone second-monitor mission-control widget (Wood-Booster HQ
+          Widget PRD). Loaded directly into its own Tauri window (see
+          src-tauri/tauri.conf.json, label "hq-widget"), so it must not
+          carry OSLayout's sidebar/topbar - the whole point is a small
+          window with only the widget in it, not the full app shell. */}
+      <Route
+        path="/hq-widget"
+        element={
+          <HQWidget />
         }
       />
     </Routes>
