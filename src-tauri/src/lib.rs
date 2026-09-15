@@ -266,8 +266,15 @@ pub fn run() {
       // reload instead: the window still appears right away, but its
       // content refreshes once the backend is confirmed healthy,
       // trading a brief visible reload flash for actually working.
-      if let Some(window) = app.get_webview_window("main") {
-        let _ = window.eval("window.location.reload()");
+      //
+      // Applies to every configured window, not just "main" - the
+      // "hq-widget" window (tauri.conf.json) races the same backend
+      // startup and would otherwise show a permanently empty widget on
+      // a slow first run.
+      for label in ["main", "hq-widget"] {
+        if let Some(window) = app.get_webview_window(label) {
+          let _ = window.eval("window.location.reload()");
+        }
       }
 
       // Windowless shutdown (SIGTERM/SIGINT: session logout, `kill`,
