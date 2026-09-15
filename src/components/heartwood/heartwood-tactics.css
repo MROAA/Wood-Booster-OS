@@ -258,6 +258,10 @@
   font-size: 8px;
   color: var(--hw-ember);
 }
+.hwt-haste-badge {
+  font-size: 8px;
+  color: var(--hw-gale);
+}
 .hwt-revive-badge {
   font-size: 7px;
   color: var(--hw-moss);

@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5409
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squad6/.scratch/shots"
+const PORT = process.env.PORT || 5410
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-haste/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2460,13 +2460,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squad6", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-haste", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squad6", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-haste", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -3875,6 +3875,253 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.commanderBadge = { badgeCount }
   const ok = badgeCount === 1
   if (!ok) out.errors.push("check111 The Commander's token did not show exactly one Commander badge")
+}
+
+// ---------------------------------------------------------------
+// The Haste round (feat/hearthwood-tactics-haste) - the Commander's
+// (Tommy's) real Haste kit ported into attackUnit. Every new check
+// gets its own fresh page (the established anti-hang discipline).
+// ---------------------------------------------------------------
+
+// 112. Basic double-hit: Tommy (haste, range 1, attack 6) lands TWO
+//      real hits from ONE attackUnit call, at the cost of exactly 1 AP
+//      (not 2), narrated by a Haste announcement line plus 2 real
+//      strike lines -------------------------------------------------
+{
+  const page112 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page112.on("pageerror", (e) => errs.push(String(e)))
+  await page112.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page112.waitForSelector(".hwt-board")
+  const result = await page112.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const commander = state.units.find((u) => u.id === "player-commander")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === commander.id) return { ...u, pos: { row: enemy.pos.row, col: enemy.pos.col + 1 }, ap: 1 }
+        if (u.id === enemy.id) return { ...u, hp: 100, maxHp: 100, block: 0, bulwark: 0, revive: 0, taunt: 0 }
+        return u
+      }),
+    }
+    const enemyHpBefore = state.units.find((u) => u.id === enemy.id).hp
+    const apBefore = state.units.find((u) => u.id === commander.id).ap
+    state = attackUnit(state, commander.id, enemy.id)
+    const enemyAfter = state.units.find((u) => u.id === enemy.id)
+    const commanderAfter = state.units.find((u) => u.id === commander.id)
+    const strikeLineCount = state.log.filter((l) => l.startsWith(`${commander.name} strikes `)).length
+    return {
+      enemyHpBefore,
+      enemyHpAfter: enemyAfter.hp,
+      apBefore,
+      apAfter: commanderAfter.ap,
+      hasteLine: state.log.some((l) => l.includes("Haste fires")),
+      strikeLineCount,
+      attack: commander.attack,
+    }
+  })
+  await page112.close()
+  out.hasteDoubleHit = result
+  const ok =
+    result.enemyHpBefore - result.enemyHpAfter === result.attack * 2 &&
+    result.apBefore - result.apAfter === 1 &&
+    result.hasteLine &&
+    result.strikeLineCount === 2
+  if (!ok) out.errors.push("check112 Haste did not land exactly 2 real hits for 1 AP, or wasn't narrated")
+}
+
+// 113. Corpse-avoidance: killing the first target on hit 1 correctly
+//      retargets the follow-up at a DIFFERENT, still-living enemy
+//      already in range, never wasted on the corpse ------------------
+{
+  const page113 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page113.on("pageerror", (e) => errs.push(String(e)))
+  await page113.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page113.waitForSelector(".hwt-board")
+  const result = await page113.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const commander = state.units.find((u) => u.id === "player-commander")
+    const enemies = state.units.filter((u) => u.side === "enemy")
+    const weak = enemies[0]
+    const survivor = enemies[1]
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === commander.id) return { ...u, pos: { row: weak.pos.row, col: weak.pos.col + 1 }, ap: 1 }
+        if (u.id === weak.id) return { ...u, hp: 1, block: 0, bulwark: 0, revive: 0 }
+        if (u.id === survivor.id) return { ...u, hp: 100, maxHp: 100, block: 0, bulwark: 0, revive: 0, taunt: 0 }
+        return u
+      }),
+    }
+    const survivorHpBefore = state.units.find((u) => u.id === survivor.id).hp
+    state = attackUnit(state, commander.id, weak.id)
+    const weakAfter = state.units.find((u) => u.id === weak.id)
+    const survivorAfter = state.units.find((u) => u.id === survivor.id)
+    return { weakHp: weakAfter.hp, survivorHpBefore, survivorHpAfter: survivorAfter.hp, phase: state.phase }
+  })
+  await page113.close()
+  out.hasteCorpseAvoidance = result
+  const ok = result.weakHp <= 0 && result.survivorHpAfter < result.survivorHpBefore && result.phase === "player"
+  if (!ok) out.errors.push("check113 Haste's follow-up wasted itself on a corpse instead of retargeting a living enemy")
+}
+
+// 114. No-target after a kill, battle continues: the only enemy in
+//      range dies on hit 1, but other living enemies remain elsewhere
+//      on the board (out of range) - the follow-up correctly finds no
+//      valid target and does nothing (no crash, no phantom log line,
+//      no extra AP spent) --------------------------------------------
+{
+  const page114 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page114.on("pageerror", (e) => errs.push(String(e)))
+  await page114.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page114.waitForSelector(".hwt-board")
+  const result = await page114.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const commander = state.units.find((u) => u.id === "player-commander")
+    const enemies = state.units.filter((u) => u.side === "enemy")
+    const weak = enemies[0]
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === commander.id) return { ...u, pos: { row: 2, col: 5 }, ap: 1 }
+        if (u.id === weak.id) return { ...u, pos: { row: 2, col: 4 }, hp: 1, block: 0, bulwark: 0, revive: 0 }
+        if (u.side === "enemy") return { ...u, pos: { row: 0, col: 0 } }
+        return u
+      }),
+    }
+    state = attackUnit(state, commander.id, weak.id)
+    const commanderAfter = state.units.find((u) => u.id === commander.id)
+    return {
+      phase: state.phase,
+      hasteLine: state.log.some((l) => l.includes("Haste fires")),
+      ap: commanderAfter.ap,
+      livingEnemyCount: state.units.filter((u) => u.side === "enemy" && u.hp > 0).length,
+    }
+  })
+  await page114.close()
+  out.hasteNoTargetContinues = result
+  const ok = result.phase === "player" && !result.hasteLine && result.ap === 0 && result.livingEnemyCount === 2
+  if (!ok) out.errors.push("check114 Haste's follow-up misbehaved when no valid target was in range (battle still ongoing)")
+}
+
+// 115. Battle-end interaction: killing the LAST living enemy ends the
+//      battle (phase -> "won") - Haste correctly does NOT fire a
+//      follow-up into an already-ended battle -----------------------
+{
+  const page115 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page115.on("pageerror", (e) => errs.push(String(e)))
+  await page115.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page115.waitForSelector(".hwt-board")
+  const result = await page115.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("deepwarden")
+    const commander = state.units.find((u) => u.id === "player-commander")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === commander.id) return { ...u, pos: { row: enemy.pos.row, col: enemy.pos.col + 1 }, ap: 1 }
+        if (u.id === enemy.id) return { ...u, hp: 1, block: 0, bulwark: 0, revive: 0 }
+        return u
+      }),
+    }
+    state = attackUnit(state, commander.id, enemy.id)
+    return { phase: state.phase, hasteLine: state.log.some((l) => l.includes("Haste fires")) }
+  })
+  await page115.close()
+  out.hasteBattleEnd = result
+  const ok = result.phase === "won" && !result.hasteLine
+  if (!ok) out.errors.push("check115 Haste incorrectly fired a follow-up into an already-ended battle")
+}
+
+// 116. Gate: a single-target restriction holds - a synthetic player-
+//      side unit with haste:true but range:3 (mirroring a real
+//      bishop/rook-pattern attacker) does NOT get a Haste follow-up,
+//      proving range===1 (this engine's own single-vs-pattern
+//      distinction) is the real gate, not just `haste` alone ---------
+{
+  const page116 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page116.on("pageerror", (e) => errs.push(String(e)))
+  await page116.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page116.waitForSelector(".hwt-board")
+  const result = await page116.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "p1", side: "player", name: "PatternTest", pos: { row: 0, col: 0 }, hp: 20, maxHp: 20, range: 3, attack: 5, ap: 1, block: 0, haste: true },
+        { id: "e1", side: "enemy", name: "E1", pos: { row: 0, col: 1 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 1, block: 0 },
+        { id: "e2", side: "enemy", name: "E2", pos: { row: 0, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 1, block: 0 },
+      ],
+    }
+    const after = attackUnit(state, "p1", "e1")
+    return {
+      e1Hp: after.units.find((u) => u.id === "e1").hp,
+      e2Hp: after.units.find((u) => u.id === "e2").hp,
+      apAfter: after.units.find((u) => u.id === "p1").ap,
+      hasteLine: after.log.some((l) => l.includes("Haste fires")),
+    }
+  })
+  await page116.close()
+  out.hasteGatePatternRange = result
+  const ok = result.e1Hp === 95 && result.e2Hp === 100 && result.apAfter === 0 && !result.hasteLine
+  if (!ok) out.errors.push("check116 A pattern-range (range!==1) unit incorrectly got a Haste follow-up")
+}
+
+// 117. Gate: Haste never fires for an enemy - a synthetic enemy-side
+//      unit with haste:true does NOT get a follow-up, matching the
+//      real mechanic's own side==="player" restriction (no enemy in
+//      the game currently sets haste at all) -----------------------
+{
+  const page117 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page117.on("pageerror", (e) => errs.push(String(e)))
+  await page117.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page117.waitForSelector(".hwt-board")
+  const result = await page117.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "enemy",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "e1", side: "enemy", name: "HasteEnemy", pos: { row: 0, col: 0 }, hp: 20, maxHp: 20, range: 1, attack: 5, ap: 1, block: 0, haste: true },
+        { id: "p1", side: "player", name: "P1", pos: { row: 0, col: 1 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 1, block: 0 },
+      ],
+    }
+    const after = attackUnit(state, "e1", "p1")
+    return {
+      p1Hp: after.units.find((u) => u.id === "p1").hp,
+      hasteLine: after.log.some((l) => l.includes("Haste fires")),
+    }
+  })
+  await page117.close()
+  out.hasteGateEnemySide = result
+  const ok = result.p1Hp === 95 && !result.hasteLine
+  if (!ok) out.errors.push("check117 An enemy-side unit incorrectly got a Haste follow-up")
+}
+
+// 118. UI: Tommy's token shows the new Haste badge - a passive-trait
+//      indicator, the "don't ship an invisible mechanic" rule --------
+{
+  const page118 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page118.on("pageerror", (e) => errs.push(String(e)))
+  await page118.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page118.waitForSelector(".hwt-board")
+  const badgeCount = await page118.locator(".hwt-haste-badge").count()
+  await page118.screenshot({ path: `${SHOT}/haste_badge.png` })
+  await page118.close()
+  out.hasteBadge = { badgeCount }
+  const ok = badgeCount === 1
+  if (!ok) out.errors.push("check118 Tommy's token did not show exactly one Haste badge")
 }
 
 console.log(JSON.stringify(out, null, 2))
