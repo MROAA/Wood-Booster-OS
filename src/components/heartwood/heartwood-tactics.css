@@ -254,6 +254,10 @@
   font-size: 7px;
   color: var(--hw-rune);
 }
+.hwt-commander-badge {
+  font-size: 8px;
+  color: var(--hw-ember);
+}
 .hwt-revive-badge {
   font-size: 7px;
   color: var(--hw-moss);

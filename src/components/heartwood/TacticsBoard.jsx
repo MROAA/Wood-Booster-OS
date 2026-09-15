@@ -196,6 +196,11 @@ export default function TacticsBoard({
               data-acted={unit.ap <= 0}
             >
               <div className="hwt-token-status">
+                {unit.id === "player-commander" && (
+                  <span className="hwt-commander-badge" title={`${unit.name} - your Commander`}>
+                    ♛
+                  </span>
+                )}
                 <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
                   {apPips(unit)}
                 </span>
