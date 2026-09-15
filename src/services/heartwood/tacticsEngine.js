@@ -282,6 +282,19 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 0,
   },
+  // This round's demo for the new Regen + Taunt mechanics - Thornmaw's
+  // entire real identity is "the squad can't just ignore it OR grind
+  // through its Block-less HP pool," which needs both pieces together.
+  thornmaw: {
+    id: "thornmaw",
+    name: "Thornmaw",
+    description: "It doesn't raise its guard. It doesn't need to - it's already healed from worse than you.",
+    enemyDefIds: ["thornmaw"],
+    rows: [3],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -329,7 +342,7 @@ function poisonFromMovePattern(movePattern) {
 // fired effect (e.g. a future onDealDamage trigger targeting the OTHER
 // party in a hit), so it always starts at a plain 0.
 function passiveStatsFromDef(passive) {
-  const stats = { strength: 0, execute: 0, shatter: 0, woundedFury: 0 }
+  const stats = { strength: 0, execute: 0, shatter: 0, woundedFury: 0, taunt: 0 }
   for (const p of passive || []) {
     if (p.type === "applyBuff" && p.id in stats) stats[p.id] += p.amount || 0
   }
@@ -357,7 +370,7 @@ function applyPortableEffect(state, unitId, effect) {
   if (effect.type === "applyBuff" && effect.id === "strength") {
     return setUnit(state, unitId, { attack: unit.attack + (effect.amount || 0) })
   }
-  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak", "bulwark"].includes(effect.id)) {
+  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak", "bulwark", "regen", "taunt"].includes(effect.id)) {
     return setUnit(state, unitId, { [effect.id]: (unit[effect.id] || 0) + (effect.amount || 0) })
   }
   if (effect.type === "block") {
@@ -413,7 +426,7 @@ function deriveTacticsUnit(defId, side, pos, uid) {
   // starting `attack` here - the exact same "battle-start, no growth
   // badge" treatment createTacticsBattle's own battleStartBonus already
   // gets, since this is a real innate trait, not an earned buff.
-  const passiveStats = side === "enemy" ? passiveStatsFromDef(def.passive) : { strength: 0, execute: 0, shatter: 0, woundedFury: 0 }
+  const passiveStats = side === "enemy" ? passiveStatsFromDef(def.passive) : { strength: 0, execute: 0, shatter: 0, woundedFury: 0, taunt: 0 }
   const triggers = side === "enemy" ? triggersFromPassive(def.passive) : []
   const phases = side === "enemy" ? def.phases || [] : []
   return {
@@ -465,6 +478,12 @@ function deriveTacticsUnit(defId, side, pos, uid) {
     // stat), so this always starts at a plain 0 and only ever grows via
     // a fired effect.
     bulwark: 0,
+    // Thornmaw's real Regen (effects.js's own tickRegen) - trigger-only
+    // like Bulwark, never a direct base-passive stat, so this always
+    // starts at 0. Thornmaw's real Taunt IS a direct base-passive stat
+    // (like execute/shatter/woundedFury), so it folds in here.
+    regen: 0,
+    taunt: passiveStats.taunt,
   }
 }
 
@@ -596,12 +615,27 @@ export function reachableTilesFor(state, unitId) {
 // Enemies (or allies) within the unit's range of its CURRENT tile - a
 // prototype-simple range check (Chebyshev, same metric kingAdjacent uses
 // for its single-step case), not yet a real line-of-sight system.
+// Thornmaw's real Taunt (autoBattleEngine.js's own threatTarget): read
+// directly, the function that actually PICKS a target does
+// `const taunters = living.filter(u => (u.powers.taunt||0) > 0); const
+// pool = taunters.length ? taunters : unshieldedOrAll(...)` - a genuine
+// HARD filter, not the soft "priority weight" the nearby THREAT.taunt
+// comment describes (that constant feeds a DIFFERENT function,
+// unitThreat's own scoring, used only to sort WITHIN an already-taunt-
+// filtered pool). So restricting the player's own valid targets to only
+// a living taunter is a faithful port, not an invented restriction.
+function livingTaunters(state, side) {
+  return livingUnits(state, side).filter((u) => u.taunt > 0)
+}
+
 export function attackableTargets(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0) return []
-  return state.units.filter(
+  const inRange = state.units.filter(
     (u) => u.side !== unit.side && u.hp > 0 && chebyshevDist(unit.pos, u.pos) <= unit.range,
   )
+  const taunters = livingTaunters(state, unit.side === "player" ? "enemy" : "player")
+  return taunters.length ? inRange.filter((u) => u.taunt > 0) : inRange
 }
 
 function checkTacticsBattleEnd(state) {
@@ -890,6 +924,11 @@ export function castAbility(state, actorId, targetId) {
     const target = getUnit(state, targetId)
     if (!target || target.hp <= 0 || target.side === actor.side) return state
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
+    // Same real Taunt restriction attackableTargets already enforces for
+    // the plain Attack path - a burst is still an attack against the
+    // opposing side, so it's bound by the same rule.
+    const tauntersOnTargetSide = livingTaunters(state, target.side)
+    if (tauntersOnTargetSide.length && !(target.taunt > 0)) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     const amount = modifiedAttackAmount(actor, target, actor.attack * ability.multiplier)
     const { next: hit, absorbed, armourUsed, remaining, fell } = applyDamageWithBlock(next, target.id, amount)
@@ -1147,11 +1186,20 @@ export function endPlayerTurn(state) {
     units: ticked.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock } : u)),
     log: [...ticked.log, "Enemy turn."],
   }
+  // Regen ticks (heals whatever stack SURVIVED the player's turn, then
+  // decays it) BEFORE applyEnemyTurnStartTriggers grants this round's
+  // FRESH stack - the exact real order (effects.js's own tickRegen fires
+  // at the very top of the real round, well before a unit's own
+  // turnStart trigger re-grants it later that same round) - so a
+  // freshly-granted stack never heals the same turn it was granted,
+  // only the FOLLOWING one. Getting this backwards is the same class of
+  // bug the Rot round's own poison-timing fix already caught once.
+  const regenTicked = applyRegenTick(resetForEnemyPhase)
   // A unit's own turnStart trigger (Deepwarden's post-phase "the ground
   // answers" Block, etc.) is applied AFTER the flat fortressBlock reset
   // above, never before - that reset is a per-unit overwrite, not an
   // add, so a trigger firing first would just be wiped by it.
-  const next = applyEnemyTurnStartTriggers(resetForEnemyPhase)
+  const next = applyEnemyTurnStartTriggers(regenTicked)
   return runEnemyTurn(next)
 }
 
@@ -1266,6 +1314,25 @@ function applyPoisonTick(state) {
     next = { ...next, log: [...next.log, `${live.name} takes ${stacks} poison damage.${fellNote}`] }
   }
   return anyTicked ? checkTacticsBattleEnd(next) : next
+}
+
+// Thornmaw's real Regen (effects.js's own tickRegen) - Poison's exact
+// structural mirror, healing instead of damaging: heals for the CURRENT
+// stack, then decays it by 1. Enemy-only (poison above is player-only
+// for the identical reason - that's the only side any real content
+// currently grants it to). Never calls checkTacticsBattleEnd - regen
+// can't kill anyone, so there's nothing it could ever end.
+function applyRegenTick(state) {
+  let next = state
+  for (const unit of livingUnits(state, "enemy")) {
+    const live = getUnit(next, unit.id)
+    if (!live || live.hp <= 0 || !(live.regen > 0)) continue
+    const stacks = live.regen
+    const healedHp = Math.min(live.maxHp, live.hp + stacks)
+    next = setUnit(next, unit.id, { hp: healedHp, regen: stacks - 1 })
+    next = { ...next, log: [...next.log, `${live.name} mends ${healedHp - live.hp} from its own regeneration.`] }
+  }
+  return next
 }
 
 export function runEnemyTurn(state) {

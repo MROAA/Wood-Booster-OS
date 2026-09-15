@@ -254,6 +254,16 @@ export default function TacticsBoard({
                     ⛰{unit.bulwark}
                   </span>
                 )}
+                {unit.regen > 0 && (
+                  <span className="hwt-regen-badge" title={`Regen ${unit.regen} - heals that much at the top of its next turn, then decays by 1`}>
+                    ♥{unit.regen}
+                  </span>
+                )}
+                {unit.taunt > 0 && (
+                  <span className="hwt-taunt-badge" title="Taunt - while this is alive, it's the ONLY valid attack target on its side">
+                    ⚑{unit.taunt}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />
