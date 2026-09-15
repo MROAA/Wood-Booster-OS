@@ -80,6 +80,29 @@
   justify-content: center;
 }
 
+/* Terrain (feat/hearthwood-tactics-terrain) - a subtle base tint per
+   cell, reusing existing Hearthwood color tokens rather than inventing
+   new ones. Path/Forest are cheap to cross (Forest is visually distinct
+   from Path only, mechanically identical) - Rock costs more Movement,
+   Water is impassable, Poison Ground grants a real poison stack on
+   arrival. Deliberately understated (a tint, not a busy pattern),
+   matching the standing minimalist UI preference. */
+.hwt-cell[data-terrain="forest"] {
+  background: color-mix(in srgb, var(--hw-moss) 12%, transparent);
+}
+.hwt-cell[data-terrain="rock"] {
+  background: color-mix(in srgb, var(--hw-stone) 26%, transparent);
+  border-color: color-mix(in srgb, var(--hw-stone) 60%, transparent);
+}
+.hwt-cell[data-terrain="water"] {
+  background: color-mix(in srgb, var(--hw-tide) 30%, transparent);
+  border-color: color-mix(in srgb, var(--hw-tide) 60%, transparent);
+}
+.hwt-cell[data-terrain="poison"] {
+  background: color-mix(in srgb, var(--hw-shadow) 26%, transparent);
+  border-color: color-mix(in srgb, var(--hw-shadow) 60%, transparent);
+}
+
 .hwt-cell[data-reachable="true"] {
   background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
   border-color: var(--hw-moss);

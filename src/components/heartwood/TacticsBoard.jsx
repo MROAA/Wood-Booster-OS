@@ -101,6 +101,11 @@ export default function TacticsBoard({
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
+  // A cell's own terrain type - an omitted entry (every pre-terrain
+  // formation, and every cell not named in a formation's own terrain
+  // map) defaults to "path", the exact same fallback tacticsEngine.js's
+  // own terrainAt uses.
+  const terrainHere = (row, col) => battle.terrain?.[`${row}-${col}`] || "path"
   const targetHere = (row, col) => targets.find((t) => t.pos.row === row && t.pos.col === col)
   const healableHere = (row, col) => healable.find((u) => u.pos.row === row && u.pos.col === col)
 
@@ -167,6 +172,7 @@ export default function TacticsBoard({
       const healTarget = selected && healableHere(row, col)
       const threatened = unit && unit.side === "player" && (threatenedIds.has(unit.id) || chargeThreatenedIds.has(unit.id))
       const intent = unit && unit.side === "enemy" ? intentByEnemyId.get(unit.id) : null
+      const terrain = terrainHere(row, col)
       cells.push(
         <div
           key={`${row}-${col}`}
@@ -175,6 +181,7 @@ export default function TacticsBoard({
           data-targetable={!!target}
           data-healable={!!healTarget}
           data-threatened={!!threatened}
+          data-terrain={terrain}
           onClick={() => handleCellClick(row, col)}
         >
           {unit && (

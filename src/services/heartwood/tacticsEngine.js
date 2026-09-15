@@ -33,6 +33,42 @@ import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw }
 // formation's row spread below is re-centered on the taller grid.
 export const GRID = { rows: 7, cols: 10 }
 
+// Terrain (Hearthwood Frontier, feat/hearthwood-tactics-terrain): this
+// game has never had a per-cell battlefield property before (confirmed
+// absent, not overlooked - the real game's own "Arena" system,
+// arenas.js, is a genuine precedent for "battles vary via data," but a
+// whole-battle flat buff/debuff, a different granularity entirely from
+// a per-cell one). No real source-of-truth terrain data exists to port,
+// so this reuses Marc's OWN illustrative numbers from his Movement PRD's
+// own §3.2 JSON example (forest:1, rock:3, water: effectively
+// impassable) rather than inventing fresh ones - `cost` feeds
+// reachableTiles's own weighted pathfinding (targeting.js), `Infinity`
+// meaning "never enters, no matter the route." `grantPoison` (Poison
+// Ground) reuses the Rot archetype's own real per-application amount
+// (rotgut-crawler's +2) and the EXISTING poison/applyPoisonTick fields
+// wholesale - a hazard tile needs zero new damage-over-time machinery.
+const TERRAIN = {
+  path: { cost: 1 },
+  forest: { cost: 1 },
+  rock: { cost: 3 },
+  water: { cost: Infinity },
+  poison: { cost: 1, grantPoison: 2 },
+}
+
+// A formation's own optional `terrain` map (`{"row-col": "rock", ...}`)
+// read straight off `state.terrain` - an omitted cell (every EXISTING
+// formation, none of which carry a `terrain` field at all) defaults to
+// `"path"`, keeping every pre-terrain formation's behavior byte-
+// identical to before this round. `state.terrain` itself is also
+// defensively defaulted to `{}` - a REAL bug caught by this round's own
+// verify run: many EXISTING hand-built synthetic states across every
+// prior round's own checks predate `terrain` entirely and never set the
+// field at all, which crashed here on first run (`undefined["1-0"]`)
+// before this guard was added.
+function terrainAt(state, pos) {
+  return (state.terrain || {})[`${pos.row}-${pos.col}`] || "path"
+}
+
 // Phase 2 ("jatketaan" -> "AP + one real ability per unit"). Every unit now
 // spends a shared Action Point budget instead of the old free "one move +
 // one attack" pair - apMax 2, the PRD's own example number. Move/Attack/
@@ -309,6 +345,32 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 0,
   },
+  // This round's demo for the new terrain + movement-cost mechanics -
+  // ironmaw (real HP 46, already used in "default") is reused as-is
+  // rather than inventing a new enemy; the point of this formation is
+  // the BATTLEFIELD itself, not its occupant. A rock wall spans column 5
+  // (rows 1/2/4/5), leaving row 3 open as a poisoned shortcut straight
+  // across and rows 0/6 open as a longer but safe detour - a genuine
+  // route decision, not cosmetic tiles. A single water tile sits right
+  // in front of the enemy, forcing one final side-step on arrival.
+  "the-crossing": {
+    id: "the-crossing",
+    name: "The Crossing",
+    description: "One straight path across, already poisoned. The long way around is still open, if there's time for it.",
+    enemyDefIds: ["ironmaw"],
+    rows: [3],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+    terrain: {
+      "1-5": "rock",
+      "2-5": "rock",
+      "4-5": "rock",
+      "5-5": "rock",
+      "3-5": "poison",
+      "3-2": "water",
+    },
+  },
 }
 
 // Reads the def's own already-authored movePattern for its attack amount
@@ -575,6 +637,11 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
   const withBaseline = withBonus.map((u) => ({ ...u, baseAttack: u.attack }))
   return {
     grid: GRID,
+    // A formation's own optional terrain map - omitted on every formation
+    // that predates this round, defaulting every cell to "path" via
+    // terrainAt's own fallback, so nothing about a pre-existing formation
+    // changes.
+    terrain: formation.terrain || {},
     units: withBaseline,
     phase: "player",
     turn: 1,
@@ -628,6 +695,9 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds) {
   const withBaseline = units.map((u) => ({ ...u, baseAttack: u.attack }))
   return {
     grid: GRID,
+    // No terrain in a real matchup this round - terrain stays isolated-
+    // prototype-only, per this round's own stated scope.
+    terrain: {},
     units: withBaseline,
     phase: "player",
     turn: 1,
@@ -667,7 +737,7 @@ export function reachableTilesFor(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0) return []
   const occupied = state.units.filter((u) => u.id !== unitId && u.hp > 0).map((u) => u.pos)
-  return reachableTilesRaw(occupied, unit.pos, unit.move, state.grid)
+  return reachableTilesRaw(occupied, unit.pos, unit.move, state.grid, (pos) => TERRAIN[terrainAt(state, pos)].cost)
 }
 
 // Enemies (or allies) within the unit's range of its CURRENT tile - a
@@ -710,7 +780,19 @@ export function moveUnit(state, unitId, targetPos) {
   if (!isOnBoard(targetPos, state.grid)) return state
   const legal = reachableTilesFor(state, unitId)
   if (!legal.some((p) => samePos(p, targetPos))) return state
-  return setUnit(state, unitId, { pos: targetPos, ap: unit.ap - 1 })
+  let next = setUnit(state, unitId, { pos: targetPos, ap: unit.ap - 1 })
+  // Poison Ground (Hearthwood Frontier's own real "trap" terrain): grants
+  // a stack ONLY on arrival at the move's own destination tile - never
+  // on any intermediate tile the pathfinding happened to route through -
+  // reusing the EXISTING poison field/tick (applyPoisonTick, Rot
+  // archetype) wholesale, zero new damage-over-time machinery.
+  const grant = TERRAIN[terrainAt(next, targetPos)].grantPoison
+  if (grant) {
+    const arrived = getUnit(next, unitId)
+    next = setUnit(next, unitId, { poison: arrived.poison + grant })
+    next = { ...next, log: [...next.log, `${unit.name} wades into the poison and starts coughing (+${grant}).`] }
+  }
+  return next
 }
 
 // Wyrmgall's real Execute/Shatter + the final boss's real WoundedFury/

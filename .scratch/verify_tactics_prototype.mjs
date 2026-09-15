@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5406
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spacemonkey/.scratch/shots"
+const PORT = process.env.PORT || 5408
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terrain/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2445,13 +2445,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spacemonkey", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terrain", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spacemonkey", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terrain", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -3566,6 +3566,170 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.spacemonkeyAoeUi = { aoeTurn, livePhase, badgeCount, threatenedCount }
   const ok = aoeTurn !== null && livePhase === "player" && badgeCount === 1 && threatenedCount === 3
   if (!ok) out.errors.push("check102 The board did not show the aoe intent badge or the correct number of threatened cells on a known aoe turn")
+}
+
+// ---------------------------------------------------------------
+// Terrain + movement cost, demoed via "The Crossing" (feat/hearthwood-
+// tactics-terrain). Every new check gets its own fresh page.
+// ---------------------------------------------------------------
+
+// 103. "The Crossing" formation composition - the hand-authored terrain
+//      map matches exactly what was placed, and every other cell
+//      correctly defaults to "path" (undefined in the raw map) --------
+{
+  const page103 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page103.on("pageerror", (e) => errs.push(String(e)))
+  await page103.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page103.waitForSelector(".hwt-board")
+  await page103.locator(".hwt-formation-btn", { hasText: "The Crossing" }).click()
+  await page103.waitForTimeout(300)
+  const enemyNames = await page103.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
+  const engineFacts = await page103.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("the-crossing")
+    return { terrain: battle.terrain, defaultCell: battle.terrain["0-0"] }
+  })
+  await page103.close()
+  out.crossingFormation = { enemyNames, engineFacts }
+  const t = engineFacts.terrain
+  const ok =
+    enemyNames.length === 1 &&
+    enemyNames[0] === "Ironmaw" &&
+    t["1-5"] === "rock" &&
+    t["2-5"] === "rock" &&
+    t["4-5"] === "rock" &&
+    t["5-5"] === "rock" &&
+    t["3-5"] === "poison" &&
+    t["3-2"] === "water" &&
+    engineFacts.defaultCell === undefined
+  if (!ok) out.errors.push("check103 The Crossing's terrain map did not match what was authored")
+}
+
+// 104. Movement cost is genuinely weighted, not counted by tile - a
+//      synthetic single-row grid (eliminating any diagonal-detour
+//      ambiguity) with 2 real Rock tiles (cost 3 each, per the PRD's
+//      own §3.2 illustrative number) in the middle of the only path.
+//      A move-4 unit starting at col 0: col1 costs 1 (reachable), col2
+//      costs 1+3=4 (exactly at the limit, reachable), col3 would cost
+//      4+3=7 (over the limit - unreachable), and col4 is therefore ALSO
+//      unreachable (no route to it that doesn't pass through col3) -
+//      the exact boundary only a real weighted-cost algorithm produces,
+//      not a step-count one (which would have reached col4 in 4 hops) -
+{
+  const page104 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page104.on("pageerror", (e) => errs.push(String(e)))
+  await page104.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page104.waitForSelector(".hwt-board")
+  const result = await page104.evaluate(async () => {
+    const { reachableTilesFor } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 1, cols: 5 },
+      terrain: { "0-2": "rock", "0-3": "rock" },
+      units: [{ id: "u1", side: "player", hp: 10, pos: { row: 0, col: 0 }, move: 4 }],
+      phase: "player",
+    }
+    const reachable = reachableTilesFor(state, "u1").map((p) => `${p.row}-${p.col}`).sort()
+    return { reachable }
+  })
+  await page104.close()
+  out.terrainMovementCostWeighted = result
+  const ok = JSON.stringify(result.reachable) === JSON.stringify(["0-1", "0-2"])
+  if (!ok) out.errors.push("check104 Movement cost was not genuinely weighted by terrain - the reachable boundary did not match the hand-computed cost math")
+}
+
+// 105. Water is genuinely impassable, not just expensive - the same
+//      synthetic single-row shape, a single Water tile, and a
+//      deliberately huge move value (10) that would trivially cross
+//      any merely-expensive terrain but must still never reach past
+//      Water, since its own real cost is Infinity, not a large finite
+//      number -----------------------------------------------------
+{
+  const page105 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page105.on("pageerror", (e) => errs.push(String(e)))
+  await page105.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page105.waitForSelector(".hwt-board")
+  const result = await page105.evaluate(async () => {
+    const { reachableTilesFor, moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 1, cols: 5 },
+      terrain: { "0-2": "water" },
+      units: [{ id: "u1", side: "player", hp: 10, pos: { row: 0, col: 0 }, move: 10, ap: 1 }],
+      phase: "player",
+    }
+    const reachable = reachableTilesFor(state, "u1").map((p) => `${p.row}-${p.col}`).sort()
+    // Confirmed via the real moveUnit too, not just reachableTilesFor in
+    // isolation - a direct attempt to cross is refused, with zero new
+    // legality code anywhere (moveUnit already delegates entirely to
+    // reachableTilesFor's own returned list).
+    const afterAttempt = moveUnit(state, "u1", { row: 0, col: 4 })
+    const stillAtStart = afterAttempt.units[0].pos.col === 0
+    return { reachable, stillAtStart }
+  })
+  await page105.close()
+  out.terrainWaterImpassable = result
+  const ok = JSON.stringify(result.reachable) === JSON.stringify(["0-1"]) && result.stillAtStart
+  if (!ok) out.errors.push("check105 Water did not behave as a genuine obstacle - either reachableTilesFor crossed it, or moveUnit allowed landing past it")
+}
+
+// 106. Poison Ground genuinely integrates with the REAL, existing
+//      poison system (Rot archetype, PR #459) - not a one-time flag or
+//      a parallel effect. Moving onto it grants exactly the real +2
+//      amount; a full endPlayerTurn afterward runs the SAME, untouched
+//      applyPoisonTick that already drains every Rot enemy's own
+//      poison, proving true integration -----------------------------
+{
+  const page106 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page106.on("pageerror", (e) => errs.push(String(e)))
+  await page106.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page106.waitForSelector(".hwt-board")
+  const result = await page106.evaluate(async () => {
+    const { createTacticsBattle, moveUnit, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("the-crossing")
+    const mover = state.units.find((u) => u.side === "player")
+    // Place the mover right next to the real poison tile (3-5) and give
+    // it enough AP/move to step onto it in one action.
+    state = { ...state, units: state.units.map((u) => (u.id === mover.id ? { ...u, pos: { row: 3, col: 6 }, move: 2, ap: 1, hp: 50, maxHp: 50 } : u)) }
+    state = moveUnit(state, mover.id, { row: 3, col: 5 })
+    const afterMove = state.units.find((u) => u.id === mover.id)
+    const grantLine = state.log.some((l) => l.includes("wades into the poison"))
+    // A full player-turn-end (real code path, not a synthetic bypass)
+    // runs the EXISTING applyPoisonTick at the top of the following
+    // enemy phase - the poison was granted earlier THIS same player
+    // turn (via the move above), so this is its first real tick.
+    state = endPlayerTurn(state)
+    const afterTick = state.units.find((u) => u.id === mover.id)
+    const tickLine = state.log.some((l) => l.includes("takes 2 poison damage"))
+    return { poisonAfterMove: afterMove.poison, grantLine, hpAfterMove: afterMove.hp, hpAfterTick: afterTick.hp, poisonAfterTick: afterTick.poison, tickLine }
+  })
+  await page106.close()
+  out.terrainPoisonIntegration = result
+  const ok =
+    result.poisonAfterMove === 2 &&
+    result.grantLine &&
+    result.hpAfterMove === 50 &&
+    result.hpAfterTick === 48 &&
+    result.poisonAfterTick === 1 &&
+    result.tickLine
+  if (!ok) out.errors.push("check106 Poison Ground did not genuinely integrate with the real, existing poison tick system")
+}
+
+// 107. UI: The Crossing's board renders visually distinct Rock/Water/
+//      Poison/Path cells (a screenshot) --------------------------------
+{
+  const page107 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page107.on("pageerror", (e) => errs.push(String(e)))
+  await page107.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page107.waitForSelector(".hwt-board")
+  await page107.locator(".hwt-formation-btn", { hasText: "The Crossing" }).click()
+  await page107.waitForTimeout(300)
+  const rockCount = await page107.locator('.hwt-cell[data-terrain="rock"]').count()
+  const waterCount = await page107.locator('.hwt-cell[data-terrain="water"]').count()
+  const poisonCount = await page107.locator('.hwt-cell[data-terrain="poison"]').count()
+  await page107.screenshot({ path: `${SHOT}/the_crossing.png` })
+  await page107.close()
+  out.terrainUi = { rockCount, waterCount, poisonCount }
+  const ok = rockCount === 4 && waterCount === 1 && poisonCount === 1
+  if (!ok) out.errors.push("check107 The board did not render the expected number of each terrain-tagged cell")
 }
 
 console.log(JSON.stringify(out, null, 2))

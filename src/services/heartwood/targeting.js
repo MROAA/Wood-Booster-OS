@@ -135,35 +135,56 @@ export function cardNeedsTarget(def) {
 }
 
 // Hearthwood Frontier (feat/hearthwood-tactics-prototype) - the first real
-// grid-geometry addition since the game went auto-battle: a plain BFS walk,
-// generic over any {rows, cols} grid, exactly like every other export in
-// this file. `occupied` is the list of tiles other pieces currently stand
-// on (never includes `origin` itself) - a reachable tile must be on the
-// board, unoccupied, and within `moveRange` orthogonal/diagonal steps
-// (8-directional, same step-cost model as kingAdjacent's single-step
-// definition). Pure: returns a fresh array, touches nothing.
-export function reachableTiles(occupied, origin, moveRange, grid) {
+// grid-geometry addition since the game went auto-battle: generic over any
+// {rows, cols} grid, exactly like every other export in this file.
+// `occupied` is the list of tiles other pieces currently stand on (never
+// includes `origin` itself) - a reachable tile must be on the board,
+// unoccupied, and within `moveRange` orthogonal/diagonal steps (8-
+// directional, same adjacency `kingAdjacent`'s single-step case uses).
+// Pure: returns a fresh array, touches nothing.
+//
+// Terrain movement cost (Hearthwood Frontier, feat/hearthwood-tactics-
+// terrain): `terrainCostAt` is a 5th, OPTIONAL parameter (defaulting to
+// `() => 1`, byte-identical to every existing caller's own behavior) so
+// a per-cell cost can now vary the real distance a move covers - a
+// uniform-cost (Dijkstra) expansion, not the old fixed-step-count flood-
+// fill, since a single step can now cost more than 1 point. A cell whose
+// own cost is `Infinity` (a genuinely impassable tile, e.g. deep water)
+// is never expanded into, even if another path around it exists.
+export function reachableTiles(occupied, origin, moveRange, grid, terrainCostAt = () => 1) {
   const blocked = new Set(occupied.map((p) => `${p.row}-${p.col}`))
-  const seen = new Set([`${origin.row}-${origin.col}`])
-  let frontier = [origin]
+  const originKey = `${origin.row}-${origin.col}`
+  const bestCost = new Map([[originKey, 0]])
+  const visited = new Set()
   const out = []
-  for (let step = 0; step < moveRange; step++) {
-    const next = []
-    for (const pos of frontier) {
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue
-          const cand = { row: pos.row + dr, col: pos.col + dc }
-          const key = `${cand.row}-${cand.col}`
-          if (seen.has(key) || !isOnBoard(cand, grid) || blocked.has(key)) continue
-          seen.add(key)
-          out.push(cand)
-          next.push(cand)
+  for (;;) {
+    let currentKey = null
+    let currentCost = Infinity
+    for (const [key, cost] of bestCost) {
+      if (!visited.has(key) && cost < currentCost) {
+        currentKey = key
+        currentCost = cost
+      }
+    }
+    if (currentKey === null) break
+    visited.add(currentKey)
+    const [row, col] = currentKey.split("-").map(Number)
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue
+        const cand = { row: row + dr, col: col + dc }
+        const key = `${cand.row}-${cand.col}`
+        if (visited.has(key) || !isOnBoard(cand, grid) || blocked.has(key)) continue
+        const stepCost = terrainCostAt(cand)
+        const newCost = currentCost + stepCost
+        if (newCost > moveRange) continue
+        const known = bestCost.get(key)
+        if (known === undefined || newCost < known) {
+          bestCost.set(key, newCost)
+          if (known === undefined) out.push(cand)
         }
       }
     }
-    frontier = next
-    if (!frontier.length) break
   }
   return out
 }
