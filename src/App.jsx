@@ -31,8 +31,10 @@ import ExecutionCenterV2 from "./pages/ExecutionCenterV2"
 import SystemCenter from "./pages/SystemCenter"
 import Tools from "./pages/Tools"
 import DevStudio from "./pages/DevStudio"
+import HearthwoodStudio from "./pages/HearthwoodStudio"
 import SpiderSolitaire from "./pages/SpiderSolitaire"
 import HeartwoodBattle from "./pages/HeartwoodBattle"
+import HeartwoodTactics from "./pages/HeartwoodTactics"
 import HeartwoodAssistant from "./pages/HeartwoodAssistant"
 import KnowledgeUpload from "./pages/KnowledgeUpload"
 import SpacemonkeyChat from "./pages/SpacemonkeyChat"
@@ -241,6 +243,12 @@ function App() {
           }
         />
         <Route
+          path="/hearthwood-studio"
+          element={
+            <HearthwoodStudio />
+          }
+        />
+        <Route
           path="/heartwood-assistant"
           element={
             <HeartwoodAssistant />
@@ -271,6 +279,15 @@ function App() {
         path="/heartwood"
         element={
           <HeartwoodBattle />
+        }
+      />
+      {/* Hearthwood Frontier (feat/hearthwood-tactics-prototype) - Phase 1
+          of the turn-based pivot. Fully isolated from the route above: its
+          own local state, no runEngine.js, no save file. */}
+      <Route
+        path="/heartwood-tactics"
+        element={
+          <HeartwoodTactics />
         }
       />
       {/* Standalone second-monitor mission-control widget (Wood-Booster HQ

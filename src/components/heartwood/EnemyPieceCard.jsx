@@ -42,6 +42,16 @@ const STATUS_DISPLAY = {
   // this newest status too rather than letting it fall back to
   // unstyled plain text.
   regen: { icon: "heart", color: "var(--hw-moss)" },
+  // Elemental-tribe statuses (effects.js): Bulwark = permanent armour
+  // (Stone), Evade = dodges a hit (Gale, one/round), Dampen = flat cut
+  // on the wielder's own outgoing damage (Tide, a debuff -> loud).
+  bulwark: { icon: "stone", color: "var(--hw-stone)" },
+  evade: { icon: "gale", color: "var(--hw-gale)" },
+  dampen: { icon: "tide", color: "var(--hw-tide)", loud: true },
+  // Burn (Ember) - a DOT, loud like Poison. Ascendant (Cosmic) - a
+  // growing buff, the good-status heart/moss language.
+  burn: { icon: "ember", color: "var(--hw-tribe-ember)", loud: true },
+  ascendant: { icon: "cosmic", color: "var(--hw-cosmic)" },
   // Chain (Cascading Claw/Cascading Wound, items.js/relics.js) - the
   // newest mechanic to gain an item/relic-granted `applyBuff` stack
   // (previously chainDamage lived only as a raw def field baked into
@@ -59,19 +69,22 @@ const STATUS_DISPLAY = {
 
 // Sword/shield icons instead of "Attack 8"/"Guard 8" text - the point
 // is to be able to tell what's about to happen without reading.
+// Every intent now reads as an icon (+ number where it has one) so the
+// board is glanceable without reading. The old prose sits on `title`
+// for the player who wants the detail on hover.
 function intentDisplay(intent) {
   if (!intent) return null
-  if (intent.type === "attack") return { icon: "sword", amount: intent.amount, className: "hw-intent--attack" }
-  if (intent.type === "block") return { icon: "shield", amount: intent.amount, className: "hw-intent--block" }
-  if (intent.type === "heal") return { icon: "heart", amount: intent.amount, className: "hw-intent--heal" }
+  if (intent.type === "attack") return { icon: "sword", amount: intent.amount, className: "hw-intent--attack", title: `Attacks for ${intent.amount}` }
+  if (intent.type === "block") return { icon: "shield", amount: intent.amount, className: "hw-intent--block", title: `Guards for ${intent.amount}` }
+  if (intent.type === "heal") return { icon: "heart", amount: intent.amount, className: "hw-intent--heal", title: `Heals for ${intent.amount}` }
   if (intent.type === "aoe")
-    return { icon: null, text: `Strikes the whole squad for ${intent.amount}`, className: "hw-intent--attack" }
+    return { icon: "flame", amount: intent.amount, tag: "ALL", className: "hw-intent--attack", title: `Strikes the whole squad for ${intent.amount}` }
   if (intent.type === "debuff")
-    return { icon: null, text: `${formatPowerLabel(intent.id)} +${intent.amount}`, className: "hw-intent--debuff" }
+    return { icon: "root", amount: intent.amount, className: "hw-intent--debuff", title: `${formatPowerLabel(intent.id)} +${intent.amount}` }
   if (intent.type === "sunder")
-    return { icon: null, text: "Strips a positive status", className: "hw-intent--debuff" }
+    return { icon: "sword", tag: "−", className: "hw-intent--debuff", title: "Strips a positive status" }
   if (intent.type === "cleanse")
-    return { icon: null, text: "Cleanses a negative status", className: "hw-intent--heal" }
+    return { icon: "heart", tag: "✦", className: "hw-intent--heal", title: "Cleanses a negative status" }
   return null
 }
 
@@ -88,6 +101,7 @@ export default function EnemyPieceCard({
   highlighted,
   synergySurge,
   synergyColor,
+  focusTarget,
   onClick,
   side = "enemy",
 }) {
@@ -111,6 +125,7 @@ export default function EnemyPieceCard({
       data-dead={dead}
       data-highlighted={highlighted}
       data-synergy-surge={!!synergySurge && !dead}
+      data-focus-target={!!focusTarget && !dead}
       data-unit-id={enemy.id}
       style={synergyColor ? { "--hw-piece-glow": synergyColor } : undefined}
       onClick={!dead && onClick ? onClick : undefined}
@@ -123,9 +138,25 @@ export default function EnemyPieceCard({
           🛡
         </span>
       )}
+      {focusTarget && !dead && side === "player" && (
+        <span
+          className="hw-badge hw-focus-badge"
+          title="This round's target - the enemy works down your squad by threat (tanks, top damage dealt, taunt draw fire first)"
+        >
+          🎯
+        </span>
+      )}
       {summoned && !dead && (
         <span className="hw-badge hw-summon-badge" title="Summoned - a bonus companion, not a recruited unit">
           <CardGlyph name="wolf" className="hw-intent-glyph" /> Summoned
+        </span>
+      )}
+      {enemy.chargeCounter != null && !dead && (
+        <span
+          className="hw-badge hw-charge-badge"
+          title={`Winding up a massive hit - ${enemy.chargeCounter} ${enemy.chargeCounter === 1 ? "turn" : "turns"} until it lands. Kill it, stun it, stagger it, or brace.`}
+        >
+          ⚡{enemy.chargeCounter}
         </span>
       )}
       {image ? (
@@ -143,15 +174,10 @@ export default function EnemyPieceCard({
             <span className="hw-hp-label">{enemy.hp}/{enemy.maxHp}</span>
           </div>
           {intent && (
-            <div className={`hw-intent ${intent.className}`}>
-              {intent.icon ? (
-                <>
-                  <CardGlyph name={intent.icon} className="hw-intent-glyph" />
-                  {intent.amount}
-                </>
-              ) : (
-                intent.text
-              )}
+            <div className={`hw-intent ${intent.className}`} title={intent.title}>
+              {intent.icon && <CardGlyph name={intent.icon} className="hw-intent-glyph" />}
+              {intent.amount != null && intent.amount}
+              {intent.tag && <span className="hw-intent-tag">{intent.tag}</span>}
             </div>
           )}
           {/* hw-badge-pop: this element genuinely mounts fresh every
@@ -180,6 +206,7 @@ export default function EnemyPieceCard({
                   <span
                     key={id}
                     className="hw-badge hw-badge-pop"
+                    data-status={id}
                     data-loud={!!display?.loud}
                     style={display ? { color: display.color, borderColor: display.color } : undefined}
                   >

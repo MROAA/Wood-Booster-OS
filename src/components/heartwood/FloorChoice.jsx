@@ -37,10 +37,10 @@ export default function FloorChoice({ runState, onChoose, difficultyTier }) {
             background: `color-mix(in srgb, ${difficultyTier.color} 10%, var(--hw-panel))`,
           }}
         >
-          <div style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: difficultyTier.color, marginBottom: 4 }}>
+          <div className="hw-screen-eyebrow" style={{ color: difficultyTier.color, marginBottom: 4 }}>
             {difficultyTier.name}
           </div>
-          <div style={{ fontSize: 13, lineHeight: 1.5 }}>{difficultyTier.lore}</div>
+          <div style={{ fontSize: "var(--hw-fs-md)", lineHeight: 1.5 }}>{difficultyTier.lore}</div>
         </div>
       )}
       <p className="hw-flavor" style={{ marginTop: 14 }}>

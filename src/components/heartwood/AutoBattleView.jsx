@@ -1,9 +1,29 @@
 import { useEffect, useRef, useState } from "react"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
-import { TRIBES, tribesOf, resolveSynergies, nextSynergyThreshold, synergyTierLabel } from "../../data/heartwood/synergies"
+import { moodBandName, nextMoodTier } from "../../data/heartwood/moods"
+import {
+  TRIBES,
+  tribesOf,
+  resolveSynergies,
+  nextSynergyThreshold,
+  synergyTierLabel,
+  resolveComboSynergies,
+  resolvePositionSynergies,
+} from "../../data/heartwood/synergies"
+
+// Player deploy slots, same order/positions as autoBattleEngine.js's
+// SLOT_POSITIONS - duplicated (no shared export) so a live unit's pos
+// can be mapped back to its slot index for positional synergies.
+const SLOT_POSITIONS = [
+  { row: 2, col: 0 },
+  { row: 2, col: 1 },
+  { row: 2, col: 2 },
+  { row: 1, col: 1 },
+]
 import { isShielded } from "../../services/heartwood/targeting"
-import { summarizeBattle } from "../../services/heartwood/autoBattleEngine"
+import { summarizeBattle, topThreatTargetId } from "../../services/heartwood/autoBattleEngine"
+import { analyzeOutcome } from "../../data/heartwood/battleAnalysis"
 import EnemyPieceCard from "./EnemyPieceCard"
 import ResultOverlay from "./ResultOverlay"
 import FloatingNumbers from "./FloatingNumbers"
@@ -78,7 +98,7 @@ function lungeAttack(actorId, targetId) {
 // animation system rounds to actually animate: onAdvanceRound fires on
 // a timer for as long as state.phase === "player", same as a player
 // repeatedly clicking the old "Next Round" button, just automatic.
-export default function AutoBattleView({ state, essenceOnWin, nodeType, difficultyTier, victoryLine, onAdvanceRound, onContinue }) {
+export default function AutoBattleView({ state, runState, essenceOnWin, nodeType, difficultyTier, actIndex, victoryLine, onAdvanceRound, onContinue }) {
   useEffect(() => {
     if (state.phase !== "player") return
     const timer = setTimeout(onAdvanceRound, ROUND_DELAY_MS)
@@ -91,7 +111,10 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
   // same [state] dependency FloatingNumbers already uses for its own
   // diff-on-change detection.
   useEffect(() => {
-    const events = state.roundEvents || []
+    // `tick` events (Poison/Burn/Regen, effects.js) are self-targeted -
+    // no attacker moved, so no lunge to stage. FloatingNumbers handles
+    // their popup + pip pulse.
+    const events = (state.roundEvents || []).filter((ev) => ev.kind !== "tick" && ev.actorId !== ev.targetId)
     const timers = events.map((ev, i) => setTimeout(() => lungeAttack(ev.actorId, ev.targetId), i * LUNGE_STAGGER_MS))
     return () => timers.forEach(clearTimeout)
   }, [state])
@@ -114,6 +137,20 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
     for (const t of tribesOf(u.defId, UNITS[u.defId])) tribeCounts[t] = (tribeCounts[t] || 0) + 1
   }
   const activeSynergies = resolveSynergies(tribeCounts)
+  // Cross-tribe combos + formation/positional synergies - same data as
+  // FormationScreen's preview, so the battle shows exactly what the
+  // planning screen promised. slotTribes maps a live unit's pos back to
+  // its deploy-slot index.
+  const activeCombos = resolveComboSynergies(tribeCounts)
+  const slotTribes = {}
+  for (const u of state.playerUnits) {
+    if (u.id === "commander" || u.summoned) continue
+    const i = SLOT_POSITIONS.findIndex((p) => p.row === u.pos?.row && p.col === u.pos?.col)
+    if (i !== -1) slotTribes[i] = tribesOf(u.defId, UNITS[u.defId])
+  }
+  const activePositions = [
+    ...new Map(resolvePositionSynergies(slotTribes).map((h) => [h.synergy.id, h.synergy])).values(),
+  ]
 
   // The synergy "WOW" moment (roadmap task "Taistelukentan lava-tuntuma
   // + synergia-WOW-hetki") - Marc's PRD names this as one of the most
@@ -131,17 +168,27 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
   // transient-visual effects (the lunge stagger above) already key off
   // of - a real battle-state event drives this, never a decorative timer.
   const [surges, setSurges] = useState([])
-  const prevActiveIdsRef = useRef(null)
+  const prevActiveKeysRef = useRef(null)
   const surgeSeqRef = useRef(0)
 
+  // One combined list of everything currently live - tribe tiers,
+  // cross-tribe combos and formation synergies - each with a stable
+  // `key` so the diff below fires a WOW banner once per thing, whatever
+  // kind it is.
+  const activeList = [
+    ...activeSynergies.map((s) => ({ kind: "tribe", key: `tribe:${s.tribeId}`, tribeId: s.tribeId, activeTier: s.activeTier })),
+    ...activeCombos.map((c) => ({ kind: "combo", key: `combo:${c.id}`, combo: c })),
+    ...activePositions.map((ps) => ({ kind: "position", key: `pos:${ps.id}`, synergy: ps })),
+  ]
+
   useEffect(() => {
-    const currentIds = new Set(activeSynergies.map((s) => s.tribeId))
-    const prevIds = prevActiveIdsRef.current
-    const newlyActive = prevIds === null ? activeSynergies : activeSynergies.filter((s) => !prevIds.has(s.tribeId))
+    const currentKeys = new Set(activeList.map((s) => s.key))
+    const prevKeys = prevActiveKeysRef.current
+    const newlyActive = prevKeys === null ? activeList : activeList.filter((s) => !prevKeys.has(s.key))
     if (newlyActive.length) {
       setSurges((cur) => [...cur, ...newlyActive.map((s) => ({ ...s, seq: surgeSeqRef.current++ }))])
     }
-    prevActiveIdsRef.current = currentIds
+    prevActiveKeysRef.current = currentKeys
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state])
 
@@ -149,11 +196,19 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
     setSurges((cur) => cur.filter((s) => s.seq !== seq))
   }
 
-  // Live only for as long as its own banner is still on screen (same
-  // array, same lifetime) - the affected units' glow ring (below, on
-  // each player hw-piece) tracks the WOW moment exactly, not some
-  // separately-timed effect that could drift out of sync with it.
-  const surgingTribeIds = new Set(surges.map((s) => s.tribeId))
+  // Live only for as long as its own banner is still on screen. Every
+  // tribe involved in a surging tribe tier OR a surging combo lights
+  // its units' glow ring.
+  const surgingTribeIds = new Set()
+  for (const s of surges) {
+    if (s.kind === "tribe") surgingTribeIds.add(s.tribeId)
+    if (s.kind === "combo") for (const t of Object.keys(s.combo.tribes)) surgingTribeIds.add(t)
+  }
+
+  // Threat targeting (autoBattleEngine.js): the player unit the enemy
+  // will focus next. Only while the fight is live - once it's won/lost
+  // the 🎯 is noise.
+  const focusId = state.phase === "player" ? topThreatTargetId(state) : null
 
   const rows = []
   for (let row = 0; row < state.grid.rows; row++) {
@@ -164,11 +219,15 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
       const playerUnit = playerMap[key]
       let content = null
       if (enemy) {
+        // The Crownless mirror (autoBattleEngine's `mirrorSquad`) puts
+        // enemy pieces whose defId is a UNIT id, not an ENEMIES id -
+        // fall back to UNITS so an Echo of your own unit shows its art.
+        const enemySrc = ENEMIES[enemy.defId] || UNITS[enemy.defId] || {}
         content = (
           <EnemyPieceCard
             enemy={enemy}
-            art={ENEMIES[enemy.defId].art}
-            image={ENEMIES[enemy.defId].image}
+            art={enemySrc.art}
+            image={enemySrc.image}
             shielded={isShielded(state, enemy.id)}
           />
         )
@@ -208,6 +267,7 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
             summoned={playerUnit.summoned}
             synergySurge={!!synergyColor}
             synergyColor={synergyColor}
+            focusTarget={playerUnit.id === focusId}
           />
         )
       }
@@ -225,13 +285,22 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
   }
 
   return (
-    <div className="hw-battle" data-elevated={nodeType === "miniboss" || nodeType === "boss"} style={{ position: "relative" }}>
+    <div
+      className="hw-battle"
+      data-elevated={nodeType === "miniboss" || nodeType === "boss" || nodeType === "elite"}
+      style={{ position: "relative" }}
+    >
       {/* A miniboss/boss fight got zero distinct treatment once the
           actual battle started - FormationScreen.jsx's own flavor text
           was the only cue, gone the moment the fight began. A
           Hearthstone-style elevated banner (own accent, own icon)
           keeps that "this one's different" feeling present for the
           whole fight, not just the moment before it. */}
+      {nodeType === "elite" && (
+        <div className="hw-elevated-banner hw-elevated-banner--elite hw-section-fade-in">
+          <CardGlyph name="sword" className="hw-intent-glyph" /> Elite
+        </div>
+      )}
       {nodeType === "miniboss" && (
         <div className="hw-elevated-banner hw-section-fade-in">
           <CardGlyph name="flame" className="hw-intent-glyph" /> Miniboss
@@ -265,6 +334,51 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
             {difficultyTier.name}
           </span>
         )}
+        {state.arenaName && (
+          <span
+            className="hw-badge hw-section-fade-in"
+            style={{ color: "var(--hw-rune)", borderColor: "var(--hw-rune)" }}
+            title="An arena hazard is in effect for this fight"
+          >
+            <CardGlyph name="rune" className="hw-intent-glyph" />
+            Arena: {state.arenaName}
+          </span>
+        )}
+        {state.enemySynergyLabel && (
+          <span
+            className="hw-badge hw-section-fade-in"
+            style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+            title="This enemy formation fights as a unit - every piece has a shared bonus"
+          >
+            <CardGlyph name="flame" className="hw-intent-glyph" />
+            {state.enemySynergyLabel}
+          </span>
+        )}
+        {typeof state.forestMood === "number" && (() => {
+          const band = moodBandName(state.forestState, state.forestMood)
+          const bandColor = { Calm: "var(--hw-moss)", Stirring: "var(--hw-rune)", Roused: "var(--hw-ember)", Awake: "var(--hw-hp)" }[band]
+          const upcoming = nextMoodTier(state.forestState, state.forestMoodFired || [])
+          return (
+            <span
+              className="hw-badge hw-section-fade-in hw-forest-mood-badge"
+              style={{ color: bandColor, borderColor: bandColor }}
+              title={
+                upcoming
+                  ? `The forest is ${band}. Next it will ${upcoming.name === "Awake" ? "fully wake" : "stir"} — ${upcoming.announce}.`
+                  : `The forest is fully Awake.`
+              }
+            >
+              <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+              Forest: {band}
+              <span className="hw-forest-mood-track" aria-hidden="true">
+                <span
+                  className="hw-forest-mood-fill"
+                  style={{ width: `${Math.min(100, state.forestMood)}%`, background: bandColor }}
+                />
+              </span>
+            </span>
+          )
+        })()}
       </div>
 
       {Object.keys(tribeCounts).length > 0 && (
@@ -300,13 +414,39 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
           Also hosts the synergy WOW banner(s), absolutely positioned
           over the stage rather than pushing the grid around - the
           board's own layout/size (and therefore combat readability)
-          never shifts because a synergy fired. */}
-      <div className="hw-arena">
+          never shifts because a synergy fired.
+          Battlefield spectacle (feat/hearthwood-spectacle-onboarding):
+          data-act / data-forest / data-arena drive CSS-only ambient
+          layers (act-hued light pool, drifting motes tinted by the
+          forest's state, a faint per-hazard wash) - all deterministic
+          (keyed off data already on the battle state) and all
+          reduce-motion-gated. The .hw-stage-motes layer sits UNDER the
+          grid (z-index 0) so it never touches combat readability. */}
+      <div
+        className="hw-arena"
+        data-act={actIndex || undefined}
+        data-forest={state.forestState || undefined}
+        data-arena={state.arenaId || undefined}
+      >
+        <div className="hw-stage-motes" aria-hidden="true" />
         <div className="hw-grid">{rows}</div>
         <FloatingNumbers state={state} />
         {surges.map((s, i) => (
           <SynergyBanner key={s.seq} surge={s} index={i} onDone={() => removeSurge(s.seq)} />
         ))}
+        {state.bossPhaseAnnounce && (
+          <div className="hw-boss-phase-banner" key={state.round + state.bossPhaseAnnounce}>
+            {state.bossPhaseAnnounce}
+          </div>
+        )}
+        {state.forestMoodAnnounce && (
+          <div
+            className="hw-boss-phase-banner hw-forest-mood-banner"
+            key={`fm-${state.round}-${state.forestMoodAnnounce}`}
+          >
+            The forest stirs — {state.forestMoodAnnounce}
+          </div>
+        )}
       </div>
 
       <details className="hw-log-details">
@@ -322,6 +462,7 @@ export default function AutoBattleView({ state, essenceOnWin, nodeType, difficul
         phase={state.phase}
         enemyName={state.enemies[0]?.name || "The enemy"}
         stats={state.phase === "won" || state.phase === "lost" ? summarizeBattle(state) : null}
+        analysis={state.phase === "won" || state.phase === "lost" ? analyzeOutcome(state, runState, { nodeType }) : null}
         essenceOnWin={essenceOnWin}
         victoryLine={victoryLine}
         onContinue={onContinue}

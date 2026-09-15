@@ -134,6 +134,40 @@ export function cardNeedsTarget(def) {
   return def.effects.some((e) => e.type === "damage" || e.target === "target")
 }
 
+// Hearthwood Frontier (feat/hearthwood-tactics-prototype) - the first real
+// grid-geometry addition since the game went auto-battle: a plain BFS walk,
+// generic over any {rows, cols} grid, exactly like every other export in
+// this file. `occupied` is the list of tiles other pieces currently stand
+// on (never includes `origin` itself) - a reachable tile must be on the
+// board, unoccupied, and within `moveRange` orthogonal/diagonal steps
+// (8-directional, same step-cost model as kingAdjacent's single-step
+// definition). Pure: returns a fresh array, touches nothing.
+export function reachableTiles(occupied, origin, moveRange, grid) {
+  const blocked = new Set(occupied.map((p) => `${p.row}-${p.col}`))
+  const seen = new Set([`${origin.row}-${origin.col}`])
+  let frontier = [origin]
+  const out = []
+  for (let step = 0; step < moveRange; step++) {
+    const next = []
+    for (const pos of frontier) {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue
+          const cand = { row: pos.row + dr, col: pos.col + dc }
+          const key = `${cand.row}-${cand.col}`
+          if (seen.has(key) || !isOnBoard(cand, grid) || blocked.has(key)) continue
+          seen.add(key)
+          out.push(cand)
+          next.push(cand)
+        }
+      }
+    }
+    frontier = next
+    if (!frontier.length) break
+  }
+  return out
+}
+
 export function emptyAdjacentSquares(state, origin) {
   const squares = []
   for (let dr = -1; dr <= 1; dr++) {

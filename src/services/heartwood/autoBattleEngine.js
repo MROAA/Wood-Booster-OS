@@ -17,11 +17,21 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { RELICS } from "../../data/heartwood/relics"
-import { ITEMS } from "../../data/heartwood/items"
-import { tribesOf, SYNERGY_TIERS } from "../../data/heartwood/synergies"
+import { ITEMS, effectiveRole } from "../../data/heartwood/items"
+import { unitProfile, positionFitForSlot, POSITION_BONUS, unitTargetProfile } from "../../data/heartwood/roles"
+import { ARENAS } from "../../data/heartwood/arenas"
+import { moodRailFor } from "../../data/heartwood/moods"
+import { tribesOf, SYNERGY_TIERS, resolveComboSynergies, resolvePositionSynergies } from "../../data/heartwood/synergies"
 import { findDualClassFor, applyDualClassGrant } from "../../data/heartwood/dualClasses"
-import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen } from "./effects"
+import { applyEffects, runTriggers, getUnit, setUnit, tickPoison, tickRegen, tickBurn, tickAscendant } from "./effects"
 import { isShielded, kingAdjacent } from "./targeting"
+// RAMP_CAP: the difficulty ramp's total budget, defined in runEngine.js
+// alongside difficultyFactorForNode. Imported (not re-declared) so this
+// file's ramp-progress normalizer below can never drift from the curve
+// that produced the factor. runEngine.js already imports from this
+// file, so this is a deliberate, safe circular reference - RAMP_CAP is
+// only read inside a function, long after both modules finish loading.
+import { RAMP_CAP } from "./runEngine"
 
 const GRID = { rows: 3, cols: 3 }
 const MAX_ROUNDS = 30
@@ -46,6 +56,16 @@ const SLOT_POSITIONS = [
 // shields (row 2, col 1), with zero changes needed there.
 const COMMANDER_POSITION = { row: 1, col: 0 }
 
+// The Crownless mirror (startAutoBattle's `mirrorSquad`) lays the player's
+// cloned squad across the enemy's own rows 0-1, off-centre columns (same
+// no-knight-move-reaches-(1,1) reasoning every shielding formation uses).
+const MIRROR_POSITIONS = [
+  { row: 0, col: 0 },
+  { row: 0, col: 2 },
+  { row: 1, col: 0 },
+  { row: 1, col: 2 },
+]
+
 function freshUnit(overrides) {
   return { block: 0, powers: {}, triggers: [], ...overrides }
 }
@@ -58,8 +78,11 @@ function freshUnit(overrides) {
 // actSide call) - a single shared helper so all 3 spots can never drift
 // out of sync with each other, same discipline effectiveItemSlots
 // (runEngine.js) already documents for its own callers.
-function effectiveUnitDef(defId, upgradeLevel, deployedDefIds) {
-  const base = unitDefWithUpgrade(UNITS[defId], upgradeLevel)
+// `upgrades` is the bench entry's chosen-branch array (upgrades.js /
+// units.js's unitDefWithUpgrade). A bare number is still accepted
+// (legacy `upgradeLevel` -> that many `power` picks).
+function effectiveUnitDef(defId, upgrades, deployedDefIds) {
+  const base = unitDefWithUpgrade(UNITS[defId], upgrades)
   const dualClass = findDualClassFor(defId, deployedDefIds, UNITS)
   return dualClass ? applyDualClassGrant(base, defId, dualClass, UNITS) : base
 }
@@ -124,7 +147,7 @@ function unshieldedOrAll(state, living) {
 // The enemy "front rank" fiction already established by the shielding
 // rule (lower row = closer to the front) becomes the actual single-
 // target choice here: a squad's attack lands on the frontmost living,
-// unshielded opposing piece.
+// unshielded opposing piece. Still used for Chain / Haste secondary hits.
 function frontmost(state, units) {
   const living = units.filter((u) => u.hp > 0)
   if (!living.length) return null
@@ -132,24 +155,134 @@ function frontmost(state, units) {
   return [...pool].sort((a, b) => a.pos.row - b.pos.row || a.pos.col - b.pos.col)[0].id
 }
 
-// Enemies focus-fire a random living, unshielded squad member instead
-// of a deterministic column - the more interesting version of "no
-// shield," and now a real defensive choice: a unit placed in the
-// forward slot (row 1, col 1) shields whatever's placed directly
-// behind it (row 2, col 1) from this roll entirely.
-// Taunt: a different tool from shielding for the same "protect the
-// squad" goal - shielding protects one specific back slot regardless
-// of who's standing there, Taunt protects everyone else regardless of
-// position by forcing the roll onto whichever unit carries it. Checked
-// before the shielded-filtered random pool, since a taunting unit
-// should draw fire even if it also happens to be sitting in a
-// technically-shielded square.
-function randomLiving(state, units) {
+// EXACTLY frontmost()'s comparator - no id tiebreak. An `|| (a.id ...)`
+// term here quietly shifted a few fights (tommy/fenrir ~-6 pp on the
+// RUNS=100 gate) by re-ordering enemies that tie on row+col, so the
+// default path stays byte-for-byte the old behaviour.
+const byRowCol = (a, b) => a.pos.row - b.pos.row || a.pos.col - b.pos.col
+
+// Per-DPS target profiles (roles.js's unitTargetProfile - PRD "Strategic
+// Combat System V2" 11-12). The player-side counterpart to threatTarget:
+// a unit's own single-target attack goes for the enemy its profile
+// prefers, not just the front rank.
+//  - executioner: the lowest-HP enemy (finish a wounded target - it
+//    CONCENTRATES the squad's damage, which is why it's the one profile
+//    that landed inside the RUNS=100 gate; see roles.js for why
+//    `breaker` and `assassin` are held for a later round).
+//  - default: frontmost (byte-for-byte unchanged).
+// Deterministic; shielding respected, exactly like frontmost().
+export function playerTarget(state, def, enemies) {
+  const living = enemies.filter((e) => e.hp > 0)
+  if (!living.length) return null
+  const pool = unshieldedOrAll(state, living)
+  if (unitTargetProfile(def) === "executioner") return [...pool].sort((a, b) => a.hp - b.hp || byRowCol(a, b))[0].id
+  return [...pool].sort(byRowCol)[0].id
+}
+
+// Threat targeting (PRD "Strategic Combat System V2" 6-7). Enemies used
+// to focus-fire a UNIFORMLY RANDOM unshielded squad member - the one
+// bit of in-combat RNG the design mandate says shouldn't exist, and it
+// meant a tank was no safer to stand next to than a glass cannon. Now
+// every player unit carries a deterministic Threat value and the enemy
+// hits the highest. Pure + recomputed each pick from live state -
+// nothing persisted, no save bump. Every weight is in this one table,
+// placeholder-first.
+const THREAT = {
+  // Only `tank` spikes - that's the mechanic's point. The rest sit in a
+  // tight 38-45 band so a tank-less squad's round-1 target is decided
+  // mostly by the pos tie-break (front-left first), i.e. close to the
+  // old "hit the front" feel, and the fight length holds. A first pass
+  // with a wide role spread + heavy dmg/heal weighting ran aatos ~-17 pp
+  // on the RUNS=100 gate (its sustain squads had the healer focused
+  // first every fight and folded); this band + the low weights below
+  // brought it back.
+  role: { tank: 100, healer: 45, support: 40, control: 42, debuffer: 42, dps: 40, assassin: 40, summoner: 40, economy: 38 },
+  commander: 42, // no UNITS def -> a flat middle base
+  dmgW: 0.12, // running damageDealt this fight (state.stats) - a carry that keeps hitting slowly climbs the order
+  healW: 0.15, // running healingDone - an out-healing mender climbs a little too (PRD 6), but not enough to be deleted first
+  taunt: 400, // per stack: a large ADDITIVE, not a hard override (PRD 7 - taunt is a priority modifier, leaves room for a future ignore-taunt assassin)
+  front: 8, // pos.row <= 1 (the one forward slot) draws a little extra - ties into positioning (PR #422)
+}
+
+export function unitThreat(state, unit) {
+  const def = unit.id === "commander" ? state.commanderDef : UNITS[unit.defId]
+  const base = unit.id === "commander" ? THREAT.commander : (def && THREAT.role[unitProfile(def).primary]) || 40
+  const s = state.stats?.[unit.id] || {}
+  return (
+    base +
+    Math.round((s.damageDealt || 0) * THREAT.dmgW) +
+    Math.round((s.healingDone || 0) * THREAT.healW) +
+    ((unit.powers?.taunt || 0) > 0 ? THREAT.taunt * unit.powers.taunt : 0) +
+    ((unit.pos?.row ?? 2) <= 1 ? THREAT.front : 0)
+  )
+}
+
+// The enemy's single-target pick. Taunt still bypasses shielding and
+// hard-forces the pool (a taunter draws fire from a technically-shielded
+// square too - the old random pool's rule). Otherwise: the enemy works
+// DOWN the squad in threat order - round 1 hits the highest-threat unit,
+// round 2 the next, wrapping; as units fall the pool shrinks and the
+// top survivors get hit every round. `nth` = this attacker's index in
+// the round's turn order (actSide passes 0, 1, 2 ...) so a multi-enemy
+// volley SPREADS across the squad instead of every enemy computing the
+// same round-number index and dog-piling one unit.
+//
+// `mode` (feat/hearthwood-hunters - The Hunters archetype, Enemy
+// Ecosystem PRD): "threat" (default, above) hits the tank first;
+// "hunt" runs the SAME machinery with the sort REVERSED - lowest threat
+// first, tie-broken by lowest HP - so a hunting pack skips your wall and
+// piles onto the carry / healer / back line. Taunt override, shielding
+// filter, `nth` spread and the round-wrap are all identical between the
+// two modes, so the counters stay wired: a taunter still pulls the whole
+// pack, a shielded soft unit is still skipped while an unshielded one
+// exists. `guard` (units.js) - in hunt mode, if the picked target has a
+// living guard ally Chebyshev-adjacent, the guard steps in front and
+// takes the hit instead (never stalls - falls through to the pick if no
+// guard is adjacent). Hunt-mode-only for v1; general targeting redirect
+// is a bigger fairness lever, deferred (same "machinery ready" note as
+// roles.js's assassin/breaker target profiles).
+//
+// Why not pure argmax? That tested ~13-16 pp below `development` on the
+// RUNS=100 gate (the bot's squads have no forward tank to soak a
+// deterministic focus, so its damage dealers got deleted and it
+// snowballed). And round-number-only (no `nth`) sank the sustain
+// Commander ~17 pp: a whole enemy volley landing on one unit per round
+// outpaced its per-round heals. Threat order + per-attacker offset
+// spreads damage the way the old uniform-random pick did (fight length
+// holds) while still making threat matter - highest-threat is hit
+// first - and stays fully deterministic, no RNG.
+function threatTarget(state, units, nth = 0, mode = "threat") {
   const living = units.filter((u) => u.hp > 0)
   if (!living.length) return null
   const taunters = living.filter((u) => (u.powers.taunt || 0) > 0)
   const pool = taunters.length ? taunters : unshieldedOrAll(state, living)
-  return pool[Math.floor(Math.random() * pool.length)].id
+  const hunt = mode === "hunt"
+  const sorted = [...pool].sort((a, b) => {
+    const byThreat = hunt ? unitThreat(state, a) - unitThreat(state, b) : unitThreat(state, b) - unitThreat(state, a)
+    return (
+      byThreat ||
+      (hunt ? (a.hp || 0) - (b.hp || 0) : 0) ||
+      a.pos.row - b.pos.row ||
+      a.pos.col - b.pos.col ||
+      (a.id < b.id ? -1 : 1)
+    )
+  })
+  const picked = sorted[((state.round || 1) - 1 + nth) % sorted.length]
+  if (hunt && !taunters.length) {
+    const guard = living.find(
+      (g) => g.id !== picked.id && UNITS[g.defId]?.guard && kingAdjacent(g.pos, picked.pos),
+    )
+    if (guard) return guard.id
+  }
+  return picked.id
+}
+
+// The unit the enemy's next attack lands on - for the board's targeting
+// cue (offset 0 = this round's first attacker). Uses hunt mode when the
+// active formation is a hunting pack (formations.js sets enemySynergyLabel).
+export function topThreatTargetId(state) {
+  const mode = state.enemySynergyLabel === "They hunt the weak one" ? "hunt" : "threat"
+  return threatTarget(state, state.playerUnits || [], 0, mode)
 }
 
 // `deployedUnits` is up to 4 entries, either a bare unit id from
@@ -171,7 +304,25 @@ export function startAutoBattle(
   commanderItemIds = [],
   pendingEffects = [],
   difficultyFactor = 1,
+  arenaId = null,
+  // Forest Mood (moods.js): the world's posture (restless | purified |
+  // corrupted, set by the Act crossroads) becomes a live, escalating
+  // per-battle meter. Only the starting value / rail differ by state;
+  // the meter itself lives on the battle object and climbs each round
+  // in resolveRound's checkForestMood.
+  forestState = "restless",
+  // The Crownless (Act V - runEngine.startCrownlessBattle): a real 1:1
+  // mirror of the player's own deployed squad on the enemy side. When
+  // given (deployedUnits shape: [{ defId, upgradeLevel, itemIds }]), the
+  // enemy pieces are built from UNIT defs via the exact same
+  // effectiveUnitDef -> freshUnit path the player's own recruits use,
+  // instead of from `enemyFormationOrId`'s ENEMIES pieces. `enemyFormationOrId`
+  // stays as the fallback for an empty squad. v1 limitation: haste /
+  // chainDamage / rallyAdjacent / summon are player-side-only in actSide,
+  // so the mirror clones stats + movePattern + passives, not those.
+  mirrorSquad = null,
 ) {
+  const useMirror = Array.isArray(mirrorSquad) && mirrorSquad.length > 0
   const formation = resolveFormation(enemyFormationOrId)
   const character = CHARACTERS[characterId]
 
@@ -190,30 +341,46 @@ export function startAutoBattle(
   // raw stats, since resolveRound's own enemy actSide call re-resolves
   // a def fresh every round - the scaled movePattern amounts need to
   // exist somewhere it'll actually find them, not just at spawn.
+  // Enemy "pieces": from the mirror squad (UNIT defs) or the formation
+  // (ENEMIES defs). Same downstream shape either way.
+  const mirrorDefIds = useMirror ? mirrorSquad.map((e) => e.defId) : []
+  const enemyPieceSpecs = useMirror
+    ? mirrorSquad.map((entry, i) => ({
+        defId: entry.defId,
+        pos: MIRROR_POSITIONS[i] || { row: 0, col: i % 3 },
+        upgrades: entry.upgrades || [],
+        itemIds: entry.itemIds || [],
+      }))
+    : formation.pieces.map((p) => ({ ...p, upgrades: [], itemIds: [] }))
+
+  const scaleDefFor = (base) =>
+    difficultyFactor === 1
+      ? base
+      : {
+          ...base,
+          maxHp: Math.round(base.maxHp * difficultyFactor),
+          movePattern: base.movePattern.map((m) => scaleEffect(m, difficultyFactor)),
+          passive: base.passive
+            ? base.passive.map((p) =>
+                p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, difficultyFactor) } : scaleEffect(p, difficultyFactor),
+              )
+            : base.passive,
+        }
+
   const enemyDefs = {}
-  for (const defId of new Set(formation.pieces.map((p) => p.defId))) {
-    const base = ENEMIES[defId]
-    enemyDefs[defId] =
-      difficultyFactor === 1
-        ? base
-        : {
-            ...base,
-            maxHp: Math.round(base.maxHp * difficultyFactor),
-            movePattern: base.movePattern.map((m) => scaleEffect(m, difficultyFactor)),
-            passive: base.passive
-              ? base.passive.map((p) =>
-                  p.type === "addTrigger" ? { ...p, effect: scaleEffect(p.effect, difficultyFactor) } : scaleEffect(p, difficultyFactor),
-                )
-              : base.passive,
-          }
+  for (const defId of new Set(enemyPieceSpecs.map((p) => p.defId))) {
+    const spec = enemyPieceSpecs.find((p) => p.defId === defId)
+    const base = useMirror ? effectiveUnitDef(defId, spec.upgrades, mirrorDefIds) : ENEMIES[defId]
+    enemyDefs[defId] = scaleDefFor(base)
   }
 
-  const enemies = formation.pieces.map((piece, i) => {
+  const enemies = enemyPieceSpecs.map((piece, i) => {
     const def = enemyDefs[piece.defId]
     return freshUnit({
       id: `e${i}`,
       defId: piece.defId,
-      name: def.name,
+      itemIds: piece.itemIds,
+      name: useMirror ? `Echo of ${def.name}` : def.name,
       hp: def.maxHp,
       maxHp: def.maxHp,
       pos: piece.pos,
@@ -237,15 +404,17 @@ export function startAutoBattle(
   const effectiveDefs = {}
   const recruitedUnits = deployedUnits.map((entry, i) => {
     const defId = typeof entry === "string" ? entry : entry.defId
-    const upgradeLevel = typeof entry === "string" ? 0 : entry.upgradeLevel || 0
+    // `upgrades` is the chosen-branch array; fall back to the legacy
+    // numeric `upgradeLevel` if that's all the caller passed.
+    const upgrades = typeof entry === "string" ? [] : entry.upgrades || entry.upgradeLevel || 0
     const itemIds = typeof entry === "string" ? [] : entry.itemIds || []
-    const def = effectiveUnitDef(defId, upgradeLevel, deployedDefIds)
+    const def = effectiveUnitDef(defId, upgrades, deployedDefIds)
     const id = `p${i}`
     effectiveDefs[id] = def
     return freshUnit({
       id,
       defId,
-      upgradeLevel,
+      upgrades,
       itemIds,
       name: def.name,
       hp: def.maxHp,
@@ -287,6 +456,10 @@ export function startAutoBattle(
     enemies,
     stats: {},
     roundEvents: [],
+    // Readability recap (summarizeBattle -> ResultOverlay): the lowest
+    // the living squad's HP% ever dipped this fight. Write-only - the
+    // sim never reads it back.
+    lowestSquadHpPct: 100,
     // Cached so every later per-round def lookup (resolveRound's own
     // actSide call, applyRallyHealTick) can resolve the Commander's
     // own def without a UNITS[defId] lookup - the Commander's
@@ -317,6 +490,44 @@ export function startAutoBattle(
     if (def.passive?.length) {
       state = applyEffects(state, def.passive, { actorId: e.id, targetId: e.id })
     }
+    // The Brood (feat/hearthwood-brood): register the death-split trigger
+    // from the def's `broodSplit` marker so the numbers (count / hpFactor
+    // / maxGen) live in ONE place. effects.js's broodSplit() spawns
+    // HP-reduced copies onto free enemy cells when this piece dies. A
+    // mid-battle spawn never reaches this loop, so a hatchling never gets
+    // its own onDeath trigger - one of two guards against re-splitting
+    // (the other is broodGen >= maxGen).
+    if (def.broodSplit) {
+      state = applyEffects(
+        state,
+        [{ type: "addTrigger", trigger: "onDeath", effect: { type: "broodSplit", ...def.broodSplit } }],
+        { actorId: e.id, targetId: e.id },
+      )
+    }
+    // The Collectors (feat/hearthwood-collectors): register the buff-theft
+    // trigger from the def's `leech` marker. effects.js's leech() moves one
+    // stack of the first leechable buff (Strength / Bulwark / Ward / Regen
+    // / Evade) from the player unit it hits to this Collector - 1 stack per
+    // landed hit, no-op if the victim has nothing. No numbers to carry.
+    if (def.leech) {
+      state = applyEffects(
+        state,
+        [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "leech" } }],
+        { actorId: e.id, targetId: e.id },
+      )
+    }
+  }
+
+  // Enemy formation synergy (formations.js's optional `synergy`): a
+  // multi-piece formation that fights as a unit gets a squad-wide
+  // battle-start bonus to every living piece, the mirror of the
+  // player's own tribe synergies. Only fires with 2+ pieces (a
+  // synthesized 1-enemy formation never has one anyway).
+  if (formation.synergy?.effects?.length && enemies.length >= 2) {
+    state = { ...state, enemySynergyLabel: formation.synergy.label }
+    for (const e of state.enemies) {
+      state = applyEffects(state, formation.synergy.effects, { actorId: e.id, targetId: e.id })
+    }
   }
 
   // Each deployed unit's own passive (ported from its old power-card
@@ -326,6 +537,17 @@ export function startAutoBattle(
     const def = effectiveDefs[u.id]
     if (def.passive?.length) {
       state = applyEffects(state, def.passive, { actorId: u.id, targetId: u.id })
+    }
+    // Growth (units.js's `growth`, e.g. World-Ash Elder): a thin alias
+    // for "gains Ascendant N at battle start" - effects.js's
+    // tickAscendant then adds that many Strength every round in
+    // resolveRoundInner. No new tick; this is just the authoring /
+    // card-display name for the scaling-carry archetype.
+    if (def.growth) {
+      state = applyEffects(state, [{ type: "applyBuff", id: "ascendant", amount: def.growth.amount }], {
+        actorId: u.id,
+        targetId: u.id,
+      })
     }
     // Rally (units.js's rallyAdjacent, e.g. Ashenhorn): the roster's
     // first positional passive - targets OTHER deployed units whose
@@ -450,6 +672,65 @@ export function startAutoBattle(
         targetId: tankiest.id,
       })
     }
+    // The Rearguard (runEngine.js's SHOP_INVESTMENTS - a Ledger buy that
+    // pushes "rearguard-standard" onto runState.relics): the mirror of
+    // Bulwark Standard - Bulwark (one incoming hit shrugged off) goes to
+    // whichever deployed unit has the LOWEST maxHp, the exact unit a
+    // hunting pack (The Hunters) piles onto. Same special-case slot,
+    // same one-time battle-start timing.
+    if (relic?.guardLowestHp && state.playerUnits.length) {
+      const frailest = state.playerUnits.reduce((worst, u) => (u.maxHp < worst.maxHp ? u : worst), state.playerUnits[0])
+      state = applyEffects(state, [{ type: "applyBuff", id: "bulwark", amount: 1 }], {
+        actorId: frailest.id,
+        targetId: frailest.id,
+      })
+    }
+    // The Marked Coin (runEngine.js's SHOP_INVESTMENTS - a Ledger buy
+    // that pushes "marked-coin" onto runState.relics, feat/hearthwood-
+    // coven): Vulnerable on the LOWEST-maxHp living enemy at battle start
+    // - the Coven Matron in a Coven fight, a "your burst lands harder on
+    // the key piece" everywhere else. The enemy-side mirror of
+    // guardLowestHp.
+    if (relic?.markLowestEnemyHp) {
+      const living = state.enemies.filter((e) => e.hp > 0)
+      if (living.length) {
+        const frail = living.reduce((worst, e) => (e.maxHp < worst.maxHp ? e : worst), living[0])
+        state = applyEffects(state, [{ type: "applyBuff", id: "vulnerable", amount: 2 }], {
+          actorId: frail.id,
+          targetId: frail.id,
+        })
+      }
+    }
+    // The Silenced Bell (runEngine.js's SHOP_INVESTMENTS - a Ledger buy
+    // that pushes "silenced-bell" onto runState.relics, feat/hearthwood-
+    // cult): Stun 1 on the HIGHEST-maxHp living enemy at battle start -
+    // the Ritual Warden in a Cult fight (so applyCultTick's first charge
+    // is stalled, delaying the rite a round), the tankiest body anywhere
+    // else (one turn lost). The mirror of markLowestEnemyHp.
+    if (relic?.stunHighestHp) {
+      const living = state.enemies.filter((e) => e.hp > 0)
+      if (living.length) {
+        const big = living.reduce((best, e) => (e.maxHp > best.maxHp ? e : best), living[0])
+        state = applyEffects(state, [{ type: "applyBuff", id: "stun", amount: 1 }], {
+          actorId: big.id,
+          targetId: big.id,
+        })
+      }
+    }
+    // The Weathered Standard (runEngine.js's SHOP_INVESTMENTS - a Ledger
+    // buy that pushes "weathered-standard" onto runState.relics, feat/
+    // hearthwood-ancients): every deployed unit starts each battle with
+    // Bulwark 1 - one incoming hit shrugged off. Generically useful, and
+    // the "you came braced" answer to The Ancients' squad-wide payoff.
+    if (relic?.bracedSquad) {
+      for (const u of state.playerUnits) {
+        if (u.hp <= 0) continue
+        state = applyEffects(state, [{ type: "applyBuff", id: "bulwark", amount: 1 }], {
+          actorId: u.id,
+          targetId: u.id,
+        })
+      }
+    }
   }
 
   // Tribe synergies (synergies.js's UNIT_TRIBES/SYNERGY_TIERS) - counted
@@ -463,7 +744,10 @@ export function startAutoBattle(
   // squad-wide source (Commander squadPassive, relics) already set.
   const tribeCounts = {}
   for (const u of recruitedUnits) {
-    for (const t of tribesOf(u.defId, effectiveDefs[u.id])) tribeCounts[t] = (tribeCounts[t] || 0) + 1
+    // Synergy upgrade branch (upgrades.js): a unit with it counts as
+    // +1 toward each of its tribes (effectiveDefs[u.id].synergyBonus).
+    const weight = 1 + (effectiveDefs[u.id]?.synergyBonus || 0)
+    for (const t of tribesOf(u.defId, effectiveDefs[u.id])) tribeCounts[t] = (tribeCounts[t] || 0) + weight
   }
   for (const [tribeId, count] of Object.entries(tribeCounts)) {
     const tiers = SYNERGY_TIERS[tribeId] || []
@@ -474,6 +758,102 @@ export function startAutoBattle(
       }
     }
   }
+
+  // Cross-tribe combos (synergies.js's COMBO_SYNERGIES) - counted from
+  // the same recruited-squad tribeCounts, applied squad-wide exactly
+  // like a tribe tier.
+  for (const combo of resolveComboSynergies(tribeCounts)) {
+    for (const u of state.playerUnits) {
+      state = applyEffects(state, combo.effects, { actorId: u.id, targetId: u.id })
+    }
+  }
+
+  // Formation / positional synergies (synergies.js's POSITION_SYNERGIES).
+  // recruitedUnits[i] sits in SLOT_POSITIONS[i] and has id `p${i}`, so
+  // slot index -> tribe tags and slot index -> unit id are both direct.
+  const slotTribes = {}
+  recruitedUnits.forEach((u, i) => {
+    slotTribes[i] = tribesOf(u.defId, effectiveDefs[u.id])
+  })
+  for (const hit of resolvePositionSynergies(slotTribes)) {
+    const targets =
+      hit.scope === "squad"
+        ? state.playerUnits
+        : hit.slots.map((i) => state.playerUnits.find((u) => u.id === `p${i}`)).filter(Boolean)
+    for (const u of targets) {
+      state = applyEffects(state, hit.effects, { actorId: u.id, targetId: u.id })
+    }
+  }
+
+  // Conditional passives (units.js's `conditionalPassive`, e.g. The
+  // Thorn Throne / Deepwood Sovereign): a battle-start self-buff that
+  // only lands when the squad you built - or where you placed this unit -
+  // meets its `when`. Evaluated here, after tribeCounts are tallied and
+  // units are in their final SLOT_POSITIONS, so both squad-shaped and
+  // position-shaped conditions resolve against the real board. Read from
+  // recruitedUnits (id `p${i}`) so the Commander / summons never qualify.
+  // Player-side only, same v1 limitation as growth / aura / rallyAdjacent.
+  for (const ru of recruitedUnits) {
+    const cond = effectiveDefs[ru.id]?.conditionalPassive
+    if (!cond) continue
+    const live = state.playerUnits.find((u) => u.id === ru.id)
+    if (!live) continue
+    if (evalUnitCondition(cond.when, { pos: live.pos, tribeCounts, squadSize: recruitedUnits.length })) {
+      state = applyEffects(state, cond.effect, { actorId: ru.id, targetId: ru.id })
+    }
+  }
+
+  // Coherence rewards (playerPower.js's BuildCoherence made mechanical -
+  // DifficultyEngine Phase 1, PR #436). Both scale off how many tribe
+  // synergies the recruited squad actually has active this fight, so a
+  // lean coherent board is paid and a pile of disjoint strong bodies
+  // gets nothing. Player-side only, battle-start once, block resets each
+  // round (non-compounding, the #434-safe shape).
+  const activeSynergyCount = Object.entries(tribeCounts).filter(
+    ([tribeId, count]) => (SYNERGY_TIERS[tribeId] || []).some((t) => count >= t.count),
+  ).length
+  if (activeSynergyCount > 0) {
+    // Relic: Rooted Standard - every deployed unit gets `N * synergies` Block.
+    for (const relicId of relicIds) {
+      const n = RELICS[relicId]?.synergyScaledBlock
+      if (!n) continue
+      for (const u of state.playerUnits) {
+        state = applyEffects(state, [{ type: "block", amount: n * activeSynergyCount }], { actorId: u.id, targetId: u.id })
+      }
+    }
+    // Unit: `synergyScaled` (e.g. Keystone Warden) - self-buff `id` by
+    // `amount * synergies`.
+    for (const ru of recruitedUnits) {
+      const ss = effectiveDefs[ru.id]?.synergyScaled
+      if (!ss) continue
+      state = applyEffects(state, [{ type: "applyBuff", id: ss.id, amount: ss.amount * activeSynergyCount }], {
+        actorId: ru.id,
+        targetId: ru.id,
+      })
+    }
+  }
+
+  // Positioning as a role mechanic (roles.js's positionFitForSlot /
+  // POSITION_BONUS - PRD "Unit Roles" 20-21). recruitedUnits[i] sits in
+  // SLOT_POSITIONS[i]; a unit deployed to its preferred position (tanks
+  // forward = slot 3, everyone else back = slots 0-2) gets a single
+  // battle-start stack of a role-appropriate buff. Out of position gets
+  // nothing - no penalty. Player-side only, same v1 limit as the loops
+  // above.
+  recruitedUnits.forEach((ru, i) => {
+    const base = UNITS[ru.defId]
+    if (!base) return
+    const bent = effectiveRole(base.role, ru.itemIds || [])
+    const profile = unitProfile(base, bent && bent !== base.role ? bent : undefined)
+    if (positionFitForSlot(profile.position, i) !== "in") return
+    const bonus = POSITION_BONUS[profile.primary]
+    if (!bonus) return
+    state = applyEffects(state, [{ type: "applyBuff", id: bonus.id, amount: bonus.amount }], {
+      actorId: ru.id,
+      targetId: ru.id,
+    })
+    state = { ...state, log: [...state.log, `${base.name} is in position.`] }
+  })
 
   // Commander Active Power (characters.js's activePower, runEngine.js's
   // activateCommanderPower/startFormationBattle): queued during the shop
@@ -487,6 +867,29 @@ export function startAutoBattle(
   }
 
   state = scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor)
+
+  // Arena hazard (arenas.js) - a per-battle modifier on the whole
+  // field, applied AFTER the DPS-based enemy HP scaling so it lands as
+  // a raw overlay on an already-balanced fight, the way a Slay the
+  // Spire room modifier does. `scope` picks which side(s) it hits.
+  const arena = arenaId ? ARENAS.find((a) => a.id === arenaId) : null
+  if (arena?.effects?.length) {
+    state = { ...state, arenaId, arenaName: arena.name }
+    const hit = []
+    if (arena.scope === "player" || arena.scope === "both") hit.push(...state.playerUnits)
+    if (arena.scope === "enemy" || arena.scope === "both") hit.push(...state.enemies)
+    for (const u of hit) {
+      state = applyEffects(state, arena.effects, { actorId: u.id, targetId: u.id })
+    }
+    state = { ...state, log: [...state.log, `Arena: ${arena.name}. ${arena.description}`] }
+  }
+
+  // Forest Mood (moods.js) - seed the meter from the world's posture.
+  // No tier fires at battle start (every rail's `start` sits below its
+  // first tier's `at`); the meter only escalates in resolveRound's
+  // checkForestMood, one step per round.
+  const moodRail = moodRailFor(forestState)
+  state = { ...state, forestState, forestMood: moodRail.start, forestMoodFired: [], forestMoodAnnounce: null }
 
   return state
 }
@@ -620,14 +1023,14 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
   // that clears a fight in 2-3 rounds now just... does, and feels like
   // it, instead of getting quietly rubber-banded back to a fixed
   // target every time.
-  // 0.65 -> 1.3: matching runEngine.js's difficultyFactorForNode cap
-  // (Marc: "twice as hard" - doubled that constant). This divisor
-  // MUST track that same cap - it's how this function reads back
-  // "how far into the ramp is this fight" from the raw multiplier;
-  // leaving it at the old 0.65 while the real cap grew would read a
-  // mid-run fight as already 100% ramped, maxing targetRounds out
-  // long before the run's actual end.
-  const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / 0.75))
+  // This divisor MUST equal runEngine.js's difficultyFactorForNode
+  // cap - it's how this function reads back "how far into the ramp is
+  // this fight" from the raw multiplier; a stale copy here would read
+  // a mid-run fight as already 100% ramped, maxing targetRounds out
+  // long before the run's actual end. Was a hand-synced literal
+  // (0.65 -> 1.3 -> 0.75); now imported as RAMP_CAP so the two
+  // physically cannot drift.
+  const progress = Math.min(1, Math.max(0, (difficultyFactor - 1) / RAMP_CAP))
   const targetRounds = 1.5 + progress * 1
   const targetTotalHp = squadDps * targetRounds
 
@@ -699,6 +1102,10 @@ function scaleEnemyHpToSquadDps(state, effectiveDefs, difficultyFactor) {
 
 function actSide(state, actingUnits, getDef, targetPool, side) {
   let next = state
+  // How many enemy single-target attacks have resolved this round -
+  // offsets threatTarget so a multi-enemy volley spreads across the
+  // squad instead of every enemy hitting the same round-index unit.
+  let enemyAttackN = 0
   for (const unit of actingUnits) {
     if (next.phase !== "player") break
     const current = getUnit(next, unit.id)
@@ -727,7 +1134,7 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
     const def = getDef(acting)
 
     // AoE: the one intent type that never goes through frontmost/
-    // randomLiving at all - it hits every living unit in the pool
+    // threatTarget at all - it hits every living unit in the pool
     // directly, so Taunt (which only redirects a single-target pick)
     // and shielding (which only filters that same pick) can't do
     // anything against it. Spacemonkey's signature move, deliberately:
@@ -744,7 +1151,10 @@ function actSide(state, actingUnits, getDef, targetPool, side) {
       }
     } else {
       const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
-      const targetId = side === "player" ? frontmost(next, targetPool(next)) : randomLiving(next, targetPool(next))
+      const targetId =
+        side === "player"
+          ? playerTarget(next, def, targetPool(next))
+          : threatTarget(next, targetPool(next), enemyAttackN++, def.hunter ? "hunt" : "threat")
       if (targetId) {
         const targetWasAlive = (getUnit(next, targetId)?.hp || 0) > 0
         next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })
@@ -877,7 +1287,7 @@ function applyRallyHealTick(state) {
   let next = state
   for (const u of next.playerUnits) {
     if (u.hp <= 0) continue
-    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgradeLevel || 0, next.deployedDefIds || [])
+    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgrades || [], next.deployedDefIds || [])
     if (!def.rallyHeal) continue
     for (const other of next.playerUnits) {
       if (other.id === u.id || other.hp <= 0) continue
@@ -889,11 +1299,316 @@ function applyRallyHealTick(state) {
   return next
 }
 
+// aura (units.js's `aura`, e.g. Bulwark of Ages / Emberbanner): every
+// round, `aura.effect` (a single applyEffects entry - block / heal /
+// applyBuff) lands on each living Chebyshev-adjacent ally. The per-round
+// mirror of rallyAdjacent's one-shot battle-start grant, and structured
+// exactly like applyRallyHealTick above (same per-round def re-derive so
+// an Upgraded aura scales, same kingAdjacent loop). Player-side only.
+function applyAuraTick(state) {
+  let next = state
+  for (const u of next.playerUnits) {
+    if (u.hp <= 0) continue
+    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgrades || [], next.deployedDefIds || [])
+    if (!def.aura?.effect) continue
+    for (const other of next.playerUnits) {
+      if (other.id === u.id || other.hp <= 0) continue
+      if (kingAdjacent(u.pos, other.pos)) {
+        next = applyEffects(next, [def.aura.effect], { actorId: other.id, targetId: other.id })
+      }
+    }
+  }
+  return next
+}
+
+// covenAura (enemies.js's `covenAura`, feat/hearthwood-coven - The Coven
+// archetype): the ENEMY-side mirror of applyAuraTick, but NOT adjacency-
+// gated - a Coven Matron behind the front line buffs EVERY OTHER living
+// enemy each round. Kill the matron (reach past the shield: a pattern
+// attacker, an executioner, a Sunder) and the escalation stops; grind
+// the front and it snowballs. Runs before actSide (in resolveRoundInner),
+// so a round-1 matron kill only ever eats one buff cycle.
+function applyCovenTick(state) {
+  let next = state
+  for (const e of next.enemies) {
+    if (e.hp <= 0) continue
+    const def = next.enemyDefs?.[e.defId] || ENEMIES[e.defId]
+    const aura = def?.covenAura
+    if (!aura) continue
+    for (const other of next.enemies) {
+      if (other.id === e.id || other.hp <= 0) continue
+      next = applyEffects(next, [{ type: "applyBuff", id: aura.id, amount: aura.amount }], { actorId: other.id, targetId: other.id })
+    }
+  }
+  return next
+}
+
+// cultRitual (enemies.js's `cultRitual` on ritual-warden, feat/hearthwood-
+// cult - The Cult archetype): a Ritual Warden behind the front line
+// channels a rite. Every `every` rounds it CHANNELS COMPLETE, sacrifices
+// a living `cultFodder` ally (killed via loseHp -> the real death path,
+// #440's generic onDeath fires harmlessly), and folds their strength
+// into the rest - +buff Strength to every remaining living enemy, plus
+// a small self-`feed` heal. The inverse of The Brood: the enemy kills
+// its OWN to make fewer, scarier bodies. Bounded three ways: it only
+// fires while a fodder ally is alive (2 per formation -> 1-2 cycles,
+// then the fight DE-ESCALATES - nothing left to give); the fodder that
+// shields the Warden is the same thing it sacrifices (killing your way
+// in also starves the rite); and a Stun on the Warden stalls the charge
+// (`stun` is the only decaying control status, so it's a MAINTAINED
+// interrupt - Chantbreaker has to keep hitting the Warden). Runs
+// BETWEEN the player and enemy phases in resolveRoundInner: after the
+// player acts (so a stun / kill they just landed pre-empts this round's
+// charge - the enemy phase consumes `stun`, so it can't be read next
+// round) and before the enemies act. `ritualCharge` lives only on the
+// live battle piece - never serialised.
+function applyCultTick(state) {
+  let next = state
+  for (const e of next.enemies) {
+    if (e.hp <= 0) continue
+    const def = next.enemyDefs?.[e.defId] || ENEMIES[e.defId]
+    const ritual = def?.cultRitual
+    if (!ritual) continue
+    // A stunned chanter can't channel - the charge does not advance.
+    if ((e.powers?.stun || 0) > 0) {
+      next = { ...next, log: [...next.log, `${e.name}'s chant falters.`] }
+      continue
+    }
+    const charge = (e.ritualCharge || 0) + 1
+    if (charge < (ritual.every ?? 3)) {
+      const live = getUnit(next, e.id)
+      if (live) next = setUnit(next, e.id, { ...live, ritualCharge: charge })
+      continue
+    }
+    // The rite completes - find a living fodder ally to give it.
+    const fodder = next.enemies.find(
+      (o) => o.id !== e.id && o.hp > 0 && (next.enemyDefs?.[o.defId] || ENEMIES[o.defId])?.cultFodder,
+    )
+    const resetCharge = () => {
+      const live = getUnit(next, e.id)
+      if (live) next = setUnit(next, e.id, { ...live, ritualCharge: 0 })
+    }
+    if (!fodder) {
+      // The de-escalation: once the fodder is spent, the fight can't get worse.
+      next = { ...next, log: [...next.log, `${e.name}'s ritual sputters - nothing left to give.`] }
+      resetCharge()
+      continue
+    }
+    next = { ...next, log: [...next.log, `${e.name} gives ${fodder.name} to the ritual.`] }
+    next = applyEffects(next, [{ type: "loseHp", amount: fodder.hp + 999, target: "target" }], {
+      actorId: e.id,
+      targetId: fodder.id,
+    })
+    for (const other of next.enemies) {
+      if (other.hp <= 0) continue
+      next = applyEffects(next, [{ type: "applyBuff", id: ritual.buff.id, amount: ritual.buff.amount }], {
+        actorId: other.id,
+        targetId: other.id,
+      })
+    }
+    if (ritual.feed) {
+      const fed =
+        ritual.feed.id === "heal"
+          ? { type: "heal", amount: ritual.feed.amount }
+          : { type: "applyBuff", id: ritual.feed.id, amount: ritual.feed.amount }
+      next = applyEffects(next, [fed], { actorId: e.id, targetId: e.id })
+    }
+    resetCharge()
+  }
+  return next
+}
+
+// charge (enemies.js's `charge` on ancient-oak / elder-oak, feat/
+// hearthwood-ancients - The Ancients archetype): a slow colossus winding
+// up ONE telegraphed squad-wide hit on a visible countdown. Every prior
+// archetype escalates continuously; this one is a single big payoff
+// coming on a specific round, and there are FOUR clean answers -
+//   * kill it   - it's a legal target from turn 1 (front-centre, no
+//                 shield), so burst pre-empts the payoff;
+//   * stun it   - a stunned Ancient can't wind up, the count HOLDS;
+//   * stagger it - a round of damage >= charge.breakDamage knocks it off
+//                 rhythm and resets the count to full;
+//   * brace for it - squad-wide Block / Bulwark the round it lands.
+// The payoff is a FIXED one-shot ({ damage: N } - a number, not a
+// compounding ramp), so it's not the #433 escalation trap. Runs right
+// after applyCultTick (between the player and enemy phases) so a fast
+// answer the player just landed genuinely beats the count this round.
+// `chargeCounter` / `chargeHpMark` live only on the live battle piece -
+// never serialised. `chargeHpMark` is re-stamped to the current HP on
+// every branch, so it always measures "damage taken since last round".
+function applyAncientCharge(state) {
+  let next = state
+  for (const e of next.enemies) {
+    if (e.hp <= 0) continue
+    const def = next.enemyDefs?.[e.defId] || ENEMIES[e.defId]
+    const charge = def?.charge
+    if (!charge) continue
+    const counter = e.chargeCounter ?? charge.turns
+    const mark = e.chargeHpMark ?? e.maxHp
+    const stamp = (patch) => {
+      const live = getUnit(next, e.id)
+      if (live) next = setUnit(next, e.id, { ...live, chargeHpMark: live.hp, ...patch })
+    }
+    // Stagger: a heavy round of damage knocked it off its rhythm.
+    if (mark - e.hp >= charge.breakDamage) {
+      stamp({ chargeCounter: charge.turns })
+      next = { ...next, log: [...next.log, `${e.name} staggers - the ${charge.label} unravels.`] }
+      continue
+    }
+    // Hold: a stunned Ancient can't wind up - the count does not advance.
+    if ((e.powers?.stun || 0) > 0) {
+      stamp({})
+      next = { ...next, log: [...next.log, `${e.name}'s ${charge.label} falters.`] }
+      continue
+    }
+    // Tick.
+    const nextCounter = counter - 1
+    if (nextCounter > 0) {
+      stamp({ chargeCounter: nextCounter })
+      next = { ...next, log: [...next.log, `${e.name} draws breath - ${charge.label} in ${nextCounter}.`] }
+      continue
+    }
+    // Payoff: the winding-up hit lands on the whole squad (the AoE shape).
+    next = { ...next, log: [...next.log, `${e.name} unleashes ${charge.label}!`] }
+    const targetIds = next.playerUnits.filter((u) => u.hp > 0).map((u) => u.id)
+    for (const tid of targetIds) {
+      if (next.phase !== "player") break
+      next = applyEffects(next, charge.effect, { actorId: e.id, targetId: tid })
+    }
+    if (next.phase !== "player") return next
+    stamp({ chargeCounter: charge.turns })
+  }
+  return next
+}
+
+// spite (units.js's `spite`, feat/hearthwood-rot): a ONE-SHOT. The first
+// round the whole player squad's total poison stacks reach 3+, each
+// living spite unit gains min(6, amount * 3) Strength, once (a
+// `spiteWoke` power flag guards it). Non-compounding by construction -
+// the burst answer to The Rot. Player-side only, checked each round
+// after the DOT/HOT ticks so this round's poison counts.
+function applySpiteTick(state) {
+  let next = state
+  const totalPoison = next.playerUnits.reduce((s, u) => s + (u.hp > 0 ? u.powers.poison || 0 : 0), 0)
+  if (totalPoison < 3) return next
+  for (const u of next.playerUnits) {
+    if (u.hp <= 0 || u.powers.spiteWoke) continue
+    const def = u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgrades || [], next.deployedDefIds || [])
+    const amount = def.spite?.amount
+    if (!amount) continue
+    next = applyEffects(next, [{ type: "applyBuff", id: "strength", amount: Math.min(6, amount * 3) }], {
+      actorId: u.id,
+      targetId: u.id,
+    })
+    const live = getUnit(next, u.id)
+    if (live) next = setUnit(next, u.id, { ...live, powers: { ...live.powers, spiteWoke: 1 } })
+    next = { ...next, log: [...next.log, `${u.name} answers the rot.`] }
+  }
+  return next
+}
+
+// Predicate for units.js's `conditionalPassive.when` - one shape per
+// call (the authoring format is a single-key object). Deliberately tiny:
+// a richer condition language is a later PRD slice, not this round.
+function evalUnitCondition(when, ctx) {
+  if (!when) return false
+  if (when.tribeCount) return (ctx.tribeCounts[when.tribeCount.tribe] || 0) >= when.tribeCount.min
+  if (when.frontRow) return ctx.pos?.row === 1
+  if (when.backRow) return ctx.pos?.row === 2
+  if (when.squadSize) return ctx.squadSize >= when.squadSize.min
+  return false
+}
+
 // Resolves exactly one round: the whole player squad acts (in deployed
 // order), then the whole enemy squad acts (in formation order) - same
 // two-phase shape the turn-based engine already used, just with a
 // squad on each side instead of one hero.
+// Boss / miniboss phase mechanics (enemies.js's optional `phases`).
+// When a boss first drops to or below a phase's `atHpPct` of its max
+// HP, that phase's `effects` apply to the boss once (a self-buff,
+// summon, whatever the effect vocabulary allows) and `announce` is
+// logged + surfaced for a one-shot UI banner. Tracked per-piece via
+// `phasesFired` so it never re-triggers. Checked once per round after
+// both sides have acted.
+function checkBossPhases(state) {
+  let next = state
+  let announce = null
+  for (const e of next.enemies) {
+    const def = next.enemyDefs?.[e.defId] || ENEMIES[e.defId]
+    if (!def?.phases?.length || e.hp <= 0) continue
+    const fired = new Set(e.phasesFired || [])
+    const hpPct = e.hp / e.maxHp
+    for (let i = 0; i < def.phases.length; i++) {
+      const phase = def.phases[i]
+      if (fired.has(i) || hpPct > phase.atHpPct) continue
+      fired.add(i)
+      const live = next.enemies.find((x) => x.id === e.id)
+      next = setUnit(next, e.id, { ...live, phasesFired: [...fired] })
+      if (phase.effects?.length) {
+        next = applyEffects(next, phase.effects, { actorId: e.id, targetId: e.id })
+      }
+      if (phase.announce) {
+        announce = phase.announce
+        next = { ...next, log: [...next.log, `${e.name}: ${phase.announce}`] }
+      }
+    }
+  }
+  return announce ? { ...next, bossPhaseAnnounce: announce } : { ...next, bossPhaseAnnounce: null }
+}
+
+// Forest Mood (moods.js) - the deterministic sibling of checkBossPhases.
+// Called once per round after both sides act: the meter climbs a FIXED
+// `step` (never random), and any tier whose `at` it has now reached
+// fires once - its effects hit the field (arena-style, scope-picked),
+// its `announce` surfaces for a one-shot banner. `forestMoodFired`
+// tracks tier indices so a tier never re-triggers. Fully skipped for a
+// battle started without a forestState rail (older saves / direct
+// engine calls default it to "restless", so this only no-ops if the
+// meter fields were never seeded at all).
+export function checkForestMood(state) {
+  if (typeof state.forestMood !== "number") return { ...state, forestMoodAnnounce: null }
+  const rail = moodRailFor(state.forestState || "restless")
+  const mood = state.forestMood + rail.step
+  const fired = new Set(state.forestMoodFired || [])
+  let next = state
+  let announce = null
+  for (let i = 0; i < rail.tiers.length; i++) {
+    const tier = rail.tiers[i]
+    if (fired.has(i) || mood < tier.at) continue
+    fired.add(i)
+    announce = tier.announce
+    const hit = []
+    if (tier.scope !== "enemy") hit.push(...next.playerUnits.filter((u) => u.hp > 0))
+    if (tier.scope !== "player") hit.push(...next.enemies.filter((e) => e.hp > 0))
+    for (const u of hit) {
+      next = applyEffects(next, tier.effects, { actorId: u.id, targetId: u.id })
+    }
+    next = { ...next, log: [...next.log, `The forest ${tier.name.toLowerCase()}: ${tier.announce}.`] }
+  }
+  return { ...next, forestMood: mood, forestMoodFired: [...fired], forestMoodAnnounce: announce }
+}
+
+// Readability recap: fold the living squad's current HP% into the
+// running low-water mark. Applied at every resolveRound exit (there are
+// several early returns), so "closest call" catches a mid-round wipe
+// (0%) as readily as a scary round the squad survived. Pure read of
+// hp/maxHp; writes only `lowestSquadHpPct`, which nothing in the sim
+// reads back.
+function foldSquadLow(s) {
+  const units = s.playerUnits || (s.player ? [s.player] : [])
+  const maxHp = units.reduce((n, u) => n + (u.maxHp || 0), 0)
+  if (!maxHp) return s
+  const hp = units.reduce((n, u) => n + Math.max(0, u.hp || 0), 0)
+  const pct = (hp / maxHp) * 100
+  const low = Math.min(s.lowestSquadHpPct ?? 100, pct)
+  return low === (s.lowestSquadHpPct ?? 100) ? s : { ...s, lowestSquadHpPct: low }
+}
+
 export function resolveRound(state) {
+  return foldSquadLow(resolveRoundInner(state))
+}
+
+function resolveRoundInner(state) {
   let next = {
     ...state,
     log: [...state.log, `Round ${state.round}.`],
@@ -902,8 +1617,16 @@ export function resolveRound(state) {
     // AutoBattleView.jsx reads it after the round lands to stage the
     // attacker-lunge animation for exactly this round's hits.
     roundEvents: [],
-    playerUnits: state.playerUnits.map((u) => (u.hp > 0 ? { ...u, block: 0 } : u)),
+    // Block resets every round; evadedThisRound resets with it so a Gale
+    // unit's one-dodge-per-round (effects.js's Evade) refreshes.
+    playerUnits: state.playerUnits.map((u) => (u.hp > 0 ? { ...u, block: 0, evadedThisRound: false } : u)),
   }
+
+  // spite (units.js, feat/hearthwood-rot): checked at the very top of
+  // the round, BEFORE poison decays, so it reads the stacks the squad
+  // carried in. A one-shot Strength gain when the rot has bitten.
+  next = applySpiteTick(next)
+  if (next.phase !== "player") return next
 
   // Poison ticks for both sides at the top of the round, before anyone
   // acts - whoever was poisoned last round pays for it now, same
@@ -913,6 +1636,13 @@ export function resolveRound(state) {
   next = tickPoison(next, next.enemies)
   if (next.phase !== "player") return next
 
+  // Burn (effects.js) - Poison's louder cousin, halves each round
+  // instead of decaying by 1. Same top-of-round, both-sides shape.
+  next = tickBurn(next, next.playerUnits)
+  if (next.phase !== "player") return next
+  next = tickBurn(next, next.enemies)
+  if (next.phase !== "player") return next
+
   // Regen (effects.js) - Poison's mirror, same "resolve automatically,
   // decay by 1" shape, healing instead of damaging.
   next = tickRegen(next, next.playerUnits)
@@ -920,7 +1650,21 @@ export function resolveRound(state) {
   next = tickRegen(next, next.enemies)
   if (next.phase !== "player") return next
 
+  // Ascendant (effects.js) - Cosmic's scaling buff: every holder gains
+  // its stack in permanent Strength each round. Applied after the DOT/
+  // HOT ticks so a unit that dies to Burn this round doesn't ascend.
+  next = tickAscendant(next, next.playerUnits)
+  if (next.phase !== "player") return next
+  next = tickAscendant(next, next.enemies)
+  if (next.phase !== "player") return next
+
   next = applyRallyHealTick(next)
+  if (next.phase !== "player") return next
+
+  next = applyAuraTick(next)
+  if (next.phase !== "player") return next
+
+  next = applyCovenTick(next)
   if (next.phase !== "player") return next
 
   // Re-deriving each player unit's effective def from its own stored
@@ -932,14 +1676,36 @@ export function resolveRound(state) {
   next = actSide(
     next,
     next.playerUnits,
-    (u) => (u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgradeLevel || 0, next.deployedDefIds || [])),
+    (u) => (u.id === "commander" ? next.commanderDef : effectiveUnitDef(u.defId, u.upgrades || [], next.deployedDefIds || [])),
     (s) => s.enemies,
     "player",
   )
   if (next.phase !== "player") return next
 
-  next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0 } : e)) }
+  // The Cult ritual (applyCultTick) resolves BETWEEN the two phases: after
+  // the player has acted (so a stun / a kill the player just landed on
+  // the Warden pre-empts this round's charge - `stun` is consumed by the
+  // enemy phase below, so it has to be read here, not next round) and
+  // before the enemies act (so a completed rite's buffs land on the
+  // pieces before they swing).
+  next = applyCultTick(next)
+  if (next.phase !== "player") return next
+
+  // The Ancients' charge (applyAncientCharge) resolves in the same slot as
+  // the Cult rite - between the two phases - so a kill / stun / stagger the
+  // player just landed pre-empts this round's payoff before the colossus
+  // gets to swing.
+  next = applyAncientCharge(next)
+  if (next.phase !== "player") return next
+
+  next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0, evadedThisRound: false } : e)) }
   next = actSide(next, next.enemies, (u) => next.enemyDefs?.[u.defId] || ENEMIES[u.defId], (s) => s.playerUnits, "enemy")
+  if (next.phase !== "player") return next
+
+  next = checkBossPhases(next)
+  if (next.phase !== "player") return next
+
+  next = checkForestMood(next)
   if (next.phase !== "player") return next
 
   const round = next.round + 1
@@ -990,7 +1756,13 @@ export function autoResolveBattle(state) {
 export function summarizeBattle(state) {
   const entries = state.playerUnits.map((u) => {
     const s = state.stats?.[u.id] || { damageDealt: 0, healingDone: 0 }
-    return { id: u.id, name: u.name, damageDealt: s.damageDealt, healingDone: s.healingDone }
+    return {
+      id: u.id,
+      name: u.name,
+      damageDealt: s.damageDealt || 0,
+      healingDone: s.healingDone || 0,
+      biggestHit: s.biggestHit || 0,
+    }
   })
   const totalDamage = entries.reduce((sum, e) => sum + e.damageDealt, 0)
   const totalHealing = entries.reduce((sum, e) => sum + e.healingDone, 0)
@@ -998,5 +1770,10 @@ export function summarizeBattle(state) {
     (best, e) => (!best || e.damageDealt + e.healingDone > best.damageDealt + best.healingDone ? e : best),
     null,
   )
-  return { entries, totalDamage, totalHealing, topUnit }
+  // Readability recap (ResultOverlay): the hardest single swing anyone
+  // on the squad landed, and the closest the squad came to wiping.
+  const hardest = entries.reduce((best, e) => (e.biggestHit > (best?.biggestHit || 0) ? e : best), null)
+  const biggestHit = hardest && hardest.biggestHit > 0 ? { name: hardest.name, amount: hardest.biggestHit } : null
+  const closestMoment = Math.round(state.lowestSquadHpPct ?? 100)
+  return { entries, totalDamage, totalHealing, topUnit, biggestHit, closestMoment }
 }

@@ -385,6 +385,91 @@ function Forgehowl() {
   )
 }
 
+// Elemental tribe glyphs (Tide / Gale / Stone / Shadow) - same crude
+// thick-outline register as Leaf/Spark/Root/Rune/Flame, one simple
+// geometric mark each so a tribe badge reads at 12px. Original shapes.
+function TideGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M6 16 C12 10 18 22 24 16 C30 10 36 22 42 16" />
+      <path d="M6 26 C12 20 18 32 24 26 C30 20 36 32 42 26" />
+      <path d="M6 36 C12 30 18 42 24 36 C30 30 36 42 42 36" />
+    </g>
+  )
+}
+function GaleGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M8 18 C22 10 34 14 34 22 C34 28 26 28 26 22" />
+      <path d="M6 32 C24 26 38 30 38 38 C38 44 28 44 28 38" />
+    </g>
+  )
+}
+function StoneGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinejoin="round" fill="none">
+      <path d="M24 5 L40 15 L40 33 L24 43 L8 33 L8 15 Z" />
+      <path d="M24 5 L24 23 M24 23 L40 15 M24 23 L8 33" />
+    </g>
+  )
+}
+function ShadowGlyph() {
+  return (
+    <g strokeWidth="3" fill="none">
+      <circle cx="22" cy="24" r="16" />
+      <path d="M30 12 A16 16 0 0 1 30 36 A13 13 0 0 0 30 12 Z" fill="currentColor" stroke="none" />
+    </g>
+  )
+}
+function WoodGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M24 44 L24 16" />
+      <path d="M24 24 C18 18 12 20 10 14 C18 12 22 16 24 22" />
+      <path d="M24 20 C30 14 36 16 38 10 C30 8 26 12 24 18" />
+      <path d="M24 30 C20 26 15 27 13 22" />
+    </g>
+  )
+}
+function EmberGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinejoin="round">
+      <path d="M24 4 C30 14 34 18 30 28 C28 34 20 36 16 30 C12 24 16 20 18 24 C16 14 20 8 24 4 Z" fill="currentColor" stroke="none" />
+      <path d="M24 20 C27 25 26 31 22 34" fill="none" stroke="var(--hw-bg, #000)" />
+    </g>
+  )
+}
+function CosmicGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M24 6 L27 19 L40 22 L27 25 L24 40 L21 25 L8 22 L21 19 Z" />
+      <circle cx="24" cy="22" r="20" opacity="0.5" />
+    </g>
+  )
+}
+
+// The traveling merchant (merchant.js) - same crude thick-outline
+// register as the mook/character doodles above: a hooded figure behind
+// a low stall, a lantern strung up beside them. One glyph for all five
+// Act personas (name + accent color carry the identity); per-Act
+// portraits are a later art pass.
+function MerchantGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 8 C12 12 11 20 13 26 L27 26 C29 20 28 12 23 8 C21 6 19 6 17 8 Z" fill="none" />
+      <circle cx="17" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="23" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M13 26 C9 30 8 34 9 37 M27 26 C31 30 33 33 33 36" fill="none" />
+      <path d="M6 37 L42 37" fill="none" />
+      <path d="M9 37 L9 43 M39 37 L39 43" fill="none" />
+      <circle cx="30" cy="33" r="2.4" fill="none" />
+      <path d="M34 34 L39 34 L38 30 L35 30 Z" fill="none" />
+      <path d="M40 8 L40 14" fill="none" />
+      <path d="M37 17 L40 14 L43 17 L42 21 L38 21 Z" fill="none" />
+    </g>
+  )
+}
+
 const GLYPHS = {
   leaf: Leaf,
   spark: Spark,
@@ -392,9 +477,17 @@ const GLYPHS = {
   root: Root,
   rune: Rune,
   flame: Flame,
+  tide: TideGlyph,
+  gale: GaleGlyph,
+  stone: StoneGlyph,
+  shadow: ShadowGlyph,
+  wood: WoodGlyph,
+  ember: EmberGlyph,
+  cosmic: CosmicGlyph,
   husk: Husk,
   troll: Troll,
   warden: Warden,
+  merchantGlyph: MerchantGlyph,
   barkBrute: BarkBrute,
   mistGrowler: MistGrowler,
   drownedSiren: DrownedSiren,

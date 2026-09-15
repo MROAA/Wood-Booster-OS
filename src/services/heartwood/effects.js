@@ -94,6 +94,37 @@ function shatterBonus(attacker, defender) {
   return defender.block > 0 ? stacks : 0
 }
 
+// Bulwark (Stone tribe): persistent flat armour. Unlike Block - which
+// resolveRound zeroes at the top of every round - a Bulwark stack lives
+// in `powers` and is NEVER spent or decremented, so it soaks a fixed
+// amount off every hit for the whole battle. Real Block is spent first
+// (see dealDamage), Bulwark only absorbs what's left. Deliberately not
+// in SUNDERABLE_IDS for v1 - Stone is meant to feel immovable. Flat and
+// readable, same "plan a build around a fixed number" shape as Strength.
+function bulwarkOf(unit) {
+  return unit.powers.bulwark || 0
+}
+
+// Dampen (Tide tribe): a flat reduction on the ATTACKER's outgoing
+// damage - the mirror of Strength, and distinct from Weak (which is a
+// -25% multiplier). Doesn't decay on its own (Tide = relentless), but
+// it IS in CLEANSABLE_IDS so a squad has an answer to it. Subtracted
+// after Execute/Shatter, before the Block step.
+function dampenOf(unit) {
+  return unit.powers.dampen || 0
+}
+
+// Evade (Gale tribe): dodges an incoming hit outright, at most one per
+// round. Each dodge spends one stack, so `evade N` is exactly N total
+// dodges a player can count on - not a dodge CHANCE (no roll, same
+// "fixed number, not a dice roll" rule Execute/Shatter follow). The
+// per-round cap is enforced by `unit.evadedThisRound`, which
+// autoBattleEngine.js's resolveRound clears for every living unit on
+// both sides alongside the Block reset.
+function evadeOf(unit) {
+  return unit.powers.evade || 0
+}
+
 function nameOf(state, id) {
   if (id === "player") return "You"
   return getUnit(state, id)?.name || "The enemy"
@@ -108,7 +139,17 @@ function nameOf(state, id) {
 function recordStat(state, id, field, amount) {
   if (!amount) return state
   const prev = state.stats?.[id] || { damageDealt: 0, healingDone: 0 }
-  return { ...state, stats: { ...state.stats, [id]: { ...prev, [field]: prev[field] + amount } } }
+  return { ...state, stats: { ...state.stats, [id]: { ...prev, [field]: (prev[field] || 0) + amount } } }
+}
+
+// Like recordStat but keeps the running MAX - `biggestHit` for the
+// post-battle recap (ResultOverlay). Write-only: nothing in the sim
+// ever reads it back, same as recordStat.
+function recordMax(state, id, field, value) {
+  if (!value) return state
+  const prev = state.stats?.[id] || { damageDealt: 0, healingDone: 0 }
+  if ((prev[field] || 0) >= value) return state
+  return { ...state, stats: { ...state.stats, [id]: { ...prev, [field]: value } } }
 }
 
 // roundEvents: a lightweight per-round record of "who attacked whom"
@@ -147,6 +188,28 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   const defender = getUnit(state, targetId)
   if (!attacker || !defender) return state
 
+  // Evade (Gale): the first hit a unit would take each round simply
+  // misses - checked before Ward so a dodge is spent before a Ward
+  // stack would be. Spends one Evade stack and sets evadedThisRound
+  // (resolveRound clears it), so a second hit the same round lands
+  // normally. No triggers fire on a missed hit, same as a Ward.
+  if (evadeOf(defender) > 0 && !defender.evadedThisRound) {
+    const nextDefender = {
+      ...defender,
+      evadedThisRound: true,
+      powers: { ...defender.powers, evade: evadeOf(defender) - 1 },
+    }
+    return recordAttackEvent(
+      {
+        ...setUnit(state, targetId, nextDefender),
+        log: [...state.log, `${nameOf(state, targetId)} slips aside - the hit misses.`],
+      },
+      actorId,
+      targetId,
+      { kind: "evade" },
+    )
+  }
+
   // Ward: a stack that fully negates the next hit - a different tool
   // from Block, which absorbs up to its own pool and lets overflow
   // through. A Ward stack cancels the ENTIRE hit regardless of size,
@@ -176,9 +239,16 @@ function dealDamage(state, actorId, targetId, baseAmount) {
     amount = Math.floor(amount * 1.25)
   }
   amount += executeBonus(attacker, defender) + shatterBonus(attacker, defender)
-  amount = Math.max(0, amount)
+  // Dampen (Tide): flat reduction from the attacker's side, after every
+  // bonus so it bites into the final number, before Block.
+  amount = Math.max(0, amount - dampenOf(attacker))
 
-  const blocked = Math.min(defender.block, amount)
+  // Bulwark (Stone): persistent armour. Real Block is spent first, then
+  // Bulwark absorbs whatever is left - but Bulwark is never decremented,
+  // so it keeps soaking the same amount every hit, all battle.
+  const armour = bulwarkOf(defender)
+  const blocked = Math.min(defender.block + armour, amount)
+  const blockSpent = Math.min(defender.block, blocked)
   const overflow = amount - blocked
 
   // Revive: a stack consumed exactly once, the moment a hit would
@@ -191,15 +261,20 @@ function dealDamage(state, actorId, targetId, baseAmount) {
   const revives = defender.powers.revive || 0
   const revived = rawHp <= 0 && defender.hp > 0 && revives > 0
 
+  // Only real Block is spent; Bulwark (armourUsed) soaked the rest and
+  // stays at full strength for the next hit.
+  const armourUsed = blocked - blockSpent
   const nextDefender = {
     ...defender,
-    block: defender.block - blocked,
+    block: defender.block - blockSpent,
     hp: revived ? 1 : Math.max(0, rawHp),
     powers: revived ? { ...defender.powers, revive: revives - 1 } : defender.powers,
   }
 
   let nextState = setUnit(state, targetId, nextDefender)
   nextState = recordStat(nextState, actorId, "damageDealt", overflow)
+  // biggestHit: the recap's "hardest single swing" line. Max, not sum.
+  nextState = recordMax(nextState, actorId, "biggestHit", overflow)
   // amount: the actual HP-affecting overflow, same number the old
   // diff-based popup showed - a fully-blocked hit (overflow 0) still
   // records an event (so a peer session skimming roundEvents can see
@@ -211,7 +286,11 @@ function dealDamage(state, actorId, targetId, baseAmount) {
     ...nextState,
     log: [
       ...state.log,
-      `${nameOf(state, actorId)} deal ${amount} damage to ${nameOf(state, targetId)}${blocked > 0 ? ` (${blocked} blocked)` : ""}.`,
+      `${nameOf(state, actorId)} deal ${amount} damage to ${nameOf(state, targetId)}${
+        blocked > 0
+          ? ` (${blockSpent} blocked${armourUsed > 0 ? `, ${armourUsed} turned by Bulwark` : ""})`
+          : ""
+      }.`,
       ...(revived ? [`${nameOf(state, targetId)} clings to life at 1 HP!`] : []),
     ],
   }
@@ -228,6 +307,15 @@ function dealDamage(state, actorId, targetId, baseAmount) {
     nextState = runTriggers(nextState, actorId, "onDealDamage", { actorId, targetId })
   }
 
+  // onDeath (first used by The Brood's broodSplit, feat/hearthwood-brood):
+  // fires the instant a hit takes a unit from alive to dead - BEFORE the
+  // checkBattleEnd below, so a trigger that spawns fresh bodies (a
+  // death-splitter) is counted before the fight can be declared won.
+  // `revived` already caught a lethal hit at 1 HP above, so skip it.
+  if (nextDefender.hp <= 0 && defender.hp > 0 && !revived) {
+    nextState = runTriggers(nextState, targetId, "onDeath", { actorId: targetId, targetId })
+  }
+
   return checkBattleEnd(nextState)
 }
 
@@ -237,10 +325,17 @@ function loseHp(state, who, amount) {
   const unit = getUnit(state, who)
   if (!unit) return state
   const nextUnit = { ...unit, hp: Math.max(0, unit.hp - amount) }
-  return checkBattleEnd({
+  let next = {
     ...setUnit(state, who, nextUnit),
     log: [...state.log, `${nameOf(state, who)} lose ${amount} HP.`],
-  })
+  }
+  // onDeath (see dealDamage) - Poison/Burn tick through loseHp, so a
+  // death-splitter that dies to a DOT still bursts. Fired before
+  // checkBattleEnd for the same not-yet-won reason.
+  if (nextUnit.hp <= 0 && unit.hp > 0) {
+    next = runTriggers(next, who, "onDeath", { actorId: who, targetId: who })
+  }
+  return checkBattleEnd(next)
 }
 
 // Poison: a real damage-over-time status, first new status effect
@@ -263,6 +358,10 @@ export function tickPoison(state, units) {
     const stacks = current.powers.poison || 0
     if (stacks <= 0) continue
     next = loseHp(next, unit.id, stacks)
+    // Readability: a self-targeted roundEvent so FloatingNumbers can
+    // pulse the poison pip + spawn a small tick number. Consumers that
+    // stage attacker lunges skip `kind:"tick"` (actor === target).
+    next = recordAttackEvent(next, unit.id, unit.id, { kind: "tick", statusId: "poison", amount: stacks })
     const afterUnit = getUnit(next, unit.id)
     if (!afterUnit) continue
     next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, poison: stacks - 1 } })
@@ -287,9 +386,57 @@ export function tickRegen(state, units) {
     const stacks = current.powers.regen || 0
     if (stacks <= 0) continue
     next = gainHeal(next, unit.id, stacks)
+    next = recordAttackEvent(next, unit.id, unit.id, { kind: "tick", statusId: "regen", amount: stacks })
     const afterUnit = getUnit(next, unit.id)
     if (!afterUnit) continue
     next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, regen: stacks - 1 } })
+  }
+  return next
+}
+
+// Burn (Ember tribe): Poison's louder cousin. Where Poison decays by a
+// flat 1 each round (a long, steady drip), Burn HALVES each round after
+// it ticks - a big opening flare that dies fast: Burn 8 -> 8, 4, 2, 1,
+// 0. Distinct to read (a fire that flares and gutters, not a poison
+// that lingers) and self-terminating with no extra counter field.
+// Ignores Block, same as Poison.
+export function tickBurn(state, units) {
+  let next = state
+  for (const unit of units) {
+    if (next.phase !== "player" && next.phase !== "enemy") break
+    const current = getUnit(next, unit.id)
+    if (!current || current.hp <= 0) continue
+    const stacks = current.powers.burn || 0
+    if (stacks <= 0) continue
+    next = loseHp(next, unit.id, stacks)
+    next = recordAttackEvent(next, unit.id, unit.id, { kind: "tick", statusId: "burn", amount: stacks })
+    const afterUnit = getUnit(next, unit.id)
+    if (!afterUnit) continue
+    next = setUnit(next, unit.id, { ...afterUnit, powers: { ...afterUnit.powers, burn: Math.floor(stacks / 2) } })
+  }
+  return next
+}
+
+// Ascendant (Cosmic tribe): a scaling win condition, no RNG. At the top
+// of every round, each unit holding Ascendant permanently gains that
+// many Strength - Ascendant 2 on the squad is +2 Strength every round,
+// snowballing a long fight. The Ascendant stack itself doesn't change,
+// so the growth is linear and fully predictable (a player can count the
+// rounds), the "plan a build around a fixed number" rule Execute and
+// Strength already follow.
+export function tickAscendant(state, units) {
+  let next = state
+  for (const unit of units) {
+    if (next.phase !== "player" && next.phase !== "enemy") break
+    const current = getUnit(next, unit.id)
+    if (!current || current.hp <= 0) continue
+    const asc = current.powers.ascendant || 0
+    if (asc <= 0) continue
+    next = setUnit(next, unit.id, {
+      ...current,
+      powers: { ...current.powers, strength: (current.powers.strength || 0) + asc },
+    })
+    next = { ...next, log: [...next.log, `${nameOf(next, unit.id)} ascends - +${asc} Strength.`] }
   }
   return next
 }
@@ -414,13 +561,49 @@ function sunder(state, who) {
   }
 }
 
+// Leech (feat/hearthwood-collectors - The Collectors archetype): Sunder
+// that TRANSFERS instead of destroying. When a Collector (thief) lands a
+// hit on a buffed player unit (victim), one stack of the first leechable
+// buff moves from victim -> thief - your carry's stacked Strength becomes
+// the thief's damage. Fired as an onDealDamage trigger registered from
+// the def's `leech` marker (autoBattleEngine.js's enemy passive loop).
+// 1 stack per hit, only on a hit that landed (onDealDamage fires on
+// overflow > 0), no-op with a log line if the victim has nothing.
+// Strength first (the theft is about GAINING power); defensive after.
+const LEECHABLE_IDS = ["strength", "bulwark", "ward", "regen", "evade"]
+
+function leech(state, thiefId, victimId) {
+  const victim = getUnit(state, victimId)
+  const thief = getUnit(state, thiefId)
+  if (!victim || !thief || victim.hp <= 0 || thief.hp <= 0) return state
+  const id = LEECHABLE_IDS.find((k) => (victim.powers[k] || 0) > 0)
+  if (!id) {
+    return { ...state, log: [...state.log, `${nameOf(state, thiefId)} finds nothing worth taking.`] }
+  }
+  const label = id.charAt(0).toUpperCase() + id.slice(1)
+  let next = setUnit(state, victimId, { ...victim, powers: { ...victim.powers, [id]: victim.powers[id] - 1 } })
+  const t = getUnit(next, thiefId)
+  next = setUnit(next, thiefId, { ...t, powers: { ...t.powers, [id]: (t.powers[id] || 0) + 1 } })
+  next = { ...next, log: [...next.log, `${nameOf(next, thiefId)} takes a stack of ${label} from ${nameOf(next, victimId)}.`] }
+  // vengeful (units.js's Wardknot): a battle-start passive stashes
+  // `powers.vengeful` (a plain number, never ticked, not in any
+  // sunder/leech/cleanse list). The victim answers each theft with that
+  // much Strength - net a gain, so a Collector loses by taking from it.
+  const v = getUnit(next, victimId)?.powers?.vengeful || 0
+  if (v > 0) {
+    next = applyBuff(next, victimId, "strength", v)
+    next = { ...next, log: [...next.log, `${nameOf(next, victimId)} bristles at the theft.`] }
+  }
+  return next
+}
+
 // Cleanse: Sunder's mirror, strips this unit's OWN first negative
 // status instead of an enemy's positive one - the roster's first
 // self-cleaning tool against Poison/Weak/Vulnerable/Stun, all of which
 // previously just had to be outlasted. Same "first match in priority
 // order, log a distinct no-op line if nothing to strip" shape as
 // Sunder, reusing the exact pattern rather than inventing a new one.
-const CLEANSABLE_IDS = ["stun", "poison", "weak", "vulnerable"]
+const CLEANSABLE_IDS = ["stun", "poison", "weak", "vulnerable", "dampen"]
 
 function cleanse(state, who) {
   const unit = getUnit(state, who)
@@ -498,6 +681,62 @@ function applyPatternDamage(state, effect, ctx) {
   return next
 }
 
+// The Brood (feat/hearthwood-brood): a dying enemy tears into `count`
+// smaller copies of itself. Registered as an onDeath trigger from the
+// def's `broodSplit` marker (autoBattleEngine.js's enemy passive loop),
+// so it fires inside dealDamage/loseHp BEFORE checkBattleEnd - the fresh
+// bodies keep the fight open. Bounded three ways: HP-reduced COPIES of
+// the parent (reads the already-difficulty-scaled state.enemyDefs entry,
+// no new def to author/scale); a broodGen/maxGen guard so a hatchling
+// never re-splits (belt: a mid-battle spawn never runs the battle-start
+// passive loop that would register its own onDeath trigger); and spawns
+// only land on FREE enemy cells (rows 0-1, 6 total), so the board floods
+// to ~6 living bodies then stops. The spawns act the same round they
+// appear (during the enemy phase, since the split lands in the player
+// phase) - "kill a mother fast and immediately eat two more" is the
+// archetype's whole point, and the fairness pass showed a sit-out draft
+// just made the fights a free difficulty DROP for a burst squad.
+function freeEnemyCells(state, origin, count) {
+  const held = new Set((state.enemies || []).filter((e) => e.hp > 0).map((e) => `${e.pos.row}-${e.pos.col}`))
+  const cells = []
+  for (let row = 0; row <= 1; row++) {
+    for (let col = 0; col <= 2; col++) {
+      if (!held.has(`${row}-${col}`)) cells.push({ row, col })
+    }
+  }
+  const dist = (c) => Math.max(Math.abs(c.row - origin.row), Math.abs(c.col - origin.col))
+  cells.sort((a, b) => dist(a) - dist(b) || a.row - b.row || a.col - b.col)
+  return cells.slice(0, Math.max(0, count))
+}
+
+function broodSplit(state, victimId, effect) {
+  const victim = getUnit(state, victimId)
+  if (!victim || victim.hp > 0) return state
+  if ((victim.broodGen || 0) >= (effect.maxGen ?? 1)) return state
+  const def = state.enemyDefs?.[victim.defId] || {}
+  const hp = Math.max(1, Math.round((def.maxHp || victim.maxHp) * (effect.hpFactor ?? 0.45)))
+  const cells = freeEnemyCells(state, victim.pos, effect.count ?? 2)
+  let next = state
+  cells.forEach((pos, i) => {
+    const spawn = {
+      block: 0,
+      powers: {},
+      triggers: [],
+      id: `${victimId}-b${i}`,
+      defId: victim.defId,
+      name: def.name || victim.name,
+      hp,
+      maxHp: hp,
+      pos,
+      moveIndex: 0,
+      intent: (def.movePattern || [{ type: "attack", amount: 1 }])[0],
+      broodGen: (victim.broodGen || 0) + 1,
+    }
+    next = { ...next, enemies: [...next.enemies, spawn], log: [...next.log, `${spawn.name} tears free of the husk.`] }
+  })
+  return next
+}
+
 function applyEffect(state, effect, ctx) {
   const who = resolveWho(ctx, effect.target)
 
@@ -519,8 +758,12 @@ function applyEffect(state, effect, ctx) {
       return applyBuff(state, who, effect.id, effect.amount)
     case "sunder":
       return sunder(state, who)
+    case "leech":
+      return leech(state, ctx.actorId, ctx.targetId)
     case "cleanse":
       return cleanse(state, who)
+    case "broodSplit":
+      return broodSplit(state, who, effect)
     case "addTrigger":
       return addTrigger(state, who, effect.trigger, effect.effect)
     case "addCard":

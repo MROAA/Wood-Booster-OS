@@ -3,6 +3,9 @@ import { CardGlyph } from "./cardArt"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveTrial } from "../../data/heartwood/trials"
 import { RUN_PATH, MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
+import PlaystyleProfile from "./PlaystyleProfile"
+import PlayerPower from "./PlayerPower"
+import SeedChip from "./SeedChip"
 
 // Distinct from the per-fight ResultOverlay.jsx (which still plays out
 // after each individual battle) - this is the run's actual ending,
@@ -43,7 +46,7 @@ const silhouetteReveal = {
   animate: { opacity: 1, scale: 1, filter: "blur(0px) grayscale(0) brightness(1)" },
 }
 
-export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathMemory }) {
+export default function RunEndOverlay({ phase, nodeIndex, path, runState, onNewRun, deathMemory, acornsEarned, totalAcorns, depthLevel = 0 }) {
   if (phase !== "victory" && phase !== "defeat") return null
   const won = phase === "victory"
   // How far the run actually got - this screen used to show nothing
@@ -166,7 +169,75 @@ export default function RunEndOverlay({ phase, nodeIndex, path, onNewRun, deathM
                 +{MEMORY_ESSENCE_BONUS} Essence next run
               </motion.span>
             )}
+            {/* Acorns earned this run (metaState.js) - the between-run
+                progression payout, shown win OR lose. Spend them at the
+                Grove on the commander-select screen. */}
+            {acornsEarned != null && (
+              <motion.span
+                className="hw-badge hw-runend-badge"
+                style={{ color: "var(--hw-moss)", borderColor: "var(--hw-moss)" }}
+                title="Plant these at the Grove for permanent head starts"
+                initial={silhouetteReveal.initial}
+                animate={silhouetteReveal.animate}
+                transition={{ duration: 0.65, delay: REVEAL_DELAY.stats + 0.26, ease: "easeOut" }}
+              >
+                &#127807; +{acornsEarned} Acorns{typeof totalAcorns === "number" ? ` (${totalAcorns} total)` : ""}
+              </motion.span>
+            )}
+            {depthLevel > 0 && (
+              <motion.span
+                className="hw-badge hw-runend-badge"
+                style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+                title="The challenge Depth this run was played at"
+                initial={silhouetteReveal.initial}
+                animate={silhouetteReveal.animate}
+                transition={{ duration: 0.65, delay: REVEAL_DELAY.stats + 0.39, ease: "easeOut" }}
+              >
+                Depth {depthLevel}
+                {won ? " cleared" : ""}
+              </motion.span>
+            )}
           </div>
+
+          {/* The run's seed (seed.js) - copyable here so a good or a
+              brutal run can be replayed or handed on as a challenge.
+              Same seed -> same route, shops, relics and events. */}
+          {Number.isFinite(runState?.seed) && (
+            <motion.div
+              className="hw-runend-seed"
+              initial={silhouetteReveal.initial}
+              animate={silhouetteReveal.animate}
+              transition={{ duration: 0.6, delay: REVEAL_DELAY.stats + 0.45, ease: "easeOut" }}
+            >
+              <SeedChip seed={runState.seed} />
+            </motion.div>
+          )}
+
+          {/* Strategic Playstyle profile (playstyle.js) - the whole
+              run's choices on six axes, the "what kind of player were
+              you" read-out. Pure display from runState. */}
+          {runState?.bench?.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: REVEAL_DELAY.stats + 0.5, ease: "easeOut" }}
+            >
+              <PlaystyleProfile runState={runState} />
+            </motion.div>
+          )}
+
+          {/* Run Power (playerPower.js) - the DifficultyEngine's Player
+              Power Score: the run's real strength on seven components +
+              a band + a ratio vs expected power. Pure display. */}
+          {runState?.bench?.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: REVEAL_DELAY.stats + 0.6, ease: "easeOut" }}
+            >
+              <PlayerPower runState={runState} />
+            </motion.div>
+          )}
 
           <motion.button
             className="hw-end-turn hw-runend-cta"

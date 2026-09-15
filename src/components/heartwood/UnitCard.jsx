@@ -1,9 +1,15 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { CardGlyph } from "./cardArt"
 import { TRIBES, tribesOf, synergyTiersSummary } from "../../data/heartwood/synergies"
+import { evolutionFor, evolutionHint } from "../../data/heartwood/evolutions"
+import { UPGRADE_BRANCHES } from "../../data/heartwood/upgrades"
+import { ROLES, unitProfile, unitTargetProfile, TARGET_PROFILE_LABEL } from "../../data/heartwood/roles"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
+// Card-accent modifier by resolved primary role (roles.js's ROLES[x].card).
+// hybrid is legacy - the model resolves it to a real primary now.
 const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "skill" }
+const MAX_TAGS = 4
 
 // Physical-card hover (Marc's PRD sect. 9/18-20/31, "sen pitää viettää
 // minut visuaalisuudellaan" - it needs to captivate with its visuals; a
@@ -51,14 +57,46 @@ const MAX_TILT_DEG = 6
 // Overrides def.className the same way `role` overrides def.role above:
 // additive layering, every card without an active combo renders exactly
 // as Guild Identity v1 already had it.
-export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass }) {
+export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass, activeTribeIds, entry, costOverride }) {
+  // costOverride (SquadDraft's for-sale cards, when Regular's Discount is
+  // owned - runEngine.effectiveRecruitCost): show the reduced price with
+  // the base struck through, so the shop never renders a price the buy
+  // gate won't honour.
+  const discounted = costOverride != null && def?.recruitCost != null && costOverride !== def.recruitCost
+  // Unit Evolution (evolutions.js): a small "▲" on a card whose unit can
+  // grow into a stronger form, with the condition in the tooltip. Lit
+  // once the win count is within reach (or already met).
+  const evo = def && evolutionFor(def.id)
+  const evoClose = evo && (entry?.wins || 0) >= (evo.when.minWins || 0) - 1
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   const effectiveRole = role || def.role
-  // Tribes (synergies.js): purely a recruit-shop/bench-planning cue, up
-  // to 2 icons - a unit's own dominant mechanical identity, same
-  // sword/shield/leaf/root/moonGlyph/flame vocabulary already used
-  // everywhere else, zero new art.
+  // Role & tag identity (roles.js): a "Tank · Support" line + up to
+  // MAX_TAGS chips + strength/weakness in the tooltip. `role` here is
+  // the Hero-Bent override (SquadDraft/FormationScreen pass it), so a
+  // bent unit's primary reads bent everywhere.
+  const profile = def.role ? unitProfile(def, role && role !== def.role ? role : undefined) : null
+  // Per-DPS target profile (roles.js) - who this unit's own attack goes
+  // for. Only shown when it isn't the default "front rank".
+  const targetProfile = def.role ? unitTargetProfile(def, role && role !== def.role ? role : undefined) : "default"
+  const primaryRole = profile ? ROLES[profile.primary] : null
+  const secondaryRole = profile?.secondary ? ROLES[profile.secondary] : null
+  // Tribes (synergies.js) - now a first-class part of the card, not a
+  // footnote (Marc: "heimo tarvitsee näkyvämmän paikan kortissa koska
+  // se on keskeinen osa pelimekaniikkaa"). A unit carries 1 mechanical
+  // tribe and optionally 1 elemental one; both drive synergies, combos
+  // and formation bonuses, so both show as a labelled colour band right
+  // under the cost/HP row, and the card's top edge is tinted the tribe
+  // colour (a two-stop gradient when there are two) so it reads from
+  // across the board without reading the text.
   const tribeIds = def.role ? tribesOf(def.id, def) : []
+  const activeSet = activeTribeIds ? new Set(activeTribeIds) : null
+  const tribeColors = tribeIds.map((t) => TRIBES[t]?.color).filter(Boolean)
+  const edgeAccent =
+    tribeColors.length === 0
+      ? undefined
+      : tribeColors.length === 1
+        ? tribeColors[0]
+        : `linear-gradient(90deg, ${tribeColors[0]} 0 50%, ${tribeColors[1]} 50% 100%)`
 
   // Cursor-tracked tilt: raw pointer position (0-1 across the card)
   // drives rotateX/rotateY through a spring so it settles smoothly
@@ -89,7 +127,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
 
   return (
     <motion.div
-      className={`hw-card hw-card--${ROLE_ACCENT[effectiveRole] || "skill"}`}
+      className={`hw-card hw-card--${(primaryRole && primaryRole.card) || ROLE_ACCENT[effectiveRole] || "skill"}`}
       data-disabled={!!disabled}
       data-selected={!!selected}
       data-portrait={!!def.image}
@@ -144,8 +182,15 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           <CardGlyph name="moonGlyph" className="hw-effect-icon-glyph" />
         </span>
       )}
+      {/* Tribe-colour top edge - one solid stripe, or a two-stop
+          gradient for a unit with both a mechanical and an elemental
+          tribe. Glanceable from across the board without reading text. */}
+      {edgeAccent && <div className="hw-card-tribe-edge" style={{ background: edgeAccent }} />}
       <div className="hw-card-head">
-        <span className="hw-card-cost">{def.recruitCost ?? "★"}</span>
+        <span className="hw-card-cost">
+          {discounted && <span className="hw-card-cost-base">{def.recruitCost}</span>}
+          {costOverride != null ? costOverride : (def.recruitCost ?? "★")}
+        </span>
         {/* Hearthstone-style glanceable corner stat: HP as a big,
             readable number instead of only appearing in the small text
             line below - "playable by eye," per Marc's own ask, not
@@ -155,6 +200,29 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           {def.maxHp}
         </span>
       </div>
+      {/* Tribe band - promoted to a first-class element directly under
+          the cost/HP row (Marc: "heimo tarvitsee näkyvämmän paikan
+          kortissa koska se on keskeinen osa pelimekaniikkaa"). Labelled,
+          tribe-coloured; a badge whose synergy is currently active
+          (activeTribeIds, passed by FormationScreen) pulses. */}
+      {tribeIds.length > 0 && (
+        <div className="hw-tribe-band">
+          {tribeIds.map((t) => {
+            const isActive = activeSet?.has(t)
+            return (
+              <span
+                key={t}
+                className={`hw-tribe-badge hw-badge-pop${isActive ? " hw-tribe-badge--active" : ""}`}
+                style={{ color: TRIBES[t]?.color, borderColor: TRIBES[t]?.color }}
+                title={`${TRIBES[t]?.name}${isActive ? " (synergy active)" : ""} - ${synergyTiersSummary(t)}`}
+              >
+                <CardGlyph name={TRIBES[t]?.icon} className="hw-effect-icon-glyph" />
+                {TRIBES[t]?.name}
+              </span>
+            )
+          })}
+        </div>
+      )}
       {def.image ? (
         <img src={def.image} alt="" className="hw-card-portrait" />
       ) : (
@@ -162,6 +230,14 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       )}
       <div className="hw-card-name">
         {def.name}
+        {evo && (
+          <span
+            className={`hw-evolve-mark${evoClose ? " hw-evolve-mark--close" : ""}`}
+            title={evolutionHint(def.id, entry)}
+          >
+            ▲
+          </span>
+        )}
         {bent && (
           <span className="hw-badge hw-badge--bent" title={`Bent to ${effectiveRole}`}>
             Bent
@@ -183,16 +259,31 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           </div>
         )
       )}
-      {tribeIds.length > 0 && (
-        <div className="hw-tribe-icons">
-          {tribeIds.map((t) => (
-            <span
-              key={t}
-              className="hw-tribe-icon"
-              style={{ color: TRIBES[t]?.color }}
-              title={`${TRIBES[t]?.name} - ${synergyTiersSummary(t)}`}
-            >
-              <CardGlyph name={TRIBES[t]?.icon} className="hw-effect-icon-glyph" />
+      {/* Role & tag identity (roles.js) - the PRD's "upgrade visibility"
+          line: primary (· secondary) role, then a few tags, with the
+          one strength / one weakness in the tooltip. */}
+      {profile && primaryRole && (
+        <div
+          className="hw-card-role-line"
+          style={{ color: primaryRole.accent }}
+          title={`${primaryRole.label}${secondaryRole ? " / " + secondaryRole.label : ""} — ${profile.strengths[0]} · ${profile.weaknesses[0]}`}
+        >
+          <CardGlyph name={primaryRole.icon} className="hw-effect-icon-glyph" />
+          {primaryRole.label}
+          {secondaryRole && <span className="hw-card-role-secondary"> · {secondaryRole.label}</span>}
+        </div>
+      )}
+      {targetProfile !== "default" && (
+        <div className="hw-card-target-line" title="Which enemy this unit's own attack goes for">
+          <CardGlyph name="rune" className="hw-effect-icon-glyph" />
+          Targets {TARGET_PROFILE_LABEL[targetProfile]}
+        </div>
+      )}
+      {profile && profile.tags.length > 0 && (
+        <div className="hw-card-tags">
+          {profile.tags.slice(0, MAX_TAGS).map((t) => (
+            <span key={t} className="hw-tag-chip">
+              {t}
             </span>
           ))}
         </div>
@@ -210,7 +301,28 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
         {def.displayTier === 2 ? " Tier 2" : ""}
         {def.attackPattern !== "single" ? ` · ${def.attackPattern}` : ""}
         {def.haste ? " · haste" : ""}
+        {/* Build-around hooks (feat/hearthwood-legendary-units) - same
+            terse ` · tag` shape as haste/attackPattern above so a
+            Legendary reads its identity off the card at a glance. */}
+        {def.growth ? ` · growth +${def.growth.amount}` : ""}
+        {def.aura ? " · aura" : ""}
+        {def.conditionalPassive ? " · conditional" : ""}
       </div>
+      {/* Upgrade branches chosen for this bench unit (upgrades.js) - a
+          terse ▲ chip row so a unit's build identity reads off its
+          card, per the roles PRD's "upgrade visibility" section. */}
+      {entry?.upgrades?.length > 0 && (
+        <div className="hw-card-upgrades">
+          {entry.upgrades.map((id, i) => {
+            const b = UPGRADE_BRANCHES.find((x) => x.id === id)
+            return (
+              <span key={i} className="hw-card-upgrade-chip" style={{ color: b?.accent, borderColor: b?.accent }}>
+                ▲{b ? ` ${b.label}` : ""}
+              </span>
+            )
+          })}
+        </div>
+      )}
     </motion.div>
   )
 }

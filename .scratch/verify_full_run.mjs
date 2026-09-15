@@ -11,12 +11,52 @@ page.on("console", (msg) => {
   if (msg.type() === "error") errors.push(msg.text())
 })
 
+// Playwright's `locator.isVisible({ timeout })` does NOT actually poll
+// or wait - its own type docs say so explicitly ("does not wait for");
+// the `timeout` option there is a no-op for this purpose. Every
+// present-check in this file (relic/shop/choice/map headers,
+// clearToFormation's onFormation check, the end-of-run overlay) was
+// written as if it polled, which happened to work back when this
+// script was written because each screen transition was fast enough
+// to already be in the DOM by the time the next check ran - a real
+// fragility that broke the instant the Guild Hall screen (PR #350) and
+// CommanderSelect's own confirm-animation (both landed in this
+// branch's base after this script was last touched) added extra
+// transition time in front of the very first check. `waitFor` DOES
+// poll (confirmed against the Playwright type docs and by tracing
+// iteration timestamps that showed the old isVisible calls returning
+// in single-digit milliseconds regardless of the requested timeout) -
+// this thin wrapper replaces every isVisible-with-timeout call below
+// with the one that actually waits.
+async function waitVisible(locator, timeout) {
+  return locator
+    .first()
+    .waitFor({ state: "visible", timeout })
+    .then(() => true)
+    .catch(() => false)
+}
+
 await page.goto(`http://localhost:${PORT}/heartwood`)
-await page.waitForSelector(".hw-select-grid button")
-await page.click(".hw-select-grid button")
+// CommanderSelect.jsx was rebuilt (own .hw-commander-card markup,
+// PR history around "commander-select") since this script was last
+// touched - the old .hw-select-grid button selector no longer matches
+// the character-select screen (every OTHER screen - shop/relic/
+// formation/reward - still uses .hw-select-grid, only this first
+// screen moved).
+await page.waitForSelector(".hw-commander-card")
+await page.click(".hw-commander-card")
+
+// Guild Hall (PR #350, merged into this branch's base after this script
+// was last touched) - a one-time roster-preview screen between Commander
+// Select and the actual first shop visit. Its own CTA button
+// (GuildHallScreen.jsx's hw-guildhall-cta) is the only way through it.
+const guildHallCta = page.locator("button.hw-guildhall-cta")
+if (await waitVisible(guildHallCta, 3000)) {
+  await guildHallCta.click().catch(() => {})
+}
 
 const tutorialNext = page.locator("button.hw-tutorial-next")
-if (await tutorialNext.isVisible({ timeout: 2000 }).catch(() => false)) {
+if (await waitVisible(tutorialNext, 2000)) {
   await tutorialNext.click().catch(() => {})
 }
 
@@ -34,7 +74,7 @@ async function shopStep() {
 
 async function relicStepIfPresent() {
   const relicHeader = page.locator("text=/relic waits/i").first()
-  if (await relicHeader.isVisible({ timeout: 1500 }).catch(() => false)) {
+  if (await waitVisible(relicHeader, 1500)) {
     const affordable = page.locator(".hw-card[data-disabled=\"false\"]").first()
     if (await affordable.count()) {
       await affordable.click().catch(() => {})
@@ -49,7 +89,7 @@ async function relicStepIfPresent() {
 
 async function shopStepIfPresent() {
   const marketHeader = page.locator("text=/hearthwood market/i").first()
-  if (await marketHeader.isVisible({ timeout: 1500 }).catch(() => false)) {
+  if (await waitVisible(marketHeader, 1500)) {
     await shopStep()
     return true
   }
@@ -60,7 +100,7 @@ async function shopStepIfPresent() {
 // (the first is fine, this regression only cares that a run completes).
 async function choiceStepIfPresent() {
   const choiceHeader = page.locator("text=/two paths through the hearthwood/i").first()
-  if (await choiceHeader.isVisible({ timeout: 1500 }).catch(() => false)) {
+  if (await waitVisible(choiceHeader, 1500)) {
     await page.locator(".hw-card--power").first().click().catch(() => {})
     await page.waitForTimeout(200)
     return true
@@ -75,7 +115,7 @@ async function choiceStepIfPresent() {
 // doesn't have to guess from shared text/class markup.
 async function mapStepIfPresent() {
   const mapScreen = page.locator('[data-screen="map-after-shop"]').first()
-  if (await mapScreen.isVisible({ timeout: 1500 }).catch(() => false)) {
+  if (await waitVisible(mapScreen, 1500)) {
     await page.click("button.hw-end-turn:has-text(\"Continue\")").catch(() => {})
     await page.waitForTimeout(200)
     return true
@@ -88,11 +128,9 @@ async function mapStepIfPresent() {
 // real formation screen depending on RUN_PATH - loop through whichever
 // pre-battle screens show up instead of assuming a fixed order.
 async function clearToFormation() {
+  const startBattleBtn = page.locator("button.hw-end-turn:has-text(\"Start Battle\")")
   for (let i = 0; i < 6; i++) {
-    const onFormation = await page
-      .locator("button.hw-end-turn:has-text(\"Start Battle\")")
-      .isVisible({ timeout: 1000 })
-      .catch(() => false)
+    const onFormation = await waitVisible(startBattleBtn, 1000)
     if (onFormation) return true
     const wasMap = await mapStepIfPresent()
     if (wasMap) continue
@@ -104,10 +142,7 @@ async function clearToFormation() {
     if (wasShop) continue
     break
   }
-  return page
-    .locator("button.hw-end-turn:has-text(\"Start Battle\")")
-    .isVisible({ timeout: 3000 })
-    .catch(() => false)
+  return waitVisible(startBattleBtn, 3000)
 }
 
 async function formationAndBattleStep() {
@@ -158,12 +193,7 @@ for (let fight = 0; fight < MAX_FIGHTS && !runEnded; fight++) {
   const outcome = await formationAndBattleStep().catch((e) => `ERROR:${e.message}`)
   outcomes.push(outcome)
 
-  const runEndVisible = await page
-    .locator("text=/victory|defeat/i")
-    .first()
-    .isVisible({ timeout: 1500 })
-    .catch(() => false)
-  const newRunBtn = await page.locator("button:has-text(\"New Run\")").isVisible({ timeout: 500 }).catch(() => false)
+  const newRunBtn = await waitVisible(page.locator("button:has-text(\"New Run\")"), 1500)
   if (newRunBtn) runEnded = true
 
   if (String(outcome).startsWith("ERROR")) break

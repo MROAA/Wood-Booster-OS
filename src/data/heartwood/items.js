@@ -1,3 +1,44 @@
+// Item icon art (this round's own pass through Marc's kuvia-folder art
+// reference, same "curate from what's already saved" approach the
+// unit portraits used across their own several rounds) - only items
+// with a plausible icon-style match get one; the rest keep def.icon's
+// existing SVG glyph (ItemCard.jsx's def.image-vs-glyph branch). These
+// render tiny (26x26px, .hw-item-card .hw-card-art) so a busy scene
+// photo wouldn't read - every source here is cropped tight around a
+// single object (a vial, a charm, a blade) rather than a whole scene.
+import bloodrootFangImg from "../../assets/heartwood/items/bloodroot-fang.jpg"
+import bramblehideStandardImg from "../../assets/heartwood/items/bramblehide-standard.jpg"
+import bulwarksMercyImg from "../../assets/heartwood/items/bulwarks-mercy.jpg"
+import cleansingDraughtImg from "../../assets/heartwood/items/cleansing-draught.jpg"
+import hexrootVialImg from "../../assets/heartwood/items/hexroot-vial.jpg"
+import mossboundChainImg from "../../assets/heartwood/items/mossbound-chain.jpg"
+import mossdropVialImg from "../../assets/heartwood/items/mossdrop-vial.jpg"
+import wraithfangCharmImg from "../../assets/heartwood/items/wraithfang-charm.jpg"
+import barkPlatingImg from "../../assets/heartwood/items/bark-plating.jpg"
+import emberrootTalismanImg from "../../assets/heartwood/items/emberroot-talisman.jpg"
+import chillingGripImg from "../../assets/heartwood/items/chilling-grip.jpg"
+import wanderersLedgerImg from "../../assets/heartwood/items/wanderers-ledger.jpg"
+import sapmendVialImg from "../../assets/heartwood/items/sapmend-vial.jpg"
+import wardstitchCloakImg from "../../assets/heartwood/items/wardstitch-cloak.jpg"
+import mendleafCharmImg from "../../assets/heartwood/items/mendleaf-charm.jpg"
+import duelistsEdgeImg from "../../assets/heartwood/items/duelists-edge.jpg"
+import fungalSporeSacImg from "../../assets/heartwood/items/fungal-spore-sac.jpg"
+import wardensSigilImg from "../../assets/heartwood/items/wardens-sigil.jpg"
+import crackingFistImg from "../../assets/heartwood/items/cracking-fist.jpg"
+import recklessVowImg from "../../assets/heartwood/items/reckless-vow.jpg"
+// New items below (Marc: "kayta kuvia kansiosta vapaasti ja jos
+// mahdollista niin luot unitteja/itemeita kuville" - use the folder's
+// images freely and, where possible, create items FOR the images) -
+// these 6 didn't match any existing item, but were clean enough
+// leftover icon-style objects (a crystal, a crown, a lantern, a
+// talisman) to build a brand-new item around instead of going unused.
+import crimsonShardImg from "../../assets/heartwood/items/crimson-shard.jpg"
+import thornbackCrownImg from "../../assets/heartwood/items/thornback-crown.jpg"
+import gloamingShardImg from "../../assets/heartwood/items/gloaming-shard.jpg"
+import runeboundCofferImg from "../../assets/heartwood/items/runebound-coffer.jpg"
+import wayfarersTalismanImg from "../../assets/heartwood/items/wayfarers-talisman.jpg"
+import glowmossLanternImg from "../../assets/heartwood/items/glowmoss-lantern.jpg"
+
 // Heartwood - Items: per-UNIT gear, distinct from Relics (relics.js,
 // squad-wide) and Upgrade (units.js, a flat level-based stat scale
 // with no player choice in what it does). Each bench unit gets
@@ -11,6 +52,17 @@
 // buyItem) into a shared owned bag, then equipped/unequipped for free
 // (same "commit Essence once, rearrange freely after" shape a bench
 // unit's formation slot already has).
+//
+// Essence rescale (units.js's TIER_COST comment has the full
+// explanation - Marc's "market level up = 250 Essence" ask, scaled
+// 62.5x from every old constant): every item below used to cost a
+// literal 1, 2, or 3 depending on its tier - those become 65/125/190
+// below (same values as units.js's TIER_COST, so a "rare" anything
+// costs the same 190 whether it's a unit, an item, or a relic).
+// Rounded to the 50/100/150/200 family (Marc, round numbers): item buy
+// costs are now 100/150/200 by tier (units.js's TIER_COST recruit
+// costs rounded to 50/100/150 instead - buy vs. recruit intentionally
+// diverge in Marc's table).
 export const ITEM_SLOTS = 3
 
 export const ITEMS = {
@@ -18,7 +70,7 @@ export const ITEMS = {
     id: "twig-charm",
     name: "Twig Charm",
     icon: "shield",
-    cost: 1,
+    cost: 100,
     // A near-verbatim duplicate of Stonebound Charm's own description
     // ("grows a little bark") went unnoticed until a text-match pass -
     // same words, different power level (2 Block here vs. 3 at 2 cost)
@@ -44,7 +96,8 @@ export const ITEMS = {
     id: "mossdrop-vial",
     name: "Mossdrop Vial",
     icon: "leaf",
-    cost: 1,
+    image: mossdropVialImg,
+    cost: 100,
     description: "This unit mends a trickle at the start of each round.",
     // Common tier still had only ONE item (Twig Charm) - real variety
     // gap for a Market Level 1 shop, which can only ever offer this
@@ -66,7 +119,7 @@ export const ITEMS = {
     id: "hunters-mark",
     name: "Hunter's Mark",
     icon: "sword",
-    cost: 1,
+    cost: 100,
     description: "This unit finishes a wounded enemy a little faster.",
     // Common tier's first OFFENSE item, closing the gap Mossdrop Vial's
     // own comment flagged - flat Strength buffs (Ember Charm, +1)
@@ -84,7 +137,7 @@ export const ITEMS = {
     id: "ember-charm",
     name: "Ember Charm",
     icon: "flame",
-    cost: 2,
+    cost: 150,
     description: "This unit strikes a little harder, all fight.",
     // Ember Core (relics.js), single-target instead of squad-wide.
     effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
@@ -93,7 +146,8 @@ export const ITEMS = {
     id: "bark-plating",
     name: "Bark Plating",
     icon: "shield",
-    cost: 2,
+    image: barkPlatingImg,
+    cost: 150,
     description: "This unit shrugs off the first real hit it takes, once.",
     // Aegis Ward (relics.js), single-target.
     effects: [{ type: "applyBuff", id: "ward", amount: 1 }],
@@ -102,7 +156,8 @@ export const ITEMS = {
     id: "sapmend-vial",
     name: "Sapmend Vial",
     icon: "leaf",
-    cost: 2,
+    image: sapmendVialImg,
+    cost: 150,
     description: "This unit mends a little at the start of each round.",
     // Mosswarden's Charm (relics.js), single-target.
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } }],
@@ -111,7 +166,7 @@ export const ITEMS = {
     id: "venomed-fang",
     name: "Venomed Fang",
     icon: "leaf",
-    cost: 3,
+    cost: 200,
     description: "Whatever this unit strikes carries poison after.",
     // Venomous Edge (relics.js), single-target.
     effects: [
@@ -126,7 +181,7 @@ export const ITEMS = {
     id: "thorned-bracer",
     name: "Thorned Bracer",
     icon: "root",
-    cost: 2,
+    cost: 150,
     description: "Whatever strikes this unit gets struck back.",
     // Bramble Ward (relics.js), single-target.
     effects: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 2 } }],
@@ -135,7 +190,8 @@ export const ITEMS = {
     id: "duelists-edge",
     name: "Duelist's Edge",
     icon: "sword",
-    cost: 3,
+    image: duelistsEdgeImg,
+    cost: 200,
     description: "This unit finishes a badly wounded enemy faster.",
     // Culling Strike (relics.js), single-target - the first ITEM-level
     // source of Execute, alongside the relic (squad-wide) and Duskclaw/
@@ -149,7 +205,8 @@ export const ITEMS = {
     id: "chilling-grip",
     name: "Chilling Grip",
     icon: "moonGlyph",
-    cost: 2,
+    image: chillingGripImg,
+    cost: 150,
     description: "Whatever this unit strikes hits softer after, in return.",
     // Frostbrand (relics.js), single-target - Weak's first item-level
     // source, closing the same "every mechanic gets both a relic and a
@@ -166,7 +223,8 @@ export const ITEMS = {
     id: "cleansing-draught",
     name: "Cleansing Draught",
     icon: "leaf",
-    cost: 2,
+    image: cleansingDraughtImg,
+    cost: 150,
     description: "This unit shakes off a lingering ailment at the start of each round.",
     // Purifying Bloom (relics.js), single-target - lets a player put
     // Cleanse specifically on whichever unit is most likely to eat a
@@ -178,7 +236,7 @@ export const ITEMS = {
     id: "stonebound-charm",
     name: "Stonebound Charm",
     icon: "shield",
-    cost: 2,
+    cost: 150,
     description: "This unit grows a little bark at the start of each round.",
     // Bark Ward (relics.js), single-target - lets a player put the
     // repeating Block on specifically the unit standing in the front
@@ -189,7 +247,7 @@ export const ITEMS = {
     id: "feral-charm",
     name: "Feral Charm",
     icon: "flame",
-    cost: 2,
+    cost: 150,
     description: "This unit fights harder once it's badly hurt.",
     // Berserker's Oath (relics.js), single-target - lets a player put
     // Wounded Fury specifically on a tanky frontline unit likely to
@@ -200,7 +258,8 @@ export const ITEMS = {
     id: "wardens-sigil",
     name: "Warden's Sigil",
     icon: "shield",
-    cost: 3,
+    image: wardensSigilImg,
+    cost: 200,
     description: "This unit draws every eye.",
     // Taunt's first item-level source - Bulwark Standard (relics.js)
     // already grants it to whichever deployed unit happens to have the
@@ -215,7 +274,8 @@ export const ITEMS = {
     id: "cracking-fist",
     name: "Cracking Fist",
     icon: "sword",
-    cost: 3,
+    image: crackingFistImg,
+    cost: 200,
     description: "This unit strikes deeper against a target that's still braced.",
     // Quarrybreak (relics.js), single-target - lets a player put
     // Shatter specifically on their heaviest hitter instead of only
@@ -253,7 +313,8 @@ export const ITEMS = {
     id: "wardstitch-cloak",
     name: "Wardstitch Cloak",
     icon: "leaf",
-    cost: 3,
+    image: wardstitchCloakImg,
+    cost: 200,
     description: "This unit turns to mending the squad instead of holding the line.",
     bendsRoleTo: "support",
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
@@ -262,7 +323,8 @@ export const ITEMS = {
     id: "bloodroot-fang",
     name: "Bloodroot Fang",
     icon: "flame",
-    cost: 3,
+    image: bloodrootFangImg,
+    cost: 200,
     description: "This unit turns aggressive, hunting for the finishing blow.",
     bendsRoleTo: "dps",
     effects: [
@@ -274,7 +336,8 @@ export const ITEMS = {
     id: "mossbound-chain",
     name: "Mossbound Chain",
     icon: "shield",
-    cost: 3,
+    image: mossboundChainImg,
+    cost: 200,
     description: "This unit turns to holding the line, drawing every eye.",
     bendsRoleTo: "tank",
     effects: [
@@ -286,7 +349,8 @@ export const ITEMS = {
     id: "wanderers-ledger",
     name: "Wanderer's Ledger",
     icon: "moonGlyph",
-    cost: 3,
+    image: wanderersLedgerImg,
+    cost: 200,
     description: "This unit turns versatile, ready for whatever the fight needs.",
     bendsRoleTo: "hybrid",
     effects: [
@@ -298,7 +362,8 @@ export const ITEMS = {
     id: "hexroot-vial",
     name: "Hexroot Vial",
     icon: "root",
-    cost: 3,
+    image: hexrootVialImg,
+    cost: 200,
     description: "This unit turns to rot and ruin instead of raw defense - every strike lingers.",
     bendsRoleTo: "support",
     effects: [
@@ -310,7 +375,8 @@ export const ITEMS = {
     id: "wraithfang-charm",
     name: "Wraithfang Charm",
     icon: "moonGlyph",
-    cost: 3,
+    image: wraithfangCharmImg,
+    cost: 200,
     description: "This unit turns bloodthirsty instead of blunt - every strike weakens its target and mends the wound.",
     bendsRoleTo: "dps",
     effects: [
@@ -330,7 +396,7 @@ export const ITEMS = {
     id: "thornhide-ward",
     name: "Thornhide Ward",
     icon: "leaf",
-    cost: 3,
+    cost: 200,
     description: "This unit turns evasive instead of unyielding - hits simply don't land, rather than being weathered.",
     bendsRoleTo: "tank",
     // A second, distinct path to "tank" from Mossbound Chain's Block+
@@ -345,7 +411,8 @@ export const ITEMS = {
     id: "emberroot-talisman",
     name: "Emberroot Talisman",
     icon: "flame",
-    cost: 3,
+    image: emberrootTalismanImg,
+    cost: 200,
     description: "This unit turns opportunistic - braces for a hit, then strikes twice as hard once it lands.",
     bendsRoleTo: "hybrid",
     // A second, distinct path to "hybrid" from Wanderer's Ledger's
@@ -361,7 +428,8 @@ export const ITEMS = {
     id: "mendleaf-charm",
     name: "Mendleaf Charm",
     icon: "heart",
-    cost: 2,
+    image: mendleafCharmImg,
+    cost: 150,
     description: "This unit knits itself back together over the fight's first few rounds.",
     // Heartsbloom Seed (relics.js), single-target - lets a player put
     // Regen (effects.js's tickRegen) specifically on the unit most
@@ -372,7 +440,7 @@ export const ITEMS = {
     id: "sundermaw-fang",
     name: "Sundermaw Fang",
     icon: "root",
-    cost: 3,
+    cost: 200,
     description: "Whatever this unit strikes loses its own strongest edge.",
     // Sunder's first ITEM source (effects.js's sunder - strips a
     // target's strongest SUNDERABLE_IDS buff). Thornwisp/Ashcaller
@@ -389,7 +457,7 @@ export const ITEMS = {
     id: "frostbite-fang",
     name: "Frostbite Fang",
     icon: "moonGlyph",
-    cost: 3,
+    cost: 200,
     description: "Whatever this unit strikes seizes up, unable to act next round.",
     // Stun's first ITEM source (autoBattleEngine.js decrements a
     // unit's stun stack by 1 and skips its whole turn whenever it's
@@ -414,7 +482,7 @@ export const ITEMS = {
     id: "cascading-claw",
     name: "Cascading Claw",
     icon: "sword",
-    cost: 3,
+    cost: 200,
     description: "Whatever this unit finishes off, it strikes again at someone else.",
     // Chain's first ITEM source (autoBattleEngine.js's actSide) -
     // previously the only mechanic on the roster with no item/relic
@@ -434,7 +502,8 @@ export const ITEMS = {
     id: "fungal-spore-sac",
     name: "Fungal Spore Sac",
     icon: "leaf",
-    cost: 2,
+    image: fungalSporeSacImg,
+    cost: 150,
     description: "Whatever this unit poisons, it poisons someone standing nearby too.",
     // Spore Spread's first ITEM source (autoBattleEngine.js's actSide -
     // `acting.powers.sporeSpread`, checked as a boolean flag the same
@@ -449,7 +518,7 @@ export const ITEMS = {
     id: "bloodfen-ring",
     name: "Bloodfen Ring",
     icon: "flame",
-    cost: 2,
+    cost: 150,
     description: "This unit fights harder the deeper its own wounds go.",
     // Wounded Fury's 2nd unit-level source (alongside Feral Charm) -
     // same "give the player the choice" motivation Sundermaw Fang/
@@ -463,7 +532,7 @@ export const ITEMS = {
     id: "quarrystrike-gauntlet",
     name: "Quarrystrike Gauntlet",
     icon: "sword",
-    cost: 3,
+    cost: 200,
     description: "This unit hits harder, and hardest of all against a target still braced.",
     // Strength + Shatter together on one item - both stack numerically
     // (unlike Wounded Fury/Taunt's flat, non-stacking shape), so this
@@ -480,7 +549,8 @@ export const ITEMS = {
     id: "reckless-vow",
     name: "Reckless Vow",
     icon: "sword",
-    cost: 3,
+    image: recklessVowImg,
+    cost: 200,
     description: "This unit finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
     // Execute + Ward together - a "glass cannon insurance" identity:
     // Ward's own stack count is a real hit-absorption counter, not a
@@ -498,7 +568,8 @@ export const ITEMS = {
     id: "bulwarks-mercy",
     name: "Bulwark's Mercy",
     icon: "heart",
-    cost: 3,
+    image: bulwarksMercyImg,
+    cost: 200,
     description: "This unit shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
     // Regen + Ward together - a pure survivability identity for a
     // frontline unit: Ward cancels the first real hit outright, Regen
@@ -514,7 +585,8 @@ export const ITEMS = {
     id: "bramblehide-standard",
     name: "Bramblehide Standard",
     icon: "shield",
-    cost: 3,
+    image: bramblehideStandardImg,
+    cost: 200,
     description: "This unit draws every eye, and fights harder the deeper its own wounds go.",
     // Taunt + Wounded Fury together - the same bruiser identity this
     // round's own new mook, Bramblespite, established: a tank that
@@ -533,7 +605,7 @@ export const ITEMS = {
     id: "ashclaw-fang",
     name: "Ashclaw Fang",
     icon: "sword",
-    cost: 3,
+    cost: 200,
     description: "This unit strikes a little harder, and whatever it strikes loses its own strongest edge.",
     // Strength + Sunder together - an aggressive anti-buff identity:
     // every hit both deals more damage AND strips whatever the target
@@ -549,7 +621,7 @@ export const ITEMS = {
     id: "cripplebite-fang",
     name: "Cripplebite Fang",
     icon: "sword",
-    cost: 3,
+    cost: 200,
     description: "Whatever this unit strikes hits softer after, and takes worse hits in return.",
     // Weak + Vulnerable together - the last unpaired combo of the 3
     // core debuffs at the item/relic level. Enemy mooks already cover
@@ -585,7 +657,7 @@ export const ITEMS = {
     id: "witherspite-fang",
     name: "Witherspite Fang",
     icon: "leaf",
-    cost: 3,
+    cost: 200,
     description: "Whatever this unit strikes carries both rot and weariness after.",
     // Poison + Weak - Witherspite Crown (relics.js) already grants this
     // squad-wide; this was the missing item-level version, letting a
@@ -599,7 +671,7 @@ export const ITEMS = {
     id: "thornfen-fang",
     name: "Thornfen Fang",
     icon: "flame",
-    cost: 3,
+    cost: 200,
     description: "This unit strikes a little harder, and mends off every hit it lands.",
     // Strength + Lifesteal (heal-on-onDealDamage) - a new aggressive-
     // sustain hybrid. Lifesteal previously only existed as Vampiric
@@ -616,7 +688,7 @@ export const ITEMS = {
     id: "huntclaw-fang",
     name: "Huntclaw Fang",
     icon: "sword",
-    cost: 3,
+    cost: 200,
     description: "This unit finishes a badly wounded enemy faster, and strikes again at someone else when it does.",
     // Execute + Chain together - both exist solo (Duelist's Edge/
     // Culling Strike for Execute; Cascading Claw/Cascading Wound for
@@ -628,6 +700,270 @@ export const ITEMS = {
       { type: "applyBuff", id: "chainDamage", amount: 3 },
     ],
   },
+
+  // Kuvia-folder art pass, round 2 (Marc: "kayta kuvia kansiosta
+  // vapaasti ja jos mahdollista niin luot unitteja/itemeita kuville" -
+  // use the images freely, and where possible make items FOR the
+  // images): 6 brand-new items built around leftover icon-style photos
+  // that didn't match any existing entry above, rather than leaving
+  // good art unused. Every effect here reuses an EXISTING mechanic
+  // already proven elsewhere in this file (no new engine work), priced
+  // on the same cost/tier ladder every item above already follows -
+  // Crimson Shard is common, Thornback Crown a cheaper uncommon Taunt,
+  // the rest rare 2-effect combos.
+  "crimson-shard": {
+    id: "crimson-shard",
+    name: "Crimson Shard",
+    icon: "leaf",
+    image: crimsonShardImg,
+    cost: 100,
+    // Common tier's first standalone Poison item - every existing
+    // Poison source (Venomed Fang, Witherspite Fang) sits at rare, so
+    // this is the cheap entry point into the mechanic, same role Twig
+    // Charm/Mossdrop Vial/Hunter's Mark already play for Block/Heal/
+    // Execute at this tier.
+    description: "Whatever this unit strikes carries a faint rot after.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+    ],
+  },
+  "thornback-crown": {
+    id: "thornback-crown",
+    name: "Thornback Crown",
+    icon: "shield",
+    image: thornbackCrownImg,
+    cost: 150,
+    // A cheaper Taunt than Warden's Sigil's own 190 - same "give the
+    // player an earlier price point into a mechanic" downscale Twig
+    // Charm/Mossdrop Vial already established for Block/Heal.
+    description: "This unit wears its thorns proudly, drawing every eye.",
+    effects: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+  },
+  "gloaming-shard": {
+    id: "gloaming-shard",
+    name: "Gloaming Shard",
+    icon: "moonGlyph",
+    image: gloamingShardImg,
+    cost: 200,
+    // Poison + Vulnerable together - genuinely the last unpaired combo
+    // of the 3 core debuffs at the item/relic level (Cripplebite Fang's
+    // own comment already closed Weak+Vulnerable and noted Witherspite
+    // Fang/Crown already cover Poison+Weak; nothing before this
+    // combined Poison+Vulnerable for the player).
+    description: "Whatever this unit strikes rots from within, and takes cruelly worse hits after.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
+    ],
+  },
+  "runebound-coffer": {
+    id: "runebound-coffer",
+    name: "Runebound Coffer",
+    icon: "shield",
+    image: runeboundCofferImg,
+    cost: 200,
+    // Ward + Shatter - a new pairing: every existing Shatter combo
+    // (Quarrystrike Gauntlet, Emberroot Talisman) pairs it with
+    // Strength or repeating Block, never with Ward's own "cancel the
+    // first real hit outright" shape.
+    description: "This unit shrugs off the first real hit it takes, and strikes deeper against a target still braced.",
+    effects: [
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "applyBuff", id: "shatter", amount: 2 },
+    ],
+  },
+  "wayfarers-talisman": {
+    id: "wayfarers-talisman",
+    name: "Wayfarer's Talisman",
+    icon: "shield",
+    image: wayfarersTalismanImg,
+    cost: 200,
+    // Taunt + Ward - the "pure tank" combo: Mossbound Chain already
+    // pairs Taunt with repeating Block instead, and Wanderer's Ledger
+    // already pairs Ward with heal - this is the first item to combine
+    // Taunt with Ward's own hit-cancel instead.
+    description: "This unit draws every eye, and shrugs off the first real hit while it holds the line.",
+    effects: [
+      { type: "applyBuff", id: "taunt", amount: 1 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+    ],
+  },
+  "glowmoss-lantern": {
+    id: "glowmoss-lantern",
+    name: "Glowmoss Lantern",
+    icon: "heart",
+    image: glowmossLanternImg,
+    cost: 200,
+    // Regen + Cleanse - a pure sustain identity: Mendleaf Charm's own
+    // Regen and Cleansing Draught's own Cleanse had never been
+    // combined onto one item before.
+    description: "This unit knits itself back together, and shakes off whatever ails it, every round.",
+    effects: [
+      { type: "applyBuff", id: "regen", amount: 2 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } },
+    ],
+  },
+
+  // --- Elemental-status items (the depth round) ----------------------
+  // A single-target entry point for each new status, so a squad that
+  // isn't built around an elemental tribe can still splash one in.
+  // Same "smaller echo of a relic" shape every item above already has.
+  "stoneskin-band": {
+    id: "stoneskin-band",
+    name: "Stoneskin Band",
+    icon: "stone",
+    cost: 100,
+    description: "This unit carries a sliver of permanent armour that turns aside part of every hit.",
+    effects: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+  },
+  "windstep-charm": {
+    id: "windstep-charm",
+    name: "Windstep Charm",
+    icon: "gale",
+    cost: 100,
+    description: "This unit slips aside from the first hit that would land on it.",
+    effects: [{ type: "applyBuff", id: "evade", amount: 1 }],
+  },
+  "tidewrack-vial": {
+    id: "tidewrack-vial",
+    name: "Tidewrack Vial",
+    icon: "tide",
+    cost: 100,
+    description: "Whatever this unit strikes hits back a little softer afterward.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+    ],
+  },
+  "emberbrand-oil": {
+    id: "emberbrand-oil",
+    name: "Emberbrand Oil",
+    icon: "ember",
+    cost: 100,
+    description: "Whatever this unit strikes is left burning.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
+    ],
+  },
+  "starlit-shard": {
+    id: "starlit-shard",
+    name: "Starlit Shard",
+    icon: "cosmic",
+    cost: 150,
+    description: "This unit grows a little stronger with every passing round.",
+    effects: [{ type: "applyBuff", id: "ascendant", amount: 1 }],
+  },
+  "glacier-fang": {
+    id: "glacier-fang",
+    name: "Glacier Fang",
+    icon: "stone",
+    cost: 200,
+    // Bulwark + Shatter - armour that also punishes an enemy for
+    // turtling behind Block.
+    description: "This unit shrugs part of every hit aside, and cuts deeper into anything hiding behind Block.",
+    effects: [
+      { type: "applyBuff", id: "bulwark", amount: 1 },
+      { type: "applyBuff", id: "shatter", amount: 2 },
+    ],
+  },
+  "cyclone-edge": {
+    id: "cyclone-edge",
+    name: "Cyclone Edge",
+    icon: "gale",
+    cost: 200,
+    // Evade + Strength - the Gale identity in one item: dodge a hit,
+    // and hit back harder.
+    description: "This unit slips the first blow and answers with a heavier one.",
+    effects: [
+      { type: "applyBuff", id: "evade", amount: 1 },
+      { type: "applyBuff", id: "strength", amount: 1 },
+    ],
+  },
+  "pyre-edge": {
+    id: "pyre-edge",
+    name: "Pyre Edge",
+    icon: "ember",
+    cost: 200,
+    // Burn-on-hit + Execute - a finisher that leaves a fire behind.
+    description: "Whatever this unit strikes burns, and burns worse the closer it is to falling.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
+      { type: "applyBuff", id: "execute", amount: 1 },
+    ],
+  },
+
+  // --- Elemental combo items (2026-09-07, "lisää sisältöä") ---------
+  // The mechanics-depth round added single-mechanic elemental items at
+  // common (Stoneskin Band / Windstep Charm / Tidewrack Vial /
+  // Emberbrand Oil / Starlit Shard) and a few rares - but the uncommon
+  // (150) band had almost no elemental options. These 5 sit there as
+  // two-status combos, plus one common ward item. No `image` -
+  // ItemCard.jsx falls back to the `icon` glyph.
+  "emberflow-oil": {
+    id: "emberflow-oil",
+    name: "Emberflow Oil",
+    icon: "ember",
+    cost: 150,
+    description: "This unit's strikes leave a burn, and it knits itself back a little each round.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
+      { type: "applyBuff", id: "regen", amount: 1 },
+    ],
+  },
+  "tidestone-band": {
+    id: "tidestone-band",
+    name: "Tidestone Band",
+    icon: "stone",
+    cost: 150,
+    description: "This unit carries a sliver of permanent armour, and what it strikes hits back softer.",
+    effects: [
+      { type: "applyBuff", id: "bulwark", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
+    ],
+  },
+  "galeheart-charm": {
+    id: "galeheart-charm",
+    name: "Galeheart Charm",
+    icon: "gale",
+    cost: 150,
+    description: "This unit slips the first blow each round, and mends a trickle as the fight goes on.",
+    effects: [
+      { type: "applyBuff", id: "evade", amount: 1 },
+      { type: "applyBuff", id: "regen", amount: 1 },
+    ],
+  },
+  "voidfang-edge": {
+    id: "voidfang-edge",
+    name: "Voidfang Edge",
+    icon: "shadow",
+    cost: 150,
+    description: "This unit's strikes poison, and it finishes a badly wounded enemy faster.",
+    effects: [
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      { type: "applyBuff", id: "execute", amount: 1 },
+    ],
+  },
+  "starbound-shard": {
+    id: "starbound-shard",
+    name: "Starbound Shard",
+    icon: "cosmic",
+    cost: 200,
+    description: "This unit grows stronger with every round the fight lasts, and its strikes leave a burn.",
+    effects: [
+      { type: "applyBuff", id: "ascendant", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
+    ],
+  },
+  "wardknot-charm": {
+    id: "wardknot-charm",
+    name: "Wardknot Charm",
+    icon: "shield",
+    cost: 100,
+    description: "This unit shrugs off the first real hit, and grows a sprig of bark each round after.",
+    effects: [
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+    ],
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
@@ -635,7 +971,12 @@ export const ITEMS = {
 // things) - derived from cost the same way units.js's tierFromCost
 // already works, applied once here instead of repeating a `tier:`
 // field by hand on every entry above.
-const ITEM_TIER_BY_COST = { 1: "common", 2: "uncommon", 3: "rare" }
+// Essence rescale: keys were 1/2/3, now 65/125/190 (this file's own
+// header comment) - must stay in lockstep with every `cost:` literal
+// above, since tier derivation keys off the exact scaled value.
+// Rounded to the 50/100/150/200 family (Marc, round numbers): keys and
+// every `cost:` literal above moved 65->100, 125->150, 190->200.
+const ITEM_TIER_BY_COST = { 100: "common", 150: "uncommon", 200: "rare" }
 for (const item of Object.values(ITEMS)) {
   item.tier = ITEM_TIER_BY_COST[item.cost] || "rare"
 }

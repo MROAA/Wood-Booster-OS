@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { CHARACTERS } from "../data/heartwood/characters"
 import { resolveTrial } from "../data/heartwood/trials"
@@ -8,9 +8,16 @@ import {
   rankUpCommander,
   upgradeRelic,
   reforgeUnit,
+  upgradeUnit,
   sellUnit,
   retrainCommander,
   rerollShop,
+  buyInvestment,
+  scoutAhead,
+  scoutCost,
+  buyAntidote,
+  antidoteCost,
+  reclaimBuyback,
   rerollRelicOffers,
   leaveShop,
   assignToSlot,
@@ -20,33 +27,77 @@ import {
   resolveBattleOutcome,
   chooseRelic,
   essenceForWin,
+  bankInterestFor,
   buyItem,
   equipItem,
   unequipItem,
   levelUpMarket,
+  advanceMarketTier,
   toggleFreeze,
   activateCommanderPower,
   difficultyTierForNode,
+  actIndexForNode,
+  resolveActCrossroads,
+  markActSeen,
   serializeRun,
   deserializeRun,
   chooseFloorEncounter,
+  eventForNode,
+  resolveEventChoice,
+  startActFive,
+  startCrownlessBattle,
+  endCrownlessBattle,
+  chooseForestPath,
+  markEchoEpilogueSeen,
+  DIFFICULTY_TIERS,
   RUN_PATH,
 } from "../services/heartwood/runEngine"
+import { crossroadsForAct } from "../data/heartwood/crossroads"
+import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
+import { loadMeta, saveMeta } from "../services/heartwood/metaState"
+import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
+import { MAX_DEPTH } from "../data/heartwood/depths"
+import GroveScreen from "../components/heartwood/GroveScreen"
+import AlmanacScreen from "../components/heartwood/AlmanacScreen"
+import SettingsScreen from "../components/heartwood/SettingsScreen"
+import BattleSound from "../components/heartwood/BattleSound"
+import { almanacCounts, recordAlmanac } from "../data/heartwood/almanac"
+import { initAudioFromStorage, installClickSound, setMusicMode, play as playSfx } from "../services/heartwood/soundManager"
 import CommanderSelect from "../components/heartwood/CommanderSelect"
+import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
 import RelicChoice from "../components/heartwood/RelicChoice"
 import FloorChoice from "../components/heartwood/FloorChoice"
+import EventScreen from "../components/heartwood/EventScreen"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import RunMap from "../components/heartwood/RunMap"
+import ActTransitionScreen from "../components/heartwood/ActTransitionScreen"
+import StoryCinematic from "../components/heartwood/StoryCinematic"
+import ForestChoiceScreen from "../components/heartwood/ForestChoiceScreen"
+import CoachTip from "../components/heartwood/CoachTip"
+import HelpOverlay from "../components/heartwood/HelpOverlay"
+import { nextCoachTip, markCoachSeen } from "../data/heartwood/coach"
+import { UNITS } from "../data/heartwood/units"
+import { UNIT_TRIBES } from "../data/heartwood/synergies"
+import { resolveFormation } from "../data/heartwood/formations"
+import { CINEMATICS, cinematicById, suggestedEndingId } from "../data/heartwood/cinematics"
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
+import TacticsBoard from "../components/heartwood/TacticsBoard"
+import { createRealMatchupBattle, withLowEnemyHp } from "../services/heartwood/tacticsEngine"
+import { resolveRealMatchup } from "../services/heartwood/tacticsRealMatchup"
 import "../components/heartwood/heartwood.css"
+import "../components/heartwood/heartwood-tactics.css"
 
 const rootStyle = { height: "100%", "--hw-bg-image": `url(${battleBg})` }
 const AUTOBATTLER_INTRO_SEEN_KEY = "heartwood-autobattler-intro-seen"
+// Story intro cinematic (cinematics.js) - shown once ever, before the
+// first shop, same once-and-skippable contract as the tutorial hint
+// above. Separate key so clearing one doesn't affect the other.
+const STORY_INTRO_SEEN_KEY = "heartwood-story-intro-seen"
 
 // Heartwood Trial as an autobattler: pick a Commander, then a fixed
 // loop of Shop -> Formation -> Auto-Battle repeats until the
@@ -68,6 +119,19 @@ export default function HeartwoodBattle() {
   const [showIntro, setShowIntro] = useState(
     () => typeof localStorage !== "undefined" && !localStorage.getItem(AUTOBATTLER_INTRO_SEEN_KEY),
   )
+  // Story intro cinematic gate. Presentation-only (like showGuildHall):
+  // renders on top of an already-"shop" runState, cleared by its own
+  // Continue/Skip. Only meaningful once a run exists; the localStorage
+  // key makes it once-ever.
+  const [showStoryIntro, setShowStoryIntro] = useState(
+    () => typeof localStorage !== "undefined" && !localStorage.getItem(STORY_INTRO_SEEN_KEY),
+  )
+  // Ending cinematic: set to an id ("ending-rooted" | "-ember" |
+  // "-hollow") once a run reaches victory; StoryCinematic plays it, then
+  // clears it and RunEndOverlay takes over. Defeat gets no cinematic.
+  const [endingCinematic, setEndingCinematic] = useState(null)
+  const endingShownRef = useRef(null)
+  const endingRearmRef = useRef(null)
   // Death Memory (Marc's PRD, runEngine.js's buildDeathMemory): the
   // PREVIOUS run's fallen hero, if any - real state, not a one-time
   // useMemo, because it has to pick up a memory saved LATER in the
@@ -97,6 +161,112 @@ export default function HeartwoodBattle() {
   // leaveShop() call is just deferred one click.
   const [showMapAfterShop, setShowMapAfterShop] = useState(false)
 
+  // Act Crossroads (crossroads.js): holds the Act number whose boundary
+  // interstitial is currently due, or null. Armed by the effect below
+  // when actIndexForNode passes runState.lastSeenAct and a crossroads
+  // exists for that Act; cleared by the screen's own choice. Same
+  // presentation-only shape as showMapAfterShop - runEngine's phase
+  // machine is untouched; resolveActCrossroads only edits runState
+  // fields (allegiances / forestState / runModifiers / lastSeenAct).
+  const [actCrossroads, setActCrossroads] = useState(null)
+
+  // Guild Hall (PRD v2.0 Phase 4): a one-time arrival screen for THIS
+  // run, shown right after a Commander is confirmed and before the
+  // first shop render. Same shape as showMapAfterShop above - a purely
+  // presentational gate, armed by beginRun below and cleared by the
+  // screen's own CTA, never touching runEngine.js's actual phase
+  // machine (runState.phase is already "shop" the whole time this is
+  // true; this state only decides what HeartwoodBattle renders on top
+  // of it). Starts false (not derived from restored/runState) so a
+  // page reload mid-run - or resuming a saved run - lands straight
+  // back on its real phase instead of replaying the arrival beat.
+  const [showGuildHall, setShowGuildHall] = useState(false)
+
+  // Between-run meta progression (metaState.js / metaPerks.js). Loaded
+  // once; the Grove screen (from commander select) spends Acorns, and a
+  // finished run awards Acorns exactly once via the effect below.
+  const [meta, setMeta] = useState(() => loadMeta())
+  const [showGrove, setShowGrove] = useState(false)
+  const [showAlmanac, setShowAlmanac] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  // The ? reference overlay (HelpOverlay) + the contextual coach
+  // (coach.js). `coachTick` forces a re-eval of nextCoachTip after a
+  // tip is dismissed (the seen-set lives in localStorage);
+  // coachDoneKeyRef holds the screen key a tip was last dismissed on so
+  // the rest of that screen's tips stay suppressed until the run moves.
+  const [showHelp, setShowHelp] = useState(false)
+  // Phase 4 second slice ("fight one real battle for real"): the
+  // in-progress tactics battle's own selection state - mirrors exactly
+  // how HeartwoodTactics.jsx (the standalone prototype) owns its own
+  // selectedId/abilityMode. This is UI-only interaction state, never
+  // saved with the run (unlike runState.battle itself, which IS saved -
+  // see handleStartTacticsBattle's comment).
+  const [tacticsSelectedId, setTacticsSelectedId] = useState(null)
+  const [tacticsAbilityMode, setTacticsAbilityMode] = useState(null)
+  const [coachTick, setCoachTick] = useState(0)
+  const coachDoneKeyRef = useRef(null)
+  const [lastAcornsEarned, setLastAcornsEarned] = useState(null)
+  const awardedRunRef = useRef(null)
+
+  function handleBuyPerk(perkId) {
+    setMeta((m) => {
+      const perk = META_PERKS.find((p) => p.id === perkId)
+      if (!perk || m.acorns < perk.cost || (m.chosenPerks || []).includes(perkId)) return m
+      const next = { ...m, acorns: m.acorns - perk.cost, chosenPerks: [...(m.chosenPerks || []), perkId] }
+      saveMeta(next)
+      return next
+    })
+  }
+
+  function handleSelectDepth(level) {
+    setMeta((m) => {
+      const clamped = Math.max(0, Math.min(m.depth || 0, level))
+      if (clamped === (m.selectedDepth || 0)) return m
+      const next = { ...m, selectedDepth: clamped }
+      saveMeta(next)
+      return next
+    })
+  }
+
+  function handleUnlockCommander(id) {
+    setMeta((m) => {
+      const c = CHARACTERS[id]
+      if (!c?.locked || (m.unlockedCommanders || []).includes(id) || m.acorns < (c.unlockCost || 0)) return m
+      const next = {
+        ...m,
+        acorns: m.acorns - (c.unlockCost || 0),
+        unlockedCommanders: [...(m.unlockedCommanders || []), id],
+      }
+      saveMeta(next)
+      return next
+    })
+  }
+
+  // Audio (soundManager.js): apply persisted volumes + the reduce-motion
+  // class on mount, and install the one delegated button-click sound
+  // (which is also the user gesture that unlocks the AudioContext).
+  // Everything is a silent no-op without Web Audio.
+  useEffect(() => {
+    initAudioFromStorage()
+    installClickSound()
+  }, [])
+
+  // Procedural music mode follows the screen the player is on. Derived
+  // here (not inside the effect) so the dep is a plain string.
+  const musicMode = (() => {
+    if (showGrove || showAlmanac || showSettings || showHelp || !runState) return "menu"
+    if (runState.phase === "victory" || runState.phase === "defeat") return "end"
+    if (runState.phase === "shop") return "shop"
+    if (runState.phase === "battle" || runState.phase === "formation") {
+      const nodeType = runState.path?.[runState.nodeIndex]?.type
+      return nodeType === "boss" || nodeType === "miniboss" || nodeType === "elite" ? "boss" : "battle"
+    }
+    return "menu"
+  })()
+  useEffect(() => {
+    setMusicMode(musicMode)
+  }, [musicMode])
+
   // Every one of this component's ~20 handlers funnels through
   // setRunState, so one effect covers all of them rather than a save
   // call in each handler. Saving mid-battle is deliberate (see
@@ -110,7 +280,94 @@ export default function HeartwoodBattle() {
     // resolveBattleOutcome's "lost" branch) - the next run's
     // character-select screen reads it back via loadLastRun() above.
     if (runState.phase === "defeat" && runState.deathMemory) saveLastRun(runState.deathMemory)
+
+    // Act V - The Crownless (runEngine startActFive). On a win, the run
+    // isn't over: begin the finale sequence (throne -> Crownless fight ->
+    // Forest's Choice -> ending -> Echo epilogue -> RunEndOverlay). The
+    // `!runState.actFive` guard means a reload mid-Act-V resumes from the
+    // saved step instead of restarting the sequence, even though the ref
+    // resets. `phase` stays "victory" throughout.
+    if (runState.phase === "victory" && !runState.actFive && endingShownRef.current !== runState) {
+      endingShownRef.current = runState
+      setRunState((rs) => startActFive(rs))
+    }
+
+    // Reload landing on a run whose Act V is already resolved (choice
+    // made): re-arm the chosen ending cinematic so the sequence still
+    // reaches RunEndOverlay via the ending (+ Echo epilogue if unseen),
+    // not straight past it. Ref-guarded so it's a one-time re-arm.
+    if (
+      runState.phase === "victory" &&
+      runState.actFive === "done" &&
+      runState.chosenEnding &&
+      !endingCinematic &&
+      endingRearmRef.current !== runState
+    ) {
+      endingRearmRef.current = runState
+      setEndingCinematic(runState.chosenEnding)
+    }
+
+    // Award Acorns for a finished run - once per run. Keyed by the run's
+    // own honoredMemory.ts / a stable per-run stamp isn't available, so
+    // guard on a ref holding the runState object identity of the ended
+    // run (setRunState always makes a new object, and the end state is
+    // terminal - no more transitions - so this fires exactly once).
+    if ((runState.phase === "victory" || runState.phase === "defeat") && awardedRunRef.current !== runState) {
+      awardedRunRef.current = runState
+      const won = runState.phase === "victory"
+      const ranDepth = runState.selectedDepth || 0
+      const earned = acornsForRun(runState, won, meta.chosenPerks || [], ranDepth)
+      setLastAcornsEarned(earned)
+      setMeta((m) => {
+        // Beating a run at the deepest Depth you've unlocked unlocks the
+        // next one (Ascension-style).
+        const unlockedNext = won && ranDepth === (m.depth || 0) && (m.depth || 0) < MAX_DEPTH
+        const next = recordAlmanac(
+          {
+            ...m,
+            acorns: m.acorns + earned,
+            depth: unlockedNext ? (m.depth || 0) + 1 : m.depth || 0,
+            stats: {
+              runs: (m.stats?.runs || 0) + 1,
+              wins: (m.stats?.wins || 0) + (won ? 1 : 0),
+              bestNodeIndex: Math.max(m.stats?.bestNodeIndex || 0, runState.nodeIndex || 0),
+            },
+          },
+          // The Almanac (almanac.js): everything this run met, win or
+          // loss - same once-per-run cadence as the Acorn award.
+          runState.seen,
+        )
+        saveMeta(next)
+        return next
+      })
+    }
+    // meta.chosenPerks is only ever changed on the commander-select
+    // screen (no Grove access mid-run), so it's stable for a run's
+    // whole lifetime - reading it here without it in the dep array is
+    // deliberate, not a stale-closure bug.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runState])
+
+  // Act Crossroads gate (crossroads.js): whenever the run has moved into
+  // a later Act than the last one acknowledged, arm the boundary
+  // interstitial - or, for an Act with no crossroads (VI/VII), just
+  // record it as seen so this can't loop. Deferred while a battle is
+  // resolving or the run has ended: the next non-battle render picks it
+  // up. Presentation-only; resolveActCrossroads / markActSeen edit
+  // runState fields, never its phase.
+  useEffect(() => {
+    if (!runState) return
+    const act = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
+    if (act <= (runState.lastSeenAct || 1)) return
+    if (["battle", "victory", "defeat"].includes(runState.phase)) return
+    if (crossroadsForAct(act)) setActCrossroads(act)
+    else setRunState((rs) => markActSeen(rs, act))
+  }, [runState])
+
+  function handleActCrossroads(choiceId) {
+    setRunState((rs) => resolveActCrossroads(rs, actCrossroads, choiceId))
+    setActCrossroads(null)
+  }
 
   // Renders outside OSLayout now (App.jsx) - no Sidebar to fall back on
   // to get back to the rest of Wood-Booster HQ, so every screen needs
@@ -121,14 +378,65 @@ export default function HeartwoodBattle() {
     </Link>
   )
 
+  // Change Commander / How to Play used to render as two full-size
+  // .hw-move-btn pills at the top-LEFT of every shop-adjacent screen,
+  // right above the actual cards - Marc, marking up a screenshot
+  // directly: crossed both out, circled the whole header area as one
+  // undifferentiated clump ("iso möykky"), and said to move them
+  // rather than delete the feature ("poista raksitut ja siirrä
+  // nappeja"). Relocated to the same fixed top-RIGHT corner as the
+  // exit link, in its exact subdued style - these are both rare
+  // "step out of the moment" utility actions, not part of the
+  // shop's actual decision-making, so they read as one small utility
+  // cluster instead of competing with the cards for top-left
+  // attention.
+  const utilityBar = (
+    <div className="hw-utility-bar">
+      <button className="hw-exit-link hw-utility-btn" onClick={() => setShowIntro(true)}>
+        How to Play
+      </button>
+      <button className="hw-exit-link hw-utility-btn" onClick={() => setShowHelp(true)}>
+        Help
+      </button>
+      <button className="hw-exit-link hw-utility-btn" onClick={handleChangeCharacter}>
+        Change Commander
+      </button>
+      {exitLink}
+    </div>
+  )
+
   function dismissIntro() {
     localStorage.setItem(AUTOBATTLER_INTRO_SEEN_KEY, "true")
     setShowIntro(false)
   }
 
-  function beginRun(id) {
+  function dismissStoryIntro() {
+    try {
+      localStorage.setItem(STORY_INTRO_SEEN_KEY, "true")
+    } catch {
+      // private-mode / storage-disabled: fine, it just replays next run
+    }
+    setShowStoryIntro(false)
+  }
+
+  function beginRun(id, forcedSeed) {
+    // Defence-in-depth: CommanderSelect never fires onConfirm for a
+    // still-locked Commander (it routes the click to onUnlock instead),
+    // but never start a run with one regardless.
+    const c = CHARACTERS[id]
+    if (c?.locked && !(meta.unlockedCommanders || []).includes(id)) return
     setCharacterId(id)
-    setRunState(startRun(id, pendingMemory))
+    // `forcedSeed` (a number) comes from CommanderSelect's optional
+    // "Enter a seed" field - a seeded run. startRun only reads
+    // meta.forcedSeed + meta.chosenPerks, so the shallow copy keeps the
+    // perks intact.
+    const runMeta = Number.isFinite(forcedSeed) ? { ...meta, forcedSeed } : meta
+    setRunState(startRun(id, pendingMemory, runMeta))
+    setLastAcornsEarned(null)
+    // Arrival beat, once per run - see showGuildHall's own comment
+    // above. The shop phase is already set on runState at this point;
+    // this only delays HeartwoodBattle from rendering it.
+    setShowGuildHall(true)
     // Honored once, then cleared - a fallen hero is remembered for
     // exactly the next run, not forever (see startRun's own comment).
     if (pendingMemory) clearLastRun()
@@ -147,6 +455,7 @@ export default function HeartwoodBattle() {
   }
 
   function handleRecruit(unitDefId) {
+    playSfx("buy")
     setRunState((current) => recruitUnit(current, unitDefId))
   }
 
@@ -162,8 +471,30 @@ export default function HeartwoodBattle() {
     setRunState((current) => reforgeUnit(current, benchKey))
   }
 
+  function handleUpgradeUnit(benchKey, branchId) {
+    setRunState((current) => upgradeUnit(current, benchKey, branchId))
+  }
+
   function handleSell(benchKey) {
     setRunState((current) => sellUnit(current, benchKey))
+  }
+
+  function handleBuyInvestment(id) {
+    setRunState((current) => buyInvestment(current, id))
+  }
+
+  function handleScout() {
+    playSfx("buy")
+    setRunState((current) => scoutAhead(current))
+  }
+
+  function handleAntidote() {
+    playSfx("buy")
+    setRunState((current) => buyAntidote(current))
+  }
+
+  function handleReclaimBuyback() {
+    setRunState((current) => reclaimBuyback(current))
   }
 
   function handleRetrain(newCharacterId) {
@@ -171,10 +502,12 @@ export default function HeartwoodBattle() {
   }
 
   function handleReroll() {
+    playSfx("reroll")
     setRunState((current) => rerollShop(current))
   }
 
   function handleBuyItem(itemDefId) {
+    playSfx("buy")
     setRunState((current) => buyItem(current, itemDefId))
   }
 
@@ -188,6 +521,10 @@ export default function HeartwoodBattle() {
 
   function handleLevelUpMarket() {
     setRunState((current) => levelUpMarket(current))
+  }
+
+  function handleAdvanceMarketTier() {
+    setRunState((current) => advanceMarketTier(current))
   }
 
   function handleToggleFreeze() {
@@ -225,6 +562,52 @@ export default function HeartwoodBattle() {
     setRunState((current) => startFormationBattle(current))
   }
 
+  // Phase 4 second slice ("fight one real battle for real"): the real,
+  // playable-for-keeps alternative to handleStartBattle above, offered by
+  // FormationScreen only for a normal (non-elite/boss) fight with a
+  // resolvable matchup. Builds the tactics battle from the REAL deployed
+  // squad + REAL node enemy (resolveRealMatchup/createRealMatchupBattle -
+  // the same functions the read-only preview already proved safe), tags
+  // it `engine: "tactics"` so the render branch below picks TacticsBoard
+  // instead of AutoBattleView, and stores it in runState.battle - which
+  // means it round-trips through the exact same saveRunSave(serializeRun(
+  // runState)) effect the auto-battle state already does, so a reload
+  // mid-fight resumes it, same as today.
+  function handleStartTacticsBattle() {
+    setTacticsSelectedId(null)
+    setTacticsAbilityMode(null)
+    setRunState((current) => {
+      const node = current.path[current.nodeIndex]
+      const matchup = resolveRealMatchup(current, node)
+      if (!matchup) return current
+      let battle = createRealMatchupBattle(matchup.squadDefIds, matchup.enemyDefIds)
+      // The same QA-only ?debugLowHp=1 hook HeartwoodTactics.jsx's own
+      // maybeDebugLowHp already uses - never a real feature, just lets a
+      // verification pass reach a real win without grinding real attack
+      // rounds first.
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("debugLowHp") === "1") battle = withLowEnemyHp(battle)
+      return { ...current, phase: "battle", battle: { ...battle, engine: "tactics" } }
+    })
+  }
+
+  function handleTacticsBattleChange(newBattle) {
+    setRunState((current) => ({ ...current, battle: newBattle }))
+  }
+
+  // The ENTIRE bridge to the real win/loss economy: resolveBattleOutcome
+  // only ever reads battle.phase ("won"/"lost") and battle.round (a
+  // number, for the styleLog "did this run 8+ rounds" stat) - traced
+  // directly in runEngine.js before this was written, never off
+  // battle.units/enemies/stats. The tactics engine's own state already
+  // has .phase and .turn, so this one-line translation is the whole
+  // bridge - zero duplication of essence/Evolution/shop-roll logic.
+  function handleTacticsContinue() {
+    setRunState((current) =>
+      resolveBattleOutcome({ ...current, battle: { phase: current.battle.phase, round: current.battle.turn } }),
+    )
+  }
+
   function handleAdvanceRound() {
     setRunState((current) => advanceRound(current))
   }
@@ -233,12 +616,24 @@ export default function HeartwoodBattle() {
     setRunState((current) => resolveBattleOutcome(current))
   }
 
+  // Act V - The Crownless fight ends here instead of resolveBattleOutcome
+  // (which would advance a run node / re-end the run). Win or loss both
+  // go on to the Forest's Choice. handleAdvanceRound is reused as-is -
+  // it only touches runState.battle.
+  function handleCrownlessContinue() {
+    setRunState((current) => endCrownlessBattle(current))
+  }
+
   function handleChooseRelic(relicId) {
     setRunState((current) => chooseRelic(current, relicId))
   }
 
   function handleChooseFloorEncounter(choiceIndex) {
     setRunState((current) => chooseFloorEncounter(current, choiceIndex))
+  }
+
+  function handleResolveEvent(choiceIndex) {
+    setRunState((current) => resolveEventChoice(current, choiceIndex))
   }
 
   function handleNewRun() {
@@ -251,7 +646,131 @@ export default function HeartwoodBattle() {
     setPendingMemory(loadLastRun())
   }
 
+  // At most one coach tip per screen (nodeIndex + phase) - dismissing
+  // one suppresses the rest until the run actually moves on, so a first
+  // shop shows one concept, not a cascade of four.
+  const coachKey = runState ? `${runState.nodeIndex}:${runState.phase}` : null
+
+  // The ? reference overlay (HelpOverlay) - checked before every other
+  // branch so it opens over any screen (character-select, shop, a
+  // fight) and returns you exactly where you were.
+  if (showHelp) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="help">
+        {exitLink}
+        <HelpOverlay onBack={() => setShowHelp(false)} />
+      </div>
+    )
+  }
+
+  // Contextual coach (coach.js): which mechanics are on screen right
+  // now, derived from runState alone - no engine call - most-specific
+  // first, then the first tip not yet dismissed. `coachTick` is read
+  // only to re-run this after a "Got it".
+  const activeCoachTip = (() => {
+    void coachTick
+    if (!runState || showGrove || showAlmanac || showSettings || showStoryIntro || showIntro) return null
+    if (coachDoneKeyRef.current === coachKey) return null
+    const phase = runState.phase
+    const node = runState.path?.[runState.nodeIndex]
+    const battle = runState.battle
+    const isElite = node?.type === "elite"
+    const benchLegendary = (runState.bench || []).some((b) => UNITS[b.defId]?.tier === "legendary")
+    const shopLegendary = (runState.shopOffers || []).some((id) => UNITS[id]?.tier === "legendary")
+    const deployedLegendary = (battle?.playerUnits || []).some((u) => UNITS[u.defId]?.tier === "legendary")
+    let squadHasTribePair = false
+    if (battle?.playerUnits) {
+      const counts = {}
+      for (const u of battle.playerUnits) {
+        for (const t of UNIT_TRIBES[u.defId] || []) {
+          counts[t] = (counts[t] || 0) + 1
+          if (counts[t] >= 2) squadHasTribePair = true
+        }
+      }
+    }
+    const ids = []
+    if (runState.lastEvolved?.length) ids.push("evolution")
+    if (phase === "shop") {
+      // `shop` first - the "how a run works at all" tip. The rest are
+      // more advanced and only surface on later visits, once it's seen.
+      ids.push("shop")
+      ids.push("roles")
+      if (shopLegendary || benchLegendary) ids.push("legendary")
+      if ((runState.marketLevel || 1) > 1) ids.push("market-level")
+      ids.push("market-tier")
+      if (runState.marketEvent) ids.push("market-event")
+      if (bankInterestFor(runState) > 0) ids.push("interest")
+      if ((runState.bench || []).some((e) => UNITS[e.defId]?.displayTier !== 2 && runState.essence >= 150)) ids.push("upgrade")
+      ids.push("ledger")
+      if ((runState.bench || []).some((e) => UNITS[e.defId]?.economyRole)) ids.push("economy-crew")
+      if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("playstyle")
+      if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("run-power")
+      if ((runState.essence || 0) >= scoutCost(runState)) ids.push("scout")
+      if ((runState.essence || 0) >= antidoteCost(runState)) ids.push("antidote")
+      ids.push("seed")
+    }
+    if (phase === "relic") ids.push("relic")
+    if (phase === "formation") {
+      if (isElite) ids.push("elite")
+      if (benchLegendary) ids.push("legendary")
+      ids.push("build-score")
+      ids.push("formation-position")
+      ids.push("targeting")
+      ids.push("threat-preview")
+      ids.push("counterplay")
+      if ((resolveFormation(node.formationId || node.enemyId)?.pieces?.length || 0) >= 4) ids.push("swarm")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The wall holds firm") ids.push("fortress")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "They hunt the weak one") ids.push("hunters")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The rot won't quit") ids.push("rot")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The coven's blessing") ids.push("coven")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The brood multiplies") ids.push("brood")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The ritual feeds") ids.push("cult")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "They take what's yours") ids.push("collectors")
+      if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "Something is winding up") ids.push("ancients")
+    }
+    if (phase === "battle" && battle) {
+      if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")
+      if (battle.phase === "player") ids.push("threat")
+      if (isElite) ids.push("elite")
+      if (deployedLegendary) ids.push("legendary")
+      if (battle.arenaId) ids.push("arena")
+      if (typeof battle.forestMood === "number") ids.push("forest-mood")
+      if (squadHasTribePair || battle.enemySynergyLabel) ids.push("synergy")
+    }
+    return nextCoachTip(ids)
+  })()
+  const dismissCoach = () => {
+    if (activeCoachTip) markCoachSeen(activeCoachTip.id)
+    coachDoneKeyRef.current = coachKey
+    setCoachTick((n) => n + 1)
+  }
+
   if (!characterId || !runState) {
+    if (showGrove) {
+      return (
+        <div className="hw-root hw-screen-fade" style={rootStyle} key="grove">
+          {exitLink}
+          <GroveScreen meta={meta} onBuy={handleBuyPerk} onSelectDepth={handleSelectDepth} onBack={() => setShowGrove(false)} />
+        </div>
+      )
+    }
+    if (showAlmanac) {
+      return (
+        <div className="hw-root hw-screen-fade" style={rootStyle} key="almanac">
+          {exitLink}
+          <AlmanacScreen meta={meta} onBack={() => setShowAlmanac(false)} />
+        </div>
+      )
+    }
+    if (showSettings) {
+      return (
+        <div className="hw-root hw-screen-fade" style={rootStyle} key="settings">
+          {exitLink}
+          <SettingsScreen onBack={() => setShowSettings(false)} />
+        </div>
+      )
+    }
+    const almCounts = almanacCounts(meta)
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="select">
         {exitLink}
@@ -261,6 +780,114 @@ export default function HeartwoodBattle() {
           bannerSrc={crewBanner}
           bannerAlt="Tommy, Aatos, Spacemonkey, and Fenrir"
           onConfirm={beginRun}
+          unlockedIds={meta.unlockedCommanders || []}
+          acorns={meta.acorns}
+          onUnlock={handleUnlockCommander}
+          depthLevel={Math.max(0, Math.min(meta.depth || 0, meta.selectedDepth || 0))}
+        />
+        <button className="hw-grove-open-btn" onClick={() => setShowGrove(true)}>
+          &#127807; The Grove{meta.acorns > 0 ? ` — ${meta.acorns} Acorns` : ""}
+        </button>
+        <button className="hw-almanac-open-btn" onClick={() => setShowAlmanac(true)}>
+          &#128214; The Almanac — {almCounts.overall.seen}/{almCounts.overall.total}
+        </button>
+        <button className="hw-help-open-btn" onClick={() => setShowHelp(true)} aria-label="Help" title="How Hearthwood works">
+          ?
+        </button>
+        <button className="hw-settings-open-btn" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
+          &#9881;
+        </button>
+      </div>
+    )
+  }
+
+  // Story intro cinematic (cinematics.js) - once ever, before anything
+  // else, only at the very first shop of a run (nodeIndex 0). Sits
+  // ahead of the Guild Hall so the order reads: the forest wakes you ->
+  // meet your crew -> first market.
+  if (showStoryIntro && runState.phase === "shop" && runState.nodeIndex === 0) {
+    return <StoryCinematic cinematic={CINEMATICS.intro} onDone={dismissStoryIntro} />
+  }
+
+  // --- Act V: The Crownless (runEngine startActFive) ------------------
+  // All four steps run while phase === "victory"; each reads runState so
+  // a reload resumes from the saved actFive step. They sit BEFORE the
+  // ending-cinematic and RunEndOverlay branches.
+  if (runState.phase === "victory" && runState.actFive === "throne") {
+    return (
+      <StoryCinematic
+        key="crownless-throne"
+        cinematic={CINEMATICS["crownless-throne"]}
+        onDone={() => setRunState((rs) => startCrownlessBattle(rs))}
+      />
+    )
+  }
+
+  if (runState.phase === "victory" && runState.actFive === "crownless" && runState.battle) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="crownless-battle" data-screen="crownless-battle">
+        <p className="hw-flavor hw-crownless-intro">&ldquo;{crownlessIntroLine(runState)}&rdquo;</p>
+        <BattleSound state={runState.battle} />
+        <AutoBattleView
+          state={runState.battle}
+          runState={runState}
+          nodeType="boss"
+          actIndex={5}
+          victoryLine={resolveTrial("the-crownless")?.victoryLine}
+          onAdvanceRound={handleAdvanceRound}
+          onContinue={handleCrownlessContinue}
+        />
+      </div>
+    )
+  }
+
+  if (runState.phase === "victory" && runState.actFive === "choice") {
+    return (
+      <ForestChoiceScreen
+        suggested={suggestedEndingId(runState)}
+        onChoose={(endingId) => {
+          setRunState((rs) => chooseForestPath(rs, endingId))
+          setEndingCinematic(endingId)
+        }}
+      />
+    )
+  }
+
+  // Ending cinematic (cinematics.js) - the player's chosen ending (Act V)
+  // or, before Act V shipped, the tally. onDone chains the one-time Echo
+  // Age epilogue, then clears through to RunEndOverlay.
+  if (runState.phase === "victory" && endingCinematic) {
+    return (
+      <StoryCinematic
+        key={endingCinematic}
+        cinematic={cinematicById(endingCinematic)}
+        onDone={() => {
+          if (endingCinematic !== "echo-epilogue" && runState.chosenEnding && !runState.echoEpilogueSeen) {
+            setRunState((rs) => markEchoEpilogueSeen(rs))
+            setEndingCinematic("echo-epilogue")
+          } else {
+            setEndingCinematic(null)
+          }
+        }}
+      />
+    )
+  }
+
+  // Guild Hall (see showGuildHall's own comment above) - checked here,
+  // right after the CommanderSelect branch and before every other
+  // phase branch, so it can only ever appear in the exact window
+  // between a fresh commander confirm and this run's first shop
+  // render, never mid-run and never on a reload.
+  if (showGuildHall) {
+    return (
+      <div className="hw-root" style={rootStyle}>
+        {exitLink}
+        <GuildHallScreen
+          character={CHARACTERS[characterId]}
+          pendingMemory={runState.honoredMemory}
+          bannerSrc={crewBanner}
+          bannerAlt="Tommy, Aatos, Spacemonkey, and Fenrir"
+          onEnterMarket={() => setShowGuildHall(false)}
         />
       </div>
     )
@@ -278,28 +905,20 @@ export default function HeartwoodBattle() {
           phase={runState.phase}
           nodeIndex={runState.nodeIndex}
           path={runState.path}
+          runState={runState}
           onNewRun={handleNewRun}
           deathMemory={runState.deathMemory}
+          acornsEarned={lastAcornsEarned}
+          totalAcorns={meta.acorns}
+          depthLevel={runState.selectedDepth || 0}
         />
       </div>
     )
   }
 
-  const topButtons = (
-    <div style={{ display: "flex", gap: 8, padding: "21px 21px 0" }}>
-      {exitLink}
-      <button className="hw-move-btn" onClick={handleChangeCharacter}>
-        Change Commander
-      </button>
-      <button className="hw-move-btn" onClick={() => setShowIntro(true)}>
-        How to Play
-      </button>
-    </div>
-  )
-
   const changeCharacterBar = (
     <>
-      {topButtons}
+      {utilityBar}
       <RunMap runState={runState} />
     </>
   )
@@ -316,10 +935,25 @@ export default function HeartwoodBattle() {
   // checks the other way around and silently never showed the map at
   // all (both clicks landed back on the shop screen, `runState.phase`
   // never moved).
+  // Act Crossroads interstitial (see the gate effect above). Checked
+  // before every phase-driven branch below - the run's phase is still
+  // whatever it was; this only decides what renders on top.
+  if (actCrossroads) {
+    return (
+      <ActTransitionScreen
+        key={`act-transition-${actCrossroads}`}
+        crossroads={crossroadsForAct(actCrossroads)}
+        fromTier={DIFFICULTY_TIERS[actCrossroads - 2] || null}
+        intoTier={DIFFICULTY_TIERS[actCrossroads - 1] || null}
+        onChoose={handleActCrossroads}
+      />
+    )
+  }
+
   if (showMapAfterShop) {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} data-screen="map-after-shop" key="map-after-shop">
-        {topButtons}
+        {utilityBar}
         <RunMap runState={runState} />
         <div style={{ padding: "0 21px" }}>
           <button
@@ -339,12 +973,14 @@ export default function HeartwoodBattle() {
   if (runState.phase === "shop") {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="shop">
-        {topButtons}
+        {utilityBar}
+        {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         <SquadDraft
           runState={runState}
           onRecruit={handleRecruit}
           onRankUp={handleRankUp}
           onUpgradeRelic={handleUpgradeRelic}
+          onUpgradeUnit={handleUpgradeUnit}
           onReforge={handleReforge}
           onSell={handleSell}
           onRetrain={handleRetrain}
@@ -352,12 +988,17 @@ export default function HeartwoodBattle() {
           onEquipItem={handleEquipItem}
           onUnequipItem={handleUnequipItem}
           onLevelUpMarket={handleLevelUpMarket}
+          onAdvanceMarketTier={handleAdvanceMarketTier}
           onToggleFreeze={handleToggleFreeze}
           onUseCommanderActive={handleUseCommanderActive}
           onReroll={handleReroll}
+          onAntidote={handleAntidote}
+          onBuyInvestment={handleBuyInvestment}
+          onReclaimBuyback={handleReclaimBuyback}
           onContinue={() => setShowMapAfterShop(true)}
           showIntro={showIntro}
           onDismissIntro={dismissIntro}
+          mapSlot={<RunMap runState={runState} mode="rail" onScout={handleScout} />}
         />
       </div>
     )
@@ -380,7 +1021,17 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="relic">
         {changeCharacterBar}
+        {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         <RelicChoice runState={runState} onChoose={handleChooseRelic} onReroll={handleRerollRelics} />
+      </div>
+    )
+  }
+
+  if (runState.phase === "event") {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="event">
+        {changeCharacterBar}
+        <EventScreen event={eventForNode(runState)} onResolve={handleResolveEvent} />
       </div>
     )
   }
@@ -389,12 +1040,14 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="formation">
         {changeCharacterBar}
+        {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         <FormationScreen
           runState={runState}
           node={runState.path[runState.nodeIndex]}
           onAssign={handleAssign}
           onClear={handleClear}
           onStartBattle={handleStartBattle}
+          onStartTacticsBattle={handleStartTacticsBattle}
         />
       </div>
     )
@@ -402,19 +1055,69 @@ export default function HeartwoodBattle() {
 
   // phase === "battle"
   const currentPathNode = runState.path[runState.nodeIndex]
-  const essenceOnWin = currentPathNode?.type === "boss" ? null : essenceForWin(runState, currentPathNode)
+  // Includes bankInterest so the victory overlay's number is exactly
+  // what resolveBattleOutcome pays out (its doc-comment's promise).
+  const essenceOnWin =
+    currentPathNode?.type === "boss"
+      ? null
+      : essenceForWin(runState, currentPathNode) + bankInterestFor(runState)
   // A Trial (trials.js) wrapping this node gets its own written victory
   // line on the per-fight result overlay - see trials.js's own comment
   // for why this reuses the enemy's existing combat, just its story voice.
   const trial = resolveTrial(currentPathNode?.trialId)
+  // actIndexForNode is 1-based (1..7, one per DIFFICULTY_TIERS entry) -
+  // used directly as the [data-act] value the spectacle CSS keys on.
+  const battleActIndex = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
+
+  // Phase 4 second slice: a tactics-mode battle is tagged engine:"tactics"
+  // by handleStartTacticsBattle above - the sole discriminator. Every
+  // other node type/battle still falls through to the unchanged
+  // AutoBattleView branch below. Reuses the exact same exitLink/rootStyle/
+  // data-screen wrapper the auto-battle branch does, so music mode (its
+  // own nodeType-only "boss"/"battle" logic, unaffected by which engine is
+  // fighting) and the act-hued spectacle CSS both keep working unchanged.
+  if (runState.battle?.engine === "tactics") {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="battle-tactics" data-screen="battle" data-act={battleActIndex}>
+        {exitLink}
+        <BattleSound state={runState.battle} />
+        <TacticsBoard
+          battle={runState.battle}
+          onBattleChange={handleTacticsBattleChange}
+          selectedId={tacticsSelectedId}
+          onSelectedIdChange={setTacticsSelectedId}
+          abilityMode={tacticsAbilityMode}
+          onAbilityModeChange={setTacticsAbilityMode}
+          resultActions={
+            <button className="hwt-continue-btn" onClick={handleTacticsContinue}>
+              Continue
+            </button>
+          }
+        >
+          <p className="hwt-real-fight-note">Fighting this one for real — the result will count.</p>
+        </TacticsBoard>
+      </div>
+    )
+  }
+
   return (
-    <div className="hw-root hw-screen-fade" style={rootStyle} key="battle">
+    <div
+      className="hw-root hw-screen-fade"
+      style={rootStyle}
+      key="battle"
+      data-screen="battle"
+      data-act={battleActIndex}
+    >
       {exitLink}
+      {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
+      <BattleSound state={runState.battle} />
       <AutoBattleView
         state={runState.battle}
+        runState={runState}
         essenceOnWin={essenceOnWin}
         nodeType={currentPathNode?.type}
         difficultyTier={difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)}
+        actIndex={battleActIndex}
         victoryLine={trial?.victoryLine}
         onAdvanceRound={handleAdvanceRound}
         onContinue={handleBattleContinue}

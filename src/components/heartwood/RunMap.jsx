@@ -1,8 +1,35 @@
 import { useEffect, useRef } from "react"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { FORMATIONS } from "../../data/heartwood/formations"
-import { difficultyTierForNode, RUN_PATH } from "../../services/heartwood/runEngine"
+import {
+  difficultyTierForNode,
+  DIFFICULTY_TIERS,
+  RUN_PATH,
+  nextBattleNodeIndex,
+  scoutCost,
+} from "../../services/heartwood/runEngine"
+import { scoutReport } from "../../data/heartwood/playerPower"
 import { CardGlyph } from "./cardArt"
+import RunModifierStrip from "./RunModifierStrip"
+import StoryJournal from "./StoryJournal"
+import PlaystyleProfile from "./PlaystyleProfile"
+import PlayerPower from "./PlayerPower"
+import SeedChip from "./SeedChip"
+
+const FIGHT_TYPES = new Set(["battle", "elite", "miniboss", "boss"])
+// Threat-rating glyph for a scouted battle node (playerPower.scoutReport).
+const THREAT_MARK = ["○", "○", "◆", "★", "★"]
+
+// The world's posture, set by Act Crossroads (crossroads.js). "restless"
+// is the neutral default and shows nothing - only a chosen state does.
+function ForestStateBadge({ state }) {
+  if (!state || state === "restless") return null
+  return (
+    <span className="hw-forest-state" data-forest={state} title={`The forest is ${state}`}>
+      {state}
+    </span>
+  )
+}
 
 // A compact, persistent strip of every node in the run (runEngine.js's
 // RUN_PATH), so the run reads as a real journey the player is moving
@@ -20,6 +47,7 @@ import { CardGlyph } from "./cardArt"
 function nodeGlyph(node) {
   if (node.type === "shop") return "spark"
   if (node.type === "relic") return "rune"
+  if (node.type === "event") return "moonGlyph"
   if (node.type === "boss") return "spacemonkeyBoss"
   if (node.formationId) return FORMATIONS[node.formationId] ? "warden" : "warden"
   return ENEMIES[node.enemyId]?.art || "warden"
@@ -28,6 +56,8 @@ function nodeGlyph(node) {
 function nodeColor(node) {
   if (node.type === "boss") return "var(--hw-hp)"
   if (node.type === "miniboss") return "var(--hw-curse)"
+  if (node.type === "elite") return "var(--hw-hp)"
+  if (node.type === "event") return "var(--hw-rune)"
   if (node.type === "shop" || node.type === "relic") return "var(--hw-moss)"
   return "var(--hw-ember)"
 }
@@ -35,21 +65,163 @@ function nodeColor(node) {
 function nodeLabel(node) {
   if (node.type === "shop") return "Market"
   if (node.type === "relic") return "Relic"
+  if (node.type === "event") return "Event"
   if (node.type === "boss") return "Spacemonkey"
   if (node.formationId) return FORMATIONS[node.formationId]?.name || "Battle"
   return ENEMIES[node.enemyId]?.name || "Battle"
 }
 
-export default function RunMap({ runState }) {
+// Compact vertical variant for the 3-zone Market's right rail (~240px
+// wide, tall). The default horizontal strip above renders only
+// runState.path (VISITED nodes), which at the first shop is a single
+// node in a 240px box that reads as empty. This variant instead lays
+// out the WHOLE planned run - RUN_PATH's ~111 fixed entries grouped
+// into DIFFICULTY_TIERS's 7 Acts - as stacked, labelled Act segments
+// with a wrapped row of type-coded pips per Act, the current position
+// (runState.nodeIndex) marked. Purely a display branch: no new data
+// model, RUN_PATH/nodeIndex are read exactly as the engine already
+// exposes them.
+function RunRail({ runState, onScout }) {
+  const nodeIndex = runState.nodeIndex
+  const total = RUN_PATH.length
+  const currentTier = difficultyTierForNode(nodeIndex, total)
+  const currentRef = useRef(null)
+
+  // Scout Ahead (runEngine.scoutAhead / playerPower.scoutReport) - pay
+  // Essence to reveal the next fight's threat band + a "for your build"
+  // read, before you commit.
+  const scoutedThrough = runState.scoutedThrough || 0
+  const nextFight = nextBattleNodeIndex(runState)
+  const canScoutMore = nextFight != null && nextFight > scoutedThrough
+  const cost = scoutCost(runState)
+  const affordable = (runState.essence || 0) >= cost
+  const report = scoutedThrough > nodeIndex ? scoutReport(runState, scoutedThrough) : null
+
+  useEffect(() => {
+    currentRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }, [nodeIndex])
+
+  // Contiguous index ranges per Act - difficultyTierForNode's thresholds
+  // are monotonic in progress, so every Act owns one unbroken stretch.
+  // Marc: the rail showed all 7 Acts at once; he wants it "rajoittuvan
+  // actiin ja paljastuvan progressiivisesti" - only the CURRENT Act's
+  // stretch, the next revealing itself as the run crosses into it.
+  const acts = DIFFICULTY_TIERS.map((tier) => {
+    const indices = []
+    for (let i = 0; i < total; i++) {
+      if (difficultyTierForNode(i, total) === tier) indices.push(i)
+    }
+    return { tier, indices }
+  }).filter((a) => a.indices.length && a.tier === currentTier)
+  const actNumber = DIFFICULTY_TIERS.indexOf(currentTier) + 1
+  const actTotal = DIFFICULTY_TIERS.length
+
+  return (
+    <div className="hw-run-rail">
+      <div className="hw-run-rail-head">
+        <span className="hw-run-rail-title">Run Map</span>
+        <span className="hw-run-rail-step" title={`Act ${actNumber} of ${actTotal} · step ${nodeIndex + 1} of ${total}`}>
+          Act {actNumber}<span className="hw-run-rail-step-sep">/</span>{actTotal}
+        </span>
+        <ForestStateBadge state={runState.forestState} />
+      </div>
+      <SeedChip seed={runState.seed} className="hw-seed-rail" />
+      <RunModifierStrip modifiers={runState.runModifiers} compact />
+      <PlaystyleProfile runState={runState} compact />
+      <PlayerPower runState={runState} compact />
+      {onScout && (
+        <div className="hw-scout">
+          <button
+            type="button"
+            className="hw-scout-btn"
+            disabled={!canScoutMore || !affordable}
+            onClick={onScout}
+            title={
+              !canScoutMore
+                ? "The next fight is already scouted"
+                : `Scout the next fight - ${cost} Essence`
+            }
+          >
+            <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+            {canScoutMore ? `Scout · ${cost}` : "Scouted"}
+          </button>
+          {report && (
+            <p className="hw-scout-report" data-tone={report.relative?.tone || "even"}>
+              Next fight: <strong>{report.ratingLabel}</strong>
+              {report.relative ? ` — ${report.relative.label}` : ""}
+            </p>
+          )}
+        </div>
+      )}
+      {acts.map(({ tier, indices }) => {
+        const isCurrentAct = tier === currentTier
+        const [actNo, ...rest] = tier.name.split(" · ")
+        return (
+          <div
+            key={tier.name}
+            className="hw-run-rail-act"
+            data-current={isCurrentAct || undefined}
+          >
+            <div className="hw-run-rail-act-label" style={{ color: tier.color }}>
+              <span className="hw-run-rail-act-no">{actNo}</span>
+              {rest.length > 0 && <span className="hw-run-rail-act-place">{rest.join(" · ")}</span>}
+            </div>
+            <div className="hw-run-rail-pips">
+              {indices.map((i) => {
+                const node = RUN_PATH[i]
+                const state = i === nodeIndex ? "current" : i < nodeIndex ? "done" : "todo"
+                const major = node.type === "miniboss" || node.type === "boss" || node.type === "elite"
+                // Scouted-fight marker: only the one node at scoutedThrough,
+                // and only while it's still ahead of the player.
+                const scouted = i === scoutedThrough && i > nodeIndex && FIGHT_TYPES.has(node.type) ? report : null
+                return (
+                  <span
+                    key={i}
+                    ref={i === nodeIndex ? currentRef : null}
+                    className="hw-run-rail-pip"
+                    data-type={node.type}
+                    data-state={state}
+                    data-major={major || undefined}
+                    data-scouted={scouted ? "true" : undefined}
+                    style={{ "--hw-node-accent": nodeColor(node) }}
+                    title={
+                      scouted
+                        ? `${nodeLabel(node)} — scouted: ${scouted.ratingLabel}${scouted.relative ? ` · ${scouted.relative.label}` : ""}`
+                        : `${nodeLabel(node)}${state === "current" ? " — you are here" : ""}`
+                    }
+                  >
+                    {scouted ? (
+                      <span className="hw-run-rail-pip-threat">{THREAT_MARK[scouted.rating - 1]}</span>
+                    ) : (
+                      major && <CardGlyph name={nodeGlyph(node)} className="hw-run-rail-pip-glyph" />
+                    )}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+      <StoryJournal runState={runState} />
+    </div>
+  )
+}
+
+export default function RunMap({ runState, mode, onScout }) {
   const trackRef = useRef(null)
   const currentRef = useRef(null)
 
   // Auto-scroll so the current node stays in view as the run advances -
   // the whole point of "moving through a field" breaks if the player
-  // has to manually scroll to see where they are.
+  // has to manually scroll to see where they are. Declared before the
+  // `mode === "rail"` early return so the Hook order is stable (rail
+  // mode renders <RunRail/>, which owns its own scroll effect); the ref
+  // simply isn't attached to anything in that mode, so this is a no-op.
   useEffect(() => {
     currentRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
   }, [runState.nodeIndex])
+
+  if (mode === "rail") return <RunRail runState={runState} onScout={onScout} />
 
   // RUN_PATH.length, not runState.path.length: since the branching-path
   // work, `path` only holds nodes actually visited so far (it grows as
@@ -74,13 +246,15 @@ export default function RunMap({ runState }) {
         <span className="hw-run-map-progress">
           Step {runState.nodeIndex + 1} of {RUN_PATH.length} · {nodeLabel(currentNode)}
         </span>
+        <ForestStateBadge state={runState.forestState} />
+        <RunModifierStrip modifiers={runState.runModifiers} />
       </div>
       <div className="hw-run-track" ref={trackRef}>
         <div className="hw-run-line" />
         {runState.path.map((n, i) => {
           const isCurrent = i === runState.nodeIndex
           const isDone = i < runState.nodeIndex
-          const isMajor = n.type === "miniboss" || n.type === "boss"
+          const isMajor = n.type === "miniboss" || n.type === "boss" || n.type === "elite"
           // Shop/relic stops are routine, not story beats - visually
           // quieter than a battle so the eye lands on the fights (the
           // actual points of interest) instead of the market icon that
@@ -116,6 +290,7 @@ export default function RunMap({ runState }) {
           )
         })}
       </div>
+      <StoryJournal runState={runState} />
     </div>
   )
 }

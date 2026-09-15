@@ -16,6 +16,20 @@
   --hw-curse: var(--hw-muted);
   --hw-hp: #b3503f;
 
+  /* Elemental tribe accents (parallel second tribe axis). Muted, same
+     desaturated family as the four card accents above. --hw-gale is a
+     deliberate cyan so a Gale badge never reads as --hw-moss green or
+     the moss "this fits your board" ring. */
+  --hw-tide: #4a86a8;
+  --hw-gale: #79c6cf;
+  --hw-stone: #9a8c7a;
+  --hw-shadow: #6f6090;
+  --hw-wood: #6f9b4e;
+  /* distinct from --hw-ember (var(--wood-accent), used everywhere) - the
+     Ember TRIBE needs its own hue that won't collide with the accent. */
+  --hw-tribe-ember: #d06a3a;
+  --hw-cosmic: #9b7fc7;
+
   /* Golden ratio + Fibonacci scale (Marc: "suuri osa visuaalisuutta on
      geometria ja kultainen leikkaus" - deliberate geometry, not
      eyeballed pixels). --hw-phi is the ratio itself; --hw-fib-* is the
@@ -38,9 +52,48 @@
   --hw-fib-10: 377px;
   --hw-fib-11: 610px;
 
+  /* Theme & polish pass (feat/hearthwood-theme-pass). Typography, radii,
+     a spacing alias, and one subtle "premium" surface cue - added, not
+     re-valued, so no existing rule shifts. Consumed by the .hw-screen-*
+     primitives below and adopted incrementally elsewhere. */
+  --hw-font-display: "Cormorant Garamond", "Georgia", serif;
+  --hw-fs-xs: 11px;
+  --hw-fs-sm: 12px;
+  --hw-fs-md: 13px;
+  --hw-fs-base: 14px;
+  --hw-fs-lg: 17px;
+  --hw-fs-xl: 22px;
+  --hw-fs-2xl: 26px;
+
+  --hw-radius-sm: 8px;
+  --hw-radius: 10px;
+  --hw-radius-lg: 12px;
+  --hw-radius-pill: 999px;
+
+  /* Fibonacci, named for spacing (matches src/index.css's --space-1..3). */
+  --hw-space-1: 8px;
+  --hw-space-2: 13px;
+  --hw-space-3: 21px;
+  --hw-space-4: 34px;
+  --hw-space-5: 55px;
+
+  --hw-surface-bg: color-mix(in srgb, var(--hw-bg) 82%, transparent);
+  --hw-surface-edge: inset 0 1px 0 color-mix(in srgb, var(--hw-text) 8%, transparent);
+  --hw-surface-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.55);
+
   background-color: var(--hw-bg);
+  /* Marc, live while looking at the shop screen: "nykyinen taustakuva
+     on tylsä ja yksinkertainen" / "ei näy vielä taustakuvana". The
+     image itself (battle-bg.jpg - a rune-lit World Tree root system)
+     is not boring at all; this 55%->78% dark overlay was crushing an
+     already-dark photo into near-flat black before it ever reached
+     the screen. Lightened to 20%->38% so the runes/moss/god-rays
+     actually read, kept as a top-to-bottom gradient (not flat) so
+     header text near the top - which sits directly on this background
+     with no card behind it - still keeps enough contrast to stay
+     legible. */
   background-image:
-    linear-gradient(color-mix(in srgb, var(--hw-bg) 55%, transparent), color-mix(in srgb, var(--hw-bg) 78%, transparent)),
+    linear-gradient(color-mix(in srgb, var(--hw-bg) 20%, transparent), color-mix(in srgb, var(--hw-bg) 38%, transparent)),
     var(--hw-bg-image, none);
   background-size: cover;
   background-position: center;
@@ -68,6 +121,44 @@
   box-sizing: border-box;
 }
 
+/* --- Shared screen primitives (feat/hearthwood-theme-pass) -----------
+   The eyebrow label, the serif title and the muted sub-line were
+   copy-pasted inline across GroveScreen / AlmanacScreen / SettingsScreen
+   / FormationScreen; the frame was three near-identical classes. One
+   source now, one subtle "premium" surface edge on the frame. */
+.hw-screen-frame {
+  position: relative;
+  background: var(--hw-surface-bg);
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-lg);
+  padding: 24px 28px 28px;
+  box-shadow: var(--hw-surface-edge), var(--hw-surface-shadow);
+}
+
+.hw-screen-eyebrow {
+  font-size: var(--hw-fs-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hw-moss);
+  margin-bottom: 4px;
+}
+
+.hw-screen-title {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-2xl);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 0 0 6px;
+  color: var(--hw-text);
+}
+
+.hw-screen-sub {
+  font-size: var(--hw-fs-sm);
+  line-height: 1.5;
+  color: var(--hw-muted);
+  margin: 0;
+}
+
 .hw-exit-link {
   position: fixed;
   top: 14px;
@@ -85,6 +176,30 @@
 .hw-exit-link:hover {
   color: var(--hw-text);
   border-color: var(--hw-ember);
+}
+
+/* Utility cluster (How to Play / Change Commander / exit) - see
+   HeartwoodBattle.jsx's utilityBar comment. The bar itself owns the
+   fixed top-right position; its children reuse .hw-exit-link's exact
+   look (font/color/border/padding) but as normal flex items, not each
+   independently fixed to the same top-right point (which would stack
+   all three on top of each other instead of laying out in a row). */
+.hw-utility-bar {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+
+.hw-utility-bar .hw-exit-link {
+  position: static;
+}
+
+.hw-utility-btn {
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .hw-battle {
@@ -124,7 +239,7 @@
   align-self: center;
   padding: 6px 18px;
   border-radius: 999px;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -140,6 +255,27 @@
   border-color: var(--hw-curse);
   background: color-mix(in srgb, var(--hw-curse) 16%, var(--hw-panel));
   box-shadow: 0 0 16px 2px color-mix(in srgb, var(--hw-curse) 40%, transparent);
+}
+
+/* Elite (feat/hearthwood-elites) - between a mook and a Trial. Its own
+   hot hue so it never reads as "just a miniboss". */
+.hw-elevated-banner--elite {
+  color: var(--hw-hp);
+  border-color: var(--hw-hp);
+  background: color-mix(in srgb, var(--hw-hp) 16%, var(--hw-panel));
+  box-shadow: 0 0 16px 2px color-mix(in srgb, var(--hw-hp) 40%, transparent);
+}
+
+/* The elite gimmick tag on the formation screen. */
+.hw-elite-gimmick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -2px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--hw-hp);
 }
 
 .hw-top-row {
@@ -203,6 +339,203 @@
   border-radius: 999px;
   border: 1px solid var(--hw-border);
   color: var(--hw-muted);
+}
+
+/* Round 4 (market-scale-up pass): Marc sent back a heavily-annotated
+   screenshot circling almost the whole Market screen, including this
+   top row (difficulty tier / "Next:" badges) - "tee muokkaukset UIhin
+   tän mukaisesti" (make the UI edits according to this). Scoped to
+   .hw-market-top-row (SquadDraft.jsx) rather than the base .hw-badge
+   rule above, which is used for dozens of unrelated badges across
+   every Hearthwood screen - growing THAT globally was never the ask,
+   just this row. */
+.hw-market-top-row .hw-badge {
+  font-size: 13px;
+  padding: 4px 11px;
+  gap: 6px;
+}
+
+.hw-market-top-row .hw-intent-glyph {
+  width: 16px;
+  height: 16px;
+}
+
+/* Market Level widget (SquadDraft.jsx's own comment has the full
+   reasoning) - Marc: this dial is central to the run's progression
+   and needed a position that says so, not one badge among many.
+   Ember-accent border (this game's "important dial" color everywhere
+   else - essence orb, rarity glows) instead of the muted default
+   badge border, and the pip row makes "1/3" a real progress bar at a
+   glance instead of two digits you have to read. */
+.hw-market-level-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  /* 7px -> 5px vertical (budget payback), then this pass grew the row
+     right back with a bigger Level Up button/pips/label instead (Marc's
+     annotated-screenshot ask - see .hw-market-top-row's own comment) -
+     horizontal padding grown a touch (14->16) to match. */
+  padding: 5px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-ember) 8%, var(--hw-panel));
+}
+
+.hw-market-level-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hw-muted);
+  font-weight: 600;
+}
+
+.hw-market-level-pips {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.hw-market-level-pip {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid var(--hw-ember);
+  background: transparent;
+}
+
+.hw-market-level-pip[data-filled="true"] {
+  background: var(--hw-ember);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--hw-ember) 65%, transparent);
+}
+
+/* Market TIER widget (feat/hearthwood-market-tiers) - a sibling of the
+   Market Level widget above. Same shape, a moss accent instead of ember
+   so the two read as "two sides of the same system" rather than one
+   control. */
+.hw-market-tier-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hw-moss) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-moss) 8%, var(--hw-panel));
+}
+.hw-market-tier-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hw-muted);
+  font-weight: 600;
+}
+.hw-market-tier-pips {
+  display: inline-flex;
+  gap: 5px;
+}
+.hw-market-tier-pip {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid var(--hw-moss);
+  background: transparent;
+}
+.hw-market-tier-pip[data-filled="true"] {
+  background: var(--hw-moss);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--hw-moss) 65%, transparent);
+}
+.hw-market-tier-pip[data-charter="true"] {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--hw-moss) 45%, transparent);
+}
+.hw-market-tier-name {
+  font-size: 12px;
+  color: var(--hw-text);
+  font-weight: 600;
+}
+.hw-market-tier-preview {
+  font-size: 11px;
+  color: var(--hw-muted);
+  font-style: italic;
+  flex-basis: 100%;
+}
+
+/* Market Event banner (feat/hearthwood-market-events) - a re-skinned
+   strip above the shop columns when this stop rolled a special market.
+   `data-tone` sets the accent: gold (Golden Market - warm, expensive),
+   moss (Wandering Merchant - cheap, friendly), curse (Blackroot Market -
+   cheap, ominous). One accent token drives border + wash + name colour. */
+.hw-market-event-banner {
+  --hw-mev-accent: var(--hw-ember);
+  margin: 10px 0 0;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hw-mev-accent) 55%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-mev-accent) 12%, var(--hw-panel));
+  box-shadow: inset 0 0 20px -8px color-mix(in srgb, var(--hw-mev-accent) 60%, transparent);
+}
+.hw-market-event-banner[data-tone="gold"] {
+  --hw-mev-accent: var(--hw-ember);
+}
+.hw-market-event-banner[data-tone="moss"] {
+  --hw-mev-accent: var(--hw-moss);
+}
+.hw-market-event-banner[data-tone="curse"] {
+  --hw-mev-accent: color-mix(in srgb, var(--hw-hp) 60%, var(--hw-shadow));
+}
+.hw-market-event-name {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--hw-mev-accent) 70%, var(--hw-text));
+  letter-spacing: 0.01em;
+}
+.hw-market-event-blurb {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--hw-muted);
+  margin-top: 1px;
+}
+.hw-market-event-effect {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--hw-text);
+  border: 1px solid color-mix(in srgb, var(--hw-mev-accent) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-mev-accent) 10%, transparent);
+}
+
+/* Commander cluster - a plain grouping container (no border of its
+   own; the Market widget's border above is what needs to visually
+   compete for attention here, not this one) with a left divider so
+   the eye reads a real seam between "the shop's dial" and "your
+   commander's actions" instead of one continuous row of controls. */
+.hw-commander-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-left: 14px;
+  border-left: 1px solid var(--hw-border);
+}
+
+/* Round 4 (market-scale-up pass): the Commander's own name badge grows
+   alongside the Rank Up/Retrain/Active Power buttons right next to it
+   (.hw-strip-btn above) - Marc's annotated screenshot circled this
+   whole cluster, not just the buttons in it. Scoped here (not the
+   shared .hw-badge rule) for the same reason .hw-market-top-row's own
+   override is scoped - this badge shares its class with dozens of
+   unrelated badges elsewhere that were never part of this ask. */
+.hw-commander-cluster .hw-badge {
+  font-size: 13px;
+  padding: 4px 11px;
+  gap: 6px;
+}
+
+.hw-commander-cluster .hw-intent-glyph {
+  width: 16px;
+  height: 16px;
 }
 
 /* Quiet vs loud (Marc, shown a real screenshot of a mid-run fight: 5
@@ -320,6 +653,27 @@
 .hw-frost-badge .hw-effect-icon-glyph {
   width: 15px;
   height: 15px;
+}
+
+/* Shop-offer overlay badges ("Fuses now!"/"Reserve full",
+   SquadDraft.jsx) - same "absolute, not flow" trick .hw-frost-badge
+   above already uses, for the same reason: a badge that only sometimes
+   renders must never change its row's own layout height, or the
+   1860x960 fit budget becomes a function of shop RNG instead of a
+   fixed number. Anchored bottom-center over the card's own lower edge
+   (not stacked below it) with a solid backing (not the translucent
+   tint plain .hw-badge usage elsewhere gets) since it now overlaps
+   real card art/text instead of sitting on the panel's own background. */
+.hw-card-overlay-badge {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-size: 11px;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--hw-bg) 88%, transparent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 /* A section that only exists conditionally (Synergies tracker, the
@@ -478,12 +832,59 @@
   gap: 6px;
 }
 
+/* Card frame art (Marc, direct: "korttikehys.jpg on kuva joka tulee
+   korttien taustakuvaksi, tähän sitten laitetaan kuvat" - this is the
+   image that becomes the cards' background, the images then go on top
+   of it; "käytä korttikehys korttien kehyksenä johon kuvat upotetaan
+   kansiosta" - use it as the frame the images from the folder get
+   embedded into). Applied to the shared .hw-card base itself, not a
+   new wrapper - every screen that already uses this component (shop,
+   formation, bench, relic/reward previews) gets it for free, and every
+   child element (portrait, badges, text) keeps rendering exactly where
+   it already did, ON TOP of this new background layer instead of the
+   old flat gradient. Deliberately conservative per this PR's own risk
+   note: a background-image layer UNDER the existing content, not a
+   restructure of the card - the tint gradient stays mostly opaque so
+   every existing text/badge keeps its original contrast even though
+   there's now a photographic frame texture underneath instead of a
+   flat color. var(--hw-card) stays as a solid fallback layer under the
+   image (covers any edge the `cover` crop doesn't reach, and is what
+   renders before the image itself loads).
+   IMPORTANT asset substitution: the literal korttikehys.jpg file in
+   Marc's kuvia/ drop is an unlicensed Adobe Stock PREVIEW image - a
+   tiled "Adobe Stock #536689762" watermark is baked across the entire
+   frame, not just a corner badge crop could remove (verified by eye at
+   actual in-card render size - still legible through every tint
+   opacity tried, up to a genuinely ugly amount of darkening). Shipping
+   that watermark into every card in the game was a real, confirmed
+   defect, not a hypothetical one - so this uses a derived variant of
+   the OTHER, clean file instead (korttikehys webp/card-frame-tier2.webp
+   - already used untouched for the Tier 2 frame below): grayscale'd
+   and recolored to a warm bronze/copper ("common tier" companion to
+   that file's own cool blue/gold "premium" look) rather than the
+   watermarked jpg. See this PR's description - Marc still needs an
+   actual replacement source for korttikehys.jpg if a visually
+   different base-tier frame (not a recolor of the same art) matters
+   later; this unblocks the feature honestly in the meantime. */
 .hw-card {
   width: 150px;
   min-width: 150px;
   border-radius: 12px;
   border: 1px solid var(--hw-border);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--hw-card) 100%, white 4%), var(--hw-card));
+  /* Wood-grain texture layer (Marc: "tallensin taustakuvat napeille ja
+     korteille käytä sitä" - I saved background images for the buttons
+     and cards, use it). Sits ABOVE the opaque card-frame.jpg (a layer
+     under it would be fully hidden) but under a near-opaque dark scrim,
+     so only ~4-5% of the grain reads through the card tint on top - a
+     faint physical-object texture, deliberately far too weak to compete
+     with a unit portrait or the stat text (Marc's standing rule:
+     minimalist, err subtle). */
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--hw-card) 60%, transparent) 0%, color-mix(in srgb, var(--hw-card) 78%, transparent) 100%),
+    linear-gradient(rgba(10, 8, 5, 0.86), rgba(10, 8, 5, 0.86)),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat,
+    url("../../assets/heartwood/cards/card-frame.jpg") center / cover no-repeat,
+    var(--hw-card);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   padding: 10px;
   display: flex;
@@ -593,6 +994,44 @@
   85% { opacity: 0.15; }
 }
 
+/* Legendary (feat/hearthwood-legendary-units) - the first band above
+   rare, so it has to read as a clear step up from rare's single ember
+   ring while keeping the same restraint (a ring + a sparkle, no new
+   moving parts). Cosmic violet instead of ember, a thicker outer ring
+   plus a wider soft halo, and a fourth sparkle point. Same layering
+   rules as rare: this can co-exist with data-fused's golden shimmer. */
+.hw-card[data-tier="legendary"] {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 16px 2px color-mix(in srgb, var(--hw-cosmic) 55%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--hw-cosmic) 78%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--hw-cosmic) 30%, transparent);
+}
+
+.hw-card[data-tier="legendary"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 2.5px at 50% 11%, color-mix(in srgb, var(--hw-cosmic) 88%, white 25%), transparent 65%),
+    radial-gradient(circle 2px at 78% 76%, color-mix(in srgb, var(--hw-cosmic) 85%, white 22%), transparent 65%),
+    radial-gradient(circle 2px at 12% 45%, color-mix(in srgb, var(--hw-cosmic) 85%, white 22%), transparent 65%),
+    radial-gradient(circle 1.5px at 50% 89%, color-mix(in srgb, var(--hw-cosmic) 82%, white 20%), transparent 65%);
+  opacity: 0;
+  animation: hw-legendary-sparkle 3s ease-in-out infinite;
+}
+
+@keyframes hw-legendary-sparkle {
+  0%, 100% { opacity: 0; }
+  12% { opacity: 1; }
+  20% { opacity: 0.2; }
+  44% { opacity: 0.9; }
+  52% { opacity: 0.15; }
+  74% { opacity: 0.95; }
+  82% { opacity: 0.2; }
+}
+
 /* Golden/upgraded look (UnitCard.jsx's data-fused, a Tier 2 Fusion
    result - Hearthstone Battlegrounds' own "Golden" convention for a
    tripled minion). A Tier 2 unit is already data-tier="rare" (same
@@ -603,6 +1042,22 @@
    instant a fusion completes). */
 .hw-card[data-fused="true"] {
   animation: hw-golden-shimmer 3.2s ease-in-out infinite;
+  /* Second frame tier (Marc: "korttikehys webp on toisen tason
+     korttikehys" - korttikehys webp is the tier-2/second-level card
+     frame). Layered on top of the SAME rule that already gives a
+     fused Tier 2 unit its persistent golden-shimmer glow, so "fancier
+     frame" and "fancier glow" read as one upgraded look together
+     rather than two competing systems - complements the existing
+     golden/rune language instead of clashing with it, per this PR's
+     own conservative-change mandate. Slightly less tint than the base
+     frame (55-72% vs 65-82%) so this one's own dark ornate-metal
+     border actually shows up as a visible step up, not just a
+     recolor - a Tier 2 card should look like a genuinely different,
+     more premium object at a glance. */
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--hw-card) 55%, transparent) 0%, color-mix(in srgb, var(--hw-card) 72%, transparent) 100%),
+    url("../../assets/heartwood/cards/card-frame-tier2.webp") center / cover no-repeat,
+    var(--hw-card);
 }
 
 @keyframes hw-golden-shimmer {
@@ -638,7 +1093,7 @@
 }
 
 .hw-card[data-portrait="true"] .hw-card-head {
-  padding: 8px 10px 0;
+  padding: 6px 10px 0;
 }
 
 /* Marc: "kuvat ei toimi oikein korteissa, ne ei keskity oikein" (the
@@ -657,6 +1112,17 @@
   object-fit: cover;
   object-position: 50% 20%;
   display: block;
+  /* The portrait bleeds to the card's own edges (data-portrait="true"
+     zeroes the card's top/side padding) but .hw-card is NOT
+     overflow:hidden (its rare-glow/fusion-shimmer box-shadows spread
+     outside the box). Without this, the image's square top corners poke
+     past the frame's 12px radius and read as "floating" (Marc, live).
+     11px = frame radius 12px minus the 1px border. Applied on the
+     shared base so every portrait card gets it - the Market featured
+     grid, the Your Squad bench, the reserve row, and every other
+     screen - not just the one grid #378 patched. */
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
 }
 
 .hw-card[data-portrait="true"] .hw-card-name,
@@ -716,16 +1182,37 @@
   align-items: center;
 }
 
+/* Essence rescale (Marc: "tee pelin ekonomia vastaamaan nappien
+   hintaa" - make the game's economy match the buttons' prices) - every
+   cost this badge displays went from a single digit (1-4) to 2-3
+   digits (65/125/190/250), which a fixed-width circle (the old
+   width:22px/height:22px/border-radius:999px) clips or squashes the
+   moment the text is wider than the circle is tall. Switched to
+   min-width + horizontal padding with a large-but-FINITE border-radius
+   (half the height, not 999px) - still reads as a rounded pill for a
+   1-2 digit number, but grows to fit "250" without clipping instead of
+   forcing it into a circle it doesn't fit. */
 .hw-card-cost {
-  width: 22px;
+  min-width: 22px;
   height: 22px;
-  border-radius: 999px;
+  padding: 0 5px;
+  border-radius: 11px;
   background: var(--hw-bg);
   border: 1px solid var(--hw-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  gap: 3px;
+  font-size: 11px;
+  box-sizing: border-box;
+}
+
+/* Regular's Discount (UnitCard costOverride): the pre-discount price,
+   struck through, ahead of the reduced one. */
+.hw-card-cost-base {
+  text-decoration: line-through;
+  opacity: 0.55;
+  font-size: 9px;
 }
 
 /* Hearthstone-style glanceable HP corner (UnitCard.jsx) - opposite the
@@ -740,6 +1227,12 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--hw-hp);
+  /* Legibility insurance for the new card-frame background (see
+     .hw-card's own comment) - this is the one corner-badge stat with
+     no opaque chip behind it (unlike .hw-card-cost's solid pill), so
+     it needs its own shadow to stay readable over whatever part of
+     the frame's ornate, non-uniform texture lands behind it. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .hw-card-hp .hw-effect-icon-glyph {
@@ -748,19 +1241,740 @@
   color: var(--hw-hp);
 }
 
+/* The Grove - between-run meta progression (GroveScreen.jsx). Muted,
+   quiet, one clear currency line and a grid of perk cards. */
+.hw-grove-open-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-moss);
+  background: color-mix(in srgb, var(--hw-moss) 12%, var(--hw-panel));
+  color: var(--hw-moss);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 130ms ease;
+}
+.hw-grove-open-btn:hover {
+  background: color-mix(in srgb, var(--hw-moss) 22%, var(--hw-panel));
+}
+
+/* The Almanac open button - stacked just above the Grove button on
+   commander-select, rune-accented so the two read as siblings, not a
+   pair of the same thing. */
+.hw-almanac-open-btn {
+  position: absolute;
+  bottom: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-rune);
+  background: color-mix(in srgb, var(--hw-rune) 12%, var(--hw-panel));
+  color: var(--hw-rune);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 130ms ease;
+}
+.hw-almanac-open-btn:hover {
+  background: color-mix(in srgb, var(--hw-rune) 22%, var(--hw-panel));
+}
+
+/* Settings gear - a small round button in the corner, out of the way of
+   the stacked Grove / Almanac pills. */
+.hw-settings-open-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-muted) 10%, var(--hw-panel));
+  color: var(--hw-muted);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 130ms ease, border-color 130ms ease;
+}
+.hw-settings-open-btn:hover {
+  color: var(--hw-text);
+  border-color: var(--hw-muted);
+}
+
+/* The ? help button on character-select - a twin of the gear, one slot
+   to its left. In-run the same overlay is opened from a plain "Help"
+   button in the top-right utility bar (HeartwoodBattle.jsx). */
+.hw-help-open-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 62px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-muted) 10%, var(--hw-panel));
+  color: var(--hw-muted);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 130ms ease, border-color 130ms ease;
+}
+.hw-help-open-btn:hover {
+  color: var(--hw-text);
+  border-color: var(--hw-muted);
+}
+
+/* ---- Help overlay (HelpOverlay.jsx) --------------------------------- */
+/* frame comes from .hw-screen-frame */
+.hw-help-screen {
+  width: min(760px, 94vw);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.hw-help-body {
+  margin-top: 14px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.hw-help-section + .hw-help-section {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hw-border);
+}
+.hw-help-heading {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg);
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--hw-moss);
+}
+.hw-help-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hw-help-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+.hw-help-term {
+  color: var(--hw-text);
+  font-weight: 600;
+  font-size: var(--hw-fs-sm);
+}
+.hw-help-blurb {
+  margin: 0;
+  color: var(--hw-muted);
+  font-size: var(--hw-fs-sm);
+  line-height: 1.5;
+}
+@media (max-width: 560px) {
+  .hw-help-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* ---- Contextual coach tip (CoachTip.jsx / coach.js) ---------------- */
+/* Always bottom-centre and fixed - never clipped by a screen edge, and
+   consistent wherever it fires. The spotlight ring (reused
+   .hw-tutorial-spotlight) does the "point at the thing" job. */
+.hw-coach-tip {
+  position: fixed;
+  z-index: 62;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: 420px;
+  max-width: calc(100vw - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  background: color-mix(in srgb, var(--hw-ember) 22%, var(--hw-panel));
+  border: 2px solid var(--hw-ember);
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.6);
+  animation: hw-badge-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.hw-coach-tip-title {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg);
+  font-weight: 700;
+  color: var(--hw-text);
+}
+.hw-coach-tip-text {
+  font-size: var(--hw-fs-sm);
+  line-height: 1.5;
+  color: var(--hw-text);
+}
+.hw-coach-tip .hw-tutorial-actions {
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-coach-tip {
+    animation: none;
+  }
+}
+
+/* ---- Settings screen (SettingsScreen.jsx) --------------------- */
+/* frame (bg / radius / padding / edge) comes from .hw-screen-frame */
+.hw-settings {
+  width: min(520px, 92vw);
+}
+.hw-settings-group {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hw-border);
+}
+.hw-settings-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 34px;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  font-size: 13px;
+}
+.hw-settings-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--hw-moss);
+}
+.hw-settings-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--hw-moss);
+  justify-self: start;
+}
+.hw-settings-label {
+  color: var(--hw-text);
+}
+.hw-settings-val {
+  text-align: right;
+  color: var(--hw-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hw-settings-danger {
+  border-color: color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
+}
+.hw-settings-danger .hw-settings-label {
+  color: var(--hw-hp);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+.hw-settings-danger-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 6px 0;
+}
+.hw-settings-danger-row button[data-danger="true"] {
+  border-color: var(--hw-hp);
+  color: var(--hw-hp);
+}
+
+/* App-level Reduce Motion (soundManager.setReduceMotion) - the nuclear
+   option, alongside the prefers-reduced-motion @media blocks. Kills the
+   shakes / pops / long floater travel to near-instant. */
+.hw-reduce-motion *,
+.hw-reduce-motion *::before,
+.hw-reduce-motion *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---- The Almanac screen (AlmanacScreen.jsx) --------------------- */
+/* frame comes from .hw-screen-frame */
+.hw-almanac-screen {
+  width: min(1180px, 94vw);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.hw-almanac-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 10px;
+}
+
+.hw-almanac-tab {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-panel);
+  color: var(--hw-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hw-almanac-tab[data-active="true"] {
+  border-color: var(--hw-rune);
+  color: var(--hw-text);
+  background: color-mix(in srgb, var(--hw-rune) 14%, var(--hw-panel));
+}
+.hw-almanac-tab-count {
+  opacity: 0.6;
+  font-weight: 500;
+  margin-left: 3px;
+}
+
+.hw-almanac-body {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 16px;
+  min-height: 0;
+  flex: 1;
+}
+
+.hw-almanac-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  align-content: start;
+  padding-right: 4px;
+}
+
+.hw-almanac-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px 6px;
+  border-radius: var(--hw-radius);
+  border: 1px solid var(--hw-border);
+  background: var(--hw-panel);
+  color: var(--hw-text);
+  cursor: pointer;
+  min-height: 92px;
+}
+.hw-almanac-tile[data-locked] {
+  cursor: default;
+  opacity: 0.5;
+}
+.hw-almanac-tile[data-locked] .hw-almanac-tile-art,
+.hw-almanac-tile[data-locked] .hw-almanac-tile-lock {
+  filter: grayscale(1) brightness(0.4);
+}
+.hw-almanac-tile[data-selected] {
+  border-color: var(--hw-rune);
+  box-shadow: 0 0 0 1px var(--hw-rune);
+}
+.hw-almanac-tile-art,
+.hw-almanac-tile-lock {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--hw-muted);
+}
+.hw-almanac-tile-name {
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--hw-muted);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.hw-almanac-detail {
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-lg);
+  background: color-mix(in srgb, var(--hw-panel) 70%, var(--hw-bg));
+  padding: 18px 16px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.hw-almanac-detail-art {
+  width: 72px;
+  height: 72px;
+  color: var(--hw-rune);
+}
+.hw-almanac-detail-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+.hw-almanac-detail-sub {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+  margin-top: 2px;
+}
+.hw-almanac-detail-lore {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--hw-text);
+  margin-top: 12px;
+}
+.hw-almanac-detail-empty {
+  font-size: 12px;
+  color: var(--hw-muted);
+  font-style: italic;
+}
+/* frame comes from .hw-screen-frame; the scrim it applies also keeps
+   the perk grid legible over the forest hero image behind
+   commander-select. Only the slightly taller bottom padding is local. */
+.hw-grove {
+  padding-bottom: 32px;
+}
+.hw-grove-balance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--hw-text);
+  margin: 16px 0 6px;
+}
+.hw-grove-acorn {
+  font-size: 22px;
+}
+.hw-grove-stats {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--hw-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.hw-grove-section-label {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+  margin: 18px 0 8px;
+}
+.hw-grove-depths {
+  max-width: 760px;
+  border: 1px solid var(--hw-border);
+  border-left: 3px solid var(--hw-hp);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 14px;
+  background: color-mix(in srgb, var(--hw-panel) 92%, transparent);
+}
+.hw-grove-depths .hw-grove-section-label {
+  margin-top: 0;
+}
+.hw-grove-depth-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.hw-grove-depth-step {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-panel);
+  color: var(--hw-text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.hw-grove-depth-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.hw-grove-depth-value {
+  flex: 1;
+}
+.hw-grove-depth-payout {
+  color: var(--hw-moss);
+  font-weight: 400;
+  font-size: 12px;
+}
+.hw-grove-depth-mods {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--hw-muted);
+  line-height: 1.6;
+}
+.hw-grove-depth-mods strong {
+  color: var(--hw-text);
+}
+.hw-grove-depth-hint {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 10px 0 0;
+  font-style: italic;
+}
+
+.hw-grove-perks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+  max-width: 760px;
+}
+.hw-grove-perk {
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-panel);
+  color: var(--hw-text);
+  cursor: pointer;
+  transition: border-color 130ms ease, transform 130ms ease;
+}
+.hw-grove-perk:not(:disabled):hover {
+  border-color: var(--hw-moss);
+  transform: translateY(-2px);
+}
+.hw-grove-perk:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.hw-grove-perk.is-owned {
+  opacity: 1;
+  border-color: var(--hw-moss);
+  background: color-mix(in srgb, var(--hw-moss) 10%, var(--hw-panel));
+}
+.hw-grove-perk.is-fresh {
+  animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.hw-grove-perk-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.hw-grove-perk-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.hw-grove-perk-cost {
+  font-size: 12px;
+  color: var(--hw-moss);
+  white-space: nowrap;
+}
+.hw-grove-perk.is-owned .hw-grove-perk-cost {
+  color: var(--hw-muted);
+}
+.hw-grove-perk-desc {
+  font-size: 12px;
+  color: var(--hw-muted);
+  line-height: 1.5;
+}
+
+/* Boss phase banner (autoBattleEngine.js's checkBossPhases) - a
+   one-shot dramatic line across the battlefield the round a boss
+   crosses an HP threshold. Absolutely positioned over the stage like
+   the synergy WOW banner, so the board never shifts. */
+.hw-boss-phase-banner {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.3px;
+  color: var(--hw-hp);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--hw-hp) 70%, transparent), 0 2px 6px rgba(0, 0, 0, 0.8);
+  padding: 10px 22px;
+  border-top: 1px solid color-mix(in srgb, var(--hw-hp) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--hw-hp) 60%, transparent);
+  background: linear-gradient(color-mix(in srgb, var(--hw-hp) 12%, transparent), transparent);
+  pointer-events: none;
+  animation: hw-boss-phase 2.4s ease-out forwards;
+}
+@keyframes hw-boss-phase {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -55%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-boss-phase-banner { animation: none; opacity: 1; }
+}
+
+/* Forest Mood (moods.js / AutoBattleView.jsx) - the banner reuses the
+   boss-phase animation but sits lower and in the rune colour so two
+   announces in one round don't overlap. */
+.hw-forest-mood-banner {
+  top: 56%;
+  color: var(--hw-rune);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--hw-rune) 70%, transparent), 0 2px 6px rgba(0, 0, 0, 0.8);
+  border-color: color-mix(in srgb, var(--hw-rune) 60%, transparent);
+  background: linear-gradient(color-mix(in srgb, var(--hw-rune) 12%, transparent), transparent);
+  font-size: 15px;
+}
+
+/* The 0-100 mood meter inside the badge. */
+.hw-forest-mood-badge {
+  gap: 6px;
+}
+
+.hw-forest-mood-track {
+  display: inline-block;
+  width: 46px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.hw-forest-mood-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.35s ease;
+}
+
+/* Arena hazard banner (arenas.js) - shown on FormationScreen before a
+   fight that has one. Left border keyed to who it helps: rune (both),
+   moss (your squad), hp-red (the enemy). */
+.hw-arena-banner {
+  border: 1px solid var(--hw-border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: color-mix(in srgb, var(--hw-panel) 90%, transparent);
+}
+.hw-arena-banner-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--hw-text);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.hw-arena-banner-scope {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--hw-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.hw-arena-banner-desc {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
 /* Tribe icons (synergies.js) - a small row under the unit's name, same
    icon-glyph vocabulary as everything else, no new art. Purely a
    recruit-planning cue: "what tribe does this unit belong to."*/
+/* Tribe band - promoted to a first-class row directly under the card's
+   cost/HP head (Marc: "heimo tarvitsee näkyvämmän paikan kortissa").
+   Sits above the portrait, centred, with a hairline divider so it reads
+   as its own zone, not a caption. */
+.hw-tribe-band {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 3px 0 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--hw-border);
+}
+
+/* Tribe-colour top edge of the card - a solid stripe for one tribe, or
+   an inline two-stop gradient (set in UnitCard.jsx) for a unit that has
+   both a mechanical and an elemental tribe. */
+.hw-card-tribe-edge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--hw-fib-2, 8px) var(--hw-fib-2, 8px) 0 0;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* kept as an alias for any older markup still using the class name */
 .hw-tribe-icons {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 4px;
   margin-top: 2px;
 }
 
-.hw-tribe-icon .hw-effect-icon-glyph {
-  width: 12px;
-  height: 12px;
+/* Labeled tribe pill (see UnitCard.jsx's own comment for the "why") -
+   tribe-colored border/text on a translucent tint of that same color,
+   the exact "quiet badge, loud border" language every other tier/
+   status marker on this card already uses, just keyed to the tribe's
+   own color instead of a fixed one. */
+.hw-tribe-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  white-space: nowrap;
+}
+
+.hw-tribe-badge .hw-effect-icon-glyph {
+  width: 10px;
+  height: 10px;
+}
+
+/* A tribe whose synergy is currently live (activeTribeIds from
+   FormationScreen) - filled instead of outlined, and a slow breathing
+   pulse so the card visibly reacts when a synergy turns on. */
+.hw-tribe-badge--active {
+  background: color-mix(in srgb, currentColor 32%, transparent);
+  box-shadow: 0 0 8px 1px color-mix(in srgb, currentColor 45%, transparent);
+  animation: hw-tribe-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes hw-tribe-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px 1px color-mix(in srgb, currentColor 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 12px 3px color-mix(in srgb, currentColor 60%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-tribe-badge--active {
+    animation: none;
+  }
 }
 
 /* Hero Bending marker (UnitCard.jsx's `bent` prop) - a small inline
@@ -779,6 +1993,28 @@
   border-color: var(--hw-ember);
   background: color-mix(in srgb, var(--hw-ember) 14%, var(--hw-panel));
   animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Evolution marker (evolutions.js / UnitCard.jsx `evo`): a small
+   triangle next to the name of any unit that CAN evolve, `title` spells
+   out the deterministic condition. Dim by default (a possibility, not a
+   promise); --close lights it up once the unit is one win away so the
+   player knows to keep it deployed. Same "a mechanic needs a visible
+   cue" rule as the Bent badge right above. */
+.hw-evolve-mark {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 9px;
+  line-height: 1;
+  vertical-align: middle;
+  color: var(--hw-muted);
+  opacity: 0.7;
+}
+
+.hw-evolve-mark--close {
+  color: var(--hw-moss);
+  opacity: 1;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--hw-moss) 60%, transparent);
 }
 
 /* Portrait-style glyphs (Tarot art, enemy/character doodles) get a
@@ -803,6 +2039,15 @@
   width: 40px;
   height: 40px;
   align-self: center;
+}
+
+/* Relic icon art (RelicChoice.jsx's def.image branch) reuses this exact
+   class, same object-fit fix img.hw-card-art already needed for item
+   art - keeps a non-square source photo from stretching to fill the
+   fixed 40x40 medallion. Size-neutral: relic cards were already 40x40
+   glyphs, this is the same box now holding a photo instead of an SVG. */
+img.hw-card-glyph {
+  object-fit: cover;
 }
 
 .hw-card--attack .hw-card-glyph {
@@ -843,6 +2088,17 @@
   color: var(--hw-rune);
 }
 
+/* Item icon art (ItemCard.jsx's def.image branch) reuses this exact
+   class so it inherits the same medallion frame/backdrop every glyph
+   already has - object-fit keeps a non-square source photo from
+   stretching to fill the fixed 26x26 box (UnitCard.jsx's own portrait
+   already needed the same fix, via its separate hw-card-portrait
+   class). Harmless no-op on the SVG glyph usage since that never
+   overflows its own box to begin with. */
+img.hw-card-art {
+  object-fit: cover;
+}
+
 .hw-card--curse .hw-card-art,
 .hw-card--special .hw-card-art {
   color: var(--hw-curse);
@@ -852,8 +2108,32 @@
   font-size: 12px;
   font-weight: 600;
   text-align: center;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   letter-spacing: 0.02em;
+  /* Legibility insurance, same reasoning as .hw-card-hp above - the
+     card-frame background is a photographic texture now, not a flat
+     color, so bare text needs its own shadow rather than relying on
+     the old uniform backdrop for contrast. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  /* Round 4 (market-scale-up pass) bug fix, found via this pass's own
+     repeated Playwright re-roll sweep: this was previously unclamped
+     on every card EXCEPT the Market featured grid (which already had
+     its own scoped 1-line clamp, added for exactly this reason - see
+     that rule's own comment). An occasional long name (or a `bent`
+     badge tacked onto the end) wrapping to 2 lines silently grew that
+     ONE card - and because .hw-select-grid is itself a CSS grid with
+     the default stretch alignment, EVERY card sharing that row then
+     stretched to match, turning one rare long name into a random,
+     unpredictable height hit on the WHOLE row (reproduced live on the
+     Your Squad tab, not theoretical). Full name is still available via
+     this element's own title attribute already set one level up
+     (UnitCard.jsx's `title={def.name}`). Made global (not re-scoped
+     per-screen like before) since every .hw-select-grid usage shares
+     the same underlying risk. */
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Guild Identity v1 (UnitCard.jsx's `def.className`) - a small italic
@@ -869,6 +2149,17 @@
   color: var(--hw-moss);
   letter-spacing: 0.03em;
   margin-top: -2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  /* Round 4 (market-scale-up pass): same fixed-height-regardless-of-
+     content reasoning as .hw-card-name's own clamp right above it - a
+     Dual-Class combo name is the longest text this line ever carries
+     (e.g. "Deathguard"), and this grid shares the same stretch-to-
+     tallest-row behavior, so one long roll could otherwise wrap and
+     push every other card in the row taller with it. */
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Dual-Class (UnitCard.jsx's `dualClass` prop, dualClasses.js) - a
@@ -906,6 +2197,65 @@
   color: var(--hw-muted);
   text-align: center;
   line-height: 1.3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+/* Item cards specifically (not unit/reward cards elsewhere using this
+   same base class) - description length varies per random shop roll,
+   so an unclamped card's height was never a fixed, predictable
+   contribution to this screen's hard "no scroll" fit budget - a
+   wordier roll could silently reintroduce the exact overflow bug this
+   whole pass exists to fix. Clamped to 3 lines with a title tooltip
+   (ItemCard.jsx already sets one) as the fallback for the rare
+   description that actually gets cut.
+   Round 4 (market-scale-up pass) relaxed this 2 -> 3 lines on the
+   wider 260px card. Recovery/fit pass put it back to 2: at Marc's real
+   1536x864 the third line is exactly the per-roll height variance that
+   tips the Market tab into a scrollbar on a wordy item roll (the
+   ".hw-card height 258 one visit, 271 the next" swing). The wider card
+   still surfaces more of each description per line than the old 210px
+   card did; the full text stays in ItemCard.jsx's title tooltip. */
+.hw-item-card .hw-card-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Real-viewport fit correction: every "fits at 1920x1080" measurement
+   today was against a clean Playwright viewport with zero browser
+   chrome. Marc, direct, after all of that: "koko ui ei vielä mahdu
+   näytölleni 1920x1080 se pitää keskittää ettei tarvitse scrollata
+   olen jo sanonut monesti" - his actual browser (tabs/address bar/
+   sidebar/taskbar) eats real vertical space, so the true budget is
+   closer to 1860x960, not a bare 1920x1080. Tightened further here
+   (icon size, card padding/gap, description to 2 lines instead of 3)
+   specifically for item cards - measured against .hw-root's own
+   scrollHeight/clientHeight at 1860x960 this time, not 1920x1080. */
+.hw-item-card {
+  /* padding trimmed 8px->6px, gap 4px->3px to partly self-offset the
+     bigger icon below against this screen's 1860x960 budget - net
+     cost of growing the icon ends up smaller than the icon growth
+     itself instead of stacking fully on top of it. Round 4: 6px->5px,
+     3px->2px, same reasoning against this round's bigger bill. */
+  padding: 5px;
+  gap: 2px;
+}
+
+/* Round 3 (Marc: "kortit on liian pieniä kuvat niissä saa olla
+   tuplasti isompi" - the cards are too small, the images can be twice
+   as big) - grown from 26px to 40px (~2.4x area). The item grid got
+   210px-wide cards above specifically so this bigger icon has room
+   to sit as a real icon next to the name/description, not a cramped
+   glyph.
+   Round 4 (market-scale-up pass): grown again, 40px -> 48px, paid for
+   by ITEM_SHOP_SIZE's own trim (runEngine.js) and the wider 260px card
+   above - a real, visible jump but short of a second full doubling on
+   top of Round 3's own, to leave headroom for the description's own
+   growth (2 -> 3 lines, above) within the same fit budget. */
+.hw-item-card .hw-card-art {
+  width: 44px;
+  height: 44px;
 }
 
 .hw-energy-row {
@@ -938,6 +2288,24 @@
   white-space: nowrap;
 }
 
+/* Wood-grain texture behind the primary CTA (Marc: "tallensin
+   taustakuvat napeille ja korteille käytä sitä"). Scoped to .hw-end-turn
+   only (Continue, New Run, Guild Hall CTA) - NOT the shared .hw-move-btn,
+   whose flat fill the battle screens depend on. An ~84%-opaque wash of
+   the button's own ember over the grain keeps the hue and the dark
+   label's contrast while letting a faint physical texture read through.
+   Restrained on purpose - a previous pass found a heavier version
+   muddied the art; Marc has since asked for it to be used anyway, kept
+   subtle. */
+.hw-end-turn {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--hw-ember) 84%, transparent), color-mix(in srgb, var(--hw-ember) 84%, transparent)),
+    url("../../assets/heartwood/ui-bg-panel.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .hw-move-btn {
   background: var(--hw-moss);
 }
@@ -951,6 +2319,73 @@
 .hw-end-turn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Ghost variant, scoped to SquadDraft's commander/economy strip only
+   (Market Lv, Level Up, Rank Up, Active Power, Retrain - 4-6 controls
+   that used to render as full solid .hw-move-btn pills side by side).
+   Marc, direct: "visuaalista meteliä pitää vähentää" (too much visual
+   noise) - a whole row of identically bright, solid-fill buttons all
+   competing at once, right above the actual shop cards, was exactly
+   that. Border-only until hover/focus keeps every action reachable
+   and legible but lets the cards below stay the visual focus; still
+   the same .hw-move-btn base (padding/radius/transition/disabled
+   state untouched) so this is purely a color/fill override, not a
+   parallel button system. */
+.hw-strip-btn.hw-move-btn {
+  /* Wood-grain plaque texture (Marc: "tallensin taustakuvat napeille ja
+     korteille käytä sitä") - these ghost buttons (Level Up / Rank Up /
+     Retrain / Active Power) were see-through onto the market backdrop.
+     Under a near-opaque dark scrim the light label stays fully crisp and
+     the buttons now read as small carved-wood plaques - subtle, calm,
+     no colour noise. */
+  background:
+    linear-gradient(rgba(9, 7, 4, 0.82), rgba(13, 10, 6, 0.88)),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat;
+  color: var(--hw-text);
+  border: 1px solid var(--hw-border);
+  /* Marc, direct: "niitä voi myös isontaa ja niitä pitää hienontaa"
+     (they can be made bigger, and need refining) - was a cramped
+     11px/4px-8px inline style repeated on every button in this strip.
+     One shared size here instead, and the essence cost is a small
+     glyph+number chip (.hw-cost-inline below) rather than the word
+     "Essence" spelled out on every single button in the row.
+     Round 4 (market-scale-up pass): grown again - 13px/7px 14px ->
+     15px/9px 17px - Marc's annotated-screenshot ask circled this whole
+     strip (Level Up/Rank Up/Retrain/Active Power all share this one
+     class) as part of "make the UI edits according to this." */
+  font-size: 15px;
+  padding: 9px 17px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hw-cost-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.85;
+}
+
+.hw-cost-inline .hw-intent-glyph {
+  width: 14px;
+  height: 14px;
+}
+
+.hw-strip-btn.hw-move-btn:not(:disabled):hover {
+  background:
+    linear-gradient(color-mix(in srgb, var(--hw-moss) 20%, rgba(11, 9, 5, 0.82)), color-mix(in srgb, var(--hw-moss) 20%, rgba(11, 9, 5, 0.82))),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat;
+  border-color: var(--hw-moss);
+}
+
+.hw-strip-btn.hw-move-btn[data-active="true"] {
+  background:
+    linear-gradient(color-mix(in srgb, var(--hw-moss) 26%, rgba(11, 9, 5, 0.8)), color-mix(in srgb, var(--hw-moss) 26%, rgba(11, 9, 5, 0.8))),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat;
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
 }
 
 .hw-overlay {
@@ -984,7 +2419,7 @@
 .hw-overlay-title {
   font-size: 34px;
   font-weight: 700;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   letter-spacing: 0.04em;
 }
 
@@ -1058,7 +2493,7 @@
 .hw-runend-title {
   font-size: var(--hw-fib-5);
   font-weight: 700;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   letter-spacing: 0.04em;
   line-height: 1.15;
 }
@@ -1240,6 +2675,168 @@
   margin-top: 18px;
 }
 
+/* Market tab button reskin (Marc's "hearthwood market.png" plaque,
+   PR round3 art batch - "keskitä se sivulle yläosioon", center it at
+   the top of the page section). A second, separate .hw-tab-row rather
+   than adding the plaque next to Your Squad in the original single
+   row - Marc was explicit this one should NOT sit left-aligned beside
+   the pill the way the old plain-text tab did. Margins are negative/
+   tight on purpose: the plaque's own painted vine border already
+   carries a lot of empty-looking padding, so treating it like a
+   normal 18px-margin block would visibly double that gap and eat
+   into this screen's zero-scroll budget for no visual gain. */
+/* Was two stacked rows (plaque alone, Your Squad alone) - a real fit
+   regression at Marc's actual 1860x960 browser budget (see PR #356),
+   ~110px combined for what's fundamentally one tab toggle pair. Merged
+   back into one row (SquadDraft.jsx), plaque sized to match the pill
+   button's own height instead of floating above it as a hero image. */
+.hw-tab-row--market-art {
+  justify-content: center;
+  align-items: center;
+  margin-top: 0;
+  /* Round 2 growth (Marc, live: "noita nappeja isommaksi" - make those
+     buttons bigger) needs a little breathing room of its own now that
+     both buttons are real plaques side by side, not a plaque + a
+     slim text pill - bumped from the implicit 8px .hw-tab-row gap.
+     Round 3 (this pass, Marc, direct: "heartwood market ja your squad
+     pitää olla ainakin tuplasti isommat" - Market and Your Squad need
+     to be AT LEAST 2x bigger) grew the plaques themselves further (see
+     .hw-market-tab-btn/.hw-squad-tab-btn below) - gap widened again to
+     match, same "bigger buttons need a bit more air between them"
+     scaling this row already followed in Round 2. */
+  gap: 20px;
+  margin-bottom: 0;
+}
+
+/* Shared sizing for both plaque buttons in this row (Market below,
+   Your Squad further down) - kept as one rule so the "meaningfully
+   bigger" ask lands identically on both rather than needing two
+   numbers to stay in sync by hand. 64px, not the plaques' native
+   size: still a tab TOGGLE, not this screen's hero image, but a real
+   jump up from the 38px-tall version that read as a tiny, oddly
+   cropped icon (that was actually a SHAPE problem more than a size
+   one - height-constraining a ~2:3 portrait plaque to any height
+   leaves a narrow sliver; market-tab.png itself got re-cropped to a
+   wide 3:1 strip - just the candles + "HEARTHWOOD MARKET" text banner,
+   coin-bag/Purchase-250 dropped - specifically so growing it actually
+   helps legibility instead of just enlarging the same narrow crop).
+   Round 3 (market-scale-up pass): Marc, verbatim, in a burst of
+   messages - "heartwood market ja your squad pitää olla ainakin
+   tuplasti isommat" (Market and Your Squad need to be AT LEAST 2x
+   bigger). A literal, non-negotiable "pitää" (must) ask, so Round 3
+   doubled this 64px -> 128px.
+   Recovery/fit pass (real viewport): the Round 3 doubling was iterated
+   and measured against an 1860x960 window, but Marc's actual screen is
+   1536x864 - 96px shorter - and at that height a 128px tab row plus the
+   doubled Continue button below pushed .hw-root ~73px into vertical
+   scroll on the Market tab and ~49px on Your Squad. His standing rule
+   "kaiken pitää mahtua nätisti, ei scrollausta" (everything must fit,
+   no scrolling) is the harder constraint of the two, and this row is
+   chrome, not one of the "kortit" (cards) the info-density ask is
+   really about - so it lands at 84px here: still a clear, deliberate
+   jump up from the old 64px (and from the 38px sliver before that),
+   just short of a literal 2x on the dimension the real screen can't
+   afford it on. Documented, not silently under-delivered, same as
+   Round 3's own history did for the card portrait. */
+.hw-market-tab-btn,
+.hw-squad-tab-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  line-height: 0;
+  position: relative;
+  filter: brightness(0.7) saturate(0.8);
+  transition: filter 150ms ease, transform 150ms ease;
+  /* Reverted 84px -> 64px alongside the #374 recruit-card revert (Marc:
+     the #374 chrome grew too far). Still a clear, legible plaque. */
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.hw-market-tab-btn img,
+.hw-squad-tab-btn img {
+  display: block;
+  /* Height-constrained (not width-constrained), same reasoning as
+     before - each plaque's own native aspect ratio decides its final
+     width (the wide market strip renders noticeably wider than the
+     more compact Your Squad plaque, which is correct - they're
+     different art, not a matched pixel-for-pixel pair). */
+  height: 64px;
+  width: auto;
+  pointer-events: none;
+}
+
+.hw-market-tab-btn:hover,
+.hw-squad-tab-btn:hover {
+  filter: brightness(0.85) saturate(0.95);
+  transform: translateY(-1px);
+}
+
+.hw-market-tab-btn:focus-visible,
+.hw-squad-tab-btn:focus-visible {
+  outline: 2px solid var(--hw-moss);
+  outline-offset: 2px;
+}
+
+/* Active state: each plaque's own painted text already reads as
+   inviting/lit, so full brightness plus a soft moss glow (this game's
+   established "currently selected/available" color, same one
+   Freeze's data-active state and the tribe-match ring use) is enough
+   - no separate pill/border needed on top of the art. */
+.hw-market-tab-btn[data-active="true"],
+.hw-squad-tab-btn[data-active="true"] {
+  filter: brightness(1) saturate(1.05) drop-shadow(0 0 10px color-mix(in srgb, var(--hw-moss) 60%, transparent));
+}
+
+/* Bench count badge (Your Squad plaque) - the "(N)" that used to live
+   inline in the old plain-text pill can't be baked into the art (it
+   changes every recruit/sell), so it rides as a small corner badge
+   instead. Positioned top-right, same corner language UnitCard.jsx's
+   own cost/HP head row already uses for "the glanceable number that
+   matters" - moss (not ember) since this is neutral bench info, not a
+   cost/warning. */
+.hw-squad-count-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--hw-moss);
+  color: var(--hw-bg);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  border: 1px solid color-mix(in srgb, var(--hw-moss) 55%, black);
+  pointer-events: none;
+}
+
+/* Visually-hidden text node (Market/Your Squad plaque buttons) - keeps
+   each button findable by its real visible text the same way every
+   other tab/action button in this game is (including existing
+   Playwright locators using hasText), even though the plaque art
+   itself already reads its label to a sighted player. Standard
+   clip-rect hide, not display:none, so it stays in the accessibility
+   tree and in textContent. */
+.hw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .hw-market-columns {
   display: grid;
   /* Marc: "haluan että your squadin alas ja kauppaan kuuluvat ylös...
@@ -1251,7 +2848,7 @@
      Squad below, no reordering needed elsewhere. */
   grid-template-columns: 1fr;
   gap: 24px;
-  margin-top: 18px;
+  margin-top: 2px;
   align-items: start;
 }
 
@@ -1261,20 +2858,171 @@
   border: 1px solid var(--hw-border);
 }
 
+/* Structural redesign (roadmap "Kauppanaytto kokonaan uusiksi") -
+   problem 1 (tausta/lava-tunnelma) and problem 4 (koko paneeli/
+   laatikko-tuntuma) landed together here, since they're the same
+   fix seen from two angles: a flat tinted rectangle becomes a
+   warm-lit "stall" with real depth. The spotlight pools from above
+   at 38.2% down - the same golden-ratio focal point .hw-arena
+   (Phase 2 combat stage, above) already established for "this is a
+   lit stage, not a flat panel," reused here rather than inventing a
+   second convention. A soft glow band low in the panel grounds the
+   offer cards on a surface instead of a grid cell. The corner
+   radius is deliberately asymmetric ("carved wood" rather than a
+   stamped rectangle) and mirrored between the two panels so Market
+   and Your Squad read as a matched pair, not two random shapes. A
+   layered ambient+contact shadow (vs. the old flat 1px border) is
+   what actually sells "resting object," not a cut-out box.
+   Marc's later clarification, same session: the visual target is
+   "darkest dungeon seka hearthstone" - Hearthstone's inviting stage
+   PLUS Darkest Dungeon's dark, high-contrast, hand-painted/gothic
+   mood, not warmth alone. So the spotlight above is deliberately
+   paired with an edge-darkening radial-gradient ring around it (the
+   first layer below) - light pooling out of real shadow, the same
+   single-source-in-an-oppressive-space contrast Darkest Dungeon's
+   own lighting uses, rather than an evenly warm-lit box. Shadows
+   were also deepened (0.5/0.3 alpha -> 0.62/0.4) for the same
+   reason - a flatter, higher-contrast "painted" edge instead of a
+   soft ambient lift. */
 .hw-panel--market {
-  background: color-mix(in srgb, var(--hw-ember) 6%, var(--hw-panel));
+  background:
+    radial-gradient(ellipse 100% 90% at 50% 50%, transparent 45%, color-mix(in srgb, black 38%, transparent) 100%),
+    radial-gradient(ellipse 75% 50% at 50% 38.2%, color-mix(in srgb, var(--hw-ember) 12%, transparent), transparent 68%),
+    linear-gradient(to bottom, transparent 55%, color-mix(in srgb, var(--hw-ember) 7%, transparent) 100%),
+    color-mix(in srgb, var(--hw-ember) 5%, var(--hw-panel));
   border-color: color-mix(in srgb, var(--hw-ember) 35%, var(--hw-border));
+  border-radius: 34px 13px 34px 13px / 21px 34px 21px 34px;
+  box-shadow: 0 21px 34px -13px rgba(0, 0, 0, 0.62), 0 3px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Padding reclaimed here (16px -> 10px), scoped to just these two
+   panels via the two-class selector below rather than touching the
+   shared/global .hw-panel rule (used well beyond this screen) - part
+   of paying back the vertical budget the bigger tab-row plaques and
+   bigger shop-card portraits/icons above both cost (see this file's
+   other "Round 2/3" comments for the rest of where it came from).
+   Round 4: 10px -> 8px, same reasoning, bigger bill this time.
+   Recovery/fit pass: 8px -> 6px - the bill is bigger still once the
+   Round 3/4 growth is measured against Marc's real 1536x864 (not the
+   1860x960 it was tuned on). */
+.hw-panel--market,
+.hw-panel--squad {
+  padding: 6px;
 }
 
 .hw-panel--squad {
-  background: color-mix(in srgb, var(--hw-moss) 6%, var(--hw-panel));
+  background:
+    radial-gradient(ellipse 100% 90% at 50% 50%, transparent 45%, color-mix(in srgb, black 38%, transparent) 100%),
+    radial-gradient(ellipse 75% 50% at 50% 38.2%, color-mix(in srgb, var(--hw-moss) 10%, transparent), transparent 68%),
+    linear-gradient(to bottom, transparent 55%, color-mix(in srgb, var(--hw-moss) 6%, transparent) 100%),
+    color-mix(in srgb, var(--hw-moss) 5%, var(--hw-panel));
   border-color: color-mix(in srgb, var(--hw-moss) 35%, var(--hw-border));
+  border-radius: 13px 34px 13px 34px / 34px 21px 34px 21px;
+  box-shadow: 0 21px 34px -13px rgba(0, 0, 0, 0.62), 0 3px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Buttons that actually live inside these two panels (Reroll/Freeze
+   in Market, Reforge/Sell on each bench card in Your Squad) get a
+   softer, pill-shaped treatment scoped to just this screen - the
+   shared .hw-move-btn rule itself (used by Continue, Retrain, Rank
+   Up etc. on this screen's own header AND on every other Hearthwood
+   screen) is deliberately left untouched, so nothing outside these
+   two panels changes shape. */
+.hw-panel--market .hw-move-btn,
+.hw-panel--squad .hw-move-btn {
+  border-radius: 999px;
+}
+
+/* Round 4 (market-scale-up pass): Reroll/Freeze (the only .hw-move-btn
+   usages in these two panels WITHOUT their own inline padding override
+   - Reforge/Sell on each bench card already set their own smaller
+   inline padding/font, so this has no effect there) shrunk from the
+   shared .hw-move-btn's 10px 18px/13px down to this - paying back a
+   slice of this round's plaque/card growth bill without touching the
+   shared .hw-move-btn rule itself (Rank Up/Level Up/Retrain/Active
+   Power in this screen's own header, and every other screen's move
+   buttons, are all untouched). */
+.hw-panel--market .hw-move-btn {
+  padding: 5px 12px;
+  font-size: 11px;
+}
+
+/* Sell button reskin (Marc's "sell.png" plaque, PR round3 art batch -
+   the red/fire-themed "SELL" plaque with a baked "Quick Sale 150"
+   sub-panel). Kept at this button's EXISTING footprint on purpose
+   (see SquadDraft.jsx's own comment right above this button) - the
+   bench grid's height budget has already see-sawed into overflow
+   from image additions more than once today, so this reuses
+   background-size: cover rather than growing to the plaque's native
+   aspect ratio. border-radius overridden back from the 999px pill
+   above since the plaque art already has its own carved-oval edge -
+   a pill mask would just clip its corners. */
+.hw-sell-btn {
+  background-image: linear-gradient(to bottom, rgba(12, 4, 2, 0.35), rgba(12, 4, 2, 0.55)), url("../../assets/heartwood/buttons/sell-plaque.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px !important;
+  border-color: color-mix(in srgb, var(--hw-hp, #c0392b) 55%, var(--hw-border));
+  color: #ffe9d6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.hw-sell-btn:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+
+/* Confirm button reskin (Marc's "confirm.png" plaque, second art-batch
+   pass - the gold/ember "CONFIRM" plaque with a baked "Quick Sale 150"
+   sub-panel, same shape/treatment as .hw-sell-btn above). This is the
+   shop's own "Continue" button (SquadDraft.jsx) - the closest thing
+   this screen has to a leaving-shop confirmation moment, not a literal
+   sale, but confirm.png's own baked sub-text is illegible at this
+   button's real on-screen size regardless (same tradeoff already
+   accepted for sell.png/market-tab.png's own baked prices), so the
+   mismatch never actually reads to a player. Scoped to its own class
+   rather than the shared .hw-end-turn every other screen's Continue/
+   End Turn button also uses. */
+/* Round 2 (market-scale-up pass): Marc, in the same burst as the tab
+   plaques above - "continue keskitetään... ja tuplasti isompi" (center
+   the Continue button, also make it twice as big). Checked its actual
+   alignment first per this task's own instructions: it was NOT
+   centered - just a plain block button sitting left-aligned in its
+   wrapping div (SquadDraft.jsx's own <div style={{marginTop:10}}>
+   never set any text-align/justify-content). Centering now lives on
+   that wrapper (display:flex, justify-content:center - see
+   SquadDraft.jsx), so this class only owns the size half: padding
+   10px 18px/font 13px (the shared .hw-end-turn base).
+   Recovery/fit pass (real 1536x864 viewport): Round 2 doubled this to
+   20px 36px/26px against an 1860x960 window; this button sits at the
+   very bottom of the screen on BOTH tabs, so at Marc's real 864px
+   height that doubling was the second-biggest contributor (after the
+   tab row) to .hw-root scrolling. Pulled back to 10px 26px/18px - a
+   real, visible step up from the 10px 18px/13px base, kept centered,
+   but sized so the screen still fits with no scroll (the standing hard
+   rule). See .hw-market-tab-btn's own fit-pass comment for the full
+   reconciliation. */
+.hw-shop-confirm-btn {
+  background-image: linear-gradient(to bottom, rgba(20, 12, 2, 0.3), rgba(20, 12, 2, 0.5)), url("../../assets/heartwood/buttons/shop-confirm-plaque.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 10px;
+  border-color: color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
+  color: #fff3d6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  padding: 10px 26px;
+  font-size: 18px;
+}
+
+.hw-shop-confirm-btn:not(:disabled):hover {
+  filter: brightness(1.15);
 }
 
 .hw-panel-title {
   font-size: 15px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .hw-panel--market .hw-panel-title {
@@ -1283,6 +3031,93 @@
 
 .hw-panel--squad .hw-panel-title {
   color: var(--hw-moss);
+}
+
+/* Your Squad tab - fighting vs reserve separation (Marc: "unit/reservi
+   on epaselva your squad valilehdessa... ne pitaa eritta paremmin").
+   Two side-by-side groups with a quiet vertical rule between them and
+   the reserve grid gently dimmed - muted, no loud color or heavy
+   border, per this game's "hillitty minimalistinen" anchor. Side by
+   side (not stacked) keeps the tab to a single card row so the
+   screen's zero-scroll budget holds.
+   A 3-column grid: fighting group sized to its own cards (auto), a thin
+   rule (1px), then the reserve group taking the rest (1fr). Grid, not
+   flex, so the fighting column keeps its natural card width instead of
+   being squeezed to a single stacked column when reserve is wide. */
+.hw-squad-split {
+  display: grid;
+  grid-template-columns: auto 1px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.hw-squad-group {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hw-squad-group-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--hw-border);
+  margin-bottom: 2px;
+}
+
+.hw-squad-group--reserve .hw-squad-group-label {
+  color: color-mix(in srgb, var(--hw-muted) 80%, transparent);
+}
+
+.hw-squad-group-count {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--hw-muted);
+  border: 1px solid var(--hw-border);
+  border-radius: 999px;
+  padding: 0 7px;
+}
+
+/* Thin gradient rule fading at both ends, same quiet treatment as
+   .hw-market-divider just rotated vertical - not a hard ruled line. */
+.hw-squad-split-divider {
+  align-self: stretch;
+  width: 1px;
+  min-height: 120px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--hw-moss) 40%, transparent) 50%, transparent);
+}
+
+/* Plain flex-wrap, NOT the parent .hw-select-grid's auto-fit grid: an
+   auto-fit track set collapses to a single column when its container
+   is intrinsically sized (which the fighting group's `auto` outer
+   track is), stacking the cards vertically and blowing the height
+   budget. Flex-wrap reports a real multi-card max-content so the outer
+   `auto` track sizes to the row. Tighter vertical padding than the
+   21px base too - two card grids share this one tab now. */
+/* Prefixed with .hw-panel--squad to out-specify the .hw-select-grid
+   rule that sits later in this file. */
+.hw-panel--squad .hw-squad-group-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 13px;
+  padding: 6px 0;
+}
+
+/* The reserve cards read as "owned but not in the fight" via a gentle
+   dim - subtle enough that the Reforge/Sell buttons on them stay
+   legible. */
+.hw-squad-reserve-cards {
+  opacity: 0.62;
+}
+
+.hw-squad-group-empty {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 6px 0;
+  max-width: 15rem;
 }
 
 .hw-select-grid {
@@ -1317,6 +3152,1125 @@
   justify-content: center;
   gap: var(--space-2, 13px);
   padding: var(--space-3, 21px) 0;
+}
+
+/* ============================================================
+   Market screen structural redesign (roadmap "Kauppanaytto
+   kokonaan uusiksi (Hearthstone-tason rakenne)") - Marc sent two
+   screenshots of this screen taken at different points that looked
+   IDENTICAL to him: prior hover/rarity/transition polish never
+   touched the actual STRUCTURE. He named 4 concrete problems:
+   1) background is a photo behind boxes, no stage feel
+   2) offer cards are a uniform small row, not a featured moment
+   3) Essence is a bare number in a tiny badge, not valuable-feeling
+      (extended later, same session: EVERY resource should get a
+      real physical/symbolic form, not just a number counter)
+   4) every panel/button is a plain rectangle, nothing organic
+   Addressed below by reusing this file's own established golden-
+   ratio/Fibonacci vocabulary (--hw-phi/--hw-fib-* tokens above,
+   .hw-arena's 38.2%/61.8% vignette split, .hw-commander-card's
+   233px Fibonacci card width) rather than inventing a fourth,
+   different style - per Marc's explicit ask to imitate
+   Hearthstone's STRUCTURE while keeping Hearthwood's own dark
+   mossy-forest identity, not its colors/art. CSS + markup only:
+   no new art assets, zero changes to SquadDraft.jsx's props,
+   state, handlers, or any data/logic file - presentation layer
+   only, every existing interaction (buy/reroll/freeze/equip/tab)
+   keeps calling exactly the same functions it already did. */
+
+/* Problem 1, screen-wide half: a vignette across the whole
+   scrollable screen so it reads as a bounded place rather than an
+   open photo. Deliberately shaped differently from .hw-arena's own
+   vignette (that one frames a fixed-size board; this wraps a much
+   taller, scrolling screen with a header/tabs/panels stack, so a
+   strong spotlight ellipse anchored to a fixed % of ITS height
+   would drift off wherever the goods actually render) - a top/edge
+   darkening here instead of a centered spotlight. Marc's later
+   clarification: the target mood is "darkest dungeon seka
+   hearthstone" - both, in balance, not warmth alone - so this
+   darkens more than a purely inviting vignette would (20% -> 34%
+   black), the oppressive dark-forest half of that pairing; the
+   warm half (the actual stage light) lives on .hw-panel--market/
+   --squad themselves, below, positioned against the panel that
+   actually holds the goods rather than guessed at a fixed % down a
+   variable-height screen. */
+.hw-market-stage {
+  position: relative;
+  /* 8px -> 4px each side, part of paying back this screen's bigger
+     tab-row/card-portrait/icon budget (see this file's other
+     "Round 2/3" comments). Round 4: 4px -> 2px, same reasoning,
+     bigger bill this time (plaques doubled, Continue doubled). */
+  padding-top: 2px;
+  padding-bottom: 2px;
+  /* Was a translucent vignette letting .hw-root's own ambient
+     background image bleed through around/above the panel - Marc,
+     marking up a screenshot directly: circled that exposed sliver of
+     background and asked for it OFF this screen entirely, replaced
+     by one bounded picture (.hw-market-banner below) instead of an
+     ambient full-bleed backdrop ("tuo eri paikkaan ja rajatulle
+     alueelle taustakuva jonka annoin"). Fully opaque now - no stop
+     in this gradient exposes what's behind .hw-root any more, on
+     THIS screen only (every other screen's own background is
+     untouched). */
+  background: radial-gradient(ellipse 140% 90% at 50% 15%, color-mix(in srgb, black 8%, var(--hw-bg)) 0%, color-mix(in srgb, black 38%, var(--hw-bg)) 100%);
+}
+
+.hw-market-banner {
+  width: 100%;
+  /* 32px -> 24px, margin 4px -> 2px each side - another piece of this
+     screen's Round 2/3 budget payback (bigger tab-row plaques, bigger
+     shop-card portraits/icons above). Still a real, visible banner,
+     just a thinner decorative strip than before.
+     Round 4 (market-scale-up pass): 24px -> 18px, paying back a slice
+     of the much bigger bill this round's plaque/Continue/card growth
+     runs up (see this file's Round 4 comments throughout). Purely
+     decorative art strip - the one element on this screen with zero
+     information content, so it's first in line to shrink before any
+     actual info-bearing element does, per Marc's own "minimalistiseksi
+     mutta informaaliseksi" framing for this whole pass. Logo (below)
+     still fits and stays visible - just a thinner banner behind it. */
+  height: 18px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 2px 0 2px;
+  border: 1px solid var(--hw-border);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+
+.hw-market-banner img:first-child {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+.hw-market-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--hw-bg) 65%, transparent) 0%, transparent 35%, transparent 65%, color-mix(in srgb, var(--hw-bg) 65%, transparent) 100%);
+}
+
+.hw-market-banner-logo {
+  position: absolute;
+  top: 50%;
+  right: 21px;
+  transform: translateY(-50%);
+  /* Matches .hw-market-banner's own 18px height above (Round 4) - was
+     26px then 24px, each shrink following the banner's own down the
+     same amount so it never overflows the strip behind it. */
+  height: 13px;
+  width: auto;
+  opacity: 0.92;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
+/* Problem 2: the "For sale" units grid only (SquadDraft.jsx adds
+   this class alongside .hw-select-grid/.hw-deck-preview on that one
+   grid - the Items grid and the Your Squad/bench grid keep their
+   existing size, this is deliberately the one featured moment on
+   the screen, not a blanket size change). 233px is not an arbitrary
+   "bigger" number - it's --hw-fib-9, the same Fibonacci width
+   .hw-commander-card already uses for this game's other "this is
+   the important choice on screen" moment, so the two dramatic-card
+   screens in this game now share one deliberate scale instead of
+   each inventing its own. Every internal measurement below scales
+   with it (portrait/glyph/type), not just the outer box. */
+/* Round 3: Marc, live - "kortit on liian pieniä kuvat niissä saa olla
+   tuplasti isompi" (the cards are too small, the images in them can be
+   twice as big). This grid had ~790px of genuinely unused width at
+   1860x960 (4 cards at 233px + gaps only fills ~970px of a ~1760px-wide
+   panel) - so the width half of "twice as big" is free, no fit-budget
+   cost at all. Grown from 233px (--hw-fib-9, shared with
+   CommanderSelect.jsx) to a literal 320px scoped to just this grid -
+   still comfortably 4-per-row at this container width (4*320 + 3*13
+   gap = 1319px), so this doesn't reduce card count or wrap to a
+   second row, both of which WOULD have cost real vertical budget. */
+/* Round 4 (market-scale-up pass): SHOP_SIZE dropped 4 -> 3
+   (runEngine.js) specifically to buy room for this row - 3 cards at
+   any width up to ~570px still fit one row of this panel's 1736px
+   inner width without wrapping (the one thing that WOULD have blown
+   the 1860x960 budget far worse than any single card growth below -
+   see this file's own history for why auto-fit + a fixed card width
+   was chosen precisely so growth never silently triggers a second
+   row). 400px lands comfortably under that ceiling with real margin
+   for a bad-luck long roll. */
+/* Card-frame correction (Marc, live, calling the #374 400px card
+   "tökerö" - clumsy: a thin wide letterbox portrait floating over
+   sparse text). The OUTER frame goes back to its pre-#374 320px; the
+   real fix is the PORTRAIT below, not the frame. "se pitää keskittää
+   korttiin mukavasti sekä antaa niille enemman pinta-alaa" - centre
+   the image nicely in the card and give it more surface area. Item
+   cards are explicitly left at their #374 260px (Marc: those are a
+   good size). */
+.hw-market-featured-grid {
+  grid-template-columns: repeat(auto-fit, 320px);
+  gap: var(--space-2, 13px);
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.hw-market-featured-grid .hw-card {
+  width: 320px;
+  min-width: 320px;
+  /* Tightened bottom padding + inter-row gap (Marc, live: the recruit
+     card still had dead space under the "Common" tier line down to the
+     card bottom - "small info-dense pieces", no dead whitespace). The
+     card packs its own content with near-zero slack, so the loose look
+     was built-in padding, not distributable space - trimming it here
+     pulls the tier line down near the frame edge and makes the card
+     read as full. Card gets ~14px SHORTER, never taller, so the
+     1536x864 no-scroll budget only gains room. */
+  padding: 8px 8px 5px;
+  gap: 3px;
+}
+
+/* Same "no dead whitespace" trim, in the two spots that carried the
+   most air on the recruit card: the single-stat effect row and the
+   tier-line block below it. */
+.hw-market-featured-grid .hw-effect-icons {
+  padding: 2px 0;
+}
+
+.hw-market-featured-grid .hw-card-desc {
+  padding-bottom: 2px;
+}
+
+/* Portrait height: the part of "twice as big" that isn't free - every
+   extra px here is a direct, unavoidable hit to the 1860x960 zero-
+   scroll budget (unlike the width above). Grown from 52px to 84px
+   (+32px, combined with the width growth above this is a ~2.3x area
+   increase - genuinely "twice as big", not just technically bigger
+   while still cramped) rather than all the way back to this card's
+   pre-trim history (108px) - the extra height had to be reclaimed
+   elsewhere on this exact screen (see .hw-panel/.hw-market-stage/
+   .hw-market-banner/.hw-market-divider's own comments for where it
+   came from), and going further would have meant cutting card count
+   or gutting some other section's legibility for it. Re-measured
+   against .hw-root's own scrollHeight/clientHeight after, not
+   eyeballed - same discipline this screen's whole trim history
+   already established. */
+/* Round 4 (market-scale-up pass): Marc, same burst as the plaque/
+   Continue asks - "kuvatkin saa olla tuplasti isompia" (images MAY be
+   twice as big - "saa" is permission, not the harder "pitää" (must)
+   the plaque/Continue asks used, see .hw-market-tab-btn's own comment
+   for that distinction). Grown as far as the 1860x960 budget actually
+   allows once SHOP_SIZE's own trim (4 -> 3), the flavor-text cut
+   (SquadDraft.jsx), and the header trims below are all banked - 84px
+   -> 118px (+34px, combined with the width growth above this is
+   roughly a 1.6x area increase). Short of a literal 2x on this
+   dimension alone the same way Round 3's own history (52px -> 84px,
+   not all the way to 108px) already precedented and documented rather
+   than silently under-delivering - see this PR's description for the
+   exact final numbers and why. Landed at 98px after the full iterate-
+   and-measure pass (playwright against .hw-root at 1860x960, not
+   eyeballed) - the header/banner/panel-padding/button-padding trims
+   elsewhere on this screen (this file's other Round 4 comments) paid
+   for as much of a literal 2x as the budget actually had once the
+   Continue/plaque doublings (the harder "pitää" asks) were funded
+   first. */
+/* THE fix Marc asked for (live, calling the old card "tökerö"): the
+   portrait is the dominant element of the recruit card now, not a thin
+   74px letterbox strip. 188px on a 320px-wide full-bleed frame is a
+   ~1.7:1 landscape window - a real card portrait. Its own top corners
+   round to the card frame (the card isn't overflow:hidden, so a square
+   image top otherwise pokes past the 12px frame radius and reads as
+   "floating"). Focal point stays biased high (object-position 50% 18%,
+   a touch higher than the shared 20%) so the taller window still keeps
+   every tested subject's head in frame. Stats/tribe/name/cost below are
+   untouched and stay legible - the art just carries more weight now. */
+.hw-market-featured-grid .hw-card-portrait {
+  /* Grow into the dead space below the stat block. .hw-select-grid is a
+     CSS grid with the default align-items:stretch, so every recruit
+     card is stretched to the tallest card in the row (RNG unit names /
+     tribe counts / a Class line make one card taller on some rolls),
+     leaving the shorter cards with empty frame under the "Common" tier
+     line (Marc: "small info-dense pieces", no dead whitespace). flex:1
+     lets each card's own portrait absorb its own slack - object-fit:
+     cover just reveals more of the art, more atmospheric, not
+     stretched. The row's height is still set by the tallest card, so
+     this adds zero page height (the 1536x864 no-scroll budget is
+     unaffected). 138px stays the floor. */
+  min-height: 138px;
+  flex: 1 1 138px;
+  object-position: 50% 18%;
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
+}
+
+/* Your Squad/bench cards (Marc's task also names this tab, not just
+   the Market one) - a different budget situation than the featured
+   grid above: this row's WIDTH is hard-capped (up to DEPLOY_SLOTS +
+   RESERVE_CAP = 10 units can share one row at once, and this panel's
+   ~1740px inner width only fits 10 cards at their current 150px width
+   with room to spare - growing width risks a wrap to a second row at
+   a full bench, which would cost far more height than any single
+   card's own growth), but its HEIGHT has real slack (measured via
+   Playwright at 1860x960 with a live-recruited bench: this tab was
+   using barely half its available height even before this change).
+   Portrait grown 130px -> 190px here - real 2x-area growth - while
+   width (.hw-card's own 150px, untouched) stays exactly where it was
+   for that reason. Scoped to .hw-panel--squad specifically, not the
+   base .hw-card-portrait rule every other screen using .hw-select-grid
+   (FormationScreen/RelicChoice/RewardScreen/FloorChoice) also shares -
+   none of those asked for this and none were re-verified against it. */
+.hw-panel--squad .hw-card-portrait {
+  height: 148px;
+}
+
+.hw-panel--squad .hw-card-art {
+  /* Fallback glyph medallion for a bench unit without real portrait
+     art yet - grown alongside the portrait above for the same reason. */
+  width: 54px;
+  height: 54px;
+}
+
+/* Unit names are random per shop roll and this card is narrower than
+   .hw-commander-select's own 233px-wide card that first used this font
+   size - an occasional long name (e.g. "Wraithcaller") wraps to 2
+   lines and silently adds ~20px to this row's height on some rolls
+   but not others. Clamped for the same reason the item descriptions
+   are (.hw-item-card .hw-card-desc above) - a fixed, predictable
+   contribution to the fit budget regardless of which units the RNG
+   offers this visit. */
+.hw-market-featured-grid .hw-card-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hw-market-featured-grid .hw-card-art {
+  /* Fallback glyph medallion (units without real portrait art yet).
+     Pre-#374 size restored alongside the frame revert. */
+  width: 70px;
+  height: 70px;
+}
+
+.hw-market-featured-grid .hw-card-name {
+  font-size: 16px;
+}
+
+/* Items row specifically - the base .hw-select-grid's 21px top+bottom
+   padding is shared across 6+ different screens (commander select,
+   relics, rewards, formation bench...), too broad to touch for one
+   screen's fit budget. This row sits last on the Market screen with
+   nothing visually needing breathing room below it, so it can run
+   tighter than the shared default. */
+.hw-market-items-grid {
+  /* Recovery/fit pass: var(--space-1, 8px) -> 4px, another small
+     chrome trim toward the real 1536x864 no-scroll budget. */
+  padding-top: 4px;
+  padding-bottom: 0;
+  /* Same free-width logic as the featured unit grid above - the item
+     row inherited the shared .hw-select-grid 150px card width, using
+     well under half the panel's real width for 4 cards. Widened to
+     210px (still free, zero fit-budget cost) so the bigger icon below
+     has room to actually read as an icon instead of a cramped glyph
+     squeezed against the name/description text next to it.
+     Round 4 (market-scale-up pass): ITEM_SHOP_SIZE dropped 4 -> 3
+     (runEngine.js, same trade as SHOP_SIZE above) widened this further
+     to 260px - still comfortably one row (3*260 + 2*13 = 806px of this
+     panel's 1736px), room enough for the bigger icon below plus a
+     genuinely unclamped description instead of a 2-line trim. */
+  grid-template-columns: repeat(auto-fit, 260px);
+}
+
+.hw-market-items-grid .hw-card {
+  width: 260px;
+  min-width: 260px;
+}
+
+.hw-market-featured-grid .hw-card-class {
+  font-size: 11px;
+}
+
+.hw-market-featured-grid .hw-card-desc {
+  font-size: 12px;
+}
+
+.hw-market-featured-grid .hw-card-cost {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+}
+
+.hw-market-featured-grid .hw-card-hp {
+  font-size: 14px;
+}
+
+.hw-market-featured-grid .hw-card-hp .hw-effect-icon-glyph {
+  width: 15px;
+  height: 15px;
+}
+
+/* Effect icons (sword/shield/heart + amount) and tribe pill both grow
+   a step too - the featured card is nearly double its old width now
+   (400px vs. 320px), so these were sitting noticeably smaller than the
+   rest of the card's own new scale. Real info Marc explicitly wants
+   more legible at this size (movePattern amounts, tribe identity), not
+   decoration - kept modest (not doubled) since these are already
+   fairly small, dense elements, not this card's headline numbers. */
+.hw-market-featured-grid .hw-effect-icon {
+  font-size: 13px;
+}
+
+.hw-market-featured-grid .hw-effect-icons .hw-effect-icon-glyph {
+  width: 15px;
+  height: 15px;
+}
+
+.hw-market-featured-grid .hw-tribe-badge {
+  font-size: 10.5px;
+  padding: 2px 8px;
+}
+
+/* ============================================================
+   3-ZONE SHOP LAYOUT
+   Marc's own annotated sketch: the shop + squad sat clustered in
+   the centre with wide empty dark margins left and right - "UI ei
+   vielä hyödynnä kaikkea tilaa" (the UI doesn't use all the space).
+   A full-width grid, SHOP PHASE ONLY (scoped to
+   .hw-shop-3zone-stage, SquadDraft's root when HeartwoodBattle
+   renders it for phase === "shop"):
+     LEFT rail  - owned relics + owned item bag
+     CENTRE     - the existing Market / Your Squad tabbed panel
+     RIGHT rail - <RunMap/>, so the run map is visible during the
+                  shop too, not only between phases
+   The header / commander strip / banner ABOVE this grid stay
+   full-width. Battle / formation / relic-choice / map-interstitial
+   screens never get .hw-shop-3zone-stage, so they are untouched.
+   ============================================================ */
+
+/* Rails: a fixed 240px each (Marc's parent brief: "rails ~240-300px").
+   At the 1536x864 target that leaves the centre ~950px - the three
+   recruit cards ride their repeat(3, minmax(0,320px)) track and settle
+   ~310px each with no wrap, so the 3-zone layout costs the recruit row
+   almost nothing. Narrower viewports let the centre track shrink
+   (minmax(0,1fr)) and the cards shrink with it (below) rather than
+   forcing the page wide. */
+.hw-shop-3zone {
+  display: grid;
+  grid-template-columns: var(--hw-shop-rail-w, 240px) minmax(0, 1fr) var(--hw-shop-rail-w, 240px);
+  gap: 14px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+/* The centre column is its own bounded scroll container, same principle
+   as the rails: the PAGE (.hw-root) never scrolls at 1536x864 (Marc's
+   hard rule), but the pathological Your Squad bench (4 fighting + 6
+   reserve = 10 cards) is genuinely taller than any viewport once the
+   full-width header is also on screen - so in that one case the centre
+   scrolls internally rather than pushing the page. A normal Market /
+   Your Squad visit is well under this cap and shows no scrollbar. The
+   ~206px reserve covers the full-width header stack (title row +
+   commander strip + banner) plus the stage's own padding, with margin
+   for a badge-wrap. */
+.hw-shop-center {
+  min-width: 0;
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* The traveling merchant greeting (MerchantGreeting.jsx / merchant.js) -
+   deliberately quiet: a small portrait, a name in the persona's accent
+   colour, one italic line. No panel fill, just a hairline accent rule
+   on the left so it reads as "someone is speaking" without competing
+   with the cards below. --hw-merchant-accent is set inline per Act. */
+.hw-merchant {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 6px 0 6px 10px;
+  border-left: 2px solid var(--hw-merchant-accent, var(--hw-border));
+}
+
+.hw-merchant-portrait {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.hw-merchant-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.hw-merchant-name {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--hw-merchant-accent, var(--hw-muted));
+}
+
+.hw-merchant-line {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--hw-text);
+  line-height: 1.35;
+}
+
+/* Tighter stage padding in the 3-zone layout (the base .hw-intro 21px
+   all round is more than a full-width shop needs) - buys the vertical
+   room back for a bigger recruit portrait without the page scrolling. */
+.hw-shop-3zone-stage.hw-intro {
+  padding: 12px 16px;
+}
+
+/* Market-screen backdrop (Marc supplied taustakuvamarket.png this
+   round). Bounded to the shop stage - NOT .hw-root's ambient full-bleed
+   bg, which Marc previously circled and asked OFF this screen. Layered
+   UNDER a heavy near-opaque dark scrim so it reads as a faint vine-frame
+   vignette around the edges, never texture the eye has to fight: the
+   image sits at ~12% effective, the centre where cards/text render
+   stays flat dark. object-fit-style cover, watermark already cropped
+   out of the asset. Overrides only .hw-market-stage's background-image
+   (its radial gradient) - keeps everything else that rule set. */
+.hw-shop-3zone-stage.hw-market-stage {
+  background-image:
+    linear-gradient(rgba(9, 6, 4, 0.9), rgba(9, 6, 4, 0.9)),
+    url("../../assets/heartwood/ui-bg-market.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Each rail is its OWN scroll container: if its content is taller
+   than the viewport, the rail scrolls internally - the page
+   (.hw-root) never does (Marc's standing hard rule, verified at
+   1536x864). The max-height number is deliberately generous /
+   not load-bearing: .hw-root itself also cannot scroll past its
+   clipped parent, so this is belt-and-braces, not the primary
+   guard.
+   align-self:start (not stretch): a rail is only as tall as its
+   own content, never a big empty panel padded down to the centre
+   column's height (Marc's rule: minimalist, no dead whitespace).
+   The left rail with a handful of relics/items and the right rail
+   with an early-run RunMap both sit compact at the top; a
+   late-run left rail that outgrows the viewport hits max-height
+   and scrolls inside itself. */
+.hw-shop-rail {
+  min-width: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  border: 1px solid var(--hw-border);
+  border-radius: 12px;
+  padding: 10px;
+  /* Was 60% - too see-through, the relic/item text underneath fought
+     the market backdrop showing through (Marc: "reliceissä olevaa
+     tekstiä pitää parantaa se on vaikea lukea"). A near-solid panel
+     ground so the rail's small text always sits on flat dark. */
+  background: color-mix(in srgb, var(--hw-panel) 92%, transparent);
+}
+
+.hw-shop-rail--right {
+  padding: 8px 8px 4px;
+}
+
+/* RunMap inside the right rail - strip its page-level side margin and
+   its own frame (the rail already provides one); its track keeps its
+   own horizontal scroll and can never force the rail wider. */
+.hw-shop-rail--right .hw-run-map {
+  margin: 0;
+  border: none;
+  padding: 0;
+  background: none;
+  min-width: 0;
+}
+
+.hw-shop-rail--right .hw-run-track {
+  padding-top: 28px;
+  padding-bottom: 14px;
+}
+
+/* ----- RunMap: compact vertical rail variant (RunMap.jsx mode="rail")
+   Fills the 3-zone Market's right rail with the WHOLE planned run - the
+   7 Acts as stacked labelled segments, each a wrapped row of type-coded
+   pips, the current position ringed. The default horizontal strip only
+   renders visited nodes and read as a near-empty box at the first shop
+   (Marc, live). Kept calm: small pips, shops quiet, one accent ring for
+   "you are here", no per-pip entrance animation. ----- */
+.hw-run-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.hw-run-rail-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--hw-border);
+}
+
+.hw-run-rail-title {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+}
+
+.hw-run-rail-step {
+  font-size: 12px;
+  color: var(--hw-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.hw-run-rail-step-sep {
+  color: var(--hw-muted);
+  margin: 0 1px;
+}
+
+.hw-run-rail-act {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+}
+
+.hw-run-rail-act[data-current="true"] {
+  border-color: var(--hw-border);
+  background: color-mix(in srgb, var(--hw-panel) 60%, transparent);
+}
+
+.hw-run-rail-act-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.hw-run-rail-act-no {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hw-run-rail-act-place {
+  font-size: 9.5px;
+  color: var(--hw-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hw-run-rail-pips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.hw-run-rail-pip {
+  --pip: 10px;
+  box-sizing: border-box;
+  width: var(--pip);
+  height: var(--pip);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 30%, var(--hw-panel));
+  border: 1px solid color-mix(in srgb, var(--hw-node-accent, var(--hw-border)) 55%, transparent);
+}
+
+/* Shops repeat every other node - kept small and quiet so the eye lands
+   on the fights (same "loud vs quiet" instinct the horizontal strip's
+   isMinor handling uses). */
+.hw-run-rail-pip[data-type="shop"] {
+  --pip: 5px;
+  background: color-mix(in srgb, var(--hw-muted) 45%, transparent);
+  border-color: transparent;
+}
+
+.hw-run-rail-pip[data-type="relic"] {
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+
+.hw-run-rail-pip[data-major="true"] {
+  --pip: 18px;
+  border-radius: 5px;
+}
+
+.hw-run-rail-pip-glyph {
+  width: 12px;
+  height: 12px;
+  color: var(--hw-node-accent, var(--hw-text));
+}
+
+.hw-run-rail-pip[data-state="done"] {
+  opacity: 0.32;
+}
+
+.hw-run-rail-pip[data-state="current"] {
+  box-shadow:
+    0 0 0 2px var(--hw-panel),
+    0 0 0 3px var(--hw-node-accent, var(--hw-text)),
+    0 0 8px 1px color-mix(in srgb, var(--hw-node-accent, var(--hw-text)) 70%, transparent);
+  animation: hw-run-rail-pip-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hw-run-rail-pip-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
+
+/* ----- rail content: compact, dense, calm side panels ----- */
+.hw-rail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hw-rail-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--hw-border);
+  margin-bottom: 0;
+}
+
+.hw-rail-count {
+  font-size: 11px;
+  color: var(--hw-text);
+  border: 1px solid var(--hw-border);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+.hw-rail-empty {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 2px 0;
+}
+
+
+.hw-rail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Relic/item rail chips (Marc: "reliceissä olevaa tekstiä pitää
+   parantaa se on vaikea lukea" - the relic text is hard to read). The
+   rail carries the smallest text on the shop screen; bumped size a
+   step, gave it a near-solid chip ground and a crispening shadow, and
+   full-strength text colour - still a calm side panel, just legible. */
+.hw-rail-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--hw-card) 90%, transparent);
+  color: var(--hw-text);
+  font-size: 12.5px;
+  line-height: 1.3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.hw-rail-chip > .hw-intent-glyph {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.hw-rail-chip-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hw-rail-chip-max {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--hw-text) 70%, var(--hw-muted));
+  flex-shrink: 0;
+}
+
+.hw-rail-upgrade.hw-move-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  text-shadow: none;
+}
+
+/* The Ledger (runEngine.SHOP_INVESTMENTS) - a standing-decisions
+   section at the top of the left rail. A faint moss tint + accent rule
+   marks it as "permanent" vs the relic/item lists below. An owned
+   investment chip dims and its "✓" goes moss. */
+.hw-rail-section--ledger {
+  border-left: 2px solid color-mix(in srgb, var(--hw-moss) 55%, transparent);
+  padding-left: 8px;
+}
+
+.hw-rail-section--buyback {
+  border-left: 2px solid color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  padding-left: 8px;
+}
+
+.hw-rail-chip[data-owned] {
+  opacity: 0.62;
+}
+
+.hw-rail-chip[data-owned] .hw-rail-chip-max {
+  color: var(--hw-moss);
+  font-weight: 700;
+}
+
+.hw-rail-upgrade .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+
+/* Item chips carry an icon + name + up to two small tags ("Bends",
+   equipped-status) - on a ~210px rail the name was ellipsing to
+   "Wraithf..." (Marc: hard to read). Let the row wrap so the name
+   keeps its own full line and the status tag drops beneath it,
+   right-aligned - readable, still compact. Relic chips (name + cost
+   button only) stay single-line. */
+.hw-rail-chip--item {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
+.hw-rail-chip--item .hw-rail-chip-name {
+  flex: 1 0 auto;
+  overflow: visible;
+}
+
+.hw-rail-chip--item .hw-rail-chip-eq {
+  margin-left: auto;
+}
+
+.hw-rail-chip--selectable {
+  cursor: pointer;
+}
+
+.hw-rail-chip--selectable:hover {
+  border-color: color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+}
+
+.hw-rail-chip--selected {
+  border-color: var(--hw-ember);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+}
+
+.hw-rail-chip-tag {
+  flex-shrink: 0;
+  font-size: 9px;
+  padding: 1px 5px;
+}
+
+.hw-rail-chip-eq {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--hw-text) 78%, var(--hw-muted));
+  max-width: 82px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hw-rail-chip-eq--free {
+  color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
+}
+
+/* ----- centre column ----- */
+/* Recruit cards: their own reverted 320px is the CEILING; they share
+   the centre row equally and shrink below 320 only if the viewport
+   is narrower than Marc's. repeat(3,...) so a 3-offer row never wraps
+   to 2+1 in the narrower centre (which would cost real vertical
+   budget). */
+.hw-shop-3zone .hw-market-featured-grid {
+  grid-template-columns: repeat(3, minmax(0, 320px));
+  justify-content: center;
+  gap: 10px;
+}
+
+.hw-shop-3zone .hw-market-featured-grid .hw-card {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Item cards keep their 260px visual size as the ceiling (Marc: the
+   #374 item size is good) - this only stops the row dropping to 2
+   across in the narrower centre. */
+.hw-shop-3zone .hw-market-items-grid {
+  grid-template-columns: repeat(3, minmax(0, 260px));
+  justify-content: center;
+}
+
+.hw-shop-3zone .hw-market-items-grid .hw-card {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Your Squad tab: stack fighting / reserve instead of the side-by-
+   side auto|1px|1fr split - a 4-card fighting group wants ~640px the
+   narrower centre can't spare next to reserve. Each group's grid
+   wraps across the full centre width; the maxed bench (4 fighting +
+   6 reserve) lands in two card rows. Bench portraits step down here
+   so those two rows clear the 864px no-scroll budget. */
+.hw-shop-3zone .hw-squad-split {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hw-shop-3zone .hw-squad-split-divider {
+  display: none;
+}
+
+/* Bench cards run compact in the 3-zone squad tab - the "manage my
+   squad" view doesn't need the big showcase portrait the recruit card
+   does, and the pathological full bench (4 fighting + 6 reserve = 10
+   cards, two wrapped rows) has to clear the no-page-scroll budget. */
+.hw-shop-3zone .hw-panel--squad .hw-card-portrait {
+  height: 84px;
+}
+
+.hw-shop-3zone .hw-panel--squad .hw-card-art {
+  width: 42px;
+  height: 42px;
+}
+
+.hw-shop-3zone .hw-panel--squad .hw-squad-group-grid {
+  padding: 2px 0;
+  gap: 8px;
+  /* don't stretch every card to the tallest in the row - one card
+     with an extra class/Bent line otherwise pads all its neighbours
+     with dead frame space and grows the wrapped bench rows. */
+  align-items: flex-start;
+}
+
+/* Same dead-whitespace trim as the recruit card above, on the bench
+   card's loosest rows - the tier line sat well clear of the frame edge
+   (Marc: "no dead whitespace"). Height-only reduction, so the maxed
+   bench (4 fighting + 6 reserve) keeps clearing the no-scroll budget. */
+.hw-shop-3zone .hw-panel--squad .hw-card {
+  padding-bottom: 4px;
+  gap: 4px;
+}
+
+.hw-shop-3zone .hw-panel--squad .hw-effect-icons {
+  padding: 2px 0;
+}
+
+.hw-shop-3zone .hw-panel--squad .hw-card-desc {
+  padding-bottom: 2px;
+}
+
+/* The plaque tab buttons already read "HEARTHWOOD MARKET" / "YOUR
+   SQUAD" right above these panels - the text panel-title underneath is
+   redundant here and its height is budget the recruit portrait needs. */
+.hw-shop-3zone .hw-panel-title {
+  display: none;
+}
+
+/* Reserve cards (dimmed, "not fighting") run smaller than the fighting
+   line in the 3-zone squad tab - the full pathological bench is
+   6 reserve on one wrapped row and this keeps that row shallow. */
+.hw-shop-3zone .hw-squad-reserve-cards .hw-card-portrait {
+  height: 62px;
+}
+
+.hw-shop-3zone .hw-squad-reserve-cards .hw-card-art {
+  width: 36px;
+  height: 36px;
+}
+
+/* First-visit tutorial hint: compact in the 3-zone centre so the very
+   first Market render also clears the no-scroll budget (it's gone for
+   good after "Got it"). */
+.hw-shop-3zone .hw-hint--tutorial {
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+/* Graceful collapse below Marc's target width: single column, rails
+   become full-width blocks (still fully functional - the owned
+   relics/items live ONLY in the left rail now, so it must never just
+   disappear), page may scroll as the documented last resort. */
+@media (max-width: 1240px) {
+  .hw-shop-3zone {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hw-shop-rail {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .hw-shop-rail--left {
+    order: 1;
+  }
+
+  .hw-shop-center {
+    order: 2;
+  }
+
+  .hw-shop-rail--right {
+    order: 3;
+  }
+}
+
+/* Problem 4, one more piece: a quiet organic separator between "For
+   sale" and "Items" instead of relying purely on margin - a thin
+   gradient rule fading at both ends, not a hard ruled line, so the
+   two sections still feel like one continuous stall rather than two
+   stacked boxes. */
+.hw-market-divider {
+  height: 1px;
+  /* 8px -> 3px each side, part of this screen's Round 2/3 budget
+     payback. Round 4: 3px -> 1px, same reasoning. */
+  margin: 1px 0 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--hw-ember) 45%, transparent) 50%, transparent);
+}
+
+/* Problem 3 (valuutta/resurssien esitys), extended by Marc to cover
+   Resource UI generally: a resource gets a real physical/symbolic
+   form - "hehkuva orbi/kide" (a glowing orb/crystal), not "+0 in a
+   circle." Replaces the old .hw-essence-badge markup in
+   SquadDraft.jsx with a heavier, purse-like pill holding a distinct
+   glowing medallion, sized/positioned in normal document flow
+   (never position:fixed) - a fixed element in this screen's
+   top-right corner is exactly the .hw-exit-link collision class of
+   bug the paddingRight:130 hack two rows up in SquadDraft.jsx
+   already had to work around once; this only needed a heavier
+   visual treatment; it did not need to leave the flow. Reuses the
+   existing gain/spend flash keyframes (hw-essence-flash-gain/spend,
+   defined above for the old badge) completely unchanged - only the
+   container's shape/weight changed, the event-driven flash logic
+   (SquadDraft.jsx's essenceFlash state/effect) is untouched. */
+.hw-essence-display {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 13px);
+  padding: var(--space-1, 8px) var(--space-3, 21px) var(--space-1, 8px) var(--space-1, 8px);
+  border-radius: 999px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--hw-ember) 20%, var(--hw-panel)), var(--hw-panel));
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hw-essence-display[data-flash="gain"] {
+  animation: hw-essence-flash-gain 500ms ease-out;
+}
+
+.hw-essence-display[data-flash="spend"] {
+  animation: hw-essence-flash-spend 500ms ease-out;
+}
+
+/* The orb itself - a small molten-amber "gem" medallion with an
+   engraved-looking dark glyph, rather than this file's usual
+   currentColor-on-dark icon convention, so it reads as a crafted
+   object being held rather than a flat status icon. Its idle glow
+   breathe is the one new ambient animation this redesign adds -
+   deliberately the only thing gently alive on this whole screen, so
+   the eye is drawn to the one resource that's actually precious,
+   the same "quiet vs loud" attention hierarchy this file already
+   applies to combat status badges (see that block's own comment,
+   above). --space-4 (34px, Fibonacci) keeps it proportioned to the
+   rest of this file's spacing scale rather than an arbitrary size. */
+/* Round 4 (market-scale-up pass): grown from the shared --space-4
+   (34px) token to a direct px override (Round 4 went to 46px) - the
+   token itself is left alone, it's used well beyond this one orb.
+   Marc's own annotated-screenshot ask circled the essence orb by name
+   as part of "make the whole row bigger."
+   Recovery/fit pass (real 1536x864 viewport): 46 -> 40. Still a clear
+   step up from the 34px base and the tallest thing in the top row, so
+   the "bigger row" intent still reads - just trimmed enough, with the
+   grid-padding trims elsewhere, to keep the Market tab off the
+   scrollbar at Marc's real height (see .hw-market-tab-btn's comment). */
+.hw-essence-orb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--hw-ember) 55%, white 25%), color-mix(in srgb, var(--hw-ember) 75%, black 15%) 75%);
+  animation: hw-essence-orb-glow 3.2s ease-in-out infinite;
+}
+
+.hw-essence-orb-glyph {
+  width: 20px;
+  height: 20px;
+  color: color-mix(in srgb, var(--hw-bg) 85%, black);
+  padding: 0;
+}
+
+@keyframes hw-essence-orb-glow {
+  0%, 100% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-ember) 80%, white 15%), 0 0 8px 1px color-mix(in srgb, var(--hw-ember) 50%, transparent);
+  }
+  50% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-ember) 95%, white 25%), 0 0 15px 4px color-mix(in srgb, var(--hw-ember) 70%, transparent);
+  }
+}
+
+.hw-essence-value {
+  font-family: var(--hw-font-display);
+  /* Round 4 (market-scale-up pass): 21px -> 27px, alongside the orb's
+     own growth right above - keeps the number legible at the bigger
+     medallion's new scale instead of looking small inside it. */
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--hw-ember);
+  letter-spacing: 0.02em;
+}
+
+/* Essence interest badge (runEngine.bankInterest / SquadDraft.jsx) -
+   "what your saved Essence earns on your next win". Quiet, in the moss
+   accent so it reads as growth, not spend. --dormant is the muted
+   below-threshold prompt. */
+.hw-essence-interest {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hw-moss);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.hw-essence-interest--dormant {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--hw-muted);
+  opacity: 0.75;
 }
 
 .hw-enemy-choice {
@@ -1392,6 +4346,7 @@
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
 .hw-run-map-tier {
@@ -1403,6 +4358,608 @@
 .hw-run-map-progress {
   font-size: 12px;
   color: var(--hw-muted);
+}
+
+/* Run Modifiers strip (RunModifierStrip.jsx) - permanent boons/banes
+   from map-event choices, shown wherever the run map is: full row under
+   the map header, and a compact variant in the shop's map rail. */
+.hw-runmods {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.hw-runmods--compact {
+  margin: 6px 0 2px;
+}
+
+.hw-runmod {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.4;
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+  cursor: help;
+}
+
+.hw-runmod-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.hw-runmod[data-kind="boon"] {
+  border-color: color-mix(in srgb, var(--hw-moss) 55%, var(--hw-border));
+  color: color-mix(in srgb, var(--hw-moss) 75%, var(--hw-text, #e8e2d4));
+}
+
+.hw-runmod[data-kind="boon"] .hw-runmod-dot {
+  background: var(--hw-moss);
+  box-shadow: 0 0 5px 1px color-mix(in srgb, var(--hw-moss) 55%, transparent);
+}
+
+.hw-runmod[data-kind="bane"] {
+  border-color: color-mix(in srgb, var(--hw-hp) 60%, var(--hw-border));
+  color: color-mix(in srgb, var(--hw-hp) 82%, var(--hw-text, #e8e2d4));
+}
+
+.hw-runmod[data-kind="bane"] .hw-runmod-dot {
+  background: var(--hw-hp);
+  box-shadow: 0 0 5px 1px color-mix(in srgb, var(--hw-hp) 55%, transparent);
+}
+
+/* Act Allegiance (crossroads.js) - a chosen side, not luck. Rune-gold
+   so it reads apart from the moss/red of event boons & banes. */
+.hw-runmod[data-kind="allegiance"] {
+  border-color: color-mix(in srgb, var(--hw-rune) 60%, var(--hw-border));
+  color: color-mix(in srgb, var(--hw-rune) 82%, var(--hw-text, #e8e2d4));
+}
+
+.hw-runmod[data-kind="allegiance"] .hw-runmod-dot {
+  background: var(--hw-rune);
+  box-shadow: 0 0 5px 1px color-mix(in srgb, var(--hw-rune) 55%, transparent);
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+.hw-runmod-name {
+  white-space: nowrap;
+}
+
+/* Forest state badge (RunMap.jsx) - the world's posture set by an Act
+   Crossroads. Only rendered when it's not the neutral "restless". */
+.hw-forest-state {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  align-self: center;
+}
+
+.hw-forest-state[data-forest="purified"] {
+  color: var(--hw-moss);
+  border-color: color-mix(in srgb, var(--hw-moss) 55%, var(--hw-border));
+}
+
+.hw-forest-state[data-forest="corrupted"] {
+  color: var(--hw-hp);
+  border-color: color-mix(in srgb, var(--hw-hp) 55%, var(--hw-border));
+}
+
+/* --- Story Journal (StoryJournal.jsx) ---------------------------- */
+.hw-journal {
+  margin: 10px 21px 0;
+}
+
+/* In the shop's narrow map rail it sits flush. */
+.hw-run-rail .hw-journal {
+  margin: 10px 0 0;
+}
+
+.hw-run-rail .hw-journal-inner {
+  max-height: 220px;
+}
+
+.hw-journal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--hw-border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  color: var(--hw-muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hw-journal-toggle:hover {
+  color: var(--hw-text, #e8e2d4);
+  border-color: var(--hw-muted);
+}
+
+.hw-journal-count {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-rune) 25%, transparent);
+  color: var(--hw-rune);
+}
+
+.hw-journal-caret {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.hw-journal-caret[data-open] {
+  transform: rotate(90deg);
+}
+
+.hw-journal-body {
+  overflow: hidden;
+}
+
+.hw-journal-inner {
+  padding: 12px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.hw-journal-section-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--hw-rune);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.hw-journal-forest p,
+.hw-journal-entry-body {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--hw-muted);
+  margin: 2px 0 0;
+}
+
+.hw-journal-forest[data-forest="purified"] p {
+  color: color-mix(in srgb, var(--hw-moss) 70%, var(--hw-muted));
+}
+
+.hw-journal-forest[data-forest="corrupted"] p {
+  color: color-mix(in srgb, var(--hw-hp) 70%, var(--hw-muted));
+}
+
+.hw-journal-entry {
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in srgb, var(--hw-border) 60%, transparent);
+}
+
+.hw-journal-entry:first-of-type {
+  border-top: none;
+}
+
+.hw-journal-entry-head {
+  font-size: 12.5px;
+  color: var(--hw-text, #e8e2d4);
+  line-height: 1.5;
+}
+
+.hw-journal-entry-head em {
+  color: var(--hw-rune);
+  font-style: normal;
+}
+
+.hw-journal-grant {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--hw-moss);
+  margin: 5px 0 0;
+}
+
+.hw-journal-milestones {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hw-journal-milestones li {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--hw-muted);
+}
+
+.hw-journal-empty {
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--hw-muted);
+  margin: 0;
+}
+
+/* A Trial fight's heading on the formation screen (FormationScreen.jsx) -
+   a named story boss reads in the story's accent, not as a plain label. */
+h1[data-trial] {
+  color: var(--hw-curse);
+  letter-spacing: 0.5px;
+}
+
+/* --- Act Transition interstitial (ActTransitionScreen.jsx) ---------- */
+.hw-act-transition {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 40px 24px;
+  background: var(--hw-bg, #0c0c0e);
+}
+
+.hw-act-transition-banner {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hw-act-transition-inner {
+  position: relative;
+  max-width: 640px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hw-act-transition-turn {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+}
+
+.hw-act-transition-close {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--hw-muted);
+  font-style: italic;
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hw-border);
+}
+
+.hw-act-transition-close-name {
+  color: var(--hw-text, #e8e2d4);
+  font-style: normal;
+}
+
+.hw-act-transition-title {
+  font-size: 26px;
+  margin: 4px 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.hw-act-transition-lore {
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.hw-act-transition-choice {
+  margin-top: 8px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--hw-act-accent, var(--hw-rune)) 35%, var(--hw-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--hw-panel) 55%, transparent);
+}
+
+.hw-act-transition-kicker {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.hw-act-transition-body {
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 0 0 16px;
+}
+
+.hw-act-transition-options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.hw-act-transition-option {
+  text-align: left;
+  padding: 12px 15px;
+  line-height: 1.4;
+}
+
+.hw-act-transition-result {
+  font-size: 13.5px;
+  line-height: 1.65;
+  font-style: italic;
+  border-left: 2px solid var(--hw-rune);
+  padding-left: 14px;
+  margin: 0 0 14px;
+}
+
+.hw-act-transition-world {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+  margin-bottom: 16px;
+}
+
+.hw-act-transition-world strong {
+  color: var(--hw-text, #e8e2d4);
+}
+
+.hw-act-transition-world[data-forest="purified"] strong {
+  color: var(--hw-moss);
+}
+
+.hw-act-transition-world[data-forest="corrupted"] strong {
+  color: var(--hw-hp);
+}
+
+/* --- Story cinematic (StoryCinematic.jsx) -------------------------- */
+.hw-cinematic {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: var(--hw-cine-bg, #0a0a0b);
+  cursor: pointer;
+  overflow-y: auto;
+}
+
+.hw-cinematic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.hw-cinematic-skip {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 2;
+  background: none;
+  border: 1px solid var(--hw-border);
+  border-radius: 6px;
+  color: var(--hw-muted);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.hw-cinematic-skip:hover {
+  color: var(--hw-text, #e8e2d4);
+  border-color: var(--hw-muted);
+}
+
+.hw-cinematic-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.hw-cinematic-head {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.hw-cinematic-title {
+  font-size: 30px;
+  letter-spacing: 1px;
+  margin: 0 0 6px;
+}
+
+.hw-cinematic-subtitle {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--hw-muted);
+  margin: 0;
+}
+
+.hw-cinematic-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 120px;
+}
+
+.hw-cinematic-line {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hw-cinematic-speaker {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--hw-rune);
+}
+
+.hw-cinematic-speaker[data-tone="whisper"],
+.hw-cinematic-text[data-tone="whisper"] {
+  color: var(--hw-muted);
+  font-style: italic;
+}
+
+.hw-cinematic-text {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--hw-text, #e8e2d4);
+}
+
+.hw-cinematic-prompt {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.hw-cinematic-more {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+  animation: hw-cine-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hw-cine-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.8; }
+}
+
+/* --- Act V: The Crownless -------------------------------------------- */
+/* The build-mirror fight's opening line, above AutoBattleView. */
+.hw-crownless-intro {
+  max-width: 620px;
+  margin: 18px auto 4px;
+  padding: 0 21px;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--hw-curse);
+  text-align: center;
+}
+
+/* The Forest's Choice screen (ForestChoiceScreen.jsx). */
+.hw-forest-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 40px 24px;
+  background: var(--hw-bg, #0a0a0c);
+}
+
+.hw-forest-choice-banner {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.hw-forest-choice-inner {
+  position: relative;
+  max-width: 680px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-forest-choice-kicker {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+}
+
+.hw-forest-choice-title {
+  font-size: 26px;
+  margin: 0;
+}
+
+.hw-forest-choice-lede {
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 0 0 10px;
+}
+
+.hw-forest-choice-paths {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-forest-choice-path {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--hw-path-accent, var(--hw-rune)) 30%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-panel) 55%, transparent);
+  color: var(--hw-text, #e8e2d4);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+
+.hw-forest-choice-path:hover {
+  border-color: var(--hw-path-accent, var(--hw-rune));
+  transform: translateY(-1px);
+}
+
+.hw-forest-choice-path[data-suggested] {
+  border-color: var(--hw-path-accent, var(--hw-rune));
+  background: color-mix(in srgb, var(--hw-path-accent, var(--hw-rune)) 12%, var(--hw-panel));
+}
+
+.hw-forest-choice-path-name {
+  font-size: 16px;
+  color: var(--hw-path-accent, var(--hw-rune));
+  letter-spacing: 0.5px;
+}
+
+.hw-forest-choice-path-tagline {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--hw-muted);
+}
+
+.hw-forest-choice-path-blurb {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--hw-muted);
+  margin-top: 4px;
+}
+
+.hw-forest-choice-lean {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--hw-path-accent, var(--hw-rune));
 }
 
 /* Sizing/spacing rhythm below is deliberately built on the Fibonacci
@@ -1664,27 +5221,93 @@
   color: var(--hw-muted);
 }
 
-.hw-battle-stats {
+/* Post-battle recap (ResultOverlay / summarizeBattle) - the three
+   headline beats + each unit's own contribution bar. */
+.hw-recap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  width: 220px;
-  padding: 10px 14px;
+  gap: 10px;
+  width: 320px;
+  max-width: 82vw;
+  padding: 12px 16px;
   border: 1px solid var(--hw-border);
-  border-radius: 8px;
+  border-radius: var(--hw-radius);
   background: var(--hw-card);
 }
 
-.hw-battle-stats-row {
+.hw-recap-highlights {
   display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--hw-muted);
+  flex-direction: column;
+  gap: 3px;
 }
 
-.hw-battle-stats-row span:last-child {
-  color: var(--hw-text, inherit);
+.hw-recap-highlight {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+}
+.hw-recap-highlight-label {
+  color: var(--hw-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+.hw-recap-highlight-value {
+  color: var(--hw-text);
+}
+.hw-recap-highlight-value strong {
+  color: var(--hw-ember);
+}
+
+.hw-recap-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--hw-border);
+  padding-top: 8px;
+}
+.hw-recap-bar-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.hw-recap-bar-name {
+  color: var(--hw-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hw-recap-bar-track {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-border) 60%, transparent);
+  overflow: hidden;
+}
+.hw-recap-bar-fill--dmg {
+  background: var(--hw-hp);
+}
+.hw-recap-bar-fill--heal {
+  background: var(--hw-moss);
+}
+.hw-recap-bar-num {
+  text-align: right;
+  color: var(--hw-text);
   font-weight: 600;
+}
+
+.hw-recap-totals {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--hw-muted);
+  border-top: 1px solid var(--hw-border);
+  padding-top: 6px;
 }
 
 /* --- Grid combat (Phase 2) --- */
@@ -1708,8 +5331,15 @@
   position: relative;
   border-radius: var(--space-3, 21px);
   padding: var(--space-3, 21px);
+  /* Battlefield spectacle (feat/hearthwood-spectacle-onboarding): the
+     stage's light pool is now hued per Act. --hw-stage-accent defaults
+     to the original ember and is overridden by [data-act="1".."7"]
+     below with the exact DIFFICULTY_TIERS (runEngine.js) hues, so the
+     vignette shape / opacity is untouched - only its colour shifts as
+     the run goes deeper. */
+  --hw-stage-accent: var(--hw-ember);
   background:
-    radial-gradient(ellipse 61.8% 45% at 50% 38.2%, color-mix(in srgb, var(--hw-ember) 8%, transparent), transparent 70%),
+    radial-gradient(ellipse 61.8% 45% at 50% 38.2%, color-mix(in srgb, var(--hw-stage-accent) 13%, transparent), transparent 70%),
     radial-gradient(ellipse 100% 90% at 50% 38.2%, transparent 38.2%, color-mix(in srgb, black 42%, transparent) 100%),
     var(--hw-bg);
   box-shadow: inset 0 0 var(--space-4, 34px) var(--space-1, 8px) color-mix(in srgb, black 35%, transparent);
@@ -1728,6 +5358,158 @@
   50% { box-shadow: inset 0 0 var(--space-5, 55px) var(--space-2, 13px) color-mix(in srgb, black 28%, transparent); }
 }
 
+/* --- Battlefield spectacle (feat/hearthwood-spectacle-onboarding) ----
+   Act-hued stage light, forest-tinted drifting motes, per-hazard wash,
+   piece idle breathe. All deterministic (AutoBattleView passes
+   data-act / data-forest / data-arena off the battle state), all
+   reduce-motion-gated, none of it touches the .hw-grid board's size or
+   position - readability is untouched. */
+
+/* Act accent - the 7 DIFFICULTY_TIERS hues (runEngine.js). */
+.hw-arena[data-act="1"] { --hw-stage-accent: var(--hw-moss); }
+.hw-arena[data-act="2"] { --hw-stage-accent: var(--hw-rune); }
+.hw-arena[data-act="3"] { --hw-stage-accent: var(--hw-ember); }
+.hw-arena[data-act="4"] { --hw-stage-accent: var(--hw-hp); }
+.hw-arena[data-act="5"] { --hw-stage-accent: var(--hw-cosmic); }
+.hw-arena[data-act="6"] { --hw-stage-accent: var(--hw-tide); }
+.hw-arena[data-act="7"] { --hw-stage-accent: var(--hw-curse); }
+
+/* Drifting "motes" - two offset radial-gradient fields, under the grid
+   (z-index 0; .hw-grid establishes its own stacking above). Base tint
+   is the Act accent at a few percent. Kept deliberately faint so it
+   reads as depth, not decoration. */
+.hw-stage-motes {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.75;
+  background-image:
+    radial-gradient(circle 2px at 18% 32%, color-mix(in srgb, var(--hw-stage-accent) 40%, transparent), transparent 60%),
+    radial-gradient(circle 1.5px at 62% 18%, color-mix(in srgb, var(--hw-stage-accent) 34%, transparent), transparent 60%),
+    radial-gradient(circle 1.5px at 82% 64%, color-mix(in srgb, var(--hw-stage-accent) 30%, transparent), transparent 60%),
+    radial-gradient(circle 2px at 40% 78%, color-mix(in srgb, var(--hw-stage-accent) 30%, transparent), transparent 60%),
+    radial-gradient(circle 1px at 30% 54%, color-mix(in srgb, var(--hw-stage-accent) 26%, transparent), transparent 60%);
+  background-repeat: repeat;
+  background-size: 220px 200px, 280px 260px, 240px 240px, 200px 220px, 260px 200px;
+  animation: hw-stage-drift 22s linear infinite;
+}
+
+.hw-stage-motes::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle 1.5px at 12% 70%, color-mix(in srgb, var(--hw-stage-accent) 24%, transparent), transparent 60%),
+    radial-gradient(circle 1px at 74% 40%, color-mix(in srgb, var(--hw-stage-accent) 22%, transparent), transparent 60%),
+    radial-gradient(circle 1.5px at 52% 88%, color-mix(in srgb, var(--hw-stage-accent) 20%, transparent), transparent 60%);
+  background-repeat: repeat;
+  background-size: 300px 280px, 260px 300px, 320px 260px;
+  animation: hw-stage-drift 14s linear infinite reverse;
+}
+
+@keyframes hw-stage-drift {
+  0% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0; }
+  100% { background-position: 0 -200px, 0 -260px, 0 -240px, 0 -220px, 0 -200px; }
+}
+
+/* forestState (moods.js) - purified reads clean and sparse, corrupted
+   reads sick and low. Only tint + density shift; the drift is the same. */
+.hw-arena[data-forest="purified"] .hw-stage-motes {
+  opacity: 0.42;
+  filter: hue-rotate(-8deg) saturate(1.15) brightness(1.12);
+}
+.hw-arena[data-forest="corrupted"] .hw-stage-motes {
+  opacity: 0.7;
+}
+.hw-arena[data-forest="corrupted"] .hw-stage-motes::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  background: linear-gradient(to top, color-mix(in srgb, var(--hw-curse) 14%, transparent), transparent);
+  pointer-events: none;
+}
+
+/* Arena hazard wash (arenas.js ids) - one sub-8% full-stage radial per
+   hazard, under the grid, so a Blood Moon fight doesn't look like a
+   Sacred Grove one. ::after keeps it off the .hw-stage-motes layer. */
+.hw-arena[data-arena]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 80% 70% at 50% 40%, color-mix(in srgb, var(--hw-arena-wash, transparent) 100%, transparent), transparent 75%);
+}
+.hw-arena[data-arena="bloodmoon"] { --hw-arena-wash: color-mix(in srgb, var(--hw-hp) 7%, transparent); }
+.hw-arena[data-arena="frostfall"] { --hw-arena-wash: color-mix(in srgb, var(--hw-tide) 7%, transparent); }
+.hw-arena[data-arena="sacred-grove"] { --hw-arena-wash: color-mix(in srgb, var(--hw-moss) 8%, transparent); }
+.hw-arena[data-arena="choking-mist"] { --hw-arena-wash: color-mix(in srgb, var(--hw-muted) 9%, transparent); }
+.hw-arena[data-arena="ley-line"] { --hw-arena-wash: color-mix(in srgb, var(--hw-cosmic) 8%, transparent); }
+.hw-arena[data-arena="corrupted-soil"] { --hw-arena-wash: color-mix(in srgb, var(--hw-curse) 8%, transparent); }
+.hw-arena[data-arena="sinkhole-mire"] { --hw-arena-wash: color-mix(in srgb, var(--hw-wood) 8%, transparent); }
+.hw-arena[data-arena="overgrowth"] { --hw-arena-wash: color-mix(in srgb, var(--hw-moss) 6%, transparent); }
+
+/* Piece idle breathe - +-1px, slower than every real combat cue, and
+   built on `translate` so it composes with the box-shadow/filter
+   .hw-piece[data-synergy-surge] animation rather than replacing it.
+   Staggered per cell just below so the board doesn't pulse in unison. */
+.hw-piece {
+  animation: hw-piece-idle 6s ease-in-out infinite;
+}
+@keyframes hw-piece-idle {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -1px; }
+}
+.hw-grid-row:nth-child(1) .hw-grid-cell:nth-child(2) .hw-piece { animation-delay: -0.8s; }
+.hw-grid-row:nth-child(1) .hw-grid-cell:nth-child(3) .hw-piece { animation-delay: -1.7s; }
+.hw-grid-row:nth-child(2) .hw-grid-cell:nth-child(1) .hw-piece { animation-delay: -2.4s; }
+.hw-grid-row:nth-child(2) .hw-grid-cell:nth-child(2) .hw-piece { animation-delay: -3.3s; }
+.hw-grid-row:nth-child(2) .hw-grid-cell:nth-child(3) .hw-piece { animation-delay: -4.1s; }
+.hw-grid-row:nth-child(3) .hw-grid-cell:nth-child(1) .hw-piece { animation-delay: -1.2s; }
+.hw-grid-row:nth-child(3) .hw-grid-cell:nth-child(2) .hw-piece { animation-delay: -5.0s; }
+.hw-grid-row:nth-child(3) .hw-grid-cell:nth-child(3) .hw-piece { animation-delay: -2.9s; }
+
+/* Depth - the back row sits a hair further into the stage. filter only,
+   no transform, so nothing about the grid's geometry moves. */
+.hw-grid-row:first-child .hw-grid-cell { filter: brightness(0.94); }
+
+/* The whole battle screen picks up a faint Act-hued top vignette on top
+   of the shared --hw-bg-image - ONLY on data-screen="battle" so menus /
+   shop / formation stay on the neutral background. Same 7 hues; very
+   low opacity so it's a mood shift, not a recolour. */
+.hw-root[data-screen="battle"][data-act]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 120% 60% at 50% 0%, color-mix(in srgb, var(--hw-screen-act-accent, transparent) 100%, transparent), transparent 70%);
+}
+.hw-root[data-screen="battle"][data-act="1"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-moss) 10%, transparent); }
+.hw-root[data-screen="battle"][data-act="2"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-rune) 10%, transparent); }
+.hw-root[data-screen="battle"][data-act="3"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-ember) 10%, transparent); }
+.hw-root[data-screen="battle"][data-act="4"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-hp) 11%, transparent); }
+.hw-root[data-screen="battle"][data-act="5"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-cosmic) 12%, transparent); }
+.hw-root[data-screen="battle"][data-act="6"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-tide) 11%, transparent); }
+.hw-root[data-screen="battle"][data-act="7"] { --hw-screen-act-accent: color-mix(in srgb, var(--hw-curse) 12%, transparent); }
+/* keep the battle content above the fixed vignette */
+.hw-root[data-screen="battle"] > * { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-stage-motes,
+  .hw-stage-motes::after,
+  .hw-piece {
+    animation: none;
+  }
+}
+
 /* The synergy "WOW" banner (SynergyBanner.jsx) - shared layout/type
    here, per-tribe color applied inline (border/text/glow) the same way
    the difficulty-tier badge above already does for its own accent.
@@ -1744,7 +5526,7 @@
   gap: var(--space-1, 8px);
   padding: var(--space-1, 8px) var(--space-3, 21px);
   border-radius: 999px;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -1802,6 +5584,12 @@
   border: 1px solid var(--hw-border);
   border-radius: 10px;
   padding: var(--space-2, 13px);
+  /* Sits above the .hw-stage-motes ambient layer (z-index 0) so the
+     board and pieces are never dimmed by it - spectacle is backdrop
+     only. Same reason FloatingNumbers/SynergyBanner are already
+     positioned over this. */
+  position: relative;
+  z-index: 1;
 }
 
 .hw-grid-row {
@@ -1862,6 +5650,17 @@
   50% { box-shadow: inset 0 0 0 3px var(--hw-moss); }
 }
 
+/* A grid cell whose placement is feeding an active formation/positional
+   synergy (FormationScreen's data-formation-bonus) - a steady rune-gold
+   ring, the same "this is doing something" language the in-battle piece
+   glow uses, so the board itself reads as the bonus tracker. */
+.hw-grid-cell[data-formation-bonus="true"] {
+  border-color: var(--hw-rune);
+  box-shadow:
+    inset 0 0 0 2px var(--hw-rune),
+    0 0 14px 2px color-mix(in srgb, var(--hw-rune) 45%, transparent);
+}
+
 .hw-player-token {
   margin: auto;
   width: 74px;
@@ -1876,7 +5675,7 @@
   color: var(--hw-ember);
   font-size: 11px;
   font-weight: 700;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   animation: hw-token-glow 2.2s ease-in-out infinite;
 }
 
@@ -2049,21 +5848,56 @@
 }
 
 .hw-item-slot {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 4px;
-  border: 1px dashed var(--hw-border);
+  border: 1px dashed color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.85;
+  transition: border-color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+
+.hw-item-slot:hover {
+  opacity: 1;
+  border-color: var(--hw-ember);
+  transform: translateY(-1px);
+}
+
+/* Centred "+" in an empty slot so it reads as a droppable target, not
+   an inert 24px square (Marc: the slot was "in an inconspicuous place"). */
+.hw-item-slot-plus {
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--hw-ember) 70%, var(--hw-text-dim, #8a8f98));
+  pointer-events: none;
 }
 
 .hw-item-slot--filled {
   border-style: solid;
   border-color: var(--hw-ember);
   opacity: 1;
+}
+
+/* When a bag item is selected / just bought, the open slots visibly
+   invite the click that equips it. */
+.hw-item-slots[data-pending="true"] .hw-item-slot:not(.hw-item-slot--filled) {
+  border-color: var(--hw-ember);
+  border-style: solid;
+  opacity: 1;
+  animation: hw-item-slot-beckon 1.1s ease-in-out infinite;
+}
+
+.hw-item-slots[data-pending="true"] .hw-item-slot:not(.hw-item-slot--filled) .hw-item-slot-plus {
+  color: var(--hw-ember);
+}
+
+@keyframes hw-item-slot-beckon {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-ember) 55%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--hw-ember) 0%, transparent); }
 }
 
 .hw-piece-glyph {
@@ -2135,6 +5969,19 @@
   text-align: left;
   background: color-mix(in srgb, var(--hw-hp) 22%, var(--hw-panel));
   border-color: var(--hw-hp);
+}
+
+/* One-shot "X grew into Y" line on the first shop after an evolving
+   win (SquadDraft.jsx, runState.lastEvolved). Moss-tinted to match the
+   lit --close marker the player was watching on the card. */
+.hw-hint--evolved {
+  background: color-mix(in srgb, var(--hw-moss) 20%, var(--hw-panel));
+  border-color: var(--hw-moss);
+  animation: hw-badge-pop 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hw-hint--evolved .hw-evolve-mark {
+  font-size: 11px;
 }
 
 .hw-hint-cancel {
@@ -2225,7 +6072,7 @@
   z-index: 55;
   font-size: 32px;
   font-weight: 800;
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   transform: translate(-50%, -50%);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 16px rgba(0, 0, 0, 0.6);
   -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.85);
@@ -2248,6 +6095,71 @@
   color: var(--hw-rune);
   font-size: 14px;
   font-weight: 700;
+}
+
+/* A big hit (FloatingNumbers BIG_HIT) - bigger, hotter, a glow so it
+   pops off the board. */
+.hw-floating-number--big {
+  font-size: 52px;
+  color: #ff5a3c;
+  -webkit-text-stroke: 2.5px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.95), 0 0 26px rgba(255, 90, 60, 0.7);
+}
+
+/* Status-tick popups (Poison/Burn/Regen resolving) - small, tinted to
+   the status, so they read as "the DOT bit" not a fresh attack. */
+.hw-floating-number--tick-poison,
+.hw-floating-number--tick-burn,
+.hw-floating-number--tick-regen {
+  font-size: 18px;
+  font-weight: 700;
+}
+.hw-floating-number--tick-poison {
+  color: var(--hw-curse, #9b7bd4);
+}
+.hw-floating-number--tick-burn {
+  color: #ff7a3c;
+}
+.hw-floating-number--tick-regen {
+  color: var(--hw-moss);
+}
+
+/* Board shake on a big hit (FloatingNumbers shakeStage). Tiny, single
+   axis, brief - impact, not motion sickness. */
+@keyframes hw-stage-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+.hw-stage-shake {
+  animation: hw-stage-shake 260ms ease-in-out;
+}
+
+/* Status pip pulse (FloatingNumbers pulseStatus) when its DOT/HOT ticks. */
+@keyframes hw-status-pulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); filter: brightness(1.6); }
+  100% { transform: scale(1); }
+}
+.hw-status-pulse {
+  animation: hw-status-pulse 500ms ease-out;
+}
+
+.hw-intent-tag {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-stage-shake,
+  .hw-status-pulse {
+    animation: none;
+  }
 }
 
 /* Promoted to the card's main visual - see the plan's card-redesign
@@ -2305,6 +6217,15 @@
   height: 14px;
   vertical-align: -2px;
   margin-right: 2px;
+}
+
+/* SquadDraft.jsx's owned-relics badge is the one spot that ever puts a
+   real <img> under this shared class (every other usage passes an SVG
+   CardGlyph) - object-fit keeps a non-square source photo from
+   stretching inside the tiny 14x14 box. */
+img.hw-intent-glyph {
+  object-fit: cover;
+  border-radius: 3px;
 }
 
 .hw-intent--attack .hw-intent-glyph {
@@ -2480,11 +6401,18 @@
 }
 
 .hw-commander-select-header .hw-crew-banner {
-  margin-bottom: var(--space-3, 21px);
+  margin-bottom: var(--space-2, 13px);
+  /* Real-viewport fit correction (see .hw-item-card's own comment for
+     the full context) - at Marc's actual usable browser height
+     (~960px, not a bare 1920x1080), the base 720px-wide banner's
+     proportional height pushed the commander cards below the fold.
+     Shrunk specifically for this screen; .hw-crew-banner's own base
+     720px is untouched everywhere else that reuses it (Guild Hall). */
+  max-width: 520px;
 }
 
 .hw-commander-select-title {
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 34px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -2571,6 +6499,20 @@
   transform: none;
 }
 
+/* A Commander that has to be earned with Acorns (characters.js's
+   `locked`) - desaturated portrait, and its CTA carries the price. Not
+   fully hidden: the player should see the archetype they're working
+   toward. */
+.hw-commander-card[data-locked="true"] .hw-commander-portrait,
+.hw-commander-card[data-locked="true"] .hw-commander-desc {
+  filter: grayscale(1) brightness(0.7);
+  opacity: 0.8;
+}
+.hw-commander-card[data-locked="true"] .hw-commander-cta {
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
+}
+
 .hw-commander-portrait {
   width: 89px;
   height: 89px;
@@ -2595,7 +6537,7 @@
 }
 
 .hw-commander-name {
-  font-family: "Cormorant Garamond", serif;
+  font-family: var(--hw-font-display);
   font-size: 21px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -2660,6 +6602,145 @@
     transform: translateY(-5px) scale(1.03);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 20px 4px color-mix(in srgb, var(--hw-ember) 60%, transparent);
   }
+}
+
+/* -------------------------------------------------------------------
+   Guild Hall (GuildHallScreen.jsx) - one-time arrival screen for the
+   run, shown right after a Commander is confirmed and before the
+   first shop visit (PRD v2.0 Phase 4, sections 5-6/39-41).
+
+   Deliberately reuses .hw-commander-select's own layout rhythm
+   (max-width, header, the --space-N and --hw-fib-N scales) rather than
+   inventing a parallel system - this screen is meant to feel like the
+   very next beat after CommanderSelect, not a fourth visual language.
+   The tribe legend reuses .hw-badge exactly as FormationScreen.jsx's
+   live synergy tracker does, just populated from the static tribe
+   catalog instead of a live count - same component, honestly
+   different data source.
+
+   Marc's own art direction, given directly: "peli on sekotelma
+   darkest dungeon seka hearthstone... darkest dungeon on myos
+   visuaalinen tyylisuunta" (a mix of Darkest Dungeon and Hearthstone,
+   Darkest Dungeon specifically as a visual direction too) - a first
+   draft of this screen leaned purely warm/cozy, which undersells that
+   half of the brief. The vignette below (a radial darkening at the
+   content edges, negative z-index so it sits behind every real
+   element without needing its own stacking context per child) pulls
+   the same forest-at-night mood the rest of Hearthwood already
+   carries (.hw-root's own dark overlay + battleBg) a step further at
+   the exact edges of this screen's content, so the hall reads as a
+   single lit space in a larger darkness rather than a flat, evenly-lit
+   menu - without touching the warmth of the banner/portrait/CTA
+   themselves, which stay this screen's one deliberately inviting
+   note. */
+
+.hw-guildhall {
+  position: relative;
+  max-width: 987px;
+  margin: 0 auto;
+  padding: var(--space-3, 21px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4, 34px);
+}
+
+.hw-guildhall::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--space-4, 34px) * -1) calc(var(--space-3, 21px) * -1);
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 28%, transparent 0%, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.hw-guildhall-header {
+  max-width: 610px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hw-guildhall-header .hw-crew-banner {
+  margin-bottom: var(--space-3, 21px);
+}
+
+.hw-guildhall-title {
+  font-family: var(--hw-font-display);
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 0 var(--space-1, 8px);
+  color: var(--hw-text);
+}
+
+.hw-guildhall-commander-strip {
+  width: 100%;
+  max-width: 610px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 21px);
+  /* Darker/heavier than a plain .hw-panel->hw-card gradient (deeper
+     black mixed in, stronger drop shadow) - a "candlelit table in a
+     dark hall" read rather than a bright menu card, per the Darkest
+     Dungeon steer above. */
+  background: linear-gradient(160deg, var(--hw-panel), color-mix(in srgb, var(--hw-card) 82%, black));
+  border: 1px solid var(--hw-border);
+  border-radius: 13px;
+  padding: var(--space-2, 13px) var(--space-3, 21px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Smaller than the 89px commander-select portrait (--hw-fib-6, 55px) -
+   this is a passing presence strip, not the moment of choosing, so it
+   deliberately reads as a step down in emphasis from that screen. */
+.hw-guildhall-commander-portrait {
+  width: var(--hw-fib-6, 55px);
+  height: var(--hw-fib-6, 55px);
+  flex-shrink: 0;
+}
+
+.hw-guildhall-commander-portrait .hw-commander-glyph {
+  width: 34px;
+  height: 34px;
+}
+
+.hw-guildhall-memory-badge {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.hw-guildhall-section {
+  width: 100%;
+  max-width: 610px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hw-guildhall-tribe-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2, 13px);
+}
+
+.hw-guildhall-tribe-badge {
+  font-size: 12px;
+  padding: 4px 11px;
+  background: color-mix(in srgb, var(--hw-panel) 85%, transparent);
+}
+
+/* The single, unambiguous way forward - reuses .hw-end-turn's base
+   (same clickable-surface treatment every primary action in this game
+   already gets) but bigger, matching the "ceremonial" CTA precedent
+   .hw-runend-newrun already set for a run's other bookend. */
+.hw-guildhall-cta {
+  font-size: 15px;
+  padding: var(--space-2, 13px) var(--space-5, 34px);
 }
 
 /* ============================================================
@@ -2809,4 +6890,1010 @@
   .hw-tutorial-next {
     transition: none;
   }
+}
+
+/* ---- Unit upgrade branches (feat/hearthwood-upgrade-branches) ------
+   The per-unit Upgrade pick: a level-up is a choice of direction, not a
+   silent buff. UpgradeChoice.jsx overlay + the branch chips on a bench
+   UnitCard + the Upgrade button in the bench card's action stack. */
+.hw-upgrade-btn {
+  border-color: color-mix(in srgb, var(--hw-cosmic) 55%, var(--hw-border));
+  color: var(--hw-text);
+}
+.hw-upgrade-btn:not(:disabled):hover {
+  border-color: var(--hw-cosmic);
+}
+.hw-upgrade-btn-lv {
+  color: var(--hw-muted);
+}
+
+.hw-upgrade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--hw-bg) 72%, transparent);
+}
+.hw-upgrade-choice {
+  width: min(560px, 94vw);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.hw-upgrade-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hw-upgrade-branch {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--hw-border);
+  border-left-width: 3px;
+  border-radius: var(--hw-radius, 10px);
+  background: color-mix(in srgb, var(--hw-panel) 88%, transparent);
+  color: var(--hw-text);
+  cursor: pointer;
+  transition: background 120ms ease, transform 120ms ease;
+}
+.hw-upgrade-branch:not([data-disabled]):hover {
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+  transform: translateX(2px);
+}
+.hw-upgrade-branch[data-disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.hw-upgrade-branch-label {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg, 17px);
+  font-weight: 700;
+}
+.hw-upgrade-branch-tag {
+  font-family: inherit;
+  font-size: var(--hw-fs-xs, 11px);
+  font-weight: 400;
+  color: var(--hw-muted);
+}
+.hw-upgrade-branch-desc {
+  font-size: var(--hw-fs-sm, 12px);
+  line-height: 1.45;
+  color: var(--hw-muted);
+}
+
+.hw-upgrade-chip-row,
+.hw-card-upgrades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.hw-card-upgrades {
+  justify-content: center;
+  margin-top: 4px;
+}
+.hw-upgrade-chip,
+.hw-card-upgrade-chip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--hw-radius-pill, 999px);
+  white-space: nowrap;
+}
+
+/* ---- Unit role & tag identity (feat/hearthwood-role-identity) ------
+   The PRD's "upgrade visibility" line on a unit card: primary
+   (· secondary) role with a coloured glyph, then a few tags. Strength
+   and weakness live in the line's tooltip, not on the card face -
+   this screen's zero-scroll budget. */
+.hw-card-role-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 1px;
+  min-height: 13px;
+}
+.hw-card-role-line .hw-effect-icon-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-card-role-secondary {
+  color: var(--hw-muted);
+  font-weight: 600;
+}
+/* Per-DPS target profile (roles.js unitTargetProfile) - one muted line
+   under the role line, only for the few units that don't just hit the
+   front rank. */
+.hw-card-target-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--hw-rune);
+  margin-top: 1px;
+}
+.hw-card-target-line .hw-effect-icon-glyph {
+  width: 11px;
+  height: 11px;
+}
+.hw-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 3px;
+}
+.hw-tag-chip {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0 5px;
+  border: 1px solid color-mix(in srgb, var(--hw-muted) 45%, transparent);
+  border-radius: var(--hw-radius-pill, 999px);
+  color: var(--hw-muted);
+  white-space: nowrap;
+  text-transform: lowercase;
+}
+
+/* ---- Build evaluation panel (feat/hearthwood-build-score) ----------
+   Seven 0-10 bars for the deployed squad + core unit + biggest gap.
+   Mirrors the post-battle .hw-recap-bar-* metrics. */
+.hw-buildscore {
+  margin-bottom: 14px;
+}
+.hw-buildscore-empty {
+  font-size: 12px;
+  color: var(--hw-muted);
+  margin: 4px 0 0;
+}
+.hw-buildscore-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-buildscore-row {
+  display: grid;
+  grid-template-columns: 116px 1fr 22px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.hw-buildscore-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--hw-muted);
+  white-space: nowrap;
+}
+.hw-buildscore-name .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-buildscore-track {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-border) 60%, transparent);
+  overflow: hidden;
+}
+.hw-buildscore-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms var(--hw-ease-out, ease);
+}
+.hw-buildscore-fill--survivability { background: var(--hw-stone); }
+.hw-buildscore-fill--damage { background: var(--hw-ember); }
+.hw-buildscore-fill--sustain { background: var(--hw-moss); }
+.hw-buildscore-fill--control { background: var(--hw-rune); }
+.hw-buildscore-fill--synergy { background: var(--hw-tide); }
+.hw-buildscore-fill--economy { background: var(--hw-cosmic); }
+.hw-buildscore-fill--scaling { background: var(--hw-gale); }
+.hw-buildscore-num {
+  text-align: right;
+  color: var(--hw-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hw-buildscore-core,
+.hw-buildscore-note {
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 6px 0 0;
+  color: var(--hw-muted);
+}
+.hw-buildscore-core strong { color: var(--hw-moss); }
+.hw-buildscore-note strong { color: var(--hw-ember); }
+
+/* ---- Positioning as a role mechanic (feat/hearthwood-positioning) --
+   A placed unit's slot vs its preferred position (roles.js). "in" -
+   a quiet moss inset ring (composes with the rune formation-bonus
+   glow); "out" - a small ember corner dot, a nudge not an error. */
+.hw-grid-cell[data-position-fit="in"] {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hw-moss) 70%, transparent);
+}
+.hw-grid-cell[data-formation-bonus="true"][data-position-fit="in"] {
+  box-shadow:
+    inset 0 0 0 2px var(--hw-rune),
+    inset 0 0 0 4px color-mix(in srgb, var(--hw-moss) 55%, transparent),
+    0 0 14px 2px color-mix(in srgb, var(--hw-rune) 45%, transparent);
+}
+.hw-grid-cell[data-position-fit="out"] {
+  position: relative;
+}
+.hw-grid-cell[data-position-fit="out"]::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-ember) 80%, transparent);
+  pointer-events: none;
+}
+
+.hw-buildscore-positioning {
+  font-size: 11px;
+  margin: 6px 0 0;
+  color: var(--hw-muted);
+}
+.hw-buildscore-positioning[data-off] {
+  color: var(--hw-ember);
+}
+
+/* ---- "Why you lost / why you won" (battleAnalysis.js -> ResultOverlay) --
+   The layer above the numeric recap: one headline sentence, then, only
+   on a loss or a near-thing, a short "Because" list and a
+   non-prescriptive "What you could try" list. Sits inside the overlay
+   between the recap and Continue - deliberately quiet, no animation. */
+.hw-analysis {
+  width: 320px;
+  max-width: 82vw;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--hw-border);
+  border-left: 2px solid var(--hw-moss);
+  border-radius: var(--hw-radius);
+  background: var(--hw-card);
+  text-align: left;
+}
+.hw-analysis[data-outcome="lost"] {
+  border-left-color: var(--hw-hp);
+}
+.hw-analysis-headline {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hw-text);
+}
+.hw-analysis-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hw-analysis-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--hw-muted);
+}
+.hw-analysis-list {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hw-analysis-list li {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--hw-muted);
+}
+.hw-analysis-list li::marker {
+  color: var(--hw-border);
+}
+
+/* ---- Threat targeting cue (autoBattleEngine.js threatTarget -> AutoBattleView
+   -> EnemyPieceCard) - the player unit the enemy's next single-target
+   attack will land on. A static ember inset ring + a 🎯 badge, distinct
+   from the moss position ring (on .hw-grid-cell) and the animated rune
+   synergy surge. No animation - it's a steady "this one's in the
+   crosshairs" marker, not an event. */
+.hw-piece[data-focus-target="true"] {
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--hw-ember) 85%, transparent),
+    0 0 10px 1px color-mix(in srgb, var(--hw-ember) 35%, transparent);
+}
+.hw-focus-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 11px;
+  color: var(--hw-ember);
+  border-color: var(--hw-ember);
+}
+
+/* The Ancients (feat/hearthwood-ancients): a visible countdown on the
+   colossus winding up its charge - see EnemyPieceCard's chargeCounter. */
+.hw-charge-badge {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--hw-hp);
+  border-color: var(--hw-hp);
+}
+
+/* ---- Strategic Playstyle profile (playstyle.js -> PlaystyleProfile) --
+   Six 0-100 axes for how the run's choices have added up. The full
+   panel (RunEndOverlay) mirrors .hw-buildscore's bar metrics; the
+   compact form is one accent-coloured line in the shop's Run-Map rail. */
+.hw-playstyle {
+  margin: 12px 0 4px;
+  width: 320px;
+  max-width: 82vw;
+  text-align: left;
+}
+.hw-playstyle-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-playstyle-row {
+  display: grid;
+  grid-template-columns: 104px 1fr 26px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.hw-playstyle-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--hw-muted);
+  white-space: nowrap;
+}
+.hw-playstyle-name .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-playstyle-track {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-border) 60%, transparent);
+  overflow: hidden;
+}
+.hw-playstyle-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms var(--hw-ease-out, ease);
+}
+.hw-playstyle-num {
+  text-align: right;
+  color: var(--hw-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hw-playstyle-leaning {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--hw-muted);
+  margin: 8px 0 0;
+}
+.hw-playstyle-history {
+  font-size: 10px;
+  color: color-mix(in srgb, var(--hw-muted) 80%, transparent);
+  margin: 3px 0 0;
+}
+.hw-playstyle-compact {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 4px 0 2px;
+}
+.hw-playstyle-compact .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+
+/* ---- Run Power (playerPower.js -> PlayerPower.jsx) ------------------
+   The DifficultyEngine's Player Power Score: seven component bars + a
+   band + a ratio vs expected power. Full panel on the run-end screen;
+   one accent line in the shop's Run-Map rail. Mirrors .hw-playstyle. */
+.hw-power {
+  margin: 12px 0 4px;
+  width: 320px;
+  max-width: 82vw;
+  text-align: left;
+}
+.hw-power-headline {
+  font-size: 13px;
+  margin: 0 0 6px;
+  color: var(--hw-text);
+}
+.hw-power-ratio {
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-power-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-power-row {
+  display: grid;
+  grid-template-columns: 104px 1fr 26px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.hw-power-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--hw-muted);
+  white-space: nowrap;
+}
+.hw-power-name .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-power-track {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hw-border) 60%, transparent);
+  overflow: hidden;
+}
+.hw-power-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms var(--hw-ease-out, ease);
+}
+.hw-power-num {
+  text-align: right;
+  color: var(--hw-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hw-power-note {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--hw-muted);
+  margin: 6px 0 0;
+}
+.hw-power-note--gap {
+  color: color-mix(in srgb, var(--hw-ember) 75%, var(--hw-text));
+}
+.hw-power-compact {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 4px 0 2px;
+}
+.hw-power-compact .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+
+/* ---- Scout Ahead (runEngine.scoutAhead -> RunMap RunRail) ---------- */
+.hw-scout {
+  margin: 6px 0 2px;
+}
+.hw-scout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+  color: var(--hw-moss);
+  cursor: pointer;
+}
+.hw-scout-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+/* Field Antidote (feat/hearthwood-rot) - a shop consumable button in the
+   for-sale row, alongside Reroll / Freeze. */
+.hw-antidote-btn[data-active] {
+  border-color: color-mix(in srgb, var(--hw-moss) 60%, transparent);
+  color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
+}
+.hw-scout-btn .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+.hw-scout-report {
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--hw-muted);
+  margin: 4px 0 0;
+}
+.hw-scout-report[data-tone="good"] {
+  color: color-mix(in srgb, var(--hw-moss) 80%, var(--hw-text));
+}
+.hw-scout-report[data-tone="warn"] {
+  color: color-mix(in srgb, var(--hw-ember) 78%, var(--hw-text));
+}
+.hw-scout-report[data-tone="bad"] {
+  color: color-mix(in srgb, var(--hw-hp) 75%, var(--hw-text));
+}
+.hw-run-rail-pip-threat {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--hw-text);
+}
+.hw-run-rail-pip[data-scouted="true"] {
+  outline: 1px solid color-mix(in srgb, var(--hw-moss) 55%, transparent);
+  outline-offset: 1px;
+}
+
+/* ---- Counterplay matchup (counterplay.js -> FormationScreen) --------
+   The threats the NEXT fight presents + whether your kit answers each.
+   ✓ chip = covered (moss), ✗ chip = a gap (ember). One compact row. */
+.hw-matchup {
+  margin: 10px 0;
+  text-align: left;
+}
+.hw-matchup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+}
+.hw-matchup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--hw-radius-pill, 999px);
+  border: 1px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  color: color-mix(in srgb, var(--hw-hp) 90%, var(--hw-text));
+}
+.hw-matchup-chip[data-covered="true"] {
+  border-color: color-mix(in srgb, var(--hw-moss) 60%, transparent);
+  color: color-mix(in srgb, var(--hw-moss) 90%, var(--hw-text));
+}
+.hw-matchup-chip .hw-intent-glyph {
+  width: 11px;
+  height: 11px;
+}
+.hw-matchup-note {
+  font-size: 11px;
+  color: var(--hw-ember);
+  margin: 5px 0 0;
+}
+
+/* --- Seed engine (seed.js / SeedChip.jsx) — the run's fingerprint,
+   shown + copyable on the shop Run Map rail and the run-end screen, and
+   typed back in on commander-select. Seed System PRD sections 3-9. --- */
+.hw-seed-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-pill, 999px);
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+  color: var(--hw-muted);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color var(--hw-dur-1, 0.15s) ease, color var(--hw-dur-1, 0.15s) ease;
+}
+.hw-seed-chip:hover {
+  border-color: color-mix(in srgb, var(--hw-cosmic) 55%, var(--hw-border));
+  color: var(--hw-text);
+}
+.hw-seed-chip-label {
+  text-transform: uppercase;
+  font-size: 9px;
+  color: var(--hw-muted);
+}
+.hw-seed-chip-value {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--hw-font-mono, ui-monospace, "SFMono-Regular", "Menlo", monospace);
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--hw-cosmic) 75%, var(--hw-text));
+}
+.hw-seed-chip-copy {
+  color: var(--hw-muted);
+  font-size: 10px;
+}
+
+/* Rail variant: full-width row under the step count. */
+.hw-seed-rail {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 6px;
+  border-radius: var(--hw-radius-sm, 8px);
+}
+
+/* Run-end variant: centred, a touch larger. */
+.hw-runend-seed {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+.hw-runend-seed .hw-seed-chip {
+  font-size: 11px;
+  padding: 4px 12px;
+}
+
+/* Commander-select: an optional collapsed line that opens one input. */
+.hw-commander-seed {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  min-height: 34px;
+  margin-top: 13px;
+}
+.hw-commander-seed-toggle {
+  background: none;
+  border: none;
+  color: var(--hw-muted);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--hw-radius-sm, 8px);
+  transition: color var(--hw-dur-1, 0.15s) ease;
+}
+.hw-commander-seed-toggle:hover {
+  color: var(--hw-text);
+}
+.hw-commander-seed-toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Hearthwood Frontier (feat/hearthwood-tactics-prototype) - a small,
+   clearly-marked link off the game's own front door to the isolated
+   turn-based prototype (/heartwood-tactics). Same quiet weight as the
+   seed toggle beside it, tinted --hw-hp so "WIP" reads as experimental,
+   not a real menu item. */
+.hw-tactics-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--hw-muted);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: var(--hw-radius-sm, 8px);
+  transition: color var(--hw-dur-1, 0.15s) ease;
+}
+.hw-tactics-link:hover {
+  color: var(--hw-hp);
+}
+/* Hearthwood Frontier Phase 4 second slice ("fight one real battle for
+   real"): the real, playable-for-keeps alternative to the preview link
+   above, shown only for a normal fight with a resolvable matchup. An
+   ember accent (vs. the preview link's muted tone) so it reads as "this
+   one is for real", not an experimental side-link. */
+.hw-tactics-fight-btn {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 40%, transparent);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: var(--hw-radius-sm, 8px);
+  cursor: pointer;
+  transition: background var(--hw-dur-1, 0.15s) ease;
+}
+.hw-tactics-fight-btn:hover {
+  background: color-mix(in srgb, var(--hw-ember) 20%, transparent);
+}
+.hw-commander-seed-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.hw-commander-seed-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--hw-muted);
+}
+.hw-commander-seed-input {
+  width: 150px;
+  padding: 5px 10px;
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-sm, 8px);
+  background: color-mix(in srgb, var(--hw-panel) 80%, transparent);
+  color: var(--hw-text);
+  font-family: var(--hw-font-mono, ui-monospace, "SFMono-Regular", "Menlo", monospace);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hw-commander-seed-input::placeholder {
+  color: var(--hw-muted);
+  letter-spacing: 0.06em;
+}
+.hw-commander-seed-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--hw-cosmic) 60%, var(--hw-border));
+}
+.hw-commander-seed-input[data-invalid="true"] {
+  border-color: color-mix(in srgb, var(--hw-hp) 60%, var(--hw-border));
+}
+.hw-commander-seed-hint {
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-commander-seed-hint[data-invalid="true"] {
+  color: var(--hw-ember);
+}
+
+/* --- Economy crew (economy.js / EconomyCrew.jsx) — which deployed
+   units are buying a run-layer economy edge right now. Economy System
+   PRD 30-31. Sits in the shop left rail next to The Ledger. --- */
+.hw-economy-crew .hw-rail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-economy-crew-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-economy-crew-row > .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+  color: color-mix(in srgb, var(--hw-cosmic) 75%, var(--hw-text));
+  flex: none;
+}
+.hw-economy-crew-name {
+  color: var(--hw-text);
+  white-space: nowrap;
+}
+.hw-economy-crew-effect {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--hw-cosmic) 70%, var(--hw-text));
+}
+
+/* --- Enemy threat preview (threatPreview.js / ThreatPreview.jsx) —
+   Enemy Ecosystem PRD 50-51. "Here is the problem": a danger rating +
+   dominant threat + mechanics, directly above the .hw-matchup checkrow
+   on the FormationScreen. --- */
+.hw-threat-preview {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--hw-border);
+  border-left: 3px solid color-mix(in srgb, var(--hw-moss) 60%, var(--hw-border));
+  border-radius: var(--hw-radius-sm, 8px);
+  background: color-mix(in srgb, var(--hw-panel) 55%, transparent);
+}
+.hw-threat-preview[data-rating="3"] { border-left-color: color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border)); }
+.hw-threat-preview[data-rating="4"] { border-left-color: color-mix(in srgb, var(--hw-ember) 70%, var(--hw-border)); }
+.hw-threat-preview[data-rating="5"] { border-left-color: var(--hw-hp); }
+.hw-threat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hw-threat-head .hw-section-label { margin: 0; }
+.hw-threat-stars {
+  letter-spacing: 1px;
+  font-size: 12px;
+}
+.hw-threat-star {
+  color: color-mix(in srgb, var(--hw-muted) 60%, transparent);
+}
+.hw-threat-star[data-on="true"] {
+  color: var(--hw-ember);
+}
+.hw-threat-preview[data-rating="5"] .hw-threat-star[data-on="true"] { color: var(--hw-hp); }
+.hw-threat-preview[data-rating="1"] .hw-threat-star[data-on="true"],
+.hw-threat-preview[data-rating="2"] .hw-threat-star[data-on="true"] { color: var(--hw-moss); }
+.hw-threat-rating-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hw-muted);
+}
+.hw-threat-lead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: var(--hw-text);
+}
+.hw-threat-lead-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.hw-threat-lead-part > .hw-intent-glyph { width: 12px; height: 12px; flex: none; }
+.hw-threat-lead-secondary { color: var(--hw-muted); }
+.hw-threat-mechanics {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-threat-expect {
+  color: color-mix(in srgb, var(--hw-text) 70%, var(--hw-muted));
+  font-weight: 600;
+}
+.hw-threat-note {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
+}
+/* "For your build:" - the Player Power relative read (playerPower.js /
+   threatPreview.js relativeThreatLabel). Tinted by tone. */
+.hw-threat-relative {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hw-threat-relative[data-tone="good"] {
+  color: color-mix(in srgb, var(--hw-moss) 82%, var(--hw-text));
+}
+.hw-threat-relative[data-tone="warn"] {
+  color: color-mix(in srgb, var(--hw-ember) 78%, var(--hw-text));
+}
+.hw-threat-relative[data-tone="bad"] {
+  color: color-mix(in srgb, var(--hw-hp) 75%, var(--hw-text));
+}
+
+/* --- Swarm hint (formations.js the-brood / the-teeming, FormationScreen)
+   — the Swarm archetype's counterplay line (Enemy Ecosystem PRD 6-7),
+   under the "Enemy formation:" badge. --- */
+.hw-swarm-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Fortress hint (formations.js the-bulwark / the-bastion, FormationScreen)
+   — the Fortress archetype's counterplay line (Enemy Ecosystem PRD 8),
+   under the "Enemy formation:" badge. Mirrors .hw-swarm-hint, stone tick. --- */
+.hw-fortress-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-stone) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Hunters hint (formations.js the-pack / the-run-down, FormationScreen)
+   — the Hunters archetype's counterplay line (Enemy Ecosystem PRD),
+   under the "Enemy formation:" badge. Mirrors .hw-swarm-hint, hp tick. --- */
+.hw-hunters-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Rot hint (formations.js the-blight / the-festering, FormationScreen)
+   — the Rot archetype's counterplay line (Enemy Ecosystem PRD), under
+   the "Enemy formation:" badge. Mirrors .hw-swarm-hint, curse tick. --- */
+.hw-rot-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-curse) 55%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Coven hint (formations.js the-conclave / the-choir, FormationScreen)
+   — the Coven archetype's counterplay line (Enemy Ecosystem PRD), under
+   the "Enemy formation:" badge. Mirrors .hw-swarm-hint, rune tick. --- */
+.hw-coven-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-rune) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Brood hint (formations.js the-clutch / the-hatchery, FormationScreen)
+   — the Brood archetype's counterplay line (Enemy Ecosystem PRD), under
+   the "Enemy formation:" badge. Mirrors .hw-swarm-hint, hp tick. --- */
+.hw-brood-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-hp) 55%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Cult hint (formations.js the-communion / the-long-chant,
+   FormationScreen) — the Cult archetype's counterplay line (Enemy
+   Ecosystem PRD 11 / 39), under the "Enemy formation:" badge. Mirrors
+   .hw-coven-hint, a flame/ember tick. --- */
+.hw-cult-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-tribe-ember) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Collectors hint (formations.js the-tithe / the-hoard,
+   FormationScreen) — the Collectors archetype's counterplay line (Enemy
+   Ecosystem PRD 13), under the "Enemy formation:" badge. Mirrors
+   .hw-cult-hint, a cosmic tick. --- */
+.hw-collectors-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-cosmic) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
+}
+
+/* --- Ancients hint (formations.js the-ancient-grove / the-elder-hollow,
+   FormationScreen) — the Ancients archetype's counterplay line (Enemy
+   Ecosystem PRD 18), under the "Enemy formation:" badge. Mirrors
+   .hw-cult-hint, an HP-red tick. --- */
+.hw-ancients-hint {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--hw-hp) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hw-muted);
 }

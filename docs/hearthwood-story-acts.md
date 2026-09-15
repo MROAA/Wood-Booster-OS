@@ -3550,6 +3550,45 @@ follow-up task for a future content pass (touching only node-flavor
 strings inside the existing FloorChoice data, not its logic) rather
 than something done in this documentation-only pass.
 
+### Shop node dialogue — the traveling merchant (SHIPPED)
+
+`src/data/heartwood/merchant.js` + `MerchantGreeting.jsx`. Each Act's Shop
+node shows a named merchant (portrait + one line). The line is chosen
+deterministically by `nodeIndex` from a pool picked as: a non-`restless`
+`forestState` first (a deliberate Act-crossroads consequence), else the
+squad's dominant tribe (`dominantTribe`, the elemental identities), else a
+rotating generic line.
+
+- **Act I — The Forest Trader** (humble, earthy; roots & the first corruption)
+- **Act II — The Heartwood Artisan** (a craftsman; the heart's crack; elemental factions)
+- **Act III — The Veil Trader** (the border's tear; the stall itself keeps moving)
+- **Act IV — The Hollow Merchant** — canon line kept verbatim: *"Everything here has a price. None of the prices are Essence."*
+- **Act V — The Echo Market** (void merchant spirits; the world after; you choose the ending)
+
+Full line text lives in `merchant.js`. One placeholder doodle portrait
+(`merchantGlyph`) for all five, tinted per Act; per-Act portraits are a
+later art pass.
+
+### Elite encounters (SHIPPED)
+
+`src/data/heartwood/enemies.js` — four elite enemies, each promoted onto a
+fixed `type: "elite"` RUN_PATH node (a mid-tier spike between a mook and a
+Trial). Each has **one clear gimmick** (a `passive` trigger) plus an HP-
+threshold `phases` escalation, reusing `checkBossPhases` — no new engine code.
+
+- **The Gorging Maw** (Act II, node ~24, was Bramblehide) — Lifelink: heals on
+  every hit it lands; @50% heals harder + Strength. *Burst it down.*
+- **The Iron Sentinel** (Act II, node ~42, was Ironmaw) — Compounding Bulwark
+  each round; @60% also gains block each round. *Execute or open big — chipping loses.*
+- **The Bramble Lash** (Act III, node ~62, was Mossveil) — Thorns: strikes back
+  at whoever hits it; @50% harder + Weak on the attacker. *Fewer, bigger hits.*
+- **The Ashfall Herald** (Act IV, node ~82, was Grimspite) — squad-wide AoE that
+  grows +1 Strength every round; @40% growth doubles. *Race it — cleanse/heal or finish.*
+
+Reward `ELITE_BONUS_ESSENCE = 120` (between formation 100 and miniboss 150).
+Red elevated banner in-fight, a gimmick tag on the formation screen, a major
+pip on the run map. Auto-collected in the Almanac's enemies tab.
+
 ### Guildrun hook — named companions, for Hero Relationships v1
 
 The backlog already carries "Hero Relationships v1" as a separate item.

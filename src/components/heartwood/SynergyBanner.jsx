@@ -28,28 +28,52 @@ const PHI = 1.618
 // floating numbers.
 const DURATION_S = PHI * PHI
 
-export default function SynergyBanner({ surge, index, onDone }) {
+// A surge is one of three kinds now: a tribe tier ("Warden synergy
+// active"), a cross-tribe combo ("Bloodhunt - Fang + Root"), or a
+// formation/positional synergy ("Phalanx"). Each resolves to an
+// icon / colour / line here; the golden-ratio timing and self-removal
+// are identical for all three.
+function surgeVisual(surge) {
+  if (surge.kind === "combo") {
+    const [a, b] = Object.keys(surge.combo.tribes)
+    const ca = TRIBES[a]?.color || "var(--hw-rune)"
+    const cb = TRIBES[b]?.color || "var(--hw-rune)"
+    return {
+      icon: "spark",
+      color: `color-mix(in srgb, ${ca} 50%, ${cb})`,
+      text: `Combo — ${surge.combo.label}`,
+    }
+  }
+  if (surge.kind === "position") {
+    return { icon: "shield", color: "var(--hw-rune)", text: `Formation — ${surge.synergy.label}` }
+  }
   const tribe = TRIBES[surge.tribeId]
   if (!tribe) return null
+  return { icon: tribe.icon, color: tribe.color, text: `${tribe.name} synergy active — ${surge.activeTier.label}` }
+}
+
+export default function SynergyBanner({ surge, index, onDone }) {
+  const v = surgeVisual(surge)
+  if (!v) return null
   return (
     <motion.div
       className="hw-synergy-banner"
       // Fibonacci vertical stagger (34px, index.css's own --space-4) for
-      // the rare case 2 tribes hit their threshold in the very same
-      // battle - stacks instead of overlapping.
+      // the case 2+ synergies land in the very same battle - stacks
+      // instead of overlapping.
       style={{
         marginTop: index * 34,
-        borderColor: tribe.color,
-        color: tribe.color,
-        boxShadow: `0 0 21px 3px color-mix(in srgb, ${tribe.color} 55%, transparent)`,
+        borderColor: v.color,
+        color: v.color,
+        boxShadow: `0 0 21px 3px color-mix(in srgb, ${v.color} 55%, transparent)`,
       }}
       initial={{ opacity: 0, scale: 1 / PHI, x: "-50%", y: -8 }}
       animate={{ opacity: [0, 1, 1, 0], scale: [1 / PHI, 1.05, 1, 1], x: "-50%", y: [-8, 0, 0, -4] }}
       transition={{ duration: DURATION_S, ease: "easeOut", times: [0, 0.236, 0.764, 1] }}
       onAnimationComplete={onDone}
     >
-      <CardGlyph name={tribe.icon} className="hw-intent-glyph" />
-      {tribe.name} synergy active — {surge.activeTier.label}
+      <CardGlyph name={v.icon} className="hw-intent-glyph" />
+      {v.text}
     </motion.div>
   )
 }

@@ -87,7 +87,11 @@ export const CHARACTERS = {
     activePower: {
       id: "opening-strike",
       name: "Opening Strike",
-      cost: 3,
+      // Essence rescale: was 3, now 190 (units.js's TIER_COST comment) -
+      // matches RELIC_COST/COMMANDER_RANK_COST/UPGRADE_COST, all four
+      // already identically priced at 3 pre-rescale.
+      // Rounded to the 50/100/150/200 family (Marc, round numbers).
+      cost: 150,
       description: "Next battle only: the whole squad strikes noticeably harder.",
       effects: [{ type: "applyBuff", id: "strength", amount: 2 }],
     },
@@ -158,7 +162,11 @@ export const CHARACTERS = {
     activePower: {
       id: "rally-cry",
       name: "Rally Cry",
-      cost: 3,
+      // Essence rescale: was 3, now 190 (units.js's TIER_COST comment) -
+      // matches RELIC_COST/COMMANDER_RANK_COST/UPGRADE_COST, all four
+      // already identically priced at 3 pre-rescale.
+      // Rounded to the 50/100/150/200 family (Marc, round numbers).
+      cost: 150,
       description: "Next battle only: the whole squad mends a little more each round, and strikes a little harder too.",
       effects: [
         { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
@@ -222,7 +230,11 @@ export const CHARACTERS = {
     activePower: {
       id: "blood-oath",
       name: "Blood Oath",
-      cost: 3,
+      // Essence rescale: was 3, now 190 (units.js's TIER_COST comment) -
+      // matches RELIC_COST/COMMANDER_RANK_COST/UPGRADE_COST, all four
+      // already identically priced at 3 pre-rescale.
+      // Rounded to the 50/100/150/200 family (Marc, round numbers).
+      cost: 150,
       description: "Next battle only: the whole squad hits harder, and harder still once hurt.",
       // Marc: "make it challenging but fair" - a fairness stress test
       // (this session's difficulty ramp + tribes/relics/Market Level
@@ -330,7 +342,11 @@ export const CHARACTERS = {
     activePower: {
       id: "brace",
       name: "Brace",
-      cost: 3,
+      // Essence rescale: was 3, now 190 (units.js's TIER_COST comment) -
+      // matches RELIC_COST/COMMANDER_RANK_COST/UPGRADE_COST, all four
+      // already identically priced at 3 pre-rescale.
+      // Rounded to the 50/100/150/200 family (Marc, round numbers).
+      cost: 150,
       description: "Next battle only: the whole squad shrugs off one extra hit, strikes a little harder, and strikes deeper against a braced target.",
       effects: [
         { type: "applyBuff", id: "ward", amount: 1 },
@@ -339,6 +355,140 @@ export const CHARACTERS = {
       ],
     },
   },
+
+  // --- Unlockable Commanders (metaPerks.js / GroveScreen.jsx) ----------
+  // `locked: true` + `unlockCost` (Acorns) - CommanderSelect renders
+  // these greyed with an Unlock button until the player buys them; the
+  // meta store's `unlockedCommanders` list is the source of truth.
+  // Each is a real new archetype (a curse leader, a wall leader), not a
+  // stat reskin - same squadPassive + activePower vocabulary the base 4
+  // use, so no engine change.
+  kaski: {
+    id: "kaski",
+    name: "Kaski",
+    art: "shadow",
+    locked: true,
+    unlockCost: 70,
+    maxHp: 58,
+    tagline: "Slash and burn - lets the rot do the work.",
+    description: "Blighttongue: every unit's hit leaves a wound that festers - a little poison, a little weakness - and the squad hits harder for it.",
+    startEffects: [{ type: "applyBuff", id: "strength", amount: 1 }],
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+    ],
+    // A curse/attrition leader - the first Commander built around
+    // hits-that-linger rather than raw numbers. Pairs with Root/Shadow
+    // tribes and any poison relic, exactly the "synergize with the
+    // build" intent the base kits' own comment describes.
+    squadPassive: [
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
+      { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+    ],
+    activePower: {
+      id: "blightcall",
+      name: "Blightcall",
+      cost: 150,
+      description: "Next battle only: the whole squad's hits also mark the target Vulnerable, and start with +1 Execute.",
+      effects: [
+        { type: "applyBuff", id: "execute", amount: 1 },
+        { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
+      ],
+    },
+  },
+  louhi: {
+    id: "louhi",
+    name: "Louhi",
+    art: "stone",
+    locked: true,
+    unlockCost: 90,
+    maxHp: 70,
+    tagline: "The mountain does not move for you.",
+    description: "Stoneheart: every unit carries permanent armour and grows a fresh shell of bark each round - nothing about this squad is in a hurry.",
+    startEffects: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+    ],
+    // A wall leader - the first Commander built entirely around
+    // mitigation (Bulwark + repeating Block), no offense floor of its
+    // own beyond a small Strength. Pairs with Warden/Stone tribes and
+    // the Bastion of Stone anchor relic.
+    passive: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
+    movePattern: [
+      { type: "block", amount: 5 },
+      { type: "attack", amount: 4 },
+    ],
+    squadPassive: [
+      { type: "applyBuff", id: "bulwark", amount: 1 },
+      { type: "applyBuff", id: "strength", amount: 1 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+    ],
+    activePower: {
+      id: "stonewall",
+      name: "Stonewall",
+      cost: 150,
+      description: "Next battle only: the whole squad shrugs off two hits and adds +2 Block each round.",
+      effects: [
+        { type: "applyBuff", id: "ward", amount: 2 },
+        { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
+      ],
+    },
+  },
+
+  // Third unlockable Commander (2026-09-07, "lisää sisältöä"). The
+  // Sapling Spirit from the intro / Act I events (cinematics.js,
+  // events.js) - the forest's own small voice, made playable. Kaski is
+  // curse/attrition, Louhi is a wall; Lehva is the sustain leader the
+  // roster didn't have: the whole squad recovers every round and opens
+  // each fight warded, a run built to OUTLAST rather than out-trade.
+  // Pairs with Grove/Spirit/Wood tribes and the new regen relics.
+  // Acorn-unlockable exactly like Kaski/Louhi - unlockableCommanders()
+  // / isCommanderUnlocked() below pick it up automatically, and
+  // CommanderSelect already renders locked cards.
+  lehva: {
+    id: "lehva",
+    name: "Lehva",
+    art: "grove",
+    locked: true,
+    unlockCost: 80,
+    maxHp: 62,
+    tagline: "The forest remembers how to mend.",
+    description:
+      "Saplingsong: the whole squad knits itself back a little every round and opens each battle warded - built to outlast a fight, not win the exchange.",
+    startEffects: [{ type: "applyBuff", id: "regen", amount: 1 }],
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    movePattern: [
+      { type: "heal", amount: 4 },
+      { type: "block", amount: 4 },
+    ],
+    squadPassive: [
+      { type: "applyBuff", id: "regen", amount: 1 },
+      { type: "applyBuff", id: "ward", amount: 1 },
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 1 } },
+    ],
+    activePower: {
+      id: "grovecall",
+      name: "Grovecall",
+      cost: 150,
+      description: "Next battle only: the whole squad mends 2 more each round and shrugs off an extra hit.",
+      effects: [
+        { type: "applyBuff", id: "regen", amount: 2 },
+        { type: "applyBuff", id: "ward", amount: 1 },
+      ],
+    },
+  },
+}
+
+// Commanders the player has to earn (locked:true above). The base four
+// are always available; these are bought with Acorns at the Grove.
+export function unlockableCommanders() {
+  return Object.values(CHARACTERS).filter((c) => c.locked)
+}
+
+export function isCommanderUnlocked(id, unlockedIds = []) {
+  const c = CHARACTERS[id]
+  if (!c) return false
+  return !c.locked || unlockedIds.includes(id)
 }
 
 // Rank-Up: a third Essence sink alongside recruiting/relics/Unit
@@ -348,7 +498,13 @@ export const CHARACTERS = {
 // across the whole run, reusing the same scaleEffect helper so a
 // squadPassive scales exactly the way a unit's own passive does.
 export const COMMANDER_RANK_MAX = 2
-const COMMANDER_RANK_COST = 3
+// Essence rescale (units.js's TIER_COST comment has the full
+// explanation - Marc's "market level up = 250 Essence" ask, scaled
+// 62.5x from every old constant): was 3, now 190, matching
+// RELIC_COST/UPGRADE_COST/every activePower.cost below - all four were
+// already identically priced at 3 pre-rescale.
+// Rounded to the 50/100/150/200 family (Marc, round numbers).
+const COMMANDER_RANK_COST = 150
 
 export function commanderRankCost(rank) {
   return rank >= COMMANDER_RANK_MAX ? null : COMMANDER_RANK_COST * (rank + 1)

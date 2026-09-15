@@ -1127,3 +1127,55 @@ model HeartwoodDecision {
   createdAt DateTime @default(now())
 
 }
+
+
+
+model HearthwoodPatch {
+
+  id Int @id @default(autoincrement())
+
+  code String?
+
+  summary String
+
+  applyMode String
+
+  risk String
+
+  status String @default("draft")
+
+  targetFiles String
+
+  editSpec String
+
+  diff String?
+
+  gitGuardianRef String?
+
+  liveCommit String?
+
+  backupPaths String?
+
+  qaResult String?
+
+  qaStartedAt DateTime?
+
+  qaFinishedAt DateTime?
+
+  prUrl String?
+
+  prNumber Int?
+
+  prBranch String?
+
+  model String?
+
+  createdBy String?
+
+  archived Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
