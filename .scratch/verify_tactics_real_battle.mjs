@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5407
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-wire-spacemonkey/.scratch/shots"
+const PORT = process.env.PORT || 5412
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-realwire/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -132,11 +132,15 @@ function newPage() {
   await page2.screenshot({ path: `${SHOT}/live_tactics_battle.png` })
   await page2.close()
   out.enterTacticsBattle = { engine, playerNames, enemyNames, noteText }
+  // Real-fight wiring round: the run's own real Commander (seeded via
+  // startRun("tommy")) now deploys alongside the recruited squad here
+  // too - 2 player units, not 1.
   if (
     !(
       engine === "tactics" &&
-      playerNames.length === 1 &&
-      playerNames[0] === "Mosskit" &&
+      playerNames.length === 2 &&
+      playerNames.includes("Mosskit") &&
+      playerNames.includes("Tommy") &&
       enemyNames.includes("Rotwood Husk") &&
       enemyNames.includes("Rotwood Sapling") &&
       noteText.includes("Fighting this one for real")
@@ -308,7 +312,7 @@ function newPage() {
   await page6.close()
   out.ancientGroveEntry = { engine, playerNames, enemyNames }
   const saplingCount = enemyNames.filter((n) => n === "Sapling Attendant").length
-  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && saplingCount === 2 && enemyNames.includes("Ancient Oak"))) {
+  if (!(engine === "tactics" && playerNames.length === 2 && playerNames.includes("Mosskit") && playerNames.includes("Tommy") && saplingCount === 2 && enemyNames.includes("Ancient Oak"))) {
     out.errors.push("check6 entering The Ancient Grove for real did not load the exact real 3-piece formation")
   }
 }
@@ -410,7 +414,7 @@ function newPage() {
   await page8.screenshot({ path: `${SHOT}/deepwarden_live.png` })
   await page8.close()
   out.deepwardenEntry = { engine, playerNames, enemyNames }
-  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "Deepwarden")) {
+  if (!(engine === "tactics" && playerNames.length === 2 && playerNames.includes("Mosskit") && playerNames.includes("Tommy") && enemyNames.length === 1 && enemyNames[0] === "Deepwarden")) {
     out.errors.push("check8 entering Deepwarden for real did not load the exact real solo composition")
   }
 }
@@ -515,7 +519,7 @@ function newPage() {
   await page10.screenshot({ path: `${SHOT}/gorging_maw_live.png` })
   await page10.close()
   out.gorgingMawEntry = { engine, playerNames, enemyNames }
-  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "The Gorging Maw")) {
+  if (!(engine === "tactics" && playerNames.length === 2 && playerNames.includes("Mosskit") && playerNames.includes("Tommy") && enemyNames.length === 1 && enemyNames[0] === "The Gorging Maw")) {
     out.errors.push("check10 entering The Gorging Maw for real did not load the exact real solo composition")
   }
 }
@@ -611,7 +615,7 @@ function newPage() {
   await page12.screenshot({ path: `${SHOT}/wyrmgall_live.png` })
   await page12.close()
   out.wyrmgallEntry = { engine, playerNames, enemyNames }
-  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "Wyrmgall")) {
+  if (!(engine === "tactics" && playerNames.length === 2 && playerNames.includes("Mosskit") && playerNames.includes("Tommy") && enemyNames.length === 1 && enemyNames[0] === "Wyrmgall")) {
     out.errors.push("check12 entering Wyrmgall for real did not load the exact real solo composition")
   }
 }
@@ -715,7 +719,7 @@ function newPage() {
   await page14.screenshot({ path: `${SHOT}/iron_sentinel_live.png` })
   await page14.close()
   out.ironSentinelEntry = { engine, playerNames, enemyNames }
-  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "The Iron Sentinel")) {
+  if (!(engine === "tactics" && playerNames.length === 2 && playerNames.includes("Mosskit") && playerNames.includes("Tommy") && enemyNames.length === 1 && enemyNames[0] === "The Iron Sentinel")) {
     out.errors.push("check14 entering The Iron Sentinel for real did not load the exact real solo composition")
   }
 }
@@ -821,7 +825,7 @@ function newPage() {
   await page16.screenshot({ path: `${SHOT}/thornmaw_live.png` })
   await page16.close()
   out.thornmawEntry = { engine, playerNames, enemyNames }
-  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "Thornmaw")) {
+  if (!(engine === "tactics" && playerNames.length === 2 && playerNames.includes("Mosskit") && playerNames.includes("Tommy") && enemyNames.length === 1 && enemyNames[0] === "Thornmaw")) {
     out.errors.push("check16 entering Thornmaw for real did not load the exact real solo composition")
   }
 }
@@ -930,7 +934,7 @@ function newPage() {
   await page18.screenshot({ path: `${SHOT}/spacemonkey_live.png` })
   await page18.close()
   out.spacemonkeyEntry = { engine, playerNames, enemyNames }
-  if (!(engine === "tactics" && playerNames.length === 1 && playerNames[0] === "Mosskit" && enemyNames.length === 1 && enemyNames[0] === "Spacemonkey")) {
+  if (!(engine === "tactics" && playerNames.length === 2 && playerNames.includes("Mosskit") && playerNames.includes("Tommy") && enemyNames.length === 1 && enemyNames[0] === "Spacemonkey")) {
     out.errors.push("check18 entering Spacemonkey for real did not load the exact real solo composition")
   }
 }
@@ -1020,6 +1024,61 @@ function newPage() {
   ) {
     out.errors.push("check19 Spacemonkey's win did not end the run correctly (expected phase:\"victory\", unchanged essence/nodeIndex, battle left as {phase:\"won\"})")
   }
+}
+
+// 20. End-to-end through the REAL Fight button: the Commander's real
+//     kit (stats + Haste + Squad Passive) survives the real bridge -
+//     Tommy fires a real second strike and Squad Passive's Block/Weak
+//     badges appear during an ACTUAL click-driven real fight, not just
+//     the isolated prototype ------------------------------------------
+{
+  const page20 = await newPage()
+  page20.on("pageerror", (e) => errs.push(String(e)))
+  await page20.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page20, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page20.reload({ waitUntil: "domcontentloaded" })
+  await page20.waitForTimeout(400)
+  await page20.locator(".hw-tactics-fight-btn").click()
+  await page20.waitForTimeout(400)
+  const tommyToken = page20.locator(".hwt-token", { hasText: "Tommy" })
+  await tommyToken.click({ force: true })
+  await page20.waitForTimeout(200)
+  let placed = false
+  for (let i = 0; i < 6 && !placed; i++) {
+    const reach = page20.locator('.hwt-cell[data-reachable="true"]')
+    const n = await reach.count()
+    if (n > 0) {
+      const boxes = []
+      for (let j = 0; j < n; j++) boxes.push({ idx: j, box: await reach.nth(j).boundingBox() })
+      boxes.sort((a, b) => a.box.x - b.box.x)
+      await reach.nth(boxes[0].idx).click()
+      await page20.waitForTimeout(250)
+    }
+    const targetable = await page20.locator('.hwt-cell[data-targetable="true"]').count()
+    if (targetable > 0) {
+      placed = true
+      break
+    }
+    await page20.locator(".hwt-end-turn").click().catch(() => {})
+    await page20.waitForTimeout(400)
+    await tommyToken.click({ force: true }).catch(() => {})
+    await page20.waitForTimeout(200)
+  }
+  const targetable = page20.locator('.hwt-cell[data-targetable="true"]')
+  if ((await targetable.count()) > 0) {
+    await targetable.first().click()
+    await page20.waitForTimeout(400)
+  }
+  const logText = await page20.locator(".hwt-log").innerText()
+  const hasteLine = logText.includes("Haste fires")
+  const weakBadgeCount = await page20.locator(".hwt-weak-badge").count()
+  const commanderBadgeCount = await page20.locator(".hwt-commander-badge").count()
+  const hasteBadgeCount = await page20.locator(".hwt-haste-badge").count()
+  await page20.screenshot({ path: `${SHOT}/real_fight_commander.png` })
+  await page20.close()
+  out.realFightCommanderKit = { hasteLine, weakBadgeCount, commanderBadgeCount, hasteBadgeCount }
+  const ok = hasteLine && weakBadgeCount >= 1 && commanderBadgeCount === 1 && hasteBadgeCount === 1
+  if (!ok) out.errors.push("check20 the Commander's real kit (Haste/Squad Passive) did not survive the real Fight button bridge")
 }
 
 console.log(JSON.stringify(out, null, 2))

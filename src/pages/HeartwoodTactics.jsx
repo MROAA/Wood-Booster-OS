@@ -91,13 +91,16 @@ export default function HeartwoodTactics() {
 
   // Load the real run's actual squad + actual enemy - a snapshot preview,
   // not a live connection. Never writes anything back to the real run;
-  // see tacticsRealMatchup.js for the full non-mutating guarantee.
+  // see tacticsRealMatchup.js for the full non-mutating guarantee. Also
+  // includes the real run's own Commander (characterId/commanderRank) -
+  // real-fight wiring round - so this preview stays faithful to what
+  // the real Fight button now actually deploys, not a stale subset.
   function startRealMatchup() {
     if (!realMatchup) return
     setSelectedId(null)
     setAbilityMode(null)
     setUsingReal(true)
-    setBattle(maybeDebugLowHp(createRealMatchupBattle(realMatchup.squadDefIds, realMatchup.enemyDefIds)))
+    setBattle(maybeDebugLowHp(createRealMatchupBattle(realMatchup.squadDefIds, realMatchup.enemyDefIds, realMatchup.characterId, realMatchup.commanderRank)))
   }
 
   // The one way out of real-matchup mode - back to today's exact default

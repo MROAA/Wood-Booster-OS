@@ -28,7 +28,7 @@ import { UNITS } from "../../data/heartwood/units"
 const PREVIEWABLE_PHASES = new Set(["formation", "battle"])
 
 // Resolves an already-in-memory runState + node into { label, squadDefIds,
-// enemyDefIds } for the tactics engine's createRealMatchupBattle/
+// enemyDefIds, characterId, commanderRank } for the tactics engine's
 // createRealMatchupBattle, or null when there's nothing resolvable (no
 // encounter id, or an empty squad/enemy side). Pure - no localStorage
 // touch at all, so HeartwoodBattle.jsx can call this directly on the
@@ -56,6 +56,12 @@ export function resolveRealMatchup(runState, node) {
     label: formation.name || ENEMIES[enemyDefIds[0]]?.name || "your run's next fight",
     squadDefIds,
     enemyDefIds,
+    // Real-fight wiring round: the run's own actual chosen Commander +
+    // Rank-Up level, threaded through to createRealMatchupBattle so it
+    // can deploy the SAME Commander (with the same real rank-scaled
+    // Squad Passive) the player actually has, not a hardcoded default.
+    characterId: runState.characterId,
+    commanderRank: runState.commanderRank || 0,
   }
 }
 

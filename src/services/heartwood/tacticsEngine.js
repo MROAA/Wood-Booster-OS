@@ -26,7 +26,7 @@
 
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
-import { CHARACTERS } from "../../data/heartwood/characters"
+import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -763,25 +763,43 @@ function spreadRows(count, gridRows) {
 // enemy's own archetype mechanic (covenAura/cultRitual/charge/broodSplit/
 // leech/poison - all read straight off that unit's own real ENEMIES def)
 // resolve normally. Deliberately does NOT carry over the live game's
-// difficulty scaling, relics, items, or the Commander (no UNITS entry,
-// not modeled here at all), and formationId is null so a curated
-// formation's PACK-LEVEL synergy bonus (Swarm/Hunters' flat Strength,
-// Fortress's per-round Block, Rot's self-mend) never applies to an
-// arbitrary real matchup - the same "reuse real data, not the live
-// scaling" discipline every archetype round's curated formations already
-// follow, just without a formation-level bonus to translate.
-export function createRealMatchupBattle(squadDefIds, enemyDefIds) {
-  const playerRows = spreadRows(squadDefIds.length, GRID.rows)
+// difficulty scaling, relics, or items, and formationId is null so a
+// curated formation's PACK-LEVEL synergy bonus (Swarm/Hunters' flat
+// Strength, Fortress's per-round Block, Rot's self-mend) never applies
+// to an arbitrary real matchup - the same "reuse real data, not the
+// live scaling" discipline every archetype round's curated formations
+// already follow, just without a formation-level bonus to translate.
+//
+// Real-fight wiring round: the Commander DOES now carry over, via 2
+// new optional params (characterId/commanderRank) defaulting to "no
+// Commander" for byte-identical old behavior on any caller that omits
+// them - the exact real values (runState.characterId/commanderRank)
+// tacticsRealMatchup.js's own resolveRealMatchup now threads through
+// from the actual run, not a hardcoded default the way the isolated
+// prototype's own createTacticsBattle has to (no shop phase there to
+// have earned a real Rank-Up from).
+export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = null, commanderRank = 0) {
+  const character = characterId ? CHARACTERS[characterId] : null
+  const playerRows = spreadRows(squadDefIds.length + (character ? 1 : 0), GRID.rows)
   const enemyRows = spreadRows(enemyDefIds.length, GRID.rows)
   const units = [
     ...squadDefIds.map((defId, i) =>
       deriveTacticsUnit(defId, "player", { row: playerRows[i], col: GRID.cols - 1 }, `player-${defId}-${i}`),
     ),
+    ...(character
+      ? [deriveCommanderUnit(characterId, { row: playerRows[squadDefIds.length], col: GRID.cols - 1 }, "player-commander")]
+      : []),
     ...enemyDefIds.map((defId, i) =>
       deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
-  const withBaseline = units.map((u) => ({ ...u, baseAttack: u.attack }))
+  // The real Commander's real Squad Passive, rank-scaled by the run's
+  // OWN real commanderRank (unlike createTacticsBattle's own always-
+  // rank-0 default) - applied before the baseAttack snapshot, same
+  // ordering as createTacticsBattle so the Strength grant folds into
+  // baseline rather than showing a misleading growth badge.
+  const withSquadPassive = character ? applySquadPassiveToUnits(units, commanderPassiveWithRank(character, commanderRank)) : units
+  const withBaseline = withSquadPassive.map((u) => ({ ...u, baseAttack: u.attack }))
   return {
     grid: GRID,
     // No terrain in a real matchup this round - terrain stays isolated-
@@ -790,7 +808,12 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds) {
     units: withBaseline,
     phase: "player",
     turn: 1,
-    log: ["A real matchup from your run. The Frontier opens. Your turn."],
+    // The Commander's own real, hand-authored description reused
+    // verbatim as the opening line, same as createTacticsBattle - only
+    // when a real Commander is actually present.
+    log: character
+      ? [character.description, "A real matchup from your run. The Frontier opens. Your turn."]
+      : ["A real matchup from your run. The Frontier opens. Your turn."],
     formationId: null,
   }
 }
