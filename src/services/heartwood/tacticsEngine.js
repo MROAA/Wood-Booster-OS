@@ -626,6 +626,11 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // Updated by moveUnit whenever the unit actually moves; attacking
     // in place never turns a unit around.
     facing: side === "player" ? "W" : "E",
+    // Per-class Facing round: reads whatever units.js's own className
+    // field holds - always null for enemies/the Commander, whose defs
+    // carry no such field at all, the same "reads whatever's there,
+    // naturally absent elsewhere" pattern haste already uses above.
+    className: def.className || null,
     triggers,
     phases,
     phaseIndex: 0,
@@ -1015,14 +1020,56 @@ function classifyFacingAttack(attacker, defender) {
 // reactions" pieces are each tied to a mechanic this engine doesn't
 // have yet (Block-sunder, crits, Zone-of-Control reactions) - named,
 // deliberate deferrals, not part of this round's own multiplier.
-const FACING_MULTIPLIER = { front: 1, side: 1.1, back: 1.25 }
+const FACING_BASE_PP = { side: 10, back: 25 }
+
+// Per-class Facing round (Movement PRD §4.2's last unbuilt piece): the
+// PRD names 10 abstract classes (Assassin/Duelist/Ranger/Striker/
+// Hunter/Saboteur benefit; Guardian/Sentinel/Warden/Juggernaut resist),
+// but the 48 real recruitable units (units.js) use a completely
+// different flavor taxonomy - only "Guardian" literally matches. Mapped
+// by theme onto the real classes instead (confirmed directly by
+// reading every className+role pair in units.js): every real tank-role
+// class (wall/ward/bulwark-flavored) resists, and the dps-role classes
+// with a precise/mobile/shadow flavor (not every dps - blunt brawlers
+// like Berserker/Bruiser/Zealot stay neutral) benefit. Enemies/the
+// Commander carry no className at all, so they always stay neutral -
+// a stated scope limit, not a bug.
+const FLANK_BENEFIT_CLASSES = new Set([
+  "Nightblade", "Reaver", "Skirmisher", "Venomtongue", "Cutter",
+  "Silencer", "Umbramancer", "Frostblade", "Briarblade", "Marksman",
+])
+const FLANK_RESIST_CLASSES = new Set([
+  "Bulwark", "Crownguard", "Stonewarden", "Ironbark", "Graveguard",
+  "Decoy", "Keystone", "Keeper", "Bearer", "Guardian",
+])
+const FLANK_BENEFIT_PP = { side: 5, back: 10 }
+const FLANK_RESIST_PP = { side: 5, back: 10 }
+
+export function flankRole(className) {
+  if (!className) return null
+  if (FLANK_BENEFIT_CLASSES.has(className)) return "benefit"
+  if (FLANK_RESIST_CLASSES.has(className)) return "resist"
+  return null
+}
+
+// Composes so a benefiting attacker vs a resisting defender lands
+// exactly back on the base numbers - a nimble flanker gets no extra
+// edge attacking a naturally sturdy target, an intentional cancel-out,
+// not a coincidence.
+function facingMultiplier(attacker, defender, facing) {
+  if (facing === "front") return 1
+  let pp = FACING_BASE_PP[facing]
+  if (flankRole(attacker.className) === "benefit") pp += FLANK_BENEFIT_PP[facing]
+  if (flankRole(defender.className) === "resist") pp -= FLANK_RESIST_PP[facing]
+  return 1 + pp / 100
+}
 
 function modifiedAttackAmount(attacker, defender, baseAmount) {
   let amount = baseAmount
   if (attacker.woundedFury > 0 && attacker.hp < attacker.maxHp * 0.5) amount += 3
   if (attacker.weak > 0) amount = Math.floor(amount * 0.75)
   const facing = classifyFacingAttack(attacker, defender)
-  if (facing !== "front") amount = Math.round(amount * FACING_MULTIPLIER[facing])
+  if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
   if (attacker.shatter > 0 && defender.block > 0) amount += attacker.shatter
   return amount
@@ -1259,7 +1306,8 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // modifiedAttackAmount already needed the same classification once
   // for the actual damage multiplier above.
   const facing = classifyFacingAttack(actor, target)
-  const facingNote = facing === "side" ? " (flanked, +10%)" : facing === "back" ? " (from behind, +25%)" : ""
+  const facingPct = facing !== "front" ? Math.round((facingMultiplier(actor, target, facing) - 1) * 100) : 0
+  const facingNote = facing === "side" ? ` (flanked, +${facingPct}%)` : facing === "back" ? ` (from behind, +${facingPct}%)` : ""
   next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that

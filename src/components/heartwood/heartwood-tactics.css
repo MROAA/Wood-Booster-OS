@@ -279,6 +279,14 @@
   font-size: 7px;
   color: var(--hw-moss);
 }
+.hwt-flank-benefit-badge {
+  font-size: 8px;
+  color: var(--hw-curse);
+}
+.hwt-flank-resist-badge {
+  font-size: 8px;
+  color: var(--hw-stone);
+}
 
 /* The enemy intent telegraph - what this enemy plans to do this coming
    enemy phase, visible during the player's own turn. */

@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5416
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bigboard/.scratch/shots"
+const PORT = process.env.PORT || 5417
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-classflank/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1251,6 +1251,27 @@ function newPage() {
     boardStyle.cols === 12 &&
     boardStyle.rows === 9
   if (!ok) out.errors.push("check24 the real board did not render at the new 9x12 size")
+}
+
+// 25. Per-class Facing bonuses: a real fight through the Fight button
+//     carries a real recruited unit's own className through - Hexbreaker
+//     (className "Reaver", a benefit class) shows the real benefit
+//     badge on the real board -------------------------------------
+{
+  const page25 = await newPage()
+  page25.on("pageerror", (e) => errs.push(String(e)))
+  await page25.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page25, (n) => n.type === "battle" && n.formationId, ["hexbreaker"])
+  await page25.reload({ waitUntil: "domcontentloaded" })
+  await page25.waitForTimeout(400)
+  await page25.locator(".hw-tactics-fight-btn").click()
+  await page25.waitForTimeout(400)
+  const benefitBadgeCount = await page25.locator(".hwt-flank-benefit-badge").count()
+  await page25.screenshot({ path: `${SHOT}/real_fight_flank_class.png` })
+  await page25.close()
+  out.realFightFlankClass = { benefitBadgeCount }
+  const ok = benefitBadgeCount === 1
+  if (!ok) out.errors.push("check25 a real recruited unit's own className did not carry through to the real board's benefit badge")
 }
 
 console.log(JSON.stringify(out, null, 2))
