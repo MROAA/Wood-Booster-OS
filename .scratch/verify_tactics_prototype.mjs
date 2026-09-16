@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5419
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intercept/.scratch/shots"
+const PORT = process.env.PORT || 5420
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-critblock/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intercept", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-critblock", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intercept", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-critblock", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -4566,8 +4566,11 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     !result.front.logLine.includes("behind") &&
     result.side.hp === 189 &&
     result.side.logLine.includes("flanked, +10%") &&
-    result.back.hp === 187 &&
-    result.back.logLine.includes("from behind, +25%")
+    // Block-weakening/Crit round: back hits now always crit (+25pp
+    // flat on top of the base +25pp), so 10 * 1.50 = 15, not the old
+    // 10 * 1.25 = 12.5 -> 13.
+    result.back.hp === 185 &&
+    result.back.logLine.includes("from behind, CRITICAL, +50%")
   if (!ok) out.errors.push("check131 Facing's front/side/back damage math or narration was wrong")
 }
 
@@ -4672,11 +4675,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     // line by the attacker's own name, never assume it's the newest
     // (last) entry.
     const logLine = state.log.find((l) => l.startsWith(`${attackerName} strikes `))
-    return { hp: after.hp, expectedDamage: Math.round(attackValue * 1.25), logLine }
+    // Block-weakening/Crit round: back hits always crit now, +50% total
+    // (was +25%).
+    return { hp: after.hp, expectedDamage: Math.round(attackValue * 1.5), logLine }
   })
   await page134.close()
   out.facingRealFlank = result
-  const ok = result.hp === 200 - result.expectedDamage && result.logLine.includes("from behind, +25%")
+  const ok = result.hp === 200 - result.expectedDamage && result.logLine.includes("from behind, CRITICAL, +50%")
   if (!ok) out.errors.push("check134 A real derived-unit back attack did not land the correct bonus damage or narration")
 }
 
@@ -4736,7 +4741,8 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     // mover's own new facing to "E" (the direction it just traveled),
     // which happens to put the Enemy directly at the mover's own back -
     // a genuine, correct Facing interaction: expected damage is
-    // Math.round(5 * 1.25) = 6.
+    // Math.round(5 * 1.50) = 8 (back hits always crit now, +50% total,
+    // not the old +25%).
     const leftState = buildState({ row: 1, col: 2 })
     const afterLeave = moveUnit(leftState, "mover", { row: 1, col: 4 })
     const moverAfterLeave = afterLeave.units.find((u) => u.id === "mover")
@@ -4754,7 +4760,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   })
   await page131.close()
   out.zocCoreReaction = result
-  const ok = result.leaveHp === 20 - Math.round(5 * 1.25) && result.leaveLogHasReaction && result.stayHp === 20 && !result.stayLogHasReaction
+  const ok = result.leaveHp === 20 - Math.round(5 * 1.5) && result.leaveLogHasReaction && result.stayHp === 20 && !result.stayLogHasReaction
   if (!ok) out.errors.push("check131 leaving a melee enemy's zone did not trigger the correct reaction, or staying inside it wrongly did")
 }
 
@@ -5075,7 +5081,9 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
       newGridAcceptsIt,
       atkFinalPos: atkAfterMove.pos,
       strikeLine: state.log.find((l) => l.startsWith("Flanker strikes ")),
-      backBonusApplied: state.log.some((l) => l.includes("from behind, +25%")),
+      // Block-weakening/Crit round: back hits always crit now, +50%
+      // total (was +25%).
+      backBonusApplied: state.log.some((l) => l.includes("from behind, CRITICAL, +50%")),
     }
   })
   await page141.close()
@@ -5136,11 +5144,15 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   })
   await page142.close()
   out.perClassFacingMath = result
+  // Block-weakening/Crit round: every back hit now always crits
+  // (+25pp flat), so the base back pp moves from 25 to 50 - the whole
+  // 4-combination matrix shifts up by exactly 25 (the cancel-out still
+  // lands on the new crit-inclusive base, 150, not the old 125).
   const ok =
-    result.benefitVsNeutral === 135 &&
-    result.neutralVsResist === 115 &&
-    result.benefitVsResist === 125 &&
-    result.neutralVsNeutral === 125
+    result.benefitVsNeutral === 160 &&
+    result.neutralVsResist === 140 &&
+    result.benefitVsResist === 150 &&
+    result.neutralVsNeutral === 150
   if (!ok) out.errors.push("check142 the per-class Facing math did not match the 4-combination matrix (benefit/resist/cancel-out/base)")
 }
 
@@ -5196,8 +5208,11 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   })
   await page144.close()
   out.realHexbreakerFlank = result
-  const ok = result.className === "Reaver" && !!result.strikeLine && result.strikeLine.includes("from behind, +35%")
-  if (!ok) out.errors.push("check144 a real Hexbreaker (Reaver, a benefit class) did not land a genuine +35% back hit")
+  // Block-weakening/Crit round: back hits always crit now (+25pp), so
+  // a benefit-class back hit moves from +35% to +60% (25 base + 25
+  // crit + 10 benefit).
+  const ok = result.className === "Reaver" && !!result.strikeLine && result.strikeLine.includes("from behind, CRITICAL, +60%")
+  if (!ok) out.errors.push("check144 a real Hexbreaker (Reaver, a benefit class) did not land a genuine +60% back hit")
 }
 
 // 145. UI, driven through a real page render: the DEFAULT squad
@@ -5628,6 +5643,221 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.groveWardenHpAfter < result.before.groveWardenHp &&
     result.hasInterceptNote
   if (!ok) out.errors.push("check160 a real Grove Warden did not genuinely intercept part of a real attack against an adjacent ally")
+}
+
+// ---------------------------------------------------------------
+// Block-weakening (side) and Crit (back) - the last 2 named PRD §4.2
+// effects. Marc picked "always happens" over real randomness, so
+// every check below asserts one exact number, same as every other
+// Facing-family check.
+// ---------------------------------------------------------------
+
+// 161. Crit's exact math: a neutral-class back hit now shows +50%
+//      (was +25% before this round), narrated with CRITICAL; a
+//      benefit-class attacker vs a resist-class defender still cancels
+//      the CLASS adjustment exactly, landing on the crit-inclusive
+//      base of +50% (not the old +25%) - proving crit is a flat
+//      addition to the existing formula, not stacked separately -----
+{
+  const page161 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page161.on("pageerror", (e) => errs.push(String(e)))
+  await page161.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page161.waitForSelector(".hwt-board")
+  const result = await page161.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Attacker directly WEST of the defender, defender facing "E" -
+    // opposite direction = "back", per classifyFacingAttack.
+    function backHit(attackerClassName, defenderClassName) {
+      const state = {
+        grid: { rows: 5, cols: 5 },
+        terrain: {},
+        log: [],
+        phase: "enemy",
+        units: [
+          { id: "atk", name: "Atk", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 100, block: 0, className: attackerClassName, pos: { row: 2, col: 1 } },
+          { id: "def", name: "Def", side: "player", hp: 999, maxHp: 999, ap: 1, block: 0, className: defenderClassName, facing: "E", pos: { row: 2, col: 2 } },
+        ],
+      }
+      const after = attackUnit(state, "atk", "def")
+      const def = after.units.find((u) => u.id === "def")
+      return { damage: 999 - def.hp, logLine: after.log[0] }
+    }
+    const neutral = backHit(null, null)
+    const cancelled = backHit("Nightblade", "Bulwark")
+    return { neutralDamage: neutral.damage, neutralLog: neutral.logLine, cancelledDamage: cancelled.damage }
+  })
+  await page161.close()
+  out.critExactMath = result
+  const ok =
+    result.neutralDamage === 150 &&
+    result.neutralLog.includes("from behind, CRITICAL, +50%") &&
+    result.cancelledDamage === 150
+  if (!ok) out.errors.push("check161 Crit's flat +25pp did not compose correctly with the base back-hit bonus or the per-class cancel-out")
+}
+
+// 162. Block-weaken's exact math: a side hit against a target with
+//      Block halves it (floor), and the REDUCED value is what actually
+//      absorbs the hit; a side hit against a target with 0 Block does
+//      nothing extra; a front/back hit never weakens Block regardless
+//      of the target's own Block value ------------------------------
+{
+  const page162 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page162.on("pageerror", (e) => errs.push(String(e)))
+  await page162.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page162.waitForSelector(".hwt-board")
+  const result = await page162.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Attacker NORTH of the defender, defender facing "E" - a
+    // perpendicular direction classifies as "side" per classifyFacingAttack.
+    function hit(attackerRow, defenderFacing, defenderBlock) {
+      const state = {
+        grid: { rows: 5, cols: 5 },
+        terrain: {},
+        log: [],
+        phase: "enemy",
+        units: [
+          { id: "atk", name: "Atk", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 20, block: 0, pos: { row: attackerRow, col: 2 } },
+          { id: "def", name: "Def", side: "player", hp: 999, maxHp: 999, ap: 1, block: defenderBlock, facing: defenderFacing, pos: { row: 2, col: 2 } },
+        ],
+      }
+      const after = attackUnit(state, "atk", "def")
+      const def = after.units.find((u) => u.id === "def")
+      return { hp: def.hp, block: def.block, hasWeakenNote: after.log[0].includes("Block is weakened") }
+    }
+    // A big starting Block (100) so the post-weaken/unweakened value
+    // SURVIVES absorbing this hit's own damage, rather than being
+    // fully consumed down to 0 either way - the only way to actually
+    // tell "halved" and "unmodified" apart from the FINAL block number.
+    const sideWithBlock = hit(1, "E", 100)
+    const sideNoBlock = hit(1, "E", 0)
+    // Defender faces "N"; attacker SOUTH (row 3, higher than the
+    // defender's row 2) is the OPPOSITE direction - "back", not "side".
+    const backWithBlock = hit(3, "N", 100)
+    return { sideWithBlock, sideNoBlock, backWithBlock }
+  })
+  await page162.close()
+  out.blockWeakenExactMath = result
+  // Side: 20 atk * 1.10 = 22 dmg; 100 Block halved to 50, absorbs all
+  // 22, leaving 50-22=28 (not the un-weakened 100-22=78).
+  // Back: 20 atk * 1.50 (always-crit) = 30 dmg; Block untouched at
+  // 100, absorbs all 30, leaving 100-30=70 (not a halved-then-absorbed
+  // 50-30=20).
+  const ok =
+    result.sideWithBlock.block === 28 &&
+    result.sideWithBlock.hasWeakenNote &&
+    result.sideNoBlock.block === 0 &&
+    !result.sideNoBlock.hasWeakenNote &&
+    result.backWithBlock.block === 70 &&
+    !result.backWithBlock.hasWeakenNote
+  if (!ok) out.errors.push("check162 Block-weaken did not halve Block on a side hit only, or fired when it shouldn't have")
+}
+
+// 163. Shatter's own gate reads the POST-weaken Block, not the
+//      pre-weaken amount - a Shatter-carrying attacker's bonus
+//      correctly reflects whether Block is STILL present after this
+//      round's own halving --------------------------------------
+{
+  const page163 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page163.on("pageerror", (e) => errs.push(String(e)))
+  await page163.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page163.waitForSelector(".hwt-board")
+  const result = await page163.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Block starts at 1 - halved (floor(1/2)=0) BEFORE modifiedAttackAmount
+    // runs, so Shatter's own "defender.block > 0" gate should see 0,
+    // NOT the original 1, and its bonus should NOT apply.
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      log: [],
+      phase: "enemy",
+      units: [
+        { id: "atk", name: "Atk", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 20, shatter: 50, block: 0, pos: { row: 1, col: 2 } },
+        { id: "def", name: "Def", side: "player", hp: 999, maxHp: 999, ap: 1, block: 1, facing: "E", pos: { row: 2, col: 2 } },
+      ],
+    }
+    const after = attackUnit(state, "atk", "def")
+    const def = after.units.find((u) => u.id === "def")
+    return { damage: 999 - def.hp, blockAfter: def.block }
+  })
+  await page163.close()
+  out.shatterReadsPostWeaken = result
+  // 20 base * 1.10 (side) = 22, no Shatter bonus since block was
+  // already weakened to 0 before the gate check. If Shatter's own
+  // gate read the STALE pre-weaken block (1 > 0), it would add its
+  // full +50 bonus instead - a wildly different, easy-to-tell-apart number.
+  const ok = result.damage === 22 && result.blockAfter === 0
+  if (!ok) out.errors.push("check163 Shatter's own gate read the pre-weaken Block value instead of the post-weaken one")
+}
+
+// 164. A real end-to-end pair via createTacticsBattle: a real side hit
+//      against a real Block-holding player unit, and a real back hit
+//      against a real enemy, both narrated and mathed correctly -----
+{
+  const page164 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page164.on("pageerror", (e) => errs.push(String(e)))
+  await page164.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page164.waitForSelector(".hwt-board")
+  const result = await page164.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default", ["the-fool"])
+    const mosskit = state.units.find((u) => u.defId === "the-fool")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    // Mosskit (className null, confirmed neutral - PR #490's own
+    // check145) rather than Oathshield: Oathshield's real className
+    // "Bulwark" is a RESIST class, which reduces its OWN incoming side
+    // bonus (+5pp instead of +10pp) - a real, correct interaction with
+    // last round's per-class Facing system, but an unwanted confound
+    // for a check meant to isolate THIS round's own Block-weaken math
+    // in isolation, not two mechanics composing.
+    // Mosskit's own real `block` starts at 0 (nothing grants it any at
+    // battle start) - hand-set a real nonzero value to isolate THIS
+    // round's own mechanic (what happens when a side hit meets
+    // existing Block), the same established pattern every prior
+    // round's own real-unit checks already use for whichever
+    // precondition they need, not itself under test here - position
+    // the enemy directly NORTH of it for a real side hit.
+    state = {
+      ...state,
+      // The attacker here is the ENEMY - createTacticsBattle's own
+      // default phase is "player", which would silently reject this
+      // whole attack via attackUnit's own `state.phase !== actor.side`
+      // gate (the exact known gotcha: a headless enemy-attacker check
+      // needs phase:"enemy").
+      phase: "enemy",
+      units: state.units.map((u) => {
+        // A big Block value (100, not a small real one) so the
+        // weakened value SURVIVES absorbing the real enemy's own
+        // attack - the same fix check162 needed: a Block too small to
+        // outlast the hit gets fully consumed either way, hiding
+        // whether it was actually halved first.
+        if (u.id === mosskit.id) return { ...u, pos: { row: 2, col: 2 }, block: 100 }
+        if (u.id === enemy.id) return { ...u, pos: { row: 1, col: 2 }, hp: 999, maxHp: 999 }
+        return u
+      }),
+    }
+    const blockBefore = state.units.find((u) => u.id === mosskit.id).block
+    const enemyAttack = state.units.find((u) => u.id === enemy.id).attack
+    const after = attackUnit(state, enemy.id, mosskit.id)
+    const mosskitAfter = after.units.find((u) => u.id === mosskit.id)
+    return {
+      className: mosskit.className,
+      blockBefore,
+      enemyAttack,
+      blockAfter: mosskitAfter.block,
+      hasWeakenNote: after.log.some((l) => l.includes("Block is weakened")),
+    }
+  })
+  await page164.close()
+  out.realBlockWeakenPair = result
+  // Weakened Block (50) then absorbs the real enemy's own side-hit
+  // damage (real attack * 1.10, rounded - Mosskit is confirmed neutral
+  // class, so no per-class adjustment applies) - computed from the
+  // REAL attack value, not a hand-picked number, the same discipline
+  // every prior round's own real-unit checks already use.
+  const expectedBlockAfter = Math.floor(result.blockBefore / 2) - Math.round(result.enemyAttack * 1.1)
+  const ok = !result.className && result.blockBefore > 0 && result.blockAfter === expectedBlockAfter && result.hasWeakenNote
+  if (!ok) out.errors.push("check164 a real side hit against a real Block-holding unit did not genuinely weaken its Block")
 }
 
 console.log(JSON.stringify(out, null, 2))

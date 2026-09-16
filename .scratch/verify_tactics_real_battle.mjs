@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5419
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intercept/.scratch/shots"
+const PORT = process.env.PORT || 5420
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-critblock/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1346,6 +1346,51 @@ function newPage() {
   out.realFightIntercept = { setup, logHasIntercept: logText.includes("intercepts"), groveWardenHpAfter: groveWardenAfter?.hp }
   const ok = logText.includes("intercepts") && groveWardenAfter && groveWardenAfter.hp < setup.groveWardenHpBefore
   if (!ok) out.errors.push("check27 a real Grove Warden did not intercept a real enemy attack against an adjacent ally")
+}
+
+// 28. Block-weakening/Crit: a real fight, with units repositioned for
+//     a guaranteed back-hit geometry, shows a real CRITICAL-narrated
+//     strike through an ACTUAL click-driven attack ------------------
+{
+  const page28 = await newPage()
+  page28.on("pageerror", (e) => errs.push(String(e)))
+  await page28.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page28, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page28.reload({ waitUntil: "domcontentloaded" })
+  await page28.waitForTimeout(400)
+  await page28.locator(".hw-tactics-fight-btn").click()
+  await page28.waitForTimeout(400)
+  const setup = await page28.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const mosskit = battle.units.find((u) => u.defId === "the-fool")
+    const enemy = battle.units.find((u) => u.side === "enemy")
+    // Enemy's real default facing is "E" (confirmed universal spawn
+    // default) - move it to a MIDDLE column first (its own real spawn
+    // col:0 has no valid column to its west at all), then place
+    // Mosskit directly WEST of it for a genuine real "back" hit.
+    enemy.pos = { row: 4, col: 5 }
+    mosskit.pos = { row: 4, col: 4 }
+    mosskit.ap = mosskit.apMax
+    enemy.hp = enemy.maxHp
+    enemy.block = 0
+    battle.units = battle.units.map((u) => (u.id !== mosskit.id && u.id !== enemy.id ? { ...u, pos: { row: 0, col: 0 } } : u))
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { mosskitName: mosskit.name, enemyHpBefore: enemy.hp }
+  })
+  await page28.reload({ waitUntil: "domcontentloaded" })
+  await page28.waitForTimeout(400)
+  await page28.locator(".hwt-token", { hasText: setup.mosskitName }).click({ force: true })
+  await page28.waitForTimeout(200)
+  await page28.locator('.hwt-cell[data-targetable="true"]').first().click()
+  await page28.waitForTimeout(300)
+  const logText = await page28.locator(".hwt-log").innerText()
+  await page28.screenshot({ path: `${SHOT}/real_fight_crit.png` })
+  await page28.close()
+  out.realFightCrit = { setup, logHasCritical: logText.includes("CRITICAL") }
+  const ok = logText.includes("CRITICAL")
+  if (!ok) out.errors.push("check28 a real click-driven back hit did not narrate CRITICAL through the real Fight button")
 }
 
 console.log(JSON.stringify(out, null, 2))

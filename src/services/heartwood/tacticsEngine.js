@@ -1109,6 +1109,15 @@ export function flankRole(className) {
   return null
 }
 
+// Block-weakening/Crit round (Movement PRD §4.2's last 2 named
+// effects, "always happens" per Marc's own pick over real randomness -
+// keeps every check able to assert one exact number). Crit is a flat,
+// unconditional bonus on every back hit - reuses the SAME pp formula
+// Facing/per-class already use, so the per-class benefit/resist
+// adjustments (and their own cancel-out property) still apply on top,
+// unaffected by this flat addition.
+const CRIT_BONUS_PP = 25
+
 // Composes so a benefiting attacker vs a resisting defender lands
 // exactly back on the base numbers - a nimble flanker gets no extra
 // edge attacking a naturally sturdy target, an intentional cancel-out,
@@ -1116,6 +1125,7 @@ export function flankRole(className) {
 function facingMultiplier(attacker, defender, facing) {
   if (facing === "front") return 1
   let pp = FACING_BASE_PP[facing]
+  if (facing === "back") pp += CRIT_BONUS_PP
   if (flankRole(attacker.className) === "benefit") pp += FLANK_BENEFIT_PP[facing]
   if (flankRole(defender.className) === "resist") pp -= FLANK_RESIST_PP[facing]
   return 1 + pp / 100
@@ -1373,8 +1383,22 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   }
   let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
-  const rawAmount = modifiedAttackAmount(actor, target, actor.attack)
-  const guardian = eligibleGuardian(next, target)
+  // Block-weakening/Crit round: facing is computed HERE, before the
+  // damage calc, since a side hit's own Block-weaken is a real state
+  // mutation that must land before modifiedAttackAmount/Shatter's own
+  // `defender.block > 0` gate reads the target - not just narration
+  // math like every prior round's own later re-computation.
+  const facing = classifyFacingAttack(actor, target)
+  let effectiveTarget = target
+  let blockWeakenNote = ""
+  if (facing === "side" && target.block > 0) {
+    const weakened = Math.floor(target.block / 2)
+    next = setUnit(next, targetId, { block: weakened })
+    effectiveTarget = { ...target, block: weakened }
+    blockWeakenNote = ` ${target.name}'s Block is weakened to ${weakened}!`
+  }
+  const rawAmount = modifiedAttackAmount(actor, effectiveTarget, actor.attack)
+  const guardian = eligibleGuardian(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
   if (guardian) {
     const guardianShare = Math.round(rawAmount / 2)
@@ -1399,14 +1423,12 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     fellNote = fell ? " It falls." : ""
   }
   // Facing round: narrate a side/back hit the same plain mechanical
-  // way every other landed-hit modifier already does - re-computed
-  // here (cheap position math) purely for the log line, since
-  // modifiedAttackAmount already needed the same classification once
-  // for the actual damage multiplier above.
-  const facing = classifyFacingAttack(actor, target)
-  const facingPct = facing !== "front" ? Math.round((facingMultiplier(actor, target, facing) - 1) * 100) : 0
-  const facingNote = facing === "side" ? ` (flanked, +${facingPct}%)` : facing === "back" ? ` (from behind, +${facingPct}%)` : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}`] }
+  // way every other landed-hit modifier already does - the real
+  // applied percentage already includes Crit's own flat bonus, since
+  // facingMultiplier computes it in the same formula.
+  const facingPct = facing !== "front" ? Math.round((facingMultiplier(actor, effectiveTarget, facing) - 1) * 100) : 0
+  const facingNote = facing === "side" ? ` (flanked, +${facingPct}%)` : facing === "back" ? ` (from behind, CRITICAL, +${facingPct}%)` : ""
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that
   // hit's damage - the real game's debuff step is its own move in the
