@@ -21,15 +21,62 @@ import { deserializeRun } from "./runEngine"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { UNITS } from "../../data/heartwood/units"
+import { streamRng } from "../../data/heartwood/seed"
+import { GRID } from "./tacticsEngine"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
 // choice/victory/defeat) has no "current enemy" worth previewing.
 const PREVIEWABLE_PHASES = new Set(["formation", "battle"])
 
+// Seeded terrain round: how many scattered hazard/terrain cells a real
+// fight gets, and their weighted type mix - the real 4 ids already
+// defined in tacticsEngine.js's own TERRAIN map, no new type invented.
+// rock/water/poison are the real hazards ("hazardit"); forest is a
+// zero-cost cosmetic variant ("ja muut" - Marc's own "and other
+// things") so a fight can look different even when nothing dangerous
+// lands nearby.
+const TERRAIN_HAZARD_COUNT = 6
+function pickTerrainType(roll) {
+  if (roll < 0.3) return "rock"
+  if (roll < 0.5) return "water"
+  if (roll < 0.75) return "poison"
+  return "forest"
+}
+
+// Seed System PRD (seed.js's own SEED_STREAMS): "combat" was reserved
+// from PR #429 onward but never wired - this is its first real use, not
+// a new stream invented. streamRng(seed, "combat", `${nodeIndex}:terrain`)
+// is a fresh, stable generator - the SAME (seed, nodeIndex) always
+// regenerates the SAME battlefield (reload-safe, share-a-seed-safe),
+// matching every other stream-consuming caller's own contract exactly.
+// Confined to the grid's middle 4 columns (3-6 of GRID.cols=10) so
+// neither side's own spawn column is ever touched - the same "hazards
+// live between the two sides" shape The Crossing's own hand-authored
+// layout already established. A pure function of (seed, nodeIndex) -
+// tacticsEngine.js itself stays unaware the seed system exists at all;
+// it just receives a plain terrain map, indistinguishable from a
+// hand-authored ENEMY_FORMATIONS one.
+export function generateRealTerrain(seed, nodeIndex) {
+  const rng = streamRng(seed, "combat", `${nodeIndex}:terrain`)
+  const terrain = {}
+  let placed = 0
+  let attempts = 0
+  while (placed < TERRAIN_HAZARD_COUNT && attempts < TERRAIN_HAZARD_COUNT * 4) {
+    attempts++
+    const row = Math.floor(rng() * GRID.rows)
+    const col = 3 + Math.floor(rng() * 4)
+    const key = `${row}-${col}`
+    if (terrain[key]) continue
+    terrain[key] = pickTerrainType(rng())
+    placed++
+  }
+  return terrain
+}
+
 // Resolves an already-in-memory runState + node into { label, squadDefIds,
-// enemyDefIds, characterId, commanderRank } for the tactics engine's
-// createRealMatchupBattle, or null when there's nothing resolvable (no
+// enemyDefIds, characterId, commanderRank, terrain } for the tactics
+// engine's createRealMatchupBattle, or null when there's nothing resolvable (no
 // encounter id, or an empty squad/enemy side). Pure - no localStorage
 // touch at all, so HeartwoodBattle.jsx can call this directly on the
 // LIVE runState it already has in React state, no round-trip needed.
@@ -62,6 +109,10 @@ export function resolveRealMatchup(runState, node) {
     // Squad Passive) the player actually has, not a hardcoded default.
     characterId: runState.characterId,
     commanderRank: runState.commanderRank || 0,
+    // Seeded terrain round: a battlefield generated from the run's own
+    // seed + this node's own stable index - the same seed always
+    // regenerates the same terrain for the same fight.
+    terrain: generateRealTerrain(runState.seed, runState.nodeIndex),
   }
 }
 

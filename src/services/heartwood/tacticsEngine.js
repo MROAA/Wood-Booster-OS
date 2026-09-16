@@ -778,7 +778,7 @@ function spreadRows(count, gridRows) {
 // from the actual run, not a hardcoded default the way the isolated
 // prototype's own createTacticsBattle has to (no shop phase there to
 // have earned a real Rank-Up from).
-export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = null, commanderRank = 0) {
+export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = null, commanderRank = 0, terrain = {}) {
   const character = characterId ? CHARACTERS[characterId] : null
   const playerRows = spreadRows(squadDefIds.length + (character ? 1 : 0), GRID.rows)
   const enemyRows = spreadRows(enemyDefIds.length, GRID.rows)
@@ -802,9 +802,13 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = 
   const withBaseline = withSquadPassive.map((u) => ({ ...u, baseAttack: u.attack }))
   return {
     grid: GRID,
-    // No terrain in a real matchup this round - terrain stays isolated-
-    // prototype-only, per this round's own stated scope.
-    terrain: {},
+    // Seeded terrain round: a real matchup's own terrain is generated
+    // by tacticsRealMatchup.js's generateRealTerrain (seed +
+    // nodeIndex-keyed, via seed.js's own reserved "combat" stream) and
+    // passed straight through here - this function stays fully
+    // unaware the seed system exists at all, exactly like it's always
+    // been unaware of ENEMY_FORMATIONS' own hand-authored terrain maps.
+    terrain,
     units: withBaseline,
     phase: "player",
     turn: 1,

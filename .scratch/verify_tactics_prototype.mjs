@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5412
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-realwire/.scratch/shots"
+const PORT = process.env.PORT || 5413
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-seedterrain/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-realwire", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-seedterrain", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-realwire", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-seedterrain", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -4440,6 +4440,71 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.realMatchupNoCommander = result
   const ok = result.count === 1 && result.firstLogLine === "A real matchup from your run. The Frontier opens. Your turn."
   if (!ok) out.errors.push("check128 omitting characterId broke createRealMatchupBattle's old no-Commander behavior")
+}
+
+// ---------------------------------------------------------------
+// The seeded-terrain round (feat/hearthwood-tactics-seedterrain) -
+// generateRealTerrain (tacticsRealMatchup.js), the seed system's first
+// real use of its own reserved "combat" stream. These checks import
+// generateRealTerrain directly (a pure function of seed+nodeIndex, no
+// localStorage/runState needed) rather than seeding a full real save -
+// the same "test the actual function directly" precedent this whole
+// session already uses wherever a pure helper allows it.
+// ---------------------------------------------------------------
+
+// 129. generateRealTerrain is deterministic (same seed+nodeIndex ->
+//      identical map), seed-sensitive, and node-sensitive, and every
+//      cell it produces is in-bounds (col 3-6, a real terrain id) -----
+{
+  const page129 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page129.on("pageerror", (e) => errs.push(String(e)))
+  await page129.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page129.waitForSelector(".hwt-board")
+  const result = await page129.evaluate(async () => {
+    const { generateRealTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { GRID } = await import("/src/services/heartwood/tacticsEngine.js")
+    const a = generateRealTerrain(12345, 3)
+    const b = generateRealTerrain(12345, 3)
+    const seedDiff = generateRealTerrain(99999, 3)
+    const nodeDiff = generateRealTerrain(12345, 4)
+    const entries = Object.entries(a)
+    const validTypes = new Set(["rock", "water", "poison", "forest"])
+    const shapeOk = entries.every(([key, type]) => {
+      const [row, col] = key.split("-").map(Number)
+      return row >= 0 && row < GRID.rows && col >= 3 && col <= 6 && validTypes.has(type)
+    })
+    return {
+      deterministic: JSON.stringify(a) === JSON.stringify(b),
+      seedSensitive: JSON.stringify(a) !== JSON.stringify(seedDiff),
+      nodeSensitive: JSON.stringify(a) !== JSON.stringify(nodeDiff),
+      count: entries.length,
+      shapeOk,
+    }
+  })
+  await page129.close()
+  out.seededTerrainGeneration = result
+  const ok = result.deterministic && result.seedSensitive && result.nodeSensitive && result.count > 0 && result.count <= 6 && result.shapeOk
+  if (!ok) out.errors.push("check129 generateRealTerrain was not deterministic/seed-sensitive/node-sensitive, or produced an out-of-bounds cell")
+}
+
+// 130. createRealMatchupBattle actually uses the passed-in terrain map,
+//      and omitting it stays byte-identical to the old {} behavior -----
+{
+  const page130 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page130.on("pageerror", (e) => errs.push(String(e)))
+  await page130.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page130.waitForSelector(".hwt-board")
+  const result = await page130.evaluate(async () => {
+    const { createRealMatchupBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const terrain = { "2-4": "rock", "3-5": "water" }
+    const withTerrain = createRealMatchupBattle(["the-fool"], ["ironmaw"], null, 0, terrain)
+    const withoutTerrain = createRealMatchupBattle(["the-fool"], ["ironmaw"])
+    return { withTerrain: withTerrain.terrain, withoutTerrainKeys: Object.keys(withoutTerrain.terrain).length }
+  })
+  await page130.close()
+  out.realMatchupTerrainPassthrough = result
+  const ok = JSON.stringify(result.withTerrain) === JSON.stringify({ "2-4": "rock", "3-5": "water" }) && result.withoutTerrainKeys === 0
+  if (!ok) out.errors.push("check130 createRealMatchupBattle did not use the passed-in terrain, or broke the old no-terrain default")
 }
 
 console.log(JSON.stringify(out, null, 2))

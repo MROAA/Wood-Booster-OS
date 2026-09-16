@@ -580,7 +580,7 @@ export default function HeartwoodBattle() {
       const node = current.path[current.nodeIndex]
       const matchup = resolveRealMatchup(current, node)
       if (!matchup) return current
-      let battle = createRealMatchupBattle(matchup.squadDefIds, matchup.enemyDefIds, matchup.characterId, matchup.commanderRank)
+      let battle = createRealMatchupBattle(matchup.squadDefIds, matchup.enemyDefIds, matchup.characterId, matchup.commanderRank, matchup.terrain)
       // The same QA-only ?debugLowHp=1 hook HeartwoodTactics.jsx's own
       // maybeDebugLowHp already uses - never a real feature, just lets a
       // verification pass reach a real win without grinding real attack

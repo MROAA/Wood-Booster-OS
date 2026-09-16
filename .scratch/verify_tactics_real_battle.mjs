@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5412
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-realwire/.scratch/shots"
+const PORT = process.env.PORT || 5413
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-seedterrain/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -52,9 +52,9 @@ const out = { errors: [] }
 // real act via the same `actIndexForNode` HeartwoodBattle.jsx itself
 // reads - not a workaround, the correct value for a save that starts
 // "already this far into the run."
-async function seedRealSave(page, nodeFilter, benchDefIds) {
+async function seedRealSave(page, nodeFilter, benchDefIds, forcedSeed = null) {
   return page.evaluate(
-    async ({ nodeFilterSrc, benchDefIds }) => {
+    async ({ nodeFilterSrc, benchDefIds, forcedSeed }) => {
       const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
       // eslint-disable-next-line no-new-func
       const nodeFilter = new Function("n", `return (${nodeFilterSrc})(n)`)
@@ -62,12 +62,26 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
       const bench = benchDefIds.map((defId, i) => ({ key: `b${i}`, defId, upgradeLevel: 0, upgrades: [] }))
       const deployed = [...bench.map((e) => e.key), ...Array(4 - bench.length).fill(null)]
       const lastSeenAct = actIndexForNode(idx, RUN_PATH.length)
-      const rs = { ...startRun("tommy"), nodeIndex: idx, path: RUN_PATH.slice(0, idx + 1), phase: "formation", bench, deployed, items: [], lastSeenAct }
+      // Seeded terrain round: an optional forced seed (startRun's own
+      // meta.forcedSeed hook, already real/production-used for exactly
+      // this "reproducible for a check" purpose) - lets a check
+      // independently recompute the exact terrain generateRealTerrain
+      // itself would produce for this same (seed, nodeIndex) pair.
+      const rs = {
+        ...startRun("tommy", null, forcedSeed != null ? { forcedSeed } : null),
+        nodeIndex: idx,
+        path: RUN_PATH.slice(0, idx + 1),
+        phase: "formation",
+        bench,
+        deployed,
+        items: [],
+        lastSeenAct,
+      }
       localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
       const node = RUN_PATH[idx]
-      return { idx, type: node.type, formationId: node.formationId, enemyId: node.enemyId, essence: rs.essence }
+      return { idx, type: node.type, formationId: node.formationId, enemyId: node.enemyId, essence: rs.essence, seed: rs.seed }
     },
-    { nodeFilterSrc: nodeFilter.toString(), benchDefIds },
+    { nodeFilterSrc: nodeFilter.toString(), benchDefIds, forcedSeed },
   )
 }
 
@@ -1079,6 +1093,44 @@ function newPage() {
   out.realFightCommanderKit = { hasteLine, weakBadgeCount, commanderBadgeCount, hasteBadgeCount }
   const ok = hasteLine && weakBadgeCount >= 1 && commanderBadgeCount === 1 && hasteBadgeCount === 1
   if (!ok) out.errors.push("check20 the Commander's real kit (Haste/Squad Passive) did not survive the real Fight button bridge")
+}
+
+// 21. Seeded terrain: a real fight (a forced seed) shows the SAME
+//     terrain cell-type counts on the real board that
+//     generateRealTerrain itself independently computes for that exact
+//     (seed, nodeIndex) pair - proving the seed system's own terrain
+//     generation genuinely reaches a real, in-run battlefield, not
+//     just the isolated prototype ------------------------------------
+{
+  const page21 = await newPage()
+  page21.on("pageerror", (e) => errs.push(String(e)))
+  await page21.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  const seed21 = await seedRealSave(page21, (n) => n.type === "battle" && n.formationId, ["the-fool"], 424242)
+  const expectedTerrain = await page21.evaluate(
+    async ({ seed, idx }) => {
+      const { generateRealTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+      return generateRealTerrain(seed, idx)
+    },
+    { seed: seed21.seed, idx: seed21.idx },
+  )
+  await page21.reload({ waitUntil: "domcontentloaded" })
+  await page21.waitForTimeout(400)
+  await page21.locator(".hw-tactics-fight-btn").click()
+  await page21.waitForTimeout(400)
+  const terrainTypes = ["rock", "water", "poison", "forest"]
+  const countsByType = {}
+  for (const type of terrainTypes) {
+    countsByType[type] = await page21.locator(`.hwt-cell[data-terrain="${type}"]`).count()
+  }
+  await page21.screenshot({ path: `${SHOT}/real_fight_terrain.png` })
+  await page21.close()
+  const expectedCountsByType = {}
+  for (const type of terrainTypes) {
+    expectedCountsByType[type] = Object.values(expectedTerrain).filter((t) => t === type).length
+  }
+  out.realFightSeededTerrain = { seed: seed21.seed, expectedTerrain, countsByType, expectedCountsByType }
+  const ok = JSON.stringify(countsByType) === JSON.stringify(expectedCountsByType) && Object.keys(expectedTerrain).length > 0
+  if (!ok) out.errors.push("check21 the real board's own terrain cell counts did not match generateRealTerrain's own computed map for the same seed")
 }
 
 console.log(JSON.stringify(out, null, 2))
