@@ -1764,6 +1764,11 @@ export const ENEMIES = {
     art: "root",
     description: "It doesn't care how you fight. It's already found the shape of your mistake.",
     introLine: "It isn't watching your squad. It's watching for the mistake your squad hasn't made yet.",
+    // Fear Zone round (Hearthwood Frontier, tacticsEngine.js only):
+    // Wyrmgall's own already-written lines above are genuinely dread-
+    // flavored - the first real unit to carry this new portable trait,
+    // hand-authored, not invented flavor.
+    fearsome: true,
     // Marc: "work on bosses too" - the run's THIRD miniboss, and the
     // first to combine two finishing-blow mechanics instead of a
     // defensive/sustain pair (Deepwarden's Strength+Ward, Thornmaw's

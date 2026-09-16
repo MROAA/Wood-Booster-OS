@@ -120,6 +120,13 @@
   background: color-mix(in srgb, var(--hw-curse) 16%, transparent);
 }
 
+/* Fear Zone round: a third, distinct tint (a different hue from
+   Threat Zone's own --hw-curse) marking every tile a fearsome unit
+   currently controls - approaching one from outside weakens you. */
+.hwt-cell[data-fear-zone="true"] {
+  background: color-mix(in srgb, var(--hw-tide) 16%, transparent);
+}
+
 .hwt-cell[data-reachable="true"] {
   background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
   border-color: var(--hw-moss);
