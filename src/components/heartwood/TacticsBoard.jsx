@@ -26,6 +26,7 @@ import {
   previewChargeThreat,
   zoneOfControlCells,
   threatZoneCells,
+  fearZoneCells,
   flankRole,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
@@ -116,6 +117,11 @@ export default function TacticsBoard({
   // above - a separate set since a cell can be in one, both, or
   // neither (the 2 mechanics are additive, not mutually exclusive).
   const threatCells = useMemo(() => (battle.phase === "player" ? threatZoneCells(battle, "enemy") : new Set()), [battle])
+  // Fear Zone round: same static, phase-gated pattern as zocCells/
+  // threatCells above - a separate set since a cell can be in any
+  // combination of the 3 zone types at once (they're additive, not
+  // mutually exclusive).
+  const fearCells = useMemo(() => (battle.phase === "player" ? fearZoneCells(battle, "enemy") : new Set()), [battle])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
@@ -193,6 +199,7 @@ export default function TacticsBoard({
       const terrain = terrainHere(row, col)
       const zoc = zocCells.has(`${row}-${col}`)
       const threatZone = threatCells.has(`${row}-${col}`)
+      const fearZone = fearCells.has(`${row}-${col}`)
       cells.push(
         <div
           key={`${row}-${col}`}
@@ -204,6 +211,7 @@ export default function TacticsBoard({
           data-terrain={terrain}
           data-zoc={zoc}
           data-threat-zone={threatZone}
+          data-fear-zone={fearZone}
           onClick={() => handleCellClick(row, col)}
         >
           {unit && (

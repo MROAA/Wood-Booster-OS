@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5420
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-critblock/.scratch/shots"
+const PORT = process.env.PORT || 5421
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-fearzone/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-critblock", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-fearzone", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-critblock", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-fearzone", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -5858,6 +5858,193 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   const expectedBlockAfter = Math.floor(result.blockBefore / 2) - Math.round(result.enemyAttack * 1.1)
   const ok = !result.className && result.blockBefore > 0 && result.blockAfter === expectedBlockAfter && result.hasWeakenNote
   if (!ok) out.errors.push("check164 a real side hit against a real Block-holding unit did not genuinely weaken its Block")
+}
+
+// ---------------------------------------------------------------
+// Fear Zone (Movement PRD §4.3's 3rd sub-type) - weakens units that
+// approach it from outside. No range gate (a deliberate departure
+// from Basic/Threat Zone's own melee-only wording); reuses the
+// EXISTING `weak` debuff wholesale, zero new status effect.
+// ---------------------------------------------------------------
+
+// 165. fearZoneCells's own shape: radius-1, only for `fearsome` units
+//      regardless of range - a synthetic RANGED fearsome unit still
+//      projects it, proving the deliberate non-melee-gating -----------
+{
+  const page165 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page165.on("pageerror", (e) => errs.push(String(e)))
+  await page165.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page165.waitForSelector(".hwt-board")
+  const result = await page165.evaluate(async () => {
+    const { fearZoneCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    const fearsomeRangedState = {
+      grid: { rows: 9, cols: 12 },
+      units: [{ id: "e1", side: "enemy", hp: 10, range: 3, fearsome: true, pos: { row: 4, col: 6 } }],
+    }
+    const notFearsomeState = {
+      grid: { rows: 9, cols: 12 },
+      units: [{ id: "e1", side: "enemy", hp: 10, range: 1, fearsome: false, pos: { row: 4, col: 6 } }],
+    }
+    const fearCells = fearZoneCells(fearsomeRangedState, "enemy")
+    const noCells = fearZoneCells(notFearsomeState, "enemy")
+    return {
+      fearCellCount: fearCells.size,
+      hasAdjacentCell: fearCells.has("3-6") && fearCells.has("5-6") && fearCells.has("4-5") && fearCells.has("4-7"),
+      hasRadius2Cell: fearCells.has("4-4") || fearCells.has("2-6"),
+      noCellsCount: noCells.size,
+    }
+  })
+  await page165.close()
+  out.fearZoneShape = result
+  // A full 3x3 square minus the centre = 8 cells.
+  const ok = result.fearCellCount === 8 && result.hasAdjacentCell && !result.hasRadius2Cell && result.noCellsCount === 0
+  if (!ok) out.errors.push("check165 fearZoneCells did not produce the expected radius-1, fearsome-only (range-agnostic) shape")
+}
+
+// 166. The core mechanic: a unit moving from OUTSIDE an opposing Fear
+//      Zone to INSIDE it gains exactly 1 weak stack and the correct
+//      log line; sliding to another cell STILL inside the same zone
+//      grants nothing further (the transition-only guard) -----------
+{
+  const page166 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page166.on("pageerror", (e) => errs.push(String(e)))
+  await page166.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page166.waitForSelector(".hwt-board")
+  const result = await page166.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 0 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 1, move: 9, block: 0, weak: 0, facing: "W" },
+        { id: "fearsome", side: "enemy", name: "Dreadful", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, fearsome: true, block: 0, facing: "E" },
+      ],
+    }
+    // Move 1: from col0 (outside, distance 6) to (4,5) (inside, adjacent
+    // to fearsome@(4,6) - distance 1) - a genuine transition, should
+    // grant weak.
+    const afterEnter = moveUnit(state, "mover", { row: 4, col: 5 })
+    const moverAfterEnter = afterEnter.units.find((u) => u.id === "mover")
+    // Move 2: from (4,5) to (3,5) - BOTH cells are distance 1 from
+    // fearsome@(4,6) (Chebyshev), so this stays fully inside the same
+    // zone the whole time - no NEW transition, should grant nothing
+    // further. (Deliberately NOT (4,4), which is distance 2 - that
+    // would LEAVE both the Fear Zone's own radius AND fearsome's own
+    // separate Basic Zone control range, since fearsome is also
+    // range:1 - firing an unrelated Zone-of-Control reaction attack
+    // that adds its own, different log line and would falsely look
+    // like a repeated Fear Zone grant if only checking "did the log
+    // grow at all".)
+    const afterSlide = moveUnit({ ...afterEnter, units: afterEnter.units.map((u) => (u.id === "mover" ? { ...u, ap: 1 } : u)) }, "mover", { row: 3, col: 5 })
+    const moverAfterSlide = afterSlide.units.find((u) => u.id === "mover")
+    const newLinesFromSlide = afterSlide.log.slice(afterEnter.log.length)
+    return {
+      weakAfterEnter: moverAfterEnter.weak,
+      logHasFearNote: afterEnter.log.some((l) => l.includes("recoils in fear, weakened")),
+      weakAfterSlide: moverAfterSlide.weak,
+      slideAddedFearNote: newLinesFromSlide.some((l) => l.includes("recoils in fear")),
+    }
+  })
+  await page166.close()
+  out.fearZoneCoreMechanic = result
+  const ok = result.weakAfterEnter === 1 && result.logHasFearNote && result.weakAfterSlide === 1 && !result.slideAddedFearNote
+  if (!ok) out.errors.push("check166 Fear Zone did not grant weak exactly once on a genuine outside-to-inside transition, or fired again on a within-zone slide")
+}
+
+// 167. Weak's real effect actually applies afterward: the newly-
+//      weakened unit's own NEXT attack deals the real, already-
+//      established 25% reduction - proving genuine integration, not a
+//      cosmetic flag -------------------------------------------------
+{
+  const page167 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page167.on("pageerror", (e) => errs.push(String(e)))
+  await page167.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page167.waitForSelector(".hwt-board")
+  const result = await page167.evaluate(async () => {
+    const { moveUnit, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 0 }, hp: 20, maxHp: 20, range: 1, attack: 20, ap: 2, move: 9, block: 0, weak: 0, facing: "W" },
+        // facing "W" (not the usual enemy default "E") deliberately
+        // keeps this a FRONT hit - the mover ends up WEST of the
+        // defender, which would otherwise read as attacking its BACK
+        // and pull in Facing's own crit bonus too, muddying a check
+        // meant to isolate Weak's own effect in isolation.
+        { id: "fearsome", side: "enemy", name: "Dreadful", pos: { row: 4, col: 6 }, hp: 999, maxHp: 999, range: 1, attack: 0, fearsome: true, block: 0, facing: "W" },
+      ],
+    }
+    let after = moveUnit(state, "mover", { row: 4, col: 5 })
+    const moverAfterMove = after.units.find((u) => u.id === "mover")
+    after = attackUnit(after, "mover", "fearsome")
+    const target = after.units.find((u) => u.id === "fearsome")
+    return { weakAfterMove: moverAfterMove.weak, damageDealt: 999 - target.hp }
+  })
+  await page167.close()
+  out.fearZoneWeakIntegration = result
+  // 20 base attack, front-facing (no Facing bonus), Weak's own real
+  // 0.75 multiplier: Math.floor(20 * 0.75) = 15, not the un-weakened 20.
+  const ok = result.weakAfterMove === 1 && result.damageDealt === 15
+  if (!ok) out.errors.push("check167 a Fear-Zone-weakened unit's own next attack did not deal the real, already-established 25% reduction")
+}
+
+// 168. A real end-to-end approach via createTacticsBattle with
+//      wyrmgall: a real player unit approaching it from outside gains
+//      real Weak, narrated correctly -----------------------------
+{
+  const page168 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page168.on("pageerror", (e) => errs.push(String(e)))
+  await page168.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page168.waitForSelector(".hwt-board")
+  const result = await page168.evaluate(async () => {
+    const { createTacticsBattle, moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("wyrmgall", ["the-fool"])
+    const mosskit = state.units.find((u) => u.defId === "the-fool")
+    const wyrmgall = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      units: state.units.map((u) => (u.id === mosskit.id ? { ...u, pos: { row: wyrmgall.pos.row, col: wyrmgall.pos.col + 2 }, ap: 1, move: 3 } : u)),
+    }
+    const after = moveUnit(state, mosskit.id, { row: wyrmgall.pos.row, col: wyrmgall.pos.col + 1 })
+    const mosskitAfter = after.units.find((u) => u.id === mosskit.id)
+    return {
+      fearsome: wyrmgall.fearsome,
+      weakAfter: mosskitAfter.weak,
+      hasFearNote: after.log.some((l) => l.includes("recoils in fear, weakened")),
+    }
+  })
+  await page168.close()
+  out.realWyrmgallFearApproach = result
+  const ok = result.fearsome === true && result.weakAfter === 1 && result.hasFearNote
+  if (!ok) out.errors.push("check168 a real approach toward the real fearsome Wyrmgall did not genuinely grant Weak")
+}
+
+// 169. UI: data-fear-zone cells match fearZoneCells's own computed set
+//      exactly, visually distinct from data-zoc/data-threat-zone -
+//      a screenshot ---------------------------------------------
+{
+  const page169 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page169.on("pageerror", (e) => errs.push(String(e)))
+  await page169.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page169.waitForSelector(".hwt-board")
+  await page169.locator(".hwt-formation-btn", { hasText: "Wyrmgall" }).click()
+  await page169.waitForTimeout(300)
+  const expectedCount = await page169.evaluate(async () => {
+    const { createTacticsBattle, fearZoneCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("wyrmgall")
+    return fearZoneCells(battle, "enemy").size
+  })
+  const renderedCount = await page169.locator('.hwt-cell[data-fear-zone="true"]').count()
+  await page169.screenshot({ path: `${SHOT}/fear_zone_cells.png` })
+  await page169.close()
+  out.fearZoneUiCells = { expectedCount, renderedCount }
+  const ok = expectedCount > 0 && renderedCount === expectedCount
+  if (!ok) out.errors.push("check169 the rendered data-fear-zone cells did not match fearZoneCells's own computed set")
 }
 
 console.log(JSON.stringify(out, null, 2))

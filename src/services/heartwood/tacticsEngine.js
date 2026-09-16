@@ -631,6 +631,15 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // carry no such field at all, the same "reads whatever's there,
     // naturally absent elsewhere" pattern haste already uses above.
     className: def.className || null,
+    // Fear Zone round: a new, genuinely portable trait (not gated to
+    // range===1 like Basic/Threat Zone - the PRD names no melee
+    // restriction for Fear specifically) - reads whatever the def
+    // holds, the same "reads whatever's there, naturally absent
+    // elsewhere" pattern haste/className already use. No real unit
+    // carries this yet except wyrmgall (enemies.js), the same
+    // "portable, authored later" precedent Haste/Guardian's Intercept
+    // already established.
+    fearsome: !!def.fearsome,
     triggers,
     phases,
     phaseIndex: 0,
@@ -969,6 +978,34 @@ export function threatZoneCells(state, side) {
   return cells
 }
 
+// Fear Zone round (Movement PRD §4.3): "Heikentää yksiköitä, jotka
+// yrittävät lähestyä" - weakens units trying to APPROACH it. No
+// `range` gate at all (a deliberate departure from Basic/Threat Zone's
+// own melee-only wording, since the PRD names no such restriction for
+// Fear specifically) - any `fearsome` unit projects it, radius 1 (the
+// PRD's own base case, since it never says Fear is a "larger area"
+// the way it explicitly does for Threat Zone).
+function fearZoneControllers(state, pos, side) {
+  return state.units.filter((u) => u.side === side && u.hp > 0 && u.fearsome && kingAdjacent(u.pos, pos))
+}
+
+// Every "row-col" cell currently controlled by a living `fearsome`
+// `side` unit, radius 1 - for the UI, the same static-board-property
+// pattern zoneOfControlCells/threatZoneCells already established.
+export function fearZoneCells(state, side) {
+  const cells = new Set()
+  for (const controller of state.units.filter((u) => u.side === side && u.hp > 0 && u.fearsome)) {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue
+        const pos = { row: controller.pos.row + dr, col: controller.pos.col + dc }
+        if (isOnBoard(pos, state.grid)) cells.add(`${pos.row}-${pos.col}`)
+      }
+    }
+  }
+  return cells
+}
+
 // Every "row-col" cell currently controlled by a living melee `side`
 // unit - for the UI (a static board property, not relative to
 // whichever unit is selected, unlike reachable/targetable overlays).
@@ -1009,6 +1046,23 @@ export function moveUnit(state, unitId, targetPos) {
     next = setUnit(next, unitId, { poison: arrived.poison + grant })
     next = { ...next, log: [...next.log, `${unit.name} wades into the poison and starts coughing (+${grant}).`] }
   }
+  const opposingSide = unit.side === "player" ? "enemy" : "player"
+  // Fear Zone round: a unit that just moved from OUTSIDE an opposing
+  // Fear Zone to a cell INSIDE one - the same "approaching from clean
+  // ground" transition Threat Zone's own step-cost check already
+  // established, reused here as a plain boolean check instead - gains
+  // one stack of the EXISTING `weak` debuff, permanent for the rest of
+  // the battle (matching `weak`'s own already-established behavior
+  // everywhere else in this engine - never decays, checked as `> 0`).
+  // Both checks use the SAME pre-move `state` (a controller's own
+  // position never changes during the mover's own action).
+  const enteredFearZone =
+    fearZoneControllers(state, targetPos, opposingSide).length > 0 && fearZoneControllers(state, unit.pos, opposingSide).length === 0
+  if (enteredFearZone) {
+    const arrived = getUnit(next, unitId)
+    next = setUnit(next, unitId, { weak: arrived.weak + 1 })
+    next = { ...next, log: [...next.log, `${unit.name} recoils in fear, weakened!`] }
+  }
   // Zone of Control round: a living, melee OPPOSING controller of the
   // unit's own ORIGIN tile (`unit.pos`, captured before any of the
   // updates above - a controller's own position never changes here,
@@ -1017,7 +1071,6 @@ export function moveUnit(state, unitId, targetPos) {
   // Re-checks the mover's own live hp and the battle's own phase
   // before each subsequent controller's swing, so a flanking pair
   // never both attack a corpse or fire into an already-ended battle.
-  const opposingSide = unit.side === "player" ? "enemy" : "player"
   const leavingControllers = zocControllers(state, unit.pos, opposingSide).filter((controller) => !kingAdjacent(controller.pos, targetPos))
   for (const controller of leavingControllers) {
     if (next.phase === "won" || next.phase === "lost") break

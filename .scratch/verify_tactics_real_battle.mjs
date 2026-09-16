@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5420
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-critblock/.scratch/shots"
+const PORT = process.env.PORT || 5421
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-fearzone/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1391,6 +1391,72 @@ function newPage() {
   out.realFightCrit = { setup, logHasCritical: logText.includes("CRITICAL") }
   const ok = logText.includes("CRITICAL")
   if (!ok) out.errors.push("check28 a real click-driven back hit did not narrate CRITICAL through the real Fight button")
+}
+
+// 29. Fear Zone: a real approach toward the real Wyrmgall miniboss
+//     (a genuinely reachable RUN_PATH node, not just the isolated
+//     prototype's own demo formation) grants real Weak through an
+//     ACTUAL click-driven move ---------------------------------------
+{
+  const page29 = await newPage()
+  page29.on("pageerror", (e) => errs.push(String(e)))
+  await page29.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page29, (n) => n.type === "miniboss" && n.enemyId === "wyrmgall", ["the-fool"])
+  await page29.reload({ waitUntil: "domcontentloaded" })
+  await page29.waitForTimeout(400)
+  await page29.locator(".hw-tactics-fight-btn").click()
+  await page29.waitForTimeout(400)
+  const setup = await page29.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const mosskit = battle.units.find((u) => u.defId === "the-fool")
+    const wyrmgall = battle.units.find((u) => u.side === "enemy")
+    // 2 cells away, not 3: Wyrmgall's real maxHp (80) is >=40, so it's
+    // also "tanky" and projects its own radius-2 Threat Zone (PR #491).
+    // Starting OUTSIDE that (distance 3) would get the whole move
+    // capped by Threat Zone's own "entering from clean ground costs
+    // your entire budget" rule before ever reaching the Fear Zone's
+    // own radius-1. Starting AT distance 2 means the origin is already
+    // INSIDE the Threat Zone, where Threat Zone's own fix (PR #491)
+    // explicitly does NOT cap further movement - so this move reaches
+    // adjacent (distance 1, entering the Fear Zone) at normal cost.
+    mosskit.pos = { row: wyrmgall.pos.row, col: wyrmgall.pos.col + 2 }
+    mosskit.ap = mosskit.apMax
+    battle.units = battle.units.map((u) => (u.id !== mosskit.id && u.id !== wyrmgall.id ? { ...u, pos: { row: 0, col: 0 } } : u))
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { mosskitName: mosskit.name, wyrmgallName: wyrmgall.name, weakBefore: mosskit.weak || 0 }
+  })
+  await page29.reload({ waitUntil: "domcontentloaded" })
+  await page29.waitForTimeout(400)
+  await page29.locator(".hwt-token", { hasText: setup.mosskitName }).click({ force: true })
+  await page29.waitForTimeout(200)
+  const wyrmgallToken = page29.locator(".hwt-token", { hasText: setup.wyrmgallName })
+  const wyrmgallBox = await wyrmgallToken.boundingBox()
+  const reach = page29.locator('.hwt-cell[data-reachable="true"]')
+  const n = await reach.count()
+  let chosen = null
+  let bestDist = Infinity
+  for (let i = 0; i < n; i++) {
+    const box = await reach.nth(i).boundingBox()
+    const dist = Math.hypot(box.x - wyrmgallBox.x, box.y - wyrmgallBox.y)
+    if (dist < bestDist) {
+      bestDist = dist
+      chosen = i
+    }
+  }
+  if (chosen !== null) {
+    await reach.nth(chosen).click()
+    await page29.waitForTimeout(300)
+  }
+  const logText = await page29.locator(".hwt-log").innerText()
+  const afterBattle = await page29.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const mosskitAfter = afterBattle.units.find((u) => u.name === setup.mosskitName)
+  await page29.screenshot({ path: `${SHOT}/real_fight_fear_zone.png` })
+  await page29.close()
+  out.realFightFearZone = { setup, chosen, logHasFearNote: logText.includes("recoils in fear"), weakAfter: mosskitAfter?.weak }
+  const ok = chosen !== null && logText.includes("recoils in fear") && mosskitAfter && mosskitAfter.weak > setup.weakBefore
+  if (!ok) out.errors.push("check29 a real click-driven approach toward the real Wyrmgall did not grant real Weak through the Fear Zone")
 }
 
 console.log(JSON.stringify(out, null, 2))
