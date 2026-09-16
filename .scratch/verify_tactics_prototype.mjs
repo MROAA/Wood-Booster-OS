@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5411
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squadpassive/.scratch/shots"
+const PORT = process.env.PORT || 5412
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-realwire/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2136,10 +2136,15 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page63.screenshot({ path: `${SHOT}/real_matchup_preview.png` })
   await page63.close()
   out.realMatchupPreview = { playerNames, enemyNames, squadPickerCount, formationPickerCount }
+  // Real-fight wiring round: the seeded save's own real commander
+  // ("tommy", via seedRealSave's own startRun("tommy")) now deploys
+  // alongside the real recruited squad here too, matching what the
+  // real Fight button now actually does - 2 player units, not 1.
   if (
     !(
-      playerNames.length === 1 &&
-      playerNames[0] === "Mosskit" &&
+      playerNames.length === 2 &&
+      playerNames.includes("Mosskit") &&
+      playerNames.includes("Tommy") &&
       enemyNames.includes("Rotwood Husk") &&
       enemyNames.includes("Rotwood Sapling") &&
       squadPickerCount === 0 &&
@@ -2192,7 +2197,19 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   const enemyNames = await page65.locator('.hwt-token[data-side="enemy"] .hwt-token-name').allInnerTexts()
   await page65.close()
   out.realMatchupSolo = { bannerText, playerNames, enemyNames }
-  if (!(bannerText.includes("Drowned Siren") && playerNames.length === 2 && enemyNames.length === 1 && enemyNames[0] === "Drowned Siren")) {
+  // Real-fight wiring round: 2 recruited units (the-fool/hexbreaker) +
+  // the seeded save's own real Tommy Commander = 3, not 2.
+  if (
+    !(
+      bannerText.includes("Drowned Siren") &&
+      playerNames.length === 3 &&
+      playerNames.includes("Mosskit") &&
+      playerNames.includes("Hexbreaker") &&
+      playerNames.includes("Tommy") &&
+      enemyNames.length === 1 &&
+      enemyNames[0] === "Drowned Siren"
+    )
+  ) {
     out.errors.push("check65 a solo real enemy (bare enemyId) did not resolve correctly")
   }
 }
@@ -2239,7 +2256,9 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   }
   await page66.close()
   out.realMatchupPlayAgain = { phase, turns, playAgainNames }
-  if (!(phase === "won" && playAgainNames.length === 1 && playAgainNames[0] === "Mosskit")) {
+  // Real-fight wiring round: the re-fought real squad now includes the
+  // seeded save's own real Tommy Commander too - 2 player units, not 1.
+  if (!(phase === "won" && playAgainNames.length === 2 && playAgainNames.includes("Mosskit") && playAgainNames.includes("Tommy"))) {
     out.errors.push("check66 Play Again in real-matchup mode did not re-fight the same real squad")
   }
 }
@@ -2481,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squadpassive", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-realwire", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squadpassive", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-realwire", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -4312,6 +4331,115 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.squadPassiveOpeningLine = result
   const ok = result.firstLogLine === result.tommyDescription
   if (!ok) out.errors.push("check124 The battle's opening log line was not Tommy's real description, reused verbatim")
+}
+
+// ---------------------------------------------------------------
+// The real-fight wiring round (feat/hearthwood-tactics-realwire) -
+// createRealMatchupBattle now carries the run's own real Commander
+// (characterId/commanderRank) over too. Every new check gets its own
+// fresh page (the established anti-hang discipline).
+// ---------------------------------------------------------------
+
+// 125. resolveRealMatchup returns the real run's own characterId and
+//      commanderRank, not something invented - read straight off a
+//      real (headless-seeded) runState, never localStorage this time -
+{
+  const page125 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page125.on("pageerror", (e) => errs.push(String(e)))
+  await page125.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page125.waitForSelector(".hwt-board")
+  const result = await page125.evaluate(async () => {
+    const { startRun, RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+    const { resolveRealMatchup } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const idx = RUN_PATH.findIndex((n) => n.type === "battle" && n.formationId)
+    const bench = [{ key: "b0", defId: "the-fool", upgradeLevel: 0, upgrades: [] }]
+    const rs = { ...startRun("tommy"), nodeIndex: idx, path: RUN_PATH.slice(0, idx + 1), phase: "formation", bench, deployed: ["b0", null, null, null], items: [] }
+    const matchup = resolveRealMatchup(rs, RUN_PATH[idx])
+    return { characterId: matchup?.characterId, commanderRank: matchup?.commanderRank }
+  })
+  await page125.close()
+  out.resolveRealMatchupCommander = result
+  const ok = result.characterId === "tommy" && result.commanderRank === 0
+  if (!ok) out.errors.push("check125 resolveRealMatchup did not return the real run's own characterId/commanderRank")
+}
+
+// 126. createRealMatchupBattle with a real characterId produces a
+//      genuine Commander unit alongside the recruited squad - real
+//      name/art/haste, ability correctly null, real Squad Passive
+//      folded into its starting attack (6 base + 2 Strength = 8) ------
+{
+  const page126 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page126.on("pageerror", (e) => errs.push(String(e)))
+  await page126.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page126.waitForSelector(".hwt-board")
+  const result = await page126.evaluate(async () => {
+    const { createRealMatchupBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createRealMatchupBattle(["the-fool"], ["ironmaw"], "tommy", 0)
+    const players = battle.units.filter((u) => u.side === "player")
+    const commander = players.find((u) => u.id === "player-commander")
+    return {
+      count: players.length,
+      commander: commander && { name: commander.name, art: commander.art, haste: commander.haste, ability: commander.ability, attack: commander.attack, baseAttack: commander.baseAttack },
+      firstLogLine: battle.log[0],
+    }
+  })
+  await page126.close()
+  out.realMatchupCommanderUnit = result
+  const ok =
+    result.count === 2 &&
+    result.commander &&
+    result.commander.name === "Tommy" &&
+    result.commander.art === "cat" &&
+    result.commander.haste === true &&
+    result.commander.ability === null &&
+    result.commander.attack === 8 &&
+    result.commander.attack === result.commander.baseAttack &&
+    result.firstLogLine.includes("Cat's Reflexes")
+  if (!ok) out.errors.push("check126 createRealMatchupBattle did not deploy a genuine, fully-kitted real Commander")
+}
+
+// 127. Commander Rank-Up scaling actually differs from rank 0 - proving
+//      commanderPassiveWithRank (the real, rank-scaled call) is genuinely
+//      used here, not copy-pasted from createTacticsBattle's own
+//      always-rank-0 default. rank 2 -> factor 1.5 -> Strength amount
+//      Math.round(2*1.5)=3, so attack becomes 9, not 8 -----------------
+{
+  const page127 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page127.on("pageerror", (e) => errs.push(String(e)))
+  await page127.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page127.waitForSelector(".hwt-board")
+  const result = await page127.evaluate(async () => {
+    const { createRealMatchupBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const rank0 = createRealMatchupBattle(["the-fool"], ["ironmaw"], "tommy", 0)
+    const rank2 = createRealMatchupBattle(["the-fool"], ["ironmaw"], "tommy", 2)
+    const attack0 = rank0.units.find((u) => u.id === "player-commander").attack
+    const attack2 = rank2.units.find((u) => u.id === "player-commander").attack
+    return { attack0, attack2 }
+  })
+  await page127.close()
+  out.realMatchupRankScaling = result
+  const ok = result.attack0 === 8 && result.attack2 === 9
+  if (!ok) out.errors.push("check127 Commander Rank-Up scaling was not genuinely applied to a real matchup")
+}
+
+// 128. No characterId at all -> byte-identical old behavior (no
+//      Commander deployed) - proving the 2 new params are genuinely
+//      optional, not a breaking change to any other caller -----------
+{
+  const page128 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page128.on("pageerror", (e) => errs.push(String(e)))
+  await page128.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page128.waitForSelector(".hwt-board")
+  const result = await page128.evaluate(async () => {
+    const { createRealMatchupBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createRealMatchupBattle(["the-fool"], ["ironmaw"])
+    const players = battle.units.filter((u) => u.side === "player")
+    return { count: players.length, firstLogLine: battle.log[0] }
+  })
+  await page128.close()
+  out.realMatchupNoCommander = result
+  const ok = result.count === 1 && result.firstLogLine === "A real matchup from your run. The Frontier opens. Your turn."
+  if (!ok) out.errors.push("check128 omitting characterId broke createRealMatchupBattle's old no-Commander behavior")
 }
 
 console.log(JSON.stringify(out, null, 2))
