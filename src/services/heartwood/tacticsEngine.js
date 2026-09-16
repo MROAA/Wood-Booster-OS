@@ -622,6 +622,15 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     poisonOnHit,
     leech,
     haste,
+    // Facing round (Marc's own Movement & Tactical Gameplay PRD §4.2):
+    // every unit starts facing the opposing side - players always
+    // deploy at col: GRID.cols-1 facing "W" (toward the enemy side at
+    // col 0), enemies always deploy at col 0 facing "E" - a real,
+    // universal default confirmed true for every formation/real
+    // matchup this engine builds, not a per-formation special case.
+    // Updated by moveUnit whenever the unit actually moves; attacking
+    // in place never turns a unit around.
+    facing: side === "player" ? "W" : "E",
     triggers,
     phases,
     phaseIndex: 0,
@@ -896,7 +905,11 @@ export function moveUnit(state, unitId, targetPos) {
   if (!isOnBoard(targetPos, state.grid)) return state
   const legal = reachableTilesFor(state, unitId)
   if (!legal.some((p) => samePos(p, targetPos))) return state
-  let next = setUnit(state, unitId, { pos: targetPos, ap: unit.ap - 1 })
+  // Facing round: a unit that just moved now faces the direction it
+  // traveled - attacking in place never turns a unit around, only an
+  // actual move does.
+  const facing = cardinalDir(targetPos.col - unit.pos.col, targetPos.row - unit.pos.row)
+  let next = setUnit(state, unitId, { pos: targetPos, ap: unit.ap - 1, facing })
   // Poison Ground (Hearthwood Frontier's own real "trap" terrain): grants
   // a stack ONLY on arrival at the move's own destination tile - never
   // on any intermediate tile the pathfinding happened to route through -
@@ -926,10 +939,47 @@ export function moveUnit(state, unitId, targetPos) {
 // `attacker.attack` at derive/phase time, unlike the real game's own
 // dealDamage, which adds it fresh on every hit from a separate `powers`
 // stack.
+// Facing round (Movement & Tactical Gameplay PRD §4.2): buckets a raw
+// position delta into one of 4 cardinals by dominant axis - the PRD's
+// own simpler base case (8 directions is explicitly its "enhanced"
+// option, not the starting one).
+function cardinalDir(dCol, dRow) {
+  if (Math.abs(dCol) >= Math.abs(dRow)) return dCol >= 0 ? "E" : "W"
+  return dRow >= 0 ? "S" : "N"
+}
+
+const OPPOSITE_DIR = { N: "S", S: "N", E: "W", W: "E" }
+
+// Classifies an attack against the DEFENDER's own current facing -
+// front/side/back, the PRD's own 3-way split. Only the defender's
+// facing and both units' positions matter (the attacker's own facing
+// is irrelevant here, matching the PRD's own wording - it describes
+// the defender's exposure, not the attacker's stance). Defaults to
+// "front" (no bonus) when the defender carries no `facing` field at
+// all - the exact pre-Facing-round behavior, so every pre-existing
+// hand-built synthetic-state check (none of which set `facing`) stays
+// byte-identical rather than picking up an unintended new bonus.
+function classifyFacingAttack(attacker, defender) {
+  if (!defender.facing) return "front"
+  const attackDir = cardinalDir(attacker.pos.col - defender.pos.col, attacker.pos.row - defender.pos.row)
+  if (attackDir === defender.facing) return "front"
+  if (attackDir === OPPOSITE_DIR[defender.facing]) return "back"
+  return "side"
+}
+
+// The PRD's own real numbers (§4.2): front normal, side +10%, back
+// +25%. The "chance to weaken Block"/"chance to crit"/"weakens
+// reactions" pieces are each tied to a mechanic this engine doesn't
+// have yet (Block-sunder, crits, Zone-of-Control reactions) - named,
+// deliberate deferrals, not part of this round's own multiplier.
+const FACING_MULTIPLIER = { front: 1, side: 1.1, back: 1.25 }
+
 function modifiedAttackAmount(attacker, defender, baseAmount) {
   let amount = baseAmount
   if (attacker.woundedFury > 0 && attacker.hp < attacker.maxHp * 0.5) amount += 3
   if (attacker.weak > 0) amount = Math.floor(amount * 0.75)
+  const facing = classifyFacingAttack(attacker, defender)
+  if (facing !== "front") amount = Math.round(amount * FACING_MULTIPLIER[facing])
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
   if (attacker.shatter > 0 && defender.block > 0) amount += attacker.shatter
   return amount
@@ -1149,7 +1199,14 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   next = hit
   const absorbedNote = describeAbsorb(absorbed, armourUsed)
   const fellNote = fell ? " It falls." : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
+  // Facing round: narrate a side/back hit the same plain mechanical
+  // way every other landed-hit modifier already does - re-computed
+  // here (cheap position math) purely for the log line, since
+  // modifiedAttackAmount already needed the same classification once
+  // for the actual damage multiplier above.
+  const facing = classifyFacingAttack(actor, target)
+  const facingNote = facing === "side" ? " (flanked, +10%)" : facing === "back" ? " (from behind, +25%)" : ""
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that
   // hit's damage - the real game's debuff step is its own move in the

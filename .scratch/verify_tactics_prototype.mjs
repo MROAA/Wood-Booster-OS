@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5413
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-seedterrain/.scratch/shots"
+const PORT = process.env.PORT || 5414
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-facing/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-seedterrain", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-facing", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-seedterrain", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-facing", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -2804,12 +2804,19 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     let state = createTacticsBattle("default")
     const attackerId = state.units.find((u) => u.side === "enemy").id
     const defenderId = state.units.find((u) => u.side === "player").id
+    // Facing round: the attacker ends up EAST of the defender below
+    // (defPos.col + 1) - a synthetic geometry this check never
+    // intended to exercise. Pin the defender's own facing to "E" (it's
+    // now facing TOWARD its attacker) so this stays a genuine FRONT
+    // attack (no facing multiplier), keeping this check's own real
+    // subject (WoundedFury/Weak ordering) isolated from an unrelated
+    // mechanic.
     const base = () =>
       state.units.map((u) =>
         u.id === attackerId
           ? { ...u, pos: state.units.find((x) => x.id === defenderId).pos, attack: 10, hp: 100, maxHp: 100, woundedFury: 0, weak: 0, execute: 0, shatter: 0, ap: 1 }
           : u.id === defenderId
-            ? { ...u, hp: 200, maxHp: 200, block: 0 }
+            ? { ...u, hp: 200, maxHp: 200, block: 0, facing: "E" }
             : u,
       )
     // Move the attacker adjacent (Chebyshev 1) to the defender. The
@@ -4505,6 +4512,184 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.realMatchupTerrainPassthrough = result
   const ok = JSON.stringify(result.withTerrain) === JSON.stringify({ "2-4": "rock", "3-5": "water" }) && result.withoutTerrainKeys === 0
   if (!ok) out.errors.push("check130 createRealMatchupBattle did not use the passed-in terrain, or broke the old no-terrain default")
+}
+
+// ---------------------------------------------------------------
+// The Facing round (feat/hearthwood-tactics-facing) - Movement &
+// Tactical Gameplay PRD §4.2: attacking from the side (+10%) or behind
+// (+25%) deals more than a front attack (normal). Every new check gets
+// its own fresh page (the established anti-hang discipline).
+// ---------------------------------------------------------------
+
+// 131. Facing classification + damage math: front (normal), side
+//      (+10%), and back (+25%) - each confirmed via a real attackUnit
+//      call against a synthetic pair with facing explicitly set, and
+//      the exact Math.round math, never a hand-picked number ---------
+{
+  const page131 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page131.on("pageerror", (e) => errs.push(String(e)))
+  await page131.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page131.waitForSelector(".hwt-board")
+  const result = await page131.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const baseUnits = [
+      { id: "atk", side: "player", name: "Atk", pos: { row: 2, col: 2 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 1, block: 0, facing: "E" },
+      { id: "def", side: "enemy", name: "Def", pos: { row: 2, col: 3 }, hp: 200, maxHp: 200, range: 1, attack: 0, ap: 1, block: 0, facing: "E" },
+    ]
+    function runCase(atkPos) {
+      const state = {
+        grid: { rows: 5, cols: 5 },
+        terrain: {},
+        phase: "player",
+        turn: 1,
+        log: [],
+        units: baseUnits.map((u) => (u.id === "atk" ? { ...u, pos: atkPos, ap: 1 } : { ...u, hp: 200 })),
+      }
+      const after = attackUnit(state, "atk", "def")
+      return { hp: after.units.find((u) => u.id === "def").hp, logLine: after.log[after.log.length - 1] }
+    }
+    // Defender at (2,3), facing "E".
+    const front = runCase({ row: 2, col: 4 }) // attacker east of defender -> attackDir E === facing E -> front
+    const side = runCase({ row: 1, col: 3 }) // attacker north of defender -> attackDir N -> side
+    const back = runCase({ row: 2, col: 2 }) // attacker west of defender -> attackDir W === opposite(E) -> back
+    return { front, side, back }
+  })
+  await page131.close()
+  out.facingDamageMath = result
+  const ok =
+    result.front.hp === 190 &&
+    !result.front.logLine.includes("flanked") &&
+    !result.front.logLine.includes("behind") &&
+    result.side.hp === 189 &&
+    result.side.logLine.includes("flanked, +10%") &&
+    result.back.hp === 187 &&
+    result.back.logLine.includes("from behind, +25%")
+  if (!ok) out.errors.push("check131 Facing's front/side/back damage math or narration was wrong")
+}
+
+// 132. Backward-compatibility guard: a defender with NO facing field
+//      at all classifies as "front" (zero multiplier) - proving every
+//      pre-existing hand-built synthetic-state check (none of which
+//      ever set facing) stays byte-identical, not silently changed ---
+{
+  const page132 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page132.on("pageerror", (e) => errs.push(String(e)))
+  await page132.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page132.waitForSelector(".hwt-board")
+  const result = await page132.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "atk", side: "player", name: "Atk", pos: { row: 2, col: 2 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 1, block: 0 },
+        { id: "def", side: "enemy", name: "Def", pos: { row: 2, col: 3 }, hp: 200, maxHp: 200, range: 1, attack: 0, ap: 1, block: 0 },
+      ],
+    }
+    const after = attackUnit(state, "atk", "def")
+    return { hp: after.units.find((u) => u.id === "def").hp }
+  })
+  await page132.close()
+  out.facingNoFieldGuard = result
+  const ok = result.hp === 190
+  if (!ok) out.errors.push("check132 A defender with no facing field at all did not default to front (no multiplier)")
+}
+
+// 133. moveUnit updates the mover's own facing correctly for each of
+//      the 4 cardinals plus a diagonal (proving the dominant-axis tie
+//      resolves sensibly, not arbitrarily) ----------------------------
+{
+  const page133 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page133.on("pageerror", (e) => errs.push(String(e)))
+  await page133.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page133.waitForSelector(".hwt-board")
+  const result = await page133.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    function moveAndGetFacing(delta) {
+      const state = {
+        grid: { rows: 7, cols: 10 },
+        terrain: {},
+        phase: "player",
+        turn: 1,
+        log: [],
+        units: [{ id: "u1", side: "player", name: "U1", pos: { row: 3, col: 5 }, hp: 10, maxHp: 10, range: 1, attack: 1, ap: 1, move: 3, block: 0, facing: "W" }],
+      }
+      const target = { row: 3 + delta.row, col: 5 + delta.col }
+      const after = moveUnit(state, "u1", target)
+      return after.units.find((u) => u.id === "u1").facing
+    }
+    return {
+      north: moveAndGetFacing({ row: -1, col: 0 }),
+      south: moveAndGetFacing({ row: 1, col: 0 }),
+      east: moveAndGetFacing({ row: 0, col: 1 }),
+      west: moveAndGetFacing({ row: 0, col: -1 }),
+      diagonalNE: moveAndGetFacing({ row: -1, col: 1 }),
+    }
+  })
+  await page133.close()
+  out.facingMoveUpdates = result
+  const ok = result.north === "N" && result.south === "S" && result.east === "E" && result.west === "W" && result.diagonalNE === "E"
+  if (!ok) out.errors.push("check133 moveUnit did not update facing correctly for every cardinal/diagonal move")
+}
+
+// 134. A real end-to-end flank via createTacticsBattle: a recruited
+//      unit repositioned to the enemy's own real back (its stored
+//      facing is the real "E" default) lands the exact Math.round-
+//      computed bonus damage AND the log's own narration note --------
+{
+  const page134 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page134.on("pageerror", (e) => errs.push(String(e)))
+  await page134.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page134.waitForSelector(".hwt-board")
+  const result = await page134.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const attacker = state.units.find((u) => u.side === "player" && u.id !== "player-commander")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === enemy.id) return { ...u, pos: { row: 3, col: 5 }, hp: 200, maxHp: 200, block: 0 }
+        if (u.id === attacker.id) return { ...u, pos: { row: 3, col: 4 }, ap: 1 }
+        return u
+      }),
+    }
+    const attackValue = state.units.find((u) => u.id === attacker.id).attack
+    const attackerName = state.units.find((u) => u.id === attacker.id).name
+    state = attackUnit(state, attacker.id, enemy.id)
+    const after = state.units.find((u) => u.id === enemy.id)
+    // The recruited attacker also carries Squad Passive's own
+    // onDealDamage Weak trigger (PR #484), which adds ITS OWN log line
+    // right after the strike line - the same class of fix check87's
+    // own regression sweep already used: search for the actual strike
+    // line by the attacker's own name, never assume it's the newest
+    // (last) entry.
+    const logLine = state.log.find((l) => l.startsWith(`${attackerName} strikes `))
+    return { hp: after.hp, expectedDamage: Math.round(attackValue * 1.25), logLine }
+  })
+  await page134.close()
+  out.facingRealFlank = result
+  const ok = result.hp === 200 - result.expectedDamage && result.logLine.includes("from behind, +25%")
+  if (!ok) out.errors.push("check134 A real derived-unit back attack did not land the correct bonus damage or narration")
+}
+
+// 135. UI: every token (player and enemy alike) shows the new,
+//      always-visible facing arrow - a screenshot -----------------
+{
+  const page135 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page135.on("pageerror", (e) => errs.push(String(e)))
+  await page135.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page135.waitForSelector(".hwt-board")
+  const arrowCount = await page135.locator(".hwt-facing-badge").count()
+  const tokenCount = await page135.locator(".hwt-token").count()
+  await page135.screenshot({ path: `${SHOT}/facing_arrows.png` })
+  await page135.close()
+  out.facingUiBadge = { arrowCount, tokenCount }
+  const ok = tokenCount > 0 && arrowCount === tokenCount
+  if (!ok) out.errors.push("check135 not every token showed the new facing arrow")
 }
 
 console.log(JSON.stringify(out, null, 2))

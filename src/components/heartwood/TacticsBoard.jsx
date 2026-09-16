@@ -31,6 +31,12 @@ function apPips(unit) {
   return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
 }
 
+// Facing round: a plain compass arrow, no new icon asset - always
+// shown (unlike most badges, which are conditional on a stack/status
+// being active), since facing is a permanent property of every unit,
+// the same "always shown" category the AP-pips indicator already is.
+const FACING_ARROW = { N: "↑", S: "↓", E: "→", W: "←" }
+
 function getUnitName(battle, id) {
   return battle.units.find((u) => u.id === id)?.name || "?"
 }
@@ -208,6 +214,9 @@ export default function TacticsBoard({
                 )}
                 <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
                   {apPips(unit)}
+                </span>
+                <span className="hwt-facing-badge" title={`Facing ${unit.facing} - attacked from the side (+10%) or behind (+25%) takes more damage`}>
+                  {FACING_ARROW[unit.facing]}
                 </span>
                 {unit.block > 0 && (
                   <span className="hwt-block-badge" title={`${unit.block} Block`}>
