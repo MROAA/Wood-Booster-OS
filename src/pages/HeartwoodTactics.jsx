@@ -100,7 +100,7 @@ export default function HeartwoodTactics() {
     setSelectedId(null)
     setAbilityMode(null)
     setUsingReal(true)
-    setBattle(maybeDebugLowHp(createRealMatchupBattle(realMatchup.squadDefIds, realMatchup.enemyDefIds, realMatchup.characterId, realMatchup.commanderRank)))
+    setBattle(maybeDebugLowHp(createRealMatchupBattle(realMatchup.squadDefIds, realMatchup.enemyDefIds, realMatchup.characterId, realMatchup.commanderRank, realMatchup.terrain)))
   }
 
   // The one way out of real-matchup mode - back to today's exact default
