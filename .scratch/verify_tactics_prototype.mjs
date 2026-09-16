@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5415
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zoc/.scratch/shots"
+const PORT = process.env.PORT || 5416
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bigboard/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zoc", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bigboard", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zoc", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bigboard", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -3670,12 +3670,12 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   const ok =
     enemyNames.length === 1 &&
     enemyNames[0] === "Ironmaw" &&
-    t["1-5"] === "rock" &&
-    t["2-5"] === "rock" &&
-    t["4-5"] === "rock" &&
-    t["5-5"] === "rock" &&
-    t["3-5"] === "poison" &&
-    t["3-2"] === "water" &&
+    t["2-6"] === "rock" &&
+    t["3-6"] === "rock" &&
+    t["5-6"] === "rock" &&
+    t["6-6"] === "rock" &&
+    t["4-6"] === "poison" &&
+    t["4-2"] === "water" &&
     engineFacts.defaultCell === undefined
   if (!ok) out.errors.push("check103 The Crossing's terrain map did not match what was authored")
 }
@@ -3761,10 +3761,11 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     const { createTacticsBattle, moveUnit, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
     let state = createTacticsBattle("the-crossing")
     const mover = state.units.find((u) => u.side === "player")
-    // Place the mover right next to the real poison tile (3-5) and give
-    // it enough AP/move to step onto it in one action.
-    state = { ...state, units: state.units.map((u) => (u.id === mover.id ? { ...u, pos: { row: 3, col: 6 }, move: 2, ap: 1, hp: 50, maxHp: 50 } : u)) }
-    state = moveUnit(state, mover.id, { row: 3, col: 5 })
+    // Place the mover right next to the real poison tile (4-6, the
+    // re-centered 9x12 board) and give it enough AP/move to step onto
+    // it in one action.
+    state = { ...state, units: state.units.map((u) => (u.id === mover.id ? { ...u, pos: { row: 4, col: 7 }, move: 2, ap: 1, hp: 50, maxHp: 50 } : u)) }
+    state = moveUnit(state, mover.id, { row: 4, col: 6 })
     const afterMove = state.units.find((u) => u.id === mover.id)
     const grantLine = state.log.some((l) => l.includes("wades into the poison"))
     // A full player-turn-end (real code path, not a synthetic bypass)
@@ -3815,8 +3816,9 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 // 108. The default squad is genuinely 5: 4 real recruited units + 1 real
 //      Commander (Tommy) - NOT the earlier (wrong, corrected mid-round)
 //      6-unit design. Marc's own correction: "squadin koko on 5,
-//      4+commander". Positions verified via spreadRows(5, 7) (rows
-//      1-5, col: GRID.cols-1); Tommy's stats confirmed genuinely sourced
+//      4+commander". Positions verified via spreadRows(5, GRID.rows)
+//      (rows 2-6 on the current 9-row grid, col: GRID.cols-1); Tommy's
+//      stats confirmed genuinely sourced
 //      from CHARACTERS (real name/art/maxHp, attack derived from his own
 //      movePattern amount:6 plus his own squadPassive's +2 Strength,
 //      Squad Passive round), not a hand-typed guess -------------------
@@ -3855,7 +3857,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     // squad-wide grant every unit gets) - 8 is the real total, not 6.
     result.commander.attack === 8 &&
     result.commander.ability === null &&
-    JSON.stringify(result.rows) === JSON.stringify([1, 2, 3, 4, 5]) &&
+    JSON.stringify(result.rows) === JSON.stringify([2, 3, 4, 5, 6]) &&
     result.cols.length === 1 &&
     result.cols[0] === result.gridCols - 1
   if (!ok) out.errors.push("check108 The default squad was not genuinely 5 (4 real recruited units + a real Tommy Commander) in 5 distinct, correctly-centered rows")
@@ -4461,7 +4463,9 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 
 // 129. generateRealTerrain is deterministic (same seed+nodeIndex ->
 //      identical map), seed-sensitive, and node-sensitive, and every
-//      cell it produces is in-bounds (col 3-6, a real terrain id) -----
+//      cell it produces is in-bounds (col 3 to GRID.cols-4, a real
+//      terrain id - the generalized "3-column buffer on each side"
+//      band, 3-8 on the current 12-wide grid) -----------------------
 {
   const page129 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page129.on("pageerror", (e) => errs.push(String(e)))
@@ -4478,7 +4482,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     const validTypes = new Set(["rock", "water", "poison", "forest"])
     const shapeOk = entries.every(([key, type]) => {
       const [row, col] = key.split("-").map(Number)
-      return row >= 0 && row < GRID.rows && col >= 3 && col <= 6 && validTypes.has(type)
+      return row >= 0 && row < GRID.rows && col >= 3 && col <= GRID.cols - 4 && validTypes.has(type)
     })
     return {
       deterministic: JSON.stringify(a) === JSON.stringify(b),
@@ -4942,6 +4946,147 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.zocUiCells = { expectedCount: result.expectedCount, renderedCount }
   const ok = result.expectedCount > 0 && renderedCount === result.expectedCount
   if (!ok) out.errors.push("check137 the rendered data-zoc cells did not match zoneOfControlCells's own computed set")
+}
+
+// ---------------------------------------------------------------
+// Bigger board round (9x12, was 7x10) - Marc picked "both, a bit of
+// each" over wider-only/taller-only, directly rewarding Facing/Zone of
+// Control (both need room to route around an enemy to hit its side or
+// back).
+// ---------------------------------------------------------------
+
+// 138. GRID is genuinely 9x12, and every formation's enemy row spread
+//      is now computed generically via spreadRows(count, GRID.rows)
+//      instead of the old hardcoded per-formation array - proven for 3
+//      different squad sizes (1/3/4), not just the default's own 3 ---
+{
+  const page138 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page138.on("pageerror", (e) => errs.push(String(e)))
+  await page138.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page138.waitForSelector(".hwt-board")
+  const result = await page138.evaluate(async () => {
+    const { createTacticsBattle, GRID } = await import("/src/services/heartwood/tacticsEngine.js")
+    const rowsOf = (formationId) =>
+      createTacticsBattle(formationId)
+        .units.filter((u) => u.side === "enemy")
+        .map((u) => u.pos.row)
+        .sort((a, b) => a - b)
+    return {
+      gridRows: GRID.rows,
+      gridCols: GRID.cols,
+      solo: rowsOf("deepwarden"),
+      three: rowsOf("default"),
+      four: rowsOf("swarm"),
+    }
+  })
+  await page138.close()
+  out.biggerBoardFormationRows = result
+  const ok =
+    result.gridRows === 9 &&
+    result.gridCols === 12 &&
+    JSON.stringify(result.solo) === JSON.stringify([4]) &&
+    JSON.stringify(result.three) === JSON.stringify([3, 4, 5]) &&
+    JSON.stringify(result.four) === JSON.stringify([2, 3, 4, 5])
+  if (!ok) out.errors.push("check138 GRID was not genuinely 9x12, or a formation's enemy rows were not computed via spreadRows(count, GRID.rows)")
+}
+
+// 139. The Crossing's re-centered puzzle keeps the same navigable shape:
+//      the rock wall still flanks the enemy's own centre row (row 4)
+//      immediately above/below, and BOTH the poisoned centre-row
+//      shortcut AND the top/bottom edge detours remain genuinely open
+//      (not rock) - proving 2 distinct non-rock routes still exist ----
+{
+  const page139 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page139.on("pageerror", (e) => errs.push(String(e)))
+  await page139.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page139.waitForSelector(".hwt-board")
+  const result = await page139.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("the-crossing")
+    const at = (row, col) => battle.terrain[`${row}-${col}`]
+    return {
+      wallRows: [2, 3, 5, 6].map((row) => at(row, 6)),
+      shortcut: at(4, 6),
+      topDetour: [at(0, 6), at(1, 6)],
+      bottomDetour: [at(7, 6), at(8, 6)],
+    }
+  })
+  await page139.close()
+  out.crossingStillSolvable = result
+  const ok =
+    result.wallRows.every((t) => t === "rock") &&
+    result.shortcut === "poison" &&
+    result.topDetour.every((t) => t === undefined) &&
+    result.bottomDetour.every((t) => t === undefined)
+  if (!ok) out.errors.push("check139 The Crossing's re-centered puzzle lost its navigable shape (wall/shortcut/detour)")
+}
+
+// 140. The board actually renders at the new size: 108 cells (9x12),
+//      and the real rendered grid-template matches - a screenshot -----
+{
+  const page140 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page140.on("pageerror", (e) => errs.push(String(e)))
+  await page140.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page140.waitForSelector(".hwt-board")
+  const cellCount = await page140.locator(".hwt-cell").count()
+  const boardStyle = await page140.locator(".hwt-board").evaluate((el) => ({
+    cols: getComputedStyle(el).gridTemplateColumns.split(" ").length,
+    rows: getComputedStyle(el).gridTemplateRows.split(" ").length,
+  }))
+  await page140.screenshot({ path: `${SHOT}/bigboard_9x12.png` })
+  await page140.close()
+  out.bigBoardRender = { cellCount, boardStyle }
+  const ok = cellCount === 108 && boardStyle.cols === 12 && boardStyle.rows === 9
+  if (!ok) out.errors.push("check140 the board did not render at the new 9x12 size")
+}
+
+// 141. A genuinely NEW flanking maneuver, only possible because the grid
+//      grew taller: row 8 (index 8) is out of bounds on the OLD 7-row
+//      grid (valid rows were 0-6) but a real position now. A unit
+//      starting on this brand-new row routes north to land directly
+//      WEST of an East-facing enemy (opposite its own facing = "back",
+//      Facing's own +25%) - proving the extra row space enables real
+//      new tactical play, not just a cosmetic resize ------------------
+{
+  const page141 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page141.on("pageerror", (e) => errs.push(String(e)))
+  await page141.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page141.waitForSelector(".hwt-board")
+  const result = await page141.evaluate(async () => {
+    const { GRID, attackUnit, moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { isOnBoard } = await import("/src/services/heartwood/targeting.js")
+    const oldGridWasTooSmall = !isOnBoard({ row: 8, col: 3 }, { rows: 7, cols: 10 })
+    const newGridAcceptsIt = isOnBoard({ row: 8, col: 3 }, GRID)
+    let state = {
+      grid: GRID,
+      terrain: {},
+      log: [],
+      phase: "player",
+      units: [
+        { id: "atk", name: "Flanker", side: "player", hp: 20, maxHp: 20, ap: 2, move: 6, range: 1, attack: 5, block: 0, pos: { row: 8, col: 3 } },
+        { id: "def", name: "Target", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 3, block: 0, facing: "E", pos: { row: 4, col: 3 } },
+      ],
+    }
+    state = moveUnit(state, "atk", { row: 4, col: 2 })
+    const atkAfterMove = state.units.find((u) => u.id === "atk")
+    state = attackUnit(state, "atk", "def")
+    return {
+      oldGridWasTooSmall,
+      newGridAcceptsIt,
+      atkFinalPos: atkAfterMove.pos,
+      strikeLine: state.log.find((l) => l.startsWith("Flanker strikes ")),
+      backBonusApplied: state.log.some((l) => l.includes("from behind, +25%")),
+    }
+  })
+  await page141.close()
+  out.newFlankingRouteViaTallerBoard = result
+  const ok =
+    result.oldGridWasTooSmall &&
+    result.newGridAcceptsIt &&
+    result.atkFinalPos.row === 4 &&
+    result.atkFinalPos.col === 2 &&
+    result.backBonusApplied
+  if (!ok) out.errors.push("check141 the new row space did not enable a genuine new back-attack flanking route")
 }
 
 console.log(JSON.stringify(out, null, 2))

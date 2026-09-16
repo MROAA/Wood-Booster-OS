@@ -60,8 +60,8 @@
 
 .hwt-board {
   display: grid;
-  grid-template-columns: repeat(7, 76px);
-  grid-template-rows: repeat(5, 76px);
+  grid-template-columns: repeat(12, 76px);
+  grid-template-rows: repeat(9, 76px);
   gap: 4px;
   background: var(--hw-surface-bg);
   border: 1px solid var(--hw-border);
