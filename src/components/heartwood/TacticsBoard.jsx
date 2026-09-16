@@ -24,6 +24,7 @@ import {
   endPlayerTurn,
   previewEnemyIntents,
   previewChargeThreat,
+  zoneOfControlCells,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
 
@@ -104,6 +105,11 @@ export default function TacticsBoard({
   )
   const chargeThreatenedIds = useMemo(() => new Set(chargeThreat.playerIds), [chargeThreat])
   const chargeFiringIds = useMemo(() => new Set(chargeThreat.enemyIds), [chargeThreat])
+  // Zone of Control round: a static board property (which tiles are
+  // dangerous to retreat FROM), not relative to whichever unit is
+  // currently selected - visible throughout the player's own turn,
+  // same phase-gating as the charge/intent telegraphs above.
+  const zocCells = useMemo(() => (battle.phase === "player" ? zoneOfControlCells(battle, "enemy") : new Set()), [battle])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
@@ -179,6 +185,7 @@ export default function TacticsBoard({
       const threatened = unit && unit.side === "player" && (threatenedIds.has(unit.id) || chargeThreatenedIds.has(unit.id))
       const intent = unit && unit.side === "enemy" ? intentByEnemyId.get(unit.id) : null
       const terrain = terrainHere(row, col)
+      const zoc = zocCells.has(`${row}-${col}`)
       cells.push(
         <div
           key={`${row}-${col}`}
@@ -188,6 +195,7 @@ export default function TacticsBoard({
           data-healable={!!healTarget}
           data-threatened={!!threatened}
           data-terrain={terrain}
+          data-zoc={zoc}
           onClick={() => handleCellClick(row, col)}
         >
           {unit && (
