@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5410
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-haste/.scratch/shots"
+const PORT = process.env.PORT || 5411
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squadpassive/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -400,10 +400,18 @@ await page.waitForSelector(".hwt-board")
   await page.locator(".hwt-end-turn").click()
   await page.waitForTimeout(700)
   const turnLabel = await page.locator(".hwt-turn-label").innerText()
-  const blockAfterReset = await page.locator(".hwt-token", { hasText: "Bulwark of Ages" }).locator(".hwt-block-badge").count()
-  out.blockReset = { blockAfterCast, turnLabel, blockAfterReset }
-  if (!(blockAfterCast === 1 && /Player Turn 2/.test(turnLabel) && blockAfterReset === 0)) {
-    out.errors.push("check11 block did not reset at the next player turn")
+  const blockAfterResetBadge = page.locator(".hwt-token", { hasText: "Bulwark of Ages" }).locator(".hwt-block-badge")
+  const blockAfterResetCount = await blockAfterResetBadge.count()
+  // Squad Passive round: Block now genuinely resets to 0 THEN
+  // immediately re-grants a fresh +2 from Tommy's own turnStart trigger
+  // (the same "reset then re-grant" ordering the enemy side already
+  // used) - so the badge no longer disappears at the next player turn,
+  // it shows the NEW value 2, distinct from whatever Bulwark Aura's own
+  // cast left behind the turn before.
+  const blockAfterResetText = blockAfterResetCount > 0 ? await blockAfterResetBadge.innerText() : ""
+  out.blockReset = { blockAfterCast, turnLabel, blockAfterResetCount, blockAfterResetText }
+  if (!(blockAfterCast === 1 && /Player Turn 2/.test(turnLabel) && blockAfterResetCount === 1 && blockAfterResetText.includes("2"))) {
+    out.errors.push("check11 block did not reset then re-grant Squad Passive's fresh +2 at the next player turn")
   }
 }
 
@@ -468,7 +476,14 @@ await page.waitForSelector(".hwt-board")
       await page.waitForTimeout(200)
       const la = await page.locator(".hwt-log p").count()
       burstDone = la > lb
-      burstLine = await page.locator(".hwt-log p").first().innerText().catch(() => "")
+      // Squad Passive round: Hexbreaker now also carries the real
+      // onDealDamage Weak trigger (every player unit does), which adds
+      // its OWN "leaves the wound raw" log line right after Focused
+      // Shot's own damage line - no longer safe to assume the burst's
+      // own line is the single newest entry, so scan every line this
+      // action actually added instead of just .first().
+      const newLines = (await page.locator(".hwt-log p").allInnerTexts()).slice(0, la - lb)
+      burstLine = newLines.find((l) => /unleashes Focused Shot/.test(l)) || ""
       apAfterBurst = await hex.locator(".hwt-ap-pips").innerText().catch(() => "")
       break
     }
@@ -722,7 +737,13 @@ await page.waitForSelector(".hwt-board")
   const blockTurn3 = await page20.locator(".hwt-token", { hasText: "Bulwark of Ages" }).locator(".hwt-block-badge").innerText().catch(() => "")
   await page20.close()
   out.cooldownCadence = { labelTurn2, disabledTurn3, recastLogGrew: la > lb, blockTurn3 }
-  if (!(labelTurn2.includes("Recharging (1)") && !disabledTurn3 && la > lb && blockTurn3 === "2")) {
+  // Squad Passive round: Bulwark of Ages now also starts turn 3 with
+  // Squad Passive's own fresh +2 Block (granted right after the reset,
+  // before this check re-casts the ability at all) - Bulwark Aura's own
+  // real +2 self-grant stacks ON TOP of that, so the real total is now
+  // 4, not 2. Confirmed via the SAME real math, not a hand-picked new
+  // number: Squad Passive's +2 + Bulwark Aura's own real +2 amount.
+  if (!(labelTurn2.includes("Recharging (1)") && !disabledTurn3 && la > lb && blockTurn3 === "4")) {
     out.errors.push("check20 the cooldown did not count down 'every other turn' as designed")
   }
 }
@@ -2460,13 +2481,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-haste", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squadpassive", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-haste", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-squadpassive", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -2978,7 +2999,12 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     }
     state = attackUnit(state, attacker.id, sentinel.id)
     const after = state.units.find((u) => u.id === sentinel.id)
-    const logLine = state.log.find((l) => l.includes("strikes"))
+    // Squad Passive round: a bare `.includes("strikes")` search now
+    // wrongly matches the battle's own opening log line too (Tommy's
+    // real description text happens to contain "strikes a little
+    // harder") - narrowed to the same `startsWith` idiom other checks
+    // already use to name the actual attacker specifically.
+    const logLine = state.log.find((l) => l.startsWith(`${attacker.name} strikes `))
     return { hp: after.hp, block: after.block, bulwark: after.bulwark, logLine }
   })
   await page87.close()
@@ -3766,7 +3792,8 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 //      4+commander". Positions verified via spreadRows(5, 7) (rows
 //      1-5, col: GRID.cols-1); Tommy's stats confirmed genuinely sourced
 //      from CHARACTERS (real name/art/maxHp, attack derived from his own
-//      movePattern amount:6), not a hand-typed guess ------------------
+//      movePattern amount:6 plus his own squadPassive's +2 Strength,
+//      Squad Passive round), not a hand-typed guess -------------------
 {
   const page108 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page108.on("pageerror", (e) => errs.push(String(e)))
@@ -3797,7 +3824,10 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.commander.name === "Tommy" &&
     result.commander.art === "cat" &&
     result.commander.maxHp === 60 &&
-    result.commander.attack === 6 &&
+    // Squad Passive round: Tommy's own real movePattern gives 6, plus
+    // his own squadPassive's +2 Strength (self-included in the same
+    // squad-wide grant every unit gets) - 8 is the real total, not 6.
+    result.commander.attack === 8 &&
     result.commander.ability === null &&
     JSON.stringify(result.rows) === JSON.stringify([1, 2, 3, 4, 5]) &&
     result.cols.length === 1 &&
@@ -3883,10 +3913,12 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 // gets its own fresh page (the established anti-hang discipline).
 // ---------------------------------------------------------------
 
-// 112. Basic double-hit: Tommy (haste, range 1, attack 6) lands TWO
-//      real hits from ONE attackUnit call, at the cost of exactly 1 AP
-//      (not 2), narrated by a Haste announcement line plus 2 real
-//      strike lines -------------------------------------------------
+// 112. Basic double-hit: Tommy (haste, range 1) lands TWO real hits
+//      from ONE attackUnit call, at the cost of exactly 1 AP (not 2),
+//      narrated by a Haste announcement line plus 2 real strike lines -
+//      asserted against his own live `attack` (Squad Passive round:
+//      now 8, not the original 6, since it folds in his own +2
+//      Strength too), never a hardcoded number ----------------------
 {
   const page112 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page112.on("pageerror", (e) => errs.push(String(e)))
@@ -4122,6 +4154,164 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.hasteBadge = { badgeCount }
   const ok = badgeCount === 1
   if (!ok) out.errors.push("check118 Tommy's token did not show exactly one Haste badge")
+}
+
+// ---------------------------------------------------------------
+// The Squad Passive round (feat/hearthwood-tactics-squadpassive) - the
+// Commander's (Tommy's) real squadPassive ported: +2 Strength to every
+// deployed unit, a repeating turnStart +2 Block, and an onDealDamage
+// Weak-on-hit. Every new check gets its own fresh page (the
+// established anti-hang discipline).
+// ---------------------------------------------------------------
+
+// 119. Battle-start Strength lands on EVERY player unit, Commander
+//      included, folded into baseline (no growth badge) - compared
+//      directly against previewPlayerRoster()'s own pre-squadPassive
+//      numbers, not hand-typed real stats -----------------------------
+{
+  const page119 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page119.on("pageerror", (e) => errs.push(String(e)))
+  await page119.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page119.waitForSelector(".hwt-board")
+  const result = await page119.evaluate(async () => {
+    const { createTacticsBattle, previewPlayerRoster } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("default")
+    const preview = previewPlayerRoster()
+    const players = battle.units.filter((u) => u.side === "player")
+    const recruited = players.filter((u) => u.id !== "player-commander")
+    const commander = players.find((u) => u.id === "player-commander")
+    const recruitedOk = recruited.every((u) => {
+      const base = preview.find((p) => p.defId === u.defId)
+      return base && u.attack === base.attack + 2 && u.attack === u.baseAttack
+    })
+    return { recruitedOk, commanderAttack: commander.attack, commanderBaseAttack: commander.baseAttack }
+  })
+  await page119.close()
+  out.squadPassiveStrength = result
+  const ok = result.recruitedOk && result.commanderAttack === 8 && result.commanderAttack === result.commanderBaseAttack
+  if (!ok) out.errors.push("check119 Squad Passive's +2 Strength did not land on every player unit, folded into baseline")
+}
+
+// 120. TurnStart Block fires for every living player unit exactly once
+//      the player's own turn begins, right after Block resets to 0 ----
+{
+  const page120 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page120.on("pageerror", (e) => errs.push(String(e)))
+  await page120.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page120.waitForSelector(".hwt-board")
+  const result = await page120.evaluate(async () => {
+    const { createTacticsBattle, runEnemyTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    state = { ...state, phase: "enemy", units: state.units.map((u) => (u.side === "player" ? { ...u, block: 0 } : u)) }
+    state = runEnemyTurn(state)
+    const living = state.units.filter((u) => u.side === "player" && u.hp > 0)
+    return {
+      phase: state.phase,
+      blocks: living.map((u) => u.block),
+      braceLineCount: state.log.filter((l) => l.includes("braces for the next blow")).length,
+    }
+  })
+  await page120.close()
+  out.squadPassiveTurnStartBlock = result
+  const ok = result.phase === "player" && result.blocks.length === 5 && result.blocks.every((b) => b === 2) && result.braceLineCount === 5
+  if (!ok) out.errors.push("check120 Squad Passive's turnStart Block did not fire exactly +2 for every living player unit")
+}
+
+// 121. onDealDamage Weak fires on the struck enemy from a RECRUITED
+//      unit (not just Tommy) - proving the effect is genuinely
+//      squad-wide, not hard-coded to the Commander ---------------------
+{
+  const page121 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page121.on("pageerror", (e) => errs.push(String(e)))
+  await page121.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page121.waitForSelector(".hwt-board")
+  const result = await page121.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const recruited = state.units.find((u) => u.side === "player" && u.id !== "player-commander")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === recruited.id) return { ...u, pos: { row: enemy.pos.row, col: enemy.pos.col + 1 }, ap: 1 }
+        if (u.id === enemy.id) return { ...u, hp: 100, maxHp: 100, block: 0, bulwark: 0, revive: 0, taunt: 0, weak: 0 }
+        return u
+      }),
+    }
+    state = attackUnit(state, recruited.id, enemy.id)
+    const enemyAfter = state.units.find((u) => u.id === enemy.id)
+    return { weak: enemyAfter.weak, weakLine: state.log.some((l) => l.includes("leaves the wound raw")), recruitedName: recruited.name }
+  })
+  await page121.close()
+  out.squadPassiveWeakOnHit = result
+  const ok = result.weak === 1 && result.weakLine
+  if (!ok) out.errors.push("check121 Squad Passive's onDealDamage Weak did not fire from a recruited unit's own landed hit")
+}
+
+// 122. Cross-mechanic proof: Tommy's own Haste follow-up (PR #483)
+//      ALSO applies Weak - once per landed hit, not just the first -----
+{
+  const page122 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page122.on("pageerror", (e) => errs.push(String(e)))
+  await page122.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page122.waitForSelector(".hwt-board")
+  const result = await page122.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default")
+    const commander = state.units.find((u) => u.id === "player-commander")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === commander.id) return { ...u, pos: { row: enemy.pos.row, col: enemy.pos.col + 1 }, ap: 1 }
+        if (u.id === enemy.id) return { ...u, hp: 100, maxHp: 100, block: 0, bulwark: 0, revive: 0, taunt: 0, weak: 0 }
+        return u
+      }),
+    }
+    state = attackUnit(state, commander.id, enemy.id)
+    const enemyAfter = state.units.find((u) => u.id === enemy.id)
+    return { weak: enemyAfter.weak, hasteLine: state.log.some((l) => l.includes("Haste fires")), weakLineCount: state.log.filter((l) => l.includes("leaves the wound raw")).length }
+  })
+  await page122.close()
+  out.squadPassiveHasteInteraction = result
+  const ok = result.weak === 2 && result.hasteLine && result.weakLineCount === 2
+  if (!ok) out.errors.push("check122 Tommy's Haste follow-up did not also apply Squad Passive's Weak-on-hit")
+}
+
+// 123. UI: every player token already shows the existing Block badge at
+//      2 after the first enemy turn resolves - no new badge code -------
+{
+  const page123 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page123.on("pageerror", (e) => errs.push(String(e)))
+  await page123.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page123.waitForSelector(".hwt-board")
+  await page123.locator(".hwt-end-turn").click()
+  await page123.waitForTimeout(500)
+  const blockBadges = await page123.locator('.hwt-token[data-side="player"] .hwt-block-badge').allInnerTexts()
+  await page123.screenshot({ path: `${SHOT}/squad_passive_block.png` })
+  await page123.close()
+  out.squadPassiveBlockBadge = { blockBadges }
+  const ok = blockBadges.length === 5 && blockBadges.every((t) => t.includes("2"))
+  if (!ok) out.errors.push("check123 The existing Block badge did not show +2 on every player token after the first enemy turn")
+}
+
+// 124. The opening log line is Tommy's real, hand-authored description
+//      text, reused verbatim - not invented -----------------------------
+{
+  const page124 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page124.on("pageerror", (e) => errs.push(String(e)))
+  await page124.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page124.waitForSelector(".hwt-board")
+  const result = await page124.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { CHARACTERS } = await import("/src/data/heartwood/characters.js")
+    const battle = createTacticsBattle("default")
+    return { firstLogLine: battle.log[0], tommyDescription: CHARACTERS.tommy.description }
+  })
+  await page124.close()
+  out.squadPassiveOpeningLine = result
+  const ok = result.firstLogLine === result.tommyDescription
+  if (!ok) out.errors.push("check124 The battle's opening log line was not Tommy's real description, reused verbatim")
 }
 
 console.log(JSON.stringify(out, null, 2))

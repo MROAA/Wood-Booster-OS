@@ -276,7 +276,7 @@ export const ENEMY_FORMATIONS = {
   // real identity (a passive Strength buff + an HP-gated phase that adds a
   // repeating turnStart Block trigger) is exactly what this round's new
   // passive/phases/trigger reading in deriveTacticsUnit/checkEnemyPhase/
-  // applyEnemyTurnStartTriggers exists to demonstrate - description is the
+  // applyTurnStartTriggers exists to demonstrate - description is the
   // real enemies.js introLine, reused verbatim.
   deepwarden: {
     id: "deepwarden",
@@ -418,9 +418,13 @@ function poisonFromMovePattern(movePattern) {
 // attack-as-Strength model (the exact translation battleStartBonus/
 // Coven/Ancients already use). `addTrigger` entries are collected as-is
 // for the unit's own `triggers` array, fired later (see
-// applyEnemyTurnStartTriggers below) - only `turnStart` is ever fired
-// this round; `onDealDamage`/`onHit` triggers are registered but inert,
-// since no currently-ported content needs them yet.
+// applyTurnStartTriggers below) - only `turnStart` is ever fired off an
+// ENEMY's own passive this round; no currently-ported enemy needs an
+// onDealDamage trigger from ITS OWN passive (Squad Passive round: the
+// PLAYER side now fires real onDealDamage triggers too, via a
+// completely separate path - applySquadPassiveToUnits, not this
+// function - since that comes from the Commander, not each unit's own
+// def).
 // Generalized from passiveStrengthFromDef (PR #464, strength-only) to
 // also fold Wyrmgall's real execute/shatter and the final boss's real
 // woundedFury straight off each unit's own base passive - the exact same
@@ -502,6 +506,34 @@ function applyPortableEffect(state, unitId, effect) {
     return setUnit(state, unitId, { hp: Math.min(unit.maxHp, unit.hp + (effect.amount || 0)) })
   }
   return state
+}
+
+// Squad Passive round: the Commander's real squadPassive
+// (characters.js) - applied ONCE at battle start to EVERY deployed
+// player unit (the Commander included), the exact self-targeting loop
+// autoBattleEngine.js's own startAutoBattle already uses (`for (const u
+// of playerUnits) { applyEffects(state, squadPassive, {actorId:u.id,
+// targetId:u.id}) }`). Reuses this engine's own existing
+// applyPortableEffect/addTrigger dispatch - the exact shape
+// checkEnemyPhase's own effect-application loop already uses for a
+// fired phase's effects - rather than importing effects.js's
+// applyEffects (isolation principle intact). Operates on a bare units
+// array (not a full battle state) since applyPortableEffect/getUnit/
+// setUnit only ever read/write `state.units` - a minimal `{ units }`
+// wrapper is a real, safe substitute, confirmed by reading those 2
+// helpers directly, not a workaround.
+function applySquadPassiveToUnits(units, squadPassive) {
+  let state = { units }
+  for (const unit of units) {
+    if (unit.side !== "player") continue
+    for (const effect of squadPassive) {
+      state =
+        effect.type === "addTrigger"
+          ? setUnit(state, unit.id, { triggers: [...getUnit(state, unit.id).triggers, { trigger: effect.trigger, effect: effect.effect }] })
+          : applyPortableEffect(state, unit.id, effect)
+    }
+  }
+  return state.units
 }
 
 // A pattern attacker (rook/bishop/knight - the auto-battler's existing
@@ -663,6 +695,15 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
       deriveTacticsUnit(defId, "enemy", { row: formation.rows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
+  // The Commander's real Squad Passive (characters.js) - applied to
+  // EVERY player unit before any battle-start snapshot is taken, the
+  // same "battle-start bonus, no growth badge" treatment the formation
+  // synergy bonus below and every enemy's own passive Strength already
+  // get. Commander Rank-Up (a run-long Essence sink spent in the shop)
+  // is a named deferral, same reason as Active Power - always applied
+  // at the base, un-scaled squadPassive array itself this round.
+  const commander = CHARACTERS[DEFAULT_COMMANDER_ID]
+  const withSquadPassive = applySquadPassiveToUnits(units, commander.squadPassive || [])
   // A formation's real synergy bonus: a FLAT, one-time Strength grant to
   // every enemy piece at battle start - not multiplied by headcount,
   // matching each shipped mechanic precisely (the aggregate effect scales
@@ -670,8 +711,8 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
   // is +2 (same shape, a bigger number since the pack hits harder).
   const bonus = formation.battleStartBonus || 0
   const withBonus = bonus
-    ? units.map((u) => (u.side === "enemy" ? { ...u, attack: u.attack + bonus } : u))
-    : units
+    ? withSquadPassive.map((u) => (u.side === "enemy" ? { ...u, attack: u.attack + bonus } : u))
+    : withSquadPassive
   // A one-time snapshot of each unit's attack once battle-start bonuses
   // are applied - the reference point the UI's coven-buff badge compares
   // against (attack > baseAttack), so only a PER-ROUND buff like the
@@ -687,7 +728,13 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
     units: withBaseline,
     phase: "player",
     turn: 1,
-    log: [`${formation.name}. The Frontier opens. Your turn.`],
+    // Tommy's own real, hand-authored description (characters.js) reused
+    // verbatim as the opening narration - it already describes all 3 of
+    // his squadPassive's real effects in-fiction ("strikes a little
+    // harder" = Strength, "lands on its feet" = the turnStart Block,
+    // "leaves what it hits swinging softer" = the onDealDamage Weak), so
+    // nothing about WHERE those badges keep coming from goes unnarrated.
+    log: [commander.description, `${formation.name}. The Frontier opens. Your turn.`],
     formationId: formation.id,
   }
 }
@@ -1042,7 +1089,15 @@ function checkEnemyPhase(state, unitId) {
 // applyPortableEffect every other portable effect already goes through.
 function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
   const actor = getUnit(state, actorId)
-  if (!actor || actor.side !== "enemy" || remaining <= 0) return state
+  // Squad Passive round: widened from enemy-only (every onDealDamage
+  // trigger used to come from an enemy's own passive) - the rest of
+  // this function was already fully side-agnostic (recipientId/
+  // recipient logic doesn't care which side owns the trigger), so this
+  // is the entire change needed to let Tommy's real Weak-on-hit
+  // squadPassive trigger fire too. Since this already runs
+  // unconditionally inside attackUnit, it correctly fires for a Haste
+  // follow-up hit as well (PR #483's own recursive attackUnit call).
+  if (!actor || remaining <= 0) return state
   let next = state
   for (const t of actor.triggers || []) {
     if (t.trigger !== "onDealDamage") continue
@@ -1373,14 +1428,23 @@ function describePortableEffect(effect) {
   return "stirs"
 }
 
-function applyEnemyTurnStartTriggers(state) {
+// Squad Passive round: generalized from enemy-only
+// (applyEnemyTurnStartTriggers) - Deepwarden's own post-phase Block
+// trigger was the only turnStart trigger owner until now, always on
+// the enemy side. Tommy's real squadPassive gives every PLAYER unit a
+// turnStart Block trigger too, so this needs a `side` param and a
+// symmetric call site (runEnemyTurn's own return-to-player block,
+// right after Block already resets to 0 there - same "reset then
+// re-grant" ordering this function already established for the enemy
+// side inside endPlayerTurn).
+function applyTurnStartTriggers(state, side) {
   let next = state
-  for (const enemy of livingUnits(state, "enemy")) {
-    for (const t of enemy.triggers || []) {
+  for (const unit of livingUnits(state, side)) {
+    for (const t of unit.triggers || []) {
       if (t.trigger !== "turnStart") continue
-      const live = getUnit(next, enemy.id)
+      const live = getUnit(next, unit.id)
       if (!live || live.hp <= 0) continue
-      next = applyPortableEffect(next, enemy.id, t.effect)
+      next = applyPortableEffect(next, unit.id, t.effect)
       next = { ...next, log: [...next.log, `${live.name} ${describePortableEffect(t.effect)}.`] }
     }
   }
@@ -1414,7 +1478,7 @@ export function endPlayerTurn(state) {
     log: [...ticked.log, "Enemy turn."],
   }
   // Regen ticks (heals whatever stack SURVIVED the player's turn, then
-  // decays it) BEFORE applyEnemyTurnStartTriggers grants this round's
+  // decays it) BEFORE applyTurnStartTriggers grants this round's
   // FRESH stack - the exact real order (effects.js's own tickRegen fires
   // at the very top of the real round, well before a unit's own
   // turnStart trigger re-grants it later that same round) - so a
@@ -1426,7 +1490,7 @@ export function endPlayerTurn(state) {
   // answers" Block, etc.) is applied AFTER the flat fortressBlock reset
   // above, never before - that reset is a per-unit overwrite, not an
   // add, so a trigger firing first would just be wiped by it.
-  const next = applyEnemyTurnStartTriggers(regenTicked)
+  const next = applyTurnStartTriggers(regenTicked, "enemy")
   return runEnemyTurn(next)
 }
 
@@ -1629,7 +1693,7 @@ export function runEnemyTurn(state) {
   // count down at this SAME checkpoint - once per the player's own turn
   // coming back around, so a cooldown of 2 plays out as "usable every
   // other turn" (cast on turn N, still cooling on N+1, ready on N+2).
-  return {
+  const returnedToPlayer = {
     ...next,
     phase: "player",
     turn: next.turn + 1,
@@ -1638,6 +1702,11 @@ export function runEnemyTurn(state) {
     ),
     log: [...next.log, `Turn ${next.turn + 1}. Your turn.`],
   }
+  // Squad Passive round: Tommy's own real turnStart Block trigger fires
+  // here, right after Block just reset to 0 above - the same "reset then
+  // re-grant" ordering already established for the enemy side (see
+  // endPlayerTurn's own comment on this).
+  return applyTurnStartTriggers(returnedToPlayer, "player")
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
