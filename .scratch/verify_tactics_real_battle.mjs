@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5418
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-threatzone/.scratch/shots"
+const PORT = process.env.PORT || 5419
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intercept/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1294,6 +1294,58 @@ function newPage() {
   out.realFightThreatZone = { threatCellCount }
   const ok = threatCellCount > 0
   if (!ok) out.errors.push("check26 a real fight against a real tanky formation did not render any Threat Zone cells")
+}
+
+// 27. Guardian's Intercept: a real fight with Grove Warden recruited,
+//     positioned adjacent to a squishy ally that's the enemy's own
+//     only reachable target - ending the player's turn lets the real
+//     enemy AI attack, and the real Guardian genuinely intercepts part
+//     of it -----------------------------------------------------
+{
+  const page27 = await newPage()
+  page27.on("pageerror", (e) => errs.push(String(e)))
+  await page27.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page27, (n) => n.type === "battle" && n.formationId, ["grove-warden", "the-fool"])
+  await page27.reload({ waitUntil: "domcontentloaded" })
+  await page27.waitForTimeout(400)
+  await page27.locator(".hw-tactics-fight-btn").click()
+  await page27.waitForTimeout(400)
+  const setup = await page27.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const groveWarden = battle.units.find((u) => u.defId === "grove-warden")
+    const mosskit = battle.units.find((u) => u.defId === "the-fool")
+    const enemy = battle.units.find((u) => u.side === "enemy")
+    // Mosskit is the enemy's ONLY reachable/attackable target this
+    // round (every other player unit pushed far away) - Grove Warden
+    // stands directly adjacent to it, ready to intercept.
+    mosskit.pos = { row: 4, col: 5 }
+    mosskit.hp = mosskit.maxHp
+    mosskit.block = 0
+    groveWarden.pos = { row: 4, col: 6 }
+    groveWarden.hp = groveWarden.maxHp
+    groveWarden.block = 0
+    groveWarden.ap = groveWarden.apMax
+    enemy.pos = { row: 4, col: 4 }
+    battle.units = battle.units.map((u) =>
+      u.side === "player" && u.id !== mosskit.id && u.id !== groveWarden.id ? { ...u, pos: { row: 0, col: 0 } } : u,
+    )
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { groveWardenName: groveWarden.name, groveWardenHpBefore: groveWarden.hp, mosskitHpBefore: mosskit.hp }
+  })
+  await page27.reload({ waitUntil: "domcontentloaded" })
+  await page27.waitForTimeout(400)
+  await page27.locator(".hwt-end-turn").click()
+  await page27.waitForTimeout(600)
+  const logText = await page27.locator(".hwt-log").innerText()
+  const afterBattle = await page27.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const groveWardenAfter = afterBattle.units.find((u) => u.name === setup.groveWardenName)
+  await page27.screenshot({ path: `${SHOT}/real_fight_intercept.png` })
+  await page27.close()
+  out.realFightIntercept = { setup, logHasIntercept: logText.includes("intercepts"), groveWardenHpAfter: groveWardenAfter?.hp }
+  const ok = logText.includes("intercepts") && groveWardenAfter && groveWardenAfter.hp < setup.groveWardenHpBefore
+  if (!ok) out.errors.push("check27 a real Grove Warden did not intercept a real enemy attack against an adjacent ally")
 }
 
 console.log(JSON.stringify(out, null, 2))

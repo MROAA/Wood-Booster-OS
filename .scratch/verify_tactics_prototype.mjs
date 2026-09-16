@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5418
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-threatzone/.scratch/shots"
+const PORT = process.env.PORT || 5419
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intercept/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-threatzone", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intercept", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-threatzone", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-intercept", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -5398,6 +5398,236 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.threatZoneUiCells = { expectedCount, renderedCount }
   const ok = expectedCount > 0 && renderedCount === expectedCount
   if (!ok) out.errors.push("check150 the rendered data-threat-zone cells did not match threatZoneCells's own computed set")
+}
+
+// ---------------------------------------------------------------
+// Guardian's Intercept (Movement PRD §4.4) - a class-locked reaction
+// (className "Guardian" only, currently just grove-warden): a living,
+// adjacent Guardian ally with ap>=1 takes HALF the damage meant for the
+// attacked unit, spending its own AP - the same resource, no new
+// Reaction Slot state.
+// ---------------------------------------------------------------
+
+// 156. The core split: an adjacent Guardian ally with ap:2 takes
+//      exactly half the computed damage, the original target takes
+//      the other half, the Guardian's own AP drops by 1, and the log
+//      narrates both the strike and the intercept ------------------
+{
+  const page156 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page156.on("pageerror", (e) => errs.push(String(e)))
+  await page156.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page156.waitForSelector(".hwt-board")
+  const result = await page156.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "atk", name: "Atk", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 100, block: 0, pos: { row: 2, col: 2 } },
+        { id: "target", name: "Target", side: "player", hp: 999, maxHp: 999, ap: 1, block: 0, pos: { row: 2, col: 3 } },
+        { id: "guardian", name: "Guardian", side: "player", hp: 999, maxHp: 999, ap: 2, block: 0, className: "Guardian", pos: { row: 1, col: 3 } },
+      ],
+    }
+    const after = attackUnit(state, "atk", "target")
+    const target = after.units.find((u) => u.id === "target")
+    const guardian = after.units.find((u) => u.id === "guardian")
+    return {
+      targetHp: target.hp,
+      guardianHp: guardian.hp,
+      guardianApAfter: guardian.ap,
+      totalDamage: (999 - target.hp) + (999 - guardian.hp),
+      strikeLine: after.log.find((l) => l.startsWith("Atk strikes ")),
+    }
+  })
+  await page156.close()
+  out.interceptCoreSplit = result
+  const ok =
+    result.targetHp === 949 &&
+    result.guardianHp === 949 &&
+    result.guardianApAfter === 1 &&
+    result.totalDamage === 100 &&
+    result.strikeLine &&
+    result.strikeLine.includes("intercepts, taking 50 in its place")
+  if (!ok) out.errors.push("check156 Guardian's Intercept did not split damage exactly 50/50 or narrate it correctly")
+}
+
+// 157. Eligibility gates, each proven false independently: no
+//      intercept when the Guardian is out of range, has ap:0, is
+//      already dead, or is actually the target itself -------------
+{
+  const page157 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page157.on("pageerror", (e) => errs.push(String(e)))
+  await page157.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page157.waitForSelector(".hwt-board")
+  const result = await page157.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    function state(guardianOverrides) {
+      return {
+        grid: { rows: 5, cols: 5 },
+        terrain: {},
+        phase: "enemy",
+        log: [],
+        units: [
+          { id: "atk", name: "Atk", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 100, block: 0, pos: { row: 2, col: 2 } },
+          { id: "target", name: "Target", side: "player", hp: 999, maxHp: 999, ap: 1, block: 0, pos: { row: 2, col: 3 } },
+          { id: "guardian", name: "Guardian", side: "player", hp: 999, maxHp: 999, ap: 2, block: 0, className: "Guardian", pos: { row: 0, col: 0 }, ...guardianOverrides },
+        ],
+      }
+    }
+    const outOfRange = attackUnit(state({ pos: { row: 4, col: 4 } }), "atk", "target")
+    const noAp = attackUnit(state({ ap: 0, pos: { row: 1, col: 3 } }), "atk", "target")
+    const dead = attackUnit(state({ hp: 0, pos: { row: 1, col: 3 } }), "atk", "target")
+    // "self-intercept": the ATTACKED unit itself happens to carry
+    // className Guardian - eligibleGuardian's own u.id !== target.id
+    // guard must exclude it from protecting itself.
+    const selfState = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "atk", name: "Atk", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 100, block: 0, pos: { row: 2, col: 2 } },
+        { id: "target", name: "SelfGuardian", side: "player", hp: 999, maxHp: 999, ap: 2, block: 0, className: "Guardian", pos: { row: 2, col: 3 } },
+      ],
+    }
+    const selfIntercept = attackUnit(selfState, "atk", "target")
+    return {
+      outOfRangeTargetHp: outOfRange.units.find((u) => u.id === "target").hp,
+      noApTargetHp: noAp.units.find((u) => u.id === "target").hp,
+      deadGuardianTargetHp: dead.units.find((u) => u.id === "target").hp,
+      selfInterceptHp: selfIntercept.units.find((u) => u.id === "target").hp,
+    }
+  })
+  await page157.close()
+  out.interceptEligibilityGates = result
+  const ok =
+    result.outOfRangeTargetHp === 899 &&
+    result.noApTargetHp === 899 &&
+    result.deadGuardianTargetHp === 899 &&
+    result.selfInterceptHp === 899
+  if (!ok) out.errors.push("check157 an ineligible Guardian (out of range / no AP / dead / the target itself) still intercepted, or fell back incorrectly")
+}
+
+// 158. AP is the real limiting resource: a Guardian with ap:1
+//      intercepts once (ap drops to 0), then a second attack the same
+//      "turn" lands fully on the original target with no interception -
+{
+  const page158 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page158.on("pageerror", (e) => errs.push(String(e)))
+  await page158.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page158.waitForSelector(".hwt-board")
+  const result = await page158.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "atk", name: "Atk", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 100, block: 0, pos: { row: 2, col: 2 } },
+        { id: "target", name: "Target", side: "player", hp: 999, maxHp: 999, ap: 1, block: 0, pos: { row: 2, col: 3 } },
+        { id: "guardian", name: "Guardian", side: "player", hp: 999, maxHp: 999, ap: 1, block: 0, className: "Guardian", pos: { row: 1, col: 3 } },
+      ],
+    }
+    const afterFirst = attackUnit(state, "atk", "target")
+    const guardianAfterFirst = afterFirst.units.find((u) => u.id === "guardian")
+    // Restore the attacker's own AP for a second synthetic swing (this
+    // check is testing the GUARDIAN's own AP gate specifically, not
+    // re-proving the attacker's own action economy).
+    const restored = { ...afterFirst, units: afterFirst.units.map((u) => (u.id === "atk" ? { ...u, ap: 1 } : u)) }
+    const afterSecond = attackUnit(restored, "atk", "target")
+    return {
+      guardianApAfterFirst: guardianAfterFirst.ap,
+      targetHpAfterFirst: afterFirst.units.find((u) => u.id === "target").hp,
+      targetHpAfterSecond: afterSecond.units.find((u) => u.id === "target").hp,
+      guardianHpAfterSecond: afterSecond.units.find((u) => u.id === "guardian").hp,
+    }
+  })
+  await page158.close()
+  out.interceptApLimited = result
+  const ok =
+    result.guardianApAfterFirst === 0 &&
+    result.targetHpAfterFirst === 949 &&
+    result.targetHpAfterSecond === 849 &&
+    result.guardianHpAfterSecond === 949
+  if (!ok) out.errors.push("check158 a Guardian at ap:0 still intercepted a second attack, or its own AP was not the real limiting resource")
+}
+
+// 159. Byte-identical when no Guardian exists anywhere on the board -
+{
+  const page159 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page159.on("pageerror", (e) => errs.push(String(e)))
+  await page159.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page159.waitForSelector(".hwt-board")
+  const result = await page159.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "atk", name: "Atk", side: "enemy", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 100, block: 0, pos: { row: 2, col: 2 } },
+        { id: "target", name: "Target", side: "player", hp: 999, maxHp: 999, ap: 1, block: 0, pos: { row: 2, col: 3 } },
+      ],
+    }
+    const after = attackUnit(state, "atk", "target")
+    return { targetHp: after.units.find((u) => u.id === "target").hp, hasInterceptNote: after.log.some((l) => l.includes("intercepts")) }
+  })
+  await page159.close()
+  out.interceptNoGuardianByteIdentical = result
+  const ok = result.targetHp === 899 && !result.hasInterceptNote
+  if (!ok) out.errors.push("check159 an attack with no Guardian present did not stay byte-identical to today's single-target damage")
+}
+
+// 160. A real end-to-end intercept: grove-warden recruited and
+//      positioned adjacent to another player unit - a real enemy
+//      attack against the OTHER unit gets genuinely split -----------
+{
+  const page160 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page160.on("pageerror", (e) => errs.push(String(e)))
+  await page160.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page160.waitForSelector(".hwt-board")
+  const result = await page160.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default", ["grove-warden", "the-fool"])
+    const groveWarden = state.units.find((u) => u.defId === "grove-warden")
+    const mosskit = state.units.find((u) => u.defId === "the-fool")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    // Position the real Guardian directly adjacent to the real target,
+    // and the enemy in range of the target - real derived stats/Block
+    // throughout, only positions are hand-placed for a deterministic
+    // attack.
+    state = {
+      ...state,
+      phase: "enemy",
+      units: state.units.map((u) => {
+        if (u.id === mosskit.id) return { ...u, pos: { row: 4, col: 5 }, block: 0 }
+        if (u.id === groveWarden.id) return { ...u, pos: { row: 4, col: 6 }, block: 0 }
+        if (u.id === enemy.id) return { ...u, pos: { row: 4, col: 4 }, hp: 999, maxHp: 999, block: 0 }
+        return u
+      }),
+    }
+    const before = { mosskitHp: state.units.find((u) => u.id === mosskit.id).hp, groveWardenHp: state.units.find((u) => u.id === groveWarden.id).hp }
+    const after = attackUnit(state, enemy.id, mosskit.id)
+    return {
+      className: groveWarden.className,
+      before,
+      mosskitHpAfter: after.units.find((u) => u.id === mosskit.id).hp,
+      groveWardenHpAfter: after.units.find((u) => u.id === groveWarden.id).hp,
+      hasInterceptNote: after.log.some((l) => l.includes("Grove Warden intercepts")),
+    }
+  })
+  await page160.close()
+  out.realGroveWardenIntercept = result
+  const ok =
+    result.className === "Guardian" &&
+    result.mosskitHpAfter < result.before.mosskitHp &&
+    result.groveWardenHpAfter < result.before.groveWardenHp &&
+    result.hasInterceptNote
+  if (!ok) out.errors.push("check160 a real Grove Warden did not genuinely intercept part of a real attack against an adjacent ally")
 }
 
 console.log(JSON.stringify(out, null, 2))
