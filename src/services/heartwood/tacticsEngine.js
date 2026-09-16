@@ -1335,6 +1335,26 @@ function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
   return next
 }
 
+// Guardian's Intercept (Movement PRD §4.4): "Kun liittolainen joutuu
+// hyökkäyksen kohteeksi: Guardian siirtyy liittolaisen eteen; ottaa
+// osan vahingosta" - when an ally is attacked, a Guardian takes PART
+// of the damage. `className === "Guardian"` is class-locked (only
+// grove-warden carries it today, the same "portable trait, only
+// reachable by whoever has it" precedent Haste already established) -
+// deliberately narrower than the whole "resist" class family from the
+// per-class Facing round. MVP scope: the Guardian must already be
+// standing adjacent (no repositioning/pathfinding this round - "moves
+// in front" is stood in for by "already positioned as protector").
+// Spends the Guardian's own real `ap` (not a new Reaction Slot
+// resource) - since ap resets to apMax every player turn regardless of
+// what it was spent on, this creates a real trade-off (hold the
+// Guardian back to guarantee it can intercept) with zero new state.
+function eligibleGuardian(state, target) {
+  return state.units.find(
+    (u) => u.side === target.side && u.id !== target.id && u.hp > 0 && u.className === "Guardian" && u.ap >= 1 && kingAdjacent(u.pos, target.pos),
+  )
+}
+
 export function attackUnit(state, actorId, targetId, opts = {}) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
@@ -1353,10 +1373,31 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   }
   let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
-  const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, modifiedAttackAmount(actor, target, actor.attack))
-  next = hit
-  const absorbedNote = describeAbsorb(absorbed, armourUsed)
-  const fellNote = fell ? " It falls." : ""
+  const rawAmount = modifiedAttackAmount(actor, target, actor.attack)
+  const guardian = eligibleGuardian(next, target)
+  let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
+  if (guardian) {
+    const guardianShare = Math.round(rawAmount / 2)
+    const targetShare = rawAmount - guardianShare
+    const targetHit = applyDamageWithBlock(next, targetId, targetShare)
+    next = setUnit(targetHit.next, guardian.id, { ap: guardian.ap - 1 })
+    const guardianHit = applyDamageWithBlock(next, guardian.id, guardianShare)
+    next = guardianHit.next
+    remaining = targetHit.remaining
+    fell = targetHit.fell
+    revived = targetHit.revived
+    absorbedNote = describeAbsorb(targetHit.absorbed, targetHit.armourUsed)
+    fellNote = fell ? " It falls." : ""
+    interceptNote = ` ${guardian.name} intercepts, taking ${guardianHit.remaining} in its place${guardianHit.fell ? " and falls" : ""}!`
+  } else {
+    const hit = applyDamageWithBlock(next, targetId, rawAmount)
+    next = hit.next
+    remaining = hit.remaining
+    fell = hit.fell
+    revived = hit.revived
+    absorbedNote = describeAbsorb(hit.absorbed, hit.armourUsed)
+    fellNote = fell ? " It falls." : ""
+  }
   // Facing round: narrate a side/back hit the same plain mechanical
   // way every other landed-hit modifier already does - re-computed
   // here (cheap position math) purely for the log line, since
@@ -1365,7 +1406,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   const facing = classifyFacingAttack(actor, target)
   const facingPct = facing !== "front" ? Math.round((facingMultiplier(actor, target, facing) - 1) * 100) : 0
   const facingNote = facing === "side" ? ` (flanked, +${facingPct}%)` : facing === "back" ? ` (from behind, +${facingPct}%)` : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that
   // hit's damage - the real game's debuff step is its own move in the
