@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5414
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-facing/.scratch/shots"
+const PORT = process.env.PORT || 5415
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zoc/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-facing", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zoc", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-facing", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zoc", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -4690,6 +4690,258 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.facingUiBadge = { arrowCount, tokenCount }
   const ok = tokenCount > 0 && arrowCount === tokenCount
   if (!ok) out.errors.push("check135 not every token showed the new facing arrow")
+}
+
+// ---------------------------------------------------------------
+// The Zone of Control round (feat/hearthwood-tactics-zoc) - Movement &
+// Tactical Gameplay PRD §4.3, Basic Zone: a living melee (range===1)
+// unit's own adjacent tiles are its zone; moving out of one triggers a
+// free reaction attack from the controller - the classic "opportunity
+// attack." Every new check gets its own fresh page (the established
+// anti-hang discipline).
+// ---------------------------------------------------------------
+
+// 131. Core mechanic: a mover that leaves a melee enemy's zone takes
+//      exactly one reaction attack (the real modifiedAttackAmount
+//      damage - including Facing, since a straight-line retreat
+//      naturally ends up facing AWAY from the enemy, a real, correct
+//      "exposes your back" interaction, not a bug to route around);
+//      sliding to a tile STILL inside that same zone triggers none ---
+{
+  const page131 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page131.on("pageerror", (e) => errs.push(String(e)))
+  await page131.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page131.waitForSelector(".hwt-board")
+  const result = await page131.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    function buildState(moverPos) {
+      return {
+        grid: { rows: 5, cols: 5 },
+        terrain: {},
+        phase: "player",
+        turn: 1,
+        log: [],
+        units: [
+          { id: "mover", side: "player", name: "Mover", pos: moverPos, hp: 20, maxHp: 20, range: 1, attack: 1, ap: 1, move: 3, block: 0, facing: "W" },
+          { id: "enemy", side: "enemy", name: "Enemy", pos: { row: 2, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 5, ap: 1, block: 0, facing: "E" },
+        ],
+      }
+    }
+    // Mover starts adjacent to Enemy(2,2) at (1,2), then flees straight
+    // east to (1,4) - 2 tiles away, zone left. The move itself sets the
+    // mover's own new facing to "E" (the direction it just traveled),
+    // which happens to put the Enemy directly at the mover's own back -
+    // a genuine, correct Facing interaction: expected damage is
+    // Math.round(5 * 1.25) = 6.
+    const leftState = buildState({ row: 1, col: 2 })
+    const afterLeave = moveUnit(leftState, "mover", { row: 1, col: 4 })
+    const moverAfterLeave = afterLeave.units.find((u) => u.id === "mover")
+    // Same start, but slides to (1,1) - still Chebyshev-adjacent to
+    // Enemy(2,2) (distance stays 1) - zone never left, no reaction.
+    const stayState = buildState({ row: 1, col: 2 })
+    const afterStay = moveUnit(stayState, "mover", { row: 1, col: 1 })
+    const moverAfterStay = afterStay.units.find((u) => u.id === "mover")
+    return {
+      leaveHp: moverAfterLeave.hp,
+      leaveLogHasReaction: afterLeave.log.some((l) => l.includes("lashes out as Mover pulls away")),
+      stayHp: moverAfterStay.hp,
+      stayLogHasReaction: afterStay.log.some((l) => l.includes("lashes out")),
+    }
+  })
+  await page131.close()
+  out.zocCoreReaction = result
+  const ok = result.leaveHp === 20 - Math.round(5 * 1.25) && result.leaveLogHasReaction && result.stayHp === 20 && !result.stayLogHasReaction
+  if (!ok) out.errors.push("check131 leaving a melee enemy's zone did not trigger the correct reaction, or staying inside it wrongly did")
+}
+
+// 132. Melee-only gate: a range-3 (pattern-attacker) enemy adjacent to
+//      the mover's own origin projects no zone at all - leaving its
+//      side triggers no reaction, matching the PRD's own "melee units
+//      only" wording exactly -------------------------------------
+{
+  const page132 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page132.on("pageerror", (e) => errs.push(String(e)))
+  await page132.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page132.waitForSelector(".hwt-board")
+  const result = await page132.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 1, col: 2 }, hp: 20, maxHp: 20, range: 1, attack: 1, ap: 1, move: 3, block: 0, facing: "W" },
+        { id: "ranged", side: "enemy", name: "Ranged", pos: { row: 2, col: 2 }, hp: 100, maxHp: 100, range: 3, attack: 5, ap: 1, block: 0, facing: "E" },
+      ],
+    }
+    const after = moveUnit(state, "mover", { row: 1, col: 4 })
+    return { hp: after.units.find((u) => u.id === "mover").hp, hasReaction: after.log.some((l) => l.includes("lashes out")) }
+  })
+  await page132.close()
+  out.zocMeleeOnlyGate = result
+  const ok = result.hp === 20 && !result.hasReaction
+  if (!ok) out.errors.push("check132 A range!==1 (non-melee) unit incorrectly projected a Zone of Control")
+}
+
+// 133. Multiple controllers: a mover disengaging from 2 melee enemies
+//      at once (flanked) takes 2 separate reaction attacks, one from
+//      each -------------------------------------------------------
+{
+  const page133 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page133.on("pageerror", (e) => errs.push(String(e)))
+  await page133.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page133.waitForSelector(".hwt-board")
+  const result = await page133.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 2, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 1, ap: 1, move: 3, block: 0, facing: "W" },
+        { id: "e1", side: "enemy", name: "E1", pos: { row: 1, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 5, ap: 1, block: 0, facing: "S" },
+        { id: "e2", side: "enemy", name: "E2", pos: { row: 3, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 5, ap: 1, block: 0, facing: "N" },
+      ],
+    }
+    const after = moveUnit(state, "mover", { row: 2, col: 4 })
+    const mover = after.units.find((u) => u.id === "mover")
+    const reactionLines = after.log.filter((l) => l.includes("lashes out")).length
+    return { hp: mover.hp, reactionLines }
+  })
+  await page133.close()
+  out.zocMultipleControllers = result
+  const ok = result.reactionLines === 2 && result.hp < 100
+  if (!ok) out.errors.push("check133 A flanked mover did not take exactly 2 separate reaction attacks when disengaging from both")
+}
+
+// 134. No reaction into a corpse/ended battle: if the FIRST of 2
+//      reaction attacks kills the mover, the second controller does
+//      not also attack (no crash, no phantom log line) -------------
+{
+  const page134 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page134.on("pageerror", (e) => errs.push(String(e)))
+  await page134.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page134.waitForSelector(".hwt-board")
+  const result = await page134.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 2, col: 2 }, hp: 3, maxHp: 100, range: 1, attack: 1, ap: 1, move: 3, block: 0, facing: "W" },
+        { id: "e1", side: "enemy", name: "E1", pos: { row: 1, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 50, ap: 1, block: 0, facing: "S" },
+        { id: "e2", side: "enemy", name: "E2", pos: { row: 3, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 50, ap: 1, block: 0, facing: "N" },
+      ],
+    }
+    const after = moveUnit(state, "mover", { row: 2, col: 4 })
+    const mover = after.units.find((u) => u.id === "mover")
+    const reactionLines = after.log.filter((l) => l.includes("lashes out")).length
+    return { hp: mover.hp, reactionLines, phase: after.phase }
+  })
+  await page134.close()
+  out.zocNoCorpseDoubleHit = result
+  const ok = result.reactionLines === 1 && result.hp === 0
+  if (!ok) out.errors.push("check134 A second reaction attack fired into an already-fallen mover instead of stopping")
+}
+
+// 135. Symmetry: the SAME mechanic fires when an ENEMY moves out of a
+//      PLAYER melee unit's own zone - a hand-built scenario, since
+//      today's simple AI never chooses this on its own -------------
+{
+  const page135 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page135.on("pageerror", (e) => errs.push(String(e)))
+  await page135.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page135.waitForSelector(".hwt-board")
+  const result = await page135.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "enemy",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "enemy", side: "enemy", name: "Enemy", pos: { row: 1, col: 2 }, hp: 20, maxHp: 20, range: 1, attack: 1, ap: 1, move: 3, block: 0, facing: "E" },
+        { id: "guard", side: "player", name: "Guard", pos: { row: 2, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 6, ap: 1, block: 0, facing: "W" },
+      ],
+    }
+    const after = moveUnit(state, "enemy", { row: 1, col: 4 })
+    const enemy = after.units.find((u) => u.id === "enemy")
+    return { hp: enemy.hp, hasReaction: after.log.some((l) => l.includes("lashes out as Enemy pulls away")) }
+  })
+  await page135.close()
+  out.zocSymmetry = result
+  const ok = result.hasReaction && result.hp < 20
+  if (!ok) out.errors.push("check135 A player melee unit's own Zone of Control did not fire when an enemy disengaged from it")
+}
+
+// 136. The Haste-follow-up generalization: a Haste-carrying unit that
+//      REACTS (fires during the OTHER side's own phase) still gets its
+//      own follow-up hit, proving the guard's generalization from
+//      "phase===player" to "phase hasn't ended" is genuinely correct -
+{
+  const page136 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page136.on("pageerror", (e) => errs.push(String(e)))
+  await page136.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page136.waitForSelector(".hwt-board")
+  const result = await page136.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Phase is "enemy" (enemy1 is about to move) - the REACTING unit
+    // (player1, haste:true) fires its reaction DURING that phase, the
+    // exact scenario the Haste guard's own generalization exists for.
+    // enemy2 stays adjacent to player1 the whole time, giving the
+    // Haste follow-up a real, valid, in-range second target once
+    // enemy1 has moved out of range.
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "enemy",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "enemy1", side: "enemy", name: "Enemy1", pos: { row: 2, col: 3 }, hp: 100, maxHp: 100, range: 1, attack: 1, ap: 1, move: 3, block: 0, facing: "W" },
+        { id: "enemy2", side: "enemy", name: "Enemy2", pos: { row: 1, col: 2 }, hp: 100, maxHp: 100, range: 1, attack: 1, ap: 1, block: 0, facing: "S" },
+        { id: "player1", side: "player", name: "Player1", pos: { row: 2, col: 2 }, hp: 20, maxHp: 20, range: 1, attack: 5, ap: 1, block: 0, facing: "W", haste: true },
+      ],
+    }
+    const after = moveUnit(state, "enemy1", { row: 2, col: 4 })
+    return {
+      hasteLine: after.log.some((l) => l.includes("Haste fires")),
+      enemy1Hp: after.units.find((u) => u.id === "enemy1").hp,
+      enemy2Hp: after.units.find((u) => u.id === "enemy2").hp,
+    }
+  })
+  await page136.close()
+  out.zocHasteReactionFollowUp = result
+  const ok = result.hasteLine && result.enemy1Hp < 100 && result.enemy2Hp < 100
+  if (!ok) out.errors.push("check136 A Haste-carrying reactor did not get its own follow-up hit during a reaction")
+}
+
+// 137. UI: data-zoc cells match zoneOfControlCells's own computed set
+//      exactly - a screenshot --------------------------------------
+{
+  const page137 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page137.on("pageerror", (e) => errs.push(String(e)))
+  await page137.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page137.waitForSelector(".hwt-board")
+  const result = await page137.evaluate(async () => {
+    const { createTacticsBattle, zoneOfControlCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("default")
+    return { expectedCount: zoneOfControlCells(battle, "enemy").size }
+  })
+  const renderedCount = await page137.locator('.hwt-cell[data-zoc="true"]').count()
+  await page137.screenshot({ path: `${SHOT}/zoc_cells.png` })
+  await page137.close()
+  out.zocUiCells = { expectedCount: result.expectedCount, renderedCount }
+  const ok = result.expectedCount > 0 && renderedCount === result.expectedCount
+  if (!ok) out.errors.push("check137 the rendered data-zoc cells did not match zoneOfControlCells's own computed set")
 }
 
 console.log(JSON.stringify(out, null, 2))

@@ -898,6 +898,36 @@ function checkTacticsBattleEnd(state) {
   return state
 }
 
+// Zone of Control round (Movement PRD §4.3, Basic Zone - the PRD's own
+// simplest sub-type): "lähitaisteluyksiköt hallitsevat ympärillään
+// olevia ruutuja" - MELEE units control the tiles around them.
+// `range === 1` is this engine's own real single-vs-pattern-attacker
+// distinction (the same gate Haste/Facing already use for "melee") -
+// a range-3 pattern-attacker projects no zone at all, matching the
+// PRD's own wording exactly. `kingAdjacent` (targeting.js) - already
+// used for Bulwark Aura's own reach - is the exact adjacency Basic
+// Zone needs.
+function zocControllers(state, pos, side) {
+  return state.units.filter((u) => u.side === side && u.hp > 0 && u.range === 1 && kingAdjacent(u.pos, pos))
+}
+
+// Every "row-col" cell currently controlled by a living melee `side`
+// unit - for the UI (a static board property, not relative to
+// whichever unit is selected, unlike reachable/targetable overlays).
+export function zoneOfControlCells(state, side) {
+  const cells = new Set()
+  for (const controller of state.units.filter((u) => u.side === side && u.hp > 0 && u.range === 1)) {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue
+        const pos = { row: controller.pos.row + dr, col: controller.pos.col + dc }
+        if (isOnBoard(pos, state.grid)) cells.add(`${pos.row}-${pos.col}`)
+      }
+    }
+  }
+  return cells
+}
+
 export function moveUnit(state, unitId, targetPos) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0 || unit.ap < 1) return state
@@ -920,6 +950,23 @@ export function moveUnit(state, unitId, targetPos) {
     const arrived = getUnit(next, unitId)
     next = setUnit(next, unitId, { poison: arrived.poison + grant })
     next = { ...next, log: [...next.log, `${unit.name} wades into the poison and starts coughing (+${grant}).`] }
+  }
+  // Zone of Control round: a living, melee OPPOSING controller of the
+  // unit's own ORIGIN tile (`unit.pos`, captured before any of the
+  // updates above - a controller's own position never changes here,
+  // only the mover's does) that no longer controls the DESTINATION
+  // gets one free reaction attack - the classic "opportunity attack."
+  // Re-checks the mover's own live hp and the battle's own phase
+  // before each subsequent controller's swing, so a flanking pair
+  // never both attack a corpse or fire into an already-ended battle.
+  const opposingSide = unit.side === "player" ? "enemy" : "player"
+  const leavingControllers = zocControllers(state, unit.pos, opposingSide).filter((controller) => !kingAdjacent(controller.pos, targetPos))
+  for (const controller of leavingControllers) {
+    if (next.phase === "won" || next.phase === "lost") break
+    const mover = getUnit(next, unitId)
+    if (!mover || mover.hp <= 0) break
+    next = { ...next, log: [...next.log, `${controller.name} lashes out as ${unit.name} pulls away!`] }
+    next = attackUnit(next, controller.id, unitId, { isReaction: true })
   }
   return next
 }
@@ -1191,10 +1238,21 @@ function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
 export function attackUnit(state, actorId, targetId, opts = {}) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
-  if (!actor || !target || actor.hp <= 0 || target.hp <= 0 || actor.ap < 1) return state
-  if (state.phase !== actor.side || actor.side === target.side) return state
-  if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
-  let next = setUnit(state, actorId, { ap: actor.ap - 1 })
+  if (!actor || !target || actor.hp <= 0 || target.hp <= 0) return state
+  if (actor.side === target.side) return state
+  // Zone of Control round: a reaction attack (opts.isReaction) skips
+  // every gate that only makes sense for a NORMAL action - it costs no
+  // AP, fires during the OTHER side's own move/phase, and by
+  // definition the reactor is no longer in range of the target's NEW
+  // position (that's the whole point of a reaction) - only the
+  // same-side guard above still applies unconditionally, since a
+  // reaction can never hit an ally either.
+  if (!opts.isReaction) {
+    if (actor.ap < 1) return state
+    if (state.phase !== actor.side) return state
+    if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
+  }
+  let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
   const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, modifiedAttackAmount(actor, target, actor.attack))
   next = hit
   const absorbedNote = describeAbsorb(absorbed, armourUsed)
@@ -1239,15 +1297,31 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // target remains. `opts.isHasteFollowUp` guards the follow-up hit
   // from triggering a third, matching the real mechanic's own "doesn't
   // itself trigger Chain again" restraint.
-  if (!opts.isHasteFollowUp && actor.side === "player" && actor.haste && actor.range === 1 && next.phase === "player") {
+  //
+  // Zone of Control round: the guard below used to hardcode
+  // `next.phase === "player"` - confirmed equivalent, for every call
+  // site that existed before this round, to simply "the battle hasn't
+  // ended" (a normal player attack only ever left `phase` at "player"
+  // or flipped it to "won"/"lost"). Generalized to check that
+  // directly, since a REACTION can now fire a player unit's own
+  // Haste-carrying attack DURING the enemy's own phase (an enemy
+  // disengaging from a player triggers the player's own zone) - the
+  // old hardcoded check would have wrongly swallowed that follow-up.
+  if (!opts.isHasteFollowUp && actor.side === "player" && actor.haste && actor.range === 1 && next.phase !== "won" && next.phase !== "lost") {
     const reActor = getUnit(next, actorId)
     if (reActor && reActor.hp > 0) {
       const targets = attackableTargets(next, actorId)
       if (targets.length) {
         const followTargetId = targets.some((t) => t.id === targetId) ? targetId : targets[0].id
         next = { ...next, log: [...next.log, `${actor.name}'s Haste fires - a second strike!`] }
-        const refunded = setUnit(next, actorId, { ap: reActor.ap + 1 })
-        next = attackUnit(refunded, actorId, followTargetId, { isHasteFollowUp: true })
+        // Zone of Control round: the refund only makes sense for a
+        // NORMAL primary attack, which really did spend 1 AP above -
+        // a reaction's own primary hit never touched AP at all (see
+        // the isReaction branch above), so refunding here would
+        // permanently inflate a Haste-carrying reactor's AP by 1 every
+        // time it reacts.
+        const refunded = opts.isReaction ? next : setUnit(next, actorId, { ap: reActor.ap + 1 })
+        next = attackUnit(refunded, actorId, followTargetId, { isHasteFollowUp: true, isReaction: opts.isReaction })
       }
     }
   }

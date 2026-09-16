@@ -103,6 +103,15 @@
   border-color: color-mix(in srgb, var(--hw-shadow) 60%, transparent);
 }
 
+/* Zone of Control round: a subtle inset ring (never `background`, so
+   it composes cleanly with any terrain tint already on the same cell)
+   marking every tile a living melee enemy currently controls - a
+   static board property, visible all through the player's own turn,
+   so retreating into danger is a visible choice, not a surprise. */
+.hwt-cell[data-zoc="true"] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-hp) 45%, transparent);
+}
+
 .hwt-cell[data-reachable="true"] {
   background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
   border-color: var(--hw-moss);

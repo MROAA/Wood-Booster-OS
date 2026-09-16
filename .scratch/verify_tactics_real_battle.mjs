@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5414
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-facing/.scratch/shots"
+const PORT = process.env.PORT || 5415
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zoc/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1152,6 +1152,73 @@ function newPage() {
   out.realFightFacingBadge = { arrowCount, tokenCount }
   const ok = tokenCount > 0 && arrowCount === tokenCount
   if (!ok) out.errors.push("check22 not every token on the real board showed the new facing arrow")
+}
+
+// 23. Zone of Control: a real click-driven disengage from an adjacent
+//     enemy triggers a real reaction attack, visible in the real
+//     board's own log and hp change --------------------------------
+{
+  const page23 = await newPage()
+  page23.on("pageerror", (e) => errs.push(String(e)))
+  await page23.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page23, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page23.reload({ waitUntil: "domcontentloaded" })
+  await page23.waitForTimeout(400)
+  await page23.locator(".hw-tactics-fight-btn").click()
+  await page23.waitForTimeout(400)
+  // Directly reposition the real battle's own units (a real, already-
+  // derived Commander+recruited squad vs. real enemies) so the first
+  // player unit sits Chebyshev-adjacent to the first enemy - skips the
+  // uninteresting multi-turn approach dance and focuses this check on
+  // the actual mechanic (the disengage itself). Reloading resumes the
+  // edited mid-fight state, the same real "reload mid-fight resumes
+  // it" guarantee this bridge already relies on.
+  const setup = await page23.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const mover = battle.units.find((u) => u.side === "player")
+    const enemy = battle.units.find((u) => u.side === "enemy")
+    mover.pos = { row: enemy.pos.row, col: enemy.pos.col + 1 }
+    mover.ap = mover.apMax
+    mover.hp = mover.maxHp
+    enemy.hp = enemy.maxHp
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { moverName: mover.name, enemyName: enemy.name, moverHpBefore: mover.hp }
+  })
+  await page23.reload({ waitUntil: "domcontentloaded" })
+  await page23.waitForTimeout(400)
+  const moverToken = page23.locator(".hwt-token", { hasText: setup.moverName })
+  await moverToken.click({ force: true })
+  await page23.waitForTimeout(200)
+  const reach = page23.locator('.hwt-cell[data-reachable="true"]')
+  const n = await reach.count()
+  // Pick the reachable cell FARTHEST from the enemy token (a genuine
+  // retreat, not an incidental slide that stays inside the zone).
+  let chosen = null
+  if (n > 0) {
+    const enemyToken = page23.locator(".hwt-token", { hasText: setup.enemyName })
+    const enemyBox = await enemyToken.boundingBox()
+    let bestDist = -1
+    for (let i = 0; i < n; i++) {
+      const box = await reach.nth(i).boundingBox()
+      const dist = Math.hypot(box.x - enemyBox.x, box.y - enemyBox.y)
+      if (dist > bestDist) {
+        bestDist = dist
+        chosen = i
+      }
+    }
+    await reach.nth(chosen).click()
+    await page23.waitForTimeout(300)
+  }
+  const logText = await page23.locator(".hwt-log").innerText()
+  const afterBattle = await page23.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const moverAfter = afterBattle.units.find((u) => u.name === setup.moverName)
+  await page23.screenshot({ path: `${SHOT}/real_fight_zoc.png` })
+  await page23.close()
+  out.realFightZoc = { logHasReaction: logText.includes("lashes out"), moverHpBefore: setup.moverHpBefore, moverHpAfter: moverAfter?.hp, chosen }
+  const ok = chosen !== null && logText.includes("lashes out") && moverAfter && moverAfter.hp < setup.moverHpBefore
+  if (!ok) out.errors.push("check23 A real click-driven disengage from an adjacent enemy did not trigger a real reaction attack")
 }
 
 console.log(JSON.stringify(out, null, 2))
