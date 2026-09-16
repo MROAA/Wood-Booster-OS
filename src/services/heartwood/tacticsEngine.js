@@ -32,7 +32,14 @@ import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw }
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
 // Doubled the tile count (35 -> 70) for real maneuvering room; every
 // formation's row spread below is re-centered on the taller grid.
-export const GRID = { rows: 7, cols: 10 }
+//
+// Grown again (Movement PRD's Facing + Zone of Control both reward
+// getting to an enemy's side/back, which needs room to route around
+// it): 70 -> 108 tiles. Every ENEMY_FORMATIONS entry's row spread is
+// now computed generically via spreadRows(count, GRID.rows) instead of
+// a hardcoded per-formation array (see createTacticsBattle) - no
+// per-formation re-centering needed this time or any future resize.
+export const GRID = { rows: 9, cols: 12 }
 
 // Terrain (Hearthwood Frontier, feat/hearthwood-tactics-terrain): this
 // game has never had a per-cell battlefield property before (confirmed
@@ -177,7 +184,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Frontier Test Squad",
     description: "The roster this Frontier opened with - a wall, a claw, and a hoard.",
     enemyDefIds: ["ironmaw", "sapling-attendant", "hoardling"],
-    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -187,7 +193,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Brood",
     description: "Not one thing to fight. A dozen small ones, and every one of them is still a mouth.",
     enemyDefIds: ["sporelet", "mire-gnat", "sporelet", "mire-gnat"],
-    rows: [1, 2, 3, 4],
     battleStartBonus: 1,
     fortressBlock: 0,
     selfMend: 0,
@@ -197,7 +202,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Bulwark",
     description: "Two wardens shoulder to shoulder, and a mender behind them stitching every crack shut before you can widen it.",
     enemyDefIds: ["oakshell-warden", "oakshell-warden", "mossmender"],
-    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 3,
     selfMend: 0,
@@ -207,7 +211,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Pack",
     description: "Three of them, low and fast, already circling the one of you that looks tired.",
     enemyDefIds: ["fen-stalker", "pack-runner", "fen-stalker"],
-    rows: [2, 3, 4],
     battleStartBonus: 2,
     fortressBlock: 0,
     selfMend: 0,
@@ -217,7 +220,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Ancient Grove",
     description: "Two small things moving fast, and behind them one that has not moved yet, and is about to.",
     enemyDefIds: ["sapling-attendant", "ancient-oak", "sapling-attendant"],
-    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -227,7 +229,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Conclave",
     description: "Two of them stand ready, and behind them a third that only ever moves its lips.",
     enemyDefIds: ["bog-devotee", "hex-acolyte", "coven-matron"],
-    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -237,7 +238,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Communion",
     description: "Two kneeling, one counting. In two breaths there will be one kneeling, and the other two will be worse.",
     enemyDefIds: ["sworn-cultist", "sworn-cultist", "ritual-warden"],
-    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -247,7 +247,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Clutch",
     description: "Three of them, swollen and still. Break one open and see what spills out.",
     enemyDefIds: ["brood-mother", "brood-mother", "brood-mother"],
-    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -257,7 +256,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Blight",
     description: "Three of them, low to the ground, and the ground going soft and black behind them.",
     enemyDefIds: ["rotgut-crawler", "spore-lurcher", "rotgut-crawler"],
-    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 1,
@@ -267,7 +265,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Tithe",
     description: "Two quick hands and one patient one. They will leave with more than they came with.",
     enemyDefIds: ["hoardling", "tithe-warden", "hoardling"],
-    rows: [2, 3, 4],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -283,7 +280,6 @@ export const ENEMY_FORMATIONS = {
     name: "Deepwarden",
     description: "It has been standing here since before you knew the Hearthwood existed. It isn't moving.",
     enemyDefIds: ["deepwarden"],
-    rows: [3],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -296,7 +292,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Gorging Maw",
     description: "Every wound it opens on you, it closes one of its own. Don't let this go long.",
     enemyDefIds: ["the-gorging-maw"],
-    rows: [3],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -310,7 +305,6 @@ export const ENEMY_FORMATIONS = {
     name: "Wyrmgall",
     description: "It isn't watching your squad. It's watching for the mistake your squad hasn't made yet.",
     enemyDefIds: ["wyrmgall"],
-    rows: [3],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -325,7 +319,6 @@ export const ENEMY_FORMATIONS = {
     name: "The Iron Sentinel",
     description: "Its armour thickens every round it stands. A slow grind loses this one - open big or execute.",
     enemyDefIds: ["the-iron-sentinel"],
-    rows: [3],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -338,7 +331,6 @@ export const ENEMY_FORMATIONS = {
     name: "Thornmaw",
     description: "It doesn't raise its guard. It doesn't need to - it's already healed from worse than you.",
     enemyDefIds: ["thornmaw"],
-    rows: [3],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -352,7 +344,6 @@ export const ENEMY_FORMATIONS = {
     name: "Spacemonkey",
     description: "\"You made it further than I expected.\" He doesn't sound worried. He sounds curious.",
     enemyDefIds: ["spacemonkey"],
-    rows: [3],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
@@ -370,17 +361,21 @@ export const ENEMY_FORMATIONS = {
     name: "The Crossing",
     description: "One straight path across, already poisoned. The long way around is still open, if there's time for it.",
     enemyDefIds: ["ironmaw"],
-    rows: [3],
     battleStartBonus: 0,
     fortressBlock: 0,
     selfMend: 0,
+    // Re-centered for the 9x12 grid (was 7x10): the wall still flanks
+    // the enemy's own centre row immediately above/below, the poisoned
+    // shortcut still runs straight through the centre, and the water
+    // tile still sits 2 tiles in front of the enemy's own spawn -
+    // same puzzle shape, just recomputed for the taller/wider board.
     terrain: {
-      "1-5": "rock",
-      "2-5": "rock",
-      "4-5": "rock",
-      "5-5": "rock",
-      "3-5": "poison",
-      "3-2": "water",
+      "2-6": "rock",
+      "3-6": "rock",
+      "5-6": "rock",
+      "6-6": "rock",
+      "4-6": "poison",
+      "4-2": "water",
     },
   },
 }
@@ -695,13 +690,14 @@ function deriveCommanderUnit(characterId, pos, uid) {
 export function createTacticsBattle(formationId = "default", squadDefIds = PLAYER_DEF_IDS) {
   const formation = ENEMY_FORMATIONS[formationId] || ENEMY_FORMATIONS.default
   const playerRows = spreadRows(squadDefIds.length + 1, GRID.rows)
+  const enemyRows = spreadRows(formation.enemyDefIds.length, GRID.rows)
   const units = [
     ...squadDefIds.map((defId, i) =>
       deriveTacticsUnit(defId, "player", { row: playerRows[i], col: GRID.cols - 1 }, `player-${defId}-${i}`),
     ),
     deriveCommanderUnit(DEFAULT_COMMANDER_ID, { row: playerRows[squadDefIds.length], col: GRID.cols - 1 }, "player-commander"),
     ...formation.enemyDefIds.map((defId, i) =>
-      deriveTacticsUnit(defId, "enemy", { row: formation.rows[i], col: 0 }, `enemy-${defId}-${i}`),
+      deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
   // The Commander's real Squad Passive (characters.js) - applied to

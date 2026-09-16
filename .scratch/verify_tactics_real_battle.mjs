@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5415
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zoc/.scratch/shots"
+const PORT = process.env.PORT || 5416
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bigboard/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1219,6 +1219,38 @@ function newPage() {
   out.realFightZoc = { logHasReaction: logText.includes("lashes out"), moverHpBefore: setup.moverHpBefore, moverHpAfter: moverAfter?.hp, chosen }
   const ok = chosen !== null && logText.includes("lashes out") && moverAfter && moverAfter.hp < setup.moverHpBefore
   if (!ok) out.errors.push("check23 A real click-driven disengage from an adjacent enemy did not trigger a real reaction attack")
+}
+
+// 24. Bigger board round: a REAL fight through the Fight button renders
+//     the new 9x12 board (108 cells, the real GRID's own dimensions),
+//     not a stale/hardcoded size ------------------------------------
+{
+  const page24 = await newPage()
+  page24.on("pageerror", (e) => errs.push(String(e)))
+  await page24.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page24, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page24.reload({ waitUntil: "domcontentloaded" })
+  await page24.waitForTimeout(400)
+  await page24.locator(".hw-tactics-fight-btn").click()
+  await page24.waitForTimeout(400)
+  const gridDims = await page24.evaluate(async () => {
+    const { GRID } = await import("/src/services/heartwood/tacticsEngine.js")
+    return { rows: GRID.rows, cols: GRID.cols }
+  })
+  const cellCount = await page24.locator(".hwt-cell").count()
+  const boardStyle = await page24.locator(".hwt-board").evaluate((el) => ({
+    cols: getComputedStyle(el).gridTemplateColumns.split(" ").length,
+    rows: getComputedStyle(el).gridTemplateRows.split(" ").length,
+  }))
+  await page24.close()
+  out.realFightBigBoard = { gridDims, cellCount, boardStyle }
+  const ok =
+    gridDims.rows === 9 &&
+    gridDims.cols === 12 &&
+    cellCount === 108 &&
+    boardStyle.cols === 12 &&
+    boardStyle.rows === 9
+  if (!ok) out.errors.push("check24 the real board did not render at the new 9x12 size")
 }
 
 console.log(JSON.stringify(out, null, 2))

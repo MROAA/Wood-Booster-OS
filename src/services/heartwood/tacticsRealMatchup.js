@@ -50,10 +50,12 @@ function pickTerrainType(roll) {
 // is a fresh, stable generator - the SAME (seed, nodeIndex) always
 // regenerates the SAME battlefield (reload-safe, share-a-seed-safe),
 // matching every other stream-consuming caller's own contract exactly.
-// Confined to the grid's middle 4 columns (3-6 of GRID.cols=10) so
-// neither side's own spawn column is ever touched - the same "hazards
-// live between the two sides" shape The Crossing's own hand-authored
-// layout already established. A pure function of (seed, nodeIndex) -
+// Confined to the grid's middle columns, keeping a 3-column buffer clear
+// on each side (never touching a spawn column) regardless of GRID.cols -
+// the same "hazards live between the two sides" shape The Crossing's own
+// hand-authored layout already established, generalized so a future
+// board-size change needs no edit here either. A pure function of
+// (seed, nodeIndex) -
 // tacticsEngine.js itself stays unaware the seed system exists at all;
 // it just receives a plain terrain map, indistinguishable from a
 // hand-authored ENEMY_FORMATIONS one.
@@ -65,7 +67,7 @@ export function generateRealTerrain(seed, nodeIndex) {
   while (placed < TERRAIN_HAZARD_COUNT && attempts < TERRAIN_HAZARD_COUNT * 4) {
     attempts++
     const row = Math.floor(rng() * GRID.rows)
-    const col = 3 + Math.floor(rng() * 4)
+    const col = 3 + Math.floor(rng() * (GRID.cols - 6))
     const key = `${row}-${col}`
     if (terrain[key]) continue
     terrain[key] = pickTerrainType(rng())
