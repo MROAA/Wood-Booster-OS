@@ -112,6 +112,14 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-hp) 45%, transparent);
 }
 
+/* Threat Zone round: a distinct, stronger warning TINT (never a ring,
+   so it composes with data-zoc's own inset ring on a cell that's both -
+   a tanky controller's zones overlap on purpose) marking every tile
+   where entering costs a mover its whole action's remaining move. */
+.hwt-cell[data-threat-zone="true"] {
+  background: color-mix(in srgb, var(--hw-curse) 16%, transparent);
+}
+
 .hwt-cell[data-reachable="true"] {
   background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
   border-color: var(--hw-moss);

@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5417
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-classflank/.scratch/shots"
+const PORT = process.env.PORT || 5418
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-threatzone/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-classflank", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-threatzone", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-classflank", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-threatzone", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -5231,6 +5231,173 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     benefitBadgeCount === 1 &&
     resistBadgeCount === 1
   if (!ok) out.errors.push("check145 the default squad's own benefit/resist-class units did not render exactly the right badges")
+}
+
+// ---------------------------------------------------------------
+// Threat Zone (Movement PRD §4.3's next sub-type after Basic Zone) - a
+// LARGER (radius-2) zone around tanky melee units (move===2, the same
+// real moveFromMaxHp signal, symmetric across both sides) that blocks
+// advancing THROUGH it, additive to (never replacing) Basic Zone's own
+// existing reaction-on-leaving behavior.
+// ---------------------------------------------------------------
+
+// 146. threatZoneCells shape: radius-2, only for tanky (move:2) melee
+//      controllers - a light/fast melee unit (move:3) projects none --
+{
+  const page146 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page146.on("pageerror", (e) => errs.push(String(e)))
+  await page146.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page146.waitForSelector(".hwt-board")
+  const result = await page146.evaluate(async () => {
+    const { threatZoneCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    const tankyState = {
+      grid: { rows: 9, cols: 12 },
+      units: [{ id: "e1", side: "enemy", hp: 10, range: 1, move: 2, pos: { row: 4, col: 6 } }],
+    }
+    const lightState = {
+      grid: { rows: 9, cols: 12 },
+      units: [{ id: "e1", side: "enemy", hp: 10, range: 1, move: 3, pos: { row: 4, col: 6 } }],
+    }
+    const tankyCells = threatZoneCells(tankyState, "enemy")
+    const lightCells = threatZoneCells(lightState, "enemy")
+    return {
+      tankyCount: tankyCells.size,
+      hasRadius2Cell: tankyCells.has("2-6") && tankyCells.has("6-6") && tankyCells.has("4-4") && tankyCells.has("4-8"),
+      hasRadius3Cell: tankyCells.has("1-6") || tankyCells.has("4-9"),
+      lightCount: lightCells.size,
+    }
+  })
+  await page146.close()
+  out.threatZoneShape = result
+  // A full 5x5 square minus the centre = 24 cells, all in-bounds here.
+  const ok = result.tankyCount === 24 && result.hasRadius2Cell && !result.hasRadius3Cell && result.lightCount === 0
+  if (!ok) out.errors.push("check146 threatZoneCells did not produce the expected radius-2, tanky-only shape")
+}
+
+// 147. The core movement-cap: a full-move unit that could otherwise
+//      easily path THROUGH a tanky enemy's Threat Zone to a cell beyond
+//      it gets capped at the zone's own edge - proven by comparing the
+//      SAME path against a light (non-tanky) enemy, which blocks
+//      nothing, isolating the zone's own effect precisely -----------
+{
+  const page147 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page147.on("pageerror", (e) => errs.push(String(e)))
+  await page147.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page147.waitForSelector(".hwt-board")
+  const result = await page147.evaluate(async () => {
+    const { reachableTilesFor } = await import("/src/services/heartwood/tacticsEngine.js")
+    // 5 rows so the mover has room to route AROUND the enemy's own
+    // occupied tile (which blocks movement regardless of any zone) -
+    // isolating the zone's own effect from plain occupancy-blocking.
+    function state(enemyMove) {
+      return {
+        grid: { rows: 5, cols: 12 },
+        terrain: {},
+        units: [
+          { id: "mover", side: "player", hp: 10, pos: { row: 2, col: 0 }, move: 9, range: 1 },
+          { id: "enemy", side: "enemy", hp: 10, pos: { row: 2, col: 6 }, move: enemyMove, range: 1 },
+        ],
+      }
+    }
+    const withTanky = reachableTilesFor(state(2), "mover")
+    const withLight = reachableTilesFor(state(3), "mover")
+    return {
+      col9ReachableVsTanky: withTanky.some((p) => p.col === 9),
+      col9ReachableVsLight: withLight.some((p) => p.col === 9),
+      maxColVsTanky: Math.max(...withTanky.map((p) => p.col)),
+      col3ReachableVsTanky: withTanky.some((p) => p.col === 3),
+    }
+  })
+  await page147.close()
+  out.threatZoneMovementCap = result
+  const ok =
+    !result.col9ReachableVsTanky &&
+    result.col9ReachableVsLight &&
+    result.maxColVsTanky === 3 &&
+    result.col3ReachableVsTanky
+  if (!ok) out.errors.push("check147 the Threat Zone did not cap through-movement at its own edge (col9 should be reachable past a light enemy but not past a tanky one)")
+}
+
+// 148. Not a dead end: a unit standing directly adjacent to a tanky
+//      enemy's Threat Zone can still step ONTO a cell inside it (using
+//      its whole action to do so) - proving the zone blocks THROUGH-
+//      movement, not all entry ---------------------------------------
+{
+  const page148 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page148.on("pageerror", (e) => errs.push(String(e)))
+  await page148.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page148.waitForSelector(".hwt-board")
+  const result = await page148.evaluate(async () => {
+    const { reachableTilesFor } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 1, cols: 12 },
+      terrain: {},
+      units: [
+        { id: "mover", side: "player", hp: 10, pos: { row: 0, col: 3 }, move: 5, range: 1 },
+        { id: "enemy", side: "enemy", hp: 10, pos: { row: 0, col: 6 }, move: 2, range: 1 },
+      ],
+    }
+    const reach = reachableTilesFor(state, "mover").map((p) => p.col)
+    return { col4Reachable: reach.includes(4), col5ReachableToo: reach.includes(5) }
+  })
+  await page148.close()
+  out.threatZoneNotADeadEnd = result
+  const ok = result.col4Reachable && !result.col5ReachableToo
+  if (!ok) out.errors.push("check148 a unit adjacent to a Threat Zone could not step directly into it (or the cap did not fully consume its move)")
+}
+
+// 149. The additive proof, directly guarding the regression this round
+//      is built around: a tanky melee unit (move:2, e.g. a synthetic
+//      Rotwood-Husk-shaped enemy) still triggers the EXISTING Basic
+//      Zone reaction attack when something leaves its own radius-1
+//      ring, completely unchanged by this round --------------------
+{
+  const page149 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page149.on("pageerror", (e) => errs.push(String(e)))
+  await page149.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page149.waitForSelector(".hwt-board")
+  const result = await page149.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 5, cols: 5 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 1, col: 2 }, hp: 20, maxHp: 20, range: 1, attack: 1, ap: 1, move: 3, block: 0, facing: "W" },
+        { id: "enemy", side: "enemy", name: "TankyEnemy", pos: { row: 2, col: 2 }, hp: 100, maxHp: 100, range: 1, move: 2, attack: 5, ap: 1, block: 0, facing: "E" },
+      ],
+    }
+    const after = moveUnit(state, "mover", { row: 1, col: 4 })
+    const mover = after.units.find((u) => u.id === "mover")
+    return { hp: mover.hp, hasReactionLine: after.log.some((l) => l.includes("lashes out as Mover pulls away")) }
+  })
+  await page149.close()
+  out.threatZoneAdditiveProof = result
+  const ok = result.hp < 20 && result.hasReactionLine
+  if (!ok) out.errors.push("check149 a tanky (move:2) melee unit lost its existing Basic Zone reaction-attack behavior - Threat Zone must be additive, not a replacement")
+}
+
+// 150. UI: data-threat-zone cells match threatZoneCells's own computed
+//      set exactly, visibly distinct from data-zoc - a screenshot -----
+{
+  const page150 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page150.on("pageerror", (e) => errs.push(String(e)))
+  await page150.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page150.waitForSelector(".hwt-board")
+  await page150.locator(".hwt-formation-btn", { hasText: "The Bulwark" }).click()
+  await page150.waitForTimeout(300)
+  const expectedCount = await page150.evaluate(async () => {
+    const { createTacticsBattle, threatZoneCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("fortress")
+    return threatZoneCells(battle, "enemy").size
+  })
+  const renderedCount = await page150.locator('.hwt-cell[data-threat-zone="true"]').count()
+  await page150.screenshot({ path: `${SHOT}/threat_zone_cells.png` })
+  await page150.close()
+  out.threatZoneUiCells = { expectedCount, renderedCount }
+  const ok = expectedCount > 0 && renderedCount === expectedCount
+  if (!ok) out.errors.push("check150 the rendered data-threat-zone cells did not match threatZoneCells's own computed set")
 }
 
 console.log(JSON.stringify(out, null, 2))

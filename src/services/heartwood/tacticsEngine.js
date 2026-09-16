@@ -863,7 +863,27 @@ export function reachableTilesFor(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0) return []
   const occupied = state.units.filter((u) => u.id !== unitId && u.hp > 0).map((u) => u.pos)
-  return reachableTilesRaw(occupied, unit.pos, unit.move, state.grid, (pos) => TERRAIN[terrainAt(state, pos)].cost)
+  const opposingSide = unit.side === "player" ? "enemy" : "player"
+  // Only a unit APPROACHING from clean ground is capped - one already
+  // standing inside an opposing Threat Zone (adjacent to a tanky
+  // enemy, mid-engagement) can still maneuver normally nearby, the
+  // same way Basic Zone's own reaction only fires on truly LEAVING,
+  // not on every step taken while already close. Without this guard a
+  // unit that starts inside ANY opposing threat zone could barely move
+  // at all - over-punishing, not "blocks advancing" as the PRD says.
+  const startedInsideThreatZone = threatZoneControllers(state, unit.pos, opposingSide).length > 0
+  return reachableTilesRaw(occupied, unit.pos, unit.move, state.grid, (pos) => {
+    const baseCost = TERRAIN[terrainAt(state, pos)].cost
+    // Threat Zone round (Movement PRD §4.3): entering a cell inside an
+    // opposing Threat Zone consumes the mover's ENTIRE move budget for
+    // this action - a hard-to-press-past deterrent, not a flat "you
+    // may never enter" wall (that would make the controller itself
+    // unmeleeable from outside its own zone). `unit.move` (not
+    // Infinity) is exactly the cost that always exhausts whatever
+    // budget remains once spent here.
+    if (!startedInsideThreatZone && threatZoneControllers(state, pos, opposingSide).length > 0) return unit.move
+    return baseCost
+  })
 }
 
 // Enemies (or allies) within the unit's range of its CURRENT tile - a
@@ -910,6 +930,43 @@ function checkTacticsBattleEnd(state) {
 // Zone needs.
 function zocControllers(state, pos, side) {
   return state.units.filter((u) => u.side === side && u.hp > 0 && u.range === 1 && kingAdjacent(u.pos, pos))
+}
+
+// Threat Zone round (Movement PRD §4.3): "hallitsee suurempaa aluetta
+// ja voi estää etenemistä" - controls a LARGER area and can block
+// advancing. `move === 2` is the exact real, already-existing signal
+// for "this melee unit is big/tanky" (moveFromMaxHp already grants it
+// to every maxHp>=40 unit, symmetric across both sides, zero new
+// authoring) - reused directly rather than inventing a new field.
+// ADDITIVE, not a replacement: a tanky melee unit keeps its full Basic
+// Zone behavior (the reaction attack above) completely unchanged, and
+// separately ALSO projects this wider zone - confirmed necessary since
+// rotwood-husk (maxHp 58) already has real, shipped, verified Basic
+// Zone reaction behavior that a REPLACEMENT design would have silently
+// removed.
+function isTankyMelee(unit) {
+  return unit.range === 1 && unit.move === 2
+}
+
+function threatZoneControllers(state, pos, side) {
+  return state.units.filter((u) => u.side === side && u.hp > 0 && isTankyMelee(u) && chebyshevDist(u.pos, pos) <= 2)
+}
+
+// Every "row-col" cell currently controlled by a living tanky-melee
+// `side` unit, radius 2 - for the UI, the same static-board-property
+// pattern zoneOfControlCells already established.
+export function threatZoneCells(state, side) {
+  const cells = new Set()
+  for (const controller of state.units.filter((u) => u.side === side && u.hp > 0 && isTankyMelee(u))) {
+    for (let dr = -2; dr <= 2; dr++) {
+      for (let dc = -2; dc <= 2; dc++) {
+        if (dr === 0 && dc === 0) continue
+        const pos = { row: controller.pos.row + dr, col: controller.pos.col + dc }
+        if (isOnBoard(pos, state.grid)) cells.add(`${pos.row}-${pos.col}`)
+      }
+    }
+  }
+  return cells
 }
 
 // Every "row-col" cell currently controlled by a living melee `side`
