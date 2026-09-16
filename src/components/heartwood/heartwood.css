@@ -3975,6 +3975,34 @@ img.hw-card-art {
   margin-left: auto;
 }
 
+/* The Ledger + Buyback chips carry their own flavorful names ("The
+   Trader's Compass", "The Weathered Standard") that were still ellipsing
+   on the same ~210px rail the item-chip fix above already solved this
+   for ("Wraithf..." -> a full wrapped line) - these two sections were
+   missed at the time since they use the plain .hw-rail-chip shape, not
+   .hw-rail-chip--item. Same fix, same reasoning: let the name claim its
+   own full line and the cost-button/checkmark wrap beneath it,
+   right-aligned. */
+.hw-rail-section--ledger .hw-rail-chip,
+.hw-rail-section--buyback .hw-rail-chip {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
+.hw-rail-section--ledger .hw-rail-chip-name,
+.hw-rail-section--buyback .hw-rail-chip-name {
+  flex: 1 0 auto;
+  overflow: visible;
+  white-space: normal;
+}
+
+.hw-rail-section--ledger .hw-rail-chip-max,
+.hw-rail-section--ledger .hw-rail-upgrade.hw-move-btn,
+.hw-rail-section--buyback .hw-rail-chip-max,
+.hw-rail-section--buyback .hw-rail-upgrade.hw-move-btn {
+  margin-left: auto;
+}
+
 .hw-rail-chip--selectable {
   cursor: pointer;
 }
