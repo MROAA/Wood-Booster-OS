@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5416
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bigboard/.scratch/shots"
+const PORT = process.env.PORT || 5417
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-classflank/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bigboard", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-classflank", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-bigboard", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-classflank", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -5087,6 +5087,150 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.atkFinalPos.col === 2 &&
     result.backBonusApplied
   if (!ok) out.errors.push("check141 the new row space did not enable a genuine new back-attack flanking route")
+}
+
+// ---------------------------------------------------------------
+// Per-class Facing bonuses/resistance (Movement PRD §4.2's last unbuilt
+// piece) - the PRD's own 10 abstract classes mapped by theme onto the
+// 48 real classes (units.js), since only "Guardian" literally matches.
+// ---------------------------------------------------------------
+
+// 142. The core math for all 4 combinations: a benefiting attacker
+//      (className "Nightblade") vs a neutral defender gets +35% on a
+//      back hit; a neutral attacker vs a resisting defender
+//      (className "Bulwark") gets only +15%; a benefiting attacker vs
+//      a RESISTING defender lands EXACTLY on the base +25% (the
+//      intentional cancel-out); neutral vs neutral stays the
+//      byte-identical base +25% - proving the cancel-out isn't a
+//      coincidence, it's the same base number reached 2 different ways
+{
+  const page142 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page142.on("pageerror", (e) => errs.push(String(e)))
+  await page142.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page142.waitForSelector(".hwt-board")
+  const result = await page142.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Attacker directly WEST of the defender, defender facing "E" -
+    // opposite direction = "back", per classifyFacingAttack.
+    const backDamage = (attackerClassName, defenderClassName) => {
+      const state = {
+        grid: { rows: 5, cols: 5 },
+        terrain: {},
+        log: [],
+        phase: "player",
+        units: [
+          { id: "atk", name: "Atk", side: "player", hp: 20, maxHp: 20, ap: 1, move: 1, range: 1, attack: 100, block: 0, className: attackerClassName, pos: { row: 2, col: 1 } },
+          { id: "def", name: "Def", side: "enemy", hp: 999, maxHp: 999, ap: 1, move: 1, range: 1, attack: 0, block: 0, className: defenderClassName, facing: "E", pos: { row: 2, col: 2 } },
+        ],
+      }
+      const after = attackUnit(state, "atk", "def")
+      const def = after.units.find((u) => u.id === "def")
+      return 999 - def.hp
+    }
+    return {
+      benefitVsNeutral: backDamage("Nightblade", null),
+      neutralVsResist: backDamage(null, "Bulwark"),
+      benefitVsResist: backDamage("Nightblade", "Bulwark"),
+      neutralVsNeutral: backDamage(null, null),
+    }
+  })
+  await page142.close()
+  out.perClassFacingMath = result
+  const ok =
+    result.benefitVsNeutral === 135 &&
+    result.neutralVsResist === 115 &&
+    result.benefitVsResist === 125 &&
+    result.neutralVsNeutral === 125
+  if (!ok) out.errors.push("check142 the per-class Facing math did not match the 4-combination matrix (benefit/resist/cancel-out/base)")
+}
+
+// 143. flankRole correctness for a representative real class from each
+//      bucket, plus a blunt-dps class and no-class (enemy/Commander) --
+{
+  const page143 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page143.on("pageerror", (e) => errs.push(String(e)))
+  await page143.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page143.waitForSelector(".hwt-board")
+  const result = await page143.evaluate(async () => {
+    const { flankRole } = await import("/src/services/heartwood/tacticsEngine.js")
+    return {
+      nightblade: flankRole("Nightblade"),
+      bulwark: flankRole("Bulwark"),
+      berserker: flankRole("Berserker"),
+      none: flankRole(null),
+    }
+  })
+  await page143.close()
+  out.flankRoleLookup = result
+  const ok = result.nightblade === "benefit" && result.bulwark === "resist" && result.berserker === null && result.none === null
+  if (!ok) out.errors.push("check143 flankRole did not classify a representative benefit/resist/neutral/no-class case correctly")
+}
+
+// 144. A real end-to-end flank via createTacticsBattle: Hexbreaker
+//      (className "Reaver", a real benefit class) lands a genuine
+//      +35%-narrated back hit on a real enemy, through the full
+//      derived-unit pipeline, not a hand-built synthetic state --------
+{
+  const page144 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page144.on("pageerror", (e) => errs.push(String(e)))
+  await page144.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page144.waitForSelector(".hwt-board")
+  const result = await page144.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default", ["hexbreaker"])
+    const hexbreaker = state.units.find((u) => u.defId === "hexbreaker")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    // Reposition Hexbreaker directly west of the enemy (enemy's real
+    // default facing is "E") and give the enemy huge HP so it survives.
+    state = {
+      ...state,
+      units: state.units.map((u) => {
+        if (u.id === hexbreaker.id) return { ...u, pos: { row: enemy.pos.row, col: enemy.pos.col - 1 } }
+        if (u.id === enemy.id) return { ...u, hp: 999, maxHp: 999, block: 0 }
+        return u
+      }),
+    }
+    state = attackUnit(state, hexbreaker.id, enemy.id)
+    const strikeLine = state.log.find((l) => l.startsWith("Hexbreaker strikes "))
+    return { className: hexbreaker.className, strikeLine }
+  })
+  await page144.close()
+  out.realHexbreakerFlank = result
+  const ok = result.className === "Reaver" && !!result.strikeLine && result.strikeLine.includes("from behind, +35%")
+  if (!ok) out.errors.push("check144 a real Hexbreaker (Reaver, a benefit class) did not land a genuine +35% back hit")
+}
+
+// 145. UI, driven through a real page render: the DEFAULT squad
+//      already includes Hexbreaker (Reaver, benefit) and Oathshield
+//      (Bulwark, resist) - confirmed each shows its own exclusive
+//      badge, and Mosskit (no matching class) shows neither - a
+//      screenshot -------------------------------------------------
+{
+  const page145 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page145.on("pageerror", (e) => errs.push(String(e)))
+  await page145.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page145.waitForSelector(".hwt-board")
+  const engineFacts = await page145.evaluate(async () => {
+    const { createTacticsBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("default")
+    return {
+      hexbreakerClass: battle.units.find((u) => u.defId === "hexbreaker")?.className,
+      oathshieldClass: battle.units.find((u) => u.defId === "oathshield")?.className,
+      mosskitClass: battle.units.find((u) => u.defId === "the-fool")?.className,
+    }
+  })
+  const benefitBadgeCount = await page145.locator(".hwt-flank-benefit-badge").count()
+  const resistBadgeCount = await page145.locator(".hwt-flank-resist-badge").count()
+  await page145.screenshot({ path: `${SHOT}/flank_class_badges.png` })
+  await page145.close()
+  out.flankBadgeRender = { engineFacts, benefitBadgeCount, resistBadgeCount }
+  const ok =
+    engineFacts.hexbreakerClass === "Reaver" &&
+    engineFacts.oathshieldClass === "Bulwark" &&
+    !engineFacts.mosskitClass &&
+    benefitBadgeCount === 1 &&
+    resistBadgeCount === 1
+  if (!ok) out.errors.push("check145 the default squad's own benefit/resist-class units did not render exactly the right badges")
 }
 
 console.log(JSON.stringify(out, null, 2))

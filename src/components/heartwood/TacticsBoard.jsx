@@ -25,6 +25,7 @@ import {
   previewEnemyIntents,
   previewChargeThreat,
   zoneOfControlCells,
+  flankRole,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
 
@@ -218,6 +219,16 @@ export default function TacticsBoard({
                 {unit.haste && (
                   <span className="hwt-haste-badge" title="Haste - attacks a second time whenever it lands an attack">
                     ⇉
+                  </span>
+                )}
+                {flankRole(unit.className) === "benefit" && (
+                  <span className="hwt-flank-benefit-badge" title={`${unit.className} - deals +5%/+10% extra when attacking from the side/behind`}>
+                    ⚔
+                  </span>
+                )}
+                {flankRole(unit.className) === "resist" && (
+                  <span className="hwt-flank-resist-badge" title={`${unit.className} - takes 5%/10% less when hit from the side/behind`}>
+                    🛡
                   </span>
                 )}
                 <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
