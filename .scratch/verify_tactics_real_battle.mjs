@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5417
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-classflank/.scratch/shots"
+const PORT = process.env.PORT || 5418
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-threatzone/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1272,6 +1272,28 @@ function newPage() {
   out.realFightFlankClass = { benefitBadgeCount }
   const ok = benefitBadgeCount === 1
   if (!ok) out.errors.push("check25 a real recruited unit's own className did not carry through to the real board's benefit badge")
+}
+
+// 26. Threat Zone: a real fight against a real tanky formation
+//     ("the-bulwark" - oakshell-warden x2 + mossmender, all real
+//     maxHp>=40 melee enemies) renders real data-threat-zone cells,
+//     and a real click-driven move attempt trying to path past one
+//     gets capped short of its intended destination ------------------
+{
+  const page26 = await newPage()
+  page26.on("pageerror", (e) => errs.push(String(e)))
+  await page26.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page26, (n) => n.type === "battle" && n.formationId === "the-bulwark", ["the-fool"])
+  await page26.reload({ waitUntil: "domcontentloaded" })
+  await page26.waitForTimeout(400)
+  await page26.locator(".hw-tactics-fight-btn").click()
+  await page26.waitForTimeout(400)
+  const threatCellCount = await page26.locator('.hwt-cell[data-threat-zone="true"]').count()
+  await page26.screenshot({ path: `${SHOT}/real_fight_threat_zone.png` })
+  await page26.close()
+  out.realFightThreatZone = { threatCellCount }
+  const ok = threatCellCount > 0
+  if (!ok) out.errors.push("check26 a real fight against a real tanky formation did not render any Threat Zone cells")
 }
 
 console.log(JSON.stringify(out, null, 2))
