@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5413
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-seedterrain/.scratch/shots"
+const PORT = process.env.PORT || 5414
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-facing/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1131,6 +1131,27 @@ function newPage() {
   out.realFightSeededTerrain = { seed: seed21.seed, expectedTerrain, countsByType, expectedCountsByType }
   const ok = JSON.stringify(countsByType) === JSON.stringify(expectedCountsByType) && Object.keys(expectedTerrain).length > 0
   if (!ok) out.errors.push("check21 the real board's own terrain cell counts did not match generateRealTerrain's own computed map for the same seed")
+}
+
+// 22. Facing: the real board (via the real Fight button) also shows
+//     the new facing arrow on every token, not just the isolated
+//     prototype ---------------------------------------------------
+{
+  const page22 = await newPage()
+  page22.on("pageerror", (e) => errs.push(String(e)))
+  await page22.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page22, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page22.reload({ waitUntil: "domcontentloaded" })
+  await page22.waitForTimeout(400)
+  await page22.locator(".hw-tactics-fight-btn").click()
+  await page22.waitForTimeout(400)
+  const arrowCount = await page22.locator(".hwt-facing-badge").count()
+  const tokenCount = await page22.locator(".hwt-token").count()
+  await page22.screenshot({ path: `${SHOT}/real_fight_facing.png` })
+  await page22.close()
+  out.realFightFacingBadge = { arrowCount, tokenCount }
+  const ok = tokenCount > 0 && arrowCount === tokenCount
+  if (!ok) out.errors.push("check22 not every token on the real board showed the new facing arrow")
 }
 
 console.log(JSON.stringify(out, null, 2))
