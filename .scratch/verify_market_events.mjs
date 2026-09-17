@@ -10,8 +10,8 @@ import { mkdir } from "node:fs/promises"
 // whether the Trader's Compass is owned. Balance is a light smoke check
 // this round (Marc: de-weight per-round fairness).
 
-const PORT = process.env.PORT || 5375
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-market-events/.scratch/shots"
+const PORT = process.env.PORT || 5504
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-market-ragpicker/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -34,7 +34,10 @@ const R = await page.evaluate(async () => {
     SHOP_INVESTMENTS, investmentOwned, buyInvestment,
   } = engine
   const out = { errors: [] }
-  const IDS = ["merchant", "blackroot", "golden"]
+  // Ragpicker (4th event, this round): added to IDS so it counts as a
+  // KNOWN outcome in check1's tally (not a false "bad" hit) and gets
+  // covered by check7's table-shape scan alongside the original 3.
+  const IDS = ["merchant", "blackroot", "golden", "ragpicker"]
   const T3 = ["heartroot-elder", "mycelian-host"] // Market Tier 3 specialists
 
   // 1. pickMarketEvent - gate, distribution, compass, determinism -------
@@ -46,7 +49,7 @@ const R = await page.evaluate(async () => {
 
     // over 400 seeds at a fixed eligible nodeIndex
     const NODE = 20
-    const tally = { null: 0, merchant: 0, blackroot: 0, golden: 0, bad: 0 }
+    const tally = { null: 0, merchant: 0, blackroot: 0, golden: 0, ragpicker: 0, bad: 0 }
     for (let s = 0; s < 400; s++) {
       const e = pickMarketEvent(5000 + s, NODE)
       if (e === null) tally.null++
@@ -54,14 +57,19 @@ const R = await page.evaluate(async () => {
       else tally.bad++
     }
     const hitRate = (400 - tally.null) / 400
-    const events = tally.merchant + tally.blackroot + tally.golden
-    // ~18% base chance; ~45/35/20 split among events
+    const events = tally.merchant + tally.blackroot + tally.golden + tally.ragpicker
+    // ~18% base chance; this round reshaped the split to ~35/25/15/25
+    // (merchant/blackroot/golden/ragpicker) - Ragpicker's 25% carved out
+    // of Golden's old 20% band plus a shave off Merchant/Blackroot, per
+    // pickMarketEvent's own comment, rather than diluting the original
+    // 45/35/20 evenly across a 4th slice.
     const rateOk = hitRate > 0.1 && hitRate < 0.3
     const splitOk =
       events > 30 &&
-      tally.merchant / events > 0.3 && tally.merchant / events < 0.6 &&
-      tally.blackroot / events > 0.2 && tally.blackroot / events < 0.5 &&
-      tally.golden / events > 0.08 && tally.golden / events < 0.35
+      tally.merchant / events > 0.25 && tally.merchant / events < 0.5 &&
+      tally.blackroot / events > 0.15 && tally.blackroot / events < 0.4 &&
+      tally.golden / events > 0.05 && tally.golden / events < 0.3 &&
+      tally.ragpicker / events > 0.1 && tally.ragpicker / events < 0.4
     const onlyKnown = tally.bad === 0
 
     // compass ~doubles the hit rate
@@ -205,12 +213,21 @@ const R = await page.evaluate(async () => {
     const shapeOk = IDS.every((id) => {
       const e = MARKET_EVENTS[id]
       return e && typeof e.name === "string" && typeof e.blurb === "string" && typeof e.effect === "string" &&
-        ["gold", "moss", "curse"].includes(e.tone) && typeof e.priceMult === "number" && typeof e.lockReroll === "boolean"
+        ["gold", "moss", "curse", "cosmic"].includes(e.tone) && typeof e.priceMult === "number" &&
+        typeof e.sellMult === "number" && typeof e.lockReroll === "boolean"
     })
-    const onlyBlackLocks = MARKET_EVENTS.blackroot.lockReroll === true && MARKET_EVENTS.merchant.lockReroll === false && MARKET_EVENTS.golden.lockReroll === false
+    const onlyBlackLocks = MARKET_EVENTS.blackroot.lockReroll === true && MARKET_EVENTS.merchant.lockReroll === false && MARKET_EVENTS.golden.lockReroll === false && MARKET_EVENTS.ragpicker.lockReroll === false
     const goldenPricier = MARKET_EVENTS.golden.priceMult > 1 && MARKET_EVENTS.merchant.priceMult < 1 && MARKET_EVENTS.blackroot.priceMult < 1
-    out.table = { shapeOk, onlyBlackLocks, goldenPricier }
-    if (!(shapeOk && onlyBlackLocks && goldenPricier)) out.errors.push("check7 MARKET_EVENTS table")
+    // Ragpicker (this round) is the first SELL-side event: it must NOT
+    // touch recruit price/slots/tier at all (those 3 fields stay at
+    // their neutral default), only sellMult moves - the whole point of
+    // it being a different lever from the other 3, not a 4th spin on
+    // the same one.
+    const ragpickerNeutralOnBuySide =
+      MARKET_EVENTS.ragpicker.priceMult === 1 && MARKET_EVENTS.ragpicker.slotDelta === 0 && MARKET_EVENTS.ragpicker.tierOverride === null
+    const ragpickerOnlySellMult = MARKET_EVENTS.ragpicker.sellMult > 1 && IDS.filter((id) => id !== "ragpicker").every((id) => MARKET_EVENTS[id].sellMult === 1)
+    out.table = { shapeOk, onlyBlackLocks, goldenPricier, ragpickerNeutralOnBuySide, ragpickerOnlySellMult }
+    if (!(shapeOk && onlyBlackLocks && goldenPricier && ragpickerNeutralOnBuySide && ragpickerOnlySellMult)) out.errors.push("check7 MARKET_EVENTS table")
   }
 
   void effectiveMarketTier
@@ -246,6 +263,7 @@ async function shot(name, ev) {
 await shot("golden", "golden")
 await shot("merchant", "merchant")
 await shot("blackroot", "blackroot")
+await shot("ragpicker", "ragpicker")
 await shot("plain", null)
 
 await browser.close()
