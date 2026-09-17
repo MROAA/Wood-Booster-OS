@@ -76,7 +76,7 @@ export const COACH_TIPS = [
   {
     id: "ledger",
     title: "The Ledger",
-    text: "One-time, run-long upgrades to the market itself - cheaper recruits, an extra offer, more Essence per win. They pay back over the whole run.",
+    text: "One-time, run-long upgrades to the market itself - cheaper recruits, an extra offer, more Essence per win. They pay back over the whole run. More unlock here as your Market Level and Market Tier grow.",
     anchor: ".hw-rail-section--ledger",
   },
   {

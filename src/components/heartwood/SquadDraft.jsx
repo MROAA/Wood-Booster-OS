@@ -25,10 +25,12 @@ import {
   DEPLOY_SLOTS,
   RUN_PATH,
   sellRefundFor,
+  effectiveSellMult,
   bankInterestFor,
   economyCrewEffects,
   SHOP_INVESTMENTS,
   investmentOwned,
+  investmentUnlocked,
   antidoteCost,
   antidoteQueued,
   effectiveRecruitCost,
@@ -363,7 +365,7 @@ export default function SquadDraft({
     // into a Tier 2 copy automatically (runEngine.js's fuseAll).
     const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
     const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
-    const sellRefund = sellRefundFor(def, marketEventDef?.sellMult)
+    const sellRefund = sellRefundFor(def, effectiveSellMult(runState))
     // Hero Bending (items.js's bendsRoleTo/effectiveRole) - a Bending
     // item equipped here visibly overwrites this card's role-accent/
     // label, not just its stats.
@@ -520,33 +522,55 @@ export default function SquadDraft({
             shop buys - a "standing decisions" home in the left rail,
             distinct from the this-visit for-sale cards in the centre.
             Same chip + inline-cost-button shape as the Relics list
-            below, with a "✓" owned state mirroring its "MAX". */}
+            below, with a "✓" owned state mirroring its "MAX".
+            Tiering pass (Marc: "pitkä lista... liikaa kerralla
+            harkittavaksi" - too long a list to weigh at once): only
+            investments already unlocked (investmentUnlocked - gated on
+            EITHER Market Level or Market Tier, whichever the entry
+            itself specifies as the more logical pairing) are listed at
+            all, an owned one always stays visible regardless (both
+            meters only ever increase, so nothing can un-unlock), and a
+            quiet count of what's still locked replaces the rest - never
+            naming them, so there's nothing new to weigh, just a promise
+            that more arrives as the run grows. */}
         <div className="hw-rail-section hw-rail-section--ledger">
           <div className="hw-section-label hw-rail-label">The Ledger</div>
           <div className="hw-rail-list">
-            {Object.entries(SHOP_INVESTMENTS).map(([id, inv]) => {
-              const owned = investmentOwned(runState, id)
-              return (
-                <div key={id} className="hw-rail-chip" title={inv.desc} data-owned={owned || undefined}>
-                  <CardGlyph name="rune" className="hw-intent-glyph" />
-                  <span className="hw-rail-chip-name">{inv.name}</span>
-                  {owned ? (
-                    <span className="hw-rail-chip-max">✓</span>
-                  ) : (
-                    <button
-                      className="hw-move-btn hw-rail-upgrade"
-                      disabled={runState.essence < inv.cost}
-                      onClick={() => onBuyInvestment(id)}
-                      title={`${inv.desc} - ${inv.cost} Essence, one time`}
-                    >
-                      <CardGlyph name="spark" className="hw-intent-glyph" />
-                      {inv.cost}
-                    </button>
-                  )}
-                </div>
-              )
-            })}
+            {Object.entries(SHOP_INVESTMENTS)
+              .filter(([id]) => investmentOwned(runState, id) || investmentUnlocked(runState, id))
+              .map(([id, inv]) => {
+                const owned = investmentOwned(runState, id)
+                return (
+                  <div key={id} className="hw-rail-chip" title={inv.desc} data-owned={owned || undefined}>
+                    <CardGlyph name="rune" className="hw-intent-glyph" />
+                    <span className="hw-rail-chip-name">{inv.name}</span>
+                    {owned ? (
+                      <span className="hw-rail-chip-max">✓</span>
+                    ) : (
+                      <button
+                        className="hw-move-btn hw-rail-upgrade"
+                        disabled={runState.essence < inv.cost}
+                        onClick={() => onBuyInvestment(id)}
+                        title={`${inv.desc} - ${inv.cost} Essence, one time`}
+                      >
+                        <CardGlyph name="spark" className="hw-intent-glyph" />
+                        {inv.cost}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
           </div>
+          {(() => {
+            const lockedCount = Object.entries(SHOP_INVESTMENTS).filter(
+              ([id]) => !investmentOwned(runState, id) && !investmentUnlocked(runState, id),
+            ).length
+            return lockedCount > 0 ? (
+              <p className="hw-rail-empty" title="More Ledger investments unlock as your Market Level and Market Tier grow.">
+                +{lockedCount} more as the market grows
+              </p>
+            ) : null
+          })()}
         </div>
 
         {/* Economy crew (economy.js): which deployed units are buying you
