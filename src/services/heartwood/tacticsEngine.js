@@ -309,6 +309,20 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 0,
   },
+  // Thorn Zone round: rootbind-thicket is a plain Act 2 mook, not an
+  // elite/miniboss/boss, but it needs the exact same solo-demo
+  // accommodation every mechanic-carrying enemy above already gets -
+  // its own new Root mechanic can't be demoed from inside a 3-enemy
+  // formation any more than Wyrmgall's own AoE could.
+  "rootbind-thicket": {
+    id: "rootbind-thicket",
+    name: "Rootbind Thicket",
+    description: "Its roots don't reach far. When they catch you, though, you don't move.",
+    enemyDefIds: ["rootbind-thicket"],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+  },
   // This round's demo for the new persistent Bulwark mechanic - The Iron
   // Sentinel's entire real identity is its compounding armour, granted
   // entirely via a turnStart trigger (not a base passive stat), so it
@@ -645,6 +659,10 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // EVERY melee unit's own zone at once, far bigger than intended).
     // Only frostbind (units.js) carries this today.
     frosty: !!def.frosty,
+    // Thorn Zone round: a third new portable trait, same shape as
+    // fearsome/frosty. Only rootbind-thicket (enemies.js) carries this
+    // today.
+    thorny: !!def.thorny,
     triggers,
     phases,
     phaseIndex: 0,
@@ -662,6 +680,10 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // stack like poison/regen) - never in a base passive, only ever
     // arriving via moveUnit's own leaving-check, so always starts at 0.
     slow: 0,
+    // Thorn Zone round: the engine's SECOND duration-based status,
+    // reusing slow's own exact mechanism - never in a base passive,
+    // only ever arriving via moveUnit's own entering-check.
+    root: 0,
     // Iron Sentinel's real Bulwark (effects.js's bulwarkOf): a PERSISTENT
     // armour stat, never decremented anywhere - unlike strength/execute/
     // shatter it never appears in a base passive either (Iron Sentinel's
@@ -891,6 +913,12 @@ function effectiveMove(unit) {
 export function reachableTilesFor(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0) return []
+  // Thorn Zone round: a rooted unit cannot move AT ALL - a hard stop,
+  // placed as the literal first check so nothing else in this
+  // function (Threat Zone's own cap included) ever runs for it.
+  // Attacking is untouched (Root is movement-only, not a full stun -
+  // this engine has no stun/status system at all yet).
+  if (unit.root > 0) return []
   const occupied = state.units.filter((u) => u.id !== unitId && u.hp > 0).map((u) => u.pos)
   const opposingSide = unit.side === "player" ? "enemy" : "player"
   // Only a unit APPROACHING from clean ground is capped - one already
@@ -1026,6 +1054,38 @@ export function fearZoneCells(state, side) {
   return cells
 }
 
+// Thorn Zone round (Movement PRD §4.3): "Aiheuttaa vahinkoa tai
+// Root-tilan" - Marc picked Root. Same non-melee-gating reasoning as
+// Fear/Frost Zone - any `thorny` unit projects it, radius 1 (the
+// PRD's own base case). ENTERING-triggered (mirrors Fear Zone's own
+// direction, not Frost/Basic Zone's leaving) - matches
+// rootbind-thicket's own flavor ("when they catch you") directly.
+function thornZoneControllers(state, pos, side) {
+  return state.units.filter((u) => u.side === side && u.hp > 0 && u.thorny && kingAdjacent(u.pos, pos))
+}
+
+// Every "row-col" cell currently controlled by a living `thorny`
+// `side` unit, radius 1 - for the UI, the same static-board-property
+// pattern fearZoneCells/frostZoneCells already established.
+export function thornZoneCells(state, side) {
+  const cells = new Set()
+  for (const controller of state.units.filter((u) => u.side === side && u.hp > 0 && u.thorny)) {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue
+        const pos = { row: controller.pos.row + dr, col: controller.pos.col + dc }
+        if (isOnBoard(pos, state.grid)) cells.add(`${pos.row}-${pos.col}`)
+      }
+    }
+  }
+  return cells
+}
+
+// ROOT_DURATION reuses SLOW_DURATION's own exact decay-ordering math
+// (see its own comment below) - granting 2 produces exactly 1 turn of
+// full immobilization, then a clean return to normal.
+const ROOT_DURATION = 2
+
 // Frost Zone round (Movement PRD §4.3): "Hidastaa poistuvia yksiköitä" -
 // slows units LEAVING it. Same non-melee-gating reasoning as Fear
 // Zone (the PRD names no melee restriction for Frost specifically,
@@ -1121,6 +1181,19 @@ export function moveUnit(state, unitId, targetPos) {
     const arrived = getUnit(next, unitId)
     next = setUnit(next, unitId, { weak: arrived.weak + 1 })
     next = { ...next, log: [...next.log, `${unit.name} recoils in fear, weakened!`] }
+  }
+  // Thorn Zone round: the SAME entering transition as Fear Zone above,
+  // a different consequence - a unit moving from OUTSIDE an opposing
+  // Thorn Zone to INSIDE it gains a fresh ROOT_DURATION stack of the
+  // new `root` status (this engine's SECOND duration-based status,
+  // reusing `slow`'s own exact mechanism). `(arrived.root || 0)`
+  // guards a hand-built synthetic unit missing the field entirely.
+  const enteredThornZone =
+    thornZoneControllers(state, targetPos, opposingSide).length > 0 && thornZoneControllers(state, unit.pos, opposingSide).length === 0
+  if (enteredThornZone) {
+    const arrived = getUnit(next, unitId)
+    next = setUnit(next, unitId, { root: (arrived.root || 0) + ROOT_DURATION })
+    next = { ...next, log: [...next.log, `${unit.name} is caught in the thorns, rooted!`] }
   }
   // Frost Zone round: the mirror transition of Fear Zone above - a unit
   // that just moved from INSIDE an opposing Frost Zone to a cell
@@ -1929,7 +2002,12 @@ export function endPlayerTurn(state) {
   const resetForEnemyPhase = {
     ...ticked,
     phase: "enemy",
-    units: ticked.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock, slow: Math.max(0, (u.slow || 0) - 1) } : u)),
+    // Thorn Zone round: enemy-side `root` decays alongside `slow` at
+    // this same checkpoint - the exact same mechanism, same `|| 0`
+    // guard requirement.
+    units: ticked.units.map((u) =>
+      u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock, slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1) } : u,
+    ),
     log: [...ticked.log, "Enemy turn."],
   }
   // Regen ticks (heals whatever stack SURVIVED the player's turn, then
@@ -2153,13 +2231,16 @@ export function runEnemyTurn(state) {
   // see SLOW_DURATION's own comment for why a granted counter of N
   // produces exactly N-1 turns of visible effect under this ordering.
   // The `|| 0` guard is required (not optional) - see resetForEnemyPhase's
-  // own comment above for the exact same reasoning.
+  // own comment above for the exact same reasoning. Thorn Zone round:
+  // player-side `root` decays alongside it, same mechanism.
   const returnedToPlayer = {
     ...next,
     phase: "player",
     turn: next.turn + 1,
     units: next.units.map((u) =>
-      u.side === "player" ? { ...u, ap: u.apMax, block: 0, cooldownRemaining: Math.max(0, u.cooldownRemaining - 1), slow: Math.max(0, (u.slow || 0) - 1) } : u,
+      u.side === "player"
+        ? { ...u, ap: u.apMax, block: 0, cooldownRemaining: Math.max(0, u.cooldownRemaining - 1), slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1) }
+        : u,
     ),
     log: [...next.log, `Turn ${next.turn + 1}. Your turn.`],
   }
