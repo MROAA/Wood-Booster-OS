@@ -27,6 +27,7 @@ import {
   zoneOfControlCells,
   threatZoneCells,
   fearZoneCells,
+  frostZoneCells,
   flankRole,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
@@ -122,6 +123,12 @@ export default function TacticsBoard({
   // combination of the 3 zone types at once (they're additive, not
   // mutually exclusive).
   const fearCells = useMemo(() => (battle.phase === "player" ? fearZoneCells(battle, "enemy") : new Set()), [battle])
+  // Frost Zone round: same static, phase-gated pattern as the 3 zone
+  // sets above - side "player" here, not "enemy", since this round's
+  // one real hand-authored example (frostbind) is a PLAYER unit (no
+  // enemy carries any cold/ice flavor today) - a deliberate, stated
+  // flip from every prior zone overlay.
+  const frostCells = useMemo(() => (battle.phase === "player" ? frostZoneCells(battle, "player") : new Set()), [battle])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
@@ -200,6 +207,7 @@ export default function TacticsBoard({
       const zoc = zocCells.has(`${row}-${col}`)
       const threatZone = threatCells.has(`${row}-${col}`)
       const fearZone = fearCells.has(`${row}-${col}`)
+      const frostZone = frostCells.has(`${row}-${col}`)
       cells.push(
         <div
           key={`${row}-${col}`}
@@ -212,6 +220,7 @@ export default function TacticsBoard({
           data-zoc={zoc}
           data-threat-zone={threatZone}
           data-fear-zone={fearZone}
+          data-frost-zone={frostZone}
           onClick={() => handleCellClick(row, col)}
         >
           {unit && (
@@ -315,6 +324,11 @@ export default function TacticsBoard({
                 {unit.weak > 0 && (
                   <span className="hwt-weak-badge" title={`Weak ${unit.weak} - this unit's own outgoing damage is cut by 25%`}>
                     ▼{unit.weak}
+                  </span>
+                )}
+                {unit.slow > 0 && (
+                  <span className="hwt-slow-badge" title={`Slow ${unit.slow} - this unit's own movement is reduced by 1 for a turn, then decays`}>
+                    ❄{unit.slow}
                   </span>
                 )}
                 {unit.bulwark > 0 && (

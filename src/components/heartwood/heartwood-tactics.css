@@ -127,6 +127,13 @@
   background: color-mix(in srgb, var(--hw-tide) 16%, transparent);
 }
 
+/* Frost Zone round: a fourth, distinct tint (--hw-gale, a lighter icy
+   cyan - unused for any cell tint so far) marking every tile a frosty
+   unit currently controls - leaving one slows you. */
+.hwt-cell[data-frost-zone="true"] {
+  background: color-mix(in srgb, var(--hw-gale) 16%, transparent);
+}
+
 .hwt-cell[data-reachable="true"] {
   background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
   border-color: var(--hw-moss);
@@ -269,6 +276,10 @@
 .hwt-weak-badge {
   font-size: 7px;
   color: var(--hw-curse);
+}
+.hwt-slow-badge {
+  font-size: 7px;
+  color: var(--hw-tide);
 }
 .hwt-bulwark-badge {
   font-size: 7px;

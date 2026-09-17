@@ -640,6 +640,11 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // "portable, authored later" precedent Haste/Guardian's Intercept
     // already established.
     fearsome: !!def.fearsome,
+    // Frost Zone round: a second new portable trait, same shape as
+    // fearsome - not gated to range===1 (reusing that would sweep in
+    // EVERY melee unit's own zone at once, far bigger than intended).
+    // Only frostbind (units.js) carries this today.
+    frosty: !!def.frosty,
     triggers,
     phases,
     phaseIndex: 0,
@@ -652,6 +657,11 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     shatter: passiveStats.shatter,
     woundedFury: passiveStats.woundedFury,
     weak: 0,
+    // Frost Zone round: the engine's first DURATION-based status (every
+    // other stat here is either permanent or a straight damage/heal
+    // stack like poison/regen) - never in a base passive, only ever
+    // arriving via moveUnit's own leaving-check, so always starts at 0.
+    slow: 0,
     // Iron Sentinel's real Bulwark (effects.js's bulwarkOf): a PERSISTENT
     // armour stat, never decremented anywhere - unlike strength/execute/
     // shatter it never appears in a base passive either (Iron Sentinel's
@@ -865,6 +875,16 @@ function chebyshevDist(a, b) {
   return Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col))
 }
 
+// Frost Zone round: this engine's first DURATION-based movement
+// reduction. Floored at 1 (never fully immobilizes - that's Thorn
+// Zone's own Root, out of scope this round). `unit.slow > 0` is safe
+// against a missing field on any pre-existing hand-built synthetic
+// unit (`undefined > 0` is `false`, the same safety `weak`/`fearsome`
+// checks already rely on) - byte-identical for every existing check.
+function effectiveMove(unit) {
+  return unit.slow > 0 ? Math.max(1, unit.move - 1) : unit.move
+}
+
 // Reachable tiles for a unit right now: the grid's own BFS, blocked by
 // every OTHER living piece on the board (either side - you can't walk
 // through anyone).
@@ -881,7 +901,7 @@ export function reachableTilesFor(state, unitId) {
   // unit that starts inside ANY opposing threat zone could barely move
   // at all - over-punishing, not "blocks advancing" as the PRD says.
   const startedInsideThreatZone = threatZoneControllers(state, unit.pos, opposingSide).length > 0
-  return reachableTilesRaw(occupied, unit.pos, unit.move, state.grid, (pos) => {
+  return reachableTilesRaw(occupied, unit.pos, effectiveMove(unit), state.grid, (pos) => {
     const baseCost = TERRAIN[terrainAt(state, pos)].cost
     // Threat Zone round (Movement PRD §4.3): entering a cell inside an
     // opposing Threat Zone consumes the mover's ENTIRE move budget for
@@ -1006,6 +1026,45 @@ export function fearZoneCells(state, side) {
   return cells
 }
 
+// Frost Zone round (Movement PRD §4.3): "Hidastaa poistuvia yksiköitä" -
+// slows units LEAVING it. Same non-melee-gating reasoning as Fear
+// Zone (the PRD names no melee restriction for Frost specifically,
+// and reusing bare range===1 would sweep in every melee unit at
+// once) - any `frosty` unit projects it, radius 1 (the PRD's own base
+// case, no "larger area" wording the way Threat Zone gets).
+//
+// SLOW_DURATION reuses this file's own cooldownRemaining ordering
+// (decay BEFORE the owner's own turn's actions, at the exact spots
+// cooldownRemaining already decays) - "a cooldown of 2 plays out as
+// usable every other turn: cast on turn N, cooling on N+1, ready on
+// N+2" (see runEnemyTurn's own comment) means a granted counter of N
+// produces exactly N-1 turns of VISIBLE effect. 2 is the smallest
+// value that still demonstrates genuine duration-based decay: exactly
+// 1 turn of reduced movement, then back to normal.
+const SLOW_DURATION = 2
+
+function frostZoneControllers(state, pos, side) {
+  return state.units.filter((u) => u.side === side && u.hp > 0 && u.frosty && kingAdjacent(u.pos, pos))
+}
+
+// Every "row-col" cell currently controlled by a living `frosty`
+// `side` unit, radius 1 - for the UI, the same static-board-property
+// pattern fearZoneCells/threatZoneCells/zoneOfControlCells already
+// established.
+export function frostZoneCells(state, side) {
+  const cells = new Set()
+  for (const controller of state.units.filter((u) => u.side === side && u.hp > 0 && u.frosty)) {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue
+        const pos = { row: controller.pos.row + dr, col: controller.pos.col + dc }
+        if (isOnBoard(pos, state.grid)) cells.add(`${pos.row}-${pos.col}`)
+      }
+    }
+  }
+  return cells
+}
+
 // Every "row-col" cell currently controlled by a living melee `side`
 // unit - for the UI (a static board property, not relative to
 // whichever unit is selected, unlike reachable/targetable overlays).
@@ -1062,6 +1121,20 @@ export function moveUnit(state, unitId, targetPos) {
     const arrived = getUnit(next, unitId)
     next = setUnit(next, unitId, { weak: arrived.weak + 1 })
     next = { ...next, log: [...next.log, `${unit.name} recoils in fear, weakened!`] }
+  }
+  // Frost Zone round: the mirror transition of Fear Zone above - a unit
+  // that just moved from INSIDE an opposing Frost Zone to a cell
+  // OUTSIDE it (the same "leaving" direction Zone of Control's own
+  // reaction below already uses, just a different consequence) gains a
+  // fresh SLOW_DURATION stack of the new `slow` status. `(arrived.slow
+  // || 0)` guards a hand-built synthetic unit missing the field
+  // entirely. Same SAME-pre-move-`state` guarantee as Fear Zone above.
+  const leftFrostZone =
+    frostZoneControllers(state, unit.pos, opposingSide).length > 0 && frostZoneControllers(state, targetPos, opposingSide).length === 0
+  if (leftFrostZone) {
+    const arrived = getUnit(next, unitId)
+    next = setUnit(next, unitId, { slow: (arrived.slow || 0) + SLOW_DURATION })
+    next = { ...next, log: [...next.log, `${unit.name} staggers away, slowed by the frost!`] }
   }
   // Zone of Control round: a living, melee OPPOSING controller of the
   // unit's own ORIGIN tile (`unit.pos`, captured before any of the
@@ -1846,10 +1919,17 @@ export function endPlayerTurn(state) {
   // overwrite to the formation's fixed amount already IS "resets then
   // re-applies this round's grant" - the real mechanic, no separate reset.
   const fortressBlock = ENEMY_FORMATIONS[state.formationId]?.fortressBlock || 0
+  // Frost Zone round: enemy-side `slow` decays right here - the exact
+  // same "start of that side's own turn" checkpoint cooldownRemaining
+  // already uses for the player side below (`returnedToPlayer`). The
+  // `|| 0` guard is required (not optional): every pre-existing
+  // hand-built synthetic test unit lacks a `slow` field entirely, and
+  // `undefined - 1` is `NaN` without it - the exact already-logged
+  // Poison-round gotcha.
   const resetForEnemyPhase = {
     ...ticked,
     phase: "enemy",
-    units: ticked.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock } : u)),
+    units: ticked.units.map((u) => (u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock, slow: Math.max(0, (u.slow || 0) - 1) } : u)),
     log: [...ticked.log, "Enemy turn."],
   }
   // Regen ticks (heals whatever stack SURVIVED the player's turn, then
@@ -2068,12 +2148,18 @@ export function runEnemyTurn(state) {
   // count down at this SAME checkpoint - once per the player's own turn
   // coming back around, so a cooldown of 2 plays out as "usable every
   // other turn" (cast on turn N, still cooling on N+1, ready on N+2).
+  // Frost Zone round: player-side `slow` decays at this same
+  // checkpoint, mirroring cooldownRemaining's own ordering exactly -
+  // see SLOW_DURATION's own comment for why a granted counter of N
+  // produces exactly N-1 turns of visible effect under this ordering.
+  // The `|| 0` guard is required (not optional) - see resetForEnemyPhase's
+  // own comment above for the exact same reasoning.
   const returnedToPlayer = {
     ...next,
     phase: "player",
     turn: next.turn + 1,
     units: next.units.map((u) =>
-      u.side === "player" ? { ...u, ap: u.apMax, block: 0, cooldownRemaining: Math.max(0, u.cooldownRemaining - 1) } : u,
+      u.side === "player" ? { ...u, ap: u.apMax, block: 0, cooldownRemaining: Math.max(0, u.cooldownRemaining - 1), slow: Math.max(0, (u.slow || 0) - 1) } : u,
     ),
     log: [...next.log, `Turn ${next.turn + 1}. Your turn.`],
   }

@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5421
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-fearzone/.scratch/shots"
+const PORT = process.env.PORT || 5422
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-frostzone/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1457,6 +1457,66 @@ function newPage() {
   out.realFightFearZone = { setup, chosen, logHasFearNote: logText.includes("recoils in fear"), weakAfter: mosskitAfter?.weak }
   const ok = chosen !== null && logText.includes("recoils in fear") && mosskitAfter && mosskitAfter.weak > setup.weakBefore
   if (!ok) out.errors.push("check29 a real click-driven approach toward the real Wyrmgall did not grant real Weak through the Fear Zone")
+}
+
+// 30. Frost Zone: a real enemy leaving a real recruited Frostbind's own
+//     zone gains real Slow. Enemies never voluntarily retreat under
+//     this engine's own simple AI (the same reason Basic Zone's own
+//     reaction check needed this too), and clicking to move an ENEMY
+//     piece isn't a supported UI interaction at all (only the human
+//     player's own units are click-movable) - so the LEAVING step
+//     itself is driven by a direct moveUnit call on the real derived
+//     enemy (the same "real production code, direct function call"
+//     precedent the prototype's own check168/174 already established),
+//     inside a REAL seeded save entered through the REAL Fight button -
+{
+  const page30 = await newPage()
+  page30.on("pageerror", (e) => errs.push(String(e)))
+  await page30.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page30, (n) => n.type === "battle" && n.formationId, ["frostbind"])
+  await page30.reload({ waitUntil: "domcontentloaded" })
+  await page30.waitForTimeout(400)
+  await page30.locator(".hw-tactics-fight-btn").click()
+  await page30.waitForTimeout(400)
+  const setup = await page30.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const frostbind = battle.units.find((u) => u.defId === "frostbind")
+    const enemy = battle.units.find((u) => u.side === "enemy")
+    // Adjacent (distance 1) - genuinely inside Frostbind's own radius-1
+    // zone to start.
+    enemy.pos = { row: frostbind.pos.row, col: frostbind.pos.col - 1 }
+    enemy.ap = enemy.apMax
+    battle.units = battle.units.map((u) => (u.id !== frostbind.id && u.id !== enemy.id ? { ...u, pos: { row: 0, col: 0 } } : u))
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { frostbindName: frostbind.name, enemyName: enemy.name, enemyId: enemy.id, slowBefore: enemy.slow || 0 }
+  })
+  await page30.reload({ waitUntil: "domcontentloaded" })
+  await page30.waitForTimeout(400)
+  const after = await page30.evaluate(async ({ enemyId }) => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    let battle = save.run.battle
+    const enemy = battle.units.find((u) => u.id === enemyId)
+    // One step further away (distance 1 -> 2) - a genuine leaving
+    // transition, minimal move cost regardless of this node's own
+    // seeded terrain.
+    battle = { ...battle, phase: "enemy" }
+    battle = moveUnit(battle, enemyId, { row: enemy.pos.row, col: enemy.pos.col - 1 })
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    const moved = battle.units.find((u) => u.id === enemyId)
+    return { slowAfter: moved.slow || 0, logTail: battle.log.slice(-3) }
+  }, setup)
+  await page30.reload({ waitUntil: "domcontentloaded" })
+  await page30.waitForTimeout(400)
+  const logText = await page30.locator(".hwt-log").innerText()
+  await page30.screenshot({ path: `${SHOT}/real_fight_frost_zone.png` })
+  await page30.close()
+  out.realFightFrostZone = { setup, after, logHasFrostNote: logText.includes("staggers away, slowed by the frost") }
+  const ok = after.slowAfter === 2 && logText.includes("staggers away, slowed by the frost")
+  if (!ok) out.errors.push("check30 a real enemy leaving a real recruited Frostbind's zone did not gain real Slow")
 }
 
 console.log(JSON.stringify(out, null, 2))
