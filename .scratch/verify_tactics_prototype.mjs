@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5423
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-thornzone/.scratch/shots"
+const PORT = process.env.PORT || 5424
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zonetoll/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-thornzone", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zonetoll", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-thornzone", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zonetoll", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -6555,6 +6555,269 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.thornZoneUiCells = { expectedCount, renderedCount }
   const ok = expectedCount > 0 && renderedCount === expectedCount
   if (!ok) out.errors.push("check181 the rendered data-thorn-zone cells did not match thornZoneCells's own computed set")
+}
+
+// ---------------------------------------------------------------
+// Zone Disengage Toll (Movement PRD §4.3's general preamble) - leaving
+// ANY opposing Zone of Control (checked once via insideAnyOpposingZone,
+// not per zone type) costs 1 extra AP, additive on top of whatever
+// else that same transition already triggers. No new UI - the
+// existing AP pip display already shows the reduced AP.
+// ---------------------------------------------------------------
+
+// 182. insideAnyOpposingZone's own shape: independently true for a
+//      position inside EACH of the 5 zone types, false when none are
+//      present ------------------------------------------------------
+{
+  const page182 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page182.on("pageerror", (e) => errs.push(String(e)))
+  await page182.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page182.waitForSelector(".hwt-board")
+  const result = await page182.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // insideAnyOpposingZone isn't exported - probe it indirectly via
+    // the one real effect it gates: the AP toll firing on a leaving
+    // move. Build one isolated state per zone type, each with a
+    // single controller of that kind, and confirm the toll fires for
+    // every one of them, plus a control case with none.
+    const mk = (controllerExtra) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 2, move: 9, block: 0, weak: 0, slow: 0, root: 0, facing: "W" },
+        { id: "ctrl", side: "enemy", name: "Ctrl", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 3, attack: 0, block: 0, facing: "E", ...controllerExtra },
+      ],
+    })
+    const leaveFar = (state) => moveUnit(state, "mover", { row: 4, col: 0 })
+    const basic = leaveFar(mk({ range: 1 }))
+    const threat = leaveFar(mk({ range: 1, move: 2 }))
+    const fear = leaveFar(mk({ fearsome: true }))
+    const frost = leaveFar(mk({ frosty: true }))
+    const thorn = leaveFar(mk({ thorny: true }))
+    const none = leaveFar(mk({}))
+    return {
+      basicApAfter: basic.units.find((u) => u.id === "mover").ap,
+      threatApAfter: threat.units.find((u) => u.id === "mover").ap,
+      fearApAfter: fear.units.find((u) => u.id === "mover").ap,
+      frostApAfter: frost.units.find((u) => u.id === "mover").ap,
+      thornApAfter: thorn.units.find((u) => u.id === "mover").ap,
+      noneApAfter: none.units.find((u) => u.id === "mover").ap,
+    }
+  })
+  await page182.close()
+  out.zoneTollShape = result
+  const ok =
+    result.basicApAfter === 0 &&
+    result.threatApAfter === 0 &&
+    result.fearApAfter === 0 &&
+    result.frostApAfter === 0 &&
+    result.thornApAfter === 0 &&
+    result.noneApAfter === 1
+  if (!ok) out.errors.push("check182 the AP toll did not fire for every one of the 5 zone types, or fired with no controller present at all")
+}
+
+// 183. The core mechanic: a unit leaving an opposing Basic Zone loses
+//      exactly 1 EXTRA AP (2 total: 1 for the move, 1 for the toll)
+//      and gets the log line; a unit sliding WITHIN the same zone
+//      (never actually leaving) pays nothing extra -------------------
+{
+  const page183 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page183.on("pageerror", (e) => errs.push(String(e)))
+  await page183.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page183.waitForSelector(".hwt-board")
+  const result = await page183.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 2, move: 9, block: 0, facing: "W" },
+        { id: "melee", side: "enemy", name: "Melee", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, block: 0, facing: "E" },
+      ],
+    }
+    // Leaving: (4,5) is adjacent to melee@(4,6) - inside Basic Zone.
+    // Moving to (4,0) is far away - outside.
+    const afterLeave = moveUnit(state, "mover", { row: 4, col: 0 })
+    const moverAfterLeave = afterLeave.units.find((u) => u.id === "mover")
+    // Sliding: a SEPARATE state where the mover is ALREADY 2 tiles
+    // from melee (outside Basic Zone the whole time) and moves further
+    // away still - never inside, so never "leaves."
+    const neverInsideState = { ...state, units: state.units.map((u) => (u.id === "mover" ? { ...u, pos: { row: 4, col: 3 } } : u)) }
+    const afterNeverInside = moveUnit(neverInsideState, "mover", { row: 4, col: 0 })
+    const moverAfterNeverInside = afterNeverInside.units.find((u) => u.id === "mover")
+    return {
+      apAfterLeave: moverAfterLeave.ap,
+      logHasTollNote: afterLeave.log.some((l) => l.includes("struggles to break away, -1 AP")),
+      apAfterNeverInside: moverAfterNeverInside.ap,
+      neverInsideHasTollNote: afterNeverInside.log.some((l) => l.includes("struggles to break away")),
+    }
+  })
+  await page183.close()
+  out.zoneTollCoreMechanic = result
+  const ok = result.apAfterLeave === 0 && result.logHasTollNote && result.apAfterNeverInside === 1 && !result.neverInsideHasTollNote
+  if (!ok) out.errors.push("check183 the AP toll did not charge exactly 1 extra AP on a genuine leaving transition, or fired for a unit that was never inside the zone")
+}
+
+// 184. Additive stacking with Basic Zone's own reaction attack: leaving
+//      pays the AP toll AND still takes the existing free reaction
+//      attack in the SAME move - proving additive, not replacing -----
+{
+  const page184 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page184.on("pageerror", (e) => errs.push(String(e)))
+  await page184.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page184.waitForSelector(".hwt-board")
+  const result = await page184.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 2, move: 9, block: 0, facing: "W" },
+        { id: "melee", side: "enemy", name: "Melee", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 8, block: 0, facing: "W" },
+      ],
+    }
+    const after = moveUnit(state, "mover", { row: 4, col: 0 })
+    const mover = after.units.find((u) => u.id === "mover")
+    return {
+      apAfter: mover.ap,
+      hpAfter: mover.hp,
+      logHasTollNote: after.log.some((l) => l.includes("struggles to break away")),
+      logHasReactionNote: after.log.some((l) => l.includes("lashes out as Mover pulls away")),
+    }
+  })
+  await page184.close()
+  out.zoneTollStacksWithReaction = result
+  // The reaction attacks the mover at its NEW position (4,0), and the
+  // mover's own facing updated to "W" (the direction it just moved) -
+  // melee attacks from the East, the opposite of "W", so this is a
+  // BACK hit: base 25pp + Crit's own flat +25pp = 50pp -> round(8*1.5)
+  // = 12 damage, not a plain unmodified 8.
+  const ok = result.apAfter === 0 && result.hpAfter === 8 && result.logHasTollNote && result.logHasReactionNote
+  if (!ok) out.errors.push("check184 leaving Basic Zone did not pay BOTH the AP toll and the existing reaction attack in the same move")
+}
+
+// 185. Additive stacking with Frost Zone's own Slow: leaving pays the
+//      AP toll AND still gets Slowed in the SAME move -----------------
+{
+  const page185 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page185.on("pageerror", (e) => errs.push(String(e)))
+  await page185.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page185.waitForSelector(".hwt-board")
+  const result = await page185.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 2, move: 9, block: 0, slow: 0, facing: "W" },
+        { id: "frosty", side: "enemy", name: "Chilly", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 3, attack: 0, frosty: true, block: 0, facing: "E" },
+      ],
+    }
+    const after = moveUnit(state, "mover", { row: 4, col: 0 })
+    const mover = after.units.find((u) => u.id === "mover")
+    return {
+      apAfter: mover.ap,
+      slowAfter: mover.slow,
+      logHasTollNote: after.log.some((l) => l.includes("struggles to break away")),
+      logHasFrostNote: after.log.some((l) => l.includes("staggers away, slowed by the frost")),
+    }
+  })
+  await page185.close()
+  out.zoneTollStacksWithSlow = result
+  const ok = result.apAfter === 0 && result.slowAfter === 2 && result.logHasTollNote && result.logHasFrostNote
+  if (!ok) out.errors.push("check185 leaving Frost Zone did not pay BOTH the AP toll and gain Slow in the same move")
+}
+
+// 186. Edge cases: the floor never goes negative (a unit with only 1
+//      starting AP, spent entirely on the move, ends at 0 not -1); and
+//      leaving 2 SIMULTANEOUSLY overlapping opposing zone types still
+//      pays the toll only ONCE, not twice ------------------------------
+{
+  const page186 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page186.on("pageerror", (e) => errs.push(String(e)))
+  await page186.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page186.waitForSelector(".hwt-board")
+  const result = await page186.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Floor case: mover starts with only ap:1 - spent entirely on the
+    // move itself, nothing left for the toll to take.
+    const floorState = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 1, move: 9, block: 0, facing: "W" },
+        { id: "melee", side: "enemy", name: "Melee", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, block: 0, facing: "E" },
+      ],
+    }
+    const afterFloor = moveUnit(floorState, "mover", { row: 4, col: 0 })
+    const moverAfterFloor = afterFloor.units.find((u) => u.id === "mover")
+    // Double-overlap case: TWO different opposing controllers both
+    // control the mover's own origin (a plain melee unit AND a
+    // separate frosty unit, both adjacent to (4,5)) - leaving both at
+    // once should still cost exactly 1 AP, not 2.
+    const overlapState = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 3, move: 9, block: 0, slow: 0, facing: "W" },
+        { id: "melee", side: "enemy", name: "Melee", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, block: 0, facing: "E" },
+        { id: "frosty", side: "enemy", name: "Chilly", pos: { row: 3, col: 5 }, hp: 100, maxHp: 100, range: 3, attack: 0, frosty: true, block: 0, facing: "S" },
+      ],
+    }
+    const afterOverlap = moveUnit(overlapState, "mover", { row: 4, col: 0 })
+    const moverAfterOverlap = afterOverlap.units.find((u) => u.id === "mover")
+    return {
+      apAfterFloor: moverAfterFloor.ap,
+      apAfterOverlap: moverAfterOverlap.ap,
+    }
+  })
+  await page186.close()
+  out.zoneTollEdgeCases = result
+  // Overlap: ap:3 minus 1 (the move) minus 1 (the toll, paid once) = 1.
+  const ok = result.apAfterFloor === 0 && result.apAfterOverlap === 1
+  if (!ok) out.errors.push("check186 the AP toll either went negative on a 1-AP unit, or charged twice for 2 simultaneously overlapping zone types")
+}
+
+// 187. A real end-to-end example via createTacticsBattle: a real
+//      player unit disengaging from a real melee enemy pays the toll,
+//      narrated correctly, on top of the enemy's own real reaction ---
+{
+  const page187 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page187.on("pageerror", (e) => errs.push(String(e)))
+  await page187.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page187.waitForSelector(".hwt-board")
+  const result = await page187.evaluate(async () => {
+    const { createTacticsBattle, moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default", ["the-fool"])
+    const mosskit = state.units.find((u) => u.defId === "the-fool")
+    const ironmaw = state.units.find((u) => u.side === "enemy" && u.range === 1)
+    state = {
+      ...state,
+      units: state.units.map((u) => (u.id === mosskit.id ? { ...u, pos: { row: ironmaw.pos.row, col: ironmaw.pos.col + 1 }, ap: 2, move: 9 } : u)),
+    }
+    const after = moveUnit(state, mosskit.id, { row: ironmaw.pos.row, col: ironmaw.pos.col + 5 })
+    const mosskitAfter = after.units.find((u) => u.id === mosskit.id)
+    return {
+      apAfter: mosskitAfter.ap,
+      hasTollNote: after.log.some((l) => l.includes("struggles to break away, -1 AP")),
+    }
+  })
+  await page187.close()
+  out.realZoneTollDisengage = result
+  const ok = result.apAfter === 0 && result.hasTollNote
+  if (!ok) out.errors.push("check187 a real disengage from a real melee enemy did not genuinely pay the AP toll")
 }
 
 console.log(JSON.stringify(out, null, 2))
