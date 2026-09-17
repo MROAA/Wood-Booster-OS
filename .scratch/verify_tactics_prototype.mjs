@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5424
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zonetoll/.scratch/shots"
+const PORT = process.env.PORT || 5425
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-retreatstep/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zonetoll", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-retreatstep", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zonetoll", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-retreatstep", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -6818,6 +6818,319 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.realZoneTollDisengage = result
   const ok = result.apAfter === 0 && result.hasTollNote
   if (!ok) out.errors.push("check187 a real disengage from a real melee enemy did not genuinely pay the AP toll")
+}
+
+// ---------------------------------------------------------------
+// Retreat Step (Movement PRD §4.4) - a `wary` unit that loses a
+// SIGNIFICANT chunk (>=25% max HP) of its own HP in one hit steps
+// back one tile, away from its own facing, once per round, unless
+// Rooted. Hooked into applyDamageWithBlock itself - the ONE shared
+// function every damage source already funnels through.
+// ---------------------------------------------------------------
+
+// 188. The core mechanic: a `wary` unit taking a hit >=25% of its own
+//      max HP retreats exactly 1 tile opposite its own facing, gets
+//      the log line, retreatStepUsed becomes true, and its OWN facing
+//      stays UNCHANGED; a hit BELOW the threshold does nothing -------
+{
+  const page188 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page188.on("pageerror", (e) => errs.push(String(e)))
+  await page188.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page188.waitForSelector(".hwt-board")
+  const result = await page188.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (attackAmount) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "hermit", side: "player", name: "Hermit", pos: { row: 4, col: 5 }, hp: 32, maxHp: 32, range: 1, attack: 5, ap: 2, move: 9, block: 0, wary: true, retreatStepUsed: false, root: 0, facing: "E" },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: attackAmount, ap: 2, block: 0, facing: "W" },
+      ],
+    })
+    // 10 damage: >=32*0.25=8 - qualifies.
+    const afterBig = attackUnit(mk(10), "atk", "hermit")
+    const hermitAfterBig = afterBig.units.find((u) => u.id === "hermit")
+    // 5 damage: <8 - does not qualify.
+    const afterSmall = attackUnit(mk(5), "atk", "hermit")
+    const hermitAfterSmall = afterSmall.units.find((u) => u.id === "hermit")
+    return {
+      bigHpAfter: hermitAfterBig.hp,
+      bigPosAfter: hermitAfterBig.pos,
+      bigFacingAfter: hermitAfterBig.facing,
+      bigRetreatUsed: hermitAfterBig.retreatStepUsed,
+      bigLogHasNote: afterBig.log.some((l) => l.includes("reels backward from the blow")),
+      smallHpAfter: hermitAfterSmall.hp,
+      smallPosAfter: hermitAfterSmall.pos,
+      smallRetreatUsed: hermitAfterSmall.retreatStepUsed,
+    }
+  })
+  await page188.close()
+  out.retreatStepCoreMechanic = result
+  const ok =
+    result.bigHpAfter === 22 &&
+    result.bigPosAfter.row === 4 &&
+    result.bigPosAfter.col === 4 &&
+    result.bigFacingAfter === "E" &&
+    result.bigRetreatUsed === true &&
+    result.bigLogHasNote &&
+    result.smallHpAfter === 27 &&
+    result.smallPosAfter.row === 4 &&
+    result.smallPosAfter.col === 5 &&
+    result.smallRetreatUsed === false
+  if (!ok) out.errors.push("check188 Retreat Step did not fire correctly on a qualifying hit, or fired on a hit below the threshold")
+}
+
+// 189. Once-per-round: 2 qualifying hits in the SAME phase (no turn
+//      transition in between) - only the FIRST retreats, the second
+//      does not move the unit again even though it also qualifies ---
+{
+  const page189 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page189.on("pageerror", (e) => errs.push(String(e)))
+  await page189.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page189.waitForSelector(".hwt-board")
+  const result = await page189.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "hermit", side: "player", name: "Hermit", pos: { row: 4, col: 5 }, hp: 32, maxHp: 32, range: 1, attack: 5, ap: 2, move: 9, block: 0, wary: true, retreatStepUsed: false, root: 0, facing: "E" },
+        // range:5 - stays in range of hermit even after it retreats 1
+        // tile away, avoiding the "attacker can no longer reach the
+        // retreated target" cascade a range:1 attacker would hit.
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 8 }, hp: 100, maxHp: 100, range: 5, attack: 10, ap: 2, block: 0, facing: "W" },
+      ],
+    }
+    const after1 = attackUnit(state, "atk", "hermit")
+    const hermitAfter1 = after1.units.find((u) => u.id === "hermit")
+    const after2 = attackUnit(after1, "atk", "hermit")
+    const hermitAfter2 = after2.units.find((u) => u.id === "hermit")
+    return {
+      posAfter1: hermitAfter1.pos,
+      posAfter2: hermitAfter2.pos,
+      hpAfter2: hermitAfter2.hp,
+      retreatUsedAfter2: hermitAfter2.retreatStepUsed,
+    }
+  })
+  await page189.close()
+  out.retreatStepOncePerRound = result
+  const ok =
+    result.posAfter1.col === 4 &&
+    result.posAfter2.col === 4 &&
+    result.posAfter2.row === 4 &&
+    result.hpAfter2 === 12 &&
+    result.retreatUsedAfter2 === true
+  if (!ok) out.errors.push("check189 Retreat Step fired a second time in the same round despite retreatStepUsed already being set")
+}
+
+// 190. The reset mechanism: retreatStepUsed resets to false for BOTH
+//      sides across one full round cycle - `endPlayerTurn` itself
+//      already cascades all the way through `runEnemyTurn` internally
+//      (confirmed by reading its own final line, `return
+//      runEnemyTurn(next)`), so a single `endPlayerTurn` call already
+//      carries a state from "player" phase all the way back to
+//      "player" phase again, resetting BOTH the enemy-phase-entry
+//      checkpoint AND the return-to-player checkpoint in one call ---
+{
+  const page190 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page190.on("pageerror", (e) => errs.push(String(e)))
+  await page190.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page190.waitForSelector(".hwt-board")
+  const result = await page190.evaluate(async () => {
+    const { endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "hermit", side: "player", name: "Hermit", pos: { row: 4, col: 5 }, hp: 32, maxHp: 32, range: 1, attack: 5, ap: 2, apMax: 2, move: 9, block: 0, wary: true, retreatStepUsed: true, root: 0, slow: 0, cooldownRemaining: 0, facing: "E" },
+        // range:0, move:0 neutralizes the enemy's own AI entirely (no
+        // target ever in range, no reachable tiles) - the same
+        // "harmless controller" trick check172/178 already established.
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 8 }, hp: 100, maxHp: 100, range: 0, attack: 0, ap: 2, apMax: 2, move: 0, block: 0, retreatStepUsed: true, slow: 0, root: 0, cooldownRemaining: 0, facing: "W" },
+      ],
+    }
+    const after = endPlayerTurn(state)
+    const enemyAfter = after.units.find((u) => u.id === "atk")
+    const hermitAfter = after.units.find((u) => u.id === "hermit")
+    return {
+      phaseAfter: after.phase,
+      enemyRetreatUsedAfter: enemyAfter.retreatStepUsed,
+      hermitRetreatUsedAfter: hermitAfter.retreatStepUsed,
+    }
+  })
+  await page190.close()
+  out.retreatStepResetTiming = result
+  const ok = result.phaseAfter === "player" && result.enemyRetreatUsedAfter === false && result.hermitRetreatUsedAfter === false
+  if (!ok) out.errors.push("check190 retreatStepUsed did not reset for both sides across one full round cycle")
+}
+
+// 191. Root's own exclusion: an otherwise-eligible `wary` unit that is
+//      ALSO currently Rooted does not retreat on a qualifying hit ----
+{
+  const page191 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page191.on("pageerror", (e) => errs.push(String(e)))
+  await page191.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page191.waitForSelector(".hwt-board")
+  const result = await page191.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "hermit", side: "player", name: "Hermit", pos: { row: 4, col: 5 }, hp: 32, maxHp: 32, range: 1, attack: 5, ap: 2, move: 9, block: 0, wary: true, retreatStepUsed: false, root: 2, facing: "E" },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "W" },
+      ],
+    }
+    const after = attackUnit(state, "atk", "hermit")
+    const hermit = after.units.find((u) => u.id === "hermit")
+    return { posAfter: hermit.pos, hpAfter: hermit.hp, retreatUsedAfter: hermit.retreatStepUsed }
+  })
+  await page191.close()
+  out.retreatStepRootExclusion = result
+  const ok = result.posAfter.row === 4 && result.posAfter.col === 5 && result.hpAfter === 22 && result.retreatUsedAfter === false
+  if (!ok) out.errors.push("check191 a Rooted wary unit retreated on a qualifying hit despite Root's own exclusion")
+}
+
+// 192. The destination guard: a `wary` unit whose "behind" tile is
+//      OFF-BOARD, or occupied by another living unit, does not
+//      retreat (no position change, no log, resource not consumed) --
+{
+  const page192 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page192.on("pageerror", (e) => errs.push(String(e)))
+  await page192.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page192.waitForSelector(".hwt-board")
+  const result = await page192.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Off-board: facing "E" means backward is "W" (OPPOSITE_DIR) - at
+    // col:0, stepping W would leave the grid entirely.
+    const offBoardState = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "hermit", side: "player", name: "Hermit", pos: { row: 4, col: 0 }, hp: 32, maxHp: 32, range: 1, attack: 5, ap: 2, move: 9, block: 0, wary: true, retreatStepUsed: false, root: 0, facing: "E" },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 1 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "W" },
+      ],
+    }
+    const afterOffBoard = attackUnit(offBoardState, "atk", "hermit")
+    const hermitOffBoard = afterOffBoard.units.find((u) => u.id === "hermit")
+    // Occupied: hermit's own backward tile (4,4) is already held by a
+    // third living unit.
+    const occupiedState = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "hermit", side: "player", name: "Hermit", pos: { row: 4, col: 5 }, hp: 32, maxHp: 32, range: 1, attack: 5, ap: 2, move: 9, block: 0, wary: true, retreatStepUsed: false, root: 0, facing: "E" },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "W" },
+        { id: "blocker", side: "player", name: "Blocker", pos: { row: 4, col: 4 }, hp: 20, maxHp: 20, range: 1, attack: 0, block: 0, facing: "E" },
+      ],
+    }
+    const afterOccupied = attackUnit(occupiedState, "atk", "hermit")
+    const hermitOccupied = afterOccupied.units.find((u) => u.id === "hermit")
+    return {
+      offBoardPos: hermitOffBoard.pos,
+      offBoardRetreatUsed: hermitOffBoard.retreatStepUsed,
+      occupiedPos: hermitOccupied.pos,
+      occupiedRetreatUsed: hermitOccupied.retreatStepUsed,
+    }
+  })
+  await page192.close()
+  out.retreatStepDestinationGuard = result
+  const ok =
+    result.offBoardPos.row === 4 &&
+    result.offBoardPos.col === 0 &&
+    result.offBoardRetreatUsed === false &&
+    result.occupiedPos.row === 4 &&
+    result.occupiedPos.col === 5 &&
+    result.occupiedRetreatUsed === false
+  if (!ok) out.errors.push("check192 Retreat Step fired into an off-board or occupied destination instead of no-opping")
+}
+
+// 193. Zero regression, directly proven: a NON-wary unit taking an
+//      identical large hit produces byte-identical output to before
+//      this round - no retreat, just the ordinary damage -----------
+{
+  const page193 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page193.on("pageerror", (e) => errs.push(String(e)))
+  await page193.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page193.waitForSelector(".hwt-board")
+  const result = await page193.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        // No `wary` field at all - the same "missing field" safety
+        // every pre-existing synthetic unit already relies on.
+        { id: "notwary", side: "player", name: "NotWary", pos: { row: 4, col: 5 }, hp: 32, maxHp: 32, range: 1, attack: 5, ap: 2, move: 9, block: 0, facing: "E" },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "W" },
+      ],
+    }
+    const after = attackUnit(state, "atk", "notwary")
+    const unit = after.units.find((u) => u.id === "notwary")
+    return { hpAfter: unit.hp, posAfter: unit.pos, logHasRetreatNote: after.log.some((l) => l.includes("reels backward")) }
+  })
+  await page193.close()
+  out.retreatStepZeroRegression = result
+  const ok = result.hpAfter === 22 && result.posAfter.row === 4 && result.posAfter.col === 5 && !result.logHasRetreatNote
+  if (!ok) out.errors.push("check193 a non-wary unit unexpectedly retreated, or took the wrong damage")
+}
+
+// 194. A real end-to-end example via createTacticsBattle with the real
+//      the-hermit: a real heavy hit against a real recruited Hollowreed
+//      makes it genuinely retreat, narrated correctly ---------------
+{
+  const page194 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page194.on("pageerror", (e) => errs.push(String(e)))
+  await page194.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page194.waitForSelector(".hwt-board")
+  const result = await page194.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default", ["the-hermit"])
+    const hermit = state.units.find((u) => u.defId === "the-hermit")
+    const enemy = state.units.find((u) => u.side === "enemy" && u.range === 1)
+    // Players spawn at the board's own rightmost column facing "W" -
+    // their own "backward" (opposite of "W" is "E") would immediately
+    // run off the right edge from there. Reposition hermit to a safe
+    // middle column first so the retreat itself has room to land.
+    state = {
+      ...state,
+      phase: "enemy",
+      units: state.units.map((u) =>
+        u.id === hermit.id
+          ? { ...u, pos: { row: 4, col: 6 } }
+          : u.id === enemy.id
+            ? { ...u, pos: { row: 4, col: 5 }, attack: 20, ap: u.apMax }
+            : { ...u, pos: { row: 0, col: 0 } },
+      ),
+    }
+    const after = attackUnit(state, enemy.id, hermit.id)
+    const hermitAfter = after.units.find((u) => u.id === hermit.id)
+    return {
+      wary: hermit.wary,
+      posBefore: hermit.pos,
+      posAfter: hermitAfter.pos,
+      hasRetreatNote: after.log.some((l) => l.includes("reels backward from the blow")),
+    }
+  })
+  await page194.close()
+  out.realHermitRetreat = result
+  const ok = result.wary === true && result.hasRetreatNote && (result.posAfter.row !== result.posBefore.row || result.posAfter.col !== result.posBefore.col)
+  if (!ok) out.errors.push("check194 a real heavy hit against the real Hollowreed did not genuinely trigger Retreat Step")
 }
 
 console.log(JSON.stringify(out, null, 2))

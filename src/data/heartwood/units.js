@@ -267,6 +267,11 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // needs its own line here or frostbind's own frosty:true below
     // would silently never reach deriveTacticsUnit at all.
     frosty: !!opts.frosty,
+    // Retreat Step round (Hearthwood Frontier, tacticsEngine.js only):
+    // same reasoning as frosty above - needs its own explicit line or
+    // the-hermit's own wary:true below would silently never reach
+    // deriveTacticsUnit at all.
+    wary: !!opts.wary,
     // Spore Spread: when this unit's own debuff step applies Poison,
     // the same stack also seeds onto a different living enemy - see
     // autoBattleEngine.js's actSide.
@@ -471,6 +476,11 @@ const BASE_UNITS = {
     // Self-Ward - "hermit" bends and retreats rather than breaking.
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
     image: theHermitImg,
+    // Retreat Step round (Hearthwood Frontier, tacticsEngine.js only):
+    // this own already-existing comment above ("bends and retreats
+    // rather than breaking") is the real, hand-authored justification
+    // for this new portable trait - not invented flavor.
+    wary: true,
   }),
   "wheel-of-fortune": unit("wheel-of-fortune", "Windshift", "wheel-of-fortune", 1, "hybrid", [
     { type: "attack", amount: 10, weight: 1 },
