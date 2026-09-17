@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5423
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-thornzone/.scratch/shots"
+const PORT = process.env.PORT || 5424
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zonetoll/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1588,6 +1588,66 @@ function newPage() {
   out.realFightThornZone = { setup, chosen, logHasThornNote: logText.includes("caught in the thorns"), rootAfter: mosskitAfter?.root, reachableAfterRoot }
   const ok = chosen !== null && logText.includes("caught in the thorns") && mosskitAfter && mosskitAfter.root > setup.rootBefore && reachableAfterRoot === 0
   if (!ok) out.errors.push("check31 a real click-driven approach toward the real Rootbind Thicket did not grant real Root, or the rooted unit still showed reachable cells")
+}
+
+// 32. Zone Disengage Toll: a real click-driven retreat away from a
+//     real adjacent enemy pays the AP toll ON TOP OF the already-
+//     established real reaction attack (check23) in the SAME move -
+//     the same setup, extended to also confirm the new AP cost -----
+{
+  const page32 = await newPage()
+  page32.on("pageerror", (e) => errs.push(String(e)))
+  await page32.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page32, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page32.reload({ waitUntil: "domcontentloaded" })
+  await page32.waitForTimeout(400)
+  await page32.locator(".hw-tactics-fight-btn").click()
+  await page32.waitForTimeout(400)
+  const setup = await page32.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const mover = battle.units.find((u) => u.side === "player")
+    const enemy = battle.units.find((u) => u.side === "enemy")
+    mover.pos = { row: enemy.pos.row, col: enemy.pos.col + 1 }
+    mover.ap = mover.apMax
+    mover.hp = mover.maxHp
+    enemy.hp = enemy.maxHp
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { moverName: mover.name, enemyName: enemy.name, apMax: mover.apMax }
+  })
+  await page32.reload({ waitUntil: "domcontentloaded" })
+  await page32.waitForTimeout(400)
+  const moverToken = page32.locator(".hwt-token", { hasText: setup.moverName })
+  await moverToken.click({ force: true })
+  await page32.waitForTimeout(200)
+  const reach = page32.locator('.hwt-cell[data-reachable="true"]')
+  const n = await reach.count()
+  let chosen = null
+  if (n > 0) {
+    const enemyToken = page32.locator(".hwt-token", { hasText: setup.enemyName })
+    const enemyBox = await enemyToken.boundingBox()
+    let bestDist = -1
+    for (let i = 0; i < n; i++) {
+      const box = await reach.nth(i).boundingBox()
+      const dist = Math.hypot(box.x - enemyBox.x, box.y - enemyBox.y)
+      if (dist > bestDist) {
+        bestDist = dist
+        chosen = i
+      }
+    }
+    await reach.nth(chosen).click()
+    await page32.waitForTimeout(300)
+  }
+  const logText = await page32.locator(".hwt-log").innerText()
+  const afterBattle = await page32.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const moverAfter = afterBattle.units.find((u) => u.name === setup.moverName)
+  await page32.screenshot({ path: `${SHOT}/real_fight_zone_toll.png` })
+  await page32.close()
+  out.realFightZoneToll = { setup, chosen, logHasTollNote: logText.includes("struggles to break away"), logHasReaction: logText.includes("lashes out"), apAfter: moverAfter?.ap }
+  // apMax(2) - 1 (the move) - 1 (the toll) = 0.
+  const ok = chosen !== null && logText.includes("struggles to break away") && logText.includes("lashes out") && moverAfter && moverAfter.ap === 0
+  if (!ok) out.errors.push("check32 a real click-driven retreat did not pay the real AP toll on top of the real reaction attack")
 }
 
 console.log(JSON.stringify(out, null, 2))

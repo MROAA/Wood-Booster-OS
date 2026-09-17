@@ -1142,6 +1142,30 @@ export function zoneOfControlCells(state, side) {
   return cells
 }
 
+// Zone Disengage Toll round (Movement PRD §4.3's general preamble):
+// "poistuminen voi maksaa lisä-AP:tä" - leaving MAY cost extra AP, a
+// property of the WHOLE Zone of Control system (this line sits in the
+// general "enters an enemy's Zone of Control" preamble, not under any
+// one named sub-type) - so this ORs together all 5 existing controller
+// checks into one combined "is this position inside ANY opposing zone
+// right now" test, reusing every controller function wholesale.
+function insideAnyOpposingZone(state, pos, side) {
+  return (
+    zocControllers(state, pos, side).length > 0 ||
+    threatZoneControllers(state, pos, side).length > 0 ||
+    fearZoneControllers(state, pos, side).length > 0 ||
+    frostZoneControllers(state, pos, side).length > 0 ||
+    thornZoneControllers(state, pos, side).length > 0
+  )
+}
+
+// A flat, unconditional toll - charged EXACTLY ONCE per move that
+// leaves ANY opposing zone (not per zone type, even if 2 overlapped),
+// additive on top of whatever else that same transition already does
+// (Basic Zone's reaction, Frost Zone's Slow, etc.) - Marc's own
+// explicit "all zone types, on top of" pick.
+const ZONE_LEAVE_AP_TOLL = 1
+
 export function moveUnit(state, unitId, targetPos) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0 || unit.ap < 1) return state
@@ -1208,6 +1232,20 @@ export function moveUnit(state, unitId, targetPos) {
     const arrived = getUnit(next, unitId)
     next = setUnit(next, unitId, { slow: (arrived.slow || 0) + SLOW_DURATION })
     next = { ...next, log: [...next.log, `${unit.name} staggers away, slowed by the frost!`] }
+  }
+  // Zone Disengage Toll round: leaving ANY opposing zone (checked ONCE
+  // via the combined insideAnyOpposingZone, not per zone type) costs
+  // 1 extra AP, additive on top of whatever else this same transition
+  // already triggers above (Frost Zone's Slow) or below (Basic Zone's
+  // reaction). Floored at 0, never negative - a unit that already
+  // spent its last AP on the move itself simply has nothing left for
+  // the toll to take. Same SAME-pre-move-`state` guarantee as every
+  // other zone transition above.
+  const leftAnyZone = insideAnyOpposingZone(state, unit.pos, opposingSide) && !insideAnyOpposingZone(state, targetPos, opposingSide)
+  if (leftAnyZone) {
+    const arrived = getUnit(next, unitId)
+    next = setUnit(next, unitId, { ap: Math.max(0, arrived.ap - ZONE_LEAVE_AP_TOLL) })
+    next = { ...next, log: [...next.log, `${unit.name} struggles to break away, -${ZONE_LEAVE_AP_TOLL} AP!`] }
   }
   // Zone of Control round: a living, melee OPPOSING controller of the
   // unit's own ORIGIN tile (`unit.pos`, captured before any of the
