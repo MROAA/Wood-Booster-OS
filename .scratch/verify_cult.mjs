@@ -219,8 +219,11 @@ const R = await page.evaluate(async () => {
   }
 
   // 9. The Silenced Bell ----------------------------------
+  // marketTier: 3 - the Ledger tiering round (later) gates The Silenced
+  // Bell behind Market Tier 3 (max); bumped so this purchase-mechanics
+  // check isn't confounded by that unrelated gate.
   {
-    let rs = { ...startRun("tommy"), essence: 2000 }
+    let rs = { ...startRun("tommy"), essence: 2000, marketTier: 3 }
     const cost = SHOP_INVESTMENTS["silenced-bell"].cost
     const before = rs.essence
     rs = buyInvestment(rs, "silenced-bell")

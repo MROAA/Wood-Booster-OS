@@ -197,8 +197,12 @@ const R = await page.evaluate(async () => {
   }
 
   // 7. The Marked Coin (Ledger relic money sink) ----------------------
+  // marketTier: 2 - the Ledger tiering round (later) gates The Marked
+  // Coin behind Market Tier 2; a fresh startRun's own default (1) would
+  // now make buyInvestment refuse it, which isn't what this check is
+  // testing (that's verify_ledger_tiering.mjs's own job).
   {
-    let rs = { ...startRun("tommy"), essence: 2000 }
+    let rs = { ...startRun("tommy"), essence: 2000, marketTier: 2 }
     const cost = SHOP_INVESTMENTS["marked-coin"].cost
     const before = rs.essence
     rs = buyInvestment(rs, "marked-coin")

@@ -7,8 +7,8 @@ import { mkdir } from "node:fs/promises"
 // additive runState fields, no RUN_SAVE_VERSION bump. Inert for the
 // fairness bot (it never sells or buys investments).
 
-const PORT = process.env.PORT || 5337
-const ROOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-shop-ledger"
+const PORT = process.env.PORT || 5505
+const ROOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-ledger-appraiser"
 const SHOT_DIR = `${ROOT}/.scratch/shots`
 await mkdir(SHOT_DIR, { recursive: true })
 
@@ -46,7 +46,16 @@ const r = await page.evaluate(async () => {
   const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 
   // ---- 1. buyInvestment --------------------------------------------
-  const base = () => ({ ...startRun("tommy"), essence: 5000 })
+  // Ledger tiering round: SHOP_INVESTMENTS entries now gate on
+  // marketLevel/marketTier (investmentUnlocked, runEngine.js) - a
+  // fresh startRun's own marketLevel:1/marketTier:1 no longer unlocks
+  // every investment (wider-stall/ledger-account/etc. need higher).
+  // This file's own checks below test PURCHASE MECHANICS (cost
+  // deduction, owned-refusal, broke-refusal), not the tiering feature
+  // itself (that's verify_ledger_tiering.mjs, this same round) - so
+  // base() is bumped to max on both meters, keeping every pre-existing
+  // assertion here validating exactly what it always validated.
+  const base = () => ({ ...startRun("tommy"), essence: 5000, marketLevel: 3, marketTier: 3 })
   const b1 = buyInvestment(base(), "regulars-discount")
   const b2 = buyInvestment(base(), "wider-stall")
   const b3 = buyInvestment(base(), "ledger-account")
@@ -186,7 +195,11 @@ const r = await page.evaluate(async () => {
     reclaimBuyback(legLoaded).bench.length === legLoaded.bench.length &&
     essenceForWin(legLoaded, node) === essenceForWin({ ...legLoaded, ledgerWinBonus: 0 }, node)
 
-  out.ok.threeInvestments = Object.keys(SHOP_INVESTMENTS).length === 3
+  // Was "threeInvestments" (===3) at this file's own original round -
+  // stale ever since investments 4-9 shipped in later rounds; now 10
+  // with this round's own Appraiser's Eye. Fixed while touching this
+  // file for the tiering feature, not silently left further stale.
+  out.ok.tenInvestments = Object.keys(SHOP_INVESTMENTS).length === 10
 
   out.pass = Object.values(out.ok).every(Boolean)
   return out
@@ -195,9 +208,14 @@ const r = await page.evaluate(async () => {
 console.log(JSON.stringify(r, null, 2))
 
 // ---- 8. UI ------------------------------------------------------
+// marketLevel/marketTier bumped to 3 (max) - same reasoning as base()
+// above: this section tests Wider Stall/Regular's Discount PURCHASE
+// mechanics, not the Ledger tiering feature (that's the dedicated
+// verify_ledger_tiering.mjs), so every investment needs to be visible
+// regardless of the new gate.
 await page.evaluate(async () => {
   const { RUN_PATH, startRun, serializeRun, recruitUnit } = await import("/src/services/heartwood/runEngine.js")
-  let s = { ...startRun("tommy"), essence: 3000, nodeIndex: 0, path: RUN_PATH.slice(0, 1), phase: "shop" }
+  let s = { ...startRun("tommy"), essence: 3000, nodeIndex: 0, path: RUN_PATH.slice(0, 1), phase: "shop", marketLevel: 3, marketTier: 3 }
   // give the bench a unit so we can test sell -> buyback
   s = recruitUnit(s, s.shopOffers[0])
   s.essence = 3000
@@ -259,7 +277,7 @@ const noHScroll = await page.evaluate(() => document.documentElement.scrollWidth
 await browser.close()
 
 const uiOk =
-  ledgerChips === 3 &&
+  ledgerChips === 10 &&
   offersAfterStall === 4 &&
   struck >= 1 &&
   buybackShown &&

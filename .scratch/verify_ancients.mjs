@@ -234,8 +234,11 @@ const R = await page.evaluate(async () => {
   }
 
   // 10. The Weathered Standard (Ledger buy) --------------
+  // marketTier: 3 - the Ledger tiering round (later) gates The
+  // Weathered Standard behind Market Tier 3 (max); bumped so this
+  // purchase-mechanics check isn't confounded by that unrelated gate.
   {
-    const rs = { ...startRun("tommy"), essence: 9999 }
+    const rs = { ...startRun("tommy"), essence: 9999, marketTier: 3 }
     const bought = buyInvestment(rs, "weathered-standard")
     const deducted = bought.essence === rs.essence - SHOP_INVESTMENTS["weathered-standard"].cost
     const added = (bought.relics || []).includes("weathered-standard")

@@ -1217,7 +1217,7 @@ export function sellUnit(runState, benchKey) {
   const entry = runState.bench.find((e) => e.key === benchKey)
   if (!entry) return runState
   const def = UNITS[entry.defId]
-  const refund = sellRefundFor(def, MARKET_EVENTS[runState.marketEvent]?.sellMult)
+  const refund = sellRefundFor(def, effectiveSellMult(runState))
   return {
     ...bumpStyle(runState, { pivots: styleN(runState, "pivots") + 1 }),
     essence: runState.essence + refund,
@@ -1253,21 +1253,48 @@ export function reclaimBuyback(runState) {
 // they're inert for it. Costs are tuned by reasoning: a focused player
 // takes ~1-2 per run, not all three early; ledger-account (+40/win)
 // needs ~11 wins to earn back its 450.
+// Marc: "se on pitkä lista nyt ja minusta liikaa kerralla harkittavaksi"
+// (it's a long list now, too much to weigh at once) -> "niitä voi
+// porrastaa molempiin market lvl ja tier lvl missä se loogisimmillaan
+// voisi olla" (stage them across BOTH Market Level and Market Tier,
+// whichever is more logical per item). Split by KIND, not evenly: the
+// 4 pure-economy buys (discount/slot/win-bonus/sell-bonus) gate on
+// `unlockLevel` (Market LEVEL, the general "the shop grows" meter);
+// the 6 combat-counter + shop-structure buys gate on `unlockTier`
+// (Market TIER, the "specialist recruit pools deepen" meter) - a
+// combat counter or a shop-reshaping tool becoming available as the
+// fights get harder/deeper is the more logical pairing than tying it
+// to the economy meter. Both read via investmentUnlocked below;
+// exactly one of unlockLevel/unlockTier is ever set per entry.
+//
+// Both meters actually START at 1 (startRun) and cap at MARKET_LEVEL_
+// MAX/MARKET_TIER_MAX (3) - so 0 and 1 are BOTH "available from the
+// very start of a run" (0 is only used where "no real gate" reads more
+// honestly than duplicating the value 1). The real reachable stages are
+// 1/2/3, and the 10 entries are balanced across them as 3 at the
+// start (Regular's Discount, Trader's Compass, The Rearguard), 4 at
+// the middle stage, 3 at the max stage - not a per-axis-independent
+// split, a COMBINED one across both meters together (a player who
+// pushes Tier and ignores Level, or vice versa, still only ever sees
+// one new stage's worth land at a time, never a jump of 4+).
 export const SHOP_INVESTMENTS = {
   "regulars-discount": {
     name: "Regular's Discount",
     cost: 300,
     desc: "Every unit you recruit costs 20% less for the rest of the run.",
+    unlockLevel: 0,
   },
   "wider-stall": {
     name: "Wider Stall",
     cost: 350,
     desc: "The market shows one more unit every visit.",
+    unlockLevel: 2,
   },
   "ledger-account": {
     name: "Ledger Account",
     cost: 450,
     desc: "+40 Essence every battle win, permanently.",
+    unlockLevel: 3,
   },
   // The Rearguard (feat/hearthwood-hunters): the first Ledger buy that
   // isn't economy - a combat effect, delivered as a run-wide relic
@@ -1279,6 +1306,7 @@ export const SHOP_INVESTMENTS = {
     name: "The Rearguard",
     cost: 400,
     desc: "Your frailest unit starts every battle with Bulwark - one hit shrugged off.",
+    unlockTier: 1,
   },
   // The Marked Coin (feat/hearthwood-coven): the enemy-side mirror of
   // The Rearguard - a run-wide relic ("marked-coin", relics.js
@@ -1288,6 +1316,7 @@ export const SHOP_INVESTMENTS = {
     name: "The Marked Coin",
     cost: 400,
     desc: "The frailest thing on the enemy line starts every battle Vulnerable - it takes the hits harder.",
+    unlockTier: 2,
   },
   // Market Charter (feat/hearthwood-market-tiers): a shop-LAYER Ledger buy
   // (no battle effect). The relic "market-charter" makes effectiveMarketTier
@@ -1297,6 +1326,7 @@ export const SHOP_INVESTMENTS = {
     name: "The Market Charter",
     cost: 350,
     desc: "The shop opens one Market Tier higher for the rest of the run.",
+    unlockTier: 2,
   },
   // Trader's Compass (feat/hearthwood-market-events): the relic
   // "traders-compass" doubles pickMarketEvent's chance for the rest of
@@ -1306,6 +1336,7 @@ export const SHOP_INVESTMENTS = {
     name: "The Trader's Compass",
     cost: 300,
     desc: "Special markets - the Golden Market and its kin - turn up twice as often for the rest of the run.",
+    unlockTier: 0,
   },
   // The Silenced Bell (feat/hearthwood-cult): the relic "silenced-bell"
   // (relics.js `stunHighestHp`) stuns the largest enemy on the line at
@@ -1315,6 +1346,7 @@ export const SHOP_INVESTMENTS = {
     name: "The Silenced Bell",
     cost: 400,
     desc: "The largest thing on the enemy line starts every battle stunned - one turn lost, one ritual charge missed.",
+    unlockTier: 3,
   },
   // The Weathered Standard (feat/hearthwood-ancients): the relic
   // "weathered-standard" (relics.js `bracedSquad`) gives every deployed
@@ -1325,7 +1357,44 @@ export const SHOP_INVESTMENTS = {
     name: "The Weathered Standard",
     cost: 400,
     desc: "Every unit you field starts each battle with Bulwark - one incoming hit shrugged off.",
+    unlockTier: 3,
   },
+  // The Appraiser's Eye (this round): the first Ledger buy on the SELL
+  // side rather than the recruit side - a PERMANENT counterpart to The
+  // Ragpicker's Market's own temporary, random 1.5x sell-refund event
+  // (feat/hearthwood-market-ragpicker). Reuses that round's own
+  // sellRefundFor/effectiveSellMult plumbing wholesale - a plain
+  // runState.sellBonus field (the same "shop-layer, not a relics-array
+  // entry" shape regulars-discount/wider-stall/ledger-account already
+  // use), no new mechanic. Named, deliberate choice of magnitude: 15%
+  // stays clearly smaller than Ragpicker's own 50% so a lucky market
+  // event still feels like a real, distinct spike, not made redundant
+  // by owning this.
+  "appraisers-eye": {
+    name: "The Appraiser's Eye",
+    cost: 350,
+    desc: "Selling a unit refunds 15% more, for the rest of the run.",
+    unlockLevel: 2,
+  },
+}
+
+// investmentUnlocked (this round, the Ledger tiering pass): whether an
+// investment is even OFFERED yet, independent of `investmentOwned`
+// (already bought) or the essence check `buyInvestment` already does.
+// Reads `effectiveMarketTier` (not the raw `marketTier` field) for
+// unlockTier entries deliberately - Market Charter's own +1 bonus
+// (once bought) means owning it accelerates unlocking the REMAINING
+// tier-gated investments too, reinforcing its own "the shop opens
+// higher" flavor rather than being a purely cosmetic/shop-recruit-pool
+// effect. Unlocking is permanent once reached (both marketLevel and
+// marketTier only ever increase), so an owned investment can never
+// re-lock even if this were called again with stale state.
+export function investmentUnlocked(runState, id) {
+  const inv = SHOP_INVESTMENTS[id]
+  if (!inv) return false
+  if (inv.unlockLevel != null) return (runState.marketLevel || 0) >= inv.unlockLevel
+  if (inv.unlockTier != null) return effectiveMarketTier(runState) >= inv.unlockTier
+  return true
 }
 
 export function investmentOwned(runState, id) {
@@ -1338,12 +1407,13 @@ export function investmentOwned(runState, id) {
   if (id === "traders-compass") return (runState.relics || []).includes("traders-compass")
   if (id === "silenced-bell") return (runState.relics || []).includes("silenced-bell")
   if (id === "weathered-standard") return (runState.relics || []).includes("weathered-standard")
+  if (id === "appraisers-eye") return (runState.sellBonus || 0) > 0
   return false
 }
 
 export function buyInvestment(runState, id) {
   const inv = SHOP_INVESTMENTS[id]
-  if (!inv || investmentOwned(runState, id) || runState.essence < inv.cost) return runState
+  if (!inv || investmentOwned(runState, id) || runState.essence < inv.cost || !investmentUnlocked(runState, id)) return runState
   const patch =
     id === "regulars-discount"
       ? { recruitDiscount: 0.2 }
@@ -1361,7 +1431,9 @@ export function buyInvestment(runState, id) {
                   ? { relics: [...(runState.relics || []), "traders-compass"] }
                   : id === "silenced-bell"
                     ? { relics: [...(runState.relics || []), "silenced-bell"] }
-                    : { relics: [...(runState.relics || []), "weathered-standard"] }
+                    : id === "appraisers-eye"
+                      ? { sellBonus: 0.15 }
+                      : { relics: [...(runState.relics || []), "weathered-standard"] }
   return { ...runState, essence: runState.essence - inv.cost, ...patch }
 }
 
@@ -1525,6 +1597,19 @@ export function hasTradersCompass(runState) {
 
 export function marketEventPriceMult(id) {
   return MARKET_EVENTS[id]?.priceMult ?? 1
+}
+
+// The Appraiser's Eye (Ledger, this round) + The Ragpicker's Market
+// (Market Event, prior round), combined - the exact same "permanent
+// source + market-event source, additive-then-multiplicative" shape
+// effectiveRecruitCost already uses for the buy side (Regular's
+// Discount + economy-crew recruitPct, capped, then × the event's own
+// priceMult). One function, imported by sellUnit AND SquadDraft's own
+// sell-refund preview label, so the two can never drift the way
+// sellRefundFor's own doc-comment already warns about.
+export function effectiveSellMult(runState) {
+  const bonus = Math.min(0.5, runState?.sellBonus || 0)
+  return (1 + bonus) * (MARKET_EVENTS[runState?.marketEvent]?.sellMult ?? 1)
 }
 
 export function marketEventLocksReroll(runState) {

@@ -116,8 +116,11 @@ const R = await page.evaluate(async () => {
   }
 
   // 4. Market Charter -------------------------------------------------
+  // marketTier: 2 - the Ledger tiering round (later) gates The Market
+  // Charter behind Market Tier 2 itself; bumped so this purchase-
+  // mechanics check isn't confounded by that unrelated gate.
   {
-    let rs = { ...startRun("tommy"), essence: 2000 }
+    let rs = { ...startRun("tommy"), essence: 2000, marketTier: 2 }
     const cost = SHOP_INVESTMENTS["market-charter"].cost
     const before = rs.essence
     rs = buyInvestment(rs, "market-charter")

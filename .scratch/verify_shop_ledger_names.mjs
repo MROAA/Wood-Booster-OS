@@ -32,6 +32,13 @@ await page.evaluate(async () => {
     phase: "shop",
     essence: 4000,
     marketLevel: 3,
+    // The Ledger tiering round (later): Market Charter/Silenced Bell/
+    // Weathered Standard all gate on marketTier, not marketLevel - this
+    // fixture only bumped Level, so those 3 dropped out of the visible
+    // set once tiering shipped. Bumped Tier too so this file's own
+    // "every real name renders unclipped" check still exercises all 9
+    // of its own original names, unrelated to the tiering feature.
+    marketTier: 3,
     shopOffers: ["world-ash-elder", "bulwark-of-ages", "the-thorn-throne"],
   }
   s.lastSeenAct = actIndexForNode(idx, RUN_PATH.length)
