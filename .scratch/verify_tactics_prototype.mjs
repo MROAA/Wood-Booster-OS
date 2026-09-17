@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5421
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-fearzone/.scratch/shots"
+const PORT = process.env.PORT || 5422
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-frostzone/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-fearzone", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-frostzone", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-fearzone", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-frostzone", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -6045,6 +6045,268 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.fearZoneUiCells = { expectedCount, renderedCount }
   const ok = expectedCount > 0 && renderedCount === expectedCount
   if (!ok) out.errors.push("check169 the rendered data-fear-zone cells did not match fearZoneCells's own computed set")
+}
+
+// ---------------------------------------------------------------
+// Frost Zone (Movement PRD §4.3's 4th sub-type) - slows units that
+// LEAVE it (the mirror transition of Fear Zone's own approach). No
+// range gate (same non-melee-gating reasoning as Fear Zone); a new
+// DURATION-based `slow` status - this engine's first status that
+// decays via a real turn-count rather than a permanent `>0` flag.
+// ---------------------------------------------------------------
+
+// 170. frostZoneCells's own shape: radius-1, only for `frosty` units
+//      regardless of range - a synthetic RANGED frosty unit still
+//      projects it, proving the deliberate non-melee-gating -----------
+{
+  const page170 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page170.on("pageerror", (e) => errs.push(String(e)))
+  await page170.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page170.waitForSelector(".hwt-board")
+  const result = await page170.evaluate(async () => {
+    const { frostZoneCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    const frostyRangedState = {
+      grid: { rows: 9, cols: 12 },
+      units: [{ id: "p1", side: "player", hp: 10, range: 3, frosty: true, pos: { row: 4, col: 6 } }],
+    }
+    const notFrostyState = {
+      grid: { rows: 9, cols: 12 },
+      units: [{ id: "p1", side: "player", hp: 10, range: 1, frosty: false, pos: { row: 4, col: 6 } }],
+    }
+    const frostCells = frostZoneCells(frostyRangedState, "player")
+    const noCells = frostZoneCells(notFrostyState, "player")
+    return {
+      frostCellCount: frostCells.size,
+      hasAdjacentCell: frostCells.has("3-6") && frostCells.has("5-6") && frostCells.has("4-5") && frostCells.has("4-7"),
+      hasRadius2Cell: frostCells.has("4-4") || frostCells.has("2-6"),
+      noCellsCount: noCells.size,
+    }
+  })
+  await page170.close()
+  out.frostZoneShape = result
+  const ok = result.frostCellCount === 8 && result.hasAdjacentCell && !result.hasRadius2Cell && result.noCellsCount === 0
+  if (!ok) out.errors.push("check170 frostZoneCells did not produce the expected radius-1, frosty-only (range-agnostic) shape")
+}
+
+// 171. The core mechanic: a unit moving from INSIDE an opposing Frost
+//      Zone to OUTSIDE it gains exactly one SLOW_DURATION grant and
+//      the correct log line; sliding to another cell STILL inside the
+//      same zone grants nothing further (the transition-only guard) --
+{
+  const page171 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page171.on("pageerror", (e) => errs.push(String(e)))
+  await page171.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page171.waitForSelector(".hwt-board")
+  const result = await page171.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "mover", side: "enemy", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 1, move: 9, block: 0, slow: 0, facing: "E" },
+        { id: "frosty", side: "player", name: "Frostbind", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, frosty: true, block: 0, facing: "W" },
+      ],
+    }
+    // Move 1: from (4,5) (inside - adjacent to frosty@(4,6)) to (3,4)
+    // (distance 2 from frosty - a genuine leaving transition, should
+    // grant slow).
+    const afterLeave = moveUnit(state, "mover", { row: 3, col: 4 })
+    const moverAfterLeave = afterLeave.units.find((u) => u.id === "mover")
+    // Move 2: from (3,4) to (2,3) - BOTH cells are already distance >=2
+    // from frosty@(4,6), so the mover was NEVER inside the zone on
+    // this second move - no NEW transition, should grant nothing
+    // further (mirrors Fear Zone's own check166 "slide" sub-case, just
+    // fully outside instead of fully inside).
+    const afterSlide = moveUnit({ ...afterLeave, units: afterLeave.units.map((u) => (u.id === "mover" ? { ...u, ap: 1 } : u)) }, "mover", { row: 2, col: 3 })
+    const moverAfterSlide = afterSlide.units.find((u) => u.id === "mover")
+    const newLinesFromSlide = afterSlide.log.slice(afterLeave.log.length)
+    return {
+      slowAfterLeave: moverAfterLeave.slow,
+      logHasFrostNote: afterLeave.log.some((l) => l.includes("staggers away, slowed by the frost")),
+      slowAfterSlide: moverAfterSlide.slow,
+      slideAddedFrostNote: newLinesFromSlide.some((l) => l.includes("staggers away")),
+    }
+  })
+  await page171.close()
+  out.frostZoneCoreMechanic = result
+  const ok = result.slowAfterLeave === 2 && result.logHasFrostNote && result.slowAfterSlide === 2 && !result.slideAddedFrostNote
+  if (!ok) out.errors.push("check171 Frost Zone did not grant slow exactly once on a genuine inside-to-outside transition, or fired again on an already-outside slide")
+}
+
+// 172. The off-by-one decay timing, verified explicitly: a
+//      SLOW_DURATION(2)-granted unit's move is reduced by exactly 1 on
+//      its own VERY NEXT turn, and back to full normal move the turn
+//      after that - proving the grant number and the visible-effect
+//      duration relate the way the design intends, not backwards -----
+{
+  const page172 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page172.on("pageerror", (e) => errs.push(String(e)))
+  await page172.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page172.waitForSelector(".hwt-board")
+  const result = await page172.evaluate(async () => {
+    const { moveUnit, endPlayerTurn, runEnemyTurn, reachableTilesFor } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 2, apMax: 2, move: 3, block: 0, slow: 0, cooldownRemaining: 0, facing: "W" },
+        { id: "frosty", side: "enemy", name: "Chilly", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, apMax: 2, frosty: true, block: 0, cooldownRemaining: 0, facing: "E" },
+      ],
+    }
+    // Player unit leaves the opposing Frost Zone (col5 -> col2, distance
+    // 4 from frosty@col6) - grants slow:2.
+    state = moveUnit(state, "mover", { row: 4, col: 2 })
+    const slowRightAfterLeaving = state.units.find((u) => u.id === "mover").slow
+    // End the player's turn (no other reachableTilesFor call happens
+    // for "mover" this same turn - slow's own decay hasn't fired yet).
+    state = endPlayerTurn(state)
+    // Run the enemy's own turn (frosty has ap:2 but no living target in
+    // range/reachable at this distance with move:0 default, so it just
+    // holds) - control returns to the player, decaying `mover`'s own
+    // slow 2->1 at that exact checkpoint (runEnemyTurn's own
+    // returnedToPlayer block).
+    state = runEnemyTurn({ ...state, units: state.units.map((u) => (u.id === "frosty" ? { ...u, move: 0 } : u)) })
+    const slowOnOwnNextTurn = state.units.find((u) => u.id === "mover").slow
+    const reachableOnSlowedTurn = reachableTilesFor(state, "mover")
+    // A second full cycle: end this (slowed) turn, run the enemy's
+    // turn again, return to player - slow decays 1->0.
+    state = endPlayerTurn(state)
+    state = runEnemyTurn({ ...state, units: state.units.map((u) => (u.id === "frosty" ? { ...u, move: 0 } : u)) })
+    const slowOnFollowingTurn = state.units.find((u) => u.id === "mover").slow
+    const reachableOnNormalTurn = reachableTilesFor(state, "mover")
+    return {
+      slowRightAfterLeaving,
+      slowOnOwnNextTurn,
+      reachableCountOnSlowedTurn: reachableOnSlowedTurn.length,
+      slowOnFollowingTurn,
+      reachableCountOnNormalTurn: reachableOnNormalTurn.length,
+    }
+  })
+  await page172.close()
+  out.frostZoneDecayTiming = result
+  // move:3 unslowed vs move:2 slowed (floored at move-1) - a smaller,
+  // strictly-fewer reachable set on the slowed turn than the normal one.
+  const ok =
+    result.slowRightAfterLeaving === 2 &&
+    result.slowOnOwnNextTurn === 1 &&
+    result.slowOnFollowingTurn === 0 &&
+    result.reachableCountOnSlowedTurn < result.reachableCountOnNormalTurn
+  if (!ok) out.errors.push("check172 SLOW_DURATION's own decay timing did not produce exactly 1 turn of reduced movement, then a clean return to normal")
+}
+
+// 173. Slow's real effect actually applies via effectiveMove: the
+//      newly-slowed unit's own next reachableTilesFor call returns a
+//      strictly smaller reachable set than an identical unslowed
+//      unit's does, and never drops to 0 (floored at 1) ---------------
+{
+  const page173 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page173.on("pageerror", (e) => errs.push(String(e)))
+  await page173.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page173.waitForSelector(".hwt-board")
+  const result = await page173.evaluate(async () => {
+    const { reachableTilesFor } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (move, slow) => ({ grid: { rows: 9, cols: 12 }, terrain: {}, units: [{ id: "u1", side: "player", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, move, slow, block: 0 }] })
+    const mkNoField = (move) => ({ grid: { rows: 9, cols: 12 }, terrain: {}, units: [{ id: "u1", side: "player", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, move, block: 0 }] })
+    return {
+      // move:3 unslowed - the unclipped king-move diamond, (2*3+1)^2-1=48.
+      normalCount: reachableTilesFor(mk(3, 0), "u1").length,
+      // move:3 slowed -> effectiveMove=2, (2*2+1)^2-1=24 - strictly smaller.
+      slowedCount: reachableTilesFor(mk(3, 1), "u1").length,
+      // move:1 slowed floors at move-1=0 -> Math.max(1,0)=1, NOT 0 - still
+      // reaches the (2*1+1)^2-1=8 tiles a move:1 unit normally would.
+      slowedFlooredCount: reachableTilesFor(mk(1, 1), "u1").length,
+      // No `slow` field at all (every pre-existing synthetic test unit) -
+      // `undefined > 0` is false, so this must equal normalCount exactly.
+      missingFieldCount: reachableTilesFor(mkNoField(3), "u1").length,
+    }
+  })
+  await page173.close()
+  out.frostZoneEffectiveMove = result
+  const ok =
+    result.normalCount === 48 &&
+    result.slowedCount === 24 &&
+    result.slowedFlooredCount === 8 &&
+    result.missingFieldCount === result.normalCount
+  if (!ok) out.errors.push("check173 effectiveMove did not reduce a slowed unit's reachable set, floor it at 1, or stay byte-identical for a unit missing the slow field entirely")
+}
+
+// 174. A real end-to-end example via createTacticsBattle with
+//      frostbind: a real enemy leaving Frostbind's own zone gains real
+//      Slow, narrated correctly -------------------------------------
+{
+  const page174 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page174.on("pageerror", (e) => errs.push(String(e)))
+  await page174.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page174.waitForSelector(".hwt-board")
+  const result = await page174.evaluate(async () => {
+    const { createTacticsBattle, moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default", ["frostbind"])
+    const frostbind = state.units.find((u) => u.defId === "frostbind")
+    const enemy = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      phase: "enemy",
+      units: state.units.map((u) => (u.id === enemy.id ? { ...u, pos: { row: frostbind.pos.row, col: frostbind.pos.col - 1 }, ap: u.apMax } : u)),
+    }
+    const after = moveUnit(state, enemy.id, { row: frostbind.pos.row, col: frostbind.pos.col - 3 })
+    const enemyAfter = after.units.find((u) => u.id === enemy.id)
+    return {
+      frosty: frostbind.frosty,
+      slowAfter: enemyAfter.slow,
+      hasFrostNote: after.log.some((l) => l.includes("staggers away, slowed by the frost")),
+    }
+  })
+  await page174.close()
+  out.realFrostbindLeaveApproach = result
+  const ok = result.frosty === true && result.slowAfter === 2 && result.hasFrostNote
+  if (!ok) out.errors.push("check174 a real enemy leaving the real frosty Frostbind's zone did not genuinely gain Slow")
+}
+
+// 175. UI: data-frost-zone cells match frostZoneCells(battle, "player")'s
+//      own computed set exactly, visually distinct from data-zoc/
+//      data-threat-zone/data-fear-zone - a screenshot. Frostbind isn't
+//      in this prototype's own sidebar squad-picker pool
+//      (PLAYER_ROSTER_IDS) - out of scope to add this round (a roster-
+//      availability change, unrelated to the mechanic itself) - so a
+//      valid <option> is injected directly onto the real DOM <select>
+//      and Playwright's own selectOption fires the SAME real onChange
+//      handler (handleSquadSlotChange) the sidebar's own dropdown
+//      would, genuinely exercising the production restart/
+//      createTacticsBattle pipeline, not a synthetic bypass ----------
+{
+  const page175 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page175.on("pageerror", (e) => errs.push(String(e)))
+  await page175.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page175.waitForSelector(".hwt-board")
+  await page175.evaluate(() => {
+    const select = document.querySelector(".hwt-squad-select")
+    const opt = document.createElement("option")
+    opt.value = "frostbind"
+    opt.textContent = "Frostbind (verify-only)"
+    select.appendChild(opt)
+  })
+  await page175.selectOption(".hwt-squad-select", "frostbind")
+  await page175.waitForTimeout(300)
+  const expected = await page175.evaluate(async () => {
+    const { createTacticsBattle, frostZoneCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Re-derive independently with the SAME formation+squad the real
+    // onChange handler just restarted with (formation unchanged -
+    // "default" - and squad slot 0 swapped to frostbind) - deterministic
+    // spreadRows positioning means this reproduces the identical battle.
+    const battle = createTacticsBattle("default", ["frostbind", "the-fool", "hexbreaker", "oathshield"])
+    return frostZoneCells(battle, "player").size
+  })
+  const renderedCount = await page175.locator('.hwt-cell[data-frost-zone="true"]').count()
+  await page175.screenshot({ path: `${SHOT}/frost_zone_cells.png` })
+  await page175.close()
+  out.frostZoneUiCells = { expectedCount: expected, renderedCount }
+  const ok = expected > 0 && renderedCount === expected
+  if (!ok) out.errors.push("check175 the rendered data-frost-zone cells did not match frostZoneCells's own computed set")
 }
 
 console.log(JSON.stringify(out, null, 2))

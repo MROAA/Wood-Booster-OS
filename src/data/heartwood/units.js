@@ -259,6 +259,14 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // bonus like Execute/Chain, so the per-hit number has to give
     // something back rather than just stacking on top.
     haste: !!opts.haste,
+    // Frost Zone round (Hearthwood Frontier, tacticsEngine.js only): a
+    // new portable trait, same shape as haste above - unlike
+    // enemies.js's own plain object literals (where fearsome:true was
+    // dropped straight onto wyrmgall), this file's unit() constructor
+    // explicitly whitelists every field it copies from opts, so this
+    // needs its own line here or frostbind's own frosty:true below
+    // would silently never reach deriveTacticsUnit at all.
+    frosty: !!opts.frosty,
     // Spore Spread: when this unit's own debuff step applies Poison,
     // the same stack also seeds onto a different living enemy - see
     // autoBattleEngine.js's actSide.
@@ -760,6 +768,13 @@ const BASE_UNITS = {
     // itself stays low - losing an entire action is a strong effect
     // on its own, this isn't meant to also hit hard.
     image: frostbindImg,
+    // Frost Zone round (Hearthwood Frontier, tacticsEngine.js only):
+    // the roster's own icy control-mage identity (already grants
+    // Stun) is the real, existing flavor this new portable trait is
+    // hand-authored onto - not invented flavor. The engine's first
+    // PLAYER-side zone example (every prior zone type's own example
+    // was an enemy - no enemy carries any cold/ice flavor today).
+    frosty: true,
   }),
   glimmerward: unit("glimmerward", "Glimmerward", "shield", 2, "support", [
     { type: "block", amount: 5 },
