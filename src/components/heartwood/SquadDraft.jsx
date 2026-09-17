@@ -363,7 +363,7 @@ export default function SquadDraft({
     // into a Tier 2 copy automatically (runEngine.js's fuseAll).
     const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
     const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
-    const sellRefund = sellRefundFor(def)
+    const sellRefund = sellRefundFor(def, marketEventDef?.sellMult)
     // Hero Bending (items.js's bendsRoleTo/effectiveRole) - a Bending
     // item equipped here visibly overwrites this card's role-accent/
     // label, not just its stats.

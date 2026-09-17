@@ -462,7 +462,10 @@
    strip above the shop columns when this stop rolled a special market.
    `data-tone` sets the accent: gold (Golden Market - warm, expensive),
    moss (Wandering Merchant - cheap, friendly), curse (Blackroot Market -
-   cheap, ominous). One accent token drives border + wash + name colour. */
+   cheap, ominous), cosmic (The Ragpicker's Market - the first SELL-side
+   event, an unused accent so it reads as its own distinct kind of deal
+   rather than a 4th shade of buy-side pricing). One accent token drives
+   border + wash + name colour. */
 .hw-market-event-banner {
   --hw-mev-accent: var(--hw-ember);
   margin: 10px 0 0;
@@ -480,6 +483,9 @@
 }
 .hw-market-event-banner[data-tone="curse"] {
   --hw-mev-accent: color-mix(in srgb, var(--hw-hp) 60%, var(--hw-shadow));
+}
+.hw-market-event-banner[data-tone="cosmic"] {
+  --hw-mev-accent: var(--hw-cosmic);
 }
 .hw-market-event-name {
   font-family: "Cormorant Garamond", serif;

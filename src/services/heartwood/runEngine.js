@@ -1196,9 +1196,13 @@ const TIER2_SELL_FALLBACK = 50
 // (the bench card's "sell for N" label) - both used to compute this
 // formula independently, a real drift risk the moment either one's
 // rate/fallback changed without the other noticing. One function now,
-// imported by both.
-export function sellRefundFor(def) {
-  return def?.recruitCost != null ? Math.ceil(def.recruitCost * SELL_REFUND_RATE) : TIER2_SELL_FALLBACK
+// imported by both. `sellMult` (The Ragpicker's Market, default 1) is a
+// 2nd param rather than folded into SELL_REFUND_RATE itself - that
+// constant is Marc's own permanent balance number (see his quote
+// above), this is a temporary, one-stop-only modifier layered on top.
+export function sellRefundFor(def, sellMult = 1) {
+  const base = def?.recruitCost != null ? def.recruitCost * SELL_REFUND_RATE : TIER2_SELL_FALLBACK
+  return Math.ceil(base * sellMult)
 }
 
 // Marc: "rahan tienaamista myös pitää saada... ja muuta rahaan
@@ -1213,7 +1217,7 @@ export function sellUnit(runState, benchKey) {
   const entry = runState.bench.find((e) => e.key === benchKey)
   if (!entry) return runState
   const def = UNITS[entry.defId]
-  const refund = sellRefundFor(def)
+  const refund = sellRefundFor(def, MARKET_EVENTS[runState.marketEvent]?.sellMult)
   return {
     ...bumpStyle(runState, { pivots: styleN(runState, "pivots") + 1 }),
     essence: runState.essence + refund,
@@ -1467,6 +1471,7 @@ export const MARKET_EVENTS = {
     slotDelta: -1,
     tierOverride: null,
     priceMult: 0.75,
+    sellMult: 1,
     lockReroll: false,
   },
   blackroot: {
@@ -1477,6 +1482,7 @@ export const MARKET_EVENTS = {
     slotDelta: 0,
     tierOverride: null,
     priceMult: 0.5,
+    sellMult: 1,
     lockReroll: true,
   },
   golden: {
@@ -1487,6 +1493,26 @@ export const MARKET_EVENTS = {
     slotDelta: 0,
     tierOverride: MARKET_TIER_MAX,
     priceMult: 1.35,
+    sellMult: 1,
+    lockReroll: false,
+  },
+  // The first market event on the SELL side of the ledger instead of
+  // the buy side (PRD's own §19 Sell System / §20 Opportunity Cost,
+  // still otherwise untouched) - every other event changes what
+  // recruiting costs; this one changes what your bench is worth
+  // instead, a genuinely different lever rather than a 4th spin on the
+  // same one. Recruits, slots and tier are all left untouched
+  // (priceMult: 1, slotDelta: 0, tierOverride: null) so it never
+  // competes with Merchant/Blackroot/Golden for the same decision.
+  ragpicker: {
+    name: "The Ragpicker's Market",
+    blurb: "Every scrap has a buyer here - what you've outgrown is worth keeping, for once.",
+    effect: "Selling a unit refunds 50% more this stop",
+    tone: "cosmic",
+    slotDelta: 0,
+    tierOverride: null,
+    priceMult: 1,
+    sellMult: 1.5,
     lockReroll: false,
   },
 }
@@ -1524,13 +1550,17 @@ export function marketEventRollArgs(marketEvent, runState) {
 
 // Deterministic in (seed, nodeIndex, hasCompass) - all persisted, so a
 // save/reload reproduces the same event. Two draws off the `shop`
-// stream: one "does an event happen", one "which".
+// stream: one "does an event happen", one "which". Ragpicker (new this
+// round) took its 25% out of Golden's old 20% band plus a shave off
+// Merchant/Blackroot, rather than just appending a 5th band on top -
+// keeps the original "merchant+blackroot are the two common ones,
+// golden is the rare splashy one" feel intact rather than diluting it.
 export function pickMarketEvent(seed, nodeIndex, hasCompass = false) {
   if (!Number.isFinite(nodeIndex) || nodeIndex < MARKET_EVENT_MIN_NODE) return null
   const rng = streamRng(seed, "shop", `${nodeIndex}:mktevent`)
   if (rng() >= MARKET_EVENT_CHANCE * (hasCompass ? 2 : 1)) return null
   const r = rng()
-  return r < 0.45 ? "merchant" : r < 0.8 ? "blackroot" : "golden"
+  return r < 0.35 ? "merchant" : r < 0.6 ? "blackroot" : r < 0.75 ? "golden" : "ragpicker"
 }
 
 // Commander Active Power (characters.js's activePower) - an Essence

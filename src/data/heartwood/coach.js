@@ -40,7 +40,7 @@ export const COACH_TIPS = [
   {
     id: "market-event",
     title: "A special market",
-    text: "Some shop stops are a special market - cheaper, richer, or with a catch. Read the banner: the Golden Market stocks the best units but charges for it; the Blackroot Market is half-price but you can't Reroll or Freeze; the Wandering Merchant is a quick cut-price stop.",
+    text: "Some shop stops are a special market - cheaper, richer, or with a catch. Read the banner: the Golden Market stocks the best units but charges for it; the Blackroot Market is half-price but you can't Reroll or Freeze; the Wandering Merchant is a quick cut-price stop; the Ragpicker's Market pays extra if you sell from your bench.",
     anchor: ".hw-market-event-banner",
   },
   {
