@@ -663,6 +663,10 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // fearsome/frosty. Only rootbind-thicket (enemies.js) carries this
     // today.
     thorny: !!def.thorny,
+    // Retreat Step round: a fourth new portable trait, same shape as
+    // fearsome/frosty/thorny. Only the-hermit (units.js) carries this
+    // today.
+    wary: !!def.wary,
     triggers,
     phases,
     phaseIndex: 0,
@@ -684,6 +688,11 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // reusing slow's own exact mechanism - never in a base passive,
     // only ever arriving via moveUnit's own entering-check.
     root: 0,
+    // Retreat Step round: a plain boolean flag, not a decaying
+    // counter (this isn't a duration effect) - resets to false at the
+    // exact same 2 turn-transition checkpoints slow/root already use,
+    // set true only when Retreat Step actually fires.
+    retreatStepUsed: false,
     // Iron Sentinel's real Bulwark (effects.js's bulwarkOf): a PERSISTENT
     // armour stat, never decremented anywhere - unlike strength/execute/
     // shatter it never appears in a base passive either (Iron Sentinel's
@@ -1292,6 +1301,11 @@ function cardinalDir(dCol, dRow) {
 
 const OPPOSITE_DIR = { N: "S", S: "N", E: "W", W: "E" }
 
+// Retreat Step round: the one small missing piece cardinalDir/
+// OPPOSITE_DIR don't already provide - turning a direction string
+// back into a board offset.
+const DIR_DELTA = { N: { dRow: -1, dCol: 0 }, S: { dRow: 1, dCol: 0 }, E: { dRow: 0, dCol: 1 }, W: { dRow: 0, dCol: -1 } }
+
 // Classifies an attack against the DEFENDER's own current facing -
 // front/side/back, the PRD's own 3-way split. Only the defender's
 // facing and both units' positions matter (the attacker's own facing
@@ -1379,6 +1393,13 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   return amount
 }
 
+// Retreat Step round: a clearly "significant" single-hit threshold,
+// scaled per-unit like this engine's own existing HP-percentage
+// precedents (woundedFury 50%, execute 30%) - but those are STATUS
+// checks on current HP, this checks the SIZE of the hit itself, a
+// genuinely different trigger shape, so it gets its own real number.
+const RETREAT_STEP_HP_THRESHOLD_PCT = 0.25
+
 // Reuses the live game's own Block model (effects.js's dealDamage: absorb
 // then deplete) rather than inventing a new mitigation shape.
 // Iron Sentinel's real Bulwark (effects.js's own dealDamage): real Block
@@ -1404,7 +1425,33 @@ function applyDamageWithBlock(state, targetId, amount) {
   const revives = target.revive || 0
   const revived = rawHp <= 0 && target.hp > 0 && revives > 0
   const nextHp = revived ? 1 : Math.max(0, rawHp)
-  const next = setUnit(state, targetId, { block: target.block - blockSpent, hp: nextHp, revive: revived ? revives - 1 : target.revive })
+  let next = setUnit(state, targetId, { block: target.block - blockSpent, hp: nextHp, revive: revived ? revives - 1 : target.revive })
+  // Retreat Step round (Movement PRD §4.4): "kun yksikkö menettää
+  // tietyn määrän HP:tä" - a `wary` unit that just lost a SIGNIFICANT
+  // chunk of its own max HP in this one hit (>=25%, a reasoned,
+  // stated threshold - the PRD names no exact number) steps back one
+  // tile, away from its own current facing, ONCE per round (the new
+  // `retreatStepUsed` flag), UNLESS it's currently Rooted (Stun's own
+  // exclusion is a named no-op deferral - this engine has no stun
+  // mechanic at all yet). Hooked HERE (not per call site) so every
+  // damage source that already funnels through this shared function
+  // (attackUnit's direct hits AND Guardian-split shares, castAbility's
+  // direct/AoE hits, applyEnemyAoe) inherits it for free - the exact
+  // centralization this file's own kill-strength/leech/onDealDamage
+  // triggers already rely on. Deliberately NOT routed through
+  // moveUnit - no Zone of Control interaction, and facing is left
+  // UNCHANGED (a defensive flinch backward, not a repositioning turn).
+  const canRetreat =
+    target.wary && !revived && nextHp > 0 && remaining >= target.maxHp * RETREAT_STEP_HP_THRESHOLD_PCT && !target.retreatStepUsed && !(target.root > 0)
+  if (canRetreat) {
+    const delta = DIR_DELTA[OPPOSITE_DIR[target.facing]]
+    const destination = { row: target.pos.row + delta.dRow, col: target.pos.col + delta.dCol }
+    const occupied = next.units.some((u) => u.id !== targetId && u.hp > 0 && samePos(u.pos, destination))
+    if (isOnBoard(destination, next.grid) && !occupied) {
+      next = setUnit(next, targetId, { pos: destination, retreatStepUsed: true })
+      next = { ...next, log: [...next.log, `${target.name} reels backward from the blow!`] }
+    }
+  }
   return { next, absorbed: blockSpent, armourUsed, remaining, fell: nextHp <= 0, revived }
 }
 
@@ -2042,9 +2089,12 @@ export function endPlayerTurn(state) {
     phase: "enemy",
     // Thorn Zone round: enemy-side `root` decays alongside `slow` at
     // this same checkpoint - the exact same mechanism, same `|| 0`
-    // guard requirement.
+    // guard requirement. Retreat Step round: `retreatStepUsed` resets
+    // here too - a plain boolean, no `|| 0` needed.
     units: ticked.units.map((u) =>
-      u.side === "enemy" ? { ...u, ap: u.apMax, block: fortressBlock, slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1) } : u,
+      u.side === "enemy"
+        ? { ...u, ap: u.apMax, block: fortressBlock, slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1), retreatStepUsed: false }
+        : u,
     ),
     log: [...ticked.log, "Enemy turn."],
   }
@@ -2270,14 +2320,23 @@ export function runEnemyTurn(state) {
   // produces exactly N-1 turns of visible effect under this ordering.
   // The `|| 0` guard is required (not optional) - see resetForEnemyPhase's
   // own comment above for the exact same reasoning. Thorn Zone round:
-  // player-side `root` decays alongside it, same mechanism.
+  // player-side `root` decays alongside it, same mechanism. Retreat
+  // Step round: `retreatStepUsed` resets here too.
   const returnedToPlayer = {
     ...next,
     phase: "player",
     turn: next.turn + 1,
     units: next.units.map((u) =>
       u.side === "player"
-        ? { ...u, ap: u.apMax, block: 0, cooldownRemaining: Math.max(0, u.cooldownRemaining - 1), slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1) }
+        ? {
+            ...u,
+            ap: u.apMax,
+            block: 0,
+            cooldownRemaining: Math.max(0, u.cooldownRemaining - 1),
+            slow: Math.max(0, (u.slow || 0) - 1),
+            root: Math.max(0, (u.root || 0) - 1),
+            retreatStepUsed: false,
+          }
         : u,
     ),
     log: [...next.log, `Turn ${next.turn + 1}. Your turn.`],

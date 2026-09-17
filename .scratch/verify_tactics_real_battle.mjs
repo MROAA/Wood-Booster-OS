@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5424
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-zonetoll/.scratch/shots"
+const PORT = process.env.PORT || 5425
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-retreatstep/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1648,6 +1648,66 @@ function newPage() {
   // apMax(2) - 1 (the move) - 1 (the toll) = 0.
   const ok = chosen !== null && logText.includes("struggles to break away") && logText.includes("lashes out") && moverAfter && moverAfter.ap === 0
   if (!ok) out.errors.push("check32 a real click-driven retreat did not pay the real AP toll on top of the real reaction attack")
+}
+
+// 33. Retreat Step: a real recruited Hollowreed (the-hermit), the
+//     ONLY reachable target, takes a real heavy hit from the real
+//     enemy AI after ending the player's turn - genuinely retreats,
+//     narrated correctly (mirrors check27's own Guardian's Intercept
+//     "recruit + end turn + real AI attacks" pattern) -------------
+{
+  const page33 = await newPage()
+  page33.on("pageerror", (e) => errs.push(String(e)))
+  await page33.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page33, (n) => n.type === "battle" && n.formationId, ["the-hermit"])
+  await page33.reload({ waitUntil: "domcontentloaded" })
+  await page33.waitForTimeout(400)
+  await page33.locator(".hw-tactics-fight-btn").click()
+  await page33.waitForTimeout(400)
+  const setup = await page33.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const hermit = battle.units.find((u) => u.defId === "the-hermit")
+    const enemy = battle.units.find((u) => u.side === "enemy")
+    // A safe middle column - players spawn at the board's own
+    // rightmost column facing "W", whose own "backward" (opposite of
+    // "W" is "E") would immediately run off the right edge from there.
+    hermit.pos = { row: 4, col: 6 }
+    hermit.hp = hermit.maxHp
+    hermit.block = 0
+    hermit.facing = "W"
+    enemy.pos = { row: 4, col: 5 }
+    // >=25% of Hollowreed's real maxHp (32) in one hit - a real,
+    // guaranteed-qualifying blow, set directly the same way check28's
+    // own "guaranteed back-hit geometry" already overrides a real
+    // enemy's stats for a controlled real-world test.
+    enemy.attack = 20
+    battle.units = battle.units.map((u) => (u.id !== hermit.id && u.id !== enemy.id ? { ...u, pos: { row: 0, col: 0 } } : u))
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { hermitName: hermit.name, posBefore: hermit.pos, hpBefore: hermit.hp }
+  })
+  await page33.reload({ waitUntil: "domcontentloaded" })
+  await page33.waitForTimeout(400)
+  await page33.locator(".hwt-end-turn").click()
+  await page33.waitForTimeout(600)
+  const logText = await page33.locator(".hwt-log").innerText()
+  const afterBattle = await page33.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const hermitAfter = afterBattle.units.find((u) => u.name === setup.hermitName)
+  await page33.screenshot({ path: `${SHOT}/real_fight_retreat_step.png` })
+  await page33.close()
+  out.realHermitRetreatStep = {
+    setup,
+    logHasRetreatNote: logText.includes("reels backward from the blow"),
+    posAfter: hermitAfter?.pos,
+    hpAfter: hermitAfter?.hp,
+  }
+  const ok =
+    logText.includes("reels backward from the blow") &&
+    hermitAfter &&
+    (hermitAfter.pos.row !== setup.posBefore.row || hermitAfter.pos.col !== setup.posBefore.col) &&
+    hermitAfter.hp < setup.hpBefore
+  if (!ok) out.errors.push("check33 a real recruited Hollowreed did not genuinely retreat from a real heavy enemy hit")
 }
 
 console.log(JSON.stringify(out, null, 2))
