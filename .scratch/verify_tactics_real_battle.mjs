@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5422
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-frostzone/.scratch/shots"
+const PORT = process.env.PORT || 5423
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-thornzone/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1517,6 +1517,77 @@ function newPage() {
   out.realFightFrostZone = { setup, after, logHasFrostNote: logText.includes("staggers away, slowed by the frost") }
   const ok = after.slowAfter === 2 && logText.includes("staggers away, slowed by the frost")
   if (!ok) out.errors.push("check30 a real enemy leaving a real recruited Frostbind's zone did not gain real Slow")
+}
+
+// 31. Thorn Zone: a real click-driven approach toward the real, real
+//     RUN_PATH-reachable Rootbind Thicket (Act 2 mook, "Its roots
+//     don't reach far. When they catch you, though, you don't move.")
+//     grants real Root - THEN selecting the now-rooted unit again
+//     renders ZERO real reachable cells, a genuine real-UI proof of
+//     full immobilization, not just a data-layer assertion ---------
+{
+  const page31 = await newPage()
+  page31.on("pageerror", (e) => errs.push(String(e)))
+  await page31.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page31, (n) => n.type === "battle" && n.enemyId === "rootbind-thicket", ["the-fool"])
+  await page31.reload({ waitUntil: "domcontentloaded" })
+  await page31.waitForTimeout(400)
+  await page31.locator(".hw-tactics-fight-btn").click()
+  await page31.waitForTimeout(400)
+  const setup = await page31.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const mosskit = battle.units.find((u) => u.defId === "the-fool")
+    const thicket = battle.units.find((u) => u.side === "enemy")
+    // 2 cells away, not 3: rootbind-thicket's real maxHp (44) is >=40,
+    // so it's also "tanky" and projects its own radius-2 Threat Zone
+    // (PR #491) - the exact same Wyrmgall gotcha from PR #494's own
+    // check29. Starting AT distance 2 means the origin is already
+    // INSIDE the Threat Zone, where its own fix (PR #491) explicitly
+    // does NOT cap further movement - so this move reaches adjacent
+    // (distance 1, entering the Thorn Zone) at normal cost.
+    mosskit.pos = { row: thicket.pos.row, col: thicket.pos.col + 2 }
+    mosskit.ap = mosskit.apMax
+    battle.units = battle.units.map((u) => (u.id !== mosskit.id && u.id !== thicket.id ? { ...u, pos: { row: 0, col: 0 } } : u))
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { mosskitName: mosskit.name, thicketName: thicket.name, rootBefore: mosskit.root || 0 }
+  })
+  await page31.reload({ waitUntil: "domcontentloaded" })
+  await page31.waitForTimeout(400)
+  await page31.locator(".hwt-token", { hasText: setup.mosskitName }).click({ force: true })
+  await page31.waitForTimeout(200)
+  const thicketToken = page31.locator(".hwt-token", { hasText: setup.thicketName })
+  const thicketBox = await thicketToken.boundingBox()
+  const reach = page31.locator('.hwt-cell[data-reachable="true"]')
+  const n = await reach.count()
+  let chosen = null
+  let bestDist = Infinity
+  for (let i = 0; i < n; i++) {
+    const box = await reach.nth(i).boundingBox()
+    const dist = Math.hypot(box.x - thicketBox.x, box.y - thicketBox.y)
+    if (dist < bestDist) {
+      bestDist = dist
+      chosen = i
+    }
+  }
+  if (chosen !== null) {
+    await reach.nth(chosen).click()
+    await page31.waitForTimeout(300)
+  }
+  const logText = await page31.locator(".hwt-log").innerText()
+  const afterBattle = await page31.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const mosskitAfter = afterBattle.units.find((u) => u.name === setup.mosskitName)
+  // Re-select the now-rooted unit and confirm the REAL rendered UI
+  // shows zero reachable cells - not just that battle.root>0 in state.
+  await page31.locator(".hwt-token", { hasText: setup.mosskitName }).click({ force: true })
+  await page31.waitForTimeout(200)
+  const reachableAfterRoot = await page31.locator('.hwt-cell[data-reachable="true"]').count()
+  await page31.screenshot({ path: `${SHOT}/real_fight_thorn_zone.png` })
+  await page31.close()
+  out.realFightThornZone = { setup, chosen, logHasThornNote: logText.includes("caught in the thorns"), rootAfter: mosskitAfter?.root, reachableAfterRoot }
+  const ok = chosen !== null && logText.includes("caught in the thorns") && mosskitAfter && mosskitAfter.root > setup.rootBefore && reachableAfterRoot === 0
+  if (!ok) out.errors.push("check31 a real click-driven approach toward the real Rootbind Thicket did not grant real Root, or the rooted unit still showed reachable cells")
 }
 
 console.log(JSON.stringify(out, null, 2))

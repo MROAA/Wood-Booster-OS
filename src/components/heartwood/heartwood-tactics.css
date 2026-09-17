@@ -134,6 +134,14 @@
   background: color-mix(in srgb, var(--hw-gale) 16%, transparent);
 }
 
+/* Thorn Zone round: a fifth, distinct tint (--hw-moss, green -
+   unused for any cell tint so far, thematically apt for a plant/thorn
+   hazard) marking every tile a thorny unit currently controls -
+   entering one roots you. */
+.hwt-cell[data-thorn-zone="true"] {
+  background: color-mix(in srgb, var(--hw-moss) 16%, transparent);
+}
+
 .hwt-cell[data-reachable="true"] {
   background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
   border-color: var(--hw-moss);
@@ -280,6 +288,10 @@
 .hwt-slow-badge {
   font-size: 7px;
   color: var(--hw-tide);
+}
+.hwt-root-badge {
+  font-size: 7px;
+  color: var(--hw-cosmic);
 }
 .hwt-bulwark-badge {
   font-size: 7px;

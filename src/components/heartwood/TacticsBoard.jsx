@@ -28,6 +28,7 @@ import {
   threatZoneCells,
   fearZoneCells,
   frostZoneCells,
+  thornZoneCells,
   flankRole,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
@@ -129,6 +130,10 @@ export default function TacticsBoard({
   // enemy carries any cold/ice flavor today) - a deliberate, stated
   // flip from every prior zone overlay.
   const frostCells = useMemo(() => (battle.phase === "player" ? frostZoneCells(battle, "player") : new Set()), [battle])
+  // Thorn Zone round: back to side "enemy" like every zone type
+  // except Frost Zone's own player-side flip - rootbind-thicket is an
+  // enemy.
+  const thornCells = useMemo(() => (battle.phase === "player" ? thornZoneCells(battle, "enemy") : new Set()), [battle])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
@@ -208,6 +213,7 @@ export default function TacticsBoard({
       const threatZone = threatCells.has(`${row}-${col}`)
       const fearZone = fearCells.has(`${row}-${col}`)
       const frostZone = frostCells.has(`${row}-${col}`)
+      const thornZone = thornCells.has(`${row}-${col}`)
       cells.push(
         <div
           key={`${row}-${col}`}
@@ -221,6 +227,7 @@ export default function TacticsBoard({
           data-threat-zone={threatZone}
           data-fear-zone={fearZone}
           data-frost-zone={frostZone}
+          data-thorn-zone={thornZone}
           onClick={() => handleCellClick(row, col)}
         >
           {unit && (
@@ -329,6 +336,11 @@ export default function TacticsBoard({
                 {unit.slow > 0 && (
                   <span className="hwt-slow-badge" title={`Slow ${unit.slow} - this unit's own movement is reduced by 1 for a turn, then decays`}>
                     ❄{unit.slow}
+                  </span>
+                )}
+                {unit.root > 0 && (
+                  <span className="hwt-root-badge" title={`Root ${unit.root} - this unit cannot move at all for a turn, then decays (can still attack)`}>
+                    ⛓{unit.root}
                   </span>
                 )}
                 {unit.bulwark > 0 && (

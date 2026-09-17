@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5422
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-frostzone/.scratch/shots"
+const PORT = process.env.PORT || 5423
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-thornzone/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-frostzone", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-thornzone", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-frostzone", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-thornzone", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -6307,6 +6307,254 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.frostZoneUiCells = { expectedCount: expected, renderedCount }
   const ok = expected > 0 && renderedCount === expected
   if (!ok) out.errors.push("check175 the rendered data-frost-zone cells did not match frostZoneCells's own computed set")
+}
+
+// ---------------------------------------------------------------
+// Thorn Zone (Movement PRD §4.3's 5th and final sub-type) - roots
+// units that ENTER it (mirrors Fear Zone's own direction). No range
+// gate (same non-melee-gating reasoning as Fear/Frost Zone); a new
+// DURATION-based `root` status - this engine's SECOND duration-based
+// status, reusing `slow`'s own exact decay mechanism from last round.
+// Movement-only: a rooted unit can still attack if already in range.
+// ---------------------------------------------------------------
+
+// 176. thornZoneCells's own shape: radius-1, only for `thorny` units
+//      regardless of range - a synthetic RANGED thorny unit still
+//      projects it, proving the deliberate non-melee-gating -----------
+{
+  const page176 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page176.on("pageerror", (e) => errs.push(String(e)))
+  await page176.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page176.waitForSelector(".hwt-board")
+  const result = await page176.evaluate(async () => {
+    const { thornZoneCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    const thornyRangedState = {
+      grid: { rows: 9, cols: 12 },
+      units: [{ id: "e1", side: "enemy", hp: 10, range: 3, thorny: true, pos: { row: 4, col: 6 } }],
+    }
+    const notThornyState = {
+      grid: { rows: 9, cols: 12 },
+      units: [{ id: "e1", side: "enemy", hp: 10, range: 1, thorny: false, pos: { row: 4, col: 6 } }],
+    }
+    const thornCells = thornZoneCells(thornyRangedState, "enemy")
+    const noCells = thornZoneCells(notThornyState, "enemy")
+    return {
+      thornCellCount: thornCells.size,
+      hasAdjacentCell: thornCells.has("3-6") && thornCells.has("5-6") && thornCells.has("4-5") && thornCells.has("4-7"),
+      hasRadius2Cell: thornCells.has("4-4") || thornCells.has("2-6"),
+      noCellsCount: noCells.size,
+    }
+  })
+  await page176.close()
+  out.thornZoneShape = result
+  const ok = result.thornCellCount === 8 && result.hasAdjacentCell && !result.hasRadius2Cell && result.noCellsCount === 0
+  if (!ok) out.errors.push("check176 thornZoneCells did not produce the expected radius-1, thorny-only (range-agnostic) shape")
+}
+
+// 177. The core mechanic: a unit moving from OUTSIDE an opposing Thorn
+//      Zone to INSIDE it gains exactly one ROOT_DURATION grant and the
+//      correct log line; sliding to another cell STILL inside the
+//      same zone grants nothing further (the transition-only guard) --
+{
+  const page177 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page177.on("pageerror", (e) => errs.push(String(e)))
+  await page177.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page177.waitForSelector(".hwt-board")
+  const result = await page177.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 0 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 1, move: 9, block: 0, root: 0, facing: "W" },
+        { id: "thorny", side: "enemy", name: "Thicket", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, thorny: true, block: 0, facing: "E" },
+      ],
+    }
+    // Move 1: from col0 (outside, distance 6) to (4,5) (inside, adjacent
+    // to thorny@(4,6) - distance 1) - a genuine transition, should
+    // grant root.
+    const afterEnter = moveUnit(state, "mover", { row: 4, col: 5 })
+    const moverAfterEnter = afterEnter.units.find((u) => u.id === "mover")
+    // Move 2: from (4,5) to (3,5) - BOTH cells are distance 1 from
+    // thorny@(4,6) (Chebyshev), so this stays fully inside the same
+    // zone the whole time - no NEW transition, should grant nothing
+    // further. But the mover is now root>0, so reachableTilesFor
+    // would normally return [] - this move is driven directly via
+    // moveUnit to isolate the "no new grant" assertion from the
+    // "cannot move" assertion (check178's own job), matching how
+    // check166's own Fear Zone slide already isolated its own guard.
+    const afterSlide = moveUnit({ ...afterEnter, units: afterEnter.units.map((u) => (u.id === "mover" ? { ...u, ap: 1, root: 0 } : u)) }, "mover", { row: 3, col: 5 })
+    const moverAfterSlide = afterSlide.units.find((u) => u.id === "mover")
+    const newLinesFromSlide = afterSlide.log.slice(afterEnter.log.length)
+    return {
+      rootAfterEnter: moverAfterEnter.root,
+      logHasThornNote: afterEnter.log.some((l) => l.includes("is caught in the thorns, rooted")),
+      rootAfterSlide: moverAfterSlide.root,
+      slideAddedThornNote: newLinesFromSlide.some((l) => l.includes("caught in the thorns")),
+    }
+  })
+  await page177.close()
+  out.thornZoneCoreMechanic = result
+  const ok = result.rootAfterEnter === 2 && result.logHasThornNote && result.rootAfterSlide === 0 && !result.slideAddedThornNote
+  if (!ok) out.errors.push("check177 Thorn Zone did not grant root exactly once on a genuine outside-to-inside transition, or fired again on a within-zone slide")
+}
+
+// 178. Root's real effect + the exact decay timing: a rooted unit's
+//      own reachableTilesFor returns an EMPTY array (not just a
+//      smaller one); ROOT_DURATION=2 produces exactly 1 turn where
+//      this is true, then a clean return to a normal, non-empty
+//      reachable set the turn after ------------------------------
+{
+  const page178 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page178.on("pageerror", (e) => errs.push(String(e)))
+  await page178.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page178.waitForSelector(".hwt-board")
+  const result = await page178.evaluate(async () => {
+    const { moveUnit, endPlayerTurn, runEnemyTurn, reachableTilesFor } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 2 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 2, apMax: 2, move: 3, block: 0, root: 0, cooldownRemaining: 0, slow: 0, facing: "W" },
+        { id: "thorny", side: "enemy", name: "Thicket", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, apMax: 2, thorny: true, block: 0, cooldownRemaining: 0, slow: 0, facing: "E" },
+      ],
+    }
+    // Player unit enters the opposing Thorn Zone: starts at col2
+    // (distance 4, outside), moves to col5 (distance 1, inside) -
+    // grants root:2.
+    state = moveUnit(state, "mover", { row: 4, col: 5 })
+    const rootRightAfterEntering = state.units.find((u) => u.id === "mover").root
+    const reachableWhileEnteringTurn = reachableTilesFor(state, "mover")
+    // End the player's turn, run the enemy's own turn (thorny has
+    // ap:2 but move:0 default so it just holds) - control returns to
+    // the player, decaying mover's own root 2->1 at that exact
+    // checkpoint.
+    state = endPlayerTurn(state)
+    state = runEnemyTurn({ ...state, units: state.units.map((u) => (u.id === "thorny" ? { ...u, move: 0 } : u)) })
+    const rootOnOwnNextTurn = state.units.find((u) => u.id === "mover").root
+    const reachableOnRootedTurn = reachableTilesFor(state, "mover")
+    // A second full cycle: root decays 1->0.
+    state = endPlayerTurn(state)
+    state = runEnemyTurn({ ...state, units: state.units.map((u) => (u.id === "thorny" ? { ...u, move: 0 } : u)) })
+    const rootOnFollowingTurn = state.units.find((u) => u.id === "mover").root
+    const reachableOnNormalTurn = reachableTilesFor(state, "mover")
+    return {
+      rootRightAfterEntering,
+      reachableCountWhileEnteringTurn: reachableWhileEnteringTurn.length,
+      rootOnOwnNextTurn,
+      reachableCountOnRootedTurn: reachableOnRootedTurn.length,
+      rootOnFollowingTurn,
+      reachableCountOnNormalTurn: reachableOnNormalTurn.length,
+    }
+  })
+  await page178.close()
+  out.thornZoneDecayTiming = result
+  const ok =
+    result.rootRightAfterEntering === 2 &&
+    result.rootOnOwnNextTurn === 1 &&
+    result.reachableCountOnRootedTurn === 0 &&
+    result.rootOnFollowingTurn === 0 &&
+    result.reachableCountOnNormalTurn > 0
+  if (!ok) out.errors.push("check178 ROOT_DURATION's own decay timing did not produce exactly 1 turn of ZERO reachable tiles, then a clean return to normal")
+}
+
+// 179. Root does NOT block attacking - a rooted unit with a target
+//      already in range from its current tile still lands a normal
+//      attack, proving this is a movement-only restriction ----------
+{
+  const page179 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page179.on("pageerror", (e) => errs.push(String(e)))
+  await page179.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page179.waitForSelector(".hwt-board")
+  const result = await page179.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "rooted", side: "player", name: "Rooted", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 1, move: 3, block: 0, root: 2, facing: "W" },
+        // facing "W" (matching the attacker's own approach direction
+        // from the west) keeps this a clean FRONT hit - "E" would read
+        // as a BACK hit and pull in Facing's own crit bonus, muddying
+        // a check meant to isolate Root's own non-effect on attacking.
+        { id: "target", side: "enemy", name: "Target", pos: { row: 4, col: 6 }, hp: 999, maxHp: 999, range: 1, attack: 0, block: 0, facing: "W" },
+      ],
+    }
+    const after = attackUnit(state, "rooted", "target")
+    const target = after.units.find((u) => u.id === "target")
+    return { damageDealt: 999 - target.hp, apAfter: after.units.find((u) => u.id === "rooted").ap }
+  })
+  await page179.close()
+  out.thornZoneAttackUnaffected = result
+  const ok = result.damageDealt === 10 && result.apAfter === 0
+  if (!ok) out.errors.push("check179 a rooted unit with an in-range target failed to attack normally - Root incorrectly blocked attacking")
+}
+
+// 180. A real end-to-end example via createTacticsBattle with the new
+//      rootbind-thicket formation: a real player unit entering its
+//      zone gets genuinely rooted, narrated correctly, and its own
+//      next reachableTilesFor call is empty ------------------------
+{
+  const page180 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page180.on("pageerror", (e) => errs.push(String(e)))
+  await page180.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page180.waitForSelector(".hwt-board")
+  const result = await page180.evaluate(async () => {
+    const { createTacticsBattle, moveUnit, reachableTilesFor } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("rootbind-thicket", ["the-fool"])
+    const mosskit = state.units.find((u) => u.defId === "the-fool")
+    const thicket = state.units.find((u) => u.side === "enemy")
+    state = {
+      ...state,
+      units: state.units.map((u) => (u.id === mosskit.id ? { ...u, pos: { row: thicket.pos.row, col: thicket.pos.col + 2 }, ap: 1, move: 3 } : u)),
+    }
+    const after = moveUnit(state, mosskit.id, { row: thicket.pos.row, col: thicket.pos.col + 1 })
+    const mosskitAfter = after.units.find((u) => u.id === mosskit.id)
+    return {
+      thorny: thicket.thorny,
+      rootAfter: mosskitAfter.root,
+      hasThornNote: after.log.some((l) => l.includes("is caught in the thorns, rooted")),
+      reachableAfter: reachableTilesFor(after, mosskit.id).length,
+    }
+  })
+  await page180.close()
+  out.realRootbindThicketApproach = result
+  const ok = result.thorny === true && result.rootAfter === 2 && result.hasThornNote && result.reachableAfter === 0
+  if (!ok) out.errors.push("check180 a real approach toward the real thorny Rootbind Thicket did not genuinely root the mover")
+}
+
+// 181. UI: data-thorn-zone cells match thornZoneCells's own computed
+//      set exactly, visually distinct from data-zoc/data-threat-zone/
+//      data-fear-zone/data-frost-zone - a screenshot. Unlike Frost
+//      Zone's own player-side flip, Rootbind Thicket is an ENEMY with
+//      its own dedicated formation button, so this reuses the exact
+//      clean click-driven pattern check169 already established (no
+//      DOM-injection workaround needed) -----------------------------
+{
+  const page181 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page181.on("pageerror", (e) => errs.push(String(e)))
+  await page181.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page181.waitForSelector(".hwt-board")
+  await page181.locator(".hwt-formation-btn", { hasText: "Rootbind Thicket" }).click()
+  await page181.waitForTimeout(300)
+  const expectedCount = await page181.evaluate(async () => {
+    const { createTacticsBattle, thornZoneCells } = await import("/src/services/heartwood/tacticsEngine.js")
+    const battle = createTacticsBattle("rootbind-thicket")
+    return thornZoneCells(battle, "enemy").size
+  })
+  const renderedCount = await page181.locator('.hwt-cell[data-thorn-zone="true"]').count()
+  await page181.screenshot({ path: `${SHOT}/thorn_zone_cells.png` })
+  await page181.close()
+  out.thornZoneUiCells = { expectedCount, renderedCount }
+  const ok = expectedCount > 0 && renderedCount === expectedCount
+  if (!ok) out.errors.push("check181 the rendered data-thorn-zone cells did not match thornZoneCells's own computed set")
 }
 
 console.log(JSON.stringify(out, null, 2))

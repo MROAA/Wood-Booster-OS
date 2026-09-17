@@ -174,6 +174,11 @@ export const ENEMIES = {
     maxHp: 44,
     art: "rootbindThicket",
     description: "Its roots don't reach far. When they catch you, though, you don't move.",
+    // Thorn Zone round (Hearthwood Frontier, tacticsEngine.js only):
+    // this own already-existing line above is the most literal flavor
+    // match of any zone example so far - not invented, it practically
+    // names Root outright.
+    thorny: true,
     // 8th mook, first to use Stun - a genuinely different kind of
     // mechanic from every status so far (Weak/Vulnerable/Poison all
     // just change a number; Stun skips the target's action outright,
