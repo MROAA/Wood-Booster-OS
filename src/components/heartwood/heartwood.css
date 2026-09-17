@@ -3879,9 +3879,22 @@ img.hw-card-art {
    rail carries the smallest text on the shop screen; bumped size a
    step, gave it a near-solid chip ground and a crispening shadow, and
    full-strength text colour - still a calm side panel, just legible. */
+/* Every named rail chip (Ledger/Buyback/Relics all share this shape:
+   icon + name + a trailing cost-button or MAX/checkmark) wraps rather
+   than ellipsis-truncates its name - Marc's own recurring complaint
+   ("Wraithf...", "The Market Ch...") turned out to hit this same base
+   shape from three different sections (item chips got their own fix
+   first; Ledger/Buyback next; a shop stress-test this round found
+   Relics has the identical bug too, since a Ledger-bought named relic
+   like The Market Charter also lists itself here once owned). Fixed
+   once at the base instead of per-section this time - the trailing
+   element gets `margin-left: auto` so it still hugs the right edge
+   whether the name fit on the first line or claimed it entirely. */
 .hw-rail-chip {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 2px;
   gap: 7px;
   padding: 5px 7px;
   border: 1px solid var(--hw-border);
@@ -3900,12 +3913,10 @@ img.hw-card-art {
 }
 
 .hw-rail-chip-name {
-  flex: 1;
-  min-width: 0;
+  flex: 1 0 auto;
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  white-space: normal;
 }
 
 .hw-rail-chip-max {
@@ -3913,6 +3924,7 @@ img.hw-card-art {
   letter-spacing: 0.04em;
   color: color-mix(in srgb, var(--hw-text) 70%, var(--hw-muted));
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .hw-rail-upgrade.hw-move-btn {
@@ -3924,6 +3936,7 @@ img.hw-card-art {
   align-items: center;
   gap: 3px;
   flex-shrink: 0;
+  margin-left: auto;
   text-shadow: none;
 }
 
@@ -3956,50 +3969,13 @@ img.hw-card-art {
 }
 
 /* Item chips carry an icon + name + up to two small tags ("Bends",
-   equipped-status) - on a ~210px rail the name was ellipsing to
-   "Wraithf..." (Marc: hard to read). Let the row wrap so the name
-   keeps its own full line and the status tag drops beneath it,
-   right-aligned - readable, still compact. Relic chips (name + cost
-   button only) stay single-line. */
-.hw-rail-chip--item {
-  flex-wrap: wrap;
-  row-gap: 2px;
-}
-
-.hw-rail-chip--item .hw-rail-chip-name {
-  flex: 1 0 auto;
-  overflow: visible;
-}
-
+   equipped-status) - the name-wrap behavior itself now lives on the
+   base .hw-rail-chip/.hw-rail-chip-name rules above (it once only
+   covered item chips, "Wraithf..." was Marc's original complaint about
+   this exact rail); this override is now just the item-only extra: the
+   equipped-status tag hugs the right edge on its own wrapped line, same
+   as every other chip's trailing element. */
 .hw-rail-chip--item .hw-rail-chip-eq {
-  margin-left: auto;
-}
-
-/* The Ledger + Buyback chips carry their own flavorful names ("The
-   Trader's Compass", "The Weathered Standard") that were still ellipsing
-   on the same ~210px rail the item-chip fix above already solved this
-   for ("Wraithf..." -> a full wrapped line) - these two sections were
-   missed at the time since they use the plain .hw-rail-chip shape, not
-   .hw-rail-chip--item. Same fix, same reasoning: let the name claim its
-   own full line and the cost-button/checkmark wrap beneath it,
-   right-aligned. */
-.hw-rail-section--ledger .hw-rail-chip,
-.hw-rail-section--buyback .hw-rail-chip {
-  flex-wrap: wrap;
-  row-gap: 2px;
-}
-
-.hw-rail-section--ledger .hw-rail-chip-name,
-.hw-rail-section--buyback .hw-rail-chip-name {
-  flex: 1 0 auto;
-  overflow: visible;
-  white-space: normal;
-}
-
-.hw-rail-section--ledger .hw-rail-chip-max,
-.hw-rail-section--ledger .hw-rail-upgrade.hw-move-btn,
-.hw-rail-section--buyback .hw-rail-chip-max,
-.hw-rail-section--buyback .hw-rail-upgrade.hw-move-btn {
   margin-left: auto;
 }
 

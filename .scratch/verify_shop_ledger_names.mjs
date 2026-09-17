@@ -71,9 +71,15 @@ const btnBox = await page.locator(".hw-rail-section--ledger .hw-rail-upgrade").f
 out.detail.btnBox = btnBox
 out.ok.buttonVisible = !!btnBox && btnBox.width > 20 && btnBox.height > 10
 
-// 4. Regression: the unrelated Relics/Items rail sections (plain
-// .hw-rail-section, no --ledger/--buyback ancestor) must NOT pick up
-// the wrap treatment - their chips stay whatever they were before.
+// 4. UPDATED by the very next round (verify_shop_rail_names.mjs): this
+// originally asserted Relics stayed nowrap, on the assumption its names
+// were always short. A stress-test proved that false (a Ledger-bought
+// named relic like "The Market Charter" also lists itself here once
+// owned, with the identical clipping bug) - the fix was consolidated
+// onto the base .hw-rail-chip rule, so Relics wraps now too, on
+// purpose. Kept this check alive rather than deleting it, just flipped
+// to assert the now-correct behavior - see verify_shop_rail_names.mjs
+// for the full regression suite on that round's own fix.
 const relicsSectionWraps = await page.evaluate(() => {
   const label = [...document.querySelectorAll(".hw-rail-label")].find((e) => e.textContent.includes("Relics"))
   const section = label?.closest(".hw-rail-section")
@@ -82,7 +88,7 @@ const relicsSectionWraps = await page.evaluate(() => {
   return getComputedStyle(chip).flexWrap
 })
 out.detail.relicsSectionWraps = relicsSectionWraps
-out.ok.relicsUnaffected = relicsSectionWraps === null || relicsSectionWraps === "nowrap"
+out.ok.relicsAlsoWrapsNow = relicsSectionWraps === null || relicsSectionWraps === "wrap"
 
 await page.screenshot({ path: `${DIR}/verify_ledger_final.png`, fullPage: true })
 
