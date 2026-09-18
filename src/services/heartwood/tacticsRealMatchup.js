@@ -17,7 +17,7 @@
 // one call. This module never imports saveRunSave or anything else that
 // could write - there is no path from here back into the real run.
 import { loadRunSave } from "./runSaveState"
-import { deserializeRun } from "./runEngine"
+import { deserializeRun, RUN_PATH, actIndexForNode } from "./runEngine"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { UNITS } from "../../data/heartwood/units"
@@ -35,13 +35,29 @@ const PREVIEWABLE_PHASES = new Set(["formation", "battle"])
 // rock/water/poison are the real hazards ("hazardit"); forest is a
 // zero-cost cosmetic variant ("ja muut" - Marc's own "and other
 // things") so a fight can look different even when nothing dangerous
-// lands nearby.
-const TERRAIN_HAZARD_COUNT = 6
+// lands nearby. Difficulty-scaled terrain density round: this is now
+// just the STARTING point (Act I keeps exactly this value) - see
+// terrainHazardCountForNode below for the real per-Act scaling.
+const TERRAIN_HAZARD_COUNT_BASE = 6
 function pickTerrainType(roll) {
   if (roll < 0.3) return "rock"
   if (roll < 0.5) return "water"
   if (roll < 0.75) return "poison"
   return "forest"
+}
+
+// Difficulty-scaled terrain density round: reuses actIndexForNode
+// (runEngine.js) - the SAME 1-7 Act number the story/RunMap/SquadDraft/
+// FormationScreen UI already all agree on - rather than
+// difficultyFactorForNode (the auto-battler's own heavily-tuned enemy
+// HP/damage ramp, re-tuned many times for THAT system's own balance
+// needs alone). +1 hazard per Act beyond the first: Act I=6 (today's
+// exact, unchanged value), Act II=7, ... Act VII=12. Exported so
+// verify checks can independently recompute the exact expected count
+// for any node, the same "recompute, don't just trust the render"
+// pattern every zone-cell check already uses.
+export function terrainHazardCountForNode(nodeIndex) {
+  return TERRAIN_HAZARD_COUNT_BASE + (actIndexForNode(nodeIndex, RUN_PATH.length) - 1)
 }
 
 // Seed System PRD (seed.js's own SEED_STREAMS): "combat" was reserved
@@ -64,7 +80,8 @@ export function generateRealTerrain(seed, nodeIndex) {
   const terrain = {}
   let placed = 0
   let attempts = 0
-  while (placed < TERRAIN_HAZARD_COUNT && attempts < TERRAIN_HAZARD_COUNT * 4) {
+  const hazardCount = terrainHazardCountForNode(nodeIndex)
+  while (placed < hazardCount && attempts < hazardCount * 4) {
     attempts++
     const row = Math.floor(rng() * GRID.rows)
     const col = 3 + Math.floor(rng() * (GRID.cols - 6))
