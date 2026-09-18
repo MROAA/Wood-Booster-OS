@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5427
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-suppress/.scratch/shots"
+const PORT = process.env.PORT || 5428
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-suppress", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-suppress", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -7580,6 +7580,257 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.mosskitHpAfterSecond === 12 &&
     result.groveWardenHpAfterSecond === result.groveWardenHpAfterFirst
   if (!ok) out.errors.push("check205 a real suppressed Grove Warden still intercepted a second real attack")
+}
+
+// Difficulty-scaled terrain TYPE MIX - terrainWeightsForNode
+// (tacticsRealMatchup.js) shrinks forest's own share as the Act rises,
+// redistributing what it loses PROPORTIONALLY across rock/water/poison
+// (their own 30:20:25 = 6:4:5 ratio stays fixed) - only forest's share
+// scales, not which hazard is scariest. Only the mix changes; the
+// hazard COUNT (terrainHazardCountForNode, PR #504) is untouched.
+// ---------------------------------------------------------------
+
+// 206. terrainWeightsForNode's own exact formula, hand-verified for
+//      Act I/IV/VII - exact-value assertions, not a statistical
+//      sample -----------------------------------------------------
+{
+  const page206 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page206.on("pageerror", (e) => errs.push(String(e)))
+  await page206.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page206.waitForSelector(".hwt-board")
+  const result = await page206.evaluate(async () => {
+    const { terrainWeightsForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const nodes = [3, 70, RUN_PATH.length - 1]
+    return {
+      pathLength: RUN_PATH.length,
+      results: nodes.map((idx) => ({ idx, act: actIndexForNode(idx, RUN_PATH.length), weights: terrainWeightsForNode(idx) })),
+    }
+  })
+  await page206.close()
+  out.terrainMixPerActFormula = result
+  const byIdx = Object.fromEntries(result.results.map((r) => [r.idx, r]))
+  const closeTo = (a, b) => Math.abs(a - b) < 1e-9
+  const actI = byIdx[3]
+  const actIV = byIdx[70]
+  const actVII = byIdx[result.pathLength - 1]
+  const ok =
+    actI.act === 1 &&
+    closeTo(actI.weights.forest, 0.25) &&
+    closeTo(actI.weights.rock, 0.3) &&
+    closeTo(actI.weights.water, 0.2) &&
+    closeTo(actI.weights.poison, 0.25) &&
+    actIV.act === 4 &&
+    closeTo(actIV.weights.forest, 0.16) &&
+    closeTo(actIV.weights.rock, 0.336) &&
+    closeTo(actIV.weights.water, 0.224) &&
+    closeTo(actIV.weights.poison, 0.28) &&
+    actVII.act === 7 &&
+    closeTo(actVII.weights.forest, 0.07) &&
+    closeTo(actVII.weights.rock, 0.372) &&
+    closeTo(actVII.weights.water, 0.248) &&
+    closeTo(actVII.weights.poison, 0.31)
+  if (!ok) out.errors.push("check206 terrainWeightsForNode did not produce the expected forest-shrink formula for Act I/IV/VII")
+}
+
+// 207. pickTerrainType's own boundary behavior - for Act I's own exact
+//      weights, rolls just below/at/above each of the 3 thresholds
+//      pick the correct adjacent type; repeated for Act VII's own
+//      shifted thresholds - proving the function genuinely reads
+//      `weights`, not leftover hardcoded numbers -------------------
+{
+  const page207 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page207.on("pageerror", (e) => errs.push(String(e)))
+  await page207.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page207.waitForSelector(".hwt-board")
+  const result = await page207.evaluate(async () => {
+    const { pickTerrainType, terrainWeightsForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const actIWeights = terrainWeightsForNode(3) // Act I
+    const actVIIWeights = terrainWeightsForNode(110) // Act VII
+    return {
+      actI: {
+        justBelowRock: pickTerrainType(0.2999, actIWeights),
+        justAboveRock: pickTerrainType(0.3001, actIWeights),
+        justBelowWater: pickTerrainType(0.4999, actIWeights),
+        justAboveWater: pickTerrainType(0.5001, actIWeights),
+        justBelowPoison: pickTerrainType(0.7499, actIWeights),
+        justAbovePoison: pickTerrainType(0.7501, actIWeights),
+      },
+      actVII: {
+        justBelowRock: pickTerrainType(0.3719, actVIIWeights),
+        justAboveRock: pickTerrainType(0.3721, actVIIWeights),
+        justBelowWater: pickTerrainType(0.6199, actVIIWeights),
+        justAboveWater: pickTerrainType(0.6201, actVIIWeights),
+        justBelowPoison: pickTerrainType(0.9299, actVIIWeights),
+        justAbovePoison: pickTerrainType(0.9301, actVIIWeights),
+      },
+    }
+  })
+  await page207.close()
+  out.terrainMixPickBoundaries = result
+  const ok =
+    result.actI.justBelowRock === "rock" &&
+    result.actI.justAboveRock === "water" &&
+    result.actI.justBelowWater === "water" &&
+    result.actI.justAboveWater === "poison" &&
+    result.actI.justBelowPoison === "poison" &&
+    result.actI.justAbovePoison === "forest" &&
+    result.actVII.justBelowRock === "rock" &&
+    result.actVII.justAboveRock === "water" &&
+    result.actVII.justBelowWater === "water" &&
+    result.actVII.justAboveWater === "poison" &&
+    result.actVII.justBelowPoison === "poison" &&
+    result.actVII.justAbovePoison === "forest"
+  if (!ok) out.errors.push("check207 pickTerrainType did not respect the passed weights' own boundary thresholds for Act I or Act VII")
+}
+
+// 208. Zero regression, directly proven for Act I: a literal
+//      reimplementation of the OLD flat 30/20/25/25 pickTerrainType
+//      (no weights parameter, hardcoded thresholds) produces
+//      BYTE-IDENTICAL output to the NEW generateRealTerrain for the
+//      exact (seed, nodeIndex) pairs check21/check129 already
+//      exercise - both genuinely Act I, where the new formula also
+//      computes exactly 0.30/0.50/0.75 -----------------------------
+{
+  const page208 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page208.on("pageerror", (e) => errs.push(String(e)))
+  await page208.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page208.waitForSelector(".hwt-board")
+  const result = await page208.evaluate(async () => {
+    const { generateRealTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { streamRng } = await import("/src/data/heartwood/seed.js")
+    const { GRID } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Literal copy of the OLD pre-this-round pickTerrainType, hardcoded
+    // to the flat 30/20/25/25 split - not the new function.
+    function pickTerrainTypeLegacy(roll) {
+      if (roll < 0.3) return "rock"
+      if (roll < 0.5) return "water"
+      if (roll < 0.75) return "poison"
+      return "forest"
+    }
+    function generateRealTerrainLegacy(seed, nodeIndex) {
+      const rng = streamRng(seed, "combat", `${nodeIndex}:terrain`)
+      const terrain = {}
+      let placed = 0
+      let attempts = 0
+      const hazardCount = terrainHazardCountForNode(nodeIndex)
+      while (placed < hazardCount && attempts < hazardCount * 4) {
+        attempts++
+        const row = Math.floor(rng() * GRID.rows)
+        const col = 3 + Math.floor(rng() * (GRID.cols - 6))
+        const key = `${row}-${col}`
+        if (terrain[key]) continue
+        terrain[key] = pickTerrainTypeLegacy(rng())
+        placed++
+      }
+      return terrain
+    }
+    const pairs = [
+      { seed: 424242, idx: 1 },
+      { seed: 12345, idx: 3 },
+    ]
+    return pairs.map(({ seed, idx }) => ({
+      seed,
+      idx,
+      legacy: generateRealTerrainLegacy(seed, idx),
+      current: generateRealTerrain(seed, idx),
+    }))
+  })
+  await page208.close()
+  out.terrainMixZeroRegression = result
+  const ok = result.every((r) => JSON.stringify(r.legacy) === JSON.stringify(r.current))
+  if (!ok) out.errors.push("check208 the new Act-scaled terrain mix changed Act I's own output versus the old flat 30/20/25/25 split")
+}
+
+// 209. The real difficulty shift, aggregated across many seeds: an
+//      independent SHADOW reimplementation of generateRealTerrain that
+//      builds its OWN weights via terrainWeightsForNode (not a
+//      hardcoded late-game guess) produces BYTE-IDENTICAL output to
+//      the real generateRealTerrain, for a late-Act node - proving the
+//      real function genuinely uses terrainWeightsForNode's own
+//      values, not some other formula that happens to shift things
+//      vaguely the right way -------------------------------------
+{
+  const page209 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page209.on("pageerror", (e) => errs.push(String(e)))
+  await page209.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page209.waitForSelector(".hwt-board")
+  const result = await page209.evaluate(async () => {
+    const { generateRealTerrain, terrainWeightsForNode, terrainHazardCountForNode, pickTerrainType } = await import(
+      "/src/services/heartwood/tacticsRealMatchup.js"
+    )
+    const { streamRng } = await import("/src/data/heartwood/seed.js")
+    const { GRID } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+    function generateRealTerrainShadow(seed, nodeIndex) {
+      const rng = streamRng(seed, "combat", `${nodeIndex}:terrain`)
+      const terrain = {}
+      let placed = 0
+      let attempts = 0
+      const hazardCount = terrainHazardCountForNode(nodeIndex)
+      const weights = terrainWeightsForNode(nodeIndex)
+      while (placed < hazardCount && attempts < hazardCount * 4) {
+        attempts++
+        const row = Math.floor(rng() * GRID.rows)
+        const col = 3 + Math.floor(rng() * (GRID.cols - 6))
+        const key = `${row}-${col}`
+        if (terrain[key]) continue
+        terrain[key] = pickTerrainType(rng(), weights)
+        placed++
+      }
+      return terrain
+    }
+    const lateIdx = RUN_PATH.length - 1
+    const seeds = [111, 222, 333, 444, 555]
+    return seeds.map((seed) => ({
+      seed,
+      shadow: generateRealTerrainShadow(seed, lateIdx),
+      real: generateRealTerrain(seed, lateIdx),
+    }))
+  })
+  await page209.close()
+  out.terrainMixShadowProof = result
+  const ok = result.every((r) => JSON.stringify(r.shadow) === JSON.stringify(r.real))
+  if (!ok) out.errors.push("check209 generateRealTerrain's own late-Act output did not match a shadow reimplementation built from terrainWeightsForNode")
+}
+
+// 210. The real difficulty shift, directly visible in aggregate: many
+//      different seeds at Act VII produce a MEASURABLY lower forest
+//      fraction and higher real-hazard fraction than the same seeds
+//      would at Act I - proving the shift reaches generateRealTerrain's
+//      actual output shape in bulk, not just one formula in isolation.
+//      A directional proof with a generous margin (not chasing exact
+//      pp, matching this session's own de-weighted fairness-tuning
+//      discipline) - the TRUE gap is 25%->7% forest share, so even a
+//      modest sample makes the direction unmistakable -------------
+{
+  const page210 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page210.on("pageerror", (e) => errs.push(String(e)))
+  await page210.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page210.waitForSelector(".hwt-board")
+  const result = await page210.evaluate(async () => {
+    const { generateRealTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+    const earlyIdx = 3 // Act I
+    const lateIdx = RUN_PATH.length - 1 // Act VII
+    function forestFraction(idx, seeds) {
+      let forest = 0
+      let total = 0
+      for (const seed of seeds) {
+        const terrain = generateRealTerrain(seed, idx)
+        const types = Object.values(terrain)
+        forest += types.filter((t) => t === "forest").length
+        total += types.length
+      }
+      return { forest, total, fraction: forest / total }
+    }
+    const seeds = Array.from({ length: 40 }, (_, i) => 1000 + i)
+    return { early: forestFraction(earlyIdx, seeds), late: forestFraction(lateIdx, seeds) }
+  })
+  await page210.close()
+  out.terrainMixAggregateShift = result
+  const ok = result.early.total > 0 && result.late.total > 0 && result.late.fraction < result.early.fraction - 0.05
+  if (!ok) out.errors.push("check210 Act VII's aggregate forest fraction was not measurably lower than Act I's across many seeds")
 }
 
 console.log(JSON.stringify(out, null, 2))

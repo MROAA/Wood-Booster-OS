@@ -39,10 +39,48 @@ const PREVIEWABLE_PHASES = new Set(["formation", "battle"])
 // just the STARTING point (Act I keeps exactly this value) - see
 // terrainHazardCountForNode below for the real per-Act scaling.
 const TERRAIN_HAZARD_COUNT_BASE = 6
-function pickTerrainType(roll) {
-  if (roll < 0.3) return "rock"
-  if (roll < 0.5) return "water"
-  if (roll < 0.75) return "poison"
+
+// Difficulty-scaled terrain TYPE MIX round: forest is the only
+// zero-effect id of the 4 (cost:1 in tacticsEngine.js's own TERRAIN
+// map, byte-identical to plain "path") - rock/water/poison are the 3
+// real hazards. Forest's own share shrinks as the Act rises, and what
+// it loses is redistributed PROPORTIONALLY across the 3 real hazards,
+// keeping their own existing 30:20:25 relative flavor (a 6:4:5 ratio)
+// unchanged - a single clean scaling axis, not a second "which hazard
+// gets scarier" tuning pass nobody asked for. FOREST_WEIGHT_BASE=0.25
+// keeps Act I at EXACTLY today's own 30/20/25/25 split (the same "Act
+// I unchanged" guarantee terrainHazardCountForNode below already
+// established for density). FOREST_WEIGHT_FLOOR is a forward-looking
+// safety net only - never actually engaged within today's real Acts
+// 1-7 (Act VII's own forest share is 0.07, above the 0.05 floor).
+const FOREST_WEIGHT_BASE = 0.25
+const FOREST_WEIGHT_PER_ACT_DROP = 0.03
+const FOREST_WEIGHT_FLOOR = 0.05
+const HAZARD_RELATIVE_WEIGHTS = { rock: 6, water: 4, poison: 5 }
+const HAZARD_RELATIVE_TOTAL = 15
+
+// Exported so verify checks can independently recompute the exact
+// expected weights for any node - the same "recompute, don't trust a
+// remembered value" discipline the density round already established.
+export function terrainWeightsForNode(nodeIndex) {
+  const act = actIndexForNode(nodeIndex, RUN_PATH.length)
+  const forest = Math.max(FOREST_WEIGHT_FLOOR, FOREST_WEIGHT_BASE - FOREST_WEIGHT_PER_ACT_DROP * (act - 1))
+  const remaining = 1 - forest
+  return {
+    rock: remaining * (HAZARD_RELATIVE_WEIGHTS.rock / HAZARD_RELATIVE_TOTAL),
+    water: remaining * (HAZARD_RELATIVE_WEIGHTS.water / HAZARD_RELATIVE_TOTAL),
+    poison: remaining * (HAZARD_RELATIVE_WEIGHTS.poison / HAZARD_RELATIVE_TOTAL),
+    forest,
+  }
+}
+
+// Exported alongside terrainWeightsForNode so verify checks can prove
+// this function genuinely reads the passed weights (boundary-roll
+// behavior), not leftover hardcoded thresholds.
+export function pickTerrainType(roll, weights) {
+  if (roll < weights.rock) return "rock"
+  if (roll < weights.rock + weights.water) return "water"
+  if (roll < weights.rock + weights.water + weights.poison) return "poison"
   return "forest"
 }
 
@@ -81,13 +119,14 @@ export function generateRealTerrain(seed, nodeIndex) {
   let placed = 0
   let attempts = 0
   const hazardCount = terrainHazardCountForNode(nodeIndex)
+  const weights = terrainWeightsForNode(nodeIndex)
   while (placed < hazardCount && attempts < hazardCount * 4) {
     attempts++
     const row = Math.floor(rng() * GRID.rows)
     const col = 3 + Math.floor(rng() * (GRID.cols - 6))
     const key = `${row}-${col}`
     if (terrain[key]) continue
-    terrain[key] = pickTerrainType(rng())
+    terrain[key] = pickTerrainType(rng(), weights)
     placed++
   }
   return terrain

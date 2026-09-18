@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5427
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-suppress/.scratch/shots"
+const PORT = process.env.PORT || 5428
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1872,6 +1872,67 @@ function newPage() {
     groveWardenAfter &&
     groveWardenAfter.hp === setup.groveWardenHpBefore
   if (!ok) out.errors.push("check35 a real suppressed enemy still fired its real Zone of Control reaction on a real disengage")
+}
+
+// 36. Difficulty-scaled terrain TYPE mix: a real fight seeded at
+//     RUN_PATH's own LAST node (genuinely Act VII) renders per-type
+//     terrain cell counts matching generateRealTerrain's own newly
+//     Act-scaled mix - mirrors check21's own "real board matches
+//     generateRealTerrain's own computed map" proof, but for a late
+//     node with a genuinely shifted mix instead of the run's very
+//     first (Act I, unchanged) fight. seedRealSave's own nodeFilter
+//     can't see the node's INDEX (check34's own already-established
+//     gotcha), so this seeds the save directly with an explicit late
+//     index, the same custom inline save construction check34 uses -
+{
+  const page36 = await newPage()
+  page36.on("pageerror", (e) => errs.push(String(e)))
+  await page36.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  const seed36 = await page36.evaluate(async () => {
+    const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const idx = RUN_PATH.length - 1
+    const bench = [{ key: "b0", defId: "the-fool", upgradeLevel: 0, upgrades: [] }]
+    const deployed = [bench[0].key, null, null, null]
+    const lastSeenAct = actIndexForNode(idx, RUN_PATH.length)
+    const rs = {
+      ...startRun("tommy", null, { forcedSeed: 424999 }),
+      nodeIndex: idx,
+      path: RUN_PATH.slice(0, idx + 1),
+      phase: "formation",
+      bench,
+      deployed,
+      items: [],
+      lastSeenAct,
+    }
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    const node = RUN_PATH[idx]
+    return { idx, act: lastSeenAct, type: node.type, formationId: node.formationId, enemyId: node.enemyId, seed: rs.seed }
+  })
+  const expectedTerrain = await page36.evaluate(
+    async ({ seed, idx }) => {
+      const { generateRealTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+      return generateRealTerrain(seed, idx)
+    },
+    { seed: seed36.seed, idx: seed36.idx },
+  )
+  await page36.reload({ waitUntil: "domcontentloaded" })
+  await page36.waitForTimeout(400)
+  await page36.locator(".hw-tactics-fight-btn").click()
+  await page36.waitForTimeout(400)
+  const terrainTypes = ["rock", "water", "poison", "forest"]
+  const countsByType = {}
+  for (const type of terrainTypes) {
+    countsByType[type] = await page36.locator(`.hwt-cell[data-terrain="${type}"]`).count()
+  }
+  await page36.screenshot({ path: `${SHOT}/real_fight_terrain_mix_late_act.png` })
+  await page36.close()
+  const expectedCountsByType = {}
+  for (const type of terrainTypes) {
+    expectedCountsByType[type] = Object.values(expectedTerrain).filter((t) => t === type).length
+  }
+  out.realFightTerrainMixLateAct = { seed36, countsByType, expectedCountsByType }
+  const ok = seed36.act === 7 && JSON.stringify(countsByType) === JSON.stringify(expectedCountsByType) && Object.keys(expectedTerrain).length === 12
+  if (!ok) out.errors.push("check36 a real Act VII fight's rendered terrain type counts did not match generateRealTerrain's own Act-scaled mix")
 }
 
 console.log(JSON.stringify(out, null, 2))
