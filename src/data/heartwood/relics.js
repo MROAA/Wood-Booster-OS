@@ -161,6 +161,20 @@ export const RELICS = {
     // Rounded to the 50/100/150/200 family (Marc, round numbers).
     essenceBonus: 50,
   },
+  // The Honest Scale (this round): the first SELL-side relic (a free
+  // node-choice reward, not a paid Ledger investment like Appraiser's
+  // Eye, and not a random event like The Ragpicker's Market) - reuses
+  // essenceBonus's own "relics.reduce(...)" pattern, just for
+  // effectiveSellMult instead of essenceForWin.
+  "honest-scale": {
+    id: "honest-scale",
+    image: essenceWellImg,
+    name: "The Honest Scale",
+    icon: "spark",
+    description: "Nothing you sell here is ever short-changed.",
+    effects: [],
+    sellBonus: 0.2,
+  },
   "bulwark-standard": {
     id: "bulwark-standard",
     image: bulwarkStandardImg,

@@ -1643,7 +1643,13 @@ export function marketEventPriceMult(id) {
 // sell-refund preview label, so the two can never drift the way
 // sellRefundFor's own doc-comment already warns about.
 export function effectiveSellMult(runState) {
-  const bonus = Math.min(0.5, runState?.sellBonus || 0)
+  // The Honest Scale (relics.js): the first SELL-side relic, read the
+  // same "relics.reduce(...)" way essenceForWin already reads
+  // essenceBonus off every owned relic. Combines additively with the
+  // Ledger's own Appraiser's Eye (a different source, same lever),
+  // capped together same as before.
+  const relicSellBonus = (runState?.relics || []).reduce((sum, id) => sum + (RELICS[id]?.sellBonus || 0), 0)
+  const bonus = Math.min(0.5, (runState?.sellBonus || 0) + relicSellBonus)
   return (1 + bonus) * (MARKET_EVENTS[runState?.marketEvent]?.sellMult ?? 1)
 }
 
