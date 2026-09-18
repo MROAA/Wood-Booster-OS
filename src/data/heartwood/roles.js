@@ -85,6 +85,10 @@ export const ROLE_OVERRIDES = {
     primary: "economy", position: "back", tags: ["economy", "stone", "thorn"],
     strengths: ["Keeps a paid reroll from getting expensive"], weaknesses: ["Not built to trade blows"],
   },
+  "fortunes-root": {
+    primary: "economy", position: "back", tags: ["economy", "cosmic", "spirit"],
+    strengths: ["Special markets turn up more often, tilted toward the big swings"], weaknesses: ["No real stats - a coinflip you bring along"],
+  },
   // The Hunters, player answers (feat/hearthwood-hunters).
   "oathshield": {
     primary: "tank", position: "front", tags: ["guard", "shield", "warden", "stone"],

@@ -1686,6 +1686,22 @@ const BASE_UNITS = {
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], { economyRole: "toll-warden", aura: { effect: { type: "block", amount: 1 } } }),
+  // The Gambler (Economy System PRD §30's 5th named archetype -
+  // "Event rewards improved / Risk increased" - the only one of the 5
+  // still unbuilt until now; Trader's own "can convert resources"
+  // needs a second currency this game doesn't have). Reuses the
+  // existing Market Event system wholesale: `economyRole: "gambler"`
+  // raises pickMarketEvent's own roll chance and skews which event
+  // lands toward the two highest-variance ones (Golden's legendary
+  // stock at a premium, Blackroot's steep discount with no Reroll/
+  // Freeze), away from the mild Wandering Merchant - "improved
+  // rewards, increased risk" made literal rather than inventing a
+  // separate risk stat. Same smallest-body-in-tier discipline as the
+  // other 4 economy units.
+  "fortunes-root": unit("fortunes-root", "Fortune's Root", "cosmic", 2, "economy", [
+    { type: "block", amount: 5 },
+    { type: "attack", amount: 4 },
+  ], { economyRole: "gambler" }),
 
   // --- The Hunters, player answers (feat/hearthwood-hunters) ---------
   // Three ways to blunt a hunting pack (enemies.js the-pack / the-run-

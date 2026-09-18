@@ -5,7 +5,8 @@ import { CardGlyph } from "./cardArt"
 // The Economy crew panel (economy.js, Economy System PRD 30-31). Shows
 // which economy units are on the board right now and the flat run-layer
 // edge each one is buying you - recruits cheaper, interest sooner, wins
-// paying more, rerolls held flat. Pure display; renders nothing until an
+// paying more, rerolls held flat, or special markets turning up more
+// often and hotter. Pure display; renders nothing until an
 // economy unit is actually deployed (the effects only apply while
 // deployed). The recruit-cost labels, the interest badge and the win
 // preview already move on their own - this panel is the "why".
@@ -26,6 +27,8 @@ export default function EconomyCrew({ runState }) {
         return `+${effects.winBonus} Essence / win`
       case "toll-warden":
         return "reroll cost holds flat"
+      case "gambler":
+        return `${effects.eventChanceMult}x special-market odds, tilted hot`
       default:
         return null
     }

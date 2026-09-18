@@ -1640,11 +1640,21 @@ export function marketEventRollArgs(marketEvent, runState) {
 // Merchant/Blackroot, rather than just appending a 5th band on top -
 // keeps the original "merchant+blackroot are the two common ones,
 // golden is the rare splashy one" feel intact rather than diluting it.
-export function pickMarketEvent(seed, nodeIndex, hasCompass = false) {
+// The Gambler (economy.js's ECONOMY_ROLES.gambler): `chanceMult`
+// stacks with `hasCompass`'s own doubling (a Gambler AND Trader's
+// Compass together is a genuine 4x - both are legitimate "see more
+// special markets" sources, no reason to cap their combination). `hot`
+// skews the SAME roll toward the two highest-variance events (Golden's
+// premium-priced legendary stock, Blackroot's steep discount with no
+// Reroll/Freeze) and away from the mild Wandering Merchant - Ragpicker
+// (a sell-side event, not a risk one) is left untouched at its own
+// 25% either way, deliberately orthogonal to the risk axis.
+export function pickMarketEvent(seed, nodeIndex, hasCompass = false, chanceMult = 1, hot = false) {
   if (!Number.isFinite(nodeIndex) || nodeIndex < MARKET_EVENT_MIN_NODE) return null
   const rng = streamRng(seed, "shop", `${nodeIndex}:mktevent`)
-  if (rng() >= MARKET_EVENT_CHANCE * (hasCompass ? 2 : 1)) return null
+  if (rng() >= MARKET_EVENT_CHANCE * (hasCompass ? 2 : 1) * chanceMult) return null
   const r = rng()
+  if (hot) return r < 0.15 ? "merchant" : r < 0.45 ? "blackroot" : r < 0.75 ? "golden" : "ragpicker"
   return r < 0.35 ? "merchant" : r < 0.6 ? "blackroot" : r < 0.75 ? "golden" : "ragpicker"
 }
 
@@ -2627,8 +2637,14 @@ export function chooseRelic(runState, relicId) {
   const nextNode = advanced.phase === "choice" ? null : advanced.path[advanced.path.length - 1]
   const enteringShop = nextNode?.type === "shop"
   // Market Events (feat/hearthwood-market-events): pick the special
-  // market (if any) for this shop, seeded from the node position.
-  const mktEvent = enteringShop ? pickMarketEvent(runState.seed, advanced.nodeIndex, hasTradersCompass(runState)) : null
+  // market (if any) for this shop, seeded from the node position. The
+  // Gambler (economy.js): reads off `runState`, not `advanced` -
+  // deployed crew never changes between a battle just won and the
+  // shop it leads into.
+  const gamblerFx = economyCrewEffects(runState)
+  const mktEvent = enteringShop
+    ? pickMarketEvent(runState.seed, advanced.nodeIndex, hasTradersCompass(runState), gamblerFx.eventChanceMult, gamblerFx.eventHot)
+    : null
   const mktArgs = marketEventRollArgs(mktEvent, runState)
   return {
     ...runState,
@@ -2885,8 +2901,12 @@ export function resolveBattleOutcome(runState) {
     const nextNode = advanced.phase === "choice" ? null : advanced.path[advanced.path.length - 1]
     const enteringShop = nextNode?.type === "shop"
     // Market Events (feat/hearthwood-market-events): the seeded special
-    // market (if any) for the shop being entered after this win.
-    const mktEvent = enteringShop ? pickMarketEvent(rs.seed, advanced.nodeIndex, hasTradersCompass(rs)) : null
+    // market (if any) for the shop being entered after this win. The
+    // Gambler (economy.js): reads off `rs`, the just-fought roster.
+    const gamblerFx = economyCrewEffects(rs)
+    const mktEvent = enteringShop
+      ? pickMarketEvent(rs.seed, advanced.nodeIndex, hasTradersCompass(rs), gamblerFx.eventChanceMult, gamblerFx.eventHot)
+      : null
     const mktArgs = marketEventRollArgs(mktEvent, rs)
     // Interest (bankInterest) is on the balance carried INTO this
     // fight - rs.essence here, before the win payout is added on top

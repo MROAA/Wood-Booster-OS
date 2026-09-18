@@ -82,7 +82,7 @@ export const COACH_TIPS = [
   {
     id: "economy-crew",
     title: "Economy units",
-    text: "A Merchant, Banker, Forager or Toll-Warden pays off your run's economy - cheaper recruits, earlier interest, bigger win payouts - but ONLY while deployed, and each one is a weak body in the fight. Deploy one and you're trading a fighter for the money.",
+    text: "A Merchant, Banker, Forager, Toll-Warden or Fortune's Root pays off your run's economy - cheaper recruits, earlier interest, bigger win payouts, more (and bigger) special markets - but ONLY while deployed, and each one is a weak body in the fight. Deploy one and you're trading a fighter for the money.",
     anchor: ".hw-economy-crew",
   },
   {
