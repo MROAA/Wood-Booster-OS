@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5425
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-retreatstep/.scratch/shots"
+const PORT = process.env.PORT || 5426
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terraindensity/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-retreatstep", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terraindensity", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-retreatstep", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terraindensity", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -7131,6 +7131,173 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.realHermitRetreat = result
   const ok = result.wary === true && result.hasRetreatNote && (result.posAfter.row !== result.posBefore.row || result.posAfter.col !== result.posBefore.col)
   if (!ok) out.errors.push("check194 a real heavy hit against the real Hollowreed did not genuinely trigger Retreat Step")
+}
+
+// ---------------------------------------------------------------
+// Difficulty-scaled terrain density - generateRealTerrain
+// (tacticsRealMatchup.js) now scales its own hazard COUNT by the real
+// Act number (actIndexForNode, runEngine.js) instead of a flat 6 every
+// fight. Only the count scales - the existing weighted type mix is
+// untouched.
+// ---------------------------------------------------------------
+
+// 195. terrainHazardCountForNode's own per-Act mapping: exact counts
+//      for representative nodes spanning multiple real Acts ----------
+{
+  const page195 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page195.on("pageerror", (e) => errs.push(String(e)))
+  await page195.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page195.waitForSelector(".hwt-board")
+  const result = await page195.evaluate(async () => {
+    const { terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const nodes = [3, 70, RUN_PATH.length - 1]
+    return {
+      pathLength: RUN_PATH.length,
+      results: nodes.map((idx) => ({ idx, act: actIndexForNode(idx, RUN_PATH.length), count: terrainHazardCountForNode(idx) })),
+    }
+  })
+  await page195.close()
+  out.terrainDensityPerActMapping = result
+  const byIdx = Object.fromEntries(result.results.map((r) => [r.idx, r]))
+  const ok = byIdx[3].act === 1 && byIdx[3].count === 6 && byIdx[70].act === 4 && byIdx[70].count === 9 && byIdx[result.pathLength - 1].act === 7 && byIdx[result.pathLength - 1].count === 12
+  if (!ok) out.errors.push("check195 terrainHazardCountForNode did not produce the expected BASE+(act-1) count for Act I/IV/VII")
+}
+
+// 196. generateRealTerrain actually places the Act-scaled count: the
+//      SAME seed produces MORE placed cells for a late-run node than
+//      an early-run one - proving the count reaches the placement
+//      loop, not just the helper function in isolation --------------
+{
+  const page196 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page196.on("pageerror", (e) => errs.push(String(e)))
+  await page196.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page196.waitForSelector(".hwt-board")
+  const result = await page196.evaluate(async () => {
+    const { generateRealTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+    const earlyIdx = 3
+    const lateIdx = RUN_PATH.length - 1
+    const earlyTerrain = generateRealTerrain(555, earlyIdx)
+    const lateTerrain = generateRealTerrain(555, lateIdx)
+    return {
+      earlyExpected: terrainHazardCountForNode(earlyIdx),
+      earlyPlacedCount: Object.keys(earlyTerrain).length,
+      lateExpected: terrainHazardCountForNode(lateIdx),
+      latePlacedCount: Object.keys(lateTerrain).length,
+    }
+  })
+  await page196.close()
+  out.terrainDensityPlacedCounts = result
+  const ok = result.earlyPlacedCount === result.earlyExpected && result.latePlacedCount === result.lateExpected && result.latePlacedCount > result.earlyPlacedCount
+  if (!ok) out.errors.push("check196 generateRealTerrain did not place the Act-scaled hazard count for early vs late nodes")
+}
+
+// 197. Determinism is preserved for a NON-Act-I node (extra coverage
+//      beyond the existing check129, which only ever used an Act I
+//      node) - the exact same (seed, nodeIndex) still produces
+//      byte-identical output across 2 calls -------------------------
+{
+  const page197 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page197.on("pageerror", (e) => errs.push(String(e)))
+  await page197.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page197.waitForSelector(".hwt-board")
+  const result = await page197.evaluate(async () => {
+    const { generateRealTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+    const lateIdx = RUN_PATH.length - 1
+    const a = generateRealTerrain(777, lateIdx)
+    const b = generateRealTerrain(777, lateIdx)
+    return { same: JSON.stringify(a) === JSON.stringify(b), count: Object.keys(a).length }
+  })
+  await page197.close()
+  out.terrainDensityDeterminism = result
+  const ok = result.same === true && result.count === 12
+  if (!ok) out.errors.push("check197 generateRealTerrain was not deterministic for a late-run (Act VII) node")
+}
+
+// 198. Zero regression, directly proven (not assumed from memory of a
+//      past log): a literal reimplementation of the OLD flat-6
+//      algorithm (same streamRng stream, same placement loop, same
+//      type picker - the ONLY difference is a hardcoded 6 instead of
+//      the new Act-scaled count) produces BYTE-IDENTICAL output to
+//      the NEW generateRealTerrain for the exact (seed, nodeIndex)
+//      pairs the existing check21/check129 already exercise - both
+//      genuinely Act I, where the new formula also computes 6 -------
+{
+  const page198 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page198.on("pageerror", (e) => errs.push(String(e)))
+  await page198.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page198.waitForSelector(".hwt-board")
+  const result = await page198.evaluate(async () => {
+    const { generateRealTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+    const { streamRng } = await import("/src/data/heartwood/seed.js")
+    const { GRID } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Literal copy of the OLD pre-this-round algorithm, hardcoded to
+    // the old flat TERRAIN_HAZARD_COUNT=6 - not the new function.
+    function pickTerrainTypeLegacy(roll) {
+      if (roll < 0.3) return "rock"
+      if (roll < 0.5) return "water"
+      if (roll < 0.75) return "poison"
+      return "forest"
+    }
+    function generateRealTerrainLegacy(seed, nodeIndex) {
+      const rng = streamRng(seed, "combat", `${nodeIndex}:terrain`)
+      const terrain = {}
+      let placed = 0
+      let attempts = 0
+      while (placed < 6 && attempts < 6 * 4) {
+        attempts++
+        const row = Math.floor(rng() * GRID.rows)
+        const col = 3 + Math.floor(rng() * (GRID.cols - 6))
+        const key = `${row}-${col}`
+        if (terrain[key]) continue
+        terrain[key] = pickTerrainTypeLegacy(rng())
+        placed++
+      }
+      return terrain
+    }
+    const firstBattleIdx = RUN_PATH.findIndex((n) => n.type === "battle" && n.formationId)
+    const pairs = [
+      { seed: 424242, idx: firstBattleIdx },
+      { seed: 12345, idx: 3 },
+    ]
+    return pairs.map(({ seed, idx }) => ({
+      seed,
+      idx,
+      expectedCount: terrainHazardCountForNode(idx),
+      legacy: generateRealTerrainLegacy(seed, idx),
+      current: generateRealTerrain(seed, idx),
+    }))
+  })
+  await page198.close()
+  out.terrainDensityZeroRegression = result
+  const ok = result.every((r) => r.expectedCount === 6 && JSON.stringify(r.legacy) === JSON.stringify(r.current))
+  if (!ok) out.errors.push("check198 an existing Act I (seed,nodeIndex) pair no longer matches the literal old flat-6 algorithm's own output - a real regression")
+}
+
+// 199. A real end-to-end example: seeding a real LATE node (Act VII)
+//      produces a genuinely denser terrain map than an early-game one,
+//      via createTacticsBattle's own real matchup wiring -------------
+{
+  const page199 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page199.on("pageerror", (e) => errs.push(String(e)))
+  await page199.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page199.waitForSelector(".hwt-board")
+  const result = await page199.evaluate(async () => {
+    const { createRealMatchupBattle } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { generateRealTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+    const lateTerrain = generateRealTerrain(888, RUN_PATH.length - 1)
+    const battle = createRealMatchupBattle(["the-fool"], ["ironmaw"], null, 0, lateTerrain)
+    const renderedTerrainCount = Object.keys(battle.terrain || {}).length
+    return { generatedCount: Object.keys(lateTerrain).length, renderedTerrainCount }
+  })
+  await page199.close()
+  out.realTerrainDensityLateAct = result
+  const ok = result.generatedCount === 12 && result.renderedTerrainCount === 12
+  if (!ok) out.errors.push("check199 a real late-Act matchup did not carry the full Act-scaled terrain map through into the real battle state")
 }
 
 console.log(JSON.stringify(out, null, 2))

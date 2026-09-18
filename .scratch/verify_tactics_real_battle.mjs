@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5425
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-retreatstep/.scratch/shots"
+const PORT = process.env.PORT || 5426
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terraindensity/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1708,6 +1708,67 @@ function newPage() {
     (hermitAfter.pos.row !== setup.posBefore.row || hermitAfter.pos.col !== setup.posBefore.col) &&
     hermitAfter.hp < setup.hpBefore
   if (!ok) out.errors.push("check33 a real recruited Hollowreed did not genuinely retreat from a real heavy enemy hit")
+}
+
+// 34. Difficulty-scaled terrain density: a real fight seeded at the
+//     RUN_PATH's own LAST node (genuinely Act VII, the hardest real
+//     difficulty band) renders the correct, Act-scaled (12, not the
+//     old flat 6) number of real data-terrain cells on the actual
+//     board - mirrors check21's own "real board matches
+//     generateRealTerrain's own computed map" proof, but for a late
+//     node instead of the run's very first fight. seedRealSave's own
+//     nodeFilter can't see the node's INDEX (only the node object
+//     itself, per its own new Function("n", ...) reconstruction), so
+//     this seeds the save directly with an explicit late index -----
+{
+  const page34 = await newPage()
+  page34.on("pageerror", (e) => errs.push(String(e)))
+  await page34.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  const seed34 = await page34.evaluate(async () => {
+    const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+    const idx = RUN_PATH.length - 1
+    const bench = [{ key: "b0", defId: "the-fool", upgradeLevel: 0, upgrades: [] }]
+    const deployed = [bench[0].key, null, null, null]
+    const lastSeenAct = actIndexForNode(idx, RUN_PATH.length)
+    const rs = {
+      ...startRun("tommy", null, { forcedSeed: 999111 }),
+      nodeIndex: idx,
+      path: RUN_PATH.slice(0, idx + 1),
+      phase: "formation",
+      bench,
+      deployed,
+      items: [],
+      lastSeenAct,
+    }
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    const node = RUN_PATH[idx]
+    return { idx, act: lastSeenAct, type: node.type, formationId: node.formationId, enemyId: node.enemyId, seed: rs.seed }
+  })
+  const expectedTerrain = await page34.evaluate(
+    async ({ seed, idx }) => {
+      const { generateRealTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+      return generateRealTerrain(seed, idx)
+    },
+    { seed: seed34.seed, idx: seed34.idx },
+  )
+  await page34.reload({ waitUntil: "domcontentloaded" })
+  await page34.waitForTimeout(400)
+  await page34.locator(".hw-tactics-fight-btn").click()
+  await page34.waitForTimeout(400)
+  // Non-terrain cells default to data-terrain="path" (terrainAt's own
+  // fallback), not an empty string - summing the 4 real type-specific
+  // counts (check21's own established pattern) is the correct way to
+  // count only genuine hazard/forest cells.
+  const terrainTypes = ["rock", "water", "poison", "forest"]
+  let renderedCount = 0
+  for (const type of terrainTypes) {
+    renderedCount += await page34.locator(`.hwt-cell[data-terrain="${type}"]`).count()
+  }
+  await page34.screenshot({ path: `${SHOT}/real_fight_terrain_density_late_act.png` })
+  await page34.close()
+  out.realTerrainDensityLateAct = { seed34, expectedCount: Object.keys(expectedTerrain).length, renderedCount }
+  const ok = seed34.act === 7 && Object.keys(expectedTerrain).length === 12 && renderedCount === 12
+  if (!ok) out.errors.push("check34 a real Act VII fight did not render the Act-scaled (12) real terrain cell count")
 }
 
 console.log(JSON.stringify(out, null, 2))
