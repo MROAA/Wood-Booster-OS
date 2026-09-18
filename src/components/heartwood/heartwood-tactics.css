@@ -293,6 +293,10 @@
   font-size: 7px;
   color: var(--hw-cosmic);
 }
+.hwt-suppressed-badge {
+  font-size: 7px;
+  color: var(--hw-curse);
+}
 .hwt-bulwark-badge {
   font-size: 7px;
   color: var(--hw-stone);

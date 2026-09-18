@@ -343,6 +343,11 @@ export default function TacticsBoard({
                     ⛓{unit.root}
                   </span>
                 )}
+                {unit.suppressed > 0 && (
+                  <span className="hwt-suppressed-badge" title={`Suppressed ${unit.suppressed} - this unit's own reactions (Zone of Control, Intercept, Retreat Step) are disabled for a turn, then decays`}>
+                    ⊘{unit.suppressed}
+                  </span>
+                )}
                 {unit.bulwark > 0 && (
                   <span className="hwt-bulwark-badge" title={`Bulwark ${unit.bulwark} - permanent armour, absorbs that much off every hit and never runs out`}>
                     ⛰{unit.bulwark}

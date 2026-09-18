@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5426
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terraindensity/.scratch/shots"
+const PORT = process.env.PORT || 5427
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-suppress/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1769,6 +1769,109 @@ function newPage() {
   out.realTerrainDensityLateAct = { seed34, expectedCount: Object.keys(expectedTerrain).length, renderedCount }
   const ok = seed34.act === 7 && Object.keys(expectedTerrain).length === 12 && renderedCount === 12
   if (!ok) out.errors.push("check34 a real Act VII fight did not render the Act-scaled (12) real terrain cell count")
+}
+
+// 35. Weakened reactions: a real click-driven back hit against a real
+//     enemy narrates the suppression note and shows the real
+//     Suppressed badge, then a real second player unit's disengage
+//     away from that SAME (now-suppressed) enemy's zone does NOT
+//     trigger the real reaction attack check23 already proves fires
+//     normally - a genuine "was going to happen, now doesn't" proof,
+//     not just "suppression exists in isolation" -------------------
+{
+  const page35 = await newPage()
+  page35.on("pageerror", (e) => errs.push(String(e)))
+  await page35.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page35, (n) => n.type === "battle" && n.formationId, ["the-fool", "grove-warden"])
+  await page35.reload({ waitUntil: "domcontentloaded" })
+  await page35.waitForTimeout(400)
+  await page35.locator(".hw-tactics-fight-btn").click()
+  await page35.waitForTimeout(400)
+  const setup = await page35.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const mosskit = battle.units.find((u) => u.defId === "the-fool")
+    const groveWarden = battle.units.find((u) => u.defId === "grove-warden")
+    const enemy = battle.units.find((u) => u.side === "enemy")
+    // Enemy's real default facing is "E" (check28's own confirmed
+    // universal spawn default) - Mosskit goes directly WEST of it for
+    // a genuine real back hit (identical geometry to check28's own
+    // guaranteed-CRITICAL setup). Grove Warden goes EAST, adjacent -
+    // a real melee Zone of Control controller/controlled pair, the
+    // same geometry check23's own real disengage-reaction proof uses.
+    enemy.pos = { row: 4, col: 5 }
+    // Overridden directly so the controlled back hit can never kill
+    // it outright (this check needs it ALIVE afterward, to prove the
+    // absence of a reaction is due to suppression, not death).
+    enemy.maxHp = 200
+    enemy.hp = 200
+    enemy.block = 0
+    mosskit.pos = { row: 4, col: 4 }
+    mosskit.ap = mosskit.apMax
+    mosskit.hp = mosskit.maxHp
+    groveWarden.pos = { row: 4, col: 6 }
+    groveWarden.ap = groveWarden.apMax
+    groveWarden.hp = groveWarden.maxHp
+    battle.units = battle.units.map((u) =>
+      u.side === "player" && u.id !== mosskit.id && u.id !== groveWarden.id ? { ...u, pos: { row: 0, col: 0 } } : u,
+    )
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { mosskitName: mosskit.name, groveWardenName: groveWarden.name, enemyName: enemy.name, groveWardenHpBefore: groveWarden.hp }
+  })
+  await page35.reload({ waitUntil: "domcontentloaded" })
+  await page35.waitForTimeout(400)
+  // Mosskit lands the real back hit that suppresses the enemy.
+  await page35.locator(".hwt-token", { hasText: setup.mosskitName }).click({ force: true })
+  await page35.waitForTimeout(200)
+  await page35.locator('.hwt-cell[data-targetable="true"]').first().click()
+  await page35.waitForTimeout(300)
+  const logAfterAttack = await page35.locator(".hwt-log").innerText()
+  const suppressedBadgeCount = await page35.locator(".hwt-suppressed-badge").count()
+  // Grove Warden now disengages from the SAME (suppressed) enemy's
+  // zone - the farthest reachable cell, a genuine retreat (check23's
+  // own "farthest reachable, not an incidental slide" pattern).
+  await page35.locator(".hwt-token", { hasText: setup.groveWardenName }).click({ force: true })
+  await page35.waitForTimeout(200)
+  const reach = page35.locator('.hwt-cell[data-reachable="true"]')
+  const n = await reach.count()
+  let chosen = null
+  if (n > 0) {
+    const enemyToken = page35.locator(".hwt-token", { hasText: setup.enemyName })
+    const enemyBox = await enemyToken.boundingBox()
+    let bestDist = -1
+    for (let i = 0; i < n; i++) {
+      const box = await reach.nth(i).boundingBox()
+      const dist = Math.hypot(box.x - enemyBox.x, box.y - enemyBox.y)
+      if (dist > bestDist) {
+        bestDist = dist
+        chosen = i
+      }
+    }
+    await reach.nth(chosen).click()
+    await page35.waitForTimeout(300)
+  }
+  const logAfterMove = await page35.locator(".hwt-log").innerText()
+  const afterBattle = await page35.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const groveWardenAfter = afterBattle.units.find((u) => u.name === setup.groveWardenName)
+  await page35.screenshot({ path: `${SHOT}/real_fight_suppressed.png` })
+  await page35.close()
+  out.realFightSuppressed = {
+    setup,
+    chosen,
+    logHasSuppressNote: logAfterAttack.includes("guard falters, reactions weakened"),
+    suppressedBadgeCount,
+    logHasReactionAfterMove: logAfterMove.includes("lashes out"),
+    groveWardenHpAfter: groveWardenAfter?.hp,
+  }
+  const ok =
+    logAfterAttack.includes("guard falters, reactions weakened") &&
+    suppressedBadgeCount === 1 &&
+    chosen !== null &&
+    !logAfterMove.includes("lashes out") &&
+    groveWardenAfter &&
+    groveWardenAfter.hp === setup.groveWardenHpBefore
+  if (!ok) out.errors.push("check35 a real suppressed enemy still fired its real Zone of Control reaction on a real disengage")
 }
 
 console.log(JSON.stringify(out, null, 2))

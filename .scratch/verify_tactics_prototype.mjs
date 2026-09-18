@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5426
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terraindensity/.scratch/shots"
+const PORT = process.env.PORT || 5427
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-suppress/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terraindensity", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-suppress", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-terraindensity", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-suppress", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -7298,6 +7298,288 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.realTerrainDensityLateAct = result
   const ok = result.generatedCount === 12 && result.renderedTerrainCount === 12
   if (!ok) out.errors.push("check199 a real late-Act matchup did not carry the full Act-scaled terrain map through into the real battle state")
+}
+
+// ---------------------------------------------------------------
+// Weakened reactions (Facing PRD's own back-hit line, "puolustajan
+// reaktioiden heikennys") - a back hit grants the new `suppressed`
+// status, disabling all 3 of this engine's real reaction mechanics
+// (Basic Zone's leaving-reaction, Guardian's Intercept, Retreat Step)
+// for exactly 1 of the defender's own following turns.
+// ---------------------------------------------------------------
+
+// 200. The core mechanic: a back hit grants exactly SUPPRESSED_DURATION
+//      and the log line; a front hit grants nothing --------------------
+{
+  const page200 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page200.on("pageerror", (e) => errs.push(String(e)))
+  await page200.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page200.waitForSelector(".hwt-board")
+  const result = await page200.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (attackerCol) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, suppressed: 0, facing: "W" },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: attackerCol }, hp: 100, maxHp: 100, range: 1, attack: 5, ap: 2, block: 0, facing: "E" },
+      ],
+    })
+    // Back hit: attacker EAST of a "W"-facing defender.
+    const back = attackUnit(mk(7), "atk", "defender")
+    const defAfterBack = back.units.find((u) => u.id === "defender")
+    // Front hit: attacker WEST of the same "W"-facing defender.
+    const front = attackUnit(mk(5), "atk", "defender")
+    const defAfterFront = front.units.find((u) => u.id === "defender")
+    return {
+      backSuppressed: defAfterBack.suppressed,
+      backLogHasNote: back.log.some((l) => l.includes("guard falters, reactions weakened")),
+      frontSuppressed: defAfterFront.suppressed,
+      frontLogHasNote: front.log.some((l) => l.includes("guard falters")),
+    }
+  })
+  await page200.close()
+  out.suppressedCoreMechanic = result
+  const ok = result.backSuppressed === 2 && result.backLogHasNote && result.frontSuppressed === 0 && !result.frontLogHasNote
+  if (!ok) out.errors.push("check200 a back hit did not grant exactly SUPPRESSED_DURATION, or a front hit incorrectly granted suppression")
+}
+
+// 201. Suppression blocks Basic Zone's own reaction: an otherwise-
+//      eligible melee controller does NOT fire its leaving-reaction
+//      while suppressed, but an identical non-suppressed controller
+//      still does - a direct, paired proof --------------------------
+{
+  const page201 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page201.on("pageerror", (e) => errs.push(String(e)))
+  await page201.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page201.waitForSelector(".hwt-board")
+  const result = await page201.evaluate(async () => {
+    const { moveUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (controllerSuppressed) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 1, move: 9, block: 0, facing: "W" },
+        { id: "melee", side: "enemy", name: "Melee", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 8, ap: 1, block: 0, suppressed: controllerSuppressed, facing: "W" },
+      ],
+    })
+    const notSuppressed = moveUnit(mk(0), "mover", { row: 4, col: 0 })
+    const suppressed = moveUnit(mk(2), "mover", { row: 4, col: 0 })
+    return {
+      notSuppressedHasReaction: notSuppressed.log.some((l) => l.includes("lashes out")),
+      notSuppressedMoverHp: notSuppressed.units.find((u) => u.id === "mover").hp,
+      suppressedHasReaction: suppressed.log.some((l) => l.includes("lashes out")),
+      suppressedMoverHp: suppressed.units.find((u) => u.id === "mover").hp,
+    }
+  })
+  await page201.close()
+  out.suppressedBlocksZoc = result
+  const ok = result.notSuppressedHasReaction && result.notSuppressedMoverHp < 20 && !result.suppressedHasReaction && result.suppressedMoverHp === 20
+  if (!ok) out.errors.push("check201 a suppressed melee controller still fired its own leaving-reaction, or a non-suppressed one failed to")
+}
+
+// 202. Suppression blocks Guardian's Intercept: an otherwise-eligible
+//      Guardian does NOT intercept while suppressed, but an identical
+//      non-suppressed Guardian still does --------------------------
+{
+  const page202 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page202.on("pageerror", (e) => errs.push(String(e)))
+  await page202.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page202.waitForSelector(".hwt-board")
+  const result = await page202.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (guardianSuppressed) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "ally", side: "player", name: "Ally", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 0, block: 0, facing: "W" },
+        { id: "guardian", side: "player", name: "Guardian", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, className: "Guardian", suppressed: guardianSuppressed, facing: "S" },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 1, attack: 20, ap: 2, block: 0, facing: "E" },
+      ],
+    })
+    const notSuppressed = attackUnit(mk(0), "atk", "ally")
+    const suppressed = attackUnit(mk(2), "atk", "ally")
+    return {
+      notSuppressedIntercepted: notSuppressed.log.some((l) => l.includes("intercepts")),
+      notSuppressedGuardianHp: notSuppressed.units.find((u) => u.id === "guardian").hp,
+      suppressedIntercepted: suppressed.log.some((l) => l.includes("intercepts")),
+      suppressedGuardianHp: suppressed.units.find((u) => u.id === "guardian").hp,
+      suppressedAllyHp: suppressed.units.find((u) => u.id === "ally").hp,
+    }
+  })
+  await page202.close()
+  out.suppressedBlocksIntercept = result
+  const ok =
+    result.notSuppressedIntercepted &&
+    result.notSuppressedGuardianHp < 100 &&
+    !result.suppressedIntercepted &&
+    result.suppressedGuardianHp === 100 &&
+    result.suppressedAllyHp === 80
+  if (!ok) out.errors.push("check202 a suppressed Guardian still intercepted, or a non-suppressed one failed to")
+}
+
+// 203. Suppression blocks Retreat Step - INCLUDING the SAME hit that
+//      grants it: a wary unit taking a qualifying BACK hit does NOT
+//      retreat (suppressed by that same blow), while an identical
+//      FRONT hit of the same base size still lets it retreat normally
+//      - directly proving the grant-before-damage ordering ------------
+{
+  const page203 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page203.on("pageerror", (e) => errs.push(String(e)))
+  await page203.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page203.waitForSelector(".hwt-board")
+  const result = await page203.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (attackerCol) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      log: [],
+      units: [
+        { id: "hermit", side: "player", name: "Hermit", pos: { row: 4, col: 6 }, hp: 32, maxHp: 32, range: 1, attack: 5, ap: 2, move: 9, block: 0, wary: true, retreatStepUsed: false, root: 0, suppressed: 0, facing: "W" },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: attackerCol }, hp: 100, maxHp: 100, range: 1, attack: 20, ap: 2, block: 0, facing: "E" },
+      ],
+    })
+    // Back hit: attacker EAST of "W"-facing hermit - Crit's own +50pp
+    // applies too, round(20*1.5)=30 damage.
+    const back = attackUnit(mk(7), "atk", "hermit")
+    const hermitAfterBack = back.units.find((u) => u.id === "hermit")
+    // Front hit: attacker WEST of the same "W"-facing hermit - plain
+    // unmodified 20 damage.
+    const front = attackUnit(mk(5), "atk", "hermit")
+    const hermitAfterFront = front.units.find((u) => u.id === "hermit")
+    return {
+      backHp: hermitAfterBack.hp,
+      backPos: hermitAfterBack.pos,
+      backSuppressed: hermitAfterBack.suppressed,
+      backRetreatUsed: hermitAfterBack.retreatStepUsed,
+      frontHp: hermitAfterFront.hp,
+      frontPos: hermitAfterFront.pos,
+      frontRetreatUsed: hermitAfterFront.retreatStepUsed,
+    }
+  })
+  await page203.close()
+  out.suppressedBlocksRetreatSameHit = result
+  const ok =
+    result.backHp === 2 &&
+    result.backPos.row === 4 &&
+    result.backPos.col === 6 &&
+    result.backSuppressed === 2 &&
+    result.backRetreatUsed === false &&
+    result.frontHp === 12 &&
+    result.frontPos.row === 4 &&
+    result.frontPos.col === 7 &&
+    result.frontRetreatUsed === true
+  if (!ok) out.errors.push("check203 a back hit did not suppress that SAME hit's own Retreat Step, or a front hit incorrectly failed to retreat")
+}
+
+// 204. The exact decay timing: SUPPRESSED_DURATION=2 produces exactly
+//      1 turn of visible suppression via real endPlayerTurn cycles,
+//      mirroring the already-proven slow/root sequence ----------------
+{
+  const page204 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page204.on("pageerror", (e) => errs.push(String(e)))
+  await page204.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page204.waitForSelector(".hwt-board")
+  const result = await page204.evaluate(async () => {
+    const { endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "player",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "mover", side: "player", name: "Mover", pos: { row: 4, col: 5 }, hp: 20, maxHp: 20, range: 1, attack: 10, ap: 2, apMax: 2, move: 9, block: 0, slow: 0, root: 0, retreatStepUsed: false, suppressed: 2, cooldownRemaining: 0, facing: "W" },
+        { id: "enemy", side: "enemy", name: "Enemy", pos: { row: 4, col: 8 }, hp: 100, maxHp: 100, range: 0, attack: 0, ap: 2, apMax: 2, move: 0, block: 0, facing: "E" },
+      ],
+    }
+    const right = state.units.find((u) => u.id === "mover").suppressed
+    state = endPlayerTurn(state)
+    const afterOne = state.units.find((u) => u.id === "mover").suppressed
+    state = endPlayerTurn(state)
+    const afterTwo = state.units.find((u) => u.id === "mover").suppressed
+    return { right, afterOne, afterTwo }
+  })
+  await page204.close()
+  out.suppressedDecayTiming = result
+  const ok = result.right === 2 && result.afterOne === 1 && result.afterTwo === 0
+  if (!ok) out.errors.push("check204 SUPPRESSED_DURATION's own decay timing did not produce exactly 1 turn of visible effect")
+}
+
+// 205. A real end-to-end example: a real back hit against the real
+//      Grove Warden (className "Guardian") suppresses its OWN future
+//      Intercept - a SECOND real attack against its protected ally
+//      right afterward is no longer intercepted -----------------------
+{
+  const page205 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page205.on("pageerror", (e) => errs.push(String(e)))
+  await page205.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page205.waitForSelector(".hwt-board")
+  const result = await page205.evaluate(async () => {
+    const { createTacticsBattle, attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    let state = createTacticsBattle("default", ["grove-warden", "the-fool"])
+    const groveWarden = state.units.find((u) => u.defId === "grove-warden")
+    const mosskit = state.units.find((u) => u.defId === "the-fool")
+    const enemy = state.units.find((u) => u.side === "enemy" && u.range === 1)
+    // A triangular formation - a straight line can't put the enemy in
+    // melee range (1) of BOTH Grove Warden and Mosskit while ALSO
+    // keeping Grove Warden adjacent to Mosskit (needed for Intercept
+    // eligibility): enemy(4,6)-groveWarden(4,5) is Chebyshev 1,
+    // enemy(4,6)-mosskit(3,6) is Chebyshev 1, groveWarden(4,5)-
+    // mosskit(3,6) is ALSO Chebyshev 1 (diagonal) - all 3 pairs
+    // mutually adjacent.
+    state = {
+      ...state,
+      phase: "enemy",
+      units: state.units.map((u) =>
+        u.id === mosskit.id
+          ? { ...u, pos: { row: 3, col: 6 }, facing: "S" }
+          : u.id === groveWarden.id
+            ? { ...u, pos: { row: 4, col: 5 }, facing: "W" }
+            : u.id === enemy.id
+              ? { ...u, pos: { row: 4, col: 6 }, attack: 20, ap: u.apMax }
+              : { ...u, pos: { row: 0, col: 0 } },
+      ),
+    }
+    // Attack 1: enemy back-hits Grove Warden directly (attacker EAST
+    // of "W"-facing Grove Warden) - suppresses it.
+    const afterFirst = attackUnit(state, enemy.id, groveWarden.id)
+    const groveWardenAfterFirst = afterFirst.units.find((u) => u.id === groveWarden.id)
+    // Attack 2: the SAME enemy (AP restored for this synthetic test)
+    // now attacks Mosskit - Grove Warden is still adjacent to Mosskit
+    // and would normally intercept, but is suppressed.
+    const beforeSecond = { ...afterFirst, units: afterFirst.units.map((u) => (u.id === enemy.id ? { ...u, ap: u.apMax } : u)) }
+    const afterSecond = attackUnit(beforeSecond, enemy.id, mosskit.id)
+    const mosskitAfter = afterSecond.units.find((u) => u.id === mosskit.id)
+    const groveWardenAfterSecond = afterSecond.units.find((u) => u.id === groveWarden.id)
+    return {
+      groveWardenSuppressed: groveWardenAfterFirst.suppressed,
+      groveWardenHpAfterFirst: groveWardenAfterFirst.hp,
+      interceptedSecondHit: afterSecond.log.some((l) => l.includes("intercepts")),
+      mosskitHpAfterSecond: mosskitAfter.hp,
+      groveWardenHpAfterSecond: groveWardenAfterSecond.hp,
+    }
+  })
+  await page205.close()
+  out.realSuppressedGuardian = result
+  // Mosskit's real maxHp is 32 - facing "S" makes the second attack
+  // (enemy directly south of it) a plain FRONT hit, no multiplier:
+  // 32-20=12. Grove Warden's own hp must be IDENTICAL before and
+  // after attack 2 - proving it genuinely took no share of that
+  // second hit at all (not just that Mosskit's own hp dropped).
+  const ok =
+    result.groveWardenSuppressed === 2 &&
+    !result.interceptedSecondHit &&
+    result.mosskitHpAfterSecond === 12 &&
+    result.groveWardenHpAfterSecond === result.groveWardenHpAfterFirst
+  if (!ok) out.errors.push("check205 a real suppressed Grove Warden still intercepted a second real attack")
 }
 
 console.log(JSON.stringify(out, null, 2))
