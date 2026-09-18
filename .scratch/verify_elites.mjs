@@ -105,7 +105,9 @@ const r = await page.evaluate(async () => {
   const plainEss = essenceForWin(base, { type: "battle" })
   const eliteEss = essenceForWin(base, { type: "elite" })
   const miniEss = essenceForWin(base, { type: "miniboss" })
-  out.ok.eliteReward120 = eliteEss - plainEss === 120
+  // Economy tightening pass (2026-09-18): ELITE_BONUS_ESSENCE cut
+  // 120 -> 90 (25%, same reasoning as WIN_ESSENCE in runEngine.js).
+  out.ok.eliteReward90 = eliteEss - plainEss === 90
   out.ok.eliteBelowMiniboss = eliteEss < miniEss
   out.detail.reward = { plainEss, eliteEss, miniEss }
 

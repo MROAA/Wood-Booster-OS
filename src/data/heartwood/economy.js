@@ -29,6 +29,12 @@ const DEFAULT_INTEREST_THRESHOLD = 150
 export const ECONOMY_ROLES = {
   merchant: { label: "Merchant", recruitPct: 0.1 }, // every recruit costs 10% less
   banker: { label: "Banker", interestThreshold: 120 }, // interest starts at 120 Essence, not 150
+  // Economy tightening pass (Marc, 2026-09-18): tried cutting this too
+  // alongside the base win payout, but scoped down to ONE lever (the
+  // base win payout, runEngine.js's WIN_ESSENCE) to keep this round's
+  // real blast radius small enough for actual play to judge - see that
+  // constant's own comment for the full reasoning. Left at its
+  // original value, untouched, for now.
   forager: { label: "Forager", winBonus: 12 }, // +12 Essence on every non-boss win
   "toll-warden": { label: "Toll-Warden", rerollFlat: true }, // a paid reroll's cost stops climbing
   // The Gambler (Economy System PRD 30's 5th archetype, "Event rewards

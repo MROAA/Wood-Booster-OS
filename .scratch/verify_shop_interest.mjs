@@ -40,12 +40,20 @@ const r = await page.evaluate(async () => {
 
   // ---- 1. bankInterest curve ---------------------------------------
   out.detail.consts = { INTEREST_RATE, INTEREST_THRESHOLD, INTEREST_CAP }
+  // Hygiene fix while touching this file for the economy tightening
+  // pass (2026-09-18, INTEREST_CAP itself ended up untouched this
+  // round - see runEngine.js's own comment): the "just under the cap,
+  // still uncapped" boundary was hardcoded as 1499/149, silently tied
+  // to INTEREST_CAP's value at the time it was written. Derived from
+  // INTEREST_CAP/INTEREST_RATE dynamically now instead, so a future
+  // cap change can't silently re-stale this the same way.
+  const justUnderCapEssence = Math.floor((INTEREST_CAP - 1) / INTEREST_RATE)
   out.ok.curve =
     bankInterest(0) === 0 &&
     bankInterest(INTEREST_THRESHOLD - 1) === 0 &&
     bankInterest(INTEREST_THRESHOLD) === Math.floor(INTEREST_THRESHOLD * INTEREST_RATE) &&
     bankInterest(300) === 30 &&
-    bankInterest(1499) === 149 &&
+    bankInterest(justUnderCapEssence) === INTEREST_CAP - 1 &&
     bankInterest(1500) === INTEREST_CAP &&
     bankInterest(5000) === INTEREST_CAP
   out.ok.noRngInSource = !/(Math\.random|Date\.now|crypto)/.test(bankInterest.toString())
