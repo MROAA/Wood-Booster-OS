@@ -693,6 +693,11 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // exact same 2 turn-transition checkpoints slow/root already use,
     // set true only when Retreat Step actually fires.
     retreatStepUsed: false,
+    // Weakened reactions round (Facing PRD's own "puolustajan
+    // reaktioiden heikennys" back-hit line): a THIRD duration-based
+    // status, reusing slow/root's exact mechanism - never in a base
+    // passive, only ever arriving via attackUnit's own back-hit check.
+    suppressed: 0,
     // Iron Sentinel's real Bulwark (effects.js's bulwarkOf): a PERSISTENT
     // armour stat, never decremented anywhere - unlike strength/execute/
     // shatter it never appears in a base passive either (Iron Sentinel's
@@ -1112,6 +1117,11 @@ const ROOT_DURATION = 2
 // 1 turn of reduced movement, then back to normal.
 const SLOW_DURATION = 2
 
+// Weakened reactions round: identical decay math to SLOW_DURATION/
+// ROOT_DURATION above - granting 2 produces exactly 1 turn of visible
+// suppression, then a clean return to normal.
+const SUPPRESSED_DURATION = 2
+
 function frostZoneControllers(state, pos, side) {
   return state.units.filter((u) => u.side === side && u.hp > 0 && u.frosty && kingAdjacent(u.pos, pos))
 }
@@ -1264,7 +1274,11 @@ export function moveUnit(state, unitId, targetPos) {
   // Re-checks the mover's own live hp and the battle's own phase
   // before each subsequent controller's swing, so a flanking pair
   // never both attack a corpse or fire into an already-ended battle.
-  const leavingControllers = zocControllers(state, unit.pos, opposingSide).filter((controller) => !kingAdjacent(controller.pos, targetPos))
+  // Weakened reactions round: a suppressed controller simply doesn't
+  // appear in the reaction-triggering list at all.
+  const leavingControllers = zocControllers(state, unit.pos, opposingSide).filter(
+    (controller) => !kingAdjacent(controller.pos, targetPos) && !(controller.suppressed > 0),
+  )
   for (const controller of leavingControllers) {
     if (next.phase === "won" || next.phase === "lost") break
     const mover = getUnit(next, unitId)
@@ -1441,8 +1455,18 @@ function applyDamageWithBlock(state, targetId, amount) {
   // triggers already rely on. Deliberately NOT routed through
   // moveUnit - no Zone of Control interaction, and facing is left
   // UNCHANGED (a defensive flinch backward, not a repositioning turn).
+  // Weakened reactions round: !(target.suppressed > 0) - a suppressed
+  // unit can't retreat either, including from the SAME back hit that
+  // just granted the suppression (attackUnit applies it to `next`
+  // BEFORE calling this function, so `target` here already reflects it).
   const canRetreat =
-    target.wary && !revived && nextHp > 0 && remaining >= target.maxHp * RETREAT_STEP_HP_THRESHOLD_PCT && !target.retreatStepUsed && !(target.root > 0)
+    target.wary &&
+    !revived &&
+    nextHp > 0 &&
+    remaining >= target.maxHp * RETREAT_STEP_HP_THRESHOLD_PCT &&
+    !target.retreatStepUsed &&
+    !(target.root > 0) &&
+    !(target.suppressed > 0)
   if (canRetreat) {
     const delta = DIR_DELTA[OPPOSITE_DIR[target.facing]]
     const destination = { row: target.pos.row + delta.dRow, col: target.pos.col + delta.dCol }
@@ -1645,7 +1669,15 @@ function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
 // Guardian back to guarantee it can intercept) with zero new state.
 function eligibleGuardian(state, target) {
   return state.units.find(
-    (u) => u.side === target.side && u.id !== target.id && u.hp > 0 && u.className === "Guardian" && u.ap >= 1 && kingAdjacent(u.pos, target.pos),
+    (u) =>
+      u.side === target.side &&
+      u.id !== target.id &&
+      u.hp > 0 &&
+      u.className === "Guardian" &&
+      u.ap >= 1 &&
+      kingAdjacent(u.pos, target.pos) &&
+      // Weakened reactions round: a suppressed Guardian can't intercept.
+      !(u.suppressed > 0),
   )
 }
 
@@ -1681,6 +1713,17 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     effectiveTarget = { ...target, block: weakened }
     blockWeakenNote = ` ${target.name}'s Block is weakened to ${weakened}!`
   }
+  // Weakened reactions round (Facing PRD's own back-hit line,
+  // "puolustajan reaktioiden heikennys"): applied BEFORE the damage
+  // call, same as Block-weaken above - so THIS SAME hit's own
+  // downstream Retreat Step check (inside applyDamageWithBlock,
+  // reading target fresh off `next`) already sees the suppression and
+  // correctly denies a retreat from the very blow that caused it.
+  let suppressedNote = ""
+  if (facing === "back") {
+    next = setUnit(next, targetId, { suppressed: (target.suppressed || 0) + SUPPRESSED_DURATION })
+    suppressedNote = ` ${target.name}'s guard falters, reactions weakened!`
+  }
   const rawAmount = modifiedAttackAmount(actor, effectiveTarget, actor.attack)
   const guardian = eligibleGuardian(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
@@ -1712,7 +1755,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // facingMultiplier computes it in the same formula.
   const facingPct = facing !== "front" ? Math.round((facingMultiplier(actor, effectiveTarget, facing) - 1) * 100) : 0
   const facingNote = facing === "side" ? ` (flanked, +${facingPct}%)` : facing === "back" ? ` (from behind, CRITICAL, +${facingPct}%)` : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}`] }
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}${suppressedNote}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that
   // hit's damage - the real game's debuff step is its own move in the
@@ -2090,10 +2133,19 @@ export function endPlayerTurn(state) {
     // Thorn Zone round: enemy-side `root` decays alongside `slow` at
     // this same checkpoint - the exact same mechanism, same `|| 0`
     // guard requirement. Retreat Step round: `retreatStepUsed` resets
-    // here too - a plain boolean, no `|| 0` needed.
+    // here too - a plain boolean, no `|| 0` needed. Weakened reactions
+    // round: `suppressed` decays the same way as `slow`/`root`.
     units: ticked.units.map((u) =>
       u.side === "enemy"
-        ? { ...u, ap: u.apMax, block: fortressBlock, slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1), retreatStepUsed: false }
+        ? {
+            ...u,
+            ap: u.apMax,
+            block: fortressBlock,
+            slow: Math.max(0, (u.slow || 0) - 1),
+            root: Math.max(0, (u.root || 0) - 1),
+            retreatStepUsed: false,
+            suppressed: Math.max(0, (u.suppressed || 0) - 1),
+          }
         : u,
     ),
     log: [...ticked.log, "Enemy turn."],
@@ -2336,6 +2388,7 @@ export function runEnemyTurn(state) {
             slow: Math.max(0, (u.slow || 0) - 1),
             root: Math.max(0, (u.root || 0) - 1),
             retreatStepUsed: false,
+            suppressed: Math.max(0, (u.suppressed || 0) - 1),
           }
         : u,
     ),
