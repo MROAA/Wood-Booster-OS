@@ -12,6 +12,8 @@ import {
   sellUnit,
   retrainCommander,
   rerollShop,
+  gambleShop,
+  GAMBLE_COST,
   buyInvestment,
   scoutAhead,
   scoutCost,
@@ -506,6 +508,11 @@ export default function HeartwoodBattle() {
     setRunState((current) => rerollShop(current))
   }
 
+  function handleGamble() {
+    playSfx("reroll")
+    setRunState((current) => gambleShop(current))
+  }
+
   function handleBuyItem(itemDefId) {
     playSfx("buy")
     setRunState((current) => buyItem(current, itemDefId))
@@ -707,6 +714,7 @@ export default function HeartwoodBattle() {
       if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("run-power")
       if ((runState.essence || 0) >= scoutCost(runState)) ids.push("scout")
       if ((runState.essence || 0) >= antidoteCost(runState)) ids.push("antidote")
+      if ((runState.essence || 0) >= GAMBLE_COST) ids.push("gamble")
       ids.push("seed")
     }
     if (phase === "relic") ids.push("relic")
@@ -992,6 +1000,7 @@ export default function HeartwoodBattle() {
           onToggleFreeze={handleToggleFreeze}
           onUseCommanderActive={handleUseCommanderActive}
           onReroll={handleReroll}
+          onGamble={handleGamble}
           onAntidote={handleAntidote}
           onBuyInvestment={handleBuyInvestment}
           onReclaimBuyback={handleReclaimBuyback}

@@ -35,6 +35,7 @@ import {
   antidoteQueued,
   effectiveRecruitCost,
   MARKET_EVENTS,
+  GAMBLE_COST,
 } from "../../services/heartwood/runEngine"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
@@ -91,6 +92,7 @@ export default function SquadDraft({
   runState,
   onRecruit,
   onReroll,
+  onGamble,
   onAntidote,
   onContinue,
   onRankUp,
@@ -1295,6 +1297,21 @@ export default function SquadDraft({
             >
               {runState.frozen && !marketEventLocked ? "Frozen ✓" : "Freeze"}
             </button>
+            {/* The Gamble (Marc: "the game needs also gamble mechanic") -
+                spend Essence for an UNCHOSEN random item or relic
+                instead of picking from the 3 offers above. Always
+                available (no Blackroot-style lock - it's not tied to
+                the unit-offer roll at all), repeatable like Reroll. */}
+            {onGamble && (
+              <button
+                className="hw-move-btn hw-gamble-btn"
+                disabled={runState.essence < GAMBLE_COST}
+                onClick={onGamble}
+                title="Wager Essence for a random item - or, rarely, a relic you could never otherwise buy"
+              >
+                Gamble ({GAMBLE_COST} Essence)
+              </button>
+            )}
             {/* Field Antidote (runEngine.js's buyAntidote, feat/hearthwood-rot):
                 a one-fight squad-wide Regen, the answer to a Rot pack's poison
                 drip. One queued at a time; cost climbs per Act. */}
@@ -1310,6 +1327,23 @@ export default function SquadDraft({
               </button>
             )}
           </div>
+
+          {/* The Gamble's own reveal - a one-shot callout naming what
+              just came out (an item name, or a relic name in the rarer
+              "cosmic" tone reused from the Ragpicker's Market banner,
+              since a relic here is the jackpot outcome). Cleared by
+              leaveShop, so it only ever shows the LATEST pull, never a
+              stale one from a prior visit. */}
+          {runState.lastGambleReward && (
+            <div
+              className="hw-gamble-reveal"
+              data-tone={runState.lastGambleReward.kind === "relic" ? "cosmic" : "plain"}
+            >
+              {runState.lastGambleReward.kind === "relic"
+                ? `Jackpot! You won ${RELICS[runState.lastGambleReward.defId]?.name}.`
+                : `You won ${ITEMS[runState.lastGambleReward.defId]?.name}.`}
+            </div>
+          )}
 
           <div className="hw-market-divider" />
           <div className="hw-section-label" title="Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.">
