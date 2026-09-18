@@ -80,6 +80,12 @@ export const COACH_TIPS = [
     anchor: ".hw-rail-section--ledger",
   },
   {
+    id: "gamble",
+    title: "The Gamble",
+    text: "Spend Essence on a wager instead of a choice - you'll get a random item, or rarely a relic (the only way to buy one outright; they're normally a free reward, never for sale). Might be a dud, might be the best thing in your bag.",
+    anchor: ".hw-gamble-btn",
+  },
+  {
     id: "economy-crew",
     title: "Economy units",
     text: "A Merchant, Banker, Forager, Toll-Warden or Fortune's Root pays off your run's economy - cheaper recruits, earlier interest, bigger win payouts, more (and bigger) special markets - but ONLY while deployed, and each one is a weak body in the fight. Deploy one and you're trading a fighter for the money.",

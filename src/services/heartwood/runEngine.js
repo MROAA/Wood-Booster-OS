@@ -1859,8 +1859,10 @@ export function leaveShop(runState) {
   const cleared = runState.lastEvolved?.length ? { ...runState, lastEvolved: [] } : runState
   // Market Events (feat/hearthwood-market-events): this shop stop is
   // over - clear the special-market flag. It's re-derived from the seed
-  // at the NEXT shop entry.
-  return { ...cleared, marketEvent: null, ...advanceToNextNode(cleared) }
+  // at the NEXT shop entry. The Gamble's own "you got: X" reveal
+  // (lastGambleReward) is a "just now" callout too - cleared the same
+  // way lastEvolved already is, so it never carries into a later visit.
+  return { ...cleared, marketEvent: null, lastGambleReward: null, ...advanceToNextNode(cleared) }
 }
 
 // --- Map events (events.js) ---------------------------------------------
@@ -2592,6 +2594,51 @@ export function buyAntidote(runState) {
     ...runState,
     essence: runState.essence - cost,
     pendingActiveEffects: [...(runState.pendingActiveEffects || []), { ...ANTIDOTE_EFFECT }],
+  }
+}
+
+// The Gamble (Marc: "the game needs also gamble mechanic" - a request
+// alongside/beyond The Gambler economy unit, which only reweights
+// which random Market Event shows up. This one is an ACTIVE wager the
+// player takes themselves): a standing shop action, the same
+// spend-Essence-for-an-unchosen-outcome shape Reroll already has, just
+// aimed at the item/relic pool instead of the 3 unit offers. The
+// VARIANCE is the gamble, not a binary win/lose - a common item is a
+// real loss against the flat GAMBLE_COST, a pricier item is roughly a
+// wash, and a relic is the jackpot: relics are otherwise ONLY ever a
+// free node-choice reward, never purchasable at all, so this is the
+// single way Essence can buy one outright. Repeatable, like Reroll -
+// each pull is a fresh independent roll off the seeded shop stream.
+export const GAMBLE_COST = 150
+
+export function gambleShop(runState) {
+  if ((runState.essence || 0) < GAMBLE_COST) return runState
+  const gambleCount = styleN(runState, "gambles") + 1
+  const rng = streamRng(runState.seed, "shop", `${runState.nodeIndex}:gamble:${gambleCount}`)
+  const roll = rng()
+  let reward
+  if (roll < 0.4) {
+    reward = { kind: "item", defId: randomFromList(itemPool().filter((i) => i.tier === "common").map((i) => i.id), rng) }
+  } else if (roll < 0.75) {
+    reward = { kind: "item", defId: randomFromList(itemPool().filter((i) => i.tier !== "common").map((i) => i.id), rng) }
+  } else {
+    // Excludes relics already owned this run - a repeat pull can't
+    // hand back something already sitting in runState.relics. Falls
+    // back to an item on the vanishingly rare chance every relic in
+    // the pool (49) is already owned, so a gamble never silently no-ops.
+    const relicId = randomFromList(relicPool().filter((r) => !(runState.relics || []).includes(r.id)).map((r) => r.id), rng)
+    reward = relicId ? { kind: "relic", defId: relicId } : { kind: "item", defId: randomFromList(itemPool().map((i) => i.id), rng) }
+  }
+  const next = {
+    ...bumpStyle(runState, { gambles: gambleCount }),
+    essence: runState.essence - GAMBLE_COST,
+    lastGambleReward: reward,
+  }
+  if (reward.kind === "relic") return { ...next, relics: [...next.relics, reward.defId] }
+  return {
+    ...next,
+    items: [...next.items, { key: next.itemKeyCounter, defId: reward.defId, equippedTo: null, slotIndex: null }],
+    itemKeyCounter: next.itemKeyCounter + 1,
   }
 }
 

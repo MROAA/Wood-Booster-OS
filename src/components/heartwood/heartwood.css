@@ -7441,6 +7441,24 @@ img.hw-intent-glyph {
   border-color: color-mix(in srgb, var(--hw-moss) 60%, transparent);
   color: color-mix(in srgb, var(--hw-moss) 85%, var(--hw-text));
 }
+/* The Gamble - a cosmic tint (same accent The Ragpicker's Market's own
+   banner and the Gambler unit's icon already use for "luck/chance")
+   distinguishes it from Reroll/Freeze's plain default look, at rest. */
+.hw-gamble-btn {
+  border-color: color-mix(in srgb, var(--hw-cosmic) 45%, var(--hw-border));
+  color: color-mix(in srgb, var(--hw-cosmic) 70%, var(--hw-text));
+}
+.hw-gamble-reveal {
+  margin-top: 6px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--hw-muted);
+}
+.hw-gamble-reveal[data-tone="cosmic"] {
+  color: color-mix(in srgb, var(--hw-cosmic) 80%, var(--hw-text));
+  font-weight: 700;
+  font-style: normal;
+}
 .hw-scout-btn .hw-intent-glyph {
   width: 12px;
   height: 12px;
