@@ -31,6 +31,12 @@ export const ECONOMY_ROLES = {
   banker: { label: "Banker", interestThreshold: 120 }, // interest starts at 120 Essence, not 150
   forager: { label: "Forager", winBonus: 12 }, // +12 Essence on every non-boss win
   "toll-warden": { label: "Toll-Warden", rerollFlat: true }, // a paid reroll's cost stops climbing
+  // The Gambler (Economy System PRD 30's 5th archetype, "Event rewards
+  // improved / Risk increased"): doubles the Market Event roll chance
+  // AND skews which one lands toward the two highest-variance events
+  // (Golden/Blackroot) instead of the mild Wandering Merchant -
+  // runEngine.js's pickMarketEvent reads eventChanceMult/eventHot.
+  gambler: { label: "Gambler", eventChanceMult: 2, eventHot: true },
 }
 
 // The deployed economy units, in deploy-slot order: { key, defId, role, label }.
@@ -54,6 +60,8 @@ export function economyCrewEffects(runState) {
   let interestThreshold = DEFAULT_INTEREST_THRESHOLD
   let winBonus = 0
   let rerollFlat = false
+  let eventChanceMult = 1
+  let eventHot = false
   for (const { role } of crew) {
     const spec = ECONOMY_ROLES[role]
     if (!spec) continue
@@ -61,9 +69,14 @@ export function economyCrewEffects(runState) {
     if (spec.interestThreshold) interestThreshold = Math.min(interestThreshold, spec.interestThreshold)
     if (spec.winBonus) winBonus += spec.winBonus
     if (spec.rerollFlat) rerollFlat = true
+    // eventChanceMult stacks multiplicatively (2 Gamblers deployed ->
+    // 4x) the same way Trader's Compass's own doubling already reads
+    // as a plain multiplier, not an additive bonus.
+    if (spec.eventChanceMult) eventChanceMult *= spec.eventChanceMult
+    if (spec.eventHot) eventHot = true
   }
   // Own cap on the recruit discount from this crew (it still combines
   // with the Regular's Discount Ledger buy under effectiveRecruitCost's
   // own 0.6 combined cap).
-  return { recruitPct: Math.min(0.45, recruitPct), interestThreshold, winBonus, rerollFlat }
+  return { recruitPct: Math.min(0.45, recruitPct), interestThreshold, winBonus, rerollFlat, eventChanceMult, eventHot }
 }

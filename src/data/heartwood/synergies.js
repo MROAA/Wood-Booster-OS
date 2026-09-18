@@ -243,6 +243,7 @@ export const UNIT_TRIBES = {
   "acorn-banker": ["stone", "warden"],
   "hollow-forager": ["wood", "fang"],
   "toll-warden": ["stone", "thorn"],
+  "fortunes-root": ["cosmic", "spirit"],
   // The Hunters, player answers (feat/hearthwood-hunters).
   "oathshield": ["warden", "stone"],
   "lure-warden": ["warden", "thorn"],
