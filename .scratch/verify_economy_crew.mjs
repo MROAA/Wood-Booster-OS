@@ -73,7 +73,12 @@ const R = await page.evaluate(async () => {
   // 2. economyCrewEffects — each alone, none, bench-not-deployed, stacking, cap
   {
     const def = economyCrewEffects(startRun("tommy"))
-    const noneOk = eq(def, { recruitPct: 0, interestThreshold: 150, winBonus: 0, rerollFlat: false })
+    // The Gambler round (feat/hearthwood-economy-gambler, earlier this
+    // session) added eventChanceMult/eventHot to economyCrewEffects's
+    // own return shape - this exact-shape check went stale then, not
+    // today; fixed now while touching this file for the tightening
+    // pass's own forager numbers below.
+    const noneOk = eq(def, { recruitPct: 0, interestThreshold: 150, winBonus: 0, rerollFlat: false, eventChanceMult: 1, eventHot: false })
     const merch = economyCrewEffects(withDeployed(["grove-merchant"]))
     const bank = economyCrewEffects(withDeployed(["acorn-banker"]))
     const forg = economyCrewEffects(withDeployed(["hollow-forager"]))
@@ -184,7 +189,9 @@ const R = await page.evaluate(async () => {
     out.purity = { unchanged, deterministic }
     if (!(unchanged && deterministic)) out.errors.push("check8 purity")
     // sanity: the table has all 4 roles
-    if (Object.keys(ECONOMY_ROLES).length !== 4) out.errors.push("check8 ECONOMY_ROLES size")
+    // Stale since the Gambler round added a 5th role (fixed now, same
+    // reasoning as noneOk's own comment above).
+    if (Object.keys(ECONOMY_ROLES).length !== 5) out.errors.push("check8 ECONOMY_ROLES size")
   }
 
   return out

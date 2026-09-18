@@ -300,7 +300,29 @@ const START_ESSENCE = roundTo50(OPENING_BASE * RAMP_CAP)
 // whole-run footprint; that's why it's the one that carries the
 // coupling. If the whole-run curve ever needs to track RAMP_CAP too,
 // that's a separate calibration lever, not this one.
-const WIN_ESSENCE = 200
+// Economy tightening pass (Marc, 2026-09-18): "kehitä pelin ekonomiaa
+// tiukemmaksi ... rahan arvo tuntuu enemmän ... enemmän opportunity
+// cost" (make the economy tighter, money's value should feel more,
+// spending should carry more opportunity cost) - separately, "peli
+// tuntuu liian helpolta" (the game feels too easy), from his own real
+// play. Asked directly which lever (base win payout / interest / flat
+// per-win bonuses) - first picked all three at a 25-30% cut, but a
+// RUNS=100 fairness-bot before/after check of all three together
+// collapsed 3 of 4 Commanders' win rates to near-zero (compounding
+// hard across ~40 fights/run - even the base payout cut ALONE did
+// this). Marc's own read: the bot plays too mediocrely to be a
+// trustworthy difficulty signal for this kind of change, so its
+// win-rate collapse isn't itself disqualifying - but scoped down to
+// ONE lever anyway (this one), at the fuller 25% cut, to keep this
+// round's real blast radius small enough for his own play to actually
+// judge, rather than shipping all 3 at once on an unvalidated
+// assumption. Was 200 (see this constant's own history above -
+// deliberately NOT touched by several PRIOR economy passes) - this is
+// the first round Marc has directly asked to move it. If this still
+// reads as too easy (or now too hard) once he's played it further,
+// that real feedback is the actual calibration signal here, not the
+// bot.
+const WIN_ESSENCE = 150
 // Marc: "now it doesn't feel like anything purchasing the units or
 // items" - the Essence RATE has already been tuned back and forth
 // this session (bumped +50%, then cut 5/6->4/4 for "opportunity
@@ -345,7 +367,10 @@ export const RESERVE_CAP = 6
 // Rounded to the 50/100/150/200 family (Marc, round numbers) - not in
 // Marc's explicit table (an Essence reward, not a price); rounded
 // 125->100 to match how his table rounds 125 elsewhere.
-const FORMATION_BONUS_ESSENCE = 100
+// Economy tightening pass (see WIN_ESSENCE's own comment): same 25%
+// cut, scaled proportionally so a formation win still pays the same
+// RELATIVE premium over a plain fight it always has.
+const FORMATION_BONUS_ESSENCE = 75
 // Minibosses (Deepwarden, Thornmaw, Wyrmgall) are a harder win than even a
 // formation fight - a bigger payout than FORMATION_BONUS_ESSENCE, same
 // "reward matches difficulty" reasoning essenceForWin's own note gives.
@@ -353,10 +378,14 @@ const FORMATION_BONUS_ESSENCE = 100
 // Rounded to the 50/100/150/200 family (Marc, round numbers) - not in
 // Marc's explicit table (an Essence reward, not a price); rounded
 // 190->150 to match how his table rounds 190 elsewhere.
-const MINIBOSS_BONUS_ESSENCE = 150
+// Economy tightening pass (see WIN_ESSENCE's own comment): ~25% cut
+// (150 -> 115), same proportional-premium reasoning as the formation/
+// elite bonuses.
+const MINIBOSS_BONUS_ESSENCE = 115
 // Elites (feat/hearthwood-elites): a harder win than a formation, not
 // as hard as a Trial miniboss - the reward sits between the two.
-const ELITE_BONUS_ESSENCE = 120
+// Economy tightening pass (see WIN_ESSENCE's own comment): 25% cut.
+const ELITE_BONUS_ESSENCE = 90
 // Market-scale-up pass (Marc, verbatim burst: "heartwood market ja your
 // squad pitää olla ainakin tuplasti isommat" / "kortit on pieniä
 // infopalasia jotka kertoo paljon silmäyksellä" - the Market/Squad
@@ -1293,6 +1322,12 @@ export const SHOP_INVESTMENTS = {
   "ledger-account": {
     name: "Ledger Account",
     cost: 450,
+    // Economy tightening pass (Marc, 2026-09-18): tried cutting this
+    // too alongside the base win payout, but a RUNS=100 fairness check
+    // of ALL 3 chosen levers together collapsed 3 of 4 Commanders to
+    // near-zero win rates - Marc chose to keep only ONE lever (the
+    // base win payout) at the fuller cut instead. Left at its
+    // original value.
     desc: "+40 Essence every battle win, permanently.",
     unlockLevel: 3,
   },
@@ -2853,6 +2888,14 @@ export function essenceForWin(runState, node) {
 // balance IS the bank, exactly like TFT gold.
 export const INTEREST_RATE = 0.1 // 10% (TFT standard)
 export const INTEREST_THRESHOLD = 150 // ~3 banked commons before it kicks in
+// Economy tightening pass (Marc, 2026-09-18): tried cutting this too,
+// alongside the base win payout - a RUNS=100 fairness-bot check showed
+// a severe combined swing, though Marc's own read is that the bot
+// isn't a trustworthy difficulty signal here (it plays too mediocrely
+// to represent a real run). Scoped down to ONE lever anyway (the base
+// win payout below) to keep this round's real-world blast radius
+// small and legible for his own playtesting to judge - left this at
+// its original value, untouched, for now.
 export const INTEREST_CAP = 150 // one rare's worth per win - bounds the snowball
 
 export function bankInterest(essence, threshold = INTEREST_THRESHOLD) {
