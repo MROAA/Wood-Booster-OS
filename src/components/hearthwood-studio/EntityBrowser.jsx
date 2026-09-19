@@ -16,22 +16,34 @@ const PRIMARY_TYPES = [
   { type: "items", label: "Items" },
 ]
 
-const OVERFLOW_TYPES = [
+// Marc, 2026-09-19: "en löydä mistä voin muokkaa pelin tarinaa" (can't
+// find where to edit the game's story) - every one of these WAS already
+// reachable, just flattened into one alphabetical dropdown with no
+// label saying "this is the story". Grouped by <optgroup> below so
+// "Story" is a real, visible category instead of something you have to
+// already know to look for.
+const STORY_TYPES = [
+  { type: "storyJournal", label: "Story Journal" },
+  { type: "cinematics", label: "Cinematics" },
+  { type: "crossroads", label: "Act Crossroads" },
+  { type: "crownless", label: "Crownless Intro" },
+  { type: "events", label: "Map Events" },
+  { type: "merchants", label: "Merchant Lines" },
+  { type: "moods", label: "Forest Mood" },
+]
+
+const OTHER_TYPES = [
   { type: "characters", label: "Characters" },
   { type: "formations", label: "Formations" },
   { type: "synergies", label: "Synergies" },
   { type: "dualClasses", label: "Dual Classes" },
   { type: "trials", label: "Trials" },
   { type: "tutorial", label: "Tutorial" },
-  { type: "cinematics", label: "Cinematics" },
-  { type: "crossroads", label: "Crossroads" },
-  { type: "crownless", label: "Crownless" },
-  { type: "events", label: "Events" },
-  { type: "merchants", label: "Merchants" },
-  { type: "moods", label: "Forest Mood" },
   { type: "boons", label: "Boons" },
   { type: "banes", label: "Banes" },
 ]
+
+const OVERFLOW_TYPES = [...STORY_TYPES, ...OTHER_TYPES]
 
 /*
  * Entiteettiselain: tyyppivälilehdet (enemies|units|cards|relics|items
@@ -123,11 +135,22 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
           `}
         >
           <option value="">Other types...</option>
-          {
-            OVERFLOW_TYPES.map(entry => (
-              <option key={entry.type} value={entry.type}>{entry.label}</option>
-            ))
-          }
+
+          <optgroup label="Story">
+            {
+              STORY_TYPES.map(entry => (
+                <option key={entry.type} value={entry.type}>{entry.label}</option>
+              ))
+            }
+          </optgroup>
+
+          <optgroup label="Other">
+            {
+              OTHER_TYPES.map(entry => (
+                <option key={entry.type} value={entry.type}>{entry.label}</option>
+              ))
+            }
+          </optgroup>
         </select>
 
         <input
@@ -154,24 +177,40 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
         }
 
         {
-          entities.map(entity => (
-            <button
-              key={entity.id}
-              type="button"
-              onClick={() => onSelect(type, entity.id)}
-              className={`
-                w-full rounded-lg border px-3 py-2 text-left text-xs transition-colors
-                ${
-                  selectedId === entity.id
-                    ? "border-[var(--wood-accent)] bg-[var(--wood-card)] text-[var(--wood-text)]"
-                    : "border-transparent text-[var(--wood-muted)] hover:bg-[var(--wood-card)] hover:text-[var(--wood-text)]"
+          entities.map(entity => {
+            const imagePath = entity.fields?.image?.value
+
+            return (
+              <button
+                key={entity.id}
+                type="button"
+                onClick={() => onSelect(type, entity.id)}
+                className={`
+                  flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs transition-colors
+                  ${
+                    selectedId === entity.id
+                      ? "border-[var(--wood-accent)] bg-[var(--wood-card)] text-[var(--wood-text)]"
+                      : "border-transparent text-[var(--wood-muted)] hover:bg-[var(--wood-card)] hover:text-[var(--wood-text)]"
+                  }
+                `}
+              >
+                {
+                  imagePath && (
+                    <img
+                      src={`/${imagePath}`}
+                      alt=""
+                      className="h-8 w-8 shrink-0 rounded object-cover bg-[var(--wood-bg)]"
+                    />
+                  )
                 }
-              `}
-            >
-              <div className="font-medium">{entity.name || entity.id}</div>
-              <div className="font-mono text-[10px] opacity-70">{entity.id}</div>
-            </button>
-          ))
+
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{entity.name || entity.id}</div>
+                  <div className="truncate font-mono text-[10px] opacity-70">{entity.id}</div>
+                </div>
+              </button>
+            )
+          })
         }
       </div>
     </div>

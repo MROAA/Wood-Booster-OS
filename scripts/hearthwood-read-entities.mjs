@@ -557,6 +557,29 @@ function entityFromProperty(prop, importMap) {
 
         }
 
+    } else if (value && scalarValue(value)) {
+
+        // A flat map entry (id -> bare scalar, e.g. storyLog.js's
+        // FLAG_LABELS: id -> sentence string) has no sub-object to pull
+        // fields from - the value itself IS the one editable field.
+        // Exposed under a synthetic "text" key so the field editor can
+        // treat it like any other scalar; resolvePath in
+        // hearthwood-apply-edit.mjs mirrors this by returning the map
+        // entry's own value node for any trailing path segment here.
+        const scalar = scalarValue(value)
+
+        fields.text = {
+            value: scalar.value,
+            kind: scalar.kind,
+            range: [value.start, value.end],
+        }
+
+        if (scalar.kind === "string") {
+
+            name = scalar.value
+
+        }
+
     } else if (value) {
 
         complexKeys.push(`<${value.type}>`)

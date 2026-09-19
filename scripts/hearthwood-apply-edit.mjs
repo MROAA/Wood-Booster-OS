@@ -327,6 +327,20 @@ function findArrayElementByIdOrIndex(arrayNode, segment) {
 
 }
 
+/** Is `node` a splice-safe scalar literal (string/number/boolean/null)? */
+function isScalarNode(node) {
+
+    return (node.type === "Literal"
+        && (node.value === null
+            || ["string", "number", "boolean"].includes(typeof node.value)))
+        || (node.type === "UnaryExpression"
+            && (node.operator === "-" || node.operator === "+")
+            && node.argument
+            && node.argument.type === "Literal"
+            && typeof node.argument.value === "number")
+
+}
+
 /**
  * Walk `pathSegments` from `rootObject` (the root map's ObjectExpression)
  * to the value node it addresses. The first segment names an entity key
@@ -361,6 +375,18 @@ function resolvePath(rootObject, pathSegments, ast) {
             }
 
             current = prop.value
+
+            // A flat map entry (id -> bare scalar, e.g. storyLog.js's
+            // FLAG_LABELS) has no sub-object to descend into - the reader
+            // (hearthwood-read-entities.mjs) exposes it as a synthetic
+            // "text" field anyway, so any trailing path segment here
+            // addresses that same scalar directly rather than trying to
+            // look up a property on it.
+            if (pathSegments.length > i + 1 && isScalarNode(current)) {
+
+                return { node: current }
+
+            }
 
             continue
 
@@ -1183,17 +1209,7 @@ function applyJsEdits({ source, exportName, edits }) {
             const target = resolved.node
 
             // Only scalar literal targets are splice-safe.
-            const isScalarTarget =
-                (target.type === "Literal"
-                    && (target.value === null
-                        || ["string", "number", "boolean"].includes(typeof target.value)))
-                || (target.type === "UnaryExpression"
-                    && (target.operator === "-" || target.operator === "+")
-                    && target.argument
-                    && target.argument.type === "Literal"
-                    && typeof target.argument.value === "number")
-
-            if (!isScalarTarget) {
+            if (!isScalarNode(target)) {
 
                 rejected.push({
                     path: editPath,
