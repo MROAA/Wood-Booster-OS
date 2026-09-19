@@ -50,6 +50,22 @@ export const HEARTHWOOD_DATA_DIR = "src/data/heartwood"
  *                     -- NOTE: no `TUTORIAL` export exists; the step list
  *                        is TUTORIAL_STEPS (tutorial.js also exports
  *                        TUTORIAL_SEEN_KEY, a string).
+ *
+ * Story/text round (Marc, 2026-09-19: "haluan pystyä muokkaamaan niin
+ * tarinan, tekstit kuin jokasen unitin ja relicin" - units/relics were
+ * already covered above; these 8 are the actual gap, all hand-authored
+ * narrative/flavor text per docs/hearthwood-story-acts.md's own "story
+ * is never generated" rule):
+ *   cinematics.js   export const CINEMATICS               (object map - intro/ending cinematics)
+ *   crossroads.js   export const ACT_CROSSROADS            (object map - per-Act story crossroads)
+ *   crownless.js    export const CROWNLESS_INTRO_BY_TRIBE   (object map - the Crownless mirror-match intro lines)
+ *   events.js       export const EVENTS                    (ARRAY - map-event vignettes + choices)
+ *   merchant.js     export const MERCHANTS                 (object map - shopkeeper greeting lines)
+ *   moods.js        export const FOREST_MOOD               (object map - Forest Mood band flavor text)
+ *   boons.js        export const RUN_BOONS                 (ARRAY - run-modifier boon flavor+effects)
+ *   boons.js        export const RUN_BANES                 (ARRAY - run-modifier bane flavor+effects;
+ *                     same file as RUN_BOONS, a 2nd entity type pointing at it - the registry
+ *                     keys on exportName, not file, so one file can back more than one type)
  */
 export const ENTITY_TYPES = {
     enemies: { file: "enemies.js", exportName: "ENEMIES" },
@@ -63,6 +79,14 @@ export const ENTITY_TYPES = {
     dualClasses: { file: "dualClasses.js", exportName: "DUAL_CLASSES" },
     trials: { file: "trials.js", exportName: "TRIALS" },
     tutorial: { file: "tutorial.js", exportName: "TUTORIAL_STEPS" },
+    cinematics: { file: "cinematics.js", exportName: "CINEMATICS" },
+    crossroads: { file: "crossroads.js", exportName: "ACT_CROSSROADS" },
+    crownless: { file: "crownless.js", exportName: "CROWNLESS_INTRO_BY_TRIBE" },
+    events: { file: "events.js", exportName: "EVENTS" },
+    merchants: { file: "merchant.js", exportName: "MERCHANTS" },
+    moods: { file: "moods.js", exportName: "FOREST_MOOD" },
+    boons: { file: "boons.js", exportName: "RUN_BOONS" },
+    banes: { file: "boons.js", exportName: "RUN_BANES" },
 }
 
 /**
