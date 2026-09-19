@@ -198,6 +198,13 @@ export function classifyRisk({ targetFiles = [], editSpec = {} } = {}) {
 
             }
 
+            if (op && op.op === "insertAfterKey") {
+
+                tier = maxTier(tier, "MEDIUM")
+                reasons.push("lisää uuden avaimen tiettyyn kohtaan (uutta sisältöä)")
+
+            }
+
             if (op && op.op === "addField") {
 
                 tier = maxTier(tier, "MEDIUM")

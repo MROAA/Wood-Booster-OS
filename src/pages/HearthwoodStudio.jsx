@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { apiGet } from "../api/client"
 
+import AddStoryEntryForm from "../components/hearthwood-studio/AddStoryEntryForm"
 import BalancePanel from "../components/hearthwood-studio/BalancePanel"
 import CloneEntityForm from "../components/hearthwood-studio/CloneEntityForm"
 import DoctorPanel from "../components/hearthwood-studio/DoctorPanel"
@@ -157,6 +158,16 @@ function HearthwoodStudio() {
             : (
               <>
                 <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-y-auto wood-scroll p-5 space-y-4">
+                  {
+                    entityType === "storyJournal" && (
+                      <AddStoryEntryForm
+                        type={entityType}
+                        onApplied={handleApplied}
+                        onPreviewUrlChange={setPreviewUrl}
+                      />
+                    )
+                  }
+
                   {
                     !entityId && (
                       <div className="text-sm text-[var(--wood-muted)]">

@@ -699,6 +699,69 @@ function applyJsEdits({ source, exportName, edits }) {
 
             }
 
+            if (edit.op === "insertAfterKey") {
+
+                // path === [mapName]; like addKey, but inserted right
+                // after an EXISTING key's own entry instead of always at
+                // the map's end - the Studio's "add a new Story Journal
+                // entry" form uses this to drop a new flag into the
+                // correct chronological (Act-ordered) spot instead of
+                // appending it and leaving Marc to re-sort by hand.
+                // `afterKey: null` means "insert at the very start of
+                // the map" (before its first entry).
+                if (rootInit.type !== "ObjectExpression") {
+
+                    rejected.push({ path: editPath, reason: "insertAfterKey requires an object map" })
+                    continue
+
+                }
+
+                const block = String(edit.block || "").replace(/\s+$/, "")
+
+                if (!block) {
+
+                    rejected.push({ path: editPath, reason: "insertAfterKey needs a non-empty block" })
+                    continue
+
+                }
+
+                if (edit.afterKey == null) {
+
+                    const insertAtStart = rootInit.start + 1
+                    const text = `\n${block},`
+
+                    magic.appendLeft(insertAtStart, text)
+
+                    applied.push({ path: editPath, oldText: "", newText: text })
+
+                    continue
+
+                }
+
+                const afterKey = String(edit.afterKey)
+                const found = findMapPropertyWithContainer(rootInit, ast, afterKey)
+
+                if (!found) {
+
+                    rejected.push({ path: editPath, reason: `afterKey "${afterKey}" not found` })
+                    continue
+
+                }
+
+                const tail = source.slice(found.prop.end)
+                const commaMatch = tail.match(/^\s*,/)
+
+                const insertAt = commaMatch ? found.prop.end + commaMatch[0].length : found.prop.end
+                const text = commaMatch ? `\n${block},` : `,\n${block},`
+
+                magic.appendLeft(insertAt, text)
+
+                applied.push({ path: editPath, oldText: "", newText: text })
+
+                continue
+
+            }
+
             if (edit.op === "addField") {
 
                 // path === [entityId]; key+block describe a brand-new
