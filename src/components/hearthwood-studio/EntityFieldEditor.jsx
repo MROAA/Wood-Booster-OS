@@ -97,12 +97,12 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
-          Kenttäeditori
+          Field Editor
         </label>
 
         {
           changedKeys.length > 0 && (
-            <span className="text-[11px] text-[var(--wood-accent)]">{changedKeys.length} muutettu</span>
+            <span className="text-[11px] text-[var(--wood-accent)]">{changedKeys.length} changed</span>
           )
         }
       </div>
@@ -154,7 +154,7 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
         complexFields.length > 0 && (
           <div className="space-y-2">
             <div className="text-[10px] uppercase tracking-wide text-[var(--wood-muted)]">
-              Monimutkaiset kentät (raakana JS:nä)
+              Complex fields (as raw JS)
             </div>
 
             {
@@ -199,7 +199,7 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
             disabled:cursor-not-allowed disabled:opacity-30
           "
         >
-          {previewing ? "Esikatsellaan..." : `Esikatsele ${changedKeys.length || ""} muutos${changedKeys.length === 1 ? "" : "ta"}`}
+          {previewing ? "Previewing..." : `Preview ${changedKeys.length || ""} change${changedKeys.length === 1 ? "" : "s"}`}
         </button>
       </div>
 

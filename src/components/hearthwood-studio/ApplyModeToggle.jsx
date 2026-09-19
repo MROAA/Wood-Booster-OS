@@ -30,7 +30,7 @@ function ApplyModeToggle({ risk, value, onChange }) {
       <button
         type="button"
         disabled
-        title="PR-tila tulossa Vaiheessa 3 - ei vielä tuettu"
+        title="PR mode is coming in Phase 3 - not supported yet"
         className="
           rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs
           font-medium text-[var(--wood-muted)] opacity-30 cursor-not-allowed
@@ -42,7 +42,7 @@ function ApplyModeToggle({ risk, value, onChange }) {
       {
         !liveAllowed && (
           <span className="text-xs text-red-400">
-            Tämä muutos vaatii Pull Requestin - Patchbay ei vielä tue sitä. Pyydä Claudea.
+            This change needs a Pull Request - the Patchbay doesn't support that yet. Ask Claude.
           </span>
         )
       }

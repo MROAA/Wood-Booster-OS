@@ -74,7 +74,7 @@ function BalancePanel() {
   return (
     <div className="space-y-3 rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-[var(--wood-text)]">Tasapainotesti</div>
+        <div className="text-sm font-semibold text-[var(--wood-text)]">Balance Test</div>
 
         <div className="flex items-center gap-2">
           <select
@@ -83,7 +83,7 @@ function BalancePanel() {
             disabled={running}
             className="h-8 rounded-full border border-[var(--wood-border)] bg-[var(--wood-bg)] px-2 text-xs text-[var(--wood-text)] outline-none disabled:opacity-50"
           >
-            {RUN_OPTIONS.map(n => <option key={n} value={n}>{n} ajoa / komentaja</option>)}
+            {RUN_OPTIONS.map(n => <option key={n} value={n}>{n} runs / commander</option>)}
           </select>
 
           <button
@@ -96,13 +96,13 @@ function BalancePanel() {
               disabled:cursor-not-allowed disabled:opacity-30
             "
           >
-            {running ? "Käynnissä..." : "Aja tasapainotesti"}
+            {running ? "Running..." : "Run balance test"}
           </button>
         </div>
       </div>
 
       <div className="text-[11px] text-[var(--wood-muted)]">
-        {runs >= 100 ? "n=100 kestää noin 5-7 min." : "Ajaa " + runs + " simuloitua läpipeluuta per komentaja - kestää muutaman minuutin."}
+        {runs >= 100 ? "n=100 takes about 5-7 min." : "Runs " + runs + " simulated playthroughs per commander - takes a few minutes."}
       </div>
 
       {errorMessage && <div className="text-xs text-red-300">{errorMessage}</div>}
@@ -110,7 +110,7 @@ function BalancePanel() {
       {
         running && (
           <div className="text-xs text-amber-400">
-            ⏳ Tasapainotesti käynnissä ({job.runs} ajoa / komentaja)...
+            ⏳ Balance test running ({job.runs} runs / commander)...
           </div>
         )
       }
@@ -127,8 +127,8 @@ function BalancePanel() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-[var(--wood-muted)]">
-                  <th className="text-left font-normal">Komentaja</th>
-                  <th className="text-right font-normal">Voitot</th>
+                  <th className="text-left font-normal">Commander</th>
+                  <th className="text-right font-normal">Wins</th>
                   <th className="text-right font-normal">%</th>
                 </tr>
               </thead>
@@ -150,7 +150,7 @@ function BalancePanel() {
               onClick={() => setShowRaw(previous => !previous)}
               className="text-[11px] text-[var(--wood-muted)] underline hover:text-[var(--wood-text)]"
             >
-              {showRaw ? "Piilota koko tuloste" : "Näytä koko tuloste"}
+              {showRaw ? "Hide full output" : "Show full output"}
             </button>
 
             {

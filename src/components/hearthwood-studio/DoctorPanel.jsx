@@ -30,7 +30,7 @@ function DoctorPanel() {
   return (
     <div className="space-y-3 rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-4">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-[var(--wood-text)]">Terveystarkistus</div>
+        <div className="text-sm font-semibold text-[var(--wood-text)]">Health Check</div>
 
         <button
           type="button"
@@ -42,7 +42,7 @@ function DoctorPanel() {
             hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]
           "
         >
-          {loading ? "Tarkistetaan..." : "Aja tarkistus"}
+          {loading ? "Checking..." : "Run check"}
         </button>
       </div>
 
@@ -52,7 +52,7 @@ function DoctorPanel() {
         result && (
           <div className="space-y-1.5">
             <div className={`text-xs font-semibold ${result.healthy ? "text-emerald-400" : "text-red-400"}`}>
-              {result.healthy ? "● Kaikki kunnossa" : "● Jokin vaatii huomiota"}
+              {result.healthy ? "● Everything is fine" : "● Something needs attention"}
             </div>
 
             {

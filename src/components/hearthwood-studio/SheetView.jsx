@@ -198,7 +198,7 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
         <input
           value={query}
           onChange={event => setQuery(event.target.value)}
-          placeholder="Hae nimellä tai id:llä..."
+          placeholder="Search by name or id..."
           className="
             h-9 w-64 rounded-full border border-[var(--wood-border)] bg-[var(--wood-bg)]
             px-4 text-xs text-[var(--wood-text)] outline-none
@@ -207,7 +207,7 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
         />
 
         <div className="flex items-center gap-2">
-          {dirtyCount > 0 && <span className="text-xs text-[var(--wood-accent)]">{dirtyCount} muutettu</span>}
+          {dirtyCount > 0 && <span className="text-xs text-[var(--wood-accent)]">{dirtyCount} changed</span>}
 
           <button
             type="button"
@@ -219,7 +219,7 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
               disabled:cursor-not-allowed disabled:opacity-30
             "
           >
-            {previewing ? "Esikatsellaan..." : `Esikatsele ${dirtyCount || ""} muutos${dirtyCount === 1 ? "" : "ta"}`}
+            {previewing ? "Previewing..." : `Preview ${dirtyCount || ""} change${dirtyCount === 1 ? "" : "s"}`}
           </button>
         </div>
       </div>
@@ -242,7 +242,7 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
       }
 
       <div className="wood-scroll min-h-0 flex-1 overflow-auto">
-        {loading && <div className="p-4 text-sm text-[var(--wood-muted)]">Ladataan...</div>}
+        {loading && <div className="p-4 text-sm text-[var(--wood-muted)]">Loading...</div>}
 
         {errorMessage && <div className="p-4 text-xs text-red-300">{errorMessage}</div>}
 

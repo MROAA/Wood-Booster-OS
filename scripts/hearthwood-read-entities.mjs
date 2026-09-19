@@ -247,6 +247,70 @@ function findExportInit(ast, exportName) {
     return null
 }
 
+/**
+ * Marc: "haluan että siinä näkyy vanha kuva selvästi esillä" (the
+ * image-upload field should clearly show the CURRENT image, not just
+ * a bare "change image" button). An `identifierKeys` field (e.g.
+ * `image: hollowveilImg`) only ever exposed the FIELD NAME to the
+ * frontend before this - never what the identifier actually points
+ * to - so there was nothing to render an <img> from. Maps every
+ * top-level `import xImg from "../../assets/heartwood/..."` to its
+ * import path, keyed by local name, so identifier-ref fields can be
+ * resolved back to an actual file the frontend can display.
+ */
+function buildImportMap(ast) {
+
+    const map = new Map()
+
+    for (const node of ast.body) {
+
+        if (node.type !== "ImportDeclaration" || typeof node.source?.value !== "string") {
+
+            continue
+
+        }
+
+        for (const specifier of node.specifiers || []) {
+
+            if (specifier.type === "ImportDefaultSpecifier" && specifier.local?.name) {
+
+                map.set(specifier.local.name, node.source.value)
+
+            }
+        }
+    }
+
+    return map
+
+}
+
+/**
+ * Resolves an import's own source string (e.g.
+ * "../../assets/heartwood/units/hollowveil.jpg", relative to the data
+ * file's own directory) into a PROJECT_ROOT-relative path (e.g.
+ * "src/assets/heartwood/units/hollowveil.jpg") - Vite's dev server
+ * serves the whole source tree at root-relative URLs, so prefixing
+ * this with "/" is a real, loadable <img src> for the SAME app the
+ * Studio page itself renders inside (HearthwoodStudio.jsx is just
+ * another route in the game's own Vite app, not a separate server).
+ */
+function resolveImportAssetPath(importSource) {
+
+    if (!importSource || !importSource.startsWith(".")) {
+
+        // A bare/package specifier - not a repo-relative asset, nothing
+        // to resolve (never seen in practice for these image imports,
+        // but never crash on an unexpected shape).
+        return null
+
+    }
+
+    const dataFileDir = path.posix.dirname(HEARTHWOOD_DATA_DIR + "/x")
+
+    return path.posix.normalize(path.posix.join(dataFileDir, importSource))
+
+}
+
 /** Find a top-level `const <name> = <init>` (no export) initializer. */
 function findLocalInit(ast, name) {
 
@@ -296,7 +360,7 @@ function isIdentifierRef(node) {
  * object literal and a factory call's trailing options object, so the
  * two don't drift into slightly different field-classification rules.
  */
-function collectObjectFields(objNode, fields, complexKeys, identifierKeys) {
+function collectObjectFields(objNode, fields, complexKeys, identifierKeys, importMap) {
 
     for (const field of objNode.properties) {
 
@@ -332,7 +396,17 @@ function collectObjectFields(objNode, fields, complexKeys, identifierKeys) {
             // worth naming distinctly from other complex keys so the
             // frontend can offer an image-upload control specifically
             // for these (see balanceRunner.js's sibling, the image
-            // upload endpoint).
+            // upload endpoint). `value` (this round) resolves the
+            // identifier back to an actual asset path so the CURRENT
+            // image can be shown, not just a bare upload button.
+            const importSource = importMap ? importMap.get(field.value.name) : null
+
+            fields[fk] = {
+                value: resolveImportAssetPath(importSource),
+                kind: "identifier",
+                range: [field.value.start, field.value.end],
+            }
+
             complexKeys.push(fk)
             identifierKeys.push(fk)
 
@@ -363,7 +437,7 @@ function collectObjectFields(objNode, fields, complexKeys, identifierKeys) {
  * unrecognized factory call (best-effort id/name only), or something
  * else we can only name.
  */
-function entityFromProperty(prop) {
+function entityFromProperty(prop, importMap) {
 
     const id = keyName(prop.key, prop.computed)
 
@@ -385,7 +459,7 @@ function entityFromProperty(prop) {
 
     if (value && value.type === "ObjectExpression") {
 
-        collectObjectFields(value, fields, complexKeys, identifierKeys)
+        collectObjectFields(value, fields, complexKeys, identifierKeys, importMap)
 
         if (fields.name && fields.name.kind === "string") {
 
@@ -427,6 +501,14 @@ function entityFromProperty(prop) {
 
                 } else if (isIdentifierRef(argNode)) {
 
+                    const importSource = importMap ? importMap.get(argNode.name) : null
+
+                    fields[argName] = {
+                        value: resolveImportAssetPath(importSource),
+                        kind: "identifier",
+                        range: [argNode.start, argNode.end],
+                    }
+
                     complexKeys.push(argName)
                     identifierKeys.push(argName)
 
@@ -447,7 +529,7 @@ function entityFromProperty(prop) {
 
             if (optsNode && optsNode.type === "ObjectExpression") {
 
-                collectObjectFields(optsNode, fields, complexKeys, identifierKeys)
+                collectObjectFields(optsNode, fields, complexKeys, identifierKeys, importMap)
 
             }
 
@@ -503,6 +585,8 @@ function walkMap(mapNode, ast) {
 
     const seen = new Set()
 
+    const importMap = buildImportMap(ast)
+
     function absorb(objNode, depth) {
 
         if (!objNode || objNode.type !== "ObjectExpression" || depth > 4) {
@@ -533,7 +617,7 @@ function walkMap(mapNode, ast) {
 
             }
 
-            const record = entityFromProperty(prop)
+            const record = entityFromProperty(prop, importMap)
 
             if (record && !seen.has(record.id)) {
 

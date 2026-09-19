@@ -64,8 +64,8 @@ function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrl
 
   function startOpen() {
     setOpen(true)
-    setNewId(entityId ? `${entityId}-kopio` : "")
-    setNewName(entityDetail?.name ? `${entityDetail.name} (kopio)` : "")
+    setNewId(entityId ? `${entityId}-copy` : "")
+    setNewName(entityDetail?.name ? `${entityDetail.name} (copy)` : "")
     setCheckError("")
   }
 
@@ -73,12 +73,12 @@ function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrl
     const candidateId = slugify(newId)
 
     if (!candidateId) {
-      setCheckError("Anna uusi id.")
+      setCheckError("Enter a new id.")
       return
     }
 
     if (candidateId === entityId) {
-      setCheckError("Uuden id:n täytyy olla eri kuin alkuperäisen.")
+      setCheckError("The new id must be different from the original.")
       return
     }
 
@@ -87,7 +87,7 @@ function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrl
 
     try {
       await apiGet(`/hearthwood-patchbay/entity/${type}/${candidateId}`)
-      setCheckError(`Id "${candidateId}" on jo käytössä - valitse toinen.`)
+      setCheckError(`Id "${candidateId}" is already in use - pick another.`)
       return
     } catch {
       // 404 == vapaa, jatka
@@ -131,7 +131,7 @@ function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrl
           text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]
         "
       >
-        ⧉ Kloonaa uudeksi
+        ⧉ Clone as new
       </button>
     )
   }
@@ -139,12 +139,12 @@ function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrl
   return (
     <div className="space-y-2 rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3">
       <div className="text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
-        Kloonaa: {entityDetail.name || entityId}
+        Clone: {entityDetail.name || entityId}
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <label className="space-y-1">
-          <div className="text-[10px] text-[var(--wood-muted)]">uusi id</div>
+          <div className="text-[10px] text-[var(--wood-muted)]">new id</div>
           <input
             value={newId}
             onChange={event => setNewId(event.target.value)}
@@ -153,7 +153,7 @@ function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrl
         </label>
 
         <label className="space-y-1">
-          <div className="text-[10px] text-[var(--wood-muted)]">uusi nimi</div>
+          <div className="text-[10px] text-[var(--wood-muted)]">new name</div>
           <input
             value={newName}
             onChange={event => setNewName(event.target.value)}
@@ -172,7 +172,7 @@ function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrl
           disabled={applying}
           className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:text-[var(--wood-text)] disabled:opacity-30"
         >
-          Peruuta
+          Cancel
         </button>
 
         <button
@@ -185,7 +185,7 @@ function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrl
             disabled:cursor-not-allowed disabled:opacity-30
           "
         >
-          {checking ? "Tarkistetaan..." : previewing ? "Esikatsellaan..." : "Esikatsele kloonaus"}
+          {checking ? "Checking..." : previewing ? "Previewing..." : "Preview clone"}
         </button>
       </div>
 

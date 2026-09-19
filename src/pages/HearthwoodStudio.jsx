@@ -100,8 +100,8 @@ function HearthwoodStudio() {
         </h1>
 
         <p className="mt-3 max-w-3xl text-[var(--wood-muted)]">
-          Selaa pelin sisältöä, kerro suomeksi mitä haluat muuttaa, tarkista ehdotus ja diffi,
-          ja sovella vasta hyväksynnän jälkeen. Jokainen muutos on yhden napin päässä peruutettavista.
+          Browse the game's content, describe what you want to change in your own words, review the
+          proposed diff, and apply only after you approve it. Every change is one click away from being reverted.
         </p>
 
         <div className="mt-4 flex gap-2">
@@ -117,7 +117,7 @@ function HearthwoodStudio() {
               }
             `}
           >
-            Yksittäin
+            Single
           </button>
 
           <button
@@ -132,7 +132,7 @@ function HearthwoodStudio() {
               }
             `}
           >
-            Taulukko
+            Sheet
           </button>
         </div>
       </header>
@@ -160,14 +160,14 @@ function HearthwoodStudio() {
                   {
                     !entityId && (
                       <div className="text-sm text-[var(--wood-muted)]">
-                        Valitse entiteetti vasemmalta aloittaaksesi.
+                        Select an entity on the left to get started.
                       </div>
                     )
                   }
 
                   {
                     entityId && entityLoading && (
-                      <div className="text-sm text-[var(--wood-muted)]">Ladataan...</div>
+                      <div className="text-sm text-[var(--wood-muted)]">Loading...</div>
                     )
                   }
 
@@ -201,6 +201,7 @@ function HearthwoodStudio() {
                               type={entityType}
                               entityId={entityId}
                               fieldName={fieldName}
+                              currentImagePath={entityDetail.fields?.[fieldName]?.value}
                               onApplied={handleApplied}
                               onPreviewUrlChange={setPreviewUrl}
                             />
@@ -236,7 +237,7 @@ function HearthwoodStudio() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
         <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <div className="border-b border-[var(--wood-border)] px-5 py-3 text-sm font-semibold text-[var(--wood-text)]">
-            Historia
+            History
           </div>
 
           <div className="h-[420px]">
