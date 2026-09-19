@@ -12,48 +12,51 @@
 import { ACT_CROSSROADS } from "./crossroads"
 import { runModifierById } from "./boons"
 
-// storyFlags are terse internal ids; these turn the ones worth
+// storyFlags are terse internal ids; `text` turns the ones worth
 // surfacing into a sentence. A flag with no entry here is simply not
 // shown in the journal (many are just plumbing for follow-up events).
 //
 // Marc, 2026-09-19: "story osio pitää tehdä kronologiseen järjestykseen"
-// (the story section needs to be in chronological order) - this map's
-// OWN key order has no effect on what a player sees in-game (that's
-// runState.storyFlags' own insertion order, at buildJournal's
-// Object.keys() above), so it's purely for whoever is reading/editing
-// this file or the Studio's entity list. Ordered by the Act of the
-// events.js event that actually sets each flag (cross-referenced
-// against events.js's own `act` field), in that event's own order
-// within its Act; cut_the_toll_root has no Act gate in events.js (its
-// event can fire in any Act) and sits last. A new flag: find which
-// event sets it, find that event's `act`, insert it there - don't just
-// append it to the end.
+// (chronological order), then "sen pitää kertoa minulle missä kohtaa
+// tarinaa menen ja sen pitää olla selkeä että tiedän muokata sitä" (it
+// needs to tell me where I am in the story, clearly enough to edit) -
+// `act` is which events.js Act actually sets this flag (cross-
+// referenced against that event's own `act` field; omitted, like
+// events.js's own convention, for cut_the_toll_root, whose event has no
+// Act gate). It's read-only information for buildJournal - the map's
+// own key order still drives nothing in-game (that's
+// runState.storyFlags' own insertion order, at Object.keys() below) -
+// but the Studio surfaces `act` as a normal field, and Marc's own
+// eyes now have it to place a new flag correctly instead of guessing
+// from surrounding text. A new flag: find which event sets it, copy
+// that event's `act`, and insert this entry in that Act's own block
+// above (not just appended at the end).
 export const FLAG_LABELS = {
-  sealed_hollow_tree: "You sealed the black wound in the hollow tree.",
-  kept_the_custom: "You scratched a name from the first milestone, the old custom.",
-  cleared_the_snares: "You cut down every snare on the old hunting line.",
-  heard_the_name: "Spacemonkey told you the name: the Hollow King.",
-  spoke_to_the_grove: "You spoke your name and your purpose to the listening grove.",
-  heard_the_grove_voice: "You heard the one word the listening grove was straining toward.",
-  freed_the_chained: "You cut the chained figure loose and it joined your squad.",
-  left_the_chained: "You left the chained figure where it was.",
-  broke_a_fragment: "You shattered a fragment of the Veil.",
-  knows_the_veil: "The burned researcher told you what waits beyond the Veil.",
-  named_it_aloud: "You said the Hollow King's name out loud, and meant it.",
-  reinforced_the_seal: "You went back and reinforced the seal on the hollow tree.",
-  faced_the_crownless: "You met the Crownless in a vision, and did not look away.",
-  left_the_throne_road: "You left the Throne Road and came at the end from an angle it never expected.",
-  knows_how_to_fight_him: "The one you freed told you how the Hollow King fights: outlast him.",
-  the_ally_knows: "Your freed ally knew the Hollow King, before the crown.",
-  sat_the_throne: "You sat in the throne the rot would not touch.",
-  broke_the_throne: "You broke the empty throne in the Crownless court.",
-  spoke_to_the_court: "You told the missing court what you had come to do.",
-  passed_the_guardian: "The grieving guardian let you past its vigil.",
-  drank_the_last_water: "Your squad drank the last clean water in the Hearthwood.",
-  saved_the_spring: "You dammed the dead ground to buy the last spring another day.",
-  said_the_words: "You spoke to your squad before crossing into the grey.",
-  crossed_in_silence: "You crossed into the grey without a word.",
-  cut_the_toll_root: "You cut through the toll root instead of paying it.",
+  sealed_hollow_tree: { act: 1, text: "You sealed the black wound in the hollow tree." },
+  kept_the_custom: { act: 1, text: "You scratched a name from the first milestone, the old custom." },
+  cleared_the_snares: { act: 1, text: "You cut down every snare on the old hunting line." },
+  heard_the_name: { act: 2, text: "Spacemonkey told you the name: the Hollow King." },
+  spoke_to_the_grove: { act: 2, text: "You spoke your name and your purpose to the listening grove." },
+  heard_the_grove_voice: { act: 2, text: "You heard the one word the listening grove was straining toward." },
+  freed_the_chained: { act: 3, text: "You cut the chained figure loose and it joined your squad." },
+  left_the_chained: { act: 3, text: "You left the chained figure where it was." },
+  broke_a_fragment: { act: 3, text: "You shattered a fragment of the Veil." },
+  knows_the_veil: { act: 3, text: "The burned researcher told you what waits beyond the Veil." },
+  named_it_aloud: { act: 3, text: "You said the Hollow King's name out loud, and meant it." },
+  reinforced_the_seal: { act: 3, text: "You went back and reinforced the seal on the hollow tree." },
+  faced_the_crownless: { act: 4, text: "You met the Crownless in a vision, and did not look away." },
+  left_the_throne_road: { act: 4, text: "You left the Throne Road and came at the end from an angle it never expected." },
+  knows_how_to_fight_him: { act: 4, text: "The one you freed told you how the Hollow King fights: outlast him." },
+  the_ally_knows: { act: 4, text: "Your freed ally knew the Hollow King, before the crown." },
+  sat_the_throne: { act: 5, text: "You sat in the throne the rot would not touch." },
+  broke_the_throne: { act: 5, text: "You broke the empty throne in the Crownless court." },
+  spoke_to_the_court: { act: 5, text: "You told the missing court what you had come to do." },
+  passed_the_guardian: { act: 5, text: "The grieving guardian let you past its vigil." },
+  drank_the_last_water: { act: 7, text: "Your squad drank the last clean water in the Hearthwood." },
+  saved_the_spring: { act: 7, text: "You dammed the dead ground to buy the last spring another day." },
+  said_the_words: { act: 7, text: "You spoke to your squad before crossing into the grey." },
+  crossed_in_silence: { act: 7, text: "You crossed into the grey without a word." },
+  cut_the_toll_root: { text: "You cut through the toll root instead of paying it." },
 }
 
 const FOREST_STATE_LABEL = {
@@ -100,7 +103,7 @@ export function buildJournal(runState) {
 
   const milestones = Object.keys(runState.storyFlags || {})
     .filter((f) => FLAG_LABELS[f])
-    .map((f) => FLAG_LABELS[f])
+    .map((f) => FLAG_LABELS[f].text)
 
   const forest = {
     state: runState.forestState || "restless",

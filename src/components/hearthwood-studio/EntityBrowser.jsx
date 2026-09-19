@@ -179,6 +179,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
         {
           entities.map(entity => {
             const imagePath = entity.fields?.image?.value
+            const act = entity.fields?.act?.value
 
             return (
               <button
@@ -204,10 +205,24 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
                   )
                 }
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{entity.name || entity.id}</div>
                   <div className="truncate font-mono text-[10px] opacity-70">{entity.id}</div>
                 </div>
+
+                {
+                  // Marc: "sen pitää kertoa minulle missä kohtaa tarinaa
+                  // menen" (it needs to tell me where I am in the
+                  // story) - any entity with a numeric `act` field
+                  // (Map Events, Story Journal) gets this for free,
+                  // without the browser needing to know which type it
+                  // is looking at.
+                  typeof act === "number" && (
+                    <span className="shrink-0 rounded-full border border-[var(--wood-border)] px-2 py-0.5 text-[10px] text-[var(--wood-muted)]">
+                      Act {act}
+                    </span>
+                  )
+                }
               </button>
             )
           })
