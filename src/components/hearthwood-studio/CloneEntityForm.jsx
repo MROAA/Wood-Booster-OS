@@ -21,8 +21,18 @@ function escapeRe(text) {
 function buildClonedBlock({ source, oldId, newId, oldName, newName }) {
   let block = source
 
-  const keyPattern = new RegExp(`^(\\s*)(["'])${escapeRe(oldId)}\\2(\\s*:)`)
-  block = block.replace(keyPattern, `$1"${newId}"$3`)
+  // The map's own key: quoted ("crownless-throne": .., a kebab-case id
+  // that isn't a valid bare identifier) or bare (sealed_hollow_tree: ..,
+  // storyLog.js/crownless.js/cinematics.js's "intro" all use plain
+  // identifiers) - match either, since which one a given file uses
+  // isn't knowable from here. The REPLACEMENT key is always quoted
+  // regardless (a slugified newId can itself be kebab-case, invalid as
+  // a bare identifier, and a quoted key is valid either way).
+  const quotedKeyPattern = new RegExp(`^(\\s*)(["'])${escapeRe(oldId)}\\2(\\s*:)`)
+  const bareKeyPattern = new RegExp(`^(\\s*)${escapeRe(oldId)}(\\s*:)`)
+  block = quotedKeyPattern.test(block)
+    ? block.replace(quotedKeyPattern, `$1"${newId}"$3`)
+    : block.replace(bareKeyPattern, `$1"${newId}"$2`)
 
   const idFieldPattern = new RegExp(`(\\bid\\s*:\\s*)(["'])${escapeRe(oldId)}\\2`)
   block = block.replace(idFieldPattern, `$1"${newId}"`)
