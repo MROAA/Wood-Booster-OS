@@ -45,6 +45,8 @@
 // correct, "walk on" option.
 
 export const EVENTS = [
+
+  // --- Act I ----------------------------------------------------------
   {
     id: "roadside-shrine",
     act: 1,
@@ -115,258 +117,6 @@ export const EVENTS = [
     ],
   },
   {
-    id: "spacemonkey-warning",
-    act: 2,
-    title: "Spacemonkey's Warning",
-    body: "The little astronaut is sitting on a stump when you arrive, helmet off, turning a black splinter of wood over in his gloved hands. \"You've been finding these,\" he says. It isn't a question. \"There's a name for what's leaking up through the roots. I'd rather not say it out loud this close to it.\"",
-    choices: [
-      {
-        label: "\"Say it anyway.\"",
-        result: "\"Hollow King,\" he says, very quietly, and the forest doesn't react at all, which is the part that frightens him. He hands you the splinter. \"Keep it. Know your enemy.\"",
-        effects: [{ flag: "heard_the_name" }, { relic: "random" }],
-      },
-      {
-        label: "\"Then don't. Just tell me what to do.\"",
-        result: "\"Hit hard, hit first, don't let a fight go long.\" He tightens a strap on your pack, and presses a pinch of something that smells of struck flint into your palm. \"The longer you're out here, the more it learns you.\"",
-        effects: [{ boon: "emberfed" }],
-      },
-    ],
-  },
-  {
-    id: "still-pool",
-    act: 2,
-    title: "The Still Pool",
-    body: "A pool sits in a ring of white stones, so still it looks solid. Your reflection is a half-second slow to move when you do. Down in the dark water, something that is almost your face looks back up and waits.",
-    choices: [
-      {
-        label: "Drink.",
-        result: "The water is colder than ice and tastes of iron and old rain. For a moment you see the forest the way it was - green all the way down. Then it's gone, and you feel steadier for having seen it - and stay that way.",
-        effects: [{ boon: "rootblessed" }, { essence: -20 }],
-      },
-      {
-        label: "Look closer at the reflection.",
-        result: "You lean out over the water. The other face leans back. Its mouth moves - a word you can't hear - and then it's just you again, and you're holding something you didn't have before, and hearing a faint hum you can't stop hearing.",
-        effects: [{ relic: "random" }, { bane: "veil-touched" }],
-      },
-      {
-        label: "Skirt the pool.",
-        result: "You keep the white stones at your back until the pool is out of sight.",
-        effects: [],
-      },
-    ],
-  },
-  {
-    id: "abandoned-camp",
-    title: "An Abandoned Camp",
-    body: "A fire pit gone to cold ash, a bedroll, a pack still leaning against a log. Whoever made camp here left everything and walked into the trees - the footprints go one way only, and don't come back.",
-    choices: [
-      {
-        label: "Take the supplies.",
-        result: "The pack holds dried food, a coil of good rope, and a small worked-metal thing you can't name but can clearly use.",
-        effects: [{ essence: 50 }, { item: "random" }],
-      },
-      {
-        label: "Follow the footprints.",
-        result: "You track them for a hundred paces to where they simply stop, mid-stride, in undisturbed leaf litter. You come back with nothing but a colder feeling than you left with.",
-        effects: [{ flag: "followed_the_prints" }],
-      },
-      {
-        label: "Break camp and move on.",
-        result: "You scatter the ashes and leave the site cleaner than you found it. Old habit.",
-        effects: [{ essence: 15 }],
-      },
-    ],
-  },
-  {
-    id: "the-toll-root",
-    title: "The Toll Root",
-    body: "A root as thick as a man's waist has grown clean across the path at chest height, and won't be climbed over or crawled under without a long detour. Coins and small offerings are pressed into its bark all along its length. It seems to expect payment.",
-    choices: [
-      {
-        label: "Pay the toll.",
-        result: "You push a coin into the bark. The root shudders, contracts, and sinks into the earth just far enough to step over. It rises again behind you.",
-        effects: [{ essence: -50 }],
-      },
-      {
-        label: "Cut through it.",
-        result: "It takes a long, ugly while, and the root bleeds a sap that smells of rot, and every other growing thing nearby leans away from you afterward. You're through, and you kept your coin - but the forest keeps a ledger, and you're in it now.",
-        effects: [{ bane: "root-debt" }, { flag: "cut_the_toll_root" }],
-      },
-    ],
-  },
-  {
-    id: "chained-fighter",
-    act: 3,
-    title: "The Chained Fighter",
-    body: "Someone has bound a figure to a standing stone with what looks like a whole tree's worth of ivy - wrists, chest, ankles. It lifts its head as you approach. Its eyes are clear. \"I'm not what did this,\" it says. \"I'm what tried to stop it. Let me help you finish the job.\"",
-    choices: [
-      {
-        label: "Free it. Take it with you.",
-        result: "The ivy comes away in sheets. The figure rolls its shoulders, picks up a fallen branch like it's a blade it's held before, and falls in beside your squad.",
-        effects: [{ unit: "random-common" }, { flag: "freed_the_chained" }],
-      },
-      {
-        label: "Free it. Send it on its way.",
-        result: "It nods once, presses something into your palm - \"for the road\" - and walks off toward the corruption, not away from it.",
-        effects: [{ relic: "random" }],
-      },
-      {
-        label: "Leave it chained. You can't know.",
-        result: "\"No,\" it agrees, quietly. \"You can't.\" You're most of a mile down the path before you stop hearing it.",
-        effects: [{ essence: 30 }, { flag: "left_the_chained" }],
-      },
-    ],
-  },
-  {
-    id: "veil-fragment",
-    act: 3,
-    title: "A Fragment of the Veil",
-    body: "A shard of something hangs in the air at head height, turning slowly, throwing no shadow. It isn't glass and it isn't ice. Looking at it too long makes the back of your skull ache. It is very clearly not from this forest, or this anything.",
-    choices: [
-      {
-        label: "Take it.",
-        result: "It weighs nothing and it weighs everything. Your squad will carry its hum into the next fight - louder, sharper, harder to hold onto.",
-        effects: [{ relic: "random" }, { squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 2 }, { type: "applyBuff", id: "vulnerable", amount: 1 }] }],
-      },
-      {
-        label: "Shatter it.",
-        result: "It breaks with a sound like a held breath let go. The ache stops. The forest, for a hundred paces in every direction, seems to exhale with you.",
-        effects: [{ flag: "broke_a_fragment" }, { essence: 40 }],
-      },
-    ],
-  },
-  {
-    id: "the-crownless-vision",
-    act: 4,
-    title: "The Crownless",
-    body: "For one step, the forest is gone. You're standing in a hall with no ceiling, and a figure with a hollow where its crown should be turns to look at you - not with anger. With recognition. \"You've come a long way to lose,\" it says, almost kind. Then you're back on the path, and your hands won't stop shaking.",
-    choices: [
-      {
-        label: "\"I didn't come to lose.\"",
-        result: "You say it out loud, to the trees. Nothing answers. But your squad hears the steel in it, and stands a little straighter.",
-        effects: [{ flag: "faced_the_crownless" }, { squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 1 }, { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 1 } }] }],
-      },
-      {
-        label: "Say nothing. Keep walking.",
-        result: "You put one foot in front of the other until the shaking stops. That's a kind of answer too.",
-        effects: [{ flag: "faced_the_crownless" }],
-      },
-    ],
-  },
-  {
-    id: "mushroom-ring",
-    title: "The Mushroom Ring",
-    body: "A perfect circle of pale mushrooms, wide enough to stand in. Old stories say a great many contradictory things about what happens if you do. The mushrooms give off a faint, not-unpleasant light.",
-    choices: [
-      {
-        label: "Step inside and wait.",
-        result: "Nothing happens for a long moment. Then, all at once, you're on the far side of a ravine you'd have spent an hour going around, and there's grit in your boots that isn't from here.",
-        effects: [{ essence: 45 }, { flag: "used_the_ring" }],
-      },
-      {
-        label: "Eat one.",
-        result: "It tastes of nothing at all. From then on your squad sees the world half a beat early - useful, disorienting, and it doesn't wear off.",
-        effects: [{ boon: "windfavoured" }],
-      },
-      {
-        label: "Step around it. Firmly.",
-        result: "You've heard enough stories.",
-        effects: [],
-      },
-    ],
-  },
-  {
-    id: "the-weeping-stone",
-    title: "The Weeping Stone",
-    body: "A boulder the size of a cottage, and water runs down its face in a steady sheet though there's no spring above it and no rain in a week. Where the water pools at the base, the ground is the greenest you've seen since you entered the forest.",
-    choices: [
-      {
-        label: "Fill your waterskins.",
-        result: "The water is clean and very cold and settles something in your chest you hadn't noticed was unsettled. Your squad drinks it for days after - it heals, and it dulls, both at once.",
-        effects: [{ bane: "sap-heavy" }],
-      },
-      {
-        label: "Dig at the base for the source.",
-        result: "A hand's depth down your fingers close on something hard and worked. You don't find where the water comes from. You stop looking once you're holding the thing.",
-        effects: [{ item: "random" }, { essence: -15 }],
-      },
-      {
-        label: "Let the stone weep in peace.",
-        result: "Some things are just sad. You leave it be.",
-        effects: [],
-      },
-    ],
-  },
-  {
-    id: "the-gambler",
-    title: "The Gambler at the Crossing",
-    body: "A thin man with too many teeth has set up a folding table where three paths meet, three carved cups on it, and a smooth black seed under one of them. \"One coin to play,\" he says. \"Guess right, walk away rich. Guess wrong - well. You'll have paid for the lesson.\"",
-    choices: [
-      {
-        label: "Play. Bet big.",
-        result: "You slap down a fistful of coin and point at the middle cup. He lifts it. The seed is there - or it is now, anyway. He counts your winnings out with a smile that doesn't reach the rest of his face.",
-        effects: [{ essence: 120 }],
-      },
-      {
-        label: "Play. Bet small.",
-        result: "You put down a single coin and point. Wrong cup. He shrugs, sweeps the coin away, and is already resetting the cups before you've turned to go.",
-        effects: [{ essence: -30 }],
-      },
-      {
-        label: "Don't play. Ask who he is.",
-        result: "\"Nobody at all,\" he says, delighted, \"which is the only safe thing to be out here. You're learning.\" He flicks a coin at you as you leave, for no reason he'll give.",
-        effects: [{ essence: 20 }, { flag: "met_the_gambler" }],
-      },
-    ],
-  },
-  {
-    id: "the-old-battleground",
-    title: "The Old Battleground",
-    body: "The trees here grow crooked around things half-buried in the leaf mould - a shield gone to lace with rust, a helm with moss in the eye slits, the long pale curve of something you decide is a branch. Nobody won here. It was a long time ago.",
-    choices: [
-      {
-        label: "Scavenge the field.",
-        result: "Most of it is ruined past use. One piece isn't - it comes up out of the earth almost clean, as if it had been waiting.",
-        effects: [{ item: "random" }, { flag: "scavenged_the_field" }],
-      },
-      {
-        label: "Take an hour to bury what you can.",
-        result: "Your squad works in silence, and something in the ground settles as they do. The forest goes still around you in a way that feels, for once, like gratitude - and your squad carries a little of that steadiness from here on.",
-        effects: [{ boon: "stoneblood" }, { relic: "random" }],
-      },
-      {
-        label: "Pass through without stopping.",
-        result: "You don't look down more than you have to.",
-        effects: [],
-      },
-    ],
-  },
-  {
-    id: "the-listening-grove",
-    act: 2,
-    title: "The Listening Grove",
-    body: "A dozen young trees stand in a loose ring, and every one of them has leaned in slightly, as if toward a speaker at the centre. There's nothing at the centre. When you stop walking, the leaves go still all at once, like held breath.",
-    choices: [
-      {
-        label: "Speak to them.",
-        result: "You say your name, and where you're going, and why. The trees don't move. But from here on, somewhere ahead of you on the path, things that might have gone badly simply don't, quite.",
-        effects: [{ boon: "grove-warded" }, { flag: "spoke_to_the_grove" }],
-      },
-      {
-        label: "Listen with them.",
-        result: "You stand in the ring and strain to hear what they hear. Right at the edge of it, under everything - a voice. One word, over and over. You leave before you can make it out, and you're glad you did.",
-        effects: [{ flag: "heard_the_grove_voice" }, { essence: 30 }],
-      },
-      {
-        label: "Leave the grove to its listening.",
-        result: "You step back out of the ring. The leaves start moving again the moment you do.",
-        effects: [],
-      },
-    ],
-  },
-
-  // --- Act I ----------------------------------------------------------
-  {
     id: "the-first-milestone",
     act: 1,
     title: "The First Milestone",
@@ -408,7 +158,114 @@ export const EVENTS = [
     ],
   },
 
+  // --- Act II -------------------------------------------------------
+  {
+    id: "spacemonkey-warning",
+    act: 2,
+    title: "Spacemonkey's Warning",
+    body: "The little astronaut is sitting on a stump when you arrive, helmet off, turning a black splinter of wood over in his gloved hands. \"You've been finding these,\" he says. It isn't a question. \"There's a name for what's leaking up through the roots. I'd rather not say it out loud this close to it.\"",
+    choices: [
+      {
+        label: "\"Say it anyway.\"",
+        result: "\"Hollow King,\" he says, very quietly, and the forest doesn't react at all, which is the part that frightens him. He hands you the splinter. \"Keep it. Know your enemy.\"",
+        effects: [{ flag: "heard_the_name" }, { relic: "random" }],
+      },
+      {
+        label: "\"Then don't. Just tell me what to do.\"",
+        result: "\"Hit hard, hit first, don't let a fight go long.\" He tightens a strap on your pack, and presses a pinch of something that smells of struck flint into your palm. \"The longer you're out here, the more it learns you.\"",
+        effects: [{ boon: "emberfed" }],
+      },
+    ],
+  },
+  {
+    id: "still-pool",
+    act: 2,
+    title: "The Still Pool",
+    body: "A pool sits in a ring of white stones, so still it looks solid. Your reflection is a half-second slow to move when you do. Down in the dark water, something that is almost your face looks back up and waits.",
+    choices: [
+      {
+        label: "Drink.",
+        result: "The water is colder than ice and tastes of iron and old rain. For a moment you see the forest the way it was - green all the way down. Then it's gone, and you feel steadier for having seen it - and stay that way.",
+        effects: [{ boon: "rootblessed" }, { essence: -20 }],
+      },
+      {
+        label: "Look closer at the reflection.",
+        result: "You lean out over the water. The other face leans back. Its mouth moves - a word you can't hear - and then it's just you again, and you're holding something you didn't have before, and hearing a faint hum you can't stop hearing.",
+        effects: [{ relic: "random" }, { bane: "veil-touched" }],
+      },
+      {
+        label: "Skirt the pool.",
+        result: "You keep the white stones at your back until the pool is out of sight.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-listening-grove",
+    act: 2,
+    title: "The Listening Grove",
+    body: "A dozen young trees stand in a loose ring, and every one of them has leaned in slightly, as if toward a speaker at the centre. There's nothing at the centre. When you stop walking, the leaves go still all at once, like held breath.",
+    choices: [
+      {
+        label: "Speak to them.",
+        result: "You say your name, and where you're going, and why. The trees don't move. But from here on, somewhere ahead of you on the path, things that might have gone badly simply don't, quite.",
+        effects: [{ boon: "grove-warded" }, { flag: "spoke_to_the_grove" }],
+      },
+      {
+        label: "Listen with them.",
+        result: "You stand in the ring and strain to hear what they hear. Right at the edge of it, under everything - a voice. One word, over and over. You leave before you can make it out, and you're glad you did.",
+        effects: [{ flag: "heard_the_grove_voice" }, { essence: 30 }],
+      },
+      {
+        label: "Leave the grove to its listening.",
+        result: "You step back out of the ring. The leaves start moving again the moment you do.",
+        effects: [],
+      },
+    ],
+  },
+
   // --- Act III ------------------------------------------------------
+  {
+    id: "chained-fighter",
+    act: 3,
+    title: "The Chained Fighter",
+    body: "Someone has bound a figure to a standing stone with what looks like a whole tree's worth of ivy - wrists, chest, ankles. It lifts its head as you approach. Its eyes are clear. \"I'm not what did this,\" it says. \"I'm what tried to stop it. Let me help you finish the job.\"",
+    choices: [
+      {
+        label: "Free it. Take it with you.",
+        result: "The ivy comes away in sheets. The figure rolls its shoulders, picks up a fallen branch like it's a blade it's held before, and falls in beside your squad.",
+        effects: [{ unit: "random-common" }, { flag: "freed_the_chained" }],
+      },
+      {
+        label: "Free it. Send it on its way.",
+        result: "It nods once, presses something into your palm - \"for the road\" - and walks off toward the corruption, not away from it.",
+        effects: [{ relic: "random" }],
+      },
+      {
+        label: "Leave it chained. You can't know.",
+        result: "\"No,\" it agrees, quietly. \"You can't.\" You're most of a mile down the path before you stop hearing it.",
+        effects: [{ essence: 30 }, { flag: "left_the_chained" }],
+      },
+    ],
+  },
+  {
+    id: "veil-fragment",
+    act: 3,
+    title: "A Fragment of the Veil",
+    body: "A shard of something hangs in the air at head height, turning slowly, throwing no shadow. It isn't glass and it isn't ice. Looking at it too long makes the back of your skull ache. It is very clearly not from this forest, or this anything.",
+    choices: [
+      {
+        label: "Take it.",
+        result: "It weighs nothing and it weighs everything. Your squad will carry its hum into the next fight - louder, sharper, harder to hold onto.",
+        effects: [{ relic: "random" }, { squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 2 }, { type: "applyBuff", id: "vulnerable", amount: 1 }] }],
+      },
+      {
+        label: "Shatter it.",
+        result: "It breaks with a sound like a held breath let go. The ache stops. The forest, for a hundred paces in every direction, seems to exhale with you.",
+        effects: [{ flag: "broke_a_fragment" }, { essence: 40 }],
+      },
+    ],
+  },
   {
     id: "the-veil-researcher",
     act: 3,
@@ -472,6 +329,24 @@ export const EVENTS = [
   },
 
   // --- Act IV -------------------------------------------------------
+  {
+    id: "the-crownless-vision",
+    act: 4,
+    title: "The Crownless",
+    body: "For one step, the forest is gone. You're standing in a hall with no ceiling, and a figure with a hollow where its crown should be turns to look at you - not with anger. With recognition. \"You've come a long way to lose,\" it says, almost kind. Then you're back on the path, and your hands won't stop shaking.",
+    choices: [
+      {
+        label: "\"I didn't come to lose.\"",
+        result: "You say it out loud, to the trees. Nothing answers. But your squad hears the steel in it, and stands a little straighter.",
+        effects: [{ flag: "faced_the_crownless" }, { squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 1 }, { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 1 } }] }],
+      },
+      {
+        label: "Say nothing. Keep walking.",
+        result: "You put one foot in front of the other until the shaking stops. That's a kind of answer too.",
+        effects: [{ flag: "faced_the_crownless" }],
+      },
+    ],
+  },
   {
     id: "the-throne-road",
     act: 4,
@@ -630,6 +505,133 @@ export const EVENTS = [
   },
 
   // --- Anywhere ---------------------------------------------------
+  {
+    id: "abandoned-camp",
+    title: "An Abandoned Camp",
+    body: "A fire pit gone to cold ash, a bedroll, a pack still leaning against a log. Whoever made camp here left everything and walked into the trees - the footprints go one way only, and don't come back.",
+    choices: [
+      {
+        label: "Take the supplies.",
+        result: "The pack holds dried food, a coil of good rope, and a small worked-metal thing you can't name but can clearly use.",
+        effects: [{ essence: 50 }, { item: "random" }],
+      },
+      {
+        label: "Follow the footprints.",
+        result: "You track them for a hundred paces to where they simply stop, mid-stride, in undisturbed leaf litter. You come back with nothing but a colder feeling than you left with.",
+        effects: [{ flag: "followed_the_prints" }],
+      },
+      {
+        label: "Break camp and move on.",
+        result: "You scatter the ashes and leave the site cleaner than you found it. Old habit.",
+        effects: [{ essence: 15 }],
+      },
+    ],
+  },
+  {
+    id: "the-toll-root",
+    title: "The Toll Root",
+    body: "A root as thick as a man's waist has grown clean across the path at chest height, and won't be climbed over or crawled under without a long detour. Coins and small offerings are pressed into its bark all along its length. It seems to expect payment.",
+    choices: [
+      {
+        label: "Pay the toll.",
+        result: "You push a coin into the bark. The root shudders, contracts, and sinks into the earth just far enough to step over. It rises again behind you.",
+        effects: [{ essence: -50 }],
+      },
+      {
+        label: "Cut through it.",
+        result: "It takes a long, ugly while, and the root bleeds a sap that smells of rot, and every other growing thing nearby leans away from you afterward. You're through, and you kept your coin - but the forest keeps a ledger, and you're in it now.",
+        effects: [{ bane: "root-debt" }, { flag: "cut_the_toll_root" }],
+      },
+    ],
+  },
+  {
+    id: "mushroom-ring",
+    title: "The Mushroom Ring",
+    body: "A perfect circle of pale mushrooms, wide enough to stand in. Old stories say a great many contradictory things about what happens if you do. The mushrooms give off a faint, not-unpleasant light.",
+    choices: [
+      {
+        label: "Step inside and wait.",
+        result: "Nothing happens for a long moment. Then, all at once, you're on the far side of a ravine you'd have spent an hour going around, and there's grit in your boots that isn't from here.",
+        effects: [{ essence: 45 }, { flag: "used_the_ring" }],
+      },
+      {
+        label: "Eat one.",
+        result: "It tastes of nothing at all. From then on your squad sees the world half a beat early - useful, disorienting, and it doesn't wear off.",
+        effects: [{ boon: "windfavoured" }],
+      },
+      {
+        label: "Step around it. Firmly.",
+        result: "You've heard enough stories.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-weeping-stone",
+    title: "The Weeping Stone",
+    body: "A boulder the size of a cottage, and water runs down its face in a steady sheet though there's no spring above it and no rain in a week. Where the water pools at the base, the ground is the greenest you've seen since you entered the forest.",
+    choices: [
+      {
+        label: "Fill your waterskins.",
+        result: "The water is clean and very cold and settles something in your chest you hadn't noticed was unsettled. Your squad drinks it for days after - it heals, and it dulls, both at once.",
+        effects: [{ bane: "sap-heavy" }],
+      },
+      {
+        label: "Dig at the base for the source.",
+        result: "A hand's depth down your fingers close on something hard and worked. You don't find where the water comes from. You stop looking once you're holding the thing.",
+        effects: [{ item: "random" }, { essence: -15 }],
+      },
+      {
+        label: "Let the stone weep in peace.",
+        result: "Some things are just sad. You leave it be.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-gambler",
+    title: "The Gambler at the Crossing",
+    body: "A thin man with too many teeth has set up a folding table where three paths meet, three carved cups on it, and a smooth black seed under one of them. \"One coin to play,\" he says. \"Guess right, walk away rich. Guess wrong - well. You'll have paid for the lesson.\"",
+    choices: [
+      {
+        label: "Play. Bet big.",
+        result: "You slap down a fistful of coin and point at the middle cup. He lifts it. The seed is there - or it is now, anyway. He counts your winnings out with a smile that doesn't reach the rest of his face.",
+        effects: [{ essence: 120 }],
+      },
+      {
+        label: "Play. Bet small.",
+        result: "You put down a single coin and point. Wrong cup. He shrugs, sweeps the coin away, and is already resetting the cups before you've turned to go.",
+        effects: [{ essence: -30 }],
+      },
+      {
+        label: "Don't play. Ask who he is.",
+        result: "\"Nobody at all,\" he says, delighted, \"which is the only safe thing to be out here. You're learning.\" He flicks a coin at you as you leave, for no reason he'll give.",
+        effects: [{ essence: 20 }, { flag: "met_the_gambler" }],
+      },
+    ],
+  },
+  {
+    id: "the-old-battleground",
+    title: "The Old Battleground",
+    body: "The trees here grow crooked around things half-buried in the leaf mould - a shield gone to lace with rust, a helm with moss in the eye slits, the long pale curve of something you decide is a branch. Nobody won here. It was a long time ago.",
+    choices: [
+      {
+        label: "Scavenge the field.",
+        result: "Most of it is ruined past use. One piece isn't - it comes up out of the earth almost clean, as if it had been waiting.",
+        effects: [{ item: "random" }, { flag: "scavenged_the_field" }],
+      },
+      {
+        label: "Take an hour to bury what you can.",
+        result: "Your squad works in silence, and something in the ground settles as they do. The forest goes still around you in a way that feels, for once, like gratitude - and your squad carries a little of that steadiness from here on.",
+        effects: [{ boon: "stoneblood" }, { relic: "random" }],
+      },
+      {
+        label: "Pass through without stopping.",
+        result: "You don't look down more than you have to.",
+        effects: [],
+      },
+    ],
+  },
   {
     id: "the-fungus-shrine",
     title: "The Fungus Shrine",

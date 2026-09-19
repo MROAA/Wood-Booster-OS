@@ -15,32 +15,45 @@ import { runModifierById } from "./boons"
 // storyFlags are terse internal ids; these turn the ones worth
 // surfacing into a sentence. A flag with no entry here is simply not
 // shown in the journal (many are just plumbing for follow-up events).
+//
+// Marc, 2026-09-19: "story osio pitää tehdä kronologiseen järjestykseen"
+// (the story section needs to be in chronological order) - this map's
+// OWN key order has no effect on what a player sees in-game (that's
+// runState.storyFlags' own insertion order, at buildJournal's
+// Object.keys() above), so it's purely for whoever is reading/editing
+// this file or the Studio's entity list. Ordered by the Act of the
+// events.js event that actually sets each flag (cross-referenced
+// against events.js's own `act` field), in that event's own order
+// within its Act; cut_the_toll_root has no Act gate in events.js (its
+// event can fire in any Act) and sits last. A new flag: find which
+// event sets it, find that event's `act`, insert it there - don't just
+// append it to the end.
 export const FLAG_LABELS = {
   sealed_hollow_tree: "You sealed the black wound in the hollow tree.",
-  reinforced_the_seal: "You went back and reinforced the seal on the hollow tree.",
+  kept_the_custom: "You scratched a name from the first milestone, the old custom.",
+  cleared_the_snares: "You cut down every snare on the old hunting line.",
   heard_the_name: "Spacemonkey told you the name: the Hollow King.",
-  named_it_aloud: "You said the Hollow King's name out loud, and meant it.",
-  knows_the_veil: "The burned researcher told you what waits beyond the Veil.",
-  freed_the_chained: "You cut the chained figure loose and it joined your squad.",
-  left_the_chained: "You left the chained figure where it was.",
-  knows_how_to_fight_him: "The one you freed told you how the Hollow King fights: outlast him.",
-  the_ally_knows: "Your freed ally knew the Hollow King, before the crown.",
-  faced_the_crownless: "You met the Crownless in a vision, and did not look away.",
-  broke_a_fragment: "You shattered a fragment of the Veil.",
-  broke_the_throne: "You broke the empty throne in the Crownless court.",
-  sat_the_throne: "You sat in the throne the rot would not touch.",
-  spoke_to_the_court: "You told the missing court what you had come to do.",
-  cut_the_toll_root: "You cut through the toll root instead of paying it.",
   spoke_to_the_grove: "You spoke your name and your purpose to the listening grove.",
   heard_the_grove_voice: "You heard the one word the listening grove was straining toward.",
+  freed_the_chained: "You cut the chained figure loose and it joined your squad.",
+  left_the_chained: "You left the chained figure where it was.",
+  broke_a_fragment: "You shattered a fragment of the Veil.",
+  knows_the_veil: "The burned researcher told you what waits beyond the Veil.",
+  named_it_aloud: "You said the Hollow King's name out loud, and meant it.",
+  reinforced_the_seal: "You went back and reinforced the seal on the hollow tree.",
+  faced_the_crownless: "You met the Crownless in a vision, and did not look away.",
+  left_the_throne_road: "You left the Throne Road and came at the end from an angle it never expected.",
+  knows_how_to_fight_him: "The one you freed told you how the Hollow King fights: outlast him.",
+  the_ally_knows: "Your freed ally knew the Hollow King, before the crown.",
+  sat_the_throne: "You sat in the throne the rot would not touch.",
+  broke_the_throne: "You broke the empty throne in the Crownless court.",
+  spoke_to_the_court: "You told the missing court what you had come to do.",
   passed_the_guardian: "The grieving guardian let you past its vigil.",
   drank_the_last_water: "Your squad drank the last clean water in the Hearthwood.",
   saved_the_spring: "You dammed the dead ground to buy the last spring another day.",
   said_the_words: "You spoke to your squad before crossing into the grey.",
   crossed_in_silence: "You crossed into the grey without a word.",
-  kept_the_custom: "You scratched a name from the first milestone, the old custom.",
-  cleared_the_snares: "You cut down every snare on the old hunting line.",
-  left_the_throne_road: "You left the Throne Road and came at the end from an angle it never expected.",
+  cut_the_toll_root: "You cut through the toll root instead of paying it.",
 }
 
 const FOREST_STATE_LABEL = {
