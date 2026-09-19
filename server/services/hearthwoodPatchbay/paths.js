@@ -66,6 +66,15 @@ export const HEARTHWOOD_DATA_DIR = "src/data/heartwood"
  *   boons.js        export const RUN_BANES                 (ARRAY - run-modifier bane flavor+effects;
  *                     same file as RUN_BOONS, a 2nd entity type pointing at it - the registry
  *                     keys on exportName, not file, so one file can back more than one type)
+ *   storyLog.js     export const FLAG_LABELS                (object map, id -> plain string - the
+ *                     Story Journal's own sentences, e.g. "You sealed the black wound in the
+ *                     hollow tree." A FLAT map, not id -> object like every other type here;
+ *                     hearthwood-read-entities.mjs exposes the bare string as a synthetic
+ *                     `fields.text` so the editor can still treat it like any other scalar field.
+ *                     Marc, 2026-09-19: "en löydä mistä voin muokkaa pelin tarinaa" - this was the
+ *                     one genuinely-missing piece of narrative text after the cinematics/
+ *                     crossroads/crownless/events round; help.js and coach.js were also
+ *                     considered but are UI glossary/onboarding copy, not story.)
  */
 export const ENTITY_TYPES = {
     enemies: { file: "enemies.js", exportName: "ENEMIES" },
@@ -87,6 +96,7 @@ export const ENTITY_TYPES = {
     moods: { file: "moods.js", exportName: "FOREST_MOOD" },
     boons: { file: "boons.js", exportName: "RUN_BOONS" },
     banes: { file: "boons.js", exportName: "RUN_BANES" },
+    storyJournal: { file: "storyLog.js", exportName: "FLAG_LABELS" },
 }
 
 /**
