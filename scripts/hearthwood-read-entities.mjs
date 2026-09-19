@@ -465,6 +465,14 @@ function entityFromProperty(prop, importMap) {
 
             name = fields.name.value
 
+        } else if (fields.text && fields.text.kind === "string") {
+
+            // No dedicated display name (storyLog.js's FLAG_LABELS: an
+            // id -> { act, text } entry, no "name" field of its own) -
+            // the flavor/body text itself is the only human-readable
+            // thing to show in the browser list instead of the raw id.
+            name = fields.text.value
+
         }
 
     } else if (value && value.type === "CallExpression") {
