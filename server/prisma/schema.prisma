@@ -1179,3 +1179,45 @@ model HearthwoodPatch {
   updatedAt DateTime @updatedAt
 
 }
+
+model BloodmoorPatch {
+
+  id Int @id @default(autoincrement())
+
+  code String?
+
+  summary String
+
+  applyMode String
+
+  risk String
+
+  status String @default("draft")
+
+  targetFiles String
+
+  editSpec String
+
+  diff String?
+
+  liveCommit String?
+
+  backupPaths String?
+
+  qaResult String?
+
+  qaStartedAt DateTime?
+
+  qaFinishedAt DateTime?
+
+  model String?
+
+  createdBy String?
+
+  archived Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
