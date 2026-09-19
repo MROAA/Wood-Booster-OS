@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { ACT_NAMES } from "./actNames"
 
 /*
  * "Muokkaa tehokkaammin" / "haluan pystyä päivittämään Hearthwoodia
@@ -143,6 +144,21 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
                         {...inputProps}
                       />
                     )
+                }
+
+                {
+                  // Marc: "on vieläkin epäselvää että missä kohtaa
+                  // tarinaa teksti esiintyy" - a bare Act number here
+                  // still doesn't say what that Act IS, even though the
+                  // browser list (EntityBrowser.jsx) already names it.
+                  // Reacts to the currently TYPED value, not just the
+                  // original one, so retargeting this entry to a
+                  // different Act shows its name immediately.
+                  key === "act" && ACT_NAMES[Number(values[key])] && (
+                    <div className="text-[10px] text-[var(--wood-accent)]">
+                      {ACT_NAMES[Number(values[key])]}
+                    </div>
+                  )
                 }
               </label>
             )

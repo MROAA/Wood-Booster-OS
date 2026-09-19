@@ -4,6 +4,7 @@ import { apiGet } from "../../api/client"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { actLabel } from "./actNames"
 
 /*
  * Marc: "haluan myös pystyä lisäämään tarinaa tarkkoihin kohtiin story
@@ -165,7 +166,7 @@ function AddStoryEntryForm({ type, onApplied, onPreviewUrlChange }) {
             onChange={event => setAct(event.target.value)}
             className="h-8 w-full rounded-lg border border-[var(--wood-border)] bg-[var(--wood-panel)] px-2 text-xs text-[var(--wood-text)] outline-none focus:border-[var(--wood-accent)]"
           >
-            {ACTS.map(n => <option key={n} value={n}>{`Act ${n}`}</option>)}
+            {ACTS.map(n => <option key={n} value={n}>{actLabel(n)}</option>)}
             <option value="any">Any point (no specific Act)</option>
           </select>
         </label>
