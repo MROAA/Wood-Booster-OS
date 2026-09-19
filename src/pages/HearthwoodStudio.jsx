@@ -25,6 +25,14 @@ import SheetView from "../components/hearthwood-studio/SheetView"
  */
 function HearthwoodStudio() {
   const [viewMode, setViewMode] = useState("single")
+  // `browsingType` drives what the LEFT panel shows; `entityType` drives
+  // what the DETAIL panel fetches. Normally the same value - split only
+  // matters for the Story Timeline (Marc: "en tiedä missä jaotellut
+  // paikat on" - a cross-type chronological list), where clicking a row
+  // whose real type is e.g. "events" must open THAT entity in the
+  // detail panel without silently kicking the left panel back to a
+  // flat per-type list and losing the chronological browsing context.
+  const [browsingType, setBrowsingType] = useState("enemies")
   const [entityType, setEntityType] = useState("enemies")
   const [entityId, setEntityId] = useState(null)
   const [entityDetail, setEntityDetail] = useState(null)
@@ -69,6 +77,7 @@ function HearthwoodStudio() {
   }, [entityType, entityId])
 
   function handleTypeChange(nextType) {
+    setBrowsingType(nextType)
     setEntityType(nextType)
     setEntityId(null)
     setPreviewUrl(null)
@@ -78,6 +87,13 @@ function HearthwoodStudio() {
     setEntityType(type)
     setEntityId(id)
     setPreviewUrl(null)
+
+    // Stay on the Story Timeline after picking a row - its rows span
+    // several real types, so syncing browsingType here would bounce
+    // back to a flat per-type list after every single click.
+    if (browsingType !== "storyTimeline") {
+      setBrowsingType(type)
+    }
   }
 
   function handleApplied() {
@@ -141,7 +157,7 @@ function HearthwoodStudio() {
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
-            type={entityType}
+            type={browsingType}
             onTypeChange={handleTypeChange}
             selectedId={entityId}
             onSelect={handleSelect}
@@ -152,7 +168,15 @@ function HearthwoodStudio() {
           viewMode === "sheet"
             ? (
               <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-                <SheetView type={entityType} onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+                {
+                  browsingType === "storyTimeline"
+                    ? (
+                      <div className="p-5 text-sm text-[var(--wood-muted)]">
+                        Switch to Single view to browse the Story Timeline - it spans several types, so there's no one sheet to show.
+                      </div>
+                    )
+                    : <SheetView type={entityType} onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+                }
               </section>
             )
             : (
