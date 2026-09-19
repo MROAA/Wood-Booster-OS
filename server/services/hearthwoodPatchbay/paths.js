@@ -70,11 +70,29 @@ export const HEARTHWOOD_DATA_DIR = "src/data/heartwood"
  *                     Story Journal's own sentences, e.g. "You sealed the black wound in the
  *                     hollow tree." A FLAT map, not id -> object like every other type here;
  *                     hearthwood-read-entities.mjs exposes the bare string as a synthetic
- *                     `fields.text` so the editor can still treat it like any other scalar field.
+ *                     `fields.value` so the editor can still treat it like any other scalar field.
  *                     Marc, 2026-09-19: "en löydä mistä voin muokkaa pelin tarinaa" - this was the
  *                     one genuinely-missing piece of narrative text after the cinematics/
  *                     crossroads/crownless/events round; help.js and coach.js were also
  *                     considered but are UI glossary/onboarding copy, not story.)
+ *
+ * Economy round (Marc, 2026-09-19: "dev studiossa pitää olla mukana myös
+ * ekonomia... säädän itse sillä pelin vaikeustasoa" - the dev studio needs
+ * the economy too, so he can adjust the game's own difficulty himself):
+ * runEngine.js's tunable levers, extracted to economyLevers.js (a plain
+ * data file - runEngine.js itself is HIGH risk, PR-mode-only, and PR mode
+ * was never built) specifically so they could be registered here:
+ *   economyLevers.js  export const ECONOMY_LEVERS   (object map - the 8
+ *                       scalar levers: win/formation/miniboss/elite Essence
+ *                       payouts, the Gamble's cost, and the 3 interest
+ *                       levers - grouped into one map since this registry
+ *                       only walks a single object-map/array export)
+ *   economyLevers.js  export const SHOP_INVESTMENTS (object map - the
+ *                       Ledger's 10 one-time buys, same shape/file this
+ *                       registry already knew as runEngine.js's own export
+ *                       before the move)
+ *   economyLevers.js  export const MARKET_EVENTS    (object map - the 4
+ *                       special-market defs, ditto)
  */
 export const ENTITY_TYPES = {
     enemies: { file: "enemies.js", exportName: "ENEMIES" },
@@ -97,6 +115,9 @@ export const ENTITY_TYPES = {
     boons: { file: "boons.js", exportName: "RUN_BOONS" },
     banes: { file: "boons.js", exportName: "RUN_BANES" },
     storyJournal: { file: "storyLog.js", exportName: "FLAG_LABELS" },
+    economyLevers: { file: "economyLevers.js", exportName: "ECONOMY_LEVERS" },
+    investments: { file: "economyLevers.js", exportName: "SHOP_INVESTMENTS" },
+    marketEvents: { file: "economyLevers.js", exportName: "MARKET_EVENTS" },
 }
 
 /**

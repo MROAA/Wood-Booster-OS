@@ -35,6 +35,17 @@ const STORY_TYPES = [
   { type: "moods", label: "Forest Mood" },
 ]
 
+// Marc: "dev studiossa pitää olla mukana myös ekonomia... säädän itse
+// sillä pelin vaikeustasoa" (the dev studio needs the economy too - I
+// will use it myself to adjust the game's difficulty). These 3 read
+// from economyLevers.js (extracted out of the HIGH-risk runEngine.js
+// specifically so they could live here).
+const ECONOMY_TYPES = [
+  { type: "economyLevers", label: "Economy Levers" },
+  { type: "investments", label: "Ledger Investments" },
+  { type: "marketEvents", label: "Market Events" },
+]
+
 const OTHER_TYPES = [
   { type: "characters", label: "Characters" },
   { type: "formations", label: "Formations" },
@@ -46,7 +57,7 @@ const OTHER_TYPES = [
   { type: "banes", label: "Banes" },
 ]
 
-const OVERFLOW_TYPES = [...STORY_TYPES, ...OTHER_TYPES]
+const OVERFLOW_TYPES = [...STORY_TYPES, ...ECONOMY_TYPES, ...OTHER_TYPES]
 
 // Marc: "tämä on liian epäselvä systeemi että osaan editoida tarinaa
 // luotettavasti... tarvitsen jonkinlaisen kronologisen tavan pitää
@@ -178,6 +189,14 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
           <optgroup label="Story">
             {
               STORY_TYPES.map(entry => (
+                <option key={entry.type} value={entry.type}>{entry.label}</option>
+              ))
+            }
+          </optgroup>
+
+          <optgroup label="Economy">
+            {
+              ECONOMY_TYPES.map(entry => (
                 <option key={entry.type} value={entry.type}>{entry.label}</option>
               ))
             }
