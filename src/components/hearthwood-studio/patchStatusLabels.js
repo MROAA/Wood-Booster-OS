@@ -6,17 +6,17 @@
  */
 
 export const PATCH_STATUS_LABELS = {
-  draft: "Luonnos",
-  previewing: "Esikatselussa",
-  applied: "Sovellettu",
-  qa_running: "Tarkistetaan...",
-  qa_passed: "Tarkistus läpäisty",
-  qa_failed: "Tarkistus epäonnistui",
-  rolled_back: "Peruttu automaattisesti",
-  reverted: "Peruutettu",
-  pr_open: "Pull Request avattu",
-  pr_merged: "Yhdistetty (merged)",
-  failed: "Epäonnistui",
+  draft: "Draft",
+  previewing: "Previewing",
+  applied: "Applied",
+  qa_running: "Checking...",
+  qa_passed: "Check passed",
+  qa_failed: "Check failed",
+  rolled_back: "Rolled back automatically",
+  reverted: "Reverted",
+  pr_open: "Pull Request opened",
+  pr_merged: "Merged",
+  failed: "Failed",
 }
 
 export const PATCH_STATUS_TONE = {

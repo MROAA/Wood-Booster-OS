@@ -71,17 +71,17 @@ function EntityChangeLog({ entityId, reloadKey }) {
   }
 
   if (loading) {
-    return <div className="text-xs text-[var(--wood-muted)]">Ladataan muutoshistoriaa...</div>
+    return <div className="text-xs text-[var(--wood-muted)]">Loading change history...</div>
   }
 
   if (rows.length === 0) {
-    return <div className="text-xs text-[var(--wood-muted)]">Ei vielä muutoksia tälle entiteetille.</div>
+    return <div className="text-xs text-[var(--wood-muted)]">No changes yet for this entity.</div>
   }
 
   return (
     <div className="space-y-1.5">
       <div className="text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
-        Tämän muutoshistoria ({rows.length})
+        Change history for this entity ({rows.length})
       </div>
 
       {

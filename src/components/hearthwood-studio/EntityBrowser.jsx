@@ -122,7 +122,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
             }
           `}
         >
-          <option value="">Muut tyypit...</option>
+          <option value="">Other types...</option>
           {
             OVERFLOW_TYPES.map(entry => (
               <option key={entry.type} value={entry.type}>{entry.label}</option>
@@ -133,7 +133,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
         <input
           value={query}
           onChange={event => setQuery(event.target.value)}
-          placeholder="Hae nimellä tai id:llä..."
+          placeholder="Search by name or id..."
           className="
             h-9 w-full rounded-full border border-[var(--wood-border)] bg-[var(--wood-bg)]
             px-4 text-xs text-[var(--wood-text)] outline-none
@@ -143,13 +143,13 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
       </div>
 
       <div className="wood-scroll min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-3">
-        {loading && <div className="px-2 py-1 text-xs text-[var(--wood-muted)]">Ladataan...</div>}
+        {loading && <div className="px-2 py-1 text-xs text-[var(--wood-muted)]">Loading...</div>}
 
         {errorMessage && <div className="px-2 py-1 text-xs text-red-300">{errorMessage}</div>}
 
         {
           !loading && !errorMessage && entities.length === 0 && (
-            <div className="px-2 py-1 text-xs text-[var(--wood-muted)]">Ei tuloksia.</div>
+            <div className="px-2 py-1 text-xs text-[var(--wood-muted)]">No results.</div>
           )
         }
 

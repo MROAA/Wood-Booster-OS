@@ -50,7 +50,7 @@ function PatchHistoryList({ reloadKey, onReverted }) {
   }, [reloadKey])
 
   async function handleRevert(id) {
-    if (!window.confirm("Peruuta tämä muutos ja palauta aiempi tila?")) {
+    if (!window.confirm("Revert this change and restore the previous state?")) {
       return
     }
 
@@ -73,13 +73,13 @@ function PatchHistoryList({ reloadKey, onReverted }) {
 
   return (
     <div className="wood-scroll h-full min-h-0 overflow-y-auto p-4 space-y-2">
-      {loading && <div className="text-sm text-[var(--wood-muted)]">Ladataan historiaa...</div>}
+      {loading && <div className="text-sm text-[var(--wood-muted)]">Loading history...</div>}
 
       {errorMessage && <div className="text-xs text-red-300">{errorMessage}</div>}
 
       {
         !loading && rows.length === 0 && !errorMessage && (
-          <div className="text-sm text-[var(--wood-muted)]">Ei vielä yhtään muutosta.</div>
+          <div className="text-sm text-[var(--wood-muted)]">No changes yet.</div>
         )
       }
 
@@ -94,7 +94,7 @@ function PatchHistoryList({ reloadKey, onReverted }) {
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm text-[var(--wood-text)]">{row.summary}</div>
                 <div className="text-[11px] text-[var(--wood-muted)]">
-                  {new Date(row.createdAt).toLocaleString("fi-FI")}
+                  {new Date(row.createdAt).toLocaleString("en-US")}
                 </div>
               </div>
 
@@ -136,7 +136,7 @@ function PatchHistoryList({ reloadKey, onReverted }) {
                           hover:bg-red-950/30
                         "
                       >
-                        {busyId === row.id ? "Peruutetaan..." : "Peruuta"}
+                        {busyId === row.id ? "Reverting..." : "Revert"}
                       </button>
                     )
                   }

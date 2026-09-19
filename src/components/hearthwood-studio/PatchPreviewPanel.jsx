@@ -25,7 +25,7 @@ function PatchPreviewPanel({ result, applyMode, onApplyModeChange, onDiscard, on
 
         {
           result.model && (
-            <span className="text-xs text-[var(--wood-muted)]">malli: {result.model}</span>
+            <span className="text-xs text-[var(--wood-muted)]">model: {result.model}</span>
           )
         }
       </div>
@@ -41,7 +41,7 @@ function PatchPreviewPanel({ result, applyMode, onApplyModeChange, onDiscard, on
       {
         hasPlannedEdits && (
           <div className="space-y-1">
-            <div className="text-xs font-semibold text-[var(--wood-text)]">Suunnitellut muutokset:</div>
+            <div className="text-xs font-semibold text-[var(--wood-text)]">Planned changes:</div>
             <ul className="list-disc space-y-0.5 pl-4 text-xs text-[var(--wood-text)]">
               {
                 result.plannedEdits.map((edit, index) => (
@@ -58,7 +58,7 @@ function PatchPreviewPanel({ result, applyMode, onApplyModeChange, onDiscard, on
       {
         hasRejectedOps && (
           <div className="rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
-            ⚠ Näitä ei voitu tehdä automaattisesti - käytä koko tiedoston muokkausta tai Claudea:
+            ⚠ These couldn't be done automatically - use full-file editing or Claude:
             <ul className="mt-1 list-disc pl-4">
               {
                 result.rejectedOps.map((rejected, index) => (
@@ -88,7 +88,7 @@ function PatchPreviewPanel({ result, applyMode, onApplyModeChange, onDiscard, on
             hover:text-[var(--wood-text)]
           "
         >
-          Hylkää
+          Discard
         </button>
 
         <button
@@ -101,7 +101,7 @@ function PatchPreviewPanel({ result, applyMode, onApplyModeChange, onDiscard, on
             disabled:cursor-not-allowed disabled:opacity-30
           "
         >
-          {applying ? "Sovelletaan..." : "Vahvista ja sovella"}
+          {applying ? "Applying..." : "Confirm and apply"}
         </button>
       </div>
     </div>

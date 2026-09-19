@@ -44,7 +44,7 @@ function NlChangeBox({ type, entityId, entityLabel, onApplied, onPreviewUrlChang
     <div className="space-y-3">
       <div>
         <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
-          Omin sanoin{entityLabel ? ` — ${entityLabel}` : ""}
+          In your own words{entityLabel ? ` — ${entityLabel}` : ""}
         </label>
 
         <textarea
@@ -53,8 +53,8 @@ function NlChangeBox({ type, entityId, entityLabel, onApplied, onPreviewUrlChang
           disabled={disabled}
           placeholder={
             disabled
-              ? "Valitse ensin entiteetti vasemmalta."
-              : "Esim. \"tee tästä hieman kovempi\" tai \"nosta hintaa 20 essenssillä\"..."
+              ? "Select an entity on the left first."
+              : "E.g. \"make this a bit tougher\" or \"raise the price by 20 essence\"..."
           }
           rows={3}
           className="
@@ -76,7 +76,7 @@ function NlChangeBox({ type, entityId, entityLabel, onApplied, onPreviewUrlChang
               disabled:cursor-not-allowed disabled:opacity-30
             "
           >
-            {previewing ? "Esikatsellaan..." : "Esikatsele muutos"}
+            {previewing ? "Previewing..." : "Preview change"}
           </button>
         </div>
       </div>
