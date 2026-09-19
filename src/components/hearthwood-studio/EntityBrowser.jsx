@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 
 import { apiGet } from "../../api/client"
 
+import { actLabel } from "./actNames"
+
 // Marc, 2026-09-19: "puhun sinulle suomeksi koska se on äidinkieleni
 // mutta haluan peliin liittyvät ja pelin itse englanniksi" (he speaks
 // to Claude in Finnish, but wants the game itself and everything
@@ -206,23 +208,26 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
                 }
 
                 <div className="min-w-0 flex-1">
+                  {
+                    // Marc: "sen pitää kertoa minulle missä kohtaa
+                    // tarinaa menen" (it needs to tell me where I am in
+                    // the story) - any entity with a numeric `act`
+                    // field (Map Events, Story Journal) gets this for
+                    // free, without the browser needing to know which
+                    // type it's looking at. A bare "Act 3" still left
+                    // it unclear (Marc: "on vieläkin epäselvää") - the
+                    // Act's own theme name (actNames.js) is what
+                    // actually places it. Its own line, full width, so
+                    // the name it's a caption goes above.
+                    typeof act === "number" && (
+                      <div className="truncate text-[10px] font-semibold uppercase tracking-wide text-[var(--wood-accent)]">
+                        {actLabel(act)}
+                      </div>
+                    )
+                  }
                   <div className="truncate font-medium">{entity.name || entity.id}</div>
                   <div className="truncate font-mono text-[10px] opacity-70">{entity.id}</div>
                 </div>
-
-                {
-                  // Marc: "sen pitää kertoa minulle missä kohtaa tarinaa
-                  // menen" (it needs to tell me where I am in the
-                  // story) - any entity with a numeric `act` field
-                  // (Map Events, Story Journal) gets this for free,
-                  // without the browser needing to know which type it
-                  // is looking at.
-                  typeof act === "number" && (
-                    <span className="shrink-0 rounded-full border border-[var(--wood-border)] px-2 py-0.5 text-[10px] text-[var(--wood-muted)]">
-                      Act {act}
-                    </span>
-                  )
-                }
               </button>
             )
           })
