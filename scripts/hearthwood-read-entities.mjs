@@ -354,13 +354,44 @@ function isIdentifierRef(node) {
 
 }
 
+/** Every element is an ObjectExpression - a "records" array (choices, lines, effects...). */
+function isListOfObjects(node) {
+
+    return node.type === "ArrayExpression"
+        && node.elements.length > 0
+        && node.elements.every(el => el && el.type === "ObjectExpression")
+
+}
+
+/** Every element is a splice-safe scalar - a "lines" array (a merchant's greeting pool...). */
+function isListOfScalars(node) {
+
+    return node.type === "ArrayExpression"
+        && node.elements.length > 0
+        && node.elements.every(el => el && scalarValue(el))
+
+}
+
 /**
  * Walks an ObjectExpression's own properties into `fields`/`complexKeys`/
  * `identifierKeys` (mutated in place) - shared between a plain entity
  * object literal and a factory call's trailing options object, so the
  * two don't drift into slightly different field-classification rules.
+ *
+ * Marc: "valintaikkunan ja muut tarinanhaarat ei vielä ole
+ * muokattavissa" (the choice window and other story branches aren't
+ * editable yet) - a `choices`/`lines`/`effects`-style array of records
+ * used to fall straight into the generic "complex" raw-JS bucket below,
+ * with no way to edit just one choice's own label/result text without
+ * hand-editing the whole array as one blob. `kind: "list"` instead
+ * recurses this SAME function over each element, so a list item's own
+ * fields are just as scalar-editable as a top-level entity's - and if
+ * one of THOSE fields is itself a records array (an event choice's own
+ * `effects`), it becomes a nested list too. `depth` guards against
+ * runaway recursion on something pathological; real data never nests
+ * more than 2-3 levels (entity -> choices -> effects).
  */
-function collectObjectFields(objNode, fields, complexKeys, identifierKeys, importMap) {
+function collectObjectFields(objNode, fields, complexKeys, identifierKeys, importMap, depth = 0) {
 
     for (const field of objNode.properties) {
 
@@ -409,6 +440,51 @@ function collectObjectFields(objNode, fields, complexKeys, identifierKeys, impor
 
             complexKeys.push(fk)
             identifierKeys.push(fk)
+
+        } else if (depth < 3 && isListOfObjects(field.value)) {
+
+            const items = field.value.elements.map(el => {
+
+                const itemFields = {}
+                const itemComplexKeys = []
+                const itemIdentifierKeys = []
+
+                collectObjectFields(el, itemFields, itemComplexKeys, itemIdentifierKeys, importMap, depth + 1)
+
+                return {
+                    fields: itemFields,
+                    complexKeys: itemComplexKeys,
+                    identifierKeys: itemIdentifierKeys,
+                    range: [el.start, el.end],
+                }
+            })
+
+            fields[fk] = {
+                value: null,
+                kind: "list",
+                range: [field.value.start, field.value.end],
+                items,
+            }
+
+            complexKeys.push(fk)
+
+        } else if (depth < 3 && isListOfScalars(field.value)) {
+
+            const items = field.value.elements.map(el => {
+
+                const scalarEl = scalarValue(el)
+
+                return { value: scalarEl.value, kind: scalarEl.kind, range: [el.start, el.end] }
+            })
+
+            fields[fk] = {
+                value: null,
+                kind: "list",
+                range: [field.value.start, field.value.end],
+                items,
+            }
+
+            complexKeys.push(fk)
 
         } else {
 
@@ -665,9 +741,11 @@ function walkMap(mapNode, ast) {
 }
 
 /** Walk an ArrayExpression export (dualClasses.js, tutorial.js). */
-function walkArray(arrayNode) {
+function walkArray(arrayNode, ast) {
 
     const entities = []
+
+    const importMap = buildImportMap(ast)
 
     arrayNode.elements.forEach((element, index) => {
 
@@ -681,61 +759,32 @@ function walkArray(arrayNode) {
 
         const complexKeys = []
 
+        const identifierKeys = []
+
         let name = null
 
         let id = String(index)
 
         if (element.type === "ObjectExpression") {
 
-            for (const field of element.properties) {
+            // Same field-classification rules a map-keyed entity gets
+            // (collectObjectFields) - was its own simplified duplicate
+            // that never learned the "list" kind (events.js's own
+            // `choices` stayed a raw-JS blob - Marc: "valintaikkunan...
+            // ei vielä ole muokattavissa"), which the two silently drifted
+            // out of sync on.
+            collectObjectFields(element, fields, complexKeys, identifierKeys, importMap)
 
-                if (field.type !== "Property") {
+            if (fields.id && fields.id.kind === "string") {
 
-                    continue
+                id = fields.id.value
 
-                }
+            }
 
-                const fk = keyName(field.key, field.computed)
+            if (fields.name && fields.name.kind === "string") {
 
-                if (fk == null) {
+                name = fields.name.value
 
-                    continue
-
-                }
-
-                const scalar = scalarValue(field.value)
-
-                if (scalar) {
-
-                    fields[fk] = {
-                        value: scalar.value,
-                        kind: scalar.kind,
-                        range: [field.value.start, field.value.end],
-                    }
-
-                    if (fk === "id" && scalar.kind === "string") {
-
-                        id = scalar.value
-
-                    }
-
-                    if (fk === "name" && scalar.kind === "string") {
-
-                        name = scalar.value
-
-                    }
-
-                } else {
-
-                    complexKeys.push(fk)
-
-                    fields[fk] = {
-                        value: null,
-                        kind: "complex",
-                        range: [field.value.start, field.value.end],
-                    }
-
-                }
             }
 
         } else {
@@ -749,7 +798,7 @@ function walkArray(arrayNode) {
             name,
             fields,
             complexKeys,
-            identifierKeys: [],
+            identifierKeys,
             sourceRange: [element.start, element.end],
         })
     })
@@ -794,7 +843,7 @@ export function readEntities(input) {
 
     } else if (initNode.type === "ArrayExpression") {
 
-        entities = walkArray(initNode)
+        entities = walkArray(initNode, ast)
 
     } else {
 
@@ -810,16 +859,35 @@ export function readEntities(input) {
     // needed (not during AST traversal itself). This is what
     // EntityFieldEditor.jsx shows/edits raw and what a "setRaw" op
     // ultimately replaces.
-    for (const entity of entities) {
+    function backfillComplexText(fieldsObj) {
 
-        for (const field of Object.values(entity.fields)) {
+        for (const field of Object.values(fieldsObj)) {
 
             if (field.kind === "complex" && Array.isArray(field.range)) {
 
                 field.value = source.slice(field.range[0], field.range[1])
 
+            } else if (field.kind === "list" && Array.isArray(field.items)) {
+
+                // A list item is either a records object (its own
+                // `.fields`, recurse the same way) or a bare scalar (no
+                // `.fields` to backfill into).
+                for (const item of field.items) {
+
+                    if (item.fields) {
+
+                        backfillComplexText(item.fields)
+
+                    }
+                }
             }
         }
+    }
+
+    for (const entity of entities) {
+
+        backfillComplexText(entity.fields)
+
     }
 
     return {

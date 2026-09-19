@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 import { ACT_NAMES } from "./actNames"
+import ListFieldEditor from "./ListFieldEditor"
 
 /*
  * "Muokkaa tehokkaammin" / "haluan pystyä päivittämään Hearthwoodia
@@ -50,13 +51,14 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
     ? Object.entries(entityDetail.fields || {}).filter(([key]) => key !== "id")
     : []
 
-  const scalarFields = allFields.filter(([, field]) => field.kind !== "complex")
+  const scalarFields = allFields.filter(([, field]) => field.kind !== "complex" && field.kind !== "list")
   const complexFields = allFields.filter(([, field]) => field.kind === "complex")
+  const listFields = allFields.filter(([, field]) => field.kind === "list")
 
   useEffect(() => {
     const initial = {}
 
-    for (const [key, field] of allFields) {
+    for (const [key, field] of scalarFields.concat(complexFields)) {
       initial[key] = String(field.value)
     }
 
@@ -165,6 +167,26 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
           })
         }
       </div>
+
+      {
+        listFields.length > 0 && (
+          <div className="space-y-3">
+            {
+              listFields.map(([key, field]) => (
+                <ListFieldEditor
+                  key={key}
+                  type={type}
+                  entityId={entityId}
+                  fieldKey={key}
+                  field={field}
+                  onApplied={onApplied}
+                  onPreviewUrlChange={onPreviewUrlChange}
+                />
+              ))
+            }
+          </div>
+        )
+      }
 
       {
         complexFields.length > 0 && (
