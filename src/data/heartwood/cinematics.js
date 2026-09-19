@@ -12,6 +12,14 @@
 // Text is transcribed/condensed from the bible and genericised - the
 // bible addresses the player as "Marc"; here it is second person, the
 // same call trials.js already made.
+//
+// Marc, 2026-09-19: ordered chronologically (a run plays intro first,
+// then - if it reaches Act V - crownless-throne, then whichever ending
+// its allegiances earned, then echo-epilogue right after) rather than
+// the grouping-by-kind order this file had before (intro, then all
+// three endings, then crownless-throne, then echo-epilogue - which put
+// crownless-throne, an Act V OPENING scene, after content that only
+// plays at the very end of the run).
 
 export const CINEMATICS = {
   intro: {
@@ -32,6 +40,37 @@ export const CINEMATICS = {
         line: "You hear us, don't you. The roots aren't ours anymore. Something is spreading up from below. Something is waking.",
       },
       { speaker: "The forest", tone: "whisper", line: "Don't let it grow." },
+    ],
+  },
+
+  // Act V opening - the throne hall, after the Hollow King falls. From
+  // the bible's "The Crownless Throne - extended opening scene".
+  "crownless-throne": {
+    id: "crownless-throne",
+    title: "The Crownless Throne",
+    subtitle: "When the king disappears, the crown does not. It waits.",
+    fade: "black",
+    lines: [
+      { speaker: "The forest", tone: "clear", line: "You came." },
+      {
+        speaker: "The forest",
+        line: "I have been silent too long. I have whispered, warned, hidden. But now - now I have to speak.",
+      },
+      {
+        speaker: "The forest",
+        line: "The king is gone. The void is sealed. But the crown cannot stay empty.",
+      },
+      {
+        speaker: "Spacemonkey",
+        tone: "quiet",
+        line: "Hey. If you're seeing this, it means I'm not there anymore.",
+      },
+      {
+        speaker: "Spacemonkey",
+        tone: "quiet",
+        line: "I know this place scares you. It scared me. It scared the Hollow King. But someone needs you now.",
+      },
+      { speaker: "The Crownless", line: "You came. Before you choose, I have to see who you are." },
     ],
   },
 
@@ -79,37 +118,6 @@ export const CINEMATICS = {
       { speaker: "The forest", tone: "reverent", line: "You carry the crown." },
       { speaker: "The Crownless", line: "The Heartwood lives - through you." },
       { speaker: "Spacemonkey", tone: "whisper", line: "You did what I didn't dare to." },
-    ],
-  },
-
-  // Act V opening - the throne hall, after the Hollow King falls. From
-  // the bible's "The Crownless Throne - extended opening scene".
-  "crownless-throne": {
-    id: "crownless-throne",
-    title: "The Crownless Throne",
-    subtitle: "When the king disappears, the crown does not. It waits.",
-    fade: "black",
-    lines: [
-      { speaker: "The forest", tone: "clear", line: "You came." },
-      {
-        speaker: "The forest",
-        line: "I have been silent too long. I have whispered, warned, hidden. But now - now I have to speak.",
-      },
-      {
-        speaker: "The forest",
-        line: "The king is gone. The void is sealed. But the crown cannot stay empty.",
-      },
-      {
-        speaker: "Spacemonkey",
-        tone: "quiet",
-        line: "Hey. If you're seeing this, it means I'm not there anymore.",
-      },
-      {
-        speaker: "Spacemonkey",
-        tone: "quiet",
-        line: "I know this place scares you. It scared me. It scared the Hollow King. But someone needs you now.",
-      },
-      { speaker: "The Crownless", line: "You came. Before you choose, I have to see who you are." },
     ],
   },
 
