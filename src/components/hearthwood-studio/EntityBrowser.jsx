@@ -2,21 +2,35 @@ import { useEffect, useState } from "react"
 
 import { apiGet } from "../../api/client"
 
+// Marc, 2026-09-19: "puhun sinulle suomeksi koska se on äidinkieleni
+// mutta haluan peliin liittyvät ja pelin itse englanniksi" (he speaks
+// to Claude in Finnish, but wants the game itself and everything
+// related to it in English) - these labels were originally Finnish;
+// converted to English this round for that reason, not a translation
+// pass for its own sake.
 const PRIMARY_TYPES = [
-  { type: "enemies", label: "Viholliset" },
-  { type: "units", label: "Yksiköt" },
-  { type: "cards", label: "Kortit" },
-  { type: "relics", label: "Reliikit" },
-  { type: "items", label: "Esineet" },
+  { type: "enemies", label: "Enemies" },
+  { type: "units", label: "Units" },
+  { type: "cards", label: "Cards" },
+  { type: "relics", label: "Relics" },
+  { type: "items", label: "Items" },
 ]
 
 const OVERFLOW_TYPES = [
-  { type: "characters", label: "Hahmot" },
-  { type: "formations", label: "Muodostelmat" },
-  { type: "synergies", label: "Synergiat" },
-  { type: "dualClasses", label: "Kaksoisluokat" },
-  { type: "trials", label: "Koitokset" },
-  { type: "tutorial", label: "Tutoriaali" },
+  { type: "characters", label: "Characters" },
+  { type: "formations", label: "Formations" },
+  { type: "synergies", label: "Synergies" },
+  { type: "dualClasses", label: "Dual Classes" },
+  { type: "trials", label: "Trials" },
+  { type: "tutorial", label: "Tutorial" },
+  { type: "cinematics", label: "Cinematics" },
+  { type: "crossroads", label: "Crossroads" },
+  { type: "crownless", label: "Crownless" },
+  { type: "events", label: "Events" },
+  { type: "merchants", label: "Merchants" },
+  { type: "moods", label: "Forest Mood" },
+  { type: "boons", label: "Boons" },
+  { type: "banes", label: "Banes" },
 ]
 
 /*
