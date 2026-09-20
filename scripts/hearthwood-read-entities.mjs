@@ -417,6 +417,103 @@ function displayNameFrom(fields) {
  * runaway recursion on something pathological; real data never nests
  * more than 2-3 levels (entity -> choices -> effects).
  */
+function classifyField(fk, valueNode, fields, complexKeys, identifierKeys, importMap, depth) {
+
+    const scalar = scalarValue(valueNode)
+
+    if (scalar) {
+
+        fields[fk] = {
+            value: scalar.value,
+            kind: scalar.kind,
+            range: [valueNode.start, valueNode.end],
+        }
+
+    } else if (isIdentifierRef(valueNode)) {
+
+        // A reference to a top-of-file `import xImg from "..."` -
+        // not splice-safe as a scalar "set" (editApplier.js), but
+        // worth naming distinctly from other complex keys so the
+        // frontend can offer an image-upload control specifically
+        // for these (see balanceRunner.js's sibling, the image
+        // upload endpoint). `value` (this round) resolves the
+        // identifier back to an actual asset path so the CURRENT
+        // image can be shown, not just a bare upload button.
+        const importSource = importMap ? importMap.get(valueNode.name) : null
+
+        fields[fk] = {
+            value: resolveImportAssetPath(importSource),
+            kind: "identifier",
+            range: [valueNode.start, valueNode.end],
+        }
+
+        complexKeys.push(fk)
+        identifierKeys.push(fk)
+
+    } else if (depth < 3 && isListOfObjects(valueNode)) {
+
+        const items = valueNode.elements.map(el => {
+
+            const itemFields = {}
+            const itemComplexKeys = []
+            const itemIdentifierKeys = []
+
+            collectObjectFields(el, itemFields, itemComplexKeys, itemIdentifierKeys, importMap, depth + 1)
+
+            return {
+                fields: itemFields,
+                complexKeys: itemComplexKeys,
+                identifierKeys: itemIdentifierKeys,
+                range: [el.start, el.end],
+            }
+        })
+
+        fields[fk] = {
+            value: null,
+            kind: "list",
+            range: [valueNode.start, valueNode.end],
+            items,
+        }
+
+        complexKeys.push(fk)
+
+    } else if (depth < 3 && isListOfScalars(valueNode)) {
+
+        const items = valueNode.elements.map(el => {
+
+            const scalarEl = scalarValue(el)
+
+            return { value: scalarEl.value, kind: scalarEl.kind, range: [el.start, el.end] }
+        })
+
+        fields[fk] = {
+            value: null,
+            kind: "list",
+            range: [valueNode.start, valueNode.end],
+            items,
+        }
+
+        complexKeys.push(fk)
+
+    } else {
+
+        // Not scalar-editable via "set", but still splice-safe via
+        // the generic "setRaw" op (hearthwood-apply-edit.mjs) - a
+        // range here lets readEntities() fill in the exact source
+        // text below, so the frontend can show/edit it as raw JS
+        // without a bespoke UI per mechanic shape (movePattern,
+        // effects, passives, ...).
+        complexKeys.push(fk)
+
+        fields[fk] = {
+            value: null,
+            kind: "complex",
+            range: [valueNode.start, valueNode.end],
+        }
+
+    }
+}
+
 function collectObjectFields(objNode, fields, complexKeys, identifierKeys, importMap, depth = 0) {
 
     for (const field of objNode.properties) {
@@ -436,99 +533,7 @@ function collectObjectFields(objNode, fields, complexKeys, identifierKeys, impor
 
         }
 
-        const scalar = scalarValue(field.value)
-
-        if (scalar) {
-
-            fields[fk] = {
-                value: scalar.value,
-                kind: scalar.kind,
-                range: [field.value.start, field.value.end],
-            }
-
-        } else if (isIdentifierRef(field.value)) {
-
-            // A reference to a top-of-file `import xImg from "..."` -
-            // not splice-safe as a scalar "set" (editApplier.js), but
-            // worth naming distinctly from other complex keys so the
-            // frontend can offer an image-upload control specifically
-            // for these (see balanceRunner.js's sibling, the image
-            // upload endpoint). `value` (this round) resolves the
-            // identifier back to an actual asset path so the CURRENT
-            // image can be shown, not just a bare upload button.
-            const importSource = importMap ? importMap.get(field.value.name) : null
-
-            fields[fk] = {
-                value: resolveImportAssetPath(importSource),
-                kind: "identifier",
-                range: [field.value.start, field.value.end],
-            }
-
-            complexKeys.push(fk)
-            identifierKeys.push(fk)
-
-        } else if (depth < 3 && isListOfObjects(field.value)) {
-
-            const items = field.value.elements.map(el => {
-
-                const itemFields = {}
-                const itemComplexKeys = []
-                const itemIdentifierKeys = []
-
-                collectObjectFields(el, itemFields, itemComplexKeys, itemIdentifierKeys, importMap, depth + 1)
-
-                return {
-                    fields: itemFields,
-                    complexKeys: itemComplexKeys,
-                    identifierKeys: itemIdentifierKeys,
-                    range: [el.start, el.end],
-                }
-            })
-
-            fields[fk] = {
-                value: null,
-                kind: "list",
-                range: [field.value.start, field.value.end],
-                items,
-            }
-
-            complexKeys.push(fk)
-
-        } else if (depth < 3 && isListOfScalars(field.value)) {
-
-            const items = field.value.elements.map(el => {
-
-                const scalarEl = scalarValue(el)
-
-                return { value: scalarEl.value, kind: scalarEl.kind, range: [el.start, el.end] }
-            })
-
-            fields[fk] = {
-                value: null,
-                kind: "list",
-                range: [field.value.start, field.value.end],
-                items,
-            }
-
-            complexKeys.push(fk)
-
-        } else {
-
-            // Not scalar-editable via "set", but still splice-safe via
-            // the generic "setRaw" op (hearthwood-apply-edit.mjs) - a
-            // range here lets readEntities() fill in the exact source
-            // text below, so the frontend can show/edit it as raw JS
-            // without a bespoke UI per mechanic shape (movePattern,
-            // effects, passives, ...).
-            complexKeys.push(fk)
-
-            fields[fk] = {
-                value: null,
-                kind: "complex",
-                range: [field.value.start, field.value.end],
-            }
-
-        }
+        classifyField(fk, field.value, fields, complexKeys, identifierKeys, importMap, depth)
     }
 }
 
@@ -587,40 +592,17 @@ function entityFromProperty(prop, importMap) {
 
                 }
 
-                const scalar = scalarValue(argNode)
-
-                if (scalar) {
-
-                    fields[argName] = {
-                        value: scalar.value,
-                        kind: scalar.kind,
-                        range: [argNode.start, argNode.end],
-                    }
-
-                } else if (isIdentifierRef(argNode)) {
-
-                    const importSource = importMap ? importMap.get(argNode.name) : null
-
-                    fields[argName] = {
-                        value: resolveImportAssetPath(importSource),
-                        kind: "identifier",
-                        range: [argNode.start, argNode.end],
-                    }
-
-                    complexKeys.push(argName)
-                    identifierKeys.push(argName)
-
-                } else {
-
-                    complexKeys.push(argName)
-
-                    fields[argName] = {
-                        value: null,
-                        kind: "complex",
-                        range: [argNode.start, argNode.end],
-                    }
-
-                }
+                // Marc: "haluan myös muokata yksiköiden... statseja
+                // niinkuin hp damage" - units.js's `movePattern` is
+                // this SAME positional-argument slot, and used to fall
+                // straight to the generic "complex" branch below
+                // instead of getting the list-of-records treatment
+                // collectObjectFields already gives an object
+                // literal's own array fields (an enemy's own
+                // movePattern, sitting in a plain `{ movePattern: [...] }`
+                // object, already got this - only the factory-call
+                // shape (units.js) was missing it).
+                classifyField(argName, argNode, fields, complexKeys, identifierKeys, importMap, 0)
             })
 
             const optsNode = args[signature.optsArgIndex]
