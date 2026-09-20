@@ -14,7 +14,7 @@
 // ever overlap) and is what's used under the narrow-viewport
 // breakpoint (<=1240px, where the 3-column layout collapses to one
 // column and free positions don't apply). `leftRailPositions` is the
-// NEW optional field: when ALL 4 keys have an {x, y} entry, the rail
+// optional field: when ALL 4 keys have an {x, y} entry, the rail
 // switches to free positioning (dragged live on the Market screen
 // itself, via the dev-only "Edit Layout" toggle); if even one key is
 // missing (including the default, untouched case), the rail renders
@@ -22,10 +22,24 @@
 // all-or-nothing check, not two layout systems half-active at once.
 // Anything not recognized in either field is simply skipped, so a
 // typo here can't crash the market.
+//
+// Phase 2 (Marc: "i want to be able to move all of the pieces how i
+// like"): `rightRailPositions` is the SAME mechanism for the right
+// rail, which today holds exactly one element - the live run map -
+// under the key "map". Kept as its own keyed object (not a bare
+// {x,y}) purely for consistency with `leftRailPositions`'s own shape,
+// so the same reader/editor logic and the same Studio field-editing
+// UI cover both without a special case. The center market/squad panel
+// deliberately does NOT get this treatment (investigated and
+// confirmed too risky for free positioning as-is: a fluid-width
+// column holding two differently-shaped panels that swap via a tab,
+// with unstable height and a card component that already drives its
+// own hover animation) - out of scope, not an oversight.
 export const SHOP_LAYOUT = {
   market: {
     id: "market",
     leftRailOrder: ["ledger", "buyback", "relics", "items"],
     leftRailPositions: {},
+    rightRailPositions: {},
   },
 }
