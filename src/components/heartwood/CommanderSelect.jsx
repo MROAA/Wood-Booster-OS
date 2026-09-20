@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { CardGlyph } from "./cardArt"
 import { MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
 import { parseSeed } from "../../data/heartwood/seed"
+import { useFreeLayout } from "./useFreeLayout.jsx"
 
 // Commander-select / first-launch screen (roadmap: "Komentajavalinta/
 // aloitusnayton visuaalinen viimeistely"). This is the literal first
@@ -43,6 +44,10 @@ export default function CommanderSelect({
   const [confirmingId, setConfirmingId] = useState(null)
   const unlocked = new Set(unlockedIds)
 
+  // Free Layout foundation (Stage A, PR 2) - see useFreeLayout.jsx and
+  // SettingsScreen.jsx's own pilot wiring for the full mechanism.
+  const layout = useFreeLayout({ screenId: "commanderSelect", keys: ["header", "grid", "seed"] })
+
   // Optional "seeded run" (seed.js / Seed System PRD sections 3-9): a
   // collapsed line that opens one input. A valid seed is passed up to
   // onConfirm as the run's forcedSeed; an unparseable one just shows a
@@ -81,122 +86,160 @@ export default function CommanderSelect({
 
   return (
     <div className="hw-commander-select">
-      <div className="hw-commander-select-header">
-        <div className="hw-crew-banner">
-          <img src={bannerSrc} alt={bannerAlt} />
-        </div>
-        <h1 className="hw-commander-select-title">Hearthwood</h1>
-        <p className="hw-flavor">
-          Deep inside the Boosterverse, Spacemonkey waits at the heart of the Hearthwood. Choose who
-          leads the squad in after him.
-        </p>
-        {/* Death Memory (Marc's PRD): the previous run's fallen hero is
-            remembered once, into this next run only - see
-            runEngine.js's buildDeathMemory/startRun and RunEndOverlay
-            where the memory is first shown. */}
-        {pendingMemory && (
-          <span className="hw-badge" title="A small Essence boon, carried forward once in their memory">
-            In memory of {pendingMemory.heroName}
-            {pendingMemory.heroClass && pendingMemory.heroClass !== pendingMemory.heroName
-              ? `, the ${pendingMemory.heroClass}`
-              : ""}{" "}
-            - your squad begins with +{MEMORY_ESSENCE_BONUS} Essence.
-          </span>
-        )}
-        {depthLevel > 0 && (
-          <span
-            className="hw-badge"
-            style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
-            title="Change this at the Grove"
-          >
-            Running at Depth {depthLevel}
-          </span>
-        )}
-      </div>
-      <div className="hw-commander-grid">
-        {characters.map((character) => {
-          const isLocked = character.locked && !unlocked.has(character.id)
-          const canAfford = acorns >= (character.unlockCost || 0)
-          return (
-            <button
-              key={character.id}
-              type="button"
-              className="hw-commander-card"
-              data-confirming={confirmingId === character.id}
-              data-dimmed={confirmingId !== null && confirmingId !== character.id}
-              data-locked={isLocked}
-              disabled={confirmingId !== null || (isLocked && !canAfford)}
-              onClick={() => {
-                if (isLocked) {
-                  if (canAfford && onUnlock) onUnlock(character.id)
-                  return
-                }
-                handlePick(character.id)
-              }}
-            >
-              <span className="hw-commander-portrait">
-                <CardGlyph name={character.art} className="hw-commander-glyph" />
-              </span>
-              <strong className="hw-commander-name">{character.name}</strong>
-              <p className="hw-commander-tagline">{character.tagline}</p>
-              <p className="hw-commander-desc">{character.description}</p>
-              <span className="hw-commander-cta">
-                {isLocked
-                  ? canAfford
-                    ? `Unlock — ${character.unlockCost} \u{1F33F}`
-                    : `Locked — ${character.unlockCost} Acorns`
-                  : confirmingId === character.id
-                    ? "Leading the squad..."
-                    : "Lead the squad"}
-              </span>
+      {import.meta.env.DEV && (
+        <div className="hw-free-layout-toolbar">
+          {!layout.editingLayout ? (
+            <button className="hw-move-btn" onClick={layout.startEditing} disabled={layout.loading}>
+              Edit Layout
             </button>
-          )
-        })}
-      </div>
-
-      <div className="hw-commander-seed">
-        {seedOpen ? (
-          <div className="hw-commander-seed-entry">
-            <label htmlFor="hw-seed-input" className="hw-commander-seed-label">
-              Seed
-            </label>
-            <input
-              id="hw-seed-input"
-              className="hw-commander-seed-input"
-              type="text"
-              inputMode="text"
-              autoComplete="off"
-              spellCheck={false}
-              maxLength={13}
-              placeholder="HW-XXXX-XXXX"
-              value={seedText}
-              disabled={confirmingId !== null}
-              data-invalid={seedInvalid}
-              onChange={(e) => setSeedText(e.target.value)}
-            />
-            <span className="hw-commander-seed-hint" data-invalid={seedInvalid}>
-              {seedInvalid ? "Not a valid seed" : parsedSeed != null ? "Same seed, same route & shops" : "Leave blank for a random run"}
-            </span>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="hw-commander-seed-toggle"
-            disabled={confirmingId !== null}
-            onClick={() => setSeedOpen(true)}
-          >
-            &#8617; Enter a seed
+          ) : (
+            <>
+              <button className="hw-move-btn" onClick={layout.saveLayout} disabled={layout.saving}>
+                Save Layout
+              </button>
+              <button className="hw-move-btn" onClick={layout.cancelEditing} disabled={layout.saving}>
+                Cancel
+              </button>
+            </>
+          )}
+          <button className="hw-move-btn" onClick={layout.resetLayout} disabled={layout.saving}>
+            Reset Layout
           </button>
+          {layout.errorMessage && <span className="hw-free-layout-error">{layout.errorMessage}</span>}
+        </div>
+      )}
+      <div
+        ref={layout.containerRef}
+        className="hw-free-layout-container"
+        style={layout.containerStyle}
+        data-free-active={layout.freeActive || undefined}
+        data-editing-layout={layout.editingLayout || undefined}
+      >
+        {layout.renderSection(
+          "header",
+          <div className="hw-commander-select-header">
+            <div className="hw-crew-banner">
+              <img src={bannerSrc} alt={bannerAlt} />
+            </div>
+            <h1 className="hw-commander-select-title">Hearthwood</h1>
+            <p className="hw-flavor">
+              Deep inside the Boosterverse, Spacemonkey waits at the heart of the Hearthwood. Choose who
+              leads the squad in after him.
+            </p>
+            {/* Death Memory (Marc's PRD): the previous run's fallen hero is
+                remembered once, into this next run only - see
+                runEngine.js's buildDeathMemory/startRun and RunEndOverlay
+                where the memory is first shown. */}
+            {pendingMemory && (
+              <span className="hw-badge" title="A small Essence boon, carried forward once in their memory">
+                In memory of {pendingMemory.heroName}
+                {pendingMemory.heroClass && pendingMemory.heroClass !== pendingMemory.heroName
+                  ? `, the ${pendingMemory.heroClass}`
+                  : ""}{" "}
+                - your squad begins with +{MEMORY_ESSENCE_BONUS} Essence.
+              </span>
+            )}
+            {depthLevel > 0 && (
+              <span
+                className="hw-badge"
+                style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+                title="Change this at the Grove"
+              >
+                Running at Depth {depthLevel}
+              </span>
+            )}
+          </div>
         )}
+        {layout.renderSection(
+          "grid",
+          <div className="hw-commander-grid">
+            {characters.map((character) => {
+              const isLocked = character.locked && !unlocked.has(character.id)
+              const canAfford = acorns >= (character.unlockCost || 0)
+              return (
+                <button
+                  key={character.id}
+                  type="button"
+                  className="hw-commander-card"
+                  data-confirming={confirmingId === character.id}
+                  data-dimmed={confirmingId !== null && confirmingId !== character.id}
+                  data-locked={isLocked}
+                  disabled={confirmingId !== null || (isLocked && !canAfford)}
+                  onClick={() => {
+                    if (isLocked) {
+                      if (canAfford && onUnlock) onUnlock(character.id)
+                      return
+                    }
+                    handlePick(character.id)
+                  }}
+                >
+                  <span className="hw-commander-portrait">
+                    <CardGlyph name={character.art} className="hw-commander-glyph" />
+                  </span>
+                  <strong className="hw-commander-name">{character.name}</strong>
+                  <p className="hw-commander-tagline">{character.tagline}</p>
+                  <p className="hw-commander-desc">{character.description}</p>
+                  <span className="hw-commander-cta">
+                    {isLocked
+                      ? canAfford
+                        ? `Unlock — ${character.unlockCost} \u{1F33F}`
+                        : `Locked — ${character.unlockCost} Acorns`
+                      : confirmingId === character.id
+                        ? "Leading the squad..."
+                        : "Lead the squad"}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+        {layout.renderSection(
+          "seed",
+          <div className="hw-commander-seed">
+            {seedOpen ? (
+              <div className="hw-commander-seed-entry">
+                <label htmlFor="hw-seed-input" className="hw-commander-seed-label">
+                  Seed
+                </label>
+                <input
+                  id="hw-seed-input"
+                  className="hw-commander-seed-input"
+                  type="text"
+                  inputMode="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  maxLength={13}
+                  placeholder="HW-XXXX-XXXX"
+                  value={seedText}
+                  disabled={confirmingId !== null}
+                  data-invalid={seedInvalid}
+                  onChange={(e) => setSeedText(e.target.value)}
+                />
+                <span className="hw-commander-seed-hint" data-invalid={seedInvalid}>
+                  {seedInvalid ? "Not a valid seed" : parsedSeed != null ? "Same seed, same route & shops" : "Leave blank for a random run"}
+                </span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="hw-commander-seed-toggle"
+                disabled={confirmingId !== null}
+                onClick={() => setSeedOpen(true)}
+              >
+                &#8617; Enter a seed
+              </button>
+            )}
 
-        {/* Hearthwood Frontier (feat/hearthwood-tactics-prototype): an
-            isolated, playable turn-based prototype - Phase 1 of the pivot
-            away from the auto-battler. Grouped with the seed toggle above
-            so it doesn't claim its own 34px flex gap as a top-level
-            section; not gated on anything, doesn't touch confirmingId. */}
-        <Link className="hw-tactics-link" to="/heartwood-tactics">
-          🧪 Tactical Prototype (WIP)
-        </Link>
+            {/* Hearthwood Frontier (feat/hearthwood-tactics-prototype): an
+                isolated, playable turn-based prototype - Phase 1 of the pivot
+                away from the auto-battler. Grouped with the seed toggle above
+                so it doesn't claim its own 34px flex gap as a top-level
+                section; not gated on anything, doesn't touch confirmingId. */}
+            <Link className="hw-tactics-link" to="/heartwood-tactics">
+              🧪 Tactical Prototype (WIP)
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )
