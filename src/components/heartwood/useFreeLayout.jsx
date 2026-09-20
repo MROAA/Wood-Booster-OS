@@ -212,19 +212,28 @@ export function useFreeLayout({ screenId, keys, deps = [] }) {
         ref={(el) => {
           sectionRefs.current[key] = el
         }}
-        className={
-          pos
-            ? "hw-free-layout-section"
-            : hidden
-              ? "hw-free-layout-section hw-free-layout-section--hidden"
-              : undefined
-        }
+        className={hidden ? "hw-free-layout-section hw-free-layout-section--hidden" : "hw-free-layout-section"}
         style={
           pos
             ? { position: "absolute", left: pos.x, top: pos.y, width: pos.width || undefined }
             : undefined
         }
       >
+        {hidden ? <div className="hw-free-layout-hidden-label">Hidden</div> : content}
+        {/* Rendered AFTER content, not before - .hw-free-layout-controls
+            is always position:absolute (top:-6px, right:-6px) so its
+            DOM order has no visual effect, but placing it before
+            content used to shift content from child index 0 to index
+            1 the instant editingLayout became true. Without an
+            explicit key, React's default position-based reconciliation
+            then treated that as "a new element at index 1", UNMOUNTING
+            and remounting the real content - invisible for plain divs,
+            but a real bug for content built from framer-motion, whose
+            `initial` prop only fires on mount: StoryCinematic's
+            "head" section (initial={{y:8}} animate={{y:0}}) silently
+            replayed its entrance animation every time Edit Layout was
+            toggled, a real ~6-8px visual jump caught only by measuring
+            the actual content's own position, not the wrapper's. */}
         {editingLayout && (pos || hidden) && (
           <div className="hw-free-layout-controls">
             {!hidden && (
@@ -249,7 +258,6 @@ export function useFreeLayout({ screenId, keys, deps = [] }) {
             </button>
           </div>
         )}
-        {hidden ? <div className="hw-free-layout-hidden-label">Hidden</div> : content}
       </div>
     )
   }

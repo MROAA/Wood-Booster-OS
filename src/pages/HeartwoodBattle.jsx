@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { CHARACTERS } from "../data/heartwood/characters"
 import { resolveTrial } from "../data/heartwood/trials"
+import { useFreeLayout } from "../components/heartwood/useFreeLayout.jsx"
 import {
   startRun,
   recruitUnit,
@@ -128,6 +129,14 @@ export default function HeartwoodBattle() {
   const [showStoryIntro, setShowStoryIntro] = useState(
     () => typeof localStorage !== "undefined" && !localStorage.getItem(STORY_INTRO_SEEN_KEY),
   )
+  // Free Layout foundation (Stage A, PR 4) - the run map's top-strip
+  // mode (changeCharacterBar, below) is the last of the 6 confirmed-
+  // safe screens. Called unconditionally here, at the top of the
+  // component, since this file has many early `if (...) return`
+  // branches ABOVE where changeCharacterBar is actually used - a hook
+  // call placed there would violate React's rules of hooks (called on
+  // some renders, not others, depending on which branch returns).
+  const mapStripLayout = useFreeLayout({ screenId: "runMapStrip", keys: ["strip"] })
   // Ending cinematic: set to an id ("ending-rooted" | "-ember" |
   // "-hollow") once a run reaches victory; StoryCinematic plays it, then
   // clears it and RunEndOverlay takes over. Defeat gets no cinematic.
@@ -927,7 +936,39 @@ export default function HeartwoodBattle() {
   const changeCharacterBar = (
     <>
       {utilityBar}
-      <RunMap runState={runState} />
+      {import.meta.env.DEV && (
+        <div className="hw-free-layout-toolbar">
+          {!mapStripLayout.editingLayout ? (
+            <button className="hw-move-btn" onClick={mapStripLayout.startEditing} disabled={mapStripLayout.loading}>
+              Edit Layout
+            </button>
+          ) : (
+            <>
+              <button className="hw-move-btn" onClick={mapStripLayout.saveLayout} disabled={mapStripLayout.saving}>
+                Save Layout
+              </button>
+              <button className="hw-move-btn" onClick={mapStripLayout.cancelEditing} disabled={mapStripLayout.saving}>
+                Cancel
+              </button>
+            </>
+          )}
+          <button className="hw-move-btn" onClick={mapStripLayout.resetLayout} disabled={mapStripLayout.saving}>
+            Reset Layout
+          </button>
+          {mapStripLayout.errorMessage && (
+            <span className="hw-free-layout-error">{mapStripLayout.errorMessage}</span>
+          )}
+        </div>
+      )}
+      <div
+        ref={mapStripLayout.containerRef}
+        className="hw-free-layout-container"
+        style={mapStripLayout.containerStyle}
+        data-free-active={mapStripLayout.freeActive || undefined}
+        data-editing-layout={mapStripLayout.editingLayout || undefined}
+      >
+        {mapStripLayout.renderSection("strip", <RunMap runState={runState} />)}
+      </div>
     </>
   )
 
