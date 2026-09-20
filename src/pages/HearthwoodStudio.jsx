@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { apiGet } from "../api/client"
 
+import AddDialogueForm from "../components/hearthwood-studio/AddDialogueForm"
 import AddEventForm from "../components/hearthwood-studio/AddEventForm"
 import AddStoryEntryForm from "../components/hearthwood-studio/AddStoryEntryForm"
 import BalancePanel from "../components/hearthwood-studio/BalancePanel"
@@ -283,6 +284,16 @@ function HearthwoodStudio() {
                   {
                     entityType === "events" && (
                       <AddEventForm
+                        type={entityType}
+                        onApplied={handleApplied}
+                        onPreviewUrlChange={setPreviewUrl}
+                      />
+                    )
+                  }
+
+                  {
+                    entityType === "dialogues" && (
+                      <AddDialogueForm
                         type={entityType}
                         onApplied={handleApplied}
                         onPreviewUrlChange={setPreviewUrl}
