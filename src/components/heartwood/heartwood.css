@@ -3830,6 +3830,22 @@ img.hw-card-art {
 }
 
 .hw-free-layout-section {
+  /* flow-root here too, not just on .hw-free-layout-container -
+     real bug found live: this wrapper had NO class at all in plain
+     flow mode (before this fix), so a content root with its own
+     margin-top (e.g. .hw-run-map's margin:14px, .hw-settings-group's
+     margin-top:16px) collapsed straight through it exactly like the
+     container-level bug already fixed above - except here the
+     collapse hid ITSELF from the "zero visual jump" check, because
+     that check only measured the WRAPPER's own rect (which stayed
+     visually correct via the collapse), never the actual visible
+     CONTENT inside it. Confirmed live on the ALREADY-SHIPPED Settings
+     screen (#543): entering Edit Layout silently pushed the visible
+     .hw-settings-group content down by its own 16px margin-top,
+     invisible to any check that only compared wrapper positions.
+     Lesson: verify against the actual rendered CONTENT's box, not
+     just the positioning wrapper's. */
+  display: flow-root;
   position: relative;
 }
 
