@@ -101,25 +101,86 @@ function NestedList({ label, field, prefix, draft, setDraft }) {
           const itemPrefix = [...prefix, index]
 
           return (
-            <div key={index} className="rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] p-2">
+            <div key={index} className="flex items-center gap-2 rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] p-2">
+              <div className="flex-1">
+                {
+                  item.fields
+                    ? <ItemFields fields={item.fields} prefix={itemPrefix} draft={draft} setDraft={setDraft} />
+                    : (
+                      <input
+                        value={draft[pathKey(itemPrefix)] ?? ""}
+                        onChange={event => {
+                          const value = event.target.value
+                          setDraft(previous => ({ ...previous, [pathKey(itemPrefix)]: value }))
+                        }}
+                        className="h-8 w-full rounded-lg border border-[var(--wood-border)] bg-[var(--wood-panel)] px-2 text-xs text-[var(--wood-text)] outline-none focus:border-[var(--wood-accent)]"
+                      />
+                    )
+                }
+              </div>
+
               {
-                item.fields
-                  ? <ItemFields fields={item.fields} prefix={itemPrefix} draft={draft} setDraft={setDraft} />
-                  : (
-                    <input
-                      value={draft[pathKey(itemPrefix)] ?? ""}
-                      onChange={event => {
-                        const value = event.target.value
-                        setDraft(previous => ({ ...previous, [pathKey(itemPrefix)]: value }))
-                      }}
-                      className="h-8 w-full rounded-lg border border-[var(--wood-border)] bg-[var(--wood-panel)] px-2 text-xs text-[var(--wood-text)] outline-none focus:border-[var(--wood-accent)]"
-                    />
-                  )
+                !item.fields && (
+                  <MoveButtons
+                    index={index}
+                    max={field.items.length - 1}
+                    onMove={(from, to) => swapScalarDraft(field.items, prefix, from, to, draft, setDraft)}
+                  />
+                )
               }
             </div>
           )
         })
       }
+    </div>
+  )
+}
+
+// Marc: "haluaisin siirtää... nappeja ja asioita eri paikkoihin"
+// (I'd like to move buttons and things to different places) - move-
+// up/down for a SCALAR item (a plain string/number in the array, e.g.
+// shopLayout.js's leftRailOrder or merchant.js's lines) swaps just the
+// two draft values at the adjacent indices; both positions already
+// resolve to ordinary `set` edits (resolvePath already walks numeric
+// array indices), so reordering needed no new backend op at all -
+// swapping which VALUE sits at each existing index is indistinguishable
+// from two normal edits. Deliberately scoped to scalar items only for
+// now - swapping an object item's own nested fields (and any list
+// fields nested inside IT) correctly needs the two items to share an
+// identical shape, which isn't guaranteed for every list type in the
+// game (an event's choices, for instance, can have different numbers
+// of effects) - a real gap, not an oversight.
+function swapScalarDraft(items, prefix, index, otherIndex, draft, setDraft) {
+  const keyA = pathKey([...prefix, index])
+  const keyB = pathKey([...prefix, otherIndex])
+
+  const valueA = draft[keyA] !== undefined ? draft[keyA] : String(items[index].value)
+  const valueB = draft[keyB] !== undefined ? draft[keyB] : String(items[otherIndex].value)
+
+  setDraft(previous => ({ ...previous, [keyA]: valueB, [keyB]: valueA }))
+}
+
+function MoveButtons({ index, max, onMove }) {
+  return (
+    <div className="flex shrink-0 flex-col">
+      <button
+        type="button"
+        disabled={index === 0}
+        onClick={() => onMove(index, index - 1)}
+        title="Move up"
+        className="text-[10px] leading-none text-[var(--wood-muted)] hover:text-[var(--wood-text)] disabled:opacity-20"
+      >
+        ▲
+      </button>
+      <button
+        type="button"
+        disabled={index === max}
+        onClick={() => onMove(index, index + 1)}
+        title="Move down"
+        className="text-[10px] leading-none text-[var(--wood-muted)] hover:text-[var(--wood-text)] disabled:opacity-20"
+      >
+        ▼
+      </button>
     </div>
   )
 }
@@ -213,20 +274,32 @@ function ListFieldEditor({ type, entityId, fieldKey, field, onApplied, onPreview
       <div className="space-y-2">
         {
           field.items.map((item, index) => (
-            <div key={index} className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3">
+            <div key={index} className="flex items-center gap-2 rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3">
+              <div className="flex-1">
+                {
+                  item.fields
+                    ? <ItemFields fields={item.fields} prefix={[index]} draft={draft} setDraft={setDraft} />
+                    : (
+                      <input
+                        value={draft[pathKey([index])] ?? ""}
+                        onChange={event => {
+                          const value = event.target.value
+                          setDraft(previous => ({ ...previous, [pathKey([index])]: value }))
+                        }}
+                        className="h-8 w-full rounded-lg border border-[var(--wood-border)] bg-[var(--wood-panel)] px-2 text-xs text-[var(--wood-text)] outline-none focus:border-[var(--wood-accent)]"
+                      />
+                    )
+                }
+              </div>
+
               {
-                item.fields
-                  ? <ItemFields fields={item.fields} prefix={[index]} draft={draft} setDraft={setDraft} />
-                  : (
-                    <input
-                      value={draft[pathKey([index])] ?? ""}
-                      onChange={event => {
-                        const value = event.target.value
-                        setDraft(previous => ({ ...previous, [pathKey([index])]: value }))
-                      }}
-                      className="h-8 w-full rounded-lg border border-[var(--wood-border)] bg-[var(--wood-panel)] px-2 text-xs text-[var(--wood-text)] outline-none focus:border-[var(--wood-accent)]"
-                    />
-                  )
+                !item.fields && (
+                  <MoveButtons
+                    index={index}
+                    max={field.items.length - 1}
+                    onMove={(from, to) => swapScalarDraft(field.items, [], from, to, draft, setDraft)}
+                  />
+                )
               }
             </div>
           ))

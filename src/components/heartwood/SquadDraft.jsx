@@ -6,6 +6,7 @@ import { CHARACTERS, COMMANDER_RANK_MAX, commanderRankCost } from "../../data/he
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { tribesOf } from "../../data/heartwood/synergies"
+import { SHOP_LAYOUT } from "../../data/heartwood/shopLayout"
 import { findDualClassFor } from "../../data/heartwood/dualClasses"
 import {
   REFORGE_COST,
@@ -514,77 +515,94 @@ export default function SquadDraft({
   // onUpgradeRelic the inline strip called); an unequipped bag item is
   // click-to-select, feeding the same selectedItemKey / equip-prompt
   // flow the Your Squad tab's own bag list already drives.
+  // Marc: "haluaisin siirtää market osiossa nappeja ja asioita eri
+  // paikkoihin... kuin wordpress elementeillä" (I'd like to move
+  // buttons and things around in the market section, like WordPress
+  // elements) - these 4 named sections render in whatever order
+  // shopLayout.js's SHOP_LAYOUT.market.leftRailOrder lists them,
+  // editable in Hearthwood Studio like any other list field. Falls
+  // back to this same default order if that data is ever missing/
+  // malformed, and silently skips any key it doesn't recognize -
+  // a typo in the Studio can't crash the market.
+  const DEFAULT_LEFT_RAIL_ORDER = ["ledger", "buyback", "relics", "items"]
+
   function renderOwnedRail() {
     const relics = runState.relics || []
     const items = runState.items || []
     const buyback = runState.buyback
-    return (
-      <>
-        {/* The Ledger (runEngine.SHOP_INVESTMENTS): one-time, run-wide
-            shop buys - a "standing decisions" home in the left rail,
-            distinct from the this-visit for-sale cards in the centre.
-            Same chip + inline-cost-button shape as the Relics list
-            below, with a "✓" owned state mirroring its "MAX".
-            Tiering pass (Marc: "pitkä lista... liikaa kerralla
-            harkittavaksi" - too long a list to weigh at once): only
-            investments already unlocked (investmentUnlocked - gated on
-            EITHER Market Level or Market Tier, whichever the entry
-            itself specifies as the more logical pairing) are listed at
-            all, an owned one always stays visible regardless (both
-            meters only ever increase, so nothing can un-unlock), and a
-            quiet count of what's still locked replaces the rest - never
-            naming them, so there's nothing new to weigh, just a promise
-            that more arrives as the run grows. */}
-        <div className="hw-rail-section hw-rail-section--ledger">
-          <div className="hw-section-label hw-rail-label">The Ledger</div>
-          <div className="hw-rail-list">
-            {Object.entries(SHOP_INVESTMENTS)
-              .filter(([id]) => investmentOwned(runState, id) || investmentUnlocked(runState, id))
-              .map(([id, inv]) => {
-                const owned = investmentOwned(runState, id)
-                return (
-                  <div key={id} className="hw-rail-chip" title={inv.desc} data-owned={owned || undefined}>
-                    <CardGlyph name="rune" className="hw-intent-glyph" />
-                    <span className="hw-rail-chip-name">{inv.name}</span>
-                    {owned ? (
-                      <span className="hw-rail-chip-max">✓</span>
-                    ) : (
-                      <button
-                        className="hw-move-btn hw-rail-upgrade"
-                        disabled={runState.essence < inv.cost}
-                        onClick={() => onBuyInvestment(id)}
-                        title={`${inv.desc} - ${inv.cost} Essence, one time`}
-                      >
-                        <CardGlyph name="spark" className="hw-intent-glyph" />
-                        {inv.cost}
-                      </button>
-                    )}
-                  </div>
-                )
-              })}
+
+    const sections = {
+      // The Ledger (runEngine.SHOP_INVESTMENTS): one-time, run-wide
+      // shop buys - a "standing decisions" home in the left rail,
+      // distinct from the this-visit for-sale cards in the centre.
+      // Same chip + inline-cost-button shape as the Relics list
+      // below, with a "✓" owned state mirroring its "MAX".
+      // Tiering pass (Marc: "pitkä lista... liikaa kerralla
+      // harkittavaksi" - too long a list to weigh at once): only
+      // investments already unlocked (investmentUnlocked - gated on
+      // EITHER Market Level or Market Tier, whichever the entry
+      // itself specifies as the more logical pairing) are listed at
+      // all, an owned one always stays visible regardless (both
+      // meters only ever increase, so nothing can un-unlock), and a
+      // quiet count of what's still locked replaces the rest - never
+      // naming them, so there's nothing new to weigh, just a promise
+      // that more arrives as the run grows. EconomyCrew (economy.js -
+      // which deployed units are buying you a run-layer edge right
+      // now, renders nothing until one is on the board) stays paired
+      // with the Ledger rather than its own reorderable slot - it's a
+      // quiet economy-status readout, not a "section" in Marc's own
+      // sketch of this column.
+      ledger: () => (
+        <div key="ledger">
+          <div className="hw-rail-section hw-rail-section--ledger">
+            <div className="hw-section-label hw-rail-label">The Ledger</div>
+            <div className="hw-rail-list">
+              {Object.entries(SHOP_INVESTMENTS)
+                .filter(([id]) => investmentOwned(runState, id) || investmentUnlocked(runState, id))
+                .map(([id, inv]) => {
+                  const owned = investmentOwned(runState, id)
+                  return (
+                    <div key={id} className="hw-rail-chip" title={inv.desc} data-owned={owned || undefined}>
+                      <CardGlyph name="rune" className="hw-intent-glyph" />
+                      <span className="hw-rail-chip-name">{inv.name}</span>
+                      {owned ? (
+                        <span className="hw-rail-chip-max">✓</span>
+                      ) : (
+                        <button
+                          className="hw-move-btn hw-rail-upgrade"
+                          disabled={runState.essence < inv.cost}
+                          onClick={() => onBuyInvestment(id)}
+                          title={`${inv.desc} - ${inv.cost} Essence, one time`}
+                        >
+                          <CardGlyph name="spark" className="hw-intent-glyph" />
+                          {inv.cost}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+            </div>
+            {(() => {
+              const lockedCount = Object.entries(SHOP_INVESTMENTS).filter(
+                ([id]) => !investmentOwned(runState, id) && !investmentUnlocked(runState, id),
+              ).length
+              return lockedCount > 0 ? (
+                <p className="hw-rail-empty" title="More Ledger investments unlock as your Market Level and Market Tier grow.">
+                  +{lockedCount} more as the market grows
+                </p>
+              ) : null
+            })()}
           </div>
-          {(() => {
-            const lockedCount = Object.entries(SHOP_INVESTMENTS).filter(
-              ([id]) => !investmentOwned(runState, id) && !investmentUnlocked(runState, id),
-            ).length
-            return lockedCount > 0 ? (
-              <p className="hw-rail-empty" title="More Ledger investments unlock as your Market Level and Market Tier grow.">
-                +{lockedCount} more as the market grows
-              </p>
-            ) : null
-          })()}
+          <EconomyCrew runState={runState} />
         </div>
+      ),
 
-        {/* Economy crew (economy.js): which deployed units are buying you
-            a run-layer edge right now. Renders nothing until one is on
-            the board. */}
-        <EconomyCrew runState={runState} />
-
-        {/* Buyback (runEngine.sellUnit / reclaimBuyback): the last unit
-            sold, reclaimable at its refund price. Only shown once you've
-            sold something. */}
-        {buyback && (
-          <div className="hw-rail-section hw-rail-section--buyback">
+      // Buyback (runEngine.sellUnit / reclaimBuyback): the last unit
+      // sold, reclaimable at its refund price. Only shown once you've
+      // sold something.
+      buyback: () =>
+        buyback ? (
+          <div key="buyback" className="hw-rail-section hw-rail-section--buyback">
             <div className="hw-section-label hw-rail-label">Buyback</div>
             <div className="hw-rail-list">
               <div className="hw-rail-chip" title="Reclaim the last unit you sold, at the price it refunded. It comes back with no upgrades.">
@@ -602,9 +620,10 @@ export default function SquadDraft({
               </div>
             </div>
           </div>
-        )}
+        ) : null,
 
-        <div className="hw-rail-section">
+      relics: () => (
+        <div key="relics" className="hw-rail-section">
           <div className="hw-section-label hw-rail-label">
             Relics <span className="hw-rail-count">{relics.length}</span>
           </div>
@@ -646,8 +665,10 @@ export default function SquadDraft({
             </div>
           )}
         </div>
+      ),
 
-        <div className="hw-rail-section">
+      items: () => (
+        <div key="items" className="hw-rail-section">
           <div className="hw-section-label hw-rail-label">
             Items <span className="hw-rail-count">{items.length}</span>
           </div>
@@ -698,8 +719,12 @@ export default function SquadDraft({
             </div>
           )}
         </div>
-      </>
-    )
+      ),
+    }
+
+    const order = SHOP_LAYOUT.market?.leftRailOrder || DEFAULT_LEFT_RAIL_ORDER
+
+    return <>{order.map((key) => sections[key]?.() || null)}</>
   }
 
   const upgradingEntry = upgradingKey != null ? runState.bench.find((e) => e.key === upgradingKey) : null

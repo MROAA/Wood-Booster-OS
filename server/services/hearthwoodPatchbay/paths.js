@@ -158,6 +158,20 @@ export const HEARTHWOOD_DATA_DIR = "src/data/heartwood"
  * shape or (probably better) surfacing a unit's own tribe tags as a
  * field on the unit's OWN entity view - a real, deferred gap, not an
  * oversight.
+ *
+ * Layout editing (Marc: "haluaisin siirtää market osiossa nappeja ja
+ * asioita eri paikkoihin... kuin wordpress elementeillä" - move things
+ * around in the market, like WordPress elements). A true free-drag
+ * page-builder is a large new subsystem and easily breaks across
+ * screen sizes; asked which direction fit, Marc picked reordering
+ * whole named sections instead of pixel positioning:
+ *   shopLayout.js  export const SHOP_LAYOUT        (object map, ONE
+ *                    entry "market" -> {leftRailOrder: [...]}) -
+ *                    SquadDraft.jsx's left rail (Ledger/Buyback/
+ *                    Relics/Items) renders in whatever order this
+ *                    array lists, editable as an ordinary scalar-list
+ *                    field (see ListFieldEditor.jsx's new move-up/down
+ *                    buttons)
  */
 export const ENTITY_TYPES = {
     enemies: { file: "enemies.js", exportName: "ENEMIES" },
@@ -197,6 +211,7 @@ export const ENTITY_TYPES = {
     coachTips: { file: "coach.js", exportName: "COACH_TIPS" },
     threats: { file: "counterplay.js", exportName: "THREATS" },
     dialogues: { file: "dialogues.js", exportName: "DIALOGUES" },
+    shopLayout: { file: "shopLayout.js", exportName: "SHOP_LAYOUT" },
 }
 
 /**
