@@ -5,6 +5,7 @@ import { apiGet } from "../api/client"
 import AddStoryEntryForm from "../components/hearthwood-studio/AddStoryEntryForm"
 import BalancePanel from "../components/hearthwood-studio/BalancePanel"
 import CloneEntityForm from "../components/hearthwood-studio/CloneEntityForm"
+import Dashboard from "../components/hearthwood-studio/Dashboard"
 import DoctorPanel from "../components/hearthwood-studio/DoctorPanel"
 import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
 import EntityChangeLog from "../components/hearthwood-studio/EntityChangeLog"
@@ -25,7 +26,7 @@ import ThemePanel from "../components/hearthwood-studio/ThemePanel"
  * (heartwood-patchbay-vast-giraffe.md), ei tässä.
  */
 function HearthwoodStudio() {
-  const [viewMode, setViewMode] = useState("single")
+  const [viewMode, setViewMode] = useState("dashboard")
   // `browsingType` drives what the LEFT panel shows; `entityType` drives
   // what the DETAIL panel fetches. Normally the same value - split only
   // matters for the Story Timeline (Marc: "en tiedä missä jaotellut
@@ -102,6 +103,18 @@ function HearthwoodStudio() {
     setHistoryKey(previous => previous + 1)
   }
 
+  // Dashboard's own two "take me there" actions - both land in Single
+  // view, the one place that actually shows a picked entity's own editor.
+  function handleNavigateFromDashboard(type) {
+    handleTypeChange(type)
+    setViewMode("single")
+  }
+
+  function handleSelectFromDashboard(type, id) {
+    handleSelect(type, id)
+    setViewMode("single")
+  }
+
   function handleReverted() {
     setReloadKey(previous => previous + 1)
   }
@@ -123,6 +136,21 @@ function HearthwoodStudio() {
         </p>
 
         <div className="mt-4 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setViewMode("dashboard")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "dashboard"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            🏠 Dashboard
+          </button>
+
           <button
             type="button"
             onClick={() => setViewMode("single")}
@@ -171,6 +199,14 @@ function HearthwoodStudio() {
       </header>
 
       {
+        viewMode === "dashboard" && (
+          <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+            <Dashboard onNavigate={handleNavigateFromDashboard} onSelectEntity={handleSelectFromDashboard} />
+          </section>
+        )
+      }
+
+      {
         viewMode === "theme" && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
@@ -184,7 +220,7 @@ function HearthwoodStudio() {
         )
       }
 
-      {viewMode !== "theme" && (
+      {viewMode !== "theme" && viewMode !== "dashboard" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
