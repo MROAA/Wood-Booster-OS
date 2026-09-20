@@ -6,6 +6,8 @@
 // time an intent is computed, then commits to it (still telegraphed one
 // turn ahead, just less predictable to plan around).
 
+import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
+
 export const ENEMIES = {
   "rotwood-husk": {
     id: "rotwood-husk",
@@ -28,6 +30,7 @@ export const ENEMIES = {
     // already-safe number.
     maxHp: 58,
     art: "husk",
+    image: enemyPlaceholderImg,
     description:
       "A hollowed trunk, moving on roots long since gone soft. Slow, but it does not tire.",
     moveSelect: "sequence",
@@ -53,6 +56,7 @@ export const ENEMIES = {
     // doubling the round-1 burst.
     maxHp: 26,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "A younger husk, still rooted nearby. Weaker alone, but it doesn't fight alone.",
     moveSelect: "sequence",
     movePattern: [
@@ -67,6 +71,7 @@ export const ENEMIES = {
     name: "Moss Troll",
     maxHp: 46,
     art: "troll",
+    image: enemyPlaceholderImg,
     description:
       "Thick with lichen and old grudges. Its grip saps the strength from a struck limb.",
     moveSelect: "sequence",
@@ -83,6 +88,7 @@ export const ENEMIES = {
     name: "Rune Warden",
     maxHp: 50,
     art: "warden",
+    image: enemyPlaceholderImg,
     description:
       "Carved to guard the deep runes. What it does next is never quite certain.",
     moveSelect: "weightedRandom",
@@ -98,6 +104,7 @@ export const ENEMIES = {
     name: "Bark Brute",
     maxHp: 58,
     art: "barkBrute",
+    image: enemyPlaceholderImg,
     description: "A knotted fist of root and stone. It only knows one move, and it is heavy.",
     moveSelect: "sequence",
     movePattern: [
@@ -112,6 +119,7 @@ export const ENEMIES = {
     name: "Mist Growler",
     maxHp: 36,
     art: "mistGrowler",
+    image: enemyPlaceholderImg,
     description: "Fog with teeth. It snaps before you see it coming.",
     moveSelect: "weightedRandom",
     movePattern: [
@@ -127,6 +135,7 @@ export const ENEMIES = {
     name: "Drowned Siren",
     maxHp: 38,
     art: "drownedSiren",
+    image: enemyPlaceholderImg,
     description: "Her song promises rest. Take it, and your strikes go soft.",
     // A 6th mook - deliberately leans harder into Weak than any
     // existing enemy (3 instead of the usual 2, matching only
@@ -148,6 +157,7 @@ export const ENEMIES = {
     name: "Bloomrot Stalker",
     maxHp: 40,
     art: "bloomrotStalker",
+    image: enemyPlaceholderImg,
     description: "It doesn't hit hard. It doesn't need to - not anymore.",
     // A 7th mook, first to use Poison - the new tickPoison mechanic in
     // effects.js/autoBattleEngine.js. Its own hits are the weakest of
@@ -173,6 +183,7 @@ export const ENEMIES = {
     name: "Rootbind Thicket",
     maxHp: 44,
     art: "rootbindThicket",
+    image: enemyPlaceholderImg,
     description: "Its roots don't reach far. When they catch you, though, you don't move.",
     // Thorn Zone round (Hearthwood Frontier, tacticsEngine.js only):
     // this own already-existing line above is the most literal flavor
@@ -202,6 +213,7 @@ export const ENEMIES = {
     name: "Witherfang",
     maxHp: 42,
     art: "rootbindThicket",
+    image: enemyPlaceholderImg,
     description: "It doesn't want your strength. It just doesn't want you to have it either.",
     // 9th mook, first to use Sunder (effects.js) - the enemy side's own
     // answer to how many buffs a squad can now be carrying (Ward,
@@ -227,6 +239,7 @@ export const ENEMIES = {
     name: "Thornspite",
     maxHp: 40,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "Every thorn it plants makes the next blow land harder.",
     // 10th mook, first enemy source of Vulnerable (+25% damage taken) -
     // the one core debuff (Weak/Poison/Stun/Sunder all already have an
@@ -248,6 +261,7 @@ export const ENEMIES = {
     name: "Bramblehide",
     maxHp: 50,
     art: "troll",
+    image: enemyPlaceholderImg,
     description: "Wounds close almost as fast as they open. Almost.",
     // 11th mook, first enemy to heal itself - every other mook's block
     // step just delays damage, this one actively undoes it. A real
@@ -267,6 +281,7 @@ export const ENEMIES = {
     name: "Emberwrack",
     maxHp: 44,
     art: "flame",
+    image: enemyPlaceholderImg,
     description: "It doesn't pick a target. It doesn't have to.",
     // 12th mook, first non-boss AoE source - Spacemonkey's own AoE
     // (autoBattleEngine.js) has always bypassed Taunt/shielding
@@ -290,6 +305,7 @@ export const ENEMIES = {
     name: "Duskgnaw",
     maxHp: 42,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "First it saps your strength. Then it makes every hit after count double.",
     // 13th mook, first to stack BOTH major debuffs on the same target -
     // every prior debuffer picked one (Weak or Vulnerable, never both).
@@ -313,6 +329,7 @@ export const ENEMIES = {
     name: "Cragfang",
     maxHp: 44,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It doesn't care that you're braced. It just hits harder because of it.",
     // 14th mook, and the first with a battle-start passive at all
     // (autoBattleEngine.js's startAutoBattle - enemies could never
@@ -336,6 +353,7 @@ export const ENEMIES = {
     name: "Stormroot",
     maxHp: 38,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It never settles into a rhythm you can plan around.",
     // 15th mook - weightedRandom (Rune Warden/Mist Growler's own
     // unpredictability), leaning on Weak instead of a signature gimmick
@@ -355,6 +373,7 @@ export const ENEMIES = {
     name: "Duskmoth",
     maxHp: 40,
     art: "moonGlyph",
+    image: enemyPlaceholderImg,
     description: "It shrugs off the opening rounds like they never happened.",
     // 16th mook, and the first to carry Regen (effects.js's tickRegen)
     // instead of Bramblehide's repeating heal step - front-loaded and
@@ -376,6 +395,7 @@ export const ENEMIES = {
     name: "Hollowfen",
     maxHp: 90,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It doesn't do anything clever. It doesn't need to.",
     // 17th mook - a plain, heavy-HP reinforcement (Stormroot/Rimefang's
     // own "run variety, no signature gimmick" spirit) rather than
@@ -396,6 +416,7 @@ export const ENEMIES = {
     name: "Quillfang",
     maxHp: 36,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "Every quill it sheds keeps working long after it's pulled loose.",
     // 18th mook - Poison's second enemy source (Bloomrot Stalker's own
     // pattern, different numbers/name) - the same "run variety within
@@ -421,6 +442,7 @@ export const ENEMIES = {
     name: "Silence Weaver",
     maxHp: 38,
     art: "drownedSiren",
+    image: enemyPlaceholderImg,
     // Dampen's first enemy source - effects.js already ticks it
     // (dampenOf reduces the AFFECTED unit's outgoing damage), it had
     // just never been on the enemy side. Punishes an all-in damage
@@ -439,6 +461,7 @@ export const ENEMIES = {
     name: "Dawn Zealot",
     maxHp: 48,
     art: "root",
+    image: enemyPlaceholderImg,
     // A dedicated healer on the enemy side - a repeating heal STEP
     // (Bramblehide's own pattern) rather than Duskmoth's front-loaded
     // Regen, so the fight against it is "close it before the heals
@@ -458,6 +481,7 @@ export const ENEMIES = {
     name: "Plaguebearer",
     maxHp: 46,
     art: "bloomrotStalker",
+    image: enemyPlaceholderImg,
     // Act III Poison carrier (Bloomrot Stalker / Quillfang are Act I-II)
     // - heavier stack, and a small self-heal so ignoring it isn't free
     // even before the Poison bites. Anti-heal builds want it dead fast.
@@ -485,6 +509,7 @@ export const ENEMIES = {
     name: "Sporelet",
     maxHp: 16,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "One is a nuisance. The cloud of them is the problem.",
     moveSelect: "sequence",
     movePattern: [
@@ -498,6 +523,7 @@ export const ENEMIES = {
     name: "Mire Gnat",
     maxHp: 14,
     art: "mistGrowler",
+    image: enemyPlaceholderImg,
     description: "It bites once and is gone. Then the next one bites.",
     moveSelect: "sequence",
     movePattern: [
@@ -511,6 +537,7 @@ export const ENEMIES = {
     name: "Thorn Tick",
     maxHp: 18,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "Small, and it does not let go once it has hold.",
     moveSelect: "sequence",
     movePattern: [
@@ -534,6 +561,7 @@ export const ENEMIES = {
     name: "Oakshell Warden",
     maxHp: 60,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It is not here to hurt you. It is here so that nothing behind it has to.",
     moveSelect: "sequence",
     movePattern: [
@@ -548,6 +576,7 @@ export const ENEMIES = {
     name: "Mossmender",
     maxHp: 52,
     art: "root",
+    image: enemyPlaceholderImg,
     // Self-heal step (Bramblehide's model): out-damage the mend or the
     // fight drags. Anti-heal / a damage-over-time / burst are the answer.
     description: "Every wound you open on it has closed by the time you swing again.",
@@ -564,6 +593,7 @@ export const ENEMIES = {
     name: "Grave Bastion",
     maxHp: 56,
     art: "warden",
+    image: enemyPlaceholderImg,
     // Ward (Stonewake's model): the first hit each round just doesn't
     // count. A squad leaning on one big opening swing bounces off it.
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
@@ -594,6 +624,7 @@ export const ENEMIES = {
     name: "Fen Stalker",
     maxHp: 32,
     art: "wolf",
+    image: enemyPlaceholderImg,
     hunter: true,
     description: "It never once looked at the one with the shield.",
     moveSelect: "sequence",
@@ -605,6 +636,7 @@ export const ENEMIES = {
     name: "Pack Runner",
     maxHp: 28,
     art: "wolf",
+    image: enemyPlaceholderImg,
     hunter: true,
     description: "Two quick cuts, both aimed past your guard at whoever was bleeding already.",
     moveSelect: "sequence",
@@ -619,6 +651,7 @@ export const ENEMIES = {
     name: "Throat-Taker",
     maxHp: 36,
     art: "fang",
+    image: enemyPlaceholderImg,
     hunter: true,
     description: "It waits at the back of the pack for the pack to find the throat, then it takes it.",
     moveSelect: "sequence",
@@ -639,6 +672,7 @@ export const ENEMIES = {
     name: "Rotgut Crawler",
     maxHp: 32,
     art: "bloomrotStalker",
+    image: enemyPlaceholderImg,
     description: "It leaves a trail you can smell for a day, and a wound you can smell for a week.",
     moveSelect: "sequence",
     movePattern: [
@@ -652,6 +686,7 @@ export const ENEMIES = {
     name: "Spore Lurcher",
     maxHp: 30,
     art: "rootbindThicket",
+    image: enemyPlaceholderImg,
     description: "Every step it takes coughs up another cloud, and every cloud is looking for a lung.",
     moveSelect: "sequence",
     movePattern: [
@@ -666,6 +701,7 @@ export const ENEMIES = {
     name: "Mire-Sworn",
     maxHp: 38,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It gave itself to the mire a long time ago. Now it just carries the mire to you.",
     moveSelect: "sequence",
     movePattern: [
@@ -688,6 +724,7 @@ export const ENEMIES = {
     name: "Coven Matron",
     maxHp: 28,
     art: "moonGlyph",
+    image: enemyPlaceholderImg,
     // covenAura: each round, +1 Strength to EVERY OTHER living enemy
     // (not itself, not adjacency-gated). Frail and barely fights - the
     // whole threat is the buff, so the whole answer is killing it.
@@ -705,6 +742,7 @@ export const ENEMIES = {
     name: "Hex Acolyte",
     maxHp: 40,
     art: "rootbindThicket",
+    image: enemyPlaceholderImg,
     // Ward (stonewake's model): the first hit each round is ignored, so
     // grinding through the acolyte to reach the matron is SLOW - the
     // fight wants you to go around it, not through it.
@@ -722,6 +760,7 @@ export const ENEMIES = {
     name: "Bog Devotee",
     maxHp: 42,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "Whatever it used to want, it wants what the Matron wants now.",
     moveSelect: "sequence",
     movePattern: [
@@ -746,6 +785,7 @@ export const ENEMIES = {
     name: "Brood Mother",
     maxHp: 34,
     art: "husk",
+    image: enemyPlaceholderImg,
     // broodSplit: on death, tear into `count` copies at maxHp * hpFactor
     // (~14 HP), each broodGen+1. maxGen 1 -> a hatchling dies clean, no
     // cascade. Fairness-tuned (5 passes): spawns act the round they
@@ -769,6 +809,7 @@ export const ENEMIES = {
     name: "Brood Tender",
     maxHp: 40,
     art: "rootbindThicket",
+    image: enemyPlaceholderImg,
     // No broodSplit - a non-splitting body that mends the mothers, so the
     // Act-3 fight is an order-of-operations puzzle (kill the tender first
     // or it out-heals your chip; kill a mother and it splits). Its heal
@@ -800,6 +841,7 @@ export const ENEMIES = {
     name: "Ritual Warden",
     maxHp: 52,
     art: "moonGlyph",
+    image: enemyPlaceholderImg,
     // cultRitual: every 2nd round, kill a cultFodder ally, +buff Strength
     // to every remaining living enemy, +feed self-heal. `every` / `buff`
     // / HP are the fairness levers.
@@ -817,6 +859,7 @@ export const ENEMIES = {
     name: "Sworn Cultist",
     maxHp: 34,
     art: "husk",
+    image: enemyPlaceholderImg,
     // cultFodder: the rite's food and the Warden's shield. Low HP, low
     // threat - killing them yourself starves the ritual, but it means
     // spreading damage instead of focusing the Warden.
@@ -834,6 +877,7 @@ export const ENEMIES = {
     name: "Ritual Adept",
     maxHp: 46,
     art: "rootbindThicket",
+    image: enemyPlaceholderImg,
     // Neither cultRitual nor cultFodder - a real threat that OUTLASTS the
     // rite and gets buffed by it, so the-long-chant is more than "leader
     // + fodder": you race a fed adept, not just a lone Warden.
@@ -860,6 +904,7 @@ export const ENEMIES = {
     name: "Hoardling",
     maxHp: 32,
     art: "shadow",
+    image: enemyPlaceholderImg,
     leech: true,
     description: "It isn't here for the fight. It's here for whatever you've been carefully stacking up.",
     moveSelect: "sequence",
@@ -871,6 +916,7 @@ export const ENEMIES = {
     name: "Tithe-Warden",
     maxHp: 44,
     art: "stone",
+    image: enemyPlaceholderImg,
     leech: true,
     description: "It collects what is owed. It has decided, on your behalf, what is owed.",
     moveSelect: "sequence",
@@ -898,6 +944,7 @@ export const ENEMIES = {
     name: "Ancient Oak",
     maxHp: 100,
     art: "barkBrute",
+    image: enemyPlaceholderImg,
     // charge: winds up `label` over `turns` rounds; if it isn't killed /
     // stunned / staggered first, `effect` hits every living player unit,
     // then the count resets. breakDamage / turns / effect amount are the
@@ -916,6 +963,7 @@ export const ENEMIES = {
     name: "Elder Oak",
     maxHp: 120,
     art: "troll",
+    image: enemyPlaceholderImg,
     charge: {
       turns: 3,
       breakDamage: 26,
@@ -945,6 +993,7 @@ export const ENEMIES = {
     name: "Sapling Attendant",
     maxHp: 24,
     art: "root",
+    image: enemyPlaceholderImg,
     // No `charge` - just a low-threat body that keeps you busy while the
     // count runs down. Killing it is time you didn't spend on the Oak.
     description: "It will not hurt you much. It only has to keep you here until the big one is ready.",
@@ -958,6 +1007,7 @@ export const ENEMIES = {
     name: "Ironmaw",
     maxHp: 46,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It doesn't flinch. It just hits back harder every time.",
     // 19th mook, and the first to carry a battle-start SELF-buff other
     // than Shatter (Cragfang) or Regen (Duskmoth) - Strength, via the
@@ -983,6 +1033,7 @@ export const ENEMIES = {
     name: "Gravemaw",
     maxHp: 42,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It's slow to anger. Once it's hurt, it isn't slow anymore.",
     // 20th mook, and the first enemy source of Wounded Fury
     // (effects.js's woundedFuryBonus - +3 damage once below 50% HP) -
@@ -1007,6 +1058,7 @@ export const ENEMIES = {
     name: "Duskhollow",
     maxHp: 58,
     art: "moonGlyph",
+    image: enemyPlaceholderImg,
     description: "Every round it stands, the last one is already forgotten.",
     // 21st mook - Regen's first PERSISTENT enemy source, distinct from
     // Duskmoth's one-shot decaying passive (a fixed stack that fades
@@ -1029,6 +1081,7 @@ export const ENEMIES = {
     name: "Needlefen",
     maxHp: 40,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It doesn't need to hit hard. It just needs one moment where you can't answer.",
     // 22nd mook - Stun's second enemy source (Rootbind Thicket's own
     // pattern, different numbers/name) - the same "run variety within
@@ -1051,6 +1104,7 @@ export const ENEMIES = {
     name: "Wraithgale",
     maxHp: 44,
     art: "moonGlyph",
+    image: enemyPlaceholderImg,
     description: "It doesn't do anything you haven't already seen. It just doesn't stop doing it.",
     // 23rd mook - a plain weightedRandom reinforcement (Rune Warden/
     // Stormroot's own "run variety, no signature gimmick" spirit)
@@ -1069,6 +1123,7 @@ export const ENEMIES = {
     name: "Stonewake",
     maxHp: 44,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "The first blow never lands the way you meant it to.",
     // 24th mook - Ward's first enemy source. Every SUNDERABLE_IDS buff
     // (ward, revive, taunt, execute, shatter, strength) has only ever
@@ -1089,6 +1144,7 @@ export const ENEMIES = {
     name: "Gravequill",
     maxHp: 40,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It doesn't chase the strong ones. It waits for someone to fall.",
     // 25th mook - Execute's first enemy source (effects.js's
     // executeBonus - +stacks damage once the TARGET drops below 30%
@@ -1110,6 +1166,7 @@ export const ENEMIES = {
     name: "Bonewarden",
     maxHp: 50,
     art: "warden",
+    image: enemyPlaceholderImg,
     description: "It plants itself between you and everything else it stands with.",
     // 26th mook - Taunt's first enemy source. Bulwark Standard/Ironbark/
     // Stoneheart already give the PLAYER a way to steer incoming
@@ -1135,6 +1192,7 @@ export const ENEMIES = {
     name: "Mossveil",
     maxHp: 46,
     art: "leaf",
+    image: enemyPlaceholderImg,
     // Polish pass: this line was a verbatim duplicate of Wraithgale's
     // own flavor text (line ~440) - both "plain reinforcement, no
     // gimmick" mooks share that framing in their code comments, but
@@ -1158,6 +1216,7 @@ export const ENEMIES = {
     name: "Hollowspite",
     maxHp: 40,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It doesn't finish what it starts. It just makes sure the wound never closes.",
     // 28th mook - a fresh double-debuff combo (Poison + Weak), distinct
     // from Duskgnaw's own Weak + Vulnerable pair - the squad takes
@@ -1178,6 +1237,7 @@ export const ENEMIES = {
     name: "Ashenmaw",
     maxHp: 58,
     art: "husk",
+    image: enemyPlaceholderImg,
     // Deliberately NOT reusing Wraithgale's own "It doesn't do anything
     // you haven't already seen" line for this same "plain reinforcement"
     // flavor - that exact near-miss (Mossveil copy-pasting the same
@@ -1199,6 +1259,7 @@ export const ENEMIES = {
     name: "Duskwither",
     maxHp: 42,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "Every strike leaves something behind that keeps working after it's gone.",
     // 30th mook - Poison + Vulnerable, the third distinct double-debuff
     // combo on this side of the roster (Duskgnaw: Weak + Vulnerable,
@@ -1220,6 +1281,7 @@ export const ENEMIES = {
     name: "Hollowfang",
     maxHp: 44,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It only remembers the last thing that hurt it.",
     // 31st mook - a plain sequence reinforcement, no gimmick.
     moveSelect: "sequence",
@@ -1236,6 +1298,7 @@ export const ENEMIES = {
     name: "Rootward",
     maxHp: 46,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "Whatever you leave in it, it pulls back out again.",
     // 32nd mook, and the first enemy source of Cleanse (effects.js) -
     // Willowmend's own signature move (strips this unit's OWN
@@ -1258,6 +1321,7 @@ export const ENEMIES = {
     name: "Briarmaw",
     maxHp: 50,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It's in no rush. It's already won fights against faster things.",
     // 33rd mook - a plain weightedRandom reinforcement, no gimmick.
     moveSelect: "weightedRandom",
@@ -1273,6 +1337,7 @@ export const ENEMIES = {
     name: "Bramblespite",
     maxHp: 58,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It plants itself in front of you, and it only gets angrier the longer you take.",
     // 34th mook - the first mook-tier double self-buff (Taunt +
     // Wounded Fury), not just a miniboss combo (Thornmaw's own Regen +
@@ -1298,6 +1363,7 @@ export const ENEMIES = {
     name: "Thornfen",
     maxHp: 46,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It has one trick. It's very good at it.",
     // 35th mook - a plain sequence reinforcement, no gimmick.
     moveSelect: "sequence",
@@ -1313,6 +1379,7 @@ export const ENEMIES = {
     name: "Hollowcurse",
     maxHp: 44,
     art: "rootbindThicket",
+    image: enemyPlaceholderImg,
     description: "It doesn't just take what you've built. It leaves something rotting in its place.",
     // 36th mook - Sunder's 2nd enemy source (Witherfang's own pattern),
     // now combined with Poison in the same sequence instead of running
@@ -1338,6 +1405,7 @@ export const ENEMIES = {
     name: "Grimspite",
     maxHp: 58,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It doesn't have a plan. It just keeps hitting until something breaks.",
     // 37th mook - a plain weightedRandom reinforcement, no gimmick.
     moveSelect: "weightedRandom",
@@ -1353,6 +1421,7 @@ export const ENEMIES = {
     name: "Ironroot",
     maxHp: 54,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "Whatever you leave in it, it pulls back out again - and it never lets you past.",
     // 38th mook - Taunt + Cleanse together, never paired before
     // (Bramblespite: Taunt+WoundedFury, Rootward: Cleanse alone).
@@ -1413,6 +1482,7 @@ export const ENEMIES = {
     name: "Rotbore Grub",
     maxHp: 30,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It chews through deadwood without ever looking up. You are just more deadwood.",
     introLine: "It does not notice you arrive. It will notice when you are in the way.",
     moveSelect: "sequence",
@@ -1430,6 +1500,7 @@ export const ENEMIES = {
     name: "Mossback Lurker",
     maxHp: 48,
     art: "troll",
+    image: enemyPlaceholderImg,
     description: "Green to the eye until it moves. By then it has your arm.",
     introLine: "The bank of moss ahead breathes once, and stands up.",
     moveSelect: "sequence",
@@ -1447,6 +1518,7 @@ export const ENEMIES = {
     name: "Runewisp Acolyte",
     maxHp: 44,
     art: "warden",
+    image: enemyPlaceholderImg,
     description: "It tends the deep-rune lamps. It has forgotten why, only that trespassers must not.",
     introLine: "It lifts a hand toward the carved stones, and the light answers it.",
     moveSelect: "weightedRandom",
@@ -1464,6 +1536,7 @@ export const ENEMIES = {
     name: "Emberthorn Shade",
     maxHp: 46,
     art: "flame",
+    image: enemyPlaceholderImg,
     description: "Half briar, half slow fire. The heat came up through the roots with everything else.",
     introLine: "The thornwall ahead is smoking, and part of it steps forward.",
     moveSelect: "sequence",
@@ -1481,6 +1554,7 @@ export const ENEMIES = {
     name: "Veilgnaw",
     maxHp: 50,
     art: "moonGlyph",
+    image: enemyPlaceholderImg,
     description: "It bites at the thin places in the air, and something of you goes soft where it lands.",
     introLine: "It is not quite where you are looking. It never is.",
     moveSelect: "sequence",
@@ -1498,6 +1572,7 @@ export const ENEMIES = {
     name: "Thinreach Wraith",
     maxHp: 48,
     art: "moonGlyph",
+    image: enemyPlaceholderImg,
     description: "Reached through the Veil so far that most of it is still on the other side.",
     introLine: "An arm comes through the air that has no shoulder behind it yet.",
     moveSelect: "weightedRandom",
@@ -1514,6 +1589,7 @@ export const ENEMIES = {
     name: "Hollowmarrow Sentinel",
     maxHp: 56,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "Posted here to guard nothing, by no one, forever. It has not noticed either fact.",
     introLine: "It has stood the same watch so long the Hollow grew up around its feet.",
     moveSelect: "sequence",
@@ -1531,6 +1607,7 @@ export const ENEMIES = {
     name: "Witherbound Effigy",
     maxHp: 52,
     art: "warden",
+    image: enemyPlaceholderImg,
     description: "Bound wood in a shape that used to mean something. Standing near it, your guard feels thin.",
     introLine: "The bundled figure turns its faceless head to follow you.",
     moveSelect: "sequence",
@@ -1549,6 +1626,7 @@ export const ENEMIES = {
     name: "Crownless Revenant",
     maxHp: 60,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It fought at the Reckoning and did not stop when the fighting did. No one told it it could.",
     introLine: "It still holds the line of a battle that ended without it.",
     moveSelect: "weightedRandom",
@@ -1568,6 +1646,7 @@ export const ENEMIES = {
     name: "Ashen Regent",
     maxHp: 54,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It picked up the warm crown when the King ceased to be, and it will not put it down.",
     introLine: "\"The seat is filled,\" it says, to no one. \"You may go.\"",
     passive: [{ type: "applyBuff", id: "strength", amount: 3 }],
@@ -1587,6 +1666,7 @@ export const ENEMIES = {
     name: "Echo Stalker",
     maxHp: 58,
     art: "moonGlyph",
+    image: enemyPlaceholderImg,
     description: "It walks your walk, a half-step behind, and whatever it leaves in you keeps walking too.",
     introLine: "It steps when you step. It has been stepping when you step for a while now.",
     moveSelect: "sequence",
@@ -1606,6 +1686,7 @@ export const ENEMIES = {
     maxHp: 64,
     // Reuses the "husk" enemy glyph - a heavy hollow shell of a thing.
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "A memory that grew heavy enough to stand on its own, at the lip of the tear it opened.",
     introLine: "It is a moment you half-remember, wearing a body now, and it is angry.",
     moveSelect: "weightedRandom",
@@ -1624,6 +1705,7 @@ export const ENEMIES = {
     name: "Verge Warden",
     maxHp: 62,
     art: "warden",
+    image: enemyPlaceholderImg,
     description: "It stands where memory and the world stopped being two things. It will not let you past unanswered.",
     introLine: "\"Not a fight,\" it says. \"An answer. Give me one.\" Its guard does not lower.",
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
@@ -1643,6 +1725,7 @@ export const ENEMIES = {
     name: "Mnemosyne Colossus",
     maxHp: 68,
     art: "troll",
+    image: enemyPlaceholderImg,
     description: "Everything the forest could not bear to forget, packed into one shape and told to hold still.",
     introLine: "It is the size of a small hill of remembering, and it has just looked down.",
     moveSelect: "sequence",
@@ -1684,6 +1767,7 @@ export const ENEMIES = {
     // is its entire difficulty increase, not compounding with anything.
     maxHp: 84,
     art: "warden",
+    image: enemyPlaceholderImg,
     description: "Something the Hearthwood posted here on purpose, long before you arrived.",
     // Marc: "make a progressive story" - a miniboss/boss-specific
     // introLine, shown by FormationScreen.jsx in place of the generic
@@ -1729,6 +1813,7 @@ export const ENEMIES = {
     // here avoids double-stacking into something disproportionate.
     maxHp: 78,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It doesn't ask you to beat it. It asks you to prove you deserve to move past it.",
     introLine: "It doesn't raise its guard. It doesn't need to - it's already healed from worse than you.",
     // The run's SECOND miniboss, placed late (see the note above) so
@@ -1767,6 +1852,7 @@ export const ENEMIES = {
     name: "Wyrmgall",
     maxHp: 80,
     art: "root",
+    image: enemyPlaceholderImg,
     description: "It doesn't care how you fight. It's already found the shape of your mistake.",
     introLine: "It isn't watching your squad. It's watching for the mistake your squad hasn't made yet.",
     // Fear Zone round (Hearthwood Frontier, tacticsEngine.js only):
@@ -1828,6 +1914,7 @@ export const ENEMIES = {
     // of a run's whole build.
     maxHp: 108,
     art: "spacemonkeyBoss",
+    image: enemyPlaceholderImg,
     isBoss: true,
     description: "The little devil behind the curtain. He was never only on your side.",
     // Bookends the fight: introLine on the way in (FormationScreen.jsx,
@@ -1907,6 +1994,7 @@ export const ENEMIES = {
     name: "The Gorging Maw",
     maxHp: 72,
     art: "husk",
+    image: enemyPlaceholderImg,
     description: "It doesn't fight to kill you. It fights to be fed.",
     introLine: "Every wound it opens on you, it closes one of its own. Don't let this go long.",
     // Lifelink - heals for a flat amount on every hit it lands.
@@ -1933,6 +2021,7 @@ export const ENEMIES = {
     name: "The Iron Sentinel",
     maxHp: 84,
     art: "warden",
+    image: enemyPlaceholderImg,
     description: "Chip at it all day. It only gets harder to chip.",
     introLine: "Its armour thickens every round it stands. A slow grind loses this one - open big or execute.",
     // Compounding Bulwark - permanent armour that stacks each turn.
@@ -1957,6 +2046,7 @@ export const ENEMIES = {
     name: "The Bramble Lash",
     maxHp: 80,
     art: "rootbindThicket",
+    image: enemyPlaceholderImg,
     description: "Touch it and it takes a piece back.",
     introLine: "It hits back at whoever hits it. Fewer, bigger strikes - and keep your fragile ones out of reach.",
     // Thorns - retaliates against any unit that strikes it.
@@ -1983,6 +2073,7 @@ export const ENEMIES = {
     name: "The Ashfall Herald",
     maxHp: 88,
     art: "flame",
+    image: enemyPlaceholderImg,
     description: "It doesn't aim. It doesn't have to.",
     introLine: "Its fire spreads to the whole squad and grows every round. Cleanse, heal through it - or end it fast.",
     // Its own strikes escalate: +1 Strength at the top of every round,
