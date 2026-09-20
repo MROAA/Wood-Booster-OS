@@ -57,6 +57,10 @@ export const ALL_TYPES = [
   { type: "threats", label: "Threat Counterplay", category: "Guidance" },
   { type: "trials", label: "Trials", category: "Guidance" },
   { type: "tutorial", label: "Tutorial", category: "Guidance" },
+
+  // Marc, 2026-09-20: "haluaisin siirtää market osiossa nappeja ja
+  // asioita eri paikkoihin" - which named section renders where.
+  { type: "shopLayout", label: "Market Layout", category: "Layout" },
 ]
 
 export function labelFor(type) {
