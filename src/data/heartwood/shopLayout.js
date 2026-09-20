@@ -30,16 +30,27 @@
 // {x,y}) purely for consistency with `leftRailPositions`'s own shape,
 // so the same reader/editor logic and the same Studio field-editing
 // UI cover both without a special case. The center market/squad panel
-// deliberately does NOT get this treatment (investigated and
-// confirmed too risky for free positioning as-is: a fluid-width
-// column holding two differently-shaped panels that swap via a tab,
-// with unstable height and a card component that already drives its
-// own hover animation) - out of scope, not an oversight.
+// deliberately does NOT get free positioning (investigated and
+// confirmed too risky as-is: a fluid-width column holding two
+// differently-shaped panels that swap via a tab, with unstable height
+// and a card component that already drives its own hover animation).
+//
+// Phase 3 (Marc, choosing between "free positioning" and "simple
+// reordering" for the center column specifically): `centerOrder` is
+// the SAME plain reordering mechanism `leftRailOrder` already uses -
+// no coordinates, so none of the free-positioning risk above applies.
+// It only covers the "chrome" ABOVE the actual shop content (the
+// merchant's line, the tutorial/evolution/equip/market-event notices,
+// the Market/Your Squad tab row) - the tab-swapped panels themselves
+// (hw-market-columns) and the Continue button stay fixed structural
+// anchors, not reorderable pieces, so reordering this list can never
+// move the shop's actual contents or its exit button around.
 export const SHOP_LAYOUT = {
   market: {
     id: "market",
     leftRailOrder: ["ledger", "buyback", "relics", "items"],
     leftRailPositions: {},
     rightRailPositions: {},
+    centerOrder: ["greeting", "tutorialHint", "evolutionNotice", "tabs", "equipPrompt", "marketEventBanner"],
   },
 }

@@ -744,6 +744,148 @@ export default function SquadDraft({
     )
   }
 
+  const DEFAULT_CENTER_ORDER = ["greeting", "tutorialHint", "evolutionNotice", "tabs", "equipPrompt", "marketEventBanner"]
+
+  function renderCenterSections() {
+    const centerSections = {
+      // The traveling merchant (merchant.js / MerchantGreeting) - a
+      // named face + one hand-authored line that shifts with the Act,
+      // the forest's state and the squad's dominant tribe, so the
+      // market reads as a place in the story, not a silent stall.
+      greeting: () => <MerchantGreeting key="greeting" runState={runState} />,
+
+      tutorialHint: () =>
+        showIntro && (
+          <div key="tutorialHint" className="hw-hint hw-hint--tutorial" style={{ marginTop: 3 }}>
+            <span>
+              Recruit units, place up to 4 on the grid, then watch them fight automatically. Win to earn Essence and
+              press on - lose, and the run ends.
+            </span>
+            <div className="hw-tutorial-actions">
+              <button className="hw-tutorial-next" onClick={onDismissIntro}>
+                Got it
+              </button>
+            </div>
+          </div>
+        ),
+
+      // One-shot notice for units that evolved on the last win
+      // (runEngine.applyEvolutions -> runState.lastEvolved, cleared on
+      // leaveShop). Evolution has no overlay of its own - ResultOverlay
+      // renders BEFORE resolveBattleOutcome runs - so the first shop
+      // screen after the win is where the player is told. Same
+      // .hw-hint language as the equip banner below.
+      evolutionNotice: () =>
+        runState.lastEvolved?.length > 0 && (
+          <div key="evolutionNotice" className="hw-hint hw-hint--evolved" style={{ marginTop: 3 }}>
+            <span>
+              <span className="hw-evolve-mark hw-evolve-mark--close">&#9650;</span>{" "}
+              {runState.lastEvolved.map((e) => `${e.from} grew into a ${e.to}`).join(" · ")}.
+            </span>
+          </div>
+        ),
+
+      // Marc, asked directly which button "hearthwood market.png"
+      // should replace, confirmed: this tab toggle - and asked for it
+      // centered above the panel ("keskitä se sivulle yläosioon"), not
+      // left-aligned next to Your Squad the way the plain pill used to
+      // sit. Market + Your Squad merged back into ONE row (was two
+      // stacked rows - a real fit regression at Marc's actual
+      // 1860x960 browser budget). Round 2: Marc, live, annotating a
+      // screenshot of exactly this row - "noita nappeja isommaksi"
+      // (make those buttons bigger) - both buttons grew from 38px to
+      // 64px tall and Your Squad became an image button too
+      // (yourSquadPlaque, same treatment as Market) rather than
+      // staying a plain text pill next to a much showier neighbor.
+      // The bench count can't live inside the plaque art since it
+      // changes every recruit/sell, so it rides along as its own
+      // small corner badge instead.
+      tabs: () => (
+        <div key="tabs" className="hw-tab-row hw-tab-row--market-art">
+          <button
+            className="hw-market-tab-btn"
+            data-active={activeTab === "market"}
+            onClick={() => setActiveTab("market")}
+            aria-label="Market"
+            title="Market"
+          >
+            <img src={marketTabPlaque} alt="" />
+            {/* Visually-hidden text node, not just an aria-label - keeps
+                this button findable by visible text the same way every
+                other tab/action button in this game is (including by
+                existing Playwright specs like .scratch/verify_market_
+                redesign.mjs's `hasText: "Market"` locator), even though
+                the plaque art itself already reads "HEARTHWOOD MARKET"
+                to a sighted player. */}
+            <span className="hw-sr-only">Market</span>
+          </button>
+          <button
+            className="hw-squad-tab-btn"
+            data-active={activeTab === "squad"}
+            onClick={() => setActiveTab("squad")}
+            aria-label={`Your Squad (${runState.bench.length})`}
+            title="Your Squad"
+          >
+            <img src={yourSquadPlaque} alt="" />
+            <span className="hw-squad-count-badge" title={`${runState.bench.length} on the bench`}>
+              {runState.bench.length}
+            </span>
+            <span className="hw-sr-only">Your Squad ({runState.bench.length})</span>
+          </button>
+        </div>
+      ),
+
+      // Equip prompt: the required visible cue that something is
+      // selected and waiting for a target, same job the "primed" badge
+      // above does for the Commander's Active Power. Placed outside
+      // the tab-gated panels (hw-market-columns) so it's on screen on
+      // EITHER tab - the instant buying an item auto-selects it,
+      // whichever tab the player was shopping on, and stays visible if
+      // they instead select a bag item by hand while already on the
+      // Squad tab.
+      equipPrompt: () =>
+        selectedItemDef && (
+          <div key="equipPrompt" className="hw-hint hw-hint--pending" style={{ marginTop: 10 }}>
+            <span>
+              <CardGlyph name={selectedItemDef.icon} className="hw-intent-glyph" /> {selectedItemDef.name} selected -{" "}
+              {activeTab === "squad"
+                ? "click an empty item slot on a unit below (or the Commander's slots above) to equip it."
+                : "the Commander's slots above are ready now, or switch tabs to equip it onto a recruited unit."}
+            </span>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              {activeTab !== "squad" && (
+                <button className="hw-hint-cancel" onClick={() => setActiveTab("squad")}>
+                  Go to Your Squad
+                </button>
+              )}
+              <button className="hw-hint-cancel" onClick={() => setSelectedItemKey(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        ),
+
+      // Market Event banner (feat/hearthwood-market-events): when this
+      // shop stop rolled a special market, a re-skinned strip above the
+      // columns naming it, its flavour, and its catch. `data-tone`
+      // drives the accent (gold / moss / curse). Placed here (outside
+      // the tab-gated panels) so it's on screen on either tab, same as
+      // the equip prompt above.
+      marketEventBanner: () =>
+        marketEventDef && (
+          <div key="marketEventBanner" className="hw-market-event-banner" data-tone={marketEventDef.tone}>
+            <div className="hw-market-event-name">{marketEventDef.name}</div>
+            <div className="hw-market-event-blurb">{marketEventDef.blurb}</div>
+            <div className="hw-market-event-effect">{marketEventDef.effect}</div>
+          </div>
+        ),
+    }
+
+    const order = SHOP_LAYOUT.market?.centerOrder || DEFAULT_CENTER_ORDER
+
+    return order.map((key) => centerSections[key]?.() ?? null)
+  }
+
   function renderOwnedRail() {
     const relics = runState.relics || []
     const items = runState.items || []
@@ -1342,164 +1484,15 @@ export default function SquadDraft({
         </aside>
 
         <div className="hw-shop-center">
-          {/* The traveling merchant (merchant.js / MerchantGreeting) -
-              a named face + one hand-authored line that shifts with the
-              Act, the forest's state and the squad's dominant tribe, so
-              the market reads as a place in the story, not a silent
-              stall. First thing in the center column, above every hint. */}
-          <MerchantGreeting runState={runState} />
-          {showIntro && (
-        <div className="hw-hint hw-hint--tutorial" style={{ marginTop: 3 }}>
-          <span>
-            Recruit units, place up to 4 on the grid, then watch them fight automatically. Win to earn Essence and
-            press on - lose, and the run ends.
-          </span>
-          <div className="hw-tutorial-actions">
-            <button className="hw-tutorial-next" onClick={onDismissIntro}>
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* One-shot notice for units that evolved on the last win
-          (runEngine.applyEvolutions -> runState.lastEvolved, cleared on
-          leaveShop). Evolution has no overlay of its own - ResultOverlay
-          renders BEFORE resolveBattleOutcome runs - so the first shop
-          screen after the win is where the player is told. Same
-          .hw-hint language as the equip banner below. */}
-      {runState.lastEvolved?.length > 0 && (
-        <div className="hw-hint hw-hint--evolved" style={{ marginTop: 3 }}>
-          <span>
-            <span className="hw-evolve-mark hw-evolve-mark--close">&#9650;</span>{" "}
-            {runState.lastEvolved.map((e) => `${e.from} grew into a ${e.to}`).join(" · ")}.
-          </span>
-        </div>
-      )}
-
-      {/* Marc, asked directly which button "hearthwood market.png"
-          should replace, confirmed: this tab toggle - and asked for it
-          centered above the panel ("keskitä se sivulle yläosioon"),
-          not left-aligned next to Your Squad the way the plain pill
-          used to sit. Split into its own centered row for that reason;
-          Your Squad keeps its own row below, same onClick/data-active
-          wiring as before, just no longer sharing a flex row with
-          Market. */}
-      {/* Market + Your Squad merged back into ONE row (was two stacked
-          rows - a real fit regression at Marc's actual 1860x960 browser
-          budget, ~110px combined for what's fundamentally one tab
-          toggle pair). The plaque button is sized to match the pill
-          button's own height instead of floating above it as a
-          separate hero element. */}
-      {/* Round 2: Marc, live, annotating a screenshot of exactly this
-          row - "noita nappeja isommaksi" (make those buttons bigger).
-          The 38px-tall version above made the Market plaque read as a
-          tiny, oddly-cropped icon (height-constraining a ~2:3 PORTRAIT
-          plaque to 38px leaves it ~25px wide - not "small", just too
-          narrow to read as anything). Fixed two ways at once: the
-          plaque art itself got re-cropped down to a wide 3:1 strip
-          (market-tab.png now IS just the "HEARTHWOOD MARKET" text
-          banner + candles, coin-bag/Purchase-250 dropped - see this
-          asset's own processing notes in the PR description) so it has
-          a sane shape to grow into, and both buttons grew from 38px to
-          64px tall - deliberately not the plaque's full native size
-          (still a tab toggle, not a hero image), but a real, legible
-          jump instead of a token few px. Your Squad became an image
-          button too (yourSquadPlaque, same treatment as Market) rather
-          than staying a plain text pill next to a much showier
-          neighbor - matched pair, not "one plaque + one leftover
-          pill". The bench count can't just be baked into the art (it
-          changes every recruit/sell), so it rides along as a small
-          moss badge on the corner instead of inline text - same
-          "count needs to survive as a real number, not disappear into
-          decoration" rule the Sell button's dynamic (+refund) already
-          followed. Growing this row by ~25px meant finding ~25px back
-          elsewhere on this screen to hold the 1860x960 zero-scroll
-          budget - see heartwood.css's own comments (market-stage
-          padding, the divider's margin, the banner, the featured
-          portrait height, Continue's top margin) for where it came
-          from; re-measured with Playwright after, not assumed. */}
-      <div className="hw-tab-row hw-tab-row--market-art">
-        <button
-          className="hw-market-tab-btn"
-          data-active={activeTab === "market"}
-          onClick={() => setActiveTab("market")}
-          aria-label="Market"
-          title="Market"
-        >
-          <img src={marketTabPlaque} alt="" />
-          {/* Visually-hidden text node, not just an aria-label - keeps
-              this button findable by visible text the same way every
-              other tab/action button in this game is (including by
-              existing Playwright specs like .scratch/verify_market_
-              redesign.mjs's `hasText: "Market"` locator), even though
-              the plaque art itself already reads "HEARTHWOOD MARKET"
-              to a sighted player. */}
-          <span className="hw-sr-only">Market</span>
-        </button>
-        <button
-          className="hw-squad-tab-btn"
-          data-active={activeTab === "squad"}
-          onClick={() => setActiveTab("squad")}
-          aria-label={`Your Squad (${runState.bench.length})`}
-          title="Your Squad"
-        >
-          <img src={yourSquadPlaque} alt="" />
-          {/* The bench count baked into the OLD plain-text pill
-              ("Your Squad (N)") can't live inside the plaque art - N
-              changes every recruit/sell/reserve swap - so it survives
-              as its own small corner badge instead, same "a mechanic
-              needs a visible, legible number, not just decoration"
-              rule this game applies everywhere else. */}
-          <span className="hw-squad-count-badge" title={`${runState.bench.length} on the bench`}>
-            {runState.bench.length}
-          </span>
-          <span className="hw-sr-only">Your Squad ({runState.bench.length})</span>
-        </button>
-      </div>
-
-      {/* Equip prompt: the required visible cue that something is
-          selected and waiting for a target, same job the "primed" badge
-          above does for the Commander's Active Power. Placed outside
-          the tab-gated panels below (hw-market-columns) so it's on
-          screen on EITHER tab - the instant buying an item auto-selects
-          it (see the item-detection effect above), whichever tab the
-          player was shopping on, and stays visible if they instead
-          select a bag item by hand while already on the Squad tab. */}
-      {selectedItemDef && (
-        <div className="hw-hint hw-hint--pending" style={{ marginTop: 10 }}>
-          <span>
-            <CardGlyph name={selectedItemDef.icon} className="hw-intent-glyph" /> {selectedItemDef.name} selected -{" "}
-            {activeTab === "squad"
-              ? "click an empty item slot on a unit below (or the Commander's slots above) to equip it."
-              : "the Commander's slots above are ready now, or switch tabs to equip it onto a recruited unit."}
-          </span>
-          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-            {activeTab !== "squad" && (
-              <button className="hw-hint-cancel" onClick={() => setActiveTab("squad")}>
-                Go to Your Squad
-              </button>
-            )}
-            <button className="hw-hint-cancel" onClick={() => setSelectedItemKey(null)}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Market Event banner (feat/hearthwood-market-events): when this
-          shop stop rolled a special market, a re-skinned strip above the
-          columns naming it, its flavour, and its catch. `data-tone`
-          drives the accent (gold / moss / curse). Placed here (outside
-          the tab-gated panels) so it's on screen on either tab, same as
-          the equip prompt above. */}
-      {marketEventDef && (
-        <div className="hw-market-event-banner" data-tone={marketEventDef.tone}>
-          <div className="hw-market-event-name">{marketEventDef.name}</div>
-          <div className="hw-market-event-blurb">{marketEventDef.blurb}</div>
-          <div className="hw-market-event-effect">{marketEventDef.effect}</div>
-        </div>
-      )}
+          {/* Reorderable "chrome" above the actual shop content -
+              Phase 3 of the WordPress-style layout work (Marc, choosing
+              "simple reordering" for this column over free positioning):
+              `SHOP_LAYOUT.market.centerOrder` decides which of these
+              named pieces renders first, same plain order-array
+              mechanism `leftRailOrder` already uses for the left rail.
+              `.hw-market-columns` and the Continue button below stay
+              FIXED - see renderCenterSections() for why. */}
+          {renderCenterSections()}
 
       <div className="hw-market-columns">
         <div className="hw-panel hw-panel--market" hidden={activeTab !== "market"}>
