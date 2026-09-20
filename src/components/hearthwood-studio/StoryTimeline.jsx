@@ -26,8 +26,18 @@ import { actLabel } from "./actNames"
  * detail panel (EntityFieldEditor/ListFieldEditor/ImageUploadField)
  * every other type already uses. No new editing surface here, purely
  * orientation: "where am I, and what's the next thing to click".
+ *
+ * Dialogues (dialogues.js, PR #528) added after this view was first
+ * built - Marc, right after writing his first new event: "minun pitää
+ * myös tietää missä kohti olen tarinaa kun luon sitä... sen pitää olla
+ * minulle selkeä ja looginen" (I also need to know where I am in the
+ * story when I'm creating it - it needs to be clear and logical). A
+ * dialogue has no `act` field of its own - its story position is
+ * whichever event choice's `dialogueId` triggers it - so placing it
+ * here means scanning every event's own choices for that reference
+ * (see `actForDialogue` below), not just reading a field.
  */
-const TIMELINE_TYPES = ["cinematics", "crossroads", "events", "storyJournal", "merchants", "crownless"]
+const TIMELINE_TYPES = ["cinematics", "crossroads", "events", "storyJournal", "merchants", "crownless", "dialogues"]
 
 // cinematics.js has no numeric `act` field of its own (see cinematics.js's
 // own file comment: "the two bookends" plus later additions) - these are
@@ -51,6 +61,7 @@ const TYPE_ICON = {
   storyJournal: "📖",
   merchants: "🛒",
   crownless: "👑",
+  dialogues: "💬",
 }
 
 const TYPE_LABEL = {
@@ -60,6 +71,26 @@ const TYPE_LABEL = {
   storyJournal: "Journal",
   merchants: "Merchant",
   crownless: "Crownless",
+  dialogues: "Dialogue",
+}
+
+// A dialogue's own story position: whichever event choice's `dialogueId`
+// triggers it. Scans every event's `choices` (a `kind:"list"` field, so
+// the full nested structure - not just scalar top-level fields - is
+// already present in the /entities response) for a match.
+function actForDialogue(events, dialogueId) {
+  for (const event of events) {
+    const act = event.fields?.act?.value
+    const choices = event.fields?.choices?.items || []
+
+    const triggers = choices.some(choice => choice.fields?.dialogueId?.value === dialogueId)
+
+    if (triggers) {
+      return typeof act === "number" ? act : 99
+    }
+  }
+
+  return 99
 }
 
 function groupLabelFor(act) {
@@ -150,6 +181,16 @@ function rowsFromEntities(byType) {
       id: entity.id,
       act: 5,
       priority: 4,
+      label: entity.name || entity.id,
+    })
+  }
+
+  for (const entity of byType.dialogues || []) {
+    rows.push({
+      type: "dialogues",
+      id: entity.id,
+      act: actForDialogue(byType.events || [], entity.id),
+      priority: 1.5,
       label: entity.name || entity.id,
     })
   }
