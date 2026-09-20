@@ -37,6 +37,20 @@ function buildClonedBlock({ source, oldId, newId, oldName, newName }) {
   const idFieldPattern = new RegExp(`(\\bid\\s*:\\s*)(["'])${escapeRe(oldId)}\\2`)
   block = block.replace(idFieldPattern, `$1"${newId}"`)
 
+  // Marc: "haluan pystyä lisäämään peliin... yksikköjä" (want to add
+  // units) - units.js entries are a `unit(id, name, art, cost, role,
+  // movePattern, opts)` FACTORY CALL (paths.js's FACTORY_SIGNATURES),
+  // not an object literal - there is no `id: "..."` text anywhere in
+  // one, so idFieldPattern above never matches, and a cloned unit
+  // silently kept its OLD id as this call's own first argument while
+  // only the MAP KEY got renamed - two different ids for "the same"
+  // entity. Only the factory's own FIRST argument is its id (its
+  // later `art` argument can coincidentally hold the identical string,
+  // e.g. unit("the-fool", "Mosskit", "the-fool", ...) - replacing
+  // every occurrence would wrongly rename that one too).
+  const unitFactoryIdPattern = new RegExp(`(\\bunit\\(\\s*)(["'])${escapeRe(oldId)}\\2`)
+  block = block.replace(unitFactoryIdPattern, `$1$2${newId}$2`)
+
   if (newName && oldName) {
     const namePattern = new RegExp(`(\\bname\\s*:\\s*)(["'])${escapeRe(oldName)}\\2`)
     block = block.replace(namePattern, `$1"${newName}"`)
