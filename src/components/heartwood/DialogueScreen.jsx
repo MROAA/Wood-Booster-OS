@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
+import EditInStudioLink from "./EditInStudioLink"
+
 /*
  * Hearthwood's first branching NPC conversation (dialogues.js).
  * Triggered from an event choice with a `dialogueId` (EventScreen.jsx) -
@@ -14,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion"
  * text for that; a dialogue-triggering choice doesn't, so this supplies
  * one) - both handed back via onDone(effects, summary).
  */
-export default function DialogueScreen({ dialogue, onDone }) {
+export default function DialogueScreen({ dialogue, dialogueId, onDone }) {
   // `path` is the stack of exchange nodes visited so far, each already
   // "answered" (shown oldest-first, like a conversation scrolling
   // down). `current` (below) is whichever question list is choosable
@@ -47,16 +49,20 @@ export default function DialogueScreen({ dialogue, onDone }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <div
-        style={{
-          fontSize: 12,
-          letterSpacing: 1,
-          textTransform: "uppercase",
-          color: "var(--hw-rune)",
-          marginBottom: 6,
-        }}
-      >
-        {dialogue.npc}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div
+          style={{
+            fontSize: 12,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            color: "var(--hw-rune)",
+            marginBottom: 6,
+          }}
+        >
+          {dialogue.npc}
+        </div>
+
+        <EditInStudioLink type="dialogues" id={dialogueId} />
       </div>
 
       <div className="hw-dialogue-lines">
