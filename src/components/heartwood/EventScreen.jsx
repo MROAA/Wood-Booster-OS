@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 
 import { DIALOGUES } from "../../data/heartwood/dialogues"
 import DialogueScreen from "./DialogueScreen"
+import EditInStudioLink from "./EditInStudioLink"
 
 // A map event (events.js) - Slay the Spire's "?" node. Marc, more than
 // once: "pelaaja kulkee mappia ja vastaan tulee eventtejä" - the player
@@ -27,6 +28,7 @@ export default function EventScreen({ event, onResolve }) {
     return (
       <DialogueScreen
         dialogue={DIALOGUES[chosenChoice.dialogueId]}
+        dialogueId={chosenChoice.dialogueId}
         onDone={(effects, summary) => onResolve(chosen, effects, summary)}
       />
     )
@@ -39,16 +41,20 @@ export default function EventScreen({ event, onResolve }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <div
-        style={{
-          fontSize: 12,
-          letterSpacing: 1,
-          textTransform: "uppercase",
-          color: "var(--hw-rune)",
-          marginBottom: 6,
-        }}
-      >
-        An Event
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div
+          style={{
+            fontSize: 12,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            color: "var(--hw-rune)",
+            marginBottom: 6,
+          }}
+        >
+          An Event
+        </div>
+
+        <EditInStudioLink type="events" id={event.id} />
       </div>
       <h1 style={{ fontSize: 24, margin: "0 0 14px" }}>{event.title}</h1>
       <p className="hw-flavor" style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 620 }}>

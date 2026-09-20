@@ -26,8 +26,28 @@ import ThemePanel from "../components/hearthwood-studio/ThemePanel"
  * tasapaino/doctor-paneelit ovat Vaiheen 2 laajennuksia
  * (heartwood-patchbay-vast-giraffe.md), ei tässä.
  */
+// Marc, 2026-09-20: "haluan jotenkin livenä muokata peliä sitä
+// pelatessani... että pelaan peliä ja muokkaan sitä pelatessa... se
+// olisi minulle helpoin tapa tehdä tarinaa" (I want to somehow edit
+// the game live while playing it - play and edit as I go - that would
+// be the easiest way for me to make the story). A story screen
+// in-game (EventScreen.jsx, DialogueScreen.jsx) carries a small
+// EditInStudioLink pointing at `/hearthwood-studio?type=&id=` - read
+// once on load so opening that link lands directly on the exact thing
+// Marc just saw, instead of the Dashboard he'd have to navigate away
+// from by hand.
+function deepLinkFromUrl() {
+  const params = new URLSearchParams(window.location.search)
+  const type = params.get("type")
+  const id = params.get("id")
+
+  return type && id ? { type, id } : null
+}
+
 function HearthwoodStudio() {
-  const [viewMode, setViewMode] = useState("dashboard")
+  const deepLink = deepLinkFromUrl()
+
+  const [viewMode, setViewMode] = useState(deepLink ? "single" : "dashboard")
   // `browsingType` drives what the LEFT panel shows; `entityType` drives
   // what the DETAIL panel fetches. Normally the same value - split only
   // matters for the Story Timeline (Marc: "en tiedä missä jaotellut
@@ -35,9 +55,9 @@ function HearthwoodStudio() {
   // whose real type is e.g. "events" must open THAT entity in the
   // detail panel without silently kicking the left panel back to a
   // flat per-type list and losing the chronological browsing context.
-  const [browsingType, setBrowsingType] = useState("enemies")
-  const [entityType, setEntityType] = useState("enemies")
-  const [entityId, setEntityId] = useState(null)
+  const [browsingType, setBrowsingType] = useState(deepLink?.type || "enemies")
+  const [entityType, setEntityType] = useState(deepLink?.type || "enemies")
+  const [entityId, setEntityId] = useState(deepLink?.id || null)
   const [entityDetail, setEntityDetail] = useState(null)
   const [entityLoading, setEntityLoading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState(null)
