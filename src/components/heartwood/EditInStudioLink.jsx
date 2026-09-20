@@ -27,7 +27,13 @@ export default function EditInStudioLink({ type, id, label }) {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={event => {
+          // Some screens (StoryCinematic's click-to-advance) read a
+          // click anywhere on the root as "next line" - stop it here so
+          // opening the editor doesn't also advance the scene under it.
+          event.stopPropagation()
+          setOpen(true)
+        }}
         style={{
           display: "inline-block",
           fontSize: 11,
