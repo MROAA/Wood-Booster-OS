@@ -3759,6 +3759,112 @@ img.hw-card-art {
   cursor: grabbing;
 }
 
+/* Free Layout foundation (useFreeLayout.js) - the SAME drag/edit
+   mechanism as the Market's own hw-shop-rail-* rules above, generalized
+   for reuse on other screens (Settings, Commander Select, Guild Hall,
+   the story cinematics, Act transitions, the run map's top strip).
+   Kept as its own separate class family rather than renaming Market's
+   existing rules - the two coexist on purpose, Market's own system is
+   untouched. Unlike the rail wrapper, .hw-free-layout-container is
+   deliberately minimal (no flex-column/gap of its own) since each of
+   these screens already has its own flow layout to fall back to. */
+.hw-free-layout-container {
+  /* flow-root, not just position:relative - without its own block
+     formatting context, a child's top margin collapses straight
+     through this container in flow mode, but position:absolute
+     children never participate in margin collapse - so switching
+     modes would shift the container's own rendered top by that
+     collapsed amount, breaking the "zero visual jump" guarantee for
+     reasons that have nothing to do with the actual captured x/y. */
+  display: flow-root;
+  position: relative;
+  width: 100%;
+}
+
+.hw-free-layout-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed var(--hw-border);
+}
+
+.hw-free-layout-error {
+  width: 100%;
+  font-size: 11px;
+  color: var(--hw-hp);
+}
+
+.hw-free-layout-section {
+  position: relative;
+}
+
+[data-editing-layout="true"] .hw-free-layout-section {
+  outline: 1px dashed color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.hw-free-layout-section--hidden {
+  padding: 10px 12px;
+  border: 1px dashed var(--hw-border);
+  border-radius: 8px;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hw-free-layout-hidden-label {
+  font-size: 12px;
+  color: var(--hw-muted);
+  font-style: italic;
+}
+
+.hw-free-layout-controls {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+
+.hw-free-layout-section--hidden .hw-free-layout-controls {
+  position: static;
+}
+
+.hw-free-layout-drag-handle {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  font-size: 12px;
+  color: var(--hw-muted);
+  cursor: grab;
+}
+
+.hw-free-layout-drag-handle:active {
+  cursor: grabbing;
+}
+
+.hw-free-layout-hide-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  color: var(--hw-muted);
+  cursor: pointer;
+}
+
 /* RunMap inside the right rail - strip its page-level side margin and
    its own frame (the rail already provides one); its track keeps its
    own horizontal scroll and can never force the rail wider. */

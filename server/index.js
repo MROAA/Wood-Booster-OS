@@ -391,6 +391,7 @@ import createDevMultiFileChangeRouter from "./routes/devMultiFileChangeStudio.js
 import createSavedPromptsRouter from "./routes/savedPrompts.js"
 import createHeartwoodAssistantRouter from "./routes/heartwoodAssistant.js"
 import createHearthwoodPatchbayRouter from "./routes/hearthwoodPatchbay.js"
+import createHearthwoodLayoutRouter from "./routes/hearthwoodLayout.js"
 import createBloodmoorPatchbayRouter from "./routes/bloodmoorPatchbay.js"
 import createProjectFilesRouter from "./routes/projectFiles.js"
 import createOllamaModelsRouter from "./routes/ollamaModels.js"
@@ -1328,6 +1329,13 @@ app.use(
 app.use(
   "/api",
   createHearthwoodPatchbayRouter(
+    prisma
+  )
+)
+
+app.use(
+  "/api",
+  createHearthwoodLayoutRouter(
     prisma
   )
 )
