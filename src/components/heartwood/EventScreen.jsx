@@ -1,6 +1,9 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 
+import { DIALOGUES } from "../../data/heartwood/dialogues"
+import DialogueScreen from "./DialogueScreen"
+
 // A map event (events.js) - Slay the Spire's "?" node. Marc, more than
 // once: "pelaaja kulkee mappia ja vastaan tulee eventtejä" - the player
 // walks the map and events come up, and they carry the story.
@@ -10,10 +13,24 @@ import { motion } from "framer-motion"
 // runEngine.js's resolveEventChoice, which applies the consequences and
 // advances the run. Deliberately quiet and text-first - this is a story
 // beat, not another mechanical picker.
+//
+// A choice with `dialogueId` (dialogues.js) is the one exception to
+// "result line + Continue" - it hands off to DialogueScreen instead,
+// and THAT screen's own accumulated effects/summary flow back through
+// onResolve's optional 2nd/3rd arguments once the conversation ends.
 export default function EventScreen({ event, onResolve }) {
   const [chosen, setChosen] = useState(null)
   if (!event) return null
   const chosenChoice = chosen != null ? event.choices[chosen] : null
+
+  if (chosenChoice?.dialogueId) {
+    return (
+      <DialogueScreen
+        dialogue={DIALOGUES[chosenChoice.dialogueId]}
+        onDone={(effects, summary) => onResolve(chosen, effects, summary)}
+      />
+    )
+  }
 
   return (
     <motion.div

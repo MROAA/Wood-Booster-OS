@@ -1761,13 +1761,24 @@ function applyEventEffect(runState, eff, effIndex = 0) {
 // Resolves a pending "event" phase: applies the chosen option's
 // consequences, records the event as seen, and advances the run the
 // same way leaving a shop does.
-export function resolveEventChoice(runState, choiceIndex) {
+//
+// `extraEffects`/`extraResult` (both optional, no new runState shape,
+// no RUN_SAVE_VERSION bump): a choice with `dialogueId` (dialogues.js)
+// hands off to DialogueScreen.jsx instead of resolving immediately -
+// once that conversation ends, its OWN accumulated effects (from
+// whichever exchanges/followUps the player actually picked) and a
+// human-readable summary line come back through these two params,
+// applied/recorded on top of the choice's own (here: empty)
+// `effects`/`result`. A plain choice with no dialogue never passes
+// these - `resolveEventChoice(runState, choiceIndex)` behaves exactly
+// as before.
+export function resolveEventChoice(runState, choiceIndex, extraEffects = [], extraResult) {
   if (runState.phase !== "event") return runState
   const event = eventForNode(runState)
   const choice = event?.choices?.[choiceIndex]
   if (!choice) return runState
   let next = runState
-  ;(choice.effects || []).forEach((eff, i) => {
+  ;[...(choice.effects || []), ...extraEffects].forEach((eff, i) => {
     next = applyEventEffect(next, eff, i)
   })
   next = {
@@ -1782,7 +1793,7 @@ export function resolveEventChoice(runState, choiceIndex) {
     // pickEvent's dedup). Defaulted on read; no save-version bump.
     eventLog: [
       ...(next.eventLog || []),
-      { id: event.id, title: event.title, choice: choice.label, result: choice.result, act: actIndexForNode(runState.nodeIndex, RUN_PATH.length) },
+      { id: event.id, title: event.title, choice: choice.label, result: extraResult ?? choice.result, act: actIndexForNode(runState.nodeIndex, RUN_PATH.length) },
     ],
   }
   return { ...next, ...advanceToNextNode(next) }
