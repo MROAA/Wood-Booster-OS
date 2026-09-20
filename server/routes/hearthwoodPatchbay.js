@@ -130,6 +130,94 @@ export default function createHearthwoodPatchbayRouter(prisma) {
         }
     })
 
+    /* -------------------------------------------------------------- *
+     * dashboard overview + universal search (Marc, 2026-09-20: "tahdon
+     * paljon eri toiminnallisuuksia dev studioon" / "selkeä, yksinkertainen
+     * ja tehokas" - picked "easier ways to find/use what's already
+     * editable" over new game systems). Both loop every ENTITY_TYPES key
+     * through the same cached `listEntities` the /entities route already
+     * uses - cheap, since a type's read is cached by its data file's
+     * mtime and only reparsed after a real edit.
+     * -------------------------------------------------------------- */
+
+    router.get(`${BASE}/overview`, async (req, res) => {
+
+        try {
+
+            const types = await Promise.all(
+                Object.keys(ENTITY_TYPES).map(async type => {
+
+                    try {
+
+                        const data = await listEntities(type)
+
+                        return { type, count: data.entities.length }
+
+                    } catch (error) {
+
+                        return { type, count: 0, error: error.message }
+
+                    }
+                }),
+            )
+
+            res.json({
+                types,
+                totalEntities: types.reduce((sum, entry) => sum + entry.count, 0),
+            })
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    router.get(`${BASE}/search`, async (req, res) => {
+
+        try {
+
+            const q = String(req.query.q || "").trim().toLowerCase()
+
+            if (!q) {
+
+                return res.json({ query: "", results: [] })
+
+            }
+
+            const perType = await Promise.all(
+                Object.keys(ENTITY_TYPES).map(async type => {
+
+                    try {
+
+                        const data = await listEntities(type)
+
+                        return data.entities
+                            .filter(entity =>
+                                String(entity.id || "").toLowerCase().includes(q)
+                                || String(entity.name || "").toLowerCase().includes(q),
+                            )
+                            .map(entity => ({ type, id: entity.id, name: entity.name }))
+
+                    } catch {
+
+                        return []
+
+                    }
+                }),
+            )
+
+            const results = perType.flat().slice(0, 80)
+
+            res.json({ query: q, results })
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
     router.get(`${BASE}/entity/:type/:id`, async (req, res) => {
 
         try {
