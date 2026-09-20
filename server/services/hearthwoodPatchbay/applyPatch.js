@@ -158,12 +158,12 @@ async function resolveProposal(body) {
 
         if (isCss) {
 
-            const first = edits[0]
+            const cssEdits = edits.filter(e => e && e.selector && e.prop)
+
+            const first = cssEdits[0]
 
             const proposal = await buildCssProposal({
-                selector: first.selector,
-                prop: first.prop,
-                value: first.value,
+                edits: cssEdits,
                 filePath: first.filePath || HEARTHWOOD_STYLE_FILES[0],
             })
 
@@ -171,8 +171,9 @@ async function resolveProposal(body) {
                 proposal,
                 editSpec: { ops: edits },
                 targetFiles: [proposal.filePath],
-                summary:
-                    `CSS: ${first.selector} { ${first.prop} }`,
+                summary: cssEdits.length > 1
+                    ? `CSS: ${cssEdits.length} muuttujaa (${cssEdits.map(e => e.prop).join(", ")})`
+                    : `CSS: ${first.selector} { ${first.prop} }`,
                 rejectedOps: proposal.rejectedOps || [],
             }
         }

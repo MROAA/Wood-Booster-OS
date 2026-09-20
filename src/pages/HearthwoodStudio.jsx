@@ -14,6 +14,7 @@ import NlChangeBox from "../components/hearthwood-studio/NlChangeBox"
 import LivePreviewPane from "../components/hearthwood-studio/LivePreviewPane"
 import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
 import SheetView from "../components/hearthwood-studio/SheetView"
+import ThemePanel from "../components/hearthwood-studio/ThemePanel"
 
 /*
  * Hearthwood Studio - oma Dev Studio pelille, ei pilleri geneerisellä
@@ -151,9 +152,39 @@ function HearthwoodStudio() {
           >
             Sheet
           </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode("theme")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "theme"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            🎨 Colors & Theme
+          </button>
         </div>
       </header>
 
+      {
+        viewMode === "theme" && (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+              <ThemePanel onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+            </section>
+
+            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
+            </section>
+          </div>
+        )
+      }
+
+      {viewMode !== "theme" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
@@ -268,6 +299,7 @@ function HearthwoodStudio() {
             )
         }
       </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
         <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
