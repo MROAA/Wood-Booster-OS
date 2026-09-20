@@ -5,6 +5,7 @@ import { apiGet } from "../../api/client"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 import { actLabel } from "./actNames"
+import { insertionPointFor } from "./chronologicalInsert"
 
 /*
  * Marc: "haluan myös pystyä lisäämään tarinaa tarkkoihin kohtiin story
@@ -26,24 +27,6 @@ function slugify(text) {
     .trim()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "")
-}
-
-function insertionPointFor(entities, targetAct) {
-  // entities arrive in the file's own order, which is already Act 1->7
-  // ascending (the chronological reorder) - the last entity whose own
-  // Act is <= targetAct is exactly where a new same-Act (or slightly
-  // later, if the target Act has no entries yet) line belongs.
-  let afterKey = null
-
-  for (const entity of entities) {
-    const act = entity.fields?.act?.value
-
-    if (typeof act === "number" && act <= targetAct) {
-      afterKey = entity.id
-    }
-  }
-
-  return afterKey
 }
 
 function AddStoryEntryForm({ type, onApplied, onPreviewUrlChange }) {
