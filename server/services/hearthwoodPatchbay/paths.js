@@ -137,6 +137,27 @@ export const HEARTHWOOD_DATA_DIR = "src/data/heartwood"
  *                    ARRAYS (not an embedded object) specifically so this
  *                    registry's existing list-field handling covers it with
  *                    no new capability)
+ *
+ * Marc, 2026-09-20: "synergiat ja heimot ja mitäkaikkea pelissä on jo" -
+ * synergies.js turned out to have FIVE exports and only one
+ * (SYNERGY_TIERS) was registered. Added the other three that fit this
+ * registry's existing shapes with no new capability:
+ *   synergies.js   export const TRIBES            (object map, tribe id ->
+ *                    {id, name, icon, color, description} - the 13 tribe
+ *                    DEFINITIONS, same flat shape as roles.js's ROLES)
+ *   synergies.js   export const COMBO_SYNERGIES   (ARRAY - "2 of tribe A +
+ *                    2 of tribe B" squad bonuses)
+ *   synergies.js   export const POSITION_SYNERGIES (ARRAY - slot-position-
+ *                    gated squad bonuses)
+ * Deliberately NOT registered: synergies.js's own UNIT_TRIBES (a 149-
+ * entry unit-id -> bare ARRAY-of-tags lookup, not object-per-entry) -
+ * this registry's reader has no "flat array map" shape yet (only flat
+ * SCALAR maps like almanac.js, via a synthetic `fields.value`), and a
+ * raw 149-row id->array table wouldn't read as meaningful without also
+ * showing each unit's own name inline. Needs either that new reader
+ * shape or (probably better) surfacing a unit's own tribe tags as a
+ * field on the unit's OWN entity view - a real, deferred gap, not an
+ * oversight.
  */
 export const ENTITY_TYPES = {
     enemies: { file: "enemies.js", exportName: "ENEMIES" },
@@ -147,6 +168,9 @@ export const ENTITY_TYPES = {
     characters: { file: "characters.js", exportName: "CHARACTERS" },
     formations: { file: "formations.js", exportName: "FORMATIONS" },
     synergies: { file: "synergies.js", exportName: "SYNERGY_TIERS" },
+    tribes: { file: "synergies.js", exportName: "TRIBES" },
+    comboSynergies: { file: "synergies.js", exportName: "COMBO_SYNERGIES" },
+    positionSynergies: { file: "synergies.js", exportName: "POSITION_SYNERGIES" },
     dualClasses: { file: "dualClasses.js", exportName: "DUAL_CLASSES" },
     trials: { file: "trials.js", exportName: "TRIALS" },
     tutorial: { file: "tutorial.js", exportName: "TUTORIAL_STEPS" },
