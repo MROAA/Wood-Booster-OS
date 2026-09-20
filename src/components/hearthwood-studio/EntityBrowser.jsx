@@ -5,84 +5,69 @@ import { apiGet } from "../../api/client"
 import { actLabel } from "./actNames"
 import StoryTimeline from "./StoryTimeline"
 
-// Marc, 2026-09-19: "puhun sinulle suomeksi koska se on äidinkieleni
-// mutta haluan peliin liittyvät ja pelin itse englanniksi" (he speaks
-// to Claude in Finnish, but wants the game itself and everything
-// related to it in English) - these labels were originally Finnish;
-// converted to English this round for that reason, not a translation
-// pass for its own sake.
-const PRIMARY_TYPES = [
-  { type: "enemies", label: "Enemies" },
-  { type: "units", label: "Units" },
-  { type: "cards", label: "Cards" },
-  { type: "relics", label: "Relics" },
-  { type: "items", label: "Items" },
-]
+// Marc, 2026-09-20: "elä tee tuhatta alarivistöä vaan selkeästi kaikki
+// esille josta voin muokata" / "laita fiksusti kaikki nippuun silleen
+// että se on selkeä muokata" (don't make a thousand sub-lists, clearly
+// show everything I can edit - put it all together smartly so it's
+// clear to edit). The Story/Economy/Guidance/Other split (optgroups
+// behind a closed dropdown) grew into exactly the kind of buried
+// nesting he was pointing at. Every registered type is now ONE flat,
+// always-visible, wrapped list - no menu to open, nothing hidden.
+// `category` is kept per entry purely as a small inline tag (see the
+// render below), not a separate section - it still tells you what
+// KIND of thing you're looking at without making you go find it in a
+// submenu first.
+const ALL_TYPES = [
+  { type: "enemies", label: "Enemies", category: "Content" },
+  { type: "units", label: "Units", category: "Content" },
+  { type: "cards", label: "Cards", category: "Content" },
+  { type: "relics", label: "Relics", category: "Content" },
+  { type: "items", label: "Items", category: "Content" },
+  { type: "characters", label: "Characters", category: "Content" },
+  { type: "formations", label: "Formations", category: "Content" },
+  { type: "synergies", label: "Synergies", category: "Content" },
+  { type: "dualClasses", label: "Dual Classes", category: "Content" },
+  { type: "roles", label: "Unit Roles", category: "Content" },
+  { type: "evolutions", label: "Evolutions", category: "Content" },
+  { type: "upgradeBranches", label: "Upgrade Branches", category: "Content" },
+  { type: "arenas", label: "Arenas", category: "Content" },
 
-// Marc, 2026-09-19: "en löydä mistä voin muokkaa pelin tarinaa" (can't
-// find where to edit the game's story) - every one of these WAS already
-// reachable, just flattened into one alphabetical dropdown with no
-// label saying "this is the story". Grouped by <optgroup> below so
-// "Story" is a real, visible category instead of something you have to
-// already know to look for.
-const STORY_TYPES = [
-  { type: "storyJournal", label: "Story Journal" },
-  { type: "cinematics", label: "Cinematics" },
-  { type: "crossroads", label: "Act Crossroads" },
-  { type: "crownless", label: "Crownless Intro" },
-  { type: "events", label: "Map Events" },
-  { type: "merchants", label: "Merchant Lines" },
-  { type: "moods", label: "Forest Mood" },
-]
+  // Marc, 2026-09-19: "en löydä mistä voin muokkaa pelin tarinaa"
+  { type: "storyJournal", label: "Story Journal", category: "Story" },
+  { type: "cinematics", label: "Cinematics", category: "Story" },
+  { type: "crossroads", label: "Act Crossroads", category: "Story" },
+  { type: "crownless", label: "Crownless Intro", category: "Story" },
+  { type: "events", label: "Map Events", category: "Story" },
+  { type: "merchants", label: "Merchant Lines", category: "Story" },
+  { type: "moods", label: "Forest Mood", category: "Story" },
+  { type: "almanac", label: "Almanac Lore", category: "Story" },
 
-// Marc: "dev studiossa pitää olla mukana myös ekonomia... säädän itse
-// sillä pelin vaikeustasoa" (the dev studio needs the economy too - I
-// will use it myself to adjust the game's difficulty). These 3 read
-// from economyLevers.js (extracted out of the HIGH-risk runEngine.js
-// specifically so they could live here).
-const ECONOMY_TYPES = [
-  { type: "economyLevers", label: "Economy Levers" },
-  { type: "investments", label: "Ledger Investments" },
-  { type: "marketEvents", label: "Market Events" },
-  { type: "economyRoles", label: "Economy Crew Roles" },
-  { type: "depths", label: "Depths (Challenge Ladder)" },
-]
+  // Marc: "säädän itse sillä pelin vaikeustasoa"
+  { type: "economyLevers", label: "Economy Levers", category: "Economy" },
+  { type: "investments", label: "Ledger Investments", category: "Economy" },
+  { type: "marketEvents", label: "Market Events", category: "Economy" },
+  { type: "economyRoles", label: "Economy Crew Roles", category: "Economy" },
+  { type: "depths", label: "Depths (Challenge Ladder)", category: "Economy" },
+  { type: "boons", label: "Boons", category: "Economy" },
+  { type: "banes", label: "Banes", category: "Economy" },
 
-// Marc, 2026-09-20: "kaiken" (everything) - the reference/onboarding
-// text a player actually reads mid-run, as distinct from game mechanics
-// content (Other) or narrative (Story).
-const GUIDANCE_TYPES = [
-  { type: "help", label: "Help Glossary" },
-  { type: "coachTips", label: "Coach Tips" },
-  { type: "threats", label: "Threat Counterplay" },
+  // Marc, 2026-09-20: "kaiken" - the reference/onboarding text a
+  // player actually reads mid-run.
+  { type: "help", label: "Help Glossary", category: "Guidance" },
+  { type: "coachTips", label: "Coach Tips", category: "Guidance" },
+  { type: "threats", label: "Threat Counterplay", category: "Guidance" },
+  { type: "trials", label: "Trials", category: "Guidance" },
+  { type: "tutorial", label: "Tutorial", category: "Guidance" },
 ]
-
-const OTHER_TYPES = [
-  { type: "characters", label: "Characters" },
-  { type: "formations", label: "Formations" },
-  { type: "synergies", label: "Synergies" },
-  { type: "dualClasses", label: "Dual Classes" },
-  { type: "trials", label: "Trials" },
-  { type: "tutorial", label: "Tutorial" },
-  { type: "boons", label: "Boons" },
-  { type: "banes", label: "Banes" },
-  { type: "almanac", label: "Almanac Lore" },
-  { type: "arenas", label: "Arenas" },
-  { type: "evolutions", label: "Evolutions" },
-  { type: "roles", label: "Unit Roles" },
-  { type: "upgradeBranches", label: "Upgrade Branches" },
-]
-
-const OVERFLOW_TYPES = [...STORY_TYPES, ...ECONOMY_TYPES, ...GUIDANCE_TYPES, ...OTHER_TYPES]
 
 // Marc: "tämä on liian epäselvä systeemi että osaan editoida tarinaa
 // luotettavasti... tarvitsen jonkinlaisen kronologisen tavan pitää
 // kirjaa missä kohtaa tarinaa menen" (too unclear to edit the story
 // reliably - need a chronological way to track where I am in the
 // story) - a per-type Act badge wasn't enough because the story is
-// spread across all of STORY_TYPES with no single place to see it as
-// one sequence. This isn't a real backend entity type (no
-// /entities?type=storyTimeline route) - it's a pseudo-type this
+// spread across several "Story"-category types (see ALL_TYPES above)
+// with no single place to see it as one sequence. This isn't a real
+// backend entity type (no /entities?type=storyTimeline route) - it's a pseudo-type this
 // component itself recognizes to swap its whole list for
 // StoryTimeline.jsx, which merges several real types into one
 // chronological view.
@@ -97,11 +82,18 @@ const STORY_TIMELINE_TYPE = "storyTimeline"
 function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
   const [entities, setEntities] = useState([])
   const [query, setQuery] = useState("")
+  const [typeFilter, setTypeFilter] = useState("")
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
 
-  const isOverflowType = OVERFLOW_TYPES.some(entry => entry.type === type)
   const isStoryTimeline = type === STORY_TIMELINE_TYPE
+
+  const needle = typeFilter.trim().toLowerCase()
+  const visibleTypes = needle
+    ? ALL_TYPES.filter(entry =>
+      entry.label.toLowerCase().includes(needle) || entry.category.toLowerCase().includes(needle),
+    )
+    : ALL_TYPES
 
   useEffect(() => {
     if (isStoryTimeline) {
@@ -166,74 +158,47 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
           📖 Story Timeline
         </button>
 
-        <div className="flex flex-wrap gap-1.5">
-          {
-            PRIMARY_TYPES.map(entry => (
-              <button
-                key={entry.type}
-                type="button"
-                onClick={() => onTypeChange(entry.type)}
-                className={`
-                  rounded-full border px-3 py-1 text-xs font-medium transition-colors
-                  ${
-                    type === entry.type
-                      ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                      : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-                  }
-                `}
-              >
-                {entry.label}
-              </button>
-            ))
-          }
+        <input
+          value={typeFilter}
+          onChange={event => setTypeFilter(event.target.value)}
+          placeholder="Filter types (e.g. story, economy)..."
+          className="
+            h-8 w-full rounded-full border border-[var(--wood-border)] bg-[var(--wood-bg)]
+            px-3 text-xs text-[var(--wood-text)] outline-none
+            placeholder:text-[var(--wood-muted)] focus:border-[var(--wood-accent)]
+          "
+        />
+
+        <div className="wood-scroll max-h-40 overflow-y-auto rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] p-2">
+          <div className="flex flex-wrap gap-1.5">
+            {
+              visibleTypes.map(entry => (
+                <button
+                  key={entry.type}
+                  type="button"
+                  title={entry.category}
+                  onClick={() => onTypeChange(entry.type)}
+                  className={`
+                    rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors
+                    ${
+                      type === entry.type
+                        ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                        : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+                    }
+                  `}
+                >
+                  {entry.label}
+                </button>
+              ))
+            }
+
+            {
+              visibleTypes.length === 0 && (
+                <div className="px-1 py-1 text-[11px] text-[var(--wood-muted)]">No types match "{typeFilter}".</div>
+              )
+            }
+          </div>
         </div>
-
-        <select
-          value={isOverflowType ? type : ""}
-          onChange={event => event.target.value && onTypeChange(event.target.value)}
-          className={`
-            h-8 w-full rounded-full border px-3 text-xs outline-none
-            ${
-              isOverflowType
-                ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
-                : "border-[var(--wood-border)] text-[var(--wood-muted)]"
-            }
-          `}
-        >
-          <option value="">Other types...</option>
-
-          <optgroup label="Story">
-            {
-              STORY_TYPES.map(entry => (
-                <option key={entry.type} value={entry.type}>{entry.label}</option>
-              ))
-            }
-          </optgroup>
-
-          <optgroup label="Economy">
-            {
-              ECONOMY_TYPES.map(entry => (
-                <option key={entry.type} value={entry.type}>{entry.label}</option>
-              ))
-            }
-          </optgroup>
-
-          <optgroup label="Guidance">
-            {
-              GUIDANCE_TYPES.map(entry => (
-                <option key={entry.type} value={entry.type}>{entry.label}</option>
-              ))
-            }
-          </optgroup>
-
-          <optgroup label="Other">
-            {
-              OTHER_TYPES.map(entry => (
-                <option key={entry.type} value={entry.type}>{entry.label}</option>
-              ))
-            }
-          </optgroup>
-        </select>
 
         {
           !isStoryTimeline && (
