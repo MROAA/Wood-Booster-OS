@@ -44,6 +44,17 @@ const ECONOMY_TYPES = [
   { type: "economyLevers", label: "Economy Levers" },
   { type: "investments", label: "Ledger Investments" },
   { type: "marketEvents", label: "Market Events" },
+  { type: "economyRoles", label: "Economy Crew Roles" },
+  { type: "depths", label: "Depths (Challenge Ladder)" },
+]
+
+// Marc, 2026-09-20: "kaiken" (everything) - the reference/onboarding
+// text a player actually reads mid-run, as distinct from game mechanics
+// content (Other) or narrative (Story).
+const GUIDANCE_TYPES = [
+  { type: "help", label: "Help Glossary" },
+  { type: "coachTips", label: "Coach Tips" },
+  { type: "threats", label: "Threat Counterplay" },
 ]
 
 const OTHER_TYPES = [
@@ -55,9 +66,14 @@ const OTHER_TYPES = [
   { type: "tutorial", label: "Tutorial" },
   { type: "boons", label: "Boons" },
   { type: "banes", label: "Banes" },
+  { type: "almanac", label: "Almanac Lore" },
+  { type: "arenas", label: "Arenas" },
+  { type: "evolutions", label: "Evolutions" },
+  { type: "roles", label: "Unit Roles" },
+  { type: "upgradeBranches", label: "Upgrade Branches" },
 ]
 
-const OVERFLOW_TYPES = [...STORY_TYPES, ...ECONOMY_TYPES, ...OTHER_TYPES]
+const OVERFLOW_TYPES = [...STORY_TYPES, ...ECONOMY_TYPES, ...GUIDANCE_TYPES, ...OTHER_TYPES]
 
 // Marc: "tämä on liian epäselvä systeemi että osaan editoida tarinaa
 // luotettavasti... tarvitsen jonkinlaisen kronologisen tavan pitää
@@ -197,6 +213,14 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
           <optgroup label="Economy">
             {
               ECONOMY_TYPES.map(entry => (
+                <option key={entry.type} value={entry.type}>{entry.label}</option>
+              ))
+            }
+          </optgroup>
+
+          <optgroup label="Guidance">
+            {
+              GUIDANCE_TYPES.map(entry => (
                 <option key={entry.type} value={entry.type}>{entry.label}</option>
               ))
             }

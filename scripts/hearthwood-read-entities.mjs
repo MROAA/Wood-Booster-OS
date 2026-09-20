@@ -373,6 +373,32 @@ function isListOfScalars(node) {
 }
 
 /**
+ * The "Everything" round (Marc, 2026-09-20: "kaiken" - every remaining
+ * data file with real content got registered in one pass) surfaced
+ * several display-name conventions this codebase already uses beyond
+ * "name": upgrades.js/roles.js/counterplay.js's THREATS use "label",
+ * coach.js's COACH_TIPS uses "title", help.js's HELP_SECTIONS uses
+ * "heading", and storyLog.js's FLAG_LABELS-style flat maps have no
+ * field but their own flavor "text". First match wins; returns null if
+ * an entity genuinely has none of these (its raw id is the fallback,
+ * same as ever).
+ */
+function displayNameFrom(fields) {
+
+    for (const key of ["name", "label", "title", "heading", "text"]) {
+
+        if (fields[key] && fields[key].kind === "string") {
+
+            return fields[key].value
+
+        }
+    }
+
+    return null
+
+}
+
+/**
  * Walks an ObjectExpression's own properties into `fields`/`complexKeys`/
  * `identifierKeys` (mutated in place) - shared between a plain entity
  * object literal and a factory call's trailing options object, so the
@@ -537,19 +563,7 @@ function entityFromProperty(prop, importMap) {
 
         collectObjectFields(value, fields, complexKeys, identifierKeys, importMap)
 
-        if (fields.name && fields.name.kind === "string") {
-
-            name = fields.name.value
-
-        } else if (fields.text && fields.text.kind === "string") {
-
-            // No dedicated display name (storyLog.js's FLAG_LABELS: an
-            // id -> { act, text } entry, no "name" field of its own) -
-            // the flavor/body text itself is the only human-readable
-            // thing to show in the browser list instead of the raw id.
-            name = fields.text.value
-
-        }
+        name = displayNameFrom(fields)
 
     } else if (value && value.type === "CallExpression") {
 
@@ -617,11 +631,7 @@ function entityFromProperty(prop, importMap) {
 
             }
 
-            if (fields.name && fields.name.kind === "string") {
-
-                name = fields.name.value
-
-            }
+            name = displayNameFrom(fields)
 
         } else {
 
@@ -784,11 +794,7 @@ function walkArray(arrayNode, ast) {
 
             }
 
-            if (fields.name && fields.name.kind === "string") {
-
-                name = fields.name.value
-
-            }
+            name = displayNameFrom(fields)
 
         } else {
 
