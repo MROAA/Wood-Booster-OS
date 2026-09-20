@@ -1,0 +1,192 @@
+HEARTHWOOD — RUNES LORE (v2 EXPANDED EDITION)
+
+============================================================
+INTRODUCTION — THE LANGUAGE OF PRIMAL FORCES
+============================================================
+Runes are the oldest language in Hearthwood. They predate the
+tribes, the primal entities, and even the forest itself. Runes
+are not symbols carved into matter — they are *intent* given
+shape.
+
+Every rune belongs to one of the Fourfold Wilds:
+Saplight, Hollow, Ember, Stone.
+A hidden fifth category, Verge, has recently awakened.
+
+Runes exist in three layers:
+1. First Script — primal runes formed at creation.
+2. Deep Script — runes formed during the Age of Roots.
+3. Fractured Script — runes shattered during the Great Fracture.
+4. Verge Script — runes that rewrite reality.
+
+============================================================
+SAPLIGHT RUNES — BREATH OF THE FOREST
+============================================================
+
+SAPLIGHT GLYPH (First Script)
+Origin: Formed when the first pulse of life spread through the
+roots of Hearthwood.
+Meaning: Growth, renewal, healing.
+Power: Restores vitality, strengthens allies, awakens roots.
+Deep Lore: Saplight Glyphs “breathe” in rhythm with the forest.
+
+ROOTWEAVE RUNE (Deep Script)
+Origin: Woven into the first living roots.
+Meaning: Connection, unity, living bonds.
+Power: Binds allies, entangles foes.
+Deep Lore: Tightens when danger approaches.
+
+GROVE-MARK TABLET (Deep Script)
+Origin: A rune carved by the forest itself.
+Meaning: Territory, sanctuary.
+Power: Creates zones of protection and rapid growth.
+Deep Lore: Marks the forest’s domain.
+
+VERDANT SPIRAL (Fractured Script)
+Origin: Formed when Saplight collided with Stone during the
+Great Fracture.
+Meaning: Overgrowth, uncontrolled life.
+Power: Causes rapid, chaotic growth.
+Deep Lore: Verdant Spirals are feared even by Saplight druids.
+
+============================================================
+HOLLOW RUNES — ECHO OF WHAT WAS LOST
+============================================================
+
+SHADECOIL RUNE (First Script)
+Origin: Formed from the first shadow that ever fell.
+Meaning: Echo-binding, spectral tether.
+Power: Binds spirits, amplifies echoes, weakens light.
+Deep Lore: Contains “the memory of absence.”
+
+HOLLOW-SCRIPT SIGIL (Deep Script)
+Origin: Written by the Hollow Marsh during the first eclipse.
+Meaning: Void, silence, forgetting.
+Power: Erases magical traces, creates silence zones.
+Deep Lore: Saplight druids fear it deeply.
+
+ECHO-MARK TABLET (Deep Script)
+Origin: Carved from shadow-infused stone.
+Meaning: Memory, resonance.
+Power: Reveals hidden echoes, amplifies spectral forces.
+Deep Lore: Glows when spirits pass nearby.
+
+VOID-THREAD GLYPH (Fractured Script)
+Origin: Formed when Hollow magic split during the Fracture.
+Meaning: Fragmentation, memory loss.
+Power: Splits spells, erases fragments of identity.
+Deep Lore: Hollow elders forbid its use.
+
+============================================================
+EMBER RUNES — ASH THAT REMAKES THE WORLD
+============================================================
+
+EMBERFLARE RUNE (First Script)
+Origin: Born from the first ritual flame.
+Meaning: Fire, ignition, transformation.
+Power: Ignites flame, enhances Ember magic.
+Deep Lore: Heats the air around it.
+
+BLIGHT-SCRIPT SIGIL (Deep Script)
+Origin: Formed when Ember and Toxic forces collided.
+Meaning: Corruption, decay, mutation.
+Power: Spreads blight, weakens healing.
+Deep Lore: Forbidden in Saplight territory.
+
+ASH-SCRIPT GLYPH (Deep Script)
+Origin: Etched during ancient firestorms.
+Meaning: Ash, memory of flame.
+Power: Creates ash clouds, ember shields.
+Deep Lore: Ignites when spoken aloud.
+
+CINDER-FRACT RUNE (Fractured Script)
+Origin: Formed when Ember magic shattered during the Fracture.
+Meaning: Volatility, explosive change.
+Power: Causes unstable flame bursts.
+Deep Lore: Ember cultists worship it.
+
+============================================================
+STONE RUNES — MEMORY OF THE WORLD
+============================================================
+
+EARTHBIND GLYPH (First Script)
+Origin: Carved into the first monolith.
+Meaning: Stability, grounding, permanence.
+Power: Stabilizes terrain, halts movement.
+Deep Lore: Resonates with Stone Titans.
+
+STONE-FRACT RUNE (Deep Script)
+Origin: Formed when the Relic Spine cracked.
+Meaning: Endurance, fracture, ancient memory.
+Power: Creates shockwaves, reveals hidden runes.
+Deep Lore: Used to awaken relics.
+
+RUNEBREAK TABLET (Fractured Script)
+Origin: A shattered tablet from the Age of Roots.
+Meaning: Disruption, raw primal force.
+Power: Breaks magical bindings, destabilizes runic fields.
+Deep Lore: “Remembers too much.”
+
+GRAVELIGHT MARK (Deep Script)
+Origin: Carved from glowing relic stone.
+Meaning: Revelation, vigilance.
+Power: Reveals illusions, exposes Hollow echoes.
+Deep Lore: Used by Stone sentinels.
+
+============================================================
+VERGE RUNES — THE BOUNDARY OF REALITY
+============================================================
+Verge runes are not carved.
+They *appear* when reality destabilizes.
+
+They belong to the hidden fifth primal force: Verge.
+
+REALITY-SPLIT SIGIL (Verge Script)
+Origin: Appears during temporal distortions.
+Meaning: Division, parallel memory.
+Power: Creates duplicate timelines.
+Deep Lore: Only Echo Heralds can perceive it.
+
+ECHO-LOOP GLYPH (Verge Script)
+Origin: Formed when a memory repeats itself.
+Meaning: Recursion, loop, inevitability.
+Power: Traps spells or beings in loops.
+Deep Lore: Hollow claims it is alive.
+
+CROWNLESS MARK (Verge Script)
+Origin: Appears in places where primal forces converge.
+Meaning: Threshold, awakening.
+Power: Allows passage between realities.
+Deep Lore: The forest whispers this rune’s name.
+
+============================================================
+RUNE RELATIONSHIPS — META-LANGUAGE
+============================================================
+Some runes amplify each other:
+- Saplight Glyph + Earthbind Glyph = Verdant Pulse
+- Shadecoil Rune + Echo-Mark Tablet = Spectral Chorus
+- Emberflare Rune + Ash-Script Glyph = Inferno Bloom
+- Stone-Fract Rune + Runebreak Tablet = Monolith Shatter
+
+Some runes cancel each other:
+- Saplight Glyph cancels Blight-Script Sigil
+- Hollow-Script Sigil cancels Emberflare Rune
+- Earthbind Glyph cancels Cinder-Fract Rune
+
+Verge runes override all others.
+
+============================================================
+THE AGE OF RUNES — NEW ERA
+============================================================
+Runes are awakening.
+
+Saplight runes grow on their own.
+Hollow runes whisper.
+Ember runes ignite spontaneously.
+Stone runes rearrange themselves.
+Verge runes appear where they should not exist.
+
+The tribes cannot control this.
+
+============================================================
+END OF FILE
+============================================================

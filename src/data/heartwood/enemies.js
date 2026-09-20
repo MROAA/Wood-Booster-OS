@@ -1,0 +1,2316 @@
+// Heartwood Trial - enemy definitions. Original forest/rune lore
+// creatures, not existing Boosterverse "named agents".
+//
+// moveSelect: "sequence" cycles movePattern deterministically.
+// moveSelect: "weightedRandom" picks among movePattern by weight each
+// time an intent is computed, then commits to it (still telegraphed one
+// turn ahead, just less predictable to plan around).
+
+import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
+import rotwoodHuskImg from "../../assets/heartwood/enemies/rotwood-husk.jpg"
+import rotwoodSaplingImg from "../../assets/heartwood/enemies/rotwood-sapling.jpg"
+import mossTrollImg from "../../assets/heartwood/enemies/moss-troll.jpg"
+import runeWardenImg from "../../assets/heartwood/enemies/rune-warden.jpg"
+import barkBruteImg from "../../assets/heartwood/enemies/bark-brute.jpg"
+import mistGrowlerImg from "../../assets/heartwood/enemies/mist-growler.jpg"
+import drownedSirenImg from "../../assets/heartwood/enemies/drowned-siren.jpg"
+import bloomrotStalkerImg from "../../assets/heartwood/enemies/bloomrot-stalker.jpg"
+import rootbindThicketImg from "../../assets/heartwood/enemies/rootbind-thicket.jpg"
+import witherfangImg from "../../assets/heartwood/enemies/witherfang.jpg"
+import thornspiteImg from "../../assets/heartwood/enemies/thornspite.jpg"
+import bramblehideImg from "../../assets/heartwood/enemies/bramblehide.jpg"
+import emberwrackImg from "../../assets/heartwood/enemies/emberwrack.jpg"
+import duskgnawImg from "../../assets/heartwood/enemies/duskgnaw.jpg"
+import cragfangImg from "../../assets/heartwood/enemies/cragfang.jpg"
+import stormrootImg from "../../assets/heartwood/enemies/stormroot.jpg"
+import duskmothImg from "../../assets/heartwood/enemies/duskmoth.jpg"
+import hollowfenImg from "../../assets/heartwood/enemies/hollowfen.jpg"
+import quillfangImg from "../../assets/heartwood/enemies/quillfang.jpg"
+import silenceWeaverImg from "../../assets/heartwood/enemies/silence-weaver.jpg"
+import dawnZealotImg from "../../assets/heartwood/enemies/dawn-zealot.jpg"
+import plaguebearerImg from "../../assets/heartwood/enemies/plaguebearer.jpg"
+import sporeletImg from "../../assets/heartwood/enemies/sporelet.jpg"
+import mireGnatImg from "../../assets/heartwood/enemies/mire-gnat.jpg"
+import thornTickImg from "../../assets/heartwood/enemies/thorn-tick.jpg"
+import oakshellWardenImg from "../../assets/heartwood/enemies/oakshell-warden.jpg"
+import mossmenderImg from "../../assets/heartwood/enemies/mossmender.jpg"
+import graveBastionImg from "../../assets/heartwood/enemies/grave-bastion.jpg"
+import fenStalkerImg from "../../assets/heartwood/enemies/fen-stalker.jpg"
+import packRunnerImg from "../../assets/heartwood/enemies/pack-runner.jpg"
+import throatTakerImg from "../../assets/heartwood/enemies/throat-taker.jpg"
+import rotgutCrawlerImg from "../../assets/heartwood/enemies/rotgut-crawler.jpg"
+import sporeLurcherImg from "../../assets/heartwood/enemies/spore-lurcher.jpg"
+import mireSwornImg from "../../assets/heartwood/enemies/mire-sworn.jpg"
+import covenMatronImg from "../../assets/heartwood/enemies/coven-matron.jpg"
+import hexAcolyteImg from "../../assets/heartwood/enemies/hex-acolyte.jpg"
+import bogDevoteeImg from "../../assets/heartwood/enemies/bog-devotee.jpg"
+import broodMotherImg from "../../assets/heartwood/enemies/brood-mother.jpg"
+import broodTenderImg from "../../assets/heartwood/enemies/brood-tender.jpg"
+import ritualWardenImg from "../../assets/heartwood/enemies/ritual-warden.jpg"
+import swornCultistImg from "../../assets/heartwood/enemies/sworn-cultist.jpg"
+import ritualAdeptImg from "../../assets/heartwood/enemies/ritual-adept.jpg"
+import hoardlingImg from "../../assets/heartwood/enemies/hoardling.jpg"
+import titheWardenImg from "../../assets/heartwood/enemies/tithe-warden.jpg"
+import ancientOakImg from "../../assets/heartwood/enemies/ancient-oak.jpg"
+import elderOakImg from "../../assets/heartwood/enemies/elder-oak.jpg"
+import saplingAttendantImg from "../../assets/heartwood/enemies/sapling-attendant.jpg"
+import ironmawImg from "../../assets/heartwood/enemies/ironmaw.jpg"
+import gravemawImg from "../../assets/heartwood/enemies/gravemaw.jpg"
+import duskhollowImg from "../../assets/heartwood/enemies/duskhollow.jpg"
+import needlefenImg from "../../assets/heartwood/enemies/needlefen.jpg"
+import wraithgaleImg from "../../assets/heartwood/enemies/wraithgale.jpg"
+import stonewakeImg from "../../assets/heartwood/enemies/stonewake.jpg"
+import gravequillImg from "../../assets/heartwood/enemies/gravequill.jpg"
+import mossveilImg from "../../assets/heartwood/enemies/mossveil.jpg"
+import hollowspiteImg from "../../assets/heartwood/enemies/hollowspite.jpg"
+import ashenmawImg from "../../assets/heartwood/enemies/ashenmaw.jpg"
+import duskwitherImg from "../../assets/heartwood/enemies/duskwither.jpg"
+import hollowfangImg from "../../assets/heartwood/enemies/hollowfang.jpg"
+import rootwardImg from "../../assets/heartwood/enemies/rootward.jpg"
+import briarmawImg from "../../assets/heartwood/enemies/briarmaw.jpg"
+import bramblespiteImg from "../../assets/heartwood/enemies/bramblespite.jpg"
+import thornfenImg from "../../assets/heartwood/enemies/thornfen.jpg"
+import hollowcurseImg from "../../assets/heartwood/enemies/hollowcurse.jpg"
+import grimspiteImg from "../../assets/heartwood/enemies/grimspite.jpg"
+import ironrootImg from "../../assets/heartwood/enemies/ironroot.jpg"
+import rotboreGrubImg from "../../assets/heartwood/enemies/rotbore-grub.jpg"
+import mossbackLurkerImg from "../../assets/heartwood/enemies/mossback-lurker.jpg"
+import runewispAcolyteImg from "../../assets/heartwood/enemies/runewisp-acolyte.jpg"
+import emberthornShadeImg from "../../assets/heartwood/enemies/emberthorn-shade.jpg"
+import veilgnawImg from "../../assets/heartwood/enemies/veilgnaw.jpg"
+import thinreachWraithImg from "../../assets/heartwood/enemies/thinreach-wraith.jpg"
+import hollowmarrowSentinelImg from "../../assets/heartwood/enemies/hollowmarrow-sentinel.jpg"
+import witherboundEffigyImg from "../../assets/heartwood/enemies/witherbound-effigy.jpg"
+import crownlessRevenantImg from "../../assets/heartwood/enemies/crownless-revenant.jpg"
+import ashenRegentImg from "../../assets/heartwood/enemies/ashen-regent.jpg"
+import echoStalkerImg from "../../assets/heartwood/enemies/echo-stalker.jpg"
+import riftmnemonImg from "../../assets/heartwood/enemies/riftmnemon.jpg"
+import vergeWardenImg from "../../assets/heartwood/enemies/verge-warden.jpg"
+import mnemosyneColossusImg from "../../assets/heartwood/enemies/mnemosyne-colossus.jpg"
+import deepwardenImg from "../../assets/heartwood/enemies/deepwarden.jpg"
+import thornmawImg from "../../assets/heartwood/enemies/thornmaw.jpg"
+import wyrmgallImg from "../../assets/heartwood/enemies/wyrmgall.jpg"
+import spacemonkeyImg from "../../assets/heartwood/enemies/spacemonkey.jpg"
+import theGorgingMawImg from "../../assets/heartwood/enemies/the-gorging-maw.jpg"
+import theIronSentinelImg from "../../assets/heartwood/enemies/the-iron-sentinel.jpg"
+import theBrambleLashImg from "../../assets/heartwood/enemies/the-bramble-lash.jpg"
+import theAshfallHeraldImg from "../../assets/heartwood/enemies/the-ashfall-herald.jpg"
+
+export const ENEMIES = {
+  "rotwood-husk": {
+    id: "rotwood-husk",
+    act: 1,
+    name: "Clump of moss",
+    // Marc: "game challenge needs to be that you can fail at the first
+    // enemy too." Stat pushes on this solo def (up to 100 HP/14+14) were
+    // tried and reverted repeatedly - a realistically-recruited squad's
+    // action economy (4-5 actors vs. 1) meant no single-target solo
+    // attacker could be made to matter without either doing nothing (fight
+    // ends round 2, Commander barely scratched) or, once strong enough to
+    // threaten a unit, snowballing into a run-wide collapse the moment
+    // that unit's permadeath compounds across the remaining ~42 fights
+    // (verified via the full-run fairness bot, not fight-1-in-isolation -
+    // see PR #309's now-superseded history for the full account). Kept at
+    // the last run-wide-verified-safe solo value. The real fix was a
+    // different lever entirely: see "rotwood-husk-pair" in formations.js -
+    // fight 1 now deploys two of these side by side, doubling both total
+    // HP and actions/round without raising any single hit past this
+    // already-safe number.
+    maxHp: 58,
+    art: "husk",
+    image: rotwoodHuskImg,
+    description:
+      "Sentient moss? Allrighty then. For some reason it wants to fight you.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 11 },
+      { type: "attack", amount: 11 },
+      { type: "block", amount: 6 },
+    ],
+  },
+  "rotwood-sapling": {
+    id: "rotwood-sapling",
+    act: 1,
+    name: "Fairies",
+    // The second piece in "rotwood-husk-pair" (formations.js). A first
+    // attempt paired two full-strength Husks - catastrophic (46/100 runs
+    // died at fight 1) because every enemy piece starts at moveIndex 0
+    // with no stagger support in the engine, so both Husks attacked in
+    // perfect sync every round: 22 combined damage landing round 1 AND
+    // round 2 before either husk's block turn came up, and doubled total
+    // HP (116) gave that spike time to repeat. This is deliberately a
+    // much lighter second piece instead of a clone - real extra pressure
+    // (more HP to grind through, a second attacker some rounds) without
+    // doubling the round-1 burst.
+    maxHp: 26,
+    art: "husk",
+    image: rotwoodSaplingImg,
+    description: "Playful sprites looking for no good. Guess we are fighting fairies today.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 4 },
+      { type: "attack", amount: 7 },
+      { type: "attack", amount: 7 },
+    ],
+  },
+  "moss-troll": {
+    id: "moss-troll",
+    act: 1,
+    name: "Zugg",
+    maxHp: 46,
+    art: "troll",
+    image: mossTrollImg,
+    description:
+      "Thick with lichen and old grudges. His name is Zugg. He is well known in these parts.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 10 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 6 },
+      { type: "block", amount: 8 },
+    ],
+  },
+  "rune-warden": {
+    id: "rune-warden",
+    act: 2,
+    name: "Rune Warden",
+    maxHp: 50,
+    art: "warden",
+    image: runeWardenImg,
+    description:
+      "Strange figure covered in glowing runes. Peculiar movement with a hint of malice",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 12, weight: 2 },
+      { type: "block", amount: 12, weight: 1 },
+      { type: "debuff", id: "weak", amount: 2, target: "player", weight: 1 },
+    ],
+  },
+  "bark-brute": {
+    id: "bark-brute",
+    act: 1,
+    name: "Bark Brute",
+    maxHp: 58,
+    art: "barkBrute",
+    image: barkBruteImg,
+    description: "A knotted fist of root and stone. It only knows one move, and it is heavy.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 15 },
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 10 },
+    ],
+  },
+  "mist-growler": {
+    id: "mist-growler",
+    act: 1,
+    name: "Mist Growler",
+    maxHp: 36,
+    art: "mistGrowler",
+    image: mistGrowlerImg,
+    description: "Fog with teeth. It snaps before you see it coming.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 9, weight: 2 },
+      { type: "debuff", id: "weak", amount: 2, target: "player", weight: 1 },
+      { type: "attack", amount: 6, weight: 1 },
+    ],
+  },
+
+  "drowned-siren": {
+    id: "drowned-siren",
+    act: 1,
+    name: "Drowned Siren",
+    maxHp: 38,
+    art: "drownedSiren",
+    image: drownedSirenImg,
+    description: "Her song promises rest. Take it, and your strikes go soft.",
+    // A 6th mook - deliberately leans harder into Weak than any
+    // existing enemy (3 instead of the usual 2, matching only
+    // Spacemonkey's own boss-tier debuff), on a predictable sequence
+    // rather than weightedRandom - the threat is telegraphed but still
+    // painful if ignored, a different flavor of pressure from Bark
+    // Brute's raw damage or Mist Growler's unpredictability.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 10 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "bloomrot-stalker": {
+    id: "bloomrot-stalker",
+    act: 2,
+    name: "Bloomrot Stalker",
+    maxHp: 40,
+    art: "bloomrotStalker",
+    image: bloomrotStalkerImg,
+    description: "It doesn't hit hard. It doesn't need to - not anymore.",
+    // A 7th mook, first to use Poison - the new tickPoison mechanic in
+    // effects.js/autoBattleEngine.js. Its own hits are the weakest of
+    // any mook (6, below even Drowned Siren's 7), but every other
+    // strike stacks Poison instead - a unit that ignores it stays
+    // healthy round to round, but every point of Poison left standing
+    // is guaranteed future damage no Block or dodge can stop. Reuses
+    // the existing "debuff" intent → applyBuff pipeline verbatim (same
+    // one Weak already uses) - id: "poison" instead of id: "weak" is
+    // the entire difference, tickPoison is what makes the stat do
+    // something new.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "rootbind-thicket": {
+    id: "rootbind-thicket",
+    act: 2,
+    name: "Rootbind Thicket",
+    maxHp: 44,
+    art: "rootbindThicket",
+    image: rootbindThicketImg,
+    description: "Its roots don't reach far. When they catch you, though, you don't move.",
+    // Thorn Zone round (Hearthwood Frontier, tacticsEngine.js only):
+    // this own already-existing line above is the most literal flavor
+    // match of any zone example so far - not invented, it practically
+    // names Root outright.
+    thorny: true,
+    // 8th mook, first to use Stun - a genuinely different kind of
+    // mechanic from every status so far (Weak/Vulnerable/Poison all
+    // just change a number; Stun skips the target's action outright,
+    // see actSide() in autoBattleEngine.js). Kept its own damage low
+    // (4, the lowest of any mook) since losing a whole action is a
+    // strong effect on its own - this isn't meant to also hit hard.
+    // The real strategic question it asks: focus this down first to
+    // stop the lockdown, or tank through it and hope the stunned unit
+    // wasn't your key piece that round.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 10 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "witherfang": {
+    id: "witherfang",
+    act: 2,
+    name: "Witherfang",
+    maxHp: 42,
+    art: "rootbindThicket",
+    image: witherfangImg,
+    description: "It doesn't want just your strength. It just doesn't want you to have it either.",
+    // 9th mook, first to use Sunder (effects.js) - the enemy side's own
+    // answer to how many buffs a squad can now be carrying (Ward,
+    // Revive, Taunt, Execute, Strength all live on player units by
+    // this point in the roster). Strips one stack of whichever the
+    // target actually has, prioritizing the defensive tools
+    // (Ward/Revive/Taunt) before Strength - real counterplay in the
+    // same spirit as Spacemonkey's AoE countering Taunt-stacking, just
+    // available outside the boss fight too. Kept its own damage low
+    // (5, matching Bloomrot/Rootbind's precedent) since the gimmick
+    // carries the fight's real weight, not the hit itself.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "sunder", target: "player" },
+      { type: "attack", amount: 5 },
+    ],
+  },
+
+  "thornspite": {
+    id: "thornspite",
+    act: 2,
+    name: "Thornspite",
+    maxHp: 40,
+    art: "root",
+    image: thornspiteImg,
+    description: "Thorns, spikes everywhere! ",
+    // 10th mook, first enemy source of Vulnerable (+25% damage taken) -
+    // the one core debuff (Weak/Poison/Stun/Sunder all already have an
+    // enemy source) that had never appeared on this side of the board.
+    // Genuinely dangerous stacked with a hard-hitting ally mook, so it
+    // rewards focusing it down early rather than ignoring it the way a
+    // low-damage debuffer sometimes can be.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player" },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "bramblehide": {
+    id: "bramblehide",
+    act: 2,
+    name: "Ugg",
+    maxHp: 50,
+    art: "troll",
+    image: bramblehideImg,
+    description: "Wounds close almost as fast as they open. Almost.",
+    // 11th mook, first enemy to heal itself - every other mook's block
+    // step just delays damage, this one actively undoes it. A real
+    // race: out-damage the regen or the fight drags on past what its
+    // own middling attack (7) would suggest.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 6 },
+      { type: "heal", amount: 5 },
+      { type: "attack", amount: 7 },
+    ],
+  },
+
+  "emberwrack": {
+    id: "emberwrack",
+    act: 2,
+    name: "Emberwrack",
+    maxHp: 44,
+    art: "flame",
+    image: emberwrackImg,
+    description: "Manifestation of a forest fire. Mean thing.",
+    // 12th mook, first non-boss AoE source - Spacemonkey's own AoE
+    // (autoBattleEngine.js) has always bypassed Taunt/shielding
+    // entirely, but only ever showed up in the final fight, so "stack
+    // the whole squad behind one taunting tank" stayed a safe answer
+    // for every solo mook along the way. This is the same real threat
+    // showing up earlier - priced the same way Spacemonkey's own AoE
+    // is (roughly half a single-target hit, since it can land on the
+    // whole squad at once).
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 10 },
+      { type: "aoe", amount: 5 },
+      { type: "block", amount: 8 },
+    ],
+  },
+
+  "duskgnaw": {
+    id: "duskgnaw",
+    act: 2,
+    name: "Duskgnaw",
+    maxHp: 42,
+    art: "root",
+    image: duskgnawImg,
+    description: "First it saps your strength. Then it makes every hit after count double.",
+    // 13th mook, first to stack BOTH major debuffs on the same target -
+    // every prior debuffer picked one (Weak or Vulnerable, never both).
+    // Weak lowers what the target deals, Vulnerable raises what it
+    // takes - together they compound in both directions on whoever
+    // Duskgnaw keeps hitting, same "ignore it and the whole fight gets
+    // worse" pressure Drowned Siren's repeating Weak already teaches,
+    // just doubled.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player" },
+    ],
+  },
+
+  "cragfang": {
+    id: "cragfang",
+    act: 2,
+    name: "Cragfang",
+    maxHp: 44,
+    art: "root",
+    image: cragfangImg,
+    description: "It doesn't care that you're braced. It just hits harder because of it.",
+    // 14th mook, and the first with a battle-start passive at all
+    // (autoBattleEngine.js's startAutoBattle - enemies could never
+    // carry one before this round). Comes pre-armed with Shatter
+    // (effects.js), the roster's newest mechanic - punishes a squad
+    // leaning on Block (Ironbark/Oakwarden/Loamguard/Cragmoss and
+    // friends) the same way Duskgnaw punishes a squad that ignores its
+    // stacking debuffs: the defensive answer that works everywhere
+    // else stops being free here.
+    passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "block", amount: 6 },
+    ],
+  },
+
+  "stormroot": {
+    id: "stormroot",
+    act: 2,
+    name: "Stormroot",
+    maxHp: 38,
+    art: "root",
+    image: stormrootImg,
+    description: "It never settles into a rhythm you can plan around. Middle is the calmest part.",
+    // 15th mook - weightedRandom (Rune Warden/Mist Growler's own
+    // unpredictability), leaning on Weak instead of a signature gimmick
+    // of its own. A plain reinforcement for the run's variety, same
+    // reuse-only spirit as the player roster's own recent additions.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 2 },
+      { type: "aoe", id: "weak", amount: 5, target: "player", weight: 1 },
+      { type: "block", amount: 8, weight: 1 },
+    ],
+  },
+
+  "duskmoth": {
+    id: "duskmoth",
+    act: 2,
+    name: "Duskmoth",
+    maxHp: 40,
+    art: "moonGlyph",
+    image: duskmothImg,
+    description: "If there's light then there are moths.",
+    // 16th mook, and the first to carry Regen (effects.js's tickRegen)
+    // instead of Bramblehide's repeating heal step - front-loaded and
+    // decaying rather than forever, so the fight against it is really
+    // about the OPENING rounds: burst past what its Regen can undo
+    // before it fades, or the middling attack (6) alone won't matter
+    // either way.
+    passive: [{ type: "applyBuff", id: "regen", amount: 4 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "block", amount: 5 },
+    ],
+  },
+
+  "hollowfen": {
+    id: "hollowfen",
+    act: 2,
+    name: "Bub",
+    maxHp: 90,
+    art: "troll",
+    image: hollowfenImg,
+    description: "It doesn't do anything clever. It doesn't need to.",
+    // 17th mook - a plain, heavy-HP reinforcement (Stormroot/Rimefang's
+    // own "run variety, no signature gimmick" spirit) rather than
+    // another mechanic-carrier - the roster's late-game mooks have
+    // leaned heavily gimmick-first these last several rounds, so a
+    // straightforward high-HP block-and-swing wall earns its slot on
+    // raw stats alone.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 7 },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  "quillfang": {
+    id: "quillfang",
+    act: 2,
+    name: "Quillfang",
+    maxHp: 36,
+    art: "root",
+    image: quillfangImg,
+    description: "Every quill it sheds keeps working long after it's pulled loose.",
+    // 18th mook - Poison's second enemy source (Bloomrot Stalker's own
+    // pattern, different numbers/name) - the same "run variety within
+    // an already-proven mechanic" reuse discipline Thornspite/Duskgnaw
+    // already established for Vulnerable/Weak.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+      { type: "attack", amount: 5 },
+    ],
+  },
+
+  // --- Specialist enemies (Enemy Ecosystem PRD 19, feat/hearthwood-threat-preview) ---
+  // Three "one strategic question" mooks that give the new pre-fight
+  // threat preview (threatPreview.js) real things to warn about. Every
+  // one is the same low-damage / gimmick-carries-it template Needlefen
+  // (stun) / Drowned Siren (weak 3) / Bloomrot Stalker (poison 3) /
+  // Duskmoth (regen) already ship at, tuned - no new status id.
+  "silence-weaver": {
+    id: "silence-weaver",
+    act: 2,
+    name: "Silence Weaver",
+    maxHp: 38,
+    art: "drownedSiren",
+    image: silenceWeaverImg,
+    // Dampen's first enemy source - effects.js already ticks it
+    // (dampenOf reduces the AFFECTED unit's outgoing damage), it had
+    // just never been on the enemy side. Punishes an all-in damage
+    // squad the way Drowned Siren's Weak does, on a shorter fuse.
+    description: "It hums the shape out of every strike before you throw it.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "dampen", amount: 2, target: "player" },
+      { type: "attack", amount: 5 },
+    ],
+  },
+  "dawn-zealot": {
+    id: "dawn-zealot",
+    act: 3,
+    name: "Dawn Zealot",
+    maxHp: 48,
+    art: "root",
+    image: dawnZealotImg,
+    // A dedicated healer on the enemy side - a repeating heal STEP
+    // (Bramblehide's own pattern) rather than Duskmoth's front-loaded
+    // Regen, so the fight against it is "close it before the heals
+    // out-pace you": burst or a damage-over-time, exactly the answer
+    // the threat preview names for enemy sustain.
+    description: "Guaranteed to wake up earlier than you. It mends what you break faster than you can break it.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "heal", amount: 6 },
+      { type: "block", amount: 4 },
+    ],
+  },
+  "plaguebearer": {
+    id: "plaguebearer",
+    act: 3,
+    name: "Plaguebearer",
+    maxHp: 46,
+    art: "bloomrotStalker",
+    image: plaguebearerImg,
+    // Act III Poison carrier (Bloomrot Stalker / Quillfang are Act I-II)
+    // - heavier stack, and a small self-heal so ignoring it isn't free
+    // even before the Poison bites. Anti-heal builds want it dead fast.
+    description: "The rot it carriers were never meant to leave the mire.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "heal", amount: 4 },
+    ],
+  },
+
+  // --- Swarmlings (Enemy Ecosystem PRD 6-7, feat/hearthwood-swarm) ---
+  // Tiny bodies for the Swarm formations (formations.js: the-brood /
+  // the-teeming). One alone is nothing; four together, each ramping
+  // +1 Strength/round via the formation synergy, snowball fast unless
+  // an AoE / chain / pattern attacker thins them. HP is the fairness
+  // lever. Patterns are OFFSET (block-lead vs attack-lead) - the
+  // rotwood-husk-pair note: four identical patterns at moveIndex 0
+  // sync-spike catastrophically. In NON_BATTLE_ENEMY_IDS so they only
+  // ever appear via the formations, never actEnemyForNode's solo pool.
+  "sporelet": {
+    id: "sporelet",
+    act: 2,
+    name: "Sporelet",
+    maxHp: 16,
+    art: "husk",
+    image: sporeletImg,
+    description: "One is a nuisance. The cloud of them is a problem.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 2 },
+      { type: "attack", amount: 3 },
+    ],
+  },
+  "mire-gnat": {
+    id: "mire-gnat",
+    act: 2,
+    name: "Mire Gnat",
+    maxHp: 14,
+    art: "mistGrowler",
+    image: mireGnatImg,
+    description: "It bites once and is gone. Then the next one bites.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "block", amount: 1 },
+    ],
+  },
+  "thorn-tick": {
+    id: "thorn-tick",
+    act: 3,
+    name: "Thorn Tick",
+    maxHp: 18,
+    art: "root",
+    image: thornTickImg,
+    description: "Anything but ticks! Hate those things.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 2 },
+      { type: "attack", amount: 3 },
+      { type: "attack", amount: 3 },
+    ],
+  },
+
+  // --- Fortress bodies (Enemy Ecosystem PRD 8, feat/hearthwood-fortress) ---
+  // The opposite of the swarmlings: few very tough bodies that STALL the
+  // fight - a wall that barely swings, a body that mends itself, a
+  // ward-carrier with real teeth. Counter is armour-break (Shatter /
+  // Sunder), anti-heal / burst, or steady sustained pressure. Each keeps
+  // a real `attack` so a stall fight is still a fight, not a 30-round
+  // cap. In NON_BATTLE_ENEMY_IDS - they only appear via the Fortress
+  // formations (formations.js: the-bulwark / the-bastion).
+  "oakshell-warden": {
+    id: "oakshell-warden",
+    act: 2,
+    name: "Oakshell Warden",
+    maxHp: 60,
+    art: "husk",
+    image: oakshellWardenImg,
+    description: "Tough outershell from solid wood. This thing must weight a ton.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 12 },
+      { type: "attack", amount: 4 },
+      { type: "block", amount: 10 },
+    ],
+  },
+  "mossmender": {
+    id: "mossmender",
+    act: 3,
+    name: "Mossmender",
+    maxHp: 52,
+    art: "root",
+    image: mossmenderImg,
+    // Self-heal step (Bramblehide's model): out-damage the mend or the
+    // fight drags. Anti-heal / a damage-over-time / burst are the answer.
+    description: "Every wound you open on it has closed by the time you swing again.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 6 },
+      { type: "heal", amount: 6 },
+      { type: "attack", amount: 4 },
+    ],
+  },
+  "grave-bastion": {
+    id: "grave-bastion",
+    act: 3,
+    name: "Grave Bastion",
+    maxHp: 56,
+    art: "warden",
+    image: graveBastionImg,
+    // Ward (Stonewake's model): the first hit each round just doesn't
+    // count. A squad leaning on one big opening swing bounces off it.
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    description: "The graves are not to be disturbed. They dont like it.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 10 },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  // --- Hunters (Enemy Ecosystem PRD, feat/hearthwood-hunters) ---
+  // The third archetype: a fast pack that IGNORES your front line and
+  // coordinates fire on your softest unit. `hunter: true` flips
+  // autoBattleEngine.js's threatTarget sort (lowest threat + lowest HP
+  // first) for this piece only. Counter: a taunt / decoy pulls the whole
+  // pack, a bodyguard (units.js `guard`) steps in front, or even HP
+  // across the squad leaves no juicy target. In NON_BATTLE_ENEMY_IDS -
+  // only via the-pack / the-run-down.
+  // HP tuned so the-pack / the-run-down total ~92 HP, matching the
+  // 86-HP shielded formations they replace on the RUN_PATH
+  // (emberwracks-guard / hollowfangs-den) - a first pass at 76-78 HP
+  // with no shielding was a difficulty DROP on those nodes (burst
+  // Commander +13pp on the RUNS=100 gate).
+  "fen-stalker": {
+    id: "fen-stalker",
+    act: 2,
+    name: "Fen Stalker",
+    maxHp: 32,
+    art: "wolf",
+    image: fenStalkerImg,
+    hunter: true,
+    description: "It never once looked at the one with the shield.",
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 7 }],
+  },
+  "pack-runner": {
+    id: "pack-runner",
+    act: 2,
+    name: "Pack Runner",
+    maxHp: 28,
+    art: "wolf",
+    image: packRunnerImg,
+    hunter: true,
+    description: "Two quick cuts, both aimed past your guard.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "attack", amount: 5 },
+    ],
+  },
+  "throat-taker": {
+    id: "throat-taker",
+    act: 3,
+    name: "Cut-throat",
+    maxHp: 36,
+    art: "fang",
+    image: throatTakerImg,
+    hunter: true,
+    description: "You know where its aiming.",
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 5 }],
+  },
+
+  // --- The Rot (Enemy Ecosystem PRD, feat/hearthwood-rot) ---
+  // The fourth archetype: poison-stacking bodies that PUNISH A SLOW
+  // FIGHT. Modest HP - they don't tank, they outlast via the formation's
+  // steady self-mend (`the-blight` / `the-festering` synergy "The rot
+  // won't quit" = turnStart heal 1 per piece) + the poison drip. Counter:
+  // cleanse (stop the drip - poison IS cleansable, burn isn't), regen
+  // (out-heal it), or burst (kill them before the stacks + the mend
+  // outlast you). In NON_BATTLE_ENEMY_IDS - only via the Rot formations.
+  "rotgut-crawler": {
+    id: "rotgut-crawler",
+    act: 2,
+    name: "Rotgut Crawler",
+    maxHp: 32,
+    art: "bloomrotStalker",
+    image: rotgutCrawlerImg,
+    description: "It leaves a trail you can smell for a day, and a wound you can smell for a week.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+    ],
+  },
+  "spore-lurcher": {
+    id: "spore-lurcher",
+    act: 2,
+    name: "Spore Lurcher",
+    maxHp: 30,
+    art: "rootbindThicket",
+    image: sporeLurcherImg,
+    description: "Every step it takes coughs up another cloud, and every cloud is looking for a lung.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+      { type: "attack", amount: 3 },
+      { type: "debuff", id: "poison", amount: 1, target: "player" },
+    ],
+  },
+  "mire-sworn": {
+    id: "mire-sworn",
+    act: 3,
+    name: "Mire-Sworn",
+    maxHp: 38,
+    art: "husk",
+    image: mireSwornImg,
+    description: "It gave itself to the mire a long time ago. Now it just carries the mire to you.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "block", amount: 3 },
+    ],
+  },
+
+  // --- The Coven (Enemy Ecosystem PRD, feat/hearthwood-coven) ---
+  // The fifth archetype: a caster BEHIND the front line that makes the
+  // whole pack stronger every round (coven-matron's `covenAura` - see
+  // autoBattleEngine.js's applyCovenTick). Kill the matron first (reach
+  // past the shield: a pattern attacker, an executioner, or a Sunder to
+  // strip the enchant) or the fight snowballs; grinding the front just
+  // feeds it. In NON_BATTLE_ENEMY_IDS - only via the-conclave / the-choir.
+  "coven-matron": {
+    id: "coven-matron",
+    act: 3,
+    name: "Coven Matron",
+    maxHp: 28,
+    art: "moonGlyph",
+    image: covenMatronImg,
+    // covenAura: each round, +1 Strength to EVERY OTHER living enemy
+    // (not itself, not adjacency-gated). Frail and barely fights - the
+    // whole threat is the buff, so the whole answer is killing it.
+    covenAura: { id: "strength", amount: 1 },
+    description: "It never lifts a hand. It just keeps whispering, and the whispering manifests something sinister",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 3 },
+      { type: "block", amount: 2 },
+    ],
+  },
+  "hex-acolyte": {
+    id: "hex-acolyte",
+    act: 3,
+    name: "Hex Acolyte",
+    maxHp: 40,
+    art: "rootbindThicket",
+    image: hexAcolyteImg,
+    // Ward (stonewake's model): the first hit each round is ignored, so
+    // grinding through the acolyte to reach the matron is SLOW - the
+    // fight wants you to go around it, not through it.
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    description: "It stands in front of the Matron with its eyes shut, listening, taking the hit it was told to take.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 3 },
+      { type: "attack", amount: 5 },
+    ],
+  },
+  "bog-devotee": {
+    id: "bog-devotee",
+    act: 3,
+    name: "Bog Devotee",
+    maxHp: 42,
+    art: "husk",
+    image: bogDevoteeImg,
+    description: "Whatever it used to want, it wants what the Matron wants now.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "attack", amount: 4 },
+    ],
+  },
+
+  // --- The Brood (Enemy Ecosystem PRD, feat/hearthwood-brood) ---
+  // The sixth archetype: an enemy that SPLITS into smaller copies of
+  // itself when it dies (brood-mother's `broodSplit`, read by
+  // autoBattleEngine.js's enemy passive loop -> an onDeath trigger ->
+  // effects.js's broodSplit()). A single-target grind just doubles the
+  // body count; the answer is AoE / chain (clear the spawns) or Execute
+  // (the ~15-HP hatchlings fold). The hatchlings are HP-reduced copies of
+  // brood-mother itself (defId unchanged, hp = maxHp * hpFactor), with a
+  // broodGen guard so they never re-split. In NON_BATTLE_ENEMY_IDS -
+  // only via the-clutch / the-hatchery.
+  "brood-mother": {
+    id: "brood-mother",
+    act: 2,
+    name: "Brood Mother",
+    maxHp: 34,
+    art: "husk",
+    image: broodMotherImg,
+    // broodSplit: on death, tear into `count` copies at maxHp * hpFactor
+    // (~14 HP), each broodGen+1. maxGen 1 -> a hatchling dies clean, no
+    // cascade. Fairness-tuned (5 passes): spawns act the round they
+    // appear (no sit-out); the 2 swapped RUN_PATH nodes moved to Act 3
+    // aggression fights so a burst squad no longer loses its anti-burst
+    // matchups; HP 34 / [attack 5, block 2] so a LIVING mother's
+    // sustained pressure stays low (the block off-beat) - the doubled
+    // body count is the threat, not per-mother damage, which keeps the
+    // fragile Commander (fenrir) inside the gate.
+    broodSplit: { count: 2, hpFactor: 0.4, maxGen: 1 },
+    description: "Kill it and it doesn't stop - it just comes apart, and the pieces keep moving.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 2 },
+    ],
+  },
+  "brood-tender": {
+    id: "brood-tender",
+    act: 3,
+    name: "Brood Tender",
+    maxHp: 40,
+    art: "rootbindThicket",
+    image: broodTenderImg,
+    // No broodSplit - a non-splitting body that mends the mothers, so the
+    // Act-3 fight is an order-of-operations puzzle (kill the tender first
+    // or it out-heals your chip; kill a mother and it splits). Its heal
+    // step reads as `sustain` on the #432 threat panel - a secondary tag.
+    description: "It moves between the others, pressing torn edges back together with its hands.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 4 },
+      { type: "attack", amount: 3 },
+      { type: "heal", amount: 4 },
+    ],
+  },
+
+  // --- The Cult (Enemy Ecosystem PRD 11 / 39, feat/hearthwood-cult) ---
+  // The seventh archetype and the inverse of The Brood: a Ritual Warden
+  // behind the front line channels a rite (its `cultRitual`, ticked by
+  // autoBattleEngine.js's applyCultTick). Every 2nd round the rite
+  // completes: it SACRIFICES a living `cultFodder` ally and folds their
+  // strength into the rest (+2 Strength to every surviving enemy, +3
+  // self-heal). Race it (burst the pack before it lands), reach the
+  // Warden (a pattern attacker), or stun it to stall the chant - a
+  // single-target grind on the front just hands the rite more to give.
+  // Bounded: only fires while a fodder ally lives (2 per formation ->
+  // 1-2 cycles, then it DE-ESCALATES). In NON_BATTLE_ENEMY_IDS - only
+  // via the-communion / the-long-chant.
+  "ritual-warden": {
+    id: "ritual-warden",
+    act: 4,
+    name: "Ritual Warden",
+    maxHp: 52,
+    art: "moonGlyph",
+    image: ritualWardenImg,
+    // cultRitual: every 2nd round, kill a cultFodder ally, +buff Strength
+    // to every remaining living enemy, +feed self-heal. `every` / `buff`
+    // / HP are the fairness levers.
+    cultRitual: { every: 2, buff: { id: "strength", amount: 2 }, feed: { id: "heal", amount: 3 } },
+    description: "It doesn't fight so much as keep count. Every other breath, one of the others stops moving and the rest stand a little taller.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 3 },
+    ],
+  },
+  "sworn-cultist": {
+    id: "sworn-cultist",
+    act: 4,
+    name: "Sworn Cultist",
+    maxHp: 34,
+    art: "husk",
+    image: swornCultistImg,
+    // cultFodder: the rite's food and the Warden's shield. Low HP, low
+    // threat - killing them yourself starves the ritual, but it means
+    // spreading damage instead of focusing the Warden.
+    cultFodder: true,
+    description: "It knelt for this a long time ago. It is only still standing so there is something to give.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 3 },
+      { type: "block", amount: 1 },
+    ],
+  },
+  "ritual-adept": {
+    id: "ritual-adept",
+    act: 6,
+    name: "Ritual Adept",
+    maxHp: 46,
+    art: "rootbindThicket",
+    image: ritualAdeptImg,
+    // Neither cultRitual nor cultFodder - a real threat that OUTLASTS the
+    // rite and gets buffed by it, so the-long-chant is more than "leader
+    // + fodder": you race a fed adept, not just a lone Warden.
+    description: "Further along than the others. It has stopped needing the chant to keep going.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "attack", amount: 4 },
+    ],
+  },
+
+  // --- The Collectors (Enemy Ecosystem PRD 13, feat/hearthwood-collectors) ---
+  // The eighth archetype: thieves that STEAL your buffs mid-fight. Every
+  // hit a Collector lands on a buffed player unit moves one stack of that
+  // buff (Strength first, then Bulwark/Ward/Regen/Evade) to the Collector
+  // itself (its `leech` marker → an onDealDamage trigger → effects.js's
+  // leech()). A stacked-up carry just arms them. Burst them before they
+  // accumulate, bring a Sunder to take it back, or field flat bodies with
+  // nothing worth taking. In NON_BATTLE_ENEMY_IDS - only via the-tithe /
+  // the-hoard.
+  "hoardling": {
+    id: "hoardling",
+    act: 4,
+    name: "Hoardling",
+    maxHp: 32,
+    art: "shadow",
+    image: hoardlingImg,
+    leech: true,
+    description: "It isn't here for the fight. It's here for whatever you've been carefully stacking up.",
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 4 }],
+  },
+  "tithe-warden": {
+    id: "tithe-warden",
+    act: 5,
+    name: "Tithe-Warden",
+    maxHp: 44,
+    art: "stone",
+    image: titheWardenImg,
+    leech: true,
+    description: "It collects what is owed. It has decided, on your behalf, what is owed.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 3 },
+    ],
+  },
+
+  // --- The Ancients (Enemy Ecosystem PRD 18, feat/hearthwood-ancients) ---
+  // The ninth archetype: a slow colossus winding up ONE telegraphed
+  // squad-wide hit on a visible countdown (its `charge` marker ->
+  // autoBattleEngine.js's applyAncientCharge). Every other archetype
+  // escalates continuously; this one is a single big payoff on a specific
+  // round, with four clean answers - kill it before the count hits 0
+  // (it's a legal target from turn 1, front-centre, no shield), stun it
+  // (the count HOLDS), stagger it (a round of damage >= breakDamage
+  // resets the count to full), or brace the squad with Block / Bulwark
+  // the round it lands. The saplings are just there to run down your
+  // clock. In NON_BATTLE_ENEMY_IDS - only via the-ancient-grove /
+  // the-elder-hollow.
+  "ancient-oak": {
+    id: "ancient-oak",
+    act: 4,
+    name: "Ancient Oak",
+    maxHp: 100,
+    art: "barkBrute",
+    image: ancientOakImg,
+    // charge: winds up `label` over `turns` rounds; if it isn't killed /
+    // stunned / staggered first, `effect` hits every living player unit,
+    // then the count resets. breakDamage / turns / effect amount are the
+    // fairness levers.
+    charge: { turns: 3, breakDamage: 22, effect: [{ type: "damage", amount: 9 }], label: "Rootfall" },
+    description: "It has stood here longer than the path has. By the time it decides to move, it has already moved.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 6 },
+      { type: "attack", amount: 6 },
+    ],
+  },
+  "elder-oak": {
+    id: "elder-oak",
+    act: 6,
+    name: "Elder Oak",
+    maxHp: 120,
+    art: "troll",
+    image: elderOakImg,
+    charge: {
+      turns: 3,
+      breakDamage: 26,
+      effect: [
+        { type: "damage", amount: 11 },
+        { type: "applyBuff", id: "weak", target: "target", amount: 1 },
+      ],
+      label: "The Long Fall",
+    },
+    phases: [
+      {
+        atHpPct: 0.4,
+        announce: "The Elder Oak stops holding back.",
+        effects: [{ type: "applyBuff", id: "strength", amount: 3 }],
+      },
+    ],
+    description: "Ancient Oaktree, slow, and there is a reason nothing has grown where it has stood.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "heal", amount: 6 },
+    ],
+  },
+  "sapling-attendant": {
+    id: "sapling-attendant",
+    act: 4,
+    name: "Sapling Attendant",
+    maxHp: 24,
+    art: "root",
+    image: saplingAttendantImg,
+    // No `charge` - just a low-threat body that keeps you busy while the
+    // count runs down. Killing it is time you didn't spend on the Oak.
+    description: "It will not hurt you much. It only has to keep you here until the big one is ready.",
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 3 }],
+  },
+
+  "ironmaw": {
+    id: "ironmaw",
+    act: 2,
+    name: "Ironmaw",
+    maxHp: 46,
+    art: "husk",
+    image: ironmawImg,
+    description: "It doesn't flinch. It just hits back harder every time.",
+    // 19th mook, and the first to carry a battle-start SELF-buff other
+    // than Shatter (Cragfang) or Regen (Duskmoth) - Strength, via the
+    // same generic `applyBuff` passive every player unit already uses.
+    // Every enemy debuff (Weak/Poison/Vulnerable/Sunder) already has a
+    // source; every PLAYER buff mechanic (Ward/Revive/Taunt/Execute/
+    // Shatter/Strength) has only ever existed on the player's own side
+    // - so `effects.js`'s SUNDERABLE_IDS list has always had nothing to
+    // actually strip on the enemy side of the board. Ironmaw is the
+    // first real target for a player-side Sunder tool (Thornwisp,
+    // units.js).
+    passive: [{ type: "applyBuff", id: "strength", amount: 3 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 5 },
+    ],
+  },
+
+  "gravemaw": {
+    id: "gravemaw",
+    act: 2,
+    name: "Gravemaw",
+    maxHp: 42,
+    art: "husk",
+    image: gravemawImg,
+    description: "It's slow to anger. Once it's hurt, it isn't slow anymore.",
+    // 20th mook, and the first enemy source of Wounded Fury
+    // (effects.js's woundedFuryBonus - +3 damage once below 50% HP) -
+    // Feral Charm/Berserker's Oath already give a player unit this
+    // exact same threat, but no mook had ever turned it around before.
+    // Not in SUNDERABLE_IDS (unlike Ironmaw's Strength), so Thornwisp
+    // can't strip it away - the only real answer is finishing it before
+    // it crosses the threshold, or simply outracing the bonus with
+    // enough raw damage that the extra 3 never matters.
+    passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 6 }],
+  },
+
+  "duskhollow": {
+    id: "duskhollow",
+    // Act II/III seam creature - "dusk" reads mid-run, "hollow" reads
+    // late, and no mechanic locks it either way. Assigned to Act II to
+    // match its RUN_PATH position (node 48, the last node of the Act II
+    // band), so the encounter resolver never has to swap it out.
+    act: 2,
+    name: "Duskhollow",
+    maxHp: 58,
+    art: "moonGlyph",
+    image: duskhollowImg,
+    description: "At dusk it arrives. Watching silently.",
+    // 21st mook - Regen's first PERSISTENT enemy source, distinct from
+    // Duskmoth's one-shot decaying passive (a fixed stack that fades
+    // over a few rounds). A turnStart trigger re-grants Regen every
+    // round it acts instead of only once at battle start - same
+    // mechanism Mosswarden's Charm/Bramblehide's own repeating heal
+    // already use, just feeding Regen's decaying stack instead of a
+    // flat heal, so it never actually runs out on its own. The real
+    // answer isn't outlasting it (Bramblehide's own weakness) or
+    // racing the first few rounds (Duskmoth's) - it's simply
+    // out-damaging what a full stack heals back every single round.
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 4 } }],
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 5 }],
+  },
+
+  "needlefen": {
+    id: "needlefen",
+    act: 3,
+    name: "Needlefen",
+    maxHp: 40,
+    art: "root",
+    image: needlefenImg,
+    description: "Death by thousand cuts.",
+    // 22nd mook - Stun's second enemy source (Rootbind Thicket's own
+    // pattern, different numbers/name) - the same "run variety within
+    // an already-proven mechanic" reuse discipline every other core
+    // debuff has already gotten (Poison x2, Weak x1 + double-debuff,
+    // Vulnerable x1). Kept damage low (3/3), same reasoning Rootbind
+    // Thicket's own note gives - losing a whole action is strong on
+    // its own.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 3 },
+      { type: "debuff", id: "stun", amount: 1, target: "player" },
+      { type: "attack", amount: 3 },
+    ],
+  },
+
+  "wraithgale": {
+    id: "wraithgale",
+    act: 3,
+    name: "Wraithgale",
+    maxHp: 44,
+    art: "moonGlyph",
+    image: wraithgaleImg,
+    description: "It doesn't do anything you haven't already seen. It just doesn't stop doing it.",
+    // 23rd mook - a plain weightedRandom reinforcement (Rune Warden/
+    // Stormroot's own "run variety, no signature gimmick" spirit)
+    // rather than another mechanic-carrier.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 7, weight: 2 },
+      { type: "block", amount: 6, weight: 1 },
+      { type: "attack", amount: 4, weight: 1 },
+    ],
+  },
+
+  "stonewake": {
+    id: "stonewake",
+    act: 3,
+    name: "Stonewake",
+    maxHp: 44,
+    art: "husk",
+    image: stonewakeImg,
+    description: "The first blow never lands the way you think.",
+    // 24th mook - Ward's first enemy source. Every SUNDERABLE_IDS buff
+    // (ward, revive, taunt, execute, shatter, strength) has only ever
+    // existed on the player's side until Ironmaw's Strength - this
+    // closes a 2nd one. A real answer to a squad leaning on one big
+    // finishing hit: the first swing just doesn't count.
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 7 },
+      { type: "block", amount: 6 },
+    ],
+  },
+
+  "gravequill": {
+    id: "gravequill",
+    act: 3,
+    name: "Gravequill",
+    maxHp: 40,
+    art: "root",
+    image: gravequillImg,
+    description: "It doesn't chase the strong ones. It waits for someone to fall.",
+    // 25th mook - Execute's first enemy source (effects.js's
+    // executeBonus - +stacks damage once the TARGET drops below 30%
+    // max HP). Every other finishing-blow mechanic (Chain, Wounded
+    // Fury) already exists on both sides; Execute had only ever
+    // rewarded the PLAYER for finishing a weak enemy. A real reason to
+    // pull a badly wounded unit out of the front line instead of just
+    // healing it in place - Gravequill turns "nearly dead" into
+    // "in immediate danger" the moment it's your unit crossing that
+    // line instead of the enemy's.
+    passive: [{ type: "applyBuff", id: "execute", amount: 4 }],
+    moveSelect: "sequence",
+    movePattern: [{ type: "attack", amount: 5 }],
+  },
+
+  "bonewarden": {
+    id: "bonewarden",
+    act: 3,
+    name: "Bonewarden",
+    maxHp: 50,
+    art: "warden",
+    image: enemyPlaceholderImg,
+    description: "It stands somewhere between life and death.",
+    // 26th mook - Taunt's first enemy source. Bulwark Standard/Ironbark/
+    // Stoneheart already give the PLAYER a way to steer incoming
+    // attacks onto one chosen tank; Bonewarden turns that around,
+    // redirecting the SQUAD's outgoing single-target attacks onto
+    // itself the same way (see actSide's own Taunt-priority targeting).
+    // A real reason to reach for an AoE/pattern attacker instead of
+    // just grinding the frontmost target down - now paired into
+    // Bonewarden's Watch (formations.js), shielding Gravequill's
+    // Execute by mechanic instead of by position, the way Bark Brute/
+    // Bramblehide already do with Block/heal.
+    passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 6 },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "mossveil": {
+    id: "mossveil",
+    act: 3,
+    name: "Mossveil",
+    maxHp: 46,
+    art: "leaf",
+    image: mossveilImg,
+    // Polish pass: this line was a verbatim duplicate of Wraithgale's
+    // own flavor text (line ~440) - both "plain reinforcement, no
+    // gimmick" mooks share that framing in their code comments, but
+    // that shouldn't have meant sharing the exact same player-facing
+    // sentence too.
+    description: "It never hurries. It never has to.",
+    // 27th mook - a plain sequence reinforcement (Hollowfen/Wraithgale's
+    // own "run variety, no signature gimmick" spirit) rather than
+    // another mechanic-carrier.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "attack", amount: 6 },
+      { type: "block", amount: 8 },
+    ],
+  },
+
+  "hollowspite": {
+    id: "hollowspite",
+    act: 3,
+    name: "Hollowspite",
+    maxHp: 40,
+    art: "root",
+    image: hollowspiteImg,
+    description: "A black void.",
+    // 28th mook - a fresh double-debuff combo (Poison + Weak), distinct
+    // from Duskgnaw's own Weak + Vulnerable pair - the squad takes
+    // ongoing damage AND hits softer at the same time, so racing the
+    // fight to a fast close (before the DOT stacks up) trades off
+    // against the squad's own reduced damage output doing exactly that.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "poison", amount: 2, target: "target" },
+      { type: "debuff", id: "weak", amount: 1, target: "target" },
+    ],
+  },
+
+  "ashenmaw": {
+    id: "ashenmaw",
+    act: 4,
+    name: "Ashenmaw",
+    maxHp: 58,
+    art: "husk",
+    image: ashenmawImg,
+    // Deliberately NOT reusing Wraithgale's own "It doesn't do anything
+    // you haven't already seen" line for this same "plain reinforcement"
+    // flavor - that exact near-miss (Mossveil copy-pasting the same
+    // sentence) was caught and fixed as its own polish round already.
+    description: "Burning coals and ash in a fiery rage",
+    // 29th mook - a plain weightedRandom reinforcement (Hollowfen/
+    // Wraithgale/Mossveil's own "run variety, no signature gimmick"
+    // spirit) rather than another mechanic-carrier.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 8, weight: 2 },
+      { type: "block", amount: 7, weight: 1 },
+    ],
+  },
+
+  "duskwither": {
+    id: "duskwither",
+    act: 4,
+    name: "Duskwither",
+    maxHp: 42,
+    art: "root",
+    image: duskwitherImg,
+    description: "Every strike leaves something behind that keeps working after it's gone.",
+    // 30th mook - Poison + Vulnerable, the third distinct double-debuff
+    // combo on this side of the roster (Duskgnaw: Weak + Vulnerable,
+    // Hollowspite: Poison + Weak, this: Poison + Vulnerable) - every
+    // pairing of the 3 core debuffs now has its own mook. The ongoing
+    // Poison damage lands harder each tick while Vulnerable is up,
+    // compounding rather than just stacking two separate annoyances.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "debuff", id: "poison", amount: 2, target: "target" },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "target" },
+    ],
+  },
+
+  "hollowfang": {
+    id: "hollowfang",
+    act: 4,
+    name: "Hollowfang",
+    maxHp: 44,
+    art: "husk",
+    image: hollowfangImg,
+    description: "It only remembers the last thing that hurt it.",
+    // 31st mook - a plain sequence reinforcement, no gimmick.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 7 },
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 6 },
+    ],
+  },
+
+  "rootward": {
+    id: "rootward",
+    act: 4,
+    name: "Rootward",
+    maxHp: 46,
+    art: "root",
+    image: rootwardImg,
+    description: "Whatever you leave in it, it never returns",
+    // 32nd mook, and the first enemy source of Cleanse (effects.js) -
+    // Willowmend's own signature move (strips this unit's OWN
+    // Poison/Weak/Vulnerable/Stun), turned around onto the enemy side
+    // for the first time. A genuine counter to a debuff-heavy squad:
+    // whatever gets applied here doesn't stick around long enough to
+    // matter, so the fight rewards raw damage over stacking status
+    // effects against this specific mook.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "cleanse" },
+      { type: "block", amount: 6 },
+    ],
+  },
+
+  "briarmaw": {
+    id: "briarmaw",
+    act: 4,
+    name: "Briarmaw",
+    maxHp: 50,
+    art: "root",
+    image: briarmawImg,
+    description: "It's in no rush. It's already won fights against faster things.",
+    // 33rd mook - a plain weightedRandom reinforcement, no gimmick.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 9, weight: 2 },
+      { type: "block", amount: 8, weight: 1 },
+    ],
+  },
+
+  "bramblespite": {
+    id: "bramblespite",
+    act: 4,
+    name: "Bramblespite",
+    maxHp: 58,
+    art: "root",
+    image: bramblespiteImg,
+    description: "It plants itself in front of you, and it only gets angrier the longer you take.",
+    // 34th mook - the first mook-tier double self-buff (Taunt +
+    // Wounded Fury), not just a miniboss combo (Thornmaw's own Regen +
+    // Taunt, Wyrmgall's Execute + Shatter). A real bruiser: it draws
+    // every single-target attack (Bonewarden's own mechanism) AND hits
+    // harder once wounded (Gravemaw's own), so the squad can't just
+    // ignore it OR safely grind it down slowly - every round spent
+    // whittling it costs more as it gets closer to that threshold.
+    passive: [
+      { type: "applyBuff", id: "taunt", amount: 1 },
+      { type: "applyBuff", id: "woundedFury", amount: 1 },
+    ],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 5 },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "thornfen": {
+    id: "thornfen",
+    act: 4,
+    name: "Thornfen",
+    maxHp: 46,
+    art: "root",
+    image: thornfenImg,
+    description: "It has one trick. It's very good at it.",
+    // 35th mook - a plain sequence reinforcement, no gimmick.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "attack", amount: 6 },
+    ],
+  },
+
+  "hollowcurse": {
+    id: "hollowcurse",
+    act: 4,
+    name: "Hollowcurse",
+    maxHp: 44,
+    art: "rootbindThicket",
+    image: hollowcurseImg,
+    description: "It doesn't just take what you've built. It leaves something rotting in its place.",
+    // 36th mook - Sunder's 2nd enemy source (Witherfang's own pattern),
+    // now combined with Poison in the same sequence instead of running
+    // alone - a genuine "curse" identity: it strips whatever buff a
+    // player unit is carrying AND leaves an ongoing DOT behind, so the
+    // squad loses ground on two fronts from the same fight instead of
+    // just one.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "sunder", target: "player" },
+      { type: "debuff", id: "poison", amount: 2, target: "target" },
+    ],
+  },
+
+  "grimspite": {
+    id: "grimspite",
+    // Act IV/V seam creature - a plain no-gimmick reinforcement with no
+    // act-locking theme. Assigned to Act IV to match its RUN_PATH
+    // position (node 82, the last node of the Act IV band), so the
+    // encounter resolver never has to swap it out.
+    act: 4,
+    name: "Grimspite",
+    maxHp: 58,
+    art: "husk",
+    image: grimspiteImg,
+    description: "It doesn't have a plan. It just keeps hitting until something breaks.",
+    // 37th mook - a plain weightedRandom reinforcement, no gimmick.
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 9, weight: 2 },
+      { type: "block", amount: 7, weight: 1 },
+    ],
+  },
+
+  "ironroot": {
+    id: "ironroot",
+    act: 5,
+    name: "Ironroot",
+    maxHp: 54,
+    art: "root",
+    image: ironrootImg,
+    description: "It never lets you past.",
+    // 38th mook - Taunt + Cleanse together, never paired before
+    // (Bramblespite: Taunt+WoundedFury, Rootward: Cleanse alone).
+    // Marc: "the game needs to be difficult without cheap tactics -
+    // no HP sponges, no gimmicky enemies, real tactics and real
+    // player decisions." This is the tactical answer, not a numbers
+    // answer: Cleanse (one of its own two moves, see below) strips whatever
+    // Poison/Weak/Vulnerable/Stun the squad just applied, so a
+    // debuff-heavy build gets NOTHING from attacking it - only raw
+    // damage matters here. Taunt (battle-start passive, same
+    // once-and-holds shape Stoneheart/Bramblespite already use) means
+    // that raw damage has to come from single-target attacks aimed
+    // AT it - the squad can't just ignore it and go around. Solo,
+    // this is a wall with no partner to protect - see
+    // "the-unbroken-root" (formations.js) for the formation where its
+    // Taunt actually has something to shield.
+    passive: [{ type: "applyBuff", id: "taunt", amount: 1 }],
+    // A 3-move [block, attack, cleanse] cycle was tried first and
+    // verified broken: a realistically-strong squad kills 54 HP in 2
+    // rounds, so Cleanse (move index 2) never fires at all - the
+    // entire point of the enemy silently never triggers in a fast
+    // fight, the exact kind of thing the full-run fairness bot (not
+    // fight-1-in-isolation testing) exists to catch. Cut to a 2-move
+    // [attack, cleanse] cycle instead - Cleanse now fires on round 2
+    // guaranteed, in any fight that lasts at least that long, not
+    // "eventually, if the fight drags." Dropped Block entirely rather
+    // than compressing all 3 moves into 2 rounds; Bramblespite already
+    // owns the "self-Block bruiser" identity, Ironroot's is purely
+    // Taunt+Cleanse.
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 7 },
+      { type: "cleanse" },
+    ],
+  },
+
+  // ===================================================================
+  // ACT SAMPLE ENEMIES (structure pass - feat/hearthwood-act-enemy-sets)
+  // -------------------------------------------------------------------
+  // 2 placeholder enemies per Act (I-VII), so every Act has its own
+  // distinct set even where RUN_PATH's current late-game formations
+  // just recombine earlier mooks. Full rosters come in a later content
+  // pass - these establish the SHAPE: theme fits the Act, and the
+  // Act V-VII samples carry a deliberately higher stat floor AND an
+  // extra status mechanic (Strength/Weak/Poison/Ward/Vulnerable, all
+  // already in effects.js) on top of runEngine.js's difficultyFactor
+  // ramp and its new per-Act ACT_STAT_FLOOR multiplier. Art reuses an
+  // existing cardArt.jsx glyph name (no raster images here - CardGlyph
+  // falls back to Rune for an unknown name, so no broken-image risk).
+  // Not wired into RUN_PATH (deliberately - that stays untouched); they
+  // are reachable today only via runEngine.js's act-fallback swap, and
+  // are here for Marc to slot into RUN_PATH during the content pass.
+
+  // placeholder - sample enemy for Act 1, stats/art provisional
+  "rotbore-grub": {
+    id: "rotbore-grub",
+    act: 1,
+    name: "Rotbore Grub",
+    maxHp: 30,
+    art: "husk",
+    image: rotboreGrubImg,
+    description: "It chews through deadwood without ever looking up. You are just more deadwood.",
+    introLine: "It does not notice you arrive. It will notice when you are in the way.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "attack", amount: 8 },
+      { type: "block", amount: 5 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 1, stats/art provisional
+  "mossback-lurker": {
+    id: "mossback-lurker",
+    act: 1,
+    name: "Mossback Lurker",
+    maxHp: 48,
+    art: "troll",
+    image: mossbackLurkerImg,
+    description: "Green to the eye until it moves. By then it has your arm.",
+    introLine: "The bank of moss ahead breathes once, and stands up.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "block", amount: 7 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 2, stats/art provisional
+  "runewisp-acolyte": {
+    id: "runewisp-acolyte",
+    act: 2,
+    name: "Runewisp Acolyte",
+    maxHp: 44,
+    art: "warden",
+    image: runewispAcolyteImg,
+    description: "It tends the deep-rune lamps. It has forgotten why, only that trespassers must not.",
+    introLine: "It lifts a hand toward the carved stones, and the light answers it.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 2 },
+      { type: "block", amount: 9, weight: 1 },
+      { type: "debuff", id: "weak", amount: 2, target: "player", weight: 1 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 2, stats/art provisional
+  "emberthorn-shade": {
+    id: "emberthorn-shade",
+    act: 2,
+    name: "Emberthorn Shade",
+    maxHp: 46,
+    art: "flame",
+    image: emberthornShadeImg,
+    description: "Half briar, half slow fire. The heat came up through the roots with everything else.",
+    introLine: "The thornwall ahead is smoking, and part of it steps forward.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "attack", amount: 7 },
+      { type: "block", amount: 8 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 3, stats/art provisional
+  "veilgnaw": {
+    id: "veilgnaw",
+    act: 3,
+    name: "Veilgnaw",
+    maxHp: 50,
+    art: "moonGlyph",
+    image: veilgnawImg,
+    description: "It bites, and something of you goes soft where it lands.",
+    introLine: "It is not quite where you are looking. It never is.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 3, stats/art provisional
+  "thinreach-wraith": {
+    id: "thinreach-wraith",
+    act: 3,
+    name: "Thinreach Wraith",
+    maxHp: 48,
+    art: "moonGlyph",
+    image: thinreachWraithImg,
+    description: "Reached through the Veil so far that most of it is still on the other side.",
+    introLine: "An arm comes through the air that has no shoulder behind it yet.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 2 },
+      { type: "block", amount: 8, weight: 1 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 4, stats/art provisional
+  "hollowmarrow-sentinel": {
+    id: "hollowmarrow-sentinel",
+    act: 4,
+    name: "Hollowmarrow Sentinel",
+    maxHp: 56,
+    art: "husk",
+    image: hollowmarrowSentinelImg,
+    description: "Posted here to guard nothing, by no one, forever. It has not noticed either fact.",
+    introLine: "It has stood the same watch so long the Hollow grew up around its feet.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 7 },
+      { type: "attack", amount: 10 },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 4, stats/art provisional
+  "witherbound-effigy": {
+    id: "witherbound-effigy",
+    act: 4,
+    name: "Witherbound Effigy",
+    maxHp: 52,
+    art: "warden",
+    image: witherboundEffigyImg,
+    description: "Bound wood in a shape that used to mean something. Standing near it, your guard feels thin.",
+    introLine: "The bundled figure turns its faceless head to follow you.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 8 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player" },
+      { type: "attack", amount: 8 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 5, stats/art provisional.
+  // Act V+ floor: higher base stats than the mid-Act samples.
+  "crownless-revenant": {
+    id: "crownless-revenant",
+    act: 5,
+    name: "Crownless Revenant",
+    maxHp: 60,
+    art: "root",
+    image: crownlessRevenantImg,
+    description: "It fought at the Reckoning and did not stop when the fighting did. No one told it it could.",
+    introLine: "It still holds the line of a battle that ended without it.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 12, weight: 2 },
+      { type: "block", amount: 10, weight: 1 },
+      { type: "attack", amount: 8, weight: 1 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 5, stats/art provisional.
+  // Extra mechanic: battle-start Strength (self-buff, same applyBuff
+  // passive Ironmaw uses) plus repeating Weak.
+  "ashen-regent": {
+    id: "ashen-regent",
+    act: 5,
+    name: "Ashen Regent",
+    maxHp: 54,
+    art: "husk",
+    image: ashenRegentImg,
+    description: "It picked up the warm crown when the King ceased to be, and it will not put it down.",
+    introLine: "\"The seat is filled,\" it says, to no one. \"You may go.\"",
+    passive: [{ type: "applyBuff", id: "strength", amount: 3 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "debuff", id: "weak", amount: 2, target: "player" },
+      { type: "attack", amount: 9 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 6, stats/art provisional.
+  // Extra mechanic: Poison (same debuff pipeline Bloomrot Stalker uses).
+  "echo-stalker": {
+    id: "echo-stalker",
+    act: 6,
+    name: "Echo Stalker",
+    maxHp: 58,
+    art: "moonGlyph",
+    image: echoStalkerImg,
+    description: "It walks your path, a half-step behind, and whatever it leaves in you keeps walking too.",
+    introLine: "It steps when you step. It has been stepping when you step for a while now.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "attack", amount: 9 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 6, stats/art provisional.
+  // Act VI floor: heavier HP and hit than Act V's samples.
+  "riftmnemon": {
+    id: "riftmnemon",
+    act: 6,
+    name: "Riftmnemon",
+    maxHp: 64,
+    // Reuses the "husk" enemy glyph - a heavy hollow shell of a thing.
+    art: "husk",
+    image: riftmnemonImg,
+    description: "A memory that grew heavy enough to stand on its own, at the lip of the tear it opened.",
+    introLine: "It is a moment you half-remember, wearing a body now, and it is angry.",
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 13, weight: 2 },
+      { type: "block", amount: 11, weight: 1 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 7, stats/art provisional.
+  // Extra mechanic: battle-start Ward (self-buff, same applyBuff passive
+  // Stonewake uses) plus repeating Vulnerable.
+  "verge-warden": {
+    id: "verge-warden",
+    act: 7,
+    name: "Verge Warden",
+    maxHp: 62,
+    art: "warden",
+    image: vergeWardenImg,
+    description: "It stands where memory and the world stopped being two things. It will not let you past unanswered.",
+    introLine: "\"Not a fight,\" it says. \"An answer. Give me one.\" Its guard does not lower.",
+    passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 11 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player" },
+      { type: "attack", amount: 11 },
+    ],
+  },
+
+  // placeholder - sample enemy for Act 7, stats/art provisional.
+  // Act VII floor: the heaviest sample HP in the set, plus Poison.
+  "mnemosyne-colossus": {
+    id: "mnemosyne-colossus",
+    act: 7,
+    name: "Mnemosyne Colossus",
+    maxHp: 68,
+    art: "troll",
+    image: mnemosyneColossusImg,
+    description: "Everything the forest could not bear to forget, packed into one shape and told to hold still.",
+    introLine: "It is the size of a small hill of remembering, and it has just looked down.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 12 },
+      { type: "debuff", id: "poison", amount: 3, target: "player" },
+      { type: "block", amount: 10 },
+    ],
+  },
+
+  // Minibosses: a step up from a plain mook, without touching
+  // Spacemonkey's own AoE move (deliberately kept unique to the true
+  // final boss - see its own note below) or the run-ending
+  // `type: "boss"` RUN_PATH node (reserved for Spacemonkey alone -
+  // runEngine.js's resolveBattleOutcome treats that literal node type
+  // as "the run is won"). Marc: "minibosses too" - RUN_PATH now has a
+  // real `type: "miniboss"` node (runEngine.js) distinct from both
+  // `battle` and `boss`: same "the run continues" behavior as `battle`,
+  // but its own label in SquadDraft's "Next:" preview and its own
+  // flavor line in FormationScreen, instead of either an anonymous mook
+  // fight or a mislabeled "final fight." Their weight also comes from
+  // stats/kit, same as before - Deepwarden's own HP/passive numbers are
+  // unchanged by this promotion. Placement now genuinely matters, not
+  // just for pacing: `runEngine.js`'s difficultyFactorForNode (PR #258)
+  // scales every fight past 60% run-progress by up to +35% HP/damage,
+  // so a miniboss placed late stacks its own elevated stats on TOP of
+  // that ramp for a real late-run spike, while one placed early (like
+  // Deepwarden, ~23% through) stays under the threshold and reads as a
+  // pure early-game skill check instead.
+  "deepwarden": {
+    id: "deepwarden",
+    act: 1,
+    name: "Deepwarden",
+    // Marc: "enemies and bosses need to be more challenging" - bumped
+    // both minibosses roughly +20% on top of the difficulty ramp
+    // (runEngine.js's difficultyFactorForNode) that already scales
+    // anything past 60% run-progress. Deepwarden sits UNDER that
+    // threshold (~14% progress - see its own note below), so this bump
+    // is its entire difficulty increase, not compounding with anything.
+    maxHp: 84,
+    art: "warden",
+    image: deepwardenImg,
+    description: "Something the Hearthwood posted here on purpose, long before you arrived.",
+    // Marc: "make a progressive story" - a miniboss/boss-specific
+    // introLine, shown by FormationScreen.jsx in place of the generic
+    // "A greater foe." prefix every miniboss fight used until now, the
+    // same "give this specific encounter its own voice" step the
+    // story system's own Act banners already took for the run as a
+    // whole. Deliberately distinct from `description` (the shop-preview/
+    // card-hover text) - this is the line spoken specifically at the
+    // moment the fight is about to begin.
+    introLine: "It has been standing here since before you knew the Hearthwood existed. It isn't moving.",
+    passive: [
+      { type: "applyBuff", id: "strength", amount: 3 },
+      { type: "applyBuff", id: "ward", amount: 2 },
+    ],
+    // Phase mechanic (autoBattleEngine.js's checkBossPhases) - Marc:
+    // "isommat pomomekaniikat". Once it's taken enough of a beating,
+    // the sentinel stops holding back and roots itself in place.
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "It plants its feet. The ground answers.",
+        effects: [
+          { type: "applyBuff", id: "bulwark", amount: 2 },
+          { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 4 } },
+        ],
+      },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 12, weight: 2 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player", weight: 1 },
+      { type: "block", amount: 10, weight: 1 },
+    ],
+  },
+
+  "thornmaw": {
+    id: "thornmaw",
+    act: 2,
+    name: "Thornmaw",
+    // Bumped a smaller amount than Deepwarden (~8%, not ~20%) - Thornmaw
+    // already sits PAST the difficulty ramp's 60% threshold and gets
+    // its own +35% on top at battle time, so a smaller base increase
+    // here avoids double-stacking into something disproportionate.
+    maxHp: 78,
+    art: "root",
+    image: thornmawImg,
+    description: "It doesn't ask you to beat it. It asks you to prove you deserve to move past it.",
+    introLine: "It doesn't raise its guard. It doesn't need to - it's already healed from worse than you.",
+    // The run's SECOND miniboss, placed late (see the note above) so
+    // it stacks with the difficulty ramp - self Regen (persistent, same
+    // turnStart-trigger mechanism Duskhollow already established, not a
+    // one-shot decaying passive) paired with self Taunt (Bonewarden's
+    // own mechanism), so the squad can't just ignore it OR just grind
+    // through its Block-less HP pool - it has to be the priority target
+    // for several rounds straight while it keeps healing itself back.
+    passive: [
+      { type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 4 } },
+      { type: "applyBuff", id: "taunt", amount: 1 },
+    ],
+    // Phase mechanic - it heals harder and hits back once the fight
+    // turns against it, so a slow grind gets slower the closer you get.
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "The wounds close faster than you can open them.",
+        effects: [
+          { type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "regen", amount: 3 } },
+          { type: "applyBuff", id: "strength", amount: 1 },
+        ],
+      },
+    ],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 9 },
+      { type: "attack", amount: 7 },
+    ],
+  },
+
+  "wyrmgall": {
+    id: "wyrmgall",
+    act: 6,
+    name: "Wyrmgall",
+    maxHp: 80,
+    art: "root",
+    image: wyrmgallImg,
+    description: "It doesn't care how you fight. It's already found the shape of your mistake.",
+    introLine: "It isn't watching your squad. It's watching for the mistake your squad hasn't made yet.",
+    // Fear Zone round (Hearthwood Frontier, tacticsEngine.js only):
+    // Wyrmgall's own already-written lines above are genuinely dread-
+    // flavored - the first real unit to carry this new portable trait,
+    // hand-authored, not invented flavor.
+    fearsome: true,
+    // Marc: "work on bosses too" - the run's THIRD miniboss, and the
+    // first to combine two finishing-blow mechanics instead of a
+    // defensive/sustain pair (Deepwarden's Strength+Ward, Thornmaw's
+    // Regen+Taunt): self Execute (punishes a badly wounded PLAYER
+    // unit, same as Gravequill) AND self Shatter (punishes a
+    // Block-holding one, same as Stoneknoll/Cragfang) together - a
+    // squad that plays purely defensive (stacking Block) gets punished
+    // by Shatter, one that plays purely aggressive (racing wounded
+    // units down instead of pulling them back) gets punished by
+    // Execute. Neither a tank-and-spank squad nor a glass-cannon one is
+    // automatically safe against it. Placed last of the 3 minibosses,
+    // deep in the difficulty ramp's top tier, right before The Hollow
+    // Court and the boss - the toughest non-final fight in the run.
+    passive: [
+      { type: "applyBuff", id: "execute", amount: 4 },
+      { type: "applyBuff", id: "shatter", amount: 3 },
+    ],
+    // Phase mechanic - below half it stops circling and commits to the
+    // kill, so a squad that lets a wounded unit linger pays for it.
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "It has found the shape of your mistake.",
+        effects: [
+          { type: "applyBuff", id: "execute", amount: 3 },
+          { type: "applyBuff", id: "strength", amount: 2 },
+        ],
+      },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 2 },
+      { type: "block", amount: 9, weight: 1 },
+    ],
+  },
+
+  // The run's final boss - not a mook, so it gets a bit more presence:
+  // a real intro line and a spoken line on defeat (read by RunEndOverlay,
+  // see runEngine.js). His "pikku-paholainen" alter-ego lore already
+  // implies he was never purely benevolent - this doesn't retcon
+  // anything, just plays it straight.
+  spacemonkey: {
+    id: "spacemonkey",
+    act: 7,
+    name: "Spacemonkey",
+    // Marc: "enemies and bosses need to be more challenging" - bumped
+    // roughly +20%. Already sits at the very end of RUN_PATH
+    // (progress = 1.0), so the difficulty ramp's own +35% multiplier
+    // (runEngine.js's difficultyFactorForNode) already applies on top
+    // of this at battle time - a real final-boss spike, not a token
+    // increase, by design: this IS the one fight meant to ask the most
+    // of a run's whole build.
+    maxHp: 108,
+    art: "spacemonkeyBoss",
+    image: spacemonkeyImg,
+    isBoss: true,
+    description: "The little devil behind the curtain. He was never only on your side.",
+    // Bookends the fight: introLine on the way in (FormationScreen.jsx,
+    // replacing the flat "The final fight." every other boss screen
+    // used to say), victoryLine on the way out (RunEndOverlay.jsx).
+    introLine: "\"You made it further than I expected.\" He doesn't sound worried. He sounds curious.",
+    victoryLine: "\"...Well played.\" The grin doesn't quite reach his eyes.",
+    // Marc: "work on bosses too" - the run's final fight has always
+    // been "the same kit, bigger numbers." Revive+WoundedFury together
+    // give it something no mook or miniboss has: a real second phase.
+    // The first killing blow only drops him to 1 HP (Revive - same
+    // mechanism a player's own Revive-carrying units already use,
+    // never before given to an enemy - deliberately reserved for the
+    // one fight in the game meant to feel different from every other),
+    // and WoundedFury means whatever he does next hits harder, not
+    // softer, once he's clinging to life. Spacemonkey carries no Ward
+    // (SUNDERABLE_IDS' own first-priority check), so Revive is the
+    // first stack a Sunder effect actually finds on him - a player
+    // squad carrying Sunder (Thornwisp/Ashcaller/Sundermaw Fang/
+    // Rootbreak Sigil) has a real, existing answer: strip the extra
+    // life before it matters, instead of it being unconditional.
+    passive: [
+      { type: "applyBuff", id: "revive", amount: 1 },
+      { type: "applyBuff", id: "woundedFury", amount: 1 },
+    ],
+    // Phase mechanic (autoBattleEngine.js's checkBossPhases) - the final
+    // fight gets two real turns of the screw on top of the Revive
+    // second-wind it already had. At 60% the grin drops and he stops
+    // playing; at 30% the Veil in him shows through.
+    phases: [
+      {
+        atHpPct: 0.6,
+        announce: "\"You've come a long way to lose.\"",
+        effects: [
+          { type: "applyBuff", id: "strength", amount: 2 },
+          { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+        ],
+      },
+      {
+        atHpPct: 0.3,
+        announce: "The hollow where its crown should be starts to sing.",
+        effects: [
+          { type: "applyBuff", id: "strength", amount: 3 },
+          { type: "applyBuff", id: "execute", amount: 2 },
+          { type: "applyBuff", id: "ward", amount: 2 },
+        ],
+      },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 21, weight: 2 },
+      { type: "debuff", id: "weak", amount: 3, target: "player", weight: 1 },
+      { type: "block", amount: 16, weight: 1 },
+      // AoE (autoBattleEngine.js): hits every living player unit
+      // directly, bypassing frontmost/randomLiving entirely - Taunt
+      // (Stoneheart, Bulwark Standard) and shielding both work by
+      // steering or filtering a single-target pick, so neither does
+      // anything here. Only Spacemonkey has this move: the boss fight
+      // is the one place "hide the squad behind one tank" should stop
+      // being a guaranteed answer. Priced below the single-target hit
+      // (11 vs 21) since it can land on up to 4 units at once.
+      { type: "aoe", amount: 11, weight: 1 },
+    ],
+  },
+
+  // ===== Elite encounters (feat/hearthwood-elites) =================
+  // Marc: "viholliset ja bossit". A mid-tier spike between a mook and a
+  // Trial - each promoted onto a fixed RUN_PATH node as `type: "elite"`
+  // (runEngine.js), each with ONE clear gimmick (a `passive` trigger)
+  // plus a `phases` escalation (autoBattleEngine.checkBossPhases, which
+  // fires for any enemy carrying `phases`, not just bosses). Pure data,
+  // deterministic, no new engine code. Base stats sit between a
+  // late-Act mook and that Act's miniboss.
+  "the-gorging-maw": {
+    id: "the-gorging-maw",
+    act: 2,
+    name: "The Gorging Maw",
+    maxHp: 72,
+    art: "husk",
+    image: theGorgingMawImg,
+    description: "It doesn't fight to kill you. It fights to be fed.",
+    introLine: "Every wound it opens on you, it closes one of its own. Don't let this go long.",
+    // Lifelink - heals for a flat amount on every hit it lands.
+    passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 4 } }],
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "It feeds on the wounds it makes.",
+        effects: [
+          { type: "heal", amount: 7 },
+          { type: "applyBuff", id: "strength", amount: 2 },
+        ],
+      },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 10, weight: 3 },
+      { type: "block", amount: 8, weight: 1 },
+    ],
+  },
+  "the-iron-sentinel": {
+    id: "the-iron-sentinel",
+    act: 2,
+    name: "The Iron Sentinel",
+    maxHp: 84,
+    art: "warden",
+    image: theIronSentinelImg,
+    description: "Chip at it all day. It only gets harder to chip.",
+    introLine: "Its armour thickens every round it stands. A slow grind loses this one - open big or execute.",
+    // Compounding Bulwark - permanent armour that stacks each turn.
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "bulwark", amount: 1 } }],
+    phases: [
+      {
+        atHpPct: 0.6,
+        announce: "It stops pretending to be mortal.",
+        effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
+      },
+    ],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 9 },
+      { type: "attack", amount: 13 },
+      { type: "attack", amount: 8 },
+    ],
+  },
+  "the-bramble-lash": {
+    id: "the-bramble-lash",
+    act: 3,
+    name: "The Bramble Lash",
+    maxHp: 80,
+    art: "rootbindThicket",
+    image: theBrambleLashImg,
+    description: "Touch it and it takes a piece of your finger.",
+    introLine: "It hits back at whoever hits it. Fewer, bigger strikes - and keep your fragile ones out of reach.",
+    // Thorns - retaliates against any unit that strikes it.
+    passive: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 5, target: "target" } }],
+    phases: [
+      {
+        atHpPct: 0.5,
+        announce: "Every thorn on it turns outward.",
+        effects: [
+          { type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 3, target: "target" } },
+          { type: "addTrigger", trigger: "onHit", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } },
+        ],
+      },
+    ],
+    moveSelect: "weightedRandom",
+    movePattern: [
+      { type: "attack", amount: 11, weight: 2 },
+      { type: "debuff", id: "vulnerable", amount: 1, target: "player", weight: 1 },
+    ],
+  },
+  "the-ashfall-herald": {
+    id: "the-ashfall-herald",
+    act: 4,
+    name: "The Ashfall Herald",
+    maxHp: 88,
+    art: "flame",
+    image: theAshfallHeraldImg,
+    description: "It doesn't aim. Likes lamps and light.",
+    introLine: "Its fire spreads to the whole squad and grows every round. Cleanse, heal through it - or end it fast.",
+    // Its own strikes escalate: +1 Strength at the top of every round,
+    // so both its single hits and its squad-wide AoE keep climbing.
+    passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "applyBuff", id: "strength", amount: 1 } }],
+    phases: [
+      {
+        atHpPct: 0.4,
+        announce: "The whole sky comes down.",
+        effects: [{ type: "applyBuff", id: "strength", amount: 2 }],
+      },
+    ],
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "aoe", amount: 5 },
+      { type: "attack", amount: 11 },
+      { type: "aoe", amount: 5 },
+    ],
+  },
+}
+
+// ===================================================================
+// Act -> enemy-set mapping (feat/hearthwood-act-enemy-sets)
+// -------------------------------------------------------------------
+// Every ENEMIES entry now carries `act: 1..7`, matching runEngine.js's
+// 7 story Acts (DIFFICULTY_TIERS / difficultyTierForNode). Assignment
+// was made by (a) the enemy's existing name/theme and (b) exactly where
+// it already sits in RUN_PATH today - every fixed-id battle node in
+// RUN_PATH now belongs to the Act its position falls in, so the
+// encounter resolver in runEngine.js never has to swap a fixed fight on
+// a straight (non-branching) run. Node bands: Act I = nodes 0-15,
+// II = 16-48, III = 49-65, IV = 66-82, V = 83-96, VI = 97-104,
+// VII = 105-110 (RUN_PATH.length 111).
+//   Act I   The Outer Grove      - rotwood-husk / rotwood-sapling /
+//        moss-troll / bark-brute / mist-growler / drowned-siren
+//   Act II  The Deepening Woods  - rune-warden / bloomrot-stalker /
+//        rootbind-thicket / witherfang / thornspite / bramblehide /
+//        emberwrack / duskgnaw / cragfang / stormroot / duskmoth /
+//        hollowfen / quillfang / ironmaw / gravemaw / duskhollow
+//   Act III The Wounded Hearthwood - needlefen / wraithgale / stonewake /
+//        gravequill / bonewarden / mossveil / hollowspite
+//   Act IV  The Reckoning        - ashenmaw / duskwither / hollowfang /
+//        rootward / briarmaw / bramblespite / thornfen / hollowcurse / grimspite
+//   Act V   The Crownless        - ironroot (+ 2 samples; only 1 non-sample
+//        solo enemy today - a known thin spot for the content pass)
+//   Act VI  The Echo Rift        - samples only (RUN_PATH here is all
+//        formations + the wyrmgall miniboss / "veilbound" Trial)
+//   Act VII The Echo Verge       - samples only (RUN_PATH here is the
+//        final formations + the spacemonkey boss / "hollow-king" Trial)
+// Minibosses (deepwarden A1 / thornmaw A2 / wyrmgall A6) and the boss
+// (spacemonkey A7) carry an `act` for completeness but are EXCLUDED from
+// ACT_ENEMIES / the rollable-and-fallback pool below - they only ever
+// appear on their own fixed miniboss/boss RUN_PATH nodes, wrapped by a
+// Trial.
+export const ACT_COUNT = 7
+
+// Minibosses + boss + the elites (feat/hearthwood-elites): fixed
+// encounters, only ever on their own `type: "miniboss" | "boss" |
+// "elite"` RUN_PATH nodes - never pulled into the random solo-battle
+// swap pool (actEnemyForNode / ACT_ENEMIES).
+export const NON_BATTLE_ENEMY_IDS = new Set([
+  "deepwarden",
+  "thornmaw",
+  "wyrmgall",
+  "spacemonkey",
+  "the-gorging-maw",
+  "the-iron-sentinel",
+  "the-bramble-lash",
+  "the-ashfall-herald",
+  // Specialist enemies (feat/hearthwood-threat-preview): authored +
+  // Codex/Almanac-listed + threat-preview-classified, but kept OUT of
+  // actEnemyForNode's solo pool for now - dropping 3 ids into the
+  // ACT_ENEMIES cycle changes `pool.length`, which reshuffles which
+  // enemy EVERY displaced Act 2-3 battle node maps to (a ~+10pp tommy
+  // drift across 3 RUNS=100 pairs - a real mid-run difficulty
+  // reshuffle, not noise). Scheduling them into specific RUN_PATH nodes
+  // / formations with per-node balancing is its own slice.
+  "silence-weaver",
+  "dawn-zealot",
+  "plaguebearer",
+  // Swarmlings (feat/hearthwood-swarm): only ever appear inside the
+  // Swarm formations (formations.js the-brood / the-teeming), never as
+  // a solo actEnemyForNode pick - same pool-reshuffle reason as above.
+  "sporelet",
+  "mire-gnat",
+  "thorn-tick",
+  // Fortress bodies (feat/hearthwood-fortress): only via the-bulwark /
+  // the-bastion, never a solo actEnemyForNode pick.
+  "oakshell-warden",
+  "mossmender",
+  "grave-bastion",
+  // Hunters (feat/hearthwood-hunters): only via the-pack / the-run-down,
+  // never a solo actEnemyForNode pick - same pool-reshuffle reason.
+  "fen-stalker",
+  "pack-runner",
+  "throat-taker",
+  // The Rot (feat/hearthwood-rot): only via the-blight / the-festering,
+  // never a solo actEnemyForNode pick - same pool-reshuffle reason.
+  "rotgut-crawler",
+  "spore-lurcher",
+  "mire-sworn",
+  // The Coven (feat/hearthwood-coven): only via the-conclave / the-choir,
+  // never a solo actEnemyForNode pick - same pool-reshuffle reason.
+  "coven-matron",
+  "hex-acolyte",
+  "bog-devotee",
+  // The Brood (feat/hearthwood-brood): only via the-clutch / the-hatchery.
+  "brood-mother",
+  "brood-tender",
+  // The Cult (feat/hearthwood-cult): only via the-communion / the-long-chant.
+  "ritual-warden",
+  "sworn-cultist",
+  "ritual-adept",
+  // The Collectors (feat/hearthwood-collectors): only via the-tithe / the-hoard.
+  "hoardling",
+  "tithe-warden",
+  // The Ancients (feat/hearthwood-ancients): only via the-ancient-grove /
+  // the-elder-hollow.
+  "ancient-oak",
+  "elder-oak",
+  "sapling-attendant",
+])
+
+// { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible
+// enemies per Act. Every Act 1..7 is guaranteed >= 1 entry (Acts VI/VII
+// are currently filled entirely by the placeholder samples above).
+export const ACT_ENEMIES = (() => {
+  const map = {}
+  for (let a = 1; a <= ACT_COUNT; a++) map[a] = []
+  for (const e of Object.values(ENEMIES)) {
+    if (!e.act || NON_BATTLE_ENEMY_IDS.has(e.id)) continue
+    if (!map[e.act]) map[e.act] = []
+    map[e.act].push(e.id)
+  }
+  return map
+})()
+
+export function enemiesForAct(act) {
+  return ACT_ENEMIES[act] || []
+}
+
+// Deterministic act-appropriate solo enemy for a run position. Used by
+// runEngine.js's encounter resolver when the branching path displaces a
+// fixed-id battle node into a different Act than its enemyId belongs to.
+// Seeded by nodeIndex so a save/reload or a fairness re-run resolves the
+// exact same fight. Falls back to `preferredId` if the Act has no set.
+export function actEnemyForNode(act, nodeIndex, preferredId) {
+  const pool = enemiesForAct(act)
+  if (!pool.length) return preferredId
+  if (preferredId && pool.includes(preferredId)) return preferredId
+  return pool[((nodeIndex % pool.length) + pool.length) % pool.length]
+}

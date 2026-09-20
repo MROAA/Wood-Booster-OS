@@ -1,0 +1,138 @@
+============================================================
+                     HEARTHWOOD — ITEMS LORE
+============================================================
+
+INTRODUCTION
+------------
+Items in Hearthwood are personal artifacts infused with the
+primal forces of Saplight, Hollow, Ember, and Stone. Unlike
+relics, which shape the world, items shape individuals. They
+carry memories, magic, and purpose.
+
+============================================================
+SAPLIGHT ITEMS — BREATH OF THE FOREST
+============================================================
+
+MOSSDROP VIAL
+-------------
+Origin: Distilled from the oldest mossbeds of the Green Veins.
+Effect: Healing, regeneration, root restoration.
+Lore: Mossdrop Vials are created only during the Blooming Moon.
+Saplight druids claim each drop contains a fragment of the
+forest’s breath.
+
+SAPLIGHT KNOT
+-------------
+Origin: A woven charm made from living roots.
+Effect: Protective ward, growth enhancement.
+Lore: The Knot tightens when danger approaches. It is said to
+be the forest’s way of warning its chosen.
+
+GROVEWEAVE CHARM
+----------------
+Origin: Threads of bark and sap woven into a talisman.
+Effect: Strengthens allies, weakens corruption.
+Lore: Groveweave Charms hum softly when near Ember magic.
+
+THORNWHISPER LOOP
+-----------------
+Origin: A ring of thorned bramble.
+Effect: Piercing aura, defensive spikes.
+Lore: The Loop whispers warnings to its bearer, though few
+understand its language.
+
+============================================================
+HOLLOW ITEMS — ECHO OF WHAT WAS LOST
+============================================================
+
+WRAITHFANG CHARM
+----------------
+Origin: A fang taken from a spectral beast.
+Effect: Echo strike, fear aura.
+Lore: The fang vibrates when spirits draw near. Hollow ritualists
+use it to locate forgotten souls.
+
+NIGHTROOT FETISH
+----------------
+Origin: A ritual object carved from the roots of the Hollow Marsh.
+Effect: Shadow enhancement, spectral binding.
+Lore: Nightroot Fetishes are buried with the dead to preserve
+their memories. Some return to the surface on their own.
+
+SHADEGLASS VIAL
+---------------
+Origin: A vial forged from shadow-infused crystal.
+Effect: Spectral mist, echo disruption.
+Lore: Shadeglass is said to form only where Hollow and Ember
+collide.
+
+ECHO-COIL TOKEN
+---------------
+Origin: A twisted coil of spectral thread.
+Effect: Echo duplication, illusion creation.
+Lore: Echo-Coils allow the bearer to leave behind false memories.
+
+============================================================
+EMBER ITEMS — ASH THAT REMAKES THE WORLD
+============================================================
+
+EMBERROOT IDOL
+---------------
+Origin: A burning effigy carved from emberwood.
+Effect: Flame burst, ash healing.
+Lore: Emberroot Idols never cool. They burn with the memory of
+ancient fire rituals.
+
+BLIGHTROOT PHIAL
+----------------
+Origin: Toxic sap harvested from corrupted flora.
+Effect: Poison burst, corruption spread.
+Lore: Blightroot Phials are forbidden by Saplight druids, who
+claim they “teach the forest to rot.”
+
+CINDERBLOOM FLASK
+-----------------
+Origin: A flask containing living flame-flower essence.
+Effect: Fire bloom, volatile healing.
+Lore: Cinderbloom grows only in places touched by Ember Titans.
+
+ASHBINDER CHARM
+---------------
+Origin: A charm forged from ritual ash.
+Effect: Fire resistance, ash cloak.
+Lore: Ashbinders are worn by Ember raiders during initiation.
+
+============================================================
+STONE ITEMS — MEMORY OF THE WORLD
+============================================================
+
+STONECOIL CHARM
+---------------
+Origin: A coil of stone carved with runes.
+Effect: Binding aura, defensive fortification.
+Lore: Stonecoil Charms are carved from monolith fragments and
+carry echoes of ancient truths.
+
+EARTHSHARD RELIQUARY
+--------------------
+Origin: A container made from relic stone.
+Effect: Memory storage, rune amplification.
+Lore: Earthshard Reliquaries store fragments of history. Some
+contain memories no tribe wishes to recall.
+
+RUNEBREAK TABLET
+----------------
+Origin: A cracked stone tablet etched with primal runes.
+Effect: Rune burst, stability disruption.
+Lore: Runebreak Tablets are dangerous. Stone elders forbid their
+use, claiming they “remember too much.”
+
+GRAVELIGHT PENDANT
+------------------
+Origin: A pendant carved from glowing relic stone.
+Effect: Light pulse, hidden threat detection.
+Lore: Gravelight Pendants reveal illusions and Hollow echoes.
+
+============================================================
+END OF FILE
+============================================================

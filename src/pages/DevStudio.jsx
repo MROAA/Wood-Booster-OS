@@ -8,7 +8,19 @@ import MultiFileChatPanel from "../components/devstudio/MultiFileChatPanel"
 
 import HistoryPanel from "../components/devstudio/HistoryPanel"
 
-import { DRAFT_STATUS_LABELS } from "../components/devstudio/statusLabels"
+import { DRAFT_STATUS_LABELS, TEST_STATUS_DISPLAY, RUN_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "../components/devstudio/statusLabels"
+
+import { parseUnresolvedReferences } from "../components/devstudio/parseUnresolvedReferences"
+
+import SavedPromptsRow from "../components/devstudio/SavedPromptsRow"
+import PlaybookPicker from "../components/devstudio/PlaybookPicker"
+import FilePicker from "../components/devstudio/FilePicker"
+import ModelBadge from "../components/devstudio/ModelBadge"
+import ModelPicker from "../components/devstudio/ModelPicker"
+
+import DiffView from "../components/devstudio/DiffView"
+
+import { useElapsedSeconds } from "../components/devstudio/useElapsedSeconds"
 
 
 function DevStudio() {
@@ -20,7 +32,12 @@ function DevStudio() {
 
   const [prompt, setPrompt] = useState("")
   const [filePath, setFilePath] = useState("")
+  const [generateModel, setGenerateModel] = useState(undefined)
+  const [compareGenerate, setCompareGenerate] = useState(false)
+  const [compareGenerateModel, setCompareGenerateModel] = useState(undefined)
   const [generating, setGenerating] = useState(false)
+
+  const generatingElapsedSeconds = useElapsedSeconds(generating)
 
   const [busyDraftId, setBusyDraftId] = useState(null)
 
@@ -35,12 +52,18 @@ function DevStudio() {
   const [reviewError, setReviewError] = useState("")
 
   const [refactorFilePath, setRefactorFilePath] = useState("")
+  const [refactorModel, setRefactorModel] = useState(undefined)
+  const [compareRefactor, setCompareRefactor] = useState(false)
+  const [compareRefactorModel, setCompareRefactorModel] = useState(undefined)
   const [refactoring, setRefactoring] = useState(false)
   const [refactorExplanation, setRefactorExplanation] = useState("")
   const [refactorError, setRefactorError] = useState("")
 
   const [debugFilePath, setDebugFilePath] = useState("")
   const [debugErrorMessage, setDebugErrorMessage] = useState("")
+  const [debugModel, setDebugModel] = useState(undefined)
+  const [compareDebug, setCompareDebug] = useState(false)
+  const [compareDebugModel, setCompareDebugModel] = useState(undefined)
   const [debugging, setDebugging] = useState(false)
   const [debugDiagnosis, setDebugDiagnosis] = useState("")
   const [debugError, setDebugError] = useState("")
@@ -59,7 +82,7 @@ function DevStudio() {
           return
         }
 
-        setDrafts(Array.isArray(draftsData) ? draftsData : [])
+        setDrafts(Array.isArray(draftsData) ? draftsData.map(withSavedCode) : [])
       } catch (loadError) {
         if (!cancelled) {
           setErrorMessage(loadError.message)
@@ -87,21 +110,35 @@ function DevStudio() {
     setGenerating(true)
     setErrorMessage("")
 
-    try {
-      const draft = await apiPost("/python-drafts", {
-        useAI: true,
-        prompt,
-        filePath,
-      })
+    // Peräkkäin, ei rinnakkain - ks. perustelu MultiFileChatPanel.jsx:n
+    // sendMessage()-funktiosta (paikallinen Ollama jonottaisi
+    // samanaikaiset generoinnit joka tapauksessa).
+    const modelsToRun = compareGenerate ? [generateModel, compareGenerateModel] : [generateModel]
+    const compareGroupId = compareGenerate ? Date.now() : null
+    let anySucceeded = false
 
-      setDrafts(current => [draft, ...current])
+    for (const modelToUse of modelsToRun) {
+      try {
+        const draft = await apiPost("/python-drafts", {
+          useAI: true,
+          prompt,
+          filePath,
+          model: modelToUse,
+        })
+
+        setDrafts(current => [{ ...withSavedCode(draft), compareGroupId }, ...current])
+        anySucceeded = true
+      } catch (generateError) {
+        setErrorMessage(generateError.message)
+      }
+    }
+
+    if (anySucceeded) {
       setPrompt("")
       setFilePath("")
-    } catch (generateError) {
-      setErrorMessage(generateError.message)
-    } finally {
-      setGenerating(false)
     }
+
+    setGenerating(false)
   }
 
   async function explainCode() {
@@ -160,21 +197,27 @@ function DevStudio() {
     setRefactorError("")
     setRefactorExplanation("")
 
-    try {
-      const draft = await apiPost("/python-drafts/refactor", {
-        filePath: refactorFilePath,
-      })
+    const modelsToRun = compareRefactor ? [refactorModel, compareRefactorModel] : [refactorModel]
+    const compareGroupId = compareRefactor ? Date.now() : null
 
-      setDrafts(current => [draft, ...current])
-      setRefactorExplanation(
-        draft.explanation ||
-          "Uusi luonnos lisätty alle - ei muutosselitystä.",
-      )
-    } catch (refactorErr) {
-      setRefactorError(refactorErr.message)
-    } finally {
-      setRefactoring(false)
+    for (const modelToUse of modelsToRun) {
+      try {
+        const draft = await apiPost("/python-drafts/refactor", {
+          filePath: refactorFilePath,
+          model: modelToUse,
+        })
+
+        setDrafts(current => [{ ...withSavedCode(draft), compareGroupId }, ...current])
+        setRefactorExplanation(
+          draft.explanation ||
+            "Uusi luonnos lisätty alle - ei muutosselitystä.",
+        )
+      } catch (refactorErr) {
+        setRefactorError(refactorErr.message)
+      }
     }
+
+    setRefactoring(false)
   }
 
   async function debugCode() {
@@ -187,32 +230,46 @@ function DevStudio() {
     setDebugError("")
     setDebugDiagnosis("")
 
-    try {
-      const draft = await apiPost("/python-drafts/debug", {
-        filePath: debugFilePath,
-        errorMessage: debugErrorMessage,
-      })
+    const modelsToRun = compareDebug ? [debugModel, compareDebugModel] : [debugModel]
+    const compareGroupId = compareDebug ? Date.now() : null
 
-      setDrafts(current => [draft, ...current])
-      setDebugDiagnosis(
-        draft.diagnosis ||
-          "Uusi luonnos lisätty alle - ei diagnoosia.",
-      )
-    } catch (debugErr) {
-      setDebugError(debugErr.message)
-    } finally {
-      setDebugging(false)
+    for (const modelToUse of modelsToRun) {
+      try {
+        const draft = await apiPost("/python-drafts/debug", {
+          filePath: debugFilePath,
+          errorMessage: debugErrorMessage,
+          model: modelToUse,
+        })
+
+        setDrafts(current => [{ ...withSavedCode(draft), compareGroupId }, ...current])
+        setDebugDiagnosis(
+          draft.diagnosis ||
+            "Uusi luonnos lisätty alle - ei diagnoosia.",
+        )
+      } catch (debugErr) {
+        setDebugError(debugErr.message)
+      }
     }
+
+    setDebugging(false)
   }
 
-  function updateDraftInList(updated) {
+  function withSavedCode(draft) {
+    return { ...draft, savedCode: draft.code }
+  }
+
+  function updateDraftInList(updated, { fromServer = true } = {}) {
     setDrafts(current =>
-      current.map(draft => (draft.id === updated.id ? updated : draft)),
+      current.map(draft =>
+        draft.id === updated.id
+          ? { ...updated, savedCode: fromServer ? updated.code : draft.savedCode }
+          : draft,
+      ),
     )
   }
 
   async function updateCode(draft, code) {
-    updateDraftInList({ ...draft, code })
+    updateDraftInList({ ...draft, code }, { fromServer: false })
   }
 
   async function saveDraft(draft) {
@@ -248,6 +305,66 @@ function DevStudio() {
     }
   }
 
+  async function reviseDraft(draft, feedback) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/revise`, { feedback })
+
+      updateDraftInList(updated)
+    } catch (reviseError) {
+      setErrorMessage(reviseError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function rejectDraft(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/reject`, {})
+
+      updateDraftInList(updated)
+    } catch (rejectError) {
+      setErrorMessage(rejectError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function archiveDraft(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/archive`, {})
+
+      updateDraftInList(updated)
+    } catch (archiveError) {
+      setErrorMessage(archiveError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function unarchiveDraft(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/unarchive`, {})
+
+      updateDraftInList(updated)
+    } catch (unarchiveError) {
+      setErrorMessage(unarchiveError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
   async function writeDraft(draft) {
     setBusyDraftId(draft.id)
     setErrorMessage("")
@@ -262,10 +379,143 @@ function DevStudio() {
       try {
         const refreshed = await apiGet("/python-drafts")
 
-        setDrafts(Array.isArray(refreshed) ? refreshed : [])
+        setDrafts(Array.isArray(refreshed) ? refreshed.map(withSavedCode) : [])
       } catch {
         // ignore refresh failure, error message already shown
       }
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function runDraft(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/run`, {})
+
+      updateDraftInList(updated)
+    } catch (runError) {
+      setErrorMessage(runError.message)
+
+      try {
+        const refreshed = await apiGet("/python-drafts")
+
+        setDrafts(Array.isArray(refreshed) ? refreshed.map(withSavedCode) : [])
+      } catch {
+        // ignore refresh failure, error message already shown
+      }
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function checkPrStatus(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/check-pr-status`, {})
+
+      updateDraftInList(updated)
+    } catch (checkError) {
+      setErrorMessage(checkError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function revertPr(draft) {
+    if (!window.confirm("Peruuta tämä yhdistetty Pull Request avaamalla uusi, peruuttava PR?")) {
+      return
+    }
+
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/revert-pr`, {})
+
+      updateDraftInList(updated)
+    } catch (revertError) {
+      setErrorMessage(revertError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  async function checkRevertPrStatus(draft) {
+    setBusyDraftId(draft.id)
+    setErrorMessage("")
+
+    try {
+      const updated = await apiPut(`/python-drafts/${draft.id}/check-revert-pr-status`, {})
+
+      updateDraftInList(updated)
+    } catch (checkError) {
+      setErrorMessage(checkError.message)
+    } finally {
+      setBusyDraftId(null)
+    }
+  }
+
+  /*
+   * Kokeilee samaa luonnosta toisella mallilla jälkikäteen. Kolme eri
+   * reittiä loivat alunperin PythonCodeDraftin (generoi/refaktoroi/
+   * debuggaa), eikä lähdetoiminto ole oma kenttänsä - päätellään se
+   * luonnoksen omasta prompt-etuliitteestä, täsmälleen samalla tavalla
+   * kuin nuo kolme reittiä sen itse rakentavat (ks. devStudio.js).
+   *
+   * "compareGroupId" on olemassa oleva, vain selaimen puolella elävä
+   * (ei tallenneta kantaan) merkintä viime kierroksen "vertaile kahta
+   * mallia" -toiminnosta - tässä sitä käytetään uudelleen, mutta koska
+   * lähdeluonnos on jo jossain kohtaa listaa (ei aina listan alussa),
+   * uusi luonnos pitää pujottaa sen VIEREEN, ei listan kärkeen, jotta
+   * "🔀 Vertailu"-otsikko (joka näyttää vain kunkin ryhmän ensimmäisen
+   * listajärjestyksen mukaisen jäsenen kohdalla) osuu oikeaan pariin.
+   */
+  async function retryDraftWithModel(sourceDraft, model) {
+    setBusyDraftId(sourceDraft.id)
+    setErrorMessage("")
+
+    const groupId = sourceDraft.compareGroupId || Date.now()
+
+    try {
+      let newDraft
+
+      if (sourceDraft.prompt.startsWith("Refaktoroi: ")) {
+        newDraft = await apiPost("/python-drafts/refactor", {
+          filePath: sourceDraft.filePath,
+          model,
+        })
+      } else if (sourceDraft.prompt.startsWith("Debug: ")) {
+        newDraft = await apiPost("/python-drafts/debug", {
+          filePath: sourceDraft.filePath,
+          model,
+        })
+      } else {
+        newDraft = await apiPost("/python-drafts", {
+          useAI: true,
+          prompt: sourceDraft.prompt,
+          filePath: sourceDraft.filePath,
+          model,
+        })
+      }
+
+      setDrafts(current => {
+        const tagged = current.map(existing =>
+          existing.id === sourceDraft.id ? { ...existing, compareGroupId: groupId } : existing,
+        )
+
+        const sourceIndex = tagged.findIndex(existing => existing.id === sourceDraft.id)
+
+        const taggedNewDraft = { ...withSavedCode(newDraft), compareGroupId: groupId }
+
+        return [...tagged.slice(0, sourceIndex), taggedNewDraft, ...tagged.slice(sourceIndex)]
+      })
+    } catch (error) {
+      setErrorMessage(error.message)
     } finally {
       setBusyDraftId(null)
     }
@@ -289,7 +539,7 @@ function DevStudio() {
       try {
         const refreshed = await apiGet("/python-drafts")
 
-        setDrafts(Array.isArray(refreshed) ? refreshed : [])
+        setDrafts(Array.isArray(refreshed) ? refreshed.map(withSavedCode) : [])
       } catch {
         // ignore refresh failure, error message already shown
       }
@@ -510,6 +760,10 @@ function DevStudio() {
             />
           </label>
 
+          <SavedPromptsRow lane="python" currentPrompt={prompt} onUseSaved={setPrompt} />
+
+          <PlaybookPicker lane="python" onUsePlaybook={setPrompt} />
+
           <label className="block text-sm text-[var(--wood-muted)]">
             Tiedostonimi
 
@@ -530,6 +784,16 @@ function DevStudio() {
             />
           </label>
 
+          <div className="flex flex-wrap items-center gap-2">
+            <ModelPicker value={generateModel} onChange={setGenerateModel} />
+            <CompareToggle
+              compareEnabled={compareGenerate}
+              onToggleCompare={setCompareGenerate}
+              compareModel={compareGenerateModel}
+              onCompareModelChange={setCompareGenerateModel}
+            />
+          </div>
+
           <button
             type="button"
             className="
@@ -544,7 +808,7 @@ function DevStudio() {
             disabled={generating}
             onClick={generateDraft}
           >
-            {generating ? "Kirjoitetaan..." : "Luo koodi"}
+            {generating ? `Generoidaan... ${generatingElapsedSeconds}s` : "Luo koodi"}
           </button>
         </div>
       </section>
@@ -570,19 +834,11 @@ function DevStudio() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <input
-            className="
-              w-full
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              bg-[var(--wood-bg)]
-              p-3
-              text-[var(--wood-text)]
-            "
+          <FilePicker
             value={explainFilePath}
             onChange={event => setExplainFilePath(event.target.value)}
             placeholder="esim. spc.py"
+            extensions={[".py"]}
           />
 
           <button
@@ -644,19 +900,11 @@ function DevStudio() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <input
-            className="
-              w-full
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              bg-[var(--wood-bg)]
-              p-3
-              text-[var(--wood-text)]
-            "
+          <FilePicker
             value={reviewFilePath}
             onChange={event => setReviewFilePath(event.target.value)}
             placeholder="esim. spc.py"
+            extensions={[".py"]}
           />
 
           <button
@@ -720,20 +968,22 @@ function DevStudio() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <input
-            className="
-              w-full
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              bg-[var(--wood-bg)]
-              p-3
-              text-[var(--wood-text)]
-            "
+          <FilePicker
             value={refactorFilePath}
             onChange={event => setRefactorFilePath(event.target.value)}
             placeholder="esim. spc.py"
+            extensions={[".py"]}
           />
+
+          <div className="flex flex-wrap items-center gap-2">
+            <ModelPicker value={refactorModel} onChange={setRefactorModel} />
+            <CompareToggle
+              compareEnabled={compareRefactor}
+              onToggleCompare={setCompareRefactor}
+              compareModel={compareRefactorModel}
+              onCompareModelChange={setCompareRefactorModel}
+            />
+          </div>
 
           <button
             type="button"
@@ -796,19 +1046,11 @@ function DevStudio() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <input
-            className="
-              w-full
-              rounded-xl
-              border
-              border-[var(--wood-border)]
-              bg-[var(--wood-bg)]
-              p-3
-              text-[var(--wood-text)]
-            "
+          <FilePicker
             value={debugFilePath}
             onChange={event => setDebugFilePath(event.target.value)}
             placeholder="esim. spc.py"
+            extensions={[".py"]}
           />
 
           <textarea
@@ -826,6 +1068,16 @@ function DevStudio() {
             onChange={event => setDebugErrorMessage(event.target.value)}
             placeholder="Liitä virheilmoitus tai kuvaile ongelma (valinnainen)"
           />
+
+          <div className="flex flex-wrap items-center gap-2">
+            <ModelPicker value={debugModel} onChange={setDebugModel} />
+            <CompareToggle
+              compareEnabled={compareDebug}
+              onToggleCompare={setCompareDebug}
+              compareModel={compareDebugModel}
+              onCompareModelChange={setCompareDebugModel}
+            />
+          </div>
 
           <button
             type="button"
@@ -874,24 +1126,65 @@ function DevStudio() {
           <p className="text-sm text-[var(--wood-muted)]">Ladataan...</p>
         )}
 
-        {!loading && drafts.length === 0 && (
+        {!loading && drafts.filter(draft => !draft.archived).length === 0 && (
           <p className="text-sm text-[var(--wood-muted)]">
             Ei vielä luonnoksia.
           </p>
         )}
 
-        {drafts.map(draft => (
-          <DraftCard
-            key={draft.id}
-            draft={draft}
-            busy={busyDraftId === draft.id}
-            onCodeChange={code => updateCode(draft, code)}
-            onSave={() => saveDraft(draft)}
-            onApprove={() => approveDraft(draft)}
-            onWrite={() => writeDraft(draft)}
-            onRevert={() => revertDraft(draft)}
-          />
-        ))}
+        {
+          (() => {
+
+            const seenCompareGroups = new Set()
+
+            return drafts.filter(draft => !draft.archived).map(draft => {
+
+              const showCompareLabel =
+                draft.compareGroupId && !seenCompareGroups.has(draft.compareGroupId)
+
+              if (draft.compareGroupId) {
+                seenCompareGroups.add(draft.compareGroupId)
+              }
+
+              return (
+
+                <div key={draft.id}>
+
+                  {
+                    showCompareLabel && (
+                      <div className="mb-1.5 text-xs text-[var(--wood-muted)]">
+                        🔀 Vertailu: {draft.prompt}
+                      </div>
+                    )
+                  }
+
+                  <DraftCard
+                    draft={draft}
+                    busy={busyDraftId === draft.id}
+                    onCodeChange={code => updateCode(draft, code)}
+                    onSave={() => saveDraft(draft)}
+                    onApprove={() => approveDraft(draft)}
+                    onWrite={() => writeDraft(draft)}
+                    onRevert={() => revertDraft(draft)}
+                    onRevise={feedback => reviseDraft(draft, feedback)}
+                    onReject={() => rejectDraft(draft)}
+                    onCheckPrStatus={() => checkPrStatus(draft)}
+                    onRevertPr={() => revertPr(draft)}
+                    onCheckRevertPrStatus={() => checkRevertPrStatus(draft)}
+                    onRetryWithModel={model => retryDraftWithModel(draft, model)}
+                    onArchive={() => archiveDraft(draft)}
+                    onUnarchive={() => unarchiveDraft(draft)}
+                    onRun={() => runDraft(draft)}
+                  />
+
+                </div>
+
+              )
+
+            })
+
+          })()
+        }
       </section>
 
       </>
@@ -901,7 +1194,143 @@ function DevStudio() {
 }
 
 
-function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert }) {
+function CompareToggle({ compareEnabled, onToggleCompare, compareModel, onCompareModelChange }) {
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => onToggleCompare(enabled => !enabled)}
+        className={`
+          rounded-full
+          border
+          px-2.5
+          py-1
+          text-xs
+          transition-colors
+          ${
+            compareEnabled
+              ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+              : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+          }
+        `}
+      >
+        🔀 Vertaile kahta mallia
+      </button>
+
+      {
+        compareEnabled && (
+          <ModelPicker value={compareModel} onChange={onCompareModelChange} />
+        )
+      }
+    </>
+  )
+
+}
+
+function RetryWithModelRow({ onRetryWithModel, busy }) {
+
+  const [retryModel, setRetryModel] = useState(undefined)
+
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+
+      <button
+        type="button"
+        onClick={() => setIsOpen(open => !open)}
+        className={`
+          rounded-full
+          border
+          px-2.5
+          py-1
+          text-xs
+          transition-colors
+          ${
+            isOpen
+              ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+              : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+          }
+        `}
+      >
+        🔁 Kokeile toisella mallilla
+      </button>
+
+      {
+        isOpen && (
+
+          <>
+            <ModelPicker value={retryModel} onChange={setRetryModel} />
+
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                onRetryWithModel(retryModel)
+                setIsOpen(false)
+                setRetryModel(undefined)
+              }}
+              className="
+                rounded-full
+                border
+                border-[var(--wood-accent)]
+                px-2.5
+                py-1
+                text-xs
+                text-[var(--wood-text)]
+                transition-opacity
+                disabled:opacity-30
+                disabled:cursor-not-allowed
+                hover:bg-[var(--wood-accent)]
+                hover:text-[var(--wood-bg)]
+              "
+            >
+              Kokeile
+            </button>
+          </>
+
+        )
+      }
+
+    </div>
+
+  )
+
+}
+
+function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRevert, onRevise, onReject, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive, onRun }) {
+  const [reviseFeedback, setReviseFeedback] = useState("")
+
+  const isFinished = [
+    "written",
+    "rejected",
+    "pr_open",
+    "pr_merged",
+    "pr_closed",
+    "pr_revert_open",
+    "pr_revert_merged",
+    "pr_revert_closed",
+  ].includes(draft.status)
+
+  const unresolvedReferences = parseUnresolvedReferences(draft.unresolvedReferences)
+
+  const testDisplay = TEST_STATUS_DISPLAY[draft.testStatus]
+
+  const savedCode = draft.savedCode ?? draft.code
+
+  const isDirty = draft.code !== savedCode
+
+  function submitRevise() {
+    if (!reviseFeedback.trim()) {
+      return
+    }
+
+    onRevise(reviseFeedback.trim())
+    setReviseFeedback("")
+  }
+
   return (
     <article className="
       rounded-2xl
@@ -921,50 +1350,100 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
           </p>
         </div>
 
-        <StatusBadge status={draft.status} />
+        <div className="flex shrink-0 items-center gap-1.5">
+          <ModelBadge model={draft.model} />
+          <StatusBadge status={draft.status} />
+        </div>
       </div>
 
-      <textarea
-        className="
-          mt-4
-          w-full
-          rounded-xl
-          border
-          border-[var(--wood-border)]
-          bg-[var(--wood-bg)]
-          p-3
-          font-mono
-          text-xs
-          text-[var(--wood-text)]
-        "
-        rows={10}
-        value={draft.code}
-        onChange={event => onCodeChange(event.target.value)}
-        disabled={draft.status === "written"}
-      />
+      {testDisplay && (
+        <div className={`mt-2 text-xs ${testDisplay.className}`}>
+          {testDisplay.icon} {testDisplay.label}
+          {draft.testStatus === "skipped" && draft.testSkippedReason && (
+            <span className="text-[var(--wood-muted)]"> — {draft.testSkippedReason}</span>
+          )}
+        </div>
+      )}
 
-      {draft.status === "write_failed" && draft.writeError && (
+      {unresolvedReferences.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
+          ⚠ Koodi viittaa tiedostoon jota ei löydy - tarkista ennen hyväksyntää:
+          <ul className="mt-1 list-disc pl-4 font-mono">
+            {unresolvedReferences.map((reference, referenceIndex) => (
+              <li key={referenceIndex}>{reference}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mt-4">
+        <DiffView diff={draft.diff} filePath={draft.filePath} />
+      </div>
+
+      {draft.status === "draft" && (
+        <textarea
+          className="
+            mt-3
+            w-full
+            rounded-xl
+            border
+            border-[var(--wood-border)]
+            bg-[var(--wood-bg)]
+            p-3
+            font-mono
+            text-xs
+            text-[var(--wood-text)]
+          "
+          rows={10}
+          value={draft.code}
+          onChange={event => onCodeChange(event.target.value)}
+        />
+      )}
+
+      {(draft.status === "write_failed" || draft.status === "pr_failed" || draft.status === "pr_revert_failed") && draft.writeError && (
         <p className="mt-2 text-xs text-red-400">{draft.writeError}</p>
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="
-            rounded-xl
-            border
-            border-[var(--wood-border)]
-            px-3
-            py-1.5
-            text-sm
-            text-[var(--wood-text)]
-            disabled:opacity-50
-          "
-          disabled={busy || draft.status === "written"}
-          onClick={onSave}
-        >
-          Tallenna muokkaukset
-        </button>
+        {(draft.status === "draft" || draft.status === "approved") && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              px-3
+              py-1.5
+              text-sm
+              text-[var(--wood-text)]
+              disabled:opacity-50
+            "
+            disabled={busy || isDirty}
+            onClick={onRun}
+          >
+            ▶ Aja ja näytä tulostus
+          </button>
+        )}
+
+        {draft.status === "draft" && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              px-3
+              py-1.5
+              text-sm
+              text-[var(--wood-text)]
+              disabled:opacity-50
+            "
+            disabled={busy}
+            onClick={onSave}
+          >
+            Tallenna muokkaukset
+          </button>
+        )}
 
         <button
           type="button"
@@ -978,11 +1457,17 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
             text-[var(--wood-text)]
             disabled:opacity-50
           "
-          disabled={busy || draft.status !== "draft"}
+          disabled={busy || isDirty || draft.status !== "draft"}
           onClick={onApprove}
         >
           Hyväksy
         </button>
+
+        {isDirty && (
+          <p className="mt-2 w-full text-xs text-amber-400">
+            Tallenna muokkaukset ensin — muuten "Aja"/"Hyväksy" käyttäisi viimeksi tallennettua koodia.
+          </p>
+        )}
 
         <button
           type="button"
@@ -998,11 +1483,13 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
           "
           disabled={
             busy ||
-            (draft.status !== "approved" && draft.status !== "write_failed")
+            (draft.status !== "approved" &&
+              draft.status !== "write_failed" &&
+              draft.status !== "pr_failed")
           }
           onClick={onWrite}
         >
-          Kirjoita levylle
+          Tee Pull Request
         </button>
 
         {draft.status === "written" && (
@@ -1024,7 +1511,225 @@ function DraftCard({ draft, busy, onCodeChange, onSave, onApprove, onWrite, onRe
             Peruuta
           </button>
         )}
+
+        {(draft.status === "pr_merged" || draft.status === "pr_revert_failed") && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-red-900
+              px-3
+              py-1.5
+              text-sm
+              text-red-400
+              disabled:opacity-50
+            "
+            disabled={busy}
+            onClick={onRevertPr}
+          >
+            Peruuta (uusi PR)
+          </button>
+        )}
+
+        {!isFinished && (
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-red-900
+              px-3
+              py-1.5
+              text-sm
+              text-red-400
+              disabled:opacity-50
+            "
+            disabled={busy}
+            onClick={onReject}
+          >
+            Hylkää
+          </button>
+        )}
+
+        <button
+          type="button"
+          disabled={busy}
+          onClick={draft.archived ? onUnarchive : onArchive}
+          className="
+            rounded-full
+            border
+            border-[var(--wood-border)]
+            px-3
+            py-1
+            text-xs
+            text-[var(--wood-muted)]
+            transition-opacity
+            disabled:opacity-30
+            disabled:cursor-not-allowed
+            hover:border-[var(--wood-accent)]
+            hover:text-[var(--wood-text)]
+          "
+        >
+          {draft.archived ? "Palauta arkistosta" : "Arkistoi"}
+        </button>
       </div>
+
+      {draft.runStatus && (
+        <div className="mt-3">
+          <div className={`text-xs ${RUN_STATUS_DISPLAY[draft.runStatus]?.className || "text-[var(--wood-muted)]"}`}>
+            {RUN_STATUS_DISPLAY[draft.runStatus]?.icon || "?"} {RUN_STATUS_DISPLAY[draft.runStatus]?.label || "Ajo epäonnistui"}
+          </div>
+          {draft.runOutput && (
+            <pre className="
+              wood-scroll
+              mt-1
+              max-h-40
+              overflow-auto
+              rounded-lg
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-2
+              text-xs
+              text-[var(--wood-text)]
+              whitespace-pre-wrap
+            ">
+              {draft.runOutput}
+            </pre>
+          )}
+        </div>
+      )}
+
+      <RetryWithModelRow onRetryWithModel={onRetryWithModel} busy={busy} />
+
+      {draft.status.startsWith("pr_") && !draft.status.startsWith("pr_revert_") && (
+        <div className="mt-3 flex items-center gap-2">
+          {draft.prUrl && (
+            <a
+              href={draft.prUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-[var(--wood-accent)] underline"
+            >
+              PR #{draft.prNumber} ↗
+            </a>
+          )}
+
+          {draft.checkStatus && CHECK_STATUS_LABELS[draft.checkStatus] && (
+            <span className={`text-xs ${CHECK_STATUS_LABELS[draft.checkStatus].className}`}>
+              {CHECK_STATUS_LABELS[draft.checkStatus].icon} {CHECK_STATUS_LABELS[draft.checkStatus].label}
+            </span>
+          )}
+
+          {draft.status === "pr_open" && (
+            <button
+              type="button"
+              className="
+                rounded-xl
+                border
+                border-[var(--wood-border)]
+                px-3
+                py-1
+                text-xs
+                text-[var(--wood-muted)]
+                disabled:opacity-50
+              "
+              disabled={busy}
+              onClick={onCheckPrStatus}
+            >
+              Tarkista PR:n tila
+            </button>
+          )}
+        </div>
+      )}
+
+      {draft.status.startsWith("pr_revert_") && (
+        <div className="mt-3 flex items-center gap-2">
+          {draft.prUrl && (
+            <a
+              href={draft.prUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-[var(--wood-accent)] underline"
+            >
+              PR #{draft.prNumber} ↗
+            </a>
+          )}
+
+          {draft.revertPrUrl && (
+            <a
+              href={draft.revertPrUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-red-300 underline"
+            >
+              Peruutus-PR #{draft.revertPrNumber} ↗
+            </a>
+          )}
+
+          {draft.status === "pr_revert_open" && (
+            <button
+              type="button"
+              className="
+                rounded-xl
+                border
+                border-[var(--wood-border)]
+                px-3
+                py-1
+                text-xs
+                text-[var(--wood-muted)]
+                disabled:opacity-50
+              "
+              disabled={busy}
+              onClick={onCheckRevertPrStatus}
+            >
+              Tarkista peruutus-PR:n tila
+            </button>
+          )}
+        </div>
+      )}
+
+      {draft.status === "draft" && (
+        <div className="mt-4 space-y-2">
+          <textarea
+            className="
+              w-full
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-3
+              text-xs
+              text-[var(--wood-text)]
+              placeholder:text-[var(--wood-muted)]
+            "
+            rows={2}
+            value={reviseFeedback}
+            onChange={event => setReviseFeedback(event.target.value)}
+            disabled={busy}
+            placeholder="Pyydä muutosta tähän luonnokseen, esim. 'lisää docstring'"
+          />
+
+          <button
+            type="button"
+            className="
+              rounded-xl
+              border
+              border-[var(--wood-border)]
+              px-3
+              py-1.5
+              text-sm
+              text-[var(--wood-text)]
+              disabled:opacity-50
+            "
+            disabled={busy || !reviseFeedback.trim()}
+            onClick={submitRevise}
+          >
+            Pyydä muutosta
+          </button>
+        </div>
+      )}
     </article>
   )
 }

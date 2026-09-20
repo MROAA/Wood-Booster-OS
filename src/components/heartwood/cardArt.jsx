@@ -1,0 +1,558 @@
+// Heartwood Trial - a small reusable set of geometric/abstract SVG
+// glyphs. No painted or photographic art - every card and enemy reuses
+// one of these by key (see the `art` field in data/heartwood/*.js),
+// tinted via `currentColor` so CSS controls the accent per card type.
+
+import * as Tarot from "./tarotArt"
+
+function Leaf() {
+  return (
+    <path d="M24 8 C34 12 38 22 34 32 C30 40 20 42 12 38 C16 30 14 18 24 8 Z M24 8 L18 34" fill="none" strokeWidth="2" />
+  )
+}
+
+function Spark() {
+  return (
+    <path d="M24 6 L28 20 L42 24 L28 28 L24 42 L20 28 L6 24 L20 20 Z" fill="currentColor" stroke="none" />
+  )
+}
+
+function MoonGlyph() {
+  return <path d="M30 8 A18 18 0 1 0 30 40 A13 13 0 1 1 30 8 Z" fill="currentColor" stroke="none" />
+}
+
+function Root() {
+  return (
+    <path
+      d="M24 6 L24 22 M24 22 L12 40 M24 22 L24 42 M24 22 L36 40 M14 30 L20 30 M28 30 L34 30"
+      fill="none"
+      strokeWidth="2"
+    />
+  )
+}
+
+function Rune() {
+  return (
+    <path
+      d="M24 6 L24 42 M14 14 L34 22 M34 14 L14 22 M16 32 L32 32"
+      fill="none"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  )
+}
+
+function Flame() {
+  return (
+    <path
+      d="M24 6 C30 16 34 20 30 30 C28 36 20 38 16 32 C12 26 16 22 18 26 C16 16 20 10 24 6 Z"
+      fill="currentColor"
+      stroke="none"
+    />
+  )
+}
+
+// Enemy portraits redrawn in a crude, thick-outline doodle style, from
+// Marc's own hand-drawn character sketches - dot eyes, simple curved
+// mouths, wobbly confident linework. A deliberately different register
+// from the clean geometric card glyphs above: these are creatures, not
+// symbols.
+function Husk() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 38 C10 24 14 8 24 6 C34 8 38 24 34 38" fill="none" />
+      <circle cx="19" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 29 C21 32 27 32 30 29" fill="none" />
+      <path d="M14 38 L10 44 M34 38 L38 44 M22 40 L20 46 M26 40 L28 46" fill="none" />
+    </g>
+  )
+}
+
+function Troll() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 24 C14 12 20 4 24 4 C28 4 34 12 32 24" fill="none" />
+      <path d="M11 44 L13 25 C13 20 35 20 35 25 L37 44" fill="none" />
+      <path d="M17 16 L22 13 M31 16 L26 13" fill="none" />
+      <circle cx="20" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 28 L22 25 L26 28 L30 25" fill="none" />
+      <path d="M13 30 L6 36 M35 30 L42 36" fill="none" />
+    </g>
+  )
+}
+
+function Warden() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M24 4 L36 10 L34 28 C33 36 28 41 24 43 C20 41 15 36 14 28 L12 10 Z" fill="none" />
+      <path d="M18 15 L24 12 L30 16" fill="none" />
+      <circle cx="20" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 27 L28 27" fill="none" />
+      <path d="M24 31 L24 40" fill="none" />
+    </g>
+  )
+}
+
+// Small, bold, instantly-readable action icons - used as icon+number
+// pairs (not sentences) so the game reads visually at a glance: what a
+// card does, what an enemy is about to do.
+// Bold and simple on purpose: at the small sizes this renders at (an
+// intent badge, an in-card effect row) fine linework disappears, so
+// this reads as one solid upward blade rather than a literal sword.
+function SwordIcon() {
+  return (
+    <path
+      d="M24 4 L32 24 L27 24 L27 44 L21 44 L21 24 L16 24 Z"
+      fill="currentColor"
+      stroke="none"
+    />
+  )
+}
+
+function ShieldIcon() {
+  return (
+    <path
+      d="M24 5 L38 11 L36 27 C35 35 30 41 24 43 C18 41 13 35 12 27 L10 11 Z"
+      fill="currentColor"
+      stroke="none"
+    />
+  )
+}
+
+function HeartIcon() {
+  return (
+    <path
+      d="M24 42 C10 32 6 22 12 15 C17 9 24 12 24 19 C24 12 31 9 36 15 C42 22 38 32 24 42 Z"
+      fill="currentColor"
+      stroke="none"
+    />
+  )
+}
+
+function DrawIcon() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <rect x="10" y="8" width="20" height="28" rx="3" />
+      <rect x="18" y="14" width="20" height="28" rx="3" fill="var(--hw-card, #211d19)" />
+    </g>
+  )
+}
+
+// Playable-character portraits, same crude thick-outline doodle
+// register as the enemy glyphs above.
+function CatGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 16 L10 6 L19 11 M34 16 L38 6 L29 11" fill="none" />
+      <path d="M14 18 C12 24 14 29 18 30 C22 31 26 31 30 30 C34 29 36 24 34 18 C32 13 16 13 14 18 Z" fill="none" />
+      <circle cx="19" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 25 C22 27 26 27 28 25" fill="none" />
+      <path d="M17 32 C15 36 15 40 18 44 M31 32 C33 36 33 40 30 44" fill="none" />
+      <path d="M34 30 C40 30 42 34 38 38" fill="none" />
+    </g>
+  )
+}
+
+function ReindeerGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 10 L8 2 M14 10 L18 3 M34 10 L40 2 M34 10 L30 3" fill="none" />
+      <path d="M15 16 C13 22 15 27 19 28 C23 29 25 29 29 28 C33 27 35 22 33 16 C31 12 17 12 15 16 Z" fill="none" />
+      <circle cx="20" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M21 24 L27 24" fill="none" />
+      <path d="M17 30 L16 44 M31 30 L32 44" fill="none" />
+    </g>
+  )
+}
+
+function WolfGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 12 L9 3 L17 8 M35 12 L39 3 L31 8" fill="none" />
+      <path d="M14 16 C12 22 14 27 18 28 L24 25 L30 28 C34 27 36 22 34 16 C31 11 17 11 14 16 Z" fill="none" />
+      <circle cx="19" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M21 23 L24 26 L27 23" fill="none" />
+      <path d="M18 30 C14 34 14 40 18 44 M30 30 C34 34 34 40 30 44" fill="none" />
+    </g>
+  )
+}
+
+// A 4th playable-character portrait, same crude thick-outline doodle
+// register as Cat/Reindeer/Wolf above - sharp triangular ears and a
+// narrow pointed snout keep it distinct from Wolf's broader head at a
+// glance.
+function FoxGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 14 L6 4 L16 10 M36 14 L42 4 L32 10" fill="none" />
+      <path d="M15 17 C12 23 14 29 19 31 L24 27 L29 31 C34 29 36 23 33 17 C30 12 18 12 15 17 Z" fill="none" />
+      <circle cx="19" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M22 24 L24 27 L26 24 Z" fill="currentColor" stroke="none" />
+      <path d="M17 33 C13 37 13 42 18 44 M31 33 C35 37 35 42 30 44" fill="none" />
+    </g>
+  )
+}
+
+// Two more enemy portraits, same crude thick-outline register, this
+// time redrawn from Marc's newest round of sketches (his own doodles
+// of a fisted brute and an angry cloud-maw creature).
+function BarkBrute() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 14 L6 6 M38 14 L42 6" fill="none" />
+      <path
+        d="M13 24 C11 14 17 6 24 6 C31 6 37 14 35 24 L33 34 C31 40 26 43 24 43 C22 43 17 40 15 34 Z"
+        fill="none"
+      />
+      <path d="M15 18 L21 21 M33 18 L27 21" fill="none" />
+      <circle cx="19" cy="24" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="24" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M17 31 L21 31 M23 31 L27 31 M29 31 L33 31" fill="none" />
+      <path d="M35 26 L44 22 L46 14 L42 12 L40 18 L36 20" fill="none" />
+    </g>
+  )
+}
+
+function MistGrowler() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M8 20 C4 14 10 8 16 10 C18 4 28 4 30 10 C36 8 42 14 38 20 C42 24 40 32 32 32 C30 38 18 38 16 32 C8 32 4 26 8 20 Z"
+        fill="none"
+      />
+      <path d="M14 18 L20 20 M34 18 L28 20" fill="none" />
+      <path d="M18 22 L18 26 M28 22 L28 26" fill="none" />
+      <path d="M13 28 L17 25 L21 28 L25 25 L29 28 L33 25 L36 28" fill="none" />
+    </g>
+  )
+}
+
+// 6th mook, same crude doodle register - a humanoid head/torso instead
+// of the others' monster-body silhouettes (distinct at a glance), with
+// wavy trailing hair strands and a finned tail instead of legs.
+function DrownedSiren() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 10 C10 16 12 26 20 34 M34 10 C38 16 36 26 28 34" fill="none" />
+      <path d="M16 16 C14 22 16 28 20 30 C24 32 28 32 32 30 C36 28 38 22 36 16 C33 10 19 10 16 16 Z" fill="none" />
+      <circle cx="21" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M21 26 L27 26" fill="none" />
+      <path d="M24 34 L18 40 L24 38 L30 44 L24 40 Z" fill="none" />
+    </g>
+  )
+}
+
+// 7th mook glyph - a hunched, drooping silhouette (spore-drips instead
+// of legs) distinct from the other 6 mooks' upright/serpentine shapes,
+// matching its "rot spreads quietly" identity.
+function BloomrotStalker() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M18 10 C12 12 10 20 14 24 C10 26 10 32 16 34 L20 30 C22 34 26 34 28 30 L32 34 C38 32 38 26 34 24 C38 20 36 12 30 10 C26 6 22 6 18 10 Z"
+        fill="none"
+      />
+      <circle cx="20" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M19 25 L29 25" fill="none" />
+      <path d="M16 34 L14 42 M24 34 L23 44 M32 34 L34 42" fill="none" />
+    </g>
+  )
+}
+
+// 8th mook glyph - low and wide with reaching root-tendrils instead of
+// limbs, distinct from every other mook's upright/hunched silhouette,
+// matching a creature that catches rather than chases.
+function RootbindThicket() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 22 C10 26 8 32 12 36 M34 22 C38 26 40 32 36 36" fill="none" />
+      <path
+        d="M16 20 C14 26 16 31 21 33 C24 34 27 34 30 33 C35 31 37 26 35 20 C32 15 19 15 16 20 Z"
+        fill="none"
+      />
+      <circle cx="21" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 27 L28 27" fill="none" />
+      <path d="M18 33 L10 40 M24 33 L22 44 M30 33 L38 40" fill="none" />
+    </g>
+  )
+}
+
+// The run's final boss - same crude doodle register as the mooks above,
+// but with small horn-hints alongside the round monkey ears, a nod to
+// the "pikku-paholainen" alter-ego lore rather than a redesign.
+function SpacemonkeyBoss() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="14" r="6" fill="none" />
+      <circle cx="36" cy="14" r="6" fill="none" />
+      <path d="M18 8 L20 4 M30 8 L28 4" fill="none" />
+      <path
+        d="M14 20 C12 12 16 5 24 5 C32 5 36 12 34 20 C36 26 34 34 24 38 C14 34 12 26 14 20 Z"
+        fill="none"
+      />
+      <circle cx="18" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="30" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M15 27 C19 32 29 32 33 27" fill="none" />
+      <path d="M17 30 L19 27 M21 31 L21 28 M27 31 L27 28 M31 30 L29 27" fill="none" />
+    </g>
+  )
+}
+
+// Two new recruitable-unit portraits, same crude thick-outline
+// register as the enemy/character glyphs above - original designs
+// (not traced from anything), only loosely inspired by mood/theme from
+// Marc's own doodles (a horned quadruped sketch) and a folder of
+// downloaded fantasy-art reference he pointed at for atmosphere - none
+// of those reference images are reproduced here, since the game is
+// meant for public release and that art isn't Marc's to use directly.
+function EmberStag() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 14 L10 2 L15 12 M18 12 L15 0 M32 14 L38 2 L33 12 M30 12 L33 0" fill="none" />
+      <path d="M15 18 C13 24 15 29 19 30 C23 31 27 31 31 30 C35 29 37 24 35 18 C33 13 17 13 15 18 Z" fill="none" />
+      <circle cx="19" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="19" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M20 25 L28 25" fill="none" />
+      <path d="M17 32 L14 44 M31 32 L34 44" fill="none" />
+    </g>
+  )
+}
+
+function Grovekeeper() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M24 4 C34 8 38 18 34 26 C38 30 36 38 28 40 C30 34 26 30 24 30 C22 30 18 34 20 40 C12 38 10 30 14 26 C10 18 14 8 24 4 Z"
+        fill="none"
+      />
+      <circle cx="19" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="20" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 26 C21 29 27 29 30 26" fill="none" />
+      <path d="M14 26 L8 30 M34 26 L40 30" fill="none" />
+    </g>
+  )
+}
+
+// A third recruitable-unit glyph - a storm-bird, distinct silhouette
+// from Ember Stag's antlers/Grovekeeper's tree-canopy so all three
+// forest-creature units still read apart from each other at a glance.
+function Stormwing() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M24 6 L24 44 M24 20 C10 12 4 16 2 24 C10 24 18 24 24 20 M24 20 C38 12 44 16 46 24 C38 24 30 24 24 20" fill="none" />
+      <circle cx="24" cy="12" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M22 8 L24 4 L26 8" fill="none" />
+    </g>
+  )
+}
+
+// 4th and 5th recruitable-unit glyphs - Stoneheart (chunky angular
+// boulder silhouette, distinct from every prior unit's organic/animal
+// shapes) and Forgehowl (a horned demon head, jagged brow spikes).
+function Stoneheart() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M14 14 L22 8 L30 12 L36 20 L34 28 L38 34 L28 40 L18 38 L10 30 L12 20 Z"
+        fill="none"
+      />
+      <circle cx="19" cy="21" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 28 L28 29" fill="none" />
+    </g>
+  )
+}
+
+function Forgehowl() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 16 L6 6 L14 12 M36 16 L42 6 L34 12" fill="none" />
+      <path d="M15 20 C12 26 14 32 19 34 L24 30 L29 34 C34 32 36 26 33 20 C30 14 18 14 15 20 Z" fill="none" />
+      <circle cx="19" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="29" cy="22" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M18 28 L21 26 L24 28 L27 26 L30 28" fill="none" />
+    </g>
+  )
+}
+
+// Elemental tribe glyphs (Tide / Gale / Stone / Shadow) - same crude
+// thick-outline register as Leaf/Spark/Root/Rune/Flame, one simple
+// geometric mark each so a tribe badge reads at 12px. Original shapes.
+function TideGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M6 16 C12 10 18 22 24 16 C30 10 36 22 42 16" />
+      <path d="M6 26 C12 20 18 32 24 26 C30 20 36 32 42 26" />
+      <path d="M6 36 C12 30 18 42 24 36 C30 30 36 42 42 36" />
+    </g>
+  )
+}
+function GaleGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M8 18 C22 10 34 14 34 22 C34 28 26 28 26 22" />
+      <path d="M6 32 C24 26 38 30 38 38 C38 44 28 44 28 38" />
+    </g>
+  )
+}
+function StoneGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinejoin="round" fill="none">
+      <path d="M24 5 L40 15 L40 33 L24 43 L8 33 L8 15 Z" />
+      <path d="M24 5 L24 23 M24 23 L40 15 M24 23 L8 33" />
+    </g>
+  )
+}
+function ShadowGlyph() {
+  return (
+    <g strokeWidth="3" fill="none">
+      <circle cx="22" cy="24" r="16" />
+      <path d="M30 12 A16 16 0 0 1 30 36 A13 13 0 0 0 30 12 Z" fill="currentColor" stroke="none" />
+    </g>
+  )
+}
+function WoodGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M24 44 L24 16" />
+      <path d="M24 24 C18 18 12 20 10 14 C18 12 22 16 24 22" />
+      <path d="M24 20 C30 14 36 16 38 10 C30 8 26 12 24 18" />
+      <path d="M24 30 C20 26 15 27 13 22" />
+    </g>
+  )
+}
+function EmberGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinejoin="round">
+      <path d="M24 4 C30 14 34 18 30 28 C28 34 20 36 16 30 C12 24 16 20 18 24 C16 14 20 8 24 4 Z" fill="currentColor" stroke="none" />
+      <path d="M24 20 C27 25 26 31 22 34" fill="none" stroke="var(--hw-bg, #000)" />
+    </g>
+  )
+}
+function CosmicGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" fill="none">
+      <path d="M24 6 L27 19 L40 22 L27 25 L24 40 L21 25 L8 22 L21 19 Z" />
+      <circle cx="24" cy="22" r="20" opacity="0.5" />
+    </g>
+  )
+}
+
+// The traveling merchant (merchant.js) - same crude thick-outline
+// register as the mook/character doodles above: a hooded figure behind
+// a low stall, a lantern strung up beside them. One glyph for all five
+// Act personas (name + accent color carry the identity); per-Act
+// portraits are a later art pass.
+function MerchantGlyph() {
+  return (
+    <g strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 8 C12 12 11 20 13 26 L27 26 C29 20 28 12 23 8 C21 6 19 6 17 8 Z" fill="none" />
+      <circle cx="17" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="23" cy="18" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M13 26 C9 30 8 34 9 37 M27 26 C31 30 33 33 33 36" fill="none" />
+      <path d="M6 37 L42 37" fill="none" />
+      <path d="M9 37 L9 43 M39 37 L39 43" fill="none" />
+      <circle cx="30" cy="33" r="2.4" fill="none" />
+      <path d="M34 34 L39 34 L38 30 L35 30 Z" fill="none" />
+      <path d="M40 8 L40 14" fill="none" />
+      <path d="M37 17 L40 14 L43 17 L42 21 L38 21 Z" fill="none" />
+    </g>
+  )
+}
+
+const GLYPHS = {
+  leaf: Leaf,
+  spark: Spark,
+  moonGlyph: MoonGlyph,
+  root: Root,
+  rune: Rune,
+  flame: Flame,
+  tide: TideGlyph,
+  gale: GaleGlyph,
+  stone: StoneGlyph,
+  shadow: ShadowGlyph,
+  wood: WoodGlyph,
+  ember: EmberGlyph,
+  cosmic: CosmicGlyph,
+  husk: Husk,
+  troll: Troll,
+  warden: Warden,
+  merchantGlyph: MerchantGlyph,
+  barkBrute: BarkBrute,
+  mistGrowler: MistGrowler,
+  drownedSiren: DrownedSiren,
+  bloomrotStalker: BloomrotStalker,
+  rootbindThicket: RootbindThicket,
+  spacemonkeyBoss: SpacemonkeyBoss,
+  sword: SwordIcon,
+  shield: ShieldIcon,
+  heart: HeartIcon,
+  drawIcon: DrawIcon,
+  cat: CatGlyph,
+  reindeer: ReindeerGlyph,
+  wolf: WolfGlyph,
+  fox: FoxGlyph,
+  emberStag: EmberStag,
+  grovekeeper: Grovekeeper,
+  stormwing: Stormwing,
+  stoneheart: Stoneheart,
+  forgehowl: Forgehowl,
+
+  "the-fool": Tarot.TheFool,
+  "the-magician": Tarot.TheMagician,
+  "the-high-priestess": Tarot.TheHighPriestess,
+  "the-empress": Tarot.TheEmpress,
+  "the-emperor": Tarot.TheEmperor,
+  "the-hierophant": Tarot.TheHierophant,
+  "the-lovers": Tarot.TheLovers,
+  "the-chariot": Tarot.TheChariot,
+  strength: Tarot.Strength,
+  "the-hermit": Tarot.TheHermit,
+  "wheel-of-fortune": Tarot.WheelOfFortune,
+  justice: Tarot.Justice,
+  "the-hanged-man": Tarot.TheHangedMan,
+  death: Tarot.Death,
+  temperance: Tarot.Temperance,
+  "the-devil": Tarot.TheDevil,
+  "the-tower": Tarot.TheTower,
+  "the-star": Tarot.TheStar,
+  "the-moon": Tarot.TheMoon,
+  "the-sun": Tarot.TheSun,
+  judgement: Tarot.Judgement,
+  "the-world": Tarot.TheWorld,
+  entropy: Tarot.Entropy,
+}
+
+// "woundedFury" -> "Wounded Fury" - power/status ids are camelCase
+// internally, but should read as words wherever shown to the player.
+export function formatPowerLabel(id) {
+  const spaced = id.replace(/([a-z])([A-Z])/g, "$1 $2")
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
+}
+
+export function CardGlyph({ name, className, style }) {
+  const Glyph = GLYPHS[name] || Rune
+  // `style` (a couple of callers pass `{ color: ... }` to tint via
+  // currentColor - see the module comment above) was silently dropped
+  // here: this component never read it, so every call site relying on
+  // a per-instance accent color (PlayerPanel.jsx, HeartwoodBattle.jsx,
+  // and RunMap.jsx's own per-node-type nodeColor()) was quietly
+  // rendering in whatever color CSS happened to cascade instead of the
+  // one it asked for. Forwarding it is a pure bugfix - no existing
+  // caller that omits `style` is affected.
+  return (
+    <svg viewBox="0 0 48 48" className={className} style={style} stroke="currentColor" fill="none">
+      <Glyph />
+    </svg>
+  )
+}

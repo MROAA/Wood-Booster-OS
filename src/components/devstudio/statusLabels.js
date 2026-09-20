@@ -26,7 +26,39 @@ export const DRAFT_STATUS_LABELS = {
 
   revert_failed: "Peruutus epäonnistui",
 
+  pr_open: "Pull Request avattu",
+
+  pr_failed: "Pull Requestin luonti epäonnistui",
+
+  pr_merged: "Yhdistetty (merged)",
+
+  pr_closed: "Suljettu ilman yhdistämistä",
+
+  pr_revert_open: "Peruutus-PR avattu",
+
+  pr_revert_failed: "Peruutus-PR:n luonti epäonnistui",
+
+  pr_revert_merged: "Peruutus yhdistetty",
+
+  pr_revert_closed: "Peruutus-PR suljettu ilman yhdistämistä",
+
 }
+
+/*
+ * Tilat joissa CodeChangeDraftSet vielä odottaa Marcin toimenpidettä -
+ * käytetään päättämään mitkä paketit palautetaan interaktiivisina
+ * kupliina chatin uudelleenlatauksen jälkeen (ks. ChatPanel.jsx ja
+ * MultiFileChatPanel.jsx). "written" ja "rejected" ovat lopputiloja,
+ * eivät koskaan tässä joukossa.
+ */
+export const NON_TERMINAL_SET_STATUSES = new Set([
+  "planning",
+  "plan_ready",
+  "draft",
+  "approved",
+  "partial_write_failed",
+  "pr_failed",
+])
 
 export const SET_STATUS_LABELS = {
 
@@ -42,6 +74,22 @@ export const SET_STATUS_LABELS = {
 
   partial_write_failed: "Osa epäonnistui",
 
+  pr_open: "Pull Request avattu",
+
+  pr_failed: "Pull Requestin luonti epäonnistui",
+
+  pr_merged: "Yhdistetty (merged)",
+
+  pr_closed: "Suljettu ilman yhdistämistä",
+
+  pr_revert_open: "Peruutus-PR avattu",
+
+  pr_revert_failed: "Peruutus-PR:n luonti epäonnistui",
+
+  pr_revert_merged: "Peruutus yhdistetty",
+
+  pr_revert_closed: "Peruutus-PR suljettu ilman yhdistämistä",
+
 }
 
 export const FILE_STATUS_LABELS = {
@@ -55,6 +103,8 @@ export const FILE_STATUS_LABELS = {
   generate_failed: "Generointi epäonnistui",
 
   written: "Kirjoitettu",
+
+  pr_written: "Kirjoitettu (PR:ssä)",
 
   write_failed: "Kirjoitus epäonnistui",
 
@@ -81,5 +131,34 @@ export const TEST_STATUS_DISPLAY = {
   skipped: { icon: "—", label: "Ei toiminnallista testiä", className: "text-[var(--wood-muted)]" },
 
   vacuous: { icon: "?", label: "Testi ei todista mitään", className: "text-amber-400" },
+
+}
+
+export const RUN_STATUS_DISPLAY = {
+
+  passed: { icon: "✓", label: "Ajo onnistui", className: "text-emerald-400" },
+
+  failed: { icon: "✗", label: "Ajo epäonnistui", className: "text-red-400" },
+
+  timeout: { icon: "⏱", label: "Ajo aikakatkaistiin", className: "text-amber-400" },
+
+}
+
+/*
+ * PR:n GitHub Actions -tarkistusten tila (ks. checkPullRequestStatus/
+ * deriveCheckStatusSummary.js). "none" on täysin normaali tulos, ei
+ * virhe - näytetään silti neutraalilla värillä eikä piiloteta
+ * kokonaan, jotta ero "ei vielä tarkistettu" ja "tarkistettu, ei
+ * tarkistuksia" -tilojen välillä ei häviä.
+ */
+export const CHECK_STATUS_LABELS = {
+
+  passing: { icon: "✓", label: "Tarkistukset läpäisty", className: "text-emerald-400" },
+
+  failing: { icon: "✗", label: "Tarkistukset epäonnistuivat", className: "text-red-400" },
+
+  pending: { icon: "⏳", label: "Tarkistukset käynnissä", className: "text-amber-400" },
+
+  none: { icon: "—", label: "Ei tarkistuksia", className: "text-[var(--wood-muted)]" },
 
 }

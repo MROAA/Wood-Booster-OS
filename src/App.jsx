@@ -31,12 +31,18 @@ import ExecutionCenterV2 from "./pages/ExecutionCenterV2"
 import SystemCenter from "./pages/SystemCenter"
 import Tools from "./pages/Tools"
 import DevStudio from "./pages/DevStudio"
+import HearthwoodStudio from "./pages/HearthwoodStudio"
+import BloodmoorStudio from "./pages/BloodmoorStudio"
 import SpiderSolitaire from "./pages/SpiderSolitaire"
+import HeartwoodBattle from "./pages/HeartwoodBattle"
+import HeartwoodTactics from "./pages/HeartwoodTactics"
+import HeartwoodAssistant from "./pages/HeartwoodAssistant"
 import KnowledgeUpload from "./pages/KnowledgeUpload"
 import SpacemonkeyChat from "./pages/SpacemonkeyChat"
 import BoosterverseDesktop from "./pages/BoosterverseDesktop"
 import ProjectWorkspace from "./pages/ProjectWorkspace"
 import Altrako from "./pages/Altrako"
+import HQWidget from "./pages/HQWidget"
 
 function BoosterverseDesktopRoute() {
   const navigate = useNavigate()
@@ -238,6 +244,24 @@ function App() {
           }
         />
         <Route
+          path="/hearthwood-studio"
+          element={
+            <HearthwoodStudio />
+          }
+        />
+        <Route
+          path="/bloodmoor-studio"
+          element={
+            <BloodmoorStudio />
+          }
+        />
+        <Route
+          path="/heartwood-assistant"
+          element={
+            <HeartwoodAssistant />
+          }
+        />
+        <Route
           path="/spider-solitaire"
           element={
             <SpiderSolitaire />
@@ -250,6 +274,40 @@ function App() {
           }
         />
       </Route>
+      {/* Outside OSLayout entirely, not just full-bleed within it (see
+          OSLayout's isFullBleed for /desktop, which still keeps the
+          sidebar/topbar) - Marc: "UI:n pitää olla heartstonen kaltainen
+          graafinen pääte jota kautta pelata peliä" (the UI needs to be
+          a Hearthstone-like graphical terminal you play the game
+          through), not a page embedded inside the business app's own
+          dashboard chrome. HeartwoodBattle.jsx carries its own exit
+          link back to "/" on every screen since the Sidebar is gone. */}
+      <Route
+        path="/heartwood"
+        element={
+          <HeartwoodBattle />
+        }
+      />
+      {/* Hearthwood Frontier (feat/hearthwood-tactics-prototype) - Phase 1
+          of the turn-based pivot. Fully isolated from the route above: its
+          own local state, no runEngine.js, no save file. */}
+      <Route
+        path="/heartwood-tactics"
+        element={
+          <HeartwoodTactics />
+        }
+      />
+      {/* Standalone second-monitor mission-control widget (Wood-Booster HQ
+          Widget PRD). Loaded directly into its own Tauri window (see
+          src-tauri/tauri.conf.json, label "hq-widget"), so it must not
+          carry OSLayout's sidebar/topbar - the whole point is a small
+          window with only the widget in it, not the full app shell. */}
+      <Route
+        path="/hq-widget"
+        element={
+          <HQWidget />
+        }
+      />
     </Routes>
   )
 }

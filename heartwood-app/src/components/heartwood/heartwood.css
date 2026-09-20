@@ -1,0 +1,903 @@
+/* Heartwood Trial - reuses the live --wood-* tokens from src/index.css
+   rather than inventing a new palette. No neon, four muted card-type
+   accents plus one new HP red in the same desaturated family. */
+
+.hw-root {
+  --hw-bg: var(--wood-bg);
+  --hw-panel: var(--wood-panel);
+  --hw-card: var(--wood-card);
+  --hw-border: var(--wood-border);
+  --hw-text: var(--wood-text);
+  --hw-muted: var(--wood-muted);
+
+  --hw-ember: var(--wood-accent);
+  --hw-moss: var(--wood-code-string);
+  --hw-rune: var(--wood-code-number);
+  --hw-curse: var(--hw-muted);
+  --hw-hp: #b3503f;
+
+  background-color: var(--hw-bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--hw-bg) 55%, transparent), color-mix(in srgb, var(--hw-bg) 78%, transparent)),
+    var(--hw-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--hw-text);
+  min-height: 100%;
+  font-family: inherit;
+}
+
+.hw-battle {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-3, 21px);
+  gap: var(--space-2, 13px);
+}
+
+.hw-top-row {
+  display: flex;
+  gap: var(--space-3, 21px);
+  align-items: stretch;
+}
+
+.hw-panel {
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  border-radius: 10px;
+  padding: var(--space-2, 13px);
+}
+
+.hw-hp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.hw-hp-bar-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--hw-card);
+  border: 1px solid var(--hw-border);
+  overflow: hidden;
+}
+
+.hw-hp-bar-fill {
+  height: 100%;
+  background: var(--hw-hp);
+  transition: width 200ms ease;
+}
+
+.hw-hp-label {
+  font-size: 11px;
+  color: var(--hw-muted);
+  min-width: 52px;
+  text-align: right;
+}
+
+.hw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-border);
+  color: var(--hw-muted);
+}
+
+.hw-badge--block {
+  color: var(--hw-rune);
+  border-color: var(--hw-rune);
+}
+
+.hw-essence-badge {
+  color: var(--hw-ember);
+  border-color: var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 12%, var(--hw-panel));
+  font-size: 15px;
+  font-weight: 700;
+  padding: 6px 14px;
+}
+
+.hw-essence-badge .hw-intent-glyph {
+  width: 16px;
+  height: 16px;
+  color: var(--hw-ember);
+}
+
+.hw-intent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-card);
+  margin-top: 8px;
+}
+
+.hw-intent--attack {
+  color: var(--hw-ember);
+  border-color: var(--hw-ember);
+}
+
+.hw-intent--block {
+  color: var(--hw-rune);
+  border-color: var(--hw-rune);
+}
+
+.hw-intent--heal {
+  color: var(--hw-moss);
+  border-color: var(--hw-moss);
+}
+
+.hw-intent--debuff {
+  color: var(--hw-curse);
+}
+
+.hw-powers {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.hw-mid-row {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.hw-log {
+  font-size: 12px;
+  color: var(--hw-muted);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+.hw-log p:last-child {
+  color: var(--hw-text);
+}
+
+.hw-section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--hw-muted);
+  font-weight: 700;
+}
+
+.hw-log-details {
+  font-size: 12px;
+  color: var(--hw-muted);
+}
+
+.hw-log-details summary {
+  cursor: pointer;
+  color: var(--hw-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hw-log-details summary::marker {
+  color: var(--hw-ember);
+}
+
+.hw-bottom-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3, 21px);
+}
+
+.hw-hand {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 8px 4px;
+}
+
+.hw-piles {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.hw-card {
+  width: 130px;
+  min-width: 130px;
+  border-radius: 12px;
+  border: 1px solid var(--hw-border);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--hw-card) 100%, white 4%), var(--hw-card));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+  user-select: none;
+}
+
+.hw-card[data-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* The deck-preview grid on the select screen reuses the same Card
+   component purely for browsing, not play - it isn't "disabled", it's
+   just not clickable, so it shouldn't look dimmed/unavailable. */
+.hw-deck-preview .hw-card[data-disabled="true"] {
+  opacity: 1;
+  cursor: default;
+}
+
+.hw-deck-preview .hw-card {
+  width: auto;
+}
+
+.hw-card--attack {
+  border-color: color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
+}
+
+.hw-card--skill {
+  border-color: color-mix(in srgb, var(--hw-moss) 55%, var(--hw-border));
+}
+
+.hw-card--power {
+  border-color: color-mix(in srgb, var(--hw-rune) 55%, var(--hw-border));
+}
+
+.hw-card--curse,
+.hw-card--special {
+  border-color: color-mix(in srgb, var(--hw-curse) 55%, var(--hw-border));
+}
+
+.hw-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hw-card-cost {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--hw-bg);
+  border: 1px solid var(--hw-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+/* Portrait-style glyphs (Tarot art, enemy/character doodles) get a
+   medallion backdrop - a radial glow plus a ring in the glyph's own
+   accent color - so they read as a small illustration sitting in a
+   frame, not a bare icon floating on flat background. currentColor
+   resolves to whatever accent color each usage already sets inline
+   (ember/moss/rune/hp), so this adapts automatically everywhere. */
+.hw-card-glyph,
+.hw-card-art,
+.hw-piece-glyph,
+.hw-player-token-glyph {
+  border-radius: 50%;
+  background-image: radial-gradient(circle, color-mix(in srgb, currentColor 26%, transparent) 0%, transparent 72%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent);
+  box-sizing: content-box;
+  padding: 5px;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
+}
+
+.hw-card-glyph {
+  width: 40px;
+  height: 40px;
+  align-self: center;
+}
+
+.hw-card--attack .hw-card-glyph {
+  color: var(--hw-ember);
+}
+
+.hw-card--skill .hw-card-glyph {
+  color: var(--hw-moss);
+}
+
+.hw-card--power .hw-card-glyph {
+  color: var(--hw-rune);
+}
+
+.hw-card--curse .hw-card-glyph,
+.hw-card--special .hw-card-glyph {
+  color: var(--hw-curse);
+}
+
+/* Real per-Arcana Tarot art, kept modest so the icon+number row below
+   stays the primary "what does this do" read - the art says what the
+   card IS, the icons say what it DOES. */
+.hw-card-art {
+  width: 36px;
+  height: 36px;
+  align-self: center;
+}
+
+.hw-card--attack .hw-card-art {
+  color: var(--hw-ember);
+}
+
+.hw-card--skill .hw-card-art {
+  color: var(--hw-moss);
+}
+
+.hw-card--power .hw-card-art {
+  color: var(--hw-rune);
+}
+
+.hw-card--curse .hw-card-art,
+.hw-card--special .hw-card-art {
+  color: var(--hw-curse);
+}
+
+.hw-card-name {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  font-family: "Cormorant Garamond", serif;
+  letter-spacing: 0.02em;
+}
+
+.hw-crew-banner {
+  width: 100%;
+  max-width: 720px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: var(--space-2, 13px);
+  border: 1px solid var(--hw-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.hw-crew-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+.hw-card-desc {
+  font-size: 10.5px;
+  color: var(--hw-muted);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.hw-energy-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.hw-energy-pip {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid var(--hw-ember);
+}
+
+.hw-energy-pip[data-filled="true"] {
+  background: var(--hw-ember);
+}
+
+.hw-end-turn,
+.hw-move-btn {
+  background: var(--hw-ember);
+  color: var(--hw-bg);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hw-move-btn {
+  background: var(--hw-moss);
+}
+
+.hw-end-turn:disabled,
+.hw-move-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hw-end-turn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hw-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--hw-moss) 16%, transparent), transparent 60%),
+    color-mix(in srgb, var(--hw-bg) 90%, transparent);
+}
+
+.hw-overlay[data-outcome="lost"] {
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--hw-hp) 20%, transparent), transparent 60%),
+    color-mix(in srgb, var(--hw-bg) 92%, transparent);
+}
+
+.hw-overlay-glyph {
+  width: 84px;
+  height: 84px;
+  filter: drop-shadow(0 0 18px currentColor);
+}
+
+.hw-overlay-title {
+  font-size: 34px;
+  font-weight: 700;
+  font-family: "Cormorant Garamond", serif;
+  letter-spacing: 0.04em;
+}
+
+.hw-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3, 21px);
+  padding: var(--space-3, 21px);
+}
+
+.hw-enemy-choice {
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  border-radius: 12px;
+  padding: var(--space-2, 13px);
+  cursor: pointer;
+  text-align: left;
+}
+
+.hw-enemy-choice:hover {
+  border-color: var(--hw-ember);
+}
+
+.hw-intro {
+  padding: var(--space-3, 21px);
+  max-width: 720px;
+}
+
+/* The run track - a row of node glyphs so the run reads as a real,
+   visible journey with an end, not an open-ended "pick any fight."
+   Past nodes fade, the current node stays at full opacity. */
+.hw-run-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.hw-run-node {
+  opacity: 0.35;
+  transition: opacity 150ms ease;
+}
+
+.hw-run-node[data-current="true"] {
+  opacity: 1;
+}
+
+.hw-run-node[data-done="true"] {
+  opacity: 0.65;
+}
+
+.hw-flavor {
+  font-style: italic;
+  color: var(--hw-muted);
+}
+
+.hw-battle-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 220px;
+  padding: 10px 14px;
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  background: var(--hw-card);
+}
+
+.hw-battle-stats-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--hw-muted);
+}
+
+.hw-battle-stats-row span:last-child {
+  color: var(--hw-text, inherit);
+  font-weight: 600;
+}
+
+/* --- Grid combat (Phase 2) --- */
+
+.hw-side-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+}
+
+.hw-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  border-radius: 10px;
+  padding: var(--space-2, 13px);
+}
+
+.hw-grid-row {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.hw-grid-cell {
+  flex: 1;
+  min-height: 150px;
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  transition: opacity 150ms ease, border-color 150ms ease;
+}
+
+/* A faint two-tone checkerboard so the board reads as a tactical grid
+   at a glance, not an empty dark panel with two cards floating in it -
+   the chess-pattern cards need the player to see squares/ranks/files
+   as real structure, not just wherever a piece happens to be. */
+.hw-grid-cell[data-tile="a"] {
+  background: color-mix(in srgb, var(--hw-panel) 70%, transparent);
+}
+
+.hw-grid-cell[data-tile="b"] {
+  background: color-mix(in srgb, var(--hw-bg) 55%, transparent);
+}
+
+/* Empty squares fade back so the eye lands on what's actually there -
+   an enemy, your own token, or a square you can act on right now -
+   but keep enough opacity that the checkerboard tint underneath still
+   reads as a board. */
+.hw-grid-cell[data-empty="true"] {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--hw-border) 50%, transparent);
+  opacity: 0.55;
+}
+
+.hw-grid-cell[data-move-target="true"] {
+  border-color: var(--hw-moss);
+  cursor: pointer;
+  animation: hw-pulse-moss 1.1s ease-in-out infinite;
+}
+
+@keyframes hw-pulse-moss {
+  0%, 100% { box-shadow: inset 0 0 0 1px var(--hw-moss); }
+  50% { box-shadow: inset 0 0 0 3px var(--hw-moss); }
+}
+
+.hw-player-token {
+  margin: auto;
+  width: 74px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 2px solid var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 14%, transparent);
+  color: var(--hw-ember);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: "Cormorant Garamond", serif;
+  animation: hw-token-glow 2.2s ease-in-out infinite;
+}
+
+@keyframes hw-token-glow {
+  0%, 100% { box-shadow: 0 0 0 rgba(185, 123, 63, 0); }
+  50% { box-shadow: 0 0 14px color-mix(in srgb, var(--hw-ember) 55%, transparent); }
+}
+
+.hw-player-token-glyph {
+  width: 36px;
+  height: 36px;
+}
+
+/* Enemies get a red-tinted card and player gets a warm gold-tinted
+   token (see .hw-player-token) - a color split that says "threat" vs
+   "you" before any text is read. */
+.hw-piece {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px;
+  border-radius: 8px;
+  position: relative;
+  transition: opacity 400ms ease, transform 400ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+/* Side determines color, not just the enemy side by default - a piece
+   card is reused for the player's own squad in the autobattler (both
+   in FormationScreen's battlefield preview and in AutoBattleView), and
+   "your unit reads red/dangerous" would undo the whole point of the
+   earlier gold-vs-red "ally vs threat reads by color alone" fix. */
+.hw-piece[data-side="enemy"] {
+  color: var(--hw-hp);
+  border: 2px solid color-mix(in srgb, var(--hw-hp) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-hp) 10%, var(--hw-card));
+}
+
+.hw-piece[data-side="player"] {
+  color: var(--hw-ember);
+  border: 2px solid color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-ember) 10%, var(--hw-card));
+}
+
+.hw-piece[data-highlighted="true"] {
+  cursor: pointer;
+  background: color-mix(in srgb, var(--hw-hp) 12%, transparent);
+  animation: hw-pulse-hp 1.1s ease-in-out infinite;
+}
+
+@keyframes hw-pulse-hp {
+  0%, 100% { box-shadow: inset 0 0 0 2px var(--hw-hp); }
+  50% { box-shadow: inset 0 0 0 4px var(--hw-hp); }
+}
+
+.hw-piece[data-dead="true"] {
+  opacity: 0.35;
+  transform: scale(0.92);
+}
+
+/* Struck-this-instant pulse, toggled directly via classList by
+   FloatingNumbers.jsx rather than React state - fire-and-forget, no
+   other UI needs to know a hit just landed. */
+.hw-hit-flash {
+  animation: hw-hit-shake 400ms ease;
+}
+
+@keyframes hw-hit-shake {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-hp) 80%, transparent); transform: translateX(0); }
+  20% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--hw-hp) 80%, transparent); transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+  100% { box-shadow: 0 0 0 0 transparent; transform: translateX(0); }
+}
+
+.hw-piece-glyph {
+  width: 32px;
+  height: 32px;
+}
+
+.hw-piece-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.hw-piece-dead {
+  font-size: 10px;
+  color: var(--hw-muted);
+}
+
+.hw-shield-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 11px;
+}
+
+/* --- Icon-first readability (Phase 2.5) --- */
+
+.hw-hint {
+  font-size: 13px;
+  text-align: center;
+  color: var(--hw-text);
+  background: color-mix(in srgb, var(--hw-ember) 16%, var(--hw-panel));
+  border: 1px solid var(--hw-ember);
+  border-radius: 8px;
+  padding: 8px 14px;
+  position: relative;
+  z-index: 60;
+}
+
+.hw-hint--pending {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  background: color-mix(in srgb, var(--hw-hp) 22%, var(--hw-panel));
+  border-color: var(--hw-hp);
+}
+
+.hw-hint-cancel {
+  background: transparent;
+  border: 1px solid var(--hw-border);
+  color: var(--hw-text);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* The card currently awaiting a target click - distinct from hover,
+   which is transient; this stays until you pick a target or cancel. */
+.hw-card[data-selected="true"] {
+  border-color: var(--hw-hp);
+  box-shadow: 0 0 0 2px var(--hw-hp), 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.hw-hint--tutorial {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  background: color-mix(in srgb, var(--hw-ember) 26%, var(--hw-panel));
+  border-width: 2px;
+}
+
+.hw-tutorial-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.hw-tutorial-skip {
+  background: transparent;
+  border: 1px solid var(--hw-border);
+  color: var(--hw-muted);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.hw-tutorial-next {
+  background: var(--hw-ember);
+  color: var(--hw-bg);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hw-tutorial-spotlight {
+  position: fixed;
+  border-radius: 12px;
+  border: 3px solid var(--hw-ember);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 22px var(--hw-ember);
+  pointer-events: none;
+  z-index: 40;
+  animation: hw-tutorial-pulse 1.4s ease-in-out infinite;
+  transition: top 200ms ease, left 200ms ease, width 200ms ease, height 200ms ease;
+}
+
+@keyframes hw-tutorial-pulse {
+  0%, 100% { border-color: var(--hw-ember); }
+  50% { border-color: #ffd9a0; }
+}
+
+/* Floating damage/heal/block numbers - the moment something happens,
+   not just the bar quietly changing. */
+.hw-floating-number {
+  pointer-events: none;
+  z-index: 55;
+  font-size: 20px;
+  font-weight: 800;
+  font-family: "Cormorant Garamond", serif;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.hw-floating-number--damage {
+  color: var(--hw-hp);
+}
+
+.hw-floating-number--heal {
+  color: var(--hw-moss);
+}
+
+.hw-floating-number--block {
+  color: var(--hw-rune);
+}
+
+/* Promoted to the card's main visual - see the plan's card-redesign
+   note: icon+number is the primary thing a card says, replacing what
+   used to be a flavor glyph plus a full sentence underneath. */
+.hw-effect-icons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.hw-effect-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.hw-effect-icon-glyph {
+  width: 22px;
+  height: 22px;
+  color: var(--hw-ember);
+}
+
+.hw-effect-icon[data-negative="true"] {
+  color: var(--hw-hp);
+}
+
+.hw-effect-icon[data-negative="true"] .hw-effect-icon-glyph {
+  color: var(--hw-hp);
+}
+
+.hw-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.hw-card-tag {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hw-muted);
+  border: 1px solid var(--hw-border);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.hw-intent-glyph {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 2px;
+}
+
+.hw-intent--attack .hw-intent-glyph {
+  color: var(--hw-ember);
+}
+
+.hw-intent--block .hw-intent-glyph {
+  color: var(--hw-rune);
+}

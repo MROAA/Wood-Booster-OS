@@ -2,6 +2,8 @@ import express from "express"
 
 import path from "node:path"
 
+import { diffLines } from "diff"
+
 import { generatePythonDraft } from "../services/pythonCodeGenerator.js"
 
 import { explainPythonCode } from "../services/pythonCodeExplainer.js"
@@ -21,6 +23,10 @@ import {
   resolveSafeFilePath as resolveSafeGeneratedPythonPath,
   sha256,
 } from "../services/spacemonkey/plugins/PythonDeveloper/skills/writePythonCodeSkill.js"
+
+import { verifyProposedPythonChange } from "../services/devStudio/verifyProposedPythonChange.js"
+
+import { checkPullRequestStatus } from "../services/devStudio/pullRequestStatus.js"
 
 /*
  * Lukee kohdetiedoston NYKYISEN sisällön generated-python-hakemistosta
@@ -60,8 +66,50 @@ async function readExistingGeneratedPythonContent(toolBus, filePath) {
   }
 }
 
+/*
+ * Turvaverkko pienen paikallisen mallin hallusinoimia Python-importteja
+ * vastaan - ei koskaan estä mitään, palauttaa aina listan (tyhjä jos ei
+ * huomautettavaa) tai tyhjän listan jos tarkistus itse epäonnistuu
+ * jostain syystä. Sama malli kuin devMultiFileChangeStudio.js:n
+ * checkReferences()-apufunktiolla JS-puolella.
+ */
+async function checkPythonReferences({ workflowEngine, toolBus, proposedCode }) {
+  if (!workflowEngine || !toolBus) {
+    return []
+  }
+
+  try {
+    const result = await workflowEngine.execute(
+      "check-python-references-workflow",
+      { proposedCode, toolBus },
+    )
+
+    return result.results?.[0]?.unresolvedReferences || []
+  } catch (error) {
+    console.error("Python-viittaustarkistus epäonnistui:", error)
+
+    return []
+  }
+}
+
 export default function createDevStudioRouter(prisma) {
   const router = express.Router()
+
+  /*
+   * Sama malli kuin devCodeChangeStudio.js:n withDiff() - PythonCodeDraft
+   * käyttää vain kenttänimeä "code" eikä "proposedCode". Sovelletaan
+   * KAIKKIIN reitteihin jotka palauttavat PythonCodeDraft-rivin - myös
+   * DevStudio.jsx:n DraftCardia syöttäviin (create/refactor/debug/
+   * revise/approve/write/reject/manual-edit), koska DraftCard piirtää
+   * nykyään DiffView'ta suoraan eläväsä tarkistusnäkymässä, ei enää
+   * vain Historia-välilehdellä.
+   */
+  function withPythonDraftDiff(draft) {
+    return {
+      ...draft,
+      diff: diffLines(draft.originalCode || "", draft.code || ""),
+    }
+  }
 
   /*
    * POST /api/python-drafts
@@ -74,11 +122,12 @@ export default function createDevStudioRouter(prisma) {
     "/python-drafts",
     async (request, response) => {
       try {
-        const { useAI, prompt, title, code, filePath } =
+        const { useAI, prompt, title, code, filePath, model } =
           request.body || {}
 
         let draftTitle = title
         let draftCode = code
+        let draftModel = null
 
         if (useAI) {
           if (!prompt) {
@@ -89,10 +138,12 @@ export default function createDevStudioRouter(prisma) {
 
           const generated = await generatePythonDraft({
             prompt,
+            model,
           })
 
           draftTitle = generated.title
           draftCode = generated.code
+          draftModel = generated.model
         }
 
         if (!draftCode || !filePath) {
@@ -103,9 +154,32 @@ export default function createDevStudioRouter(prisma) {
 
         const toolBus = getSpacemonkeyToolBus()
 
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
         const { originalCode, originalHash } = toolBus
           ? await readExistingGeneratedPythonContent(toolBus, filePath)
           : { originalCode: null, originalHash: null }
+
+        const unresolvedReferences = await checkPythonReferences({
+          workflowEngine,
+          toolBus,
+          proposedCode: draftCode,
+        })
+
+        const verification = (workflowEngine && toolBus)
+          ? await verifyProposedPythonChange({
+              workflowEngine,
+              toolBus,
+              prompt: prompt || "",
+              filePath,
+              proposedCode: draftCode,
+            })
+          : {
+              testCode: null,
+              testStatus: "error",
+              testOutput: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+              testSkippedReason: null,
+            }
 
         const draft = await prisma.pythonCodeDraft.create({
           data: {
@@ -116,10 +190,19 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath,
             status: "draft",
+            model: draftModel,
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
           },
         })
 
-        response.status(201).json(draft)
+        response.status(201).json(withPythonDraftDiff(draft))
       } catch (error) {
         console.error(error)
 
@@ -143,7 +226,7 @@ export default function createDevStudioRouter(prisma) {
     "/python-drafts/refactor",
     async (request, response) => {
       try {
-        const { filePath } = request.body || {}
+        const { filePath, model } = request.body || {}
 
         if (!filePath) {
           return response.status(400).json({
@@ -165,6 +248,7 @@ export default function createDevStudioRouter(prisma) {
           "refactor-python-workflow",
           {
             filePath,
+            model,
             toolBus,
             refactorPythonCode,
           },
@@ -185,6 +269,20 @@ export default function createDevStudioRouter(prisma) {
             path.basename(filePath),
           )
 
+        const unresolvedReferences = await checkPythonReferences({
+          workflowEngine,
+          toolBus,
+          proposedCode: skillResult.code,
+        })
+
+        const verification = await verifyProposedPythonChange({
+          workflowEngine,
+          toolBus,
+          prompt: `Refaktoroi: ${filePath}`,
+          filePath: path.basename(filePath),
+          proposedCode: skillResult.code,
+        })
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: `Refaktoroi: ${filePath}`,
@@ -194,11 +292,20 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath: path.basename(filePath),
             status: "draft",
+            model: skillResult.model,
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
           },
         })
 
         response.status(201).json({
-          ...draft,
+          ...withPythonDraftDiff(draft),
           explanation: skillResult.explanation,
         })
       } catch (error) {
@@ -225,7 +332,7 @@ export default function createDevStudioRouter(prisma) {
     "/python-drafts/debug",
     async (request, response) => {
       try {
-        const { filePath, errorMessage } = request.body || {}
+        const { filePath, errorMessage, model } = request.body || {}
 
         if (!filePath) {
           return response.status(400).json({
@@ -248,6 +355,7 @@ export default function createDevStudioRouter(prisma) {
           {
             filePath,
             errorMessage,
+            model,
             toolBus,
             debugPythonCode,
           },
@@ -268,6 +376,20 @@ export default function createDevStudioRouter(prisma) {
             path.basename(filePath),
           )
 
+        const unresolvedReferences = await checkPythonReferences({
+          workflowEngine,
+          toolBus,
+          proposedCode: skillResult.code,
+        })
+
+        const verification = await verifyProposedPythonChange({
+          workflowEngine,
+          toolBus,
+          prompt: `Debug: ${filePath}`,
+          filePath: path.basename(filePath),
+          proposedCode: skillResult.code,
+        })
+
         const draft = await prisma.pythonCodeDraft.create({
           data: {
             prompt: `Debug: ${filePath}`,
@@ -277,11 +399,20 @@ export default function createDevStudioRouter(prisma) {
             originalHash,
             filePath: path.basename(filePath),
             status: "draft",
+            model: skillResult.model,
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
           },
         })
 
         response.status(201).json({
-          ...draft,
+          ...withPythonDraftDiff(draft),
           diagnosis: skillResult.diagnosis,
         })
       } catch (error) {
@@ -307,8 +438,281 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(drafts)
+        response.json(drafts.map(withPythonDraftDiff))
       } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * GET /api/python-drafts/:id
+   */
+  router.get(
+    "/python-drafts/:id",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        response.json(withPythonDraftDiff(draft))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/revise
+   *
+   * Pyytää AI:ta tuottamaan UUDEN version SAMASTA luonnoksesta,
+   * käyttäjän vapaan palautteen perusteella - sama idea kuin
+   * devCodeChangeStudio.js:n /dev-drafts/:id/revise. Toimii vain
+   * odottavalle luonnokselle (status: "draft").
+   *
+   * Lukee kohdetiedoston elävän sisällön uudelleen
+   * readExistingGeneratedPythonContent():lla ennen tallennusta - sama
+   * itsekorjautuva ajantasaisuus jonka write-python-skill jo antaa
+   * kirjoitukselle.
+   */
+  router.put(
+    "/python-drafts/:id/revise",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const existing = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!existing) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (existing.status !== "draft") {
+          return response.status(409).json({
+            error: `Luonnos ei odota tarkistusta (status: ${existing.status}).`,
+          })
+        }
+
+        const { feedback } = request.body || {}
+
+        if (!feedback || !String(feedback).trim()) {
+          return response.status(400).json({
+            error: "Palaute (feedback) vaaditaan",
+          })
+        }
+
+        const augmentedPrompt =
+          `ALKUPERÄINEN PYYNTÖ:\n${existing.prompt}\n\n` +
+          `AIEMPI EHDOTUS (koko tiedoston sisältö):\n${existing.code}\n\n` +
+          `KÄYTTÄJÄN PALAUTE EHDOTUKSEEN:\n${String(feedback).trim()}\n\n` +
+          "TEHTÄVÄ: Tuota UUSI versio koko tiedoston sisällöstä, joka " +
+          "toteuttaa alkuperäisen pyynnön ja ottaa huomioon käyttäjän " +
+          "palautteen."
+
+        const generated = await generatePythonDraft({
+          prompt: augmentedPrompt,
+          model: existing.model,
+        })
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        const { originalCode, originalHash } = toolBus
+          ? await readExistingGeneratedPythonContent(toolBus, existing.filePath)
+          : { originalCode: null, originalHash: null }
+
+        const unresolvedReferences = await checkPythonReferences({
+          workflowEngine,
+          toolBus,
+          proposedCode: generated.code,
+        })
+
+        const verification = (workflowEngine && toolBus)
+          ? await verifyProposedPythonChange({
+              workflowEngine,
+              toolBus,
+              prompt: augmentedPrompt,
+              filePath: existing.filePath,
+              proposedCode: generated.code,
+            })
+          : {
+              testCode: null,
+              testStatus: "error",
+              testOutput: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+              testSkippedReason: null,
+            }
+
+        const revised = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            title: generated.title,
+            code: generated.code,
+            originalCode,
+            model: generated.model,
+            unresolvedReferences:
+              unresolvedReferences.length > 0
+                ? JSON.stringify(unresolvedReferences)
+                : null,
+            testCode: verification.testCode,
+            testStatus: verification.testStatus,
+            testOutput: verification.testOutput,
+            testSkippedReason: verification.testSkippedReason,
+            originalHash,
+          },
+        })
+
+        response.json(withPythonDraftDiff(revised))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/reject
+   *
+   * Sama malli kuin devCodeChangeStudio.js:n /dev-drafts/:id/reject.
+   */
+  router.put(
+    "/python-drafts/:id/reject",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const existing = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!existing) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (existing.status === "written") {
+          return response.status(409).json({
+            error: "Jo levylle kirjoitettua luonnosta ei voi hylätä.",
+          })
+        }
+
+        const rejected = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            status: "rejected",
+          },
+        })
+
+        response.json(withPythonDraftDiff(rejected))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/archive
+   * PUT /api/python-drafts/:id/unarchive
+   *
+   * Palautuva - ei pysyvä poisto. Toimii mistä tahansa tilasta (myös
+   * "written"/"pr_merged"/"rejected"): tarkoitus on siivota Historiaa
+   * riippumatta lopputilasta, ei estää tiettyjä tiloja kuten reject
+   * tekee.
+   */
+  router.put(
+    "/python-drafts/:id/archive",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const archived = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            archived: true,
+          },
+        })
+
+        response.json(withPythonDraftDiff(archived))
+      } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  router.put(
+    "/python-drafts/:id/unarchive",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const unarchived = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            archived: false,
+          },
+        })
+
+        response.json(withPythonDraftDiff(unarchived))
+      } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
         console.error(error)
 
         response.status(500).json({
@@ -352,7 +756,7 @@ export default function createDevStudioRouter(prisma) {
           data: updateData,
         })
 
-        response.json(draft)
+        response.json(withPythonDraftDiff(draft))
       } catch (error) {
         if (error.code === "P2025") {
           return response.status(404).json({
@@ -390,7 +794,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(draft)
+        response.json(withPythonDraftDiff(draft))
       } catch (error) {
         if (error.code === "P2025") {
           return response.status(404).json({
@@ -408,10 +812,104 @@ export default function createDevStudioRouter(prisma) {
   )
 
   /*
+   * PUT /api/python-drafts/:id/run
+   *
+   * "Aja ja näytä tulostus" - ajaa luonnoksen OMAN koodin turvallisesti
+   * hiekkalaatikossa (run-python-draft-workflow) ja palauttaa
+   * stdout/stderr-tulosteen. Uudelleenajettava esikatselu ihmisen
+   * omasta pyynnöstä - tallennetaan luonnokselle omiin
+   * runStatus/runOutput-kenttiin (näytetään sekä elävässä
+   * DraftCardissa että Historiassa), mutta EI vaikuta
+   * testCode/testStatus/testOutput-kenttiin, jotka ovat automaattisen
+   * luonti-/muokkausajan verifioinnin tulos - eri asia kuin tämä
+   * käsin käynnistetty ajo.
+   */
+  router.put(
+    "/python-drafts/:id/run",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: {
+            id: draftId,
+          },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "run-python-draft-workflow",
+          {
+            draftCode: draft.code,
+            toolBus,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          await prisma.pythonCodeDraft.update({
+            where: {
+              id: draftId,
+            },
+            data: {
+              runStatus: "failed",
+              runOutput: skillResult?.error || null,
+            },
+          })
+
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+          })
+        }
+
+        const updated = await prisma.pythonCodeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            runStatus: skillResult.status,
+            runOutput: skillResult.output,
+          },
+        })
+
+        response.json(withPythonDraftDiff(updated))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
    * PUT /api/python-drafts/:id/write
    *
-   * Kirjoittaa jo hyväksytyn (status: "approved") luonnoksen levylle
-   * Python Developer -pluginin workflow'n kautta.
+   * Ei enää kirjoita suoraan levylle - luo tuoreen git-haaran,
+   * committaa, pushaa, ja avaa GitHub Pull Requestin Python Developer
+   * -pluginin PR-workflow'n kautta. writePythonCodeSkill.js/
+   * writePythonCodeWorkflow.js EIVÄT käytä tätä reittiä enää, mutta
+   * pysyvät täysin ennallaan - Historian Peruuta-nappi toimii yhä
+   * jokaiselle jo ennen tätä ominaisuutta kirjoitetulle "written"-
+   * riville.
    */
   router.put(
     "/python-drafts/:id/write",
@@ -431,7 +929,7 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
-        if (draft.status !== "approved") {
+        if (draft.status !== "approved" && draft.status !== "pr_failed") {
           return response.status(409).json({
             error: `Luonnos ei ole hyväksytty (status: ${draft.status}). Hyväksy luonnos ensin.`,
           })
@@ -448,10 +946,14 @@ export default function createDevStudioRouter(prisma) {
         const toolBus = getSpacemonkeyToolBus()
 
         const workflowResult = await workflowEngine.execute(
-          "write-python-workflow",
+          "write-python-pull-request-workflow",
           {
-            draftId,
-            prisma,
+            title: draft.title,
+            explanation: null,
+            prompt: draft.prompt,
+            filePath: draft.filePath,
+            code: draft.code,
+            originalHash: draft.originalHash,
             toolBus,
           },
         )
@@ -462,7 +964,7 @@ export default function createDevStudioRouter(prisma) {
           const nextStatus =
             skillResult?.code === "file_changed_since_draft"
               ? "conflict"
-              : "write_failed"
+              : "pr_failed"
 
           const failed = await prisma.pythonCodeDraft.update({
             where: {
@@ -472,7 +974,7 @@ export default function createDevStudioRouter(prisma) {
               status: nextStatus,
               writeError:
                 skillResult?.error ||
-                "Kirjoitus epäonnistui tuntemattomasta syystä.",
+                "Pull requestin luonti epäonnistui tuntemattomasta syystä.",
             },
           })
 
@@ -485,19 +987,226 @@ export default function createDevStudioRouter(prisma) {
           })
         }
 
-        const written = await prisma.pythonCodeDraft.update({
+        const opened = await prisma.pythonCodeDraft.update({
           where: {
             id: draftId,
           },
           data: {
-            status: "written",
+            status: "pr_open",
             writtenAt: new Date(),
             writeError: null,
-            backupPath: skillResult.backupPath,
+            prUrl: skillResult.prUrl,
+            prNumber: skillResult.prNumber,
+            prBranch: skillResult.prBranch,
           },
         })
 
-        response.json(written)
+        response.json(withPythonDraftDiff(opened))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/check-pr-status
+   *
+   * Ei automaattista pollausta - tarkistaa GitHubilta PR:n tilan vain
+   * kun ihminen sitä nimenomaan pyytää.
+   */
+  router.put(
+    "/python-drafts/:id/check-pr-status",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (!draft.prNumber) {
+          return response.status(409).json({
+            error: "Luonnoksella ei ole avointa Pull Requestia.",
+          })
+        }
+
+        const { state, checkStatus } = await checkPullRequestStatus(draft.prNumber)
+
+        const nextStatus =
+          state === "MERGED"
+            ? "pr_merged"
+            : state === "CLOSED"
+              ? "pr_closed"
+              : draft.status
+
+        const updated = await prisma.pythonCodeDraft.update({
+          where: { id: draftId },
+          data: {
+            status: nextStatus,
+            checkStatus,
+            checkStatusCheckedAt: new Date(),
+          },
+        })
+
+        response.json(withPythonDraftDiff(updated))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/revert-pr
+   *
+   * Peruuttaa jo YHDISTETYN Pull Requestin avaamalla toisen,
+   * peruuttavan PR:n - sama jaettu revert-pull-request-workflow jota
+   * JS-puolikin käyttää (puhdasta git-plumbingia, ei kielikohtaista
+   * logiikkaa). Vain "pr_merged"-tilasta (tai uudelleenyritys
+   * "pr_revert_failed"-tilasta).
+   */
+  router.put(
+    "/python-drafts/:id/revert-pr",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (
+          draft.status !== "pr_merged" &&
+          draft.status !== "pr_revert_failed"
+        ) {
+          return response.status(409).json({
+            error: `Luonnoksen Pull Request ei ole yhdistetty (status: ${draft.status}).`,
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "revert-pull-request-workflow",
+          {
+            prNumber: draft.prNumber,
+            originalTitle: draft.title,
+            toolBus,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          const failed = await prisma.pythonCodeDraft.update({
+            where: { id: draftId },
+            data: {
+              status: "pr_revert_failed",
+              writeError:
+                skillResult?.error ||
+                "Peruutus-PR:n luonti epäonnistui tuntemattomasta syystä.",
+            },
+          })
+
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+            draft: failed,
+          })
+        }
+
+        const opened = await prisma.pythonCodeDraft.update({
+          where: { id: draftId },
+          data: {
+            status: "pr_revert_open",
+            writeError: null,
+            revertPrUrl: skillResult.prUrl,
+            revertPrNumber: skillResult.prNumber,
+            revertPrBranch: skillResult.prBranch,
+          },
+        })
+
+        response.json(withPythonDraftDiff(opened))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/python-drafts/:id/check-revert-pr-status
+   *
+   * Ei automaattista pollausta - tarkistaa GitHubilta peruutus-PR:n
+   * tilan vain kun ihminen sitä nimenomaan pyytää.
+   */
+  router.put(
+    "/python-drafts/:id/check-revert-pr-status",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.pythonCodeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (!draft.revertPrNumber) {
+          return response.status(409).json({
+            error: "Luonnoksella ei ole avointa peruutus-Pull Requestia.",
+          })
+        }
+
+        const { state } = await checkPullRequestStatus(draft.revertPrNumber)
+
+        const nextStatus =
+          state === "MERGED"
+            ? "pr_revert_merged"
+            : state === "CLOSED"
+              ? "pr_revert_closed"
+              : draft.status
+
+        const updated = await prisma.pythonCodeDraft.update({
+          where: { id: draftId },
+          data: { status: nextStatus },
+        })
+
+        response.json(withPythonDraftDiff(updated))
       } catch (error) {
         console.error(error)
 
@@ -597,7 +1306,7 @@ export default function createDevStudioRouter(prisma) {
           },
         })
 
-        response.json(reverted)
+        response.json(withPythonDraftDiff(reverted))
       } catch (error) {
         console.error(error)
 

@@ -8,22 +8,26 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
+from backend.modules.paths import SOURCE_ROOT, GIT_ROOT, PY_DATA_DIR
+
 router = APIRouter()
 
-PROJECT_ROOT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..")
-)
+# Mitä repositoryä vasten git-komennot ajetaan - kehitystilassa Marcin
+# elävä checkout, asennetussa sovelluksessa sama, WOOD_BOOSTER_GIT_ROOT
+# -ympäristömuuttujan kautta (ks. backend/modules/paths.py). Ei koskaan
+# resurssikimpun oma kopio - siinä ei ole edes .git-kansiota.
+PROJECT_ROOT = GIT_ROOT
 
-HISTORY_FILE = os.path.join(
-    os.path.dirname(__file__), "..", "data", "git_guardian_history.json"
-)
+HISTORY_FILE = os.path.join(PY_DATA_DIR, "git_guardian_history.json")
 
 # Repo-tason pre-commit-hook (.githooks/pre-commit) käyttää tätä samaa
 # skanneria (src/spacemonkey/git_guardian.py) jokaisen committin yhteydessä.
 # Käytetään samaa moduulia täällä, jotta ennakkotarkistus ja hookin
 # lopullinen päätös eivät koskaan voi olla eri mieltä keskenään, eikä
-# salaisuuskaavoja tarvitse ylläpitää kahdessa paikassa.
-_SRC_PATH = os.path.join(PROJECT_ROOT, "src")
+# salaisuuskaavoja tarvitse ylläpitää kahdessa paikassa. Lähdekoodin
+# sijainti on aina __file__-suhteellinen (SOURCE_ROOT), ei GIT_ROOT -
+# src/spacemonkey/ paketoidaan aina backendin viereen.
+_SRC_PATH = os.path.join(SOURCE_ROOT, "src")
 if _SRC_PATH not in sys.path:
     sys.path.insert(0, _SRC_PATH)
 

@@ -5,7 +5,20 @@
  * Code Dependency Analyzer Test
  */
 
+import path from "node:path"
+
+import { fileURLToPath } from "node:url"
+
 import CodeDependencyAnalyzer from "../skills/analyze/CodeDependencyAnalyzer.js"
+
+// tests/ -> spacemonkey -> services -> server -> repo root. Ei
+// kiinteää /home/marc-polkua - se toimi vain sattumalta Marcin
+// omalla koneella (päächeckout sattuu aina olemaan täsmälleen siinä
+// polussa), mutta ei missään muualla, esim. GitHub Actions -ajureilla
+// (havaittu ensimmäisen oikean CI-ajon kaatuessa ENOENT:iin).
+const currentDirectory = path.dirname(fileURLToPath(import.meta.url))
+
+const PROJECT_ROOT = path.resolve(currentDirectory, "../../../..")
 
 
 const analyzer =
@@ -14,11 +27,11 @@ const analyzer =
 
 const files = [
 
-    "/home/marc/Wood-Booster-AI/Wood-Booster-OS/server/services/spacemonkey/agents/developer/DeveloperAgent.js",
+    path.join(PROJECT_ROOT, "server/services/spacemonkey/agents/developer/DeveloperAgent.js"),
 
-    "/home/marc/Wood-Booster-AI/Wood-Booster-OS/server/services/spacemonkey/workflows/developer/DeveloperWorkflow.js",
+    path.join(PROJECT_ROOT, "server/services/spacemonkey/workflows/developer/DeveloperWorkflow.js"),
 
-    "/home/marc/Wood-Booster-AI/Wood-Booster-OS/src/App.jsx",
+    path.join(PROJECT_ROOT, "src/App.jsx"),
 
 ]
 

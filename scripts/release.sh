@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🚀 Wood-Booster OS release builder"
+echo "🚀 Wood-Booster HQ release builder"
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -40,10 +40,10 @@ if [ -f "$FILE" ]; then
 echo "Fixing $FILE"
 
 sed -i \
--e 's/Exec=app/Exec=wood-booster-os/' \
--e 's/Icon=app/Icon=wood-booster-os/' \
--e 's/StartupWMClass=app/StartupWMClass=wood-booster-os/' \
--e 's/Comment=A Tauri App/Comment=Wood-Booster OS desktop application/' \
+-e 's/Exec=app/Exec=wood-booster-hq/' \
+-e 's/Icon=app/Icon=wood-booster-hq/' \
+-e 's/StartupWMClass=app/StartupWMClass=wood-booster-hq/' \
+-e 's/Comment=A Tauri App/Comment=Wood-Booster HQ desktop application/' \
 -e 's/Categories=$/Categories=Office;Finance;/' \
 "$FILE"
 
@@ -73,6 +73,6 @@ echo "4/4 Collecting release packages"
 
 
 echo ""
-echo "🎉 Wood-Booster OS release ready"
+echo "🎉 Wood-Booster HQ release ready"
 
 ls -lh release

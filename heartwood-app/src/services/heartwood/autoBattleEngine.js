@@ -1,0 +1,259 @@
+// Heartwood Trial - the autobattler resolution engine. Pure functions
+// only, same discipline as the turn-based engine it supersedes for
+// combat: (state, args) -> new state. The one real idea here is that
+// enemies in this game have never been player-controlled - they've
+// always executed a movePattern automatically every turn. This engine
+// just applies that exact model to the player's squad too, instead of
+// a hand of cards.
+//
+// state shape: { round, phase, grid, playerUnits: [], enemies: [], log }
+// phase stays "player" for the whole fight (satisfies effects.js's
+// checkBattleEnd guard) until it flips to "won"/"lost" - there's no
+// real "whose turn" distinction to track once nothing needs player
+// input.
+
+import { UNITS } from "../../data/heartwood/units"
+import { ENEMIES } from "../../data/heartwood/enemies"
+import { CHARACTERS } from "../../data/heartwood/characters"
+import { resolveFormation } from "../../data/heartwood/formations"
+import { applyEffects, runTriggers, getUnit } from "./effects"
+
+const GRID = { rows: 3, cols: 3 }
+const MAX_ROUNDS = 30
+
+// Up to 3 deploy slots fill the back rank (one per column); a 4th
+// falls back to the center of the middle row - the only board square
+// the first 3 don't already occupy.
+const SLOT_POSITIONS = [
+  { row: 2, col: 0 },
+  { row: 2, col: 1 },
+  { row: 2, col: 2 },
+  { row: 1, col: 1 },
+]
+
+function freshUnit(overrides) {
+  return { block: 0, powers: {}, triggers: [], ...overrides }
+}
+
+// Identical decision logic to the turn-based engine's computeIntent -
+// "sequence" cycles deterministically, "weightedRandom" rolls each
+// time - now shared by both sides instead of enemies only.
+function computeIntent(def, moveIndex) {
+  if (def.moveSelect === "sequence") {
+    return def.movePattern[moveIndex % def.movePattern.length]
+  }
+  const totalWeight = def.movePattern.reduce((sum, m) => sum + (m.weight || 1), 0)
+  let roll = Math.random() * totalWeight
+  for (const move of def.movePattern) {
+    roll -= move.weight || 1
+    if (roll <= 0) return move
+  }
+  return def.movePattern[0]
+}
+
+// attackPattern !== "single" reuses effects.js's existing pattern
+// fan-out (applyPatternDamage) exactly as Rook's Charge/Bishop's Slash/
+// Knight's Leap already used it - every square the shape reaches gets
+// hit, no per-target selection needed since there's no player to ask.
+function intentToEffects(intent, attackPattern) {
+  switch (intent.type) {
+    case "attack":
+      return [
+        { type: "damage", amount: intent.amount, ...(attackPattern !== "single" ? { pattern: attackPattern } : {}) },
+      ]
+    case "block":
+      return [{ type: "block", amount: intent.amount }]
+    case "heal":
+      return [{ type: "heal", amount: intent.amount }]
+    case "debuff":
+      return [{ type: "applyBuff", target: "target", id: intent.id, amount: intent.amount }]
+    default:
+      return []
+  }
+}
+
+// The enemy "front rank" fiction already established by the shielding
+// rule (lower row = closer to the front) becomes the actual single-
+// target choice here: a squad's attack always lands on the frontmost
+// living opposing piece.
+function frontmost(units) {
+  const living = units.filter((u) => u.hp > 0)
+  if (!living.length) return null
+  return [...living].sort((a, b) => a.pos.row - b.pos.row || a.pos.col - b.pos.col)[0].id
+}
+
+// Player units all share one row (no front/back tiering among them),
+// so enemies focus-fire a random living squad member instead of a
+// deterministic column - the more interesting version of "no shield."
+function randomLiving(units) {
+  const living = units.filter((u) => u.hp > 0)
+  if (!living.length) return null
+  return living[Math.floor(Math.random() * living.length)].id
+}
+
+// `deployedUnitDefIds` is up to 4 unit ids from units.js, placed at
+// SLOT_POSITIONS. `characterId` selects the Commander whose
+// squadPassive (see characters.js) applies to every deployed unit -
+// this is the whole reason a Commander is chosen at all; previously it
+// was cosmetic only.
+export function startAutoBattle(characterId, deployedUnitDefIds, enemyFormationOrId) {
+  const formation = resolveFormation(enemyFormationOrId)
+
+  const enemies = formation.pieces.map((piece, i) => {
+    const def = ENEMIES[piece.defId]
+    return freshUnit({
+      id: `e${i}`,
+      defId: piece.defId,
+      name: def.name,
+      hp: def.maxHp,
+      maxHp: def.maxHp,
+      pos: piece.pos,
+      moveIndex: 0,
+      intent: computeIntent(def, 0),
+    })
+  })
+
+  const playerUnits = deployedUnitDefIds.map((defId, i) => {
+    const def = UNITS[defId]
+    return freshUnit({
+      id: `p${i}`,
+      defId,
+      name: def.name,
+      hp: def.maxHp,
+      maxHp: def.maxHp,
+      pos: SLOT_POSITIONS[i] || { row: 1, col: i },
+      moveIndex: 0,
+      intent: computeIntent(def, 0),
+    })
+  })
+
+  let state = {
+    round: 1,
+    phase: "player",
+    grid: GRID,
+    playerUnits,
+    enemies,
+    stats: {},
+    log: [`The fight begins. ${formation.name || enemies[0]?.name || "The enemy"} stands ready.`],
+  }
+
+  // Each deployed unit's own passive (ported from its old power-card
+  // addTrigger effect) applies once, the same mechanism a character's
+  // startEffects already used for a one-time battle-start bonus.
+  for (const u of playerUnits) {
+    const def = UNITS[u.defId]
+    if (def.passive?.length) {
+      state = applyEffects(state, def.passive, { actorId: u.id, targetId: u.id })
+    }
+  }
+
+  // The Commander's own signature effect applies to every unit in the
+  // squad, not just one hero - this is what makes choosing Tommy vs.
+  // Aatos vs. Fenrir actually matter in the autobattler.
+  const character = CHARACTERS[characterId]
+  if (character?.squadPassive?.length) {
+    for (const u of playerUnits) {
+      state = applyEffects(state, character.squadPassive, { actorId: u.id, targetId: u.id })
+    }
+  }
+
+  return state
+}
+
+function actSide(state, actingUnits, actingDefs, targetPool, side) {
+  let next = state
+  for (const unit of actingUnits) {
+    if (next.phase !== "player") break
+    const current = getUnit(next, unit.id)
+    if (!current || current.hp <= 0) continue
+
+    next = runTriggers(next, unit.id, "turnStart")
+    if (next.phase !== "player") break
+    let acting = getUnit(next, unit.id)
+    if (!acting || acting.hp <= 0) continue
+
+    const def = actingDefs[acting.defId]
+    const attackPattern = side === "player" ? def.attackPattern || "single" : "single"
+    const targetId = side === "player" ? frontmost(targetPool(next)) : randomLiving(targetPool(next))
+
+    if (targetId) {
+      next = applyEffects(next, intentToEffects(acting.intent, attackPattern), { actorId: unit.id, targetId })
+    }
+    if (next.phase !== "player") break
+
+    next = runTriggers(next, unit.id, "turnEnd")
+    if (next.phase !== "player") break
+    const afterAction = getUnit(next, unit.id)
+    if (!afterAction || afterAction.hp <= 0) continue
+
+    const nextMoveIndex = afterAction.moveIndex + 1
+    const nextIntent = computeIntent(def, nextMoveIndex)
+    next =
+      side === "player"
+        ? {
+            ...next,
+            playerUnits: next.playerUnits.map((u) =>
+              u.id === afterAction.id ? { ...u, moveIndex: nextMoveIndex, intent: nextIntent } : u,
+            ),
+          }
+        : {
+            ...next,
+            enemies: next.enemies.map((e) =>
+              e.id === afterAction.id ? { ...e, moveIndex: nextMoveIndex, intent: nextIntent } : e,
+            ),
+          }
+  }
+  return next
+}
+
+// Resolves exactly one round: the whole player squad acts (in deployed
+// order), then the whole enemy squad acts (in formation order) - same
+// two-phase shape the turn-based engine already used, just with a
+// squad on each side instead of one hero.
+export function resolveRound(state) {
+  let next = {
+    ...state,
+    log: [...state.log, `Round ${state.round}.`],
+    playerUnits: state.playerUnits.map((u) => (u.hp > 0 ? { ...u, block: 0 } : u)),
+  }
+
+  next = actSide(next, next.playerUnits, UNITS, (s) => s.enemies, "player")
+  if (next.phase !== "player") return next
+
+  next = { ...next, enemies: next.enemies.map((e) => (e.hp > 0 ? { ...e, block: 0 } : e)) }
+  next = actSide(next, next.enemies, ENEMIES, (s) => s.playerUnits, "enemy")
+  if (next.phase !== "player") return next
+
+  return { ...next, round: next.round + 1 }
+}
+
+// Fast-forwards a whole fight to its conclusion - the "Auto-Resolve"
+// button. A round cap guards against a pathological standoff (e.g. two
+// pure-block squads) rather than looping forever.
+export function autoResolveBattle(state) {
+  let next = state
+  let rounds = 0
+  while (next.phase === "player" && rounds < MAX_ROUNDS) {
+    next = resolveRound(next)
+    rounds++
+  }
+  return next
+}
+
+// Post-battle summary for ResultOverlay - only the player squad's own
+// numbers matter here (it's "what did my build actually do," not a
+// full combat log dump). Top unit ranks by damage+healing combined so
+// a pure healer can still show up as MVP in a fight it carried.
+export function summarizeBattle(state) {
+  const entries = state.playerUnits.map((u) => {
+    const s = state.stats?.[u.id] || { damageDealt: 0, healingDone: 0 }
+    return { id: u.id, name: u.name, damageDealt: s.damageDealt, healingDone: s.healingDone }
+  })
+  const totalDamage = entries.reduce((sum, e) => sum + e.damageDealt, 0)
+  const totalHealing = entries.reduce((sum, e) => sum + e.healingDone, 0)
+  const topUnit = entries.reduce(
+    (best, e) => (!best || e.damageDealt + e.healingDone > best.damageDealt + best.healingDone ? e : best),
+    null,
+  )
+  return { entries, totalDamage, totalHealing, topUnit }
+}

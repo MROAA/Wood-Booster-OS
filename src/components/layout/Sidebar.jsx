@@ -96,6 +96,20 @@ const groups = [
 
 
       {
+        label: "Hearthwood Studio",
+        path: "/hearthwood-studio",
+        icon: "⚒"
+      },
+
+
+      {
+        label: "Hearthwood",
+        path: "/heartwood",
+        icon: "🜏"
+      },
+
+
+      {
         label: "Settings",
         path: "/settings",
         icon: "⚙"

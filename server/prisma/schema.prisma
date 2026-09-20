@@ -161,6 +161,8 @@ model PythonCodeDraft {
 
   code String
 
+  model String?
+
   originalCode String?
 
   originalHash String?
@@ -173,7 +175,39 @@ model PythonCodeDraft {
 
   backupPath String?
 
+  unresolvedReferences String?
+
+  testCode String?
+
+  testStatus String?
+
+  testOutput String?
+
+  testSkippedReason String?
+
+  runStatus String?
+
+  runOutput String?
+
+  prUrl String?
+
+  prNumber Int?
+
+  prBranch String?
+
+  revertPrUrl String?
+
+  revertPrNumber Int?
+
+  revertPrBranch String?
+
+  checkStatus String?
+
+  checkStatusCheckedAt DateTime?
+
   writtenAt DateTime?
+
+  archived Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -199,6 +233,8 @@ model CodeChangeDraft {
 
   proposedCode String
 
+  model String?
+
   originalHash String?
 
   status String @default("draft")
@@ -215,7 +251,25 @@ model CodeChangeDraft {
 
   testSkippedReason String?
 
+  prUrl String?
+
+  prNumber Int?
+
+  prBranch String?
+
+  revertPrUrl String?
+
+  revertPrNumber Int?
+
+  revertPrBranch String?
+
+  checkStatus String?
+
+  checkStatusCheckedAt DateTime?
+
   writtenAt DateTime?
+
+  archived Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -231,6 +285,8 @@ model CodeChangeDraftSet {
 
   prompt String
 
+  model String?
+
   status String @default("planning")
 
   planExplanation String?
@@ -239,7 +295,25 @@ model CodeChangeDraftSet {
 
   writeError String?
 
+  prUrl String?
+
+  prNumber Int?
+
+  prBranch String?
+
+  revertPrUrl String?
+
+  revertPrNumber Int?
+
+  revertPrBranch String?
+
+  checkStatus String?
+
+  checkStatusCheckedAt DateTime?
+
   writtenAt DateTime?
+
+  archived Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -290,6 +364,10 @@ model CodeChangeFileDraft {
   testSkippedReason String?
 
   unresolvedReferences String?
+
+  runStatus String?
+
+  runOutput String?
 
   createdAt DateTime @default(now())
 
@@ -977,6 +1055,166 @@ model BusinessSettings {
   invoiceNumberPrefix String @default("WB-L")
 
   defaultInvoiceDueDays Int @default(14)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model SavedPrompt {
+
+  id Int @id @default(autoincrement())
+
+  lane String
+
+  label String
+
+  prompt String
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model HeartwoodTask {
+
+  id Int @id @default(autoincrement())
+
+  title String
+
+  description String?
+
+  category String @default("mechanic")
+
+  phase String @default("Phase 0 - Concept")
+
+  status String @default("backlog")
+
+  priority String @default("medium")
+
+  complexity String @default("M")
+
+  dependencies String?
+
+  acceptanceCriteria String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+model HeartwoodDecision {
+
+  id Int @id @default(autoincrement())
+
+  title String
+
+  decision String
+
+  reason String?
+
+  status String @default("accepted")
+
+  affectedAreas String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+model HearthwoodPatch {
+
+  id Int @id @default(autoincrement())
+
+  code String?
+
+  summary String
+
+  applyMode String
+
+  risk String
+
+  status String @default("draft")
+
+  targetFiles String
+
+  editSpec String
+
+  diff String?
+
+  gitGuardianRef String?
+
+  liveCommit String?
+
+  backupPaths String?
+
+  qaResult String?
+
+  qaStartedAt DateTime?
+
+  qaFinishedAt DateTime?
+
+  prUrl String?
+
+  prNumber Int?
+
+  prBranch String?
+
+  model String?
+
+  createdBy String?
+
+  archived Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+model BloodmoorPatch {
+
+  id Int @id @default(autoincrement())
+
+  code String?
+
+  summary String
+
+  applyMode String
+
+  risk String
+
+  status String @default("draft")
+
+  targetFiles String
+
+  editSpec String
+
+  diff String?
+
+  liveCommit String?
+
+  backupPaths String?
+
+  qaResult String?
+
+  qaStartedAt DateTime?
+
+  qaFinishedAt DateTime?
+
+  model String?
+
+  createdBy String?
+
+  archived Boolean @default(false)
 
   createdAt DateTime @default(now())
 

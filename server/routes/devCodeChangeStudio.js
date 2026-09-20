@@ -13,7 +13,7 @@ import {
 
 import { verifyProposedChange } from "../services/devStudio/verifyProposedChange.js"
 
-import { triggerGitGuardianBackup } from "../services/devStudio/gitGuardianBackup.js"
+import { checkPullRequestStatus } from "../services/devStudio/pullRequestStatus.js"
 
 /*
  * Dev Studion "Chat"-välilehden reitit: chat-tyylinen
@@ -25,9 +25,10 @@ import { triggerGitGuardianBackup } from "../services/devStudio/gitGuardianBacku
  * moduuleja.
  *
  * Mikään näistä reiteistä ei koskaan kirjoita tiedostoa muuten kuin
- * PUT /dev-drafts/:id/write kautta, ja se puolestaan suorittaa
- * write-code-change-workflow'n vain jos luonnoksen status on jo
- * "approved" - sama porttimalli kuin devStudio.js:n
+ * PUT /dev-drafts/:id/write kautta, ja se puolestaan avaa aina Pull
+ * Requestin write-code-change-pull-request-workflow'n kautta (ei
+ * koskaan kirjoita Marcin elävään hakemistoon) vain jos luonnoksen
+ * status on jo "approved" - sama porttimalli kuin devStudio.js:n
  * python-drafts-reiteillä.
  *
  * POST /dev-drafts ajaa lisäksi automaattisesti (ilman erillistä
@@ -58,7 +59,7 @@ export default function createDevCodeChangeRouter(prisma) {
     "/dev-drafts",
     async (request, response) => {
       try {
-        const { prompt, filePath } = request.body || {}
+        const { prompt, filePath, model } = request.body || {}
 
         if (!prompt || !filePath) {
           return response.status(400).json({
@@ -81,6 +82,7 @@ export default function createDevCodeChangeRouter(prisma) {
           {
             prompt,
             filePath,
+            model,
             toolBus,
             generateCodeChange,
           },
@@ -121,6 +123,7 @@ export default function createDevCodeChangeRouter(prisma) {
             proposedCode: skillResult.proposedCode,
             originalHash,
             status: "draft",
+            model: skillResult.model,
             testCode: verification.testCode,
             testStatus: verification.testStatus,
             testOutput: verification.testOutput,
@@ -322,6 +325,7 @@ export default function createDevCodeChangeRouter(prisma) {
           {
             prompt: augmentedPrompt,
             filePath: existing.filePath,
+            model: existing.model,
             toolBus,
             generateCodeChange,
           },
@@ -361,6 +365,7 @@ export default function createDevCodeChangeRouter(prisma) {
             originalCode: skillResult.originalCode,
             proposedCode: skillResult.proposedCode,
             originalHash,
+            model: skillResult.model,
             testCode: verification.testCode,
             testStatus: verification.testStatus,
             testOutput: verification.testOutput,
@@ -477,14 +482,95 @@ export default function createDevCodeChangeRouter(prisma) {
   )
 
   /*
+   * PUT /api/dev-drafts/:id/archive
+   * PUT /api/dev-drafts/:id/unarchive
+   *
+   * Palautuva - ei pysyvä poisto. Toimii mistä tahansa tilasta.
+   */
+  router.put(
+    "/dev-drafts/:id/archive",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            archived: true,
+          },
+        })
+
+        response.json(withDiff(draft))
+      } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  router.put(
+    "/dev-drafts/:id/unarchive",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.update({
+          where: {
+            id: draftId,
+          },
+          data: {
+            archived: false,
+          },
+        })
+
+        response.json(withDiff(draft))
+      } catch (error) {
+        if (error.code === "P2025") {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
    * PUT /api/dev-drafts/:id/write
    *
-   * Kirjoittaa jo hyväksytyn (status: "approved", tai uudelleenyritys
-   * "write_failed"-tilasta) luonnoksen levylle
-   * CodeChangeDeveloper-pluginin workflow'n kautta. Reitti kieltäytyy
-   * suorittamasta muissa tiloissa - tämä on ensimmäinen ja
-   * ehdottomasti pakollinen porttitarkistus, jonka lisäksi skilli itse
-   * tarkistaa saman uudelleen.
+   * Ei enää kirjoita suoraan levylle - luo tuoreen git-haaran,
+   * committaa, pushaa, ja avaa GitHub Pull Requestin
+   * CodeChangeDeveloper-pluginin PR-workflow'n kautta. Marc ei näe
+   * muutosta live-sovelluksessaan ennen kuin PR on yhdistetty ja
+   * kirjautuma synkattu - sama rytmi jota jokainen tämän session
+   * ominaisuus on käyttänyt ihmisen tekemänä.
+   *
+   * Reitti kieltäytyy suorittamasta muissa tiloissa kuin "approved"
+   * tai uudelleenyritys "pr_failed"-tilasta (tai vanha "write_failed",
+   * ennen tätä ominaisuutta jääneistä riveistä) - tämä on ensimmäinen
+   * ja ehdottomasti pakollinen porttitarkistus, jonka lisäksi skilli
+   * itse tarkistaa saman uudelleen.
+   *
+   * writeCodeChangeSkill.js/writeCodeChangeWorkflow.js (suora
+   * levylle kirjoitus) EIVÄT käytä tätä reittiä enää, mutta pysyvät
+   * täysin ennallaan - Historian Peruuta-nappi toimii yhä jokaiselle
+   * jo ennen tätä ominaisuutta kirjoitetulle "written"-riville.
    */
   router.put(
     "/dev-drafts/:id/write",
@@ -504,7 +590,11 @@ export default function createDevCodeChangeRouter(prisma) {
           })
         }
 
-        if (draft.status !== "approved" && draft.status !== "write_failed") {
+        if (
+          draft.status !== "approved" &&
+          draft.status !== "write_failed" &&
+          draft.status !== "pr_failed"
+        ) {
           return response.status(409).json({
             error: `Luonnos ei ole hyväksytty (status: ${draft.status}). Hyväksy luonnos ensin.`,
           })
@@ -520,12 +610,19 @@ export default function createDevCodeChangeRouter(prisma) {
 
         const toolBus = getSpacemonkeyToolBus()
 
-        triggerGitGuardianBackup()
-
         const workflowResult = await workflowEngine.execute(
-          "write-code-change-workflow",
+          "write-code-change-pull-request-workflow",
           {
-            draft,
+            title: draft.title,
+            explanation: draft.explanation,
+            prompt: draft.prompt,
+            files: [
+              {
+                filePath: draft.filePath,
+                proposedCode: draft.proposedCode,
+                originalHash: draft.originalHash,
+              },
+            ],
             toolBus,
           },
         )
@@ -536,7 +633,7 @@ export default function createDevCodeChangeRouter(prisma) {
           const nextStatus =
             skillResult?.code === "file_changed_since_draft"
               ? "conflict"
-              : "write_failed"
+              : "pr_failed"
 
           const failed = await prisma.codeChangeDraft.update({
             where: {
@@ -546,7 +643,7 @@ export default function createDevCodeChangeRouter(prisma) {
               status: nextStatus,
               writeError:
                 skillResult?.error ||
-                "Kirjoitus epäonnistui tuntemattomasta syystä.",
+                "Pull requestin luonti epäonnistui tuntemattomasta syystä.",
             },
           })
 
@@ -559,19 +656,225 @@ export default function createDevCodeChangeRouter(prisma) {
           })
         }
 
-        const written = await prisma.codeChangeDraft.update({
+        const opened = await prisma.codeChangeDraft.update({
           where: {
             id: draftId,
           },
           data: {
-            status: "written",
+            status: "pr_open",
             writtenAt: new Date(),
             writeError: null,
-            backupPath: skillResult.backupPath,
+            prUrl: skillResult.prUrl,
+            prNumber: skillResult.prNumber,
+            prBranch: skillResult.prBranch,
           },
         })
 
-        response.json(withDiff(written))
+        response.json(withDiff(opened))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/dev-drafts/:id/check-pr-status
+   *
+   * Ei automaattista pollausta - tarkistaa GitHubilta PR:n tilan vain
+   * kun ihminen sitä nimenomaan pyytää.
+   */
+  router.put(
+    "/dev-drafts/:id/check-pr-status",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (!draft.prNumber) {
+          return response.status(409).json({
+            error: "Luonnoksella ei ole avointa Pull Requestia.",
+          })
+        }
+
+        const { state, checkStatus } = await checkPullRequestStatus(draft.prNumber)
+
+        const nextStatus =
+          state === "MERGED"
+            ? "pr_merged"
+            : state === "CLOSED"
+              ? "pr_closed"
+              : draft.status
+
+        const updated = await prisma.codeChangeDraft.update({
+          where: { id: draftId },
+          data: {
+            status: nextStatus,
+            checkStatus,
+            checkStatusCheckedAt: new Date(),
+          },
+        })
+
+        response.json(withDiff(updated))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/dev-drafts/:id/revert-pr
+   *
+   * Peruuttaa jo YHDISTETYN Pull Requestin avaamalla toisen,
+   * peruuttavan PR:n - ei koskaan kirjoita suoraan levylle. Vain
+   * "pr_merged"-tilasta (tai uudelleenyritys "pr_revert_failed"-
+   * tilasta).
+   */
+  router.put(
+    "/dev-drafts/:id/revert-pr",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (
+          draft.status !== "pr_merged" &&
+          draft.status !== "pr_revert_failed"
+        ) {
+          return response.status(409).json({
+            error: `Luonnoksen Pull Request ei ole yhdistetty (status: ${draft.status}).`,
+          })
+        }
+
+        const workflowEngine = getSpacemonkeyWorkflowEngine()
+
+        if (!workflowEngine) {
+          return response.status(503).json({
+            error: "Spacemonkey-moottorit eivät ole vielä käynnistyneet.",
+          })
+        }
+
+        const toolBus = getSpacemonkeyToolBus()
+
+        const workflowResult = await workflowEngine.execute(
+          "revert-pull-request-workflow",
+          {
+            prNumber: draft.prNumber,
+            originalTitle: draft.title,
+            toolBus,
+          },
+        )
+
+        const skillResult = workflowResult.results?.[0]
+
+        if (!skillResult?.success) {
+          const failed = await prisma.codeChangeDraft.update({
+            where: { id: draftId },
+            data: {
+              status: "pr_revert_failed",
+              writeError:
+                skillResult?.error ||
+                "Peruutus-PR:n luonti epäonnistui tuntemattomasta syystä.",
+            },
+          })
+
+          return response.status(422).json({
+            error: skillResult?.error,
+            code: skillResult?.code,
+            draft: withDiff(failed),
+          })
+        }
+
+        const opened = await prisma.codeChangeDraft.update({
+          where: { id: draftId },
+          data: {
+            status: "pr_revert_open",
+            writeError: null,
+            revertPrUrl: skillResult.prUrl,
+            revertPrNumber: skillResult.prNumber,
+            revertPrBranch: skillResult.prBranch,
+          },
+        })
+
+        response.json(withDiff(opened))
+      } catch (error) {
+        console.error(error)
+
+        response.status(500).json({
+          error: error.message,
+        })
+      }
+    },
+  )
+
+  /*
+   * PUT /api/dev-drafts/:id/check-revert-pr-status
+   *
+   * Ei automaattista pollausta - tarkistaa GitHubilta peruutus-PR:n
+   * tilan vain kun ihminen sitä nimenomaan pyytää.
+   */
+  router.put(
+    "/dev-drafts/:id/check-revert-pr-status",
+    async (request, response) => {
+      try {
+        const draftId = Number(request.params.id)
+
+        const draft = await prisma.codeChangeDraft.findUnique({
+          where: { id: draftId },
+        })
+
+        if (!draft) {
+          return response.status(404).json({
+            error: "Luonnosta ei löytynyt",
+          })
+        }
+
+        if (!draft.revertPrNumber) {
+          return response.status(409).json({
+            error: "Luonnoksella ei ole avointa peruutus-Pull Requestia.",
+          })
+        }
+
+        const { state } = await checkPullRequestStatus(draft.revertPrNumber)
+
+        const nextStatus =
+          state === "MERGED"
+            ? "pr_revert_merged"
+            : state === "CLOSED"
+              ? "pr_revert_closed"
+              : draft.status
+
+        const updated = await prisma.codeChangeDraft.update({
+          where: { id: draftId },
+          data: { status: nextStatus },
+        })
+
+        response.json(withDiff(updated))
       } catch (error) {
         console.error(error)
 

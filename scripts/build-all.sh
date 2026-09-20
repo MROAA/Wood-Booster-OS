@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🪵 Wood-Booster OS release builder"
+echo "🪵 Wood-Booster HQ release builder"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -24,7 +24,7 @@ echo "4/4 Building Arch package"
 
 echo ""
 echo "================================"
-echo "✅ Wood-Booster OS build complete"
+echo "✅ Wood-Booster HQ build complete"
 echo "================================"
 
 echo ""

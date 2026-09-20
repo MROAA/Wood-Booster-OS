@@ -13,6 +13,8 @@ import fs from "node:fs"
 
 import FileTool from "../../tools/FileTool.js"
 
+import GitTool from "../../tools/GitTool.js"
+
 import writePythonCodeSkill from "./skills/writePythonCodeSkill.js"
 
 import writePythonCodeWorkflow from "./workflows/writePythonCodeWorkflow.js"
@@ -36,6 +38,26 @@ import refactorPythonCodeWorkflow from "./workflows/refactorPythonCodeWorkflow.j
 import debugPythonCodeSkill from "./skills/debugPythonCodeSkill.js"
 
 import debugPythonCodeWorkflow from "./workflows/debugPythonCodeWorkflow.js"
+
+import checkPythonReferencesSkill from "./skills/checkPythonReferencesSkill.js"
+
+import checkPythonReferencesWorkflow from "./workflows/checkPythonReferencesWorkflow.js"
+
+import generatePythonTestSkill from "./skills/generatePythonTestSkill.js"
+
+import generatePythonTestWorkflow from "./workflows/generatePythonTestWorkflow.js"
+
+import runPythonTestSkill from "./skills/runPythonTestSkill.js"
+
+import runPythonTestWorkflow from "./workflows/runPythonTestWorkflow.js"
+
+import runPythonDraftSkill from "./skills/runPythonDraftSkill.js"
+
+import runPythonDraftWorkflow from "./workflows/runPythonDraftWorkflow.js"
+
+import writePythonCodePullRequestSkill from "./skills/writePythonCodePullRequestSkill.js"
+
+import writePythonCodePullRequestWorkflow from "./workflows/writePythonCodePullRequestWorkflow.js"
 
 
 
@@ -67,6 +89,12 @@ function registerPythonDeveloperPlugin({
 
     }
 
+    if (!toolBus.has("git")) {
+
+        toolBus.register(GitTool)
+
+    }
+
     skillEngine.register(
         writePythonCodeSkill,
     )
@@ -91,6 +119,26 @@ function registerPythonDeveloperPlugin({
         debugPythonCodeSkill,
     )
 
+    skillEngine.register(
+        checkPythonReferencesSkill,
+    )
+
+    skillEngine.register(
+        generatePythonTestSkill,
+    )
+
+    skillEngine.register(
+        runPythonTestSkill,
+    )
+
+    skillEngine.register(
+        runPythonDraftSkill,
+    )
+
+    skillEngine.register(
+        writePythonCodePullRequestSkill,
+    )
+
     workflowEngine.register(
         writePythonCodeWorkflow,
     )
@@ -113,6 +161,26 @@ function registerPythonDeveloperPlugin({
 
     workflowEngine.register(
         debugPythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        checkPythonReferencesWorkflow,
+    )
+
+    workflowEngine.register(
+        generatePythonTestWorkflow,
+    )
+
+    workflowEngine.register(
+        runPythonTestWorkflow,
+    )
+
+    workflowEngine.register(
+        runPythonDraftWorkflow,
+    )
+
+    workflowEngine.register(
+        writePythonCodePullRequestWorkflow,
     )
 
     pluginManager.register(plugin)

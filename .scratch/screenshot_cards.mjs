@@ -1,0 +1,11 @@
+import { chromium } from "playwright"
+const browser = await chromium.launch()
+const page = await browser.newPage({ viewport: { width: 1400, height: 900 } })
+await page.goto("http://localhost:5204/heartwood")
+await page.waitForSelector(".hw-select-grid button")
+await page.click(".hw-select-grid button")
+const tutorialNext = page.locator("button.hw-tutorial-next")
+if (await tutorialNext.isVisible({ timeout: 2000 }).catch(() => false)) await tutorialNext.click().catch(() => {})
+await page.waitForSelector(".hw-card[data-portrait=\"true\"]", { timeout: 10000 })
+await page.screenshot({ path: "/tmp/claude-1000/-home-marc-Wood-Booster-AI/8af3515f-c6b1-4793-ae5e-973e0a5425ec/scratchpad/shop_cards.png", fullPage: false })
+await browser.close()

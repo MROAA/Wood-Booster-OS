@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🪵 Building Wood-Booster OS application"
+echo "🪵 Building Wood-Booster HQ application"
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 

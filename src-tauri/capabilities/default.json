@@ -3,15 +3,21 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": [
-    "main"
+    "main",
+    "hq-widget"
   ],
   "permissions": [
     "core:default",
+    "core:webview:allow-create-webview-window",
     {
       "identifier": "shell:allow-execute",
       "allow": [
         {
           "name": "binaries/wood-booster-server",
+          "sidecar": true
+        },
+        {
+          "name": "binaries/wood-booster-python",
           "sidecar": true
         }
       ]

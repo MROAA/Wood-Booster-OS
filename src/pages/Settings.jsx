@@ -23,6 +23,10 @@ const FILE_URL =
   "http://localhost:3001/uploads"
 
 
+const PYTHON_API_URL =
+  "http://localhost:8002/api"
+
+
 
 const emptyForm = {
 
@@ -99,6 +103,149 @@ function Settings() {
   ] = useState(
     getTheme()
   )
+
+
+  const [
+    apiKeyConfigured,
+    setApiKeyConfigured,
+  ] = useState(null)
+
+
+  const [
+    apiKeyInput,
+    setApiKeyInput,
+  ] = useState("")
+
+
+  const [
+    apiKeySaving,
+    setApiKeySaving,
+  ] = useState(false)
+
+
+  const [
+    apiKeyError,
+    setApiKeyError,
+  ] = useState("")
+
+
+
+
+  useEffect(() => {
+
+    let cancelled = false
+
+
+    fetch(`${PYTHON_API_URL}/settings/anthropic-key`)
+      .then(response => response.json())
+      .then(data => {
+
+        if(cancelled) {
+
+          return
+
+        }
+
+
+        setApiKeyConfigured(
+          Boolean(data.configured)
+        )
+
+      })
+      .catch(() => {
+
+        if(!cancelled) {
+
+          setApiKeyConfigured(false)
+
+        }
+
+      })
+
+
+    return () => {
+
+      cancelled = true
+
+    }
+
+  }, [])
+
+
+
+
+  async function handleApiKeySubmit(
+    event
+  ) {
+
+    event.preventDefault()
+
+
+    if(!apiKeyInput.trim()) {
+
+      return
+
+    }
+
+
+    try {
+
+      setApiKeySaving(true)
+
+      setApiKeyError("")
+
+
+      const response =
+        await fetch(
+          `${PYTHON_API_URL}/settings/anthropic-key`,
+          {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                api_key: apiKeyInput.trim(),
+              }),
+
+          }
+        )
+
+      const data =
+        await response.json()
+
+      if(!response.ok || data.status === "error") {
+
+        throw new Error(
+          data.message ||
+          "API-avaimen tallentaminen epäonnistui."
+        )
+
+      }
+
+
+      setApiKeyConfigured(true)
+
+      setApiKeyInput("")
+
+    } catch(saveError) {
+
+      setApiKeyError(
+        saveError.message ||
+        "API-avaimen tallentaminen epäonnistui."
+      )
+
+    } finally {
+
+      setApiKeySaving(false)
+
+    }
+
+  }
 
 
 
@@ -1159,6 +1306,102 @@ function Settings() {
 
         </div>
 
+
+      </section>
+
+
+
+
+      <section className="panel space-y-4">
+
+        <div>
+
+          <h2 className="text-lg font-semibold">
+            Spacemonkey-tekoäly
+          </h2>
+
+
+          <p className="mt-1 text-sm text-[var(--wood-muted)]">
+            Anthropic API -avain, jota Spacemonkey-chat käyttää. Tallentuu
+            tälle koneelle - ei pakata asennuspakettiin.
+          </p>
+
+        </div>
+
+
+        {
+          apiKeyConfigured === true && !apiKeyInput && (
+
+            <p className="text-sm font-medium text-green-400">
+              ✓ API-avain on asetettu
+            </p>
+
+          )
+        }
+
+
+        {
+          apiKeyError && (
+
+            <p className="text-sm text-red-400">
+              {apiKeyError}
+            </p>
+
+          )
+        }
+
+
+        <form onSubmit={handleApiKeySubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+
+          <label className="flex-1">
+
+            <span className="text-sm text-[var(--wood-muted)]">
+              {
+                apiKeyConfigured === true
+                ? "Vaihda API-avain"
+                : "Anthropic API -avain"
+              }
+            </span>
+
+
+            <input
+
+              type="password"
+
+              value={apiKeyInput}
+
+              onChange={event => setApiKeyInput(event.target.value)}
+
+              placeholder="sk-ant-..."
+
+              className="mt-2 wb-input"
+
+            />
+
+          </label>
+
+
+          <button
+
+            type="submit"
+
+            disabled={apiKeySaving || !apiKeyInput.trim()}
+
+            className="wb-button disabled:cursor-not-allowed disabled:opacity-50"
+
+          >
+
+            {
+              apiKeySaving
+              ?
+              "Tallennetaan..."
+              :
+              "Tallenna avain"
+            }
+
+          </button>
+
+        </form>
 
       </section>
 

@@ -71,7 +71,7 @@ const refactorPythonCodeSkill = {
 
     async execute(context) {
 
-        const { filePath, toolBus, refactorPythonCode } = context || {}
+        const { filePath, model, toolBus, refactorPythonCode } = context || {}
 
         const safePath = resolveSafeFilePath(filePath)
 
@@ -102,8 +102,9 @@ const refactorPythonCodeSkill = {
 
         }
 
-        const { title, explanation, code } = await refactorPythonCode({
+        const { title, explanation, code, model: resolvedModel } = await refactorPythonCode({
             code: readResult.content,
+            model,
         })
 
         return {
@@ -112,6 +113,7 @@ const refactorPythonCodeSkill = {
             title,
             explanation,
             code,
+            model: resolvedModel,
         }
 
     },

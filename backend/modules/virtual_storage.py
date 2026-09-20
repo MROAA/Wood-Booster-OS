@@ -9,9 +9,11 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from PIL import Image
 
+from backend.modules.paths import PY_DATA_DIR
+
 router = APIRouter()
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+DATA_DIR = PY_DATA_DIR
 DATA_FILE = os.path.join(DATA_DIR, "virtual_storage.json")
 FILES_DIR = os.path.join(DATA_DIR, "virtual_storage_files")
 

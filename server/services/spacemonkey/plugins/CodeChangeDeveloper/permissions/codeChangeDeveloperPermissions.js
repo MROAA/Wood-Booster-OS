@@ -46,6 +46,18 @@ const codeChangeDeveloperPermissions = [
         requiresHumanApproval: false,
     },
 
+    {
+        id: "git.pull-request",
+        description:
+            "Allows committing an approved change to a fresh, " +
+            "ephemeral git worktree/branch (never the live checkout), " +
+            "pushing it, and opening a GitHub Pull Request via `gh` - " +
+            "only for drafts already marked status:\"approved\", same " +
+            "gate as filesystem.write.",
+        destructive: true,
+        requiresHumanApproval: true,
+    },
+
 ]
 
 export default codeChangeDeveloperPermissions

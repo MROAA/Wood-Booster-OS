@@ -1,0 +1,10 @@
+=== per-commander win rate WITH items (25 runs each) ===
+tommy: 0/25 (0%), avg items owned: 0.0
+aatos: 0/25 (0%), avg items owned: 0.0
+fenrir: 0/25 (0%), avg items owned: 0.0
+repo: 0/25 (0%), avg items owned: 0.0
+
+=== which fight actually killed a run ===
+{}
+
+page errors: (none)

@@ -75,6 +75,10 @@ import {
   createDraftSetFromPrompt,
 } from "../services/devStudio/draftSetService.js"
 
+import {
+  runHeartwoodTurn,
+} from "../services/chatModes/heartwoodAssistant.js"
+
 
 
 
@@ -1788,6 +1792,20 @@ export default function createAgentChatRouter(
             await runCodeChangePlanTurn({
 
               text,
+
+              prisma,
+
+            })
+
+        }
+        else if(mode === "heartwood"){
+
+          result =
+            await runHeartwoodTurn({
+
+              text,
+
+              conversation,
 
               prisma,
 

@@ -1,0 +1,8 @@
+-- CreateTable
+CREATE TABLE "SavedPrompt" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "lane" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "prompt" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

@@ -82,7 +82,7 @@ function VerificationResultViewer({ draft }) {
 
       <div>
         <div className="text-xs uppercase tracking-wide text-[var(--wood-muted)] mb-2">Diff</div>
-        <DiffView diff={draft.diff} />
+        <DiffView diff={draft.diff} filePath={draft.filePath} />
       </div>
 
       {

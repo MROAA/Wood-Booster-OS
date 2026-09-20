@@ -40,11 +40,11 @@ import struct
 import termios
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from backend.modules.paths import VAULT_ROOT
+
 router = APIRouter()
 
-PROJECT_ROOT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "..")
-)
+PROJECT_ROOT = VAULT_ROOT
 
 ALLOWED_ORIGIN = re.compile(r"^https?://(localhost|127\.0\.0\.1):\d+$")
 

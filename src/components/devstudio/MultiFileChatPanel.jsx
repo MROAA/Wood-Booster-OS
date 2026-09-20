@@ -1,16 +1,39 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import SpacemonkeyIcon from "../branding/SpacemonkeyIcon"
 
-import { apiPost, apiPut, apiDelete } from "../../api/client"
+import { apiGet, apiPost, apiPut, apiDelete } from "../../api/client"
 
 import SetBubble from "./SetBubble"
+
+import SavedPromptsRow from "./SavedPromptsRow"
+import PlaybookPicker from "./PlaybookPicker"
+import FileAttachButton from "./FileAttachButton"
+import CodeReadOnlyActionButton from "./CodeReadOnlyActionButton"
+import PromptPrefillButton from "./PromptPrefillButton"
+import ModelPicker from "./ModelPicker"
+
+import { NON_TERMINAL_SET_STATUSES } from "./statusLabels"
+
+import { useElapsedSeconds } from "./useElapsedSeconds"
+
+import { useApprovePlanProgress } from "./useApprovePlanProgress"
 
 function MultiFileChatPanel() {
 
   const [prompt, setPrompt] = useState("")
 
+  const [model, setModel] = useState(undefined)
+
+  const [compareMode, setCompareMode] = useState(false)
+
+  const [compareModel, setCompareModel] = useState(undefined)
+
   const [isThinking, setIsThinking] = useState(false)
+
+  const elapsedSeconds = useElapsedSeconds(isThinking)
+
+  const approvePlanProgress = useApprovePlanProgress()
 
   const [busySetId, setBusySetId] = useState(null)
 
@@ -33,6 +56,47 @@ function MultiFileChatPanel() {
     },
 
   ])
+
+  useEffect(() => {
+
+    async function restorePendingSets() {
+
+      try {
+
+        const sets = await apiGet("/dev-draft-sets")
+
+        const restored = (sets || [])
+          .filter(set => NON_TERMINAL_SET_STATUSES.has(set.status))
+          .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+          .map(set => ({ role: "assistant", kind: "set", set, restored: true }))
+
+        if (restored.length === 0) {
+          return
+        }
+
+        setTurns(previous => [
+          ...previous,
+          ...restored.filter(
+            item => !previous.some(
+              existing => existing.kind === "set" && existing.set.id === item.set.id
+            )
+          ),
+        ])
+
+      } catch (error) {
+
+        console.error(
+          "Keskeneräisten suunnitelmien palautus epäonnistui:",
+          error
+        )
+
+      }
+
+    }
+
+    restorePendingSets()
+
+  }, [])
 
   function updateSetInPlace(set) {
 
@@ -69,9 +133,72 @@ function MultiFileChatPanel() {
 
     setErrorMessage("")
 
+    if (compareMode) {
+
+      setTurns(previous => [
+        ...previous,
+        { role: "assistant", kind: "text", content: `Vertailu: ${userPrompt}` },
+      ])
+
+    }
+
+    const modelsToRun = compareMode ? [model, compareModel] : [model]
+
+    // Peräkkäin, ei rinnakkain - paikallinen Ollama-instanssi jonottaa
+    // samanaikaiset generoinnit joka tapauksessa, joten rinnakkaisuus
+    // ei nopeuttaisi mitään ja vaatisi oman, toisen "ajattelee"-tilan
+    // käyttöliittymään ilman hyötyä.
+    for (const modelToUse of modelsToRun) {
+
+      try {
+
+        const set = await apiPost("/dev-draft-sets", { prompt: userPrompt, model: modelToUse })
+
+        setTurns(previous => [
+          ...previous,
+          { role: "assistant", kind: "set", set },
+        ])
+
+      } catch (error) {
+
+        setTurns(previous => [
+          ...previous,
+          {
+            role: "assistant",
+            kind: "text",
+            content: `Suunnitelman luonti epäonnistui: ${error.message}`,
+          },
+        ])
+
+      }
+
+    }
+
+    setIsThinking(false)
+
+  }
+
+  /*
+   * Kokeilee samaa pyyntöä toisella mallilla jälkikäteen, olemassa
+   * olevasta suunnitelmakuplasta - sama "Vertailu"-jako-luonti kuin
+   * sendMessage()'n vertailutilassa, mutta vain yksi uusi kutsu
+   * kerrallaan koska alkuperäinen pyyntö on jo olemassa eikä sitä
+   * tarvitse lähettää uudelleen kahdesti.
+   */
+  async function retryWithModel(setId, promptText, model) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    setTurns(previous => [
+      ...previous,
+      { role: "assistant", kind: "text", content: `Vertailu: ${promptText}` },
+    ])
+
     try {
 
-      const set = await apiPost("/dev-draft-sets", { prompt: userPrompt })
+      const set = await apiPost("/dev-draft-sets", { prompt: promptText, model })
 
       setTurns(previous => [
         ...previous,
@@ -91,7 +218,7 @@ function MultiFileChatPanel() {
 
     } finally {
 
-      setIsThinking(false)
+      setBusySetId(null)
 
     }
 
@@ -102,6 +229,8 @@ function MultiFileChatPanel() {
     setBusySetId(setId)
 
     setErrorMessage("")
+
+    approvePlanProgress.start(setId, updateSetInPlace)
 
     try {
 
@@ -114,6 +243,8 @@ function MultiFileChatPanel() {
       setErrorMessage(error.message)
 
     } finally {
+
+      approvePlanProgress.stop(setId)
 
       setBusySetId(null)
 
@@ -169,6 +300,54 @@ function MultiFileChatPanel() {
 
   }
 
+  async function archiveSet(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/archive`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function unarchiveSet(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/unarchive`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
   async function reviseFile(setId, fileId, feedback) {
 
     setBusySetId(setId)
@@ -178,6 +357,54 @@ function MultiFileChatPanel() {
     try {
 
       const set = await apiPut(`/dev-draft-sets/${setId}/files/${fileId}/revise`, { feedback })
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function runFile(setId, fileId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/files/${fileId}/run`, {})
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function editFile(setId, fileId, proposedCode) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/files/${fileId}`, { proposedCode })
 
       updateSetInPlace(set)
 
@@ -281,6 +508,78 @@ function MultiFileChatPanel() {
 
   }
 
+  async function checkPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-pr-status`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function revertSetPr(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/revert-pr`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function checkRevertSetPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-revert-pr-status`)
+
+      updateSetInPlace(set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
   return (
 
     <div className="relative h-full min-h-0 flex flex-col">
@@ -325,19 +624,39 @@ function MultiFileChatPanel() {
 
                   ) : (
 
-                    <SetBubble
-                      set={turn.set}
-                      busy={busySetId === turn.set.id}
-                      onApprovePlan={() => approvePlan(turn.set.id)}
-                      onApprove={() => approveSet(turn.set.id)}
-                      onReject={() => rejectSet(turn.set.id)}
-                      onWrite={() => writeSet(turn.set.id)}
-                      onReviseFile={(fileId, feedback) => reviseFile(turn.set.id, fileId, feedback)}
-                      onPreview={() => startPreviewForSet(turn.set.id)}
-                      onStopPreview={() => stopPreviewForSet(turn.set.id)}
-                      previewing={previewingSetId === turn.set.id}
-                      previewBusy={previewBusySetId === turn.set.id}
-                    />
+                    <div className="flex flex-col gap-1">
+
+                      {
+                        turn.restored && NON_TERMINAL_SET_STATUSES.has(turn.set.status) && (
+                          <div className="text-xs italic text-[var(--wood-muted)]">
+                            Aiemmin aloitettu, ei vielä valmis.
+                          </div>
+                        )
+                      }
+
+                      <SetBubble
+                        set={turn.set}
+                        busy={busySetId === turn.set.id}
+                        onApprovePlan={() => approvePlan(turn.set.id)}
+                        onApprove={() => approveSet(turn.set.id)}
+                        onReject={() => rejectSet(turn.set.id)}
+                        onWrite={() => writeSet(turn.set.id)}
+                        onReviseFile={(fileId, feedback) => reviseFile(turn.set.id, fileId, feedback)}
+                        onRunFile={fileId => runFile(turn.set.id, fileId)}
+                        onEditFile={(fileId, proposedCode) => editFile(turn.set.id, fileId, proposedCode)}
+                        onPreview={() => startPreviewForSet(turn.set.id)}
+                        onStopPreview={() => stopPreviewForSet(turn.set.id)}
+                        previewing={previewingSetId === turn.set.id}
+                        previewBusy={previewBusySetId === turn.set.id}
+                        onCheckPrStatus={() => checkPrStatus(turn.set.id)}
+                        onRevertPr={() => revertSetPr(turn.set.id)}
+                        onCheckRevertPrStatus={() => checkRevertSetPrStatus(turn.set.id)}
+                        onRetryWithModel={model => retryWithModel(turn.set.id, turn.set.prompt, model)}
+                        onArchive={() => archiveSet(turn.set.id)}
+                        onUnarchive={() => unarchiveSet(turn.set.id)}
+                      />
+
+                    </div>
 
                   )
                 }
@@ -374,6 +693,7 @@ function MultiFileChatPanel() {
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--wood-accent)] animate-bounce" style={{ animationDelay: "0ms" }} />
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--wood-accent)] animate-bounce" style={{ animationDelay: "120ms" }} />
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--wood-accent)] animate-bounce" style={{ animationDelay: "240ms" }} />
+                <span className="text-[10px] text-[var(--wood-muted)] ml-1">{elapsedSeconds}s</span>
               </div>
 
             </div>
@@ -399,6 +719,78 @@ function MultiFileChatPanel() {
             <div className="text-xs text-red-300">{errorMessage}</div>
           )
         }
+
+        <SavedPromptsRow lane="koodi" currentPrompt={prompt} onUseSaved={setPrompt} />
+
+        <PlaybookPicker lane="koodi" onUsePlaybook={setPrompt} />
+
+        <FileAttachButton prompt={prompt} onAttach={setPrompt} />
+
+        <div className="flex flex-wrap items-center gap-2">
+
+          <CodeReadOnlyActionButton
+            icon="💬"
+            label="Selitä tiedosto"
+            busyLabel="Selitetään…"
+            apiPath="/code-explain"
+            resultField="explanation"
+          />
+
+          <CodeReadOnlyActionButton
+            icon="🔍"
+            label="Katselmoi tiedosto"
+            busyLabel="Katselmoidaan…"
+            apiPath="/code-review"
+            resultField="review"
+          />
+
+          <PromptPrefillButton
+            icon="🔧"
+            label="Refaktoroi tiedosto"
+            buildPrompt={path => `Refaktoroi tiedosto: ${path}`}
+            onSetPrompt={setPrompt}
+          />
+
+          <PromptPrefillButton
+            icon="🐛"
+            label="Debugaa tiedosto"
+            buildPrompt={path => `Debugaa tiedosto: ${path}`}
+            onSetPrompt={setPrompt}
+          />
+
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+
+          <ModelPicker value={model} onChange={setModel} />
+
+          <button
+            type="button"
+            onClick={() => setCompareMode(enabled => !enabled)}
+            className={`
+              rounded-full
+              border
+              px-2.5
+              py-1
+              text-xs
+              transition-colors
+              ${
+                compareMode
+                  ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            🔀 Vertaile kahta mallia
+          </button>
+
+          {
+            compareMode && (
+              <ModelPicker value={compareModel} onChange={setCompareModel} />
+            )
+          }
+
+        </div>
 
         <div className="flex gap-3">
 

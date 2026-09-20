@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Wood-Booster HQ
+Comment=Wood-Booster HQ desktop application
+Exec=/usr/bin/wood-booster-hq
+Icon=wood-booster-hq
+Terminal=false
+Categories=Utility;Development;
+StartupWMClass=wood-booster-hq

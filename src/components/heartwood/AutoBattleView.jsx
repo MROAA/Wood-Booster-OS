@@ -1,0 +1,472 @@
+import { useEffect, useRef, useState } from "react"
+import { UNITS } from "../../data/heartwood/units"
+import { ENEMIES } from "../../data/heartwood/enemies"
+import { moodBandName, nextMoodTier } from "../../data/heartwood/moods"
+import {
+  TRIBES,
+  tribesOf,
+  resolveSynergies,
+  nextSynergyThreshold,
+  synergyTierLabel,
+  resolveComboSynergies,
+  resolvePositionSynergies,
+} from "../../data/heartwood/synergies"
+
+// Player deploy slots, same order/positions as autoBattleEngine.js's
+// SLOT_POSITIONS - duplicated (no shared export) so a live unit's pos
+// can be mapped back to its slot index for positional synergies.
+const SLOT_POSITIONS = [
+  { row: 2, col: 0 },
+  { row: 2, col: 1 },
+  { row: 2, col: 2 },
+  { row: 1, col: 1 },
+]
+import { isShielded } from "../../services/heartwood/targeting"
+import { summarizeBattle, topThreatTargetId } from "../../services/heartwood/autoBattleEngine"
+import { analyzeOutcome } from "../../data/heartwood/battleAnalysis"
+import EnemyPieceCard from "./EnemyPieceCard"
+import ResultOverlay from "./ResultOverlay"
+import FloatingNumbers from "./FloatingNumbers"
+import SynergyBanner from "./SynergyBanner"
+import { CardGlyph } from "./cardArt"
+
+// Real time between rounds during auto-playback. Marc asked twice:
+// "taistelu on liian nopea sitä voi hidastaa puolella" (too fast, can
+// be halved), then later "taistelun nopeuden voi vielä puolittaa"
+// (can still be halved again) - doubled again from 1100ms, for a
+// cumulative 4x slower than the original 550ms baseline.
+const ROUND_DELAY_MS = 2200
+
+// How long a stagger step waits before the next queued lunge starts -
+// several hits can land in the same round (a whole squad's worth), so
+// this staggers them into a readable little sequence rather than every
+// piece jolting at once. Doubled alongside ROUND_DELAY_MS so multi-hit
+// rounds stay proportionally paced at the new, slower speed.
+const LUNGE_STAGGER_MS = 640
+
+function cellsByPos(units) {
+  const map = {}
+  for (const u of units) map[`${u.pos.row}-${u.pos.col}`] = u
+  return map
+}
+
+// Marc: "autobattle animoidaan samaan tapaan kuin heartstonen
+// battlegroundsissa" (the autobattle should animate the way Hearthstone
+// Battlegrounds does) - HSBB's whole visual identity is the attacking
+// piece physically lunging toward its target, not just the victim
+// flashing (FloatingNumbers' existing hit-flash only ever animates the
+// defender - the attacker used to stay completely still). A direct DOM
+// transform, same imperative fire-and-forget pattern FloatingNumbers'
+// own flashHit already uses, rather than React state - nothing else in
+// the app needs to know a lunge happened.
+function lungeAttack(actorId, targetId) {
+  const actorEl = document.querySelector(`[data-unit-id="${actorId}"]`)
+  const targetEl = document.querySelector(`[data-unit-id="${targetId}"]`)
+  if (!actorEl || !targetEl) return
+  const a = actorEl.getBoundingClientRect()
+  const t = targetEl.getBoundingClientRect()
+  const dx = t.left + t.width / 2 - (a.left + a.width / 2)
+  const dy = t.top + t.height / 2 - (a.top + a.height / 2)
+  const dist = Math.hypot(dx, dy) || 1
+  // Travel partway, not all the way - a lunge toward the target, not a
+  // teleport onto it. Capped so a long diagonal (opposite grid corners)
+  // doesn't send a piece flying off its own square.
+  const travel = Math.min(dist * 0.35, 46)
+  const ux = (dx / dist) * travel
+  const uy = (dy / dist) * travel
+  actorEl.style.transition = "transform 160ms ease-out"
+  actorEl.style.transform = `translate(${ux}px, ${uy}px)`
+  setTimeout(() => {
+    actorEl.style.transition = "transform 220ms ease-in"
+    actorEl.style.transform = ""
+  }, 160)
+}
+
+// Replaces BattleScreen.jsx for combat: no hand, no targeting clicks,
+// and (per Marc: "battle should be automated" / "skip the click
+// entirely") no Auto-Resolve click either - the fight plays itself out
+// automatically via the timer below. It does NOT resolve in one jump
+// any more, though: an earlier version had HeartwoodBattle.jsx compute
+// the whole fight synchronously before this component ever mounted, so
+// `state` always arrived already at its final won/lost result - which
+// meant FloatingNumbers (built to diff HP/Block between successive
+// renders) never had a "before" state to compare against and silently
+// showed nothing, no hit-flash, no damage numbers, just an instant cut
+// to the result overlay. Marc: "peli tarvitsee lisää animaatioita ja
+// selkeyttä" (the game needs more animations and clarity) - the fix
+// keeps the "no clicks needed" promise intact while giving the
+// animation system rounds to actually animate: onAdvanceRound fires on
+// a timer for as long as state.phase === "player", same as a player
+// repeatedly clicking the old "Next Round" button, just automatic.
+export default function AutoBattleView({ state, runState, essenceOnWin, nodeType, difficultyTier, actIndex, victoryLine, onAdvanceRound, onContinue }) {
+  useEffect(() => {
+    if (state.phase !== "player") return
+    const timer = setTimeout(onAdvanceRound, ROUND_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [state, onAdvanceRound])
+
+  // Stages this round's attacks (effects.js's dealDamage recording each
+  // one into state.roundEvents, reset per round by resolveRound) into a
+  // short staggered lunge sequence - fires once per round transition,
+  // same [state] dependency FloatingNumbers already uses for its own
+  // diff-on-change detection.
+  useEffect(() => {
+    // `tick` events (Poison/Burn/Regen, effects.js) are self-targeted -
+    // no attacker moved, so no lunge to stage. FloatingNumbers handles
+    // their popup + pip pulse.
+    const events = (state.roundEvents || []).filter((ev) => ev.kind !== "tick" && ev.actorId !== ev.targetId)
+    const timers = events.map((ev, i) => setTimeout(() => lungeAttack(ev.actorId, ev.targetId), i * LUNGE_STAGGER_MS))
+    return () => timers.forEach(clearTimeout)
+  }, [state])
+
+  const playerMap = cellsByPos(state.playerUnits)
+  const enemyMap = cellsByPos(state.enemies)
+  const interactive = state.phase === "player"
+
+  // Tribe synergies, shown live during the fight too - not just on the
+  // pre-battle FormationScreen. Same scope autoBattleEngine.js's own
+  // tribe-counting loop uses (recruited units only - excludes the
+  // Commander and any battle-start summon, neither of which was
+  // something the player shopped for), so this can never show
+  // something the fight isn't actually granting. Marc: "i like the
+  // idea of having tribes in the game" - worth making it feel present
+  // throughout the fight, not just a planning-screen footnote.
+  const tribeCounts = {}
+  for (const u of state.playerUnits) {
+    if (u.id === "commander" || u.summoned) continue
+    for (const t of tribesOf(u.defId, UNITS[u.defId])) tribeCounts[t] = (tribeCounts[t] || 0) + 1
+  }
+  const activeSynergies = resolveSynergies(tribeCounts)
+  // Cross-tribe combos + formation/positional synergies - same data as
+  // FormationScreen's preview, so the battle shows exactly what the
+  // planning screen promised. slotTribes maps a live unit's pos back to
+  // its deploy-slot index.
+  const activeCombos = resolveComboSynergies(tribeCounts)
+  const slotTribes = {}
+  for (const u of state.playerUnits) {
+    if (u.id === "commander" || u.summoned) continue
+    const i = SLOT_POSITIONS.findIndex((p) => p.row === u.pos?.row && p.col === u.pos?.col)
+    if (i !== -1) slotTribes[i] = tribesOf(u.defId, UNITS[u.defId])
+  }
+  const activePositions = [
+    ...new Map(resolvePositionSynergies(slotTribes).map((h) => [h.synergy.id, h.synergy])).values(),
+  ]
+
+  // The synergy "WOW" moment (roadmap task "Taistelukentan lava-tuntuma
+  // + synergia-WOW-hetki") - Marc's PRD names this as one of the most
+  // important WOW beats in the game, and asks for it to feel like
+  // "something significant just happened," not a static badge. A
+  // recruited squad's tribe composition (and therefore tribeCounts/
+  // activeSynergies above) can't change mid-fight - no recruiting
+  // happens during combat - so "newly active" only ever really means
+  // "this battle just started with a real bonus live." Comparing
+  // against the PREVIOUS render's active tribe ids (not a mount-only
+  // effect) still gets that exactly right without needing any special
+  // "is this the first render" plumbing, and correctly stays silent on
+  // every later round of the same fight since nothing changes after
+  // the first comparison. Tied to the same `state` this file's other
+  // transient-visual effects (the lunge stagger above) already key off
+  // of - a real battle-state event drives this, never a decorative timer.
+  const [surges, setSurges] = useState([])
+  const prevActiveKeysRef = useRef(null)
+  const surgeSeqRef = useRef(0)
+
+  // One combined list of everything currently live - tribe tiers,
+  // cross-tribe combos and formation synergies - each with a stable
+  // `key` so the diff below fires a WOW banner once per thing, whatever
+  // kind it is.
+  const activeList = [
+    ...activeSynergies.map((s) => ({ kind: "tribe", key: `tribe:${s.tribeId}`, tribeId: s.tribeId, activeTier: s.activeTier })),
+    ...activeCombos.map((c) => ({ kind: "combo", key: `combo:${c.id}`, combo: c })),
+    ...activePositions.map((ps) => ({ kind: "position", key: `pos:${ps.id}`, synergy: ps })),
+  ]
+
+  useEffect(() => {
+    const currentKeys = new Set(activeList.map((s) => s.key))
+    const prevKeys = prevActiveKeysRef.current
+    const newlyActive = prevKeys === null ? activeList : activeList.filter((s) => !prevKeys.has(s.key))
+    if (newlyActive.length) {
+      setSurges((cur) => [...cur, ...newlyActive.map((s) => ({ ...s, seq: surgeSeqRef.current++ }))])
+    }
+    prevActiveKeysRef.current = currentKeys
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
+
+  function removeSurge(seq) {
+    setSurges((cur) => cur.filter((s) => s.seq !== seq))
+  }
+
+  // Live only for as long as its own banner is still on screen. Every
+  // tribe involved in a surging tribe tier OR a surging combo lights
+  // its units' glow ring.
+  const surgingTribeIds = new Set()
+  for (const s of surges) {
+    if (s.kind === "tribe") surgingTribeIds.add(s.tribeId)
+    if (s.kind === "combo") for (const t of Object.keys(s.combo.tribes)) surgingTribeIds.add(t)
+  }
+
+  // Threat targeting (autoBattleEngine.js): the player unit the enemy
+  // will focus next. Only while the fight is live - once it's won/lost
+  // the 🎯 is noise.
+  const focusId = state.phase === "player" ? topThreatTargetId(state) : null
+
+  const rows = []
+  for (let row = 0; row < state.grid.rows; row++) {
+    const cells = []
+    for (let col = 0; col < state.grid.cols; col++) {
+      const key = `${row}-${col}`
+      const enemy = enemyMap[key]
+      const playerUnit = playerMap[key]
+      let content = null
+      if (enemy) {
+        // The Crownless mirror (autoBattleEngine's `mirrorSquad`) puts
+        // enemy pieces whose defId is a UNIT id, not an ENEMIES id -
+        // fall back to UNITS so an Echo of your own unit shows its art.
+        const enemySrc = ENEMIES[enemy.defId] || UNITS[enemy.defId] || {}
+        content = (
+          <EnemyPieceCard
+            enemy={enemy}
+            art={enemySrc.art}
+            image={enemySrc.image}
+            shielded={isShielded(state, enemy.id)}
+          />
+        )
+      } else if (playerUnit) {
+        // The Commander's own defId is deliberately null (it isn't a
+        // UNITS entry) - its art comes from characters.js instead, so
+        // it's carried directly on the unit object itself rather than
+        // looked up by defId here.
+        const isCommander = playerUnit.id === "commander"
+        const art = isCommander ? playerUnit.art : UNITS[playerUnit.defId].art
+        // Marc's Hearthstone reference: real portrait art on the board,
+        // not just a small line glyph - reuses each unit's own `image`
+        // (already used on shop/bench cards) wherever one exists, same
+        // "match the information on the table" ask. Most units still
+        // have no commissioned art yet, so this only lights up for the
+        // ~30 that do - a real improvement, not a false promise every
+        // piece now has a portrait.
+        const image = isCommander ? undefined : UNITS[playerUnit.defId].image
+        // Synergy WOW glow (see the surges/surgingTribeIds comment
+        // above): only a recruited, deployed unit can BE the reason a
+        // tribe synergy is active, same exclusion autoBattleEngine.js's
+        // own tribe-counting loop already applies - the Commander and
+        // any battle-start summon never contributed to earning this
+        // bonus, so neither ever gets the glow, even while it's live.
+        let synergyColor
+        if (!isCommander && !playerUnit.summoned && surgingTribeIds.size) {
+          const matchedTribe = tribesOf(playerUnit.defId, UNITS[playerUnit.defId]).find((t) => surgingTribeIds.has(t))
+          if (matchedTribe) synergyColor = TRIBES[matchedTribe]?.color
+        }
+        content = (
+          <EnemyPieceCard
+            enemy={playerUnit}
+            art={art}
+            image={image}
+            side="player"
+            shielded={isShielded(state, playerUnit.id)}
+            summoned={playerUnit.summoned}
+            synergySurge={!!synergyColor}
+            synergyColor={synergyColor}
+            focusTarget={playerUnit.id === focusId}
+          />
+        )
+      }
+      cells.push(
+        <div key={key} className="hw-grid-cell" data-tile={(row + col) % 2 === 0 ? "a" : "b"} data-empty={!content}>
+          {content}
+        </div>,
+      )
+    }
+    rows.push(
+      <div className="hw-grid-row" key={row}>
+        {cells}
+      </div>,
+    )
+  }
+
+  return (
+    <div
+      className="hw-battle"
+      data-elevated={nodeType === "miniboss" || nodeType === "boss" || nodeType === "elite"}
+      style={{ position: "relative" }}
+    >
+      {/* A miniboss/boss fight got zero distinct treatment once the
+          actual battle started - FormationScreen.jsx's own flavor text
+          was the only cue, gone the moment the fight began. A
+          Hearthstone-style elevated banner (own accent, own icon)
+          keeps that "this one's different" feeling present for the
+          whole fight, not just the moment before it. */}
+      {nodeType === "elite" && (
+        <div className="hw-elevated-banner hw-elevated-banner--elite hw-section-fade-in">
+          <CardGlyph name="sword" className="hw-intent-glyph" /> Elite
+        </div>
+      )}
+      {nodeType === "miniboss" && (
+        <div className="hw-elevated-banner hw-section-fade-in">
+          <CardGlyph name="flame" className="hw-intent-glyph" /> Miniboss
+        </div>
+      )}
+      {nodeType === "boss" && (
+        <div className="hw-elevated-banner hw-elevated-banner--boss hw-section-fade-in">
+          <CardGlyph name="spacemonkeyBoss" className="hw-intent-glyph" /> The Final Fight
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div className="hw-hint">{interactive ? `Round ${state.round}. The squads clash automatically.` : "The fight is decided."}</div>
+        {/* Same difficulty-tier readout as SquadDraft.jsx/FormationScreen.jsx
+            (Marc: "the game has to have progressive feel to it") - shown
+            here too so the run's progress stays visible for the one
+            screen (the actual fight) that had been missing it. */}
+        {difficultyTier && (
+          // Missing hw-section-fade-in until now - the one difficulty-
+          // tier badge of the 3 in the game that never even had the
+          // basic mount animation the other two got when they shipped.
+          // Also keyed by name for consistency with those two, though
+          // it can't change mid-battle the way it can mid-shop.
+          <span
+            key={difficultyTier.name}
+            className="hw-badge hw-section-fade-in"
+            style={{ color: difficultyTier.color, borderColor: difficultyTier.color }}
+            title="How far into the run you are - the Hearthwood grows more dangerous the deeper you go"
+          >
+            <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+            {difficultyTier.name}
+          </span>
+        )}
+        {state.arenaName && (
+          <span
+            className="hw-badge hw-section-fade-in"
+            style={{ color: "var(--hw-rune)", borderColor: "var(--hw-rune)" }}
+            title="An arena hazard is in effect for this fight"
+          >
+            <CardGlyph name="rune" className="hw-intent-glyph" />
+            Arena: {state.arenaName}
+          </span>
+        )}
+        {state.enemySynergyLabel && (
+          <span
+            className="hw-badge hw-section-fade-in"
+            style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+            title="This enemy formation fights as a unit - every piece has a shared bonus"
+          >
+            <CardGlyph name="flame" className="hw-intent-glyph" />
+            {state.enemySynergyLabel}
+          </span>
+        )}
+        {typeof state.forestMood === "number" && (() => {
+          const band = moodBandName(state.forestState, state.forestMood)
+          const bandColor = { Calm: "var(--hw-moss)", Stirring: "var(--hw-rune)", Roused: "var(--hw-ember)", Awake: "var(--hw-hp)" }[band]
+          const upcoming = nextMoodTier(state.forestState, state.forestMoodFired || [])
+          return (
+            <span
+              className="hw-badge hw-section-fade-in hw-forest-mood-badge"
+              style={{ color: bandColor, borderColor: bandColor }}
+              title={
+                upcoming
+                  ? `The forest is ${band}. Next it will ${upcoming.name === "Awake" ? "fully wake" : "stir"} — ${upcoming.announce}.`
+                  : `The forest is fully Awake.`
+              }
+            >
+              <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+              Forest: {band}
+              <span className="hw-forest-mood-track" aria-hidden="true">
+                <span
+                  className="hw-forest-mood-fill"
+                  style={{ width: `${Math.min(100, state.forestMood)}%`, background: bandColor }}
+                />
+              </span>
+            </span>
+          )
+        })()}
+      </div>
+
+      {Object.keys(tribeCounts).length > 0 && (
+        <div className="hw-section-fade-in" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+          {Object.entries(tribeCounts).map(([tribeId, count]) => {
+            const tribe = TRIBES[tribeId]
+            const active = activeSynergies.find((s) => s.tribeId === tribeId)
+            const next = nextSynergyThreshold(tribeId, count)
+            const tierLabel = synergyTierLabel(tribeId, count)
+            return (
+              <span
+                key={tribeId}
+                className={`hw-badge${active ? " hw-badge--active" : ""}`}
+                style={!active ? { color: tribe?.color, borderColor: tribe?.color } : undefined}
+                title={tierLabel ? `${tribe?.description} ${tierLabel}` : tribe?.description}
+              >
+                <CardGlyph name={tribe?.icon} className="hw-intent-glyph" />
+                {tribe?.name} {count}
+                {active ? " ✓" : ""}
+                {next ? ` (${next} for more)` : ""}
+              </span>
+            )
+          })}
+        </div>
+      )}
+
+      <div className="hw-section-label">Battlefield</div>
+      {/* The arena "stage" (roadmap task "Taistelukentan lava-tuntuma +
+          synergia-WOW-hetki") - a vignette/ambient-light frame around
+          the existing .hw-grid board itself, giving the battlefield a
+          clear visual focal point (Marc's PRD section 6/11-13) instead
+          of a plain rectangle. Pure CSS (heartwood.css), no new art.
+          Also hosts the synergy WOW banner(s), absolutely positioned
+          over the stage rather than pushing the grid around - the
+          board's own layout/size (and therefore combat readability)
+          never shifts because a synergy fired.
+          Battlefield spectacle (feat/hearthwood-spectacle-onboarding):
+          data-act / data-forest / data-arena drive CSS-only ambient
+          layers (act-hued light pool, drifting motes tinted by the
+          forest's state, a faint per-hazard wash) - all deterministic
+          (keyed off data already on the battle state) and all
+          reduce-motion-gated. The .hw-stage-motes layer sits UNDER the
+          grid (z-index 0) so it never touches combat readability. */}
+      <div
+        className="hw-arena"
+        data-act={actIndex || undefined}
+        data-forest={state.forestState || undefined}
+        data-arena={state.arenaId || undefined}
+      >
+        <div className="hw-stage-motes" aria-hidden="true" />
+        <div className="hw-grid">{rows}</div>
+        <FloatingNumbers state={state} />
+        {surges.map((s, i) => (
+          <SynergyBanner key={s.seq} surge={s} index={i} onDone={() => removeSurge(s.seq)} />
+        ))}
+        {state.bossPhaseAnnounce && (
+          <div className="hw-boss-phase-banner" key={state.round + state.bossPhaseAnnounce}>
+            {state.bossPhaseAnnounce}
+          </div>
+        )}
+        {state.forestMoodAnnounce && (
+          <div
+            className="hw-boss-phase-banner hw-forest-mood-banner"
+            key={`fm-${state.round}-${state.forestMoodAnnounce}`}
+          >
+            The forest stirs — {state.forestMoodAnnounce}
+          </div>
+        )}
+      </div>
+
+      <details className="hw-log-details">
+        <summary>Battle log</summary>
+        <div className="hw-log">
+          {state.log.slice(-10).map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
+        </div>
+      </details>
+
+      <ResultOverlay
+        phase={state.phase}
+        enemyName={state.enemies[0]?.name || "The enemy"}
+        stats={state.phase === "won" || state.phase === "lost" ? summarizeBattle(state) : null}
+        analysis={state.phase === "won" || state.phase === "lost" ? analyzeOutcome(state, runState, { nodeType }) : null}
+        essenceOnWin={essenceOnWin}
+        victoryLine={victoryLine}
+        onContinue={onContinue}
+      />
+    </div>
+  )
+}

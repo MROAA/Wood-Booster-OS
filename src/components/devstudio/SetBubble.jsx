@@ -2,7 +2,15 @@ import { useState } from "react"
 
 import DiffView from "./DiffView"
 
-import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY } from "./statusLabels"
+import { computeDiffDelta } from "./diffDelta"
+
+import { SET_STATUS_LABELS, FILE_STATUS_LABELS, TEST_STATUS_DISPLAY, RUN_STATUS_DISPLAY, CHECK_STATUS_LABELS } from "./statusLabels"
+
+import ModelBadge from "./ModelBadge"
+
+import ModelPicker from "./ModelPicker"
+
+import { parseUnresolvedReferences } from "./parseUnresolvedReferences"
 
 /*
  * Suunnitelma/tiedostopaketti-kupla. Jaettu komponentti - sama kortti
@@ -38,8 +46,14 @@ function PlanFileRow({ file }) {
         </span>
 
         {
-          file.blocked && (
+          file.blocked ? (
             <span className="text-red-400">Estetty: {file.blockedCode}</span>
+          ) : (
+            file.status !== "planned" && (
+              <span className="text-[10px] text-[var(--wood-muted)]">
+                {FILE_STATUS_LABELS[file.status] || file.status}
+              </span>
+            )
           )
         }
 
@@ -57,33 +71,51 @@ function PlanFileRow({ file }) {
 
 }
 
-function parseUnresolvedReferences(file) {
+// Multitiedostosuunnitelmassa tiedosto avataan oletuksena auki jos se
+// tarvitsee Marcin huomiota heti - kaikki muu pysyy kiinni, koska
+// kompakti otsikkorivi (tiedostonimi + tila + rivimäärä) riittää
+// kertomaan ettei siihen tarvitse koskea.
+function shouldExpandByDefault(file) {
 
-  if (!file.unresolvedReferences) {
+  if (file.status === "conflict") {
 
-    return []
+    return true
+
+  }
+
+  if (file.testStatus === "vacuous" || file.testStatus === "failed") {
+
+    return true
 
   }
 
-  try {
+  if (parseUnresolvedReferences(file.unresolvedReferences).length > 0) {
 
-    return JSON.parse(file.unresolvedReferences)
-
-  } catch {
-
-    return []
+    return true
 
   }
+
+  return false
 
 }
 
-function FileReviewCard({ file, onRevise, busy }) {
+function FileReviewCard({ file, onRevise, onRun, onEditFile, onEditingChange, busy, collapsible }) {
 
   const testDisplay = TEST_STATUS_DISPLAY[file.testStatus]
 
-  const unresolvedReferences = parseUnresolvedReferences(file)
+  const runDisplay = RUN_STATUS_DISPLAY[file.runStatus]
+
+  const unresolvedReferences = parseUnresolvedReferences(file.unresolvedReferences)
 
   const [feedback, setFeedback] = useState("")
+
+  const [isOpen, setIsOpen] = useState(!collapsible || shouldExpandByDefault(file))
+
+  const [editing, setEditing] = useState(false)
+
+  const [editedCode, setEditedCode] = useState(file.proposedCode || "")
+
+  const delta = collapsible ? computeDiffDelta(file.diff) : null
 
   function submitRevise() {
 
@@ -96,6 +128,36 @@ function FileReviewCard({ file, onRevise, busy }) {
     onRevise(feedback.trim())
 
     setFeedback("")
+
+  }
+
+  function startEditing() {
+
+    setEditedCode(file.proposedCode || "")
+
+    setEditing(true)
+
+    onEditingChange(file.id, true)
+
+  }
+
+  function cancelEditing() {
+
+    setEditedCode(file.proposedCode || "")
+
+    setEditing(false)
+
+    onEditingChange(file.id, false)
+
+  }
+
+  function saveEditing() {
+
+    onEditFile(editedCode)
+
+    setEditing(false)
+
+    onEditingChange(file.id, false)
 
   }
 
@@ -112,117 +174,374 @@ function FileReviewCard({ file, onRevise, busy }) {
       "
     >
 
-      <div className="flex items-center justify-between gap-2">
+      <div
+        className={`flex items-center justify-between gap-2 ${collapsible ? "cursor-pointer" : ""}`}
+        onClick={collapsible ? () => setIsOpen(open => !open) : undefined}
+      >
 
         <span className="font-mono text-xs text-[var(--wood-text)]">
           {file.action === "create" ? "+ " : "~ "}
           {file.filePath}
         </span>
 
-        <span className="text-[10px] text-[var(--wood-muted)]">
-          {FILE_STATUS_LABELS[file.status] || file.status}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+
+          {
+            collapsible && (delta.added > 0 || delta.removed > 0) && (
+              <span className="font-mono text-[10px]">
+                {delta.added > 0 && <span className="text-emerald-400">+{delta.added}</span>}
+                {delta.added > 0 && delta.removed > 0 && " "}
+                {delta.removed > 0 && <span className="text-red-400">-{delta.removed}</span>}
+              </span>
+            )
+          }
+
+          <span className="text-[10px] text-[var(--wood-muted)]">
+            {FILE_STATUS_LABELS[file.status] || file.status}
+          </span>
+
+          {
+            collapsible && (
+              <span className="text-[10px] text-[var(--wood-muted)]">{isOpen ? "▴" : "▾"}</span>
+            )
+          }
+
+        </div>
 
       </div>
 
       {
-        file.status === "generate_failed" && file.generateError && (
-          <div className="text-xs text-red-400">{file.generateError}</div>
-        )
-      }
+        isOpen && (
 
-      {
-        file.status === "write_failed" && file.writeError && (
-          <div className="text-xs text-red-400">{file.writeError}</div>
-        )
-      }
+          <>
 
-      {
-        file.status === "conflict" && (
-          <div className="text-xs text-amber-400">
-            Tiedosto on muuttunut suunnitelman luonnin jälkeen.
-          </div>
-        )
-      }
-
-      <DiffView diff={file.diff} />
-
-      {
-        testDisplay && (
-          <div className={`text-xs ${testDisplay.className}`}>
-            {testDisplay.icon} {testDisplay.label}
             {
-              file.testStatus === "skipped" && file.testSkippedReason && (
-                <span className="text-[var(--wood-muted)]"> — {file.testSkippedReason}</span>
+              file.status === "generate_failed" && file.generateError && (
+                <div className="text-xs text-red-400">{file.generateError}</div>
               )
             }
-          </div>
+
+            {
+              file.status === "write_failed" && file.writeError && (
+                <div className="text-xs text-red-400">{file.writeError}</div>
+              )
+            }
+
+            {
+              file.status === "conflict" && (
+                <div className="text-xs text-amber-400">
+                  Tiedosto on muuttunut suunnitelman luonnin jälkeen.
+                </div>
+              )
+            }
+
+            {
+              file.status === "generated" && (
+                <button
+                  disabled={busy}
+                  onClick={editing ? cancelEditing : startEditing}
+                  className="
+                    rounded-full
+                    border
+                    border-[var(--wood-border)]
+                    px-3
+                    py-1
+                    text-xs
+                    text-[var(--wood-muted)]
+                    transition-opacity
+                    disabled:opacity-30
+                    disabled:cursor-not-allowed
+                    hover:border-[var(--wood-accent)]
+                    hover:text-[var(--wood-text)]
+                  "
+                >
+                  {editing ? "Peruuta muokkaus" : "✎ Muokkaa koodia"}
+                </button>
+              )
+            }
+
+            {
+              editing ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={editedCode}
+                    onChange={event => setEditedCode(event.target.value)}
+                    disabled={busy}
+                    rows={10}
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      border-[var(--wood-border)]
+                      bg-[var(--wood-bg)]
+                      p-3
+                      font-mono
+                      text-xs
+                      text-[var(--wood-text)]
+                    "
+                  />
+                  <button
+                    disabled={busy || !editedCode.trim()}
+                    onClick={saveEditing}
+                    className="
+                      rounded-full
+                      border
+                      border-[var(--wood-border)]
+                      px-3
+                      py-1
+                      text-xs
+                      font-medium
+                      text-[var(--wood-text)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-[var(--wood-accent)]
+                    "
+                  >
+                    Tallenna muokkaukset
+                  </button>
+                </div>
+              ) : (
+                <DiffView diff={file.diff} filePath={file.filePath} />
+              )
+            }
+
+            {
+              testDisplay && (
+                <div className={`text-xs ${testDisplay.className}`}>
+                  {testDisplay.icon} {testDisplay.label}
+                  {
+                    file.testStatus === "skipped" && file.testSkippedReason && (
+                      <span className="text-[var(--wood-muted)]"> — {file.testSkippedReason}</span>
+                    )
+                  }
+                </div>
+              )
+            }
+
+            {
+              unresolvedReferences.length > 0 && (
+                <div className="rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
+                  ⚠ Koodi viittaa tiedostoon jota ei löydy projektista - tarkista ennen hyväksyntää:
+                  <ul className="mt-1 list-disc pl-4 font-mono">
+                    {
+                      unresolvedReferences.map((reference, referenceIndex) => (
+                        <li key={referenceIndex}>{reference}</li>
+                      ))
+                    }
+                  </ul>
+                </div>
+              )
+            }
+
+            {
+              file.status === "generated" && (
+
+                <div className="space-y-2 pt-1">
+
+                  <div className="space-y-1">
+
+                    {
+                      !editing && (
+                        <>
+                          <button
+                            disabled={busy}
+                            onClick={onRun}
+                            className="
+                              rounded-full
+                              border
+                              border-[var(--wood-border)]
+                              px-3
+                              py-1
+                              text-xs
+                              font-medium
+                              text-[var(--wood-text)]
+                              transition-opacity
+                              disabled:opacity-30
+                              disabled:cursor-not-allowed
+                              hover:border-[var(--wood-accent)]
+                            "
+                          >
+                            ▶ Aja
+                          </button>
+
+                          <p className="text-[10px] text-[var(--wood-muted)]">
+                            Vain yksinkertaisille, ei-selainkoodia sisältäville tiedostoille (esim. apufunktiot) - React-komponenttitiedostot epäonnistuvat odotetusti, käytä niille Esikatselua.
+                          </p>
+                        </>
+                      )
+                    }
+
+                    {
+                      runDisplay && (
+                        <div className={`text-xs ${runDisplay.className}`}>
+                          {runDisplay.icon} {runDisplay.label}
+                        </div>
+                      )
+                    }
+
+                    {
+                      file.runOutput && (
+                        <pre className="
+                          wood-scroll
+                          max-h-40
+                          overflow-auto
+                          rounded-lg
+                          border
+                          border-[var(--wood-border)]
+                          bg-[var(--wood-panel)]
+                          p-2
+                          text-[11px]
+                          leading-relaxed
+                          whitespace-pre-wrap
+                          text-[var(--wood-muted)]
+                        ">
+                          {file.runOutput}
+                        </pre>
+                      )
+                    }
+
+                  </div>
+
+                  {
+                    !editing && (
+                      <>
+                        <textarea
+                          value={feedback}
+                          onChange={event => setFeedback(event.target.value)}
+                          disabled={busy}
+                          rows={2}
+                          placeholder="Pyydä muutosta tähän tiedostoon, esim. 'käytä eri muuttujan nimeä'"
+                          className="
+                            w-full
+                            rounded-lg
+                            border
+                            border-[var(--wood-border)]
+                            bg-[var(--wood-panel)]
+                            p-2
+                            text-xs
+                            text-[var(--wood-text)]
+                            placeholder:text-[var(--wood-muted)]
+                            outline-none
+                            focus:border-[var(--wood-accent)]
+                          "
+                        />
+
+                        <button
+                          disabled={busy || !feedback.trim()}
+                          onClick={submitRevise}
+                          className="
+                            rounded-full
+                            border
+                            border-[var(--wood-border)]
+                            px-3
+                            py-1
+                            text-xs
+                            font-medium
+                            text-[var(--wood-text)]
+                            transition-opacity
+                            disabled:opacity-30
+                            disabled:cursor-not-allowed
+                            hover:border-[var(--wood-accent)]
+                          "
+                        >
+                          Pyydä muutosta
+                        </button>
+                      </>
+                    )
+                  }
+
+                </div>
+
+              )
+            }
+
+          </>
+
         )
       }
 
-      {
-        unresolvedReferences.length > 0 && (
-          <div className="rounded-lg border border-amber-900 bg-amber-950/20 p-2 text-xs text-amber-300">
-            ⚠ Koodi viittaa tiedostoon jota ei löydy projektista - tarkista ennen hyväksyntää:
-            <ul className="mt-1 list-disc pl-4 font-mono">
-              {
-                unresolvedReferences.map((reference, referenceIndex) => (
-                  <li key={referenceIndex}>{reference}</li>
-                ))
-              }
-            </ul>
-          </div>
-        )
-      }
+    </div>
+
+  )
+
+}
+
+/*
+ * Antaa kokeilla samaa pyyntöä toisella mallilla jälkikäteen -
+ * täydentää viime kierroksen "vertaile kahta mallia" -tilaa, joka
+ * vaatii mallien valinnan etukäteen ennen lähetystä. Tämä ei tarvitse
+ * uutta backend-reittiä: kutsuu samaa POST /dev-draft-sets -reittiä
+ * jota mallien vertailukin jo käyttää, uudella mallilla.
+ */
+function RetryWithModelRow({ onRetryWithModel, busy }) {
+
+  const [retryModel, setRetryModel] = useState(undefined)
+
+  const [isOpen, setIsOpen] = useState(false)
+
+  if (!onRetryWithModel) {
+
+    return null
+
+  }
+
+  return (
+
+    <div className="flex flex-wrap items-center gap-2 pt-1">
+
+      <button
+        type="button"
+        onClick={() => setIsOpen(open => !open)}
+        className={`
+          rounded-full
+          border
+          px-2.5
+          py-1
+          text-xs
+          transition-colors
+          ${
+            isOpen
+              ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+              : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+          }
+        `}
+      >
+        🔁 Kokeile toisella mallilla
+      </button>
 
       {
-        file.status === "generated" && (
+        isOpen && (
 
-          <div className="space-y-2 pt-1">
-
-            <textarea
-              value={feedback}
-              onChange={event => setFeedback(event.target.value)}
-              disabled={busy}
-              rows={2}
-              placeholder="Pyydä muutosta tähän tiedostoon, esim. 'käytä eri muuttujan nimeä'"
-              className="
-                w-full
-                rounded-lg
-                border
-                border-[var(--wood-border)]
-                bg-[var(--wood-panel)]
-                p-2
-                text-xs
-                text-[var(--wood-text)]
-                placeholder:text-[var(--wood-muted)]
-                outline-none
-                focus:border-[var(--wood-accent)]
-              "
-            />
+          <>
+            <ModelPicker value={retryModel} onChange={setRetryModel} />
 
             <button
-              disabled={busy || !feedback.trim()}
-              onClick={submitRevise}
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                onRetryWithModel(retryModel)
+                setIsOpen(false)
+                setRetryModel(undefined)
+              }}
               className="
                 rounded-full
                 border
-                border-[var(--wood-border)]
-                px-3
+                border-[var(--wood-accent)]
+                px-2.5
                 py-1
                 text-xs
-                font-medium
                 text-[var(--wood-text)]
                 transition-opacity
                 disabled:opacity-30
                 disabled:cursor-not-allowed
-                hover:border-[var(--wood-accent)]
+                hover:bg-[var(--wood-accent)]
+                hover:text-[var(--wood-bg)]
               "
             >
-              Pyydä muutosta
+              Kokeile
             </button>
-
-          </div>
+          </>
 
         )
       }
@@ -239,7 +558,7 @@ function isPreviewableFile(file) {
 
 }
 
-function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onPreview, onStopPreview, previewing, previewBusy, busy }) {
+function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseFile, onRunFile, onEditFile, onPreview, onStopPreview, previewing, previewBusy, onCheckPrStatus, onRevertPr, onCheckRevertPrStatus, onRetryWithModel, onArchive, onUnarchive, busy }) {
 
   const status = set.status
 
@@ -248,6 +567,34 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
   const blockedFiles = set.files.filter(file => file.blocked)
 
   const hasPreviewableFile = set.files.some(isPreviewableFile)
+
+  const [expanded, setExpanded] = useState(false)
+
+  const showCompact = set.archived && !expanded
+
+  const [editingFileIds, setEditingFileIds] = useState(new Set())
+
+  function handleEditingChange(fileId, isEditing) {
+
+    setEditingFileIds(current => {
+
+      const next = new Set(current)
+
+      if (isEditing) {
+
+        next.add(fileId)
+
+      } else {
+
+        next.delete(fileId)
+
+      }
+
+      return next
+
+    })
+
+  }
 
   return (
 
@@ -268,24 +615,115 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
       "
     >
 
+      {
+        showCompact ? (
+
+          <div className="flex items-center justify-between gap-2">
+
+            <div className="min-w-0 truncate text-[var(--wood-muted)]">
+              📦 Arkistoitu — {set.planExplanation || set.prompt}
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1.5">
+
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="
+                  shrink-0
+                  rounded-full
+                  border
+                  border-[var(--wood-border)]
+                  px-2.5
+                  py-0.5
+                  text-xs
+                  text-[var(--wood-muted)]
+                  transition-opacity
+                  hover:border-[var(--wood-accent)]
+                  hover:text-[var(--wood-text)]
+                "
+              >
+                Näytä
+              </button>
+
+              <button
+                type="button"
+                disabled={busy}
+                onClick={onUnarchive}
+                className="
+                  shrink-0
+                  rounded-full
+                  border
+                  border-[var(--wood-border)]
+                  px-2.5
+                  py-0.5
+                  text-xs
+                  text-[var(--wood-muted)]
+                  transition-opacity
+                  disabled:opacity-30
+                  disabled:cursor-not-allowed
+                  hover:border-[var(--wood-accent)]
+                  hover:text-[var(--wood-text)]
+                "
+              >
+                Palauta arkistosta
+              </button>
+
+            </div>
+
+          </div>
+
+        ) : (
+
+          <>
+
       <div className="flex items-center justify-between gap-2">
 
         <div className="font-medium">Suunnitelma</div>
 
-        <span
-          className="
-            shrink-0
-            rounded-full
-            border
-            border-[var(--wood-border)]
-            px-2.5
-            py-0.5
-            text-xs
-            text-[var(--wood-muted)]
-          "
-        >
-          {SET_STATUS_LABELS[status] || status}
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+
+          <ModelBadge model={set.model} />
+
+          <span
+            className="
+              shrink-0
+              rounded-full
+              border
+              border-[var(--wood-border)]
+              px-2.5
+              py-0.5
+              text-xs
+              text-[var(--wood-muted)]
+            "
+          >
+            {SET_STATUS_LABELS[status] || status}
+          </span>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={set.archived ? onUnarchive : onArchive}
+            className="
+              shrink-0
+              rounded-full
+              border
+              border-[var(--wood-border)]
+              px-2.5
+              py-0.5
+              text-xs
+              text-[var(--wood-muted)]
+              transition-opacity
+              disabled:opacity-30
+              disabled:cursor-not-allowed
+              hover:border-[var(--wood-accent)]
+              hover:text-[var(--wood-text)]
+            "
+          >
+            {set.archived ? "Palauta arkistosta" : "Arkistoi"}
+          </button>
+
+        </div>
 
       </div>
 
@@ -305,6 +743,16 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
         status === "plan_ready" ? (
 
           <div className="space-y-2">
+
+            {
+              busy && (
+                <div className="text-xs text-[var(--wood-muted)]">
+                  {visibleFiles.filter(file => file.status === "generated" || file.status === "generate_failed").length}
+                  {" / "}
+                  {visibleFiles.length} tiedostoa valmiina
+                </div>
+              )
+            }
 
             {set.files.map(file => <PlanFileRow key={file.id} file={file} />)}
 
@@ -351,6 +799,8 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
 
             </div>
 
+            <RetryWithModelRow onRetryWithModel={onRetryWithModel} busy={busy} />
+
             {
               visibleFiles.length === 0 && (
                 <div className="text-xs text-red-400">
@@ -380,6 +830,10 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                   file={file}
                   busy={busy}
                   onRevise={feedback => onReviseFile(file.id, feedback)}
+                  onRun={() => onRunFile(file.id)}
+                  onEditFile={proposedCode => onEditFile(file.id, proposedCode)}
+                  onEditingChange={handleEditingChange}
+                  collapsible={visibleFiles.length > 1}
                 />
               ))
             }
@@ -389,12 +843,14 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
               {
                 onPreview && (
                   <button
-                    disabled={busy || previewBusy || (!previewing && !hasPreviewableFile)}
+                    disabled={busy || previewBusy || (!previewing && (!hasPreviewableFile || editingFileIds.size > 0))}
                     onClick={previewing ? onStopPreview : onPreview}
                     title={
-                      hasPreviewableFile
-                        ? undefined
-                        : "Paketissa ei ole yhtään esikatseltavaa (src/**) tiedostoa."
+                      !hasPreviewableFile
+                        ? "Paketissa ei ole yhtään esikatseltavaa (src/**) tiedostoa."
+                        : !previewing && editingFileIds.size > 0
+                          ? "Tallenna tai peruuta kesken oleva muokkaus ensin."
+                          : undefined
                     }
                     className="
                       rounded-full
@@ -438,7 +894,7 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
 
               <button
                 disabled={
-                  (status !== "approved" && status !== "partial_write_failed") || busy
+                  (status !== "approved" && status !== "partial_write_failed" && status !== "pr_failed") || busy
                 }
                 onClick={onWrite}
                 className="
@@ -456,7 +912,7 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                   hover:bg-[var(--wood-accent)]/10
                 "
               >
-                Kirjoita kaikki
+                Tee Pull Request
               </button>
 
               <button
@@ -480,9 +936,161 @@ function SetBubble({ set, onApprovePlan, onApprove, onReject, onWrite, onReviseF
                 Hylkää
               </button>
 
+              {
+                onRevertPr && (
+                  <button
+                    disabled={
+                      (status !== "pr_merged" && status !== "pr_revert_failed") || busy
+                    }
+                    onClick={onRevertPr}
+                    className="
+                      rounded-full
+                      px-4
+                      py-1.5
+                      text-xs
+                      font-medium
+                      border
+                      border-[var(--wood-border)]
+                      text-[var(--wood-muted)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-red-400
+                      hover:text-red-300
+                    "
+                  >
+                    Peruuta (uusi PR)
+                  </button>
+                )
+              }
+
             </div>
 
+            <RetryWithModelRow onRetryWithModel={onRetryWithModel} busy={busy} />
+
+            {
+              status.startsWith("pr_") && !status.startsWith("pr_revert_") && (
+
+                <div className="flex items-center gap-2 pt-1">
+
+                  {
+                    set.prUrl && (
+                      <a
+                        href={set.prUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-[var(--wood-accent)] underline"
+                      >
+                        PR #{set.prNumber} ↗
+                      </a>
+                    )
+                  }
+
+                  {
+                    set.checkStatus && CHECK_STATUS_LABELS[set.checkStatus] && (
+                      <span className={`text-xs ${CHECK_STATUS_LABELS[set.checkStatus].className}`}>
+                        {CHECK_STATUS_LABELS[set.checkStatus].icon} {CHECK_STATUS_LABELS[set.checkStatus].label}
+                      </span>
+                    )
+                  }
+
+                  {
+                    status === "pr_open" && onCheckPrStatus && (
+                      <button
+                        disabled={busy}
+                        onClick={onCheckPrStatus}
+                        className="
+                          rounded-full
+                          border
+                          border-[var(--wood-border)]
+                          px-3
+                          py-1
+                          text-xs
+                          text-[var(--wood-muted)]
+                          transition-opacity
+                          disabled:opacity-30
+                          disabled:cursor-not-allowed
+                          hover:border-[var(--wood-accent)]
+                          hover:text-[var(--wood-text)]
+                        "
+                      >
+                        Tarkista PR:n tila
+                      </button>
+                    )
+                  }
+
+                </div>
+
+              )
+            }
+
+            {
+              status.startsWith("pr_revert_") && (
+
+                <div className="flex items-center gap-2 pt-1">
+
+                  {
+                    set.prUrl && (
+                      <a
+                        href={set.prUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-[var(--wood-accent)] underline"
+                      >
+                        PR #{set.prNumber} ↗
+                      </a>
+                    )
+                  }
+
+                  {
+                    set.revertPrUrl && (
+                      <a
+                        href={set.revertPrUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-red-300 underline"
+                      >
+                        Peruutus-PR #{set.revertPrNumber} ↗
+                      </a>
+                    )
+                  }
+
+                  {
+                    status === "pr_revert_open" && onCheckRevertPrStatus && (
+                      <button
+                        disabled={busy}
+                        onClick={onCheckRevertPrStatus}
+                        className="
+                          rounded-full
+                          border
+                          border-[var(--wood-border)]
+                          px-3
+                          py-1
+                          text-xs
+                          text-[var(--wood-muted)]
+                          transition-opacity
+                          disabled:opacity-30
+                          disabled:cursor-not-allowed
+                          hover:border-[var(--wood-accent)]
+                          hover:text-[var(--wood-text)]
+                        "
+                      >
+                        Tarkista peruutus-PR:n tila
+                      </button>
+                    )
+                  }
+
+                </div>
+
+              )
+            }
+
           </div>
+
+        )
+      }
+
+          </>
 
         )
       }

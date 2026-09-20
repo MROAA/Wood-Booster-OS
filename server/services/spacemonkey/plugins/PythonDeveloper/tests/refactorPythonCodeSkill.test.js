@@ -118,3 +118,73 @@ test("happy path: reads via the file tool and returns title/explanation/code", a
     assert.equal(result.code, "# refactored\nprint('hello')")
 
 })
+
+
+
+test("forwards an explicit model choice into the generator", async () => {
+
+    const toolBus = {
+        execute: async () => ({ success: true, content: "print('hello')" }),
+    }
+
+    let receivedModel = "not called"
+
+    await refactorPythonCodeSkill.execute({
+        filePath: "spc.py",
+        model: "qwen2.5-coder:7b",
+        toolBus,
+        refactorPythonCode: async ({ model }) => {
+            receivedModel = model
+            return { title: "Refaktoroitu", explanation: "", code: "..." }
+        },
+    })
+
+    assert.equal(receivedModel, "qwen2.5-coder:7b")
+
+})
+
+
+
+test("passes model through as undefined when none was chosen", async () => {
+
+    const toolBus = {
+        execute: async () => ({ success: true, content: "print('hello')" }),
+    }
+
+    let receivedModel = "not called"
+
+    await refactorPythonCodeSkill.execute({
+        filePath: "spc.py",
+        toolBus,
+        refactorPythonCode: async ({ model }) => {
+            receivedModel = model
+            return { title: "Refaktoroitu", explanation: "", code: "..." }
+        },
+    })
+
+    assert.equal(receivedModel, undefined)
+
+})
+
+
+
+test("returns the resolved model from the generator, so callers can persist which model actually produced this draft", async () => {
+
+    const toolBus = {
+        execute: async () => ({ success: true, content: "print('hello')" }),
+    }
+
+    const result = await refactorPythonCodeSkill.execute({
+        filePath: "spc.py",
+        toolBus,
+        refactorPythonCode: async () => ({
+            title: "Refaktoroitu",
+            explanation: "",
+            code: "...",
+            model: "qwen2.5-coder:7b",
+        }),
+    })
+
+    assert.equal(result.model, "qwen2.5-coder:7b")
+
+})

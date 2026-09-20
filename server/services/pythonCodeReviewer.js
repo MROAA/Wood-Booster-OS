@@ -1,6 +1,4 @@
-const OLLAMA_URL =
-  process.env.OLLAMA_URL ||
-  "http://localhost:11434"
+import { chatWithOllama } from "./ollamaClient.js"
 
 const DEFAULT_MODEL =
   process.env.FINNISH_CONTENT_MODEL ||
@@ -19,41 +17,6 @@ function buildSystemPrompt() {
   )
 }
 
-async function askOllama({ model, code }) {
-  const response = await fetch(`${OLLAMA_URL}/api/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      stream: false,
-      messages: [
-        {
-          role: "system",
-          content: buildSystemPrompt(),
-        },
-        {
-          role: "user",
-          content: code,
-        },
-      ],
-      options: {
-        temperature: 0.2,
-        num_ctx: 4096,
-      },
-    }),
-  })
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.error || "Ollama error")
-  }
-
-  return String(data.message?.content || "").trim()
-}
-
 /*
  * Antaa katselmoinnin annetulle Python-koodille luonnollisella
  * kielellä. Ei koskaan kirjoita tai suorita mitään - pelkkä
@@ -69,9 +32,10 @@ export async function reviewPythonCode({
     }
   }
 
-  const review = await askOllama({
+  const review = await chatWithOllama({
     model,
-    code,
+    systemPrompt: buildSystemPrompt(),
+    userMessage: code,
   })
 
   return {

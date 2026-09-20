@@ -1,0 +1,215 @@
+HEARTHWOOD — ECHO HERALD GAMEPLAY CODEX (FULL EDITION)
+
+============================================================
+I. INTRODUCTION — THE ROLE OF THE HERALD
+============================================================
+The Echo Herald is not a fighter, not a summoner, not a mage.
+The Herald is a *translator* — a being chosen by the forest to
+interpret the boundary between reality and memory.
+
+The Herald interacts with:
+- Pulse Zones (living memory nodes)
+- Echoes (fragments of past or future events)
+- Verge distortions (reality instability)
+- Shadow Partner (a semi-autonomous echo of the Herald)
+- Primal forces (Saplight, Hollow, Ember, Stone)
+
+The Herald does not win battles.
+The Herald stabilizes the world.
+
+============================================================
+II. CORE SYSTEM — PULSE INTERACTION
+============================================================
+Pulse Zones are living memory nodes scattered across Hearthwood.
+Each Pulse Zone contains:
+- a memory fragment
+- a primal imbalance
+- an echo signature
+- a Verge distortion level
+
+The Herald interacts with Pulse Zones using five core actions:
+
+1. STABILIZE
+   Echo +1, Guilt -1, Verge -1
+   Calms the memory and reduces distortion.
+
+2. RESONATE
+   Echo +2, Guilt +1, Verge +1
+   Strengthens the memory, increasing its influence.
+
+3. BALANCE
+   Echo -1, Guilt -2, Verge +1
+   Harmonizes the Shadow Partner’s instability.
+
+4. TRANSLATE
+   Echo +1, Guilt 0, Verge +2
+   Converts memory fragments into physical forms.
+
+5. RELEASE
+   Echo -2, Guilt +1, Verge -2
+   Frees the memory from the Pulse Zone entirely.
+
+The Herald’s gameplay is about choosing which memories remain.
+
+============================================================
+III. THE THREE VALUES — ECHO, GUILT, VERGE
+============================================================
+
+ECHO
+Represents the strength of a memory.
+High Echo → memories manifest physically.
+
+GUILT
+Represents the instability of the Shadow Partner.
+High Guilt → the Partner becomes unpredictable.
+
+VERGE
+Represents reality distortion.
+High Verge → time loops, echo storms, memory fractures.
+
+The Herald cannot maximize all three.
+The Herald must *balance* them.
+
+============================================================
+IV. SHADOW PARTNER — THE ECHO TWIN
+============================================================
+The Shadow Partner is not a companion.
+It is the Herald’s echo — a reflection of choices made and
+choices not made.
+
+States of the Partner:
+
+STABLE
+Guilt < Echo
+Partner assists with Pulse stabilization.
+
+UNSTABLE
+Guilt > Echo
+Partner acts independently, altering memories.
+
+DUAL
+Echo = Guilt
+Herald and Partner switch roles.
+The Partner becomes the main actor; the Herald becomes an echo.
+
+Dual State is rare and dangerous.
+
+============================================================
+V. MEMORY SHAPING — CREATING ECHO FORMS
+============================================================
+When the Herald uses TRANSLATE, memory fragments take shape.
+
+Possible forms:
+
+ECHO CREATURE
+A peaceful entity that helps stabilize Pulse Zones.
+
+ECHO FRAGMENT
+A floating shard that increases Echo.
+
+ECHO PATH
+A route that opens new areas or timelines.
+
+ECHO SEAL
+A lock that prevents Verge expansion.
+
+ECHO WRAITH
+A corrupted form created when Guilt is high.
+
+Memory shaping is the Herald’s main world‑building tool.
+
+============================================================
+VI. VERGE STATE CHANGES — REALITY REACTS
+============================================================
+The Herald’s actions influence the world’s Verge level.
+
+VERGE CALM
+Low distortion.
+Pulse Zones behave normally.
+
+VERGE RISING
+Medium distortion.
+Echoes manifest unpredictably.
+
+VERGE OVERFLOW
+High distortion.
+Reality fractures.
+Time loops.
+Memories rewrite themselves.
+
+The Herald must prevent Overflow — or embrace it.
+
+============================================================
+VII. HERALD PROGRESSION — THE THREE PATHS
+============================================================
+The Herald can evolve into one of three archetypes:
+
+1. THE ROOT HERALD
+   Focus: Saplight, healing, stability
+   Low Verge, high Echo
+   Creates Echo Creatures and Echo Paths.
+
+2. THE SHADE HERALD
+   Focus: Hollow, echoes, memory manipulation
+   Medium Verge, medium Guilt
+   Creates Echo Wraiths and Echo Seals.
+
+3. THE VERGE HERALD
+   Focus: distortion, rewriting reality
+   High Verge, balanced Echo/Guilt
+   Creates timeline fractures and alternate outcomes.
+
+Each path changes gameplay dramatically.
+
+============================================================
+VIII. ADVANCED SYSTEM — ECHO LOOPS
+============================================================
+Echo Loops occur when Verge is high.
+
+Effects:
+- actions repeat themselves
+- memories occur before they are created
+- the Shadow Partner acts twice
+- Pulse Zones duplicate
+
+The Herald can:
+- break loops (Stabilize)
+- amplify loops (Resonate)
+- rewrite loops (Translate)
+
+Echo Loops are the core of high‑level Herald gameplay.
+
+============================================================
+IX. META-MECHANIC — THE FOREST SPEAKS
+============================================================
+The forest communicates through distortions:
+
+“Herald… the memory is happening out of order.”
+“Herald… your shadow remembers differently.”
+“Herald… the Verge is rewriting your choices.”
+“Herald… the Pulse Zone is lying to you.”
+
+These messages guide advanced gameplay.
+
+============================================================
+X. ENDGAME — THE THREE POSSIBLE OUTCOMES
+============================================================
+
+1. MEMORY AND FOREST UNITE
+   Echo high, Verge low
+   The world becomes a living archive.
+
+2. MEMORY REMAINS AT THE THRESHOLD
+   Echo medium, Verge medium
+   The world stabilizes between reality and echo.
+
+3. MEMORY BREAKS REALITY
+   Echo high, Verge high
+   The world becomes an echo‑realm.
+
+The Herald does not win.
+The Herald *decides*.
+
+============================================================
+END OF FILE
+============================================================

@@ -9,6 +9,8 @@ import {
   SET_STATUS_LABELS,
   FILE_STATUS_LABELS,
   TEST_STATUS_DISPLAY,
+  RUN_STATUS_DISPLAY,
+  CHECK_STATUS_LABELS,
 } from "./statusLabels"
 
 /*
@@ -74,6 +76,52 @@ function TestStatusBlock({ testStatus, testSkippedReason, testOutput }) {
 
 }
 
+function RunStatusBlock({ runStatus, runOutput }) {
+
+  const display = RUN_STATUS_DISPLAY[runStatus]
+
+  if (!display) {
+
+    return null
+
+  }
+
+  return (
+
+    <div className={`text-xs ${display.className}`}>
+
+      {display.icon} {display.label}
+
+      {
+        runOutput && (
+          <pre
+            className="
+              wood-scroll
+              mt-1
+              max-h-40
+              overflow-auto
+              rounded-lg
+              border
+              border-[var(--wood-border)]
+              bg-[var(--wood-bg)]
+              p-2
+              text-[11px]
+              leading-relaxed
+              whitespace-pre-wrap
+              text-[var(--wood-muted)]
+            "
+          >
+            {runOutput}
+          </pre>
+        )
+      }
+
+    </div>
+
+  )
+
+}
+
 function UnresolvedReferencesBlock({ unresolvedReferences }) {
 
   if (!unresolvedReferences) {
@@ -117,7 +165,7 @@ function UnresolvedReferencesBlock({ unresolvedReferences }) {
 
 }
 
-function RevertButton({ onRevert, busy }) {
+function RevertButton({ onRevert, busy, label = "Peruuta" }) {
 
   return (
 
@@ -139,14 +187,57 @@ function RevertButton({ onRevert, busy }) {
         hover:bg-red-950/30
       "
     >
-      Peruuta
+      {label}
     </button>
 
   )
 
 }
 
-function SingleDraftDetail({ draft, onRevert, busy }) {
+function PrLinkBadge({ prUrl, prNumber, label = "PR" }) {
+
+  if (!prUrl) {
+
+    return null
+
+  }
+
+  return (
+
+    <a
+      href={prUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="text-xs text-[var(--wood-accent)] underline"
+    >
+      {label} #{prNumber} ↗
+    </a>
+
+  )
+
+}
+
+function CheckStatusBadge({ checkStatus }) {
+
+  const display = CHECK_STATUS_LABELS[checkStatus]
+
+  if (!display) {
+
+    return null
+
+  }
+
+  return (
+
+    <span className={`text-xs ${display.className}`}>
+      {display.icon} {display.label}
+    </span>
+
+  )
+
+}
+
+function SingleDraftDetail({ draft, onRevert, onRevertPr, onCheckRevertPrStatus, onCheckPrStatus, onArchive, onUnarchive, busy }) {
 
   return (
 
@@ -156,11 +247,117 @@ function SingleDraftDetail({ draft, onRevert, busy }) {
 
         <div className="text-xs text-[var(--wood-muted)]">{draft.filePath}</div>
 
-        {
-          draft.status === "written" && (
-            <RevertButton onRevert={onRevert} busy={busy} />
-          )
-        }
+        <div className="flex items-center gap-2">
+
+          <button
+            disabled={busy}
+            onClick={draft.archived ? onUnarchive : onArchive}
+            className="
+              rounded-full
+              border
+              border-[var(--wood-border)]
+              px-3
+              py-1
+              text-xs
+              text-[var(--wood-muted)]
+              transition-opacity
+              disabled:opacity-30
+              disabled:cursor-not-allowed
+              hover:border-[var(--wood-accent)]
+              hover:text-[var(--wood-text)]
+            "
+          >
+            {draft.archived ? "Palauta arkistosta" : "Arkistoi"}
+          </button>
+
+          {
+            draft.status === "written" && (
+              <RevertButton onRevert={onRevert} busy={busy} />
+            )
+          }
+
+          {
+            (draft.status === "pr_merged" || draft.status === "pr_revert_failed") && (
+              <RevertButton onRevert={onRevertPr} busy={busy} label="Peruuta (uusi PR)" />
+            )
+          }
+
+          {
+            draft.status.startsWith("pr_") && !draft.status.startsWith("pr_revert_") && (
+
+              <>
+                <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
+                <CheckStatusBadge checkStatus={draft.checkStatus} />
+
+                {
+                  draft.status === "pr_open" && (
+                    <button
+                      disabled={busy}
+                      onClick={onCheckPrStatus}
+                      className="
+                        rounded-full
+                        border
+                        border-[var(--wood-border)]
+                        px-3
+                        py-1
+                        text-xs
+                        text-[var(--wood-muted)]
+                        transition-opacity
+                        disabled:opacity-30
+                        disabled:cursor-not-allowed
+                        hover:border-[var(--wood-accent)]
+                        hover:text-[var(--wood-text)]
+                      "
+                    >
+                      Tarkista PR:n tila
+                    </button>
+                  )
+                }
+              </>
+
+            )
+          }
+
+          {
+            draft.status.startsWith("pr_revert_") && (
+
+              <>
+
+                <PrLinkBadge prUrl={draft.prUrl} prNumber={draft.prNumber} />
+
+                <PrLinkBadge prUrl={draft.revertPrUrl} prNumber={draft.revertPrNumber} label="Peruutus-PR" />
+
+                {
+                  draft.status === "pr_revert_open" && (
+                    <button
+                      disabled={busy}
+                      onClick={onCheckRevertPrStatus}
+                      className="
+                        rounded-full
+                        border
+                        border-[var(--wood-border)]
+                        px-3
+                        py-1
+                        text-xs
+                        text-[var(--wood-muted)]
+                        transition-opacity
+                        disabled:opacity-30
+                        disabled:cursor-not-allowed
+                        hover:border-[var(--wood-accent)]
+                        hover:text-[var(--wood-text)]
+                      "
+                    >
+                      Tarkista peruutus-PR:n tila
+                    </button>
+                  )
+                }
+
+              </>
+
+            )
+          }
+
+        </div>
 
       </div>
 
@@ -170,12 +367,21 @@ function SingleDraftDetail({ draft, onRevert, busy }) {
         )
       }
 
-      <DiffView diff={draft.diff} />
+      <DiffView diff={draft.diff} filePath={draft.filePath} />
 
       <TestStatusBlock
         testStatus={draft.testStatus}
         testSkippedReason={draft.testSkippedReason}
         testOutput={draft.testOutput}
+      />
+
+      <RunStatusBlock
+        runStatus={draft.runStatus}
+        runOutput={draft.runOutput}
+      />
+
+      <UnresolvedReferencesBlock
+        unresolvedReferences={draft.unresolvedReferences}
       />
 
     </div>
@@ -184,7 +390,7 @@ function SingleDraftDetail({ draft, onRevert, busy }) {
 
 }
 
-function SetDetail({ set, onRevertFile, busyFileId }) {
+function SetDetail({ set, onRevertFile, onRevertSetPr, onCheckRevertSetPrStatus, onCheckPrStatus, onArchive, onUnarchive, busyFileId, busySet }) {
 
   const visibleFiles = set.files.filter(file => !file.blocked)
 
@@ -193,6 +399,112 @@ function SetDetail({ set, onRevertFile, busyFileId }) {
   return (
 
     <div className="space-y-3">
+
+      <div className="flex items-center gap-2">
+
+        <button
+          disabled={busySet}
+          onClick={set.archived ? onUnarchive : onArchive}
+          className="
+            rounded-full
+            border
+            border-[var(--wood-border)]
+            px-3
+            py-1
+            text-xs
+            text-[var(--wood-muted)]
+            transition-opacity
+            disabled:opacity-30
+            disabled:cursor-not-allowed
+            hover:border-[var(--wood-accent)]
+            hover:text-[var(--wood-text)]
+          "
+        >
+          {set.archived ? "Palauta arkistosta" : "Arkistoi"}
+        </button>
+
+        {
+          set.status.startsWith("pr_") && !set.status.startsWith("pr_revert_") && (
+
+            <>
+              <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
+              <CheckStatusBadge checkStatus={set.checkStatus} />
+
+              {
+                set.status === "pr_open" && (
+                  <button
+                    disabled={busySet}
+                    onClick={onCheckPrStatus}
+                    className="
+                      rounded-full
+                      border
+                      border-[var(--wood-border)]
+                      px-3
+                      py-1
+                      text-xs
+                      text-[var(--wood-muted)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-[var(--wood-accent)]
+                      hover:text-[var(--wood-text)]
+                    "
+                  >
+                    Tarkista PR:n tila
+                  </button>
+                )
+              }
+            </>
+
+          )
+        }
+
+        {
+          set.status.startsWith("pr_revert_") && (
+
+            <>
+
+              <PrLinkBadge prUrl={set.prUrl} prNumber={set.prNumber} />
+
+              <PrLinkBadge prUrl={set.revertPrUrl} prNumber={set.revertPrNumber} label="Peruutus-PR" />
+
+              {
+                set.status === "pr_revert_open" && (
+                  <button
+                    disabled={busySet}
+                    onClick={onCheckRevertSetPrStatus}
+                    className="
+                      rounded-full
+                      border
+                      border-[var(--wood-border)]
+                      px-3
+                      py-1
+                      text-xs
+                      text-[var(--wood-muted)]
+                      transition-opacity
+                      disabled:opacity-30
+                      disabled:cursor-not-allowed
+                      hover:border-[var(--wood-accent)]
+                      hover:text-[var(--wood-text)]
+                    "
+                  >
+                    Tarkista peruutus-PR:n tila
+                  </button>
+                )
+              }
+
+            </>
+
+          )
+        }
+
+        {
+          (set.status === "pr_merged" || set.status === "pr_revert_failed") && (
+            <RevertButton onRevert={onRevertSetPr} busy={busySet} label="Peruuta (uusi PR)" />
+          )
+        }
+
+      </div>
 
       {
         blockedFiles.length > 0 && (
@@ -249,12 +561,17 @@ function SetDetail({ set, onRevertFile, busyFileId }) {
 
             </div>
 
-            <DiffView diff={file.diff} />
+            <DiffView diff={file.diff} filePath={file.filePath} />
 
             <TestStatusBlock
               testStatus={file.testStatus}
               testSkippedReason={file.testSkippedReason}
               testOutput={file.testOutput}
+            />
+
+            <RunStatusBlock
+              runStatus={file.runStatus}
+              runOutput={file.runOutput}
             />
 
             <UnresolvedReferencesBlock
@@ -272,7 +589,32 @@ function SetDetail({ set, onRevertFile, busyFileId }) {
 
 }
 
-function HistoryEntryRow({ entry, expanded, onToggle, onRevertDraft, onRevertFile, busyDraftId, busyFileId }) {
+function HistoryEntryRow({
+  entry,
+  expanded,
+  onToggle,
+  onRevertDraft,
+  onRevertFile,
+  onRevertDraftPr,
+  onCheckRevertDraftPrStatus,
+  onRevertSetPr,
+  onCheckRevertSetPrStatus,
+  onCheckDraftPrStatus,
+  onCheckSetPrStatus,
+  onRevertPythonDraft,
+  onRevertPythonDraftPr,
+  onCheckRevertPythonDraftPrStatus,
+  onCheckPythonDraftPrStatus,
+  onArchiveDraft,
+  onUnarchiveDraft,
+  onArchiveSet,
+  onUnarchiveSet,
+  onArchivePythonDraft,
+  onUnarchivePythonDraft,
+  busyDraftId,
+  busyFileId,
+  busySetId,
+}) {
 
   return (
 
@@ -305,7 +647,7 @@ function HistoryEntryRow({ entry, expanded, onToggle, onRevertDraft, onRevertFil
         <div className="min-w-0 flex-1">
 
           <div className="text-sm text-[var(--wood-text)] truncate">
-            {entry.kind === "set" ? "📦 " : "📄 "}
+            {entry.kind === "set" ? "📦 " : entry.kind === "python-single" ? "🐍 " : "📄 "}
             {entry.headline}
           </div>
 
@@ -347,16 +689,40 @@ function HistoryEntryRow({ entry, expanded, onToggle, onRevertDraft, onRevertFil
                   <SetDetail
                     set={entry.raw}
                     onRevertFile={fileId => onRevertFile(entry.raw.id, fileId)}
+                    onRevertSetPr={() => onRevertSetPr(entry.raw.id)}
+                    onCheckRevertSetPrStatus={() => onCheckRevertSetPrStatus(entry.raw.id)}
+                    onCheckPrStatus={() => onCheckSetPrStatus(entry.raw.id)}
+                    onArchive={() => onArchiveSet(entry.raw.id)}
+                    onUnarchive={() => onUnarchiveSet(entry.raw.id)}
                     busyFileId={busyFileId}
+                    busySet={busySetId === entry.raw.id}
                   />
                 )
-                : (
-                  <SingleDraftDetail
-                    draft={entry.raw}
-                    onRevert={() => onRevertDraft(entry.raw.id)}
-                    busy={busyDraftId === entry.raw.id}
-                  />
-                )
+                : entry.kind === "python-single"
+                  ? (
+                    <SingleDraftDetail
+                      draft={entry.raw}
+                      onRevert={() => onRevertPythonDraft(entry.raw.id)}
+                      onRevertPr={() => onRevertPythonDraftPr(entry.raw.id)}
+                      onCheckRevertPrStatus={() => onCheckRevertPythonDraftPrStatus(entry.raw.id)}
+                      onCheckPrStatus={() => onCheckPythonDraftPrStatus(entry.raw.id)}
+                      onArchive={() => onArchivePythonDraft(entry.raw.id)}
+                      onUnarchive={() => onUnarchivePythonDraft(entry.raw.id)}
+                      busy={busyDraftId === entry.raw.id}
+                    />
+                  )
+                  : (
+                    <SingleDraftDetail
+                      draft={entry.raw}
+                      onRevert={() => onRevertDraft(entry.raw.id)}
+                      onRevertPr={() => onRevertDraftPr(entry.raw.id)}
+                      onCheckRevertPrStatus={() => onCheckRevertDraftPrStatus(entry.raw.id)}
+                      onCheckPrStatus={() => onCheckDraftPrStatus(entry.raw.id)}
+                      onArchive={() => onArchiveDraft(entry.raw.id)}
+                      onUnarchive={() => onUnarchiveDraft(entry.raw.id)}
+                      busy={busyDraftId === entry.raw.id}
+                    />
+                  )
             }
 
           </div>
@@ -416,13 +782,30 @@ function HistoryPanel() {
 
   const [busyFileId, setBusyFileId] = useState(null)
 
+  const [busySetId, setBusySetId] = useState(null)
+
+  const [bulkChecking, setBulkChecking] = useState(false)
+
+  const [bulkProgress, setBulkProgress] = useState(null)
+
   const [searchText, setSearchText] = useState("")
 
   const [statusFilter, setStatusFilter] = useState("")
 
+  const [showArchived, setShowArchived] = useState(false)
+
+  const [bulkArchiving, setBulkArchiving] = useState(false)
+
+  const [bulkArchiveProgress, setBulkArchiveProgress] = useState(null)
+
   const availableStatuses =
     [...new Set(entries.flatMap(entryStatuses))]
       .sort()
+
+  const openEntries = entries.filter(entry => entry.status === "pr_open")
+
+  const rejectedUnarchivedEntries =
+    entries.filter(entry => entry.status === "rejected" && !entry.raw.archived)
 
   const filteredEntries =
     entries.filter(entry => {
@@ -435,7 +818,10 @@ function HistoryPanel() {
         !statusFilter ||
         entryStatuses(entry).includes(statusFilter)
 
-      return matchesSearch && matchesStatus
+      const matchesArchived =
+        showArchived || !entry.raw.archived
+
+      return matchesSearch && matchesStatus && matchesArchived
 
     })
 
@@ -499,6 +885,536 @@ function HistoryPanel() {
 
   }
 
+  async function revertDraftPr(draftId) {
+
+    if (!window.confirm("Peruuta tämä yhdistetty Pull Request avaamalla uusi, peruuttava PR?")) {
+
+      return
+
+    }
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/revert-pr`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/dev-drafts/${draftId}`)
+
+        updateEntryRaw(`draft-${draftId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkRevertDraftPrStatus(draftId) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/check-revert-pr-status`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function revertSetPr(setId) {
+
+    if (!window.confirm("Peruuta tämä yhdistetty Pull Request avaamalla uusi, peruuttava PR?")) {
+
+      return
+
+    }
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/revert-pr`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/dev-draft-sets/${setId}`)
+
+        updateEntryRaw(`set-${setId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function checkRevertSetPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-revert-pr-status`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function checkDraftPrStatus(draftId) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/check-pr-status`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkSetPrStatus(setId) {
+
+    setBusySetId(setId)
+
+    setErrorMessage("")
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/check-pr-status`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function revertPythonDraft(draftId) {
+
+    if (!window.confirm("Peruuta tämä muutos ja palauta aiempi tila?")) {
+
+      return
+
+    }
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/revert`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/python-drafts/${draftId}`)
+
+        updateEntryRaw(`python-draft-${draftId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function revertPythonDraftPr(draftId) {
+
+    if (!window.confirm("Peruuta tämä yhdistetty Pull Request avaamalla uusi, peruuttava PR?")) {
+
+      return
+
+    }
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/revert-pr`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      try {
+
+        const refreshed = await apiGet(`/python-drafts/${draftId}`)
+
+        updateEntryRaw(`python-draft-${draftId}`, refreshed)
+
+      } catch {
+
+        // ei väliä, alla oleva virheviesti riittää
+
+      }
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkRevertPythonDraftPrStatus(draftId) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/check-revert-pr-status`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkPythonDraftPrStatus(draftId) {
+
+    setBusyDraftId(draftId)
+
+    setErrorMessage("")
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/check-pr-status`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function checkAllOpenPrs() {
+
+    const targets = entries.filter(entry => entry.status === "pr_open")
+
+    if (targets.length === 0) {
+
+      return
+
+    }
+
+    setBulkChecking(true)
+
+    setErrorMessage("")
+
+    for (let index = 0; index < targets.length; index += 1) {
+
+      setBulkProgress({ current: index + 1, total: targets.length })
+
+      const entry = targets[index]
+
+      if (entry.kind === "set") {
+
+        await checkSetPrStatus(entry.raw.id)
+
+      } else if (entry.kind === "python-single") {
+
+        await checkPythonDraftPrStatus(entry.raw.id)
+
+      } else {
+
+        await checkDraftPrStatus(entry.raw.id)
+
+      }
+
+    }
+
+    setBulkProgress(null)
+
+    setBulkChecking(false)
+
+  }
+
+  async function archiveDraft(draftId) {
+
+    setBusyDraftId(draftId)
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/archive`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function unarchiveDraft(draftId) {
+
+    setBusyDraftId(draftId)
+
+    try {
+
+      const draft = await apiPut(`/dev-drafts/${draftId}/unarchive`)
+
+      updateEntryRaw(`draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function archiveSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/archive`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function unarchiveSet(setId) {
+
+    setBusySetId(setId)
+
+    try {
+
+      const set = await apiPut(`/dev-draft-sets/${setId}/unarchive`)
+
+      updateEntryRaw(`set-${setId}`, set)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusySetId(null)
+
+    }
+
+  }
+
+  async function archivePythonDraft(draftId) {
+
+    setBusyDraftId(draftId)
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/archive`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function unarchivePythonDraft(draftId) {
+
+    setBusyDraftId(draftId)
+
+    try {
+
+      const draft = await apiPut(`/python-drafts/${draftId}/unarchive`)
+
+      updateEntryRaw(`python-draft-${draftId}`, draft)
+
+    } catch (error) {
+
+      setErrorMessage(error.message)
+
+    } finally {
+
+      setBusyDraftId(null)
+
+    }
+
+  }
+
+  async function archiveEntry(entry) {
+
+    if (entry.kind === "set") {
+
+      await archiveSet(entry.raw.id)
+
+    } else if (entry.kind === "python-single") {
+
+      await archivePythonDraft(entry.raw.id)
+
+    } else {
+
+      await archiveDraft(entry.raw.id)
+
+    }
+
+  }
+
+  async function archiveAllRejected() {
+
+    if (rejectedUnarchivedEntries.length === 0) {
+
+      return
+
+    }
+
+    setBulkArchiving(true)
+
+    setErrorMessage("")
+
+    for (let index = 0; index < rejectedUnarchivedEntries.length; index += 1) {
+
+      setBulkArchiveProgress({ current: index + 1, total: rejectedUnarchivedEntries.length })
+
+      await archiveEntry(rejectedUnarchivedEntries[index])
+
+    }
+
+    setBulkArchiveProgress(null)
+
+    setBulkArchiving(false)
+
+  }
+
   async function revertFile(setId, fileId) {
 
     if (!window.confirm("Peruuta tämä tiedosto ja palauta aiempi tila?")) {
@@ -551,9 +1467,10 @@ function HistoryPanel() {
 
       try {
 
-        const [drafts, sets] = await Promise.all([
+        const [drafts, sets, pythonDrafts] = await Promise.all([
           apiGet("/dev-drafts"),
           apiGet("/dev-draft-sets"),
+          apiGet("/python-drafts"),
         ])
 
         const normalized = [
@@ -574,6 +1491,15 @@ function HistoryPanel() {
             status: set.status,
             headline: set.planExplanation || set.prompt,
             raw: set,
+          })),
+
+          ...pythonDrafts.map(draft => ({
+            key: `python-draft-${draft.id}`,
+            kind: "python-single",
+            createdAt: draft.createdAt,
+            status: draft.status,
+            headline: draft.title || draft.prompt,
+            raw: draft,
           })),
 
         ].sort(
@@ -662,6 +1588,86 @@ function HistoryPanel() {
               }
             </select>
 
+            {
+              openEntries.length > 0 && (
+                <button
+                  disabled={bulkChecking}
+                  onClick={checkAllOpenPrs}
+                  className="
+                    h-9
+                    shrink-0
+                    rounded-full
+                    border
+                    border-[var(--wood-border)]
+                    px-3
+                    text-xs
+                    text-[var(--wood-muted)]
+                    transition-opacity
+                    disabled:opacity-30
+                    disabled:cursor-not-allowed
+                    hover:border-[var(--wood-accent)]
+                    hover:text-[var(--wood-text)]
+                  "
+                >
+                  {
+                    bulkChecking
+                      ? `Tarkistetaan ${bulkProgress?.current ?? 0}/${bulkProgress?.total ?? openEntries.length}...`
+                      : `Tarkista kaikki avoimet PR:t (${openEntries.length})`
+                  }
+                </button>
+              )
+            }
+
+            {
+              rejectedUnarchivedEntries.length > 0 && (
+                <button
+                  disabled={bulkArchiving}
+                  onClick={archiveAllRejected}
+                  className="
+                    h-9
+                    shrink-0
+                    rounded-full
+                    border
+                    border-[var(--wood-border)]
+                    px-3
+                    text-xs
+                    text-[var(--wood-muted)]
+                    transition-opacity
+                    disabled:opacity-30
+                    disabled:cursor-not-allowed
+                    hover:border-[var(--wood-accent)]
+                    hover:text-[var(--wood-text)]
+                  "
+                >
+                  {
+                    bulkArchiving
+                      ? `Arkistoidaan ${bulkArchiveProgress?.current ?? 0}/${bulkArchiveProgress?.total ?? rejectedUnarchivedEntries.length}...`
+                      : `Arkistoi kaikki hylätyt (${rejectedUnarchivedEntries.length})`
+                  }
+                </button>
+              )
+            }
+
+            <button
+              onClick={() => setShowArchived(previous => !previous)}
+              className={`
+                h-9
+                shrink-0
+                rounded-full
+                border
+                px-3
+                text-xs
+                transition-colors
+                ${
+                  showArchived
+                    ? "border-[var(--wood-accent)] text-[var(--wood-text)]"
+                    : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+                }
+              `}
+            >
+              👁 Näytä arkistoidut
+            </button>
+
           </div>
 
         )
@@ -712,8 +1718,25 @@ function HistoryPanel() {
               }
               onRevertDraft={revertDraft}
               onRevertFile={revertFile}
+              onRevertDraftPr={revertDraftPr}
+              onCheckRevertDraftPrStatus={checkRevertDraftPrStatus}
+              onRevertSetPr={revertSetPr}
+              onCheckRevertSetPrStatus={checkRevertSetPrStatus}
+              onCheckDraftPrStatus={checkDraftPrStatus}
+              onCheckSetPrStatus={checkSetPrStatus}
+              onRevertPythonDraft={revertPythonDraft}
+              onRevertPythonDraftPr={revertPythonDraftPr}
+              onCheckRevertPythonDraftPrStatus={checkRevertPythonDraftPrStatus}
+              onCheckPythonDraftPrStatus={checkPythonDraftPrStatus}
+              onArchiveDraft={archiveDraft}
+              onUnarchiveDraft={unarchiveDraft}
+              onArchiveSet={archiveSet}
+              onUnarchiveSet={unarchiveSet}
+              onArchivePythonDraft={archivePythonDraft}
+              onUnarchivePythonDraft={unarchivePythonDraft}
               busyDraftId={busyDraftId}
               busyFileId={busyFileId}
+              busySetId={busySetId}
             />
 
           ))

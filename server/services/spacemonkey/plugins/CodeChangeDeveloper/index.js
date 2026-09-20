@@ -13,6 +13,8 @@ import fs from "node:fs"
 
 import FileTool from "../../tools/FileTool.js"
 
+import GitTool from "../../tools/GitTool.js"
+
 import generateCodeChangeSkill from "./skills/generateCodeChangeSkill.js"
 
 import generateCodeChangeWorkflow from "./workflows/generateCodeChangeWorkflow.js"
@@ -33,6 +35,18 @@ import runVerificationTestSkill from "./skills/runVerificationTestSkill.js"
 
 import runVerificationTestWorkflow from "./workflows/runVerificationTestWorkflow.js"
 
+import runCodeChangeDraftSkill from "./skills/runCodeChangeDraftSkill.js"
+
+import runCodeChangeDraftWorkflow from "./workflows/runCodeChangeDraftWorkflow.js"
+
+import explainCodeChangeSkill from "./skills/explainCodeChangeSkill.js"
+
+import explainCodeChangeWorkflow from "./workflows/explainCodeChangeWorkflow.js"
+
+import reviewCodeChangeSkill from "./skills/reviewCodeChangeSkill.js"
+
+import reviewCodeChangeWorkflow from "./workflows/reviewCodeChangeWorkflow.js"
+
 import generateChangePlanSkill from "./skills/generateChangePlanSkill.js"
 
 import generateChangePlanWorkflow from "./workflows/generateChangePlanWorkflow.js"
@@ -40,6 +54,14 @@ import generateChangePlanWorkflow from "./workflows/generateChangePlanWorkflow.j
 import checkCodeReferencesSkill from "./skills/checkCodeReferencesSkill.js"
 
 import checkCodeReferencesWorkflow from "./workflows/checkCodeReferencesWorkflow.js"
+
+import writeCodeChangePullRequestSkill from "./skills/writeCodeChangePullRequestSkill.js"
+
+import writeCodeChangePullRequestWorkflow from "./workflows/writeCodeChangePullRequestWorkflow.js"
+
+import revertPullRequestSkill from "./skills/revertPullRequestSkill.js"
+
+import revertPullRequestWorkflow from "./workflows/revertPullRequestWorkflow.js"
 
 
 
@@ -71,6 +93,12 @@ function registerCodeChangeDeveloperPlugin({
 
     }
 
+    if (!toolBus.has("git")) {
+
+        toolBus.register(GitTool)
+
+    }
+
     skillEngine.register(
         generateCodeChangeSkill,
     )
@@ -92,11 +120,31 @@ function registerCodeChangeDeveloperPlugin({
     )
 
     skillEngine.register(
+        runCodeChangeDraftSkill,
+    )
+
+    skillEngine.register(
+        explainCodeChangeSkill,
+    )
+
+    skillEngine.register(
+        reviewCodeChangeSkill,
+    )
+
+    skillEngine.register(
         generateChangePlanSkill,
     )
 
     skillEngine.register(
         checkCodeReferencesSkill,
+    )
+
+    skillEngine.register(
+        writeCodeChangePullRequestSkill,
+    )
+
+    skillEngine.register(
+        revertPullRequestSkill,
     )
 
     workflowEngine.register(
@@ -120,11 +168,31 @@ function registerCodeChangeDeveloperPlugin({
     )
 
     workflowEngine.register(
+        runCodeChangeDraftWorkflow,
+    )
+
+    workflowEngine.register(
+        explainCodeChangeWorkflow,
+    )
+
+    workflowEngine.register(
+        reviewCodeChangeWorkflow,
+    )
+
+    workflowEngine.register(
         generateChangePlanWorkflow,
     )
 
     workflowEngine.register(
         checkCodeReferencesWorkflow,
+    )
+
+    workflowEngine.register(
+        writeCodeChangePullRequestWorkflow,
+    )
+
+    workflowEngine.register(
+        revertPullRequestWorkflow,
     )
 
     pluginManager.register(plugin)

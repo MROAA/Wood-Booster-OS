@@ -131,3 +131,73 @@ test("happy path: passes filePath, content, and errorMessage through", async () 
     assert.equal(result.code, "hello = 'hi'\nprint(hello)")
 
 })
+
+
+
+test("forwards an explicit model choice into the generator", async () => {
+
+    const toolBus = {
+        execute: async () => ({ success: true, content: "print('hello')" }),
+    }
+
+    let receivedModel = "not called"
+
+    await debugPythonCodeSkill.execute({
+        filePath: "spc.py",
+        model: "qwen2.5-coder:7b",
+        toolBus,
+        debugPythonCode: async ({ model }) => {
+            receivedModel = model
+            return { title: "...", diagnosis: "", code: "..." }
+        },
+    })
+
+    assert.equal(receivedModel, "qwen2.5-coder:7b")
+
+})
+
+
+
+test("passes model through as undefined when none was chosen", async () => {
+
+    const toolBus = {
+        execute: async () => ({ success: true, content: "print('hello')" }),
+    }
+
+    let receivedModel = "not called"
+
+    await debugPythonCodeSkill.execute({
+        filePath: "spc.py",
+        toolBus,
+        debugPythonCode: async ({ model }) => {
+            receivedModel = model
+            return { title: "...", diagnosis: "", code: "..." }
+        },
+    })
+
+    assert.equal(receivedModel, undefined)
+
+})
+
+
+
+test("returns the resolved model from the generator, so callers can persist which model actually produced this draft", async () => {
+
+    const toolBus = {
+        execute: async () => ({ success: true, content: "print('hello')" }),
+    }
+
+    const result = await debugPythonCodeSkill.execute({
+        filePath: "spc.py",
+        toolBus,
+        debugPythonCode: async () => ({
+            title: "...",
+            diagnosis: "",
+            code: "...",
+            model: "qwen2.5-coder:7b",
+        }),
+    })
+
+    assert.equal(result.model, "qwen2.5-coder:7b")
+
+})
