@@ -3781,6 +3781,38 @@ img.hw-card-art {
   width: 100%;
 }
 
+/* Real regression found live (PR #545, CommanderSelect/GuildHallScreen):
+   several of these screens' own root class lays its direct children
+   out with `display:flex; flex-direction:column; gap:Npx` - wrapping
+   those children one level deeper inside .hw-free-layout-container
+   (a plain flow-root box) silently drops that gap entirely, since gap
+   only affects DIRECT flex/grid children. Verified live: CommanderSelect's
+   header-to-grid gap measured 0px instead of the intended 34px. Fixed
+   per screen by giving the container the SAME flex+gap its sections
+   used to get directly from their real parent - position:absolute
+   children (free/editing mode) ignore flex-gap entirely regardless, so
+   this is safe in both modes. Settings needs no entry here - its
+   .hw-settings-group blocks space themselves via their own margin/
+   border-top, not a parent gap. */
+.hw-commander-select .hw-free-layout-container,
+.hw-guildhall .hw-free-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 34px);
+}
+
+.hw-cinematic-inner .hw-free-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.hw-act-transition-inner .hw-free-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .hw-free-layout-toolbar {
   display: flex;
   flex-wrap: wrap;
