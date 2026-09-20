@@ -9,10 +9,32 @@ const ROOT_SELECTOR = ".hw-root"
 
 const HEX_PATTERN = /^#[0-9a-fA-F]{3,8}$/
 
-// Simple prop-name buckets so the panel reads as "Colors" then
-// "Typography & Spacing" instead of one flat 30-row list (Marc:
-// "laita fiksusti kaikki nippuun silleen että se on selkeä muokata") -
-// just section headers on one page, nothing hidden behind a click.
+// Marc, right after PR #529 shipped: "en osaa nuita colors & theme se
+// on liian vaikeaa minulle" (I can't do that colors & theme stuff,
+// it's too hard for me) - a flat list of 59 rows of raw CSS variable
+// names (--hw-fib-3, --hw-surface-shadow, cubic-bezier(...) values) was
+// never going to read as "helppokäyttöinen" no matter how it was
+// grouped. Fix: show ONLY the 8 colors that are actually meaningful to
+// pick (the HP color + the 7 tribe colors, all already plain hex in
+// the CSS, no resolution needed) as big labeled swatches, in plain
+// English, no CSS names visible at all. Everything else (base UI
+// chrome colors that are shared app-wide tokens, plus fonts/spacing/
+// animation timing) moves behind an explicitly-optional "Advanced"
+// toggle, collapsed by default, for later/power use - not deleted,
+// just no longer the first thing Marc has to make sense of.
+const FRIENDLY_COLORS = [
+  { prop: "--hw-hp", label: "Health & Damage" },
+  { prop: "--hw-tide", label: "Water Tribe" },
+  { prop: "--hw-gale", label: "Wind Tribe" },
+  { prop: "--hw-stone", label: "Stone Tribe" },
+  { prop: "--hw-shadow", label: "Shadow Tribe" },
+  { prop: "--hw-wood", label: "Wood Tribe" },
+  { prop: "--hw-tribe-ember", label: "Ember Tribe" },
+  { prop: "--hw-cosmic", label: "Cosmic Tribe" },
+]
+
+const FRIENDLY_PROPS = new Set(FRIENDLY_COLORS.map(entry => entry.prop))
+
 const COLOR_HINTS = [
   "bg", "panel", "card", "border", "text", "muted", "ember", "moss", "rune",
   "curse", "hp", "tide", "gale", "stone", "shadow", "wood", "cosmic", "accent",
@@ -25,16 +47,12 @@ function isColorProp(prop) {
 }
 
 /*
- * Colors & Theme - Marc, 2026-09-20: "haluan myös jotenkin muokata
- * pelin visuaalista ilmettä" / "mutta haluan muokata siitä kokoajan
- * parempaa" (I want to keep making it better, continuously). Edits the
- * .hw-root custom properties in heartwood.css - the single place the
- * whole game's palette/type/spacing scale is already centralized - so
- * this is genuinely "the whole game's look," not one screen's colors.
- *
- * Same shape as SheetView.jsx: edit freely, batch-preview, one
- * confirm/apply. A CSS edit is already forced to at least MEDIUM risk
- * (preview + confirm, never silently auto-applied) by riskModel.js.
+ * Colors & Theme - edits the .hw-root custom properties in
+ * heartwood.css, the one place the whole game's palette/type/spacing
+ * scale is centralized. Same edit -> batched preview -> confirm/apply
+ * flow as every other Studio editor (SheetView.jsx). A CSS edit is
+ * already forced to at least MEDIUM risk (preview + confirm, never
+ * silently auto-applied) by riskModel.js.
  */
 function ThemePanel({ onApplied, onPreviewUrlChange }) {
   const [rules, setRules] = useState([])
@@ -43,6 +61,7 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
   const [errorMessage, setErrorMessage] = useState("")
   const [edits, setEdits] = useState({})
   const [reloadKey, setReloadKey] = useState(0)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   const {
     result,
@@ -79,7 +98,7 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
           // core palette/scale, then later a timing/easing block) - merge
           // every declaration from every block sharing this selector so
           // nothing (e.g. the --hw-dur-*/--hw-ease-out tokens) is silently
-          // missing from the panel.
+          // missing.
           const rootRules = (data.rules || []).filter(rule => rule.selector.replace(/\s+/g, " ").trim() === ROOT_SELECTOR)
           setRules(rootRules.flatMap(rule => rule.declarations || []))
         }
@@ -101,8 +120,9 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
     }
   }, [reloadKey])
 
-  const { colorRows, otherRows } = useMemo(() => {
-    const colors = []
+  const { friendlyRows, advancedColorRows, advancedOtherRows } = useMemo(() => {
+    const friendly = []
+    const advancedColors = []
     const other = []
 
     for (const decl of rules) {
@@ -110,10 +130,15 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
         continue
       }
 
-      (isColorProp(decl.prop) ? colors : other).push(decl)
+      if (FRIENDLY_PROPS.has(decl.prop)) {
+        friendly.push(decl)
+        continue
+      }
+
+      (isColorProp(decl.prop) ? advancedColors : other).push(decl)
     }
 
-    return { colorRows: colors, otherRows: other }
+    return { friendlyRows: friendly, advancedColorRows: advancedColors, advancedOtherRows: other }
   }, [rules])
 
   function currentValue(decl) {
@@ -151,6 +176,26 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
     }
 
     await preview({ edits: cssEdits })
+  }
+
+  function Swatch({ decl, label }) {
+    const value = currentValue(decl)
+    const dirty = isDirty(decl)
+
+    return (
+      <label className="flex cursor-pointer flex-col items-center gap-2">
+        <input
+          type="color"
+          value={HEX_PATTERN.test(value) ? value : "#888888"}
+          onChange={event => setValue(decl, event.target.value)}
+          className={`
+            h-16 w-16 cursor-pointer rounded-xl border-2 bg-transparent p-0
+            ${dirty ? "border-[var(--wood-accent)]" : "border-[var(--wood-border)]"}
+          `}
+        />
+        <span className="text-center text-xs text-[var(--wood-text)]">{label}</span>
+      </label>
+    )
   }
 
   function Row({ decl }) {
@@ -193,7 +238,7 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--wood-border)] p-4">
         <div className="text-sm text-[var(--wood-muted)]">
-          Editing <code className="text-[var(--wood-text)]">{ROOT_SELECTOR}</code> in {file || "heartwood.css"} - the whole game's shared palette, type scale and spacing.
+          Click a color to change it. Every game screen updates to match.
         </div>
 
         <div className="flex items-center gap-2">
@@ -239,23 +284,46 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
         {
           !loading && !errorMessage && (
             <>
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
-                  Colors
-                </div>
-                <div className="space-y-0.5">
-                  {colorRows.map(decl => <Row key={decl.prop} decl={decl} />)}
-                </div>
+              <div className="grid grid-cols-4 gap-4 sm:grid-cols-8">
+                {
+                  FRIENDLY_COLORS.map(entry => {
+                    const decl = friendlyRows.find(d => d.prop === entry.prop)
+                    return decl ? <Swatch key={entry.prop} decl={decl} label={entry.label} /> : null
+                  })
+                }
               </div>
 
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
-                  Typography, spacing & motion
-                </div>
-                <div className="space-y-0.5">
-                  {otherRows.map(decl => <Row key={decl.prop} decl={decl} />)}
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(previous => !previous)}
+                className="text-xs text-[var(--wood-muted)] underline decoration-dotted hover:text-[var(--wood-text)]"
+              >
+                {showAdvanced ? "Hide advanced options" : "Show advanced options (fonts, spacing, more colors)"}
+              </button>
+
+              {
+                showAdvanced && (
+                  <>
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
+                        More colors
+                      </div>
+                      <div className="space-y-0.5">
+                        {advancedColorRows.map(decl => <Row key={decl.prop} decl={decl} />)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
+                        Typography, spacing & motion
+                      </div>
+                      <div className="space-y-0.5">
+                        {advancedOtherRows.map(decl => <Row key={decl.prop} decl={decl} />)}
+                      </div>
+                    </div>
+                  </>
+                )
+              }
             </>
           )
         }
