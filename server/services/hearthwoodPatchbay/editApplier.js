@@ -342,19 +342,39 @@ export async function buildProposal({ type, entityId, edits, filePath } = {}) {
 
 /**
  * buildCssProposal({ selector, prop, value, filePath? })
+ * buildCssProposal({ edits: [{ selector, prop, value }, ...], filePath? })
+ *
+ * Accepts either one declaration (the original single-edit shape, kept
+ * for backward compat) or a BATCH of them - the underlying apply-edit
+ * script's `applyCssEdits` already walks a whole `edits` array in one
+ * pass (matching each by selector+prop and applying all in one
+ * `MagicString`), so a theme panel changing several color variables at
+ * once (Marc, 2026-09-20: "haluan muokata pelin visuaalista ilmettä")
+ * can preview/apply them together as ONE patch instead of one
+ * round-trip per variable.
  */
 export async function buildCssProposal({
     selector,
     prop,
     value,
+    edits,
     filePath = HEARTHWOOD_STYLE_FILES[0],
 } = {}) {
+
+    const cssEdits = Array.isArray(edits) && edits.length > 0
+        ? edits
+        : [{ selector, prop, value }]
 
     const originalCode = readFile(filePath)
 
     const result = await runApplyScript({
         filePath,
-        edits: [{ selector, prop, op: "set", value }],
+        edits: cssEdits.map(edit => ({
+            selector: edit.selector,
+            prop: edit.prop,
+            op: "set",
+            value: edit.value,
+        })),
     })
 
     return {

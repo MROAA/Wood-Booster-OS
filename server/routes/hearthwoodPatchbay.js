@@ -25,11 +25,12 @@
 import express from "express"
 import multer from "multer"
 
-import { ENTITY_TYPES } from "../services/hearthwoodPatchbay/paths.js"
+import { ENTITY_TYPES, HEARTHWOOD_STYLE_FILES } from "../services/hearthwoodPatchbay/paths.js"
 import { createAuditStore } from "../services/hearthwoodPatchbay/auditStore.js"
 import {
     listEntities,
     getEntity,
+    listStyleRules,
 } from "../services/hearthwoodPatchbay/entityReader.js"
 import {
     preview as previewPatch,
@@ -150,6 +151,41 @@ export default function createHearthwoodPatchbayRouter(prisma) {
             }
 
             res.json(entity)
+
+        } catch (error) {
+
+            sendError(res, error)
+
+        }
+    })
+
+    /* -------------------------------------------------------------- *
+     * styles (Marc, 2026-09-20: "haluan muokata pelin visuaalista
+     * ilmettä" - a Colors & Theme panel reads the .hw-root custom
+     * properties through here, edits them via the same generic
+     * { edits: [{selector, prop, value}] } shape /preview already
+     * accepts for CSS)
+     * -------------------------------------------------------------- */
+
+    router.get(`${BASE}/styles`, async (req, res) => {
+
+        try {
+
+            const file = req.query.file
+                ? String(req.query.file)
+                : HEARTHWOOD_STYLE_FILES[0]
+
+            if (!HEARTHWOOD_STYLE_FILES.includes(file)) {
+
+                return res.status(400).json({
+                    error: `tuntematon style-tiedosto "${file}"`,
+                    knownFiles: HEARTHWOOD_STYLE_FILES,
+                })
+            }
+
+            const data = await listStyleRules(file)
+
+            res.json(data)
 
         } catch (error) {
 
