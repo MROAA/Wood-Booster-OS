@@ -379,13 +379,14 @@ function isListOfScalars(node) {
  * "name": upgrades.js/roles.js/counterplay.js's THREATS use "label",
  * coach.js's COACH_TIPS uses "title", help.js's HELP_SECTIONS uses
  * "heading", and storyLog.js's FLAG_LABELS-style flat maps have no
- * field but their own flavor "text". First match wins; returns null if
- * an entity genuinely has none of these (its raw id is the fallback,
- * same as ever).
+ * field but their own flavor "text". dialogues.js's DIALOGUES uses "npc"
+ * (the speaking character's display name). First match wins; returns
+ * null if an entity genuinely has none of these (its raw id is the
+ * fallback, same as ever).
  */
 function displayNameFrom(fields) {
 
-    for (const key of ["name", "label", "title", "heading", "text"]) {
+    for (const key of ["name", "label", "title", "heading", "npc", "text"]) {
 
         if (fields[key] && fields[key].kind === "string") {
 

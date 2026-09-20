@@ -38,6 +38,7 @@ const ALL_TYPES = [
   { type: "crossroads", label: "Act Crossroads", category: "Story" },
   { type: "crownless", label: "Crownless Intro", category: "Story" },
   { type: "events", label: "Map Events", category: "Story" },
+  { type: "dialogues", label: "Dialogues", category: "Story" },
   { type: "merchants", label: "Merchant Lines", category: "Story" },
   { type: "moods", label: "Forest Mood", category: "Story" },
   { type: "almanac", label: "Almanac Lore", category: "Story" },

@@ -425,6 +425,17 @@ export const EVENTS = [
         result: "You set a coin and a ration by its knee and move on quiet. You don't look back to see if it takes them. Some kindnesses are better not watched.",
         effects: [{ essence: -30 }, { relic: "random" }],
       },
+      // Hearthwood's first branching dialogue (dialogues.js) - a
+      // choice with `dialogueId` skips the normal result+Continue
+      // screen entirely; EventScreen.jsx hands off to DialogueScreen
+      // instead, and its own accumulated effects/summary come back
+      // through onResolve's extra arguments (see runEngine.js's
+      // resolveEventChoice).
+      {
+        label: "Talk to it.",
+        dialogueId: "grieving-guardian",
+        effects: [],
+      },
     ],
   },
 

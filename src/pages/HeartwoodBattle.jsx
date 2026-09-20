@@ -639,8 +639,8 @@ export default function HeartwoodBattle() {
     setRunState((current) => chooseFloorEncounter(current, choiceIndex))
   }
 
-  function handleResolveEvent(choiceIndex) {
-    setRunState((current) => resolveEventChoice(current, choiceIndex))
+  function handleResolveEvent(choiceIndex, extraEffects, extraResult) {
+    setRunState((current) => resolveEventChoice(current, choiceIndex, extraEffects, extraResult))
   }
 
   function handleNewRun() {

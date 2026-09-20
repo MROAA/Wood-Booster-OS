@@ -125,6 +125,18 @@ export const HEARTHWOOD_DATA_DIR = "src/data/heartwood"
  *                    contextual tooltip text)
  *   counterplay.js export const THREATS            (ARRAY - the "what to
  *                    bring" counterplay hints shown in threat previews)
+ *
+ * Dialogue system (Marc, 2026-09-20, picked from the Universal Editor PRD's
+ * remaining big items): Hearthwood's first branching NPC conversation.
+ * An event choice (events.js) can carry an optional `dialogueId` that hands
+ * off to one of these instead of the plain result+Continue screen -
+ * see DialogueScreen.jsx.
+ *   dialogues.js   export const DIALOGUES          (object map, npc-id ->
+ *                    {npc, greeting, exchanges: [{question, answer, effects,
+ *                    followUps: [...same shape, recursively]}]} - nested
+ *                    ARRAYS (not an embedded object) specifically so this
+ *                    registry's existing list-field handling covers it with
+ *                    no new capability)
  */
 export const ENTITY_TYPES = {
     enemies: { file: "enemies.js", exportName: "ENEMIES" },
@@ -160,6 +172,7 @@ export const ENTITY_TYPES = {
     help: { file: "help.js", exportName: "HELP_SECTIONS" },
     coachTips: { file: "coach.js", exportName: "COACH_TIPS" },
     threats: { file: "counterplay.js", exportName: "THREATS" },
+    dialogues: { file: "dialogues.js", exportName: "DIALOGUES" },
 }
 
 /**
