@@ -3686,6 +3686,76 @@ img.hw-card-art {
   padding: 8px 8px 4px;
 }
 
+/* Free-drag left-rail layout (Marc: "haluan tämän raahaa mihin
+   tahansa tasolle" - I want this at the drag-it-anywhere level).
+   Dev-only (import.meta.env.DEV, SquadDraft.jsx) - never rendered in
+   a real build. .hw-shop-rail-sections is the position:relative
+   anchor for the 4 sections' own position:absolute wrappers, set
+   inline (not here) since its explicit height is computed per-render
+   from the actual content. */
+.hw-shop-layout-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--hw-border);
+}
+
+.hw-shop-layout-error {
+  width: 100%;
+  font-size: 11px;
+  color: var(--hw-hp);
+}
+
+.hw-shop-layout-preview {
+  width: 100%;
+}
+
+/* .hw-shop-rail-sections nests one level deeper than the 4 sections
+   used to sit (a sibling of the new dev-only toolbar, both inside
+   .hw-shop-rail) - mirror .hw-shop-rail's own flex column + gap here
+   so the sections' spacing is unchanged in flow mode. position:absolute
+   children (free mode) ignore this regardless of display type. */
+.hw-shop-rail-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.hw-shop-rail-section-positioned {
+  width: 100%;
+}
+
+.hw-shop-rail--editing-layout .hw-shop-rail-section-positioned {
+  outline: 1px dashed color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.hw-shop-rail-drag-handle {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  font-size: 12px;
+  color: var(--hw-muted);
+  cursor: grab;
+  z-index: 2;
+}
+
+.hw-shop-rail-drag-handle:active {
+  cursor: grabbing;
+}
+
 /* RunMap inside the right rail - strip its page-level side margin and
    its own frame (the rail already provides one); its track keeps its
    own horizontal scroll and can never force the rail wider. */
@@ -4154,6 +4224,22 @@ img.hw-card-art {
 
   .hw-shop-rail--right {
     order: 3;
+  }
+
+  /* Free-drag left-rail positions (SquadDraft.jsx) never apply under
+     this single-column fallback - inline position:absolute/left/top
+     need !important here specifically because they're set inline, and
+     an inline style otherwise always beats a stylesheet rule
+     regardless of media query. */
+  .hw-shop-rail--free-layout .hw-shop-rail-sections {
+    position: static !important;
+    height: auto !important;
+  }
+
+  .hw-shop-rail-section-positioned {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
   }
 }
 

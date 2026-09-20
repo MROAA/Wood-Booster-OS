@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS, effectiveRole } from "../../data/heartwood/items"
@@ -45,6 +45,9 @@ import BuildScore from "./BuildScore"
 import EconomyCrew from "./EconomyCrew"
 import MerchantGreeting from "./MerchantGreeting"
 import { CardGlyph } from "./cardArt"
+import { startPointerDrag } from "./pointerDrag"
+import { usePatchPreview } from "../hearthwood-studio/usePatchPreview"
+import PatchPreviewPanel from "../hearthwood-studio/PatchPreviewPanel"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
 import hearthwoodLogo from "../../assets/heartwood/hearthwood-logo.png"
 // Marc's own Copilot-made plaque buttons (kuvia/ drop, "luon microsoft
@@ -237,6 +240,35 @@ export default function SquadDraft({
   // unit on the battlefield.
   const [selectedItemKey, setSelectedItemKey] = useState(null)
   const [justEquippedSlot, setJustEquippedSlot] = useState(null)
+  // Free-position left-rail layout (Marc: "haluan tämän raahaa mihin
+  // tahansa tasolle" - I want this at the drag-it-anywhere level).
+  // `editingLayout` gates the whole feature behind an explicit toggle
+  // (dev-only, see the render below); `layoutDraft` holds the 4
+  // sections' in-progress {x,y} while editing, seeded either from a
+  // previously-saved layout or from the CURRENT flow positions
+  // (measured via `railRef`/`sectionRefs`) so turning Edit Layout on
+  // is a visual no-op before anything is actually dragged.
+  const [editingLayout, setEditingLayout] = useState(false)
+  const [layoutDraft, setLayoutDraft] = useState(null)
+  const [railHeight, setRailHeight] = useState(null)
+  const railRef = useRef(null)
+  const sectionRefs = useRef({})
+  const {
+    result: layoutResult,
+    applyMode: layoutApplyMode,
+    setApplyMode: setLayoutApplyMode,
+    previewing: layoutPreviewing,
+    applying: layoutApplying,
+    errorMessage: layoutErrorMessage,
+    preview: previewLayout,
+    discard: discardLayoutPreview,
+    apply: applyLayout,
+  } = usePatchPreview({
+    onApplied: () => {
+      setEditingLayout(false)
+      setLayoutDraft(null)
+    },
+  })
   const selectedItem = selectedItemKey !== null ? runState.items.find((it) => it.key === selectedItemKey) : null
   const selectedItemDef = selectedItem ? ITEMS[selectedItem.defId] : null
   // Market/Squad tabs (Marc, after a real 1920x1080 measurement showed
@@ -525,6 +557,121 @@ export default function SquadDraft({
   // malformed, and silently skips any key it doesn't recognize -
   // a typo in the Studio can't crash the market.
   const DEFAULT_LEFT_RAIL_ORDER = ["ledger", "buyback", "relics", "items"]
+  const LEFT_RAIL_KEYS = DEFAULT_LEFT_RAIL_ORDER
+
+  // Marc, having tried the reorder-only version: "haluan tämän raahaa
+  // mihin tahansa tasolle" (I want this at the drag-it-anywhere
+  // level). `leftRailPositions` only takes effect once ALL 4 keys have
+  // a saved {x,y} - one clean all-or-nothing check, so a section
+  // mid-migration can never end up half in flow, half absolute.
+  function savedFreePositions() {
+    const positions = SHOP_LAYOUT.market?.leftRailPositions
+
+    const complete = positions
+      && LEFT_RAIL_KEYS.every((key) => positions[key] && typeof positions[key].x === "number" && typeof positions[key].y === "number")
+
+    return complete ? positions : null
+  }
+
+  const freeLayoutActive = editingLayout || Boolean(savedFreePositions())
+
+  // Entering Edit Layout should be a visual no-op before anything is
+  // actually dragged - if a saved layout already exists, start from
+  // it; otherwise CAPTURE the sections' current on-screen (flow-mode)
+  // positions, relative to the rail container, so the first frame of
+  // "free mode" looks identical to the flow layout it replaced.
+  function startEditingLayout() {
+    const saved = savedFreePositions()
+
+    if (saved) {
+      setLayoutDraft({ ...saved })
+      setEditingLayout(true)
+      return
+    }
+
+    const railRect = railRef.current?.getBoundingClientRect()
+    const captured = {}
+
+    for (const key of LEFT_RAIL_KEYS) {
+      const el = sectionRefs.current[key]
+      const rect = el?.getBoundingClientRect()
+
+      captured[key] = rect && railRect
+        ? { x: Math.round(rect.left - railRect.left), y: Math.round(rect.top - railRect.top) }
+        : { x: 0, y: 0 }
+    }
+
+    setLayoutDraft(captured)
+    setEditingLayout(true)
+  }
+
+  function cancelEditingLayout() {
+    setEditingLayout(false)
+    setLayoutDraft(null)
+    discardLayoutPreview()
+  }
+
+  function handleSectionDragStart(e, key) {
+    e.preventDefault()
+
+    const origin = layoutDraft[key]
+
+    startPointerDrag(e, (dx, dy) => {
+      setLayoutDraft((previous) => ({ ...previous, [key]: { x: origin.x + dx, y: origin.y + dy } }))
+    })
+  }
+
+  async function handleSaveLayout() {
+    // `leftRailPositions` starts as `{}` with none of the 4 keys
+    // present yet, so a plain `op:"set"` on a nested path like
+    // ["market","leftRailPositions","ledger","x"] can't work - "set"
+    // only updates an EXISTING scalar leaf, it can't create a key that
+    // isn't already there. `setRaw` replacing the WHOLE
+    // `leftRailPositions` object in one shot works whether it's
+    // currently empty (first save) or already populated (a later
+    // re-save), so it's the one mechanism for both.
+    const body = LEFT_RAIL_KEYS
+      .map((key) => `    ${key}: { x: ${layoutDraft[key].x}, y: ${layoutDraft[key].y} }`)
+      .join(",\n")
+
+    await previewLayout({
+      type: "shopLayout",
+      entityId: "market",
+      edits: [{ path: ["market", "leftRailPositions"], op: "setRaw", value: `{\n${body},\n  }` }],
+    })
+  }
+
+  async function handleResetLayout() {
+    await previewLayout({
+      type: "shopLayout",
+      entityId: "market",
+      edits: [{ path: ["market", "leftRailPositions"], op: "setRaw", value: "{}" }],
+    })
+  }
+
+  // Absolutely-positioned children contribute zero height to their
+  // parent, so the rail's own box would otherwise collapse to nothing
+  // while free mode is active - measure the 4 sections' own rendered
+  // height and set the tallest bottom edge as the rail's explicit
+  // height. Re-runs whenever the draft positions change (dragging) or
+  // the underlying content does (runState), matching what would have
+  // naturally driven the rail's height in flow mode.
+  useLayoutEffect(() => {
+    if (!freeLayoutActive) {
+      setRailHeight(null)
+      return
+    }
+
+    const heights = LEFT_RAIL_KEYS.map((key) => {
+      const el = sectionRefs.current[key]
+      const pos = layoutDraft ? layoutDraft[key] : SHOP_LAYOUT.market?.leftRailPositions?.[key]
+
+      return el && pos ? pos.y + el.offsetHeight : 0
+    })
+
+    setRailHeight(Math.max(0, ...heights))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [freeLayoutActive, layoutDraft, runState])
 
   function renderOwnedRail() {
     const relics = runState.relics || []
@@ -724,7 +871,58 @@ export default function SquadDraft({
 
     const order = SHOP_LAYOUT.market?.leftRailOrder || DEFAULT_LEFT_RAIL_ORDER
 
-    return <>{order.map((key) => sections[key]?.() || null)}</>
+    // `leftRailOrder` keeps deciding DOM/tab order and paint order
+    // (which section draws on top if two ever overlap) regardless of
+    // mode - free positioning only changes HOW a section is wrapped
+    // (absolute left/top vs plain flow), never the order it's visited
+    // in. `freeMode` view-only (editingLayout false, a saved layout
+    // exists) reads positions straight from SHOP_LAYOUT; while editing,
+    // `layoutDraft` (the in-progress, not-yet-saved positions) wins.
+    //
+    // Every section is wrapped in a ref-bearing div REGARDLESS of mode
+    // (a bare, unstyled div in flow mode - transparent in this
+    // flex-column rail, so it's still a zero-visual-diff wrap) so
+    // `sectionRefs` always has a live measurement to read from -
+    // `startEditingLayout()` needs to measure each section's CURRENT
+    // flow position the moment before switching to free mode, and it
+    // can only do that if the ref already existed while still in flow
+    // mode (there's no in-between frame where both would be true
+    // otherwise).
+    return (
+      <>
+        {order.map((key) => {
+          const content = sections[key]?.()
+
+          if (!content) {
+            return null
+          }
+
+          const pos = freeLayoutActive ? (layoutDraft ? layoutDraft[key] : SHOP_LAYOUT.market?.leftRailPositions?.[key]) : null
+
+          return (
+            <div
+              key={key}
+              ref={(el) => {
+                sectionRefs.current[key] = el
+              }}
+              className={pos ? "hw-shop-rail-section-positioned" : undefined}
+              style={pos ? { position: "absolute", left: pos.x, top: pos.y } : undefined}
+            >
+              {editingLayout && pos && (
+                <div
+                  className="hw-shop-rail-drag-handle"
+                  onMouseDown={(e) => handleSectionDragStart(e, key)}
+                  title="Drag to reposition"
+                >
+                  ⠿
+                </div>
+              )}
+              {content}
+            </div>
+          )
+        })}
+      </>
+    )
   }
 
   const upgradingEntry = upgradingKey != null ? runState.bench.find((e) => e.key === upgradingKey) : null
@@ -1056,8 +1254,66 @@ export default function SquadDraft({
           the three columns. Rails scroll internally - the PAGE never
           scrolls at Marc's 1536x864 (his standing hard rule). */}
       <div className="hw-shop-3zone">
-        <aside className="hw-shop-rail hw-shop-rail--left" aria-label="Owned relics and items">
-          {renderOwnedRail()}
+        <aside
+          className={`hw-shop-rail hw-shop-rail--left${freeLayoutActive ? " hw-shop-rail--free-layout" : ""}${editingLayout ? " hw-shop-rail--editing-layout" : ""}`}
+          aria-label="Owned relics and items"
+        >
+          {
+            // Dev-only (never in a real build) - Marc: "haluan tämän
+            // raahaa mihin tahansa tasolle". Lives INSIDE the <aside>
+            // (not a wrapper around it) so `.hw-shop-rail--left` stays
+            // the direct grid child the <=1240px breakpoint's own
+            // `order` rule depends on.
+            import.meta.env.DEV && (
+              <div className="hw-shop-layout-toolbar">
+                {!editingLayout ? (
+                  <button type="button" className="hw-move-btn" onClick={startEditingLayout}>
+                    Edit Layout
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="hw-move-btn"
+                      disabled={layoutPreviewing || layoutApplying}
+                      onClick={handleSaveLayout}
+                    >
+                      {layoutPreviewing ? "Previewing..." : "Save Layout"}
+                    </button>
+                    <button type="button" className="hw-move-btn" disabled={layoutApplying} onClick={cancelEditingLayout}>
+                      Cancel
+                    </button>
+                    <button type="button" className="hw-move-btn" disabled={layoutPreviewing || layoutApplying} onClick={handleResetLayout}>
+                      Reset Layout
+                    </button>
+                  </>
+                )}
+
+                {layoutErrorMessage && <div className="hw-shop-layout-error">{layoutErrorMessage}</div>}
+
+                {layoutResult && (
+                  <div className="hw-shop-layout-preview">
+                    <PatchPreviewPanel
+                      result={layoutResult}
+                      applyMode={layoutApplyMode}
+                      onApplyModeChange={setLayoutApplyMode}
+                      onDiscard={discardLayoutPreview}
+                      onApply={applyLayout}
+                      applying={layoutApplying}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          }
+
+          <div
+            ref={railRef}
+            className="hw-shop-rail-sections"
+            style={freeLayoutActive ? { position: "relative", height: railHeight ?? undefined } : undefined}
+          >
+            {renderOwnedRail()}
+          </div>
         </aside>
 
         <div className="hw-shop-center">
