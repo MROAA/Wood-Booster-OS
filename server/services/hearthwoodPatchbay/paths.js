@@ -93,6 +93,38 @@ export const HEARTHWOOD_DATA_DIR = "src/data/heartwood"
  *                       before the move)
  *   economyLevers.js  export const MARKET_EVENTS    (object map - the 4
  *                       special-market defs, ditto)
+ *
+ * "Everything" round (Marc, 2026-09-20: "haluan pystyä muokkaamaan peliä
+ * mahdollisimman vapaasti dev studiolla ja se pitää sisällään kaiken mitä
+ * pelissä on" / "kaiken" - a full audit of every src/data/heartwood/*.js
+ * file not yet registered, adding every one with genuine player-facing
+ * text or tunable content; left OUT were files whose only exports are
+ * pure internal logic/scoring with no real content to browse - battleAnalysis.js
+ * (VERDICTS is just internal outcome tags), buildScore.js, playerPower.js,
+ * playstyle.js, seed.js, threatPreview.js):
+ *   economy.js     export const ECONOMY_ROLES     (object map - the 5
+ *                    economy-crew archetypes, e.g. "Gambler")
+ *   depths.js      export const DEPTHS            (ARRAY - the Ascension-
+ *                    style challenge ladder: name/description + balance
+ *                    fields like enemyMult/essenceDelta)
+ *   almanac.js     export const ALMANAC_LORE       (object map, id -> a
+ *                    long lore paragraph - a FLAT map like storyLog.js's
+ *                    FLAG_LABELS, exposed via the same synthetic
+ *                    `fields.value`)
+ *   arenas.js      export const ARENAS             (ARRAY - battle arena
+ *                    flavor + field effects)
+ *   evolutions.js  export const EVOLUTIONS         (object map, unit id ->
+ *                    its evolved form + unlock condition)
+ *   roles.js       export const ROLES              (object map - the 9
+ *                    unit archetype labels/icons/accents)
+ *   upgrades.js    export const UPGRADE_BRANCHES   (ARRAY - the per-unit
+ *                    upgrade choices' names/descriptions)
+ *   help.js        export const HELP_SECTIONS      (ARRAY of {heading,
+ *                    entries: [{term, blurb}]} - the in-run "?" glossary)
+ *   coach.js       export const COACH_TIPS         (ARRAY - the new-player
+ *                    contextual tooltip text)
+ *   counterplay.js export const THREATS            (ARRAY - the "what to
+ *                    bring" counterplay hints shown in threat previews)
  */
 export const ENTITY_TYPES = {
     enemies: { file: "enemies.js", exportName: "ENEMIES" },
@@ -118,6 +150,16 @@ export const ENTITY_TYPES = {
     economyLevers: { file: "economyLevers.js", exportName: "ECONOMY_LEVERS" },
     investments: { file: "economyLevers.js", exportName: "SHOP_INVESTMENTS" },
     marketEvents: { file: "economyLevers.js", exportName: "MARKET_EVENTS" },
+    economyRoles: { file: "economy.js", exportName: "ECONOMY_ROLES" },
+    depths: { file: "depths.js", exportName: "DEPTHS" },
+    almanac: { file: "almanac.js", exportName: "ALMANAC_LORE" },
+    arenas: { file: "arenas.js", exportName: "ARENAS" },
+    evolutions: { file: "evolutions.js", exportName: "EVOLUTIONS" },
+    roles: { file: "roles.js", exportName: "ROLES" },
+    upgradeBranches: { file: "upgrades.js", exportName: "UPGRADE_BRANCHES" },
+    help: { file: "help.js", exportName: "HELP_SECTIONS" },
+    coachTips: { file: "coach.js", exportName: "COACH_TIPS" },
+    threats: { file: "counterplay.js", exportName: "THREATS" },
 }
 
 /**
