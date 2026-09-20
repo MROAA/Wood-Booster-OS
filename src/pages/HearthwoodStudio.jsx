@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { apiGet } from "../api/client"
 
+import AddEventForm from "../components/hearthwood-studio/AddEventForm"
 import AddStoryEntryForm from "../components/hearthwood-studio/AddStoryEntryForm"
 import BalancePanel from "../components/hearthwood-studio/BalancePanel"
 import CloneEntityForm from "../components/hearthwood-studio/CloneEntityForm"
@@ -252,6 +253,16 @@ function HearthwoodStudio() {
                   {
                     entityType === "storyJournal" && (
                       <AddStoryEntryForm
+                        type={entityType}
+                        onApplied={handleApplied}
+                        onPreviewUrlChange={setPreviewUrl}
+                      />
+                    )
+                  }
+
+                  {
+                    entityType === "events" && (
+                      <AddEventForm
                         type={entityType}
                         onApplied={handleApplied}
                         onPreviewUrlChange={setPreviewUrl}

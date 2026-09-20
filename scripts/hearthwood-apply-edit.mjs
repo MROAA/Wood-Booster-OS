@@ -702,20 +702,21 @@ function applyJsEdits({ source, exportName, edits }) {
             if (edit.op === "insertAfterKey") {
 
                 // path === [mapName]; like addKey, but inserted right
-                // after an EXISTING key's own entry instead of always at
-                // the map's end - the Studio's "add a new Story Journal
-                // entry" form uses this to drop a new flag into the
-                // correct chronological (Act-ordered) spot instead of
-                // appending it and leaving Marc to re-sort by hand.
-                // `afterKey: null` means "insert at the very start of
-                // the map" (before its first entry).
-                if (rootInit.type !== "ObjectExpression") {
-
-                    rejected.push({ path: editPath, reason: "insertAfterKey requires an object map" })
-                    continue
-
-                }
-
+                // after an EXISTING entry instead of always at the end -
+                // the Studio's "add a new Story Journal entry" form uses
+                // this to drop a new flag into the correct chronological
+                // (Act-ordered) spot instead of appending it and leaving
+                // Marc to re-sort by hand. `afterKey: null` means "insert
+                // at the very start" (before the first entry).
+                //
+                // Works on either root shape: an ObjectExpression map
+                // (afterKey is an existing property KEY, via
+                // findMapPropertyWithContainer) or an ArrayExpression
+                // (afterKey is an existing element's own `id` FIELD value -
+                // events.js/COMBO_SYNERGIES/etc are plain arrays, not
+                // keyed maps, so there is no "key" to match against; the
+                // element-lookup-by-id logic mirrors removeKey's own
+                // array branch above).
                 const block = String(edit.block || "").replace(/\s+$/, "")
 
                 if (!block) {
@@ -739,19 +740,40 @@ function applyJsEdits({ source, exportName, edits }) {
                 }
 
                 const afterKey = String(edit.afterKey)
-                const found = findMapPropertyWithContainer(rootInit, ast, afterKey)
 
-                if (!found) {
+                let afterNode = null
+
+                if (rootInit.type === "ObjectExpression") {
+
+                    const found = findMapPropertyWithContainer(rootInit, ast, afterKey)
+
+                    afterNode = found ? found.prop : null
+
+                } else {
+
+                    afterNode = rootInit.elements.find(el =>
+                        el && el.type === "ObjectExpression"
+                        && el.properties.some(p =>
+                            p.type === "Property"
+                            && keyName(p.key, p.computed) === "id"
+                            && p.value.type === "Literal"
+                            && p.value.value === afterKey,
+                        ),
+                    ) || null
+
+                }
+
+                if (!afterNode) {
 
                     rejected.push({ path: editPath, reason: `afterKey "${afterKey}" not found` })
                     continue
 
                 }
 
-                const tail = source.slice(found.prop.end)
+                const tail = source.slice(afterNode.end)
                 const commaMatch = tail.match(/^\s*,/)
 
-                const insertAt = commaMatch ? found.prop.end + commaMatch[0].length : found.prop.end
+                const insertAt = commaMatch ? afterNode.end + commaMatch[0].length : afterNode.end
                 const text = commaMatch ? `\n${block},` : `,\n${block},`
 
                 magic.appendLeft(insertAt, text)
