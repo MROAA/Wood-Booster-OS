@@ -2,6 +2,8 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
 
+import EditInStudioLink from "./EditInStudioLink"
+
 // The Act boundary, made into a moment. Marc: the run "on vielä
 // yksinkertainen ja tylsä" - "valinnat eivät tunnu tärkeiltä" and
 // "runit ovat samanlaisia". Every time the difficulty band (and story
@@ -33,6 +35,12 @@ export default function ActTransitionScreen({ crossroads, fromTier, intoTier, on
         className="hw-act-transition-banner"
         style={{ backgroundImage: `linear-gradient(180deg, rgba(12,12,14,0.55), rgba(12,12,14,0.9)), url(${marketBanner})` }}
       />
+      <div style={{ position: "absolute", top: 14, left: 14, zIndex: 2 }}>
+        {/* ACT_CROSSROADS is keyed by the Act number itself (2..5) -
+            each entry's own `actIndex` field mirrors that key, since the
+            entry has no separate `id` field of its own. */}
+        <EditInStudioLink type="crossroads" id={String(crossroads.actIndex)} />
+      </div>
       <div className="hw-act-transition-inner">
         <div className="hw-act-transition-turn">The road turns</div>
 

@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
+import EditInStudioLink from "./EditInStudioLink"
+
 // A scripted story cinematic (cinematics.js) played as a click-to-advance
 // dialogue reader. Marc: the story bible's written scenes barely reach
 // the player - "ei koukkua eteneä". This is the vehicle for the two
@@ -50,6 +52,10 @@ export default function StoryCinematic({ cinematic, onDone }) {
       >
         Skip
       </button>
+
+      <div style={{ position: "absolute", top: 14, left: 14, zIndex: 1 }}>
+        <EditInStudioLink type="cinematics" id={cinematic.id} />
+      </div>
 
       <div className="hw-cinematic-inner">
         {cinematic.title && (
