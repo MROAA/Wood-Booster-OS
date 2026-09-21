@@ -39,19 +39,23 @@ import { actLabel } from "./actNames"
  *
  * "Add new" row (Marc: chose adding this directly to the Timeline over
  * a dedicated Cinematics compose form, so he never has to leave his
- * one "where am I in the story" view to start writing). Only the 3
- * types that actually HAVE a blank-page compose form (AddEventForm,
- * AddDialogueForm, AddStoryEntryForm) get a button here - cinematics/
- * crossroads/merchants/crownless have no such form yet (only "Clone as
- * new"), and a button that led nowhere would be worse than no button.
- * `onAddNew(type)` just tells HearthwoodStudio.jsx which type to
- * switch entityType to - each form already asks for its own Act
- * placement internally, so this view doesn't need to know acts at all.
+ * one "where am I in the story" view to start writing). Only types
+ * that actually HAVE a blank-page compose form get a button here - a
+ * button that led nowhere would be worse than no button. Cinematics
+ * itself never got one: CINEMATICS is a fixed set of 5 entries each
+ * named by a literal id in HeartwoodBattle.jsx, so a brand-new entry
+ * would have no trigger point and would never play - a genuine dead
+ * end, not just unbuilt. Merchants/Crownless remain "Clone as new"
+ * only for now. `onAddNew(type)` just tells HearthwoodStudio.jsx which
+ * type to switch entityType to - each form already asks for its own
+ * Act placement internally, so this view doesn't need to know acts at
+ * all.
  */
 const ADDABLE_TYPES = [
   { type: "events", icon: "🗺", label: "New Event" },
   { type: "dialogues", icon: "💬", label: "New Dialogue" },
   { type: "storyJournal", icon: "📖", label: "New Journal Entry" },
+  { type: "crossroads", icon: "🧭", label: "New Crossroads" },
 ]
 const TIMELINE_TYPES = ["cinematics", "crossroads", "events", "storyJournal", "merchants", "crownless", "dialogues"]
 
