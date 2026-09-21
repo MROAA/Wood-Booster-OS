@@ -311,6 +311,18 @@ export default function SquadDraft({
     screenId: "marketTabContent",
     keys: ["recruitGrid", "shopActions", "itemsGrid"],
   })
+  // Squad tab, PR B of the same round. Two SEPARATE scopes since
+  // buildScore/itemBag and the deployed/reserve split live in visually
+  // distinct parts of the panel - see each scope's own render site
+  // below for the exact wrapper each one uses.
+  const squadTopLayout = useFreeLayout({
+    screenId: "squadTabTop",
+    keys: ["buildScore", "itemBag"],
+  })
+  const squadSplitLayout = useFreeLayout({
+    screenId: "squadTabSplit",
+    keys: ["squadDeployed", "squadReserve"],
+  })
   const otherCommanders = Object.values(CHARACTERS).filter((c) => c.id !== runState.characterId)
   const prevBenchKeysRef = useRef(new Set(runState.bench.map((e) => e.key)))
   // Essence badge flash - every purchase/sale in this shop changes the
@@ -1732,42 +1744,84 @@ export default function SquadDraft({
         <div className="hw-panel hw-panel--squad" hidden={activeTab !== "squad"}>
           <div className="hw-panel-title">Your Squad - already owned</div>
 
-          {/* Build evaluation (buildScore.js) - visible while recruiting
-              so a shop is "improve the build or fix its weakness?" */}
-          <BuildScore runState={runState} />
-
-          {runState.items.length > 0 && (
-            <>
-              <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 4, marginBottom: 4 }}>
-                Your items ({runState.items.filter((it) => it.equippedTo === null).length} unequipped) - click one,
-                then click a slot below to equip it.
-              </p>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-                {runState.items
-                  .filter((it) => it.equippedTo === null)
-                  .map((it) => {
-                    const def = ITEMS[it.defId]
-                    return (
-                      <span
-                        key={it.key}
-                        className="hw-badge"
-                        style={{
-                          cursor: "pointer",
-                          gap: 6,
-                          color: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
-                          borderColor: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
-                        }}
-                        title={def?.description}
-                        onClick={() => handleBagItemClick(it.key)}
-                      >
-                        <CardGlyph name={def?.icon} className="hw-intent-glyph" />
-                        {def?.name}
-                      </span>
-                    )
-                  })}
-              </div>
-            </>
+          {/* Free Layout foundation, Squad tab, top scope (buildScore +
+              itemBag) - same "toolbar lives inside the hidden-toggled
+              panel" reasoning as the Market tab's own toolbar above. */}
+          {import.meta.env.DEV && (
+            <div className="hw-free-layout-toolbar">
+              {!squadTopLayout.editingLayout ? (
+                <button className="hw-move-btn" onClick={squadTopLayout.startEditing} disabled={squadTopLayout.loading}>
+                  Edit Layout
+                </button>
+              ) : (
+                <>
+                  <button className="hw-move-btn" onClick={squadTopLayout.saveLayout} disabled={squadTopLayout.saving}>
+                    Save Layout
+                  </button>
+                  <button className="hw-move-btn" onClick={squadTopLayout.cancelEditing} disabled={squadTopLayout.saving}>
+                    Cancel
+                  </button>
+                </>
+              )}
+              <button className="hw-move-btn" onClick={squadTopLayout.resetLayout} disabled={squadTopLayout.saving}>
+                Reset Layout
+              </button>
+              {squadTopLayout.errorMessage && (
+                <span className="hw-free-layout-error">{squadTopLayout.errorMessage}</span>
+              )}
+            </div>
           )}
+          <div
+            ref={squadTopLayout.containerRef}
+            className="hw-free-layout-container"
+            style={squadTopLayout.containerStyle}
+            data-free-active={squadTopLayout.freeActive || undefined}
+            data-editing-layout={squadTopLayout.editingLayout || undefined}
+          >
+            {squadTopLayout.renderSection(
+              "buildScore",
+              /* Build evaluation (buildScore.js) - visible while
+                 recruiting so a shop is "improve the build or fix its
+                 weakness?" */
+              <BuildScore runState={runState} />
+            )}
+
+            {squadTopLayout.renderSection(
+              "itemBag",
+              runState.items.length > 0 && (
+                <div>
+                  <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 4, marginBottom: 4 }}>
+                    Your items ({runState.items.filter((it) => it.equippedTo === null).length} unequipped) - click one,
+                    then click a slot below to equip it.
+                  </p>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                    {runState.items
+                      .filter((it) => it.equippedTo === null)
+                      .map((it) => {
+                        const def = ITEMS[it.defId]
+                        return (
+                          <span
+                            key={it.key}
+                            className="hw-badge"
+                            style={{
+                              cursor: "pointer",
+                              gap: 6,
+                              color: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
+                              borderColor: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
+                            }}
+                            title={def?.description}
+                            onClick={() => handleBagItemClick(it.key)}
+                          >
+                            <CardGlyph name={def?.icon} className="hw-intent-glyph" />
+                            {def?.name}
+                          </span>
+                        )
+                      })}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
 
           {/* Your Squad split into two clearly separated groups: the
               units actually fighting (keys in runState.deployed) vs the
@@ -1788,36 +1842,105 @@ export default function SquadDraft({
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
             Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop.
           </p>
+
+          {/* Free Layout foundation, Squad tab, split scope
+              (squadDeployed/squadReserve). .hw-squad-split is a
+              3-column CSS Grid (auto / 1px divider / minmax(0,1fr)) -
+              wrapping it one level deeper the way every other block
+              does would break that grid entirely, so this scope
+              attaches its containerRef/containerStyle DIRECTLY onto
+              THIS SAME div (a second className, not a new element): in
+              flow mode containerStyle is undefined, so
+              .hw-squad-split's own grid CSS applies completely
+              undisturbed; only in free mode does the inline
+              position:relative override it. The divider only makes
+              sense between two ADJACENT things, so it's hidden once
+              this scope is actually free-active - a deliberate
+              simplification, not a bug. */}
+          {import.meta.env.DEV && (
+            <div className="hw-free-layout-toolbar">
+              {!squadSplitLayout.editingLayout ? (
+                <button className="hw-move-btn" onClick={squadSplitLayout.startEditing} disabled={squadSplitLayout.loading}>
+                  Edit Layout
+                </button>
+              ) : (
+                <>
+                  <button className="hw-move-btn" onClick={squadSplitLayout.saveLayout} disabled={squadSplitLayout.saving}>
+                    Save Layout
+                  </button>
+                  <button className="hw-move-btn" onClick={squadSplitLayout.cancelEditing} disabled={squadSplitLayout.saving}>
+                    Cancel
+                  </button>
+                </>
+              )}
+              <button className="hw-move-btn" onClick={squadSplitLayout.resetLayout} disabled={squadSplitLayout.saving}>
+                Reset Layout
+              </button>
+              {squadSplitLayout.errorMessage && (
+                <span className="hw-free-layout-error">{squadSplitLayout.errorMessage}</span>
+              )}
+            </div>
+          )}
+          {/* .hw-squad-split's OWN CSS turned out (found live, not
+              assumed from a single reading) to ALREADY be overridden
+              unconditionally by a more specific `.hw-shop-3zone
+              .hw-squad-split { display:flex; flex-direction:column;
+              gap:8px }` rule elsewhere in this file - the 3-column
+              CSS Grid this plan expected is dead code, never actually
+              wins the cascade, and .hw-squad-split-divider is ALREADY
+              always `display:none` unconditionally too. So the
+              STANDARD wrapper pattern (a new .hw-free-layout-container
+              div, one level inside .hw-squad-split, matching that
+              SAME real flex-column+gap layout) is exactly right here -
+              no need to attach to .hw-squad-split directly, and no
+              need to conditionally hide the divider (it was already
+              invisible). Attaching directly to .hw-squad-split, tried
+              first, put THREE competing display rules on one element
+              and produced a real, measured 65px position bug. */}
           <div className="hw-squad-split">
-            <section className="hw-squad-group">
-              <div className="hw-section-label hw-squad-group-label">
-                On the bench &middot; fighting
-                <span className="hw-squad-group-count">{deployedCount}/{DEPLOY_SLOTS}</span>
-              </div>
-              {deployedEntries.length === 0 ? (
-                <p className="hw-squad-group-empty">No units placed yet - deploy them on the battlefield screen.</p>
-              ) : (
-                <div className="hw-select-grid hw-deck-preview hw-squad-group-grid">
-                  {deployedEntries.map(renderBenchCard)}
-                </div>
+            <div
+              ref={squadSplitLayout.containerRef}
+              className="hw-free-layout-container"
+              style={squadSplitLayout.containerStyle}
+              data-free-active={squadSplitLayout.freeActive || undefined}
+              data-editing-layout={squadSplitLayout.editingLayout || undefined}
+            >
+              {squadSplitLayout.renderSection(
+                "squadDeployed",
+                <section className="hw-squad-group">
+                  <div className="hw-section-label hw-squad-group-label">
+                    On the bench &middot; fighting
+                    <span className="hw-squad-group-count">{deployedCount}/{DEPLOY_SLOTS}</span>
+                  </div>
+                  {deployedEntries.length === 0 ? (
+                    <p className="hw-squad-group-empty">No units placed yet - deploy them on the battlefield screen.</p>
+                  ) : (
+                    <div className="hw-select-grid hw-deck-preview hw-squad-group-grid">
+                      {deployedEntries.map(renderBenchCard)}
+                    </div>
+                  )}
+                </section>
               )}
-            </section>
 
-            <div className="hw-squad-split-divider" aria-hidden="true" />
+              <div className="hw-squad-split-divider" aria-hidden="true" />
 
-            <section className="hw-squad-group hw-squad-group--reserve">
-              <div className="hw-section-label hw-squad-group-label">
-                In reserve &middot; not fighting
-                <span className="hw-squad-group-count">{reserveCount}/{RESERVE_CAP + (runState.benchCapBonus || 0)}</span>
-              </div>
-              {reserveEntries.length === 0 ? (
-                <p className="hw-squad-group-empty">Reserve is empty.</p>
-              ) : (
-                <div className="hw-select-grid hw-deck-preview hw-squad-group-grid hw-squad-reserve-cards">
-                  {reserveEntries.map(renderBenchCard)}
-                </div>
+              {squadSplitLayout.renderSection(
+                "squadReserve",
+                <section className="hw-squad-group hw-squad-group--reserve">
+                  <div className="hw-section-label hw-squad-group-label">
+                    In reserve &middot; not fighting
+                    <span className="hw-squad-group-count">{reserveCount}/{RESERVE_CAP + (runState.benchCapBonus || 0)}</span>
+                  </div>
+                  {reserveEntries.length === 0 ? (
+                    <p className="hw-squad-group-empty">Reserve is empty.</p>
+                  ) : (
+                    <div className="hw-select-grid hw-deck-preview hw-squad-group-grid hw-squad-reserve-cards">
+                      {reserveEntries.map(renderBenchCard)}
+                    </div>
+                  )}
+                </section>
               )}
-            </section>
+            </div>
           </div>
         </div>
       </div>

@@ -3813,6 +3813,18 @@ img.hw-card-art {
   gap: 16px;
 }
 
+/* .hw-squad-split's OWN base rule (further up this file) is actually
+   dead code - `.hw-shop-3zone .hw-squad-split` (higher specificity,
+   see that rule's own comment) always wins in the real, live game and
+   sets display:flex/flex-direction:column/gap:8px, not the grid the
+   base rule suggests. This new inner wrapper (SquadDraft.jsx's
+   squadTabSplit scope) needs the SAME real layout to match. */
+.hw-squad-split .hw-free-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .hw-free-layout-toolbar {
   display: flex;
   flex-wrap: wrap;
