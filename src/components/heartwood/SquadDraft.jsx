@@ -47,6 +47,7 @@ import MerchantGreeting from "./MerchantGreeting"
 import { CardGlyph } from "./cardArt"
 import { startPointerDrag } from "./pointerDrag"
 import { usePatchPreview } from "../hearthwood-studio/usePatchPreview"
+import { useFreeLayout } from "./useFreeLayout.jsx"
 import PatchPreviewPanel from "../hearthwood-studio/PatchPreviewPanel"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
 import hearthwoodLogo from "../../assets/heartwood/hearthwood-logo.png"
@@ -289,6 +290,27 @@ export default function SquadDraft({
   // shows at a time, selected here. Defaults to "market" since that's
   // the panel with actual purchase decisions to make on arrival.
   const [activeTab, setActiveTab] = useState("market")
+  // Free Layout foundation, extended into the Market tab's own content
+  // (Marc: "haluan keskittyä nyt market osion muokattavuuden
+  // parantamiseen... minun pitää muokkaa siitä itselleni mukavan
+  // näköinen" - I want to focus on the Market's editability now,
+  // I need to make it look nice to myself). Uses the SAME generalized
+  // useFreeLayout.jsx hook the other 6 screens already use (DB-backed,
+  // not this file's own older RAILS/shopLayout.js mechanism which the
+  // left/right rails still use) - this is new content this session
+  // hasn't touched before, so it starts on the newer, more scalable
+  // mechanism rather than extending the older file-patching one.
+  // Called unconditionally here (top of the component, same reasoning
+  // as HeartwoodBattle.jsx's own mapStripLayout) even though its own
+  // toolbar only ever renders while activeTab === "market" - the
+  // .hw-panel--market panel is always MOUNTED (just `hidden` when not
+  // active), so gating the TOOLBAR's render inside that panel is
+  // enough to guarantee startEditing() never measures a hidden block;
+  // the hook call itself doesn't need to be conditional too.
+  const marketTabLayout = useFreeLayout({
+    screenId: "marketTabContent",
+    keys: ["recruitGrid", "shopActions", "itemsGrid"],
+  })
   const otherCommanders = Object.values(CHARACTERS).filter((c) => c.id !== runState.characterId)
   const prevBenchKeysRef = useRef(new Set(runState.bench.map((e) => e.key)))
   // Essence badge flash - every purchase/sale in this shop changes the
@@ -1508,150 +1530,202 @@ export default function SquadDraft({
               the cards below, not a caption above them. */}
           <div className="hw-panel-title">Market - spend Essence here</div>
 
-          <div className="hw-section-label">For sale</div>
-          {/* hw-market-featured-grid: the one deliberately-featured
-              moment on this screen (problem 2, "korttien asettelu/
-              koko") - bigger, golden-ratio-sized cards (--hw-fib-9,
-              same 233px this game's other "important choice" screen,
-              CommanderSelect.jsx, already uses). Scoped to just this
-              grid - the Items grid and the Your Squad/bench grid
-              below keep their existing card size on purpose. */}
-          <div className="hw-select-grid hw-deck-preview hw-market-featured-grid">
-            {offers.map((def) => {
-              const owned = runState.bench.filter((e) => e.defId === def.id).length
-              const willFuse = owned >= 2
-              const reserveCap = RESERVE_CAP + (runState.benchCapBonus || 0)
-              const reserveFull = !willFuse && runState.bench.length >= DEPLOY_SLOTS + reserveCap
-              const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
-              return (
-                // Real bug caught during this pass's own 1860x960
-                // iteration (not eyeballed - a live Playwright re-roll
-                // loop reproduced it): "Fuses now!"/"Reserve full" used
-                // to be a normal flow sibling below the card, adding
-                // ~19px to just THAT one wrapper - but CSS Grid
-                // stretches every row item to the row's tallest (this
-                // grid never overrides align-items), so the instant
-                // ANY one of the 3 offers rolled with this badge, the
-                // WHOLE row grew by the same amount, even the 2 cards
-                // with no badge at all - a purely conditional, random-
-                // per-visit height contribution the fit budget had no
-                // way to account for. Now an absolute overlay (position
-                // relative lives here on the wrapper, same pattern
-                // UnitCard's own .hw-frost-badge already uses) pinned
-                // to the bottom of the card instead of pushing it -
-                // zero layout-height cost regardless of which offers
-                // roll it.
-                <div key={def.id} style={{ position: "relative" }}>
-                  <UnitCard
-                    def={def}
-                    disabled={runState.essence < effectiveRecruitCost(runState, def) || reserveFull}
-                    onClick={() => onRecruit(def.id)}
-                    tribeMatch={tribeMatch}
-                    frozen={!!runState.frozen}
-                    costOverride={effectiveRecruitCost(runState, def)}
-                  />
-                  {willFuse && (
-                    <div
-                      className="hw-badge hw-card-overlay-badge"
-                      style={{ color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
-                      title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
-                    >
-                      Fuses now! ({owned}/3 owned)
-                    </div>
-                  )}
-                  {reserveFull && (
-                    <div
-                      className="hw-badge hw-card-overlay-badge"
-                      style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
-                      title={`Reserve is full (${reserveCap}/${reserveCap}) - sell or fuse to make room`}
-                    >
-                      Reserve full
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-
-          <div style={{ marginTop: 3, display: "flex", gap: 8 }}>
-            <button
-              className="hw-move-btn"
-              disabled={runState.essence < runState.rerollCost || offers.length === 0 || marketEventLocked}
-              onClick={onReroll}
-              title={marketEventLocked ? `${marketEventDef.name}: no Reroll this stop - take what's shown` : undefined}
-            >
-              Reroll ({runState.rerollCost} Essence)
-            </button>
-            {/* Freeze (runEngine.js's toggleFreeze) - keeps this offer
-                set into the next shop visit instead of it re-rolling
-                automatically. A one-shot flag (consumed on the next
-                regen), so `data-active` just reflects whether it's
-                currently armed. */}
-            <button
-              className="hw-move-btn"
-              data-active={!!runState.frozen && !marketEventLocked}
-              disabled={marketEventLocked}
-              onClick={onToggleFreeze}
-              title={marketEventLocked ? `${marketEventDef.name}: no Freeze this stop` : "Keep these offers when you next visit the shop"}
-            >
-              {runState.frozen && !marketEventLocked ? "Frozen ✓" : "Freeze"}
-            </button>
-            {/* The Gamble (Marc: "the game needs also gamble mechanic") -
-                spend Essence for an UNCHOSEN random item or relic
-                instead of picking from the 3 offers above. Always
-                available (no Blackroot-style lock - it's not tied to
-                the unit-offer roll at all), repeatable like Reroll. */}
-            {onGamble && (
-              <button
-                className="hw-move-btn hw-gamble-btn"
-                disabled={runState.essence < GAMBLE_COST}
-                onClick={onGamble}
-                title="Wager Essence for a random item - or, rarely, a relic you could never otherwise buy"
-              >
-                Gamble ({GAMBLE_COST} Essence)
+          {/* Free Layout foundation, Market tab (see marketTabLayout's
+              own comment above) - only ever rendered/clickable while
+              this panel is actually visible, since the whole panel is
+              `hidden` otherwise; that alone is enough to guarantee
+              startEditing() never measures a hidden block. */}
+          {import.meta.env.DEV && (
+            <div className="hw-free-layout-toolbar">
+              {!marketTabLayout.editingLayout ? (
+                <button className="hw-move-btn" onClick={marketTabLayout.startEditing} disabled={marketTabLayout.loading}>
+                  Edit Layout
+                </button>
+              ) : (
+                <>
+                  <button className="hw-move-btn" onClick={marketTabLayout.saveLayout} disabled={marketTabLayout.saving}>
+                    Save Layout
+                  </button>
+                  <button className="hw-move-btn" onClick={marketTabLayout.cancelEditing} disabled={marketTabLayout.saving}>
+                    Cancel
+                  </button>
+                </>
+              )}
+              <button className="hw-move-btn" onClick={marketTabLayout.resetLayout} disabled={marketTabLayout.saving}>
+                Reset Layout
               </button>
-            )}
-            {/* Field Antidote (runEngine.js's buyAntidote, feat/hearthwood-rot):
-                a one-fight squad-wide Regen, the answer to a Rot pack's poison
-                drip. One queued at a time; cost climbs per Act. */}
-            {onAntidote && (
-              <button
-                className="hw-move-btn hw-antidote-btn"
-                data-active={antidoteQueued(runState) || undefined}
-                disabled={!antidoteQueued(runState) && runState.essence < antidoteCost(runState)}
-                onClick={onAntidote}
-                title="Your whole squad starts the next battle with Regen - out-drips an opening poison spike"
-              >
-                {antidoteQueued(runState) ? "Antidote ✓" : `Field Antidote (${antidoteCost(runState)})`}
-              </button>
-            )}
-          </div>
-
-          {/* The Gamble's own reveal - a one-shot callout naming what
-              just came out (an item name, or a relic name in the rarer
-              "cosmic" tone reused from the Ragpicker's Market banner,
-              since a relic here is the jackpot outcome). Cleared by
-              leaveShop, so it only ever shows the LATEST pull, never a
-              stale one from a prior visit. */}
-          {runState.lastGambleReward && (
-            <div
-              className="hw-gamble-reveal"
-              data-tone={runState.lastGambleReward.kind === "relic" ? "cosmic" : "plain"}
-            >
-              {runState.lastGambleReward.kind === "relic"
-                ? `Jackpot! You won ${RELICS[runState.lastGambleReward.defId]?.name}.`
-                : `You won ${ITEMS[runState.lastGambleReward.defId]?.name}.`}
+              {marketTabLayout.errorMessage && (
+                <span className="hw-free-layout-error">{marketTabLayout.errorMessage}</span>
+              )}
             </div>
           )}
+          <div
+            ref={marketTabLayout.containerRef}
+            className="hw-free-layout-container"
+            style={marketTabLayout.containerStyle}
+            data-free-active={marketTabLayout.freeActive || undefined}
+            data-editing-layout={marketTabLayout.editingLayout || undefined}
+          >
+            {marketTabLayout.renderSection(
+              "recruitGrid",
+              <div>
+                <div className="hw-section-label">For sale</div>
+                {/* hw-market-featured-grid: the one deliberately-featured
+                    moment on this screen (problem 2, "korttien asettelu/
+                    koko") - bigger, golden-ratio-sized cards (--hw-fib-9,
+                    same 233px this game's other "important choice" screen,
+                    CommanderSelect.jsx, already uses). Scoped to just this
+                    grid - the Items grid and the Your Squad/bench grid
+                    below keep their existing card size on purpose. */}
+                <div className="hw-select-grid hw-deck-preview hw-market-featured-grid">
+                  {offers.map((def) => {
+                    const owned = runState.bench.filter((e) => e.defId === def.id).length
+                    const willFuse = owned >= 2
+                    const reserveCap = RESERVE_CAP + (runState.benchCapBonus || 0)
+                    const reserveFull = !willFuse && runState.bench.length >= DEPLOY_SLOTS + reserveCap
+                    const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
+                    return (
+                      // Real bug caught during this pass's own 1860x960
+                      // iteration (not eyeballed - a live Playwright re-roll
+                      // loop reproduced it): "Fuses now!"/"Reserve full" used
+                      // to be a normal flow sibling below the card, adding
+                      // ~19px to just THAT one wrapper - but CSS Grid
+                      // stretches every row item to the row's tallest (this
+                      // grid never overrides align-items), so the instant
+                      // ANY one of the 3 offers rolled with this badge, the
+                      // WHOLE row grew by the same amount, even the 2 cards
+                      // with no badge at all - a purely conditional, random-
+                      // per-visit height contribution the fit budget had no
+                      // way to account for. Now an absolute overlay (position
+                      // relative lives here on the wrapper, same pattern
+                      // UnitCard's own .hw-frost-badge already uses) pinned
+                      // to the bottom of the card instead of pushing it -
+                      // zero layout-height cost regardless of which offers
+                      // roll it.
+                      <div key={def.id} style={{ position: "relative" }}>
+                        <UnitCard
+                          def={def}
+                          disabled={runState.essence < effectiveRecruitCost(runState, def) || reserveFull}
+                          onClick={() => onRecruit(def.id)}
+                          tribeMatch={tribeMatch}
+                          frozen={!!runState.frozen}
+                          costOverride={effectiveRecruitCost(runState, def)}
+                        />
+                        {willFuse && (
+                          <div
+                            className="hw-badge hw-card-overlay-badge"
+                            style={{ color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
+                            title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
+                          >
+                            Fuses now! ({owned}/3 owned)
+                          </div>
+                        )}
+                        {reserveFull && (
+                          <div
+                            className="hw-badge hw-card-overlay-badge"
+                            style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+                            title={`Reserve is full (${reserveCap}/${reserveCap}) - sell or fuse to make room`}
+                          >
+                            Reserve full
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
-          <div className="hw-market-divider" />
-          <div className="hw-section-label" title="Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.">
-            Items
-          </div>
-          <div className="hw-select-grid hw-deck-preview hw-market-items-grid">
-            {itemOffers.map((def) => (
-              <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
-            ))}
+            {marketTabLayout.renderSection(
+              "shopActions",
+              <div>
+                <div style={{ marginTop: 3, display: "flex", gap: 8 }}>
+                  <button
+                    className="hw-move-btn"
+                    disabled={runState.essence < runState.rerollCost || offers.length === 0 || marketEventLocked}
+                    onClick={onReroll}
+                    title={marketEventLocked ? `${marketEventDef.name}: no Reroll this stop - take what's shown` : undefined}
+                  >
+                    Reroll ({runState.rerollCost} Essence)
+                  </button>
+                  {/* Freeze (runEngine.js's toggleFreeze) - keeps this offer
+                      set into the next shop visit instead of it re-rolling
+                      automatically. A one-shot flag (consumed on the next
+                      regen), so `data-active` just reflects whether it's
+                      currently armed. */}
+                  <button
+                    className="hw-move-btn"
+                    data-active={!!runState.frozen && !marketEventLocked}
+                    disabled={marketEventLocked}
+                    onClick={onToggleFreeze}
+                    title={marketEventLocked ? `${marketEventDef.name}: no Freeze this stop` : "Keep these offers when you next visit the shop"}
+                  >
+                    {runState.frozen && !marketEventLocked ? "Frozen ✓" : "Freeze"}
+                  </button>
+                  {/* The Gamble (Marc: "the game needs also gamble mechanic") -
+                      spend Essence for an UNCHOSEN random item or relic
+                      instead of picking from the 3 offers above. Always
+                      available (no Blackroot-style lock - it's not tied to
+                      the unit-offer roll at all), repeatable like Reroll. */}
+                  {onGamble && (
+                    <button
+                      className="hw-move-btn hw-gamble-btn"
+                      disabled={runState.essence < GAMBLE_COST}
+                      onClick={onGamble}
+                      title="Wager Essence for a random item - or, rarely, a relic you could never otherwise buy"
+                    >
+                      Gamble ({GAMBLE_COST} Essence)
+                    </button>
+                  )}
+                  {/* Field Antidote (runEngine.js's buyAntidote, feat/hearthwood-rot):
+                      a one-fight squad-wide Regen, the answer to a Rot pack's poison
+                      drip. One queued at a time; cost climbs per Act. */}
+                  {onAntidote && (
+                    <button
+                      className="hw-move-btn hw-antidote-btn"
+                      data-active={antidoteQueued(runState) || undefined}
+                      disabled={!antidoteQueued(runState) && runState.essence < antidoteCost(runState)}
+                      onClick={onAntidote}
+                      title="Your whole squad starts the next battle with Regen - out-drips an opening poison spike"
+                    >
+                      {antidoteQueued(runState) ? "Antidote ✓" : `Field Antidote (${antidoteCost(runState)})`}
+                    </button>
+                  )}
+                </div>
+
+                {/* The Gamble's own reveal - a one-shot callout naming what
+                    just came out (an item name, or a relic name in the rarer
+                    "cosmic" tone reused from the Ragpicker's Market banner,
+                    since a relic here is the jackpot outcome). Cleared by
+                    leaveShop, so it only ever shows the LATEST pull, never a
+                    stale one from a prior visit. */}
+                {runState.lastGambleReward && (
+                  <div
+                    className="hw-gamble-reveal"
+                    data-tone={runState.lastGambleReward.kind === "relic" ? "cosmic" : "plain"}
+                  >
+                    {runState.lastGambleReward.kind === "relic"
+                      ? `Jackpot! You won ${RELICS[runState.lastGambleReward.defId]?.name}.`
+                      : `You won ${ITEMS[runState.lastGambleReward.defId]?.name}.`}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {marketTabLayout.renderSection(
+              "itemsGrid",
+              <div>
+                <div className="hw-market-divider" />
+                <div className="hw-section-label" title="Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.">
+                  Items
+                </div>
+                <div className="hw-select-grid hw-deck-preview hw-market-items-grid">
+                  {itemOffers.map((def) => (
+                    <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
