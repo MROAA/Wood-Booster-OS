@@ -2714,6 +2714,26 @@ img.hw-card-art {
   margin-bottom: 0;
 }
 
+/* Free Layout, round 2 ("every button individually") - the tab toggle
+   buttons now live inside a nested free-layout-container instead of
+   being direct children of .hw-tab-row--market-art. Centering trap:
+   .hw-tab-row--market-art's own justify-content:center only has ONE
+   child now (this container), which would shrink-to-fit (0 width)
+   the instant its own children go position:absolute in free mode,
+   visibly shifting both buttons sideways. width:100% keeps this
+   container's box (and therefore both buttons' captured x/y origin)
+   identical in flow mode and free mode - the outer's centering always
+   centers a full-width no-op box, and THIS rule's own justify-content
+   does the real centering both before and after, from the same left
+   edge. */
+.hw-tab-row--market-art .hw-free-layout-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
 /* Shared sizing for both plaque buttons in this row (Market below,
    Your Squad further down) - kept as one rule so the "meaningfully
    bigger" ask lands identically on both rather than needing two

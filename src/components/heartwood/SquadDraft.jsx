@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS, effectiveRole } from "../../data/heartwood/items"
@@ -307,9 +307,40 @@ export default function SquadDraft({
   // active), so gating the TOOLBAR's render inside that panel is
   // enough to guarantee startEditing() never measures a hidden block;
   // the hook call itself doesn't need to be conditional too.
+  // Round 2 of "every button individually" (Marc's own words: "haluan
+  // liikuttaa niitä vapaasti kaikkia yksitellen") - split the shop
+  // action row's ONE combined "shopActions" key into 5 (each button,
+  // plus the Gamble reveal banner, on its own). Old saved DB rows
+  // keyed "shopActions" simply go inert - savedFreePositions() needs
+  // every CURRENT key filled, so this correctly falls back to flow
+  // mode until Marc re-runs Edit Layout for the new key set.
   const marketTabLayout = useFreeLayout({
     screenId: "marketTabContent",
-    keys: ["recruitGrid", "shopActions", "itemsGrid"],
+    keys: ["recruitGrid", "rerollBtn", "freezeBtn", "gambleBtn", "antidoteBtn", "gambleReveal", "itemsGrid"],
+  })
+  // Header widgets (Market Level / Market Tier / Commander cluster) -
+  // each widget stays internally fused (Marc explicitly asked for that
+  // grouping earlier - see .hw-market-level-widget's own comment), but
+  // the 4 widgets/pieces can now move independently of each other.
+  // Lives OUTSIDE .hw-shop-3zone entirely (always visible, no tab
+  // gating needed) - see its render site below for the inline-style-
+  // merge trick used instead of a scoped CSS override.
+  const marketHeaderLayout = useFreeLayout({
+    screenId: "marketHeaderWidgets",
+    keys: ["marketLevelWidget", "marketTierWidget", "tierPreview", "commanderCluster"],
+  })
+  // The Market/Squad tab TOGGLE buttons themselves (centerSections.tabs
+  // below) - always visible, outside any hidden panel.
+  const marketTabButtonsLayout = useFreeLayout({
+    screenId: "marketTabButtons",
+    keys: ["marketTabBtn", "squadTabBtn"],
+  })
+  // The Continue button - last child of .hw-shop-center, always
+  // visible regardless of active tab. Single-key scope, same value as
+  // every other lone-block scope in Stage A: relocate or hide it.
+  const marketContinueLayout = useFreeLayout({
+    screenId: "marketContinueBtn",
+    keys: ["continueBtn"],
   })
   // Squad tab, PR B of the same round. Two SEPARATE scopes since
   // buildScore/itemBag and the deployed/reserve split live in visually
@@ -835,38 +866,90 @@ export default function SquadDraft({
       // changes every recruit/sell, so it rides along as its own
       // small corner badge instead.
       tabs: () => (
-        <div key="tabs" className="hw-tab-row hw-tab-row--market-art">
-          <button
-            className="hw-market-tab-btn"
-            data-active={activeTab === "market"}
-            onClick={() => setActiveTab("market")}
-            aria-label="Market"
-            title="Market"
-          >
-            <img src={marketTabPlaque} alt="" />
-            {/* Visually-hidden text node, not just an aria-label - keeps
-                this button findable by visible text the same way every
-                other tab/action button in this game is (including by
-                existing Playwright specs like .scratch/verify_market_
-                redesign.mjs's `hasText: "Market"` locator), even though
-                the plaque art itself already reads "HEARTHWOOD MARKET"
-                to a sighted player. */}
-            <span className="hw-sr-only">Market</span>
-          </button>
-          <button
-            className="hw-squad-tab-btn"
-            data-active={activeTab === "squad"}
-            onClick={() => setActiveTab("squad")}
-            aria-label={`Your Squad (${runState.bench.length})`}
-            title="Your Squad"
-          >
-            <img src={yourSquadPlaque} alt="" />
-            <span className="hw-squad-count-badge" title={`${runState.bench.length} on the bench`}>
-              {runState.bench.length}
-            </span>
-            <span className="hw-sr-only">Your Squad ({runState.bench.length})</span>
-          </button>
-        </div>
+        <Fragment key="tabs">
+          {/* Free Layout, round 2 ("every button individually") - always
+              visible (not behind any hidden tab panel). Deliberately a
+              BLOCK-LEVEL sibling of .hw-tab-row--market-art, not nested
+              inside it - real bug caught live during this pass's own
+              verification: nesting the toolbar INSIDE the flex row made
+              it a flex ITEM sharing the row's finite width with the
+              free-layout-container, so the container (and both buttons
+              inside it) visibly shifted ~60px sideways the instant
+              editingLayout swapped the toolbar from 2 buttons to 3
+              (Edit Layout -> Save/Cancel/Reset), since the wider toolbar
+              flex-shrank its neighbor. Keeping it a plain block sibling
+              means its width never competes with the row's own layout. */}
+          {import.meta.env.DEV && (
+            <div className="hw-free-layout-toolbar">
+              {!marketTabButtonsLayout.editingLayout ? (
+                <button className="hw-move-btn" onClick={marketTabButtonsLayout.startEditing} disabled={marketTabButtonsLayout.loading}>
+                  Edit Layout
+                </button>
+              ) : (
+                <>
+                  <button className="hw-move-btn" onClick={marketTabButtonsLayout.saveLayout} disabled={marketTabButtonsLayout.saving}>
+                    Save Layout
+                  </button>
+                  <button className="hw-move-btn" onClick={marketTabButtonsLayout.cancelEditing} disabled={marketTabButtonsLayout.saving}>
+                    Cancel
+                  </button>
+                </>
+              )}
+              <button className="hw-move-btn" onClick={marketTabButtonsLayout.resetLayout} disabled={marketTabButtonsLayout.saving}>
+                Reset Layout
+              </button>
+              {marketTabButtonsLayout.errorMessage && (
+                <span className="hw-free-layout-error">{marketTabButtonsLayout.errorMessage}</span>
+              )}
+            </div>
+          )}
+          <div className="hw-tab-row hw-tab-row--market-art">
+            <div
+              ref={marketTabButtonsLayout.containerRef}
+              className="hw-free-layout-container"
+              style={marketTabButtonsLayout.containerStyle}
+              data-free-active={marketTabButtonsLayout.freeActive || undefined}
+              data-editing-layout={marketTabButtonsLayout.editingLayout || undefined}
+            >
+              {marketTabButtonsLayout.renderSection(
+                "marketTabBtn",
+                <button
+                  className="hw-market-tab-btn"
+                  data-active={activeTab === "market"}
+                  onClick={() => setActiveTab("market")}
+                  aria-label="Market"
+                  title="Market"
+                >
+                  <img src={marketTabPlaque} alt="" />
+                  {/* Visually-hidden text node, not just an aria-label - keeps
+                      this button findable by visible text the same way every
+                      other tab/action button in this game is (including by
+                      existing Playwright specs like .scratch/verify_market_
+                      redesign.mjs's `hasText: "Market"` locator), even though
+                      the plaque art itself already reads "HEARTHWOOD MARKET"
+                      to a sighted player. */}
+                  <span className="hw-sr-only">Market</span>
+                </button>
+              )}
+              {marketTabButtonsLayout.renderSection(
+                "squadTabBtn",
+                <button
+                  className="hw-squad-tab-btn"
+                  data-active={activeTab === "squad"}
+                  onClick={() => setActiveTab("squad")}
+                  aria-label={`Your Squad (${runState.bench.length})`}
+                  title="Your Squad"
+                >
+                  <img src={yourSquadPlaque} alt="" />
+                  <span className="hw-squad-count-badge" title={`${runState.bench.length} on the bench`}>
+                    {runState.bench.length}
+                  </span>
+                  <span className="hw-sr-only">Your Squad ({runState.bench.length})</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </Fragment>
       ),
 
       // Equip prompt: the required visible cue that something is
@@ -1222,192 +1305,236 @@ export default function SquadDraft({
         </div>
       </div>
 
-      <div className="hw-section-fade-in" style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 3, flexWrap: "wrap" }}>
-        {/* Market Level (Battlegrounds/Guildrun-style tavern tier) -
-            raises the shop's rarity ceiling (runEngine.js's
-            rollShop/MARKET_LEVEL_UNLOCKS). Marc, direct: "market lvl
-            on keskeinen osa pelin kehitystä ja siksi saa tärkeän
-            asemapaikan" (Market Level is central to the run's
-            progression and deserves an important position) - was one
-            .hw-badge indistinguishable from every other badge in the
-            row. Now its own bordered widget with real tier pips
-            (●●○, not just "1/3" as text) and the Level Up action
-            fused into the SAME box, so "this pip row and this button
-            are one system" is visible at a glance instead of reading
-            as two separate, coincidentally-adjacent controls.
-            Separately: Marc also flagged Level Up vs. Rank Up (below)
-            as confusable ("en tiedä mikä ero on... kun niitä on
-            kaksi") - giving Market Level its own distinct container,
-            away from the Commander cluster, is the fix: one is
-            clearly "the shop", the other is clearly "your commander". */}
-        <div className="hw-market-level-widget" title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier units in the shop`}>
-          <span className="hw-market-level-label">Market</span>
-          <span className="hw-market-level-pips">
-            {Array.from({ length: MARKET_LEVEL_MAX }, (_, i) => (
-              <span key={i} className="hw-market-level-pip" data-filled={i < marketLevel} />
-            ))}
-          </span>
-          {marketCost === null ? (
-            <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
-          ) : (
-            <button
-              className="hw-move-btn hw-strip-btn"
-              disabled={runState.essence < marketCost}
-              onClick={onLevelUpMarket}
-              title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier units in future shop rolls`}
-            >
-              Level Up
-              <span className="hw-cost-inline">
-                <CardGlyph name="spark" className="hw-intent-glyph" />
-                {marketCost}
-              </span>
+      {/* Free Layout, round 2 ("every button individually") - always
+          visible (outside .hw-shop-3zone entirely), so this toolbar
+          renders unconditionally, same as the tab-buttons scope above. */}
+      {import.meta.env.DEV && (
+        <div className="hw-free-layout-toolbar">
+          {!marketHeaderLayout.editingLayout ? (
+            <button className="hw-move-btn" onClick={marketHeaderLayout.startEditing} disabled={marketHeaderLayout.loading}>
+              Edit Layout
             </button>
+          ) : (
+            <>
+              <button className="hw-move-btn" onClick={marketHeaderLayout.saveLayout} disabled={marketHeaderLayout.saving}>
+                Save Layout
+              </button>
+              <button className="hw-move-btn" onClick={marketHeaderLayout.cancelEditing} disabled={marketHeaderLayout.saving}>
+                Cancel
+              </button>
+            </>
+          )}
+          <button className="hw-move-btn" onClick={marketHeaderLayout.resetLayout} disabled={marketHeaderLayout.saving}>
+            Reset Layout
+          </button>
+          {marketHeaderLayout.errorMessage && (
+            <span className="hw-free-layout-error">{marketHeaderLayout.errorMessage}</span>
           )}
         </div>
-
-        {/* Market TIER (feat/hearthwood-market-tiers) - the SECOND market
-            axis, a sibling of the Level widget above. Level raises the
-            rarity ceiling; Tier unlocks new KINDS of unit (a specialist
-            sub-pool). Advancing a Tier is a pure Essence sink that buys
-            options, not stats. The one-line "Next: ..." preview (PRD 49)
-            makes the investment legible. */}
-        <div
-          className="hw-market-tier-widget"
-          title={`Market Tier ${effTier}: ${MARKET_TIERS[effTier]?.name}. ${
-            tierPreview ? `Next: ${tierPreview.name} (${tierPreview.cost}) - ${tierPreview.unlocks.join("; ")}` : "Max Tier."
-          }`}
-        >
-          <span className="hw-market-tier-label">Tier</span>
-          <span className="hw-market-tier-pips">
-            {Array.from({ length: MARKET_TIER_MAX }, (_, i) => (
-              <span key={i} className="hw-market-tier-pip" data-filled={i < effTier} data-charter={(i >= marketTier && i < effTier) || undefined} />
-            ))}
-          </span>
-          <span className="hw-market-tier-name">{MARKET_TIERS[effTier]?.name}</span>
-          {tierCost === null ? (
-            <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
-          ) : (
-            <button
-              className="hw-move-btn hw-strip-btn"
-              disabled={runState.essence < tierCost}
-              onClick={onAdvanceMarketTier}
-              title={`Advance to ${MARKET_TIERS[marketTier + 1]?.name} - unlocks ${MARKET_TIERS[marketTier + 1]?.unlocks.join("; ")}`}
-            >
-              Advance
-              <span className="hw-cost-inline">
-                <CardGlyph name="spark" className="hw-intent-glyph" />
-                {tierCost}
-              </span>
-            </button>
-          )}
-        </div>
-        {tierPreview && (
-          <span className="hw-market-tier-preview">
-            Next Tier: {tierPreview.name} — {tierPreview.unlocks[0]}
-          </span>
+      )}
+      {/* This row already used an INLINE style object (not a CSS class),
+          so merging {...base, width:"100%", ...containerStyle} preserves
+          flow-mode layout exactly (inline style always wins the cascade)
+          and switches cleanly to position:relative once free-active -
+          width:100% keeps the box from shrinking once children go
+          absolute, same reasoning as the tab-buttons scope's scoped CSS
+          override above, just done inline here since this row has no
+          class of its own to hang a scoped rule off of. */}
+      <div
+        ref={marketHeaderLayout.containerRef}
+        className="hw-section-fade-in hw-free-layout-container"
+        style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 3, flexWrap: "wrap", width: "100%", ...marketHeaderLayout.containerStyle }}
+        data-free-active={marketHeaderLayout.freeActive || undefined}
+        data-editing-layout={marketHeaderLayout.editingLayout || undefined}
+      >
+        {marketHeaderLayout.renderSection(
+          "marketLevelWidget",
+          /* Market Level (Battlegrounds/Guildrun-style tavern tier) -
+             raises the shop's rarity ceiling (runEngine.js's
+             rollShop/MARKET_LEVEL_UNLOCKS). Marc, direct: "market lvl
+             on keskeinen osa pelin kehitystä ja siksi saa tärkeän
+             asemapaikan" (Market Level is central to the run's
+             progression and deserves an important position) - was one
+             .hw-badge indistinguishable from every other badge in the
+             row. Now its own bordered widget with real tier pips
+             (●●○, not just "1/3" as text) and the Level Up action
+             fused into the SAME box, so "this pip row and this button
+             are one system" is visible at a glance instead of reading
+             as two separate, coincidentally-adjacent controls. Kept
+             fused here too (this round only splits DIFFERENT widgets
+             apart from each other, not a widget's own internal pip+
+             button pairing - see this file's plan notes). */
+          <div className="hw-market-level-widget" title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier units in the shop`}>
+            <span className="hw-market-level-label">Market</span>
+            <span className="hw-market-level-pips">
+              {Array.from({ length: MARKET_LEVEL_MAX }, (_, i) => (
+                <span key={i} className="hw-market-level-pip" data-filled={i < marketLevel} />
+              ))}
+            </span>
+            {marketCost === null ? (
+              <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
+            ) : (
+              <button
+                className="hw-move-btn hw-strip-btn"
+                disabled={runState.essence < marketCost}
+                onClick={onLevelUpMarket}
+                title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier units in future shop rolls`}
+              >
+                Level Up
+                <span className="hw-cost-inline">
+                  <CardGlyph name="spark" className="hw-intent-glyph" />
+                  {marketCost}
+                </span>
+              </button>
+            )}
+          </div>
         )}
-        {/* Commander cluster - deliberately separated from the Market
-            widget above (own container + a visual divider) so Rank Up
-            reads as "about your commander", never "the other Level
-            Up button". */}
-        <div className="hw-commander-cluster">
-          <span className="hw-badge" title={commander?.description}>
-            <CardGlyph name={commander?.art} className="hw-intent-glyph" />
-            {commander?.name} · Rank {commanderRank}
-          </span>
-          {/* Hero Bending on the Commander (items.js's bendsRoleTo) -
-              the Commander has no UnitCard here (just this text badge),
-              so the "Bent" cue that a bench unit gets on its card face
-              needs its own equivalent rather than silently having no
-              visible marker at all when a Bending item lands on the
-              Commander specifically. */}
-          {commanderBentRole && (
-            <span className="hw-badge hw-badge--bent" title={`Bent to ${commanderBentRole}`}>
-              Bent: {commanderBentRole}
+
+        {marketHeaderLayout.renderSection(
+          "marketTierWidget",
+          /* Market TIER (feat/hearthwood-market-tiers) - the SECOND market
+             axis, a sibling of the Level widget above. Level raises the
+             rarity ceiling; Tier unlocks new KINDS of unit (a specialist
+             sub-pool). Advancing a Tier is a pure Essence sink that buys
+             options, not stats. */
+          <div
+            className="hw-market-tier-widget"
+            title={`Market Tier ${effTier}: ${MARKET_TIERS[effTier]?.name}. ${
+              tierPreview ? `Next: ${tierPreview.name} (${tierPreview.cost}) - ${tierPreview.unlocks.join("; ")}` : "Max Tier."
+            }`}
+          >
+            <span className="hw-market-tier-label">Tier</span>
+            <span className="hw-market-tier-pips">
+              {Array.from({ length: MARKET_TIER_MAX }, (_, i) => (
+                <span key={i} className="hw-market-tier-pip" data-filled={i < effTier} data-charter={(i >= marketTier && i < effTier) || undefined} />
+              ))}
+            </span>
+            <span className="hw-market-tier-name">{MARKET_TIERS[effTier]?.name}</span>
+            {tierCost === null ? (
+              <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
+            ) : (
+              <button
+                className="hw-move-btn hw-strip-btn"
+                disabled={runState.essence < tierCost}
+                onClick={onAdvanceMarketTier}
+                title={`Advance to ${MARKET_TIERS[marketTier + 1]?.name} - unlocks ${MARKET_TIERS[marketTier + 1]?.unlocks.join("; ")}`}
+              >
+                Advance
+                <span className="hw-cost-inline">
+                  <CardGlyph name="spark" className="hw-intent-glyph" />
+                  {tierCost}
+                </span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {tierPreview &&
+          marketHeaderLayout.renderSection(
+            "tierPreview",
+            <span className="hw-market-tier-preview">
+              Next Tier: {tierPreview.name} — {tierPreview.unlocks[0]}
             </span>
           )}
-          {rankCost === null ? (
-            <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
-          ) : (
-            <button
-              className="hw-move-btn hw-strip-btn"
-              disabled={runState.essence < rankCost}
-              onClick={onRankUp}
-              title={`Permanently strengthen ${commander?.name}'s squad passive (rank ${commanderRank} -> ${commanderRank + 1})`}
-            >
-              Rank Up
-              <span className="hw-cost-inline">
-                <CardGlyph name="spark" className="hw-intent-glyph" />
-                {rankCost}
-              </span>
-            </button>
-          )}
-        {/* Commander Active Power (characters.js's activePower) - a
-            "hero power" on top of the Commander's always-on
-            squadPassive, once per shop visit, queued for the very next
-            battle only (runEngine.js's activateCommanderPower). The
-            "primed" badge is the required visible cue that something
-            is queued before the effect itself fires in battle. */}
-        {activePower && (
-          <>
-            <button
-              className="hw-move-btn hw-strip-btn"
-              data-active={primed}
-              disabled={activePowerUsed || runState.essence < activePower.cost}
-              onClick={onUseCommanderActive}
-              title={activePower.description}
-            >
-              {activePower.name}
-              <span className="hw-cost-inline">
-                <CardGlyph name="spark" className="hw-intent-glyph" />
-                {activePower.cost}
-              </span>
-            </button>
-            {primed && (
-              <span className="hw-badge hw-badge--active" title={activePower.description}>
-                {activePower.name} primed - next battle
+
+        {marketHeaderLayout.renderSection(
+          "commanderCluster",
+          /* Commander cluster - deliberately separated from the Market
+             widget above (own container + a visual divider) so Rank Up
+             reads as "about your commander", never "the other Level
+             Up button". Kept fused internally, same reasoning as the
+             Market Level widget above. */
+          <div className="hw-commander-cluster">
+            <span className="hw-badge" title={commander?.description}>
+              <CardGlyph name={commander?.art} className="hw-intent-glyph" />
+              {commander?.name} · Rank {commanderRank}
+            </span>
+            {commanderBentRole && (
+              <span className="hw-badge hw-badge--bent" title={`Bent to ${commanderBentRole}`}>
+                Bent: {commanderBentRole}
               </span>
             )}
-          </>
-        )}
-        <button
-          className="hw-move-btn hw-strip-btn"
-          data-active={showRetrain}
-          onClick={() => setShowRetrain((cur) => !cur)}
-          title="Switch to a different Commander for the rest of this run"
-        >
-          Retrain...
-        </button>
-        {/* The Commander is a real 5th deployed unit now (Marc: "se
-            commander on pelattava hahmo pelissä... jota voi
-            synergisoida buildilla ja itemeillä" - the Commander is a
-            playable character you can synergize with the build and
-            items) - same item-slot pips and click-to-equip flow every
-            bench unit already has, just keyed to the "commander"
-            sentinel instead of a real bench key. */}
-        <div
-          className="hw-item-slots"
-          data-pending={!!selectedItemDef}
-          title="Commander's item slots - click a bag item above, then click a slot to equip it"
-        >
-          {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
-            const equipped = runState.items.find((it) => it.equippedTo === "commander" && it.slotIndex === slotIndex)
-            const itemDef = equipped ? ITEMS[equipped.defId] : null
-            return (
-              <span
-                key={slotIndex}
-                className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
-                  justEquippedSlot === `commander-${slotIndex}` ? " hw-card--reforged" : ""
-                }`}
-                title={itemDef ? `${itemDef.name} - click to unequip` : selectedItemDef ? `Equip ${selectedItemDef.name} here` : "Empty item slot"}
-                onClick={() => handleSlotClick("commander", slotIndex, equipped ? equipped.key : null)}
+            {rankCost === null ? (
+              <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
+            ) : (
+              <button
+                className="hw-move-btn hw-strip-btn"
+                disabled={runState.essence < rankCost}
+                onClick={onRankUp}
+                title={`Permanently strengthen ${commander?.name}'s squad passive (rank ${commanderRank} -> ${commanderRank + 1})`}
               >
-                {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : <span className="hw-item-slot-plus">+</span>}
-              </span>
-            )
-          })}
+                Rank Up
+                <span className="hw-cost-inline">
+                  <CardGlyph name="spark" className="hw-intent-glyph" />
+                  {rankCost}
+                </span>
+              </button>
+            )}
+            {activePower && (
+              <>
+                <button
+                  className="hw-move-btn hw-strip-btn"
+                  data-active={primed}
+                  disabled={activePowerUsed || runState.essence < activePower.cost}
+                  onClick={onUseCommanderActive}
+                  title={activePower.description}
+                >
+                  {activePower.name}
+                  <span className="hw-cost-inline">
+                    <CardGlyph name="spark" className="hw-intent-glyph" />
+                    {activePower.cost}
+                  </span>
+                </button>
+                {primed && (
+                  <span className="hw-badge hw-badge--active" title={activePower.description}>
+                    {activePower.name} primed - next battle
+                  </span>
+                )}
+              </>
+            )}
+            <button
+              className="hw-move-btn hw-strip-btn"
+              data-active={showRetrain}
+              onClick={() => setShowRetrain((cur) => !cur)}
+              title="Switch to a different Commander for the rest of this run"
+            >
+              Retrain...
+            </button>
+            {/* The Commander is a real 5th deployed unit now (Marc: "se
+                commander on pelattava hahmo pelissä... jota voi
+                synergisoida buildilla ja itemeillä" - the Commander is a
+                playable character you can synergize with the build and
+                items) - same item-slot pips and click-to-equip flow every
+                bench unit already has, just keyed to the "commander"
+                sentinel instead of a real bench key. Kept inside
+                commanderCluster this round - its own slot count
+                (effectiveItemSlots) can grow mid-run via upgrades, the
+                same "not a fixed set" problem as the recruit/item/bench
+                grids, deliberately deferred to that later round. */}
+            <div
+              className="hw-item-slots"
+              data-pending={!!selectedItemDef}
+              title="Commander's item slots - click a bag item above, then click a slot to equip it"
+            >
+              {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
+                const equipped = runState.items.find((it) => it.equippedTo === "commander" && it.slotIndex === slotIndex)
+                const itemDef = equipped ? ITEMS[equipped.defId] : null
+                return (
+                  <span
+                    key={slotIndex}
+                    className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
+                      justEquippedSlot === `commander-${slotIndex}` ? " hw-card--reforged" : ""
+                    }`}
+                    title={itemDef ? `${itemDef.name} - click to unequip` : selectedItemDef ? `Equip ${selectedItemDef.name} here` : "Empty item slot"}
+                    onClick={() => handleSlotClick("commander", slotIndex, equipped ? equipped.key : null)}
+                  >
+                    {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : <span className="hw-item-slot-plus">+</span>}
+                  </span>
+                )
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Bounded banner (see .hw-market-stage's own comment for the
@@ -1648,80 +1775,103 @@ export default function SquadDraft({
               </div>
             )}
 
-            {marketTabLayout.renderSection(
-              "shopActions",
-              <div>
-                <div style={{ marginTop: 3, display: "flex", gap: 8 }}>
+            {/* Free Layout, round 2 ("every button individually", Marc's
+                own words: "haluan liikuttaa niitä vapaasti kaikkia
+                yksitellen") - the old single "shopActions" key is now 5:
+                each button plus the Gamble reveal banner. This plain flex
+                row (NOT itself a .hw-free-layout-section, no position of
+                its own) is what keeps the 4 buttons sitting in a normal
+                horizontal row in FLOW mode - once free-active, each
+                button's wrapper goes position:absolute and escapes this
+                row entirely, positioning relative to marketTabLayout's
+                own top-level container (the nearest POSITIONED ancestor -
+                this row deliberately stays position:static so it never
+                becomes one itself). */}
+            <div style={{ marginTop: 3, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {marketTabLayout.renderSection(
+                "rerollBtn",
+                <button
+                  className="hw-move-btn"
+                  disabled={runState.essence < runState.rerollCost || offers.length === 0 || marketEventLocked}
+                  onClick={onReroll}
+                  title={marketEventLocked ? `${marketEventDef.name}: no Reroll this stop - take what's shown` : undefined}
+                >
+                  Reroll ({runState.rerollCost} Essence)
+                </button>
+              )}
+              {/* Freeze (runEngine.js's toggleFreeze) - keeps this offer
+                  set into the next shop visit instead of it re-rolling
+                  automatically. A one-shot flag (consumed on the next
+                  regen), so `data-active` just reflects whether it's
+                  currently armed. */}
+              {marketTabLayout.renderSection(
+                "freezeBtn",
+                <button
+                  className="hw-move-btn"
+                  data-active={!!runState.frozen && !marketEventLocked}
+                  disabled={marketEventLocked}
+                  onClick={onToggleFreeze}
+                  title={marketEventLocked ? `${marketEventDef.name}: no Freeze this stop` : "Keep these offers when you next visit the shop"}
+                >
+                  {runState.frozen && !marketEventLocked ? "Frozen ✓" : "Freeze"}
+                </button>
+              )}
+              {/* The Gamble (Marc: "the game needs also gamble mechanic") -
+                  spend Essence for an UNCHOSEN random item or relic
+                  instead of picking from the 3 offers above. Always
+                  available (no Blackroot-style lock - it's not tied to
+                  the unit-offer roll at all), repeatable like Reroll. */}
+              {marketTabLayout.renderSection(
+                "gambleBtn",
+                onGamble && (
                   <button
-                    className="hw-move-btn"
-                    disabled={runState.essence < runState.rerollCost || offers.length === 0 || marketEventLocked}
-                    onClick={onReroll}
-                    title={marketEventLocked ? `${marketEventDef.name}: no Reroll this stop - take what's shown` : undefined}
+                    className="hw-move-btn hw-gamble-btn"
+                    disabled={runState.essence < GAMBLE_COST}
+                    onClick={onGamble}
+                    title="Wager Essence for a random item - or, rarely, a relic you could never otherwise buy"
                   >
-                    Reroll ({runState.rerollCost} Essence)
+                    Gamble ({GAMBLE_COST} Essence)
                   </button>
-                  {/* Freeze (runEngine.js's toggleFreeze) - keeps this offer
-                      set into the next shop visit instead of it re-rolling
-                      automatically. A one-shot flag (consumed on the next
-                      regen), so `data-active` just reflects whether it's
-                      currently armed. */}
+                )
+              )}
+              {/* Field Antidote (runEngine.js's buyAntidote, feat/hearthwood-rot):
+                  a one-fight squad-wide Regen, the answer to a Rot pack's poison
+                  drip. One queued at a time; cost climbs per Act. */}
+              {marketTabLayout.renderSection(
+                "antidoteBtn",
+                onAntidote && (
                   <button
-                    className="hw-move-btn"
-                    data-active={!!runState.frozen && !marketEventLocked}
-                    disabled={marketEventLocked}
-                    onClick={onToggleFreeze}
-                    title={marketEventLocked ? `${marketEventDef.name}: no Freeze this stop` : "Keep these offers when you next visit the shop"}
+                    className="hw-move-btn hw-antidote-btn"
+                    data-active={antidoteQueued(runState) || undefined}
+                    disabled={!antidoteQueued(runState) && runState.essence < antidoteCost(runState)}
+                    onClick={onAntidote}
+                    title="Your whole squad starts the next battle with Regen - out-drips an opening poison spike"
                   >
-                    {runState.frozen && !marketEventLocked ? "Frozen ✓" : "Freeze"}
+                    {antidoteQueued(runState) ? "Antidote ✓" : `Field Antidote (${antidoteCost(runState)})`}
                   </button>
-                  {/* The Gamble (Marc: "the game needs also gamble mechanic") -
-                      spend Essence for an UNCHOSEN random item or relic
-                      instead of picking from the 3 offers above. Always
-                      available (no Blackroot-style lock - it's not tied to
-                      the unit-offer roll at all), repeatable like Reroll. */}
-                  {onGamble && (
-                    <button
-                      className="hw-move-btn hw-gamble-btn"
-                      disabled={runState.essence < GAMBLE_COST}
-                      onClick={onGamble}
-                      title="Wager Essence for a random item - or, rarely, a relic you could never otherwise buy"
-                    >
-                      Gamble ({GAMBLE_COST} Essence)
-                    </button>
-                  )}
-                  {/* Field Antidote (runEngine.js's buyAntidote, feat/hearthwood-rot):
-                      a one-fight squad-wide Regen, the answer to a Rot pack's poison
-                      drip. One queued at a time; cost climbs per Act. */}
-                  {onAntidote && (
-                    <button
-                      className="hw-move-btn hw-antidote-btn"
-                      data-active={antidoteQueued(runState) || undefined}
-                      disabled={!antidoteQueued(runState) && runState.essence < antidoteCost(runState)}
-                      onClick={onAntidote}
-                      title="Your whole squad starts the next battle with Regen - out-drips an opening poison spike"
-                    >
-                      {antidoteQueued(runState) ? "Antidote ✓" : `Field Antidote (${antidoteCost(runState)})`}
-                    </button>
-                  )}
-                </div>
+                )
+              )}
+            </div>
 
-                {/* The Gamble's own reveal - a one-shot callout naming what
-                    just came out (an item name, or a relic name in the rarer
-                    "cosmic" tone reused from the Ragpicker's Market banner,
-                    since a relic here is the jackpot outcome). Cleared by
-                    leaveShop, so it only ever shows the LATEST pull, never a
-                    stale one from a prior visit. */}
-                {runState.lastGambleReward && (
-                  <div
-                    className="hw-gamble-reveal"
-                    data-tone={runState.lastGambleReward.kind === "relic" ? "cosmic" : "plain"}
-                  >
-                    {runState.lastGambleReward.kind === "relic"
-                      ? `Jackpot! You won ${RELICS[runState.lastGambleReward.defId]?.name}.`
-                      : `You won ${ITEMS[runState.lastGambleReward.defId]?.name}.`}
-                  </div>
-                )}
-              </div>
+            {/* The Gamble's own reveal - a one-shot callout naming what
+                just came out (an item name, or a relic name in the rarer
+                "cosmic" tone reused from the Ragpicker's Market banner,
+                since a relic here is the jackpot outcome). Cleared by
+                leaveShop, so it only ever shows the LATEST pull, never a
+                stale one from a prior visit. Its own key now, "each
+                individually" per Marc's exact words. */}
+            {marketTabLayout.renderSection(
+              "gambleReveal",
+              runState.lastGambleReward && (
+                <div
+                  className="hw-gamble-reveal"
+                  data-tone={runState.lastGambleReward.kind === "relic" ? "cosmic" : "plain"}
+                >
+                  {runState.lastGambleReward.kind === "relic"
+                    ? `Jackpot! You won ${RELICS[runState.lastGambleReward.defId]?.name}.`
+                    : `You won ${ITEMS[runState.lastGambleReward.defId]?.name}.`}
+                </div>
+              )
             )}
 
             {marketTabLayout.renderSection(
@@ -1961,11 +2111,54 @@ export default function SquadDraft({
           left-aligned, not "already centered" - display:flex +
           justify-content:center here is the actual fix; the "2x
           bigger" half lives in .hw-shop-confirm-btn's own padding/
-          font-size (heartwood.css). */}
-          <div style={{ marginTop: 6, display: "flex", justifyContent: "center" }}>
-            <button className="hw-end-turn hw-shop-confirm-btn" onClick={onContinue}>
-              Continue
-            </button>
+          font-size (heartwood.css).
+          Free Layout, round 2 ("every button individually") - a single-
+          key scope, same value as every other lone-block scope in Stage
+          A: relocate or hide it. Always visible (last child of
+          .hw-shop-center, outside any tab gating), so the toolbar renders
+          unconditionally. width:"100%" in the base style (kept in BOTH
+          modes, containerStyle never sets its own width) avoids the same
+          centering-shift trap as the tab-buttons scope above - this
+          wrapper's justify-content:center always centers a full-width
+          box, so the button's captured x/y origin never moves between
+          flow and free mode. */}
+          {import.meta.env.DEV && (
+            <div className="hw-free-layout-toolbar">
+              {!marketContinueLayout.editingLayout ? (
+                <button className="hw-move-btn" onClick={marketContinueLayout.startEditing} disabled={marketContinueLayout.loading}>
+                  Edit Layout
+                </button>
+              ) : (
+                <>
+                  <button className="hw-move-btn" onClick={marketContinueLayout.saveLayout} disabled={marketContinueLayout.saving}>
+                    Save Layout
+                  </button>
+                  <button className="hw-move-btn" onClick={marketContinueLayout.cancelEditing} disabled={marketContinueLayout.saving}>
+                    Cancel
+                  </button>
+                </>
+              )}
+              <button className="hw-move-btn" onClick={marketContinueLayout.resetLayout} disabled={marketContinueLayout.saving}>
+                Reset Layout
+              </button>
+              {marketContinueLayout.errorMessage && (
+                <span className="hw-free-layout-error">{marketContinueLayout.errorMessage}</span>
+              )}
+            </div>
+          )}
+          <div
+            ref={marketContinueLayout.containerRef}
+            className="hw-free-layout-container"
+            style={{ marginTop: 6, display: "flex", justifyContent: "center", width: "100%", ...marketContinueLayout.containerStyle }}
+            data-free-active={marketContinueLayout.freeActive || undefined}
+            data-editing-layout={marketContinueLayout.editingLayout || undefined}
+          >
+            {marketContinueLayout.renderSection(
+              "continueBtn",
+              <button className="hw-end-turn hw-shop-confirm-btn" onClick={onContinue}>
+                Continue
+              </button>
+            )}
           </div>
         </div>
 
