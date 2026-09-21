@@ -64,6 +64,12 @@ function HearthwoodStudio() {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [historyKey, setHistoryKey] = useState(0)
+  // Set only by the entity list's own "+ Add new" button - tells
+  // CloneEntityForm (keyed by entityId below) to open itself pre-filled
+  // immediately instead of the normal collapsed "⧉ Clone as new"
+  // toggle. Cleared on any ordinary selection so navigating to a
+  // DIFFERENT entity afterward doesn't leave a stale auto-open behind.
+  const [autoOpenCloneId, setAutoOpenCloneId] = useState(null)
 
   useEffect(() => {
     if (!entityId) {
@@ -111,10 +117,26 @@ function HearthwoodStudio() {
     setEntityType(type)
     setEntityId(id)
     setPreviewUrl(null)
+    setAutoOpenCloneId(null)
 
     // Stay on the Story Timeline after picking a row - its rows span
     // several real types, so syncing browsingType here would bounce
     // back to a flat per-type list after every single click.
+    if (browsingType !== "storyTimeline") {
+      setBrowsingType(type)
+    }
+  }
+
+  // The entity list's own "+ Add new" button - clones whichever entity
+  // it's given (the list's own first entry) and lands directly on that
+  // entity's Clone form, already open. See CloneEntityForm.jsx's own
+  // `autoOpen` comment for why Marc needed this at all.
+  function handleCreateNew(type, baseId) {
+    setEntityType(type)
+    setEntityId(baseId)
+    setPreviewUrl(null)
+    setAutoOpenCloneId(baseId)
+
     if (browsingType !== "storyTimeline") {
       setBrowsingType(type)
     }
@@ -267,6 +289,7 @@ function HearthwoodStudio() {
             selectedId={entityId}
             onSelect={handleSelect}
             onAddNew={handleAddNew}
+            onCreateNew={handleCreateNew}
           />
         </section>
 
@@ -340,9 +363,11 @@ function HearthwoodStudio() {
                         </div>
 
                         <CloneEntityForm
+                          key={entityId}
                           type={entityType}
                           entityId={entityId}
                           entityDetail={entityDetail}
+                          autoOpen={entityId === autoOpenCloneId}
                           onApplied={handleApplied}
                           onPreviewUrlChange={setPreviewUrl}
                         />
