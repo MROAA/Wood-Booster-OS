@@ -7701,7 +7701,9 @@ img.hw-intent-glyph {
    distinguishes it from Reroll/Freeze's plain default look, at rest. */
 .hw-gamble-btn {
   border-color: color-mix(in srgb, var(--hw-cosmic) 45%, var(--hw-border));
-  color: color-mix(in srgb, var(--hw-cosmic) 70%, var(--hw-text));
+  /* Marc: the cosmic-mixed text color read as unreadable against this
+     button's background - changed to plain black on his direct ask. */
+  color: #000;
 }
 .hw-gamble-reveal {
   margin-top: 6px;
