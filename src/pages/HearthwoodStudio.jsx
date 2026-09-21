@@ -120,6 +120,22 @@ function HearthwoodStudio() {
     }
   }
 
+  // Story Timeline's own "+ New Event/Dialogue/Journal Entry" row -
+  // switches the detail panel to that type's existing compose form
+  // (AddEventForm/AddDialogueForm/AddStoryEntryForm, all rendered
+  // below whenever entityType matches) without leaving the Timeline
+  // itself: browsingType deliberately stays untouched, same reasoning
+  // as handleSelect's own "stay on the Story Timeline" comment. Forces
+  // viewMode to "single" since the compose forms only render there
+  // (Sheet/Dashboard/Theme have no such slot) - clicking one of these
+  // buttons from Sheet view otherwise did nothing visible.
+  function handleAddNew(type) {
+    setEntityType(type)
+    setEntityId(null)
+    setPreviewUrl(null)
+    setViewMode("single")
+  }
+
   function handleApplied() {
     setReloadKey(previous => previous + 1)
     setHistoryKey(previous => previous + 1)
@@ -250,6 +266,7 @@ function HearthwoodStudio() {
             onTypeChange={handleTypeChange}
             selectedId={entityId}
             onSelect={handleSelect}
+            onAddNew={handleAddNew}
           />
         </section>
 

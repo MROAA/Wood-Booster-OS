@@ -25,7 +25,7 @@ const STORY_TIMELINE_TYPE = "storyTimeline"
  * ks. GET /api/hearthwood-patchbay/entities?type=&q= (paths.js:n
  * ENTITY_TYPES on totuuden lähde tyypeille).
  */
-function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
+function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew }) {
   const [entities, setEntities] = useState([])
   const [query, setQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
@@ -165,7 +165,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect }) {
       {
         isStoryTimeline && (
           <div className="wood-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-3">
-            <StoryTimeline selectedId={selectedId} onSelect={onSelect} />
+            <StoryTimeline selectedId={selectedId} onSelect={onSelect} onAddNew={onAddNew} />
           </div>
         )
       }
