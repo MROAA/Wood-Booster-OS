@@ -2,6 +2,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import EditInStudioLink from "./EditInStudioLink"
+import { useFreeLayout } from "./useFreeLayout.jsx"
 
 /*
  * Hearthwood's first branching NPC conversation (dialogues.js).
@@ -24,6 +25,16 @@ export default function DialogueScreen({ dialogue, dialogueId, onDone }) {
   // followUps.
   const [path, setPath] = useState([])
   const [effects, setEffects] = useState([])
+  // Stage B, screen 6 - re-checked live, same as EventScreen/
+  // RelicChoice/FloorChoice: root has no CSS rule of its own beyond the
+  // shared .hw-intro (checked .hw-dialogue/.hw-dialogue-lines
+  // specifically - neither has a rule at all) - standard wrapper
+  // pattern, no scoped CSS override needed. dialogueLines' own
+  // ever-growing conversation history (greeting + each answered
+  // question, via AnimatePresence) is wrapped as ONE opaque block, same
+  // "screen sections, not per-item" granularity as every other Stage B
+  // screen - it doesn't need per-exchange positioning to be useful.
+  const layout = useFreeLayout({ screenId: "dialogueScreen", keys: ["eyebrow", "dialogueLines", "choiceArea"] })
 
   if (!dialogue) return null
 
@@ -49,86 +60,125 @@ export default function DialogueScreen({ dialogue, dialogueId, onDone }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <div
-          style={{
-            fontSize: 12,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            color: "var(--hw-rune)",
-            marginBottom: 6,
-          }}
-        >
-          {dialogue.npc}
-        </div>
-
-        <EditInStudioLink type="dialogues" id={dialogueId} />
-      </div>
-
-      <div className="hw-dialogue-lines">
-        <AnimatePresence initial={false}>
-          <motion.p
-            key="greeting"
-            className="hw-flavor"
-            style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 620 }}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: path.length === 0 ? 1 : 0.55, y: 0 }}
-            transition={{ duration: 0.35 }}
-          >
-            {dialogue.greeting}
-          </motion.p>
-
-          {path.map((node, idx) => (
-            <motion.div
-              key={node.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: idx === path.length - 1 ? 1 : 0.55, y: 0 }}
-              transition={{ duration: 0.35 }}
-              style={{ marginTop: 14, maxWidth: 620 }}
-            >
-              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{node.question}</p>
-              <p
-                className="hw-flavor"
-                style={{
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  fontStyle: "italic",
-                  borderLeft: "2px solid var(--hw-rune)",
-                  paddingLeft: 14,
-                }}
-              >
-                {node.answer}
-              </p>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.35 }}
-        style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, maxWidth: 620 }}
-      >
-        {current.map((node) => (
-          <button
-            key={node.id}
-            className="hw-move-btn"
-            style={{ textAlign: "left", padding: "12px 16px", lineHeight: 1.4 }}
-            onClick={() => pick(node)}
-          >
-            {node.question}
+      {import.meta.env.DEV && (
+        <div className="hw-free-layout-toolbar">
+          {!layout.editingLayout ? (
+            <button className="hw-move-btn" onClick={layout.startEditing} disabled={layout.loading}>
+              Edit Layout
+            </button>
+          ) : (
+            <>
+              <button className="hw-move-btn" onClick={layout.saveLayout} disabled={layout.saving}>
+                Save Layout
+              </button>
+              <button className="hw-move-btn" onClick={layout.cancelEditing} disabled={layout.saving}>
+                Cancel
+              </button>
+            </>
+          )}
+          <button className="hw-move-btn" onClick={layout.resetLayout} disabled={layout.saving}>
+            Reset Layout
           </button>
-        ))}
+          {layout.errorMessage && <span className="hw-free-layout-error">{layout.errorMessage}</span>}
+        </div>
+      )}
+      <div
+        ref={layout.containerRef}
+        className="hw-free-layout-container"
+        style={layout.containerStyle}
+        data-free-active={layout.freeActive || undefined}
+        data-editing-layout={layout.editingLayout || undefined}
+      >
+        {layout.renderSection(
+          "eyebrow",
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div
+              style={{
+                fontSize: 12,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                color: "var(--hw-rune)",
+                marginBottom: 6,
+              }}
+            >
+              {dialogue.npc}
+            </div>
 
-        <button
-          className="hw-move-btn"
-          style={{ marginTop: hasMore ? 4 : 18 }}
-          onClick={leave}
-        >
-          {hasMore ? "(Leave.)" : "Continue"}
-        </button>
-      </motion.div>
+            <EditInStudioLink type="dialogues" id={dialogueId} />
+          </div>
+        )}
+
+        {layout.renderSection(
+          "dialogueLines",
+          <div className="hw-dialogue-lines">
+            <AnimatePresence initial={false}>
+              <motion.p
+                key="greeting"
+                className="hw-flavor"
+                style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 620 }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: path.length === 0 ? 1 : 0.55, y: 0 }}
+                transition={{ duration: 0.35 }}
+              >
+                {dialogue.greeting}
+              </motion.p>
+
+              {path.map((node, idx) => (
+                <motion.div
+                  key={node.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: idx === path.length - 1 ? 1 : 0.55, y: 0 }}
+                  transition={{ duration: 0.35 }}
+                  style={{ marginTop: 14, maxWidth: 620 }}
+                >
+                  <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{node.question}</p>
+                  <p
+                    className="hw-flavor"
+                    style={{
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                      fontStyle: "italic",
+                      borderLeft: "2px solid var(--hw-rune)",
+                      paddingLeft: 14,
+                    }}
+                  >
+                    {node.answer}
+                  </p>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {layout.renderSection(
+          "choiceArea",
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.35 }}
+            style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, maxWidth: 620 }}
+          >
+            {current.map((node) => (
+              <button
+                key={node.id}
+                className="hw-move-btn"
+                style={{ textAlign: "left", padding: "12px 16px", lineHeight: 1.4 }}
+                onClick={() => pick(node)}
+              >
+                {node.question}
+              </button>
+            ))}
+
+            <button
+              className="hw-move-btn"
+              style={{ marginTop: hasMore ? 4 : 18 }}
+              onClick={leave}
+            >
+              {hasMore ? "(Leave.)" : "Continue"}
+            </button>
+          </motion.div>
+        )}
+      </div>
     </motion.div>
   )
 }
