@@ -314,9 +314,36 @@ export default function SquadDraft({
   // keyed "shopActions" simply go inert - savedFreePositions() needs
   // every CURRENT key filled, so this correctly falls back to flow
   // mode until Marc re-runs Edit Layout for the new key set.
+  // "recruitGrid"/"itemsGrid" moved OUT to their own dedicated
+  // marketRecruitLayout/marketItemLayout scopes below (round 3, slot-
+  // based positioning) - a grid's own CSS Grid layout doesn't mix well
+  // with this scope's plain flow-root container, and each grid's own
+  // slots need independent per-card positions, not one shared block.
   const marketTabLayout = useFreeLayout({
     screenId: "marketTabContent",
-    keys: ["recruitGrid", "rerollBtn", "freezeBtn", "gambleBtn", "antidoteBtn", "gambleReveal", "itemsGrid"],
+    keys: ["rerollBtn", "freezeBtn", "gambleBtn", "antidoteBtn", "gambleReveal"],
+  })
+  // Round 3 ("every button individually", the harder half deferred from
+  // round 2): individual positioning for the 3 recruit-offer cards and
+  // the 3 item-offer cards. SHOP_SIZE/ITEM_SHOP_SIZE (runEngine.js) are
+  // fixed constants - always exactly 3 slots each - so "slot index N,
+  // whichever unit/item currently fills it" is a stable, positionable
+  // concept the same way the shop action buttons are. Container refs
+  // attach DIRECTLY to the existing .hw-market-featured-grid/
+  // .hw-market-items-grid divs (both real CSS Grid, `display:grid`) -
+  // no wrapper div, no scoped CSS override needed: containerStyle only
+  // ever sets position/height inline, never touching `display`, so the
+  // grid's own auto-fit track layout survives untouched in flow mode,
+  // and simply stops mattering once children go position:absolute in
+  // free mode (an absolutely-positioned grid child is removed from
+  // grid layout entirely, same as it would be from flex/block flow).
+  const marketRecruitLayout = useFreeLayout({
+    screenId: "marketRecruitSlots",
+    keys: ["slot0", "slot1", "slot2"],
+  })
+  const marketItemLayout = useFreeLayout({
+    screenId: "marketItemSlots",
+    keys: ["slot0", "slot1", "slot2"],
   })
   // Header widgets (Market Level / Market Tier / Commander cluster) -
   // each widget stays internally fused (Marc explicitly asked for that
@@ -353,6 +380,26 @@ export default function SquadDraft({
   const squadSplitLayout = useFreeLayout({
     screenId: "squadTabSplit",
     keys: ["squadDeployed", "squadReserve"],
+  })
+  // Round 3 ("every button individually", the bench half): individual
+  // positioning for each CARD within the deployed/reserve groups above
+  // (squadSplitLayout itself only positions the two GROUP SECTIONS
+  // relative to each other - unchanged, still separate from this).
+  // DEPLOY_SLOTS=4 is a hard, never-changing cap. Reserve's cap
+  // (RESERVE_CAP + benchCapBonus) sounds unbounded but isn't -
+  // benchCapBonus only ever comes from 2 ONE-TIME meta-progression
+  // perks ("Wide Bench" +2, "Deep Reserves" +1, metaPerks.js, each
+  // "bought once and kept" per that file's own comment) - a confirmed
+  // hard maximum of RESERVE_CAP(6) + 3 = 9 reserve slots, ever. Slots
+  // beyond the CURRENT count render an empty (zero-footprint) wrapper,
+  // same pattern as the Market's item-offer slots.
+  const squadDeployedSlots = useFreeLayout({
+    screenId: "squadDeployedSlots",
+    keys: ["slot0", "slot1", "slot2", "slot3"],
+  })
+  const squadReserveSlots = useFreeLayout({
+    screenId: "squadReserveSlots",
+    keys: ["slot0", "slot1", "slot2", "slot3", "slot4", "slot5", "slot6", "slot7", "slot8"],
   })
   const otherCommanders = Object.values(CHARACTERS).filter((c) => c.id !== runState.characterId)
   const prevBenchKeysRef = useRef(new Set(runState.bench.map((e) => e.key)))
@@ -453,6 +500,62 @@ export default function SquadDraft({
     onReforge(benchKey)
     setJustReforgedKey(benchKey)
     setTimeout(() => setJustReforgedKey((cur) => (cur === benchKey ? null : cur)), 500)
+  }
+
+  // One recruit-offer card. Extracted from its old inline .map (round 3
+  // of "every button individually" - slot-based positioning for the 3
+  // recruit-offer cards) so each of the 3 fixed slots can call this
+  // independently instead of one shared .map over the whole array.
+  function renderRecruitCard(def) {
+    const owned = runState.bench.filter((e) => e.defId === def.id).length
+    const willFuse = owned >= 2
+    const reserveCap = RESERVE_CAP + (runState.benchCapBonus || 0)
+    const reserveFull = !willFuse && runState.bench.length >= DEPLOY_SLOTS + reserveCap
+    const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
+    return (
+      // Real bug caught during this pass's own 1860x960 iteration (not
+      // eyeballed - a live Playwright re-roll loop reproduced it):
+      // "Fuses now!"/"Reserve full" used to be a normal flow sibling
+      // below the card, adding ~19px to just THAT one wrapper - but CSS
+      // Grid stretches every row item to the row's tallest (this grid
+      // never overrides align-items), so the instant ANY one of the 3
+      // offers rolled with this badge, the WHOLE row grew by the same
+      // amount, even the 2 cards with no badge at all - a purely
+      // conditional, random-per-visit height contribution the fit
+      // budget had no way to account for. Now an absolute overlay
+      // (position relative lives here on the wrapper, same pattern
+      // UnitCard's own .hw-frost-badge already uses) pinned to the
+      // bottom of the card instead of pushing it - zero layout-height
+      // cost regardless of which offers roll it.
+      <div style={{ position: "relative" }}>
+        <UnitCard
+          def={def}
+          disabled={runState.essence < effectiveRecruitCost(runState, def) || reserveFull}
+          onClick={() => onRecruit(def.id)}
+          tribeMatch={tribeMatch}
+          frozen={!!runState.frozen}
+          costOverride={effectiveRecruitCost(runState, def)}
+        />
+        {willFuse && (
+          <div
+            className="hw-badge hw-card-overlay-badge"
+            style={{ color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
+            title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
+          >
+            Fuses now! ({owned}/3 owned)
+          </div>
+        )}
+        {reserveFull && (
+          <div
+            className="hw-badge hw-card-overlay-badge"
+            style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
+            title={`Reserve is full (${reserveCap}/${reserveCap}) - sell or fuse to make room`}
+          >
+            Reserve full
+          </div>
+        )}
+      </div>
+    )
   }
 
   // One owned-unit card, shared by both Your Squad groups (fighting /
@@ -1669,6 +1772,62 @@ export default function SquadDraft({
               the cards below, not a caption above them. */}
           <div className="hw-panel-title">Market - spend Essence here</div>
 
+          <div>
+            <div className="hw-section-label">For sale</div>
+            {/* hw-market-featured-grid: the one deliberately-featured
+                moment on this screen (problem 2, "korttien asettelu/
+                koko") - bigger, golden-ratio-sized cards (--hw-fib-9,
+                same 233px this game's other "important choice" screen,
+                CommanderSelect.jsx, already uses). Scoped to just this
+                grid - the Items grid and the Your Squad/bench grid
+                below keep their existing card size on purpose.
+                Free Layout, round 3 (individual card slots) - own
+                dedicated scope (marketRecruitLayout), own toolbar,
+                attached directly to this grid div (see its own hook
+                comment for why no wrapper/scoped CSS override is
+                needed here). Deliberately a SIBLING of marketTabLayout's
+                own container below, not nested inside it - real bug
+                caught live: nesting it inside meant this grid's own
+                (normal-flow) height wasn't counted by marketTabLayout's
+                free-mode height calc (which only sums ITS OWN keys),
+                so the grid would visually overflow that container's
+                shorter explicit height the moment marketTabLayout went
+                free-active. */}
+            {import.meta.env.DEV && (
+              <div className="hw-free-layout-toolbar">
+                {!marketRecruitLayout.editingLayout ? (
+                  <button className="hw-move-btn" onClick={marketRecruitLayout.startEditing} disabled={marketRecruitLayout.loading}>
+                    Edit Layout
+                  </button>
+                ) : (
+                  <>
+                    <button className="hw-move-btn" onClick={marketRecruitLayout.saveLayout} disabled={marketRecruitLayout.saving}>
+                      Save Layout
+                    </button>
+                    <button className="hw-move-btn" onClick={marketRecruitLayout.cancelEditing} disabled={marketRecruitLayout.saving}>
+                      Cancel
+                    </button>
+                  </>
+                )}
+                <button className="hw-move-btn" onClick={marketRecruitLayout.resetLayout} disabled={marketRecruitLayout.saving}>
+                  Reset Layout
+                </button>
+                {marketRecruitLayout.errorMessage && (
+                  <span className="hw-free-layout-error">{marketRecruitLayout.errorMessage}</span>
+                )}
+              </div>
+            )}
+            <div
+              ref={marketRecruitLayout.containerRef}
+              className="hw-select-grid hw-deck-preview hw-market-featured-grid"
+              style={marketRecruitLayout.containerStyle}
+              data-free-active={marketRecruitLayout.freeActive || undefined}
+              data-editing-layout={marketRecruitLayout.editingLayout || undefined}
+            >
+              {[0, 1, 2].map((i) => marketRecruitLayout.renderSection(`slot${i}`, offers[i] ? renderRecruitCard(offers[i]) : null))}
+            </div>
+          </div>
+
           {/* Free Layout foundation, Market tab (see marketTabLayout's
               own comment above) - only ever rendered/clickable while
               this panel is actually visible, since the whole panel is
@@ -1705,76 +1864,6 @@ export default function SquadDraft({
             data-free-active={marketTabLayout.freeActive || undefined}
             data-editing-layout={marketTabLayout.editingLayout || undefined}
           >
-            {marketTabLayout.renderSection(
-              "recruitGrid",
-              <div>
-                <div className="hw-section-label">For sale</div>
-                {/* hw-market-featured-grid: the one deliberately-featured
-                    moment on this screen (problem 2, "korttien asettelu/
-                    koko") - bigger, golden-ratio-sized cards (--hw-fib-9,
-                    same 233px this game's other "important choice" screen,
-                    CommanderSelect.jsx, already uses). Scoped to just this
-                    grid - the Items grid and the Your Squad/bench grid
-                    below keep their existing card size on purpose. */}
-                <div className="hw-select-grid hw-deck-preview hw-market-featured-grid">
-                  {offers.map((def) => {
-                    const owned = runState.bench.filter((e) => e.defId === def.id).length
-                    const willFuse = owned >= 2
-                    const reserveCap = RESERVE_CAP + (runState.benchCapBonus || 0)
-                    const reserveFull = !willFuse && runState.bench.length >= DEPLOY_SLOTS + reserveCap
-                    const tribeMatch = tribesOf(def.id, def).some((t) => (ownedTribes[t] || 0) > 0)
-                    return (
-                      // Real bug caught during this pass's own 1860x960
-                      // iteration (not eyeballed - a live Playwright re-roll
-                      // loop reproduced it): "Fuses now!"/"Reserve full" used
-                      // to be a normal flow sibling below the card, adding
-                      // ~19px to just THAT one wrapper - but CSS Grid
-                      // stretches every row item to the row's tallest (this
-                      // grid never overrides align-items), so the instant
-                      // ANY one of the 3 offers rolled with this badge, the
-                      // WHOLE row grew by the same amount, even the 2 cards
-                      // with no badge at all - a purely conditional, random-
-                      // per-visit height contribution the fit budget had no
-                      // way to account for. Now an absolute overlay (position
-                      // relative lives here on the wrapper, same pattern
-                      // UnitCard's own .hw-frost-badge already uses) pinned
-                      // to the bottom of the card instead of pushing it -
-                      // zero layout-height cost regardless of which offers
-                      // roll it.
-                      <div key={def.id} style={{ position: "relative" }}>
-                        <UnitCard
-                          def={def}
-                          disabled={runState.essence < effectiveRecruitCost(runState, def) || reserveFull}
-                          onClick={() => onRecruit(def.id)}
-                          tribeMatch={tribeMatch}
-                          frozen={!!runState.frozen}
-                          costOverride={effectiveRecruitCost(runState, def)}
-                        />
-                        {willFuse && (
-                          <div
-                            className="hw-badge hw-card-overlay-badge"
-                            style={{ color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
-                            title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
-                          >
-                            Fuses now! ({owned}/3 owned)
-                          </div>
-                        )}
-                        {reserveFull && (
-                          <div
-                            className="hw-badge hw-card-overlay-badge"
-                            style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
-                            title={`Reserve is full (${reserveCap}/${reserveCap}) - sell or fuse to make room`}
-                          >
-                            Reserve full
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Free Layout, round 2 ("every button individually", Marc's
                 own words: "haluan liikuttaa niitä vapaasti kaikkia
                 yksitellen") - the old single "shopActions" key is now 5:
@@ -1873,21 +1962,60 @@ export default function SquadDraft({
                 </div>
               )
             )}
+          </div>
 
-            {marketTabLayout.renderSection(
-              "itemsGrid",
-              <div>
-                <div className="hw-market-divider" />
-                <div className="hw-section-label" title="Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.">
-                  Items
-                </div>
-                <div className="hw-select-grid hw-deck-preview hw-market-items-grid">
-                  {itemOffers.map((def) => (
-                    <ItemCard key={def.id} def={def} disabled={runState.essence < def.cost} onClick={() => onBuyItem(def.id)} />
-                  ))}
-                </div>
+          {/* Deliberately a SIBLING of marketTabLayout's own container
+              above, not nested inside it - same "normal-flow height not
+              counted by the other scope's free-mode height calc" reason
+              the recruit grid above is also a sibling, not a child. */}
+          <div>
+            <div className="hw-market-divider" />
+            <div className="hw-section-label" title="Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.">
+              Items
+            </div>
+            {/* Free Layout, round 3 (individual card slots) - own
+                dedicated scope (marketItemLayout), same pattern as
+                the recruit grid above. */}
+            {import.meta.env.DEV && (
+              <div className="hw-free-layout-toolbar">
+                {!marketItemLayout.editingLayout ? (
+                  <button className="hw-move-btn" onClick={marketItemLayout.startEditing} disabled={marketItemLayout.loading}>
+                    Edit Layout
+                  </button>
+                ) : (
+                  <>
+                    <button className="hw-move-btn" onClick={marketItemLayout.saveLayout} disabled={marketItemLayout.saving}>
+                      Save Layout
+                    </button>
+                    <button className="hw-move-btn" onClick={marketItemLayout.cancelEditing} disabled={marketItemLayout.saving}>
+                      Cancel
+                    </button>
+                  </>
+                )}
+                <button className="hw-move-btn" onClick={marketItemLayout.resetLayout} disabled={marketItemLayout.saving}>
+                  Reset Layout
+                </button>
+                {marketItemLayout.errorMessage && (
+                  <span className="hw-free-layout-error">{marketItemLayout.errorMessage}</span>
+                )}
               </div>
             )}
+            <div
+              ref={marketItemLayout.containerRef}
+              className="hw-select-grid hw-deck-preview hw-market-items-grid"
+              style={marketItemLayout.containerStyle}
+              data-free-active={marketItemLayout.freeActive || undefined}
+              data-editing-layout={marketItemLayout.editingLayout || undefined}
+            >
+              {[0, 1, 2].map((i) =>
+                marketItemLayout.renderSection(
+                  `slot${i}`,
+                  itemOffers[i] ? (
+                    <ItemCard def={itemOffers[i]} disabled={runState.essence < itemOffers[i].cost} onClick={() => onBuyItem(itemOffers[i].id)} />
+                  ) : null
+                )
+              )}
+            </div>
           </div>
         </div>
 
@@ -2062,13 +2190,53 @@ export default function SquadDraft({
                     On the bench &middot; fighting
                     <span className="hw-squad-group-count">{deployedCount}/{DEPLOY_SLOTS}</span>
                   </div>
-                  {deployedEntries.length === 0 ? (
+                  {deployedEntries.length === 0 && (
                     <p className="hw-squad-group-empty">No units placed yet - deploy them on the battlefield screen.</p>
-                  ) : (
-                    <div className="hw-select-grid hw-deck-preview hw-squad-group-grid">
-                      {deployedEntries.map(renderBenchCard)}
+                  )}
+                  {/* Free Layout, round 3 (individual card slots) - own
+                      dedicated scope (squadDeployedSlots), attached
+                      directly to this grid div (a real CSS Grid, same
+                      "no wrapper needed" reasoning as the Market's
+                      recruit/item slot grids). Grid always renders now
+                      (not swapped out for the empty-message paragraph
+                      above) so it's a stable positioning anchor even at
+                      0 units - each slot's own empty wrapper has zero
+                      visual footprint regardless. */}
+                  {import.meta.env.DEV && (
+                    <div className="hw-free-layout-toolbar">
+                      {!squadDeployedSlots.editingLayout ? (
+                        <button className="hw-move-btn" onClick={squadDeployedSlots.startEditing} disabled={squadDeployedSlots.loading}>
+                          Edit Layout
+                        </button>
+                      ) : (
+                        <>
+                          <button className="hw-move-btn" onClick={squadDeployedSlots.saveLayout} disabled={squadDeployedSlots.saving}>
+                            Save Layout
+                          </button>
+                          <button className="hw-move-btn" onClick={squadDeployedSlots.cancelEditing} disabled={squadDeployedSlots.saving}>
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                      <button className="hw-move-btn" onClick={squadDeployedSlots.resetLayout} disabled={squadDeployedSlots.saving}>
+                        Reset Layout
+                      </button>
+                      {squadDeployedSlots.errorMessage && (
+                        <span className="hw-free-layout-error">{squadDeployedSlots.errorMessage}</span>
+                      )}
                     </div>
                   )}
+                  <div
+                    ref={squadDeployedSlots.containerRef}
+                    className="hw-select-grid hw-deck-preview hw-squad-group-grid"
+                    style={squadDeployedSlots.containerStyle}
+                    data-free-active={squadDeployedSlots.freeActive || undefined}
+                    data-editing-layout={squadDeployedSlots.editingLayout || undefined}
+                  >
+                    {[0, 1, 2, 3].map((i) =>
+                      squadDeployedSlots.renderSection(`slot${i}`, deployedEntries[i] ? renderBenchCard(deployedEntries[i]) : null)
+                    )}
+                  </div>
                 </section>
               )}
 
@@ -2081,13 +2249,47 @@ export default function SquadDraft({
                     In reserve &middot; not fighting
                     <span className="hw-squad-group-count">{reserveCount}/{RESERVE_CAP + (runState.benchCapBonus || 0)}</span>
                   </div>
-                  {reserveEntries.length === 0 ? (
-                    <p className="hw-squad-group-empty">Reserve is empty.</p>
-                  ) : (
-                    <div className="hw-select-grid hw-deck-preview hw-squad-group-grid hw-squad-reserve-cards">
-                      {reserveEntries.map(renderBenchCard)}
+                  {reserveEntries.length === 0 && <p className="hw-squad-group-empty">Reserve is empty.</p>}
+                  {/* Free Layout, round 3 - own dedicated scope
+                      (squadReserveSlots), 9 keys - the confirmed hard
+                      max (RESERVE_CAP=6 + at most +3 from the two
+                      one-time "Wide Bench"/"Deep Reserves" meta perks,
+                      see this file's hook-site comment). */}
+                  {import.meta.env.DEV && (
+                    <div className="hw-free-layout-toolbar">
+                      {!squadReserveSlots.editingLayout ? (
+                        <button className="hw-move-btn" onClick={squadReserveSlots.startEditing} disabled={squadReserveSlots.loading}>
+                          Edit Layout
+                        </button>
+                      ) : (
+                        <>
+                          <button className="hw-move-btn" onClick={squadReserveSlots.saveLayout} disabled={squadReserveSlots.saving}>
+                            Save Layout
+                          </button>
+                          <button className="hw-move-btn" onClick={squadReserveSlots.cancelEditing} disabled={squadReserveSlots.saving}>
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                      <button className="hw-move-btn" onClick={squadReserveSlots.resetLayout} disabled={squadReserveSlots.saving}>
+                        Reset Layout
+                      </button>
+                      {squadReserveSlots.errorMessage && (
+                        <span className="hw-free-layout-error">{squadReserveSlots.errorMessage}</span>
+                      )}
                     </div>
                   )}
+                  <div
+                    ref={squadReserveSlots.containerRef}
+                    className="hw-select-grid hw-deck-preview hw-squad-group-grid hw-squad-reserve-cards"
+                    style={squadReserveSlots.containerStyle}
+                    data-free-active={squadReserveSlots.freeActive || undefined}
+                    data-editing-layout={squadReserveSlots.editingLayout || undefined}
+                  >
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) =>
+                      squadReserveSlots.renderSection(`slot${i}`, reserveEntries[i] ? renderBenchCard(reserveEntries[i]) : null)
+                    )}
+                  </div>
                 </section>
               )}
             </div>
