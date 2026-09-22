@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { apiGet } from "../api/client"
 
+import AddCrossroadsForm from "../components/hearthwood-studio/AddCrossroadsForm"
 import AddDialogueForm from "../components/hearthwood-studio/AddDialogueForm"
 import AddEventForm from "../components/hearthwood-studio/AddEventForm"
 import AddStoryEntryForm from "../components/hearthwood-studio/AddStoryEntryForm"
@@ -64,6 +65,12 @@ function HearthwoodStudio() {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [historyKey, setHistoryKey] = useState(0)
+  // Set only by the entity list's own "+ Add new" button - tells
+  // CloneEntityForm (keyed by entityId below) to open itself pre-filled
+  // immediately instead of the normal collapsed "⧉ Clone as new"
+  // toggle. Cleared on any ordinary selection so navigating to a
+  // DIFFERENT entity afterward doesn't leave a stale auto-open behind.
+  const [autoOpenCloneId, setAutoOpenCloneId] = useState(null)
 
   useEffect(() => {
     if (!entityId) {
@@ -111,6 +118,7 @@ function HearthwoodStudio() {
     setEntityType(type)
     setEntityId(id)
     setPreviewUrl(null)
+    setAutoOpenCloneId(null)
 
     // Stay on the Story Timeline after picking a row - its rows span
     // several real types, so syncing browsingType here would bounce
@@ -118,6 +126,37 @@ function HearthwoodStudio() {
     if (browsingType !== "storyTimeline") {
       setBrowsingType(type)
     }
+  }
+
+  // The entity list's own "+ Add new" button - clones whichever entity
+  // it's given (the list's own first entry) and lands directly on that
+  // entity's Clone form, already open. See CloneEntityForm.jsx's own
+  // `autoOpen` comment for why Marc needed this at all.
+  function handleCreateNew(type, baseId) {
+    setEntityType(type)
+    setEntityId(baseId)
+    setPreviewUrl(null)
+    setAutoOpenCloneId(baseId)
+
+    if (browsingType !== "storyTimeline") {
+      setBrowsingType(type)
+    }
+  }
+
+  // Story Timeline's own "+ New Event/Dialogue/Journal Entry" row -
+  // switches the detail panel to that type's existing compose form
+  // (AddEventForm/AddDialogueForm/AddStoryEntryForm, all rendered
+  // below whenever entityType matches) without leaving the Timeline
+  // itself: browsingType deliberately stays untouched, same reasoning
+  // as handleSelect's own "stay on the Story Timeline" comment. Forces
+  // viewMode to "single" since the compose forms only render there
+  // (Sheet/Dashboard/Theme have no such slot) - clicking one of these
+  // buttons from Sheet view otherwise did nothing visible.
+  function handleAddNew(type) {
+    setEntityType(type)
+    setEntityId(null)
+    setPreviewUrl(null)
+    setViewMode("single")
   }
 
   function handleApplied() {
@@ -250,6 +289,8 @@ function HearthwoodStudio() {
             onTypeChange={handleTypeChange}
             selectedId={entityId}
             onSelect={handleSelect}
+            onAddNew={handleAddNew}
+            onCreateNew={handleCreateNew}
           />
         </section>
 
@@ -302,6 +343,16 @@ function HearthwoodStudio() {
                   }
 
                   {
+                    entityType === "crossroads" && (
+                      <AddCrossroadsForm
+                        type={entityType}
+                        onApplied={handleApplied}
+                        onPreviewUrlChange={setPreviewUrl}
+                      />
+                    )
+                  }
+
+                  {
                     !entityId && (
                       <div className="text-sm text-[var(--wood-muted)]">
                         Select an entity on the left to get started.
@@ -323,9 +374,11 @@ function HearthwoodStudio() {
                         </div>
 
                         <CloneEntityForm
+                          key={entityId}
                           type={entityType}
                           entityId={entityId}
                           entityDetail={entityDetail}
+                          autoOpen={entityId === autoOpenCloneId}
                           onApplied={handleApplied}
                           onPreviewUrlChange={setPreviewUrl}
                         />

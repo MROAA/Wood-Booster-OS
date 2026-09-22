@@ -67,10 +67,22 @@ function slugify(text) {
     .replace(/^-+|-+$/g, "")
 }
 
-function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrlChange }) {
-  const [open, setOpen] = useState(false)
-  const [newId, setNewId] = useState("")
-  const [newName, setNewName] = useState("")
+// `autoOpen`: set by the entity list's own "+ Add new" button (Marc:
+// "en löydä vielä uuden luomisen mahdollisuutta dev studiossa" - I
+// still can't find where to create new ones - this form already
+// existed but only ever appeared once you'd already navigated INTO
+// some existing entity, which he'd never done). That button auto-
+// selects a base entity for the CURRENT type and passes its id back
+// here so this form opens pre-filled immediately, the same result
+// `startOpen()` below produces on a manual click - saving the "click
+// an entity, THEN notice the small Clone button" two-step. The parent
+// (HearthwoodStudio.jsx) gives this component a `key={entityId}` so a
+// fresh instance mounts per entity, making these useState initializers
+// actually re-run instead of only firing once ever.
+function CloneEntityForm({ type, entityId, entityDetail, onApplied, onPreviewUrlChange, autoOpen }) {
+  const [open, setOpen] = useState(() => Boolean(autoOpen))
+  const [newId, setNewId] = useState(() => (autoOpen && entityId ? `${entityId}-copy` : ""))
+  const [newName, setNewName] = useState(() => (autoOpen && entityDetail?.name ? `${entityDetail.name} (copy)` : ""))
   const [checkError, setCheckError] = useState("")
   const [checking, setChecking] = useState(false)
 

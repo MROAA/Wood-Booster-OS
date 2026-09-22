@@ -1130,6 +1130,22 @@ model HeartwoodDecision {
 
 
 
+model HearthwoodScreenLayout {
+
+  id Int @id @default(autoincrement())
+
+  screenId String @unique
+
+  positions String
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
 model HearthwoodPatch {
 
   id Int @id @default(autoincrement())

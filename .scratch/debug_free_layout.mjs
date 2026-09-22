@@ -1,0 +1,11 @@
+import { chromium } from "playwright"
+const browser = await chromium.launch()
+const page = await browser.newPage()
+page.on("console", (m) => console.log("[console]", m.text()))
+page.on("pageerror", (e) => console.log("[pageerror]", e))
+await page.goto("http://localhost:5184/heartwood", { waitUntil: "domcontentloaded" })
+await page.waitForTimeout(2000)
+console.log("URL:", page.url())
+console.log("Body text (first 500 chars):", (await page.textContent("body"))?.slice(0, 500))
+await page.screenshot({ path: "/tmp/debug_free_layout.png" })
+await browser.close()

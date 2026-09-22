@@ -2714,6 +2714,26 @@ img.hw-card-art {
   margin-bottom: 0;
 }
 
+/* Free Layout, round 2 ("every button individually") - the tab toggle
+   buttons now live inside a nested free-layout-container instead of
+   being direct children of .hw-tab-row--market-art. Centering trap:
+   .hw-tab-row--market-art's own justify-content:center only has ONE
+   child now (this container), which would shrink-to-fit (0 width)
+   the instant its own children go position:absolute in free mode,
+   visibly shifting both buttons sideways. width:100% keeps this
+   container's box (and therefore both buttons' captured x/y origin)
+   identical in flow mode and free mode - the outer's centering always
+   centers a full-width no-op box, and THIS rule's own justify-content
+   does the real centering both before and after, from the same left
+   edge. */
+.hw-tab-row--market-art .hw-free-layout-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
 /* Shared sizing for both plaque buttons in this row (Market below,
    Your Squad further down) - kept as one rule so the "meaningfully
    bigger" ask lands identically on both rather than needing two
@@ -3757,6 +3777,172 @@ img.hw-card-art {
 
 .hw-shop-rail-drag-handle:active {
   cursor: grabbing;
+}
+
+/* Free Layout foundation (useFreeLayout.js) - the SAME drag/edit
+   mechanism as the Market's own hw-shop-rail-* rules above, generalized
+   for reuse on other screens (Settings, Commander Select, Guild Hall,
+   the story cinematics, Act transitions, the run map's top strip).
+   Kept as its own separate class family rather than renaming Market's
+   existing rules - the two coexist on purpose, Market's own system is
+   untouched. Unlike the rail wrapper, .hw-free-layout-container is
+   deliberately minimal (no flex-column/gap of its own) since each of
+   these screens already has its own flow layout to fall back to. */
+.hw-free-layout-container {
+  /* flow-root, not just position:relative - without its own block
+     formatting context, a child's top margin collapses straight
+     through this container in flow mode, but position:absolute
+     children never participate in margin collapse - so switching
+     modes would shift the container's own rendered top by that
+     collapsed amount, breaking the "zero visual jump" guarantee for
+     reasons that have nothing to do with the actual captured x/y. */
+  display: flow-root;
+  position: relative;
+  width: 100%;
+}
+
+/* Real regression found live (PR #545, CommanderSelect/GuildHallScreen):
+   several of these screens' own root class lays its direct children
+   out with `display:flex; flex-direction:column; gap:Npx` - wrapping
+   those children one level deeper inside .hw-free-layout-container
+   (a plain flow-root box) silently drops that gap entirely, since gap
+   only affects DIRECT flex/grid children. Verified live: CommanderSelect's
+   header-to-grid gap measured 0px instead of the intended 34px. Fixed
+   per screen by giving the container the SAME flex+gap its sections
+   used to get directly from their real parent - position:absolute
+   children (free/editing mode) ignore flex-gap entirely regardless, so
+   this is safe in both modes. Settings needs no entry here - its
+   .hw-settings-group blocks space themselves via their own margin/
+   border-top, not a parent gap. */
+.hw-commander-select .hw-free-layout-container,
+.hw-guildhall .hw-free-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 34px);
+}
+
+.hw-cinematic-inner .hw-free-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.hw-act-transition-inner .hw-free-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* .hw-squad-split's OWN base rule (further up this file) is actually
+   dead code - `.hw-shop-3zone .hw-squad-split` (higher specificity,
+   see that rule's own comment) always wins in the real, live game and
+   sets display:flex/flex-direction:column/gap:8px, not the grid the
+   base rule suggests. This new inner wrapper (SquadDraft.jsx's
+   squadTabSplit scope) needs the SAME real layout to match. */
+.hw-squad-split .hw-free-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hw-free-layout-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed var(--hw-border);
+}
+
+.hw-free-layout-error {
+  width: 100%;
+  font-size: 11px;
+  color: var(--hw-hp);
+}
+
+.hw-free-layout-section {
+  /* flow-root here too, not just on .hw-free-layout-container -
+     real bug found live: this wrapper had NO class at all in plain
+     flow mode (before this fix), so a content root with its own
+     margin-top (e.g. .hw-run-map's margin:14px, .hw-settings-group's
+     margin-top:16px) collapsed straight through it exactly like the
+     container-level bug already fixed above - except here the
+     collapse hid ITSELF from the "zero visual jump" check, because
+     that check only measured the WRAPPER's own rect (which stayed
+     visually correct via the collapse), never the actual visible
+     CONTENT inside it. Confirmed live on the ALREADY-SHIPPED Settings
+     screen (#543): entering Edit Layout silently pushed the visible
+     .hw-settings-group content down by its own 16px margin-top,
+     invisible to any check that only compared wrapper positions.
+     Lesson: verify against the actual rendered CONTENT's box, not
+     just the positioning wrapper's. */
+  display: flow-root;
+  position: relative;
+}
+
+[data-editing-layout="true"] .hw-free-layout-section {
+  outline: 1px dashed color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.hw-free-layout-section--hidden {
+  padding: 10px 12px;
+  border: 1px dashed var(--hw-border);
+  border-radius: 8px;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hw-free-layout-hidden-label {
+  font-size: 12px;
+  color: var(--hw-muted);
+  font-style: italic;
+}
+
+.hw-free-layout-controls {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+
+.hw-free-layout-section--hidden .hw-free-layout-controls {
+  position: static;
+}
+
+.hw-free-layout-drag-handle {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  font-size: 12px;
+  color: var(--hw-muted);
+  cursor: grab;
+}
+
+.hw-free-layout-drag-handle:active {
+  cursor: grabbing;
+}
+
+.hw-free-layout-hide-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--hw-panel);
+  border: 1px solid var(--hw-border);
+  color: var(--hw-muted);
+  cursor: pointer;
 }
 
 /* RunMap inside the right rail - strip its page-level side margin and
@@ -7535,7 +7721,9 @@ img.hw-intent-glyph {
    distinguishes it from Reroll/Freeze's plain default look, at rest. */
 .hw-gamble-btn {
   border-color: color-mix(in srgb, var(--hw-cosmic) 45%, var(--hw-border));
-  color: color-mix(in srgb, var(--hw-cosmic) 70%, var(--hw-text));
+  /* Marc: the cosmic-mixed text color read as unreadable against this
+     button's background - changed to plain black on his direct ask. */
+  color: #000;
 }
 .hw-gamble-reveal {
   margin-top: 6px;

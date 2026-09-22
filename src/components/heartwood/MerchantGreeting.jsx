@@ -1,4 +1,5 @@
 import { CardGlyph } from "./cardArt"
+import EditInStudioLink from "./EditInStudioLink"
 import { merchantForAct, merchantLine } from "../../data/heartwood/merchant"
 import { actIndexForNode, RUN_PATH } from "../../services/heartwood/runEngine"
 
@@ -17,6 +18,13 @@ export default function MerchantGreeting({ runState }) {
   const act = actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)
   const m = merchantForAct(act)
   const line = merchantLine(runState)
+  // MERCHANTS (merchant.js) has no `id` field of its own per entry -
+  // like crossroads.js, the numeric object KEY is the id, and
+  // merchantForAct's own clamp (Math.min(5, Math.max(1, act||1))) is
+  // the only place that math lives - mirrored here rather than adding
+  // a second export just to expose it, same call this file already
+  // makes to get `m` in the first place.
+  const merchantId = String(Math.min(5, Math.max(1, act || 1)))
 
   return (
     <div
@@ -29,6 +37,7 @@ export default function MerchantGreeting({ runState }) {
       <div className="hw-merchant-body">
         <span className="hw-merchant-name">{m.name}</span>
         <span className="hw-merchant-line">{line}</span>
+        <EditInStudioLink type="merchants" id={merchantId} label="Edit this merchant" />
       </div>
     </div>
   )

@@ -36,7 +36,27 @@ import { actLabel } from "./actNames"
  * whichever event choice's `dialogueId` triggers it - so placing it
  * here means scanning every event's own choices for that reference
  * (see `actForDialogue` below), not just reading a field.
+ *
+ * "Add new" row (Marc: chose adding this directly to the Timeline over
+ * a dedicated Cinematics compose form, so he never has to leave his
+ * one "where am I in the story" view to start writing). Only types
+ * that actually HAVE a blank-page compose form get a button here - a
+ * button that led nowhere would be worse than no button. Cinematics
+ * itself never got one: CINEMATICS is a fixed set of 5 entries each
+ * named by a literal id in HeartwoodBattle.jsx, so a brand-new entry
+ * would have no trigger point and would never play - a genuine dead
+ * end, not just unbuilt. Merchants/Crownless remain "Clone as new"
+ * only for now. `onAddNew(type)` just tells HearthwoodStudio.jsx which
+ * type to switch entityType to - each form already asks for its own
+ * Act placement internally, so this view doesn't need to know acts at
+ * all.
  */
+const ADDABLE_TYPES = [
+  { type: "events", icon: "🗺", label: "New Event" },
+  { type: "dialogues", icon: "💬", label: "New Dialogue" },
+  { type: "storyJournal", icon: "📖", label: "New Journal Entry" },
+  { type: "crossroads", icon: "🧭", label: "New Crossroads" },
+]
 const TIMELINE_TYPES = ["cinematics", "crossroads", "events", "storyJournal", "merchants", "crownless", "dialogues"]
 
 // cinematics.js has no numeric `act` field of its own (see cinematics.js's
@@ -200,7 +220,7 @@ function rowsFromEntities(byType) {
   return rows
 }
 
-function StoryTimeline({ selectedId, onSelect }) {
+function StoryTimeline({ selectedId, onSelect, onAddNew }) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
@@ -256,6 +276,22 @@ function StoryTimeline({ selectedId, onSelect }) {
 
   return (
     <div className="space-y-1">
+      <div className="mb-2 flex flex-wrap gap-1.5 border-b border-[var(--wood-border)] pb-2">
+        {
+          ADDABLE_TYPES.map(({ type, icon, label }) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => onAddNew?.(type)}
+              className="flex items-center gap-1 rounded-full border border-[var(--wood-border)] px-2.5 py-1 text-[11px] font-medium text-[var(--wood-muted)] transition-colors hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+            >
+              <span>{icon}</span>
+              <span>+ {label}</span>
+            </button>
+          ))
+        }
+      </div>
+
       {
         rows.map(row => {
           const group = groupLabelFor(row.act)
