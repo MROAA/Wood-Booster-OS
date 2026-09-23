@@ -28,8 +28,8 @@ import { mkdir } from "node:fs/promises"
 // never a hand-typed fixture - matching the discipline verify_tactics_
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
-const PORT = process.env.PORT || 5428
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix/.scratch/shots"
+const PORT = process.env.PORT || 5429
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sidestep/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -1933,6 +1933,79 @@ function newPage() {
   out.realFightTerrainMixLateAct = { seed36, countsByType, expectedCountsByType }
   const ok = seed36.act === 7 && JSON.stringify(countsByType) === JSON.stringify(expectedCountsByType) && Object.keys(expectedTerrain).length === 12
   if (!ok) out.errors.push("check36 a real Act VII fight's rendered terrain type counts did not match generateRealTerrain's own Act-scaled mix")
+}
+
+// 37. Sidestep: a real recruited Galeblade (nimble), the only reachable
+//     target, genuinely repositions in response to the real
+//     coven-matron's now-ranged attack, after ending the player's turn
+//     lets the real enemy AI act - a real "the-conclave" fight, the
+//     game's first ranged enemy. The other 2 real enemies (bog-
+//     devotee, hex-acolyte) are removed (hp:0) so the matron is the
+//     ONLY unit that can act, matching the established "neutralize
+//     every other participant" pattern (e.g. check27's Intercept
+//     setup) - the dodge roll's own outcome isn't controlled here (the
+//     real turn number decides it), so only outcome-independent facts
+//     are asserted: the token moved AND the log narrates one of the 2
+//     possible outcomes -----------------------------------------------
+{
+  const page37 = await newPage()
+  page37.on("pageerror", (e) => errs.push(String(e)))
+  await page37.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page37, (n) => n.formationId === "the-conclave", ["galeblade"])
+  await page37.reload({ waitUntil: "domcontentloaded" })
+  await page37.waitForTimeout(400)
+  await page37.locator(".hw-tactics-fight-btn").click()
+  await page37.waitForTimeout(400)
+  const setup = await page37.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const galeblade = battle.units.find((u) => u.defId === "galeblade")
+    const matron = battle.units.find((u) => u.defId === "coven-matron")
+    const others = battle.units.filter((u) => u.side === "enemy" && u.defId !== "coven-matron")
+    galeblade.pos = { row: 4, col: 6 }
+    galeblade.facing = "W"
+    galeblade.hp = galeblade.maxHp
+    matron.pos = { row: 4, col: 4 }
+    matron.hp = matron.maxHp
+    matron.ap = matron.apMax
+    battle.units = battle.units.map((u) =>
+      u.side === "player" && u.id !== galeblade.id
+        ? { ...u, pos: { row: 0, col: 0 } }
+        : others.some((o) => o.id === u.id)
+          ? { ...u, hp: 0 }
+          : u,
+    )
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { galebladeName: galeblade.name, matronRange: matron.range, posBefore: galeblade.pos, hpBefore: galeblade.hp }
+  })
+  await page37.reload({ waitUntil: "domcontentloaded" })
+  await page37.waitForTimeout(400)
+  await page37.locator(".hwt-end-turn").click()
+  await page37.waitForTimeout(600)
+  const logText = await page37.locator(".hwt-log").innerText()
+  const afterBattle = await page37.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const galebladeAfter = afterBattle.units.find((u) => u.name === setup.galebladeName)
+  await page37.screenshot({ path: `${SHOT}/real_fight_sidestep.png` })
+  await page37.close()
+  out.realFightSidestep = {
+    setup,
+    posAfter: galebladeAfter?.pos,
+    hpAfter: galebladeAfter?.hp,
+    // Not asserted below: sidestepUsed is expected to already read false
+    // here, same as check33's own Retreat Step precedent never asserts
+    // retreatStepUsed post-End-Turn - a real "End Turn" click's own
+    // endPlayerTurn call cascades the FULL round (player->enemy->
+    // player) in one call, so the once-per-round reset checkpoint also
+    // fires within this SAME click, correctly clearing the flag again
+    // for the next round by the time we inspect it here.
+    sidestepUsedAfter: galebladeAfter?.sidestepUsed,
+    logHasAvoided: logText.includes("avoiding") && logText.includes("completely"),
+    logHasStillConnects: logText.includes("still connects"),
+  }
+  const moved = galebladeAfter && (galebladeAfter.pos.row !== setup.posBefore.row || galebladeAfter.pos.col !== setup.posBefore.col)
+  const ok = setup.matronRange === 3 && moved && (out.realFightSidestep.logHasAvoided || out.realFightSidestep.logHasStillConnects)
+  if (!ok) out.errors.push("check37 a real recruited Galeblade did not genuinely sidestep the real coven-matron's now-ranged attack")
 }
 
 console.log(JSON.stringify(out, null, 2))

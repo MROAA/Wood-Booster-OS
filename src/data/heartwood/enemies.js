@@ -735,6 +735,15 @@ export const ENEMIES = {
       { type: "attack", amount: 3 },
       { type: "block", amount: 2 },
     ],
+    // Sidestep round (Hearthwood Frontier tactics engine): the game's
+    // first ranged enemy - not an invented trait, this makes her own
+    // already-written "never lifts a hand... just keeps whispering"
+    // flavor mechanically true for the first time (tacticsEngine.js's
+    // own rangeFromAttackPattern gives any non-"single" pattern range
+    // 3; "rook" mirrors bramble-sweep's own real straight-line-reach
+    // player-side shape). Her attack/block amounts and passive are
+    // otherwise untouched.
+    attackPattern: "rook",
   },
   "hex-acolyte": {
     id: "hex-acolyte",
