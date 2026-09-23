@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { META_PERKS } from "../../data/heartwood/metaPerks"
 import { DEPTHS, MAX_DEPTH, depthModifiersFor, depthAcornMultiplier } from "../../data/heartwood/depths"
+import { useFreeLayout } from "./useFreeLayout.jsx"
 
 // The Grove - between-run progression (metaState.js / metaPerks.js).
 // Marc: "jokainen run vie eteenpäin vaikka hävisi". You carry Acorns
@@ -13,6 +14,17 @@ import { DEPTHS, MAX_DEPTH, depthModifiersFor, depthAcornMultiplier } from "../.
 // `onBack()` returns to commander select.
 export default function GroveScreen({ meta, onBuy, onSelectDepth, onBack }) {
   const [justBought, setJustBought] = useState(null)
+  // Stage B, screen 7 - re-checked live, same as every prior screen:
+  // .hw-grove/.hw-screen-frame have no flex/grid/gap at the ROOT level
+  // (.hw-screen-frame is just position:relative/padding/border;
+  // .hw-grove is just padding-bottom - .hw-grove-balance's OWN internal
+  // flex is wrapped as one opaque block, not split apart) - standard
+  // wrapper pattern, no scoped CSS override needed. The "← Back" link
+  // keeps its own bespoke position:absolute (top:16,left:16) and stays
+  // OUTSIDE this scope entirely - it's persistent navigation chrome,
+  // same "titles/exit-links stay fixed" convention every prior round
+  // followed, not a content section to reposition.
+  const layout = useFreeLayout({ screenId: "groveScreen", keys: ["header", "balance", "depths", "perksGrid"] })
   const owned = new Set(meta.chosenPerks || [])
   const unlockedDepth = meta.depth || 0
   const selectedDepth = Math.max(0, Math.min(unlockedDepth, meta.selectedDepth || 0))
@@ -29,88 +41,132 @@ export default function GroveScreen({ meta, onBuy, onSelectDepth, onBack }) {
         ← Back
       </button>
 
-      <div className="hw-screen-eyebrow">The Grove</div>
-      <h1 className="hw-screen-title">Plant what you carried out</h1>
-      <p className="hw-flavor" style={{ maxWidth: 560 }}>
-        Every run leaves you with Acorns - more the further you got, most of all for a win. Spend them here on
-        permanent head starts. What you plant stays planted.
-      </p>
-
-      <div className="hw-grove-balance">
-        <span className="hw-grove-acorn">&#127807;</span> {meta.acorns} Acorns
-        <span className="hw-grove-stats">
-          {owned.size} / {META_PERKS.length} planted &middot; {meta.stats?.runs || 0} runs &middot; {meta.stats?.wins || 0} wins
-        </span>
-      </div>
-
-      {/* Depths (depths.js) - the challenge ladder. Only shows once the
-          player has unlocked at least Depth I by winning a run. */}
-      {(unlockedDepth > 0 || selectedDepth > 0) && (
-        <div className="hw-grove-depths">
-          <div className="hw-grove-section-label">Depths — next run</div>
-          <div className="hw-grove-depth-row">
-            <button
-              className="hw-grove-depth-step"
-              disabled={selectedDepth <= 0}
-              onClick={() => onSelectDepth(selectedDepth - 1)}
-              aria-label="Lower Depth"
-            >
-              −
+      {import.meta.env.DEV && (
+        <div className="hw-free-layout-toolbar">
+          {!layout.editingLayout ? (
+            <button className="hw-move-btn" onClick={layout.startEditing} disabled={layout.loading}>
+              Edit Layout
             </button>
-            <span className="hw-grove-depth-value">
-              {selectedDepth === 0 ? "Depth 0 — the base trial" : `Depth ${selectedDepth} — ${DEPTHS[selectedDepth - 1]?.name}`}
-              <span className="hw-grove-depth-payout"> · Acorns ×{depthAcornMultiplier(selectedDepth).toFixed(1)}</span>
-            </span>
-            <button
-              className="hw-grove-depth-step"
-              disabled={selectedDepth >= unlockedDepth}
-              onClick={() => onSelectDepth(selectedDepth + 1)}
-              aria-label="Higher Depth"
-            >
-              +
-            </button>
-          </div>
-          {activeMods.length > 0 && (
-            <ul className="hw-grove-depth-mods">
-              {activeMods.map((d) => (
-                <li key={d.level}>
-                  <strong>Depth {d.level}:</strong> {d.description}
-                </li>
-              ))}
-            </ul>
+          ) : (
+            <>
+              <button className="hw-move-btn" onClick={layout.saveLayout} disabled={layout.saving}>
+                Save Layout
+              </button>
+              <button className="hw-move-btn" onClick={layout.cancelEditing} disabled={layout.saving}>
+                Cancel
+              </button>
+            </>
           )}
-          {unlockedDepth < MAX_DEPTH && (
-            <p className="hw-grove-depth-hint">
-              Win a run at Depth {unlockedDepth} to unlock Depth {unlockedDepth + 1}.
-            </p>
-          )}
+          <button className="hw-move-btn" onClick={layout.resetLayout} disabled={layout.saving}>
+            Reset Layout
+          </button>
+          {layout.errorMessage && <span className="hw-free-layout-error">{layout.errorMessage}</span>}
         </div>
       )}
+      <div
+        ref={layout.containerRef}
+        className="hw-free-layout-container"
+        style={layout.containerStyle}
+        data-free-active={layout.freeActive || undefined}
+        data-editing-layout={layout.editingLayout || undefined}
+      >
+        {layout.renderSection(
+          "header",
+          <>
+            <div className="hw-screen-eyebrow">The Grove</div>
+            <h1 className="hw-screen-title">Plant what you carried out</h1>
+            <p className="hw-flavor" style={{ maxWidth: 560 }}>
+              Every run leaves you with Acorns - more the further you got, most of all for a win. Spend them here on
+              permanent head starts. What you plant stays planted.
+            </p>
+          </>
+        )}
 
-      <div className="hw-grove-perks">
-        {perks.map((perk) => {
-          const isOwned = owned.has(perk.id)
-          const canAfford = meta.acorns >= perk.cost
-          return (
-            <button
-              key={perk.id}
-              className={`hw-grove-perk${isOwned ? " is-owned" : ""}${justBought === perk.id ? " is-fresh" : ""}`}
-              disabled={isOwned || !canAfford}
-              onClick={() => {
-                onBuy(perk.id)
-                setJustBought(perk.id)
-              }}
-            >
-              <div className="hw-grove-perk-head">
-                <span className="hw-grove-perk-name">{perk.name}</span>
-                <span className="hw-grove-perk-cost">
-                  {isOwned ? "Planted" : `${perk.cost} \u{1F33F}`}
+        {layout.renderSection(
+          "balance",
+          <div className="hw-grove-balance">
+            <span className="hw-grove-acorn">&#127807;</span> {meta.acorns} Acorns
+            <span className="hw-grove-stats">
+              {owned.size} / {META_PERKS.length} planted &middot; {meta.stats?.runs || 0} runs &middot; {meta.stats?.wins || 0} wins
+            </span>
+          </div>
+        )}
+
+        {/* Depths (depths.js) - the challenge ladder. Only shows once the
+            player has unlocked at least Depth I by winning a run. */}
+        {layout.renderSection(
+          "depths",
+          (unlockedDepth > 0 || selectedDepth > 0) && (
+            <div className="hw-grove-depths">
+              <div className="hw-grove-section-label">Depths — next run</div>
+              <div className="hw-grove-depth-row">
+                <button
+                  className="hw-grove-depth-step"
+                  disabled={selectedDepth <= 0}
+                  onClick={() => onSelectDepth(selectedDepth - 1)}
+                  aria-label="Lower Depth"
+                >
+                  −
+                </button>
+                <span className="hw-grove-depth-value">
+                  {selectedDepth === 0 ? "Depth 0 — the base trial" : `Depth ${selectedDepth} — ${DEPTHS[selectedDepth - 1]?.name}`}
+                  <span className="hw-grove-depth-payout"> · Acorns ×{depthAcornMultiplier(selectedDepth).toFixed(1)}</span>
                 </span>
+                <button
+                  className="hw-grove-depth-step"
+                  disabled={selectedDepth >= unlockedDepth}
+                  onClick={() => onSelectDepth(selectedDepth + 1)}
+                  aria-label="Higher Depth"
+                >
+                  +
+                </button>
               </div>
-              <div className="hw-grove-perk-desc">{perk.description}</div>
-            </button>
+              {activeMods.length > 0 && (
+                <ul className="hw-grove-depth-mods">
+                  {activeMods.map((d) => (
+                    <li key={d.level}>
+                      <strong>Depth {d.level}:</strong> {d.description}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {unlockedDepth < MAX_DEPTH && (
+                <p className="hw-grove-depth-hint">
+                  Win a run at Depth {unlockedDepth} to unlock Depth {unlockedDepth + 1}.
+                </p>
+              )}
+            </div>
           )
-        })}
+        )}
+
+        {layout.renderSection(
+          "perksGrid",
+          <div className="hw-grove-perks">
+            {perks.map((perk) => {
+              const isOwned = owned.has(perk.id)
+              const canAfford = meta.acorns >= perk.cost
+              return (
+                <button
+                  key={perk.id}
+                  className={`hw-grove-perk${isOwned ? " is-owned" : ""}${justBought === perk.id ? " is-fresh" : ""}`}
+                  disabled={isOwned || !canAfford}
+                  onClick={() => {
+                    onBuy(perk.id)
+                    setJustBought(perk.id)
+                  }}
+                >
+                  <div className="hw-grove-perk-head">
+                    <span className="hw-grove-perk-name">{perk.name}</span>
+                    <span className="hw-grove-perk-cost">
+                      {isOwned ? "Planted" : `${perk.cost} \u{1F33F}`}
+                    </span>
+                  </div>
+                  <div className="hw-grove-perk-desc">{perk.description}</div>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
