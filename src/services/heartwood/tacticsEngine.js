@@ -477,7 +477,9 @@ function aoeMoveFromDef(def) {
 // preview shown during the player's turn and the real resolution that
 // follows it, so both calls see the same input and make the same
 // decision - telegraph honesty by construction, not by luck.
-function deterministicRoll(turn, seedText) {
+// Sidestep round: exported so verify checks can recompute the exact
+// expected roll for a chosen `turn` value instead of guessing one.
+export function deterministicRoll(turn, seedText) {
   let h = Math.imul(turn, 2654435761) >>> 0
   for (let i = 0; i < seedText.length; i++) h = Math.imul(h ^ seedText.charCodeAt(i), 2654435761) >>> 0
   h = (h ^ (h >>> 15)) >>> 0
@@ -667,6 +669,11 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // fearsome/frosty/thorny. Only the-hermit (units.js) carries this
     // today.
     wary: !!def.wary,
+    // Sidestep round: a fifth new portable trait, same shape as
+    // fearsome/frosty/thorny/wary. Only galeblade/windveil (units.js)
+    // carry this today - they already have the auto-battler's own real
+    // "dodges the first blow each round" evade passive.
+    nimble: !!def.nimble,
     triggers,
     phases,
     phaseIndex: 0,
@@ -693,6 +700,10 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // exact same 2 turn-transition checkpoints slow/root already use,
     // set true only when Retreat Step actually fires.
     retreatStepUsed: false,
+    // Sidestep round: the "Reaction Slot" the PRD names - reuses
+    // retreatStepUsed's own exact once-per-round boolean shape rather
+    // than inventing a new resource pool.
+    sidestepUsed: false,
     // Weakened reactions round (Facing PRD's own "puolustajan
     // reaktioiden heikennys" back-hit line): a THIRD duration-based
     // status, reusing slow/root's exact mechanism - never in a base
@@ -1320,6 +1331,32 @@ const OPPOSITE_DIR = { N: "S", S: "N", E: "W", W: "E" }
 // back into a board offset.
 const DIR_DELTA = { N: { dRow: -1, dCol: 0 }, S: { dRow: 1, dCol: 0 }, E: { dRow: 0, dCol: 1 }, W: { dRow: 0, dCol: -1 } }
 
+// Sidestep round: "sideways" relative to a unit's own facing has 2
+// candidates (left/right) - nothing in this engine has needed a
+// rotation concept before. Tries right first, then left.
+const RIGHT_OF_DIR = { N: "E", E: "S", S: "W", W: "N" }
+const LEFT_OF_DIR = { N: "W", W: "S", S: "E", E: "N" }
+// No PRD number given ("voi välttää hyökkäyksen" - MAY avoid, not a
+// guarantee) and no existing percentage-chance number anywhere to
+// reuse (the auto-battler's own `evade` buff is a guaranteed per-stack
+// dodge counter, a different shape) - a clean, easily-explained
+// coinflip, my own stated design call.
+const SIDESTEP_DODGE_CHANCE = 0.5
+
+// Sidestep round: tries the tile to the right of the unit's own facing
+// first, then left, returning the first that's on-board and
+// unoccupied - the same occupancy check Retreat Step's own destination
+// logic already uses, just with a second candidate before giving up.
+function sidestepDestination(state, target) {
+  for (const dir of [RIGHT_OF_DIR[target.facing], LEFT_OF_DIR[target.facing]]) {
+    const delta = DIR_DELTA[dir]
+    const candidate = { row: target.pos.row + delta.dRow, col: target.pos.col + delta.dCol }
+    const occupied = state.units.some((u) => u.id !== target.id && u.hp > 0 && samePos(u.pos, candidate))
+    if (isOnBoard(candidate, state.grid) && !occupied) return candidate
+  }
+  return null
+}
+
 // Classifies an attack against the DEFENDER's own current facing -
 // front/side/back, the PRD's own 3-way split. Only the defender's
 // facing and both units' positions matter (the attacker's own facing
@@ -1683,7 +1720,7 @@ function eligibleGuardian(state, target) {
 
 export function attackUnit(state, actorId, targetId, opts = {}) {
   const actor = getUnit(state, actorId)
-  const target = getUnit(state, targetId)
+  let target = getUnit(state, targetId)
   if (!actor || !target || actor.hp <= 0 || target.hp <= 0) return state
   if (actor.side === target.side) return state
   // Zone of Control round: a reaction attack (opts.isReaction) skips
@@ -1699,6 +1736,26 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   }
   let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
+  // Sidestep round (Movement PRD's own §4.4, "kun vihollinen käyttää
+  // kaukohyökkäystä"): resolved BEFORE facing/damage are computed for
+  // THIS SAME attack, so a genuine reposition can change whether the
+  // attack lands as front/side/back below - not a later narration-only
+  // step. `actor.range > 1` is a ranged attack (rangeFromAttackPattern's
+  // own only 2 outcomes). Weakened reactions' own suppressed status
+  // extends to this new 4th reaction too, same as the other 3.
+  let sidestepNote = ""
+  if (actor.range > 1 && target.nimble && !target.sidestepUsed && !(target.suppressed > 0)) {
+    const destination = sidestepDestination(next, target)
+    if (destination) {
+      next = setUnit(next, targetId, { pos: destination, sidestepUsed: true })
+      target = getUnit(next, targetId)
+      if (deterministicRoll(next.turn, `${targetId}:sidestep`) < SIDESTEP_DODGE_CHANCE) {
+        next = { ...next, log: [...next.log, `${target.name} sidesteps out of the way, avoiding ${actor.name}'s attack completely!`] }
+        return checkTacticsBattleEnd(next)
+      }
+      sidestepNote = ` ${target.name} sidesteps but the attack still connects!`
+    }
+  }
   // Block-weakening/Crit round: facing is computed HERE, before the
   // damage calc, since a side hit's own Block-weaken is a real state
   // mutation that must land before modifiedAttackAmount/Shatter's own
@@ -1755,7 +1812,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // facingMultiplier computes it in the same formula.
   const facingPct = facing !== "front" ? Math.round((facingMultiplier(actor, effectiveTarget, facing) - 1) * 100) : 0
   const facingNote = facing === "side" ? ` (flanked, +${facingPct}%)` : facing === "back" ? ` (from behind, CRITICAL, +${facingPct}%)` : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}${suppressedNote}`] }
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}${suppressedNote}${sidestepNote}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that
   // hit's damage - the real game's debuff step is its own move in the
@@ -2144,6 +2201,7 @@ export function endPlayerTurn(state) {
             slow: Math.max(0, (u.slow || 0) - 1),
             root: Math.max(0, (u.root || 0) - 1),
             retreatStepUsed: false,
+            sidestepUsed: false,
             suppressed: Math.max(0, (u.suppressed || 0) - 1),
           }
         : u,
@@ -2388,6 +2446,7 @@ export function runEnemyTurn(state) {
             slow: Math.max(0, (u.slow || 0) - 1),
             root: Math.max(0, (u.root || 0) - 1),
             retreatStepUsed: false,
+            sidestepUsed: false,
             suppressed: Math.max(0, (u.suppressed || 0) - 1),
           }
         : u,

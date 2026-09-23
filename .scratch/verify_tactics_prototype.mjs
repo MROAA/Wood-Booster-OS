@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5428
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix/.scratch/shots"
+const PORT = process.env.PORT || 5429
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sidestep/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2500,13 +2500,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sidestep", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sidestep", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -7831,6 +7831,390 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.terrainMixAggregateShift = result
   const ok = result.early.total > 0 && result.late.total > 0 && result.late.fraction < result.early.fraction - 0.05
   if (!ok) out.errors.push("check210 Act VII's aggregate forest fraction was not measurably lower than Act I's across many seeds")
+}
+
+// Sidestep round (Movement PRD §4.4): a ranged attack against a nimble,
+// not-yet-reacted, not-suppressed unit repositions it sideways (right-
+// of-facing preferred, then left) BEFORE this same attack's own facing/
+// damage are computed, then rolls deterministicRoll(turn,
+// `${targetId}:sidestep`) < SIDESTEP_DODGE_CHANCE(0.5) to decide
+// whether the attack is fully avoided. Known roll outcomes (hand-
+// computed via deterministicRoll directly, not guessed): for
+// seedText="defender:sidestep", turn=1 rolls 0.8923 (HIT, >= 0.5) and
+// turn=3 rolls 0.3379 (DODGE, < 0.5).
+// ---------------------------------------------------------------
+
+// 211. The core mechanic, both roll outcomes: a ranged attack against
+//      an eligible nimble unit always repositions it and sets
+//      sidestepUsed; turn=3 (known DODGE) avoids the hit entirely
+//      (0 damage, dedicated log line); turn=1 (known HIT) still
+//      connects against the unit's NEW position ---------------------
+{
+  const page211 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page211.on("pageerror", (e) => errs.push(String(e)))
+  await page211.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page211.waitForSelector(".hwt-board")
+  const result = await page211.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (turn) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: true, sidestepUsed: false, suppressed: 0 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    })
+    const dodged = attackUnit(mk(3), "atk", "defender")
+    const defDodged = dodged.units.find((u) => u.id === "defender")
+    const hit = attackUnit(mk(1), "atk", "defender")
+    const defHit = hit.units.find((u) => u.id === "defender")
+    return {
+      dodgedPos: defDodged.pos,
+      dodgedHp: defDodged.hp,
+      dodgedSidestepUsed: defDodged.sidestepUsed,
+      dodgedLogHasAvoid: dodged.log.some((l) => l.includes("avoiding") && l.includes("completely")),
+      hitPos: defHit.pos,
+      hitHp: defHit.hp,
+      hitSidestepUsed: defHit.sidestepUsed,
+      hitLogHasStillConnects: hit.log.some((l) => l.includes("still connects")),
+    }
+  })
+  await page211.close()
+  out.sidestepCoreMechanic = result
+  const ok =
+    result.dodgedPos.row === 3 &&
+    result.dodgedPos.col === 6 &&
+    result.dodgedHp === 100 &&
+    result.dodgedSidestepUsed === true &&
+    result.dodgedLogHasAvoid &&
+    result.hitPos.row === 3 &&
+    result.hitPos.col === 6 &&
+    result.hitHp === 90 &&
+    result.hitSidestepUsed === true &&
+    result.hitLogHasStillConnects
+  if (!ok) out.errors.push("check211 Sidestep did not reposition and/or resolve both dodge outcomes correctly")
+}
+
+// 212. Ranged-only gate: an identical MELEE attack (range===1) against
+//      the same eligible nimble unit does not reposition it at all,
+//      even at a known-DODGE turn value -----------------------------
+{
+  const page212 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page212.on("pageerror", (e) => errs.push(String(e)))
+  await page212.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page212.waitForSelector(".hwt-board")
+  const result = await page212.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn: 3,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: true, sidestepUsed: false, suppressed: 0 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    }
+    const after = attackUnit(state, "atk", "defender")
+    const def = after.units.find((u) => u.id === "defender")
+    return { pos: def.pos, hp: def.hp, sidestepUsed: def.sidestepUsed, logHasSidestep: after.log.some((l) => l.includes("sidestep")) }
+  })
+  await page212.close()
+  out.sidestepRangedOnlyGate = result
+  const ok = result.pos.row === 4 && result.pos.col === 6 && result.hp === 90 && result.sidestepUsed === false && !result.logHasSidestep
+  if (!ok) out.errors.push("check212 Sidestep fired against a melee (range===1) attacker")
+}
+
+// 213. Once-per-round limiter: a second ranged attack the same round
+//      does not reposition again; a real endPlayerTurn cycle resets
+//      sidestepUsed for BOTH sides (same mechanism/precedent as
+//      retreatStepUsed's own check190), and a third qualifying attack
+//      repositions again afterward -----------------------------------
+{
+  const page213 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page213.on("pageerror", (e) => errs.push(String(e)))
+  await page213.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page213.waitForSelector(".hwt-board")
+  const result = await page213.evaluate(async () => {
+    const { attackUnit, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const grid = { rows: 9, cols: 12 }
+    const defender = {
+      id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100,
+      range: 1, attack: 0, ap: 2, apMax: 2, move: 9, block: 0, facing: "W", nimble: true, sidestepUsed: false,
+      suppressed: 0, root: 0, slow: 0, retreatStepUsed: false, cooldownRemaining: 0,
+    }
+    const atk = {
+      id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100,
+      range: 3, attack: 10, ap: 2, apMax: 2, move: 9, block: 0, facing: "E",
+      root: 0, slow: 0, retreatStepUsed: false, cooldownRemaining: 0,
+    }
+    // turn=1 -> known HIT (still connects, but reaction still fires and
+    // consumes the Slot - the point of this check).
+    const state1 = { grid, terrain: {}, phase: "enemy", turn: 1, log: [], units: [defender, atk] }
+    const afterFirst = attackUnit(state1, "atk", "defender")
+    const defAfterFirst = afterFirst.units.find((u) => u.id === "defender")
+
+    const stateForSecond = { ...afterFirst, units: afterFirst.units.map((u) => (u.id === "atk" ? { ...u, ap: u.apMax } : u)) }
+    const afterSecond = attackUnit(stateForSecond, "atk", "defender")
+    const defAfterSecond = afterSecond.units.find((u) => u.id === "defender")
+
+    // Reset via a real endPlayerTurn cascade - the atk's own AI is
+    // neutralized (range:0, move:0, the established "harmless
+    // controller" trick) purely for this one reset call.
+    const stateForReset = {
+      ...afterSecond,
+      phase: "player",
+      units: afterSecond.units.map((u) => (u.id === "atk" ? { ...u, range: 0, move: 0, ap: u.apMax } : u)),
+    }
+    const afterReset = endPlayerTurn(stateForReset)
+    const defAfterReset = afterReset.units.find((u) => u.id === "defender")
+
+    const stateForThird = {
+      ...afterReset,
+      phase: "enemy",
+      units: afterReset.units.map((u) => (u.id === "atk" ? { ...u, range: 3, move: 9, ap: u.apMax } : u)),
+    }
+    const afterThird = attackUnit(stateForThird, "atk", "defender")
+    const defAfterThird = afterThird.units.find((u) => u.id === "defender")
+
+    return {
+      posAfterFirst: defAfterFirst.pos,
+      sidestepUsedAfterFirst: defAfterFirst.sidestepUsed,
+      posAfterSecond: defAfterSecond.pos,
+      sidestepUsedAfterReset: defAfterReset.sidestepUsed,
+      posAfterThird: defAfterThird.pos,
+      sidestepUsedAfterThird: defAfterThird.sidestepUsed,
+    }
+  })
+  await page213.close()
+  out.sidestepOncePerRound = result
+  const samePos = (a, b) => a.row === b.row && a.col === b.col
+  const ok =
+    result.sidestepUsedAfterFirst === true &&
+    samePos(result.posAfterSecond, result.posAfterFirst) &&
+    result.sidestepUsedAfterReset === false &&
+    !samePos(result.posAfterThird, result.posAfterSecond) &&
+    result.sidestepUsedAfterThird === true
+  if (!ok) out.errors.push("check213 Sidestep's once-per-round limiter or its real endPlayerTurn reset did not behave correctly")
+}
+
+// 214. Suppression's own exclusion: an otherwise-eligible nimble unit
+//      that is ALSO currently suppressed does not reposition ---------
+{
+  const page214 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page214.on("pageerror", (e) => errs.push(String(e)))
+  await page214.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page214.waitForSelector(".hwt-board")
+  const result = await page214.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn: 3,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: true, sidestepUsed: false, suppressed: 2 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    }
+    const after = attackUnit(state, "atk", "defender")
+    const def = after.units.find((u) => u.id === "defender")
+    return { pos: def.pos, hp: def.hp, sidestepUsed: def.sidestepUsed, logHasSidestep: after.log.some((l) => l.includes("sidestep")) }
+  })
+  await page214.close()
+  out.sidestepSuppressedExclusion = result
+  const ok = result.pos.row === 4 && result.pos.col === 6 && result.hp === 90 && result.sidestepUsed === false && !result.logHasSidestep
+  if (!ok) out.errors.push("check214 a suppressed nimble unit still sidestepped a ranged attack")
+}
+
+// 215. Direction fallback: right-of-facing blocked -> left-of chosen;
+//      BOTH blocked -> no reposition at all, no Slot spent, no log
+//      line, and damage still resolves against the ORIGINAL position -
+{
+  const page215 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page215.on("pageerror", (e) => errs.push(String(e)))
+  await page215.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page215.waitForSelector(".hwt-board")
+  const result = await page215.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const grid = { rows: 9, cols: 12 }
+    const defender = { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: true, sidestepUsed: false, suppressed: 0 }
+    const atk = { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "E" }
+    // Facing "W": RIGHT_OF_DIR.W="N" -> (3,6); LEFT_OF_DIR.W="S" -> (5,6).
+    const blockerAt = (pos) => ({ id: `wall-${pos.row}-${pos.col}`, side: "player", name: "Wall", pos, hp: 10, maxHp: 10, range: 1, attack: 0, ap: 0, block: 0, facing: "N" })
+    // Right blocked, left open -> left chosen.
+    const stateRightBlocked = { grid, terrain: {}, phase: "enemy", turn: 1, log: [], units: [defender, atk, blockerAt({ row: 3, col: 6 })] }
+    const afterRightBlocked = attackUnit(stateRightBlocked, "atk", "defender")
+    const defRightBlocked = afterRightBlocked.units.find((u) => u.id === "defender")
+    // Both blocked -> no reposition, no Slot spent, no log line.
+    const stateBothBlocked = { grid, terrain: {}, phase: "enemy", turn: 1, log: [], units: [defender, atk, blockerAt({ row: 3, col: 6 }), blockerAt({ row: 5, col: 6 })] }
+    const afterBothBlocked = attackUnit(stateBothBlocked, "atk", "defender")
+    const defBothBlocked = afterBothBlocked.units.find((u) => u.id === "defender")
+    return {
+      rightBlockedPos: defRightBlocked.pos,
+      rightBlockedSidestepUsed: defRightBlocked.sidestepUsed,
+      bothBlockedPos: defBothBlocked.pos,
+      bothBlockedHp: defBothBlocked.hp,
+      bothBlockedSidestepUsed: defBothBlocked.sidestepUsed,
+      bothBlockedLogHasSidestep: afterBothBlocked.log.some((l) => l.includes("sidestep")),
+    }
+  })
+  await page215.close()
+  out.sidestepDirectionFallback = result
+  const ok =
+    result.rightBlockedPos.row === 5 &&
+    result.rightBlockedPos.col === 6 &&
+    result.rightBlockedSidestepUsed === true &&
+    result.bothBlockedPos.row === 4 &&
+    result.bothBlockedPos.col === 6 &&
+    result.bothBlockedHp === 90 &&
+    result.bothBlockedSidestepUsed === false &&
+    !result.bothBlockedLogHasSidestep
+  if (!ok) out.errors.push("check215 Sidestep's direction fallback (right blocked -> left, both blocked -> no-op) did not behave correctly")
+}
+
+// 216. The same-hit facing interaction, directly proven: a geometry
+//      where sidestepping changes THIS SAME attack's own facing
+//      classification (front -> side) on a failed dodge roll, paired
+//      against an identical non-nimble control that stays front -----
+{
+  const page216 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page216.on("pageerror", (e) => errs.push(String(e)))
+  await page216.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page216.waitForSelector(".hwt-board")
+  const result = await page216.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Defender faces "N", attacker due north at distance 1 -> a clean
+    // FRONT hit before any reposition. RIGHT_OF_DIR.N="E" moves the
+    // defender from (4,6) to (4,7); recomputed from the NEW position,
+    // dCol=-1/dRow=-1 is a tie (column wins) -> "W", which is neither
+    // "N" (front) nor "S" (back) for a "N"-facing defender -> SIDE.
+    // turn=1 is a known HIT (defender:sidestep), so this same call's
+    // own damage actually resolves with the NEW facing.
+    const mk = (nimble) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "N", nimble, sidestepUsed: false, suppressed: 0 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 3, col: 6 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "S" },
+      ],
+    })
+    const nimbleResult = attackUnit(mk(true), "atk", "defender")
+    const nonNimbleResult = attackUnit(mk(false), "atk", "defender")
+    return {
+      nimbleLog: nimbleResult.log[nimbleResult.log.length - 1],
+      nonNimbleLog: nonNimbleResult.log[nonNimbleResult.log.length - 1],
+    }
+  })
+  await page216.close()
+  out.sidestepFacingReclassification = result
+  const ok = result.nimbleLog.includes("(flanked") && !result.nonNimbleLog.includes("(flanked") && !result.nonNimbleLog.includes("CRITICAL")
+  if (!ok) out.errors.push("check216 a sidestep reposition did not change this same attack's own facing classification")
+}
+
+// 217. Zero regression, directly proven: an existing non-nimble unit
+//      hit by a ranged attack behaves byte-identically to before this
+//      round (no reposition, no Slot field consumed, normal damage) --
+{
+  const page217 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page217.on("pageerror", (e) => errs.push(String(e)))
+  await page217.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page217.waitForSelector(".hwt-board")
+  const result = await page217.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn: 3,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: false, sidestepUsed: false, suppressed: 0 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    }
+    const after = attackUnit(state, "atk", "defender")
+    const def = after.units.find((u) => u.id === "defender")
+    return { pos: def.pos, hp: def.hp, sidestepUsed: def.sidestepUsed, logHasSidestep: after.log.some((l) => l.includes("sidestep")) }
+  })
+  await page217.close()
+  out.sidestepZeroRegression = result
+  const ok = result.pos.row === 4 && result.pos.col === 6 && result.hp === 90 && result.sidestepUsed === false && !result.logHasSidestep
+  if (!ok) out.errors.push("check217 a non-nimble unit's own hit-by-ranged-attack behavior regressed")
+}
+
+// 218. A real end-to-end example via createTacticsBattle: a real
+//      recruited Galeblade, hit by the real coven-matron's now-ranged
+//      attack, genuinely sidesteps (both roll outcomes, using the SAME
+//      known-turn trick as check211 - the real unit's own id happens
+//      to still resolve through the exact same deterministicRoll seed
+//      text shape, `${targetId}:sidestep`, just with its own real id) -
+{
+  const page218 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page218.on("pageerror", (e) => errs.push(String(e)))
+  await page218.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page218.waitForSelector(".hwt-board")
+  const result = await page218.evaluate(async () => {
+    const { createTacticsBattle, attackUnit, deterministicRoll } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("coven", ["galeblade"])
+    const galeblade = base.units.find((u) => u.defId === "galeblade")
+    const matron = base.units.find((u) => u.defId === "coven-matron")
+    const positioned = {
+      ...base,
+      phase: "enemy",
+      units: base.units.map((u) =>
+        u.id === galeblade.id
+          ? { ...u, pos: { row: 4, col: 6 }, facing: "W", hp: u.maxHp }
+          : u.id === matron.id
+            ? { ...u, pos: { row: 4, col: 4 }, ap: u.apMax }
+            : u,
+      ),
+    }
+    // Find a turn value where THIS real unit's own id rolls under 0.5
+    // (dodge) and one where it rolls over (hit) - computed directly,
+    // not guessed, since the real id differs from the synthetic tests.
+    let dodgeTurn = null
+    let hitTurn = null
+    for (let t = 1; t <= 200 && (dodgeTurn === null || hitTurn === null); t++) {
+      const roll = deterministicRoll(t, `${galeblade.id}:sidestep`)
+      if (dodgeTurn === null && roll < 0.5) dodgeTurn = t
+      if (hitTurn === null && roll >= 0.5) hitTurn = t
+    }
+    const dodged = attackUnit({ ...positioned, turn: dodgeTurn }, matron.id, galeblade.id)
+    const gbDodged = dodged.units.find((u) => u.id === galeblade.id)
+    const hit = attackUnit({ ...positioned, turn: hitTurn }, matron.id, galeblade.id)
+    const gbHit = hit.units.find((u) => u.id === galeblade.id)
+    return {
+      matronRange: matron.range,
+      gbDodgedPos: gbDodged.pos,
+      gbDodgedHpLoss: gbDodged.maxHp - gbDodged.hp,
+      gbDodgedLog: dodged.log[dodged.log.length - 1],
+      gbHitPos: gbHit.pos,
+      gbHitHpLoss: gbHit.maxHp - gbHit.hp,
+      gbHitSidestepUsed: gbHit.sidestepUsed,
+    }
+  })
+  await page218.close()
+  out.sidestepRealGaleblade = result
+  const ok =
+    result.matronRange === 3 &&
+    result.gbDodgedPos.row === 3 &&
+    result.gbDodgedPos.col === 6 &&
+    result.gbDodgedHpLoss === 0 &&
+    result.gbDodgedLog.includes("avoiding") &&
+    result.gbHitPos.row === 3 &&
+    result.gbHitPos.col === 6 &&
+    result.gbHitHpLoss > 0 &&
+    result.gbHitSidestepUsed === true
+  if (!ok) out.errors.push("check218 a real Galeblade did not genuinely sidestep the real coven-matron's now-ranged attack")
 }
 
 console.log(JSON.stringify(out, null, 2))
