@@ -29,7 +29,7 @@ import { mkdir } from "node:fs/promises"
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
 const PORT = process.env.PORT || 5429
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spirit-shift/.scratch/shots"
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-active-power/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2079,6 +2079,38 @@ function newPage() {
     r.wolfHpAfter < setup.wolfMaxHp &&
     r.logHasShift
   if (!ok) out.errors.push("check38 a real Beastcaller did not Spirit Shift with its real Spirit Wolf against the real coven-matron's strike")
+}
+
+// 39. Commander Active Power in a REAL run fight: the run's own real
+//     Commander (tommy, seeded) shows its real power in the panel; a
+//     click fires it, the saved battle records it used, and the real
+//     squad's attack rose by Opening Strike's real +2 --------------------
+{
+  const page39 = await newPage()
+  page39.on("pageerror", (e) => errs.push(String(e)))
+  await page39.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page39, (n) => n.type === "battle", ["the-fool"])
+  await page39.reload({ waitUntil: "domcontentloaded" })
+  await page39.waitForTimeout(400)
+  await page39.locator(".hw-tactics-fight-btn").click()
+  await page39.waitForTimeout(400)
+  const btnText = await page39.locator(".hwt-power-btn").innerText()
+  const before = await page39.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  await page39.locator(".hwt-power-btn").click()
+  await page39.waitForTimeout(500)
+  const after = await page39.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  await page39.screenshot({ path: `${SHOT}/real_fight_active_power.png` })
+  await page39.close()
+  const fool = (b) => b.units.find((u) => u.defId === "the-fool")
+  out.realFightActivePower = {
+    btnText,
+    usedBefore: before.activePower?.used,
+    usedAfter: after.activePower?.used,
+    attackDelta: fool(after).attack - fool(before).attack,
+  }
+  const r = out.realFightActivePower
+  const ok = r.btnText.includes("Opening Strike") && r.usedBefore === false && r.usedAfter === true && r.attackDelta === 2
+  if (!ok) out.errors.push("check39 a real run fight's Commander Active Power did not fire and persist correctly")
 }
 
 console.log(JSON.stringify(out, null, 2))

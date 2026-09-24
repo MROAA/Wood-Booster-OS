@@ -510,7 +510,13 @@ function applyPortableEffect(state, unitId, effect) {
   if (effect.type === "applyBuff" && effect.id === "strength") {
     return setUnit(state, unitId, { attack: unit.attack + (effect.amount || 0) })
   }
-  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak", "bulwark", "regen", "taunt"].includes(effect.id)) {
+  // Active Power round: ward/vulnerable join the list - 4 of the 7 real
+  // Commander Active Powers (Brace/Stonewall/Grovecall's Ward,
+  // Blightcall's Vulnerable) need them. No enemy passive/phase/trigger
+  // routes either id through here today (Deepwarden's own passive Ward
+  // goes through passiveStatsFromDef, which still ignores it), so this
+  // changes nothing about any existing fight.
+  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak", "bulwark", "regen", "taunt", "ward", "vulnerable"].includes(effect.id)) {
     return setUnit(state, unitId, { [effect.id]: (unit[effect.id] || 0) + (effect.amount || 0) })
   }
   if (effect.type === "block") {
@@ -757,6 +763,50 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
 // own `haste` field already reads straight off `def.haste`, so Tommy's
 // real Haste kit flows through automatically with no change needed
 // here - Squad Passive/Active Power remain the named deferrals).
+// Active Power round: the Commander's REAL activePower (characters.js -
+// Opening Strike, Rally Cry, Blood Oath, Brace, Blightcall, Stonewall,
+// Grovecall), the same effects array the auto-battler queues from the
+// shop, becomes an in-battle, player-triggered "hero power" here: once
+// per battle, costs the Commander 1 AP, applied to every LIVING player
+// unit for the rest of the fight. When to fire it is the decision. The
+// shop's own Essence-bought "next battle only" version is untouched.
+function activePowerFor(character) {
+  const power = character?.activePower
+  if (!power) return null
+  return {
+    id: power.id,
+    name: power.name,
+    // The real description is written for the shop ("Next battle only:
+    // ...") - the in-battle panel shows just the effect half.
+    description: power.description.replace(/^Next battle only:\s*(.)/i, (_, first) => first.toUpperCase()),
+    effects: power.effects,
+    used: false,
+    firedTurn: null,
+  }
+}
+
+export function activateCommanderPower(state) {
+  const power = state.activePower
+  const commander = getUnit(state, "player-commander")
+  if (!power || power.used || state.phase !== "player") return state
+  if (!commander || commander.hp <= 0 || commander.ap < 1) return state
+  let next = setUnit(state, commander.id, { ap: commander.ap - 1 })
+  for (const unit of next.units) {
+    if (unit.side !== "player" || unit.hp <= 0) continue
+    for (const effect of power.effects) {
+      next =
+        effect.type === "addTrigger"
+          ? setUnit(next, unit.id, { triggers: [...(getUnit(next, unit.id).triggers || []), { trigger: effect.trigger, effect: effect.effect }] })
+          : applyPortableEffect(next, unit.id, effect)
+    }
+  }
+  return {
+    ...next,
+    activePower: { ...power, used: true, firedTurn: state.turn },
+    log: [...next.log, `${commander.name} calls ${power.name}! ${power.description}`],
+  }
+}
+
 function deriveCommanderUnit(characterId, pos, uid) {
   return deriveTacticsUnit(`commander-${characterId}`, "player", pos, uid, CHARACTERS[characterId])
 }
@@ -825,6 +875,7 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
     // nothing about WHERE those badges keep coming from goes unnarrated.
     log: [commander.description, `${formation.name}. The Frontier opens. Your turn.`],
     formationId: formation.id,
+    activePower: activePowerFor(commander),
   }
 }
 
@@ -928,6 +979,7 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = 
       ? [character.description, "A real matchup from your run. The Frontier opens. Your turn."]
       : ["A real matchup from your run. The Frontier opens. Your turn."],
     formationId: null,
+    activePower: activePowerFor(character),
   }
 }
 
@@ -1470,6 +1522,10 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   let amount = baseAmount
   if (attacker.woundedFury > 0 && attacker.hp < attacker.maxHp * 0.5) amount += 3
   if (attacker.weak > 0) amount = Math.floor(amount * 0.75)
+  // Active Power round: effects.js's own Vulnerable - the defensive
+  // mirror of Weak, +25% damage TAKEN (rounded down), applied at the
+  // same point in the chain. Permanent here, same as this engine's Weak.
+  if (defender.vulnerable > 0) amount = Math.floor(amount * 1.25)
   const facing = classifyFacingAttack(attacker, defender)
   if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
@@ -1493,6 +1549,21 @@ const RETREAT_STEP_HP_THRESHOLD_PCT = 0.25
 // and reset every round" behavior never applies to it).
 function applyDamageWithBlock(state, targetId, amount) {
   const target = getUnit(state, targetId)
+  // Active Power round: effects.js's own Ward - one stack cancels the
+  // ENTIRE next hit, whatever its size, before Block/Bulwark/Revive are
+  // ever consulted (the real dealDamage's own ordering). Only spent on a
+  // hit that would actually deal something.
+  if (amount > 0 && target.ward > 0) {
+    const next = setUnit(state, targetId, { ward: target.ward - 1 })
+    return {
+      next: { ...next, log: [...next.log, `${target.name}'s Ward absorbs the hit completely.`] },
+      absorbed: 0,
+      armourUsed: 0,
+      remaining: 0,
+      fell: false,
+      revived: false,
+    }
+  }
   const armour = target.bulwark || 0
   const totalAbsorb = Math.min(target.block + armour, amount)
   const blockSpent = Math.min(target.block, totalAbsorb)
@@ -2194,6 +2265,7 @@ function describePortableEffect(effect) {
   if (effect.type === "applyBuff" && effect.id === "strength") return "grows stronger"
   if (effect.type === "applyBuff" && effect.id === "weak") return "leaves the wound raw"
   if (effect.type === "applyBuff" && effect.id === "bulwark") return "hardens its armour"
+  if (effect.type === "applyBuff" && effect.id === "vulnerable") return "leaves the target exposed"
   if (effect.type === "block") return "braces for the next blow"
   if (effect.type === "heal") return "steadies itself"
   return "stirs"

@@ -135,7 +135,7 @@ import { mkdir } from "node:fs/promises"
 // the actual rendered UI exactly the way Marc would click through it.
 
 const PORT = process.env.PORT || 5429
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spirit-shift/.scratch/shots"
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-active-power/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2499,13 +2499,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spirit-shift", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-active-power", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spirit-shift", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-active-power", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -3564,7 +3564,10 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.attackAfterSecond === result.attackBaseline + 2 &&
     result.attackAfterThird === result.attackBaseline + 2 + 3 &&
     result.executeAfterThird === 2 &&
-    result.wardAfterThird === undefined
+    // Active Power round: Ward is now a real stat in this engine, so the
+    // boss's real 30% phase Ward (enemies.js, amount 2) finally lands -
+    // was a deliberate no-op (asserted undefined) before that round.
+    result.wardAfterThird === 2
   if (!ok) out.errors.push("check100 Spacemonkey's 2 real phases did not both fire correctly in sequence")
 }
 
@@ -8458,6 +8461,183 @@ const SPIRIT_SHIFT_FIXTURE = `
     result.rosterHasBeastcaller && result.previewBound === true &&
     result.realStrike.bcHpLoss === 0 && result.realStrike.wolfHpLoss > 0 && result.realStrike.bcAtWolfOld
   if (!ok) out.errors.push("check225 Beastcaller's real Spirit Wolf did not spawn correctly in both battle builders, or a real strike did not trigger Spirit Shift")
+}
+
+// ---- Commander Active Power round -----------------------------------
+// 226. Ward (effects.js's own): one stack cancels the ENTIRE next hit,
+//      then is spent - the second hit lands normally ----------------
+{
+  const page226 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page226.on("pageerror", (e) => errs.push(String(e)))
+  await page226.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page226.waitForSelector(".hwt-board")
+  const result = await page226.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 }, terrain: {}, phase: "enemy", turn: 3, log: [],
+      units: [
+        { id: "def", side: "player", name: "Def", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 3, facing: "W", ward: 1 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    }
+    const first = attackUnit(state, "atk", "def")
+    const second = attackUnit({ ...first, units: first.units.map((u) => (u.id === "atk" ? { ...u, ap: 2 } : u)) }, "atk", "def")
+    const d1 = first.units.find((u) => u.id === "def")
+    const d2 = second.units.find((u) => u.id === "def")
+    return { hp1: d1.hp, ward1: d1.ward, block1: d1.block, wardLog: first.log.some((l) => l.includes("Ward absorbs the hit completely")), hp2: d2.hp }
+  })
+  await page226.close()
+  out.activePowerWard = result
+  // Block untouched by the warded hit; second hit: 10 - 3 Block = 7.
+  const ok = result.hp1 === 100 && result.ward1 === 0 && result.block1 === 3 && result.wardLog && result.hp2 === 93
+  if (!ok) out.errors.push("check226 Ward did not cancel exactly one whole hit before Block")
+}
+
+// 227. Vulnerable (effects.js's own): +25% damage TAKEN, rounded down ---
+{
+  const page227 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page227.on("pageerror", (e) => errs.push(String(e)))
+  await page227.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page227.waitForSelector(".hwt-board")
+  const result = await page227.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (vulnerable) => ({
+      grid: { rows: 9, cols: 12 }, terrain: {}, phase: "player", turn: 3, log: [],
+      units: [
+        { id: "atk", side: "player", name: "Atk", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "W" },
+        { id: "def", side: "enemy", name: "Def", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "E", vulnerable },
+      ],
+    })
+    const hpAfter = (s) => attackUnit(s, "atk", "def").units.find((u) => u.id === "def").hp
+    return { vuln: hpAfter(mk(1)), plain: hpAfter(mk(0)) }
+  })
+  await page227.close()
+  out.activePowerVulnerable = result
+  const ok = result.vuln === 88 && result.plain === 90
+  if (!ok) out.errors.push("check227 Vulnerable did not add exactly +25% (rounded down) damage taken")
+}
+
+// 228. activateCommanderPower on the prototype's real Tommy: Opening
+//      Strike's real +2 Strength to every LIVING player unit (a fallen
+//      one untouched, enemies untouched), 1 Commander AP spent, marked
+//      used + firedTurn, narrated; then every guard is a no-op: a
+//      second use, the enemy phase, a Commander with 0 AP or fallen --
+{
+  const page228 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page228.on("pageerror", (e) => errs.push(String(e)))
+  await page228.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page228.waitForSelector(".hwt-board")
+  const result = await page228.evaluate(async () => {
+    const { createTacticsBattle, activateCommanderPower } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("default")
+    const fallenId = base.units.find((u) => u.side === "player" && u.id !== "player-commander").id
+    const start = { ...base, units: base.units.map((u) => (u.id === fallenId ? { ...u, hp: 0 } : u)) }
+    const after = activateCommanderPower(start)
+    const delta = (id) => after.units.find((u) => u.id === id).attack - start.units.find((u) => u.id === id).attack
+    const livingPlayers = start.units.filter((u) => u.side === "player" && u.hp > 0)
+    const cmdBefore = start.units.find((u) => u.id === "player-commander")
+    const cmdAfter = after.units.find((u) => u.id === "player-commander")
+    const withCmd = (s, patch) => ({ ...s, units: s.units.map((u) => (u.id === "player-commander" ? { ...u, ...patch } : u)) })
+    return {
+      power: base.activePower,
+      livingDeltas: livingPlayers.map((u) => delta(u.id)),
+      fallenDelta: delta(fallenId),
+      enemyDeltas: start.units.filter((u) => u.side === "enemy").map((u) => delta(u.id)),
+      apSpent: cmdBefore.ap - cmdAfter.ap,
+      used: after.activePower.used,
+      firedTurn: after.activePower.firedTurn,
+      log: after.log[after.log.length - 1],
+      secondNoop: activateCommanderPower(after) === after,
+      enemyPhaseNoop: (() => { const s = { ...start, phase: "enemy" }; return activateCommanderPower(s) === s })(),
+      noApNoop: (() => { const s = withCmd(start, { ap: 0 }); return activateCommanderPower(s) === s })(),
+      fallenCmdNoop: (() => { const s = withCmd(start, { hp: 0 }); return activateCommanderPower(s) === s })(),
+    }
+  })
+  await page228.close()
+  out.activePowerTommy = result
+  const ok =
+    result.power && result.power.name === "Opening Strike" && result.power.used === false && !/next battle only/i.test(result.power.description) &&
+    result.livingDeltas.length > 0 && result.livingDeltas.every((d) => d === 2) &&
+    result.fallenDelta === 0 && result.enemyDeltas.every((d) => d === 0) &&
+    result.apSpent === 1 && result.used === true && result.firedTurn === 1 &&
+    result.log.includes("Tommy calls Opening Strike!") &&
+    result.secondNoop && result.enemyPhaseNoop && result.noApNoop && result.fallenCmdNoop
+  if (!ok) out.errors.push("check228 activateCommanderPower did not apply Opening Strike correctly or a guard failed")
+}
+
+// 229. Every real Commander: createRealMatchupBattle carries that
+//      character's OWN real activePower, and firing it lands every one
+//      of its real effects on a squad unit (read generically off
+//      characters.js, not hand-listed) - no id silently no-ops. A
+//      matchup with no Commander has no power at all --------------------
+{
+  const page229 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page229.on("pageerror", (e) => errs.push(String(e)))
+  await page229.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page229.waitForSelector(".hwt-board")
+  const result = await page229.evaluate(async () => {
+    const { createRealMatchupBattle, activateCommanderPower } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { CHARACTERS } = await import("/src/data/heartwood/characters.js")
+    const per = {}
+    for (const [cid, character] of Object.entries(CHARACTERS)) {
+      if (!character.activePower) continue
+      const battle = createRealMatchupBattle(["the-fool"], ["bog-devotee"], cid, 0)
+      const after = activateCommanderPower(battle)
+      const before = battle.units.find((u) => u.defId === "the-fool")
+      const unit = after.units.find((u) => u.defId === "the-fool")
+      const missing = []
+      let triggerAdds = 0
+      for (const e of character.activePower.effects) {
+        if (e.type === "addTrigger") { triggerAdds++; continue }
+        if (e.type === "applyBuff" && e.id === "strength") { if (unit.attack - before.attack < e.amount) missing.push("strength"); continue }
+        if (e.type === "applyBuff") { if ((unit[e.id] || 0) - (before[e.id] || 0) !== e.amount) missing.push(e.id); continue }
+        missing.push(e.type)
+      }
+      const triggersOk = (unit.triggers || []).length - (before.triggers || []).length === triggerAdds
+      per[cid] = { name: battle.activePower?.name, expectedName: character.activePower.name, used: after.activePower?.used, missing, triggersOk }
+    }
+    const none = createRealMatchupBattle(["the-fool"], ["bog-devotee"])
+    return { per, noCommanderPower: none.activePower, noCommanderNoop: activateCommanderPower(none) === none }
+  })
+  await page229.close()
+  out.activePowerAllCommanders = result
+  const entries = Object.values(result.per)
+  const ok =
+    entries.length >= 7 &&
+    entries.every((r) => r.name === r.expectedName && r.used === true && r.missing.length === 0 && r.triggersOk) &&
+    result.noCommanderPower === null && result.noCommanderNoop
+  if (!ok) out.errors.push("check229 a real Commander's Active Power was missing or one of its real effects did not land")
+}
+
+// 230. The prototype page's real UI: the gold ♛ panel shows Opening
+//      Strike, a click fires it (every living player token surges,
+//      the button disables, status reads "Used this battle", the log
+//      narrates it) --------------------------------------------------
+{
+  const page230 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page230.on("pageerror", (e) => errs.push(String(e)))
+  await page230.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page230.waitForSelector(".hwt-board")
+  const btnText = await page230.locator(".hwt-power-btn").innerText()
+  const enabledBefore = await page230.locator(".hwt-power-btn").isEnabled()
+  await page230.locator(".hwt-power-btn").click()
+  await page230.waitForTimeout(300)
+  await page230.screenshot({ path: `${SHOT}/active_power_fired.png` })
+  const result = {
+    btnText,
+    enabledBefore,
+    enabledAfter: await page230.locator(".hwt-power-btn").isEnabled(),
+    status: await page230.locator(".hwt-power-status").innerText(),
+    surging: await page230.locator('.hwt-token[data-power-surge="true"]').count(),
+    playerTokens: await page230.locator('.hwt-token[data-side="player"]').count(),
+    logHas: (await page230.locator(".hwt-log").innerText()).includes("calls Opening Strike"),
+  }
+  await page230.close()
+  out.activePowerUi = result
+  const ok =
+    result.btnText.includes("Opening Strike") && result.enabledBefore && !result.enabledAfter &&
+    result.status === "Used this battle" && result.surging > 0 && result.surging === result.playerTokens && result.logHas
+  if (!ok) out.errors.push("check230 the Active Power panel did not render/fire correctly on the prototype page")
 }
 
 console.log(JSON.stringify(out, null, 2))
