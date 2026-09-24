@@ -339,6 +339,64 @@
 @media (prefers-reduced-motion: reduce) {
   .hwt-token[data-spirit="true"] { animation: none; }
 }
+/* Active Power round: the Commander's once-per-battle hero power - a
+   warm gold panel under End Turn, plus a one-shot gold surge across the
+   whole squad the turn it fires. */
+.hwt-power-panel {
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-ember) 10%, var(--hw-card));
+}
+.hwt-power-panel[data-used="true"] {
+  opacity: 0.55;
+  border-color: var(--hw-border);
+  background: var(--hw-card);
+}
+.hwt-power-btn {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--hw-ember);
+  background: color-mix(in srgb, var(--hw-ember) 28%, var(--hw-card));
+  color: var(--hw-text);
+  font-family: var(--hw-font);
+  font-weight: 600;
+  cursor: pointer;
+}
+.hwt-power-btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--hw-ember) 42%, var(--hw-card));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+}
+.hwt-power-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.hwt-power-crown {
+  color: var(--hw-ember);
+}
+.hwt-power-desc {
+  margin: 6px 0 2px;
+  font-size: 12px;
+  color: var(--hw-text);
+}
+.hwt-power-status {
+  margin: 0;
+  font-size: 11px;
+  color: var(--hw-muted);
+}
+.hwt-token[data-power-surge="true"] {
+  animation: hwt-power-surge 1.2s ease-out 1;
+}
+@keyframes hwt-power-surge {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-ember) 0%, transparent); }
+  30% { box-shadow: 0 0 16px 4px color-mix(in srgb, var(--hw-ember) 75%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-ember) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwt-token[data-power-surge="true"] { animation: none; }
+}
 .hwt-haste-badge {
   font-size: 8px;
   color: var(--hw-gale);
