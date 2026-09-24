@@ -29,7 +29,7 @@ import { mkdir } from "node:fs/promises"
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
 const PORT = process.env.PORT || 5429
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sidestep/.scratch/shots"
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spirit-shift/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2006,6 +2006,79 @@ function newPage() {
   const moved = galebladeAfter && (galebladeAfter.pos.row !== setup.posBefore.row || galebladeAfter.pos.col !== setup.posBefore.col)
   const ok = setup.matronRange === 3 && moved && (out.realFightSidestep.logHasAvoided || out.realFightSidestep.logHasStillConnects)
   if (!ok) out.errors.push("check37 a real recruited Galeblade did not genuinely sidestep the real coven-matron's now-ranged attack")
+}
+
+// 38. Spirit Shift: a real recruited Beastcaller brings its real Spirit
+//     Wolf into a real "the-conclave" fight (spawned by
+//     createRealMatchupBattle itself, not seeded), and when the real
+//     coven-matron's AI strikes the Beastcaller on a real End Turn, the
+//     two swap places and the wolf takes the blow - the Beastcaller ends
+//     the round untouched. The wolf starts 4 tiles from the matron (out
+//     of her range 3) so the Beastcaller is her only legal first target;
+//     the other 2 enemies are hp-zeroed, the other player units parked
+//     far away (same "neutralize every other participant" pattern as
+//     check37). Also confirms the board renders the ⇄ badge and the
+//     translucent spirit token ------------------------------------------
+{
+  const page38 = await newPage()
+  page38.on("pageerror", (e) => errs.push(String(e)))
+  await page38.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page38, (n) => n.formationId === "the-conclave", ["beastcaller"])
+  await page38.reload({ waitUntil: "domcontentloaded" })
+  await page38.waitForTimeout(400)
+  await page38.locator(".hw-tactics-fight-btn").click()
+  await page38.waitForTimeout(400)
+  const badgeCount = await page38.locator(".hwt-spiritshift-badge").count()
+  const spiritTokenCount = await page38.locator('.hwt-token[data-spirit="true"]').count()
+  const setup = await page38.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const bc = battle.units.find((u) => u.defId === "beastcaller")
+    const wolf = battle.units.find((u) => u.defId === "spirit-wolf")
+    const matron = battle.units.find((u) => u.defId === "coven-matron")
+    if (!bc || !wolf || !matron) return { missing: true, spawnedWolf: !!wolf }
+    let parkRow = 0
+    battle.units = battle.units.map((u) => {
+      if (u.id === bc.id) return { ...u, pos: { row: 4, col: 6 }, facing: "W", hp: u.maxHp }
+      if (u.id === wolf.id) return { ...u, pos: { row: 4, col: 8 }, hp: u.maxHp }
+      if (u.id === matron.id) return { ...u, pos: { row: 4, col: 4 }, hp: u.maxHp, ap: u.apMax }
+      if (u.side === "enemy") return { ...u, hp: 0 }
+      return { ...u, pos: { row: parkRow++, col: 11 } }
+    })
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { bcName: bc.name, wolfName: wolf.name, wolfMaxHp: wolf.maxHp, bcMaxHp: bc.maxHp, matronRange: matron.range }
+  })
+  await page38.reload({ waitUntil: "domcontentloaded" })
+  await page38.waitForTimeout(400)
+  await page38.locator(".hwt-end-turn").click()
+  await page38.waitForTimeout(700)
+  const logText = await page38.locator(".hwt-log").innerText()
+  const afterBattle = await page38.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
+  const bcAfter = afterBattle.units.find((u) => u.defId === "beastcaller")
+  const wolfAfter = afterBattle.units.find((u) => u.defId === "spirit-wolf")
+  await page38.screenshot({ path: `${SHOT}/real_fight_spirit_shift.png` })
+  await page38.close()
+  out.realFightSpiritShift = {
+    setup,
+    badgeCount,
+    spiritTokenCount,
+    bcPosAfter: bcAfter?.pos,
+    bcHpAfter: bcAfter?.hp,
+    wolfPosAfter: wolfAfter?.pos,
+    wolfHpAfter: wolfAfter?.hp,
+    logHasShift: logText.includes("shifts places with"),
+  }
+  const r = out.realFightSpiritShift
+  const ok =
+    !setup.missing &&
+    badgeCount === 1 &&
+    spiritTokenCount === 1 &&
+    r.bcHpAfter === setup.bcMaxHp &&
+    r.bcPosAfter?.row === 4 && r.bcPosAfter?.col === 8 &&
+    r.wolfHpAfter < setup.wolfMaxHp &&
+    r.logHasShift
+  if (!ok) out.errors.push("check38 a real Beastcaller did not Spirit Shift with its real Spirit Wolf against the real coven-matron's strike")
 }
 
 console.log(JSON.stringify(out, null, 2))

@@ -277,6 +277,11 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // or galeblade's/windveil's own nimble:true below would silently
     // never reach deriveTacticsUnit at all.
     nimble: !!opts.nimble,
+    // Spirit Shift round (Hearthwood Frontier, tacticsEngine.js only):
+    // same reasoning as frosty/wary/nimble above - needs its own explicit
+    // line or beastcaller's own spiritbound:true below would silently
+    // never reach deriveTacticsUnit at all.
+    spiritbound: !!opts.spiritbound,
     // Spore Spread: when this unit's own debuff step applies Poison,
     // the same stack also seeds onto a different living enemy - see
     // autoBattleEngine.js's actSide.
@@ -1020,6 +1025,10 @@ const BASE_UNITS = {
     { type: "attack", amount: 5 },
   ], {
     summon: { defId: "spirit-wolf" },
+    // Spirit Shift (Movement PRD §4.4, tacticsEngine.js only): the
+    // Frontier's Spiritwalker reaction - swaps places with its own
+    // nearby Spirit Wolf when attacked, the spirit taking the blow.
+    spiritbound: true,
     // Guild Identity v1: Beastcaller (Pets/Nature) - id/name match; the
     // ability that calls a Spirit Wolf into the fight is literally
     // Marc's Pets/Nature class already, no reinterpretation needed.

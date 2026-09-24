@@ -313,6 +313,32 @@
   font-size: 8px;
   color: var(--hw-ember);
 }
+/* Spirit Shift round: the Spiritwalker's swap-ready marker, dimmed once
+   the once-per-round swap is spent - and the spirit itself reads as a
+   translucent, softly glowing presence rather than a solid body, so the
+   "henki" it can trade places with is recognizable at a glance. */
+.hwt-spiritshift-badge {
+  font-size: 8px;
+  color: var(--hw-gale);
+  text-shadow: 0 0 4px color-mix(in srgb, var(--hw-gale) 70%, transparent);
+}
+.hwt-spiritshift-badge[data-used="true"] {
+  opacity: 0.35;
+  text-shadow: none;
+}
+.hwt-token[data-spirit="true"] {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--hw-gale) 65%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-gale) 14%, var(--hw-card));
+  animation: hwt-spirit-shimmer 2.8s ease-in-out infinite;
+}
+@keyframes hwt-spirit-shimmer {
+  0%, 100% { box-shadow: 0 0 4px color-mix(in srgb, var(--hw-gale) 30%, transparent); }
+  50% { box-shadow: 0 0 10px color-mix(in srgb, var(--hw-gale) 55%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwt-token[data-spirit="true"] { animation: none; }
+}
 .hwt-haste-badge {
   font-size: 8px;
   color: var(--hw-gale);

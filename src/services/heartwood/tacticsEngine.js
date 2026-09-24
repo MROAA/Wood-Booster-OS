@@ -148,7 +148,10 @@ const PLAYER_DEF_IDS = ["bulwark-of-ages", "the-fool", "hexbreaker", "oathshield
 // The full 6-unit pool the sidebar squad picker offers - PLAYER_DEF_IDS
 // (now 4 recruited defaults) plus 2 more swappable alternatives from a
 // later roster-expansion round.
-export const PLAYER_ROSTER_IDS = [...PLAYER_DEF_IDS, "willowmend", "bramble-sweep"]
+// Spirit Shift round: beastcaller (real units.js content, the
+// Frontier's Spiritwalker) joins as a 7th option - no ability of its
+// own, its whole identity is the Spirit Wolf it brings and the swap.
+export const PLAYER_ROSTER_IDS = [...PLAYER_DEF_IDS, "willowmend", "bramble-sweep", "beastcaller"]
 
 // The Commander (real 5th unit in the auto-battler, characters.js/
 // autoBattleEngine.js's own COMMANDER_POSITION) - deployed ALONGSIDE the 4
@@ -674,6 +677,13 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // carry this today - they already have the auto-battler's own real
     // "dodges the first blow each round" evade passive.
     nimble: !!def.nimble,
+    // Spirit Shift round: a sixth new portable trait, same shape as
+    // nimble. Only beastcaller (units.js) carries this today.
+    spiritbound: !!def.spiritbound,
+    // Spirit Shift round: a summoned creature (units.js's own
+    // summonOnly - only the Spirit Wolf today) IS the "henki" the PRD
+    // names - read straight off the def, no new authoring needed.
+    isSpirit: side === "player" && !!def.summonOnly,
     triggers,
     phases,
     phaseIndex: 0,
@@ -704,6 +714,8 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // retreatStepUsed's own exact once-per-round boolean shape rather
     // than inventing a new resource pool.
     sidestepUsed: false,
+    // Spirit Shift round: same once-per-round boolean shape again.
+    spiritShiftUsed: false,
     // Weakened reactions round (Facing PRD's own "puolustajan
     // reaktioiden heikennys" back-hit line): a THIRD duration-based
     // status, reusing slow/root's exact mechanism - never in a base
@@ -771,6 +783,7 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
       deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
+  spawnBattleStartSummons(units, GRID)
   // The Commander's real Squad Passive (characters.js) - applied to
   // EVERY player unit before any battle-start snapshot is taken, the
   // same "battle-start bonus, no growth badge" treatment the formation
@@ -812,6 +825,25 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
     // nothing about WHERE those badges keep coming from goes unnarrated.
     log: [commander.description, `${formation.name}. The Frontier opens. Your turn.`],
     formationId: formation.id,
+  }
+}
+
+// Spirit Shift round: units.js's own real `summon` field (Beastcaller's
+// Spirit Wolf) finally reaches the Frontier - the auto-battler's own
+// startAutoBattle already spawns it; this is the tactics mirror. The
+// summon lands on the nearest free cell to its summoner (freeCellsNear,
+// the same helper Brood's hatchlings use), so it always starts inside
+// Spirit Shift's own range. Mutates `units` in place (called right after
+// the array literal, before any Squad Passive/baseline pass, so the
+// spirit is a normal squad member for every later step).
+function spawnBattleStartSummons(units, grid) {
+  const summoners = units.filter((u) => u.side === "player" && UNITS[u.defId]?.summon)
+  for (const summoner of summoners) {
+    const { defId } = UNITS[summoner.defId].summon
+    if (!UNITS[defId]) continue
+    const [pos] = freeCellsNear({ units, grid }, summoner.pos, 1)
+    if (!pos) continue
+    units.push(deriveTacticsUnit(defId, "player", pos, `${summoner.id}-summon-${defId}`))
   }
 }
 
@@ -869,6 +901,7 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = 
       deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
+  spawnBattleStartSummons(units, GRID)
   // The real Commander's real Squad Passive, rank-scaled by the run's
   // OWN real commanderRank (unlike createTacticsBattle's own always-
   // rank-0 default) - applied before the baseAttack snapshot, same
@@ -1718,6 +1751,27 @@ function eligibleGuardian(state, target) {
   )
 }
 
+// Spirit Shift (Movement PRD §4.4): "Spiritwalker voi vaihtaa paikkaa
+// lähellä olevan hengen kanssa." A spiritbound unit attacked during the
+// OTHER side's own phase (so never a Zone of Control reaction strike on
+// its own move) swaps places with the nearest living allied spirit
+// within SPIRIT_SHIFT_RANGE, and the spirit takes the blow in its place.
+// Deterministic, unlike Sidestep's coinflip - the cost is the spirit's
+// own HP, and it's once per round (same boolean Slot shape as Sidestep).
+// "lähellä" has no PRD number - 2 tiles is my own stated design call,
+// wide enough to matter, close enough that positioning still counts.
+const SPIRIT_SHIFT_RANGE = 2
+
+function eligibleSpirit(state, target) {
+  if (!target.spiritbound || target.spiritShiftUsed || target.suppressed > 0) return null
+  if (state.phase === target.side) return null
+  const spirits = state.units.filter(
+    (u) => u.side === target.side && u.id !== target.id && u.hp > 0 && u.isSpirit && chebyshevDist(u.pos, target.pos) <= SPIRIT_SHIFT_RANGE,
+  )
+  spirits.sort((a, b) => chebyshevDist(a.pos, target.pos) - chebyshevDist(b.pos, target.pos))
+  return spirits[0] || null
+}
+
 export function attackUnit(state, actorId, targetId, opts = {}) {
   const actor = getUnit(state, actorId)
   let target = getUnit(state, targetId)
@@ -1736,6 +1790,17 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   }
   let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
+  // Spirit Shift round: resolved FIRST, before Sidestep/facing/damage -
+  // the swap changes WHO is hit, so every later step (facing, Guardian,
+  // Retreat Step, poison) then runs against the spirit naturally.
+  const spirit = eligibleSpirit(next, target)
+  if (spirit) {
+    next = setUnit(next, targetId, { pos: spirit.pos, spiritShiftUsed: true })
+    next = setUnit(next, spirit.id, { pos: target.pos })
+    next = { ...next, log: [...next.log, `${target.name} shifts places with ${spirit.name} - the spirit takes the blow!`] }
+    targetId = spirit.id
+    target = getUnit(next, targetId)
+  }
   // Sidestep round (Movement PRD's own §4.4, "kun vihollinen käyttää
   // kaukohyökkäystä"): resolved BEFORE facing/damage are computed for
   // THIS SAME attack, so a genuine reposition can change whether the
@@ -2202,6 +2267,7 @@ export function endPlayerTurn(state) {
             root: Math.max(0, (u.root || 0) - 1),
             retreatStepUsed: false,
             sidestepUsed: false,
+            spiritShiftUsed: false,
             suppressed: Math.max(0, (u.suppressed || 0) - 1),
           }
         : u,
@@ -2447,6 +2513,7 @@ export function runEnemyTurn(state) {
             root: Math.max(0, (u.root || 0) - 1),
             retreatStepUsed: false,
             sidestepUsed: false,
+            spiritShiftUsed: false,
             suppressed: Math.max(0, (u.suppressed || 0) - 1),
           }
         : u,
