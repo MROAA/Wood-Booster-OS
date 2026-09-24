@@ -190,6 +190,7 @@ export default function HeartwoodTactics() {
                       <p className="hwt-squad-slot-stats">
                         HP {preview.maxHp} · Atk {preview.attack} · Range {preview.range}
                         {preview.ability ? ` · ${preview.ability.name}` : ""}
+                        {preview.spiritbound ? " · Spirit Shift (brings a Spirit Wolf)" : ""}
                       </p>
                     )}
                   </div>

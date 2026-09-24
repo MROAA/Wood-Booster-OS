@@ -135,7 +135,7 @@ import { mkdir } from "node:fs/promises"
 // the actual rendered UI exactly the way Marc would click through it.
 
 const PORT = process.env.PORT || 5429
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sidestep/.scratch/shots"
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spirit-shift/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2071,8 +2071,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   return page.evaluate(
     async ({ nodeFilterSrc, benchDefIds }) => {
       const { startRun, serializeRun, RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
-      // eslint-disable-next-line no-new-func
-      const nodeFilter = new Function("n", `return (${nodeFilterSrc})(n)`)
+        const nodeFilter = new Function("n", `return (${nodeFilterSrc})(n)`)
       const idx = RUN_PATH.findIndex(nodeFilter)
       const bench = benchDefIds.map((defId, i) => ({ key: `b${i}`, defId, upgradeLevel: 0, upgrades: [] }))
       const deployed = [...bench.map((e) => e.key), ...Array(4 - bench.length).fill(null)]
@@ -2500,13 +2499,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sidestep", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spirit-shift", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sidestep", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-spirit-shift", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -8215,6 +8214,250 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.gbHitHpLoss > 0 &&
     result.gbHitSidestepUsed === true
   if (!ok) out.errors.push("check218 a real Galeblade did not genuinely sidestep the real coven-matron's now-ranged attack")
+}
+
+// ---- Spirit Shift round (Movement PRD §4.4) ---------------------------
+// Shared synthetic builder for 219-224: a spiritbound "walker", an
+// allied spirit 2 tiles behind it, and a plain melee attacker in front.
+// Every unit carries the full reset-checkpoint field set so a real
+// endPlayerTurn cycle (check221) runs cleanly.
+const SPIRIT_SHIFT_FIXTURE = `
+  const grid = { rows: 9, cols: 12 }
+  const base = { ap: 2, apMax: 2, move: 9, block: 0, root: 0, slow: 0, suppressed: 0, retreatStepUsed: false, sidestepUsed: false, spiritShiftUsed: false, cooldownRemaining: 0 }
+  const mkState = (over = {}) => ({
+    grid, terrain: {}, phase: "enemy", turn: 3, log: [],
+    units: [
+      { ...base, id: "walker", side: "player", name: "Walker", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, facing: "W", spiritbound: true, ...(over.walker || {}) },
+      { ...base, id: "spirit", side: "player", name: "Spirit", pos: { row: 4, col: 8 }, hp: 50, maxHp: 50, range: 1, attack: 0, facing: "W", isSpirit: true, ...(over.spirit || {}) },
+      { ...base, id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 10, facing: "E", ...(over.atk || {}) },
+    ],
+  })
+  const u = (s, id) => s.units.find((x) => x.id === id)
+`
+
+// 219. Core mechanic: an attacked spiritbound unit swaps places with its
+//      spirit 2 tiles away, the spirit takes the FULL hit, the walker
+//      takes none, the Slot is spent, and the log narrates the swap ----
+{
+  const page219 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page219.on("pageerror", (e) => errs.push(String(e)))
+  await page219.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page219.waitForSelector(".hwt-board")
+  const result = await page219.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const after = attackUnit(mkState(), "atk", "walker")
+    return {
+      walkerPos: u(after, "walker").pos, walkerHp: u(after, "walker").hp, walkerUsed: u(after, "walker").spiritShiftUsed,
+      spiritPos: u(after, "spirit").pos, spiritHp: u(after, "spirit").hp,
+      logHasShift: after.log.some((l) => l.includes("shifts places with Spirit")),
+      strikeLog: after.log[after.log.length - 1],
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page219.close()
+  out.spiritShiftCore = result
+  const ok =
+    result.walkerPos.row === 4 && result.walkerPos.col === 8 && result.walkerHp === 100 && result.walkerUsed === true &&
+    result.spiritPos.row === 4 && result.spiritPos.col === 6 && result.spiritHp === 40 &&
+    result.logHasShift && result.strikeLog.includes("strikes Spirit for 10")
+  if (!ok) out.errors.push("check219 Spirit Shift did not swap the walker with its spirit and redirect the full hit onto the spirit")
+}
+
+// 220. Range limit: a spirit 3 tiles away (outside SPIRIT_SHIFT_RANGE=2)
+//      does not swap - the walker takes the hit where it stands --------
+{
+  const page220 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page220.on("pageerror", (e) => errs.push(String(e)))
+  await page220.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page220.waitForSelector(".hwt-board")
+  const result = await page220.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const far = attackUnit(mkState({ spirit: { pos: { row: 4, col: 9 } } }), "atk", "walker")
+    const diag = attackUnit(mkState({ spirit: { pos: { row: 2, col: 8 } } }), "atk", "walker")
+    return {
+      farWalkerHp: u(far, "walker").hp, farWalkerPos: u(far, "walker").pos, farSpiritHp: u(far, "spirit").hp, farUsed: u(far, "walker").spiritShiftUsed,
+      diagWalkerHp: u(diag, "walker").hp, diagWalkerPos: u(diag, "walker").pos,
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page220.close()
+  out.spiritShiftRange = result
+  const ok =
+    result.farWalkerHp === 90 && result.farWalkerPos.col === 6 && result.farSpiritHp === 50 && result.farUsed === false &&
+    // A diagonal 2-tile spirit (Chebyshev 2) IS in range.
+    result.diagWalkerHp === 100 && result.diagWalkerPos.row === 2 && result.diagWalkerPos.col === 8
+  if (!ok) out.errors.push("check220 Spirit Shift's 2-tile (Chebyshev) range limit did not behave correctly")
+}
+
+// 221. Once per round: a second attack the same round lands on the
+//      walker; a real endPlayerTurn cascade resets spiritShiftUsed, and
+//      a third attack swaps again --------------------------------------
+{
+  const page221 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page221.on("pageerror", (e) => errs.push(String(e)))
+  await page221.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page221.waitForSelector(".hwt-board")
+  const result = await page221.evaluate(async (fixture) => {
+    const { attackUnit, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const first = attackUnit(mkState(), "atk", "walker")
+    // After the swap the walker sits at (4,8) - move the attacker next
+    // to it, on its FRONT side (it faces W), for the second strike: a
+    // hit from behind would itself Suppress the walker and mask the
+    // reset being tested here.
+    const secondIn = { ...first, units: first.units.map((x) => (x.id === "atk" ? { ...x, ap: 2, pos: { row: 4, col: 7 } } : x)) }
+    const second = attackUnit(secondIn, "atk", "walker")
+    const resetIn = { ...second, phase: "player", units: second.units.map((x) => (x.id === "atk" ? { ...x, range: 0, move: 0 } : x)) }
+    const reset = endPlayerTurn(resetIn)
+    const thirdIn = { ...reset, phase: "enemy", units: reset.units.map((x) => (x.id === "atk" ? { ...x, range: 1, move: 9, ap: 2 } : x)) }
+    const third = attackUnit(thirdIn, "atk", "walker")
+    return {
+      secondWalkerHp: u(second, "walker").hp, secondWalkerPos: u(second, "walker").pos,
+      usedAfterReset: u(reset, "walker").spiritShiftUsed,
+      thirdWalkerHp: u(third, "walker").hp, thirdWalkerPos: u(third, "walker").pos, thirdUsed: u(third, "walker").spiritShiftUsed,
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page221.close()
+  out.spiritShiftOncePerRound = result
+  const ok =
+    result.secondWalkerHp === 90 && result.secondWalkerPos.col === 8 &&
+    result.usedAfterReset === false &&
+    result.thirdWalkerHp === 90 && result.thirdWalkerPos.col === 6 && result.thirdUsed === true
+  if (!ok) out.errors.push("check221 Spirit Shift's once-per-round limiter or its endPlayerTurn reset did not behave correctly")
+}
+
+// 222. Suppression + own-phase exclusions: a suppressed walker does not
+//      swap, and neither does one struck during its OWN side's phase
+//      (a Zone of Control reaction strike on its own move) -------------
+{
+  const page222 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page222.on("pageerror", (e) => errs.push(String(e)))
+  await page222.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page222.waitForSelector(".hwt-board")
+  const result = await page222.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const suppressed = attackUnit(mkState({ walker: { suppressed: 2 } }), "atk", "walker")
+    const ownPhase = attackUnit({ ...mkState(), phase: "player" }, "atk", "walker", { isReaction: true })
+    return {
+      suppressedHp: u(suppressed, "walker").hp, suppressedUsed: u(suppressed, "walker").spiritShiftUsed,
+      ownPhaseHp: u(ownPhase, "walker").hp, ownPhasePos: u(ownPhase, "walker").pos,
+      anyShiftLog: [...suppressed.log, ...ownPhase.log].some((l) => l.includes("shifts places")),
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page222.close()
+  out.spiritShiftExclusions = result
+  const ok = result.suppressedHp === 90 && result.suppressedUsed === false && result.ownPhaseHp === 90 && result.ownPhasePos.col === 6 && !result.anyShiftLog
+  if (!ok) out.errors.push("check222 Spirit Shift fired while suppressed or on a reaction strike during the walker's own phase")
+}
+
+// 223. Only a living ALLIED SPIRIT qualifies: a dead spirit, a plain
+//      (non-spirit) ally, or an ENEMY spirit never swap; and a
+//      non-spiritbound unit next to a spirit is byte-identical to before
+{
+  const page223 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page223.on("pageerror", (e) => errs.push(String(e)))
+  await page223.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page223.waitForSelector(".hwt-board")
+  const result = await page223.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const cases = {
+      dead: mkState({ spirit: { hp: 0 } }),
+      plainAlly: mkState({ spirit: { isSpirit: false } }),
+      enemySpirit: mkState({ spirit: { side: "enemy" } }),
+      notBound: mkState({ walker: { spiritbound: false } }),
+    }
+    const res = {}
+    for (const [k, s] of Object.entries(cases)) {
+      const after = attackUnit(s, "atk", "walker")
+      res[k] = { hp: u(after, "walker").hp, col: u(after, "walker").pos.col, shifted: after.log.some((l) => l.includes("shifts places")) }
+    }
+    return res
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page223.close()
+  out.spiritShiftEligibility = result
+  const ok = Object.values(result).every((r) => r.hp === 90 && r.col === 6 && !r.shifted)
+  if (!ok) out.errors.push("check223 Spirit Shift swapped with something other than a living allied spirit, or touched a non-spiritbound unit")
+}
+
+// 224. The redirected hit feeds every downstream step on the SPIRIT: a
+//      killing blow on the spirit falls the spirit (not the walker), and
+//      poison-on-hit lands on the spirit ------------------------------
+{
+  const page224 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page224.on("pageerror", (e) => errs.push(String(e)))
+  await page224.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page224.waitForSelector(".hwt-board")
+  const result = await page224.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const lethal = attackUnit(mkState({ spirit: { hp: 5 } }), "atk", "walker")
+    const poison = attackUnit(mkState({ atk: { poisonOnHit: 2 } }), "atk", "walker")
+    return {
+      lethalSpiritHp: u(lethal, "spirit").hp, lethalWalkerHp: u(lethal, "walker").hp, lethalFallsLog: lethal.log.some((l) => l.includes("strikes Spirit") && l.includes("It falls")),
+      spiritPoison: u(poison, "spirit").poison || 0, walkerPoison: u(poison, "walker").poison || 0,
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page224.close()
+  out.spiritShiftDownstream = result
+  const ok = result.lethalSpiritHp === 0 && result.lethalWalkerHp === 100 && result.lethalFallsLog && result.spiritPoison === 2 && result.walkerPoison === 0
+  if (!ok) out.errors.push("check224 the redirected hit's downstream effects (fall/poison) did not land on the spirit")
+}
+
+// 225. Real content: createTacticsBattle AND createRealMatchupBattle both
+//      spawn Beastcaller's real Spirit Wolf (units.js summon) exactly
+//      once, as an allied spirit within Spirit Shift range; a squad
+//      without a summoner spawns nothing extra; the roster preview marks
+//      Beastcaller spiritbound; and a real enemy strike triggers the swap
+{
+  const page225 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page225.on("pageerror", (e) => errs.push(String(e)))
+  await page225.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page225.waitForSelector(".hwt-board")
+  const result = await page225.evaluate(async () => {
+    const { createTacticsBattle, createRealMatchupBattle, attackUnit, previewPlayerRoster, PLAYER_ROSTER_IDS } = await import("/src/services/heartwood/tacticsEngine.js")
+    const dist = (a, b) => Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col))
+    const describe = (battle) => {
+      const bc = battle.units.find((x) => x.defId === "beastcaller")
+      const wolves = battle.units.filter((x) => x.defId === "spirit-wolf")
+      return { wolfCount: wolves.length, wolfSide: wolves[0]?.side, wolfIsSpirit: wolves[0]?.isSpirit, bcBound: bc?.spiritbound, dist: wolves[0] && bc ? dist(wolves[0].pos, bc.pos) : null, occupiedUnique: new Set(battle.units.map((x) => `${x.pos.row},${x.pos.col}`)).size === battle.units.length }
+    }
+    const proto = createTacticsBattle("default", ["beastcaller", "the-fool"])
+    const real = createRealMatchupBattle(["beastcaller"], ["bog-devotee"], "tommy", 0)
+    const plain = createTacticsBattle("default", ["the-fool", "hexbreaker"])
+    // Real strike: the formation's first real enemy, placed in front of
+    // the real Beastcaller, during the enemy phase.
+    const bc = proto.units.find((x) => x.defId === "beastcaller")
+    const wolf = proto.units.find((x) => x.defId === "spirit-wolf")
+    const enemy = proto.units.find((x) => x.side === "enemy")
+    const struckIn = {
+      ...proto,
+      phase: "enemy",
+      units: proto.units.map((x) => (x.id === enemy.id ? { ...x, pos: { row: bc.pos.row, col: bc.pos.col - 1 }, ap: x.apMax } : x)),
+    }
+    const struck = attackUnit(struckIn, enemy.id, bc.id)
+    const bcAfter = struck.units.find((x) => x.id === bc.id)
+    const wolfAfter = struck.units.find((x) => x.id === wolf.id)
+    return {
+      proto: describe(proto),
+      real: describe(real),
+      plainWolves: plain.units.filter((x) => x.defId === "spirit-wolf").length,
+      plainPlayerCount: plain.units.filter((x) => x.side === "player").length,
+      rosterHasBeastcaller: PLAYER_ROSTER_IDS.includes("beastcaller"),
+      previewBound: previewPlayerRoster().find((x) => x.defId === "beastcaller")?.spiritbound,
+      realStrike: { bcHpLoss: bcAfter.maxHp - bcAfter.hp, wolfHpLoss: wolfAfter.maxHp - wolfAfter.hp, bcAtWolfOld: bcAfter.pos.row === wolf.pos.row && bcAfter.pos.col === wolf.pos.col },
+    }
+  })
+  await page225.close()
+  out.spiritShiftRealContent = result
+  const good = (d) => d.wolfCount === 1 && d.wolfSide === "player" && d.wolfIsSpirit === true && d.bcBound === true && d.dist !== null && d.dist <= 2 && d.occupiedUnique
+  const ok =
+    good(result.proto) && good(result.real) &&
+    result.plainWolves === 0 && result.plainPlayerCount === 3 &&
+    result.rosterHasBeastcaller && result.previewBound === true &&
+    result.realStrike.bcHpLoss === 0 && result.realStrike.wolfHpLoss > 0 && result.realStrike.bcAtWolfOld
+  if (!ok) out.errors.push("check225 Beastcaller's real Spirit Wolf did not spawn correctly in both battle builders, or a real strike did not trigger Spirit Shift")
 }
 
 console.log(JSON.stringify(out, null, 2))

@@ -240,6 +240,7 @@ export default function TacticsBoard({
               data-selectable={unit.side === "player" && battle.phase === "player"}
               data-selected={unit.id === selectedId}
               data-acted={unit.ap <= 0}
+              data-spirit={!!unit.isSpirit}
             >
               <div className="hwt-token-status">
                 {unit.id === "player-commander" && (
@@ -250,6 +251,19 @@ export default function TacticsBoard({
                 {unit.haste && (
                   <span className="hwt-haste-badge" title="Haste - attacks a second time whenever it lands an attack">
                     ⇉
+                  </span>
+                )}
+                {unit.spiritbound && (
+                  <span
+                    className="hwt-spiritshift-badge"
+                    data-used={!!unit.spiritShiftUsed}
+                    title={
+                      unit.spiritShiftUsed
+                        ? "Spirit Shift - already used this round"
+                        : "Spirit Shift - when attacked on the enemy's turn, swaps places with a spirit within 2 tiles, and the spirit takes the blow (once per round)"
+                    }
+                  >
+                    ⇄
                   </span>
                 )}
                 {flankRole(unit.className) === "benefit" && (
@@ -344,7 +358,7 @@ export default function TacticsBoard({
                   </span>
                 )}
                 {unit.suppressed > 0 && (
-                  <span className="hwt-suppressed-badge" title={`Suppressed ${unit.suppressed} - this unit's own reactions (Zone of Control, Intercept, Retreat Step) are disabled for a turn, then decays`}>
+                  <span className="hwt-suppressed-badge" title={`Suppressed ${unit.suppressed} - this unit's own reactions (Zone of Control, Intercept, Retreat Step, Sidestep, Spirit Shift) are disabled for a turn, then decays`}>
                     ⊘{unit.suppressed}
                   </span>
                 )}
