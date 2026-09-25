@@ -465,6 +465,8 @@
 .hwt-hp-fill {
   height: 100%;
   background: var(--hw-moss);
+  /* Battle feel round: HP drains visibly instead of snapping. */
+  transition: width 0.45s ease-out;
 }
 .hwt-token[data-side="enemy"] .hwt-hp-fill {
   background: var(--hw-hp);
@@ -725,4 +727,48 @@
   .hwt-token {
     transition: none !important;
   }
+}
+
+/* Battle feel round (TacticsFx.jsx): a ranged attack's travelling bolt,
+   the fallen-unit fade, and the short text callouts (Sidestep!, Warded!,
+   a Commander power...) that ride the shared floating-number pop. */
+.hwt-projectile {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--hw-ember);
+  box-shadow: 0 0 10px 3px color-mix(in srgb, var(--hw-ember) 70%, transparent);
+  pointer-events: none;
+  z-index: 54;
+}
+.hwt-token-fallen {
+  position: absolute;
+  inset: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-card);
+  pointer-events: none;
+  animation: hwt-fall 1.4s ease-out forwards;
+}
+@keyframes hwt-fall {
+  0% { opacity: 1; filter: grayscale(0); }
+  100% { opacity: 0.15; filter: grayscale(1); }
+}
+.hw-floating-number--callout {
+  color: var(--hw-ember);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+.hwt-token.hw-hit-flash {
+  animation: hw-hit-shake 400ms ease;
 }

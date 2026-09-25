@@ -189,7 +189,7 @@ export default function FloatingNumbers({ state }) {
   )
 }
 
-function FloatingNumber({ popup, onDone }) {
+export function FloatingNumber({ popup, onDone }) {
   const [rect, setRect] = useState(null)
 
   useEffect(() => {

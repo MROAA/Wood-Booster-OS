@@ -802,6 +802,7 @@ export function activateCommanderPower(state) {
   }
   return {
     ...next,
+    ...emit(next, { kind: "power", actorId: commander.id, label: `${power.name}!` }),
     activePower: { ...power, used: true, firedTurn: state.turn },
     log: [...next.log, `${commander.name} calls ${power.name}! ${power.description}`],
   }
@@ -1078,6 +1079,19 @@ export function createRunTacticsBattle({ squad, enemyDefIds, characterId, terrai
 // with a throwaway pos/id since these are never placed on a real board.
 export function previewPlayerRoster() {
   return PLAYER_ROSTER_IDS.map((defId, i) => deriveTacticsUnit(defId, "player", { row: 0, col: 0 }, `preview-${defId}-${i}`))
+}
+
+// Battle feel round: a small append-only feed of what just HAPPENED
+// (a strike, the damage it did, a Ward, a reaction) for the board to
+// replay as lunges, hit flashes, floating numbers and sounds - the state
+// itself only ever shows the END result of an action (and one End Turn
+// resolves the whole enemy phase at once). Each event carries a rising
+// `seq` so the UI plays only what's new; capped so a save never grows.
+// Purely descriptive - no game rule ever reads it.
+const MAX_EVENTS = 80
+function emit(state, event) {
+  const seq = (state.eventSeq || 0) + 1
+  return { ...state, eventSeq: seq, events: [...(state.events || []), { ...event, seq }].slice(-MAX_EVENTS) }
 }
 
 function getUnit(state, id) {
@@ -1643,7 +1657,7 @@ function applyDamageWithBlock(state, targetId, amount) {
   // ever consulted (the real dealDamage's own ordering). Only spent on a
   // hit that would actually deal something.
   if (amount > 0 && target.ward > 0) {
-    const next = setUnit(state, targetId, { ward: target.ward - 1 })
+    const next = emit(setUnit(state, targetId, { ward: target.ward - 1 }), { kind: "ward", targetId })
     return {
       next: { ...next, log: [...next.log, `${target.name}'s Ward absorbs the hit completely.`] },
       absorbed: 0,
@@ -1670,6 +1684,7 @@ function applyDamageWithBlock(state, targetId, amount) {
   const revived = rawHp <= 0 && target.hp > 0 && revives > 0
   const nextHp = revived ? 1 : Math.max(0, rawHp)
   let next = setUnit(state, targetId, { block: target.block - blockSpent, hp: nextHp, revive: revived ? revives - 1 : target.revive })
+  next = emit(next, { kind: "damage", targetId, amount: remaining, absorbed: totalAbsorb, fell: nextHp <= 0, revived })
   // Retreat Step round (Movement PRD §4.4): "kun yksikkö menettää
   // tietyn määrän HP:tä" - a `wary` unit that just lost a SIGNIFICANT
   // chunk of its own max HP in this one hit (>=25%, a reasoned,
@@ -1703,7 +1718,7 @@ function applyDamageWithBlock(state, targetId, amount) {
     const occupied = next.units.some((u) => u.id !== targetId && u.hp > 0 && samePos(u.pos, destination))
     if (isOnBoard(destination, next.grid) && !occupied) {
       next = setUnit(next, targetId, { pos: destination, retreatStepUsed: true })
-      next = { ...next, log: [...next.log, `${target.name} reels backward from the blow!`] }
+      next = emit({ ...next, log: [...next.log, `${target.name} reels backward from the blow!`] }, { kind: "reaction", unitId: targetId, label: "Retreat!" })
     }
   }
   return { next, absorbed: blockSpent, armourUsed, remaining, fell: nextHp <= 0, revived }
@@ -1950,6 +1965,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   }
   let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
+  next = emit(next, { kind: "strike", actorId, targetId, ranged: actor.range > 1, reaction: !!opts.isReaction })
   // Spirit Shift round: resolved FIRST, before Sidestep/facing/damage -
   // the swap changes WHO is hit, so every later step (facing, Guardian,
   // Retreat Step, poison) then runs against the spirit naturally.
@@ -1958,6 +1974,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     next = setUnit(next, targetId, { pos: spirit.pos, spiritShiftUsed: true })
     next = setUnit(next, spirit.id, { pos: target.pos })
     next = { ...next, log: [...next.log, `${target.name} shifts places with ${spirit.name} - the spirit takes the blow!`] }
+    next = emit(next, { kind: "reaction", unitId: targetId, label: "Spirit Shift!" })
     targetId = spirit.id
     target = getUnit(next, targetId)
   }
@@ -1976,9 +1993,11 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
       target = getUnit(next, targetId)
       if (deterministicRoll(next.turn, `${targetId}:sidestep`) < SIDESTEP_DODGE_CHANCE) {
         next = { ...next, log: [...next.log, `${target.name} sidesteps out of the way, avoiding ${actor.name}'s attack completely!`] }
+        next = emit(next, { kind: "reaction", unitId: targetId, label: "Dodged!" })
         return checkTacticsBattleEnd(next)
       }
       sidestepNote = ` ${target.name} sidesteps but the attack still connects!`
+      next = emit(next, { kind: "reaction", unitId: targetId, label: "Sidestep!" })
     }
   }
   // Block-weakening/Crit round: facing is computed HERE, before the
@@ -2013,7 +2032,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     const guardianShare = Math.round(rawAmount / 2)
     const targetShare = rawAmount - guardianShare
     const targetHit = applyDamageWithBlock(next, targetId, targetShare)
-    next = setUnit(targetHit.next, guardian.id, { ap: guardian.ap - 1 })
+    next = emit(setUnit(targetHit.next, guardian.id, { ap: guardian.ap - 1 }), { kind: "reaction", unitId: guardian.id, label: "Intercept!" })
     const guardianHit = applyDamageWithBlock(next, guardian.id, guardianShare)
     next = guardianHit.next
     remaining = targetHit.remaining
@@ -2119,7 +2138,7 @@ export function castAbility(state, actorId, targetId) {
       const live = getUnit(next, u.id)
       next = setUnit(next, u.id, { block: live.block + ability.amount })
     }
-    return { ...next, log: [...next.log, `${actor.name} raises ${ability.name}.`] }
+    return emit({ ...next, log: [...next.log, `${actor.name} raises ${ability.name}.`] }, { kind: "reaction", unitId: actorId, label: `${ability.name}!` })
   }
 
   if (ability.kind === "heal") {
@@ -2130,7 +2149,7 @@ export function castAbility(state, actorId, targetId) {
     const live = getUnit(next, target.id)
     const healedHp = Math.min(live.maxHp, live.hp + ability.amount)
     next = setUnit(next, target.id, { hp: healedHp })
-    return { ...next, log: [...next.log, `${actor.name} mends ${target.name} for ${healedHp - live.hp}.`] }
+    return emit({ ...next, log: [...next.log, `${actor.name} mends ${target.name} for ${healedHp - live.hp}.`] }, { kind: "heal", actorId, targetId: target.id, amount: healedHp - live.hp })
   }
 
   if (ability.kind === "burst") {
@@ -2143,6 +2162,7 @@ export function castAbility(state, actorId, targetId) {
     const tauntersOnTargetSide = livingTaunters(state, target.side)
     if (tauntersOnTargetSide.length && !(target.taunt > 0)) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
+    next = emit(next, { kind: "strike", actorId, targetId: target.id, ranged: actor.range > 1, ability: ability.name })
     const amount = modifiedAttackAmount(actor, target, actor.attack * ability.multiplier)
     const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, amount)
     next = hit
@@ -2529,7 +2549,7 @@ function applyEnemyIntent(state, enemyId, intent) {
 // damages, not just a single chosen one.
 function applyEnemyAoe(state, actorId, amount) {
   const actor = getUnit(state, actorId)
-  let next = { ...state, log: [...state.log, `${actor.name} unleashes a squad-wide strike!`] }
+  let next = emit({ ...state, log: [...state.log, `${actor.name} unleashes a squad-wide strike!`] }, { kind: "aoe", actorId })
   for (const target of livingUnits(next, "player")) {
     const live = getUnit(next, target.id)
     if (!live || live.hp <= 0) continue
