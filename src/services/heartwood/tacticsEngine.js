@@ -28,6 +28,7 @@ import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
+import * as relicFx from "./tacticsRelics"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
@@ -527,7 +528,9 @@ function applyPortableEffect(state, unitId, effect) {
   if (effect.type === "heal") {
     return setUnit(state, unitId, { hp: Math.min(unit.maxHp, unit.hp + (effect.amount || 0)) })
   }
-  return state
+  // Relic/item effects (poison/burn/stun/sunder/cleanse...): tacticsRelics.js.
+  const patch = relicFx.relicEffectPatch(unit, effect)
+  return patch ? setUnit(state, unitId, patch) : state
 }
 
 // Squad Passive round: the Commander's real squadPassive
@@ -1003,7 +1006,7 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = 
 //   squad: [{ defId, def }] - def is the upgraded effective def
 //   autoStart: the auto-battle start state ({ playerUnits, enemies })
 const OVERLAID_POWER_IDS = ["ward", "bulwark", "regen", "execute", "shatter", "woundedFury", "taunt", "revive", "weak", "vulnerable"]
-const OVERLAID_TRIGGERS = new Set(["turnStart", "onDealDamage"])
+const OVERLAID_TRIGGERS = new Set(["turnStart", "onDealDamage", "onHit", "turnEnd"])
 
 function overlayAutoStart(unit, src, difficultyFactor) {
   const powers = src.powers || {}
@@ -1043,7 +1046,7 @@ function autoTwinFor(unit, autoStart) {
   return autoStart.playerUnits.find((u) => u.id === `p${Number(unit.id.split("-").pop())}`) || null
 }
 
-export function createRunTacticsBattle({ squad, enemyDefIds, characterId, terrain = {}, autoStart, difficultyFactor = 1, label }) {
+export function createRunTacticsBattle({ squad, enemyDefIds, characterId, terrain = {}, autoStart, difficultyFactor = 1, label, relicIds = [] }) {
   const character = CHARACTERS[characterId]
   if (!character || !enemyDefIds.length) return null
   const playerRows = spreadRows(squad.length + 1, GRID.rows)
@@ -1063,7 +1066,8 @@ export function createRunTacticsBattle({ squad, enemyDefIds, characterId, terrai
     if (!twin) return { ...u, baseAttack: u.attack }
     // A Trial's story name (runEngine.js's applyTrialName) rides along.
     const named = u.side === "enemy" && twin.name ? { ...u, name: twin.name } : u
-    return overlayAutoStart(named, twin, difficultyFactor)
+    const base = overlayAutoStart(named, twin, difficultyFactor)
+    return { ...base, ...relicFx.relicOverlayPatch(base, twin, relicIds) }
   })
   return {
     grid: GRID,
@@ -1643,7 +1647,7 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
   if (attacker.shatter > 0 && defender.block > 0) amount += attacker.shatter
-  return amount
+  return relicFx.dampenedAmount(attacker, amount)
 }
 
 // Retreat Step round: a clearly "significant" single-hit threshold,
@@ -1662,6 +1666,8 @@ const RETREAT_STEP_HP_THRESHOLD_PCT = 0.25
 // and reset every round" behavior never applies to it).
 function applyDamageWithBlock(state, targetId, amount) {
   const target = getUnit(state, targetId)
+  const evaded = relicFx.tryEvade(state, targetId, amount)
+  if (evaded) return evaded
   // Active Power round: effects.js's own Ward - one stack cancels the
   // ENTIRE next hit, whatever its size, before Block/Bulwark/Revive are
   // ever consulted (the real dealDamage's own ordering). Only spent on a
@@ -1903,7 +1909,9 @@ function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
     if (!recipient || recipient.hp <= 0) continue
     next = applyPortableEffect(next, recipientId, t.effect)
     const onTargetNote = recipientId === targetId ? ` on ${recipient.name}` : ""
-    next = { ...next, log: [...next.log, `${actor.name} ${describePortableEffect(t.effect)}${onTargetNote}.`] }
+    const sourceNote = t.source ? ` (${t.source})` : ""
+    next = { ...next, log: [...next.log, `${actor.name} ${describePortableEffect(t.effect)}${onTargetNote}${sourceNote}.`] }
+    next = relicFx.spreadSpores(relicFx.noteTrigger(next, actorId, t), actorId, targetId, t.effect)
   }
   return next
 }
@@ -2038,6 +2046,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   const rawAmount = modifiedAttackAmount(actor, effectiveTarget, actor.attack)
   const guardian = eligibleGuardian(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
+  const extraVictims = []
   if (guardian) {
     const guardianShare = Math.round(rawAmount / 2)
     const targetShare = rawAmount - guardianShare
@@ -2045,6 +2054,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     next = emit(setUnit(targetHit.next, guardian.id, { ap: guardian.ap - 1 }), { kind: "reaction", unitId: guardian.id, label: "Intercept!" })
     const guardianHit = applyDamageWithBlock(next, guardian.id, guardianShare)
     next = guardianHit.next
+    extraVictims.push({ id: guardian.id, remaining: guardianHit.remaining })
     remaining = targetHit.remaining
     fell = targetHit.fell
     revived = targetHit.revived
@@ -2082,6 +2092,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
+  next = relicFx.relicAfterHit(next, actorId, targetId, remaining, fell, extraVictims)
   next = checkTacticsBattleEnd(next)
   // Haste (autoBattleEngine.js's own actSide): a structurally different
   // kind of "more damage" than Strength/Execute - the WHOLE action
@@ -2526,7 +2537,7 @@ function describePortableEffect(effect) {
   if (effect.type === "applyBuff" && effect.id === "vulnerable") return "leaves the target exposed"
   if (effect.type === "block") return "braces for the next blow"
   if (effect.type === "heal") return "steadies itself"
-  return "stirs"
+  return relicFx.describeRelicEffect(effect) || "stirs"
 }
 
 // Squad Passive round: generalized from enemy-only
@@ -2546,7 +2557,8 @@ function applyTurnStartTriggers(state, side) {
       const live = getUnit(next, unit.id)
       if (!live || live.hp <= 0) continue
       next = applyPortableEffect(next, unit.id, t.effect)
-      next = { ...next, log: [...next.log, `${live.name} ${describePortableEffect(t.effect)}.`] }
+      next = { ...next, log: [...next.log, `${live.name} ${describePortableEffect(t.effect)}${t.source ? ` (${t.source})` : ""}.`] }
+      next = relicFx.noteTrigger(next, unit.id, t)
     }
   }
   return next
@@ -2557,7 +2569,7 @@ export function endPlayerTurn(state) {
   // applyCovenTick and applyRotMendTick never touch hp downward, so
   // neither can end the battle - no phase guard needed for either,
   // unlike the two ticks below.
-  const covened = applyCovenTick(state)
+  const covened = applyCovenTick(relicFx.relicTurnEnd(state, "player"))
   const mended = applyRotMendTick(covened)
   const cultTicked = applyCultTick(mended)
   if (cultTicked.phase !== "player") return cultTicked
@@ -2617,7 +2629,10 @@ export function endPlayerTurn(state) {
   // answers" Block, etc.) is applied AFTER the flat fortressBlock reset
   // above, never before - that reset is a per-unit overwrite, not an
   // add, so a trigger firing first would just be wiped by it.
-  const next = applyTurnStartTriggers(regenTicked, "enemy")
+  // Relic ticks on enemies (poison/burn) can end the fight here.
+  const relicTicked = relicFx.relicTurnStart(regenTicked, "enemy")
+  if (relicTicked.phase !== "enemy") return relicTicked
+  const next = applyTurnStartTriggers(relicTicked, "enemy")
   return runEnemyTurn(next)
 }
 
@@ -2833,6 +2848,8 @@ function applyEnemyAoe(state, actorId, amount) {
     const fellNote = fell ? " It falls." : ""
     next = { ...next, log: [...next.log, `${actor.name} strikes ${live.name} for ${remaining}.${absorbedNote}${fellNote}${describeRevive(revived, live.name)}`] }
     next = checkOnDealDamageTriggers(next, actorId, target.id, remaining)
+    next = relicFx.fireOnHit(next, target.id, actorId, remaining)
+    if (!(getUnit(next, actorId)?.hp > 0) || next.phase === "won" || next.phase === "lost") break
   }
   return checkTacticsBattleEnd(next)
 }
@@ -2934,7 +2951,8 @@ export function runEnemyTurn(state) {
   if (next.phase !== "enemy") return next
   for (const enemy of next.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (next.phase !== "enemy") break
-    next = decideAndActEnemy(next, enemy.id)
+    const stunned = relicFx.spendStun(next, enemy.id)
+    next = stunned || decideAndActEnemy(next, enemy.id)
   }
   if (next.phase !== "enemy") return next
   // Player AP AND Block reset exactly here - Block granted during a player
@@ -2979,7 +2997,9 @@ export function runEnemyTurn(state) {
   // here, right after Block just reset to 0 above - the same "reset then
   // re-grant" ordering already established for the enemy side (see
   // endPlayerTurn's own comment on this).
-  return applyTurnStartTriggers(returnedToPlayer, "player")
+  const relicTicked = relicFx.relicTurnStart(returnedToPlayer, "player")
+  if (relicTicked.phase !== "player") return relicTicked
+  return applyTurnStartTriggers(relicTicked, "player")
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
@@ -2991,3 +3011,6 @@ export function withLowEnemyHp(state) {
   // the QA hook also strips those one-hit shields - still QA-only.
   return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0 } : u)) }
 }
+
+// Shared with tacticsRelics.js (relic/item hooks during a fight).
+export { emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood }
