@@ -1083,8 +1083,17 @@
   box-shadow: 0 0 7px color-mix(in srgb, var(--hw-moss) 70%, transparent);
 }
 .hwt-cell[data-skill-zone="windup"] {
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+  --hwt-tint: color-mix(in srgb, var(--hw-ember) 14%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hw-ember) 60%, transparent);
 }
 .hwt-cell[data-skill-zone="release"] {
+  --hwt-tint: color-mix(in srgb, var(--hw-ember) 30%, transparent);
   box-shadow: inset 0 0 0 2px var(--hw-ember), inset 0 0 16px color-mix(in srgb, var(--hw-ember) 60%, transparent);
+  animation: hwt-slam-warn 1.2s ease-in-out infinite;
+}
+@keyframes hwt-slam-warn {
+  50% { box-shadow: inset 0 0 0 2px var(--hw-ember), inset 0 0 6px color-mix(in srgb, var(--hw-ember) 30%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwt-cell[data-skill-zone="release"] { animation: none; }
 }
