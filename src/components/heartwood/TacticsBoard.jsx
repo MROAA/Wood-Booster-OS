@@ -14,13 +14,16 @@
 // result via `onBattleChange`, never holds the battle itself.
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
-import { kingAdjacent } from "../../services/heartwood/targeting"
 import {
   reachableTilesFor,
   attackableTargets,
   moveUnit,
   attackUnit,
   castAbility,
+  abilityTargets,
+  abilityTargetSide,
+  describeAbility,
+  abilityHint,
   endPlayerTurn,
   activateCommanderPower,
   previewEnemyIntents,
@@ -109,17 +112,18 @@ export default function TacticsBoard({
     [battle, selected, abilityMode],
   )
   const targets = useMemo(
-    () => (selected && selected.ap > 0 && battle.phase === "player" && abilityMode !== "heal" ? attackableTargets(battle, selected.id) : []),
+    () =>
+      selected && selected.ap > 0 && battle.phase === "player" && abilityMode !== "heal"
+        ? abilityMode === "burst"
+          ? abilityTargets(battle, selected.id)
+          : attackableTargets(battle, selected.id)
+        : [],
     [battle, selected, abilityMode],
   )
-  // Ability-only highlight: self + adjacent living allies, only while the
-  // Regrowth heal ability is armed. Distinct data-attr from the move
-  // highlight even though both lean on the same moss accent.
+  // Ability-only highlight: the allies an armed ally-targeting ability
+  // (heal / shield-ally) can pick - "heal" mode, "burst" mode = enemies.
   const healable = useMemo(
-    () =>
-      selected && abilityMode === "heal" && battle.phase === "player"
-        ? battle.units.filter((u) => u.hp > 0 && u.side === selected.side && (u.id === selected.id || kingAdjacent(u.pos, selected.pos)))
-        : [],
+    () => (selected && abilityMode === "heal" && battle.phase === "player" ? abilityTargets(battle, selected.id) : []),
     [battle, selected, abilityMode],
   )
   // What every living enemy currently plans to do this coming enemy phase -
@@ -231,12 +235,13 @@ export default function TacticsBoard({
     if (!selected || !selected.ability || battle.phase !== "player") return
     const ability = selected.ability
     if (selected.ap < ability.cost || selected.cooldownRemaining > 0) return
-    if (ability.kind === "aura-block") {
+    const side = abilityTargetSide(ability)
+    if (!side) {
       onBattleChange(castAbility(battle, selected.id))
       onAbilityModeChange(null)
       return
     }
-    const kind = ability.kind === "heal" ? "heal" : "burst"
+    const kind = side === "ally" ? "heal" : "burst"
     onAbilityModeChange(abilityMode === kind ? null : kind)
   }
 
@@ -555,16 +560,13 @@ export default function TacticsBoard({
                 data-active={!!abilityMode}
                 disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0}
                 onClick={handleAbilityClick}
+                title={describeAbility(selected.ability)}
               >
                 {selected.cooldownRemaining > 0
                   ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
                   : `${selected.ability.name} · ${selected.ability.cost} AP`}
               </button>
-              {abilityMode && (
-                <p className="hwt-ability-hint">
-                  {abilityMode === "heal" ? "Choose an ally to heal." : "Choose an enemy for Focused Shot."}
-                </p>
-              )}
+              <p className="hwt-ability-hint">{abilityMode ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
             </div>
           )}
           <div className="hwt-log-heading">Battle log</div>

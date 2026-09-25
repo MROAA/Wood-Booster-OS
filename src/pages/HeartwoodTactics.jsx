@@ -47,7 +47,7 @@ const ROSTER_PREVIEW = previewPlayerRoster()
 export default function HeartwoodTactics() {
   const [battle, setBattle] = useState(() => startBattle("default"))
   const [selectedId, setSelectedId] = useState(null)
-  // null = no ability targeting in progress; "heal" / "burst" = the
+  // null = no ability targeting in progress; "heal" (ally) / "burst" (enemy) = the
   // selected unit's ability is armed and waiting for a target click.
   // "aura-block" needs no mode - it applies the instant the button is hit.
   const [abilityMode, setAbilityMode] = useState(null)
