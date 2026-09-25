@@ -2254,7 +2254,13 @@ function deployedUnitsFor(runState) {
     }))
 }
 
-export function startFormationBattle(runState) {
+// Tactics-default round: the auto-battle's own fully-built START state
+// (relics, relic levels, Commander items, unit items/upgrades, a queued
+// shop Active Power, run modifiers, difficulty scaling, arena, forest
+// mood - everything) is also the source of truth the Frontier's real
+// fights read their unit numbers from, so both engines can never
+// disagree on what the player actually brought into this fight.
+function autoBattleStartFor(runState) {
   const node = currentNode(runState)
   const commanderItemIds = runState.items.filter((it) => it.equippedTo === "commander").map((it) => it.defId)
   // Act-corrected encounter + per-Act stat floor (see encounterAndFactorFor
@@ -2285,7 +2291,11 @@ export function startFormationBattle(runState) {
     // now drives a live per-battle meter.
     runState.forestState || "restless",
   )
-  const named = applyTrialName(battle, node)
+  return { battle: applyTrialName(battle, node), encounterId, difficultyFactor, deployed: deployedUnitsFor(runState) }
+}
+
+export function startFormationBattle(runState) {
+  const { battle: named } = autoBattleStartFor(runState)
   return {
     ...runState,
     phase: "battle",
@@ -2294,6 +2304,24 @@ export function startFormationBattle(runState) {
     // Almanac: every piece the fight actually resolved (mooks, minibosses,
     // bosses, formation pieces - startAutoBattle flattens them all).
     seen: noteSeen(runState.seen, "enemies", ...named.enemies.map((e) => e.defId)),
+  }
+}
+
+// Tactics-default round: the Frontier twin of startFormationBattle -
+// same start state, same one-shot consumption of the queued shop Active
+// Power, same Almanac "seen" bookkeeping. `buildTacticsBattle` (injected,
+// so this file never imports the tactics engine) turns that start state
+// into a tactics battle, or returns null to leave the run untouched.
+export function startTacticsFormationBattle(runState, buildTacticsBattle) {
+  const start = autoBattleStartFor(runState)
+  const tactics = buildTacticsBattle(start)
+  if (!tactics) return runState
+  return {
+    ...runState,
+    phase: "battle",
+    battle: { ...tactics, engine: "tactics" },
+    pendingActiveEffects: [],
+    seen: noteSeen(runState.seen, "enemies", ...start.battle.enemies.map((e) => e.defId)),
   }
 }
 

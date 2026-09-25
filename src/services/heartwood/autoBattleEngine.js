@@ -81,7 +81,10 @@ function freshUnit(overrides) {
 // `upgrades` is the bench entry's chosen-branch array (upgrades.js /
 // units.js's unitDefWithUpgrade). A bare number is still accepted
 // (legacy `upgradeLevel` -> that many `power` picks).
-function effectiveUnitDef(defId, upgrades, deployedDefIds) {
+// Exported (tactics-default round) so the Frontier's real-run bridge
+// (tacticsRealMatchup.js's buildRunTacticsBattle) derives each squad
+// unit from the SAME upgraded/dual-classed def the auto-battle uses.
+export function effectiveUnitDef(defId, upgrades, deployedDefIds) {
   const base = unitDefWithUpgrade(UNITS[defId], upgrades)
   const dualClass = findDualClassFor(defId, deployedDefIds, UNITS)
   return dualClass ? applyDualClassGrant(base, defId, dualClass, UNITS) : base

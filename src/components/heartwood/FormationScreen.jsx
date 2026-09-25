@@ -1,5 +1,3 @@
-import { useEffect } from "react"
-import { Link } from "react-router-dom"
 import { UNITS } from "../../data/heartwood/units"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
@@ -51,15 +49,6 @@ function slotIndexAt(row, col) {
 // resolves on, with the real upcoming enemy formation ghosted in at its
 // real positions and empty/filled deploy slots where the squad goes -
 // placement now happens on an actual board, not a generic card list.
-// How long the player has to arrange their squad before the fight
-// starts on its own. Marc, direct: "start battle nappia ei tarvi, se
-// voi alkaa automaattisesti" (no Start Battle button needed, it can
-// start automatically) - same "no click needed" philosophy the battle
-// itself already follows (AutoBattleView.jsx's own comment), extended
-// one screen earlier. Long enough for a real look at the upcoming
-// formation and a rearrange or two; short enough that it doesn't feel
-// like the screen is just sitting there waiting for no reason.
-const AUTO_START_DELAY_MS = 5000
 
 // Elite gimmick one-liners (feat/hearthwood-elites) - the "how do I play
 // this one differently" cue, shown on the formation screen. The enemy's
@@ -115,25 +104,9 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // nodeNarrative - the same pure call the flavor line + difficulty
   // badge read further down.
   const narrative = nodeNarrative(node, runState.nodeIndex, RUN_PATH.length)
-  // Does this stop carry NEW story to read? A Trial's intro line, or a
-  // hand-authored node `beat` (NOT the description fallback nodeNarrative
-  // adds for every fight - that's always-there flavor, not a beat you
-  // pause for). Marc: the pre-battle story kept getting skipped by the
-  // auto-start before he could read it.
-  const hasStoryToRead = Boolean(narrative.isTrial || narrative.intro || node.beat)
-  // Auto-start (see AUTO_START_DELAY_MS above). Keyed on the node
-  // itself, not deployedCount/runState - re-arranging the squad
-  // shouldn't reset the clock (the same fixed-delay shape
-  // AutoBattleView.jsx's own round-advance timer already uses), and a
-  // new node (the NEXT fight's formation screen) needs its own fresh
-  // timer rather than inheriting whatever time was left on this one.
-  // A stop with story to read never arms the timer - it waits for the
-  // player to press Start Battle.
-  useEffect(() => {
-    if (hasStoryToRead) return undefined
-    const timer = setTimeout(onStartBattle, AUTO_START_DELAY_MS)
-    return () => clearTimeout(timer)
-  }, [node, onStartBattle, hasStoryToRead])
+  // Tactics-default round: no auto-start timer any more (it used to
+  // launch the auto-battle after 5s) - a tactics fight is planned, so
+  // the fight begins only when the player presses Start Battle.
 
   const deployedCount = runState.deployed.filter((k) => k !== null).length
   // Tribe synergies (synergies.js) - counted from DEPLOYED units only,
@@ -665,45 +638,25 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         })}
       </div>
 
-      {/* No longer gated on deployedCount > 0 - the Commander is
-          always a 5th deployed unit now (Marc: "peli alkaa siitä että
-          commander on yksin" - the game starts with the Commander
-          alone), so a squad of zero recruited units is a real, valid
-          state, not an empty one.
-
-          Text kept as "Start Battle" (not renamed to something like
-          "Skip Wait") deliberately - it's the exact string dozens of
-          existing .scratch/*.mjs verification scripts locate this
-          screen/button by. On a routine fight the timer above starts
-          the fight on its own (a player never NEEDS to click); on a
-          stop with story to read (hasStoryToRead) the timer is held and
-          this button is the only way forward, so the narrative isn't
-          skipped before it's read (Marc). */}
-      <button className="hw-end-turn" onClick={onStartBattle} style={{ marginTop: 16 }}>
-        Start Battle
-      </button>
-      {hasStoryToRead && (
-        <p style={{ marginTop: 8, fontSize: 12, color: "var(--hw-muted)", fontStyle: "italic" }}>
-          Take your time - the fight begins when you're ready.
-        </p>
-      )}
-      {/* Hearthwood Frontier Phase 4 second slice ("fight one real battle
-          for real"): a normal fight with a resolvable matchup gets the
-          REAL playable option - win or lose, it counts, via the exact
-          same resolveBattleOutcome the auto-battle path already uses.
-          Every other case (elite/miniboss/boss, or nothing deployed) keeps
-          the original read-only preview link unchanged - target="_blank",
-          never navigates away from this screen's own auto-start timer,
-          needs zero props/state since the tactics page re-reads the real
-          save itself. */}
+      {/* Tactics-default round (Marc: fights "were still auto-battle"):
+          every fight with a resolvable matchup starts as the real
+          turn-based tactics battle - that's the primary Start Battle.
+          The auto-battle stays reachable as a small fallback for now.
+          The Commander always deploys, so a Commander-alone squad is a
+          real fight too (resolveRealMatchup allows it). */}
       {tacticsMatchup ? (
-        <button className="hw-tactics-fight-btn" onClick={onStartTacticsBattle} style={{ marginTop: 8 }}>
-          ⚔ Fight this as Tactics
-        </button>
+        <>
+          <button className="hw-end-turn hw-tactics-start" onClick={onStartTacticsBattle} style={{ marginTop: 16 }}>
+            ⚔ Start Battle
+          </button>
+          <button className="hw-auto-battle-btn" onClick={onStartBattle} style={{ marginTop: 8 }}>
+            Auto-battle instead
+          </button>
+        </>
       ) : (
-        <Link className="hw-tactics-link" to="/heartwood-tactics" target="_blank" rel="noopener noreferrer" style={{ marginTop: 8 }}>
-          🧪 Preview this fight as Tactics
-        </Link>
+        <button className="hw-end-turn" onClick={onStartBattle} style={{ marginTop: 16 }}>
+          Start Battle
+        </button>
       )}
     </div>
   )

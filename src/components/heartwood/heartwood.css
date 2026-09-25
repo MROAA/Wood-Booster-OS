@@ -7931,6 +7931,23 @@ img.hw-intent-glyph {
 .hw-tactics-fight-btn:hover {
   background: color-mix(in srgb, var(--hw-ember) 20%, transparent);
 }
+/* Tactics-default round: the auto-battle is now a quiet fallback under
+   the tactics Start Battle - a muted text button, not a second CTA. */
+.hw-auto-battle-btn {
+  display: inline-block;
+  background: none;
+  border: none;
+  color: var(--hw-muted);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hw-auto-battle-btn:hover {
+  color: var(--hw-text);
+}
 .hw-commander-seed-entry {
   display: flex;
   align-items: center;
