@@ -2874,10 +2874,30 @@ function decideAndActEnemy(state, enemyId) {
 // silently refuse every hypothetical enemy action, degrading this into
 // independent per-enemy reads instead of a real sequential preview.
 export function previewEnemyIntents(state) {
-  let scratch = { ...state, phase: "enemy" }
+  // Smarter-enemies sprint: the AI now reads AP/root/slow, so the scratch
+  // mirrors endPlayerTurn's enemy reset (fresh AP, one tick of slow/root).
+  const fresh = state.phase === "player"
+  let scratch = {
+    ...state,
+    phase: "enemy",
+    units: fresh
+      ? state.units.map((u) =>
+          u.side === "enemy"
+            ? { ...u, ap: u.apMax, slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1) }
+            : u,
+        )
+      : state.units,
+  }
   const intents = []
   for (const enemy of state.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (scratch.phase !== "enemy") break
+    // A stunned enemy skips its turn (relicFx.spendStun in runEnemyTurn).
+    const stunned = relicFx.spendStun(scratch, enemy.id)
+    if (stunned) {
+      intents.push({ enemyId: enemy.id, intent: { kind: "stunned" } })
+      scratch = stunned
+      continue
+    }
     const intent = decideEnemyIntent(scratch, enemy.id)
     intents.push({ enemyId: enemy.id, intent })
     scratch = applyEnemyIntent(scratch, enemy.id, intent)

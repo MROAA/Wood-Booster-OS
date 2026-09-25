@@ -20,7 +20,7 @@ const result = await page.evaluate(async () => {
   const base = E.createTacticsBattle()
   const clean = {
     block: 0, ward: 0, revive: 0, bulwark: 0, taunt: 0, poison: 0, weak: 0, vulnerable: 0, slow: 0, root: 0,
-    suppressed: 0, execute: 0, shatter: 0, woundedFury: 0, leech: false, poisonOnHit: 0, nimble: false,
+    suppressed: 0, stun: 0, execute: 0, shatter: 0, woundedFury: 0, leech: false, poisonOnHit: 0, nimble: false,
     phases: [], phaseIndex: 0, triggers: [], aoeMove: null, charge: null, covenAura: null, cultRitual: null,
     cultFodder: false, broodSplit: null, className: null, ap: 2, apMax: 2, regen: 0, strength: 0,
   }
@@ -108,7 +108,18 @@ const result = await page.evaluate(async () => {
       }
       return { enemyId, intent, pos: now.pos, ok }
     })
-    r.preview = { rows, stable: JSON.stringify(preview) === JSON.stringify(previewAgain) }
+    // Stunned enemy (relic stun) previews as skipping and really doesn't move;
+    // spent AP (after its last turn) is refreshed in the preview.
+    const st2 = st([En("e1", 4, 4, { stun: 1 }), En("e2", 2, 4, { ap: 0 }), P("p1", 4, 6), P("p2", 2, 6)])
+    const pv2 = E.previewEnemyIntents(st2)
+    const after2 = E.endPlayerTurn(st2)
+    const e1After = after2.units.find((u) => u.id === "e1")
+    const p2After = after2.units.find((u) => u.id === "p2")
+    r.preview = {
+      rows,
+      stable: JSON.stringify(preview) === JSON.stringify(previewAgain),
+      stun: { pv2, e1Pos: e1After.pos, p2Hp: p2After.hp },
+    }
   }
   return r
 })
@@ -134,6 +145,11 @@ out.result = result
 {
   const g = result.preview
   if (!(g.stable && g.rows.length === 3 && g.rows.every((x) => x.ok))) out.errors.push("check5 preview did not match the real enemy turn")
+  const s = g.stun
+  const e2Intent = s.pv2.find((i) => i.enemyId === "e2")?.intent
+  if (!(s.pv2[0]?.intent.kind === "stunned" && s.e1Pos.col === 4 && e2Intent?.kind === "move-attack" && s.p2Hp < 30)) {
+    out.errors.push("check5b stunned/spent-AP preview did not match the real turn")
+  }
 }
 
 console.log(JSON.stringify(out, null, 2))
