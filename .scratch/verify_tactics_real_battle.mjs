@@ -29,7 +29,7 @@ import { mkdir } from "node:fs/promises"
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
 const PORT = process.env.PORT || 5429
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sprint1/.scratch/shots"
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS/.claude/worktrees/agent-a8921c58ad07bb209/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -996,22 +996,32 @@ function newPage() {
   await page19.waitForTimeout(400)
   let phase = "player"
   let turns = 0
+  // Smarter-enemies sprint: the boss no longer walks into the first
+  // token, so every squad member advances + attacks each turn.
+  const squad19 = await page19.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
   while (phase !== "won" && phase !== "lost" && turns < 20) {
-    await page19.locator('.hwt-token[data-side="player"]').first().click({ force: true }).catch(() => {})
-    await page19.waitForTimeout(120)
-    let targets = page19.locator('.hwt-cell[data-targetable="true"]')
-    if ((await targets.count()) === 0) {
-      const reach = page19.locator('.hwt-cell[data-reachable="true"]')
-      if ((await reach.count()) > 0) {
-        await reach.first().click()
-        await page19.waitForTimeout(120)
+    for (const name of squad19) {
+      if ((await page19.locator(".hwt-turn-label").getAttribute("data-phase")) !== "player") break
+      const unit = page19.locator(".hwt-token", { hasText: name })
+      if ((await unit.count()) === 0) continue
+      await unit.first().click({ force: true }).catch(() => {})
+      await page19.waitForTimeout(120)
+      let targets = page19.locator('.hwt-cell[data-targetable="true"]')
+      if ((await targets.count()) === 0) {
+        const reach = page19.locator('.hwt-cell[data-reachable="true"]')
+        if ((await reach.count()) > 0) {
+          await reach.first().click()
+          await page19.waitForTimeout(120)
+        }
+      }
+      targets = page19.locator('.hwt-cell[data-targetable="true"]')
+      if ((await targets.count()) > 0) {
+        await targets.first().click()
+        await page19.waitForTimeout(150)
       }
     }
-    targets = page19.locator('.hwt-cell[data-targetable="true"]')
-    if ((await targets.count()) > 0) {
-      await targets.first().click()
-      await page19.waitForTimeout(150)
-    }
+    phase = await page19.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase !== "player") break
     await page19.locator(".hwt-end-turn").click().catch(() => {})
     await page19.waitForTimeout(400)
     phase = await page19.locator(".hwt-turn-label").getAttribute("data-phase")
@@ -1056,11 +1066,26 @@ function newPage() {
   await page20.waitForTimeout(400)
   await page20.locator(".hw-tactics-start").click()
   await page20.waitForTimeout(400)
+  // Smarter-enemies sprint: enemies now focus a lone advancing Commander
+  // and can kill him mid-walk - made sturdy, since this check is about his kit.
+  await page20.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    save.run.battle.units = save.run.battle.units.map((u) => (u.id === "player-commander" ? { ...u, hp: 999, maxHp: 999 } : u))
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+  })
+  await page20.reload({ waitUntil: "domcontentloaded" })
+  await page20.waitForTimeout(400)
   const tommyToken = page20.locator(".hwt-token", { hasText: "Tommy" })
   await tommyToken.click({ force: true })
   await page20.waitForTimeout(200)
   let placed = false
   for (let i = 0; i < 6 && !placed; i++) {
+    // Smarter-enemies sprint: flanking enemies can already be adjacent
+    // (behind him) - attack them instead of walking past.
+    if ((await page20.locator('.hwt-cell[data-targetable="true"]').count()) > 0) {
+      placed = true
+      break
+    }
     const reach = page20.locator('.hwt-cell[data-reachable="true"]')
     const n = await reach.count()
     if (n > 0) {
@@ -1687,6 +1712,9 @@ function newPage() {
     // own "guaranteed back-hit geometry" already overrides a real
     // enemy's stats for a controlled real-world test.
     enemy.attack = 20
+    // Smarter-enemies sprint: rooted so the new AI can't flank onto the
+    // hermit's retreat tile (root 2 -> 1 after the enemy-phase decay).
+    enemy.root = 2
     battle.units = battle.units.map((u) => (u.id !== hermit.id && u.id !== enemy.id ? { ...u, pos: { row: 0, col: 0 } } : u))
     save.run.battle = battle
     localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
@@ -1973,6 +2001,9 @@ function newPage() {
     matron.pos = { row: 4, col: 4 }
     matron.hp = matron.maxHp
     matron.ap = matron.apMax
+    // Smarter-enemies sprint: rooted so it shoots Galeblade from here
+    // instead of walking into range of the parked Commander.
+    matron.root = 2
     battle.units = battle.units.map((u) =>
       u.side === "player" && u.id !== galeblade.id
         ? { ...u, pos: { row: 0, col: 0 } }
@@ -2046,7 +2077,8 @@ function newPage() {
     battle.units = battle.units.map((u) => {
       if (u.id === bc.id) return { ...u, pos: { row: 4, col: 6 }, facing: "W", hp: u.maxHp }
       if (u.id === wolf.id) return { ...u, pos: { row: 4, col: 8 }, hp: u.maxHp }
-      if (u.id === matron.id) return { ...u, pos: { row: 4, col: 4 }, hp: u.maxHp, ap: u.apMax }
+      // Smarter-enemies sprint: rooted so it can't walk into range of the squishier wolf.
+      if (u.id === matron.id) return { ...u, pos: { row: 4, col: 4 }, hp: u.maxHp, ap: u.apMax, root: 2 }
       if (u.side === "enemy") return { ...u, hp: 0 }
       return { ...u, pos: { row: parkRow++, col: 11 } }
     })
