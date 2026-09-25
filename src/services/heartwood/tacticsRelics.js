@@ -7,7 +7,6 @@
 // tacticsEngine.js (circular, only used at call time).
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
-import { UNITS } from "../../data/heartwood/units"
 import {
   emit,
   getUnit,
@@ -68,11 +67,13 @@ export function relicOverlayPatch(unit, twin, relicIds) {
     return { ...t, source: hit.name }
   })
   const stats = Object.fromEntries(PLAYER_POWER_IDS.map((id) => [id, powers[id] || 0]))
-  // A nimble unit's own passive Evade is already modelled as Sidestep.
-  if (unit.nimble) {
-    const own = (UNITS[unit.defId]?.passive || []).filter((p) => p.type === "applyBuff" && p.id === "evade").reduce((n, p) => n + (p.amount || 0), 0)
-    stats.evade = Math.max(0, stats.evade - own)
-  }
+  // Evade only from relics/items: Gale units' own/synergy dodge is
+  // already modelled as Sidestep (nimble), so it isn't doubled here.
+  const sourcedEvade = defs.reduce(
+    (n, def) => n + (def.effects || []).filter((e) => e.type === "applyBuff" && e.id === "evade").reduce((m, e) => m + (e.amount || 0), 0),
+    0,
+  )
+  stats.evade = Math.min(stats.evade, sourcedEvade)
   return {
     ...stats,
     triggers,
