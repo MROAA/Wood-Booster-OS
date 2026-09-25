@@ -29,6 +29,8 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 import * as relicFx from "./tacticsRelics"
+import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
+export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
 // Doubled the tile count (35 -> 70) for real maneuvering room; every
@@ -630,7 +632,9 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     ap: AP_MAX,
     apMax: AP_MAX,
     block: 0,
-    ability: side === "player" ? ABILITIES[defId] || null : null,
+    // Abilities sprint: every other deployable unit derives one from its
+    // own kit (tacticsAbilities.js); the Commander (overrideDef) gets none.
+    ability: side === "player" ? ABILITIES[defId] || (overrideDef ? null : deriveAbilityForDef(def)) : null,
     cooldownRemaining: 0,
     charge,
     chargeCounter: charge ? charge.turns : 0,
@@ -1172,8 +1176,14 @@ export function reachableTilesFor(state, unitId) {
 // unitThreat's own scoring, used only to sort WITHIN an already-taunt-
 // filtered pool). So restricting the player's own valid targets to only
 // a living taunter is a faithful port, not an invented restriction.
+// Abilities sprint: a Taunt Shout taunts only for the turn it was cast
+// (through the enemy phase) - `shoutTurn` expires itself, no decay step.
+function isTaunting(state, u) {
+  return u.taunt > 0 || (u.shoutTurn != null && u.shoutTurn === state.turn)
+}
+
 function livingTaunters(state, side) {
-  return livingUnits(state, side).filter((u) => u.taunt > 0)
+  return livingUnits(state, side).filter((u) => isTaunting(state, u))
 }
 
 export function attackableTargets(state, unitId) {
@@ -1183,7 +1193,7 @@ export function attackableTargets(state, unitId) {
     (u) => u.side !== unit.side && u.hp > 0 && chebyshevDist(unit.pos, u.pos) <= unit.range,
   )
   const taunters = livingTaunters(state, unit.side === "player" ? "enemy" : "player")
-  return taunters.length ? inRange.filter((u) => u.taunt > 0) : inRange
+  return taunters.length ? inRange.filter((u) => isTaunting(state, u)) : inRange
 }
 
 function checkTacticsBattleEnd(state) {
@@ -2187,7 +2197,146 @@ export function castAbility(state, actorId, targetId) {
     return checkTacticsBattleEnd(next)
   }
 
+  // Abilities sprint: the new kinds (see tacticsAbilities.js).
+  const side = abilityTargetSide(ability)
+  if (side && !abilityTargets(state, actorId).some((u) => u.id === targetId)) return state
+  const target = side ? getUnit(state, targetId) : null
+  let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
+  const callout = (s) => emit(s, { kind: "reaction", unitId: actorId, label: `${ability.name}!` })
+
+  if (ability.kind === "taunt-shout") {
+    next = setUnit(next, actorId, { shoutTurn: state.turn, block: actor.block + ability.amount })
+    return callout({ ...next, log: [...next.log, `${actor.name} bellows ${ability.name} - every nearby foe must face it! (+${ability.amount} Block)`] })
+  }
+
+  if (ability.kind === "rally") {
+    for (const u of state.units) {
+      if (u.hp <= 0 || u.side !== actor.side || !(u.id === actorId || kingAdjacent(u.pos, actor.pos))) continue
+      next = setUnit(next, u.id, { attack: getUnit(next, u.id).attack + ability.amount })
+    }
+    return callout({ ...next, log: [...next.log, `${actor.name} calls ${ability.name} - nearby allies grow stronger (+${ability.amount}).`] })
+  }
+
+  if (ability.kind === "shield-ally") {
+    const live = getUnit(next, target.id)
+    next = setUnit(next, target.id, { ward: (live.ward || 0) + 1, block: live.block + ability.amount })
+    next = emit(next, { kind: "ward", targetId: target.id })
+    return callout({ ...next, log: [...next.log, `${actor.name} shields ${target.name} with ${ability.name} (Ward, +${ability.amount} Block).`] })
+  }
+
+  if (ability.kind === "dash") {
+    const landing = dashLanding(state, actor, target)
+    if (!landing.stay) {
+      const facing = cardinalDir(landing.pos.col - actor.pos.col, landing.pos.row - actor.pos.row)
+      next = setUnit(next, actorId, { pos: landing.pos, facing })
+      const grant = TERRAIN[terrainAt(next, landing.pos)].grantPoison
+      if (grant) next = setUnit(next, actorId, { poison: (getUnit(next, actorId).poison || 0) + grant })
+      next = { ...next, log: [...next.log, `${actor.name} dashes past the enemy lines!`] }
+    }
+    next = callout(next)
+    next = abilityHit(next, actorId, target.id, getUnit(next, actorId).attack + ability.bonus, ability).next
+    return checkTacticsBattleEnd(next)
+  }
+
+  if (ability.kind === "cleave") {
+    const splashIds = livingUnits(state, target.side).filter((u) => u.id !== target.id && kingAdjacent(u.pos, target.pos)).map((u) => u.id)
+    next = callout(next)
+    next = abilityHit(next, actorId, target.id, actor.attack, ability).next
+    for (const id of splashIds) {
+      if (next.phase === "won" || next.phase === "lost") break
+      const splashTarget = getUnit(next, id)
+      if (splashTarget && splashTarget.hp > 0) next = abilityHit(next, actorId, id, Math.ceil(actor.attack / 2), ability).next
+    }
+    return checkTacticsBattleEnd(next)
+  }
+
+  if (ability.kind === "poison-strike" || ability.kind === "root-shot") {
+    next = callout(next)
+    const { next: hit, fell } = abilityHit(next, actorId, target.id, actor.attack, ability)
+    next = hit
+    if (!fell) {
+      const live = getUnit(next, target.id)
+      if (ability.kind === "poison-strike") {
+        next = setUnit(next, target.id, { poison: (live.poison || 0) + ability.amount })
+        next = { ...next, log: [...next.log, `${target.name} is poisoned (+${ability.amount}).`] }
+      } else {
+        next = setUnit(next, target.id, { root: (live.root || 0) + ROOT_DURATION })
+        next = { ...next, log: [...next.log, `${target.name} is rooted in place!`] }
+      }
+      next = emit(next, { kind: "reaction", unitId: target.id, label: ability.kind === "poison-strike" ? "Poisoned!" : "Rooted!" })
+    }
+    return checkTacticsBattleEnd(next)
+  }
+
+  if (ability.kind === "push") {
+    const dRow = Math.sign(target.pos.row - actor.pos.row)
+    const dCol = Math.sign(target.pos.col - actor.pos.col)
+    const dest = { row: target.pos.row + dRow, col: target.pos.col + dCol }
+    const free = isOnBoard(dest, state.grid) && TERRAIN[terrainAt(state, dest)].cost !== Infinity && !state.units.some((u) => u.hp > 0 && samePos(u.pos, dest))
+    next = callout(next)
+    const { next: hit, fell } = abilityHit(next, actorId, target.id, actor.attack + (free ? 0 : ability.bonus), ability)
+    next = hit
+    const live = getUnit(next, target.id)
+    if (!fell && free && samePos(live.pos, target.pos) && !next.units.some((u) => u.hp > 0 && samePos(u.pos, dest))) {
+      next = setUnit(next, target.id, { pos: dest })
+      next = emit({ ...next, log: [...next.log, `${target.name} is knocked back!`] }, { kind: "reaction", unitId: target.id, label: "Knocked back!" })
+    } else if (!free) {
+      next = { ...next, log: [...next.log, `${target.name} slams into what's behind it (+${ability.bonus})!`] }
+    }
+    return checkTacticsBattleEnd(next)
+  }
+
   return state
+}
+
+// One ability hit: same damage pipeline the burst branch uses.
+function abilityHit(state, actorId, targetId, baseAmount, ability) {
+  const actor = getUnit(state, actorId)
+  const target = getUnit(state, targetId)
+  let next = emit(state, { kind: "strike", actorId, targetId, ranged: chebyshevDist(actor.pos, target.pos) > 1, ability: ability.name })
+  const amount = modifiedAttackAmount(actor, target, baseAmount)
+  const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, amount)
+  next = hit
+  next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} hits ${target.name} for ${remaining}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
+  next = grantStrengthOnKill(next, actorId, fell)
+  next = checkEnemyPhase(next, targetId)
+  next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
+  if (fell) next = trySpawnBrood(next, targetId)
+  return { next, fell }
+}
+
+// Dash: a free tile next to the target within `range` of the actor
+// (a leap - ignores Zones and path blocking, never water). Stays put if
+// already adjacent. null = no landing spot.
+function dashLanding(state, actor, target) {
+  if (kingAdjacent(actor.pos, target.pos)) return { stay: true, pos: actor.pos }
+  if (actor.root > 0) return null
+  let best = null
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      const pos = { row: target.pos.row + dr, col: target.pos.col + dc }
+      if ((dr === 0 && dc === 0) || !isOnBoard(pos, state.grid)) continue
+      if (TERRAIN[terrainAt(state, pos)].cost === Infinity) continue
+      if (state.units.some((u) => u.hp > 0 && samePos(u.pos, pos))) continue
+      const dist = chebyshevDist(actor.pos, pos)
+      if (dist > actor.ability.range) continue
+      if (!best || dist < best.dist) best = { dist, pos }
+    }
+  }
+  return best ? { stay: false, pos: best.pos } : null
+}
+
+// Valid clicked targets for the unit's ability right now (UI + guard).
+export function abilityTargets(state, actorId) {
+  const actor = getUnit(state, actorId)
+  if (!actor || actor.hp <= 0 || !actor.ability) return []
+  const side = abilityTargetSide(actor.ability)
+  if (side === "ally") return livingUnits(state, actor.side).filter((u) => u.id === actorId || kingAdjacent(u.pos, actor.pos))
+  if (side !== "enemy") return []
+  if (actor.ability.kind !== "dash") return attackableTargets(state, actorId)
+  const foes = livingUnits(state, actor.side === "player" ? "enemy" : "player")
+  const taunters = foes.filter((u) => isTaunting(state, u))
+  return (taunters.length ? taunters : foes).filter((u) => dashLanding(state, actor, u))
 }
 
 // The Ancients archetype's real mechanic (autoBattleEngine.js's own
