@@ -209,5 +209,6 @@ export function buildRunTacticsBattle(runState, start) {
     autoStart: start.battle,
     difficultyFactor: start.difficultyFactor,
     label: start.battle.enemies.length === 1 ? start.battle.enemies[0].name : formation?.name,
+    relicIds: runState.relics || [],
   })
 }
