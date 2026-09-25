@@ -2980,7 +2980,8 @@ function applyEnemySkill(state, enemyId, intent) {
           ? { root: Math.max(t.root || 0, ROOT_DURATION) }
           : { [skill.status]: Math.max(t[skill.status] || 0, 1) }
     next = emit(setUnit(next, t.id, patch), { kind: "reaction", unitId: t.id, label: HEX_WORD[skill.status] })
-    return { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name} - ${HEX_WORD[skill.status]}`] }
+    const effect = { poison: `is poisoned (+${skill.amount}).`, root: "is rooted in place!", weak: "is weakened.", vulnerable: "is left vulnerable." }[skill.status]
+    return { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name}. ${t.name} ${effect}`] }
   }
   if (skill.kind === "summon") {
     const cell = freeSafeNeighbours(next, actor.pos, enemyId)[0]
@@ -3291,7 +3292,8 @@ export function withLowEnemyHp(state) {
   // Tactics-default round: real run fights now carry the auto-battle's
   // own start state (Ward/Revive stacks, difficulty-scaled damage), so
   // the QA hook also strips those one-hit shields - still QA-only.
-  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0 } : u)) }
+  // Enemy-abilities sprint: skills (heals/summons) off too - QA-only.
+  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) }
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
