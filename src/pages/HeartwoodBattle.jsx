@@ -26,6 +26,7 @@ import {
   assignToSlot,
   clearSlot,
   startFormationBattle,
+  startTacticsFormationBattle,
   advanceRound,
   resolveBattleOutcome,
   chooseRelic,
@@ -90,8 +91,8 @@ import { CINEMATICS, cinematicById, suggestedEndingId } from "../data/heartwood/
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import TacticsBoard from "../components/heartwood/TacticsBoard"
-import { createRealMatchupBattle, withLowEnemyHp } from "../services/heartwood/tacticsEngine"
-import { resolveRealMatchup } from "../services/heartwood/tacticsRealMatchup"
+import { withLowEnemyHp } from "../services/heartwood/tacticsEngine"
+import { buildRunTacticsBattle } from "../services/heartwood/tacticsRealMatchup"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
@@ -592,19 +593,22 @@ export default function HeartwoodBattle() {
   function handleStartTacticsBattle() {
     setTacticsSelectedId(null)
     setTacticsAbilityMode(null)
-    setRunState((current) => {
-      const node = current.path[current.nodeIndex]
-      const matchup = resolveRealMatchup(current, node)
-      if (!matchup) return current
-      let battle = createRealMatchupBattle(matchup.squadDefIds, matchup.enemyDefIds, matchup.characterId, matchup.commanderRank, matchup.terrain)
-      // The same QA-only ?debugLowHp=1 hook HeartwoodTactics.jsx's own
-      // maybeDebugLowHp already uses - never a real feature, just lets a
-      // verification pass reach a real win without grinding real attack
-      // rounds first.
-      const params = new URLSearchParams(window.location.search)
-      if (params.get("debugLowHp") === "1") battle = withLowEnemyHp(battle)
-      return { ...current, phase: "battle", battle: { ...battle, engine: "tactics" } }
-    })
+    // Tactics-default round: built from the auto-battle's own start
+    // state (runEngine.js's startTacticsFormationBattle), so relics,
+    // items, upgrades, a queued shop Active Power and difficulty scaling
+    // all carry into the tactics fight - and the queued power is
+    // consumed exactly like the auto-battle path consumes it.
+    setRunState((current) =>
+      startTacticsFormationBattle(current, (start) => {
+        const battle = buildRunTacticsBattle(current, start)
+        // The same QA-only ?debugLowHp=1 hook HeartwoodTactics.jsx's own
+        // maybeDebugLowHp already uses - never a real feature, just lets a
+        // verification pass reach a real win without grinding real attack
+        // rounds first.
+        const params = new URLSearchParams(window.location.search)
+        return battle && params.get("debugLowHp") === "1" ? withLowEnemyHp(battle) : battle
+      }),
+    )
   }
 
   function handleTacticsBattleChange(newBattle) {
