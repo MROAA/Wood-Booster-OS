@@ -92,7 +92,7 @@ import { CINEMATICS, cinematicById, suggestedEndingId } from "../data/heartwood/
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import TacticsBoard from "../components/heartwood/TacticsBoard"
-import { withLowEnemyHp } from "../services/heartwood/tacticsEngine"
+import { withLowEnemyHp, enterDeploy } from "../services/heartwood/tacticsEngine"
 import { buildRunTacticsBattle } from "../services/heartwood/tacticsRealMatchup"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
@@ -612,7 +612,8 @@ export default function HeartwoodBattle() {
         // verification pass reach a real win without grinding real attack
         // rounds first.
         const params = new URLSearchParams(window.location.search)
-        return battle && params.get("debugLowHp") === "1" ? withLowEnemyHp(battle) : battle
+        // Deployment phase: every real fight opens in setup.
+        return enterDeploy(battle && params.get("debugLowHp") === "1" ? withLowEnemyHp(battle) : battle)
       }),
     )
   }

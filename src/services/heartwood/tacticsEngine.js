@@ -1081,6 +1081,52 @@ export function createRunTacticsBattle({ squad, enemyDefIds, characterId, terrai
   }
 }
 
+// Deployment phase (sprint 2): before turn 1 the player arranges the
+// squad inside its own 3 rightmost columns, with the enemy, its intents
+// and the terrain already visible. The builders stay in "player" (so
+// every existing caller/check is unchanged); a caller opts a fresh
+// battle into setup with enterDeploy. While phase === "deploy" every
+// other action is refused by its own existing `phase !== side` guard.
+export const DEPLOY_COLS = 3
+
+export function isDeployTile(state, pos) {
+  const { rows, cols } = state.grid
+  if (!pos || pos.row < 0 || pos.row >= rows || pos.col < 0 || pos.col >= cols) return false
+  if (pos.col < cols - DEPLOY_COLS) return false
+  // Water can't be stood on; a poison pool isn't a place to start in.
+  const terrain = TERRAIN[terrainAt(state, pos)]
+  return terrain.cost !== Infinity && !terrain.grantPoison
+}
+
+export function enterDeploy(state) {
+  if (!state || state.phase !== "player" || state.turn !== 1) return state
+  return { ...state, phase: "deploy", log: [...state.log, "Place your units - enemies act after your first turn."] }
+}
+
+// Moves a living player unit to a free deploy tile, or swaps it with the
+// player unit already standing there. Anything else returns `state`.
+export function placeUnit(state, unitId, pos) {
+  if (state.phase !== "deploy") return state
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.side !== "player" || unit.hp <= 0) return state
+  if (!isDeployTile(state, pos)) return state
+  if (samePos(unit.pos, pos)) return state
+  const occupant = state.units.find((u) => u.hp > 0 && samePos(u.pos, pos))
+  if (occupant && occupant.side !== "player") return state
+  const target = { row: pos.row, col: pos.col }
+  return {
+    ...state,
+    units: state.units.map((u) =>
+      u.id === unit.id ? { ...u, pos: target } : occupant && u.id === occupant.id ? { ...u, pos: { ...unit.pos } } : u,
+    ),
+  }
+}
+
+export function beginBattle(state) {
+  if (state.phase !== "deploy") return state
+  return { ...state, phase: "player", log: [...state.log, "The battle begins."] }
+}
+
 // A static stat preview of the whole 6-unit roster, for the squad picker's
 // per-slot stat line - zero new derivation logic, reuses deriveTacticsUnit
 // directly (the exact same function a real squad unit goes through), just
@@ -2957,6 +3003,7 @@ function applyRegenTick(state) {
 }
 
 export function runEnemyTurn(state) {
+  if (state.phase === "deploy") return state
   // Poison ticks at the TOP of the enemy phase, before anyone acts -
   // matching the real game's own tickPoison timing exactly ("the top of
   // the round, before anyone acts"). This operates on whatever stacks

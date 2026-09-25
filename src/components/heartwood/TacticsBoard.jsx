@@ -34,6 +34,9 @@ import {
   frostZoneCells,
   thornZoneCells,
   flankRole,
+  placeUnit,
+  beginBattle,
+  isDeployTile,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
 import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
@@ -90,6 +93,11 @@ export default function TacticsBoard({
   children,
 }) {
   const selected = battle.units.find((u) => u.id === selectedId) || null
+  // Deployment phase: the enemy's plan and zones are shown as if it were
+  // player turn 1 (a scratch copy - the real battle stays in "deploy").
+  const deploying = battle.phase === "deploy"
+  const showPlan = battle.phase === "player" || deploying
+  const planBattle = useMemo(() => (deploying ? { ...battle, phase: "player" } : battle), [battle, deploying])
   // Battle feel round: a unit that just fell stays on its tile, faded,
   // for a moment - so its killing blow (replayed by TacticsFx) lands on
   // something visible instead of an already-empty cell.
@@ -131,8 +139,8 @@ export default function TacticsBoard({
   // what will happen if the player ends the turn right now, never a stale
   // guess. See tacticsEngine.js's previewEnemyIntents for the accuracy proof.
   const intents = useMemo(
-    () => (battle.phase === "player" ? previewEnemyIntents(battle) : []),
-    [battle],
+    () => (showPlan ? previewEnemyIntents(planBattle) : []),
+    [planBattle, showPlan],
   )
   const intentByEnemyId = useMemo(() => new Map(intents.map((i) => [i.enemyId, i.intent])), [intents])
   const threatenedIds = useMemo(() => {
@@ -155,8 +163,8 @@ export default function TacticsBoard({
   // intent above since a charge payoff hits every living player unit at
   // once, not a single chosen target.
   const chargeThreat = useMemo(
-    () => (battle.phase === "player" ? previewChargeThreat(battle) : { enemyIds: [], playerIds: [] }),
-    [battle],
+    () => (showPlan ? previewChargeThreat(planBattle) : { enemyIds: [], playerIds: [] }),
+    [planBattle, showPlan],
   )
   const chargeThreatenedIds = useMemo(() => new Set(chargeThreat.playerIds), [chargeThreat])
   const chargeFiringIds = useMemo(() => new Set(chargeThreat.enemyIds), [chargeThreat])
@@ -164,26 +172,26 @@ export default function TacticsBoard({
   // dangerous to retreat FROM), not relative to whichever unit is
   // currently selected - visible throughout the player's own turn,
   // same phase-gating as the charge/intent telegraphs above.
-  const zocCells = useMemo(() => (battle.phase === "player" ? zoneOfControlCells(battle, "enemy") : new Set()), [battle])
+  const zocCells = useMemo(() => (showPlan ? zoneOfControlCells(planBattle, "enemy") : new Set()), [planBattle, showPlan])
   // Threat Zone round: same static, phase-gated pattern as zocCells
   // above - a separate set since a cell can be in one, both, or
   // neither (the 2 mechanics are additive, not mutually exclusive).
-  const threatCells = useMemo(() => (battle.phase === "player" ? threatZoneCells(battle, "enemy") : new Set()), [battle])
+  const threatCells = useMemo(() => (showPlan ? threatZoneCells(planBattle, "enemy") : new Set()), [planBattle, showPlan])
   // Fear Zone round: same static, phase-gated pattern as zocCells/
   // threatCells above - a separate set since a cell can be in any
   // combination of the 3 zone types at once (they're additive, not
   // mutually exclusive).
-  const fearCells = useMemo(() => (battle.phase === "player" ? fearZoneCells(battle, "enemy") : new Set()), [battle])
+  const fearCells = useMemo(() => (showPlan ? fearZoneCells(planBattle, "enemy") : new Set()), [planBattle, showPlan])
   // Frost Zone round: same static, phase-gated pattern as the 3 zone
   // sets above - side "player" here, not "enemy", since this round's
   // one real hand-authored example (frostbind) is a PLAYER unit (no
   // enemy carries any cold/ice flavor today) - a deliberate, stated
   // flip from every prior zone overlay.
-  const frostCells = useMemo(() => (battle.phase === "player" ? frostZoneCells(battle, "player") : new Set()), [battle])
+  const frostCells = useMemo(() => (showPlan ? frostZoneCells(planBattle, "player") : new Set()), [planBattle, showPlan])
   // Thorn Zone round: back to side "enemy" like every zone type
   // except Frost Zone's own player-side flip - rootbind-thicket is an
   // enemy.
-  const thornCells = useMemo(() => (battle.phase === "player" ? thornZoneCells(battle, "enemy") : new Set()), [battle])
+  const thornCells = useMemo(() => (showPlan ? thornZoneCells(planBattle, "enemy") : new Set()), [planBattle, showPlan])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const fallenHere = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp <= 0 && fallenIds.has(u.id))
@@ -196,7 +204,34 @@ export default function TacticsBoard({
   const targetHere = (row, col) => targets.find((t) => t.pos.row === row && t.pos.col === col)
   const healableHere = (row, col) => healable.find((u) => u.pos.row === row && u.pos.col === col)
 
+  function handleDeployClick(row, col) {
+    const occupant = cellUnit(row, col)
+    if (selected && selected.side === "player") {
+      if (occupant && occupant.id === selected.id) {
+        onSelectedIdChange(null)
+        return
+      }
+      const placed = placeUnit(battle, selected.id, { row, col })
+      if (placed !== battle) {
+        onBattleChange(placed)
+        onSelectedIdChange(null)
+        return
+      }
+    }
+    onSelectedIdChange(occupant && occupant.side === "player" ? occupant.id : null)
+  }
+
+  function handleBegin() {
+    onSelectedIdChange(null)
+    onAbilityModeChange(null)
+    onBattleChange(beginBattle(battle))
+  }
+
   function handleCellClick(row, col) {
+    if (deploying) {
+      handleDeployClick(row, col)
+      return
+    }
     if (battle.phase !== "player") return
 
     if (selected && abilityMode === "heal") {
@@ -271,6 +306,7 @@ export default function TacticsBoard({
       const fearZone = fearCells.has(`${row}-${col}`)
       const frostZone = frostCells.has(`${row}-${col}`)
       const thornZone = thornCells.has(`${row}-${col}`)
+      const deployZone = deploying && isDeployTile(battle, { row, col })
       cells.push(
         <div
           key={`${row}-${col}`}
@@ -285,6 +321,8 @@ export default function TacticsBoard({
           data-fear-zone={fearZone}
           data-frost-zone={frostZone}
           data-thorn-zone={thornZone}
+          data-deploy-zone={deployZone}
+          data-deploy-target={deployZone && !!selected && (!unit || (unit.side === "player" && unit.id !== selected.id))}
           onClick={() => handleCellClick(row, col)}
         >
           {!unit && fallenHere(row, col) && (
@@ -300,7 +338,7 @@ export default function TacticsBoard({
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
               className="hwt-token"
               data-side={unit.side}
-              data-selectable={unit.side === "player" && unit.hp > 0 && battle.phase === "player"}
+              data-selectable={unit.side === "player" && unit.hp > 0 && (battle.phase === "player" || deploying)}
               data-selected={unit.id === selectedId}
               data-acted={unit.ap <= 0}
               data-power-surge={unit.side === "player" && battle.activePower?.used && battle.activePower.firedTurn === battle.turn}
@@ -504,12 +542,14 @@ export default function TacticsBoard({
         <div className="hwt-panel">
           <div className="hwt-turn-header" data-phase={battle.phase}>
             <div className="hwt-turn-label" data-phase={battle.phase}>
+              {deploying && "Deployment"}
               {battle.phase === "player" && `Player Turn ${battle.turn}`}
               {battle.phase === "enemy" && "Enemy Turn"}
               {battle.phase === "won" && "Victory"}
               {battle.phase === "lost" && "Defeat"}
             </div>
             <div className="hwt-turn-sub">
+              {deploying && "Place your units - enemies act after your first turn"}
               {battle.phase === "player" && "Your move"}
               {battle.phase === "enemy" && "The enemy acts..."}
               {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
@@ -529,6 +569,12 @@ export default function TacticsBoard({
               </div>
             </div>
           )}
+          {deploying && (
+            <button className="hwt-begin-battle" onClick={handleBegin}>
+              Begin Battle
+            </button>
+          )}
+          {!deploying && (
           <button
             className="hwt-end-turn"
             onClick={handleEndTurn}
@@ -537,6 +583,7 @@ export default function TacticsBoard({
           >
             End Turn
           </button>
+          )}
           {battle.activePower && (() => {
             const power = battle.activePower
             const commander = battle.units.find((u) => u.id === "player-commander")

@@ -18,6 +18,7 @@ import {
   createTacticsBattle,
   createRealMatchupBattle,
   withLowEnemyHp,
+  enterDeploy,
   previewPlayerRoster,
   ENEMY_FORMATIONS,
   PLAYER_ROSTER_IDS,
@@ -33,7 +34,10 @@ import "../components/heartwood/heartwood-tactics.css"
 // the real-matchup preview below.
 function maybeDebugLowHp(base) {
   const params = new URLSearchParams(window.location.search)
-  return params.get("debugLowHp") === "1" ? withLowEnemyHp(base) : base
+  const battle = params.get("debugLowHp") === "1" ? withLowEnemyHp(base) : base
+  // `?deploy=1` opens the prototype in the deployment phase (the real
+  // game always does); off by default so the prototype stays instant.
+  return params.get("deploy") === "1" ? enterDeploy(battle) : battle
 }
 
 function startBattle(formationId, squadDefIds) {
