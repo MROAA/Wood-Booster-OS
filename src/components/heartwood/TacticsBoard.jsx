@@ -22,6 +22,7 @@ import {
   attackUnit,
   castAbility,
   endPlayerTurn,
+  activateCommanderPower,
   previewEnemyIntents,
   previewChargeThreat,
   zoneOfControlCells,
@@ -193,6 +194,11 @@ export default function TacticsBoard({
     onAbilityModeChange(abilityMode === kind ? null : kind)
   }
 
+  function handleActivePower() {
+    onAbilityModeChange(null)
+    onBattleChange(activateCommanderPower(battle))
+  }
+
   function handleEndTurn() {
     onSelectedIdChange(null)
     onAbilityModeChange(null)
@@ -240,6 +246,8 @@ export default function TacticsBoard({
               data-selectable={unit.side === "player" && battle.phase === "player"}
               data-selected={unit.id === selectedId}
               data-acted={unit.ap <= 0}
+              data-power-surge={unit.side === "player" && battle.activePower?.used && battle.activePower.firedTurn === battle.turn}
+              data-spirit={!!unit.isSpirit}
             >
               <div className="hwt-token-status">
                 {unit.id === "player-commander" && (
@@ -250,6 +258,19 @@ export default function TacticsBoard({
                 {unit.haste && (
                   <span className="hwt-haste-badge" title="Haste - attacks a second time whenever it lands an attack">
                     ⇉
+                  </span>
+                )}
+                {unit.spiritbound && (
+                  <span
+                    className="hwt-spiritshift-badge"
+                    data-used={!!unit.spiritShiftUsed}
+                    title={
+                      unit.spiritShiftUsed
+                        ? "Spirit Shift - already used this round"
+                        : "Spirit Shift - when attacked on the enemy's turn, swaps places with a spirit within 2 tiles, and the spirit takes the blow (once per round)"
+                    }
+                  >
+                    ⇄
                   </span>
                 )}
                 {flankRole(unit.className) === "benefit" && (
@@ -344,7 +365,7 @@ export default function TacticsBoard({
                   </span>
                 )}
                 {unit.suppressed > 0 && (
-                  <span className="hwt-suppressed-badge" title={`Suppressed ${unit.suppressed} - this unit's own reactions (Zone of Control, Intercept, Retreat Step) are disabled for a turn, then decays`}>
+                  <span className="hwt-suppressed-badge" title={`Suppressed ${unit.suppressed} - this unit's own reactions (Zone of Control, Intercept, Retreat Step, Sidestep, Spirit Shift) are disabled for a turn, then decays`}>
                     ⊘{unit.suppressed}
                   </span>
                 )}
@@ -416,6 +437,27 @@ export default function TacticsBoard({
           <button className="hwt-end-turn" onClick={handleEndTurn} disabled={battle.phase !== "player"}>
             End Turn
           </button>
+          {battle.activePower && (() => {
+            const power = battle.activePower
+            const commander = battle.units.find((u) => u.id === "player-commander")
+            const ready = !power.used && battle.phase === "player" && commander && commander.hp > 0 && commander.ap >= 1
+            const status = power.used
+              ? "Used this battle"
+              : !commander || commander.hp <= 0
+                ? "Your Commander has fallen"
+                : commander.ap < 1
+                  ? "Your Commander needs 1 AP"
+                  : "Once per battle · 1 Commander AP"
+            return (
+              <div className="hwt-power-panel" data-used={power.used}>
+                <button className="hwt-power-btn" disabled={!ready} onClick={handleActivePower} title={power.description}>
+                  <span className="hwt-power-crown">♛</span> {power.name}
+                </button>
+                <p className="hwt-power-desc">{power.description}</p>
+                <p className="hwt-power-status">{status}</p>
+              </div>
+            )
+          })()}
           {selected && selected.side === "player" && selected.ability && battle.phase === "player" && (
             <div className="hwt-ability-panel">
               <button

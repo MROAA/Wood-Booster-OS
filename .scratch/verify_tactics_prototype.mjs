@@ -134,8 +134,8 @@ import { mkdir } from "node:fs/promises"
 // verification - this IS the interactive surface, so the script drives
 // the actual rendered UI exactly the way Marc would click through it.
 
-const PORT = process.env.PORT || 5428
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix/.scratch/shots"
+const PORT = process.env.PORT || 5429
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-active-power/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2071,8 +2071,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   return page.evaluate(
     async ({ nodeFilterSrc, benchDefIds }) => {
       const { startRun, serializeRun, RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
-      // eslint-disable-next-line no-new-func
-      const nodeFilter = new Function("n", `return (${nodeFilterSrc})(n)`)
+        const nodeFilter = new Function("n", `return (${nodeFilterSrc})(n)`)
       const idx = RUN_PATH.findIndex(nodeFilter)
       const bench = benchDefIds.map((defId, i) => ({ key: `b${i}`, defId, upgradeLevel: 0, upgrades: [] }))
       const deployed = [...bench.map((e) => e.key), ...Array(4 - bench.length).fill(null)]
@@ -2500,13 +2499,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-active-power", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-terrain-mix", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-active-power", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -3565,7 +3564,10 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     result.attackAfterSecond === result.attackBaseline + 2 &&
     result.attackAfterThird === result.attackBaseline + 2 + 3 &&
     result.executeAfterThird === 2 &&
-    result.wardAfterThird === undefined
+    // Active Power round: Ward is now a real stat in this engine, so the
+    // boss's real 30% phase Ward (enemies.js, amount 2) finally lands -
+    // was a deliberate no-op (asserted undefined) before that round.
+    result.wardAfterThird === 2
   if (!ok) out.errors.push("check100 Spacemonkey's 2 real phases did not both fire correctly in sequence")
 }
 
@@ -7831,6 +7833,811 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   out.terrainMixAggregateShift = result
   const ok = result.early.total > 0 && result.late.total > 0 && result.late.fraction < result.early.fraction - 0.05
   if (!ok) out.errors.push("check210 Act VII's aggregate forest fraction was not measurably lower than Act I's across many seeds")
+}
+
+// Sidestep round (Movement PRD §4.4): a ranged attack against a nimble,
+// not-yet-reacted, not-suppressed unit repositions it sideways (right-
+// of-facing preferred, then left) BEFORE this same attack's own facing/
+// damage are computed, then rolls deterministicRoll(turn,
+// `${targetId}:sidestep`) < SIDESTEP_DODGE_CHANCE(0.5) to decide
+// whether the attack is fully avoided. Known roll outcomes (hand-
+// computed via deterministicRoll directly, not guessed): for
+// seedText="defender:sidestep", turn=1 rolls 0.8923 (HIT, >= 0.5) and
+// turn=3 rolls 0.3379 (DODGE, < 0.5).
+// ---------------------------------------------------------------
+
+// 211. The core mechanic, both roll outcomes: a ranged attack against
+//      an eligible nimble unit always repositions it and sets
+//      sidestepUsed; turn=3 (known DODGE) avoids the hit entirely
+//      (0 damage, dedicated log line); turn=1 (known HIT) still
+//      connects against the unit's NEW position ---------------------
+{
+  const page211 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page211.on("pageerror", (e) => errs.push(String(e)))
+  await page211.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page211.waitForSelector(".hwt-board")
+  const result = await page211.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (turn) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: true, sidestepUsed: false, suppressed: 0 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    })
+    const dodged = attackUnit(mk(3), "atk", "defender")
+    const defDodged = dodged.units.find((u) => u.id === "defender")
+    const hit = attackUnit(mk(1), "atk", "defender")
+    const defHit = hit.units.find((u) => u.id === "defender")
+    return {
+      dodgedPos: defDodged.pos,
+      dodgedHp: defDodged.hp,
+      dodgedSidestepUsed: defDodged.sidestepUsed,
+      dodgedLogHasAvoid: dodged.log.some((l) => l.includes("avoiding") && l.includes("completely")),
+      hitPos: defHit.pos,
+      hitHp: defHit.hp,
+      hitSidestepUsed: defHit.sidestepUsed,
+      hitLogHasStillConnects: hit.log.some((l) => l.includes("still connects")),
+    }
+  })
+  await page211.close()
+  out.sidestepCoreMechanic = result
+  const ok =
+    result.dodgedPos.row === 3 &&
+    result.dodgedPos.col === 6 &&
+    result.dodgedHp === 100 &&
+    result.dodgedSidestepUsed === true &&
+    result.dodgedLogHasAvoid &&
+    result.hitPos.row === 3 &&
+    result.hitPos.col === 6 &&
+    result.hitHp === 90 &&
+    result.hitSidestepUsed === true &&
+    result.hitLogHasStillConnects
+  if (!ok) out.errors.push("check211 Sidestep did not reposition and/or resolve both dodge outcomes correctly")
+}
+
+// 212. Ranged-only gate: an identical MELEE attack (range===1) against
+//      the same eligible nimble unit does not reposition it at all,
+//      even at a known-DODGE turn value -----------------------------
+{
+  const page212 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page212.on("pageerror", (e) => errs.push(String(e)))
+  await page212.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page212.waitForSelector(".hwt-board")
+  const result = await page212.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn: 3,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: true, sidestepUsed: false, suppressed: 0 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    }
+    const after = attackUnit(state, "atk", "defender")
+    const def = after.units.find((u) => u.id === "defender")
+    return { pos: def.pos, hp: def.hp, sidestepUsed: def.sidestepUsed, logHasSidestep: after.log.some((l) => l.includes("sidestep")) }
+  })
+  await page212.close()
+  out.sidestepRangedOnlyGate = result
+  const ok = result.pos.row === 4 && result.pos.col === 6 && result.hp === 90 && result.sidestepUsed === false && !result.logHasSidestep
+  if (!ok) out.errors.push("check212 Sidestep fired against a melee (range===1) attacker")
+}
+
+// 213. Once-per-round limiter: a second ranged attack the same round
+//      does not reposition again; a real endPlayerTurn cycle resets
+//      sidestepUsed for BOTH sides (same mechanism/precedent as
+//      retreatStepUsed's own check190), and a third qualifying attack
+//      repositions again afterward -----------------------------------
+{
+  const page213 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page213.on("pageerror", (e) => errs.push(String(e)))
+  await page213.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page213.waitForSelector(".hwt-board")
+  const result = await page213.evaluate(async () => {
+    const { attackUnit, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const grid = { rows: 9, cols: 12 }
+    const defender = {
+      id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100,
+      range: 1, attack: 0, ap: 2, apMax: 2, move: 9, block: 0, facing: "W", nimble: true, sidestepUsed: false,
+      suppressed: 0, root: 0, slow: 0, retreatStepUsed: false, cooldownRemaining: 0,
+    }
+    const atk = {
+      id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100,
+      range: 3, attack: 10, ap: 2, apMax: 2, move: 9, block: 0, facing: "E",
+      root: 0, slow: 0, retreatStepUsed: false, cooldownRemaining: 0,
+    }
+    // turn=1 -> known HIT (still connects, but reaction still fires and
+    // consumes the Slot - the point of this check).
+    const state1 = { grid, terrain: {}, phase: "enemy", turn: 1, log: [], units: [defender, atk] }
+    const afterFirst = attackUnit(state1, "atk", "defender")
+    const defAfterFirst = afterFirst.units.find((u) => u.id === "defender")
+
+    const stateForSecond = { ...afterFirst, units: afterFirst.units.map((u) => (u.id === "atk" ? { ...u, ap: u.apMax } : u)) }
+    const afterSecond = attackUnit(stateForSecond, "atk", "defender")
+    const defAfterSecond = afterSecond.units.find((u) => u.id === "defender")
+
+    // Reset via a real endPlayerTurn cascade - the atk's own AI is
+    // neutralized (range:0, move:0, the established "harmless
+    // controller" trick) purely for this one reset call.
+    const stateForReset = {
+      ...afterSecond,
+      phase: "player",
+      units: afterSecond.units.map((u) => (u.id === "atk" ? { ...u, range: 0, move: 0, ap: u.apMax } : u)),
+    }
+    const afterReset = endPlayerTurn(stateForReset)
+    const defAfterReset = afterReset.units.find((u) => u.id === "defender")
+
+    const stateForThird = {
+      ...afterReset,
+      phase: "enemy",
+      units: afterReset.units.map((u) => (u.id === "atk" ? { ...u, range: 3, move: 9, ap: u.apMax } : u)),
+    }
+    const afterThird = attackUnit(stateForThird, "atk", "defender")
+    const defAfterThird = afterThird.units.find((u) => u.id === "defender")
+
+    return {
+      posAfterFirst: defAfterFirst.pos,
+      sidestepUsedAfterFirst: defAfterFirst.sidestepUsed,
+      posAfterSecond: defAfterSecond.pos,
+      sidestepUsedAfterReset: defAfterReset.sidestepUsed,
+      posAfterThird: defAfterThird.pos,
+      sidestepUsedAfterThird: defAfterThird.sidestepUsed,
+    }
+  })
+  await page213.close()
+  out.sidestepOncePerRound = result
+  const samePos = (a, b) => a.row === b.row && a.col === b.col
+  const ok =
+    result.sidestepUsedAfterFirst === true &&
+    samePos(result.posAfterSecond, result.posAfterFirst) &&
+    result.sidestepUsedAfterReset === false &&
+    !samePos(result.posAfterThird, result.posAfterSecond) &&
+    result.sidestepUsedAfterThird === true
+  if (!ok) out.errors.push("check213 Sidestep's once-per-round limiter or its real endPlayerTurn reset did not behave correctly")
+}
+
+// 214. Suppression's own exclusion: an otherwise-eligible nimble unit
+//      that is ALSO currently suppressed does not reposition ---------
+{
+  const page214 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page214.on("pageerror", (e) => errs.push(String(e)))
+  await page214.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page214.waitForSelector(".hwt-board")
+  const result = await page214.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn: 3,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: true, sidestepUsed: false, suppressed: 2 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    }
+    const after = attackUnit(state, "atk", "defender")
+    const def = after.units.find((u) => u.id === "defender")
+    return { pos: def.pos, hp: def.hp, sidestepUsed: def.sidestepUsed, logHasSidestep: after.log.some((l) => l.includes("sidestep")) }
+  })
+  await page214.close()
+  out.sidestepSuppressedExclusion = result
+  const ok = result.pos.row === 4 && result.pos.col === 6 && result.hp === 90 && result.sidestepUsed === false && !result.logHasSidestep
+  if (!ok) out.errors.push("check214 a suppressed nimble unit still sidestepped a ranged attack")
+}
+
+// 215. Direction fallback: right-of-facing blocked -> left-of chosen;
+//      BOTH blocked -> no reposition at all, no Slot spent, no log
+//      line, and damage still resolves against the ORIGINAL position -
+{
+  const page215 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page215.on("pageerror", (e) => errs.push(String(e)))
+  await page215.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page215.waitForSelector(".hwt-board")
+  const result = await page215.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const grid = { rows: 9, cols: 12 }
+    const defender = { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: true, sidestepUsed: false, suppressed: 0 }
+    const atk = { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "E" }
+    // Facing "W": RIGHT_OF_DIR.W="N" -> (3,6); LEFT_OF_DIR.W="S" -> (5,6).
+    const blockerAt = (pos) => ({ id: `wall-${pos.row}-${pos.col}`, side: "player", name: "Wall", pos, hp: 10, maxHp: 10, range: 1, attack: 0, ap: 0, block: 0, facing: "N" })
+    // Right blocked, left open -> left chosen.
+    const stateRightBlocked = { grid, terrain: {}, phase: "enemy", turn: 1, log: [], units: [defender, atk, blockerAt({ row: 3, col: 6 })] }
+    const afterRightBlocked = attackUnit(stateRightBlocked, "atk", "defender")
+    const defRightBlocked = afterRightBlocked.units.find((u) => u.id === "defender")
+    // Both blocked -> no reposition, no Slot spent, no log line.
+    const stateBothBlocked = { grid, terrain: {}, phase: "enemy", turn: 1, log: [], units: [defender, atk, blockerAt({ row: 3, col: 6 }), blockerAt({ row: 5, col: 6 })] }
+    const afterBothBlocked = attackUnit(stateBothBlocked, "atk", "defender")
+    const defBothBlocked = afterBothBlocked.units.find((u) => u.id === "defender")
+    return {
+      rightBlockedPos: defRightBlocked.pos,
+      rightBlockedSidestepUsed: defRightBlocked.sidestepUsed,
+      bothBlockedPos: defBothBlocked.pos,
+      bothBlockedHp: defBothBlocked.hp,
+      bothBlockedSidestepUsed: defBothBlocked.sidestepUsed,
+      bothBlockedLogHasSidestep: afterBothBlocked.log.some((l) => l.includes("sidestep")),
+    }
+  })
+  await page215.close()
+  out.sidestepDirectionFallback = result
+  const ok =
+    result.rightBlockedPos.row === 5 &&
+    result.rightBlockedPos.col === 6 &&
+    result.rightBlockedSidestepUsed === true &&
+    result.bothBlockedPos.row === 4 &&
+    result.bothBlockedPos.col === 6 &&
+    result.bothBlockedHp === 90 &&
+    result.bothBlockedSidestepUsed === false &&
+    !result.bothBlockedLogHasSidestep
+  if (!ok) out.errors.push("check215 Sidestep's direction fallback (right blocked -> left, both blocked -> no-op) did not behave correctly")
+}
+
+// 216. The same-hit facing interaction, directly proven: a geometry
+//      where sidestepping changes THIS SAME attack's own facing
+//      classification (front -> side) on a failed dodge roll, paired
+//      against an identical non-nimble control that stays front -----
+{
+  const page216 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page216.on("pageerror", (e) => errs.push(String(e)))
+  await page216.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page216.waitForSelector(".hwt-board")
+  const result = await page216.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    // Defender faces "N", attacker due north at distance 1 -> a clean
+    // FRONT hit before any reposition. RIGHT_OF_DIR.N="E" moves the
+    // defender from (4,6) to (4,7); recomputed from the NEW position,
+    // dCol=-1/dRow=-1 is a tie (column wins) -> "W", which is neither
+    // "N" (front) nor "S" (back) for a "N"-facing defender -> SIDE.
+    // turn=1 is a known HIT (defender:sidestep), so this same call's
+    // own damage actually resolves with the NEW facing.
+    const mk = (nimble) => ({
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn: 1,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "N", nimble, sidestepUsed: false, suppressed: 0 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 3, col: 6 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "S" },
+      ],
+    })
+    const nimbleResult = attackUnit(mk(true), "atk", "defender")
+    const nonNimbleResult = attackUnit(mk(false), "atk", "defender")
+    return {
+      nimbleLog: nimbleResult.log[nimbleResult.log.length - 1],
+      nonNimbleLog: nonNimbleResult.log[nonNimbleResult.log.length - 1],
+    }
+  })
+  await page216.close()
+  out.sidestepFacingReclassification = result
+  const ok = result.nimbleLog.includes("(flanked") && !result.nonNimbleLog.includes("(flanked") && !result.nonNimbleLog.includes("CRITICAL")
+  if (!ok) out.errors.push("check216 a sidestep reposition did not change this same attack's own facing classification")
+}
+
+// 217. Zero regression, directly proven: an existing non-nimble unit
+//      hit by a ranged attack behaves byte-identically to before this
+//      round (no reposition, no Slot field consumed, normal damage) --
+{
+  const page217 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page217.on("pageerror", (e) => errs.push(String(e)))
+  await page217.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page217.waitForSelector(".hwt-board")
+  const result = await page217.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 },
+      terrain: {},
+      phase: "enemy",
+      turn: 3,
+      log: [],
+      units: [
+        { id: "defender", side: "player", name: "Defender", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "W", nimble: false, sidestepUsed: false, suppressed: 0 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 4 }, hp: 100, maxHp: 100, range: 3, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    }
+    const after = attackUnit(state, "atk", "defender")
+    const def = after.units.find((u) => u.id === "defender")
+    return { pos: def.pos, hp: def.hp, sidestepUsed: def.sidestepUsed, logHasSidestep: after.log.some((l) => l.includes("sidestep")) }
+  })
+  await page217.close()
+  out.sidestepZeroRegression = result
+  const ok = result.pos.row === 4 && result.pos.col === 6 && result.hp === 90 && result.sidestepUsed === false && !result.logHasSidestep
+  if (!ok) out.errors.push("check217 a non-nimble unit's own hit-by-ranged-attack behavior regressed")
+}
+
+// 218. A real end-to-end example via createTacticsBattle: a real
+//      recruited Galeblade, hit by the real coven-matron's now-ranged
+//      attack, genuinely sidesteps (both roll outcomes, using the SAME
+//      known-turn trick as check211 - the real unit's own id happens
+//      to still resolve through the exact same deterministicRoll seed
+//      text shape, `${targetId}:sidestep`, just with its own real id) -
+{
+  const page218 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page218.on("pageerror", (e) => errs.push(String(e)))
+  await page218.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page218.waitForSelector(".hwt-board")
+  const result = await page218.evaluate(async () => {
+    const { createTacticsBattle, attackUnit, deterministicRoll } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("coven", ["galeblade"])
+    const galeblade = base.units.find((u) => u.defId === "galeblade")
+    const matron = base.units.find((u) => u.defId === "coven-matron")
+    const positioned = {
+      ...base,
+      phase: "enemy",
+      units: base.units.map((u) =>
+        u.id === galeblade.id
+          ? { ...u, pos: { row: 4, col: 6 }, facing: "W", hp: u.maxHp }
+          : u.id === matron.id
+            ? { ...u, pos: { row: 4, col: 4 }, ap: u.apMax }
+            : u,
+      ),
+    }
+    // Find a turn value where THIS real unit's own id rolls under 0.5
+    // (dodge) and one where it rolls over (hit) - computed directly,
+    // not guessed, since the real id differs from the synthetic tests.
+    let dodgeTurn = null
+    let hitTurn = null
+    for (let t = 1; t <= 200 && (dodgeTurn === null || hitTurn === null); t++) {
+      const roll = deterministicRoll(t, `${galeblade.id}:sidestep`)
+      if (dodgeTurn === null && roll < 0.5) dodgeTurn = t
+      if (hitTurn === null && roll >= 0.5) hitTurn = t
+    }
+    const dodged = attackUnit({ ...positioned, turn: dodgeTurn }, matron.id, galeblade.id)
+    const gbDodged = dodged.units.find((u) => u.id === galeblade.id)
+    const hit = attackUnit({ ...positioned, turn: hitTurn }, matron.id, galeblade.id)
+    const gbHit = hit.units.find((u) => u.id === galeblade.id)
+    return {
+      matronRange: matron.range,
+      gbDodgedPos: gbDodged.pos,
+      gbDodgedHpLoss: gbDodged.maxHp - gbDodged.hp,
+      gbDodgedLog: dodged.log[dodged.log.length - 1],
+      gbHitPos: gbHit.pos,
+      gbHitHpLoss: gbHit.maxHp - gbHit.hp,
+      gbHitSidestepUsed: gbHit.sidestepUsed,
+    }
+  })
+  await page218.close()
+  out.sidestepRealGaleblade = result
+  const ok =
+    result.matronRange === 3 &&
+    result.gbDodgedPos.row === 3 &&
+    result.gbDodgedPos.col === 6 &&
+    result.gbDodgedHpLoss === 0 &&
+    result.gbDodgedLog.includes("avoiding") &&
+    result.gbHitPos.row === 3 &&
+    result.gbHitPos.col === 6 &&
+    result.gbHitHpLoss > 0 &&
+    result.gbHitSidestepUsed === true
+  if (!ok) out.errors.push("check218 a real Galeblade did not genuinely sidestep the real coven-matron's now-ranged attack")
+}
+
+// ---- Spirit Shift round (Movement PRD §4.4) ---------------------------
+// Shared synthetic builder for 219-224: a spiritbound "walker", an
+// allied spirit 2 tiles behind it, and a plain melee attacker in front.
+// Every unit carries the full reset-checkpoint field set so a real
+// endPlayerTurn cycle (check221) runs cleanly.
+const SPIRIT_SHIFT_FIXTURE = `
+  const grid = { rows: 9, cols: 12 }
+  const base = { ap: 2, apMax: 2, move: 9, block: 0, root: 0, slow: 0, suppressed: 0, retreatStepUsed: false, sidestepUsed: false, spiritShiftUsed: false, cooldownRemaining: 0 }
+  const mkState = (over = {}) => ({
+    grid, terrain: {}, phase: "enemy", turn: 3, log: [],
+    units: [
+      { ...base, id: "walker", side: "player", name: "Walker", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, facing: "W", spiritbound: true, ...(over.walker || {}) },
+      { ...base, id: "spirit", side: "player", name: "Spirit", pos: { row: 4, col: 8 }, hp: 50, maxHp: 50, range: 1, attack: 0, facing: "W", isSpirit: true, ...(over.spirit || {}) },
+      { ...base, id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 10, facing: "E", ...(over.atk || {}) },
+    ],
+  })
+  const u = (s, id) => s.units.find((x) => x.id === id)
+`
+
+// 219. Core mechanic: an attacked spiritbound unit swaps places with its
+//      spirit 2 tiles away, the spirit takes the FULL hit, the walker
+//      takes none, the Slot is spent, and the log narrates the swap ----
+{
+  const page219 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page219.on("pageerror", (e) => errs.push(String(e)))
+  await page219.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page219.waitForSelector(".hwt-board")
+  const result = await page219.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const after = attackUnit(mkState(), "atk", "walker")
+    return {
+      walkerPos: u(after, "walker").pos, walkerHp: u(after, "walker").hp, walkerUsed: u(after, "walker").spiritShiftUsed,
+      spiritPos: u(after, "spirit").pos, spiritHp: u(after, "spirit").hp,
+      logHasShift: after.log.some((l) => l.includes("shifts places with Spirit")),
+      strikeLog: after.log[after.log.length - 1],
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page219.close()
+  out.spiritShiftCore = result
+  const ok =
+    result.walkerPos.row === 4 && result.walkerPos.col === 8 && result.walkerHp === 100 && result.walkerUsed === true &&
+    result.spiritPos.row === 4 && result.spiritPos.col === 6 && result.spiritHp === 40 &&
+    result.logHasShift && result.strikeLog.includes("strikes Spirit for 10")
+  if (!ok) out.errors.push("check219 Spirit Shift did not swap the walker with its spirit and redirect the full hit onto the spirit")
+}
+
+// 220. Range limit: a spirit 3 tiles away (outside SPIRIT_SHIFT_RANGE=2)
+//      does not swap - the walker takes the hit where it stands --------
+{
+  const page220 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page220.on("pageerror", (e) => errs.push(String(e)))
+  await page220.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page220.waitForSelector(".hwt-board")
+  const result = await page220.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const far = attackUnit(mkState({ spirit: { pos: { row: 4, col: 9 } } }), "atk", "walker")
+    const diag = attackUnit(mkState({ spirit: { pos: { row: 2, col: 8 } } }), "atk", "walker")
+    return {
+      farWalkerHp: u(far, "walker").hp, farWalkerPos: u(far, "walker").pos, farSpiritHp: u(far, "spirit").hp, farUsed: u(far, "walker").spiritShiftUsed,
+      diagWalkerHp: u(diag, "walker").hp, diagWalkerPos: u(diag, "walker").pos,
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page220.close()
+  out.spiritShiftRange = result
+  const ok =
+    result.farWalkerHp === 90 && result.farWalkerPos.col === 6 && result.farSpiritHp === 50 && result.farUsed === false &&
+    // A diagonal 2-tile spirit (Chebyshev 2) IS in range.
+    result.diagWalkerHp === 100 && result.diagWalkerPos.row === 2 && result.diagWalkerPos.col === 8
+  if (!ok) out.errors.push("check220 Spirit Shift's 2-tile (Chebyshev) range limit did not behave correctly")
+}
+
+// 221. Once per round: a second attack the same round lands on the
+//      walker; a real endPlayerTurn cascade resets spiritShiftUsed, and
+//      a third attack swaps again --------------------------------------
+{
+  const page221 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page221.on("pageerror", (e) => errs.push(String(e)))
+  await page221.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page221.waitForSelector(".hwt-board")
+  const result = await page221.evaluate(async (fixture) => {
+    const { attackUnit, endPlayerTurn } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const first = attackUnit(mkState(), "atk", "walker")
+    // After the swap the walker sits at (4,8) - move the attacker next
+    // to it, on its FRONT side (it faces W), for the second strike: a
+    // hit from behind would itself Suppress the walker and mask the
+    // reset being tested here.
+    const secondIn = { ...first, units: first.units.map((x) => (x.id === "atk" ? { ...x, ap: 2, pos: { row: 4, col: 7 } } : x)) }
+    const second = attackUnit(secondIn, "atk", "walker")
+    const resetIn = { ...second, phase: "player", units: second.units.map((x) => (x.id === "atk" ? { ...x, range: 0, move: 0 } : x)) }
+    const reset = endPlayerTurn(resetIn)
+    const thirdIn = { ...reset, phase: "enemy", units: reset.units.map((x) => (x.id === "atk" ? { ...x, range: 1, move: 9, ap: 2 } : x)) }
+    const third = attackUnit(thirdIn, "atk", "walker")
+    return {
+      secondWalkerHp: u(second, "walker").hp, secondWalkerPos: u(second, "walker").pos,
+      usedAfterReset: u(reset, "walker").spiritShiftUsed,
+      thirdWalkerHp: u(third, "walker").hp, thirdWalkerPos: u(third, "walker").pos, thirdUsed: u(third, "walker").spiritShiftUsed,
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page221.close()
+  out.spiritShiftOncePerRound = result
+  const ok =
+    result.secondWalkerHp === 90 && result.secondWalkerPos.col === 8 &&
+    result.usedAfterReset === false &&
+    result.thirdWalkerHp === 90 && result.thirdWalkerPos.col === 6 && result.thirdUsed === true
+  if (!ok) out.errors.push("check221 Spirit Shift's once-per-round limiter or its endPlayerTurn reset did not behave correctly")
+}
+
+// 222. Suppression + own-phase exclusions: a suppressed walker does not
+//      swap, and neither does one struck during its OWN side's phase
+//      (a Zone of Control reaction strike on its own move) -------------
+{
+  const page222 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page222.on("pageerror", (e) => errs.push(String(e)))
+  await page222.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page222.waitForSelector(".hwt-board")
+  const result = await page222.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const suppressed = attackUnit(mkState({ walker: { suppressed: 2 } }), "atk", "walker")
+    const ownPhase = attackUnit({ ...mkState(), phase: "player" }, "atk", "walker", { isReaction: true })
+    return {
+      suppressedHp: u(suppressed, "walker").hp, suppressedUsed: u(suppressed, "walker").spiritShiftUsed,
+      ownPhaseHp: u(ownPhase, "walker").hp, ownPhasePos: u(ownPhase, "walker").pos,
+      anyShiftLog: [...suppressed.log, ...ownPhase.log].some((l) => l.includes("shifts places")),
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page222.close()
+  out.spiritShiftExclusions = result
+  const ok = result.suppressedHp === 90 && result.suppressedUsed === false && result.ownPhaseHp === 90 && result.ownPhasePos.col === 6 && !result.anyShiftLog
+  if (!ok) out.errors.push("check222 Spirit Shift fired while suppressed or on a reaction strike during the walker's own phase")
+}
+
+// 223. Only a living ALLIED SPIRIT qualifies: a dead spirit, a plain
+//      (non-spirit) ally, or an ENEMY spirit never swap; and a
+//      non-spiritbound unit next to a spirit is byte-identical to before
+{
+  const page223 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page223.on("pageerror", (e) => errs.push(String(e)))
+  await page223.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page223.waitForSelector(".hwt-board")
+  const result = await page223.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const cases = {
+      dead: mkState({ spirit: { hp: 0 } }),
+      plainAlly: mkState({ spirit: { isSpirit: false } }),
+      enemySpirit: mkState({ spirit: { side: "enemy" } }),
+      notBound: mkState({ walker: { spiritbound: false } }),
+    }
+    const res = {}
+    for (const [k, s] of Object.entries(cases)) {
+      const after = attackUnit(s, "atk", "walker")
+      res[k] = { hp: u(after, "walker").hp, col: u(after, "walker").pos.col, shifted: after.log.some((l) => l.includes("shifts places")) }
+    }
+    return res
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page223.close()
+  out.spiritShiftEligibility = result
+  const ok = Object.values(result).every((r) => r.hp === 90 && r.col === 6 && !r.shifted)
+  if (!ok) out.errors.push("check223 Spirit Shift swapped with something other than a living allied spirit, or touched a non-spiritbound unit")
+}
+
+// 224. The redirected hit feeds every downstream step on the SPIRIT: a
+//      killing blow on the spirit falls the spirit (not the walker), and
+//      poison-on-hit lands on the spirit ------------------------------
+{
+  const page224 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page224.on("pageerror", (e) => errs.push(String(e)))
+  await page224.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page224.waitForSelector(".hwt-board")
+  const result = await page224.evaluate(async (fixture) => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { mkState, u } = new Function(`${fixture}; return { mkState, u }`)()
+    const lethal = attackUnit(mkState({ spirit: { hp: 5 } }), "atk", "walker")
+    const poison = attackUnit(mkState({ atk: { poisonOnHit: 2 } }), "atk", "walker")
+    return {
+      lethalSpiritHp: u(lethal, "spirit").hp, lethalWalkerHp: u(lethal, "walker").hp, lethalFallsLog: lethal.log.some((l) => l.includes("strikes Spirit") && l.includes("It falls")),
+      spiritPoison: u(poison, "spirit").poison || 0, walkerPoison: u(poison, "walker").poison || 0,
+    }
+  }, SPIRIT_SHIFT_FIXTURE)
+  await page224.close()
+  out.spiritShiftDownstream = result
+  const ok = result.lethalSpiritHp === 0 && result.lethalWalkerHp === 100 && result.lethalFallsLog && result.spiritPoison === 2 && result.walkerPoison === 0
+  if (!ok) out.errors.push("check224 the redirected hit's downstream effects (fall/poison) did not land on the spirit")
+}
+
+// 225. Real content: createTacticsBattle AND createRealMatchupBattle both
+//      spawn Beastcaller's real Spirit Wolf (units.js summon) exactly
+//      once, as an allied spirit within Spirit Shift range; a squad
+//      without a summoner spawns nothing extra; the roster preview marks
+//      Beastcaller spiritbound; and a real enemy strike triggers the swap
+{
+  const page225 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page225.on("pageerror", (e) => errs.push(String(e)))
+  await page225.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page225.waitForSelector(".hwt-board")
+  const result = await page225.evaluate(async () => {
+    const { createTacticsBattle, createRealMatchupBattle, attackUnit, previewPlayerRoster, PLAYER_ROSTER_IDS } = await import("/src/services/heartwood/tacticsEngine.js")
+    const dist = (a, b) => Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col))
+    const describe = (battle) => {
+      const bc = battle.units.find((x) => x.defId === "beastcaller")
+      const wolves = battle.units.filter((x) => x.defId === "spirit-wolf")
+      return { wolfCount: wolves.length, wolfSide: wolves[0]?.side, wolfIsSpirit: wolves[0]?.isSpirit, bcBound: bc?.spiritbound, dist: wolves[0] && bc ? dist(wolves[0].pos, bc.pos) : null, occupiedUnique: new Set(battle.units.map((x) => `${x.pos.row},${x.pos.col}`)).size === battle.units.length }
+    }
+    const proto = createTacticsBattle("default", ["beastcaller", "the-fool"])
+    const real = createRealMatchupBattle(["beastcaller"], ["bog-devotee"], "tommy", 0)
+    const plain = createTacticsBattle("default", ["the-fool", "hexbreaker"])
+    // Real strike: the formation's first real enemy, placed in front of
+    // the real Beastcaller, during the enemy phase.
+    const bc = proto.units.find((x) => x.defId === "beastcaller")
+    const wolf = proto.units.find((x) => x.defId === "spirit-wolf")
+    const enemy = proto.units.find((x) => x.side === "enemy")
+    const struckIn = {
+      ...proto,
+      phase: "enemy",
+      units: proto.units.map((x) => (x.id === enemy.id ? { ...x, pos: { row: bc.pos.row, col: bc.pos.col - 1 }, ap: x.apMax } : x)),
+    }
+    const struck = attackUnit(struckIn, enemy.id, bc.id)
+    const bcAfter = struck.units.find((x) => x.id === bc.id)
+    const wolfAfter = struck.units.find((x) => x.id === wolf.id)
+    return {
+      proto: describe(proto),
+      real: describe(real),
+      plainWolves: plain.units.filter((x) => x.defId === "spirit-wolf").length,
+      plainPlayerCount: plain.units.filter((x) => x.side === "player").length,
+      rosterHasBeastcaller: PLAYER_ROSTER_IDS.includes("beastcaller"),
+      previewBound: previewPlayerRoster().find((x) => x.defId === "beastcaller")?.spiritbound,
+      realStrike: { bcHpLoss: bcAfter.maxHp - bcAfter.hp, wolfHpLoss: wolfAfter.maxHp - wolfAfter.hp, bcAtWolfOld: bcAfter.pos.row === wolf.pos.row && bcAfter.pos.col === wolf.pos.col },
+    }
+  })
+  await page225.close()
+  out.spiritShiftRealContent = result
+  const good = (d) => d.wolfCount === 1 && d.wolfSide === "player" && d.wolfIsSpirit === true && d.bcBound === true && d.dist !== null && d.dist <= 2 && d.occupiedUnique
+  const ok =
+    good(result.proto) && good(result.real) &&
+    result.plainWolves === 0 && result.plainPlayerCount === 3 &&
+    result.rosterHasBeastcaller && result.previewBound === true &&
+    result.realStrike.bcHpLoss === 0 && result.realStrike.wolfHpLoss > 0 && result.realStrike.bcAtWolfOld
+  if (!ok) out.errors.push("check225 Beastcaller's real Spirit Wolf did not spawn correctly in both battle builders, or a real strike did not trigger Spirit Shift")
+}
+
+// ---- Commander Active Power round -----------------------------------
+// 226. Ward (effects.js's own): one stack cancels the ENTIRE next hit,
+//      then is spent - the second hit lands normally ----------------
+{
+  const page226 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page226.on("pageerror", (e) => errs.push(String(e)))
+  await page226.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page226.waitForSelector(".hwt-board")
+  const result = await page226.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const state = {
+      grid: { rows: 9, cols: 12 }, terrain: {}, phase: "enemy", turn: 3, log: [],
+      units: [
+        { id: "def", side: "player", name: "Def", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 3, facing: "W", ward: 1 },
+        { id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "E" },
+      ],
+    }
+    const first = attackUnit(state, "atk", "def")
+    const second = attackUnit({ ...first, units: first.units.map((u) => (u.id === "atk" ? { ...u, ap: 2 } : u)) }, "atk", "def")
+    const d1 = first.units.find((u) => u.id === "def")
+    const d2 = second.units.find((u) => u.id === "def")
+    return { hp1: d1.hp, ward1: d1.ward, block1: d1.block, wardLog: first.log.some((l) => l.includes("Ward absorbs the hit completely")), hp2: d2.hp }
+  })
+  await page226.close()
+  out.activePowerWard = result
+  // Block untouched by the warded hit; second hit: 10 - 3 Block = 7.
+  const ok = result.hp1 === 100 && result.ward1 === 0 && result.block1 === 3 && result.wardLog && result.hp2 === 93
+  if (!ok) out.errors.push("check226 Ward did not cancel exactly one whole hit before Block")
+}
+
+// 227. Vulnerable (effects.js's own): +25% damage TAKEN, rounded down ---
+{
+  const page227 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page227.on("pageerror", (e) => errs.push(String(e)))
+  await page227.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page227.waitForSelector(".hwt-board")
+  const result = await page227.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (vulnerable) => ({
+      grid: { rows: 9, cols: 12 }, terrain: {}, phase: "player", turn: 3, log: [],
+      units: [
+        { id: "atk", side: "player", name: "Atk", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 10, ap: 2, block: 0, facing: "W" },
+        { id: "def", side: "enemy", name: "Def", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 0, ap: 2, block: 0, facing: "E", vulnerable },
+      ],
+    })
+    const hpAfter = (s) => attackUnit(s, "atk", "def").units.find((u) => u.id === "def").hp
+    return { vuln: hpAfter(mk(1)), plain: hpAfter(mk(0)) }
+  })
+  await page227.close()
+  out.activePowerVulnerable = result
+  const ok = result.vuln === 88 && result.plain === 90
+  if (!ok) out.errors.push("check227 Vulnerable did not add exactly +25% (rounded down) damage taken")
+}
+
+// 228. activateCommanderPower on the prototype's real Tommy: Opening
+//      Strike's real +2 Strength to every LIVING player unit (a fallen
+//      one untouched, enemies untouched), 1 Commander AP spent, marked
+//      used + firedTurn, narrated; then every guard is a no-op: a
+//      second use, the enemy phase, a Commander with 0 AP or fallen --
+{
+  const page228 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page228.on("pageerror", (e) => errs.push(String(e)))
+  await page228.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page228.waitForSelector(".hwt-board")
+  const result = await page228.evaluate(async () => {
+    const { createTacticsBattle, activateCommanderPower } = await import("/src/services/heartwood/tacticsEngine.js")
+    const base = createTacticsBattle("default")
+    const fallenId = base.units.find((u) => u.side === "player" && u.id !== "player-commander").id
+    const start = { ...base, units: base.units.map((u) => (u.id === fallenId ? { ...u, hp: 0 } : u)) }
+    const after = activateCommanderPower(start)
+    const delta = (id) => after.units.find((u) => u.id === id).attack - start.units.find((u) => u.id === id).attack
+    const livingPlayers = start.units.filter((u) => u.side === "player" && u.hp > 0)
+    const cmdBefore = start.units.find((u) => u.id === "player-commander")
+    const cmdAfter = after.units.find((u) => u.id === "player-commander")
+    const withCmd = (s, patch) => ({ ...s, units: s.units.map((u) => (u.id === "player-commander" ? { ...u, ...patch } : u)) })
+    return {
+      power: base.activePower,
+      livingDeltas: livingPlayers.map((u) => delta(u.id)),
+      fallenDelta: delta(fallenId),
+      enemyDeltas: start.units.filter((u) => u.side === "enemy").map((u) => delta(u.id)),
+      apSpent: cmdBefore.ap - cmdAfter.ap,
+      used: after.activePower.used,
+      firedTurn: after.activePower.firedTurn,
+      log: after.log[after.log.length - 1],
+      secondNoop: activateCommanderPower(after) === after,
+      enemyPhaseNoop: (() => { const s = { ...start, phase: "enemy" }; return activateCommanderPower(s) === s })(),
+      noApNoop: (() => { const s = withCmd(start, { ap: 0 }); return activateCommanderPower(s) === s })(),
+      fallenCmdNoop: (() => { const s = withCmd(start, { hp: 0 }); return activateCommanderPower(s) === s })(),
+    }
+  })
+  await page228.close()
+  out.activePowerTommy = result
+  const ok =
+    result.power && result.power.name === "Opening Strike" && result.power.used === false && !/next battle only/i.test(result.power.description) &&
+    result.livingDeltas.length > 0 && result.livingDeltas.every((d) => d === 2) &&
+    result.fallenDelta === 0 && result.enemyDeltas.every((d) => d === 0) &&
+    result.apSpent === 1 && result.used === true && result.firedTurn === 1 &&
+    result.log.includes("Tommy calls Opening Strike!") &&
+    result.secondNoop && result.enemyPhaseNoop && result.noApNoop && result.fallenCmdNoop
+  if (!ok) out.errors.push("check228 activateCommanderPower did not apply Opening Strike correctly or a guard failed")
+}
+
+// 229. Every real Commander: createRealMatchupBattle carries that
+//      character's OWN real activePower, and firing it lands every one
+//      of its real effects on a squad unit (read generically off
+//      characters.js, not hand-listed) - no id silently no-ops. A
+//      matchup with no Commander has no power at all --------------------
+{
+  const page229 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page229.on("pageerror", (e) => errs.push(String(e)))
+  await page229.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page229.waitForSelector(".hwt-board")
+  const result = await page229.evaluate(async () => {
+    const { createRealMatchupBattle, activateCommanderPower } = await import("/src/services/heartwood/tacticsEngine.js")
+    const { CHARACTERS } = await import("/src/data/heartwood/characters.js")
+    const per = {}
+    for (const [cid, character] of Object.entries(CHARACTERS)) {
+      if (!character.activePower) continue
+      const battle = createRealMatchupBattle(["the-fool"], ["bog-devotee"], cid, 0)
+      const after = activateCommanderPower(battle)
+      const before = battle.units.find((u) => u.defId === "the-fool")
+      const unit = after.units.find((u) => u.defId === "the-fool")
+      const missing = []
+      let triggerAdds = 0
+      for (const e of character.activePower.effects) {
+        if (e.type === "addTrigger") { triggerAdds++; continue }
+        if (e.type === "applyBuff" && e.id === "strength") { if (unit.attack - before.attack < e.amount) missing.push("strength"); continue }
+        if (e.type === "applyBuff") { if ((unit[e.id] || 0) - (before[e.id] || 0) !== e.amount) missing.push(e.id); continue }
+        missing.push(e.type)
+      }
+      const triggersOk = (unit.triggers || []).length - (before.triggers || []).length === triggerAdds
+      per[cid] = { name: battle.activePower?.name, expectedName: character.activePower.name, used: after.activePower?.used, missing, triggersOk }
+    }
+    const none = createRealMatchupBattle(["the-fool"], ["bog-devotee"])
+    return { per, noCommanderPower: none.activePower, noCommanderNoop: activateCommanderPower(none) === none }
+  })
+  await page229.close()
+  out.activePowerAllCommanders = result
+  const entries = Object.values(result.per)
+  const ok =
+    entries.length >= 7 &&
+    entries.every((r) => r.name === r.expectedName && r.used === true && r.missing.length === 0 && r.triggersOk) &&
+    result.noCommanderPower === null && result.noCommanderNoop
+  if (!ok) out.errors.push("check229 a real Commander's Active Power was missing or one of its real effects did not land")
+}
+
+// 230. The prototype page's real UI: the gold ♛ panel shows Opening
+//      Strike, a click fires it (every living player token surges,
+//      the button disables, status reads "Used this battle", the log
+//      narrates it) --------------------------------------------------
+{
+  const page230 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page230.on("pageerror", (e) => errs.push(String(e)))
+  await page230.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page230.waitForSelector(".hwt-board")
+  const btnText = await page230.locator(".hwt-power-btn").innerText()
+  const enabledBefore = await page230.locator(".hwt-power-btn").isEnabled()
+  await page230.locator(".hwt-power-btn").click()
+  await page230.waitForTimeout(300)
+  await page230.screenshot({ path: `${SHOT}/active_power_fired.png` })
+  const result = {
+    btnText,
+    enabledBefore,
+    enabledAfter: await page230.locator(".hwt-power-btn").isEnabled(),
+    status: await page230.locator(".hwt-power-status").innerText(),
+    surging: await page230.locator('.hwt-token[data-power-surge="true"]').count(),
+    playerTokens: await page230.locator('.hwt-token[data-side="player"]').count(),
+    logHas: (await page230.locator(".hwt-log").innerText()).includes("calls Opening Strike"),
+  }
+  await page230.close()
+  out.activePowerUi = result
+  const ok =
+    result.btnText.includes("Opening Strike") && result.enabledBefore && !result.enabledAfter &&
+    result.status === "Used this battle" && result.surging > 0 && result.surging === result.playerTokens && result.logHas
+  if (!ok) out.errors.push("check230 the Active Power panel did not render/fire correctly on the prototype page")
 }
 
 console.log(JSON.stringify(out, null, 2))

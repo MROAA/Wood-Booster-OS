@@ -35,9 +35,9 @@ export const MERCHANTS = {
     accent: "var(--hw-moss)",
     glyph: "merchantGlyph",
     generic: [
-      "Sit. Trade. Gossip maybe? The path's no shorter for standing on it.",
+      "Sit. Trade. The path's no shorter for standing on it.",
       "Everything on this cloth was carried out of the deep wood. Some of it wanted to stay.",
-      "Why the long faces? Come, barter!",
+      "You look like a long road. I sell for long roads.",
       "Coin left in the purse breeds, they say. Mine never does. Yours might.",
       "Anything you settle in the ledger stays settled. No re-reading it to you next town.",
     ],

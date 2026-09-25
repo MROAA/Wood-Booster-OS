@@ -148,7 +148,10 @@ const PLAYER_DEF_IDS = ["bulwark-of-ages", "the-fool", "hexbreaker", "oathshield
 // The full 6-unit pool the sidebar squad picker offers - PLAYER_DEF_IDS
 // (now 4 recruited defaults) plus 2 more swappable alternatives from a
 // later roster-expansion round.
-export const PLAYER_ROSTER_IDS = [...PLAYER_DEF_IDS, "willowmend", "bramble-sweep"]
+// Spirit Shift round: beastcaller (real units.js content, the
+// Frontier's Spiritwalker) joins as a 7th option - no ability of its
+// own, its whole identity is the Spirit Wolf it brings and the swap.
+export const PLAYER_ROSTER_IDS = [...PLAYER_DEF_IDS, "willowmend", "bramble-sweep", "beastcaller"]
 
 // The Commander (real 5th unit in the auto-battler, characters.js/
 // autoBattleEngine.js's own COMMANDER_POSITION) - deployed ALONGSIDE the 4
@@ -477,7 +480,9 @@ function aoeMoveFromDef(def) {
 // preview shown during the player's turn and the real resolution that
 // follows it, so both calls see the same input and make the same
 // decision - telegraph honesty by construction, not by luck.
-function deterministicRoll(turn, seedText) {
+// Sidestep round: exported so verify checks can recompute the exact
+// expected roll for a chosen `turn` value instead of guessing one.
+export function deterministicRoll(turn, seedText) {
   let h = Math.imul(turn, 2654435761) >>> 0
   for (let i = 0; i < seedText.length; i++) h = Math.imul(h ^ seedText.charCodeAt(i), 2654435761) >>> 0
   h = (h ^ (h >>> 15)) >>> 0
@@ -505,7 +510,13 @@ function applyPortableEffect(state, unitId, effect) {
   if (effect.type === "applyBuff" && effect.id === "strength") {
     return setUnit(state, unitId, { attack: unit.attack + (effect.amount || 0) })
   }
-  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak", "bulwark", "regen", "taunt"].includes(effect.id)) {
+  // Active Power round: ward/vulnerable join the list - 4 of the 7 real
+  // Commander Active Powers (Brace/Stonewall/Grovecall's Ward,
+  // Blightcall's Vulnerable) need them. No enemy passive/phase/trigger
+  // routes either id through here today (Deepwarden's own passive Ward
+  // goes through passiveStatsFromDef, which still ignores it), so this
+  // changes nothing about any existing fight.
+  if (effect.type === "applyBuff" && ["execute", "shatter", "woundedFury", "weak", "bulwark", "regen", "taunt", "ward", "vulnerable"].includes(effect.id)) {
     return setUnit(state, unitId, { [effect.id]: (unit[effect.id] || 0) + (effect.amount || 0) })
   }
   if (effect.type === "block") {
@@ -667,6 +678,18 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // fearsome/frosty/thorny. Only the-hermit (units.js) carries this
     // today.
     wary: !!def.wary,
+    // Sidestep round: a fifth new portable trait, same shape as
+    // fearsome/frosty/thorny/wary. Only galeblade/windveil (units.js)
+    // carry this today - they already have the auto-battler's own real
+    // "dodges the first blow each round" evade passive.
+    nimble: !!def.nimble,
+    // Spirit Shift round: a sixth new portable trait, same shape as
+    // nimble. Only beastcaller (units.js) carries this today.
+    spiritbound: !!def.spiritbound,
+    // Spirit Shift round: a summoned creature (units.js's own
+    // summonOnly - only the Spirit Wolf today) IS the "henki" the PRD
+    // names - read straight off the def, no new authoring needed.
+    isSpirit: side === "player" && !!def.summonOnly,
     triggers,
     phases,
     phaseIndex: 0,
@@ -693,6 +716,12 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // exact same 2 turn-transition checkpoints slow/root already use,
     // set true only when Retreat Step actually fires.
     retreatStepUsed: false,
+    // Sidestep round: the "Reaction Slot" the PRD names - reuses
+    // retreatStepUsed's own exact once-per-round boolean shape rather
+    // than inventing a new resource pool.
+    sidestepUsed: false,
+    // Spirit Shift round: same once-per-round boolean shape again.
+    spiritShiftUsed: false,
     // Weakened reactions round (Facing PRD's own "puolustajan
     // reaktioiden heikennys" back-hit line): a THIRD duration-based
     // status, reusing slow/root's exact mechanism - never in a base
@@ -734,6 +763,50 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
 // own `haste` field already reads straight off `def.haste`, so Tommy's
 // real Haste kit flows through automatically with no change needed
 // here - Squad Passive/Active Power remain the named deferrals).
+// Active Power round: the Commander's REAL activePower (characters.js -
+// Opening Strike, Rally Cry, Blood Oath, Brace, Blightcall, Stonewall,
+// Grovecall), the same effects array the auto-battler queues from the
+// shop, becomes an in-battle, player-triggered "hero power" here: once
+// per battle, costs the Commander 1 AP, applied to every LIVING player
+// unit for the rest of the fight. When to fire it is the decision. The
+// shop's own Essence-bought "next battle only" version is untouched.
+function activePowerFor(character) {
+  const power = character?.activePower
+  if (!power) return null
+  return {
+    id: power.id,
+    name: power.name,
+    // The real description is written for the shop ("Next battle only:
+    // ...") - the in-battle panel shows just the effect half.
+    description: power.description.replace(/^Next battle only:\s*(.)/i, (_, first) => first.toUpperCase()),
+    effects: power.effects,
+    used: false,
+    firedTurn: null,
+  }
+}
+
+export function activateCommanderPower(state) {
+  const power = state.activePower
+  const commander = getUnit(state, "player-commander")
+  if (!power || power.used || state.phase !== "player") return state
+  if (!commander || commander.hp <= 0 || commander.ap < 1) return state
+  let next = setUnit(state, commander.id, { ap: commander.ap - 1 })
+  for (const unit of next.units) {
+    if (unit.side !== "player" || unit.hp <= 0) continue
+    for (const effect of power.effects) {
+      next =
+        effect.type === "addTrigger"
+          ? setUnit(next, unit.id, { triggers: [...(getUnit(next, unit.id).triggers || []), { trigger: effect.trigger, effect: effect.effect }] })
+          : applyPortableEffect(next, unit.id, effect)
+    }
+  }
+  return {
+    ...next,
+    activePower: { ...power, used: true, firedTurn: state.turn },
+    log: [...next.log, `${commander.name} calls ${power.name}! ${power.description}`],
+  }
+}
+
 function deriveCommanderUnit(characterId, pos, uid) {
   return deriveTacticsUnit(`commander-${characterId}`, "player", pos, uid, CHARACTERS[characterId])
 }
@@ -760,6 +833,7 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
       deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
+  spawnBattleStartSummons(units, GRID)
   // The Commander's real Squad Passive (characters.js) - applied to
   // EVERY player unit before any battle-start snapshot is taken, the
   // same "battle-start bonus, no growth badge" treatment the formation
@@ -801,6 +875,26 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
     // nothing about WHERE those badges keep coming from goes unnarrated.
     log: [commander.description, `${formation.name}. The Frontier opens. Your turn.`],
     formationId: formation.id,
+    activePower: activePowerFor(commander),
+  }
+}
+
+// Spirit Shift round: units.js's own real `summon` field (Beastcaller's
+// Spirit Wolf) finally reaches the Frontier - the auto-battler's own
+// startAutoBattle already spawns it; this is the tactics mirror. The
+// summon lands on the nearest free cell to its summoner (freeCellsNear,
+// the same helper Brood's hatchlings use), so it always starts inside
+// Spirit Shift's own range. Mutates `units` in place (called right after
+// the array literal, before any Squad Passive/baseline pass, so the
+// spirit is a normal squad member for every later step).
+function spawnBattleStartSummons(units, grid) {
+  const summoners = units.filter((u) => u.side === "player" && UNITS[u.defId]?.summon)
+  for (const summoner of summoners) {
+    const { defId } = UNITS[summoner.defId].summon
+    if (!UNITS[defId]) continue
+    const [pos] = freeCellsNear({ units, grid }, summoner.pos, 1)
+    if (!pos) continue
+    units.push(deriveTacticsUnit(defId, "player", pos, `${summoner.id}-summon-${defId}`))
   }
 }
 
@@ -858,6 +952,7 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = 
       deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
+  spawnBattleStartSummons(units, GRID)
   // The real Commander's real Squad Passive, rank-scaled by the run's
   // OWN real commanderRank (unlike createTacticsBattle's own always-
   // rank-0 default) - applied before the baseAttack snapshot, same
@@ -884,6 +979,7 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = 
       ? [character.description, "A real matchup from your run. The Frontier opens. Your turn."]
       : ["A real matchup from your run. The Frontier opens. Your turn."],
     formationId: null,
+    activePower: activePowerFor(character),
   }
 }
 
@@ -1320,6 +1416,32 @@ const OPPOSITE_DIR = { N: "S", S: "N", E: "W", W: "E" }
 // back into a board offset.
 const DIR_DELTA = { N: { dRow: -1, dCol: 0 }, S: { dRow: 1, dCol: 0 }, E: { dRow: 0, dCol: 1 }, W: { dRow: 0, dCol: -1 } }
 
+// Sidestep round: "sideways" relative to a unit's own facing has 2
+// candidates (left/right) - nothing in this engine has needed a
+// rotation concept before. Tries right first, then left.
+const RIGHT_OF_DIR = { N: "E", E: "S", S: "W", W: "N" }
+const LEFT_OF_DIR = { N: "W", W: "S", S: "E", E: "N" }
+// No PRD number given ("voi välttää hyökkäyksen" - MAY avoid, not a
+// guarantee) and no existing percentage-chance number anywhere to
+// reuse (the auto-battler's own `evade` buff is a guaranteed per-stack
+// dodge counter, a different shape) - a clean, easily-explained
+// coinflip, my own stated design call.
+const SIDESTEP_DODGE_CHANCE = 0.5
+
+// Sidestep round: tries the tile to the right of the unit's own facing
+// first, then left, returning the first that's on-board and
+// unoccupied - the same occupancy check Retreat Step's own destination
+// logic already uses, just with a second candidate before giving up.
+function sidestepDestination(state, target) {
+  for (const dir of [RIGHT_OF_DIR[target.facing], LEFT_OF_DIR[target.facing]]) {
+    const delta = DIR_DELTA[dir]
+    const candidate = { row: target.pos.row + delta.dRow, col: target.pos.col + delta.dCol }
+    const occupied = state.units.some((u) => u.id !== target.id && u.hp > 0 && samePos(u.pos, candidate))
+    if (isOnBoard(candidate, state.grid) && !occupied) return candidate
+  }
+  return null
+}
+
 // Classifies an attack against the DEFENDER's own current facing -
 // front/side/back, the PRD's own 3-way split. Only the defender's
 // facing and both units' positions matter (the attacker's own facing
@@ -1400,6 +1522,10 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   let amount = baseAmount
   if (attacker.woundedFury > 0 && attacker.hp < attacker.maxHp * 0.5) amount += 3
   if (attacker.weak > 0) amount = Math.floor(amount * 0.75)
+  // Active Power round: effects.js's own Vulnerable - the defensive
+  // mirror of Weak, +25% damage TAKEN (rounded down), applied at the
+  // same point in the chain. Permanent here, same as this engine's Weak.
+  if (defender.vulnerable > 0) amount = Math.floor(amount * 1.25)
   const facing = classifyFacingAttack(attacker, defender)
   if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
@@ -1423,6 +1549,21 @@ const RETREAT_STEP_HP_THRESHOLD_PCT = 0.25
 // and reset every round" behavior never applies to it).
 function applyDamageWithBlock(state, targetId, amount) {
   const target = getUnit(state, targetId)
+  // Active Power round: effects.js's own Ward - one stack cancels the
+  // ENTIRE next hit, whatever its size, before Block/Bulwark/Revive are
+  // ever consulted (the real dealDamage's own ordering). Only spent on a
+  // hit that would actually deal something.
+  if (amount > 0 && target.ward > 0) {
+    const next = setUnit(state, targetId, { ward: target.ward - 1 })
+    return {
+      next: { ...next, log: [...next.log, `${target.name}'s Ward absorbs the hit completely.`] },
+      absorbed: 0,
+      armourUsed: 0,
+      remaining: 0,
+      fell: false,
+      revived: false,
+    }
+  }
   const armour = target.bulwark || 0
   const totalAbsorb = Math.min(target.block + armour, amount)
   const blockSpent = Math.min(target.block, totalAbsorb)
@@ -1681,9 +1822,30 @@ function eligibleGuardian(state, target) {
   )
 }
 
+// Spirit Shift (Movement PRD §4.4): "Spiritwalker voi vaihtaa paikkaa
+// lähellä olevan hengen kanssa." A spiritbound unit attacked during the
+// OTHER side's own phase (so never a Zone of Control reaction strike on
+// its own move) swaps places with the nearest living allied spirit
+// within SPIRIT_SHIFT_RANGE, and the spirit takes the blow in its place.
+// Deterministic, unlike Sidestep's coinflip - the cost is the spirit's
+// own HP, and it's once per round (same boolean Slot shape as Sidestep).
+// "lähellä" has no PRD number - 2 tiles is my own stated design call,
+// wide enough to matter, close enough that positioning still counts.
+const SPIRIT_SHIFT_RANGE = 2
+
+function eligibleSpirit(state, target) {
+  if (!target.spiritbound || target.spiritShiftUsed || target.suppressed > 0) return null
+  if (state.phase === target.side) return null
+  const spirits = state.units.filter(
+    (u) => u.side === target.side && u.id !== target.id && u.hp > 0 && u.isSpirit && chebyshevDist(u.pos, target.pos) <= SPIRIT_SHIFT_RANGE,
+  )
+  spirits.sort((a, b) => chebyshevDist(a.pos, target.pos) - chebyshevDist(b.pos, target.pos))
+  return spirits[0] || null
+}
+
 export function attackUnit(state, actorId, targetId, opts = {}) {
   const actor = getUnit(state, actorId)
-  const target = getUnit(state, targetId)
+  let target = getUnit(state, targetId)
   if (!actor || !target || actor.hp <= 0 || target.hp <= 0) return state
   if (actor.side === target.side) return state
   // Zone of Control round: a reaction attack (opts.isReaction) skips
@@ -1699,6 +1861,37 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
   }
   let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
+  // Spirit Shift round: resolved FIRST, before Sidestep/facing/damage -
+  // the swap changes WHO is hit, so every later step (facing, Guardian,
+  // Retreat Step, poison) then runs against the spirit naturally.
+  const spirit = eligibleSpirit(next, target)
+  if (spirit) {
+    next = setUnit(next, targetId, { pos: spirit.pos, spiritShiftUsed: true })
+    next = setUnit(next, spirit.id, { pos: target.pos })
+    next = { ...next, log: [...next.log, `${target.name} shifts places with ${spirit.name} - the spirit takes the blow!`] }
+    targetId = spirit.id
+    target = getUnit(next, targetId)
+  }
+  // Sidestep round (Movement PRD's own §4.4, "kun vihollinen käyttää
+  // kaukohyökkäystä"): resolved BEFORE facing/damage are computed for
+  // THIS SAME attack, so a genuine reposition can change whether the
+  // attack lands as front/side/back below - not a later narration-only
+  // step. `actor.range > 1` is a ranged attack (rangeFromAttackPattern's
+  // own only 2 outcomes). Weakened reactions' own suppressed status
+  // extends to this new 4th reaction too, same as the other 3.
+  let sidestepNote = ""
+  if (actor.range > 1 && target.nimble && !target.sidestepUsed && !(target.suppressed > 0)) {
+    const destination = sidestepDestination(next, target)
+    if (destination) {
+      next = setUnit(next, targetId, { pos: destination, sidestepUsed: true })
+      target = getUnit(next, targetId)
+      if (deterministicRoll(next.turn, `${targetId}:sidestep`) < SIDESTEP_DODGE_CHANCE) {
+        next = { ...next, log: [...next.log, `${target.name} sidesteps out of the way, avoiding ${actor.name}'s attack completely!`] }
+        return checkTacticsBattleEnd(next)
+      }
+      sidestepNote = ` ${target.name} sidesteps but the attack still connects!`
+    }
+  }
   // Block-weakening/Crit round: facing is computed HERE, before the
   // damage calc, since a side hit's own Block-weaken is a real state
   // mutation that must land before modifiedAttackAmount/Shatter's own
@@ -1755,7 +1948,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // facingMultiplier computes it in the same formula.
   const facingPct = facing !== "front" ? Math.round((facingMultiplier(actor, effectiveTarget, facing) - 1) * 100) : 0
   const facingNote = facing === "side" ? ` (flanked, +${facingPct}%)` : facing === "back" ? ` (from behind, CRITICAL, +${facingPct}%)` : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}${suppressedNote}`] }
+  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}${suppressedNote}${sidestepNote}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that
   // hit's damage - the real game's debuff step is its own move in the
@@ -2072,6 +2265,7 @@ function describePortableEffect(effect) {
   if (effect.type === "applyBuff" && effect.id === "strength") return "grows stronger"
   if (effect.type === "applyBuff" && effect.id === "weak") return "leaves the wound raw"
   if (effect.type === "applyBuff" && effect.id === "bulwark") return "hardens its armour"
+  if (effect.type === "applyBuff" && effect.id === "vulnerable") return "leaves the target exposed"
   if (effect.type === "block") return "braces for the next blow"
   if (effect.type === "heal") return "steadies itself"
   return "stirs"
@@ -2144,6 +2338,8 @@ export function endPlayerTurn(state) {
             slow: Math.max(0, (u.slow || 0) - 1),
             root: Math.max(0, (u.root || 0) - 1),
             retreatStepUsed: false,
+            sidestepUsed: false,
+            spiritShiftUsed: false,
             suppressed: Math.max(0, (u.suppressed || 0) - 1),
           }
         : u,
@@ -2388,6 +2584,8 @@ export function runEnemyTurn(state) {
             slow: Math.max(0, (u.slow || 0) - 1),
             root: Math.max(0, (u.root || 0) - 1),
             retreatStepUsed: false,
+            sidestepUsed: false,
+            spiritShiftUsed: false,
             suppressed: Math.max(0, (u.suppressed || 0) - 1),
           }
         : u,

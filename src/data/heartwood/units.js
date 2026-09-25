@@ -272,6 +272,16 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // the-hermit's own wary:true below would silently never reach
     // deriveTacticsUnit at all.
     wary: !!opts.wary,
+    // Sidestep round (Hearthwood Frontier, tacticsEngine.js only):
+    // same reasoning as frosty/wary above - needs its own explicit line
+    // or galeblade's/windveil's own nimble:true below would silently
+    // never reach deriveTacticsUnit at all.
+    nimble: !!opts.nimble,
+    // Spirit Shift round (Hearthwood Frontier, tacticsEngine.js only):
+    // same reasoning as frosty/wary/nimble above - needs its own explicit
+    // line or beastcaller's own spiritbound:true below would silently
+    // never reach deriveTacticsUnit at all.
+    spiritbound: !!opts.spiritbound,
     // Spore Spread: when this unit's own debuff step applies Poison,
     // the same stack also seeds onto a different living enemy - see
     // autoBattleEngine.js's actSide.
@@ -1015,6 +1025,10 @@ const BASE_UNITS = {
     { type: "attack", amount: 5 },
   ], {
     summon: { defId: "spirit-wolf" },
+    // Spirit Shift (Movement PRD §4.4, tacticsEngine.js only): the
+    // Frontier's Spiritwalker reaction - swaps places with its own
+    // nearby Spirit Wolf when attacked, the spirit taking the blow.
+    spiritbound: true,
     // Guild Identity v1: Beastcaller (Pets/Nature) - id/name match; the
     // ability that calls a Spirit Wolf into the fight is literally
     // Marc's Pets/Nature class already, no reinterpretation needed.
@@ -1444,12 +1458,19 @@ const BASE_UNITS = {
   galeblade: unit("galeblade", "Galeblade", "gale", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Gale = strikes that slip aside: dodges the first blow each round.
     passive: [{ type: "applyBuff", id: "evade", amount: 1 }],
+    // Sidestep round (Hearthwood Frontier tactics engine): the exact
+    // same "slips aside" flavor as the evade passive above, extended to
+    // the tactics engine's own ranged-attack reaction - not a new trait
+    // invented for this unit, the same one read a second way.
+    nimble: true,
   }),
   windveil: unit("windveil", "Windveil", "gale", 2, "dps", [{ type: "attack", amount: 5 }], {
     // A knight-pattern skirmisher (same geometry as Knight's Leap) that
     // also slips the first hit each round.
     attackPattern: "knight",
     passive: [{ type: "applyBuff", id: "evade", amount: 1 }],
+    // Sidestep round: same reasoning as galeblade above.
+    nimble: true,
   }),
   shadefang: unit("shadefang", "Shadefang", "shadow", 2, "dps", [{ type: "attack", amount: 6 }], {
     // Shadow = rot and a finishing dark: hits carry poison, and it

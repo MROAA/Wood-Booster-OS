@@ -39,7 +39,7 @@ export const ACT_CROSSROADS = {
         id: "strengthen",
         label: "Feed the ritual.",
         result:
-          "\"Power,\" the spirit says, it corrupts.  Dangerous power. The roots will remember this.\" Something a long way underground shifts, and settles heavier than it was.",
+          '"Power," the spirit says, and will not look at you. "But dangerous power. The roots will remember this." Something a long way underground shifts, and settles heavier than it was.',
         allegiance: "rite-strengthened",
         forestState: "restless",
         flag: "rite_strengthened",
@@ -104,7 +104,7 @@ export const ACT_CROSSROADS = {
         id: "take",
         label: "Take the echo.",
         result:
-          "You close your hand around the shard and it weighs nothing and everything. Your squad is invigorated and hits harder from here on - and opens every fight a half-step behind itself, braced against a sound only it can hear.",
+          "You close your hand around the shard and it weighs nothing and everything. Your squad hits harder from here on - and opens every fight a half-step behind itself, braced against a sound only it can hear.",
         allegiance: "echo-taken",
         forestState: "corrupted",
         flag: "echo_taken",
