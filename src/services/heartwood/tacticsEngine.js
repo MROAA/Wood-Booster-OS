@@ -2636,57 +2636,182 @@ export function endPlayerTurn(state) {
   return runEnemyTurn(next)
 }
 
-// A deliberately simple scripted AI (Phase 1's job is proving the PLAYER's
-// turn feels good, not shipping a clever opponent): if a living player unit
-// is already in range, attack the weakest one in range; otherwise step
-// toward the nearest living player unit and re-check range from the new
-// tile. One decision per enemy, in roster order.
+// Enemy AI (smarter-enemies sprint): every option - stay or any reachable
+// tile, attacking any valid target from there or just approaching - is
+// scored and the best one wins. Pure and deterministic (strict `>` keeps
+// the first of equal options), so previewEnemyIntents stays an exact
+// dry-run. Scoring prefers kills, low HP%, squishy/high-damage targets and
+// the Commander; melee favor side/back tiles; ranged keep their distance;
+// everyone avoids poison and zone traps; bosses weigh how exposed a tile is.
 //
 // Split into a pure decision (decideEnemyIntent) and a mutation that acts
 // on that decision (applyEnemyIntent) so BOTH the real enemy turn AND the
 // player-facing intent telegraph (previewEnemyIntents, below) run through
-// the exact same logic - there is no second "what will the enemy do" model
-// that could drift out of sync with what actually happens.
+// the exact same logic.
+const AI_ATTACK_BASE = 200
+const AI_KILL_BONUS = 1000
+const AI_COMMANDER_BONUS = 40
+const AI_POISON_PENALTY = 60
+const AI_ZONE_STATUS_PENALTY = 20
+const AI_FACING_BONUS = { front: 0, side: 4, back: 8 }
+
+// Bosses/elites with phases or the squad-wide strike play more carefully.
+function isCautiousEnemy(unit) {
+  return (unit.phases?.length || 0) > 0 || !!unit.aoeMove
+}
+
+// Mirrors attackableTargets' Taunt filter for a hypothetical tile.
+function aiTargetsFrom(state, enemy, pos) {
+  const pool = livingUnits(state, "player").filter((u) => chebyshevDist(pos, u.pos) <= enemy.range)
+  const taunters = livingTaunters(state, "player")
+  return taunters.length ? pool.filter((u) => u.taunt > 0) : pool
+}
+
+// Rough damage after Ward/Block/Bulwark - the same modifier chain a real hit uses.
+function aiEstimateHit(attacker, target) {
+  if (target.ward > 0) return 0
+  const raw = modifiedAttackAmount(attacker, target, attacker.attack)
+  return Math.max(0, raw - (target.block || 0) - (target.bulwark || 0))
+}
+
+// How much a target is worth hitting, kill aside.
+function aiTargetValue(target) {
+  let value = 30 * (1 - target.hp / target.maxHp) + 2 * target.attack
+  value += Math.max(0, 40 - target.maxHp) * 0.5
+  if (target.range > 1) value += 8
+  if (target.id === "player-commander") value += AI_COMMANDER_BONUS
+  return value
+}
+
+// Predicts what moveUnit would do to the mover (AP toll, reaction hits,
+// hazards) without running it.
+function aiMoveOutcome(state, enemy, dest) {
+  if (samePos(dest, enemy.pos)) return { apLeft: enemy.ap, reactionDmg: 0, hazard: 0 }
+  const opp = "player"
+  const toll = insideAnyOpposingZone(state, enemy.pos, opp) && !insideAnyOpposingZone(state, dest, opp) ? ZONE_LEAVE_AP_TOLL : 0
+  const moved = { ...enemy, pos: dest, facing: cardinalDir(dest.col - enemy.pos.col, dest.row - enemy.pos.row) }
+  const reactionDmg = zocControllers(state, enemy.pos, opp)
+    .filter((c) => !kingAdjacent(c.pos, dest) && !(c.suppressed > 0))
+    .reduce((sum, c) => sum + aiEstimateHit(c, moved), 0)
+  let hazard = 0
+  if (TERRAIN[terrainAt(state, dest)].grantPoison) hazard += AI_POISON_PENALTY
+  if (fearZoneControllers(state, dest, opp).length && !fearZoneControllers(state, enemy.pos, opp).length) hazard += AI_ZONE_STATUS_PENALTY
+  if (thornZoneControllers(state, dest, opp).length && !thornZoneControllers(state, enemy.pos, opp).length) hazard += AI_ZONE_STATUS_PENALTY
+  if (frostZoneControllers(state, enemy.pos, opp).length && !frostZoneControllers(state, dest, opp).length) hazard += AI_ZONE_STATUS_PENALTY
+  return { apLeft: Math.max(0, enemy.ap - 1 - toll), reactionDmg, hazard }
+}
+
+function aiAdjacentPlayerMelee(state, pos) {
+  return livingUnits(state, "player").filter((u) => u.range === 1 && chebyshevDist(u.pos, pos) <= 1)
+}
+
+// Player units that could reach and hit `pos` next turn.
+function aiExposure(state, pos) {
+  return livingUnits(state, "player").filter((u) => chebyshevDist(u.pos, pos) <= effectiveMove(u) + u.range).length
+}
+
+// Positional part of an option's score; null = never go there.
+function aiTileScore(state, enemy, pos, outcome) {
+  if (outcome.reactionDmg >= enemy.hp) return null
+  let score = -outcome.hazard - outcome.reactionDmg * 3
+  if (!samePos(pos, enemy.pos)) score -= 1
+  if (enemy.range > 1) score -= 25 * aiAdjacentPlayerMelee(state, pos).length
+  if (isCautiousEnemy(enemy)) score -= 6 * aiExposure(state, pos)
+  return score
+}
+
+// Best retreat tile for a ranged enemy after it has already attacked.
+function aiRetreatTile(state, enemyId) {
+  const enemy = getUnit(state, enemyId)
+  if (!enemy || enemy.hp <= 0 || enemy.ap < 1) return null
+  const players = livingUnits(state, "player")
+  if (!players.length) return null
+  const spacing = (pos) => Math.min(enemy.range, ...players.map((p) => chebyshevDist(pos, p.pos)))
+  const scoreOf = (pos) => {
+    const tile = aiTileScore(state, enemy, pos, aiMoveOutcome(state, enemy, pos))
+    return tile === null ? null : tile + 3 * spacing(pos)
+  }
+  let best = null
+  let bestScore = scoreOf(enemy.pos)
+  for (const pos of reachableTilesFor(state, enemyId)) {
+    const score = scoreOf(pos)
+    if (score !== null && score > bestScore) {
+      best = pos
+      bestScore = score
+    }
+  }
+  return best
+}
+
 function decideEnemyIntent(state, enemyId) {
   const enemy = getUnit(state, enemyId)
   if (!enemy || enemy.hp <= 0) return { kind: "hold" }
 
   // The final boss's real weightedRandom AoE - see deterministicRoll's
   // own comment for why this reads state.turn instead of Math.random.
-  // Checked before the normal attack branch below, exactly like the
-  // real moveSelect:"weightedRandom" picks freely among ALL of an
-  // enemy's moves each turn, not only when nothing else is available.
   if (enemy.aoeMove && deterministicRoll(state.turn, enemy.id) < enemy.aoeMove.chance) {
     return { kind: "aoe", amount: enemy.aoeMove.amount }
   }
 
-  const inRange = attackableTargets(state, enemyId)
-  if (inRange.length) {
-    const weakest = inRange.reduce((w, u) => (u.hp < w.hp ? u : w), inRange[0])
-    return { kind: "attack", targetId: weakest.id }
+  const players = livingUnits(state, "player")
+  if (!players.length) return { kind: "hold" }
+  const taunters = livingTaunters(state, "player")
+  const focusPool = taunters.length ? taunters : players
+  // Who to walk toward when no hit is possible this turn.
+  const focus = focusPool.reduce(
+    (best, t) => {
+      const score = aiTargetValue(t) - 6 * chebyshevDist(enemy.pos, t.pos)
+      return score > best.score ? { t, score } : best
+    },
+    { t: null, score: -Infinity },
+  ).t
+
+  let best = { score: -Infinity, intent: { kind: "hold" } }
+  for (const pos of [enemy.pos, ...reachableTilesFor(state, enemyId)]) {
+    const stay = samePos(pos, enemy.pos)
+    const outcome = aiMoveOutcome(state, enemy, pos)
+    const tileScore = aiTileScore(state, enemy, pos, outcome)
+    if (tileScore === null) continue
+    const attacker = { ...enemy, pos }
+    // Ranged never walk INTO melee reach to shoot (staying + retreating is handled below).
+    const rangedIntoMelee = enemy.range > 1 && !stay && aiAdjacentPlayerMelee(state, pos).length > 0
+    if (outcome.apLeft >= 1 && !rangedIntoMelee) {
+      for (const target of aiTargetsFrom(state, enemy, pos)) {
+        const dmg = aiEstimateHit(attacker, target)
+        const kill = dmg >= target.hp && !(target.revive > 0)
+        const facing = classifyFacingAttack(attacker, target)
+        const score = AI_ATTACK_BASE + tileScore + (kill ? AI_KILL_BONUS : 0) + 3 * dmg + aiTargetValue(target) + AI_FACING_BONUS[facing]
+        if (score > best.score) {
+          best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: pos, targetId: target.id } }
+        }
+      }
+    }
+    // Approach option: close the gap to the focus (ranged aim for max range).
+    const dist = chebyshevDist(pos, focus.pos)
+    const gap = Math.max(0, dist - enemy.range) * 10 + (enemy.range > 1 ? Math.max(0, enemy.range - dist) * 2 : 0)
+    const nearest = Math.min(...players.map((p) => chebyshevDist(pos, p.pos)))
+    const score = tileScore - gap - nearest * 0.1
+    if (score > best.score) best = { score, intent: stay ? { kind: "hold" } : { kind: "move", to: pos } }
   }
 
-  const targets = livingUnits(state, "player")
-  if (!targets.length) return { kind: "hold" }
-  const options = [enemy.pos, ...reachableTilesFor(state, enemyId)]
-  const nearestDistFrom = (pos) => Math.min(...targets.map((t) => chebyshevDist(pos, t.pos)))
-  const best = options.reduce((w, pos) => (nearestDistFrom(pos) < nearestDistFrom(w) ? pos : w), options[0])
-  if (samePos(best, enemy.pos)) return { kind: "hold" }
-
-  // What WOULD be in range from `best`, without actually moving there -
-  // a hypothetical read, same Chebyshev check attackableTargets uses.
-  const afterMove = state.units.filter(
-    (u) => u.side !== enemy.side && u.hp > 0 && chebyshevDist(best, u.pos) <= enemy.range,
-  )
-  if (afterMove.length) {
-    const weakest = afterMove.reduce((w, u) => (u.hp < w.hp ? u : w), afterMove[0])
-    return { kind: "move-attack", to: best, targetId: weakest.id }
+  // Ranged enemies stuck next to melee shoot first, then step back if
+  // the reaction hits won't cripple them.
+  const intent = best.intent
+  if (intent.kind === "attack" && enemy.range > 1 && enemy.ap >= 2) {
+    const adjacent = aiAdjacentPlayerMelee(state, enemy.pos).filter((u) => !(u.suppressed > 0))
+    const reactionDmg = adjacent.reduce((sum, c) => sum + aiEstimateHit(c, enemy), 0)
+    if (adjacent.length && reactionDmg * 2 < enemy.hp) return { ...intent, retreat: true }
   }
-  return { kind: "move", to: best }
+  return intent
 }
 
 function applyEnemyIntent(state, enemyId, intent) {
-  if (intent.kind === "attack") return attackUnit(state, enemyId, intent.targetId)
+  if (intent.kind === "attack") {
+    const hit = attackUnit(state, enemyId, intent.targetId)
+    if (!intent.retreat || hit.phase !== "enemy") return hit
+    const to = aiRetreatTile(hit, enemyId)
+    return to ? moveUnit(hit, enemyId, to) : hit
+  }
   if (intent.kind === "aoe") return applyEnemyAoe(state, enemyId, intent.amount)
   if (intent.kind === "move") return moveUnit(state, enemyId, intent.to)
   if (intent.kind === "move-attack") {
@@ -2749,10 +2874,30 @@ function decideAndActEnemy(state, enemyId) {
 // silently refuse every hypothetical enemy action, degrading this into
 // independent per-enemy reads instead of a real sequential preview.
 export function previewEnemyIntents(state) {
-  let scratch = { ...state, phase: "enemy" }
+  // Smarter-enemies sprint: the AI now reads AP/root/slow, so the scratch
+  // mirrors endPlayerTurn's enemy reset (fresh AP, one tick of slow/root).
+  const fresh = state.phase === "player"
+  let scratch = {
+    ...state,
+    phase: "enemy",
+    units: fresh
+      ? state.units.map((u) =>
+          u.side === "enemy"
+            ? { ...u, ap: u.apMax, slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1) }
+            : u,
+        )
+      : state.units,
+  }
   const intents = []
   for (const enemy of state.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (scratch.phase !== "enemy") break
+    // A stunned enemy skips its turn (relicFx.spendStun in runEnemyTurn).
+    const stunned = relicFx.spendStun(scratch, enemy.id)
+    if (stunned) {
+      intents.push({ enemyId: enemy.id, intent: { kind: "stunned" } })
+      scratch = stunned
+      continue
+    }
     const intent = decideEnemyIntent(scratch, enemy.id)
     intents.push({ enemyId: enemy.id, intent })
     scratch = applyEnemyIntent(scratch, enemy.id, intent)

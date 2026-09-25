@@ -274,23 +274,32 @@ await page.waitForSelector(".hwt-board")
   await page.waitForSelector(".hwt-board")
   let phase = "player"
   let turns = 0
+  // Smarter-enemies sprint: enemies no longer walk straight into Bulwark,
+  // so every squad member advances + attacks (same debugLowHp win path).
+  const squadNames = await page.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
   while (phase !== "won" && phase !== "lost" && turns < 20) {
-    const bulwark = page.locator(".hwt-token", { hasText: "Bulwark of Ages" })
-    await bulwark.click({ force: true }).catch(() => {})
-    await page.waitForTimeout(120)
-    let targets = page.locator('.hwt-cell[data-targetable="true"]')
-    if ((await targets.count()) === 0) {
-      const reach = page.locator('.hwt-cell[data-reachable="true"]')
-      if ((await reach.count()) > 0) {
-        await reach.first().click()
-        await page.waitForTimeout(120)
+    for (const name of squadNames) {
+      if ((await page.locator(".hwt-turn-label").getAttribute("data-phase")) !== "player") break
+      const unit = page.locator(".hwt-token", { hasText: name })
+      if ((await unit.count()) === 0) continue
+      await unit.first().click({ force: true }).catch(() => {})
+      await page.waitForTimeout(120)
+      let targets = page.locator('.hwt-cell[data-targetable="true"]')
+      if ((await targets.count()) === 0) {
+        const reach = page.locator('.hwt-cell[data-reachable="true"]')
+        if ((await reach.count()) > 0) {
+          await reach.first().click()
+          await page.waitForTimeout(120)
+        }
+      }
+      targets = page.locator('.hwt-cell[data-targetable="true"]')
+      if ((await targets.count()) > 0) {
+        await targets.first().click()
+        await page.waitForTimeout(150)
       }
     }
-    targets = page.locator('.hwt-cell[data-targetable="true"]')
-    if ((await targets.count()) > 0) {
-      await targets.first().click()
-      await page.waitForTimeout(150)
-    }
+    phase = await page.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase !== "player") break
     await page.locator(".hwt-end-turn").click().catch(() => {})
     await page.waitForTimeout(400)
     phase = await page.locator(".hwt-turn-label").getAttribute("data-phase")
@@ -416,40 +425,46 @@ await page.waitForSelector(".hwt-board")
 }
 
 // 12. Regrowth heals a damaged unit, capped at max HP --------------
+// Smarter-enemies sprint: enemies now focus the Commander/squishies, so
+// Mosskit itself may never be hit - heal whichever adjacent ally is hurt.
 {
   await page.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
   await page.waitForSelector(".hwt-board")
   let mosskitHpBefore = "100%"
-  for (let i = 0; i < 12; i++) {
-    await page.locator(".hwt-end-turn").click().catch(() => {})
-    await page.waitForTimeout(400)
-    const width = await page.locator(".hwt-token", { hasText: "Mosskit" }).locator(".hwt-hp-fill").evaluate((el) => el.style.width)
-    const phase = await page.locator(".hwt-turn-label").getAttribute("data-phase")
-    if (width !== "100%") {
-      mosskitHpBefore = width
-      break
-    }
-    if (phase === "lost" || phase === "won") break
-  }
   let mended = false
   let hpAfter = mosskitHpBefore
-  if (mosskitHpBefore !== "100%") {
+  let healedName = null
+  for (let i = 0; i < 12 && !mended; i++) {
+    await page.locator(".hwt-end-turn").click().catch(() => {})
+    await page.waitForTimeout(400)
+    const phase = await page.locator(".hwt-turn-label").getAttribute("data-phase")
+    if (phase === "lost" || phase === "won") break
+    const widths = await page.locator('.hwt-token[data-side="player"] .hwt-hp-fill').evaluateAll((els) => els.map((el) => el.style.width))
+    if (!widths.some((w) => w !== "100%")) continue
     const mosskit = page.locator(".hwt-token", { hasText: "Mosskit" })
     await mosskit.click({ force: true }).catch(() => {})
     await page.waitForTimeout(150)
     const abilityBtn = page.locator(".hwt-ability-btn")
-    if ((await abilityBtn.count()) > 0 && !(await abilityBtn.isDisabled())) {
-      await abilityBtn.click()
-      await page.waitForTimeout(150)
-      const selfCell = page.locator('.hwt-cell[data-healable="true"]').filter({ has: page.locator(".hwt-token", { hasText: "Mosskit" }) })
-      await selfCell.click()
+    if ((await abilityBtn.count()) === 0 || (await abilityBtn.isDisabled())) continue
+    await abilityBtn.click()
+    await page.waitForTimeout(150)
+    const cells = page.locator('.hwt-cell[data-healable="true"]')
+    for (let c = 0; c < (await cells.count()); c++) {
+      const token = cells.nth(c).locator(".hwt-token")
+      const width = await token.locator(".hwt-hp-fill").evaluate((el) => el.style.width)
+      if (width === "100%") continue
+      mosskitHpBefore = width
+      healedName = (await token.locator(".hwt-token-name").innerText()).trim()
+      await cells.nth(c).click()
       await page.waitForTimeout(200)
       const logText = await page.locator(".hwt-log").innerText()
-      mended = /mends Mosskit for \d+/.test(logText)
-      hpAfter = await mosskit.locator(".hwt-hp-fill").evaluate((el) => el.style.width)
+      mended = new RegExp(`mends ${healedName} for \\d+`).test(logText)
+      hpAfter = await page.locator(".hwt-token", { hasText: healedName }).locator(".hwt-hp-fill").evaluate((el) => el.style.width)
+      break
     }
+    if (healedName) break
   }
-  out.regrowth = { mosskitHpBefore, mended, hpAfter }
+  out.regrowth = { mosskitHpBefore, mended, hpAfter, healedName }
   if (!(mosskitHpBefore !== "100%" && mended)) out.errors.push("check12 Regrowth heal did not apply")
 }
 
@@ -1653,7 +1668,9 @@ await page.waitForSelector(".hwt-board")
   }
   await page48.close()
   const isPoisonedLogged = /is poisoned \(\+[23]\)\./.test(logText)
-  const badgeOk = poisonBadge === "☠2" || poisonBadge === "☠3"
+  // Smarter-enemies sprint: enemies focus one target, so several
+  // attackers' stacks can land on it in one turn (e.g. ☠7).
+  const badgeOk = /^☠\d+$/.test(poisonBadge || "") && Number(poisonBadge.slice(1)) >= 2
   out.rotPoisonLands = { poisonBadge, isPoisonedLogged, logSample: logText.split("\n").slice(-6) }
   if (!(badgeOk && isPoisonedLogged)) out.errors.push("check48 poison did not land visibly with the right stack + log narration")
 }
