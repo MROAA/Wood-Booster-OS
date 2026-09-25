@@ -1071,3 +1071,20 @@
 .hwt-token.hw-hit-flash {
   animation: hw-hit-shake 400ms ease;
 }
+
+/* Enemy skills (sprint 2): a violet skill coin + marked slam tiles. */
+.hwt-intent-badge[data-intent="skill"] {
+  color: var(--hw-rune);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--hw-rune) 70%, transparent);
+}
+.hwt-intent-badge[data-intent="skill"][data-skill-kind="mend"],
+.hwt-intent-badge[data-intent="skill"][data-skill-kind="shield"] {
+  color: var(--hw-moss);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--hw-moss) 70%, transparent);
+}
+.hwt-cell[data-skill-zone="windup"] {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+}
+.hwt-cell[data-skill-zone="release"] {
+  box-shadow: inset 0 0 0 2px var(--hw-ember), inset 0 0 16px color-mix(in srgb, var(--hw-ember) 60%, transparent);
+}

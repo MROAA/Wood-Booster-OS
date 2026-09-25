@@ -38,6 +38,7 @@ import {
 import { motion } from "framer-motion"
 import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
 import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
+import { describeSkillIntent } from "../../services/heartwood/tacticsEnemyAbilities"
 
 function apPips(unit) {
   return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
@@ -137,8 +138,16 @@ export default function TacticsBoard({
   const intentByEnemyId = useMemo(() => new Map(intents.map((i) => [i.enemyId, i.intent])), [intents])
   const threatenedIds = useMemo(() => {
     const ids = new Set()
-    for (const { intent } of intents) {
+    for (const { intent: raw } of intents) {
+      // Enemy skills: Frenzy wraps the real follow-up action in `then`.
+      const intent = raw.then || raw
       if (intent.kind === "attack" || intent.kind === "move-attack") ids.add(intent.targetId)
+      if (intent.kind === "skill" && (intent.skillKind === "hex" || intent.skillKind === "pounce")) ids.add(intent.targetId)
+      if (intent.kind === "skill" && intent.tiles) {
+        for (const p of battle.units) {
+          if (p.side === "player" && p.hp > 0 && intent.tiles.some((t) => t.row === p.pos.row && t.col === p.pos.col)) ids.add(p.id)
+        }
+      }
       // The final boss's real AoE - unlike a single-target attack, it
       // hits every living player unit at once, so every one of them is
       // threatened, not just one chosen target.
@@ -159,6 +168,18 @@ export default function TacticsBoard({
     [battle],
   )
   const chargeThreatenedIds = useMemo(() => new Set(chargeThreat.playerIds), [chargeThreat])
+  // Enemy skills: tiles a slam will crush ("release") or is aiming at ("windup").
+  const skillZone = useMemo(() => {
+    const zone = new Map()
+    for (const { intent } of intents) {
+      if (intent.kind !== "skill" || !intent.tiles) continue
+      for (const t of intent.tiles) {
+        const key = `${t.row}-${t.col}`
+        if (zone.get(key) !== "release") zone.set(key, intent.phase)
+      }
+    }
+    return zone
+  }, [intents])
   const chargeFiringIds = useMemo(() => new Set(chargeThreat.enemyIds), [chargeThreat])
   // Zone of Control round: a static board property (which tiles are
   // dangerous to retreat FROM), not relative to whichever unit is
@@ -279,6 +300,7 @@ export default function TacticsBoard({
           data-targetable={!!target}
           data-healable={!!healTarget}
           data-threatened={!!threatened}
+          data-skill-zone={skillZone.get(`${row}-${col}`) || undefined}
           data-terrain={terrain}
           data-zoc={zoc}
           data-threat-zone={threatZone}
@@ -461,6 +483,16 @@ export default function TacticsBoard({
                 {intent && intent.kind === "aoe" && (
                   <span className="hwt-intent-badge" data-intent="aoe" title="Will strike every player unit at once">
                     ✺
+                  </span>
+                )}
+                {intent && intent.kind === "skill" && (
+                  <span
+                    className="hwt-intent-badge"
+                    data-intent="skill"
+                    data-skill-kind={intent.skillKind}
+                    title={describeSkillIntent(intent, (id) => getUnitName(battle, id))}
+                  >
+                    {intent.icon}
                   </span>
                 )}
                 {intent && intent.kind === "stunned" && (
