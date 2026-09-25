@@ -15,7 +15,7 @@ import {
 } from "../../data/heartwood/synergies"
 import { effectiveRole } from "../../data/heartwood/items"
 import { unitProfile, positionFitForSlot } from "../../data/heartwood/roles"
-import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies, arenaForRun, RUN_PATH } from "../../services/heartwood/runEngine"
+import { deployedTribeCounts, difficultyTierForNode, essenceForWin, previewBattleEnemies, arenaForRun, RUN_PATH, unitHpPct, commanderHpPct } from "../../services/heartwood/runEngine"
 import { nodeNarrative } from "../../services/heartwood/runNarrative"
 import UnitCard from "./UnitCard"
 import EnemyPieceCard from "./EnemyPieceCard"
@@ -227,7 +227,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         // The Commander always deploys here - not something the player
         // assigns/reorders, so it's shown but never clickable.
         const commander = CHARACTERS[runState.characterId]
-        const previewCommander = { id: "commander-preview", name: commander?.name, hp: commander?.maxHp, maxHp: commander?.maxHp, block: 0, intent: null, powers: {} }
+        const previewCommander = { id: "commander-preview", name: commander?.name, hp: Math.max(1, Math.round((commander?.maxHp || 0) * commanderHpPct(runState))), maxHp: commander?.maxHp, block: 0, intent: null, powers: {} }
         content = <EnemyPieceCard enemy={previewCommander} art={commander?.art} side="player" />
       } else if (slotIndex !== -1) {
         const benchKey = runState.deployed[slotIndex]
@@ -242,7 +242,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
             unitProfile(def, bentPos && bentPos !== def.role ? bentPos : undefined).position,
             slotIndex,
           )
-          const previewUnit = { id: `slot-${slotIndex}`, name: def.name, hp: def.maxHp, maxHp: def.maxHp, block: 0, intent: null, powers: {} }
+          const previewUnit = { id: `slot-${slotIndex}`, name: entry.wounded ? `${def.name} (Wounded)` : def.name, hp: Math.max(1, Math.round(def.maxHp * unitHpPct(entry))), maxHp: def.maxHp, block: 0, intent: null, powers: {} }
           // Same column-1 forward/back pair as autoBattleEngine.js's
           // real isShielded check, computed by hand here since there's
           // no battle state yet to ask - slot 1 (row 2, col 1) is
@@ -628,6 +628,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
               def={def}
               selected={isDeployed}
               onClick={() => handleBenchClick(entry.key)}
+              entry={entry}
               role={bentRole}
               bent={bentRole !== def?.role}
               // Light a tribe badge only on a unit that's actually
