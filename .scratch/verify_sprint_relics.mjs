@@ -41,9 +41,10 @@ const r = await page.evaluate(async () => {
   const P = "player-hexbreaker-1"
   const enemies = (s) => s.units.filter((u) => u.side === "enemy")
   // Hexbreaker at (3,5), first enemy adjacent at (3,4) with no shields.
-  const stage = (s, extraEnemy = {}) => {
+  // Hexbreaker's own passive Evade is zeroed unless keepEvade.
+  const stage = (s, extraEnemy = {}, keepEvade = false) => {
     const e = enemies(s)[0]
-    let n = patch(s, P, { pos: { row: 3, col: 5 }, ap: 2, facing: "W" })
+    let n = patch(s, P, { pos: { row: 3, col: 5 }, ap: 2, facing: "W", ...(keepEvade ? {} : { evade: 0 }) })
     n = patch(n, e.id, { pos: { row: 3, col: 4 }, ward: 0, block: 0, bulwark: 0, revive: 0, ap: 2, facing: "E", ...extraEnemy })
     return { n, eid: e.id }
   }
@@ -110,12 +111,13 @@ const r = await page.evaluate(async () => {
   //    the second lands.
   {
     const s = build({ items: ["windstep-charm"] })
-    const { n, eid } = stage(s)
+    const plainEvade = U(build({}), P).evade
+    const { n, eid } = stage(s, {}, true)
     const hp0 = U(n, P).hp
     const seq = n.eventSeq || 0
     const a1 = te.attackUnit({ ...n, phase: "enemy" }, eid, P)
     const a2 = te.attackUnit(a1, eid, P)
-    out.evade = { evadeStart: U(n, P).evade, hpAfter1: U(a1, P).hp, hp0, hpAfter2: U(a2, P).hp, evadeAfter: U(a1, P).evade, reactions: reactions(a1, seq) }
+    out.evade = { plainEvade, evadeStart: U(n, P).evade, hpAfter1: U(a1, P).hp, hp0, hpAfter2: U(a2, P).hp, evadeAfter: U(a1, P).evade, reactions: reactions(a1, seq) }
   }
   // 6. new effect types on hit: Rootbreak Sigil (sunder a Ward stack),
   //    Tideworn Band (Dampen shrinks the enemy's next hit).
@@ -126,7 +128,10 @@ const r = await page.evaluate(async () => {
     const hit = te.attackUnit(withWard, P, eid)
     const back = te.attackUnit(patch({ ...hit, phase: "enemy" }, P, { block: 0 }), eid, P)
     const dealt = U(hit, P).hp - U(back, P).hp
-    out.effects = { executeBefore: 2, executeAfter: U(hit, eid).execute, dampen: U(hit, eid).dampen, dealt, reactions: reactions(hit, withWard.eventSeq || 0) }
+    // same enemy hit with its Dampen removed, for the baseline
+    const plain = te.attackUnit(patch(patch({ ...hit, phase: "enemy" }, P, { block: 0 }), eid, { dampen: 0 }), eid, P)
+    const dealtPlain = U(hit, P).hp - U(plain, P).hp
+    out.effects = { executeBefore: 2, executeAfter: U(hit, eid).execute, dampen: U(hit, eid).dampen, dealt, dealtPlain, reactions: reactions(hit, withWard.eventSeq || 0) }
   }
   // 7. relic levels still scale the carried in-fight trigger.
   {
@@ -157,8 +162,8 @@ c("1 onHit relic tagged + retaliates for 3 + 'Bramble Ward!' callout", r.onHit.t
 c("2 chain on kill hits lowest-HP enemy + 'Cascading Wound!' callout", r.chain.chainPower === 4 && r.chain.killed && (r.chain.hasOthers === 0 || (r.chain.lowLoss === 4 && r.chain.reactions.some((x) => x.endsWith(":Cascading Wound!")))))
 c("3 relic poison ticks on enemies; player Regen ticks + callouts", r.ticks.poisoned === 2 && r.ticks.poisonLine && r.ticks.regenStart === 3 && (r.ticks.phase !== "player" || r.ticks.regenLine) && r.ticks.hitReactions.some((x) => x.endsWith(":Venomous Edge!")))
 c("4 Silenced Bell stun skips the enemy's turn + callout", r.stun.stunnedCount === 1 && r.stun.skipLine && r.stun.stunAfter === 0 && r.stun.reactions.some((x) => x.endsWith(":Stunned!")))
-c("5 Evade item dodges first hit per round only + callout", r.evade.evadeStart === 1 && r.evade.hpAfter1 === r.evade.hp0 && r.evade.evadeAfter === 0 && r.evade.hpAfter2 < r.evade.hp0 && r.evade.reactions.some((x) => x.endsWith(":Windstep Charm!")))
-c("6 sunder strips a stack + dampen shrinks the hit", r.effects.executeAfter === 1 && r.effects.dampen === 1 && r.effects.dealt === 5 && r.effects.reactions.some((x) => x.endsWith(":Rootbreak Sigil!")))
+c("5 Evade item dodges first hit per round only + callout", r.evade.evadeStart === r.evade.plainEvade + 1 && r.evade.hpAfter1 === r.evade.hp0 && r.evade.evadeAfter === r.evade.evadeStart - 1 && r.evade.hpAfter2 < r.evade.hp0 && r.evade.reactions.some((x) => x.endsWith(":Windstep Charm!")))
+c("6 sunder strips a stack + dampen shrinks the hit", r.effects.executeAfter === 1 && r.effects.dampen === 1 && r.effects.dealtPlain > 1 && r.effects.dealt === r.effects.dealtPlain - 1 && r.effects.reactions.some((x) => x.endsWith(":Rootbreak Sigil!")))
 c("7 relic level scales the carried onHit trigger", r.levels.amount > 3 && r.levels.enemyLoss === r.levels.amount)
 c("8 Ascendant grows attack each turn + Spore Spread poisons another enemy", r.ascend.asc === 1 && r.ascend.spore === 1 && (r.ascend.hasOthers === 0 || r.ascend.spread >= 1) && (r.ascend.phase !== "player" || r.ascend.atkDelta >= 1))
 
