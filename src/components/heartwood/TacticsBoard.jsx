@@ -41,6 +41,7 @@ import {
 import { motion } from "framer-motion"
 import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
 import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
+import { describeObjective, reinforcementWarningTiles, turnsUntilPulse } from "../../services/heartwood/tacticsObjectives"
 
 function apPips(unit) {
   return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
@@ -193,6 +194,11 @@ export default function TacticsBoard({
   // enemy.
   const thornCells = useMemo(() => (showPlan ? thornZoneCells(planBattle, "enemy") : new Set()), [planBattle, showPlan])
 
+  // Battle objectives: panel text, reinforcement warning tiles, pulse timer.
+  const objective = describeObjective(battle)
+  const reinforceTiles = useMemo(() => new Set(reinforcementWarningTiles(battle).map((p) => `${p.row}-${p.col}`)), [battle])
+  const pulseIn = turnsUntilPulse(battle)
+
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const fallenHere = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp <= 0 && fallenIds.has(u.id))
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
@@ -218,7 +224,7 @@ export default function TacticsBoard({
         return
       }
     }
-    onSelectedIdChange(occupant && occupant.side === "player" ? occupant.id : null)
+    onSelectedIdChange(occupant && occupant.side === "player" && !occupant.npc ? occupant.id : null)
   }
 
   function handleBegin() {
@@ -322,6 +328,7 @@ export default function TacticsBoard({
           data-frost-zone={frostZone}
           data-thorn-zone={thornZone}
           data-deploy-zone={deployZone}
+          data-reinforce={reinforceTiles.has(`${row}-${col}`)}
           data-deploy-target={deployZone && !!selected && (!unit || (unit.side === "player" && unit.id !== selected.id))}
           onClick={() => handleCellClick(row, col)}
         >
@@ -338,7 +345,9 @@ export default function TacticsBoard({
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
               className="hwt-token"
               data-side={unit.side}
-              data-selectable={unit.side === "player" && unit.hp > 0 && (battle.phase === "player" || deploying)}
+              data-selectable={unit.side === "player" && !unit.npc && unit.hp > 0 && (battle.phase === "player" || deploying)}
+              data-npc={!!unit.npc}
+              data-structure={!!unit.structure}
               data-selected={unit.id === selectedId}
               data-acted={unit.ap <= 0}
               data-power-surge={unit.side === "player" && battle.activePower?.used && battle.activePower.firedTurn === battle.turn}
@@ -350,6 +359,16 @@ export default function TacticsBoard({
                 {unit.id === "player-commander" && (
                   <span className="hwt-commander-badge" title={`${unit.name} - your Commander`}>
                     ♛
+                  </span>
+                )}
+                {unit.npc && (
+                  <span className="hwt-npc-badge" title="Protect this ally - if it falls, the fight is lost">
+                    ❖
+                  </span>
+                )}
+                {unit.structure && pulseIn !== null && (
+                  <span className="hwt-totem-badge" data-imminent={pulseIn === 0} title={pulseIn === 0 ? "The Totem pulses at the end of this turn!" : `The Totem pulses in ${pulseIn} turn(s)`}>
+                    ✹{pulseIn}
                   </span>
                 )}
                 {unit.haste && (
@@ -554,6 +573,11 @@ export default function TacticsBoard({
               {battle.phase === "enemy" && "The enemy acts..."}
               {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
             </div>
+          </div>
+          <div className="hwt-objective" data-objective={objective.type}>
+            <div className="hwt-objective-title">Objective: {objective.title}</div>
+            <div className="hwt-objective-detail">{objective.detail}</div>
+            {objective.extra && <div className="hwt-objective-extra">{objective.extra}</div>}
           </div>
           {selected && selected.side === "player" && (
             <div className="hwt-selected-card">

@@ -24,6 +24,7 @@ import {
   PLAYER_ROSTER_IDS,
 } from "../services/heartwood/tacticsEngine"
 import { loadRealMatchup } from "../services/heartwood/tacticsRealMatchup"
+import { applyObjective, buildObjectiveSpec, OBJECTIVE_TYPES, OBJECTIVE_NAMES } from "../services/heartwood/tacticsObjectives"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
@@ -40,8 +41,22 @@ function maybeDebugLowHp(base) {
   return params.get("deploy") === "1" ? enterDeploy(battle) : battle
 }
 
-function startBattle(formationId, squadDefIds) {
-  return maybeDebugLowHp(createTacticsBattle(formationId, squadDefIds))
+// Battle objectives: the prototype can try each one (Act I numbers);
+// ?objective=survive|protect|totem[&reinforce=1] picks one from the URL.
+function objectiveSpecFor(choice) {
+  if (!choice || (choice.type === "kill" && !choice.reinforce)) return null
+  const reinforce = choice.reinforce ? { turn: 3, count: 1 } : null
+  return buildObjectiveSpec(choice.type, 1, { pulseKind: choice.pulseKind || "mend", reinforce })
+}
+
+function initialObjectiveChoice() {
+  const params = new URLSearchParams(window.location.search)
+  const type = OBJECTIVE_TYPES.includes(params.get("objective")) ? params.get("objective") : "kill"
+  return { type, reinforce: params.get("reinforce") === "1", pulseKind: params.get("pulse") === "blast" ? "blast" : "mend" }
+}
+
+function startBattle(formationId, squadDefIds, choice = initialObjectiveChoice()) {
+  return maybeDebugLowHp(applyObjective(createTacticsBattle(formationId, squadDefIds), objectiveSpecFor(choice)))
 }
 
 // Static stat lines for the squad-picker's per-slot preview, computed once
@@ -49,7 +64,8 @@ function startBattle(formationId, squadDefIds) {
 const ROSTER_PREVIEW = previewPlayerRoster()
 
 export default function HeartwoodTactics() {
-  const [battle, setBattle] = useState(() => startBattle("default"))
+  const [objectiveChoice, setObjectiveChoice] = useState(initialObjectiveChoice)
+  const [battle, setBattle] = useState(() => startBattle("default", undefined, objectiveChoice))
   const [selectedId, setSelectedId] = useState(null)
   // null = no ability targeting in progress; "heal" (ally) / "burst" (enemy) = the
   // selected unit's ability is armed and waiting for a target click.
@@ -69,13 +85,19 @@ export default function HeartwoodTactics() {
   // it isn't recruited or swappable via the roster in the real game
   // either - a fixed, separate slot, not a 5th interchangeable pick.
   function currentSquadDefIds() {
-    return battle.units.filter((u) => u.side === "player" && u.id !== "player-commander").map((u) => u.defId)
+    return battle.units.filter((u) => u.side === "player" && u.id !== "player-commander" && !u.npc).map((u) => u.defId)
   }
 
-  function restart(formationId, squadDefIds = currentSquadDefIds()) {
+  function restart(formationId, squadDefIds = currentSquadDefIds(), choice = objectiveChoice) {
     setSelectedId(null)
     setAbilityMode(null)
-    setBattle(startBattle(formationId, squadDefIds))
+    setBattle(startBattle(formationId, squadDefIds, choice))
+  }
+
+  function handleObjectiveChange(patch) {
+    const choice = { ...objectiveChoice, ...patch }
+    setObjectiveChoice(choice)
+    restart(battle.formationId, currentSquadDefIds(), choice)
   }
 
   function handlePlayAgain() {
@@ -116,7 +138,7 @@ export default function HeartwoodTactics() {
     setUsingReal(false)
     setSelectedId(null)
     setAbilityMode(null)
-    setBattle(startBattle("default"))
+    setBattle(startBattle("default", undefined, objectiveChoice))
   }
 
   return (
@@ -200,6 +222,42 @@ export default function HeartwoodTactics() {
                   </div>
                 )
               })}
+            </div>
+          </div>
+        )}
+
+        {!usingReal && (
+          <div className="hwt-formation-picker hwt-objective-picker">
+            <p className="hwt-formation-label">Try an objective</p>
+            <div className="hwt-formation-buttons">
+              {OBJECTIVE_TYPES.map((type) => (
+                <button
+                  key={type}
+                  className="hwt-formation-btn"
+                  data-objective-choice={type}
+                  data-active={objectiveChoice.type === type}
+                  onClick={() => handleObjectiveChange({ type })}
+                >
+                  {OBJECTIVE_NAMES[type]}
+                </button>
+              ))}
+              {objectiveChoice.type === "totem" && (
+                <button
+                  className="hwt-formation-btn"
+                  data-objective-choice="pulse"
+                  onClick={() => handleObjectiveChange({ pulseKind: objectiveChoice.pulseKind === "blast" ? "mend" : "blast" })}
+                >
+                  Totem: {objectiveChoice.pulseKind === "blast" ? "Blast" : "Mend"}
+                </button>
+              )}
+              <button
+                className="hwt-formation-btn"
+                data-objective-choice="reinforce"
+                data-active={objectiveChoice.reinforce}
+                onClick={() => handleObjectiveChange({ reinforce: !objectiveChoice.reinforce })}
+              >
+                + Reinforcements
+              </button>
             </div>
           </div>
         )}

@@ -24,6 +24,7 @@ import { UNITS } from "../../data/heartwood/units"
 import { streamRng } from "../../data/heartwood/seed"
 import { GRID, createRunTacticsBattle } from "./tacticsEngine"
 import { effectiveUnitDef } from "./autoBattleEngine"
+import { objectiveForNode, applyObjective } from "./tacticsObjectives"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -201,7 +202,7 @@ export function buildRunTacticsBattle(runState, start) {
   const enemyDefIds = start.battle.enemies.map((e) => e.defId).filter((id) => ENEMIES[id])
   const node = runState.path[runState.nodeIndex]
   const formation = resolveFormation(node?.formationId || node?.enemyId)
-  return createRunTacticsBattle({
+  const battle = createRunTacticsBattle({
     squad,
     enemyDefIds,
     characterId: runState.characterId,
@@ -211,4 +212,15 @@ export function buildRunTacticsBattle(runState, start) {
     label: start.battle.enemies.length === 1 ? start.battle.enemies[0].name : formation?.name,
     relicIds: runState.relics || [],
   })
+  return applyObjective(battle, objectiveForRunNode(runState))
+}
+
+// Battle objectives (sprint 2): the objective for the run's node - pure
+// (seed + nodeIndex + node type + Act), so the formation screen shows
+// exactly what the fight will be.
+export function objectiveForRunNode(runState, nodeIndex = runState?.nodeIndex) {
+  if (!runState || nodeIndex == null) return null
+  const node = runState.path?.[nodeIndex]
+  if (!node) return null
+  return objectiveForNode(runState.seed, nodeIndex, node.type, actIndexForNode(nodeIndex, RUN_PATH.length))
 }
