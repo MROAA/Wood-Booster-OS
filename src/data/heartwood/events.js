@@ -316,9 +316,9 @@ export const EVENTS = [
     body: "You know this oak. You patched its black wound with bark and clay a long way back, in another Act, and told yourself you'd done something. The patch has held. Around it, in a clean circle ten paces wide, the forest is green - actually green - for the first time since you came in.",
     choices: [
       {
-        label: "Rest a while in the green circle.",
+        label: "Rest a while in the green circle (heals everyone, clears Wounded).",
         result: "Your squad sits in real grass under real leaves and, for as long as it lasts, remembers what they're fighting to get back. They stand up steadier than they sat down.",
-        effects: [{ squadNextBattle: [{ type: "applyBuff", id: "regen", amount: 3 }, { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 1 } }] }],
+        effects: [{ mend: "all" }, { squadNextBattle: [{ type: "applyBuff", id: "regen", amount: 3 }, { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 1 } }] }],
       },
       {
         label: "Reinforce the seal while it holds.",
@@ -530,6 +530,11 @@ export const EVENTS = [
         label: "Follow the footprints.",
         result: "You track them for a hundred paces to where they simply stop, mid-stride, in undisturbed leaf litter. You come back with nothing but a colder feeling than you left with.",
         effects: [{ flag: "followed_the_prints" }],
+      },
+      {
+        label: "Rest here for the night (heals everyone, clears Wounded).",
+        result: "You relight the fire and nobody keeps watch for once. By morning the bandages are dry and the limps are gone.",
+        effects: [{ mend: "all" }],
       },
       {
         label: "Break camp and move on.",

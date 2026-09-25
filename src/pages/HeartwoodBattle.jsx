@@ -20,6 +20,7 @@ import {
   scoutCost,
   buyAntidote,
   antidoteCost,
+  mendUnit,
   reclaimBuyback,
   rerollRelicOffers,
   leaveShop,
@@ -500,6 +501,11 @@ export default function HeartwoodBattle() {
     setRunState((current) => scoutAhead(current))
   }
 
+  function handleMend(benchKey) {
+    playSfx("buy")
+    setRunState((current) => mendUnit(current, benchKey))
+  }
+
   function handleAntidote() {
     playSfx("buy")
     setRunState((current) => buyAntidote(current))
@@ -624,7 +630,9 @@ export default function HeartwoodBattle() {
   // bridge - zero duplication of essence/Evolution/shop-roll logic.
   function handleTacticsContinue() {
     setRunState((current) =>
-      resolveBattleOutcome({ ...current, battle: { phase: current.battle.phase, round: current.battle.turn } }),
+      // `units` carries each unit's end HP for the lasting-consequences
+      // bookkeeping (recordFightAftermath).
+      resolveBattleOutcome({ ...current, battle: { phase: current.battle.phase, round: current.battle.turn, units: current.battle.units } }),
     )
   }
 
@@ -1047,6 +1055,7 @@ export default function HeartwoodBattle() {
           onReroll={handleReroll}
           onGamble={handleGamble}
           onAntidote={handleAntidote}
+          onMend={handleMend}
           onBuyInvestment={handleBuyInvestment}
           onReclaimBuyback={handleReclaimBuyback}
           onContinue={() => setShowMapAfterShop(true)}

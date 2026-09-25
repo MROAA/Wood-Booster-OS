@@ -69,6 +69,10 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   const evo = def && evolutionFor(def.id)
   const evoClose = evo && (entry?.wins || 0) >= (evo.when.minWins || 0) - 1
   const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
+  // Lasting consequences: a hurt/Wounded bench unit shows its carried HP.
+  const hpPct = typeof entry?.hpPct === "number" ? Math.max(0, Math.min(1, entry.hpPct)) : 1
+  const hurt = hpPct < 1 || !!entry?.wounded
+  const curHp = Math.max(1, Math.round(def.maxHp * hpPct))
   const effectiveRole = role || def.role
   // Role & tag identity (roles.js): a "Tank · Support" line + up to
   // MAX_TAGS chips + strength/weakness in the tooltip. `role` here is
@@ -197,9 +201,27 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
             something you have to read a sentence to find. */}
         <span className="hw-card-hp" title="HP">
           <CardGlyph name="heart" className="hw-effect-icon-glyph" />
-          {def.maxHp}
+          {hurt ? curHp : def.maxHp}
         </span>
       </div>
+      {hurt && (
+        <div
+          className="hw-card-health"
+          data-wounded={!!entry?.wounded || undefined}
+          title={
+            entry?.wounded
+              ? "Wounded - fell in a fight. Won't heal on its own: Mend it in the shop or rest."
+              : "Hurt from the last fight. Recovers 15% after each won fight, or Mend it in the shop."
+          }
+        >
+          <div className="hw-card-health-bar">
+            <div className="hw-card-health-fill" style={{ width: `${Math.round(hpPct * 100)}%` }} />
+          </div>
+          <span className="hw-card-health-text">
+            {curHp}/{def.maxHp} HP{entry?.wounded ? " · Wounded" : ""}
+          </span>
+        </div>
+      )}
       {/* Tribe band - promoted to a first-class element directly under
           the cost/HP row (Marc: "heimo tarvitsee näkyvämmän paikan
           kortissa koska se on keskeinen osa pelimekaniikkaa"). Labelled,
