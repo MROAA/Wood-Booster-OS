@@ -85,6 +85,15 @@ async function seedRealSave(page, nodeFilter, benchDefIds, forcedSeed = null) {
   )
 }
 
+// Deployment phase (sprint 2): a real fight opens in setup - start it,
+// then press Begin Battle with the default placement.
+async function startTactics(p) {
+  await p.locator(".hw-tactics-start").click()
+  const begin = p.locator(".hwt-begin-battle")
+  await begin.waitFor({ timeout: 5000 }).catch(() => {})
+  if (await begin.count()) await begin.click()
+}
+
 function newPage() {
   return browser.newContext({ viewport: { width: 1300, height: 900 } }).then((ctx) => ctx.newPage())
 }
@@ -137,7 +146,7 @@ function newPage() {
   await seedRealSave(page2, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page2.reload({ waitUntil: "domcontentloaded" })
   await page2.waitForTimeout(400)
-  await page2.locator(".hw-tactics-start").click()
+  await startTactics(page2)
   await page2.waitForTimeout(400)
   const engine = await page2.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const playerNames = await page2.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
@@ -189,7 +198,7 @@ function newPage() {
   })
   await page3.reload({ waitUntil: "domcontentloaded" })
   await page3.waitForTimeout(400)
-  await page3.locator(".hw-tactics-start").click()
+  await startTactics(page3)
   await page3.waitForTimeout(400)
   let phase = "player"
   let turns = 0
@@ -250,7 +259,7 @@ function newPage() {
   await seedRealSave(page4, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page4.reload({ waitUntil: "domcontentloaded" })
   await page4.waitForTimeout(400)
-  await page4.locator(".hw-tactics-start").click()
+  await startTactics(page4)
   await page4.waitForTimeout(400)
   // A passive loss: only ever click End Turn - a real Rotwood Husk pair
   // will eventually kill the lone real Mosskit.
@@ -319,7 +328,7 @@ function newPage() {
   await seedRealSave(page6, (n) => n.type === "elite" && n.formationId === "the-ancient-grove", ["the-fool"])
   await page6.reload({ waitUntil: "domcontentloaded" })
   await page6.waitForTimeout(400)
-  await page6.locator(".hw-tactics-start").click()
+  await startTactics(page6)
   await page6.waitForTimeout(400)
   const engine = await page6.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const playerNames = await page6.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
@@ -362,7 +371,7 @@ function newPage() {
   })
   await page7.reload({ waitUntil: "domcontentloaded" })
   await page7.waitForTimeout(400)
-  await page7.locator(".hw-tactics-start").click()
+  await startTactics(page7)
   await page7.waitForTimeout(400)
   let phase = "player"
   let turns = 0
@@ -422,7 +431,7 @@ function newPage() {
   await seedRealSave(page8, (n) => n.type === "miniboss" && n.enemyId === "deepwarden", ["the-fool"])
   await page8.reload({ waitUntil: "domcontentloaded" })
   await page8.waitForTimeout(400)
-  await page8.locator(".hw-tactics-start").click()
+  await startTactics(page8)
   await page8.waitForTimeout(400)
   const engine = await page8.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const playerNames = await page8.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
@@ -460,7 +469,7 @@ function newPage() {
   })
   await page9.reload({ waitUntil: "domcontentloaded" })
   await page9.waitForTimeout(400)
-  await page9.locator(".hw-tactics-start").click()
+  await startTactics(page9)
   await page9.waitForTimeout(400)
   let phase = "player"
   let turns = 0
@@ -527,7 +536,7 @@ function newPage() {
   await seedRealSave(page10, (n) => n.type === "elite" && n.enemyId === "the-gorging-maw", ["the-fool"])
   await page10.reload({ waitUntil: "domcontentloaded" })
   await page10.waitForTimeout(400)
-  await page10.locator(".hw-tactics-start").click()
+  await startTactics(page10)
   await page10.waitForTimeout(400)
   const engine = await page10.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const playerNames = await page10.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
@@ -564,7 +573,7 @@ function newPage() {
   })
   await page11.reload({ waitUntil: "domcontentloaded" })
   await page11.waitForTimeout(400)
-  await page11.locator(".hw-tactics-start").click()
+  await startTactics(page11)
   await page11.waitForTimeout(400)
   let phase = "player"
   let turns = 0
@@ -623,7 +632,7 @@ function newPage() {
   await seedRealSave(page12, (n) => n.type === "miniboss" && n.enemyId === "wyrmgall", ["the-fool"])
   await page12.reload({ waitUntil: "domcontentloaded" })
   await page12.waitForTimeout(400)
-  await page12.locator(".hw-tactics-start").click()
+  await startTactics(page12)
   await page12.waitForTimeout(400)
   const engine = await page12.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const playerNames = await page12.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
@@ -660,7 +669,7 @@ function newPage() {
   })
   await page13.reload({ waitUntil: "domcontentloaded" })
   await page13.waitForTimeout(400)
-  await page13.locator(".hw-tactics-start").click()
+  await startTactics(page13)
   await page13.waitForTimeout(400)
   let phase = "player"
   let turns = 0
@@ -727,7 +736,7 @@ function newPage() {
   await seedRealSave(page14, (n) => n.type === "elite" && n.enemyId === "the-iron-sentinel", ["the-fool"])
   await page14.reload({ waitUntil: "domcontentloaded" })
   await page14.waitForTimeout(400)
-  await page14.locator(".hw-tactics-start").click()
+  await startTactics(page14)
   await page14.waitForTimeout(400)
   const engine = await page14.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const playerNames = await page14.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
@@ -764,7 +773,7 @@ function newPage() {
   })
   await page15.reload({ waitUntil: "domcontentloaded" })
   await page15.waitForTimeout(400)
-  await page15.locator(".hw-tactics-start").click()
+  await startTactics(page15)
   await page15.waitForTimeout(400)
   let phase = "player"
   let turns = 0
@@ -833,7 +842,7 @@ function newPage() {
   await seedRealSave(page16, (n) => n.type === "miniboss" && n.enemyId === "thornmaw", ["the-fool"])
   await page16.reload({ waitUntil: "domcontentloaded" })
   await page16.waitForTimeout(400)
-  await page16.locator(".hw-tactics-start").click()
+  await startTactics(page16)
   await page16.waitForTimeout(400)
   const engine = await page16.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const playerNames = await page16.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
@@ -874,7 +883,7 @@ function newPage() {
   })
   await page17.reload({ waitUntil: "domcontentloaded" })
   await page17.waitForTimeout(400)
-  await page17.locator(".hw-tactics-start").click()
+  await startTactics(page17)
   await page17.waitForTimeout(400)
   let phase = "player"
   let turns = 0
@@ -942,7 +951,7 @@ function newPage() {
   await seedRealSave(page18, (n) => n.type === "boss", ["the-fool"])
   await page18.reload({ waitUntil: "domcontentloaded" })
   await page18.waitForTimeout(400)
-  await page18.locator(".hw-tactics-start").click()
+  await startTactics(page18)
   await page18.waitForTimeout(400)
   const engine = await page18.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const playerNames = await page18.locator('.hwt-token[data-side="player"] .hwt-token-name').allInnerTexts()
@@ -992,7 +1001,7 @@ function newPage() {
   })
   await page19.reload({ waitUntil: "domcontentloaded" })
   await page19.waitForTimeout(400)
-  await page19.locator(".hw-tactics-start").click()
+  await startTactics(page19)
   await page19.waitForTimeout(400)
   let phase = "player"
   let turns = 0
@@ -1064,7 +1073,7 @@ function newPage() {
   await seedRealSave(page20, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page20.reload({ waitUntil: "domcontentloaded" })
   await page20.waitForTimeout(400)
-  await page20.locator(".hw-tactics-start").click()
+  await startTactics(page20)
   await page20.waitForTimeout(400)
   // Smarter-enemies sprint: enemies now focus a lone advancing Commander
   // and can kill him mid-walk - made sturdy, since this check is about his kit.
@@ -1142,7 +1151,7 @@ function newPage() {
   )
   await page21.reload({ waitUntil: "domcontentloaded" })
   await page21.waitForTimeout(400)
-  await page21.locator(".hw-tactics-start").click()
+  await startTactics(page21)
   await page21.waitForTimeout(400)
   const terrainTypes = ["rock", "water", "poison", "forest"]
   const countsByType = {}
@@ -1170,7 +1179,7 @@ function newPage() {
   await seedRealSave(page22, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page22.reload({ waitUntil: "domcontentloaded" })
   await page22.waitForTimeout(400)
-  await page22.locator(".hw-tactics-start").click()
+  await startTactics(page22)
   await page22.waitForTimeout(400)
   const arrowCount = await page22.locator(".hwt-facing-badge").count()
   const tokenCount = await page22.locator(".hwt-token").count()
@@ -1191,7 +1200,7 @@ function newPage() {
   await seedRealSave(page23, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page23.reload({ waitUntil: "domcontentloaded" })
   await page23.waitForTimeout(400)
-  await page23.locator(".hw-tactics-start").click()
+  await startTactics(page23)
   await page23.waitForTimeout(400)
   // Directly reposition the real battle's own units (a real, already-
   // derived Commander+recruited squad vs. real enemies) so the first
@@ -1258,7 +1267,7 @@ function newPage() {
   await seedRealSave(page24, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page24.reload({ waitUntil: "domcontentloaded" })
   await page24.waitForTimeout(400)
-  await page24.locator(".hw-tactics-start").click()
+  await startTactics(page24)
   await page24.waitForTimeout(400)
   const gridDims = await page24.evaluate(async () => {
     const { GRID } = await import("/src/services/heartwood/tacticsEngine.js")
@@ -1291,7 +1300,7 @@ function newPage() {
   await seedRealSave(page25, (n) => n.type === "battle" && n.formationId, ["hexbreaker"])
   await page25.reload({ waitUntil: "domcontentloaded" })
   await page25.waitForTimeout(400)
-  await page25.locator(".hw-tactics-start").click()
+  await startTactics(page25)
   await page25.waitForTimeout(400)
   const benefitBadgeCount = await page25.locator(".hwt-flank-benefit-badge").count()
   await page25.screenshot({ path: `${SHOT}/real_fight_flank_class.png` })
@@ -1313,7 +1322,7 @@ function newPage() {
   await seedRealSave(page26, (n) => n.type === "battle" && n.formationId === "the-bulwark", ["the-fool"])
   await page26.reload({ waitUntil: "domcontentloaded" })
   await page26.waitForTimeout(400)
-  await page26.locator(".hw-tactics-start").click()
+  await startTactics(page26)
   await page26.waitForTimeout(400)
   const threatCellCount = await page26.locator('.hwt-cell[data-threat-zone="true"]').count()
   await page26.screenshot({ path: `${SHOT}/real_fight_threat_zone.png` })
@@ -1335,7 +1344,7 @@ function newPage() {
   await seedRealSave(page27, (n) => n.type === "battle" && n.formationId, ["grove-warden", "the-fool"])
   await page27.reload({ waitUntil: "domcontentloaded" })
   await page27.waitForTimeout(400)
-  await page27.locator(".hw-tactics-start").click()
+  await startTactics(page27)
   await page27.waitForTimeout(400)
   const setup = await page27.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -1385,7 +1394,7 @@ function newPage() {
   await seedRealSave(page28, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page28.reload({ waitUntil: "domcontentloaded" })
   await page28.waitForTimeout(400)
-  await page28.locator(".hw-tactics-start").click()
+  await startTactics(page28)
   await page28.waitForTimeout(400)
   const setup = await page28.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -1431,7 +1440,7 @@ function newPage() {
   await seedRealSave(page29, (n) => n.type === "miniboss" && n.enemyId === "wyrmgall", ["the-fool"])
   await page29.reload({ waitUntil: "domcontentloaded" })
   await page29.waitForTimeout(400)
-  await page29.locator(".hw-tactics-start").click()
+  await startTactics(page29)
   await page29.waitForTimeout(400)
   const setup = await page29.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -1503,7 +1512,7 @@ function newPage() {
   await seedRealSave(page30, (n) => n.type === "battle" && n.formationId, ["frostbind"])
   await page30.reload({ waitUntil: "domcontentloaded" })
   await page30.waitForTimeout(400)
-  await page30.locator(".hw-tactics-start").click()
+  await startTactics(page30)
   await page30.waitForTimeout(400)
   const setup = await page30.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -1559,7 +1568,7 @@ function newPage() {
   await seedRealSave(page31, (n) => n.type === "battle" && n.enemyId === "rootbind-thicket", ["the-fool"])
   await page31.reload({ waitUntil: "domcontentloaded" })
   await page31.waitForTimeout(400)
-  await page31.locator(".hw-tactics-start").click()
+  await startTactics(page31)
   await page31.waitForTimeout(400)
   const setup = await page31.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -1628,7 +1637,7 @@ function newPage() {
   await seedRealSave(page32, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page32.reload({ waitUntil: "domcontentloaded" })
   await page32.waitForTimeout(400)
-  await page32.locator(".hw-tactics-start").click()
+  await startTactics(page32)
   await page32.waitForTimeout(400)
   const setup = await page32.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -1689,7 +1698,7 @@ function newPage() {
   await seedRealSave(page33, (n) => n.type === "battle" && n.formationId, ["the-hermit"])
   await page33.reload({ waitUntil: "domcontentloaded" })
   await page33.waitForTimeout(400)
-  await page33.locator(".hw-tactics-start").click()
+  await startTactics(page33)
   await page33.waitForTimeout(400)
   const setup = await page33.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -1786,7 +1795,7 @@ function newPage() {
   )
   await page34.reload({ waitUntil: "domcontentloaded" })
   await page34.waitForTimeout(400)
-  await page34.locator(".hw-tactics-start").click()
+  await startTactics(page34)
   await page34.waitForTimeout(400)
   // Non-terrain cells default to data-terrain="path" (terrainAt's own
   // fallback), not an empty string - summing the 4 real type-specific
@@ -1818,7 +1827,7 @@ function newPage() {
   await seedRealSave(page35, (n) => n.type === "battle" && n.formationId, ["the-fool", "grove-warden"])
   await page35.reload({ waitUntil: "domcontentloaded" })
   await page35.waitForTimeout(400)
-  await page35.locator(".hw-tactics-start").click()
+  await startTactics(page35)
   await page35.waitForTimeout(400)
   const setup = await page35.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -1950,7 +1959,7 @@ function newPage() {
   )
   await page36.reload({ waitUntil: "domcontentloaded" })
   await page36.waitForTimeout(400)
-  await page36.locator(".hw-tactics-start").click()
+  await startTactics(page36)
   await page36.waitForTimeout(400)
   const terrainTypes = ["rock", "water", "poison", "forest"]
   const countsByType = {}
@@ -1987,7 +1996,7 @@ function newPage() {
   await seedRealSave(page37, (n) => n.formationId === "the-conclave", ["galeblade"])
   await page37.reload({ waitUntil: "domcontentloaded" })
   await page37.waitForTimeout(400)
-  await page37.locator(".hw-tactics-start").click()
+  await startTactics(page37)
   await page37.waitForTimeout(400)
   const setup = await page37.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -2062,7 +2071,7 @@ function newPage() {
   await seedRealSave(page38, (n) => n.formationId === "the-conclave", ["beastcaller"])
   await page38.reload({ waitUntil: "domcontentloaded" })
   await page38.waitForTimeout(400)
-  await page38.locator(".hw-tactics-start").click()
+  await startTactics(page38)
   await page38.waitForTimeout(400)
   const badgeCount = await page38.locator(".hwt-spiritshift-badge").count()
   const spiritTokenCount = await page38.locator('.hwt-token[data-spirit="true"]').count()
@@ -2129,7 +2138,7 @@ function newPage() {
   await seedRealSave(page39, (n) => n.type === "battle", ["the-fool"])
   await page39.reload({ waitUntil: "domcontentloaded" })
   await page39.waitForTimeout(400)
-  await page39.locator(".hw-tactics-start").click()
+  await startTactics(page39)
   await page39.waitForTimeout(400)
   const btnText = await page39.locator(".hwt-power-btn").innerText()
   const before = await page39.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
@@ -2164,7 +2173,7 @@ function newPage() {
   const phaseAfterWait = await page40.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.phase)
   const primaryText = await page40.locator(".hw-tactics-start").innerText()
   const autoBtn = await page40.locator(".hw-auto-battle-btn").count()
-  await page40.locator(".hw-tactics-start").click()
+  await startTactics(page40)
   await page40.waitForTimeout(500)
   const engine = await page40.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle?.engine)
   const boardCount = await page40.locator(".hwt-board").count()
@@ -2184,7 +2193,7 @@ function newPage() {
   await page41.reload({ waitUntil: "domcontentloaded" })
   await page41.waitForTimeout(400)
   const btn = await page41.locator(".hw-tactics-start").count()
-  if (btn) await page41.locator(".hw-tactics-start").click()
+  if (btn) await startTactics(page41)
   await page41.waitForTimeout(500)
   const battle = await page41.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
   await page41.close()
@@ -2293,7 +2302,7 @@ function newPage() {
   await seedRealSave(page43, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page43.reload({ waitUntil: "domcontentloaded" })
   await page43.waitForTimeout(400)
-  await page43.locator(".hw-tactics-start").click()
+  await startTactics(page43)
   await page43.waitForTimeout(400)
   const setup = await page43.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
@@ -2357,7 +2366,7 @@ function newPage() {
   await seedRealSave(page44, (n) => n.type === "battle" && n.formationId, ["the-fool"])
   await page44.reload({ waitUntil: "domcontentloaded" })
   await page44.waitForTimeout(400)
-  await page44.locator(".hw-tactics-start").click()
+  await startTactics(page44)
   await page44.waitForTimeout(400)
   const setup = await page44.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))

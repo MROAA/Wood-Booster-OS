@@ -1099,7 +1099,7 @@ export function isDeployTile(state, pos) {
 }
 
 export function enterDeploy(state) {
-  if (!state || state.phase !== "player" || state.turn !== 1) return state
+  if (!state || state.phase !== "player" || state.turn !== 1 || state.deployDone) return state
   return { ...state, phase: "deploy", log: [...state.log, "Place your units - enemies act after your first turn."] }
 }
 
@@ -1124,7 +1124,7 @@ export function placeUnit(state, unitId, pos) {
 
 export function beginBattle(state) {
   if (state.phase !== "deploy") return state
-  return { ...state, phase: "player", log: [...state.log, "The battle begins."] }
+  return { ...state, phase: "player", deployDone: true, log: [...state.log, "The battle begins."] }
 }
 
 // A static stat preview of the whole 6-unit roster, for the squad picker's
