@@ -3,7 +3,13 @@
    the live game's cascade is never at risk. Reads --hw-* tokens off the
    shared .hw-root (same file, imported once already) for palette/font
    consistency; every new class is namespaced .hwt-* so nothing collides
-   with .hw-grid/.hw-piece, which assume the fixed 3x3 SLOT_POSITIONS board. */
+   with .hw-grid/.hw-piece, which assume the fixed 3x3 SLOT_POSITIONS board.
+
+   Look & feel round (feat/hearthwood-sprint-look-feel): Hearthstone-style
+   tavern pass - a walnut-framed board of worn flagstone tiles, portrait
+   tokens with attack/health gems, a brass End Turn button and a calmer,
+   easier-to-read side panel. Still token-driven: every color is a --hw-*
+   token or a color-mix of them, so the Studio's theme panel keeps working. */
 
 .hwt-page {
   display: flex;
@@ -51,6 +57,13 @@
 }
 
 .hwt-layout {
+  /* Shared tavern palette for this screen - all derived from tokens. */
+  --hwt-gold: color-mix(in srgb, var(--hw-ember) 75%, #f3d58a);
+  --hwt-gold-deep: color-mix(in srgb, var(--hw-ember) 70%, #3a2412);
+  --hwt-walnut: color-mix(in srgb, var(--hw-ember) 22%, var(--hw-bg));
+  --hwt-walnut-dark: color-mix(in srgb, var(--hw-ember) 10%, var(--hw-bg));
+  --hwt-stone-base: color-mix(in srgb, var(--hw-stone) 16%, var(--hw-bg));
+  --hwt-stone-light: color-mix(in srgb, var(--hw-stone) 24%, var(--hw-bg));
   display: flex;
   gap: 21px;
   align-items: flex-start;
@@ -58,94 +71,138 @@
   justify-content: center;
 }
 
+/* ---------- Board: a walnut tray holding flagstone tiles ---------- */
+
 .hwt-board {
   display: grid;
   grid-template-columns: repeat(12, 76px);
   grid-template-rows: repeat(9, 76px);
-  gap: 4px;
-  background: var(--hw-surface-bg);
-  border: 1px solid var(--hw-border);
-  border-radius: var(--hw-radius);
-  padding: 8px;
-  box-shadow: var(--hw-surface-shadow);
+  gap: 3px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 35%, transparent);
+  background:
+    linear-gradient(color-mix(in srgb, var(--hw-bg) 55%, transparent), color-mix(in srgb, var(--hw-bg) 55%, transparent)) content-box,
+    repeating-linear-gradient(92deg, transparent 0 7px, color-mix(in srgb, var(--hw-bg) 18%, transparent) 7px 9px),
+    linear-gradient(180deg, var(--hwt-walnut), var(--hwt-walnut-dark));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--hwt-gold) 25%, transparent),
+    inset 0 0 0 4px color-mix(in srgb, var(--hw-bg) 35%, transparent),
+    0 18px 44px -14px rgba(0, 0, 0, 0.75);
 }
 
 .hwt-cell {
+  --hwt-tile: linear-gradient(150deg, var(--hwt-stone-light), var(--hwt-stone-base) 70%);
+  --hwt-tile-pattern: linear-gradient(transparent, transparent);
+  --hwt-tint: transparent;
+  --hwt-ring: 0 0 0 0 transparent;
+  --hwt-mark: "";
+  --hwt-mark-color: var(--hw-muted);
   position: relative;
-  background: color-mix(in srgb, var(--hw-panel) 60%, transparent);
-  border: 1px solid color-mix(in srgb, var(--hw-border) 70%, transparent);
-  border-radius: 6px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--hw-bg) 70%, transparent);
+  background:
+    linear-gradient(var(--hwt-tint), var(--hwt-tint)),
+    var(--hwt-tile-pattern),
+    var(--hwt-tile);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--hw-text) 7%, transparent),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.35),
+    var(--hwt-ring);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color var(--hw-dur-base, 144ms) ease, border-color var(--hw-dur-base, 144ms) ease;
+}
+/* A faint terrain mark in the corner - visible only on empty tiles
+   (a token covers it), so terrain stays readable without clutter. */
+.hwt-cell::before {
+  content: var(--hwt-mark);
+  position: absolute;
+  right: 5px;
+  bottom: 3px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--hwt-mark-color);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
-/* Terrain (feat/hearthwood-tactics-terrain) - a subtle base tint per
-   cell, reusing existing Hearthwood color tokens rather than inventing
-   new ones. Path/Forest are cheap to cross (Forest is visually distinct
-   from Path only, mechanically identical) - Rock costs more Movement,
-   Water is impassable, Poison Ground grants a real poison stack on
-   arrival. Deliberately understated (a tint, not a busy pattern),
-   matching the standing minimalist UI preference. */
+/* Terrain (feat/hearthwood-tactics-terrain). Path = plain flagstone;
+   Forest = mossy turf with tufts (mechanically same as Path); Rock =
+   raised grey boulder (costs more Movement); Water = impassable pool;
+   Poison Ground = sickly bog (grants poison on arrival). */
 .hwt-cell[data-terrain="forest"] {
-  background: color-mix(in srgb, var(--hw-moss) 12%, transparent);
+  --hwt-tile: linear-gradient(150deg, color-mix(in srgb, var(--hw-moss) 26%, var(--hw-bg)), color-mix(in srgb, var(--hw-moss) 14%, var(--hw-bg)) 75%);
+  --hwt-tile-pattern:
+    radial-gradient(circle at 22% 30%, color-mix(in srgb, var(--hw-moss) 40%, transparent) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 62%, color-mix(in srgb, var(--hw-moss) 35%, transparent) 0 2px, transparent 3px),
+    radial-gradient(circle at 42% 80%, color-mix(in srgb, var(--hw-moss) 30%, transparent) 0 1.5px, transparent 2.5px);
+  --hwt-mark: "♣";
+  --hwt-mark-color: var(--hw-moss);
 }
 .hwt-cell[data-terrain="rock"] {
-  background: color-mix(in srgb, var(--hw-stone) 26%, transparent);
-  border-color: color-mix(in srgb, var(--hw-stone) 60%, transparent);
+  --hwt-tile:
+    radial-gradient(ellipse at 40% 35%, color-mix(in srgb, var(--hw-stone) 55%, var(--hw-bg)), color-mix(in srgb, var(--hw-stone) 30%, var(--hw-bg)) 60%, color-mix(in srgb, var(--hw-stone) 18%, var(--hw-bg)));
+  --hwt-tile-pattern: linear-gradient(128deg, transparent 46%, rgba(0, 0, 0, 0.3) 47%, transparent 49%);
+  --hwt-mark: "▲";
+  --hwt-mark-color: var(--hw-stone);
+  border-color: color-mix(in srgb, var(--hw-stone) 45%, var(--hw-bg));
+  box-shadow:
+    inset 0 2px 0 color-mix(in srgb, var(--hw-text) 14%, transparent),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.5),
+    var(--hwt-ring);
 }
 .hwt-cell[data-terrain="water"] {
-  background: color-mix(in srgb, var(--hw-tide) 30%, transparent);
-  border-color: color-mix(in srgb, var(--hw-tide) 60%, transparent);
+  --hwt-tile: linear-gradient(170deg, color-mix(in srgb, var(--hw-tide) 50%, var(--hw-bg)), color-mix(in srgb, var(--hw-tide) 28%, var(--hw-bg)));
+  --hwt-tile-pattern:
+    repeating-radial-gradient(ellipse at 50% 120%, transparent 0 7px, color-mix(in srgb, var(--hw-gale) 16%, transparent) 7px 8px);
+  --hwt-mark: "≈";
+  --hwt-mark-color: var(--hw-gale);
+  border-color: color-mix(in srgb, var(--hw-tide) 55%, var(--hw-bg));
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.55),
+    var(--hwt-ring);
 }
 .hwt-cell[data-terrain="poison"] {
-  background: color-mix(in srgb, var(--hw-shadow) 26%, transparent);
-  border-color: color-mix(in srgb, var(--hw-shadow) 60%, transparent);
+  --hwt-tile: linear-gradient(150deg, color-mix(in srgb, var(--hw-shadow) 40%, var(--hw-bg)), color-mix(in srgb, var(--hw-wood) 16%, var(--hw-bg)));
+  --hwt-tile-pattern:
+    radial-gradient(circle at 28% 34%, color-mix(in srgb, var(--hw-wood) 45%, transparent) 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 66% 58%, color-mix(in srgb, var(--hw-wood) 35%, transparent) 0 3px, transparent 4px),
+    radial-gradient(circle at 44% 78%, color-mix(in srgb, var(--hw-shadow) 60%, transparent) 0 2px, transparent 3px);
+  --hwt-mark: "☠";
+  --hwt-mark-color: var(--hw-wood);
+  border-color: color-mix(in srgb, var(--hw-shadow) 55%, var(--hw-bg));
 }
 
-/* Zone of Control round: a subtle inset ring (never `background`, so
-   it composes cleanly with any terrain tint already on the same cell)
-   marking every tile a living melee enemy currently controls - a
-   static board property, visible all through the player's own turn,
-   so retreating into danger is a visible choice, not a surprise. */
+/* Zone overlays - each only sets the shared --hwt-tint / --hwt-ring
+   variables, so they layer over ANY terrain texture instead of wiping
+   it (a cell can sit in several zones; the last tint wins, same as
+   before, and the Zone of Control ring always composes on top). */
 .hwt-cell[data-zoc="true"] {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-hp) 45%, transparent);
+  --hwt-ring: inset 0 0 0 1px color-mix(in srgb, var(--hw-hp) 55%, transparent);
 }
-
-/* Threat Zone round: a distinct, stronger warning TINT (never a ring,
-   so it composes with data-zoc's own inset ring on a cell that's both -
-   a tanky controller's zones overlap on purpose) marking every tile
-   where entering costs a mover its whole action's remaining move. */
 .hwt-cell[data-threat-zone="true"] {
-  background: color-mix(in srgb, var(--hw-curse) 16%, transparent);
+  --hwt-tint: color-mix(in srgb, var(--hw-curse) 18%, transparent);
 }
-
-/* Fear Zone round: a third, distinct tint (a different hue from
-   Threat Zone's own --hw-curse) marking every tile a fearsome unit
-   currently controls - approaching one from outside weakens you. */
 .hwt-cell[data-fear-zone="true"] {
-  background: color-mix(in srgb, var(--hw-tide) 16%, transparent);
+  --hwt-tint: color-mix(in srgb, var(--hw-tide) 20%, transparent);
 }
-
-/* Frost Zone round: a fourth, distinct tint (--hw-gale, a lighter icy
-   cyan - unused for any cell tint so far) marking every tile a frosty
-   unit currently controls - leaving one slows you. */
 .hwt-cell[data-frost-zone="true"] {
-  background: color-mix(in srgb, var(--hw-gale) 16%, transparent);
+  --hwt-tint: color-mix(in srgb, var(--hw-gale) 18%, transparent);
 }
-
-/* Thorn Zone round: a fifth, distinct tint (--hw-moss, green -
-   unused for any cell tint so far, thematically apt for a plant/thorn
-   hazard) marking every tile a thorny unit currently controls -
-   entering one roots you. */
 .hwt-cell[data-thorn-zone="true"] {
-  background: color-mix(in srgb, var(--hw-moss) 16%, transparent);
+  --hwt-tint: color-mix(in srgb, var(--hw-moss) 18%, transparent);
 }
 
 .hwt-cell[data-reachable="true"] {
-  background: color-mix(in srgb, var(--hw-moss) 22%, transparent);
+  --hwt-tint: color-mix(in srgb, var(--hw-moss) 26%, transparent);
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-moss) 80%, transparent), inset 0 0 14px color-mix(in srgb, var(--hw-moss) 35%, transparent);
   border-color: var(--hw-moss);
   cursor: pointer;
+}
+.hwt-cell[data-reachable="true"]:hover {
+  --hwt-tint: color-mix(in srgb, var(--hw-moss) 40%, transparent);
 }
 
 .hwt-cell[data-targetable="true"] {
@@ -154,171 +211,338 @@
 .hwt-cell[data-targetable="true"]::after {
   content: "";
   position: absolute;
-  inset: 3px;
+  inset: 1px;
   border: 2px solid var(--hw-hp);
-  border-radius: 5px;
+  border-radius: 8px;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--hw-hp) 70%, transparent);
   pointer-events: none;
+  z-index: 3;
+  animation: hwt-target-pulse 1.4s ease-in-out infinite;
+}
+@keyframes hwt-target-pulse {
+  0%, 100% { box-shadow: 0 0 6px color-mix(in srgb, var(--hw-hp) 50%, transparent); }
+  50% { box-shadow: 0 0 16px color-mix(in srgb, var(--hw-hp) 85%, transparent); }
 }
 
-/* Regrowth's target picker - moss-tinted like the move highlight, but
-   dashed + a lower fill so the two never read as the same affordance. */
+/* Regrowth's target picker - moss like the move highlight, but dashed
+   so the two never read as the same affordance. */
 .hwt-cell[data-healable="true"] {
-  background: color-mix(in srgb, var(--hw-moss) 14%, transparent);
+  --hwt-tint: color-mix(in srgb, var(--hw-moss) 16%, transparent);
   border: 2px dashed var(--hw-moss);
   cursor: pointer;
 }
 
-/* "This ally is about to be hit" - an ember-dashed inset ring, its own
-   color family (ember, not moss) so it never reads as a move/heal cue. */
+/* "This ally is about to be hit" - an ember-dashed ring. */
 .hwt-cell[data-threatened="true"]::after {
   content: "";
   position: absolute;
-  inset: 3px;
+  inset: 1px;
   border: 2px dashed var(--hw-ember);
-  border-radius: 5px;
+  border-radius: 8px;
   pointer-events: none;
+  z-index: 3;
 }
 
+/* ---------- Unit tokens: portrait framed like a minion ---------- */
+
 .hwt-token {
+  --hwt-frame: color-mix(in srgb, var(--hwt-gold) 70%, var(--hw-border));
   position: absolute;
   inset: 3px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  border: 1px solid var(--hw-border);
-  background: var(--hw-card);
+  border-radius: 10px;
+  border: 2px solid var(--hwt-frame);
+  background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--hw-card) 70%, var(--hw-text) 8%), var(--hw-card) 70%);
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5);
   cursor: default;
-  padding: 2px;
+  transition: filter var(--hw-dur-base, 144ms) ease, box-shadow var(--hw-dur-base, 144ms) ease;
+}
+.hwt-token[data-side="enemy"] {
+  --hwt-frame: color-mix(in srgb, var(--hw-hp) 80%, var(--hw-bg));
+  background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--hw-hp) 16%, var(--hw-card)), color-mix(in srgb, var(--hw-hp) 5%, var(--hw-card)) 70%);
 }
 .hwt-token[data-selectable="true"] {
   cursor: pointer;
-  border-color: var(--hw-rune);
+}
+.hwt-token[data-selectable="true"]:hover {
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--hwt-gold) 45%, transparent),
+    0 3px 6px rgba(0, 0, 0, 0.55);
 }
 .hwt-token[data-selected="true"] {
-  border-color: var(--hw-ember);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hw-ember) 45%, transparent);
-}
-.hwt-token[data-side="enemy"] {
-  border-color: color-mix(in srgb, var(--hw-hp) 55%, var(--hw-border));
+  --hwt-frame: var(--hwt-gold);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--hwt-gold) 55%, transparent),
+    0 0 18px color-mix(in srgb, var(--hwt-gold) 60%, transparent),
+    0 3px 6px rgba(0, 0, 0, 0.55);
+  z-index: 2;
 }
 .hwt-token[data-dead="true"] {
   opacity: 0.25;
   filter: grayscale(1);
 }
+/* Spent for this turn: dimmed and desaturated, frame goes quiet. */
 .hwt-token[data-acted="true"] {
-  opacity: 0.7;
+  --hwt-frame: color-mix(in srgb, var(--hw-border) 80%, var(--hw-muted));
+  filter: saturate(0.35) brightness(0.72);
 }
+.hwt-token[data-side="enemy"][data-acted="true"] {
+  --hwt-frame: color-mix(in srgb, var(--hw-hp) 80%, var(--hw-bg));
+  filter: none;
+}
+
+/* Portrait (real unit image) or glyph fallback. */
+.hwt-token-art {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 14px;
+}
+.hwt-token-art[data-has-image="true"] {
+  padding: 0;
+}
+.hwt-token-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  display: block;
+}
+.hwt-token-art[data-has-image="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, transparent 28%, transparent 50%, rgba(0, 0, 0, 0.85) 100%);
+}
+.hwt-token-glyph {
+  width: 30px;
+  height: 30px;
+  color: color-mix(in srgb, var(--hw-text) 88%, var(--hwt-gold));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+}
+.hwt-token[data-side="enemy"] .hwt-token-glyph {
+  color: color-mix(in srgb, var(--hw-text) 80%, var(--hw-hp));
+}
+
+.hwt-token-name {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 13px;
+  font-size: 8.5px;
+  font-weight: 600;
+  color: var(--hw-text);
+  line-height: 1.1;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.hwt-hp-track {
+  position: absolute;
+  left: 19px;
+  right: 19px;
+  bottom: 5px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+.hwt-hp-fill {
+  height: 100%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hw-moss) 80%, white), var(--hw-moss));
+  /* Battle feel round: HP drains visibly instead of snapping. */
+  transition: width 0.45s ease-out;
+}
+.hwt-token[data-side="enemy"] .hwt-hp-fill {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hw-hp) 75%, white), var(--hw-hp));
+}
+
+/* Hearthstone-style stat gems: attack bottom-left, health bottom-right. */
+.hwt-atk-gem,
+.hwt-hp-gem {
+  position: absolute;
+  bottom: -4px;
+  width: 21px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 800;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+  -webkit-text-stroke: 0.4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  border: 1.5px solid color-mix(in srgb, var(--hwt-gold-deep) 80%, black);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  z-index: 2;
+}
+.hwt-atk-gem {
+  left: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--hwt-gold) 80%, white), var(--hwt-gold) 45%, var(--hwt-gold-deep));
+}
+.hwt-atk-gem[data-buffed="true"] {
+  color: color-mix(in srgb, var(--hw-moss) 50%, #d9ffc4);
+}
+.hwt-atk-gem[data-weak="true"] {
+  color: color-mix(in srgb, var(--hw-hp) 40%, #ffd0c6);
+}
+.hwt-hp-gem {
+  right: -4px;
+  border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--hw-hp) 60%, white), var(--hw-hp) 50%, color-mix(in srgb, var(--hw-hp) 60%, black));
+}
+.hwt-hp-gem[data-hurt="true"] {
+  color: #ffc9bf;
+}
+
+/* ---------- Status badges: a tidy chip row across the top ---------- */
 
 .hwt-token-status {
   position: absolute;
-  top: 1px;
-  left: 2px;
-  right: 2px;
+  inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  pointer-events: none;
-}
-.hwt-ap-pips {
-  font-size: 7px;
-  letter-spacing: 1px;
-  color: var(--hw-ember);
-}
-.hwt-facing-badge {
-  font-size: 8px;
-  color: var(--hw-muted);
-}
-.hwt-block-badge {
-  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
   align-items: center;
   gap: 1px;
-  font-size: 7px;
+  padding: 2px 2px 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.hwt-token-status > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  height: 11px;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.62);
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.hwt-ap-pips {
+  letter-spacing: 0.5px;
+  color: var(--hwt-gold);
+}
+/* Facing arrow sits on the token edge it faces, not in the chip row. */
+.hwt-token-status > .hwt-facing-badge {
+  position: absolute;
+  width: 11px;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
   color: var(--hw-text);
+  opacity: 0.8;
+  font-size: 8px;
+}
+.hwt-facing-badge[data-facing="E"] { right: -3px; top: calc(50% - 12px); }
+.hwt-facing-badge[data-facing="W"] { left: -3px; top: calc(50% - 12px); }
+.hwt-facing-badge[data-facing="N"] { left: calc(50% - 5px); top: -4px; }
+.hwt-facing-badge[data-facing="S"] { left: calc(50% - 5px); bottom: 22px; }
+/* Commander crown rides the top edge of the frame. */
+.hwt-token-status > .hwt-commander-badge {
+  position: absolute;
+  top: -5px;
+  left: calc(50% - 7px);
+  width: 14px;
+  justify-content: center;
+  padding: 0;
+  background: color-mix(in srgb, var(--hwt-gold-deep) 70%, black);
+  border: 1px solid var(--hwt-gold);
+  color: var(--hwt-gold);
+  font-size: 8px;
+}
+/* Block reads as a grey armor chip in the status row. */
+.hwt-token-status > .hwt-block-badge {
+  background: color-mix(in srgb, var(--hw-stone) 50%, black);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-stone) 75%, white);
+  color: #fff;
 }
 .hwt-block-icon {
   width: 8px;
   height: 8px;
-  color: var(--hw-text);
+  color: #fff;
 }
-.hwt-cooldown-badge {
-  font-size: 7px;
-  color: var(--hw-rune);
+/* The enemy intent telegraph sits in the top-right corner as a clear coin. */
+.hwt-token-status > .hwt-intent-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 15px;
+  height: 15px;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--hw-bg) 80%, black);
+  border: 1px solid currentColor;
+  font-size: 9px;
 }
-.hwt-charge-badge {
-  font-size: 7px;
-  color: var(--hw-ember);
-}
-.hwt-charge-badge[data-imminent="true"] {
+.hwt-intent-badge[data-intent="attack"] {
   color: var(--hw-hp);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--hw-hp) 60%, transparent);
+}
+.hwt-intent-badge[data-intent="move"] {
+  color: var(--hw-muted);
+}
+.hwt-intent-badge[data-intent="aoe"] {
+  color: var(--hw-ember);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--hw-ember) 60%, transparent);
+}
+.hwt-intent-icon {
+  width: 9px;
+  height: 9px;
+  color: var(--hw-hp);
+}
+
+.hwt-cooldown-badge { color: var(--hw-rune); }
+.hwt-charge-badge { color: var(--hw-ember); }
+.hwt-charge-badge[data-imminent="true"] {
+  color: #fff;
+  background: color-mix(in srgb, var(--hw-hp) 80%, black) !important;
   font-weight: 700;
 }
-.hwt-strength-badge {
-  font-size: 7px;
-  color: var(--hw-cosmic);
-}
-.hwt-ritual-badge {
-  font-size: 7px;
-  color: var(--hw-shadow);
-}
-.hwt-poison-badge {
-  font-size: 7px;
-  color: var(--hw-wood);
-}
+.hwt-strength-badge { color: var(--hw-cosmic); }
+.hwt-ritual-badge { color: color-mix(in srgb, var(--hw-shadow) 70%, white); }
+.hwt-poison-badge { color: var(--hw-wood); }
 /* Same color tokens the auto-battler's own EnemyPieceCard.jsx
-   STATUS_DISPLAY map already assigns these exact status ids - cross-game
-   color consistency without pulling in its full icon system. */
-.hwt-execute-badge {
-  font-size: 7px;
-  color: var(--hw-hp);
-}
-.hwt-shatter-badge {
-  font-size: 7px;
-  color: var(--hw-rune);
-}
-.hwt-woundedfury-badge {
-  font-size: 7px;
-  color: var(--hw-ember);
-}
-.hwt-weak-badge {
-  font-size: 7px;
-  color: var(--hw-curse);
-}
-.hwt-slow-badge {
-  font-size: 7px;
-  color: var(--hw-tide);
-}
-.hwt-root-badge {
-  font-size: 7px;
-  color: var(--hw-cosmic);
-}
-.hwt-suppressed-badge {
-  font-size: 7px;
-  color: var(--hw-curse);
-}
-.hwt-bulwark-badge {
-  font-size: 7px;
-  color: var(--hw-stone);
-}
-.hwt-regen-badge {
-  font-size: 7px;
-  color: var(--hw-moss);
-}
-.hwt-taunt-badge {
-  font-size: 7px;
-  color: var(--hw-rune);
-}
-.hwt-commander-badge {
-  font-size: 8px;
-  color: var(--hw-ember);
-}
+   STATUS_DISPLAY map already assigns these exact status ids. */
+.hwt-execute-badge { color: var(--hw-hp); }
+.hwt-shatter-badge { color: var(--hw-rune); }
+.hwt-woundedfury-badge { color: var(--hw-ember); }
+.hwt-weak-badge { color: var(--hw-curse); }
+.hwt-slow-badge { color: var(--hw-gale); }
+.hwt-root-badge { color: var(--hw-cosmic); }
+.hwt-suppressed-badge { color: var(--hw-curse); }
+.hwt-bulwark-badge { color: var(--hw-stone); }
+.hwt-regen-badge { color: var(--hw-moss); }
+.hwt-taunt-badge { color: var(--hw-rune); }
+.hwt-haste-badge { color: var(--hw-gale); }
+.hwt-revive-badge { color: var(--hw-moss); }
+.hwt-flank-benefit-badge { color: var(--hw-curse); }
+.hwt-flank-resist-badge { color: var(--hw-stone); }
+
 /* Spirit Shift round: the Spiritwalker's swap-ready marker, dimmed once
    the once-per-round swap is spent - and the spirit itself reads as a
-   translucent, softly glowing presence rather than a solid body, so the
-   "henki" it can trade places with is recognizable at a glance. */
+   translucent, softly glowing presence rather than a solid body. */
 .hwt-spiritshift-badge {
-  font-size: 8px;
   color: var(--hw-gale);
   text-shadow: 0 0 4px color-mix(in srgb, var(--hw-gale) 70%, transparent);
 }
@@ -327,65 +551,19 @@
   text-shadow: none;
 }
 .hwt-token[data-spirit="true"] {
+  --hwt-frame: color-mix(in srgb, var(--hw-gale) 70%, var(--hw-border));
   border-style: dashed;
-  border-color: color-mix(in srgb, var(--hw-gale) 65%, var(--hw-border));
   background: color-mix(in srgb, var(--hw-gale) 14%, var(--hw-card));
   animation: hwt-spirit-shimmer 2.8s ease-in-out infinite;
 }
+.hwt-token[data-spirit="true"] .hwt-token-art {
+  opacity: 0.8;
+}
 @keyframes hwt-spirit-shimmer {
   0%, 100% { box-shadow: 0 0 4px color-mix(in srgb, var(--hw-gale) 30%, transparent); }
-  50% { box-shadow: 0 0 10px color-mix(in srgb, var(--hw-gale) 55%, transparent); }
+  50% { box-shadow: 0 0 12px color-mix(in srgb, var(--hw-gale) 60%, transparent); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .hwt-token[data-spirit="true"] { animation: none; }
-}
-/* Active Power round: the Commander's once-per-battle hero power - a
-   warm gold panel under End Turn, plus a one-shot gold surge across the
-   whole squad the turn it fires. */
-.hwt-power-panel {
-  margin: 8px 0;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border));
-  background: color-mix(in srgb, var(--hw-ember) 10%, var(--hw-card));
-}
-.hwt-power-panel[data-used="true"] {
-  opacity: 0.55;
-  border-color: var(--hw-border);
-  background: var(--hw-card);
-}
-.hwt-power-btn {
-  width: 100%;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--hw-ember);
-  background: color-mix(in srgb, var(--hw-ember) 28%, var(--hw-card));
-  color: var(--hw-text);
-  font-family: var(--hw-font);
-  font-weight: 600;
-  cursor: pointer;
-}
-.hwt-power-btn:not(:disabled):hover {
-  background: color-mix(in srgb, var(--hw-ember) 42%, var(--hw-card));
-  box-shadow: 0 0 10px color-mix(in srgb, var(--hw-ember) 45%, transparent);
-}
-.hwt-power-btn:disabled {
-  cursor: default;
-  opacity: 0.6;
-}
-.hwt-power-crown {
-  color: var(--hw-ember);
-}
-.hwt-power-desc {
-  margin: 6px 0 2px;
-  font-size: 12px;
-  color: var(--hw-text);
-}
-.hwt-power-status {
-  margin: 0;
-  font-size: 11px;
-  color: var(--hw-muted);
-}
+
 .hwt-token[data-power-surge="true"] {
   animation: hwt-power-surge 1.2s ease-out 1;
 }
@@ -394,118 +572,207 @@
   30% { box-shadow: 0 0 16px 4px color-mix(in srgb, var(--hw-ember) 75%, transparent); }
   100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hw-ember) 0%, transparent); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .hwt-token[data-power-surge="true"] { animation: none; }
-}
-.hwt-haste-badge {
-  font-size: 8px;
-  color: var(--hw-gale);
-}
-.hwt-revive-badge {
-  font-size: 7px;
-  color: var(--hw-moss);
-}
-.hwt-flank-benefit-badge {
-  font-size: 8px;
-  color: var(--hw-curse);
-}
-.hwt-flank-resist-badge {
-  font-size: 8px;
-  color: var(--hw-stone);
-}
 
-/* The enemy intent telegraph - what this enemy plans to do this coming
-   enemy phase, visible during the player's own turn. */
-.hwt-intent-badge {
-  display: flex;
-  align-items: center;
-  font-size: 9px;
-  line-height: 1;
-}
-.hwt-intent-badge[data-intent="attack"] {
-  color: var(--hw-hp);
-}
-.hwt-intent-badge[data-intent="move"] {
-  color: var(--hw-muted);
-}
-.hwt-intent-badge[data-intent="aoe"] {
-  color: var(--hw-ember);
-}
-.hwt-intent-icon {
-  width: 9px;
-  height: 9px;
-  color: var(--hw-hp);
-}
-
-.hwt-token-glyph {
-  width: 26px;
-  height: 26px;
-  color: var(--hw-text);
-}
-
-.hwt-token-name {
-  font-size: 8.5px;
-  color: var(--hw-muted);
-  line-height: 1.1;
-  text-align: center;
-  max-width: 64px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.hwt-hp-track {
-  width: 56px;
-  height: 4px;
-  background: color-mix(in srgb, var(--hw-border) 80%, transparent);
-  border-radius: 2px;
-  margin-top: 2px;
-  overflow: hidden;
-}
-.hwt-hp-fill {
-  height: 100%;
-  background: var(--hw-moss);
-}
-.hwt-token[data-side="enemy"] .hwt-hp-fill {
-  background: var(--hw-hp);
-}
+/* ---------- Side panel ---------- */
 
 .hwt-panel {
   width: 260px;
-  background: var(--hw-surface-bg);
-  border: 1px solid var(--hw-border);
-  border-radius: var(--hw-radius);
-  padding: 14px 16px;
-  box-shadow: var(--hw-surface-shadow);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--hw-ember) 6%, var(--hw-panel)), var(--hw-panel));
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 25%, var(--hw-border));
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--hwt-gold) 18%, transparent), var(--hw-surface-shadow);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
+.hwt-turn-header {
+  text-align: center;
+  padding: 4px 0 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--hwt-gold) 25%, transparent);
+  position: relative;
+}
+.hwt-turn-header::after {
+  content: "◆";
+  position: absolute;
+  left: calc(50% - 5px);
+  bottom: -7px;
+  font-size: 10px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--hwt-gold) 70%, transparent);
+  background: var(--hw-panel);
+  padding: 0 2px;
+}
 .hwt-turn-label {
   font-family: var(--hw-font-display);
-  font-size: var(--hw-fs-lg);
-  color: var(--hw-text);
+  font-size: var(--hw-fs-2xl);
+  font-weight: 600;
+  color: var(--hwt-gold);
+  letter-spacing: 0.02em;
+  font-variant-numeric: lining-nums;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 .hwt-turn-label[data-phase="enemy"] {
+  color: color-mix(in srgb, var(--hw-hp) 75%, white);
+}
+.hwt-turn-label[data-phase="won"] {
+  color: var(--hw-moss);
+}
+.hwt-turn-label[data-phase="lost"] {
   color: var(--hw-hp);
 }
+.hwt-turn-sub {
+  font-size: var(--hw-fs-xs);
+  color: var(--hw-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
 
-.hwt-end-turn {
-  align-self: flex-start;
-  background: var(--hw-ember);
-  color: var(--hw-bg);
-  border: none;
-  border-radius: var(--hw-radius-pill);
-  padding: 7px 18px;
-  font-size: var(--hw-fs-base);
+/* Selected-unit card - a quick read of the unit you're moving. */
+.hwt-selected-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--hw-bg) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 30%, var(--hw-border));
+}
+.hwt-selected-card .hwt-token-art {
+  position: relative;
+  inset: auto;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--hwt-gold);
+  background: var(--hw-card);
+}
+.hwt-selected-card .hwt-token-art::after {
+  display: none;
+}
+.hwt-selected-card .hwt-token-glyph {
+  width: 24px;
+  height: 24px;
+}
+.hwt-selected-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.hwt-selected-name {
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg);
   font-weight: 600;
+  color: var(--hw-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hwt-selected-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  font-size: var(--hw-fs-xs);
+  color: var(--hw-muted);
+}
+.hwt-selected-stats [data-stat="atk"] { color: var(--hwt-gold); }
+.hwt-selected-stats [data-stat="hp"] { color: color-mix(in srgb, var(--hw-hp) 70%, white); }
+
+/* End Turn - the big brass button, glowing once nothing is left to do. */
+.hwt-end-turn {
+  width: 100%;
+  padding: 11px 18px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold-deep) 80%, black);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hwt-gold) 88%, white), var(--hwt-gold) 45%, var(--hwt-gold-deep));
+  color: color-mix(in srgb, var(--hw-bg) 90%, var(--hwt-gold-deep));
+  font-family: var(--hw-font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-shadow: 0 1px 0 color-mix(in srgb, white 45%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 10px rgba(0, 0, 0, 0.5);
   cursor: pointer;
+  transition: transform var(--hw-dur-fast, 89ms) ease, filter var(--hw-dur-base, 144ms) ease;
+}
+.hwt-end-turn:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.hwt-end-turn:not(:disabled):active {
+  transform: translateY(1px);
+}
+.hwt-end-turn[data-ready="true"] {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hw-moss) 70%, white), var(--hw-moss) 50%, color-mix(in srgb, var(--hw-moss) 60%, black));
+  border-color: color-mix(in srgb, var(--hw-moss) 50%, black);
+  animation: hwt-end-ready 1.8s ease-in-out infinite;
+}
+@keyframes hwt-end-ready {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 0 0 color-mix(in srgb, var(--hw-moss) 0%, transparent); }
+  50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 16px 2px color-mix(in srgb, var(--hw-moss) 60%, transparent); }
 }
 .hwt-end-turn:disabled {
-  background: var(--hw-border);
+  background: color-mix(in srgb, var(--hw-border) 70%, var(--hw-panel));
+  border-color: var(--hw-border);
   color: var(--hw-muted);
+  text-shadow: none;
+  box-shadow: none;
+  animation: none;
   cursor: not-allowed;
+}
+
+/* Active Power round: the Commander's once-per-battle hero power. */
+.hwt-power-panel {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 45%, var(--hw-border));
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--hw-ember) 16%, var(--hw-card)), var(--hw-card) 80%);
+  text-align: center;
+}
+.hwt-power-panel[data-used="true"] {
+  opacity: 0.55;
+  border-color: var(--hw-border);
+  background: var(--hw-card);
+}
+.hwt-power-btn {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--hwt-gold);
+  background: color-mix(in srgb, var(--hw-ember) 26%, var(--hw-card));
+  color: var(--hw-text);
+  font-family: var(--hw-font-display);
+  font-size: var(--hw-fs-lg);
+  font-weight: 700;
+  cursor: pointer;
+  transition: box-shadow var(--hw-dur-base, 144ms) ease, background var(--hw-dur-base, 144ms) ease;
+}
+.hwt-power-btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--hw-ember) 40%, var(--hw-card));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--hwt-gold) 50%, transparent);
+}
+.hwt-power-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.hwt-power-crown {
+  color: var(--hwt-gold);
+}
+.hwt-power-desc {
+  margin: 7px 0 3px;
+  font-size: var(--hw-fs-sm);
+  line-height: 1.4;
+  color: var(--hw-text);
+}
+.hwt-power-status {
+  margin: 0;
+  font-size: var(--hw-fs-xs);
+  color: var(--hw-muted);
 }
 
 .hwt-ability-panel {
@@ -514,46 +781,72 @@
   gap: 6px;
 }
 .hwt-ability-btn {
-  align-self: flex-start;
-  background: var(--hw-rune);
+  width: 100%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hw-rune) 85%, white), var(--hw-rune));
   color: var(--hw-bg);
-  border: none;
-  border-radius: var(--hw-radius-pill);
-  padding: 6px 16px;
+  border: 1px solid color-mix(in srgb, var(--hw-rune) 55%, black);
+  border-radius: 999px;
+  padding: 7px 16px;
   font-size: var(--hw-fs-sm);
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
   cursor: pointer;
 }
 .hwt-ability-btn:disabled {
   background: var(--hw-border);
+  border-color: var(--hw-border);
   color: var(--hw-muted);
+  box-shadow: none;
   cursor: not-allowed;
 }
 .hwt-ability-btn[data-active="true"] {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hw-rune) 55%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hw-rune) 55%, transparent), 0 0 12px color-mix(in srgb, var(--hw-rune) 50%, transparent);
 }
 .hwt-ability-hint {
   font-size: var(--hw-fs-sm);
   color: var(--hw-moss);
   margin: 0;
+  text-align: center;
 }
 
+/* Combat log - a readable, parchment-dark scroll, newest line on top. */
+.hwt-log-heading {
+  font-size: var(--hw-fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hw-muted);
+  margin-bottom: -6px;
+}
 .hwt-log {
   font-size: var(--hw-fs-sm);
+  line-height: 1.45;
   color: var(--hw-muted);
-  max-height: 220px;
+  max-height: 240px;
   overflow-y: auto;
   display: flex;
   flex-direction: column-reverse;
-  gap: 4px;
-  border-top: 1px solid var(--hw-border);
-  padding-top: 8px;
+  gap: 0;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--hw-bg) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hw-border) 80%, transparent);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--hwt-gold) 30%, transparent) transparent;
 }
 .hwt-log p {
   margin: 0;
+  padding: 5px 0 5px 8px;
+  border-left: 2px solid transparent;
+  border-bottom: 1px solid color-mix(in srgb, var(--hw-border) 45%, transparent);
+}
+.hwt-log p:last-child {
+  border-bottom: none;
 }
 .hwt-log p:first-child {
   color: var(--hw-text);
+  border-left-color: var(--hwt-gold);
+  border-bottom: none;
 }
 
 .hwt-real-matchup {
@@ -586,8 +879,7 @@
 /* Phase 4 second slice ("fight one real battle for real"): the small
    always-visible reminder inside the live-run tactics branch, and its
    single Continue button (no Play Again - you can't replay a real
-   fight). An ember accent, matching the FormationScreen "Fight this as
-   Tactics" button's own "this one is for real" tone. */
+   fight). */
 .hwt-real-fight-note {
   font-size: var(--hw-fs-sm);
   color: var(--hw-ember);
@@ -687,20 +979,23 @@
 .hwt-result {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, var(--hw-bg) 82%, transparent);
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--hw-bg) 70%, transparent), color-mix(in srgb, var(--hw-bg) 92%, transparent));
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   z-index: 20;
 }
 .hwt-result-title {
   font-family: var(--hw-font-display);
-  font-size: 40px;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
 }
 .hwt-result-title[data-outcome="won"] {
-  color: var(--hw-moss);
+  color: color-mix(in srgb, var(--hw-ember) 75%, #f3d58a);
 }
 .hwt-result-title[data-outcome="lost"] {
   color: var(--hw-hp);
@@ -725,4 +1020,50 @@
   .hwt-token {
     transition: none !important;
   }
+  .hwt-token[data-spirit="true"],
+  .hwt-token[data-power-surge="true"],
+  .hwt-end-turn[data-ready="true"],
+  .hwt-cell[data-targetable="true"]::after {
+    animation: none;
+  }
+}
+
+/* Battle feel round (TacticsFx.jsx): a ranged attack's travelling bolt,
+   the fallen-unit fade, and the short text callouts (Sidestep!, Warded!,
+   a Commander power...) that ride the shared floating-number pop. */
+.hwt-projectile {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--hw-ember);
+  box-shadow: 0 0 10px 3px color-mix(in srgb, var(--hw-ember) 70%, transparent);
+  pointer-events: none;
+  z-index: 54;
+}
+.hwt-token-fallen {
+  position: absolute;
+  inset: 3px;
+  border-radius: 10px;
+  border: 2px solid var(--hw-border);
+  background: var(--hw-card);
+  pointer-events: none;
+  animation: hwt-fall 1.4s ease-out forwards;
+}
+@keyframes hwt-fall {
+  0% { opacity: 1; filter: grayscale(0); }
+  100% { opacity: 0.15; filter: grayscale(1); }
+}
+.hw-floating-number--callout {
+  color: var(--hw-ember);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+.hwt-token.hw-hit-flash {
+  animation: hw-hit-shake 400ms ease;
 }

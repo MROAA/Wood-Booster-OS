@@ -12,15 +12,18 @@
 // for a real fight). This component only decides WHAT to render and WHICH
 // pure tacticsEngine.js function a click should call - it dispatches the
 // result via `onBattleChange`, never holds the battle itself.
-import { useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
-import { kingAdjacent } from "../../services/heartwood/targeting"
 import {
   reachableTilesFor,
   attackableTargets,
   moveUnit,
   attackUnit,
   castAbility,
+  abilityTargets,
+  abilityTargetSide,
+  describeAbility,
+  abilityHint,
   endPlayerTurn,
   activateCommanderPower,
   previewEnemyIntents,
@@ -33,6 +36,8 @@ import {
   flankRole,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
+import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
+import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
 
 function apPips(unit) {
   return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
@@ -43,6 +48,32 @@ function apPips(unit) {
 // being active), since facing is a permanent property of every unit,
 // the same "always shown" category the AP-pips indicator already is.
 const FACING_ARROW = { N: "↑", S: "↓", E: "→", W: "←" }
+
+// Look & feel round: a token shows the unit's real portrait when it has
+// one. Every enemy def currently points at the same shared placeholder
+// SVG - showing that on every enemy would read as "all the same monster",
+// so those keep their own distinct CardGlyph line art instead. (Compared
+// against the imported URL itself - Vite inlines small SVGs as data URIs,
+// so a filename check would miss it.)
+function portraitOf(unit) {
+  if (!unit?.image || unit.image === enemyPlaceholderImg) return null
+  return unit.image
+}
+
+// Portrait (or glyph fallback) - shared by the live token, the fading
+// fallen-unit ghost and the panel's selected-unit card.
+function TokenArt({ unit }) {
+  const src = portraitOf(unit)
+  return (
+    <div className="hwt-token-art" data-has-image={!!src}>
+      {src ? (
+        <img className="hwt-token-img" src={src} alt="" draggable={false} />
+      ) : (
+        <CardGlyph name={unit.art} className="hwt-token-glyph" />
+      )}
+    </div>
+  )
+}
 
 function getUnitName(battle, id) {
   return battle.units.find((u) => u.id === id)?.name || "?"
@@ -59,22 +90,40 @@ export default function TacticsBoard({
   children,
 }) {
   const selected = battle.units.find((u) => u.id === selectedId) || null
+  // Battle feel round: a unit that just fell stays on its tile, faded,
+  // for a moment - so its killing blow (replayed by TacticsFx) lands on
+  // something visible instead of an already-empty cell.
+  const [fallenIds, setFallenIds] = useState(() => new Set())
+  const prevHpRef = useRef(null)
+  useEffect(() => {
+    const prev = prevHpRef.current
+    prevHpRef.current = new Map(battle.units.map((u) => [u.id, u.hp]))
+    if (!prev) return undefined
+    const newlyFallen = battle.units.filter((u) => u.hp <= 0 && (prev.get(u.id) || 0) > 0).map((u) => u.id)
+    if (!newlyFallen.length) return undefined
+    setFallenIds((cur) => new Set([...cur, ...newlyFallen]))
+    const timer = setTimeout(() => {
+      setFallenIds((cur) => new Set([...cur].filter((id) => !newlyFallen.includes(id))))
+    }, FALLEN_LINGER_MS)
+    return () => clearTimeout(timer)
+  }, [battle])
   const reachable = useMemo(
     () => (selected && selected.ap > 0 && !abilityMode && battle.phase === "player" ? reachableTilesFor(battle, selected.id) : []),
     [battle, selected, abilityMode],
   )
   const targets = useMemo(
-    () => (selected && selected.ap > 0 && battle.phase === "player" && abilityMode !== "heal" ? attackableTargets(battle, selected.id) : []),
+    () =>
+      selected && selected.ap > 0 && battle.phase === "player" && abilityMode !== "heal"
+        ? abilityMode === "burst"
+          ? abilityTargets(battle, selected.id)
+          : attackableTargets(battle, selected.id)
+        : [],
     [battle, selected, abilityMode],
   )
-  // Ability-only highlight: self + adjacent living allies, only while the
-  // Regrowth heal ability is armed. Distinct data-attr from the move
-  // highlight even though both lean on the same moss accent.
+  // Ability-only highlight: the allies an armed ally-targeting ability
+  // (heal / shield-ally) can pick - "heal" mode, "burst" mode = enemies.
   const healable = useMemo(
-    () =>
-      selected && abilityMode === "heal" && battle.phase === "player"
-        ? battle.units.filter((u) => u.hp > 0 && u.side === selected.side && (u.id === selected.id || kingAdjacent(u.pos, selected.pos)))
-        : [],
+    () => (selected && abilityMode === "heal" && battle.phase === "player" ? abilityTargets(battle, selected.id) : []),
     [battle, selected, abilityMode],
   )
   // What every living enemy currently plans to do this coming enemy phase -
@@ -137,6 +186,7 @@ export default function TacticsBoard({
   const thornCells = useMemo(() => (battle.phase === "player" ? thornZoneCells(battle, "enemy") : new Set()), [battle])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
+  const fallenHere = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp <= 0 && fallenIds.has(u.id))
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
   // A cell's own terrain type - an omitted entry (every pre-terrain
   // formation, and every cell not named in a formation's own terrain
@@ -173,7 +223,7 @@ export default function TacticsBoard({
       return
     }
     const occupant = cellUnit(row, col)
-    if (occupant && occupant.side === "player" && occupant.ap > 0) {
+    if (occupant && occupant.hp > 0 && occupant.side === "player" && occupant.ap > 0) {
       onSelectedIdChange(occupant.id)
     } else {
       onSelectedIdChange(null)
@@ -185,12 +235,13 @@ export default function TacticsBoard({
     if (!selected || !selected.ability || battle.phase !== "player") return
     const ability = selected.ability
     if (selected.ap < ability.cost || selected.cooldownRemaining > 0) return
-    if (ability.kind === "aura-block") {
+    const side = abilityTargetSide(ability)
+    if (!side) {
       onBattleChange(castAbility(battle, selected.id))
       onAbilityModeChange(null)
       return
     }
-    const kind = ability.kind === "heal" ? "heal" : "burst"
+    const kind = side === "ally" ? "heal" : "burst"
     onAbilityModeChange(abilityMode === kind ? null : kind)
   }
 
@@ -236,6 +287,12 @@ export default function TacticsBoard({
           data-thorn-zone={thornZone}
           onClick={() => handleCellClick(row, col)}
         >
+          {!unit && fallenHere(row, col) && (
+            <div className="hwt-token-fallen" data-unit-id={fallenHere(row, col).id} data-side={fallenHere(row, col).side}>
+              <TokenArt unit={fallenHere(row, col)} />
+              <span className="hwt-token-name">{fallenHere(row, col).name}</span>
+            </div>
+          )}
           {unit && (
             <motion.div
               layout
@@ -243,12 +300,14 @@ export default function TacticsBoard({
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
               className="hwt-token"
               data-side={unit.side}
-              data-selectable={unit.side === "player" && battle.phase === "player"}
+              data-selectable={unit.side === "player" && unit.hp > 0 && battle.phase === "player"}
               data-selected={unit.id === selectedId}
               data-acted={unit.ap <= 0}
               data-power-surge={unit.side === "player" && battle.activePower?.used && battle.activePower.firedTurn === battle.turn}
               data-spirit={!!unit.isSpirit}
+              data-unit-id={unit.id}
             >
+              <TokenArt unit={unit} />
               <div className="hwt-token-status">
                 {unit.id === "player-commander" && (
                   <span className="hwt-commander-badge" title={`${unit.name} - your Commander`}>
@@ -286,7 +345,7 @@ export default function TacticsBoard({
                 <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
                   {apPips(unit)}
                 </span>
-                <span className="hwt-facing-badge" title={`Facing ${unit.facing} - attacked from the side (+10%) or behind (+25%) takes more damage`}>
+                <span className="hwt-facing-badge" data-facing={unit.facing} title={`Facing ${unit.facing} - attacked from the side (+10%) or behind (+25%) takes more damage`}>
                   {FACING_ARROW[unit.facing]}
                 </span>
                 {unit.block > 0 && (
@@ -405,11 +464,21 @@ export default function TacticsBoard({
                   </span>
                 )}
               </div>
-              <CardGlyph name={unit.art} className="hwt-token-glyph" />
               <span className="hwt-token-name">{unit.name}</span>
               <div className="hwt-hp-track">
                 <div className="hwt-hp-fill" style={{ width: `${Math.max(0, Math.round((unit.hp / unit.maxHp) * 100))}%` }} />
               </div>
+              <span
+                className="hwt-atk-gem"
+                data-buffed={unit.attack > unit.baseAttack}
+                data-weak={unit.weak > 0}
+                title={`Attack ${unit.attack}`}
+              >
+                {unit.attack}
+              </span>
+              <span className="hwt-hp-gem" data-hurt={unit.hp < unit.maxHp} title={`${unit.hp}/${unit.maxHp} HP`}>
+                {unit.hp}
+              </span>
             </motion.div>
           )}
         </div>,
@@ -428,13 +497,39 @@ export default function TacticsBoard({
         </div>
 
         <div className="hwt-panel">
-          <div className="hwt-turn-label" data-phase={battle.phase}>
-            {battle.phase === "player" && `Player Turn ${battle.turn}`}
-            {battle.phase === "enemy" && "Enemy Turn"}
-            {battle.phase === "won" && "Victory"}
-            {battle.phase === "lost" && "Defeat"}
+          <div className="hwt-turn-header" data-phase={battle.phase}>
+            <div className="hwt-turn-label" data-phase={battle.phase}>
+              {battle.phase === "player" && `Player Turn ${battle.turn}`}
+              {battle.phase === "enemy" && "Enemy Turn"}
+              {battle.phase === "won" && "Victory"}
+              {battle.phase === "lost" && "Defeat"}
+            </div>
+            <div className="hwt-turn-sub">
+              {battle.phase === "player" && "Your move"}
+              {battle.phase === "enemy" && "The enemy acts..."}
+              {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
+            </div>
           </div>
-          <button className="hwt-end-turn" onClick={handleEndTurn} disabled={battle.phase !== "player"}>
+          {selected && selected.side === "player" && (
+            <div className="hwt-selected-card">
+              <TokenArt unit={selected} />
+              <div className="hwt-selected-info">
+                <span className="hwt-selected-name">{selected.name}</span>
+                <span className="hwt-selected-stats">
+                  <span data-stat="atk" title="Attack">⚔ {selected.attack}</span>
+                  <span data-stat="hp" title="Health">♥ {selected.hp}/{selected.maxHp}</span>
+                  <span data-stat="move" title="Movement">➤ {selected.move}</span>
+                  <span data-stat="range" title="Attack range">◎ {selected.range}</span>
+                </span>
+              </div>
+            </div>
+          )}
+          <button
+            className="hwt-end-turn"
+            onClick={handleEndTurn}
+            disabled={battle.phase !== "player"}
+            data-ready={battle.phase === "player" && !battle.units.some((u) => u.side === "player" && u.hp > 0 && u.ap > 0)}
+          >
             End Turn
           </button>
           {battle.activePower && (() => {
@@ -465,18 +560,16 @@ export default function TacticsBoard({
                 data-active={!!abilityMode}
                 disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0}
                 onClick={handleAbilityClick}
+                title={describeAbility(selected.ability)}
               >
                 {selected.cooldownRemaining > 0
                   ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
                   : `${selected.ability.name} · ${selected.ability.cost} AP`}
               </button>
-              {abilityMode && (
-                <p className="hwt-ability-hint">
-                  {abilityMode === "heal" ? "Choose an ally to heal." : "Choose an enemy for Focused Shot."}
-                </p>
-              )}
+              <p className="hwt-ability-hint">{abilityMode ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
             </div>
           )}
+          <div className="hwt-log-heading">Battle log</div>
           <div className="hwt-log">
             {[...battle.log].reverse().map((line, i) => (
               <p key={i}>{line}</p>
@@ -486,6 +579,8 @@ export default function TacticsBoard({
           {children}
         </div>
       </div>
+
+      <TacticsFx battle={battle} />
 
       {(battle.phase === "won" || battle.phase === "lost") && (
         <div className="hwt-result">

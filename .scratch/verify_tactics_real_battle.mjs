@@ -29,7 +29,7 @@ import { mkdir } from "node:fs/promises"
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
 const PORT = process.env.PORT || 5429
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-default/.scratch/shots"
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sprint1/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2247,6 +2247,117 @@ function newPage() {
     result.strengthDeltas.some((d) => d.aDelta >= 2) &&
     result.lateEnemies.length > 0 && result.lateEnemies.every((e) => e.tMax === e.aMax && e.tMax > e.defMax)
   if (!ok) out.errors.push("check42 the run bridge did not carry relics/items/upgrades/queued power/difficulty from the auto-battle start into the tactics fight")
+}
+
+// ---- Battle feel round ----------------------------------------------
+// 43. A real End Turn replays the enemy's strike on the real board: the
+//     attacker lunges (a live Web Animation on its token), the target
+//     flashes, a "-N" floating number rises; and a reload afterwards
+//     replays NOTHING (no floating numbers on a fresh load) ------------
+{
+  const page43 = await newPage()
+  page43.on("pageerror", (e) => errs.push(String(e)))
+  await page43.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page43, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page43.reload({ waitUntil: "domcontentloaded" })
+  await page43.waitForTimeout(400)
+  await page43.locator(".hw-tactics-start").click()
+  await page43.waitForTimeout(400)
+  const setup = await page43.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const fool = battle.units.find((u) => u.defId === "the-fool")
+    const enemies = battle.units.filter((u) => u.side === "enemy")
+    const striker = enemies[0]
+    let park = 0
+    battle.units = battle.units.map((u) => {
+      if (u.id === fool.id) return { ...u, pos: { row: 4, col: 6 }, hp: u.maxHp, block: 0, ward: 0 }
+      if (u.id === striker.id) return { ...u, pos: { row: 4, col: 5 }, ap: u.apMax, attack: Math.max(u.attack, 6) }
+      if (u.side === "enemy") return { ...u, hp: 0 }
+      return { ...u, pos: { row: 8, col: 11 - park++ } }
+    })
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { foolId: fool.id, strikerId: striker.id }
+  })
+  await page43.reload({ waitUntil: "domcontentloaded" })
+  await page43.waitForTimeout(600)
+  const floatsOnLoad = await page43.locator(".hw-floating-number").count()
+  await page43.locator(".hwt-end-turn").click()
+  // Sample during the first beat.
+  let sawLunge = false
+  let sawFlash = false
+  let maxFloats = 0
+  const texts = new Set()
+  for (let i = 0; i < 16; i++) {
+    const snap = await page43.evaluate(({ strikerId, foolId }) => {
+      const a = document.querySelector(`.hwt-token[data-unit-id="${strikerId}"]`)
+      const f = document.querySelector(`.hwt-token[data-unit-id="${foolId}"]`)
+      return {
+        lunge: !!a && a.getAnimations().some((an) => an.effect?.getKeyframes?.().some((k) => k.translate && k.translate !== "0 0" && k.translate !== "0px 0px")),
+        flash: !!f && f.classList.contains("hw-hit-flash"),
+        floats: [...document.querySelectorAll(".hw-floating-number")].map((n) => n.textContent),
+      }
+    }, setup)
+    sawLunge ||= snap.lunge
+    sawFlash ||= snap.flash
+    maxFloats = Math.max(maxFloats, snap.floats.length)
+    snap.floats.forEach((t) => texts.add(t))
+    await page43.waitForTimeout(60)
+  }
+  await page43.screenshot({ path: `${SHOT}/real_fight_battle_feel.png` })
+  await page43.reload({ waitUntil: "domcontentloaded" })
+  await page43.waitForTimeout(900)
+  const floatsAfterReload = await page43.locator(".hw-floating-number").count()
+  await page43.close()
+  out.fxRealStrike = { floatsOnLoad, sawLunge, sawFlash, maxFloats, texts: [...texts], floatsAfterReload }
+  const ok = floatsOnLoad === 0 && sawLunge && sawFlash && [...texts].some((t) => /^-\d+$/.test(t)) && floatsAfterReload === 0
+  if (!ok) out.errors.push("check43 a real enemy strike was not replayed as lunge + flash + floating number, or a reload replayed old events")
+}
+
+// 44. A killing blow: the fallen enemy stays on its tile faded
+//     (data-dead) long enough to see, then disappears; a dead token
+//     can't be selected ---------------------------------------------
+{
+  const page44 = await newPage()
+  page44.on("pageerror", (e) => errs.push(String(e)))
+  await page44.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+  await seedRealSave(page44, (n) => n.type === "battle" && n.formationId, ["the-fool"])
+  await page44.reload({ waitUntil: "domcontentloaded" })
+  await page44.waitForTimeout(400)
+  await page44.locator(".hw-tactics-start").click()
+  await page44.waitForTimeout(400)
+  const setup = await page44.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    const battle = save.run.battle
+    const fool = battle.units.find((u) => u.defId === "the-fool")
+    const enemies = battle.units.filter((u) => u.side === "enemy")
+    const victim = enemies[0]
+    let park = 0
+    battle.units = battle.units.map((u) => {
+      if (u.id === fool.id) return { ...u, pos: { row: 4, col: 6 }, ap: u.apMax }
+      if (u.id === victim.id) return { ...u, pos: { row: 4, col: 5 }, hp: 1, block: 0, ward: 0, revive: 0 }
+      if (u.side === "enemy") return { ...u, pos: { row: 0, col: park++ } }
+      return { ...u, pos: { row: 8, col: 11 - park++ } }
+    })
+    save.run.battle = battle
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+    return { foolId: fool.id, victimId: victim.id }
+  })
+  await page44.reload({ waitUntil: "domcontentloaded" })
+  await page44.waitForTimeout(500)
+  await page44.locator(`.hwt-token[data-unit-id="${setup.foolId}"]`).click()
+  await page44.waitForTimeout(150)
+  await page44.locator(`.hwt-token[data-unit-id="${setup.victimId}"]`).click({ force: true })
+  await page44.waitForTimeout(250)
+  const deadShown = await page44.locator(`.hwt-token-fallen[data-unit-id="${setup.victimId}"]`).count()
+  const hpNow = await page44.evaluate((id) => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle.units.find((u) => u.id === id).hp, setup.victimId)
+  await page44.waitForTimeout(1700)
+  const goneLater = await page44.locator(`[data-unit-id="${setup.victimId}"]`).count()
+  await page44.close()
+  out.fxFallenLinger = { deadShown, hpNow, goneLater }
+  const ok = hpNow === 0 && deadShown === 1 && goneLater === 0
+  if (!ok) out.errors.push("check44 a fallen unit did not linger faded and then disappear")
 }
 
 console.log(JSON.stringify(out, null, 2))
