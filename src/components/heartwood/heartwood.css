@@ -8219,3 +8219,41 @@ img.hw-intent-glyph {
   line-height: 1.5;
   color: var(--hw-muted);
 }
+
+/* Lasting consequences (sprint 2): carried HP + Wounded on unit cards,
+   the shop's Mend button and the post-fight summary line. */
+.hw-card-health {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 4px;
+}
+.hw-card-health-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--hw-muted) 30%, transparent);
+  overflow: hidden;
+}
+.hw-card-health-fill {
+  height: 100%;
+  background: var(--hw-moss);
+}
+.hw-card-health[data-wounded] .hw-card-health-fill {
+  background: var(--hw-hp);
+}
+.hw-card-health-text {
+  font-size: 10px;
+  color: var(--hw-muted);
+}
+.hw-card-health[data-wounded] .hw-card-health-text {
+  color: var(--hw-hp);
+  font-weight: 600;
+}
+.hw-mend-btn {
+  border-color: var(--hw-hp);
+}
+.hw-aftermath {
+  font-size: 12px;
+  color: var(--hw-hp);
+  margin: 4px 0;
+}

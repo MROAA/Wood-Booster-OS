@@ -34,6 +34,9 @@ import {
   investmentUnlocked,
   antidoteCost,
   antidoteQueued,
+  mendCost,
+  unitHpPct,
+  commanderHpPct,
   effectiveRecruitCost,
   MARKET_EVENTS,
   GAMBLE_COST,
@@ -99,6 +102,7 @@ export default function SquadDraft({
   onReroll,
   onGamble,
   onAntidote,
+  onMend,
   onContinue,
   onRankUp,
   onUpgradeRelic,
@@ -649,6 +653,18 @@ export default function SquadDraft({
             {upLevel > 0 && <span className="hw-upgrade-btn-lv"> · Lv {upLevel}</span>}
           </button>
         )}
+        {/* Lasting consequences: pay to heal a hurt or Wounded unit. */}
+        {onMend && (unitHpPct(entry) < 1 || entry.wounded) && (
+          <button
+            className="hw-move-btn hw-mend-btn"
+            style={{ fontSize: 11, padding: "4px 6px", width: "100%" }}
+            disabled={runState.essence < mendCost(runState)}
+            onClick={() => onMend(entry.key)}
+            title={`Heal ${def?.name} to full HP${entry.wounded ? " and clear Wounded" : ""} (${mendCost(runState)} Essence)`}
+          >
+            Mend (-{mendCost(runState)})
+          </button>
+        )}
         {/* Reforge + Sell side by side - half the vertical footprint of
             two stacked full-width buttons (this screen's zero-scroll
             budget), same click targets/labels. */}
@@ -943,14 +959,25 @@ export default function SquadDraft({
       // renders BEFORE resolveBattleOutcome runs - so the first shop
       // screen after the win is where the player is told. Same
       // .hw-hint language as the equip banner below.
+      // Lasting consequences: the "who fell last fight" line rides in
+      // this same one-shot notice slot (no new layout key).
       evolutionNotice: () =>
-        runState.lastEvolved?.length > 0 && (
-          <div key="evolutionNotice" className="hw-hint hw-hint--evolved" style={{ marginTop: 3 }}>
-            <span>
-              <span className="hw-evolve-mark hw-evolve-mark--close">&#9650;</span>{" "}
-              {runState.lastEvolved.map((e) => `${e.from} grew into a ${e.to}`).join(" · ")}.
-            </span>
-          </div>
+        (runState.lastEvolved?.length > 0 || runState.lastAftermath?.length > 0) && (
+          <Fragment key="evolutionNotice">
+            {runState.lastEvolved?.length > 0 && (
+              <div className="hw-hint hw-hint--evolved" style={{ marginTop: 3 }}>
+                <span>
+                  <span className="hw-evolve-mark hw-evolve-mark--close">&#9650;</span>{" "}
+                  {runState.lastEvolved.map((e) => `${e.from} grew into a ${e.to}`).join(" · ")}.
+                </span>
+              </div>
+            )}
+            {runState.lastAftermath?.length > 0 && (
+              <p className="hw-aftermath" data-aftermath>
+                {runState.lastAftermath.join(" ")} Wounded units start fights at 25% HP until you Mend them.
+              </p>
+            )}
+          </Fragment>
         ),
 
       // Marc, asked directly which button "hearthwood market.png"
@@ -1552,6 +1579,26 @@ export default function SquadDraft({
               <CardGlyph name={commander?.art} className="hw-intent-glyph" />
               {commander?.name} · Rank {commanderRank}
             </span>
+            {(commanderHpPct(runState) < 1 || runState.commanderWounded) && (
+              <span className="hw-badge" data-commander-health style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}>
+                {Math.round(commanderHpPct(runState) * 100)}% HP{runState.commanderWounded ? " · Wounded" : ""}
+              </span>
+            )}
+            {onMend && (commanderHpPct(runState) < 1 || runState.commanderWounded) && (
+              <button
+                className="hw-move-btn hw-strip-btn hw-mend-btn"
+                data-mend-commander
+                disabled={runState.essence < mendCost(runState)}
+                onClick={() => onMend("commander")}
+                title={`Heal ${commander?.name} to full HP (${mendCost(runState)} Essence)`}
+              >
+                Mend
+                <span className="hw-cost-inline">
+                  <CardGlyph name="spark" className="hw-intent-glyph" />
+                  {mendCost(runState)}
+                </span>
+              </button>
+            )}
             {commanderBentRole && (
               <span className="hw-badge hw-badge--bent" title={`Bent to ${commanderBentRole}`}>
                 Bent: {commanderBentRole}
