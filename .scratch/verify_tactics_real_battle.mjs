@@ -29,7 +29,7 @@ import { mkdir } from "node:fs/promises"
 // prototype.mjs's own real-matchup checks (55-67) already established.
 
 const PORT = process.env.PORT || 5429
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS/.claude/worktrees/agent-a7338e5ac40e18a88/.scratch/shots"
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-sprint1/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
