@@ -135,7 +135,7 @@ import { mkdir } from "node:fs/promises"
 // the actual rendered UI exactly the way Marc would click through it.
 
 const PORT = process.env.PORT || 5429
-const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-default/.scratch/shots"
+const SHOT = "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-feel/.scratch/shots"
 await mkdir(SHOT, { recursive: true })
 
 const browser = await chromium.launch()
@@ -2499,13 +2499,13 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   let oxlintOk = false
   let nodeCheckOk = false
   try {
-    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-default", stdio: "pipe" })
+    execSync("npx oxlint src/", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-feel", stdio: "pipe" })
     oxlintOk = true
   } catch (e) {
     out.oxlintOutput = String(e.stdout || e.message).slice(0, 2000)
   }
   try {
-    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-default", stdio: "pipe" })
+    execSync("node --check src/services/heartwood/tacticsEngine.js", { cwd: "/home/marc/Wood-Booster-AI/Wood-Booster-OS-tactics-feel", stdio: "pipe" })
     nodeCheckOk = true
   } catch (e) {
     out.nodeCheckOutput = String(e.stdout || e.message).slice(0, 2000)
@@ -8638,6 +8638,104 @@ const SPIRIT_SHIFT_FIXTURE = `
     result.btnText.includes("Opening Strike") && result.enabledBefore && !result.enabledAfter &&
     result.status === "Used this battle" && result.surging > 0 && result.surging === result.playerTokens && result.logHas
   if (!ok) out.errors.push("check230 the Active Power panel did not render/fire correctly on the prototype page")
+}
+
+// ---- Battle feel round ----------------------------------------------
+// 231. The engine's event feed: an attack emits a "strike" then its
+//      "damage" (amount/fell), seq rises monotonically, the feed is
+//      capped at 80, and a rejected action emits nothing ------------
+{
+  const page231 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page231.on("pageerror", (e) => errs.push(String(e)))
+  await page231.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page231.waitForSelector(".hwt-board")
+  const result = await page231.evaluate(async () => {
+    const { attackUnit } = await import("/src/services/heartwood/tacticsEngine.js")
+    const mk = (defHp) => ({
+      grid: { rows: 9, cols: 12 }, terrain: {}, phase: "player", turn: 1, log: [],
+      units: [
+        { id: "atk", side: "player", name: "Atk", pos: { row: 4, col: 6 }, hp: 50, maxHp: 50, range: 1, attack: 10, ap: 2, block: 0, facing: "W" },
+        { id: "def", side: "enemy", name: "Def", pos: { row: 4, col: 5 }, hp: defHp, maxHp: 100, range: 1, attack: 0, ap: 2, block: 3, facing: "E" },
+      ],
+    })
+    const after = attackUnit(mk(100), "atk", "def")
+    const kill = attackUnit(mk(5), "atk", "def")
+    const rejected = attackUnit({ ...mk(100), phase: "enemy" }, "atk", "def")
+    // Cap: 100 attacks' worth of events on a big-HP target.
+    let s = { ...mk(100000) }
+    for (let i = 0; i < 60; i++) s = attackUnit({ ...s, units: s.units.map((u) => (u.id === "atk" ? { ...u, ap: 2 } : u)) }, "atk", "def")
+    return {
+      kinds: after.events.map((e) => e.kind),
+      strike: after.events[0],
+      damage: after.events[1],
+      seqs: after.events.map((e) => e.seq),
+      killDamage: kill.events.find((e) => e.kind === "damage"),
+      rejectedSame: rejected === rejected && !rejected.events,
+      capLen: s.events.length,
+      capLastSeq: s.eventSeq,
+    }
+  })
+  await page231.close()
+  out.fxEngineEvents = result
+  const ok =
+    result.kinds.join(",") === "strike,damage" &&
+    result.strike.actorId === "atk" && result.strike.targetId === "def" && result.strike.ranged === false &&
+    result.damage.targetId === "def" && result.damage.amount === 7 && result.damage.absorbed === 3 && result.damage.fell === false &&
+    result.seqs[0] === 1 && result.seqs[1] === 2 &&
+    result.killDamage.fell === true &&
+    result.rejectedSame &&
+    result.capLen === 80 && result.capLastSeq === 120
+  if (!ok) out.errors.push("check231 the engine's battle event feed (strike/damage/seq/cap) is wrong")
+}
+
+// 232. Every reaction/defence narrates itself in the feed: Ward,
+//      Intercept, a Sidestep dodge, Spirit Shift, Retreat Step, a heal
+//      ability, and the Commander's Active Power ----------------------
+{
+  const page232 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+  page232.on("pageerror", (e) => errs.push(String(e)))
+  await page232.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  await page232.waitForSelector(".hwt-board")
+  const result = await page232.evaluate(async () => {
+    const { attackUnit, castAbility, activateCommanderPower, createTacticsBattle, deterministicRoll } = await import("/src/services/heartwood/tacticsEngine.js")
+    const grid = { rows: 9, cols: 12 }
+    const base = { ap: 2, apMax: 2, block: 0, facing: "W", suppressed: 0 }
+    const st = (units) => ({ grid, terrain: {}, phase: "enemy", turn: 3, log: [], units })
+    const atk = (over = {}) => ({ ...base, id: "atk", side: "enemy", name: "Atk", pos: { row: 4, col: 5 }, hp: 100, maxHp: 100, range: 1, attack: 10, facing: "E", ...over })
+    const def = (over = {}) => ({ ...base, id: "def", side: "player", name: "Def", pos: { row: 4, col: 6 }, hp: 100, maxHp: 100, range: 1, attack: 0, ...over })
+    const labels = (s) => (s.events || []).filter((e) => e.kind === "reaction").map((e) => e.label)
+    const ward = attackUnit(st([def({ ward: 1 }), atk()]), "atk", "def")
+    const intercept = attackUnit(st([def(), atk(), { ...base, id: "g", side: "player", name: "G", pos: { row: 3, col: 6 }, hp: 50, maxHp: 50, range: 1, attack: 0, className: "Guardian" }]), "atk", "def")
+    let dodgeTurn = 1
+    while (deterministicRoll(dodgeTurn, "def:sidestep") >= 0.5) dodgeTurn++
+    const dodge = attackUnit({ ...st([def({ nimble: true }), atk({ pos: { row: 4, col: 3 }, range: 3 })]), turn: dodgeTurn }, "atk", "def")
+    const shift = attackUnit(st([def({ spiritbound: true }), atk(), { ...base, id: "sp", side: "player", name: "Sp", pos: { row: 4, col: 8 }, hp: 30, maxHp: 30, range: 1, attack: 0, isSpirit: true }]), "atk", "def")
+    const retreat = attackUnit(st([def({ wary: true, maxHp: 20, hp: 20 }), atk()]), "atk", "def")
+    const tb = createTacticsBattle("default")
+    const fool = tb.units.find((u) => u.defId === "the-fool")
+    const heal = castAbility({ ...tb, units: tb.units.map((u) => (u.id === fool.id ? { ...u, hp: u.hp - 10 } : u)) }, fool.id, fool.id)
+    const power = activateCommanderPower(tb)
+    return {
+      ward: ward.events.map((e) => e.kind),
+      intercept: labels(intercept),
+      dodge: labels(dodge),
+      shift: labels(shift),
+      retreat: labels(retreat),
+      heal: heal.events.find((e) => e.kind === "heal"),
+      power: power.events.find((e) => e.kind === "power"),
+    }
+  })
+  await page232.close()
+  out.fxReactionEvents = result
+  const ok =
+    result.ward.join(",") === "strike,ward" &&
+    result.intercept.includes("Intercept!") &&
+    result.dodge.includes("Dodged!") &&
+    result.shift.includes("Spirit Shift!") &&
+    result.retreat.includes("Retreat!") &&
+    result.heal && result.heal.amount === 5 &&
+    result.power && result.power.label === "Opening Strike!"
+  if (!ok) out.errors.push("check232 a reaction/defence/heal/power did not appear in the battle event feed")
 }
 
 console.log(JSON.stringify(out, null, 2))

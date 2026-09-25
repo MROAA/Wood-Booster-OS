@@ -12,7 +12,7 @@
 // for a real fight). This component only decides WHAT to render and WHICH
 // pure tacticsEngine.js function a click should call - it dispatches the
 // result via `onBattleChange`, never holds the battle itself.
-import { useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
 import { kingAdjacent } from "../../services/heartwood/targeting"
 import {
@@ -33,6 +33,7 @@ import {
   flankRole,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
+import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
 
 function apPips(unit) {
   return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
@@ -59,6 +60,23 @@ export default function TacticsBoard({
   children,
 }) {
   const selected = battle.units.find((u) => u.id === selectedId) || null
+  // Battle feel round: a unit that just fell stays on its tile, faded,
+  // for a moment - so its killing blow (replayed by TacticsFx) lands on
+  // something visible instead of an already-empty cell.
+  const [fallenIds, setFallenIds] = useState(() => new Set())
+  const prevHpRef = useRef(null)
+  useEffect(() => {
+    const prev = prevHpRef.current
+    prevHpRef.current = new Map(battle.units.map((u) => [u.id, u.hp]))
+    if (!prev) return undefined
+    const newlyFallen = battle.units.filter((u) => u.hp <= 0 && (prev.get(u.id) || 0) > 0).map((u) => u.id)
+    if (!newlyFallen.length) return undefined
+    setFallenIds((cur) => new Set([...cur, ...newlyFallen]))
+    const timer = setTimeout(() => {
+      setFallenIds((cur) => new Set([...cur].filter((id) => !newlyFallen.includes(id))))
+    }, FALLEN_LINGER_MS)
+    return () => clearTimeout(timer)
+  }, [battle])
   const reachable = useMemo(
     () => (selected && selected.ap > 0 && !abilityMode && battle.phase === "player" ? reachableTilesFor(battle, selected.id) : []),
     [battle, selected, abilityMode],
@@ -137,6 +155,7 @@ export default function TacticsBoard({
   const thornCells = useMemo(() => (battle.phase === "player" ? thornZoneCells(battle, "enemy") : new Set()), [battle])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
+  const fallenHere = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp <= 0 && fallenIds.has(u.id))
   const isReachable = (row, col) => reachable.some((p) => p.row === row && p.col === col)
   // A cell's own terrain type - an omitted entry (every pre-terrain
   // formation, and every cell not named in a formation's own terrain
@@ -173,7 +192,7 @@ export default function TacticsBoard({
       return
     }
     const occupant = cellUnit(row, col)
-    if (occupant && occupant.side === "player" && occupant.ap > 0) {
+    if (occupant && occupant.hp > 0 && occupant.side === "player" && occupant.ap > 0) {
       onSelectedIdChange(occupant.id)
     } else {
       onSelectedIdChange(null)
@@ -236,6 +255,12 @@ export default function TacticsBoard({
           data-thorn-zone={thornZone}
           onClick={() => handleCellClick(row, col)}
         >
+          {!unit && fallenHere(row, col) && (
+            <div className="hwt-token-fallen" data-unit-id={fallenHere(row, col).id} data-side={fallenHere(row, col).side}>
+              <CardGlyph name={fallenHere(row, col).art} className="hwt-token-glyph" />
+              <span className="hwt-token-name">{fallenHere(row, col).name}</span>
+            </div>
+          )}
           {unit && (
             <motion.div
               layout
@@ -243,11 +268,12 @@ export default function TacticsBoard({
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
               className="hwt-token"
               data-side={unit.side}
-              data-selectable={unit.side === "player" && battle.phase === "player"}
+              data-selectable={unit.side === "player" && unit.hp > 0 && battle.phase === "player"}
               data-selected={unit.id === selectedId}
               data-acted={unit.ap <= 0}
               data-power-surge={unit.side === "player" && battle.activePower?.used && battle.activePower.firedTurn === battle.turn}
               data-spirit={!!unit.isSpirit}
+              data-unit-id={unit.id}
             >
               <div className="hwt-token-status">
                 {unit.id === "player-commander" && (
@@ -486,6 +512,8 @@ export default function TacticsBoard({
           {children}
         </div>
       </div>
+
+      <TacticsFx battle={battle} />
 
       {(battle.phase === "won" || battle.phase === "lost") && (
         <div className="hwt-result">
