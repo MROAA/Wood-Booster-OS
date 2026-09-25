@@ -506,6 +506,10 @@
   color: var(--hw-ember);
   box-shadow: 0 0 6px color-mix(in srgb, var(--hw-ember) 60%, transparent);
 }
+.hwt-intent-badge[data-intent="stunned"] {
+  color: var(--hw-rune);
+  opacity: 0.85;
+}
 .hwt-intent-icon {
   width: 9px;
   height: 9px;

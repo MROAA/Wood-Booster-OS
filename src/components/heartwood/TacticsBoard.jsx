@@ -463,6 +463,11 @@ export default function TacticsBoard({
                     ✺
                   </span>
                 )}
+                {intent && intent.kind === "stunned" && (
+                  <span className="hwt-intent-badge" data-intent="stunned" title="Stunned - will skip its next turn">
+                    ✦
+                  </span>
+                )}
               </div>
               <span className="hwt-token-name">{unit.name}</span>
               <div className="hwt-hp-track">
