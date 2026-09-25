@@ -26,18 +26,18 @@ export const CINEMATICS = {
     id: "intro",
     fade: "black",
     lines: [
-      { speaker: "The forest", tone: "whisper", line: "Wake up... The roots know you..." },
+      { speaker: "The forest", tone: "whisper", line: "Psst...Wake up... " },
       {
         speaker: "Spacemonkey",
-        line: "Don't mind that. The forest talks to every newcomer. Or... well. Not every one. Only the ones that matter.",
+        line: "Don't be alarmed. The forest talks to every newcomer. Or... well. Not every one, but it does speak to you in ways you might not even realize.",
       },
       {
         speaker: "Spacemonkey",
-        line: "Here. Keep this. It's a Seed. It isn't a magic item. It's... a promise.",
+        line: "Here. Keep this. It's a Seed. It isn't a magic item. It's... a promise. Promise of life.",
       },
       {
         speaker: "Sapling Spirit",
-        line: "You hear us, don't you. The roots aren't ours anymore. Something is spreading up from below. Something is waking.",
+        line: "You hear us, don't you. The roots aren't ours anymore. Something is spreading up from below. Something is waking, I can hear it stir.",
       },
       { speaker: "The forest", tone: "whisper", line: "Don't let it grow." },
     ],

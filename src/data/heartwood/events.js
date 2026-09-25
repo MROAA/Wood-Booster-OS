@@ -60,7 +60,7 @@ export const EVENTS = [
       },
       {
         label: "Leave an offering of your own.",
-        result: "You set a coin in the bowl and bow your head. Something in the woods goes quiet, then lets you pass. Your squad walks the road ahead a little lighter, and keeps walking that way.",
+        result: "You set a coin in the bowl and bow your head. Something in the woods goes quiet, then lets you pass. Your squad walks the road ahead a little lighter.",
         effects: [{ essence: -25 }, { boon: "veil-lucid" }],
       },
       {
@@ -77,18 +77,18 @@ export const EVENTS = [
     body: "A great oak stands split open down one side, its heartwood gone black and soft. Cold air breathes out of the gap, steady as a sleeping animal. Something pale is wedged deep in the rot.",
     choices: [
       {
-        label: "Reach in and take it.",
-        result: "Your fingers close on a smooth cold thing and pull it free. The tree groans. Whatever it was, it's yours now - and so is the chill that came with it, and the sense of being watched from somewhere deep.",
+        label: "Take the coins.",
+        result: "You pocket the coins.",
         effects: [{ relic: "random" }, { bane: "hollow-marked" }],
       },
       {
-        label: "Seal the gap with bark and clay.",
-        result: "You patch the wound as best you can. The breathing slows. You don't know if you helped the tree or only muffled it, but the forest seems to mark it.",
+        label: "Leave an offering of your own.",
+        result: "You set a coin in the bowl and bow your head. Something in the woods goes quiet, then lets you pass. Your squad walks the road ahead a little lighter.",
         effects: [{ flag: "sealed_hollow_tree" }, { essence: 20 }],
       },
       {
-        label: "Back away.",
-        result: "You give the tree a wide berth. The cold follows you for a while, then loses interest.",
+        label: "Walk on.",
+        result: "You leave the shrine as you found it.",
         effects: [],
       },
     ],
@@ -100,18 +100,18 @@ export const EVENTS = [
     body: "A woman is caught to the knee in a snare of living root, and has been for a while by the look of her. She isn't panicking. \"They pull tighter if you fight them,\" she says. \"Cut me loose and I'll pay what I can.\"",
     choices: [
       {
-        label: "Cut her loose.",
-        result: "The roots part under your blade with a wet snap. She presses a handful of coins and a charm into your hands and is gone into the trees before you can answer.",
-        effects: [{ essence: 40 }, { item: "random" }],
+        label: "Take the coins.",
+        result: "You pocket the coins.",
+        effects: [{ essence: 60 }, { item: "random" }],
       },
       {
-        label: "Cut her loose, take nothing.",
-        result: "\"You're the first honest thing I've met out here in a week,\" she says, and tells you where a fighter is holed up who owes her a favour - and puts the word out that you're worth dealing straight with.",
-        effects: [{ unit: "random-common" }, { boon: "forager-friend" }],
+        label: "Leave an offering of your own.",
+        result: "You set a coin in the bowl and bow your head. Something in the woods goes quiet, then lets you pass. Your squad walks the road ahead a little lighter.",
+        effects: [{ unit: "random-common" }, { boon: "veil-lucid" }],
       },
       {
-        label: "Leave her. The roots know their own.",
-        result: "You walk past. She doesn't call after you. That, somehow, is worse.",
+        label: "Walk on.",
+        result: "You leave the shrine as you found it.",
         effects: [{ flag: "left_the_forager" }],
       },
     ],
@@ -120,21 +120,21 @@ export const EVENTS = [
     id: "the-first-milestone",
     act: 1,
     title: "The First Milestone",
-    body: "A stone the height of a child stands beside the path, older than the trees around it. Names are cut into it - hundreds, in a dozen hands, going back further than the letters you know. Every one has a small mark scratched through it.",
+    body: "A stone the height of a child stands beside the path, older than the trees around it. Names are cut into it - hundreds, in a dozen hands, going back further than the letters you know. ",
     choices: [
       {
-        label: "Add your own name.",
-        result: "You cut it in below the last. It feels like a promise, or a dare. Either way, the road ahead is yours to walk now, and your squad walks it with you like they mean it.",
+        label: "Take the coins.",
+        result: "You pocket the coins.",
         effects: [{ boon: "milestone-oath" }],
       },
       {
-        label: "Scratch through a name, the old custom.",
-        result: "You draw your blade across a name at random, the way the others did. Somewhere a debt is settled that was never yours. A weight you didn't know you carried lifts.",
-        effects: [{ essence: 35 }, { flag: "kept_the_custom" }],
+        label: "Leave an offering of your own.",
+        result: "You set a coin in the bowl and bow your head. Something in the woods goes quiet, then lets you pass. Your squad walks the road ahead a little lighter.",
+        effects: [{ essence: -25 }, { flag: "kept_the_custom" }],
       },
       {
-        label: "Leave the stone alone.",
-        result: "It isn't yours to write on yet.",
+        label: "Walk on.",
+        result: "You leave the shrine as you found it.",
         effects: [],
       },
     ],
@@ -143,16 +143,16 @@ export const EVENTS = [
     id: "the-snare-line",
     act: 1,
     title: "The Snare Line",
-    body: "The path runs through a stretch where every third tree has a rope-and-branch snare rigged in it, all sprung, all empty, all old. Someone hunted here hard, once, and then stopped. One snare still holds a scrap of bright cloth.",
+    body: "The path runs through a stretch where every third tree has a rope-and-branch snare rigged in it, all sprung, all empty, all old. Someone hunted here once, and then stopped. One snare still holds a scrap of bright cloth.",
     choices: [
       {
-        label: "Re-set a snare, take the cloth.",
-        result: "The cloth is good wool, dyed with something that hasn't faded. You tie it to your pack. You'll be back this way, maybe, and a set snare feeds whoever finds it.",
+        label: "Take the coins.",
+        result: "You pocket the coins.",
         effects: [{ item: "random" }],
       },
       {
-        label: "Cut every line down.",
-        result: "It takes an hour and it costs you daylight, but nothing living will strangle in the dark here now. Your squad works the tired stretch after in a grim, decent silence.",
+        label: "Leave an offering of your own.",
+        result: "You set a coin in the bowl and bow your head. Something in the woods goes quiet, then lets you pass. Your squad walks the road ahead a little lighter.",
         effects: [{ squadNextBattle: [{ type: "applyBuff", id: "weak", amount: 1 }] }, { essence: 25 }, { flag: "cleared_the_snares" }],
       },
     ],
@@ -166,13 +166,13 @@ export const EVENTS = [
     body: "The little astronaut is sitting on a stump when you arrive, helmet off, turning a black splinter of wood over in his gloved hands. \"You've been finding these,\" he says. It isn't a question. \"There's a name for what's leaking up through the roots. I'd rather not say it out loud this close to it.\"",
     choices: [
       {
-        label: "\"Say it anyway.\"",
-        result: "\"Hollow King,\" he says, very quietly, and the forest doesn't react at all, which is the part that frightens him. He hands you the splinter. \"Keep it. Know your enemy.\"",
+        label: "Mend the ritual.",
+        result: "\"Thank you,\" the Sapling Spirit says. \"The forest breathes a little easier.\" The green around the roots holds, and widens by a pace as you work. The way ahead feels less like enemy ground.",
         effects: [{ flag: "heard_the_name" }, { relic: "random" }],
       },
       {
-        label: "\"Then don't. Just tell me what to do.\"",
-        result: "\"Hit hard, hit first, don't let a fight go long.\" He tightens a strap on your pack, and presses a pinch of something that smells of struck flint into your palm. \"The longer you're out here, the more it learns you.\"",
+        label: "Feed the ritual.",
+        result: "\"Power,\" the spirit says, it corrupts.  Dangerous power. The roots will remember this.\" Something a long way underground shifts, and settles heavier than it was.",
         effects: [{ boon: "emberfed" }],
       },
     ],
@@ -184,18 +184,18 @@ export const EVENTS = [
     body: "A pool sits in a ring of white stones, so still it looks solid. Your reflection is a half-second slow to move when you do. Down in the dark water, something that is almost your face looks back up and waits.",
     choices: [
       {
-        label: "Drink.",
-        result: "The water is colder than ice and tastes of iron and old rain. For a moment you see the forest the way it was - green all the way down. Then it's gone, and you feel steadier for having seen it - and stay that way.",
+        label: "Mend the ritual.",
+        result: "\"Thank you,\" the Sapling Spirit says. \"The forest breathes a little easier.\" The green around the roots holds, and widens by a pace as you work. The way ahead feels less like enemy ground.",
         effects: [{ boon: "rootblessed" }, { essence: -20 }],
       },
       {
-        label: "Look closer at the reflection.",
-        result: "You lean out over the water. The other face leans back. Its mouth moves - a word you can't hear - and then it's just you again, and you're holding something you didn't have before, and hearing a faint hum you can't stop hearing.",
+        label: "Feed the ritual.",
+        result: "\"Power,\" the spirit says, it corrupts.  Dangerous power. The roots will remember this.\" Something a long way underground shifts, and settles heavier than it was.",
         effects: [{ relic: "random" }, { bane: "veil-touched" }],
       },
       {
-        label: "Skirt the pool.",
-        result: "You keep the white stones at your back until the pool is out of sight.",
+        label: "Leave it be.",
+        result: "\"...Silence is a choice too,\" the spirit says, and says nothing else. You step around the roots and walk on. Behind you the forest stays exactly as restless as you found it.",
         effects: [],
       },
     ],
@@ -207,18 +207,18 @@ export const EVENTS = [
     body: "A dozen young trees stand in a loose ring, and every one of them has leaned in slightly, as if toward a speaker at the centre. There's nothing at the centre. When you stop walking, the leaves go still all at once, like held breath.",
     choices: [
       {
-        label: "Speak to them.",
-        result: "You say your name, and where you're going, and why. The trees don't move. But from here on, somewhere ahead of you on the path, things that might have gone badly simply don't, quite.",
+        label: "Mend the ritual.",
+        result: "\"Thank you,\" the Sapling Spirit says. \"The forest breathes a little easier.\" The green around the roots holds, and widens by a pace as you work. The way ahead feels less like enemy ground.",
         effects: [{ boon: "grove-warded" }, { flag: "spoke_to_the_grove" }],
       },
       {
-        label: "Listen with them.",
-        result: "You stand in the ring and strain to hear what they hear. Right at the edge of it, under everything - a voice. One word, over and over. You leave before you can make it out, and you're glad you did.",
+        label: "Feed the ritual.",
+        result: "\"Power,\" the spirit says, it corrupts.  Dangerous power. The roots will remember this.\" Something a long way underground shifts, and settles heavier than it was.",
         effects: [{ flag: "heard_the_grove_voice" }, { essence: 30 }],
       },
       {
-        label: "Leave the grove to its listening.",
-        result: "You step back out of the ring. The leaves start moving again the moment you do.",
+        label: "Leave it be.",
+        result: "\"...Silence is a choice too,\" the spirit says, and says nothing else. You step around the roots and walk on. Behind you the forest stays exactly as restless as you found it.",
         effects: [],
       },
     ],
@@ -252,16 +252,16 @@ export const EVENTS = [
     id: "veil-fragment",
     act: 3,
     title: "A Fragment of the Veil",
-    body: "A shard of something hangs in the air at head height, turning slowly, throwing no shadow. It isn't glass and it isn't ice. Looking at it too long makes the back of your skull ache. It is very clearly not from this forest, or this anything.",
+    body: "A shard of something hangs in the air at head height, turning slowly, throwing no shadow. It isn't glass and it isn't ice. Looking at it too long makes the back of your skull ache. It is very clearly not from this forest, or this anything really.",
     choices: [
       {
-        label: "Take it.",
-        result: "It weighs nothing and it weighs everything. Your squad will carry its hum into the next fight - louder, sharper, harder to hold onto.",
+        label: "Side with Flame.",
+        result: "The flame-elementals close around your squad, warm and impatient. From here on your strikes carry a spark that keeps burning after they land.",
         effects: [{ relic: "random" }, { squadNextBattle: [{ type: "applyBuff", id: "strength", amount: 2 }, { type: "applyBuff", id: "vulnerable", amount: 1 }] }],
       },
       {
-        label: "Shatter it.",
-        result: "It breaks with a sound like a held breath let go. The ache stops. The forest, for a hundred paces in every direction, seems to exhale with you.",
+        label: "Side with Tide.",
+        result: "The tide-elementals move through your squad like a held breath. From here on the first blow of every round finds nothing where your fighters were.",
         effects: [{ flag: "broke_a_fragment" }, { essence: 40 }],
       },
     ],
@@ -273,18 +273,18 @@ export const EVENTS = [
     body: "A man in the burned remains of a scholar's coat is sitting with his back to a tree, notebooks spread around him in the mud, most of the pages blank. \"I was on the expedition,\" he says, without looking up. \"We opened it. We thought we were opening a door. I can tell you what's on the other side, if you're sure you want to carry that.\"",
     choices: [
       {
-        label: "\"Tell me.\"",
-        result: "He talks for a long time. Most of it you can't hold onto - it slides off the mind like water off glass. But one shape stays: a figure that was a person once, and chose not to be. You walk on knowing more, and lighter for none of it.",
+        label: "Side with Flame.",
+        result: "The flame-elementals close around your squad, warm and impatient. From here on your strikes carry a spark that keeps burning after they land.",
         effects: [{ flag: "knows_the_veil" }, { relic: "random" }],
       },
       {
-        label: "\"Come with us. You shouldn't be alone out here.\"",
-        result: "He shakes his head, but he stands, and he picks up a broken branch, and he walks a little behind your squad from then on. He isn't much of a fighter. He's another set of eyes.",
+        label: "Side with Tide.",
+        result: "The tide-elementals move through your squad like a held breath. From here on the first blow of every round finds nothing where your fighters were.",
         effects: [{ unit: "random-common" }],
       },
       {
-        label: "Leave him to his notebooks.",
-        result: "\"Yes,\" he agrees. \"That's the sensible one.\" He's still writing when you lose sight of him.",
+        label: "Side with Stone.",
+        result: "The stone-elementals settle around your squad and do not move again. From here on your fighters carry a sliver of that stillness as armour into every round.",
         effects: [{ essence: 30 }],
       },
     ],
@@ -297,13 +297,13 @@ export const EVENTS = [
     body: "You've been saying it in your head since Spacemonkey told you - Hollow King, Hollow King - and now the forest is saying it back. Not in words. In the way the corruption leans toward you at every turn now, like it's finally noticed you noticing it.",
     choices: [
       {
-        label: "Say it out loud, right here, and mean it.",
-        result: "\"Hollow King.\" The word lands flat and cold. For a heartbeat every corrupted thing in earshot goes rigid - and then comes for you, all at once, harder than before. You've stopped flinching from it. But it's in your head now, and it doesn't leave.",
+        label: "Side with Flame.",
+        result: "The flame-elementals close around your squad, warm and impatient. From here on your strikes carry a spark that keeps burning after they land.",
         effects: [{ bane: "name-burden" }, { flag: "named_it_aloud" }],
       },
       {
-        label: "Stop thinking the name. Push it down.",
-        result: "You spend the next mile counting your steps, naming trees, anything else. Slowly the forest loses interest again. Whatever the name is, it's a door that opens both ways.",
+        label: "Side with Tide.",
+        result: "The tide-elementals move through your squad like a held breath. From here on the first blow of every round finds nothing where your fighters were.",
         effects: [{ essence: 40 }],
       },
     ],
@@ -313,16 +313,16 @@ export const EVENTS = [
     act: 3,
     requiresFlag: "sealed_hollow_tree",
     title: "The Tree You Sealed",
-    body: "You know this oak. You patched its black wound with bark and clay a long way back, in another Act, and told yourself you'd done something. The patch has held. Around it, in a clean circle ten paces wide, the forest is green - actually green - for the first time since you came in.",
+    body: "You know this oak. You patched its black wound with bark and clay a long way back, and told yourself you'd done something. The patch has held. Around it, in a clean circle ten paces wide, the forest is green - actually green - for the first time since you came in.",
     choices: [
       {
-        label: "Rest a while in the green circle.",
-        result: "Your squad sits in real grass under real leaves and, for as long as it lasts, remembers what they're fighting to get back. They stand up steadier than they sat down.",
+        label: "Side with Flame.",
+        result: "The flame-elementals close around your squad, warm and impatient. From here on your strikes carry a spark that keeps burning after they land.",
         effects: [{ squadNextBattle: [{ type: "applyBuff", id: "regen", amount: 3 }, { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 1 } }] }],
       },
       {
-        label: "Reinforce the seal while it holds.",
-        result: "You pack fresh clay over the old, thicker this time. The green circle widens by a pace as you work. It's slow. It's almost nothing. It's not nothing.",
+        label: "Side with Tide.",
+        result: "The tide-elementals move through your squad like a held breath. From here on the first blow of every round finds nothing where your fighters were.",
         effects: [{ essence: -20 }, { flag: "reinforced_the_seal" }, { relic: "random" }],
       },
     ],

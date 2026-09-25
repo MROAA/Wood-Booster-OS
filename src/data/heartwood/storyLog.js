@@ -42,7 +42,7 @@ export const FLAG_LABELS = {
   left_the_chained: { act: 3, text: "You left the chained figure where it was." },
   broke_a_fragment: { act: 3, text: "You shattered a fragment of the Veil." },
   knows_the_veil: { act: 3, text: "The burned researcher told you what waits beyond the Veil." },
-  named_it_aloud: { act: 3, text: "You said the Hollow King's name out loud, and meant it." },
+  named_it_aloud: { act: 3, text: "You said the Hollow King's name out loud." },
   reinforced_the_seal: { act: 3, text: "You went back and reinforced the seal on the hollow tree." },
   faced_the_crownless: { act: 4, text: "You met the Crownless in a vision, and did not look away." },
   left_the_throne_road: { act: 4, text: "You left the Throne Road and came at the end from an angle it never expected." },
