@@ -33,6 +33,7 @@ import {
   flankRole,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
+import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
 import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
 
 function apPips(unit) {
@@ -44,6 +45,32 @@ function apPips(unit) {
 // being active), since facing is a permanent property of every unit,
 // the same "always shown" category the AP-pips indicator already is.
 const FACING_ARROW = { N: "↑", S: "↓", E: "→", W: "←" }
+
+// Look & feel round: a token shows the unit's real portrait when it has
+// one. Every enemy def currently points at the same shared placeholder
+// SVG - showing that on every enemy would read as "all the same monster",
+// so those keep their own distinct CardGlyph line art instead. (Compared
+// against the imported URL itself - Vite inlines small SVGs as data URIs,
+// so a filename check would miss it.)
+function portraitOf(unit) {
+  if (!unit?.image || unit.image === enemyPlaceholderImg) return null
+  return unit.image
+}
+
+// Portrait (or glyph fallback) - shared by the live token, the fading
+// fallen-unit ghost and the panel's selected-unit card.
+function TokenArt({ unit }) {
+  const src = portraitOf(unit)
+  return (
+    <div className="hwt-token-art" data-has-image={!!src}>
+      {src ? (
+        <img className="hwt-token-img" src={src} alt="" draggable={false} />
+      ) : (
+        <CardGlyph name={unit.art} className="hwt-token-glyph" />
+      )}
+    </div>
+  )
+}
 
 function getUnitName(battle, id) {
   return battle.units.find((u) => u.id === id)?.name || "?"
@@ -257,7 +284,7 @@ export default function TacticsBoard({
         >
           {!unit && fallenHere(row, col) && (
             <div className="hwt-token-fallen" data-unit-id={fallenHere(row, col).id} data-side={fallenHere(row, col).side}>
-              <CardGlyph name={fallenHere(row, col).art} className="hwt-token-glyph" />
+              <TokenArt unit={fallenHere(row, col)} />
               <span className="hwt-token-name">{fallenHere(row, col).name}</span>
             </div>
           )}
@@ -275,6 +302,7 @@ export default function TacticsBoard({
               data-spirit={!!unit.isSpirit}
               data-unit-id={unit.id}
             >
+              <TokenArt unit={unit} />
               <div className="hwt-token-status">
                 {unit.id === "player-commander" && (
                   <span className="hwt-commander-badge" title={`${unit.name} - your Commander`}>
@@ -312,7 +340,7 @@ export default function TacticsBoard({
                 <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
                   {apPips(unit)}
                 </span>
-                <span className="hwt-facing-badge" title={`Facing ${unit.facing} - attacked from the side (+10%) or behind (+25%) takes more damage`}>
+                <span className="hwt-facing-badge" data-facing={unit.facing} title={`Facing ${unit.facing} - attacked from the side (+10%) or behind (+25%) takes more damage`}>
                   {FACING_ARROW[unit.facing]}
                 </span>
                 {unit.block > 0 && (
@@ -431,11 +459,21 @@ export default function TacticsBoard({
                   </span>
                 )}
               </div>
-              <CardGlyph name={unit.art} className="hwt-token-glyph" />
               <span className="hwt-token-name">{unit.name}</span>
               <div className="hwt-hp-track">
                 <div className="hwt-hp-fill" style={{ width: `${Math.max(0, Math.round((unit.hp / unit.maxHp) * 100))}%` }} />
               </div>
+              <span
+                className="hwt-atk-gem"
+                data-buffed={unit.attack > unit.baseAttack}
+                data-weak={unit.weak > 0}
+                title={`Attack ${unit.attack}`}
+              >
+                {unit.attack}
+              </span>
+              <span className="hwt-hp-gem" data-hurt={unit.hp < unit.maxHp} title={`${unit.hp}/${unit.maxHp} HP`}>
+                {unit.hp}
+              </span>
             </motion.div>
           )}
         </div>,
@@ -454,13 +492,39 @@ export default function TacticsBoard({
         </div>
 
         <div className="hwt-panel">
-          <div className="hwt-turn-label" data-phase={battle.phase}>
-            {battle.phase === "player" && `Player Turn ${battle.turn}`}
-            {battle.phase === "enemy" && "Enemy Turn"}
-            {battle.phase === "won" && "Victory"}
-            {battle.phase === "lost" && "Defeat"}
+          <div className="hwt-turn-header" data-phase={battle.phase}>
+            <div className="hwt-turn-label" data-phase={battle.phase}>
+              {battle.phase === "player" && `Player Turn ${battle.turn}`}
+              {battle.phase === "enemy" && "Enemy Turn"}
+              {battle.phase === "won" && "Victory"}
+              {battle.phase === "lost" && "Defeat"}
+            </div>
+            <div className="hwt-turn-sub">
+              {battle.phase === "player" && "Your move"}
+              {battle.phase === "enemy" && "The enemy acts..."}
+              {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
+            </div>
           </div>
-          <button className="hwt-end-turn" onClick={handleEndTurn} disabled={battle.phase !== "player"}>
+          {selected && selected.side === "player" && (
+            <div className="hwt-selected-card">
+              <TokenArt unit={selected} />
+              <div className="hwt-selected-info">
+                <span className="hwt-selected-name">{selected.name}</span>
+                <span className="hwt-selected-stats">
+                  <span data-stat="atk" title="Attack">⚔ {selected.attack}</span>
+                  <span data-stat="hp" title="Health">♥ {selected.hp}/{selected.maxHp}</span>
+                  <span data-stat="move" title="Movement">➤ {selected.move}</span>
+                  <span data-stat="range" title="Attack range">◎ {selected.range}</span>
+                </span>
+              </div>
+            </div>
+          )}
+          <button
+            className="hwt-end-turn"
+            onClick={handleEndTurn}
+            disabled={battle.phase !== "player"}
+            data-ready={battle.phase === "player" && !battle.units.some((u) => u.side === "player" && u.hp > 0 && u.ap > 0)}
+          >
             End Turn
           </button>
           {battle.activePower && (() => {
@@ -503,6 +567,7 @@ export default function TacticsBoard({
               )}
             </div>
           )}
+          <div className="hwt-log-heading">Battle log</div>
           <div className="hwt-log">
             {[...battle.log].reverse().map((line, i) => (
               <p key={i}>{line}</p>
