@@ -22,7 +22,8 @@ import { resolveFormation } from "../../data/heartwood/formations"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { UNITS } from "../../data/heartwood/units"
 import { streamRng } from "../../data/heartwood/seed"
-import { GRID } from "./tacticsEngine"
+import { GRID, createRunTacticsBattle } from "./tacticsEngine"
+import { effectiveUnitDef } from "./autoBattleEngine"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -155,7 +156,10 @@ export function resolveRealMatchup(runState, node) {
     .filter((entry) => entry && UNITS[entry.defId])
     .map((entry) => entry.defId)
 
-  if (!enemyDefIds.length || !squadDefIds.length) return null
+  // Tactics-default round: a Commander-alone deploy (the run's real
+  // opening state - "peli alkaa siitä että commander on yksin") is a
+  // real fight too, since the Commander always deploys as its own unit.
+  if (!enemyDefIds.length || (!squadDefIds.length && !runState.characterId)) return null
 
   return {
     label: formation.name || ENEMIES[enemyDefIds[0]]?.name || "your run's next fight",
@@ -183,4 +187,27 @@ export function loadRealMatchup() {
   const runState = deserializeRun(loadRunSave())
   if (!runState || !PREVIEWABLE_PHASES.has(runState.phase)) return null
   return resolveRealMatchup(runState, runState.path?.[runState.nodeIndex])
+}
+
+// Tactics-default round: runEngine.js's startTacticsFormationBattle hands
+// this the auto-battle's own start state (`start` = { battle, deployed,
+// difficultyFactor }); this turns it into the real tactics fight. Squad
+// units use the SAME upgraded/dual-classed def the auto-battle built them
+// from, the enemy list is the auto-battle's own (Act-corrected, Trial-
+// named) encounter, and terrain is the run's seeded battlefield.
+export function buildRunTacticsBattle(runState, start) {
+  const deployedDefIds = start.deployed.map((e) => e.defId)
+  const squad = start.deployed.map((e) => ({ defId: e.defId, def: effectiveUnitDef(e.defId, e.upgrades || e.upgradeLevel || 0, deployedDefIds) }))
+  const enemyDefIds = start.battle.enemies.map((e) => e.defId).filter((id) => ENEMIES[id])
+  const node = runState.path[runState.nodeIndex]
+  const formation = resolveFormation(node?.formationId || node?.enemyId)
+  return createRunTacticsBattle({
+    squad,
+    enemyDefIds,
+    characterId: runState.characterId,
+    terrain: generateRealTerrain(runState.seed, runState.nodeIndex),
+    autoStart: start.battle,
+    difficultyFactor: start.difficultyFactor,
+    label: start.battle.enemies.length === 1 ? start.battle.enemies[0].name : formation?.name,
+  })
 }

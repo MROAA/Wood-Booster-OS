@@ -983,6 +983,95 @@ export function createRealMatchupBattle(squadDefIds, enemyDefIds, characterId = 
   }
 }
 
+// Tactics-default round (Marc: fights "were still auto-battle" - every
+// real run fight now opens as tactics): builds a real run's battle from
+// the auto-battle's OWN fully-built start state (runEngine.js's
+// autoBattleStartFor), so everything the player earned on the run -
+// relics, items, unit upgrades, a shop-queued Active Power, run
+// modifiers, the Commander's rank-scaled Squad Passive - and the
+// run's difficulty scaling reach this fight with ZERO re-implementation
+// here: each tactics unit is derived as usual (move/range/abilities/
+// portable traits), then its numbers are overlaid from its auto-battle
+// twin. Known limit: effects that act DURING auto-battle rounds (a
+// relic's per-round hook) aren't replayed here - only what's true at
+// the start of the fight carries over.
+//   squad: [{ defId, def }] - def is the upgraded effective def
+//   autoStart: the auto-battle start state ({ playerUnits, enemies })
+const OVERLAID_POWER_IDS = ["ward", "bulwark", "regen", "execute", "shatter", "woundedFury", "taunt", "revive", "weak", "vulnerable"]
+const OVERLAID_TRIGGERS = new Set(["turnStart", "onDealDamage"])
+
+function overlayAutoStart(unit, src, difficultyFactor) {
+  const powers = src.powers || {}
+  const strength = powers.strength || 0
+  // A player unit's derived attack never includes a passive Strength
+  // (deriveTacticsUnit folds passives for enemies only), so the whole
+  // auto Strength stack adds on top. An enemy's derived attack DOES
+  // include its passive Strength, which the auto stack also contains -
+  // so rebuild it from the (difficulty-scaled) pattern instead.
+  const attack =
+    unit.side === "enemy"
+      ? Math.round(attackFromMovePattern(ENEMIES[unit.defId].movePattern) * difficultyFactor) + strength
+      : unit.attack + strength
+  const stats = Object.fromEntries(OVERLAID_POWER_IDS.map((id) => [id, powers[id] || 0]))
+  return {
+    ...unit,
+    ...stats,
+    hp: src.hp,
+    maxHp: src.maxHp,
+    attack,
+    baseAttack: attack,
+    block: src.block || 0,
+    // Enemies keep their own derived triggers (the auto-battle also adds
+    // leech/broodSplit as triggers, which this engine models as fields).
+    triggers:
+      unit.side === "player"
+        ? (src.triggers || []).filter((t) => OVERLAID_TRIGGERS.has(t.trigger)).map((t) => ({ trigger: t.trigger, effect: t.effect }))
+        : unit.triggers,
+  }
+}
+
+function autoTwinFor(unit, autoStart) {
+  if (unit.side === "enemy") return autoStart.enemies[Number(unit.id.split("-").pop())] || null
+  if (unit.id === "player-commander") return autoStart.playerUnits.find((u) => u.id === "commander") || null
+  const summon = unit.id.match(/^player-.*-(\d+)-summon-/)
+  if (summon) return autoStart.playerUnits.find((u) => u.id === `p-summon-p${summon[1]}`) || null
+  return autoStart.playerUnits.find((u) => u.id === `p${Number(unit.id.split("-").pop())}`) || null
+}
+
+export function createRunTacticsBattle({ squad, enemyDefIds, characterId, terrain = {}, autoStart, difficultyFactor = 1, label }) {
+  const character = CHARACTERS[characterId]
+  if (!character || !enemyDefIds.length) return null
+  const playerRows = spreadRows(squad.length + 1, GRID.rows)
+  const enemyRows = spreadRows(enemyDefIds.length, GRID.rows)
+  const units = [
+    ...squad.map(({ defId, def }, i) =>
+      deriveTacticsUnit(defId, "player", { row: playerRows[i], col: GRID.cols - 1 }, `player-${defId}-${i}`, def),
+    ),
+    deriveCommanderUnit(characterId, { row: playerRows[squad.length], col: GRID.cols - 1 }, "player-commander"),
+    ...enemyDefIds.map((defId, i) =>
+      deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
+    ),
+  ]
+  spawnBattleStartSummons(units, GRID)
+  const overlaid = units.map((u) => {
+    const twin = autoTwinFor(u, autoStart)
+    if (!twin) return { ...u, baseAttack: u.attack }
+    // A Trial's story name (runEngine.js's applyTrialName) rides along.
+    const named = u.side === "enemy" && twin.name ? { ...u, name: twin.name } : u
+    return overlayAutoStart(named, twin, difficultyFactor)
+  })
+  return {
+    grid: GRID,
+    terrain,
+    units: overlaid,
+    phase: "player",
+    turn: 1,
+    log: [character.description, `${label || "The fight"}. The Frontier opens. Your turn.`],
+    formationId: null,
+    activePower: activePowerFor(character),
+  }
+}
+
 // A static stat preview of the whole 6-unit roster, for the squad picker's
 // per-slot stat line - zero new derivation logic, reuses deriveTacticsUnit
 // directly (the exact same function a real squad unit goes through), just
@@ -2603,5 +2692,8 @@ export function runEnemyTurn(state) {
 // feature, just lets a verification pass or a quick manual check reach a
 // win/loss without grinding real attack rounds first.
 export function withLowEnemyHp(state) {
-  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp } : u)) }
+  // Tactics-default round: real run fights now carry the auto-battle's
+  // own start state (Ward/Revive stacks, difficulty-scaled damage), so
+  // the QA hook also strips those one-hit shields - still QA-only.
+  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0 } : u)) }
 }
