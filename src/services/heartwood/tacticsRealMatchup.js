@@ -23,6 +23,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { UNITS } from "../../data/heartwood/units"
 import { streamRng } from "../../data/heartwood/seed"
 import { GRID, createRunTacticsBattle } from "./tacticsEngine"
+import { buildTemplateTerrain, pickTemplate, sidesConnected } from "./tacticsTerrain"
 import { effectiveUnitDef } from "./autoBattleEngine"
 import { objectiveForNode, applyObjective } from "./tacticsObjectives"
 
@@ -115,7 +116,7 @@ export function terrainHazardCountForNode(nodeIndex) {
 // tacticsEngine.js itself stays unaware the seed system exists at all;
 // it just receives a plain terrain map, indistinguishable from a
 // hand-authored ENEMY_FORMATIONS one.
-export function generateRealTerrain(seed, nodeIndex) {
+export function generateScatterTerrain(seed, nodeIndex) {
   const rng = streamRng(seed, "combat", `${nodeIndex}:terrain`)
   const terrain = {}
   let placed = 0
@@ -131,6 +132,32 @@ export function generateRealTerrain(seed, nodeIndex) {
     terrain[key] = pickTerrainType(rng(), weights)
     placed++
   }
+  return terrain
+}
+
+// Battlefield sprint: which hand-made-feeling map template a node gets
+// (own seeded salt, so the scatter layer above stays byte-identical).
+export function mapTemplateForNode(seed, nodeIndex) {
+  const rng = streamRng(seed, "combat", `${nodeIndex}:map`)
+  return { template: pickTemplate(rng, actIndexForNode(nodeIndex, RUN_PATH.length)), rng }
+}
+
+// The real battlefield = a seeded map template (river crossing, hill
+// fort, ruined walls, forest glade, frozen ford, ember field) + the
+// Act-scaled scatter layer filling tiles the template left open.
+// Guaranteed crossable: if a scatter tile ever cuts every route
+// (walls/water counted as blocking), scatter blockers are dropped.
+export function generateRealTerrain(seed, nodeIndex) {
+  const { template, rng } = mapTemplateForNode(seed, nodeIndex)
+  const base = buildTemplateTerrain(template, rng, GRID, 3, GRID.cols - 4)
+  const scatter = generateScatterTerrain(seed, nodeIndex)
+  const terrain = { ...base }
+  for (const [key, type] of Object.entries(scatter)) if (!terrain[key]) terrain[key] = type
+  if (sidesConnected(terrain, GRID)) return terrain
+  for (const [key, type] of Object.entries(scatter)) if (!base[key] && type === "water") delete terrain[key]
+  if (sidesConnected(terrain, GRID)) return terrain
+  // Last resort (never seen in 2000-seed sweeps): open every template wall.
+  for (const key of Object.keys(terrain)) if (terrain[key] === "wall") terrain[key] = "rubble"
   return terrain
 }
 
