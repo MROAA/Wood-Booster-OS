@@ -1136,3 +1136,73 @@
 .hwt-begin-battle:active {
   transform: translateY(1px);
 }
+
+/* ---- Battle objectives (sprint 2) ---- */
+.hwt-objective {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 55%, var(--hw-border));
+  background: color-mix(in srgb, var(--hwt-gold) 8%, var(--hw-card));
+}
+.hwt-objective-title {
+  font-weight: 700;
+  color: var(--hwt-gold);
+  font-size: 0.95rem;
+}
+.hwt-objective-detail {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+.hwt-objective-extra {
+  font-size: 0.8rem;
+  margin-top: 4px;
+  color: var(--hw-ember);
+  font-weight: 600;
+}
+.hwt-objective[data-objective="protect"] { border-color: color-mix(in srgb, var(--hw-moss) 60%, var(--hw-border)); }
+.hwt-objective[data-objective="totem"] { border-color: color-mix(in srgb, var(--hw-cosmic) 60%, var(--hw-border)); }
+.hwt-objective[data-objective="survive"] { border-color: color-mix(in srgb, var(--hw-ember) 60%, var(--hw-border)); }
+/* Protect NPC: a green, dashed ring - an ally you can't command. */
+.hwt-token[data-npc="true"] {
+  outline: 2px dashed color-mix(in srgb, var(--hw-moss) 85%, white);
+  outline-offset: -3px;
+}
+.hwt-npc-badge { color: var(--hw-moss); font-weight: 700; }
+/* Totem: a stone-like violet structure with a slow glow. */
+.hwt-token[data-structure="true"] {
+  outline: 2px solid color-mix(in srgb, var(--hw-cosmic) 80%, white);
+  outline-offset: -3px;
+  border-radius: 4px;
+  animation: hwt-totem-glow 2.4s ease-in-out infinite;
+}
+@keyframes hwt-totem-glow {
+  0%, 100% { box-shadow: 0 0 4px color-mix(in srgb, var(--hw-cosmic) 40%, transparent); }
+  50% { box-shadow: 0 0 14px color-mix(in srgb, var(--hw-cosmic) 80%, transparent); }
+}
+.hwt-totem-badge { color: var(--hw-cosmic); font-weight: 700; }
+.hwt-totem-badge[data-imminent="true"] {
+  color: #fff;
+  background: color-mix(in srgb, var(--hw-cosmic) 80%, black) !important;
+}
+/* Reinforcements land here next turn. */
+.hwt-cell[data-reinforce="true"] {
+  border-color: var(--hw-ember);
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-ember) 80%, transparent), inset 0 0 16px color-mix(in srgb, var(--hw-ember) 40%, transparent);
+  animation: hwt-reinforce-blink 1.2s ease-in-out infinite;
+}
+.hwt-cell[data-reinforce="true"]::after {
+  content: "⚑";
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 0.8rem;
+  color: var(--hw-ember);
+  pointer-events: none;
+}
+@keyframes hwt-reinforce-blink {
+  0%, 100% { background-color: color-mix(in srgb, var(--hw-ember) 6%, transparent); }
+  50% { background-color: color-mix(in srgb, var(--hw-ember) 22%, transparent); }
+}
+.hwt-objective-picker { margin-top: 10px; }
+.hwt-formation-summary-objective { margin: 4px 0 0; font-weight: 600; color: var(--hwt-gold, #d4a24c); }

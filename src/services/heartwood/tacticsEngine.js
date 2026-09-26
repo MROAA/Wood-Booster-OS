@@ -29,6 +29,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 import * as relicFx from "./tacticsRelics"
+import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
@@ -1109,11 +1110,11 @@ export function enterDeploy(state) {
 export function placeUnit(state, unitId, pos) {
   if (state.phase !== "deploy") return state
   const unit = getUnit(state, unitId)
-  if (!unit || unit.side !== "player" || unit.hp <= 0) return state
+  if (!unit || unit.side !== "player" || unit.hp <= 0 || unit.npc) return state
   if (!isDeployTile(state, pos)) return state
   if (samePos(unit.pos, pos)) return state
   const occupant = state.units.find((u) => u.hp > 0 && samePos(u.pos, pos))
-  if (occupant && occupant.side !== "player") return state
+  if (occupant && (occupant.side !== "player" || occupant.npc)) return state
   const target = { row: pos.row, col: pos.col }
   return {
     ...state,
@@ -1245,8 +1246,12 @@ export function attackableTargets(state, unitId) {
 
 function checkTacticsBattleEnd(state) {
   if (state.phase === "won" || state.phase === "lost") return state
+  // Battle objectives (tacticsObjectives.js) decide first.
+  const verdict = objectiveVerdict(state)
+  if (verdict) return { ...state, phase: verdict.phase, log: [...state.log, verdict.line] }
   if (livingUnits(state, "enemy").length === 0) return { ...state, phase: "won", log: [...state.log, "Every enemy has fallen. Victory."] }
-  if (livingUnits(state, "player").length === 0) return { ...state, phase: "lost", log: [...state.log, "The squad has fallen."] }
+  // A Protect NPC alone doesn't keep the fight going.
+  if (livingUnits(state, "player").filter((u) => !u.npc).length === 0) return { ...state, phase: "lost", log: [...state.log, "The squad has fallen."] }
   return state
 }
 
@@ -2680,7 +2685,10 @@ function enemyPhaseStart(state) {
   // Relic ticks on enemies (poison/burn) can end the fight here.
   const relicTicked = relicFx.relicTurnStart(regenTicked, "enemy")
   if (relicTicked.phase !== "enemy") return relicTicked
-  return applyTurnStartTriggers(relicTicked, "enemy")
+  const next = applyTurnStartTriggers(relicTicked, "enemy")
+  // Objective: the Totem pulses at the top of the enemy phase - inside
+  // enemyPhaseStart so previewEnemyIntents sees the same pulsed state.
+  return objectiveEnemyPhaseStart(next)
 }
 
 export function endPlayerTurn(state) {
@@ -3327,7 +3335,10 @@ export function runEnemyTurn(state) {
   // here, right after Block just reset to 0 above - the same "reset then
   // re-grant" ordering already established for the enemy side (see
   // endPlayerTurn's own comment on this).
-  const relicTicked = relicFx.relicTurnStart(returnedToPlayer, "player")
+  // Objective: Survive completes / reinforcements arrive.
+  const objTicked = objectiveNewTurn(returnedToPlayer)
+  if (objTicked.phase !== "player") return objTicked
+  const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked
   return applyTurnStartTriggers(relicTicked, "player")
 }
@@ -3344,4 +3355,4 @@ export function withLowEnemyHp(state) {
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
-export { emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood }
+export { deriveTacticsUnit, emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood }
