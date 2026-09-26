@@ -53,8 +53,8 @@ export function objectiveForNode(seed, nodeIndex, nodeType, act) {
   const kindRoll = rng()
   const reinforceRoll = rng()
   const type = special ? ["survive", "protect", "totem"][Math.floor(typeRoll * 3)] : "kill"
-  // Reinforcements modifier on other fight types: from Act II, 10% +5pp/Act.
-  const reinforce = type !== "survive" && act >= 2 && reinforceRoll < 0.05 + 0.05 * act ? { turn: 3, count: act >= 5 ? 2 : 1 } : null
+  // Reinforcements modifier on other fight types: from Act II, 11% +4pp/Act.
+  const reinforce = type !== "survive" && act >= 2 && reinforceRoll < 0.03 + 0.04 * act ? { turn: 3, count: act >= 5 ? 2 : 1 } : null
   return buildObjectiveSpec(type, act, { pulseKind: kindRoll < 0.5 ? "mend" : "blast", reinforce })
 }
 
