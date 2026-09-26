@@ -1096,6 +1096,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hwt-cell[data-skill-zone="release"] { animation: none; }
+}
+
 /* Deployment phase (sprint 2): the player's own 3 columns glow softly;
    with a unit picked, every tile it can go to gets a gold ring. */
 .hwt-cell[data-deploy-zone="true"] {
