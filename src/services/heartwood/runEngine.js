@@ -1741,6 +1741,7 @@ function applyEventEffect(runState, eff, effIndex = 0) {
     // discarded. A blessing or a curse, depending on the effects.
     return { ...runState, pendingActiveEffects: [...(runState.pendingActiveEffects || []), ...eff.squadNextBattle] }
   }
+  if (eff.mend === "all") return restSquad(runState)
   if (eff.flag) {
     return { ...runState, storyFlags: { ...runState.storyFlags, [eff.flag]: true } }
   }
@@ -2291,7 +2292,114 @@ function autoBattleStartFor(runState) {
     // now drives a live per-battle meter.
     runState.forestState || "restless",
   )
-  return { battle: applyTrialName(battle, node), encounterId, difficultyFactor, deployed: deployedUnitsFor(runState) }
+  return { battle: applyTrialName(withCarriedHp(battle, runState), node), encounterId, difficultyFactor, deployed: deployedUnitsFor(runState) }
+}
+
+// --- Lasting consequences (sprint 2) ---
+// Damage carries between fights. Rules, as a player reads them:
+// - Survivors keep the HP they ended a won fight with.
+// - Anyone who falls (Commander too) is Wounded: back at 25% HP, and a
+//   Wounded unit does NOT recover on its own - only Mend or a rest does.
+// - Everyone else catches their breath: +15% max HP after each won fight.
+// - Mend (shop, 40 Essence x Act): one unit back to full, Wounded cleared.
+// Stored as bench entry `hpPct`/`wounded` and runState `commanderHpPct`/
+// `commanderWounded`; missing = full HP (old saves load unchanged).
+export const WOUNDED_HP_PCT = 0.25
+export const REST_HEAL_PCT = 0.15
+export const MEND_BASE_COST = 40
+
+export function unitHpPct(entry) {
+  return typeof entry?.hpPct === "number" ? Math.max(0, Math.min(1, entry.hpPct)) : 1
+}
+
+export function commanderHpPct(runState) {
+  return typeof runState?.commanderHpPct === "number" ? Math.max(0, Math.min(1, runState.commanderHpPct)) : 1
+}
+
+// Both engines read the squad's start HP from the auto-battle start
+// state (tactics overlays hp/maxHp from it), so one patch covers both.
+function withCarriedHp(battle, runState) {
+  const keys = runState.deployed.filter((k) => k !== null && runState.bench.some((e) => e.key === k))
+  const pctFor = (u) => {
+    if (u.id === "commander") return commanderHpPct(runState)
+    const m = /^p(\d+)$/.exec(u.id)
+    return m ? unitHpPct(runState.bench.find((e) => e.key === keys[Number(m[1])])) : 1
+  }
+  return {
+    ...battle,
+    playerUnits: battle.playerUnits.map((u) => {
+      const pct = pctFor(u)
+      return pct >= 1 ? u : { ...u, hp: Math.max(1, Math.min(u.hp, Math.round(u.maxHp * pct))) }
+    }),
+  }
+}
+
+// Reads the fight's end HP (tactics `units` or auto-battle `playerUnits`)
+// back onto the bench. Returns the updated runState + plain summary lines.
+export function recordFightAftermath(runState, battle) {
+  const tactics = Array.isArray(battle?.units)
+  const list = tactics ? battle.units : battle?.playerUnits
+  if (!Array.isArray(list)) return runState
+  const keys = runState.deployed.filter((k) => k !== null && runState.bench.some((e) => e.key === k))
+  const lines = []
+  const endState = (u, prevWounded) => {
+    if (!u) return null
+    const fell = u.hp <= 0
+    const pct = fell ? WOUNDED_HP_PCT : Math.max(0, Math.min(1, u.hp / (u.maxHp || 1)))
+    const wounded = fell || !!prevWounded
+    // Passive recovery: only for the unwounded.
+    return { hpPct: wounded ? pct : Math.min(1, pct + REST_HEAL_PCT), wounded, fell }
+  }
+  const bench = runState.bench.map((e) => {
+    const i = keys.indexOf(e.key)
+    if (i === -1) return e.wounded ? e : unitHpPct(e) < 1 ? { ...e, hpPct: Math.min(1, unitHpPct(e) + REST_HEAL_PCT) } : e
+    const id = tactics ? `player-${e.defId}-${i}` : `p${i}`
+    const r = endState(list.find((u) => u.id === id), e.wounded)
+    if (!r) return e
+    const name = UNITS[e.defId]?.name || e.defId
+    if (r.fell) lines.push(`${name} fell and is Wounded.`)
+    return { ...e, hpPct: r.hpPct, wounded: r.wounded }
+  })
+  const cmd = endState(list.find((u) => u.id === (tactics ? "player-commander" : "commander")), runState.commanderWounded)
+  if (cmd?.fell) lines.push(`${CHARACTERS[runState.characterId]?.name || "Your Commander"} fell and is Wounded.`)
+  return {
+    ...runState,
+    bench,
+    commanderHpPct: cmd ? cmd.hpPct : runState.commanderHpPct,
+    commanderWounded: cmd ? cmd.wounded : runState.commanderWounded,
+    lastAftermath: lines,
+  }
+}
+
+export function mendCost(runState) {
+  return MEND_BASE_COST * actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)
+}
+
+// Paid full heal for one unit (benchKey) or the Commander ("commander").
+export function mendUnit(runState, benchKey) {
+  const cost = mendCost(runState)
+  if (runState.essence < cost) return runState
+  if (benchKey === "commander") {
+    if (commanderHpPct(runState) >= 1 && !runState.commanderWounded) return runState
+    return { ...runState, essence: runState.essence - cost, commanderHpPct: 1, commanderWounded: false }
+  }
+  const entry = runState.bench.find((e) => e.key === benchKey)
+  if (!entry || (unitHpPct(entry) >= 1 && !entry.wounded)) return runState
+  return {
+    ...runState,
+    essence: runState.essence - cost,
+    bench: runState.bench.map((e) => (e.key === benchKey ? { ...e, hpPct: 1, wounded: false } : e)),
+  }
+}
+
+// A rest (event effect `{ mend: "all" }`): everyone back to full, free.
+export function restSquad(runState) {
+  return {
+    ...runState,
+    bench: runState.bench.map((e) => (e.hpPct != null || e.wounded ? { ...e, hpPct: 1, wounded: false } : e)),
+    commanderHpPct: 1,
+    commanderWounded: false,
+  }
 }
 
 export function startFormationBattle(runState) {
@@ -2301,6 +2409,7 @@ export function startFormationBattle(runState) {
     phase: "battle",
     battle: named,
     pendingActiveEffects: [],
+    lastAftermath: null,
     // Almanac: every piece the fight actually resolved (mooks, minibosses,
     // bosses, formation pieces - startAutoBattle flattens them all).
     seen: noteSeen(runState.seen, "enemies", ...named.enemies.map((e) => e.defId)),
@@ -2321,6 +2430,7 @@ export function startTacticsFormationBattle(runState, buildTacticsBattle) {
     phase: "battle",
     battle: { ...tactics, engine: "tactics" },
     pendingActiveEffects: [],
+    lastAftermath: null,
     seen: noteSeen(runState.seen, "enemies", ...start.battle.enemies.map((e) => e.defId)),
   }
 }
@@ -2759,9 +2869,11 @@ export function resolveBattleOutcome(runState) {
     // Unit Evolution (evolutions.js): tally this win onto every deployed
     // bench entry, then let any that now meet their condition grow in
     // place. Everything after this reads the post-evolution `rs`.
+    // Lasting consequences: end-of-fight HP / Wounded onto the bench.
+    const hurt = recordFightAftermath(runState, battle)
     const withWins = {
-      ...runState,
-      bench: runState.bench.map((e) =>
+      ...hurt,
+      bench: hurt.bench.map((e) =>
         runState.deployed.includes(e.key) ? { ...e, wins: (e.wins || 0) + 1 } : e,
       ),
     }

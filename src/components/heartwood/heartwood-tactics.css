@@ -1096,4 +1096,41 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hwt-cell[data-skill-zone="release"] { animation: none; }
+/* Deployment phase (sprint 2): the player's own 3 columns glow softly;
+   with a unit picked, every tile it can go to gets a gold ring. */
+.hwt-cell[data-deploy-zone="true"] {
+  border-color: color-mix(in srgb, var(--hwt-gold) 45%, transparent);
+  --hwt-ring: inset 0 0 10px color-mix(in srgb, var(--hwt-gold) 14%, transparent);
+}
+.hwt-cell[data-deploy-target="true"] {
+  border-color: var(--hwt-gold);
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hwt-gold) 75%, transparent), inset 0 0 14px color-mix(in srgb, var(--hwt-gold) 30%, transparent);
+  cursor: pointer;
+}
+.hwt-cell[data-deploy-target="true"]:hover {
+  --hwt-tint: color-mix(in srgb, var(--hwt-gold) 18%, transparent);
+}
+.hwt-turn-label[data-phase="deploy"] {
+  color: var(--hwt-gold);
+}
+.hwt-begin-battle {
+  width: 100%;
+  padding: 11px 18px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hw-moss) 50%, black);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hw-moss) 70%, white), var(--hw-moss) 50%, color-mix(in srgb, var(--hw-moss) 60%, black));
+  color: color-mix(in srgb, var(--hw-bg) 90%, black);
+  font-family: var(--hw-font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 10px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  animation: hwt-end-ready 1.8s ease-in-out infinite;
+}
+.hwt-begin-battle:hover {
+  filter: brightness(1.08);
+}
+.hwt-begin-battle:active {
+  transform: translateY(1px);
 }

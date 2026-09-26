@@ -20,6 +20,7 @@ import {
   scoutCost,
   buyAntidote,
   antidoteCost,
+  mendUnit,
   reclaimBuyback,
   rerollRelicOffers,
   leaveShop,
@@ -91,7 +92,7 @@ import { CINEMATICS, cinematicById, suggestedEndingId } from "../data/heartwood/
 import battleBg from "../assets/heartwood/battle-bg.jpg"
 import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import TacticsBoard from "../components/heartwood/TacticsBoard"
-import { withLowEnemyHp } from "../services/heartwood/tacticsEngine"
+import { withLowEnemyHp, enterDeploy } from "../services/heartwood/tacticsEngine"
 import { buildRunTacticsBattle } from "../services/heartwood/tacticsRealMatchup"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
@@ -500,6 +501,11 @@ export default function HeartwoodBattle() {
     setRunState((current) => scoutAhead(current))
   }
 
+  function handleMend(benchKey) {
+    playSfx("buy")
+    setRunState((current) => mendUnit(current, benchKey))
+  }
+
   function handleAntidote() {
     playSfx("buy")
     setRunState((current) => buyAntidote(current))
@@ -606,7 +612,8 @@ export default function HeartwoodBattle() {
         // verification pass reach a real win without grinding real attack
         // rounds first.
         const params = new URLSearchParams(window.location.search)
-        return battle && params.get("debugLowHp") === "1" ? withLowEnemyHp(battle) : battle
+        // Deployment phase: every real fight opens in setup.
+        return enterDeploy(battle && params.get("debugLowHp") === "1" ? withLowEnemyHp(battle) : battle)
       }),
     )
   }
@@ -624,7 +631,9 @@ export default function HeartwoodBattle() {
   // bridge - zero duplication of essence/Evolution/shop-roll logic.
   function handleTacticsContinue() {
     setRunState((current) =>
-      resolveBattleOutcome({ ...current, battle: { phase: current.battle.phase, round: current.battle.turn } }),
+      // `units` carries each unit's end HP for the lasting-consequences
+      // bookkeeping (recordFightAftermath).
+      resolveBattleOutcome({ ...current, battle: { phase: current.battle.phase, round: current.battle.turn, units: current.battle.units } }),
     )
   }
 
@@ -1047,6 +1056,7 @@ export default function HeartwoodBattle() {
           onReroll={handleReroll}
           onGamble={handleGamble}
           onAntidote={handleAntidote}
+          onMend={handleMend}
           onBuyInvestment={handleBuyInvestment}
           onReclaimBuyback={handleReclaimBuyback}
           onContinue={() => setShowMapAfterShop(true)}
