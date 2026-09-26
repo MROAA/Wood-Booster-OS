@@ -29,6 +29,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 import * as relicFx from "./tacticsRelics"
+import * as elements from "./tacticsElements"
 import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
@@ -533,7 +534,9 @@ function applyPortableEffect(state, unitId, effect) {
   }
   // Relic/item effects (poison/burn/stun/sunder/cleanse...): tacticsRelics.js.
   const patch = relicFx.relicEffectPatch(unit, effect)
-  return patch ? setUnit(state, unitId, patch) : state
+  if (!patch) return state
+  // Element combos: a relic's burn/poison can set one off.
+  return effect.id === "burn" || effect.id === "poison" ? elements.reactStatus(setUnit(state, unitId, patch), unitId, effect.id) : setUnit(state, unitId, patch)
 }
 
 // Squad Passive round: the Commander's real squadPassive
@@ -1503,6 +1506,7 @@ export function moveUnit(state, unitId, targetPos) {
     const arrived = getUnit(next, unitId)
     next = setUnit(next, unitId, { root: (arrived.root || 0) + ROOT_DURATION })
     next = { ...next, log: [...next.log, `${unit.name} is caught in the thorns, rooted!`] }
+    next = elements.reactStatus(next, unitId, "root")
   }
   // Frost Zone round: the mirror transition of Fear Zone above - a unit
   // that just moved from INSIDE an opposing Frost Zone to a cell
@@ -1517,6 +1521,7 @@ export function moveUnit(state, unitId, targetPos) {
     const arrived = getUnit(next, unitId)
     next = setUnit(next, unitId, { slow: (arrived.slow || 0) + SLOW_DURATION })
     next = { ...next, log: [...next.log, `${unit.name} staggers away, slowed by the frost!`] }
+    next = elements.applyElement(next, unitId, "frost", 1)
   }
   // Zone Disengage Toll round: leaving ANY opposing zone (checked ONCE
   // via the combined insideAnyOpposingZone, not per zone type) costs
@@ -1696,6 +1701,7 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   // mirror of Weak, +25% damage TAKEN (rounded down), applied at the
   // same point in the chain. Permanent here, same as this engine's Weak.
   if (defender.vulnerable > 0) amount = Math.floor(amount * 1.25)
+  amount = elements.frozenBonus(defender, amount)
   const facing = classifyFacingAttack(attacker, defender)
   if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
@@ -1736,6 +1742,7 @@ function applyDamageWithBlock(state, targetId, amount) {
       revived: false,
     }
   }
+  state = elements.shatterOnHit(state, targetId, amount)
   const armour = target.bulwark || 0
   const totalAbsorb = Math.min(target.block + armour, amount)
   const blockSpent = Math.min(target.block, totalAbsorb)
@@ -2158,7 +2165,10 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     const poisoned = getUnit(next, targetId)
     next = setUnit(next, targetId, { poison: (poisoned.poison || 0) + actor.poisonOnHit })
     next = { ...next, log: [...next.log, `${target.name} is poisoned (+${actor.poisonOnHit}).`] }
+    next = elements.reactStatus(next, targetId, "poison")
   }
+  // Element combos: a frosty unit's basic hits Chill.
+  if (actor.frosty && !fell) next = elements.applyElement(next, targetId, "frost", 1)
   if (actor.side === "player") next = gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell)
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   next = checkEnemyPhase(next, targetId)
@@ -2229,8 +2239,9 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
 // (the real cost comes back), and a support cast earns 1 XP.
 const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "taunt-shout"])
 export function castAbility(state, actorId, targetId) {
-  const next = castAbilityInner(state, actorId, targetId)
-  if (next === state) return next
+  const cast = castAbilityInner(state, actorId, targetId)
+  if (cast === state) return cast
+  const next = elements.afterAbilityCast(cast, actorId, targetId)
   const before = getUnit(state, actorId)
   const after = getUnit(next, actorId)
   if (!before || !after) return next
@@ -2735,7 +2746,7 @@ function enemyPhaseStart(state) {
   // Relic ticks on enemies (poison/burn) can end the fight here.
   const relicTicked = relicFx.relicTurnStart(regenTicked, "enemy")
   if (relicTicked.phase !== "enemy") return relicTicked
-  const next = applyTurnStartTriggers(relicTicked, "enemy")
+  const next = applyTurnStartTriggers(elements.elementTurnStart(relicTicked, "enemy"), "enemy")
   // Objective: the Totem pulses at the top of the enemy phase - inside
   // enemyPhaseStart so previewEnemyIntents sees the same pulsed state.
   return objectiveEnemyPhaseStart(next)
@@ -2948,8 +2959,8 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
     } else if (skill.kind === "hex") {
       for (const t of players) {
         if (chebyshevDist(pos, t.pos) > kindDef.range) continue
-        if (skill.status === "poison" ? (t.poison || 0) >= skill.amount : (t[skill.status] || 0) > 0) continue
-        const score = AI_ATTACK_BASE + 35 + tileScore + 0.5 * aiTargetValue(t)
+        if (skill.status === "chill" ? t.frozen > 0 : skill.status === "poison" ? (t.poison || 0) >= skill.amount : (t[skill.status] || 0) > 0) continue
+        const score = AI_ATTACK_BASE + 35 + tileScore + 0.5 * aiTargetValue(t) + elements.comboScoreForStatus(t, skill.status)
         options.push({ score, intent: { ...base, targetId: t.id, status: skill.status, amount: skill.amount } })
       }
     } else if (skill.kind === "summon") {
@@ -3027,7 +3038,7 @@ function applySlamRelease(state, enemyId, intent, skill) {
   return checkTacticsBattleEnd(next)
 }
 
-const HEX_WORD = { weak: "Weakened!", vulnerable: "Vulnerable!", poison: "Poisoned!", root: "Rooted!" }
+const HEX_WORD = { weak: "Weakened!", vulnerable: "Vulnerable!", poison: "Poisoned!", root: "Rooted!", burn: "Burning!", chill: "Chilled!" }
 
 function applyEnemySkill(state, enemyId, intent) {
   let next = state
@@ -3077,6 +3088,11 @@ function applyEnemySkill(state, enemyId, intent) {
   if (skill.kind === "hex") {
     const t = getUnit(next, intent.targetId)
     if (!t || t.hp <= 0) return next
+    if (skill.status === "burn" || skill.status === "chill") {
+      next = emit(next, { kind: "reaction", unitId: t.id, label: HEX_WORD[skill.status] })
+      next = { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name} (+${skill.amount} ${skill.status === "burn" ? "Burn" : "Chill"}).`] }
+      return elements.applyElement(next, t.id, skill.status === "burn" ? "fire" : "frost", skill.amount)
+    }
     const patch =
       skill.status === "poison"
         ? { poison: (t.poison || 0) + skill.amount }
@@ -3085,7 +3101,8 @@ function applyEnemySkill(state, enemyId, intent) {
           : { [skill.status]: Math.max(t[skill.status] || 0, 1) }
     next = emit(setUnit(next, t.id, patch), { kind: "reaction", unitId: t.id, label: HEX_WORD[skill.status] })
     const effect = { poison: `is poisoned (+${skill.amount}).`, root: "is rooted in place!", weak: "is weakened.", vulnerable: "is left vulnerable." }[skill.status]
-    return { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name}. ${t.name} ${effect}`] }
+    next = { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name}. ${t.name} ${effect}`] }
+    return elements.reactStatus(next, t.id, skill.status)
   }
   if (skill.kind === "summon") {
     const cell = freeSafeNeighbours(next, actor.pos, enemyId)[0]
@@ -3259,9 +3276,11 @@ export function previewEnemyIntents(state) {
   for (const enemy of scratch.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (scratch.phase !== "enemy") break
     // A stunned enemy skips its turn (relicFx.spendStun in runEnemyTurn).
-    const stunned = relicFx.spendStun(scratch, enemy.id)
+    const live = getUnit(scratch, enemy.id)
+    const frozen = !(live.stun > 0) && live.frozen > 0
+    const stunned = relicFx.spendStun(scratch, enemy.id) || elements.spendFrozen(scratch, enemy.id)
     if (stunned) {
-      intents.push({ enemyId: enemy.id, intent: { kind: "stunned" } })
+      intents.push({ enemyId: enemy.id, intent: { kind: "stunned", frozen } })
       scratch = stunned
       continue
     }
@@ -3339,7 +3358,7 @@ export function runEnemyTurn(state) {
   if (next.phase !== "enemy") return next
   for (const enemy of next.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (next.phase !== "enemy") break
-    const stunned = relicFx.spendStun(next, enemy.id)
+    const stunned = relicFx.spendStun(next, enemy.id) || elements.spendFrozen(next, enemy.id)
     next = stunned || decideAndActEnemy(next, enemy.id)
   }
   if (next.phase !== "enemy") return next
@@ -3390,7 +3409,7 @@ export function runEnemyTurn(state) {
   if (objTicked.phase !== "player") return objTicked
   const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked
-  return applyTurnStartTriggers(relicTicked, "player")
+  return applyTurnStartTriggers(elements.elementTurnStart(relicTicked, "player"), "player")
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real

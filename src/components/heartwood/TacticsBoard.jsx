@@ -14,6 +14,8 @@
 // result via `onBattleChange`, never holds the battle itself.
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
+import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
+import { describeAbilityElement } from "../../services/heartwood/tacticsElements"
 import {
   reachableTilesFor,
   attackableTargets,
@@ -537,6 +539,7 @@ export default function TacticsBoard({
                     ✚{unit.revive}
                   </span>
                 )}
+                <ElementBadges unit={unit} />
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
                   <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />
@@ -563,8 +566,8 @@ export default function TacticsBoard({
                   </span>
                 )}
                 {intent && intent.kind === "stunned" && (
-                  <span className="hwt-intent-badge" data-intent="stunned" title="Stunned - will skip its next turn">
-                    ✦
+                  <span className="hwt-intent-badge" data-intent="stunned" data-frozen={!!intent.frozen} title={intent.frozen ? "Frozen - will skip its next turn (hit it now for a +50% Shatter, but that thaws it)" : "Stunned - will skip its next turn"}>
+                    {intent.frozen ? "🧊" : "✦"}
                   </span>
                 )}
               </div>
@@ -685,8 +688,10 @@ export default function TacticsBoard({
                   : `${selected.ability.name} · ${selected.ability.cost} AP`}
               </button>
               <p className="hwt-ability-hint">{abilityMode ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
+              {describeAbilityElement(selected) && <p className="hwt-ability-element">{describeAbilityElement(selected)}</p>}
             </div>
           )}
+          <ElementHelp />
           <div className="hwt-log-heading">Battle log</div>
           <div className="hwt-log">
             {[...battle.log].reverse().map((line, i) => (

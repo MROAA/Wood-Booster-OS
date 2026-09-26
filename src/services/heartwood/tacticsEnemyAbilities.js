@@ -16,7 +16,7 @@ export const ENEMY_SKILL_KINDS = {
   enrage: { icon: "♨", cooldown: 99, threshold: 0.6 },
 }
 
-const HEX_NAMES = { weak: "Sapping Curse", vulnerable: "Mark of Ruin", poison: "Blight Spit", root: "Grasping Roots" }
+const HEX_NAMES = { weak: "Sapping Curse", vulnerable: "Mark of Ruin", poison: "Blight Spit", root: "Grasping Roots", burn: "Ember Spit", chill: "Rime Breath" }
 const DEBUFF_TO_STATUS = { weak: "weak", dampen: "weak", vulnerable: "vulnerable", poison: "poison", stun: "root" }
 
 const mk = (kind, props = {}) => ({ kind, cooldown: ENEMY_SKILL_KINDS[kind].cooldown, ...props, id: props.id || kind })
@@ -31,7 +31,7 @@ const EXPLICIT = {
   "the-gorging-maw": [mk("summon", { name: "Disgorge", minion: "sporelet" }), mk("mend", { name: "Gorge", amount: 10 })],
   "the-iron-sentinel": [mk("shield", { name: "Iron Aegis", amount: 10 }), mk("slam", { name: "Anvil Fall", amount: 8 })],
   "the-bramble-lash": [hex("root", 1, "Bramble Snare"), mk("pounce", { name: "Lash", bonus: 3 })],
-  "the-ashfall-herald": [mk("slam", { name: "Ashfall", amount: 8 }), hex("poison", 3, "Cinder Brand")],
+  "the-ashfall-herald": [mk("slam", { name: "Ashfall", amount: 8 }), hex("burn", 3, "Cinder Brand")],
 }
 
 // Regular enemies: one skill from the def's own non-attack moves, plus
@@ -57,7 +57,21 @@ function deriveSkills(def) {
   return skills
 }
 
-const TABLE = Object.fromEntries(Object.values(ENEMIES).map((def) => [def.id, EXPLICIT[def.id] || deriveSkills(def)]))
+// Element combos (sprint 3): fire/frost-flavored enemies also carry an
+// element hex (Fire = Burn, Frost = Chill; 2 Chill freezes).
+const elementHex = (status, amount, name) => ({ ...hex(status, amount, name), id: "element-hex" })
+const ELEMENT_HEXES = {
+  emberwrack: elementHex("burn", 2),
+  ashenmaw: elementHex("burn", 2),
+  "emberthorn-shade": elementHex("burn", 2, "Cinder Lash"),
+  "drowned-siren": elementHex("chill", 1, "Drowning Chill"),
+  "mist-growler": elementHex("chill", 1, "Freezing Mist"),
+  wraithgale: elementHex("chill", 1, "Rime Gale"),
+}
+
+const TABLE = Object.fromEntries(
+  Object.values(ENEMIES).map((def) => [def.id, [...(EXPLICIT[def.id] || deriveSkills(def)), ...(ELEMENT_HEXES[def.id] ? [ELEMENT_HEXES[def.id]] : [])]]),
+)
 
 // A unit's skills: an explicit `enemySkills` on the unit wins (summons,
 // synthetic test states), else the def's table entry.
@@ -70,7 +84,7 @@ export function enemySkillTable() {
   return TABLE
 }
 
-const STATUS_WORD = { weak: "Weak", vulnerable: "Vulnerable", poison: "Poison", root: "Rooted" }
+const STATUS_WORD = { weak: "Weak", vulnerable: "Vulnerable", poison: "Poison", root: "Rooted + Entangled", burn: "Burn", chill: "Chill" }
 
 // Tooltip for a telegraphed skill intent. `nameOf(id)` resolves unit names.
 export function describeSkillIntent(intent, nameOf) {
@@ -78,7 +92,7 @@ export function describeSkillIntent(intent, nameOf) {
   switch (intent.skillKind) {
     case "mend": return `${intent.name}: will heal ${t} for ${intent.amount}`
     case "shield": return `${intent.name}: will shield ${t} (+${intent.amount} Block)`
-    case "hex": return `${intent.name}: will afflict ${t} with ${STATUS_WORD[intent.status]}${intent.status === "poison" ? ` ${intent.amount}` : ""}`
+    case "hex": return `${intent.name}: will afflict ${t} with ${STATUS_WORD[intent.status]}${["poison", "burn", "chill"].includes(intent.status) ? ` ${intent.amount}` : ""}`
     case "pounce": return `${intent.name}: will leap onto ${t} and strike (+${intent.bonus} damage)`
     case "summon": return `${intent.name}: will call a ${intent.minionName} to its side`
     case "slam":
