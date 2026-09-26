@@ -3162,7 +3162,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     // regen value - never an accidental battle-end.
     state = {
       ...state,
-      units: state.units.map((u) => (u.side === "player" ? { ...u, hp: 500, maxHp: 500 } : u.id === thornmaw.id ? { ...u, hp: 50 } : u)),
+      units: state.units.map((u) => (u.side === "player" ? { ...u, hp: 500, maxHp: 500 } : u.id === thornmaw.id ? { ...u, hp: 50, enemySkills: [] /* isolate regen from Sap Surge (enemy-abilities sprint) */ } : u)),
     }
     const round1 = endPlayerTurn(state)
     const t1 = round1.units.find((u) => u.id === thornmaw.id)
@@ -3190,7 +3190,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     const thornmaw = state.units.find((u) => u.side === "enemy")
     state = {
       ...state,
-      units: state.units.map((u) => (u.side === "player" ? { ...u, hp: 500, maxHp: 500 } : u.id === thornmaw.id ? { ...u, hp: 20, maxHp: 200 } : u)),
+      units: state.units.map((u) => (u.side === "player" ? { ...u, hp: 500, maxHp: 500 } : u.id === thornmaw.id ? { ...u, hp: 20, maxHp: 200, enemySkills: [] /* isolate regen from Sap Surge */ } : u)),
     }
     const r1 = endPlayerTurn(state)
     const r2 = endPlayerTurn(r1)
