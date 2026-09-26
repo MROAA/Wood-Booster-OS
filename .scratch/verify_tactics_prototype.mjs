@@ -4498,7 +4498,8 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     const seedDiff = generateRealTerrain(99999, 3)
     const nodeDiff = generateRealTerrain(12345, 4)
     const entries = Object.entries(a)
-    const validTypes = new Set(["rock", "water", "poison", "forest"])
+    // Battlefield sprint: map templates add high/wall/bridge/bush/lava/ice/rubble.
+    const validTypes = new Set(["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble"])
     const shapeOk = entries.every(([key, type]) => {
       const [row, col] = key.split("-").map(Number)
       return row >= 0 && row < GRID.rows && col >= 3 && col <= GRID.cols - 4 && validTypes.has(type)
@@ -4513,7 +4514,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   })
   await page129.close()
   out.seededTerrainGeneration = result
-  const ok = result.deterministic && result.seedSensitive && result.nodeSensitive && result.count > 0 && result.count <= 6 && result.shapeOk
+  const ok = result.deterministic && result.seedSensitive && result.nodeSensitive && result.count > 0 && result.shapeOk
   if (!ok) out.errors.push("check129 generateRealTerrain was not deterministic/seed-sensitive/node-sensitive, or produced an out-of-bounds cell")
 }
 
@@ -7183,7 +7184,10 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   if (!ok) out.errors.push("check195 terrainHazardCountForNode did not produce the expected BASE+(act-1) count for Act I/IV/VII")
 }
 
-// 196. generateRealTerrain actually places the Act-scaled count: the
+// (Battlefield sprint: 196-198 + 208/209 now target the scatter layer,
+//  generateScatterTerrain - the unchanged old algorithm; generateRealTerrain
+//  now lays a seeded map template underneath it.)
+// 196. generateScatterTerrain actually places the Act-scaled count: the
 //      SAME seed produces MORE placed cells for a late-run node than
 //      an early-run one - proving the count reaches the placement
 //      loop, not just the helper function in isolation --------------
@@ -7193,12 +7197,12 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page196.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
   await page196.waitForSelector(".hwt-board")
   const result = await page196.evaluate(async () => {
-    const { generateRealTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { generateScatterTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
     const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
     const earlyIdx = 3
     const lateIdx = RUN_PATH.length - 1
-    const earlyTerrain = generateRealTerrain(555, earlyIdx)
-    const lateTerrain = generateRealTerrain(555, lateIdx)
+    const earlyTerrain = generateScatterTerrain(555, earlyIdx)
+    const lateTerrain = generateScatterTerrain(555, lateIdx)
     return {
       earlyExpected: terrainHazardCountForNode(earlyIdx),
       earlyPlacedCount: Object.keys(earlyTerrain).length,
@@ -7209,7 +7213,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page196.close()
   out.terrainDensityPlacedCounts = result
   const ok = result.earlyPlacedCount === result.earlyExpected && result.latePlacedCount === result.lateExpected && result.latePlacedCount > result.earlyPlacedCount
-  if (!ok) out.errors.push("check196 generateRealTerrain did not place the Act-scaled hazard count for early vs late nodes")
+  if (!ok) out.errors.push("check196 generateScatterTerrain did not place the Act-scaled hazard count for early vs late nodes")
 }
 
 // 197. Determinism is preserved for a NON-Act-I node (extra coverage
@@ -7222,17 +7226,17 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page197.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
   await page197.waitForSelector(".hwt-board")
   const result = await page197.evaluate(async () => {
-    const { generateRealTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { generateScatterTerrain } = await import("/src/services/heartwood/tacticsRealMatchup.js")
     const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
     const lateIdx = RUN_PATH.length - 1
-    const a = generateRealTerrain(777, lateIdx)
-    const b = generateRealTerrain(777, lateIdx)
+    const a = generateScatterTerrain(777, lateIdx)
+    const b = generateScatterTerrain(777, lateIdx)
     return { same: JSON.stringify(a) === JSON.stringify(b), count: Object.keys(a).length }
   })
   await page197.close()
   out.terrainDensityDeterminism = result
   const ok = result.same === true && result.count === 12
-  if (!ok) out.errors.push("check197 generateRealTerrain was not deterministic for a late-run (Act VII) node")
+  if (!ok) out.errors.push("check197 generateScatterTerrain was not deterministic for a late-run (Act VII) node")
 }
 
 // 198. Zero regression, directly proven (not assumed from memory of a
@@ -7240,7 +7244,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 //      algorithm (same streamRng stream, same placement loop, same
 //      type picker - the ONLY difference is a hardcoded 6 instead of
 //      the new Act-scaled count) produces BYTE-IDENTICAL output to
-//      the NEW generateRealTerrain for the exact (seed, nodeIndex)
+//      the NEW generateScatterTerrain for the exact (seed, nodeIndex)
 //      pairs the existing check21/check129 already exercise - both
 //      genuinely Act I, where the new formula also computes 6 -------
 {
@@ -7249,7 +7253,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page198.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
   await page198.waitForSelector(".hwt-board")
   const result = await page198.evaluate(async () => {
-    const { generateRealTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { generateScatterTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
     const { RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
     const { streamRng } = await import("/src/data/heartwood/seed.js")
     const { GRID } = await import("/src/services/heartwood/tacticsEngine.js")
@@ -7287,7 +7291,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
       idx,
       expectedCount: terrainHazardCountForNode(idx),
       legacy: generateRealTerrainLegacy(seed, idx),
-      current: generateRealTerrain(seed, idx),
+      current: generateScatterTerrain(seed, idx),
     }))
   })
   await page198.close()
@@ -7315,7 +7319,8 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   })
   await page199.close()
   out.realTerrainDensityLateAct = result
-  const ok = result.generatedCount === 12 && result.renderedTerrainCount === 12
+  // Battlefield sprint: template + 12 scatter cells -> at least 12, all carried through.
+  const ok = result.generatedCount >= 12 && result.renderedTerrainCount === result.generatedCount
   if (!ok) out.errors.push("check199 a real late-Act matchup did not carry the full Act-scaled terrain map through into the real battle state")
 }
 
@@ -7706,7 +7711,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 // 208. Zero regression, directly proven for Act I: a literal
 //      reimplementation of the OLD flat 30/20/25/25 pickTerrainType
 //      (no weights parameter, hardcoded thresholds) produces
-//      BYTE-IDENTICAL output to the NEW generateRealTerrain for the
+//      BYTE-IDENTICAL output to the NEW generateScatterTerrain for the
 //      exact (seed, nodeIndex) pairs check21/check129 already
 //      exercise - both genuinely Act I, where the new formula also
 //      computes exactly 0.30/0.50/0.75 -----------------------------
@@ -7716,7 +7721,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page208.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
   await page208.waitForSelector(".hwt-board")
   const result = await page208.evaluate(async () => {
-    const { generateRealTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const { generateScatterTerrain, terrainHazardCountForNode } = await import("/src/services/heartwood/tacticsRealMatchup.js")
     const { streamRng } = await import("/src/data/heartwood/seed.js")
     const { GRID } = await import("/src/services/heartwood/tacticsEngine.js")
     // Literal copy of the OLD pre-this-round pickTerrainType, hardcoded
@@ -7752,7 +7757,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
       seed,
       idx,
       legacy: generateRealTerrainLegacy(seed, idx),
-      current: generateRealTerrain(seed, idx),
+      current: generateScatterTerrain(seed, idx),
     }))
   })
   await page208.close()
@@ -7762,10 +7767,10 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
 }
 
 // 209. The real difficulty shift, aggregated across many seeds: an
-//      independent SHADOW reimplementation of generateRealTerrain that
+//      independent SHADOW reimplementation of generateScatterTerrain that
 //      builds its OWN weights via terrainWeightsForNode (not a
 //      hardcoded late-game guess) produces BYTE-IDENTICAL output to
-//      the real generateRealTerrain, for a late-Act node - proving the
+//      the real generateScatterTerrain, for a late-Act node - proving the
 //      real function genuinely uses terrainWeightsForNode's own
 //      values, not some other formula that happens to shift things
 //      vaguely the right way -------------------------------------
@@ -7775,7 +7780,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
   await page209.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
   await page209.waitForSelector(".hwt-board")
   const result = await page209.evaluate(async () => {
-    const { generateRealTerrain, terrainWeightsForNode, terrainHazardCountForNode, pickTerrainType } = await import(
+    const { generateScatterTerrain, terrainWeightsForNode, terrainHazardCountForNode, pickTerrainType } = await import(
       "/src/services/heartwood/tacticsRealMatchup.js"
     )
     const { streamRng } = await import("/src/data/heartwood/seed.js")
@@ -7804,7 +7809,7 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     return seeds.map((seed) => ({
       seed,
       shadow: generateRealTerrainShadow(seed, lateIdx),
-      real: generateRealTerrain(seed, lateIdx),
+      real: generateScatterTerrain(seed, lateIdx),
     }))
   })
   await page209.close()

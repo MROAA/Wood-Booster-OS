@@ -1153,7 +1153,8 @@ function newPage() {
   await page21.waitForTimeout(400)
   await startTactics(page21)
   await page21.waitForTimeout(400)
-  const terrainTypes = ["rock", "water", "poison", "forest"]
+  // Battlefield sprint: + the map-template tile types.
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble"]
   const countsByType = {}
   for (const type of terrainTypes) {
     countsByType[type] = await page21.locator(`.hwt-cell[data-terrain="${type}"]`).count()
@@ -1801,7 +1802,8 @@ function newPage() {
   // fallback), not an empty string - summing the 4 real type-specific
   // counts (check21's own established pattern) is the correct way to
   // count only genuine hazard/forest cells.
-  const terrainTypes = ["rock", "water", "poison", "forest"]
+  // Battlefield sprint: + the map-template tile types.
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble"]
   let renderedCount = 0
   for (const type of terrainTypes) {
     renderedCount += await page34.locator(`.hwt-cell[data-terrain="${type}"]`).count()
@@ -1809,7 +1811,8 @@ function newPage() {
   await page34.screenshot({ path: `${SHOT}/real_fight_terrain_density_late_act.png` })
   await page34.close()
   out.realTerrainDensityLateAct = { seed34, expectedCount: Object.keys(expectedTerrain).length, renderedCount }
-  const ok = seed34.act === 7 && Object.keys(expectedTerrain).length === 12 && renderedCount === 12
+  // Battlefield sprint: 12 Act VII scatter cells + the map template on top.
+  const ok = seed34.act === 7 && Object.keys(expectedTerrain).length >= 12 && renderedCount === Object.keys(expectedTerrain).length
   if (!ok) out.errors.push("check34 a real Act VII fight did not render the Act-scaled (12) real terrain cell count")
 }
 
@@ -1961,7 +1964,8 @@ function newPage() {
   await page36.waitForTimeout(400)
   await startTactics(page36)
   await page36.waitForTimeout(400)
-  const terrainTypes = ["rock", "water", "poison", "forest"]
+  // Battlefield sprint: + the map-template tile types.
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble"]
   const countsByType = {}
   for (const type of terrainTypes) {
     countsByType[type] = await page36.locator(`.hwt-cell[data-terrain="${type}"]`).count()
@@ -1973,7 +1977,7 @@ function newPage() {
     expectedCountsByType[type] = Object.values(expectedTerrain).filter((t) => t === type).length
   }
   out.realFightTerrainMixLateAct = { seed36, countsByType, expectedCountsByType }
-  const ok = seed36.act === 7 && JSON.stringify(countsByType) === JSON.stringify(expectedCountsByType) && Object.keys(expectedTerrain).length === 12
+  const ok = seed36.act === 7 && JSON.stringify(countsByType) === JSON.stringify(expectedCountsByType) && Object.keys(expectedTerrain).length >= 12
   if (!ok) out.errors.push("check36 a real Act VII fight's rendered terrain type counts did not match generateRealTerrain's own Act-scaled mix")
 }
 
