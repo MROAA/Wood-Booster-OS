@@ -32,6 +32,7 @@ import * as relicFx from "./tacticsRelics"
 import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
+import { levelForXp, XP as LEVEL_XP_GAIN, THIRST_HEAL } from "./unitLevels"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -1872,6 +1873,25 @@ function trySpawnBrood(state, victimId) {
 // arc, and it's the exact `attack`-above-`baseAttack` shape the Coven
 // round's `▲{delta}` badge already renders for ANY unit, player or
 // enemy, with zero UI changes needed here.
+// Unit levels (unitLevels.js): XP for a landed hit / kill, a "Level up!"
+// callout when it crosses a threshold (the level applies after the fight),
+// and Bloodthirst's heal-on-kill. Only run units carry `xpGained`.
+function gainXp(state, actorId, remaining, fell) {
+  const actor = getUnit(state, actorId)
+  if (!actor || typeof actor.xpGained !== "number") return state
+  const gain = (remaining > 0 ? LEVEL_XP_GAIN.hit : 0) + (fell ? LEVEL_XP_GAIN.kill : 0)
+  if (!gain) return state
+  let next = setUnit(state, actorId, { xpGained: actor.xpGained + gain })
+  if (levelForXp(actor.xpStart + actor.xpGained + gain) > levelForXp(actor.xpStart + actor.xpGained)) {
+    next = emit({ ...next, log: [...next.log, `${actor.name} levels up! (pick a perk after the fight)`] }, { kind: "reaction", unitId: actorId, label: "Level up!" })
+  }
+  if (fell && actor.perks?.includes("thirst") && actor.hp > 0 && actor.hp < actor.maxHp) {
+    const healed = Math.min(actor.maxHp, actor.hp + THIRST_HEAL)
+    next = emit(setUnit(next, actorId, { hp: healed }), { kind: "heal", actorId, targetId: actorId, amount: healed - actor.hp })
+  }
+  return next
+}
+
 function grantStrengthOnKill(state, actorId, fell) {
   if (!fell) return state
   const actor = getUnit(state, actorId)
@@ -2139,12 +2159,22 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     next = setUnit(next, targetId, { poison: (poisoned.poison || 0) + actor.poisonOnHit })
     next = { ...next, log: [...next.log, `${target.name} is poisoned (+${actor.poisonOnHit}).`] }
   }
-  if (actor.side === "player") next = grantStrengthOnKill(next, actorId, fell)
+  if (actor.side === "player") next = gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell)
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
   next = relicFx.relicAfterHit(next, actorId, targetId, remaining, fell, extraVictims)
+  // Unit levels: the Cleave perk - a normal basic attack also hits enemies
+  // next to the target for half damage.
+  if (actor.perks?.includes("cleave") && !opts.isReaction && !opts.isHasteFollowUp) {
+    const hitPos = getUnit(next, targetId)?.pos || target.pos
+    const splash = livingUnits(next, target.side).filter((u) => u.id !== targetId && kingAdjacent(u.pos, hitPos)).map((u) => u.id)
+    for (const id of splash) {
+      if (next.phase === "won" || next.phase === "lost" || !(getUnit(next, id)?.hp > 0)) continue
+      next = abilityHit(next, actorId, id, Math.ceil(getUnit(next, actorId).attack / 2), { name: "Cleave" }).next
+    }
+  }
   next = checkTacticsBattleEnd(next)
   // Haste (autoBattleEngine.js's own actSide): a structurally different
   // kind of "more damage" than Strength/Execute - the WHOLE action
@@ -2195,7 +2225,27 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
 
 // castAbility(state, actorId, targetId?) - the 3 kinds of ability an
 // acting player unit can spend AP on instead of a plain Move/Attack.
+// Unit levels wrapper: Quick Cast's discount is spent by the first cast
+// (the real cost comes back), and a support cast earns 1 XP.
+const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "taunt-shout"])
 export function castAbility(state, actorId, targetId) {
+  const next = castAbilityInner(state, actorId, targetId)
+  if (next === state) return next
+  const before = getUnit(state, actorId)
+  const after = getUnit(next, actorId)
+  if (!before || !after) return next
+  let out = next
+  if (before.quickCast) out = setUnit(out, actorId, { quickCast: false, ability: { ...after.ability, cost: after.ability.cost + 1 } })
+  if (typeof after.xpGained === "number" && SUPPORT_KINDS.has(before.ability?.kind)) {
+    out = setUnit(out, actorId, { xpGained: after.xpGained + LEVEL_XP_GAIN.support })
+    if (levelForXp(after.xpStart + after.xpGained + LEVEL_XP_GAIN.support) > levelForXp(after.xpStart + after.xpGained)) {
+      out = emit(out, { kind: "reaction", unitId: actorId, label: "Level up!" })
+    }
+  }
+  return out
+}
+
+function castAbilityInner(state, actorId, targetId) {
   const actor = getUnit(state, actorId)
   if (!actor || actor.hp <= 0 || !actor.ability) return state
   if (state.phase !== actor.side) return state
@@ -2242,7 +2292,7 @@ export function castAbility(state, actorId, targetId) {
     const absorbedNote = describeAbsorb(absorbed, armourUsed)
     const fellNote = fell ? " It falls." : ""
     next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
-    next = grantStrengthOnKill(next, actorId, fell)
+    next = gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell)
     next = checkEnemyPhase(next, target.id)
     next = checkOnDealDamageTriggers(next, actorId, target.id, remaining)
     if (fell) next = trySpawnBrood(next, target.id)
@@ -2350,7 +2400,7 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, amount)
   next = hit
   next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} hits ${target.name} for ${remaining}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
-  next = grantStrengthOnKill(next, actorId, fell)
+  next = actor.side === "player" ? gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell) : grantStrengthOnKill(next, actorId, fell)
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)

@@ -56,7 +56,10 @@ import {
   markEchoEpilogueSeen,
   DIFFICULTY_TIERS,
   RUN_PATH,
+  chooseLevelPerk,
 } from "../services/heartwood/runEngine"
+import { nextPendingLevelUp, perkOffers } from "../services/heartwood/unitLevels"
+import LevelUpChoice from "../components/heartwood/LevelUpChoice"
 import { crossroadsForAct } from "../data/heartwood/crossroads"
 import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
@@ -96,6 +99,8 @@ import { withLowEnemyHp, enterDeploy } from "../services/heartwood/tacticsEngine
 import { buildRunTacticsBattle } from "../services/heartwood/tacticsRealMatchup"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
+
+const LEVEL_UP_PHASES = new Set(["shop", "relic", "event", "choice", "formation"])
 
 const rootStyle = { height: "100%", "--hw-bg-image": `url(${battleBg})` }
 const AUTOBATTLER_INTRO_SEEN_KEY = "heartwood-autobattler-intro-seen"
@@ -499,6 +504,11 @@ export default function HeartwoodBattle() {
   function handleScout() {
     playSfx("buy")
     setRunState((current) => scoutAhead(current))
+  }
+
+  function handleChooseLevelPerk(key, perkId) {
+    playSfx("buy")
+    setRunState((current) => chooseLevelPerk(current, key, perkId))
   }
 
   function handleMend(benchKey) {
@@ -1009,6 +1019,17 @@ export default function HeartwoodBattle() {
         intoTier={DIFFICULTY_TIERS[actCrossroads - 1] || null}
         onChoose={handleActCrossroads}
       />
+    )
+  }
+
+  // Unit levels: an earned level is spent before the next screen shows
+  // (right after a won fight lands on shop/relic/event/choice).
+  const levelUp = LEVEL_UP_PHASES.has(runState.phase) ? nextPendingLevelUp(runState) : null
+  if (levelUp) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key={`level-up-${levelUp.key}-${levelUp.perks.length}`}>
+        <LevelUpChoice subject={levelUp} offers={perkOffers(runState, levelUp)} onChoose={handleChooseLevelPerk} />
+      </div>
     )
   }
 

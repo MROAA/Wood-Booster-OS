@@ -4,6 +4,7 @@ import { TRIBES, tribesOf, synergyTiersSummary } from "../../data/heartwood/syne
 import { evolutionFor, evolutionHint } from "../../data/heartwood/evolutions"
 import { UPGRADE_BRANCHES } from "../../data/heartwood/upgrades"
 import { ROLES, unitProfile, unitTargetProfile, TARGET_PROFILE_LABEL } from "../../data/heartwood/roles"
+import { PERKS, levelProgress } from "../../services/heartwood/unitLevels"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 // Card-accent modifier by resolved primary role (roles.js's ROLES[x].card).
@@ -222,6 +223,8 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           </span>
         </div>
       )}
+      {/* Unit levels (unitLevels.js): level badge, XP bar, perk icons. */}
+      {entry && <LevelRow entry={entry} />}
       {/* Tribe band - promoted to a first-class element directly under
           the cost/HP row (Marc: "heimo tarvitsee näkyvämmän paikan
           kortissa koska se on keskeinen osa pelimekaniikkaa"). Labelled,
@@ -346,5 +349,28 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
         </div>
       )}
     </motion.div>
+  )
+}
+
+function LevelRow({ entry }) {
+  const p = levelProgress(entry.xp)
+  const perks = entry.perks || []
+  return (
+    <div className="hw-card-level" data-level={p.level}>
+      <span className="hw-level-badge" title={`Level ${p.level} - earns XP in fights (hits, kills, surviving a win)`}>
+        Lv{p.level}
+      </span>
+      <div
+        className="hw-xp-bar"
+        title={p.need ? `${p.into} / ${p.need} XP to Level ${p.level + 1}` : "Max level"}
+      >
+        <div className="hw-xp-fill" style={{ width: `${p.need ? Math.round((p.into / p.need) * 100) : 100}%` }} />
+      </div>
+      {perks.map((id, i) => (
+        <span key={i} className="hw-perk-icon" data-perk={id} title={`${PERKS[id]?.name}: ${PERKS[id]?.text}`}>
+          {PERKS[id]?.icon}
+        </span>
+      ))}
+    </div>
   )
 }

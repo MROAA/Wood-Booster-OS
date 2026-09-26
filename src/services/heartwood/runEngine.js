@@ -32,6 +32,7 @@ import { streamRng } from "../../data/heartwood/seed"
 import { economyCrew, economyCrewEffects } from "../../data/heartwood/economy"
 import { ECONOMY_LEVERS, SHOP_INVESTMENTS, MARKET_EVENTS } from "../../data/heartwood/economyLevers"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
+import { applyLevelsToTactics, levelForXp, levelSubject, pendingPerkCount, perkOffers, XP as LEVEL_XP_GAIN } from "./unitLevels"
 
 // Marc, 2026-09-19: "dev studiossa pitää olla mukana myös ekonomia...
 // säädän itse sillä pelin vaikeustasoa" (the dev studio needs the
@@ -2342,6 +2343,7 @@ export function recordFightAftermath(runState, battle) {
   if (!Array.isArray(list)) return runState
   const keys = runState.deployed.filter((k) => k !== null && runState.bench.some((e) => e.key === k))
   const lines = []
+  const levelUps = []
   const endState = (u, prevWounded) => {
     if (!u) return null
     const fell = u.hp <= 0
@@ -2358,17 +2360,42 @@ export function recordFightAftermath(runState, battle) {
     if (!r) return e
     const name = UNITS[e.defId]?.name || e.defId
     if (r.fell) lines.push(`${name} fell and is Wounded.`)
-    return { ...e, hpPct: r.hpPct, wounded: r.wounded }
+    const xp = tactics ? xpAfter(e.xp, list.find((u) => u.id === id), name) : e.xp
+    return { ...e, hpPct: r.hpPct, wounded: r.wounded, ...(xp != null ? { xp } : {}) }
   })
-  const cmd = endState(list.find((u) => u.id === (tactics ? "player-commander" : "commander")), runState.commanderWounded)
-  if (cmd?.fell) lines.push(`${CHARACTERS[runState.characterId]?.name || "Your Commander"} fell and is Wounded.`)
+  const cmdUnit = list.find((u) => u.id === (tactics ? "player-commander" : "commander"))
+  const cmd = endState(cmdUnit, runState.commanderWounded)
+  const cmdName = CHARACTERS[runState.characterId]?.name || "Your Commander"
+  if (cmd?.fell) lines.push(`${cmdName} fell and is Wounded.`)
+  const cmdXp = tactics ? xpAfter(runState.commanderXp, cmdUnit, cmdName) : runState.commanderXp
   return {
     ...runState,
     bench,
     commanderHpPct: cmd ? cmd.hpPct : runState.commanderHpPct,
     commanderWounded: cmd ? cmd.wounded : runState.commanderWounded,
+    ...(cmdXp != null ? { commanderXp: cmdXp } : {}),
     lastAftermath: lines,
+    lastLevelUps: levelUps,
   }
+  // Unit levels: XP earned in the fight + survival bonus (won fights only
+  // reach here). Returns the new total, or the old one if the unit wasn't in it.
+  function xpAfter(prevXp, u, name) {
+    if (!u) return prevXp
+    const before = prevXp || 0
+    const total = before + (u.xpGained || 0) + (u.hp > 0 ? LEVEL_XP_GAIN.survive : 0)
+    if (levelForXp(total) > levelForXp(before)) levelUps.push({ name, level: levelForXp(total) })
+    return total
+  }
+}
+
+// Unit levels: spend one earned level on a perk. `key` = bench key or
+// "commander"; `perkId` must be one of perkOffers for that level.
+export function chooseLevelPerk(runState, key, perkId) {
+  const subject = levelSubject(runState, key)
+  if (!subject || pendingPerkCount(subject) <= 0) return runState
+  if (!perkOffers(runState, subject).includes(perkId)) return runState
+  if (key === "commander") return { ...runState, commanderPerks: [...subject.perks, perkId] }
+  return { ...runState, bench: runState.bench.map((e) => (e.key === key ? { ...e, perks: [...subject.perks, perkId] } : e)) }
 }
 
 export function mendCost(runState) {
@@ -2410,6 +2437,7 @@ export function startFormationBattle(runState) {
     battle: named,
     pendingActiveEffects: [],
     lastAftermath: null,
+    lastLevelUps: null,
     // Almanac: every piece the fight actually resolved (mooks, minibosses,
     // bosses, formation pieces - startAutoBattle flattens them all).
     seen: noteSeen(runState.seen, "enemies", ...named.enemies.map((e) => e.defId)),
@@ -2428,9 +2456,11 @@ export function startTacticsFormationBattle(runState, buildTacticsBattle) {
   return {
     ...runState,
     phase: "battle",
-    battle: { ...tactics, engine: "tactics" },
+    // Unit levels (unitLevels.js): perks + XP tracking fields.
+    battle: { ...applyLevelsToTactics(tactics, runState), engine: "tactics" },
     pendingActiveEffects: [],
     lastAftermath: null,
+    lastLevelUps: null,
     seen: noteSeen(runState.seen, "enemies", ...start.battle.enemies.map((e) => e.defId)),
   }
 }
