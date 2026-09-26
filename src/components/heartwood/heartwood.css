@@ -8257,3 +8257,69 @@ img.hw-intent-glyph {
   color: var(--hw-hp);
   margin: 4px 0;
 }
+
+/* Unit levels (sprint 3): level badge + XP bar + perk icons on cards,
+   and the between-fights perk choice screen. */
+.hw-card-level {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 0 4px;
+}
+.hw-level-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--hw-ember);
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 60%, transparent);
+  border-radius: 4px;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+.hw-xp-bar {
+  flex: 1;
+  height: 4px;
+  min-width: 24px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--hw-muted) 30%, transparent);
+  overflow: hidden;
+}
+.hw-xp-fill {
+  height: 100%;
+  background: var(--hw-ember);
+  transition: width 0.4s ease;
+}
+.hw-perk-icon {
+  font-size: 11px;
+  line-height: 1;
+  cursor: help;
+}
+.hw-levelup { text-align: center; }
+.hw-levelup-title { margin: 8px 0 4px; color: var(--hw-ember); }
+.hw-levelup-sub { margin: 0 0 16px; color: var(--hw-muted); }
+.hw-levelup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
+  justify-content: center;
+  gap: 14px;
+}
+.hw-levelup-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 14px;
+  background: var(--hw-card);
+  color: var(--hw-text);
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.hw-levelup-card:hover,
+.hw-levelup-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--hw-ember);
+}
+.hw-levelup-icon { font-size: 28px; }
+.hw-levelup-name { font-weight: 700; }
+.hw-levelup-text { font-size: 13px; color: var(--hw-muted); }

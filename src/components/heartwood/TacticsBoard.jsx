@@ -43,6 +43,7 @@ import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholde
 import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
 import { describeSkillIntent } from "../../services/heartwood/tacticsEnemyAbilities"
 import { describeObjective, reinforcementWarningTiles, turnsUntilPulse } from "../../services/heartwood/tacticsObjectives"
+import { PERKS } from "../../services/heartwood/unitLevels"
 
 function apPips(unit) {
   return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
@@ -381,6 +382,15 @@ export default function TacticsBoard({
                 {unit.id === "player-commander" && (
                   <span className="hwt-commander-badge" title={`${unit.name} - your Commander`}>
                     ♛
+                  </span>
+                )}
+                {unit.level != null && (
+                  <span
+                    className="hwt-level-badge"
+                    data-level={unit.level}
+                    title={`Level ${unit.level}${unit.perks?.length ? " - " + unit.perks.map((id) => PERKS[id]?.name).join(", ") : ""}${unit.xpGained ? ` (+${unit.xpGained} XP this fight)` : ""}`}
+                  >
+                    Lv{unit.level}
                   </span>
                 )}
                 {unit.npc && (
