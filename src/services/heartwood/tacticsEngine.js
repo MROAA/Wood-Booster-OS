@@ -29,7 +29,9 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 import * as relicFx from "./tacticsRelics"
+import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
+import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -1108,11 +1110,11 @@ export function enterDeploy(state) {
 export function placeUnit(state, unitId, pos) {
   if (state.phase !== "deploy") return state
   const unit = getUnit(state, unitId)
-  if (!unit || unit.side !== "player" || unit.hp <= 0) return state
+  if (!unit || unit.side !== "player" || unit.hp <= 0 || unit.npc) return state
   if (!isDeployTile(state, pos)) return state
   if (samePos(unit.pos, pos)) return state
   const occupant = state.units.find((u) => u.hp > 0 && samePos(u.pos, pos))
-  if (occupant && occupant.side !== "player") return state
+  if (occupant && (occupant.side !== "player" || occupant.npc)) return state
   const target = { row: pos.row, col: pos.col }
   return {
     ...state,
@@ -1244,8 +1246,12 @@ export function attackableTargets(state, unitId) {
 
 function checkTacticsBattleEnd(state) {
   if (state.phase === "won" || state.phase === "lost") return state
+  // Battle objectives (tacticsObjectives.js) decide first.
+  const verdict = objectiveVerdict(state)
+  if (verdict) return { ...state, phase: verdict.phase, log: [...state.log, verdict.line] }
   if (livingUnits(state, "enemy").length === 0) return { ...state, phase: "won", log: [...state.log, "Every enemy has fallen. Victory."] }
-  if (livingUnits(state, "player").length === 0) return { ...state, phase: "lost", log: [...state.log, "The squad has fallen."] }
+  // A Protect NPC alone doesn't keep the fight going.
+  if (livingUnits(state, "player").filter((u) => !u.npc).length === 0) return { ...state, phase: "lost", log: [...state.log, "The squad has fallen."] }
   return state
 }
 
@@ -2610,8 +2616,9 @@ function applyTurnStartTriggers(state, side) {
   return next
 }
 
-export function endPlayerTurn(state) {
-  if (state.phase !== "player") return state
+// Everything between "End Turn" and the first enemy acting (ticks, resets).
+// Shared with previewEnemyIntents so the telegraph is an exact dry-run.
+function enemyPhaseStart(state) {
   // applyCovenTick and applyRotMendTick never touch hp downward, so
   // neither can end the battle - no phase guard needed for either,
   // unlike the two ticks below.
@@ -2648,7 +2655,7 @@ export function endPlayerTurn(state) {
     units: ticked.units.map((u) =>
       u.side === "enemy"
         ? {
-            ...u,
+            ...tickSkillCds(u),
             ap: u.apMax,
             block: fortressBlock,
             slow: Math.max(0, (u.slow || 0) - 1),
@@ -2679,7 +2686,15 @@ export function endPlayerTurn(state) {
   const relicTicked = relicFx.relicTurnStart(regenTicked, "enemy")
   if (relicTicked.phase !== "enemy") return relicTicked
   const next = applyTurnStartTriggers(relicTicked, "enemy")
-  return runEnemyTurn(next)
+  // Objective: the Totem pulses at the top of the enemy phase - inside
+  // enemyPhaseStart so previewEnemyIntents sees the same pulsed state.
+  return objectiveEnemyPhaseStart(next)
+}
+
+export function endPlayerTurn(state) {
+  if (state.phase !== "player") return state
+  const next = enemyPhaseStart(state)
+  return next.phase === "enemy" ? runEnemyTurn(next) : next
 }
 
 // Enemy AI (smarter-enemies sprint): every option - stay or any reachable
@@ -2789,9 +2804,265 @@ function aiRetreatTile(state, enemyId) {
   return best
 }
 
+// ===== Enemy skills (sprint 2) ===========================================
+// Kits come from tacticsEnemyAbilities.js; scored alongside attacks in
+// decideEnemyIntent and applied in applyEnemyIntent, so the intent preview
+// stays an exact dry-run. Slam is a 2-step telegraph: wind up (3x3 tiles
+// marked) -> crush those tiles on the enemy's next turn.
+const SUMMON_ENEMY_CAP = 8
+
+function skillReady(unit, skill) {
+  return !((unit.skillCd || {})[skill.id] > 0)
+}
+
+// Cooldowns tick at the start of each enemy phase.
+function tickSkillCds(unit) {
+  if (!unit.skillCd) return unit
+  const skillCd = {}
+  for (const [k, v] of Object.entries(unit.skillCd)) skillCd[k] = Math.max(0, v - 1)
+  return { ...unit, skillCd }
+}
+
+function startSkillCd(state, unitId, skill) {
+  const u = getUnit(state, unitId)
+  return setUnit(state, unitId, { skillCd: { ...(u.skillCd || {}), [skill.id]: skill.cooldown } })
+}
+
+function skillIntentBase(skill) {
+  return { kind: "skill", skillId: skill.id, skillKind: skill.kind, name: skill.name, icon: ENEMY_SKILL_KINDS[skill.kind].icon }
+}
+
+function slamTiles(state, center) {
+  const tiles = []
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      const pos = { row: center.row + dr, col: center.col + dc }
+      if (isOnBoard(pos, state.grid)) tiles.push(pos)
+    }
+  }
+  return tiles
+}
+
+// Free, safe tiles around `origin` (never water/poison/occupied), row-major.
+function freeSafeNeighbours(state, origin, ignoreId = null) {
+  const cells = []
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      const pos = { row: origin.row + dr, col: origin.col + dc }
+      if ((dr === 0 && dc === 0) || !isOnBoard(pos, state.grid)) continue
+      const t = TERRAIN[terrainAt(state, pos)]
+      if (t.cost === Infinity || t.grantPoison) continue
+      if (state.units.some((u) => u.hp > 0 && u.id !== ignoreId && samePos(u.pos, pos))) continue
+      cells.push(pos)
+    }
+  }
+  return cells
+}
+
+// Leap landing next to `target` (ignores Zones/paths), closest to the actor.
+function pounceLanding(state, actor, target) {
+  let best = null
+  for (const pos of freeSafeNeighbours(state, target.pos, actor.id)) {
+    const dist = chebyshevDist(actor.pos, pos)
+    if (!best || dist < best.dist) best = { dist, pos }
+  }
+  return best ? best.pos : null
+}
+
+// Options usable from `pos` with >=1 AP left (mend/shield/hex/summon/slam windup).
+function aiSkillOptions(state, enemy, pos, tileScore) {
+  const options = []
+  const players = livingUnits(state, "player")
+  for (const skill of enemySkillsFor(enemy)) {
+    if (!skillReady(enemy, skill)) continue
+    const kindDef = ENEMY_SKILL_KINDS[skill.kind]
+    const base = skillIntentBase(skill)
+    if (skill.kind === "mend" || skill.kind === "shield") {
+      for (const ally of livingUnits(state, "enemy")) {
+        const allyPos = ally.id === enemy.id ? pos : ally.pos
+        if (chebyshevDist(pos, allyPos) > kindDef.range) continue
+        const hurt = 1 - ally.hp / ally.maxHp
+        let score
+        if (skill.kind === "mend") {
+          const heal = Math.min(skill.amount, ally.maxHp - ally.hp)
+          if (heal < 4) continue
+          score = AI_ATTACK_BASE + tileScore + 5 * heal + 60 * hurt
+        } else {
+          if (ally.id === enemy.id || (ally.block || 0) >= skill.amount) continue
+          const exposure = aiExposure(state, ally.pos)
+          if (!exposure) continue
+          score = AI_ATTACK_BASE - 10 + tileScore + 3 * skill.amount + 30 * hurt + (exposure >= 2 ? 10 : 0)
+        }
+        options.push({ score, intent: { ...base, targetId: ally.id, amount: skill.amount } })
+      }
+    } else if (skill.kind === "hex") {
+      for (const t of players) {
+        if (chebyshevDist(pos, t.pos) > kindDef.range) continue
+        if (skill.status === "poison" ? (t.poison || 0) >= skill.amount : (t[skill.status] || 0) > 0) continue
+        const score = AI_ATTACK_BASE + 35 + tileScore + 0.5 * aiTargetValue(t)
+        options.push({ score, intent: { ...base, targetId: t.id, status: skill.status, amount: skill.amount } })
+      }
+    } else if (skill.kind === "summon") {
+      const mine = state.units.filter((u) => u.hp > 0 && u.summonedBy === enemy.id).length
+      if (mine >= kindDef.cap || livingUnits(state, "enemy").length >= SUMMON_ENEMY_CAP) continue
+      if (!ENEMIES[skill.minion] || !freeSafeNeighbours(state, pos, enemy.id).length) continue
+      options.push({ score: AI_ATTACK_BASE + 50 + tileScore, intent: { ...base, minion: skill.minion, minionName: ENEMIES[skill.minion].name } })
+    } else if (skill.kind === "slam" && !enemy.windup) {
+      let bestCenter = null
+      for (const p of players) {
+        if (chebyshevDist(pos, p.pos) > kindDef.range) continue
+        const hits = players.filter((q) => chebyshevDist(q.pos, p.pos) <= 1).length
+        if (!bestCenter || hits > bestCenter.hits) bestCenter = { center: p.pos, hits }
+      }
+      if (!bestCenter) continue
+      const score = AI_ATTACK_BASE + 20 + tileScore + 45 * bestCenter.hits
+      options.push({ score, intent: { ...base, phase: "windup", center: bestCenter.center, tiles: slamTiles(state, bestCenter.center), amount: skill.amount } })
+    }
+  }
+  return options
+}
+
+// Pounce: a whole-turn leap (2 AP) from where the enemy stands.
+function aiPounceOptions(state, enemy) {
+  if (enemy.ap < 2 || enemy.root > 0) return []
+  const options = []
+  for (const skill of enemySkillsFor(enemy)) {
+    if (skill.kind !== "pounce" || !skillReady(enemy, skill)) continue
+    for (const target of aiTargetsFrom(state, { ...enemy, range: enemy.move + 2 }, enemy.pos)) {
+      if (chebyshevDist(enemy.pos, target.pos) < 2) continue
+      const land = pounceLanding(state, enemy, target)
+      if (!land) continue
+      const dmg = aiEstimateHit({ ...enemy, pos: land, attack: enemy.attack + skill.bonus }, target)
+      const kill = dmg >= target.hp && !(target.revive > 0)
+      const tile = isCautiousEnemy(enemy) ? -6 * aiExposure(state, land) : 0
+      const score = AI_ATTACK_BASE + 10 + tile + (kill ? AI_KILL_BONUS : 0) + 3 * dmg + aiTargetValue(target)
+      options.push({ score, intent: { ...skillIntentBase(skill), targetId: target.id, land, bonus: skill.bonus } })
+    }
+  }
+  return options
+}
+
+function readyEnrage(enemy) {
+  return enemySkillsFor(enemy).find(
+    (s) => s.kind === "enrage" && skillReady(enemy, s) && enemy.hp < enemy.maxHp * ENEMY_SKILL_KINDS.enrage.threshold,
+  )
+}
+
+// Free action: +attack, then the enemy still takes its normal turn.
+function applyEnrage(state, enemyId, skill) {
+  const e = getUnit(state, enemyId)
+  let next = startSkillCd(setUnit(state, enemyId, { attack: e.attack + skill.amount }), enemyId, skill)
+  next = emit(next, { kind: "power", actorId: enemyId, label: `${skill.name}!` })
+  return { ...next, log: [...next.log, `${e.name} flies into a ${skill.name} (+${skill.amount} attack)!`] }
+}
+
+// The slam's crush: every living player unit still on the marked tiles.
+function applySlamRelease(state, enemyId, intent, skill) {
+  const actor = getUnit(state, enemyId)
+  let next = startSkillCd(setUnit(state, enemyId, { windup: null, ap: Math.max(0, actor.ap - 1) }), enemyId, skill)
+  next = emit(next, { kind: "aoe", actorId: enemyId })
+  next = emit(next, { kind: "reaction", unitId: enemyId, label: `${intent.name}!` })
+  next = { ...next, log: [...next.log, `${actor.name} brings down ${intent.name}!`] }
+  const victims = livingUnits(next, "player").filter((p) => intent.tiles.some((t) => samePos(t, p.pos)))
+  if (!victims.length) return { ...next, log: [...next.log, `${intent.name} crushes only empty ground.`] }
+  for (const p of victims) {
+    const live = getUnit(next, p.id)
+    if (!live || live.hp <= 0) continue
+    const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, p.id, modifiedAttackAmount(actor, live, intent.amount))
+    next = hit
+    next = { ...next, log: [...next.log, `${intent.name} crushes ${live.name} for ${remaining}.${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, live.name)}`] }
+    next = relicFx.fireOnHit(next, p.id, enemyId, remaining)
+    if (next.phase === "won" || next.phase === "lost" || !(getUnit(next, enemyId)?.hp > 0)) break
+  }
+  return checkTacticsBattleEnd(next)
+}
+
+const HEX_WORD = { weak: "Weakened!", vulnerable: "Vulnerable!", poison: "Poisoned!", root: "Rooted!" }
+
+function applyEnemySkill(state, enemyId, intent) {
+  let next = state
+  if (intent.to) {
+    next = moveUnit(next, enemyId, intent.to)
+    if (next.phase !== "enemy") return next
+  }
+  const actor = getUnit(next, enemyId)
+  if (!actor || actor.hp <= 0) return next
+  const skill = enemySkillsFor(actor).find((s) => s.id === intent.skillId)
+  if (!skill) return next
+  if (skill.kind === "enrage") return applyEnemyIntent(applyEnrage(next, enemyId, skill), enemyId, intent.then)
+  if (skill.kind === "slam" && intent.phase === "release") return applySlamRelease(next, enemyId, intent, skill)
+  if (skill.kind === "pounce") {
+    const target = getUnit(next, intent.targetId)
+    if (!target || target.hp <= 0 || actor.ap < 2) return next
+    const facing = cardinalDir(intent.land.col - actor.pos.col, intent.land.row - actor.pos.row)
+    next = startSkillCd(setUnit(next, enemyId, { pos: intent.land, facing, ap: 1, attack: actor.attack + skill.bonus }), enemyId, skill)
+    next = emit(next, { kind: "power", actorId: enemyId, label: `${skill.name}!` })
+    next = { ...next, log: [...next.log, `${actor.name} leaps at ${target.name} - ${skill.name}!`] }
+    next = attackUnit(next, enemyId, target.id)
+    const after = getUnit(next, enemyId)
+    return after ? setUnit(next, enemyId, { attack: after.attack - skill.bonus }) : next
+  }
+  if (actor.ap < 1) return next
+  next = setUnit(next, enemyId, { ap: actor.ap - 1 })
+  next = emit(next, { kind: "power", actorId: enemyId, label: `${skill.name}!` })
+  if (skill.kind === "slam") {
+    // Cooldown starts on the release, not the windup.
+    next = setUnit(next, enemyId, { windup: { skillId: skill.id, name: skill.name, amount: intent.amount, center: intent.center, tiles: intent.tiles } })
+    return { ...next, log: [...next.log, `${actor.name} winds up ${skill.name} - the marked tiles will be crushed next turn!`] }
+  }
+  next = startSkillCd(next, enemyId, skill)
+  if (skill.kind === "mend") {
+    const ally = getUnit(next, intent.targetId)
+    if (!ally || ally.hp <= 0) return next
+    const hp = Math.min(ally.maxHp, ally.hp + skill.amount)
+    next = emit(setUnit(next, ally.id, { hp }), { kind: "heal", actorId: enemyId, targetId: ally.id, amount: hp - ally.hp })
+    return { ...next, log: [...next.log, `${actor.name}'s ${skill.name} mends ${ally.name} for ${hp - ally.hp}.`] }
+  }
+  if (skill.kind === "shield") {
+    const ally = getUnit(next, intent.targetId)
+    if (!ally || ally.hp <= 0) return next
+    next = setUnit(next, ally.id, { block: (ally.block || 0) + skill.amount })
+    return { ...next, log: [...next.log, `${actor.name}'s ${skill.name} shields ${ally.name} (+${skill.amount} Block).`] }
+  }
+  if (skill.kind === "hex") {
+    const t = getUnit(next, intent.targetId)
+    if (!t || t.hp <= 0) return next
+    const patch =
+      skill.status === "poison"
+        ? { poison: (t.poison || 0) + skill.amount }
+        : skill.status === "root"
+          ? { root: Math.max(t.root || 0, ROOT_DURATION) }
+          : { [skill.status]: Math.max(t[skill.status] || 0, 1) }
+    next = emit(setUnit(next, t.id, patch), { kind: "reaction", unitId: t.id, label: HEX_WORD[skill.status] })
+    const effect = { poison: `is poisoned (+${skill.amount}).`, root: "is rooted in place!", weak: "is weakened.", vulnerable: "is left vulnerable." }[skill.status]
+    return { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name}. ${t.name} ${effect}`] }
+  }
+  if (skill.kind === "summon") {
+    const cell = freeSafeNeighbours(next, actor.pos, enemyId)[0]
+    if (!cell) return next
+    const uid = `${enemyId}-s${next.units.length}`
+    const minion = { ...deriveTacticsUnit(skill.minion, "enemy", cell, uid), summonedBy: enemyId, enemySkills: [], ap: 0 }
+    next = { ...next, units: [...next.units, { ...minion, baseAttack: minion.attack }] }
+    next = emit(next, { kind: "reaction", unitId: uid, label: "Summoned!" })
+    return { ...next, log: [...next.log, `${actor.name} calls ${skill.name} - a ${minion.name} answers.`] }
+  }
+  return next
+}
+
 function decideEnemyIntent(state, enemyId) {
   const enemy = getUnit(state, enemyId)
   if (!enemy || enemy.hp <= 0) return { kind: "hold" }
+
+  // Enemy skills: a wound-up slam always lands; Frenzy is free, then act.
+  if (enemy.windup) {
+    const skill = enemySkillsFor(enemy).find((s) => s.id === enemy.windup.skillId)
+    if (skill) return { ...skillIntentBase(skill), phase: "release", center: enemy.windup.center, tiles: enemy.windup.tiles, amount: enemy.windup.amount }
+  }
+  const enrage = readyEnrage(enemy)
+  if (enrage) {
+    const then = decideEnemyIntent(applyEnrage(state, enemyId, enrage), enemyId)
+    return { ...skillIntentBase(enrage), amount: enrage.amount, then }
+  }
 
   // The final boss's real weightedRandom AoE - see deterministicRoll's
   // own comment for why this reads state.turn instead of Math.random.
@@ -2832,12 +3103,20 @@ function decideEnemyIntent(state, enemyId) {
         }
       }
     }
+    if (outcome.apLeft >= 1) {
+      for (const opt of aiSkillOptions(state, enemy, pos, tileScore)) {
+        if (opt.score > best.score) best = { score: opt.score, intent: stay ? opt.intent : { ...opt.intent, to: pos } }
+      }
+    }
     // Approach option: close the gap to the focus (ranged aim for max range).
     const dist = chebyshevDist(pos, focus.pos)
     const gap = Math.max(0, dist - enemy.range) * 10 + (enemy.range > 1 ? Math.max(0, enemy.range - dist) * 2 : 0)
     const nearest = Math.min(...players.map((p) => chebyshevDist(pos, p.pos)))
     const score = tileScore - gap - nearest * 0.1
     if (score > best.score) best = { score, intent: stay ? { kind: "hold" } : { kind: "move", to: pos } }
+  }
+  for (const opt of aiPounceOptions(state, enemy)) {
+    if (opt.score > best.score) best = opt
   }
 
   // Ranged enemies stuck next to melee shoot first, then step back if
@@ -2858,6 +3137,7 @@ function applyEnemyIntent(state, enemyId, intent) {
     const to = aiRetreatTile(hit, enemyId)
     return to ? moveUnit(hit, enemyId, to) : hit
   }
+  if (intent.kind === "skill") return applyEnemySkill(state, enemyId, intent)
   if (intent.kind === "aoe") return applyEnemyAoe(state, enemyId, intent.amount)
   if (intent.kind === "move") return moveUnit(state, enemyId, intent.to)
   if (intent.kind === "move-attack") {
@@ -2920,22 +3200,13 @@ function decideAndActEnemy(state, enemyId) {
 // silently refuse every hypothetical enemy action, degrading this into
 // independent per-enemy reads instead of a real sequential preview.
 export function previewEnemyIntents(state) {
-  // Smarter-enemies sprint: the AI now reads AP/root/slow, so the scratch
-  // mirrors endPlayerTurn's enemy reset (fresh AP, one tick of slow/root).
-  const fresh = state.phase === "player"
-  let scratch = {
-    ...state,
-    phase: "enemy",
-    units: fresh
-      ? state.units.map((u) =>
-          u.side === "enemy"
-            ? { ...u, ap: u.apMax, slow: Math.max(0, (u.slow || 0) - 1), root: Math.max(0, (u.root || 0) - 1) }
-            : u,
-        )
-      : state.units,
-  }
+  // The AI reads AP/root/slow/Block/HP/skill cooldowns, so the scratch runs
+  // the REAL enemy-phase start (ticks, resets, poison) first - exact.
+  let scratch = state.phase === "player" ? enemyPhaseStart(state) : { ...state, phase: "enemy" }
+  if (scratch.phase !== "enemy") return []
+  scratch = applyPoisonTick(scratch)
   const intents = []
-  for (const enemy of state.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
+  for (const enemy of scratch.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (scratch.phase !== "enemy") break
     // A stunned enemy skips its turn (relicFx.spendStun in runEnemyTurn).
     const stunned = relicFx.spendStun(scratch, enemy.id)
@@ -3064,7 +3335,10 @@ export function runEnemyTurn(state) {
   // here, right after Block just reset to 0 above - the same "reset then
   // re-grant" ordering already established for the enemy side (see
   // endPlayerTurn's own comment on this).
-  const relicTicked = relicFx.relicTurnStart(returnedToPlayer, "player")
+  // Objective: Survive completes / reinforcements arrive.
+  const objTicked = objectiveNewTurn(returnedToPlayer)
+  if (objTicked.phase !== "player") return objTicked
+  const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked
   return applyTurnStartTriggers(relicTicked, "player")
 }
@@ -3076,8 +3350,9 @@ export function withLowEnemyHp(state) {
   // Tactics-default round: real run fights now carry the auto-battle's
   // own start state (Ward/Revive stacks, difficulty-scaled damage), so
   // the QA hook also strips those one-hit shields - still QA-only.
-  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0 } : u)) }
+  // Enemy-abilities sprint: skills (heals/summons) off too - QA-only.
+  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) }
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
-export { emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood }
+export { deriveTacticsUnit, emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood }

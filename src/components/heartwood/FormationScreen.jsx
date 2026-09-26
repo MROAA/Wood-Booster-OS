@@ -23,7 +23,8 @@ import BuildScore from "./BuildScore"
 import ThreatPreview from "./ThreatPreview"
 import { evaluateMatchup, THREATS, THREAT_ANSWER } from "../../data/heartwood/counterplay"
 import { CardGlyph } from "./cardArt"
-import { resolveRealMatchup } from "../../services/heartwood/tacticsRealMatchup"
+import { resolveRealMatchup, objectiveForRunNode } from "../../services/heartwood/tacticsRealMatchup"
+import { objectiveSummary } from "../../services/heartwood/tacticsObjectives"
 
 // Same 4 positions autoBattleEngine.js deploys units to - kept in sync
 // by hand since the engine doesn't export it, but both only ever
@@ -97,6 +98,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // offered.
   const isTacticsReady = node.type === "battle" || TACTICS_READY_ENCOUNTER_IDS.has(node.formationId || node.enemyId)
   const tacticsMatchup = isTacticsReady ? resolveRealMatchup(runState, node) : null
+  const objectiveSpec = objectiveForRunNode(runState)
   // A Trial (trials.js) is a named narrative wrapper around this exact
   // encounter - real story identity (title, its own intro/victory lines)
   // without touching the underlying enemy's already-tuned combat stats.
@@ -349,6 +351,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           narrative.beat ||
           (isBoss ? "The final fight." : isMiniboss ? "A greater foe." : isElite ? "An elite stands in the way." : null)}
       </p>
+
+      {objectiveSpec && <p className="hwt-formation-summary-objective" data-objective={objectiveSpec.type}>Objective: {objectiveSummary(objectiveSpec)}</p>}
 
       {isElite && ELITE_GIMMICK[node.enemyId] && (
         <p className="hw-elite-gimmick hw-section-fade-in">

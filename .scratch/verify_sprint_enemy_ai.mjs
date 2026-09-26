@@ -23,6 +23,8 @@ const result = await page.evaluate(async () => {
     suppressed: 0, stun: 0, execute: 0, shatter: 0, woundedFury: 0, leech: false, poisonOnHit: 0, nimble: false,
     phases: [], phaseIndex: 0, triggers: [], aoeMove: null, charge: null, covenAura: null, cultRitual: null,
     cultFodder: false, broodSplit: null, className: null, ap: 2, apMax: 2, regen: 0, strength: 0,
+    // Enemy-abilities sprint: isolate the base AI from the template def's skill kit.
+    enemySkills: [],
   }
   const pTpl = base.units.find((u) => u.side === "player")
   const eTpl = base.units.find((u) => u.side === "enemy")
