@@ -1206,3 +1206,174 @@
 }
 .hwt-objective-picker { margin-top: 10px; }
 .hwt-formation-summary-objective { margin: 4px 0 0; font-weight: 600; color: var(--hwt-gold, #d4a24c); }
+
+/* ===== Battlefield features (sprint 3) =====================================
+   High ground, barricades (with HP), bridges, tall grass, lava, ice, rubble.
+   Same tile-variable system as the terrain above - zone tints still layer on top. */
+.hwt-cell[data-terrain="high"] {
+  --hwt-tile: linear-gradient(160deg, color-mix(in srgb, #b08a55 52%, var(--hw-bg)), color-mix(in srgb, #7a5a34 40%, var(--hw-bg)) 85%);
+  --hwt-tile-pattern:
+    radial-gradient(ellipse 70% 45% at 50% 55%, transparent 60%, color-mix(in srgb, #f0d9a8 16%, transparent) 62% 66%, transparent 68%),
+    radial-gradient(ellipse 45% 26% at 50% 55%, transparent 55%, color-mix(in srgb, #f0d9a8 14%, transparent) 58% 64%, transparent 67%);
+  --hwt-mark: "⛰";
+  --hwt-mark-color: #f0d9a8;
+  border-color: color-mix(in srgb, #c9a36a 55%, var(--hw-bg));
+  box-shadow:
+    inset 0 3px 0 color-mix(in srgb, #f0d9a8 28%, transparent),
+    0 3px 0 rgba(0, 0, 0, 0.45),
+    var(--hwt-ring);
+}
+.hwt-cell[data-terrain="wall"] {
+  --hwt-tile: linear-gradient(180deg, color-mix(in srgb, var(--hwt-timber, #8a5a2e) 55%, var(--hw-bg)), color-mix(in srgb, var(--hwt-timber, #8a5a2e) 30%, var(--hw-bg)));
+  --hwt-tile-pattern:
+    repeating-linear-gradient(90deg, transparent 0 16px, rgba(0, 0, 0, 0.38) 16px 18px),
+    linear-gradient(180deg, transparent 44%, rgba(0, 0, 0, 0.32) 45% 49%, transparent 50%);
+  --hwt-mark: "▦";
+  --hwt-mark-color: var(--hw-rune);
+  border-color: color-mix(in srgb, var(--hwt-timber, #8a5a2e) 70%, black);
+  box-shadow:
+    inset 0 2px 0 color-mix(in srgb, var(--hw-text) 16%, transparent),
+    inset 0 -5px 6px rgba(0, 0, 0, 0.5),
+    var(--hwt-ring);
+}
+.hwt-cell[data-terrain="rubble"] {
+  --hwt-tile: color-mix(in srgb, var(--hw-stone) 16%, var(--hw-bg));
+  --hwt-tile-pattern:
+    radial-gradient(circle at 25% 35%, color-mix(in srgb, var(--hwt-timber, #8a5a2e) 45%, transparent) 0 3px, transparent 4px),
+    radial-gradient(circle at 68% 60%, color-mix(in srgb, var(--hw-stone) 50%, transparent) 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 45% 82%, color-mix(in srgb, var(--hwt-timber, #8a5a2e) 35%, transparent) 0 2px, transparent 3px);
+  --hwt-mark: "⁘";
+}
+.hwt-cell[data-terrain="bridge"] {
+  --hwt-tile: linear-gradient(180deg, color-mix(in srgb, var(--hw-tide) 30%, var(--hw-bg)) 0 12%, color-mix(in srgb, var(--hwt-timber, #8a5a2e) 50%, var(--hw-bg)) 12% 88%, color-mix(in srgb, var(--hw-tide) 30%, var(--hw-bg)) 88%);
+  --hwt-tile-pattern: repeating-linear-gradient(90deg, transparent 0 11px, rgba(0, 0, 0, 0.35) 11px 13px);
+  --hwt-mark: "═";
+  --hwt-mark-color: var(--hw-rune);
+  border-color: color-mix(in srgb, var(--hwt-timber, #8a5a2e) 60%, var(--hw-bg));
+}
+.hwt-cell[data-terrain="bush"] {
+  --hwt-tile: linear-gradient(170deg, color-mix(in srgb, var(--hw-moss) 38%, var(--hw-bg)), color-mix(in srgb, var(--hw-moss) 22%, var(--hw-bg)));
+  --hwt-tile-pattern:
+    repeating-linear-gradient(100deg, transparent 0 5px, color-mix(in srgb, var(--hw-moss) 45%, transparent) 5px 6px),
+    repeating-linear-gradient(78deg, transparent 0 7px, color-mix(in srgb, var(--hw-moss) 30%, transparent) 7px 8px);
+  --hwt-mark: "❦";
+  --hwt-mark-color: var(--hw-moss);
+  border-color: color-mix(in srgb, var(--hw-moss) 50%, var(--hw-bg));
+}
+.hwt-cell[data-terrain="lava"] {
+  --hwt-tile: radial-gradient(ellipse at 45% 40%, color-mix(in srgb, var(--hw-ember) 70%, var(--hw-bg)), color-mix(in srgb, var(--hw-hp) 40%, var(--hw-bg)) 75%);
+  --hwt-tile-pattern:
+    radial-gradient(circle at 30% 30%, color-mix(in srgb, #ffd27a 55%, transparent) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 65%, color-mix(in srgb, #ffd27a 40%, transparent) 0 2px, transparent 3px);
+  --hwt-mark: "♨";
+  --hwt-mark-color: #ffd27a;
+  border-color: color-mix(in srgb, var(--hw-ember) 60%, var(--hw-bg));
+  animation: hwt-lava-glow 2.4s ease-in-out infinite;
+}
+@keyframes hwt-lava-glow {
+  0%, 100% { box-shadow: inset 0 0 8px color-mix(in srgb, var(--hw-ember) 40%, transparent), var(--hwt-ring); }
+  50% { box-shadow: inset 0 0 18px color-mix(in srgb, #ffd27a 45%, transparent), var(--hwt-ring); }
+}
+.hwt-cell[data-terrain="ice"] {
+  --hwt-tile: linear-gradient(135deg, color-mix(in srgb, var(--hw-gale) 42%, var(--hw-bg)), color-mix(in srgb, var(--hw-gale) 22%, var(--hw-bg)));
+  --hwt-tile-pattern:
+    linear-gradient(120deg, transparent 38%, color-mix(in srgb, white 22%, transparent) 40%, transparent 44%),
+    linear-gradient(60deg, transparent 58%, color-mix(in srgb, white 12%, transparent) 60%, transparent 63%);
+  --hwt-mark: "❄";
+  --hwt-mark-color: var(--hw-gale);
+  border-color: color-mix(in srgb, var(--hw-gale) 50%, var(--hw-bg));
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwt-cell[data-terrain="lava"] { animation: none; }
+}
+/* Barricade HP bar + number, and the "can hit it" / "enemy will hit it" marks. */
+.hwt-wall-hp {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  height: 14px;
+  border-radius: var(--hw-radius-pill, 999px);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid color-mix(in srgb, var(--hw-rune) 45%, transparent);
+  overflow: hidden;
+  pointer-events: none;
+}
+.hwt-wall-hp-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--hw-rune) 70%, var(--hwt-timber, #8a5a2e)), var(--hw-rune));
+  transition: width var(--hw-dur-base, 144ms) ease;
+}
+.hwt-wall-hp-num {
+  position: relative;
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  color: var(--hw-text);
+  text-shadow: 0 1px 1px black;
+}
+.hwt-cell[data-wall-targetable="true"] {
+  cursor: pointer;
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-hp) 80%, transparent);
+}
+.hwt-cell[data-wall-threat="true"]::after {
+  content: "⚒";
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 0.85rem;
+  color: var(--hw-hp);
+  pointer-events: none;
+}
+.hwt-wall-fx {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  translate: -50% 0;
+  white-space: nowrap;
+  font-family: var(--hw-font-display, inherit);
+  font-weight: 800;
+  pointer-events: none;
+  z-index: 4;
+  text-shadow: 0 1px 2px black;
+  animation: hwt-wall-fx-rise 1.5s ease-out forwards;
+}
+.hwt-wall-fx[data-kind="hit"] { color: var(--hw-hp); font-size: 1rem; }
+.hwt-wall-fx[data-kind="break"] {
+  color: var(--hw-rune);
+  font-size: 0.95rem;
+  padding: 2px 8px;
+  border-radius: var(--hw-radius-pill, 999px);
+  background: color-mix(in srgb, var(--hw-bg) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hw-rune) 60%, transparent);
+}
+@keyframes hwt-wall-fx-rise {
+  0% { opacity: 0; transform: translateY(6px) scale(0.9); }
+  15% { opacity: 1; transform: translateY(0) scale(1.08); }
+  100% { opacity: 0; transform: translateY(-18px) scale(1); }
+}
+/* Battlefield legend in the side panel. */
+.hwt-terrain-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: center;
+  margin: 6px 0;
+  font-size: var(--hw-fs-xs, 0.72rem);
+}
+.hwt-terrain-legend-title { color: var(--hw-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-right: 2px; }
+.hwt-terrain-legend-item {
+  padding: 1px 7px;
+  border-radius: var(--hw-radius-pill, 999px);
+  border: 1px solid var(--hw-border);
+  background: color-mix(in srgb, var(--hw-panel) 80%, transparent);
+  color: var(--hw-text);
+  cursor: help;
+}
+.hwt-terrain-legend-item[data-kind="high"], .hwt-terrain-legend-item[data-kind="wall"], .hwt-terrain-legend-item[data-kind="bridge"] { border-color: color-mix(in srgb, var(--hw-rune) 55%, transparent); }
+.hwt-terrain-legend-item[data-kind="lava"] { border-color: color-mix(in srgb, var(--hw-ember) 60%, transparent); }
+.hwt-terrain-legend-item[data-kind="ice"], .hwt-terrain-legend-item[data-kind="water"] { border-color: color-mix(in srgb, var(--hw-gale) 55%, transparent); }
+.hwt-terrain-legend-item[data-kind="bush"], .hwt-terrain-legend-item[data-kind="forest"] { border-color: color-mix(in srgb, var(--hw-moss) 55%, transparent); }

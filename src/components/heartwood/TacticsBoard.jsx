@@ -37,6 +37,12 @@ import {
   placeUnit,
   beginBattle,
   isDeployTile,
+  attackWall,
+  wallTargetsFor,
+  wallHpAt,
+  rangeAt,
+  TERRAIN_INFO,
+  WALL_MAX_HP,
 } from "../../services/heartwood/tacticsEngine"
 import { motion } from "framer-motion"
 import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
@@ -115,6 +121,27 @@ export default function TacticsBoard({
     const timer = setTimeout(() => {
       setFallenIds((cur) => new Set([...cur].filter((id) => !newlyFallen.includes(id))))
     }, FALLEN_LINGER_MS)
+    return () => clearTimeout(timer)
+  }, [battle])
+  // Battlefield sprint: floating "-N" on a struck barricade, "Wall breaks!" when it falls.
+  const [wallFx, setWallFx] = useState([])
+  const prevWallsRef = useRef(null)
+  const wallFxIdRef = useRef(0)
+  useEffect(() => {
+    const walls = new Map()
+    for (const [key, t] of Object.entries(battle.terrain || {})) if (t === "wall") walls.set(key, battle.wallHp?.[key] ?? WALL_MAX_HP)
+    const prev = prevWallsRef.current
+    prevWallsRef.current = walls
+    if (!prev) return undefined
+    const fresh = []
+    for (const [key, hp] of prev) {
+      if (!walls.has(key)) fresh.push({ id: wallFxIdRef.current++, key, kind: "break", text: "Wall breaks!" })
+      else if (walls.get(key) < hp) fresh.push({ id: wallFxIdRef.current++, key, kind: "hit", text: `-${hp - walls.get(key)}` })
+    }
+    if (!fresh.length) return undefined
+    setWallFx((cur) => [...cur, ...fresh])
+    const ids = new Set(fresh.map((f) => f.id))
+    const timer = setTimeout(() => setWallFx((cur) => cur.filter((f) => !ids.has(f.id))), 1600)
     return () => clearTimeout(timer)
   }, [battle])
   const reachable = useMemo(
@@ -228,6 +255,19 @@ export default function TacticsBoard({
   // map) defaults to "path", the exact same fallback tacticsEngine.js's
   // own terrainAt uses.
   const terrainHere = (row, col) => battle.terrain?.[`${row}-${col}`] || "path"
+  // Battlefield sprint: barricades the selected unit can hit / an enemy plans to hit.
+  const wallTargets = useMemo(
+    () => (selected && selected.side === "player" && battle.phase === "player" && !abilityMode ? wallTargetsFor(battle, selected.id) : []),
+    [battle, selected, abilityMode],
+  )
+  const wallTargetHere = (row, col) => wallTargets.some((p) => p.row === row && p.col === col)
+  const wallThreat = useMemo(() => {
+    const keys = new Set()
+    for (const { intent } of intents) if (intent.kind === "wall") keys.add(`${intent.pos.row}-${intent.pos.col}`)
+    return keys
+  }, [intents])
+  // Present feature types, for the small battlefield legend.
+  const terrainKinds = useMemo(() => [...new Set(Object.values(battle.terrain || {}))].filter((t) => TERRAIN_INFO[t]), [battle.terrain])
   const targetHere = (row, col) => targets.find((t) => t.pos.row === row && t.pos.col === col)
   const healableHere = (row, col) => healable.find((u) => u.pos.row === row && u.pos.col === col)
 
@@ -278,6 +318,10 @@ export default function TacticsBoard({
     const target = targetHere(row, col)
     if (selected && target) {
       onBattleChange(attackUnit(battle, selected.id, target.id))
+      return
+    }
+    if (selected && wallTargetHere(row, col)) {
+      onBattleChange(attackWall(battle, selected.id, { row, col }))
       return
     }
     if (selected && isReachable(row, col)) {
@@ -351,9 +395,25 @@ export default function TacticsBoard({
           data-thorn-zone={thornZone}
           data-deploy-zone={deployZone}
           data-reinforce={reinforceTiles.has(`${row}-${col}`)}
+          data-wall-targetable={terrain === "wall" && wallTargetHere(row, col)}
+          data-wall-threat={terrain === "wall" && wallThreat.has(`${row}-${col}`)}
+          title={TERRAIN_INFO[terrain] ? `${TERRAIN_INFO[terrain].name}: ${TERRAIN_INFO[terrain].text}${terrain === "wall" ? ` (${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP)` : ""}` : undefined}
           data-deploy-target={deployZone && !!selected && (!unit || (unit.side === "player" && unit.id !== selected.id))}
           onClick={() => handleCellClick(row, col)}
         >
+          {terrain === "wall" && (
+            <span className="hwt-wall-hp" title={`Barricade ${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP`}>
+              <span className="hwt-wall-hp-fill" style={{ width: `${Math.round((wallHpAt(battle, { row, col }) / WALL_MAX_HP) * 100)}%` }} />
+              <span className="hwt-wall-hp-num">{wallHpAt(battle, { row, col })}</span>
+            </span>
+          )}
+          {wallFx
+            .filter((fx) => fx.key === `${row}-${col}`)
+            .map((fx) => (
+              <span key={fx.id} className="hwt-wall-fx" data-kind={fx.kind}>
+                {fx.text}
+              </span>
+            ))}
           {!unit && fallenHere(row, col) && (
             <div className="hwt-token-fallen" data-unit-id={fallenHere(row, col).id} data-side={fallenHere(row, col).side}>
               <TokenArt unit={fallenHere(row, col)} />
@@ -611,6 +671,16 @@ export default function TacticsBoard({
             <div className="hwt-objective-detail">{objective.detail}</div>
             {objective.extra && <div className="hwt-objective-extra">{objective.extra}</div>}
           </div>
+          {terrainKinds.length > 0 && (
+            <div className="hwt-terrain-legend">
+              <span className="hwt-terrain-legend-title">Battlefield</span>
+              {terrainKinds.map((t) => (
+                <span key={t} className="hwt-terrain-legend-item" data-kind={t} title={TERRAIN_INFO[t].text}>
+                  {TERRAIN_INFO[t].name}
+                </span>
+              ))}
+            </div>
+          )}
           {selected && selected.side === "player" && (
             <div className="hwt-selected-card">
               <TokenArt unit={selected} />
@@ -620,7 +690,9 @@ export default function TacticsBoard({
                   <span data-stat="atk" title="Attack">⚔ {selected.attack}</span>
                   <span data-stat="hp" title="Health">♥ {selected.hp}/{selected.maxHp}</span>
                   <span data-stat="move" title="Movement">➤ {selected.move}</span>
-                  <span data-stat="range" title="Attack range">◎ {selected.range}</span>
+                  <span data-stat="range" title={rangeAt(battle, selected) > selected.range ? "Attack range (+1 from high ground)" : "Attack range"}>
+                    ◎ {rangeAt(battle, selected)}
+                  </span>
                 </span>
               </div>
             </div>
