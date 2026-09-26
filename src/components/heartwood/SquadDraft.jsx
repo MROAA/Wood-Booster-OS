@@ -92,6 +92,7 @@ import marketTabPlaque from "../../assets/heartwood/buttons/market-tab.png"
 import sellPlaque from "../../assets/heartwood/buttons/sell-plaque.png"
 import yourSquadPlaque from "../../assets/heartwood/buttons/your-squad-plaque.png"
 import shopConfirmPlaque from "../../assets/heartwood/buttons/shop-confirm-plaque.png"
+import { PERKS, levelForXp } from "../../services/heartwood/unitLevels"
 
 // The shop node: recruit whoever you can afford, reroll the rest,
 // leave when ready. No forced pick-one - unlike the old card-reward
@@ -1578,6 +1579,14 @@ export default function SquadDraft({
             <span className="hw-badge" title={commander?.description}>
               <CardGlyph name={commander?.art} className="hw-intent-glyph" />
               {commander?.name} · Rank {commanderRank}
+            </span>
+            <span
+              className="hw-badge hw-level-badge"
+              data-commander-level
+              title={`Level ${levelForXp(runState.commanderXp)}${(runState.commanderPerks || []).length ? " - perks: " + runState.commanderPerks.map((id) => PERKS[id]?.name).join(", ") : ""}`}
+            >
+              Lv{levelForXp(runState.commanderXp)}
+              {(runState.commanderPerks || []).map((id) => PERKS[id]?.icon).join("")}
             </span>
             {(commanderHpPct(runState) < 1 || runState.commanderWounded) && (
               <span className="hw-badge" data-commander-health style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}>

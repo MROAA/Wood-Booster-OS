@@ -1377,3 +1377,13 @@
 .hwt-terrain-legend-item[data-kind="lava"] { border-color: color-mix(in srgb, var(--hw-ember) 60%, transparent); }
 .hwt-terrain-legend-item[data-kind="ice"], .hwt-terrain-legend-item[data-kind="water"] { border-color: color-mix(in srgb, var(--hw-gale) 55%, transparent); }
 .hwt-terrain-legend-item[data-kind="bush"], .hwt-terrain-legend-item[data-kind="forest"] { border-color: color-mix(in srgb, var(--hw-moss) 55%, transparent); }
+/* Unit levels (sprint 3): "Lv2" chip on run tokens. */
+.hwt-token-status > .hwt-level-badge {
+  background: color-mix(in srgb, var(--hwt-gold-deep, #7a5a1e) 70%, black);
+  border: 1px solid var(--hwt-gold, #d4a24c);
+  color: var(--hwt-gold, #d4a24c);
+  font-size: 8px;
+  font-weight: 700;
+  padding: 0 2px;
+}
+.hwt-token-status > .hwt-level-badge[data-level="1"] { opacity: 0.6; }
