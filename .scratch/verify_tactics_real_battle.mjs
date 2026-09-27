@@ -1769,7 +1769,7 @@ function newPage() {
   await page34.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
   const seed34 = await page34.evaluate(async () => {
     const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
-    const idx = RUN_PATH.length - 1
+    const idx = RUN_PATH.findLastIndex((n) => n.type === "battle") // boss node now has its hand-authored arena (sprint 3 bosses)
     const bench = [{ key: "b0", defId: "the-fool", upgradeLevel: 0, upgrades: [] }]
     const deployed = [bench[0].key, null, null, null]
     const lastSeenAct = actIndexForNode(idx, RUN_PATH.length)
@@ -1935,7 +1935,7 @@ function newPage() {
   await page36.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
   const seed36 = await page36.evaluate(async () => {
     const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
-    const idx = RUN_PATH.length - 1
+    const idx = RUN_PATH.findLastIndex((n) => n.type === "battle") // boss node now has its hand-authored arena (sprint 3 bosses)
     const bench = [{ key: "b0", defId: "the-fool", upgradeLevel: 0, upgrades: [] }]
     const deployed = [bench[0].key, null, null, null]
     const lastSeenAct = actIndexForNode(idx, RUN_PATH.length)
