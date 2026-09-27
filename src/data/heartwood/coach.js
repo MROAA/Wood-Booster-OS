@@ -247,6 +247,49 @@ export const COACH_TIPS = [
     text: "A build-around anchor: growth (stronger every round), aura (helps its neighbours) or conditional (a big payoff if your squad fits). Expensive on purpose.",
     anchor: ".hw-card[data-tier=\"legendary\"]",
   },
+  // Tactics fights (sprint 3): first-time tips, one at a time.
+  {
+    id: "t-terrain",
+    title: "The battlefield",
+    text: "Tiles aren't all the same - rocks slow you, high ground helps archers, tall grass hides you. Hover a tile for its rule; the legend lists what's here.",
+    anchor: ".hwt-terrain-legend",
+  },
+  {
+    id: "t-element",
+    title: "Elements",
+    text: "A coloured badge is an element status - Burn, Chill, Frozen or Entangled. Two elements on one target combine into a combo. 'Element combos' in the panel lists them.",
+    anchor: ".hwt-element-badge",
+  },
+  {
+    id: "t-objective",
+    title: "A different goal",
+    text: "Not every fight is 'defeat everyone'. Read the Objective box - survive, protect the Seer, break the Totem, or brace for reinforcements.",
+    anchor: ".hwt-objective",
+  },
+  {
+    id: "t-boss",
+    title: "A boss fight",
+    text: "The bar shows the boss's HP and phase markers. Each phase changes what the arena does - the lines under it say what comes next turn.",
+    anchor: ".hwt-boss-bar",
+  },
+  {
+    id: "t-faction",
+    title: "An enemy faction",
+    text: "This pack fights with its own rule - the banner says what it is and how to play around it.",
+    anchor: ".hwt-faction-banner",
+  },
+  {
+    id: "t-wounded",
+    title: "Wounded units",
+    text: "Damage carries between fights. A unit that fell last time starts Wounded at 25% HP - Mend it in the shop or rest to bring it back.",
+    anchor: ".hwt-token[data-side=\"player\"] .hwt-hp-gem[data-hurt=\"true\"]",
+  },
+  {
+    id: "t-level",
+    title: "Unit levels",
+    text: "Units earn XP in fights. Each level picks a perk - the Lv badge on a token lists what it has learned.",
+    anchor: ".hwt-level-badge",
+  },
 ]
 
 function readEnabled() {

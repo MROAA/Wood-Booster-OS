@@ -433,6 +433,7 @@ export default function TacticsBoard({
         <div
           key={`${row}-${col}`}
           className="hwt-cell"
+          data-cell={`${row}-${col}`}
           data-reachable={!!reach}
           data-targetable={!!target}
           data-healable={!!healTarget}
