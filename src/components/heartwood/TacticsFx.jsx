@@ -68,6 +68,19 @@ function shakeBoard() {
   restartClass(document.querySelector(".hwt-board"), "hw-stage-shake", 260)
 }
 
+// Element combos: briefly light up the tiles a combo touched.
+function flashTiles(tiles, combo) {
+  const board = document.querySelector(".hwt-board")
+  if (!board || !tiles) return
+  const cols = getComputedStyle(board).gridTemplateColumns.split(" ").length
+  for (const t of tiles) {
+    const cell = board.children[t.row * cols + t.col]
+    if (!cell) continue
+    cell.dataset.comboFlash = combo
+    restartClass(cell, "hwt-combo-flash", 700)
+  }
+}
+
 // Groups events into beats: a strike/aoe/power opens a new beat, and
 // everything after it (its damage, reactions) belongs to that beat.
 function toBeats(events) {
@@ -135,6 +148,9 @@ export default function TacticsFx({ battle }) {
           timers.push(setTimeout(() => { restartClass(tokenEl(ev.targetId), "hw-hit-flash", 400); pop(ev.targetId, "Warded!", "ward"); play("block", { gain: 0.7 }) }, at + IMPACT_DELAY_MS))
         } else if (ev.kind === "reaction") {
           timers.push(setTimeout(() => pop(ev.unitId, ev.label, "callout", { offset: 1 }), at))
+        } else if (ev.kind === "combo") {
+          // Element combos: a big distinct callout, tile flash, shake if big.
+          timers.push(setTimeout(() => { pop(ev.unitId, ev.label, "combo", { offset: 1.4, big: ev.big, combo: ev.combo }); flashTiles(ev.tiles, ev.combo); if (ev.big) { shakeBoard(); play("hitBig") } }, at + IMPACT_DELAY_MS))
         } else if (ev.kind === "heal") {
           timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); play("heal") }, at))
         }
