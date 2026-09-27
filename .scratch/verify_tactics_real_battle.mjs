@@ -2086,6 +2086,10 @@ function newPage() {
     const wolf = battle.units.find((u) => u.defId === "spirit-wolf")
     const matron = battle.units.find((u) => u.defId === "coven-matron")
     if (!bc || !wolf || !matron) return { missing: true, spawnedWolf: !!wolf }
+    // Seeded map templates can drop lava/poison under the swap tiles -
+    // flatten the board so only the Spirit Shift decides HP here.
+    battle.terrain = {}
+    battle.wallHp = {}
     let parkRow = 0
     battle.units = battle.units.map((u) => {
       if (u.id === bc.id) return { ...u, pos: { row: 4, col: 6 }, facing: "W", hp: u.maxHp }

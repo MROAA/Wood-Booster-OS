@@ -15,7 +15,7 @@ export const HELP_SECTIONS = [
   {
     heading: "Fights",
     entries: [
-      { term: "Automatic", blurb: "You build the squad and place it; the fight then resolves on its own, round by round. All the depth is in the decisions before the clash." },
+      { term: "Turn by turn", blurb: "Fights are played on a grid, one turn at a time - see \"How to play tactics\" below. \"Auto-battle instead\" on the formation screen resolves one on its own." },
       { term: "Placement", blurb: "Three back-row slots and one forward slot. The forward unit draws fire and leads the charge; some units only pay off from there." },
       { term: "Block vs Bulwark", blurb: "Block soaks hits but resets every round. Bulwark is permanent armour that never runs out." },
       { term: "Statuses", blurb: "Strength, Execute, Ward, Regen, Poison, Burn, Weak, Vulnerable and more - flat, readable numbers, no combat RNG." },
@@ -69,4 +69,25 @@ export const HELP_SECTIONS = [
       { term: "Elites, minibosses, bosses", blurb: "Marked with their own banner. Each has a signature mechanic and escalates once hurt. They pay more Essence." },
     ],
   },
+]
+
+// "How to play tactics" - the turn-based fight, one skimmable entry per
+// system. `icon` is the same glyph the board uses, `tone` colours its chip.
+export const TACTICS_HELP = [
+  { icon: "▦", tone: "gold", term: "Deployment", blurb: "Before turn 1, click a unit and then a gold tile to choose where it starts. Press Begin Battle when ready." },
+  { icon: "●●", tone: "gold", term: "Action points", blurb: "Each unit has 2 AP a turn (the dots). Moving, attacking and abilities each cost AP. End Turn when you're done." },
+  { icon: "➤", tone: "moss", term: "Move & attack", blurb: "Click a unit: blue tiles show where it can walk, red outlines what it can hit. Click one to act." },
+  { icon: "↑", tone: "gold", term: "Facing & flanking", blurb: "The arrow shows where a unit faces. Hitting its side deals +10%, its back +50% (a critical hit)." },
+  { icon: "⛶", tone: "ember", term: "Zone of control", blurb: "Melee units control the tiles around them. Walking out of an enemy's zone costs an extra AP and can draw a free hit." },
+  { icon: "✦", tone: "rune", term: "Abilities", blurb: "Every unit has one special move under its card - a heal, a shield, a big shot. It then needs a few turns to recharge (⏳)." },
+  { icon: "♛", tone: "gold", term: "Commander Power", blurb: "Your Commander has one big Power per battle. Keep your Commander alive - it's the heart of the squad." },
+  { icon: "⚔", tone: "ember", term: "Enemy intents", blurb: "Badges above enemies show their next move: ⚔ strike, ➤ advance, ✦ stunned. What you see is exactly what happens when you end the turn." },
+  { icon: "✹", tone: "ember", term: "Telegraphed skills", blurb: "Big enemy skills wind up first. Red tiles get hit when you end your turn - step out of them." },
+  { icon: "⛰", tone: "moss", term: "Terrain", blurb: "High ground: +1 range for archers, +25% damage downhill. Barricades block paths and can be broken. Bridges cross rivers. Tall grass hides you from range. Lava burns if you end a turn on it. Ice slides you one tile further." },
+  { icon: "🔥", tone: "ember", term: "Element combos", blurb: "Burn, Chill and Entangle are element statuses. Two Chill freezes a unit; mixing elements sets off combos. 'Element combos' in the battle panel lists them all." },
+  { icon: "⚑", tone: "rune", term: "Objectives", blurb: "Some fights change the goal: survive a number of turns, protect the Seer, break the Totem, or hold out until reinforcements arrive." },
+  { icon: "☠", tone: "ember", term: "Boss phases", blurb: "Bosses change phase at the markers on their HP bar - each phase changes the arena. The bar says what happens next turn." },
+  { icon: "❖", tone: "rune", term: "Factions", blurb: "Some enemy packs share a faction rule - Wanderers strike then fade, Mirrors copy your squad, the Corrupted spread Blight. The banner explains it." },
+  { icon: "Lv", tone: "gold", term: "Unit levels", blurb: "Units earn XP in fights. Each level lets you pick a perk between fights." },
+  { icon: "♥", tone: "moss", term: "Wounds carry over", blurb: "Damage stays after a fight. A unit that falls comes back Wounded at 25% HP - Mend it in the shop or rest." },
 ]

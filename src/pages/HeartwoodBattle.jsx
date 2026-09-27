@@ -87,6 +87,9 @@ import StoryCinematic from "../components/heartwood/StoryCinematic"
 import ForestChoiceScreen from "../components/heartwood/ForestChoiceScreen"
 import CoachTip from "../components/heartwood/CoachTip"
 import HelpOverlay from "../components/heartwood/HelpOverlay"
+import TacticsTutorial from "../components/heartwood/TacticsTutorial"
+import { tutorialStatus, setTutorialStatus } from "../services/heartwood/tacticsTutorial"
+import { describeFaction } from "../services/heartwood/tacticsFactions"
 import { nextCoachTip, markCoachSeen } from "../data/heartwood/coach"
 import { UNITS } from "../data/heartwood/units"
 import { UNIT_TRIBES } from "../data/heartwood/synergies"
@@ -222,6 +225,10 @@ export default function HeartwoodBattle() {
   const [tacticsSelectedId, setTacticsSelectedId] = useState(null)
   const [tacticsAbilityMode, setTacticsAbilityMode] = useState(null)
   const [coachTick, setCoachTick] = useState(0)
+  // Training Grounds (tacticsTutorial.js): the guided practice fight,
+  // an overlay like showHelp - it never touches runState.
+  const [showTraining, setShowTraining] = useState(false)
+  const [trainingOfferOpen, setTrainingOfferOpen] = useState(() => !tutorialStatus())
   const coachDoneKeyRef = useRef(null)
   const [lastAcornsEarned, setLastAcornsEarned] = useState(null)
   const awardedRunRef = useRef(null)
@@ -607,6 +614,9 @@ export default function HeartwoodBattle() {
   // runState)) effect the auto-battle state already does, so a reload
   // mid-fight resumes it, same as today.
   function handleStartTacticsBattle() {
+    // The Training Grounds offer is shown once - starting a real fight counts.
+    setTutorialStatus("offered")
+    setTrainingOfferOpen(false)
     setTacticsSelectedId(null)
     setTacticsAbilityMode(null)
     // Tactics-default round: built from the auto-battle's own start
@@ -697,7 +707,27 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="help">
         {exitLink}
-        <HelpOverlay onBack={() => setShowHelp(false)} />
+        <HelpOverlay
+          onBack={() => setShowHelp(false)}
+          onPlayTraining={() => {
+            setShowHelp(false)
+            setShowTraining(true)
+          }}
+        />
+      </div>
+    )
+  }
+
+  if (showTraining) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="training" data-screen="training">
+        <TacticsTutorial
+          onExit={(status) => {
+            setTutorialStatus(status)
+            setTrainingOfferOpen(false)
+            setShowTraining(false)
+          }}
+        />
       </div>
     )
   }
@@ -768,7 +798,20 @@ export default function HeartwoodBattle() {
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "They take what's yours") ids.push("collectors")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "Something is winding up") ids.push("ancients")
     }
-    if (phase === "battle" && battle) {
+    if (phase === "battle" && battle?.engine === "tactics") {
+      // Tactics fights: first-time tips, rarest first (coach.js "t-*").
+      if (battle.phase === "player" || battle.phase === "deploy") {
+        const bench = runState.bench || []
+        const woundedDeployed = (runState.deployed || []).some((k) => k && bench.find((b) => b.key === k)?.wounded)
+        if (battle.boss) ids.push("t-boss")
+        if (describeFaction(battle)) ids.push("t-faction")
+        if (battle.objective && (battle.objective.type !== "kill" || battle.objective.reinforcements)) ids.push("t-objective")
+        if (woundedDeployed || runState.commanderWounded) ids.push("t-wounded")
+        if (battle.units.some((u) => u.side === "player" && u.hp > 0 && u.perks?.length)) ids.push("t-level")
+        if (battle.units.some((u) => u.hp > 0 && (u.burn > 0 || u.chill > 0 || u.frozen > 0 || u.entangle > 0))) ids.push("t-element")
+        if (Object.values(battle.terrain || {}).some((t) => t && t !== "path")) ids.push("t-terrain")
+      }
+    } else if (phase === "battle" && battle) {
       if (battle.phase === "won" || battle.phase === "lost") ids.push("battle-analysis")
       if (battle.phase === "player") ids.push("threat")
       if (isElite) ids.push("elite")
@@ -781,7 +824,9 @@ export default function HeartwoodBattle() {
   })()
   const dismissCoach = () => {
     if (activeCoachTip) markCoachSeen(activeCoachTip.id)
-    coachDoneKeyRef.current = coachKey
+    // Tactics tips queue one after another (each shows once, ever);
+    // everywhere else one tip per screen.
+    coachDoneKeyRef.current = runState?.battle?.engine === "tactics" ? null : coachKey
     setCoachTick((n) => n + 1)
   }
 
@@ -833,6 +878,9 @@ export default function HeartwoodBattle() {
         </button>
         <button className="hw-help-open-btn" onClick={() => setShowHelp(true)} aria-label="Help" title="How Hearthwood works">
           ?
+        </button>
+        <button className="hw-training-open-btn" onClick={() => setShowTraining(true)} title="A guided practice fight">
+          &#9876; Training Grounds
         </button>
         <button className="hw-settings-open-btn" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
           &#9881;
@@ -1126,6 +1174,26 @@ export default function HeartwoodBattle() {
       <div className="hw-root hw-screen-fade" style={rootStyle} key="formation">
         {changeCharacterBar}
         {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
+        {trainingOfferOpen && (
+          <div className="hwt-training-offer" role="dialog" aria-label="Training Grounds">
+            <div className="hwt-training-offer-title">&#9876; New to tactics fights?</div>
+            <div className="hwt-training-offer-text">Try the Training Grounds - a 2-minute guided practice fight. Your run waits here.</div>
+            <div className="hwt-training-offer-actions">
+              <button className="hwt-training-next" onClick={() => setShowTraining(true)}>
+                Play it
+              </button>
+              <button
+                className="hwt-training-later"
+                onClick={() => {
+                  setTutorialStatus("skipped")
+                  setTrainingOfferOpen(false)
+                }}
+              >
+                No thanks
+              </button>
+            </div>
+          </div>
+        )}
         <FormationScreen
           runState={runState}
           node={runState.path[runState.nodeIndex]}
@@ -1165,6 +1233,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="battle-tactics" data-screen="battle" data-act={battleActIndex}>
         {exitLink}
+        {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} placement="tactics" />}
         <BattleSound state={runState.battle} />
         <TacticsBoard
           battle={runState.battle}
