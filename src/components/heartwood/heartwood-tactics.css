@@ -1575,3 +1575,109 @@
 }
 .hwt-boss-btn:hover { color: var(--hw-text); border-color: var(--hw-ember); }
 .hwt-boss-btn[data-active="true"] { color: var(--hw-text); border-color: var(--hw-ember); background: color-mix(in srgb, var(--hw-ember) 14%, var(--hw-panel)); }
+
+/* ===== Sprint 3 factions (tacticsFactions.js) ===== */
+/* Corrupted: Blight tiles - a black-violet ooze over any terrain. */
+.hwt-cell[data-blight="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 6px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 35%, rgba(122, 52, 140, 0.75) 0 16%, transparent 40%),
+    radial-gradient(circle at 70% 65%, rgba(58, 27, 74, 0.85) 0 22%, transparent 50%),
+    radial-gradient(circle at 60% 25%, rgba(92, 120, 40, 0.45) 0 8%, transparent 20%),
+    rgba(28, 13, 36, 0.6);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--hw-curse) 45%, transparent);
+  animation: hwt-blight-pulse 3.2s ease-in-out infinite;
+  z-index: -1;
+}
+/* Own stacking context: the ooze sits over the tile but under the token. */
+.hwt-cell[data-blight="true"] { isolation: isolate; }
+.hwt-cell[data-blight-fresh="true"]::after {
+  animation: hwt-blight-spread 0.9s ease-out, hwt-blight-pulse 3.2s ease-in-out 0.9s infinite;
+}
+.hwt-cell[data-blight-next="true"] {
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-curse) 45%, transparent);
+  outline: 1px dashed color-mix(in srgb, var(--hw-curse) 70%, transparent);
+  outline-offset: -4px;
+}
+@keyframes hwt-blight-pulse {
+  0%, 100% { opacity: 0.78; }
+  50% { opacity: 1; }
+}
+@keyframes hwt-blight-spread {
+  0% { opacity: 0; transform: scale(0.2); }
+  60% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.hwt-blight-power-badge { color: var(--hw-curse); font-weight: 700; }
+
+/* Faction token frames + badge. */
+.hwt-faction-badge { font-weight: 700; }
+.hwt-faction-badge[data-faction="wanderers"] { color: var(--hw-gale); }
+.hwt-faction-badge[data-faction="mirror"] { color: var(--hw-rune); }
+.hwt-faction-badge[data-faction="corrupted"] { color: var(--hw-curse); }
+.hwt-token[data-faction="wanderers"] {
+  --hwt-frame: color-mix(in srgb, var(--hw-gale) 60%, var(--hw-border));
+  border-style: dotted;
+}
+.hwt-token[data-faction="corrupted"] {
+  --hwt-frame: color-mix(in srgb, var(--hw-curse) 70%, var(--hw-border));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--hw-curse) 45%, transparent);
+}
+/* Mirror: echoes are ghostly - translucent, cool-tinted, shimmering, flipped. */
+.hwt-token[data-echo="true"] {
+  --hwt-frame: color-mix(in srgb, var(--hw-rune) 70%, var(--hw-border));
+  border-style: dashed;
+  background: color-mix(in srgb, var(--hw-rune) 16%, var(--hw-card));
+  animation: hwt-echo-shimmer 2.6s ease-in-out infinite;
+}
+.hwt-token[data-echo="true"] .hwt-token-art {
+  opacity: 0.6;
+  filter: grayscale(0.5) hue-rotate(190deg) blur(0.3px);
+  transform: scaleX(-1);
+}
+@keyframes hwt-echo-shimmer {
+  0%, 100% { box-shadow: 0 0 4px color-mix(in srgb, var(--hw-rune) 30%, transparent); opacity: 0.88; }
+  50% { box-shadow: 0 0 14px color-mix(in srgb, var(--hw-rune) 65%, transparent); opacity: 0.72; }
+}
+/* Wanderers: the tile a skirmisher will fade to after striking. */
+.hwt-cell[data-fade-to="true"] {
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-gale) 55%, transparent);
+  outline: 1px dotted color-mix(in srgb, var(--hw-gale) 80%, transparent);
+  outline-offset: -5px;
+}
+.hwt-cell[data-fade-to="true"]::before { content: "↩"; color: var(--hw-gale); }
+/* Wanderers: "strike then fade" mark on the intent coin. */
+.hwt-fade-mark {
+  position: absolute;
+  bottom: -7px;
+  left: -6px;
+  font-size: 9px;
+  color: var(--hw-gale);
+  text-shadow: 0 0 3px black;
+}
+
+/* Panel banner. */
+.hwt-faction-banner {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-card);
+}
+.hwt-faction-banner[data-faction="wanderers"] { border-color: color-mix(in srgb, var(--hw-gale) 55%, var(--hw-border)); }
+.hwt-faction-banner[data-faction="mirror"] { border-color: color-mix(in srgb, var(--hw-rune) 55%, var(--hw-border)); }
+.hwt-faction-banner[data-faction="corrupted"] { border-color: color-mix(in srgb, var(--hw-curse) 55%, var(--hw-border)); }
+.hwt-faction-title { font-weight: 700; font-size: 0.95rem; }
+.hwt-faction-hint, .hwt-faction-extra { font-size: var(--hw-fs-sm); color: var(--hw-muted); margin-top: 3px; line-height: 1.4; }
+.hw-reduce-motion .hwt-cell[data-blight="true"]::after,
+.hw-reduce-motion .hwt-token[data-echo="true"] { animation: none; }
+
+/* Formation screen tag line (FormationScreen.jsx). */
+.hw-faction-tag { font-weight: 700; margin: 0 0 4px; }
+.hw-faction-tag[data-faction="wanderers"] { color: var(--hw-gale); }
+.hw-faction-tag[data-faction="mirror"] { color: var(--hw-rune); }
+.hw-faction-tag[data-faction="corrupted"] { color: var(--hw-curse); }
+.hw-faction-hint { font-size: var(--hw-fs-sm); color: var(--hw-muted); margin: 0 0 10px; }

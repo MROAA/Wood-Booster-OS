@@ -32,6 +32,14 @@ const EXPLICIT = {
   "the-iron-sentinel": [mk("shield", { name: "Iron Aegis", amount: 10 }), mk("slam", { name: "Anvil Fall", amount: 8 })],
   "the-bramble-lash": [hex("root", 1, "Bramble Snare"), mk("pounce", { name: "Lash", bonus: 3 })],
   "the-ashfall-herald": [mk("slam", { name: "Ashfall", amount: 8 }), hex("burn", 3, "Cinder Brand")],
+  // Sprint 3 factions. Wanderers: leaps + pins (their Fade is engine-side).
+  "wayfarer-scout": [mk("pounce", { name: "Running Leap", bonus: 2 })],
+  "vagrant-blade": [mk("pounce", { name: "Cut and Run", bonus: 3 })],
+  "drift-archer": [hex("root", 1, "Pinning Arrow")],
+  // Corrupted: the Blight does the heavy lifting; a few rot-flavored kits.
+  blightfang: [mk("pounce", { name: "Blight Lunge", bonus: 2 })],
+  "tainted-sapling": [hex("weak", 1, "Withering Touch")],
+  "blightheart-troll": [mk("slam", { name: "Rot Quake", amount: 7 })],
 }
 
 // Regular enemies: one skill from the def's own non-attack moves, plus

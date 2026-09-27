@@ -27,6 +27,7 @@ import { buildTemplateTerrain, pickTemplate, sidesConnected } from "./tacticsTer
 import { effectiveUnitDef } from "./autoBattleEngine"
 import { objectiveForNode, applyObjective } from "./tacticsObjectives"
 import { arenaTerrainFor, applyBossFight } from "./tacticsBosses"
+import { applyFaction } from "./tacticsFactions"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -177,13 +178,14 @@ export function resolveRealMatchup(runState, node) {
   if (!encounterId) return null
 
   const formation = resolveFormation(encounterId)
-  const enemyDefIds = formation.pieces.map((p) => p.defId).filter((id) => ENEMIES[id])
 
   const squadDefIds = (runState.deployed || [])
     .filter((key) => key !== null)
     .map((key) => (runState.bench || []).find((e) => e.key === key))
     .filter((entry) => entry && UNITS[entry.defId])
     .map((entry) => entry.defId)
+  // Mirror faction: the enemy side is the deployed squad itself.
+  const enemyDefIds = formation.mirror && squadDefIds.length ? squadDefIds.slice(0, 4) : formation.pieces.map((p) => p.defId).filter((id) => ENEMIES[id])
 
   // Tactics-default round: a Commander-alone deploy (the run's real
   // opening state - "peli alkaa siitä että commander on yksin") is a
@@ -205,6 +207,7 @@ export function resolveRealMatchup(runState, node) {
     // regenerates the same terrain for the same fight.
     terrain: arenaTerrainFor(encounterId) || generateRealTerrain(runState.seed, runState.nodeIndex),
     bossId: arenaTerrainFor(encounterId) ? encounterId : null,
+    faction: formation.faction || null,
   }
 }
 
@@ -228,10 +231,11 @@ export function loadRealMatchup() {
 export function buildRunTacticsBattle(runState, start) {
   const deployedDefIds = start.deployed.map((e) => e.defId)
   const squad = start.deployed.map((e) => ({ defId: e.defId, def: effectiveUnitDef(e.defId, e.upgrades || e.upgradeLevel || 0, deployedDefIds) }))
-  const enemyDefIds = start.battle.enemies.map((e) => e.defId).filter((id) => ENEMIES[id])
   const node = runState.path[runState.nodeIndex]
   const encounterId = node?.formationId || node?.enemyId
   const formation = resolveFormation(encounterId)
+  // Mirror faction: echoes are UNITS defs (startAutoBattle's mirrorSquad).
+  const enemyDefIds = start.battle.enemies.map((e) => e.defId).filter((id) => ENEMIES[id] || (formation.mirror && UNITS[id]))
   // Boss fights (sprint 3): minibosses/bosses/elite Ancients get their arena.
   const arena = arenaTerrainFor(encounterId)
   const battle = createRunTacticsBattle({
@@ -244,7 +248,8 @@ export function buildRunTacticsBattle(runState, start) {
     label: start.battle.enemies.length === 1 ? start.battle.enemies[0].name : formation?.name,
     relicIds: runState.relics || [],
   })
-  return applyObjective(arena ? applyBossFight(battle, encounterId) : battle, objectiveForRunNode(runState))
+  const factioned = battle && formation.faction ? applyFaction(battle, formation.faction) : battle
+  return applyObjective(arena ? applyBossFight(factioned, encounterId) : factioned, objectiveForRunNode(runState))
 }
 
 // Battle objectives (sprint 2): the objective for the run's node - pure
