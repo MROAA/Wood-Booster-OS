@@ -151,7 +151,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "stormroot" },
   { type: "event" },
-  { type: "battle", enemyId: "duskmoth" },
+  { type: "battle", formationId: "the-drift" }, // sprint3-factions: Wanderers (was: duskmoth)
   { type: "shop" },
   { type: "battle", enemyId: "hollowfen" },
   { type: "shop" },
@@ -173,7 +173,7 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "stonewake" },
   { type: "shop" },
-  { type: "battle", enemyId: "gravequill" },
+  { type: "battle", formationId: "the-taint" }, // sprint3-factions: Corrupted (was: gravequill)
   { type: "shop" },
   { type: "battle", enemyId: "bonewarden" },
   { type: "shop" },
@@ -189,17 +189,17 @@ export const RUN_PATH = [
   { type: "shop" },
   { type: "battle", enemyId: "rootward" },
   { type: "shop" },
-  { type: "battle", enemyId: "briarmaw" },
+  { type: "battle", formationId: "the-roaming-band" }, // sprint3-factions: Wanderers (was: briarmaw)
   { type: "shop" },
   { type: "battle", enemyId: "bramblespite" },
   { type: "event" },
   { type: "battle", formationId: "the-tithe" }, // feat/hearthwood-collectors (was: thornfen)
   { type: "shop" },
-  { type: "battle", enemyId: "hollowcurse" },
+  { type: "battle", formationId: "the-spreading-dark" }, // sprint3-factions: Corrupted (was: hollowcurse)
   { type: "shop" },
   { type: "elite", formationId: "the-elder-hollow" }, // feat/hearthwood-ancients (was: the-ashfall-herald / grimspite)
   { type: "shop" },
-  { type: "battle", enemyId: "ironroot" },
+  { type: "battle", formationId: "the-looking-pool" }, // sprint3-factions: Mirror (was: ironroot)
   { type: "shop" },
   { type: "battle", formationId: "the-conclave" }, // feat/hearthwood-coven (was: bark-brutes-stand)
   { type: "shop" },
@@ -2075,12 +2075,21 @@ function encounterAndFactorFor(runState, warn = false) {
   // more factor on the number startAutoBattle already treats as "how
   // much harder than baseline is this fight."
   const depthMult = depthModifiersFor(runState.selectedDepth || 0).enemyMult
+  const encounterId = resolveEncounterId(node, runState.nodeIndex, act, warn)
+  const difficultyFactor = difficultyFactorForNode(runState.nodeIndex, runState.path.length) * (ACT_STAT_FLOOR[act] || 1) * depthMult
+  // The Mirror faction (sprint 3): the enemy side is a clone of the
+  // deployed squad (max 4), and "slightly weakened" - a flat 60% of the
+  // ramp (floor 0.8x) instead of the full late-run multiplier.
+  const mirrorSquad = FORMATIONS[encounterId]?.mirror ? deployedUnitsFor(runState).slice(0, MIRROR_MAX_ECHOES) : null
   return {
-    encounterId: resolveEncounterId(node, runState.nodeIndex, act, warn),
-    difficultyFactor:
-      difficultyFactorForNode(runState.nodeIndex, runState.path.length) * (ACT_STAT_FLOOR[act] || 1) * depthMult,
+    encounterId,
+    difficultyFactor: mirrorSquad?.length ? Math.max(0.8, difficultyFactor * MIRROR_FACTOR_SCALE) : difficultyFactor,
+    mirrorSquad,
   }
 }
+
+export const MIRROR_MAX_ECHOES = 4
+export const MIRROR_FACTOR_SCALE = 0.6
 
 // Dev-only: on module load, list every RUN_PATH node whose enemy content
 // does not line up with the Act its position falls in - so any future
@@ -2268,7 +2277,7 @@ function autoBattleStartFor(runState) {
   // Act-corrected encounter + per-Act stat floor (see encounterAndFactorFor
   // / ACT_STAT_FLOOR above). warn:true so a branching-path Act mismatch
   // shows once, in dev, when the fight actually starts.
-  const { encounterId, difficultyFactor } = encounterAndFactorFor(runState, true)
+  const { encounterId, difficultyFactor, mirrorSquad } = encounterAndFactorFor(runState, true)
   const arenaId = arenaForNode(runState.nodeIndex, actIndexForNode(runState.nodeIndex, RUN_PATH.length))
   const battle = startAutoBattle(
     runState.characterId,
@@ -2292,6 +2301,7 @@ function autoBattleStartFor(runState) {
     // Forest Mood (moods.js) - the world posture the Act crossroads set
     // now drives a live per-battle meter.
     runState.forestState || "restless",
+    mirrorSquad,
   )
   return { battle: applyTrialName(withCarriedHp(battle, runState), node), encounterId, difficultyFactor, deployed: deployedUnitsFor(runState) }
 }
@@ -2440,7 +2450,7 @@ export function startFormationBattle(runState) {
     lastLevelUps: null,
     // Almanac: every piece the fight actually resolved (mooks, minibosses,
     // bosses, formation pieces - startAutoBattle flattens them all).
-    seen: noteSeen(runState.seen, "enemies", ...named.enemies.map((e) => e.defId)),
+    seen: noteSeen(runState.seen, "enemies", ...named.enemies.map((e) => e.defId).filter((id) => ENEMIES[id])),
   }
 }
 
@@ -2461,7 +2471,7 @@ export function startTacticsFormationBattle(runState, buildTacticsBattle) {
     pendingActiveEffects: [],
     lastAftermath: null,
     lastLevelUps: null,
-    seen: noteSeen(runState.seen, "enemies", ...start.battle.enemies.map((e) => e.defId)),
+    seen: noteSeen(runState.seen, "enemies", ...start.battle.enemies.map((e) => e.defId).filter((id) => ENEMIES[id])),
   }
 }
 
@@ -2512,7 +2522,7 @@ export function previewBattleEnemies(runState) {
   // Same Act-corrected encounter + per-Act stat floor the real fight
   // uses (encounterAndFactorFor above) - warn:false so this render-time
   // dry run stays silent.
-  const { encounterId, difficultyFactor } = encounterAndFactorFor(runState, false)
+  const { encounterId, difficultyFactor, mirrorSquad } = encounterAndFactorFor(runState, false)
   const arenaId = arenaForNode(runState.nodeIndex, actIndexForNode(runState.nodeIndex, RUN_PATH.length))
   const battle = startAutoBattle(
     runState.characterId,
@@ -2526,6 +2536,7 @@ export function previewBattleEnemies(runState) {
     difficultyFactor,
     arenaId,
     runState.forestState || "restless",
+    mirrorSquad,
   )
   return applyTrialName(battle, node).enemies
 }

@@ -24,6 +24,7 @@ import {
   PLAYER_ROSTER_IDS,
 } from "../services/heartwood/tacticsEngine"
 import { loadRealMatchup } from "../services/heartwood/tacticsRealMatchup"
+import { applyFaction } from "../services/heartwood/tacticsFactions"
 import { applyObjective, buildObjectiveSpec, OBJECTIVE_TYPES, OBJECTIVE_NAMES } from "../services/heartwood/tacticsObjectives"
 import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../services/heartwood/tacticsBosses"
 import "../components/heartwood/heartwood.css"
@@ -149,7 +150,8 @@ export default function HeartwoodTactics() {
     setAbilityMode(null)
     setUsingReal(true)
     const real = createRealMatchupBattle(realMatchup.squadDefIds, realMatchup.enemyDefIds, realMatchup.characterId, realMatchup.commanderRank, realMatchup.terrain)
-    setBattle(maybeDebugLowHp(realMatchup.bossId ? applyBossFight(real, realMatchup.bossId) : real))
+    const factioned = realMatchup.faction ? applyFaction(real, realMatchup.faction) : real
+    setBattle(maybeDebugLowHp(realMatchup.bossId ? applyBossFight(factioned, realMatchup.bossId) : factioned))
   }
 
   // The one way out of real-matchup mode - back to today's exact default

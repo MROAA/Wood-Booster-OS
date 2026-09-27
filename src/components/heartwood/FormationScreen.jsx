@@ -25,6 +25,7 @@ import { evaluateMatchup, THREATS, THREAT_ANSWER } from "../../data/heartwood/co
 import { CardGlyph } from "./cardArt"
 import { resolveRealMatchup, objectiveForRunNode } from "../../services/heartwood/tacticsRealMatchup"
 import { objectiveSummary } from "../../services/heartwood/tacticsObjectives"
+import { factionInfo } from "../../services/heartwood/tacticsFactions"
 
 // Same 4 positions autoBattleEngine.js deploys units to - kept in sync
 // by hand since the engine doesn't export it, but both only ever
@@ -197,6 +198,9 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   // Counterplay (counterplay.js): which threats the next fight presents,
   // and whether the deployed squad + relics + boons answer them.
   const matchup = evaluateMatchup(previewEnemies, runState)
+  // Factions (sprint 3): tag line + the echoes a Mirror fight will field.
+  const faction = factionInfo(formation.faction)
+  const mirrorPieces = formation.mirror && previewEnemies.some((e) => !ENEMIES[e.defId]) ? previewEnemies.map((e) => ({ defId: e.defId, pos: e.pos })) : null
 
   function handleBenchClick(benchKey) {
     const slotIndex = runState.deployed.indexOf(benchKey)
@@ -212,7 +216,10 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   for (let row = 0; row < 3; row++) {
     const cells = []
     for (let col = 0; col < 3; col++) {
-      const enemyPiece = formation.pieces.find((p) => p.pos.row === row && p.pos.col === col)
+      // Mirror faction: the real pieces are echoes of the deployed squad.
+      const enemyPiece = mirrorPieces
+        ? mirrorPieces.find((p) => p.pos.row === row && p.pos.col === col)
+        : formation.pieces.find((p) => p.pos.row === row && p.pos.col === col)
       const slotIndex = slotIndexAt(row, col)
       let content = null
       let positionFit = null
@@ -220,10 +227,10 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       const isCommanderSlot = row === COMMANDER_POSITION.row && col === COMMANDER_POSITION.col
 
       if (enemyPiece) {
-        const def = ENEMIES[enemyPiece.defId]
+        const def = ENEMIES[enemyPiece.defId] || UNITS[enemyPiece.defId]
         const scaled = scaledEnemiesByPos[`${row}-${col}`]
         const hp = scaled?.maxHp ?? def.maxHp
-        const previewEnemy = { id: `preview-${row}-${col}`, name: def.name, hp, maxHp: hp, block: 0, intent: null, powers: {} }
+        const previewEnemy = { id: `preview-${row}-${col}`, name: mirrorPieces ? scaled?.name || def.name : def.name, hp, maxHp: hp, block: 0, intent: null, powers: {} }
         content = <EnemyPieceCard enemy={previewEnemy} art={def.art} />
       } else if (isCommanderSlot) {
         // The Commander always deploys here - not something the player
@@ -351,6 +358,13 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           narrative.beat ||
           (isBoss ? "The final fight." : isMiniboss ? "A greater foe." : isElite ? "An elite stands in the way." : null)}
       </p>
+
+      {faction && (
+        <>
+          <p className="hw-faction-tag" data-faction={faction.id}>{faction.icon} {faction.tag}</p>
+          <p className="hw-faction-hint">{faction.hint}</p>
+        </>
+      )}
 
       {objectiveSpec && <p className="hwt-formation-summary-objective" data-objective={objectiveSpec.type}>Objective: {objectiveSummary(objectiveSpec)}</p>}
 
