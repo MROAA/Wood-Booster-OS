@@ -441,7 +441,8 @@ for (const f of engine.fails) out.errors.push(f)
 
 // --- UI: a part-B unit (Snareclaw, Trapper) places a trap by clicks -------
 {
-  await page.locator(".hwt-squad-select").nth(0).selectOption("snareclaw")
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics?squad=snareclaw,the-fool`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board", { timeout: 20000 })
   await page.waitForTimeout(250)
   const token = page.locator('.hwt-token[data-side="player"]', { hasText: "Snareclaw" }).first()
   const badge = await token.locator(".hwt-token-class").getAttribute("data-class-id").catch(() => null)
