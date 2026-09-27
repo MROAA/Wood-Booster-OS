@@ -3524,7 +3524,9 @@ export function withLowEnemyHp(state) {
   // own start state (Ward/Revive stacks, difficulty-scaled damage), so
   // the QA hook also strips those one-hit shields - still QA-only.
   // Enemy-abilities sprint: skills (heals/summons) off too - QA-only.
-  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) }
+  // Terrain sprint: map templates (rivers, walls, lava) can wall a naive
+  // QA bot off from the enemy - the hook flattens the board too.
+  return { ...state, terrain: {}, wallHp: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) }
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
