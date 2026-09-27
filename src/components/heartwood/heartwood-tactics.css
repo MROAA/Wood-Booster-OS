@@ -1563,3 +1563,15 @@
 .hw-reduce-motion .hwt-boss-phase-banner, .hw-reduce-motion .hwt-cell[data-boss-warn] { animation: none; }
 .hw-reduce-motion .hwt-boss-phase-banner { opacity: 1; }
 .hwt-boss-picker { margin-top: 10px; }
+/* Own class so boss names never collide with the formation buttons. */
+.hwt-boss-btn {
+  font-size: var(--hw-fs-sm);
+  padding: 5px 12px;
+  border-radius: var(--hw-radius-pill);
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border));
+  background: var(--hw-panel);
+  color: var(--hw-muted);
+  cursor: pointer;
+}
+.hwt-boss-btn:hover { color: var(--hw-text); border-color: var(--hw-ember); }
+.hwt-boss-btn[data-active="true"] { color: var(--hw-text); border-color: var(--hw-ember); background: color-mix(in srgb, var(--hw-ember) 14%, var(--hw-panel)); }

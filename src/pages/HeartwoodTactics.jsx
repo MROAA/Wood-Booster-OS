@@ -310,7 +310,7 @@ export default function HeartwoodTactics() {
               {BOSS_IDS.map((id) => (
                 <button
                   key={id}
-                  className="hwt-formation-btn"
+                  className="hwt-boss-btn"
                   data-boss-choice={id}
                   data-active={battle.bossPick === id}
                   title={BOSS_FIGHTS[id].title}
