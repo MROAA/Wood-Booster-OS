@@ -433,6 +433,7 @@ export default function TacticsBoard({
         <div
           key={`${row}-${col}`}
           className="hwt-cell"
+          data-cell={`${row}-${col}`}
           data-reachable={!!reach}
           data-targetable={!!target}
           data-healable={!!healTarget}
@@ -554,7 +555,7 @@ export default function TacticsBoard({
                 <span className="hwt-ap-pips" title={`${unit.ap}/${unit.apMax} AP`}>
                   {apPips(unit)}
                 </span>
-                <span className="hwt-facing-badge" data-facing={unit.facing} title={`Facing ${unit.facing} - attacked from the side (+10%) or behind (+25%) takes more damage`}>
+                <span className="hwt-facing-badge" data-facing={unit.facing} title={`Facing ${unit.facing} - attacked from the side (+10%) or behind (+50%, a critical hit) takes more damage`}>
                   {FACING_ARROW[unit.facing]}
                 </span>
                 {unit.block > 0 && (

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 // tracks the element as the screen re-lays-out. Non-modal: never blocks
 // input, and "Got it" dismisses forever (HeartwoodBattle calls
 // markCoachSeen).
-export default function CoachTip({ tip, onDismiss }) {
+export default function CoachTip({ tip, onDismiss, placement = "center" }) {
   const [rect, setRect] = useState(null)
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function CoachTip({ tip, onDismiss }) {
           style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height }}
         />
       )}
-      <div className="hw-coach-tip hw-coach-tip--center" role="status">
+      <div className={`hw-coach-tip hw-coach-tip--${placement}`} role="status" data-coach-id={tip.id}>
         <div className="hw-coach-tip-title">{tip.title}</div>
         <div className="hw-coach-tip-text">{tip.text}</div>
         <div className="hw-tutorial-actions">

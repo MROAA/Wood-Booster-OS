@@ -1,10 +1,10 @@
-import { HELP_SECTIONS } from "../../data/heartwood/help"
+import { HELP_SECTIONS, TACTICS_HELP } from "../../data/heartwood/help"
 
 // The "?" reference overlay - a plain-language glossary of every run
 // system (help.js). Same framed-panel shape as SettingsScreen /
 // AlmanacScreen; reachable any time from the ? button in the utility
 // bar. Pure content, no engine calls.
-export default function HelpOverlay({ onBack }) {
+export default function HelpOverlay({ onBack, onPlayTraining }) {
   return (
     <div className="hw-intro hw-help-screen hw-screen-frame">
       <button className="hw-exit-link hw-utility-btn" style={{ position: "absolute", top: 16, left: 16 }} onClick={onBack}>
@@ -19,6 +19,27 @@ export default function HelpOverlay({ onBack }) {
       </p>
 
       <div className="hw-help-body">
+        <section className="hw-help-section hwt-help-tactics" data-help="tactics">
+          <h2 className="hw-help-heading">How to play tactics</h2>
+          {onPlayTraining && (
+            <button className="hwt-help-training-btn" onClick={onPlayTraining}>
+              &#9876; Play the Training Grounds
+            </button>
+          )}
+          <dl className="hwt-help-grid">
+            {TACTICS_HELP.map((entry) => (
+              <div className="hwt-help-card" key={entry.term}>
+                <span className="hwt-help-icon" data-tone={entry.tone} aria-hidden="true">
+                  {entry.icon}
+                </span>
+                <div>
+                  <dt className="hw-help-term">{entry.term}</dt>
+                  <dd className="hw-help-blurb">{entry.blurb}</dd>
+                </div>
+              </div>
+            ))}
+          </dl>
+        </section>
         {HELP_SECTIONS.map((section) => (
           <section className="hw-help-section" key={section.heading}>
             <h2 className="hw-help-heading">{section.heading}</h2>
