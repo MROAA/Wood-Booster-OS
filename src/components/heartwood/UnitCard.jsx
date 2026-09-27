@@ -302,7 +302,6 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
         <div className="hw-card-tclass" data-class-id={tacticalClass.id} title={classTooltip(tacticalClass, def)}>
           <span className="hw-card-tclass-icon">{tacticalClass.icon}</span>
           {tacticalClass.name}
-          <span className="hw-card-tclass-group"> · {CLASS_GROUPS[tacticalClass.group]}</span>
         </div>
       )}
       {/* Role & tag identity (roles.js) - the PRD's "upgrade visibility"

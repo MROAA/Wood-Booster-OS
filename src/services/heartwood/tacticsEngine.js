@@ -2866,7 +2866,7 @@ function isCautiousEnemy(unit) {
 function aiTargetsFrom(state, enemy, pos) {
   const pool = livingUnits(state, "player").filter((u) => canReach(state, enemy, pos, u.pos))
   const taunters = livingTaunters(state, "player")
-  return classFx.filterEnemyTargets(enemy, taunters.length ? pool.filter((u) => u.taunt > 0) : pool)
+  return classFx.filterEnemyTargets(state, enemy, taunters.length ? pool.filter((u) => u.taunt > 0) : pool)
 }
 
 // Rough damage after Ward/Block/Bulwark - the same modifier chain a real hit uses.

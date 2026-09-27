@@ -126,11 +126,13 @@ export function classGuardFor(state, target) {
   return { ...g, classGuard: true }
 }
 
-// Enemy AI target pool: a Challenged enemy must hit its challenger.
-export function filterEnemyTargets(enemy, pool) {
+// Enemy AI target pool: a Challenged enemy may only attack its living
+// challenger (it walks over to it rather than hitting anyone else).
+export function filterEnemyTargets(state, enemy, pool) {
   if (!(enemy.challenged > 0) || !enemy.challengedBy) return pool
-  const rival = pool.find((u) => u.id === enemy.challengedBy)
-  return rival ? [rival] : pool
+  const rival = getUnit(state, enemy.challengedBy)
+  if (!rival || rival.hp <= 0) return pool
+  return pool.filter((u) => u.id === rival.id)
 }
 
 // After any successful move (moveUnit): Hold Ground/Defensive Aim flag,
