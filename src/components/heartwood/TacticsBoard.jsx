@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
 import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
 import { describeAbilityElement } from "../../services/heartwood/tacticsElements"
+import { classInfoFor, classSkillReady, classSkillStatus } from "../../services/heartwood/tacticsClasses"
 import {
   reachableTilesFor,
   attackableTargets,
@@ -144,6 +145,11 @@ export default function TacticsBoard({
   children,
 }) {
   const selected = battle.units.find((u) => u.id === selectedId) || null
+  // Class system: abilityMode is "heal"/"burst" for the signature ability,
+  // "ally@<skillId>"/"enemy@<skillId>" for an armed class skill.
+  const armedSkillId = abilityMode && abilityMode.includes("@") ? abilityMode.slice(abilityMode.indexOf("@") + 1) : null
+  const armedSide = abilityMode === "heal" || abilityMode?.startsWith("ally@") ? "ally" : abilityMode === "burst" || abilityMode?.startsWith("enemy@") ? "enemy" : null
+  const armedSkill = armedSkillId ? (selected?.classSkills || []).find((sk) => sk.id === armedSkillId) || null : null
   // Deployment phase: the enemy's plan and zones are shown as if it were
   // player turn 1 (a scratch copy - the real battle stays in "deploy").
   const deploying = battle.phase === "deploy"
@@ -193,18 +199,18 @@ export default function TacticsBoard({
   )
   const targets = useMemo(
     () =>
-      selected && selected.ap > 0 && battle.phase === "player" && abilityMode !== "heal"
-        ? abilityMode === "burst"
-          ? abilityTargets(battle, selected.id)
+      selected && selected.ap > 0 && battle.phase === "player" && armedSide !== "ally"
+        ? armedSide === "enemy"
+          ? abilityTargets(battle, selected.id, armedSkillId || undefined)
           : attackableTargets(battle, selected.id)
         : [],
-    [battle, selected, abilityMode],
+    [battle, selected, armedSide, armedSkillId],
   )
   // Ability-only highlight: the allies an armed ally-targeting ability
   // (heal / shield-ally) can pick - "heal" mode, "burst" mode = enemies.
   const healable = useMemo(
-    () => (selected && abilityMode === "heal" && battle.phase === "player" ? abilityTargets(battle, selected.id) : []),
-    [battle, selected, abilityMode],
+    () => (selected && armedSide === "ally" && battle.phase === "player" ? abilityTargets(battle, selected.id, armedSkillId || undefined) : []),
+    [battle, selected, armedSide, armedSkillId],
   )
   // What every living enemy currently plans to do this coming enemy phase -
   // recomputed fresh from the live board each render, so it's always exactly
@@ -352,16 +358,16 @@ export default function TacticsBoard({
     }
     if (battle.phase !== "player") return
 
-    if (selected && abilityMode === "heal") {
+    if (selected && armedSide === "ally") {
       const healTarget = healableHere(row, col)
-      if (healTarget) onBattleChange(castAbility(battle, selected.id, healTarget.id))
+      if (healTarget) onBattleChange(castAbility(battle, selected.id, healTarget.id, armedSkillId || undefined))
       onAbilityModeChange(null)
       return
     }
 
-    if (selected && abilityMode === "burst") {
+    if (selected && armedSide === "enemy") {
       const target = targetHere(row, col)
-      if (target) onBattleChange(castAbility(battle, selected.id, target.id))
+      if (target) onBattleChange(castAbility(battle, selected.id, target.id, armedSkillId || undefined))
       onAbilityModeChange(null)
       return
     }
@@ -401,6 +407,38 @@ export default function TacticsBoard({
     const kind = side === "ally" ? "heal" : "burst"
     onAbilityModeChange(abilityMode === kind ? null : kind)
   }
+
+  // Class skill button: instant for self skills, otherwise arm targeting.
+  function handleSkillClick(skill) {
+    if (!selected || battle.phase !== "player" || !classSkillReady(selected, skill)) return
+    if (skill.target === "self") {
+      onBattleChange(castAbility(battle, selected.id, null, skill.id))
+      onAbilityModeChange(null)
+      return
+    }
+    const mode = `${skill.target === "ally" ? "ally" : "enemy"}@${skill.id}`
+    onAbilityModeChange(abilityMode === mode ? null : mode)
+  }
+
+  // Keys 1-4: 1 = signature ability, 2+ = class skills.
+  const skillKeysRef = useRef(null)
+  skillKeysRef.current = { selected, handleAbilityClick, handleSkillClick }
+  useEffect(() => {
+    function onKey(e) {
+      if (e.target && /input|textarea|select/i.test(e.target.tagName)) return
+      const n = Number(e.key)
+      if (!(n >= 1 && n <= 4)) return
+      const { selected: sel, handleAbilityClick: sig, handleSkillClick: cls } = skillKeysRef.current
+      if (!sel || sel.side !== "player") return
+      const list = [...(sel.ability ? [null] : []), ...(sel.classSkills || [])]
+      const pick = list[n - 1]
+      if (pick === undefined) return
+      if (pick === null) sig()
+      else cls(pick)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
 
   function handleActivePower() {
     onAbilityModeChange(null)
@@ -499,6 +537,11 @@ export default function TacticsBoard({
               data-unit-id={unit.id}
             >
               <TokenArt unit={unit} />
+              {unit.classId && classInfoFor(unit) && (
+                <span className="hwt-token-class" data-class-id={unit.classId} title={`${classInfoFor(unit).name} - ${classInfoFor(unit).description}`}>
+                  {classInfoFor(unit).icon}
+                </span>
+              )}
               <div className="hwt-token-status">
                 {unit.id === "player-commander" && (
                   <span className="hwt-commander-badge" title={`${unit.name} - your Commander`}>
@@ -785,6 +828,11 @@ export default function TacticsBoard({
               <TokenArt unit={selected} />
               <div className="hwt-selected-info">
                 <span className="hwt-selected-name">{selected.name}</span>
+                {classInfoFor(selected) && (
+                  <span className="hwt-class-badge" data-class-id={selected.classId} title={`${classInfoFor(selected).passive.name}: ${classInfoFor(selected).passive.text}`}>
+                    <span className="hwt-class-icon">{classInfoFor(selected).icon}</span> {classInfoFor(selected).name}
+                  </span>
+                )}
                 <span className="hwt-selected-stats">
                   <span data-stat="atk" title="Attack">⚔ {selected.attack}</span>
                   <span data-stat="hp" title="Health">♥ {selected.hp}/{selected.maxHp}</span>
@@ -832,11 +880,46 @@ export default function TacticsBoard({
               </div>
             )
           })()}
+          {selected && selected.side === "player" && classInfoFor(selected) && battle.phase === "player" && (
+            <div className="hwt-skill-bar" data-count={(selected.ability ? 1 : 0) + (selected.classSkills || []).length}>
+              <div className="hwt-skill-bar-head">
+                <span className="hwt-skill-bar-class">
+                  {classInfoFor(selected).icon} {classInfoFor(selected).name}
+                </span>
+                <span className="hwt-skill-bar-passive" title={classInfoFor(selected).passive.text}>
+                  Passive: {classInfoFor(selected).passive.name}
+                </span>
+              </div>
+              <div className="hwt-skill-row">
+                {(selected.classSkills || []).map((sk, i) => {
+                  const ready = classSkillReady(selected, sk)
+                  const key = (selected.ability ? 2 : 1) + i
+                  return (
+                    <button
+                      key={sk.id}
+                      className="hwt-skill-btn"
+                      data-skill-id={sk.id}
+                      data-active={armedSkillId === sk.id}
+                      disabled={!ready}
+                      onClick={() => handleSkillClick(sk)}
+                      title={`${sk.name} (${sk.cost} AP, recharge ${sk.cooldown}) - ${sk.text}${key <= 4 ? ` [key ${key}]` : ""}`}
+                    >
+                      <span className="hwt-skill-icon">{sk.icon}</span>
+                      <span className="hwt-skill-name">{sk.name}</span>
+                      <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              {armedSkill && <p className="hwt-skill-hint">{armedSkill.target === "ally" ? `Choose an ally for ${armedSkill.name}.` : `Choose an enemy for ${armedSkill.name}.`} {armedSkill.text}</p>}
+              {!armedSkill && <p className="hwt-skill-passive-text">{classInfoFor(selected).passive.text}</p>}
+            </div>
+          )}
           {selected && selected.side === "player" && selected.ability && battle.phase === "player" && (
             <div className="hwt-ability-panel">
               <button
                 className="hwt-ability-btn"
-                data-active={!!abilityMode}
+                data-active={abilityMode === "heal" || abilityMode === "burst"}
                 disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0}
                 onClick={handleAbilityClick}
                 title={describeAbility(selected.ability)}
@@ -845,7 +928,7 @@ export default function TacticsBoard({
                   ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
                   : `${selected.ability.name} · ${selected.ability.cost} AP`}
               </button>
-              <p className="hwt-ability-hint">{abilityMode ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
+              <p className="hwt-ability-hint">{abilityMode === "heal" || abilityMode === "burst" ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
               {describeAbilityElement(selected) && <p className="hwt-ability-element">{describeAbilityElement(selected)}</p>}
             </div>
           )}

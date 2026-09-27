@@ -34,6 +34,7 @@ import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./
 import { bossVerdict, bossEnemyPhaseStart, bossImmuneHit, bossAfterDamage, bossTilePenalty, bossQa } from "./tacticsBosses"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
+import * as classFx from "./tacticsClasses"
 import { applyFaction, factionEnemyPhaseStart, blightAttackBonus, factionTargetBonus, isBlighted, FADE_RANGE } from "./tacticsFactions"
 import { TERRAIN, terrainAt, terrainRule, isHigh, canReach, rangeAt, highGroundAmount, slideLanding, terrainDistanceField, wallHpAt, WALL_MAX_HP } from "./tacticsTerrain"
 export { TERRAIN_INFO, WALL_MAX_HP, wallHpAt, rangeAt } from "./tacticsTerrain"
@@ -675,6 +676,11 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // own kit (tacticsAbilities.js); the Commander (overrideDef) gets none.
     ability: side === "player" ? ABILITIES[defId] || (overrideDef ? null : deriveAbilityForDef(def)) : null,
     cooldownRemaining: 0,
+    // Class system: class id + passive + class skills (tacticsClasses.js).
+    ...classFx.classFieldsFor(def, side, {
+      commander: !!overrideDef && String(defId).startsWith("commander-"),
+      abilityKind: (ABILITIES[defId] || (overrideDef ? null : deriveAbilityForDef(def)))?.kind,
+    }),
     charge,
     chargeCounter: charge ? charge.turns : 0,
     chargeHpMark: maxHp,
@@ -1173,6 +1179,12 @@ export function beginBattle(state) {
 // per-slot stat line - zero new derivation logic, reuses deriveTacticsUnit
 // directly (the exact same function a real squad unit goes through), just
 // with a throwaway pos/id since these are never placed on a real board.
+// Class system: a unit's personal signature ability (cards/tooltips).
+export function signatureAbilityForDef(def) {
+  if (!def || def.summonOnly) return null
+  return ABILITIES[def.id] || deriveAbilityForDef(def)
+}
+
 export function previewPlayerRoster() {
   return PLAYER_ROSTER_IDS.map((defId, i) => deriveTacticsUnit(defId, "player", { row: 0, col: 0 }, `preview-${defId}-${i}`))
 }
@@ -1599,7 +1611,7 @@ export function moveUnit(state, unitId, targetPos) {
     next = { ...next, log: [...next.log, `${controller.name} lashes out as ${unit.name} pulls away!`] }
     next = attackUnit(next, controller.id, unitId, { isReaction: true })
   }
-  return next
+  return classFx.afterMove(next, unitId)
 }
 
 // Wyrmgall's real Execute/Shatter + the final boss's real WoundedFury/
@@ -1669,7 +1681,7 @@ function sidestepDestination(state, target) {
 // hand-built synthetic-state check (none of which set `facing`) stays
 // byte-identical rather than picking up an unintended new bonus.
 function classifyFacingAttack(attacker, defender) {
-  if (!defender.facing) return "front"
+  if (!defender.facing || classFx.ignoresFlank(defender)) return "front"
   const attackDir = cardinalDir(attacker.pos.col - defender.pos.col, attacker.pos.row - defender.pos.row)
   if (attackDir === defender.facing) return "front"
   if (attackDir === OPPOSITE_DIR[defender.facing]) return "back"
@@ -1748,7 +1760,7 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
   if (attacker.shatter > 0 && defender.block > 0) amount += attacker.shatter
-  return relicFx.dampenedAmount(attacker, amount)
+  return relicFx.dampenedAmount(attacker, classFx.classDamageMod(attacker, defender, amount, facing))
 }
 
 // Retreat Step round: a clearly "significant" single-hit threshold,
@@ -1953,7 +1965,7 @@ function grantStrengthOnKill(state, actorId, fell) {
   if (!fell) return state
   const actor = getUnit(state, actorId)
   const next = setUnit(state, actorId, { attack: actor.attack + 1 })
-  return { ...next, log: [...next.log, `${actor.name} grows stronger.`] }
+  return classFx.onKill({ ...next, log: [...next.log, `${actor.name} grows stronger.`] }, actorId)
 }
 
 // The Collectors' real mechanic (effects.js's own leech(), ported into
@@ -2155,7 +2167,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   const facing = classifyFacingAttack(actor, target)
   let effectiveTarget = target
   let blockWeakenNote = ""
-  if (facing === "side" && target.block > 0) {
+  if (facing === "side" && target.block > 0 && !classFx.keepsBlockOnSideHit(target)) {
     const weakened = Math.floor(target.block / 2)
     next = setUnit(next, targetId, { block: weakened })
     effectiveTarget = { ...target, block: weakened }
@@ -2173,14 +2185,16 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     suppressedNote = ` ${target.name}'s guard falters, reactions weakened!`
   }
   const rawAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack + blightAttackBonus(next, actor)))
-  const guardian = eligibleGuardian(next, effectiveTarget)
+  const guardian = eligibleGuardian(next, effectiveTarget) || classFx.classGuardFor(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
   const extraVictims = []
   if (guardian) {
     const guardianShare = Math.round(rawAmount / 2)
     const targetShare = rawAmount - guardianShare
     const targetHit = applyDamageWithBlock(next, targetId, targetShare)
-    next = emit(setUnit(targetHit.next, guardian.id, { ap: guardian.ap - 1 }), { kind: "reaction", unitId: guardian.id, label: "Intercept!" })
+    next = guardian.classGuard
+      ? emit(targetHit.next, { kind: "reaction", unitId: guardian.id, label: "Guard!" })
+      : emit(setUnit(targetHit.next, guardian.id, { ap: guardian.ap - 1 }), { kind: "reaction", unitId: guardian.id, label: "Intercept!" })
     const guardianHit = applyDamageWithBlock(next, guardian.id, guardianShare)
     next = guardianHit.next
     extraVictims.push({ id: guardian.id, remaining: guardianHit.remaining })
@@ -2219,7 +2233,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   }
   // Element combos: a frosty unit's basic hits Chill.
   if (actor.frosty && !fell) next = elements.applyElement(next, targetId, "frost", 1)
-  if (actor.side === "player") next = gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell)
+  if (actor.side === "player") next = classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, targetId)
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
@@ -2235,6 +2249,8 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
       next = abilityHit(next, actorId, id, Math.ceil(getUnit(next, actorId).attack / 2), { name: "Cleave" }).next
     }
   }
+  // Class system: a Duelist struck in melee ripostes.
+  if (!opts.isReaction && actor.side === "enemy") next = classFx.riposte(next, actorId, targetId)
   next = checkTacticsBattleEnd(next)
   // Haste (autoBattleEngine.js's own actSide): a structurally different
   // kind of "more damage" than Strength/Execute - the WHOLE action
@@ -2288,10 +2304,14 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
 // Unit levels wrapper: Quick Cast's discount is spent by the first cast
 // (the real cost comes back), and a support cast earns 1 XP.
 const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "taunt-shout"])
-export function castAbility(state, actorId, targetId) {
+// Class system: `skillId` picks one of the unit's class skills; omitted
+// (or the signature's own id) = the unit's signature ability, as before.
+export function castAbility(state, actorId, targetId, skillId) {
+  const who = getUnit(state, actorId)
+  if (skillId && classFx.classSkillById(who, skillId)) return classFx.castClassSkill(state, actorId, targetId, skillId)
   const cast = castAbilityInner(state, actorId, targetId)
   if (cast === state) return cast
-  const next = elements.afterAbilityCast(cast, actorId, targetId)
+  const next = classFx.afterCast(elements.afterAbilityCast(cast, actorId, targetId), actorId, targetId, getUnit(state, actorId)?.ability)
   const before = getUnit(state, actorId)
   const after = getUnit(next, actorId)
   if (!before || !after) return next
@@ -2331,7 +2351,7 @@ function castAbilityInner(state, actorId, targetId) {
     if (target.id !== actorId && !kingAdjacent(target.pos, actor.pos)) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     const live = getUnit(next, target.id)
-    const healedHp = Math.min(live.maxHp, live.hp + ability.amount)
+    const healedHp = Math.min(live.maxHp, live.hp + classFx.healAmount(actor, live, ability.amount))
     next = setUnit(next, target.id, { hp: healedHp })
     return emit({ ...next, log: [...next.log, `${actor.name} mends ${target.name} for ${healedHp - live.hp}.`] }, { kind: "heal", actorId, targetId: target.id, amount: healedHp - live.hp })
   }
@@ -2353,7 +2373,7 @@ function castAbilityInner(state, actorId, targetId) {
     const absorbedNote = describeAbsorb(absorbed, armourUsed)
     const fellNote = fell ? " It falls." : ""
     next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
-    next = gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell)
+    next = classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, target.id)
     next = checkEnemyPhase(next, target.id)
     next = checkOnDealDamageTriggers(next, actorId, target.id, remaining)
     if (fell) next = trySpawnBrood(next, target.id)
@@ -2440,7 +2460,7 @@ function castAbilityInner(state, actorId, targetId) {
     const { next: hit, fell } = abilityHit(next, actorId, target.id, actor.attack + (free ? 0 : ability.bonus), ability)
     next = hit
     const live = getUnit(next, target.id)
-    if (!fell && free && samePos(live.pos, target.pos) && !next.units.some((u) => u.hp > 0 && samePos(u.pos, dest))) {
+    if (!fell && free && !classFx.immovable(live) && samePos(live.pos, target.pos) && !next.units.some((u) => u.hp > 0 && samePos(u.pos, dest))) {
       next = setUnit(next, target.id, { pos: dest })
       next = emit({ ...next, log: [...next.log, `${target.name} is knocked back!`] }, { kind: "reaction", unitId: target.id, label: "Knocked back!" })
     } else if (!free) {
@@ -2461,7 +2481,7 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, amount)
   next = hit
   next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} hits ${target.name} for ${remaining}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
-  next = actor.side === "player" ? gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell) : grantStrengthOnKill(next, actorId, fell)
+  next = actor.side === "player" ? classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, targetId) : grantStrengthOnKill(next, actorId, fell)
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
@@ -2490,8 +2510,10 @@ function dashLanding(state, actor, target) {
 }
 
 // Valid clicked targets for the unit's ability right now (UI + guard).
-export function abilityTargets(state, actorId) {
+export function abilityTargets(state, actorId, skillId) {
   const actor = getUnit(state, actorId)
+  const classSkill = skillId ? classFx.classSkillById(actor, skillId) : null
+  if (classSkill) return classFx.classSkillTargets(state, actorId, classSkill)
   if (!actor || actor.hp <= 0 || !actor.ability) return []
   const side = abilityTargetSide(actor.ability)
   if (side === "ally") return livingUnits(state, actor.side).filter((u) => u.id === actorId || kingAdjacent(u.pos, actor.pos))
@@ -2733,7 +2755,7 @@ function enemyPhaseStart(state) {
   // applyCovenTick and applyRotMendTick never touch hp downward, so
   // neither can end the battle - no phase guard needed for either,
   // unlike the two ticks below.
-  const lavaBurned = applyLavaBurn(state, "player")
+  const lavaBurned = applyLavaBurn(classFx.classPlayerTurnEnd(state), "player")
   if (lavaBurned.phase !== "player") return lavaBurned
   const covened = applyCovenTick(relicFx.relicTurnEnd(lavaBurned, "player"))
   const mended = applyRotMendTick(covened)
@@ -2844,7 +2866,7 @@ function isCautiousEnemy(unit) {
 function aiTargetsFrom(state, enemy, pos) {
   const pool = livingUnits(state, "player").filter((u) => canReach(state, enemy, pos, u.pos))
   const taunters = livingTaunters(state, "player")
-  return taunters.length ? pool.filter((u) => u.taunt > 0) : pool
+  return classFx.filterEnemyTargets(state, enemy, taunters.length ? pool.filter((u) => u.taunt > 0) : pool)
 }
 
 // Rough damage after Ward/Block/Bulwark - the same modifier chain a real hit uses.
@@ -2937,6 +2959,7 @@ function aiRetreatTile(state, enemyId) {
 const SUMMON_ENEMY_CAP = 8
 
 function skillReady(unit, skill) {
+  if (unit.silenced > 0) return false
   return !((unit.skillCd || {})[skill.id] > 0)
 }
 
@@ -3227,7 +3250,7 @@ export function attackWall(state, actorId, pos) {
   if (terrainAt(state, pos) !== "wall") return state
   if (chebyshevDist(actor.pos, pos) > rangeAt(state, actor)) return state
   const key = `${pos.row}-${pos.col}`
-  const amount = Math.max(1, actor.attack)
+  const amount = classFx.wallDamage(actor, Math.max(1, actor.attack))
   const hp = Math.max(0, wallHpAt(state, pos) - amount)
   const broke = hp <= 0
   const wallHp = { ...(state.wallHp || {}) }
@@ -3605,7 +3628,7 @@ export function runEnemyTurn(state) {
   // re-grant" ordering already established for the enemy side (see
   // endPlayerTurn's own comment on this).
   // Objective: Survive completes / reinforcements arrive.
-  const objTicked = objectiveNewTurn(returnedToPlayer)
+  const objTicked = objectiveNewTurn(classFx.classPlayerTurnStart(returnedToPlayer))
   if (objTicked.phase !== "player") return objTicked
   const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked
@@ -3627,4 +3650,4 @@ export function withLowEnemyHp(state) {
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
-export { deriveTacticsUnit, emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood }
+export { deriveTacticsUnit, emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood, abilityHit }

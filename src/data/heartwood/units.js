@@ -320,6 +320,9 @@ function unit(id, name, art, cost, role, movePattern, opts = {}) {
     // ones whose existing kit already matches a class from Marc's PRD
     // without forcing it - see UnitCard.jsx for the render).
     className: opts.className || null,
+    // Class system (classes.js): the tactical class this unit plays as.
+    // Set for every recruitable unit via UNIT_CLASS_IDS below.
+    classId: opts.classId || null,
     // evolvedFrom (evolutions.js): the base unit id this is an evolved
     // form of. Excludes it from the shop / reforge / random-unit pools
     // (runEngine.js filters, same as fusedFrom / summonOnly) - an
@@ -2032,6 +2035,33 @@ const BASE_UNITS = {
 // numeric move/passive amount. `fusedFrom` marks it as a fusion
 // product (not directly shop-recruitable); `displayTier: 2` drives the
 // UI badge.
+// Class system part A: unit -> class (classes.js). Best fit by role and
+// kit; classes.js's PART_B_CANDIDATES lists units part B may move.
+const UNIT_CLASS_IDS = {
+  guardian: "temperance stoneheart thornguard ironbark mosshollow hollowveil sunscale stoneward bulwark-of-ages oathshield bloomhide bulwark-bearer grove-warden",
+  warden: "justice grovekeeper loamguard quarrywarden hollowmere wraithguard stoneknit rootwing barkwarden wood-elemental toll-warden lure-warden keystone-warden wardknot",
+  juggernaut: "the-chariot rooks-charge wraithbriar cragmoss tidewarden stone-elemental the-thorn-throne oathsworn stormbreaker",
+  sentinel: "the-hermit trueshot stonemoot-sentinel",
+  bruiser: "strength ember-stag forgehowl grimtusk thornwarden duskbramble thistlemaw chimera ashmaw cairnfist plainhewer",
+  striker: "the-hierophant the-devil the-world swiftclaw foxfire willowfang duskwren briarkit cinderpaw spitethorn",
+  assassin: "knights-leap stormwing duskclaw windveil shadefang",
+  duelist: "the-lovers briarblade huldra galeblade driftwood-vagrant",
+  ranger: "bishops-slash sparrowthorn hollowquill palefen sapthorn hollow-forager",
+  artillery: "the-tower stoneknoll ashcaller stormveil storm-elemental bramble-sweep stormcaller spark-diviner",
+  executioner: "the-hanged-man death judgement rootfang witherkit witch-cutter culler",
+  spellblade: "the-sun emberwisp runeveil wraithcaller nightveil ember-elemental goldenbough-ascendant hexbreaker",
+  healer: "the-fool the-high-priestess the-empress the-star bloomcaller willowmend fernwake hollowspire brinecaller tide-elemental world-ash-elder evenwood-elder heartroot-elder",
+  medic: "wispkeeper mosswalker sapkeeper brackenveil mistveil marshlight saplingward mirekeeper mycelian-host",
+  buffer: "ashenhorn glimmerward beastcaller abyssong starcaller star-herald emberbanner grove-merchant emberzeal",
+  commander: "the-emperor deepwood-sovereign pack-elder",
+  tactician: "wheel-of-fortune motley acorn-banker fortunes-root oracle-eye",
+  controller: "the-magician the-moon hexmother mycelist thornwisp snareclaw void-herald chantbreaker",
+  frostbinder: "frostbind rimefang",
+}
+for (const [classId, ids] of Object.entries(UNIT_CLASS_IDS)) {
+  for (const id of ids.split(" ")) if (BASE_UNITS[id]) BASE_UNITS[id].classId = classId
+}
+
 export const TIER2_SUFFIX = "+"
 
 export function scaleEffect(effect, factor) {

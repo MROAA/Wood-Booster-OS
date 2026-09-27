@@ -8323,3 +8323,27 @@ img.hw-intent-glyph {
 .hw-levelup-icon { font-size: 28px; }
 .hw-levelup-name { font-weight: 700; }
 .hw-levelup-text { font-size: 13px; color: var(--hw-muted); }
+
+/* Class system (part A): tactical class chip on unit cards. */
+.hw-card-tclass {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 12px;
+  color: color-mix(in srgb, var(--hw-ember) 70%, #f3d58a);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  cursor: help;
+}
+.hw-card-tclass-icon {
+  font-size: 10px;
+}
+.hw-card-tclass-group {
+  font-weight: 400;
+  color: var(--hw-muted);
+}
