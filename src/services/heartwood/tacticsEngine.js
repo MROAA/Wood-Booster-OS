@@ -29,9 +29,12 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/characters"
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 import * as relicFx from "./tacticsRelics"
+import * as elements from "./tacticsElements"
 import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
+import { TERRAIN, terrainAt, terrainRule, isHigh, canReach, rangeAt, highGroundAmount, slideLanding, terrainDistanceField, wallHpAt, WALL_MAX_HP } from "./tacticsTerrain"
+export { TERRAIN_INFO, WALL_MAX_HP, wallHpAt, rangeAt } from "./tacticsTerrain"
 import { levelForXp, XP as LEVEL_XP_GAIN, THIRST_HEAL } from "./unitLevels"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
@@ -61,13 +64,8 @@ export const GRID = { rows: 9, cols: 12 }
 // Ground) reuses the Rot archetype's own real per-application amount
 // (rotgut-crawler's +2) and the EXISTING poison/applyPoisonTick fields
 // wholesale - a hazard tile needs zero new damage-over-time machinery.
-const TERRAIN = {
-  path: { cost: 1 },
-  forest: { cost: 1 },
-  rock: { cost: 3 },
-  water: { cost: Infinity },
-  poison: { cost: 1, grantPoison: 2 },
-}
+// Rules now live in tacticsTerrain.js (battlefield sprint added high
+// ground, barricades, bridges, tall grass, lava and ice).
 
 // A formation's own optional `terrain` map (`{"row-col": "rock", ...}`)
 // read straight off `state.terrain` - an omitted cell (every EXISTING
@@ -79,9 +77,6 @@ const TERRAIN = {
 // prior round's own checks predate `terrain` entirely and never set the
 // field at all, which crashed here on first run (`undefined["1-0"]`)
 // before this guard was added.
-function terrainAt(state, pos) {
-  return (state.terrain || {})[`${pos.row}-${pos.col}`] || "path"
-}
 
 // Phase 2 ("jatketaan" -> "AP + one real ability per unit"). Every unit now
 // spends a shared Action Point budget instead of the old free "one move +
@@ -533,7 +528,9 @@ function applyPortableEffect(state, unitId, effect) {
   }
   // Relic/item effects (poison/burn/stun/sunder/cleanse...): tacticsRelics.js.
   const patch = relicFx.relicEffectPatch(unit, effect)
-  return patch ? setUnit(state, unitId, patch) : state
+  if (!patch) return state
+  // Element combos: a relic's burn/poison can set one off.
+  return effect.id === "burn" || effect.id === "poison" ? elements.reactStatus(setUnit(state, unitId, patch), unitId, effect.id) : setUnit(state, unitId, patch)
 }
 
 // Squad Passive round: the Commander's real squadPassive
@@ -1098,7 +1095,7 @@ export function isDeployTile(state, pos) {
   if (pos.col < cols - DEPLOY_COLS) return false
   // Water can't be stood on; a poison pool isn't a place to start in.
   const terrain = TERRAIN[terrainAt(state, pos)]
-  return terrain.cost !== Infinity && !terrain.grantPoison
+  return terrain.cost !== Infinity && !terrain.grantPoison && !terrain.burn
 }
 
 export function enterDeploy(state) {
@@ -1239,7 +1236,7 @@ export function attackableTargets(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0) return []
   const inRange = state.units.filter(
-    (u) => u.side !== unit.side && u.hp > 0 && chebyshevDist(unit.pos, u.pos) <= unit.range,
+    (u) => u.side !== unit.side && u.hp > 0 && canReach(state, unit, unit.pos, u.pos),
   )
   const taunters = livingTaunters(state, unit.side === "player" ? "enemy" : "player")
   return taunters.length ? inRange.filter((u) => isTaunting(state, u)) : inRange
@@ -1462,7 +1459,13 @@ export function moveUnit(state, unitId, targetPos) {
   // traveled - attacking in place never turns a unit around, only an
   // actual move does.
   const facing = cardinalDir(targetPos.col - unit.pos.col, targetPos.row - unit.pos.row)
+  // Ice: the move may carry on 1 tile further (everything below reads the landing).
+  const stepPos = targetPos
+  targetPos = slideLanding(state, unitId, unit.pos, targetPos)
   let next = setUnit(state, unitId, { pos: targetPos, ap: unit.ap - 1, facing })
+  if (!samePos(stepPos, targetPos)) {
+    next = emit({ ...next, log: [...next.log, `${unit.name} slides across the ice!`] }, { kind: "reaction", unitId, label: "Slide!" })
+  }
   // Poison Ground (Hearthwood Frontier's own real "trap" terrain): grants
   // a stack ONLY on arrival at the move's own destination tile - never
   // on any intermediate tile the pathfinding happened to route through -
@@ -1503,6 +1506,7 @@ export function moveUnit(state, unitId, targetPos) {
     const arrived = getUnit(next, unitId)
     next = setUnit(next, unitId, { root: (arrived.root || 0) + ROOT_DURATION })
     next = { ...next, log: [...next.log, `${unit.name} is caught in the thorns, rooted!`] }
+    next = elements.reactStatus(next, unitId, "root")
   }
   // Frost Zone round: the mirror transition of Fear Zone above - a unit
   // that just moved from INSIDE an opposing Frost Zone to a cell
@@ -1517,6 +1521,7 @@ export function moveUnit(state, unitId, targetPos) {
     const arrived = getUnit(next, unitId)
     next = setUnit(next, unitId, { slow: (arrived.slow || 0) + SLOW_DURATION })
     next = { ...next, log: [...next.log, `${unit.name} staggers away, slowed by the frost!`] }
+    next = elements.applyElement(next, unitId, "frost", 1)
   }
   // Zone Disengage Toll round: leaving ANY opposing zone (checked ONCE
   // via the combined insideAnyOpposingZone, not per zone type) costs
@@ -1696,6 +1701,7 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   // mirror of Weak, +25% damage TAKEN (rounded down), applied at the
   // same point in the chain. Permanent here, same as this engine's Weak.
   if (defender.vulnerable > 0) amount = Math.floor(amount * 1.25)
+  amount = elements.frozenBonus(defender, amount)
   const facing = classifyFacingAttack(attacker, defender)
   if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
@@ -1736,6 +1742,7 @@ function applyDamageWithBlock(state, targetId, amount) {
       revived: false,
     }
   }
+  state = elements.shatterOnHit(state, targetId, amount)
   const armour = target.bulwark || 0
   const totalAbsorb = Math.min(target.block + armour, amount)
   const blockSpent = Math.min(target.block, totalAbsorb)
@@ -1823,7 +1830,7 @@ function freeCellsNear(state, origin, count) {
   const cells = []
   for (let row = 0; row < state.grid.rows; row++) {
     for (let col = 0; col < state.grid.cols; col++) {
-      if (!occupied.has(`${row},${col}`)) cells.push({ row, col })
+      if (!occupied.has(`${row},${col}`) && TERRAIN[terrainAt(state, { row, col })].cost !== Infinity) cells.push({ row, col })
     }
   }
   cells.sort((a, b) => {
@@ -2052,7 +2059,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   if (!opts.isReaction) {
     if (actor.ap < 1) return state
     if (state.phase !== actor.side) return state
-    if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
+    if (!canReach(state, actor, actor.pos, target.pos)) return state
   }
   let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
   next = emit(next, { kind: "strike", actorId, targetId, ranged: actor.range > 1, reaction: !!opts.isReaction })
@@ -2115,7 +2122,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     next = setUnit(next, targetId, { suppressed: (target.suppressed || 0) + SUPPRESSED_DURATION })
     suppressedNote = ` ${target.name}'s guard falters, reactions weakened!`
   }
-  const rawAmount = modifiedAttackAmount(actor, effectiveTarget, actor.attack)
+  const rawAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack))
   const guardian = eligibleGuardian(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
   const extraVictims = []
@@ -2158,7 +2165,10 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     const poisoned = getUnit(next, targetId)
     next = setUnit(next, targetId, { poison: (poisoned.poison || 0) + actor.poisonOnHit })
     next = { ...next, log: [...next.log, `${target.name} is poisoned (+${actor.poisonOnHit}).`] }
+    next = elements.reactStatus(next, targetId, "poison")
   }
+  // Element combos: a frosty unit's basic hits Chill.
+  if (actor.frosty && !fell) next = elements.applyElement(next, targetId, "frost", 1)
   if (actor.side === "player") next = gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell)
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   next = checkEnemyPhase(next, targetId)
@@ -2229,8 +2239,9 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
 // (the real cost comes back), and a support cast earns 1 XP.
 const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "taunt-shout"])
 export function castAbility(state, actorId, targetId) {
-  const next = castAbilityInner(state, actorId, targetId)
-  if (next === state) return next
+  const cast = castAbilityInner(state, actorId, targetId)
+  if (cast === state) return cast
+  const next = elements.afterAbilityCast(cast, actorId, targetId)
   const before = getUnit(state, actorId)
   const after = getUnit(next, actorId)
   if (!before || !after) return next
@@ -2278,7 +2289,7 @@ function castAbilityInner(state, actorId, targetId) {
   if (ability.kind === "burst") {
     const target = getUnit(state, targetId)
     if (!target || target.hp <= 0 || target.side === actor.side) return state
-    if (chebyshevDist(actor.pos, target.pos) > actor.range) return state
+    if (!canReach(state, actor, actor.pos, target.pos)) return state
     // Same real Taunt restriction attackableTargets already enforces for
     // the plain Attack path - a burst is still an attack against the
     // opposing side, so it's bound by the same rule.
@@ -2286,7 +2297,7 @@ function castAbilityInner(state, actorId, targetId) {
     if (tauntersOnTargetSide.length && !(target.taunt > 0)) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     next = emit(next, { kind: "strike", actorId, targetId: target.id, ranged: actor.range > 1, ability: ability.name })
-    const amount = modifiedAttackAmount(actor, target, actor.attack * ability.multiplier)
+    const amount = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, actor.attack * ability.multiplier))
     const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, amount)
     next = hit
     const absorbedNote = describeAbsorb(absorbed, armourUsed)
@@ -2396,7 +2407,7 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
   let next = emit(state, { kind: "strike", actorId, targetId, ranged: chebyshevDist(actor.pos, target.pos) > 1, ability: ability.name })
-  const amount = modifiedAttackAmount(actor, target, baseAmount)
+  const amount = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount))
   const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, amount)
   next = hit
   next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} hits ${target.name} for ${remaining}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
@@ -2672,7 +2683,9 @@ function enemyPhaseStart(state) {
   // applyCovenTick and applyRotMendTick never touch hp downward, so
   // neither can end the battle - no phase guard needed for either,
   // unlike the two ticks below.
-  const covened = applyCovenTick(relicFx.relicTurnEnd(state, "player"))
+  const lavaBurned = applyLavaBurn(state, "player")
+  if (lavaBurned.phase !== "player") return lavaBurned
+  const covened = applyCovenTick(relicFx.relicTurnEnd(lavaBurned, "player"))
   const mended = applyRotMendTick(covened)
   const cultTicked = applyCultTick(mended)
   if (cultTicked.phase !== "player") return cultTicked
@@ -2735,7 +2748,7 @@ function enemyPhaseStart(state) {
   // Relic ticks on enemies (poison/burn) can end the fight here.
   const relicTicked = relicFx.relicTurnStart(regenTicked, "enemy")
   if (relicTicked.phase !== "enemy") return relicTicked
-  const next = applyTurnStartTriggers(relicTicked, "enemy")
+  const next = applyTurnStartTriggers(elements.elementTurnStart(relicTicked, "enemy"), "enemy")
   // Objective: the Totem pulses at the top of the enemy phase - inside
   // enemyPhaseStart so previewEnemyIntents sees the same pulsed state.
   return objectiveEnemyPhaseStart(next)
@@ -2765,6 +2778,10 @@ const AI_COMMANDER_BONUS = 40
 const AI_POISON_PENALTY = 60
 const AI_ZONE_STATUS_PENALTY = 20
 const AI_FACING_BONUS = { front: 0, side: 4, back: 8 }
+// Battlefield sprint: lava is feared, high ground (and grass for archers) valued.
+const AI_LAVA_PENALTY = 70
+const AI_HIGH_GROUND_BONUS = 8
+const AI_COVER_BONUS = 4
 
 // Bosses/elites with phases or the squad-wide strike play more carefully.
 function isCautiousEnemy(unit) {
@@ -2773,15 +2790,15 @@ function isCautiousEnemy(unit) {
 
 // Mirrors attackableTargets' Taunt filter for a hypothetical tile.
 function aiTargetsFrom(state, enemy, pos) {
-  const pool = livingUnits(state, "player").filter((u) => chebyshevDist(pos, u.pos) <= enemy.range)
+  const pool = livingUnits(state, "player").filter((u) => canReach(state, enemy, pos, u.pos))
   const taunters = livingTaunters(state, "player")
   return taunters.length ? pool.filter((u) => u.taunt > 0) : pool
 }
 
 // Rough damage after Ward/Block/Bulwark - the same modifier chain a real hit uses.
-function aiEstimateHit(attacker, target) {
+function aiEstimateHit(attacker, target, state = null) {
   if (target.ward > 0) return 0
-  const raw = modifiedAttackAmount(attacker, target, attacker.attack)
+  const raw = modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack))
   return Math.max(0, raw - (target.block || 0) - (target.bulwark || 0))
 }
 
@@ -2797,14 +2814,15 @@ function aiTargetValue(target) {
 // Predicts what moveUnit would do to the mover (AP toll, reaction hits,
 // hazards) without running it.
 function aiMoveOutcome(state, enemy, dest) {
-  if (samePos(dest, enemy.pos)) return { apLeft: enemy.ap, reactionDmg: 0, hazard: 0 }
+  const lava = terrainRule(state, dest).burn ? AI_LAVA_PENALTY : 0
+  if (samePos(dest, enemy.pos)) return { apLeft: enemy.ap, reactionDmg: 0, hazard: lava }
   const opp = "player"
   const toll = insideAnyOpposingZone(state, enemy.pos, opp) && !insideAnyOpposingZone(state, dest, opp) ? ZONE_LEAVE_AP_TOLL : 0
   const moved = { ...enemy, pos: dest, facing: cardinalDir(dest.col - enemy.pos.col, dest.row - enemy.pos.row) }
   const reactionDmg = zocControllers(state, enemy.pos, opp)
     .filter((c) => !kingAdjacent(c.pos, dest) && !(c.suppressed > 0))
-    .reduce((sum, c) => sum + aiEstimateHit(c, moved), 0)
-  let hazard = 0
+    .reduce((sum, c) => sum + aiEstimateHit(c, moved, state), 0)
+  let hazard = lava
   if (TERRAIN[terrainAt(state, dest)].grantPoison) hazard += AI_POISON_PENALTY
   if (fearZoneControllers(state, dest, opp).length && !fearZoneControllers(state, enemy.pos, opp).length) hazard += AI_ZONE_STATUS_PENALTY
   if (thornZoneControllers(state, dest, opp).length && !thornZoneControllers(state, enemy.pos, opp).length) hazard += AI_ZONE_STATUS_PENALTY
@@ -2828,6 +2846,8 @@ function aiTileScore(state, enemy, pos, outcome) {
   if (!samePos(pos, enemy.pos)) score -= 1
   if (enemy.range > 1) score -= 25 * aiAdjacentPlayerMelee(state, pos).length
   if (isCautiousEnemy(enemy)) score -= 6 * aiExposure(state, pos)
+  if (isHigh(state, pos)) score += AI_HIGH_GROUND_BONUS
+  if (enemy.range > 1 && terrainRule(state, pos).cover) score += AI_COVER_BONUS
   return score
 }
 
@@ -2948,8 +2968,8 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
     } else if (skill.kind === "hex") {
       for (const t of players) {
         if (chebyshevDist(pos, t.pos) > kindDef.range) continue
-        if (skill.status === "poison" ? (t.poison || 0) >= skill.amount : (t[skill.status] || 0) > 0) continue
-        const score = AI_ATTACK_BASE + 35 + tileScore + 0.5 * aiTargetValue(t)
+        if (skill.status === "chill" ? t.frozen > 0 : skill.status === "poison" ? (t.poison || 0) >= skill.amount : (t[skill.status] || 0) > 0) continue
+        const score = AI_ATTACK_BASE + 35 + tileScore + 0.5 * aiTargetValue(t) + elements.comboScoreForStatus(t, skill.status)
         options.push({ score, intent: { ...base, targetId: t.id, status: skill.status, amount: skill.amount } })
       }
     } else if (skill.kind === "summon") {
@@ -3027,7 +3047,7 @@ function applySlamRelease(state, enemyId, intent, skill) {
   return checkTacticsBattleEnd(next)
 }
 
-const HEX_WORD = { weak: "Weakened!", vulnerable: "Vulnerable!", poison: "Poisoned!", root: "Rooted!" }
+const HEX_WORD = { weak: "Weakened!", vulnerable: "Vulnerable!", poison: "Poisoned!", root: "Rooted!", burn: "Burning!", chill: "Chilled!" }
 
 function applyEnemySkill(state, enemyId, intent) {
   let next = state
@@ -3077,6 +3097,11 @@ function applyEnemySkill(state, enemyId, intent) {
   if (skill.kind === "hex") {
     const t = getUnit(next, intent.targetId)
     if (!t || t.hp <= 0) return next
+    if (skill.status === "burn" || skill.status === "chill") {
+      next = emit(next, { kind: "reaction", unitId: t.id, label: HEX_WORD[skill.status] })
+      next = { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name} (+${skill.amount} ${skill.status === "burn" ? "Burn" : "Chill"}).`] }
+      return elements.applyElement(next, t.id, skill.status === "burn" ? "fire" : "frost", skill.amount)
+    }
     const patch =
       skill.status === "poison"
         ? { poison: (t.poison || 0) + skill.amount }
@@ -3085,7 +3110,8 @@ function applyEnemySkill(state, enemyId, intent) {
           : { [skill.status]: Math.max(t[skill.status] || 0, 1) }
     next = emit(setUnit(next, t.id, patch), { kind: "reaction", unitId: t.id, label: HEX_WORD[skill.status] })
     const effect = { poison: `is poisoned (+${skill.amount}).`, root: "is rooted in place!", weak: "is weakened.", vulnerable: "is left vulnerable." }[skill.status]
-    return { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name}. ${t.name} ${effect}`] }
+    next = { ...next, log: [...next.log, `${actor.name} casts ${skill.name} on ${t.name}. ${t.name} ${effect}`] }
+    return elements.reactStatus(next, t.id, skill.status)
   }
   if (skill.kind === "summon") {
     const cell = freeSafeNeighbours(next, actor.pos, enemyId)[0]
@@ -3097,6 +3123,84 @@ function applyEnemySkill(state, enemyId, intent) {
     return { ...next, log: [...next.log, `${actor.name} calls ${skill.name} - a ${minion.name} answers.`] }
   }
   return next
+}
+
+// A wall "blocks" when no walk reaches the focus, or opening walls cuts
+// the trip by 3+ steps. Then hit the in-range wall (from here or a
+// reachable tile) that is closest to the focus by that open route.
+function aiWallOption(state, enemy, focus, pathField) {
+  const walls = Object.entries(state.terrain || {}).filter(([, t]) => t === "wall")
+  if (!walls.length || enemy.ap < 1) return null
+  const openField = terrainDistanceField(state.terrain, state.grid, focus.pos, true)
+  const here = `${enemy.pos.row}-${enemy.pos.col}`
+  const blocked = !pathField.has(here) || pathField.get(here) >= (openField.get(here) ?? Infinity) + 3
+  if (!blocked) return null
+  let best = null
+  for (const moveTo of [enemy.pos, ...reachableTilesFor(state, enemy.id)]) {
+    const stay = samePos(moveTo, enemy.pos)
+    if (!stay && enemy.ap < 2) continue
+    const pos = slideLanding(state, enemy.id, enemy.pos, moveTo)
+    const outcome = aiMoveOutcome(state, enemy, pos)
+    if (aiTileScore(state, enemy, pos, outcome) === null || outcome.hazard > 0 || outcome.apLeft < 1) continue
+    for (const [key] of walls) {
+      const [row, col] = key.split("-").map(Number)
+      const wall = { row, col }
+      if (chebyshevDist(pos, wall) > rangeAt(state, enemy, pos)) continue
+      const score = -(openField.get(key) ?? 99) * 10 - (stay ? 0 : 1)
+      if (!best || score > best.score) best = { score, intent: stay ? { kind: "wall", pos: wall } : { kind: "wall", pos: wall, to: moveTo } }
+    }
+  }
+  return best ? best.intent : null
+}
+
+// Barricades: 1 AP, plain attack damage (no modifiers), breaks to rubble at 0.
+export function wallTargetsFor(state, unitId) {
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.hp <= 0 || unit.ap < 1) return []
+  return Object.entries(state.terrain || {})
+    .filter(([, t]) => t === "wall")
+    .map(([key]) => {
+      const [row, col] = key.split("-").map(Number)
+      return { row, col }
+    })
+    .filter((pos) => chebyshevDist(unit.pos, pos) <= rangeAt(state, unit))
+}
+
+export function attackWall(state, actorId, pos) {
+  const actor = getUnit(state, actorId)
+  if (!actor || actor.hp <= 0 || actor.ap < 1 || state.phase !== actor.side) return state
+  if (terrainAt(state, pos) !== "wall") return state
+  if (chebyshevDist(actor.pos, pos) > rangeAt(state, actor)) return state
+  const key = `${pos.row}-${pos.col}`
+  const amount = Math.max(1, actor.attack)
+  const hp = Math.max(0, wallHpAt(state, pos) - amount)
+  const broke = hp <= 0
+  const wallHp = { ...(state.wallHp || {}) }
+  const terrain = { ...state.terrain }
+  if (broke) {
+    delete wallHp[key]
+    terrain[key] = "rubble"
+  } else wallHp[key] = hp
+  let next = setUnit({ ...state, wallHp, terrain }, actorId, { ap: actor.ap - 1 })
+  next = { ...next, log: [...next.log, broke ? `${actor.name} smashes the barricade to rubble!` : `${actor.name} hacks at the barricade (-${amount}, ${hp}/${WALL_MAX_HP}).`] }
+  return emit(next, { kind: "wall", actorId, pos: { row: pos.row, col: pos.col }, amount, broke })
+}
+
+// Lava: every living unit of `side` standing on lava as its turn ends burns.
+function applyLavaBurn(state, side) {
+  let next = state
+  let burned = false
+  for (const unit of livingUnits(state, side)) {
+    const burn = terrainRule(state, unit.pos).burn
+    if (!burn) continue
+    const live = getUnit(next, unit.id)
+    if (!live || live.hp <= 0) continue
+    burned = true
+    const hp = Math.max(0, live.hp - burn)
+    next = setUnit(next, unit.id, { hp })
+    next = emit({ ...next, log: [...next.log, `${live.name} burns on the lava for ${burn}.${hp <= 0 ? " It falls." : ""}`] }, { kind: "damage", targetId: unit.id, amount: burn, fell: hp <= 0 })
+  }
+  return burned ? checkTacticsBattleEnd(next) : next
 }
 
 function decideEnemyIntent(state, enemyId) {
@@ -3133,9 +3237,14 @@ function decideEnemyIntent(state, enemyId) {
     { t: null, score: -Infinity },
   ).t
 
+  // Steps to the focus around water/walls (units ignored) - so the AI heads
+  // for a bridge instead of staring across a river.
+  const pathField = terrainDistanceField(state.terrain || {}, state.grid, focus.pos)
   let best = { score: -Infinity, intent: { kind: "hold" } }
-  for (const pos of [enemy.pos, ...reachableTilesFor(state, enemyId)]) {
-    const stay = samePos(pos, enemy.pos)
+  for (const moveTo of [enemy.pos, ...reachableTilesFor(state, enemyId)]) {
+    // Ice: every choice is judged from where the unit really ends up.
+    const pos = slideLanding(state, enemyId, enemy.pos, moveTo)
+    const stay = samePos(moveTo, enemy.pos)
     const outcome = aiMoveOutcome(state, enemy, pos)
     const tileScore = aiTileScore(state, enemy, pos, outcome)
     if (tileScore === null) continue
@@ -3144,26 +3253,32 @@ function decideEnemyIntent(state, enemyId) {
     const rangedIntoMelee = enemy.range > 1 && !stay && aiAdjacentPlayerMelee(state, pos).length > 0
     if (outcome.apLeft >= 1 && !rangedIntoMelee) {
       for (const target of aiTargetsFrom(state, enemy, pos)) {
-        const dmg = aiEstimateHit(attacker, target)
+        const dmg = aiEstimateHit(attacker, target, state)
         const kill = dmg >= target.hp && !(target.revive > 0)
         const facing = classifyFacingAttack(attacker, target)
         const score = AI_ATTACK_BASE + tileScore + (kill ? AI_KILL_BONUS : 0) + 3 * dmg + aiTargetValue(target) + AI_FACING_BONUS[facing]
         if (score > best.score) {
-          best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: pos, targetId: target.id } }
+          best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: moveTo, targetId: target.id } }
         }
       }
     }
     if (outcome.apLeft >= 1) {
       for (const opt of aiSkillOptions(state, enemy, pos, tileScore)) {
-        if (opt.score > best.score) best = { score: opt.score, intent: stay ? opt.intent : { ...opt.intent, to: pos } }
+        if (opt.score > best.score) best = { score: opt.score, intent: stay ? opt.intent : { ...opt.intent, to: moveTo } }
       }
     }
     // Approach option: close the gap to the focus (ranged aim for max range).
     const dist = chebyshevDist(pos, focus.pos)
-    const gap = Math.max(0, dist - enemy.range) * 10 + (enemy.range > 1 ? Math.max(0, enemy.range - dist) * 2 : 0)
+    const walk = pathField.get(`${pos.row}-${pos.col}`) ?? dist
+    const gap = Math.max(0, Math.max(dist, walk) - enemy.range) * 10 + (enemy.range > 1 ? Math.max(0, enemy.range - dist) * 2 : 0)
     const nearest = Math.min(...players.map((p) => chebyshevDist(pos, p.pos)))
     const score = tileScore - gap - nearest * 0.1
-    if (score > best.score) best = { score, intent: stay ? { kind: "hold" } : { kind: "move", to: pos } }
+    if (score > best.score) best = { score, intent: stay ? { kind: "hold" } : { kind: "move", to: moveTo } }
+  }
+  // Barricades: only worth a swing when one actually walls the enemy off.
+  if (best.intent.kind === "move" || best.intent.kind === "hold") {
+    const wallIntent = aiWallOption(state, enemy, focus, pathField)
+    if (wallIntent) return wallIntent
   }
   for (const opt of aiPounceOptions(state, enemy)) {
     if (opt.score > best.score) best = opt
@@ -3174,7 +3289,7 @@ function decideEnemyIntent(state, enemyId) {
   const intent = best.intent
   if (intent.kind === "attack" && enemy.range > 1 && enemy.ap >= 2) {
     const adjacent = aiAdjacentPlayerMelee(state, enemy.pos).filter((u) => !(u.suppressed > 0))
-    const reactionDmg = adjacent.reduce((sum, c) => sum + aiEstimateHit(c, enemy), 0)
+    const reactionDmg = adjacent.reduce((sum, c) => sum + aiEstimateHit(c, enemy, state), 0)
     if (adjacent.length && reactionDmg * 2 < enemy.hp) return { ...intent, retreat: true }
   }
   return intent
@@ -3190,6 +3305,10 @@ function applyEnemyIntent(state, enemyId, intent) {
   if (intent.kind === "skill") return applyEnemySkill(state, enemyId, intent)
   if (intent.kind === "aoe") return applyEnemyAoe(state, enemyId, intent.amount)
   if (intent.kind === "move") return moveUnit(state, enemyId, intent.to)
+  if (intent.kind === "wall") {
+    const moved = intent.to ? moveUnit(state, enemyId, intent.to) : state
+    return attackWall(moved, enemyId, intent.pos)
+  }
   if (intent.kind === "move-attack") {
     const moved = moveUnit(state, enemyId, intent.to)
     return attackUnit(moved, enemyId, intent.targetId)
@@ -3259,9 +3378,11 @@ export function previewEnemyIntents(state) {
   for (const enemy of scratch.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (scratch.phase !== "enemy") break
     // A stunned enemy skips its turn (relicFx.spendStun in runEnemyTurn).
-    const stunned = relicFx.spendStun(scratch, enemy.id)
+    const live = getUnit(scratch, enemy.id)
+    const frozen = !(live.stun > 0) && live.frozen > 0
+    const stunned = relicFx.spendStun(scratch, enemy.id) || elements.spendFrozen(scratch, enemy.id)
     if (stunned) {
-      intents.push({ enemyId: enemy.id, intent: { kind: "stunned" } })
+      intents.push({ enemyId: enemy.id, intent: { kind: "stunned", frozen } })
       scratch = stunned
       continue
     }
@@ -3339,9 +3460,11 @@ export function runEnemyTurn(state) {
   if (next.phase !== "enemy") return next
   for (const enemy of next.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (next.phase !== "enemy") break
-    const stunned = relicFx.spendStun(next, enemy.id)
+    const stunned = relicFx.spendStun(next, enemy.id) || elements.spendFrozen(next, enemy.id)
     next = stunned || decideAndActEnemy(next, enemy.id)
   }
+  if (next.phase !== "enemy") return next
+  next = applyLavaBurn(next, "enemy")
   if (next.phase !== "enemy") return next
   // Player AP AND Block reset exactly here - Block granted during a player
   // turn must survive through the FOLLOWING enemy turn (that's when it
@@ -3390,7 +3513,7 @@ export function runEnemyTurn(state) {
   if (objTicked.phase !== "player") return objTicked
   const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked
-  return applyTurnStartTriggers(relicTicked, "player")
+  return applyTurnStartTriggers(elements.elementTurnStart(relicTicked, "player"), "player")
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
@@ -3401,7 +3524,9 @@ export function withLowEnemyHp(state) {
   // own start state (Ward/Revive stacks, difficulty-scaled damage), so
   // the QA hook also strips those one-hit shields - still QA-only.
   // Enemy-abilities sprint: skills (heals/summons) off too - QA-only.
-  return { ...state, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) }
+  // Terrain sprint: map templates (rivers, walls, lava) can wall a naive
+  // QA bot off from the enemy - the hook flattens the board too.
+  return { ...state, terrain: {}, wallHp: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) }
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
