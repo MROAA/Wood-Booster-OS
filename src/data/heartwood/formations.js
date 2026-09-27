@@ -726,6 +726,79 @@ export const FORMATIONS = {
     playerStart: { row: 2, col: 1 },
     synergy: { label: "The den holds", effects: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } }] },
   },
+
+  // --- Sprint 3 factions (tacticsFactions.js) ---
+  // `faction` drives the tactics identity + the formation-screen tag.
+  // Synergy is LABEL-ONLY (the #438 precedent).
+  "the-drift": {
+    id: "the-drift",
+    faction: "wanderers",
+    synergy: { label: "They strike and vanish", effects: [] },
+    name: "The Drift",
+    description: "Three of them on the road, and none of them willing to stand still long enough to be hit.",
+    pieces: [
+      { defId: "vagrant-blade", pos: { row: 0, col: 0 } },
+      { defId: "wayfarer-scout", pos: { row: 0, col: 2 } },
+      { defId: "drift-archer", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-roaming-band": {
+    id: "the-roaming-band",
+    faction: "wanderers",
+    synergy: { label: "They strike and vanish", effects: [] },
+    name: "The Roaming Band",
+    description: "Two bows and a blade, circling wide. They are not here to hold ground - they are here for your healer.",
+    pieces: [
+      { defId: "vagrant-blade", pos: { row: 0, col: 2 } },
+      { defId: "drift-archer", pos: { row: 1, col: 0 } },
+      { defId: "drift-archer", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  // The Mirror: `mirror: true` = the real fight clones the deployed squad
+  // (runEngine autoBattleStartFor -> startAutoBattle's mirrorSquad). These
+  // pieces are only the empty-squad fallback (MIRROR_POSITIONS layout).
+  "the-looking-pool": {
+    id: "the-looking-pool",
+    faction: "mirror",
+    mirror: true,
+    synergy: { label: "It fights as you do", effects: [] },
+    name: "The Looking Pool",
+    description: "The water is very still. The squad standing in it is yours - a half-step late, and a little thinner.",
+    pieces: [
+      { defId: "echo-warden", pos: { row: 0, col: 0 } },
+      { defId: "echo-shade", pos: { row: 0, col: 2 } },
+      { defId: "echo-archer", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-taint": {
+    id: "the-taint",
+    faction: "corrupted",
+    synergy: { label: "The ground turns black", effects: [] },
+    name: "The Taint",
+    description: "A sapling with black roots, and two things that feed on what the roots leave behind.",
+    pieces: [
+      { defId: "blightfang", pos: { row: 0, col: 0 } },
+      { defId: "blightheart-troll", pos: { row: 0, col: 2 } },
+      { defId: "tainted-sapling", pos: { row: 1, col: 2 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
+  "the-spreading-dark": {
+    id: "the-spreading-dark",
+    faction: "corrupted",
+    synergy: { label: "The ground turns black", effects: [] },
+    name: "The Spreading Dark",
+    description: "The rot has a voice now, and a gardener. Every turn you wait, there is less clean ground to stand on.",
+    pieces: [
+      { defId: "blightheart-troll", pos: { row: 0, col: 0 } },
+      { defId: "tainted-sapling", pos: { row: 0, col: 2 } },
+      { defId: "blight-seer", pos: { row: 1, col: 0 } },
+    ],
+    playerStart: { row: 2, col: 1 },
+  },
 }
 
 export function resolveFormation(formationOrEnemyId) {

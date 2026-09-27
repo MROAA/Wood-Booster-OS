@@ -2102,6 +2102,175 @@ export const ENEMIES = {
       { type: "aoe", amount: 5 },
     ],
   },
+
+  // --- Sprint 3 factions (feat/hearthwood-sprint3-factions) ---
+  // Enemy Ecosystem PRD 14/15/17. The identity lives in the tactics engine
+  // (tacticsFactions.js); in the auto-battler these are plain bodies.
+  // All in NON_BATTLE_ENEMY_IDS - only via their own formations.
+  // Wanderers: `skirmisher` = +1 move, strike then Fade up to 2 tiles back.
+  "wayfarer-scout": {
+    id: "wayfarer-scout",
+    act: 2,
+    faction: "wanderers",
+    skirmisher: true,
+    name: "Wayfarer Scout",
+    maxHp: 26,
+    art: "wolf",
+    image: enemyPlaceholderImg,
+    description: "It never stands where it stood a breath ago. By the time you turn, it is behind you again.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "attack", amount: 4 },
+    ],
+  },
+  "drift-archer": {
+    id: "drift-archer",
+    act: 2,
+    faction: "wanderers",
+    skirmisher: true,
+    name: "Drift Archer",
+    maxHp: 24,
+    art: "leaf",
+    image: enemyPlaceholderImg,
+    description: "One arrow, one step back into the trees. It is always one step further than you can reach.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "block", amount: 2 },
+    ],
+    attackPattern: "rook",
+  },
+  "vagrant-blade": {
+    id: "vagrant-blade",
+    act: 2,
+    faction: "wanderers",
+    skirmisher: true,
+    name: "Vagrant Blade",
+    maxHp: 34,
+    art: "fang",
+    image: enemyPlaceholderImg,
+    description: "A road-worn sword that cuts once and is gone before the blood lands.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "block", amount: 3 },
+    ],
+  },
+  // The Mirror: fallback bodies only - a real Mirror fight clones the
+  // player's own deployed squad ("Echo of X", tacticsFactions.js /
+  // startAutoBattle's mirrorSquad). These stand in for an empty squad.
+  "echo-shade": {
+    id: "echo-shade",
+    act: 5,
+    faction: "mirror",
+    name: "Echo Shade",
+    maxHp: 30,
+    art: "shadow",
+    image: enemyPlaceholderImg,
+    description: "It moves when you move. It is a half-step late, and it is learning.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "block", amount: 3 },
+    ],
+  },
+  "echo-warden": {
+    id: "echo-warden",
+    act: 5,
+    faction: "mirror",
+    name: "Echo Warden",
+    maxHp: 40,
+    art: "warden",
+    image: enemyPlaceholderImg,
+    description: "The shape of a shield someone once held for you.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "block", amount: 5 },
+      { type: "attack", amount: 5 },
+    ],
+  },
+  "echo-archer": {
+    id: "echo-archer",
+    act: 5,
+    faction: "mirror",
+    name: "Echo Archer",
+    maxHp: 26,
+    art: "moonGlyph",
+    image: enemyPlaceholderImg,
+    description: "It aims where you were going to stand.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 5 },
+      { type: "attack", amount: 3 },
+    ],
+    attackPattern: "bishop",
+  },
+  // The Corrupted: tainted forest creatures. In tactics they spread
+  // Blight tiles every enemy turn and hit harder / mend standing on it.
+  // `blightSpread` = tiles this one spreads per turn (default 1).
+  blightfang: {
+    id: "blightfang",
+    act: 3,
+    faction: "corrupted",
+    name: "Blightfang",
+    maxHp: 32,
+    art: "wolf",
+    image: enemyPlaceholderImg,
+    description: "It was a wolf once. Now it is mostly the black stuff, wearing a wolf.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 6 },
+      { type: "attack", amount: 5 },
+    ],
+  },
+  "tainted-sapling": {
+    id: "tainted-sapling",
+    act: 3,
+    faction: "corrupted",
+    blightSpread: 2,
+    name: "Tainted Sapling",
+    maxHp: 24,
+    art: "root",
+    image: enemyPlaceholderImg,
+    description: "Wherever its roots go, the ground goes black. Its roots are going toward you.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 3 },
+      { type: "block", amount: 3 },
+    ],
+  },
+  "blightheart-troll": {
+    id: "blightheart-troll",
+    act: 3,
+    faction: "corrupted",
+    name: "Blightheart Troll",
+    maxHp: 50,
+    art: "troll",
+    image: enemyPlaceholderImg,
+    description: "The rot found its heart first and worked outward. It does not seem to mind.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 7 },
+      { type: "block", amount: 4 },
+    ],
+  },
+  "blight-seer": {
+    id: "blight-seer",
+    act: 3,
+    faction: "corrupted",
+    name: "Blight Seer",
+    maxHp: 26,
+    art: "moonGlyph",
+    image: enemyPlaceholderImg,
+    description: "It reads the rot like scripture, and spits the verses at you.",
+    moveSelect: "sequence",
+    movePattern: [
+      { type: "attack", amount: 4 },
+      { type: "debuff", id: "poison", amount: 2, target: "player" },
+    ],
+    attackPattern: "bishop",
+  },
 }
 
 // ===================================================================
@@ -2204,6 +2373,18 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "ancient-oak",
   "elder-oak",
   "sapling-attendant",
+  // Sprint 3 factions: only via their own formations (the-drift /
+  // the-roaming-band / the-looking-pool / the-taint / the-spreading-dark).
+  "wayfarer-scout",
+  "drift-archer",
+  "vagrant-blade",
+  "echo-shade",
+  "echo-warden",
+  "echo-archer",
+  "blightfang",
+  "tainted-sapling",
+  "blightheart-troll",
+  "blight-seer",
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible

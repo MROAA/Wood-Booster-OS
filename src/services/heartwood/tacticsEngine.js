@@ -34,6 +34,7 @@ import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./
 import { bossVerdict, bossEnemyPhaseStart, bossImmuneHit, bossAfterDamage, bossTilePenalty, bossQa } from "./tacticsBosses"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
+import { applyFaction, factionEnemyPhaseStart, blightAttackBonus, factionTargetBonus, isBlighted, FADE_RANGE } from "./tacticsFactions"
 import { TERRAIN, terrainAt, terrainRule, isHigh, canReach, rangeAt, highGroundAmount, slideLanding, terrainDistanceField, wallHpAt, WALL_MAX_HP } from "./tacticsTerrain"
 export { TERRAIN_INFO, WALL_MAX_HP, wallHpAt, rangeAt } from "./tacticsTerrain"
 import { levelForXp, XP as LEVEL_XP_GAIN, THIRST_HEAL } from "./unitLevels"
@@ -367,6 +368,38 @@ export const ENEMY_FORMATIONS = {
     fortressBlock: 0,
     selfMend: 0,
   },
+  // Sprint 3 factions (tacticsFactions.js) - prototype picker entries.
+  wanderers: {
+    id: "wanderers",
+    name: "Wanderers",
+    description: "They strike and vanish - three skirmishers who never stand where you can reach them twice.",
+    enemyDefIds: ["vagrant-blade", "wayfarer-scout", "drift-archer"],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+    faction: "wanderers",
+  },
+  mirror: {
+    id: "mirror",
+    name: "The Mirror",
+    description: "Your own squad looks back at you out of the still water - a half-step late, and a little thinner.",
+    enemyDefIds: ["echo-warden", "echo-shade", "echo-archer"],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+    faction: "mirror",
+    mirror: true,
+  },
+  corrupted: {
+    id: "corrupted",
+    name: "The Corrupted",
+    description: "The ground under them is already black, and it is spreading toward you.",
+    enemyDefIds: ["tainted-sapling", "blightfang", "blightheart-troll"],
+    battleStartBonus: 0,
+    fortressBlock: 0,
+    selfMend: 0,
+    faction: "corrupted",
+  },
   // This round's demo for the new terrain + movement-cost mechanics -
   // ironmaw (real HP 46, already used in "default") is reused as-is
   // rather than inventing a new enemy; the point of this formation is
@@ -586,8 +619,11 @@ function moveFromMaxHp(maxHp) {
 // would collide two enemies onto the same id and corrupt every id-keyed
 // lookup (getUnit/setUnit, React key/layoutId).
 function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
-  const def = overrideDef || (side === "enemy" ? ENEMIES[defId] : UNITS[defId])
+  // Mirror faction: an enemy-side unit may be built from a UNITS def (an echo).
+  const def = overrideDef || (side === "enemy" ? ENEMIES[defId] || UNITS[defId] : UNITS[defId])
   const maxHp = def.maxHp
+  // Factions (tacticsFactions.js): enemy-side tags read off the def.
+  const skirmisher = side === "enemy" && !!def.skirmisher
   // The Ancients archetype's real def already carries `charge` - reused
   // directly (see ENEMY_FORMATIONS's comment), never reinvented. The
   // Coven's real def carries `covenAura` the same way; the Cult's real
@@ -627,8 +663,10 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     pos,
     hp: maxHp,
     maxHp,
-    move: moveFromMaxHp(maxHp),
+    move: moveFromMaxHp(maxHp) + (skirmisher ? 1 : 0),
     range: rangeFromAttackPattern(def.attackPattern),
+    faction: side === "enemy" ? def.faction || null : null,
+    skirmisher,
     attack: attackFromMovePattern(def.movePattern) + passiveStats.strength,
     ap: AP_MAX,
     apMax: AP_MAX,
@@ -831,14 +869,16 @@ function deriveCommanderUnit(characterId, pos, uid) {
 // logic - `+1` reserves a row for the Commander.
 export function createTacticsBattle(formationId = "default", squadDefIds = PLAYER_DEF_IDS) {
   const formation = ENEMY_FORMATIONS[formationId] || ENEMY_FORMATIONS.default
+  // Mirror faction: the enemy side is your own squad (max 4), as echoes.
+  const enemyDefIds = formation.mirror && squadDefIds.length ? squadDefIds.slice(0, 4) : formation.enemyDefIds
   const playerRows = spreadRows(squadDefIds.length + 1, GRID.rows)
-  const enemyRows = spreadRows(formation.enemyDefIds.length, GRID.rows)
+  const enemyRows = spreadRows(enemyDefIds.length, GRID.rows)
   const units = [
     ...squadDefIds.map((defId, i) =>
       deriveTacticsUnit(defId, "player", { row: playerRows[i], col: GRID.cols - 1 }, `player-${defId}-${i}`),
     ),
     deriveCommanderUnit(DEFAULT_COMMANDER_ID, { row: playerRows[squadDefIds.length], col: GRID.cols - 1 }, "player-commander"),
-    ...formation.enemyDefIds.map((defId, i) =>
+    ...enemyDefIds.map((defId, i) =>
       deriveTacticsUnit(defId, "enemy", { row: enemyRows[i], col: 0 }, `enemy-${defId}-${i}`),
     ),
   ]
@@ -866,7 +906,7 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
   // against (attack > baseAttack), so only a PER-ROUND buff like the
   // Coven's ever shows as growing, not a formation's one-time grant.
   const withBaseline = withBonus.map((u) => ({ ...u, baseAttack: u.attack }))
-  return {
+  const battle = {
     grid: GRID,
     // A formation's own optional terrain map - omitted on every formation
     // that predates this round, defaulting every cell to "path" via
@@ -886,6 +926,7 @@ export function createTacticsBattle(formationId = "default", squadDefIds = PLAYE
     formationId: formation.id,
     activePower: activePowerFor(commander),
   }
+  return formation.faction ? applyFaction(battle, formation.faction, { weakenEchoes: true }) : battle
 }
 
 // Spirit Shift round: units.js's own real `summon` field (Beastcaller's
@@ -1019,7 +1060,7 @@ function overlayAutoStart(unit, src, difficultyFactor) {
   // so rebuild it from the (difficulty-scaled) pattern instead.
   const attack =
     unit.side === "enemy"
-      ? Math.round(attackFromMovePattern(ENEMIES[unit.defId].movePattern) * difficultyFactor) + strength
+      ? Math.round(attackFromMovePattern((ENEMIES[unit.defId] || UNITS[unit.defId])?.movePattern) * difficultyFactor) + strength
       : unit.attack + strength
   const stats = Object.fromEntries(OVERLAID_POWER_IDS.map((id) => [id, powers[id] || 0]))
   return {
@@ -2131,7 +2172,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     next = setUnit(next, targetId, { suppressed: (target.suppressed || 0) + SUPPRESSED_DURATION })
     suppressedNote = ` ${target.name}'s guard falters, reactions weakened!`
   }
-  const rawAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack))
+  const rawAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack + blightAttackBonus(next, actor)))
   const guardian = eligibleGuardian(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
   const extraVictims = []
@@ -2761,7 +2802,8 @@ function enemyPhaseStart(state) {
   // Objective: the Totem pulses at the top of the enemy phase - inside
   // enemyPhaseStart so previewEnemyIntents sees the same pulsed state.
   // Boss fights: arena hazards resolve / get telegraphed here too.
-  return bossEnemyPhaseStart(objectiveEnemyPhaseStart(next))
+  // Factions: Blight spreads / poisons / feeds here (preview sees it too).
+  return bossEnemyPhaseStart(objectiveEnemyPhaseStart(factionEnemyPhaseStart(next)))
 }
 
 export function endPlayerTurn(state) {
@@ -2808,7 +2850,7 @@ function aiTargetsFrom(state, enemy, pos) {
 // Rough damage after Ward/Block/Bulwark - the same modifier chain a real hit uses.
 function aiEstimateHit(attacker, target, state = null) {
   if (target.ward > 0) return 0
-  const raw = modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack))
+  const raw = modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker)))
   return Math.max(0, raw - (target.block || 0) - (target.bulwark || 0))
 }
 
@@ -2855,6 +2897,9 @@ function aiTileScore(state, enemy, pos, outcome) {
   let score = -outcome.hazard - outcome.reactionDmg * 3
   if (!samePos(pos, enemy.pos)) score -= 1
   if (enemy.range > 1) score -= 25 * aiAdjacentPlayerMelee(state, pos).length
+  // Wanderers keep off your melee; the Corrupted like standing on Blight.
+  if (enemy.skirmisher) score -= 8 * aiAdjacentPlayerMelee(state, pos).length
+  if (enemy.faction === "corrupted" && isBlighted(state, pos)) score += 6
   if (isCautiousEnemy(enemy)) score -= 6 * aiExposure(state, pos)
   if (isHigh(state, pos)) score += AI_HIGH_GROUND_BONUS
   if (enemy.range > 1 && terrainRule(state, pos).cover) score += AI_COVER_BONUS
@@ -3266,7 +3311,7 @@ function decideEnemyIntent(state, enemyId) {
         const dmg = aiEstimateHit(attacker, target, state)
         const kill = dmg >= target.hp && !(target.revive > 0)
         const facing = classifyFacingAttack(attacker, target)
-        const score = AI_ATTACK_BASE + tileScore + (kill ? AI_KILL_BONUS : 0) + 3 * dmg + aiTargetValue(target) + AI_FACING_BONUS[facing]
+        const score = AI_ATTACK_BASE + tileScore + (kill ? AI_KILL_BONUS : 0) + 3 * dmg + aiTargetValue(target) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target)
         if (score > best.score) {
           best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: moveTo, targetId: target.id } }
         }
@@ -3294,9 +3339,12 @@ function decideEnemyIntent(state, enemyId) {
     if (opt.score > best.score) best = opt
   }
 
+  // Wanderers: strike, then Fade (applyEnemyIntent picks the tile).
+  const intent = best.intent
+  const strikes = intent.kind === "attack" || intent.kind === "move-attack" || intent.skillKind === "pounce"
+  if (enemy.skirmisher && strikes) return { ...intent, fade: true }
   // Ranged enemies stuck next to melee shoot first, then step back if
   // the reaction hits won't cripple them.
-  const intent = best.intent
   if (intent.kind === "attack" && enemy.range > 1 && enemy.ap >= 2) {
     const adjacent = aiAdjacentPlayerMelee(state, enemy.pos).filter((u) => !(u.suppressed > 0))
     const reactionDmg = adjacent.reduce((sum, c) => sum + aiEstimateHit(c, enemy, state), 0)
@@ -3305,14 +3353,49 @@ function decideEnemyIntent(state, enemyId) {
   return intent
 }
 
+// Wanderers' Fade: after striking, a free step up to FADE_RANGE tiles to
+// the reachable tile farthest from the squad (no AP, no Zone reactions -
+// it vanishes; Root/Slow still hold it). Deterministic (strict `>`).
+function applyFade(state, enemyId) {
+  const unit = getUnit(state, enemyId)
+  if (state.phase !== "enemy" || !unit || unit.hp <= 0 || unit.root > 0) return state
+  const players = livingUnits(state, "player")
+  if (!players.length) return state
+  const scoreOf = (pos) => {
+    const spacing = Math.min(4, ...players.map((p) => chebyshevDist(pos, p.pos)))
+    const t = TERRAIN[terrainAt(state, pos)]
+    const hazard = (t.grantPoison ? AI_POISON_PENALTY : 0) + (t.burn ? AI_LAVA_PENALTY : 0)
+    return 10 * spacing - 3 * aiExposure(state, pos) - hazard
+  }
+  let best = null
+  let bestScore = scoreOf(unit.pos)
+  for (const pos of reachableTilesFor(state, enemyId)) {
+    if (chebyshevDist(pos, unit.pos) > FADE_RANGE) continue
+    const score = scoreOf(pos)
+    if (score > bestScore) {
+      best = pos
+      bestScore = score
+    }
+  }
+  if (!best) return state
+  const facing = cardinalDir(unit.pos.col - best.col, unit.pos.row - best.row)
+  let next = setUnit(state, enemyId, { pos: { row: best.row, col: best.col }, facing, fadedTurn: state.turn })
+  next = emit(next, { kind: "reaction", unitId: enemyId, label: "Fade!" })
+  return { ...next, log: [...next.log, `${unit.name} strikes and fades back into the trees.`] }
+}
+
 function applyEnemyIntent(state, enemyId, intent) {
   if (intent.kind === "attack") {
     const hit = attackUnit(state, enemyId, intent.targetId)
+    if (intent.fade) return applyFade(hit, enemyId)
     if (!intent.retreat || hit.phase !== "enemy") return hit
     const to = aiRetreatTile(hit, enemyId)
     return to ? moveUnit(hit, enemyId, to) : hit
   }
-  if (intent.kind === "skill") return applyEnemySkill(state, enemyId, intent)
+  if (intent.kind === "skill") {
+    const acted = applyEnemySkill(state, enemyId, intent)
+    return intent.fade ? applyFade(acted, enemyId) : acted
+  }
   if (intent.kind === "aoe") return applyEnemyAoe(state, enemyId, intent.amount)
   if (intent.kind === "move") return moveUnit(state, enemyId, intent.to)
   if (intent.kind === "wall") {
@@ -3321,7 +3404,8 @@ function applyEnemyIntent(state, enemyId, intent) {
   }
   if (intent.kind === "move-attack") {
     const moved = moveUnit(state, enemyId, intent.to)
-    return attackUnit(moved, enemyId, intent.targetId)
+    const hit = attackUnit(moved, enemyId, intent.targetId)
+    return intent.fade ? applyFade(hit, enemyId) : hit
   }
   return state
 }

@@ -53,6 +53,7 @@ import { describeSkillIntent } from "../../services/heartwood/tacticsEnemyAbilit
 import { describeObjective, reinforcementWarningTiles, turnsUntilPulse } from "../../services/heartwood/tacticsObjectives"
 import { PERKS } from "../../services/heartwood/unitLevels"
 import { describeBoss, bossWarningTiles } from "../../services/heartwood/tacticsBosses"
+import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
 
 const BOSS_WARN_ICON = { quake: "✹", lava: "♨", water: "≈", wall: "▦", ice: "❄", poison: "☣", adds: "❖", teleport: "◎" }
 
@@ -290,6 +291,10 @@ export default function TacticsBoard({
   const pulseIn = turnsUntilPulse(battle)
   const bossInfo = describeBoss(battle)
   const bossWarn = useMemo(() => bossWarningTiles(battle), [battle])
+  // Factions (sprint 3): banner + Blight tiles (now / just spread / next).
+  const factionView = describeFaction(battle)
+  const blightFresh = useMemo(() => new Set(battle.blightFresh || []), [battle])
+  const blightNext = useMemo(() => new Set(blightPreviewKeys(battle)), [battle])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const fallenHere = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp <= 0 && fallenIds.has(u.id))
@@ -440,6 +445,9 @@ export default function TacticsBoard({
           data-deploy-zone={deployZone}
           data-reinforce={reinforceTiles.has(`${row}-${col}`)}
           data-boss-warn={bossWarn.get(`${row}-${col}`) || undefined}
+          data-blight={!!battle.blight?.[`${row}-${col}`] || undefined}
+          data-blight-fresh={blightFresh.has(`${row}-${col}`) || undefined}
+          data-blight-next={blightNext.has(`${row}-${col}`) || undefined}
           data-wall-targetable={terrain === "wall" && wallTargetHere(row, col)}
           data-wall-threat={terrain === "wall" && wallThreat.has(`${row}-${col}`)}
           title={TERRAIN_INFO[terrain] ? `${TERRAIN_INFO[terrain].name}: ${TERRAIN_INFO[terrain].text}${terrain === "wall" ? ` (${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP)` : ""}` : undefined}
@@ -482,6 +490,8 @@ export default function TacticsBoard({
               data-acted={unit.ap <= 0}
               data-power-surge={unit.side === "player" && battle.activePower?.used && battle.activePower.firedTurn === battle.turn}
               data-spirit={!!unit.isSpirit}
+              data-faction={unit.faction || undefined}
+              data-echo={!!unit.echo || undefined}
               data-unit-id={unit.id}
             >
               <TokenArt unit={unit} />
@@ -645,9 +655,20 @@ export default function TacticsBoard({
                   </span>
                 )}
                 <ElementBadges unit={unit} />
+                {unit.side === "enemy" && factionInfo(unit.faction) && (
+                  <span className="hwt-faction-badge" data-faction={unit.faction} title={`${factionInfo(unit.faction).tag}${unit.skirmisher ? " - strikes, then fades up to 2 tiles back" : ""}${unit.echo ? " - an echo of your own unit" : ""}`}>
+                    {factionInfo(unit.faction).icon}
+                  </span>
+                )}
+                {unit.faction === "corrupted" && isBlighted(battle, unit.pos) && (
+                  <span className="hwt-blight-power-badge" title={`On Blight: +${BLIGHT_ATTACK_BONUS} damage and mends each enemy turn`}>
+                    +{BLIGHT_ATTACK_BONUS}
+                  </span>
+                )}
                 {intent && (intent.kind === "attack" || intent.kind === "move-attack") && (
-                  <span className="hwt-intent-badge" data-intent="attack" title={`Will strike ${getUnitName(battle, intent.targetId)}`}>
+                  <span className="hwt-intent-badge" data-intent="attack" data-fade={!!intent.fade || undefined} title={`Will strike ${getUnitName(battle, intent.targetId)}${intent.fade ? ", then fade up to 2 tiles back" : ""}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />
+                    {intent.fade && <span className="hwt-fade-mark">↩</span>}
                   </span>
                 )}
                 {intent && intent.kind === "move" && (
@@ -665,9 +686,11 @@ export default function TacticsBoard({
                     className="hwt-intent-badge"
                     data-intent="skill"
                     data-skill-kind={intent.skillKind}
-                    title={describeSkillIntent(intent, (id) => getUnitName(battle, id))}
+                    data-fade={!!intent.fade || undefined}
+                    title={`${describeSkillIntent(intent, (id) => getUnitName(battle, id))}${intent.fade ? ", then fade up to 2 tiles back" : ""}`}
                   >
                     {intent.icon}
+                    {intent.fade && <span className="hwt-fade-mark">↩</span>}
                   </span>
                 )}
                 {intent && intent.kind === "stunned" && (
@@ -725,6 +748,19 @@ export default function TacticsBoard({
               {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
             </div>
           </div>
+          {factionView && (
+            <div className="hwt-faction-banner" data-faction={factionView.id}>
+              <div className="hwt-faction-title">
+                <span className="hwt-faction-icon">{factionView.icon}</span> {factionView.tag}
+              </div>
+              <div className="hwt-faction-hint">{factionView.hint}</div>
+              {factionView.id === "corrupted" && (
+                <div className="hwt-faction-extra">
+                  Blight: {factionView.blightCount} tile(s){blightNext.size ? ` - spreads to ${blightNext.size} more next enemy turn (dashed)` : ""}
+                </div>
+              )}
+            </div>
+          )}
           <div className="hwt-objective" data-objective={objective.type}>
             <div className="hwt-objective-title">Objective: {objective.title}</div>
             <div className="hwt-objective-detail">{objective.detail}</div>
