@@ -5,8 +5,20 @@ import { evolutionFor, evolutionHint } from "../../data/heartwood/evolutions"
 import { UPGRADE_BRANCHES } from "../../data/heartwood/upgrades"
 import { ROLES, unitProfile, unitTargetProfile, TARGET_PROFILE_LABEL } from "../../data/heartwood/roles"
 import { PERKS, levelProgress } from "../../services/heartwood/unitLevels"
+import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
+import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
+import { describeAbility } from "../../services/heartwood/tacticsAbilities"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
+
+// Class chip tooltip: passive, class skills, then the unit's signature.
+function classTooltip(cls, def) {
+  const sig = signatureAbilityForDef(def)
+  const lines = [`${cls.name} (${CLASS_GROUPS[cls.group]}) - ${cls.description}`, `Passive - ${cls.passive.name}: ${cls.passive.text}`]
+  for (const s of cls.skills) lines.push(`${s.icon} ${s.name} (${s.cost} AP): ${s.text}`)
+  if (sig) lines.push(`★ ${sig.name} (signature, ${sig.cost} AP): ${describeAbility(sig)}`)
+  return lines.join("\n")
+}
 // Card-accent modifier by resolved primary role (roles.js's ROLES[x].card).
 // hybrid is legacy - the model resolves it to a real primary now.
 const ROLE_ACCENT = { dps: "attack", tank: "power", support: "skill", hybrid: "skill" }
@@ -75,6 +87,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   const hurt = hpPct < 1 || !!entry?.wounded
   const curHp = Math.max(1, Math.round(def.maxHp * hpPct))
   const effectiveRole = role || def.role
+  const tacticalClass = classById(def.classId)
   // Role & tag identity (roles.js): a "Tank · Support" line + up to
   // MAX_TAGS chips + strength/weakness in the tooltip. `role` here is
   // the Hero-Bent override (SquadDraft/FormationScreen pass it), so a
@@ -283,6 +296,14 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
             {def.className}
           </div>
         )
+      )}
+      {/* Class system: tactical class chip; tooltip = passive + skills. */}
+      {tacticalClass && (
+        <div className="hw-card-tclass" data-class-id={tacticalClass.id} title={classTooltip(tacticalClass, def)}>
+          <span className="hw-card-tclass-icon">{tacticalClass.icon}</span>
+          {tacticalClass.name}
+          <span className="hw-card-tclass-group"> · {CLASS_GROUPS[tacticalClass.group]}</span>
+        </div>
       )}
       {/* Role & tag identity (roles.js) - the PRD's "upgrade visibility"
           line: primary (· secondary) role, then a few tags, with the

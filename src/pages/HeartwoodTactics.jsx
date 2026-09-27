@@ -27,6 +27,7 @@ import { loadRealMatchup } from "../services/heartwood/tacticsRealMatchup"
 import { applyFaction } from "../services/heartwood/tacticsFactions"
 import { applyObjective, buildObjectiveSpec, OBJECTIVE_TYPES, OBJECTIVE_NAMES } from "../services/heartwood/tacticsObjectives"
 import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../services/heartwood/tacticsBosses"
+import { CLASSES } from "../data/heartwood/classes"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
@@ -240,6 +241,7 @@ export default function HeartwoodTactics() {
                     {preview && (
                       <p className="hwt-squad-slot-stats">
                         HP {preview.maxHp} · Atk {preview.attack} · Range {preview.range}
+                        {preview.classId && CLASSES[preview.classId] ? ` · ${CLASSES[preview.classId].icon} ${CLASSES[preview.classId].name}` : ""}
                         {preview.ability ? ` · ${preview.ability.name}` : ""}
                         {preview.spiritbound ? " · Spirit Shift (brings a Spirit Wolf)" : ""}
                       </p>

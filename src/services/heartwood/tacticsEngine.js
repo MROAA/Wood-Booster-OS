@@ -1179,6 +1179,12 @@ export function beginBattle(state) {
 // per-slot stat line - zero new derivation logic, reuses deriveTacticsUnit
 // directly (the exact same function a real squad unit goes through), just
 // with a throwaway pos/id since these are never placed on a real board.
+// Class system: a unit's personal signature ability (cards/tooltips).
+export function signatureAbilityForDef(def) {
+  if (!def || def.summonOnly) return null
+  return ABILITIES[def.id] || deriveAbilityForDef(def)
+}
+
 export function previewPlayerRoster() {
   return PLAYER_ROSTER_IDS.map((defId, i) => deriveTacticsUnit(defId, "player", { row: 0, col: 0 }, `preview-${defId}-${i}`))
 }
