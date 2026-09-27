@@ -86,7 +86,7 @@ function flashTiles(tiles, combo) {
 function toBeats(events) {
   const beats = []
   for (const ev of events) {
-    if (ev.kind === "strike" || ev.kind === "aoe" || ev.kind === "power" || !beats.length) beats.push([ev])
+    if (ev.kind === "strike" || ev.kind === "aoe" || ev.kind === "power" || ev.kind === "bossPhase" || !beats.length) beats.push([ev])
     else beats[beats.length - 1].push(ev)
   }
   return beats
@@ -94,6 +94,9 @@ function toBeats(events) {
 
 export default function TacticsFx({ battle }) {
   const [popups, setPopups] = useState([])
+  // Boss fights: a big "Phase N: name" banner on a phase change.
+  const [banner, setBanner] = useState(null)
+  const flashSeqRef = useRef(battle.bossFlash?.seq ?? null)
   const counterRef = useRef(0)
   const lastSeqRef = useRef(null)
   const prevUnitsRef = useRef(null)
@@ -151,6 +154,14 @@ export default function TacticsFx({ battle }) {
         } else if (ev.kind === "combo") {
           // Element combos: a big distinct callout, tile flash, shake if big.
           timers.push(setTimeout(() => { pop(ev.unitId, ev.label, "combo", { offset: 1.4, big: ev.big, combo: ev.combo }); flashTiles(ev.tiles, ev.combo); if (ev.big) { shakeBoard(); play("hitBig") } }, at + IMPACT_DELAY_MS))
+        } else if (ev.kind === "bossPhase") {
+          timers.push(setTimeout(() => {
+            pop(ev.unitId, ev.name, "combo", { offset: 1.4, big: true, combo: "boss" })
+            shakeBoard()
+            play("hitBig")
+            setBanner({ key: ev.seq, index: ev.index, name: ev.name })
+            timers.push(setTimeout(() => setBanner((b) => (b && b.key === ev.seq ? null : b)), 2200))
+          }, at))
         } else if (ev.kind === "heal") {
           timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); play("heal") }, at))
         }
@@ -173,6 +184,14 @@ export default function TacticsFx({ battle }) {
     return undefined
   }, [battle])
 
+  // Boss arena hazards: light up the tiles that just erupted/changed.
+  useEffect(() => {
+    const flash = battle.bossFlash
+    if (!flash || flash.seq === flashSeqRef.current) return
+    flashSeqRef.current = flash.seq
+    flashTiles(flash.tiles, `boss-${flash.kind}`)
+  }, [battle.bossFlash])
+
   useEffect(() => {
     if (battle.phase === phaseRef.current) return
     phaseRef.current = battle.phase
@@ -182,6 +201,12 @@ export default function TacticsFx({ battle }) {
 
   return (
     <>
+      {banner && (
+        <div className="hwt-boss-phase-banner" key={banner.key} data-phase-index={banner.index}>
+          <span className="hwt-boss-phase-banner-num">Phase {banner.index + 1}</span>
+          <span className="hwt-boss-phase-banner-name">{banner.name}</span>
+        </div>
+      )}
       {popups.map((p) => (
         <FloatingNumber key={p.id} popup={p} onDone={() => setPopups((cur) => cur.filter((x) => x.id !== p.id))} />
       ))}

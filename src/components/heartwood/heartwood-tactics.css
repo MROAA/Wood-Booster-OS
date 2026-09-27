@@ -1460,3 +1460,106 @@
 .hwt-element-help-body li { margin: 3px 0; }
 .hwt-element-help-recipe { color: var(--hwt-gold); }
 .hwt-element-help-intro { margin: 4px 0; color: var(--hw-muted); }
+
+/* ===== Boss fights (sprint 3) ============================================= */
+.hwt-boss-bar {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 60%, var(--hw-border));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--hw-ember) 12%, var(--hw-card)), var(--hw-card));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--hw-ember) 18%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hwt-boss-head { display: flex; flex-direction: column; }
+.hwt-boss-name { font-family: var(--hw-font-display); font-size: var(--hw-fs-lg, 1.15rem); color: var(--hwt-gold, #d4a24c); font-weight: 700; }
+.hwt-boss-title { font-size: var(--hw-fs-sm); color: var(--hw-muted); font-style: italic; }
+.hwt-boss-track {
+  position: relative;
+  height: 16px;
+  border-radius: 8px;
+  background: color-mix(in srgb, black 55%, var(--hw-card));
+  border: 1px solid var(--hw-border);
+  overflow: hidden;
+}
+.hwt-boss-fill {
+  height: 100%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--hw-hp) 80%, black), var(--hw-hp));
+  transition: width 400ms ease-out;
+}
+.hwt-boss-bar[data-immune="true"] .hwt-boss-fill { background: linear-gradient(90deg, #5a7896, #9fc3e6); }
+.hwt-boss-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--hwt-gold, #d4a24c);
+  box-shadow: 0 0 4px var(--hwt-gold, #d4a24c);
+}
+.hwt-boss-marker[data-passed="true"] { opacity: 0.35; }
+.hwt-boss-hp { position: absolute; right: 6px; top: 0; font-size: 0.7rem; line-height: 16px; color: #fff; text-shadow: 0 1px 2px black; }
+.hwt-boss-phase { font-size: var(--hw-fs-sm); color: var(--hw-text); }
+.hwt-boss-text { font-size: var(--hw-fs-sm); color: var(--hw-muted); }
+.hwt-boss-shield { font-size: var(--hw-fs-sm); color: #9fc3e6; font-weight: 600; }
+.hwt-boss-next { font-size: var(--hw-fs-sm); color: var(--hw-ember); font-weight: 600; }
+.hwt-boss-enrage { font-size: var(--hw-fs-sm); color: var(--hw-hp); font-weight: 700; }
+
+/* Telegraphed arena hazard on this tile (resolves at the next enemy phase). */
+.hwt-cell[data-boss-warn] {
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-ember) 85%, transparent), inset 0 0 18px color-mix(in srgb, var(--hw-ember) 45%, transparent);
+  animation: hwt-boss-warn-blink 1s ease-in-out infinite;
+}
+.hwt-cell[data-boss-warn="water"], .hwt-cell[data-boss-warn="ice"] { --hwt-ring: inset 0 0 0 2px rgba(120, 180, 240, 0.85), inset 0 0 18px rgba(120, 180, 240, 0.45); }
+.hwt-cell[data-boss-warn="wall"] { --hwt-ring: inset 0 0 0 2px rgba(200, 170, 120, 0.9), inset 0 0 18px rgba(200, 170, 120, 0.45); }
+.hwt-cell[data-boss-warn="adds"], .hwt-cell[data-boss-warn="teleport"] { --hwt-ring: inset 0 0 0 2px rgba(190, 120, 240, 0.9), inset 0 0 18px rgba(190, 120, 240, 0.45); }
+.hwt-boss-warn-icon {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.85rem;
+  color: var(--hw-ember);
+  text-shadow: 0 1px 2px black;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes hwt-boss-warn-blink {
+  0%, 100% { background-color: color-mix(in srgb, var(--hw-ember) 5%, transparent); }
+  50% { background-color: color-mix(in srgb, var(--hw-ember) 24%, transparent); }
+}
+.hwt-cell.hwt-combo-flash[data-combo-flash^="boss-"]::after { background: radial-gradient(circle, rgba(255, 150, 60, 0.85), transparent 75%); }
+
+/* Boss + weak-point tokens. */
+.hwt-token[data-boss] { box-shadow: 0 0 0 2px var(--hwt-gold, #d4a24c), 0 0 14px color-mix(in srgb, var(--hwt-gold, #d4a24c) 60%, transparent); }
+.hwt-token[data-boss="immune"] { box-shadow: 0 0 0 2px #9fc3e6, 0 0 16px rgba(159, 195, 230, 0.8); }
+.hwt-token[data-weak-point="true"] { box-shadow: 0 0 0 2px #9fc3e6; animation: hwt-boss-warn-blink 1.4s ease-in-out infinite; }
+
+/* Phase-change banner. */
+.hwt-boss-phase-banner {
+  position: fixed;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: 14px 34px;
+  border-radius: 12px;
+  border: 1px solid var(--hwt-gold, #d4a24c);
+  background: color-mix(in srgb, black 70%, var(--hw-card));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  animation: hwt-boss-banner 2.2s ease-out forwards;
+}
+.hwt-boss-phase-banner-num { font-size: var(--hw-fs-sm); letter-spacing: 0.2em; text-transform: uppercase; color: var(--hw-ember); }
+.hwt-boss-phase-banner-name { font-family: var(--hw-font-display); font-size: 1.6rem; color: var(--hwt-gold, #d4a24c); }
+@keyframes hwt-boss-banner {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.9); }
+  12% { opacity: 1; transform: translateX(-50%) scale(1.04); }
+  80% { opacity: 1; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) scale(1); }
+}
+.hw-reduce-motion .hwt-boss-phase-banner, .hw-reduce-motion .hwt-cell[data-boss-warn] { animation: none; }
+.hw-reduce-motion .hwt-boss-phase-banner { opacity: 1; }
+.hwt-boss-picker { margin-top: 10px; }
