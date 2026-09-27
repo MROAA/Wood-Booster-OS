@@ -215,6 +215,8 @@ export default function TacticsBoard({
     [planBattle, showPlan],
   )
   const intentByEnemyId = useMemo(() => new Map(intents.map((i) => [i.enemyId, i.intent])), [intents])
+  // Wanderers: where each striking skirmisher will fade to (dotted marker).
+  const fadeTiles = useMemo(() => new Set(intents.filter((i) => i.intent.fadeTo).map((i) => `${i.intent.fadeTo.row}-${i.intent.fadeTo.col}`)), [intents])
   const threatenedIds = useMemo(() => {
     const ids = new Set()
     for (const { intent: raw } of intents) {
@@ -448,6 +450,7 @@ export default function TacticsBoard({
           data-blight={!!battle.blight?.[`${row}-${col}`] || undefined}
           data-blight-fresh={blightFresh.has(`${row}-${col}`) || undefined}
           data-blight-next={blightNext.has(`${row}-${col}`) || undefined}
+          data-fade-to={fadeTiles.has(`${row}-${col}`) || undefined}
           data-wall-targetable={terrain === "wall" && wallTargetHere(row, col)}
           data-wall-threat={terrain === "wall" && wallThreat.has(`${row}-${col}`)}
           title={TERRAIN_INFO[terrain] ? `${TERRAIN_INFO[terrain].name}: ${TERRAIN_INFO[terrain].text}${terrain === "wall" ? ` (${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP)` : ""}` : undefined}

@@ -1585,9 +1585,10 @@
   border-radius: 6px;
   pointer-events: none;
   background:
-    radial-gradient(circle at 30% 35%, color-mix(in srgb, var(--hw-curse) 55%, transparent) 0 18%, transparent 42%),
-    radial-gradient(circle at 70% 65%, color-mix(in srgb, #3a1b4a 80%, transparent) 0 22%, transparent 50%),
-    color-mix(in srgb, #1c0d24 55%, transparent);
+    radial-gradient(circle at 30% 35%, rgba(122, 52, 140, 0.75) 0 16%, transparent 40%),
+    radial-gradient(circle at 70% 65%, rgba(58, 27, 74, 0.85) 0 22%, transparent 50%),
+    radial-gradient(circle at 60% 25%, rgba(92, 120, 40, 0.45) 0 8%, transparent 20%),
+    rgba(28, 13, 36, 0.6);
   box-shadow: inset 0 0 10px color-mix(in srgb, var(--hw-curse) 45%, transparent);
   animation: hwt-blight-pulse 3.2s ease-in-out infinite;
   z-index: -1;
@@ -1642,6 +1643,13 @@
   0%, 100% { box-shadow: 0 0 4px color-mix(in srgb, var(--hw-rune) 30%, transparent); opacity: 0.88; }
   50% { box-shadow: 0 0 14px color-mix(in srgb, var(--hw-rune) 65%, transparent); opacity: 0.72; }
 }
+/* Wanderers: the tile a skirmisher will fade to after striking. */
+.hwt-cell[data-fade-to="true"] {
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-gale) 55%, transparent);
+  outline: 1px dotted color-mix(in srgb, var(--hw-gale) 80%, transparent);
+  outline-offset: -5px;
+}
+.hwt-cell[data-fade-to="true"]::before { content: "↩"; color: var(--hw-gale); }
 /* Wanderers: "strike then fade" mark on the intent coin. */
 .hwt-fade-mark {
   position: absolute;

@@ -3481,8 +3481,10 @@ export function previewEnemyIntents(state) {
       continue
     }
     const intent = decideEnemyIntent(scratch, enemy.id)
-    intents.push({ enemyId: enemy.id, intent })
     scratch = applyEnemyIntent(scratch, enemy.id, intent)
+    // Wanderers: telegraph where the Fade lands (the board marks it).
+    const faded = intent.fade ? getUnit(scratch, enemy.id) : null
+    intents.push({ enemyId: enemy.id, intent: faded && faded.hp > 0 ? { ...intent, fadeTo: { ...faded.pos } } : intent })
   }
   return intents
 }

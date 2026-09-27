@@ -28,7 +28,7 @@ export const FACTIONS = {
   mirror: {
     id: "mirror",
     name: "The Mirror",
-    icon: "◐",
+    icon: "☽",
     tag: "The Mirror - it fights as you do",
     hint: "Ghostly echoes of your own deployed squad, with your own units' tricks - a little thinner than the real thing. Whatever your build is good at, expect it back. Kill the echo of your strongest unit first.",
   },
@@ -155,20 +155,26 @@ export function nextBlightSpread(state) {
   for (const s of spreaders) add(s.pos)
   const players = livingUnits(state, "player")
   const distToSquad = (pos) => (players.length ? Math.min(...players.map((p) => Math.max(Math.abs(p.pos.row - pos.row), Math.abs(p.pos.col - pos.col)))) : 0)
-  const steps = spreaders.reduce((n, s) => n + (ENEMIES[s.defId]?.blightSpread || 1), 0)
-  for (let i = 0; i < steps && count < BLIGHT_MAX; i++) {
-    let best = null
-    for (const k of Object.keys(blight)) {
-      const [r, c] = k.split("-").map(Number)
-      for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-        const pos = { row: r + dr, col: c + dc }
-        if (blight[key(pos)] || !blightable(state, pos)) continue
-        const d = distToSquad(pos)
-        if (!best || d < best.d || (d === best.d && (pos.row < best.pos.row || (pos.row === best.pos.row && pos.col < best.pos.col)))) best = { d, pos }
+  // Each spreader grows the edge of the Blight around ITSELF (within 2
+  // tiles), leaning toward the squad - so the stain follows the beasts
+  // and pools where the fight is, instead of racing across the board.
+  for (const s of spreaders) {
+    const steps = ENEMIES[s.defId]?.blightSpread || 1
+    for (let i = 0; i < steps && count < BLIGHT_MAX; i++) {
+      let best = null
+      for (const k of Object.keys(blight)) {
+        const [r, c] = k.split("-").map(Number)
+        for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+          const pos = { row: r + dr, col: c + dc }
+          if (blight[key(pos)] || !blightable(state, pos)) continue
+          const near = Math.max(Math.abs(pos.row - s.pos.row), Math.abs(pos.col - s.pos.col))
+          const score = (near > 2 ? 100 + near : 0) + distToSquad(pos)
+          if (!best || score < best.score || (score === best.score && (pos.row < best.pos.row || (pos.row === best.pos.row && pos.col < best.pos.col)))) best = { score, pos }
+        }
       }
+      if (!best) break
+      add(best.pos)
     }
-    if (!best) break
-    add(best.pos)
   }
   return added
 }
