@@ -31,6 +31,7 @@ import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw }
 import * as relicFx from "./tacticsRelics"
 import * as elements from "./tacticsElements"
 import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
+import { bossVerdict, bossEnemyPhaseStart, bossImmuneHit, bossAfterDamage, bossTilePenalty, bossQa } from "./tacticsBosses"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
 import { TERRAIN, terrainAt, terrainRule, isHigh, canReach, rangeAt, highGroundAmount, slideLanding, terrainDistanceField, wallHpAt, WALL_MAX_HP } from "./tacticsTerrain"
@@ -1245,7 +1246,7 @@ export function attackableTargets(state, unitId) {
 function checkTacticsBattleEnd(state) {
   if (state.phase === "won" || state.phase === "lost") return state
   // Battle objectives (tacticsObjectives.js) decide first.
-  const verdict = objectiveVerdict(state)
+  const verdict = objectiveVerdict(state) || bossVerdict(state)
   if (verdict) return { ...state, phase: verdict.phase, log: [...state.log, verdict.line] }
   if (livingUnits(state, "enemy").length === 0) return { ...state, phase: "won", log: [...state.log, "Every enemy has fallen. Victory."] }
   // A Protect NPC alone doesn't keep the fight going.
@@ -1724,6 +1725,14 @@ const RETREAT_STEP_HP_THRESHOLD_PCT = 0.25
 // all battle (the exact real order, not assumed - Block's own "spent
 // and reset every round" behavior never applies to it).
 function applyDamageWithBlock(state, targetId, amount) {
+  // Boss fights: a weak point still standing shields the boss.
+  const immune = bossImmuneHit(state, targetId)
+  if (immune) return immune
+  const res = applyDamageInner(state, targetId, amount)
+  return state.boss ? { ...res, next: bossAfterDamage(res.next, targetId) } : res
+}
+
+function applyDamageInner(state, targetId, amount) {
   const target = getUnit(state, targetId)
   const evaded = relicFx.tryEvade(state, targetId, amount)
   if (evaded) return evaded
@@ -2751,7 +2760,8 @@ function enemyPhaseStart(state) {
   const next = applyTurnStartTriggers(elements.elementTurnStart(relicTicked, "enemy"), "enemy")
   // Objective: the Totem pulses at the top of the enemy phase - inside
   // enemyPhaseStart so previewEnemyIntents sees the same pulsed state.
-  return objectiveEnemyPhaseStart(next)
+  // Boss fights: arena hazards resolve / get telegraphed here too.
+  return bossEnemyPhaseStart(objectiveEnemyPhaseStart(next))
 }
 
 export function endPlayerTurn(state) {
@@ -2814,7 +2824,7 @@ function aiTargetValue(target) {
 // Predicts what moveUnit would do to the mover (AP toll, reaction hits,
 // hazards) without running it.
 function aiMoveOutcome(state, enemy, dest) {
-  const lava = terrainRule(state, dest).burn ? AI_LAVA_PENALTY : 0
+  const lava = (terrainRule(state, dest).burn ? AI_LAVA_PENALTY : 0) + bossTilePenalty(state, dest)
   if (samePos(dest, enemy.pos)) return { apLeft: enemy.ap, reactionDmg: 0, hazard: lava }
   const opp = "player"
   const toll = insideAnyOpposingZone(state, enemy.pos, opp) && !insideAnyOpposingZone(state, dest, opp) ? ZONE_LEAVE_AP_TOLL : 0
@@ -3526,7 +3536,8 @@ export function withLowEnemyHp(state) {
   // Enemy-abilities sprint: skills (heals/summons) off too - QA-only.
   // Terrain sprint: map templates (rivers, walls, lava) can wall a naive
   // QA bot off from the enemy - the hook flattens the board too.
-  return { ...state, terrain: {}, wallHp: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) }
+  // Boss fights: arena hazards + weak-point shield off too - QA-only.
+  return bossQa({ ...state, terrain: {}, wallHp: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) })
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).

@@ -25,6 +25,7 @@ import {
 } from "../services/heartwood/tacticsEngine"
 import { loadRealMatchup } from "../services/heartwood/tacticsRealMatchup"
 import { applyObjective, buildObjectiveSpec, OBJECTIVE_TYPES, OBJECTIVE_NAMES } from "../services/heartwood/tacticsObjectives"
+import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../services/heartwood/tacticsBosses"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
@@ -59,13 +60,26 @@ function startBattle(formationId, squadDefIds, choice = initialObjectiveChoice()
   return maybeDebugLowHp(applyObjective(createTacticsBattle(formationId, squadDefIds), objectiveSpecFor(choice)))
 }
 
+// Boss fights (sprint 3): ?boss=<id> (or the picker) starts that boss's
+// arena fight with the current squad.
+function initialBossId() {
+  const id = new URLSearchParams(window.location.search).get("boss")
+  return BOSS_FIGHTS[id] ? id : null
+}
+
+function startBossBattle(bossId, squadDefIds) {
+  const fight = BOSS_FIGHTS[bossId]
+  const base = createRealMatchupBattle(squadDefIds || PLAYER_ROSTER_IDS.slice(0, 4), fight.enemyDefIds, "tommy", 0, arenaTerrainFor(bossId))
+  return maybeDebugLowHp(applyBossFight({ ...base, formationId: null, bossPick: bossId }, bossId))
+}
+
 // Static stat lines for the squad-picker's per-slot preview, computed once
 // per module load (previewPlayerRoster is pure and never changes).
 const ROSTER_PREVIEW = previewPlayerRoster()
 
 export default function HeartwoodTactics() {
   const [objectiveChoice, setObjectiveChoice] = useState(initialObjectiveChoice)
-  const [battle, setBattle] = useState(() => startBattle("default", undefined, objectiveChoice))
+  const [battle, setBattle] = useState(() => (initialBossId() ? startBossBattle(initialBossId()) : startBattle("default", undefined, objectiveChoice)))
   const [selectedId, setSelectedId] = useState(null)
   // null = no ability targeting in progress; "heal" (ally) / "burst" (enemy) = the
   // selected unit's ability is armed and waiting for a target click.
@@ -91,7 +105,13 @@ export default function HeartwoodTactics() {
   function restart(formationId, squadDefIds = currentSquadDefIds(), choice = objectiveChoice) {
     setSelectedId(null)
     setAbilityMode(null)
-    setBattle(startBattle(formationId, squadDefIds, choice))
+    setBattle(startBattle(formationId || "default", squadDefIds, choice))
+  }
+
+  function restartBoss(bossId, squadDefIds = currentSquadDefIds()) {
+    setSelectedId(null)
+    setAbilityMode(null)
+    setBattle(startBossBattle(bossId, squadDefIds))
   }
 
   function handleObjectiveChange(patch) {
@@ -105,14 +125,16 @@ export default function HeartwoodTactics() {
       startRealMatchup()
       return
     }
-    restart(battle.formationId)
+    if (battle.bossPick) restartBoss(battle.bossPick)
+    else restart(battle.formationId)
   }
 
   // Swap one squad slot's unit and restart the fight with the new lineup,
   // keeping the other 2 slots and the current enemy formation untouched.
   function handleSquadSlotChange(slotIndex, defId) {
     const nextSquad = currentSquadDefIds().map((id, i) => (i === slotIndex ? defId : id))
-    restart(battle.formationId, nextSquad)
+    if (battle.bossPick) restartBoss(battle.bossPick, nextSquad)
+    else restart(battle.formationId, nextSquad)
   }
 
   // Load the real run's actual squad + actual enemy - a snapshot preview,
@@ -126,7 +148,8 @@ export default function HeartwoodTactics() {
     setSelectedId(null)
     setAbilityMode(null)
     setUsingReal(true)
-    setBattle(maybeDebugLowHp(createRealMatchupBattle(realMatchup.squadDefIds, realMatchup.enemyDefIds, realMatchup.characterId, realMatchup.commanderRank, realMatchup.terrain)))
+    const real = createRealMatchupBattle(realMatchup.squadDefIds, realMatchup.enemyDefIds, realMatchup.characterId, realMatchup.commanderRank, realMatchup.terrain)
+    setBattle(maybeDebugLowHp(realMatchup.bossId ? applyBossFight(real, realMatchup.bossId) : real))
   }
 
   // The one way out of real-matchup mode - back to today's exact default
@@ -275,6 +298,25 @@ export default function HeartwoodTactics() {
                   onClick={() => restart(f.id)}
                 >
                   {f.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {!usingReal && (
+          <div className="hwt-formation-picker hwt-boss-picker">
+            <p className="hwt-formation-label">Boss fights</p>
+            <div className="hwt-formation-buttons">
+              {BOSS_IDS.map((id) => (
+                <button
+                  key={id}
+                  className="hwt-boss-btn"
+                  data-boss-choice={id}
+                  data-active={battle.bossPick === id}
+                  title={BOSS_FIGHTS[id].title}
+                  onClick={() => restartBoss(id)}
+                >
+                  {BOSS_FIGHTS[id].name}
                 </button>
               ))}
             </div>

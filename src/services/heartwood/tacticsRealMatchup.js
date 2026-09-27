@@ -26,6 +26,7 @@ import { GRID, createRunTacticsBattle } from "./tacticsEngine"
 import { buildTemplateTerrain, pickTemplate, sidesConnected } from "./tacticsTerrain"
 import { effectiveUnitDef } from "./autoBattleEngine"
 import { objectiveForNode, applyObjective } from "./tacticsObjectives"
+import { arenaTerrainFor, applyBossFight } from "./tacticsBosses"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -202,7 +203,8 @@ export function resolveRealMatchup(runState, node) {
     // Seeded terrain round: a battlefield generated from the run's own
     // seed + this node's own stable index - the same seed always
     // regenerates the same terrain for the same fight.
-    terrain: generateRealTerrain(runState.seed, runState.nodeIndex),
+    terrain: arenaTerrainFor(encounterId) || generateRealTerrain(runState.seed, runState.nodeIndex),
+    bossId: arenaTerrainFor(encounterId) ? encounterId : null,
   }
 }
 
@@ -228,18 +230,21 @@ export function buildRunTacticsBattle(runState, start) {
   const squad = start.deployed.map((e) => ({ defId: e.defId, def: effectiveUnitDef(e.defId, e.upgrades || e.upgradeLevel || 0, deployedDefIds) }))
   const enemyDefIds = start.battle.enemies.map((e) => e.defId).filter((id) => ENEMIES[id])
   const node = runState.path[runState.nodeIndex]
-  const formation = resolveFormation(node?.formationId || node?.enemyId)
+  const encounterId = node?.formationId || node?.enemyId
+  const formation = resolveFormation(encounterId)
+  // Boss fights (sprint 3): minibosses/bosses/elite Ancients get their arena.
+  const arena = arenaTerrainFor(encounterId)
   const battle = createRunTacticsBattle({
     squad,
     enemyDefIds,
     characterId: runState.characterId,
-    terrain: generateRealTerrain(runState.seed, runState.nodeIndex),
+    terrain: arena || generateRealTerrain(runState.seed, runState.nodeIndex),
     autoStart: start.battle,
     difficultyFactor: start.difficultyFactor,
     label: start.battle.enemies.length === 1 ? start.battle.enemies[0].name : formation?.name,
     relicIds: runState.relics || [],
   })
-  return applyObjective(battle, objectiveForRunNode(runState))
+  return applyObjective(arena ? applyBossFight(battle, encounterId) : battle, objectiveForRunNode(runState))
 }
 
 // Battle objectives (sprint 2): the objective for the run's node - pure

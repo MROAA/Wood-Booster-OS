@@ -52,6 +52,45 @@ import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
 import { describeSkillIntent } from "../../services/heartwood/tacticsEnemyAbilities"
 import { describeObjective, reinforcementWarningTiles, turnsUntilPulse } from "../../services/heartwood/tacticsObjectives"
 import { PERKS } from "../../services/heartwood/unitLevels"
+import { describeBoss, bossWarningTiles } from "../../services/heartwood/tacticsBosses"
+
+const BOSS_WARN_ICON = { quake: "✹", lava: "♨", water: "≈", wall: "▦", ice: "❄", poison: "☣", adds: "❖", teleport: "◎" }
+
+// Boss fights (sprint 3): name, HP with phase markers, current phase,
+// what the arena does next turn, shield + enrage status.
+function BossBar({ info }) {
+  const pct = Math.max(0, Math.round((info.hp / info.maxHp) * 100))
+  return (
+    <div className="hwt-boss-bar" data-boss-id={info.id} data-phase-index={info.phaseIndex} data-immune={info.immune}>
+      <div className="hwt-boss-head">
+        <span className="hwt-boss-name">{info.name}</span>
+        <span className="hwt-boss-title">{info.title}</span>
+      </div>
+      <div className="hwt-boss-track" title={`${info.hp}/${info.maxHp} HP`}>
+        <div className="hwt-boss-fill" style={{ width: `${pct}%` }} />
+        {info.thresholds.map((t, i) => (
+          <span key={i} className="hwt-boss-marker" data-passed={info.phaseIndex > i} style={{ left: `${Math.round(t * 100)}%` }} />
+        ))}
+        <span className="hwt-boss-hp">{info.hp}/{info.maxHp}</span>
+      </div>
+      <div className="hwt-boss-phase">
+        Phase {info.phaseIndex + 1}/{info.phaseCount}: <strong>{info.phaseName}</strong>
+      </div>
+      <div className="hwt-boss-text">{info.phaseText}</div>
+      {info.immune && (
+        <div className="hwt-boss-shield">
+          🛡 Shielded - break {info.weakPoints.map((w) => `${w.name} (${w.hp}/${w.maxHp})`).join(", ")}
+        </div>
+      )}
+      {info.upcoming.map((u, i) => (
+        <div key={i} className="hwt-boss-next" data-kind={u.kind}>
+          {BOSS_WARN_ICON[u.kind] || "!"} {u.text}
+        </div>
+      ))}
+      {info.enrage && <div className="hwt-boss-enrage">♨ {info.enrage}</div>}
+    </div>
+  )
+}
 
 function apPips(unit) {
   return Array.from({ length: unit.apMax }, (_, i) => (i < unit.ap ? "●" : "○")).join("")
@@ -249,6 +288,8 @@ export default function TacticsBoard({
   const objective = describeObjective(battle)
   const reinforceTiles = useMemo(() => new Set(reinforcementWarningTiles(battle).map((p) => `${p.row}-${p.col}`)), [battle])
   const pulseIn = turnsUntilPulse(battle)
+  const bossInfo = describeBoss(battle)
+  const bossWarn = useMemo(() => bossWarningTiles(battle), [battle])
 
   const cellUnit = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp > 0)
   const fallenHere = (row, col) => battle.units.find((u) => u.pos.row === row && u.pos.col === col && u.hp <= 0 && fallenIds.has(u.id))
@@ -398,12 +439,14 @@ export default function TacticsBoard({
           data-thorn-zone={thornZone}
           data-deploy-zone={deployZone}
           data-reinforce={reinforceTiles.has(`${row}-${col}`)}
+          data-boss-warn={bossWarn.get(`${row}-${col}`) || undefined}
           data-wall-targetable={terrain === "wall" && wallTargetHere(row, col)}
           data-wall-threat={terrain === "wall" && wallThreat.has(`${row}-${col}`)}
           title={TERRAIN_INFO[terrain] ? `${TERRAIN_INFO[terrain].name}: ${TERRAIN_INFO[terrain].text}${terrain === "wall" ? ` (${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP)` : ""}` : undefined}
           data-deploy-target={deployZone && !!selected && (!unit || (unit.side === "player" && unit.id !== selected.id))}
           onClick={() => handleCellClick(row, col)}
         >
+          {bossWarn.has(`${row}-${col}`) && <span className="hwt-boss-warn-icon">{BOSS_WARN_ICON[bossWarn.get(`${row}-${col}`)] || "!"}</span>}
           {terrain === "wall" && (
             <span className="hwt-wall-hp" title={`Barricade ${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP`}>
               <span className="hwt-wall-hp-fill" style={{ width: `${Math.round((wallHpAt(battle, { row, col }) / WALL_MAX_HP) * 100)}%` }} />
@@ -433,6 +476,8 @@ export default function TacticsBoard({
               data-selectable={unit.side === "player" && !unit.npc && unit.hp > 0 && (battle.phase === "player" || deploying)}
               data-npc={!!unit.npc}
               data-structure={!!unit.structure}
+              data-boss={bossInfo && unit.id === battle.boss.unitId ? (bossInfo.immune ? "immune" : "exposed") : undefined}
+              data-weak-point={!!unit.weakPoint}
               data-selected={unit.id === selectedId}
               data-acted={unit.ap <= 0}
               data-power-surge={unit.side === "player" && battle.activePower?.used && battle.activePower.firedTurn === battle.turn}
@@ -664,6 +709,7 @@ export default function TacticsBoard({
         </div>
 
         <div className="hwt-panel">
+          {bossInfo && <BossBar info={bossInfo} />}
           <div className="hwt-turn-header" data-phase={battle.phase}>
             <div className="hwt-turn-label" data-phase={battle.phase}>
               {deploying && "Deployment"}
