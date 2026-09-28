@@ -69,6 +69,8 @@ export function buildTrainingBattle() {
     units,
     phase: "deploy",
     tutorial: true,
+    // XCOM part 2: the scripted lesson hits must always land.
+    noGraze: true,
     log: ["Training Grounds - a practice fight. Nothing here touches your run."],
   }
 }

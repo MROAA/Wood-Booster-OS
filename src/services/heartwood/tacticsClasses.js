@@ -308,8 +308,9 @@ function overwatchFire(state, unitId, watcherSide) {
     if (!(s.overwatch > 0) || s.stun > 0 || s.frozen > 0 || !canReach(next, s, s.pos, mover.pos)) continue
     next = setUnit(next, s.id, { overwatch: 0 })
     next = callout(addLog(next, `${s.name}'s Overwatch fires at ${mover.name}!`), s.id, "Overwatch!")
-    next = abilityHit(next, s.id, unitId, s.attack, { name: "Overwatch" }).next
-    if (s.owRoot && !ended(next) && getUnit(next, unitId)?.hp > 0) next = rootUnit(next, unitId)
+    const ow = abilityHit(next, s.id, unitId, s.attack, { name: "Overwatch" })
+    next = ow.next
+    if (s.owRoot && !ow.graze && !ended(next) && getUnit(next, unitId)?.hp > 0) next = rootUnit(next, unitId)
     next = checkTacticsBattleEnd(next)
     break
   }
@@ -796,7 +797,10 @@ export function classSkillTargets(state, actorId, skill) {
 function hit(state, actorId, targetId, base, skill) {
   const t = getUnit(state, targetId)
   if (!t || t.hp <= 0 || ended(state)) return { next: state, fell: false }
-  return abilityHit(state, actorId, targetId, Math.max(0, Math.round(base)), skill)
+  // XCOM part 2: a GRAZE skips the skill's riders - handlers gate riders
+  // on `fell`, so it reads as true on a graze (`killed` = a real kill).
+  const r = abilityHit(state, actorId, targetId, Math.max(0, Math.round(base)), skill)
+  return { next: r.next, fell: r.fell || !!r.graze, killed: r.fell, graze: !!r.graze }
 }
 
 function slowUnit(state, id) {
@@ -1476,7 +1480,7 @@ const HANDLERS = {
   },
   scavenge(s, a, t, k) {
     const r = hit(s, a.id, t.id, a.attack, { name: "Scavenge" })
-    if (!r.fell) return r.next
+    if (!r.killed) return r.next
     s = healUnit(r.next, a, a.id, k.amount)
     return addEssence(s, a.id, 1)
   },

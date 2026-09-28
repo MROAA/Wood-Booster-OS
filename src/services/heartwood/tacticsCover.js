@@ -1,0 +1,113 @@
+// Hearthwood Frontier - XCOM part 2: cover + hit chance (with GRAZE).
+// Pure. The ONE cover rule: a unit is covered from a direction when the
+// tile right next to it on that side is a cover source. Cover only
+// changes the hit chance; a "miss" is a GRAZE (half damage, no riders).
+// Only active when `state.hitRolls` is true (the real game + prototype
+// page set it); hand-built test states stay exact (no rolls).
+import { terrainAt, isHigh } from "./tacticsTerrain"
+import { deterministicRoll } from "./tacticsEngine"
+
+export const COVER = { NONE: 0, HALF: 1, FULL: 2, HUNKERED: 3 }
+export const COVER_NAME = ["No cover", "Half cover", "Full cover", "Full cover (hunkered)"]
+// Tiles that shield a unit standing next to them.
+export const FULL_COVER_TILES = new Set(["rock", "wall", "boulder", "tree", "icepillar"])
+export const HALF_COVER_TILES = new Set(["log", "bush", "stump", "rubble", "barrel", "sporepod"])
+export const COVER_HIT_PENALTY = [0, 20, 40, 55]
+export const BASE_HIT = 85
+export const RANGE_FALLOFF = 5 // per tile beyond 2
+export const FACING_HIT_BONUS = { front: 0, side: 10, back: 15 }
+export const HIGH_GROUND_HIT_BONUS = 10
+export const MIN_HIT = 15
+export const MAX_HIT = 100
+
+const DIRS = { N: { row: -1, col: 0 }, S: { row: 1, col: 0 }, E: { row: 0, col: 1 }, W: { row: 0, col: -1 } }
+const cheb = (a, b) => Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col))
+
+export function rollsOn(state) {
+  return !!state?.hitRolls && !state.noGraze
+}
+
+// Real run fights + the prototype page (never tutorials / test states).
+export function withHitRolls(state) {
+  return state && !state.noGraze ? { ...state, hitRolls: true } : state
+}
+
+// 0 / 1 / 2 for the tile itself as a cover SOURCE.
+export function coverSourceAt(state, pos) {
+  if (!state?.grid || pos.row < 0 || pos.col < 0 || pos.row >= state.grid.rows || pos.col >= state.grid.cols) return 0
+  const t = terrainAt(state, pos)
+  return FULL_COVER_TILES.has(t) ? 2 : HALF_COVER_TILES.has(t) ? 1 : 0
+}
+
+// Cover on each side of a tile: { N, S, E, W } (0/1/2). Board shields use this.
+export function tileCoverSides(state, pos) {
+  const out = {}
+  for (const [d, v] of Object.entries(DIRS)) out[d] = coverSourceAt(state, { row: pos.row + v.row, col: pos.col + v.col })
+  return out
+}
+
+// The sides of `defPos` that face `atkPos` (a side counts when the attacker
+// is beyond it on that axis and not far off to the flank).
+export function facingSides(defPos, atkPos) {
+  const dRow = atkPos.row - defPos.row
+  const dCol = atkPos.col - defPos.col
+  const out = []
+  if (dCol && 2 * Math.abs(dCol) >= Math.abs(dRow)) out.push(dCol > 0 ? "E" : "W")
+  if (dRow && 2 * Math.abs(dRow) >= Math.abs(dCol)) out.push(dRow > 0 ? "S" : "N")
+  return out
+}
+
+// Cover level of a defender at `defPos` against an attack from `atkPos`.
+// Adjacent (melee) attacks go around cover. High ground attacker: one
+// step less. Hunkered: one step more (full becomes "hunkered full").
+export function coverAgainst(state, defPos, atkPos, { hunkered = false } = {}) {
+  const sides = tileCoverSides(state, defPos)
+  const terrain = cheb(defPos, atkPos) <= 1 ? 0 : Math.max(0, ...facingSides(defPos, atkPos).map((d) => sides[d]))
+  let level = Math.min(3, terrain + (hunkered ? 1 : 0))
+  if (isHigh(state, atkPos) && !isHigh(state, defPos)) level = Math.max(0, level - 1)
+  return level
+}
+
+// Has cover somewhere, but none toward this attacker = flanked.
+export function isFlanked(state, defPos, atkPos) {
+  if (cheb(defPos, atkPos) <= 1) return false
+  const sides = tileCoverSides(state, defPos)
+  const any = Object.values(sides).some((v) => v > 0)
+  return any && !facingSides(defPos, atkPos).some((d) => sides[d] > 0)
+}
+
+// Full hit-chance breakdown. `facing` = front/side/back (engine's facing).
+export function hitChance(state, attacker, defender, facing = "front", atkPos = attacker.pos) {
+  if (defender.structure) return { chance: 100, cover: 0, flanked: false, parts: [] }
+  const dist = cheb(atkPos, defender.pos)
+  const cover = coverAgainst(state, defender.pos, atkPos, { hunkered: defender.hunkered > 0 })
+  const high = isHigh(state, atkPos) && !isHigh(state, defender.pos)
+  const base = dist <= 1 ? BASE_HIT : BASE_HIT - RANGE_FALLOFF * Math.max(0, dist - 2)
+  const parts = [{ label: dist <= 1 ? "Melee" : `Range ${dist}`, value: base }]
+  if (cover) parts.push({ label: COVER_NAME[cover], value: -COVER_HIT_PENALTY[cover] })
+  if (FACING_HIT_BONUS[facing]) parts.push({ label: facing === "back" ? "From behind" : "Side attack", value: FACING_HIT_BONUS[facing] })
+  if (high) parts.push({ label: "High ground", value: HIGH_GROUND_HIT_BONUS })
+  const raw = parts.reduce((s, p) => s + p.value, 0)
+  return { chance: Math.max(MIN_HIT, Math.min(MAX_HIT, raw)), cover, flanked: isFlanked(state, defender.pos, atkPos), parts }
+}
+
+export function grazeAmount(amount) {
+  return amount > 0 ? Math.max(1, Math.floor(amount / 2)) : amount
+}
+
+// One deterministic roll. Returns { state (roll counter +1), graze, chance }.
+// Seeded by turn + attacker + target + a per-battle counter, so a preview
+// dry-run and the real resolution see the same result.
+export function rollHit(state, attacker, defender, facing = "front") {
+  if (!rollsOn(state) || defender.structure) return { state, graze: false, chance: null }
+  const { chance } = hitChance(state, attacker, defender, facing)
+  const seq = state.rollSeq || 0
+  const roll = deterministicRoll(state.turn || 1, `hit:${attacker.id}>${defender.id}#${seq}`)
+  return { state: { ...state, rollSeq: seq + 1 }, graze: roll * 100 >= chance, chance }
+}
+
+// " (72%)" / " (72%, GRAZE)" log suffix.
+export function rollNote(roll) {
+  if (roll?.chance == null) return ""
+  return roll.graze ? ` (GRAZE, ${roll.chance}% to hit)` : ` (${roll.chance}%)`
+}

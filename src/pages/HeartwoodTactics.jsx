@@ -28,6 +28,7 @@ import { applyFaction } from "../services/heartwood/tacticsFactions"
 import { applyObjective, buildObjectiveSpec, OBJECTIVE_TYPES, OBJECTIVE_NAMES } from "../services/heartwood/tacticsObjectives"
 import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../services/heartwood/tacticsBosses"
 import { withObjectShowcase } from "../services/heartwood/tacticsObjects"
+import { withHitRolls } from "../services/heartwood/tacticsCover"
 import { CLASSES } from "../data/heartwood/classes"
 import { UNITS } from "../data/heartwood/units"
 import "../components/heartwood/heartwood.css"
@@ -45,7 +46,9 @@ function maybeDebugLowHp(base, showcase = false) {
   const battle = showcase ? withObjectShowcase(flat) : flat
   // `?deploy=1` opens the prototype in the deployment phase (the real
   // game always does); off by default so the prototype stays instant.
-  return params.get("deploy") === "1" ? enterDeploy(battle) : battle
+  // XCOM part 2: hit rolls (cover + graze) on; `?rolls=0` turns them off (QA).
+  const rolled = params.get("rolls") === "0" ? battle : withHitRolls(battle)
+  return params.get("deploy") === "1" ? enterDeploy(rolled) : rolled
 }
 
 // Battle objectives: the prototype can try each one (Act I numbers);
