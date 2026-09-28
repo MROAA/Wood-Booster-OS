@@ -180,8 +180,8 @@ async function engineChecks(base) {
   }
   // 7 Alchemist -------------------------------------------------------------------
   {
-    const s = board(["rootfang"], { rootfang: { row: 4, col: 8 }, [E0]: { row: 4, col: 7 }, [E1]: { row: 3, col: 7 } })
-    const a = pid(s, "rootfang")
+    const s = board(["huldra"], { huldra: { row: 4, col: 8 }, [E0]: { row: 4, col: 7 }, [E1]: { row: 3, col: 7 } })
+    const a = pid(s, "huldra")
     ok((U(E.attackUnit(s, a, E0), E0).poison || 0) === (U(E.attackUnit(strip(s, a), a, E0), E0).poison || 0) + 1, "Catalyst: +1 Poison per hit")
     const fl = cast(s, a, E0, "poison-flask")
     ok(U(fl, E0).poison === 2 && U(fl, E1).poison === 2, "Poison Flask splashes")

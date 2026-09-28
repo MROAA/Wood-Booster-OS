@@ -512,7 +512,7 @@ export const PART_B_CANDIDATES = {
   wraithcaller: "spiritwalker",
   wispkeeper: "spiritwalker",
   hexmother: "hexer",
-  huldra: "hexer",
+  huldra: "alchemist",
   witherkit: "hexer",
   nightveil: "hexer",
   "the-devil": "corruptor",
