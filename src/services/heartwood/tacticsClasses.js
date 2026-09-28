@@ -27,6 +27,7 @@ import {
 } from "./tacticsEngine"
 import { applyElement, reactStatus, ENTANGLE_DURATION } from "./tacticsElements"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
+import { rollBoulder } from "./tacticsObjects"
 
 const SLOW = 2
 const ROOT = 2
@@ -1110,10 +1111,12 @@ const HANDLERS = {
     const dc = sign(t.pos.col - a.pos.col)
     let pos = t.pos
     let blocked = false
+    let boulder = null
     for (let i = 0; i < k.steps; i++) {
       const p = { row: pos.row + dr, col: pos.col + dc }
       if (!tileFree(s, p, t.id)) {
         blocked = true
+        if (isOnBoard(p, s.grid) && terrainAt(s, p) === "boulder") boulder = { at: p, from: pos }
         break
       }
       pos = p
@@ -1123,6 +1126,8 @@ const HANDLERS = {
       s = callout(addLog(setUnit(s, t.id, { pos }), `${a.name} displaces ${t.name}.`), t.id, "Displaced!")
       s = springTrap(s, t.id)
     }
+    // Destructibles: displaced into a boulder - the boulder rolls on.
+    if (boulder) s = rollBoulder(s, boulder.at, boulder.from).next
     return blocked && getUnit(s, t.id)?.hp > 0 ? flatHit(s, t.id, k.bonus) : s
   },
   "static-disruption"(s, a, t) {

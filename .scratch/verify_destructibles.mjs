@@ -112,6 +112,10 @@ const r = await page.evaluate(async () => {
     const b = E.attackWall(s, "p", { row: 4, col: 8 })
     // Ranged hit only chips it.
     const chip = E.attackWall(st([P("p", 4, 10, { range: 3, attack: 3 }), idle()], { "4-8": "boulder" }), "p", { row: 4, col: 8 })
+    // Push ability: the pushed unit slams into a boulder, which rolls on.
+    const ps = st([P("pu", 4, 8, { ability: { id: "shove", name: "Shove", kind: "push", cost: 1, bonus: 2, cooldown: 0 }, cooldownRemaining: 0 }), En("e", 4, 7), En("far", 4, 2), idle()], { "4-6": "boulder" })
+    const pushed = E.castAbility(ps, "pu", "e")
+    res.pushRoll = { boulderAt: Object.entries(pushed.terrain).find(([, v]) => v === "boulder")?.[0], far: 30 - hpOf(pushed, "far") }
     res.boulder = { old: b.terrain["4-8"] || "path", now: b.terrain["4-4"], e: 30 - hpOf(b, "e"), rolled: b.events.some((e) => e.kind === "object" && e.fx === "roll"), chipHp: O.objectHpAt(chip, { row: 4, col: 8 }), chipStays: chip.terrain["4-8"] }
   }
   // 7. Ice pillar: frost makes it brittle, next hit shatters (damage + chill around).
@@ -202,6 +206,7 @@ const b = r.barrel
 if (!(b.e1 === 4 && b.e2 === 4 && b.far === 0 && b.center === "fire" && b.side === "fire" && b.chained && b.treeLit && b.boom === 2 && b.fireAfter2 !== "fire")) e.push("c4 barrel explosion/chain/fire tiles fade")
 if (!(r.spore.e1 === 3 && r.spore.poison === 2 && r.spore.pool === "poison" && r.spore.center === "poison")) e.push("c5 spore pod")
 const bo = r.boulder
+if (!(r.pushRoll.boulderAt === "4-3" && r.pushRoll.far === 5)) e.push("c6b push skill rolls a boulder")
 if (!(bo.old === "path" && bo.now === "boulder" && bo.e === 5 && bo.rolled && bo.chipHp === 9 && bo.chipStays === "boulder")) e.push("c6 boulder roll/chip")
 const ic = r.ice
 if (!(ic.plainStands && ic.brittle && ic.tile === "ice" && ic.eDmg === 3 && ic.eChill >= 1 && ic.pDmg === 3 && ic.ev)) e.push("c7 ice pillar shatter")

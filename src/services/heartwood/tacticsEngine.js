@@ -2467,6 +2467,8 @@ function castAbilityInner(state, actorId, targetId) {
       next = emit({ ...next, log: [...next.log, `${target.name} is knocked back!`] }, { kind: "reaction", unitId: target.id, label: "Knocked back!" })
     } else if (!free) {
       next = { ...next, log: [...next.log, `${target.name} slams into what's behind it (+${ability.bonus})!`] }
+      // Destructibles: a boulder behind the target gets knocked rolling.
+      if (isOnBoard(dest, next.grid) && terrainAt(next, dest) === "boulder") next = objects.rollBoulder(next, dest, target.pos).next
     }
     return checkTacticsBattleEnd(next)
   }
