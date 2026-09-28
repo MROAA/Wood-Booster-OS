@@ -128,9 +128,10 @@ function fxOn(state, actorId, id, fx) {
     if (k === "radius" || k === "incl" || v === false || v == null) continue
     const u = getUnit(s, id)
     if (!u || u.hp <= 0 || ended(s)) break
-    if (k === "heal") s = healUnit(s, getUnit(s, actorId) || u, id, v)
-    else if (FOE_T[k] && u.side !== getUnit(s, actorId)?.side) s = FOE_T[k](s, id, v)
-    else if (ALLY_T[k]) s = ALLY_T[k](s, id, v)
+    const foe = u.side !== getUnit(s, actorId)?.side
+    if (foe && FOE_T[k]) s = FOE_T[k](s, id, v)
+    else if (!foe && k === "heal") s = healUnit(s, getUnit(s, actorId) || u, id, v)
+    else if (!foe && ALLY_T[k]) s = ALLY_T[k](s, id, v)
   }
   return s
 }
