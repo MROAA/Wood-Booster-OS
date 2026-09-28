@@ -208,11 +208,6 @@ const toUrl = (s) => `url("data:image/svg+xml,${encodeURIComponent(s)}")`
 const ART = {}
 for (const [type, build] of Object.entries(TERRAIN_SVG)) ART[type] = { live: toUrl(build(true)), still: toUrl(build(false)) }
 export const BLIGHT_ART_URL = toUrl(BLIGHT_SVG)
-export const TERRAIN_ART_TYPES = Object.keys(ART)
-
-export function hasTerrainArt(type) {
-  return !!ART[type]
-}
 
 // Inline style for a board cell: the art rides the existing background stack.
 export function terrainArtStyle(type) {
