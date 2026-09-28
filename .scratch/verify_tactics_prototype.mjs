@@ -4499,7 +4499,8 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
     const nodeDiff = generateRealTerrain(12345, 4)
     const entries = Object.entries(a)
     // Battlefield sprint: map templates add high/wall/bridge/bush/lava/ice/rubble.
-    const validTypes = new Set(["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble"])
+    // Destructibles: templates also place trees/barrels/spore pods/boulders/ice pillars.
+    const validTypes = new Set(["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar"])
     const shapeOk = entries.every(([key, type]) => {
       const [row, col] = key.split("-").map(Number)
       return row >= 0 && row < GRID.rows && col >= 3 && col <= GRID.cols - 4 && validTypes.has(type)
@@ -7842,7 +7843,8 @@ async function seedRealSave(page, nodeFilter, benchDefIds) {
       let total = 0
       for (const seed of seeds) {
         const terrain = generateRealTerrain(seed, idx)
-        const types = Object.values(terrain)
+        // Destructibles are template props, not part of the terrain mix.
+        const types = Object.values(terrain).filter((t) => !["tree", "barrel", "sporepod", "boulder", "icepillar"].includes(t))
         forest += types.filter((t) => t === "forest").length
         total += types.length
       }
