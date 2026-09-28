@@ -2136,3 +2136,14 @@
 @media (prefers-reduced-motion: reduce) {
   .hwt-object, .hwt-obj-fire, .hwt-obj-falling, .hwt-cell[data-burning="true"], .hwt-cell[data-terrain="fire"] { animation: none; }
 }
+
+/* Skill tree: an upgraded skill shows ★ + its branch name. */
+.hwt-skill-btn[data-upgraded] {
+  border-color: var(--hwt-gold);
+}
+.hwt-skill-upgrade {
+  font-size: 10px;
+  color: var(--hwt-gold);
+  line-height: 1.1;
+  text-align: center;
+}

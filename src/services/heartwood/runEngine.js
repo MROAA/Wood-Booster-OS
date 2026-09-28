@@ -32,7 +32,7 @@ import { streamRng } from "../../data/heartwood/seed"
 import { economyCrew, economyCrewEffects } from "../../data/heartwood/economy"
 import { ECONOMY_LEVERS, SHOP_INVESTMENTS, MARKET_EVENTS } from "../../data/heartwood/economyLevers"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
-import { applyLevelsToTactics, levelForXp, levelSubject, pendingPerkCount, perkOffers, XP as LEVEL_XP_GAIN } from "./unitLevels"
+import { applyLevelsToTactics, levelForXp, levelSubject, pendingPerkCount, levelOffers, parseOffer, XP as LEVEL_XP_GAIN } from "./unitLevels"
 
 // Marc, 2026-09-19: "dev studiossa pitää olla mukana myös ekonomia...
 // säädän itse sillä pelin vaikeustasoa" (the dev studio needs the
@@ -2404,10 +2404,19 @@ export function recordFightAftermath(runState, battle) {
 
 // Unit levels: spend one earned level on a perk. `key` = bench key or
 // "commander"; `perkId` must be one of perkOffers for that level.
+// Skill tree: `perkId` may also be an "up:<skillId>:<A|B>" branch offer -
+// stored in skillUpgrades (one branch per skill, permanent).
 export function chooseLevelPerk(runState, key, perkId) {
   const subject = levelSubject(runState, key)
   if (!subject || pendingPerkCount(subject) <= 0) return runState
-  if (!perkOffers(runState, subject).includes(perkId)) return runState
+  if (!levelOffers(runState, subject).includes(perkId)) return runState
+  const pick = parseOffer(perkId)
+  if (pick.kind === "upgrade") {
+    if (subject.skillUpgrades[pick.skillId]) return runState
+    const ups = { ...subject.skillUpgrades, [pick.skillId]: pick.branch }
+    if (key === "commander") return { ...runState, commanderSkillUpgrades: ups }
+    return { ...runState, bench: runState.bench.map((e) => (e.key === key ? { ...e, skillUpgrades: ups } : e)) }
+  }
   if (key === "commander") return { ...runState, commanderPerks: [...subject.perks, perkId] }
   return { ...runState, bench: runState.bench.map((e) => (e.key === key ? { ...e, perks: [...subject.perks, perkId] } : e)) }
 }

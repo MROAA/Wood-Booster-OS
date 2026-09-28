@@ -199,7 +199,9 @@ const r = await page.evaluate(async () => {
   }
   localStorage.setItem("heartwood-run-save-v1", JSON.stringify(rt.serializeRun(shopRs)))
   localStorage.setItem("heartwood-autobattler-intro-seen", "1"); localStorage.setItem("heartwood-story-intro-seen", "1")
-  res.uiOffers = lv.perkOffers(shopRs, lv.levelSubject(shopRs, "b0"))
+  // Skill tree: the screen now shows levelOffers (2 branches + 1 stat perk).
+  res.uiOffers = lv.levelOffers(shopRs, lv.levelSubject(shopRs, "b0"))
+  res.uiPerk = res.uiOffers.find((id) => !id.startsWith("up:"))
   const lvlRs = { ...shopRs, bench: shopRs.bench.map((e) => (e.key === "b0" ? { ...e, perks: ["swift"] } : e)) }
   res.formationSave = rt.serializeRun({ ...lvlRs, nodeIndex: idx, path: rt.RUN_PATH.slice(0, idx + 1), phase: "formation", lastSeenAct: rt.actIndexForNode(idx, rt.RUN_PATH.length) })
   const battleRs = { ...lvlRs, nodeIndex: idx, path: rt.RUN_PATH.slice(0, idx + 1), phase: "formation", lastSeenAct: rt.actIndexForNode(idx, rt.RUN_PATH.length) }
@@ -263,7 +265,8 @@ const r = await page.evaluate(async () => {
   const title = await page.locator(".hw-levelup-title").first().textContent().catch(() => null)
   const cardPerks = await page.locator(".hw-levelup-card").evaluateAll((els) => els.map((e) => e.dataset.perk))
   await page.screenshot({ path: `${SHOTS}/levels_choice.png` }).catch(() => {})
-  await page.locator(".hw-levelup-card").first().click().catch(() => {})
+  // Skill tree: click the stat-perk card (the branch cards are verify_skill_tree's).
+  await page.locator(`.hw-levelup-card[data-perk="${r.uiPerk}"]`).first().click().catch(() => {})
   await page.waitForTimeout(400)
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run)
   const screenAfter = await page.locator("[data-screen='level-up']").count()
@@ -289,7 +292,7 @@ const r = await page.evaluate(async () => {
   out.F = { screen, title, cardPerks, savedPerks: saved.bench.find((e) => e.key === "b0").perks, screenAfter, shopBadges, xpBars, perkIcons, cmdLevel, formBadges, tokenBadges }
   const ok =
     screen === 1 && /Level 2/.test(title || "") && JSON.stringify(cardPerks) === JSON.stringify(r.uiOffers) &&
-    JSON.stringify(out.F.savedPerks) === JSON.stringify([r.uiOffers[0]]) && screenAfter === 0 &&
+    !!r.uiPerk && JSON.stringify(out.F.savedPerks) === JSON.stringify([r.uiPerk]) && screenAfter === 0 &&
     shopBadges.includes("Lv2") && xpBars >= 2 && perkIcons >= 1 && /Lv2/.test(cmdLevel || "") &&
     formBadges.includes("Lv2") && tokenBadges.includes("Lv2") && tokenBadges.length >= 3
   if (!ok) out.errors.push("checkF the perk choice screen / level badges / XP bars / token badge did not show in the real game")

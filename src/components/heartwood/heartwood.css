@@ -8347,3 +8347,45 @@ img.hw-intent-glyph {
   font-weight: 400;
   color: var(--hw-muted);
 }
+
+/* Skill tree (level-ups): branch cards + the unit's mini tree. */
+.hw-levelup-card--upgrade { position: relative; border-color: color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border)); }
+.hw-levelup-branch {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hw-ember);
+}
+.hw-levelup-skill { font-size: 13px; color: var(--hw-moss); }
+.hw-skilltree {
+  max-width: 720px;
+  margin: 18px auto 0;
+  padding: 10px 12px;
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius);
+  background: var(--hw-panel);
+  text-align: left;
+}
+.hw-skilltree-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hw-muted); margin-bottom: 6px; }
+.hw-skilltree-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 13px;
+}
+.hw-skilltree-skill { color: var(--hw-text); }
+.hw-skilltree-branch {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px dashed var(--hw-border);
+  color: var(--hw-muted);
+  font-size: 12px;
+}
+.hw-skilltree-branch[data-state="offered"] { border-style: solid; border-color: var(--hw-ember); color: var(--hw-text); }
+.hw-skilltree-branch[data-state="taken"] { border-style: solid; border-color: var(--hw-moss); background: color-mix(in srgb, var(--hw-moss) 22%, transparent); color: var(--hw-text); font-weight: 700; }
+.hw-skilltree-branch[data-state="closed"] { opacity: 0.4; text-decoration: line-through; }
+.hw-card-tclass-ups { color: var(--hw-ember); font-weight: 700; }

@@ -150,6 +150,59 @@ export function deriveAbilityForDef(def) {
   return ability
 }
 
+// Hand-authored signatures for the 6 original units (moved here from
+// tacticsEngine.js so unitLevels.js can read a unit's signature too).
+export const HAND_ABILITIES = {
+  "bulwark-of-ages": { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2, cooldown: 2 },
+  "the-fool": { id: "regrowth", name: "Regrowth", cost: 1, kind: "heal", amount: 5, cooldown: 2 },
+  hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
+  oathshield: { id: "shieldwall", name: "Shieldwall", cost: 1, kind: "aura-block", amount: 1, cooldown: 2 },
+  willowmend: { id: "mending-waters", name: "Mending Waters", cost: 1, kind: "heal", amount: 4, cooldown: 2 },
+  "bramble-sweep": { id: "ripple-strike", name: "Ripple Strike", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
+}
+
+// A unit's personal signature ability (cards/tooltips/skill tree).
+export function signatureAbilityForDef(def) {
+  if (!def || def.summonOnly) return null
+  return HAND_ABILITIES[def.id] || deriveAbilityForDef(def)
+}
+
+// Skill tree: the signature's 2 upgrade branches, by kind (same
+// {name, text, patch, fx} shape as classes.js SKILL_UPGRADES). Stored
+// under the key "signature" in a unit's skillUpgrades.
+export const SIGNATURE_SKILL_KEY = "signature"
+const S = (name, text, patch, fx) => ({ name, text, ...(patch ? { patch } : {}), ...(fx ? { fx } : {}) })
+export const SIGNATURE_UPGRADES = {
+  dash: { A: S("Long Leap", "Leaps 2 tiles further.", { rangeUp: 2 }), B: S("Crippling Leap", "The target is also Slowed.", null, { t: { slow: true } }) },
+  cleave: { A: S("Wide Arc", "Enemies caught by the splash are Slowed.", null, { splash: { slow: true } }), B: S("Bleeding Edge", "The main target also gets 2 Poison.", null, { t: { poison: 2 } }) },
+  "poison-strike": { A: S("Virulent", "+2 more Poison.", { amountUp: 2 }), B: S("Withering Venom", "The target is also Cursed until your next turn.", null, { t: { curse: 1 } }) },
+  "root-shot": { A: S("Thorned Roots", "The target also gets 2 Poison.", null, { t: { poison: 2 } }), B: S("Snare Burst", "Enemies next to the target are Slowed.", null, { splash: { slow: true } }) },
+  push: { A: S("Pile Driver", "+2 more damage when the target slams into something.", { bonusUp: 2 }), B: S("Dazing Blow", "The target is also Disarmed (half damage until your next turn).", null, { t: { disarm: 1 } }) },
+  "taunt-shout": { A: S("Iron Hide", "+3 more Block.", { amountUp: 3 }), B: S("Thorny Roar", "Enemies next to it take 2 damage.", null, { near: { dmg: 2 } }) },
+  "shield-ally": { A: S("Bulwark", "+2 more Block.", { amountUp: 2 }), B: S("Mending Ward", "The ally also heals 3.", null, { t: { heal: 3 } }) },
+  rally: { A: S("Bold Cry", "It also gains +3 Block.", null, { self: { block: 3 } }), B: S("Second Wind", "It and adjacent allies also heal 2.", null, { aura: { heal: 2, incl: true } }) },
+  heal: { A: S("Deep Mend", "Heals 2 more.", { amountUp: 2 }), B: S("Purifying Touch", "Also removes every ailment (poison, burn, root...).", null, { t: { cleanse: true } }) },
+  burst: { A: S("Finisher", "A kill with it refunds 1 AP.", null, { kill: { ap: 1 } }), B: S("Exposing Strike", "The target is Exposed until your next turn (+25% damage taken).", null, { t: { expose: 1 } }) },
+  "aura-block": { A: S("Stone Skin", "+1 more Block.", { amountUp: 1 }), B: S("Bristling", "Adjacent enemies are Slowed.", null, { near: { slow: true } }) },
+}
+
+// The signature's upgrade branches, or null.
+export function signatureUpgrades(ability) {
+  return (ability && SIGNATURE_UPGRADES[ability.kind]) || null
+}
+
+// Signature ability with a chosen branch folded in (`*Up` = add to field).
+export function upgradeAbility(ability, branch) {
+  const up = signatureUpgrades(ability)?.[branch]
+  if (!up) return ability
+  const next = { ...ability, upgrade: { branch, name: up.name, text: up.text, fx: up.fx || null } }
+  for (const [k, v] of Object.entries(up.patch || {})) {
+    if (k.endsWith("Up")) next[k.slice(0, -2)] = (ability[k.slice(0, -2)] || 0) + v
+    else next[k] = v
+  }
+  return next
+}
+
 // "ally" / "enemy" when the ability needs a clicked target, null if instant.
 export function abilityTargetSide(ability) {
   if (!ability) return null
@@ -159,6 +212,11 @@ export function abilityTargetSide(ability) {
 }
 
 export function describeAbility(ability) {
+  const base = describeAbilityBase(ability)
+  return ability?.upgrade ? `${base} ★ ${ability.upgrade.name}: ${ability.upgrade.text}` : base
+}
+
+function describeAbilityBase(ability) {
   if (!ability) return ""
   const a = ability
   switch (a.kind) {
