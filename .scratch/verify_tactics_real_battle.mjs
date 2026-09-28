@@ -52,7 +52,11 @@ const out = { errors: [] }
 // real act via the same `actIndexForNode` HeartwoodBattle.jsx itself
 // reads - not a workaround, the correct value for a save that starts
 // "already this far into the run."
-async function seedRealSave(page, nodeFilter, benchDefIds, forcedSeed = null) {
+// Deterministic by default: a random run seed meant random map templates
+// and destructible objects, which occasionally broke fixed-position checks.
+// A check can still pass its own forcedSeed.
+const DEFAULT_TEST_SEED = 424243
+async function seedRealSave(page, nodeFilter, benchDefIds, forcedSeed = DEFAULT_TEST_SEED) {
   return page.evaluate(
     async ({ nodeFilterSrc, benchDefIds, forcedSeed }) => {
       const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
@@ -1154,7 +1158,7 @@ function newPage() {
   await startTactics(page21)
   await page21.waitForTimeout(400)
   // Battlefield sprint: + the map-template tile types.
-  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble"]
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar"] // + destructibles
   const countsByType = {}
   for (const type of terrainTypes) {
     countsByType[type] = await page21.locator(`.hwt-cell[data-terrain="${type}"]`).count()
@@ -1367,6 +1371,10 @@ function newPage() {
     battle.units = battle.units.map((u) =>
       u.side === "player" && u.id !== mosskit.id && u.id !== groveWarden.id ? { ...u, pos: { row: 0, col: 0 } } : u,
     )
+    // Destructibles: the seed is random - a barrel/tree beside these fixed
+    // tiles changes the AI's tile choice, so this Intercept check runs on a flat board.
+    battle.terrain = {}
+    battle.wallHp = {}
     save.run.battle = battle
     localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
     return { groveWardenName: groveWarden.name, groveWardenHpBefore: groveWarden.hp, mosskitHpBefore: mosskit.hp }
@@ -1803,7 +1811,7 @@ function newPage() {
   // counts (check21's own established pattern) is the correct way to
   // count only genuine hazard/forest cells.
   // Battlefield sprint: + the map-template tile types.
-  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble"]
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar"] // + destructibles
   let renderedCount = 0
   for (const type of terrainTypes) {
     renderedCount += await page34.locator(`.hwt-cell[data-terrain="${type}"]`).count()
@@ -1965,7 +1973,7 @@ function newPage() {
   await startTactics(page36)
   await page36.waitForTimeout(400)
   // Battlefield sprint: + the map-template tile types.
-  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble"]
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar"] // + destructibles
   const countsByType = {}
   for (const type of terrainTypes) {
     countsByType[type] = await page36.locator(`.hwt-cell[data-terrain="${type}"]`).count()

@@ -2007,3 +2007,132 @@
   color: var(--hw-ember);
   animation: hwt-boss-warn-blink 1s ease-in-out infinite;
 }
+
+/* ===== Destructible objects (trees, barrels, spore pods, boulders, ice pillars) =====
+   Sprite on the tile, HP pips, burning/brittle states, fire telegraph, callouts. */
+.hwt-cell[data-object] {
+  --hwt-tile: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--hw-moss) 26%, var(--hw-bg)), color-mix(in srgb, var(--hwt-timber, #8a5a2e) 18%, var(--hw-bg)) 80%);
+}
+.hwt-cell[data-object="boulder"],
+.hwt-cell[data-object="barrel"] { --hwt-tile: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--hw-stone) 30%, var(--hw-bg)), var(--hw-bg) 85%); }
+.hwt-cell[data-object="icepillar"] { --hwt-tile: radial-gradient(ellipse at 50% 65%, color-mix(in srgb, var(--hw-gale) 35%, var(--hw-bg)), var(--hw-bg) 85%); }
+.hwt-cell[data-object="sporepod"] { --hwt-tile: radial-gradient(ellipse at 50% 65%, color-mix(in srgb, #9ac44a 28%, var(--hw-bg)), var(--hw-bg) 85%); }
+.hwt-object {
+  font-size: 1.9rem;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6));
+  transform-origin: 50% 90%;
+}
+.hwt-object[data-object="tree"] { font-size: 2.2rem; animation: hwt-tree-sway 4s ease-in-out infinite; }
+.hwt-object[data-object="sporepod"] { animation: hwt-spore-pulse 2.2s ease-in-out infinite; }
+@keyframes hwt-tree-sway { 0%, 100% { rotate: -2deg; } 50% { rotate: 2deg; } }
+@keyframes hwt-spore-pulse { 0%, 100% { scale: 1; } 50% { scale: 1.08; } }
+.hwt-obj-pips {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.hwt-obj-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid color-mix(in srgb, var(--hw-rune) 45%, transparent);
+}
+.hwt-obj-pip[data-full="true"] { background: var(--hw-rune); }
+.hwt-cell[data-burning="true"] {
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-ember) 85%, transparent), inset 0 0 18px color-mix(in srgb, var(--hw-ember) 55%, transparent);
+  animation: hwt-lava-glow 1.2s ease-in-out infinite;
+}
+.hwt-cell[data-burning="true"] .hwt-object { filter: drop-shadow(0 0 6px var(--hw-ember)) sepia(0.6) saturate(1.6); }
+.hwt-obj-fire {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 0.85rem;
+  pointer-events: none;
+  animation: hwt-flicker 0.6s ease-in-out infinite alternate;
+}
+.hwt-obj-fire b { font-size: 0.7rem; color: #ffd27a; margin-left: 1px; text-shadow: 0 1px 1px black; }
+@keyframes hwt-flicker { from { opacity: 0.75; scale: 0.95; } to { opacity: 1; scale: 1.08; } }
+.hwt-cell[data-brittle="true"] {
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hw-gale) 90%, white), inset 0 0 16px color-mix(in srgb, var(--hw-gale) 60%, transparent);
+}
+.hwt-cell[data-brittle="true"] .hwt-object { animation: hwt-flicker 0.9s ease-in-out infinite alternate; }
+/* Telegraph: tiles the fire will scorch / spread to at the end of your turn. */
+.hwt-cell[data-fire-warn="true"] { outline: 2px dashed color-mix(in srgb, var(--hw-ember) 75%, transparent); outline-offset: -4px; }
+/* Leftovers. */
+.hwt-cell[data-terrain="log"] {
+  --hwt-tile: color-mix(in srgb, var(--hw-moss) 14%, var(--hw-bg));
+  --hwt-tile-pattern: linear-gradient(180deg, transparent 33%, color-mix(in srgb, var(--hwt-timber, #8a5a2e) 75%, black) 33% 67%, transparent 67%);
+  --hwt-mark: "🪵";
+}
+.hwt-cell[data-terrain="stump"] { --hwt-mark: "◉"; --hwt-mark-color: var(--hwt-timber, #8a5a2e); }
+.hwt-cell[data-terrain="ash"] {
+  --hwt-tile: color-mix(in srgb, #555 22%, var(--hw-bg));
+  --hwt-tile-pattern: radial-gradient(circle at 30% 40%, rgba(255, 140, 60, 0.25) 0 2px, transparent 3px), radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.4) 0 3px, transparent 4px);
+  --hwt-mark: "∴";
+}
+.hwt-cell[data-terrain="fire"] {
+  --hwt-tile: radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--hw-ember) 75%, var(--hw-bg)), color-mix(in srgb, var(--hw-hp) 35%, var(--hw-bg)) 80%);
+  --hwt-mark: "🔥";
+  animation: hwt-lava-glow 1s ease-in-out infinite;
+}
+.hwt-tile-timer {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #ffd27a;
+  text-shadow: 0 1px 1px black;
+  pointer-events: none;
+}
+/* Tree falling toward --fall-x/--fall-y. */
+.hwt-obj-falling {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  pointer-events: none;
+  z-index: 3;
+  transform-origin: 50% 90%;
+  animation: hwt-tree-fall 700ms ease-in forwards;
+}
+@keyframes hwt-tree-fall {
+  0% { transform: rotate(0) translate(0, 0); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: rotate(calc(var(--fall-x) * 90deg + var(--fall-y) * 20deg)) translate(calc(var(--fall-x) * 70%), calc(var(--fall-y) * 110%)); opacity: 0; }
+}
+.hwt-obj-fx:not([data-kind="hit"]) {
+  font-size: 1rem;
+  padding: 2px 8px;
+  border-radius: var(--hw-radius-pill, 999px);
+  background: color-mix(in srgb, var(--hw-bg) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hw-rune) 60%, transparent);
+  color: var(--hw-rune);
+}
+.hwt-obj-fx[data-kind="boom"], .hwt-obj-fx[data-kind="burn"] { color: #ffb45a; border-color: var(--hw-ember); }
+.hwt-obj-fx[data-kind="shatter"], .hwt-obj-fx[data-kind="chill"] { color: #bfefff; border-color: var(--hw-gale); }
+.hwt-obj-fx[data-kind="spore"] { color: #c6ec7a; border-color: #9ac44a; }
+.hwt-obj-fx[data-kind="hit"] { color: var(--hw-hp); font-size: 1rem; }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-boom"]::after,
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-burn"]::after { background: radial-gradient(circle, rgba(255, 190, 80, 0.9), rgba(255, 90, 30, 0.5) 55%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-spore"]::after { background: radial-gradient(circle, rgba(170, 230, 60, 0.85), transparent 75%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-shatter"]::after,
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-chill"]::after { background: radial-gradient(circle, rgba(190, 240, 255, 0.9), transparent 75%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-fall"]::after,
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-roll"]::after { background: radial-gradient(circle, rgba(200, 150, 90, 0.8), transparent 75%); }
+.hwt-intent-badge[data-intent="object"] { font-size: 0.8rem; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-object, .hwt-obj-fire, .hwt-obj-falling, .hwt-cell[data-burning="true"], .hwt-cell[data-terrain="fire"] { animation: none; }
+}

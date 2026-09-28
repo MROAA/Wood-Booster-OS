@@ -21,6 +21,7 @@ import {
   checkEnemyPhase,
   trySpawnBrood,
 } from "./tacticsEngine"
+import { elementNear } from "./tacticsObjects"
 
 export const ELEMENTS = {
   fire: { status: "burn", name: "Fire", word: "Burning", icon: "🔥" },
@@ -136,9 +137,15 @@ export function comboScoreForStatus(target, status) {
 }
 
 // Put `amount` of an element on a unit, then resolve combos.
+// Destructibles: fire also lights the trees beside the unit, frost chills pillars.
 export function applyElement(state, unitId, element, amount) {
   const u = getUnit(state, unitId)
   if (!u || u.hp <= 0 || !ELEMENTS[element]) return state
+  return elementNear(applyElementToUnit(state, unitId, element, amount), u.pos, element)
+}
+
+function applyElementToUnit(state, unitId, element, amount) {
+  const u = getUnit(state, unitId)
   const combo = comboFor(u, element)
   // Frost onto a burning unit / partner already there: the combo consumes
   // instead of stacking (freeze still needs the chill counted).

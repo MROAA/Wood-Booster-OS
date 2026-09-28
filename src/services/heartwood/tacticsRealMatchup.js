@@ -23,7 +23,7 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { UNITS } from "../../data/heartwood/units"
 import { streamRng } from "../../data/heartwood/seed"
 import { GRID, createRunTacticsBattle } from "./tacticsEngine"
-import { buildTemplateTerrain, pickTemplate, sidesConnected } from "./tacticsTerrain"
+import { TERRAIN, buildTemplateTerrain, pickTemplate, sidesConnected } from "./tacticsTerrain"
 import { effectiveUnitDef } from "./autoBattleEngine"
 import { objectiveForNode, applyObjective } from "./tacticsObjectives"
 import { arenaTerrainFor, applyBossFight } from "./tacticsBosses"
@@ -160,6 +160,9 @@ export function generateRealTerrain(seed, nodeIndex) {
   if (sidesConnected(terrain, GRID)) return terrain
   // Last resort (never seen in 2000-seed sweeps): open every template wall.
   for (const key of Object.keys(terrain)) if (terrain[key] === "wall") terrain[key] = "rubble"
+  if (sidesConnected(terrain, GRID)) return terrain
+  // Destructibles block too: drop them before giving up.
+  for (const key of Object.keys(terrain)) if (TERRAIN[terrain[key]]?.obj) delete terrain[key]
   return terrain
 }
 

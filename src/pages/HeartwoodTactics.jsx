@@ -27,6 +27,7 @@ import { loadRealMatchup } from "../services/heartwood/tacticsRealMatchup"
 import { applyFaction } from "../services/heartwood/tacticsFactions"
 import { applyObjective, buildObjectiveSpec, OBJECTIVE_TYPES, OBJECTIVE_NAMES } from "../services/heartwood/tacticsObjectives"
 import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../services/heartwood/tacticsBosses"
+import { withObjectShowcase } from "../services/heartwood/tacticsObjects"
 import { CLASSES } from "../data/heartwood/classes"
 import { UNITS } from "../data/heartwood/units"
 import "../components/heartwood/heartwood.css"
@@ -37,9 +38,11 @@ import "../components/heartwood/heartwood-tactics.css"
 // reach a win in a couple of clicks instead of grinding real attack rounds
 // first. Shared by the initial mount, every formation-picker restart, AND
 // the real-matchup preview below.
-function maybeDebugLowHp(base) {
+function maybeDebugLowHp(base, showcase = false) {
   const params = new URLSearchParams(window.location.search)
-  const battle = params.get("debugLowHp") === "1" ? withLowEnemyHp(base) : base
+  const flat = params.get("debugLowHp") === "1" ? withLowEnemyHp(base) : base
+  // Destructibles: `?objects=1` (or the picker button) loads the objects showcase map.
+  const battle = showcase ? withObjectShowcase(flat) : flat
   // `?deploy=1` opens the prototype in the deployment phase (the real
   // game always does); off by default so the prototype stays instant.
   return params.get("deploy") === "1" ? enterDeploy(battle) : battle
@@ -65,8 +68,12 @@ function initialSquad() {
   return ids.length ? ids.slice(0, 4) : undefined
 }
 
-function startBattle(formationId, squadDefIds = initialSquad(), choice = initialObjectiveChoice()) {
-  return maybeDebugLowHp(applyObjective(createTacticsBattle(formationId, squadDefIds), objectiveSpecFor(choice)))
+function initialShowcase() {
+  return new URLSearchParams(window.location.search).get("objects") === "1"
+}
+
+function startBattle(formationId, squadDefIds = initialSquad(), choice = initialObjectiveChoice(), showcase = initialShowcase()) {
+  return maybeDebugLowHp(applyObjective(createTacticsBattle(formationId, squadDefIds), objectiveSpecFor(choice)), showcase)
 }
 
 // Boss fights (sprint 3): ?boss=<id> (or the picker) starts that boss's
@@ -111,10 +118,10 @@ export default function HeartwoodTactics() {
     return battle.units.filter((u) => u.side === "player" && u.id !== "player-commander" && !u.npc).map((u) => u.defId)
   }
 
-  function restart(formationId, squadDefIds = currentSquadDefIds(), choice = objectiveChoice) {
+  function restart(formationId, squadDefIds = currentSquadDefIds(), choice = objectiveChoice, showcase = !!battle.objectShowcase) {
     setSelectedId(null)
     setAbilityMode(null)
-    setBattle(startBattle(formationId || "default", squadDefIds, choice))
+    setBattle(startBattle(formationId || "default", squadDefIds, choice, showcase))
   }
 
   function restartBoss(bossId, squadDefIds = currentSquadDefIds()) {
@@ -311,6 +318,22 @@ export default function HeartwoodTactics() {
                   {f.name}
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+        {!usingReal && (
+          <div className="hwt-formation-picker hwt-objects-picker">
+            <p className="hwt-formation-label">Battlefield</p>
+            <div className="hwt-formation-buttons">
+              <button
+                className="hwt-formation-btn"
+                data-objects-showcase
+                data-active={!!battle.objectShowcase}
+                title="Trees, powder barrels, a spore pod, a boulder and ice pillars - everything on this map can be smashed"
+                onClick={() => (battle.bossPick ? restart("default", currentSquadDefIds(), objectiveChoice, true) : restart(battle.formationId, currentSquadDefIds(), objectiveChoice, !battle.objectShowcase))}
+              >
+                🌲 Destructibles showcase
+              </button>
             </div>
           </div>
         )}
