@@ -17,6 +17,17 @@ export const TERRAIN = {
   bush: { cost: 1, cover: true },
   lava: { cost: 1, burn: 3 },
   ice: { cost: 1, slide: true },
+  // Destructible objects (tacticsObjects.js): block like a wall, have HP.
+  tree: { cost: Infinity, obj: true },
+  barrel: { cost: Infinity, obj: true },
+  sporepod: { cost: Infinity, obj: true },
+  boulder: { cost: Infinity, obj: true },
+  icepillar: { cost: Infinity, obj: true },
+  // What they leave behind.
+  log: { cost: 2 },
+  stump: { cost: 1 },
+  ash: { cost: 1 },
+  fire: { cost: 1, burn: 2 },
 }
 
 export const WALL_MAX_HP = 8
@@ -35,6 +46,26 @@ export const TERRAIN_INFO = {
   bush: { name: "Tall grass", text: "A unit in the grass can't be targeted from more than 1 tile away." },
   lava: { name: "Lava", text: "Ending your turn here burns for 3 damage. Walking through is safe." },
   ice: { name: "Ice", text: "Slippery - stepping onto ice slides you 1 more tile in the same direction if it's free." },
+  tree: { name: "Tree", text: "Blocks movement and shields units behind it from arrows (-50%). Chop it (1 AP) and it falls away from you, crushing the next 2 tiles. Fire burns it down and spreads." },
+  barrel: { name: "Powder barrel", text: "Any hit or fire blows it up: damage to everything in the 3x3 around it, and the ground burns." },
+  sporepod: { name: "Spore pod", text: "Any hit bursts it: damage + Poison to everything in the 3x3 around it, and poison pools linger." },
+  boulder: { name: "Boulder", text: "Blocks movement. Hit it from right next to it to shove it - it rolls until stopped and crushes what it hits." },
+  icepillar: { name: "Ice pillar", text: "Frost makes it brittle; the next hit shatters it, hurting and Chilling every unit around it." },
+  log: { name: "Fallen log", text: "A felled tree - costs 2 movement to climb over. Ranged hits on a unit behind it deal -25%." },
+  stump: { name: "Stump", text: "Where a tree stood - walkable." },
+  ash: { name: "Ash", text: "Burnt ground - walkable." },
+  fire: { name: "Flames", text: "Burning ground - ending your turn here burns for 2. Dies down in a couple of turns." },
+}
+
+// Ranged damage cut when the tile next to the target (toward the shooter)
+// is a tree (-50%) or a fallen log (-25%).
+export const TREE_COVER_PCT = 50
+export const LOG_COVER_PCT = 25
+export function coverPct(state, attackerPos, defenderPos) {
+  if (!state?.terrain || cheb(attackerPos, defenderPos) <= 1) return 0
+  const sg = (n) => (n > 0 ? 1 : n < 0 ? -1 : 0)
+  const t = state.terrain[`${defenderPos.row + sg(attackerPos.row - defenderPos.row)}-${defenderPos.col + sg(attackerPos.col - defenderPos.col)}`]
+  return t === "tree" ? TREE_COVER_PCT : t === "log" ? LOG_COVER_PCT : 0
 }
 
 export function terrainAt(state, pos) {
@@ -72,9 +103,13 @@ export function canReach(state, attacker, attackerPos, targetPos) {
 }
 
 // +25% (min +1) when striking down from high ground onto low ground.
+// Destructibles: then tree/log cover cuts ranged hits.
 export function highGroundAmount(state, attackerPos, defenderPos, amount) {
-  if (!state || !isHigh(state, attackerPos) || isHigh(state, defenderPos) || amount <= 0) return amount
-  return amount + Math.max(1, Math.round((amount * HIGH_GROUND_DAMAGE_PCT) / 100))
+  if (!state || amount <= 0) return amount
+  let out = amount
+  if (isHigh(state, attackerPos) && !isHigh(state, defenderPos)) out += Math.max(1, Math.round((amount * HIGH_GROUND_DAMAGE_PCT) / 100))
+  const cover = coverPct(state, attackerPos, defenderPos)
+  return cover ? Math.max(1, out - Math.round((out * cover) / 100)) : out
 }
 
 // Ice: where a move to `to` really ends. One extra tile in the move's
@@ -98,7 +133,7 @@ export function slideLanding(state, moverId, from, to) {
 export function terrainDistanceField(terrain, grid, goal, wallsOpen = false) {
   const passable = (pos) => {
     const t = TERRAIN[terrain[`${pos.row}-${pos.col}`] || "path"] || TERRAIN.path
-    return t.cost !== Infinity || (wallsOpen && t.wall)
+    return t.cost !== Infinity || (wallsOpen && (t.wall || t.obj))
   }
   const dist = new Map([[`${goal.row}-${goal.col}`, 0]])
   const queue = [goal]
@@ -133,7 +168,24 @@ export function sidesConnected(terrain, grid) {
 const pick = (rng, list) => list[Math.floor(rng() * list.length)]
 const between = (rng, a, b) => a + Math.floor(rng() * (b - a + 1))
 
-function riverCrossing(rng, grid, lo, hi, set) {
+// Destructibles: drop `count` objects on free tiles (after the template's
+// own features, so earlier rolls - and the old layout - stay the same).
+function scatterObjects(rng, grid, lo, hi, place, type, count) {
+  for (let i = 0; i < count; i++) place(between(rng, 0, grid.rows - 1), between(rng, lo, hi), type)
+}
+
+// A small cluster of trees (orthogonal neighbours, so fire can spread).
+function treeCluster(rng, grid, lo, hi, place, size) {
+  let r = between(rng, 0, grid.rows - 1)
+  let c = between(rng, lo, hi)
+  for (let i = 0; i < size; i++) {
+    place(r, c, "tree")
+    if (rng() < 0.5) r = Math.min(grid.rows - 1, Math.max(0, r + (rng() < 0.5 ? -1 : 1)))
+    else c = Math.min(hi, Math.max(lo, c + (rng() < 0.5 ? -1 : 1)))
+  }
+}
+
+function riverCrossing(rng, grid, lo, hi, set, place) {
   const col = between(rng, lo + 1, hi - 1)
   for (let row = 0; row < grid.rows; row++) set(row, col, "water")
   const bridges = rng() < 0.5 ? 1 : 2
@@ -142,9 +194,10 @@ function riverCrossing(rng, grid, lo, hi, set) {
   if (bridges === 2) set((first + between(rng, 3, grid.rows - 3)) % grid.rows, col, "bridge")
   for (let i = 0; i < 3; i++) set(between(rng, 0, grid.rows - 1), col + (rng() < 0.5 ? -1 : 1), "bush")
   set(between(rng, 0, grid.rows - 1), col + 1, "high")
+  if (place) scatterObjects(rng, grid, lo, hi, place, "tree", 2)
 }
 
-function hillFort(rng, grid, lo, hi, set) {
+function hillFort(rng, grid, lo, hi, set, place) {
   const top = between(rng, 2, grid.rows - 5)
   const col = between(rng, lo + 1, hi - 2)
   for (let r = top; r < top + 3; r++) for (let c = col; c < col + 2; c++) set(r, c, "high")
@@ -153,9 +206,13 @@ function hillFort(rng, grid, lo, hi, set) {
   for (let r = top; r < top + 3; r++) if (r !== gap) set(r, col + 2, "wall")
   set(top - 1, col, "bush")
   set(top + 3, col + 1, "bush")
+  if (place) {
+    place(top + 1, col - 1, "barrel")
+    scatterObjects(rng, grid, lo, hi, place, "boulder", 1)
+  }
 }
 
-function ruinedWalls(rng, grid, lo, hi, set) {
+function ruinedWalls(rng, grid, lo, hi, set, place) {
   const segments = between(rng, 2, 3)
   for (let s = 0; s < segments; s++) {
     const col = between(rng, lo, hi)
@@ -166,9 +223,13 @@ function ruinedWalls(rng, grid, lo, hi, set) {
   }
   set(between(rng, 0, grid.rows - 1), between(rng, lo, hi), "high")
   set(between(rng, 0, grid.rows - 1), between(rng, lo, hi), "high")
+  if (place) {
+    scatterObjects(rng, grid, lo, hi, place, "barrel", 2)
+    scatterObjects(rng, grid, lo, hi, place, "boulder", 2)
+  }
 }
 
-function forestGlade(rng, grid, lo, hi, set) {
+function forestGlade(rng, grid, lo, hi, set, place) {
   for (let i = 0; i < 3; i++) {
     const r = between(rng, 0, grid.rows - 2)
     const c = between(rng, lo, hi - 1)
@@ -181,9 +242,15 @@ function forestGlade(rng, grid, lo, hi, set) {
   set(pr, pc, "water")
   set(pr + 1, pc, "water")
   set(between(rng, 0, grid.rows - 1), between(rng, lo, hi), "high")
+  if (place) {
+    treeCluster(rng, grid, lo, hi, place, 4)
+    treeCluster(rng, grid, lo, hi, place, 3)
+    scatterObjects(rng, grid, lo, hi, place, "tree", 2)
+    scatterObjects(rng, grid, lo, hi, place, "sporepod", 1)
+  }
 }
 
-function emberField(rng, grid, lo, hi, set) {
+function emberField(rng, grid, lo, hi, set, place) {
   for (let i = 0; i < 3; i++) {
     const r = between(rng, 0, grid.rows - 2)
     const c = between(rng, lo, hi - 1)
@@ -192,9 +259,10 @@ function emberField(rng, grid, lo, hi, set) {
   }
   for (let i = 0; i < 2; i++) set(between(rng, 0, grid.rows - 1), between(rng, lo, hi), "high")
   set(between(rng, 0, grid.rows - 1), between(rng, lo, hi), "wall")
+  if (place) scatterObjects(rng, grid, lo, hi, place, "barrel", 2)
 }
 
-function frozenFord(rng, grid, lo, hi, set) {
+function frozenFord(rng, grid, lo, hi, set, place) {
   const col = between(rng, lo + 1, hi - 2)
   for (let row = 0; row < grid.rows; row++) {
     set(row, col, "ice")
@@ -205,6 +273,11 @@ function frozenFord(rng, grid, lo, hi, set) {
   set(pool + 1, col - 1, "water")
   set(between(rng, 0, grid.rows - 1), col + 2, "high")
   set(between(rng, 0, grid.rows - 1), col - 1, "bush")
+  if (place) {
+    place(between(rng, 0, grid.rows - 1), col - 1, "icepillar")
+    place(between(rng, 0, grid.rows - 1), col + 2, "icepillar")
+    scatterObjects(rng, grid, lo, hi, place, "icepillar", 1)
+  }
 }
 
 // minAct: the first Act a template can appear in.
@@ -221,14 +294,22 @@ export function templatesForAct(act) {
   return MAP_TEMPLATES.filter((t) => act >= t.minAct)
 }
 
-// Builds one template's terrain map inside cols [lo, hi].
-export function buildTemplateTerrain(template, rng, grid, lo, hi) {
+// Builds one template's terrain map inside cols [lo, hi]. `place` puts a
+// destructible object on a still-empty tile only if the sides stay joined
+// (objects block, so the path-exists guarantee counts them).
+export function buildTemplateTerrain(template, rng, grid, lo, hi, withObjects = true) {
   const terrain = {}
   const set = (row, col, type) => {
     if (row < 0 || row >= grid.rows || col < lo || col > hi) return
     terrain[`${row}-${col}`] = type
   }
-  template.build(rng, grid, lo, hi, set)
+  const place = (row, col, type) => {
+    const key = `${row}-${col}`
+    if (row < 0 || row >= grid.rows || col < lo || col > hi || (terrain[key] && terrain[key] !== "path")) return
+    terrain[key] = type
+    if (!sidesConnected(terrain, grid)) delete terrain[key]
+  }
+  template.build(rng, grid, lo, hi, set, withObjects ? place : null)
   for (const key of Object.keys(terrain)) if (terrain[key] === "path") delete terrain[key]
   return terrain
 }

@@ -18,7 +18,8 @@ import { TERRAIN, sidesConnected } from "./tacticsTerrain"
 import { ENEMIES } from "../../data/heartwood/enemies"
 
 // ---- arena helpers ----------------------------------------------------------
-const CHAR_TERRAIN = { "#": "wall", "^": "high", "~": "water", "=": "bridge", "*": "bush", L: "lava", I: "ice", r: "rock", p: "poison", f: "forest", _: "rubble" }
+// Destructibles: T tree, B powder barrel, O boulder, Y ice pillar (tacticsObjects.js).
+const CHAR_TERRAIN = { "#": "wall", "^": "high", "~": "water", "=": "bridge", "*": "bush", L: "lava", I: "ice", r: "rock", p: "poison", f: "forest", _: "rubble", T: "tree", B: "barrel", O: "boulder", Y: "icepillar" }
 
 // 9 strings of 12 chars -> terrain map ("." = plain path).
 export function parseArena(rows) {
@@ -48,9 +49,9 @@ export const BOSS_FIGHTS = {
       "^^..#.......",
       "^^......#...",
       "....#....*..",
-      "......*.....",
+      "......*.T...",
       "............",
-      "......*.....",
+      "......*.T...",
       "....#....*..",
       "^^......#...",
       "^^..#.......",
@@ -108,11 +109,11 @@ export const BOSS_FIGHTS = {
     arena: [
       "......#.....",
       "..^...#.....",
-      "..^.........",
+      "..^.....B...",
       "......#.....",
       "......_.....",
       "......#.....",
-      "..^.........",
+      "..^.....B...",
       "..^...#.....",
       "......#.....",
     ],
@@ -169,15 +170,15 @@ export const BOSS_FIGHTS = {
     enemyDefIds: ["sapling-attendant", "ancient-oak", "sapling-attendant"],
     bossStart: P(4, 0),
     arena: [
-      "..f..~.f....",
-      ".f...~..f...",
+      "..f..~.T....",
+      ".f...~..T...",
       "..f..=......",
       ".....~.*....",
       "..f..~......",
       ".....~.*....",
       "..f..=......",
-      ".f...~..f...",
-      "..f..~.f....",
+      ".f...~..T...",
+      "..f..~.T....",
     ],
     phases: [
       { name: "The Grove Stirs", text: "Old branches fall on your squad every few turns.", every: 3, firstAt: 2,
@@ -199,13 +200,13 @@ export const BOSS_FIGHTS = {
     bossStart: P(4, 0),
     arena: [
       "...I....I...",
-      "..^.....I...",
+      "..^...Y.I...",
       "...II.......",
       "......#.....",
       "..^.........",
       "......#.....",
       "...II.......",
-      "..^.....I...",
+      "..^...Y.I...",
       "...I....I...",
     ],
     phases: [

@@ -54,6 +54,7 @@ import { describeSkillIntent } from "../../services/heartwood/tacticsEnemyAbilit
 import { describeObjective, reinforcementWarningTiles, turnsUntilPulse } from "../../services/heartwood/tacticsObjectives"
 import { PERKS } from "../../services/heartwood/unitLevels"
 import { describeBoss, bossWarningTiles } from "../../services/heartwood/tacticsBosses"
+import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile, isBurning, isChilled } from "../../services/heartwood/tacticsObjects"
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
 
 const BOSS_WARN_ICON = { quake: "✹", lava: "♨", water: "≈", wall: "▦", ice: "❄", poison: "☣", adds: "❖", teleport: "◎" }
@@ -200,6 +201,32 @@ export default function TacticsBoard({
     const timer = setTimeout(() => setWallFx((cur) => cur.filter((f) => !ids.has(f.id))), 1600)
     return () => clearTimeout(timer)
   }, [battle])
+  // Destructibles: tile callouts ("Timber!", "Boom!") + fall animation from the engine's object events.
+  const [objFx, setObjFx] = useState([])
+  const objSeqRef = useRef(null)
+  useEffect(() => {
+    if (objSeqRef.current === null || (battle.eventSeq || 0) < objSeqRef.current) {
+      objSeqRef.current = battle.eventSeq || 0
+      return undefined
+    }
+    const fresh = (battle.events || []).filter((e) => e.seq > objSeqRef.current && e.kind === "object")
+    objSeqRef.current = battle.eventSeq || objSeqRef.current
+    if (!fresh.length) return undefined
+    const items = fresh.map((e) => ({ id: e.seq, key: `${e.pos.row}-${e.pos.col}`, fx: e.fx, text: e.label, dir: e.dir }))
+    setObjFx((cur) => [...cur, ...items])
+    const ids = new Set(items.map((f) => f.id))
+    const timer = setTimeout(() => setObjFx((cur) => cur.filter((f) => !ids.has(f.id))), 1700)
+    return () => clearTimeout(timer)
+  }, [battle])
+  // Telegraph: tiles a burning tree scorches / trees it spreads to when the turn ends.
+  const fireWarn = useMemo(() => {
+    const keys = new Set()
+    for (const key of Object.keys(battle.objFire || {})) {
+      const [r, c] = key.split("-").map(Number)
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr || dc) keys.add(`${r + dr}-${c + dc}`)
+    }
+    return keys
+  }, [battle.objFire])
   const reachable = useMemo(
     () => (selected && selected.ap > 0 && !abilityMode && battle.phase === "player" ? reachableTilesFor(battle, selected.id) : []),
     [battle, selected, abilityMode],
@@ -510,9 +537,18 @@ export default function TacticsBoard({
           data-blight-fresh={blightFresh.has(`${row}-${col}`) || undefined}
           data-blight-next={blightNext.has(`${row}-${col}`) || undefined}
           data-fade-to={fadeTiles.has(`${row}-${col}`) || undefined}
-          data-wall-targetable={terrain === "wall" && wallTargetHere(row, col)}
-          data-wall-threat={terrain === "wall" && wallThreat.has(`${row}-${col}`)}
-          title={TERRAIN_INFO[terrain] ? `${TERRAIN_INFO[terrain].name}: ${TERRAIN_INFO[terrain].text}${terrain === "wall" ? ` (${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP)` : ""}` : undefined}
+          data-wall-targetable={isAttackableTile(terrain) && wallTargetHere(row, col)}
+          data-wall-threat={isAttackableTile(terrain) && wallThreat.has(`${row}-${col}`)}
+          data-object={OBJECTS[terrain] ? terrain : undefined}
+          data-burning={(OBJECTS[terrain] && isBurning(battle, { row, col })) || undefined}
+          data-brittle={(terrain === "icepillar" && isChilled(battle, { row, col })) || undefined}
+          data-fire-warn={(fireWarn.has(`${row}-${col}`) && !isBurning(battle, { row, col })) || undefined}
+          title={
+            describeObjectTile(battle, { row, col }) ||
+            (TERRAIN_INFO[terrain]
+              ? `${TERRAIN_INFO[terrain].name}: ${TERRAIN_INFO[terrain].text}${terrain === "wall" ? ` (${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP)` : ""}${battle.tileTimers?.[`${row}-${col}`] && (terrain === "fire" || terrain === "poison") ? ` Fades in ${battle.tileTimers[`${row}-${col}`].turns} turn(s).` : ""}`
+              : undefined)
+          }
           data-deploy-target={deployZone && !!selected && (!unit || (unit.side === "player" && unit.id !== selected.id))}
           onClick={() => handleCellClick(row, col)}
         >
@@ -533,6 +569,40 @@ export default function TacticsBoard({
               <span className="hwt-wall-hp-num">{wallHpAt(battle, { row, col })}</span>
             </span>
           )}
+          {OBJECTS[terrain] && (
+            <span className="hwt-object" data-object={terrain} aria-hidden="true">
+              {OBJECTS[terrain].icon}
+            </span>
+          )}
+          {OBJECTS[terrain] && objectMaxHp(terrain) > 1 && (
+            <span className="hwt-obj-pips" title={`${OBJECTS[terrain].name} ${objectHpAt(battle, { row, col })}/${objectMaxHp(terrain)} HP`}>
+              {Array.from({ length: objectMaxHp(terrain) }, (_, i) => (
+                <span key={i} className="hwt-obj-pip" data-full={i < objectHpAt(battle, { row, col })} />
+              ))}
+            </span>
+          )}
+          {OBJECTS[terrain] && isBurning(battle, { row, col }) && (
+            <span className="hwt-obj-fire" title={`Burning - ${battle.objFire[`${row}-${col}`]} turn(s) until it collapses to ash`}>
+              🔥<b>{battle.objFire[`${row}-${col}`]}</b>
+            </span>
+          )}
+          {(terrain === "fire" || terrain === "poison") && battle.tileTimers?.[`${row}-${col}`] && (
+            <span className="hwt-tile-timer">{battle.tileTimers[`${row}-${col}`].turns}</span>
+          )}
+          {objFx
+            .filter((fx) => fx.key === `${row}-${col}`)
+            .map((fx) => (
+              <span key={`o${fx.id}`}>
+                {fx.fx === "fall" && (
+                  <span className="hwt-obj-falling" style={{ "--fall-x": fx.dir?.col || 0, "--fall-y": fx.dir?.row || 0 }}>
+                    🌲
+                  </span>
+                )}
+                <span className="hwt-wall-fx hwt-obj-fx" data-kind={fx.fx}>
+                  {fx.text}
+                </span>
+              </span>
+            ))}
           {wallFx
             .filter((fx) => fx.key === `${row}-${col}`)
             .map((fx) => (
@@ -746,6 +816,11 @@ export default function TacticsBoard({
                   <span className="hwt-intent-badge" data-intent="attack" data-fade={!!intent.fade || undefined} title={`Will strike ${getUnitName(battle, intent.targetId)}${intent.fade ? ", then fade up to 2 tiles back" : ""}`}>
                     <CardGlyph name="sword" className="hwt-intent-icon" />
                     {intent.fade && <span className="hwt-fade-mark">↩</span>}
+                  </span>
+                )}
+                {intent && intent.kind === "wall" && (
+                  <span className="hwt-intent-badge" data-intent="object" title={intent.object ? `Will set off the ${OBJECTS[intent.object]?.name.toLowerCase() || "object"} next to your units` : "Will smash what blocks its way"}>
+                    {intent.object ? "💥" : "⚒"}
                   </span>
                 )}
                 {intent && intent.kind === "move" && (
