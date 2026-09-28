@@ -2147,3 +2147,404 @@
   line-height: 1.1;
   text-align: center;
 }
+
+/* ---------- XCOM part 1: roles, squad bar, move bands, overlay ---------- */
+.hwt-layout {
+  --hwt-role-tank: #56b4e9;
+  --hwt-role-healer: #2fbf8f;
+  --hwt-role-dps: #ef7a3c;
+  --hwt-role-support: #f0e442;
+  --hwt-role-control: #d687b8;
+  --hwt-move-blue: #4f9dff;
+  --hwt-move-yellow: #f2c33d;
+}
+[data-role="tank"] { --hwt-role: var(--hwt-role-tank); }
+[data-role="healer"] { --hwt-role: var(--hwt-role-healer); }
+[data-role="dps"] { --hwt-role: var(--hwt-role-dps); }
+[data-role="support"] { --hwt-role: var(--hwt-role-support); }
+[data-role="control"] { --hwt-role: var(--hwt-role-control); }
+
+.hwt-board-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+.hwt-board {
+  position: relative;
+}
+
+/* Role frame: thick role colour on every token, both sides. */
+.hwt-token[data-role] {
+  --hwt-frame: var(--hwt-role);
+  border-width: 3px;
+}
+.hwt-token[data-side="enemy"][data-role] {
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--hw-hp) 75%, black),
+    0 3px 6px rgba(0, 0, 0, 0.55);
+}
+.hwt-token[data-selected="true"][data-role] {
+  box-shadow:
+    0 0 0 3px var(--hwt-gold),
+    0 0 20px color-mix(in srgb, var(--hwt-gold) 70%, transparent),
+    0 3px 6px rgba(0, 0, 0, 0.55);
+}
+.hwt-token[data-acted="true"][data-side="player"][data-role] {
+  --hwt-frame: color-mix(in srgb, var(--hwt-role) 55%, var(--hw-bg));
+}
+.hwt-cell > .hwt-token {
+  z-index: 1;
+}
+.hwt-cell > .hwt-token[data-selected="true"] {
+  z-index: 2;
+}
+
+/* The big role icon: a coloured disc on the token's top-right corner. */
+.hwt-role-icon {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 4;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--hwt-role);
+  color: #14110c;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  border: 2px solid color-mix(in srgb, var(--hwt-role) 45%, black);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  pointer-events: auto;
+  cursor: help;
+}
+.hwt-token[data-side="enemy"] .hwt-role-icon {
+  border-color: color-mix(in srgb, var(--hw-hp) 80%, black);
+}
+
+/* Overwatch eye / Hunker shield: stance chips on the token's left edge. */
+.hwt-stance {
+  position: absolute;
+  left: -7px;
+  top: 16px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: auto;
+}
+.hwt-ow-badge,
+.hwt-hunker-badge {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 13px;
+  line-height: 1;
+  background: #10141c;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+.hwt-ow-badge {
+  border: 2px solid var(--hwt-move-blue);
+  animation: hwt-ow-pulse 1.6s ease-in-out infinite;
+}
+.hwt-hunker-badge {
+  border: 2px solid var(--hwt-gold);
+}
+@keyframes hwt-ow-pulse {
+  0%, 100% { box-shadow: 0 0 3px color-mix(in srgb, var(--hwt-move-blue) 60%, transparent); }
+  50% { box-shadow: 0 0 10px var(--hwt-move-blue); }
+}
+
+/* Blue = move and still act; yellow = dash, turn spent. */
+.hwt-cell[data-move-band="blue"] {
+  --hwt-tint: color-mix(in srgb, var(--hwt-move-blue) 30%, transparent);
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hwt-move-blue) 85%, transparent), inset 0 0 14px color-mix(in srgb, var(--hwt-move-blue) 35%, transparent);
+  border-color: var(--hwt-move-blue);
+  cursor: pointer;
+}
+.hwt-cell[data-move-band="blue"]:hover {
+  --hwt-tint: color-mix(in srgb, var(--hwt-move-blue) 46%, transparent);
+}
+.hwt-cell[data-move-band="yellow"] {
+  --hwt-tint: color-mix(in srgb, var(--hwt-move-yellow) 22%, transparent);
+  --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hwt-move-yellow) 80%, transparent), inset 0 0 12px color-mix(in srgb, var(--hwt-move-yellow) 30%, transparent);
+  border-color: var(--hwt-move-yellow);
+  cursor: pointer;
+}
+.hwt-cell[data-move-band="yellow"]:hover {
+  --hwt-tint: color-mix(in srgb, var(--hwt-move-yellow) 38%, transparent);
+}
+.hwt-cell[data-path="true"] {
+  --hwt-tint: color-mix(in srgb, var(--hwt-gold) 30%, transparent);
+}
+
+/* Healer range ring. */
+.hwt-cell[data-heal-ring="true"] {
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--hwt-role-healer) 22%, transparent) 30%, transparent 75%),
+    linear-gradient(var(--hwt-tint), var(--hwt-tint)),
+    var(--hwt-tile-pattern),
+    var(--hwt-tile);
+  outline: 1px dashed color-mix(in srgb, var(--hwt-role-healer) 75%, transparent);
+  outline-offset: -3px;
+}
+
+/* SVG overlay: aggro lines, tank zones, path preview (under the tokens). */
+.hwt-overlay {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.hwt-aggro-line {
+  stroke: var(--hw-hp);
+  stroke-width: 3;
+  stroke-dasharray: 2 7;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+.hwt-aggro-line[data-target-role="tank"] {
+  stroke: var(--hwt-role-tank);
+  opacity: 0.8;
+}
+.hwt-tank-zone {
+  fill: color-mix(in srgb, var(--hwt-role-tank) 6%, transparent);
+  stroke: var(--hwt-role-tank);
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+  opacity: 0.55;
+}
+.hwt-tank-zone[data-side="enemy"] {
+  stroke: color-mix(in srgb, var(--hwt-role-tank) 60%, var(--hw-hp));
+  opacity: 0.4;
+}
+.hwt-path polyline {
+  fill: none;
+  stroke: var(--hwt-move-blue);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+.hwt-path[data-band="yellow"] polyline {
+  stroke: var(--hwt-move-yellow);
+}
+.hwt-path-cost circle {
+  fill: #10141c;
+  stroke: var(--hwt-move-blue);
+  stroke-width: 2;
+}
+.hwt-path[data-band="yellow"] .hwt-path-cost circle {
+  stroke: var(--hwt-move-yellow);
+}
+.hwt-path-cost text {
+  fill: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Squad bar above the board. */
+.hwt-squad-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 6px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--hwt-walnut), var(--hwt-walnut-dark));
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 30%, transparent);
+}
+.hwt-squad-slot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 150px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 9px;
+  border: 2px solid var(--hwt-role);
+  background: color-mix(in srgb, var(--hw-card) 85%, var(--hwt-role) 8%);
+  color: var(--hw-text);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.hwt-squad-slot:hover {
+  background: color-mix(in srgb, var(--hw-card) 75%, var(--hwt-role) 18%);
+}
+.hwt-squad-slot[data-selected="true"] {
+  box-shadow: 0 0 0 2px var(--hwt-gold), 0 0 12px color-mix(in srgb, var(--hwt-gold) 55%, transparent);
+}
+.hwt-squad-slot[data-spent="true"] {
+  opacity: 0.6;
+}
+.hwt-squad-slot[data-dead="true"] {
+  opacity: 0.3;
+  filter: grayscale(1);
+  cursor: default;
+}
+.hwt-squad-portrait {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 7px;
+  overflow: visible;
+  background: var(--hw-card);
+}
+.hwt-squad-portrait .hwt-token-art {
+  border-radius: 7px;
+  padding-bottom: 0;
+}
+.hwt-squad-portrait .hwt-token-glyph {
+  width: 24px;
+  height: 24px;
+}
+.hwt-squad-role {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--hwt-role);
+  color: #14110c;
+  font-size: 12px;
+  font-weight: 900;
+  border: 2px solid color-mix(in srgb, var(--hwt-role) 45%, black);
+}
+.hwt-squad-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.hwt-squad-name {
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+.hwt-squad-role-name {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hwt-role);
+}
+.hwt-squad-hp {
+  position: relative;
+  height: 9px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+.hwt-squad-hp-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--hw-moss);
+  transition: width 0.45s ease-out;
+}
+.hwt-squad-hp-num {
+  position: absolute;
+  inset: 0;
+  font-size: 8px;
+  line-height: 9px;
+  text-align: center;
+  font-weight: 700;
+  text-shadow: 0 1px 1px black;
+}
+.hwt-squad-ap {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+}
+.hwt-squad-ap-pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--hwt-gold);
+}
+.hwt-squad-ap-pip[data-full="true"] {
+  background: var(--hwt-gold);
+}
+
+/* Selected card: role + one line on what it does. */
+.hwt-selected-card[data-role] {
+  border-left: 4px solid var(--hwt-role);
+}
+.hwt-selected-role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  font-size: var(--hw-fs-xs);
+  color: var(--hw-muted);
+}
+.hwt-selected-role strong {
+  color: var(--hwt-role);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.hwt-selected-role-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--hwt-role);
+  color: #14110c;
+  font-weight: 900;
+  font-size: 11px;
+}
+.hwt-selected-role-what {
+  flex-basis: 100%;
+}
+
+/* Universal Overwatch / Hunker Down buttons. */
+.hwt-universal-actions {
+  display: flex;
+  gap: 8px;
+}
+.hwt-universal-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 45%, transparent);
+  background: linear-gradient(180deg, var(--hwt-walnut), var(--hwt-walnut-dark));
+  color: var(--hw-text);
+  font: inherit;
+  font-size: var(--hw-fs-sm);
+  cursor: pointer;
+}
+.hwt-universal-btn:hover:not(:disabled) {
+  border-color: var(--hwt-gold);
+}
+.hwt-universal-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.hwt-universal-btn[data-active] {
+  border-color: var(--hwt-move-blue);
+}
+.hwt-universal-icon {
+  font-size: 15px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwt-ow-badge { animation: none; }
+}
