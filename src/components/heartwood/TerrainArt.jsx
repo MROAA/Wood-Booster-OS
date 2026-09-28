@@ -86,9 +86,9 @@ const TERRAIN_SVG = {
       `<rect width="64" height="64" fill="#1c2615"/>` +
         `<g fill="none" stroke-width="1.8" stroke-linecap="round">` +
         [[12, 22, 12], [34, 18, 13], [55, 24, 12], [22, 38, 14], [46, 40, 14], [8, 56, 13], [32, 58, 15], [56, 60, 13]]
-          .map(([x, y, h], i) => tuft(x, y, h, "#34521f") + tuft(x + 3, y + 1, h - 2, i % 2 ? "#5f8a36" : "#6f9a3e"))
+          .map(([x, y, h], i) => tuft(x, y, h, "#2c4419") + tuft(x + 3, y + 1, h - 2, i % 2 ? "#4f7430" : "#5a8036"))
           .join("") +
-        `</g><g fill="#a8c860" opacity=".7"><circle cx="31" cy="4" r="1"/><circle cx="18" cy="23" r="1"/><circle cx="52" cy="26" r="1"/><circle cx="29" cy="42" r="1"/></g>`,
+        `</g><g fill="#a8c860" opacity=".4"><circle cx="31" cy="4" r="1"/><circle cx="52" cy="26" r="1"/></g>`,
     ),
   ice: (a) =>
     svg(
@@ -195,12 +195,13 @@ const TERRAIN_SVG = {
 
 // Corruption ooze, drawn over any terrain (the Blight overlay).
 const BLIGHT_SVG = svg(
-  `<g stroke-linecap="round" fill="none"><path d="M30 30Q18 22 4 6M34 32Q48 20 60 8M28 36Q16 46 6 60M36 36Q50 46 58 62M32 28Q34 14 30 0" stroke="#2a0f36" stroke-width="4"/>` +
-    `<path d="M30 30Q18 22 4 6M34 32Q48 20 60 8M28 36Q16 46 6 60M36 36Q50 46 58 62" stroke="#7a3596" stroke-width="1" opacity=".7"/></g>` +
-    `<path d="M12 34C10 22 22 14 32 16C44 14 54 24 52 34C54 46 42 54 32 50C20 54 10 46 12 34Z" fill="#2a0f36" opacity=".92"/>` +
-    `<path d="M18 32C18 24 26 20 32 22C40 20 46 26 45 32C46 40 38 44 32 42C24 44 18 40 18 32Z" fill="#4a1a5e"/>` +
-    `<ellipse cx="27" cy="27" rx="5" ry="2.2" fill="#b066d0" opacity=".45"/>` +
-    `<g fill="#9cc43c" opacity=".8"><circle cx="38" cy="36" r="1.4"/><circle cx="24" cy="40" r="1"/><circle cx="44" cy="24" r="1"/></g>`,
+  `<path d="M6 30C2 18 12 6 24 8C30 2 42 4 46 10C58 10 62 24 56 32C62 42 54 56 42 54C36 62 22 60 18 52C6 52 2 40 6 30Z" fill="#240c30" opacity=".82"/>` +
+    `<g fill="none" stroke-linecap="round"><path d="M12 30Q4 26 0 30M22 12Q18 4 20 0M46 12Q52 4 58 2M56 36Q62 40 64 38M40 54Q44 60 42 64M18 50Q10 58 4 60" stroke="#2c0f3a" stroke-width="3"/></g>` +
+    `<path d="M14 32C12 22 22 14 32 16C44 14 52 24 50 34C52 44 42 50 32 48C22 50 14 42 14 32Z" fill="#43175a"/>` +
+    `<path d="M22 30C22 25 27 22 32 23C38 22 42 27 41 32C42 38 36 41 31 40C26 41 22 36 22 30Z" fill="#5c2478" opacity=".8"/>` +
+    `<g fill="none" stroke="#8a44a8" stroke-width=".9" opacity=".6" stroke-linecap="round"><path d="M24 20q-4-6-2-10M42 22q6-4 10-2M44 40q6 4 8 10M22 42q-6 4-8 10"/></g>` +
+    `<ellipse cx="27" cy="26" rx="5" ry="2" fill="#c07ae0" opacity=".4"/>` +
+    `<g fill="#9cc43c" opacity=".75"><circle cx="38" cy="36" r="1.3"/><circle cx="24" cy="38" r="1"/><circle cx="46" cy="26" r=".9"/></g>`,
 )
 
 const toUrl = (s) => `url("data:image/svg+xml,${encodeURIComponent(s)}")`
