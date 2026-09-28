@@ -3168,6 +3168,7 @@ function aiTileScore(state, enemy, pos, outcome) {
 // turn, -a bit for each one that would flank it (no cover toward it).
 const AI_COVER_STEP = 5
 const AI_FLANKED_PENALTY = 4
+const AI_FLANK_BONUS = 8
 function aiCoverTileScore(state, pos) {
   let score = 0
   for (const p of livingUnits(state, "player")) {
@@ -3597,9 +3598,11 @@ function decideEnemyIntent(state, enemyId) {
         // XCOM part 2: a kill that needs a clean hit is worth its odds.
         const killP = target.revive > 0 ? 0 : odds.graze >= target.hp ? 1 : odds.full >= target.hp ? odds.p : 0
         const kill = killP >= 1
+        // Rolls on: favour good odds, and flanking a unit that sits in cover.
+        const oddsScore = cover.rollsOn(state) && !target.structure ? (odds.p - 0.85) * 40 + (cover.isFlanked(state, target.pos, pos) ? AI_FLANK_BONUS : 0) : 0
         const facing = classifyFacingAttack(attacker, target)
         const score =
-          AI_ATTACK_BASE + tileScore + AI_KILL_BONUS * killP + 3 * dmg + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0)
+          AI_ATTACK_BASE + tileScore + AI_KILL_BONUS * killP + 3 * dmg + oddsScore + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0)
         if (score > best.score) {
           best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: moveTo, targetId: target.id } }
         }

@@ -100,6 +100,7 @@ import crewBanner from "../assets/heartwood/crew-banner.jpg"
 import TacticsBoard from "../components/heartwood/TacticsBoard"
 import { withLowEnemyHp, enterDeploy } from "../services/heartwood/tacticsEngine"
 import { buildRunTacticsBattle } from "../services/heartwood/tacticsRealMatchup"
+import { withHitRolls } from "../services/heartwood/tacticsCover"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
@@ -626,12 +627,14 @@ export default function HeartwoodBattle() {
     // consumed exactly like the auto-battle path consumes it.
     setRunState((current) =>
       startTacticsFormationBattle(current, (start) => {
-        const battle = buildRunTacticsBattle(current, start)
+        const params = new URLSearchParams(window.location.search)
+        // XCOM part 2: real fights roll hits (cover + graze); `?rolls=0` = QA off.
+        const built = buildRunTacticsBattle(current, start)
+        const battle = params.get("rolls") === "0" ? built : withHitRolls(built)
         // The same QA-only ?debugLowHp=1 hook HeartwoodTactics.jsx's own
         // maybeDebugLowHp already uses - never a real feature, just lets a
         // verification pass reach a real win without grinding real attack
         // rounds first.
-        const params = new URLSearchParams(window.location.search)
         // Deployment phase: every real fight opens in setup.
         return enterDeploy(battle && params.get("debugLowHp") === "1" ? withLowEnemyHp(battle) : battle)
       }),
