@@ -413,7 +413,7 @@ export const EVENTS = [
     id: "the-grieving-guardian",
     act: 5,
     title: "The Grieving Guardian",
-    body: "A shape the size of a house sits in the path with its back to you, not moving, one of the old forest guardians gone to moss and stillness. It's holding something small and broken in both huge hands and it has clearly been holding it for a very long time.",
+    body: "A shape the size of a house sits in the path with its back to you, not moving, one of the old forest guardians gone to moss and stillness. It's holding something small and broken in both huge hands and it has clearly been holding it for a very long time. [[quick-edit-live-test]]",
     choices: [
       {
         label: "Approach slowly. Let it see you.",
