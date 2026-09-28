@@ -52,7 +52,11 @@ const out = { errors: [] }
 // real act via the same `actIndexForNode` HeartwoodBattle.jsx itself
 // reads - not a workaround, the correct value for a save that starts
 // "already this far into the run."
-async function seedRealSave(page, nodeFilter, benchDefIds, forcedSeed = null) {
+// Deterministic by default: a random run seed meant random map templates
+// and destructible objects, which occasionally broke fixed-position checks.
+// A check can still pass its own forcedSeed.
+const DEFAULT_TEST_SEED = 424243
+async function seedRealSave(page, nodeFilter, benchDefIds, forcedSeed = DEFAULT_TEST_SEED) {
   return page.evaluate(
     async ({ nodeFilterSrc, benchDefIds, forcedSeed }) => {
       const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
