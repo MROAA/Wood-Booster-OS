@@ -9,6 +9,7 @@
 // your next turn" and 2 = "for 2 turns". No state.turn needed, which keeps
 // the damage mods pure (previewEnemyIntents stays an exact dry-run).
 import { CLASSES, classById, fallbackClassId } from "../../data/heartwood/classes"
+export { upgradeClassSkill, applySkillUpgrades } from "../../data/heartwood/classes"
 import { kingAdjacent, isOnBoard, samePos } from "./targeting"
 import { TERRAIN, terrainAt, canReach, WALL_MAX_HP } from "./tacticsTerrain"
 import {
@@ -83,6 +84,106 @@ export function classSkillById(unit, skillId) {
 
 export function classSkillReady(unit, skill) {
   return !!unit && !!skill && unit.hp > 0 && unit.ap >= skill.cost && !((unit.classCds || {})[skill.id] > 0)
+}
+
+// --- Skill tree ----------------------------------------------------------------
+
+const FOE_T = {
+  stun: (s, id, v) => callout(setUnit(s, id, { stun: Math.max(getUnit(s, id).stun || 0, v) }), id, "Stunned!"),
+  root: (s, id) => rootUnit(s, id),
+  slow: (s, id) => callout(slowUnit(s, id), id, "Slowed!"),
+  poison: (s, id, v) => applyElement(s, id, "poison", v),
+  burn: (s, id, v) => applyElement(s, id, "fire", v),
+  chill: (s, id, v) => applyElement(s, id, "frost", v),
+  expose: (s, id, v) => callout(setUnit(s, id, { exposed: Math.max(getUnit(s, id).exposed || 0, v) }), id, "Exposed!"),
+  curse: (s, id, v) => callout(setUnit(s, id, { cursed: Math.max(getUnit(s, id).cursed || 0, v) }), id, "Cursed!"),
+  disarm: (s, id, v) => callout(setUnit(s, id, { disarmed: Math.max(getUnit(s, id).disarmed || 0, v) }), id, "Disarmed!"),
+  silence: (s, id, v) => callout(setUnit(s, id, { silenced: Math.max(getUnit(s, id).silenced || 0, v) }), id, "Silenced!"),
+  mark: (s, id, v) => {
+    const u = getUnit(s, id)
+    return callout(setUnit(s, id, { mark: Math.max(u.mark || 0, 2), markBonus: Math.max(u.mark > 0 ? u.markBonus || 0 : 0, v) }), id, "Marked!")
+  },
+  corrupt: (s, id, v) => setUnit(s, id, { corruption: (getUnit(s, id).corruption || 0) + v }),
+  dmg: (s, id, v) => flatHit(s, id, v),
+}
+const ALLY_T = {
+  block: (s, id, v) => setUnit(s, id, { block: (getUnit(s, id).block || 0) + v }),
+  ward: (s, id, v) => emit(setUnit(s, id, { ward: (getUnit(s, id).ward || 0) + v }), { kind: "ward", targetId: id }),
+  ap: (s, id, v) => setUnit(s, id, { ap: getUnit(s, id).ap + v }),
+  attack: (s, id, v) => setUnit(s, id, { attack: getUnit(s, id).attack + v }),
+  cleanse: (s, id) => {
+    const u = getUnit(s, id)
+    const patch = {}
+    for (const key of CLEANSED) if (u[key] > 0) patch[key] = 0
+    return setUnit(s, id, patch)
+  },
+  taunt: (s, id) => callout(setUnit(s, id, { shoutTurn: s.turn }), id, "Taunt!"),
+  resetCd: (s, id, v) => setUnit(s, id, { classCds: { ...(getUnit(s, id).classCds || {}), [v]: 0 } }),
+}
+
+// One rider block on one unit (keys picked by FOE_T / ALLY_T / heal).
+function fxOn(state, actorId, id, fx) {
+  let s = state
+  for (const [k, v] of Object.entries(fx)) {
+    if (k === "radius" || k === "incl" || v === false || v == null) continue
+    const u = getUnit(s, id)
+    if (!u || u.hp <= 0 || ended(s)) break
+    if (k === "heal") s = healUnit(s, getUnit(s, actorId) || u, id, v)
+    else if (FOE_T[k] && u.side !== getUnit(s, actorId)?.side) s = FOE_T[k](s, id, v)
+    else if (ALLY_T[k]) s = ALLY_T[k](s, id, v)
+  }
+  return s
+}
+
+// Skill-tree rider (classes.js SKILL_UPGRADES / SIGNATURE_UPGRADES `fx`),
+// run right after the skill itself resolved. Deterministic, state in/out.
+export function applySkillFx(state, actorId, targetId, tile, fx, targetFell) {
+  const a = getUnit(state, actorId)
+  if (!a || !fx) return state
+  let s = state
+  const t = targetId ? getUnit(s, targetId) : null
+  const fell = targetFell ?? (t ? t.hp <= 0 : false)
+  const foesOf = (side) => (side === "player" ? "enemy" : "player")
+  if (fx.kill && fell) {
+    if (fx.kill.ap) s = callout(setUnit(s, actorId, { ap: getUnit(s, actorId).ap + fx.kill.ap }), actorId, `+${fx.kill.ap} AP`)
+    if (fx.kill.heal && getUnit(s, actorId).hp > 0) s = healUnit(s, getUnit(s, actorId), actorId, fx.kill.heal)
+  }
+  if (fx.t && t && !fell) s = fxOn(s, actorId, t.id, fx.t)
+  if (fx.splash && t) {
+    const ids = livingUnits(s, t.side).filter((u) => u.id !== t.id && !u.structure && kingAdjacent(u.pos, t.pos)).map((u) => u.id)
+    for (const id of ids) s = fxOn(s, actorId, id, fx.splash)
+  }
+  if (fx.self) s = fxOn(s, actorId, actorId, fx.self)
+  if (fx.aura) {
+    const r = fx.aura.radius || 1
+    const me = getUnit(s, actorId)
+    const ids = livingUnits(s, me.side).filter((u) => !u.structure && (u.id === actorId ? fx.aura.incl : dist(u.pos, me.pos) <= r)).map((u) => u.id)
+    for (const id of ids) s = fxOn(s, actorId, id, fx.aura)
+  }
+  if (fx.near) {
+    const r = fx.near.radius || 1
+    const me = getUnit(s, actorId)
+    const ids = livingUnits(s, foesOf(me.side)).filter((u) => !u.structure && dist(u.pos, me.pos) <= r).map((u) => u.id)
+    for (const id of ids) s = fxOn(s, actorId, id, fx.near)
+  }
+  if (fx.pet) {
+    const c = companionOf(s, getUnit(s, actorId))
+    if (c) {
+      const { hp = 0, ap = 0, heal = 0 } = fx.pet
+      s = setUnit(s, c.id, { maxHp: c.maxHp + hp, hp: c.hp + hp, ap: c.ap + ap })
+      if (heal) s = healUnit(s, getUnit(s, actorId), c.id, heal)
+    }
+  }
+  if (fx.tile && tile) {
+    const ids = s.units.filter((u) => u.hp > 0 && !u.structure && dist(u.pos, tile) <= 1).map((u) => u.id)
+    for (const id of ids) {
+      const u = getUnit(s, id)
+      const mine = u.side === a.side
+      const pick = Object.fromEntries(Object.entries(fx.tile).filter(([k]) => (mine ? ALLY_T[k] : FOE_T[k])))
+      s = fxOn(s, actorId, id, pick)
+    }
+  }
+  return checkTacticsBattleEnd(s)
 }
 
 // --- Passive hooks (called from tacticsEngine.js) ---------------------------
@@ -196,6 +297,7 @@ export function afterMove(state, unitId) {
     next = setUnit(next, s.id, { overwatch: 0 })
     next = callout(addLog(next, `${s.name}'s Overwatch fires at ${live.name}!`), s.id, "Overwatch!")
     next = abilityHit(next, s.id, unitId, s.attack, { name: "Overwatch" }).next
+    if (s.owRoot && !ended(next)) next = rootUnit(next, unitId)
     break
   }
   return next
@@ -797,8 +899,10 @@ function springTrap(state, unitId) {
   if (trap.kind === "thorn") {
     next = flatHit(next, unitId, trap.damage)
     if (getUnit(next, unitId)?.hp > 0 && !ended(next)) next = rootUnit(next, unitId)
+    if (trap.poison && getUnit(next, unitId)?.hp > 0 && !ended(next)) next = applyElement(next, unitId, "poison", trap.poison)
   } else {
     next = applyElement(next, unitId, "poison", trap.amount)
+    if (trap.root && getUnit(next, unitId)?.hp > 0 && !ended(next)) next = rootUnit(next, unitId)
   }
   const owner = getUnit(next, trap.ownerId)
   if (has(owner, "ambush-network") && !ended(next)) {
@@ -812,15 +916,17 @@ function springTrap(state, unitId) {
 function releaseRitual(state, id, early) {
   const a = getUnit(state, id)
   const n = a.ritual || 0
+  const rite = classSkillById(a, "complete-ritual") || {}
+  const per = rite.damage || 3
   let next = setUnit(state, id, { ritual: 0 })
   const radius = early ? 1 : 3
-  const dmg = early ? Math.ceil((3 * n) / 2) : 3 * n
+  const dmg = early ? Math.ceil((per * n) / 2) : per * n
   next = emit(addLog(next, early ? `${a.name}'s ritual breaks and lashes out!` : `${a.name} completes the ritual!`), { kind: "aoe", actorId: id })
   if (early) next = callout(next, id, "Ritual breaks!")
   const foes = livingUnits(next, "enemy").filter((e) => !e.structure && dist(e.pos, a.pos) <= radius).map((e) => e.id)
   for (const f of foes) next = flatHit(next, f, dmg)
   if (!early && !ended(next)) {
-    for (const u of livingUnits(next, "player")) if (!u.structure && dist(u.pos, a.pos) <= radius) next = healUnit(next, a, u.id, 2 * n)
+    for (const u of livingUnits(next, "player")) if (!u.structure && dist(u.pos, a.pos) <= radius) next = healUnit(next, a, u.id, (rite.heal || 2) * n)
   }
   return next
 }
@@ -885,8 +991,8 @@ const HANDLERS = {
     if (broke) s = addLog({ ...s, terrain, wallHp }, `The barricade crumbles under ${a.name}!`)
     return s
   },
-  overwatch(s, a) {
-    return addLog(setUnit(s, a.id, { overwatch: 1 }), `${a.name} takes aim and watches the field.`)
+  overwatch(s, a, _t, k) {
+    return addLog(setUnit(s, a.id, { overwatch: 1, owRoot: !!k?.owRoot }), `${a.name} takes aim and watches the field.`)
   },
   "mark-intruder"(s, a, t) {
     s = setUnit(s, t.id, { sMark: 2, sMarkBy: a.id })
@@ -911,8 +1017,8 @@ const HANDLERS = {
     return s
   },
   "double-strike"(s, a, t, k) {
-    s = hit(s, a.id, t.id, Math.ceil(a.attack * k.mult), { name: "Double Strike" }).next
-    return hit(s, a.id, t.id, Math.ceil(getUnit(s, a.id).attack * k.mult), { name: "Double Strike" }).next
+    for (let i = 0; i < (k.hits || 2); i++) s = hit(s, a.id, t.id, Math.ceil(getUnit(s, a.id).attack * k.mult), { name: "Double Strike" }).next
+    return s
   },
   "exploit-opening"(s, a, t, k) {
     return hit(s, a.id, t.id, a.attack + (hasAnyStatus(t) ? k.bonus : 0), { name: "Exploit Opening" }).next
@@ -1136,11 +1242,11 @@ const HANDLERS = {
     return callout(setUnit(r.next, t.id, { drained: 1 }), t.id, "-1 AP")
   },
   "thorn-trap"(s, a, pos, k) {
-    const traps = { ...(s.classTraps || {}), [`${pos.row}-${pos.col}`]: { kind: "thorn", ownerId: a.id, damage: k.damage } }
+    const traps = { ...(s.classTraps || {}), [`${pos.row}-${pos.col}`]: { kind: "thorn", ownerId: a.id, damage: k.damage, poison: k.poison || 0 } }
     return addLog({ ...s, classTraps: traps }, `${a.name} hides a thorn trap.`)
   },
   "poison-mine"(s, a, pos, k) {
-    const traps = { ...(s.classTraps || {}), [`${pos.row}-${pos.col}`]: { kind: "poison", ownerId: a.id, amount: k.amount } }
+    const traps = { ...(s.classTraps || {}), [`${pos.row}-${pos.col}`]: { kind: "poison", ownerId: a.id, amount: k.amount, root: !!k.root } }
     return addLog({ ...s, classTraps: traps }, `${a.name} buries a poison mine.`)
   },
   decoy(s, a, pos, k) {
@@ -1396,6 +1502,7 @@ export function castClassSkill(state, actorId, targetId, skillId) {
   let next = setUnit(state, actorId, { ap: actor.ap - skill.cost, classCds: { ...(actor.classCds || {}), [skill.id]: skill.cooldown } })
   next = callout(next, actorId, `${skill.name}!`)
   next = HANDLERS[skill.id](next, getUnit(next, actorId), tile || (target ? getUnit(next, target.id) : null), skill)
+  if (skill.upgrade?.fx && !ended(next)) next = applySkillFx(next, actorId, target?.id || null, tile, skill.upgrade.fx)
   next = afterCast(next, actorId, target?.id || null, skill)
   return checkTacticsBattleEnd(next)
 }

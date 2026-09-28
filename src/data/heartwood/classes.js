@@ -496,6 +496,166 @@ export const CLASSES = {
   },
 }
 
+// Skill tree (level-ups): every class skill has 2 upgrade branches, A or
+// B, picked on a level-up (one per skill, permanent). `patch` overrides
+// the skill's own numbers; `fx` adds a rider run right after the skill
+// resolves (tacticsClasses.applySkillFx):
+//   t: on the target - enemy: stun/root/slow/poison/burn/chill/expose/
+//      curse/disarm/silence/mark/corrupt/dmg; ally: block/heal/ward/ap/attack
+//   self: {block, heal, ward, taunt, resetCd} · splash: foes next to the
+//   target · aura: allies near the caster · near: foes near the caster ·
+//   pet: its companion · kill: if the target fell · tile: units on/next
+//   to the chosen tile.
+const U = (name, text, patch, fx) => ({ name, text, ...(patch ? { patch } : {}), ...(fx ? { fx } : {}) })
+export const SKILL_UPGRADES = {
+  // Guardian
+  guard: { A: U("Iron Vow", "The guarded ally also gains +2 Block.", null, { t: { block: 2 } }), B: U("Challenge Guard", "The Guardian also Taunts until your next turn - enemies must attack it.", null, { self: { taunt: true } }) },
+  "shield-wall": { A: U("Bastion", "+2 more Block to itself (+5 in total).", { self: 5 }), B: U("Rallying Wall", "Also Taunts - enemies must attack it until your next turn.", null, { self: { taunt: true } }) },
+  // Warden
+  "warden-zone": { A: U("Deep Roots", "+1 more Block to everyone in the zone.", { block: 2 }), B: U("Hallowed Ground", "Everyone in the zone also heals 2.", null, { aura: { heal: 2, incl: true } }) },
+  "thorn-boundary": { A: U("Wide Thicket", "Reaches 3 tiles instead of 2.", { radius: 3 }), B: U("Snaring Thorns", "The thorns also Root every enemy they hit.", null, { near: { radius: 2, root: true } }) },
+  // Juggernaut
+  charge: { A: U("Stunning Impact", "The target is Stunned - it skips its next turn.", null, { t: { stun: 1 } }), B: U("Long Charge", "Charges up to 6 tiles instead of 4.", { range: 6 }) },
+  "ground-breaker": { A: U("Aftershock", "Adjacent enemies are also Rooted.", null, { near: { root: true } }), B: U("Unstoppable", "The Juggernaut also gains +3 Block.", null, { self: { block: 3 } }) },
+  // Sentinel
+  overwatch: { A: U("Pinning Watch", "The Overwatch shot also Roots its target.", { owRoot: true }), B: U("Braced Watch", "Also gains +2 Block right away.", null, { self: { block: 2 } }) },
+  "mark-intruder": { A: U("Crippling Mark", "The marked enemy is also Slowed.", null, { t: { slow: true } }), B: U("Called Shot", "The marked enemy is also Exposed until your next turn (+25% damage taken).", null, { t: { expose: 1 } }) },
+  // Bruiser
+  "heavy-swing": { A: U("Brutal Swing", "The main target is also Disarmed (half damage until your next turn).", null, { t: { disarm: 1 } }), B: U("Second Wind", "The Bruiser also heals 3.", null, { self: { heal: 3 } }) },
+  "shoulder-check": { A: U("Rattle", "The target is also Slowed.", null, { t: { slow: true } }), B: U("Momentum", "The Bruiser also gains +2 Block.", null, { self: { block: 2 } }) },
+  // Striker
+  "double-strike": { A: U("Flurry", "Three quick hits at 45% each instead of two.", { hits: 3, mult: 0.45 }), B: U("Rending Strikes", "The target also gets 2 Poison.", null, { t: { poison: 2 } }) },
+  "exploit-opening": { A: U("Opportunist", "A kill with it refunds 1 AP.", null, { kill: { ap: 1 } }), B: U("Open Wound", "The target is also Exposed until your next turn.", null, { t: { expose: 1 } }) },
+  // Assassin
+  "shadow-step": { A: U("Veiled Step", "The Assassin also gains 1 Ward.", null, { self: { ward: 1 } }), B: U("Unnerving", "The target is Cursed until your next turn (deals 1 less, takes 1 more).", null, { t: { curse: 1 } }) },
+  execution: { A: U("Swift End", "A kill with it refunds 1 AP.", null, { kill: { ap: 1 } }), B: U("Merciless", "Works below 50% HP instead of 40%.", { below: 0.5 }) },
+  // Duelist
+  challenge: { A: U("Taunting Blade", "The Duelist also gains +2 Block.", null, { self: { block: 2 } }), B: U("First Blood", "The challenge also deals 2 damage.", null, { t: { dmg: 2 } }) },
+  disarm: { A: U("Full Disarm", "The target is also Silenced until your next turn.", null, { t: { silence: 1 } }), B: U("Riposte Stance", "The Duelist also gains +2 Block.", null, { self: { block: 2 } }) },
+  // Ranger
+  "hunters-mark": { A: U("Crippling Mark", "The marked enemy is also Slowed.", null, { t: { slow: true } }), B: U("Tracking Shot", "The mark also deals 2 damage.", null, { t: { dmg: 2 } }) },
+  "retreat-shot": { A: U("Leg Shot", "The target is also Slowed.", null, { t: { slow: true } }), B: U("Long Retreat", "Jumps up to 3 tiles away and gains +1 Block.", { steps: 3 }, { self: { block: 1 } }) },
+  // Artillery
+  "piercing-beam": { A: U("Long Beam", "Fires up to 7 tiles.", { range: 7 }), B: U("Searing Beam", "The chosen target also gets 2 Burn.", null, { t: { burn: 2 } }) },
+  "suppression-fire": { A: U("Pinning Fire", "The main target is also Rooted.", null, { t: { root: true } }), B: U("Heavy Shells", "Deals 3 damage instead of 2.", { damage: 3 }) },
+  // Executioner
+  execute: { A: U("Headsman", "Works below 60% HP instead of half.", { below: 0.6 }), B: U("Reaper's Toll", "A kill with it heals the Executioner 3.", null, { kill: { heal: 3 } }) },
+  sever: { A: U("Deep Cut", "The target also gets 2 Poison.", null, { t: { poison: 2 } }), B: U("Open Vein", "The target is also Exposed until your next turn.", null, { t: { expose: 1 } }) },
+  // Spellblade
+  "elemental-strike": { A: U("Flare", "Always adds 1 extra Burn.", null, { t: { burn: 1 } }), B: U("Storm Edge", "Enemies next to the target take 1 damage.", null, { splash: { dmg: 1 } }) },
+  "arcane-dash": { A: U("Blink Guard", "The Spellblade also gains +2 Block.", null, { self: { block: 2 } }), B: U("Long Blink", "Blinks up to 5 tiles.", { range: 5 }) },
+  // Healer
+  "group-renewal": { A: U("Deep Renewal", "Heals 4 instead of 3.", { amount: 4 }), B: U("Blessed Circle", "Everyone it heals also gains +1 Block.", null, { aura: { block: 1, incl: true } }) },
+  "lingering-bloom": { A: U("Evergreen", "Keeps blooming for 3 turns instead of 2.", { turns: 3 }), B: U("Thorned Bloom", "The ally also gains +2 Block.", null, { t: { block: 2 } }) },
+  // Medic
+  stabilize: { A: U("Steady Hands", "The ally also heals 3.", null, { t: { heal: 3 } }), B: U("Field Triage", "Reaches 3 tiles instead of 2.", { range: 3 }) },
+  cleanse: { A: U("Purifying Salve", "Heals 4 instead of 2.", { amount: 4 }), B: U("Protective Film", "The ally also gains 1 Ward.", null, { t: { ward: 1 } }) },
+  "emergency-stim": { A: U("Clean Stim", "The ally also heals 2.", null, { t: { heal: 2 } }), B: U("Rage Stim", "The ally also gets +1 attack for the rest of the fight.", null, { t: { attack: 1 } }) },
+  // Buffer
+  empower: { A: U("Overcharge", "+4 damage instead of +3.", { bonus: 4 }), B: U("Fortify", "The ally also gains +2 Block.", null, { t: { block: 2 } }) },
+  "coordinated-strike": { A: U("Pincer", "The target is also Slowed.", null, { t: { slow: true } }), B: U("Rallying Strike", "Allies next to the Buffer gain +1 Block.", null, { aura: { block: 1 } }) },
+  // Commander
+  "tactical-order": { A: U("Inspire", "The ally also gains +2 Block.", null, { t: { block: 2 } }), B: U("Long Command", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  "focus-target": { A: U("Expose Weakness", "The target is also Exposed until your next turn.", null, { t: { expose: 1 } }), B: U("Hunt Order", "The target is also Slowed.", null, { t: { slow: true } }) },
+  "hold-formation": { A: U("Iron Line", "+3 Block instead of +2.", { block: 3 }), B: U("Steady Nerves", "The Commander also heals 3.", null, { self: { heal: 3 } }) },
+  // Tactician
+  "reveal-weakness": { A: U("Crippling Insight", "The enemy is also Slowed.", null, { t: { slow: true } }), B: U("Quick Read", "Recharges in 2 turns instead of 3.", { cooldown: 2 }) },
+  "formation-shift": { A: U("Covering Swap", "The swapped ally gains +2 Block.", null, { t: { block: 2 } }), B: U("Long Shift", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  // Controller
+  silence: { A: U("Hush Snare", "The target is also Rooted.", null, { t: { root: true } }), B: U("Deep Silence", "Silenced for 3 turns instead of 2.", null, { t: { silence: 3 } }) },
+  pull: { A: U("Drag Down", "The pulled enemy is also Rooted.", null, { t: { root: true } }), B: U("Long Pull", "Reaches 4 tiles and drags up to 3.", { range: 4, steps: 3 }) },
+  // Frostbinder
+  "frost-bolt": { A: U("Brittle Ice", "The target is also Exposed until your next turn.", null, { t: { expose: 1 } }), B: U("Long Bolt", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  shatter: { A: U("Shrapnel", "Enemies next to the target take 2 damage.", null, { splash: { dmg: 2 } }), B: U("Refreeze", "Adds 1 Chill to the target afterwards.", null, { t: { chill: 1 } }) },
+  "frozen-ground": { A: U("Glacier", "Every enemy on the ice is also Slowed.", null, { t: { slow: true }, splash: { slow: true } }), B: U("Far Freeze", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  // Rootweaver
+  "root-snare": { A: U("Thorned Snare", "The target also gets 2 Poison.", null, { t: { poison: 2 } }), B: U("Wide Snare", "Enemies next to the target are Slowed.", null, { splash: { slow: true } }) },
+  "growing-wall": { A: U("Ironwood Wall", "The wall has 9 HP instead of 5.", { hp: 9 }), B: U("Bramble Wall", "Enemies next to the wall also take 2 damage.", null, { tile: { dmg: 2 } }) },
+  "vine-bridge": { A: U("Quick Weave", "Recharges in 2 turns instead of 4.", { cooldown: 2 }), B: U("Living Bridge", "The Rootweaver also gains +2 Block.", null, { self: { block: 2 } }) },
+  // Disruptor
+  dispel: { A: U("Backlash", "Deals 3 damage instead of 1.", { damage: 3 }), B: U("Shock Dispel", "The target is also Silenced until your next turn.", null, { t: { silence: 1 } }) },
+  displace: { A: U("Crushing Shove", "4 damage if something blocks it instead of 2.", { bonus: 4 }), B: U("Far Shove", "Shoves up to 3 tiles.", { steps: 3 }) },
+  "static-disruption": { A: U("Overload", "The target is also Slowed.", null, { t: { slow: true } }), B: U("Static Field", "Enemies next to the target take 1 damage.", null, { splash: { dmg: 1 } }) },
+  // Trapper
+  "thorn-trap": { A: U("Serrated Trap", "The trap deals 5 damage instead of 3.", { damage: 5 }), B: U("Venom Spikes", "The trap also adds 2 Poison.", { poison: 2 }) },
+  "poison-mine": { A: U("Potent Mine", "5 Poison instead of 3.", { amount: 5 }), B: U("Sticky Mine", "The mine also Roots its victim.", { root: true }) },
+  decoy: { A: U("Sturdy Decoy", "The Decoy has 10 HP instead of 6.", { hp: 10 }), B: U("Far Decoy", "Can be set up to 5 tiles away.", { range: 5 }) },
+  // Hexer
+  vulnerability: { A: U("Deep Hex", "The enemy is also Cursed for 2 turns.", null, { t: { curse: 2 } }), B: U("Far Hex", "Reaches 6 tiles instead of 4.", { range: 6 }) },
+  "hex-chain": { A: U("Wracking Chain", "Deals 2 damage to each instead of 1.", { damage: 2 }), B: U("Binding Chain", "The main target is also Slowed.", null, { t: { slow: true } }) },
+  "soul-debt": { A: U("Heavy Debt", "4 damage per attack instead of 3.", { damage: 4 }), B: U("Debt Collector", "The enemy is also Cursed for 2 turns.", null, { t: { curse: 2 } }) },
+  // Summoner
+  "summon-spirit": { A: U("Alpha Spirit", "The Spirit has +4 HP.", null, { pet: { hp: 4 } }), B: U("Eager Spirit", "The Spirit can act right away with 1 AP.", null, { pet: { ap: 1 } }) },
+  "sacrificial-summon": { A: U("Bigger Burst", "The burst deals 6 instead of 4.", { damage: 6 }), B: U("Spirit Echo", "Summon Spirit is ready again at once.", null, { self: { resetCd: "summon-spirit" } }) },
+  "swarm-command": { A: U("Pack Tactics", "The target is also Slowed.", null, { t: { slow: true } }), B: U("Blood Scent", "The target is Marked for 2 turns: every ally's hits on it deal +1.", null, { t: { mark: 1 } }) },
+  // Beastmaster
+  "call-companion": { A: U("Alpha Wolf", "The companion has +4 HP.", null, { pet: { hp: 4 } }), B: U("Eager Wolf", "The companion can act right away with 1 AP.", null, { pet: { ap: 1 } }) },
+  hunt: { A: U("Savage Hunt", "The bite deals +4 instead of +2.", { bonus: 4 }), B: U("Hamstring", "The target is also Slowed.", null, { t: { slow: true } }) },
+  frenzy: { A: U("Feral Frenzy", "The companion also heals 3.", null, { pet: { heal: 3 } }), B: U("Blood Frenzy", "+5 damage per hit instead of +3.", { bonus: 5 }) },
+  // Alchemist
+  "poison-flask": { A: U("Potent Brew", "3 Poison instead of 2.", { amount: 3 }), B: U("Sticky Flask", "The target is also Slowed.", null, { t: { slow: true } }) },
+  "volatile-mixture": { A: U("Wide Blast", "Enemies next to the target get 1 Burn.", null, { splash: { burn: 1 } }), B: U("Corrosive", "The target is also Exposed until your next turn.", null, { t: { expose: 1 } }) },
+  transmute: { A: U("Caustic Touch", "Also deals 2 damage.", null, { t: { dmg: 2 } }), B: U("Far Throw", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  // Scout
+  "mark-threat": { A: U("Flag the Weak", "The target is also Exposed until your next turn.", null, { t: { expose: 1 } }), B: U("Pinpoint", "+3 damage per hit instead of +2.", { bonus: 3 }) },
+  trailblazer: { A: U("Wide Trail", "Reaches allies within 3 tiles.", { radius: 3 }), B: U("Guarded Trail", "Allies within 2 also gain +1 Block.", null, { aura: { block: 1, radius: 2, incl: true } }) },
+  // Saboteur
+  sabotage: { A: U("Demolish", "The target is also Exposed until your next turn.", null, { t: { expose: 1 } }), B: U("Shrapnel", "Enemies next to the target take 1 damage.", null, { splash: { dmg: 1 } }) },
+  "explosive-charge": { A: U("Big Charge", "Blows for 6 instead of 4.", { damage: 6 }), B: U("Long Fuse", "Can be planted up to 4 tiles away.", { range: 4 }) },
+  "smoke-bomb": { A: U("Choking Smoke", "Enemies in the middle and next to it get 1 Poison.", null, { tile: { poison: 1 } }), B: U("Cover Smoke", "Allies in the middle and next to it gain +1 Block.", null, { tile: { block: 1 } }) },
+  // Engineer
+  "deploy-turret": { A: U("Heavy Turret", "The turret shoots for 4 instead of 3.", { attack: 4 }), B: U("Armored Turret", "The turret has 12 HP instead of 8.", { hp: 12 }) },
+  "build-barricade": { A: U("Spiked Barricade", "Enemies next to the barricade take 2 damage.", null, { tile: { dmg: 2 } }), B: U("Quick Build", "Recharges in 2 turns instead of 3.", { cooldown: 2 }) },
+  // Spiritwalker
+  "spirit-step": { A: U("Ghost Veil", "Also gains +2 Block.", null, { self: { block: 2 } }), B: U("Long Step", "Steps up to 5 tiles.", { range: 5 }) },
+  "phase-shift": { A: U("Warding Phase", "The ally also heals 3.", null, { t: { heal: 3 } }), B: U("Quick Phase", "Recharges in 3 turns instead of 4.", { cooldown: 3 }) },
+  "return-to-hearth": { A: U("Deep Rest", "Heals 7 instead of 4.", { amount: 7 }), B: U("Ward of Home", "Also gains 1 Ward.", null, { self: { ward: 1 } }) },
+  // Ritualist
+  "begin-ritual": { A: U("Warding Chant", "Each stack also gives +1 Block.", null, { self: { block: 1 } }), B: U("Deep Chant", "Holds up to 4 stacks.", { max: 4 }) },
+  "complete-ritual": { A: U("Wrathful Rite", "4 damage per stack instead of 3.", { damage: 4 }), B: U("Healing Rite", "Heals 3 per stack instead of 2.", { heal: 3 }) },
+  "spirit-offering": { A: U("Blood Pact", "Costs 2 HP instead of 3.", { hpCost: 2 }), B: U("Empowering Offering", "The ally also gains +2 Block.", null, { t: { block: 2 } }) },
+  // Chronomancer
+  "haste-time": { A: U("Twin Haste", "The ally also gains +2 Block.", null, { t: { block: 2 } }), B: U("Far Haste", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  "slow-time": { A: U("Time Lock", "The enemy is also Rooted.", null, { t: { root: true } }), B: U("Quick Slow", "Recharges in 2 turns instead of 3.", { cooldown: 2 }) },
+  rewind: { A: U("Rewind Plus", "The ally also heals 2 more.", null, { t: { heal: 2 } }), B: U("Far Rewind", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  // Shapeshifter
+  "beast-form": { A: U("Wild Heart", "Shifting heals 2.", null, { self: { heal: 2 } }), B: U("Thick Pelt", "Shifting also gives +2 Block.", null, { self: { block: 2 } }) },
+  "root-form": { A: U("Ancient Bark", "+5 Block instead of +3.", { block: 5 }), B: U("Mending Root", "Shifting heals 3.", null, { self: { heal: 3 } }) },
+  "predator-form": { A: U("Shadow Pelt", "Shifting gives 1 Ward.", null, { self: { ward: 1 } }), B: U("Scent of Blood", "Shifting also gives +2 Block.", null, { self: { block: 2 } }) },
+  // Corruptor
+  "consume-curse": { A: U("Devour", "The Corruptor heals 2.", null, { self: { heal: 2 } }), B: U("Lingering Rot", "Leaves 2 Corruption behind.", null, { t: { corrupt: 2 } }) },
+  "invert-blessing": { A: U("Bitter Inversion", "Also deals 2 damage.", null, { t: { dmg: 2 } }), B: U("Stolen Blessing", "The Corruptor gains +2 Block.", null, { self: { block: 2 } }) },
+  "spread-corruption": { A: U("Plague", "The main target also gets 1 Corruption.", null, { t: { corrupt: 1 } }), B: U("Far Spread", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  // Merchant
+  "emergency-supply": { A: U("Premium Potion", "Heals 5 instead of 3.", { amount: 5 }), B: U("Armored Crate", "+4 Block instead of +2.", { block: 4 }) },
+  appraise: { A: U("Tax Collector", "Also deals 2 damage.", null, { t: { dmg: 2 } }), B: U("Keen Eye", "Reaches 7 tiles instead of 5.", { range: 7 }) },
+  // Relic Keeper
+  "relic-transfer": { A: U("Blessed Transfer", "The ally also gains +2 Block.", null, { t: { block: 2 } }), B: U("Quick Transfer", "Recharges in 3 turns instead of 4.", { cooldown: 3 }) },
+  "forbidden-relic": { A: U("Blood Price", "Costs 2 HP instead of 3.", { hpCost: 2 }), B: U("Dark Bargain", "+3 attack instead of +2.", { bonus: 3 }) },
+  // Cleanser
+  purge: { A: U("Radiant Purge", "The ally also gains +2 Block.", null, { t: { block: 2 } }), B: U("Far Purge", "Reaches 5 tiles instead of 3.", { range: 5 }) },
+  "purifying-light": { A: U("Burning Light", "Deals 3 damage instead of 2.", { damage: 3 }), B: U("Wide Light", "Reaches 3 tiles instead of 2.", { radius: 3 }) },
+  // Gatherer
+  scavenge: { A: U("Feast", "Heals 5 instead of 3 on a kill.", { amount: 5 }), B: U("Forager's Blade", "The target also gets 2 Poison.", null, { t: { poison: 2 } }) },
+  overgrow: { A: U("Tangling Growth", "Enemies in the middle and next to it are Slowed.", null, { tile: { slow: true } }), B: U("Soft Moss", "Allies in the middle and next to it gain +1 Block.", null, { tile: { block: 1 } }) },
+}
+for (const cls of Object.values(CLASSES)) for (const sk of cls.skills) sk.upgrades = SKILL_UPGRADES[sk.id]
+
+// Skill tree: a class skill with a chosen branch folded in: `patch` overrides numbers,
+// `upgrade` carries the name/text/fx for the rider + the UI.
+export function upgradeClassSkill(skill, branch) {
+  const up = skill?.upgrades?.[branch]
+  if (!up) return skill
+  return { ...skill, ...(up.patch || {}), upgrade: { branch, name: up.name, text: up.text, fx: up.fx || null } }
+}
+
+// Apply every chosen branch (`ups` = { skillId: "A"|"B" }) to a unit's
+// class skills. The signature is handled by tacticsAbilities.upgradeAbility.
+export function applySkillUpgrades(unit, ups) {
+  if (!ups || !unit?.classSkills?.length) return unit
+  return { ...unit, classSkills: unit.classSkills.map((sk) => (ups[sk.id] ? upgradeClassSkill(sk, ups[sk.id]) : sk)) }
+}
+
 export const CLASS_IDS = Object.keys(CLASSES)
 
 export function classById(id) {

@@ -7,17 +7,35 @@ import { ROLES, unitProfile, unitTargetProfile, TARGET_PROFILE_LABEL } from "../
 import { PERKS, levelProgress } from "../../services/heartwood/unitLevels"
 import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
 import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
-import { describeAbility } from "../../services/heartwood/tacticsAbilities"
+import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 
-// Class chip tooltip: passive, class skills, then the unit's signature.
-function classTooltip(cls, def) {
+// Class chip tooltip: passive, class skills, then the unit's signature;
+// skill-tree branches the unit has chosen are listed under each skill.
+function classTooltip(cls, def, ups = {}) {
   const sig = signatureAbilityForDef(def)
   const lines = [`${cls.name} (${CLASS_GROUPS[cls.group]}) - ${cls.description}`, `Passive - ${cls.passive.name}: ${cls.passive.text}`]
-  for (const s of cls.skills) lines.push(`${s.icon} ${s.name} (${s.cost} AP): ${s.text}`)
-  if (sig) lines.push(`★ ${sig.name} (signature, ${sig.cost} AP): ${describeAbility(sig)}`)
+  for (const s of cls.skills) {
+    lines.push(`${s.icon} ${s.name} (${s.cost} AP): ${s.text}`)
+    const up = ups[s.id] && s.upgrades?.[ups[s.id]]
+    if (up) lines.push(`   ★ ${up.name} (${ups[s.id]}): ${up.text}`)
+  }
+  if (sig) {
+    lines.push(`★ ${sig.name} (signature, ${sig.cost} AP): ${describeAbility(sig)}`)
+    const up = ups[SIGNATURE_SKILL_KEY] && signatureUpgrades(sig)?.[ups[SIGNATURE_SKILL_KEY]]
+    if (up) lines.push(`   ★ ${up.name} (${ups[SIGNATURE_SKILL_KEY]}): ${up.text}`)
+  }
   return lines.join("\n")
+}
+
+// Chosen skill-tree branches as "Name (A)" labels.
+function upgradeNames(cls, def, ups = {}) {
+  const out = []
+  for (const s of cls.skills) if (ups[s.id] && s.upgrades?.[ups[s.id]]) out.push(s.upgrades[ups[s.id]].name)
+  const sig = ups[SIGNATURE_SKILL_KEY] && signatureUpgrades(signatureAbilityForDef(def))?.[ups[SIGNATURE_SKILL_KEY]]
+  if (sig) out.push(sig.name)
+  return out
 }
 // Card-accent modifier by resolved primary role (roles.js's ROLES[x].card).
 // hybrid is legacy - the model resolves it to a real primary now.
@@ -299,9 +317,14 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       )}
       {/* Class system: tactical class chip; tooltip = passive + skills. */}
       {tacticalClass && (
-        <div className="hw-card-tclass" data-class-id={tacticalClass.id} title={classTooltip(tacticalClass, def)}>
+        <div className="hw-card-tclass" data-class-id={tacticalClass.id} title={classTooltip(tacticalClass, def, entry?.skillUpgrades)}>
           <span className="hw-card-tclass-icon">{tacticalClass.icon}</span>
           {tacticalClass.name}
+          {upgradeNames(tacticalClass, def, entry?.skillUpgrades).length > 0 && (
+            <span className="hw-card-tclass-ups" data-upgrades={upgradeNames(tacticalClass, def, entry?.skillUpgrades).length}>
+              {" "}★{upgradeNames(tacticalClass, def, entry?.skillUpgrades).length}
+            </span>
+          )}
         </div>
       )}
       {/* Role & tag identity (roles.js) - the PRD's "upgrade visibility"

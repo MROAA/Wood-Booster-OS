@@ -58,7 +58,7 @@ import {
   RUN_PATH,
   chooseLevelPerk,
 } from "../services/heartwood/runEngine"
-import { nextPendingLevelUp, perkOffers } from "../services/heartwood/unitLevels"
+import { nextPendingLevelUp, levelOffers } from "../services/heartwood/unitLevels"
 import LevelUpChoice from "../components/heartwood/LevelUpChoice"
 import { crossroadsForAct } from "../data/heartwood/crossroads"
 import { crownlessIntroLine } from "../data/heartwood/crownless"
@@ -1076,7 +1076,7 @@ export default function HeartwoodBattle() {
   if (levelUp) {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key={`level-up-${levelUp.key}-${levelUp.perks.length}`}>
-        <LevelUpChoice subject={levelUp} offers={perkOffers(runState, levelUp)} onChoose={handleChooseLevelPerk} />
+        <LevelUpChoice subject={levelUp} offers={levelOffers(runState, levelUp)} onChoose={handleChooseLevelPerk} />
       </div>
     )
   }
