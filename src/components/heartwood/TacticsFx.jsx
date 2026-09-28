@@ -162,6 +162,13 @@ export default function TacticsFx({ battle }) {
             setBanner({ key: ev.seq, index: ev.index, name: ev.name })
             timers.push(setTimeout(() => setBanner((b) => (b && b.key === ev.seq ? null : b)), 2200))
           }, at))
+        } else if (ev.kind === "object") {
+          // Destructibles: tile flash + shake/sound (the board shows the callout text).
+          timers.push(setTimeout(() => {
+            flashTiles(ev.tiles || [ev.pos], `obj-${ev.fx}`)
+            if (["boom", "fall", "shatter", "spore"].includes(ev.fx)) { shakeBoard(); play("hitBig") }
+            else if (ev.fx === "roll" || ev.fx === "break") play("hit")
+          }, at + IMPACT_DELAY_MS))
         } else if (ev.kind === "heal") {
           timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); play("heal") }, at))
         }

@@ -30,6 +30,7 @@ import { CHARACTERS, commanderPassiveWithRank } from "../../data/heartwood/chara
 import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw } from "./targeting"
 import * as relicFx from "./tacticsRelics"
 import * as elements from "./tacticsElements"
+import * as objects from "./tacticsObjects"
 import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { bossVerdict, bossEnemyPhaseStart, bossImmuneHit, bossAfterDamage, bossTilePenalty, bossQa } from "./tacticsBosses"
 import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
@@ -1855,7 +1856,7 @@ function applyDamageInner(state, targetId, amount) {
     const delta = DIR_DELTA[OPPOSITE_DIR[target.facing]]
     const destination = { row: target.pos.row + delta.dRow, col: target.pos.col + delta.dCol }
     const occupied = next.units.some((u) => u.id !== targetId && u.hp > 0 && samePos(u.pos, destination))
-    if (isOnBoard(destination, next.grid) && !occupied) {
+    if (isOnBoard(destination, next.grid) && !occupied && TERRAIN[terrainAt(next, destination)].cost !== Infinity) {
       next = setUnit(next, targetId, { pos: destination, retreatStepUsed: true })
       next = emit({ ...next, log: [...next.log, `${target.name} reels backward from the blow!`] }, { kind: "reaction", unitId: targetId, label: "Retreat!" })
     }
@@ -2753,10 +2754,13 @@ function applyTurnStartTriggers(state, side) {
 // Everything between "End Turn" and the first enemy acting (ticks, resets).
 // Shared with previewEnemyIntents so the telegraph is an exact dry-run.
 function enemyPhaseStart(state) {
+  // Destructibles: burning trees scorch + spread, fire/poison tiles fade.
+  const objTicked = objects.objectsRoundTick(state)
+  if (objTicked.phase !== "player") return objTicked
   // applyCovenTick and applyRotMendTick never touch hp downward, so
   // neither can end the battle - no phase guard needed for either,
   // unlike the two ticks below.
-  const lavaBurned = applyLavaBurn(classFx.classPlayerTurnEnd(state), "player")
+  const lavaBurned = applyLavaBurn(classFx.classPlayerTurnEnd(objTicked), "player")
   if (lavaBurned.phase !== "player") return lavaBurned
   const covened = applyCovenTick(relicFx.relicTurnEnd(lavaBurned, "player"))
   const mended = applyRotMendTick(covened)
@@ -2928,6 +2932,15 @@ function aiTileScore(state, enemy, pos, outcome) {
   if (isCautiousEnemy(enemy)) score -= 6 * aiExposure(state, pos)
   if (isHigh(state, pos)) score += AI_HIGH_GROUND_BONUS
   if (enemy.range > 1 && terrainRule(state, pos).cover) score += AI_COVER_BONUS
+  // Destructibles: keep clear of fires/explosives; archers like a tree in front.
+  if (state.terrain && objects.hasObjects(state)) {
+    score -= objects.aiObjectTilePenalty(state, pos)
+    if (enemy.range > 1) {
+      const players = livingUnits(state, "player")
+      const near = players.reduce((b, p) => (!b || chebyshevDist(pos, p.pos) < chebyshevDist(pos, b.pos) ? p : b), null)
+      score += objects.aiTreeCoverBonus(state, pos, near?.pos)
+    }
+  }
   return score
 }
 
@@ -3210,7 +3223,7 @@ function applyEnemySkill(state, enemyId, intent) {
 // the trip by 3+ steps. Then hit the in-range wall (from here or a
 // reachable tile) that is closest to the focus by that open route.
 function aiWallOption(state, enemy, focus, pathField) {
-  const walls = Object.entries(state.terrain || {}).filter(([, t]) => t === "wall")
+  const walls = Object.entries(state.terrain || {}).filter(([, t]) => t === "wall" || (TERRAIN[t]?.obj && !objects.OBJECTS[t]?.explosive))
   if (!walls.length || enemy.ap < 1) return null
   const openField = terrainDistanceField(state.terrain, state.grid, focus.pos, true)
   const here = `${enemy.pos.row}-${enemy.pos.col}`
@@ -3235,11 +3248,12 @@ function aiWallOption(state, enemy, focus, pathField) {
 }
 
 // Barricades: 1 AP, plain attack damage (no modifiers), breaks to rubble at 0.
+// Destructibles: trees/barrels/boulders/pillars are hit the same way.
 export function wallTargetsFor(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0 || unit.ap < 1) return []
   return Object.entries(state.terrain || {})
-    .filter(([, t]) => t === "wall")
+    .filter(([, t]) => objects.isAttackableTile(t))
     .map(([key]) => {
       const [row, col] = key.split("-").map(Number)
       return { row, col }
@@ -3250,10 +3264,14 @@ export function wallTargetsFor(state, unitId) {
 export function attackWall(state, actorId, pos) {
   const actor = getUnit(state, actorId)
   if (!actor || actor.hp <= 0 || actor.ap < 1 || state.phase !== actor.side) return state
-  if (terrainAt(state, pos) !== "wall") return state
+  if (!objects.isAttackableTile(terrainAt(state, pos))) return state
   if (chebyshevDist(actor.pos, pos) > rangeAt(state, actor)) return state
   const key = `${pos.row}-${pos.col}`
   const amount = classFx.wallDamage(actor, Math.max(1, actor.attack))
+  if (terrainAt(state, pos) !== "wall") {
+    const spent = setUnit(state, actorId, { ap: actor.ap - 1 })
+    return objects.attackObject(spent, { ...actor, ap: actor.ap - 1 }, pos, amount)
+  }
   const hp = Math.max(0, wallHpAt(state, pos) - amount)
   const broke = hp <= 0
   const wallHp = { ...(state.wallHp || {}) }
@@ -3279,7 +3297,8 @@ function applyLavaBurn(state, side) {
     burned = true
     const hp = Math.max(0, live.hp - burn)
     next = setUnit(next, unit.id, { hp })
-    next = emit({ ...next, log: [...next.log, `${live.name} burns on the lava for ${burn}.${hp <= 0 ? " It falls." : ""}`] }, { kind: "damage", targetId: unit.id, amount: burn, fell: hp <= 0 })
+    const where = terrainAt(state, unit.pos) === "fire" ? "in the flames" : "on the lava"
+    next = emit({ ...next, log: [...next.log, `${live.name} burns ${where} for ${burn}.${hp <= 0 ? " It falls." : ""}`] }, { kind: "damage", targetId: unit.id, amount: burn, fell: hp <= 0 })
   }
   return burned ? checkTacticsBattleEnd(next) : next
 }
@@ -3346,6 +3365,12 @@ function decideEnemyIntent(state, enemyId) {
     if (outcome.apLeft >= 1) {
       for (const opt of aiSkillOptions(state, enemy, pos, tileScore)) {
         if (opt.score > best.score) best = { score: opt.score, intent: stay ? opt.intent : { ...opt.intent, to: moveTo } }
+      }
+      // Destructibles: set off a barrel/spore pod in the middle of the squad.
+      const blast = objects.aiExplosiveTargets(state, enemy, pos, rangeAt(state, enemy, pos))[0]
+      if (blast) {
+        const score = AI_ATTACK_BASE + tileScore + blast.value
+        if (score > best.score) best = { score, intent: stay ? { kind: "wall", pos: blast.pos, object: blast.type } : { kind: "wall", pos: blast.pos, object: blast.type, to: moveTo } }
       }
     }
     // Approach option: close the gap to the focus (ranged aim for max range).
@@ -3649,7 +3674,7 @@ export function withLowEnemyHp(state) {
   // Terrain sprint: map templates (rivers, walls, lava) can wall a naive
   // QA bot off from the enemy - the hook flattens the board too.
   // Boss fights: arena hazards + weak-point shield off too - QA-only.
-  return bossQa({ ...state, terrain: {}, wallHp: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) })
+  return bossQa({ ...state, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) })
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
