@@ -118,3 +118,7 @@ backend/data_store.json
 # =====================================
 
 /build/
+
+# Claude agent worktrees live inside the checkout - keep them out of git,
+# Tailwind scanning and the vite watcher.
+.claude/worktrees/
