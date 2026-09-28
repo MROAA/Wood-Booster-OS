@@ -2566,3 +2566,72 @@
 @media (prefers-reduced-motion: reduce) {
   .hwt-ow-badge { animation: none; }
 }
+
+/* ===== Terrain & object art (TerrainArt.jsx) ================================
+   The SVG tile art rides the cell's own background stack (--hwt-tile-pattern),
+   so zone tints, move bands, rings and telegraphs all still paint on top. */
+.hwt-cell[data-art] {
+  --hwt-tile-pattern: var(--hwt-art) center / 100% 100% no-repeat;
+  --hwt-mark: "";
+  animation: none;
+}
+.hw-reduce-motion .hwt-cell[data-art] { --hwt-tile-pattern: var(--hwt-art-still) center / 100% 100% no-repeat; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-cell[data-art] { --hwt-tile-pattern: var(--hwt-art-still) center / 100% 100% no-repeat; }
+}
+/* Status glows / telegraphs that animated the whole cell keep doing so. */
+.hwt-cell[data-art][data-burning="true"] { animation: hwt-lava-glow 1.2s ease-in-out infinite; }
+.hwt-cell[data-art][data-reinforce="true"] { animation: hwt-reinforce-blink 1.2s ease-in-out infinite; }
+.hwt-cell[data-art][data-boss-warn] { animation: hwt-boss-warn-blink 1s ease-in-out infinite; }
+.hwt-cell[data-art][data-skill-zone="release"] { animation: hwt-slam-warn 1.2s ease-in-out infinite; }
+/* High ground reads as a raised block: a drop shadow below the cliff face. */
+.hwt-cell[data-art="high"] {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #f0d9a8 30%, transparent), 0 4px 0 rgba(0, 0, 0, 0.55), 0 6px 8px rgba(0, 0, 0, 0.4), var(--hwt-ring);
+  z-index: 0;
+}
+.hwt-cell[data-art="water"], .hwt-cell[data-art="bridge"] { border-color: color-mix(in srgb, var(--hw-tide) 45%, var(--hw-bg)); }
+/* Blight ooze: the SVG overlay over any terrain, under the token. */
+.hwt-cell[data-blight="true"]::after {
+  background: var(--hwt-blight-art) center / 100% 100% no-repeat, radial-gradient(circle, rgba(28, 13, 36, 0.45), rgba(28, 13, 36, 0.25));
+  box-shadow: inset 0 0 8px color-mix(in srgb, var(--hw-curse) 40%, transparent);
+}
+
+/* Object sprites. */
+.hwt-object { display: flex; align-items: center; justify-content: center; translate: 0 -5px; }
+.hwt-object-art { width: 60px; height: 60px; display: block; overflow: visible; }
+.hwt-object[data-object="boulder"] .hwt-object-art { width: 62px; height: 62px; }
+.hwt-cell[data-burning="true"] .hwt-object { filter: drop-shadow(0 0 6px var(--hw-ember)); }
+.hwt-art-spark { animation: hwt-spark 0.7s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+.hwt-art-spores circle { animation: hwt-spore-rise 3s ease-in-out infinite; transform-box: fill-box; }
+.hwt-art-spores circle:nth-child(2) { animation-delay: 1s; }
+.hwt-art-spores circle:nth-child(3) { animation-delay: 2s; }
+.hwt-art-flames { animation: hwt-flicker 0.5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes hwt-spark { from { opacity: 0.6; scale: 0.8; } to { opacity: 1; scale: 1.2; } }
+@keyframes hwt-spore-rise { 0% { opacity: 0; translate: 0 6px; } 40% { opacity: 0.9; } 100% { opacity: 0; translate: 0 -6px; } }
+.hwt-obj-falling .hwt-object-art { width: 60px; height: 60px; }
+.hwt-cell[data-brittle="true"] .hwt-object-art { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--hw-gale) 80%, white)); }
+
+/* Legend mini icons. */
+.hwt-terrain-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.hwt-legend-icon {
+  flex: none;
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background-size: 100% 100%;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--hwt-gold) 30%, transparent);
+  overflow: hidden;
+  vertical-align: middle;
+}
+.hwt-legend-icon-sprite { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hwt-faction-extra .hwt-legend-icon { margin-right: 5px; top: 3px; }
+
+.hw-reduce-motion .hwt-art-spark,
+.hw-reduce-motion .hwt-art-spores circle,
+.hw-reduce-motion .hwt-art-flames,
+.hw-reduce-motion .hwt-object,
+.hw-reduce-motion .hwt-cell[data-art] { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-art-spark, .hwt-art-spores circle, .hwt-art-flames { animation: none; }
+}

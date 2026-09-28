@@ -62,6 +62,7 @@ import { PERKS } from "../../services/heartwood/unitLevels"
 import { describeBoss, bossWarningTiles } from "../../services/heartwood/tacticsBosses"
 import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile, isBurning, isChilled } from "../../services/heartwood/tacticsObjects"
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
+import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL } from "./TerrainArt"
 
 const BOSS_WARN_ICON = { quake: "✹", lava: "♨", water: "≈", wall: "▦", ice: "❄", poison: "☣", adds: "❖", teleport: "◎" }
 
@@ -744,6 +745,8 @@ export default function TacticsBoard({
           data-threatened={!!threatened}
           data-skill-zone={skillZone.get(`${row}-${col}`) || undefined}
           data-terrain={terrain}
+          data-art={terrainArtStyle(terrain) ? terrain : undefined}
+          style={terrainArtStyle(terrain)}
           data-zoc={zoc}
           data-threat-zone={threatZone}
           data-fear-zone={fearZone}
@@ -790,7 +793,7 @@ export default function TacticsBoard({
           )}
           {OBJECTS[terrain] && (
             <span className="hwt-object" data-object={terrain} aria-hidden="true">
-              {OBJECTS[terrain].icon}
+              <ObjectArt type={terrain} burning={isBurning(battle, { row, col })} brittle={terrain === "icepillar" && isChilled(battle, { row, col })} />
             </span>
           )}
           {OBJECTS[terrain] && objectMaxHp(terrain) > 1 && (
@@ -814,7 +817,7 @@ export default function TacticsBoard({
               <span key={`o${fx.id}`}>
                 {fx.fx === "fall" && (
                   <span className="hwt-obj-falling" style={{ "--fall-x": fx.dir?.col || 0, "--fall-y": fx.dir?.row || 0 }}>
-                    🌲
+                    <ObjectArt type="tree" />
                   </span>
                 )}
                 <span className="hwt-wall-fx hwt-obj-fx" data-kind={fx.fx}>
@@ -1125,7 +1128,7 @@ export default function TacticsBoard({
           <SquadBar battle={battle} selectedId={selectedId} onSelect={handleSquadSelect} />
           <div
             className="hwt-board"
-            style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)` }}
+            style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)`, "--hwt-blight-art": BLIGHT_ART_URL }}
           >
             {cells}
             <BoardOverlay battle={battle} pairs={aggro} hoverPath={hoverPath} selected={selected} healReachTiles={healRing.size ? healReach(selected) : 0} />
@@ -1157,6 +1160,7 @@ export default function TacticsBoard({
               <div className="hwt-faction-hint">{factionView.hint}</div>
               {factionView.id === "corrupted" && (
                 <div className="hwt-faction-extra">
+                  <BlightIcon />
                   Blight: {factionView.blightCount} tile(s){blightNext.size ? ` - spreads to ${blightNext.size} more next enemy turn (dashed)` : ""}
                 </div>
               )}
@@ -1172,6 +1176,7 @@ export default function TacticsBoard({
               <span className="hwt-terrain-legend-title">Battlefield</span>
               {terrainKinds.map((t) => (
                 <span key={t} className="hwt-terrain-legend-item" data-kind={t} title={TERRAIN_INFO[t].text}>
+                  <TerrainIcon type={t} />
                   {TERRAIN_INFO[t].name}
                 </span>
               ))}
