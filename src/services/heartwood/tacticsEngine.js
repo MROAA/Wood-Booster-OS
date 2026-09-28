@@ -36,6 +36,7 @@ import { bossVerdict, bossEnemyPhaseStart, bossImmuneHit, bossAfterDamage, bossT
 import { deriveAbilityForDef, abilityTargetSide, HAND_ABILITIES, signatureAbilityForDef } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
 import * as classFx from "./tacticsClasses"
+import { roleOf } from "./tacticsRoles"
 import { applyFaction, factionEnemyPhaseStart, blightAttackBonus, factionTargetBonus, isBlighted, FADE_RANGE } from "./tacticsFactions"
 import { TERRAIN, terrainAt, terrainRule, isHigh, canReach, rangeAt, highGroundAmount, slideLanding, terrainDistanceField, wallHpAt, WALL_MAX_HP } from "./tacticsTerrain"
 export { TERRAIN_INFO, WALL_MAX_HP, wallHpAt, rangeAt } from "./tacticsTerrain"
@@ -1234,6 +1235,11 @@ export function reachableTilesFor(state, unitId) {
   // this engine has no stun/status system at all yet).
   if (unit.root > 0) return []
   const occupied = state.units.filter((u) => u.id !== unitId && u.hp > 0).map((u) => u.pos)
+  return reachableTilesRaw(occupied, unit.pos, effectiveMove(unit), state.grid, moveStepCost(state, unit))
+}
+
+// The per-step cost function reachableTilesFor uses (shared with movePathFor).
+function moveStepCost(state, unit) {
   const opposingSide = unit.side === "player" ? "enemy" : "player"
   // Only a unit APPROACHING from clean ground is capped - one already
   // standing inside an opposing Threat Zone (adjacent to a tanky
@@ -1243,7 +1249,7 @@ export function reachableTilesFor(state, unitId) {
   // unit that starts inside ANY opposing threat zone could barely move
   // at all - over-punishing, not "blocks advancing" as the PRD says.
   const startedInsideThreatZone = threatZoneControllers(state, unit.pos, opposingSide).length > 0
-  return reachableTilesRaw(occupied, unit.pos, effectiveMove(unit), state.grid, (pos) => {
+  return (pos) => {
     const baseCost = TERRAIN[terrainAt(state, pos)].cost
     // Threat Zone round (Movement PRD §4.3): entering a cell inside an
     // opposing Threat Zone consumes the mover's ENTIRE move budget for
@@ -1254,7 +1260,133 @@ export function reachableTilesFor(state, unitId) {
     // budget remains once spent here.
     if (!startedInsideThreatZone && threatZoneControllers(state, pos, opposingSide).length > 0) return unit.move
     return baseCost
-  })
+  }
+}
+
+// XCOM part 1 - blue/yellow move ranges. Every tile the unit can get to
+// this turn by real moveUnit calls: one move (= data-reachable) or two
+// moves in a row (a "dash"). `apCost` = AP actually spent, simulated
+// through moveUnit (zone tolls, Pathfinder refunds, ice, overwatch all
+// count); band "blue" = AP left to act, "yellow" = turn spent.
+// Movement rules are unchanged - this only reports what they allow.
+export function moveOptionsFor(state, unitId) {
+  const unit = getUnit(state, unitId)
+  const out = new Map()
+  if (!unit || unit.hp <= 0 || unit.ap < 1 || state.phase !== unit.side) return out
+  const originKey = `${unit.pos.row}-${unit.pos.col}`
+  const band = (s) => {
+    const u = getUnit(s, unitId)
+    const apLeft = u && u.hp > 0 ? u.ap : 0
+    return { apCost: unit.ap - apLeft, band: apLeft >= 1 ? "blue" : "yellow" }
+  }
+  const firsts = reachableTilesFor(state, unitId)
+  const after = []
+  for (const pos of firsts) {
+    const s1 = moveUnit(state, unitId, pos)
+    out.set(`${pos.row}-${pos.col}`, { pos, ...band(s1), dash: false, via: null })
+    after.push([pos, s1])
+  }
+  for (const [via, s1] of after) {
+    const moved = getUnit(s1, unitId)
+    if (!moved || moved.hp <= 0 || moved.ap < 1 || s1.phase !== unit.side) continue
+    for (const pos of reachableTilesFor(s1, unitId)) {
+      const key = `${pos.row}-${pos.col}`
+      if (out.has(key) || key === originKey) continue
+      out.set(key, { pos, ...band(moveUnit(s1, unitId, pos)), dash: true, via })
+    }
+  }
+  return out
+}
+
+// The tile-by-tile route of one move (same step costs as reachableTilesFor).
+function singleMovePath(state, unit, target) {
+  const key = (p) => `${p.row}-${p.col}`
+  const blocked = new Set(state.units.filter((u) => u.id !== unit.id && u.hp > 0).map((u) => key(u.pos)))
+  const cost = moveStepCost(state, unit)
+  const budget = effectiveMove(unit)
+  const best = new Map([[key(unit.pos), 0]])
+  const prev = new Map()
+  const done = new Set()
+  for (;;) {
+    let cur = null
+    let curCost = Infinity
+    for (const [k, c] of best) {
+      if (!done.has(k) && c < curCost) {
+        cur = k
+        curCost = c
+      }
+    }
+    if (cur === null || cur === key(target)) break
+    done.add(cur)
+    const [row, col] = cur.split("-").map(Number)
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const cand = { row: row + dr, col: col + dc }
+        const k = key(cand)
+        if ((!dr && !dc) || done.has(k) || !isOnBoard(cand, state.grid) || blocked.has(k)) continue
+        const c = curCost + cost(cand)
+        if (c > budget || (best.has(k) && c >= best.get(k))) continue
+        best.set(k, c)
+        prev.set(k, cur)
+      }
+    }
+  }
+  const path = [target]
+  for (let k = key(target); prev.has(k); ) {
+    k = prev.get(k)
+    const [row, col] = k.split("-").map(Number)
+    path.unshift({ row, col })
+  }
+  if (path.length === 1) path.unshift(unit.pos)
+  return path
+}
+
+// Hover preview: the whole route (both legs for a dash) + its AP cost.
+export function movePathFor(state, unitId, target, options = null) {
+  const unit = getUnit(state, unitId)
+  const opt = (options || moveOptionsFor(state, unitId)).get(`${target.row}-${target.col}`)
+  if (!unit || !opt) return null
+  if (!opt.dash) return { path: singleMovePath(state, unit, target), apCost: opt.apCost, band: opt.band, dash: false }
+  const leg1 = singleMovePath(state, unit, opt.via)
+  const s1 = moveUnit(state, unitId, opt.via)
+  const leg2 = singleMovePath(s1, getUnit(s1, unitId), target)
+  return { path: [...leg1, ...leg2.slice(1)], apCost: opt.apCost, band: opt.band, dash: true }
+}
+
+// Clicking a yellow dash tile: two real moveUnit calls via the first leg.
+export function dashMove(state, unitId, target) {
+  const opt = moveOptionsFor(state, unitId).get(`${target.row}-${target.col}`)
+  if (!opt) return state
+  if (!opt.dash) return moveUnit(state, unitId, target)
+  const s1 = moveUnit(state, unitId, opt.via)
+  return s1.phase === state.phase ? moveUnit(s1, unitId, target) : s1
+}
+
+// XCOM part 1 - two universal actions every unit has; both end the
+// unit's turn (all AP). Overwatch: the first foe that ends a move in its
+// attack reach gets its normal attack (tacticsClasses afterMove - the
+// Sentinel's class Overwatch is the stronger 1-AP version of the same
+// state). Hunker Down: 50% less damage until its next turn. Counters
+// tick in classPlayerTurnStart: player 1 = until your next turn; an
+// enemy sets 2 so it lasts through the player's turn.
+export function overwatchAction(state, unitId) {
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.hp <= 0 || unit.ap < 1 || state.phase !== unit.side || !(unit.attack > 0) || unit.structure) return state
+  const turns = unit.side === "player" ? 1 : 2
+  const next = setUnit(state, unitId, { ap: 0, overwatch: Math.max(unit.overwatch || 0, turns), owRoot: !!unit.owRoot && unit.overwatch > 0 })
+  return emit({ ...next, log: [...next.log, `${unit.name} goes on Overwatch.`] }, { kind: "reaction", unitId, label: "On Watch" })
+}
+
+export function hunkerDown(state, unitId) {
+  const unit = getUnit(state, unitId)
+  if (!unit || unit.hp <= 0 || unit.ap < 1 || state.phase !== unit.side || unit.structure) return state
+  const next = setUnit(state, unitId, { ap: 0, hunkered: unit.side === "player" ? 1 : 2 })
+  return emit({ ...next, log: [...next.log, `${unit.name} hunkers down (half damage until its next turn).`] }, { kind: "reaction", unitId, label: "Hunker Down!" })
+}
+
+// Hunker Down halves an incoming hit (rounded up).
+function hunkeredAmount(target, amount) {
+  return target && target.hunkered > 0 && amount > 0 ? Math.ceil(amount / 2) : amount
 }
 
 // Enemies (or allies) within the unit's range of its CURRENT tile - a
@@ -1774,7 +1906,7 @@ function applyDamageWithBlock(state, targetId, amount) {
   // Boss fights: a weak point still standing shields the boss.
   const immune = bossImmuneHit(state, targetId)
   if (immune) return immune
-  const res = applyDamageInner(state, targetId, amount)
+  const res = applyDamageInner(state, targetId, hunkeredAmount(getUnit(state, targetId), amount))
   return state.boss ? { ...res, next: bossAfterDamage(res.next, targetId) } : res
 }
 
@@ -2859,6 +2991,9 @@ const AI_FACING_BONUS = { front: 0, side: 4, back: 8 }
 const AI_LAVA_PENALTY = 70
 const AI_HIGH_GROUND_BONUS = 8
 const AI_COVER_BONUS = 4
+// XCOM part 1 roles: Healer-role enemies favour mending over attacking.
+const AI_HEALER_MEND_BONUS = 40
+const AI_HEALER_ATTACK_PENALTY = 40
 
 // Bosses/elites with phases or the squad-wide strike play more carefully.
 function isCautiousEnemy(unit) {
@@ -2875,17 +3010,51 @@ function aiTargetsFrom(state, enemy, pos) {
 // Rough damage after Ward/Block/Bulwark - the same modifier chain a real hit uses.
 function aiEstimateHit(attacker, target, state = null) {
   if (target.ward > 0) return 0
-  const raw = modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker)))
+  const raw = hunkeredAmount(target, modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker))))
   return Math.max(0, raw - (target.block || 0) - (target.bulwark || 0))
 }
 
+// XCOM part 1: enemy DPS dive the squad's healers and support first.
+const AI_DPS_ROLE_BONUS = { healer: 12, support: 6, control: 6 }
+
 // How much a target is worth hitting, kill aside.
-function aiTargetValue(target) {
+function aiTargetValue(target, enemy = null) {
   let value = 30 * (1 - target.hp / target.maxHp) + 2 * target.attack
   value += Math.max(0, 40 - target.maxHp) * 0.5
   if (target.range > 1) value += 8
   if (target.id === "player-commander") value += AI_COMMANDER_BONUS
+  if (enemy && roleOf(enemy) === "dps") value += AI_DPS_ROLE_BONUS[roleOf(target)] || 0
   return value
+}
+
+// Player units on Overwatch that would shoot an enemy ending a move on `pos`
+// (only the first fires - the AI weighs the worst one).
+function aiOverwatchDmg(state, enemy, pos) {
+  let worst = 0
+  for (const w of livingUnits(state, "player")) {
+    if (!(w.overwatch > 0) || !canReach(state, w, w.pos, pos)) continue
+    worst = Math.max(worst, aiEstimateHit(w, { ...enemy, pos }, state))
+  }
+  return worst
+}
+
+// XCOM part 1 - role positioning. Healers hang back out of reach; tanks
+// like standing between the squad and their softer allies.
+function aiRoleTileScore(state, enemy, pos) {
+  const role = roleOf(enemy)
+  if (role !== "healer" && role !== "tank") return 0
+  const players = livingUnits(state, "player")
+  if (!players.length) return 0
+  const nearestPlayer = (p) => Math.min(...players.map((u) => chebyshevDist(p, u.pos)))
+  const allies = livingUnits(state, "enemy").filter((u) => u.id !== enemy.id && !u.structure)
+  if (role === "healer") {
+    if (!allies.length) return 0
+    const nearAlly = Math.min(...allies.map((u) => chebyshevDist(pos, u.pos)))
+    return -4 * aiExposure(state, pos) - 12 * aiAdjacentPlayerMelee(state, pos).length - 3 * Math.max(0, nearAlly - 2)
+  }
+  const mine = nearestPlayer(pos)
+  const shielded = allies.filter((u) => roleOf(u) !== "tank" && chebyshevDist(u.pos, pos) <= 3 && nearestPlayer(u.pos) > mine).length
+  return 4 * Math.min(3, shielded)
 }
 
 // Predicts what moveUnit would do to the mover (AP toll, reaction hits,
@@ -2896,9 +3065,10 @@ function aiMoveOutcome(state, enemy, dest) {
   const opp = "player"
   const toll = insideAnyOpposingZone(state, enemy.pos, opp) && !insideAnyOpposingZone(state, dest, opp) ? ZONE_LEAVE_AP_TOLL : 0
   const moved = { ...enemy, pos: dest, facing: cardinalDir(dest.col - enemy.pos.col, dest.row - enemy.pos.row) }
-  const reactionDmg = zocControllers(state, enemy.pos, opp)
-    .filter((c) => !kingAdjacent(c.pos, dest) && !(c.suppressed > 0))
-    .reduce((sum, c) => sum + aiEstimateHit(c, moved, state), 0)
+  const reactionDmg =
+    zocControllers(state, enemy.pos, opp)
+      .filter((c) => !kingAdjacent(c.pos, dest) && !(c.suppressed > 0))
+      .reduce((sum, c) => sum + aiEstimateHit(c, moved, state), 0) + aiOverwatchDmg(state, moved, dest)
   let hazard = lava
   if (TERRAIN[terrainAt(state, dest)].grantPoison) hazard += AI_POISON_PENALTY
   if (fearZoneControllers(state, dest, opp).length && !fearZoneControllers(state, enemy.pos, opp).length) hazard += AI_ZONE_STATUS_PENALTY
@@ -2926,6 +3096,7 @@ function aiTileScore(state, enemy, pos, outcome) {
   if (enemy.skirmisher) score -= 8 * aiAdjacentPlayerMelee(state, pos).length
   if (enemy.faction === "corrupted" && isBlighted(state, pos)) score += 6
   if (isCautiousEnemy(enemy)) score -= 6 * aiExposure(state, pos)
+  score += aiRoleTileScore(state, enemy, pos)
   if (isHigh(state, pos)) score += AI_HIGH_GROUND_BONUS
   if (enemy.range > 1 && terrainRule(state, pos).cover) score += AI_COVER_BONUS
   // Destructibles: keep clear of fires/explosives; archers like a tree in front.
@@ -3045,8 +3216,10 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
         let score
         if (skill.kind === "mend") {
           const heal = Math.min(skill.amount, ally.maxHp - ally.hp)
-          if (heal < 4) continue
-          score = AI_ATTACK_BASE + tileScore + 5 * heal + 60 * hurt
+          // XCOM part 1: a Healer-role enemy tops up smaller wounds and prefers healing.
+          const healer = roleOf(enemy) === "healer"
+          if (heal < (healer ? 2 : 4)) continue
+          score = AI_ATTACK_BASE + tileScore + 5 * heal + 60 * hurt + (healer ? AI_HEALER_MEND_BONUS : 0)
         } else {
           if (ally.id === enemy.id || (ally.block || 0) >= skill.amount) continue
           const exposure = aiExposure(state, ally.pos)
@@ -3327,11 +3500,13 @@ function decideEnemyIntent(state, enemyId) {
   // Who to walk toward when no hit is possible this turn.
   const focus = focusPool.reduce(
     (best, t) => {
-      const score = aiTargetValue(t) - 6 * chebyshevDist(enemy.pos, t.pos)
+      const score = aiTargetValue(t, enemy) - 6 * chebyshevDist(enemy.pos, t.pos)
       return score > best.score ? { t, score } : best
     },
     { t: null, score: -Infinity },
   ).t
+  // XCOM part 1: a Healer-role enemy would rather heal than trade blows.
+  const healerRole = roleOf(enemy) === "healer"
 
   // Steps to the focus around water/walls (units ignored) - so the AI heads
   // for a bridge instead of staring across a river.
@@ -3352,7 +3527,8 @@ function decideEnemyIntent(state, enemyId) {
         const dmg = aiEstimateHit(attacker, target, state)
         const kill = dmg >= target.hp && !(target.revive > 0)
         const facing = classifyFacingAttack(attacker, target)
-        const score = AI_ATTACK_BASE + tileScore + (kill ? AI_KILL_BONUS : 0) + 3 * dmg + aiTargetValue(target) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target)
+        const score =
+          AI_ATTACK_BASE + tileScore + (kill ? AI_KILL_BONUS : 0) + 3 * dmg + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0)
         if (score > best.score) {
           best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: moveTo, targetId: target.id } }
         }
@@ -3374,7 +3550,8 @@ function decideEnemyIntent(state, enemyId) {
     const walk = pathField.get(`${pos.row}-${pos.col}`) ?? dist
     const gap = Math.max(0, Math.max(dist, walk) - enemy.range) * 10 + (enemy.range > 1 ? Math.max(0, enemy.range - dist) * 2 : 0)
     const nearest = Math.min(...players.map((p) => chebyshevDist(pos, p.pos)))
-    const score = tileScore - gap - nearest * 0.1
+    // Healers follow their allies (role tile score) rather than charge.
+    const score = tileScore - gap * (healerRole ? 0.3 : 1) - nearest * 0.1
     if (score > best.score) best = { score, intent: stay ? { kind: "hold" } : { kind: "move", to: moveTo } }
   }
   // Barricades: only worth a swing when one actually walls the enemy off.
@@ -3384,6 +3561,12 @@ function decideEnemyIntent(state, enemyId) {
   }
   for (const opt of aiPounceOptions(state, enemy)) {
     if (opt.score > best.score) best = opt
+  }
+  // XCOM part 1: a ranged enemy with no shot this turn, and the squad close
+  // enough to step into its reach, holds its ground on Overwatch instead.
+  if ((best.intent.kind === "move" || best.intent.kind === "hold") && enemy.range > 1 && enemy.ap >= 1 && !enemy.skirmisher && !(enemy.silenced > 0)) {
+    const closing = players.some((p) => !p.structure && chebyshevDist(enemy.pos, p.pos) <= effectiveMove(p) + enemy.range)
+    if (closing) return { kind: "overwatch" }
   }
 
   // Wanderers: strike, then Fade (applyEnemyIntent picks the tile).
@@ -3444,6 +3627,7 @@ function applyEnemyIntent(state, enemyId, intent) {
     return intent.fade ? applyFade(acted, enemyId) : acted
   }
   if (intent.kind === "aoe") return applyEnemyAoe(state, enemyId, intent.amount)
+  if (intent.kind === "overwatch") return overwatchAction(state, enemyId)
   if (intent.kind === "move") return moveUnit(state, enemyId, intent.to)
   if (intent.kind === "wall") {
     const moved = intent.to ? moveUnit(state, enemyId, intent.to) : state

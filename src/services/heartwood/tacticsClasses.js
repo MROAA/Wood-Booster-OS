@@ -32,7 +32,7 @@ import { rollBoulder } from "./tacticsObjects"
 
 const SLOW = 2
 const ROOT = 2
-const COUNTERS = ["guarded", "zoneGuard", "overwatch", "mark", "sMark", "challenged", "exposed", "silenced", "disarmed", "empower", "cursed", "soulDebt", "appraised", "phased", "frenzy"]
+const COUNTERS = ["guarded", "zoneGuard", "overwatch", "hunkered", "mark", "sMark", "challenged", "exposed", "silenced", "disarmed", "empower", "cursed", "soulDebt", "appraised", "phased", "frenzy"]
 const DEBUFFS = ["poison", "burn", "chill", "frozen", "root", "slow", "weak", "vulnerable", "entangle", "suppressed", "mark", "sMark", "exposed", "silenced", "disarmed", "challenged", "cursed", "soulDebt", "appraised", "corruption"]
 const CLEANSED = ["poison", "burn", "chill", "frozen", "root", "slow", "weak", "vulnerable", "entangle", "suppressed", "disarmed", "cursed"]
 // Part B: max bonus Essence one fight can pay out (Merchant/Gatherer).
@@ -276,9 +276,12 @@ export function afterMove(state, unitId) {
   if (!mover || mover.hp <= 0) return state
   if (mover.side === "player") {
     // Scout's Pathfinder / Trailblazer: a free first move.
-    if (has(mover, "pathfinder") && !mover.pathUsed) return callout(setUnit(state, unitId, { moved: true, pathUsed: true, ap: mover.ap + 1 }), unitId, "Pathfinder!")
-    if (mover.freeStep > 0) return setUnit(state, unitId, { moved: true, freeStep: 0, ap: mover.ap + 1 })
-    return setUnit(state, unitId, { moved: true })
+    let moved
+    if (has(mover, "pathfinder") && !mover.pathUsed) moved = callout(setUnit(state, unitId, { moved: true, pathUsed: true, ap: mover.ap + 1 }), unitId, "Pathfinder!")
+    else if (mover.freeStep > 0) moved = setUnit(state, unitId, { moved: true, freeStep: 0, ap: mover.ap + 1 })
+    else moved = setUnit(state, unitId, { moved: true })
+    // XCOM part 1: enemies on Overwatch shoot a player that ends a move in reach.
+    return overwatchFire(moved, unitId, "enemy")
   }
   // Part B: hidden traps spring, Rootweaver's Grasping Roots.
   let next = springTrap(state, unitId)
@@ -291,14 +294,23 @@ export function afterMove(state, unitId) {
     next = callout(addLog(next, `${r.name}'s roots grab ${live.name}!`), unitId, "Rooted!")
     break
   }
-  for (const s of livingUnits(state, "player")) {
-    if (!(s.overwatch > 0) || !canReach(next, s, s.pos, mover.pos)) continue
-    const live = getUnit(next, unitId)
-    if (!live || live.hp <= 0 || ended(next)) break
+  return overwatchFire(next, unitId, "player")
+}
+
+// Overwatch (Sentinel class skill + the universal XCOM action): the first
+// `watcherSide` unit on watch whose attack reaches the mover's end tile
+// fires once with its normal attack, then its watch ends.
+function overwatchFire(state, unitId, watcherSide) {
+  let next = state
+  const mover = getUnit(state, unitId)
+  if (!mover || mover.hp <= 0 || ended(state)) return state
+  for (const s of livingUnits(state, watcherSide)) {
+    if (!(s.overwatch > 0) || s.stun > 0 || s.frozen > 0 || !canReach(next, s, s.pos, mover.pos)) continue
     next = setUnit(next, s.id, { overwatch: 0 })
-    next = callout(addLog(next, `${s.name}'s Overwatch fires at ${live.name}!`), s.id, "Overwatch!")
+    next = callout(addLog(next, `${s.name}'s Overwatch fires at ${mover.name}!`), s.id, "Overwatch!")
     next = abilityHit(next, s.id, unitId, s.attack, { name: "Overwatch" }).next
-    if (s.owRoot && !ended(next)) next = rootUnit(next, unitId)
+    if (s.owRoot && !ended(next) && getUnit(next, unitId)?.hp > 0) next = rootUnit(next, unitId)
+    next = checkTacticsBattleEnd(next)
     break
   }
   return next
