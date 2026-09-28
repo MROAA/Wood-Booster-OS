@@ -34,7 +34,8 @@ const engine = await page.evaluate(async () => {
     if (!def.fusedFrom) perClass[def.classId] = (perClass[def.classId] || 0) + 1
   }
   r.classCounts = perClass
-  ok(CLASS_IDS.length === 19, "19 classes", CLASS_IDS.length)
+  // Part B added 19 more classes (38 total).
+  ok(CLASS_IDS.length === 38, "38 classes", CLASS_IDS.length)
   ok(bad.length === 0, "units without class/signature", bad)
   ok(CLASS_IDS.every((c) => perClass[c] > 0), "every class used by some unit", perClass)
   ok(Object.keys(PART_B_CANDIDATES).every((id) => UNITS[id]), "PART_B_CANDIDATES ids exist")

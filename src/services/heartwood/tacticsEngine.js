@@ -950,7 +950,8 @@ function spawnBattleStartSummons(units, grid) {
     if (!UNITS[defId]) continue
     const [pos] = freeCellsNear({ units, grid }, summoner.pos, 1)
     if (!pos) continue
-    units.push(deriveTacticsUnit(defId, "player", pos, `${summoner.id}-summon-${defId}`))
+    // ownerId: the class system's companion link (Beastmaster).
+    units.push({ ...deriveTacticsUnit(defId, "player", pos, `${summoner.id}-summon-${defId}`), ownerId: summoner.id })
   }
 }
 
@@ -2791,7 +2792,9 @@ function enemyPhaseStart(state) {
       u.side === "enemy"
         ? {
             ...tickSkillCds(u),
-            ap: u.apMax,
+            // Class system: Static Disruption drains 1 AP (never below 1).
+            ap: u.drained > 0 ? Math.max(1, u.apMax - u.drained) : u.apMax,
+            drained: 0,
             block: fortressBlock,
             slow: Math.max(0, (u.slow || 0) - 1),
             root: Math.max(0, (u.root || 0) - 1),
@@ -3650,4 +3653,4 @@ export function withLowEnemyHp(state) {
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
-export { deriveTacticsUnit, emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood, abilityHit }
+export { deriveTacticsUnit, emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, applyPortableEffect, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood, abilityHit, freeCellsNear }

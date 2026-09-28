@@ -1978,3 +1978,32 @@
 .hwt-skill-passive-text {
   color: var(--hw-muted);
 }
+
+/* Class system part B: tile-target skills (traps, walls, turrets...). */
+.hwt-cell[data-skill-tile="true"] {
+  --hwt-tint: color-mix(in srgb, var(--hw-ember) 14%, transparent);
+  border: 2px dotted color-mix(in srgb, var(--hw-ember) 80%, #f3d58a);
+  cursor: crosshair;
+}
+.hwt-trap-icon,
+.hwt-charge-icon {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  font-size: 0.8rem;
+  opacity: 0.75;
+  color: #d9c28a;
+  text-shadow: 0 1px 2px black;
+  pointer-events: none;
+  z-index: 2;
+}
+.hwt-cell[data-trap="poison"] .hwt-trap-icon {
+  color: #9fd46a;
+}
+.hwt-charge-icon {
+  left: auto;
+  right: 4px;
+  opacity: 1;
+  color: var(--hw-ember);
+  animation: hwt-boss-warn-blink 1s ease-in-out infinite;
+}
