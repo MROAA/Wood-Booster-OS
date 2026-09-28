@@ -2378,8 +2378,12 @@ export function recordFightAftermath(runState, battle) {
   const cmdName = CHARACTERS[runState.characterId]?.name || "Your Commander"
   if (cmd?.fell) lines.push(`${cmdName} fell and is Wounded.`)
   const cmdXp = tactics ? xpAfter(runState.commanderXp, cmdUnit, cmdName) : runState.commanderXp
+  // Class system: Merchant/Gatherer bonus Essence (capped in the fight).
+  const bonusEssence = tactics ? Math.max(0, Math.min(5, battle.bonusEssence || 0)) : 0
+  if (bonusEssence) lines.push(`Your traders and foragers bring back +${bonusEssence} Essence.`)
   return {
     ...runState,
+    ...(bonusEssence ? { essence: (runState.essence || 0) + bonusEssence } : {}),
     bench,
     commanderHpPct: cmd ? cmd.hpPct : runState.commanderHpPct,
     commanderWounded: cmd ? cmd.wounded : runState.commanderWounded,

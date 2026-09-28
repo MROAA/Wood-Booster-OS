@@ -28,6 +28,7 @@ import { applyFaction } from "../services/heartwood/tacticsFactions"
 import { applyObjective, buildObjectiveSpec, OBJECTIVE_TYPES, OBJECTIVE_NAMES } from "../services/heartwood/tacticsObjectives"
 import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../services/heartwood/tacticsBosses"
 import { CLASSES } from "../data/heartwood/classes"
+import { UNITS } from "../data/heartwood/units"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
@@ -58,7 +59,13 @@ function initialObjectiveChoice() {
   return { type, reinforce: params.get("reinforce") === "1", pulseKind: params.get("pulse") === "blast" ? "blast" : "mend" }
 }
 
-function startBattle(formationId, squadDefIds, choice = initialObjectiveChoice()) {
+// `?squad=snareclaw,stoneknit` - try any real units (QA / class testing).
+function initialSquad() {
+  const ids = (new URLSearchParams(window.location.search).get("squad") || "").split(",").filter((id) => UNITS[id] && !UNITS[id].summonOnly)
+  return ids.length ? ids.slice(0, 4) : undefined
+}
+
+function startBattle(formationId, squadDefIds = initialSquad(), choice = initialObjectiveChoice()) {
   return maybeDebugLowHp(applyObjective(createTacticsBattle(formationId, squadDefIds), objectiveSpecFor(choice)))
 }
 
