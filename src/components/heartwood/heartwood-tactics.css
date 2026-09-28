@@ -2271,7 +2271,7 @@
   --hwt-tint: color-mix(in srgb, var(--hwt-move-blue) 46%, transparent);
 }
 .hwt-cell[data-move-band="yellow"] {
-  --hwt-tint: color-mix(in srgb, var(--hwt-move-yellow) 22%, transparent);
+  --hwt-tint: color-mix(in srgb, var(--hwt-move-yellow) 15%, transparent);
   --hwt-ring: inset 0 0 0 2px color-mix(in srgb, var(--hwt-move-yellow) 80%, transparent), inset 0 0 12px color-mix(in srgb, var(--hwt-move-yellow) 30%, transparent);
   border-color: var(--hwt-move-yellow);
   cursor: pointer;
@@ -2305,25 +2305,43 @@
 }
 .hwt-aggro-line {
   stroke: var(--hw-hp);
-  stroke-width: 3;
-  stroke-dasharray: 2 7;
+  stroke-width: 4;
+  stroke-dasharray: 9 6;
   stroke-linecap: round;
-  opacity: 0.7;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9));
 }
 .hwt-aggro-line[data-target-role="tank"] {
   stroke: var(--hwt-role-tank);
-  opacity: 0.8;
+}
+.hwt-aggro-end {
+  fill: var(--hw-hp);
+  opacity: 0.9;
+}
+.hwt-aggro-end[data-target-role="tank"] {
+  fill: var(--hwt-role-tank);
+}
+/* Enemies read as enemies even with a role frame: a warmer red body. */
+.hwt-token[data-side="enemy"][data-role] {
+  background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--hw-hp) 30%, var(--hw-card)), color-mix(in srgb, var(--hw-hp) 12%, var(--hw-card)) 70%);
 }
 .hwt-tank-zone {
-  fill: color-mix(in srgb, var(--hwt-role-tank) 6%, transparent);
-  stroke: var(--hwt-role-tank);
-  stroke-width: 2;
-  stroke-dasharray: 8 6;
-  opacity: 0.55;
+  fill: color-mix(in srgb, var(--hwt-role-tank) 7%, transparent);
+  stroke: color-mix(in srgb, var(--hwt-role-tank) 55%, white);
+  stroke-width: 3;
+  stroke-dasharray: 14 7;
+  opacity: 0.75;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.9));
 }
 .hwt-tank-zone[data-side="enemy"] {
-  stroke: color-mix(in srgb, var(--hwt-role-tank) 60%, var(--hw-hp));
-  opacity: 0.4;
+  stroke: color-mix(in srgb, var(--hwt-role-tank) 50%, var(--hw-hp));
+  opacity: 0.55;
+}
+.hwt-heal-ring {
+  fill: color-mix(in srgb, var(--hwt-role-healer) 14%, transparent);
+  stroke: var(--hwt-role-healer);
+  stroke-width: 4;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--hwt-role-healer) 70%, transparent));
 }
 .hwt-path polyline {
   fill: none;
@@ -2351,7 +2369,7 @@
 }
 
 /* Squad bar above the board. */
-.hwt-squad-bar {
+.hwt-sb-bar {
   display: flex;
   gap: 6px;
   overflow-x: auto;
@@ -2360,7 +2378,7 @@
   background: linear-gradient(180deg, var(--hwt-walnut), var(--hwt-walnut-dark));
   border: 1px solid color-mix(in srgb, var(--hwt-gold) 30%, transparent);
 }
-.hwt-squad-slot {
+.hwt-sb-slot {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -2374,21 +2392,21 @@
   text-align: left;
   font: inherit;
 }
-.hwt-squad-slot:hover {
+.hwt-sb-slot:hover {
   background: color-mix(in srgb, var(--hw-card) 75%, var(--hwt-role) 18%);
 }
-.hwt-squad-slot[data-selected="true"] {
+.hwt-sb-slot[data-selected="true"] {
   box-shadow: 0 0 0 2px var(--hwt-gold), 0 0 12px color-mix(in srgb, var(--hwt-gold) 55%, transparent);
 }
-.hwt-squad-slot[data-spent="true"] {
+.hwt-sb-slot[data-spent="true"] {
   opacity: 0.6;
 }
-.hwt-squad-slot[data-dead="true"] {
+.hwt-sb-slot[data-dead="true"] {
   opacity: 0.3;
   filter: grayscale(1);
   cursor: default;
 }
-.hwt-squad-portrait {
+.hwt-sb-portrait {
   position: relative;
   width: 40px;
   height: 40px;
@@ -2397,15 +2415,15 @@
   overflow: visible;
   background: var(--hw-card);
 }
-.hwt-squad-portrait .hwt-token-art {
+.hwt-sb-portrait .hwt-token-art {
   border-radius: 7px;
   padding-bottom: 0;
 }
-.hwt-squad-portrait .hwt-token-glyph {
+.hwt-sb-portrait .hwt-token-glyph {
   width: 24px;
   height: 24px;
 }
-.hwt-squad-role {
+.hwt-sb-role {
   position: absolute;
   right: -6px;
   bottom: -6px;
@@ -2420,14 +2438,14 @@
   font-weight: 900;
   border: 2px solid color-mix(in srgb, var(--hwt-role) 45%, black);
 }
-.hwt-squad-info {
+.hwt-sb-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
   flex: 1;
 }
-.hwt-squad-name {
+.hwt-sb-name {
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -2435,27 +2453,27 @@
   text-overflow: ellipsis;
   max-width: 100px;
 }
-.hwt-squad-role-name {
+.hwt-sb-role-name {
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--hwt-role);
 }
-.hwt-squad-hp {
+.hwt-sb-hp {
   position: relative;
   height: 9px;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.55);
   overflow: hidden;
 }
-.hwt-squad-hp-fill {
+.hwt-sb-hp-fill {
   position: absolute;
   inset: 0 auto 0 0;
   background: var(--hw-moss);
   transition: width 0.45s ease-out;
 }
-.hwt-squad-hp-num {
+.hwt-sb-hp-num {
   position: absolute;
   inset: 0;
   font-size: 8px;
@@ -2464,19 +2482,19 @@
   font-weight: 700;
   text-shadow: 0 1px 1px black;
 }
-.hwt-squad-ap {
+.hwt-sb-ap {
   display: flex;
   align-items: center;
   gap: 3px;
   font-size: 10px;
 }
-.hwt-squad-ap-pip {
+.hwt-sb-ap-pip {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   border: 1px solid var(--hwt-gold);
 }
-.hwt-squad-ap-pip[data-full="true"] {
+.hwt-sb-ap-pip[data-full="true"] {
   background: var(--hwt-gold);
 }
 

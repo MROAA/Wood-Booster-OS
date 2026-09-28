@@ -3042,11 +3042,19 @@ function aiOverwatchDmg(state, enemy, pos) {
 // like standing between the squad and their softer allies.
 function aiRoleTileScore(state, enemy, pos) {
   const role = roleOf(enemy)
-  if (role !== "healer" && role !== "tank") return 0
+  const ranged = enemy.range > 1 && role !== "tank"
+  if (role !== "healer" && role !== "tank" && !ranged) return 0
   const players = livingUnits(state, "player")
   if (!players.length) return 0
   const nearestPlayer = (p) => Math.min(...players.map((u) => chebyshevDist(p, u.pos)))
   const allies = livingUnits(state, "enemy").filter((u) => u.id !== enemy.id && !u.structure)
+  if (ranged && role !== "healer") {
+    // Archers keep behind their own tank (never step past its line).
+    const tanks = allies.filter((u) => roleOf(u) === "tank" && chebyshevDist(u.pos, enemy.pos) <= 4)
+    if (!tanks.length) return 0
+    const line = Math.min(...tanks.map((t) => nearestPlayer(t.pos)))
+    return -12 * Math.max(0, line - nearestPlayer(pos))
+  }
   if (role === "healer") {
     if (!allies.length) return 0
     const nearAlly = Math.min(...allies.map((u) => chebyshevDist(pos, u.pos)))

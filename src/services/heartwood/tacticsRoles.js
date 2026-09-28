@@ -1,9 +1,9 @@
 // Hearthwood Frontier - XCOM part 1: the 5 battle roles (Tank, Healer,
 // DPS, Support, Control). Every unit on the board - player AND enemy -
 // maps to exactly one, so the board can colour/iconify it and the enemy
-// AI can play its part. Pure, reads only the unit object (so synthetic
-// test units and real units resolve the same way).
+// AI can play its part. Pure; reads the unit (+ its enemy def moves).
 import { CLASSES } from "../../data/heartwood/classes"
+import { ENEMIES } from "../../data/heartwood/enemies"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
 
 // Okabe-Ito based (colour-blind safe), lifted for a dark board. Every
@@ -38,13 +38,21 @@ export function classRole(classId) {
   return CLASS_ROLE[classId] || GROUP_ROLE[cls.group] || "dps"
 }
 
-// Enemy kit: taunt -> tank, mend -> healer, big melee body -> tank,
-// hex -> control, summon/shield -> support, else DPS.
+// A def whose own moves block a lot for what it hits (a real "wall").
+function blockHeavy(defId) {
+  const moves = ENEMIES[defId]?.movePattern || []
+  const block = Math.max(0, ...moves.filter((m) => m.type === "block").map((m) => m.amount || 0))
+  const hit = Math.max(0, ...moves.filter((m) => m.type === "attack").map((m) => m.amount || 0))
+  return block >= 5 && block >= 0.75 * hit
+}
+
+// Enemy kit: taunt -> tank, mend -> healer, a melee wall (heavy block or
+// a huge body) -> tank, hex -> control, summon/shield -> support, else DPS.
 function enemyRole(unit) {
   const kinds = new Set(enemySkillsFor(unit).filter((s) => s.id !== "element-hex").map((s) => s.kind))
   if (unit.taunt > 0) return "tank"
   if (kinds.has("mend")) return "healer"
-  if (unit.range === 1 && unit.maxHp >= 40) return "tank"
+  if (unit.range === 1 && (unit.maxHp >= 56 || (unit.maxHp >= 40 && blockHeavy(unit.defId)))) return "tank"
   if (kinds.has("hex")) return "control"
   if (kinds.has("summon") || kinds.has("shield")) return "support"
   return "dps"

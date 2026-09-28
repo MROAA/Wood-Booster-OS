@@ -172,9 +172,19 @@ function aggroPairs(battle, intents) {
   return out
 }
 
-function BoardOverlay({ battle, pairs, hoverPath, selected }) {
+function BoardOverlay({ battle, pairs, hoverPath, selected, healReachTiles }) {
   const w = battle.grid.cols * (CELL + GAP) - GAP
   const h = battle.grid.rows * (CELL + GAP) - GAP
+  const healRing =
+    healReachTiles > 0 && selected
+      ? {
+          r: healReachTiles,
+          r0: Math.max(0, selected.pos.row - healReachTiles),
+          r1: Math.min(battle.grid.rows - 1, selected.pos.row + healReachTiles),
+          c0: Math.max(0, selected.pos.col - healReachTiles),
+          c1: Math.min(battle.grid.cols - 1, selected.pos.col + healReachTiles),
+        }
+      : null
   const byId = new Map(battle.units.map((u) => [u.id, u]))
   const tanks = battle.phase === "player" || battle.phase === "deploy" ? battle.units.filter((u) => u.hp > 0 && protectsAllies(battle, u)) : []
   return (
@@ -192,24 +202,31 @@ function BoardOverlay({ battle, pairs, hoverPath, selected }) {
           rx="12"
         />
       ))}
+      {healRing && (
+        <rect
+          className="hwt-heal-ring"
+          data-reach={healRing.r}
+          x={healRing.c0 * (CELL + GAP) - 2}
+          y={healRing.r0 * (CELL + GAP) - 2}
+          width={(healRing.c1 - healRing.c0 + 1) * (CELL + GAP) - GAP + 4}
+          height={(healRing.r1 - healRing.r0 + 1) * (CELL + GAP) - GAP + 4}
+          rx="14"
+        />
+      )}
       {pairs.map(({ enemyId, targetId }) => {
         const e = byId.get(enemyId)
         const t = byId.get(targetId)
         if (!e || !t) return null
         const a = cellCenter(e.pos)
-        const b = cellCenter(t.pos)
+        const c = cellCenter(t.pos)
+        // Stop at the target token's edge so the end dot stays visible.
+        const len = Math.hypot(c.x - a.x, c.y - a.y) || 1
+        const b = { x: c.x - ((c.x - a.x) / len) * 40, y: c.y - ((c.y - a.y) / len) * 40 }
         return (
-          <line
-            key={`aggro-${enemyId}`}
-            className="hwt-aggro-line"
-            data-enemy-id={enemyId}
-            data-target-id={targetId}
-            data-target-role={roleOf(t)}
-            x1={a.x}
-            y1={a.y}
-            x2={b.x}
-            y2={b.y}
-          />
+          <g key={`aggro-${enemyId}`}>
+            <line className="hwt-aggro-line" data-enemy-id={enemyId} data-target-id={targetId} data-target-role={roleOf(t)} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
+            <circle className="hwt-aggro-end" data-target-role={roleOf(t)} cx={b.x} cy={b.y} r="5" />
+          </g>
         )
       })}
       {hoverPath && selected && (
@@ -236,7 +253,7 @@ function SquadBar({ battle, selectedId, onSelect }) {
   const squad = battle.units.filter((u) => u.side === "player" && !u.npc && !u.structure)
   if (!squad.length) return null
   return (
-    <div className="hwt-squad-bar" role="toolbar" aria-label="Your squad">
+    <div className="hwt-sb-bar" role="toolbar" aria-label="Your squad">
       {squad.map((u) => {
         const role = BATTLE_ROLES[roleOf(u)]
         const alive = u.hp > 0
@@ -244,7 +261,7 @@ function SquadBar({ battle, selectedId, onSelect }) {
           <button
             key={u.id}
             type="button"
-            className="hwt-squad-slot"
+            className="hwt-sb-slot"
             data-unit-id={u.id}
             data-role={role.id}
             data-selected={u.id === selectedId}
@@ -254,27 +271,27 @@ function SquadBar({ battle, selectedId, onSelect }) {
             title={roleTitle(u)}
             onClick={() => onSelect(u)}
           >
-            <span className="hwt-squad-portrait">
+            <span className="hwt-sb-portrait">
               <TokenArt unit={u} />
-              <span className="hwt-squad-role" aria-hidden="true">
+              <span className="hwt-sb-role" aria-hidden="true">
                 {role.icon}
               </span>
             </span>
-            <span className="hwt-squad-info">
-              <span className="hwt-squad-name">{u.name}</span>
-              <span className="hwt-squad-role-name">{role.label}</span>
-              <span className="hwt-squad-hp" title={`${u.hp}/${u.maxHp} HP`}>
-                <span className="hwt-squad-hp-fill" style={{ width: `${Math.max(0, Math.round((u.hp / u.maxHp) * 100))}%` }} />
-                <span className="hwt-squad-hp-num">
+            <span className="hwt-sb-info">
+              <span className="hwt-sb-name">{u.name}</span>
+              <span className="hwt-sb-role-name">{role.label}</span>
+              <span className="hwt-sb-hp" title={`${u.hp}/${u.maxHp} HP`}>
+                <span className="hwt-sb-hp-fill" style={{ width: `${Math.max(0, Math.round((u.hp / u.maxHp) * 100))}%` }} />
+                <span className="hwt-sb-hp-num">
                   {u.hp}/{u.maxHp}
                 </span>
               </span>
-              <span className="hwt-squad-ap" title={`${u.ap}/${u.apMax} AP`}>
+              <span className="hwt-sb-ap" title={`${u.ap}/${u.apMax} AP`}>
                 {Array.from({ length: u.apMax }, (_, i) => (
-                  <span key={i} className="hwt-squad-ap-pip" data-full={i < u.ap} />
+                  <span key={i} className="hwt-sb-ap-pip" data-full={i < u.ap} />
                 ))}
-                {u.overwatch > 0 && <span className="hwt-squad-state" title="On Overwatch">👁</span>}
-                {u.hunkered > 0 && <span className="hwt-squad-state" title="Hunkered down">🛡</span>}
+                {u.overwatch > 0 && <span className="hwt-sb-state" title="On Overwatch">👁</span>}
+                {u.hunkered > 0 && <span className="hwt-sb-state" title="Hunkered down">🛡</span>}
               </span>
             </span>
           </button>
@@ -674,7 +691,7 @@ export default function TacticsBoard({
     if (u.hp <= 0) return
     if (deploying || (battle.phase === "player" && u.ap > 0)) {
       onAbilityModeChange(null)
-      onSelectedIdChange(u.id === selectedId ? null : u.id)
+      onSelectedIdChange(u.id)
     }
   }
 
@@ -1111,7 +1128,7 @@ export default function TacticsBoard({
             style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)` }}
           >
             {cells}
-            <BoardOverlay battle={battle} pairs={aggro} hoverPath={hoverPath} selected={selected} />
+            <BoardOverlay battle={battle} pairs={aggro} hoverPath={hoverPath} selected={selected} healReachTiles={healRing.size ? healReach(selected) : 0} />
           </div>
         </div>
 
