@@ -149,6 +149,9 @@ export default function TacticsFx({ battle }) {
           )
         } else if (ev.kind === "ward") {
           timers.push(setTimeout(() => { restartClass(tokenEl(ev.targetId), "hw-hit-flash", 400); pop(ev.targetId, "Warded!", "ward"); play("block", { gain: 0.7 }) }, at + IMPACT_DELAY_MS))
+        } else if (ev.kind === "reaction" && ev.label === "Overwatch!") {
+          // XCOM part 1: an Overwatch shot gets a big eye callout on the shooter.
+          timers.push(setTimeout(() => { pop(ev.unitId, "👁 Overwatch!", "combo", { offset: 1.4, big: true, combo: "overwatch" }); play("hit", { gain: 0.8 }) }, at))
         } else if (ev.kind === "reaction") {
           timers.push(setTimeout(() => pop(ev.unitId, ev.label, "callout", { offset: 1 }), at))
         } else if (ev.kind === "combo") {

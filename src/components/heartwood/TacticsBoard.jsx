@@ -46,7 +46,13 @@ import {
   rangeAt,
   TERRAIN_INFO,
   WALL_MAX_HP,
+  moveOptionsFor,
+  movePathFor,
+  dashMove,
+  overwatchAction,
+  hunkerDown,
 } from "../../services/heartwood/tacticsEngine"
+import { BATTLE_ROLES, roleOf, healReach } from "../../services/heartwood/tacticsRoles"
 import { motion } from "framer-motion"
 import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
 import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
@@ -133,6 +139,166 @@ function TokenArt({ unit }) {
 
 function getUnitName(battle, id) {
   return battle.units.find((u) => u.id === id)?.name || "?"
+}
+
+// ---- XCOM part 1: roles, squad bar, board overlay ----------------------
+const CELL = 76
+const GAP = 3
+const cellCenter = (p) => ({ x: p.col * (CELL + GAP) + CELL / 2, y: p.row * (CELL + GAP) + CELL / 2 })
+
+function roleTitle(unit) {
+  const r = BATTLE_ROLES[roleOf(unit)]
+  return `${unit.name} - ${r.label}: ${r.what}`
+}
+
+// A tank that actively shields others (Taunt / Guard / Intercept kit).
+function protectsAllies(battle, unit) {
+  if (roleOf(unit) !== "tank") return false
+  if (unit.taunt > 0 || (unit.shoutTurn != null && unit.shoutTurn === battle.turn) || unit.className === "Guardian") return true
+  if (["taunt-shout", "shield-ally", "aura-block"].includes(unit.ability?.kind)) return true
+  return (unit.classSkills || []).some((sk) => /guard|taunt|shield|wall|challenge|bodyguard|protect/i.test(sk.id))
+}
+
+// Player intents aimed at one of the squad: [{ enemyId, targetId }].
+function aggroPairs(battle, intents) {
+  const out = []
+  for (const { enemyId, intent: raw } of intents) {
+    const intent = raw.then || raw
+    const hits = intent.kind === "attack" || intent.kind === "move-attack" || (intent.kind === "skill" && (intent.skillKind === "hex" || intent.skillKind === "pounce"))
+    if (!hits || !intent.targetId) continue
+    const t = battle.units.find((u) => u.id === intent.targetId)
+    if (t && t.side === "player" && t.hp > 0) out.push({ enemyId, targetId: t.id })
+  }
+  return out
+}
+
+function BoardOverlay({ battle, pairs, hoverPath, selected, healReachTiles }) {
+  const w = battle.grid.cols * (CELL + GAP) - GAP
+  const h = battle.grid.rows * (CELL + GAP) - GAP
+  const healRing =
+    healReachTiles > 0 && selected
+      ? {
+          r: healReachTiles,
+          r0: Math.max(0, selected.pos.row - healReachTiles),
+          r1: Math.min(battle.grid.rows - 1, selected.pos.row + healReachTiles),
+          c0: Math.max(0, selected.pos.col - healReachTiles),
+          c1: Math.min(battle.grid.cols - 1, selected.pos.col + healReachTiles),
+        }
+      : null
+  const byId = new Map(battle.units.map((u) => [u.id, u]))
+  const tanks = battle.phase === "player" || battle.phase === "deploy" ? battle.units.filter((u) => u.hp > 0 && protectsAllies(battle, u)) : []
+  return (
+    <svg className="hwt-overlay" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      {tanks.map((t) => (
+        <rect
+          key={`tank-${t.id}`}
+          className="hwt-tank-zone"
+          data-tank-id={t.id}
+          data-side={t.side}
+          x={Math.max(0, t.pos.col - 1) * (CELL + GAP) - 1}
+          y={Math.max(0, t.pos.row - 1) * (CELL + GAP) - 1}
+          width={(Math.min(battle.grid.cols - 1, t.pos.col + 1) - Math.max(0, t.pos.col - 1) + 1) * (CELL + GAP) - GAP + 2}
+          height={(Math.min(battle.grid.rows - 1, t.pos.row + 1) - Math.max(0, t.pos.row - 1) + 1) * (CELL + GAP) - GAP + 2}
+          rx="12"
+        />
+      ))}
+      {healRing && (
+        <rect
+          className="hwt-heal-ring"
+          data-reach={healRing.r}
+          x={healRing.c0 * (CELL + GAP) - 2}
+          y={healRing.r0 * (CELL + GAP) - 2}
+          width={(healRing.c1 - healRing.c0 + 1) * (CELL + GAP) - GAP + 4}
+          height={(healRing.r1 - healRing.r0 + 1) * (CELL + GAP) - GAP + 4}
+          rx="14"
+        />
+      )}
+      {pairs.map(({ enemyId, targetId }) => {
+        const e = byId.get(enemyId)
+        const t = byId.get(targetId)
+        if (!e || !t) return null
+        const a = cellCenter(e.pos)
+        const c = cellCenter(t.pos)
+        // Stop at the target token's edge so the end dot stays visible.
+        const len = Math.hypot(c.x - a.x, c.y - a.y) || 1
+        const b = { x: c.x - ((c.x - a.x) / len) * 40, y: c.y - ((c.y - a.y) / len) * 40 }
+        return (
+          <g key={`aggro-${enemyId}`}>
+            <line className="hwt-aggro-line" data-enemy-id={enemyId} data-target-id={targetId} data-target-role={roleOf(t)} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
+            <circle className="hwt-aggro-end" data-target-role={roleOf(t)} cx={b.x} cy={b.y} r="5" />
+          </g>
+        )
+      })}
+      {hoverPath && selected && (
+        <g className="hwt-path" data-band={hoverPath.band} data-ap-cost={hoverPath.apCost}>
+          <polyline points={hoverPath.path.map((p) => `${cellCenter(p).x},${cellCenter(p).y}`).join(" ")} />
+          {(() => {
+            const end = cellCenter(hoverPath.path[hoverPath.path.length - 1])
+            return (
+              <g className="hwt-path-cost">
+                <circle cx={end.x} cy={end.y} r="15" />
+                <text x={end.x} y={end.y + 5} textAnchor="middle">
+                  {hoverPath.apCost} AP
+                </text>
+              </g>
+            )
+          })()}
+        </g>
+      )}
+    </svg>
+  )
+}
+
+function SquadBar({ battle, selectedId, onSelect }) {
+  const squad = battle.units.filter((u) => u.side === "player" && !u.npc && !u.structure)
+  if (!squad.length) return null
+  return (
+    <div className="hwt-sb-bar" role="toolbar" aria-label="Your squad">
+      {squad.map((u) => {
+        const role = BATTLE_ROLES[roleOf(u)]
+        const alive = u.hp > 0
+        return (
+          <button
+            key={u.id}
+            type="button"
+            className="hwt-sb-slot"
+            data-unit-id={u.id}
+            data-role={role.id}
+            data-selected={u.id === selectedId}
+            data-dead={!alive}
+            data-spent={alive && u.ap <= 0}
+            disabled={!alive}
+            title={roleTitle(u)}
+            onClick={() => onSelect(u)}
+          >
+            <span className="hwt-sb-portrait">
+              <TokenArt unit={u} />
+              <span className="hwt-sb-role" aria-hidden="true">
+                {role.icon}
+              </span>
+            </span>
+            <span className="hwt-sb-info">
+              <span className="hwt-sb-name">{u.name}</span>
+              <span className="hwt-sb-role-name">{role.label}</span>
+              <span className="hwt-sb-hp" title={`${u.hp}/${u.maxHp} HP`}>
+                <span className="hwt-sb-hp-fill" style={{ width: `${Math.max(0, Math.round((u.hp / u.maxHp) * 100))}%` }} />
+                <span className="hwt-sb-hp-num">
+                  {u.hp}/{u.maxHp}
+                </span>
+              </span>
+              <span className="hwt-sb-ap" title={`${u.ap}/${u.apMax} AP`}>
+                {Array.from({ length: u.apMax }, (_, i) => (
+                  <span key={i} className="hwt-sb-ap-pip" data-full={i < u.ap} />
+                ))}
+                {u.overwatch > 0 && <span className="hwt-sb-state" title="On Overwatch">👁</span>}
+                {u.hunkered > 0 && <span className="hwt-sb-state" title="Hunkered down">🛡</span>}
+              </span>
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
 }
 
 export default function TacticsBoard({
@@ -231,6 +397,28 @@ export default function TacticsBoard({
     () => (selected && selected.ap > 0 && !abilityMode && battle.phase === "player" ? reachableTilesFor(battle, selected.id) : []),
     [battle, selected, abilityMode],
   )
+  // XCOM part 1: blue (can still act) / yellow (dash, turn spent) tiles.
+  const moveOptions = useMemo(
+    () => (selected && selected.side === "player" && selected.ap > 0 && !abilityMode && battle.phase === "player" ? moveOptionsFor(battle, selected.id) : new Map()),
+    [battle, selected, abilityMode],
+  )
+  const [hoverKey, setHoverKey] = useState(null)
+  const hoverPath = useMemo(() => {
+    if (!hoverKey || !selected || !moveOptions.has(hoverKey)) return null
+    return movePathFor(battle, selected.id, moveOptions.get(hoverKey).pos, moveOptions)
+  }, [hoverKey, selected, moveOptions, battle])
+  // Healer range ring: every tile a selected healer's heals can reach.
+  const healRing = useMemo(() => {
+    const keys = new Set()
+    if (!selected || selected.side !== "player" || roleOf(selected) !== "healer" || battle.phase !== "player") return keys
+    const r = healReach(selected)
+    for (let row = selected.pos.row - r; row <= selected.pos.row + r; row++) {
+      for (let col = selected.pos.col - r; col <= selected.pos.col + r; col++) {
+        if (row >= 0 && col >= 0 && row < battle.grid.rows && col < battle.grid.cols) keys.add(`${row}-${col}`)
+      }
+    }
+    return keys
+  }, [battle, selected])
   const targets = useMemo(
     () =>
       selected && selected.ap > 0 && battle.phase === "player" && armedSide !== "ally" && armedSide !== "tile"
@@ -260,6 +448,7 @@ export default function TacticsBoard({
     [planBattle, showPlan],
   )
   const intentByEnemyId = useMemo(() => new Map(intents.map((i) => [i.enemyId, i.intent])), [intents])
+  const aggro = useMemo(() => (battle.phase === "player" ? aggroPairs(battle, intents) : []), [battle, intents])
   // Wanderers: where each striking skirmisher will fade to (dotted marker).
   const fadeTiles = useMemo(() => new Set(intents.filter((i) => i.intent.fadeTo).map((i) => `${i.intent.fadeTo.row}-${i.intent.fadeTo.col}`)), [intents])
   const threatenedIds = useMemo(() => {
@@ -430,6 +619,12 @@ export default function TacticsBoard({
       onBattleChange(moveUnit(battle, selected.id, { row, col }))
       return
     }
+    // XCOM part 1: a yellow dash tile = two real moves in a row.
+    if (selected && moveOptions.get(`${row}-${col}`)?.dash) {
+      setHoverKey(null)
+      onBattleChange(dashMove(battle, selected.id, { row, col }))
+      return
+    }
     const occupant = cellUnit(row, col)
     if (occupant && occupant.hp > 0 && occupant.side === "player" && occupant.ap > 0) {
       onSelectedIdChange(occupant.id)
@@ -485,6 +680,21 @@ export default function TacticsBoard({
     return () => window.removeEventListener("keydown", onKey)
   }, [])
 
+  // XCOM part 1: universal Overwatch / Hunker Down (both end the unit's turn).
+  function handleUniversal(kind) {
+    if (!selected || battle.phase !== "player" || selected.ap < 1) return
+    onAbilityModeChange(null)
+    onBattleChange(kind === "overwatch" ? overwatchAction(battle, selected.id) : hunkerDown(battle, selected.id))
+  }
+
+  function handleSquadSelect(u) {
+    if (u.hp <= 0) return
+    if (deploying || (battle.phase === "player" && u.ap > 0)) {
+      onAbilityModeChange(null)
+      onSelectedIdChange(u.id)
+    }
+  }
+
   function handleActivePower() {
     onAbilityModeChange(null)
     onBattleChange(activateCommanderPower(battle))
@@ -512,12 +722,21 @@ export default function TacticsBoard({
       const frostZone = frostCells.has(`${row}-${col}`)
       const thornZone = thornCells.has(`${row}-${col}`)
       const deployZone = deploying && isDeployTile(battle, { row, col })
+      const moveOpt = selected ? moveOptions.get(`${row}-${col}`) : null
+      const onPath = hoverPath && hoverPath.path.some((p) => p.row === row && p.col === col)
       cells.push(
         <div
           key={`${row}-${col}`}
           className="hwt-cell"
           data-cell={`${row}-${col}`}
           data-reachable={!!reach}
+          data-move-band={moveOpt ? moveOpt.band : undefined}
+          data-move-cost={moveOpt ? moveOpt.apCost : undefined}
+          data-dash={moveOpt?.dash || undefined}
+          data-heal-ring={healRing.has(`${row}-${col}`) || undefined}
+          data-path={onPath || undefined}
+          onMouseEnter={moveOpt ? () => setHoverKey(`${row}-${col}`) : undefined}
+          onMouseLeave={moveOpt ? () => setHoverKey((k) => (k === `${row}-${col}` ? null : k)) : undefined}
           data-targetable={!!target}
           data-healable={!!healTarget}
           data-skill-tile={skillTiles.some((p) => p.row === row && p.col === col) || undefined}
@@ -635,8 +854,29 @@ export default function TacticsBoard({
               data-faction={unit.faction || undefined}
               data-echo={!!unit.echo || undefined}
               data-unit-id={unit.id}
+              data-role={roleOf(unit)}
+              data-overwatch={unit.overwatch > 0 || undefined}
+              data-hunkered={unit.hunkered > 0 || undefined}
+              title={roleTitle(unit)}
             >
               <TokenArt unit={unit} />
+              <span className="hwt-role-icon" data-role={roleOf(unit)} title={`${BATTLE_ROLES[roleOf(unit)].label}: ${BATTLE_ROLES[roleOf(unit)].what}`}>
+                {BATTLE_ROLES[roleOf(unit)].icon}
+              </span>
+              {(unit.overwatch > 0 || unit.hunkered > 0) && (
+                <span className="hwt-stance">
+                  {unit.overwatch > 0 && (
+                    <span className="hwt-ow-badge" title="Overwatch - shoots the first foe that ends a move in its reach">
+                      👁
+                    </span>
+                  )}
+                  {unit.hunkered > 0 && (
+                    <span className="hwt-hunker-badge" title="Hunkered down - takes 50% less damage until its next turn">
+                      🛡
+                    </span>
+                  )}
+                </span>
+              )}
               {unit.classId && classInfoFor(unit) && (
                 <span className="hwt-token-class" data-class-id={unit.classId} title={`${classInfoFor(unit).name} - ${classInfoFor(unit).description}`}>
                   {classInfoFor(unit).icon}
@@ -828,6 +1068,11 @@ export default function TacticsBoard({
                     ➤
                   </span>
                 )}
+                {intent && intent.kind === "overwatch" && (
+                  <span className="hwt-intent-badge" data-intent="overwatch" title="Will go on Overwatch - it shoots the first of your units that ends a move in its reach">
+                    👁
+                  </span>
+                )}
                 {intent && intent.kind === "aoe" && (
                   <span className="hwt-intent-badge" data-intent="aoe" title="Will strike every player unit at once">
                     ✺
@@ -876,11 +1121,15 @@ export default function TacticsBoard({
   return (
     <>
       <div className="hwt-layout">
-        <div
-          className="hwt-board"
-          style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)` }}
-        >
-          {cells}
+        <div className="hwt-board-col">
+          <SquadBar battle={battle} selectedId={selectedId} onSelect={handleSquadSelect} />
+          <div
+            className="hwt-board"
+            style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)` }}
+          >
+            {cells}
+            <BoardOverlay battle={battle} pairs={aggro} hoverPath={hoverPath} selected={selected} healReachTiles={healRing.size ? healReach(selected) : 0} />
+          </div>
         </div>
 
         <div className="hwt-panel">
@@ -929,10 +1178,15 @@ export default function TacticsBoard({
             </div>
           )}
           {selected && selected.side === "player" && (
-            <div className="hwt-selected-card">
+            <div className="hwt-selected-card" data-role={roleOf(selected)}>
               <TokenArt unit={selected} />
               <div className="hwt-selected-info">
                 <span className="hwt-selected-name">{selected.name}</span>
+                <span className="hwt-selected-role" data-role={roleOf(selected)}>
+                  <span className="hwt-selected-role-icon">{BATTLE_ROLES[roleOf(selected)].icon}</span>
+                  <strong>{BATTLE_ROLES[roleOf(selected)].label}</strong>
+                  <span className="hwt-selected-role-what">{BATTLE_ROLES[roleOf(selected)].what}</span>
+                </span>
                 {classInfoFor(selected) && (
                   <span className="hwt-class-badge" data-class-id={selected.classId} title={`${classInfoFor(selected).passive.name}: ${classInfoFor(selected).passive.text}`}>
                     <span className="hwt-class-icon">{classInfoFor(selected).icon}</span> {classInfoFor(selected).name}
@@ -947,6 +1201,32 @@ export default function TacticsBoard({
                   </span>
                 </span>
               </div>
+            </div>
+          )}
+          {selected && selected.side === "player" && battle.phase === "player" && (
+            <div className="hwt-universal-actions">
+              <button
+                type="button"
+                className="hwt-universal-btn"
+                data-action="overwatch"
+                data-active={selected.overwatch > 0 || undefined}
+                disabled={selected.ap < 1 || !(selected.attack > 0)}
+                onClick={() => handleUniversal("overwatch")}
+                title={`Overwatch (ends this unit's turn): shoot the first enemy that ends a move within ${selected.range > 1 ? `${rangeAt(battle, selected)} tiles` : "reach (adjacent tiles)"}, with its normal attack.`}
+              >
+                <span className="hwt-universal-icon">👁</span> Overwatch
+              </button>
+              <button
+                type="button"
+                className="hwt-universal-btn"
+                data-action="hunker"
+                data-active={selected.hunkered > 0 || undefined}
+                disabled={selected.ap < 1}
+                onClick={() => handleUniversal("hunker")}
+                title="Hunker Down (ends this unit's turn): take 50% less damage until your next turn."
+              >
+                <span className="hwt-universal-icon">🛡</span> Hunker Down
+              </button>
             </div>
           )}
           {deploying && (
