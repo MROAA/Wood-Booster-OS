@@ -1005,12 +1005,18 @@ export default function TacticsBoard({
                       className="hwt-skill-btn"
                       data-skill-id={sk.id}
                       data-active={armedSkillId === sk.id}
+                      data-upgraded={sk.upgrade ? sk.upgrade.branch : undefined}
                       disabled={!ready}
                       onClick={() => handleSkillClick(sk)}
-                      title={`${sk.name} (${sk.cost} AP, recharge ${sk.cooldown}) - ${sk.text}${key <= 4 ? ` [key ${key}]` : ""}`}
+                      title={`${sk.name} (${sk.cost} AP, recharge ${sk.cooldown}) - ${sk.text}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
                     >
                       <span className="hwt-skill-icon">{sk.icon}</span>
                       <span className="hwt-skill-name">{sk.name}</span>
+                      {sk.upgrade && (
+                        <span className="hwt-skill-upgrade">
+                          ★ {sk.upgrade.name}
+                        </span>
+                      )}
                       <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>
                     </button>
                   )
@@ -1024,14 +1030,17 @@ export default function TacticsBoard({
             <div className="hwt-ability-panel">
               <button
                 className="hwt-ability-btn"
+                data-upgraded={selected.ability.upgrade ? selected.ability.upgrade.branch : undefined}
                 data-active={abilityMode === "heal" || abilityMode === "burst"}
                 disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0}
                 onClick={handleAbilityClick}
                 title={describeAbility(selected.ability)}
               >
+                {selected.ability.upgrade ? "★ " : ""}
                 {selected.cooldownRemaining > 0
                   ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
                   : `${selected.ability.name} · ${selected.ability.cost} AP`}
+                {selected.ability.upgrade && <span className="hwt-skill-upgrade"> {selected.ability.upgrade.name}</span>}
               </button>
               <p className="hwt-ability-hint">{abilityMode === "heal" || abilityMode === "burst" ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
               {describeAbilityElement(selected) && <p className="hwt-ability-element">{describeAbilityElement(selected)}</p>}

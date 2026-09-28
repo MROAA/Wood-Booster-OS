@@ -33,7 +33,7 @@ import * as elements from "./tacticsElements"
 import * as objects from "./tacticsObjects"
 import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { bossVerdict, bossEnemyPhaseStart, bossImmuneHit, bossAfterDamage, bossTilePenalty, bossQa } from "./tacticsBosses"
-import { deriveAbilityForDef, abilityTargetSide } from "./tacticsAbilities"
+import { deriveAbilityForDef, abilityTargetSide, HAND_ABILITIES, signatureAbilityForDef } from "./tacticsAbilities"
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
 import * as classFx from "./tacticsClasses"
 import { applyFaction, factionEnemyPhaseStart, blightAttackBonus, factionTargetBonus, isBlighted, FADE_RANGE } from "./tacticsFactions"
@@ -133,14 +133,8 @@ const AP_MAX = 2
 // Regrowth/Focused Shot are ALSO invented - the real auto-battler has no
 // player-triggered "abilities" at all). The units' real names/art/HP/
 // attack numbers are all reused as-is from units.js, never invented.
-const ABILITIES = {
-  "bulwark-of-ages": { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2, cooldown: 2 },
-  "the-fool": { id: "regrowth", name: "Regrowth", cost: 1, kind: "heal", amount: 5, cooldown: 2 },
-  hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
-  oathshield: { id: "shieldwall", name: "Shieldwall", cost: 1, kind: "aura-block", amount: 1, cooldown: 2 },
-  willowmend: { id: "mending-waters", name: "Mending Waters", cost: 1, kind: "heal", amount: 4, cooldown: 2 },
-  "bramble-sweep": { id: "ripple-strike", name: "Ripple Strike", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
-}
+// Moved to tacticsAbilities.js (HAND_ABILITIES) so unitLevels.js can read it.
+const ABILITIES = HAND_ABILITIES
 
 // The player roster (real names/art/HP; move/range/attack are DERIVED below
 // from the unit's actual movePattern/attackPattern, not invented). Player
@@ -1182,10 +1176,7 @@ export function beginBattle(state) {
 // directly (the exact same function a real squad unit goes through), just
 // with a throwaway pos/id since these are never placed on a real board.
 // Class system: a unit's personal signature ability (cards/tooltips).
-export function signatureAbilityForDef(def) {
-  if (!def || def.summonOnly) return null
-  return ABILITIES[def.id] || deriveAbilityForDef(def)
-}
+export { signatureAbilityForDef }
 
 export function previewPlayerRoster() {
   return PLAYER_ROSTER_IDS.map((defId, i) => deriveTacticsUnit(defId, "player", { row: 0, col: 0 }, `preview-${defId}-${i}`))
@@ -2311,8 +2302,11 @@ const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "ta
 export function castAbility(state, actorId, targetId, skillId) {
   const who = getUnit(state, actorId)
   if (skillId && classFx.classSkillById(who, skillId)) return classFx.castClassSkill(state, actorId, targetId, skillId)
-  const cast = castAbilityInner(state, actorId, targetId)
+  let cast = castAbilityInner(state, actorId, targetId)
   if (cast === state) return cast
+  // Skill tree: the signature's chosen branch rider.
+  const upFx = who?.ability?.upgrade?.fx
+  if (upFx && cast.phase === who.side) cast = classFx.applySkillFx(cast, actorId, abilityTargetSide(who.ability) ? targetId : null, null, upFx)
   const next = classFx.afterCast(elements.afterAbilityCast(cast, actorId, targetId), actorId, targetId, getUnit(state, actorId)?.ability)
   const before = getUnit(state, actorId)
   const after = getUnit(next, actorId)

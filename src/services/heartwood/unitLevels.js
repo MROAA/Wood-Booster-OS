@@ -7,13 +7,19 @@
 // - Levels 1-5. XP needed in total: Lv2 6, Lv3 15, Lv4 28, Lv5 45.
 // - Each new level: pick 1 of 3 perks (same offer for the same run seed,
 //   unit and level). Perks apply in every later tactics fight.
-// Stored on the bench entry: `xp` (total) + `perks` (ids, in pick order);
-// the Commander's on runState `commanderXp` / `commanderPerks`. Missing =
-// Lv1, 0 XP (old saves load unchanged). Pure data + helpers - no imports
-// from either battle engine.
+// Skill tree: while the unit still has a skill without an upgrade, a
+// level-up offers the 2 branches (A/B) of ONE of its skills (seeded) +
+// one stat perk. A branch is permanent and each skill takes only one.
+// Stored on the bench entry: `xp` (total) + `perks` (ids, in pick order)
+// + `skillUpgrades` ({ skillId: "A"|"B" }, "signature" = its own ability);
+// the Commander's on runState `commanderXp` / `commanderPerks` /
+// `commanderSkillUpgrades`. Missing = Lv1, 0 XP, no upgrades (old saves
+// load unchanged). Pure data + helpers - no imports from either battle engine.
 import { streamRng } from "../../data/heartwood/seed"
 import { UNITS } from "../../data/heartwood/units"
 import { CHARACTERS } from "../../data/heartwood/characters"
+import { CLASSES, fallbackClassId, applySkillUpgrades } from "../../data/heartwood/classes"
+import { signatureAbilityForDef, signatureUpgrades, upgradeAbility, SIGNATURE_SKILL_KEY } from "./tacticsAbilities"
 
 export const MAX_LEVEL = 5
 // Total XP needed to REACH each level (index = level - 1).
@@ -49,21 +55,45 @@ export function levelProgress(xp) {
   return { level, xp: total, into: total - base, need: LEVEL_XP[level] - base }
 }
 
+// The skill tree of one unit: its class skills (+ the signature), each
+// with its A/B branches. [{ id, name, icon, signature, upgrades }]
+export function skillTreeFor(def, { commander = false } = {}) {
+  const sig = commander ? null : signatureAbilityForDef(def)
+  const classId = commander ? "commander" : def?.classId || fallbackClassId(def, sig?.kind)
+  const cls = CLASSES[classId]
+  const out = (cls?.skills || []).filter((sk) => sk.upgrades).map((sk) => ({ id: sk.id, name: sk.name, icon: sk.icon, signature: false, upgrades: sk.upgrades }))
+  const sigUps = signatureUpgrades(sig)
+  if (sigUps) out.push({ id: SIGNATURE_SKILL_KEY, name: sig.name, icon: "★", signature: true, upgrades: sigUps })
+  return out
+}
+
 // The Commander uses key "commander"; everyone else a bench key.
 export function levelSubject(runState, key) {
   if (key === "commander") {
     const ch = CHARACTERS[runState.characterId]
-    return { key, name: ch?.name || "Your Commander", xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ranged: !!ch?.attackPattern && ch.attackPattern !== "single", hasAbility: false }
+    return {
+      key, name: ch?.name || "Your Commander", xp: runState.commanderXp || 0, perks: runState.commanderPerks || [],
+      skillUpgrades: runState.commanderSkillUpgrades || {}, skills: skillTreeFor(ch, { commander: true }),
+      ranged: !!ch?.attackPattern && ch.attackPattern !== "single", hasAbility: false,
+    }
   }
   const e = runState.bench.find((b) => b.key === key)
   if (!e) return null
   const def = UNITS[e.defId]
-  return { key, name: def?.name || e.defId, xp: e.xp || 0, perks: e.perks || [], ranged: !!def?.attackPattern && def.attackPattern !== "single", hasAbility: true }
+  return {
+    key, name: def?.name || e.defId, xp: e.xp || 0, perks: e.perks || [], skillUpgrades: e.skillUpgrades || {}, skills: def ? skillTreeFor(def) : [],
+    ranged: !!def?.attackPattern && def.attackPattern !== "single", hasAbility: true,
+  }
 }
 
-// Levels earned but not yet spent on a perk.
+// Levels already spent (a perk or a skill branch each).
+export function spentLevels(subject) {
+  return subject.perks.length + Object.keys(subject.skillUpgrades || {}).length
+}
+
+// Levels earned but not yet spent on a perk / branch.
 export function pendingPerkCount(subject) {
-  return subject ? Math.max(0, levelForXp(subject.xp) - 1 - subject.perks.length) : 0
+  return subject ? Math.max(0, levelForXp(subject.xp) - 1 - spentLevels(subject)) : 0
 }
 
 // The first unit (Commander last) with an unspent level, or null.
@@ -79,7 +109,7 @@ export function nextPendingLevelUp(runState) {
 
 // 3 perk ids for this subject's next level - seeded by run seed + key + level.
 export function perkOffers(runState, subject) {
-  const level = subject.perks.length + 2
+  const level = spentLevels(subject) + 2
   const pool = PERK_IDS.filter((id) => {
     const p = PERKS[id]
     if (!p.stack && subject.perks.includes(id)) return false
@@ -91,6 +121,28 @@ export function perkOffers(runState, subject) {
   const out = []
   while (out.length < 3 && pool.length) out.push(pool.splice(Math.floor(rng() * pool.length), 1)[0])
   return out
+}
+
+// Skill-tree offer ids: "up:<skillId>:<A|B>".
+export function upgradeOfferId(skillId, branch) {
+  return `up:${skillId}:${branch}`
+}
+export function parseOffer(id) {
+  const m = /^up:(.+):([AB])$/.exec(id || "")
+  return m ? { kind: "upgrade", skillId: m[1], branch: m[2] } : { kind: "perk", perkId: id }
+}
+
+// The level-up choice (2-3 cards): both branches of ONE not-yet-upgraded
+// skill (seeded by run seed + key + level) + the first stat perk offer.
+// No skill left to upgrade = 3 stat perks, as before.
+export function levelOffers(runState, subject) {
+  const perks = perkOffers(runState, subject)
+  const open = (subject.skills || []).filter((sk) => !subject.skillUpgrades?.[sk.id])
+  if (!open.length) return perks
+  const level = spentLevels(subject) + 2
+  const rng = streamRng(runState.seed || 0, "levels", `${subject.key}:${level}:tree`)
+  const sk = open[Math.floor(rng() * open.length)]
+  return [upgradeOfferId(sk.id, "A"), upgradeOfferId(sk.id, "B"), ...perks.slice(0, 1)]
 }
 
 // Stat side of the perks, applied to a tactics unit at fight start; the
@@ -118,6 +170,14 @@ function applyPerks(u, perks, xp) {
   }
 }
 
+// Skill tree: fold chosen branches into the unit's class skills + signature.
+function applyTree(u, ups) {
+  if (!ups || !Object.keys(ups).length) return u
+  const next = applySkillUpgrades(u, ups)
+  const sig = ups[SIGNATURE_SKILL_KEY]
+  return { ...next, skillUpgrades: ups, ...(sig && u.ability ? { ability: upgradeAbility(u.ability, sig) } : {}) }
+}
+
 // Called by runEngine.startTacticsFormationBattle on the built battle.
 export function applyLevelsToTactics(battle, runState) {
   if (!battle?.units) return battle
@@ -125,8 +185,8 @@ export function applyLevelsToTactics(battle, runState) {
   const byId = {}
   keys.forEach((k, i) => {
     const e = runState.bench.find((b) => b.key === k)
-    byId[`player-${e.defId}-${i}`] = { xp: e.xp || 0, perks: e.perks || [] }
+    byId[`player-${e.defId}-${i}`] = { xp: e.xp || 0, perks: e.perks || [], ups: e.skillUpgrades || {} }
   })
-  byId["player-commander"] = { xp: runState.commanderXp || 0, perks: runState.commanderPerks || [] }
-  return { ...battle, units: battle.units.map((u) => (byId[u.id] ? applyPerks(u, byId[u.id].perks, byId[u.id].xp) : u)) }
+  byId["player-commander"] = { xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ups: runState.commanderSkillUpgrades || {} }
+  return { ...battle, units: battle.units.map((u) => (byId[u.id] ? applyPerks(applyTree(u, byId[u.id].ups), byId[u.id].perks, byId[u.id].xp) : u)) }
 }
