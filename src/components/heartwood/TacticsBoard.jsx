@@ -54,6 +54,20 @@ import {
   attackPreview,
 } from "../../services/heartwood/tacticsEngine"
 import { BATTLE_ROLES, roleOf, healReach } from "../../services/heartwood/tacticsRoles"
+import { canAfford, hasMana, manaCostOf, manaBlockReason, manaSummary, manaRole, MANA_ROLE_LABEL, potionOf, drinkPotion, POTION_AP, ultimateReady, surgeFor } from "../../services/heartwood/tacticsMana"
+
+// Mana step 1: thin blue bar (+ brighter Overcharge cap) under the HP bar.
+function ManaBar({ unit, className = "hwt-mana-track" }) {
+  if (!hasMana(unit)) return null
+  const pct = Math.max(0, Math.min(100, Math.round((unit.mana / unit.manaMax) * 100)))
+  const over = Math.max(0, Math.min(50, Math.round(((unit.overcharge || 0) / unit.manaMax) * 100)))
+  return (
+    <div className={className} data-full={unit.mana >= unit.manaMax || undefined} data-over={over > 0 || undefined} title={manaSummary(unit)}>
+      <div className="hwt-mana-fill" style={{ width: `${pct}%` }} />
+      {over > 0 && <div className="hwt-mana-over" style={{ width: `${over}%` }} />}
+    </div>
+  )
+}
 import { rollsOn, coverAgainst, isFlanked, tileCoverSides, COVER_NAME } from "../../services/heartwood/tacticsCover"
 import { motion } from "framer-motion"
 import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
@@ -151,7 +165,7 @@ const cellCenter = (p) => ({ x: p.col * (CELL + GAP) + CELL / 2, y: p.row * (CEL
 
 function roleTitle(unit) {
   const r = BATTLE_ROLES[roleOf(unit)]
-  return `${unit.name} - ${r.label}: ${r.what}`
+  return `${unit.name} - ${r.label}: ${r.what}${hasMana(unit) ? ` · ${manaSummary(unit)}` : ""}`
 }
 
 // A tank that actively shields others (Taunt / Guard / Intercept kit).
@@ -303,6 +317,15 @@ function SquadBar({ battle, selectedId, onSelect }) {
                   {u.hp}/{u.maxHp}
                 </span>
               </span>
+              {hasMana(u) && (
+                <span className="hwt-sb-mana" title={manaSummary(u)}>
+                  <ManaBar unit={u} className="hwt-sb-mana-track" />
+                  <span className="hwt-sb-mana-num">
+                    {u.mana}
+                    {u.overcharge > 0 ? `+${u.overcharge}` : ""}/{u.manaMax}
+                  </span>
+                </span>
+              )}
               <span className="hwt-sb-ap" title={`${u.ap}/${u.apMax} AP`}>
                 {Array.from({ length: u.apMax }, (_, i) => (
                   <span key={i} className="hwt-sb-ap-pip" data-full={i < u.ap} />
@@ -682,7 +705,7 @@ export default function TacticsBoard({
   function handleAbilityClick() {
     if (!selected || !selected.ability || battle.phase !== "player") return
     const ability = selected.ability
-    if (selected.ap < ability.cost || selected.cooldownRemaining > 0) return
+    if (selected.ap < ability.cost || selected.cooldownRemaining > 0 || !canAfford(selected, ability)) return
     const side = abilityTargetSide(ability)
     if (!side) {
       onBattleChange(castAbility(battle, selected.id))
@@ -730,6 +753,13 @@ export default function TacticsBoard({
     if (!selected || battle.phase !== "player" || selected.ap < 1) return
     onAbilityModeChange(null)
     onBattleChange(kind === "overwatch" ? overwatchAction(battle, selected.id) : hunkerDown(battle, selected.id))
+  }
+
+  // Mana: drink a carried mana potion (1 AP).
+  function handlePotion() {
+    if (!selected || battle.phase !== "player") return
+    onAbilityModeChange(null)
+    onBattleChange(drinkPotion(battle, selected.id))
   }
 
   function handleSquadSelect(u) {
@@ -1188,6 +1218,7 @@ export default function TacticsBoard({
               <div className="hwt-hp-track">
                 <div className="hwt-hp-fill" style={{ width: `${Math.max(0, Math.round((unit.hp / unit.maxHp) * 100))}%` }} />
               </div>
+              <ManaBar unit={unit} />
               <span
                 className="hwt-atk-gem"
                 data-buffed={unit.attack > unit.baseAttack}
@@ -1289,7 +1320,14 @@ export default function TacticsBoard({
                   <span data-stat="range" title={rangeAt(battle, selected) > selected.range ? "Attack range (+1 from high ground)" : "Attack range"}>
                     ◎ {rangeAt(battle, selected)}
                   </span>
+                  {hasMana(selected) && (
+                    <span data-stat="mana" title={`${manaSummary(selected)}. ${MANA_ROLE_LABEL[manaRole(selected)]}.${selected.overcharge > 0 ? ` Overcharge: the next skill gets +${surgeFor(selected)}.` : ""}`}>
+                      ✦ {selected.mana}/{selected.manaMax}
+                      {selected.overcharge > 0 && <b className="hwt-stat-over"> +{selected.overcharge}</b>}
+                    </span>
+                  )}
                 </span>
+                {hasMana(selected) && <ManaBar unit={selected} className="hwt-selected-mana" />}
               </div>
             </div>
           )}
@@ -1339,6 +1377,18 @@ export default function TacticsBoard({
               >
                 <span className="hwt-universal-icon">🛡</span> Hunker Down
               </button>
+              {potionOf(selected) && (
+                <button
+                  type="button"
+                  className="hwt-universal-btn"
+                  data-action="potion"
+                  disabled={selected.ap < POTION_AP}
+                  onClick={handlePotion}
+                  title={`${potionOf(selected).name} (${POTION_AP} AP): restore ${potionOf(selected).mana.restore} mana - extra spills into Overcharge. Used up once drunk.`}
+                >
+                  <span className="hwt-universal-icon">⚗</span> Drink +{potionOf(selected).mana.restore} mana
+                </button>
+              )}
             </div>
           )}
           {deploying && (
@@ -1359,19 +1409,29 @@ export default function TacticsBoard({
           {battle.activePower && (() => {
             const power = battle.activePower
             const commander = battle.units.find((u) => u.id === "player-commander")
-            const ready = !power.used && battle.phase === "player" && commander && commander.hp > 0 && commander.ap >= 1
-            const status = power.used
-              ? "Used this battle"
-              : !commander || commander.hp <= 0
-                ? "Your Commander has fallen"
-                : commander.ap < 1
-                  ? "Your Commander needs 1 AP"
-                  : "Once per battle · 1 Commander AP"
+            // Mana step 1: with mana on, the Power is the Commander's mana ULTIMATE.
+            const ultimate = hasMana(commander)
+            const full = ultimate && ultimateReady(commander)
+            const ready = (ultimate ? full : !power.used) && battle.phase === "player" && commander && commander.hp > 0 && commander.ap >= 1
+            const status = !commander || commander.hp <= 0
+              ? "Your Commander has fallen"
+              : ultimate
+                ? full
+                  ? commander.ap < 1
+                    ? "Your Commander needs 1 AP"
+                    : `Ultimate ready · spends all ${commander.manaMax} mana + 1 AP`
+                  : `Ultimate · needs a full mana bar (${commander.mana}/${commander.manaMax})${power.timesFired ? ` · used ${power.timesFired}x` : ""}`
+                : power.used
+                  ? "Used this battle"
+                  : commander.ap < 1
+                    ? "Your Commander needs 1 AP"
+                    : "Once per battle · 1 Commander AP"
             return (
-              <div className="hwt-power-panel" data-used={power.used}>
-                <button className="hwt-power-btn" disabled={!ready} onClick={handleActivePower} title={power.description}>
+              <div className="hwt-power-panel" data-used={ultimate ? !full : power.used} data-ultimate={ultimate || undefined}>
+                <button className="hwt-power-btn" disabled={!ready} onClick={handleActivePower} title={ultimate ? `${power.description} Mana ultimate: needs a full bar and spends all of it; refill to use again.` : power.description}>
                   <span className="hwt-power-crown">♛</span> {power.name}
                 </button>
+                {ultimate && commander && <ManaBar unit={commander} className="hwt-power-mana" />}
                 <p className="hwt-power-desc">{power.description}</p>
                 <p className="hwt-power-status">{status}</p>
               </div>
@@ -1398,9 +1458,10 @@ export default function TacticsBoard({
                       data-skill-id={sk.id}
                       data-active={armedSkillId === sk.id}
                       data-upgraded={sk.upgrade ? sk.upgrade.branch : undefined}
+                      data-no-mana={!!manaBlockReason(selected, sk) || undefined}
                       disabled={!ready}
                       onClick={() => handleSkillClick(sk)}
-                      title={`${sk.name} (${sk.cost} AP, recharge ${sk.cooldown}) - ${sk.text}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
+                      title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${manaCostOf(sk)} mana` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough mana: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
                     >
                       <span className="hwt-skill-icon">{sk.icon}</span>
                       <span className="hwt-skill-name">{sk.name}</span>
@@ -1410,6 +1471,11 @@ export default function TacticsBoard({
                         </span>
                       )}
                       <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>
+                      {hasMana(selected) && (
+                        <span className="hwt-skill-mana" data-short={selected.mana < manaCostOf(sk) || undefined} title={`${manaCostOf(sk)} mana`}>
+                          {manaCostOf(sk)} mana
+                        </span>
+                      )}
                       {hitPreview && hitPreview.rolls && sk.target === "enemy" && (
                         <span className="hwt-skill-hit" title={`Chance to hit ${hitPreview.targetName} (a miss grazes for half)`}>
                           {hitPreview.chance}%
@@ -1429,14 +1495,17 @@ export default function TacticsBoard({
                 className="hwt-ability-btn"
                 data-upgraded={selected.ability.upgrade ? selected.ability.upgrade.branch : undefined}
                 data-active={abilityMode === "heal" || abilityMode === "burst"}
-                disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0}
+                data-no-mana={!!manaBlockReason(selected, selected.ability) || undefined}
+                disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0 || !canAfford(selected, selected.ability)}
                 onClick={handleAbilityClick}
-                title={describeAbility(selected.ability)}
+                title={`${describeAbility(selected.ability)}${hasMana(selected) ? ` Costs ${selected.ability.cost} AP + ${manaCostOf(selected.ability)} mana.` : ""}${manaBlockReason(selected, selected.ability) ? ` Not enough mana: ${manaBlockReason(selected, selected.ability)}.` : ""}`}
               >
                 {selected.ability.upgrade ? "★ " : ""}
                 {selected.cooldownRemaining > 0
                   ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
-                  : `${selected.ability.name} · ${selected.ability.cost} AP`}
+                  : manaBlockReason(selected, selected.ability)
+                    ? `${selected.ability.name} · Needs ${manaCostOf(selected.ability)} mana`
+                    : `${selected.ability.name} · ${selected.ability.cost} AP${hasMana(selected) ? ` · ${manaCostOf(selected.ability)} mana` : ""}`}
                 {selected.ability.upgrade && <span className="hwt-skill-upgrade"> {selected.ability.upgrade.name}</span>}
                 {hitPreview && hitPreview.rolls && abilityTargetSide(selected.ability) === "enemy" && <span className="hwt-skill-hit"> {hitPreview.chance}%</span>}
               </button>

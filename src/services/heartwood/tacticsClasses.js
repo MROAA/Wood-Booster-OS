@@ -1536,5 +1536,5 @@ export function classSkillStatus(unit, skill) {
   if (cd > 0) return `Recharging (${cd})`
   if (unit.ap < skill.cost) return `Needs ${skill.cost} AP`
   if (hasMana(unit) && unit.mana < manaCostOf(skill)) return `Needs ${manaCostOf(skill)} mana`
-  return hasMana(unit) ? `${skill.cost} AP · ${manaCostOf(skill)} mana` : `${skill.cost} AP`
+  return `${skill.cost} AP`
 }
