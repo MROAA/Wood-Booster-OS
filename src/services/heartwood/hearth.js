@@ -126,7 +126,10 @@ export function roomUpgradeCost(h, roomId) {
 export function upgradeRoom(h, roomId, acorns) {
   const cost = roomUpgradeCost(h, roomId)
   if (cost == null || acorns < cost) return null
-  return { hearth: { ...h, rooms: { ...h.rooms, [roomId]: roomLevel(h, roomId) + 1 } }, cost }
+  const next = { ...h, rooms: { ...h.rooms, [roomId]: roomLevel(h, roomId) + 1 } }
+  // Infirmary built: everyone at home is patched up right away.
+  if (roomId === "infirmary") next.roster = h.roster.map((u) => (u.wounded ? { ...u, wounded: false } : u))
+  return { hearth: next, cost }
 }
 export function buyFurniture(h, id, acorns) {
   const f = furnitureById(id)

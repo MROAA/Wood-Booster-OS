@@ -28,7 +28,7 @@ export default function HearthScreen({
 
   return (
     <div className="hw-intro hw-hearth hw-screen-frame" data-screen="hearth">
-      <button className="hw-exit-link hw-utility-btn" style={{ position: "absolute", top: 16, left: 16 }} onClick={onBack}>
+      <button className="hw-exit-link hw-utility-btn" style={{ position: "fixed", top: 14, left: 14, right: "auto" }} onClick={onBack}>
         ← Back
       </button>
       <div className="hw-screen-eyebrow">The Hearth</div>
@@ -95,9 +95,10 @@ export default function HearthScreen({
               if (!def) return null
               const decline = declineSteps(u.age)
               const isPicked = picked.includes(u.hid)
+              const hurt = u.wounded && roomLevel(hearth, "infirmary") < 1
               return (
                 <div key={u.hid} className={`hw-hearth-unit${isPicked ? " is-picked" : ""}`} data-hearth-unit={u.hid}>
-                  <UnitCard def={def} entry={u} onClick={() => togglePick(u.hid)} selected={isPicked} />
+                  <UnitCard def={def} entry={hurt ? { ...u, hpPct: 0.25 } : u} onClick={() => togglePick(u.hid)} selected={isPicked} />
                   <div className="hw-hearth-unit-meta">
                     <span className="hw-hearth-badge is-vet" title="Has been on at least one run">
                       Veteran
@@ -109,7 +110,7 @@ export default function HearthScreen({
                         Old −{decline}
                       </span>
                     )}
-                    {u.wounded && <span className="hw-hearth-badge is-hurt">Wounded</span>}
+                    {hurt && <span className="hw-hearth-badge is-hurt">Wounded</span>}
                   </div>
                   <div className="hw-hearth-unit-actions">
                     <button

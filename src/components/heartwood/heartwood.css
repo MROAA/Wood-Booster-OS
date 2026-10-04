@@ -8556,15 +8556,15 @@ img.hw-intent-glyph {
 .hw-hearth-toggle { display: inline-flex; gap: 6px; align-items: center; font-size: var(--hw-fs-md); cursor: pointer; }
 .hw-hearth-open-btn {
   position: absolute;
-  bottom: 134px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 7px 16px;
+  top: 14px;
+  left: 14px;
+  z-index: 5;
+  padding: 8px 18px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--hw-ember) 70%, transparent);
   background: color-mix(in srgb, var(--hw-ember) 14%, var(--hw-panel));
   color: color-mix(in srgb, var(--hw-ember) 75%, #f3d58a);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -8572,9 +8572,9 @@ img.hw-intent-glyph {
 .hw-hearth-open-btn:hover { background: color-mix(in srgb, var(--hw-ember) 24%, var(--hw-panel)); }
 .hw-hearth-pick-banner {
   position: absolute;
-  bottom: 172px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 54px;
+  left: 14px;
+  z-index: 5;
   padding: 6px 14px;
   border-radius: var(--hw-radius);
   background: var(--hw-panel);
