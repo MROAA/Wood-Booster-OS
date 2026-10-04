@@ -836,7 +836,7 @@ await page.waitForSelector(".hwt-board")
     logText = await page22.locator(".hwt-log").innerText()
     // Sporelet's real base attack 3 -> 4 with the swarm bonus; Mire Gnat's
     // real base attack 4 -> 5. Either landing confirms the +1 grant.
-    foundBonusHit = /Sporelet strikes .* for 4\./.test(logText) || /Mire Gnat strikes .* for 5\./.test(logText)
+    foundBonusHit = /Sporelet strikes .* for 4( \(\d+%\))?\./.test(logText) || /Mire Gnat strikes .* for 5( \(\d+%\))?\./.test(logText)
     const phase = await page22.locator(".hwt-turn-label").getAttribute("data-phase")
     if (phase === "lost" || phase === "won") break
   }
@@ -952,7 +952,7 @@ await page.waitForSelector(".hwt-board")
     logText = await page27.locator(".hwt-log").innerText()
     // Fen Stalker's real base attack 7 -> 9 with the +2 grant; Pack
     // Runner's real base attack (derived average of 4/5 -> 5) -> 7.
-    foundBonusHit = /Fen Stalker strikes .* for 9\./.test(logText) || /Pack Runner strikes .* for 7\./.test(logText)
+    foundBonusHit = /Fen Stalker strikes .* for 9( \(\d+%\))?\./.test(logText) || /Pack Runner strikes .* for 7( \(\d+%\))?\./.test(logText)
     const phase = await page27.locator(".hwt-turn-label").getAttribute("data-phase")
     if (phase === "lost" || phase === "won") break
   }

@@ -37,6 +37,7 @@ import { deriveAbilityForDef, abilityTargetSide, HAND_ABILITIES, signatureAbilit
 import { enemySkillsFor, ENEMY_SKILL_KINDS } from "./tacticsEnemyAbilities"
 import * as classFx from "./tacticsClasses"
 import { roleOf } from "./tacticsRoles"
+import * as cover from "./tacticsCover"
 import { applyFaction, factionEnemyPhaseStart, blightAttackBonus, factionTargetBonus, isBlighted, FADE_RANGE } from "./tacticsFactions"
 import { TERRAIN, terrainAt, terrainRule, isHigh, canReach, rangeAt, highGroundAmount, slideLanding, terrainDistanceField, wallHpAt, WALL_MAX_HP } from "./tacticsTerrain"
 export { TERRAIN_INFO, WALL_MAX_HP, wallHpAt, rangeAt } from "./tacticsTerrain"
@@ -1381,11 +1382,14 @@ export function hunkerDown(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0 || unit.ap < 1 || state.phase !== unit.side || unit.structure) return state
   const next = setUnit(state, unitId, { ap: 0, hunkered: unit.side === "player" ? 1 : 2 })
-  return emit({ ...next, log: [...next.log, `${unit.name} hunkers down (half damage until its next turn).`] }, { kind: "reaction", unitId, label: "Hunker Down!" })
+  const what = cover.rollsOn(state) ? "cover doubled until its next turn" : "half damage until its next turn"
+  return emit({ ...next, log: [...next.log, `${unit.name} hunkers down (${what}).`] }, { kind: "reaction", unitId, label: "Hunker Down!" })
 }
 
-// Hunker Down halves an incoming hit (rounded up).
-function hunkeredAmount(target, amount) {
+// Hunker Down: with hit rolls on it doubles cover (tacticsCover.js);
+// without (hand-built test states) it still halves a hit (rounded up).
+function hunkeredAmount(target, amount, state = null) {
+  if (cover.rollsOn(state)) return amount
   return target && target.hunkered > 0 && amount > 0 ? Math.ceil(amount / 2) : amount
 }
 
@@ -1906,7 +1910,7 @@ function applyDamageWithBlock(state, targetId, amount) {
   // Boss fights: a weak point still standing shields the boss.
   const immune = bossImmuneHit(state, targetId)
   if (immune) return immune
-  const res = applyDamageInner(state, targetId, hunkeredAmount(getUnit(state, targetId), amount))
+  const res = applyDamageInner(state, targetId, hunkeredAmount(getUnit(state, targetId), amount, state))
   return state.boss ? { ...res, next: bossAfterDamage(res.next, targetId) } : res
 }
 
@@ -2309,7 +2313,12 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     next = setUnit(next, targetId, { suppressed: (target.suppressed || 0) + SUPPRESSED_DURATION })
     suppressedNote = ` ${target.name}'s guard falters, reactions weakened!`
   }
-  const rawAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack + blightAttackBonus(next, actor)))
+  const fullAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack + blightAttackBonus(next, actor)))
+  // XCOM part 2: the hit roll (a miss is a GRAZE - half damage, no riders).
+  const roll = cover.rollHit(next, actor, effectiveTarget, facing)
+  const graze = roll.graze
+  next = graze ? emit(roll.state, { kind: "graze", targetId }) : roll.state
+  const rawAmount = graze ? cover.grazeAmount(fullAmount) : fullAmount
   const guardian = eligibleGuardian(next, effectiveTarget) || classFx.classGuardFor(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
   const extraVictims = []
@@ -2344,26 +2353,26 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // facingMultiplier computes it in the same formula.
   const facingPct = facing !== "front" ? Math.round((facingMultiplier(actor, effectiveTarget, facing) - 1) * 100) : 0
   const facingNote = facing === "side" ? ` (flanked, +${facingPct}%)` : facing === "back" ? ` (from behind, CRITICAL, +${facingPct}%)` : ""
-  next = { ...next, log: [...next.log, `${actor.name} strikes ${target.name} for ${remaining}${facingNote}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}${suppressedNote}${sidestepNote}`] }
+  next = { ...next, log: [...next.log, `${actor.name} ${graze ? "grazes" : "strikes"} ${target.name} for ${remaining}${facingNote}${cover.rollNote(roll)}.${absorbedNote}${fellNote}${describeRevive(revived, target.name)}${interceptNote}${blockWeakenNote}${suppressedNote}${sidestepNote}`] }
   // The Rot's real mechanic: a poison-carrying enemy applies its stack on
   // EVERY landed hit, unconditional of how much Block absorbed that
   // hit's damage - the real game's debuff step is its own move in the
   // sequence, entirely independent of the accompanying attack step's
   // Block interaction. Only while the target is still standing.
-  if (actor.side === "enemy" && actor.poisonOnHit > 0 && !fell) {
+  if (actor.side === "enemy" && actor.poisonOnHit > 0 && !fell && !graze) {
     const poisoned = getUnit(next, targetId)
     next = setUnit(next, targetId, { poison: (poisoned.poison || 0) + actor.poisonOnHit })
     next = { ...next, log: [...next.log, `${target.name} is poisoned (+${actor.poisonOnHit}).`] }
     next = elements.reactStatus(next, targetId, "poison")
   }
   // Element combos: a frosty unit's basic hits Chill.
-  if (actor.frosty && !fell) next = elements.applyElement(next, targetId, "frost", 1)
+  if (actor.frosty && !fell && !graze) next = elements.applyElement(next, targetId, "frost", 1)
   if (actor.side === "player") next = classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, targetId)
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
-  next = relicFx.relicAfterHit(next, actorId, targetId, remaining, fell, extraVictims)
+  if (!graze) next = relicFx.relicAfterHit(next, actorId, targetId, remaining, fell, extraVictims)
   // Unit levels: the Cleave perk - a normal basic attack also hits enemies
   // next to the target for half damage.
   if (actor.perks?.includes("cleave") && !opts.isReaction && !opts.isHasteFollowUp) {
@@ -2495,12 +2504,15 @@ function castAbilityInner(state, actorId, targetId) {
     if (tauntersOnTargetSide.length && !(target.taunt > 0)) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     next = emit(next, { kind: "strike", actorId, targetId: target.id, ranged: actor.range > 1, ability: ability.name })
-    const amount = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, actor.attack * ability.multiplier))
+    const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, actor.attack * ability.multiplier))
+    const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target))
+    next = roll.graze ? emit(roll.state, { kind: "graze", targetId: target.id }) : roll.state
+    const amount = roll.graze ? cover.grazeAmount(full) : full
     const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, amount)
     next = hit
     const absorbedNote = describeAbsorb(absorbed, armourUsed)
     const fellNote = fell ? " It falls." : ""
-    next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}!${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
+    next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}${cover.rollNote(roll)}!${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
     next = classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, target.id)
     next = checkEnemyPhase(next, target.id)
     next = checkOnDealDamageTriggers(next, actorId, target.id, remaining)
@@ -2563,9 +2575,9 @@ function castAbilityInner(state, actorId, targetId) {
 
   if (ability.kind === "poison-strike" || ability.kind === "root-shot") {
     next = callout(next)
-    const { next: hit, fell } = abilityHit(next, actorId, target.id, actor.attack, ability)
+    const { next: hit, fell, graze } = abilityHit(next, actorId, target.id, actor.attack, ability)
     next = hit
-    if (!fell) {
+    if (!fell && !graze) {
       const live = getUnit(next, target.id)
       if (ability.kind === "poison-strike") {
         next = setUnit(next, target.id, { poison: (live.poison || 0) + ability.amount })
@@ -2585,10 +2597,10 @@ function castAbilityInner(state, actorId, targetId) {
     const dest = { row: target.pos.row + dRow, col: target.pos.col + dCol }
     const free = isOnBoard(dest, state.grid) && TERRAIN[terrainAt(state, dest)].cost !== Infinity && !state.units.some((u) => u.hp > 0 && samePos(u.pos, dest))
     next = callout(next)
-    const { next: hit, fell } = abilityHit(next, actorId, target.id, actor.attack + (free ? 0 : ability.bonus), ability)
+    const { next: hit, fell, graze } = abilityHit(next, actorId, target.id, actor.attack + (free ? 0 : ability.bonus), ability)
     next = hit
     const live = getUnit(next, target.id)
-    if (!fell && free && !classFx.immovable(live) && samePos(live.pos, target.pos) && !next.units.some((u) => u.hp > 0 && samePos(u.pos, dest))) {
+    if (!fell && !graze && free && !classFx.immovable(live) && samePos(live.pos, target.pos) && !next.units.some((u) => u.hp > 0 && samePos(u.pos, dest))) {
       next = setUnit(next, target.id, { pos: dest })
       next = emit({ ...next, log: [...next.log, `${target.name} is knocked back!`] }, { kind: "reaction", unitId: target.id, label: "Knocked back!" })
     } else if (!free) {
@@ -2607,15 +2619,18 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
   let next = emit(state, { kind: "strike", actorId, targetId, ranged: chebyshevDist(actor.pos, target.pos) > 1, ability: ability.name })
-  const amount = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount))
-  const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, amount)
+  const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount))
+  const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target))
+  const graze = roll.graze
+  next = graze ? emit(roll.state, { kind: "graze", targetId }) : roll.state
+  const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, graze ? cover.grazeAmount(full) : full)
   next = hit
-  next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} hits ${target.name} for ${remaining}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
+  next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} ${graze ? "grazes" : "hits"} ${target.name} for ${remaining}${cover.rollNote(roll)}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
   next = actor.side === "player" ? classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, targetId) : grantStrengthOnKill(next, actorId, fell)
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
-  return { next, fell }
+  return { next, fell, graze }
 }
 
 // Dash: a free tile next to the target within `range` of the actor
@@ -3009,9 +3024,34 @@ function aiTargetsFrom(state, enemy, pos) {
 
 // Rough damage after Ward/Block/Bulwark - the same modifier chain a real hit uses.
 function aiEstimateHit(attacker, target, state = null) {
-  if (target.ward > 0) return 0
-  const raw = hunkeredAmount(target, modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker))))
-  return Math.max(0, raw - (target.block || 0) - (target.bulwark || 0))
+  return aiHitOdds(attacker, target, state).expected
+}
+
+// XCOM part 2: full hit / graze / hit chance; `expected` weighs both.
+function aiHitOdds(attacker, target, state = null) {
+  if (target.ward > 0) return { full: 0, graze: 0, p: 1, expected: 0 }
+  const raw = hunkeredAmount(target, modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker))), state)
+  const soak = (target.block || 0) + (target.bulwark || 0)
+  const full = Math.max(0, raw - soak)
+  if (!cover.rollsOn(state) || target.structure) return { full, graze: full, p: 1, expected: full }
+  const graze = Math.max(0, cover.grazeAmount(raw) - soak)
+  const p = cover.hitChance(state, attacker, target, classifyFacingAttack(attacker, target)).chance / 100
+  return { full, graze, p, expected: p * full + (1 - p) * graze }
+}
+
+// XCOM part 2 (UI): what a hit from `actorId` on `targetId` looks like -
+// hit %, full damage, graze damage and the reasons. `base` overrides the
+// attack number (skills), `fromPos` a hypothetical tile.
+export function attackPreview(state, actorId, targetId, { base = null, fromPos = null } = {}) {
+  const actor0 = getUnit(state, actorId)
+  const target = getUnit(state, targetId)
+  if (!actor0 || !target) return null
+  const actor = fromPos ? { ...actor0, pos: fromPos } : actor0
+  const facing = classifyFacingAttack(actor, target)
+  const amount = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, base ?? actor.attack + blightAttackBonus(state, actor)))
+  const info = cover.hitChance(state, actor, target, facing)
+  const rolls = cover.rollsOn(state) && !target.structure
+  return { ...info, chance: rolls ? info.chance : 100, rolls, full: amount, graze: rolls ? cover.grazeAmount(amount) : amount, facing }
 }
 
 // XCOM part 1: enemy DPS dive the squad's healers and support first.
@@ -3106,6 +3146,11 @@ function aiTileScore(state, enemy, pos, outcome) {
   if (isCautiousEnemy(enemy)) score -= 6 * aiExposure(state, pos)
   score += aiRoleTileScore(state, enemy, pos)
   if (isHigh(state, pos)) score += AI_HIGH_GROUND_BONUS
+  // XCOM part 2: with hit rolls on, the one cover rule drives positioning.
+  if (cover.rollsOn(state)) {
+    if (state.terrain && objects.hasObjects(state)) score -= objects.aiObjectTilePenalty(state, pos)
+    return score + aiCoverTileScore(state, pos)
+  }
   if (enemy.range > 1 && terrainRule(state, pos).cover) score += AI_COVER_BONUS
   // Destructibles: keep clear of fires/explosives; archers like a tree in front.
   if (state.terrain && objects.hasObjects(state)) {
@@ -3117,6 +3162,22 @@ function aiTileScore(state, enemy, pos, outcome) {
     }
   }
   return score
+}
+
+// XCOM part 2: +cover vs every player that could shoot this tile next
+// turn, -a bit for each one that would flank it (no cover toward it).
+const AI_COVER_STEP = 5
+const AI_FLANKED_PENALTY = 4
+const AI_FLANK_BONUS = 8
+function aiCoverTileScore(state, pos) {
+  let score = 0
+  for (const p of livingUnits(state, "player")) {
+    if (p.structure || !(p.attack > 0) || chebyshevDist(p.pos, pos) > effectiveMove(p) + p.range) continue
+    const lvl = cover.coverAgainst(state, pos, p.pos)
+    score += AI_COVER_STEP * lvl
+    if (!lvl && p.range > 1) score -= AI_FLANKED_PENALTY
+  }
+  return Math.min(score, 20)
 }
 
 // Best retreat tile for a ranged enemy after it has already attacked.
@@ -3532,11 +3593,16 @@ function decideEnemyIntent(state, enemyId) {
     const rangedIntoMelee = enemy.range > 1 && !stay && aiAdjacentPlayerMelee(state, pos).length > 0
     if (outcome.apLeft >= 1 && !rangedIntoMelee) {
       for (const target of aiTargetsFrom(state, enemy, pos)) {
-        const dmg = aiEstimateHit(attacker, target, state)
-        const kill = dmg >= target.hp && !(target.revive > 0)
+        const odds = aiHitOdds(attacker, target, state)
+        const dmg = odds.expected
+        // XCOM part 2: a kill that needs a clean hit is worth its odds.
+        const killP = target.revive > 0 ? 0 : odds.graze >= target.hp ? 1 : odds.full >= target.hp ? odds.p : 0
+        const kill = killP >= 1
+        // Rolls on: favour good odds, and flanking a unit that sits in cover.
+        const oddsScore = cover.rollsOn(state) && !target.structure ? (odds.p - 0.85) * 40 + (cover.isFlanked(state, target.pos, pos) ? AI_FLANK_BONUS : 0) : 0
         const facing = classifyFacingAttack(attacker, target)
         const score =
-          AI_ATTACK_BASE + tileScore + (kill ? AI_KILL_BONUS : 0) + 3 * dmg + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0)
+          AI_ATTACK_BASE + tileScore + AI_KILL_BONUS * killP + 3 * dmg + oddsScore + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0)
         if (score > best.score) {
           best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: moveTo, targetId: target.id } }
         }

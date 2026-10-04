@@ -11,7 +11,8 @@
 // (burning trees), objChill { key: 1 } (chilled ice pillars),
 // tileTimers { key: { turns, revert } } (fire/poison tiles that fade).
 import { isOnBoard, samePos, kingAdjacent } from "./targeting"
-import { TERRAIN, terrainAt, WALL_MAX_HP, coverPct, TREE_COVER_PCT } from "./tacticsTerrain"
+import { TERRAIN, terrainAt, WALL_MAX_HP } from "./tacticsTerrain"
+import { coverAgainst } from "./tacticsCover"
 import { emit, getUnit, setUnit, applyDamageWithBlock, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood } from "./tacticsEngine"
 import { applyElement, abilityElement } from "./tacticsElements"
 
@@ -401,10 +402,11 @@ export function aiExplosiveTargets(state, enemy, pos, range) {
   return out.sort((a, b) => b.value - a.value || (k(a.pos) < k(b.pos) ? -1 : 1))
 }
 
-// Ranged units like a tree between them and the nearest player.
+// Ranged units like cover toward the nearest player (legacy AI path,
+// hit rolls off; the one cover rule lives in tacticsCover.js).
 export function aiTreeCoverBonus(state, pos, nearestPlayerPos) {
   if (!nearestPlayerPos || !state.terrain) return 0
-  return coverPct(state, nearestPlayerPos, pos) > 0 ? 6 : 0
+  return coverAgainst(state, pos, nearestPlayerPos) > 0 ? 6 : 0
 }
 
 // --- player-facing text -------------------------------------------------------------------
@@ -413,7 +415,7 @@ export function describeObjectTile(state, pos) {
   if (!OBJECTS[type]) return null
   const hp = objectHpAt(state, pos)
   const max = objectMaxHp(type)
-  if (type === "tree") return `Tree (${hp}/${max} HP): blocks movement. Ranged hits on a unit behind it deal -${TREE_COVER_PCT}%. Chop it down (1 AP) and it FALLS away from you: ${TREE_FALL_DAMAGE} damage to whoever stands on the next 2 tiles, leaving a log. Fire sets it ablaze for ${TREE_BURN_TURNS} turns - it scorches neighbours and spreads to trees beside it.${isBurning(state, pos) ? ` BURNING: ${state.objFire[k(pos)]} turn(s) left.` : ""}`
+  if (type === "tree") return `Tree (${hp}/${max} HP): blocks movement. FULL cover for a unit right next to it (-40% to be hit from that side). Chop it down (1 AP) and it FALLS away from you: ${TREE_FALL_DAMAGE} damage to whoever stands on the next 2 tiles, leaving a log. Fire sets it ablaze for ${TREE_BURN_TURNS} turns - it scorches neighbours and spreads to trees beside it.${isBurning(state, pos) ? ` BURNING: ${state.objFire[k(pos)]} turn(s) left.` : ""}`
   if (type === "barrel") return `Powder barrel: any hit (or fire) blows it up - ${BARREL_DAMAGE} damage to everything in the 3x3 around it, and the ground burns for ${FIRE_TILE_TURNS} turns.`
   if (type === "sporepod") return `Spore pod: any hit bursts it - ${SPORE_DAMAGE} damage and +2 Poison to everything in the 3x3 around it; poison pools linger ${POISON_TILE_TURNS} turns.`
   if (type === "boulder") return `Boulder (${hp}/${max} HP): blocks movement. Hit it from right next to it (1 AP) to SHOVE it - it rolls away until something stops it, dealing ${BOULDER_DAMAGE} to what it hits.`

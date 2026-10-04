@@ -65,12 +65,13 @@ const r = await page.evaluate(async () => {
     res.tree.blocks = !walk.some((t) => t.row === 4 && t.col === 7)
     res.tree.logEnter = logWalk.some((t) => t.row === 4 && t.col === 7) && !logWalk.some((t) => t.row === 4 && t.col === 6 && false)
   }
-  // 2. Cover: arrow into a unit with a tree on the shooter's side = -50%.
+  // 2. Cover (XCOM part 2): trees/logs are FULL/HALF cover (hit %), no longer a damage cut.
   {
     const open = st([P("a", 4, 9, { range: 3, attack: 8 }), En("e", 4, 6), idle()], {})
     const cover = st([P("a", 4, 9, { range: 3, attack: 8 }), En("e", 4, 6), idle()], { "4-7": "tree" })
     const logc = st([P("a", 4, 9, { range: 3, attack: 8 }), En("e", 4, 6), idle()], { "4-7": "log" })
-    res.cover = { open: 30 - hpOf(E.attackUnit(open, "a", "e"), "e"), tree: 30 - hpOf(E.attackUnit(cover, "a", "e"), "e"), log: 30 - hpOf(E.attackUnit(logc, "a", "e"), "e") }
+    const Cv = await import("/src/services/heartwood/tacticsCover.js")
+    res.cover = { open: 30 - hpOf(E.attackUnit(open, "a", "e"), "e"), tree: 30 - hpOf(E.attackUnit(cover, "a", "e"), "e"), log: 30 - hpOf(E.attackUnit(logc, "a", "e"), "e"), treeLvl: Cv.coverAgainst(cover, { row: 4, col: 6 }, { row: 4, col: 9 }), logLvl: Cv.coverAgainst(logc, { row: 4, col: 6 }, { row: 4, col: 9 }) }
   }
   // 3. Fire: Burn on a unit next to a tree ignites it; it spreads, scorches, turns to ash.
   {
@@ -199,7 +200,7 @@ const e = out.errors
 const t = r.tree
 if (!(t.targets === 1 && t.treeTile === "stump" && t.log1 === "log" && t.log2 === "log" && t.e1 === 4 && t.e2 === 4 && t.ap === 1 && t.fallEvent)) e.push("c1 tree falls away, hits 2 tiles, leaves logs")
 if (!(t.partial.t === "tree" && t.partial.hp === 4 && t.blocks && t.logEnter)) e.push("c1b tree HP / blocks / log walkable")
-if (!(r.cover.open === 8 && r.cover.tree === 4 && r.cover.log === 6)) e.push("c2 tree/log cover")
+if (!(r.cover.open === 8 && r.cover.tree === 8 && r.cover.log === 8 && r.cover.treeLvl === 2 && r.cover.logLvl === 1)) e.push("c2 tree/log cover")
 const f = r.fire
 if (!(f.lit && f.spread1 && f.scorch === 1 && f.ash1 === "ash" && f.burning3 && f.ashAll.every((x) => x === "ash") && f.byAttack)) e.push("c3 fire ignites, spreads, scorches, ashes")
 const b = r.barrel
