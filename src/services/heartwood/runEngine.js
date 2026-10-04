@@ -1053,7 +1053,34 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     }
   }
 
+  // The Hearth (services/heartwood/hearth.js hearthStartFor): veterans
+  // join the bench (auto-deployed into empty slots) + home Essence bonus.
+  const hs = meta?.hearthStart
+  if (hs && (hs.veterans?.length || hs.essenceBonus)) rs = withHearthStart(rs, hs)
+
   return rs
+}
+
+function withHearthStart(rs, hs) {
+  let counter = rs.benchKeyCounter
+  const room = DEPLOY_SLOTS + RESERVE_CAP + (rs.benchCapBonus || 0) - rs.bench.length
+  const vets = (hs.veterans || []).filter((v) => UNITS[v.defId]).slice(0, Math.max(0, room))
+  const added = vets.map((v) => ({ ...v, key: counter++ }))
+  const deployed = [...rs.deployed]
+  for (const e of added) {
+    const slot = deployed.indexOf(null)
+    if (slot !== -1) deployed[slot] = e.key
+  }
+  const bonus = Math.max(0, hs.essenceBonus || 0)
+  return {
+    ...rs,
+    bench: [...rs.bench, ...added],
+    benchKeyCounter: counter,
+    deployed,
+    essence: rs.essence + bonus,
+    hearthVeteranIds: added.map((e) => e.hearthId),
+    seen: noteSeen(rs.seen, "units", ...added.map((e) => e.defId)),
+  }
 }
 
 // Regular's Discount (SHOP_INVESTMENTS / buyInvestment): a one-time

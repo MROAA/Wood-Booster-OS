@@ -16,6 +16,7 @@
 // `commanderSkillUpgrades`. Missing = Lv1, 0 XP, no upgrades (old saves
 // load unchanged). Pure data + helpers - no imports from either battle engine.
 import { streamRng } from "../../data/heartwood/seed"
+import { DECLINE_HP, DECLINE_ATTACK } from "../../data/heartwood/hearth"
 import { UNITS } from "../../data/heartwood/units"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { CLASSES, fallbackClassId, applySkillUpgrades } from "../../data/heartwood/classes"
@@ -185,8 +186,27 @@ export function applyLevelsToTactics(battle, runState) {
   const byId = {}
   keys.forEach((k, i) => {
     const e = runState.bench.find((b) => b.key === k)
-    byId[`player-${e.defId}-${i}`] = { xp: e.xp || 0, perks: e.perks || [], ups: e.skillUpgrades || {} }
+    byId[`player-${e.defId}-${i}`] = { xp: e.xp || 0, perks: e.perks || [], ups: e.skillUpgrades || {}, age: e.agePenalty || 0 }
   })
   byId["player-commander"] = { xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ups: runState.commanderSkillUpgrades || {} }
-  return { ...battle, units: battle.units.map((u) => (byId[u.id] ? applyPerks(applyTree(u, byId[u.id].ups), byId[u.id].perks, byId[u.id].xp) : u)) }
+  return {
+    ...battle,
+    units: battle.units.map((u) => (byId[u.id] ? applyAge(applyPerks(applyTree(u, byId[u.id].ups), byId[u.id].perks, byId[u.id].xp), byId[u.id].age) : u)),
+  }
+}
+
+// The Hearth: an old veteran (bench entry `agePenalty` steps) fights a
+// little weaker - -2 max HP and -1 attack per step (data/heartwood/hearth.js).
+function applyAge(u, steps) {
+  if (!steps) return u
+  const hpDown = Math.min(u.maxHp - 1, DECLINE_HP * steps)
+  const atkDown = Math.min(Math.max(0, u.attack - 1), DECLINE_ATTACK * steps)
+  return {
+    ...u,
+    agePenalty: steps,
+    maxHp: u.maxHp - hpDown,
+    hp: Math.max(1, Math.min(u.hp, u.maxHp - hpDown)),
+    attack: u.attack - atkDown,
+    baseAttack: (u.baseAttack ?? u.attack) - atkDown,
+  }
 }
