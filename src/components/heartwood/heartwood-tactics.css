@@ -2638,3 +2638,119 @@
 @media (prefers-reduced-motion: reduce) {
   .hwt-art-spark, .hwt-art-spores circle, .hwt-art-flames { animation: none; }
 }
+
+/* ===== XCOM part 2: cover shields, hit % badge, GRAZE ===== */
+.hwt-shield-svg { width: 100%; height: 100%; display: block; }
+.hwt-shield-outline { fill: rgba(10, 14, 20, 0.75); stroke: #cfe3ff; stroke-width: 1.6; }
+.hwt-shield-fill { fill: #6fb0ff; }
+/* Destination hover: one shield on each covered side of the tile. */
+.hwt-cover-shield {
+  position: absolute;
+  z-index: 6;
+  width: 20px;
+  height: 22px;
+  pointer-events: auto;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+  animation: hwt-shield-in 160ms ease-out;
+}
+.hwt-cover-shield[data-side="N"] { top: -9px; left: calc(50% - 10px); }
+.hwt-cover-shield[data-side="S"] { bottom: -9px; left: calc(50% - 10px); }
+.hwt-cover-shield[data-side="E"] { right: -8px; top: calc(50% - 11px); }
+.hwt-cover-shield[data-side="W"] { left: -8px; top: calc(50% - 11px); }
+.hwt-cover-shield[data-cover="half"] .hwt-shield-fill { fill: #8fb8e8; }
+.hwt-cover-open {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffd2c4;
+  background: rgba(120, 30, 20, 0.85);
+  pointer-events: none;
+}
+@keyframes hwt-shield-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+/* Cover chip on a token (vs your selected unit / the enemies in reach). */
+.hwt-unit-cover {
+  position: absolute;
+  right: -7px;
+  bottom: 14px;
+  z-index: 4;
+  width: 17px;
+  height: 19px;
+  pointer-events: auto;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+}
+.hwt-unit-cover[data-flanked] {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  border-radius: 50%;
+  color: #ffd166;
+  background: #3a1410;
+  border: 1.5px solid #e0663e;
+}
+/* Hit % badge above a hovered target. */
+.hwt-hit-badge {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 3px 8px;
+  border-radius: 7px;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #f3efe4;
+  background: rgba(12, 16, 22, 0.94);
+  border: 2px solid var(--hwt-gold);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+.hwt-hit-badge b { font-size: 15px; }
+.hwt-hit-badge small { color: #b9b3a3; font-size: 11px; }
+.hwt-hit-badge[data-tier="good"] { border-color: #6fcf7a; }
+.hwt-hit-badge[data-tier="good"] b { color: #8fe79a; }
+.hwt-hit-badge[data-tier="fair"] b { color: #ffd166; }
+.hwt-hit-badge[data-tier="poor"] { border-color: #e0663e; }
+.hwt-hit-badge[data-tier="poor"] b { color: #ff9270; }
+.hwt-skill-hit {
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #10141c;
+  background: var(--hwt-gold);
+}
+/* Side panel breakdown. */
+.hwt-hit-panel {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 60%, transparent);
+  background: rgba(10, 14, 20, 0.55);
+  font-size: var(--hw-fs-sm, 13px);
+  color: var(--hw-text);
+}
+.hwt-hit-panel-head b { font-size: 16px; color: var(--hwt-gold); }
+.hwt-hit-panel-parts { display: flex; flex-wrap: wrap; gap: 4px; margin: 5px 0; }
+.hwt-hit-panel-parts span { padding: 1px 6px; border-radius: 5px; font-size: 11px; background: rgba(255, 255, 255, 0.07); }
+.hwt-hit-panel-parts span[data-sign="minus"] { color: #ff9f86; }
+.hwt-hit-panel-parts span[data-sign="plus"] { color: #9fe3a8; }
+.hwt-hit-panel-foot { font-size: 11px; color: var(--hw-muted); }
+/* GRAZE callout. */
+.hw-floating-number--graze {
+  color: #c9d3de;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+  font-style: italic;
+}

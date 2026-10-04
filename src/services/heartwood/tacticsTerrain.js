@@ -36,36 +36,25 @@ export const HIGH_GROUND_DAMAGE_PCT = 25
 // Player-facing name + one-line rule for the tile tooltip.
 export const TERRAIN_INFO = {
   forest: { name: "Forest", text: "Open woodland - no effect." },
-  rock: { name: "Rocks", text: "Rough ground - costs 3 movement to enter." },
+  rock: { name: "Rocks", text: "Rough ground - costs 3 movement to enter. FULL cover for a unit right next to it." },
   water: { name: "Deep water", text: "Impassable - nobody can stand here. Look for a bridge." },
   poison: { name: "Poison pool", text: "Ending a move here poisons the unit (+2 Poison)." },
   high: { name: "High ground", text: `Costs 2 movement to climb. Ranged units here get +1 range; attacks from here into low ground deal +${HIGH_GROUND_DAMAGE_PCT}%.` },
-  wall: { name: "Barricade", text: "Blocks movement. Either side can attack it (1 AP) - it breaks at 0 HP." },
-  rubble: { name: "Rubble", text: "What's left of a broken barricade - walkable." },
+  wall: { name: "Barricade", text: "Blocks movement. FULL cover for a unit right next to it. Either side can attack it (1 AP) - it breaks at 0 HP." },
+  rubble: { name: "Rubble", text: "What's left of a broken barricade - walkable. HALF cover for a unit next to it." },
   bridge: { name: "Bridge", text: "The only way across the river - a natural chokepoint." },
-  bush: { name: "Tall grass", text: "A unit in the grass can't be targeted from more than 1 tile away." },
+  bush: { name: "Tall grass", text: "A unit in the grass can't be targeted from more than 1 tile away. HALF cover for a unit next to it." },
   lava: { name: "Lava", text: "Ending your turn here burns for 3 damage. Walking through is safe." },
   ice: { name: "Ice", text: "Slippery - stepping onto ice slides you 1 more tile in the same direction if it's free." },
-  tree: { name: "Tree", text: "Blocks movement and shields units behind it from arrows (-50%). Chop it (1 AP) and it falls away from you, crushing the next 2 tiles. Fire burns it down and spreads." },
+  tree: { name: "Tree", text: "Blocks movement. FULL cover for a unit right next to it. Chop it (1 AP) and it falls away from you, crushing the next 2 tiles. Fire burns it down and spreads." },
   barrel: { name: "Powder barrel", text: "Any hit or fire blows it up: damage to everything in the 3x3 around it, and the ground burns." },
   sporepod: { name: "Spore pod", text: "Any hit bursts it: damage + Poison to everything in the 3x3 around it, and poison pools linger." },
-  boulder: { name: "Boulder", text: "Blocks movement. Hit it from right next to it to shove it - it rolls until stopped and crushes what it hits." },
-  icepillar: { name: "Ice pillar", text: "Frost makes it brittle; the next hit shatters it, hurting and Chilling every unit around it." },
-  log: { name: "Fallen log", text: "A felled tree - costs 2 movement to climb over. Ranged hits on a unit behind it deal -25%." },
-  stump: { name: "Stump", text: "Where a tree stood - walkable." },
+  boulder: { name: "Boulder", text: "Blocks movement, FULL cover. Hit it from right next to it to shove it - it rolls until stopped and crushes what it hits." },
+  icepillar: { name: "Ice pillar", text: "FULL cover. Frost makes it brittle; the next hit shatters it, hurting and Chilling every unit around it." },
+  log: { name: "Fallen log", text: "A felled tree - costs 2 movement to climb over. HALF cover for a unit next to it." },
+  stump: { name: "Stump", text: "Where a tree stood - walkable. HALF cover for a unit next to it." },
   ash: { name: "Ash", text: "Burnt ground - walkable." },
   fire: { name: "Flames", text: "Burning ground - ending your turn here burns for 2. Dies down in a couple of turns." },
-}
-
-// Ranged damage cut when the tile next to the target (toward the shooter)
-// is a tree (-50%) or a fallen log (-25%).
-export const TREE_COVER_PCT = 50
-export const LOG_COVER_PCT = 25
-export function coverPct(state, attackerPos, defenderPos) {
-  if (!state?.terrain || cheb(attackerPos, defenderPos) <= 1) return 0
-  const sg = (n) => (n > 0 ? 1 : n < 0 ? -1 : 0)
-  const t = state.terrain[`${defenderPos.row + sg(attackerPos.row - defenderPos.row)}-${defenderPos.col + sg(attackerPos.col - defenderPos.col)}`]
-  return t === "tree" ? TREE_COVER_PCT : t === "log" ? LOG_COVER_PCT : 0
 }
 
 export function terrainAt(state, pos) {
@@ -103,13 +92,11 @@ export function canReach(state, attacker, attackerPos, targetPos) {
 }
 
 // +25% (min +1) when striking down from high ground onto low ground.
-// Destructibles: then tree/log cover cuts ranged hits.
+// (Cover is no longer a damage cut - XCOM part 2, tacticsCover.js.)
 export function highGroundAmount(state, attackerPos, defenderPos, amount) {
   if (!state || amount <= 0) return amount
-  let out = amount
-  if (isHigh(state, attackerPos) && !isHigh(state, defenderPos)) out += Math.max(1, Math.round((amount * HIGH_GROUND_DAMAGE_PCT) / 100))
-  const cover = coverPct(state, attackerPos, defenderPos)
-  return cover ? Math.max(1, out - Math.round((out * cover) / 100)) : out
+  if (isHigh(state, attackerPos) && !isHigh(state, defenderPos)) return amount + Math.max(1, Math.round((amount * HIGH_GROUND_DAMAGE_PCT) / 100))
+  return amount
 }
 
 // Ice: where a move to `to` really ends. One extra tile in the move's

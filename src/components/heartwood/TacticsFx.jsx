@@ -147,6 +147,9 @@ export default function TacticsFx({ battle }) {
               if (ev.revived) pop(ev.targetId, "Revived!", "callout", { offset: 1 })
             }, at + IMPACT_DELAY_MS),
           )
+        } else if (ev.kind === "graze") {
+          // XCOM part 2: the roll missed - a glancing GRAZE (half damage).
+          timers.push(setTimeout(() => pop(ev.targetId, "GRAZE", "graze", { offset: 1.2 }), at + IMPACT_DELAY_MS))
         } else if (ev.kind === "ward") {
           timers.push(setTimeout(() => { restartClass(tokenEl(ev.targetId), "hw-hit-flash", 400); pop(ev.targetId, "Warded!", "ward"); play("block", { gain: 0.7 }) }, at + IMPACT_DELAY_MS))
         } else if (ev.kind === "reaction" && ev.label === "Overwatch!") {

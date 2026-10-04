@@ -51,8 +51,10 @@ import {
   dashMove,
   overwatchAction,
   hunkerDown,
+  attackPreview,
 } from "../../services/heartwood/tacticsEngine"
 import { BATTLE_ROLES, roleOf, healReach } from "../../services/heartwood/tacticsRoles"
+import { rollsOn, coverAgainst, isFlanked, tileCoverSides, COVER_NAME } from "../../services/heartwood/tacticsCover"
 import { motion } from "framer-motion"
 import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
 import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
@@ -171,6 +173,20 @@ function aggroPairs(battle, intents) {
     if (t && t.side === "player" && t.hp > 0) out.push({ enemyId, targetId: t.id })
   }
   return out
+}
+
+// XCOM part 2: half shield (left half filled) / full shield.
+function ShieldIcon({ full }) {
+  return (
+    <svg className="hwt-shield-svg" viewBox="0 0 20 22" aria-hidden="true">
+      <path d="M10 1 L18 4 V10 C18 15 14.5 19 10 21 C5.5 19 2 15 2 10 V4 Z" className="hwt-shield-outline" />
+      {full ? (
+        <path d="M10 1 L18 4 V10 C18 15 14.5 19 10 21 C5.5 19 2 15 2 10 V4 Z" className="hwt-shield-fill" />
+      ) : (
+        <path d="M10 1 V21 C5.5 19 2 15 2 10 V4 Z" className="hwt-shield-fill" />
+      )}
+    </svg>
+  )
 }
 
 function BoardOverlay({ battle, pairs, hoverPath, selected, healReachTiles }) {
@@ -408,6 +424,34 @@ export default function TacticsBoard({
     if (!hoverKey || !selected || !moveOptions.has(hoverKey)) return null
     return movePathFor(battle, selected.id, moveOptions.get(hoverKey).pos, moveOptions)
   }, [hoverKey, selected, moveOptions, battle])
+  // XCOM part 2: hit % + damage for the hovered target; cover shields.
+  const rolling = rollsOn(battle)
+  const [hoverTargetId, setHoverTargetId] = useState(null)
+  const hitPreview = useMemo(() => {
+    if (!hoverTargetId || !selected || selected.side !== "player" || battle.phase !== "player") return null
+    const t = battle.units.find((u) => u.id === hoverTargetId)
+    if (!t || t.hp <= 0 || t.side === selected.side) return null
+    return { ...attackPreview(battle, selected.id, hoverTargetId), targetName: t.name, skill: !!abilityMode }
+  }, [hoverTargetId, selected, battle, abilityMode])
+  const hoverCover = useMemo(() => (rolling && hoverKey && moveOptions.has(hoverKey) ? tileCoverSides(battle, moveOptions.get(hoverKey).pos) : null), [rolling, hoverKey, moveOptions, battle])
+  // Each unit's cover: an enemy vs your selected unit; yours vs the enemies that can reach it.
+  const unitCover = useMemo(() => {
+    const out = new Map()
+    if (!rolling || !selected || selected.side !== "player" || battle.phase !== "player") return out
+    const foes = battle.units.filter((u) => u.side === "enemy" && u.hp > 0 && !u.structure && u.attack > 0)
+    for (const u of battle.units) {
+      if (u.hp <= 0 || u.structure) continue
+      if (u.side === "enemy") {
+        out.set(u.id, { level: coverAgainst(battle, u.pos, selected.pos, { hunkered: u.hunkered > 0 }), flanked: isFlanked(battle, u.pos, selected.pos), vs: selected.name })
+      } else if (!u.npc) {
+        const near = foes.filter((f) => Math.max(Math.abs(f.pos.row - u.pos.row), Math.abs(f.pos.col - u.pos.col)) <= (f.move || 0) + rangeAt(battle, f) + 1)
+        if (!near.length) continue
+        const levels = near.map((f) => coverAgainst(battle, u.pos, f.pos, { hunkered: u.hunkered > 0 }))
+        out.set(u.id, { level: Math.min(...levels), flanked: near.some((f) => isFlanked(battle, u.pos, f.pos)), vs: "the enemies that can reach it" })
+      }
+    }
+    return out
+  }, [rolling, selected, battle])
   // Healer range ring: every tile a selected healer's heals can reach.
   const healRing = useMemo(() => {
     const keys = new Set()
@@ -736,8 +780,15 @@ export default function TacticsBoard({
           data-dash={moveOpt?.dash || undefined}
           data-heal-ring={healRing.has(`${row}-${col}`) || undefined}
           data-path={onPath || undefined}
-          onMouseEnter={moveOpt ? () => setHoverKey(`${row}-${col}`) : undefined}
-          onMouseLeave={moveOpt ? () => setHoverKey((k) => (k === `${row}-${col}` ? null : k)) : undefined}
+          onMouseEnter={moveOpt ? () => setHoverKey(`${row}-${col}`) : target && unit ? () => setHoverTargetId(unit.id) : undefined}
+          onMouseLeave={
+            moveOpt
+              ? () => setHoverKey((k) => (k === `${row}-${col}` ? null : k))
+              : target && unit
+                ? () => setHoverTargetId((id) => (id === unit.id ? null : id))
+                : undefined
+          }
+          data-hover-cover={(hoverCover && hoverKey === `${row}-${col}`) || undefined}
           data-targetable={!!target}
           data-healable={!!healTarget}
           data-skill-tile={skillTiles.some((p) => p.row === row && p.col === col) || undefined}
@@ -774,6 +825,30 @@ export default function TacticsBoard({
           data-deploy-target={deployZone && !!selected && (!unit || (unit.side === "player" && unit.id !== selected.id))}
           onClick={() => handleCellClick(row, col)}
         >
+          {hoverCover && hoverKey === `${row}-${col}` &&
+            Object.entries(hoverCover)
+              .filter(([, v]) => v > 0)
+              .map(([side, v]) => (
+                <span key={side} className="hwt-cover-shield" data-side={side} data-cover={v === 2 ? "full" : "half"} title={`${v === 2 ? "Full" : "Half"} cover from the ${{ N: "north", S: "south", E: "east", W: "west" }[side]} (-${v === 2 ? 40 : 20}% to be hit)`}>
+                  <ShieldIcon full={v === 2} />
+                </span>
+              ))}
+          {hoverCover && hoverKey === `${row}-${col}` && !Object.values(hoverCover).some((v) => v > 0) && (
+            <span className="hwt-cover-open" title="No cover here - exposed from every side">
+              Open
+            </span>
+          )}
+          {unit && hitPreview && hoverTargetId === unit.id && (
+            <span
+              className="hwt-hit-badge"
+              data-hit={hitPreview.chance}
+              data-tier={hitPreview.chance >= 75 ? "good" : hitPreview.chance >= 45 ? "fair" : "poor"}
+              title={hitPreview.parts.map((p) => `${p.label} ${p.value > 0 && p !== hitPreview.parts[0] ? "+" : ""}${p.value}%`).join(" · ")}
+            >
+              <b>{hitPreview.chance}%</b>
+              {hitPreview.skill ? (hitPreview.rolls ? <small> · miss = graze (half)</small> : null) : <> · {hitPreview.full}{hitPreview.rolls && <small> (graze {hitPreview.graze})</small>}</>}
+            </span>
+          )}
           {battle.classTraps?.[`${row}-${col}`] && (
             <span className="hwt-trap-icon" title={battle.classTraps[`${row}-${col}`].kind === "thorn" ? "Your hidden Thorn Trap" : "Your hidden Poison Mine"}>
               {battle.classTraps[`${row}-${col}`].kind === "thorn" ? "✳" : "☣"}
@@ -863,6 +938,16 @@ export default function TacticsBoard({
               title={roleTitle(unit)}
             >
               <TokenArt unit={unit} />
+              {unitCover.has(unit.id) && (unitCover.get(unit.id).level > 0 || unitCover.get(unit.id).flanked) && (
+                <span
+                  className="hwt-unit-cover"
+                  data-cover={unitCover.get(unit.id).level}
+                  data-flanked={(unitCover.get(unit.id).level === 0 && unitCover.get(unit.id).flanked) || undefined}
+                  title={unitCover.get(unit.id).level > 0 ? `${COVER_NAME[unitCover.get(unit.id).level]} vs ${unitCover.get(unit.id).vs}` : `Flanked - no cover vs ${unitCover.get(unit.id).vs}`}
+                >
+                  {unitCover.get(unit.id).level > 0 ? <ShieldIcon full={unitCover.get(unit.id).level >= 2} /> : "⚠"}
+                </span>
+              )}
               <span className="hwt-role-icon" data-role={roleOf(unit)} title={`${BATTLE_ROLES[roleOf(unit)].label}: ${BATTLE_ROLES[roleOf(unit)].what}`}>
                 {BATTLE_ROLES[roleOf(unit)].icon}
               </span>
@@ -874,7 +959,7 @@ export default function TacticsBoard({
                     </span>
                   )}
                   {unit.hunkered > 0 && (
-                    <span className="hwt-hunker-badge" title="Hunkered down - takes 50% less damage until its next turn">
+                    <span className="hwt-hunker-badge" title={rolling ? "Hunkered down - cover one step better until its next turn" : "Hunkered down - takes 50% less damage until its next turn"}>
                       🛡
                     </span>
                   )}
@@ -1208,6 +1293,28 @@ export default function TacticsBoard({
               </div>
             </div>
           )}
+          {hitPreview && hitPreview.rolls && (
+            <div className="hwt-hit-panel" data-hit={hitPreview.chance}>
+              <div className="hwt-hit-panel-head">
+                <b>{hitPreview.chance}%</b> to hit {hitPreview.targetName}
+                {!hitPreview.skill && (
+                  <span>
+                    {" "}
+                    · {hitPreview.full} dmg, graze {hitPreview.graze}
+                  </span>
+                )}
+              </div>
+              <div className="hwt-hit-panel-parts">
+                {hitPreview.parts.map((p, i) => (
+                  <span key={p.label} data-sign={i === 0 ? "base" : p.value > 0 ? "plus" : "minus"}>
+                    {p.label} {i === 0 ? p.value : `${p.value > 0 ? "+" : ""}${p.value}`}
+                  </span>
+                ))}
+                {hitPreview.flanked && <span data-sign="plus">Flanked - its cover faces the wrong way</span>}
+              </div>
+              <div className="hwt-hit-panel-foot">A miss is a GRAZE: half damage, no extra effects.</div>
+            </div>
+          )}
           {selected && selected.side === "player" && battle.phase === "player" && (
             <div className="hwt-universal-actions">
               <button
@@ -1228,7 +1335,7 @@ export default function TacticsBoard({
                 data-active={selected.hunkered > 0 || undefined}
                 disabled={selected.ap < 1}
                 onClick={() => handleUniversal("hunker")}
-                title="Hunker Down (ends this unit's turn): take 50% less damage until your next turn."
+                title={rolling ? "Hunker Down (ends this unit's turn): your cover counts one step better until your next turn - none becomes half, half becomes full, full becomes hunkered full (-55% to be hit)." : "Hunker Down (ends this unit's turn): take 50% less damage until your next turn."}
               >
                 <span className="hwt-universal-icon">🛡</span> Hunker Down
               </button>
@@ -1303,6 +1410,11 @@ export default function TacticsBoard({
                         </span>
                       )}
                       <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>
+                      {hitPreview && hitPreview.rolls && sk.target === "enemy" && (
+                        <span className="hwt-skill-hit" title={`Chance to hit ${hitPreview.targetName} (a miss grazes for half)`}>
+                          {hitPreview.chance}%
+                        </span>
+                      )}
                     </button>
                   )
                 })}
@@ -1326,6 +1438,7 @@ export default function TacticsBoard({
                   ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
                   : `${selected.ability.name} · ${selected.ability.cost} AP`}
                 {selected.ability.upgrade && <span className="hwt-skill-upgrade"> {selected.ability.upgrade.name}</span>}
+                {hitPreview && hitPreview.rolls && abilityTargetSide(selected.ability) === "enemy" && <span className="hwt-skill-hit"> {hitPreview.chance}%</span>}
               </button>
               <p className="hwt-ability-hint">{abilityMode === "heal" || abilityMode === "burst" ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
               {describeAbilityElement(selected) && <p className="hwt-ability-element">{describeAbilityElement(selected)}</p>}
