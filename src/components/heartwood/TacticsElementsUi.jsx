@@ -39,7 +39,7 @@ export function ElementHelp() {
       {open && (
         <div className="hwt-element-help-body">
           <p className="hwt-element-help-intro">
-            Fire, Frost, Poison and Nature stick to units. Land a second element on a unit that already carries a partner and they combine:
+            Fire, Frost, Poison and Nature stick to heroes. Land a second element on a hero that already carries a partner and they combine:
           </p>
           <ul>
             {COMBO_HELP.map((c) => (
@@ -48,7 +48,7 @@ export function ElementHelp() {
               </li>
             ))}
           </ul>
-          <p className="hwt-element-help-intro">Enemies use elements too - watch the icons on your own units.</p>
+          <p className="hwt-element-help-intro">Enemies use elements too - watch the icons on your own heroes.</p>
         </div>
       )}
     </div>

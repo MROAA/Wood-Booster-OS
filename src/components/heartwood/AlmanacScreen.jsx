@@ -30,7 +30,7 @@ export default function AlmanacScreen({ meta, onBack }) {
       <div className="hw-screen-eyebrow">The Almanac</div>
       <h1 className="hw-screen-title">What the wood has shown you</h1>
       <p className="hw-flavor" style={{ maxWidth: 560 }}>
-        Every unit, foe, relic and waypoint you meet is written down here - and stays written, run after run.
+        Every hero, foe, relic and waypoint you meet is written down here - and stays written, run after run.
         <strong> {counts.overall.seen} / {counts.overall.total}</strong> discovered.
       </p>
 

@@ -30,7 +30,7 @@ export const FACTIONS = {
     name: "The Mirror",
     icon: "☽",
     tag: "The Mirror - it fights as you do",
-    hint: "Ghostly echoes of your own deployed squad, with your own units' tricks - a little thinner than the real thing. Whatever your build is good at, expect it back. Kill the echo of your strongest unit first.",
+    hint: "Ghostly echoes of your own deployed squad, with your own heroes' tricks - a little thinner than the real thing. Whatever your build is good at, expect it back. Kill the echo of your strongest hero first.",
   },
   corrupted: {
     id: "corrupted",

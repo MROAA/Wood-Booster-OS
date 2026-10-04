@@ -25,7 +25,7 @@
 // tacticsEngine.js (circular, call-time only, same as tacticsRelics.js).
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS } from "../../data/heartwood/items"
-import { defaultManaCost } from "../../data/heartwood/classes"
+import { CLASSES, defaultManaCost } from "../../data/heartwood/classes"
 import { emit, getUnit, setUnit } from "./tacticsEngine"
 import { roleOf } from "./tacticsRoles"
 import { isHigh } from "./tacticsTerrain"
@@ -129,8 +129,11 @@ export function potionsFrom(itemIds = []) {
 function initUnit(u, relic) {
   if (!u || u.structure || u.npc) return u
   const player = u.side === "player"
-  const role = manaRole(u)
-  const max = MANA_POOL[role] + ((u.phases?.length || 0) > 0 ? BOSS_POOL_BONUS : 0) + (player ? relic.pool : 0) + (u.manaPoolBonus || 0)
+  // A hero's class sets its pool (classes.js `manaPool`, Studio-editable);
+  // enemies and class-less units go by battle role.
+  const classPool = player ? CLASSES[u.classId]?.manaPool : null
+  const base = typeof classPool === "number" ? classPool : MANA_POOL[manaRole(u)]
+  const max = base + ((u.phases?.length || 0) > 0 ? BOSS_POOL_BONUS : 0) + (player ? relic.pool : 0) + (u.manaPoolBonus || 0)
   const over = player ? Math.min(Math.floor(max * OVERCHARGE_PCT), relic.startOvercharge) : 0
   return {
     ...u,

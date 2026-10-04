@@ -48,7 +48,7 @@ export const UPGRADE_BRANCHES = [
     label: "Power",
     accent: "var(--hw-ember)",
     repeatable: true,
-    desc: "+20% health and +20% to every number this unit puts out. The straight-ahead pick.",
+    desc: "+20% health and +20% to every number this hero puts out. The straight-ahead pick.",
   },
   {
     id: "defense",
@@ -60,7 +60,7 @@ export const UPGRADE_BRANCHES = [
     id: "synergy",
     label: "Synergy",
     accent: "var(--hw-moss)",
-    desc: "This unit counts as +1 of each of its tribes toward synergy - one pick can push a tier over the line.",
+    desc: "This hero counts as +1 of each of its tribes toward synergy - one pick can push a tier over the line.",
   },
   {
     id: "utility",
@@ -72,7 +72,7 @@ export const UPGRADE_BRANCHES = [
     id: "economy",
     label: "Economy",
     accent: "var(--hw-cosmic)",
-    desc: `+${ECONOMY_WIN_BONUS} Essence after every fight this unit is deployed for. Weaker in the fight, richer after it.`,
+    desc: `+${ECONOMY_WIN_BONUS} Essence after every fight this hero is deployed for. Weaker in the fight, richer after it.`,
   },
 ]
 

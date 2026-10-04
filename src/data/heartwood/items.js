@@ -77,7 +77,7 @@ export const ITEMS = {
     // reading identical in the shop was a real "can't tell these apart
     // without checking the cost number" gap. "A sprig" reads smaller
     // than "bark," matching the actual difference in effect.
-    description: "This unit grows a sprig of bark at the start of each round.",
+    description: "This hero grows a sprig of bark at the start of each round.",
     // Polish pass: every item shipped at 2-3 cost, so the rarity
     // system's own "common" band (ITEM_TIER_BY_COST's own 1 -> common
     // entry, below) had zero actual items in it - the tier spread
@@ -98,7 +98,7 @@ export const ITEMS = {
     icon: "leaf",
     image: mossdropVialImg,
     cost: 100,
-    description: "This unit mends a trickle at the start of each round.",
+    description: "This hero mends a trickle at the start of each round.",
     // Common tier still had only ONE item (Twig Charm) - real variety
     // gap for a Market Level 1 shop, which can only ever offer this
     // tier. Same "cheaper, smaller version of an existing 2-cost item"
@@ -120,7 +120,7 @@ export const ITEMS = {
     name: "Hunter's Mark",
     icon: "sword",
     cost: 100,
-    description: "This unit finishes a wounded enemy a little faster.",
+    description: "This hero finishes a wounded enemy a little faster.",
     // Common tier's first OFFENSE item, closing the gap Mossdrop Vial's
     // own comment flagged - flat Strength buffs (Ember Charm, +1)
     // genuinely can't downscale below their own minimum without either
@@ -138,7 +138,7 @@ export const ITEMS = {
     name: "Ember Charm",
     icon: "flame",
     cost: 150,
-    description: "This unit strikes a little harder, all fight.",
+    description: "This hero strikes a little harder, all fight.",
     // Ember Core (relics.js), single-target instead of squad-wide.
     effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
   },
@@ -148,7 +148,7 @@ export const ITEMS = {
     icon: "shield",
     image: barkPlatingImg,
     cost: 150,
-    description: "This unit shrugs off the first real hit it takes, once.",
+    description: "This hero shrugs off the first real hit it takes, once.",
     // Aegis Ward (relics.js), single-target.
     effects: [{ type: "applyBuff", id: "ward", amount: 1 }],
   },
@@ -158,7 +158,7 @@ export const ITEMS = {
     icon: "leaf",
     image: sapmendVialImg,
     cost: 150,
-    description: "This unit mends a little at the start of each round.",
+    description: "This hero mends a little at the start of each round.",
     // Mosswarden's Charm (relics.js), single-target.
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 2 } }],
   },
@@ -167,7 +167,7 @@ export const ITEMS = {
     name: "Venomed Fang",
     icon: "leaf",
     cost: 200,
-    description: "Whatever this unit strikes carries poison after.",
+    description: "Whatever this hero strikes carries poison after.",
     // Venomous Edge (relics.js), single-target.
     effects: [
       {
@@ -182,7 +182,7 @@ export const ITEMS = {
     name: "Thorned Bracer",
     icon: "root",
     cost: 150,
-    description: "Whatever strikes this unit gets struck back.",
+    description: "Whatever strikes this hero gets struck back.",
     // Bramble Ward (relics.js), single-target.
     effects: [{ type: "addTrigger", trigger: "onHit", effect: { type: "damage", amount: 2 } }],
   },
@@ -192,7 +192,7 @@ export const ITEMS = {
     icon: "sword",
     image: duelistsEdgeImg,
     cost: 200,
-    description: "This unit finishes a badly wounded enemy faster.",
+    description: "This hero finishes a badly wounded enemy faster.",
     // Culling Strike (relics.js), single-target - the first ITEM-level
     // source of Execute, alongside the relic (squad-wide) and Duskclaw/
     // Trueshot (baked into one specific unit's own kit). Lets a player
@@ -207,7 +207,7 @@ export const ITEMS = {
     icon: "moonGlyph",
     image: chillingGripImg,
     cost: 150,
-    description: "Whatever this unit strikes hits softer after, in return.",
+    description: "Whatever this hero strikes hits softer after, in return.",
     // Frostbrand (relics.js), single-target - Weak's first item-level
     // source, closing the same "every mechanic gets both a relic and a
     // more targeted source" pattern Execute/Poison/Ward already have.
@@ -225,7 +225,7 @@ export const ITEMS = {
     icon: "leaf",
     image: cleansingDraughtImg,
     cost: 150,
-    description: "This unit shakes off a lingering ailment at the start of each round.",
+    description: "This hero shakes off a lingering ailment at the start of each round.",
     // Purifying Bloom (relics.js), single-target - lets a player put
     // Cleanse specifically on whichever unit is most likely to eat a
     // debuff (a frontline tank, say) instead of only getting it
@@ -237,7 +237,7 @@ export const ITEMS = {
     name: "Stonebound Charm",
     icon: "shield",
     cost: 150,
-    description: "This unit grows a little bark at the start of each round.",
+    description: "This hero grows a little bark at the start of each round.",
     // Bark Ward (relics.js), single-target - lets a player put the
     // repeating Block on specifically the unit standing in the front
     // slot, instead of only squad-wide.
@@ -248,7 +248,7 @@ export const ITEMS = {
     name: "Feral Charm",
     icon: "flame",
     cost: 150,
-    description: "This unit fights harder once it's badly hurt.",
+    description: "This hero fights harder once it's badly hurt.",
     // Berserker's Oath (relics.js), single-target - lets a player put
     // Wounded Fury specifically on a tanky frontline unit likely to
     // spend real time below half HP, instead of only squad-wide.
@@ -260,7 +260,7 @@ export const ITEMS = {
     icon: "shield",
     image: wardensSigilImg,
     cost: 200,
-    description: "This unit draws every eye.",
+    description: "This hero draws every eye.",
     // Taunt's first item-level source - Bulwark Standard (relics.js)
     // already grants it to whichever deployed unit happens to have the
     // highest maxHp, and Ironbark/Stoneheart carry it baked into their
@@ -276,7 +276,7 @@ export const ITEMS = {
     icon: "sword",
     image: crackingFistImg,
     cost: 200,
-    description: "This unit strikes deeper against a target that's still braced.",
+    description: "This hero strikes deeper against a target that's still braced.",
     // Quarrybreak (relics.js), single-target - lets a player put
     // Shatter specifically on their heaviest hitter instead of only
     // squad-wide.
@@ -315,7 +315,7 @@ export const ITEMS = {
     icon: "leaf",
     image: wardstitchCloakImg,
     cost: 200,
-    description: "This unit turns to mending the squad instead of holding the line.",
+    description: "This hero turns to mending the squad instead of holding the line.",
     bendsRoleTo: "support",
     effects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
   },
@@ -325,7 +325,7 @@ export const ITEMS = {
     icon: "flame",
     image: bloodrootFangImg,
     cost: 200,
-    description: "This unit turns aggressive, hunting for the finishing blow.",
+    description: "This hero turns aggressive, hunting for the finishing blow.",
     bendsRoleTo: "dps",
     effects: [
       { type: "applyBuff", id: "strength", amount: 2 },
@@ -338,7 +338,7 @@ export const ITEMS = {
     icon: "shield",
     image: mossboundChainImg,
     cost: 200,
-    description: "This unit turns to holding the line, drawing every eye.",
+    description: "This hero turns to holding the line, drawing every eye.",
     bendsRoleTo: "tank",
     effects: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 3 } },
@@ -351,7 +351,7 @@ export const ITEMS = {
     icon: "moonGlyph",
     image: wanderersLedgerImg,
     cost: 200,
-    description: "This unit turns versatile, ready for whatever the fight needs.",
+    description: "This hero turns versatile, ready for whatever the fight needs.",
     bendsRoleTo: "hybrid",
     effects: [
       { type: "applyBuff", id: "ward", amount: 1 },
@@ -364,7 +364,7 @@ export const ITEMS = {
     icon: "root",
     image: hexrootVialImg,
     cost: 200,
-    description: "This unit turns to rot and ruin instead of raw defense - every strike lingers.",
+    description: "This hero turns to rot and ruin instead of raw defense - every strike lingers.",
     bendsRoleTo: "support",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
@@ -377,7 +377,7 @@ export const ITEMS = {
     icon: "moonGlyph",
     image: wraithfangCharmImg,
     cost: 200,
-    description: "This unit turns bloodthirsty instead of blunt - every strike weakens its target and mends the wound.",
+    description: "This hero turns bloodthirsty instead of blunt - every strike weakens its target and mends the wound.",
     bendsRoleTo: "dps",
     effects: [
       // target: "target" is required on the Vulnerable half - applyBuff
@@ -397,7 +397,7 @@ export const ITEMS = {
     name: "Thornhide Ward",
     icon: "leaf",
     cost: 200,
-    description: "This unit turns evasive instead of unyielding - hits simply don't land, rather than being weathered.",
+    description: "This hero turns evasive instead of unyielding - hits simply don't land, rather than being weathered.",
     bendsRoleTo: "tank",
     // A second, distinct path to "tank" from Mossbound Chain's Block+
     // Taunt aggro-tank: Ward cancels a hit outright rather than
@@ -413,7 +413,7 @@ export const ITEMS = {
     icon: "flame",
     image: emberrootTalismanImg,
     cost: 200,
-    description: "This unit turns opportunistic - braces for a hit, then strikes twice as hard once it lands.",
+    description: "This hero turns opportunistic - braces for a hit, then strikes twice as hard once it lands.",
     bendsRoleTo: "hybrid",
     // A second, distinct path to "hybrid" from Wanderer's Ledger's
     // passive Ward+heal (survive-anything generalist): an aggressive-
@@ -430,7 +430,7 @@ export const ITEMS = {
     icon: "heart",
     image: mendleafCharmImg,
     cost: 150,
-    description: "This unit knits itself back together over the fight's first few rounds.",
+    description: "This hero knits itself back together over the fight's first few rounds.",
     // Heartsbloom Seed (relics.js), single-target - lets a player put
     // Regen (effects.js's tickRegen) specifically on the unit most
     // likely to eat repeated hits, instead of only squad-wide.
@@ -441,7 +441,7 @@ export const ITEMS = {
     name: "Sundermaw Fang",
     icon: "root",
     cost: 200,
-    description: "Whatever this unit strikes loses its own strongest edge.",
+    description: "Whatever this hero strikes loses its own strongest edge.",
     // Sunder's first ITEM source (effects.js's sunder - strips a
     // target's strongest SUNDERABLE_IDS buff). Thornwisp/Ashcaller
     // (units.js) are still the only unit-level sources; this lets a
@@ -458,7 +458,7 @@ export const ITEMS = {
     name: "Frostbite Fang",
     icon: "moonGlyph",
     cost: 200,
-    description: "Whatever this unit strikes seizes up, unable to act next round.",
+    description: "Whatever this hero strikes seizes up, unable to act next round.",
     // Stun's first ITEM source (autoBattleEngine.js decrements a
     // unit's stun stack by 1 and skips its whole turn whenever it's
     // acting) - Frostbind (units.js) was still the roster's ONLY
@@ -483,7 +483,7 @@ export const ITEMS = {
     name: "Cascading Claw",
     icon: "sword",
     cost: 200,
-    description: "Whatever this unit finishes off, it strikes again at someone else.",
+    description: "Whatever this hero finishes off, it strikes again at someone else.",
     // Chain's first ITEM source (autoBattleEngine.js's actSide) -
     // previously the only mechanic on the roster with no item/relic
     // path at all, since `chainDamage` lived purely as a raw def field
@@ -504,7 +504,7 @@ export const ITEMS = {
     icon: "leaf",
     image: fungalSporeSacImg,
     cost: 150,
-    description: "Whatever this unit poisons, it poisons someone standing nearby too.",
+    description: "Whatever this hero poisons, it poisons someone standing nearby too.",
     // Spore Spread's first ITEM source (autoBattleEngine.js's actSide -
     // `acting.powers.sporeSpread`, checked as a boolean flag the same
     // "any positive stack counts" shape Taunt/Ward already use). Only
@@ -519,7 +519,7 @@ export const ITEMS = {
     name: "Bloodfen Ring",
     icon: "flame",
     cost: 150,
-    description: "This unit fights harder the deeper its own wounds go.",
+    description: "This hero fights harder the deeper its own wounds go.",
     // Wounded Fury's 2nd unit-level source (alongside Feral Charm) -
     // same "give the player the choice" motivation Sundermaw Fang/
     // Cascading Claw already established for their own mechanics: a
@@ -533,7 +533,7 @@ export const ITEMS = {
     name: "Quarrystrike Gauntlet",
     icon: "sword",
     cost: 200,
-    description: "This unit hits harder, and hardest of all against a target still braced.",
+    description: "This hero hits harder, and hardest of all against a target still braced.",
     // Strength + Shatter together on one item - both stack numerically
     // (unlike Wounded Fury/Taunt's flat, non-stacking shape), so this
     // is a real combined power spike on whichever unit wears it, not
@@ -551,7 +551,7 @@ export const ITEMS = {
     icon: "sword",
     image: recklessVowImg,
     cost: 200,
-    description: "This unit finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
+    description: "This hero finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
     // Execute + Ward together - a "glass cannon insurance" identity:
     // Ward's own stack count is a real hit-absorption counter, not a
     // flat boolean (2 stacks shrugs off 2 hits, not just "protected
@@ -570,7 +570,7 @@ export const ITEMS = {
     icon: "heart",
     image: bulwarksMercyImg,
     cost: 200,
-    description: "This unit shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
+    description: "This hero shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
     // Regen + Ward together - a pure survivability identity for a
     // frontline unit: Ward cancels the first real hit outright, Regen
     // undoes whatever gets through after. Distinct from Bark Plating's
@@ -587,7 +587,7 @@ export const ITEMS = {
     icon: "shield",
     image: bramblehideStandardImg,
     cost: 200,
-    description: "This unit draws every eye, and fights harder the deeper its own wounds go.",
+    description: "This hero draws every eye, and fights harder the deeper its own wounds go.",
     // Taunt + Wounded Fury together - the same bruiser identity this
     // round's own new mook, Bramblespite, established: a tank that
     // both draws every single-target attack AND hits back harder once
@@ -606,7 +606,7 @@ export const ITEMS = {
     name: "Ashclaw Fang",
     icon: "sword",
     cost: 200,
-    description: "This unit strikes a little harder, and whatever it strikes loses its own strongest edge.",
+    description: "This hero strikes a little harder, and whatever it strikes loses its own strongest edge.",
     // Strength + Sunder together - an aggressive anti-buff identity:
     // every hit both deals more damage AND strips whatever the target
     // is leaning on (Ward/Revive/Taunt/Execute/Shatter/Strength, same
@@ -622,7 +622,7 @@ export const ITEMS = {
     name: "Cripplebite Fang",
     icon: "sword",
     cost: 200,
-    description: "Whatever this unit strikes hits softer after, and takes worse hits in return.",
+    description: "Whatever this hero strikes hits softer after, and takes worse hits in return.",
     // Weak + Vulnerable together - the last unpaired combo of the 3
     // core debuffs at the item/relic level. Enemy mooks already cover
     // all 3 pairings (Duskgnaw: Weak+Vulnerable, Hollowspite: Poison+
@@ -658,7 +658,7 @@ export const ITEMS = {
     name: "Witherspite Fang",
     icon: "leaf",
     cost: 200,
-    description: "Whatever this unit strikes carries both rot and weariness after.",
+    description: "Whatever this hero strikes carries both rot and weariness after.",
     // Poison + Weak - Witherspite Crown (relics.js) already grants this
     // squad-wide; this was the missing item-level version, letting a
     // player put it on one chosen unit instead of only run-wide.
@@ -672,7 +672,7 @@ export const ITEMS = {
     name: "Thornfen Fang",
     icon: "flame",
     cost: 200,
-    description: "This unit strikes a little harder, and mends off every hit it lands.",
+    description: "This hero strikes a little harder, and mends off every hit it lands.",
     // Strength + Lifesteal (heal-on-onDealDamage) - a new aggressive-
     // sustain hybrid. Lifesteal previously only existed as Vampiric
     // Bloom (relics.js), alone, never paired with anything - this gives
@@ -689,7 +689,7 @@ export const ITEMS = {
     name: "Huntclaw Fang",
     icon: "sword",
     cost: 200,
-    description: "This unit finishes a badly wounded enemy faster, and strikes again at someone else when it does.",
+    description: "This hero finishes a badly wounded enemy faster, and strikes again at someone else when it does.",
     // Execute + Chain together - both exist solo (Duelist's Edge/
     // Culling Strike for Execute; Cascading Claw/Cascading Wound for
     // Chain) but had never been paired. A real "finisher squad"
@@ -722,7 +722,7 @@ export const ITEMS = {
     // this is the cheap entry point into the mechanic, same role Twig
     // Charm/Mossdrop Vial/Hunter's Mark already play for Block/Heal/
     // Execute at this tier.
-    description: "Whatever this unit strikes carries a faint rot after.",
+    description: "Whatever this hero strikes carries a faint rot after.",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
     ],
@@ -736,7 +736,7 @@ export const ITEMS = {
     // A cheaper Taunt than Warden's Sigil's own 190 - same "give the
     // player an earlier price point into a mechanic" downscale Twig
     // Charm/Mossdrop Vial already established for Block/Heal.
-    description: "This unit wears its thorns proudly, drawing every eye.",
+    description: "This hero wears its thorns proudly, drawing every eye.",
     effects: [{ type: "applyBuff", id: "taunt", amount: 1 }],
   },
   "gloaming-shard": {
@@ -750,7 +750,7 @@ export const ITEMS = {
     // own comment already closed Weak+Vulnerable and noted Witherspite
     // Fang/Crown already cover Poison+Weak; nothing before this
     // combined Poison+Vulnerable for the player).
-    description: "Whatever this unit strikes rots from within, and takes cruelly worse hits after.",
+    description: "Whatever this hero strikes rots from within, and takes cruelly worse hits after.",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } },
@@ -766,7 +766,7 @@ export const ITEMS = {
     // (Quarrystrike Gauntlet, Emberroot Talisman) pairs it with
     // Strength or repeating Block, never with Ward's own "cancel the
     // first real hit outright" shape.
-    description: "This unit shrugs off the first real hit it takes, and strikes deeper against a target still braced.",
+    description: "This hero shrugs off the first real hit it takes, and strikes deeper against a target still braced.",
     effects: [
       { type: "applyBuff", id: "ward", amount: 1 },
       { type: "applyBuff", id: "shatter", amount: 2 },
@@ -782,7 +782,7 @@ export const ITEMS = {
     // pairs Taunt with repeating Block instead, and Wanderer's Ledger
     // already pairs Ward with heal - this is the first item to combine
     // Taunt with Ward's own hit-cancel instead.
-    description: "This unit draws every eye, and shrugs off the first real hit while it holds the line.",
+    description: "This hero draws every eye, and shrugs off the first real hit while it holds the line.",
     effects: [
       { type: "applyBuff", id: "taunt", amount: 1 },
       { type: "applyBuff", id: "ward", amount: 1 },
@@ -797,7 +797,7 @@ export const ITEMS = {
     // Regen + Cleanse - a pure sustain identity: Mendleaf Charm's own
     // Regen and Cleansing Draught's own Cleanse had never been
     // combined onto one item before.
-    description: "This unit knits itself back together, and shakes off whatever ails it, every round.",
+    description: "This hero knits itself back together, and shakes off whatever ails it, every round.",
     effects: [
       { type: "applyBuff", id: "regen", amount: 2 },
       { type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } },
@@ -813,7 +813,7 @@ export const ITEMS = {
     name: "Stoneskin Band",
     icon: "stone",
     cost: 100,
-    description: "This unit carries a sliver of permanent armour that turns aside part of every hit.",
+    description: "This hero carries a sliver of permanent armour that turns aside part of every hit.",
     effects: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
   },
   "windstep-charm": {
@@ -821,7 +821,7 @@ export const ITEMS = {
     name: "Windstep Charm",
     icon: "gale",
     cost: 100,
-    description: "This unit slips aside from the first hit that would land on it.",
+    description: "This hero slips aside from the first hit that would land on it.",
     effects: [{ type: "applyBuff", id: "evade", amount: 1 }],
   },
   "tidewrack-vial": {
@@ -829,7 +829,7 @@ export const ITEMS = {
     name: "Tidewrack Vial",
     icon: "tide",
     cost: 100,
-    description: "Whatever this unit strikes hits back a little softer afterward.",
+    description: "Whatever this hero strikes hits back a little softer afterward.",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
     ],
@@ -839,7 +839,7 @@ export const ITEMS = {
     name: "Emberbrand Oil",
     icon: "ember",
     cost: 100,
-    description: "Whatever this unit strikes is left burning.",
+    description: "Whatever this hero strikes is left burning.",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
     ],
@@ -849,7 +849,7 @@ export const ITEMS = {
     name: "Starlit Shard",
     icon: "cosmic",
     cost: 150,
-    description: "This unit grows a little stronger with every passing round.",
+    description: "This hero grows a little stronger with every passing round.",
     effects: [{ type: "applyBuff", id: "ascendant", amount: 1 }],
   },
   "glacier-fang": {
@@ -859,7 +859,7 @@ export const ITEMS = {
     cost: 200,
     // Bulwark + Shatter - armour that also punishes an enemy for
     // turtling behind Block.
-    description: "This unit shrugs part of every hit aside, and cuts deeper into anything hiding behind Block.",
+    description: "This hero shrugs part of every hit aside, and cuts deeper into anything hiding behind Block.",
     effects: [
       { type: "applyBuff", id: "bulwark", amount: 1 },
       { type: "applyBuff", id: "shatter", amount: 2 },
@@ -872,7 +872,7 @@ export const ITEMS = {
     cost: 200,
     // Evade + Strength - the Gale identity in one item: dodge a hit,
     // and hit back harder.
-    description: "This unit slips the first blow and answers with a heavier one.",
+    description: "This hero slips the first blow and answers with a heavier one.",
     effects: [
       { type: "applyBuff", id: "evade", amount: 1 },
       { type: "applyBuff", id: "strength", amount: 1 },
@@ -884,7 +884,7 @@ export const ITEMS = {
     icon: "ember",
     cost: 200,
     // Burn-on-hit + Execute - a finisher that leaves a fire behind.
-    description: "Whatever this unit strikes burns, and burns worse the closer it is to falling.",
+    description: "Whatever this hero strikes burns, and burns worse the closer it is to falling.",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 2 } },
       { type: "applyBuff", id: "execute", amount: 1 },
@@ -903,7 +903,7 @@ export const ITEMS = {
     name: "Emberflow Oil",
     icon: "ember",
     cost: 150,
-    description: "This unit's strikes leave a burn, and it knits itself back a little each round.",
+    description: "This hero's strikes leave a burn, and it knits itself back a little each round.",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
       { type: "applyBuff", id: "regen", amount: 1 },
@@ -914,7 +914,7 @@ export const ITEMS = {
     name: "Tidestone Band",
     icon: "stone",
     cost: 150,
-    description: "This unit carries a sliver of permanent armour, and what it strikes hits back softer.",
+    description: "This hero carries a sliver of permanent armour, and what it strikes hits back softer.",
     effects: [
       { type: "applyBuff", id: "bulwark", amount: 1 },
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "dampen", target: "target", amount: 1 } },
@@ -925,7 +925,7 @@ export const ITEMS = {
     name: "Galeheart Charm",
     icon: "gale",
     cost: 150,
-    description: "This unit slips the first blow each round, and mends a trickle as the fight goes on.",
+    description: "This hero slips the first blow each round, and mends a trickle as the fight goes on.",
     effects: [
       { type: "applyBuff", id: "evade", amount: 1 },
       { type: "applyBuff", id: "regen", amount: 1 },
@@ -936,7 +936,7 @@ export const ITEMS = {
     name: "Voidfang Edge",
     icon: "shadow",
     cost: 150,
-    description: "This unit's strikes poison, and it finishes a badly wounded enemy faster.",
+    description: "This hero's strikes poison, and it finishes a badly wounded enemy faster.",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
       { type: "applyBuff", id: "execute", amount: 1 },
@@ -947,7 +947,7 @@ export const ITEMS = {
     name: "Starbound Shard",
     icon: "cosmic",
     cost: 200,
-    description: "This unit grows stronger with every round the fight lasts, and its strikes leave a burn.",
+    description: "This hero grows stronger with every round the fight lasts, and its strikes leave a burn.",
     effects: [
       { type: "applyBuff", id: "ascendant", amount: 1 },
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
@@ -958,7 +958,7 @@ export const ITEMS = {
     name: "Wardknot Charm",
     icon: "shield",
     cost: 100,
-    description: "This unit shrugs off the first real hit, and grows a sprig of bark each round after.",
+    description: "This hero shrugs off the first real hit, and grows a sprig of bark each round after.",
     effects: [
       { type: "applyBuff", id: "ward", amount: 1 },
       { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },

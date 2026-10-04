@@ -1154,7 +1154,7 @@ export function isDeployTile(state, pos) {
 
 export function enterDeploy(state) {
   if (!state || state.phase !== "player" || state.turn !== 1 || state.deployDone) return state
-  return { ...state, phase: "deploy", log: [...state.log, "Place your units - enemies act after your first turn."] }
+  return { ...state, phase: "deploy", log: [...state.log, "Place your heroes - enemies act after your first turn."] }
 }
 
 // Moves a living player unit to a free deploy tile, or swaps it with the

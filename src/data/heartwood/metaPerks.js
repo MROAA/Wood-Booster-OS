@@ -25,7 +25,7 @@ export const META_PERKS = [
     id: "early-market",
     name: "Early Market",
     cost: 45,
-    description: "The market starts at Level 2 - uncommon units from the first visit.",
+    description: "The market starts at Level 2 - uncommon heroes from the first visit.",
     apply: (rs) => ({ ...rs, marketLevel: Math.max(rs.marketLevel || 1, 2) }),
   },
   {
@@ -49,7 +49,7 @@ export const META_PERKS = [
     id: "deep-pockets",
     name: "Deep Pockets",
     cost: 45,
-    description: "+1 item slot on every unit, all run.",
+    description: "+1 item slot on every hero, all run.",
     apply: (rs) => ({ ...rs, metaItemSlotBonus: (rs.metaItemSlotBonus || 0) + 1 }),
   },
   {
@@ -87,7 +87,7 @@ export const META_PERKS = [
     id: "forager",
     name: "Forager",
     cost: 50,
-    description: "Start every run with a common unit already on your bench.",
+    description: "Start every run with a common hero already on your bench.",
     apply: (rs) => ({ ...rs, metaStartUnit: "random-common" }),
   },
   {

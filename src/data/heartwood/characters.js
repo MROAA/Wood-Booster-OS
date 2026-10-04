@@ -22,7 +22,7 @@ export const CHARACTERS = {
     art: "cat",
     maxHp: 60,
     tagline: "Agile and quick - always looking for the fast opening.",
-    description: "Cat's Reflexes: every unit in the squad strikes a little harder, lands on its feet, and leaves what it hits swinging softer.",
+    description: "Cat's Reflexes: every hero in the squad strikes a little harder, lands on its feet, and leaves what it hits swinging softer.",
     startEffects: [{ type: "draw", amount: 1 }],
     // Marc: "haluan että squadissa on päähahmo, se commander on
     // pelattava hahmo pelissä... jota voi synergisoida buildilla ja
@@ -108,7 +108,7 @@ export const CHARACTERS = {
     // fix), but this MAIN description (character-select screen,
     // HeartwoodBattle.jsx) got missed, leaving it stale and quietly
     // wrong about what the Commander's own kit actually does.
-    description: "Steady Hooves: every unit heals 3, strikes a little harder, and shrugs off a lingering ailment each round.",
+    description: "Steady Hooves: every hero heals 3, strikes a little harder, and shrugs off a lingering ailment each round.",
     startEffects: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } },
     ],
@@ -188,7 +188,7 @@ export const CHARACTERS = {
     // rather than making the identity itself less true.
     maxHp: 60,
     tagline: "Dangerous when hurt - the fight gets worse for you the longer it goes.",
-    description: "Wounded Fury: every unit hits harder, and harder still below 50% HP - whatever they hit takes worse hits back, too.",
+    description: "Wounded Fury: every hero hits harder, and harder still below 50% HP - whatever they hit takes worse hits back, too.",
     startEffects: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
     // A single hard hit, no gimmick of its own - Fenrir's own
     // squadPassive already grants every deployed unit Wounded Fury
@@ -260,7 +260,7 @@ export const CHARACTERS = {
     art: "fox",
     maxHp: 62,
     tagline: "Careful and cunning - never takes a hit it didn't plan for.",
-    description: "Fox's Guard: every unit gains Block, strikes a little harder, and strips whatever it strikes of its own strongest edge.",
+    description: "Fox's Guard: every hero gains Block, strikes a little harder, and strips whatever it strikes of its own strongest edge.",
     startEffects: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } }],
     // Block then strike, carrying its own Shatter (effects.js) - "never
     // takes a hit it didn't plan for" reads as exploiting an opening
@@ -371,7 +371,7 @@ export const CHARACTERS = {
     unlockCost: 70,
     maxHp: 58,
     tagline: "Slash and burn - lets the rot do the work.",
-    description: "Blighttongue: every unit's hit leaves a wound that festers - a little poison, a little weakness - and the squad hits harder for it.",
+    description: "Blighttongue: every hero's hit leaves a wound that festers - a little poison, a little weakness - and the squad hits harder for it.",
     startEffects: [{ type: "applyBuff", id: "strength", amount: 1 }],
     movePattern: [
       { type: "attack", amount: 4 },
@@ -405,7 +405,7 @@ export const CHARACTERS = {
     unlockCost: 90,
     maxHp: 70,
     tagline: "The mountain does not move for you.",
-    description: "Stoneheart: every unit carries permanent armour and grows a fresh shell of bark each round - nothing about this squad is in a hurry.",
+    description: "Stoneheart: every hero carries permanent armour and grows a fresh shell of bark each round - nothing about this squad is in a hurry.",
     startEffects: [
       { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
     ],

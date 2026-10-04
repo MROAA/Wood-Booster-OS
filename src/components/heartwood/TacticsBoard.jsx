@@ -1085,27 +1085,27 @@ export default function TacticsBoard({
                   </span>
                 )}
                 {unit.woundedFury > 0 && unit.hp < unit.maxHp * 0.5 && (
-                  <span className="hwt-woundedfury-badge" title="Wounded Fury - below half HP, this unit's attacks deal +3 damage">
+                  <span className="hwt-woundedfury-badge" title="Wounded Fury - below half HP, this hero's attacks deal +3 damage">
                     🔥
                   </span>
                 )}
                 {unit.weak > 0 && (
-                  <span className="hwt-weak-badge" title={`Weak ${unit.weak} - this unit's own outgoing damage is cut by 25%`}>
+                  <span className="hwt-weak-badge" title={`Weak ${unit.weak} - this hero's own outgoing damage is cut by 25%`}>
                     ▼{unit.weak}
                   </span>
                 )}
                 {unit.slow > 0 && (
-                  <span className="hwt-slow-badge" title={`Slow ${unit.slow} - this unit's own movement is reduced by 1 for a turn, then decays`}>
+                  <span className="hwt-slow-badge" title={`Slow ${unit.slow} - this hero's own movement is reduced by 1 for a turn, then decays`}>
                     ❄{unit.slow}
                   </span>
                 )}
                 {unit.root > 0 && (
-                  <span className="hwt-root-badge" title={`Root ${unit.root} - this unit cannot move at all for a turn, then decays (can still attack)`}>
+                  <span className="hwt-root-badge" title={`Root ${unit.root} - this hero cannot move at all for a turn, then decays (can still attack)`}>
                     ⛓{unit.root}
                   </span>
                 )}
                 {unit.suppressed > 0 && (
-                  <span className="hwt-suppressed-badge" title={`Suppressed ${unit.suppressed} - this unit's own reactions (Zone of Control, Intercept, Retreat Step, Sidestep, Spirit Shift) are disabled for a turn, then decays`}>
+                  <span className="hwt-suppressed-badge" title={`Suppressed ${unit.suppressed} - this hero's own reactions (Zone of Control, Intercept, Retreat Step, Sidestep, Spirit Shift) are disabled for a turn, then decays`}>
                     ⊘{unit.suppressed}
                   </span>
                 )}
@@ -1131,7 +1131,7 @@ export default function TacticsBoard({
                 )}
                 <ElementBadges unit={unit} />
                 {unit.side === "enemy" && factionInfo(unit.faction) && (
-                  <span className="hwt-faction-badge" data-faction={unit.faction} title={`${factionInfo(unit.faction).tag}${unit.skirmisher ? " - strikes, then fades up to 2 tiles back" : ""}${unit.echo ? " - an echo of your own unit" : ""}`}>
+                  <span className="hwt-faction-badge" data-faction={unit.faction} title={`${factionInfo(unit.faction).tag}${unit.skirmisher ? " - strikes, then fades up to 2 tiles back" : ""}${unit.echo ? " - an echo of your own hero" : ""}`}>
                     {factionInfo(unit.faction).icon}
                   </span>
                 )}
@@ -1147,7 +1147,7 @@ export default function TacticsBoard({
                   </span>
                 )}
                 {intent && intent.kind === "wall" && (
-                  <span className="hwt-intent-badge" data-intent="object" title={intent.object ? `Will set off the ${OBJECTS[intent.object]?.name.toLowerCase() || "object"} next to your units` : "Will smash what blocks its way"}>
+                  <span className="hwt-intent-badge" data-intent="object" title={intent.object ? `Will set off the ${OBJECTS[intent.object]?.name.toLowerCase() || "object"} next to your heroes` : "Will smash what blocks its way"}>
                     {intent.object ? "💥" : "⚒"}
                   </span>
                 )}
@@ -1157,12 +1157,12 @@ export default function TacticsBoard({
                   </span>
                 )}
                 {intent && intent.kind === "overwatch" && (
-                  <span className="hwt-intent-badge" data-intent="overwatch" title="Will go on Overwatch - it shoots the first of your units that ends a move in its reach">
+                  <span className="hwt-intent-badge" data-intent="overwatch" title="Will go on Overwatch - it shoots the first of your heroes that ends a move in its reach">
                     👁
                   </span>
                 )}
                 {intent && intent.kind === "aoe" && (
-                  <span className="hwt-intent-badge" data-intent="aoe" title="Will strike every player unit at once">
+                  <span className="hwt-intent-badge" data-intent="aoe" title="Will strike every hero at once">
                     ✺
                   </span>
                 )}
@@ -1231,7 +1231,7 @@ export default function TacticsBoard({
               {battle.phase === "lost" && "Defeat"}
             </div>
             <div className="hwt-turn-sub">
-              {deploying && "Place your units - enemies act after your first turn"}
+              {deploying && "Place your heroes - enemies act after your first turn"}
               {battle.phase === "player" && "Your move"}
               {battle.phase === "enemy" && "The enemy acts..."}
               {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
@@ -1324,7 +1324,7 @@ export default function TacticsBoard({
                 data-active={selected.overwatch > 0 || undefined}
                 disabled={selected.ap < 1 || !(selected.attack > 0)}
                 onClick={() => handleUniversal("overwatch")}
-                title={`Overwatch (ends this unit's turn): shoot the first enemy that ends a move within ${selected.range > 1 ? `${rangeAt(battle, selected)} tiles` : "reach (adjacent tiles)"}, with its normal attack.`}
+                title={`Overwatch (ends this hero's turn): shoot the first enemy that ends a move within ${selected.range > 1 ? `${rangeAt(battle, selected)} tiles` : "reach (adjacent tiles)"}, with its normal attack.`}
               >
                 <span className="hwt-universal-icon">👁</span> Overwatch
               </button>
@@ -1335,7 +1335,7 @@ export default function TacticsBoard({
                 data-active={selected.hunkered > 0 || undefined}
                 disabled={selected.ap < 1}
                 onClick={() => handleUniversal("hunker")}
-                title={rolling ? "Hunker Down (ends this unit's turn): your cover counts one step better until your next turn - none becomes half, half becomes full, full becomes hunkered full (-55% to be hit)." : "Hunker Down (ends this unit's turn): take 50% less damage until your next turn."}
+                title={rolling ? "Hunker Down (ends this hero's turn): your cover counts one step better until your next turn - none becomes half, half becomes full, full becomes hunkered full (-55% to be hit)." : "Hunker Down (ends this hero's turn): take 50% less damage until your next turn."}
               >
                 <span className="hwt-universal-icon">🛡</span> Hunker Down
               </button>

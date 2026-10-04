@@ -206,6 +206,8 @@ export const ENTITY_TYPES = {
     arenas: { file: "arenas.js", exportName: "ARENAS" },
     evolutions: { file: "evolutions.js", exportName: "EVOLUTIONS" },
     roles: { file: "roles.js", exportName: "ROLES" },
+    // Mana step 1: hero classes - manaPool + every skill's mana cost.
+    classes: { file: "classes.js", exportName: "CLASSES" },
     upgradeBranches: { file: "upgrades.js", exportName: "UPGRADE_BRANCHES" },
     help: { file: "help.js", exportName: "HELP_SECTIONS" },
     coachTips: { file: "coach.js", exportName: "COACH_TIPS" },

@@ -154,13 +154,13 @@ export const SHOP_INVESTMENTS = {
   "regulars-discount": {
     name: "Regular's Discount",
     cost: 300,
-    desc: "Every unit you recruit costs 20% less for the rest of the run.",
+    desc: "Every hero you recruit costs 20% less for the rest of the run.",
     unlockLevel: 0,
   },
   "wider-stall": {
     name: "Wider Stall",
     cost: 350,
-    desc: "The market shows one more unit every visit.",
+    desc: "The market shows one more hero every visit.",
     unlockLevel: 2,
   },
   "ledger-account": {
@@ -184,7 +184,7 @@ export const SHOP_INVESTMENTS = {
   "rearguard": {
     name: "The Rearguard",
     cost: 400,
-    desc: "Your frailest unit starts every battle with Bulwark - one hit shrugged off.",
+    desc: "Your frailest hero starts every battle with Bulwark - one hit shrugged off.",
     unlockTier: 1,
   },
   // The Marked Coin (feat/hearthwood-coven): the enemy-side mirror of
@@ -235,7 +235,7 @@ export const SHOP_INVESTMENTS = {
   "weathered-standard": {
     name: "The Weathered Standard",
     cost: 400,
-    desc: "Every unit you field starts each battle with Bulwark - one incoming hit shrugged off.",
+    desc: "Every hero you field starts each battle with Bulwark - one incoming hit shrugged off.",
     unlockTier: 3,
   },
   // The Appraiser's Eye (this round): the first Ledger buy on the SELL
@@ -252,7 +252,7 @@ export const SHOP_INVESTMENTS = {
   "appraisers-eye": {
     name: "The Appraiser's Eye",
     cost: 350,
-    desc: "Selling a unit refunds 15% more, for the rest of the run.",
+    desc: "Selling a hero refunds 15% more, for the rest of the run.",
     unlockLevel: 2,
   },
 }
@@ -268,7 +268,7 @@ export const MARKET_EVENTS = {
   merchant: {
     name: "The Wandering Merchant",
     blurb: "A cart, a tarp, everything cut-price - decide fast.",
-    effect: "Only 2 unit offers · recruits 25% off",
+    effect: "Only 2 hero offers · recruits 25% off",
     tone: "moss",
     slotDelta: -1,
     tierOverride: null,
@@ -313,7 +313,7 @@ export const MARKET_EVENTS = {
   ragpicker: {
     name: "The Ragpicker's Market",
     blurb: "Every scrap has a buyer here - what you've outgrown is worth keeping, for once.",
-    effect: "Selling a unit refunds 50% more this stop",
+    effect: "Selling a hero refunds 50% more this stop",
     tone: "cosmic",
     slotDelta: 0,
     tierOverride: null,
