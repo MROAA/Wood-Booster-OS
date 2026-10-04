@@ -67,8 +67,7 @@ export function normalizeHearth(raw) {
 
 function withHooks(u) {
   return {
-    upgradeLevel: 0, upgrades: [], xp: 0, perks: [], skillUpgrades: {}, age: 0, runs: 0, wounded: false,
-    parents: null, generation: 0, mutations: [],
+    upgradeLevel: 0, xp: 0, age: 0, runs: 0, wounded: false, parents: null, generation: 0,
     ...u,
     upgrades: arr(u.upgrades), perks: arr(u.perks), mutations: arr(u.mutations),
     skillUpgrades: u.skillUpgrades && typeof u.skillUpgrades === "object" ? u.skillUpgrades : {},
