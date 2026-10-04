@@ -42,6 +42,7 @@ import { applyFaction, factionEnemyPhaseStart, blightAttackBonus, factionTargetB
 import { TERRAIN, terrainAt, terrainRule, isHigh, canReach, rangeAt, highGroundAmount, slideLanding, terrainDistanceField, wallHpAt, WALL_MAX_HP } from "./tacticsTerrain"
 export { TERRAIN_INFO, WALL_MAX_HP, wallHpAt, rangeAt } from "./tacticsTerrain"
 import { levelForXp, XP as LEVEL_XP_GAIN, THIRST_HEAL } from "./unitLevels"
+import * as manaFx from "./tacticsMana"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -837,9 +838,14 @@ function activePowerFor(character) {
 export function activateCommanderPower(state) {
   const power = state.activePower
   const commander = getUnit(state, "player-commander")
-  if (!power || power.used || state.phase !== "player") return state
+  // Mana step 1: with mana on, the Power is a MANA ULTIMATE - it needs a
+  // full bar, spends all of it, and can be fired again once refilled.
+  const ultimate = manaFx.hasMana(commander)
+  if (!power || (power.used && !ultimate) || state.phase !== "player") return state
   if (!commander || commander.hp <= 0 || commander.ap < 1) return state
-  let next = setUnit(state, commander.id, { ap: commander.ap - 1 })
+  if (ultimate && !manaFx.ultimateReady(commander)) return state
+  let next = setUnit(state, commander.id, { ap: commander.ap - 1, ...(ultimate ? { mana: 0 } : {}) })
+  if (ultimate) next = emit(next, { kind: "mana", unitId: commander.id, amount: -commander.mana, label: "ultimate" })
   for (const unit of next.units) {
     if (unit.side !== "player" || unit.hp <= 0) continue
     for (const effect of power.effects) {
@@ -852,7 +858,7 @@ export function activateCommanderPower(state) {
   return {
     ...next,
     ...emit(next, { kind: "power", actorId: commander.id, label: `${power.name}!` }),
-    activePower: { ...power, used: true, firedTurn: state.turn },
+    activePower: { ...power, used: true, firedTurn: state.turn, timesFired: (power.timesFired || 0) + 1 },
     log: [...next.log, `${commander.name} calls ${power.name}! ${power.description}`],
   }
 }
@@ -1113,7 +1119,9 @@ export function createRunTacticsBattle({ squad, enemyDefIds, characterId, terrai
     // A Trial's story name (runEngine.js's applyTrialName) rides along.
     const named = u.side === "enemy" && twin.name ? { ...u, name: twin.name } : u
     const base = overlayAutoStart(named, twin, difficultyFactor)
-    return { ...base, ...relicFx.relicOverlayPatch(base, twin, relicIds) }
+    // Mana: equipped mana potions ride along (drinkable, consumed).
+    const potions = u.side === "player" ? manaFx.potionsFrom(twin.itemIds || []) : []
+    return { ...base, ...relicFx.relicOverlayPatch(base, twin, relicIds), ...(potions.length ? { potions } : {}) }
   })
   return {
     grid: GRID,
@@ -1889,6 +1897,8 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
   if (attacker.shatter > 0 && defender.block > 0) amount += attacker.shatter
+  // Mana Overcharge: the skill being cast right now hits harder.
+  if (attacker.surge > 0) amount += attacker.surge
   return relicFx.dampenedAmount(attacker, classFx.classDamageMod(attacker, defender, amount, facing))
 }
 
@@ -1910,7 +1920,15 @@ function applyDamageWithBlock(state, targetId, amount) {
   // Boss fights: a weak point still standing shields the boss.
   const immune = bossImmuneHit(state, targetId)
   if (immune) return immune
-  const res = applyDamageInner(state, targetId, hunkeredAmount(getUnit(state, targetId), amount, state))
+  const before = getUnit(state, targetId)
+  let res = applyDamageInner(state, targetId, hunkeredAmount(before, amount, state))
+  // Mana: a tank turns what it blocked (Block, Bulwark, a Ward) into mana.
+  if (state.manaRules && before) {
+    const after = getUnit(res.next, targetId)
+    const warded = after && (after.ward || 0) < (before.ward || 0) ? amount : 0
+    const blocked = (res.absorbed || 0) + (res.armourUsed || 0) + warded
+    if (blocked > 0) res = { ...res, next: manaFx.onBlocked(res.next, targetId, blocked) }
+  }
   return state.boss ? { ...res, next: bossAfterDamage(res.next, targetId) } : res
 }
 
@@ -2170,6 +2188,8 @@ function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
   // squadPassive trigger fire too. Since this already runs
   // unconditionally inside attackUnit, it correctly fires for a Haste
   // follow-up hit as well (PR #483's own recursive attackUnit call).
+  // Mana: melee heroes (and relic on-hit) gain mana on every hit, even a blocked one.
+  state = manaFx.onDealDamage(state, actorId, targetId, remaining)
   if (!actor || remaining <= 0) return state
   let next = state
   for (const t of actor.triggers || []) {
@@ -2317,7 +2337,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // XCOM part 2: the hit roll (a miss is a GRAZE - half damage, no riders).
   const roll = cover.rollHit(next, actor, effectiveTarget, facing)
   const graze = roll.graze
-  next = graze ? emit(roll.state, { kind: "graze", targetId }) : roll.state
+  next = graze ? manaFx.onGraze(emit(roll.state, { kind: "graze", targetId }), targetId) : roll.state
   const rawAmount = graze ? cover.grazeAmount(fullAmount) : fullAmount
   const guardian = eligibleGuardian(next, effectiveTarget) || classFx.classGuardFor(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
@@ -2440,7 +2460,21 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
 const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "taunt-shout"])
 // Class system: `skillId` picks one of the unit's class skills; omitted
 // (or the signature's own id) = the unit's signature ability, as before.
+// Mana step 1: a skill costs mana too (gated, paid after a successful
+// cast); stored Overcharge rides on the cast as `surge`.
 export function castAbility(state, actorId, targetId, skillId) {
+  const who = getUnit(state, actorId)
+  const classSkill = skillId ? classFx.classSkillById(who, skillId) : null
+  const skill = classSkill || who?.ability
+  if (!who || !skill || !manaFx.canAfford(who, skill)) return state
+  if (!manaFx.hasMana(who)) return castAbilityCore(state, actorId, targetId, skillId)
+  const primed = manaFx.primeSurge(state, actorId, skill)
+  const out = castAbilityCore(primed, actorId, targetId, skillId)
+  if (out === primed) return state
+  return manaFx.afterSkillCast(out, actorId, targetId, skill, primed.eventSeq || 0)
+}
+
+function castAbilityCore(state, actorId, targetId, skillId) {
   const who = getUnit(state, actorId)
   if (skillId && classFx.classSkillById(who, skillId)) return classFx.castClassSkill(state, actorId, targetId, skillId)
   let cast = castAbilityInner(state, actorId, targetId)
@@ -2506,7 +2540,7 @@ function castAbilityInner(state, actorId, targetId) {
     next = emit(next, { kind: "strike", actorId, targetId: target.id, ranged: actor.range > 1, ability: ability.name })
     const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, actor.attack * ability.multiplier))
     const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target))
-    next = roll.graze ? emit(roll.state, { kind: "graze", targetId: target.id }) : roll.state
+    next = roll.graze ? manaFx.onGraze(emit(roll.state, { kind: "graze", targetId: target.id }), target.id) : roll.state
     const amount = roll.graze ? cover.grazeAmount(full) : full
     const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, amount)
     next = hit
@@ -2622,7 +2656,7 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount))
   const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target))
   const graze = roll.graze
-  next = graze ? emit(roll.state, { kind: "graze", targetId }) : roll.state
+  next = graze ? manaFx.onGraze(emit(roll.state, { kind: "graze", targetId }), targetId) : roll.state
   const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, graze ? cover.grazeAmount(full) : full)
   next = hit
   next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} ${graze ? "grazes" : "hits"} ${target.name} for ${remaining}${cover.rollNote(roll)}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
@@ -2962,7 +2996,9 @@ function enemyPhaseStart(state) {
   // freshly-granted stack never heals the same turn it was granted,
   // only the FOLLOWING one. Getting this backwards is the same class of
   // bug the Rot round's own poison-timing fix already caught once.
-  const regenTicked = applyRegenTick(resetForEnemyPhase)
+  // Mana: ranged heroes that held still focus; enemies regen (shared
+  // with previewEnemyIntents, so the telegraph stays exact).
+  const regenTicked = applyRegenTick(manaFx.enemyPhaseMana(resetForEnemyPhase))
   // A unit's own turnStart trigger (Deepwarden's post-phase "the ground
   // answers" Block, etc.) is applied AFTER the flat fortressBlock reset
   // above, never before - that reset is a per-unit overwrite, not an
@@ -3212,6 +3248,8 @@ const SUMMON_ENEMY_CAP = 8
 
 function skillReady(unit, skill) {
   if (unit.silenced > 0) return false
+  // Mana: an enemy can't cast what it can't pay for.
+  if (!manaFx.canAfford(unit, skill)) return false
   return !((unit.skillCd || {})[skill.id] > 0)
 }
 
@@ -3319,10 +3357,23 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
       if (!bestCenter) continue
       const score = AI_ATTACK_BASE + 20 + tileScore + 45 * bestCenter.hits
       options.push({ score, intent: { ...base, phase: "windup", center: bestCenter.center, tiles: slamTiles(state, bestCenter.center), amount: skill.amount } })
+    } else if (skill.kind === "drain") {
+      // Mana: steal from the hero with the most to lose - a big bonus
+      // for one close to its ultimate (the Commander near a full bar).
+      for (const t of players) {
+        if (!manaFx.hasMana(t) || chebyshevDist(pos, t.pos) > kindDef.range) continue
+        const pool = t.mana + (t.overcharge || 0)
+        if (pool < 10) continue
+        const fill = t.mana / t.manaMax
+        const ultimate = t.id === "player-commander" && fill >= 0.7 ? AI_DRAIN_ULTIMATE_BONUS : 0
+        const score = AI_ATTACK_BASE + 15 + tileScore + 40 * fill + ultimate + 0.3 * aiTargetValue(t)
+        options.push({ score, intent: { ...base, targetId: t.id, amount: skill.amount } })
+      }
     }
   }
   return options
 }
+const AI_DRAIN_ULTIMATE_BONUS = 60
 
 // Pounce: a whole-turn leap (2 AP) from where the enemy stands.
 function aiPounceOptions(state, enemy) {
@@ -3381,6 +3432,9 @@ function applySlamRelease(state, enemyId, intent, skill) {
 
 const HEX_WORD = { weak: "Weakened!", vulnerable: "Vulnerable!", poison: "Poisoned!", root: "Rooted!", burn: "Burning!", chill: "Chilled!" }
 
+// Enemy skills whose number Overcharge boosts (+attack / heal / Block / drain).
+const SURGE_KINDS = new Set(["pounce", "mend", "shield", "drain"])
+
 function applyEnemySkill(state, enemyId, intent) {
   let next = state
   if (intent.to) {
@@ -3393,19 +3447,27 @@ function applyEnemySkill(state, enemyId, intent) {
   if (!skill) return next
   if (skill.kind === "enrage") return applyEnemyIntent(applyEnrage(next, enemyId, skill), enemyId, intent.then)
   if (skill.kind === "slam" && intent.phase === "release") return applySlamRelease(next, enemyId, intent, skill)
+  // Mana: pay for the skill; stored Overcharge rides on it as `surge`.
+  const surge = SURGE_KINDS.has(skill.kind) ? manaFx.surgeFor(actor) : 0
+  const paid = (s) =>
+    manaFx.hasMana(actor) && manaFx.manaCostOf(skill) > 0
+      ? setUnit(s, enemyId, { mana: Math.max(0, actor.mana - manaFx.manaCostOf(skill)), ...(surge ? { overcharge: 0 } : {}) })
+      : s
+  const boost = manaFx.hasMana(actor) && manaFx.manaCostOf(skill) > 0 ? surge : 0
   if (skill.kind === "pounce") {
     const target = getUnit(next, intent.targetId)
     if (!target || target.hp <= 0 || actor.ap < 2) return next
     const facing = cardinalDir(intent.land.col - actor.pos.col, intent.land.row - actor.pos.row)
-    next = startSkillCd(setUnit(next, enemyId, { pos: intent.land, facing, ap: 1, attack: actor.attack + skill.bonus }), enemyId, skill)
+    next = paid(next)
+    next = startSkillCd(setUnit(next, enemyId, { pos: intent.land, facing, ap: 1, attack: actor.attack + skill.bonus + boost }), enemyId, skill)
     next = emit(next, { kind: "power", actorId: enemyId, label: `${skill.name}!` })
     next = { ...next, log: [...next.log, `${actor.name} leaps at ${target.name} - ${skill.name}!`] }
     next = attackUnit(next, enemyId, target.id)
     const after = getUnit(next, enemyId)
-    return after ? setUnit(next, enemyId, { attack: after.attack - skill.bonus }) : next
+    return after ? setUnit(next, enemyId, { attack: after.attack - skill.bonus - boost }) : next
   }
   if (actor.ap < 1) return next
-  next = setUnit(next, enemyId, { ap: actor.ap - 1 })
+  next = paid(setUnit(next, enemyId, { ap: actor.ap - 1 }))
   next = emit(next, { kind: "power", actorId: enemyId, label: `${skill.name}!` })
   if (skill.kind === "slam") {
     // Cooldown starts on the release, not the windup.
@@ -3416,15 +3478,23 @@ function applyEnemySkill(state, enemyId, intent) {
   if (skill.kind === "mend") {
     const ally = getUnit(next, intent.targetId)
     if (!ally || ally.hp <= 0) return next
-    const hp = Math.min(ally.maxHp, ally.hp + skill.amount)
+    const hp = Math.min(ally.maxHp, ally.hp + skill.amount + boost)
     next = emit(setUnit(next, ally.id, { hp }), { kind: "heal", actorId: enemyId, targetId: ally.id, amount: hp - ally.hp })
     return { ...next, log: [...next.log, `${actor.name}'s ${skill.name} mends ${ally.name} for ${hp - ally.hp}.`] }
   }
   if (skill.kind === "shield") {
     const ally = getUnit(next, intent.targetId)
     if (!ally || ally.hp <= 0) return next
-    next = setUnit(next, ally.id, { block: (ally.block || 0) + skill.amount })
-    return { ...next, log: [...next.log, `${actor.name}'s ${skill.name} shields ${ally.name} (+${skill.amount} Block).`] }
+    next = setUnit(next, ally.id, { block: (ally.block || 0) + skill.amount + boost })
+    return { ...next, log: [...next.log, `${actor.name}'s ${skill.name} shields ${ally.name} (+${skill.amount + boost} Block).`] }
+  }
+  if (skill.kind === "drain") {
+    const t = getUnit(next, intent.targetId)
+    if (!t || t.hp <= 0) return next
+    const had = t.mana + (t.overcharge || 0)
+    next = manaFx.stealMana(next, enemyId, t.id, skill.amount + boost)
+    const lost = had - (getUnit(next, t.id).mana + (getUnit(next, t.id).overcharge || 0))
+    return { ...next, log: [...next.log, `${actor.name}'s ${skill.name} steals ${lost} mana from ${t.name}.`] }
   }
   if (skill.kind === "hex") {
     const t = getUnit(next, intent.targetId)
@@ -3910,7 +3980,7 @@ export function runEnemyTurn(state) {
   // re-grant" ordering already established for the enemy side (see
   // endPlayerTurn's own comment on this).
   // Objective: Survive completes / reinforcements arrive.
-  const objTicked = objectiveNewTurn(classFx.classPlayerTurnStart(returnedToPlayer))
+  const objTicked = objectiveNewTurn(classFx.classPlayerTurnStart(manaFx.sideTurnRegen(returnedToPlayer, "player")))
   if (objTicked.phase !== "player") return objTicked
   const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked

@@ -2408,8 +2408,23 @@ export function recordFightAftermath(runState, battle) {
   // Class system: Merchant/Gatherer bonus Essence (capped in the fight).
   const bonusEssence = tactics ? Math.max(0, Math.min(5, battle.bonusEssence || 0)) : 0
   if (bonusEssence) lines.push(`Your traders and foragers bring back +${bonusEssence} Essence.`)
+  // Mana step 1: potions drunk in the fight are used up.
+  const drunk = []
+  if (tactics) {
+    const ownerKey = (u) => (u.id === "player-commander" ? "commander" : keys[Number(u.id.split("-").pop())])
+    for (const u of list) {
+      if (u.side !== "player" || !u.potionsUsed?.length) continue
+      const key = ownerKey(u)
+      for (const defId of u.potionsUsed) {
+        const item = (runState.items || []).find((it) => it.equippedTo === key && it.defId === defId && !drunk.includes(it.key))
+        if (item) drunk.push(item.key)
+      }
+    }
+    if (drunk.length) lines.push(`${drunk.length} potion${drunk.length > 1 ? "s were" : " was"} used up.`)
+  }
   return {
     ...runState,
+    ...(drunk.length ? { items: runState.items.filter((it) => !drunk.includes(it.key)) } : {}),
     ...(bonusEssence ? { essence: (runState.essence || 0) + bonusEssence } : {}),
     bench,
     commanderHpPct: cmd ? cmd.hpPct : runState.commanderHpPct,

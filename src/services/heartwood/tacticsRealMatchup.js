@@ -28,6 +28,7 @@ import { effectiveUnitDef } from "./autoBattleEngine"
 import { objectiveForNode, applyObjective } from "./tacticsObjectives"
 import { arenaTerrainFor, applyBossFight } from "./tacticsBosses"
 import { applyFaction } from "./tacticsFactions"
+import { enableMana } from "./tacticsMana"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -252,7 +253,9 @@ export function buildRunTacticsBattle(runState, start) {
     relicIds: runState.relics || [],
   })
   const factioned = battle && formation.faction ? applyFaction(battle, formation.faction) : battle
-  return applyObjective(arena ? applyBossFight(factioned, encounterId) : factioned, objectiveForRunNode(runState))
+  // Mana step 1: every real fight runs with mana (all pools start full).
+  const built = applyObjective(arena ? applyBossFight(factioned, encounterId) : factioned, objectiveForRunNode(runState))
+  return built ? enableMana(built, runState.relics || []) : built
 }
 
 // Battle objectives (sprint 2): the objective for the run's node - pure

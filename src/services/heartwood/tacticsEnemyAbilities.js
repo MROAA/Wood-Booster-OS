@@ -14,12 +14,18 @@ export const ENEMY_SKILL_KINDS = {
   pounce: { icon: "»", cooldown: 2 },
   summon: { icon: "❖", cooldown: 3, cap: 2 },
   enrage: { icon: "♨", cooldown: 99, threshold: 0.6 },
+  // Mana step 1: steals mana from a hero within range.
+  drain: { icon: "◐", cooldown: 3, range: 4 },
 }
+
+// Mana cost per kind (enrage is free; a slam pays on the windup). A
+// skill's own `mana` wins.
+export const ENEMY_SKILL_MANA = { mend: 15, shield: 10, hex: 15, slam: 25, pounce: 15, summon: 25, enrage: 0, drain: 5 }
 
 const HEX_NAMES = { weak: "Sapping Curse", vulnerable: "Mark of Ruin", poison: "Blight Spit", root: "Grasping Roots", burn: "Ember Spit", chill: "Rime Breath" }
 const DEBUFF_TO_STATUS = { weak: "weak", dampen: "weak", vulnerable: "vulnerable", poison: "poison", stun: "root" }
 
-const mk = (kind, props = {}) => ({ kind, cooldown: ENEMY_SKILL_KINDS[kind].cooldown, ...props, id: props.id || kind })
+const mk = (kind, props = {}) => ({ kind, cooldown: ENEMY_SKILL_KINDS[kind].cooldown, mana: ENEMY_SKILL_MANA[kind], ...props, id: props.id || kind })
 const hex = (status, amount = 1, name) => mk("hex", { status, amount, name: name || HEX_NAMES[status] })
 
 // Hand-picked kits: elites, minibosses, the boss.
@@ -77,8 +83,23 @@ const ELEMENT_HEXES = {
   wraithgale: elementHex("chill", 1, "Rime Gale"),
 }
 
+// Mana step 1: casters that steal mana from heroes (Mana Leech).
+const drain = (name, amount = 15) => mk("drain", { id: "mana-drain", name, amount })
+const MANA_DRAINERS = {
+  "silence-weaver": drain("Hush Leech"),
+  "hex-acolyte": drain("Mana Leech"),
+  "runewisp-acolyte": drain("Rune Siphon"),
+  "thinreach-wraith": drain("Soul Siphon"),
+  "blight-seer": drain("Blight Siphon"),
+  riftmnemon: drain("Memory Drain", 20),
+  spacemonkey: drain("Void Siphon", 20),
+}
+
 const TABLE = Object.fromEntries(
-  Object.values(ENEMIES).map((def) => [def.id, [...(EXPLICIT[def.id] || deriveSkills(def)), ...(ELEMENT_HEXES[def.id] ? [ELEMENT_HEXES[def.id]] : [])]]),
+  Object.values(ENEMIES).map((def) => [
+    def.id,
+    [...(EXPLICIT[def.id] || deriveSkills(def)), ...(ELEMENT_HEXES[def.id] ? [ELEMENT_HEXES[def.id]] : []), ...(MANA_DRAINERS[def.id] ? [MANA_DRAINERS[def.id]] : [])],
+  ]),
 )
 
 // A unit's skills: an explicit `enemySkills` on the unit wins (summons,
@@ -108,6 +129,7 @@ export function describeSkillIntent(intent, nameOf) {
         ? `${intent.name}: will crush the marked 3x3 tiles for ${intent.amount} - step out!`
         : `${intent.name}: winding up - the marked 3x3 tiles get crushed for ${intent.amount} NEXT turn`
     case "enrage": return `${intent.name}: will enrage (+${intent.amount} attack), then act`
+    case "drain": return `${intent.name}: will steal ${intent.amount} mana from ${t}`
     default: return intent.name || "Skill"
   }
 }

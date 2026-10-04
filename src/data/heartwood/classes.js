@@ -641,6 +641,43 @@ export const SKILL_UPGRADES = {
 }
 for (const cls of Object.values(CLASSES)) for (const sk of cls.skills) sk.upgrades = SKILL_UPGRADES[sk.id]
 
+// Mana (step 1): every class skill costs mana on top of AP + cooldown.
+// Default by AP cost + cooldown (cheap 10 ... big 35); an explicit `mana`
+// on the skill wins. `manaFx` = the skill's own mana effect on its
+// target: restore (ally), burn / steal (enemy).
+export function defaultManaCost(skill) {
+  const ap = skill?.cost ?? 1
+  const cd = skill?.cooldown ?? 2
+  if (ap >= 2) return cd >= 5 ? 35 : cd >= 4 ? 30 : 20
+  return cd >= 4 ? 20 : cd >= 3 ? 15 : 10
+}
+export const SKILL_MANA_FX = {
+  "lingering-bloom": { restore: 10 },
+  "emergency-supply": { restore: 15 },
+  empower: { restore: 10 },
+  "tactical-order": { restore: 10 },
+  silence: { burn: 15 },
+  dispel: { burn: 15 },
+  "invert-blessing": { burn: 10 },
+  "soul-debt": { steal: 10 },
+}
+export function manaFxText(fx) {
+  if (!fx) return ""
+  if (fx.restore) return ` Also restores ${fx.restore} mana to the ally.`
+  if (fx.burn) return ` Also burns ${fx.burn} of the enemy's mana.`
+  if (fx.steal) return ` Also steals ${fx.steal} mana from the enemy.`
+  return ""
+}
+for (const cls of Object.values(CLASSES)) {
+  for (const sk of cls.skills) {
+    if (sk.mana == null) sk.mana = defaultManaCost(sk)
+    if (SKILL_MANA_FX[sk.id]) {
+      sk.manaFx = SKILL_MANA_FX[sk.id]
+      sk.text += manaFxText(sk.manaFx)
+    }
+  }
+}
+
 // Skill tree: a class skill with a chosen branch folded in: `patch` overrides numbers,
 // `upgrade` carries the name/text/fx for the rider + the UI.
 export function upgradeClassSkill(skill, branch) {

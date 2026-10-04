@@ -6,17 +6,17 @@
 
 // Per-kind numbers. `cost` in AP (units have 2), `cooldown` in own turns.
 const KIND_DEFAULTS = {
-  dash: { cost: 2, cooldown: 3, range: 3, bonus: 2 },
-  cleave: { cost: 2, cooldown: 2 },
-  "poison-strike": { cost: 1, cooldown: 2, amount: 2 },
-  "root-shot": { cost: 1, cooldown: 3 },
-  push: { cost: 1, cooldown: 2, bonus: 2 },
-  "taunt-shout": { cost: 1, cooldown: 3, amount: 4 },
-  "shield-ally": { cost: 1, cooldown: 2, amount: 3 },
-  rally: { cost: 1, cooldown: 3, amount: 1 },
-  heal: { cost: 1, cooldown: 2, amount: 4 },
-  burst: { cost: 2, cooldown: 3, multiplier: 2 },
-  "aura-block": { cost: 1, cooldown: 2, amount: 1 },
+  dash: { cost: 2, cooldown: 3, range: 3, bonus: 2, mana: 20 },
+  cleave: { cost: 2, cooldown: 2, mana: 20 },
+  "poison-strike": { cost: 1, cooldown: 2, amount: 2, mana: 10 },
+  "root-shot": { cost: 1, cooldown: 3, mana: 15 },
+  push: { cost: 1, cooldown: 2, bonus: 2, mana: 10 },
+  "taunt-shout": { cost: 1, cooldown: 3, amount: 4, mana: 15 },
+  "shield-ally": { cost: 1, cooldown: 2, amount: 3, mana: 10 },
+  rally: { cost: 1, cooldown: 3, amount: 1, mana: 15 },
+  heal: { cost: 1, cooldown: 2, amount: 4, mana: 10 },
+  burst: { cost: 2, cooldown: 3, multiplier: 2, mana: 20 },
+  "aura-block": { cost: 1, cooldown: 2, amount: 1, mana: 10 },
 }
 
 // A className is the strongest identity signal - it decides kind + name.
@@ -141,7 +141,7 @@ export function deriveAbilityForDef(def) {
   const names = KIND_NAMES[kind]
   const name = className || names[hash(def.id) % names.length]
   const base = KIND_DEFAULTS[kind]
-  const ability = { id: `${kind}-${def.id}`, name, kind, cost: base.cost, cooldown: base.cooldown }
+  const ability = { id: `${kind}-${def.id}`, name, kind, cost: base.cost, cooldown: base.cooldown, mana: base.mana }
   if (base.range) ability.range = base.range
   if (base.bonus) ability.bonus = base.bonus
   if (base.multiplier) ability.multiplier = base.multiplier
@@ -153,12 +153,12 @@ export function deriveAbilityForDef(def) {
 // Hand-authored signatures for the 6 original units (moved here from
 // tacticsEngine.js so unitLevels.js can read a unit's signature too).
 export const HAND_ABILITIES = {
-  "bulwark-of-ages": { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2, cooldown: 2 },
-  "the-fool": { id: "regrowth", name: "Regrowth", cost: 1, kind: "heal", amount: 5, cooldown: 2 },
-  hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
-  oathshield: { id: "shieldwall", name: "Shieldwall", cost: 1, kind: "aura-block", amount: 1, cooldown: 2 },
-  willowmend: { id: "mending-waters", name: "Mending Waters", cost: 1, kind: "heal", amount: 4, cooldown: 2 },
-  "bramble-sweep": { id: "ripple-strike", name: "Ripple Strike", cost: 2, kind: "burst", multiplier: 2, cooldown: 3 },
+  "bulwark-of-ages": { id: "aura-block", name: "Bulwark Aura", cost: 1, kind: "aura-block", amount: 2, cooldown: 2, mana: 10 },
+  "the-fool": { id: "regrowth", name: "Regrowth", cost: 1, kind: "heal", amount: 5, cooldown: 2, mana: 10 },
+  hexbreaker: { id: "focused-shot", name: "Focused Shot", cost: 2, kind: "burst", multiplier: 2, cooldown: 3, mana: 20 },
+  oathshield: { id: "shieldwall", name: "Shieldwall", cost: 1, kind: "aura-block", amount: 1, cooldown: 2, mana: 10 },
+  willowmend: { id: "mending-waters", name: "Mending Waters", cost: 1, kind: "heal", amount: 4, cooldown: 2, mana: 10 },
+  "bramble-sweep": { id: "ripple-strike", name: "Ripple Strike", cost: 2, kind: "burst", multiplier: 2, cooldown: 3, mana: 20 },
 }
 
 // A unit's personal signature ability (cards/tooltips/skill tree).

@@ -191,8 +191,17 @@ export function applyLevelsToTactics(battle, runState) {
   byId["player-commander"] = { xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ups: runState.commanderSkillUpgrades || {} }
   return {
     ...battle,
-    units: battle.units.map((u) => (byId[u.id] ? applyAge(applyPerks(applyTree(u, byId[u.id].ups), byId[u.id].perks, byId[u.id].xp), byId[u.id].age) : u)),
+    units: battle.units.map((u) => (byId[u.id] ? levelMana(applyAge(applyPerks(applyTree(u, byId[u.id].ups), byId[u.id].perks, byId[u.id].xp), byId[u.id].age), byId[u.id].xp) : u)),
   }
+}
+
+// Mana step 1: modest pool scaling, +3 max mana per level above 1 (only
+// when the fight runs with mana - the unit then carries `manaMax`).
+const LEVEL_MANA = 3
+function levelMana(u, xp) {
+  if (typeof u.manaMax !== "number") return u
+  const add = LEVEL_MANA * (levelForXp(xp || 0) - 1)
+  return add > 0 ? { ...u, manaMax: u.manaMax + add, mana: u.mana + add } : u
 }
 
 // The Hearth: an old veteran (bench entry `agePenalty` steps) fights a

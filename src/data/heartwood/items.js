@@ -964,6 +964,32 @@ export const ITEMS = {
       { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 2 } },
     ],
   },
+  // Mana step 1: CONSUMABLE mana potions. Equip one on a hero; in a
+  // tactics fight that hero can drink it (1 AP) to restore mana (extra
+  // spills into Overcharge). Drunk = gone from your bag after the fight.
+  // No auto-battle effect (`effects` empty).
+  "mana-draught": {
+    id: "mana-draught",
+    name: "Mana Draught",
+    icon: "tide",
+    image: hexrootVialImg,
+    cost: 100,
+    consumable: true,
+    description: "Consumable: in a fight, this hero can drink it (1 AP) to restore 25 mana. Used up once drunk.",
+    effects: [],
+    mana: { restore: 25 },
+  },
+  "deepwell-tonic": {
+    id: "deepwell-tonic",
+    name: "Deepwell Tonic",
+    icon: "tide",
+    image: mossdropVialImg,
+    cost: 150,
+    consumable: true,
+    description: "Consumable: in a fight, this hero can drink it (1 AP) to restore 45 mana - extra spills into Overcharge. Used up once drunk.",
+    effects: [],
+    mana: { restore: 45 },
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

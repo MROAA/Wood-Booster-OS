@@ -894,6 +894,36 @@ export const RELICS = {
       { type: "applyBuff", id: "regen", amount: 1 },
     ],
   },
+  // Mana step 1: relics that act on MANA in a tactics fight (`mana`
+  // field, read by tacticsMana.js). No auto-battle effect - `effects`
+  // stays empty, the shop/description still show them.
+  "wellspring-stone": {
+    id: "wellspring-stone",
+    image: essenceWellImg,
+    name: "Wellspring Stone",
+    icon: "leaf",
+    description: "Every hero regains 3 more mana at the start of each turn.",
+    effects: [],
+    mana: { regen: 3 },
+  },
+  "siphon-fang": {
+    id: "siphon-fang",
+    image: fangsMarkImg,
+    name: "Siphon Fang",
+    icon: "rune",
+    description: "Every hero gains 3 mana whenever it lands a hit.",
+    effects: [],
+    mana: { onHit: 3 },
+  },
+  "brimming-chalice": {
+    id: "brimming-chalice",
+    image: aegisWardImg,
+    name: "Brimming Chalice",
+    icon: "cosmic",
+    description: "Every hero starts each fight with 15 Overcharge stored, and has +10 max mana.",
+    effects: [],
+    mana: { startOvercharge: 15, pool: 10 },
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
@@ -955,6 +985,8 @@ const COMMON_RELICS = [
   "cascading-wound", "mycotic-bloom",
   // Elemental squad relics (single-mechanic, first-hit-only / small):
   "tideworn-band", "windstep-standard",
+  // Mana relics (single mechanic).
+  "siphon-fang",
 ]
 // Unconditional single-mechanic relics, including every tribe-anchor
 // (see UNCOMMON's definition above) - the middle tier.
@@ -968,6 +1000,7 @@ const UNCOMMON_RELICS = [
   "heartwood-bloom", "emberbrand", "starlit-crown",
   // Elemental squad relics (single-mechanic, unconditional):
   "emberveil-charm", "stoneblood-totem",
+  "wellspring-stone",
 ]
 // Everything NOT listed above (every dual-mechanic combo from
 // quarry-vanguard down, plus essence-well/artificers-ledger/
