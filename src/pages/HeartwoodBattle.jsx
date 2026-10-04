@@ -64,6 +64,11 @@ import { crossroadsForAct } from "../data/heartwood/crossroads"
 import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
+import {
+  loadHearth, saveHearth, hearthStartFor, harvestRun, upgradeRoom, buyFurniture, recruitAtHome, retireUnit,
+  releaseUnit, setPermadeath,
+} from "../services/heartwood/hearth"
+import HearthScreen from "../components/heartwood/HearthScreen"
 import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
 import { MAX_DEPTH } from "../data/heartwood/depths"
 import GroveScreen from "../components/heartwood/GroveScreen"
@@ -209,6 +214,11 @@ export default function HeartwoodBattle() {
   // finished run awards Acorns exactly once via the effect below.
   const [meta, setMeta] = useState(() => loadMeta())
   const [showGrove, setShowGrove] = useState(false)
+  // The Hearth (services/heartwood/hearth.js): persistent home camp.
+  // `hearthPicks` = veteran hids chosen for the next run.
+  const [hearth, setHearth] = useState(() => loadHearth())
+  const [showHearth, setShowHearth] = useState(false)
+  const [hearthPicks, setHearthPicks] = useState([])
   const [showAlmanac, setShowAlmanac] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   // The ? reference overlay (HelpOverlay) + the contextual coach
@@ -242,6 +252,21 @@ export default function HeartwoodBattle() {
       saveMeta(next)
       return next
     })
+  }
+
+  // Hearth edits: `fn(hearth, acorns)` -> { hearth, cost } | null, or a
+  // plain hearth for free actions. Acorns are the Grove's currency.
+  function editHearth(fn) {
+    const res = fn(hearth, meta.acorns)
+    if (!res) return
+    const next = res.hearth || res
+    setHearth(next)
+    saveHearth(next)
+    if (res.cost) {
+      const m = { ...meta, acorns: meta.acorns - res.cost }
+      setMeta(m)
+      saveMeta(m)
+    }
   }
 
   function handleSelectDepth(level) {
@@ -344,6 +369,13 @@ export default function HeartwoodBattle() {
       const ranDepth = runState.selectedDepth || 0
       const earned = acornsForRun(runState, won, meta.chosenPerks || [], ranDepth)
       setLastAcornsEarned(earned)
+      // The Hearth: survivors come home (idempotent per run id).
+      const runId = runState.hearthRunId || `${runState.seed}:${runState.characterId}:${runState.nodeIndex}`
+      setHearth((h) => {
+        const { hearth: next } = harvestRun(h, runState, won, runId)
+        if (next !== h) saveHearth(next)
+        return next
+      })
       setMeta((m) => {
         // Beating a run at the deepest Depth you've unlocked unlocks the
         // next one (Ascension-style).
@@ -456,8 +488,13 @@ export default function HeartwoodBattle() {
     // "Enter a seed" field - a seeded run. startRun only reads
     // meta.forcedSeed + meta.chosenPerks, so the shallow copy keeps the
     // perks intact.
-    const runMeta = Number.isFinite(forcedSeed) ? { ...meta, forcedSeed } : meta
-    setRunState(startRun(id, pendingMemory, runMeta))
+    const seeded = Number.isFinite(forcedSeed) ? { ...meta, forcedSeed } : meta
+    // The Hearth: picked veterans + home Essence bonus ride in on meta.
+    const picks = hearthPicks.filter((hid) => hearth.roster.some((u) => u.hid === hid))
+    const hs = hearthStartFor(hearth, picks)
+    const runMeta = hs.veterans.length || hs.essenceBonus ? { ...seeded, hearthStart: hs } : seeded
+    setRunState({ ...startRun(id, pendingMemory, runMeta), hearthRunId: `${Date.now().toString(36)}-${id}` })
+    setHearthPicks([])
     setLastAcornsEarned(null)
     // Arrival beat, once per run - see showGuildHall's own comment
     // above. The shop phase is already set on runState at this point;
@@ -834,6 +871,37 @@ export default function HeartwoodBattle() {
   }
 
   if (!characterId || !runState) {
+    if (showHearth) {
+      return (
+        <div className="hw-root hw-screen-fade" style={rootStyle} key="hearth">
+          {exitLink}
+          <HearthScreen
+            hearth={hearth}
+            acorns={meta.acorns}
+            picked={hearthPicks}
+            onPick={setHearthPicks}
+            onUpgradeRoom={(roomId) => editHearth((h, a) => upgradeRoom(h, roomId, a))}
+            onBuyFurniture={(fid) => editHearth((h, a) => buyFurniture(h, fid, a))}
+            onRecruit={(defId) => editHearth((h, a) => recruitAtHome(h, defId, a))}
+            onRetire={(hid) => {
+              setHearthPicks((p) => p.filter((x) => x !== hid))
+              editHearth((h) => retireUnit(h, hid))
+            }}
+            onRelease={(hid) => {
+              setHearthPicks((p) => p.filter((x) => x !== hid))
+              editHearth((h) => releaseUnit(h, hid))
+            }}
+            onTogglePermadeath={(on) => editHearth((h) => setPermadeath(h, on))}
+            onDismissReport={() => editHearth((h) => ({ ...h, lastReport: null }))}
+            onStartRun={(picks) => {
+              setHearthPicks(picks)
+              setShowHearth(false)
+            }}
+            onBack={() => setShowHearth(false)}
+          />
+        </div>
+      )
+    }
     if (showGrove) {
       return (
         <div className="hw-root hw-screen-fade" style={rootStyle} key="grove">
@@ -873,6 +941,22 @@ export default function HeartwoodBattle() {
           onUnlock={handleUnlockCommander}
           depthLevel={Math.max(0, Math.min(meta.depth || 0, meta.selectedDepth || 0))}
         />
+        {hearthPicks.length > 0 && (
+          <div className="hw-hearth-pick-banner" data-hearth-banner>
+            &#128293; Veterans coming along:{" "}
+            {hearthPicks
+              .map((hid) => hearth.roster.find((u) => u.hid === hid))
+              .filter(Boolean)
+              .map((u) => UNITS[u.defId]?.name || u.defId)
+              .join(", ")}
+            <button className="hw-hearth-link" onClick={() => setShowHearth(true)}>
+              Change
+            </button>
+          </div>
+        )}
+        <button className="hw-hearth-open-btn" data-hearth-open onClick={() => setShowHearth(true)}>
+          &#128293; The Hearth{hearth.roster.length ? ` — ${hearth.roster.length} at home` : ""}
+        </button>
         <button className="hw-grove-open-btn" onClick={() => setShowGrove(true)}>
           &#127807; The Grove{meta.acorns > 0 ? ` — ${meta.acorns} Acorns` : ""}
         </button>
@@ -998,6 +1082,10 @@ export default function HeartwoodBattle() {
           path={runState.path}
           runState={runState}
           onNewRun={handleNewRun}
+          onHearth={() => {
+            handleNewRun()
+            setShowHearth(true)
+          }}
           deathMemory={runState.deathMemory}
           acornsEarned={lastAcornsEarned}
           totalAcorns={meta.acorns}

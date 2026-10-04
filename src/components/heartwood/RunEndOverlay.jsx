@@ -46,7 +46,7 @@ const silhouetteReveal = {
   animate: { opacity: 1, scale: 1, filter: "blur(0px) grayscale(0) brightness(1)" },
 }
 
-export default function RunEndOverlay({ phase, nodeIndex, path, runState, onNewRun, deathMemory, acornsEarned, totalAcorns, depthLevel = 0 }) {
+export default function RunEndOverlay({ phase, nodeIndex, path, runState, onNewRun, onHearth, deathMemory, acornsEarned, totalAcorns, depthLevel = 0 }) {
   if (phase !== "victory" && phase !== "defeat") return null
   const won = phase === "victory"
   // How far the run actually got - this screen used to show nothing
@@ -248,6 +248,11 @@ export default function RunEndOverlay({ phase, nodeIndex, path, runState, onNewR
           >
             New Run
           </motion.button>
+          {onHearth && (
+            <button className="hw-hearth-link hw-runend-hearth" data-hearth-home onClick={onHearth}>
+              &#128293; Go home to the Hearth
+            </button>
+          )}
         </div>
       </motion.div>
     </motion.div>
