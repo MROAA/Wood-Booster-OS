@@ -135,7 +135,7 @@ export const CLASSES = {
     skills: [
       { id: "hunters-mark", name: "Hunter's Mark", icon: "⌖", cost: 1, cooldown: 3, mana: 15, target: "enemy", range: 6, bonus: 2, text: "Mark an enemy within 6 tiles for 2 turns - it counts as having NO cover, and every ally's hits on it deal +2." },
       { id: "retreat-shot", name: "Retreat Shot", icon: "↶", cost: 2, cooldown: 2, mana: 20, target: "enemy", range: "reach", steps: 2, text: "Hit an enemy, then jump up to 2 tiles straight away from it." },
-      { id: "ricochet-shot", name: "Ricochet", icon: "⤨", cost: 2, cooldown: 2, mana: 20, target: "enemy", range: "reach", bounce: 3, bounces: 1, text: "Hit an enemy, then the shot bounces to the nearest other enemy within 3 tiles of it for half damage - from that new angle its cover doesn't count." },
+      { id: "ricochet-shot", name: "Ricochet", icon: "⤨", cost: 2, cooldown: 2, mana: 20, target: "enemy", range: "reach", bounce: 3, bounces: 1, markBounce: 0, text: "Hit an enemy, then the shot bounces to the nearest other enemy within 3 tiles of it for half damage - from that new angle its cover doesn't count." },
     ],
   },
   artillery: {
@@ -177,7 +177,7 @@ export const CLASSES = {
     skills: [
       { id: "elemental-strike", name: "Elemental Strike", icon: "✦", cost: 1, cooldown: 2, mana: 15, target: "enemy", range: "reach", text: "Hit an enemy with the element of the turn - Fire (2 Burn), Frost (1 Chill), Nature (Entangle) - it cycles every turn." },
       { id: "arcane-dash", name: "Arcane Dash", icon: "↯", cost: 2, cooldown: 3, mana: 25, target: "enemy", range: 3, bonus: 1, text: "Blink up to 3 tiles next to an enemy and hit it for +1, adding 1 Chill." },
-      { id: "arcane-lance", name: "Arcane Lance", icon: "⟿", cost: 2, cooldown: 3, mana: 25, target: "enemy", range: 5, beam: true, text: "A lance of force down a straight line (row, column or diagonal) up to 5 tiles: every enemy on the line is hit, and cover doesn't protect them. Walls stop it." },
+      { id: "arcane-lance", name: "Arcane Lance", icon: "⟿", cost: 2, cooldown: 3, mana: 25, target: "enemy", range: 5, beam: true, elemental: false, text: "A lance of force down a straight line (row, column or diagonal) up to 5 tiles: every enemy on the line is hit, and cover doesn't protect them. Walls stop it." },
     ],
   },
   healer: {
@@ -317,7 +317,7 @@ export const CLASSES = {
     description: "Suppressor - pins enemies down, lays smoke and sets traps.",
     passive: { id: "ambush-network", name: "Ambush Network", text: "When one of its traps springs, every other enemy next to the trap takes 2 damage too." },
     skills: [
-      { id: "pinning-shot", name: "Pinning Shot", icon: "➶", cost: 1, cooldown: 2, mana: 10, target: "enemy", range: "reach", text: "Hit an enemy for half damage and pin it down: it is Rooted (can't move on its next turn) and Suppressed until your next turn." },
+      { id: "pinning-shot", name: "Pinning Shot", icon: "➶", cost: 1, cooldown: 2, mana: 10, target: "enemy", range: "reach", full: false, wide: false, text: "Hit an enemy for half damage and pin it down: it is Rooted (can't move on its next turn) and Suppressed until your next turn." },
       { id: "smoke-screen", name: "Smoke Screen", icon: "☁", cost: 1, cooldown: 3, mana: 15, target: "tile", tile: "any", range: 4, turns: 2, text: "Throw smoke at a tile within 4: it and the 8 tiles around it fill with smoke for 2 turns. Anyone standing in smoke counts as in half cover from every side against ranged attacks." },
       { id: "thorn-trap", name: "Thorn Trap", icon: "✳", cost: 1, cooldown: 2, mana: 10, target: "tile", tile: "empty", range: 3, damage: 3, text: "Hide a trap on an empty tile within 3: the first enemy to stop on it takes 3 damage and is Rooted." },
     ],

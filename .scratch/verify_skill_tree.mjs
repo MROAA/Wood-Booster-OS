@@ -242,17 +242,18 @@ const r = await page.evaluate(async () => {
     sample.bramble = { base: dmg(s0, w0, E0), B: dmg(sB, wB, E0), rootB: U(wB, E0).root, wall: wB.terrain["4-6"] }
     ok(sample.bramble.base === 0 && sample.bramble.B === 2 && sample.bramble.rootB > 0 && sample.bramble.wall === "wall", "Growing Wall B Bramble Wall: 2 damage", sample.bramble)
   }
-  // 13 Trapper Poison Mine B: the mine also Roots.
+  // 13 Trapper (ranged rework: Suppressor) Pinning Shot A Heavy Pin: full damage
+  // (Poison Mine left the Trapper's kit).
   {
     const place = { snareclaw: { row: 4, col: 9 }, [E0]: { row: 4, col: 6 }, [E1]: { row: 8, col: 0 } }
     const run = (ups) => {
       const s = board(["snareclaw"], place, ups)
-      const m = cast(s, pid(s, "snareclaw"), "4-7", "poison-mine")
-      const sprung = E.moveUnit({ ...m, phase: "enemy" }, E0, { row: 4, col: 7 })
-      return { poison: U(sprung, E0).poison, root: U(sprung, E0).root || 0 }
+      const t = pid(s, "snareclaw")
+      const m = cast(s, t, E0, "pinning-shot")
+      return { dmg: U(s, E0).hp - U(m, E0).hp, atk: U(s, t).attack, root: U(m, E0).root || 0 }
     }
-    sample.stickyMine = { base: run({}), B: run({ snareclaw: { "poison-mine": "B" } }) }
-    ok(sample.stickyMine.base.poison >= 3 && sample.stickyMine.base.root === 0 && sample.stickyMine.B.poison >= 3 && sample.stickyMine.B.root > 0, "Poison Mine B Sticky Mine: roots", sample.stickyMine)
+    sample.stickyMine = { base: run({}), A: run({ snareclaw: { "pinning-shot": "A" } }) }
+    ok(sample.stickyMine.base.dmg === Math.ceil(sample.stickyMine.base.atk / 2) && sample.stickyMine.A.dmg === sample.stickyMine.A.atk && sample.stickyMine.A.root > 0, "Pinning Shot A Heavy Pin: full damage", sample.stickyMine)
   }
   // 14 Summoner Summon Spirit B: the Spirit acts right away (1 AP); A +4 HP.
   {
