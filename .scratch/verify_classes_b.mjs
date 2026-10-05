@@ -117,14 +117,13 @@ async function engineChecks(base) {
     const sprung = E.moveUnit({ ...tr, phase: "enemy" }, E0, { row: 4, col: 7 })
     ok(dmg(tr, sprung, E0) === 3 && U(sprung, E0).root === 2 && !sprung.classTraps["4-7"] && labels(sprung).includes("Trap!"), "Thorn Trap springs: 3 dmg + Root", { d: dmg(tr, sprung, E0) })
     ok(dmg(tr, sprung, E1) === 2, "Ambush Network: adjacent enemy takes 2", dmg(tr, sprung, E1))
-    const mine = cast(s, t, "5-7", "poison-mine")
-    const pm = E.moveUnit({ ...mine, phase: "enemy" }, E0, { row: 5, col: 7 })
-    ok(U(pm, E0).poison === 3, "Poison Mine: 3 Poison", U(pm, E0).poison)
-    const dec = cast(s, t, "4-7", "decoy")
-    const decoy = dec.units.find((u) => u.decoy)
-    const prev = E.previewEnemyIntents(dec).find((i) => i.enemyId === E0)?.intent
-    r.decoy = prev
-    ok(decoy && decoy.npc && decoy.taunt > 0 && decoy.hp === 6 && prev && prev.targetId === decoy.id, "Decoy draws the enemy", prev)
+    // Ranged rework: the Trapper is the Suppressor - Poison Mine / Decoy
+    // made way for Pinning Shot + Smoke Screen.
+    const pin = cast(s, t, E0, "pinning-shot")
+    ok(U(pin, E0).root > 0 && U(pin, E0).suppressFire === 1 && dmg(s, pin, E0) === Math.ceil(U(s, t).attack / 2), "Pinning Shot: half damage + Root + Suppressed", { d: dmg(s, pin, E0) })
+    const smoke = cast(s, t, "4-9", "smoke-screen")
+    r.decoy = smoke.smoke
+    ok(Object.keys(smoke.smoke || {}).length === 9 && smoke.smoke["4-9"] === 2, "Smoke Screen: 3x3 smoke for 2 turns", smoke.smoke)
     ok(cast(s, t, "4-9", "thorn-trap") === s && cast(s, t, "0-0", "thorn-trap") === s, "trap needs an empty tile in range")
   }
   // 4 Hexer ---------------------------------------------------------------------

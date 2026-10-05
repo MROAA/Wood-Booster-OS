@@ -320,7 +320,6 @@ export const CLASSES = {
       { id: "pinning-shot", name: "Pinning Shot", icon: "➶", cost: 1, cooldown: 2, mana: 10, target: "enemy", range: "reach", text: "Hit an enemy for half damage and pin it down: it is Rooted (can't move on its next turn) and Suppressed until your next turn." },
       { id: "smoke-screen", name: "Smoke Screen", icon: "☁", cost: 1, cooldown: 3, mana: 15, target: "tile", tile: "any", range: 4, turns: 2, text: "Throw smoke at a tile within 4: it and the 8 tiles around it fill with smoke for 2 turns. Anyone standing in smoke counts as in half cover from every side against ranged attacks." },
       { id: "thorn-trap", name: "Thorn Trap", icon: "✳", cost: 1, cooldown: 2, mana: 10, target: "tile", tile: "empty", range: 3, damage: 3, text: "Hide a trap on an empty tile within 3: the first enemy to stop on it takes 3 damage and is Rooted." },
-      { id: "poison-mine", name: "Poison Mine", icon: "☣", cost: 1, cooldown: 3, mana: 15, target: "tile", tile: "empty", range: 3, amount: 3, text: "Hide a mine on an empty tile within 3: the first enemy to stop on it gets 3 Poison." },
     ],
   },
   hexer: {
