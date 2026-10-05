@@ -266,7 +266,8 @@ const engine = await page.evaluate(async () => {
     const hm = pid(hx, "hexmother")
     const debt = E.castAbility(hx, hm, E0, "soul-debt")
     r.steal = { hexer: U(debt, hm).mana, enemy: U(debt, E0).mana }
-    ok(U(debt, hm).mana === 30 - 15 + 10 && U(debt, E0).mana === U(hx, E0).manaMax - 10, "Soul Debt steals 10 mana", r.steal)
+    // Ranged rework: mages pay heavier mana (Soul Debt 15 -> 20).
+    ok(U(debt, hm).mana === 30 - 20 + 10 && U(debt, E0).mana === U(hx, E0).manaMax - 10, "Soul Debt steals 10 mana", r.steal)
     // Enemy Mana Leech goes for the Commander close to its ultimate.
     const leech = { id: "mana-drain", kind: "drain", cooldown: 3, mana: 5, amount: 15, name: "Mana Leech" }
     const es = board(["bulwark-of-ages"], { "bulwark-of-ages": { row: 4, col: 9 }, [CMD]: { row: 6, col: 8 }, [E0]: { row: 5, col: 5, enemySkills: [leech] } })
@@ -324,7 +325,8 @@ const engine = await page.evaluate(async () => {
   // 11 Data: skill costs + Studio fields ----------------------------------------------------
   {
     const all = Object.values(C.CLASSES).flatMap((c) => c.skills)
-    ok(all.length === 92 && all.every((k) => typeof k.mana === "number" && k.mana >= 10 && k.mana <= 35), "every class skill has a mana cost", all.length)
+    // Ranged rework: 92 -> 94 class skills (+Ricochet, Arcane Lance, Pinning Shot, Smoke Screen; -Decoy, Poison Mine).
+    ok(all.length === 94 && all.every((k) => typeof k.mana === "number" && k.mana >= 10 && k.mana <= 35), "every class skill has a mana cost", all.length)
     ok(Object.values(C.CLASSES).every((c) => typeof c.manaPool === "number"), "every class has a manaPool")
     const { enemySkillTable } = await import("/src/services/heartwood/tacticsEnemyAbilities.js")
     const drainers = Object.entries(enemySkillTable()).filter(([, ks]) => ks.some((k) => k.kind === "drain")).map(([id]) => id)
