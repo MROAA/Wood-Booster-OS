@@ -472,7 +472,7 @@ export default function TacticsBoard({
     } else if (armedSide === "tile" && AREA_TILE_SKILLS[armedSkill.id] && hoverSkillTile) {
       const [row, col] = hoverSkillTile.split("-").map(Number)
       for (const p of blastTiles(battle, { row, col })) out.set(`${p.row}-${p.col}`, AREA_TILE_SKILLS[armedSkill.id])
-    } else if ((armedSkill.area || armedSkill.indirect) && hoverTargetId) {
+    } else if (armedSide === "enemy" && (armedSkill.area || armedSkill.indirect) && hoverTargetId) {
       const t = battle.units.find((u) => u.id === hoverTargetId)
       if (t) for (const p of blastTiles(battle, t.pos)) out.set(`${p.row}-${p.col}`, "arc")
     }
@@ -902,7 +902,7 @@ export default function TacticsBoard({
               className="hwt-hit-badge"
               data-hit={hitPreview.chance}
               data-tier={hitPreview.chance >= 75 ? "good" : hitPreview.chance >= 45 ? "fair" : "poor"}
-              title={hitPreview.parts.map((p) => `${p.label} ${p.value > 0 && p !== hitPreview.parts[0] ? "+" : ""}${p.value}%`).join(" · ")}
+              title={hitPreview.parts.map((p) => (p.value === 0 && p !== hitPreview.parts[0] ? p.label : `${p.label} ${p.value > 0 && p !== hitPreview.parts[0] ? "+" : ""}${p.value}%`)).join(" · ")}
             >
               <b>{hitPreview.chance}%</b>
               {hitPreview.skill ? (hitPreview.rolls ? <small> · miss = graze (half)</small> : null) : <> · {hitPreview.full}{hitPreview.rolls && <small> (graze {hitPreview.graze})</small>}</>}
@@ -1394,8 +1394,8 @@ export default function TacticsBoard({
               </div>
               <div className="hwt-hit-panel-parts">
                 {hitPreview.parts.map((p, i) => (
-                  <span key={p.label} data-sign={i === 0 ? "base" : p.value > 0 ? "plus" : "minus"}>
-                    {p.label} {i === 0 ? p.value : `${p.value > 0 ? "+" : ""}${p.value}`}
+                  <span key={p.label} data-sign={i === 0 ? "base" : p.value >= 0 ? "plus" : "minus"}>
+                    {p.label} {i === 0 ? p.value : p.value ? `${p.value > 0 ? "+" : ""}${p.value}` : ""}
                   </span>
                 ))}
                 {hitPreview.flanked && <span data-sign="plus">Flanked - its cover faces the wrong way</span>}

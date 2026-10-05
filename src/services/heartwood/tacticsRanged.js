@@ -18,7 +18,7 @@
 // tacticsEngine.js (circular, call-time only - same as tacticsMana.js).
 import { CLASSES } from "../../data/heartwood/classes"
 import { isOnBoard } from "./targeting"
-import { terrainAt, canReach } from "./tacticsTerrain"
+import { terrainAt } from "./tacticsTerrain"
 import { FULL_COVER_TILES, HALF_COVER_TILES, facingSides } from "./tacticsCover"
 import { emit, getUnit, setUnit, livingUnits, attackUnit, checkTacticsBattleEnd } from "./tacticsEngine"
 import { explode } from "./tacticsObjects"
@@ -235,13 +235,14 @@ export function suppressUnit(state, shooterId, targetId) {
   return addLog(s, `${shooter.name} pins ${t.name} down under fire (-${SUPPRESS_PENALTY}% to hit, moving draws a shot).`)
 }
 
-// After any move: a suppressed unit that moved eats one shot.
+// After any move: a suppressed unit that moved eats one shot (the line
+// of fire is already set up - no reach check, range falloff still applies).
 export function afterMoveSuppression(state, moverId) {
   const m = getUnit(state, moverId)
   if (!m || m.hp <= 0 || !(m.suppressFire > 0) || ended(state)) return state
   const shooter = getUnit(state, m.suppressBy)
   let s = setUnit(state, moverId, { suppressFire: 0, suppressBy: null })
-  if (!shooter || shooter.hp <= 0 || shooter.stun > 0 || shooter.frozen > 0 || !canReach(s, shooter, shooter.pos, m.pos)) return s
+  if (!shooter || shooter.hp <= 0 || shooter.stun > 0 || shooter.frozen > 0 || !(shooter.attack > 0)) return s
   s = emit(addLog(s, `${shooter.name}'s suppressing fire catches ${m.name} on the move!`), { kind: "reaction", unitId: shooter.id, label: "Suppressing fire!" })
   return attackUnit(s, shooter.id, moverId, { isReaction: true })
 }

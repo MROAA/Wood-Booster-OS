@@ -3123,7 +3123,7 @@ function aiOverwatchDmg(state, enemy, pos) {
 function aiSuppressDmg(state, enemy, moved) {
   if (!(enemy.suppressFire > 0)) return 0
   const s = getUnit(state, enemy.suppressBy)
-  return s && s.hp > 0 && canReach(state, s, s.pos, moved.pos) ? aiEstimateHit(s, moved, state) : 0
+  return s && s.hp > 0 && !(s.stun > 0) ? aiEstimateHit(s, moved, state) : 0
 }
 
 // XCOM part 1 - role positioning. Healers hang back out of reach; tanks
