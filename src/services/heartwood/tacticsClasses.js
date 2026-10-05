@@ -30,6 +30,7 @@ import { applyElement, reactStatus, ENTANGLE_DURATION } from "./tacticsElements"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
 import { rollBoulder } from "./tacticsObjects"
 import { canAfford, hasMana, manaCostOf } from "./tacticsMana"
+import * as ranged from "./tacticsRanged"
 
 const SLOW = 2
 const ROOT = 2
@@ -80,7 +81,8 @@ export function classFieldsFor(def, side, { commander = false, abilityKind = nul
 }
 
 export function classSkillById(unit, skillId) {
-  return (unit?.classSkills || []).find((s) => s.id === skillId) || null
+  // Ranged rework: the shared ranged toolkit (unit.rangedKit) casts like a class skill.
+  return (unit?.classSkills || []).find((s) => s.id === skillId) || (unit?.rangedKit || []).find((s) => s.id === skillId) || null
 }
 
 export function classSkillReady(unit, skill) {
@@ -311,7 +313,8 @@ function overwatchFire(state, unitId, watcherSide) {
     if (!(s.overwatch > 0) || s.stun > 0 || s.frozen > 0 || !canReach(next, s, s.pos, mover.pos)) continue
     next = setUnit(next, s.id, { overwatch: 0 })
     next = callout(addLog(next, `${s.name}'s Overwatch fires at ${mover.name}!`), s.id, "Overwatch!")
-    const ow = abilityHit(next, s.id, unitId, s.attack, { name: "Overwatch" })
+    // Ranged rework: a Sniper's Watch shot is Aimed.
+    const ow = abilityHit(next, s.id, unitId, s.attack, { name: "Overwatch", shot: s.owAim > 0 ? { aim: s.owAim, label: "Aimed watch" } : null })
     next = ow.next
     if (s.owRoot && !ow.graze && !ended(next) && getUnit(next, unitId)?.hp > 0) next = rootUnit(next, unitId)
     next = checkTacticsBattleEnd(next)
@@ -623,7 +626,8 @@ export function classPlayerTurnStart(state) {
     next = setUnit(next, b.id, { attack: live.attack + 2 * lost.length, classCds: { ...(live.classCds || {}), "call-companion": 0 } })
     next = callout(addLog(next, `${b.name} howls for its fallen companion (+2 attack).`), b.id, "Pack Bond!")
   }
-  return next
+  // Ranged rework: old Aim lapses, hero suppression ends, smoke thins.
+  return ranged.rangedPlayerTurnStart(next)
 }
 
 // --- Targeting ---------------------------------------------------------------
@@ -684,8 +688,11 @@ function skillAllows(state, actor, target, skill) {
       return !actor.root && !!shadowLanding(state, target)
     case "arcane-dash":
       return !!blinkLanding(state, actor, target, skill.range)
-    case "piercing-beam":
-      return !!lineDir(actor.pos, target.pos)
+    case "arcane-lance":
+      return ranged.beamTiles(state, actor.pos, target.pos, skill.range).some((p) => samePos(p, target.pos))
+    case "ricochet-shot":
+    case "suppress":
+      return !target.structure
     case "coordinated-strike":
       return livingUnits(state, actor.side).some((u) => u.id !== actor.id && !u.npc && kingAdjacent(u.pos, target.pos))
     case "pull":
@@ -802,7 +809,9 @@ function hit(state, actorId, targetId, base, skill) {
   if (!t || t.hp <= 0 || ended(state)) return { next: state, fell: false }
   // XCOM part 2: a GRAZE skips the skill's riders - handlers gate riders
   // on `fell`, so it reads as true on a graze (`killed` = a real kill).
-  const r = abilityHit(state, actorId, targetId, Math.max(0, Math.round(base)), skill)
+  // Ranged rework: the skill's shot rules (aim bonus, ignores cover) ride along.
+  const shot = ranged.shotForSkill(skill)
+  const r = abilityHit(state, actorId, targetId, Math.max(0, Math.round(base)), shot ? { ...skill, shot } : skill)
   return { next: r.next, fell: r.fell || !!r.graze, killed: r.fell, graze: !!r.graze }
 }
 
@@ -1012,11 +1021,12 @@ const HANDLERS = {
     return s
   },
   overwatch(s, a, _t, k) {
-    return addLog(setUnit(s, a.id, { overwatch: 1, owRoot: !!k?.owRoot }), `${a.name} takes aim and watches the field.`)
+    return addLog(setUnit(s, a.id, { overwatch: 1, owRoot: !!k?.owRoot, owAim: k?.owAim || 0 }), `${a.name} takes aim and watches the field.`)
   },
-  "mark-intruder"(s, a, t) {
-    s = setUnit(s, t.id, { sMark: 2, sMarkBy: a.id })
-    return callout(addLog(s, `${a.name} marks ${t.name} as an intruder.`), t.id, "Marked!")
+  // Ranged rework - Sniper: Headshot (+aim to hit, x1.5 damage).
+  "mark-intruder"(s, a, t, k) {
+    s = callout(s, a.id, "Steady...")
+    return hit(s, a.id, t.id, a.attack * k.mult, k).next
   },
   "heavy-swing"(s, a, t) {
     const others = livingUnits(s, t.side).filter((u) => u.id !== t.id && !u.structure && kingAdjacent(u.pos, a.pos)).map((u) => u.id)
@@ -1078,25 +1088,77 @@ const HANDLERS = {
     }
     return dest ? moveTo(s, a.id, dest, me.facing) : s
   },
-  "piercing-beam"(s, a, t, k) {
-    const dir = lineDir(a.pos, t.pos)
-    const ids = []
-    for (let i = 1; i <= k.range; i++) {
-      const p = { row: a.pos.row + dir.dr * i, col: a.pos.col + dir.dc * i }
-      if (!isOnBoard(p, s.grid) || terrainAt(s, p) === "wall") break
-      const u = s.units.find((x) => x.hp > 0 && x.side !== a.side && samePos(x.pos, p))
-      if (u) ids.push(u.id)
-    }
-    for (const id of ids) s = hit(s, a.id, id, getUnit(s, a.id).attack, { name: "Piercing Beam" }).next
+  // Ranged rework - Grenadier: Frag Grenade (arcs over cover, 3x3, shreds cover).
+  "piercing-beam"(s, a, pos, k) {
+    const blast = ranged.blastTiles(s, pos)
+    s = ranged.emitShot(s, "arc", a.pos, pos, blast, a.id)
+    s = emit(addLog(s, `${a.name} lobs a Frag Grenade!`), { kind: "aoe", actorId: a.id })
+    const foes = livingUnits(s, a.side === "player" ? "enemy" : "player").filter((u) => !u.structure && blast.some((p) => samePos(p, u.pos))).map((u) => u.id)
+    for (const id of foes) if (!ended(s)) s = hit(s, a.id, id, getUnit(s, a.id).attack, k).next
+    for (const p of blast) if (!ended(s)) s = ranged.shredTile(s, p, 1)
     return s
   },
+  // Grenadier: Shred Round (tear the cover toward you away, then shoot).
   "suppression-fire"(s, a, t, k) {
-    const ids = [t.id, ...livingUnits(s, t.side).filter((u) => u.id !== t.id && !u.structure && kingAdjacent(u.pos, t.pos)).map((u) => u.id)]
-    for (const id of ids) {
-      s = hit(s, a.id, id, k.damage, { name: "Suppression Fire" }).next
-      s = slowUnit(s, id)
+    const sources = ranged.coverSourcesToward(s, t.pos, a.pos)
+    s = ranged.emitShot(s, "shred", a.pos, t.pos, [t.pos, ...sources], a.id)
+    for (const p of sources) if (!ended(s)) s = ranged.shredTile(s, p, k.shred || 1)
+    if (!sources.length) s = addLog(s, `${t.name} has no cover to shred.`)
+    return ended(s) || !(getUnit(s, t.id)?.hp > 0) ? s : hit(s, a.id, t.id, getUnit(s, a.id).attack, k).next
+  },
+  // Hunter: Ricochet (bounces ignore cover).
+  "ricochet-shot"(s, a, t, k) {
+    s = hit(s, a.id, t.id, a.attack, k).next
+    const done = [t.id]
+    let from = getUnit(s, t.id)?.pos || t.pos
+    for (let i = 0; i < (k.bounces || 1) && !ended(s); i++) {
+      const n = ranged.ricochetTarget(s, from, t.side, done, k.bounce)
+      if (!n) break
+      done.push(n.id)
+      s = callout(ranged.emitShot(s, "ricochet", from, n.pos, null, a.id), n.id, "Ricochet!")
+      s = hit(s, a.id, n.id, Math.ceil(getUnit(s, a.id).attack / 2), { name: "Ricochet", shot: { ignoreCover: true, coverLabel: "Ricochet - cover doesn't help" } }).next
+      if (k.markBounce && getUnit(s, n.id)?.hp > 0 && !ended(s)) s = FOE_T.mark(s, n.id, k.markBounce)
+      from = getUnit(s, n.id)?.pos || n.pos
     }
     return s
+  },
+  // Suppressor: Pinning Shot (Root + Suppressed).
+  "pinning-shot"(s, a, t, k) {
+    const r = hit(s, a.id, t.id, k.full ? a.attack : Math.ceil(a.attack / 2), k)
+    s = r.next
+    if (r.fell || ended(s)) return s
+    s = callout(rootUnit(s, t.id), t.id, "Pinned!")
+    s = ranged.suppressUnit(s, a.id, t.id)
+    if (k.wide) for (const u of livingUnits(s, t.side).filter((x) => x.id !== t.id && !x.structure && kingAdjacent(x.pos, t.pos))) s = ranged.suppressUnit(s, a.id, u.id)
+    return s
+  },
+  // Suppressor: Smoke Screen (3x3 smoke = half cover from every side).
+  "smoke-screen"(s, a, pos, k) {
+    const cells = ranged.blastTiles(s, pos)
+    s = ranged.emitShot(s, "smoke", a.pos, pos, cells, a.id)
+    return addLog(ranged.addSmoke(s, cells, k.turns || ranged.SMOKE_TURNS), `${a.name} throws a Smoke Screen - allies in it are hard to hit.`)
+  },
+  // Mage (Spellblade): Arcane Lance - a beam down a line, cover doesn't help.
+  "arcane-lance"(s, a, t, k) {
+    const tiles = ranged.beamTiles(s, a.pos, t.pos, k.range)
+    s = ranged.emitShot(s, "beam", a.pos, tiles[tiles.length - 1] || t.pos, tiles, a.id)
+    const ids = s.units.filter((u) => u.hp > 0 && u.side !== a.side && !u.structure && tiles.some((p) => samePos(p, u.pos))).map((u) => u.id)
+    const [element, amount] = elementOfTurn(s.turn)
+    for (const id of ids) {
+      if (ended(s)) break
+      const r = hit(s, a.id, id, getUnit(s, a.id).attack, k)
+      s = r.next
+      if (k.elemental && !r.fell && !ended(s)) s = applyElement(s, id, element, amount)
+    }
+    return s
+  },
+  // Shared ranged toolkit.
+  aim(s, a) {
+    return callout(addLog(setUnit(s, a.id, { aimed: 1 }), `${a.name} takes careful aim (+${ranged.AIM_BONUS}% on the next shot).`), a.id, "Aiming!")
+  },
+  suppress(s, a, t) {
+    s = ranged.emitShot(s, "suppress", a.pos, t.pos, null, a.id)
+    return ranged.suppressUnit(s, a.id, t.id)
   },
   execute(s, a, t, k) {
     return hit(s, a.id, t.id, hpFrac(t) < k.below ? a.attack * k.mult : a.attack, { name: "Execute" }).next
@@ -1198,7 +1260,14 @@ const HANDLERS = {
     const mult = t.frozen > 0 ? 2 : t.chill > 0 ? 1.5 : 1
     return hit(s, a.id, t.id, a.attack * mult, { name: "Shatter" }).next
   },
-  "frozen-ground"(s, a, t) {
+  "frozen-ground"(s, a, t, k) {
+    // Ranged rework (mage area spell): a frost burst first - cover doesn't help.
+    s = ranged.emitShot(s, "arc", a.pos, t.pos, ranged.blastTiles(s, t.pos), a.id)
+    if (k.damage) {
+      const hitIds = livingUnits(s, t.side).filter((u) => !u.structure && dist(u.pos, t.pos) <= 1).map((u) => u.id)
+      for (const id of hitIds) if (!ended(s)) s = hit(s, a.id, id, k.damage, k).next
+      if (ended(s)) return s
+    }
     const terrain = { ...(s.terrain || {}) }
     const icy = new Set(["path", "forest", "rubble", "bush", "poison"])
     for (let dr = -1; dr <= 1; dr++) {
@@ -1281,7 +1350,7 @@ const HANDLERS = {
   "hex-chain"(s, a, t, k) {
     const ids = [t.id, ...livingUnits(s, t.side).filter((u) => u.id !== t.id && !u.structure && kingAdjacent(u.pos, t.pos)).map((u) => u.id)]
     for (const id of ids) {
-      s = hit(s, a.id, id, k.damage, { name: "Hex Chain" }).next
+      s = hit(s, a.id, id, k.damage, k).next
       const u = getUnit(s, id)
       if (u && u.hp > 0) s = callout(setUnit(s, id, { cursed: Math.max(u.cursed || 0, 2) }), id, "Cursed!")
     }
@@ -1323,13 +1392,14 @@ const HANDLERS = {
     return callout(addLog(s, `${c.name} goes into a frenzy!`), c.id, "Frenzy!")
   },
   "poison-flask"(s, a, t, k) {
-    s = strikeFx(s, a, t, "Poison Flask")
+    s = ranged.emitShot(strikeFx(s, a, t, "Poison Flask"), "arc", a.pos, t.pos, ranged.blastTiles(s, t.pos), a.id)
     const ids = [t.id, ...livingUnits(s, t.side).filter((u) => u.id !== t.id && !u.structure && kingAdjacent(u.pos, t.pos)).map((u) => u.id)]
     for (const id of ids) if (!ended(s)) s = applyElement(s, id, "poison", k.amount)
     return callout(addLog(s, `${a.name}'s flask bursts - poison everywhere.`), t.id, "Poisoned!")
   },
   "volatile-mixture"(s, a, t, k) {
-    const r = hit(s, a.id, t.id, a.attack, { name: "Volatile Mixture" })
+    s = ranged.emitShot(s, "arc", a.pos, t.pos, null, a.id)
+    const r = hit(s, a.id, t.id, a.attack, k)
     return r.fell || ended(r.next) ? r.next : applyElement(r.next, t.id, "fire", k.amount)
   },
   transmute(s, a, t) {

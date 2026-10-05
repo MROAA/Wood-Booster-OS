@@ -80,7 +80,9 @@ function cheb(a, b) {
 
 // Attack range from `pos`: ranged units on high ground reach 1 further.
 export function rangeAt(state, unit, pos = unit.pos) {
-  return unit.range + (unit.range > 1 && isHigh(state, pos) ? 1 : 0)
+  // Ranged rework: a Sniper (Deadeye passive) shoots 2 further from high ground.
+  const high = unit.range > 1 && isHigh(state, pos)
+  return unit.range + (high ? 1 + (unit.classPassive === "defensive-aim" ? 2 : 0) : 0)
 }
 
 // Basic reach test used by every attack path: range + tall-grass cover.

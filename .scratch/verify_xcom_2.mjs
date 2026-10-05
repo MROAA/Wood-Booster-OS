@@ -83,7 +83,9 @@ const eng = await page.evaluate(async () => {
   const A = (col, extra) => P("a", 4, col, { range: 4, ...extra })
   const T = (extra) => En("t", 4, 5, extra)
   r.hit = {
-    melee: C.hitChance(st([], {}), A(6), T(), "front").chance,
+    // Ranged rework: a melee (range 1) attacker; a ranged one adjacent gets Point blank -25.
+    melee: C.hitChance(st([], {}), A(6, { range: 1 }), T(), "front").chance,
+    pointBlank: C.hitChance(st([], {}), A(6), T(), "front").chance,
     r2: C.hitChance(st([], {}), A(7), T(), "front").chance,
     r3half: C.hitChance(st([], { "4-6": "log" }), A(8), T(), "front").chance,
     r3full: C.hitChance(st([], { "4-6": "rock" }), A(8), T(), "front").chance,
@@ -190,8 +192,8 @@ check("high ground steps cover down one (full->half, half->none)", eng.high.full
 check("hunker doubles cover (none->half, half->full, full->hunkered full)", eng.hunker.none === 1 && eng.hunker.half === 2 && eng.hunker.full === 3, eng.hunker)
 const H = eng.hit
 check(
-  "hit %: melee 85, range 2 85, range 3 half 60 / full 40, +10 side, +10 & cover-1 from high ground, clamp 15, structures 100",
-  H.melee === 85 && H.r2 === 85 && H.r3half === 60 && H.r3full === 40 && H.r3fullSide === 50 && H.r3high === 70 && H.clampLow === 15 && H.structure === 100,
+  "hit %: melee 85 (ranged point blank 60), range 2 85, range 3 half 60 / full 40, +10 side, +10 & cover-1 from high ground, clamp 15, structures 100",
+  H.melee === 85 && H.pointBlank === 60 && H.r2 === 85 && H.r3half === 60 && H.r3full === 40 && H.r3fullSide === 50 && H.r3high === 70 && H.clampLow === 15 && H.structure === 100,
   H,
 )
 const g = eng.graze

@@ -78,7 +78,11 @@ import { PERKS } from "../../services/heartwood/unitLevels"
 import { describeBoss, bossWarningTiles } from "../../services/heartwood/tacticsBosses"
 import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile, isBurning, isChilled } from "../../services/heartwood/tacticsObjects"
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
-import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL } from "./TerrainArt"
+import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL, SmokeArt } from "./TerrainArt"
+import { archetypeOf, beamTiles, blastTiles, AIM_BONUS, SUPPRESS_PENALTY } from "../../services/heartwood/tacticsRanged"
+
+// Ranged rework: tile skills that hit a 3x3 area (blast preview on hover).
+const AREA_TILE_SKILLS = { "piercing-beam": "grenade", "smoke-screen": "smoke", "explosive-charge": "grenade" }
 
 const BOSS_WARN_ICON = { quake: "✹", lava: "♨", water: "≈", wall: "▦", ice: "❄", poison: "☣", adds: "❖", teleport: "◎" }
 
@@ -363,7 +367,7 @@ export default function TacticsBoard({
         : abilityMode?.startsWith("tile@")
           ? "tile"
           : null
-  const armedSkill = armedSkillId ? (selected?.classSkills || []).find((sk) => sk.id === armedSkillId) || null : null
+  const armedSkill = armedSkillId ? [...(selected?.classSkills || []), ...(selected?.rangedKit || [])].find((sk) => sk.id === armedSkillId) || null : null
   // Deployment phase: the enemy's plan and zones are shown as if it were
   // player turn 1 (a scratch copy - the real battle stays in "deploy").
   const deploying = battle.phase === "deploy"
@@ -454,8 +458,26 @@ export default function TacticsBoard({
     if (!hoverTargetId || !selected || selected.side !== "player" || battle.phase !== "player") return null
     const t = battle.units.find((u) => u.id === hoverTargetId)
     if (!t || t.hp <= 0 || t.side === selected.side) return null
-    return { ...attackPreview(battle, selected.id, hoverTargetId), targetName: t.name, skill: !!abilityMode }
-  }, [hoverTargetId, selected, battle, abilityMode])
+    return { ...attackPreview(battle, selected.id, hoverTargetId, { skill: armedSkill }), targetName: t.name, skill: !!abilityMode }
+  }, [hoverTargetId, selected, battle, abilityMode, armedSkill])
+  // Ranged rework: preview tiles while targeting - a beam's line, a
+  // grenade / smoke blast (tile skills), an arcing area spell's splash.
+  const [hoverSkillTile, setHoverSkillTile] = useState(null)
+  const shotPreview = useMemo(() => {
+    const out = new Map()
+    if (!selected || !armedSkill || battle.phase !== "player") return out
+    if (armedSkill.beam && hoverTargetId) {
+      const t = battle.units.find((u) => u.id === hoverTargetId)
+      if (t) for (const p of beamTiles(battle, selected.pos, t.pos, armedSkill.range)) out.set(`${p.row}-${p.col}`, "beam")
+    } else if (armedSide === "tile" && AREA_TILE_SKILLS[armedSkill.id] && hoverSkillTile) {
+      const [row, col] = hoverSkillTile.split("-").map(Number)
+      for (const p of blastTiles(battle, { row, col })) out.set(`${p.row}-${p.col}`, AREA_TILE_SKILLS[armedSkill.id])
+    } else if (armedSide === "enemy" && (armedSkill.area || armedSkill.indirect) && hoverTargetId) {
+      const t = battle.units.find((u) => u.id === hoverTargetId)
+      if (t) for (const p of blastTiles(battle, t.pos)) out.set(`${p.row}-${p.col}`, "arc")
+    }
+    return out
+  }, [selected, armedSkill, armedSide, hoverTargetId, hoverSkillTile, battle])
   const hoverCover = useMemo(() => (rolling && hoverKey && moveOptions.has(hoverKey) ? tileCoverSides(battle, moveOptions.get(hoverKey).pos) : null), [rolling, hoverKey, moveOptions, battle])
   // Each unit's cover: an enemy vs your selected unit; yours vs the enemies that can reach it.
   const unitCover = useMemo(() => {
@@ -525,7 +547,7 @@ export default function TacticsBoard({
       // Enemy skills: Frenzy wraps the real follow-up action in `then`.
       const intent = raw.then || raw
       if (intent.kind === "attack" || intent.kind === "move-attack") ids.add(intent.targetId)
-      if (intent.kind === "skill" && (intent.skillKind === "hex" || intent.skillKind === "pounce")) ids.add(intent.targetId)
+      if (intent.kind === "skill" && ["hex", "pounce", "suppress", "spot", "volley"].includes(intent.skillKind)) ids.add(intent.targetId)
       if (intent.kind === "skill" && intent.tiles) {
         for (const p of battle.units) {
           if (p.side === "player" && p.hp > 0 && intent.tiles.some((t) => t.row === p.pos.row && t.col === p.pos.col)) ids.add(p.id)
@@ -799,6 +821,8 @@ export default function TacticsBoard({
       const deployZone = deploying && isDeployTile(battle, { row, col })
       const moveOpt = selected ? moveOptions.get(`${row}-${col}`) : null
       const onPath = hoverPath && hoverPath.path.some((p) => p.row === row && p.col === col)
+      const skillTileHere = skillTiles.some((p) => p.row === row && p.col === col)
+      const smokeTurns = battle.smoke?.[`${row}-${col}`] || 0
       cells.push(
         <div
           key={`${row}-${col}`}
@@ -810,14 +834,18 @@ export default function TacticsBoard({
           data-dash={moveOpt?.dash || undefined}
           data-heal-ring={healRing.has(`${row}-${col}`) || undefined}
           data-path={onPath || undefined}
-          onMouseEnter={moveOpt ? () => setHoverKey(`${row}-${col}`) : target && unit ? () => setHoverTargetId(unit.id) : undefined}
+          onMouseEnter={moveOpt ? () => setHoverKey(`${row}-${col}`) : target && unit ? () => setHoverTargetId(unit.id) : skillTileHere ? () => setHoverSkillTile(`${row}-${col}`) : undefined}
           onMouseLeave={
             moveOpt
               ? () => setHoverKey((k) => (k === `${row}-${col}` ? null : k))
               : target && unit
                 ? () => setHoverTargetId((id) => (id === unit.id ? null : id))
-                : undefined
+                : skillTileHere
+                  ? () => setHoverSkillTile((k) => (k === `${row}-${col}` ? null : k))
+                  : undefined
           }
+          data-shot-preview={shotPreview.get(`${row}-${col}`) || undefined}
+          data-smoke={smokeTurns || undefined}
           data-hover-cover={(hoverCover && hoverKey === `${row}-${col}`) || undefined}
           data-targetable={!!target}
           data-healable={!!healTarget}
@@ -847,6 +875,7 @@ export default function TacticsBoard({
           data-brittle={(terrain === "icepillar" && isChilled(battle, { row, col })) || undefined}
           data-fire-warn={(fireWarn.has(`${row}-${col}`) && !isBurning(battle, { row, col })) || undefined}
           title={
+            (smokeTurns ? `Smoke (${smokeTurns} turn(s) left): anyone here counts as in half cover from every side against ranged attacks.` : "") ||
             describeObjectTile(battle, { row, col }) ||
             (TERRAIN_INFO[terrain]
               ? `${TERRAIN_INFO[terrain].name}: ${TERRAIN_INFO[terrain].text}${terrain === "wall" ? ` (${wallHpAt(battle, { row, col })}/${WALL_MAX_HP} HP)` : ""}${battle.tileTimers?.[`${row}-${col}`] && (terrain === "fire" || terrain === "poison") ? ` Fades in ${battle.tileTimers[`${row}-${col}`].turns} turn(s).` : ""}`
@@ -873,10 +902,15 @@ export default function TacticsBoard({
               className="hwt-hit-badge"
               data-hit={hitPreview.chance}
               data-tier={hitPreview.chance >= 75 ? "good" : hitPreview.chance >= 45 ? "fair" : "poor"}
-              title={hitPreview.parts.map((p) => `${p.label} ${p.value > 0 && p !== hitPreview.parts[0] ? "+" : ""}${p.value}%`).join(" · ")}
+              title={hitPreview.parts.map((p) => (p.value === 0 && p !== hitPreview.parts[0] ? p.label : `${p.label} ${p.value > 0 && p !== hitPreview.parts[0] ? "+" : ""}${p.value}%`)).join(" · ")}
             >
               <b>{hitPreview.chance}%</b>
               {hitPreview.skill ? (hitPreview.rolls ? <small> · miss = graze (half)</small> : null) : <> · {hitPreview.full}{hitPreview.rolls && <small> (graze {hitPreview.graze})</small>}</>}
+            </span>
+          )}
+          {smokeTurns > 0 && (
+            <span className="hwt-smoke" data-turns={smokeTurns}>
+              <SmokeArt turns={smokeTurns} />
             </span>
           )}
           {battle.classTraps?.[`${row}-${col}`] && (
@@ -1139,6 +1173,21 @@ export default function TacticsBoard({
                     ⊘{unit.suppressed}
                   </span>
                 )}
+                {unit.aimed > 0 && (
+                  <span className="hwt-ranged-badge" data-status="aimed" title={`Aiming - the next shot gets +${AIM_BONUS}% to hit`}>
+                    ◎
+                  </span>
+                )}
+                {unit.suppressFire > 0 && (
+                  <span className="hwt-ranged-badge" data-status="suppress" title={`Suppressed by ${getUnitName(battle, unit.suppressBy)} - -${SUPPRESS_PENALTY}% to hit, no Aim or Overwatch, and moving draws a shot`}>
+                    ⁂
+                  </span>
+                )}
+                {unit.mark > 0 && (
+                  <span className="hwt-ranged-badge" data-status="marked" title={`Marked - counts as having NO cover${unit.side === "enemy" && unit.markBonus ? `, and your heroes' hits on it deal +${unit.markBonus}` : " against enemy shots"} (${unit.mark} turn(s))`}>
+                    ⌖
+                  </span>
+                )}
                 {unit.bulwark > 0 && (
                   <span className="hwt-bulwark-badge" title={`Bulwark ${unit.bulwark} - permanent armour, absorbs that much off every hit and never runs out`}>
                     ⛰{unit.bulwark}
@@ -1311,6 +1360,7 @@ export default function TacticsBoard({
                 {classInfoFor(selected) && (
                   <span className="hwt-class-badge" data-class-id={selected.classId} title={`${classInfoFor(selected).passive.name}: ${classInfoFor(selected).passive.text}`}>
                     <span className="hwt-class-icon">{classInfoFor(selected).icon}</span> {classInfoFor(selected).name}
+                    {archetypeOf(selected) && <span className="hwt-class-archetype"> · {archetypeOf(selected).name}</span>}
                   </span>
                 )}
                 <span className="hwt-selected-stats">
@@ -1344,8 +1394,8 @@ export default function TacticsBoard({
               </div>
               <div className="hwt-hit-panel-parts">
                 {hitPreview.parts.map((p, i) => (
-                  <span key={p.label} data-sign={i === 0 ? "base" : p.value > 0 ? "plus" : "minus"}>
-                    {p.label} {i === 0 ? p.value : `${p.value > 0 ? "+" : ""}${p.value}`}
+                  <span key={p.label} data-sign={i === 0 ? "base" : p.value >= 0 ? "plus" : "minus"}>
+                    {p.label} {i === 0 ? p.value : p.value ? `${p.value > 0 ? "+" : ""}${p.value}` : ""}
                   </span>
                 ))}
                 {hitPreview.flanked && <span data-sign="plus">Flanked - its cover faces the wrong way</span>}
@@ -1377,6 +1427,22 @@ export default function TacticsBoard({
               >
                 <span className="hwt-universal-icon">🛡</span> Hunker Down
               </button>
+              {(selected.rangedKit || []).map((sk) => (
+                <button
+                  key={sk.id}
+                  type="button"
+                  className="hwt-universal-btn"
+                  data-action={`ranged-${sk.id}`}
+                  data-active={armedSkillId === sk.id || (sk.id === "aim" && selected.aimed > 0) || undefined}
+                  data-no-mana={!!manaBlockReason(selected, sk) || undefined}
+                  disabled={!classSkillUsable(battle, selected, sk) || (sk.id === "aim" && selected.aimed > 0)}
+                  onClick={() => handleSkillClick(sk)}
+                  title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${manaCostOf(sk)} mana` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough mana: ${manaBlockReason(selected, sk)}.` : ""} Every ranged hero has this.`}
+                >
+                  <span className="hwt-universal-icon">{sk.icon}</span> {sk.name}
+                  <small className="hwt-universal-cost">{classSkillStatus(selected, sk)}{hasMana(selected) ? ` · ${manaCostOf(sk)} mana` : ""}</small>
+                </button>
+              ))}
               {potionOf(selected) && (
                 <button
                   type="button"
@@ -1443,6 +1509,11 @@ export default function TacticsBoard({
                 <span className="hwt-skill-bar-class">
                   {classInfoFor(selected).icon} {classInfoFor(selected).name}
                 </span>
+                {archetypeOf(selected) && (
+                  <span className="hwt-archetype" data-archetype={archetypeOf(selected).id} title={`${archetypeOf(selected).name}: ${archetypeOf(selected).what}`}>
+                    {archetypeOf(selected).icon} {archetypeOf(selected).name}
+                  </span>
+                )}
                 <span className="hwt-skill-bar-passive" title={classInfoFor(selected).passive.text}>
                   Passive: {classInfoFor(selected).passive.name}
                 </span>

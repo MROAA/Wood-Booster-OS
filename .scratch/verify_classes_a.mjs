@@ -129,10 +129,9 @@ const engine = await page.evaluate(async () => {
     const still = E.attackUnit(s, t, E0)
     const movedS = { ...s, units: s.units.map((u) => (u.id === t ? { ...u, moved: true } : u)) }
     ok(dmg(s, still, E0) === dmg(movedS, E.attackUnit(movedS, t, E0), E0) + 1, "Sentinel Defensive Aim +1 when it hasn't moved")
+    // Ranged rework: Mark Intruder became the Sniper's Headshot (x1.5, +25% to hit).
     const mk = cast(s, t, E0, "mark-intruder")
-    ok(U(mk, E0).sMark === 2 && U(mk, E0).sMarkBy === t, "Mark Intruder applies")
-    const mkHit = E.attackUnit(mk, t, E0)
-    ok(dmg(mk, mkHit, E0) === dmg(s, still, E0) + 3, "Mark Intruder +3", { m: dmg(mk, mkHit, E0), b: dmg(s, still, E0) })
+    ok(dmg(s, mk, E0) === Math.round(U(s, t).attack * 1.5) + 1, "Headshot x1.5 (+1 Deadeye)", { m: dmg(s, mk, E0), a: U(s, t).attack })
     const ow = cast(s, t, null, "overwatch")
     ok(U(ow, t).overwatch === 1, "Overwatch set")
     const far = board(["trueshot"], { trueshot: { row: 4, col: 9 }, [E0]: { row: 4, col: 4 }, [E1]: { row: 0, col: 0 } })
@@ -228,11 +227,13 @@ const engine = await page.evaluate(async () => {
     ok(wh.wallHp["3-10"] === 20 - 2 * a, "Siege: double damage to barricades", { hp: wh.wallHp["3-10"], a })
     const blocked = { ...s, units: s.units.map((u) => (u.id === E0 ? { ...u, block: 3 } : u)) }
     ok(dmg(blocked, E.attackUnit(blocked, ar, E0), E0) === dmg(blocked, E.attackUnit(strip(blocked, ar), ar, E0), E0) + 2, "Siege +2 vs a target with Block")
-    const beam = cast(s, ar, E0, "piercing-beam")
-    ok(dmg(s, beam, E0) > 0 && dmg(s, beam, E1) > 0, "Piercing Beam hits every enemy on the line", { e0: dmg(s, beam, E0), e1: dmg(s, beam, E1) })
+    // Ranged rework: Piercing Beam became the Grenadier's Frag Grenade (tile, 3x3).
+    const beam = cast(s, ar, "4-7", "piercing-beam")
+    ok(dmg(s, beam, E0) > 0 && dmg(s, beam, E1) > 0, "Frag Grenade hits every enemy in the blast", { e0: dmg(s, beam, E0), e1: dmg(s, beam, E1) })
+    // Suppression Fire became Shred Round: tears the cover away, then hits.
     const s2 = board(["bramble-sweep"], { "bramble-sweep": { row: 4, col: 10 }, [E0]: { row: 4, col: 8 }, [E1]: { row: 3, col: 7 } })
-    const sup = cast(s2, ar, E0, "suppression-fire")
-    ok(dmg(s2, sup, E0) >= 2 && dmg(s2, sup, E1) >= 2 && U(sup, E0).slow === 2 && U(sup, E1).slow === 2, "Suppression Fire hits + slows target and neighbours")
+    const sup = cast({ ...s2, terrain: { "4-9": "rock" } }, ar, E0, "suppression-fire")
+    ok(dmg(s2, sup, E0) >= a && sup.terrain["4-9"] === "rubble" && dmg(s2, sup, E1) === 0, "Shred Round shreds the cover then hits", { e0: dmg(s2, sup, E0), t: sup.terrain })
   }
   // 11 Executioner -----------------------------------------------------------
   {

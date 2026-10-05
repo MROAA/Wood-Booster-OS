@@ -21,6 +21,8 @@ export const ROLE_IDS = Object.keys(BATTLE_ROLES)
 const GROUP_ROLE = { frontline: "tank", damage: "dps", support: "support", control: "control", summoning: "support", specialist: "support" }
 const CLASS_ROLE = {
   bruiser: "dps",
+  // Ranged rework: the Sentinel is now the Sniper archetype.
+  sentinel: "dps",
   healer: "healer",
   medic: "healer",
   cleanser: "healer",
