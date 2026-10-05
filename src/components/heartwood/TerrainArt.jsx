@@ -346,6 +346,25 @@ export function TerrainIcon({ type }) {
   )
 }
 
+// Ranged rework: a smoke cloud drawn over a tile (Smoke Screen).
+export function SmokeArt({ turns = 1 }) {
+  return (
+    <svg className="hwt-smoke-art" data-turns={turns} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <g className="hwt-smoke-puffs" fill="#c9c4b8">
+        <circle cx="18" cy="38" r="14" opacity=".42" />
+        <circle cx="40" cy="30" r="17" opacity=".38" />
+        <circle cx="30" cy="46" r="12" opacity=".34" />
+        <circle cx="50" cy="46" r="10" opacity=".3" />
+        <circle cx="24" cy="22" r="10" opacity=".3" />
+      </g>
+      <g className="hwt-smoke-wisps" fill="none" stroke="#e8e3d6" strokeWidth="1.6" strokeLinecap="round" opacity=".45">
+        <path d="M10 30q6-6 12 0t12 0" />
+        <path d="M30 52q6-6 12 0t12 0" />
+      </g>
+    </svg>
+  )
+}
+
 export function BlightIcon() {
   return <span className="hwt-legend-icon" data-art-icon="blight" style={{ backgroundImage: `${BLIGHT_ART_URL}, ${ART.forest.still}` }} aria-hidden="true" />
 }

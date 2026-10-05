@@ -2852,3 +2852,110 @@
   -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.85);
   text-shadow: 0 0 6px rgba(140, 80, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.9);
 }
+
+/* ===== Ranged rework (tacticsRanged.js): toolkit buttons, status icons,
+   smoke tiles, shot previews + shot animations ============================ */
+.hwt-universal-actions { flex-wrap: wrap; }
+.hwt-universal-btn[data-action^="ranged-"] {
+  flex: 1 1 40%;
+  flex-direction: column;
+  gap: 1px;
+  border-color: color-mix(in srgb, #7fc4e8 55%, transparent);
+}
+.hwt-universal-btn[data-action^="ranged-"][data-active] { border-color: #7fc4e8; box-shadow: 0 0 8px rgba(127, 196, 232, 0.5); }
+.hwt-universal-btn[data-no-mana] { filter: grayscale(0.85); }
+.hwt-universal-cost { font-size: 10px; opacity: 0.75; }
+
+.hwt-ranged-badge { font-weight: 900; }
+.hwt-ranged-badge[data-status="aimed"] { color: #8fe0ff; text-shadow: 0 0 6px rgba(120, 210, 255, 0.9); }
+.hwt-ranged-badge[data-status="suppress"] { color: #ffb35c; text-shadow: 0 0 6px rgba(255, 150, 60, 0.8); }
+.hwt-ranged-badge[data-status="marked"] { color: #ff6b5a; text-shadow: 0 0 6px rgba(255, 90, 70, 0.85); }
+
+.hwt-archetype {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #14110c;
+  background: linear-gradient(180deg, #e7c67a, #b8913f);
+}
+.hwt-archetype[data-archetype="mage"] { background: linear-gradient(180deg, #c7a6ff, #8a63d2); }
+.hwt-class-archetype { opacity: 0.8; font-weight: 700; }
+
+/* Smoke cloud drawn over the tile (SmokeArt). */
+.hwt-smoke {
+  position: absolute;
+  inset: -4px;
+  pointer-events: none;
+  z-index: 3;
+}
+.hwt-smoke-art { width: 100%; height: 100%; }
+.hwt-smoke-puffs { animation: hwt-smoke-drift 4.5s ease-in-out infinite alternate; transform-origin: 50% 50%; }
+.hwt-smoke[data-turns="1"] { opacity: 0.6; }
+@keyframes hwt-smoke-drift {
+  from { transform: translate(-2px, 1px) scale(1); }
+  to { transform: translate(2px, -2px) scale(1.06); }
+}
+.hw-reduce-motion .hwt-smoke-puffs { animation: none; }
+@media (prefers-reduced-motion: reduce) { .hwt-smoke-puffs { animation: none; } }
+
+/* Targeting previews: beam line, grenade / smoke blast, arcing splash. */
+.hwt-cell[data-shot-preview]::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 4;
+}
+.hwt-cell[data-shot-preview="beam"]::before {
+  background: linear-gradient(90deg, transparent, rgba(190, 150, 255, 0.45), transparent);
+  border: 2px solid rgba(199, 166, 255, 0.85);
+  box-shadow: inset 0 0 12px rgba(199, 166, 255, 0.6);
+}
+.hwt-cell[data-shot-preview="grenade"]::before,
+.hwt-cell[data-shot-preview="arc"]::before {
+  background: radial-gradient(circle, rgba(255, 160, 70, 0.35), transparent 75%);
+  border: 2px dashed rgba(255, 170, 80, 0.9);
+}
+.hwt-cell[data-shot-preview="smoke"]::before {
+  background: radial-gradient(circle, rgba(220, 215, 200, 0.4), transparent 80%);
+  border: 2px dashed rgba(230, 225, 210, 0.85);
+}
+
+/* Shot animations (TacticsFx shotFx). */
+.hwt-shot-fx { position: fixed; pointer-events: none; z-index: 55; }
+.hwt-shot-beam {
+  height: 8px;
+  margin-top: -4px;
+  transform-origin: 0 50%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(240, 225, 255, 0.95), rgba(170, 120, 255, 0.85));
+  box-shadow: 0 0 14px 4px rgba(170, 120, 255, 0.7);
+}
+.hwt-shot-arc,
+.hwt-shot-smoke {
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffd27a, #8a5a22);
+  box-shadow: 0 0 10px 3px rgba(255, 170, 60, 0.7);
+}
+.hwt-shot-smoke { background: radial-gradient(circle at 35% 35%, #f2eee2, #8f8a7c); box-shadow: 0 0 10px 4px rgba(220, 215, 200, 0.6); }
+.hwt-shot-ricochet,
+.hwt-shot-suppress,
+.hwt-shot-shred {
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #ffe49a;
+  box-shadow: 0 0 8px 3px rgba(255, 210, 110, 0.8);
+}
+.hwt-shot-shred { background: #ff9a5a; }
+.hwt-cell.hwt-combo-flash[data-combo-flash="beam"]::after { background: radial-gradient(circle, rgba(200, 160, 255, 0.85), transparent 75%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="blast"]::after { background: radial-gradient(circle, rgba(255, 190, 90, 0.9), rgba(255, 100, 40, 0.45) 55%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="smoke"]::after { background: radial-gradient(circle, rgba(235, 230, 215, 0.85), transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="shot"]::after { background: radial-gradient(circle, rgba(255, 220, 140, 0.7), transparent 70%); }
