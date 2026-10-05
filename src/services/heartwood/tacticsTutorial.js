@@ -5,6 +5,7 @@
 // for scripted steps - which board changes it accepts (`allow`), so a
 // stray click can't knock the lesson off its rails. Never touches runState.
 import { createRealMatchupBattle, getUnit, setUnit } from "./tacticsEngine"
+import { enableMana } from "./tacticsMana"
 
 export const TUTORIAL_KEY = "heartwood-tactics-tutorial-v1" // "done" | "skipped" | "offered"
 
@@ -63,7 +64,8 @@ export function buildTrainingBattle() {
     delete placed.faction
     return placed
   })
-  return {
+  // Mana step 1: the lesson runs with mana (every bar starts full).
+  return enableMana({
     ...base,
     grid: GRID,
     units,
@@ -72,7 +74,7 @@ export function buildTrainingBattle() {
     // XCOM part 2: the scripted lesson hits must always land.
     noGraze: true,
     log: ["Training Grounds - a practice fight. Nothing here touches your run."],
-  }
+  })
 }
 
 function slamTilesAround(center) {
@@ -150,7 +152,7 @@ export const TRAINING_STEPS = [
   {
     id: "move",
     title: "Move",
-    text: "Each unit has 2 action points (the dots). Click Mosskit, then the highlighted tile beside the Gnat.",
+    text: "Each hero has 2 action points (the dots). Click Mosskit, then the highlighted tile beside the Gnat.",
     target: (b, ui) => (ui.selectedId === T.moss ? cellSel(TRAINING_SPOTS.flank) : tokenSel(T.moss)),
     done: (b) => at(unitIn(b, T.moss), TRAINING_SPOTS.flank),
     allow: (prev, next) => at(unitIn(next, T.moss), TRAINING_SPOTS.flank) && onlyUnitChanged(prev, next, T.moss, ["pos", "hp"]),
@@ -184,7 +186,7 @@ export const TRAINING_STEPS = [
   {
     id: "ability",
     title: "Use an ability",
-    text: "Every unit has one special ability. With the Bulwark selected, press Bulwark Aura to shield itself and its neighbours.",
+    text: "Skills cost AP and MANA (the thin blue bar under the health bar - it starts full every fight and refills a little each turn). With the Bulwark selected, press Bulwark Aura to shield itself and its neighbours.",
     target: (b, ui) => (ui.selectedId === T.bulwark ? ".hwt-ability-btn" : tokenSel(T.bulwark)),
     done: (b) => (unitIn(b, T.bulwark)?.cooldownRemaining || 0) > 0,
     allow: (prev, next) => (unitIn(next, T.bulwark)?.cooldownRemaining || 0) > 0,
@@ -193,7 +195,7 @@ export const TRAINING_STEPS = [
   {
     id: "power",
     title: "Commander Power",
-    text: "Your Commander (♛) has one big Power per battle. Press it now.",
+    text: "Your Commander (♛) has a big Power - its mana ULTIMATE. It needs a full blue bar and spends all of it; refill the bar to use it again. Press it now.",
     target: () => ".hwt-power-btn",
     done: (b) => !!b.activePower?.used,
     allow: (prev, next) => !!next.activePower?.used,

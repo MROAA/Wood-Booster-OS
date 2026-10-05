@@ -34,7 +34,7 @@ const ROLE_META = {
   tank: { position: "front", strengths: ["Holds the front line"], weaknesses: ["Little damage of its own"] },
   dps: { position: "back", strengths: ["Steady damage every round"], weaknesses: ["Thin - needs a wall in front"] },
   healer: { position: "back", strengths: ["Keeps the squad standing"], weaknesses: ["Almost no offence"] },
-  support: { position: "center", strengths: ["Makes the units around it better"], weaknesses: ["Does little alone"] },
+  support: { position: "center", strengths: ["Makes the heroes around it better"], weaknesses: ["Does little alone"] },
   control: { position: "center", strengths: ["Blunts the enemy's swings"], weaknesses: ["Weak in a raw trade"] },
   debuffer: { position: "center", strengths: ["Softens a target for your DPS"], weaknesses: ["Slow to matter solo"] },
   assassin: { position: "back", strengths: ["Finishes a wounded target"], weaknesses: ["Folds under focus fire"] },
@@ -100,7 +100,7 @@ export const ROLE_OVERRIDES = {
   },
   "evenwood-elder": {
     primary: "support", secondary: "healer", position: "center", tags: ["aura", "shield", "grove", "wood"],
-    strengths: ["Hardens the units beside it so none of them is the soft target"], weaknesses: ["Slow, and does little on its own"],
+    strengths: ["Hardens the heroes beside it so none of them is the soft target"], weaknesses: ["Slow, and does little on its own"],
   },
   // Coherence content (feat/hearthwood-player-power).
   "keystone-warden": {

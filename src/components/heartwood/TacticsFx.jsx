@@ -175,6 +175,10 @@ export default function TacticsFx({ battle }) {
             if (["boom", "fall", "shatter", "spore"].includes(ev.fx)) { shakeBoard(); play("hitBig") }
             else if (ev.fx === "roll" || ev.fx === "break") play("hit")
           }, at + IMPACT_DELAY_MS))
+        } else if (ev.kind === "mana") {
+          // Mana step 1: "+N mana" (gains), "-N mana" (drain/burn), Overcharge spend.
+          const text = ev.text || (ev.amount > 0 ? `+${ev.amount} mana${ev.overcharge ? " ⚡" : ""}` : `${ev.amount} mana`)
+          timers.push(setTimeout(() => pop(ev.unitId, text, ev.amount < 0 ? "mana-drain" : "mana", { offset: 0.6 }), at + IMPACT_DELAY_MS))
         } else if (ev.kind === "heal") {
           timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); play("heal") }, at))
         }

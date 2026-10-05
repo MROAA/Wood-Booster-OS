@@ -2754,3 +2754,101 @@
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
   font-style: italic;
 }
+
+/* ---- Mana step 1: thin blue mana bar under the HP bar (+ Overcharge cap) ---- */
+.hwt-root, .hwt-layout {
+  --hwt-mana: #3d8bff;
+  --hwt-mana-hi: #8fd0ff;
+  --hwt-mana-over: #c9f1ff;
+}
+.hwt-mana-track,
+.hwt-sb-mana-track,
+.hwt-selected-mana,
+.hwt-power-mana {
+  position: relative;
+  display: flex;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+.hwt-mana-track {
+  position: absolute;
+  left: 19px;
+  right: 19px;
+  bottom: 1px;
+  height: 3px;
+}
+.hwt-mana-fill {
+  height: 100%;
+  background: linear-gradient(180deg, var(--hwt-mana-hi, #8fd0ff), var(--hwt-mana, #3d8bff));
+  transition: width 0.45s ease-out;
+}
+/* Overcharge: a brighter cap segment after the (full) bar. */
+.hwt-mana-over {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--hwt-mana-over, #c9f1ff);
+  box-shadow: 0 0 6px var(--hwt-mana-hi, #8fd0ff);
+  animation: hwt-mana-pulse 1.6s ease-in-out infinite;
+}
+@keyframes hwt-mana-pulse {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+.hwt-mana-track[data-full] .hwt-mana-fill { box-shadow: 0 0 4px var(--hwt-mana-hi, #8fd0ff); }
+.hwt-sb-mana {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.hwt-sb-mana-track { flex: 1; height: 5px; }
+.hwt-sb-mana-num {
+  font-size: 8px;
+  line-height: 9px;
+  font-weight: 700;
+  color: var(--hwt-mana-hi, #8fd0ff);
+  white-space: nowrap;
+}
+.hwt-selected-stats span[data-stat="mana"] { color: var(--hwt-mana-hi, #8fd0ff); }
+.hwt-stat-over { color: var(--hwt-mana-over, #c9f1ff); }
+.hwt-selected-mana { height: 5px; margin-top: 4px; width: 100%; }
+.hwt-power-mana { height: 6px; margin: 6px 0 2px; }
+/* Skill buttons: mana cost gem; short on mana = blue warning + greyed. */
+.hwt-skill-mana {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #dff2ff;
+  background: color-mix(in srgb, var(--hwt-mana, #3d8bff) 55%, transparent);
+}
+.hwt-skill-mana[data-short] { background: rgba(120, 130, 150, 0.35); color: #9fb6d6; text-decoration: line-through; }
+.hwt-skill-btn[data-no-mana],
+.hwt-ability-btn[data-no-mana] {
+  filter: grayscale(0.85);
+  opacity: 0.6;
+  outline: 1px dashed color-mix(in srgb, var(--hwt-mana, #3d8bff) 70%, transparent);
+}
+.hwt-power-panel[data-ultimate] .hwt-power-status { color: var(--hwt-mana-hi, #8fd0ff); }
+/* Floating "+N mana" / "-N mana" callouts. */
+.hw-floating-number--mana {
+  color: var(--hwt-mana-hi, #8fd0ff);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 0 6px rgba(61, 139, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+.hw-floating-number--mana-drain {
+  color: #b48cff;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 0 6px rgba(140, 80, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.9);
+}

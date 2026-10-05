@@ -545,7 +545,7 @@ export default function SquadDraft({
           <div
             className="hw-badge hw-card-overlay-badge"
             style={{ color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
-            title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 unit"
+            title="You already own 2 - recruiting this one fuses all 3 into a stronger Tier 2 hero"
           >
             Fuses now! ({owned}/3 owned)
           </div>
@@ -634,7 +634,7 @@ export default function SquadDraft({
           <div
             className="hw-badge"
             style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
-            title="3 owned copies of the same unit fuse automatically into a stronger Tier 2 version"
+            title="3 owned copies of the same hero fuse automatically into a stronger Tier 2 version"
           >
             Fusion {copiesOwned}/3
           </div>
@@ -676,7 +676,7 @@ export default function SquadDraft({
               style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
               disabled={runState.essence < REFORGE_COST}
               onClick={() => handleReforge(entry.key)}
-              title={`Swap ${def?.name} for a different random unit of the same tier (${REFORGE_COST} Essence)`}
+              title={`Swap ${def?.name} for a different random hero of the same tier (${REFORGE_COST} Essence)`}
             >
               Reforge
             </button>
@@ -943,7 +943,7 @@ export default function SquadDraft({
         showIntro && (
           <div key="tutorialHint" className="hw-hint hw-hint--tutorial" style={{ marginTop: 3 }}>
             <span>
-              Recruit units, place up to 4 on the grid, then watch them fight automatically. Win to earn Essence and
+              Recruit heroes, place up to 4 on the grid, then watch them fight automatically. Win to earn Essence and
               press on - lose, and the run ends.
             </span>
             <div className="hw-tutorial-actions">
@@ -975,7 +975,7 @@ export default function SquadDraft({
             )}
             {runState.lastAftermath?.length > 0 && (
               <p className="hw-aftermath" data-aftermath>
-                {runState.lastAftermath.join(" ")} Wounded units start fights at 25% HP until you Mend them.
+                {runState.lastAftermath.join(" ")} Wounded heroes start fights at 25% HP until you Mend them.
               </p>
             )}
           </Fragment>
@@ -1097,8 +1097,8 @@ export default function SquadDraft({
             <span>
               <CardGlyph name={selectedItemDef.icon} className="hw-intent-glyph" /> {selectedItemDef.name} selected -{" "}
               {activeTab === "squad"
-                ? "click an empty item slot on a unit below (or the Commander's slots above) to equip it."
-                : "the Commander's slots above are ready now, or switch tabs to equip it onto a recruited unit."}
+                ? "click an empty item slot on a hero below (or the Commander's slots above) to equip it."
+                : "the Commander's slots above are ready now, or switch tabs to equip it onto a recruited hero."}
             </span>
             <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
               {activeTab !== "squad" && (
@@ -1213,14 +1213,14 @@ export default function SquadDraft({
           <div key="buyback" className="hw-rail-section hw-rail-section--buyback">
             <div className="hw-section-label hw-rail-label">Buyback</div>
             <div className="hw-rail-list">
-              <div className="hw-rail-chip" title="Reclaim the last unit you sold, at the price it refunded. It comes back with no upgrades.">
+              <div className="hw-rail-chip" title="Reclaim the last hero you sold, at the price it refunded. It comes back with no upgrades.">
                 <CardGlyph name={UNITS[buyback.defId]?.art} className="hw-intent-glyph" />
                 <span className="hw-rail-chip-name">{UNITS[buyback.defId]?.name || buyback.defId}</span>
                 <button
                   className="hw-move-btn hw-rail-upgrade"
                   disabled={runState.essence < buyback.price}
                   onClick={() => onReclaimBuyback()}
-                  title={`Reclaim ${UNITS[buyback.defId]?.name || "this unit"} - ${buyback.price} Essence`}
+                  title={`Reclaim ${UNITS[buyback.defId]?.name || "this hero"} - ${buyback.price} Essence`}
                 >
                   <CardGlyph name="spark" className="hw-intent-glyph" />
                   {buyback.price}
@@ -1495,7 +1495,7 @@ export default function SquadDraft({
              fused here too (this round only splits DIFFERENT widgets
              apart from each other, not a widget's own internal pip+
              button pairing - see this file's plan notes). */
-          <div className="hw-market-level-widget" title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier units in the shop`}>
+          <div className="hw-market-level-widget" title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier heroes in the shop`}>
             <span className="hw-market-level-label">Market</span>
             <span className="hw-market-level-pips">
               {Array.from({ length: MARKET_LEVEL_MAX }, (_, i) => (
@@ -1509,7 +1509,7 @@ export default function SquadDraft({
                 className="hw-move-btn hw-strip-btn"
                 disabled={runState.essence < marketCost}
                 onClick={onLevelUpMarket}
-                title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier units in future shop rolls`}
+                title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier heroes in future shop rolls`}
               >
                 Level Up
                 <span className="hw-cost-inline">
@@ -2026,7 +2026,7 @@ export default function SquadDraft({
               the recruit grid above is also a sibling, not a child. */}
           <div>
             <div className="hw-market-divider" />
-            <div className="hw-section-label" title="Gear for a specific unit - buying one selects it automatically, ready to equip onto the Commander or a unit on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.">
+            <div className="hw-section-label" title="Gear for a specific hero - buying one selects it automatically, ready to equip onto the Commander or a hero on the Your Squad tab. Rotates fresh every visit - always includes at least one Bending item.">
               Items
             </div>
             {/* Free Layout, round 3 (individual card slots) - own
@@ -2174,7 +2174,7 @@ export default function SquadDraft({
             Your Squad - {deployedCount}/{DEPLOY_SLOTS} fighting, {reserveCount}/{RESERVE_CAP + (runState.benchCapBonus || 0)} in reserve
           </div>
           <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: -4 }}>
-            Recruit 3 copies of the same unit to fuse it into a stronger version - find them in the shop.
+            Recruit 3 copies of the same hero to fuse it into a stronger version - find them in the shop.
           </p>
 
           {/* Free Layout foundation, Squad tab, split scope
@@ -2247,7 +2247,7 @@ export default function SquadDraft({
                     <span className="hw-squad-group-count">{deployedCount}/{DEPLOY_SLOTS}</span>
                   </div>
                   {deployedEntries.length === 0 && (
-                    <p className="hw-squad-group-empty">No units placed yet - deploy them on the battlefield screen.</p>
+                    <p className="hw-squad-group-empty">No heroes placed yet - deploy them on the battlefield screen.</p>
                   )}
                   {/* Free Layout, round 3 (individual card slots) - own
                       dedicated scope (squadDeployedSlots), attached

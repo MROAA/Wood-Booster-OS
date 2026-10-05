@@ -8660,7 +8660,7 @@ const SPIRIT_SHIFT_FIXTURE = `
   out.activePowerUi = result
   const ok =
     result.btnText.includes("Opening Strike") && result.enabledBefore && !result.enabledAfter &&
-    result.status === "Used this battle" && result.surging > 0 && result.surging === result.playerTokens && result.logHas
+    (result.status === "Used this battle" || result.status.includes("needs a full mana bar")) && result.surging > 0 && result.surging === result.playerTokens && result.logHas
   if (!ok) out.errors.push("check230 the Active Power panel did not render/fire correctly on the prototype page")
 }
 

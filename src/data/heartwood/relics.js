@@ -90,7 +90,7 @@ export const RELICS = {
     image: emberCoreImg,
     name: "Ember Core",
     icon: "flame",
-    description: "Every unit strikes a little harder, all fight, every fight.",
+    description: "Every hero strikes a little harder, all fight, every fight.",
     effects: [{ type: "applyBuff", id: "strength", amount: 1 }],
   },
   "mosswarden-charm": {
@@ -98,7 +98,7 @@ export const RELICS = {
     image: mosswardenCharmImg,
     name: "Mosswarden's Charm",
     icon: "leaf",
-    description: "Every unit mends a little at the start of each round.",
+    description: "Every hero mends a little at the start of each round.",
     // Two real bugs caught via testing before shipping, not guessed
     // at: first pass was a one-time battle-start heal, useless since
     // units always start every fight at full HP already (confirmed via
@@ -328,7 +328,7 @@ export const RELICS = {
     image: aegisWardImg,
     name: "Aegis Ward",
     icon: "shield",
-    description: "Every unit shrugs off the first real hit it takes, once.",
+    description: "Every hero shrugs off the first real hit it takes, once.",
     // Ward's second source, alongside Thornguard's own passive - same
     // uniform per-unit effects loop as Ember Core/Culling Strike,
     // nothing special-cased needed since Ward only reads
@@ -380,7 +380,7 @@ export const RELICS = {
     image: artificersLedgerImg,
     name: "Artificer's Ledger",
     icon: "rune",
-    description: "Every unit carries one more piece of gear.",
+    description: "Every hero carries one more piece of gear.",
     // Deliberately deferred out of the round that shipped Items
     // (items.js) - this needed ITEM_SLOTS to stop being a flat
     // constant and become relic-conditional everywhere it's read
@@ -399,7 +399,7 @@ export const RELICS = {
     image: purifyingBloomImg,
     name: "Purifying Bloom",
     icon: "leaf",
-    description: "Every unit shakes off a lingering ailment at the start of each round.",
+    description: "Every hero shakes off a lingering ailment at the start of each round.",
     // Cleanse's (effects.js) first squad-wide source - Willowmend
     // carries it as a unit passive already, this is the relic version
     // every other mechanic in the roster eventually got (Ward, Poison,
@@ -434,7 +434,7 @@ export const RELICS = {
     image: barkWardImg,
     name: "Bark Ward",
     icon: "shield",
-    description: "Every unit grows a little bark at the start of each round.",
+    description: "Every hero grows a little bark at the start of each round.",
     // Block's first repeating relic source - every existing Block
     // source so far was either a unit's own movePattern step (reset
     // every round like any other Block) or a one-time passive
@@ -448,7 +448,7 @@ export const RELICS = {
     image: berserkersOathImg,
     name: "Berserker's Oath",
     icon: "flame",
-    description: "Every unit fights harder once it's badly hurt.",
+    description: "Every hero fights harder once it's badly hurt.",
     // Wounded Fury (effects.js's woundedFuryBonus) - previously only
     // reachable via Fenrir's own squadPassive or baked into
     // Thornwarden's kit, never as a run-wide pick any Commander could
@@ -461,7 +461,7 @@ export const RELICS = {
     image: quarrybreakImg,
     name: "Quarrybreak",
     icon: "sword",
-    description: "Every unit strikes deeper against a target that's still braced.",
+    description: "Every hero strikes deeper against a target that's still braced.",
     // Shatter's (effects.js's shatterBonus) first squad-wide source -
     // Stoneknoll carries it as a unit passive already, this is the
     // relic version every mechanic in the roster eventually gets.
@@ -622,7 +622,7 @@ export const RELICS = {
     image: heartsbloomSeedImg,
     name: "Heartsbloom Seed",
     icon: "heart",
-    description: "Every unit knits itself back together over the fight's first few rounds.",
+    description: "Every hero knits itself back together over the fight's first few rounds.",
     // Regen (effects.js's tickRegen) - a decaying heal-over-time stack,
     // Poison's mirror, granted squad-wide at battle start via the same
     // applyBuff every other stat relic already uses. Front-loaded and
@@ -704,7 +704,7 @@ export const RELICS = {
     image: quarryVanguardImg,
     name: "Quarry Vanguard",
     icon: "sword",
-    description: "Every unit hits harder, and hardest of all against a target still braced.",
+    description: "Every hero hits harder, and hardest of all against a target still braced.",
     // Strength + Shatter together, squad-wide - the same dual-mechanic
     // pairing Quarrystrike Gauntlet (items.js) just established, spread
     // across the whole squad instead of one chosen unit. Both stack
@@ -720,7 +720,7 @@ export const RELICS = {
     image: recklessOathImg,
     name: "Reckless Oath",
     icon: "sword",
-    description: "Every unit finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
+    description: "Every hero finishes a badly wounded enemy faster, and shrugs off the first real hit while it hunts.",
     // Execute + Ward together, squad-wide - the same "glass cannon
     // insurance" pairing Reckless Vow (items.js) just established,
     // spread across the whole squad. Both stack numerically with any
@@ -735,7 +735,7 @@ export const RELICS = {
     image: sanctuaryVowImg,
     name: "Sanctuary Vow",
     icon: "heart",
-    description: "Every unit shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
+    description: "Every hero shrugs off the first real hit it takes, and mends over the fight's first few rounds.",
     // Regen + Ward together, squad-wide - the same pure survivability
     // pairing Bulwark's Mercy (items.js) just established, spread
     // across the whole squad instead of one chosen unit.
@@ -749,7 +749,7 @@ export const RELICS = {
     image: ashclawStandardImg,
     name: "Ashclaw Standard",
     icon: "sword",
-    description: "Every unit strikes a little harder, and whatever it strikes loses its own strongest edge.",
+    description: "Every hero strikes a little harder, and whatever it strikes loses its own strongest edge.",
     // Strength + Sunder together, squad-wide - the same aggressive
     // anti-buff pairing Ashclaw Fang (items.js) just established,
     // spread across the whole squad instead of one chosen unit.
@@ -794,7 +794,7 @@ export const RELICS = {
     image: bramblehideBannerImg,
     name: "Bramblehide Banner",
     icon: "shield",
-    description: "Every unit draws every eye, and fights harder the deeper its own wounds go.",
+    description: "Every hero draws every eye, and fights harder the deeper its own wounds go.",
     // Taunt + Wounded Fury, squad-wide - the missing relic mirror for
     // items.js's existing bramblehide-standard item (an asymmetric gap:
     // every other dual-mechanic item already had a relic counterpart).
@@ -808,7 +808,7 @@ export const RELICS = {
     image: thornfenStandardImg,
     name: "Thornfen Standard",
     icon: "flame",
-    description: "Every unit strikes a little harder, and mends off every hit it lands.",
+    description: "Every hero strikes a little harder, and mends off every hit it lands.",
     // Strength + Lifesteal, squad-wide - the relic mirror for items.js's
     // new thornfen-fang. Both stack numerically with any existing
     // Strength/Lifesteal sources (Ember Core, Vampiric Bloom) rather
@@ -823,7 +823,7 @@ export const RELICS = {
     image: huntclawStandardImg,
     name: "Huntclaw Standard",
     icon: "sword",
-    description: "Every unit finishes a badly wounded enemy faster, and strikes again at someone else when it does.",
+    description: "Every hero finishes a badly wounded enemy faster, and strikes again at someone else when it does.",
     // Execute + Chain, squad-wide - the relic mirror for items.js's new
     // huntclaw-fang.
     effects: [
@@ -846,7 +846,7 @@ export const RELICS = {
     id: "emberveil-charm",
     name: "Emberveil Charm",
     icon: "ember",
-    description: "Whatever any of your units strikes is left burning after.",
+    description: "Whatever any of your heroes strikes is left burning after.",
     effects: [
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "burn", target: "target", amount: 1 } },
     ],
@@ -855,7 +855,7 @@ export const RELICS = {
     id: "stoneblood-totem",
     name: "Stoneblood Totem",
     icon: "stone",
-    description: "Every unit carries a sliver of permanent armour that never wears off between rounds.",
+    description: "Every hero carries a sliver of permanent armour that never wears off between rounds.",
     effects: [{ type: "applyBuff", id: "bulwark", amount: 1 }],
   },
   "tideworn-band": {
@@ -871,14 +871,14 @@ export const RELICS = {
     id: "windstep-standard",
     name: "Windstep Standard",
     icon: "gale",
-    description: "Every unit slips aside from the first blow aimed at it each round.",
+    description: "Every hero slips aside from the first blow aimed at it each round.",
     effects: [{ type: "applyBuff", id: "evade", amount: 1 }],
   },
   "starlit-standard": {
     id: "starlit-standard",
     name: "Starlit Standard",
     icon: "cosmic",
-    description: "Every unit grows stronger with every round the fight lasts, and opens it warded once.",
+    description: "Every hero grows stronger with every round the fight lasts, and opens it warded once.",
     effects: [
       { type: "applyBuff", id: "ascendant", amount: 1 },
       { type: "applyBuff", id: "ward", amount: 1 },
@@ -888,11 +888,41 @@ export const RELICS = {
     id: "stormgrove-charm",
     name: "Stormgrove Charm",
     icon: "gale",
-    description: "Every unit slips the first blow each round, and knits itself back together as the fight goes on.",
+    description: "Every hero slips the first blow each round, and knits itself back together as the fight goes on.",
     effects: [
       { type: "applyBuff", id: "evade", amount: 1 },
       { type: "applyBuff", id: "regen", amount: 1 },
     ],
+  },
+  // Mana step 1: relics that act on MANA in a tactics fight (`mana`
+  // field, read by tacticsMana.js). No auto-battle effect - `effects`
+  // stays empty, the shop/description still show them.
+  "wellspring-stone": {
+    id: "wellspring-stone",
+    image: essenceWellImg,
+    name: "Wellspring Stone",
+    icon: "leaf",
+    description: "Every hero regains 3 more mana at the start of each turn.",
+    effects: [],
+    mana: { regen: 3 },
+  },
+  "siphon-fang": {
+    id: "siphon-fang",
+    image: fangsMarkImg,
+    name: "Siphon Fang",
+    icon: "rune",
+    description: "Every hero gains 3 mana whenever it lands a hit.",
+    effects: [],
+    mana: { onHit: 3 },
+  },
+  "brimming-chalice": {
+    id: "brimming-chalice",
+    image: aegisWardImg,
+    name: "Brimming Chalice",
+    icon: "cosmic",
+    description: "Every hero starts each fight with 15 Overcharge stored, and has +10 max mana.",
+    effects: [],
+    mana: { startOvercharge: 15, pool: 10 },
   },
 }
 
@@ -955,6 +985,8 @@ const COMMON_RELICS = [
   "cascading-wound", "mycotic-bloom",
   // Elemental squad relics (single-mechanic, first-hit-only / small):
   "tideworn-band", "windstep-standard",
+  // Mana relics (single mechanic).
+  "siphon-fang",
 ]
 // Unconditional single-mechanic relics, including every tribe-anchor
 // (see UNCOMMON's definition above) - the middle tier.
@@ -968,6 +1000,7 @@ const UNCOMMON_RELICS = [
   "heartwood-bloom", "emberbrand", "starlit-crown",
   // Elemental squad relics (single-mechanic, unconditional):
   "emberveil-charm", "stoneblood-totem",
+  "wellspring-stone",
 ]
 // Everything NOT listed above (every dual-mechanic combo from
 // quarry-vanguard down, plus essence-well/artificers-ledger/

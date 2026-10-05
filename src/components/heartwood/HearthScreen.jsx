@@ -86,7 +86,7 @@ export default function HearthScreen({
         <div className="hw-hearth-section-label">At home</div>
         {hearth.roster.length === 0 ? (
           <p className="hw-hearth-empty">
-            Nobody here yet. Units that survive a run come home to the Hearth.
+            Nobody here yet. Heroes that survive a run come home to the Hearth.
           </p>
         ) : (
           <div className="hw-hearth-roster">
@@ -103,7 +103,7 @@ export default function HearthScreen({
                     <span className="hw-hearth-badge is-vet" title="Has been on at least one run">
                       Veteran
                     </span>
-                    <span title="Runs this unit has been on">Age {u.age}</span>
+                    <span title="Runs this hero has been on">Age {u.age}</span>
                     <span>Lv{levelForXp(u.xp)}</span>
                     {decline > 0 && (
                       <span className="hw-hearth-badge is-old" title={`Old age: -${decline * 2} max HP, -${decline} attack in fights`}>
@@ -235,7 +235,7 @@ export default function HearthScreen({
           <div className="hw-hearth-section-label">Elders</div>
           {hearth.elders.length === 0 ? (
             <p className="hw-hearth-empty">
-              Units on 3+ runs can retire. Each Elder gives +{ELDER_ESSENCE} starting Essence (up to {MAX_ELDER_BONUS}).
+              Heroes on 3+ runs can retire. Each Elder gives +{ELDER_ESSENCE} starting Essence (up to {MAX_ELDER_BONUS}).
             </p>
           ) : (
             <ul className="hw-hearth-list" data-hearth-elders={hearth.elders.length}>
@@ -270,11 +270,11 @@ export default function HearthScreen({
       <section className="hw-hearth-rules">
         <div className="hw-hearth-section-label">House rules</div>
         <ul>
-          <li>Every run a unit goes on makes it 1 older. From age {OLD_AGE}, it gets a little weaker each run (−2 max HP, −1 attack).</li>
+          <li>Every run a hero goes on makes it 1 older. From age {OLD_AGE}, it gets a little weaker each run (−2 max HP, −1 attack).</li>
           <li>
             {hearth.permadeath
-              ? "Permadeath is ON: units that fall in the fight that ends a lost run are gone for good."
-              : "Permadeath is OFF: fallen units come home Wounded instead."}
+              ? "Permadeath is ON: heroes that fall in the fight that ends a lost run are gone for good."
+              : "Permadeath is OFF: fallen heroes come home Wounded instead."}
           </li>
         </ul>
         <label className="hw-hearth-toggle">

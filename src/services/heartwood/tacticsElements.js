@@ -37,12 +37,12 @@ export const ROT_MAX_HP = 4
 
 // Player-facing combo list (help panel + token tooltips).
 export const COMBO_HELP = [
-  { id: "toxic-blaze", name: "Toxic Blaze", recipe: "Fire + Poison", text: "Both burn off in a blast: damage equal to Burn + Poison to the target, half to units next to it." },
-  { id: "steam", name: "Steam", recipe: "Fire + Frost", text: "Fire and frost cancel out in a cloud of steam - the target and units next to it become Weak." },
-  { id: "wildfire", name: "Wildfire", recipe: "Fire + Nature", text: "The tangled vines catch fire - the Burn spreads to every unit next to the target." },
+  { id: "toxic-blaze", name: "Toxic Blaze", recipe: "Fire + Poison", text: "Both burn off in a blast: damage equal to Burn + Poison to the target, half to heroes next to it." },
+  { id: "steam", name: "Steam", recipe: "Fire + Frost", text: "Fire and frost cancel out in a cloud of steam - the target and heroes next to it become Weak." },
+  { id: "wildfire", name: "Wildfire", recipe: "Fire + Nature", text: "The tangled vines catch fire - the Burn spreads to every hero next to the target." },
   { id: "rot", name: "Rot", recipe: "Poison + Nature", text: `The poison rots the vines into the flesh - the target loses ${ROT_MAX_HP} max HP for the fight.` },
-  { id: "freeze", name: "Freeze", recipe: `Frost x${FREEZE_AT}`, text: "Two Chill freezes a unit solid - it skips its next turn." },
-  { id: "shatter", name: "Shatter", recipe: "Hit a Frozen unit", text: "The next hit on a Frozen unit deals +50% and thaws it - strike now, or let it lose its turn." },
+  { id: "freeze", name: "Freeze", recipe: `Frost x${FREEZE_AT}`, text: "Two Chill freezes a hero solid - it skips its next turn." },
+  { id: "shatter", name: "Shatter", recipe: "Hit a Frozen hero", text: "The next hit on a Frozen hero deals +50% and thaws it - strike now, or let it lose its turn." },
 ]
 
 // What each element status combos with (token tooltips).

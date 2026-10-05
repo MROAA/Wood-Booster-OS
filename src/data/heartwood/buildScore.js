@@ -63,7 +63,7 @@ export function evaluateBuild(runState) {
   const zeros = Object.fromEntries(SCORE_DIMS.map((d) => [d.id, 0]))
 
   if (n === 0) {
-    return { deployedCount: 0, scores: zeros, core: null, notes: ["Place units to see your build take shape."] }
+    return { deployedCount: 0, scores: zeros, core: null, notes: ["Place heroes to see your build take shape."] }
   }
 
   const has = (info, ...roles) => roles.includes(info.profile?.primary) || roles.includes(info.profile?.secondary)
@@ -143,8 +143,8 @@ export function evaluateBuild(runState) {
   if (!hasTank && n >= 3) push("No real front line")
   if (scores.damage <= 2) push("Not enough damage to close a fight")
   if (!hasHealer && scores.sustain <= 2 && scores.damage >= 5) push("Nothing to keep the squad standing")
-  if (n - matched >= 2) push(`${n - matched} units out of position`)
-  if (scores.synergy === 0 && n >= 3) push("Your units don't share a tribe")
+  if (n - matched >= 2) push(`${n - matched} heroes out of position`)
+  if (scores.synergy === 0 && n >= 3) push("Your heroes don't share a tribe")
   if (scores.scaling <= 1 && n === 4) push("Nothing that grows in a long fight")
   if (scores.control === 0 && n === 4) push("No answer to a dangerous enemy")
   if (!notes.length) push("A rounded squad - no glaring gap")

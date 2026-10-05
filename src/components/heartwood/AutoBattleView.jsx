@@ -348,7 +348,7 @@ export default function AutoBattleView({ state, runState, essenceOnWin, nodeType
           <span
             className="hw-badge hw-section-fade-in"
             style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
-            title="This enemy formation fights as a unit - every piece has a shared bonus"
+            title="This enemy formation fights as a hero - every piece has a shared bonus"
           >
             <CardGlyph name="flame" className="hw-intent-glyph" />
             {state.enemySynergyLabel}

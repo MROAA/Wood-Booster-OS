@@ -220,7 +220,7 @@ async function seedFormation(p) {
   await wait(p, 300)
   const status = await lsGet(p, KEY)
   await p.context().close()
-  const need = ["Deployment", "Action points", "Facing & flanking", "Zone of control", "Abilities", "Commander Power", "Enemy intents", "Telegraphed skills", "Terrain", "Element combos", "Objectives", "Boss phases", "Factions", "Unit levels", "Wounds carry over"]
+  const need = ["Deployment", "Action points", "Facing & flanking", "Zone of control", "Abilities", "Commander Power", "Enemy intents", "Telegraphed skills", "Terrain", "Element combos", "Objectives", "Boss phases", "Factions", "Hero levels", "Wounds carry over", "Mana"]
   out.c4 = { cards, step, status }
   if (!(cards >= 15 && need.every((t) => terms.includes(t)) && step === "welcome" && status === "done")) out.errors.push("check4 help + replay")
 }

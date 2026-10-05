@@ -14,7 +14,9 @@
 // as a small inline tag, not a separate section.
 export const ALL_TYPES = [
   { type: "enemies", label: "Enemies", category: "Content" },
-  { type: "units", label: "Units", category: "Content" },
+  { type: "units", label: "Heroes", category: "Content" },
+  // Mana step 1: each class's mana pool + its skills' mana costs.
+  { type: "classes", label: "Hero Classes & Mana", category: "Content" },
   { type: "cards", label: "Cards", category: "Content" },
   { type: "relics", label: "Relics", category: "Content" },
   { type: "items", label: "Items", category: "Content" },
@@ -25,7 +27,7 @@ export const ALL_TYPES = [
   { type: "comboSynergies", label: "Tribe Combo Bonuses", category: "Content" },
   { type: "positionSynergies", label: "Position Bonuses", category: "Content" },
   { type: "dualClasses", label: "Dual Classes", category: "Content" },
-  { type: "roles", label: "Unit Roles", category: "Content" },
+  { type: "roles", label: "Hero Roles", category: "Content" },
   { type: "evolutions", label: "Evolutions", category: "Content" },
   { type: "upgradeBranches", label: "Upgrade Branches", category: "Content" },
   { type: "arenas", label: "Arenas", category: "Content" },
