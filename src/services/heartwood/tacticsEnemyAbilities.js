@@ -16,11 +16,15 @@ export const ENEMY_SKILL_KINDS = {
   enrage: { icon: "♨", cooldown: 99, threshold: 0.6 },
   // Mana step 1: steals mana from a hero within range.
   drain: { icon: "◐", cooldown: 3, range: 4 },
+  // Ranged rework: ranged/caster enemies use the heroes' tools too.
+  suppress: { icon: "⁂", cooldown: 3, range: 5 }, // -20% to hit, moving draws a shot
+  spot: { icon: "⌖", cooldown: 3, range: 6 }, // Mark: the hero counts as uncovered
+  volley: { icon: "☄", cooldown: 2, range: 5 }, // arcing shot that ignores cover
 }
 
 // Mana cost per kind (enrage is free; a slam pays on the windup). A
 // skill's own `mana` wins.
-export const ENEMY_SKILL_MANA = { mend: 15, shield: 10, hex: 15, slam: 25, pounce: 15, summon: 25, enrage: 0, drain: 5 }
+export const ENEMY_SKILL_MANA = { mend: 15, shield: 10, hex: 15, slam: 25, pounce: 15, summon: 25, enrage: 0, drain: 5, suppress: 10, spot: 10, volley: 15 }
 
 const HEX_NAMES = { weak: "Sapping Curse", vulnerable: "Mark of Ruin", poison: "Blight Spit", root: "Grasping Roots", burn: "Ember Spit", chill: "Rime Breath" }
 const DEBUFF_TO_STATUS = { weak: "weak", dampen: "weak", vulnerable: "vulnerable", poison: "poison", stun: "root" }
@@ -95,10 +99,24 @@ const MANA_DRAINERS = {
   spacemonkey: drain("Void Siphon", 20),
 }
 
+// Ranged rework: archers and casters that suppress, spot (Mark) or lob
+// arcing volleys over cover.
+const RANGED_TOOLS = {
+  "drift-archer": [mk("suppress", { name: "Covering Fire" })],
+  "echo-archer": [mk("spot", { name: "Spotting Arrow" })],
+  "blight-seer": [mk("volley", { name: "Blight Mortar" })],
+  "runewisp-acolyte": [mk("volley", { name: "Rune Mortar" })],
+}
+
 const TABLE = Object.fromEntries(
   Object.values(ENEMIES).map((def) => [
     def.id,
-    [...(EXPLICIT[def.id] || deriveSkills(def)), ...(ELEMENT_HEXES[def.id] ? [ELEMENT_HEXES[def.id]] : []), ...(MANA_DRAINERS[def.id] ? [MANA_DRAINERS[def.id]] : [])],
+    [
+      ...(EXPLICIT[def.id] || deriveSkills(def)),
+      ...(ELEMENT_HEXES[def.id] ? [ELEMENT_HEXES[def.id]] : []),
+      ...(MANA_DRAINERS[def.id] ? [MANA_DRAINERS[def.id]] : []),
+      ...(RANGED_TOOLS[def.id] || []),
+    ],
   ]),
 )
 
@@ -130,6 +148,9 @@ export function describeSkillIntent(intent, nameOf) {
         : `${intent.name}: winding up - the marked 3x3 tiles get crushed for ${intent.amount} NEXT turn`
     case "enrage": return `${intent.name}: will enrage (+${intent.amount} attack), then act`
     case "drain": return `${intent.name}: will steal ${intent.amount} mana from ${t}`
+    case "suppress": return `${intent.name}: will pin ${t} under fire (-20% to hit until its next turn, moving draws a shot)`
+    case "spot": return `${intent.name}: will Mark ${t} - its cover won't count against enemy shots`
+    case "volley": return `${intent.name}: will lob a shot at ${t} that arcs over cover`
     default: return intent.name || "Skill"
   }
 }

@@ -43,6 +43,7 @@ import { TERRAIN, terrainAt, terrainRule, isHigh, canReach, rangeAt, highGroundA
 export { TERRAIN_INFO, WALL_MAX_HP, wallHpAt, rangeAt } from "./tacticsTerrain"
 import { levelForXp, XP as LEVEL_XP_GAIN, THIRST_HEAL } from "./unitLevels"
 import * as manaFx from "./tacticsMana"
+import * as ranged from "./tacticsRanged"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -652,7 +653,8 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
   const passiveStats = side === "enemy" ? passiveStatsFromDef(def.passive) : { strength: 0, execute: 0, shatter: 0, woundedFury: 0, taunt: 0, revive: 0 }
   const triggers = side === "enemy" ? triggersFromPassive(def.passive) : []
   const phases = side === "enemy" ? def.phases || [] : []
-  return {
+  // Ranged rework: ranged/mage classes shoot from 3+ and carry the shared toolkit.
+  return ranged.rangedFieldsFor({
     id: uid,
     side,
     defId,
@@ -800,7 +802,7 @@ function deriveTacticsUnit(defId, side, pos, uid, overrideDef = null) {
     // chargeCounter/chargeHpMark: the roll is recomputed fresh from
     // state.turn every decision, never stored on the unit itself.
     aoeMove: side === "enemy" ? aoeMoveFromDef(def) : null,
-  }
+  })
 }
 
 // The Commander: a thin wrapper over deriveTacticsUnit, handing it the
@@ -1382,7 +1384,7 @@ export function overwatchAction(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0 || unit.ap < 1 || state.phase !== unit.side || !(unit.attack > 0) || unit.structure) return state
   const turns = unit.side === "player" ? 1 : 2
-  const next = setUnit(state, unitId, { ap: 0, overwatch: Math.max(unit.overwatch || 0, turns), owRoot: !!unit.owRoot && unit.overwatch > 0 })
+  const next = setUnit(state, unitId, { ap: 0, overwatch: Math.max(unit.overwatch || 0, turns), owRoot: !!unit.owRoot && unit.overwatch > 0, owAim: unit.overwatch > 0 ? unit.owAim || 0 : 0 })
   return emit({ ...next, log: [...next.log, `${unit.name} goes on Overwatch.`] }, { kind: "reaction", unitId, label: "On Watch" })
 }
 
@@ -1748,7 +1750,8 @@ export function moveUnit(state, unitId, targetPos) {
     next = { ...next, log: [...next.log, `${controller.name} lashes out as ${unit.name} pulls away!`] }
     next = attackUnit(next, controller.id, unitId, { isReaction: true })
   }
-  return classFx.afterMove(next, unitId)
+  // Ranged rework: a suppressed unit that moves draws the suppressor's shot.
+  return ranged.afterMoveSuppression(classFx.afterMove(next, unitId), unitId)
 }
 
 // Wyrmgall's real Execute/Shatter + the final boss's real WoundedFury/
@@ -2654,7 +2657,8 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   const target = getUnit(state, targetId)
   let next = emit(state, { kind: "strike", actorId, targetId, ranged: chebyshevDist(actor.pos, target.pos) > 1, ability: ability.name })
   const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount))
-  const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target))
+  // Ranged rework: a skill's shot rules (aim bonus / ignores cover) ride on `ability.shot`.
+  const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target), ability?.shot || null)
   const graze = roll.graze
   next = graze ? manaFx.onGraze(emit(roll.state, { kind: "graze", targetId }), targetId) : roll.state
   const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, graze ? cover.grazeAmount(full) : full)
@@ -2998,7 +3002,7 @@ function enemyPhaseStart(state) {
   // bug the Rot round's own poison-timing fix already caught once.
   // Mana: ranged heroes that held still focus; enemies regen (shared
   // with previewEnemyIntents, so the telegraph stays exact).
-  const regenTicked = applyRegenTick(manaFx.enemyPhaseMana(resetForEnemyPhase))
+  const regenTicked = applyRegenTick(manaFx.enemyPhaseMana(ranged.rangedEnemyPhaseStart(resetForEnemyPhase)))
   // A unit's own turnStart trigger (Deepwarden's post-phase "the ground
   // answers" Block, etc.) is applied AFTER the flat fortressBlock reset
   // above, never before - that reset is a per-unit overwrite, not an
@@ -3064,28 +3068,29 @@ function aiEstimateHit(attacker, target, state = null) {
 }
 
 // XCOM part 2: full hit / graze / hit chance; `expected` weighs both.
-function aiHitOdds(attacker, target, state = null) {
+function aiHitOdds(attacker, target, state = null, shot = null) {
   if (target.ward > 0) return { full: 0, graze: 0, p: 1, expected: 0 }
   const raw = hunkeredAmount(target, modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker))), state)
   const soak = (target.block || 0) + (target.bulwark || 0)
   const full = Math.max(0, raw - soak)
   if (!cover.rollsOn(state) || target.structure) return { full, graze: full, p: 1, expected: full }
   const graze = Math.max(0, cover.grazeAmount(raw) - soak)
-  const p = cover.hitChance(state, attacker, target, classifyFacingAttack(attacker, target)).chance / 100
+  const p = cover.hitChance(state, attacker, target, classifyFacingAttack(attacker, target), attacker.pos, shot).chance / 100
   return { full, graze, p, expected: p * full + (1 - p) * graze }
 }
 
 // XCOM part 2 (UI): what a hit from `actorId` on `targetId` looks like -
 // hit %, full damage, graze damage and the reasons. `base` overrides the
 // attack number (skills), `fromPos` a hypothetical tile.
-export function attackPreview(state, actorId, targetId, { base = null, fromPos = null } = {}) {
+export function attackPreview(state, actorId, targetId, { base = null, fromPos = null, skill = null } = {}) {
   const actor0 = getUnit(state, actorId)
   const target = getUnit(state, targetId)
   if (!actor0 || !target) return null
   const actor = fromPos ? { ...actor0, pos: fromPos } : actor0
   const facing = classifyFacingAttack(actor, target)
   const amount = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, base ?? actor.attack + blightAttackBonus(state, actor)))
-  const info = cover.hitChance(state, actor, target, facing)
+  // Ranged rework: an armed skill's shot rules (aim / ignores cover) count too.
+  const info = cover.hitChance(state, actor, target, facing, actor.pos, ranged.shotForSkill(skill))
   const rolls = cover.rollsOn(state) && !target.structure
   return { ...info, chance: rolls ? info.chance : 100, rolls, full: amount, graze: rolls ? cover.grazeAmount(amount) : amount, facing }
 }
@@ -3112,6 +3117,13 @@ function aiOverwatchDmg(state, enemy, pos) {
     worst = Math.max(worst, aiEstimateHit(w, { ...enemy, pos }, state))
   }
   return worst
+}
+
+// Ranged rework: a suppressed enemy that moves eats the suppressor's shot.
+function aiSuppressDmg(state, enemy, moved) {
+  if (!(enemy.suppressFire > 0)) return 0
+  const s = getUnit(state, enemy.suppressBy)
+  return s && s.hp > 0 && canReach(state, s, s.pos, moved.pos) ? aiEstimateHit(s, moved, state) : 0
 }
 
 // XCOM part 1 - role positioning. Healers hang back out of reach; tanks
@@ -3152,7 +3164,7 @@ function aiMoveOutcome(state, enemy, dest) {
   const reactionDmg =
     zocControllers(state, enemy.pos, opp)
       .filter((c) => !kingAdjacent(c.pos, dest) && !(c.suppressed > 0))
-      .reduce((sum, c) => sum + aiEstimateHit(c, moved, state), 0) + aiOverwatchDmg(state, moved, dest)
+      .reduce((sum, c) => sum + aiEstimateHit(c, moved, state), 0) + aiOverwatchDmg(state, moved, dest) + aiSuppressDmg(state, enemy, moved)
   let hazard = lava
   if (TERRAIN[terrainAt(state, dest)].grantPoison) hazard += AI_POISON_PENALTY
   if (fearZoneControllers(state, dest, opp).length && !fearZoneControllers(state, enemy.pos, opp).length) hazard += AI_ZONE_STATUS_PENALTY
@@ -3369,10 +3381,32 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
         const score = AI_ATTACK_BASE + 15 + tileScore + 40 * fill + ultimate + 0.3 * aiTargetValue(t)
         options.push({ score, intent: { ...base, targetId: t.id, amount: skill.amount } })
       }
+    } else if (skill.kind === "suppress" || skill.kind === "spot" || skill.kind === "volley") {
+      // Ranged rework: pin a dangerous shooter / spot a hero hiding in
+      // cover / lob a shot over cover when a straight shot would graze.
+      for (const t of players) {
+        if (t.structure || chebyshevDist(pos, t.pos) > kindDef.range) continue
+        const value = aiTargetValue(t, enemy)
+        if (skill.kind === "suppress") {
+          if (t.suppressFire > 0) continue
+          const score = AI_ATTACK_BASE + 5 + tileScore + 0.5 * value + (t.range > 1 ? 12 : 0) + (t.overwatch > 0 ? 15 : 0)
+          options.push({ score, intent: { ...base, targetId: t.id } })
+        } else if (skill.kind === "spot") {
+          const lvl = cover.coverAgainst(state, t.pos, pos, { hunkered: t.hunkered > 0 })
+          if (t.mark > 0 || !lvl) continue
+          options.push({ score: AI_ATTACK_BASE + 8 + tileScore + 8 * lvl + 0.4 * value, intent: { ...base, targetId: t.id } })
+        } else {
+          const odds = aiHitOdds({ ...enemy, pos }, t, state, VOLLEY_SHOT)
+          const killP = t.revive > 0 ? 0 : odds.graze >= t.hp ? 1 : odds.full >= t.hp ? odds.p : 0
+          const score = AI_ATTACK_BASE + 2 + tileScore + AI_KILL_BONUS * killP + 3 * odds.expected + value
+          options.push({ score, intent: { ...base, targetId: t.id } })
+        }
+      }
     }
   }
   return options
 }
+const VOLLEY_SHOT = { ignoreCover: true, coverLabel: "Arcing volley - cover doesn't help" }
 const AI_DRAIN_ULTIMATE_BONUS = 60
 
 // Pounce: a whole-turn leap (2 AP) from where the enemy stands.
@@ -3433,7 +3467,7 @@ function applySlamRelease(state, enemyId, intent, skill) {
 const HEX_WORD = { weak: "Weakened!", vulnerable: "Vulnerable!", poison: "Poisoned!", root: "Rooted!", burn: "Burning!", chill: "Chilled!" }
 
 // Enemy skills whose number Overcharge boosts (+attack / heal / Block / drain).
-const SURGE_KINDS = new Set(["pounce", "mend", "shield", "drain"])
+const SURGE_KINDS = new Set(["pounce", "mend", "shield", "drain", "volley"])
 
 function applyEnemySkill(state, enemyId, intent) {
   let next = state
@@ -3495,6 +3529,20 @@ function applyEnemySkill(state, enemyId, intent) {
     next = manaFx.stealMana(next, enemyId, t.id, skill.amount + boost)
     const lost = had - (getUnit(next, t.id).mana + (getUnit(next, t.id).overcharge || 0))
     return { ...next, log: [...next.log, `${actor.name}'s ${skill.name} steals ${lost} mana from ${t.name}.`] }
+  }
+  // Ranged rework: the heroes' ranged tools, enemy side.
+  if (skill.kind === "suppress" || skill.kind === "spot" || skill.kind === "volley") {
+    const t = getUnit(next, intent.targetId)
+    if (!t || t.hp <= 0) return next
+    if (skill.kind === "suppress") return ranged.suppressUnit(ranged.emitShot(next, "suppress", actor.pos, t.pos, null, enemyId), enemyId, t.id)
+    if (skill.kind === "spot") {
+      next = setUnit(ranged.emitShot(next, "ricochet", actor.pos, t.pos, null, enemyId), t.id, { mark: Math.max(t.mark || 0, 2) })
+      next = emit(next, { kind: "reaction", unitId: t.id, label: "Spotted!" })
+      return { ...next, log: [...next.log, `${actor.name}'s ${skill.name} marks ${t.name} - its cover won't help it.`] }
+    }
+    next = ranged.emitShot(next, "arc", actor.pos, t.pos, null, enemyId)
+    next = abilityHit(next, enemyId, t.id, actor.attack + boost, { name: skill.name, shot: VOLLEY_SHOT }).next
+    return checkTacticsBattleEnd(next)
   }
   if (skill.kind === "hex") {
     const t = getUnit(next, intent.targetId)

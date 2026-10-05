@@ -30,6 +30,7 @@ import { emit, getUnit, setUnit } from "./tacticsEngine"
 import { roleOf } from "./tacticsRoles"
 import { isHigh } from "./tacticsTerrain"
 import { tileCoverSides } from "./tacticsCover"
+import { isMageClass } from "./tacticsRanged"
 
 // --- Numbers ------------------------------------------------------------------
 
@@ -69,7 +70,7 @@ export const GAIN = {
 export { defaultManaCost }
 
 // Enemy skill kinds: enrage is free; a slam pays on the windup.
-export const ENEMY_MANA_COST = { mend: 15, shield: 10, hex: 15, slam: 25, pounce: 15, summon: 25, enrage: 0, drain: 5 }
+export const ENEMY_MANA_COST = { mend: 15, shield: 10, hex: 15, slam: 25, pounce: 15, summon: 25, enrage: 0, drain: 5, suppress: 10, spot: 10, volley: 15 }
 
 export function manaCostOf(skill) {
   if (!skill) return 0
@@ -304,7 +305,8 @@ export function playerTurnEndFocus(state) {
   if (!manaOn(state)) return state
   let next = state
   for (const u of state.units) {
-    if (u.side !== "player" || u.hp <= 0 || !hasMana(u) || u.moved || manaRole(u) !== "ranged") continue
+    // Ranged rework: mages channel the same way when they hold still.
+    if (u.side !== "player" || u.hp <= 0 || !hasMana(u) || u.moved || !(manaRole(u) === "ranged" || isMageClass(u.classId))) continue
     let amount = GAIN.focus
     if (isHigh(state, u.pos)) amount += GAIN.high
     if (Object.values(tileCoverSides(state, u.pos)).some((v) => v > 0)) amount += GAIN.cover
