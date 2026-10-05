@@ -29,6 +29,7 @@ import {
 import { applyElement, reactStatus, ENTANGLE_DURATION } from "./tacticsElements"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
 import { rollBoulder } from "./tacticsObjects"
+import { canAfford, hasMana, manaCostOf } from "./tacticsMana"
 
 const SLOW = 2
 const ROOT = 2
@@ -83,7 +84,7 @@ export function classSkillById(unit, skillId) {
 }
 
 export function classSkillReady(unit, skill) {
-  return !!unit && !!skill && unit.hp > 0 && unit.ap >= skill.cost && !((unit.classCds || {})[skill.id] > 0)
+  return !!unit && !!skill && unit.hp > 0 && unit.ap >= skill.cost && !((unit.classCds || {})[skill.id] > 0) && canAfford(unit, skill)
 }
 
 // --- Skill tree ----------------------------------------------------------------
@@ -249,7 +250,9 @@ export function wallDamage(u, amount) {
 
 // Medic's Triage.
 export function healAmount(actor, target, amount) {
-  return has(actor, "triage") && target.hp < target.maxHp / 2 ? Math.round(amount * 1.5) : amount
+  const base = has(actor, "triage") && target.hp < target.maxHp / 2 ? Math.round(amount * 1.5) : amount
+  // Mana Overcharge: the heal being cast right now is stronger.
+  return base + (actor?.surge > 0 ? actor.surge : 0)
 }
 
 // A living Guardian that Guarded `target` (attackUnit splits the hit).
@@ -1532,5 +1535,6 @@ export function classSkillStatus(unit, skill) {
   const cd = (unit?.classCds || {})[skill.id] || 0
   if (cd > 0) return `Recharging (${cd})`
   if (unit.ap < skill.cost) return `Needs ${skill.cost} AP`
+  if (hasMana(unit) && unit.mana < manaCostOf(skill)) return `Needs ${manaCostOf(skill)} mana`
   return `${skill.cost} AP`
 }

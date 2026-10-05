@@ -42,7 +42,7 @@ export default function BuildScore({ runState }) {
             <p
               className="hw-buildscore-positioning"
               data-off={positioning.matched < positioning.total || undefined}
-              title="A unit in its preferred slot (tanks forward, the rest back) starts the fight with a small edge."
+              title="A hero in its preferred slot (tanks forward, the rest back) starts the fight with a small edge."
             >
               Positioning: {positioning.matched}/{positioning.total} in place
             </p>

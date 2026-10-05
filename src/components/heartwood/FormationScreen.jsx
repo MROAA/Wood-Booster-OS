@@ -388,7 +388,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
 
       {formation.synergy && (formation.pieces?.length || 0) >= 2 && (
         <div className="hw-badge" style={{ marginBottom: 10, color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}
-          title="This formation fights as a unit - every enemy piece shares a bonus">
+          title="This formation fights as one - every enemy piece shares a bonus">
           Enemy formation: {formation.synergy.label}
         </div>
       )}
@@ -419,7 +419,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           steps in front, even HP leaves no target. */}
       {formation.synergy?.label === "They hunt the weak one" && (
         <p className="hw-hunters-hint">
-          A hunting pack — it skips your front line and piles onto your softest unit. A taunt or a decoy pulls it off; a bodyguard beside your carry, or just even HP across the squad, blunts it.
+          A hunting pack — it skips your front line and piles onto your softest hero. A taunt or a decoy pulls it off; a bodyguard beside your carry, or just even HP across the squad, blunts it.
         </p>
       )}
 
@@ -473,7 +473,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           it back, or field flat bodies with nothing to take. */}
       {formation.synergy?.label === "They take what's yours" && (
         <p className="hw-collectors-hint">
-          Collectors — every hit they land on a buffed unit takes a stack of that buff for themselves, so a stacked-up carry just arms them. Burst them down before they accumulate, bring a Sunder to strip it back, or field flat bodies with nothing worth taking.
+          Collectors — every hit they land on a buffed hero takes a stack of that buff for themselves, so a stacked-up carry just arms them. Burst them down before they accumulate, bring a Sunder to strip it back, or field flat bodies with nothing worth taking.
         </p>
       )}
 
@@ -626,13 +626,13 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
       </div>
       <p className="hw-flavor" style={{ marginTop: -10, marginBottom: 10 }}>
         The front-center slot shields whoever you place directly behind it. A glowing tile
-        means that placement is feeding a formation bonus. A unit in its preferred slot
+        means that placement is feeding a formation bonus. A hero in its preferred slot
         (tanks forward, DPS / healers / support in the back row) starts the fight with a small edge.
       </p>
 
       <p style={{ fontSize: 12, color: "var(--hw-muted)" }}>
         Bench ({deployedCount} / {runState.deployed.length} fighting) + Reserve ({runState.bench.length - deployedCount}) -
-        click to place, click again to pull back. Three of the same unit fuse automatically.
+        click to place, click again to pull back. Three of the same hero fuse automatically.
       </p>
       <div className="hw-select-grid hw-deck-preview">
         {runState.bench.map((entry) => {

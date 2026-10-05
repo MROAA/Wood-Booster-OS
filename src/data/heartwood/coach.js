@@ -22,31 +22,31 @@ export const COACH_TIPS = [
   {
     id: "shop",
     title: "The Hearthwood Market",
-    text: "Recruit units, drag up to 4 onto the grid, then Continue. They fight on their own - win to earn Essence and press deeper.",
+    text: "Recruit heroes, drag up to 4 onto the grid, then Continue. They fight on their own - win to earn Essence and press deeper.",
     anchor: ".hw-market-columns",
   },
   {
     id: "market-level",
     title: "Market level",
-    text: "Pay Essence to raise the market. Higher levels stock Uncommon, then Rare units - and, at the top, the occasional Legendary.",
+    text: "Pay Essence to raise the market. Higher levels stock Uncommon, then Rare heroes - and, at the top, the occasional Legendary.",
     anchor: ".hw-market-level-widget",
   },
   {
     id: "market-tier",
     title: "Market tier",
-    text: "The other market axis. Level raises the RARITY ceiling; Tier unlocks new KINDS of unit - specialists, a synergy-scaled mender, a summoner. Advancing a Tier is an investment: it buys options, not stats. The 'Next Tier' line shows what it opens.",
+    text: "The other market axis. Level raises the RARITY ceiling; Tier unlocks new KINDS of hero - specialists, a synergy-scaled mender, a summoner. Advancing a Tier is an investment: it buys options, not stats. The 'Next Tier' line shows what it opens.",
     anchor: ".hw-market-tier-widget",
   },
   {
     id: "market-event",
     title: "A special market",
-    text: "Some shop stops are a special market - cheaper, richer, or with a catch. Read the banner: the Golden Market stocks the best units but charges for it; the Blackroot Market is half-price but you can't Reroll or Freeze; the Wandering Merchant is a quick cut-price stop; the Ragpicker's Market pays extra if you sell from your bench.",
+    text: "Some shop stops are a special market - cheaper, richer, or with a catch. Read the banner: the Golden Market stocks the best heroes but charges for it; the Blackroot Market is half-price but you can't Reroll or Freeze; the Wandering Merchant is a quick cut-price stop; the Ragpicker's Market pays extra if you sell from your bench.",
     anchor: ".hw-market-event-banner",
   },
   {
     id: "synergy",
     title: "Tribe synergy",
-    text: "Units share a tribe. Field enough of one and the whole squad gets that tribe's bonus - a ✓ on the badge means it's live.",
+    text: "Heroes share a tribe. Field enough of one and the whole squad gets that tribe's bonus - a ✓ on the badge means it's live.",
     anchor: ".hw-badge--active",
   },
   {
@@ -64,13 +64,13 @@ export const COACH_TIPS = [
   {
     id: "run-power",
     title: "Run Power",
-    text: "This reads how strong your run REALLY is - units, synergy, items, relics, formation, economy, and how well the pieces reinforce each other (coherence matters more than raw strength). The number in brackets is you vs the power the run expects at this point: above 1.0× you're ahead, below it you're behind. 'Thin:' names the cheapest thing to shore up.",
+    text: "This reads how strong your run REALLY is - heroes, synergy, items, relics, formation, economy, and how well the pieces reinforce each other (coherence matters more than raw strength). The number in brackets is you vs the power the run expects at this point: above 1.0× you're ahead, below it you're behind. 'Thin:' names the cheapest thing to shore up.",
     anchor: ".hw-power-compact",
   },
   {
     id: "scout",
     title: "Scout Ahead",
-    text: "Pay Essence to reveal the next fight's threat band on the Run Map AND how it stacks up against your build - before you commit units, relics and a formation to it. The cost climbs each Act.",
+    text: "Pay Essence to reveal the next fight's threat band on the Run Map AND how it stacks up against your build - before you commit heroes, relics and a formation to it. The cost climbs each Act.",
     anchor: ".hw-scout-btn",
   },
   {
@@ -87,20 +87,20 @@ export const COACH_TIPS = [
   },
   {
     id: "economy-crew",
-    title: "Economy units",
+    title: "Economy heroes",
     text: "A Merchant, Banker, Forager, Toll-Warden or Fortune's Root pays off your run's economy - cheaper recruits, earlier interest, bigger win payouts, more (and bigger) special markets - but ONLY while deployed, and each one is a weak body in the fight. Deploy one and you're trading a fighter for the money.",
     anchor: ".hw-economy-crew",
   },
   {
     id: "upgrade",
-    title: "Upgrading a unit",
-    text: "Each Upgrade level is a choice of direction - Power, Defense, Synergy, Utility or Economy. The same unit can grow into different roles in different runs.",
+    title: "Upgrading a hero",
+    text: "Each Upgrade level is a choice of direction - Power, Defense, Synergy, Utility or Economy. The same hero can grow into different roles in different runs.",
     anchor: ".hw-upgrade-btn",
   },
   {
     id: "roles",
     title: "Roles & tags",
-    text: "Every unit shows its role (Tank / DPS / Healer / Support / Control / Debuffer…) and a few tags. A strong squad has a front line, a healer, and something that scales - not six of one thing.",
+    text: "Every hero shows its role (Tank / DPS / Healer / Support / Control / Debuffer…) and a few tags. A strong squad has a front line, a healer, and something that scales - not six of one thing.",
     anchor: ".hw-card-role-line",
   },
   {
@@ -112,13 +112,13 @@ export const COACH_TIPS = [
   {
     id: "formation-position",
     title: "Where you place matters",
-    text: "Tanks want the forward slot; DPS, healers and support want the back row - a unit in its preferred slot starts the fight with a small edge (a green ring; an amber dot means it's out of place). Some units also only pay off from the front, or only in a full 4-unit line.",
+    text: "Tanks want the forward slot; DPS, healers and support want the back row - a hero in its preferred slot starts the fight with a small edge (a green ring; an amber dot means it's out of place). Some heroes also only pay off from the front, or only in a full 4-unit line.",
     anchor: ".hw-grid",
   },
   {
     id: "targeting",
-    title: "Where your units strike",
-    text: "Most units hit the enemy front line. A few pick their own target - an executioner goes for the lowest-HP enemy to finish it. A unit's card shows this under its role.",
+    title: "Where your heroes strike",
+    text: "Most heroes hit the enemy front line. A few pick their own target - an executioner goes for the lowest-HP enemy to finish it. A hero's card shows this under its role.",
     anchor: ".hw-card-target-line",
   },
   {
@@ -142,7 +142,7 @@ export const COACH_TIPS = [
   {
     id: "threat-preview",
     title: "Read the enemy first",
-    text: "The stars rate how dangerous this fight is; 'Primary' is the kind of problem it mainly is, and 'Expect' lists the mechanics it'll use. Plan for that before you place a single unit - the checkrow just below tells you if your squad answers it.",
+    text: "The stars rate how dangerous this fight is; 'Primary' is the kind of problem it mainly is, and 'Expect' lists the mechanics it'll use. Plan for that before you place a single hero - the checkrow just below tells you if your squad answers it.",
     anchor: ".hw-threat-preview",
   },
   {
@@ -160,7 +160,7 @@ export const COACH_TIPS = [
   {
     id: "hunters",
     title: "Answering a hunting pack",
-    text: "This pack ignores your wall and every attack lands on your softest unit - your carry, your healer, your back line. A Taunt or a decoy makes them hit that unit instead. A bodyguard (Oathshield) beside your carry steps in front. Or field even HP across the squad so there's no obvious target. A front-line tank does NOT draw a hunting pack on its own.",
+    text: "This pack ignores your wall and every attack lands on your softest hero - your carry, your healer, your back line. A Taunt or a decoy makes them hit that hero instead. A bodyguard (Oathshield) beside your carry steps in front. Or field even HP across the squad so there's no obvious target. A front-line tank does NOT draw a hunting pack on its own.",
     anchor: ".hw-hunters-hint",
   },
   {
@@ -184,13 +184,13 @@ export const COACH_TIPS = [
   {
     id: "cult",
     title: "Breaking a cult",
-    text: "The one behind the line doesn't fight much - every other round it kills one of its own and folds that strength into the rest (+Strength to every survivor, and it mends itself). Race it: burst the pack or reach the Warden before the rite lands. A pattern attacker (Chantbreaker's diagonal) reaches it and its Stun freezes that round's ritual charge; a Sunder (Oathsworn) strips the buff back off the pack; a growth unit (Emberzeal) out-climbs the rite outright. Once its fodder is spent the fight can only get easier.",
+    text: "The one behind the line doesn't fight much - every other round it kills one of its own and folds that strength into the rest (+Strength to every survivor, and it mends itself). Race it: burst the pack or reach the Warden before the rite lands. A pattern attacker (Chantbreaker's diagonal) reaches it and its Stun freezes that round's ritual charge; a Sunder (Oathsworn) strips the buff back off the pack; a growth hero (Emberzeal) out-climbs the rite outright. Once its fodder is spent the fight can only get easier.",
     anchor: ".hw-cult-hint",
   },
   {
     id: "collectors",
     title: "Facing collectors",
-    text: "Every hit a Collector lands on a buffed unit takes a stack of that buff for itself - a stacked-up carry just feeds it. Three answers: burst them down before they accumulate (kill them fast, it's the whole point); a Sunder unit strips the stolen stacks straight back off them; or field a flat body with nothing to take - Plainhewer carries no buffs and hits hard, Wardknot turns every theft into a bigger Strength gain for itself.",
+    text: "Every hit a Collector lands on a buffed hero takes a stack of that buff for itself - a stacked-up carry just feeds it. Three answers: burst them down before they accumulate (kill them fast, it's the whole point); a Sunder hero strips the stolen stacks straight back off them; or field a flat body with nothing to take - Plainhewer carries no buffs and hits hard, Wardknot turns every theft into a bigger Strength gain for itself.",
     anchor: ".hw-collectors-hint",
   },
   {
@@ -237,13 +237,13 @@ export const COACH_TIPS = [
   },
   {
     id: "evolution",
-    title: "A unit evolved",
-    text: "Deploy a fill unit enough times, with its tribe alongside it, and it grows into a stronger authored form. Free, automatic, permanent.",
+    title: "A hero evolved",
+    text: "Deploy a fill hero enough times, with its tribe alongside it, and it grows into a stronger authored form. Free, automatic, permanent.",
     anchor: ".hw-hint--evolved",
   },
   {
     id: "legendary",
-    title: "Legendary unit",
+    title: "Legendary hero",
     text: "A build-around anchor: growth (stronger every round), aura (helps its neighbours) or conditional (a big payoff if your squad fits). Expensive on purpose.",
     anchor: ".hw-card[data-tier=\"legendary\"]",
   },
@@ -280,14 +280,14 @@ export const COACH_TIPS = [
   },
   {
     id: "t-wounded",
-    title: "Wounded units",
-    text: "Damage carries between fights. A unit that fell last time starts Wounded at 25% HP - Mend it in the shop or rest to bring it back.",
+    title: "Wounded heroes",
+    text: "Damage carries between fights. A hero that fell last time starts Wounded at 25% HP - Mend it in the shop or rest to bring it back.",
     anchor: ".hwt-token[data-side=\"player\"] .hwt-hp-gem[data-hurt=\"true\"]",
   },
   {
     id: "t-level",
-    title: "Unit levels",
-    text: "Units earn XP in fights. Each level picks a perk - the Lv badge on a token lists what it has learned.",
+    title: "Hero levels",
+    text: "Heroes earn XP in fights. Each level picks a perk - the Lv badge on a token lists what it has learned.",
     anchor: ".hwt-level-badge",
   },
 ]

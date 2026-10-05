@@ -29,6 +29,7 @@ import { applyObjective, buildObjectiveSpec, OBJECTIVE_TYPES, OBJECTIVE_NAMES } 
 import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../services/heartwood/tacticsBosses"
 import { withObjectShowcase } from "../services/heartwood/tacticsObjects"
 import { withHitRolls } from "../services/heartwood/tacticsCover"
+import { enableMana } from "../services/heartwood/tacticsMana"
 import { CLASSES } from "../data/heartwood/classes"
 import { UNITS } from "../data/heartwood/units"
 import "../components/heartwood/heartwood.css"
@@ -47,7 +48,15 @@ function maybeDebugLowHp(base, showcase = false) {
   // `?deploy=1` opens the prototype in the deployment phase (the real
   // game always does); off by default so the prototype stays instant.
   // XCOM part 2: hit rolls (cover + graze) on; `?rolls=0` turns them off (QA).
-  const rolled = params.get("rolls") === "0" ? battle : withHitRolls(battle)
+  const rolled0 = params.get("rolls") === "0" ? battle : withHitRolls(battle)
+  // Mana step 1: on by default; `?mana=0` turns it off (QA).
+  const manaOn = params.get("mana") === "0" ? rolled0 : enableMana(rolled0)
+  // QA-only: `?manaStart=N` starts every hero at N mana (test the greyed skills).
+  const manaStart = params.get("manaStart")
+  const rolled =
+    manaStart != null && manaOn.manaRules
+      ? { ...manaOn, units: manaOn.units.map((u) => (u.side === "player" && typeof u.mana === "number" ? { ...u, mana: Math.min(u.manaMax, Number(manaStart) || 0) } : u)) }
+      : manaOn
   return params.get("deploy") === "1" ? enterDeploy(rolled) : rolled
 }
 

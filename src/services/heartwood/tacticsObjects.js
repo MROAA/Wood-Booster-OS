@@ -415,11 +415,11 @@ export function describeObjectTile(state, pos) {
   if (!OBJECTS[type]) return null
   const hp = objectHpAt(state, pos)
   const max = objectMaxHp(type)
-  if (type === "tree") return `Tree (${hp}/${max} HP): blocks movement. FULL cover for a unit right next to it (-40% to be hit from that side). Chop it down (1 AP) and it FALLS away from you: ${TREE_FALL_DAMAGE} damage to whoever stands on the next 2 tiles, leaving a log. Fire sets it ablaze for ${TREE_BURN_TURNS} turns - it scorches neighbours and spreads to trees beside it.${isBurning(state, pos) ? ` BURNING: ${state.objFire[k(pos)]} turn(s) left.` : ""}`
+  if (type === "tree") return `Tree (${hp}/${max} HP): blocks movement. FULL cover for a hero right next to it (-40% to be hit from that side). Chop it down (1 AP) and it FALLS away from you: ${TREE_FALL_DAMAGE} damage to whoever stands on the next 2 tiles, leaving a log. Fire sets it ablaze for ${TREE_BURN_TURNS} turns - it scorches neighbours and spreads to trees beside it.${isBurning(state, pos) ? ` BURNING: ${state.objFire[k(pos)]} turn(s) left.` : ""}`
   if (type === "barrel") return `Powder barrel: any hit (or fire) blows it up - ${BARREL_DAMAGE} damage to everything in the 3x3 around it, and the ground burns for ${FIRE_TILE_TURNS} turns.`
   if (type === "sporepod") return `Spore pod: any hit bursts it - ${SPORE_DAMAGE} damage and +2 Poison to everything in the 3x3 around it; poison pools linger ${POISON_TILE_TURNS} turns.`
   if (type === "boulder") return `Boulder (${hp}/${max} HP): blocks movement. Hit it from right next to it (1 AP) to SHOVE it - it rolls away until something stops it, dealing ${BOULDER_DAMAGE} to what it hits.`
-  if (type === "icepillar") return `Ice pillar (${hp}/${max} HP): Frost (a Frost attack, or Chill landing next to it) makes it brittle; the next hit shatters it - ${SHATTER_DAMAGE} damage + 1 Chill to every unit around it.${isChilled(state, pos) ? " BRITTLE: the next hit shatters it!" : ""}`
+  if (type === "icepillar") return `Ice pillar (${hp}/${max} HP): Frost (a Frost attack, or Chill landing next to it) makes it brittle; the next hit shatters it - ${SHATTER_DAMAGE} damage + 1 Chill to every hero around it.${isChilled(state, pos) ? " BRITTLE: the next hit shatters it!" : ""}`
   return null
 }
 

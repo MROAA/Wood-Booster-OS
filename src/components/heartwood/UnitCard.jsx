@@ -342,7 +342,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
         </div>
       )}
       {targetProfile !== "default" && (
-        <div className="hw-card-target-line" title="Which enemy this unit's own attack goes for">
+        <div className="hw-card-target-line" title="Which enemy this hero's own attack goes for">
           <CardGlyph name="rune" className="hw-effect-icon-glyph" />
           Targets {TARGET_PROFILE_LABEL[targetProfile]}
         </div>

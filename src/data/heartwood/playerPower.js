@@ -58,9 +58,9 @@ const relicRank = (r) => (r?.tier === "rare" ? 3 : r?.tier === "uncommon" ? 2 : 
 
 const GAP_NOTE = {
   synergy: "no tribe is paying off yet",
-  item: "your units are carrying almost no kit",
+  item: "your heroes are carrying almost no kit",
   relic: "you're light on relics",
-  coherence: "strong units, but they don't reinforce each other",
+  coherence: "strong heroes, but they don't reinforce each other",
 }
 
 function benchInfo(runState, entry) {

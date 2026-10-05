@@ -57,7 +57,7 @@ export const BOSS_FIGHTS = {
       "^^..#.......",
     ],
     phases: [
-      { name: "The Guardian Wakes", text: "Root spikes erupt under your units every few turns - keep moving.", every: 3, firstAt: 2,
+      { name: "The Guardian Wakes", text: "Root spikes erupt under your heroes every few turns - keep moving.", every: 3, firstAt: 2,
         cycle: [{ kind: "quake", label: "Root Spikes", target: "players", shape: "single", max: 2, amount: 5 }] },
       { name: "Heartroots", atHpPct: 0.6, text: "Two Root Hearts shield the Rootkeeper - break them first. Roots rise to block lanes.",
         enter: { weakPoints: [{ name: "Root Heart", pos: P(0, 6), hpPct: 0.16 }, { name: "Root Heart", pos: P(8, 6), hpPct: 0.16 }] },
@@ -118,7 +118,7 @@ export const BOSS_FIGHTS = {
       "......#.....",
     ],
     phases: [
-      { name: "The Hammer Rises", text: "An anvil drops on the unit with the most allies around it - spread out.", every: 3, firstAt: 2,
+      { name: "The Hammer Rises", text: "An anvil drops on the hero with the most allies around it - spread out.", every: 3, firstAt: 2,
         cycle: [{ kind: "quake", label: "Anvil Drop", target: "players", shape: "3x3", max: 1, amount: 6 }] },
       { name: "Forge Heat", atHpPct: 0.5, text: "The yard melts from the edges inward. The Sentinel enrages soon - finish it.",
         enter: { enrageIn: 4, enrageAmount: 2 }, every: 2,
@@ -244,7 +244,7 @@ export const BOSS_FIGHTS = {
           { kind: "terrain", label: "Bridge Collapse", to: "water", waves: [[P(1, 6)], [P(7, 6)]] },
           { kind: "teleport", label: "Wyrm Dive", options: [P(2, 7), P(6, 7), P(4, 5)] },
         ] },
-      { name: "Veil Storm", atHpPct: 0.3, text: "The veil tears - storm strikes land around your units every turn. It enrages soon.",
+      { name: "Veil Storm", atHpPct: 0.3, text: "The veil tears - storm strikes land around your heroes every turn. It enrages soon.",
         enter: { enrageIn: 3, enrageAmount: 2 }, every: 1,
         cycle: [{ kind: "quake", label: "Veil Storm", target: "players", shape: "3x3", max: 2, amount: 5 }] },
     ],

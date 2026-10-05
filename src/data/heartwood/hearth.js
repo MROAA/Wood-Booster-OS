@@ -31,11 +31,11 @@ export const HEARTH_ROOMS = [
     name: "Barracks",
     icon: "🛏",
     blurb: "Room for your roster.",
-    base: "Holds 4 units.",
+    base: "Holds 4 heroes.",
     levels: [
-      { cost: 15, text: "Holds 6 units." },
-      { cost: 30, text: "Holds 8 units." },
-      { cost: 50, text: "Holds 10 units." },
+      { cost: 15, text: "Holds 6 heroes." },
+      { cost: 30, text: "Holds 8 heroes." },
+      { cost: 50, text: "Holds 10 heroes." },
     ],
   },
   {
@@ -54,9 +54,9 @@ export const HEARTH_ROOMS = [
     name: "Infirmary",
     icon: "🩹",
     blurb: "Rest and mend at home.",
-    base: "Wounded units stay wounded.",
+    base: "Wounded heroes stay wounded.",
     levels: [
-      { cost: 15, text: "Wounded units heal at home." },
+      { cost: 15, text: "Wounded heroes heal at home." },
       { cost: 35, text: "Also: veterans start runs at full HP." },
     ],
   },

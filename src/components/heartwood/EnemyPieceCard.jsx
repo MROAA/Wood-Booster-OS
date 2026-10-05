@@ -147,7 +147,7 @@ export default function EnemyPieceCard({
         </span>
       )}
       {summoned && !dead && (
-        <span className="hw-badge hw-summon-badge" title="Summoned - a bonus companion, not a recruited unit">
+        <span className="hw-badge hw-summon-badge" title="Summoned - a bonus companion, not a recruited hero">
           <CardGlyph name="wolf" className="hw-intent-glyph" /> Summoned
         </span>
       )}

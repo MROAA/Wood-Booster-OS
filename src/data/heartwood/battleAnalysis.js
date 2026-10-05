@@ -103,7 +103,7 @@ function weakAxes(build) {
 
 // evaluateBuild's first note is its biggest gap - unless it's one of the
 // two "nothing wrong / nothing deployed" fillers.
-const FILLER_NOTES = ["A rounded squad", "Place units"]
+const FILLER_NOTES = ["A rounded squad", "Place heroes"]
 function realNote(build) {
   const n = build?.notes?.[0]
   return n && !FILLER_NOTES.some((f) => n.startsWith(f)) ? n : null
@@ -136,7 +136,7 @@ function classifyLoss(ctx) {
         nodeFactor,
       ]),
       suggestions: [
-        "Add a dedicated DPS or an Execute-tag unit",
+        "Add a dedicated DPS or an Execute-tag hero",
         "Take a Power upgrade branch on your main attacker",
         "A damage relic to lift the whole squad's output",
       ],
@@ -172,7 +172,7 @@ function classifyLoss(ctx) {
       verdict: "lost-backline",
       headline: "The back line was picked apart while the front held.",
       factors: cap3([
-        outOfPlace >= 1 && `${outOfPlace} unit${outOfPlace > 1 ? "s" : ""} out of position`,
+        outOfPlace >= 1 && `${outOfPlace} hero${outOfPlace > 1 ? "s" : ""} out of position`,
         !ctx.hasTank && "No real front line to screen the back row",
         "The back row folded fast",
         nodeFactor,
@@ -208,7 +208,7 @@ function classifyLoss(ctx) {
   if (build && build.scores.synergy === 0 && build.deployedCount >= 3) {
     return {
       verdict: "lost-nosynergy",
-      headline: "Your units never clicked - no shared tribe, no combo.",
+      headline: "Your heroes never clicked - no shared tribe, no combo.",
       factors: cap3([
         "The squad spreads across too many tribes",
         build.core && `${build.core.name} had no tribe-mates`,
@@ -216,8 +216,8 @@ function classifyLoss(ctx) {
       ]),
       suggestions: [
         "Lean one tribe to its first synergy threshold",
-        "A Synergy upgrade branch to count a unit twice",
-        "Swap the odd unit out for one that shares a tribe",
+        "A Synergy upgrade branch to count a hero twice",
+        "Swap the odd hero out for one that shares a tribe",
       ],
     }
   }
