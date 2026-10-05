@@ -6,6 +6,7 @@
 // page set it); hand-built test states stay exact (no rolls).
 import { terrainAt, isHigh } from "./tacticsTerrain"
 import { deterministicRoll } from "./tacticsEngine"
+import { shotMods, smokeAt, consumeAim } from "./tacticsRanged"
 
 export const COVER = { NONE: 0, HALF: 1, FULL: 2, HUNKERED: 3 }
 export const COVER_NAME = ["No cover", "Half cover", "Full cover", "Full cover (hunkered)"]
@@ -62,7 +63,8 @@ export function facingSides(defPos, atkPos) {
 // step less. Hunkered: one step more (full becomes "hunkered full").
 export function coverAgainst(state, defPos, atkPos, { hunkered = false } = {}) {
   const sides = tileCoverSides(state, defPos)
-  const terrain = cheb(defPos, atkPos) <= 1 ? 0 : Math.max(0, ...facingSides(defPos, atkPos).map((d) => sides[d]))
+  // Ranged rework: smoke = half cover from every side vs ranged attacks.
+  const terrain = cheb(defPos, atkPos) <= 1 ? 0 : Math.max(smokeAt(state, defPos) ? 1 : 0, ...facingSides(defPos, atkPos).map((d) => sides[d]))
   let level = Math.min(3, terrain + (hunkered ? 1 : 0))
   if (isHigh(state, atkPos) && !isHigh(state, defPos)) level = Math.max(0, level - 1)
   return level
@@ -70,25 +72,32 @@ export function coverAgainst(state, defPos, atkPos, { hunkered = false } = {}) {
 
 // Has cover somewhere, but none toward this attacker = flanked.
 export function isFlanked(state, defPos, atkPos) {
-  if (cheb(defPos, atkPos) <= 1) return false
+  if (cheb(defPos, atkPos) <= 1 || smokeAt(state, defPos)) return false
   const sides = tileCoverSides(state, defPos)
   const any = Object.values(sides).some((v) => v > 0)
   return any && !facingSides(defPos, atkPos).some((d) => sides[d] > 0)
 }
 
 // Full hit-chance breakdown. `facing` = front/side/back (engine's facing).
-export function hitChance(state, attacker, defender, facing = "front", atkPos = attacker.pos) {
+// `shot` = a skill's shot rules (tacticsRanged.shotForSkill): aim bonus,
+// ignore cover. Aim / point blank / suppressed / marked: tacticsRanged.
+export function hitChance(state, attacker, defender, facing = "front", atkPos = attacker.pos, shot = null) {
   if (defender.structure) return { chance: 100, cover: 0, flanked: false, parts: [] }
   const dist = cheb(atkPos, defender.pos)
-  const cover = coverAgainst(state, defender.pos, atkPos, { hunkered: defender.hunkered > 0 })
+  const mods = shotMods(attacker, defender, dist, shot)
+  const rawCover = coverAgainst(state, defender.pos, atkPos, { hunkered: defender.hunkered > 0 })
+  const cover = mods.ignoreCover ? 0 : rawCover
   const high = isHigh(state, atkPos) && !isHigh(state, defender.pos)
-  const base = dist <= 1 ? BASE_HIT : BASE_HIT - RANGE_FALLOFF * Math.max(0, dist - 2)
-  const parts = [{ label: dist <= 1 ? "Melee" : `Range ${dist}`, value: base }]
+  const falloff = mods.noFalloff ? 0 : RANGE_FALLOFF * Math.max(0, dist - 2)
+  const base = dist <= 1 ? BASE_HIT : BASE_HIT - falloff
+  const parts = [{ label: dist <= 1 ? "Melee" : `Range ${dist}${mods.noFalloff && dist > 2 ? " (Deadeye: no loss)" : ""}`, value: base }]
   if (cover) parts.push({ label: COVER_NAME[cover], value: -COVER_HIT_PENALTY[cover] })
+  else if (rawCover && mods.coverLabel) parts.push({ label: mods.coverLabel, value: 0 })
   if (FACING_HIT_BONUS[facing]) parts.push({ label: facing === "back" ? "From behind" : "Side attack", value: FACING_HIT_BONUS[facing] })
   if (high) parts.push({ label: "High ground", value: HIGH_GROUND_HIT_BONUS })
+  parts.push(...mods.parts)
   const raw = parts.reduce((s, p) => s + p.value, 0)
-  return { chance: Math.max(MIN_HIT, Math.min(MAX_HIT, raw)), cover, flanked: isFlanked(state, defender.pos, atkPos), parts }
+  return { chance: Math.max(MIN_HIT, Math.min(MAX_HIT, raw)), cover, flanked: !mods.ignoreCover && isFlanked(state, defender.pos, atkPos), parts }
 }
 
 export function grazeAmount(amount) {
@@ -98,12 +107,14 @@ export function grazeAmount(amount) {
 // One deterministic roll. Returns { state (roll counter +1), graze, chance }.
 // Seeded by turn + attacker + target + a per-battle counter, so a preview
 // dry-run and the real resolution see the same result.
-export function rollHit(state, attacker, defender, facing = "front") {
-  if (!rollsOn(state) || defender.structure) return { state, graze: false, chance: null }
-  const { chance } = hitChance(state, attacker, defender, facing)
+export function rollHit(state, attacker, defender, facing = "front", shot = null) {
+  // Ranged rework: the shot spends the shooter's Aim either way.
+  const spent = consumeAim(state, attacker.id)
+  if (!rollsOn(state) || defender.structure) return { state: spent, graze: false, chance: null }
+  const { chance } = hitChance(state, attacker, defender, facing, attacker.pos, shot)
   const seq = state.rollSeq || 0
   const roll = deterministicRoll(state.turn || 1, `hit:${attacker.id}>${defender.id}#${seq}`)
-  return { state: { ...state, rollSeq: seq + 1 }, graze: roll * 100 >= chance, chance }
+  return { state: { ...spent, rollSeq: seq + 1 }, graze: roll * 100 >= chance, chance }
 }
 
 // " (72%)" / " (72%, GRAZE)" log suffix.

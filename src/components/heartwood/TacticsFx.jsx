@@ -81,12 +81,65 @@ function flashTiles(tiles, combo) {
   }
 }
 
+// Ranged rework: center of a board cell in viewport pixels.
+function cellCenter(pos) {
+  const board = document.querySelector(".hwt-board")
+  if (!board || !pos) return null
+  const cols = getComputedStyle(board).gridTemplateColumns.split(" ").length
+  const cell = board.children[pos.row * cols + pos.col]
+  if (!cell) return null
+  const r = cell.getBoundingClientRect()
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+}
+
+// Ranged rework shot visuals: "beam" (a line of light), "arc" / "smoke"
+// (a lobbed shell), "ricochet" / "suppress" / "shred" (fast tracers).
+function shotFx(ev) {
+  const a = cellCenter(ev.from)
+  const b = cellCenter(ev.to)
+  const flash = ev.fx === "smoke" ? "smoke" : ev.fx === "beam" ? "beam" : ev.fx === "arc" ? "blast" : "shot"
+  if (!a || !b || reduceMotion()) {
+    flashTiles(ev.tiles, flash)
+    return
+  }
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  const el = document.createElement("div")
+  el.className = `hwt-shot-fx hwt-shot-${ev.fx}`
+  el.style.left = `${a.x}px`
+  el.style.top = `${a.y}px`
+  document.body.appendChild(el)
+  let anim
+  if (ev.fx === "beam") {
+    el.style.width = `${Math.hypot(dx, dy)}px`
+    el.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`
+    anim = el.animate([{ opacity: 0, scale: "1 0.2" }, { opacity: 1, scale: "1 1", offset: 0.25 }, { opacity: 0, scale: "1 0.6" }], { duration: 520, easing: "ease-out" })
+  } else if (ev.fx === "arc" || ev.fx === "smoke") {
+    const lift = -Math.max(50, Math.hypot(dx, dy) * 0.45)
+    anim = el.animate(
+      [
+        { translate: "0 0", scale: "0.8" },
+        { translate: `${dx / 2}px ${dy / 2 + lift}px`, scale: "1.25" },
+        { translate: `${dx}px ${dy}px`, scale: "0.9" },
+      ],
+      { duration: 420, easing: "ease-in-out" },
+    )
+  } else {
+    const count = ev.fx === "suppress" ? 3 : 1
+    anim = el.animate([{ translate: "0 0", opacity: 1 }, { translate: `${dx}px ${dy}px`, opacity: 0.9 }], { duration: 220, easing: "ease-in", iterations: count })
+  }
+  anim.finished.finally(() => {
+    el.remove()
+    flashTiles(ev.tiles, flash)
+  })
+}
+
 // Groups events into beats: a strike/aoe/power opens a new beat, and
 // everything after it (its damage, reactions) belongs to that beat.
 function toBeats(events) {
   const beats = []
   for (const ev of events) {
-    if (ev.kind === "strike" || ev.kind === "aoe" || ev.kind === "power" || ev.kind === "bossPhase" || !beats.length) beats.push([ev])
+    if (ev.kind === "strike" || ev.kind === "aoe" || ev.kind === "power" || ev.kind === "bossPhase" || ev.kind === "shot" || !beats.length) beats.push([ev])
     else beats[beats.length - 1].push(ev)
   }
   return beats
@@ -127,7 +180,9 @@ export default function TacticsFx({ battle }) {
     beats.forEach((beat, i) => {
       const at = i * BEAT_MS
       for (const ev of beat) {
-        if (ev.kind === "strike") {
+        if (ev.kind === "shot") {
+          timers.push(setTimeout(() => { shotFx(ev); play(ev.fx === "beam" || ev.fx === "arc" ? "hitBig" : "hit", { gain: 0.6 }) }, at))
+        } else if (ev.kind === "strike") {
           timers.push(setTimeout(() => lunge(ev.actorId, ev.targetId, ev.ranged), at))
         } else if (ev.kind === "aoe") {
           timers.push(setTimeout(() => { shakeBoard(); play("hitBig") }, at))
