@@ -1245,6 +1245,8 @@ export function reachableTilesFor(state, unitId) {
   // Attacking is untouched (Root is movement-only, not a full stun -
   // this engine has no stun/status system at all yet).
   if (unit.root > 0) return []
+  // Melee rework: Bastion stance plants the hero.
+  if (unit.bastion > 0) return []
   const occupied = state.units.filter((u) => u.id !== unitId && u.hp > 0).map((u) => u.pos)
   return reachableTilesRaw(occupied, unit.pos, effectiveMove(unit), state.grid, moveStepCost(state, unit))
 }
@@ -1383,6 +1385,8 @@ export function dashMove(state, unitId, target) {
 export function overwatchAction(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0 || unit.ap < 1 || state.phase !== unit.side || !(unit.attack > 0) || unit.structure) return state
+  // Melee rework: an ENGAGED shooter (enemy melee next to it) can't watch.
+  if (ranged.isEngaged(state, unit)) return state
   const turns = unit.side === "player" ? 1 : 2
   const next = setUnit(state, unitId, { ap: 0, overwatch: Math.max(unit.overwatch || 0, turns), owRoot: !!unit.owRoot && unit.overwatch > 0, owAim: unit.overwatch > 0 ? unit.owAim || 0 : 0 })
   return emit({ ...next, log: [...next.log, `${unit.name} goes on Overwatch.`] }, { kind: "reaction", unitId, label: "On Watch" })
@@ -1429,7 +1433,7 @@ export function attackableTargets(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0) return []
   const inRange = state.units.filter(
-    (u) => u.side !== unit.side && u.hp > 0 && canReach(state, unit, unit.pos, u.pos),
+    (u) => u.side !== unit.side && u.hp > 0 && canReach(state, unit, unit.pos, u.pos) && !classFx.hiddenFrom(u, unit, unit.pos),
   )
   const taunters = livingTaunters(state, unit.side === "player" ? "enemy" : "player")
   return taunters.length ? inRange.filter((u) => isTaunting(state, u)) : inRange
@@ -1902,6 +1906,10 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   if (attacker.shatter > 0 && defender.block > 0) amount += attacker.shatter
   // Mana Overcharge: the skill being cast right now hits harder.
   if (attacker.surge > 0) amount += attacker.surge
+  // Resources step 2: ALL-IN scaling, breakpoint skill %, Empowered (x1.5).
+  if (attacker.castBonus > 0) amount += attacker.castBonus
+  if (attacker.castPct > 0 && amount > 0) amount += Math.max(1, Math.round((amount * attacker.castPct) / 100))
+  if (attacker.empowered && amount > 0) amount = Math.round(amount * manaFx.EMPOWER_MULT)
   return relicFx.dampenedAmount(attacker, classFx.classDamageMod(attacker, defender, amount, facing))
 }
 
@@ -1931,6 +1939,8 @@ function applyDamageWithBlock(state, targetId, amount) {
     const warded = after && (after.ward || 0) < (before.ward || 0) ? amount : 0
     const blocked = (res.absorbed || 0) + (res.armourUsed || 0) + warded
     if (blocked > 0) res = { ...res, next: manaFx.onBlocked(res.next, targetId, blocked) }
+    // Resources step 2: pain builds Rage/Fury, wounds feed Blood, deaths feed Souls.
+    res = { ...res, next: manaFx.onDamaged(res.next, targetId, res.remaining || 0) }
   }
   return state.boss ? { ...res, next: bossAfterDamage(res.next, targetId) } : res
 }
@@ -2263,6 +2273,8 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   let target = getUnit(state, targetId)
   if (!actor || !target || actor.hp <= 0 || target.hp <= 0) return state
   if (actor.side === target.side) return state
+  // Melee rework: Vanish - ranged attackers beyond 2 tiles can't see it.
+  if (classFx.hiddenFrom(target, actor, actor.pos)) return state
   // Zone of Control round: a reaction attack (opts.isReaction) skips
   // every gate that only makes sense for a NORMAL action - it costs no
   // AP, fires during the OTHER side's own move/phase, and by
@@ -2350,8 +2362,10 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     const targetShare = rawAmount - guardianShare
     const targetHit = applyDamageWithBlock(next, targetId, targetShare)
     next = guardian.classGuard
-      ? emit(targetHit.next, { kind: "reaction", unitId: guardian.id, label: "Guard!" })
+      ? emit(guardian.intercept ? setUnit(targetHit.next, guardian.id, { interceptUsed: true }) : targetHit.next, { kind: "reaction", unitId: guardian.id, label: guardian.intercept ? "Intercept!" : "Guard!" })
       : emit(setUnit(targetHit.next, guardian.id, { ap: guardian.ap - 1 }), { kind: "reaction", unitId: guardian.id, label: "Intercept!" })
+    // Resources step 2: taking a blow for an ally builds Holy Power.
+    next = manaFx.onGuard(next, guardian.id)
     const guardianHit = applyDamageWithBlock(next, guardian.id, guardianShare)
     next = guardianHit.next
     extraVictims.push({ id: guardian.id, remaining: guardianHit.remaining })
@@ -2474,7 +2488,7 @@ export function castAbility(state, actorId, targetId, skillId) {
   const primed = manaFx.primeSurge(state, actorId, skill)
   const out = castAbilityCore(primed, actorId, targetId, skillId)
   if (out === primed) return state
-  return manaFx.afterSkillCast(out, actorId, targetId, skill, primed.eventSeq || 0)
+  return manaFx.afterSkillCast(out, actorId, targetId, skill, primed.eventSeq || 0, primed)
 }
 
 function castAbilityCore(state, actorId, targetId, skillId) {
@@ -3057,9 +3071,12 @@ function isCautiousEnemy(unit) {
 
 // Mirrors attackableTargets' Taunt filter for a hypothetical tile.
 function aiTargetsFrom(state, enemy, pos) {
-  const pool = livingUnits(state, "player").filter((u) => canReach(state, enemy, pos, u.pos))
+  // Melee rework: a Vanished hero can't be picked out by ranged beyond 2 tiles.
+  const pool = livingUnits(state, "player").filter((u) => canReach(state, enemy, pos, u.pos) && !classFx.hiddenFrom(u, enemy, pos))
   const taunters = livingTaunters(state, "player")
-  return classFx.filterEnemyTargets(state, enemy, taunters.length ? pool.filter((u) => u.taunt > 0) : pool)
+  // Melee rework: a Taunt Shout (shoutTurn) taunts too (was `u.taunt > 0`
+  // only, which left a shouting hero's foes with NO valid target at all).
+  return classFx.filterEnemyTargets(state, enemy, taunters.length ? pool.filter((u) => isTaunting(state, u)) : pool)
 }
 
 // Rough damage after Ward/Block/Bulwark - the same modifier chain a real hit uses.
@@ -3182,12 +3199,17 @@ function aiExposure(state, pos) {
   return livingUnits(state, "player").filter((u) => chebyshevDist(u.pos, pos) <= effectiveMove(u) + u.range).length
 }
 
+// Melee rework: per enemy shooter an enemy melee tile would engage.
+const AI_ENGAGE_BONUS = 4
+
 // Positional part of an option's score; null = never go there.
 function aiTileScore(state, enemy, pos, outcome) {
   if (outcome.reactionDmg >= enemy.hp) return null
   let score = -outcome.hazard - outcome.reactionDmg * 3
   if (!samePos(pos, enemy.pos)) score -= 1
   if (enemy.range > 1) score -= 25 * aiAdjacentPlayerMelee(state, pos).length
+  // Melee rework: enemy melee like ENGAGING your shooters (no Aim/Overwatch for them).
+  else if (enemy.attack > 0) score += AI_ENGAGE_BONUS * livingUnits(state, "player").filter((u) => u.range > 1 && !u.structure && chebyshevDist(u.pos, pos) <= 1).length
   // Wanderers keep off your melee; the Corrupted like standing on Blight.
   if (enemy.skirmisher) score -= 8 * aiAdjacentPlayerMelee(state, pos).length
   if (enemy.faction === "corrupted" && isBlighted(state, pos)) score += 6
@@ -3323,6 +3345,9 @@ function pounceLanding(state, actor, target) {
 function aiSkillOptions(state, enemy, pos, tileScore) {
   const options = []
   const players = livingUnits(state, "player")
+  // Melee rework: Vanished heroes hide from far casters; Provoke forces the target.
+  const forced = classFx.forcedTargetOf(state, enemy)
+  const foes = players.filter((t) => !classFx.hiddenFrom(t, enemy, pos) && (!forced || t.id === forced.id))
   for (const skill of enemySkillsFor(enemy)) {
     if (!skillReady(enemy, skill)) continue
     const kindDef = ENEMY_SKILL_KINDS[skill.kind]
@@ -3348,7 +3373,7 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
         options.push({ score, intent: { ...base, targetId: ally.id, amount: skill.amount } })
       }
     } else if (skill.kind === "hex") {
-      for (const t of players) {
+      for (const t of foes) {
         if (chebyshevDist(pos, t.pos) > kindDef.range) continue
         if (skill.status === "chill" ? t.frozen > 0 : skill.status === "poison" ? (t.poison || 0) >= skill.amount : (t[skill.status] || 0) > 0) continue
         const score = AI_ATTACK_BASE + 35 + tileScore + 0.5 * aiTargetValue(t) + elements.comboScoreForStatus(t, skill.status)
@@ -3372,8 +3397,8 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
     } else if (skill.kind === "drain") {
       // Mana: steal from the hero with the most to lose - a big bonus
       // for one close to its ultimate (the Commander near a full bar).
-      for (const t of players) {
-        if (!manaFx.hasMana(t) || chebyshevDist(pos, t.pos) > kindDef.range) continue
+      for (const t of foes) {
+        if (!manaFx.drainableUnit(t) || chebyshevDist(pos, t.pos) > kindDef.range) continue
         const pool = t.mana + (t.overcharge || 0)
         if (pool < 10) continue
         const fill = t.mana / t.manaMax
@@ -3384,7 +3409,7 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
     } else if (skill.kind === "suppress" || skill.kind === "spot" || skill.kind === "volley") {
       // Ranged rework: pin a dangerous shooter / spot a hero hiding in
       // cover / lob a shot over cover when a straight shot would graze.
-      for (const t of players) {
+      for (const t of foes) {
         if (t.structure || chebyshevDist(pos, t.pos) > kindDef.range) continue
         const value = aiTargetValue(t, enemy)
         if (skill.kind === "suppress") {
@@ -3483,11 +3508,9 @@ function applyEnemySkill(state, enemyId, intent) {
   if (skill.kind === "slam" && intent.phase === "release") return applySlamRelease(next, enemyId, intent, skill)
   // Mana: pay for the skill; stored Overcharge rides on it as `surge`.
   const surge = SURGE_KINDS.has(skill.kind) ? manaFx.surgeFor(actor) : 0
-  const paid = (s) =>
-    manaFx.hasMana(actor) && manaFx.manaCostOf(skill) > 0
-      ? setUnit(s, enemyId, { mana: Math.max(0, actor.mana - manaFx.manaCostOf(skill)), ...(surge ? { overcharge: 0 } : {}) })
-      : s
-  const boost = manaFx.hasMana(actor) && manaFx.manaCostOf(skill) > 0 ? surge : 0
+  const price = manaFx.manaCostOf(skill, actor)
+  const paid = (s) => (manaFx.hasMana(actor) && price > 0 ? setUnit(s, enemyId, { mana: Math.max(0, actor.mana - price), ...(surge ? { overcharge: 0 } : {}) }) : s)
+  const boost = manaFx.hasMana(actor) && price > 0 ? surge : 0
   if (skill.kind === "pounce") {
     const target = getUnit(next, intent.targetId)
     if (!target || target.hp <= 0 || actor.ap < 2) return next
@@ -3683,7 +3706,9 @@ function decideEnemyIntent(state, enemyId) {
   const players = livingUnits(state, "player")
   if (!players.length) return { kind: "hold" }
   const taunters = livingTaunters(state, "player")
-  const focusPool = taunters.length ? taunters : players
+  // Melee rework: a Provoked / Challenged enemy walks toward its tank.
+  const forced = classFx.forcedTargetOf(state, enemy)
+  const focusPool = forced ? [forced] : taunters.length ? taunters : players
   // Who to walk toward when no hit is possible this turn.
   const focus = focusPool.reduce(
     (best, t) => {
@@ -3756,7 +3781,7 @@ function decideEnemyIntent(state, enemyId) {
   }
   // XCOM part 1: a ranged enemy with no shot this turn, and the squad close
   // enough to step into its reach, holds its ground on Overwatch instead.
-  if ((best.intent.kind === "move" || best.intent.kind === "hold") && enemy.range > 1 && enemy.ap >= 1 && !enemy.skirmisher && !(enemy.silenced > 0)) {
+  if ((best.intent.kind === "move" || best.intent.kind === "hold") && enemy.range > 1 && enemy.ap >= 1 && !enemy.skirmisher && !(enemy.silenced > 0) && !ranged.isEngaged(state, enemy)) {
     const closing = players.some((p) => !p.structure && chebyshevDist(enemy.pos, p.pos) <= effectiveMove(p) + enemy.range)
     if (closing) return { kind: "overwatch" }
   }
