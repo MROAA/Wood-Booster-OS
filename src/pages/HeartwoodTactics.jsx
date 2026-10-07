@@ -44,7 +44,10 @@ function maybeDebugLowHp(base, showcase = false) {
   const params = new URLSearchParams(window.location.search)
   const flat = params.get("debugLowHp") === "1" ? withLowEnemyHp(base) : base
   // Destructibles: `?objects=1` (or the picker button) loads the objects showcase map.
-  const battle = showcase ? withObjectShowcase(flat) : flat
+  const shown = showcase ? withObjectShowcase(flat) : flat
+  // QA-only: `?front=1` brings every enemy 2 tiles in front of the squad
+  // (melee / taunt testing without walking over first).
+  const battle = params.get("front") === "1" ? withEnemiesInFront(shown) : shown
   // `?deploy=1` opens the prototype in the deployment phase (the real
   // game always does); off by default so the prototype stays instant.
   // XCOM part 2: hit rolls (cover + graze) on; `?rolls=0` turns them off (QA).
@@ -58,6 +61,20 @@ function maybeDebugLowHp(base, showcase = false) {
       ? { ...manaOn, units: manaOn.units.map((u) => (u.side === "player" && typeof u.mana === "number" ? { ...u, mana: Math.min(u.manaMax, Number(manaStart) || 0) } : u)) }
       : manaOn
   return params.get("deploy") === "1" ? enterDeploy(rolled) : rolled
+}
+
+function withEnemiesInFront(state) {
+  const heroCol = Math.min(...state.units.filter((u) => u.side === "player" && u.hp > 0).map((u) => u.pos.col))
+  const col = Math.max(0, heroCol - 2)
+  const taken = new Set(state.units.filter((u) => u.side === "player").map((u) => `${u.pos.row}-${u.pos.col}`))
+  const units = state.units.map((u) => {
+    if (u.side !== "enemy" || u.hp <= 0) return u
+    let row = u.pos.row
+    while (taken.has(`${row}-${col}`) && row < state.grid.rows - 1) row++
+    taken.add(`${row}-${col}`)
+    return { ...u, pos: { row, col } }
+  })
+  return { ...state, units }
 }
 
 // Battle objectives: the prototype can try each one (Act I numbers);
