@@ -924,6 +924,34 @@ export const RELICS = {
     effects: [],
     mana: { startOvercharge: 15, pool: 10 },
   },
+  // Resources step 2 (PRD §56): resource relics.
+  "mana-crystal": {
+    id: "mana-crystal",
+    image: essenceWellImg,
+    name: "Mana Crystal",
+    icon: "cosmic",
+    description: "Every hero with a resource BAR (mana, Rage, Focus, Nature...) has +20 max. Pips, Souls and reagents are unchanged.",
+    effects: [],
+    mana: { pool: 20 },
+  },
+  "blood-chalice": {
+    id: "blood-chalice",
+    image: aegisWardImg,
+    name: "Blood Chalice",
+    icon: "rune",
+    description: "Pain becomes power: every hero with a resource bar gains 1 for each HP it loses. Sacrifice gives +10 more Blood.",
+    effects: [],
+    mana: { bloodChalice: 1 },
+  },
+  "soul-lantern": {
+    id: "soul-lantern",
+    image: fangsMarkImg,
+    name: "Soul Lantern",
+    icon: "leaf",
+    description: "Every enemy that falls within 4 tiles of a hero gives that hero +5 of its resource (small pools like Souls and pips: +1-2).",
+    effects: [],
+    mana: { soulLantern: 1 },
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
@@ -1000,7 +1028,7 @@ const UNCOMMON_RELICS = [
   "heartwood-bloom", "emberbrand", "starlit-crown",
   // Elemental squad relics (single-mechanic, unconditional):
   "emberveil-charm", "stoneblood-totem",
-  "wellspring-stone",
+  "wellspring-stone", "mana-crystal", "soul-lantern",
 ]
 // Everything NOT listed above (every dual-mechanic combo from
 // quarry-vanguard down, plus essence-well/artificers-ledger/
