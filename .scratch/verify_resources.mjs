@@ -408,6 +408,7 @@ out.errors.push(...engine.fails)
   const classSelects = await page.locator('[data-testid="class-assign"] select').count()
   await page.locator('[data-testid="class-assign-toggle"]').click()
   await page.locator('[data-testid="resource-advanced-toggle"]').click()
+  await page.locator('[data-testid="resource-title"]').scrollIntoViewIfNeeded()
   await page.screenshot({ path: `${SHOT_DIR}/resources_studio.png` })
   out.studio = { title, hasHit, advBefore, advAfter, previewEnabled, classSelects }
   if (!/Rage/.test(title) || hasHit !== 1 || advBefore !== 0 || advAfter !== 1 || !previewEnabled || classSelects !== 38) out.errors.push("Studio: Resource Editor view")

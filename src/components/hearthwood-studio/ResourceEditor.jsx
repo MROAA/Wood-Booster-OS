@@ -46,6 +46,16 @@ const BP_KEYS = [
   ["cheaper", "% cheaper"],
 ]
 
+const BP_SAY = {
+  dmg: (v) => `+${v} damage`,
+  aim: (v) => `+${v}% to hit`,
+  heal: (v) => `+${v} healing`,
+  guard: (v) => `takes ${v} less`,
+  taken: (v) => `takes ${v} more`,
+  skillPct: (v) => `skills +${v}%`,
+  cheaper: (v) => `skills ${v}% cheaper`,
+}
+
 function usedBy(resId) {
   return Object.values(CLASSES).filter((c) => (c.resource || "arcane") === resId).map((c) => c.name)
 }
@@ -181,7 +191,7 @@ function ResourceEditor({ onApplied, onPreviewUrlChange }) {
             <div key={b.at} className="rounded-lg border border-[var(--wood-border)] p-2">
               <div className="mb-1 text-xs text-[var(--wood-text)]">
                 At {b.at}%:{" "}
-                {BP_KEYS.filter(([k]) => b[k]).map(([k, word]) => `${b[k]} ${word}`).join(", ") || (b.empower ? "the next skill is Empowered (+50%)" : b.berserk ? "Berserk" : b.grand ? "Grand Curse" : b.storm ? "the Storm" : "-")}
+                {BP_KEYS.filter(([k]) => b[k]).map(([k]) => BP_SAY[k](b[k])).join(", ") || (b.empower ? "the next skill is Empowered (+50%)" : b.berserk ? "Berserk" : b.grand ? "Grand Curse" : b.storm ? "the Storm" : "-")}
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <Field testId={`bp.${i}.name`} label="Name" kind="text" value={valueOf(`bp.${i}.name`)} changed={changedKeys.includes(`bp.${i}.name`)} onChange={(v) => setDraft((d) => ({ ...d, [`bp.${i}.name`]: v }))} />
