@@ -386,6 +386,7 @@ out.errors.push(...engine.fails)
   out.ui.gems = gems
   if (!/Fury/.test(info) || !/25%/.test(info) || !/Blood Frenzy/.test(info)) out.errors.push("UI: resource panel (name, steps, rules)")
   if (!gems.some((g) => /ALL-IN 20\+ Fury/.test(g)) || !gems.some((g) => /free/.test(g))) out.errors.push(`UI: skill costs in Fury (${gems})`)
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.screenshot({ path: `${SHOT_DIR}/resources_gauges.png` })
   // Gain callout in the resource's own name ("+15 Fury").
   await page.goto(`http://localhost:${PORT}/heartwood-tactics?rolls=0&squad=strength,swiftclaw,knights-leap,hexmother&debugLowHp=0`, { waitUntil: "domcontentloaded" })

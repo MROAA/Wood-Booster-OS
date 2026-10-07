@@ -278,6 +278,7 @@ out.errors.push(...engine.fails)
   out.ui = { enabled, badges, intents }
   if (!enabled || badges < 1) out.errors.push("UI: Provoke button + Provoked badges")
   if (!intents.some((t) => /Grovewarden|Bulwark|Ironwood|Ages/i.test(t || "")) && !intents.length) out.errors.push("UI: enemy intents shown")
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.screenshot({ path: `${SHOT_DIR}/melee_taunt.png` })
 }
 
