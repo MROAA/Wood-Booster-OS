@@ -54,19 +54,34 @@ import {
   attackPreview,
 } from "../../services/heartwood/tacticsEngine"
 import { BATTLE_ROLES, roleOf, healReach } from "../../services/heartwood/tacticsRoles"
-import { canAfford, hasMana, manaCostOf, manaBlockReason, manaSummary, manaRole, MANA_ROLE_LABEL, potionOf, drinkPotion, POTION_AP, ultimateReady, surgeFor } from "../../services/heartwood/tacticsMana"
+import { canAfford, hasMana, manaBlockReason, manaSummary, potionOf, drinkPotion, POTION_AP, ultimateReady, surgeFor, skillCostText, resourceLabel, profileOf, canSacrifice, sacrifice, sacrificeCost, scaleAmount } from "../../services/heartwood/tacticsMana"
+import { ResourceGauge, ResourceInfo } from "./TacticsResourceUi"
+import { isEngaged } from "../../services/heartwood/tacticsRanged"
 
-// Mana step 1: thin blue bar (+ brighter Overcharge cap) under the HP bar.
-function ManaBar({ unit, className = "hwt-mana-track" }) {
-  if (!hasMana(unit)) return null
-  const pct = Math.max(0, Math.min(100, Math.round((unit.mana / unit.manaMax) * 100)))
-  const over = Math.max(0, Math.min(50, Math.round(((unit.overcharge || 0) / unit.manaMax) * 100)))
+// Melee rework: small status badges (Provoked, Vanished, Bastion, Shield Wall, Engaged, Berserk).
+function MeleeBadges({ unit, battle }) {
+  const marks = []
+  if (unit.provoked > 0) marks.push(["provoked", "⚑", "Provoked - must attack the hero that taunted it"])
+  if (unit.stealth > 0) marks.push(["stealth", "◐", "Vanished - shooters more than 2 tiles away can't target it"])
+  if (unit.bastion > 0) marks.push(["bastion", "⛫", "Bastion - takes half damage, can't move"])
+  if (unit.shieldWall > 0) marks.push(["shieldwall", "▦", "Shield Wall - allies right behind it have half cover"])
+  if (unit.berserk > 0) marks.push(["berserk", "♨", "BERSERK - +50% damage"])
+  if (isEngaged(battle, unit)) marks.push(["engaged", "⚔", "Engaged - an enemy fighter is next to this shooter: no Aim, no Overwatch"])
+  if (!marks.length) return null
   return (
-    <div className={className} data-full={unit.mana >= unit.manaMax || undefined} data-over={over > 0 || undefined} title={manaSummary(unit)}>
-      <div className="hwt-mana-fill" style={{ width: `${pct}%` }} />
-      {over > 0 && <div className="hwt-mana-over" style={{ width: `${over}%` }} />}
-    </div>
+    <span className="hwt-melee-badges">
+      {marks.map(([k, icon, title]) => (
+        <span key={k} className="hwt-melee-badge" data-mark={k} title={title}>
+          {icon}
+        </span>
+      ))}
+    </span>
   )
+}
+
+// Resources step 2: the class resource gauge (styled per profile) under the HP bar.
+function ManaBar({ unit, battle = null, className = "hwt-mana-track" }) {
+  return <ResourceGauge unit={unit} battle={battle} className={className} />
 }
 import { rollsOn, coverAgainst, isFlanked, tileCoverSides, COVER_NAME } from "../../services/heartwood/tacticsCover"
 import { motion } from "framer-motion"
@@ -169,7 +184,7 @@ const cellCenter = (p) => ({ x: p.col * (CELL + GAP) + CELL / 2, y: p.row * (CEL
 
 function roleTitle(unit) {
   const r = BATTLE_ROLES[roleOf(unit)]
-  return `${unit.name} - ${r.label}: ${r.what}${hasMana(unit) ? ` · ${manaSummary(unit)}` : ""}`
+  return `${unit.name} - ${r.label}: ${r.what}${hasMana(unit) ? ` · ${manaSummary(unit)}` : ""}${unit.provoked > 0 ? " · PROVOKED: must attack its tank" : ""}${unit.stealth > 0 ? " · VANISHED: far shooters can't see it" : ""}${unit.bastion > 0 ? " · BASTION: half damage, can't move" : ""}${unit.shieldWall > 0 ? " · SHIELD WALL: allies behind it have half cover" : ""}`
 }
 
 // A tank that actively shields others (Taunt / Guard / Intercept kit).
@@ -323,7 +338,7 @@ function SquadBar({ battle, selectedId, onSelect }) {
               </span>
               {hasMana(u) && (
                 <span className="hwt-sb-mana" title={manaSummary(u)}>
-                  <ManaBar unit={u} className="hwt-sb-mana-track" />
+                  <ManaBar unit={u} battle={battle} className="hwt-sb-mana-track" />
                   <span className="hwt-sb-mana-num">
                     {u.mana}
                     {u.overcharge > 0 ? `+${u.overcharge}` : ""}/{u.manaMax}
@@ -1267,7 +1282,8 @@ export default function TacticsBoard({
               <div className="hwt-hp-track">
                 <div className="hwt-hp-fill" style={{ width: `${Math.max(0, Math.round((unit.hp / unit.maxHp) * 100))}%` }} />
               </div>
-              <ManaBar unit={unit} />
+              <ManaBar unit={unit} battle={battle} />
+              <MeleeBadges unit={unit} battle={battle} />
               <span
                 className="hwt-atk-gem"
                 data-buffed={unit.attack > unit.baseAttack}
@@ -1371,13 +1387,13 @@ export default function TacticsBoard({
                     ◎ {rangeAt(battle, selected)}
                   </span>
                   {hasMana(selected) && (
-                    <span data-stat="mana" title={`${manaSummary(selected)}. ${MANA_ROLE_LABEL[manaRole(selected)]}.${selected.overcharge > 0 ? ` Overcharge: the next skill gets +${surgeFor(selected)}.` : ""}`}>
-                      ✦ {selected.mana}/{selected.manaMax}
+                    <span data-stat="mana" data-res={profileOf(selected).id} title={`${manaSummary(selected, battle)}. ${profileOf(selected).text}${selected.overcharge > 0 ? ` Overcharge: the next skill gets +${surgeFor(selected)}.` : ""}`}>
+                      {profileOf(selected).icon} {selected.mana}/{selected.manaMax}
                       {selected.overcharge > 0 && <b className="hwt-stat-over"> +{selected.overcharge}</b>}
                     </span>
                   )}
                 </span>
-                {hasMana(selected) && <ManaBar unit={selected} className="hwt-selected-mana" />}
+                {hasMana(selected) && <ResourceInfo unit={selected} battle={battle} />}
               </div>
             </div>
           )}
@@ -1410,9 +1426,10 @@ export default function TacticsBoard({
                 className="hwt-universal-btn"
                 data-action="overwatch"
                 data-active={selected.overwatch > 0 || undefined}
-                disabled={selected.ap < 1 || !(selected.attack > 0)}
+                disabled={selected.ap < 1 || !(selected.attack > 0) || isEngaged(battle, selected)}
+                data-engaged={isEngaged(battle, selected) || undefined}
                 onClick={() => handleUniversal("overwatch")}
-                title={`Overwatch (ends this hero's turn): shoot the first enemy that ends a move within ${selected.range > 1 ? `${rangeAt(battle, selected)} tiles` : "reach (adjacent tiles)"}, with its normal attack.`}
+                title={`${isEngaged(battle, selected) ? "ENGAGED - an enemy fighter is right next to this hero: no Overwatch or Aim until it gets clear. " : ""}Overwatch (ends this hero's turn): shoot the first enemy that ends a move within ${selected.range > 1 ? `${rangeAt(battle, selected)} tiles` : "reach (adjacent tiles)"}, with its normal attack.`}
               >
                 <span className="hwt-universal-icon">👁</span> Overwatch
               </button>
@@ -1437,10 +1454,10 @@ export default function TacticsBoard({
                   data-no-mana={!!manaBlockReason(selected, sk) || undefined}
                   disabled={!classSkillUsable(battle, selected, sk) || (sk.id === "aim" && selected.aimed > 0)}
                   onClick={() => handleSkillClick(sk)}
-                  title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${manaCostOf(sk)} mana` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough mana: ${manaBlockReason(selected, sk)}.` : ""} Every ranged hero has this.`}
+                  title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${skillCostText(selected, sk)}` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough ${resourceLabel(selected)}: ${manaBlockReason(selected, sk)}.` : ""}${sk.id === "aim" && isEngaged(battle, selected) ? "\nENGAGED - an enemy fighter is next to it: no Aim." : ""} Every ranged hero has this.`}
                 >
                   <span className="hwt-universal-icon">{sk.icon}</span> {sk.name}
-                  <small className="hwt-universal-cost">{classSkillStatus(selected, sk)}{hasMana(selected) ? ` · ${manaCostOf(sk)} mana` : ""}</small>
+                  <small className="hwt-universal-cost">{classSkillStatus(selected, sk)}{hasMana(selected) ? ` · ${skillCostText(selected, sk)}` : ""}</small>
                 </button>
               ))}
               {potionOf(selected) && (
@@ -1450,9 +1467,22 @@ export default function TacticsBoard({
                   data-action="potion"
                   disabled={selected.ap < POTION_AP}
                   onClick={handlePotion}
-                  title={`${potionOf(selected).name} (${POTION_AP} AP): restore ${potionOf(selected).mana.restore} mana - extra spills into Overcharge. Used up once drunk.`}
+                  title={`${potionOf(selected).name} (${POTION_AP} AP): restore ${scaleAmount(selected, potionOf(selected).mana.restore)} ${resourceLabel(selected)} - extra spills into Overcharge. Used up once drunk.`}
                 >
-                  <span className="hwt-universal-icon">⚗</span> Drink +{potionOf(selected).mana.restore} mana
+                  <span className="hwt-universal-icon">⚗</span> Drink +{scaleAmount(selected, potionOf(selected).mana.restore)} {resourceLabel(selected)}
+                </button>
+              )}
+              {hasMana(selected) && profileOf(selected).special === "sacrifice" && (
+                <button
+                  type="button"
+                  className="hwt-universal-btn"
+                  data-action="sacrifice"
+                  disabled={!canSacrifice(battle, selected.id)}
+                  onClick={() => onBattleChange(sacrifice(battle, selected.id))}
+                  title={`Sacrifice (free, once a turn): pay ${sacrificeCost(selected)} HP for +${profileOf(selected).sacrificeGain} Blood.`}
+                >
+                  <span className="hwt-universal-icon">🩸</span> Sacrifice
+                  <small className="hwt-universal-cost">-{sacrificeCost(selected)} HP · +{profileOf(selected).sacrificeGain} Blood</small>
                 </button>
               )}
             </div>
@@ -1485,8 +1515,8 @@ export default function TacticsBoard({
                 ? full
                   ? commander.ap < 1
                     ? "Your Commander needs 1 AP"
-                    : `Ultimate ready · spends all ${commander.manaMax} mana + 1 AP`
-                  : `Ultimate · needs a full mana bar (${commander.mana}/${commander.manaMax})${power.timesFired ? ` · used ${power.timesFired}x` : ""}`
+                    : `Ultimate ready · spends all ${commander.manaMax} ${resourceLabel(commander)} + 1 AP`
+                  : `Ultimate · needs a full ${profileOf(commander).name} bar (${commander.mana}/${commander.manaMax})${power.timesFired ? ` · used ${power.timesFired}x` : ""}`
                 : power.used
                   ? "Used this battle"
                   : commander.ap < 1
@@ -1497,7 +1527,7 @@ export default function TacticsBoard({
                 <button className="hwt-power-btn" disabled={!ready} onClick={handleActivePower} title={ultimate ? `${power.description} Mana ultimate: needs a full bar and spends all of it; refill to use again.` : power.description}>
                   <span className="hwt-power-crown">♛</span> {power.name}
                 </button>
-                {ultimate && commander && <ManaBar unit={commander} className="hwt-power-mana" />}
+                {ultimate && commander && <ManaBar unit={commander} battle={battle} className="hwt-power-mana" />}
                 <p className="hwt-power-desc">{power.description}</p>
                 <p className="hwt-power-status">{status}</p>
               </div>
@@ -1532,7 +1562,7 @@ export default function TacticsBoard({
                       data-no-mana={!!manaBlockReason(selected, sk) || undefined}
                       disabled={!ready}
                       onClick={() => handleSkillClick(sk)}
-                      title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${manaCostOf(sk)} mana` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough mana: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
+                      title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${skillCostText(selected, sk)}` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough ${resourceLabel(selected)}: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
                     >
                       <span className="hwt-skill-icon">{sk.icon}</span>
                       <span className="hwt-skill-name">{sk.name}</span>
@@ -1543,8 +1573,8 @@ export default function TacticsBoard({
                       )}
                       <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>
                       {hasMana(selected) && (
-                        <span className="hwt-skill-mana" data-short={selected.mana < manaCostOf(sk) || undefined} title={`${manaCostOf(sk)} mana`}>
-                          {manaCostOf(sk)} mana
+                        <span className="hwt-skill-mana" data-res={profileOf(selected).id} data-mode={sk.spend || undefined} data-short={!!manaBlockReason(selected, sk) || undefined} title={skillCostText(selected, sk)}>
+                          {skillCostText(selected, sk)}
                         </span>
                       )}
                       {hitPreview && hitPreview.rolls && sk.target === "enemy" && (
@@ -1569,14 +1599,14 @@ export default function TacticsBoard({
                 data-no-mana={!!manaBlockReason(selected, selected.ability) || undefined}
                 disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0 || !canAfford(selected, selected.ability)}
                 onClick={handleAbilityClick}
-                title={`${describeAbility(selected.ability)}${hasMana(selected) ? ` Costs ${selected.ability.cost} AP + ${manaCostOf(selected.ability)} mana.` : ""}${manaBlockReason(selected, selected.ability) ? ` Not enough mana: ${manaBlockReason(selected, selected.ability)}.` : ""}`}
+                title={`${describeAbility(selected.ability)}${hasMana(selected) ? ` Costs ${selected.ability.cost} AP + ${skillCostText(selected, selected.ability)}.` : ""}${manaBlockReason(selected, selected.ability) ? ` Not enough ${resourceLabel(selected)}: ${manaBlockReason(selected, selected.ability)}.` : ""}`}
               >
                 {selected.ability.upgrade ? "★ " : ""}
                 {selected.cooldownRemaining > 0
                   ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
                   : manaBlockReason(selected, selected.ability)
-                    ? `${selected.ability.name} · Needs ${manaCostOf(selected.ability)} mana`
-                    : `${selected.ability.name} · ${selected.ability.cost} AP${hasMana(selected) ? ` · ${manaCostOf(selected.ability)} mana` : ""}`}
+                    ? `${selected.ability.name} · ${manaBlockReason(selected, selected.ability).replace(/ \(has \d+\)$/, "")}`
+                    : `${selected.ability.name} · ${selected.ability.cost} AP${hasMana(selected) ? ` · ${skillCostText(selected, selected.ability)}` : ""}`}
                 {selected.ability.upgrade && <span className="hwt-skill-upgrade"> {selected.ability.upgrade.name}</span>}
                 {hitPreview && hitPreview.rolls && abilityTargetSide(selected.ability) === "enemy" && <span className="hwt-skill-hit"> {hitPreview.chance}%</span>}
               </button>
