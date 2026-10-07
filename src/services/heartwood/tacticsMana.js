@@ -567,7 +567,11 @@ export function afterSkillCast(state, actorId, targetId, skill, seqBefore, befor
       if (lost) next = addLog(next, `${before.name} steals ${lost} ${resourceLabel(had)} from ${target.name}.`)
     }
   }
-  return castGains(next, actorId, target, skill, seqBefore, before0)
+  next = castGains(next, actorId, target, skill, seqBefore, before0)
+  // Spirit: a new summon's reserve takes its room right away.
+  const live = getUnit(next, actorId)
+  if (live && prof.special === "reserve" && live.mana > capFor(next, live)) next = setUnit(next, actorId, { mana: capFor(next, live) })
+  return next
 }
 
 // The profile's cast gains.
