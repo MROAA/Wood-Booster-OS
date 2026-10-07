@@ -19,6 +19,7 @@ import LivePreviewPane from "../components/hearthwood-studio/LivePreviewPane"
 import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
 import SheetView from "../components/hearthwood-studio/SheetView"
 import ThemePanel from "../components/hearthwood-studio/ThemePanel"
+import ResourceEditor from "../components/hearthwood-studio/ResourceEditor"
 
 /*
  * Hearthwood Studio - oma Dev Studio pelille, ei pilleri geneerisellä
@@ -49,7 +50,7 @@ function deepLinkFromUrl() {
 function HearthwoodStudio() {
   const deepLink = deepLinkFromUrl()
 
-  const [viewMode, setViewMode] = useState(deepLink ? "single" : "dashboard")
+  const [viewMode, setViewMode] = useState(new URLSearchParams(window.location.search).get("view") === "resources" ? "resources" : deepLink ? "single" : "dashboard")
   // `browsingType` drives what the LEFT panel shows; `entityType` drives
   // what the DETAIL panel fetches. Normally the same value - split only
   // matters for the Story Timeline (Marc: "en tiedä missä jaotellut
@@ -256,6 +257,22 @@ function HearthwoodStudio() {
           >
             🎨 Colors & Theme
           </button>
+
+          <button
+            type="button"
+            data-testid="studio-resources-tab"
+            onClick={() => setViewMode("resources")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "resources"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            ⚡ Hero Resources
+          </button>
         </div>
       </header>
 
@@ -281,7 +298,21 @@ function HearthwoodStudio() {
         )
       }
 
-      {viewMode !== "theme" && viewMode !== "dashboard" && (
+      {
+        viewMode === "resources" && (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+              <ResourceEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+            </section>
+
+            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
+            </section>
+          </div>
+        )
+      }
+
+      {viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
