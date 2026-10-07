@@ -64,8 +64,10 @@ export function buildTrainingBattle() {
     delete placed.faction
     return placed
   })
-  // Mana step 1: the lesson runs with mana (every bar starts full).
-  return enableMana({
+  // Mana step 1: the lesson runs with mana. Resources step 2: every hero
+  // starts at its class resource's start - the Commander's Inspiration is
+  // topped up so the ultimate lesson can fire right away.
+  const battle = enableMana({
     ...base,
     grid: GRID,
     units,
@@ -75,6 +77,7 @@ export function buildTrainingBattle() {
     noGraze: true,
     log: ["Training Grounds - a practice fight. Nothing here touches your run."],
   })
+  return { ...battle, units: battle.units.map((u) => (u.id === "player-commander" && typeof u.mana === "number" ? { ...u, mana: u.manaMax } : u)) }
 }
 
 function slamTilesAround(center) {

@@ -1524,7 +1524,7 @@ export default function TacticsBoard({
                     : "Once per battle · 1 Commander AP"
             return (
               <div className="hwt-power-panel" data-used={ultimate ? !full : power.used} data-ultimate={ultimate || undefined}>
-                <button className="hwt-power-btn" disabled={!ready} onClick={handleActivePower} title={ultimate ? `${power.description} Mana ultimate: needs a full bar and spends all of it; refill to use again.` : power.description}>
+                <button className="hwt-power-btn" disabled={!ready} onClick={handleActivePower} title={ultimate ? `${power.description} Ultimate: needs a full ${profileOf(commander).name} bar and spends all of it; refill to use again.` : power.description}>
                   <span className="hwt-power-crown">♛</span> {power.name}
                 </button>
                 {ultimate && commander && <ManaBar unit={commander} battle={battle} className="hwt-power-mana" />}
