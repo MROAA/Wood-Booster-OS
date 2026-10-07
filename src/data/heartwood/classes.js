@@ -164,7 +164,7 @@ export const CLASSES = {
     description: "Grenadier - lobs explosives over cover and blows cover apart.",
     passive: { id: "siege", name: "Siege Weapon", text: "Deals double damage to barricades and cover objects, and +2 to targets with Block or Ward." },
     skills: [
-      { id: "piercing-beam", name: "Frag Grenade", icon: "✹", cost: 2, cooldown: 3, mana: 30, target: "tile", tile: "any", range: 4, indirect: true, text: "Lob a grenade at a tile within 4 - it arcs over cover. Every enemy on it and next to it is hit (cover doesn't help them), and the cover in the blast is torn apart." },
+      { id: "piercing-beam", name: "Frag Grenade", icon: "✹", cost: 2, cooldown: 3, mana: 25, target: "tile", tile: "any", range: 4, indirect: true, text: "Lob a grenade at a tile within 4 - it arcs over cover. Every enemy on it and next to it is hit (cover doesn't help them), and the cover in the blast is torn apart." },
       { id: "suppression-fire", name: "Shred Round", icon: "⁂", cost: 1, cooldown: 2, mana: 15, target: "enemy", range: "reach", shred: 1, text: "Blast away the cover between you and an enemy (full cover becomes half, half becomes none), then hit it." },
     ],
   },
