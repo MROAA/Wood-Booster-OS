@@ -197,7 +197,7 @@ if (!(F.emptyRoster === 0 && F.emptyPerma === true && F.same && F.corrupt === 0 
   await page.locator("[data-hearth-open]").click()
   await page.locator("[data-screen=hearth]").waitFor({ timeout: 8000 })
   const ui = {}
-  ui.rooms = await page.locator("[data-hearth-room]").count()
+  ui.rooms = await page.locator("[data-hearth-room]").count() // 5 since the Breeding sprint (the Nest)
   ui.roster = await page.locator("[data-hearth-unit]").count()
   ui.memorial = await page.locator("[data-hearth-memorial]").getAttribute("data-hearth-memorial")
   ui.oldBadge = await page.locator("[data-hearth-unit='2'] .hw-hearth-badge.is-old").count()
@@ -220,7 +220,7 @@ if (!(F.emptyRoster === 0 && F.emptyPerma === true && F.same && F.corrupt === 0 
   ui.runVets = vets.map((e) => ({ hid: e.hearthId, xp: e.xp, wounded: !!e.wounded, hpPct: e.hpPct }))
   ui.deployed = run.deployed.filter((k) => k !== null).length
   out.ui = ui
-  const okG = ui.rooms === 4 && ui.roster === 3 && ui.memorial === "1" && ui.oldBadge === 1 && ui.barracksLv === "1" && ui.storedBarracks === 1 &&
+  const okG = ui.rooms === 5 && ui.roster === 3 && ui.memorial === "1" && ui.oldBadge === 1 && ui.barracksLv === "1" && ui.storedBarracks === 1 &&
     ui.acorns === 85 && ui.thirdDisabled && ui.picked === "2" && /Mosskit/.test(ui.banner) &&
     ui.runVets.length === 2 && ui.runVets.map((v) => v.hid).sort().join() === "1,3" && ui.runVets.find((v) => v.hid === 3)?.wounded && ui.deployed >= 2
   if (!okG) fail("checkG Hearth UI: rooms/roster/memorial/upgrade/picker/start-run-with-veterans via clicks wrong")
