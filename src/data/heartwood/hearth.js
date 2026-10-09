@@ -64,11 +64,11 @@ export const HEARTH_ROOMS = [
     id: "workshop",
     name: "Workshop",
     icon: "🔨",
-    blurb: "Tinkering pays. Gear and recipes come later.",
-    base: "Empty benches.",
+    blurb: "Keeps spare gear between runs and crafts recipes you have learned.",
+    base: "A small stash (3 items). Pack 1 item into each run.",
     levels: [
-      { cost: 25, text: "+10 starting Essence each run." },
-      { cost: 50, text: "+20 starting Essence each run." },
+      { cost: 25, text: "+10 starting Essence each run. The stash holds 5 items; pack 2 into each run." },
+      { cost: 50, text: "+20 starting Essence each run. The stash holds 8 items." },
     ],
   },
   {
@@ -96,6 +96,10 @@ export const BASE_CAPACITY = 4
 export const CAPACITY_BY_LEVEL = [4, 6, 8, 10]
 export const TRAINING_XP_BY_LEVEL = [0, 3, 6]
 export const WORKSHOP_ESSENCE_BY_LEVEL = [0, 10, 20]
+// Gear sprint - the Workshop stash: how many spare items it holds, and
+// how many you can pack into the next run, by Workshop level.
+export const WORKSHOP_STASH_BY_LEVEL = [3, 5, 8]
+export const WORKSHOP_PACK_BY_LEVEL = [1, 2, 2]
 
 // The Nest (breeding, services/heartwood/hearth.js breedHeroes). Numbers
 // for the hatchling itself live in data/heartwood/mutations.js BREEDING.

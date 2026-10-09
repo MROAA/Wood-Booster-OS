@@ -15,7 +15,8 @@
 import { UNITS, TIER2_SUFFIX, upgradeCost } from "../../data/heartwood/units"
 import { branchAvailable, branchById, ECONOMY_WIN_BONUS } from "../../data/heartwood/upgrades"
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
-import { ITEMS, ITEM_SLOTS, itemPool } from "../../data/heartwood/items"
+import { ITEMS, ITEM_SLOTS, itemPool, collarPool, RARITIES } from "../../data/heartwood/items"
+import { combineRow, combineDuplicate, equipBlocker, applyGearToBattle, gearRow } from "./gear"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
 import { tribesOf } from "../../data/heartwood/synergies"
 import { resolveTrial } from "../../data/heartwood/trials"
@@ -782,13 +783,79 @@ const ITEM_SHOP_SIZE = 3
 // `streamRng(seed, "item", "<nodeIndex>")` - the item shop regenerates
 // with the unit shop on a new visit, but deliberately NOT on a paid unit
 // reroll (see rerollShop), so nodeIndex alone is the right salt.
-function rollItemShop(rng = Math.random) {
+//
+// Gear sprint - SHOP TENSION: each offer rolls a RARITY first (Common /
+// Rare / Epic / Legendary, odds growing with the Act and Market Level -
+// itemRarityWeights), then an item of that rarity. `keep` = per-slot ids
+// the player LOCKED (they stay put). From Act II a rare Class Collar can
+// take the last open slot (ITEM_COLLAR_CHANCE).
+export const ITEM_COLLAR_CHANCE = 0.08
+export function itemRarityWeights(act = 1, marketLevel = 1) {
+  const r = Math.max(0, act - 1) + Math.max(0, marketLevel - 1)
+  return {
+    common: Math.max(20, 70 - 8 * r),
+    rare: 25 + 3 * r,
+    epic: r >= 1 ? 4 * r : 0,
+    legendary: r >= 4 ? 2 * (r - 3) : 0,
+  }
+}
+function pickRarity(weights, rng) {
+  const total = RARITIES.reduce((sum, k) => sum + (weights[k] || 0), 0)
+  let roll = rng() * total
+  for (const k of RARITIES) {
+    roll -= weights[k] || 0
+    if (roll < 0) return k
+  }
+  return "common"
+}
+function rollItemShop(rng = Math.random, act = 1, marketLevel = 1, keep = []) {
   const all = itemPool()
-  const bending = all.filter((i) => i.bendsRoleTo)
-  const guaranteed = shuffled(bending, rng).slice(0, Math.min(1, bending.length))
-  const guaranteedIds = new Set(guaranteed.map((i) => i.id))
-  const rest = shuffled(all.filter((i) => !guaranteedIds.has(i.id)), rng).slice(0, ITEM_SHOP_SIZE - guaranteed.length)
-  return shuffled([...guaranteed, ...rest], rng).map((i) => i.id)
+  const weights = itemRarityWeights(act, marketLevel)
+  const offers = Array.from({ length: ITEM_SHOP_SIZE }, (_, i) => (keep[i] && ITEMS[keep[i]] ? keep[i] : null))
+  const open = offers.map((id, i) => (id ? -1 : i)).filter((i) => i >= 0)
+  const taken = new Set(offers.filter(Boolean))
+  for (const i of open) {
+    let rarity = pickRarity(weights, rng)
+    let pool = []
+    // Fall back one rarity down when a band is empty (or fully shown).
+    for (let k = RARITIES.indexOf(rarity); k >= 0 && !pool.length; k--) {
+      rarity = RARITIES[k]
+      pool = all.filter((it) => it.rarity === rarity && !taken.has(it.id))
+    }
+    if (!pool.length) pool = all.filter((it) => !taken.has(it.id))
+    const id = pool[Math.floor(rng() * pool.length)]?.id || null
+    offers[i] = id
+    if (id) taken.add(id)
+  }
+  // Hero Bending guarantee (kept from before): one Bending item a visit.
+  if (open.length && !offers.some((id) => ITEMS[id]?.bendsRoleTo)) {
+    const allowed = new Set(RARITIES.filter((k) => weights[k] > 0))
+    const bending = all.filter((it) => it.bendsRoleTo && allowed.has(it.rarity) && !taken.has(it.id))
+    if (bending.length) offers[open[0]] = bending[Math.floor(rng() * bending.length)].id
+  }
+  if (act >= 2 && open.length && rng() < ITEM_COLLAR_CHANCE) {
+    const collars = collarPool()
+    if (collars.length) offers[open[open.length - 1]] = collars[Math.floor(rng() * collars.length)].id
+  }
+  return offers
+}
+
+// Everything a NEW shop visit resets on the gear side: fresh offers
+// (locked ones stay), the item reroll price and the gear purse.
+function freshItemShop(rs, nodeIndex) {
+  const keep = (rs.itemLocks || []).map((locked, i) => (locked ? (rs.itemOffers || [])[i] : null))
+  return {
+    itemOffers: rollItemShop(
+      streamRng(rs.seed, "item", String(nodeIndex)),
+      actIndexForNode(nodeIndex, RUN_PATH.length),
+      rs.marketLevel || 1,
+      keep,
+    ),
+    itemLocks: keep.map(Boolean),
+    itemRerollCost: ITEM_REROLL_BASE,
+    itemRerolls: 0,
+    gearSpent: 0,
+  }
 }
 
 // Three owned copies of the same base unit combine into one Tier 2
@@ -895,6 +962,13 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // Reroll (rerollShop) - that button pays to reroll the UNIT
     // offers specifically, not a free item refresh riding along with it.
     itemOffers: rollItemShop(streamRng(seed, "item", "0")),
+    // Gear sprint (shop tension): locked item offers, the rising item
+    // reroll price and the per-visit gear purse - additive keys, read
+    // with defaults everywhere, so old saves load unchanged.
+    itemLocks: [],
+    itemRerollCost: ITEM_REROLL_BASE,
+    gearSpent: 0,
+    recipesFound: [],
     // Freeze: keeps the current shopOffers into the next shop visit
     // instead of letting it re-roll automatically - a one-shot flag,
     // consumed (see chooseRelic/resolveBattleOutcome below) the next
@@ -1058,6 +1132,15 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
   // join the bench (auto-deployed into empty slots) + home Essence bonus.
   const hs = meta?.hearthStart
   if (hs && (hs.veterans?.length || hs.essenceBonus)) rs = withHearthStart(rs, hs)
+  // Workshop (gear sprint): packed spare gear from the Hearth's stash.
+  if (hs?.gear?.length) {
+    const gear = hs.gear.filter((id) => ITEMS[id])
+    rs = {
+      ...rs,
+      items: [...rs.items, ...gear.map((defId, i) => ({ key: rs.itemKeyCounter + i, defId, equippedTo: null, slotIndex: null }))],
+      itemKeyCounter: rs.itemKeyCounter + gear.length,
+    }
+  }
 
   return rs
 }
@@ -1345,12 +1428,96 @@ export function buyInvestment(runState, id) {
 export function buyItem(runState, itemDefId) {
   const def = ITEMS[itemDefId]
   if (!def || runState.essence < def.cost) return runState
-  return {
+  // Gear sprint: the gear purse - only so much gear changes hands per visit.
+  const inShop = runState.phase === "shop"
+  if (inShop && (runState.gearSpent || 0) + def.cost > gearPurse(runState)) return runState
+  const key = runState.itemKeyCounter
+  const bought = {
     ...runState,
     essence: runState.essence - def.cost,
-    items: [...runState.items, { key: runState.itemKeyCounter, defId: itemDefId, equippedTo: null, slotIndex: null }],
-    itemKeyCounter: runState.itemKeyCounter + 1,
+    gearSpent: (runState.gearSpent || 0) + (inShop ? def.cost : 0),
+    items: [...runState.items, { key, defId: itemDefId, equippedTo: null, slotIndex: null }],
+    itemKeyCounter: key + 1,
   }
+  // A second copy of a same-item recipe ingredient fuses right away.
+  return combineDuplicate(bought, key, effectiveItemSlots(bought))
+}
+
+// --- Gear sprint: shop tension (purse, item reroll, locks, selling) ---
+export const ITEM_REROLL_BASE = 40
+export const ITEM_REROLL_STEP = 40
+export const GEAR_PURSE_BASE = 300
+export const GEAR_PURSE_PER_ACT = 100
+export const GEAR_PURSE_PER_MARKET = 50
+export const ITEM_SELL_RATE = 0.5
+
+// How much Essence the merchant will take for gear (buys + item rerolls)
+// this visit. Grows with the Act and the Market Level.
+export function gearPurse(runState) {
+  const act = actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)
+  return GEAR_PURSE_BASE + GEAR_PURSE_PER_ACT * (act - 1) + GEAR_PURSE_PER_MARKET * ((runState.marketLevel || 1) - 1)
+}
+export function gearPurseLeft(runState) {
+  return Math.max(0, gearPurse(runState) - (runState.gearSpent || 0))
+}
+export function itemRerollCost(runState) {
+  return runState.itemRerollCost || ITEM_REROLL_BASE
+}
+
+// Pay to re-roll the item offers (locked ones stay). Each reroll this
+// visit costs ITEM_REROLL_STEP more; it also comes out of the purse.
+export function rerollItems(runState) {
+  const cost = itemRerollCost(runState)
+  if (runState.essence < cost || gearPurseLeft(runState) < cost) return runState
+  const n = (runState.itemRerolls || 0) + 1
+  const keep = (runState.itemLocks || []).map((locked, i) => (locked ? (runState.itemOffers || [])[i] : null))
+  return {
+    ...runState,
+    essence: runState.essence - cost,
+    gearSpent: (runState.gearSpent || 0) + cost,
+    itemRerolls: n,
+    itemRerollCost: cost + ITEM_REROLL_STEP,
+    itemOffers: rollItemShop(
+      streamRng(runState.seed, "item", `${runState.nodeIndex}:r${n}`),
+      actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length),
+      runState.marketLevel || 1,
+      keep,
+    ),
+  }
+}
+
+// Lock / unlock one item offer: a locked offer survives rerolls and the
+// next shop visit, until you unlock it.
+export function toggleItemLock(runState, index) {
+  if (!(runState.itemOffers || [])[index]) return runState
+  const locks = Array.from({ length: (runState.itemOffers || []).length }, (_, i) => !!(runState.itemLocks || [])[i])
+  locks[index] = !locks[index]
+  return { ...runState, itemLocks: locks }
+}
+
+export function itemSellPrice(runState, defId) {
+  const def = ITEMS[defId]
+  return def ? Math.ceil(def.cost * ITEM_SELL_RATE * effectiveSellMult(runState)) : 0
+}
+
+// Sell an owned item (equipped or not) back for half its price.
+export function sellItem(runState, itemKey) {
+  const item = (runState.items || []).find((it) => it.key === itemKey)
+  if (!item || !ITEMS[item.defId]) return runState
+  return {
+    ...runState,
+    essence: runState.essence + itemSellPrice(runState, item.defId),
+    items: runState.items.filter((it) => it.key !== itemKey),
+  }
+}
+
+// Workshop (the Hearth): an unequipped item leaves the run for the
+// Hearth's stash - the page moves `stashOut` home when the run ends
+// (services/heartwood/hearth.js harvestRun), won or lost.
+export function sendItemHome(runState, itemKey) {
+  const item = (runState.items || []).find((it) => it.key === itemKey)
+  if (!item || item.equippedTo != null) return runState
+  return { ...runState, items: runState.items.filter((it) => it.key !== itemKey), stashOut: [...(runState.stashOut || []), item.defId] }
 }
 
 // Relics (relics.js) can grant every unit extra slots (Artificer's
@@ -1359,18 +1526,17 @@ export function buyItem(runState, itemDefId) {
 // check, SquadDraft.jsx's slot-pip rendering) so the two can never
 // drift out of sync with each other.
 export function effectiveItemSlots(runState) {
-  const bonus = runState.relics.reduce((sum, id) => sum + (RELICS[id]?.itemSlotBonus || 0), 0)
+  const bonus = (runState.relics || []).reduce((sum, id) => sum + (RELICS[id]?.itemSlotBonus || 0), 0)
   // Deep Pockets (metaPerks.js) - a permanent +1 on top of the relic bonus.
   return ITEM_SLOTS + bonus + (runState.metaItemSlotBonus || 0)
 }
 
-// Equips an owned item onto one of a bench unit's item slots (see
-// effectiveItemSlots above - may be more than the base ITEM_SLOTS with
-// Artificer's Ledger owned). Free - the Essence cost was already paid
-// on purchase. If the target slot already holds a different item, that
-// one is bumped back to the bag first (a slot can only ever hold one
-// item), same "drop something new in, the old one comes out" swap
-// FormationScreen.jsx's deploy slots already do.
+// Equips an owned item into one slot of a hero's (or the Commander's)
+// gear ROW. Free - the Essence cost was already paid on purchase. If the
+// target slot already holds a different item, that one swaps into the
+// moved item's old slot when it came from the same row (a reorder), else
+// it goes back to the bag. A Class Collar: one per hero, never the
+// Commander (gear.js equipBlocker). Adjacent recipe pairs then fuse.
 export function equipItem(runState, itemKey, benchKey, slotIndex) {
   const item = runState.items.find((it) => it.key === itemKey)
   // "commander" is a fixed sentinel key, not a real bench entry - the
@@ -1378,14 +1544,28 @@ export function equipItem(runState, itemKey, benchKey, slotIndex) {
   // no bench row to look up.
   const validTarget = benchKey === "commander" || runState.bench.some((e) => e.key === benchKey)
   if (!item || slotIndex < 0 || slotIndex >= effectiveItemSlots(runState) || !validTarget) return runState
-  return {
+  if (equipBlocker(runState, itemKey, benchKey)) return runState
+  const sameRow = item.equippedTo === benchKey && Number.isInteger(item.slotIndex)
+  const next = {
     ...runState,
     items: runState.items.map((it) => {
       if (it.key === itemKey) return { ...it, equippedTo: benchKey, slotIndex }
-      if (it.equippedTo === benchKey && it.slotIndex === slotIndex) return { ...it, equippedTo: null, slotIndex: null }
+      if (it.equippedTo === benchKey && it.slotIndex === slotIndex) {
+        return sameRow ? { ...it, slotIndex: item.slotIndex } : { ...it, equippedTo: null, slotIndex: null }
+      }
       return it
     }),
   }
+  return combineRow(next, benchKey, effectiveItemSlots(next))
+}
+
+// Reorder inside one row: move the item in slot `from` to slot `to`
+// (swapping with whatever is there). The gear screen's arrows + drag.
+export function moveGear(runState, ownerKey, from, to) {
+  const row = gearRow(runState.items, ownerKey, effectiveItemSlots(runState))
+  const item = row[from]
+  if (!item || to < 0 || to >= effectiveItemSlots(runState) || from === to) return runState
+  return equipItem({ ...runState, items: runState.items.map((it) => (it.key === item.key ? { ...it, slotIndex: from } : it)) }, item.key, ownerKey, to)
 }
 
 // Returns an equipped item to the bag. Free, same reasoning as
@@ -1739,7 +1919,12 @@ function applyEventEffect(runState, eff, effIndex = 0) {
     return { ...runState, relics: [...runState.relics, id] }
   }
   if (eff.item) {
-    const id = eff.item === "random" ? randomFromList(itemPool().map((i) => i.id), rng) : eff.item
+    const id =
+      eff.item === "random"
+        ? randomFromList(itemPool().map((i) => i.id), rng)
+        : eff.item === "collar"
+          ? randomFromList(collarPool().map((i) => i.id), rng)
+          : eff.item
     if (!id || !ITEMS[id]) return runState
     return {
       ...runState,
@@ -2541,7 +2726,9 @@ export function startTacticsFormationBattle(runState, buildTacticsBattle) {
     ...runState,
     phase: "battle",
     // Unit levels (unitLevels.js): perks + XP tracking fields.
-    battle: { ...applyLevelsToTactics(tactics, runState), engine: "tactics" },
+    // Gear sprint (gear.js): the gear rows - item fx, row adjacency, board
+    // auras, resource gear - folded on last.
+    battle: { ...applyGearToBattle(applyLevelsToTactics(tactics, runState), runState, effectiveItemSlots(runState)), engine: "tactics" },
     pendingActiveEffects: [],
     lastAftermath: null,
     lastLevelUps: null,
@@ -2779,7 +2966,7 @@ export function chooseRelic(runState, relicId) {
             mktArgs.tier,
           )
       : runState.shopOffers,
-    itemOffers: enteringShop ? rollItemShop(streamRng(runState.seed, "item", String(advanced.nodeIndex))) : runState.itemOffers,
+    ...(enteringShop ? freshItemShop(runState, advanced.nodeIndex) : {}),
     frozen: enteringShop ? false : runState.frozen,
     rerollCost: REROLL_BASE_COST,
     // Commander Active Power (activateCommanderPower above): a new shop
@@ -2966,6 +3153,25 @@ function buildDeathMemory(runState) {
   }
 }
 
+// Gear sprint: Class Collar loot. A miniboss always drops one, an elite
+// half the time (seeded - the `loot` stream). Lands in the bag + a line
+// in the fight's aftermath list.
+export const ELITE_COLLAR_CHANCE = 0.5
+export function collarDrop(runState, node) {
+  if (!node || (node.type !== "miniboss" && node.type !== "elite")) return runState
+  const rng = streamRng(runState.seed, "loot", `${runState.nodeIndex}:collar`)
+  if (node.type === "elite" && rng() >= ELITE_COLLAR_CHANCE) return runState
+  const id = randomFromList(collarPool().map((i) => i.id), rng)
+  if (!id) return runState
+  return {
+    ...runState,
+    items: [...(runState.items || []), { key: runState.itemKeyCounter, defId: id, equippedTo: null, slotIndex: null }],
+    itemKeyCounter: runState.itemKeyCounter + 1,
+    lastAftermath: [...(runState.lastAftermath || []), `Loot: a ${ITEMS[id].name}! Put it in a hero's gear row to change its class.`],
+    lastLoot: id,
+  }
+}
+
 export function resolveBattleOutcome(runState) {
   const battle = runState.battle
   if (!battle) return runState
@@ -3000,7 +3206,8 @@ export function resolveBattleOutcome(runState) {
       ),
     }
     const { runState: evoRs, evolved } = applyEvolutions(withWins)
-    const rs = evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs
+    // Gear sprint: elites (half the time) and minibosses drop a Class Collar.
+    const rs = collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node)
 
     const advanced = advanceToNextNode(rs)
     // A pending "choice" (see advanceToNextNode above) is never a shop
@@ -3045,7 +3252,7 @@ export function resolveBattleOutcome(runState) {
               mktArgs.tier,
             )
         : rs.shopOffers,
-      itemOffers: enteringShop ? rollItemShop(streamRng(rs.seed, "item", String(advanced.nodeIndex))) : rs.itemOffers,
+      ...(enteringShop ? freshItemShop(rs, advanced.nodeIndex) : {}),
       frozen: enteringShop ? false : rs.frozen,
       relicOffers:
         nextNode?.type === "relic"
