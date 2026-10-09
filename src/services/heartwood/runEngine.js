@@ -32,6 +32,7 @@ import { streamRng } from "../../data/heartwood/seed"
 import { economyCrew, economyCrewEffects } from "../../data/heartwood/economy"
 import { ECONOMY_LEVERS, SHOP_INVESTMENTS, MARKET_EVENTS } from "../../data/heartwood/economyLevers"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
+import { rollFightMutations, eventMutation } from "./mutations"
 import { applyLevelsToTactics, levelForXp, levelSubject, pendingPerkCount, levelOffers, parseOffer, XP as LEVEL_XP_GAIN } from "./unitLevels"
 
 // Marc, 2026-09-19: "dev studiossa pitää olla mukana myös ekonomia...
@@ -1770,6 +1771,11 @@ function applyEventEffect(runState, eff, effIndex = 0) {
     return { ...runState, pendingActiveEffects: [...(runState.pendingActiveEffects || []), ...eff.squadNextBattle] }
   }
   if (eff.mend === "all") return restSquad(runState)
+  // Mutations: `{ mutation: "random" | "random-good" | "random-bad" | <id>, who: "random" | "all" }`.
+  if (eff.mutation) {
+    const res = eventMutation(runState, eff, rng)
+    return res.lines.length ? { ...res.runState, lastMutations: [...(runState.lastMutations || []), ...res.lines] } : runState
+  }
   if (eff.flag) {
     return { ...runState, storyFlags: { ...runState.storyFlags, [eff.flag]: true } }
   }
@@ -1801,12 +1807,24 @@ function applyEventEffect(runState, eff, effIndex = 0) {
 // `effects`/`result`. A plain choice with no dialogue never passes
 // these - `resolveEventChoice(runState, choiceIndex)` behaves exactly
 // as before.
+// What a choice's mutation effects WILL do (same seeded rolls as the
+// real resolution) - EventScreen shows these lines under the result.
+export function previewEventMutations(runState, choiceIndex) {
+  const choice = eventForNode(runState)?.choices?.[choiceIndex]
+  if (!choice || !(choice.effects || []).some((e) => e.mutation)) return []
+  let next = { ...runState, lastMutations: [] }
+  ;(choice.effects || []).forEach((eff, i) => {
+    next = applyEventEffect(next, eff, i)
+  })
+  return next.lastMutations || []
+}
+
 export function resolveEventChoice(runState, choiceIndex, extraEffects = [], extraResult) {
   if (runState.phase !== "event") return runState
   const event = eventForNode(runState)
   const choice = event?.choices?.[choiceIndex]
   if (!choice) return runState
-  let next = runState
+  let next = { ...runState, lastMutations: [] }
   ;[...(choice.effects || []), ...extraEffects].forEach((eff, i) => {
     next = applyEventEffect(next, eff, i)
   })
@@ -2503,6 +2521,7 @@ export function startFormationBattle(runState) {
     pendingActiveEffects: [],
     lastAftermath: null,
     lastLevelUps: null,
+    lastMutations: null,
     // Almanac: every piece the fight actually resolved (mooks, minibosses,
     // bosses, formation pieces - startAutoBattle flattens them all).
     seen: noteSeen(runState.seen, "enemies", ...named.enemies.map((e) => e.defId).filter((id) => ENEMIES[id])),
@@ -2526,6 +2545,7 @@ export function startTacticsFormationBattle(runState, buildTacticsBattle) {
     pendingActiveEffects: [],
     lastAftermath: null,
     lastLevelUps: null,
+    lastMutations: null,
     seen: noteSeen(runState.seen, "enemies", ...start.battle.enemies.map((e) => e.defId).filter((id) => ENEMIES[id])),
   }
 }
@@ -2960,13 +2980,19 @@ export function resolveBattleOutcome(runState) {
     const node = currentNode(runState)
     // The boss win ends the run before Evolution runs (nothing left to
     // grow into) - deliberate.
-    if (node.type === "boss") return { ...runState, phase: "victory" }
+    if (node.type === "boss") {
+      // Mutations: a boss kill can still change a hero (it goes home with it).
+      const bossMut = rollFightMutations(runState, battle, node)
+      return { ...bossMut.runState, phase: "victory", lastMutations: bossMut.lines }
+    }
 
     // Unit Evolution (evolutions.js): tally this win onto every deployed
     // bench entry, then let any that now meet their condition grow in
     // place. Everything after this reads the post-evolution `rs`.
     // Lasting consequences: end-of-fight HP / Wounded onto the bench.
-    const hurt = recordFightAftermath(runState, battle)
+    // Mutations (mutations.js): a won fight can change a hero for good.
+    const mut = rollFightMutations(recordFightAftermath(runState, battle), battle, node)
+    const hurt = { ...mut.runState, lastMutations: mut.lines }
     const withWins = {
       ...hurt,
       bench: hurt.bench.map((e) =>

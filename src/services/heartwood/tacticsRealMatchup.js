@@ -29,6 +29,7 @@ import { objectiveForNode, applyObjective } from "./tacticsObjectives"
 import { arenaTerrainFor, applyBossFight } from "./tacticsBosses"
 import { applyFaction } from "./tacticsFactions"
 import { enableMana } from "./tacticsMana"
+import { classFieldsFor } from "./tacticsClasses"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -255,7 +256,21 @@ export function buildRunTacticsBattle(runState, start) {
   const factioned = battle && formation.faction ? applyFaction(battle, formation.faction) : battle
   // Mana step 1: every real fight runs with mana (all pools start full).
   const built = applyObjective(arena ? applyBossFight(factioned, encounterId) : factioned, objectiveForRunNode(runState))
-  return built ? enableMana(built, runState.relics || []) : built
+  return built ? enableMana(withBredClasses(built, runState), runState.relics || []) : built
+}
+
+// Breeding (hearth.js breedHeroes): a hatchling can carry the OTHER
+// parent's class (bench entry `classId`). Swapped in before mana is
+// enabled, so the hero also gets that class's resource.
+function withBredClasses(battle, runState) {
+  const keys = (runState.deployed || []).filter((k) => k !== null && runState.bench.some((e) => e.key === k))
+  const byId = {}
+  keys.forEach((k, i) => {
+    const e = runState.bench.find((b) => b.key === k)
+    if (e?.classId && UNITS[e.defId] && UNITS[e.defId].classId !== e.classId) byId[`player-${e.defId}-${i}`] = { ...UNITS[e.defId], classId: e.classId }
+  })
+  if (!Object.keys(byId).length || !battle.units) return battle
+  return { ...battle, units: battle.units.map((u) => (byId[u.id] ? { ...u, ...classFieldsFor(byId[u.id], "player") } : u)) }
 }
 
 // Battle objectives (sprint 2): the objective for the run's node - pure

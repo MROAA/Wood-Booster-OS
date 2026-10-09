@@ -19,6 +19,8 @@ export const ALL_TYPES = [
   { type: "classes", label: "Hero Classes & Mana", category: "Content" },
   // Resources step 2: the class resources (also the "⚡ Resources" view).
   { type: "resources", label: "Hero Resources (Rage, Combo...)", category: "Content" },
+  // Breeding & Mutations sprint (also the "🧬 Mutations" view).
+  { type: "mutations", label: "Mutations", category: "Content" },
   { type: "cards", label: "Cards", category: "Content" },
   { type: "relics", label: "Relics", category: "Content" },
   { type: "items", label: "Items", category: "Content" },

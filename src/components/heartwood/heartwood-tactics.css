@@ -3108,3 +3108,38 @@
 .hwt-melee-badge[data-mark="berserk"] { border-color: #ff3b2f; color: #ff8a80; }
 .hwt-token[data-stealth] { opacity: 0.6; }
 .hwt-universal-btn[data-engaged] { outline: 1px dashed #ff9a3c; }
+
+/* ---- Breeding & Mutations sprint: mutated hero tokens ---- */
+.hwt-token[data-mutated="true"] {
+  outline: 1px dashed color-mix(in srgb, #8fd18b 55%, transparent);
+  outline-offset: 1px;
+}
+.hwt-mut-glyph {
+  position: absolute;
+  top: 18%;
+  right: 6%;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.85;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, #8fd18b 70%, transparent));
+  animation: hwt-mut-bob 2.6s ease-in-out infinite;
+}
+.hwt-mut-glyph[data-kind="mixed"] { filter: drop-shadow(0 0 3px color-mix(in srgb, #e0b85a 70%, transparent)); }
+.hwt-mut-glyph[data-kind="bad"] { filter: drop-shadow(0 0 3px color-mix(in srgb, #e07a6a 70%, transparent)); }
+@keyframes hwt-mut-bob {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-2px) rotate(4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwt-mut-glyph { animation: none; }
+}
+.hwt-token-status > .hwt-mut-badge {
+  background: color-mix(in srgb, #2c3a22 75%, black);
+  border: 1px solid #8fd18b;
+  color: #cfeec4;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 0 2px;
+  cursor: help;
+}

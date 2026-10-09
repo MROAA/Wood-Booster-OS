@@ -20,7 +20,7 @@ import { useFreeLayout } from "./useFreeLayout.jsx"
 // "result line + Continue" - it hands off to DialogueScreen instead,
 // and THAT screen's own accumulated effects/summary flow back through
 // onResolve's optional 2nd/3rd arguments once the conversation ends.
-export default function EventScreen({ event, onResolve }) {
+export default function EventScreen({ event, onResolve, previewLines }) {
   const [chosen, setChosen] = useState(null)
   // Stage B of the free-positioning initiative (the Market screen's
   // own round is fully complete) - re-checked live before assuming the
@@ -141,6 +141,12 @@ export default function EventScreen({ event, onResolve }) {
               >
                 {chosenChoice.result}
               </p>
+              {/* Mutations: who grows what (same seeded roll as the real resolution). */}
+              {(previewLines?.(chosen) || []).map((line, i) => (
+                <p key={i} className="hw-event-mutation" data-event-mutation>
+                  {line}
+                </p>
+              ))}
               <button
                 className="hw-move-btn"
                 style={{ marginTop: 18 }}

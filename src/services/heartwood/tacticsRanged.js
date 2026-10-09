@@ -104,6 +104,8 @@ export function shotMods(attacker, defender, dist, shot = null) {
   if (player && attacker.classPassive === "steady-aim" && attacker.moved && dist > 1) parts.push({ label: "On the move", value: ON_THE_MOVE_BONUS })
   // Resources step 2: Focus / breakpoint / Nature State accuracy.
   parts.push(...resourceMods(attacker).parts)
+  // Mutations: Extra Eye / Cloudy Eye / Vine Fingers.
+  if (attacker.mutAim) parts.push({ label: "Mutation", value: attacker.mutAim })
   const noFalloff = player && attacker.classPassive === "defensive-aim" && !attacker.moved
   if (shot?.ignoreCover) {
     ignoreCover = true

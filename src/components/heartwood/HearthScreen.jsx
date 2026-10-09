@@ -7,17 +7,27 @@ import {
 } from "../../data/heartwood/hearth"
 import {
   rosterCapacity, roomLevel, roomUpgradeCost, recruitOffers, declineSteps, canRetire, unitName,
-  startEssenceBonus, travelHp, trainingXp,
+  startEssenceBonus, travelHp, trainingXp, allHeroes, breedBlocker, breedCost, kinship, kinLabel,
+  badMutationChance, bredThisCycle, familyTree, nestLevel, heroByHid,
 } from "../../services/heartwood/hearth"
+import { RESOURCES } from "../../data/heartwood/resources"
 
 // The Hearth - home camp between runs (services/heartwood/hearth.js).
 // Roster of veterans, rooms + furniture bought with Acorns, Elders,
 // the memorial, and "Start a run" with up to MAX_VETERANS picked.
 export default function HearthScreen({
   hearth, acorns, picked = [], onPick, onUpgradeRoom, onBuyFurniture, onRecruit, onRetire, onRelease,
-  onTogglePermadeath, onStartRun, onDismissReport, onBack,
+  onTogglePermadeath, onStartRun, onDismissReport, onBack, onBreed,
 }) {
   const [confirmRelease, setConfirmRelease] = useState(null)
+  // The Nest: the two heroes picked as parents; whose family tree is open.
+  const [pair, setPair] = useState([])
+  const [familyOf, setFamilyOf] = useState(null)
+  const nestLv = nestLevel(hearth)
+  const livePair = pair.filter((hid) => heroByHid(hearth, hid))
+  const blocker = livePair.length === 2 ? breedBlocker(hearth, livePair[0], livePair[1], acorns) : "Pick two heroes."
+  const togglePair = (hid) =>
+    setPair((p) => (p.includes(hid) ? p.filter((x) => x !== hid) : p.length < 2 ? [...p, hid] : [p[1], hid]))
   const cap = rosterCapacity(hearth)
   const offers = recruitOffers(hearth)
   const full = hearth.roster.length >= cap
@@ -111,7 +121,18 @@ export default function HearthScreen({
                       </span>
                     )}
                     {hurt && <span className="hw-hearth-badge is-hurt">Wounded</span>}
+                    {u.generation > 0 && (
+                      <span className="hw-hearth-badge is-gen" title="Born at the Nest - generation">
+                        Gen {u.generation}
+                      </span>
+                    )}
+                    {bredThisCycle(hearth, u) && (
+                      <span className="hw-hearth-badge is-bred" title="Already raised a hatchling since the last run">
+                        🪺
+                      </span>
+                    )}
                   </div>
+                  {familyOf === u.hid && <FamilyPanel hearth={hearth} unit={u} />}
                   <div className="hw-hearth-unit-actions">
                     <button
                       className={`hw-hearth-pick${isPicked ? " is-on" : ""}`}
@@ -120,6 +141,9 @@ export default function HearthScreen({
                       onClick={() => togglePick(u.hid)}
                     >
                       {isPicked ? "✓ Coming along" : "Bring on next run"}
+                    </button>
+                    <button className="hw-hearth-link" data-hearth-family={u.hid} onClick={() => setFamilyOf(familyOf === u.hid ? null : u.hid)}>
+                      {familyOf === u.hid ? "Hide family" : "Family"}
                     </button>
                     {canRetire(u) && (
                       <button className="hw-hearth-link" data-hearth-retire={u.hid} onClick={() => onRetire(u.hid)}>
@@ -140,6 +164,80 @@ export default function HearthScreen({
               )
             })}
           </div>
+        )}
+      </section>
+
+      <section className="hw-hearth-nest" data-hearth-nest data-level={nestLv}>
+        <div className="hw-hearth-section-label">
+          &#129722; The Nest{" "}
+          {nestLv > 0 && <span className="hw-hearth-muted">· pair two heroes, raise a hatchling · {breedCost(hearth)} &#127807;</span>}
+        </div>
+        {hearth.lastBirth && (
+          <div className="hw-nest-birth" data-nest-birth={hearth.lastBirth.hid}>
+            &#128035; {hearth.lastBirth.name} hatched to {hearth.lastBirth.parents.join(" and ")}.
+          </div>
+        )}
+        {nestLv === 0 ? (
+          <p className="hw-hearth-empty">
+            Build the Nest under Rooms below. Then any two heroes at home (Elders too) can raise a hatchling between runs - a
+            brand-new hero that takes after its parents, odd bits included.
+          </p>
+        ) : (
+          <>
+            <div className="hw-nest-pick">
+              {allHeroes(hearth).map((u) => {
+                const on = livePair.includes(u.hid)
+                const tired = bredThisCycle(hearth, u)
+                return (
+                  <button
+                    key={u.hid}
+                    className={`hw-nest-parent${on ? " is-on" : ""}`}
+                    data-nest-parent={u.hid}
+                    disabled={tired && !on}
+                    title={tired ? "Already raised a hatchling since the last run" : "Pick as a parent"}
+                    onClick={() => togglePair(u.hid)}
+                  >
+                    <span className="hw-nest-parent-name">{unitName(u)}</span>
+                    <span className="hw-hearth-muted">
+                      Lv{levelForXp(u.xp)}
+                      {hearth.elders.some((e) => e.hid === u.hid) ? " · Elder" : ""}
+                      {u.generation > 0 ? ` · Gen ${u.generation}` : ""}
+                      {u.mutations?.length ? ` · 🧬${u.mutations.length}` : ""}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            {livePair.length === 2 && (
+              <div className="hw-nest-preview" data-nest-preview>
+                <div>
+                  Kinship: <b data-nest-kin={kinship(hearth, livePair[0], livePair[1])}>{kinLabel(kinship(hearth, livePair[0], livePair[1]))}</b>
+                  <span className="hw-hearth-muted">
+                    {" "}
+                    · chance of a bad mutation: <span data-nest-risk>{Math.round(badMutationChance(hearth, livePair[0], livePair[1]) * 100)}%</span>
+                  </span>
+                </div>
+                <div className="hw-hearth-muted">
+                  The hatchling takes after one parent (body and class - rarely the other one&apos;s class), learns one trick from
+                  each, gets a feel for one parent&apos;s power (Rage, mana...), and may inherit their mutations. It starts at Lv1.
+                </div>
+              </div>
+            )}
+            <div className="hw-nest-actions">
+              <button
+                className="hw-hearth-buy"
+                data-nest-breed
+                disabled={!!blocker}
+                onClick={() => {
+                  onBreed?.(livePair[0], livePair[1])
+                  setPair([])
+                }}
+              >
+                Pair them · {breedCost(hearth)} &#127807;
+              </button>
+              {blocker && <span className="hw-hearth-muted" data-nest-blocker>{blocker}</span>}
+            </div>
+          </>
         )}
       </section>
 
@@ -241,7 +339,7 @@ export default function HearthScreen({
             <ul className="hw-hearth-list" data-hearth-elders={hearth.elders.length}>
               {hearth.elders.map((u) => (
                 <li key={u.hid}>
-                  &#127795; {unitName(u)} <span className="hw-hearth-muted">· Lv{levelForXp(u.xp)} · {u.age} runs</span>
+                  &#127795; {unitName(u)} <span className="hw-hearth-muted">· Lv{levelForXp(u.xp)} · {u.age} runs{u.mutations?.length ? ` · 🧬${u.mutations.length}` : ""}</span>
                 </li>
               ))}
             </ul>
@@ -283,5 +381,52 @@ export default function HearthScreen({
         </label>
       </section>
     </div>
+  )
+}
+
+// Family tree on a hero card: parents + grandparents, what it inherited.
+function FamilyPanel({ hearth, unit }) {
+  const tree = familyTree(hearth, unit.hid)
+  const res = unit.affinity && RESOURCES[unit.affinity.resource]
+  return (
+    <div className="hw-family" data-family={unit.hid}>
+      {tree.parents.length === 0 ? (
+        <div className="hw-hearth-muted">Wild-born - nobody knows where it came from.</div>
+      ) : (
+        <ul className="hw-family-tree">
+          <FamilyNode n={tree} />
+        </ul>
+      )}
+      {unit.traits?.length > 0 && <div className="hw-family-line">Learned from its parents: {unit.traits.map((t) => t.text).join(", ")}</div>}
+      {res && (
+        <div className="hw-family-line" data-family-affinity={unit.affinity.resource}>
+          {res.icon} {res.name} affinity: {unit.affinity.max ? `+${unit.affinity.max} max` : `+${unit.affinity.regen} each turn`} (full on a{" "}
+          {res.name} hero, half otherwise)
+        </div>
+      )}
+      {(unit.bias?.hp || unit.bias?.attack) ? (
+        <div className="hw-family-line">
+          Born {[unit.bias.hp ? `${unit.bias.hp > 0 ? "+" : ""}${unit.bias.hp} HP` : null, unit.bias.attack ? `${unit.bias.attack > 0 ? "+" : ""}${unit.bias.attack} attack` : null].filter(Boolean).join(", ")}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function FamilyNode({ n }) {
+  return (
+    <li>
+      <span className={`hw-family-name${n.gone ? " is-gone" : ""}`} data-family-node={n.hid}>
+        {n.name}
+        {n.gone ? " ✝" : ""}
+      </span>
+      {n.parents.length > 0 && (
+        <ul>
+          {n.parents.map((p) => (
+            <FamilyNode key={p.hid} n={p} />
+          ))}
+        </ul>
+      )}
+    </li>
   )
 }
