@@ -8583,3 +8583,96 @@ img.hw-intent-glyph {
   white-space: nowrap;
 }
 .hw-runend-hearth { display: block; margin: 10px auto 0; }
+
+/* ---- Breeding & Mutations sprint: the Nest, family tree, mutation badges ---- */
+.hw-card-mutations {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  margin: 2px 0 1px;
+}
+.hw-mut-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  line-height: 1;
+  border-radius: 50%;
+  cursor: help;
+  background: color-mix(in srgb, var(--hw-panel, #1d1611) 85%, black);
+  border: 1px solid #8fd18b;
+  box-shadow: 0 0 4px color-mix(in srgb, #8fd18b 35%, transparent);
+}
+.hw-mut-badge[data-kind="mixed"] { border-color: #e0b85a; box-shadow: 0 0 4px color-mix(in srgb, #e0b85a 35%, transparent); }
+.hw-mut-badge[data-kind="bad"] { border-color: #e07a6a; box-shadow: 0 0 4px color-mix(in srgb, #e07a6a 35%, transparent); }
+.hw-hearth-badge.is-gen { color: #b9a6e8; }
+.hw-hearth-badge.is-bred { border-color: transparent; padding: 0 2px; }
+.hw-hearth-hero-name { font-weight: 700; color: var(--hh-gold, #d4a24c); }
+.hw-hearth-nest {
+  padding: 12px 14px;
+  border-radius: var(--hw-radius, 10px);
+  border: 1px solid color-mix(in srgb, var(--hh-gold, #d4a24c) 35%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hh-wood, #3a2a1c) 80%, transparent), var(--hw-panel, #1d1611));
+}
+.hw-nest-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+.hw-nest-parent {
+  display: grid;
+  gap: 1px;
+  text-align: left;
+  padding: 6px 10px;
+  border-radius: var(--hw-radius-sm, 8px);
+  border: 1px solid var(--hw-border, #4a3826);
+  background: color-mix(in srgb, var(--hw-panel, #1d1611) 90%, black);
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+}
+.hw-nest-parent.is-on {
+  border-color: var(--hh-gold, #d4a24c);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--hh-gold, #d4a24c) 40%, transparent);
+}
+.hw-nest-parent:disabled { opacity: 0.45; cursor: not-allowed; }
+.hw-nest-parent-name { font-weight: 600; }
+.hw-nest-preview {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.hw-nest-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; }
+.hw-nest-birth {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  color: var(--hh-gold, #d4a24c);
+}
+.hw-family {
+  margin: 4px 0;
+  padding: 6px 8px;
+  border-radius: var(--hw-radius-sm, 8px);
+  border: 1px dashed var(--hw-border, #4a3826);
+  font-size: 11px;
+  text-align: left;
+}
+.hw-family-tree,
+.hw-family-tree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 12px;
+}
+.hw-family-tree { padding-left: 0; }
+.hw-family-tree ul { border-left: 1px solid color-mix(in srgb, var(--hh-gold, #d4a24c) 35%, transparent); }
+.hw-family-name { font-weight: 600; }
+.hw-family-name.is-gone { opacity: 0.6; font-style: italic; }
+.hw-family-line { margin-top: 3px; opacity: 0.85; }
+.hw-event-mutation,
+.hw-mutation-news {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #b9e3a6;
+}

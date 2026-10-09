@@ -5,6 +5,7 @@ import { evolutionFor, evolutionHint } from "../../data/heartwood/evolutions"
 import { UPGRADE_BRANCHES } from "../../data/heartwood/upgrades"
 import { ROLES, unitProfile, unitTargetProfile, TARGET_PROFILE_LABEL } from "../../data/heartwood/roles"
 import { PERKS, levelProgress } from "../../services/heartwood/unitLevels"
+import { MUTATIONS } from "../../data/heartwood/mutations"
 import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
 import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
@@ -105,7 +106,8 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   const hurt = hpPct < 1 || !!entry?.wounded
   const curHp = Math.max(1, Math.round(def.maxHp * hpPct))
   const effectiveRole = role || def.role
-  const tacticalClass = classById(def.classId)
+  // Breeding: a hatchling may carry the other parent's class (entry.classId).
+  const tacticalClass = classById(entry?.classId || def.classId)
   // Role & tag identity (roles.js): a "Tank · Support" line + up to
   // MAX_TAGS chips + strength/weakness in the tooltip. `role` here is
   // the Hero-Bent override (SquadDraft/FormationScreen pass it), so a
@@ -256,6 +258,8 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       )}
       {/* Unit levels (unitLevels.js): level badge, XP bar, perk icons. */}
       {entry && <LevelRow entry={entry} />}
+      {/* Mutations (data/heartwood/mutations.js): one badge each. */}
+      {entry?.mutations?.length > 0 && <MutationRow ids={entry.mutations} />}
       {/* Tribe band - promoted to a first-class element directly under
           the cost/HP row (Marc: "heimo tarvitsee näkyvämmän paikan
           kortissa koska se on keskeinen osa pelimekaniikkaa"). Labelled,
@@ -414,6 +418,20 @@ function LevelRow({ entry }) {
           {PERKS[id]?.icon}
         </span>
       ))}
+    </div>
+  )
+}
+
+function MutationRow({ ids }) {
+  return (
+    <div className="hw-card-mutations" data-mutations={ids.length}>
+      {ids.map((id) =>
+        MUTATIONS[id] ? (
+          <span key={id} className="hw-mut-badge" data-mutation={id} data-kind={MUTATIONS[id].kind} title={`${MUTATIONS[id].name} (${MUTATIONS[id].kind} mutation): ${MUTATIONS[id].text}`}>
+            {MUTATIONS[id].icon}
+          </span>
+        ) : null,
+      )}
     </div>
   )
 }

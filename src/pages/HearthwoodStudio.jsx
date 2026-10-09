@@ -20,6 +20,7 @@ import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
 import SheetView from "../components/hearthwood-studio/SheetView"
 import ThemePanel from "../components/hearthwood-studio/ThemePanel"
 import ResourceEditor from "../components/hearthwood-studio/ResourceEditor"
+import MutationEditor from "../components/hearthwood-studio/MutationEditor"
 
 /*
  * Hearthwood Studio - oma Dev Studio pelille, ei pilleri geneerisellä
@@ -50,7 +51,11 @@ function deepLinkFromUrl() {
 function HearthwoodStudio() {
   const deepLink = deepLinkFromUrl()
 
-  const [viewMode, setViewMode] = useState(new URLSearchParams(window.location.search).get("view") === "resources" ? "resources" : deepLink ? "single" : "dashboard")
+  const [viewMode, setViewMode] = useState(() => {
+    const view = new URLSearchParams(window.location.search).get("view")
+    if (view === "resources" || view === "mutations") return view
+    return deepLink ? "single" : "dashboard"
+  })
   // `browsingType` drives what the LEFT panel shows; `entityType` drives
   // what the DETAIL panel fetches. Normally the same value - split only
   // matters for the Story Timeline (Marc: "en tiedä missä jaotellut
@@ -273,6 +278,22 @@ function HearthwoodStudio() {
           >
             ⚡ Hero Resources
           </button>
+
+          <button
+            type="button"
+            data-testid="studio-mutations-tab"
+            onClick={() => setViewMode("mutations")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "mutations"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            🧬 Mutations
+          </button>
         </div>
       </header>
 
@@ -312,7 +333,21 @@ function HearthwoodStudio() {
         )
       }
 
-      {viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && (
+      {
+        viewMode === "mutations" && (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+              <MutationEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+            </section>
+
+            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
+            </section>
+          </div>
+        )
+      }
+
+      {viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser

@@ -49,6 +49,7 @@ import {
   chooseFloorEncounter,
   eventForNode,
   resolveEventChoice,
+  previewEventMutations,
   startActFive,
   startCrownlessBattle,
   endCrownlessBattle,
@@ -66,7 +67,7 @@ import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clear
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
 import {
   loadHearth, saveHearth, hearthStartFor, harvestRun, upgradeRoom, buyFurniture, recruitAtHome, retireUnit,
-  releaseUnit, setPermadeath,
+  releaseUnit, setPermadeath, breedHeroes,
 } from "../services/heartwood/hearth"
 import HearthScreen from "../components/heartwood/HearthScreen"
 import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
@@ -891,6 +892,7 @@ export default function HeartwoodBattle() {
               setHearthPicks((p) => p.filter((x) => x !== hid))
               editHearth((h) => releaseUnit(h, hid))
             }}
+            onBreed={(a, b) => editHearth((h, ac) => breedHeroes(h, a, b, ac))}
             onTogglePermadeath={(on) => editHearth((h) => setPermadeath(h, on))}
             onDismissReport={() => editHearth((h) => ({ ...h, lastReport: null }))}
             onStartRun={(picks) => {
@@ -1255,7 +1257,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="event">
         {changeCharacterBar}
-        <EventScreen event={eventForNode(runState)} onResolve={handleResolveEvent} />
+        <EventScreen event={eventForNode(runState)} onResolve={handleResolveEvent} previewLines={(i) => previewEventMutations(runState, i)} />
       </div>
     )
   }

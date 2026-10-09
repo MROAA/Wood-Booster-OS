@@ -210,6 +210,8 @@ export const ENTITY_TYPES = {
     classes: { file: "classes.js", exportName: "CLASSES" },
     // Resources step 2: class resource profiles (Rage, Combo, Holy Power...).
     resources: { file: "resources.js", exportName: "RESOURCES" },
+    // Breeding & Mutations: the Mewgenics-style mutation table.
+    mutations: { file: "mutations.js", exportName: "MUTATIONS" },
     upgradeBranches: { file: "upgrades.js", exportName: "UPGRADE_BRANCHES" },
     help: { file: "help.js", exportName: "HELP_SECTIONS" },
     coachTips: { file: "coach.js", exportName: "COACH_TIPS" },

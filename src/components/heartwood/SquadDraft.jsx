@@ -963,7 +963,7 @@ export default function SquadDraft({
       // Lasting consequences: the "who fell last fight" line rides in
       // this same one-shot notice slot (no new layout key).
       evolutionNotice: () =>
-        (runState.lastEvolved?.length > 0 || runState.lastAftermath?.length > 0) && (
+        (runState.lastEvolved?.length > 0 || runState.lastAftermath?.length > 0 || runState.lastMutations?.length > 0) && (
           <Fragment key="evolutionNotice">
             {runState.lastEvolved?.length > 0 && (
               <div className="hw-hint hw-hint--evolved" style={{ marginTop: 3 }}>
@@ -976,6 +976,12 @@ export default function SquadDraft({
             {runState.lastAftermath?.length > 0 && (
               <p className="hw-aftermath" data-aftermath>
                 {runState.lastAftermath.join(" ")} Wounded heroes start fights at 25% HP until you Mend them.
+              </p>
+            )}
+            {/* Mutations grown in the last fight / event (mutations.js). */}
+            {runState.lastMutations?.length > 0 && (
+              <p className="hw-aftermath hw-mutation-news" data-mutation-news>
+                {runState.lastMutations.join(" ")}
               </p>
             )}
           </Fragment>

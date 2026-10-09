@@ -500,6 +500,79 @@ export const EVENTS = [
     ],
   },
 
+  // --- Mutation events (Breeding & Mutations sprint) -------------------
+  // `{ mutation: "random" | "random-good" | "random-bad" | <id>, who: "random" | "all" }`
+  // gives a hero on the field a mutation (data/heartwood/mutations.js).
+  {
+    id: "the-glowing-puddle",
+    act: 4,
+    title: "The Glowing Puddle",
+    body: "In the middle of the path sits a puddle that is, very clearly, glowing. It hums a little tune. A frog sits beside it with three eyes and an expression of deep contentment. One of your heroes is already kneeling, cupping their hands.",
+    choices: [
+      {
+        label: "Let them drink. What's the worst that could happen?",
+        result: "They drink. They burp a small green cloud. Something about them is... different now. The frog nods, as if to say: welcome.",
+        effects: [{ mutation: "random", who: "random" }],
+      },
+      {
+        label: "Bottle it and sell it to the next fool you meet.",
+        result: "You cork a jar of it. It keeps humming in your pack all day. A merchant later pays well and asks no questions, which is the most worrying part.",
+        effects: [{ essence: 40 }],
+      },
+      {
+        label: "Step around it. Slowly.",
+        result: "You give the puddle a wide berth. The frog looks disappointed in you.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-grafting-hermit",
+    act: 5,
+    title: "The Grafting Hermit",
+    body: "An old hermit in a coat of stitched-together bark waves you over to a workbench covered in jars. \"Grafts!\" she says. \"Tails, gills, spare eyes. I do them very cheap and only a little bit wrong.\" Something in one of the jars waves back.",
+    choices: [
+      {
+        label: "Pay for a proper graft. (-40 Essence)",
+        result: "She works fast, humming, elbow-deep in moss and twine. When she steps back, your hero has something new - and it actually seems to work.",
+        effects: [{ essence: -40 }, { mutation: "random-good", who: "random" }],
+      },
+      {
+        label: "Ask for the free one.",
+        result: "\"Free one it is!\" She doesn't even look at the jar she grabs. Your hero now has something extra. It is hard to say yet if that is a gift.",
+        effects: [{ mutation: "random", who: "random" }],
+      },
+      {
+        label: "Politely back away.",
+        result: "\"Your loss!\" she calls after you. Something in a jar knocks on the glass as you leave.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-spore-chorus",
+    act: 6,
+    title: "The Spore Chorus",
+    body: "A ring of tall mushrooms is singing. Actually singing, in four-part harmony, and the air around them is thick with gold spores. Your whole squad sways a little without meaning to. It's lovely. It's also definitely getting into everyone's lungs.",
+    choices: [
+      {
+        label: "Join in. Everyone sings.",
+        result: "You all sing until the mushrooms bow. The spores settle deep. By evening, your heroes are changing - every one of them, in some small strange way.",
+        effects: [{ mutation: "random", who: "all" }],
+      },
+      {
+        label: "Hold your breath and run through.",
+        result: "You make it through red-faced and gasping. One hero didn't hold their breath quite long enough, and now hums in four-part harmony with themself.",
+        effects: [{ mutation: "random-mixed", who: "random" }, { essence: 20 }],
+      },
+      {
+        label: "Go the long way around.",
+        result: "The long way is muddy and full of nettles. The singing follows you for an hour, sounding a little hurt.",
+        effects: [],
+      },
+    ],
+  },
+
   // --- Act VII (The Echo Verge) --------------------------------
   {
     id: "the-last-clean-water",
