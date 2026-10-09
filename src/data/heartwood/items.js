@@ -38,7 +38,7 @@ import gloamingShardImg from "../../assets/heartwood/items/gloaming-shard.jpg"
 import runeboundCofferImg from "../../assets/heartwood/items/runebound-coffer.jpg"
 import wayfarersTalismanImg from "../../assets/heartwood/items/wayfarers-talisman.jpg"
 import glowmossLanternImg from "../../assets/heartwood/items/glowmoss-lantern.jpg"
-import { COLLARS } from "./recipes"
+import { COLLARS } from "./collars"
 
 // Heartwood - Items: per-UNIT gear, distinct from Relics (relics.js,
 // squad-wide) and Upgrade (units.js, a flat level-based stat scale
@@ -1202,7 +1202,7 @@ export const ITEMS = {
   },
 }
 
-// Class Collars (recipes.js COLLARS) join the item table as kind "collar".
+// Class Collars (collars.js COLLARS) join the item table as kind "collar".
 for (const c of Object.values(COLLARS)) {
   ITEMS[c.id] = { icon: "moonGlyph", cost: 200, effects: [], fx: {}, ...c, kind: "collar", tags: ["collar"], rarity: "epic" }
 }

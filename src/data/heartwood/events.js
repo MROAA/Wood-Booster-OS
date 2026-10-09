@@ -25,6 +25,7 @@
 //   { essence: N }            - add N Essence (may be negative; floored at 0)
 //   { relic: "random" }       - gain a random relic not already owned
 //   { item: "random" }        - gain a random item into the bag
+//   { item: "collar" }        - gain a random Class Collar (collars.js)
 //   { unit: "random-common" } - gain a random common-tier unit on the bench
 //   { squadNextBattle: [ <applyEffect objects> ] } - the squad enters the
 //                               NEXT battle only with these effects
@@ -741,6 +742,11 @@ export const EVENTS = [
         label: "Pass through without stopping.",
         result: "You don't look down more than you have to.",
         effects: [],
+      },
+      {
+        label: "Take the collar from the war-hound's bones.",
+        result: "The leather has gone hard as bark, but the stitched sigil on it still remembers the one who wore it - and how they fought. Whoever wears it next will fight that way too.",
+        effects: [{ item: "collar" }, { essence: -20 }],
       },
     ],
   },

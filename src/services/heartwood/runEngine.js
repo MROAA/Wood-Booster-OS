@@ -842,7 +842,7 @@ function rollItemShop(rng = Math.random, act = 1, marketLevel = 1, keep = []) {
 
 // Everything a NEW shop visit resets on the gear side: fresh offers
 // (locked ones stay), the item reroll price and the gear purse.
-function freshItemShop(rs, nodeIndex) {
+export function freshItemShop(rs, nodeIndex) {
   const keep = (rs.itemLocks || []).map((locked, i) => (locked ? (rs.itemOffers || [])[i] : null))
   return {
     itemOffers: rollItemShop(
