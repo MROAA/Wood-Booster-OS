@@ -276,14 +276,15 @@ export function healAmount(actor, target, amount) {
 
 // A living Guardian that Guarded `target` (attackUnit splits the hit).
 // Melee rework: a Guardian's Stalwart also INTERCEPTS - once per enemy
-// turn it takes half of a blow aimed at an adjacent ally.
+// turn it takes half of a blow aimed at an adjacent ally. A suppressed
+// Guardian can't react (same rule as every other reaction).
 export function classGuardFor(state, target) {
   if (target.guarded > 0 && target.guardedBy) {
     const g = getUnit(state, target.guardedBy)
     if (g && g.hp > 0 && g.side === target.side && g.id !== target.id && kingAdjacent(g.pos, target.pos)) return { ...g, classGuard: true }
   }
   if (target.side !== "player" || state.phase !== "enemy") return null
-  const icp = livingUnits(state, "player").find((g) => g.id !== target.id && has(g, "stalwart") && !g.interceptUsed && !(g.stun > 0) && kingAdjacent(g.pos, target.pos))
+  const icp = livingUnits(state, "player").find((g) => g.id !== target.id && has(g, "stalwart") && !g.interceptUsed && !(g.stun > 0) && !(g.suppressed > 0) && kingAdjacent(g.pos, target.pos))
   return icp ? { ...icp, classGuard: true, intercept: true } : null
 }
 
