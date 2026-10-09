@@ -2156,6 +2156,15 @@ function newPage() {
   await page39.waitForTimeout(400)
   await startTactics(page39)
   await page39.waitForTimeout(400)
+  // Resources step 2: the Commander's ultimate needs a FULL Inspiration
+  // bar (built up in a fight) - fill it so this check can fire it.
+  await page39.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("heartwood-run-save-v1"))
+    save.run.battle.units = save.run.battle.units.map((u) => (u.id === "player-commander" ? { ...u, mana: u.manaMax } : u))
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(save))
+  })
+  await page39.reload({ waitUntil: "domcontentloaded" })
+  await page39.waitForTimeout(500)
   const btnText = await page39.locator(".hwt-power-btn").innerText()
   const before = await page39.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.battle)
   await page39.locator(".hwt-power-btn").click()

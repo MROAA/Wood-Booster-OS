@@ -2959,3 +2959,152 @@
 .hwt-cell.hwt-combo-flash[data-combo-flash="blast"]::after { background: radial-gradient(circle, rgba(255, 190, 90, 0.9), rgba(255, 100, 40, 0.45) 55%, transparent 80%); }
 .hwt-cell.hwt-combo-flash[data-combo-flash="smoke"]::after { background: radial-gradient(circle, rgba(235, 230, 215, 0.85), transparent 80%); }
 .hwt-cell.hwt-combo-flash[data-combo-flash="shot"]::after { background: radial-gradient(circle, rgba(255, 220, 140, 0.7), transparent 70%); }
+
+/* ===== Resources step 2: class resource gauges (TacticsResourceUi.jsx) +
+   melee badges. --res-color comes from the profile (resources.js). ===== */
+.hwt-mana-track[data-res],
+.hwt-sb-mana-track[data-res],
+.hwt-selected-mana[data-res],
+.hwt-power-mana[data-res] { position: relative; }
+[data-res] > .hwt-mana-fill {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--res-color) 70%, #fff), var(--res-color));
+}
+[data-res="arcane"] > .hwt-mana-fill { background: linear-gradient(180deg, var(--hwt-mana-hi, #8fd0ff), var(--hwt-mana, #3d8bff)); }
+.hwt-mana-track[data-res] { height: 4px; }
+/* Breakpoint glow: brighter the higher the reached step. */
+[data-res][data-bp="50"] > .hwt-mana-fill { box-shadow: 0 0 3px var(--res-color); }
+[data-res][data-bp="75"] > .hwt-mana-fill { box-shadow: 0 0 5px var(--res-color); }
+[data-res][data-bp="100"] { box-shadow: 0 0 6px var(--res-color); animation: hwt-res-full 1.4s ease-in-out infinite; }
+@keyframes hwt-res-full { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+[data-res][data-berserk] { box-shadow: 0 0 8px #ff3b2f; animation: hwt-res-full 0.6s ease-in-out infinite; }
+/* Pips (Combo, Holy Power). */
+[data-style="pips"] {
+  display: flex;
+  gap: 1px;
+  background: transparent !important;
+  border: none !important;
+  height: 5px !important;
+}
+.hwt-res-pip {
+  flex: 1;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid color-mix(in srgb, var(--res-color) 45%, transparent);
+}
+.hwt-res-pip[data-on] { background: var(--res-color); box-shadow: 0 0 3px var(--res-color); }
+/* Counter (Souls). */
+[data-style="counter"] { height: 6px !important; overflow: visible !important; }
+.hwt-res-count {
+  position: absolute;
+  right: -2px;
+  top: -6px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 10px;
+  color: var(--res-color);
+  -webkit-text-stroke: 0.4px #000;
+}
+/* Tokens (Reagents). */
+[data-style="tokens"] {
+  display: flex;
+  gap: 2px;
+  background: transparent !important;
+  border: none !important;
+  height: 6px !important;
+  align-items: center;
+}
+.hwt-res-token { width: 6px; height: 6px; border-radius: 50%; background: var(--tok); box-shadow: 0 0 3px var(--tok); border: 1px solid rgba(0, 0, 0, 0.6); }
+.hwt-res-empty { font-size: 7px; color: #b9a98a; line-height: 6px; }
+/* Spirit: the reserved part is hatched at the right end. */
+.hwt-res-reserve {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(45deg, rgba(164, 240, 230, 0.55) 0 2px, rgba(0, 0, 0, 0.5) 2px 4px);
+}
+/* Fury tier marks + tier tint. */
+.hwt-res-mark { position: absolute; top: -1px; bottom: -1px; width: 1px; background: rgba(255, 240, 200, 0.85); }
+[data-tier="Enraged"] > .hwt-mana-fill { background: linear-gradient(180deg, #ffb070, #ff6a2b); }
+[data-tier="Blood Frenzy"] > .hwt-mana-fill { background: linear-gradient(180deg, #ff6a6a, #c4001d); }
+/* Nature state icon (wheel). */
+[data-style="wheel"] { overflow: visible !important; }
+.hwt-res-state {
+  position: absolute;
+  left: -10px;
+  top: -5px;
+  font-size: 9px;
+  line-height: 10px;
+  filter: drop-shadow(0 0 2px #000);
+}
+.hwt-sb-mana-track[data-style="pips"],
+.hwt-sb-mana-track[data-style="tokens"] { height: 6px !important; }
+.hwt-selected-stats span[data-stat="mana"][data-res] { color: var(--hwt-res-c, inherit); }
+/* Selected hero card: the resource panel. */
+.hwt-res-info {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid color-mix(in srgb, var(--res-color) 45%, transparent);
+}
+.hwt-res-info-head { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: var(--res-color); }
+.hwt-res-info .hwt-selected-mana { height: 6px; }
+.hwt-res-info [data-style="pips"].hwt-selected-mana,
+.hwt-res-info [data-style="tokens"].hwt-selected-mana { height: 9px !important; }
+.hwt-res-info .hwt-res-token { width: 9px; height: 9px; }
+.hwt-res-bps { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+.hwt-res-bp {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 5px;
+  color: #a99d86;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.hwt-res-bp[data-on] { color: #1b1408; background: var(--res-color); border-color: var(--res-color); font-weight: 800; }
+.hwt-res-now { margin: 4px 0 0; font-size: 11px; color: #f3e6c4; }
+.hwt-res-rules { margin: 4px 0 0; font-size: 10px; line-height: 1.35; color: #b9ab8e; }
+/* Skill cost gems in the class resource. */
+.hwt-skill-mana[data-res]:not([data-res="arcane"]) { background: color-mix(in srgb, var(--res-gem, #c79a3a) 55%, transparent); }
+.hwt-skill-mana[data-res="rage"] { --res-gem: #e2483d; }
+.hwt-skill-mana[data-res="fury"] { --res-gem: #ff6a2b; }
+.hwt-skill-mana[data-res="combo"] { --res-gem: #c9a020; }
+.hwt-skill-mana[data-res="shadow"] { --res-gem: #7a5bd6; }
+.hwt-skill-mana[data-res="holy"] { --res-gem: #c9b060; }
+.hwt-skill-mana[data-res="focus"] { --res-gem: #4fae44; }
+.hwt-skill-mana[data-res="nature"] { --res-gem: #3f9c50; }
+.hwt-skill-mana[data-res="spirit"] { --res-gem: #4fb3a6; }
+.hwt-skill-mana[data-res="souls"] { --res-gem: #8a74d6; }
+.hwt-skill-mana[data-res="hex"] { --res-gem: #b5409f; }
+.hwt-skill-mana[data-res="corruption"] { --res-gem: #6f9a1f; }
+.hwt-skill-mana[data-res="blood"] { --res-gem: #9a1024; }
+.hwt-skill-mana[data-res="reagents"] { --res-gem: #c07a20; }
+.hwt-skill-mana[data-res="inspiration"] { --res-gem: #c99a2a; }
+.hwt-skill-mana[data-mode="all"] { outline: 1px solid #ffd27a; }
+.hw-floating-number--mana-bp {
+  color: #ffe08a;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 0 8px rgba(255, 200, 80, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+/* Melee status badges on tokens. */
+.hwt-melee-badges { position: absolute; left: 2px; top: 2px; display: flex; gap: 1px; z-index: 3; pointer-events: auto; }
+.hwt-melee-badge {
+  font-size: 10px;
+  line-height: 13px;
+  min-width: 13px;
+  text-align: center;
+  border-radius: 4px;
+  background: rgba(20, 12, 6, 0.85);
+  border: 1px solid #c79a3a;
+  color: #ffe2a0;
+}
+.hwt-melee-badge[data-mark="provoked"] { border-color: #ff6b4a; color: #ffb39a; }
+.hwt-melee-badge[data-mark="stealth"] { border-color: #9b7bff; color: #d8c8ff; opacity: 0.9; }
+.hwt-melee-badge[data-mark="engaged"] { border-color: #ff9a3c; color: #ffcf9a; }
+.hwt-melee-badge[data-mark="berserk"] { border-color: #ff3b2f; color: #ff8a80; }
+.hwt-token[data-stealth] { opacity: 0.6; }
+.hwt-universal-btn[data-engaged] { outline: 1px dashed #ff9a3c; }

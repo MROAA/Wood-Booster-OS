@@ -84,7 +84,9 @@ const engine = await page.evaluate(async () => {
     const guarded = cast(s, g, f, "guard")
     ok(U(guarded, f).guarded === 1 && U(guarded, g).ap === 1, "Guard applies", U(guarded, f))
     const hitG = enemyHit(guarded, E0, f)
-    const hitCtl = enemyHit(s, E0, f)
+    // Melee rework: the Guardian's Stalwart now INTERCEPTS (half) once per enemy
+    // turn even without Guard - the control has its Intercept used up.
+    const hitCtl = enemyHit({ ...s, units: s.units.map((u) => (u.id === g ? { ...u, interceptUsed: true } : u)) }, E0, f)
     ok(dmg(guarded, hitG, g) > 0 && dmg(guarded, hitG, f) < dmg(s, hitCtl, f) && labels(hitG).includes("Guard!"), "Guard splits the hit", { g: dmg(guarded, hitG, g), f: dmg(guarded, hitG, f), ctl: dmg(s, hitCtl, f) })
     const wall = cast(s, g, null, "shield-wall")
     ok(U(wall, g).block === 3 && U(wall, f).block === 2 && U(wall, g).classCds["shield-wall"] === 3, "Shield Wall", { g: U(wall, g).block, f: U(wall, f).block })
@@ -147,7 +149,8 @@ const engine = await page.evaluate(async () => {
     const half = { ...s, units: s.units.map((u) => (u.id === b ? { ...u, hp: Math.floor(u.maxHp / 2) } : u)) }
     ok(dmg(half, E.attackUnit(half, b, E0), E0) === dmg(s, E.attackUnit(s, b, E0), E0) + 2, "Bruiser Adrenaline +2 at half HP")
     const hs = cast(s, b, E0, "heavy-swing")
-    ok(dmg(s, hs, E0) === a && dmg(s, hs, E1) === Math.ceil(a / 2), "Heavy Swing", { e0: dmg(s, hs, E0), e1: dmg(s, hs, E1), a })
+    // Melee rework: Heavy Swing is now Whirlwind - every adjacent enemy takes a FULL hit.
+    ok(dmg(s, hs, E0) === a && dmg(s, hs, E1) === a, "Heavy Swing (Whirlwind)", { e0: dmg(s, hs, E0), e1: dmg(s, hs, E1), a })
     const sc = cast(s, b, E0, "shoulder-check")
     ok(U(sc, E0).pos.col === 5 && U(sc, b).pos.col === 6 && dmg(s, sc, E0) === Math.ceil(a / 2), "Shoulder Check pushes + steps in", { e: U(sc, E0).pos, b: U(sc, b).pos })
   }
@@ -412,6 +415,10 @@ for (const f of engine.fails) out.errors.push(f)
 
 // --- UI: skill bar, skill 2 via clicks, class badge on token + card --------
 {
+  // Resources step 2: the Guardian runs on Holy Power (1/5 at the start) and
+  // Shield Wall is ALL-IN 2+ - start the QA page with full pips.
+  await page.goto(`http://localhost:${PORT}/heartwood-tactics?manaStart=5`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector(".hwt-board")
   await page.locator(".hwt-squad-select").nth(0).selectOption("bulwark-of-ages")
   await page.waitForTimeout(250)
   const token = page.locator('.hwt-token[data-side="player"]', { hasText: "Bulwark of Ages" }).first()
@@ -428,7 +435,8 @@ for (const f of engine.fails) out.errors.push(f)
   const cd = await page.locator('.hwt-skill-btn[data-skill-id="shield-wall"]').innerText()
   const log = (await page.locator(".hwt-log p").allInnerTexts()).join("\n")
   out.ui = { badge, count, skills, cls, cd, logHas: log.includes("Shield Wall") }
-  if (!(badge === "guardian" && count === "3" && skills === 2 && cls.includes("Guardian"))) out.errors.push("UI: skill bar / class badge")
+  // Melee rework: the Guardian has 3 class skills now (+ Provoke).
+  if (!(badge === "guardian" && count === "4" && skills === 3 && cls.includes("Guardian"))) out.errors.push("UI: skill bar / class badge")
   if (!(cd.includes("Recharging") && out.ui.logHas)) out.errors.push("UI: Shield Wall via the skill bar")
   // targeted skill: Guard on an adjacent ally via clicks (key 2)
   const tokenBox = await token.boundingBox()
@@ -443,7 +451,8 @@ for (const f of engine.fails) out.errors.push(f)
     await page.waitForTimeout(150)
     const hint = await page.locator(".hwt-skill-hint").innerText().catch(() => "")
     out.ui.guardHint = hint
-    if (!hint.includes("Choose an ally for Guard")) out.errors.push("UI: key 2 arms Guard")
+    // Melee rework: Guard is now called Bodyguard.
+    if (!hint.includes("Choose an ally for Bodyguard")) out.errors.push("UI: key 2 arms Guard (Bodyguard)")
   }
   await page.screenshot({ path: ".scratch/shots/classes_a_board.png" })
 }

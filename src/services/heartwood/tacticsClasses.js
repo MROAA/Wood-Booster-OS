@@ -29,12 +29,12 @@ import {
 import { applyElement, reactStatus, ENTANGLE_DURATION } from "./tacticsElements"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
 import { rollBoulder } from "./tacticsObjects"
-import { canAfford, hasMana, manaCostOf } from "./tacticsMana"
+import { canAfford, hasMana, manaBlockReason, resourceMods, profileOf, gainResource, tokensOf, reagentCombos, VENOM_DAMAGE } from "./tacticsMana"
 import * as ranged from "./tacticsRanged"
 
 const SLOW = 2
 const ROOT = 2
-const COUNTERS = ["guarded", "zoneGuard", "overwatch", "hunkered", "mark", "sMark", "challenged", "exposed", "silenced", "disarmed", "empower", "cursed", "soulDebt", "appraised", "phased", "frenzy"]
+const COUNTERS = ["guarded", "zoneGuard", "overwatch", "hunkered", "mark", "sMark", "challenged", "exposed", "silenced", "disarmed", "empower", "cursed", "soulDebt", "appraised", "phased", "frenzy", "shieldWall", "provoked", "stealth", "bastion"]
 const DEBUFFS = ["poison", "burn", "chill", "frozen", "root", "slow", "weak", "vulnerable", "entangle", "suppressed", "mark", "sMark", "exposed", "silenced", "disarmed", "challenged", "cursed", "soulDebt", "appraised", "corruption"]
 const CLEANSED = ["poison", "burn", "chill", "frozen", "root", "slow", "weak", "vulnerable", "entangle", "suppressed", "disarmed", "cursed"]
 // Part B: max bonus Essence one fight can pay out (Merchant/Gatherer).
@@ -197,9 +197,21 @@ function hasAnyStatus(u) {
 }
 
 // Final class adjustment to one hit's damage (modifiedAttackAmount).
+// Melee rework: melee heroes get extra damage from the flank.
+export const MELEE_FLANK_DMG = { side: 1, back: 2 }
+const MELEE_RESOURCES = new Set(["rage", "fury", "combo", "shadow", "holy"])
+
 export function classDamageMod(attacker, defender, amount, facing) {
   if (!(amount > 0) || !attacker || !defender) return amount
   let a = amount
+  // Resources step 2: breakpoints / Fury tier / Nature State / Berserk.
+  const am = resourceMods(attacker)
+  const dm = resourceMods(defender)
+  a += am.dmg
+  if (am.mult > 1) a = Math.round(a * am.mult)
+  if (attacker.stealth > 0 && attacker.stealthBonus > 0) a += attacker.stealthBonus
+  if (attacker.side === "player" && hasMana(attacker) && MELEE_RESOURCES.has(attacker.resource) && dist(attacker.pos, defender.pos) <= 1 && MELEE_FLANK_DMG[facing]) a += MELEE_FLANK_DMG[facing]
+  a += dm.taken
   if (attacker.side === "player") {
     const p = attacker.classPassive
     if (p === "defensive-aim" && !attacker.moved) a += 1
@@ -232,6 +244,9 @@ export function classDamageMod(attacker, defender, amount, facing) {
   if (defender.zoneGuard > 0) a -= 1
   if (has(defender, "last-stand") && hpFrac(defender) < 0.5) a -= 1
   if (defender.form === "root") a -= 1
+  a -= dm.guard
+  // Melee rework: Bastion stance halves every hit.
+  if (defender.bastion > 0) a = Math.floor(a / 2)
   if (defender.phased > 0) a = 0
   return Math.max(0, a)
 }
@@ -253,25 +268,48 @@ export function wallDamage(u, amount) {
 // Medic's Triage.
 export function healAmount(actor, target, amount) {
   const base = has(actor, "triage") && target.hp < target.maxHp / 2 ? Math.round(amount * 1.5) : amount
-  // Mana Overcharge: the heal being cast right now is stronger.
-  return base + (actor?.surge > 0 ? actor.surge : 0)
+  // Mana Overcharge: the heal being cast right now is stronger. Resources
+  // step 2: breakpoint healing, ALL-IN scaling, Empowered (x1.5).
+  const sum = base + (actor?.surge > 0 ? actor.surge : 0) + (actor?.castBonus > 0 ? actor.castBonus : 0) + resourceMods(actor).heal
+  return actor?.empowered ? Math.round(sum * 1.5) : sum
 }
 
 // A living Guardian that Guarded `target` (attackUnit splits the hit).
+// Melee rework: a Guardian's Stalwart also INTERCEPTS - once per enemy
+// turn it takes half of a blow aimed at an adjacent ally. A suppressed
+// Guardian can't react (same rule as every other reaction).
 export function classGuardFor(state, target) {
-  if (!(target.guarded > 0) || !target.guardedBy) return null
-  const g = getUnit(state, target.guardedBy)
-  if (!g || g.hp <= 0 || g.side !== target.side || g.id === target.id || !kingAdjacent(g.pos, target.pos)) return null
-  return { ...g, classGuard: true }
+  if (target.guarded > 0 && target.guardedBy) {
+    const g = getUnit(state, target.guardedBy)
+    if (g && g.hp > 0 && g.side === target.side && g.id !== target.id && kingAdjacent(g.pos, target.pos)) return { ...g, classGuard: true }
+  }
+  if (target.side !== "player" || state.phase !== "enemy") return null
+  const icp = livingUnits(state, "player").find((g) => g.id !== target.id && has(g, "stalwart") && !g.interceptUsed && !(g.stun > 0) && !(g.suppressed > 0) && kingAdjacent(g.pos, target.pos))
+  return icp ? { ...icp, classGuard: true, intercept: true } : null
+}
+
+// Melee rework: Vanish - a ranged attacker more than 2 tiles away can't see it.
+export const STEALTH_RANGE = 2
+export function hiddenFrom(target, attacker, atkPos = attacker?.pos) {
+  return !!target && !!attacker && target.stealth > 0 && (attacker.range || 1) > 1 && dist(atkPos, target.pos) > STEALTH_RANGE
+}
+
+// Melee rework: a Provoked (tank) or Challenged (Duelist) enemy must go
+// for that hero while it stands.
+export function forcedTargetOf(state, enemy) {
+  for (const [flag, by] of [["provoked", "provokedBy"], ["challenged", "challengedBy"]]) {
+    if (!(enemy[flag] > 0) || !enemy[by]) continue
+    const rival = getUnit(state, enemy[by])
+    if (rival && rival.hp > 0) return rival
+  }
+  return null
 }
 
 // Enemy AI target pool: a Challenged enemy may only attack its living
 // challenger (it walks over to it rather than hitting anyone else).
 export function filterEnemyTargets(state, enemy, pool) {
-  if (!(enemy.challenged > 0) || !enemy.challengedBy) return pool
-  const rival = getUnit(state, enemy.challengedBy)
-  if (!rival || rival.hp <= 0) return pool
-  return pool.filter((u) => u.id === rival.id)
+  const rival = forcedTargetOf(state, enemy)
+  return rival ? pool.filter((u) => u.id === rival.id) : pool
 }
 
 // After any successful move (moveUnit): Hold Ground/Defensive Aim flag,
@@ -329,6 +367,7 @@ export function afterPlayerHit(state, actorId, targetId) {
   if (!actor || actor.side !== "player") return state
   let next = state
   if (actor.classPassive === "battle-rhythm") next = setUnit(next, actorId, { rhythm: (actor.rhythm || 0) + 1 })
+  if (actor.stealthBonus > 0) next = setUnit(next, actorId, { stealthBonus: 0 })
   if (actor.classPassive === "arcane-edge" && actor.edge > 0) {
     next = setUnit(next, actorId, { edge: 0 })
     const t = getUnit(next, targetId)
@@ -434,7 +473,7 @@ function duelRiposte(state, attackerId, targetId) {
   if (!t || !a || t.hp <= 0 || a.hp <= 0 || ended(state)) return state
   if (t.classPassive !== "riposte" || t.riposteUsed || a.side !== "enemy" || dist(a.pos, t.pos) > 1) return state
   let next = setUnit(state, targetId, { riposteUsed: true })
-  next = callout(next, targetId, "Riposte!")
+  next = gainResource(callout(next, targetId, "Riposte!"), targetId, 1, "riposte")
   return abilityHit(next, targetId, attackerId, Math.ceil(t.attack / 2), { name: "Riposte" }).next
 }
 
@@ -457,6 +496,7 @@ export function afterCast(state, actorId, targetId, skill) {
 // End of the player's turn (top of enemyPhaseStart): Hold Ground.
 export function classPlayerTurnEnd(state) {
   let next = state
+  for (const u of livingUnits(state, "player")) if (u.interceptUsed) next = setUnit(next, u.id, { interceptUsed: false })
   for (const u of livingUnits(state, "player")) {
     if (u.classPassive !== "hold-ground" || u.moved) continue
     next = callout(setUnit(next, u.id, { block: (u.block || 0) + 2 }), u.id, "Hold Ground!")
@@ -679,6 +719,32 @@ function blinkLanding(state, actor, target, range) {
   return best ? best.pos : null
 }
 
+// Lunge: the free tile next to `target` (within range) that hits it from
+// the BACK, else the side, else anywhere - closest wins a tie.
+const FLANK_RANK = { back: 2, side: 1, front: 0 }
+function facingFrom(pos, target) {
+  if (!target.facing) return "front"
+  const dc = pos.col - target.pos.col
+  const dr = pos.row - target.pos.row
+  const dir = cardinal(dc, dr)
+  if (dir === target.facing) return "front"
+  return { N: "S", S: "N", E: "W", W: "E" }[target.facing] === dir ? "back" : "side"
+}
+function flankLanding(state, actor, target, range) {
+  let best = null
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      const pos = { row: target.pos.row + dr, col: target.pos.col + dc }
+      if ((dr === 0 && dc === 0) || !(samePos(pos, actor.pos) || tileFree(state, pos, actor.id))) continue
+      const d = dist(actor.pos, pos)
+      if (d > range) continue
+      const rank = FLANK_RANK[facingFrom(pos, target)]
+      if (!best || rank > best.rank || (rank === best.rank && d < best.d)) best = { pos, rank, d }
+    }
+  }
+  return best ? best.pos : null
+}
+
 // Per-skill extra target rules.
 function skillAllows(state, actor, target, skill) {
   switch (skill.id) {
@@ -696,7 +762,12 @@ function skillAllows(state, actor, target, skill) {
     case "coordinated-strike":
       return livingUnits(state, actor.side).some((u) => u.id !== actor.id && !u.npc && kingAdjacent(u.pos, target.pos))
     case "pull":
+    case "hook":
       return !immovable(target)
+    case "lunge":
+      return !actor.root && !!flankLanding(state, actor, target, skill.range)
+    case "leap":
+      return !!blinkLanding(state, actor, target, skill.range)
     case "formation-shift":
       return !actor.root && !target.npc
     case "hunt": {
@@ -721,6 +792,12 @@ function skillAllows(state, actor, target, skill) {
 // Self skills with a precondition (UI greys them out when false).
 function selfAllows(state, actor, skill) {
   switch (skill.id) {
+    // Melee rework: an ENGAGED shooter can't Aim or watch.
+    case "aim":
+    case "overwatch":
+      return !ranged.isEngaged(state, actor)
+    case "provoke":
+      return livingUnits(state, actor.side === "player" ? "enemy" : "player").some((u) => !u.structure && dist(u.pos, actor.pos) <= skill.radius)
     case "summon-spirit":
     case "call-companion":
       return !companionOf(state, actor) && freeCellsNear(state, actor.pos, 1).length > 0
@@ -949,7 +1026,8 @@ function releaseRitual(state, id, early) {
   const per = rite.damage || 3
   let next = setUnit(state, id, { ritual: 0 })
   const radius = early ? 1 : 3
-  const dmg = early ? Math.ceil((per * n) / 2) : per * n
+  // Resources step 2: ALL-IN Souls add to each blast (castBonus).
+  const dmg = early ? Math.ceil((per * n) / 2) : per * n + (a.castBonus || 0)
   next = emit(addLog(next, early ? `${a.name}'s ritual breaks and lashes out!` : `${a.name} completes the ritual!`), { kind: "aoe", actorId: id })
   if (early) next = callout(next, id, "Ritual breaks!")
   const foes = livingUnits(next, "enemy").filter((e) => !e.structure && dist(e.pos, a.pos) <= radius).map((e) => e.id)
@@ -974,10 +1052,22 @@ const HANDLERS = {
     s = emit(s, { kind: "ward", targetId: t.id })
     return addLog(s, `${a.name} guards ${t.name} - it will take half of every blow aimed at it.`)
   },
+  // Melee rework: ALL-IN Holy Power; allies behind it get half cover.
   "shield-wall"(s, a, _t, k) {
-    s = setUnit(s, a.id, { block: (a.block || 0) + k.self })
-    for (const u of livingUnits(s, a.side)) if (u.id !== a.id && kingAdjacent(u.pos, a.pos)) s = setUnit(s, u.id, { block: (u.block || 0) + k.allies })
-    return addLog(s, `${a.name} raises a Shield Wall.`)
+    const extra = allInExtra(a, k, "block", k.mana || 0)
+    s = setUnit(s, a.id, { block: (a.block || 0) + k.self + extra, shieldWall: 1 })
+    for (const u of livingUnits(s, a.side)) if (u.id !== a.id && kingAdjacent(u.pos, a.pos)) s = setUnit(s, u.id, { block: (u.block || 0) + k.allies + extra })
+    return addLog(s, `${a.name} raises a Shield Wall${extra ? ` (+${extra} Block from Holy Power)` : ""} - allies behind it are in half cover.`)
+  },
+  provoke(s, a, _t, k) {
+    const foes = livingUnits(s, a.side === "player" ? "enemy" : "player").filter((u) => !u.structure && dist(u.pos, a.pos) <= k.radius)
+    for (const f of foes) s = callout(setUnit(s, f.id, { provoked: 1, provokedBy: a.id }), f.id, "Provoked!")
+    s = setUnit(s, a.id, { block: (getUnit(s, a.id).block || 0) + k.block })
+    return addLog(s, `${a.name} provokes ${foes.length} foe(s) - they must come at it!`)
+  },
+  bastion(s, a, _t, k) {
+    s = setUnit(s, a.id, { bastion: 1, shieldWall: 1, block: (a.block || 0) + k.block })
+    return callout(addLog(s, `${a.name} plants itself in a Bastion stance - half damage until your next turn.`), a.id, "Bastion!")
   },
   "warden-zone"(s, a, _t, k) {
     for (const u of livingUnits(s, a.side)) if (u.id === a.id || kingAdjacent(u.pos, a.pos)) s = setUnit(s, u.id, { zoneGuard: 1, block: (u.block || 0) + k.block })
@@ -1028,11 +1118,24 @@ const HANDLERS = {
     s = callout(s, a.id, "Steady...")
     return hit(s, a.id, t.id, a.attack * k.mult, k).next
   },
+  // Melee rework: Whirlwind - EVERY adjacent enemy takes a full hit (ALL-IN Rage scales it).
   "heavy-swing"(s, a, t) {
     const others = livingUnits(s, t.side).filter((u) => u.id !== t.id && !u.structure && kingAdjacent(u.pos, a.pos)).map((u) => u.id)
-    s = hit(s, a.id, t.id, a.attack, { name: "Heavy Swing" }).next
-    for (const id of others) s = hit(s, a.id, id, Math.ceil(getUnit(s, a.id).attack / 2), { name: "Heavy Swing" }).next
+    s = emit(s, { kind: "aoe", actorId: a.id })
+    s = hit(s, a.id, t.id, a.attack, { name: "Whirlwind" }).next
+    for (const id of others) if (!ended(s)) s = hit(s, a.id, id, getUnit(s, a.id).attack, { name: "Whirlwind" }).next
     return s
+  },
+  hook(s, a, t, k) {
+    let pos = { ...t.pos }
+    for (let i = 0; i < k.steps; i++) {
+      if (kingAdjacent(pos, a.pos)) break
+      const p = { row: pos.row + sign(a.pos.row - pos.row), col: pos.col + sign(a.pos.col - pos.col) }
+      if (!tileFree(s, p, t.id)) break
+      pos = p
+    }
+    if (!samePos(pos, t.pos)) s = callout(addLog(setUnit(s, t.id, { pos }), `${a.name} hooks ${t.name} out of position!`), t.id, "Hooked!")
+    return hit(s, a.id, t.id, Math.ceil(a.attack / 2), { name: "Hook" }).next
   },
   "shoulder-check"(s, a, t) {
     const from = { ...t.pos }
@@ -1053,6 +1156,32 @@ const HANDLERS = {
   "exploit-opening"(s, a, t, k) {
     return hit(s, a.id, t.id, a.attack + (hasAnyStatus(t) ? k.bonus : 0), { name: "Exploit Opening" }).next
   },
+  // Combo FINISHER: ALL-IN pips (castBonus), a kill refunds 1 AP.
+  "finishing-blow"(s, a, t) {
+    const r = hit(s, a.id, t.id, a.attack, { name: "Finishing Blow" })
+    s = r.next
+    if (r.killed && getUnit(s, a.id)?.hp > 0) s = callout(setUnit(s, a.id, { ap: getUnit(s, a.id).ap + 1 }), a.id, "Kill chain! +1 AP")
+    return s
+  },
+  lunge(s, a, t) {
+    const pos = flankLanding(s, a, t, 3)
+    if (pos && !samePos(pos, a.pos)) s = moveTo(s, a.id, pos, cardinal(t.pos.col - pos.col, t.pos.row - pos.row))
+    s = callout(s, a.id, "Lunge!")
+    return hit(s, a.id, t.id, getUnit(s, a.id).attack, { name: "Lunge" }).next
+  },
+  vanish(s, a, _t, k) {
+    s = setUnit(s, a.id, { stealth: 1, stealthBonus: k.bonus })
+    return callout(addLog(s, `${a.name} melts into the shadows.`), a.id, "Vanished!")
+  },
+  leap(s, a, t, k) {
+    const pos = blinkLanding(s, a, t, k.range)
+    if (!samePos(pos, a.pos)) s = moveTo(s, a.id, pos, cardinal(t.pos.col - pos.col, t.pos.row - pos.row))
+    s = callout(s, a.id, "Leap!")
+    const r = hit(s, a.id, t.id, getUnit(s, a.id).attack, { name: "Leap" })
+    s = r.next
+    if (r.killed && getUnit(s, a.id)?.hp > 0) s = callout(setUnit(s, a.id, { freeStep: 1 }), a.id, "Kill chain! Free move")
+    return s
+  },
   "shadow-step"(s, a, t) {
     const pos = shadowLanding(s, t)
     s = moveTo(s, a.id, pos, t.facing || "W")
@@ -1066,9 +1195,10 @@ const HANDLERS = {
     return callout(addLog(s, `${a.name} challenges ${t.name} to a duel!`), t.id, "Challenged!")
   },
   disarm(s, a, t) {
+    const turns = (a.allInSpent || 0) >= 6 ? 2 : 1
     const r = hit(s, a.id, t.id, Math.ceil(a.attack / 2), { name: "Disarm" })
     if (r.fell) return r.next
-    return callout(setUnit(r.next, t.id, { disarmed: 1 }), t.id, "Disarmed!")
+    return callout(setUnit(r.next, t.id, { disarmed: Math.max(getUnit(r.next, t.id).disarmed || 0, turns) }), t.id, "Disarmed!")
   },
   "hunters-mark"(s, a, t, k) {
     s = setUnit(s, t.id, { mark: Math.max(t.mark || 0, 2), markBonus: Math.max(t.mark > 0 ? t.markBonus || 0 : 0, k.bonus) })
@@ -1187,10 +1317,12 @@ const HANDLERS = {
     s = healUnit(s, a, t.id, k.amount)
     return setUnit(s, t.id, { hot: k.turns, hotAmount: k.amount })
   },
-  stabilize(s, a, t) {
+  stabilize(s, a, t, k) {
     const live = getUnit(s, t.id)
     s = setUnit(s, t.id, { stabilized: 1, stabBase: live.revive || 0, revive: (live.revive || 0) + 1 })
-    return callout(addLog(s, `${a.name} stabilizes ${t.name} - it won't fall this round.`), t.id, "Stabilized!")
+    s = callout(addLog(s, `${a.name} stabilizes ${t.name} - it won't fall this round.`), t.id, "Stabilized!")
+    const extra = allInExtra(a, k, "heal", 0, true)
+    return extra > 0 ? healUnit(s, { ...a, castBonus: 0 }, t.id, extra) : s
   },
   cleanse(s, a, t, k) {
     const patch = {}
@@ -1209,7 +1341,7 @@ const HANDLERS = {
   },
   "coordinated-strike"(s, a, t) {
     const helpers = livingUnits(s, a.side).filter((u) => u.id !== a.id && !u.npc && kingAdjacent(u.pos, t.pos)).map((u) => u.id)
-    for (const id of helpers) s = hit(s, id, t.id, Math.ceil(getUnit(s, id).attack / 2), { name: "Coordinated Strike" }).next
+    for (const id of helpers) s = hit(s, id, t.id, Math.ceil(getUnit(s, id).attack / 2) + (a.castBonus || 0), { name: "Coordinated Strike" }).next
     return s
   },
   "tactical-order"(s, a, t) {
@@ -1357,11 +1489,11 @@ const HANDLERS = {
     return s
   },
   "soul-debt"(s, a, t, k) {
-    s = setUnit(strikeFx(s, a, t, "Soul Debt"), t.id, { soulDebt: 2, soulDebtDmg: k.damage })
+    s = setUnit(strikeFx(s, a, t, "Soul Debt"), t.id, { soulDebt: 2, soulDebtDmg: k.damage + allInExtra(a, k, "debt", 0, true) })
     return callout(addLog(s, `${t.name} now owes a Soul Debt.`), t.id, "Soul Debt!")
   },
-  "summon-spirit"(s, a) {
-    return summonWolf(s, a, has(a, "spirit-bond") ? { bonded: true } : {})
+  "summon-spirit"(s, a, _t, k) {
+    return summonWolf(s, a, { ...(has(a, "spirit-bond") ? { bonded: true } : {}), ...upkeepFor(a, k) })
   },
   "sacrificial-summon"(s, a, _t, k) {
     const sp = companionOf(s, a)
@@ -1376,8 +1508,8 @@ const HANDLERS = {
     for (const u of swarmOf(s, a, t)) s = hit(s, u.id, t.id, getUnit(s, u.id).attack, { name: "Swarm Command" }).next
     return s
   },
-  "call-companion"(s, a) {
-    return summonWolf(s, a)
+  "call-companion"(s, a, _t, k) {
+    return summonWolf(s, a, upkeepFor(a, k))
   },
   hunt(s, a, t, k) {
     const c = companionOf(s, a)
@@ -1388,7 +1520,7 @@ const HANDLERS = {
   },
   frenzy(s, a, _t, k) {
     const c = companionOf(s, a)
-    s = setUnit(s, c.id, { ap: c.ap + 1, frenzy: 1, frenzyBonus: k.bonus })
+    s = setUnit(s, c.id, { ap: c.ap + 1, frenzy: 1, frenzyBonus: k.bonus + (a.castBonus || 0) })
     return callout(addLog(s, `${c.name} goes into a frenzy!`), c.id, "Frenzy!")
   },
   "poison-flask"(s, a, t, k) {
@@ -1397,10 +1529,29 @@ const HANDLERS = {
     for (const id of ids) if (!ended(s)) s = applyElement(s, id, "poison", k.amount)
     return callout(addLog(s, `${a.name}'s flask bursts - poison everywhere.`), t.id, "Poisoned!")
   },
+  // Reagents: throws EVERY token; pairs make combos (tacticsMana.reagentCombos).
   "volatile-mixture"(s, a, t, k) {
-    s = ranged.emitShot(s, "arc", a.pos, t.pos, null, a.id)
-    const r = hit(s, a.id, t.id, a.attack, k)
-    return r.fell || ended(r.next) ? r.next : applyElement(r.next, t.id, "fire", k.amount)
+    const tokens = hasMana(a) && a.resource === "reagents" ? tokensOf(a) : { fire: 0, frost: 0, poison: 0, arcane: 0 }
+    const count = tokens.fire + tokens.frost + tokens.poison + tokens.arcane
+    const combos = reagentCombos(tokens)
+    s = ranged.emitShot(s, "arc", a.pos, t.pos, combos.length ? ranged.blastTiles(s, t.pos) : null, a.id)
+    let base = a.attack + count
+    if (combos.includes("arcane")) base = Math.round(base * 1.5)
+    const near = livingUnits(s, t.side).filter((u) => u.id !== t.id && !u.structure && kingAdjacent(u.pos, t.pos)).map((u) => u.id)
+    const r = hit(s, a.id, t.id, base, k)
+    s = r.fell || ended(r.next) ? r.next : applyElement(r.next, t.id, "fire", k.amount)
+    const names = { venom: "Explosive Venom", freezing: "Freezing Venom", steam: "Steam Burst", arcane: "Arcane Surge" }
+    if (combos.length) s = callout(addLog(s, `${a.name}'s reagents react: ${combos.map((c) => names[c]).join(" + ")}!`), t.id, combos.map((c) => names[c]).join(" + "))
+    if (combos.includes("venom")) {
+      for (const id of [t.id, ...near]) {
+        if (ended(s) || !(getUnit(s, id)?.hp > 0)) continue
+        s = flatHit(s, id, VENOM_DAMAGE)
+        if (getUnit(s, id)?.hp > 0 && !ended(s)) s = applyElement(s, id, "poison", 2)
+      }
+    }
+    if (combos.includes("freezing") && getUnit(s, t.id)?.hp > 0 && !ended(s)) s = rootUnit(applyElement(s, t.id, "frost", 1), t.id)
+    if (combos.includes("steam")) for (const id of [t.id, ...near]) if (getUnit(s, id)?.hp > 0 && !ended(s)) s = setUnit(s, id, { exposed: Math.max(getUnit(s, id).exposed || 0, 2) })
+    return s
   },
   transmute(s, a, t) {
     const amount = (t.block || 0) + (t.regen || 0)
@@ -1424,7 +1575,7 @@ const HANDLERS = {
     return hit(s, a.id, t.id, a.attack, { name: "Sabotage" }).next
   },
   "explosive-charge"(s, a, pos, k) {
-    const charges = [...(s.classCharges || []), { row: pos.row, col: pos.col, ownerId: a.id, damage: k.damage }]
+    const charges = [...(s.classCharges || []), { row: pos.row, col: pos.col, ownerId: a.id, damage: k.damage + (a.castBonus || 0) }]
     return addLog({ ...s, classCharges: charges }, `${a.name} plants an Explosive Charge - it blows when you end the turn.`)
   },
   "smoke-bomb"(s, a, pos) {
@@ -1444,8 +1595,8 @@ const HANDLERS = {
     s = moveTo(s, a.id, pos, a.facing)
     return callout(addLog(s, `${a.name} steps through the spirit world.`), a.id, "Spirit Step!")
   },
-  "phase-shift"(s, a, t) {
-    s = setUnit(s, t.id, { phased: 1 })
+  "phase-shift"(s, a, t, k) {
+    s = setUnit(s, t.id, { phased: 1, ...(k.reserve && hasMana(a) ? { upkeep: k.reserve, upkeepBy: a.id, upkeepWhile: "phased" } : {}) })
     return callout(addLog(s, `${t.name} phases out of the world.`), t.id, "Phased!")
   },
   "return-to-hearth"(s, a, _t, k) {
@@ -1541,10 +1692,11 @@ const HANDLERS = {
     return n ? healUnit(s, a, t.id, n) : s
   },
   "purifying-light"(s, a, _t, k) {
+    const extraBlock = allInExtra(a, k, "block", 0, true)
     for (const u of livingUnits(s, a.side)) {
       if (u.structure || dist(u.pos, a.pos) > k.radius) continue
       const key = CLEANSED.find((c) => u[c] > 0)
-      s = setUnit(s, u.id, { block: (u.block || 0) + k.block, ...(key ? { [key]: 0 } : {}) })
+      s = setUnit(s, u.id, { block: (u.block || 0) + k.block + extraBlock, ...(key ? { [key]: 0 } : {}) })
     }
     s = emit(s, { kind: "aoe", actorId: a.id })
     const foes = livingUnits(s, "enemy").filter((e) => !e.structure && dist(e.pos, a.pos) <= k.radius && (e.cursed > 0 || e.corruption > 0)).map((e) => e.id)
@@ -1561,6 +1713,21 @@ const HANDLERS = {
     const cells = [pos, { row: pos.row - 1, col: pos.col }, { row: pos.row + 1, col: pos.col }, { row: pos.row, col: pos.col - 1 }, { row: pos.row, col: pos.col + 1 }]
     return addLog(growGrass(s, cells), `${a.name} makes the grass grow tall.`)
   },
+}
+
+// ALL-IN: the extra a handler adds per `allIn.per` spent above `floor`
+// (`whole` = count the whole spend, not just above the floor).
+function allInExtra(a, k, key, floor = 0, whole = false) {
+  const per = k?.allIn?.per
+  const amt = k?.allIn?.[key] || 0
+  if (!per || !amt || !(a.allInSpent > 0)) return 0
+  const spent = whole ? a.allInSpent : Math.max(0, a.allInSpent - floor)
+  return Math.floor(spent / per) * amt
+}
+
+// Spirit: a summon RESERVES part of its caster's Spirit while it lives.
+function upkeepFor(a, k) {
+  return k?.reserve && hasMana(a) && profileOf(a).special === "reserve" ? { upkeep: k.reserve, upkeepBy: a.id } : {}
 }
 
 function shift(s, a, form, block) {
@@ -1605,6 +1772,7 @@ export function classSkillStatus(unit, skill) {
   const cd = (unit?.classCds || {})[skill.id] || 0
   if (cd > 0) return `Recharging (${cd})`
   if (unit.ap < skill.cost) return `Needs ${skill.cost} AP`
-  if (hasMana(unit) && unit.mana < manaCostOf(skill)) return `Needs ${manaCostOf(skill)} mana`
+  const why = manaBlockReason(unit, skill)
+  if (why) return why.replace(/ \(has \d+\)$/, "")
   return `${skill.cost} AP`
 }
