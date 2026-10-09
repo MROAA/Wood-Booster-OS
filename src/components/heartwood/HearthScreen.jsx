@@ -110,9 +110,16 @@ export default function HearthScreen({
                 <div key={u.hid} className={`hw-hearth-unit${isPicked ? " is-picked" : ""}`} data-hearth-unit={u.hid}>
                   <UnitCard def={def} entry={hurt ? { ...u, hpPct: 0.25 } : u} onClick={() => togglePick(u.hid)} selected={isPicked} />
                   <div className="hw-hearth-unit-meta">
-                    <span className="hw-hearth-badge is-vet" title="Has been on at least one run">
-                      Veteran
-                    </span>
+                    {u.name && <span className="hw-hearth-hero-name">{u.name}</span>}
+                    {u.bornRun != null && !u.runs ? (
+                      <span className="hw-hearth-badge is-gen" title="Born at the Nest - has not been on a run yet">
+                        Hatchling
+                      </span>
+                    ) : (
+                      <span className="hw-hearth-badge is-vet" title="Has been on at least one run">
+                        Veteran
+                      </span>
+                    )}
                     <span title="Runs this hero has been on">Age {u.age}</span>
                     <span>Lv{levelForXp(u.xp)}</span>
                     {decline > 0 && (

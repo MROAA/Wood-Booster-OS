@@ -8608,6 +8608,7 @@ img.hw-intent-glyph {
 .hw-mut-badge[data-kind="bad"] { border-color: #e07a6a; box-shadow: 0 0 4px color-mix(in srgb, #e07a6a 35%, transparent); }
 .hw-hearth-badge.is-gen { color: #b9a6e8; }
 .hw-hearth-badge.is-bred { border-color: transparent; padding: 0 2px; }
+.hw-hearth-hero-name { font-weight: 700; color: var(--hh-gold, #d4a24c); }
 .hw-hearth-nest {
   padding: 12px 14px;
   border-radius: var(--hw-radius, 10px);

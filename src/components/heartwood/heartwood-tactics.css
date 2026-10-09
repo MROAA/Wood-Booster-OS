@@ -3116,9 +3116,10 @@
 }
 .hwt-mut-glyph {
   position: absolute;
-  top: 18%;
-  right: 6%;
-  font-size: 13px;
+  top: 30%;
+  left: 4px;
+  z-index: 3;
+  font-size: 15px;
   line-height: 1;
   opacity: 0.85;
   pointer-events: none;
