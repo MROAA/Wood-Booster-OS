@@ -1028,7 +1028,7 @@ export const ITEMS = {
   },
   whetstone: {
     id: "whetstone", name: "Whetstone", icon: "stone", cost: 100, kind: "offhand", tags: ["tool"],
-    description: "Next to a blade in the gear row: +2 attack.",
+    description: "Next to a blade in the gear row: +2 attack. Next to a plain Iron Blade it grinds it into a Keen Blade.",
     effects: [], fx: {},
     adj: { match: { tag: "blade" }, bonus: { attack: 2 }, text: "+2 attack next to a blade" },
   },
