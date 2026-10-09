@@ -89,7 +89,7 @@ const MAX_TILT_DEG = 6
 // Overrides def.className the same way `role` overrides def.role above:
 // additive layering, every card without an active combo renders exactly
 // as Guild Identity v1 already had it.
-export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass, activeTribeIds, entry, costOverride }) {
+export default function UnitCard({ def, selected, disabled, onClick, role, bent, tribeMatch, frozen, dualClass, activeTribeIds, entry, costOverride, collarClassId }) {
   // costOverride (SquadDraft's for-sale cards, when Regular's Discount is
   // owned - runEngine.effectiveRecruitCost): show the reduced price with
   // the base struck through, so the shop never renders a price the buy
@@ -107,7 +107,10 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   const curHp = Math.max(1, Math.round(def.maxHp * hpPct))
   const effectiveRole = role || def.role
   // Breeding: a hatchling may carry the other parent's class (entry.classId).
-  const tacticalClass = classById(entry?.classId || def.classId)
+  const naturalClass = classById(entry?.classId || def.classId)
+  // Gear sprint: a worn Class Collar overrides the class while worn.
+  const collarClass = collarClassId ? classById(collarClassId) : null
+  const tacticalClass = collarClass || naturalClass
   // Role & tag identity (roles.js): a "Tank · Support" line + up to
   // MAX_TAGS chips + strength/weakness in the tooltip. `role` here is
   // the Hero-Bent override (SquadDraft/FormationScreen pass it), so a
@@ -329,6 +332,11 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
               {" "}★{upgradeNames(tacticalClass, def, entry?.skillUpgrades).length}
             </span>
           )}
+        </div>
+      )}
+      {collarClass && (
+        <div className="hw-card-collar-line" data-collar-line={collarClass.id} title="A Class Collar makes this hero fight as that class (skills, passive and resource) while worn">
+          Natural class: {naturalClass?.name || "?"} · Wearing: {collarClass.name} collar
         </div>
       )}
       {/* Role & tag identity (roles.js) - the PRD's "upgrade visibility"

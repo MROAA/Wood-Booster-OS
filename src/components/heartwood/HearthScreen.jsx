@@ -9,7 +9,11 @@ import {
   rosterCapacity, roomLevel, roomUpgradeCost, recruitOffers, declineSteps, canRetire, unitName,
   startEssenceBonus, travelHp, trainingXp, allHeroes, breedBlocker, breedCost, kinship, kinLabel,
   badMutationChance, bredThisCycle, familyTree, nestLevel, heroByHid,
+  stashCapacity, packCapacity, craftBlocker,
 } from "../../services/heartwood/hearth"
+import { ITEMS, RARITY_INFO } from "../../data/heartwood/items"
+import { RECIPES, RECIPE_CRAFT_ACORNS } from "../../data/heartwood/recipes"
+import { CardGlyph } from "./cardArt"
 import { RESOURCES } from "../../data/heartwood/resources"
 
 // The Hearth - home camp between runs (services/heartwood/hearth.js).
@@ -18,6 +22,7 @@ import { RESOURCES } from "../../data/heartwood/resources"
 export default function HearthScreen({
   hearth, acorns, picked = [], onPick, onUpgradeRoom, onBuyFurniture, onRecruit, onRetire, onRelease,
   onTogglePermadeath, onStartRun, onDismissReport, onBack, onBreed,
+  onTogglePacked, onDiscardStashed, onCraft,
 }) {
   const [confirmRelease, setConfirmRelease] = useState(null)
   // The Nest: the two heroes picked as parents; whose family tree is open.
@@ -65,6 +70,9 @@ export default function HearthScreen({
           {report.parted?.length > 0 && <div>Left the company (sold or merged): {report.parted.join(", ")}.</div>}
           {report.noRoom?.length > 0 && <div>No room in the Barracks: {report.noRoom.join(", ")} stayed in the forest.</div>}
           {report.aged?.length > 0 && <div>Getting old: {report.aged.join(", ")}.</div>}
+          {report.stashed?.length > 0 && <div>Into the Workshop stash: {report.stashed.join(", ")}.</div>}
+          {report.stashFull?.length > 0 && <div>The stash was full - left behind: {report.stashFull.join(", ")}.</div>}
+          {report.learned?.length > 0 && <div>New recipes learned: {report.learned.map((id) => ITEMS[RECIPES[id]?.result]?.name || id).join(", ")}.</div>}
           {!report.home?.length && !report.fallen?.length && <div>Nobody came home this time.</div>}
           <button className="hw-hearth-link" onClick={onDismissReport}>
             Got it
@@ -84,6 +92,11 @@ export default function HearthScreen({
             )}
             {pickedUnits.length > 0 && trainingXp(hearth) > 0 && (
               <span className="hw-hearth-muted"> +{trainingXp(hearth)} XP from training.</span>
+            )}
+            {(hearth.packed || []).length > 0 && (
+              <span className="hw-hearth-muted" data-hearth-packed={(hearth.packed || []).length}>
+                {" "}Packing: {(hearth.packed || []).map((i) => ITEMS[hearth.stash[i]]?.name).filter(Boolean).join(", ")}.
+              </span>
             )}
           </div>
         </div>
@@ -246,6 +259,64 @@ export default function HearthScreen({
             </div>
           </>
         )}
+      </section>
+
+      {/* Gear sprint - the Workshop: spare gear kept between runs (sent
+          home from a run's shop with ⌂), packed into the next run, and
+          known recipes crafted here with Acorns. */}
+      <section className="hw-hearth-workshop" data-hearth-workshop>
+        <div className="hw-hearth-section-label">
+          Workshop - spare gear{" "}
+          <span className="hw-hearth-muted">
+            ({(hearth.stash || []).length}/{stashCapacity(hearth)} stashed · pack up to {packCapacity(hearth)} into the next run)
+          </span>
+        </div>
+        {(hearth.stash || []).length === 0 ? (
+          <p className="hw-hearth-empty">
+            Empty. In a run's shop, the ⌂ button on a spare item sends it home here (it leaves that run).
+          </p>
+        ) : (
+          <div className="hw-workshop-stash">
+            {hearth.stash.map((id, i) => {
+              const d = ITEMS[id]
+              if (!d) return null
+              const isPacked = (hearth.packed || []).includes(i)
+              return (
+                <div key={`${id}-${i}`} className={`hw-workshop-item${isPacked ? " is-packed" : ""}`} data-stash-item={id} style={{ "--hw-rarity": RARITY_INFO[d.rarity]?.color }} title={d.description}>
+                  <CardGlyph name={d.icon} className="hw-intent-glyph" />
+                  <span>{d.name}</span>
+                  <button className="hw-hearth-link" data-stash-pack={i} onClick={() => onTogglePacked?.(i)}>
+                    {isPacked ? "Packed ✓" : "Pack"}
+                  </button>
+                  <button className="hw-hearth-link" data-stash-discard={i} onClick={() => onDiscardStashed?.(i)} title="Throw it away">
+                    ✕
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        <div className="hw-hearth-section-label" style={{ marginTop: 8 }}>
+          Recipe book <span className="hw-hearth-muted">(craft a recipe you have made on a run from two stashed ingredients, {RECIPE_CRAFT_ACORNS} Acorns)</span>
+        </div>
+        <div className="hw-workshop-recipes">
+          {Object.values(RECIPES).map((r) => {
+            const known = (hearth.knownRecipes || []).includes(r.id)
+            const why = craftBlocker(hearth, r.id, acorns)
+            return (
+              <div key={r.id} className={`hw-workshop-recipe${known ? " is-known" : ""}`} data-recipe={r.id} data-known={known || undefined}>
+                <span>
+                  {ITEMS[r.a]?.name} + {ITEMS[r.b]?.name} → <b>{known ? ITEMS[r.result]?.name : "???"}</b>
+                </span>
+                {known && (
+                  <button className="hw-hearth-link" data-recipe-craft={r.id} disabled={!!why} title={why || `Craft for ${RECIPE_CRAFT_ACORNS} Acorns`} onClick={() => onCraft?.(r.id)}>
+                    Craft
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </section>
 
       <section>

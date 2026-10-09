@@ -182,6 +182,13 @@ export function recipesUsing(itemId) {
   return Object.values(RECIPES).filter((r) => r.a === itemId || r.b === itemId)
 }
 
+// "Herb Pouch → Healing Draught · ..." - what this item combines with.
+export function recipeHintText(itemId) {
+  return recipesUsing(itemId)
+    .map((r) => `${ITEMS[r.a === itemId ? r.b : r.a]?.name || "?"} → ${ITEMS[r.result]?.name || r.result}`)
+    .join(" · ")
+}
+
 function noteRecipe(runState, recipe, ownerKey, resultKey) {
   const found = runState.recipesFound || []
   return {

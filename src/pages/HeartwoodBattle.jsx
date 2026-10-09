@@ -36,6 +36,11 @@ import {
   buyItem,
   equipItem,
   unequipItem,
+  moveGear,
+  sellItem,
+  rerollItems,
+  toggleItemLock,
+  sendItemHome,
   levelUpMarket,
   advanceMarketTier,
   toggleFreeze,
@@ -67,7 +72,7 @@ import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clear
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
 import {
   loadHearth, saveHearth, hearthStartFor, harvestRun, upgradeRoom, buyFurniture, recruitAtHome, retireUnit,
-  releaseUnit, setPermadeath, breedHeroes,
+  releaseUnit, setPermadeath, breedHeroes, togglePacked, discardStashed, craftRecipe, takePackedGear,
 } from "../services/heartwood/hearth"
 import HearthScreen from "../components/heartwood/HearthScreen"
 import { META_PERKS, acornsForRun } from "../data/heartwood/metaPerks"
@@ -493,7 +498,9 @@ export default function HeartwoodBattle() {
     // The Hearth: picked veterans + home Essence bonus ride in on meta.
     const picks = hearthPicks.filter((hid) => hearth.roster.some((u) => u.hid === hid))
     const hs = hearthStartFor(hearth, picks)
-    const runMeta = hs.veterans.length || hs.essenceBonus ? { ...seeded, hearthStart: hs } : seeded
+    const runMeta = hs.veterans.length || hs.essenceBonus || hs.gear?.length ? { ...seeded, hearthStart: hs } : seeded
+    // Workshop: packed spare gear leaves the stash for this run.
+    if (hs.gear?.length) editHearth((h) => takePackedGear(h))
     setRunState({ ...startRun(id, pendingMemory, runMeta), hearthRunId: `${Date.now().toString(36)}-${id}` })
     setHearthPicks([])
     setLastAcornsEarned(null)
@@ -596,6 +603,25 @@ export default function HeartwoodBattle() {
 
   function handleUnequipItem(itemKey) {
     setRunState((current) => unequipItem(current, itemKey))
+  }
+
+  // Gear sprint: row reorder, item sell / reroll / lock, send home.
+  function handleMoveGear(ownerKey, from, to) {
+    setRunState((current) => moveGear(current, ownerKey, from, to))
+  }
+  function handleSellItem(itemKey) {
+    playSfx("buy")
+    setRunState((current) => sellItem(current, itemKey))
+  }
+  function handleRerollItems() {
+    playSfx("reroll")
+    setRunState((current) => rerollItems(current))
+  }
+  function handleToggleItemLock(index) {
+    setRunState((current) => toggleItemLock(current, index))
+  }
+  function handleSendItemHome(itemKey) {
+    setRunState((current) => sendItemHome(current, itemKey))
   }
 
   function handleLevelUpMarket() {
@@ -893,6 +919,9 @@ export default function HeartwoodBattle() {
               editHearth((h) => releaseUnit(h, hid))
             }}
             onBreed={(a, b) => editHearth((h, ac) => breedHeroes(h, a, b, ac))}
+            onTogglePacked={(i) => editHearth((h) => togglePacked(h, i))}
+            onDiscardStashed={(i) => editHearth((h) => discardStashed(h, i))}
+            onCraft={(recipeId) => editHearth((h, ac) => craftRecipe(h, recipeId, ac))}
             onTogglePermadeath={(on) => editHearth((h) => setPermadeath(h, on))}
             onDismissReport={() => editHearth((h) => ({ ...h, lastReport: null }))}
             onStartRun={(picks) => {
@@ -1211,6 +1240,11 @@ export default function HeartwoodBattle() {
           onBuyItem={handleBuyItem}
           onEquipItem={handleEquipItem}
           onUnequipItem={handleUnequipItem}
+          onMoveGear={handleMoveGear}
+          onSellItem={handleSellItem}
+          onRerollItems={handleRerollItems}
+          onToggleItemLock={handleToggleItemLock}
+          onSendItemHome={handleSendItemHome}
           onLevelUpMarket={handleLevelUpMarket}
           onAdvanceMarketTier={handleAdvanceMarketTier}
           onToggleFreeze={handleToggleFreeze}

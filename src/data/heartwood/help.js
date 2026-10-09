@@ -50,6 +50,12 @@ export const HELP_SECTIONS = [
     entries: [
       { term: "Relics", blurb: "A squad-wide buff that applies every fight for the rest of the run. Some only reach one tribe, but hit harder for it." },
       { term: "Items", blurb: "Gear equipped to one specific bench hero - a smaller, single-target echo of a relic." },
+      { term: "Gear row", blurb: "Every hero (and your Commander) has a row of 5 gear slots. Any item fits any slot - the ORDER matters. Drag an item to move it, or open the hero's Gear screen." },
+      { term: "Next-to bonuses", blurb: "Some items help the item right beside them in the row: a Whetstone next to a blade adds +2 attack, a Mana Gem next to a staff adds +2 resource a turn, a Rune Stone makes the charm next to it 50% stronger. A glowing link between two slots means a bonus is on." },
+      { term: "Board auras", blurb: "Some items help allies standing next to the wearer on the battlefield: War Banner (+10% to hit), Incense Burner (+5 resource a turn), Watch Lantern (can't be flanked), Warding Bell (1 less damage per hit). The tiles around the wearer glow." },
+      { term: "Recipes", blurb: "Two matching items side by side in one row fuse into a stronger one (two Bone Daggers = Twin Fangs). Same-item recipes also fuse when you buy the second copy. The full list is in the recipe book below." },
+      { term: "Class Collars", blurb: "A collar in a hero's row makes it fight as that class - skills, passive and resource - while worn. Take it off and the natural class returns. One per hero. Elites and minibosses drop them." },
+      { term: "Rarity & the gear purse", blurb: "Items come Common, Rare, Epic and Legendary - better ones show up in later Acts and at a higher Market Level. Each visit the merchant only takes so much Essence for gear (the purse). Lock an offer to keep it, reroll the rest (the price climbs), sell items back for half." },
       { term: "Upgrading", blurb: "Essence can also level a hero, a relic, or your Commander's rank - each makes its numbers bigger." },
     ],
   },
