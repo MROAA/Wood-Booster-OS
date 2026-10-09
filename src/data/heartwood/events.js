@@ -70,6 +70,29 @@ export const EVENTS = [
       },
     ],
   },
+  // Resources step 2 (PRD §55): a resource event.
+  {
+    id: "ancient-spring",
+    title: "The Ancient Spring",
+    body: "Water wells up through a ring of mossy standing stones, so clear it seems to hum. Your heroes' hands tingle as you come near - whatever drives them, Rage or prayer or plain mana, the spring wants to fill it.",
+    choices: [
+      {
+        label: "Drink.",
+        result: "Cold and bright. You cork a flask of it for the hard fight ahead.",
+        effects: [{ item: "deepwell-tonic" }],
+      },
+      {
+        label: "Drink deeply.",
+        result: "You drink until the stones go quiet. Something in you grows wider - and something else, deep down, notices you.",
+        effects: [{ relic: "mana-crystal" }, { bane: "hollow-marked" }],
+      },
+      {
+        label: "Leave it be.",
+        result: "Some springs are better left alone.",
+        effects: [],
+      },
+    ],
+  },
   {
     id: "hollow-tree",
     act: 1,

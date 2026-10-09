@@ -58,11 +58,32 @@ export function facingSides(defPos, atkPos) {
   return out
 }
 
+// Melee rework: an ally standing behind a SHIELD WALL (or a Bastion) tank
+// counts the tank as HALF cover on that side.
+const DIR_LIST = Object.entries({ N: { row: -1, col: 0 }, S: { row: 1, col: 0 }, E: { row: 0, col: 1 }, W: { row: 0, col: -1 } })
+export function shieldWallSides(state, defPos, defender) {
+  const sides = {}
+  if (!defender || !state?.units) return sides
+  for (const [d, v] of DIR_LIST) {
+    const p = { row: defPos.row + v.row, col: defPos.col + v.col }
+    const tank = state.units.find((u) => u.hp > 0 && u.id !== defender.id && u.side === defender.side && u.shieldWall > 0 && u.pos.row === p.row && u.pos.col === p.col)
+    if (tank) sides[d] = 1
+  }
+  return sides
+}
+
+function sidesFor(state, defPos, defender) {
+  const sides = tileCoverSides(state, defPos)
+  const wall = shieldWallSides(state, defPos, defender)
+  for (const d of Object.keys(wall)) sides[d] = Math.max(sides[d], wall[d])
+  return sides
+}
+
 // Cover level of a defender at `defPos` against an attack from `atkPos`.
 // Adjacent (melee) attacks go around cover. High ground attacker: one
 // step less. Hunkered: one step more (full becomes "hunkered full").
-export function coverAgainst(state, defPos, atkPos, { hunkered = false } = {}) {
-  const sides = tileCoverSides(state, defPos)
+export function coverAgainst(state, defPos, atkPos, { hunkered = false, defender = null } = {}) {
+  const sides = sidesFor(state, defPos, defender)
   // Ranged rework: smoke = half cover from every side vs ranged attacks.
   const terrain = cheb(defPos, atkPos) <= 1 ? 0 : Math.max(smokeAt(state, defPos) ? 1 : 0, ...facingSides(defPos, atkPos).map((d) => sides[d]))
   let level = Math.min(3, terrain + (hunkered ? 1 : 0))
@@ -71,9 +92,9 @@ export function coverAgainst(state, defPos, atkPos, { hunkered = false } = {}) {
 }
 
 // Has cover somewhere, but none toward this attacker = flanked.
-export function isFlanked(state, defPos, atkPos) {
+export function isFlanked(state, defPos, atkPos, defender = null) {
   if (cheb(defPos, atkPos) <= 1 || smokeAt(state, defPos)) return false
-  const sides = tileCoverSides(state, defPos)
+  const sides = sidesFor(state, defPos, defender)
   const any = Object.values(sides).some((v) => v > 0)
   return any && !facingSides(defPos, atkPos).some((d) => sides[d] > 0)
 }
@@ -85,7 +106,7 @@ export function hitChance(state, attacker, defender, facing = "front", atkPos = 
   if (defender.structure) return { chance: 100, cover: 0, flanked: false, parts: [] }
   const dist = cheb(atkPos, defender.pos)
   const mods = shotMods(attacker, defender, dist, shot)
-  const rawCover = coverAgainst(state, defender.pos, atkPos, { hunkered: defender.hunkered > 0 })
+  const rawCover = coverAgainst(state, defender.pos, atkPos, { hunkered: defender.hunkered > 0, defender })
   const cover = mods.ignoreCover ? 0 : rawCover
   const high = isHigh(state, atkPos) && !isHigh(state, defender.pos)
   const falloff = mods.noFalloff ? 0 : RANGE_FALLOFF * Math.max(0, dist - 2)
@@ -97,7 +118,9 @@ export function hitChance(state, attacker, defender, facing = "front", atkPos = 
   if (high) parts.push({ label: "High ground", value: HIGH_GROUND_HIT_BONUS })
   parts.push(...mods.parts)
   const raw = parts.reduce((s, p) => s + p.value, 0)
-  return { chance: Math.max(MIN_HIT, Math.min(MAX_HIT, raw)), cover, flanked: !mods.ignoreCover && isFlanked(state, defender.pos, atkPos), parts }
+  const wallPart = cover && Object.keys(shieldWallSides(state, defender.pos, defender)).length > 0 ? parts.find((p) => p.label === COVER_NAME[cover]) : null
+  if (wallPart) wallPart.label += " (Shield Wall)"
+  return { chance: Math.max(MIN_HIT, Math.min(MAX_HIT, raw)), cover, flanked: !mods.ignoreCover && isFlanked(state, defender.pos, atkPos, defender), parts }
 }
 
 export function grazeAmount(amount) {

@@ -22,6 +22,7 @@ import { terrainAt } from "./tacticsTerrain"
 import { FULL_COVER_TILES, HALF_COVER_TILES, facingSides } from "./tacticsCover"
 import { emit, getUnit, setUnit, livingUnits, attackUnit, checkTacticsBattleEnd } from "./tacticsEngine"
 import { explode } from "./tacticsObjects"
+import { resourceMods } from "./tacticsMana"
 
 // --- Numbers ------------------------------------------------------------------
 export const RANGED_RANGE_FLOOR = 3
@@ -101,6 +102,8 @@ export function shotMods(attacker, defender, dist, shot = null) {
   if (dist <= 1 && (attacker.range || 1) > 1 && !attacker.structure) parts.push({ label: "Point blank (ranged)", value: -POINT_BLANK_PENALTY })
   if (attacker.suppressFire > 0) parts.push({ label: "Suppressed", value: -SUPPRESS_PENALTY })
   if (player && attacker.classPassive === "steady-aim" && attacker.moved && dist > 1) parts.push({ label: "On the move", value: ON_THE_MOVE_BONUS })
+  // Resources step 2: Focus / breakpoint / Nature State accuracy.
+  parts.push(...resourceMods(attacker).parts)
   const noFalloff = player && attacker.classPassive === "defensive-aim" && !attacker.moved
   if (shot?.ignoreCover) {
     ignoreCover = true
@@ -110,6 +113,15 @@ export function shotMods(attacker, defender, dist, shot = null) {
     coverLabel = "Marked - no cover"
   }
   return { parts, ignoreCover, coverLabel, noFalloff }
+}
+
+// Melee rework: ENGAGED - a shooter with an enemy melee fighter right next
+// to it can't Aim or go on Overwatch (and still shoots point blank, -25%).
+export function isEngaged(state, unit) {
+  if (!state?.units || !unit || unit.structure || (unit.range || 1) <= 1) return false
+  return state.units.some(
+    (e) => e.hp > 0 && e.side !== unit.side && !e.structure && !e.npc && (e.range || 1) === 1 && e.attack > 0 && !(e.stun > 0) && !(e.frozen > 0) && cheb(e.pos, unit.pos) <= 1,
+  )
 }
 
 // The next shot spends the Aim.
@@ -283,6 +295,7 @@ export function rangedStatusText(u, state = null) {
   if (u.aimed > 0) out.push(`Aiming: next shot +${AIM_BONUS}% to hit`)
   if (u.suppressFire > 0) out.push(`Suppressed: -${SUPPRESS_PENALTY}% to hit, moving draws a shot`)
   if (u.mark > 0) out.push("Marked: counts as having no cover")
+  if (state && isEngaged(state, u)) out.push("ENGAGED: an enemy fighter is next to it - no Aim, no Overwatch")
   if (state && smokeAt(state, u.pos)) out.push("In smoke: half cover from every side vs ranged")
   return out.join(" · ")
 }

@@ -37,6 +37,7 @@ const eng = await page.evaluate(async () => {
   const M = await import("/src/services/heartwood/tacticsMana.js")
   const R = await import("/src/services/heartwood/tacticsRanged.js")
   const EA = await import("/src/services/heartwood/tacticsEnemyAbilities.js")
+  const C2 = await import("/src/data/heartwood/classes.js")
   const r = {}
   const U = (s, id) => s.units.find((u) => u.id === id)
   const pid = (s, defId) => s.units.find((u) => u.defId === defId && u.side === "player").id
@@ -94,14 +95,23 @@ const eng = await page.evaluate(async () => {
         const s0 = E.createTacticsBattle("default", [defId])
         const h = s0.units.find((u) => u.side === "player" && u.defId === defId)
         if (!(h.range > 1)) continue
-        const s = board([defId], { [defId]: { row: 4, col: 8 }, [E0]: { row: 4, col: 6 }, [E1]: { row: 0, col: 0 }, [E2]: { row: 1, col: 0 } }, { mana: true })
-        const id = pid(s, defId)
+        const s0b = board([defId], { [defId]: { row: 4, col: 8 }, [E0]: { row: 4, col: 6 }, [E1]: { row: 0, col: 0 }, [E2]: { row: 1, col: 0 } }, { mana: true })
+        const id = pid(s0b, defId)
+        // Resources step 2: the toolkit is priced in each hero's own resource
+        // (10 / 15 mana scaled by the profile; Corruption ADDS, Reagents are free,
+        // a Hexer's suppress also builds 15 Hex). Start rich, under 100% (Corruption empty).
+        const me = U(s0b, id)
+        const inv = M.profileOf(me).special === "inverted"
+        const s = { ...s0b, units: s0b.units.map((u) => (u.id === id && M.profileOf(me).special !== "tokens" ? { ...u, mana: inv ? 0 : u.manaMax - 1 } : u)) }
+        const kit = (k) => U(s, id).rangedKit.find((x) => x.id === k)
+        const after = (k) => (inv ? U(s, id).mana + M.manaCostOf(kit(k), U(s, id)) : U(s, id).mana - M.manaCostOf(kit(k), U(s, id)))
+        const hexGain = M.profileOf(me).id === "hex" ? 15 : 0
         const aimed = cast(s, id, null, "aim")
         const sup = cast(s, id, E0, "suppress")
         tool.push({
           defId,
-          aim: U(aimed, id).aimed === 1 && U(aimed, id).ap === U(s, id).ap - 1 && U(aimed, id).mana === U(s, id).mana - 10 && U(aimed, id).classCds.aim === 1,
-          sup: U(sup, E0).suppressFire === 1 && U(sup, E0).suppressBy === id && U(sup, id).mana === U(s, id).mana - 15 && U(sup, id).classCds.suppress === 3,
+          aim: U(aimed, id).aimed === 1 && U(aimed, id).ap === U(s, id).ap - 1 && U(aimed, id).mana === after("aim") && U(aimed, id).classCds.aim === 1,
+          sup: U(sup, E0).suppressFire === 1 && U(sup, E0).suppressBy === id && U(sup, id).mana === after("suppress") + hexGain && U(sup, id).classCds.suppress === 3,
         })
       }
     }
@@ -227,11 +237,13 @@ const eng = await page.evaluate(async () => {
     const fg = cast(f, pid(f, "frostbind"), E0, "frozen-ground")
     r.frozen = [40 - U(fg, E0).hp, 40 - U(fg, E1).hp, U(fg, E0).chill || U(fg, E0).frozen ? 1 : 0]
     // Mage heavier mana + channel focus when holding still.
-    const mm = board(["hexmother"], { hexmother: { row: 4, col: 10 }, [E0]: { row: 0, col: 0 }, [E1]: { row: 1, col: 0 }, [E2]: { row: 2, col: 0 } }, { mana: true })
-    const hm = pid(mm, "hexmother")
+    // Resources step 2: the Hexer runs on Hex Power (Hex Chain = a free builder);
+    // the Frostbinder (Frost Mana) keeps the heavy mage price + channel focus.
+    const mm = board(["frostbind"], { frostbind: { row: 4, col: 10 }, [E0]: { row: 0, col: 0 }, [E1]: { row: 1, col: 0 }, [E2]: { row: 2, col: 0 } }, { mana: true })
+    const hm = pid(mm, "frostbind")
     const spent = { ...mm, units: mm.units.map((u) => (u.id === hm ? { ...u, mana: 10 } : u)) }
     const ended = E.endPlayerTurn(spent)
-    r.mage = { hexChainCost: U(mm, hm).classSkills.find((k) => k.id === "hex-chain").mana, focusGain: U(ended, hm).mana - 10, regen: M.regenFor(U(mm, hm)) }
+    r.mage = { frozenGroundCost: U(mm, hm).classSkills.find((k) => k.id === "frozen-ground").mana, hexChainCost: C2.CLASSES.hexer.skills.find((k) => k.id === "hex-chain").mana, focusGain: U(ended, hm).mana - 10, regen: M.regenFor(U(mm, hm)) }
   }
 
   // 8 Enemies: suppress / spot / volley - chosen by the AI, preview == real.
@@ -291,7 +303,7 @@ check("families: archetype classes shoot from 3+ and carry Aim + Suppressing Fir
 check("families: all 7 mage classes shoot from 3+ and read as Mage", f.magesRanged, eng.family)
 check("families: archetype names Sniper/Grenadier/Hunter/Hunter/Suppressor", f.names === "Sniper,Grenadier,Hunter,Hunter,Suppressor", f.names)
 check("families: melee heroes get no ranged kit; every ranged hero does", f.meleeNoKit && f.everyRangedHasKit, eng.family)
-check("toolkit: every ranged hero can Aim (1 AP, 10 mana, cd 1) and Suppress (1 AP, 15 mana, cd 3)", eng.toolkit.length >= 13 && eng.toolkit.every((t) => t.aim && t.sup), eng.toolkit)
+check("toolkit: every ranged hero can Aim (1 AP, 10 mana-equivalent in its resource, cd 1) and Suppress (1 AP, 15, cd 3)", eng.toolkit.length >= 13 && eng.toolkit.every((t) => t.aim && t.sup), eng.toolkit)
 check("aim: +20% to the next shot, spent by the shot", eng.aim.after === eng.aim.before + 20 && /Aimed/.test(eng.aim.parts) && eng.aim.spent === 0, eng.aim)
 check("point blank: a ranged hero shooting an adjacent enemy gets -25%, melee doesn't", eng.pointBlank.ranged === 60 && eng.pointBlank.melee === 85, eng.pointBlank)
 check("mark: a Marked enemy counts as uncovered", eng.mark.cover === 0 && eng.mark.label, eng.mark)
@@ -308,10 +320,10 @@ check("hunter: Hunter's Stride +10% after moving", eng.stride, eng.stride)
 check("suppressor: Pinning Shot = half damage + Root + Suppressed", eng.pin.root && eng.pin.supp && eng.pin.dmg === eng.pin.half, eng.pin)
 check("suppress: a suppressed enemy that moves eats a reaction shot; -20% to hit while suppressed", eng.supReaction.moved && eng.supReaction.hurt && eng.supReaction.log && eng.supReaction.cleared && eng.supPenalty, eng.supReaction)
 check("smoke screen: 3x3 smoke for 2 turns that thins out, half cover inside", eng.smokeScreen.tiles === 9 && eng.smokeScreen.turns === 2 && eng.smokeScreen.after1 === 1 && eng.smokeScreen.after2 === 0 && eng.smokeScreen.coverInSmoke === 1, eng.smokeScreen)
-check("mage: Arcane Lance hits every enemy on the line, a wall stops it, 25 mana", eng.beam.hit.every(Boolean) && eng.beam.tiles === "4-7,4-6,4-5,4-4,4-3" && eng.beam.mana === 25 && eng.beam.event, eng.beam)
+check("mage: Arcane Lance hits every enemy on the line, a wall stops it, 40% of max mana (20, -2 paid back)", eng.beam.hit.every(Boolean) && eng.beam.tiles === "4-7,4-6,4-5,4-4,4-3" && eng.beam.mana === 20 - 2 && eng.beam.event, eng.beam)
 check("mage: the beam ignores cover", eng.beam.ignoresCover, eng.beam)
 check("mage: Frozen Ground deals 2 to each enemy in the area (cover ignored) + chill", eng.frozen[0] === 2 && eng.frozen[1] === 2 && eng.frozen[2] === 1, eng.frozen)
-check("mage: heavier mana (Hex Chain 25) and channel focus when holding still", eng.mage.hexChainCost === 25 && eng.mage.focusGain >= 5 + eng.mage.regen, eng.mage)
+check("mage: heavier mana (Frozen Ground 25), Hex Chain a free Hex builder, channel focus when holding still", eng.mage.frozenGroundCost === 25 && eng.mage.hexChainCost === 0 && eng.mage.focusGain >= 5 + eng.mage.regen, eng.mage)
 check("enemies: archers/casters carry suppress / spot / volley", /suppress/.test(eng.enemyKits["drift-archer"]) && /spot/.test(eng.enemyKits["echo-archer"]) && /volley/.test(eng.enemyKits["blight-seer"]) && /volley/.test(eng.enemyKits["runewisp-acolyte"]), eng.enemyKits)
 check("enemies: an archer suppresses a hero out of reach - -20% to hit, moving draws a shot", eng.enemySuppress.kind === "suppress" && eng.enemySuppress.target && eng.enemySuppress.applied && eng.enemySuppress.penalty && eng.enemySuppress.reaction, eng.enemySuppress)
 check("enemies: an archer spots (Marks) a hero hiding in cover - its cover stops counting", eng.enemySpot.kind === "spot" && eng.enemySpot.marked && eng.enemySpot.uncovered, eng.enemySpot)

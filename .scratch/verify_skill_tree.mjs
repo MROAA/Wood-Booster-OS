@@ -342,6 +342,8 @@ const r = await page.evaluate(async () => {
   // Walk every level: always take a branch while offered.
   let walk = pickA
   const taken = [up1.skillId]
+  // Melee rework: the Guardian has 3 class skills + signature now (+Provoke):
+  // its 4 level-ups fill exactly the 4-skill tree (no perk fallback left over).
   for (let i = 0; i < 3; i++) {
     const s = lv.levelSubject(walk, "b0")
     const offers = lv.levelOffers(walk, s)
@@ -380,7 +382,7 @@ const r = await page.evaluate(async () => {
   ok(o1.length === 3 && /^up:/.test(o1[0]) && /^up:/.test(o1[1]) && lv.parseOffer(o1[0]).skillId === lv.parseOffer(o1[1]).skillId && lv.parseOffer(o1[0]).branch === "A" && lv.parseOffer(o1[1]).branch === "B" && lv.PERKS[o1[2]], "offers = both branches of one skill + a stat perk", o1)
   ok(JSON.stringify(o1) === JSON.stringify(o2) && seeds.size >= 2, "offers are seeded + deterministic", { o1, o2, seeds: seeds.size })
   ok(e0.skillUpgrades[up1.skillId] === "A" && (e0.perks || []).length === 0 && pickB === pickA, "a branch is stored + exclusive (B refused after A)", res.D)
-  ok(new Set(taken).size === taken.length && Object.keys(walked.skillUpgrades).length === 3 && walked.perks.length === 1 && res.D.walkPending === 0, "each level offers a new skill; a full tree falls back to stat perks", { taken, w: walked.skillUpgrades, p: walked.perks })
+  ok(new Set(taken).size === taken.length && Object.keys(walked.skillUpgrades).length === 4 && walked.perks.length === 0 && res.D.walkPending === 0, "each level offers a new skill; a full tree falls back to stat perks", { taken, w: walked.skillUpgrades, p: walked.perks })
   ok(res.D.perkPick.length === 1 && res.D.perkPick[0] === o1[2] && !res.D.perkPickUps, "the stat perk card still works", res.D.perkPick)
   ok(res.D.loadedSame && oldOffers.length === 3 && !res.D.oldHasUpgrade, "save/load keeps branches; an old save defaults to none", { oldOffers })
   ok(res.D.applied?.branch === "A" && res.D.nuUps?.[up1.skillId] === "A", "the branch is applied in the next real tactics fight", { applied: res.D.applied })

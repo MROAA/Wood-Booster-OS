@@ -729,7 +729,9 @@ await page.waitForSelector(".hwt-board")
 {
   const page20 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page20.on("pageerror", (e) => errs.push(String(e)))
-  await page20.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  // Resources step 2: Bulwark Aura is now also priced in Holy Power; this
+  // check is about COOLDOWN cadence only, so resource rules are off here.
+  await page20.goto(`http://localhost:${PORT}/heartwood-tactics?mana=0`, { waitUntil: "domcontentloaded" })
   await page20.waitForSelector(".hwt-board")
   await page20.locator(".hwt-token", { hasText: "Bulwark of Ages" }).click()
   await page20.waitForTimeout(150)
@@ -8640,7 +8642,9 @@ const SPIRIT_SHIFT_FIXTURE = `
 {
   const page230 = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
   page230.on("pageerror", (e) => errs.push(String(e)))
-  await page230.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
+  // Resources step 2: the Commander's ultimate needs a full Inspiration
+  // bar - start every hero full (existing QA param) so it can fire.
+  await page230.goto(`http://localhost:${PORT}/heartwood-tactics?manaStart=999`, { waitUntil: "domcontentloaded" })
   await page230.waitForSelector(".hwt-board")
   const btnText = await page230.locator(".hwt-power-btn").innerText()
   const enabledBefore = await page230.locator(".hwt-power-btn").isEnabled()
@@ -8660,7 +8664,7 @@ const SPIRIT_SHIFT_FIXTURE = `
   out.activePowerUi = result
   const ok =
     result.btnText.includes("Opening Strike") && result.enabledBefore && !result.enabledAfter &&
-    (result.status === "Used this battle" || result.status.includes("needs a full mana bar")) && result.surging > 0 && result.surging === result.playerTokens && result.logHas
+    (/used 1x|Used this battle/.test(result.status) || result.status.includes("needs a full mana bar")) && result.surging > 0 && result.surging === result.playerTokens && result.logHas
   if (!ok) out.errors.push("check230 the Active Power panel did not render/fire correctly on the prototype page")
 }
 
