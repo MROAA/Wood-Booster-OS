@@ -71,6 +71,17 @@ export const HEARTH_ROOMS = [
       { cost: 50, text: "+20 starting Essence each run." },
     ],
   },
+  {
+    id: "nest",
+    name: "The Nest",
+    icon: "🪺",
+    blurb: "A warm hollow where two heroes raise a hatchling.",
+    base: "Not built - no hatchlings yet.",
+    levels: [
+      { cost: 20, text: "Pair two heroes between runs (10 Acorns a pairing)." },
+      { cost: 40, text: "Pairings cost 6 Acorns, and the risk from pairing close kin is halved." },
+    ],
+  },
 ]
 
 // One-time buys, each a small passive.
@@ -85,6 +96,18 @@ export const BASE_CAPACITY = 4
 export const CAPACITY_BY_LEVEL = [4, 6, 8, 10]
 export const TRAINING_XP_BY_LEVEL = [0, 3, 6]
 export const WORKSHOP_ESSENCE_BY_LEVEL = [0, 10, 20]
+
+// The Nest (breeding, services/heartwood/hearth.js breedHeroes). Numbers
+// for the hatchling itself live in data/heartwood/mutations.js BREEDING.
+// - Two heroes at home (Elders too) pair up; each parent can pair once
+//   per run cycle (again after the next run ends).
+// - The hatchling joins the roster at Lv1, age 0, and needs a free bunk.
+export const NEST_PAIR_COST = [null, 10, 6] // by Nest level
+export const NEST_KIN_RISK = [1, 1, 0.5] // x the close-kin bad-mutation risk
+export const HATCHLING_NAMES = [
+  "Pip", "Bramble", "Fen", "Moss", "Thistle", "Burr", "Sorrel", "Wren", "Nettle", "Pebble", "Acorn", "Sprig",
+  "Tansy", "Fern", "Cobble", "Hazel", "Mallow", "Rook", "Clover", "Juniper", "Bracken", "Puddle", "Lichen", "Twig",
+]
 
 export function roomById(id) {
   return HEARTH_ROOMS.find((r) => r.id === id) || null

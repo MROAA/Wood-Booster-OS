@@ -21,6 +21,8 @@ import { UNITS } from "../../data/heartwood/units"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { CLASSES, fallbackClassId, applySkillUpgrades } from "../../data/heartwood/classes"
 import { signatureAbilityForDef, signatureUpgrades, upgradeAbility, SIGNATURE_SKILL_KEY } from "./tacticsAbilities"
+import { applyMutationsToTactics } from "./mutations"
+import { RESOURCES, CLASS_RESOURCE_DEFAULT } from "../../data/heartwood/resources"
 
 export const MAX_LEVEL = 5
 // Total XP needed to REACH each level (index = level - 1).
@@ -80,9 +82,11 @@ export function levelSubject(runState, key) {
   }
   const e = runState.bench.find((b) => b.key === key)
   if (!e) return null
-  const def = UNITS[e.defId]
+  // Breeding: a hatchling may carry the other parent's class (`classId`).
+  const def = UNITS[e.defId] && e.classId && CLASSES[e.classId] ? { ...UNITS[e.defId], classId: e.classId } : UNITS[e.defId]
   return {
     key, name: def?.name || e.defId, xp: e.xp || 0, perks: e.perks || [], skillUpgrades: e.skillUpgrades || {}, skills: def ? skillTreeFor(def) : [],
+    inheritedPerks: e.inheritedPerks || [],
     ranged: !!def?.attackPattern && def.attackPattern !== "single", hasAbility: true,
   }
 }
@@ -113,7 +117,7 @@ export function perkOffers(runState, subject) {
   const level = spentLevels(subject) + 2
   const pool = PERK_IDS.filter((id) => {
     const p = PERKS[id]
-    if (!p.stack && subject.perks.includes(id)) return false
+    if (!p.stack && (subject.perks.includes(id) || (subject.inheritedPerks || []).includes(id))) return false
     if (p.rangedOnly && !subject.ranged) return false
     if (p.needsAbility && !subject.hasAbility) return false
     return true
@@ -186,13 +190,61 @@ export function applyLevelsToTactics(battle, runState) {
   const byId = {}
   keys.forEach((k, i) => {
     const e = runState.bench.find((b) => b.key === k)
-    byId[`player-${e.defId}-${i}`] = { xp: e.xp || 0, perks: e.perks || [], ups: e.skillUpgrades || {}, age: e.agePenalty || 0 }
+    // Breeding: traits inherited from the parents ride along with the
+    // hero's own perks / skill branches (its own pick wins on a clash).
+    byId[`player-${e.defId}-${i}`] = {
+      xp: e.xp || 0,
+      perks: [...(e.inheritedPerks || []), ...(e.perks || [])],
+      ups: { ...(e.inheritedUpgrades || {}), ...(e.skillUpgrades || {}) },
+      age: e.agePenalty || 0,
+      mutations: e.mutations || [],
+      breedFx: breedFxFor(e),
+    }
   })
   byId["player-commander"] = { xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ups: runState.commanderSkillUpgrades || {} }
   return {
     ...battle,
-    units: battle.units.map((u) => (byId[u.id] ? levelMana(applyAge(applyPerks(applyTree(u, byId[u.id].ups), byId[u.id].perks, byId[u.id].xp), byId[u.id].age), byId[u.id].xp) : u)),
+    units: battle.units.map((u) => {
+      const b = byId[u.id]
+      if (!b) return u
+      const leveled = levelMana(applyAge(applyPerks(applyTree(u, b.ups), b.perks, b.xp), b.age), b.xp)
+      // Mutations (+ the hatchling's stat bias / resource affinity).
+      return b.mutations?.length || b.breedFx ? applyMutationsToTactics(leveled, b.mutations, b.breedFx) : leveled
+    }),
   }
+}
+
+// Breeding: a hatchling's small stat bias + its resource affinity, as
+// mutation-style fx ({ hp, attack, manaMax | manaRegen }), or null.
+// The affinity works in full when it matches the hero's own resource
+// (e.g. a Rage affinity on a Rage hero), at half strength otherwise.
+export function breedFxFor(e) {
+  const fx = {}
+  if (e?.bias?.hp) fx.hp = e.bias.hp
+  if (e?.bias?.attack) fx.attack = e.bias.attack
+  const a = e?.affinity
+  if (a) {
+    const full = a.resource === heroResourceId(e)
+    const part = (n) => (full ? n : Math.sign(n) * Math.max(1, Math.round(Math.abs(n) / 2)))
+    if (a.max) fx.manaMax = part(a.max)
+    if (a.regen) fx.manaRegen = part(a.regen)
+  }
+  return Object.keys(fx).length ? fx : null
+}
+
+// A bench / hearth hero's class (a hatchling's own `classId` wins).
+export function heroClassId(e) {
+  if (e?.classId && CLASSES[e.classId]) return e.classId
+  const def = UNITS[e?.defId]
+  if (!def) return null
+  return def.classId || fallbackClassId(def, signatureAbilityForDef(def)?.kind)
+}
+
+// The resource profile id that hero's class runs on ("rage", "arcane"...).
+export function heroResourceId(e) {
+  const cid = heroClassId(e)
+  const id = CLASSES[cid]?.resource || CLASS_RESOURCE_DEFAULT[cid] || "arcane"
+  return RESOURCES[id] ? id : "arcane"
 }
 
 // Mana step 1: modest pool scaling, +3 max mana per level above 1 (only

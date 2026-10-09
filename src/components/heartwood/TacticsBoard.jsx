@@ -90,6 +90,15 @@ import TacticsFx, { FALLEN_LINGER_MS } from "./TacticsFx"
 import { describeSkillIntent } from "../../services/heartwood/tacticsEnemyAbilities"
 import { describeObjective, reinforcementWarningTiles, turnsUntilPulse } from "../../services/heartwood/tacticsObjectives"
 import { PERKS } from "../../services/heartwood/unitLevels"
+import { MUTATIONS } from "../../data/heartwood/mutations"
+
+// Mutations: tooltip for a mutated hero's token badge.
+const mutationTitle = (unit) =>
+  (unit.mutations || [])
+    .map((id) => MUTATIONS[id])
+    .filter(Boolean)
+    .map((m) => `${m.icon} ${m.name}: ${m.text}`)
+    .join("\n")
 import { describeBoss, bossWarningTiles } from "../../services/heartwood/tacticsBosses"
 import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile, isBurning, isChilled } from "../../services/heartwood/tacticsObjects"
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
@@ -1014,9 +1023,16 @@ export default function TacticsBoard({
               data-role={roleOf(unit)}
               data-overwatch={unit.overwatch > 0 || undefined}
               data-hunkered={unit.hunkered > 0 || undefined}
+              data-mutated={unit.mutations?.length > 0 || undefined}
               title={roleTitle(unit)}
             >
               <TokenArt unit={unit} />
+              {/* Mutations: a faint glyph over the token art (its first mutation). */}
+              {unit.mutations?.length > 0 && MUTATIONS[unit.mutations[0]] && (
+                <span className="hwt-mut-glyph" aria-hidden="true" data-kind={MUTATIONS[unit.mutations[0]].kind}>
+                  {MUTATIONS[unit.mutations[0]].icon}
+                </span>
+              )}
               {unitCover.has(unit.id) && (unitCover.get(unit.id).level > 0 || unitCover.get(unit.id).flanked) && (
                 <span
                   className="hwt-unit-cover"
@@ -1062,6 +1078,11 @@ export default function TacticsBoard({
                     title={`Level ${unit.level}${unit.perks?.length ? " - " + unit.perks.map((id) => PERKS[id]?.name).join(", ") : ""}${unit.xpGained ? ` (+${unit.xpGained} XP this fight)` : ""}`}
                   >
                     Lv{unit.level}
+                  </span>
+                )}
+                {unit.mutations?.length > 0 && (
+                  <span className="hwt-mut-badge" data-mutations={unit.mutations.length} title={mutationTitle(unit)}>
+                    🧬{unit.mutations.length}
                   </span>
                 )}
                 {unit.npc && (

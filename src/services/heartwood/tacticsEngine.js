@@ -44,6 +44,8 @@ export { TERRAIN_INFO, WALL_MAX_HP, wallHpAt, rangeAt } from "./tacticsTerrain"
 import { levelForXp, XP as LEVEL_XP_GAIN, THIRST_HEAL } from "./unitLevels"
 import * as manaFx from "./tacticsMana"
 import * as ranged from "./tacticsRanged"
+// Mutations (Mewgenics-style): element-on-hit, leech, gills, echo.
+import * as mutFx from "./tacticsMutations"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -2110,7 +2112,8 @@ function gainXp(state, actorId, remaining, fell) {
   if (!actor || typeof actor.xpGained !== "number") return state
   const gain = (remaining > 0 ? LEVEL_XP_GAIN.hit : 0) + (fell ? LEVEL_XP_GAIN.kill : 0)
   if (!gain) return state
-  let next = setUnit(state, actorId, { xpGained: actor.xpGained + gain })
+  // Mutations: kills are counted (an elite/boss kill can mutate the hero).
+  let next = setUnit(state, actorId, { xpGained: actor.xpGained + gain, ...(fell ? { kills: (actor.kills || 0) + 1 } : {}) })
   if (levelForXp(actor.xpStart + actor.xpGained + gain) > levelForXp(actor.xpStart + actor.xpGained)) {
     next = emit({ ...next, log: [...next.log, `${actor.name} levels up! (pick a perk after the fight)`] }, { kind: "reaction", unitId: actorId, label: "Level up!" })
   }
@@ -2203,6 +2206,8 @@ function checkOnDealDamageTriggers(state, actorId, targetId, remaining) {
   // follow-up hit as well (PR #483's own recursive attackUnit call).
   // Mana: melee heroes (and relic on-hit) gain mana on every hit, even a blocked one.
   state = manaFx.onDealDamage(state, actorId, targetId, remaining)
+  // Mutations: Ember Blood / Frost Fangs / Venom Spit / Vine Fingers / Leech Tongue.
+  state = mutFx.mutationOnDealDamage(state, actorId, targetId, remaining)
   if (!actor || remaining <= 0) return state
   let next = state
   for (const t of actor.triggers || []) {
@@ -2484,11 +2489,13 @@ export function castAbility(state, actorId, targetId, skillId) {
   const classSkill = skillId ? classFx.classSkillById(who, skillId) : null
   const skill = classSkill || who?.ability
   if (!who || !skill || !manaFx.canAfford(who, skill)) return state
-  if (!manaFx.hasMana(who)) return castAbilityCore(state, actorId, targetId, skillId)
+  // Mutations: Echo Voice refunds AP after the first successful cast.
+  const echo = (out) => (out === state ? out : mutFx.mutationAfterCast(out, actorId))
+  if (!manaFx.hasMana(who)) return echo(castAbilityCore(state, actorId, targetId, skillId))
   const primed = manaFx.primeSurge(state, actorId, skill)
   const out = castAbilityCore(primed, actorId, targetId, skillId)
   if (out === primed) return state
-  return manaFx.afterSkillCast(out, actorId, targetId, skill, primed.eventSeq || 0, primed)
+  return echo(manaFx.afterSkillCast(out, actorId, targetId, skill, primed.eventSeq || 0, primed))
 }
 
 function castAbilityCore(state, actorId, targetId, skillId) {
@@ -4057,7 +4064,7 @@ export function runEnemyTurn(state) {
   if (objTicked.phase !== "player") return objTicked
   const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked
-  return applyTurnStartTriggers(elements.elementTurnStart(relicTicked, "player"), "player")
+  return applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player")
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
