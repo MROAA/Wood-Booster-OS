@@ -409,6 +409,246 @@ out.checks += logic.n
 out.logic = { adj: logic.adj, auras: logic.auras, shop: logic.shop, collar: logic.collar, resItems: logic.resItems, rageDef: logic.rageDef }
 for (const f of logic.fails) out.errors.push(`logic: ${f}`)
 
+// ---------------------------------------------------------------------------
+// UI (real clicks)
+// ---------------------------------------------------------------------------
+const uiFail = (cond, label, data) => {
+  out.checks++
+  if (!cond) out.errors.push(`ui: ${label}${data !== undefined ? " " + JSON.stringify(data).slice(0, 300) : ""}`)
+}
+const flags = () => {
+  localStorage.setItem("heartwood-autobattler-intro-seen", "1")
+  localStorage.setItem("heartwood-story-intro-seen", "1")
+  localStorage.setItem("heartwood-tactics-tutorial-v1", "skipped")
+}
+const readRun = () => page.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run)
+
+// --- UI-1: the shop - item cards, lock, item reroll, gear rows, drag, recipe, collar, gear screen, sell
+{
+  await page.evaluate(async (flagsSrc) => {
+    localStorage.clear()
+    new Function(flagsSrc)()
+    const rt = await import("/src/services/heartwood/runEngine.js")
+    const rs = {
+      ...rt.startRun("tommy", null, { forcedSeed: 4321 }),
+      essence: 2000,
+      bench: [
+        { key: 10, defId: "hexbreaker", upgradeLevel: 0, upgrades: [] },
+        { key: 11, defId: "the-fool", upgradeLevel: 0, upgrades: [] },
+      ],
+      benchKeyCounter: 12,
+      deployed: [10, 11, null, null],
+      items: [
+        { key: 1, defId: "whetstone", equippedTo: 10, slotIndex: 0 },
+        { key: 2, defId: "bone-dagger", equippedTo: 10, slotIndex: 2 },
+        { key: 3, defId: "herb-pouch", equippedTo: null, slotIndex: null },
+        { key: 4, defId: "empty-flask", equippedTo: null, slotIndex: null },
+        { key: 5, defId: "collar-medic", equippedTo: 11, slotIndex: 4 },
+        { key: 6, defId: "padded-vest", equippedTo: null, slotIndex: null },
+      ],
+      itemKeyCounter: 7,
+      itemOffers: ["bone-dagger", "war-banner", "mana-gem"],
+      itemLocks: [],
+    }
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(rt.serializeRun(rs)))
+  }, `(${flags.toString()})()`)
+  await page.reload({ waitUntil: "domcontentloaded" })
+  await page.locator(".hw-market-items-grid").waitFor({ timeout: 15000 })
+  const ui = {}
+  ui.hint = await page.locator('.hw-market-items-grid [data-item-id="bone-dagger"] [data-recipe-hint]').innerText()
+  ui.rarity = await page.locator('.hw-market-items-grid [data-item-id="war-banner"]').getAttribute("data-rarity")
+  ui.aura = await page.locator('.hw-market-items-grid [data-item-id="war-banner"] [data-item-aura]').count()
+  uiFail(/Twin Fangs/.test(ui.hint) && ui.rarity === "rare" && ui.aura === 1, "item card: recipe hint, rarity frame, aura line", ui)
+  ui.purse = await page.locator("[data-gear-purse]").innerText()
+  uiFail(/300/.test(ui.purse), "gear purse shown", ui.purse)
+  // Lock the War Banner, reroll: it stays, the reroll price climbs.
+  await page.locator('.hw-market-items-grid [data-item-id="war-banner"] [data-item-lock]').click()
+  ui.locked = await page.locator('.hw-market-items-grid [data-item-id="war-banner"]').getAttribute("data-locked")
+  await page.locator("[data-item-reroll]").click()
+  await page.waitForTimeout(200)
+  ui.afterReroll = await page.locator(".hw-market-items-grid [data-item-id]").evaluateAll((els) => els.map((e) => e.dataset.itemId))
+  ui.rerollLabel = await page.locator("[data-item-reroll]").innerText()
+  let run = await readRun()
+  uiFail(ui.locked === "true" && ui.afterReroll[1] === "war-banner" && /80/.test(ui.rerollLabel) && run.essence === 1960, "lock + item reroll via clicks", { ...ui, essence: run.essence })
+
+  // Your Squad tab: gear rows.
+  await page.locator(".hw-squad-tab-btn").click()
+  const row = page.locator('.hw-gear-row[data-gear-owner="10"]')
+  await row.waitFor({ timeout: 5000 })
+  ui.linksBefore = await row.locator("[data-gear-link]").count()
+  // Drag the Bone Dagger (slot 3) next to the Whetstone (slot 2).
+  await row.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(150)
+  const from = await row.locator('[data-gear-slot="2"]').boundingBox()
+  const to = await row.locator('[data-gear-slot="1"]').boundingBox()
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 6 })
+  await page.mouse.up()
+  await page.waitForTimeout(250)
+  ui.linksAfter = await row.locator('[data-gear-link="0-1"]').innerText().catch(() => "")
+  ui.adjActive = await row.locator("[data-adj-active]").count()
+  run = await readRun()
+  const dagger = run.items.find((i) => i.defId === "bone-dagger")
+  uiFail(ui.linksBefore === 0 && /\+2/.test(ui.linksAfter) && ui.adjActive === 2 && dagger.slotIndex === 1, "drag reorders the row; adjacency link lights up", { ...ui, dagger })
+  {
+    const box = await row.boundingBox()
+    const card = await page.locator('[data-gear-open="10"]').locator("xpath=../..").boundingBox()
+    const clip = { x: Math.max(0, card.x - 6), y: Math.max(0, card.y - 6), width: Math.max(card.width, box.width) + 60, height: card.height + 12 }
+    await page.screenshot({ path: `${SHOTS}/gear_row_adjacency.png`, clip })
+  }
+  // Recipe by clicks: pick the Herb Pouch from the bag, slot 4; Empty Flask, slot 5 -> fuse.
+  await page.locator(".hw-rail-chip--item", { hasText: "Herb Pouch" }).click()
+  await row.locator('[data-gear-slot="3"]').click()
+  await page.locator(".hw-rail-chip--item", { hasText: "Empty Flask" }).click()
+  await row.locator('[data-gear-slot="4"]').click()
+  await page.locator('[data-gear-forged="healing-draught"]').waitFor({ timeout: 4000 })
+  ui.forged = await page.locator("[data-gear-forged]").innerText()
+  await page.screenshot({ path: `${SHOTS}/gear_recipe_forged.png` })
+  run = await readRun()
+  uiFail(/Healing Draught/.test(ui.forged) && run.items.some((i) => i.defId === "healing-draught" && i.equippedTo === 10 && i.slotIndex === 3) && run.recipesFound?.includes("healing-draught"), "adjacent ingredients fuse via clicks + banner", ui.forged)
+  // Collar: the Fool wears a Medic collar.
+  ui.collarLine = await page.locator('[data-collar-line="medic"]').innerText()
+  uiFail(/Natural class: .+ · Wearing: Medic collar/.test(ui.collarLine), "card shows natural class + collar", ui.collarLine)
+  await page.locator('[data-gear-open="11"]').click()
+  await page.locator('[data-gear-screen="11"]').waitFor({ timeout: 4000 })
+  ui.classLine = await page.locator("[data-gear-class-line]").innerText()
+  await page.screenshot({ path: `${SHOTS}/gear_collar_screen.png` })
+  uiFail(/Natural class:/.test(ui.classLine) && /Wearing: .*Medic collar/.test(ui.classLine) && /Blood/.test(ui.classLine), "gear screen: natural vs collar class + resource", ui.classLine)
+  // Gear screen: equip the Padded Vest from the bag, then move it with the arrows.
+  await page.locator('[data-gear-screen="11"] [data-gear-equip="6"]').click()
+  await page.waitForTimeout(150)
+  run = await readRun()
+  const vest = run.items.find((i) => i.key === 6)
+  await page.locator(`[data-gear-screen="11"] [data-gear-right="${vest.slotIndex}"]`).click()
+  await page.waitForTimeout(150)
+  run = await readRun()
+  uiFail(vest.equippedTo === 11 && run.items.find((i) => i.key === 6).slotIndex === vest.slotIndex + 1, "gear screen: equip from bag + arrow move", [vest, run.items.find((i) => i.key === 6)])
+  await page.locator(".hw-gear-close").click()
+  // Sell from the rail.
+  const before = run.essence
+  await page.locator('[data-item-sell="6"]').click()
+  await page.waitForTimeout(150)
+  run = await readRun()
+  uiFail(run.essence === before + 50 && !run.items.some((i) => i.key === 6), "sell an item from the rail (+50)", [before, run.essence])
+  out.ui1 = ui
+}
+
+// --- UI-2: a board aura in a real run fight -----------------------------------
+{
+  await page.evaluate(async (flagsSrc) => {
+    localStorage.clear()
+    new Function(flagsSrc)()
+    const rt = await import("/src/services/heartwood/runEngine.js")
+    const { buildRunTacticsBattle } = await import("/src/services/heartwood/tacticsRealMatchup.js")
+    const idx = rt.RUN_PATH.findIndex((n) => n.type === "battle" && n.formationId)
+    const rs = {
+      ...rt.startRun("tommy", null, { forcedSeed: 777 }),
+      nodeIndex: idx, path: rt.RUN_PATH.slice(0, idx + 1), phase: "formation",
+      bench: [{ key: 10, defId: "hexbreaker", upgradeLevel: 0, upgrades: [] }, { key: 11, defId: "the-fool", upgradeLevel: 0, upgrades: [] }],
+      deployed: [10, 11, null, null],
+      items: [{ key: 1, defId: "war-banner", equippedTo: 10, slotIndex: 0 }, { key: 2, defId: "collar-medic", equippedTo: 11, slotIndex: 0 }],
+      itemKeyCounter: 3,
+      lastSeenAct: rt.actIndexForNode(idx, rt.RUN_PATH.length),
+    }
+    const st = rt.startTacticsFormationBattle(rs, (s) => buildRunTacticsBattle(rs, s))
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(rt.serializeRun(st)))
+  }, `(${flags.toString()})()`)
+  await page.reload({ waitUntil: "domcontentloaded" })
+  await page.locator(".hwt-board").waitFor({ timeout: 15000 })
+  await page.waitForTimeout(400)
+  const ui = {}
+  ui.auraCells = await page.locator("[data-gear-aura]").count()
+  ui.wearer = await page.locator("[data-aura-wearer]").getAttribute("data-unit-id")
+  ui.badge = await page.locator(".hwt-aura-badge").getAttribute("title")
+  ui.medicClass = await page.locator('.hwt-token[data-unit-id="player-the-fool-1"] .hwt-token-class').getAttribute("data-class-id").catch(() => null)
+  await page.screenshot({ path: `${SHOTS}/gear_board_aura.png` })
+  uiFail(ui.auraCells >= 3 && ui.wearer === "player-hexbreaker-0" && /War Banner/.test(ui.badge || "") && ui.medicClass === "medic", "board aura outline + wearer badge; collar class on the token", ui)
+  out.ui2 = ui
+}
+
+// --- UI-3: the Hearth Workshop - stash, pack, craft ---------------------------
+{
+  await page.evaluate((flagsSrc) => {
+    localStorage.clear()
+    new Function(flagsSrc)()
+    localStorage.setItem("heartwood-meta-v1", JSON.stringify({ version: 1, acorns: 20, chosenPerks: [], unlockedCommanders: [] }))
+    localStorage.setItem("hearthwood-hearth-v1", JSON.stringify({
+      version: 1, runs: 2, nextHid: 1, roster: [], memorial: [], elders: [], rooms: {}, furniture: [], permadeath: true,
+      stash: ["herb-pouch", "empty-flask", "bone-dagger"], packed: [], knownRecipes: ["healing-draught"],
+    }))
+  }, `(${flags.toString()})()`)
+  await page.reload({ waitUntil: "domcontentloaded" })
+  await page.locator("[data-hearth-open]").click()
+  await page.locator("[data-hearth-workshop]").waitFor({ timeout: 8000 })
+  const ui = {}
+  ui.stash = await page.locator("[data-stash-item]").count()
+  ui.known = await page.locator("[data-recipe][data-known]").count()
+  await page.locator('[data-stash-pack="2"]').click()
+  ui.packedText = await page.locator('[data-stash-pack="2"]').innerText()
+  ui.packLine = await page.locator("[data-hearth-packed]").innerText().catch(() => "")
+  await page.locator('[data-recipe-craft="healing-draught"]').click()
+  await page.waitForTimeout(150)
+  const stored = await page.evaluate(() => ({ h: JSON.parse(localStorage.getItem("hearthwood-hearth-v1")), m: JSON.parse(localStorage.getItem("heartwood-meta-v1")) }))
+  ui.after = stored.h.stash
+  ui.acorns = stored.m.acorns
+  await page.locator("[data-hearth-workshop]").scrollIntoViewIfNeeded()
+  await page.screenshot({ path: `${SHOTS}/gear_workshop.png` })
+  uiFail(ui.stash === 3 && ui.known === 1 && /Packed/.test(ui.packedText) && /Bone Dagger/.test(ui.packLine) && JSON.stringify(ui.after) === '["bone-dagger","healing-draught"]' && ui.acorns === 16, "Workshop: stash, pack, craft via clicks", ui)
+  // Pack the dagger again and start a run: it rides into the bag.
+  await page.locator('[data-stash-pack="0"]').click()
+  await page.locator("[data-hearth-start]").click()
+  await page.locator(".hw-commander-card:not([data-locked=true])").first().click()
+  await page.waitForFunction(() => !!localStorage.getItem("heartwood-run-save-v1"), null, { timeout: 8000 })
+  const run = await readRun()
+  const h2 = await page.evaluate(() => JSON.parse(localStorage.getItem("hearthwood-hearth-v1")))
+  uiFail(run.items.some((i) => i.defId === "bone-dagger") && JSON.stringify(h2.stash) === '["healing-draught"]', "packed gear starts the run; it leaves the stash", [run.items, h2.stash])
+  out.ui3 = ui
+}
+
+// --- UI-4: Help recipe book -----------------------------------------------------
+{
+  await page.evaluate(async () => {
+    const rt = await import("/src/services/heartwood/runEngine.js")
+    localStorage.setItem("heartwood-run-save-v1", JSON.stringify(rt.serializeRun(rt.startRun("tommy", null, { forcedSeed: 3 }))))
+  })
+  await page.reload({ waitUntil: "domcontentloaded" })
+  await page.locator(".hw-utility-btn", { hasText: "Help" }).first().click({ timeout: 10000 })
+  await page.locator('[data-help="recipes"]').waitFor({ timeout: 5000 })
+  const n = await page.locator("[data-help-recipe]").count()
+  const gearRows = await page.locator(".hw-help-term", { hasText: "Class Collars" }).count()
+  uiFail(n === 8 && gearRows === 1, "help: recipe book (8) + gear entries", [n, gearRows])
+}
+
+// --- UI-5: Studio Gear editor + the patchbay edit path ---------------------------
+{
+  await page.goto(`http://localhost:${PORT}/hearthwood-studio?view=gear`, { waitUntil: "domcontentloaded" })
+  await page.locator('[data-testid="gear-editor"]').waitFor({ timeout: 20000 })
+  await page.locator('[data-gear-entity="whetstone"]').click()
+  const ui = {}
+  ui.title = await page.locator('[data-testid="gear-title"]').innerText()
+  ui.friendly = await page.locator('[data-field="description"]').count()
+  ui.numbersBefore = await page.locator('[data-field="adj.bonus.attack"]').count()
+  await page.locator('[data-testid="gear-numbers-toggle"]').click()
+  ui.numbersAfter = await page.locator('[data-field="adj.bonus.attack"]').count()
+  await page.locator('[data-field="adj.bonus.attack"]').fill("3")
+  ui.previewEnabled = await page.locator('[data-testid="gear-preview"]').isEnabled()
+  await page.screenshot({ path: `${SHOTS}/gear_studio.png` })
+  await page.locator('[data-gear-kind="recipes"]').click()
+  ui.recipes = await page.locator("[data-gear-entity]").count()
+  await page.locator('[data-gear-kind="collars"]').click()
+  ui.collars = await page.locator("[data-gear-entity]").count()
+  uiFail(/Whetstone/.test(ui.title) && ui.friendly === 1 && ui.numbersBefore === 0 && ui.numbersAfter === 1 && ui.previewEnabled && ui.recipes === 8 && ui.collars === 37, "Studio Gear editor: plain fields, numbers behind a toggle, recipes + collars", ui)
+  // The patchbay's own apply script (stdin -> proposed text, never writes disk).
+  const apply = (payload) => JSON.parse(execFileSync(process.execPath, ["scripts/hearthwood-apply-edit.mjs"], { input: JSON.stringify(payload) }).toString())
+  const a = apply({ filePath: "src/data/heartwood/items.js", exportName: "ITEMS", edits: [{ path: ["whetstone", "adj", "bonus", "attack"], op: "set", value: 3 }] })
+  const b = apply({ filePath: "src/data/heartwood/collars.js", exportName: "COLLARS", edits: [{ path: ["collar-medic", "name"], op: "set", value: "Field Medic Collar" }] })
+  const c = apply({ filePath: "src/data/heartwood/recipes.js", exportName: "RECIPES", edits: [{ path: ["twin-fangs", "text"], op: "set", value: "Two daggers." }] })
+  uiFail(a.applied?.length === 1 && /bonus: \{ attack: 3 \}/.test(a.proposedCode) && b.applied?.length === 1 && /Field Medic Collar/.test(b.proposedCode) && c.applied?.length === 1, "patchbay edits items / collars / recipes", [a.rejected, b.rejected, c.rejected])
+  uiFail(!/Field Medic Collar/.test(fs.readFileSync("src/data/heartwood/collars.js", "utf8")), "dry run never touched the file")
+  out.ui5 = ui
+}
+
 console.log(JSON.stringify(out, null, 1))
 console.log("pageErrors", errs.length, errs.slice(0, 3))
 await browser.close()
