@@ -269,7 +269,9 @@ function withBredClasses(battle, runState) {
   keys.forEach((k, i) => {
     const e = runState.bench.find((b) => b.key === k)
     // Gear sprint: a worn Class Collar wins over the hero's natural class.
-    const classId = collarClassFor(runState, k) || e?.classId
+    // Weird events: a temporary class swap (bench `tempClass`) wins over both.
+    const temp = e?.tempClass?.fights > 0 && e.tempClass.classId
+    const classId = temp || collarClassFor(runState, k) || e?.classId
     if (classId && UNITS[e.defId] && UNITS[e.defId].classId !== classId) byId[`player-${e.defId}-${i}`] = { ...UNITS[e.defId], classId }
   })
   if (!Object.keys(byId).length || !battle.units) return battle

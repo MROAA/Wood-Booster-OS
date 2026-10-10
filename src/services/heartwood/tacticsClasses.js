@@ -28,7 +28,8 @@ import {
 } from "./tacticsEngine"
 import { applyElement, reactStatus, ENTANGLE_DURATION } from "./tacticsElements"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
-import { rollBoulder } from "./tacticsObjects"
+import { rollBoulder, placeTimedTile, igniteGrass, igniteTree, explode, freezeWater, OBJECTS, FIRE_TILE_TURNS, POISON_TILE_TURNS } from "./tacticsObjects"
+import { knockback, pushDir } from "./tacticsChaos"
 import { canAfford, hasMana, manaBlockReason, resourceMods, profileOf, gainResource, tokensOf, reagentCombos, VENOM_DAMAGE } from "./tacticsMana"
 import * as ranged from "./tacticsRanged"
 
@@ -253,7 +254,8 @@ export function classDamageMod(attacker, defender, amount, facing) {
 
 // Guardian's Stalwart / Juggernaut's Last Stand.
 export function immovable(u) {
-  return has(u, "stalwart") || (has(u, "last-stand") && hpFrac(u) < 0.5) || u?.form === "root"
+  // Traits: a Stubborn hero can't be moved either.
+  return has(u, "stalwart") || (has(u, "last-stand") && hpFrac(u) < 0.5) || u?.form === "root" || !!u?.stubborn
 }
 export function keepsBlockOnSideHit(u) {
   return has(u, "stalwart")
@@ -747,6 +749,11 @@ function flankLanding(state, actor, target, range) {
 
 // Per-skill extra target rules.
 function skillAllows(state, actor, target, skill) {
+  if (skill.promo) {
+    if (skill.kind === "blink") return !actor.root && !!blinkLanding(state, actor, target, skill.range)
+    if (skill.kind === "knock") return !target.structure
+    return true
+  }
   switch (skill.id) {
     case "charge":
       return !!chargePath(state, actor, target)
@@ -791,6 +798,12 @@ function skillAllows(state, actor, target, skill) {
 
 // Self skills with a precondition (UI greys them out when false).
 function selfAllows(state, actor, skill) {
+  if (skill.promo) {
+    const foes = livingUnits(state, actor.side === "player" ? "enemy" : "player").filter((u) => !u.structure)
+    if (skill.kind === "nova") return foes.some((u) => dist(u.pos, actor.pos) <= skill.radius)
+    if (skill.kind === "volley") return foes.some((u) => dist(u.pos, actor.pos) <= skill.range)
+    return true
+  }
   switch (skill.id) {
     // Melee rework: an ENGAGED shooter can't Aim or watch.
     case "aim":
@@ -1139,13 +1152,16 @@ const HANDLERS = {
   },
   "shoulder-check"(s, a, t) {
     const from = { ...t.pos }
-    const dest = { row: t.pos.row + sign(t.pos.row - a.pos.row), col: t.pos.col + sign(t.pos.col - a.pos.col) }
+    const dir = pushDir(a.pos, t.pos)
     const r = hit(s, a.id, t.id, Math.ceil(a.attack / 2), { name: "Shoulder Check" })
     s = r.next
     const live = getUnit(s, t.id)
-    if (!r.fell && live && samePos(live.pos, from) && !immovable(live) && tileFree(s, dest)) {
-      s = callout(setUnit(s, t.id, { pos: dest }), t.id, "Knocked back!")
-      if (!(getUnit(s, a.id).root > 0)) s = moveTo(s, a.id, from, getUnit(s, a.id).facing)
+    if (!r.fell && live && samePos(live.pos, from) && !immovable(live)) {
+      // Chaos sprint: the knockback goes through tacticsChaos - into lava,
+      // barrels, trees, other units... Steps in only when the target moved.
+      s = knockback(s, a.id, t.id, dir, 1)
+      const after = getUnit(s, t.id)
+      if (after && !samePos(after.pos, from) && tileFree(s, from) && !(getUnit(s, a.id).root > 0) && getUnit(s, a.id).hp > 0) s = moveTo(s, a.id, from, getUnit(s, a.id).facing)
     }
     return s
   },
@@ -1715,6 +1731,97 @@ const HANDLERS = {
   },
 }
 
+// --- Class promotions (data/heartwood/promotions.js) --------------------------
+// Generic handlers by `kind`; numbers come from the promotion's skill data.
+const foesOf = (s, a) => livingUnits(s, a.side === "player" ? "enemy" : "player").filter((u) => !u.structure)
+const promoDmg = (a, k) => Math.max(0, Math.round(a.attack * (k.mult ?? 1)))
+const ZONE_GROUND = new Set(["path", "forest", "rubble", "ash", "stump", "bush", "ice", "high"])
+
+function zoneGround(s, p, kind) {
+  if (!isOnBoard(p, s.grid)) return s
+  const t = terrainAt(s, p)
+  if (kind === "fire") {
+    if (OBJECTS[t]?.explosive === "fire") return explode(s, p)
+    if (t === "tree") return igniteTree(s, p)
+    if (t === "bush") return igniteGrass(s, p)
+    return placeTimedTile(s, p, "fire", FIRE_TILE_TURNS)
+  }
+  if (kind === "poison") return placeTimedTile(s, p, "poison", POISON_TILE_TURNS)
+  if (kind === "ice") return t === "water" ? freezeWater(s, p) : ZONE_GROUND.has(t) && t !== "high" ? setTerrain(s, p, "ice") : s
+  if (kind === "spikes") return ZONE_GROUND.has(t) && t !== "high" ? setTerrain(s, p, "spikes") : s
+  if (kind === "bush") return growGrass(s, [p])
+  return s
+}
+
+const PROMO_HANDLERS = {
+  smite(s, a, t, k) {
+    const base = promoDmg(a, k)
+    const dmg = k.execute && t.hp < t.maxHp * k.execute ? base * 2 : base
+    return hit(s, a.id, t.id, dmg, k).next
+  },
+  nova(s, a, _t, k) {
+    s = emit(s, { kind: "aoe", actorId: a.id })
+    const ids = foesOf(s, a).filter((u) => dist(u.pos, a.pos) <= k.radius).map((u) => u.id)
+    for (const id of ids) if (!ended(s)) s = hit(s, a.id, id, promoDmg(getUnit(s, a.id), k), { ...k, area: true }).next
+    return s
+  },
+  volley(s, a, _t, k) {
+    const ids = foesOf(s, a).filter((u) => dist(u.pos, a.pos) <= k.range && !hiddenFrom(u, a)).map((u) => u.id)
+    for (const id of ids) {
+      if (ended(s)) break
+      s = ranged.emitShot(s, "arc", a.pos, getUnit(s, id).pos, null, a.id)
+      s = hit(s, a.id, id, promoDmg(getUnit(s, a.id), k), k).next
+    }
+    return s
+  },
+  sanctuary(s, a, _t, k) {
+    const ids = livingUnits(s, a.side).filter((u) => !u.structure && dist(u.pos, a.pos) <= k.radius).map((u) => u.id)
+    for (const id of ids) {
+      if (k.cleanse) s = ALLY_T.cleanse(s, id)
+      if (k.heal) s = healUnit(s, getUnit(s, a.id), id, k.heal)
+      if (k.block) s = ALLY_T.block(s, id, k.block)
+      if (k.ward) s = ALLY_T.ward(s, id, k.ward)
+    }
+    return addLog(s, `${a.name} shelters ${ids.length} ally(s).`)
+  },
+  rally(s, a, _t, k) {
+    const ids = livingUnits(s, a.side).filter((u) => !u.structure && !u.npc && dist(u.pos, a.pos) <= k.radius && !(k.ap && u.id === a.id)).map((u) => u.id)
+    for (const id of ids) {
+      const u = getUnit(s, id)
+      const patch = {}
+      if (k.bonus) Object.assign(patch, { empower: Math.max(u.empower || 0, 1), empowerBonus: Math.max(u.empower > 0 ? u.empowerBonus || 0 : 0, k.bonus) })
+      if (k.block) patch.block = (u.block || 0) + k.block
+      if (k.ap) patch.ap = (u.ap || 0) + k.ap
+      s = callout(setUnit(s, id, patch), id, k.ap ? `+${k.ap} AP` : "Rallied!")
+    }
+    return addLog(s, `${a.name} rallies ${ids.length} ally(s)!`)
+  },
+  blink(s, a, t, k) {
+    const land = blinkLanding(s, a, t, k.range)
+    if (land && !samePos(land, a.pos)) s = moveTo(s, a.id, land, cardinal(t.pos.col - land.col, t.pos.row - land.row))
+    return hit(s, a.id, t.id, promoDmg(getUnit(s, a.id), k), k).next
+  },
+  knock(s, a, t, k) {
+    const dir = pushDir(a.pos, t.pos)
+    const r = hit(s, a.id, t.id, promoDmg(a, k), k)
+    if (r.fell || ended(r.next)) return r.next
+    return knockback(r.next, a.id, t.id, dir, k.push || 1)
+  },
+  zone(s, a, pos, k) {
+    s = ranged.emitShot(s, "arc", a.pos, pos, ranged.blastTiles(s, pos), a.id)
+    if (k.damage > 0) {
+      const ids = foesOf(s, a).filter((u) => dist(u.pos, pos) <= 1).map((u) => u.id)
+      for (const id of ids) if (!ended(s)) s = hit(s, a.id, id, k.damage, { ...k, area: true }).next
+    }
+    if (k.heal > 0 && !ended(s)) for (const u of livingUnits(s, a.side).filter((x) => !x.structure && dist(x.pos, pos) <= 1)) s = healUnit(s, getUnit(s, a.id), u.id, k.heal)
+    if (k.terrain && !ended(s)) {
+      const plus = [pos, { row: pos.row - 1, col: pos.col }, { row: pos.row + 1, col: pos.col }, { row: pos.row, col: pos.col - 1 }, { row: pos.row, col: pos.col + 1 }]
+      for (const p of plus) if (!ended(s)) s = zoneGround(s, p, k.terrain)
+    }
+    return checkTacticsBattleEnd(s)
+  },
+}
+
 // ALL-IN: the extra a handler adds per `allIn.per` spent above `floor`
 // (`whole` = count the whole spend, not just above the floor).
 function allInExtra(a, k, key, floor = 0, whole = false) {
@@ -1758,8 +1865,11 @@ export function castClassSkill(state, actorId, targetId, skillId) {
   }
   let next = setUnit(state, actorId, { ap: actor.ap - skill.cost, classCds: { ...(actor.classCds || {}), [skill.id]: skill.cooldown } })
   next = callout(next, actorId, `${skill.name}!`)
-  next = HANDLERS[skill.id](next, getUnit(next, actorId), tile || (target ? getUnit(next, target.id) : null), skill)
+  const handler = skill.promo ? PROMO_HANDLERS[skill.kind] : HANDLERS[skill.id]
+  next = handler(next, getUnit(next, actorId), tile || (target ? getUnit(next, target.id) : null), skill)
   if (skill.upgrade?.fx && !ended(next)) next = applySkillFx(next, actorId, target?.id || null, tile, skill.upgrade.fx)
+  // Promotions: the skill's own riders (promotions.js `fx`).
+  if (skill.promo && skill.fx && !ended(next) && getUnit(next, actorId)?.hp > 0) next = applySkillFx(next, actorId, target?.id || null, tile, skill.fx)
   next = afterCast(next, actorId, target?.id || null, skill)
   return checkTacticsBattleEnd(next)
 }

@@ -210,7 +210,7 @@ function aggroPairs(battle, intents) {
   const out = []
   for (const { enemyId, intent: raw } of intents) {
     const intent = raw.then || raw
-    const hits = intent.kind === "attack" || intent.kind === "move-attack" || (intent.kind === "skill" && (intent.skillKind === "hex" || intent.skillKind === "pounce"))
+    const hits = intent.kind === "attack" || intent.kind === "move-attack" || (intent.kind === "skill" && (intent.skillKind === "hex" || intent.skillKind === "pounce" || intent.skillKind === "shove"))
     if (!hits || !intent.targetId) continue
     const t = battle.units.find((u) => u.id === intent.targetId)
     if (t && t.side === "player" && t.hp > 0) out.push({ enemyId, targetId: t.id })
@@ -572,7 +572,7 @@ export default function TacticsBoard({
       // Enemy skills: Frenzy wraps the real follow-up action in `then`.
       const intent = raw.then || raw
       if (intent.kind === "attack" || intent.kind === "move-attack") ids.add(intent.targetId)
-      if (intent.kind === "skill" && ["hex", "pounce", "suppress", "spot", "volley"].includes(intent.skillKind)) ids.add(intent.targetId)
+      if (intent.kind === "skill" && ["hex", "pounce", "suppress", "spot", "volley", "shove"].includes(intent.skillKind)) ids.add(intent.targetId)
       if (intent.kind === "skill" && intent.tiles) {
         for (const p of battle.units) {
           if (p.side === "player" && p.hp > 0 && intent.tiles.some((t) => t.row === p.pos.row && t.col === p.pos.col)) ids.add(p.id)

@@ -46,6 +46,8 @@ import * as manaFx from "./tacticsMana"
 import * as ranged from "./tacticsRanged"
 // Mutations (Mewgenics-style): element-on-hit, leech, gills, echo.
 import * as mutFx from "./tacticsMutations"
+// Chaos sprint: knockback into hazards / units / objects + chain reactions.
+import * as chaos from "./tacticsChaos"
 import { auraOn as gearAuraOn } from "./gear"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
@@ -2665,12 +2667,15 @@ function castAbilityInner(state, actorId, targetId) {
     next = hit
     const live = getUnit(next, target.id)
     if (!fell && !graze && free && !classFx.immovable(live) && samePos(live.pos, target.pos) && !next.units.some((u) => u.hp > 0 && samePos(u.pos, dest))) {
-      next = setUnit(next, target.id, { pos: dest })
-      next = emit({ ...next, log: [...next.log, `${target.name} is knocked back!`] }, { kind: "reaction", unitId: target.id, label: "Knocked back!" })
+      next = { ...next, log: [...next.log, `${target.name} is knocked back!`] }
+      // Chaos sprint: the shove lands it in whatever is there (lava, spikes, ice...).
+      next = chaos.knockback(next, actorId, target.id, { row: dRow, col: dCol }, 1)
     } else if (!free) {
       next = { ...next, log: [...next.log, `${target.name} slams into what's behind it (+${ability.bonus})!`] }
       // Destructibles: a boulder behind the target gets knocked rolling.
       if (isOnBoard(dest, next.grid) && terrainAt(next, dest) === "boulder") next = objects.rollBoulder(next, dest, target.pos).next
+      // Chaos sprint: the other side of the crash (a unit, a barrel, a tree, deep water).
+      else if (!fell && !graze && live && live.hp > 0 && samePos(live.pos, target.pos)) next = chaos.blockedPushSideEffects(next, target.id, dest, { row: dRow, col: dCol })
     }
     return checkTacticsBattleEnd(next)
   }
@@ -3228,6 +3233,8 @@ function aiTileScore(state, enemy, pos, outcome) {
   if (enemy.faction === "corrupted" && isBlighted(state, pos)) score += 6
   if (isCautiousEnemy(enemy)) score -= 6 * aiExposure(state, pos)
   score += aiRoleTileScore(state, enemy, pos)
+  // Chaos sprint: don't stand where a hero can knock you into lava / water / a barrel.
+  score -= chaos.aiKnockbackRisk(state, enemy, pos)
   if (isHigh(state, pos)) score += AI_HIGH_GROUND_BONUS
   // XCOM part 2: with hit rolls on, the one cover rule drives positioning.
   if (cover.rollsOn(state)) {
@@ -3419,6 +3426,18 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
         const score = AI_ATTACK_BASE + 15 + tileScore + 40 * fill + ultimate + 0.3 * aiTargetValue(t)
         options.push({ score, intent: { ...base, targetId: t.id, amount: skill.amount } })
       }
+    } else if (skill.kind === "shove") {
+      // Chaos sprint: shove an adjacent hero ONLY when the knockback hurts
+      // (dry-run of the real knockback from this tile = exact).
+      const here = samePos(pos, enemy.pos) ? state : setUnit(state, enemy.id, { pos })
+      for (const t of foes) {
+        if (t.structure || chebyshevDist(pos, t.pos) !== 1) continue
+        const dir = chaos.pushDir(pos, t.pos)
+        const value = chaos.knockbackPreview(here, enemy.id, t.id, dir, skill.push || 1, "enemy")
+        if (value <= 0) continue
+        const score = AI_ATTACK_BASE + 10 + tileScore + 3 * value + 0.3 * aiTargetValue(t)
+        options.push({ score, intent: { ...base, targetId: t.id, push: skill.push || 1 } })
+      }
     } else if (skill.kind === "suppress" || skill.kind === "spot" || skill.kind === "volley") {
       // Ranged rework: pin a dangerous shooter / spot a hero hiding in
       // cover / lob a shot over cover when a straight shot would graze.
@@ -3580,6 +3599,16 @@ function applyEnemySkill(state, enemyId, intent) {
     next = abilityHit(next, enemyId, t.id, actor.attack + boost, { name: skill.name, shot: VOLLEY_SHOT }).next
     return checkTacticsBattleEnd(next)
   }
+  if (skill.kind === "shove") {
+    const t = getUnit(next, intent.targetId)
+    if (!t || t.hp <= 0) return next
+    const dir = chaos.pushDir(actor.pos, t.pos)
+    if (!dir || chebyshevDist(actor.pos, t.pos) !== 1) return next
+    next = { ...next, log: [...next.log, `${actor.name} uses ${skill.name} on ${t.name}!`] }
+    const r = abilityHit(next, enemyId, t.id, Math.ceil(actor.attack / 2) + boost, { name: skill.name })
+    if (r.fell || r.graze || r.next.phase === "won" || r.next.phase === "lost") return checkTacticsBattleEnd(r.next)
+    return chaos.knockback(r.next, enemyId, t.id, dir, skill.push || 1)
+  }
   if (skill.kind === "hex") {
     const t = getUnit(next, intent.targetId)
     if (!t || t.hp <= 0) return next
@@ -3689,8 +3718,9 @@ function applyLavaBurn(state, side) {
     burned = true
     const hp = Math.max(0, live.hp - burn)
     next = setUnit(next, unit.id, { hp })
-    const where = terrainAt(state, unit.pos) === "fire" ? "in the flames" : "on the lava"
-    next = emit({ ...next, log: [...next.log, `${live.name} burns ${where} for ${burn}.${hp <= 0 ? " It falls." : ""}`] }, { kind: "damage", targetId: unit.id, amount: burn, fell: hp <= 0 })
+    const kind = terrainAt(state, unit.pos)
+    const where = kind === "fire" ? "burns in the flames" : kind === "spikes" ? "is cut by the spikes" : "burns on the lava"
+    next = emit({ ...next, log: [...next.log, `${live.name} ${where} for ${burn}.${hp <= 0 ? " It falls." : ""}`] }, { kind: "damage", targetId: unit.id, amount: burn, fell: hp <= 0 })
   }
   return burned ? checkTacticsBattleEnd(next) : next
 }

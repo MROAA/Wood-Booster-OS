@@ -20,11 +20,13 @@ export const ENEMY_SKILL_KINDS = {
   suppress: { icon: "⁂", cooldown: 3, range: 5 }, // -20% to hit, moving draws a shot
   spot: { icon: "⌖", cooldown: 3, range: 6 }, // Mark: the hero counts as uncovered
   volley: { icon: "☄", cooldown: 2, range: 5 }, // arcing shot that ignores cover
+  // Chaos sprint: brutes shove a hero into lava / water / barrels / friends.
+  shove: { icon: "⇥", cooldown: 2, range: 1 },
 }
 
 // Mana cost per kind (enrage is free; a slam pays on the windup). A
 // skill's own `mana` wins.
-export const ENEMY_SKILL_MANA = { mend: 15, shield: 10, hex: 15, slam: 25, pounce: 15, summon: 25, enrage: 0, drain: 5, suppress: 10, spot: 10, volley: 15 }
+export const ENEMY_SKILL_MANA = { mend: 15, shield: 10, hex: 15, slam: 25, pounce: 15, summon: 25, enrage: 0, drain: 5, suppress: 10, spot: 10, volley: 15, shove: 10 }
 
 const HEX_NAMES = { weak: "Sapping Curse", vulnerable: "Mark of Ruin", poison: "Blight Spit", root: "Grasping Roots", burn: "Ember Spit", chill: "Rime Breath" }
 const DEBUFF_TO_STATUS = { weak: "weak", dampen: "weak", vulnerable: "vulnerable", poison: "poison", stun: "root" }
@@ -108,6 +110,16 @@ const RANGED_TOOLS = {
   "runewisp-acolyte": [mk("volley", { name: "Rune Mortar" })],
 }
 
+// Chaos sprint: brutes that SHOVE - only when the shove does real harm
+// (a hazard, a crash, a barrel...), never onto plain ground.
+const shove = (name, push = 1) => mk("shove", { id: "shove", name, push })
+const SHOVERS = {
+  "moss-troll": shove("Troll Shove", 2),
+  "bark-brute": shove("Bark Bash", 1),
+  bramblehide: shove("Thorn Ram", 1),
+  "blightheart-troll": shove("Rot Heave", 2),
+}
+
 const TABLE = Object.fromEntries(
   Object.values(ENEMIES).map((def) => [
     def.id,
@@ -116,6 +128,7 @@ const TABLE = Object.fromEntries(
       ...(ELEMENT_HEXES[def.id] ? [ELEMENT_HEXES[def.id]] : []),
       ...(MANA_DRAINERS[def.id] ? [MANA_DRAINERS[def.id]] : []),
       ...(RANGED_TOOLS[def.id] || []),
+      ...(SHOVERS[def.id] ? [SHOVERS[def.id]] : []),
     ],
   ]),
 )
@@ -151,6 +164,7 @@ export function describeSkillIntent(intent, nameOf) {
     case "suppress": return `${intent.name}: will pin ${t} under fire (-20% to hit until its next turn, moving draws a shot)`
     case "spot": return `${intent.name}: will Mark ${t} - its cover won't count against enemy shots`
     case "volley": return `${intent.name}: will lob a shot at ${t} that arcs over cover`
+    case "shove": return `${intent.name}: will shove ${t} back ${intent.push} tile(s) - into whatever is behind it!`
     default: return intent.name || "Skill"
   }
 }

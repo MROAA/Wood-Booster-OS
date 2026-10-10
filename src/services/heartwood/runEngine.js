@@ -34,7 +34,10 @@ import { economyCrew, economyCrewEffects } from "../../data/heartwood/economy"
 import { ECONOMY_LEVERS, SHOP_INVESTMENTS, MARKET_EVENTS } from "../../data/heartwood/economyLevers"
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 import { rollFightMutations, eventMutation } from "./mutations"
-import { applyLevelsToTactics, levelForXp, levelSubject, pendingPerkCount, levelOffers, parseOffer, XP as LEVEL_XP_GAIN } from "./unitLevels"
+import { applyLevelsToTactics, levelForXp, levelSubject, pendingPerkCount, levelOffers, parseOffer, XP as LEVEL_XP_GAIN, pendingPromotionRank, promotionOffers } from "./unitLevels"
+import { withRolledTraits, eventTrait } from "./traits"
+import { MAX_TRAITS } from "../../data/heartwood/traits"
+import { CLASSES } from "../../data/heartwood/classes"
 
 // Marc, 2026-09-19: "dev studiossa pitää olla mukana myös ekonomia...
 // säädän itse sillä pelin vaikeustasoa" (the dev studio needs the
@@ -880,9 +883,12 @@ function tryFuseOnce(bench, deployed, items, nextKey) {
   for (const [defId, entries] of Object.entries(groups)) {
     if (entries.length < 3) continue
     const consumed = new Set(entries.slice(0, 3).map((e) => e.key))
+    // Traits: the fused hero keeps its parts' traits (deduped, capped).
+    const partTraits = entries.slice(0, 3).filter((e) => Array.isArray(e.heroTraits))
+    const traits = partTraits.length ? [...new Set(partTraits.flatMap((e) => e.heroTraits))].slice(0, MAX_TRAITS) : null
     const nextBench = [
       ...bench.filter((e) => !consumed.has(e.key)),
-      { key: nextKey, defId: `${defId}${TIER2_SUFFIX}`, upgradeLevel: 0 },
+      { key: nextKey, defId: `${defId}${TIER2_SUFFIX}`, upgradeLevel: 0, ...(traits ? { heroTraits: traits } : {}) },
     ]
     const nextDeployed = deployed.map((k) => (consumed.has(k) ? null : k))
     const nextItems = items.map((it) => (consumed.has(it.equippedTo) ? { ...it, equippedTo: null, slotIndex: null } : it))
@@ -1122,7 +1128,7 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
         deployed = [...deployed]
         deployed[emptySlot] = fused.bench[0].key
       }
-      rs = { ...rest, bench: fused.bench, deployed, items: fused.items, benchKeyCounter: fused.nextKey }
+      rs = withRolledTraits({ ...rest, bench: fused.bench, deployed, items: fused.items, benchKeyCounter: fused.nextKey })
     } else {
       rs = rest
     }
@@ -1229,7 +1235,8 @@ function addUnitToBench(runState, defId, upgradeLevel = 0) {
   }
   return {
     ok: true,
-    runState: {
+    // Traits: a new recruit rolls 1-2 (traits.js) the moment it joins.
+    runState: withRolledTraits({
       ...runState,
       bench: fused.bench,
       deployed,
@@ -1237,7 +1244,7 @@ function addUnitToBench(runState, defId, upgradeLevel = 0) {
       benchKeyCounter: fused.nextKey,
       // Almanac: the recruited id + any "+" a fusion just formed.
       seen: noteSeen(runState.seen, "units", ...fused.bench.map((e) => e.defId)),
-    },
+    }),
   }
 }
 
@@ -1947,7 +1954,7 @@ function applyEventEffect(runState, eff, effIndex = 0) {
     const newKey = runState.benchKeyCounter + 1
     const withNew = [...runState.bench, { key: newKey, defId: id, upgradeLevel: 0 }]
     const fused = fuseAll(withNew, runState.deployed, runState.items, newKey)
-    return { ...runState, bench: fused.bench, deployed: fused.deployed, items: fused.items, benchKeyCounter: newKey }
+    return withRolledTraits({ ...runState, bench: fused.bench, deployed: fused.deployed, items: fused.items, benchKeyCounter: newKey })
   }
   if (Array.isArray(eff.squadNextBattle)) {
     // Same one-battle channel the Commander's active power uses - applied
@@ -1961,6 +1968,16 @@ function applyEventEffect(runState, eff, effIndex = 0) {
     const res = eventMutation(runState, eff, rng)
     return res.lines.length ? { ...res.runState, lastMutations: [...(runState.lastMutations || []), ...res.lines] } : runState
   }
+  // Traits (traits.js): `{ trait: "random" | "random-good" | <id>, who }` / `{ loseTrait: "random" | <id> }`.
+  if (eff.trait || eff.loseTrait) {
+    const res = eventTrait(runState, eff, rng, (e) => UNITS[e.defId]?.name || e.defId)
+    return res.lines.length ? { ...res.runState, lastMutations: [...(runState.lastMutations || []), ...res.lines] } : runState
+  }
+  // Weird events: `{ classSwap: "random" | <classId>, fights: N }` - a random
+  // deployed hero fights as another class for the next N fights.
+  if (eff.classSwap) return eventClassSwap(runState, eff, rng)
+  // `{ xp: N, who: "random" | "all" }` - heroes gain XP (may set off a level-up / promotion).
+  if (typeof eff.xp === "number") return eventXp(runState, eff, rng)
   if (eff.flag) {
     return { ...runState, storyFlags: { ...runState.storyFlags, [eff.flag]: true } }
   }
@@ -1976,6 +1993,42 @@ function applyEventEffect(runState, eff, effIndex = 0) {
     return { ...runState, runModifiers: [...held, id] }
   }
   return runState
+}
+
+function eventTargets(runState, who, rng) {
+  const live = runState.bench.filter((e) => UNITS[e.defId])
+  const deployed = live.filter((e) => runState.deployed.includes(e.key))
+  const pool = deployed.length ? deployed : live
+  if (!pool.length) return []
+  return who === "all" ? pool : [pool[Math.floor(rng() * pool.length)]]
+}
+
+function eventClassSwap(runState, eff, rng) {
+  const [e] = eventTargets(runState, "random", rng)
+  if (!e) return runState
+  const ids = Object.keys(CLASSES).filter((id) => id !== "commander")
+  const natural = UNITS[e.defId]?.classId
+  const pool = ids.filter((id) => id !== natural && id !== e.classId)
+  const classId = CLASSES[eff.classSwap] ? eff.classSwap : pool[Math.floor(rng() * pool.length)]
+  const fights = Math.max(1, eff.fights || 2)
+  const line = `🎭 ${UNITS[e.defId]?.name || e.defId} wakes up convinced it is a ${CLASSES[classId].name} - and fights like one for the next ${fights} fight${fights > 1 ? "s" : ""}.`
+  return {
+    ...runState,
+    bench: runState.bench.map((x) => (x.key === e.key ? { ...x, tempClass: { classId, fights } } : x)),
+    lastMutations: [...(runState.lastMutations || []), line],
+  }
+}
+
+function eventXp(runState, eff, rng) {
+  const targets = eventTargets(runState, eff.who || "random", rng)
+  if (!targets.length) return runState
+  const keys = new Set(targets.map((e) => e.key))
+  const lines = targets.map((e) => `📖 ${UNITS[e.defId]?.name || e.defId} ${eff.xp >= 0 ? "gains" : "loses"} ${Math.abs(eff.xp)} XP.`)
+  return {
+    ...runState,
+    bench: runState.bench.map((e) => (keys.has(e.key) ? { ...e, xp: Math.max(0, (e.xp || 0) + eff.xp) } : e)),
+    lastMutations: [...(runState.lastMutations || []), ...lines],
+  }
 }
 
 // Resolves a pending "event" phase: applies the chosen option's
@@ -1996,7 +2049,7 @@ function applyEventEffect(runState, eff, effIndex = 0) {
 // real resolution) - EventScreen shows these lines under the result.
 export function previewEventMutations(runState, choiceIndex) {
   const choice = eventForNode(runState)?.choices?.[choiceIndex]
-  if (!choice || !(choice.effects || []).some((e) => e.mutation)) return []
+  if (!choice || !(choice.effects || []).some((e) => e.mutation || e.trait || e.loseTrait || e.classSwap || typeof e.xp === "number")) return []
   let next = { ...runState, lastMutations: [] }
   ;(choice.effects || []).forEach((eff, i) => {
     next = applyEventEffect(next, eff, i)
@@ -2584,6 +2637,7 @@ export function recordFightAftermath(runState, battle) {
   const keys = runState.deployed.filter((k) => k !== null && runState.bench.some((e) => e.key === k))
   const lines = []
   const levelUps = []
+  let traitEssence = 0
   const endState = (u, prevWounded) => {
     if (!u) return null
     const fell = u.hp <= 0
@@ -2600,8 +2654,13 @@ export function recordFightAftermath(runState, battle) {
     if (!r) return e
     const name = UNITS[e.defId]?.name || e.defId
     if (r.fell) lines.push(`${name} fell and is Wounded.`)
-    const xp = tactics ? xpAfter(e.xp, list.find((u) => u.id === id), name) : e.xp
-    return { ...e, hpPct: r.hpPct, wounded: r.wounded, ...(xp != null ? { xp } : {}) }
+    const unit = tactics ? list.find((u) => u.id === id) : null
+    const xp = tactics ? xpAfter(e.xp, unit, name) : e.xp
+    // Traits: Greedy pockets Essence when it survives a won fight.
+    if (unit && unit.hp > 0 && unit.traitEssence > 0) traitEssence += unit.traitEssence
+    // Weird events: a temporary class swap wears off fight by fight.
+    const temp = e.tempClass ? (e.tempClass.fights > 1 ? { tempClass: { ...e.tempClass, fights: e.tempClass.fights - 1 } } : { tempClass: null }) : {}
+    return { ...e, hpPct: r.hpPct, wounded: r.wounded, ...(xp != null ? { xp } : {}), ...temp }
   })
   const cmdUnit = list.find((u) => u.id === (tactics ? "player-commander" : "commander"))
   const cmd = endState(cmdUnit, runState.commanderWounded)
@@ -2609,8 +2668,9 @@ export function recordFightAftermath(runState, battle) {
   if (cmd?.fell) lines.push(`${cmdName} fell and is Wounded.`)
   const cmdXp = tactics ? xpAfter(runState.commanderXp, cmdUnit, cmdName) : runState.commanderXp
   // Class system: Merchant/Gatherer bonus Essence (capped in the fight).
-  const bonusEssence = tactics ? Math.max(0, Math.min(5, battle.bonusEssence || 0)) : 0
-  if (bonusEssence) lines.push(`Your traders and foragers bring back +${bonusEssence} Essence.`)
+  const bonusEssence = (tactics ? Math.max(0, Math.min(5, battle.bonusEssence || 0)) : 0) + traitEssence
+  if (traitEssence) lines.push(`Greedy heroes pocket +${traitEssence} Essence.`)
+  if (bonusEssence - traitEssence > 0) lines.push(`Your traders and foragers bring back +${bonusEssence - traitEssence} Essence.`)
   // Mana step 1: potions drunk in the fight are used up.
   const drunk = []
   if (tactics) {
@@ -2641,7 +2701,8 @@ export function recordFightAftermath(runState, battle) {
   function xpAfter(prevXp, u, name) {
     if (!u) return prevXp
     const before = prevXp || 0
-    const total = before + (u.xpGained || 0) + (u.hp > 0 ? LEVEL_XP_GAIN.survive : 0)
+    // Traits: Bookish heroes study after every won fight.
+    const total = before + (u.xpGained || 0) + (u.hp > 0 ? LEVEL_XP_GAIN.survive + (u.xpBonus || 0) : 0)
     if (levelForXp(total) > levelForXp(before)) levelUps.push({ name, level: levelForXp(total) })
     return total
   }
@@ -2664,6 +2725,17 @@ export function chooseLevelPerk(runState, key, perkId) {
   }
   if (key === "commander") return { ...runState, commanderPerks: [...subject.perks, perkId] }
   return { ...runState, bench: runState.bench.map((e) => (e.key === key ? { ...e, perks: [...subject.perks, perkId] } : e)) }
+}
+
+// Class promotions: settle a pending promotion ceremony. `offerId` = a
+// promotion id (Lv3) or "master" / "cross" (Lv5) - one of promotionOffers.
+export function choosePromotion(runState, key, offerId) {
+  const subject = levelSubject(runState, key)
+  if (!subject || !pendingPromotionRank(subject)) return runState
+  if (!promotionOffers(subject).includes(offerId)) return runState
+  const picks = [...(subject.promoPicks || []), offerId]
+  if (key === "commander") return { ...runState, commanderPromo: picks, lastPromotion: { key, picks } }
+  return { ...runState, bench: runState.bench.map((e) => (e.key === key ? { ...e, promoPicks: picks } : e)), lastPromotion: { key, picks } }
 }
 
 export function mendCost(runState) {

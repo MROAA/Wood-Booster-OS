@@ -28,6 +28,9 @@ export const TERRAIN = {
   stump: { cost: 1 },
   ash: { cost: 1 },
   fire: { cost: 1, burn: 2 },
+  // Chaos sprint: iron spikes (promotion zone skills). Ending a turn here
+  // hurts 2; being KNOCKED onto them hurts more (tacticsChaos.js).
+  spikes: { cost: 1, burn: 2, spikes: true },
 }
 
 export const WALL_MAX_HP = 8
@@ -54,7 +57,8 @@ export const TERRAIN_INFO = {
   log: { name: "Fallen log", text: "A felled tree - costs 2 movement to climb over. HALF cover for a hero next to it." },
   stump: { name: "Stump", text: "Where a tree stood - walkable. HALF cover for a hero next to it." },
   ash: { name: "Ash", text: "Burnt ground - walkable." },
-  fire: { name: "Flames", text: "Burning ground - ending your turn here burns for 2. Dies down in a couple of turns." },
+  fire: { name: "Flames", text: "Burning ground - ending your turn here burns for 2. Dies down in a couple of turns. Spreads into tall grass." },
+  spikes: { name: "Spikes", text: "Iron spikes - ending your turn here hurts for 2, and anyone KNOCKED onto them takes 3." },
 }
 
 export function terrainAt(state, pos) {
