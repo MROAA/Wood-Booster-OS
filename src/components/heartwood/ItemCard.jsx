@@ -1,21 +1,55 @@
 import { CardGlyph } from "./cardArt"
+import { RARITY_INFO, GEAR_KINDS } from "../../data/heartwood/items"
+import { CLASSES } from "../../data/heartwood/classes"
+import { recipeHintText } from "../../services/heartwood/gear"
 
 // A small purchasable-or-owned item card - mirrors UnitCard.jsx's
 // icon+name+cost shape, but items have none of a unit's fields
 // (movePattern/tier/HP), so this stays deliberately lighter than a
 // full UnitCard rather than stretching that component to fit both.
-export default function ItemCard({ def, selected, disabled, onClick }) {
+//
+// Gear sprint: a RARITY frame (Common / Rare / Epic / Legendary), the
+// gear kind (Weapon / Offhand / Armor / Charm / Collar), and plain-English
+// lines for what makes gear interesting - row adjacency ("Next to: ..."),
+// board auras ("Aura: ..."), recipes ("Combines: ...") and collars.
+// `locked` / `onToggleLock`: the shop's per-offer lock.
+export default function ItemCard({ def, selected, disabled, onClick, locked, onToggleLock }) {
+  const rarity = RARITY_INFO[def.rarity] || RARITY_INFO.common
+  const kind = GEAR_KINDS[def.kind]
+  const combines = recipeHintText(def.id)
+  const collarClass = def.kind === "collar" ? CLASSES[def.collarClass] : null
   return (
     <div
       className="hw-card hw-card--skill hw-item-card"
       data-disabled={!!disabled}
       data-selected={!!selected}
       data-tier={def.tier}
+      data-rarity={def.rarity}
+      data-item-id={def.id}
+      data-locked={locked || undefined}
+      style={{ "--hw-rarity": rarity.color }}
       onClick={!disabled ? onClick : undefined}
       title={def.description}
     >
       <div className="hw-card-head">
         <span className="hw-card-cost">{def.cost}</span>
+        <span className="hw-item-rarity" data-rarity={def.rarity}>
+          {rarity.name}
+        </span>
+        {onToggleLock && (
+          <button
+            type="button"
+            className="hw-item-lock"
+            data-item-lock={locked ? "on" : "off"}
+            title={locked ? "Locked - stays in the shop through rerolls and into your next visit. Click to unlock." : "Lock this offer so a reroll or the next visit keeps it"}
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleLock()
+            }}
+          >
+            {locked ? "🔒" : "🔓"}
+          </button>
+        )}
       </div>
       {/* Real icon art (this round's own kuvia-folder pass, mirroring
           UnitCard.jsx's def.image-vs-glyph branch) - falls back to the
@@ -38,7 +72,32 @@ export default function ItemCard({ def, selected, disabled, onClick }) {
           </span>
         )}
       </div>
+      {kind && (
+        <div className="hw-item-kind" data-kind={def.kind}>
+          {kind.name}
+        </div>
+      )}
       <div className="hw-card-desc">{def.description}</div>
+      {collarClass && (
+        <div className="hw-item-line hw-item-line--collar" data-collar-class={collarClass.id}>
+          {collarClass.icon} Class: {collarClass.name}
+        </div>
+      )}
+      {def.adj && (
+        <div className="hw-item-line hw-item-line--adj" data-item-adj>
+          ⟷ Next to it: {def.adj.text}
+        </div>
+      )}
+      {def.aura && (
+        <div className="hw-item-line hw-item-line--aura" data-item-aura={def.aura.type}>
+          ◌ Aura: {def.aura.text}
+        </div>
+      )}
+      {combines && (
+        <div className="hw-item-line hw-item-line--recipe" data-recipe-hint title="Put these side by side in one hero's gear row">
+          ⚗ Combines: {combines}
+        </div>
+      )}
     </div>
   )
 }

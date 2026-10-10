@@ -40,7 +40,14 @@ import {
   effectiveRecruitCost,
   MARKET_EVENTS,
   GAMBLE_COST,
+  gearPurse,
+  gearPurseLeft,
+  itemRerollCost,
+  itemSellPrice,
 } from "../../services/heartwood/runEngine"
+import GearRow from "./GearRow"
+import GearScreen from "./GearScreen"
+import { collarClassFor } from "../../services/heartwood/gear"
 import UnitCard from "./UnitCard"
 import ItemCard from "./ItemCard"
 import UpgradeChoice from "./UpgradeChoice"
@@ -114,6 +121,13 @@ export default function SquadDraft({
   onBuyItem,
   onEquipItem,
   onUnequipItem,
+  // Gear sprint: row reorder, sell an item, item reroll, per-offer lock,
+  // send a spare item home to the Hearth's Workshop stash.
+  onMoveGear,
+  onSellItem,
+  onRerollItems,
+  onToggleItemLock,
+  onSendItemHome,
   onLevelUpMarket,
   onAdvanceMarketTier,
   onToggleFreeze,
@@ -245,6 +259,19 @@ export default function SquadDraft({
   // target" gesture FormationScreen.jsx already teaches for placing a
   // unit on the battlefield.
   const [selectedItemKey, setSelectedItemKey] = useState(null)
+  // Gear sprint: whose gear screen is open (bench key / "commander").
+  const [gearOwner, setGearOwner] = useState(null)
+  // A recipe just fused (runEngine -> gear.js combineRow/combineDuplicate):
+  // a short "forged!" banner keyed on the new item's key.
+  const [forged, setForged] = useState(null)
+  const lastCombinedKey = runState.lastCombined?.key
+  useEffect(() => {
+    if (lastCombinedKey == null) return undefined
+    setForged(runState.lastCombined)
+    const t = setTimeout(() => setForged((cur) => (cur?.key === lastCombinedKey ? null : cur)), 3200)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastCombinedKey])
   const [justEquippedSlot, setJustEquippedSlot] = useState(null)
   // Free-position rail layout (Marc: "haluan tämän raahaa mihin
   // tahansa tasolle" - I want this at the drag-it-anywhere level -
@@ -606,29 +633,23 @@ export default function SquadDraft({
                   : undefined
           }
         >
-          <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} entry={entry} />
+          <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} entry={entry} collarClassId={collarClassFor(runState, entry.key)} />
         </div>
-        <div
-          className="hw-item-slots"
-          data-pending={!!selectedItemDef}
-          title="Item slots - click a bag item above, then click a slot to equip it"
-        >
-          {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
-            const equipped = equippedItems.find((it) => it.slotIndex === slotIndex)
-            const itemDef = equipped ? ITEMS[equipped.defId] : null
-            return (
-              <span
-                key={slotIndex}
-                className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
-                  justEquippedSlot === `${entry.key}-${slotIndex}` ? " hw-card--reforged" : ""
-                }`}
-                title={itemDef ? `${itemDef.name} - click to unequip` : selectedItemDef ? `Equip ${selectedItemDef.name} here` : "Empty item slot"}
-                onClick={() => handleSlotClick(entry.key, slotIndex, equipped ? equipped.key : null)}
-              >
-                {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : <span className="hw-item-slot-plus">+</span>}
-              </span>
-            )
-          })}
+        {/* Gear sprint: the hero's gear ROW (adjacency links glow between
+            slots; drag to reorder) + its full gear screen. */}
+        <div className="hw-gear-row-wrap">
+          <GearRow
+            items={runState.items}
+            ownerKey={entry.key}
+            slots={maxItemSlots}
+            selectedItemDef={selectedItemDef}
+            justEquippedSlot={justEquippedSlot}
+            onSlotClick={(slotIndex, occupied) => handleSlotClick(entry.key, slotIndex, occupied)}
+            onMove={onMoveGear ? (from, to) => onMoveGear(entry.key, from, to) : undefined}
+          />
+          <button className="hw-move-btn hw-gear-open" data-gear-open={entry.key} onClick={() => setGearOwner(entry.key)} title={`Open ${def?.name}'s gear screen`}>
+            Gear
+          </button>
         </div>
         {def?.displayTier !== 2 && (
           <div
@@ -1327,6 +1348,32 @@ export default function SquadDraft({
                     ) : (
                       <span className="hw-rail-chip-eq hw-rail-chip-eq--free">Unequipped</span>
                     )}
+                    {onSellItem && (
+                      <button
+                        className="hw-rail-chip-sell"
+                        data-item-sell={it.key}
+                        title={`Sell ${def?.name} back for ${itemSellPrice(runState, it.defId)} Essence`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onSellItem(it.key)
+                        }}
+                      >
+                        +{itemSellPrice(runState, it.defId)}
+                      </button>
+                    )}
+                    {onSendItemHome && selectable && (
+                      <button
+                        className="hw-rail-chip-sell"
+                        data-item-home={it.key}
+                        title={`Send ${def?.name} home to the Hearth's Workshop stash (it leaves this run; you can pack it into a later run)`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onSendItemHome(it.key)
+                        }}
+                      >
+                        ⌂
+                      </button>
+                    )}
                   </div>
                 )
               })}
@@ -1360,6 +1407,23 @@ export default function SquadDraft({
           }}
           onCancel={() => setUpgradingKey(null)}
         />
+      )}
+      {gearOwner != null && (gearOwner === "commander" || runState.bench.some((e) => e.key === gearOwner)) && (
+        <GearScreen
+          runState={runState}
+          ownerKey={gearOwner}
+          onClose={() => setGearOwner(null)}
+          onEquip={onEquipItem}
+          onUnequip={onUnequipItem}
+          onMove={(owner, from, to) => onMoveGear?.(owner, from, to)}
+          onSell={onSellItem}
+        />
+      )}
+      {forged && ITEMS[forged.result] && (
+        <div className="hw-gear-forged" data-gear-forged={forged.recipeId} key={forged.key}>
+          <span className="hw-gear-forged-spark">⚗</span> Recipe! <b>{ITEMS[forged.result].name}</b> forged
+          <span className="hw-gear-forged-sub"> - {ITEMS[forged.result].description}</span>
+        </div>
       )}
       {/* paddingRight/flexWrap keep this row's right-aligned badges clear
           of the fixed top-right utility cluster (HeartwoodBattle.jsx's
@@ -1676,27 +1740,19 @@ export default function SquadDraft({
                 (effectiveItemSlots) can grow mid-run via upgrades, the
                 same "not a fixed set" problem as the recruit/item/bench
                 grids, deliberately deferred to that later round. */}
-            <div
-              className="hw-item-slots"
-              data-pending={!!selectedItemDef}
-              title="Commander's item slots - click a bag item above, then click a slot to equip it"
-            >
-              {Array.from({ length: maxItemSlots }, (_, slotIndex) => {
-                const equipped = runState.items.find((it) => it.equippedTo === "commander" && it.slotIndex === slotIndex)
-                const itemDef = equipped ? ITEMS[equipped.defId] : null
-                return (
-                  <span
-                    key={slotIndex}
-                    className={`hw-item-slot${itemDef ? " hw-item-slot--filled" : ""}${
-                      justEquippedSlot === `commander-${slotIndex}` ? " hw-card--reforged" : ""
-                    }`}
-                    title={itemDef ? `${itemDef.name} - click to unequip` : selectedItemDef ? `Equip ${selectedItemDef.name} here` : "Empty item slot"}
-                    onClick={() => handleSlotClick("commander", slotIndex, equipped ? equipped.key : null)}
-                  >
-                    {itemDef ? <CardGlyph name={itemDef.icon} className="hw-intent-glyph" /> : <span className="hw-item-slot-plus">+</span>}
-                  </span>
-                )
-              })}
+            <div className="hw-gear-row-wrap">
+              <GearRow
+                items={runState.items}
+                ownerKey="commander"
+                slots={maxItemSlots}
+                selectedItemDef={selectedItemDef}
+                justEquippedSlot={justEquippedSlot}
+                onSlotClick={(slotIndex, occupied) => handleSlotClick("commander", slotIndex, occupied)}
+                onMove={onMoveGear ? (from, to) => onMoveGear("commander", from, to) : undefined}
+              />
+              <button className="hw-move-btn hw-gear-open" data-gear-open="commander" onClick={() => setGearOwner("commander")} title="Open the Commander's gear screen">
+                Gear
+              </button>
             </div>
           </div>
         )}
@@ -2073,9 +2129,33 @@ export default function SquadDraft({
                 marketItemLayout.renderSection(
                   `slot${i}`,
                   itemOffers[i] ? (
-                    <ItemCard def={itemOffers[i]} disabled={runState.essence < itemOffers[i].cost} onClick={() => onBuyItem(itemOffers[i].id)} />
+                    <ItemCard
+                      def={itemOffers[i]}
+                      disabled={runState.essence < itemOffers[i].cost || gearPurseLeft(runState) < itemOffers[i].cost}
+                      onClick={() => onBuyItem(itemOffers[i].id)}
+                      locked={!!(runState.itemLocks || [])[i]}
+                      onToggleLock={onToggleItemLock ? () => onToggleItemLock(i) : undefined}
+                    />
                   ) : null
                 )
+              )}
+            </div>
+            {/* Gear sprint - shop tension: the merchant's gear purse for this
+                visit + a paid item reroll whose price climbs each time. */}
+            <div className="hw-gear-shopbar" data-gear-purse={gearPurseLeft(runState)}>
+              <span title="How much Essence the merchant will take for gear (items + item rerolls) this visit. Grows with the Act and your Market Level.">
+                Gear purse: <b>{gearPurseLeft(runState)}</b> / {gearPurse(runState)} left this visit
+              </span>
+              {onRerollItems && (
+                <button
+                  className="hw-move-btn"
+                  data-item-reroll={itemRerollCost(runState)}
+                  disabled={runState.essence < itemRerollCost(runState) || gearPurseLeft(runState) < itemRerollCost(runState)}
+                  onClick={onRerollItems}
+                  title="New item offers (locked ones stay). Costs more each time this visit."
+                >
+                  Reroll items (-{itemRerollCost(runState)})
+                </button>
               )}
             </div>
           </div>

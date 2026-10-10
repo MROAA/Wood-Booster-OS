@@ -3144,3 +3144,13 @@
   padding: 0 2px;
   cursor: help;
 }
+
+/* ===== Gear sprint: board auras - tiles next to an aura wearer get a
+   soft outline; the wearer's token carries a ◌ badge. ===== */
+.hwt-cell[data-gear-aura] { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hwt-aura, #8fd18b) 65%, transparent), inset 0 0 12px color-mix(in srgb, var(--hwt-aura, #8fd18b) 25%, transparent); }
+.hwt-cell[data-gear-aura="aim"] { --hwt-aura: #f0b23c; }
+.hwt-cell[data-gear-aura="res"] { --hwt-aura: #5fa8e0; }
+.hwt-cell[data-gear-aura="noFlank"] { --hwt-aura: #e8e0c8; }
+.hwt-cell[data-gear-aura="guard"] { --hwt-aura: #8fd18b; }
+.hwt-aura-badge { font-size: 11px; color: #f0e2b0; text-shadow: 0 0 4px #f0b23c; }
+.hwt-token[data-aura-wearer] { box-shadow: 0 0 10px 1px rgba(240, 178, 60, 0.45); }

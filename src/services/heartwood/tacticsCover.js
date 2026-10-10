@@ -7,6 +7,7 @@
 import { terrainAt, isHigh } from "./tacticsTerrain"
 import { deterministicRoll } from "./tacticsEngine"
 import { shotMods, smokeAt, consumeAim } from "./tacticsRanged"
+import { auraOn } from "./gear"
 
 export const COVER = { NONE: 0, HALF: 1, FULL: 2, HUNKERED: 3 }
 export const COVER_NAME = ["No cover", "Half cover", "Full cover", "Full cover (hunkered)"]
@@ -94,6 +95,8 @@ export function coverAgainst(state, defPos, atkPos, { hunkered = false, defender
 // Has cover somewhere, but none toward this attacker = flanked.
 export function isFlanked(state, defPos, atkPos, defender = null) {
   if (cheb(defPos, atkPos) <= 1 || smokeAt(state, defPos)) return false
+  // Gear board aura (Watch Lantern): allies next to the bearer can't be flanked.
+  if (defender && auraOn(state, defender, "noFlank", defPos) > 0) return false
   const sides = sidesFor(state, defPos, defender)
   const any = Object.values(sides).some((v) => v > 0)
   return any && !facingSides(defPos, atkPos).some((d) => sides[d] > 0)
@@ -117,6 +120,9 @@ export function hitChance(state, attacker, defender, facing = "front", atkPos = 
   if (FACING_HIT_BONUS[facing]) parts.push({ label: facing === "back" ? "From behind" : "Side attack", value: FACING_HIT_BONUS[facing] })
   if (high) parts.push({ label: "High ground", value: HIGH_GROUND_HIT_BONUS })
   parts.push(...mods.parts)
+  // Gear board aura (War Banner): allies next to the bearer aim better.
+  const banner = attacker.side === "player" ? auraOn(state, attacker, "aim", atkPos) : 0
+  if (banner) parts.push({ label: "Banner aura", value: banner })
   const raw = parts.reduce((s, p) => s + p.value, 0)
   const wallPart = cover && Object.keys(shieldWallSides(state, defender.pos, defender)).length > 0 ? parts.find((p) => p.label === COVER_NAME[cover]) : null
   if (wallPart) wallPart.label += " (Shield Wall)"

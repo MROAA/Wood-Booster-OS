@@ -40,6 +40,7 @@ import { isHigh, terrainAt } from "./tacticsTerrain"
 import { tileCoverSides } from "./tacticsCover"
 import { isMageClass } from "./tacticsRanged"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
+import { auraOn } from "./gear"
 
 // --- Numbers ------------------------------------------------------------------
 
@@ -146,7 +147,8 @@ export function manaRole(u) {
   return role
 }
 export function overchargeCap(u) {
-  return profileOf(u).overflow ? Math.floor((u?.manaMax || 0) * OVERCHARGE_PCT) : 0
+  // Gear (Overflow Chalice): extra overflow room, on any bar.
+  return (profileOf(u).overflow ? Math.floor((u?.manaMax || 0) * OVERCHARGE_PCT) : 0) + (u?.gearOverflow || 0)
 }
 export function resourceLabel(u) {
   return profileOf(u).short
@@ -166,7 +168,8 @@ export function reservedFor(state, u) {
   for (const x of state.units) {
     if (x.hp <= 0 || x.upkeepBy !== u.id || !(x.upkeep > 0)) continue
     if (x.upkeepWhile && !(x[x.upkeepWhile] > 0)) continue
-    sum += x.upkeep
+    // Gear (Ancestor Beads): each summon holds back less.
+    sum += Math.max(0, x.upkeep - (u.gearUpkeep || 0))
   }
   return Math.min(u.manaMax || 0, sum)
 }
@@ -222,6 +225,10 @@ export function resourceMods(u) {
   const tier = furyTier(u)
   if (tier) add(tier, tier.name)
   if (u.natureState && NATURE_STATES[u.natureState]) add(NATURE_STATES[u.natureState], `${NATURE_STATES[u.natureState].name} state`)
+  // Gear: Focus Lens (bonus while the bar is at least half full) +
+  // Quickening Ring (cheaper skills).
+  if ((u.gearHighDmg || u.gearHighAim) && resourcePct(u) >= (u.gearHighAt || 50)) add({ dmg: u.gearHighDmg || 0, aim: u.gearHighAim || 0 }, "Focus Lens")
+  if (u.gearCheaper > 0) add({ cheaper: u.gearCheaper }, "Gear")
   if (u.berserk > 0) out.mult = BERSERK_MULT
   return out
 }
@@ -418,10 +425,13 @@ export function gainMana(state, unitId, amount, label = null) {
   if (!manaOn(state) || !hasMana(u) || u.hp <= 0 || !(amount > 0)) return state
   if (special(u, "inverted")) return state
   if (special(u, "tokens")) return state
+  // Gear (Wellspring Torc): every gain the hero earns by playing (the
+  // labeled ones - regen stays silent) builds a little more.
+  if (label && u.gearResGain > 0) amount += scaleAmount(u, u.gearResGain)
   const cap = capFor(state, u)
   const room = Math.max(0, cap - u.mana)
   const toMana = Math.min(room, amount)
-  const toOver = profileOf(u).overflow ? Math.max(0, Math.min(overchargeCap(u) - (u.overcharge || 0), amount - toMana)) : 0
+  const toOver = profileOf(u).overflow || u.gearOverflow > 0 ? Math.max(0, Math.min(overchargeCap(u) - (u.overcharge || 0), amount - toMana)) : 0
   if (toMana + toOver <= 0) return state
   let next = setUnit(state, unitId, { mana: u.mana + toMana, overcharge: (u.overcharge || 0) + toOver })
   if (label) next = emit(next, { kind: "mana", unitId, amount: toMana + toOver, label, overcharge: toOver > 0, res: resourceLabel(u) })
@@ -770,6 +780,14 @@ export function sideTurnRegen(state, side) {
       const n = next.units.filter((e) => e.hp > 0 && e.side !== u.side && e.cursed > 0).length
       if (n) next = gainMana(next, u.id, g.suffering * n, "suffering")
     }
+    // Gear: Bloodletter's Lancet (HP into resource) + Incense aura.
+    const lancet = getUnit(next, u.id)
+    if (lancet.gearTapRes > 0 && lancet.hp > 1) {
+      const paid = Math.min(lancet.hp - 1, lancet.gearTapHp || 0)
+      next = gainExternal(setUnit(next, u.id, { hp: lancet.hp - paid }), u.id, lancet.gearTapRes, "lancet")
+    }
+    const incense = auraOn(next, getUnit(next, u.id), "res")
+    if (incense > 0) next = gainExternal(next, u.id, incense, "incense")
     // Spirit: a summon that appeared since may have shrunk the room.
     const live = getUnit(next, u.id)
     const cap = capFor(next, live)
@@ -874,6 +892,8 @@ export function onDamaged(state, targetId, lost) {
     if (t.hp > 0 && g.takenLoss) next = loseResource(next, targetId, g.takenLoss, "exposed")
     // Blood Chalice: heroes with a bar turn lost HP into their resource.
     if (t.hp > 0 && t.side === "player" && (state.manaRelic?.bloodChalice || 0) > 0 && (t.manaMax || 0) >= 50) next = gainMana(next, targetId, lost, "chalice")
+    // Gear (Rage Drum): every hit taken builds resource.
+    if (t.hp > 0 && t.gearHurtGain > 0) next = gainExternal(next, targetId, t.gearHurtGain, "drum")
   }
   if (lost > 0) {
     for (const b of next.units) {

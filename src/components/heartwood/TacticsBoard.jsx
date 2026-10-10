@@ -12,6 +12,7 @@
 // for a real fight). This component only decides WHAT to render and WHICH
 // pure tacticsEngine.js function a click should call - it dispatches the
 // result via `onBattleChange`, never holds the battle itself.
+import { auraTiles, AURA_LABEL } from "../../services/heartwood/gear"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
 import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
@@ -634,6 +635,9 @@ export default function TacticsBoard({
   // except Frost Zone's own player-side flip - rootbind-thicket is an
   // enemy.
   const thornCells = useMemo(() => (showPlan ? thornZoneCells(planBattle, "enemy") : new Set()), [planBattle, showPlan])
+  // Gear sprint: board auras (War Banner / Incense / Watch Lantern /
+  // Warding Bell) - the tiles next to each wearer get a soft outline.
+  const gearAura = useMemo(() => auraTiles(battle), [battle])
 
   // Battle objectives: panel text, reinforcement warning tiles, pulse timer.
   const objective = describeObjective(battle)
@@ -885,6 +889,7 @@ export default function TacticsBoard({
           data-fear-zone={fearZone}
           data-frost-zone={frostZone}
           data-thorn-zone={thornZone}
+          data-gear-aura={gearAura.get(`${row}-${col}`) || undefined}
           data-deploy-zone={deployZone}
           data-reinforce={reinforceTiles.has(`${row}-${col}`)}
           data-boss-warn={bossWarn.get(`${row}-${col}`) || undefined}
@@ -1024,6 +1029,7 @@ export default function TacticsBoard({
               data-overwatch={unit.overwatch > 0 || undefined}
               data-hunkered={unit.hunkered > 0 || undefined}
               data-mutated={unit.mutations?.length > 0 || undefined}
+              data-aura-wearer={unit.gearAuras?.length ? unit.gearAuras.map((a) => a.type).join(" ") : undefined}
               title={roleTitle(unit)}
             >
               <TokenArt unit={unit} />
@@ -1078,6 +1084,15 @@ export default function TacticsBoard({
                     title={`Level ${unit.level}${unit.perks?.length ? " - " + unit.perks.map((id) => PERKS[id]?.name).join(", ") : ""}${unit.xpGained ? ` (+${unit.xpGained} XP this fight)` : ""}`}
                   >
                     Lv{unit.level}
+                  </span>
+                )}
+                {unit.gearAuras?.length > 0 && (
+                  <span
+                    className="hwt-aura-badge"
+                    data-aura={unit.gearAuras[0].type}
+                    title={`Gear aura (${unit.gearAuras.map((a) => a.name).join(", ")}): allies standing next to ${unit.name} get ${unit.gearAuras.map((a) => AURA_LABEL[a.type]?.(a.amount)).join(", ")}`}
+                  >
+                    ◌
                   </span>
                 )}
                 {unit.mutations?.length > 0 && (
