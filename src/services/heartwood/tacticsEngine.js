@@ -3435,7 +3435,8 @@ function aiSkillOptions(state, enemy, pos, tileScore) {
         const dir = chaos.pushDir(pos, t.pos)
         const value = chaos.knockbackPreview(here, enemy.id, t.id, dir, skill.push || 1, "enemy")
         if (value <= 0) continue
-        const score = AI_ATTACK_BASE + 10 + tileScore + 3 * value + 0.3 * aiTargetValue(t)
+        // The shove's own half-damage hit + whatever the world does to it.
+        const score = AI_ATTACK_BASE + 20 + tileScore + 3 * (value + Math.ceil(enemy.attack / 2)) + aiTargetValue(t)
         options.push({ score, intent: { ...base, targetId: t.id, push: skill.push || 1 } })
       }
     } else if (skill.kind === "suppress" || skill.kind === "spot" || skill.kind === "volley") {

@@ -3169,3 +3169,5 @@
 .hwt-chaos-banner b { color: #fff; font-size: 26px; }
 @keyframes hwt-chaos-banner { 0% { opacity: 0; transform: translateX(-50%) scale(0.6) rotate(-4deg); } 15% { opacity: 1; transform: translateX(-50%) scale(1.12) rotate(2deg); } 30% { transform: translateX(-50%) scale(1) rotate(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-14px); } }
 .hw-reduce-motion .hwt-chaos-banner { animation: none; opacity: 1; }
+/* The battle screen makes its direct children position: relative - keep the banners floating. */
+.hw-root[data-screen="battle"] > .hwt-chaos-banner, .hw-root[data-screen="battle"] > .hwt-boss-phase-banner { position: fixed; }

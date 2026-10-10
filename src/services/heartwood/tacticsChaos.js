@@ -199,17 +199,19 @@ export function blockedPushSideEffects(state, targetId, dest, dir) {
 
 // Net HP swing of a knockback for `side` (+ = good for that side): damage
 // dealt to the other side minus damage to its own, kills weigh extra.
+// Damage-over-time it inflicted counts too (Burn 1.5 each, Poison 1, Chill 2).
 export function knockbackPreview(state, actorId, targetId, dir, tiles, side) {
-  const before = new Map(state.units.map((u) => [u.id, u.hp]))
+  const before = new Map(state.units.map((u) => [u.id, u]))
   const after = knockback(state, actorId, targetId, dir, tiles)
   let value = 0
   for (const u of after.units) {
     const was = before.get(u.id)
-    if (was == null) continue
-    const lost = Math.max(0, was - Math.max(0, u.hp))
-    if (!lost) continue
+    if (!was) continue
+    const lost = Math.max(0, was.hp - Math.max(0, u.hp))
+    const dot = 1.5 * Math.max(0, (u.burn || 0) - (was.burn || 0)) + Math.max(0, (u.poison || 0) - (was.poison || 0)) + 2 * Math.max(0, (u.chill || 0) - (was.chill || 0))
+    if (!lost && !dot) continue
     const sign2 = u.side === side ? -1 : 1
-    value += sign2 * (lost + (u.hp <= 0 && was > 0 ? 25 : 0))
+    value += sign2 * (lost + dot + (u.hp <= 0 && was.hp > 0 ? 25 : 0))
   }
   return value
 }

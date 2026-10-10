@@ -229,7 +229,8 @@ export default function TacticsFx({ battle }) {
         } else if (ev.kind === "chaos") {
           // Chaos combos: "Chain x2: Into the lava!" + tile flash; the banner shakes the board.
           timers.push(setTimeout(() => {
-            pop(ev.unitId, ev.label, "combo", { offset: ev.big ? 2 : 1.4, big: !!ev.big || ev.step > 1, combo: "chaos" })
+            // The chain total gets the banner only; each step gets its own popup.
+            if (!ev.big) pop(ev.unitId, ev.label, "combo", { offset: 1.4, big: ev.step > 1, combo: "chaos" })
             if (ev.tiles?.length) flashTiles(ev.tiles, "chaos")
             if (ev.big) {
               shakeBoard()
