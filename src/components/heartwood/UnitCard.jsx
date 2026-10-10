@@ -6,6 +6,9 @@ import { UPGRADE_BRANCHES } from "../../data/heartwood/upgrades"
 import { ROLES, unitProfile, unitTargetProfile, TARGET_PROFILE_LABEL } from "../../data/heartwood/roles"
 import { PERKS, levelProgress } from "../../services/heartwood/unitLevels"
 import { MUTATIONS } from "../../data/heartwood/mutations"
+import { TRAITS, TRAIT_KINDS } from "../../data/heartwood/traits"
+import { promoTitle } from "../../services/heartwood/promotions"
+import { PROMOTIONS } from "../../data/heartwood/promotions"
 import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
 import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
@@ -110,7 +113,10 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   const naturalClass = classById(entry?.classId || def.classId)
   // Gear sprint: a worn Class Collar overrides the class while worn.
   const collarClass = collarClassId ? classById(collarClassId) : null
-  const tacticalClass = collarClass || naturalClass
+  // Weird events: a temporary class swap wins over both while it lasts.
+  const tempClass = entry?.tempClass?.fights > 0 ? classById(entry.tempClass.classId) : null
+  const tacticalClass = tempClass || collarClass || naturalClass
+  const promo = promoTitle(entry?.promoPicks)
   // Role & tag identity (roles.js): a "Tank · Support" line + up to
   // MAX_TAGS chips + strength/weakness in the tooltip. `role` here is
   // the Hero-Bent override (SquadDraft/FormationScreen pass it), so a
@@ -263,6 +269,8 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       {entry && <LevelRow entry={entry} />}
       {/* Mutations (data/heartwood/mutations.js): one badge each. */}
       {entry?.mutations?.length > 0 && <MutationRow ids={entry.mutations} />}
+      {/* Traits (data/heartwood/traits.js): one labelled chip each. */}
+      {entry?.heroTraits?.length > 0 && <TraitRow ids={entry.heroTraits} />}
       {/* Tribe band - promoted to a first-class element directly under
           the cost/HP row (Marc: "heimo tarvitsee näkyvämmän paikan
           kortissa koska se on keskeinen osa pelimekaniikkaa"). Labelled,
@@ -321,6 +329,27 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
             {def.className}
           </div>
         )
+      )}
+      {/* Class promotions: the earned title + crest (sleeps under a collar). */}
+      {promo && (
+        <div
+          className="hw-card-promo"
+          data-promo-badge={promo.id}
+          data-promo-rank={promo.rank}
+          data-dormant={collarClass || tempClass ? true : undefined}
+          title={promoTooltip(promo, collarClass || tempClass)}
+        >
+          <span className="hw-card-promo-crest" aria-hidden="true">
+            {promo.icon}
+          </span>
+          <span className="hw-card-promo-name">{promo.name}</span>
+          {promo.rank > 1 && <span className="hw-card-promo-pips" aria-hidden="true">★★</span>}
+        </div>
+      )}
+      {tempClass && (
+        <div className="hw-card-collar-line hw-card-tempclass" data-temp-class={tempClass.id} title="A strange event: this hero fights as another class for a few fights">
+          🎭 Thinks it is a {tempClass.name} ({entry.tempClass.fights} fight{entry.tempClass.fights > 1 ? "s" : ""} left)
+        </div>
       )}
       {/* Class system: tactical class chip; tooltip = passive + skills. */}
       {tacticalClass && (
@@ -426,6 +455,33 @@ function LevelRow({ entry }) {
           {PERKS[id]?.icon}
         </span>
       ))}
+    </div>
+  )
+}
+
+function promoTooltip(promo, override) {
+  const p = PROMOTIONS[promo.id]
+  const lines = [`${promo.name} - ${promo.tagline}`]
+  if (p?.skill) lines.push(`${p.skill.icon} ${p.skill.name}: ${p.skill.text}`)
+  if (p?.passive) lines.push(`${p.passive.name}: ${p.passive.text}`)
+  if (p?.twist) lines.push(`Resource: ${p.twist.text}`)
+  if (promo.rank > 1 && p?.master && !promo.cross) lines.push(`Mastered: ${p.master.text}`)
+  if (promo.cross) lines.push(`Cross-trained: also knows the ${promo.cross} skill.`)
+  if (override) lines.push(`(Sleeping while it fights as a ${override.name} - only the +HP/+attack stay.)`)
+  return lines.join("\n")
+}
+
+function TraitRow({ ids }) {
+  return (
+    <div className="hw-card-traits" data-traits={ids.length}>
+      {ids.map((id) =>
+        TRAITS[id] ? (
+          <span key={id} className="hw-trait-chip" data-trait={id} data-kind={TRAITS[id].kind} style={{ "--hw-trait": TRAIT_KINDS[TRAITS[id].kind]?.color }} title={`${TRAITS[id].name} (${TRAITS[id].kind} trait): ${TRAITS[id].text}`}>
+            <span aria-hidden="true">{TRAITS[id].icon}</span>
+            {TRAITS[id].name}
+          </span>
+        ) : null,
+      )}
     </div>
   )
 }

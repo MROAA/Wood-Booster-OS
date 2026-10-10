@@ -3154,3 +3154,18 @@
 .hwt-cell[data-gear-aura="guard"] { --hwt-aura: #8fd18b; }
 .hwt-aura-badge { font-size: 11px; color: #f0e2b0; text-shadow: 0 0 4px #f0b23c; }
 .hwt-token[data-aura-wearer] { box-shadow: 0 0 10px 1px rgba(240, 178, 60, 0.45); }
+
+/* ===== Promotions / Traits / Chaos sprint ============================= */
+.hwt-token-status > .hwt-promo-badge { display: inline-grid; place-items: center; min-width: 14px; height: 14px; padding: 0 2px; border-radius: 50%; font-size: 9px; color: #2a1d0c; background: linear-gradient(135deg, #f7dc98, #d49a3c); border: 1px solid #fff1c8; box-shadow: 0 0 6px rgba(240, 190, 90, 0.6); }
+.hwt-token-status > .hwt-promo-badge[data-dormant] { filter: grayscale(0.9); opacity: 0.6; }
+.hwt-token-status > .hwt-trait-badge { font-size: 9px; padding: 0 2px; border-radius: 6px; background: rgba(30, 26, 20, 0.8); border: 1px solid #e0b85a; color: #f3e4c0; }
+.hwt-skill-bar-promo { color: #f0c86a; font-weight: 700; }
+.hwt-skill-btn[data-promo] { border-color: #e2b04f; box-shadow: inset 0 0 0 1px rgba(240, 200, 106, 0.35), 0 0 10px rgba(240, 190, 90, 0.25); }
+/* Chaos combos: the chain flash + the CHAIN REACTION banner. */
+.hwt-cell.hwt-combo-flash[data-combo-flash="chaos"]::after { background: radial-gradient(circle, rgba(255, 214, 90, 0.9), rgba(255, 110, 40, 0.45) 55%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-grassfire"]::after { background: radial-gradient(circle, rgba(255, 150, 40, 0.85), transparent 75%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-freeze"]::after { background: radial-gradient(circle, rgba(190, 240, 255, 0.9), transparent 75%); }
+.hwt-chaos-banner { position: fixed; left: 50%; top: 30%; transform: translateX(-50%); z-index: 61; padding: 10px 28px; border-radius: 12px; font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #ffe6a0; background: color-mix(in srgb, black 72%, #7a2a10); border: 2px solid #ffb347; text-shadow: 0 0 12px #ff7a2a; pointer-events: none; animation: hwt-chaos-banner 1.8s ease-out forwards; }
+.hwt-chaos-banner b { color: #fff; font-size: 26px; }
+@keyframes hwt-chaos-banner { 0% { opacity: 0; transform: translateX(-50%) scale(0.6) rotate(-4deg); } 15% { opacity: 1; transform: translateX(-50%) scale(1.12) rotate(2deg); } 30% { transform: translateX(-50%) scale(1) rotate(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-14px); } }
+.hw-reduce-motion .hwt-chaos-banner { animation: none; opacity: 1; }

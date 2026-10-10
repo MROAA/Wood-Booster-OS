@@ -92,6 +92,7 @@ import { describeSkillIntent } from "../../services/heartwood/tacticsEnemyAbilit
 import { describeObjective, reinforcementWarningTiles, turnsUntilPulse } from "../../services/heartwood/tacticsObjectives"
 import { PERKS } from "../../services/heartwood/unitLevels"
 import { MUTATIONS } from "../../data/heartwood/mutations"
+import { TRAITS } from "../../data/heartwood/traits"
 
 // Mutations: tooltip for a mutated hero's token badge.
 const mutationTitle = (unit) =>
@@ -1095,6 +1096,22 @@ export default function TacticsBoard({
                     ◌
                   </span>
                 )}
+                {unit.promoId && (
+                  <span
+                    className="hwt-promo-badge"
+                    data-promo-badge={unit.promoId}
+                    data-dormant={unit.promoDormant || undefined}
+                    title={`${unit.promoName}${unit.promoPassive ? ` - ${unit.promoPassive}` : ""}${unit.promoDormant ? " (sleeping: fighting as another class)" : ""}`}
+                  >
+                    {unit.promoIcon}
+                  </span>
+                )}
+                {unit.heroTraits?.length > 0 && (
+                  <span className="hwt-trait-badge" data-traits={unit.heroTraits.length} title={unit.heroTraits.map((id) => (TRAITS[id] ? `${TRAITS[id].icon} ${TRAITS[id].name}: ${TRAITS[id].text}` : id)).join("\n")}>
+                    {TRAITS[unit.heroTraits[0]]?.icon}
+                    {unit.heroTraits.length > 1 ? unit.heroTraits.length : ""}
+                  </span>
+                )}
                 {unit.mutations?.length > 0 && (
                   <span className="hwt-mut-badge" data-mutations={unit.mutations.length} title={mutationTitle(unit)}>
                     🧬{unit.mutations.length}
@@ -1574,6 +1591,11 @@ export default function TacticsBoard({
               <div className="hwt-skill-bar-head">
                 <span className="hwt-skill-bar-class">
                   {classInfoFor(selected).icon} {classInfoFor(selected).name}
+                  {selected.promoId && !selected.promoDormant && (
+                    <span className="hwt-skill-bar-promo" data-promo={selected.promoId}>
+                      {" "}→ {selected.promoIcon} {selected.promoName}
+                    </span>
+                  )}
                 </span>
                 {archetypeOf(selected) && (
                   <span className="hwt-archetype" data-archetype={archetypeOf(selected).id} title={`${archetypeOf(selected).name}: ${archetypeOf(selected).what}`}>
@@ -1595,6 +1617,7 @@ export default function TacticsBoard({
                       data-skill-id={sk.id}
                       data-active={armedSkillId === sk.id}
                       data-upgraded={sk.upgrade ? sk.upgrade.branch : undefined}
+                      data-promo={sk.promo ? sk.promoId : undefined}
                       data-no-mana={!!manaBlockReason(selected, sk) || undefined}
                       disabled={!ready}
                       onClick={() => handleSkillClick(sk)}

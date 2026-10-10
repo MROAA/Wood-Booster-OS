@@ -8753,3 +8753,47 @@ img.hw-intent-glyph {
 .hw-workshop-item.is-packed { background: color-mix(in srgb, var(--hw-moss) 18%, transparent); }
 .hw-workshop-recipe { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px dashed var(--hw-border); color: var(--hw-muted); display: flex; align-items: center; gap: 6px; }
 .hw-workshop-recipe.is-known { border-style: solid; border-color: var(--hw-ember); color: var(--hw-text); }
+
+/* ===== Promotions / Traits sprint ===================================== */
+/* Promotion ceremony (LevelUpChoice.jsx PromotionCeremony). */
+.hw-promotion { position: relative; text-align: center; overflow: hidden; padding-top: 28px; }
+.hw-promo-rays { position: absolute; inset: -40% -10% auto; height: 120%; pointer-events: none; background: repeating-conic-gradient(from 0deg at 50% 50%, color-mix(in srgb, var(--hw-ember) 14%, transparent) 0deg 6deg, transparent 6deg 18deg); mask-image: radial-gradient(circle at 50% 50%, black 10%, transparent 60%); animation: hw-promo-rays 24s linear infinite; opacity: 0.7; }
+.hw-reduce-motion .hw-promo-rays { animation: none; }
+@keyframes hw-promo-rays { to { transform: rotate(360deg); } }
+.hw-promo-eyebrow { position: relative; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--hw-rune); }
+.hw-promo-title { position: relative; margin: 6px 0 4px; font-size: 26px; color: var(--hw-ember); text-shadow: 0 0 18px color-mix(in srgb, var(--hw-ember) 45%, transparent); }
+.hw-promo-sub { position: relative; margin: 0 auto 18px; max-width: 560px; color: var(--hw-muted); }
+.hw-promo-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 300px)); justify-content: center; gap: 18px; }
+.hw-promo-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 16px 16px; border-radius: 14px; border: 1.5px solid color-mix(in srgb, var(--hw-ember) 60%, var(--hw-border)); background: linear-gradient(180deg, color-mix(in srgb, var(--hw-ember) 12%, var(--hw-card)), var(--hw-card) 45%); color: var(--hw-text); cursor: pointer; text-align: left; transition: transform var(--hw-dur-base, 144ms) ease, box-shadow var(--hw-dur-base, 144ms) ease, opacity 0.3s ease; }
+.hw-promo-card:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 10px 28px color-mix(in srgb, var(--hw-ember) 30%, transparent); }
+.hw-promo-card.is-chosen { animation: hw-promo-crown 0.9s ease-out both; border-color: var(--hw-ember); box-shadow: 0 0 40px color-mix(in srgb, var(--hw-ember) 60%, transparent); }
+.hw-promo-card.is-dimmed { opacity: 0.35; transform: scale(0.96); }
+@keyframes hw-promo-crown { 0% { transform: scale(1); } 35% { transform: scale(1.06); } 100% { transform: scale(1.02); } }
+.hw-promo-crest { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; font-size: 30px; background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--hw-ember) 55%, var(--hw-card)), color-mix(in srgb, var(--hw-ember) 15%, var(--hw-panel))); border: 2px solid var(--hw-ember); box-shadow: 0 0 16px color-mix(in srgb, var(--hw-ember) 40%, transparent); }
+.hw-promo-name { font-size: 20px; font-weight: 700; color: var(--hw-ember); text-align: center; }
+.hw-promo-tagline { font-size: 13px; color: var(--hw-muted); font-style: italic; text-align: center; }
+.hw-promo-skill { font-size: 13px; line-height: 1.45; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--hw-rune) 12%, var(--hw-panel)); border: 1px solid color-mix(in srgb, var(--hw-rune) 35%, transparent); align-self: stretch; }
+.hw-promo-line { font-size: 12.5px; line-height: 1.4; align-self: stretch; color: var(--hw-text); }
+.hw-promo-line b { color: var(--hw-ember); font-weight: 600; }
+
+/* Promotion title on the unit card. */
+.hw-card-promo { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 1px auto 2px; padding: 1px 9px 1px 3px; width: fit-content; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; color: #2a1d0c; background: linear-gradient(90deg, #f0c86a, #d49a3c); border: 1px solid #f7dc98; box-shadow: 0 0 8px rgba(240, 190, 90, 0.35); }
+.hw-card-promo-crest { display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: #2a1d0c; color: #f7dc98; font-size: 10px; }
+.hw-card-promo-pips { font-size: 8px; color: #6b3d0c; }
+.hw-card-promo[data-dormant] { filter: grayscale(0.85); opacity: 0.7; }
+.hw-card-tempclass { color: #c9a8ff; }
+
+/* Trait chips on the unit card. */
+.hw-card-traits { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin: 2px 4px 1px; }
+.hw-trait-chip { --hw-trait: var(--hw-muted); display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px 1px 4px; border-radius: 999px; font-size: 10.5px; line-height: 15px; color: var(--hw-text); background: color-mix(in srgb, var(--hw-trait) 16%, var(--hw-panel)); border: 1px solid color-mix(in srgb, var(--hw-trait) 70%, transparent); white-space: nowrap; }
+
+/* Gear row polish: the row under each hero card was cramped (24px slots,
+   9px link labels). Bigger slots, a labelled strip, readable links. */
+.hw-gear-row-wrap { gap: 6px; margin-top: 4px; padding: 4px 6px; border-radius: 8px; background: color-mix(in srgb, var(--hw-panel) 55%, transparent); border: 1px solid color-mix(in srgb, var(--hw-border) 70%, transparent); justify-content: space-between; }
+.hw-gear-row-wrap::before { content: "Gear"; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--hw-muted); margin-right: 2px; }
+.hw-gear-row--small { gap: 5px; padding: 3px 4px; flex-wrap: wrap; row-gap: 4px; }
+.hw-gear-row--small .hw-gear-slot { width: 30px; height: 30px; border-radius: 6px; }
+.hw-gear-row--small .hw-gear-slot .hw-intent-glyph { width: 20px; height: 20px; }
+.hw-gear-row--small .hw-item-slot-plus { font-size: 14px; opacity: 0.7; }
+.hw-gear-row--small .hw-gear-link { font-size: 10.5px; padding: 3px 5px; border-radius: 7px; }
+.hw-gear-row-wrap .hw-gear-open { font-size: 11px; padding: 4px 9px; margin-left: auto; }

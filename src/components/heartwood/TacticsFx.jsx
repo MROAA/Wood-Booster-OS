@@ -139,7 +139,8 @@ function shotFx(ev) {
 function toBeats(events) {
   const beats = []
   for (const ev of events) {
-    if (ev.kind === "strike" || ev.kind === "aoe" || ev.kind === "power" || ev.kind === "bossPhase" || ev.kind === "shot" || !beats.length) beats.push([ev])
+    // Chaos sprint: every step of a chain reaction gets its own beat, in order.
+    if (ev.kind === "strike" || ev.kind === "aoe" || ev.kind === "power" || ev.kind === "bossPhase" || ev.kind === "shot" || ev.kind === "chaos" || !beats.length) beats.push([ev])
     else beats[beats.length - 1].push(ev)
   }
   return beats
@@ -149,6 +150,8 @@ export default function TacticsFx({ battle }) {
   const [popups, setPopups] = useState([])
   // Boss fights: a big "Phase N: name" banner on a phase change.
   const [banner, setBanner] = useState(null)
+  // Chaos sprint: a "CHAIN REACTION xN" banner for 2+ step chains.
+  const [chain, setChain] = useState(null)
   const flashSeqRef = useRef(battle.bossFlash?.seq ?? null)
   const counterRef = useRef(0)
   const lastSeqRef = useRef(null)
@@ -223,6 +226,18 @@ export default function TacticsFx({ battle }) {
             setBanner({ key: ev.seq, index: ev.index, name: ev.name })
             timers.push(setTimeout(() => setBanner((b) => (b && b.key === ev.seq ? null : b)), 2200))
           }, at))
+        } else if (ev.kind === "chaos") {
+          // Chaos combos: "Chain x2: Into the lava!" + tile flash; the banner shakes the board.
+          timers.push(setTimeout(() => {
+            pop(ev.unitId, ev.label, "combo", { offset: ev.big ? 2 : 1.4, big: !!ev.big || ev.step > 1, combo: "chaos" })
+            if (ev.tiles?.length) flashTiles(ev.tiles, "chaos")
+            if (ev.big) {
+              shakeBoard()
+              play("hitBig")
+              setChain({ key: ev.seq, n: ev.chain })
+              timers.push(setTimeout(() => setChain((c) => (c && c.key === ev.seq ? null : c)), 1800))
+            } else play("hit", { gain: 0.8 })
+          }, at + IMPACT_DELAY_MS))
         } else if (ev.kind === "object") {
           // Destructibles: tile flash + shake/sound (the board shows the callout text).
           timers.push(setTimeout(() => {
@@ -280,6 +295,11 @@ export default function TacticsFx({ battle }) {
         <div className="hwt-boss-phase-banner" key={banner.key} data-phase-index={banner.index}>
           <span className="hwt-boss-phase-banner-num">Phase {banner.index + 1}</span>
           <span className="hwt-boss-phase-banner-name">{banner.name}</span>
+        </div>
+      )}
+      {chain && (
+        <div className="hwt-chaos-banner" key={chain.key} data-chain={chain.n}>
+          Chain reaction <b>x{chain.n}</b>!
         </div>
       )}
       {popups.map((p) => (

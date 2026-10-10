@@ -63,9 +63,10 @@ import {
   DIFFICULTY_TIERS,
   RUN_PATH,
   chooseLevelPerk,
+  choosePromotion,
 } from "../services/heartwood/runEngine"
-import { nextPendingLevelUp, levelOffers } from "../services/heartwood/unitLevels"
-import LevelUpChoice from "../components/heartwood/LevelUpChoice"
+import { nextPendingLevelUp, levelOffers, nextPendingPromotion, promotionOffers } from "../services/heartwood/unitLevels"
+import LevelUpChoice, { PromotionCeremony } from "../components/heartwood/LevelUpChoice"
 import { crossroadsForAct } from "../data/heartwood/crossroads"
 import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
@@ -562,6 +563,11 @@ export default function HeartwoodBattle() {
   function handleChooseLevelPerk(key, perkId) {
     playSfx("buy")
     setRunState((current) => chooseLevelPerk(current, key, perkId))
+  }
+
+  function handleChoosePromotion(key, offerId) {
+    playSfx("victory")
+    setRunState((current) => choosePromotion(current, key, offerId))
   }
 
   function handleMend(benchKey) {
@@ -1199,6 +1205,16 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key={`level-up-${levelUp.key}-${levelUp.perks.length}`}>
         <LevelUpChoice subject={levelUp} offers={levelOffers(runState, levelUp)} onChoose={handleChooseLevelPerk} />
+      </div>
+    )
+  }
+
+  // Class promotions: the ceremony comes right after any level-up choice.
+  const promotion = LEVEL_UP_PHASES.has(runState.phase) ? nextPendingPromotion(runState) : null
+  if (promotion) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key={`promotion-${promotion.key}-${(promotion.promoPicks || []).length}`}>
+        <PromotionCeremony subject={promotion} offers={promotionOffers(promotion)} onChoose={handleChoosePromotion} />
       </div>
     )
   }
