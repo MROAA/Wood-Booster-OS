@@ -2011,7 +2011,8 @@ function eventClassSwap(runState, eff, rng) {
   const pool = ids.filter((id) => id !== natural && id !== e.classId)
   const classId = CLASSES[eff.classSwap] ? eff.classSwap : pool[Math.floor(rng() * pool.length)]
   const fights = Math.max(1, eff.fights || 2)
-  const line = `🎭 ${UNITS[e.defId]?.name || e.defId} wakes up convinced it is a ${CLASSES[classId].name} - and fights like one for the next ${fights} fight${fights > 1 ? "s" : ""}.`
+  const cname = CLASSES[classId].name
+  const line = `🎭 ${UNITS[e.defId]?.name || e.defId} wakes up convinced it is ${/^[AEIOU]/.test(cname) ? "an" : "a"} ${cname} - and fights like one for the next ${fights} fight${fights > 1 ? "s" : ""}.`
   return {
     ...runState,
     bench: runState.bench.map((x) => (x.key === e.key ? { ...x, tempClass: { classId, fights } } : x)),

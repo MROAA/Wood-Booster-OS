@@ -144,7 +144,8 @@ export function eventTrait(runState, eff, rng, unitName) {
     patch.set(e.key, removeTrait(e.heroTraits, id))
     lines.push(`🧬 ${unitName(e)} loses ${TRAITS[id].icon} ${TRAITS[id].name}.`)
   } else {
-    const can = pool.filter((e) => arr(e.heroTraits).length < MAX_TRAITS)
+    // A named trait goes to someone who doesn't have it yet.
+    const can = pool.filter((e) => arr(e.heroTraits).length < MAX_TRAITS && !(TRAITS[eff.trait] && arr(e.heroTraits).includes(eff.trait)))
     if (!can.length) return { runState, lines }
     const targets = eff.who === "all" ? can : [can[Math.floor(rng() * can.length)]]
     const spec = String(eff.trait)

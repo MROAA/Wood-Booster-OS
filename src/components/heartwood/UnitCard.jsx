@@ -348,7 +348,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       )}
       {tempClass && (
         <div className="hw-card-collar-line hw-card-tempclass" data-temp-class={tempClass.id} title="A strange event: this hero fights as another class for a few fights">
-          🎭 Thinks it is a {tempClass.name} ({entry.tempClass.fights} fight{entry.tempClass.fights > 1 ? "s" : ""} left)
+          🎭 Thinks it is {/^[AEIOU]/.test(tempClass.name) ? "an" : "a"} {tempClass.name} ({entry.tempClass.fights} fight{entry.tempClass.fights > 1 ? "s" : ""} left)
         </div>
       )}
       {/* Class system: tactical class chip; tooltip = passive + skills. */}
