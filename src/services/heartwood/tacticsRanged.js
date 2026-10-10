@@ -106,6 +106,8 @@ export function shotMods(attacker, defender, dist, shot = null) {
   parts.push(...resourceMods(attacker).parts)
   // Mutations: Extra Eye / Cloudy Eye / Vine Fingers.
   if (attacker.mutAim) parts.push({ label: "Mutation", value: attacker.mutAim })
+  // Gear sprint: items that sharpen the aim (Lucky Charm, Bone Dagger...).
+  if (attacker.gearAim) parts.push({ label: "Gear", value: attacker.gearAim })
   const noFalloff = player && attacker.classPassive === "defensive-aim" && !attacker.moved
   if (shot?.ignoreCover) {
     ignoreCover = true

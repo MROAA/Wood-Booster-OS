@@ -46,6 +46,7 @@ import * as manaFx from "./tacticsMana"
 import * as ranged from "./tacticsRanged"
 // Mutations (Mewgenics-style): element-on-hit, leech, gills, echo.
 import * as mutFx from "./tacticsMutations"
+import { auraOn as gearAuraOn } from "./gear"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -1826,8 +1827,10 @@ function sidestepDestination(state, target) {
 // all - the exact pre-Facing-round behavior, so every pre-existing
 // hand-built synthetic-state check (none of which set `facing`) stays
 // byte-identical rather than picking up an unintended new bonus.
-function classifyFacingAttack(attacker, defender) {
+function classifyFacingAttack(attacker, defender, state = null) {
   if (!defender.facing || classFx.ignoresFlank(defender)) return "front"
+  // Gear board aura (Watch Lantern): allies next to the bearer can't be flanked.
+  if (state && gearAuraOn(state, defender, "noFlank") > 0) return "front"
   const attackDir = cardinalDir(attacker.pos.col - defender.pos.col, attacker.pos.row - defender.pos.row)
   if (attackDir === defender.facing) return "front"
   if (attackDir === OPPOSITE_DIR[defender.facing]) return "back"
@@ -1893,7 +1896,7 @@ function facingMultiplier(attacker, defender, facing) {
   return 1 + pp / 100
 }
 
-function modifiedAttackAmount(attacker, defender, baseAmount) {
+function modifiedAttackAmount(attacker, defender, baseAmount, state = null) {
   let amount = baseAmount
   if (attacker.woundedFury > 0 && attacker.hp < attacker.maxHp * 0.5) amount += 3
   if (attacker.weak > 0) amount = Math.floor(amount * 0.75)
@@ -1902,7 +1905,7 @@ function modifiedAttackAmount(attacker, defender, baseAmount) {
   // same point in the chain. Permanent here, same as this engine's Weak.
   if (defender.vulnerable > 0) amount = Math.floor(amount * 1.25)
   amount = elements.frozenBonus(defender, amount)
-  const facing = classifyFacingAttack(attacker, defender)
+  const facing = classifyFacingAttack(attacker, defender, state)
   if (facing !== "front") amount = Math.round(amount * facingMultiplier(attacker, defender, facing))
   if (attacker.execute > 0 && defender.hp <= defender.maxHp * 0.3) amount += attacker.execute
   if (attacker.shatter > 0 && defender.block > 0) amount += attacker.shatter
@@ -1934,6 +1937,9 @@ function applyDamageWithBlock(state, targetId, amount) {
   const immune = bossImmuneHit(state, targetId)
   if (immune) return immune
   const before = getUnit(state, targetId)
+  // Gear board aura (Warding Bell): allies next to the bearer take less per hit.
+  const bell = amount > 1 && before ? gearAuraOn(state, before, "guard") : 0
+  if (bell > 0) amount = Math.max(1, amount - bell)
   let res = applyDamageInner(state, targetId, hunkeredAmount(before, amount, state))
   // Mana: a tank turns what it blocked (Block, Bulwark, a Ward) into mana.
   if (state.manaRules && before) {
@@ -2333,7 +2339,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // mutation that must land before modifiedAttackAmount/Shatter's own
   // `defender.block > 0` gate reads the target - not just narration
   // math like every prior round's own later re-computation.
-  const facing = classifyFacingAttack(actor, target)
+  const facing = classifyFacingAttack(actor, target, state)
   let effectiveTarget = target
   let blockWeakenNote = ""
   if (facing === "side" && target.block > 0 && !classFx.keepsBlockOnSideHit(target)) {
@@ -2353,7 +2359,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     next = setUnit(next, targetId, { suppressed: (target.suppressed || 0) + SUPPRESSED_DURATION })
     suppressedNote = ` ${target.name}'s guard falters, reactions weakened!`
   }
-  const fullAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack + blightAttackBonus(next, actor)))
+  const fullAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack + blightAttackBonus(next, actor)), state)
   // XCOM part 2: the hit roll (a miss is a GRAZE - half damage, no riders).
   const roll = cover.rollHit(next, actor, effectiveTarget, facing)
   const graze = roll.graze
@@ -2562,8 +2568,8 @@ function castAbilityInner(state, actorId, targetId) {
     if (tauntersOnTargetSide.length && !(target.taunt > 0)) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     next = emit(next, { kind: "strike", actorId, targetId: target.id, ranged: actor.range > 1, ability: ability.name })
-    const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, actor.attack * ability.multiplier))
-    const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target))
+    const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, actor.attack * ability.multiplier), state)
+    const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target, state))
     next = roll.graze ? manaFx.onGraze(emit(roll.state, { kind: "graze", targetId: target.id }), target.id) : roll.state
     const amount = roll.graze ? cover.grazeAmount(full) : full
     const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, amount)
@@ -2677,9 +2683,9 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
   let next = emit(state, { kind: "strike", actorId, targetId, ranged: chebyshevDist(actor.pos, target.pos) > 1, ability: ability.name })
-  const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount))
+  const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount), state)
   // Ranged rework: a skill's shot rules (aim bonus / ignores cover) ride on `ability.shot`.
-  const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target), ability?.shot || null)
+  const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target, state), ability?.shot || null)
   const graze = roll.graze
   next = graze ? manaFx.onGraze(emit(roll.state, { kind: "graze", targetId }), targetId) : roll.state
   const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, targetId, graze ? cover.grazeAmount(full) : full)
@@ -3094,12 +3100,12 @@ function aiEstimateHit(attacker, target, state = null) {
 // XCOM part 2: full hit / graze / hit chance; `expected` weighs both.
 function aiHitOdds(attacker, target, state = null, shot = null) {
   if (target.ward > 0) return { full: 0, graze: 0, p: 1, expected: 0 }
-  const raw = hunkeredAmount(target, modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker))), state)
+  const raw = hunkeredAmount(target, modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker)), state), state)
   const soak = (target.block || 0) + (target.bulwark || 0)
   const full = Math.max(0, raw - soak)
   if (!cover.rollsOn(state) || target.structure) return { full, graze: full, p: 1, expected: full }
   const graze = Math.max(0, cover.grazeAmount(raw) - soak)
-  const p = cover.hitChance(state, attacker, target, classifyFacingAttack(attacker, target), attacker.pos, shot).chance / 100
+  const p = cover.hitChance(state, attacker, target, classifyFacingAttack(attacker, target, state), attacker.pos, shot).chance / 100
   return { full, graze, p, expected: p * full + (1 - p) * graze }
 }
 
@@ -3111,8 +3117,8 @@ export function attackPreview(state, actorId, targetId, { base = null, fromPos =
   const target = getUnit(state, targetId)
   if (!actor0 || !target) return null
   const actor = fromPos ? { ...actor0, pos: fromPos } : actor0
-  const facing = classifyFacingAttack(actor, target)
-  const amount = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, base ?? actor.attack + blightAttackBonus(state, actor)))
+  const facing = classifyFacingAttack(actor, target, state)
+  const amount = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, base ?? actor.attack + blightAttackBonus(state, actor)), state)
   // Ranged rework: an armed skill's shot rules (aim / ignores cover) count too.
   const info = cover.hitChance(state, actor, target, facing, actor.pos, ranged.shotForSkill(skill))
   const rolls = cover.rollsOn(state) && !target.structure
@@ -3487,7 +3493,7 @@ function applySlamRelease(state, enemyId, intent, skill) {
   for (const p of victims) {
     const live = getUnit(next, p.id)
     if (!live || live.hp <= 0) continue
-    const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, p.id, modifiedAttackAmount(actor, live, intent.amount))
+    const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, p.id, modifiedAttackAmount(actor, live, intent.amount, state))
     next = hit
     next = { ...next, log: [...next.log, `${intent.name} crushes ${live.name} for ${remaining}.${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, live.name)}`] }
     next = relicFx.fireOnHit(next, p.id, enemyId, remaining)
@@ -3750,7 +3756,7 @@ function decideEnemyIntent(state, enemyId) {
         const kill = killP >= 1
         // Rolls on: favour good odds, and flanking a unit that sits in cover.
         const oddsScore = cover.rollsOn(state) && !target.structure ? (odds.p - 0.85) * 40 + (cover.isFlanked(state, target.pos, pos) ? AI_FLANK_BONUS : 0) : 0
-        const facing = classifyFacingAttack(attacker, target)
+        const facing = classifyFacingAttack(attacker, target, state)
         const score =
           AI_ATTACK_BASE + tileScore + AI_KILL_BONUS * killP + 3 * dmg + oddsScore + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0)
         if (score > best.score) {
@@ -3886,7 +3892,7 @@ function applyEnemyAoe(state, actorId, amount) {
   for (const target of livingUnits(next, "player")) {
     const live = getUnit(next, target.id)
     if (!live || live.hp <= 0) continue
-    const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, modifiedAttackAmount(actor, live, amount))
+    const { next: hit, absorbed, armourUsed, remaining, fell, revived } = applyDamageWithBlock(next, target.id, modifiedAttackAmount(actor, live, amount, state))
     next = hit
     const absorbedNote = describeAbsorb(absorbed, armourUsed)
     const fellNote = fell ? " It falls." : ""

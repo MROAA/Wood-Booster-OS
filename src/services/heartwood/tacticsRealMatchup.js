@@ -30,6 +30,7 @@ import { arenaTerrainFor, applyBossFight } from "./tacticsBosses"
 import { applyFaction } from "./tacticsFactions"
 import { enableMana } from "./tacticsMana"
 import { classFieldsFor } from "./tacticsClasses"
+import { collarClassFor } from "./gear"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -260,14 +261,16 @@ export function buildRunTacticsBattle(runState, start) {
 }
 
 // Breeding (hearth.js breedHeroes): a hatchling can carry the OTHER
-// parent's class (bench entry `classId`). Swapped in before mana is
+// parent's class (bench entry `classId`). A Class Collar (gear.js) wins. Swapped in before mana is
 // enabled, so the hero also gets that class's resource.
 function withBredClasses(battle, runState) {
   const keys = (runState.deployed || []).filter((k) => k !== null && runState.bench.some((e) => e.key === k))
   const byId = {}
   keys.forEach((k, i) => {
     const e = runState.bench.find((b) => b.key === k)
-    if (e?.classId && UNITS[e.defId] && UNITS[e.defId].classId !== e.classId) byId[`player-${e.defId}-${i}`] = { ...UNITS[e.defId], classId: e.classId }
+    // Gear sprint: a worn Class Collar wins over the hero's natural class.
+    const classId = collarClassFor(runState, k) || e?.classId
+    if (classId && UNITS[e.defId] && UNITS[e.defId].classId !== classId) byId[`player-${e.defId}-${i}`] = { ...UNITS[e.defId], classId }
   })
   if (!Object.keys(byId).length || !battle.units) return battle
   return { ...battle, units: battle.units.map((u) => (byId[u.id] ? { ...u, ...classFieldsFor(byId[u.id], "player") } : u)) }

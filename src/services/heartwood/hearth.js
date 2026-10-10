@@ -21,7 +21,10 @@ import {
   HEARTH_VERSION, MAX_VETERANS, TRAVEL_HP, OLD_AGE, MAX_DECLINE, ELDER_ESSENCE, MAX_ELDER_BONUS,
   RECRUIT_COST, RECRUIT_OFFERS, MEMORIAL_MAX, HEARTH_ROOMS, CAPACITY_BY_LEVEL, TRAINING_XP_BY_LEVEL,
   WORKSHOP_ESSENCE_BY_LEVEL, roomById, furnitureById, NEST_PAIR_COST, NEST_KIN_RISK, HATCHLING_NAMES,
+  WORKSHOP_STASH_BY_LEVEL, WORKSHOP_PACK_BY_LEVEL,
 } from "../../data/heartwood/hearth"
+import { ITEMS } from "../../data/heartwood/items"
+import { RECIPES, RECIPE_CRAFT_ACORNS } from "../../data/heartwood/recipes"
 
 export const HEARTH_KEY = "hearthwood-hearth-v1"
 const WOUNDED_HP = 0.25
@@ -46,6 +49,11 @@ export function freshHearth() {
     births: 0,
     lineage: {},
     lastBirth: null,
+    // Gear sprint - the Workshop: spare item ids kept between runs, which
+    // of them (stash indexes) go into the next run, recipes ever made.
+    stash: [],
+    packed: [],
+    knownRecipes: [],
   }
 }
 
@@ -77,6 +85,9 @@ export function normalizeHearth(raw) {
     births: Number.isInteger(raw.births) && raw.births >= 0 ? raw.births : 0,
     lineage: raw.lineage && typeof raw.lineage === "object" && !Array.isArray(raw.lineage) ? raw.lineage : {},
     lastBirth: raw.lastBirth && typeof raw.lastBirth === "object" ? raw.lastBirth : null,
+    stash: arr(raw.stash).filter((id) => ITEMS[id]),
+    packed: arr(raw.packed).filter((i) => Number.isInteger(i) && i >= 0 && i < arr(raw.stash).length),
+    knownRecipes: arr(raw.knownRecipes).filter((id) => RECIPES[id]),
   }
 }
 
@@ -139,6 +150,59 @@ export const canRetire = (u) => (u?.age || 0) >= 3
 export const unitName = (u) => {
   const def = UNITS[u?.defId]?.name || u?.defId || "Someone"
   return u?.name ? `${u.name} (${def})` : def
+}
+
+// ---- the Workshop: gear stash + crafting (gear sprint) -----------------
+export function stashCapacity(h) {
+  return WORKSHOP_STASH_BY_LEVEL[roomLevel(h, "workshop")] ?? WORKSHOP_STASH_BY_LEVEL[0]
+}
+export function packCapacity(h) {
+  return WORKSHOP_PACK_BY_LEVEL[roomLevel(h, "workshop")] ?? WORKSHOP_PACK_BY_LEVEL[0]
+}
+// Pick / unpick a stashed item (by stash index) to take on the next run.
+export function togglePacked(h, index) {
+  if (!arr(h.stash)[index]) return h
+  const packed = arr(h.packed)
+  if (packed.includes(index)) return { ...h, packed: packed.filter((i) => i !== index) }
+  if (packed.length >= packCapacity(h)) return h
+  return { ...h, packed: [...packed, index] }
+}
+export function discardStashed(h, index) {
+  if (!arr(h.stash)[index]) return h
+  return {
+    ...h,
+    stash: h.stash.filter((_, i) => i !== index),
+    packed: arr(h.packed).filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)),
+  }
+}
+// Why a known recipe can't be crafted right now (plain English), or null.
+export function craftBlocker(h, recipeId, acorns) {
+  const r = RECIPES[recipeId]
+  if (!r) return "Unknown recipe."
+  if (!arr(h.knownRecipes).includes(recipeId)) return "Make it once on a run to learn it."
+  const stash = [...arr(h.stash)]
+  const ia = stash.indexOf(r.a)
+  if (ia === -1) return `Needs a ${ITEMS[r.a]?.name || r.a} in the stash.`
+  stash.splice(ia, 1)
+  if (!stash.includes(r.b)) return `Needs ${r.a === r.b ? "two" : "a"} ${ITEMS[r.b]?.name || r.b} in the stash.`
+  if (acorns < RECIPE_CRAFT_ACORNS) return `Not enough Acorns (${RECIPE_CRAFT_ACORNS} needed).`
+  return null
+}
+// Crafts a known recipe from two stashed ingredients (+ Acorns).
+export function craftRecipe(h, recipeId, acorns) {
+  if (craftBlocker(h, recipeId, acorns)) return null
+  const r = RECIPES[recipeId]
+  const stash = [...h.stash]
+  stash.splice(stash.indexOf(r.a), 1)
+  stash.splice(stash.indexOf(r.b), 1)
+  stash.push(r.result)
+  return { hearth: { ...h, stash, packed: [] }, cost: RECIPE_CRAFT_ACORNS }
+}
+// The run has started: packed items left the stash (they ride in the bag).
+export function takePackedGear(h) {
+  const packed = new Set(arr(h.packed))
+  if (!packed.size) return h
+  return { ...h, stash: arr(h.stash).filter((_, i) => !packed.has(i)), packed: [] }
 }
 
 // ---- spending (Acorns live in metaState; caller deducts `cost`) ------
@@ -228,7 +292,9 @@ export function hearthStartFor(h, vetIds = []) {
       ...(declineSteps(u.age) ? { agePenalty: declineSteps(u.age) } : {}),
     }
   })
-  return { veterans, essenceBonus: startEssenceBonus(h) }
+  // Workshop: packed spare gear rides into the run's bag.
+  const gear = arr(h.packed).map((i) => arr(h.stash)[i]).filter((id) => ITEMS[id])
+  return { veterans, essenceBonus: startEssenceBonus(h), ...(gear.length ? { gear } : {}) }
 }
 
 // ---- run end ---------------------------------------------------------
@@ -320,8 +386,25 @@ export function harvestRun(h, runState, won, runId) {
     } else report.noRoom.push(unitName(u))
   }
 
+  // Workshop: items sent home this run join the stash (while it has
+  // room), and every recipe made on the run is now known.
+  const stash = [...arr(h.stash)]
+  report.stashed = []
+  report.stashFull = []
+  for (const id of arr(runState.stashOut)) {
+    if (!ITEMS[id]) continue
+    if (stash.length < stashCapacity(h)) {
+      stash.push(id)
+      report.stashed.push(ITEMS[id].name)
+    } else report.stashFull.push(ITEMS[id].name)
+  }
+  const knownRecipes = [...new Set([...arr(h.knownRecipes), ...arr(runState.recipesFound).filter((id) => RECIPES[id])])]
+  report.learned = knownRecipes.filter((id) => !arr(h.knownRecipes).includes(id))
+
   const hearth = {
     ...h,
+    stash,
+    knownRecipes,
     roster,
     memorial: memorial.slice(0, MEMORIAL_MAX),
     nextHid,

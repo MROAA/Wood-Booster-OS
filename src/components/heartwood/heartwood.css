@@ -8676,3 +8676,80 @@ img.hw-intent-glyph {
   font-size: 13px;
   color: #b9e3a6;
 }
+
+/* ===== Gear sprint: gear rows, rarity frames, gear screen, shop bar,
+   recipe banner, Workshop. Appended at the end on purpose. ===== */
+.hw-gear-row-wrap { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.hw-gear-row { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 6px; background: color-mix(in srgb, var(--hw-panel) 70%, transparent); touch-action: none; }
+.hw-gear-row[data-pending] { box-shadow: 0 0 0 1px color-mix(in srgb, var(--hw-ember) 50%, transparent); }
+.hw-gear-slot { --hw-rarity: var(--hw-border); position: relative; width: 24px; height: 24px; border-radius: 4px; border: 1px dashed color-mix(in srgb, var(--hw-ember) 45%, var(--hw-border)); display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.15s ease; }
+.hw-gear-slot.is-filled { border: 1.5px solid var(--hw-rarity); background: color-mix(in srgb, var(--hw-rarity) 14%, var(--hw-card)); cursor: grab; }
+.hw-gear-slot:hover { transform: translateY(-1px); border-color: var(--hw-ember); }
+.hw-gear-slot[data-adj-active] { box-shadow: 0 0 6px 1px color-mix(in srgb, var(--hw-rune) 70%, transparent); }
+.hw-gear-slot[data-boosted]::after { content: "▲"; position: absolute; top: -7px; right: -4px; font-size: 8px; color: var(--hw-rune); }
+.hw-gear-slot[data-drag-from] { opacity: 0.5; cursor: grabbing; }
+.hw-gear-row[data-dragging] .hw-gear-slot:not([data-drag-from]) { border-style: solid; border-color: color-mix(in srgb, var(--hw-ember) 70%, transparent); }
+.hw-gear-slot .hw-intent-glyph { width: 16px; height: 16px; pointer-events: none; }
+.hw-gear-collar-dot { position: absolute; bottom: -3px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--hw-cosmic, #b07ae0); box-shadow: 0 0 4px var(--hw-cosmic, #b07ae0); }
+.hw-gear-link { font-size: 9px; line-height: 1; padding: 2px 3px; border-radius: 6px; color: var(--hw-bg); background: var(--hw-rune); font-weight: 700; white-space: nowrap; animation: hw-gear-link-glow 1.8s ease-in-out infinite; }
+.hw-gear-link.is-recipe { background: var(--hw-ember); }
+@keyframes hw-gear-link-glow { 0%, 100% { box-shadow: 0 0 2px var(--hw-rune); } 50% { box-shadow: 0 0 8px var(--hw-rune); } }
+.hw-gear-row--big { gap: 6px; padding: 8px; }
+.hw-gear-row--big .hw-gear-slot { width: 48px; height: 48px; border-radius: 8px; }
+.hw-gear-row--big .hw-gear-slot .hw-intent-glyph { width: 30px; height: 30px; }
+.hw-gear-row--big .hw-gear-link { font-size: 11px; padding: 3px 5px; }
+.hw-gear-open { font-size: 10px; padding: 2px 6px; }
+
+/* Rarity frames on item cards */
+.hw-item-card { --hw-rarity: var(--hw-border); border-color: var(--hw-rarity) !important; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-rarity) 35%, transparent); }
+.hw-item-card[data-rarity="epic"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hw-rarity) 45%, transparent), 0 0 10px color-mix(in srgb, var(--hw-rarity) 30%, transparent); }
+.hw-item-card[data-rarity="legendary"] { box-shadow: inset 0 0 0 1px var(--hw-rarity), 0 0 16px color-mix(in srgb, var(--hw-rarity) 45%, transparent); }
+.hw-item-rarity { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hw-rarity); margin-left: auto; }
+.hw-item-card .hw-card-head { display: flex; align-items: center; gap: 4px; }
+.hw-item-lock { background: none; border: none; cursor: pointer; font-size: 12px; padding: 0 2px; opacity: 0.7; }
+.hw-item-lock:hover, .hw-item-card[data-locked] .hw-item-lock { opacity: 1; }
+.hw-item-card[data-locked] { outline: 1px dashed var(--hw-ember); outline-offset: 2px; }
+.hw-item-kind { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--hw-muted); }
+.hw-item-line { font-size: 10px; line-height: 1.3; margin-top: 2px; }
+.hw-item-line--adj { color: var(--hw-rune); }
+.hw-item-line--aura { color: var(--hw-moss); }
+.hw-item-line--recipe { color: var(--hw-ember); }
+.hw-item-line--collar { color: var(--hw-cosmic, #b07ae0); }
+
+/* Shop gear bar: purse + item reroll */
+.hw-gear-shopbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--hw-muted); }
+.hw-gear-shopbar b { color: var(--hw-ember); }
+.hw-rail-chip-sell { background: none; border: 1px solid var(--hw-border); border-radius: 4px; color: var(--hw-ember); font-size: 10px; padding: 0 4px; cursor: pointer; margin-left: 2px; }
+.hw-rail-chip-sell:hover { border-color: var(--hw-ember); }
+.hw-card-collar-line { font-size: 10px; color: var(--hw-cosmic, #b07ae0); padding: 1px 6px; }
+
+/* Gear screen (modal) */
+.hw-gear-screen-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(8, 6, 4, 0.72); display: flex; align-items: center; justify-content: center; }
+.hw-gear-screen { position: relative; width: min(980px, 94vw); max-height: 90vh; overflow-y: auto; background: var(--hw-panel); border: 1px solid var(--hw-border); border-radius: var(--hw-radius-lg, 12px); padding: 18px 22px; box-shadow: var(--hw-shadow); }
+.hw-gear-close { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--hw-muted); font-size: 18px; cursor: pointer; }
+.hw-gear-title { margin: 2px 0 4px; font-family: var(--hw-font-display); color: var(--hw-text); }
+.hw-gear-class-line { font-size: 13px; color: var(--hw-text); margin-bottom: 4px; }
+.hw-gear-class-line b { color: var(--hw-cosmic, #b07ae0); }
+.hw-gear-res { color: var(--hw-muted); }
+.hw-gear-help { font-size: 12px; color: var(--hw-muted); margin: 4px 0 8px; }
+.hw-gear-slots-detail { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 10px 0; }
+.hw-gear-detail .hw-item-card { min-height: 0; }
+.hw-gear-detail-actions { display: flex; gap: 4px; justify-content: center; margin-top: 4px; }
+.hw-gear-empty { border: 1px dashed var(--hw-border); border-radius: 8px; padding: 18px 8px; text-align: center; font-size: 12px; color: var(--hw-muted); }
+.hw-gear-summary { font-size: 13px; line-height: 1.5; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--hw-rune) 8%, var(--hw-card)); margin-bottom: 10px; }
+.hw-gear-bag { display: flex; flex-wrap: wrap; gap: 6px; }
+.hw-gear-bag-item { --hw-rarity: var(--hw-border); display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--hw-rarity); }
+
+/* Recipe forged banner */
+.hw-gear-forged { position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 70; padding: 10px 18px; border-radius: 10px; background: color-mix(in srgb, var(--hw-ember) 22%, var(--hw-panel)); border: 1px solid var(--hw-ember); color: var(--hw-text); font-size: 14px; box-shadow: 0 0 24px color-mix(in srgb, var(--hw-ember) 45%, transparent); animation: hw-gear-forged-in 0.5s var(--hw-ease-out, ease-out) both; max-width: 80vw; pointer-events: none; }
+.hw-gear-forged-spark { display: inline-block; animation: hw-gear-spark 0.9s ease-in-out 3; color: var(--hw-ember); }
+.hw-gear-forged-sub { color: var(--hw-muted); font-size: 12px; }
+@keyframes hw-gear-forged-in { from { opacity: 0; transform: translate(-50%, -10px) scale(0.9); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+@keyframes hw-gear-spark { 0%, 100% { transform: rotate(0) scale(1); } 50% { transform: rotate(-15deg) scale(1.35); } }
+
+/* Hearth Workshop */
+.hw-workshop-stash, .hw-workshop-recipes { display: flex; flex-wrap: wrap; gap: 6px; }
+.hw-workshop-item { --hw-rarity: var(--hw-border); display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hw-rarity); }
+.hw-workshop-item.is-packed { background: color-mix(in srgb, var(--hw-moss) 18%, transparent); }
+.hw-workshop-recipe { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px dashed var(--hw-border); color: var(--hw-muted); display: flex; align-items: center; gap: 6px; }
+.hw-workshop-recipe.is-known { border-style: solid; border-color: var(--hw-ember); color: var(--hw-text); }

@@ -1,4 +1,6 @@
 import { HELP_SECTIONS, TACTICS_HELP } from "../../data/heartwood/help"
+import { RECIPES } from "../../data/heartwood/recipes"
+import { ITEMS } from "../../data/heartwood/items"
 
 // The "?" reference overlay - a plain-language glossary of every run
 // system (help.js). Same framed-panel shape as SettingsScreen /
@@ -53,6 +55,20 @@ export default function HelpOverlay({ onBack, onPlayTraining }) {
             </dl>
           </section>
         ))}
+        {/* Gear sprint: the recipe book (recipes.js). */}
+        <section className="hw-help-section" data-help="recipes">
+          <h2 className="hw-help-heading">Recipe book</h2>
+          <dl className="hw-help-list">
+            {Object.values(RECIPES).map((r) => (
+              <div className="hw-help-row" key={r.id} data-help-recipe={r.id}>
+                <dt className="hw-help-term">
+                  {ITEMS[r.a]?.name} + {ITEMS[r.b]?.name} → {ITEMS[r.result]?.name}
+                </dt>
+                <dd className="hw-help-blurb">{ITEMS[r.result]?.description}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       </div>
     </div>
   )
