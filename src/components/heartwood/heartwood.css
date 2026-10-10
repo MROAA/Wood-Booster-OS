@@ -8762,7 +8762,7 @@ img.hw-intent-glyph {
 @keyframes hw-promo-rays { to { transform: rotate(360deg); } }
 .hw-promo-eyebrow { position: relative; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--hw-rune); }
 .hw-promo-title { position: relative; margin: 6px 0 4px; font-size: 26px; color: var(--hw-ember); text-shadow: 0 0 18px color-mix(in srgb, var(--hw-ember) 45%, transparent); }
-.hw-promo-sub { position: relative; margin: 0 auto 18px; max-width: 560px; color: var(--hw-muted); }
+.hw-promo-sub { position: relative; margin: 0 auto 18px; max-width: 560px; color: var(--hw-text); opacity: 0.85; text-shadow: 0 1px 4px #000, 0 0 12px #000; }
 .hw-promo-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 300px)); justify-content: center; gap: 18px; }
 .hw-promo-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 16px 16px; border-radius: 14px; border: 1.5px solid color-mix(in srgb, var(--hw-ember) 60%, var(--hw-border)); background: linear-gradient(180deg, color-mix(in srgb, var(--hw-ember) 12%, var(--hw-card)), var(--hw-card) 45%); color: var(--hw-text); cursor: pointer; text-align: left; transition: transform var(--hw-dur-base, 144ms) ease, box-shadow var(--hw-dur-base, 144ms) ease, opacity 0.3s ease; }
 .hw-promo-card:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 10px 28px color-mix(in srgb, var(--hw-ember) 30%, transparent); }

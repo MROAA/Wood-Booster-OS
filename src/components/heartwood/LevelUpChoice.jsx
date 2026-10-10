@@ -69,7 +69,7 @@ export function PromotionCeremony({ subject, offers, onChoose }) {
               sub: p.tagline,
               skill: p.skill,
               lines: [
-                { kind: "stats", label: "Body:", text: `+${p.stats?.hp || 0} max HP, +${p.stats?.attack || 0} attack.` },
+                { kind: "stats", label: "Body:", text: `${[p.stats?.hp ? `+${p.stats.hp} max HP` : null, p.stats?.attack ? `+${p.stats.attack} attack` : null].filter(Boolean).join(", ") || "no change"}.` },
                 { kind: "passive", label: `${p.passive?.name}:`, text: p.passive?.text || "" },
                 { kind: "twist", label: `${res.icon} ${res.name}:`, text: p.twist?.text || "" },
               ],
