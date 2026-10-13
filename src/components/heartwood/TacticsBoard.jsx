@@ -58,6 +58,60 @@ import { BATTLE_ROLES, roleOf, healReach } from "../../services/heartwood/tactic
 import { canAfford, hasMana, manaBlockReason, manaSummary, potionOf, drinkPotion, POTION_AP, ultimateReady, surgeFor, skillCostText, resourceLabel, profileOf, canSacrifice, sacrifice, sacrificeCost, scaleAmount } from "../../services/heartwood/tacticsMana"
 import { ResourceGauge, ResourceInfo } from "./TacticsResourceUi"
 import { isEngaged } from "../../services/heartwood/tacticsRanged"
+import { describeDifficulty, lineOf, LINE_INFO } from "../../services/heartwood/tacticsDifficulty"
+import { behaviorInfo, behaviorsOn } from "../../services/heartwood/tacticsSmartAi"
+import { ultStatus, heroUltInfo, heroUltReady, heroUltTargets, castHeroUltimate, canLinkFrom, manaLinkTargets, manaLink, linkCost, LINK_GIVE, LINK_RANGE } from "../../services/heartwood/tacticsUltimates"
+
+// Difficulty sprint 2: the enemy's ULTIMATE bar (glows + ⚠ while channeling).
+function UltBar({ unit }) {
+  const st = ultStatus(unit)
+  if (!st) return null
+  return (
+    <div className="hwt-ult-track" data-armed={st.armed || undefined} data-full={st.pct >= 100 || undefined} title={st.text}>
+      <div className="hwt-ult-fill" style={{ width: `${st.pct}%` }} />
+      <span className="hwt-ult-icon">{st.armed ? "⚠" : st.icon}</span>
+    </div>
+  )
+}
+
+// Difficulty sprint 2: the fight's threat tier, what scaled, what the enemy AI does.
+function ThreatPanel({ battle }) {
+  const d = describeDifficulty(battle)
+  if (!d) return null
+  return (
+    <div className="hwt-threat" data-tier={d.tier} title={`Difficulty score ${d.score} (Act ${d.act}${d.kind !== "battle" ? `, ${d.kind}` : ""}). Higher threat: tougher, smarter and more enemies.`}>
+      <div className="hwt-threat-head">
+        <span className="hwt-threat-id">Threat {d.id}</span>
+        <span className="hwt-threat-name">{d.name}</span>
+        <span className="hwt-threat-pips" aria-label={`Threat ${d.tier} of 5`}>
+          {Array.from({ length: 5 }, (_, i) => (
+            <span key={i} className="hwt-threat-pip" data-on={i < d.tier || undefined} />
+          ))}
+        </span>
+      </div>
+      {d.scaled.length > 0 && <div className="hwt-threat-scaled">Enemies: {d.scaled.join(" · ")}</div>}
+      {d.lines.length > 0 && (
+        <div className="hwt-threat-lines">
+          Formation:{" "}
+          {d.lines.map((l) => (
+            <span key={l.id} className="hwt-threat-line" data-line={l.id}>
+              {l.icon} {l.label} ×{l.n}
+            </span>
+          ))}
+        </div>
+      )}
+      {d.traits.length > 0 && (
+        <div className="hwt-threat-traits">
+          {d.traits.map((t) => (
+            <span key={t.id} className="hwt-threat-trait" data-trait={t.id} title={t.label}>
+              {t.icon} {t.label}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // Melee rework: small status badges (Provoked, Vanished, Bastion, Shield Wall, Engaged, Berserk).
 function MeleeBadges({ unit, battle }) {
@@ -386,9 +440,9 @@ export default function TacticsBoard({
   // "ally@<skillId>"/"enemy@<skillId>" for an armed class skill.
   const armedSkillId = abilityMode && abilityMode.includes("@") ? abilityMode.slice(abilityMode.indexOf("@") + 1) : null
   const armedSide =
-    abilityMode === "heal" || abilityMode?.startsWith("ally@")
+    abilityMode === "heal" || abilityMode === "link" || abilityMode?.startsWith("ally@")
       ? "ally"
-      : abilityMode === "burst" || abilityMode?.startsWith("enemy@")
+      : abilityMode === "burst" || abilityMode === "ult" || abilityMode?.startsWith("enemy@")
         ? "enemy"
         : abilityMode?.startsWith("tile@")
           ? "tile"
@@ -538,7 +592,9 @@ export default function TacticsBoard({
   const targets = useMemo(
     () =>
       selected && selected.ap > 0 && battle.phase === "player" && armedSide !== "ally" && armedSide !== "tile"
-        ? armedSide === "enemy"
+        ? abilityMode === "ult"
+          ? heroUltTargets(battle, selected.id)
+          : armedSide === "enemy"
           ? abilityTargets(battle, selected.id, armedSkillId || undefined)
           : attackableTargets(battle, selected.id)
         : [],
@@ -547,7 +603,7 @@ export default function TacticsBoard({
   // Ability-only highlight: the allies an armed ally-targeting ability
   // (heal / shield-ally) can pick - "heal" mode, "burst" mode = enemies.
   const healable = useMemo(
-    () => (selected && armedSide === "ally" && battle.phase === "player" ? abilityTargets(battle, selected.id, armedSkillId || undefined) : []),
+    () => (selected && armedSide === "ally" && battle.phase === "player" ? (abilityMode === "link" ? manaLinkTargets(battle, selected.id) : abilityTargets(battle, selected.id, armedSkillId || undefined)) : []),
     [battle, selected, armedSide, armedSkillId],
   )
   // Class skills that target a board tile (traps, walls, turrets...).
@@ -575,6 +631,12 @@ export default function TacticsBoard({
       if (intent.kind === "attack" || intent.kind === "move-attack") ids.add(intent.targetId)
       if (intent.kind === "skill" && ["hex", "pounce", "suppress", "spot", "volley", "shove"].includes(intent.skillKind)) ids.add(intent.targetId)
       if (intent.kind === "skill" && intent.tiles) {
+        for (const p of battle.units) {
+          if (p.side === "player" && p.hp > 0 && intent.tiles.some((t) => t.row === p.pos.row && t.col === p.pos.col)) ids.add(p.id)
+        }
+      }
+      // Difficulty sprint 2: heroes standing in a telegraphed ULTIMATE.
+      if (intent.kind === "ultimate" && intent.tiles) {
         for (const p of battle.units) {
           if (p.side === "player" && p.hp > 0 && intent.tiles.some((t) => t.row === p.pos.row && t.col === p.pos.col)) ids.add(p.id)
         }
@@ -612,6 +674,19 @@ export default function TacticsBoard({
     return zone
   }, [intents])
   const chargeFiringIds = useMemo(() => new Set(chargeThreat.enemyIds), [chargeThreat])
+  // Difficulty sprint 2: ULTIMATE tiles - "release" (fires when you end the
+  // turn) beats "windup" (aimed now, fires the turn after).
+  const ultZone = useMemo(() => {
+    const zone = new Map()
+    for (const { intent } of intents) {
+      if (intent.kind !== "ultimate" || !intent.tiles) continue
+      for (const t of intent.tiles) {
+        const key = `${t.row}-${t.col}`
+        if (zone.get(key) !== "release") zone.set(key, intent.phase)
+      }
+    }
+    return zone
+  }, [intents])
   // Zone of Control round: a static board property (which tiles are
   // dangerous to retreat FROM), not relative to whichever unit is
   // currently selected - visible throughout the player's own turn,
@@ -707,7 +782,7 @@ export default function TacticsBoard({
 
     if (selected && armedSide === "ally") {
       const healTarget = healableHere(row, col)
-      if (healTarget) onBattleChange(castAbility(battle, selected.id, healTarget.id, armedSkillId || undefined))
+      if (healTarget) onBattleChange(abilityMode === "link" ? manaLink(battle, selected.id, healTarget.id) : castAbility(battle, selected.id, healTarget.id, armedSkillId || undefined))
       onAbilityModeChange(null)
       return
     }
@@ -720,7 +795,7 @@ export default function TacticsBoard({
 
     if (selected && armedSide === "enemy") {
       const target = targetHere(row, col)
-      if (target) onBattleChange(castAbility(battle, selected.id, target.id, armedSkillId || undefined))
+      if (target) onBattleChange(abilityMode === "ult" ? castHeroUltimate(battle, selected.id, target.id) : castAbility(battle, selected.id, target.id, armedSkillId || undefined))
       onAbilityModeChange(null)
       return
     }
@@ -813,6 +888,21 @@ export default function TacticsBoard({
     onBattleChange(drinkPotion(battle, selected.id))
   }
 
+  // Mana sprint 2: a hero's ULTIMATE (full bar) and Mana Link (pass resource).
+  function handleHeroUlt() {
+    if (!selected || !heroUltReady(battle, selected)) return
+    if (heroUltInfo(selected).target === "self") {
+      onAbilityModeChange(null)
+      onBattleChange(castHeroUltimate(battle, selected.id))
+      return
+    }
+    onAbilityModeChange(abilityMode === "ult" ? null : "ult")
+  }
+  function handleLink() {
+    if (!selected || !manaLinkTargets(battle, selected.id).length) return
+    onAbilityModeChange(abilityMode === "link" ? null : "link")
+  }
+
   function handleSquadSelect(u) {
     if (u.hp <= 0) return
     if (deploying || (battle.phase === "player" && u.ap > 0)) {
@@ -882,6 +972,7 @@ export default function TacticsBoard({
           data-trap={battle.classTraps?.[`${row}-${col}`]?.kind || undefined}
           data-threatened={!!threatened}
           data-skill-zone={skillZone.get(`${row}-${col}`) || undefined}
+          data-ult-zone={ultZone.get(`${row}-${col}`) || undefined}
           data-terrain={terrain}
           data-art={terrainArtStyle(terrain) ? terrain : undefined}
           style={terrainArtStyle(terrain)}
@@ -951,6 +1042,11 @@ export default function TacticsBoard({
           {(battle.classCharges || []).some((c) => c.row === row && c.col === col) && (
             <span className="hwt-charge-icon" title="Explosive Charge - blows when you end the turn">
               ✹
+            </span>
+          )}
+          {ultZone.has(`${row}-${col}`) && (
+            <span className="hwt-ult-warn-icon" data-phase={ultZone.get(`${row}-${col}`)} title={ultZone.get(`${row}-${col}`) === "release" ? "An enemy ULTIMATE hits this tile when you end the turn - get out, or break it!" : "An enemy is aiming its ULTIMATE here - it fires the turn after next"}>
+              ⚠
             </span>
           )}
           {bossWarn.has(`${row}-${col}`) && <span className="hwt-boss-warn-icon">{BOSS_WARN_ICON[bossWarn.get(`${row}-${col}`)] || "!"}</span>}
@@ -1050,9 +1146,14 @@ export default function TacticsBoard({
                   {unitCover.get(unit.id).level > 0 ? <ShieldIcon full={unitCover.get(unit.id).level >= 2} /> : "⚠"}
                 </span>
               )}
-              <span className="hwt-role-icon" data-role={roleOf(unit)} title={`${BATTLE_ROLES[roleOf(unit)].label}: ${BATTLE_ROLES[roleOf(unit)].what}`}>
+              <span className="hwt-role-icon" data-role={roleOf(unit)} title={`${BATTLE_ROLES[roleOf(unit)].label}: ${BATTLE_ROLES[roleOf(unit)].what}${unit.side === "enemy" && battle.difficulty ? ` · ${LINE_INFO[lineOf(unit)].label}${unit.escort ? " (joined: higher threat)" : ""}` : ""}`}>
                 {BATTLE_ROLES[roleOf(unit)].icon}
               </span>
+              {unit.side === "enemy" && behaviorsOn(battle) && behaviorInfo(unit, battle) && (
+                <span className="hwt-behavior-badge" data-behavior={behaviorInfo(unit, battle).id} title={`${behaviorInfo(unit, battle).name}: ${behaviorInfo(unit, battle).text}`}>
+                  {behaviorInfo(unit, battle).icon}
+                </span>
+              )}
               {(unit.overwatch > 0 || unit.hunkered > 0) && (
                 <span className="hwt-stance">
                   {unit.overwatch > 0 && (
@@ -1304,8 +1405,25 @@ export default function TacticsBoard({
                   </span>
                 )}
                 {intent && intent.kind === "overwatch" && (
-                  <span className="hwt-intent-badge" data-intent="overwatch" title="Will go on Overwatch - it shoots the first of your heroes that ends a move in its reach">
-                    👁
+                  <span className="hwt-intent-badge" data-intent="overwatch" data-ambush={intent.ambush || undefined} title={intent.ambush ? "Will lie in AMBUSH - it strikes the first of your heroes that ends a move next to it" : "Will go on Overwatch - it shoots the first of your heroes that ends a move in its reach"}>
+                    👁{intent.ambush && <span className="hwt-ambush-mark">!</span>}
+                  </span>
+                )}
+                {intent && intent.kind === "ultimate" && (
+                  <span
+                    className="hwt-intent-badge"
+                    data-intent="ultimate"
+                    data-ult-phase={intent.phase}
+                    title={
+                      intent.phase === "release"
+                        ? `${intent.name}: FIRES when you end the turn${intent.amount ? ` - ${intent.amount} damage on the marked tiles` : ""}! Break it: burn its mana, stun it, or hit it for 20%+ of its HP.`
+                        : intent.phase === "windup"
+                          ? `${intent.name}: will start channeling (the marked tiles), then fire on its NEXT turn`
+                          : `${intent.name}: broken - it fizzles and loses its turn`
+                    }
+                  >
+                    {intent.phase === "fizzle" ? "✗" : "⚠"}
+                    <span className="hwt-ult-intent-icon">{intent.icon}</span>
                   </span>
                 )}
                 {intent && intent.kind === "aoe" && (
@@ -1336,6 +1454,7 @@ export default function TacticsBoard({
                 <div className="hwt-hp-fill" style={{ width: `${Math.max(0, Math.round((unit.hp / unit.maxHp) * 100))}%` }} />
               </div>
               <ManaBar unit={unit} battle={battle} />
+              {unit.side === "enemy" && <UltBar unit={unit} />}
               <MeleeBadges unit={unit} battle={battle} />
               <span
                 className="hwt-atk-gem"
@@ -1386,6 +1505,7 @@ export default function TacticsBoard({
               {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
             </div>
           </div>
+          <ThreatPanel battle={battle} />
           {factionView && (
             <div className="hwt-faction-banner" data-faction={factionView.id}>
               <div className="hwt-faction-title">
@@ -1538,6 +1658,37 @@ export default function TacticsBoard({
                   <small className="hwt-universal-cost">-{sacrificeCost(selected)} HP · +{profileOf(selected).sacrificeGain} Blood</small>
                 </button>
               )}
+              {heroUltInfo(selected) && (
+                <button
+                  type="button"
+                  className="hwt-universal-btn hwt-hero-ult-btn"
+                  data-action="hero-ult"
+                  data-ready={heroUltReady(battle, selected) || undefined}
+                  data-active={abilityMode === "ult" || undefined}
+                  disabled={!heroUltReady(battle, selected) || (heroUltInfo(selected).target === "enemy" && !heroUltTargets(battle, selected.id).length)}
+                  onClick={handleHeroUlt}
+                  title={`ULTIMATE - ${heroUltInfo(selected).name} (1 AP + the WHOLE ${resourceLabel(selected)} bar): ${heroUltInfo(selected).text}${selected.mana < selected.manaMax ? ` Needs a full bar (${selected.mana}/${selected.manaMax}).` : ""}`}
+                >
+                  <span className="hwt-universal-icon">{heroUltInfo(selected).icon}</span> {heroUltInfo(selected).name}
+                  <small className="hwt-universal-cost">{selected.mana >= selected.manaMax ? "ULTIMATE ready" : `ultimate ${selected.mana}/${selected.manaMax}`}</small>
+                </button>
+              )}
+              {canLinkFrom(selected) && (
+                <button
+                  type="button"
+                  className="hwt-universal-btn"
+                  data-action="mana-link"
+                  data-active={abilityMode === "link" || undefined}
+                  disabled={!manaLinkTargets(battle, selected.id).length}
+                  onClick={handleLink}
+                  title={`Mana Link (free, once a turn): pay ${linkCost(selected)} ${resourceLabel(selected)} and give an ally within ${LINK_RANGE} tiles +${LINK_GIVE + (battle.manaRelic?.linkBonus || 0)} of ITS resource - fill a friend's bar for a big skill or its ultimate.${selected.linkUsed ? " Already used this turn." : ""}`}
+                >
+                  <span className="hwt-universal-icon">⇄</span> Mana Link
+                  <small className="hwt-universal-cost">-{linkCost(selected)} {resourceLabel(selected)}</small>
+                </button>
+              )}
+              {abilityMode === "ult" && <p className="hwt-skill-hint">Choose an enemy for {heroUltInfo(selected)?.name}.</p>}
+              {abilityMode === "link" && <p className="hwt-skill-hint">Choose an ally to receive the Mana Link.</p>}
             </div>
           )}
           {deploying && (

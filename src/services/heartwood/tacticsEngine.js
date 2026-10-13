@@ -49,6 +49,10 @@ import * as mutFx from "./tacticsMutations"
 // Chaos sprint: knockback into hazards / units / objects + chain reactions.
 import * as chaos from "./tacticsChaos"
 import { auraOn as gearAuraOn } from "./gear"
+// Difficulty sprint 2: smarter enemies + behaviour profiles, enemy mana ultimates.
+import * as smart from "./tacticsSmartAi"
+import * as ultFx from "./tacticsUltimates"
+import { difficultyQa } from "./tacticsDifficulty"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -3034,7 +3038,8 @@ function enemyPhaseStart(state) {
   // bug the Rot round's own poison-timing fix already caught once.
   // Mana: ranged heroes that held still focus; enemies regen (shared
   // with previewEnemyIntents, so the telegraph stays exact).
-  const regenTicked = applyRegenTick(manaFx.enemyPhaseMana(ranged.rangedEnemyPhaseStart(resetForEnemyPhase)))
+  // Difficulty sprint 2: enemy ULTIMATE bars fill here too (exact preview).
+  const regenTicked = ultFx.enemyUltTick(applyRegenTick(manaFx.enemyPhaseMana(ranged.rangedEnemyPhaseStart(resetForEnemyPhase))))
   // A unit's own turnStart trigger (Deepwarden's post-phase "the ground
   // answers" Block, etc.) is applied AFTER the flat fortressBlock reset
   // above, never before - that reset is a per-unit overwrite, not an
@@ -3222,6 +3227,11 @@ const AI_ENGAGE_BONUS = 4
 
 // Positional part of an option's score; null = never go there.
 function aiTileScore(state, enemy, pos, outcome) {
+  const base = aiTileScoreBase(state, enemy, pos, outcome)
+  return base === null ? null : base + smart.tileBonus(state, enemy, pos)
+}
+
+function aiTileScoreBase(state, enemy, pos, outcome) {
   if (outcome.reactionDmg >= enemy.hp) return null
   let score = -outcome.hazard - outcome.reactionDmg * 3
   if (!samePos(pos, enemy.pos)) score -= 1
@@ -3735,6 +3745,9 @@ function decideEnemyIntent(state, enemyId) {
     const skill = enemySkillsFor(enemy).find((s) => s.id === enemy.windup.skillId)
     if (skill) return { ...skillIntentBase(skill), phase: "release", center: enemy.windup.center, tiles: enemy.windup.tiles, amount: enemy.windup.amount }
   }
+  // Difficulty sprint 2: a mana ULTIMATE - release / fizzle / wind up (then act).
+  const ult = ultFx.ultimateIntent(state, enemy, decideEnemyIntent)
+  if (ult) return ult
   const enrage = readyEnrage(enemy)
   if (enrage) {
     const then = decideEnemyIntent(applyEnrage(state, enemyId, enrage), enemyId)
@@ -3756,7 +3769,7 @@ function decideEnemyIntent(state, enemyId) {
   // Who to walk toward when no hit is possible this turn.
   const focus = focusPool.reduce(
     (best, t) => {
-      const score = aiTargetValue(t, enemy) - 6 * chebyshevDist(enemy.pos, t.pos)
+      const score = aiTargetValue(t, enemy) - 6 * chebyshevDist(enemy.pos, t.pos) + smart.focusBonus(state, enemy, t)
       return score > best.score ? { t, score } : best
     },
     { t: null, score: -Infinity },
@@ -3789,7 +3802,8 @@ function decideEnemyIntent(state, enemyId) {
         const oddsScore = cover.rollsOn(state) && !target.structure ? (odds.p - 0.85) * 40 + (cover.isFlanked(state, target.pos, pos) ? AI_FLANK_BONUS : 0) : 0
         const facing = classifyFacingAttack(attacker, target, state)
         const score =
-          AI_ATTACK_BASE + tileScore + AI_KILL_BONUS * killP + 3 * dmg + oddsScore + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0)
+          AI_ATTACK_BASE + tileScore + AI_KILL_BONUS * killP + 3 * dmg + oddsScore + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0) +
+          smart.attackBonus(state, enemy, target, { killP, pos, facing })
         if (score > best.score) {
           best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: moveTo, targetId: target.id } }
         }
@@ -3812,7 +3826,7 @@ function decideEnemyIntent(state, enemyId) {
     const gap = Math.max(0, Math.max(dist, walk) - enemy.range) * 10 + (enemy.range > 1 ? Math.max(0, enemy.range - dist) * 2 : 0)
     const nearest = Math.min(...players.map((p) => chebyshevDist(pos, p.pos)))
     // Healers follow their allies (role tile score) rather than charge.
-    const score = tileScore - gap * (healerRole ? 0.3 : 1) - nearest * 0.1
+    const score = tileScore - gap * (healerRole ? 0.3 : 1) * smart.approachWeight(state, enemy) - nearest * 0.1
     if (score > best.score) best = { score, intent: stay ? { kind: "hold" } : { kind: "move", to: moveTo } }
   }
   // Barricades: only worth a swing when one actually walls the enemy off.
@@ -3830,6 +3844,9 @@ function decideEnemyIntent(state, enemyId) {
     if (closing) return { kind: "overwatch" }
   }
 
+  // Difficulty tier 4: a melee enemy with no strike lies in ambush instead
+  // of walking into the squad's reach.
+  if ((best.intent.kind === "move" || best.intent.kind === "hold") && smart.shouldAmbush(state, enemy, best.intent.to)) return { kind: "overwatch", ambush: true }
   // Wanderers: strike, then Fade (applyEnemyIntent picks the tile).
   const intent = best.intent
   const strikes = intent.kind === "attack" || intent.kind === "move-attack" || intent.skillKind === "pounce"
@@ -3888,7 +3905,12 @@ function applyEnemyIntent(state, enemyId, intent) {
     return intent.fade ? applyFade(acted, enemyId) : acted
   }
   if (intent.kind === "aoe") return applyEnemyAoe(state, enemyId, intent.amount)
-  if (intent.kind === "overwatch") return overwatchAction(state, enemyId)
+  if (intent.kind === "overwatch") {
+    const watched = overwatchAction(state, enemyId)
+    if (!intent.ambush || watched === state) return watched
+    return emit(setUnit(watched, enemyId, { ambushTurn: state.turn }), { kind: "reaction", unitId: enemyId, label: "Ambush!" })
+  }
+  if (intent.kind === "ultimate") return ultFx.applyUltimateIntent(state, enemyId, intent, applyEnemyIntent)
   if (intent.kind === "move") return moveUnit(state, enemyId, intent.to)
   if (intent.kind === "wall") {
     const moved = intent.to ? moveUnit(state, enemyId, intent.to) : state
@@ -3968,8 +3990,8 @@ export function previewEnemyIntents(state) {
     const frozen = !(live.stun > 0) && live.frozen > 0
     const stunned = relicFx.spendStun(scratch, enemy.id) || elements.spendFrozen(scratch, enemy.id)
     if (stunned) {
-      intents.push({ enemyId: enemy.id, intent: { kind: "stunned", frozen } })
-      scratch = stunned
+      intents.push({ enemyId: enemy.id, intent: { kind: "stunned", frozen, breaksUlt: !!live.ultArmed } })
+      scratch = ultFx.breakUltimate(stunned, enemy.id, "stun")
       continue
     }
     const intent = decideEnemyIntent(scratch, enemy.id)
@@ -4049,7 +4071,8 @@ export function runEnemyTurn(state) {
   for (const enemy of next.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
     if (next.phase !== "enemy") break
     const stunned = relicFx.spendStun(next, enemy.id) || elements.spendFrozen(next, enemy.id)
-    next = stunned || decideAndActEnemy(next, enemy.id)
+    // Difficulty sprint 2: a stun / freeze breaks a channeled ultimate.
+    next = stunned ? ultFx.breakUltimate(stunned, enemy.id, "stun") : decideAndActEnemy(next, enemy.id)
   }
   if (next.phase !== "enemy") return next
   next = applyLavaBurn(next, "enemy")
@@ -4115,7 +4138,8 @@ export function withLowEnemyHp(state) {
   // Terrain sprint: map templates (rivers, walls, lava) can wall a naive
   // QA bot off from the enemy - the hook flattens the board too.
   // Boss fights: arena hazards + weak-point shield off too - QA-only.
-  return bossQa({ ...state, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [] } : u)) })
+  // Difficulty sprint 2: ultimates + the smarter AI / behaviour profiles off too.
+  return difficultyQa(bossQa({ ...state, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) }))
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).

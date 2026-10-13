@@ -952,6 +952,35 @@ export const RELICS = {
     effects: [],
     mana: { soulLantern: 1 },
   },
+  // Difficulty + mana sprint 2: relics for Mana Wells, Mana Link and the
+  // new ultimates (both the enemy ones and your heroes').
+  "wellspring-compass": {
+    id: "wellspring-compass",
+    image: essenceWellImg,
+    name: "Wellspring Compass",
+    icon: "leaf",
+    description: "Mana Wells pour more into your heroes: +8 extra whenever a hero starts its turn on one.",
+    effects: [],
+    mana: { wellBonus: 8 },
+  },
+  "nullstone-shard": {
+    id: "nullstone-shard",
+    image: fangsMarkImg,
+    name: "Nullstone Shard",
+    icon: "rune",
+    description: "Every hit your heroes land drains 15 from the target's ULTIMATE bar - and breaks an ultimate it is channeling.",
+    effects: [],
+    mana: { ultBurn: 10 },
+  },
+  "echo-prism": {
+    id: "echo-prism",
+    image: aegisWardImg,
+    name: "Echo Prism",
+    icon: "cosmic",
+    description: "After a hero fires its ULTIMATE, 30% of its bar flows back. Mana Link also gives +10 more.",
+    effects: [],
+    mana: { ultRefund: 30, linkBonus: 10 },
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

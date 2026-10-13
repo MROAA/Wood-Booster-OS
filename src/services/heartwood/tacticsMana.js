@@ -41,6 +41,7 @@ import { tileCoverSides } from "./tacticsCover"
 import { isMageClass } from "./tacticsRanged"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
 import { auraOn } from "./gear"
+import { burnUltimate, maybeStagger, WELL_GAIN } from "./tacticsUltimates"
 
 // --- Numbers ------------------------------------------------------------------
 
@@ -321,7 +322,7 @@ export function surgeFor(u) {
 
 // Relic resource effects (relics.js `mana` field), summed for the squad.
 export function relicManaFor(relicIds = []) {
-  const out = { regen: 0, onHit: 0, startOvercharge: 0, pool: 0, bloodChalice: 0, soulLantern: 0 }
+  const out = { regen: 0, onHit: 0, startOvercharge: 0, pool: 0, bloodChalice: 0, soulLantern: 0, wellBonus: 0, ultBurn: 0, ultRefund: 0, linkBonus: 0 }
   for (const id of relicIds) {
     const m = RELICS[id]?.mana
     if (!m) continue
@@ -493,7 +494,10 @@ function loseResource(state, unitId, amount, label = null) {
 // Burns resource (overcharge first). Returns { next, burned }. Small
 // pools are hit proportionally; non-drainable profiles (pips, tokens,
 // Corruption) are immune.
-export function burnMana(state, unitId, amount, label = "burn") {
+export function burnMana(state0, unitId, amount, label = "burn") {
+  // Difficulty sprint 2: burning an enemy also eats its ULTIMATE bar (and
+  // breaks one it is channeling) - even a Rage enemy with no drainable mana.
+  const state = manaOn(state0) ? burnUltimate(state0, unitId, amount) : state0
   const u = getUnit(state, unitId)
   if (!manaOn(state) || !hasMana(u) || u.hp <= 0 || !(amount > 0) || !profileOf(u).drainable) return { next: state, burned: 0 }
   const want = scaleAmount(u, amount)
@@ -788,6 +792,7 @@ export function sideTurnRegen(state, side) {
     const g = prof.gain || {}
     const patch = { resActive: false, hurtSince: false }
     if (u0.sacrificeUsed) patch.sacrificeUsed = false
+    if (u0.linkUsed) patch.linkUsed = false
     if (u0.berserk > 0) {
       patch.berserk = u0.berserk - 1
       if (patch.berserk === 0) next = emit(next, { kind: "reaction", unitId: u0.id, label: "Berserk fades" })
@@ -814,6 +819,8 @@ export function sideTurnRegen(state, side) {
     }
     const incense = auraOn(next, getUnit(next, u.id), "res")
     if (incense > 0) next = gainExternal(next, u.id, incense, "incense")
+    // Mana Well: starting the turn on one draws extra (Wellspring Compass: more).
+    if (terrainAt(next, u.pos) === "manawell") next = gainExternal(next, u.id, WELL_GAIN + (u.side === "player" ? next.manaRelic?.wellBonus || 0 : 0), "well")
     // Spirit: a summon that appeared since may have shrunk the room.
     const live = getUnit(next, u.id)
     const cap = capFor(next, live)
@@ -891,6 +898,8 @@ export function onDealDamage(state, actorId, targetId, remaining) {
   }
   next = gainMana(next, actorId, amount, killed ? "kill" : "hit")
   if (actor.manaOnHit) next = gainExternal(next, actorId, actor.manaOnHit, "hit")
+  // Nullstone Shard relic: every hero hit eats the target's ultimate bar.
+  if (actor.side === "player" && !killed && target.ult && (state.manaRelic?.ultBurn || 0) > 0) next = burnUltimate(next, targetId, state.manaRelic.ultBurn)
   // Reagents: a hit gathers a token by the target's state.
   if (prof.special === "tokens" && remaining > 0) next = gainToken(next, actorId, target.burn > 0 ? "fire" : target.chill > 0 || target.frozen > 0 ? "frost" : "poison", 1)
   // Allies who feed on kills (Inspiration).
@@ -931,6 +940,8 @@ export function onDamaged(state, targetId, lost) {
     }
   }
   if (getUnit(next, targetId)?.hp <= 0) next = onDeath(next, targetId)
+  // Difficulty sprint 2: one big hit staggers a channeling ultimate.
+  else if (lost > 0) next = maybeStagger(next, targetId, lost)
   return next
 }
 
