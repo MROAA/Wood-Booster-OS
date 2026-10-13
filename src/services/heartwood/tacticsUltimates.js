@@ -296,9 +296,10 @@ export function castHeroUltimate(state, unitId, targetId = null) {
   if (!u || !heroUltReady(state, u)) return state
   const info = heroUltInfo(u)
   if (info.target === "enemy" && !heroUltTargets(state, unitId).some((e) => e.id === targetId)) return state
-  const spent = u.mana
-  let next = setUnit(state, unitId, { mana: 0, ap: u.ap - 1 })
-  next = emit(next, { kind: "mana", unitId, amount: -spent, label: "ultimate", text: `ULTIMATE -${spent} ${resourceLabel(u)}` })
+  // The effect resolves with the bar still full (its breakpoint bonuses
+  // count), then the WHOLE bar is spent - gains from the ultimate's own
+  // hits are spent with it.
+  let next = setUnit(state, unitId, { ap: u.ap - 1 })
   const tiles = []
   if (info.id === "unbreakable") {
     next = setUnit(next, unitId, { block: (u.block || 0) + 12 })
@@ -336,6 +337,12 @@ export function castHeroUltimate(state, unitId, targetId = null) {
       if (getUnit(next, e)?.hp > 0) next = setUnit(next, e, { slow: Math.max(getUnit(next, e).slow || 0, 2) })
       next = checkTacticsBattleEnd(next)
     }
+  }
+  const live = getUnit(next, unitId)
+  if (live) {
+    const spent = live.mana + (live.overcharge || 0)
+    next = setUnit(next, unitId, { mana: 0, overcharge: 0 })
+    next = emit(next, { kind: "mana", unitId, amount: -spent, label: "ultimate", text: `ULTIMATE -${spent} ${resourceLabel(u)}` })
   }
   next = emit(addLog(next, `${u.name} unleashes ${info.name}!`), { kind: "combo", unitId, label: `${info.icon} ${info.name.toUpperCase()}!`, big: true, combo: "hero-ult", tiles })
   // Echo Prism relic: part of the bar comes back.
