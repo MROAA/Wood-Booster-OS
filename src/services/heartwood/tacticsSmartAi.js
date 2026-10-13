@@ -123,7 +123,7 @@ export function focusBonus(state, enemy, target) {
 }
 
 // An attack on `target` from `pos`.
-export function attackBonus(state, enemy, target, { killP = 0, pos = enemy.pos, facing = "front" } = {}) {
+export function attackBonus(state, enemy, target, { killP = 0, facing = "front" } = {}) {
   if (!state?.difficulty || state.difficulty.qa || target.structure) return 0
   let b = 0
   const hurt = 1 - target.hp / target.maxHp
@@ -133,7 +133,7 @@ export function attackBonus(state, enemy, target, { killP = 0, pos = enemy.pos, 
     if (facing === "side") b += 4
     if (facing === "back") b += 8
   }
-  if (isRetreating(state, enemy) && killP < 0.5) b -= 150
+  if (isRetreating(state, enemy) && killP < 0.5) b -= 300
   switch (activeBehavior(state, enemy)) {
     case "berserker": {
       const nearest = Math.min(...heroes(state).map((h) => cheb(enemy.pos, h.pos)))

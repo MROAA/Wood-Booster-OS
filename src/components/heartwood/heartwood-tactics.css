@@ -3302,3 +3302,4 @@
   animation: hwt-res-full 1.4s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) { .hwt-hero-ult-btn[data-ready] { animation: none; } }
+.hwt-formation-threat { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--hw-ember); margin: 0 0 6px; }

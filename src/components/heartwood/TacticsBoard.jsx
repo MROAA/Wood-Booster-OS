@@ -598,13 +598,13 @@ export default function TacticsBoard({
           ? abilityTargets(battle, selected.id, armedSkillId || undefined)
           : attackableTargets(battle, selected.id)
         : [],
-    [battle, selected, armedSide, armedSkillId],
+    [battle, selected, armedSide, armedSkillId, abilityMode],
   )
   // Ability-only highlight: the allies an armed ally-targeting ability
   // (heal / shield-ally) can pick - "heal" mode, "burst" mode = enemies.
   const healable = useMemo(
     () => (selected && armedSide === "ally" && battle.phase === "player" ? (abilityMode === "link" ? manaLinkTargets(battle, selected.id) : abilityTargets(battle, selected.id, armedSkillId || undefined)) : []),
-    [battle, selected, armedSide, armedSkillId],
+    [battle, selected, armedSide, armedSkillId, abilityMode],
   )
   // Class skills that target a board tile (traps, walls, turrets...).
   const skillTiles = useMemo(
