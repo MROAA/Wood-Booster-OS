@@ -47,7 +47,7 @@ const engine = await page.evaluate(async () => {
       units: s.units.map((u) => {
         const k = withDefaults[u.id] || withDefaults[u.defId]
         if (!k) return { ...u, hp: 0 }
-        const { row, col, mana, ...patch } = k
+        const { row, col, mana: _mana, ...patch } = k
         const base = u.side === "enemy" ? { hp: 40, maxHp: 40, ward: 0, revive: 0, regen: 0, taunt: 0, enemySkills: [] } : {}
         return { ...u, block: 0, ...base, ...patch, pos: { row, col } }
       }),
@@ -63,8 +63,8 @@ const engine = await page.evaluate(async () => {
     }
   }
   const full = (s, id) => ({ ...s, units: s.units.map((u) => (u.id === id ? { ...u, mana: u.manaMax } : u)) })
-  const ult = (unit) => ({ id: "cataclysm", name: "Cataclysm", icon: "☄", shape: "blast", radius: 1, range: 6, burn: 0, amount: 10, gain: 25 })
-  const arm = (s, id) => ({ ...s, units: s.units.map((u) => (u.id === id ? { ...u, ult: ult(u), ultCharge: 100, ultArmed: { center: { row: 4, col: 9 }, tiles: [{ row: 4, col: 9 }], turn: 0 } } : u)) })
+  const ult = () => ({ id: "cataclysm", name: "Cataclysm", icon: "☄", shape: "blast", radius: 1, range: 6, burn: 0, amount: 10, gain: 25 })
+  const arm = (s, id) => ({ ...s, units: s.units.map((u) => (u.id === id ? { ...u, ult: ult(), ultCharge: 100, ultArmed: { center: { row: 4, col: 9 }, tiles: [{ row: 4, col: 9 }], turn: 0 } } : u)) })
 
   // 1 Every hero role has an ultimate (the Commander keeps its own Power) -------------------
   {
@@ -183,7 +183,7 @@ const engine = await page.evaluate(async () => {
     ok(a !== s && !U(a, E0).ultArmed, "a mana STEAL breaks a channeled ultimate")
     // Nullstone Shard: every hero hit eats the bar; breaks a channel.
     let n = board(["strength"], { strength: { row: 4, col: 6 }, [E0]: { row: 4, col: 5, hp: 80, maxHp: 80 } }, { relics: ["nullstone-shard"] })
-    n = { ...n, units: n.units.map((u) => (u.id === E0 ? { ...u, ult: ult(u), ultCharge: 60, ultArmed: null } : u)) }
+    n = { ...n, units: n.units.map((u) => (u.id === E0 ? { ...u, ult: ult(), ultCharge: 60, ultArmed: null } : u)) }
     const hit = E.attackUnit(n, pid(n, "strength"), E0)
     ok(U(hit, E0).ultCharge === 60 - 15, "Nullstone Shard: a hit drains 15 ultimate", U(hit, E0).ultCharge)
     const nArmed = arm(n, E0)

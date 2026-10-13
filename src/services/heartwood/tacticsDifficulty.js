@@ -265,11 +265,13 @@ export function placeWells(state, count, seedKey = "") {
 export function applyDifficulty(state, spec) {
   if (!state?.units || !spec) return state
   const isEliteFight = spec.kind === "elite" || spec.kind === "miniboss" || spec.kind === "boss"
-  // Boss arenas bring their own adds; escorts join normal fights + elites.
-  const extra = state.boss || spec.kind === "boss" || spec.kind === "miniboss" ? 0 : spec.extra[isEliteFight ? 1 : 0]
+  // Boss arenas bring their own adds and faction packs (Mirror echoes,
+  // Corrupted, Wanderers) are hand-built - escorts join the other normal
+  // fights + elites. Hand-made boss arenas keep their layout (no wells).
+  const extra = state.boss || state.faction || spec.kind === "boss" || spec.kind === "miniboss" ? 0 : spec.extra[isEliteFight ? 1 : 0]
   let next = addEscorts(state, spec, extra)
   next = { ...next, units: next.units.map((u) => scaleEnemy(u, spec)) }
-  next = placeWells(next, spec.wells, spec.seedKey)
+  if (!state.boss) next = placeWells(next, spec.wells, spec.seedKey)
   next = assignUltimates(next, spec)
   // Behaviour profiles (Berserker, Assassin, Guardian...) fixed per fight.
   const withProfiles = next

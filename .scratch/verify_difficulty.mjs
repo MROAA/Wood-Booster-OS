@@ -47,8 +47,6 @@ const engine = await page.evaluate(async () => {
   const E2 = "enemy-hoardling-2"
   const CMD = "player-commander"
   const U = (s, id) => s.units.find((u) => u.id === id)
-  const pid = (s, defId) => s.units.find((u) => u.defId === defId && u.side === "player").id
-  const cheb = (a, b) => Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col))
   // Synthetic board (verify_mana_1's helper) + an optional AI tier.
   function board(squad, place, { tier = null, terrain = {}, mana = false } = {}) {
     let s = E.createTacticsBattle("default", squad)
