@@ -21,6 +21,7 @@ import SheetView from "../components/hearthwood-studio/SheetView"
 import ThemePanel from "../components/hearthwood-studio/ThemePanel"
 import ResourceEditor from "../components/hearthwood-studio/ResourceEditor"
 import MutationEditor from "../components/hearthwood-studio/MutationEditor"
+import { TraitEditor, PromotionEditor } from "../components/hearthwood-studio/HeroDataEditor"
 import GearEditor from "../components/hearthwood-studio/GearEditor"
 
 /*
@@ -54,7 +55,7 @@ function HearthwoodStudio() {
 
   const [viewMode, setViewMode] = useState(() => {
     const view = new URLSearchParams(window.location.search).get("view")
-    if (view === "resources" || view === "mutations" || view === "gear") return view
+    if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions") return view
     return deepLink ? "single" : "dashboard"
   })
   // `browsingType` drives what the LEFT panel shows; `entityType` drives
@@ -298,6 +299,38 @@ function HearthwoodStudio() {
 
           <button
             type="button"
+            data-testid="studio-traits-tab"
+            onClick={() => setViewMode("traits")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "traits"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            🍀 Traits
+          </button>
+
+          <button
+            type="button"
+            data-testid="studio-promotions-tab"
+            onClick={() => setViewMode("promotions")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "promotions"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            ⚜ Promotions
+          </button>
+
+          <button
+            type="button"
             data-testid="studio-gear-tab"
             onClick={() => setViewMode("gear")}
             className={`
@@ -365,6 +398,24 @@ function HearthwoodStudio() {
       }
 
       {
+        (viewMode === "traits" || viewMode === "promotions") && (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+              {viewMode === "traits" ? (
+                <TraitEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+              ) : (
+                <PromotionEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+              )}
+            </section>
+
+            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
+              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
+            </section>
+          </div>
+        )
+      }
+
+      {
         viewMode === "gear" && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
@@ -378,7 +429,7 @@ function HearthwoodStudio() {
         )
       }
 
-      {viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && (
+      {viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser

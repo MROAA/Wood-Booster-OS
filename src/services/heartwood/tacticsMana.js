@@ -213,13 +213,37 @@ const ZERO = Object.freeze({ dmg: 0, aim: 0, heal: 0, guard: 0, taken: 0, skillP
 
 // Everything the unit's resource adds right now (breakpoints, Fury tier,
 // Nature State, Berserk). Read by the damage / hit / heal / cost math.
+// Traits / promotions (`extraMods`): is this conditional bonus on now?
+// Unit-only conditions, so the enemy preview stays an exact dry-run.
+export function extraModActive(u, m) {
+  switch (m?.when || "always") {
+    case "hpAbove50":
+      return u.hp > u.maxHp / 2
+    case "hpBelow50":
+      return u.hp < u.maxHp / 2
+    case "still":
+      return !u.moved
+    case "res75":
+      return hasMana(u) && resourcePct(u) >= 75
+    case "resBelow25":
+      return hasMana(u) && resourcePct(u) < 25
+    // A promotion's own breakpoint ("at 50%+ ...").
+    case "resAt":
+      return hasMana(u) && resourcePct(u) >= (m.at || 100)
+    default:
+      return true
+  }
+}
+
 export function resourceMods(u) {
-  if (!hasMana(u)) return ZERO
+  if (!hasMana(u) && !u?.extraMods?.length) return ZERO
   const out = { dmg: 0, aim: 0, heal: 0, guard: 0, taken: 0, skillPct: 0, cheaper: 0, mult: 1, parts: [] }
   const add = (fx, label) => {
     for (const k of ["dmg", "aim", "heal", "guard", "taken", "skillPct", "cheaper"]) if (fx[k]) out[k] += fx[k]
     if (fx.aim) out.parts.push({ label, value: fx.aim })
   }
+  for (const m of u.extraMods || []) if (extraModActive(u, m)) add(m, m.label || "Trait")
+  if (!hasMana(u)) return out
   const prof = profileOf(u)
   for (const b of reachedBreakpoints(u)) add(b, `${prof.short} ${b.at}%`)
   const tier = furyTier(u)
@@ -258,6 +282,8 @@ export function bonusText(u) {
 // the ranged toolkit and enemy kinds are mana-priced and get scaled.
 function nativePrice(skill) {
   if (!skill?.classId || skill.toolkit) return false
+  // Promotions price their skill in the hero's own bar already (promotions.js).
+  if (skill.promo) return true
   return (CLASSES[skill.classId]?.skills || []).some((s) => s.id === skill.id)
 }
 

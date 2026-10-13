@@ -185,6 +185,14 @@ const TERRAIN_SVG = {
         flame(44, 55, 0.7, a && "0.9s", ".3s") +
         flame(32, 58, 1, a && "1.3s", ".15s"),
     ),
+  // Chaos sprint: a bed of iron spikes (promotion zone skills plant them).
+  spikes: (a) =>
+    svg(
+      EARTH +
+        `<g fill="#15130f" opacity=".55">${[[16, 20], [40, 16], [28, 38], [52, 40], [14, 52], [44, 56]].map(([x, y]) => `<ellipse cx="${x}" cy="${y + 4}" rx="7" ry="2"/>`).join("")}</g>` +
+        `<g stroke="#2b2622" stroke-width=".6">${[[16, 20], [40, 16], [28, 38], [52, 40], [14, 52], [44, 56]].map(([x, y]) => `<path d="M${x - 5} ${y + 3}L${x - 3} ${y - 7}L${x - 1} ${y + 3}Z" fill="#9c958a"/><path d="M${x - 1} ${y + 3}L${x + 1} ${y - 10}L${x + 3} ${y + 3}Z" fill="#c8c1b4"/><path d="M${x + 3} ${y + 3}L${x + 5} ${y - 6}L${x + 7} ${y + 3}Z" fill="#8b8478"/>`).join("")}</g>` +
+        `<g fill="#e8e2d6">${[[16, 20], [40, 16], [28, 38], [52, 40], [14, 52], [44, 56]].map(([x, y], i) => `<circle cx="${x + 1}" cy="${y - 9}" r=".8">${anim(a, loop("opacity", ".2;1;.2", `${2 + (i % 3) * 0.6}s`, `${i * 0.3}s`))}</circle>`).join("")}</g>`,
+    ),
   // Plain ground under the object sprites.
   tree: () => svg(MOSS),
   sporepod: () => svg(MOSS),

@@ -65,6 +65,8 @@ export const HELP_SECTIONS = [
       { term: "Evolution", blurb: "Deploy a common fill hero enough times, with its tribe fielded alongside it, and it becomes a stronger authored form. Free and permanent - a ▲ marks it." },
       { term: "Fusion", blurb: "Own three copies of the same hero and they combine into one bigger version." },
       { term: "Legendary hooks", blurb: "Legendary heroes carry one of: growth (stronger every round), aura (buffs adjacent allies each round), or conditional (a big bonus if your squad or its placement fits)." },
+      { term: "Promotions", blurb: "At Level 3 a hero promotes into one of two advanced classes of its own class (a Guardian becomes a Paladin or a Bastion...): a strong new skill, more HP, an upgraded passive and a twist to its power bar. At Level 5 it masters that path or cross-trains in the other one. A Class Collar puts the promotion to sleep while worn." },
+      { term: "Traits", blurb: "Every recruit comes with 1-2 quirks - Brave, Greedy, Lucky, Fragile, Mana-touched... - shown as chips on its card. They work in every fight, strange events can add or remove them, and at the Hearth's Nest each parent trait passes to the hatchling half the time." },
     ],
   },
   {
@@ -91,7 +93,8 @@ export const TACTICS_HELP = [
   { icon: "⚡", tone: "rune", term: "Mana gains & Overcharge", blurb: "Tanks gain mana from damage they block, melee heroes when they hit (more on a kill), ranged heroes when they end a turn without moving (more on high ground or in cover), healers and support when they help an ally. Mana above full is stored as Overcharge (the bright cap) - your next skill spends it for a bonus. Mana potions, relics and some skills restore mana; some enemies drain it." },
   { icon: "⚔", tone: "ember", term: "Enemy intents", blurb: "Badges above enemies show their next move: ⚔ strike, ➤ advance, ✦ stunned. What you see is exactly what happens when you end the turn." },
   { icon: "✹", tone: "ember", term: "Telegraphed skills", blurb: "Big enemy skills wind up first. Red tiles get hit when you end your turn - step out of them." },
-  { icon: "⛰", tone: "moss", term: "Terrain", blurb: "High ground: +1 range for archers, +25% damage downhill. Barricades block paths and can be broken. Bridges cross rivers. Tall grass hides you from range. Lava burns if you end a turn on it. Ice slides you one tile further." },
+  { icon: "⛰", tone: "moss", term: "Terrain", blurb: "High ground: +1 range for archers, +25% damage downhill. Barricades block paths and can be broken. Bridges cross rivers. Tall grass hides you from range. Lava burns if you end a turn on it. Ice slides you one tile further. Fire spreads through tall grass; frost freezes deep water into walkable ice." },
+  { icon: "💥", tone: "ember", term: "Knockback chaos", blurb: "Knock a unit back (Shove, Shoulder Check, some promotions) and the world reacts: into lava, flames, poison or spikes it goes; into another unit both get hurt; into a barrel it explodes; into a tree it falls; small enemies drown in deep water. Chains are counted. Some brutes shove YOUR heroes the same way - watch what's behind you." },
   { icon: "🔥", tone: "ember", term: "Element combos", blurb: "Burn, Chill and Entangle are element statuses. Two Chill freezes a hero; mixing elements sets off combos. 'Element combos' in the battle panel lists them all." },
   { icon: "⚑", tone: "rune", term: "Objectives", blurb: "Some fights change the goal: survive a number of turns, protect the Seer, break the Totem, or hold out until reinforcements arrive." },
   { icon: "☠", tone: "ember", term: "Boss phases", blurb: "Bosses change phase at the markers on their HP bar - each phase changes the arena. The bar says what happens next turn." },

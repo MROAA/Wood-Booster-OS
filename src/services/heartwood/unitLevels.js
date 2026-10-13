@@ -23,6 +23,9 @@ import { CLASSES, fallbackClassId, applySkillUpgrades } from "../../data/heartwo
 import { signatureAbilityForDef, signatureUpgrades, upgradeAbility, SIGNATURE_SKILL_KEY } from "./tacticsAbilities"
 import { applyMutationsToTactics } from "./mutations"
 import { RESOURCES, CLASS_RESOURCE_DEFAULT } from "../../data/heartwood/resources"
+import { promotionsFor, PROMOTIONS, PROMOTION_LEVELS } from "../../data/heartwood/promotions"
+import { applyPromotionToTactics } from "./promotions"
+import { traitFx, applyTraitsToTactics } from "./traits"
 
 export const MAX_LEVEL = 5
 // Total XP needed to REACH each level (index = level - 1).
@@ -78,6 +81,7 @@ export function levelSubject(runState, key) {
       key, name: ch?.name || "Your Commander", xp: runState.commanderXp || 0, perks: runState.commanderPerks || [],
       skillUpgrades: runState.commanderSkillUpgrades || {}, skills: skillTreeFor(ch, { commander: true }),
       ranged: !!ch?.attackPattern && ch.attackPattern !== "single", hasAbility: false,
+      promoPicks: runState.commanderPromo || [], naturalClass: "commander",
     }
   }
   const e = runState.bench.find((b) => b.key === key)
@@ -88,7 +92,43 @@ export function levelSubject(runState, key) {
     key, name: def?.name || e.defId, xp: e.xp || 0, perks: e.perks || [], skillUpgrades: e.skillUpgrades || {}, skills: def ? skillTreeFor(def) : [],
     inheritedPerks: e.inheritedPerks || [],
     ranged: !!def?.attackPattern && def.attackPattern !== "single", hasAbility: true,
+    promoPicks: e.promoPicks || [], naturalClass: heroClassId(e), heroTraits: e.heroTraits || [],
   }
+}
+
+// --- Class promotions (data/heartwood/promotions.js) --------------------------
+// At Lv3 a hero picks 1 of its natural class's 2 advanced classes; at Lv5
+// it MASTERS that path or CROSS-TRAINS (also learns the other path's
+// skill). A promotion is its own ceremony, on top of the normal level-up
+// choice (it never uses up a perk / skill-branch level).
+
+// 0 = none pending, 1 = the Lv3 pick, 2 = the Lv5 pick.
+export function pendingPromotionRank(subject) {
+  if (!subject || !promotionsFor(subject.naturalClass).length) return 0
+  const lv = levelForXp(subject.xp)
+  const picks = subject.promoPicks || []
+  if (picks.length === 0 && lv >= PROMOTION_LEVELS[0]) return 1
+  if (picks.length === 1 && PROMOTIONS[picks[0]] && lv >= PROMOTION_LEVELS[1]) return 2
+  return 0
+}
+
+// The first hero (Commander last) with a promotion ceremony waiting.
+export function nextPendingPromotion(runState) {
+  if (!runState?.bench) return null
+  for (const e of runState.bench) {
+    const s = levelSubject(runState, e.key)
+    if (pendingPromotionRank(s)) return s
+  }
+  const c = levelSubject(runState, "commander")
+  return pendingPromotionRank(c) ? c : null
+}
+
+// Offer ids: rank 1 = the 2 promotion ids; rank 2 = "master" | "cross".
+export function promotionOffers(subject) {
+  const rank = pendingPromotionRank(subject)
+  if (rank === 1) return promotionsFor(subject.naturalClass).map((p) => p.id)
+  if (rank === 2) return ["master", "cross"]
+  return []
 }
 
 // Levels already spent (a perk or a skill branch each).
@@ -198,20 +238,35 @@ export function applyLevelsToTactics(battle, runState) {
       ups: { ...(e.inheritedUpgrades || {}), ...(e.skillUpgrades || {}) },
       age: e.agePenalty || 0,
       mutations: e.mutations || [],
-      breedFx: breedFxFor(e),
+      breedFx: mergeFx(breedFxFor(e), traitFx(e.heroTraits)),
+      traits: e.heroTraits || [],
+      promo: e.promoPicks || [],
+      natural: heroClassId(e),
     }
   })
-  byId["player-commander"] = { xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ups: runState.commanderSkillUpgrades || {} }
+  byId["player-commander"] = { xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ups: runState.commanderSkillUpgrades || {}, promo: runState.commanderPromo || [], natural: "commander" }
   return {
     ...battle,
     units: battle.units.map((u) => {
       const b = byId[u.id]
       if (!b) return u
       const leveled = levelMana(applyAge(applyPerks(applyTree(u, b.ups), b.perks, b.xp), b.age), b.xp)
-      // Mutations (+ the hatchling's stat bias / resource affinity).
-      return b.mutations?.length || b.breedFx ? applyMutationsToTactics(leveled, b.mutations, b.breedFx) : leveled
+      // Mutations (+ the hatchling's stat bias / resource affinity + traits' numbers).
+      const mutated = b.mutations?.length || b.breedFx ? applyMutationsToTactics(leveled, b.mutations, b.breedFx) : leveled
+      // Traits (traits.js): conditional bonuses + run-level extras.
+      const traited = b.traits?.length ? applyTraitsToTactics(mutated, b.traits) : mutated
+      // Promotions (promotions.js): stats, title, + skill/passive/twist on the natural class.
+      return b.promo?.length ? applyPromotionToTactics(traited, b.promo, b.natural) : traited
     }),
   }
+}
+
+function mergeFx(a, b) {
+  if (!a) return b || null
+  if (!b) return a
+  const out = { ...a }
+  for (const [k, v] of Object.entries(b)) out[k] = (out[k] || 0) + v
+  return out
 }
 
 // Breeding: a hatchling's small stat bias + its resource affinity, as

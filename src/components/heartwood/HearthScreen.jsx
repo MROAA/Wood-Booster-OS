@@ -15,6 +15,7 @@ import { ITEMS, RARITY_INFO } from "../../data/heartwood/items"
 import { RECIPES, RECIPE_CRAFT_ACORNS } from "../../data/heartwood/recipes"
 import { CardGlyph } from "./cardArt"
 import { RESOURCES } from "../../data/heartwood/resources"
+import { TRAITS } from "../../data/heartwood/traits"
 
 // The Hearth - home camp between runs (services/heartwood/hearth.js).
 // Roster of veterans, rooms + furniture bought with Acorns, Elders,
@@ -223,6 +224,7 @@ export default function HearthScreen({
                       {hearth.elders.some((e) => e.hid === u.hid) ? " · Elder" : ""}
                       {u.generation > 0 ? ` · Gen ${u.generation}` : ""}
                       {u.mutations?.length ? ` · 🧬${u.mutations.length}` : ""}
+                      {u.heroTraits?.length ? ` · ${u.heroTraits.map((id) => TRAITS[id]?.icon || "").join("")}` : ""}
                     </span>
                   </button>
                 )
@@ -239,7 +241,7 @@ export default function HearthScreen({
                 </div>
                 <div className="hw-hearth-muted">
                   The hatchling takes after one parent (body and class - rarely the other one&apos;s class), learns one trick from
-                  each, gets a feel for one parent&apos;s power (Rage, mana...), and may inherit their mutations. It starts at Lv1.
+                  each, gets a feel for one parent&apos;s power (Rage, mana...), and may inherit their mutations. Each parent trait passes on half the time (and now and then a brand-new one appears). It starts at Lv1.
                 </div>
               </div>
             )}
@@ -476,6 +478,15 @@ function FamilyPanel({ hearth, unit }) {
         </ul>
       )}
       {unit.traits?.length > 0 && <div className="hw-family-line">Learned from its parents: {unit.traits.map((t) => t.text).join(", ")}</div>}
+      {(unit.traitOrigins?.length > 0 || unit.traitFresh) && (
+        <div className="hw-family-line" data-family-genes>
+          Traits from its blood:{" "}
+          {[
+            ...(unit.traitOrigins || []).map((o) => `${TRAITS[o.id]?.icon} ${TRAITS[o.id]?.name} (from ${unitName(heroByHid(hearth, o.hid) || hearth.lineage?.[o.hid] || { defId: "" })})`),
+            ...(unit.traitFresh ? [`${TRAITS[unit.traitFresh]?.icon} ${TRAITS[unit.traitFresh]?.name} (brand new!)`] : []),
+          ].join(", ")}
+        </div>
+      )}
       {res && (
         <div className="hw-family-line" data-family-affinity={unit.affinity.resource}>
           {res.icon} {res.name} affinity: {unit.affinity.max ? `+${unit.affinity.max} max` : `+${unit.affinity.regen} each turn`} (full on a{" "}
