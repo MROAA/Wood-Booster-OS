@@ -5,6 +5,7 @@
 // fresh one) carries into a run and home again; UI chips on cards +
 // a token badge + the Nest's "Traits from its blood" line via real clicks.
 import { chromium } from "playwright"
+import { execFileSync } from "node:child_process"
 
 const PORT = process.env.PORT || 5445
 const SHOTS = process.env.SHOTS || "/tmp"
@@ -257,6 +258,30 @@ for (const f of r.fails) out.errors.push(f)
   out.ui3 = { parentChips, kid: stored?.heroTraits, origins: stored?.traitOrigins, genes }
   const hasGenes = (stored?.heroTraits || []).length === 0 || /Traits from its blood/.test(genes)
   if (!(parentChips === 2 && Array.isArray(stored?.heroTraits) && hasGenes)) out.errors.push(`UI: Nest traits ${JSON.stringify(out.ui3)}`)
+}
+
+// --- Studio: the Traits editor (plain English, numbers behind a toggle) + a
+// Patchbay dry-run (scripts/hearthwood-apply-edit.mjs - NOT written to disk).
+{
+  await page.goto(`http://localhost:${PORT}/hearthwood-studio?view=traits`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector('[data-testid="trait-editor"]', { timeout: 20000 }).catch(() => {})
+  await page.locator('[data-testid="trait-editor"] [data-entry="fragile"]').click().catch(() => {})
+  const studio = {}
+  studio.title = await page.locator('[data-testid="trait-title"]').innerText().catch(() => "")
+  studio.friendly = await page.locator('[data-testid="trait-editor"] [data-field="text"]').count()
+  studio.numbersBefore = await page.locator('[data-testid="trait-editor-numbers"]').count()
+  await page.locator('[data-testid="trait-editor-numbers-toggle"]').click().catch(() => {})
+  studio.numbersAfter = await page.locator('[data-testid="trait-editor"] [data-field="fx.hp"]').count()
+  await page.locator('[data-testid="trait-editor"] [data-field="fx.hp"]').fill("-4").catch(() => {})
+  studio.previewEnabled = await page.locator('[data-testid="trait-editor-preview"]').isEnabled().catch(() => false)
+  await page.screenshot({ path: `${SHOTS}/traits_studio.png` }).catch(() => {})
+  const file = "src/data/heartwood/traits.js"
+  const res = JSON.parse(execFileSync(process.execPath, ["scripts/hearthwood-apply-edit.mjs"], { input: JSON.stringify({ filePath: file, exportName: "TRAITS", edits: [{ path: ["fragile", "fx", "hp"], op: "set", value: -4 }] }), encoding: "utf8" }))
+  studio.patchOk = res.ok
+  studio.patchHas = typeof res.proposedCode === "string" && res.proposedCode.includes("hp: -4")
+  out.studio = studio
+  if (!(studio.title.includes("Fragile") && studio.friendly === 1 && studio.numbersBefore === 0 && studio.numbersAfter === 1 && studio.previewEnabled && studio.patchOk && studio.patchHas))
+    out.errors.push(`Studio: Traits editor ${JSON.stringify(studio)}`)
 }
 
 await page.close()

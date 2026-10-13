@@ -5,6 +5,7 @@
 // a Class Collar puts the promotion to sleep (stats stay); UI ceremony
 // + card title + token badge + skill bar via real clicks.
 import { chromium } from "playwright"
+import { execFileSync } from "node:child_process"
 
 const PORT = process.env.PORT || 5445
 const SHOTS = process.env.SHOTS || "/tmp"
@@ -303,6 +304,30 @@ for (const f of r.fails) out.errors.push(f)
   await page.screenshot({ path: `${SHOTS}/promotion_battle.png` }).catch(() => {})
   out.ui3 = { tokenBadge, btn, head }
   if (!(tokenBadge === 1 && btn === 1 && head.includes("Paladin"))) out.errors.push(`UI: battle badge / skill bar ${JSON.stringify(out.ui3)}`)
+}
+
+// --- Studio: the Promotions editor (plain English, numbers behind a toggle) + a
+// Patchbay dry-run (scripts/hearthwood-apply-edit.mjs - NOT written to disk).
+{
+  await page.goto(`http://localhost:${PORT}/hearthwood-studio?view=promotions`, { waitUntil: "domcontentloaded" })
+  await page.waitForSelector('[data-testid="promotion-editor"]', { timeout: 20000 }).catch(() => {})
+  await page.locator('[data-testid="promotion-editor"] [data-entry="paladin"]').click().catch(() => {})
+  const studio = {}
+  studio.title = await page.locator('[data-testid="promotion-title"]').innerText().catch(() => "")
+  studio.friendly = await page.locator('[data-testid="promotion-editor"] [data-field="skill.text"]').count()
+  studio.numbersBefore = await page.locator('[data-testid="promotion-editor-numbers"]').count()
+  await page.locator('[data-testid="promotion-editor-numbers-toggle"]').click().catch(() => {})
+  studio.numbersAfter = await page.locator('[data-testid="promotion-editor"] [data-field="skill.heal"]').count()
+  await page.locator('[data-testid="promotion-editor"] [data-field="skill.heal"]').fill("6").catch(() => {})
+  studio.previewEnabled = await page.locator('[data-testid="promotion-editor-preview"]').isEnabled().catch(() => false)
+  await page.screenshot({ path: `${SHOTS}/promotions_studio.png` }).catch(() => {})
+  const file = "src/data/heartwood/promotions.js"
+  const res = JSON.parse(execFileSync(process.execPath, ["scripts/hearthwood-apply-edit.mjs"], { input: JSON.stringify({ filePath: file, exportName: "PROMOTIONS", edits: [{ path: ["paladin", "skill", "heal"], op: "set", value: 6 }] }), encoding: "utf8" }))
+  studio.patchOk = res.ok
+  studio.patchHas = typeof res.proposedCode === "string" && res.proposedCode.includes("heal: 6")
+  out.studio = studio
+  if (!(studio.title.includes("Paladin") && studio.friendly === 1 && studio.numbersBefore === 0 && studio.numbersAfter === 1 && studio.previewEnabled && studio.patchOk && studio.patchHas))
+    out.errors.push(`Studio: Promotions editor ${JSON.stringify(studio)}`)
 }
 
 await page.close()
