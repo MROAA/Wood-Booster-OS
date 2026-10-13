@@ -816,6 +816,289 @@ export const EVENTS = [
       },
     ],
   },
+  // --- Weird events (Promotions/Traits/Chaos sprint) ------------------
+  // Mewgenics-flavoured oddities that change HEROES, not just the purse:
+  // traits gained or lost, a temporary class swap, XP, resource gambles.
+  // New consequence keys (runEngine.applyEventEffect):
+  //   { trait: "random" | "random-good" | "random-bad" | <id>, who: "random" | "all" }
+  //   { loseTrait: "random" | <id> }
+  //   { classSwap: "random" | <classId>, fights: N } - a hero fights as another class for N fights
+  //   { xp: N, who: "random" | "all" }
+  {
+    id: "the-wrong-berry",
+    act: 1,
+    title: "The Wrong Berry",
+    body: "One of your heroes ate a blue berry off a bush everyone else had the sense to walk past. It is now standing very straight, holding a stick like a sceptre, and insisting - politely, firmly - that it has ALWAYS been something else. It has opinions about your formation.",
+    choices: [
+      {
+        label: "Play along. Who are you to argue?",
+        result: "You salute. It salutes back, badly. For the next couple of fights it really does fight like its new self - and learns a thing or two along the way.",
+        effects: [{ classSwap: "random", fights: 2 }, { xp: 3, who: "random" }],
+      },
+      {
+        label: "Ask it to teach the others.",
+        result: "The lecture is long and mostly wrong, but the squad pays it in coins to stop. It takes the money, bows, and keeps the delusion for three whole fights.",
+        effects: [{ classSwap: "random", fights: 3 }, { essence: 20 }],
+      },
+      {
+        label: "Give it water and wait.",
+        result: "An hour later it blinks, drops the stick and asks why everyone is staring. Nobody tells it.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-badger-sergeant",
+    act: 1,
+    title: "The Badger Sergeant",
+    body: "A badger in a tiny dented helmet blocks the path and barks at your squad until they stand in a line. It walks up and down the line. It sniffs each of them. It does not look impressed. You get the strong impression this is a training camp, and that you have just enrolled.",
+    choices: [
+      {
+        label: "Drill with it until sundown.",
+        result: "Push-ups, mud, more push-ups. The badger finally nods once - the highest honour badgers give - and your squad marches away stiff, sore and a little better at this.",
+        effects: [{ essence: -30 }, { xp: 3, who: "all" }],
+      },
+      {
+        label: "Send your sleepiest hero for private lessons.",
+        result: "It comes back an hour later, wide-eyed, and from now on it is up before everyone else, every single day.",
+        effects: [{ trait: "early-bird" }],
+      },
+      {
+        label: "Laugh at the helmet.",
+        result: "The badger stares at you for a long, long time. One of your heroes laughed too, and the badger noticed. That hero now holds a grudge against the whole world on the badger's behalf.",
+        effects: [{ trait: "spiteful" }],
+      },
+    ],
+  },
+  {
+    id: "the-goose-of-ill-omen",
+    act: 2,
+    title: "The Goose of Ill Omen",
+    body: "A goose has been following you since dawn. It does not walk beside you so much as escort you, honking at every crossroads as if correcting your route. When you stop, it stops. When you look at it, it hisses. The villagers you passed made a sign against bad luck and shut their doors.",
+    choices: [
+      {
+        label: "Feed it your bread.",
+        result: "The goose eats every crumb, honks once, and waddles off with great dignity. One of your heroes swears it winked. Things go a little better for that one from now on.",
+        effects: [{ essence: -10 }, { trait: "lucky" }],
+      },
+      {
+        label: "Shoo it away.",
+        result: "It goes. It goes VERY slowly, looking back the whole time. That night one of your heroes dreams of geese and wakes up feeling watched.",
+        effects: [{ essence: 15 }, { trait: "hexed" }],
+      },
+      {
+        label: "Follow where it leads.",
+        result: "It leads you to a hollow stump. In the stump: a very confused traveller who was ALSO being followed by the goose. They join you, mostly out of relief.",
+        effects: [{ unit: "random-common" }],
+      },
+    ],
+  },
+  {
+    id: "the-talking-mushroom",
+    act: 2,
+    title: "Morel, Mushroom Merchant",
+    body: "\"Psst. Down here.\" A mushroom the size of a hat has set up a stall on a log: three acorns, a pebble, and a sign that reads WISDOM - CHEAP. It has a tiny moustache made of moss. \"Advice, friend? Spores? A little something for the road? I do a very reasonable mutation.\"",
+    choices: [
+      {
+        label: "Buy some advice.",
+        result: "Morel clears its throat, which is alarming, and gives one of your heroes a long, mumbled lecture. A baby mushroom has climbed onto that hero's shoulder by the end. It refuses to leave. It gives good advice.",
+        effects: [{ essence: -25 }, { trait: "mushroom-friend" }],
+      },
+      {
+        label: "Ask for \"the special\".",
+        result: "\"Excellent choice.\" Morel puffs a cloud of glittering spores straight into a hero's face. Something about that hero is different now. Morel refuses to say what, but it does wink.",
+        effects: [{ essence: -10 }, { mutation: "random" }],
+      },
+      {
+        label: "Politely decline.",
+        result: "\"Your loss,\" says Morel, and then, quieter, \"fungus-hater.\" You decide not to hear that.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-reflection-suitor",
+    act: 3,
+    title: "Love at the Still Pool",
+    body: "One of your heroes has stopped at a still black pool and will not leave it. In the water, a reflection that is not quite its own reflection smiles back, waves, and blows a kiss. Your hero has gone very pink. The reflection appears to be writing it a letter.",
+    choices: [
+      {
+        label: "Let love take its course.",
+        result: "They spend the evening gazing at each other. Your hero comes away walking on air, showing off in front of everyone, and slightly worse at looking where it swings.",
+        effects: [{ trait: "lovestruck" }],
+      },
+      {
+        label: "Chaperone. Strictly.",
+        result: "You sit between them the whole time and make small talk. It's awkward for everyone, but your hero learns a lot about itself - and still leaves smitten.",
+        effects: [{ trait: "lovestruck" }, { xp: 4, who: "random" }],
+      },
+      {
+        label: "Drag your hero away.",
+        result: "It sulks for a mile, then two. Somewhere in the sulk it forgets a little bit of who it was.",
+        effects: [{ loseTrait: "random" }, { essence: 10 }],
+      },
+    ],
+  },
+  {
+    id: "the-reading-tree",
+    act: 3,
+    title: "The Tree That Reads",
+    body: "An enormous oak whose leaves are pages, rustling with half-sentences. When the wind blows you catch whole words: TACTICS, FLANKING, A RECIPE FOR PLUM CAKE. A sign nailed to the trunk says QUIET PLEASE in very old letters.",
+    choices: [
+      {
+        label: "Read under its branches all afternoon.",
+        result: "Everybody learns something. One of your heroes learns far too much, and from now on it brings a book to every fight.",
+        effects: [{ xp: 3, who: "all" }, { trait: "bookish" }],
+      },
+      {
+        label: "Borrow a page.",
+        result: "You pull one leaf free. On it: a sketch of a strange tool, which you build that night. The tree sighs, the way libraries do.",
+        effects: [{ item: "random" }],
+      },
+      {
+        label: "Scribble in the margins.",
+        result: "You add a little drawing. The page drinks the ink, and something in the tree drinks a little of the hero who held the pen.",
+        effects: [{ mutation: "random-mixed" }],
+      },
+    ],
+  },
+  {
+    id: "the-bottomless-teacup",
+    act: 4,
+    title: "The Bottomless Teacup",
+    body: "On a stump in the middle of nowhere: a single porcelain teacup, steaming, full to the brim. Every time someone sips, it fills back up. The tea tastes of thunder and honey. Whatever powers your heroes - Rage, prayer, plain mana - it hums in answer.",
+    choices: [
+      {
+        label: "Have a polite sip each.",
+        result: "Warmth spreads through the squad. One hero drinks a little more than polite and starts to faintly glow in the dark.",
+        effects: [{ trait: "mana-touched" }],
+      },
+      {
+        label: "Drink deeply.",
+        result: "Everyone drinks until the cup finally, impossibly, runs dry. Their power runs deeper now - every one of them. And at the bottom of the cup, something looks up at you. It remembers your face.",
+        effects: [{ trait: "brimful", who: "all" }, { trait: "hexed" }],
+      },
+      {
+        label: "Pour it out on the roots.",
+        result: "The stump drinks it and puts out a single green leaf. A tiny pouch of coins hangs from it.",
+        effects: [{ essence: 15 }],
+      },
+    ],
+  },
+  {
+    id: "the-dapper-hat",
+    act: 4,
+    title: "A Very Fine Hat",
+    body: "Hanging from a branch at exactly head height: the finest hat you have ever seen. Wide brim, a single magnificent feather, a hatband stitched with tiny gold runes that spell, if you squint, MINE.",
+    choices: [
+      {
+        label: "Put it on.",
+        result: "It fits perfectly. Your hero stands taller, fights braver - and when the hat finally blows away, it takes a little piece of luck with it. Someone else in the squad catches the bad half.",
+        effects: [{ trait: "brave" }, { trait: "hexed" }],
+      },
+      {
+        label: "Sell it to the next merchant.",
+        result: "The merchant pays far too much and hurries off before you change your mind. You hear honking in the distance.",
+        effects: [{ essence: 55 }],
+      },
+      {
+        label: "Leave the hat where it is.",
+        result: "As you walk away the feather turns, slowly, to follow you.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-swapping-pond",
+    act: 5,
+    title: "The Pond of Second Thoughts",
+    body: "Two of your heroes lean over the same pond at the same moment, and for one dizzy second each of them is standing in the other's boots. When it passes, they look at each other suspiciously. Something got left behind on the wrong side.",
+    choices: [
+      {
+        label: "Jump in and swap everything.",
+        result: "Splashing, shouting, and when everyone climbs out, one hero has lost a habit and picked up a brand-new one from who-knows-where.",
+        effects: [{ loseTrait: "random" }, { trait: "random" }],
+      },
+      {
+        label: "Fish out what was left behind.",
+        result: "You net a glittering little something from the shallows, and the pond sulks.",
+        effects: [{ relic: "random" }, { essence: -20 }],
+      },
+      {
+        label: "Walk on, nobody look down.",
+        result: "Nobody looks down. Everybody thinks about it all day.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-rage-bees",
+    act: 6,
+    title: "The Angry Hive",
+    body: "A hive hangs from a dead branch, buzzing a low, furious note. The bees are red. The honey dripping out of the comb is red. A dead bear lies under the tree looking, somehow, satisfied.",
+    choices: [
+      {
+        label: "Eat the honey.",
+        result: "It burns all the way down. One of your heroes immediately challenges a rock to a fight, and wins. It hits harder now, and aims considerably worse.",
+        effects: [{ trait: "hot-headed" }, { xp: 3, who: "random" }],
+      },
+      {
+        label: "Smoke them out and take the comb.",
+        result: "The comb sells for a fortune. One of your heroes got stung somewhere it won't discuss, and the sting never quite healed right.",
+        effects: [{ essence: 45 }, { mutation: "random-bad" }],
+      },
+      {
+        label: "Back away, very slowly.",
+        result: "The buzzing follows you for a while, then gives up, which is the most a bee has ever given you.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-soul-auction",
+    act: 7,
+    title: "The Gravedigger's Auction",
+    body: "In a ruined chapel, a gravedigger with a lantern and a gavel is auctioning off the old souls of famous heroes. Nobody else is bidding. \"Lot seven,\" he says, unbothered. \"One paladin, gently used. Very brave. Smells faintly of incense. Do I hear twenty?\"",
+    choices: [
+      {
+        label: "Bid on the paladin's soul.",
+        result: "\"Sold.\" One of your heroes breathes in a shimmer of light and stands up straighter, raising a shield it doesn't own. For the next three fights it believes, completely, that it is a Guardian.",
+        effects: [{ essence: -20 }, { classSwap: "guardian", fights: 3 }],
+      },
+      {
+        label: "Bid on \"mystery lot nine\".",
+        result: "The gravedigger lifts the cloth. It's... something. Your hero absorbs it, coughs, and spends the next two fights fighting like a stranger, but comes out wiser.",
+        effects: [{ essence: -10 }, { classSwap: "random", fights: 2 }, { xp: 5, who: "random" }],
+      },
+      {
+        label: "Report him to someone. Anyone.",
+        result: "There is nobody to report him to. He tips his hat and pays you to leave quietly.",
+        effects: [{ essence: 30 }],
+      },
+    ],
+  },
+  {
+    id: "the-snoring-giant",
+    title: "The Snoring Hill",
+    body: "The hill is breathing. On closer inspection the hill is a giant, asleep under a blanket of moss, snoring so deeply the trees sway in time. Its belly is warm, soft, and exactly the right size for a squad of tired heroes.",
+    choices: [
+      {
+        label: "Take a nap on its belly.",
+        result: "The best sleep anyone has had in weeks. Everyone wakes up whole again - and one of your heroes never quite wants to get up again, ever.",
+        effects: [{ mend: "all" }, { trait: "lazy" }],
+      },
+      {
+        label: "Check its pockets.",
+        result: "Giant pockets hold giant coins. It snorts, rolls over, and nearly flattens your Commander, but doesn't wake up.",
+        effects: [{ essence: 60 }, { squadNextBattle: [{ type: "applyBuff", id: "weak", amount: 1 }] }],
+      },
+      {
+        label: "Tiptoe past.",
+        result: "Nobody breathes until the snoring fades behind you.",
+        effects: [],
+      },
+    ],
+  },
 ]
 
 // Deterministic pick for an event-node position: prefer an event whose

@@ -212,6 +212,9 @@ export const ENTITY_TYPES = {
     resources: { file: "resources.js", exportName: "RESOURCES" },
     // Breeding & Mutations: the Mewgenics-style mutation table.
     mutations: { file: "mutations.js", exportName: "MUTATIONS" },
+    // Promotions/Traits sprint: hero traits + class promotions.
+    traits: { file: "traits.js", exportName: "TRAITS" },
+    promotions: { file: "promotions.js", exportName: "PROMOTIONS" },
     // Gear sprint: item recipes + Class Collars (items themselves: `items`).
     recipes: { file: "recipes.js", exportName: "RECIPES" },
     collars: { file: "collars.js", exportName: "COLLARS" },

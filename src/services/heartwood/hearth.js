@@ -25,6 +25,9 @@ import {
 } from "../../data/heartwood/hearth"
 import { ITEMS } from "../../data/heartwood/items"
 import { RECIPES, RECIPE_CRAFT_ACORNS } from "../../data/heartwood/recipes"
+import { TRAITS, MAX_TRAITS } from "../../data/heartwood/traits"
+import { PROMOTIONS } from "../../data/heartwood/promotions"
+import { rollTraits, inheritTraits } from "./traits"
 
 export const HEARTH_KEY = "hearthwood-hearth-v1"
 const WOUNDED_HP = 0.25
@@ -102,6 +105,9 @@ function withHooks(u) {
     inheritedPerks: arr(u.inheritedPerks).filter((id) => PERKS[id]),
     inheritedUpgrades: obj(u.inheritedUpgrades),
   }
+  // Traits + promotions (missing = never rolled / not promoted).
+  if (Array.isArray(u.heroTraits)) out.heroTraits = u.heroTraits.filter((id) => TRAITS[id]).slice(0, MAX_TRAITS)
+  if (Array.isArray(u.promoPicks)) out.promoPicks = PROMOTIONS[u.promoPicks[0]] ? u.promoPicks.slice(0, 2) : []
   if (out.classId && !CLASSES[out.classId]) delete out.classId
   return out
 }
@@ -241,7 +247,7 @@ export function recruitOffers(h) {
 export function recruitAtHome(h, defId, acorns) {
   if (h.recruitUsed || acorns < RECRUIT_COST) return null
   if (!recruitOffers(h).includes(defId) || h.roster.length >= rosterCapacity(h)) return null
-  const unit = withHooks({ hid: h.nextHid, defId, joinedRun: h.runs })
+  const unit = withHooks({ hid: h.nextHid, defId, joinedRun: h.runs, heroTraits: rollTraits(h.seed ?? 0, `home:${h.nextHid}:${defId}`) })
   return { hearth: { ...h, roster: [...h.roster, unit], nextHid: h.nextHid + 1, recruitUsed: true }, cost: RECRUIT_COST }
 }
 
@@ -288,6 +294,8 @@ export function hearthStartFor(h, vetIds = []) {
       ...(u.affinity ? { affinity: { ...u.affinity } } : {}),
       ...(u.inheritedPerks?.length ? { inheritedPerks: [...u.inheritedPerks] } : {}),
       ...(Object.keys(u.inheritedUpgrades || {}).length ? { inheritedUpgrades: { ...u.inheritedUpgrades } } : {}),
+      ...(Array.isArray(u.heroTraits) ? { heroTraits: [...u.heroTraits] } : {}),
+      ...(u.promoPicks?.length ? { promoPicks: [...u.promoPicks] } : {}),
       age: u.age || 0,
       ...(declineSteps(u.age) ? { agePenalty: declineSteps(u.age) } : {}),
     }
@@ -353,6 +361,9 @@ export function harvestRun(h, runState, won, runId) {
       skillUpgrades: e.skillUpgrades || {},
       // Mutations grown during the run come home too.
       mutations: Array.isArray(e.mutations) ? e.mutations : arr(prev?.mutations),
+      // Traits gained / lost on the road + promotions earned come home too.
+      ...(Array.isArray(e.heroTraits) ? { heroTraits: e.heroTraits } : {}),
+      ...(Array.isArray(e.promoPicks) ? { promoPicks: e.promoPicks } : {}),
       age: (prev?.age || 0) + 1,
       runs: (prev?.runs || 0) + 1,
       wounded: heal ? false : !!(e.wounded || fell.has(e.key)),
@@ -558,6 +569,9 @@ export function hatchling(h, a, b) {
   if (rng() < BREEDING.freshChance) mutations = addMutation(mutations, pickMutation(rng, { kind: "any", exclude: mutations }))
   if (rng() < badMutationChance(h, a, b)) mutations = addMutation(mutations, pickMutation(rng, { kind: "bad", exclude: mutations }))
   const name = HATCHLING_NAMES[Math.floor(rng() * HATCHLING_NAMES.length)]
+  // Hero traits (traits.js): their own seeded stream, so the older rolls above never shift.
+  const tRng = streamRng(h.seed ?? 0, "breed", `${lo}:${hi}:${h.births || 0}:traits`)
+  const genes = inheritTraits(tRng, A, B)
   return withHooks({
     hid: h.nextHid,
     defId,
@@ -573,6 +587,9 @@ export function hatchling(h, a, b) {
     inheritedUpgrades,
     mutations,
     traits,
+    heroTraits: genes.traits,
+    traitOrigins: genes.from,
+    ...(genes.fresh ? { traitFresh: genes.fresh } : {}),
   })
 }
 

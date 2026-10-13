@@ -102,6 +102,10 @@ function unitAt(state, pos) {
 }
 
 // Flat hit on a unit (Block soaks it), with the usual fall bookkeeping.
+// (Exported for tacticsChaos.js - knockback impacts.)
+export function hurtUnit(state, unitId, amount, why) {
+  return hurt(state, unitId, amount, why)
+}
 function hurt(state, unitId, amount, why) {
   const t = getUnit(state, unitId)
   if (!t || t.hp <= 0 || ended(state) || amount <= 0) return state
@@ -113,6 +117,9 @@ function hurt(state, unitId, amount, why) {
 }
 
 // A timed tile (fire/poison) that reverts to what was under it.
+export function placeTimedTile(state, pos, type, turns) {
+  return timedTile(state, pos, type, turns)
+}
 function timedTile(state, pos, type, turns) {
   const key = k(pos)
   const was = state.terrain?.[key] || "path"
@@ -122,6 +129,23 @@ function timedTile(state, pos, type, turns) {
   const revert = prev ? prev.revert : was
   const next = setTile(state, pos, type)
   return { ...next, tileTimers: { ...(next.tileTimers || {}), [key]: { turns, revert } } }
+}
+
+// Chaos sprint: fire catches TALL GRASS - it becomes flames for a couple
+// of turns and burns down to ash (spreading to the grass beside it next round).
+export function igniteGrass(state, pos) {
+  if (!isOnBoard(pos, state.grid) || terrainAt(state, pos) !== "bush") return state
+  const key = k(pos)
+  let next = setTile(state, pos, "fire")
+  next = { ...next, tileTimers: { ...(next.tileTimers || {}), [key]: { turns: FIRE_TILE_TURNS, revert: "ash" } } }
+  return objEvent(addLog(next, "The tall grass catches fire!"), "grassfire", pos, "Grass fire!", { tiles: [pos] })
+}
+
+// Chaos sprint: frost freezes deep WATER into walkable ice (an ice bridge).
+export function freezeWater(state, pos) {
+  if (!isOnBoard(pos, state.grid) || terrainAt(state, pos) !== "water") return state
+  const next = setTile(state, pos, "ice")
+  return objEvent(addLog(next, "The water freezes solid - an ice bridge!"), "freeze", pos, "Ice bridge!", { tiles: [pos] })
 }
 
 // --- damage / destruction ----------------------------------------------------------
@@ -246,6 +270,8 @@ export function explode(state, pos) {
     if (t === "tree" && fire) next = igniteTree(next, p)
     else next = damageObject(next, p, dmg, { row: p.row - pos.row, col: p.col - pos.col })
   }
+  // Chaos sprint: a fire blast sets the tall grass in the 3x3 alight.
+  if (fire) for (const p of area) if (!ended(next) && terrainAt(next, p) === "bush") next = igniteGrass(next, p)
   return checkTacticsBattleEnd(next)
 }
 
@@ -298,15 +324,19 @@ export function attackObject(state, actor, pos, amount) {
 
 // --- element hooks (tacticsElements.applyElement) --------------------------------------
 // Fire landing on a unit sets the trees beside it alight; frost chills pillars.
+// Chaos sprint: fire also lights the tall grass the unit stands in; frost
+// freezes the deep water next to the unit into ice.
 export function elementNear(state, pos, element) {
-  if (!pos || (element !== "fire" && element !== "frost") || !hasObjects(state)) return state
+  if (!pos || (element !== "fire" && element !== "frost")) return state
   let next = state
+  if (element === "fire" && terrainAt(next, pos) === "bush") next = igniteGrass(next, pos)
   for (const d of ORTHO) {
     const p = { row: pos.row + d.row, col: pos.col + d.col }
     if (!isOnBoard(p, next.grid)) continue
     const t = terrainAt(next, p)
     if (element === "fire" && t === "tree") next = igniteTree(next, p)
     if (element === "frost" && t === "icepillar") next = chillPillar(next, p)
+    if (element === "frost" && t === "water") next = freezeWater(next, p)
   }
   return next
 }
@@ -348,6 +378,7 @@ export function objectsRoundTick(state) {
     const t = terrainAt(next, p)
     if (t === "tree") next = igniteTree(next, p)
     else if (OBJECTS[t]?.explosive === "fire") next = explode(next, p)
+    else if (t === "bush") next = igniteGrass(next, p)
   }
   // 3. Timed tiles fade.
   const tileTimers = {}

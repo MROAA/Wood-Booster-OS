@@ -21,6 +21,9 @@ export const ALL_TYPES = [
   { type: "resources", label: "Hero Resources (Rage, Combo...)", category: "Content" },
   // Breeding & Mutations sprint (also the "🧬 Mutations" view).
   { type: "mutations", label: "Mutations", category: "Content" },
+  // Promotions/Traits sprint (also the "🍀 Traits" / "⚜ Promotions" views).
+  { type: "traits", label: "Hero Traits", category: "Content" },
+  { type: "promotions", label: "Class Promotions", category: "Content" },
   { type: "cards", label: "Cards", category: "Content" },
   { type: "relics", label: "Relics", category: "Content" },
   { type: "items", label: "Items", category: "Content" },
