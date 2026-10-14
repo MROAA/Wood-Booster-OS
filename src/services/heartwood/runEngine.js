@@ -35,9 +35,13 @@ import { ECONOMY_LEVERS, SHOP_INVESTMENTS, MARKET_EVENTS } from "../../data/hear
 import { startAutoBattle, resolveRound, autoResolveBattle } from "./autoBattleEngine"
 import { rollFightMutations, eventMutation } from "./mutations"
 import { applyLevelsToTactics, levelForXp, levelSubject, pendingPerkCount, levelOffers, parseOffer, XP as LEVEL_XP_GAIN, pendingPromotionRank, promotionOffers } from "./unitLevels"
-import { withRolledTraits, eventTrait } from "./traits"
+import { withRolledTraits as rollTraitsOnly, eventTrait } from "./traits"
+// Hero identity sprint: quirks / bonds / scars & history + signature legendaries.
+import { withHeroIdentity, applyIdentityToBattle, recordHeroHistory, signatureDrop } from "./heroIdentity"
 import { MAX_TRAITS } from "../../data/heartwood/traits"
 import { CLASSES } from "../../data/heartwood/classes"
+// A new hero rolls its traits AND its personality quirks the moment it joins.
+const withRolledTraits = (rs) => withHeroIdentity(rollTraitsOnly(rs))
 
 // Marc, 2026-09-19: "dev studiossa pitää olla mukana myös ekonomia...
 // säädän itse sillä pelin vaikeustasoa" (the dev studio needs the
@@ -2791,7 +2795,9 @@ export function startFormationBattle(runState) {
 // Power, same Almanac "seen" bookkeeping. `buildTacticsBattle` (injected,
 // so this file never imports the tactics engine) turns that start state
 // into a tactics battle, or returns null to leave the run untouched.
-export function startTacticsFormationBattle(runState, buildTacticsBattle) {
+export function startTacticsFormationBattle(runState0, buildTacticsBattle) {
+  // Hero identity: every hero has its quirks before the fight reads them.
+  const runState = withHeroIdentity(runState0)
   const start = autoBattleStartFor(runState)
   const tactics = buildTacticsBattle(start)
   if (!tactics) return runState
@@ -2801,7 +2807,9 @@ export function startTacticsFormationBattle(runState, buildTacticsBattle) {
     // Unit levels (unitLevels.js): perks + XP tracking fields.
     // Gear sprint (gear.js): the gear rows - item fx, row adjacency, board
     // auras, resource gear - folded on last.
-    battle: { ...applyGearToBattle(applyLevelsToTactics(tactics, runState), runState, effectiveItemSlots(runState)), engine: "tactics" },
+    // Hero identity (heroIdentity.js): quirks, bonds, scars + class signature
+    // mechanics (a worn signature legendary is read off the gear above).
+    battle: { ...applyIdentityToBattle(applyGearToBattle(applyLevelsToTactics(tactics, runState), runState, effectiveItemSlots(runState)), runState), engine: "tactics" },
     pendingActiveEffects: [],
     lastAftermath: null,
     lastLevelUps: null,
@@ -3261,7 +3269,8 @@ export function resolveBattleOutcome(runState) {
     // grow into) - deliberate.
     if (node.type === "boss") {
       // Mutations: a boss kill can still change a hero (it goes home with it).
-      const bossMut = rollFightMutations(runState, battle, node)
+      // Hero identity: the boss fight goes into every hero's history too.
+      const bossMut = rollFightMutations(recordHeroHistory(runState, battle), battle, node)
       return { ...bossMut.runState, phase: "victory", lastMutations: bossMut.lines }
     }
 
@@ -3270,7 +3279,8 @@ export function resolveBattleOutcome(runState) {
     // place. Everything after this reads the post-evolution `rs`.
     // Lasting consequences: end-of-fight HP / Wounded onto the bench.
     // Mutations (mutations.js): a won fight can change a hero for good.
-    const mut = rollFightMutations(recordFightAftermath(runState, battle), battle, node)
+    // Hero identity: memories -> history, scars & honours, friendships.
+    const mut = rollFightMutations(recordHeroHistory(recordFightAftermath(runState, battle), battle), battle, node)
     const hurt = { ...mut.runState, lastMutations: mut.lines }
     const withWins = {
       ...hurt,
@@ -3280,7 +3290,8 @@ export function resolveBattleOutcome(runState) {
     }
     const { runState: evoRs, evolved } = applyEvolutions(withWins)
     // Gear sprint: elites (half the time) and minibosses drop a Class Collar.
-    const rs = collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node)
+    // Hero identity: minibosses (always) / elites (sometimes) drop a signature legendary.
+    const rs = signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node)
 
     const advanced = advanceToNextNode(rs)
     // A pending "choice" (see advanceToNextNode above) is never a shop

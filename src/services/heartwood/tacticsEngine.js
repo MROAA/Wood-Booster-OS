@@ -55,6 +55,8 @@ import * as ultFx from "./tacticsUltimates"
 import { difficultyQa } from "./tacticsDifficulty"
 // Combat depth sprint: turn order (Delay/Stagger), hero combos, stances, reactions.
 import * as depth from "./tacticsDepth"
+// Hero identity sprint: per-class signature mechanics + hero personality.
+import * as sigFx from "./tacticsSignatures"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -1769,7 +1771,8 @@ export function moveUnit(state, unitId, targetPos) {
     next = attackUnit(next, controller.id, unitId, { isReaction: true })
   }
   // Ranged rework: a suppressed unit that moves draws the suppressor's shot.
-  return ranged.afterMoveSuppression(classFx.afterMove(next, unitId), unitId)
+  // Hero identity: Momentum, Held Breath, Snare Line, Tether...
+  return sigFx.sigAfterMove(ranged.afterMoveSuppression(classFx.afterMove(next, unitId), unitId), unitId, unit.pos)
 }
 
 // Wyrmgall's real Execute/Shatter + the final boss's real WoundedFury/
@@ -1930,6 +1933,8 @@ function modifiedAttackAmount(attacker, defender, baseAmount, state = null, ctx 
   if (attacker.empowered && amount > 0) amount = Math.round(amount * manaFx.EMPOWER_MULT)
   // Combat depth: stances (both sides) and a hero combo's +50%.
   amount = depth.depthAmount(attacker, defender, amount, state, ctx)
+  // Hero identity: signature mechanics + quirks / bonds / scars.
+  amount = sigFx.sigDamage(attacker, defender, amount, state, ctx)
   return relicFx.dampenedAmount(attacker, classFx.classDamageMod(attacker, defender, amount, facing))
 }
 
@@ -1955,6 +1960,8 @@ function applyDamageWithBlock(state, targetId, amount) {
   // Gear board aura (Warding Bell): allies next to the bearer take less per hit.
   const bell = amount > 1 && before ? gearAuraOn(state, before, "guard") : 0
   if (bell > 0) amount = Math.max(1, amount - bell)
+  // Hero identity: a Relic-Keeper's charge soaks part of a big hit.
+  if (state.heroSig && before) ({ state, amount } = sigFx.sigPreDamage(state, targetId, amount))
   let res = applyDamageInner(state, targetId, hunkeredAmount(before, amount, state))
   // Mana: a tank turns what it blocked (Block, Bulwark, a Ward) into mana.
   if (state.manaRules && before) {
@@ -1965,6 +1972,8 @@ function applyDamageWithBlock(state, targetId, amount) {
     // Resources step 2: pain builds Rage/Fury, wounds feed Blood, deaths feed Souls.
     res = { ...res, next: manaFx.onDamaged(res.next, targetId, res.remaining || 0) }
   }
+  // Hero identity: Grit, near-death memories, Rigged / Rot / Raise on a death.
+  if (state.heroSig && res.remaining > 0) res = { ...res, next: sigFx.sigOnDamaged(res.next, targetId, res.remaining) }
   return state.boss ? { ...res, next: bossAfterDamage(res.next, targetId) } : res
 }
 
@@ -2437,6 +2446,9 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   if (actor.frosty && !fell && !graze) next = elements.applyElement(next, targetId, "frost", 1)
   if (actor.side === "player") next = classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, targetId)
   if (actor.side === "player") next = depth.afterHeroHit(next, actorId, targetId, combo, { graze })
+  // Hero identity: the hitter's signature mechanic / the struck hero's.
+  if (actor.side === "player") next = sigFx.sigAfterHit(next, actorId, targetId, { fell, graze, skill: false, melee: chebyshevDist(actor.pos, target.pos) <= 1, facing, targetBefore: effectiveTarget })
+  else next = sigFx.sigAfterHitBy(next, actorId, targetId, { fell, melee: chebyshevDist(actor.pos, target.pos) <= 1 })
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
@@ -2520,11 +2532,17 @@ export function castAbility(state, actorId, targetId, skillId) {
   if (!who || !skill || !manaFx.canAfford(who, skill)) return state
   // Mutations: Echo Voice refunds AP after the first successful cast.
   const echo = (out) => (out === state ? out : mutFx.mutationAfterCast(out, actorId))
-  if (!manaFx.hasMana(who)) return echo(castAbilityCore(state, actorId, targetId, skillId))
-  const primed = manaFx.primeSurge(state, actorId, skill)
+  // Hero identity: Overclock, Borrowed Time, Overgrowth, Anthem... read the cast.
+  // (beginCast marks the cast so its hits count as skill hits.)
+  if (!manaFx.hasMana(who)) {
+    const inS = sigFx.beginCast(state, actorId)
+    const raw = castAbilityCore(inS, actorId, targetId, skillId)
+    return raw === inS ? state : sigFx.sigAfterCast(state, echo(sigFx.endCast(raw)), actorId, targetId, skill)
+  }
+  const primed = sigFx.beginCast(manaFx.primeSurge(state, actorId, skill), actorId)
   const out = castAbilityCore(primed, actorId, targetId, skillId)
   if (out === primed) return state
-  return echo(manaFx.afterSkillCast(out, actorId, targetId, skill, primed.eventSeq || 0, primed))
+  return sigFx.sigAfterCast(state, echo(manaFx.afterSkillCast(sigFx.endCast(out), actorId, targetId, skill, primed.eventSeq || 0, primed)), actorId, targetId, skill)
 }
 
 function castAbilityCore(state, actorId, targetId, skillId) {
@@ -2725,6 +2743,9 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} ${graze ? "grazes" : "hits"} ${target.name} for ${remaining}${cover.rollNote(roll)}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
   next = actor.side === "player" ? classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, targetId) : grantStrengthOnKill(next, actorId, fell)
   if (actor.side === "player") next = depth.afterHeroHit(next, actorId, targetId, combo, { graze })
+  // Hero identity: signature mechanics read skill hits too.
+  if (actor.side === "player") next = sigFx.sigAfterHit(next, actorId, targetId, { fell, graze, skill: ctx.skill, melee: chebyshevDist(actor.pos, target.pos) <= 1, facing: classifyFacingAttack(actor, target, state), targetBefore: target })
+  else next = sigFx.sigAfterHitBy(next, actorId, targetId, { fell, melee: chebyshevDist(actor.pos, target.pos) <= 1 })
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
@@ -3002,7 +3023,8 @@ function enemyPhaseStart(state) {
   // neither can end the battle - no phase guard needed for either,
   // unlike the two ticks below.
   // Combat depth: Defensive / Focus stances pay out as the turn ends.
-  const lavaBurned = applyLavaBurn(classFx.classPlayerTurnEnd(depth.playerTurnEnd(objTicked)), "player")
+  // Hero identity: Bulwark, Held Breath, Braced, Ethereal, Forage settle here.
+  const lavaBurned = applyLavaBurn(sigFx.sigPlayerTurnEnd(classFx.classPlayerTurnEnd(depth.playerTurnEnd(objTicked))), "player")
   if (lavaBurned.phase !== "player") return lavaBurned
   const covened = applyCovenTick(relicFx.relicTurnEnd(lavaBurned, "player"))
   const mended = applyRotMendTick(covened)
@@ -4179,7 +4201,8 @@ export function runEnemyTurn(state) {
   const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked
   // Combat depth: setups tick, reactions lapse, Delayed heroes get +1 AP.
-  return depth.playerTurnStart(applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player"))
+  // Hero identity: Doom falls, Strangleroots, Triage, Borrowed Time, fears...
+  return sigFx.sigPlayerTurnStart(depth.playerTurnStart(applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player")))
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
