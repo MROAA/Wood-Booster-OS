@@ -16,6 +16,9 @@ import { auraTiles, AURA_LABEL } from "../../services/heartwood/gear"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
 import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
+// Combat depth sprint: round timeline, stances, reactions, combos.
+import { TurnTimeline, DepthActions, DepthTokenChips, IntentReactionMarks } from "./TacticsDepthUi"
+import { comboFor, hitCtx, COMBOS } from "../../services/heartwood/tacticsDepth"
 import { describeAbilityElement } from "../../services/heartwood/tacticsElements"
 import { classInfoFor, classSkillUsable, classSkillStatus, classSkillTiles } from "../../services/heartwood/tacticsClasses"
 import {
@@ -620,6 +623,18 @@ export default function TacticsBoard({
     [planBattle, showPlan],
   )
   const intentByEnemyId = useMemo(() => new Map(intents.map((i) => [i.enemyId, i.intent])), [intents])
+  // Combat depth: enemies the selected hero can cash a COMBO in on right now
+  // (basic attack, or the armed skill) - highlighted on the board.
+  const comboTargets = useMemo(() => {
+    const out = new Map()
+    if (!selected || selected.side !== "player" || battle.phase !== "player" || !battle.combatDepth) return out
+    const ctx = abilityMode && armedSide === "enemy" ? hitCtx(armedSkill || selected.ability) : null
+    for (const t of targets) {
+      const combo = comboFor(battle, selected, t, ctx)
+      if (combo) out.set(t.id, combo)
+    }
+    return out
+  }, [battle, selected, targets, abilityMode, armedSide, armedSkill])
   const aggro = useMemo(() => (battle.phase === "player" ? aggroPairs(battle, intents) : []), [battle, intents])
   // Wanderers: where each striking skirmisher will fade to (dotted marker).
   const fadeTiles = useMemo(() => new Set(intents.filter((i) => i.intent.fadeTo).map((i) => `${i.intent.fadeTo.row}-${i.intent.fadeTo.col}`)), [intents])
@@ -967,6 +982,7 @@ export default function TacticsBoard({
           data-smoke={smokeTurns || undefined}
           data-hover-cover={(hoverCover && hoverKey === `${row}-${col}`) || undefined}
           data-targetable={!!target}
+          data-combo={(target && unit && comboTargets.get(unit.id)?.id) || undefined}
           data-healable={!!healTarget}
           data-skill-tile={skillTiles.some((p) => p.row === row && p.col === col) || undefined}
           data-trap={battle.classTraps?.[`${row}-${col}`]?.kind || undefined}
@@ -1025,6 +1041,7 @@ export default function TacticsBoard({
               data-tier={hitPreview.chance >= 75 ? "good" : hitPreview.chance >= 45 ? "fair" : "poor"}
               title={hitPreview.parts.map((p) => (p.value === 0 && p !== hitPreview.parts[0] ? p.label : `${p.label} ${p.value > 0 && p !== hitPreview.parts[0] ? "+" : ""}${p.value}%`)).join(" · ")}
             >
+              {comboTargets.has(unit.id) && <b className="hwt-hit-combo">COMBO </b>}
               <b>{hitPreview.chance}%</b>
               {hitPreview.skill ? (hitPreview.rolls ? <small> · miss = graze (half)</small> : null) : <> · {hitPreview.full}{hitPreview.rolls && <small> (graze {hitPreview.graze})</small>}</>}
             </span>
@@ -1130,6 +1147,12 @@ export default function TacticsBoard({
               title={roleTitle(unit)}
             >
               <TokenArt unit={unit} />
+              <DepthTokenChips unit={unit} battle={battle} />
+              {comboTargets.has(unit.id) && (
+                <span className="hwt-combo-ready" title={`COMBO! ${comboTargets.get(unit.id).name} (${comboTargets.get(unit.id).recipe || COMBOS[comboTargets.get(unit.id).id]?.recipe}): +50% damage and +15 resource`}>
+                  {comboTargets.get(unit.id).icon} COMBO
+                </span>
+              )}
               {/* Mutations: a faint glyph over the token art (its first mutation). */}
               {unit.mutations?.length > 0 && MUTATIONS[unit.mutations[0]] && (
                 <span className="hwt-mut-glyph" aria-hidden="true" data-kind={MUTATIONS[unit.mutations[0]].kind}>
@@ -1443,6 +1466,7 @@ export default function TacticsBoard({
                     {intent.fade && <span className="hwt-fade-mark">↩</span>}
                   </span>
                 )}
+                {intent && <IntentReactionMarks intent={intent} />}
                 {intent && intent.kind === "stunned" && (
                   <span className="hwt-intent-badge" data-intent="stunned" data-frozen={!!intent.frozen} title={intent.frozen ? "Frozen - will skip its next turn (hit it now for a +50% Shatter, but that thaws it)" : "Stunned - will skip its next turn"}>
                     {intent.frozen ? "🧊" : "✦"}
@@ -1479,6 +1503,7 @@ export default function TacticsBoard({
       <div className="hwt-layout">
         <div className="hwt-board-col">
           <SquadBar battle={battle} selectedId={selectedId} onSelect={handleSquadSelect} />
+          <TurnTimeline battle={battle} intents={intents} selectedId={selectedId} onSelect={handleSquadSelect} />
           <div
             className="hwt-board"
             style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)`, "--hwt-blight-art": BLIGHT_ART_URL }}
@@ -1574,6 +1599,7 @@ export default function TacticsBoard({
             <div className="hwt-hit-panel" data-hit={hitPreview.chance}>
               <div className="hwt-hit-panel-head">
                 <b>{hitPreview.chance}%</b> to hit {hitPreview.targetName}
+                {comboTargets.has(hoverTargetId) && <b className="hwt-hit-combo"> · COMBO: {comboTargets.get(hoverTargetId).name} +50%</b>}
                 {!hitPreview.skill && (
                   <span>
                     {" "}
@@ -1687,6 +1713,7 @@ export default function TacticsBoard({
                   <small className="hwt-universal-cost">-{linkCost(selected)} {resourceLabel(selected)}</small>
                 </button>
               )}
+              <DepthActions battle={battle} selected={selected} onBattleChange={onBattleChange} onClearMode={() => onAbilityModeChange(null)} />
               {abilityMode === "ult" && <p className="hwt-skill-hint">Choose an enemy for {heroUltInfo(selected)?.name}.</p>}
               {abilityMode === "link" && <p className="hwt-skill-hint">Choose an ally to receive the Mana Link.</p>}
             </div>

@@ -340,33 +340,45 @@ async function uiChecks() {
     await page.click("[data-action='react-parry']")
     check(await page.locator(".hwt-token[data-unit-id='player-bulwark-of-ages-0'] .hwt-react-badge[data-reaction='parry']").count() === 1, "reaction-ready icon on the token")
     await page.screenshot({ path: `${SHOT_DIR}/combat_depth_stance_reaction.png` })
-    // Hit an enemy with the commander (melee) so its setup shows, then select a ranged hero: combo highlight.
-    await page.click(".hwt-token[data-unit-id='player-commander']")
-    const target = await page.evaluate(() => document.querySelector(".hwt-cell[data-targetable='true'] .hwt-token[data-side='enemy']")?.dataset.unitId || null)
-    if (target) {
-      await page.click(`.hwt-token[data-unit-id='${target}']`)
-      await page.waitForTimeout(600)
-      check(await page.locator(`.hwt-token[data-unit-id='${target}'] .hwt-setup-badge`).count() >= 1, "setup badge on the struck enemy")
-      await page.click(".hwt-token[data-unit-id='player-hexbreaker-2']")
-      await page.waitForTimeout(300)
-      const comboCells = await page.locator(".hwt-cell[data-combo]").count()
-      check(comboCells >= 1, "combo-available highlight for the ranged hero")
-      await page.screenshot({ path: `${SHOT_DIR}/combat_depth_combo_ready.png` })
-      const ct = await page.evaluate(() => document.querySelector(".hwt-cell[data-combo] .hwt-token[data-side='enemy']")?.dataset.unitId || null)
-      if (ct) {
-        await page.click(`.hwt-token[data-unit-id='${ct}']`)
-        await page.waitForTimeout(500)
-        check(await page.locator(".hwt-combo-banner").count() === 1, "big COMBO! banner")
-        await page.screenshot({ path: `${SHOT_DIR}/combat_depth_combo_banner.png` })
-      } else out.push("no combo target to click")
-    } else out.push("no enemy in the commander's reach (?front=1)")
-    // Delay a hero: it moves to the 'after the enemies' slot.
+    // Hexbreaker (ranged) shoots the Sapling -> Off-balance; Oathshield (melee
+    // tank) steps next to it -> the board highlights a COMBO; it strikes -> banner.
+    const SAP = "enemy-sapling-attendant-1"
+    await page.click(".hwt-token[data-unit-id='player-hexbreaker-2']")
+    await page.click(`.hwt-token[data-unit-id='${SAP}']`)
+    await page.waitForTimeout(700)
+    check(await page.locator(`.hwt-token[data-unit-id='${SAP}'] .hwt-setup-badge[data-setup='offBalance']`).count() === 1, "setup badge (Off-balance) on the struck enemy")
     await page.click(".hwt-token[data-unit-id='player-oathshield-3']")
+    const sap = await page.evaluate((id) => document.querySelector(`.hwt-token[data-unit-id='${id}']`)?.closest(".hwt-cell")?.dataset.cell, SAP)
+    const [sr, sc] = sap.split("-").map(Number)
+    const step = await page.evaluate(([r, c]) => {
+      for (const [dr, dc] of [[1, 1], [0, 1], [-1, 1], [1, 0], [-1, 0]]) {
+        const el = document.querySelector(`.hwt-cell[data-cell='${r + dr}-${c + dc}'][data-move-band='blue']`)
+        if (el && !el.querySelector(".hwt-token")) return el.dataset.cell
+      }
+      return null
+    }, [sr, sc])
+    if (step) {
+      await page.click(`.hwt-cell[data-cell='${step}']`)
+      await page.waitForTimeout(500)
+      check(await page.locator(`.hwt-cell[data-combo] .hwt-token[data-unit-id='${SAP}']`).count() === 1, "combo-available highlight on the off-balance enemy")
+      check(await page.locator(`.hwt-token[data-unit-id='${SAP}'] .hwt-combo-ready`).count() === 1, "COMBO tag on the enemy token")
+      await page.screenshot({ path: `${SHOT_DIR}/combat_depth_combo_ready.png` })
+      await page.click(`.hwt-token[data-unit-id='${SAP}']`)
+      await page.waitForTimeout(450)
+      check(await page.locator(".hwt-combo-banner").count() === 1, "big COMBO! banner")
+      await page.screenshot({ path: `${SHOT_DIR}/combat_depth_combo_banner.png` })
+    } else out.push(`no free step next to ${SAP} (${sap})`)
+    // Delay a hero: it moves to the 'after the enemies' slot.
+    await page.click(".hwt-token[data-unit-id='player-commander']")
     await page.click("[data-action='delay']")
     check(await page.locator(".hwt-timeline [data-tl-delayed='true']").count() >= 1, "delayed hero shown after the enemies")
+    await page.evaluate(() => document.querySelector(".hwt-sb-bar")?.scrollIntoView({ block: "start" }))
+    await page.waitForTimeout(1500)
     await page.screenshot({ path: `${SHOT_DIR}/combat_depth_timeline.png` })
     await page.click(".hwt-end-turn")
     await page.waitForTimeout(2500)
+    await page.evaluate(() => document.querySelector(".hwt-sb-bar")?.scrollIntoView({ block: "start" }))
+    check(await page.locator(".hwt-timeline [data-tl-side='player'][data-tl-status='ready']").count() >= 4, "new round: heroes ready again")
     await page.screenshot({ path: `${SHOT_DIR}/combat_depth_after_turn.png` })
     check(!errs.length, `no page errors ${JSON.stringify(errs.slice(0, 3))}`)
   } finally {
